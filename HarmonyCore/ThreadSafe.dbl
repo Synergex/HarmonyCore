@@ -1,0 +1,66 @@
+import System
+import System.Collections.Generic
+import System.Text
+
+
+namespace Harmony.Core
+
+	;;; <summary>
+	;;;  Class containing static thread safe fields to allow for the control of thread-safe xfServer data access.
+	;;; </summary>
+	public class ThreadSafe
+		
+		{ThreadStatic}
+		public static ThreadHasRunOnce	,boolean
+		
+		public static RunningAsServer	,boolean	,false
+		
+		;;; <summary>
+		;;;	The AnchorToUIThread() method must be executed on the main UI thread prior to any other processing.  This ensures that the $$Symphony Framework$$
+		;;; can function corectly and all thread based processing is performed on the right threads.
+		;;; </summary>
+		public static method AnchorToUIThread, void
+			endparams
+		proc
+			lambda doNothing()
+			begin
+				nop
+			end
+.ifdef D_PORTABLE
+			;;Portable Class Library version
+.else
+			;;standard version
+			AppDomain.CurrentDomain.ProcessExit += doProcessExit
+
+.endc
+		endmethod
+		
+		;;
+		;;Event handler called when the process is closing down
+		;;
+		private static method doProcessExit	,void
+			sender						,@Object
+			eArgs						,@EventArgs
+			endparams
+		proc
+			;;if the consumer has not caalled the shutdown method, do it here.
+			if (ThreadSafe.ThreadHasRunOnce == true)
+				SymphonyShutdown()
+		endmethod
+
+		;;; <summary>
+		;;; Method to allow controled shutdown of background dispatchers.
+		;;; </summary>
+		public static method SymphonyShutdown	,void
+			endparams
+		proc
+.ifdef D_PORTABLE
+			;;Portable Class Library version
+.else
+			BackgroundDispatcher.DeallocateAllDispatchers()			
+.endc
+		endmethod
+
+	endclass
+
+endnamespace

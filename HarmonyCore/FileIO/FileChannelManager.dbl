@@ -1,0 +1,66 @@
+import System
+import System.Collections.Generic
+import System.Text
+
+
+namespace Harmony.Core.FileIO
+
+	public class FileChannelManager implements IFileChannelManager
+		public method GetChannel, int
+			fileName, @string
+			openMode, FileOpenMode
+		proc
+			data channel, i4, 0
+			using openMode select
+			(FileOpenMode.UpdateRelative),
+			begin
+				open(channel, 'u:r', fileName)
+			end
+			(FileOpenMode.Update, FileOpenMode.UpdateIndexed),
+			begin
+				open(channel, 'u:i', fileName)
+			end
+			(FileOpenMode.InputSequential),
+			begin
+				open(channel, 'i:s', fileName)
+			end
+			(FileOpenMode.InputRelative),
+			begin
+				open(channel, 'i:r', fileName)
+			end
+			(FileOpenMode.OutputSequential),
+			begin
+				open(channel, 'o:s', fileName)
+			end
+			(FileOpenMode.Input,FileOpenMode.InputIndexed),
+			begin
+				open(channel, 'i:i', fileName)
+			end
+			(FileOpenMode.AppendSequential),
+			begin
+				open(channel, 'a:s', fileName)
+			end
+			endusing
+			mreturn channel
+		endmethod
+
+		public method ReturnChannel, void
+			channelId, int
+		proc
+			close channelId
+		endmethod
+
+		public method ChannelHasHook, boolean
+			channelId, int
+		proc
+			mreturn false
+		endmethod
+
+		public method ChannelHookType, @Type
+			channelId, int
+		proc
+			mreturn ^null
+		endmethod
+	endclass
+
+endnamespace

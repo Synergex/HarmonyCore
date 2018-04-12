@@ -1,0 +1,167 @@
+;;**********************************************************************
+;;
+;; Title:       SynergyImpliedDecimalConverter.dbc
+;;
+;; Type:        Class
+;;
+;; Description: Data Converter : converts a synergy implied decimal
+;;
+;; Author:      Richard C. Morris, Synergex Technology Evangelist
+;;
+;; Copyright (c) 2012, Synergex International, Inc. All rights reserved.
+;;
+;; Redistribution and use in source and binary forms, with or without
+;; modification, are permitted provided that the following conditions are met:
+;;
+;; * Redistributions of source code must retain the above copyright notice,
+;;   this list of conditions and the following disclaimer.
+;;
+;; * Redistributions in binary form must reproduce the above copyright notice,
+;;   this list of conditions and the following disclaimer in the documentation
+;;   and/or other materials provided with the distribution.
+;;
+;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;; ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+;; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+;; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+;; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+;; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+;; POSSIBILITY OF SUCH DAMAGE.
+;;
+;;*****************************************************************************
+import System
+import System.Collections.Generic
+import System.Text	
+
+namespace Harmony.Core.Converters
+	
+	;;; <summary>
+	;;;  The SynergyImpliedDecimalConverter class is designed to convert a Synergy Implied Decimal data type to a <a href="https://docs.microsoft.com/en-us/dotnet/standard/clr" target="_blank">Command Language Runtime</a> compliant
+	;;;  type.  The Synergy Decimal field is converted to a Decimal type.  This class is used within the XAML Data Binding property
+	;;;  and allows the underlying $$Symphony Data Object$$ to expose Synergy Decimal data 
+	;;;  types.
+	;;; </summary>
+	public class SynergyImpliedDecimalConverter
+	
+			
+		;;; <summary>
+		;;;	Convertion from a Synergy Implied Decimal type to a native <a href="https://docs.microsoft.com/en-us/dotnet/standard/clr" target="_blank">Command Language Runtime</a> numeric type
+		;;; </summary>
+		;;; <param name="value">The inbound value to convert.</param>
+		;;; <param name="targetType">The datatype type of the target.</param>
+		;;; <param name="parameter">Any addiotnal binding parameters passed in, as specified by the ConverterParameter property.</param>
+		;;; <param name="culture">An instance of the System.Globalization.CultureInfo class that identifies the culture of the client _UI_.</param>
+		;;; <remarks>
+		;;; The Convert method is utilised by the _WPF_ framework when conversion of a databound source is required.  The SynergyImpliedDecimalConverter
+		;;; Convert method marshals the data from a Synergy Implied Decimal type to a native <a href="https://docs.microsoft.com/en-us/dotnet/standard/clr" target="_blank">Command Language Runtime</a> Decimal type.  The
+		;;; ConvererParameter can contain the following:
+		;;;		BLANKIFZERO which will clear the field to blanks if the value is zero.
+		;;; </remarks>
+		public static method Convert	,@Object
+			value				,@Object
+			targetType			,@Type
+			parameter			,@Object
+			culture				,@System.Globalization.CultureInfo
+			endparams
+		proc
+			if (value == ^null)
+				mreturn ^null
+				
+			if (value != ^null) DebugView.Write("Implied Decimal Convert Value : " + value.ToString())
+			if (targetType != ^null) DebugView.Write("Implied Decimal Convert Target type : " + targetType.ToString())
+			if (parameter != ^null) DebugView.Write("Implied Decimal Convert Parameter : " + Parameter.ToString())
+				
+			data decVal	,decimal
+				
+			try
+			begin
+				decVal = Convert.ToDecimal(value)
+			end
+			catch (e, @Exception)
+			begin
+				Harmony.Core.DebugView.Write("Value passed to converter (ID) :" + value.ToString() + ": end value", true)
+				Harmony.Core.DebugView.WriteException(e)
+			end
+			endtry
+				
+			if (parameter !=^null)
+			begin
+				data p, String, parameter.ToString()
+					
+				if (%instr(1, p.ToUpper(), 'BLANKIFZERO') && !decVal)
+				begin
+					DebugView.Write("Implied Decimal return : blank value" )
+					mreturn (Object) ""						
+				end
+			end
+				
+			DebugView.Write("Implied Decimal Convert return : " + decVal.ToString())
+				
+;				data tmpInt	,Int64
+;				tmpInt = decVal
+;				
+;				if (tmpInt == decVal) then
+;					mreturn (Object) tmpInt
+;				else
+			mreturn (Object) decVal
+		endmethod
+			
+		;;; <summary>
+		;;;	Convertion from the native <a href="https://docs.microsoft.com/en-us/dotnet/standard/clr" target="_blank">Command Language Runtime</a> Decimal value to a Synergy Implied Decimal value
+		;;; </summary>
+		;;; <param name="value">The inbound value to convert.</param>
+		;;; <param name="targetType">The datatype type of the target.</param>
+		;;; <param name="parameter">Any addiotnal binding parameters passed in, as specified by the ConverterParameter property.</param>
+		;;; <param name="culture">An instance of the System.Globalization.CultureInfo class that identifies the culture of the client _UI_.</param>
+		;;; <remarks>
+		;;; The Convert method is utilised by the _WPF_ framework when conversion of a databound source is required.  The SynergyImpliedDecimalConverter
+		;;; ConvertBack method marshals the data from a native <a href="https://docs.microsoft.com/en-us/dotnet/standard/clr" target="_blank">Command Language Runtime</a> Decimal type to a Synergy Implied Decimal type
+		;;; </remarks>
+		public static method ConvertBack	,@Object
+			value				,@Object
+			targetType			,@Type
+			parameter			,@Object
+			culture				,@System.Globalization.CultureInfo
+			endparams
+		proc
+				
+			if (value == ^null)
+				mreturn (Object)((id)0.0)
+				
+			if (value != ^null) DebugView.Write("Implied Decimal ConvertBack Value : " + value.ToString())
+			if (targetType != ^null) DebugView.Write("Implied Decimal ConvertBack Target type : " + targetType.ToString())
+			if (parameter != ^null) DebugView.Write("Implied Decimal ConvertBack Parameter : " + Parameter.ToString())
+				
+			data alphaVal	,String
+			data aVal		,a28
+			data decVal		,d28.10
+				
+			alphaVal = Convert.ToString(value)
+				
+			if (alphaVal.Length!=0)
+			begin
+				try
+				begin
+					aVal = alphaVal
+					decVal = aVal
+				end
+				catch (e, @Exception)
+				begin
+					decVal = 0
+				end
+				endtry
+			end
+				
+			DebugView.Write("Implied Decimal ConvertBack Parameter : " + %string(decVal))
+				
+			mreturn (Object) decVal
+				
+		endmethod
+	endclass
+		
+endnamespace
+		

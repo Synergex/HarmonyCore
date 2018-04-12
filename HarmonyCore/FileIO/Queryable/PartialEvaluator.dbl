@@ -1,0 +1,231 @@
+import System
+import System.Collections.Generic
+import System.Text
+import System.Linq.Expressions
+
+
+namespace Harmony.Core.FileIO.Queryable
+
+	
+	public static class PartialEvaluator
+    
+		;;;  <summary>
+		;;;  Performs evaluation and replacement of independent sub-trees
+		;;;  </summary>
+		;;;  <param name="expression">The root of the expression tree.</param>
+		;;;  <returns>A new tree with sub-trees evaluated and replaced.</returns>
+		public static method Eval, @Expression
+			expression, @Expression 
+			endparams
+		proc
+			mreturn Eval(expression, ^null, ^null)
+		endmethod
+    
+		;;;  <summary>
+		;;;  Performs evaluation and replacement of independent sub-trees
+		;;;  </summary>
+		;;;  <param name="expression">The root of the expression tree.</param>
+		;;;  <param name="fnCanBeEvaluated">A function that decides whether a given expression node can be part of the local function.</param>
+		;;;  <returns>A new tree with sub-trees evaluated and replaced.</returns>
+		public static method Eval, @Expression
+			expression, @Expression 
+			fnCanBeEvaluated, @Func<Expression, boolean> 
+			endparams
+		proc
+			mreturn Eval(expression, fnCanBeEvaluated, ^null)
+		endmethod
+    
+		public static method Eval, @Expression
+			expression, @Expression 
+			fnCanBeEvaluated, @Func<Expression, boolean> 
+			fnPostEval, @Func<ConstantExpression, Expression> 
+			endparams
+		proc
+			data local_fnCanBeEvaluated_p, @Func<Expression, boolean>, fnCanBeEvaluated
+			if (local_fnCanBeEvaluated_p == ^null)
+				local_fnCanBeEvaluated_p = PartialEvaluator.CanBeEvaluatedLocally
+			mreturn SubtreeEvaluator.Eval(Nominator.Nominate(local_fnCanBeEvaluated_p, expression), fnPostEval, expression)
+		endmethod
+    
+		private static method CanBeEvaluatedLocally, boolean
+			expression, @Expression 
+			endparams
+		proc
+			mreturn expression.NodeType != ExpressionType.Parameter
+		endmethod
+    
+		;;;  <summary>
+		;;;  Evaluates and replaces sub-trees when first candidate is reached (top-down)
+		;;;  </summary>
+		class SubtreeEvaluator extends ExpressionVisitor
+        
+			candidates, @HashSet<Expression>
+			onEval, @Func<ConstantExpression, Expression>
+        
+			private method SubtreeEvaluator
+				candidates, @HashSet<Expression> 
+				onEval, @Func<ConstantExpression, Expression> 
+				endparams
+			proc
+				this.candidates = candidates
+				this.onEval = onEval
+			endmethod
+        
+			internal static method Eval, @Expression
+				candidates, @HashSet<Expression> 
+				onEval, @Func<ConstantExpression, Expression> 
+				exp, @Expression 
+				endparams
+			proc
+				mreturn new SubtreeEvaluator(candidates, onEval).Visit(exp)
+			endmethod
+        
+			protected override method Visit, @Expression
+				exp, @Expression 
+				endparams
+			proc
+				if (exp == ^null)
+				begin
+					mreturn ^null
+				end
+				if (this.candidates.Contains(exp))
+				begin
+					mreturn this.Evaluate(exp)
+				end
+				mreturn parent.Visit(exp)
+			endmethod
+        
+			private method PostEval, @Expression
+				e, @ConstantExpression 
+				endparams
+			proc
+				if (this.onEval != ^null)
+				begin
+					mreturn this.onEval(e)
+				end
+				mreturn e
+			endmethod
+        
+			private method Evaluate, @Expression
+				e, @Expression 
+				endparams
+			proc
+				data local_e_p, @Expression, e
+				data local_type, @Type, local_e_p.Type
+				if (local_e_p.NodeType == ExpressionType.Convert)
+				begin
+					;;  check for unnecessary convert & strip them
+					data u = (@UnaryExpression)local_e_p
+					if (TypeHelper.GetNonNullableType(u.Operand.Type) == TypeHelper.GetNonNullableType(local_type))
+					begin
+						local_e_p = ((@UnaryExpression)local_e_p).Operand
+					end
+				end
+				if (local_e_p.NodeType == ExpressionType.Constant)
+				begin
+					;;  in case we actually threw out a nullable conversion above, simulate it here
+					;;  don't post-eval nodes that were already constants
+					if (local_e_p.Type == local_type) then
+					begin
+						mreturn local_e_p
+					end
+					else if (TypeHelper.GetNonNullableType(local_e_p.Type) == TypeHelper.GetNonNullableType(local_type))
+					begin
+						mreturn Expression.Constant(((@ConstantExpression)local_e_p).Value, local_type)
+					end
+				end
+				data me, @MemberExpression, ^as(local_e_p, MemberExpression)
+				if (me != ^null)
+				begin
+					;;  member accesses off of constant's are common, and yet since these partial evals
+					;;  are never re-used, using reflection to access the member is faster than compiling  
+					;;  and invoking a lambda
+					data ce, @ConstantExpression, ^as(me.Expression, ConstantExpression)
+					if (ce != ^null)
+					begin
+						data memberValue = ((@System.Reflection.FieldInfo)me.Member).GetValue(ce.Value)
+						mreturn this.PostEval(Expression.Constant(memberValue, local_type))
+					end
+				end
+				if (local_type.IsValueType)
+				begin
+					local_e_p = Expression.Convert(local_e_p, ^typeof(object))
+				end
+				data lambda, @Expression<Func<object>>, Expression.Lambda<Func<object>>(local_e_p)
+            
+.ifdef NOREFEMIT
+				;;                 Func<object> fn = ExpressionEvaluator.CreateDelegate(lambda);
+            
+.else
+				data fn, @Func<object>, lambda.Compile()
+            
+.endc
+				mreturn this.PostEval(Expression.Constant(fn(), local_type))
+			endmethod
+		endclass
+    
+		;;;  <summary>
+		;;;  Performs bottom-up analysis to determine which nodes can possibly
+		;;;  be part of an evaluated sub-tree.
+		;;;  </summary>
+		class Nominator extends ExpressionVisitor
+        
+			fnCanBeEvaluated, @Func<Expression, boolean>
+			candidates, @HashSet<Expression>
+			cannotBeEvaluated, boolean
+        
+			private method Nominator
+				fnCanBeEvaluated, @Func<Expression, boolean> 
+				endparams
+			proc
+				this.candidates = new HashSet<Expression>()
+				this.fnCanBeEvaluated = fnCanBeEvaluated
+			endmethod
+        
+			internal static method Nominate, @HashSet<Expression>
+				fnCanBeEvaluated, @Func<Expression, boolean> 
+				expression, @Expression 
+				endparams
+			proc
+				data local_nominator, @Nominator, new Nominator(fnCanBeEvaluated)
+				local_nominator.Visit(expression)
+				mreturn local_nominator.candidates
+			endmethod
+        
+			protected override method VisitConstant, @Expression
+				c, @ConstantExpression 
+				endparams
+			proc
+				mreturn parent.VisitConstant(c)
+			endmethod
+        
+			protected override method Visit, @Expression
+				expression, @Expression 
+				endparams
+			proc
+				if (expression != ^null)
+				begin
+					data saveCannotBeEvaluated, boolean, this.cannotBeEvaluated
+					this.cannotBeEvaluated = false
+					parent.Visit(expression)
+					if (!this.cannotBeEvaluated)
+					begin
+						if (this.fnCanBeEvaluated(expression)) then
+						begin
+							this.candidates.Add(expression)
+						end
+						else
+						begin
+							this.cannotBeEvaluated = true
+						end
+					end
+					this.cannotBeEvaluated |= saveCannotBeEvaluated
+				end
+				mreturn expression
+			endmethod
+		endclass
+	endclass
+
+
+
+endnamespace

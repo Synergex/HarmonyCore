@@ -1,0 +1,26 @@
+﻿import System
+import Microsoft.VisualStudio.TestTools.UnitTesting
+import Harmony.Core
+import Harmony.Core.FileIO
+import Harmony.Core.FileIO.Queryable
+import System.Linq.Dynamic.Core
+import System.Collections.Generic
+import System.Linq
+
+namespace Harmony.Core.Test
+	{TestClass()}
+	public class IQueryProviderTests
+		{TestMethod()}
+		public method SimpleRelativeWhere, void
+		proc
+			data fileChannelManager = new FileChannelManager()
+			data queryProvider = new QueryProvider(fileChannelManager.GetChannel("DAT:orders.ddf", FileOpenMode.InputRelative), ^typeof(Orders))
+			data obj, @Orders
+			data query = new Query<Orders>(queryProvider, (@Type)^null)
+
+			Assert.AreEqual(3, ((@IEnumerable<Orders>)query.Where("Or_number > 5 && Or_price > 1.5")).Count() )
+			Assert.AreEqual(5, ((@IEnumerable<Orders>)query.Where("Or_number > 5")).Count())
+			Assert.AreEqual(8, ((@IEnumerable<Orders>)query.Where("Or_number > 1")).Count())
+		endmethod
+	endclass
+endnamespace

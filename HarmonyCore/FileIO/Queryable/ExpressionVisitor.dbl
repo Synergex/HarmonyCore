@@ -1,0 +1,654 @@
+import System
+import System.Collections.Generic
+import System.Text
+import System.Linq.Expressions
+import System.Reflection
+import System.Collections.ObjectModel
+
+
+namespace Harmony.Core.FileIO.Queryable
+
+	
+	public abstract class ExpressionVisitor
+    
+		protected method ExpressionVisitor
+			endparams
+		proc
+    
+		endmethod
+    
+		protected virtual method Visit, @Expression
+			exp, @Expression 
+			endparams
+		proc
+			if (exp == ^null)
+				mreturn exp
+			using (exp.NodeType) select
+			(ExpressionType.Negate, ExpressionType.NegateChecked, ExpressionType.^id("Not"), ExpressionType.Convert, ExpressionType.ConvertChecked, ExpressionType.ArrayLength, ExpressionType.Quote, ExpressionType.TypeAs, ExpressionType.UnaryPlus),
+			begin
+				mreturn this.VisitUnary((@UnaryExpression)exp)
+			end
+			(ExpressionType.Add, ExpressionType.AddChecked, ExpressionType.Subtract, ExpressionType.SubtractChecked, ExpressionType.Multiply, ExpressionType.MultiplyChecked, ExpressionType.Divide, ExpressionType.Modulo, ExpressionType.^id("And"), ExpressionType.AndAlso, ExpressionType.^id("Or"), ExpressionType.OrElse, ExpressionType.LessThan, ExpressionType.LessThanOrEqual, ExpressionType.GreaterThan, ExpressionType.GreaterThanOrEqual, ExpressionType.Equal, ExpressionType.NotEqual, ExpressionType.Coalesce, ExpressionType.ArrayIndex, ExpressionType.RightShift, ExpressionType.LeftShift, ExpressionType.ExclusiveOr, ExpressionType.Power),
+			begin
+				mreturn this.VisitBinary((@BinaryExpression)exp)
+			end
+			(ExpressionType.TypeIs),
+			begin
+				mreturn this.VisitTypeIs((@TypeBinaryExpression)exp)
+			end
+			(ExpressionType.Conditional),
+			begin
+				mreturn this.VisitConditional((@ConditionalExpression)exp)
+			end
+			(ExpressionType.Constant),
+			begin
+				mreturn this.VisitConstant((@ConstantExpression)exp)
+			end
+			(ExpressionType.Parameter),
+			begin
+				mreturn this.VisitParameter((@ParameterExpression)exp)
+			end
+			(ExpressionType.MemberAccess),
+			begin
+				mreturn this.VisitMemberAccess((@MemberExpression)exp)
+			end
+			(ExpressionType.Call),
+			begin
+				mreturn this.VisitMethodCall((@MethodCallExpression)exp)
+			end
+			(ExpressionType.Lambda),
+			begin
+				mreturn this.VisitLambda((@LambdaExpression)exp)
+			end
+			(ExpressionType.New),
+			begin
+				mreturn this.VisitNew((@NewExpression)exp)
+			end
+			(ExpressionType.NewArrayInit, ExpressionType.NewArrayBounds),
+			begin
+				mreturn this.VisitNewArray((@NewArrayExpression)exp)
+			end
+			(ExpressionType.Invoke),
+			begin
+				mreturn this.VisitInvocation((@InvocationExpression)exp)
+			end
+			(ExpressionType.MemberInit),
+			begin
+				mreturn this.VisitMemberInit((@MemberInitExpression)exp)
+			end
+			(ExpressionType.ListInit),
+			begin
+				mreturn this.VisitListInit((@ListInitExpression)exp)
+			end
+			(),
+			begin
+				mreturn this.VisitUnknown(exp)
+			end
+			endusing
+		endmethod
+    
+		protected virtual method VisitUnknown, @Expression
+			expression, @Expression 
+			endparams
+		proc
+			throw new Exception(string.Format("Unhandled expression type: '{0}'", expression.NodeType))
+		endmethod
+    
+		protected virtual method VisitBinding, @MemberBinding
+			binding, @MemberBinding 
+			endparams
+		proc
+			using (binding.BindingType) select
+			(MemberBindingType.Assignment),
+			begin
+				mreturn this.VisitMemberAssignment((@MemberAssignment)binding)
+			end
+			(MemberBindingType.MemberBinding),
+			begin
+				mreturn this.VisitMemberMemberBinding((@MemberMemberBinding)binding)
+			end
+			(MemberBindingType.ListBinding),
+			begin
+				mreturn this.VisitMemberListBinding((@MemberListBinding)binding)
+			end
+			(),
+			begin
+				throw new Exception(string.Format("Unhandled binding type '{0}'", binding.BindingType))
+			end
+			endusing
+		endmethod
+    
+		protected virtual method VisitElementInitializer, @ElementInit
+			initializer, @ElementInit 
+			endparams
+		proc
+			data arguments, @ReadOnlyCollection<Expression>, this.VisitExpressionList(initializer.Arguments)
+			if (arguments != initializer.Arguments)
+			begin
+				mreturn Expression.ElementInit(initializer.AddMethod, arguments)
+			end
+			mreturn initializer
+		endmethod
+    
+		protected virtual method VisitUnary, @Expression
+			u, @UnaryExpression 
+			endparams
+		proc
+			data operand, @Expression, this.Visit(u.Operand)
+			mreturn this.UpdateUnary(u, operand, u.Type, u.Method)
+		endmethod
+    
+		protected method UpdateUnary, @UnaryExpression
+			u, @UnaryExpression 
+			operand, @Expression 
+			resultType, @Type 
+			method, @MethodInfo 
+			endparams
+		proc
+		if (((u.Operand != operand) || (u.Type != resultType)) || (u.Method != method))
+			begin
+				mreturn Expression.MakeUnary(u.NodeType, operand, resultType, method)
+			end
+			mreturn u
+		endmethod
+    
+		protected virtual method VisitBinary, @Expression
+			b, @BinaryExpression 
+			endparams
+		proc
+			data left, @Expression, this.Visit(b.Left)
+			data right, @Expression, this.Visit(b.Right)
+			data conversion, @Expression, this.Visit(b.Conversion)
+			mreturn this.UpdateBinary(b, left, right, conversion, b.IsLiftedToNull, b.Method)
+		endmethod
+    
+		protected method UpdateBinary, @BinaryExpression
+			b, @BinaryExpression 
+			left, @Expression 
+			right, @Expression 
+			conversion, @Expression 
+			isLiftedToNull, boolean 
+			method, @MethodInfo 
+			endparams
+		proc
+		if (((((left != b.Left) || (right != b.Right)) || (conversion != b.Conversion)) || (method != b.Method)) || (isLiftedToNull != b.IsLiftedToNull))
+			begin
+				if ((b.NodeType == ExpressionType.Coalesce) && (b.Conversion != ^null)) then
+				begin
+					mreturn Expression.Coalesce(left, right, ^as(conversion, LambdaExpression))
+				end
+				else
+				begin
+					mreturn Expression.MakeBinary(b.NodeType, left, right, isLiftedToNull, method)
+				end
+			end
+			mreturn b
+		endmethod
+    
+		protected virtual method VisitTypeIs, @Expression
+			b, @TypeBinaryExpression 
+			endparams
+		proc
+			data expr, @Expression, this.Visit(b.Expression)
+			mreturn this.UpdateTypeIs(b, expr, b.TypeOperand)
+		endmethod
+    
+		protected method UpdateTypeIs, @TypeBinaryExpression
+			b, @TypeBinaryExpression 
+			expression, @Expression 
+			typeOperand, @Type 
+			endparams
+		proc
+			if ((expression != b.Expression) || (typeOperand != b.TypeOperand))
+			begin
+				mreturn System.Linq.Expressions.Expression.TypeIs(expression, typeOperand)
+			end
+			mreturn b
+		endmethod
+    
+		protected virtual method VisitConstant, @Expression
+			c, @ConstantExpression 
+			endparams
+		proc
+			mreturn c
+		endmethod
+    
+		protected virtual method VisitConditional, @Expression
+			c, @ConditionalExpression 
+			endparams
+		proc
+			data test, @Expression, this.Visit(c.Test)
+			data ifTrue, @Expression, this.Visit(c.IfTrue)
+			data ifFalse, @Expression, this.Visit(c.IfFalse)
+			mreturn this.UpdateConditional(c, test, ifTrue, ifFalse)
+		endmethod
+    
+		protected method UpdateConditional, @ConditionalExpression
+			c, @ConditionalExpression 
+			test, @Expression 
+			ifTrue, @Expression 
+			ifFalse, @Expression 
+			endparams
+		proc
+			if (((test != c.Test) || (ifTrue != c.IfTrue)) || (ifFalse != c.IfFalse))
+			begin
+				mreturn System.Linq.Expressions.Expression.Condition(test, ifTrue, ifFalse)
+			end
+			mreturn c
+		endmethod
+    
+		protected virtual method VisitParameter, @Expression
+			p, @ParameterExpression 
+			endparams
+		proc
+			mreturn p
+		endmethod
+    
+		protected virtual method VisitMemberAccess, @Expression
+			m, @MemberExpression 
+			endparams
+		proc
+			data exp, @Expression, this.Visit(m.Expression)
+			mreturn this.UpdateMemberAccess(m, exp, m.Member)
+		endmethod
+    
+		protected method UpdateMemberAccess, @MemberExpression
+			m, @MemberExpression 
+			expression, @Expression 
+			member, @MemberInfo 
+			endparams
+		proc
+			if ((expression != m.Expression) || (member != m.Member))
+			begin
+				mreturn System.Linq.Expressions.Expression.MakeMemberAccess(expression, member)
+			end
+			mreturn m
+		endmethod
+    
+		protected virtual method VisitMethodCall, @Expression
+			m, @MethodCallExpression 
+			endparams
+		proc
+			data obj, @Expression, this.Visit(m.Object)
+			data args, @IEnumerable<Expression>, this.VisitExpressionList(m.Arguments)
+			mreturn this.UpdateMethodCall(m, obj, m.Method, args)
+		endmethod
+    
+		protected method UpdateMethodCall, @MethodCallExpression
+			m, @MethodCallExpression 
+			obj, @Expression 
+			method, @MethodInfo 
+			args, @IEnumerable<Expression> 
+			endparams
+		proc
+		if (((obj != m.Object) || (method != m.Method)) || (args != (@IEnumerable<Expression>)m.Arguments))
+			begin
+				mreturn System.Linq.Expressions.Expression.Call(obj, method, args)
+			end
+			mreturn m
+		endmethod
+    
+		protected virtual method VisitExpressionList, @ReadOnlyCollection<Expression>
+			original, @ReadOnlyCollection<Expression> 
+			endparams
+		proc
+			if (original != ^null)
+			begin
+				data list, @List<Expression>, ^null
+				data i, int, 0
+				data n, int, original.Count
+				while (i < n) do
+				begin
+					data p, @Expression, this.Visit(original[i])
+					if (list != ^null) then
+					begin
+						list.Add(p)
+					end
+					else if (p != original[i])
+					begin
+						list = new List<Expression>(n)
+						begin
+							data j, int
+							for j from 0 thru i - 1
+							begin
+								list.Add(original[j])
+							end
+						end
+						list.Add(p)
+					end
+					^incr(i, true)
+				end
+				if (list != ^null)
+				begin
+					mreturn list.AsReadOnly()
+				end
+			end
+			mreturn original
+		endmethod
+    
+		protected virtual method VisitMemberAndExpressionList, @ReadOnlyCollection<Expression>
+			members, @ReadOnlyCollection<MemberInfo> 
+			original, @ReadOnlyCollection<Expression> 
+			endparams
+		proc
+			if (original != ^null)
+			begin
+				data list, @List<Expression>, ^null
+				data i, int, 0
+				data n, int, original.Count
+				while (i < n) do
+				begin
+					data p, @Expression, this.VisitMemberAndExpression(members != ^null ? members[i] : ^null, original[i])
+					if (list != ^null) then
+					begin
+						list.Add(p)
+					end
+					else if (p != original[i])
+					begin
+						list = new List<Expression>(n)
+						begin
+							data j, int
+							for j from 0 thru i - 1
+							begin
+								list.Add(original[j])
+							end
+						end
+						list.Add(p)
+					end
+					^incr(i, true)
+				end
+				if (list != ^null)
+				begin
+					mreturn list.AsReadOnly()
+				end
+			end
+			mreturn original
+		endmethod
+    
+		protected virtual method VisitMemberAndExpression, @Expression
+			member, @MemberInfo 
+			expression, @Expression 
+			endparams
+		proc
+			mreturn this.Visit(expression)
+		endmethod
+    
+		protected virtual method VisitMemberAssignment, @MemberAssignment
+			assignment, @MemberAssignment 
+			endparams
+		proc
+			data e, @Expression, this.Visit(assignment.Expression)
+			mreturn this.UpdateMemberAssignment(assignment, assignment.Member, e)
+		endmethod
+    
+		protected method UpdateMemberAssignment, @MemberAssignment
+			assignment, @MemberAssignment 
+			member, @MemberInfo 
+			expression, @Expression 
+			endparams
+		proc
+			if ((expression != assignment.Expression) || (member != assignment.Member))
+			begin
+				mreturn System.Linq.Expressions.Expression.Bind(member, expression)
+			end
+			mreturn assignment
+		endmethod
+    
+		protected virtual method VisitMemberMemberBinding, @MemberMemberBinding
+			binding, @MemberMemberBinding 
+			endparams
+		proc
+			data bindings, @IEnumerable<MemberBinding>, this.VisitBindingList(binding.Bindings)
+			mreturn this.UpdateMemberMemberBinding(binding, binding.Member, bindings)
+		endmethod
+    
+		protected method UpdateMemberMemberBinding, @MemberMemberBinding
+			binding, @MemberMemberBinding 
+			member, @MemberInfo 
+			bindings, @IEnumerable<MemberBinding> 
+			endparams
+		proc
+			if ((bindings != (@IEnumerable<MemberBinding>)binding.Bindings) || (member != binding.Member))
+			begin
+				mreturn System.Linq.Expressions.Expression.MemberBind(member, bindings)
+			end
+			mreturn binding
+		endmethod
+    
+		protected virtual method VisitMemberListBinding, @MemberListBinding
+			binding, @MemberListBinding 
+			endparams
+		proc
+			data initializers, @IEnumerable<ElementInit>, this.VisitElementInitializerList(binding.Initializers)
+			mreturn this.UpdateMemberListBinding(binding, binding.Member, initializers)
+		endmethod
+    
+		protected method UpdateMemberListBinding, @MemberListBinding
+			binding, @MemberListBinding 
+			member, @MemberInfo 
+			initializers, @IEnumerable<ElementInit> 
+			endparams
+		proc
+			if ((initializers != (@IEnumerable<ElementInit>)binding.Initializers) || (member != binding.Member))
+			begin
+				mreturn System.Linq.Expressions.Expression.ListBind(member, initializers)
+			end
+			mreturn binding
+		endmethod
+    
+		protected virtual method VisitBindingList, @IEnumerable<MemberBinding>
+			original, @ReadOnlyCollection<MemberBinding> 
+			endparams
+		proc
+			data list, @List<MemberBinding>, ^null
+			data i, int, 0
+			data n, int, original.Count
+			while (i < n) do
+			begin
+				data b, @MemberBinding, this.VisitBinding(original[i])
+				if (list != ^null) then
+				begin
+					list.Add(b)
+				end
+				else if (b != original[i])
+				begin
+					list = new List<MemberBinding>(n)
+					begin
+						data j, int
+						for j from 0 thru i - 1
+						begin
+							list.Add(original[j])
+						end
+					end
+					list.Add(b)
+				end
+				^incr(i, true)
+			end
+			if (list != ^null)
+				mreturn list
+			mreturn original
+		endmethod
+    
+		protected virtual method VisitElementInitializerList, @IEnumerable<ElementInit>
+			original, @ReadOnlyCollection<ElementInit> 
+			endparams
+		proc
+			data list, @List<ElementInit>, ^null
+			data i, int, 0
+			data n, int, original.Count
+			while (i < n) do
+			begin
+				data init, @ElementInit, this.VisitElementInitializer(original[i])
+				if (list != ^null) then
+				begin
+					list.Add(init)
+				end
+				else if (init != original[i])
+				begin
+					list = new List<ElementInit>(n)
+					begin
+						data j, int
+						for j from 0 thru i - 1
+						begin
+							list.Add(original[j])
+						end
+					end
+					list.Add(init)
+				end
+				^incr(i, true)
+			end
+			if (list != ^null)
+				mreturn list
+			mreturn original
+		endmethod
+    
+		protected virtual method VisitLambda, @Expression
+			lambda, @LambdaExpression 
+			endparams
+		proc
+			data body, @Expression, this.Visit(lambda.Body)
+			mreturn this.UpdateLambda(lambda, lambda.Type, body, lambda.Parameters)
+		endmethod
+    
+		protected method UpdateLambda, @LambdaExpression
+			lambdaParm, @LambdaExpression 
+			delegateType, @Type 
+			body, @Expression 
+			parameters, @IEnumerable<ParameterExpression> 
+			endparams
+		proc
+			if (((body != lambdaParm.Body) || (parameters != (IEnumerable<ParameterExpression>)lambdaParm.Parameters)) || (delegateType != lambdaParm.Type))
+			begin
+				data result, @LambdaExpression, System.Linq.Expressions.Expression.^id("Lambda")(delegateType, body, parameters)
+				mreturn result
+			end
+			mreturn lambdaParm
+		endmethod
+    
+		protected virtual method VisitNew, @NewExpression
+			nex, @NewExpression 
+			endparams
+		proc
+			data args, @IEnumerable<Expression>, this.VisitMemberAndExpressionList(nex.Members, nex.Arguments)
+			mreturn this.UpdateNew(nex, nex.Constructor, args, nex.Members)
+		endmethod
+    
+		protected method UpdateNew, @NewExpression
+			nex, @NewExpression 
+			constructor, @ConstructorInfo 
+			args, @IEnumerable<Expression> 
+			members, @IEnumerable<MemberInfo> 
+			endparams
+		proc
+			if (((args != (@IEnumerable<Expression>)nex.Arguments) || (constructor != nex.Constructor)) || (members != (@IEnumerable<MemberInfo>)nex.Members))
+			begin
+				if (nex.Members != ^null) then
+				begin
+					mreturn System.Linq.Expressions.Expression.New(constructor, args, members)
+				end
+				else
+				begin
+					mreturn System.Linq.Expressions.Expression.New(constructor, args)
+				end
+			end
+			mreturn nex
+		endmethod
+    
+		protected virtual method VisitMemberInit, @Expression
+			init, @MemberInitExpression 
+			endparams
+		proc
+			data n, @NewExpression, this.VisitNew(init.NewExpression)
+			data bindings, @IEnumerable<MemberBinding>, this.VisitBindingList(init.Bindings)
+			mreturn this.UpdateMemberInit(init, n, bindings)
+		endmethod
+    
+		protected method UpdateMemberInit, @MemberInitExpression
+			init, @MemberInitExpression 
+			nex, @NewExpression 
+			bindings, @IEnumerable<MemberBinding> 
+			endparams
+		proc
+			if ((nex != init.NewExpression) || (bindings != (IEnumerable<MemberBinding>)init.Bindings))
+			begin
+				mreturn Expression.MemberInit(nex, bindings)
+			end
+			mreturn init
+		endmethod
+    
+		protected virtual method VisitListInit, @Expression
+			init, @ListInitExpression 
+			endparams
+		proc
+			data n, @NewExpression, this.VisitNew(init.NewExpression)
+			data initializers, @IEnumerable<ElementInit>, this.VisitElementInitializerList(init.Initializers)
+			mreturn this.UpdateListInit(init, n, initializers)
+		endmethod
+    
+		protected method UpdateListInit, @ListInitExpression
+			init, @ListInitExpression 
+			nex, @NewExpression 
+			initializers, @IEnumerable<ElementInit> 
+			endparams
+		proc
+			if ((nex != init.NewExpression) || (initializers != (@IEnumerable<ElementInit>)init.Initializers))
+			begin
+				mreturn Expression.ListInit(nex, initializers)
+			end
+			mreturn init
+		endmethod
+    
+		protected virtual method VisitNewArray, @Expression
+			na, @NewArrayExpression 
+			endparams
+		proc
+			data exprs, @IEnumerable<Expression>, this.VisitExpressionList(na.Expressions)
+			mreturn this.UpdateNewArray(na, na.Type, exprs)
+		endmethod
+    
+		protected method UpdateNewArray, @NewArrayExpression
+			na, @NewArrayExpression 
+			arrayType, @Type 
+			expressions, @IEnumerable<Expression> 
+			endparams
+		proc
+			if ((expressions != (@IEnumerable<Expression>)na.Expressions) || (na.Type != arrayType))
+			begin
+				if (na.NodeType == ExpressionType.NewArrayInit) then
+				begin
+					mreturn System.Linq.Expressions.Expression.NewArrayInit(arrayType.GetElementType(), expressions)
+				end
+				else
+				begin
+					mreturn System.Linq.Expressions.Expression.NewArrayBounds(arrayType.GetElementType(), expressions)
+				end
+			end
+			mreturn na
+		endmethod
+    
+		protected virtual method VisitInvocation, @Expression
+			iv, @InvocationExpression 
+			endparams
+		proc
+			data args, @IEnumerable<Expression>, this.VisitExpressionList(iv.Arguments)
+			data expr, @Expression, this.Visit(iv.Expression)
+			mreturn this.UpdateInvocation(iv, expr, args)
+		endmethod
+    
+		protected method UpdateInvocation, @InvocationExpression
+			iv, @InvocationExpression 
+			expression, @Expression 
+			args, @IEnumerable<Expression> 
+			endparams
+		proc
+			if ((args != (@IEnumerable<Expression>)iv.Arguments) || (expression != iv.Expression))
+			begin
+				mreturn System.Linq.Expressions.Expression.Invoke(expression, args)
+			end
+			mreturn iv
+		endmethod
+	endclass
+
+
+
+endnamespace

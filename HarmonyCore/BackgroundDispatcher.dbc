@@ -1,0 +1,425 @@
+;;**********************************************************************
+;;
+;; Title:       BackgroundDispatcher.dbc
+;;
+;; Type:        Class
+;;
+;; Description: Class to control background utility processing
+;;
+;; Author:      Richard C. Morris, Synergex Technology Evangelist
+;;
+;; Copyright (c) 2012, Synergex International, Inc. All rights reserved.
+;;
+;; Redistribution and use in source and binary forms, with or without
+;; modification, are permitted provided that the following conditions are met:
+;;
+;; * Redistributions of source code must retain the above copyright notice,
+;;   this list of conditions and the following disclaimer.
+;;
+;; * Redistributions in binary form must reproduce the above copyright notice,
+;;   this list of conditions and the following disclaimer in the documentation
+;;   and/or other materials provided with the distribution.
+;;
+;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;; ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+;; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+;; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+;; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+;; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+;; POSSIBILITY OF SUCH DAMAGE.
+;;
+;;*****************************************************************************
+
+.define CONST_MaxReferenceCount	,10
+
+import System
+import System.Collections.Generic
+import System.Text
+
+import System.Threading
+import System.Threading.Tasks
+import Nito.AsyncEx
+
+namespace Harmony.Core
+	
+	;;; <summary>
+	;;;  The BackgroundDispatcher class should be used to control processing of background tasks
+	;;; </summary>
+	public class BackgroundDispatcher implements IDisposable
+		
+		;;; <summary>
+		;;;  Create an instance of a BackgroundDispatcher to execute code on a background thread.
+		;;; </summary>
+		public static property UtilityBackgroundDispatcher	,@BackgroundDispatcher
+			method get
+			proc
+				try
+				begin
+					Monitor.Enter(mActiveDispatcherList)
+					if (mActiveDispatcherList.Count == 0)
+					begin
+						data item = new DispatcherItem()
+						item.BDitem = new BackgroundDispatcher(false)
+						item.BDUnique = mAreDispatchersUnique
+						item.referenceCount = 1
+						mActiveDispatcherList.Add(item)
+					end
+					mreturn mActiveDispatcherList[0].BDitem
+				end
+				catch (e, @Exception)
+				begin
+					Harmony.Core.DebugView.WriteException(e)
+				end
+				finally
+				begin
+					Monitor.Exit(mActiveDispatcherList)
+				end
+				endtry
+			endmethod
+		endproperty
+		
+		private static mAreDispatchersUnique	,boolean	,false
+		
+		;;private memebers
+		private mThread	,@AsyncContextThread
+		
+		;;define the structure of live dispatchers 
+		private class DispatcherItem
+			public referenceCount	,int
+			public BDitem			,@BackgroundDispatcher
+			public BDUnique			,boolean	,false
+		endclass
+		
+		;;store a list of active dispatcher super channels
+		private static mActiveDispatcherList	,@List<DispatcherItem>	,new List<DispatcherItem>()
+		
+		;;; <summary>
+		;;;  Allocate and return a BackgroundDispatcher object.  
+		;;; </summary>
+		public static method AllocateDispatcher	,@BackgroundDispatcher
+			endparams
+		proc
+			data item	,@DispatcherItem
+			try
+			begin
+				Monitor.Enter(mActiveDispatcherList)
+				foreach item in mActiveDispatcherList
+				begin
+					;;have we got room
+					if (item.referenceCount < CONST_MaxReferenceCount && !item.BDUnique)
+					begin
+						incr item.referenceCount
+						mreturn item.BDitem
+					end
+				end
+				
+				;;if we are here then either no active dispatcher items or they are all full
+				item = new DispatcherItem()
+				item.BDitem = new BackgroundDispatcher(false)
+				item.BDUnique = mAreDispatchersUnique
+				item.referenceCount = 1
+				mActiveDispatcherList.Add(item)
+			end
+			catch (e, @Exception)
+			begin
+				Harmony.Core.DebugView.WriteException(e)
+			end
+			finally
+			begin
+				Monitor.Exit(mActiveDispatcherList)
+			end
+			endtry
+			mreturn item.BDitem
+		endmethod
+		
+		;;; <summary>
+		;;;  Allocate and return a BackgroundDispatcher object.  
+		;;; </summary>
+		;;; <param name="uniqueDispatcher">Force the creation of a unique dispatcher.</param>
+		public static method AllocateDispatcher	,@BackgroundDispatcher
+			in req uniqueDispatcher				,boolean
+			endparams
+		proc
+			data item	,@DispatcherItem
+			item = new DispatcherItem()
+			item.BDitem = new BackgroundDispatcher(false)
+			item.referenceCount = 1
+			item.BDUnique = true
+			try
+			begin
+				Monitor.Enter(mActiveDispatcherList)
+				mActiveDispatcherList.Add(item)
+			end
+			catch (e, @Exception)
+			begin
+				Harmony.Core.DebugView.WriteException(e)
+			end
+			finally
+			begin
+				Monitor.Exit(mActiveDispatcherList)
+			end
+			endtry
+			mreturn item.BDitem
+		endmethod
+
+		;;; <summary>
+		;;;  Deallocate the passed dispatcher and remove from the dispatcher collection.
+		;;; </summary>		
+		;;; <param name="dispatchObject">Pass in the BackgroundDispatcher object instance.</param>
+		public static method DeallocateDispatcher	,void
+			in req	dispatchObject					,@BackgroundDispatcher
+			endparams
+		proc
+			data item	,@DispatcherItem
+			try
+			begin
+				Monitor.Enter(mActiveDispatcherList)
+				foreach item in mActiveDispatcherList
+				begin
+					;;find the passd dispatcher object in our list
+					if (item.BDitem == dispatchObject)
+					begin
+						;;found it, so remove it!!
+						decr item.referenceCount
+						if (item.referenceCount == 0 && item.BDitem != ^null)
+						begin
+							;;before we dispose of the dispatcher, let's give the "consumer" the option to close things down
+							;item.BDitem.BackgroundThread.Join()
+							item.BDitem.Dispose()
+							item.BDitem = ^null
+							mActiveDispatcherList.Remove(item)
+							exitloop
+						end
+					end
+				end
+			end
+			catch (e, @Exception)
+			begin
+				Harmony.Core.DebugView.WriteException(e)
+			end
+			finally
+			begin
+				Monitor.Exit(mActiveDispatcherList)
+			end
+			endtry
+			
+			
+
+		endmethod
+		
+		;;; <summary>
+		;;;  Deallocate the passed dispatcher and remove from the dispatcher collection.
+		;;; </summary>		
+		public static method DeallocateAllDispatchers	,void
+			endparams
+		proc
+			data item	,@DispatcherItem
+			try
+			begin
+				Monitor.Enter(mActiveDispatcherList)
+				foreach item in mActiveDispatcherList
+				begin
+					;;found it, so remove it!!
+					decr item.referenceCount
+					if (item.referenceCount == 0 && item.BDitem != ^null)
+					begin
+						;;before we dispose of the dispatcher, let's give the "consumer" the option to close things down
+						;item.BDitem.BackgroundThread.Join()
+						item.BDitem.Dispose()
+						item.BDitem = ^null
+					end
+				end
+			end
+			catch (e, @Exception)
+			begin
+				Harmony.Core.DebugView.WriteException(e)
+			end
+			finally
+			begin
+				mActiveDispatcherList.Clear()
+				Monitor.Exit(mActiveDispatcherList)
+				if (ThreadSafe.ThreadHasRunOnce == true)
+				begin
+.ifdef DBLV1033
+	;;				xcall s_server_thread_shutdown()
+.endc
+					ThreadSafe.ThreadHasRunOnce = false
+				end
+			end
+			endtry
+			
+		endmethod
+		
+		public property BackgroundThread, @AsyncContextThread
+			method get
+			proc
+				mreturn mThread
+			endmethod
+		endproperty
+		
+
+		;;; <summary>
+		;;;  Constructor.  Create and instance of the BackgroundDispatcher object
+		;;; </summary>
+		public method BackgroundDispatcher
+			xfServerThreadInit, boolean
+			endparams
+		proc
+			;;do we want unique dispatchers?
+			data uniqueDispatchers	,a5
+			data logLength			,int
+			getlog("SYMPHONY_UNIQUE_DISPATCHERS", uniqueDispatchers	, logLength)
+			upcase uniqueDispatchers
+			logLength = 4
+			uniqueDispatchers = "TRUE"
+			if (logLength && uniqueDispatchers .eqs. "TRUE" .or. ThreadSafe.RunningAsServer == true)
+				mAreDispatchersUnique = true
+			
+
+			mThread = new AsyncContextThread()
+			if(xfServerThreadInit)
+			begin
+				lambda contextInit()
+				begin
+					try
+					begin
+						s_server_thread_init()
+						ThreadSafe.ThreadHasRunOnce = true
+					end
+
+					catch (e, @Exception)
+					begin
+						Harmony.Core.DebugView.Write("runDispatcher::Exception - " + e.Message, true)
+						Harmony.Core.DebugView.Write(e.Message, true)
+						Harmony.Core.DebugView.WriteException(e)		  
+					end
+					endtry
+				end
+			end
+		endmethod
+		
+		;;; <summary>
+		;;;  Disopsable method.
+		;;; </summary>
+		public method Dispose, void
+			endparams
+		proc
+			if (mThread != ^null)
+			begin
+				mThread.Dispose()
+				mThread = ^null
+			end
+		endmethod
+		
+		;;; <summary>
+		;;;  Dispatch the delegate (action) onto the BackgroundDispatcher thread and execute.
+		;;; </summary>
+		;;; <param name="operation">The action to complete.</param>
+		;;; <return>Return the created task that is performing the requested action.</return>
+		public method Dispatch	,@Task
+			operation			,@Action
+			endparams
+		proc
+			;;create a handle to let things know when the task is complete (and it's sucess)
+			data completionSource = new TaskCompletionSource<Boolean>()
+			
+			;;call the invokeHelper mether to execute the "operation" code and return the completion status
+			if (mThread.Context == AsyncContext.Current) then
+			begin
+				invokeHelper(operation, completionSource)
+			end
+			else
+			begin
+				mThread.Factory.Run((Action)(lambda() { invokeHelper(operation, completionSource) }))
+			end
+			
+			mreturn completionSource.Task
+			
+		endmethod
+		
+		;;; <summary>
+		;;;  Dispatch the delegate (action) onto the BackgroundDispatcher thread and execute.
+		;;; </summary>
+		;;; <param name="operation">The action to complete.</param>
+		;;; <return>Return the created task that is performing the requested action.</return>
+		public async method Dispatch<T>	,@Task<T>
+			operation				,@Func<T>
+			endparams
+		proc
+			;;create a handle to let things know when the task is complete (and it's sucess)
+			data completionSource = new TaskCompletionSource<T>()
+			;;call the invokeHelper mether to execute the "operation" code and return the completion status
+			if (mThread.Context == AsyncContext.Current) then
+				invokeHelper<T>(operation, completionSource)
+			else
+				mThread.Factory.Run((Action)(lambda() { invokeHelper<T>(operation, completionSource) }))
+
+			mreturn await completionSource.Task
+			
+		endmethod
+		
+		;;actually perform the required task/operation.  completionSource reutns the status
+		private method invokeHelper	,void
+			operation				,@Action
+			completionSource		,@TaskCompletionSource<Boolean>
+			endparams
+		proc
+			try
+			begin
+				operation()
+				completionSource.SetResult(true)
+			end
+			catch (e, @System.AggregateException)
+			begin
+				;;this means there are sub-exceptions
+				;;process them all!
+				e.Handle(doAggregateExceptionReporting)			
+			end
+			catch (e, @Exception)
+			begin
+				completionSource.SetException(e)
+				Harmony.Core.DebugView.WriteException(e)
+			end
+			endtry
+		endmethod
+		
+		;;actually perform the required task/operation.  completionSource reutns the status
+		private method invokeHelper<T>	,void
+			operation					,@Func<T>
+			completionSource			,@TaskCompletionSource<T>
+			endparams
+		proc
+			try
+			begin
+				completionSource.SetResult(operation())
+			end
+			catch (e, @System.AggregateException)
+			begin
+				;;this means there are sub-exceptions
+				;;process them all!
+				e.Handle(doAggregateExceptionReporting)			
+			end
+			catch (e, @Exception)
+			begin
+				completionSource.SetException(e)
+				Harmony.Core.DebugView.WriteException(e)
+			end
+			endtry
+		endmethod
+		
+		;;handle exception processing
+		private method doAggregateExceptionReporting, boolean
+			in req subException		,@Exception
+			endparams
+		proc
+			Harmony.Core.DebugView.WriteException(subException)
+			mreturn true
+		endmethod
+		
+	endclass
+	
+endnamespace

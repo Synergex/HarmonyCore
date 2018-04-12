@@ -1,0 +1,66 @@
+
+import System
+import System.Collections.Generic
+import System.Text
+
+namespace Harmony.Core.Interface
+
+	;;; <summary>
+	;;; This interface gives the ability to provide custom debug logging to the Symphony Framework.
+	;;; </summary>
+	public interface IDebugLogging
+		
+		readonly property Level, LogLevel
+
+		;;; <summary>
+		;;; Should returns a value (True/False) to indicate if debugging is enabled,
+		;;; </summary>
+		method IsLoggingEnabled, boolean
+			endparams
+		endmethod
+
+		;;; <summary>
+		;;;  Process the inbound string value.
+		;;; </summary>
+		;;; <remarks>
+		;;; Log the passed string to your custom logging environment.
+		;;; </remarks>
+		method LogMessage	,void
+			in req message	,String
+			endparams
+		endmethod
+
+		;;; <summary>
+		;;;  Process the inbound exception details.
+		;;; </summary>
+		;;; <remarks>
+		;;; Log the passed expection to your custom logging environment.
+		;;; </remarks>
+		method LogException, void
+			in req exceptionObject	,@Exception
+			endparams
+		endmethod
+
+		;;; <summary>
+		;;;  Write to the event log.
+		;;; </summary>
+		;;; <remarks>
+		;;; Log the inbound string array to the system event log.
+		;;; </remarks>
+		method WriteToEventLog	,void
+			in req outputString	,[#]String
+			endparams
+		endmethod
+
+	endinterface
+	
+	public enum LogLevel
+		FatalError,
+		Error,
+		Warning,
+		Info,
+		Diagnostic
+	endenum
+
+
+endnamespace
