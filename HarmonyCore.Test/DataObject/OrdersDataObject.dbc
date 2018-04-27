@@ -11,6 +11,7 @@ import System
 import System.Collections.Generic
 import System.Text
 import Harmony.Core.Converters
+import Microsoft.AspNet.OData.Builder
 
 namespace Harmony.Core.Test
 
@@ -55,8 +56,12 @@ namespace Harmony.Core.Test
 			targetMethod(mSynergyData, mGlobalRFA)
 		endmethod
 		
+		;;{Contained}
+		;;public readwrite property VinylRecords, @ICollection<Orders>
+
         ;;Expose fields as properties for data binding
-        ;;Or_number
+		;;Or_number
+		{System.ComponentModel.DataAnnotations.KeyAttribute}
 		public property Or_number, int
 			method get
 			proc
@@ -144,8 +149,9 @@ namespace Harmony.Core.Test
 		public property Or_odate, DateTime
 			method get
 			proc
-				mreturn (DateTime)DateTime.Parse((string)mSynergyData.Or_odate)
-				
+				data dt, DateTime
+				DateTime.TryParse((string)mSynergyData.Or_odate, dt)
+				mreturn dt
             endmethod
 			method set
 			proc
@@ -155,8 +161,9 @@ namespace Harmony.Core.Test
 		public property Or_sdate, DateTime
 			method get
 			proc
-				mreturn (DateTime)DateTime.Parse((string)mSynergyData.Or_sdate)
-				
+				data dt, DateTime
+				DateTime.TryParse((string)mSynergyData.Or_sdate, dt)
+				mreturn dt
             endmethod
 			method set
 			proc
@@ -166,7 +173,9 @@ namespace Harmony.Core.Test
 		public property Or_edate, DateTime
 			method get
 			proc
-				mreturn (DateTime)DateTime.Parse((string)mSynergyData.Or_edate)
+				data dt, DateTime
+				DateTime.TryParse((string)mSynergyData.Or_edate, dt)
+				mreturn dt
 				
             endmethod
 			method set
@@ -222,7 +231,7 @@ namespace Harmony.Core.Test
 		endproperty
 	endclass
 	
-	public partial class OrdersMetadata extends Harmony.Core.DataObjectMetadataBase
+	public partial class OrdersMetadata extends Harmony.Core.DataObjectMetadataBase implements Harmony.Core.Interface.IJoinableDataObjectMetadata
 		
 		public method OrdersMetadata
 		proc
@@ -244,11 +253,20 @@ namespace Harmony.Core.Test
 		endmethod
 	
 		public override method MakeNew, @DataObjectBase
-			dataArea, a
-			grfa, a
+			req in dataArea, a
+			req in grfa, a
 		proc
 			mreturn new Orders((STROrders)dataArea) { GlobalRFA = grfa }
 		endmethod
+
+		public method MakeNew, @DataObjectBase
+			in req recordData, a
+			in req grfaData, a
+			in req joinedData, @Dictionary<string, Object>
+		proc
+			mreturn new Orders((STROrders)recordData) { GlobalRFA = grfaData }
+		endmethod
+
 	endclass
 endnamespace
 

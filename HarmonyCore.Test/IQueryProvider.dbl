@@ -1,11 +1,61 @@
 ﻿import System
 import Microsoft.VisualStudio.TestTools.UnitTesting
 import Harmony.Core
+import Harmony.Core.Context
 import Harmony.Core.FileIO
 import Harmony.Core.FileIO.Queryable
 import System.Linq.Dynamic.Core
 import System.Collections.Generic
 import System.Linq
+import Microsoft.OData.UriParser
+import Microsoft.AspNet.OData.Builder
+import Microsoft.OData.Edm
+import Microsoft.AspNet.OData.Formatter.Serialization
+import Microsoft.AspNet.OData
+import Microsoft.OData
+import Microsoft.AspNetCore.Mvc
+import System.Threading.Tasks
+import Microsoft.AspNet.OData.Extensions
+import Microsoft.AspNet.OData.Formatter.Deserialization
+import Microsoft.AspNet.OData.Query.Validators
+import Microsoft.AspNet.OData.Query
+import Microsoft.AspNet.OData.Query.Expressions
+import System.Collections.Concurrent
+import Microsoft.AspNetCore.Http
+import Microsoft.AspNetCore.Routing
+import Microsoft.AspNetCore.Mvc.Abstractions
+import Microsoft.AspNet.OData.Routing
+import Microsoft.AspNetCore.Builder
+import Microsoft.AspNetCore.Hosting
+import Microsoft.Extensions.Configuration
+import Microsoft.Extensions.DependencyInjection
+import Microsoft.AspNetCore.Http.Internal
+import Microsoft.AspNetCore.Mvc.Filters
+import Microsoft.AspNetCore.Mvc.Controllers
+import System.Reflection
+import Microsoft.AspNetCore.Builder.Internal
+import Microsoft.Extensions.ObjectPool
+import Microsoft.Extensions.Logging
+import Microsoft.Extensions.Logging.Abstractions
+import Microsoft.AspNetCore.Mvc.Infrastructure
+import Microsoft.AspNet.OData;
+import Microsoft.AspNet.OData.Extensions;
+import Microsoft.AspNetCore.Builder;
+import Microsoft.AspNetCore.Builder.Internal;
+import Microsoft.AspNetCore.Mvc;
+import Microsoft.AspNetCore.Mvc.Abstractions;
+import Microsoft.AspNetCore.Mvc.ApplicationParts;
+import Microsoft.AspNetCore.Mvc.Infrastructure;
+import Microsoft.AspNetCore.Mvc.Internal;
+import Microsoft.AspNetCore.Routing;
+import Microsoft.Extensions.DependencyInjection;
+import Microsoft.Extensions.Logging;
+import Microsoft.Extensions.Logging.Abstractions;
+import Microsoft.Extensions.ObjectPool;
+import System.Linq.Expressions
+import Microsoft.Extensions.Primitives
+import Microsoft.AspNetCore.Http.Extensions
+import Microsoft.EntityFrameworkCore
 
 namespace Harmony.Core.Test
 	{TestClass()}
@@ -14,13 +64,388 @@ namespace Harmony.Core.Test
 		public method SimpleRelativeWhere, void
 		proc
 			data fileChannelManager = new FileChannelManager()
-			data queryProvider = new QueryProvider(fileChannelManager.GetChannel("DAT:orders.ddf", FileOpenMode.InputRelative), ^typeof(Orders))
+			data doProvider = new DataObjectProvider(fileChannelManager)
+			doProvider.AddDataObjectMapping<Orders>("DAT:orders.ddf", FileOpenMode.InputRelative)
+			data query = doProvider.GetQueryableFile<Orders>()
 			data obj, @Orders
-			data query = new Query<Orders>(queryProvider, (@Type)^null)
 
-			Assert.AreEqual(3, ((@IEnumerable<Orders>)query.Where("Or_number > 5 && Or_price > 1.5")).Count() )
-			Assert.AreEqual(5, ((@IEnumerable<Orders>)query.Where("Or_number > 5")).Count())
-			Assert.AreEqual(8, ((@IEnumerable<Orders>)query.Where("Or_number > 1")).Count())
+			Assert.AreEqual(3, Enumerable.Count<Orders>((@IEnumerable<Orders>)query.Where("Or_number > 5 && Or_price > 1.5")) )
+			Assert.AreEqual(5, Enumerable.Count<Orders>((@IEnumerable<Orders>)query.Where("Or_number > 5")))
+			Assert.AreEqual(8, Enumerable.Count<Orders>((@IEnumerable<Orders>)query.Where("Or_number > 1")))
+		endmethod
+
+		{TestMethod()}
+		public method SelectAndExpand, void
+		proc
+
+;
+;			data doProvider = new DataObjectProvider(new FileChannelManager())
+;			doProvider.AddDataObjectMapping<Orders>("DAT:orders.ddf", FileOpenMode.InputRelative)
+;			data query = doProvider.GetQueryableFile<Orders>()
+			data doProvider, @DataObjectProvider, new DataObjectProvider(new FileChannelManager())
+			doProvider.AddDataObjectMapping<Orders>("DAT:orders.ddf", FileOpenMode.InputRelative)
+			data query, @IQueryable<Orders>, doProvider.GetQueryableFile<Orders>()
+			data enableQueryAttr = new EnableQueryAttribute();
+			
+			;request.GetConfiguration().Count().OrderBy().Filter().Expand().MaxTop(^null);
+;			data controllerContext = new HttpControllerContext(request.GetConfiguration(), new HttpRouteData(new HttpRoute()), request);
+;			data controllerDescriptor = new HttpControllerDescriptor(new HttpConfiguration(), "bla", ^typeof(controller));
+;			data actionDescriptor = new ReflectedHttpActionDescriptor(controllerDescriptor, ^typeof(controller).GetMethod("Get"));
+;			data actionContext = new HttpActionContext(controllerContext, actionDescriptor);
+			;;data webHost = new WebHostBuilder()
+			;webHost.ConfigureServices(lambda(serviceCollection) { serviceCollection.AddOData() })
+			;;data webHost2 = webHost.UseStartup<startup>().Build()
+			data routeBuilder = ODataTestHelper.RoutingConfigurationFactory.CreateWithRootContainer(^null)
+		;;routeBuilder.AddEntityFrameworkInMemoryDatabase().AddDbContext<BloggingContext>(lambda(serviceProvider, opts) { opts.UseInMemoryDatabase("MyDatabase").UseInternalServiceProvider(serviceProvider)})
+			data cont = new DefaultHttpContext() { RequestServices = routeBuilder.ServiceProvider }
+			data request = new DefaultHttpRequest(cont) { Method = "Get", Scheme="https", Path = new Microsoft.AspNetCore.Http.PathString("/People"), Host = new HostString("blap.com"), Query = (@IQueryCollection)new QueryCollection(new Dictionary<string, StringValues>() { {"$select", new StringValues("Or_number") }, {"$filter", new StringValues("Or_number ne 5") } } ) }
+			data url = request.GetEncodedUrl()
+			data context = new ActionContext(cont, new RouteData(), new ControllerActionDescriptor() 
+			&	{
+			&	ControllerName = "controller",
+			&	ActionName = "Get",
+			&	Parameters = (@IList<ParameterDescriptor>)new List<ParameterDescriptor>(),
+			&	FilterDescriptors  = (@IList<FilterDescriptor>)new List<FilterDescriptor>(),
+			&	BoundProperties  = (@IList<ParameterDescriptor>)new List<ParameterDescriptor>(),
+			&	MethodInfo = ^typeof(controller).GetMethod("Get"),
+			&	ControllerTypeInfo = ^typeof(controller).GetTypeInfo()
+			&	} )
+			data cntrl = new controller()
+			;;.ExecuteResultAsync(context);
+			;; Act and Assert
+			data actionContext = new ActionExecutedContext (context, new List<IFilterMetadata>(), cntrl) { Result = cntrl.Get() }
+			enableQueryAttr.OnActionExecuted(actionContext)
+			data actionRslt = (@ObjectResult)actionContext.Result
+			data queryObject = (@IQueryable)actionRslt.Value
+			queryObject.First()
 		endmethod
 	endclass
+
+	public class BloggingContext extends DbContext
+	
+		mDataProvider, @IDataObjectProvider
+		public method BloggingContext
+			options, @DbContextOptions<BloggingContext>
+			dataProvider, @IDataObjectProvider
+			endparams
+			parent(options)
+		proc
+			mDataProvider = dataProvider
+		endmethod
+
+
+		public readwrite property Blogs, @DbSet<Orders>
+
+		protected override method OnConfiguring, void
+			opts, @DbContextOptionsBuilder
+		proc
+			HarmonyDbContextOptionsExtensions.UseHarmonyDatabase(opts, mDataProvider)
+		endmethod
+
+		protected override method OnModelCreating, void
+			parm, @ModelBuilder
+		proc
+			parm.Ignore(^typeof(AlphaDesc))
+			parm.Ignore(^typeof(DataObjectMetadataBase))
+			;modelBuilder.Entity<Orders>().Ignore(lambda(t) { t. })
+			parent.OnModelCreating(parm);
+		endmethod
+
+	endclass
+
+	public class Blog
+	
+		{System.ComponentModel.DataAnnotations.Key}
+		public readwrite property Name, @string 
+		{Contained}
+		public readwrite property Bobs, @ICollection<Bob>
+	endclass
+
+	public class Bob
+		{System.ComponentModel.DataAnnotations.Key}
+		public readwrite property Name, @string 
+	endclass
+
+	class startup
+		public method startup
+			config, @IConfiguration
+		proc
+			Configuration = config
+		endmethod
+
+		public readwrite property Configuration, @IConfiguration
+
+		public method ConfigureServices, void
+			services, @IServiceCollection
+		proc
+			services.AddOData()
+		endmethod
+
+		public method Configure, void
+			app, @IApplicationBuilder
+			env, @IHostingEnvironment
+		proc
+
+			data builder = new ODataConventionModelBuilder()
+			builder.Namespace = "AirVinyl"
+			builder.ContainerName = "AirVinylContainer"
+
+			data entitySet = builder.EntitySet<Orders>("Orders")
+			data edmModel = builder.GetEdmModel()
+
+			app.UseMvc(lambda(builder) { builder.MapODataServiceRoute("odata", "odata", edmModel) });
+		endmethod
+
+	endclass
+
+
+
+	class controller extends ODataController
+		{ODataRoute("People")}
+		{EnableQuery(MaxExpansionDepth=3, MaxSkip=10, MaxTop=5, PageSize=4)}
+		public method Get, @IActionResult
+		proc
+			data fileChannelManager = new FileChannelManager()
+			data doProvider, @DataObjectProvider, new DataObjectProvider(new FileChannelManager())
+			doProvider.AddDataObjectMapping<Orders>("DAT:orders.ddf", FileOpenMode.InputRelative)
+			data context = new BloggingContext(new DbContextOptions<BloggingContext>(), doProvider)
+			
+			;;data query, @IQueryable<Orders>, doProvider.GetQueryableFile<Orders>()
+
+			mreturn Ok(context.Blogs);
+		endmethod
+	endclass
+
+;	public static class DependencyInjectionHelper
+;			
+;;		public static extension method EnableODataDependencyInjectionSupport, void
+;;			configuration, @HttpConfiguration 
+;;		proc
+;;			configuration.EnableODataDependencyInjectionSupport("")
+;;		endmethod
+;;
+;;		public static extension method EnableODataDependencyInjectionSupport, void
+;;			configuration, @HttpConfiguration 
+;;			routeName, @string
+;;		proc
+;;			data nullVal, @Action<IContainerBuilder>, ^null
+;;			configuration.EnableODataDependencyInjectionSupport(routeName, nullVal)
+;;		endmethod
+;;
+;;		public static extension method EnableODataDependencyInjectionSupport, void
+;;			configuration, @HttpConfiguration 
+;;			routeName, @string
+;;			action, @Action<IContainerBuilder> 
+;;		proc
+;;			configuration.CreateODataRootContainer(routeName, action)
+;;		endmethod
+;;
+;;		public static extension method EnableODataDependencyInjectionSupport, void
+;;			configuration, @HttpConfiguration 
+;;			routeName, @string
+;;			model, @IEdmModel
+;;		proc
+;;			configuration.CreateODataRootContainer(routeName, lambda(builder) { builder.AddService(ServiceLifetime.Singleton, lambda(sp) { model }) })
+;;		endmethod
+;
+;		public static extension method EnableHttpDependencyInjectionSupport, void
+;			request, @HttpRequest
+;		proc
+;			data nullVal, @Action<IContainerBuilder>, ^null
+;			request.EnableHttpDependencyInjectionSupport(nullVal);
+;		endmethod
+;
+;		public static extension method EnableHttpDependencyInjectionSupport, void
+;			request, @HttpRequest
+;			model, @IEdmModel
+;		proc
+;			request.EnableHttpDependencyInjectionSupport(lambda(builder) { builder.AddService(ServiceLifetime.Singleton, lambda(sp) { model }) })
+;		endmethod
+;
+;		public static extension method EnableHttpDependencyInjectionSupport, void
+;			request, @HttpRequest
+;			action, @Action<IContainerBuilder>
+;		proc
+;			data configuration = request.GetConfiguration();
+;			if (configuration == ^null)
+;			begin
+;				configuration = new HttpConfiguration();
+;				request.SetConfiguration(configuration);
+;			end
+;
+;			configuration.EnableDependencyInjection(action);
+;		endmethod
+;
+;		public static extension method EnableODataDependencyInjectionSupport, void
+;			request, @HttpRequest
+;		proc
+;			request.EnableODataDependencyInjectionSupport("")
+;		endmethod
+;
+;
+;		public static extension method EnableODataDependencyInjectionSupport, void
+;			request, @HttpRequest
+;			routeName, @string
+;		proc
+;			request.EnableODataDependencyInjectionSupport(routeName, ^null)
+;		endmethod
+;
+;		public static extension method EnableODataDependencyInjectionSupport, void
+;			request, @HttpRequest
+;			model, @IEdmModel
+;		proc
+;			request.EnableODataDependencyInjectionSupport("", lambda(builder) { builder.AddService(ServiceLifetime.Singleton, lambda(sp) { model } ) })
+;		endmethod
+;
+;
+;		public static extension method EnableODataDependencyInjectionSupport, void
+;			request, @HttpRequest
+;			routeName, @string
+;			action, @Action<IContainerBuilder>
+;		proc
+;			request.ODataProperties().RouteName = routeName;
+;			request.CreateRequestContainer(routeName);
+;		endmethod
+;
+;
+;;		static extension method CreateODataRootContainer, @IServiceProvider
+;;			configuration, @HttpConfiguration 
+;;			routeName, @string 
+;;			configureAction, @Action<IContainerBuilder>
+;;		proc
+;;			data rootContainer = configuration.CreateRootContainerImplementation( configureAction )
+;;			configuration.SetODataRootContainer( routeName, rootContainer )
+;;			mreturn rootContainer
+;;		endmethod
+;;
+;;		static extension method SetODataRootContainer, void
+;;			configuration, @HttpConfiguration 
+;;			routeName, @string 
+;;			rootContainer, @IServiceProvider 
+;;		proc
+;;			data mappings = configuration.GetRootContainerMappings()
+;;			mappings[routeName] = rootContainer
+;;		endmethod
+;;
+;;		static extension method GetRootContainerMappings, @ConcurrentDictionary<string, IServiceProvider>
+;;			configuration, @HttpConfiguration 
+;;		proc
+;;			mreturn (@ConcurrentDictionary<string, IServiceProvider>) configuration.Properties.GetOrAdd( "System.Web.OData.RootContainerMappingsKey", lambda(key) { new ConcurrentDictionary<string, IServiceProvider>() } )
+;;		endmethod
+;;
+;;		static extension method CreateRootContainerImplementation, @IServiceProvider
+;;			configuration, @HttpConfiguration 
+;;			configureAction, @Action<IContainerBuilder> 
+;;		proc
+;;			data builder = configuration.CreateContainerBuilderWithDefaultServices()
+;;
+;;			if(configureAction != ^null)
+;;				configureAction.Invoke( builder )
+;;
+;;			data rootContainer = builder.BuildContainer()
+;;
+;;			if ( rootContainer == ^null )
+;;				throw new InvalidOperationException( )
+;;
+;;
+;;			mreturn rootContainer;
+;;		endmethod
+;;
+;;		static extension method CreateContainerBuilderWithDefaultServices, @IContainerBuilder 
+;;			configuration, @HttpConfiguration
+;;		proc
+;;			data builder, @IContainerBuilder 
+;;			data objValue, @object
+;;			if ( configuration.Properties.TryGetValue( "Microsoft.AspNet.OData.ContainerBuilderFactoryKey", objValue) ) then
+;;			begin
+;;				data builderFactory = (@Func<IContainerBuilder>) objValue;
+;;
+;;				builder = builderFactory()
+;;
+;;				if ( builder == ^null )
+;;				begin
+;;					throw new InvalidOperationException( )
+;;				end
+;;			end
+;;			else
+;;			begin
+;;				builder = new DefaultContainerBuilder()
+;;			end
+;;
+;;			builder.AddService( Microsoft.OData.ServiceLifetime.Singleton, lambda(sp) { configuration } )
+;;			builder.AddService( Microsoft.OData.ServiceLifetime.Singleton, lambda(sp) { configuration.GetDefaultQuerySettings() })
+;;			builder.AddDefaultODataServices()
+;;			builder.AddDefaultWebApiServices()
+;;			mreturn builder;
+;;		endmethod
+;
+;		static extension method AddDefaultWebApiServices, @IContainerBuilder 
+;			builder, @IContainerBuilder 
+;		proc
+;			if (builder == ^null)
+;			begin
+;				throw new ArgumentNullException()
+;			end
+;
+;			builder.AddService<IODataPathHandler, DefaultODataPathHandler>(ServiceLifetime.Singleton)
+;
+;			;; ReaderSettings and WriterSettings are registered as prototype services.
+;			;; There will be a copy (if it is accessed) of each prototype for each request.
+;			builder.AddServicePrototype(new ODataMessageReaderSettings()
+;			&	{
+;			&	EnableMessageStreamDisposal = false,
+;			&	MessageQuotas = new ODataMessageQuotas() { MaxReceivedMessageSize = Int64.MaxValue }
+;			&	})
+;			builder.AddServicePrototype(new ODataMessageWriterSettings()
+;			&	{
+;			&	EnableMessageStreamDisposal = false,
+;			&	MessageQuotas = new ODataMessageQuotas() { MaxReceivedMessageSize = Int64.MaxValue }
+;			&	})
+;			
+;			;; QueryValidators.
+;			builder.AddService<CountQueryValidator>(ServiceLifetime.Singleton);
+;			builder.AddService<FilterQueryValidator>(ServiceLifetime.Scoped);
+;			builder.AddService<ODataQueryValidator>(ServiceLifetime.Singleton);
+;			builder.AddService<OrderByQueryValidator>(ServiceLifetime.Singleton);
+;			builder.AddService<SelectExpandQueryValidator>(ServiceLifetime.Singleton);
+;			builder.AddService<SkipQueryValidator>(ServiceLifetime.Singleton);
+;			builder.AddService<TopQueryValidator>(ServiceLifetime.Singleton);
+;
+;			;; SerializerProvider and DeserializerProvider.
+;			builder.AddService<ODataSerializerProvider, DefaultODataSerializerProvider>(ServiceLifetime.Singleton);
+;			builder.AddService<ODataDeserializerProvider, DefaultODataDeserializerProvider>(ServiceLifetime.Singleton);
+;
+;			;; Deserializers.
+;			builder.AddService<ODataResourceDeserializer>(ServiceLifetime.Singleton);
+;			builder.AddService<ODataEnumDeserializer>(ServiceLifetime.Singleton);
+;			builder.AddService<ODataPrimitiveDeserializer>(ServiceLifetime.Singleton);
+;			builder.AddService<ODataResourceSetDeserializer>(ServiceLifetime.Singleton);
+;			builder.AddService<ODataCollectionDeserializer>(ServiceLifetime.Singleton);
+;			builder.AddService<ODataEntityReferenceLinkDeserializer>(ServiceLifetime.Singleton);
+;			builder.AddService<ODataActionPayloadDeserializer>(ServiceLifetime.Singleton);
+;
+;			;; Serializers.
+;			builder.AddService<ODataEnumSerializer>(ServiceLifetime.Singleton);
+;			builder.AddService<ODataPrimitiveSerializer>(ServiceLifetime.Singleton);
+;			builder.AddService<ODataDeltaFeedSerializer>(ServiceLifetime.Singleton);
+;			builder.AddService<ODataResourceSetSerializer>(ServiceLifetime.Singleton);
+;			builder.AddService<ODataCollectionSerializer>(ServiceLifetime.Singleton);
+;			builder.AddService<ODataResourceSerializer>(ServiceLifetime.Singleton);
+;			builder.AddService<ODataServiceDocumentSerializer>(ServiceLifetime.Singleton);
+;			builder.AddService<ODataEntityReferenceLinkSerializer>(ServiceLifetime.Singleton);
+;			builder.AddService<ODataEntityReferenceLinksSerializer>(ServiceLifetime.Singleton);
+;			builder.AddService<ODataErrorSerializer>(ServiceLifetime.Singleton);
+;			builder.AddService<ODataMetadataSerializer>(ServiceLifetime.Singleton);
+;			builder.AddService<ODataRawValueSerializer>(ServiceLifetime.Singleton);
+;
+;			;; Binders.
+;			builder.AddService<ODataQuerySettings>(ServiceLifetime.Scoped);
+;			builder.AddService<FilterBinder>(ServiceLifetime.Transient);
+;			
+;			;; HttpRequestScope.
+;			builder.AddService<HttpRequestScope>(ServiceLifetime.Scoped);
+;			builder.AddService(ServiceLifetime.Scoped, lambda(sp) { sp.GetRequiredService<HttpRequestScope>().HttpRequest });
+;			mreturn builder;
+;		endmethod
+	;;endclass
 endnamespace

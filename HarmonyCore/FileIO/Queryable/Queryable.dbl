@@ -9,16 +9,15 @@ import Harmony.Core
 namespace Harmony.Core.FileIO.Queryable
 
 	public class QueryProvider implements IQueryProvider
-		private mChannel,int
-		private mDataObjectType, @Type
+		private mDataObjectProvider, @Harmony.Core.Context.IDataObjectProvider
+		private mChannelManager, @Harmony.Core.FileIO.IFileChannelManager
 		public method QueryProvider
-			in req channel	,int
-			in req dataObjectType, @Type
+			in req dataObjectProvider, @Harmony.Core.Context.IDataObjectProvider
+			in req channelManager,  @Harmony.Core.FileIO.IFileChannelManager
 			endparams
 		proc
-			mChannel = channel
-			mDataObjectType = dataObjectType
-
+			mChannelManager = channelManager
+			mDataObjectProvider = dataObjectProvider
 		endmethod
 
 		public method Execute, @object
@@ -27,9 +26,10 @@ namespace Harmony.Core.FileIO.Queryable
 		proc
 			data whereFinder = new InnermostWhereFinder();
 			data whereExpression = whereFinder.GetInnermostWhere(expression);
-			data whereLambda = ((UnaryExpression)(whereExpression.Arguments[1])).Operand;
+			data whereLambda, @LambdaExpression
+			whereLambda = whereExpression != ^null ? (@LambdaExpression)((@UnaryExpression)(whereExpression.Arguments[1])).Operand : ^null
 			
-			whereLambda = PartialEvaluator.Eval(whereLambda)
+			data evaluatedWhereLambda = whereLambda != ^null ? PartialEvaluator.Eval(whereLambda) : ^null
 
 			;;data orderByFinder = new InnermostOrderByFinder();
 			;;data orderByExpression = orderByFinder.GetInnermostOrderBy(expression);
@@ -38,7 +38,9 @@ namespace Harmony.Core.FileIO.Queryable
 			;;orderByLambda = PartialEvaluator.Eval(orderByLambda)
 
 			;; Copy the IEnumerable places to an IQueryable.
-			data queryResult = (@Object)ExecuteSelectInternal(whereLambda, ^null, 0, 0)
+			data metadataObjectType, @Type, whereLambda != ^null ? whereLambda.Parameters[0].Type : expression.Type.GenericTypeArguments[1]
+			data metadataObject = DataObjectMetadataBase.LookupType(metadataObjectType)
+			data queryResult = (@Object)ExecuteSelectInternal(metadataObjectType, metadataObject, evaluatedWhereLambda, ^null, 0, 0)
 			mreturn queryResult
 ;			;; Copy the expression tree that was passed in, changing only the first 
 ;			;; argument of the innermost MethodCallExpression.
@@ -53,6 +55,8 @@ namespace Harmony.Core.FileIO.Queryable
 		endmethod
 
 		private method ExecuteSelectInternal, @IEnumerable<DataObjectBase>
+			doObjectType, @Type
+			metadataObject, @DataObjectMetadataBase
 			whereLambda, @Expression
 			orderByLambda, @Expression
 			top, int
@@ -62,33 +66,87 @@ namespace Harmony.Core.FileIO.Queryable
 				fld,a1
 			endstructure
 		proc
-			data metadataObject = DataObjectMetadataBase.LookupType(mDataObjectType)
+			
 			data structureSize = metadataObject.StructureSize
 			data memPnt = %mem_proc(DM_ALLOC, structureSize)
 			data currentCount = 0
 			data targetCount = top ? skip + top : 0
 			data result = new List<DataObjectBase>()
 			data expressionBuilder = new WhereExpressionBuilder(whereLambda, memPnt, metadataObject, false)
+			data channelInfo = mDataObjectProvider.GetFileInfo(doObjectType)
 
-			foreach ^m(memMapper.fld(1:structureSize), memPnt) in new Synergex.SynergyDE.Select.Select(new Synergex.SynergyDE.Select.From(mChannel, ^m(memMapper.fld(1:structureSize), memPnt)), expressionBuilder.WhereExpression)
+			data channel = mChannelManager.GetChannel(channelInfo.Item1, channelInfo.Item2)
+			try
 			begin
-				data grfa	,a10
-				incr currentCount
+				disposable data selectObject, @Synergex.SynergyDE.Select.Select, ^null
+				if(expressionBuilder.WhereExpression != ^null) then
+					selectObject = new Synergex.SynergyDE.Select.Select(new Synergex.SynergyDE.Select.From(channel, ^m(memMapper.fld(1:structureSize), memPnt)), expressionBuilder.WhereExpression)
+				else
+					selectObject = new Synergex.SynergyDE.Select.Select(new Synergex.SynergyDE.Select.From(channel, ^m(memMapper.fld(1:structureSize), memPnt)))
 
-				if(skip && skip > currentCount)
-					nextloop
+				foreach ^m(memMapper.fld(1:structureSize), memPnt) in selectObject
+				begin
+					data grfa	,a10
+					incr currentCount
 
-				if (targetCount && currentCount > targetCount)
-					exitloop
+					if(skip && skip > currentCount)
+						nextloop
+
+					if (targetCount && currentCount > targetCount)
+						exitloop
 				
-				data enumerator, @Synergex.SynergyDE.Select.RestrictedAlphaEnumerator, Synergex.SynergyDE.Select.Select.GetEnum()
-				enumerator.CurrentRFA(grfa)
-				result.Add(metadataObject.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa))
+					data enumerator, @Synergex.SynergyDE.Select.RestrictedAlphaEnumerator, Synergex.SynergyDE.Select.Select.GetEnum()
+					enumerator.CurrentRFA(grfa)
+					result.Add(metadataObject.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa))
+				end
+				data enumResult, @IEnumerable<DataObjectBase>
+				enumResult = result.ToArray()
+				mreturn enumResult 
 			end
-			data enumResult, @IEnumerable<DataObjectBase>
-			enumResult = result.ToArray()
-			mreturn enumResult 
+			finally
+				mChannelManager.ReturnChannel(channel)
+			endtry
 		endmethod
+
+;		private method ExecuteJoinSelectInternal, @IEnumerable<DataObjectBase>
+;			drivingMetadataObject, @DataObjectMetadataBase
+;			onLambdas, [#]Expression
+;			whereLambda, @Expression
+;			orderByLambda, @Expression
+;			top, int
+;			skip, int
+;			endparams
+;			structure memMapper
+;				fld,a1
+;			endstructure
+;		proc
+;			data metadataObject = DataObjectMetadataBase.LookupType(mDataObjectType)
+;			data structureSize = metadataObject.StructureSize
+;			data memPnt = %mem_proc(DM_ALLOC, structureSize)
+;			data currentCount = 0
+;			data targetCount = top ? skip + top : 0
+;			data result = new List<DataObjectBase>()
+;			data expressionBuilder = new WhereExpressionBuilder(whereLambda, memPnt, metadataObject, false)
+;
+;			foreach ^m(memMapper.fld(1:structureSize), memPnt) in new Synergex.SynergyDE.Select.Select(new Synergex.SynergyDE.Select.From(mChannel, ^m(memMapper.fld(1:structureSize), memPnt)), expressionBuilder.WhereExpression)
+;			begin
+;				data grfa	,a10
+;				incr currentCount
+;
+;				if(skip && skip > currentCount)
+;					nextloop
+;
+;				if (targetCount && currentCount > targetCount)
+;					exitloop
+;				
+;				data enumerator, @Synergex.SynergyDE.Select.RestrictedAlphaEnumerator, Synergex.SynergyDE.Select.Select.GetEnum()
+;				enumerator.CurrentRFA(grfa)
+;				result.Add(metadataObject.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa))
+;			end
+;			data enumResult, @IEnumerable<DataObjectBase>
+;			enumResult = result.ToArray()
+;			mreturn enumResult 
+;		endmethod
 
 		public method Execute, @object
 			expression, @System.Linq.Expressions.Expression 
