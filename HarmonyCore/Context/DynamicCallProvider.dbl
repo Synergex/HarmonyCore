@@ -1,0 +1,83 @@
+import System
+import System.Collections.Generic
+import System.Text
+import Newtonsoft.Json
+
+
+namespace Harmony.Core.Context
+
+	public abstract class DynamicCallProvider implements IDynamicCallProvider
+		
+		class CallFrame
+			public readwrite property Name, @string
+			public readwrite property Arguments, [#]@ArgumentDataDefinition
+		endclass
+
+
+		class MethodCallResponseValue
+			public readwrite property ReturnParameters, @List<ReturnParameterDefintion>
+		endclass
+
+		class MethodCallResponse
+			public readwrite property IsError, boolean
+			public readwrite property Exception, @string
+			public readwrite property Result, @MethodCallResponseValue
+		endclass
+
+
+		protected connection, @IDynamicCallConnection
+		public readonly property IsolationLevel, ContextIsolationLevel
+		protected method DynamicCallProvider
+			connection, @IDynamicCallConnection
+		proc
+			this.connection = connection
+		endmethod
+
+		public virtual method CallMethod, @object
+			name, @string
+			args, [#]@object 
+			endparams
+		proc
+			throw new System.NotImplementedException()
+		endmethod
+		
+		public virtual method CallMethodV, void
+			name, @string
+			args, [#]@object 
+			endparams
+		proc
+			throw new System.NotImplementedException()
+		endmethod
+
+		protected method CallMethodImplementation, void
+			name, @string
+			inout args, [#]@ArgumentDataDefinition
+		proc
+			;;build message with method name and serialized parameters
+			;;sent frame size followed by message body
+			;;check for errors in the response
+			;;translate errors locally
+			;;deserialize contents
+			;;assign return value if there is one
+			;;write into args array if the argument values are present in the payload
+
+			data serializedData = JsonConvert.SerializeObject(new CallFrame() { Arguments = args, Name = name })
+			data serializedBytes = Encoding.ASCII.GetBytes(serializedData)
+			connection.WriteRaw(BitConverter.GetBytes(serializedBytes.Length))
+			connection.WriteRaw(serializedBytes)
+			data responseBytes = connection.ReadRaw('\n')
+			data responseObject = JsonConvert.DeserializeObject<MethodCallResponse>(responseBytes)
+			if(responseObject.IsError) then
+				throw new Exception(responseObject.Exception)
+			else
+			begin
+				data retArg, @ReturnParameterDefintion
+				foreach retArg in responseObject.Result.ReturnParameters
+				begin
+					args[retArg.Position].PassedValue = retArg.Value
+				end
+			end
+		endmethod
+	endclass
+
+endnamespace

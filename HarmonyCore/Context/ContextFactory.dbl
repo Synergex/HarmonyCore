@@ -1,0 +1,42 @@
+import System
+import System.Collections.Generic
+import System.Text
+import System.Threading.Tasks
+
+
+namespace Harmony.Core.Context
+
+	public abstract class ContextFactory<T(IContextBase, class)>
+		
+		
+		public setprotected property IsSessionSticky, boolean
+		
+		;;this should always be called with ConfigureAwait(false) to ensure we end up on the right thread after the task is awaited	
+		public method MakeContext, T
+		proc
+			mreturn MakeContext(^null)
+		endmethod
+		
+		public abstract method MakeContext, T
+			sessionId, @string
+		proc
+		endmethod
+		
+		public method MakeContextAsync, @Task<T>
+		proc
+			mreturn MakeContextAsync(^null)
+		endmethod
+		
+		public abstract method MakeContextAsync, @Task<T>
+			sessionId, @string
+		proc
+		endmethod
+		
+		public abstract method ReturnContext, void
+			context, T
+		proc
+			
+		endmethod
+	endclass
+
+endnamespace

@@ -1,0 +1,268 @@
+import Harmony.Core
+import System.Collections
+
+namespace TraditionalBridge
+	abstract class RoutineDispatcher
+		protected abstract method DeserializeObject, @DataObjectBase
+			obj, @Json.JsonObject
+		proc
+		endmethod
+
+		protected abstract method DeserializeObjectCollection, @ArrayList
+			obj, @Json.JsonObject
+		proc
+		endmethod
+
+		protected method UnwrapObjectCollection, void
+			memoryHandle, i4
+			collection, @ArrayList
+		proc
+			
+		endmethod
+
+		protected abstract method SerializeObject, void
+			obj, @DataObjectBase
+			serializer, @Json.ChannelSerializer
+		proc
+		endmethod
+
+		protected abstract method SerializeObjectCollection, void
+			obj, @ArrayList
+			serializer, @Json.ChannelSerializer
+		proc
+		endmethod
+
+		protected method GetText, a
+			value, @Json.JsonObject
+			record
+				valueText, @Json.JsonText
+		proc
+			valueText = (@Json.JsonText)value.GetProperty("PassedValue")
+			mreturn valueText.Value
+		endmethod
+
+		protected method GetInt, i
+			value, @Json.JsonObject
+			record
+				valueInt, @Json.JsonInt
+		proc
+			valueInt = (@Json.JsonInt)value.GetProperty("PassedValue")
+			mreturn valueInt.Value
+		endmethod
+
+
+		protected method SerializeObject, void
+			obj, @object
+			serializer, @Json.ChannelSerializer
+		proc
+			if(obj .is. @DataObjectBase) then
+				SerializeObject((@DataObjectBase)obj, serializer)
+			else if(obj .is. @ArrayList) then
+				SerializeObjectCollection((@ArrayList)obj, serializer)
+			else if(obj .is. @a || obj .is. @d || obj .is. @id || obj .is. @string) then
+				serializer.String(obj.ToString())
+			else if(obj .is. @i) then
+				serializer.Integer((i)obj)
+			else
+				throw new Exception("Attempted to serialize an unknown object type")
+		endmethod
+
+		protected method DeserializeObject, @object
+			obj, @Json.JsonObject
+			out dataType, FieldDataType
+			record
+				dataTypeInt, @Json.JsonInt
+		proc
+			dataTypeInt = ((@Json.JsonInt)obj.GetProperty("DataType"))
+			dataType = (FieldDataType)dataTypeInt.Value
+			if(dataType == FieldDataType.DataObjectField) then
+			begin
+				mreturn DeserializeObject(obj)
+			end
+			else if(dataType == FieldDataType.DataObjectCollectionField) then
+			begin
+				mreturn DeserializeObjectCollection(obj)
+			end
+			else if(dataType == FieldDataType.AlphaField) then
+			begin
+				data textObject, @Json.JsonText, ((@Json.JsonText)obj.GetProperty("PassedValue"))
+				mreturn textObject.Value
+			end
+			else if(dataType == FieldDataType.DecimalField) then
+			begin
+				mreturn ((@Json.JsonText)obj.GetProperty("PassedValue")).Value
+			end
+			else if(dataType == FieldDataType.ImpliedDecimal) then
+			begin
+				mreturn ((@Json.JsonText)obj.GetProperty("PassedValue")).Value
+			end
+			else if(dataType == FieldDataType.IntegerField)
+			begin
+				data intValue, i4, ((@Json.JsonInt)obj.GetProperty("PassedValue")).Value
+				mreturn (@object)intValue
+			end
+		endmethod
+
+		protected abstract method DispatchRoutineStub, void
+			name, @string
+			callFrame, @Json.JsonObject
+			serializer, @Json.ChannelSerializer
+		proc
+		endmethod
+
+		protected abstract method IsStubbedRoutine, boolean
+			name, @string
+		proc
+		endmethod
+
+		private method ReadCallBlock, boolean
+			ttChannel, i
+			frameHeader, i4
+			record
+				frameDataHandle, D_HANDLE
+				jsonReader, @Json.Json
+		proc
+			frameDataHandle = %mem_proc(DM_ALLOC, frameHeader)
+			gets(ttChannel, ^m(frameDataHandle))
+			mreturn ProcessCallBlock((@Json.JsonObject)jsonReader.ParseJson(^m(frameDataHandle)), ttChannel)
+		endmethod
+
+
+		public method Dispatch, void
+			ttChannel, i
+			record
+				frameHeader, i4
+				running, boolean
+		proc
+			;;read 4 bytes of data from input when its available
+			;;read count of bytes from input (in chunks ideally) 
+			;;look for the target routine name
+			;;build rcb block for the call
+			;;deserialize arguments based on the types in json
+			;;make the call
+			;;trap any exceptions
+			running = true
+			while(running)
+			begin
+				gets(ttChannel, ^a(frameHeader))
+				running = ReadCallBlock(ttChannel, frameHeader)
+			end
+		endmethod
+
+		private method ProcessCallBlock, boolean
+			jsonData, @Json.JsonObject
+			responseChannel, i4
+			record
+				name, @string
+				argArray, @Json.JsonArray
+				serializer, @Json.ChannelSerializer
+		proc
+			;;we've been asked to shutdown so return false and let the outer loop take care of it
+			if(jsonData.HasProperty("IsShutdownRequest") && ((@Json.JsonBoolean)jsonData.GetProperty("IsShutdownRequest")).Value)
+				mreturn false
+
+			serializer = new Json.ChannelSerializer(responseChannel)
+
+			try
+			begin
+				;;we've been asked if we're alive
+				if(jsonData.HasProperty("IsPingRequest") && ((@Json.JsonBoolean)jsonData.GetProperty("IsPingRequest")).Value)
+				begin
+					serializer.MapOpen()
+					serializer.String("IsAlive")
+					serializer.Bool(true)
+					serializer.MapClose()
+					mreturn true
+				end
+
+				name = ((@Json.JsonText)jsonData.GetProperty("Name")).Value
+
+				if(IsStubbedRoutine(name)) then
+				begin
+					DispatchRoutineStub(name, jsonData, serializer)
+				end
+				else
+				begin
+					data arg, @Json.JsonObject
+					data argArray, @ArrayList, new ArrayList()
+					data argValueArray, [#]@Object
+					data rcbid, i4
+					data ii, i4, 0
+					if(jsonData.HasProperty("Arguments"))
+					begin
+						data arg, @Json.JsonObject
+						data ii = 0
+						argArray = ((@Json.JsonArray)jsonData.GetProperty("Arguments")).arrayValues
+					end
+					argValueArray = new object[argArray.Count]
+					rcbid = %rcb_create(argArray.Count) 
+					xcall rcb_setfnc(rcbid, name)
+					foreach arg in argArray as @Json.JsonObject
+					begin
+						data argType, FieldDataType
+						data argLength, i4, 0
+						data argPrecision, i4, 0
+						incr ii
+						;;the arguments need somewhere to live while we're building up the call so put them into this array
+						argValueArray[ii] = DeserializeObject(arg, argType)
+						if(argType != FieldDataType.DataObjectField && argType != FieldDataType.DataObjectCollectionField) then
+						begin
+							if(jsonData.HasProperty("DecimalPrecision"))
+								argPrecision = ((@Json.JsonInt)jsonData.GetProperty("DecimalPrecision")).Value
+
+							argLength = ((@Json.JsonInt)jsonData.GetProperty("ElementSize")).Value
+
+							xcall rcb_setarg(rcbid, (n)argValueArray[ii], ii, (i)argType, argLength, argPrecision)
+						end
+						else
+							xcall rcb_setarg(rcbid, argValueArray[ii], ii)
+					end
+					xcall rcb_call(rcbid) 
+					ii = 0
+
+					serializer.MapOpen()
+					serializer.String("IsError")
+					serializer.Bool(false)
+					serializer.String("Result")
+					serializer.MapOpen()
+					serializer.String("ReturnParameters")
+					serializer.ArrayOpen()
+
+					foreach arg in argArray as @Json.JsonObject
+					begin
+						incr ii
+						if(arg.HasProperty("ReturnParameter") && ((@Json.JsonBoolean)arg.GetProperty("ReturnParameter")).Value)
+						begin
+							serializer.MapOpen()
+							serializer.String("Position")
+							serializer.Integer(ii)
+							serializer.String("Value")
+							SerializeObject(argValueArray[ii], serializer)
+							serializer.MapClose()
+						end
+
+					end
+					serializer.ArrayClose()
+					serializer.MapClose()
+					serializer.MapClose()
+					writes(responseChannel, "")
+				end
+				mreturn true
+			end
+			catch(ex, @Exception)
+			begin
+				;;TODO maybe this should be a specific type, we might need to do additional processing for certain exception types here
+				serializer.MapOpen()
+				serializer.String("IsError")
+				serializer.Bool(true)
+				serializer.String("Exception")
+				serializer.String(ex.ToString())
+				serializer.MapClose()
+				mreturn false
+			end
+			endtry
+		endmethod
+
+	endclass
+
+endnamespace

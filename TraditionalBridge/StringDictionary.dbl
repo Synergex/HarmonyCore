@@ -1,0 +1,119 @@
+import System.Collections
+
+.include 'DBLDIR:namspc.def'
+
+namespace TraditionalBridge
+
+	public class StringDictionary
+		private symbolTableId, i4
+		private objectStore, @ArrayList
+		private freeIndicies, @ArrayList
+		public method StringDictionary
+		proc
+			objectStore = new ArrayList()
+			freeIndicies = new ArrayList()
+			symbolTableId = nspc_open(D_NSPC_SPACE | D_NSPC_CASE, 4)
+		endmethod
+
+		method ~StringDictionary
+		proc
+			xcall nspc_close(symbolTableId)
+		endmethod
+
+		private method AddObjectInternal, i4
+			value, @object
+		proc
+			if(freeIndicies.Count > 0) then
+			begin
+				data freeIndex = (i4)freeIndicies[freeIndicies.Count - 1]
+				freeIndicies.RemoveAt(freeIndicies.Count - 1)
+				objectStore[freeIndex] = value
+				mreturn freeIndex
+			end
+			else
+				mreturn objectStore.Add(value)
+		endmethod
+
+		private method RemoveObjectInternal, void
+			index, i4
+		proc
+			freeIndicies.Add((@i4)index)
+			;;cant just call removeAt because it would throw off all of the objects that are stored after it
+			;;so we just add to a free list and manage the slots that way
+			objectStore[index] = ^null
+		endmethod
+
+		public method Add, void
+			req in key, @string
+			req in value, @object
+			record
+				existingId, i4
+				newObjectIndex, i4
+		proc
+			
+			if(nspc_find(symbolTableId, key,, existingId) == 0) then
+			begin
+				newObjectIndex = AddObjectInternal(value)
+				nspc_add(symbolTableId, key, newObjectIndex)
+			end
+			else 
+				throw new Exception("duplicate key")
+		endmethod
+
+		public method Get, @object
+			req in key, @string 
+			record
+				objectIndex, i4
+		proc
+			if(nspc_find(symbolTableId, key,objectIndex) != 0) then
+			begin
+				mreturn objectStore[objectIndex]
+			end
+			else
+				throw new Exception("index not found")
+
+		endmethod
+
+		public method Set, void
+			req in key, @string 
+			req in value, @object
+			record
+				objectIndex, i4
+		proc
+			if(nspc_find(symbolTableId, key,objectIndex) != 0) then
+			begin
+				objectStore[objectIndex] = value
+			end
+			else
+				Add(key, value)
+
+		endmethod
+
+		public method Remove, void
+			req in key, @string
+			record
+				objectAccesCode, i4
+				objectIndex, i4
+		proc
+			if(nspc_find(symbolTableId, key,objectIndex, objectAccesCode) != 0)
+			begin
+				nspc_delete(symbolTableId, objectAccesCode)
+				RemoveObjectInternal(objectIndex)
+			end
+		endmethod
+
+		public method Contains, boolean
+			req in key, @string
+		proc
+			mreturn (nspc_find(symbolTableId, key) != 0)
+		endmethod
+
+		public method Clear, void
+		proc
+			nspc_reset(symbolTableId)
+			freeIndicies.Clear()
+			objectStore.Clear()
+		endmethod
+	endclass
+
+endnamespace

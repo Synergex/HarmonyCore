@@ -1,0 +1,368 @@
+import TraditionalBridge
+import System.Collections
+import Harmony.Core
+;;; <summary>
+;;; The main entry point for the application.
+;;; </summary>
+main
+
+proc
+
+endmain
+
+subroutine MetaOrders
+	req out metadata, @Harmony.Core.DataObjectMetadataBase
+proc
+	metadata = Orders.sMetadata
+endsubroutine
+.include 'orders' repository  , structure = 'STROrders', end
+
+namespace Test
+	
+	;structure STROrdersArrayWrapper
+	;	Value, [*]StrOrders
+	;endstructure
+
+
+	public partial class Orders extends Harmony.Core.DataObjectBase
+		;;make the record available and a copy
+		private mSynergyData, STROrders 
+		private mOriginalSynergyData, STROrders 
+		
+		public static sMetadata, @OrdersMetadata
+		static method Orders
+		proc
+			sMetadata = new OrdersMetadata()
+		endmethod
+		
+		;;; <summary>
+		;;;  Constructor, initialise the base fields
+		;;; </summary>
+		public method Orders
+			endparams
+			parent()
+		proc
+			init mSynergyData, mOriginalSynergyData
+		endmethod
+
+		;;; <summary>
+		;;;  Alternate Constructor, accepts the structured data
+		;;; </summary>
+		public method Orders
+			in req inData			,STROrders
+			endparams
+			parent()
+		proc
+			mSynergyData = mOriginalSynergyData = inData
+		endmethod
+
+		public override method InternalSynergyRecord, void
+			targetMethod, @Harmony.Core.AlphaAction
+		proc
+			targetMethod.Run(mSynergyData, mGlobalRFA)
+		endmethod
+		
+		public property Or_number, int
+			method get
+			proc
+				mreturn (int)mSynergyData.Or_number
+				
+			endmethod
+			method set
+			proc
+				mSynergyData.Or_number = value
+			endmethod
+		endproperty
+		;;Or_vendor
+		public property Or_vendor, int
+			method get
+			proc
+				mreturn (int)mSynergyData.Or_vendor
+				
+			endmethod
+			method set
+			proc
+				mSynergyData.Or_vendor = value
+			endmethod
+		endproperty
+		;;Or_item
+		public property Or_item, int
+			method get
+			proc
+				mreturn (int)mSynergyData.Or_item
+				
+			endmethod
+			method set
+			proc
+				mSynergyData.Or_item = value
+			endmethod
+		endproperty
+		;;Or_customer
+		public property Or_customer, int
+			method get
+			proc
+				mreturn (int)mSynergyData.Or_customer
+				
+			endmethod
+			method set
+			proc
+				mSynergyData.Or_customer = value
+			endmethod
+		endproperty
+		;;Or_qty
+		public property Or_qty, int
+			method get
+			proc
+				mreturn (int)mSynergyData.Or_qty
+				
+			endmethod
+			method set
+			proc
+				mSynergyData.Or_qty = value
+			endmethod
+		endproperty
+		;;Or_price
+		public property Or_price, decimal
+			method get
+			proc
+				mreturn mSynergyData.Or_price
+				
+			endmethod
+			method set
+			proc
+				mSynergyData.Or_price = value
+			endmethod
+		endproperty
+		;;Or_terms
+		public property Or_terms, string
+			method get
+			proc
+				mreturn %atrim(mSynergyData.Or_terms)
+				
+			endmethod
+			method set
+			proc
+				mSynergyData.Or_terms = value
+			endmethod
+		endproperty
+		;;Or_odate
+		public property Or_odate, d
+			method get
+			proc
+				mreturn mSynergyData.Or_odate
+			endmethod
+			method set
+			proc
+			endmethod
+		endproperty
+		;;Or_sdate
+		public property Or_sdate, d
+			method get
+			proc
+				mreturn mSynergyData.Or_sdate
+			endmethod
+			method set
+			proc
+			endmethod
+		endproperty
+		;;Or_edate
+		public property Or_edate, d
+			method get
+			proc
+				mreturn mSynergyData.Or_edate
+				
+			endmethod
+			method set
+			proc
+			endmethod
+		endproperty
+		;;Or_invoice
+		public property Or_invoice, int
+			method get
+			proc
+				mreturn (int)mSynergyData.Or_invoice
+				
+			endmethod
+			method set
+			proc
+				mSynergyData.Or_invoice = value
+			endmethod
+		endproperty
+
+		;;; <summary>
+		;;; Expose the complete synergy record
+		;;; </summary>
+		public override property SynergyRecord, a
+			method get
+			proc
+				mreturn mSynergyData
+			endmethod
+		endproperty
+		
+		;;; <summary>
+		;;; Expose the complete original synergy record
+		;;; </summary>
+		public override property OriginalSynergyRecord, a
+			method get
+			proc
+				mreturn mOriginalSynergyData
+			endmethod
+		endproperty
+
+		;;; <summary>
+		;;; Allow the host to validate all fields. Each field will fire the validation method.
+		;;; </summary>
+		public override method InitialValidateData, void
+			endparams
+		proc
+		endmethod
+		
+		public override property Metadata, @DataObjectMetadataBase
+			method get
+			proc
+				mreturn sMetadata
+			endmethod
+		endproperty
+	endclass
+	
+	public partial class OrdersMetadata extends Harmony.Core.DataObjectMetadataBase
+		
+		public method OrdersMetadata
+		proc
+			RPSStructureName = "ORDERS"
+			RPSStructureSize = ^size(STROrders)
+			;;fill in all of the field defs and other type level info here
+;			AddFieldInfo("Or_number", "DECIMAL", 6, 1, 0, false)
+;			AddFieldInfo("Or_vendor", "DECIMAL", 6, 7, 0, false)
+;			AddFieldInfo("Or_item", "DECIMAL", 6, 13, 0, false)
+;			AddFieldInfo("Or_customer", "DECIMAL", 6, 19, 0, false)
+;			AddFieldInfo("Or_qty", "DECIMAL", 6, 25, 0, false)
+;			AddFieldInfo("Or_price", "IMPLIED", 7, 31, 02, false)
+;			AddFieldInfo("Or_terms", "ALPHA", 2, 38, 0, false)
+;			AddFieldInfo("Or_odate", "DATE", 6, 40, 0, false)
+;			AddFieldInfo("Or_sdate", "DATE", 6, 46, 0, false)
+;			AddFieldInfo("Or_edate", "DATE", 6, 52, 0, false)
+;			AddFieldInfo("Or_invoice", "DECIMAL", 7, 58, 0, false)
+			
+		endmethod
+	
+		public override method GetFieldByName, @FieldDataDefinition
+			fieldName, @string
+		proc
+			mreturn ^null
+		endmethod
+
+
+		public override method MakeNew, @DataObjectBase
+			req in dataArea, a
+			req in grfa, a
+			record
+				result, @Orders
+		proc
+			result = new Orders(dataArea) 
+			result.GlobalRFA = grfa
+			mreturn result
+		endmethod
+	endclass
+endnamespace
+
+
+
+subroutine fred
+	req in arg1, a
+	req in arg2, d
+	req in arg3, i
+	req in arg4, STROrders
+	req in arg5, [*]STROrders
+proc
+endsubroutine
+
+
+function blob, ^val
+	req in arg1, a
+	req in arg2, d
+	req in arg3, i
+	req in arg4, @Orders
+	req in arg5, @ArrayList
+proc
+
+endfunction
+
+
+namespace TraditionalBridge.Test
+
+	class TestDispatcher extends RoutineDispatcher
+		protected override method DeserializeObject, @DataObjectBase
+			obj, @Json.JsonObject
+		proc
+			mreturn ^null
+		endmethod
+
+		protected override method DeserializeObjectCollection, @ArrayList
+			obj, @Json.JsonObject
+		proc
+			mreturn new ArrayList()
+		endmethod
+
+		protected override method SerializeObject, void
+			obj, @DataObjectBase
+			serializer, @Json.ChannelSerializer
+		proc
+			if(obj .is. @Orders)
+			begin
+				serializer.MapOpen()
+				serializer.String("Type")
+				serializer.String(obj.Metadata.RPSStructureName)
+				serializer.String("Value")
+				serializer.String(obj.SynergyRecord)
+				serializer.String("GRFA")
+				serializer.String(obj.GlobalRFA)
+				serializer.MapClose()
+			end
+
+		endmethod
+
+		protected override method SerializeObjectCollection, void
+			obj, @ArrayList
+			serializer, @Json.ChannelSerializer
+		proc
+		endmethod
+
+		protected override method DispatchRoutineStub, void
+			name, @string
+			callFrame, @Json.JsonObject
+			serializer, @Json.ChannelSerializer
+		proc
+			if(name == "fred") then
+			begin
+				data fredArguments = (@Json.JsonArray)callFrame.GetProperty("Arguments")
+				data fredArg4, @DataObjectBase, DeserializeObject((@Json.JsonObject)fredArguments.arrayValues[4])
+				data fredArg4Data, STROrders, fredArg4.SynergyRecord
+				data fredArg5, @ArrayList, DeserializeObjectCollection((@Json.JsonObject)fredArguments.arrayValues[5])
+				data fredArg5Handle, i4
+				data fredArg5Size, i4 
+				if(fredArg5.Count > 0) then
+					fredArg5Size = ((@DataObjectBase)fredArg5[0]).Metadata.RPSStructureSize
+				else
+					fredArg5Size = 1
+
+				fredArg5Handle = %mem_proc(DM_ALLOC, fredArg5.Count * fredArg5Size)
+				UnwrapObjectCollection(fredArg5Handle, fredArg5)
+				xcall fred(GetText((@Json.JsonObject)fredArguments.arrayValues[1]), ^d(GetText((@Json.JsonObject)fredArguments.arrayValues[2])), GetInt((@Json.JsonObject)fredArguments.arrayValues[3]), fredArg4Data, ^m(STROrders, fredArg5Handle))
+			end
+			else
+				throw new Exception("Invalid dispatch")
+		endmethod
+
+		protected override method IsStubbedRoutine, boolean
+			name, @string
+		proc
+			if(name == "fred") then
+				mreturn true
+			else
+				mreturn false
+		endmethod
+	endclass
+
+
+endnamespace

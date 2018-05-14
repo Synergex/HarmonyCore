@@ -1,0 +1,57 @@
+import System
+import System.Collections.Generic
+import System.Text
+import System.Diagnostics
+
+
+namespace Harmony.Core.Context
+
+	public class ProcessDynamicCallConnection implements IDynamicCallConnection
+		private targetProcess, @Process
+
+		public method ProcessDynamicCallConnection
+			startInfo, @ProcessStartInfo
+		proc
+			targetProcess.StartInfo = startInfo
+			targetProcess.StartInfo.RedirectStandardOutput = true
+			targetProcess.StartInfo.RedirectStandardInput = true
+		endmethod
+
+		public virtual method ReadRaw, @string
+			terminator, Char 
+			endparams
+		proc
+			if(terminator != 13)
+				throw new NotImplementedException("the only acceptable terminator for this connection type is newline")
+
+			mreturn targetProcess.StandardOutput.ReadLine()
+		endmethod
+		
+		public virtual method Recycle, void
+			endparams
+		proc
+			throw new System.NotImplementedException()
+		endmethod
+				
+		public virtual method Disconnect, void
+			endparams
+		proc
+			throw new System.NotImplementedException()
+		endmethod
+		
+		public virtual method Connect, void
+			endparams
+		proc
+			throw new System.NotImplementedException()
+		endmethod
+		
+		public virtual method WriteRaw, void
+			rawData, [#]byte
+			endparams
+		proc
+			targetProcess.StandardInput.Write(rawData)
+		endmethod
+	
+	endclass
+
+endnamespace

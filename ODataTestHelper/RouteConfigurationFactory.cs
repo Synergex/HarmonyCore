@@ -109,7 +109,6 @@ namespace ODataTestHelper
         public static IRouteBuilder CreateWithRootContainer(string routeName, Action<IContainerBuilder> configureAction = null)
         {
             IRouteBuilder builder = Create();
-            
             if (!string.IsNullOrEmpty(routeName))
             {
                 // Build and configure the root container.

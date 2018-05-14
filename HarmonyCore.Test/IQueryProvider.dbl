@@ -77,28 +77,11 @@ namespace Harmony.Core.Test
 		{TestMethod()}
 		public method SelectAndExpand, void
 		proc
-
-;
-;			data doProvider = new DataObjectProvider(new FileChannelManager())
-;			doProvider.AddDataObjectMapping<Orders>("DAT:orders.ddf", FileOpenMode.InputRelative)
-;			data query = doProvider.GetQueryableFile<Orders>()
-			data doProvider, @DataObjectProvider, new DataObjectProvider(new FileChannelManager())
-			doProvider.AddDataObjectMapping<Orders>("DAT:orders.ddf", FileOpenMode.InputRelative)
-			data query, @IQueryable<Orders>, doProvider.GetQueryableFile<Orders>()
 			data enableQueryAttr = new EnableQueryAttribute();
 			
-			;request.GetConfiguration().Count().OrderBy().Filter().Expand().MaxTop(^null);
-;			data controllerContext = new HttpControllerContext(request.GetConfiguration(), new HttpRouteData(new HttpRoute()), request);
-;			data controllerDescriptor = new HttpControllerDescriptor(new HttpConfiguration(), "bla", ^typeof(controller));
-;			data actionDescriptor = new ReflectedHttpActionDescriptor(controllerDescriptor, ^typeof(controller).GetMethod("Get"));
-;			data actionContext = new HttpActionContext(controllerContext, actionDescriptor);
-			;;data webHost = new WebHostBuilder()
-			;webHost.ConfigureServices(lambda(serviceCollection) { serviceCollection.AddOData() })
-			;;data webHost2 = webHost.UseStartup<startup>().Build()
 			data routeBuilder = ODataTestHelper.RoutingConfigurationFactory.CreateWithRootContainer(^null)
-		;;routeBuilder.AddEntityFrameworkInMemoryDatabase().AddDbContext<BloggingContext>(lambda(serviceProvider, opts) { opts.UseInMemoryDatabase("MyDatabase").UseInternalServiceProvider(serviceProvider)})
 			data cont = new DefaultHttpContext() { RequestServices = routeBuilder.ServiceProvider }
-			data request = new DefaultHttpRequest(cont) { Method = "Get", Scheme="https", Path = new Microsoft.AspNetCore.Http.PathString("/People"), Host = new HostString("blap.com"), Query = (@IQueryCollection)new QueryCollection(new Dictionary<string, StringValues>() { {"$select", new StringValues("Or_number") }, {"$filter", new StringValues("Or_number ne 5") } } ) }
+			data request = new DefaultHttpRequest(cont) { Method = "Get", Scheme="https", Path = new Microsoft.AspNetCore.Http.PathString("/Orders"), Host = new HostString("blap.com"), Query = (@IQueryCollection)new QueryCollection(new Dictionary<string, StringValues>() { {"$select", new StringValues("Or_number") }, {"$filter", new StringValues("Or_number ne 5") } } ) }
 			data url = request.GetEncodedUrl()
 			data context = new ActionContext(cont, new RouteData(), new ControllerActionDescriptor() 
 			&	{
@@ -134,7 +117,7 @@ namespace Harmony.Core.Test
 		endmethod
 
 
-		public readwrite property Blogs, @DbSet<Orders>
+		public readwrite property Orders, @DbSet<Orders>
 
 		protected override method OnConfiguring, void
 			opts, @DbContextOptionsBuilder
@@ -153,55 +136,13 @@ namespace Harmony.Core.Test
 
 	endclass
 
-	public class Blog
-	
-		{System.ComponentModel.DataAnnotations.Key}
-		public readwrite property Name, @string 
-		{Contained}
-		public readwrite property Bobs, @ICollection<Bob>
-	endclass
-
-	public class Bob
-		{System.ComponentModel.DataAnnotations.Key}
-		public readwrite property Name, @string 
-	endclass
-
-	class startup
-		public method startup
-			config, @IConfiguration
-		proc
-			Configuration = config
-		endmethod
-
-		public readwrite property Configuration, @IConfiguration
-
-		public method ConfigureServices, void
-			services, @IServiceCollection
-		proc
-			services.AddOData()
-		endmethod
-
-		public method Configure, void
-			app, @IApplicationBuilder
-			env, @IHostingEnvironment
-		proc
-
-			data builder = new ODataConventionModelBuilder()
-			builder.Namespace = "AirVinyl"
-			builder.ContainerName = "AirVinylContainer"
-
-			data entitySet = builder.EntitySet<Orders>("Orders")
-			data edmModel = builder.GetEdmModel()
-
-			app.UseMvc(lambda(builder) { builder.MapODataServiceRoute("odata", "odata", edmModel) });
-		endmethod
-
-	endclass
-
-
+	class RequestContext extends ContextBase
 
 	class controller extends ODataController
-		{ODataRoute("People")}
+
+		private 
+
+		{ODataRoute("Orders")}
 		{EnableQuery(MaxExpansionDepth=3, MaxSkip=10, MaxTop=5, PageSize=4)}
 		public method Get, @IActionResult
 		proc
@@ -212,7 +153,7 @@ namespace Harmony.Core.Test
 			
 			;;data query, @IQueryable<Orders>, doProvider.GetQueryableFile<Orders>()
 
-			mreturn Ok(context.Blogs);
+			mreturn Ok(context.Orders);
 		endmethod
 	endclass
 

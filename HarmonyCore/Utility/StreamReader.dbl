@@ -1,0 +1,102 @@
+;import System
+;import System.Collections.Generic
+;import System.Text
+;import System.Diagnostics
+;import System.Threading
+;import System.IO
+;
+;
+;namespace Harmony.Core.Utility
+;
+;	public class DataReceived extends EventArgs
+;		public readwrite property Data, string
+;		public readwrite property Process, @Process
+;	endclass
+;
+;	public class StdStreamReader
+;    
+;		static bufferSize, int, 1024
+;		_buffer, [#]byte, new byte[bufferSize] 
+;		_Process, @Process, ^null
+;		_DataQueue, @StringBuilder, new StringBuilder()
+;		_DoneEvent, @ManualResetEvent, new ManualResetEvent(false)
+;    
+;		public event DataReceivedEvent, @EventHandler<DataReceived>
+;    
+;		public property Data, string
+;			method get
+;			proc
+;				Monitor.Enter(_DataQueue)
+;				data data, string, _DataQueue.ToString()
+;				Monitor.^id("Exit")(_DataQueue)
+;				mreturn data
+;			endmethod
+;		endproperty
+;    
+;		public method IsDone, boolean
+;			endparams
+;		proc
+;			mreturn _DoneEvent.WaitOne()
+;		endmethod
+;    
+;		public method IsDone, boolean
+;			milliseconds, int 
+;			endparams
+;		proc
+;			mreturn _DoneEvent.WaitOne(milliseconds)
+;		endmethod
+;    
+;		public method StartReader, void
+;			stream, @Stream 
+;			process, @Process 
+;			endparams
+;		proc
+;			_Process = process
+;			stream.BeginRead(_buffer, 0, bufferSize, ReaderCallback, stream)
+;		endmethod
+;    
+;		public method ReaderCallback, void
+;			result, @IAsyncResult 
+;			endparams
+;		proc
+;			if (result != ^null)
+;			begin
+;				data count, int, 0
+;				try
+;				begin
+;					count = ((@Stream)result.AsyncState).EndRead(result)
+;				end
+;				catch (syn_exception)
+;				begin
+;					count = 0
+;				end
+;				endtry
+;				try
+;				begin
+;					if (count > 0) then
+;					begin
+;						data x, string, Encoding.ASCII.GetString(_buffer, 0, count)
+;						Monitor.Enter(_DataQueue)
+;						_DataQueue.Append(x)
+;						if (DataReceivedEvent != ^null)
+;						begin
+;							DataReceivedEvent(((@Stream)result.AsyncState), new DataReceived() {Data = _DataQueue.ToString(), Process = _Process})
+;							_DataQueue.Clear()
+;						end
+;						Monitor.^id("Exit")(_DataQueue)
+;						((@Stream)result.AsyncState).BeginRead(_buffer, 0, bufferSize, ReaderCallback, result.AsyncState)
+;					end
+;					else
+;						_DoneEvent.Set()
+;				end
+;				catch (syn_exception)
+;				begin
+;					Monitor.^id("Exit")(_DataQueue)
+;				end
+;				endtry
+;			end
+;		endmethod
+;	endclass
+;
+;endnamespace
+;

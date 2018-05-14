@@ -1,0 +1,186 @@
+namespace Json
+	public enum SerializerStatus
+		Ok
+	endenum
+
+	public enum SerializerStackType
+		None,
+		Object,
+		Array
+	endenum
+
+	class ChannelSerializer
+		private channel, i4
+		;;TODO: make a real stack out of a dynamic array or something like that
+		private serializerStack, @System.Collections.ArrayList
+		;;TODO: buffer writes into an a65535 instead of calling write directly
+		;;TODO: validation 
+		private expectingName, boolean, true
+		private first, boolean, true
+
+.define STACK_STATE, ((SerializerStackType)serializerStack[serializerStack.Count - 1])
+.define STACK_STATE_ARRAY, (STACK_STATE == SerializerStackType.Array)
+		public method ChannelSerializer
+			chan, i
+		proc
+			channel = chan
+			serializerStack = new System.Collections.ArrayList()
+			serializerStack.Add((@SerializerStackType)SerializerStackType.None)
+		endmethod
+
+		private method Push, void
+			req in type, SerializerStackType
+		proc
+			serializerStack.Add((@SerializerStackType)type)
+		endmethod
+
+		private method Pop, SerializerStackType
+			record
+				stackResult, SerializerStackType
+		proc
+			stackResult = STACK_STATE
+			serializerStack.RemoveAt(serializerStack.Count - 1)
+			mreturn stackResult
+		endmethod
+
+		
+		public method Integer, SerializerStatus
+			req in value, n
+			record
+				inArray, boolean
+		proc
+			inArray = STACK_STATE_ARRAY
+			if(!first && inArray)
+				puts(channel, ",")
+			first = false
+
+			puts(channel, %string(value))
+
+			if(!inArray)
+				expectingName = true
+
+			mreturn SerializerStatus.Ok
+		endmethod
+
+		public method Double, SerializerStatus
+			req in value, id
+			record
+				inArray, boolean
+		proc
+			inArray = STACK_STATE_ARRAY
+			if(!first && inArray)
+				puts(channel, ",")
+			first = false
+
+			puts(channel, %string(value))
+
+			if(!inArray)
+				expectingName = true
+
+			mreturn SerializerStatus.Ok
+		endmethod
+
+		public method Null, SerializerStatus
+			record
+				inArray, boolean
+		proc
+			inArray = STACK_STATE_ARRAY
+			if(!first && inArray)
+				puts(channel, ",")
+			first = false
+
+			puts(channel, "null")
+
+			if(!inArray)
+				expectingName = true
+
+			mreturn SerializerStatus.Ok
+		endmethod
+
+		public method Bool, SerializerStatus
+			req in value, boolean
+			record
+				inArray, boolean
+		proc
+			inArray = STACK_STATE_ARRAY
+			if(!first && inArray)
+				puts(channel, ",")
+
+			if(value) then
+				puts(channel, "true")
+			else
+				puts(channel, "false")
+			first = false
+
+			if(!inArray)
+				expectingName = true
+
+			mreturn SerializerStatus.Ok
+		endmethod
+
+		public method String, SerializerStatus
+			req in value, @string
+			record
+				inArray, boolean
+		proc
+			inArray = STACK_STATE_ARRAY
+			if(!first && (expectingName || inArray))
+				puts(channel, ",")
+			
+			first = false
+
+			;;TODO this string might need to be encoded, it probably shouldnt have binary data in it
+			puts(channel, '"' + value + '"')
+			if(expectingName)
+			begin
+				puts(channel, ":")
+			end
+			
+			if(inArray)
+				expectingName = !expectingName
+
+			mreturn SerializerStatus.Ok
+		endmethod
+
+		public method MapOpen, SerializerStatus
+		proc
+			if(!first && STACK_STATE_ARRAY)
+				puts(channel, ",")
+			expectingName = true
+			first = true
+			Push(SerializerStackType.Object)
+			puts(channel, "{")
+			mreturn SerializerStatus.Ok
+		endmethod
+
+		public method MapClose, SerializerStatus
+		proc
+			first = false
+			Pop()
+			expectingName = !STACK_STATE_ARRAY
+			puts(channel, "}")
+			mreturn SerializerStatus.Ok
+		endmethod
+
+		public method ArrayOpen, SerializerStatus
+		proc
+			if(!first && STACK_STATE_ARRAY)
+				puts(channel, ",")
+
+			first = true
+			expectingName = false
+			Push(SerializerStackType.Array)
+			puts(channel, "[")
+			mreturn SerializerStatus.Ok
+		endmethod
+
+		public method ArrayClose, SerializerStatus
+		proc
+			first = false
+			Pop()
+			expectingName = !STACK_STATE_ARRAY
+			puts(channel, "]")
+			mreturn SerializerStatus.Ok
+		endmethod
+	endclass
+endnamespace

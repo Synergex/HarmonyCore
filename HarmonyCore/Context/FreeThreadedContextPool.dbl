@@ -1,0 +1,48 @@
+import System.Collections.Concurrent
+import System
+import System.Collections.Generic
+import System.Text
+import Microsoft.CodeAnalysis.PooledObjects
+import System.Threading.Tasks
+
+
+namespace Harmony.Core.Context
+
+	public abstract class FreeThreadedContextPool<T(IContextBase, class)> extends ContextFactory<T>
+		private sessionLookup, @ConcurrentDictionary<string, T>
+		private contextPool, @ObjectPool<T>
+		public method FreeThreadedContextPool
+			min, int
+		proc
+			sessionLookup = new ConcurrentDictionary<string, T>()
+			;;BUG BUG BUG the compiler incorrectly reports this as a mismatched delegate
+			;;contextPool = new ObjectPool<T>(lambda() { SlowMakeContext() }, min)
+		endmethod
+
+		public override method MakeContextAsync, @Task<T>
+			sessionId, @string 
+			endparams
+		proc
+			mreturn Task.FromResult(MakeContext())
+		endmethod
+		
+		public override method MakeContext, T
+			sessionId, @string
+			endparams
+		proc
+			mreturn contextPool.Allocate()
+		endmethod
+
+		protected abstract method SlowMakeContext, T
+		proc
+
+		endmethod
+
+		public override method ReturnContext, void
+			context, T
+		proc
+			contextPool.Free(context)
+		endmethod
+	endclass
+
+endnamespace

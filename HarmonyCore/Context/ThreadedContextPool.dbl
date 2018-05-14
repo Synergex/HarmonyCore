@@ -1,0 +1,44 @@
+import System
+import System.Collections.Generic
+import System.Text
+import System.Collections.Concurrent
+import Harmony.Core
+import Microsoft.CodeAnalysis.PooledObjects
+import System.Threading.Tasks
+namespace Harmony.Core.Context
+
+	public class ThreadedContextPool<T(IContextBase, class)> extends ContextFactory<T>
+		private sessionLookup, @ConcurrentDictionary<string, T>
+		private contextPool, @ObjectPool<Tuple<T, BackgroundDispatcher>>
+		private dispatchPool, @ObjectPool<BackgroundDispatcher>
+		public method ThreadedContextPool
+			min, int
+			xfServerThreadInit, boolean
+		proc
+			;;BUG BUG BUG the compliler incorrectly reports this delegate as not matching
+			;;dispatchPool = new ObjectPool<BackgroundDispatcher>(lambda() { new BackgroundDispatcher(xfServerThreadInit) }, min)
+		endmethod
+		
+		public override method MakeContextAsync, @Task<T>
+			sessionId, @string 
+			endparams
+		proc
+			throw new System.NotImplementedException()
+		endmethod
+		
+		public override method MakeContext, T
+			sessionId, @string
+			endparams
+		proc
+			throw new System.NotImplementedException()
+		endmethod
+
+		public override method ReturnContext, void
+			context, T 
+			endparams
+		proc
+			throw new System.NotImplementedException()
+		endmethod
+	endclass
+
+endnamespace
