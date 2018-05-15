@@ -21,7 +21,8 @@ import Harmony.Core
 import Harmony.Core.Context
 import Harmony.Core.FileIO
 import Harmony.Core.FileIO.Queryable
-
+import System.Linq
+import System.Net.Http
 
 namespace HarmonyCore.Test.EndToEnd
 
@@ -46,6 +47,17 @@ namespace HarmonyCore.Test.EndToEnd
 			data result = response.Content.ReadAsStringAsync().Result
 		endmethod
 
+		{TestMethod}
+		public method SimpleUpdateTest, void
+		proc
+			data client = server.CreateClient()
+			data request = "/Basic/Orders"
+			data response = client.PostAsync(request, new StringContent("")).Result
+			response.EnsureSuccessStatusCode()
+
+			data result = response.Content.ReadAsStringAsync().Result
+		endmethod
+
 	endclass
 
 	public class BasicControllerTestStartup
@@ -55,7 +67,7 @@ namespace HarmonyCore.Test.EndToEnd
 			;services.AddTransient<PrimeService>()
 			data channelManager = new FileChannelManager() 
 			data objectProvider = new DataObjectProvider(channelManager)
-			objectProvider.AddDataObjectMapping<Orders>("DAT:orders.ddf", FileOpenMode.InputRelative)
+			objectProvider.AddDataObjectMapping<Orders>("DAT:orders.ddf", FileOpenMode.UpdateRelative)
 			services.AddSingleton<FileChannelManager>(channelManager)
 			services.AddSingleton<IDataObjectProvider>(objectProvider)
 			services.AddSingleton<DbContextOptions<BasicControllerDBContext>>(new DbContextOptions<BasicControllerDBContext>())
@@ -126,14 +138,16 @@ namespace HarmonyCore.Test.EndToEnd
 		{EnableQuery(MaxExpansionDepth=3, MaxSkip=10, MaxTop=5, PageSize=4)}
 		public method Get, @IActionResult
 		proc
-			;data fileChannelManager = new FileChannelManager()
-			;data doProvider, @DataObjectProvider, new DataObjectProvider(new FileChannelManager())
-			;doProvider.AddDataObjectMapping<Orders>("DAT:orders.ddf", FileOpenMode.InputRelative)
-			;data context = new BloggingContext(new DbContextOptions<BloggingContext>(), doProvider)
-			
-			;;data query, @IQueryable<Orders>, doProvider.GetQueryableFile<Orders>()
+			mreturn Ok(DBContext.Orders)
+		endmethod
 
-			mreturn Ok(DBContext.Orders);
+		{ODataRoute("Orders")}
+		public method Post, @IActionResult
+		proc
+			data anOrder = DBContext.Orders.First()
+			anOrder.Or_qty = anOrder.Or_qty + 1
+			DBContext.SaveChanges()
+			mreturn Ok(anOrder)
 		endmethod
 	endclass
 

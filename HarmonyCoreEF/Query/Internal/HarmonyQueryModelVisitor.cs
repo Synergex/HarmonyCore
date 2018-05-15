@@ -76,6 +76,6 @@ namespace Harmony.Core.EF.Query.Internal
             IEntityType entityType)
             => (((HarmonyQueryContext)queryContext).Store
                 .GetQuerableFile(entityType.ClrType) as IEnumerable<DataObjectBase>)
-                .Select(t => new ValueBuffer(new object[] { t }));
+                .Select(t => new ValueBuffer(t.InternalGetValues()));
     }
 }

@@ -26,9 +26,8 @@ namespace Harmony.Core.EF.Storage.Internal
     /// </summary>
     public class HarmonyDatabase : Database, IHarmonyDatabase
     {
-        private readonly IHarmonyStore _store;
         private readonly IDiagnosticsLogger<DbLoggerCategory.Update> _updateLogger;
-
+        private readonly IDataObjectProvider _dataObjectProvider;
         /// <summary>
         ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
         ///     directly from your code. This API may change or be removed in future releases.
@@ -36,27 +35,27 @@ namespace Harmony.Core.EF.Storage.Internal
         public HarmonyDatabase(
             DatabaseDependencies dependencies,
             IDataObjectProvider dataProvider,
-            IHarmonyStoreCache storeCache,
             IDbContextOptions options,
             IDiagnosticsLogger<DbLoggerCategory.Update> updateLogger)
             : base(dependencies)
         {
             //_store = storeCache.GetStore(options);
             _updateLogger = updateLogger;
+            _dataObjectProvider = dataProvider;
         }
 
         /// <summary>
         ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
-        public virtual IHarmonyStore Store => _store;
+        public virtual IDataObjectProvider Store => _dataObjectProvider;
 
         /// <summary>
         ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
         public override int SaveChanges(IReadOnlyList<IUpdateEntry> entries)
-            => _store.ExecuteTransaction(entries, _updateLogger);
+            => DispatchTransactionFromEntries(entries);
 
         /// <summary>
         ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
@@ -65,14 +64,14 @@ namespace Harmony.Core.EF.Storage.Internal
         public override Task<int> SaveChangesAsync(
             IReadOnlyList<IUpdateEntry> entries,
             CancellationToken cancellationToken = default)
-            => Task.FromResult(_store.ExecuteTransaction(entries, _updateLogger));
+            => Task.FromResult(DispatchTransactionFromEntries(entries));
 
         /// <summary>
         ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
         public virtual bool EnsureDatabaseCreated(StateManagerDependencies stateManagerDependencies)
-            => _store.EnsureCreated(stateManagerDependencies, _updateLogger);
+            => true; //do nothing we dont support this
 
         /// <summary>
         ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
@@ -82,6 +81,27 @@ namespace Harmony.Core.EF.Storage.Internal
         {
             var syncQueryExecutor = CompileQuery<TResult>(queryModel);
             return qc => syncQueryExecutor(qc).ToAsyncEnumerable();
+        }
+
+        private int DispatchTransactionFromEntries(IReadOnlyList<IUpdateEntry> entries)
+        {
+            List<DataObjectBase> created = new List<DataObjectBase>();
+            List<DataObjectBase> updated = new List<DataObjectBase>();
+            List<DataObjectBase> deleted = new List<DataObjectBase>();
+
+            foreach (var entry in entries)
+            {
+                if (entry.EntityState == EntityState.Added)
+                    created.Add(entry.ToEntityEntry().Entity as DataObjectBase);
+                if (entry.EntityState == EntityState.Deleted)
+                    updated.Add(entry.ToEntityEntry().Entity as DataObjectBase);
+                if (entry.EntityState == EntityState.Modified)
+                    deleted.Add(entry.ToEntityEntry().Entity as DataObjectBase);
+            }
+
+            _dataObjectProvider.ExecuteTransaction(created, updated, deleted);
+
+            return created.Count + updated.Count + deleted.Count;
         }
     }
 }

@@ -106,6 +106,240 @@ namespace Harmony.Core.FileIO
 		endmethod
 
 		event RecordLocked	,@RecordLockedEventHandler
+
+
+		;;; <summary>
+		;;;	Return the full key value for the passed in data object, for the given key-or-reference.
+		;;; </summary>
+		;;; <param name="dataObject">The passed in data object.</param>
+		;;; <param name="keyOfReference">The required key-of-reference to return the key value for.</param>
+		;;; <returns></returns>
+		method GetKeyValue, a
+			in req dataObject, @DataObjectBase
+			in req keyOfReference, int
+		endmethod
+
+		;;; <summary>
+		;;;  Read the first record from the file and assign the located record to a $$Symphony Data Object$$.
+		;;; </summary>
+		;;; <param name="dataObject">The $$Symphony Data Object$$ to propogate with the located data.</param>
+		;;; <remarks>
+		;;; The file will be read on the key index that was set by the last read operation, or the default of primary if no previous operation was performed.  
+		;;; The record will be locked if the file is opened in update mode and the record is successfully located.
+		;;; </remarks>
+		method ReadFirstRecord, FileAccessResults
+			out req dataObject, @DataObjectBase
+		endmethod
+
+		;;; <summary>
+		;;;  Read the first record from the file and assign the located record to a $$Symphony Data Object$$.
+		;;; </summary>
+		;;; <param name="dataObject">The $$Symphony Data Object$$ to propogate with the located data.</param>
+		;;; <param name="noLock">If passed as TRUE then the record will not be locked, regardless of the file open mode.</param>
+		;;; <remarks>
+		;;; The file will be read on the key index that was set by the last read operation, or the default of primary if no previous operation was performed.
+		;;; The record will not be locked.  To update the record you should use the UpdateRecordUsingGRFA method.
+		;;; </remarks>
+		method ReadFirstRecord, FileAccessResults
+			out req dataObject, @DataObjectBase
+			in req noLock, boolean
+		endmethod
+
+		;;; <summary>
+		;;;  Read the next record from the file and assign the located record to a $$Symphony Data Object$$.
+		;;; </summary>
+		;;; <param name="dataObject">The $$Symphony Data Object$$ to propogate with the located data.</param>
+		;;; <remarks>
+		;;; The file will be read on the key index that was set by the last read operation, or the default of primary if no previous operation was performed.  The record will be locked if the file is opened in update mode and the record is successfully located.
+		;;; </remarks>
+		method ReadNextRecord, FileAccessResults
+			out req dataObject, @DataObjectBase
+		endmethod
+
+		;;; <summary>
+		;;;  Read the previous record from the file and assign the located record to a $$Symphony Data Object$$.
+		;;; </summary>
+		;;; <param name="dataObject">The $$Symphony Data Object$$ to propogate with the located data.</param>
+		;;; <remarks>
+		;;; The file will be read on the key index that was set by the last read operation, or the default of primary if no previous operation was performed.  The record will be locked if the file is opened in update mode and the record is successfully located.
+		;;; </remarks>
+		method ReadPrevRecord, FileAccessResults
+			out req dataObject, @DataObjectBase
+		endmethod
+
+		;;; <summary>
+		;;;  Read the previous record from the file and assign the located record to a $$Symphony Data Object$$.
+		;;; </summary>
+		;;; <param name="dataObject">The $$Symphony Data Object$$ to propogate with the located data.</param>
+		;;; <param name="noLock">If passed as TRUE then the record will not be locked, regardless of the file open mode.</param>
+		;;; <remarks>
+		;;; The file will be read on the key index that was set by the last read operation, or the default of primary if no previous operation was performed.
+		;;; The record will not be locked.  To update the record you should use the UpdateRecordUsingGRFA method.
+		;;; </remarks>
+		method ReadPrevRecord, FileAccessResults
+			out req dataObject, @DataObjectBase
+			in req noLock, boolean
+		endmethod
+
+		;;; <summary>
+		;;;  Read the last record from the file and assign the located record to a $$Symphony Data Object$$.
+		;;; </summary>
+		;;; <param name="dataObject">The $$Symphony Data Object$$ to propogate with the located data.</param>
+		;;; <remarks>
+		;;; The file will be read on the key index that was set by the last read operation, or the default of primary if no previous operation was performed.  The record will be locked if the file is opened in update mode and the record is successfully located.
+		;;; </remarks>
+		method ReadLastRecord, FileAccessResults
+			out req dataObject, @DataObjectBase
+		endmethod
+
+		;;; <summary>
+		;;;  Read the last record from the file and assign the located record to a $$Symphony Data Object$$.
+		;;; </summary>
+		;;; <param name="dataObject">The $$Symphony Data Object$$ to propogate with the located data.</param>
+		;;; <param name="noLock">If passed as TRUE then the record will not be locked, regardless of the file open mode.</param>
+		;;; <remarks>
+		;;; The file will be read on the key index that was set by the last read operation, or the default of primary if no previous operation was performed.
+		;;; The record will not be locked.  To update the record you should use the UpdateRecordUsingGRFA method.
+		;;; </remarks>
+		method ReadLastRecord, FileAccessResults
+			out req dataObject, @DataObjectBase
+			in req noLock, Boolean
+		endmethod
+
+		;;; <summary>
+		;;;  Read a record from the file and assign the located record to a $$Symphony Data Object$$.
+		;;; </summary>
+		;;; <param name="dataObject">The $$Symphony Data Object$$ to use as the key value and to propogate with the located data.</param>
+		;;; <remarks>
+		;;; Given the passed $$Symphony Data Object$$ the key value will be extracted.  This key value will then be used to locate the matching record in the file.  The file will be read on the primary key index, unless the KeyReference 
+		;;; property has previously been set.  The record will be locked if the file is opened in update mode and the record is successfully located.
+		;;; </remarks>
+		method ReadRecord, FileAccessResults
+			out req dataObject, @DataObjectBase
+		endmethod
+
+		;;; <summary>
+		;;;  Read a record from the file and assign the located record to a $$Symphony Data Object$$, but do not lock the record.
+		;;; </summary>
+		;;; <param name="dataObject">The $$Symphony Data Object$$ to use as the key value and to propogate with the located data.</param>
+		;;; <param name="noLock">If passed as TRUE then the record will not be locked, regardless of the file open mode.</param>
+		;;; <remarks>
+		;;; Given the passed $$Symphony Data Object$$ the key value will be extracted.  This key value will then be used to locate the matching record in the file.  The file will be read on the primary key index, unless the KeyReference 
+		;;; property has previously been set. The record will not be locked.  To subsequently perform an update, call the UpdateRecordUsingGRFA method.
+		;;; </remarks>
+		method ReadRecord, FileAccessResults
+			out req dataObject, @DataObjectBase
+			in req noLock, Boolean
+		endmethod
+
+		;;; <summary>
+		;;;  Read a record from the file and assign the located record to a $$Symphony Data Object$$.
+		;;; </summary>
+		;;; <param name="dataObject">The $$Symphony Data Object$$ to use as the key value and to propogate with the located data.</param>
+		;;; <param name="recordNumber">The record number (integer) to use as the record position to read .</param>
+		;;; <remarks>
+		;;; The data from the file for the passed record number will be returned in the passed $$Symphony Data Object$$.  The record number is any valid integer value.
+		;;; </remarks>
+		method ReadRecord, FileAccessResults
+			out req dataObject, @DataObjectBase
+			in req recordNumber, int
+		endmethod
+
+		;;; <summary>
+		;;;  Read a record from the file and assign the located record to a $$Symphony Data Object$$.
+		;;; </summary>
+		;;; <param name="dataObject">The $$Symphony Data Object$$ to use as the key value and to propogate with the located data.</param>
+		;;; <param name="recordNumber">The record number (Synergy decimal) to use as the record position to read .</param>
+		;;; <remarks>
+		;;; The data from the file for the passed record number will be returned in the passed $$Symphony Data Object$$.  The record number is any valid Synergy decimal value.
+		;;; </remarks>
+		method ReadRecord, FileAccessResults
+			out req dataObject, @DataObjectBase
+			in req recordNumber, d
+		endmethod
+
+		;;; <summary>
+		;;;  Read a record from the file and assign the located record to a $$Symphony Data Object$$.
+		;;; </summary>
+		;;; <param name="dataObject">The $$Symphony Data Object$$ to use as the key value and to propogate with the located data.</param>
+		;;; <param name="recordNumber">The record number (Synergy decimal) to use as the record position to read .</param>
+		;;; <param name="noLock">If passed as TRUE then the record will not be locked, regardless of the file open mode.</param>
+		;;; <remarks>
+		;;; The data from the file for the passed record number will be returned in the passed $$Symphony Data Object$$.  The record number is any valid integer value.
+		;;; </remarks>
+		method ReadRecord, FileAccessResults
+			out req dataObject, @DataObjectBase
+			in req recordNumber, d
+			in req noLock, boolean
+		endmethod
+
+
+		;;; <summary>
+		;;;  Read a record from the file and assign the located record to a $$Symphony Data Object$$.
+		;;; </summary>
+		;;; <param name="dataObject">The $$Symphony Data Object$$ to use as the key value and to propogate with the located data.</param>
+		;;; <param name="recordNumber">The record number (integer) to use as the record position to read .</param>
+		;;; <param name="noLock">If passed as TRUE then the record will not be locked, regardless of the file open mode.</param>
+		;;; <remarks>
+		;;; The data from the file for the passed record number will be returned in the passed $$Symphony Data Object$$.  The record number is any valid integer value.
+		;;; </remarks>
+		method ReadRecord, FileAccessResults
+			out req dataObject, @DataObjectBase
+			in req recordNumber, int
+			in req noLock, boolean
+		endmethod
+
+		;;; <summary>
+		;;;  Update the currently locked record the file.
+		;;; </summary>
+		;;; <param name="dataObject">The $$Symphony Data Object$$ to use as the value and to update the locked record.</param>
+		;;; <remarks>
+		;;; Given the passed $$Symphony Data Object$$ the data will be extracted and used to update the currently locked record.
+		;;; </remarks>
+		method UpdateRecord, FileAccessResults
+			in req dataObject, @DataObjectBase
+		endmethod
+
+		;;; <summary>
+		;;; Update the record to referecned by it's Global RFA.
+		;;; </summary>
+		;;; <param name="dataObject">The $$Symphony Data Object$$ to use as the value and to locate and updated the record.</param>
+		;;; <remarks>
+		;;; Given the passed $$Symphony Data Object$$ the data will be extracted and used to loate and update the record.
+		;;; </remarks>
+		method UpdateRecordUsingGRFA, FileAccessResults
+			in req dataObject, @DataObjectBase
+		endmethod
+
+		;;; <summary>
+		;;;  Create a new record within the data files.
+		;;; </summary>
+		;;; <remarks>
+		;;; The passed-in $$Symphony Data Object$$ will will be created in the data files.
+		;;; </remarks>
+		method CreateRecord, FileAccessResults
+			in req dataObject, @DataObjectBase
+		endmethod
+
+		;;; <summary>
+		;;;  Delete the currently locked record the file.
+		;;; </summary>
+		;;; <remarks>
+		;;; The currently locked record will be deleted.
+		;;; </remarks>
+		method DeleteRecord, FileAccessResults
+		endmethod
+
+		;;; <summary>
+		;;;  Delete the currently locked record the file.
+		;;; </summary>
+		;;; <remarks>
+		;;; The currently locked record will be deleted.
+		;;; </remarks>
+		method DeleteRecordUsingGRFA, FileAccessResults
+			in req dataObject, @DataObjectBase
+		endmethod
+
 	endinterface
 
 	public interface IDataObjectIO<T(DataObjectBase)> extends IDataObjectIO
@@ -321,15 +555,6 @@ namespace Harmony.Core.FileIO
 		;;; </remarks>
 		method CreateRecord, FileAccessResults
 			in req dataObject, T
-		endmethod
-
-		;;; <summary>
-		;;;  Delete the currently locked record the file.
-		;;; </summary>
-		;;; <remarks>
-		;;; The currently locked record will be deleted.
-		;;; </remarks>
-		method DeleteRecord, FileAccessResults
 		endmethod
 
 		;;; <summary>

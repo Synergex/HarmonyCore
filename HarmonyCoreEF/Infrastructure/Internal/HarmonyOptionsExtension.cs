@@ -32,6 +32,7 @@ namespace Harmony.Core.EF.Infrastructure.Internal
         public HarmonyOptionsExtension(IDataObjectProvider objectProvider)
         {
             _objectProvider = objectProvider;
+            _databaseRoot = new HarmonyDatabaseRoot { Instance = _objectProvider };
         }
 
         /// <summary>
@@ -42,6 +43,7 @@ namespace Harmony.Core.EF.Infrastructure.Internal
         {
             _storeName = copyFrom._storeName;
             _databaseRoot = copyFrom._databaseRoot;
+            _objectProvider = copyFrom._objectProvider;
         }
 
         /// <summary>

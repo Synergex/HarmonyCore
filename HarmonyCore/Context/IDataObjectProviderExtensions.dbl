@@ -1,0 +1,56 @@
+import System
+import System.Collections.Generic
+import System.Text
+import Harmony.Core.FileIO
+import System.Linq
+
+namespace Harmony.Core.Context
+
+	public static class IDataObjectProviderExtensions
+		public static extension method ExecuteTransaction, void
+			provider, @IDataObjectProvider
+			created, @IEnumerable<DataObjectBase>
+			updated, @IEnumerable<DataObjectBase>
+			deleted, @IEnumerable<DataObjectBase>
+		proc
+			data ioObjectLookup = new Dictionary<DataObjectMetadataBase, IDataObjectIO>()
+
+			lambda GetOrCreate(dataObject)
+			begin
+				data ioObject, @IDataObjectIO
+				if(!ioObjectLookup.TryGetValue(dataObject.Metadata, ioObject))
+				begin
+					ioObject = provider.GetFileIO(dataObject.GetType())
+					ioObjectLookup.Add(dataObject.Metadata, ioObject)
+				end
+				mreturn ioObject
+			end
+			;;there's no error control in here
+			;;additionally we should lock all of the deleted and updated records prior to actually executing the operation
+			;;it would be nice to create a two phase commit for creating new records that would allow us to have pretty complete transaction support
+			data ioHelper, @Func<DataObjectBase, IDataObjectIO>, GetOrCreate
+			data dataObject, @DataObjectBase
+			foreach dataObject in deleted
+			begin
+				data ioObject = ioHelper(dataObject)
+				ioObject.DeleteRecordUsingGRFA(dataObject)
+			end
+
+			foreach dataObject in updated
+			begin
+				data ioObject = ioHelper(dataObject)
+				ioObject.UpdateRecordUsingGRFA(dataObject)
+			end
+
+			foreach dataObject in created
+			begin
+				data ioObject = ioHelper(dataObject)
+				ioObject.CreateRecord(dataObject)
+			end
+
+
+		endmethod
+
+	endclass
+
+endnamespace
