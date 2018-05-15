@@ -93,9 +93,9 @@ namespace Harmony.Core.EF.Storage.Internal
             {
                 if (entry.EntityState == EntityState.Added)
                     created.Add(entry.ToEntityEntry().Entity as DataObjectBase);
-                if (entry.EntityState == EntityState.Deleted)
-                    updated.Add(entry.ToEntityEntry().Entity as DataObjectBase);
                 if (entry.EntityState == EntityState.Modified)
+                    updated.Add(entry.ToEntityEntry().Entity as DataObjectBase);
+                if (entry.EntityState == EntityState.Deleted)
                     deleted.Add(entry.ToEntityEntry().Entity as DataObjectBase);
             }
 
