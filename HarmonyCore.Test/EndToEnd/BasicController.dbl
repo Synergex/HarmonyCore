@@ -40,7 +40,18 @@ namespace HarmonyCore.Test.EndToEnd
 		public method SimpleTest, void
 		proc
 			data client = server.CreateClient()
-			data request = "/Basic/Orders"
+			data request = "/odata/Orders"
+			data response = client.GetAsync(request).Result
+			response.EnsureSuccessStatusCode()
+
+			data result = response.Content.ReadAsStringAsync().Result
+		endmethod
+
+		{TestMethod}
+		public method SimpleParameterTest, void
+		proc
+			data client = server.CreateClient()
+			data request = "/odata/Orders(3)"
 			data response = client.GetAsync(request).Result
 			response.EnsureSuccessStatusCode()
 
@@ -51,7 +62,7 @@ namespace HarmonyCore.Test.EndToEnd
 		public method SimpleUpdateTest, void
 		proc
 			data client = server.CreateClient()
-			data request = "/Basic/Orders"
+			data request = "/odata/Orders(1)"
 			data response = client.PostAsync(request, new StringContent("")).Result
 			response.EnsureSuccessStatusCode()
 
@@ -85,7 +96,7 @@ namespace HarmonyCore.Test.EndToEnd
 			lambda MVCBuilder(builder)
 			begin
 				builder.Select().Expand().Filter().OrderBy().MaxTop(100).Count()
-				builder.MapODataServiceRoute("Basic", "Basic", model)
+				builder.MapODataServiceRoute("odata", "odata", model)
 			end
 			app.UseMvc(MVCBuilder)
 		endmethod
@@ -123,17 +134,15 @@ namespace HarmonyCore.Test.EndToEnd
 
 	endclass
 
-	public class BasicController extends ODataController
+	public class OrdersController extends ODataController
 	
 		public readwrite property DBContext, @BasicControllerDBContext
 
-		public method BasicController
+		public method OrdersController
 			dbContext, @BasicControllerDBContext
 		proc
 			this.DBContext = dbContext
 		endmethod
-
-
 		{ODataRoute("Orders")}
 		{EnableQuery(MaxExpansionDepth=3, MaxSkip=10, MaxTop=5, PageSize=4)}
 		public method Get, @IActionResult
@@ -141,13 +150,23 @@ namespace HarmonyCore.Test.EndToEnd
 			mreturn Ok(DBContext.Orders)
 		endmethod
 
-		{ODataRoute("Orders")}
-		public method Post, @IActionResult
+		{ODataRoute("Orders({id})")}
+		public method Get, @IActionResult
+			{FromODataUri}
+			id, int
 		proc
-			data anOrder = DBContext.Orders.First()
-			anOrder.Or_qty = anOrder.Or_qty + 1
+			data foundOrder = DBContext.Orders.Find(id)
+			mreturn Ok(foundOrder)
+		endmethod
+
+		{ODataRoute("Orders({id})")}
+		public method Post, @IActionResult
+			{FromODataUri}
+			id, int
+		proc
+			data foundOrder = DBContext.Orders.Find(id)
 			DBContext.SaveChanges()
-			mreturn Ok(anOrder)
+			mreturn Ok(foundOrder)
 		endmethod
 	endclass
 
