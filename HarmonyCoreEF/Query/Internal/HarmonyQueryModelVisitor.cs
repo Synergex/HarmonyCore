@@ -4,11 +4,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
+using Harmony.Core.FileIO.Queryable;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Storage;
+using Remotion.Linq;
+using Remotion.Linq.Clauses;
 
 namespace Harmony.Core.EF.Query.Internal
 {
@@ -29,6 +33,14 @@ namespace Harmony.Core.EF.Query.Internal
         {
         }
 
+        public override void VisitQueryModel(QueryModel queryModel)
+        {
+            ActiveQueryModel = queryModel;
+            base.VisitQueryModel(queryModel);
+        }
+
+        public QueryModel ActiveQueryModel { get; set; }
+
         /// <summary>
         ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
         ///     directly from your code. This API may change or be removed in future releases.
@@ -45,22 +57,15 @@ namespace Harmony.Core.EF.Query.Internal
             = typeof(Enumerable).GetTypeInfo()
                 .GetDeclaredMethod(nameof(Enumerable.OfType));
 
-
         private static IEnumerable<TEntity> EntityQuery<TEntity>(
             QueryContext queryContext,
             IEntityType entityType,
             IKey key,
+            QueryModel queryModel,
             Func<IEntityType, MaterializationContext, object> materializer,
             bool queryStateManager)
             where TEntity : class
-            => (((HarmonyQueryContext)queryContext).Store
-            .GetQuerableFile(typeof(TEntity)) as IEnumerable<TEntity>)
-            .Select(
-                    vs =>
-                    {
-                        queryContext.QueryBuffer.StartTracking(vs, entityType);
-                        return vs;
-                    });
+            => QueryModelVisitor.ExecuteSelectInternal(queryModel, queryContext.ParameterValues, (((HarmonyQueryContext)queryContext).Store)).OfType<TEntity>();
 
         /// <summary>
         ///     This API supports the Entity Framework Core infrastructure and is not intended to be used

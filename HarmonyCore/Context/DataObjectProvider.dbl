@@ -31,6 +31,14 @@ namespace Harmony.Core.Context
 			queryProvider = new Harmony.Core.FileIO.Queryable.QueryProvider(this, channelManager)
 		endmethod
 
+		public property ChannelManager, @IFileChannelManager
+			method get
+			proc
+				mreturn channelManager
+			endmethod
+		endproperty
+
+
 		public method GetQueryableFile<T(DataObjectBase)>, @IQueryable<T>
 		proc
 			mreturn (@IQueryable<T>)queryableMapping.GetOrAdd(^typeof(T), lambda(keyValue) { (@IQueryable)(typeMapping[keyValue].MakeQueryable<T>(queryProvider)) })

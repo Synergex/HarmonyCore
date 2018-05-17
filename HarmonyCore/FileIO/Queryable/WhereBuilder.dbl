@@ -15,6 +15,7 @@ namespace Harmony.Core.FileIO.Queryable
 		private mRecordArea, D_HANDLE
 		private mDataObject, @DataObjectMetadataBase
 		private mCaseSensitive, boolean
+		private mParameters, @IReadOnlyDictionary<string, Object>
 		public method WhereExpressionBuilder
 			expression, @Expression
 			recordArea, i
@@ -24,6 +25,18 @@ namespace Harmony.Core.FileIO.Queryable
 			mExpression = expression
 			mRecordArea = recordArea
 			mDataObject = dataObject
+		endmethod
+
+		public method WhereExpressionBuilder
+			recordArea, i
+			dataObject, @DataObjectMetadataBase
+			caseSensitive, boolean
+			parameters, @IReadOnlyDictionary<string, Object>
+		proc
+			mWhereStack = new Stack<Synergex.SynergyDE.Select.Where>()
+			mRecordArea = recordArea
+			mDataObject = dataObject
+			mParameters = parameters
 		endmethod
 
 		public property WhereExpression, @Synergex.SynergyDE.Select.Where
@@ -38,6 +51,13 @@ namespace Harmony.Core.FileIO.Queryable
 				mreturn mWhereStack.Count > 0 ? mWhereStack.Peek() : ^null
 			endmethod
 		endproperty
+
+		public method VisitInternal, void
+			expr, @Expression
+		proc
+			Visit(expr)
+		endmethod
+
 
 		;;add the actual field and value to the where clause
 		private method fieldWhereClause	,@Where
@@ -450,8 +470,17 @@ namespace Harmony.Core.FileIO.Queryable
 				;;TODO this assumes we're only dealing with our target data object
 				mreturn mDataObject.GetFieldByName(((@MemberExpression)node).Member.Name)
 			end
-			else
-				mreturn ^null
+			else if(node .is. MethodCallExpression)
+			begin
+				data callNode = (@MethodCallExpression)node
+				if(callNode.Method.Name == "Property")
+				begin
+					;;this is where we can do a metadata object lookup for join
+					data memberNameConstant = (@ConstantExpression)callNode.Arguments[1]
+					mreturn mDataObject.GetFieldByName(memberNameConstant.Value.ToString())
+				end
+			end
+			mreturn ^null
 		endmethod
 
 		private method FindConstantValue, a
@@ -462,8 +491,14 @@ namespace Harmony.Core.FileIO.Queryable
 				data constNode = (@ConstantExpression)node
 				mreturn constNode.Value.ToString()
 			end
-			else
-				throw new NotImplementedException()
+			else if(node .is. ParameterExpression && mParameters != ^null)
+			begin
+				data paramNode = (@ParameterExpression)node
+				data paramValue, @object
+				if(mParameters.TryGetValue(paramNode.Name, paramValue))
+					mreturn paramValue.ToString()
+			end
+			throw new NotImplementedException()
 		endmethod
 
 		protected override method VisitBinary, @Expression

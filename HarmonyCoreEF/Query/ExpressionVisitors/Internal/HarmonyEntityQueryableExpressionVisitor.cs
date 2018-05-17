@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors;
 using Microsoft.EntityFrameworkCore.Utilities;
 using Remotion.Linq.Clauses;
+using Remotion.Linq.Clauses.Expressions;
 
 namespace Harmony.Core.EF.Query.ExpressionVisitors.Internal
 {
@@ -39,6 +40,17 @@ namespace Harmony.Core.EF.Query.ExpressionVisitors.Internal
             _querySource = querySource;
         }
 
+
+        protected override Expression VisitSubQuery(SubQueryExpression expression)
+        {
+            return base.VisitSubQuery(expression);
+        }
+
+        protected override Expression VisitParameter(ParameterExpression node)
+        {
+            return base.VisitParameter(node);
+        }
+
         private new HarmonyQueryModelVisitor QueryModelVisitor
             => (HarmonyQueryModelVisitor)base.QueryModelVisitor;
 
@@ -61,6 +73,7 @@ namespace Harmony.Core.EF.Query.ExpressionVisitors.Internal
                     EntityQueryModelVisitor.QueryContextParameter,
                     Expression.Constant(entityType),
                     Expression.Constant(entityType.FindPrimaryKey()),
+                    Expression.Constant(QueryModelVisitor.ActiveQueryModel),
                     materializer,
                     Expression.Constant(
                         QueryModelVisitor.QueryCompilationContext.IsTrackingQuery
