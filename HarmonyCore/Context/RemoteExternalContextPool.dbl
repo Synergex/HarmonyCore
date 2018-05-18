@@ -8,7 +8,6 @@ namespace Harmony.Core.Context
 
 	public abstract class RemoteExternalContextPool<T(IContextBase, class)> extends FreeThreadedContextPool<T>
 		public method RemoteExternalContextPool
-			serviceProvider, @IServiceProvider
 			targetMachine, @string
 			authentication, @AuthenticationMethod
 			targetExe, @string
@@ -16,15 +15,16 @@ namespace Harmony.Core.Context
 			targetDirectory, @string
 			min, int
 			endparams
-			parent(min, serviceProvider)
+			parent(min)
 		proc
 			
 		endmethod
 		
 		protected override method SlowMakeContext, T
+			provider, @IServiceProvider
 		proc
 			
-			mreturn ActivatorUtilities.CreateInstance<T>(mServiceProvider);;, new RemoteDynamicCallConnection(targetMachine, authentication))
+			mreturn ActivatorUtilities.CreateInstance<T>(provider);;, new RemoteDynamicCallConnection(targetMachine, authentication))
 		endmethod
 	endclass
 

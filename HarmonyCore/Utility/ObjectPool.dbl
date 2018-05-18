@@ -36,22 +36,16 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 	;;;  </summary>
 	public class ObjectPool<T(class)>
         
-		{DebuggerDisplay("{Value,nq}")}
-		private cls structure Element
-            
-			internal Value, T
-		endstructure
-        
 		;;  Storage for the pool objects. The first item is stored in a dedicated field because we
 		;;  expect to be able to satisfy most requests from it.
         
 		private _firstItem, T
-		private readonly _items, [#]Element
+		private readonly _items, [#]T
 		;;  factory is stored for the lifetime of the pool. We will call this only when pool needs to
 		;;  expand. compared to "new T()", Func gives more flexibility to implementers and faster
 		;;  than "new T()".
         
-		private readonly _factory, @Func<T>
+		private readonly _factory, @Func<IServiceProvider, T>
         
 .ifdef DETECT_LEAKS
 		;;         private static readonly ConditionalWeakTable<T, LeakTracker> leakTrackers = new ConditionalWeakTable<T, LeakTracker>();;;         private class LeakTracker : IDisposable
@@ -92,7 +86,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 .endc
         
 		public method ObjectPool
-			factory, @Func<T> 
+			factory, @Func<IServiceProvider, T> 
 			endparams
 			this(factory, Environment.ProcessorCount * 2)
 		proc
@@ -100,19 +94,20 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 		endmethod
         
 		public method ObjectPool
-			factory, @Func<T> 
+			factory, @Func<IServiceProvider, T> 
 			size, int 
 			endparams
 		proc
 			Debug.Assert(size >= 1)
 			_factory = factory
-			_items = new Element[size - 1] 
+			_items = new T[size - 1] 
 		endmethod
         
 		private method CreateInstance, T
+			serviceProvider, @IServiceProvider
 			endparams
 		proc
-			data inst = _factory()
+			data inst = _factory(serviceProvider)
 			mreturn inst
 		endmethod
         
@@ -125,6 +120,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 		;;;  reducing how far we will typically search.
 		;;;  </remarks>
 		public method Allocate, T
+			serviceProvider, @IServiceProvider
 			endparams
 		proc
 			;;  PERF: Examine the first element. If that fails, AllocateSlow will look at the remaining elements.
@@ -134,7 +130,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 			data inst, T, _firstItem
 			if ((inst == ^null) || (inst != Interlocked.CompareExchange(_firstItem, ^null, inst)))
 			begin
-				inst = AllocateSlow()
+				inst = AllocateSlow(serviceProvider)
 			end
             
 .ifdef DETECT_LEAKS
@@ -152,6 +148,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 		endmethod
         
 		private method AllocateSlow, T
+			serviceProvider, @IServiceProvider
 			endparams
 		proc
 			data items = _items
@@ -162,17 +159,17 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 					;;  Note that the initial read is optimistically not synchronized. That is intentional. 
 					;;  We will interlock only when we have a candidate. in a worst case we may miss some
 					;;  recently returned objects. Not a big deal.
-					data inst, T, items[i].Value
+					data inst, T, items[i]
 					if (inst != ^null)
 					begin
-						if (inst == Interlocked.CompareExchange(items[i].Value, ^null, inst))
+						if (inst == Interlocked.CompareExchange(items[i], ^null, inst))
 						begin
 							mreturn inst
 						end
 					end
 				end
 			end
-			mreturn CreateInstance()
+			mreturn CreateInstance(serviceProvider)
 		endmethod
         
 		;;;  <summary>
@@ -211,12 +208,12 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 				data i, int
 				for i from 0 thru items.Length - 1
 				begin
-					if (items[i].Value == ^null)
+					if (items[i] == ^null)
 					begin
 						;;  Intentionally not using interlocked here. 
 						;;  In a worst case scenario two objects may be stored into same slot.
 						;;  It is very unlikely to happen and will only mean that one of the objects will get collected.
-						items[i].Value = obj
+						items[i] = obj
 						exitloop
 					end
 				end
@@ -279,7 +276,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 				data i, int
 				for i from 0 thru items.Length - 1
 				begin
-					data value = items[i].Value
+					data value = items[i]
 					if (value == ^null)
 					begin
 						mreturn

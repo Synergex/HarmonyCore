@@ -40,7 +40,7 @@ namespace Harmony.AspNetCore.Context
 				if(serviceType == ^typeof(T)) then
 				begin
 					if(Value == ^null)
-						Value = Factory.MakeContext()
+						Value = Factory.MakeContext(this)
 					mreturn Value
 				end
 				else
@@ -78,11 +78,12 @@ namespace Harmony.AspNetCore.Context
 
 				if(IsEager)
 				begin
-					data madeContext = await Factory.MakeContextAsync(sessionId)
+					data madeContext, T
+					madeContext = await Factory.MakeContextAsync(sessionId, contextFactoryProvider.InnerProvider)
 					contextFactoryProvider.Value = madeContext
-					if(madeContext .is. ThreadedContextBase)
+					if(madeContext .is. IThreadStickyContext)
 					begin
-						await ((@ThreadedContextBase)madeContext).TransitionThread()
+						await ((@IThreadStickyContext)madeContext).TransitionThread()
 					end
 				end
 
@@ -105,7 +106,7 @@ namespace Harmony.AspNetCore.Context
 			builder, @IApplicationBuilder
 			factory, @ContextFactory<T>
 		proc
-			data hoist = new ContextFactoryHoist<T>() { IsEager = false, IsSticky = factory.IsSessionSticky }
+			data hoist = new ContextFactoryHoist<T>() { IsEager = false, IsSticky = factory.IsSessionSticky, Factory = factory}
 			builder.Use(hoist.InvokeMiddlware)
 			mreturn builder
 		endmethod
@@ -115,7 +116,7 @@ namespace Harmony.AspNetCore.Context
 			builder, @IApplicationBuilder
 			factory, @ContextFactory<T>
 		proc
-			data hoist = new ContextFactoryHoist<T>() { IsEager = true, IsSticky = factory.IsSessionSticky}
+			data hoist = new ContextFactoryHoist<T>() { IsEager = true, IsSticky = factory.IsSessionSticky, Factory = factory}
 			builder.Use(hoist.InvokeMiddlware)
 			mreturn builder
 		endmethod

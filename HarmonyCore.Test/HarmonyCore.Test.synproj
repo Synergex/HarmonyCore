@@ -88,6 +88,7 @@
     <Compile Include="BasicFileIO.dbl" />
     <Compile Include="DataObject\OrdersDataObject.dbc" />
     <Compile Include="EndToEnd\BasicController.dbl" />
+    <Compile Include="EndToEnd\XfServerController.dbl" />
     <Compile Include="Properties\AssemblyInfo.dbl" />
   </ItemGroup>
   <ItemGroup>
@@ -109,6 +110,11 @@
     <ProjectReference Include="..\HarmonyCore\HarmonyCore.synproj">
       <Name>HarmonyCore</Name>
       <Project>{250c70bc-fb74-4f9e-b281-4c11126983b2}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Harmony.AspNetCore\Harmony.AspNetCore.synproj">
+      <Name>Harmony.AspNetCore</Name>
+      <Project>{03296a21-e11b-4dfa-85d4-a39e7bc6a737}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>
@@ -334,6 +340,14 @@
       <HintPath>..\packages\MSTest.TestFramework.1.3.0-beta2\lib\net45\Microsoft.VisualStudio.TestPlatform.TestFramework.Extensions.dll</HintPath>
       <Private>true</Private>
     </Reference>
+    <Reference Include="Microsoft.VisualStudio.Threading, Version=15.7.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <HintPath>..\packages\Microsoft.VisualStudio.Threading.15.7.18\lib\net46\Microsoft.VisualStudio.Threading.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Validation, Version=15.3.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <HintPath>..\packages\Microsoft.VisualStudio.Validation.15.3.15\lib\net45\Microsoft.VisualStudio.Validation.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
     <Reference Include="Microsoft.Win32.Primitives, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <CopyLocal>True</CopyLocal>
       <Private>True</Private>
@@ -345,6 +359,38 @@
     <Reference Include="mscorlib" />
     <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed">
       <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Nito.AsyncEx.Context, Version=5.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\packages\Nito.AsyncEx.Context.5.0.0-pre-05\lib\netstandard2.0\Nito.AsyncEx.Context.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Nito.AsyncEx.Coordination, Version=5.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\packages\Nito.AsyncEx.Coordination.5.0.0-pre-05\lib\netstandard2.0\Nito.AsyncEx.Coordination.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Nito.AsyncEx.Interop.WaitHandles, Version=5.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\packages\Nito.AsyncEx.Interop.WaitHandles.5.0.0-pre-05\lib\netstandard2.0\Nito.AsyncEx.Interop.WaitHandles.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Nito.AsyncEx.Oop, Version=5.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\packages\Nito.AsyncEx.Oop.5.0.0-pre-05\lib\netstandard2.0\Nito.AsyncEx.Oop.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Nito.AsyncEx.Tasks, Version=5.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\packages\Nito.AsyncEx.Tasks.5.0.0-pre-05\lib\netstandard2.0\Nito.AsyncEx.Tasks.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Nito.Cancellation, Version=1.0.4.0, Culture=neutral, PublicKeyToken=b924b527e7a731f2">
+      <HintPath>..\packages\Nito.Cancellation.1.0.4\lib\netstandard2.0\Nito.Cancellation.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Nito.Collections.Deque, Version=1.0.4.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\packages\Nito.Collections.Deque.1.0.4\lib\netstandard2.0\Nito.Collections.Deque.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Nito.Disposables, Version=1.2.3.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\packages\Nito.Disposables.1.2.3\lib\netstandard2.0\Nito.Disposables.dll</HintPath>
       <Private>true</Private>
     </Reference>
     <Reference Include="Remotion.Linq, Version=2.2.0.0, Culture=neutral, PublicKeyToken=fee00910d6e5f53b">
@@ -555,6 +601,7 @@
       <CopyLocal>True</CopyLocal>
       <Private>True</Private>
     </Reference>
+    <Reference Include="WindowsBase" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildExtensionsPath)\Synergex\VS2010\Synergex.SynergyDE.targets" />
@@ -570,5 +617,7 @@
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\Microsoft.AspNetCore.Mvc.Testing.2.1.0-preview2-final\build\netstandard2.0\Microsoft.AspNetCore.Mvc.Testing.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.AspNetCore.Mvc.Testing.2.1.0-preview2-final\build\netstandard2.0\Microsoft.AspNetCore.Mvc.Testing.targets'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.VisualStudio.Threading.Analyzers.15.7.18\build\Microsoft.VisualStudio.Threading.Analyzers.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.VisualStudio.Threading.Analyzers.15.7.18\build\Microsoft.VisualStudio.Threading.Analyzers.targets'))" />
   </Target>
+  <Import Project="..\packages\Microsoft.VisualStudio.Threading.Analyzers.15.7.18\build\Microsoft.VisualStudio.Threading.Analyzers.targets" Condition="Exists('..\packages\Microsoft.VisualStudio.Threading.Analyzers.15.7.18\build\Microsoft.VisualStudio.Threading.Analyzers.targets')" />
 </Project>

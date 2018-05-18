@@ -10,14 +10,13 @@ namespace Harmony.Core.Context
 		private mStartInfo, @System.Diagnostics.ProcessStartInfo
 		
 		public method ExternalContextPool
-			serviceProvider, @IServiceProvider
 			targetExe, @string
 			targetArguments, @string
 			targetDirectory, @string
 			environmentVariables, @IEnumerable<KeyValuePair<string, string>>
 			min, int
 			endparams
-			parent(min, serviceProvider)
+			parent(min)
 		proc
 			mStartInfo = new System.Diagnostics.ProcessStartInfo()
 			mStartInfo.FileName = targetExe
@@ -33,8 +32,9 @@ namespace Harmony.Core.Context
 		endmethod
 		
 		protected override method SlowMakeContext, T
+			provider, @IServiceProvider
 		proc
-			mreturn ActivatorUtilities.CreateInstance<T>(mServiceProvider, new ProcessDynamicCallConnection(mStartInfo))
+			mreturn ActivatorUtilities.CreateInstance<T>(provider, new ProcessDynamicCallConnection(mStartInfo))
 		endmethod
 	endclass
 

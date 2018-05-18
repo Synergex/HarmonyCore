@@ -5,79 +5,87 @@ import System.Collections.Concurrent
 import Harmony.Core
 import Microsoft.CodeAnalysis.PooledObjects
 import System.Threading.Tasks
+import Microsoft.Extensions.DependencyInjection
 namespace Harmony.Core.Context
 
-	public abstract class ThreadedContextPool<T(IContextBase, class)> extends ContextFactory<T>
-		private contextPool, @ObjectPool<Tuple<T, BackgroundDispatcher>>
+	public class ThreadedContextPool<T(IContextBase, class)> extends ContextFactory<T>
+		private mContextPool, @ObjectPool<T>
+		protected mXfServerThreadInit, boolean
+		public readwrite property ServiceProviderFactory, @IRequestServiceProviderFactory
 		public method ThreadedContextPool
 			min, int
 			xfServerThreadInit, boolean
+			serviceProviderFactory, @IRequestServiceProviderFactory
 		proc
-			;;BUG BUG BUG the compliler incorrectly reports this delegate as not matching
-			data contextFactory, @Func<Tuple<T, BackgroundDispatcher>>
-			contextFactory = lambda() { Tuple.Create(MakeContextSlow(), new BackgroundDispatcher(xfServerThreadInit)) }
-			contextPool = new ObjectPool<Tuple<T, BackgroundDispatcher>>(contextFactory, min)
+			this.ServiceProviderFactory = serviceProviderFactory
+			mXfServerThreadInit = xfServerThreadInit
+			data contextFactory, @Func<IServiceProvider, T>
+			contextFactory = lambda(provider) { MakeContextSlow(provider) }
+			mContextPool = new ObjectPool<T>(contextFactory, min)
 		endmethod
 		
 		public override method MakeContextAsync, @Task<T>
 			sessionId, @string 
+			services, @IServiceProvider
 			endparams
 		proc
-			throw new System.NotImplementedException()
+			mreturn Task.FromResult(MakeContext(sessionId, services))
 		endmethod
 		
 		public override method MakeContext, T
 			sessionId, @string
+			services, @IServiceProvider
 			endparams
 		proc
-			throw new System.NotImplementedException()
+			mreturn mContextPool.Allocate(services)
 		endmethod
 
-		protected abstract method MakeContextSlow, T
+		protected virtual method MakeContextSlow, T
+			provider, @IServiceProvider
 			endparams
 		proc
+			mreturn ActivatorUtilities.CreateInstance<T>(serviceProviderFactory.MakeScopedProvider(provider), new BackgroundDispatcher(mXfServerThreadInit))
 		endmethod
 
 		public override method ReturnContext, void
 			context, T 
 			endparams
 		proc
-			throw new System.NotImplementedException()
+			mContextPool.Free(context)
 		endmethod
 	endclass
 
 
-	public class ThreadedSessionContextPool<T(IContextBase, class)> extends ContextFactory<T>
-		private sessionLookup, @ConcurrentDictionary<string, T>
-		private contextPool, @ObjectPool<Tuple<T, BackgroundDispatcher>>
-		private dispatchPool, @ObjectPool<BackgroundDispatcher>
-		public method ThreadedSessionContextPool
-			min, int
-			xfServerThreadInit, boolean
-		proc
-			;;BUG BUG BUG the compliler incorrectly reports this delegate as not matching
-			;;dispatchPool = new ObjectPool<BackgroundDispatcher>(lambda() { new BackgroundDispatcher(xfServerThreadInit) }, min)
-		endmethod
-		
-		public override method MakeContextAsync, @Task<T>
-			sessionId, @string 
-			endparams
-		proc
-			throw new System.NotImplementedException()
-		endmethod
-		
-		public override method MakeContext, T
-			sessionId, @string
-			endparams
-		proc
-			throw new System.NotImplementedException()
-		endmethod
-
-		public override method ReturnContext, void
-			context, T 
-			endparams
-		proc
-			throw new System.NotImplementedException()
-		endmethod
-	endclass
+;	public class ThreadedSessionContextPool<T(IContextBase, class)> extends ContextFactory<T>
+;		private sessionLookup, @ConcurrentDictionary<string, T>
+;		private contextPool, @ObjectPool<Tuple<T, BackgroundDispatcher>>
+;		private dispatchPool, @ObjectPool<BackgroundDispatcher>
+;		public method ThreadedSessionContextPool
+;			min, int
+;			xfServerThreadInit, boolean
+;		proc
+;			
+;		endmethod
+;		
+;		public override method MakeContextAsync, @Task<T>
+;			sessionId, @string 
+;			endparams
+;		proc
+;			throw new System.NotImplementedException()
+;		endmethod
+;		
+;		public override method MakeContext, T
+;			sessionId, @string
+;			endparams
+;		proc
+;			throw new System.NotImplementedException()
+;		endmethod
+;
+;		public override method ReturnContext, void
+;			context, T 
+;			endparams
+;		proc
+;			throw new System.NotImplementedException()
+;		endmethod
+;	endclass
 endnamespace
