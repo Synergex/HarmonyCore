@@ -78,9 +78,9 @@ namespace Harmony.Core.EF.Query.Internal
 
         private static IEnumerable<ValueBuffer> ProjectionQuery(
             QueryContext queryContext,
+            QueryModel queryModel,
             IEntityType entityType)
-            => (((HarmonyQueryContext)queryContext).Store
-                .GetQuerableFile(entityType.ClrType) as IEnumerable<DataObjectBase>)
+            => QueryModelVisitor.ExecuteSelectInternal(queryModel, queryContext.ParameterValues, (((HarmonyQueryContext)queryContext).Store)).OfType<DataObjectBase>()
                 .Select(t => new ValueBuffer(t.InternalGetValues()));
     }
 }

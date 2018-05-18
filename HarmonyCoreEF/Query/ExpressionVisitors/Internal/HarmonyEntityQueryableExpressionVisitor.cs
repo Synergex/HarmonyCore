@@ -83,6 +83,7 @@ namespace Harmony.Core.EF.Query.ExpressionVisitors.Internal
             return Expression.Call(
                 HarmonyQueryModelVisitor.ProjectionQueryMethodInfo,
                 EntityQueryModelVisitor.QueryContextParameter,
+                Expression.Constant(QueryModelVisitor.ActiveQueryModel),
                 Expression.Constant(entityType));
         }
     }

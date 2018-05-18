@@ -60,7 +60,7 @@ namespace Harmony.AspNetCore.Context
 
 		class ContextFactoryHoist<T(IContextBase, class)>
 			public Factory, @ContextFactory<T>
-			public IsExpensive, boolean
+			public IsEager, boolean
 			public IsSticky, boolean
 			public async method InvokeMiddlware, @Task
 				context, @HttpContext
@@ -74,16 +74,18 @@ namespace Harmony.AspNetCore.Context
 					context.Session.SetString(^typeof(T).Name + "FactorySession", sessionId)
 				end
 
-				if(IsExpensive) then
+				context.RequestServices = contextFactoryProvider = new ContextFactoryServiceProvider<T>() { InnerProvider = context.RequestServices, Context = context, Factory = Factory, SessionId = sessionId }
+
+				if(IsEager)
 				begin
 					data madeContext = await Factory.MakeContextAsync(sessionId)
-					context.RequestServices = contextFactoryProvider = new ContextFactoryServiceProvider<T>() { InnerProvider = context.RequestServices, Context = context, Factory = Factory, SessionId = sessionId }
 					contextFactoryProvider.Value = madeContext
+					if(madeContext .is. ThreadedContextBase)
+					begin
+						await ((@ThreadedContextBase)madeContext).TransitionThread()
+					end
 				end
-				else
-				begin
-					context.RequestServices = contextFactoryProvider = new ContextFactoryServiceProvider<T>() { InnerProvider = context.RequestServices, Context = context, Factory = Factory, SessionId = sessionId }
-				end
+
 				try
 				begin
 					await next()
@@ -103,17 +105,17 @@ namespace Harmony.AspNetCore.Context
 			builder, @IApplicationBuilder
 			factory, @ContextFactory<T>
 		proc
-			data hoist = new ContextFactoryHoist<T>() { IsExpensive = false, IsSticky = factory.IsSessionSticky }
+			data hoist = new ContextFactoryHoist<T>() { IsEager = false, IsSticky = factory.IsSessionSticky }
 			builder.Use(hoist.InvokeMiddlware)
 			mreturn builder
 		endmethod
 
 		;;this creates the context async inside the middleware process instead of blocking DI
-		public static extension method UseExpensiveContext<T(IContextBase, class)>, @IApplicationBuilder 
+		public static extension method UseEagerContext<T(IContextBase, class)>, @IApplicationBuilder 
 			builder, @IApplicationBuilder
 			factory, @ContextFactory<T>
 		proc
-			data hoist = new ContextFactoryHoist<T>() { IsExpensive = true, IsSticky = factory.IsSessionSticky}
+			data hoist = new ContextFactoryHoist<T>() { IsEager = true, IsSticky = factory.IsSessionSticky}
 			builder.Use(hoist.InvokeMiddlware)
 			mreturn builder
 		endmethod

@@ -2,28 +2,40 @@ import System
 import System.Collections.Generic
 import System.Text
 
+import Microsoft.Extensions.DependencyInjection
 
 namespace Harmony.Core.Context
 
 	public abstract class ExternalContextPool<T(IContextBase, class)> extends FreeThreadedContextPool<T>
-		
-		protected abstract method SlowMakeContext, T
-			endparams
-		proc
-		endmethod
-		
+		private mStartInfo, @System.Diagnostics.ProcessStartInfo
 		
 		public method ExternalContextPool
+			serviceProvider, @IServiceProvider
 			targetExe, @string
 			targetArguments, @string
 			targetDirectory, @string
+			environmentVariables, @IEnumerable<KeyValuePair<string, string>>
 			min, int
 			endparams
-			parent(min)
+			parent(min, serviceProvider)
 		proc
-			
+			mStartInfo = new System.Diagnostics.ProcessStartInfo()
+			mStartInfo.FileName = targetExe
+			mStartInfo.WorkingDirectory = targetDirectory
+			mStartInfo.CreateNoWindow = true
+			data envVar, KeyValuePair<string, string>
+			foreach envVar in environmentVariables
+				mStartInfo.EnvironmentVariables.Add(envVar.Key, envVar.Value)
+
+			mStartInfo.Arguments = targetArguments
+			mStartInfo.RedirectStandardOutput = true
+			mStartInfo.RedirectStandardInput = true
 		endmethod
 		
+		protected override method SlowMakeContext, T
+		proc
+			mreturn ActivatorUtilities.CreateInstance<T>(mServiceProvider, new ProcessDynamicCallConnection(mStartInfo))
+		endmethod
 	endclass
 
 endnamespace

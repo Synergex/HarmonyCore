@@ -4,17 +4,20 @@ import System.Collections.Generic
 import System.Text
 import Microsoft.CodeAnalysis.PooledObjects
 import System.Threading.Tasks
-
+import Microsoft.Extensions.DependencyInjection
 
 namespace Harmony.Core.Context
 
-	public abstract class FreeThreadedContextPool<T(IContextBase, class)> extends ContextFactory<T>
-		private sessionLookup, @ConcurrentDictionary<string, T>
-		private contextPool, @ObjectPool<T>
+	public class FreeThreadedContextPool<T(IContextBase, class)> extends ContextFactory<T>
+		private mSessionLookup, @ConcurrentDictionary<string, T>
+		private mContextPool, @ObjectPool<T>
+		protected mServiceProvider, @IServiceProvider
 		public method FreeThreadedContextPool
 			min, int
+			serviceProvider, @IServiceProvider
 		proc
-			sessionLookup = new ConcurrentDictionary<string, T>()
+			mServiceProvider = serviceProvider
+			mSessionLookup = new ConcurrentDictionary<string, T>()
 			;;BUG BUG BUG the compiler incorrectly reports this as a mismatched delegate
 			;;contextPool = new ObjectPool<T>(lambda() { SlowMakeContext() }, min)
 		endmethod
@@ -30,18 +33,18 @@ namespace Harmony.Core.Context
 			sessionId, @string
 			endparams
 		proc
-			mreturn contextPool.Allocate()
+			mreturn mContextPool.Allocate()
 		endmethod
 
-		protected abstract method SlowMakeContext, T
+		protected virtual method SlowMakeContext, T
 		proc
-
+			mreturn ActivatorUtilities.CreateInstance<T>(mServiceProvider)
 		endmethod
 
 		public override method ReturnContext, void
 			context, T
 		proc
-			contextPool.Free(context)
+			mContextPool.Free(context)
 		endmethod
 	endclass
 

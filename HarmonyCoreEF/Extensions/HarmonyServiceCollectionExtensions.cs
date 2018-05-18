@@ -72,8 +72,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 .TryAddProviderSpecificServices(
                     b => b
                         .TryAddSingleton<IHarmonySingletonOptions, HarmonySingletonOptions>()
-                        .TryAddSingleton<IHarmonyStoreCache, HarmonyStoreCache>()
-                        .TryAddSingleton<IHarmonyTableFactory, HarmonyTableFactory>()
                         .TryAddScoped<IHarmonyDatabase, HarmonyDatabase>()
                         .TryAddScoped<IHarmonyMaterializerFactory, HarmonyMaterializerFactory>());
 

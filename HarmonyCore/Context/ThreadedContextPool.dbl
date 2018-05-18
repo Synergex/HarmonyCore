@@ -7,11 +7,51 @@ import Microsoft.CodeAnalysis.PooledObjects
 import System.Threading.Tasks
 namespace Harmony.Core.Context
 
-	public class ThreadedContextPool<T(IContextBase, class)> extends ContextFactory<T>
+	public abstract class ThreadedContextPool<T(IContextBase, class)> extends ContextFactory<T>
+		private contextPool, @ObjectPool<Tuple<T, BackgroundDispatcher>>
+		public method ThreadedContextPool
+			min, int
+			xfServerThreadInit, boolean
+		proc
+			;;BUG BUG BUG the compliler incorrectly reports this delegate as not matching
+			data contextFactory, @Func<Tuple<T, BackgroundDispatcher>>
+			contextFactory = lambda() { Tuple.Create(MakeContextSlow(), new BackgroundDispatcher(xfServerThreadInit)) }
+			contextPool = new ObjectPool<Tuple<T, BackgroundDispatcher>>(contextFactory, min)
+		endmethod
+		
+		public override method MakeContextAsync, @Task<T>
+			sessionId, @string 
+			endparams
+		proc
+			throw new System.NotImplementedException()
+		endmethod
+		
+		public override method MakeContext, T
+			sessionId, @string
+			endparams
+		proc
+			throw new System.NotImplementedException()
+		endmethod
+
+		protected abstract method MakeContextSlow, T
+			endparams
+		proc
+		endmethod
+
+		public override method ReturnContext, void
+			context, T 
+			endparams
+		proc
+			throw new System.NotImplementedException()
+		endmethod
+	endclass
+
+
+	public class ThreadedSessionContextPool<T(IContextBase, class)> extends ContextFactory<T>
 		private sessionLookup, @ConcurrentDictionary<string, T>
 		private contextPool, @ObjectPool<Tuple<T, BackgroundDispatcher>>
 		private dispatchPool, @ObjectPool<BackgroundDispatcher>
-		public method ThreadedContextPool
+		public method ThreadedSessionContextPool
 			min, int
 			xfServerThreadInit, boolean
 		proc
@@ -40,5 +80,4 @@ namespace Harmony.Core.Context
 			throw new System.NotImplementedException()
 		endmethod
 	endclass
-
 endnamespace

@@ -42,13 +42,6 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 			internal Value, T
 		endstructure
         
-		;;;  <remarks>
-		;;;  Not using System.Func{T} because this file is linked into the (debugger) Formatter,
-		;;;  which does not have that type (since it compiles against .NET 2.0).
-		;;;  </remarks>
-		public delegate Factory, T
-			endparams
-		enddelegate
 		;;  Storage for the pool objects. The first item is stored in a dedicated field because we
 		;;  expect to be able to satisfy most requests from it.
         
@@ -58,7 +51,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 		;;  expand. compared to "new T()", Func gives more flexibility to implementers and faster
 		;;  than "new T()".
         
-		private readonly _factory, @Factory
+		private readonly _factory, @Func<T>
         
 .ifdef DETECT_LEAKS
 		;;         private static readonly ConditionalWeakTable<T, LeakTracker> leakTrackers = new ConditionalWeakTable<T, LeakTracker>();;;         private class LeakTracker : IDisposable
@@ -99,7 +92,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 .endc
         
 		public method ObjectPool
-			factory, @Factory 
+			factory, @Func<T> 
 			endparams
 			this(factory, Environment.ProcessorCount * 2)
 		proc
@@ -107,7 +100,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 		endmethod
         
 		public method ObjectPool
-			factory, @Factory 
+			factory, @Func<T> 
 			size, int 
 			endparams
 		proc

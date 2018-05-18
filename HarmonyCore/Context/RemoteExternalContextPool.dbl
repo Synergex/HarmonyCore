@@ -1,12 +1,31 @@
 import System
 import System.Collections.Generic
 import System.Text
-
+import Renci.SshNet
+import Microsoft.Extensions.DependencyInjection
 
 namespace Harmony.Core.Context
 
-	public class RemoteExternalContextPool
-	
+	public abstract class RemoteExternalContextPool<T(IContextBase, class)> extends FreeThreadedContextPool<T>
+		public method RemoteExternalContextPool
+			serviceProvider, @IServiceProvider
+			targetMachine, @string
+			authentication, @AuthenticationMethod
+			targetExe, @string
+			targetArguments, @string
+			targetDirectory, @string
+			min, int
+			endparams
+			parent(min, serviceProvider)
+		proc
+			
+		endmethod
+		
+		protected override method SlowMakeContext, T
+		proc
+			
+			mreturn ActivatorUtilities.CreateInstance<T>(mServiceProvider);;, new RemoteDynamicCallConnection(targetMachine, authentication))
+		endmethod
 	endclass
 
 endnamespace

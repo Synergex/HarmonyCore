@@ -15,20 +15,15 @@ namespace Harmony.Core.Context
 		private channelManager, @IFileChannelManager
 		private queryableMapping, @ConcurrentDictionary<Type, IQueryable>
 		private fileIOMapping, @ConcurrentDictionary<Type, IDataObjectIO>
-		private queryProvider, @Harmony.Core.FileIO.Queryable.QueryProvider
-		private static makeQueryableMethod, @MethodInfo
 		private static makeFileIOMethod, @MethodInfo
 		public method DataObjectProvider
 			chanManager, @IFileChannelManager
 		proc
 			typeMapping = new Dictionary<Type, DataObjectMapping>()
-			queryableMapping = new ConcurrentDictionary<Type, IQueryable>()
 			fileIOMapping = new ConcurrentDictionary<Type, IDataObjectIO>()
 			channelManager = chanManager
 			data doMapType = ^typeof(DataObjectMapping)
-			makeQueryableMethod = doMapType.GetMethod("MakeQueryable")
 			makeFileIOMethod = doMapType.GetMethod("MakeFileIO")
-			queryProvider = new Harmony.Core.FileIO.Queryable.QueryProvider(this, channelManager)
 		endmethod
 
 		public property ChannelManager, @IFileChannelManager
@@ -37,12 +32,6 @@ namespace Harmony.Core.Context
 				mreturn channelManager
 			endmethod
 		endproperty
-
-
-		public method GetQueryableFile<T(DataObjectBase)>, @IQueryable<T>
-		proc
-			mreturn (@IQueryable<T>)queryableMapping.GetOrAdd(^typeof(T), lambda(keyValue) { (@IQueryable)(typeMapping[keyValue].MakeQueryable<T>(queryProvider)) })
-		endmethod
 
 		public method GetFileIO<T(DataObjectBase)>, @IDataObjectIO<T>
 		proc
@@ -75,12 +64,6 @@ namespace Harmony.Core.Context
 			mreturn Tuple.Create(typeMap.Filename, typeMap.OpenMode)
 		endmethod
 
-		public method GetQuerableFile, @IQueryable
-			entityType, @Type
-		proc
-			mreturn queryableMapping.GetOrAdd(entityType, lambda(keyValue) { (@IQueryable)(makeQueryableMethod.MakeGenericMethod(new Type[#] { entityType }).Invoke(typeMapping[keyValue], new Object[#] { queryProvider })) })
-		endmethod
-
 		public method GetFileIO, @IDataObjectIO
 			entityType, @Type
 		proc
@@ -92,11 +75,6 @@ namespace Harmony.Core.Context
 	public class DataObjectMapping
 		public Filename, @string
 		public OpenMode, FileOpenMode
-		public virtual method MakeQueryable<T(DataObjectBase)>, @IQueryable<T>
-			queryProvider, @IQueryProvider
-		proc
-			mreturn new Query<T>(queryProvider, (@Type)^null)
-		endmethod
 
 		public virtual method MakeFileIO<T(DataObjectBase)>, @IDataObjectIO<T>
 			channelManager, @IFileChannelManager
