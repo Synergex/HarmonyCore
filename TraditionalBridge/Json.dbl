@@ -6,7 +6,7 @@ import System.Collections
 .define STRING_AT(inputValue, index) inputValue(index:1)
 .endc
 
-.define IsNumber(ch) ch >= '0' && ch <= '9'
+.define IsNumber(ch) (ch >= '0' && ch <= '9')
 
 namespace Json
 	enum JSON_TYPE
@@ -41,11 +41,13 @@ namespace Json
 			endparams
 			record
 				tempPos, int
+				ch, a1
 		proc
 			tempPos = currentPos
 			while(tempPos < inputValue.Length)
 			begin
-				if(!IsNumber(STRING_AT(inputValue, tempPos)))
+				ch = STRING_AT(inputValue, tempPos)
+				if(!IsNumber(ch))
 					mreturn tempPos
 
 				incr(tempPos)
@@ -423,6 +425,7 @@ namespace Json
 			while(currentPos <= inputValue.Length)
 			begin
 				data endChar = '}'
+				data readChar, a1
 				currentPos = SkipAny(currentPos, blankSet)
 				if(!currentPos)
 					ReportFailure(inputValue, currentPos, "Unknown")
@@ -434,6 +437,7 @@ namespace Json
 				if(jsonType != JSON_TYPE.OBJ)
 					endChar = ']'
 
+				readChar = STRING_AT(inputValue, currentPos)
 				if(STRING_AT(inputValue, currentPos) == endChar) then
 				begin
 					;;data parentValue = parentValues.Count > 0 ? (JsonObject)parentValues[parentValues.Count - 1] : (JsonObject)^null
@@ -496,7 +500,11 @@ namespace Json
 						MaybeAdd(currentProperty, currentValue, PrimitiveValue(currentPos, "null", JSON_TYPE.OBJ))
 					endcase
 					else
+					begin
 						MaybeAdd(currentProperty, currentValue, NumberValue(currentPos))
+						nextloop
+					end
+
 				end
 
 				incr currentPos

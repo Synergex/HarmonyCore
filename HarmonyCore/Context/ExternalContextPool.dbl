@@ -22,9 +22,13 @@ namespace Harmony.Core.Context
 			mStartInfo.FileName = targetExe
 			mStartInfo.WorkingDirectory = targetDirectory
 			mStartInfo.CreateNoWindow = true
-			data envVar, KeyValuePair<string, string>
-			foreach envVar in environmentVariables
-				mStartInfo.EnvironmentVariables.Add(envVar.Key, envVar.Value)
+			mStartInfo.UseShellExecute = false
+			if(environmentVariables != ^null)
+			begin
+				data envVar, KeyValuePair<string, string>
+				foreach envVar in environmentVariables
+					mStartInfo.EnvironmentVariables.Add(envVar.Key, envVar.Value)
+			end
 
 			mStartInfo.Arguments = targetArguments
 			mStartInfo.RedirectStandardOutput = true
@@ -34,7 +38,9 @@ namespace Harmony.Core.Context
 		protected override method SlowMakeContext, T
 			provider, @IServiceProvider
 		proc
-			mreturn ActivatorUtilities.CreateInstance<T>(provider, new ProcessDynamicCallConnection(mStartInfo))
+			data callConection = new ProcessDynamicCallConnection(mStartInfo)
+			callConection.Connect()
+			mreturn ActivatorUtilities.CreateInstance<T>(provider, callConection)
 		endmethod
 	endclass
 

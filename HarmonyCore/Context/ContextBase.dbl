@@ -13,8 +13,12 @@ namespace Harmony.Core.Context
 		readonly property IsolationLevel, ContextIsolationLevel
 	endinterface
 
-	public class AppDomainContextBase extends MarshalByRefObject implements IContextBase
-		public setprotected property IsolationLevel, ContextIsolationLevel	
+	public class IsolatedContextBase extends MarshalByRefObject implements IContextBase
+		public setprotected property IsolationLevel, ContextIsolationLevel
+		public method IsolatedContextBase
+		proc
+			IsolationLevel = ContextIsolationLevel.Isolated
+		endmethod
 	endclass
 
 	public class ThreadedContextBase implements IContextBase, IThreadStickyContext
@@ -24,6 +28,7 @@ namespace Harmony.Core.Context
 			dispatcher, @BackgroundDispatcher
 		proc
 			mDispatcher = dispatcher
+			IsolationLevel = ContextIsolationLevel.SingleThreaded
 		endmethod
 
 

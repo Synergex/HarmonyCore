@@ -4,19 +4,16 @@ import System.Collections
 namespace Harmony.Core
 
 	public abstract class DataObjectMetadataBase
-		
-		static method DataObjectMetadataBase
-		proc
-			mLookupRCBId = %rcb_create(1, DM_STATIC)
-		endmethod
-
-		
+	
 		private static mLookupRCBId, i4
 		public static method LookupType, @DataObjectMetadataBase
 			targetType, @string
 			record
 				result, @DataObjectMetadataBase
 		proc
+			if(mLookupRCBId == 0)
+				mLookupRCBId = %rcb_create(1, DM_STATIC)
+
 			;;it might be possible to use the symbol api as a dictionary here so we dont have to make an rcb call each time we want to look this up
 			xcall rcb_setarg(mLookupRCBId, result, 1) 
 			xcall rcb_setfnc(mLookupRCBId, "Meta" + targetType)  ;this doesnt deal with namespaces, users must not allow dataobjects that differ only by namespace

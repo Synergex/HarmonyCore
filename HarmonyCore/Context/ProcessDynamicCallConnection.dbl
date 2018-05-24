@@ -2,17 +2,21 @@ import System
 import System.Collections.Generic
 import System.Text
 import System.Diagnostics
+import Newtonsoft.Json
+import Newtonsoft.Json.Linq
 
 
 namespace Harmony.Core.Context
 
 	public class ProcessDynamicCallConnection implements IDynamicCallConnection
-		private targetProcess, @Process
+		private static NewLineBytes, [#]Byte, new byte[#] { 10, 13 }
+		private mTargetProcess, @Process
 
 		public method ProcessDynamicCallConnection
 			startInfo, @ProcessStartInfo
 		proc
-			targetProcess.StartInfo = startInfo
+			mTargetProcess = new Process()
+			mTargetProcess.StartInfo = startInfo
 			
 		endmethod
 
@@ -20,10 +24,23 @@ namespace Harmony.Core.Context
 			terminator, Char 
 			endparams
 		proc
-			if(terminator != 13)
+			if(terminator != %char(13))
 				throw new NotImplementedException("the only acceptable terminator for this connection type is newline")
 
-			mreturn targetProcess.StandardOutput.ReadLine()
+			data lengthBuffer = new char[10]
+			mTargetProcess.StandardOutput.ReadBlock(lengthBuffer, 0, 10)
+			try
+			begin
+				data expectedMessageLength = Convert.ToInt32(new string(lengthBuffer))
+				data messageBuffer = new char[expectedMessageLength]
+				mTargetProcess.StandardOutput.ReadBlock(messageBuffer, 0, expectedMessageLength)
+				mreturn new string(messageBuffer)
+			end
+			catch(ex, @Exception)
+			begin
+				mreturn new string(lengthBuffer) + mTargetProcess.StandardOutput.ReadLine()
+			end
+			endtry
 		endmethod
 		
 		public virtual method Recycle, void
@@ -35,20 +52,57 @@ namespace Harmony.Core.Context
 		public virtual method Disconnect, void
 			endparams
 		proc
-			targetProcess.Kill()
+			mTargetProcess.Kill()
 		endmethod
 		
+		class ProtocolMessage
+			public readwrite property ProtocolSupported, boolean
+		endclass
+
+
 		public virtual method Connect, void
 			endparams
 		proc
-			targetProcess.Start()
+			data handshakeString = '{"ProtocolVersion":"1.0"}'
+			data readLine, @string
+			mTargetProcess.Start()
+			mTargetProcess.StartInfo.StandardOutputEncoding = ASCIIEncoding.ASCII
+			while((readLine = mTargetProcess.StandardOutput.ReadLine()) != "READY")
+			begin
+				Debug.WriteLine("Not Ready")
+			end
+			data paddedLengthString = handshakeString.Length.ToString().PadLeft(10, '0')
+			data tempBytes = ASCIIEncoding.ASCII.GetBytes(paddedLengthString + %char(10) + %char(13))
+			mTargetProcess.StandardInput.BaseStream.Write(tempBytes, 0, tempBytes.Length)
+			mTargetProcess.StandardInput.BaseStream.Flush()
+			data response = mTargetProcess.StandardOutput.ReadLine()
+			tempBytes = ASCIIEncoding.ASCII.GetBytes(handshakeString + %char(10) + %char(13))
+			mTargetProcess.StandardInput.BaseStream.Write(tempBytes, 0, tempBytes.Length)
+			mTargetProcess.StandardInput.BaseStream.Flush()
+			data lengthBuffer = new char[10]
+			mTargetProcess.StandardOutput.ReadBlock(lengthBuffer, 0, 10)
+			data expectedMessageLength = Convert.ToInt32(new string(lengthBuffer))
+			data messageBuffer = new char[expectedMessageLength]
+			mTargetProcess.StandardOutput.ReadBlock(messageBuffer, 0, expectedMessageLength)
+			;;TODO real json here
+			data deserializedMessage = JsonConvert.DeserializeObject<ProtocolMessage>(new string(messageBuffer))
+			if(!deserializedMessage.ProtocolSupported)
+				throw new Exception("Protocol not supported")
 		endmethod
 		
 		public virtual method WriteRaw, void
 			rawData, [#]byte
 			endparams
 		proc
-			targetProcess.StandardInput.Write(rawData)
+			data paddedLengthString = rawData.Length.ToString().PadLeft(10, '0')
+			data tempBytes = ASCIIEncoding.ASCII.GetBytes(paddedLengthString + %char(10) + %char(13))
+			mTargetProcess.StandardInput.BaseStream.Write(tempBytes, 0, tempBytes.Length)
+			mTargetProcess.StandardInput.BaseStream.Flush()
+			data response = mTargetProcess.StandardOutput.ReadLine()
+			mTargetProcess.StandardInput.BaseStream.Write(rawData, 0, rawData.Length)
+			mTargetProcess.StandardInput.BaseStream.Write(NewLineBytes, 0, NewLineBytes.Length)
+			mTargetProcess.StandardInput.BaseStream.Flush()
+			
 		endmethod
 	
 	endclass

@@ -40,7 +40,7 @@
 ;		public method SimpleTest, void
 ;		proc
 ;			data client = server.CreateClient()
-;			data request = "/odata/Orders"
+;			data request = "/odata/BasicOrders"
 ;			data response = client.GetAsync(request).Result
 ;			response.EnsureSuccessStatusCode()
 ;
@@ -51,7 +51,7 @@
 ;		public method SimpleParameterTest, void
 ;		proc
 ;			data client = server.CreateClient()
-;			data request = "/odata/Orders(3)"
+;			data request = "/odata/BasicOrders(3)"
 ;			data response = client.GetAsync(request).Result
 ;			response.EnsureSuccessStatusCode()
 ;
@@ -62,7 +62,7 @@
 ;		public method SimpleUpdateTest, void
 ;		proc
 ;			data client = server.CreateClient()
-;			data request = "/odata/Orders(1)"
+;			data request = "/odata/BasicOrders(1)"
 ;			data response = client.PostAsync(request, new StringContent("")).Result
 ;			response.EnsureSuccessStatusCode()
 ;
@@ -134,23 +134,23 @@
 ;
 ;	endclass
 ;
-;	public class OrdersController extends ODataController
+;	public class BasicOrdersController extends ODataController
 ;	
 ;		public readwrite property DBContext, @BasicControllerDBContext
 ;
-;		public method OrdersController
+;		public method BasicOrdersController
 ;			dbContext, @BasicControllerDBContext
 ;		proc
 ;			this.DBContext = dbContext
 ;		endmethod
-;		{ODataRoute("Orders")}
+;		{ODataRoute("BasicOrders")}
 ;		{EnableQuery(MaxExpansionDepth=3, MaxSkip=10, MaxTop=5, PageSize=4)}
 ;		public method Get, @IActionResult
 ;		proc
 ;			mreturn Ok(DBContext.Orders)
 ;		endmethod
 ;
-;		{ODataRoute("Orders({id})")}
+;		{ODataRoute("BasicOrders({id})")}
 ;		public method Get, @IActionResult
 ;			{FromODataUri}
 ;			id, int
@@ -159,7 +159,7 @@
 ;			mreturn Ok(foundOrder)
 ;		endmethod
 ;
-;		{ODataRoute("Orders({id})")}
+;		{ODataRoute("BasicOrders({id})")}
 ;		public method Post, @IActionResult
 ;			{FromODataUri}
 ;			id, int
@@ -177,7 +177,7 @@
 ;			if(mEdmModel == ^null)
 ;			begin
 ;				data builder = new ODataConventionModelBuilder()
-;				data entitySet = builder.EntitySet<Orders>("Orders")
+;				data entitySet = builder.EntitySet<Orders>("BasicOrders")
 ;				mEdmModel = builder.GetEdmModel()
 ;			end
 ;

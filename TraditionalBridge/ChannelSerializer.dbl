@@ -11,6 +11,7 @@ namespace Json
 
 	class ChannelSerializer
 		private channel, i4
+		private buffer, @string
 		;;TODO: make a real stack out of a dynamic array or something like that
 		private serializerStack, @System.Collections.ArrayList
 		;;TODO: buffer writes into an a65535 instead of calling write directly
@@ -23,6 +24,7 @@ namespace Json
 		public method ChannelSerializer
 			chan, i
 		proc
+			buffer = ""
 			channel = chan
 			serializerStack = new System.Collections.ArrayList()
 			serializerStack.Add((@SerializerStackType)SerializerStackType.None)
@@ -51,10 +53,10 @@ namespace Json
 		proc
 			inArray = STACK_STATE_ARRAY
 			if(!first && inArray)
-				puts(channel, ",")
+				buffer += ","
 			first = false
 
-			puts(channel, %string(value))
+			buffer += %string(value)
 
 			if(!inArray)
 				expectingName = true
@@ -69,10 +71,10 @@ namespace Json
 		proc
 			inArray = STACK_STATE_ARRAY
 			if(!first && inArray)
-				puts(channel, ",")
+				buffer += ","
 			first = false
 
-			puts(channel, %string(value))
+			buffer += %string(value)
 
 			if(!inArray)
 				expectingName = true
@@ -86,10 +88,10 @@ namespace Json
 		proc
 			inArray = STACK_STATE_ARRAY
 			if(!first && inArray)
-				puts(channel, ",")
+				buffer += ","
 			first = false
 
-			puts(channel, "null")
+			buffer += "null"
 
 			if(!inArray)
 				expectingName = true
@@ -104,12 +106,12 @@ namespace Json
 		proc
 			inArray = STACK_STATE_ARRAY
 			if(!first && inArray)
-				puts(channel, ",")
+				buffer += ","
 
 			if(value) then
-				puts(channel, "true")
+				buffer += "true"
 			else
-				puts(channel, "false")
+				buffer += "false"
 			first = false
 
 			if(!inArray)
@@ -125,15 +127,15 @@ namespace Json
 		proc
 			inArray = STACK_STATE_ARRAY
 			if(!first && (expectingName || inArray))
-				puts(channel, ",")
+				buffer += ","
 			
 			first = false
 
 			;;TODO this string might need to be encoded, it probably shouldnt have binary data in it
-			puts(channel, '"' + value + '"')
+			buffer += '"' + value + '"'
 			if(expectingName)
 			begin
-				puts(channel, ":")
+				buffer += ":"
 			end
 			
 			if(inArray)
@@ -145,41 +147,60 @@ namespace Json
 		public method MapOpen, SerializerStatus
 		proc
 			if(!first && STACK_STATE_ARRAY)
-				puts(channel, ",")
+				buffer += ","
 			expectingName = true
 			first = true
 			Push(SerializerStackType.Object)
-			puts(channel, "{")
+			buffer += "{"
 			mreturn SerializerStatus.Ok
 		endmethod
 
 		public method MapClose, SerializerStatus
+			record
+				bufferLength, d10
 		proc
 			first = false
 			Pop()
 			expectingName = !STACK_STATE_ARRAY
-			puts(channel, "}")
+			buffer += "}"
+			if(serializerStack.Count == 1)
+			begin
+				bufferLength = buffer.Length
+				puts(channel, ^a(bufferLength))
+				puts(channel, buffer)
+				buffer = ""
+			end
 			mreturn SerializerStatus.Ok
 		endmethod
 
 		public method ArrayOpen, SerializerStatus
 		proc
 			if(!first && STACK_STATE_ARRAY)
-				puts(channel, ",")
+				buffer += ","
 
 			first = true
 			expectingName = false
 			Push(SerializerStackType.Array)
-			puts(channel, "[")
+			buffer += "["
 			mreturn SerializerStatus.Ok
 		endmethod
 
 		public method ArrayClose, SerializerStatus
+			record
+				bufferLength, d10
 		proc
 			first = false
 			Pop()
 			expectingName = !STACK_STATE_ARRAY
-			puts(channel, "]")
+			buffer += "]"
+			if(serializerStack.Count == 1)
+			begin
+				bufferLength = buffer.Length
+				puts(channel, ^a(bufferLength))
+				puts(channel, buffer)
+				buffer = ""
+			end
+
 			mreturn SerializerStatus.Ok
 		endmethod
 	endclass

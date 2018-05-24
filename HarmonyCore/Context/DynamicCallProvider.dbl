@@ -35,6 +35,7 @@ namespace Harmony.Core.Context
 
 		public virtual method CallMethod, @object
 			name, @string
+			{ParamArray}
 			args, [#]@object 
 			endparams
 		proc
@@ -43,12 +44,104 @@ namespace Harmony.Core.Context
 		
 		public virtual method CallMethodV, void
 			name, @string
+			{ParamArray}
 			args, [#]@object 
 			endparams
 		proc
-			throw new System.NotImplementedException()
+			data arguments = new ArgumentDataDefinition[args.Length]
+			data i, int, 0
+			for i from 1 thru args.Length
+			begin
+				arguments[i] = PreSerializeArgument(args[i])
+			end
+
+			;;TODO check identities of objects to potentially write back
+			CallMethodImplementation(name, arguments)
 		endmethod
 
+		private method PreSerializeIEnumerable, @object
+			argValue, @System.Collections.IEnumerable
+		proc
+			data result = new List<object>()
+			data objValue, @Object
+			foreach objValue in argValue
+			begin
+				result.Add(PreSerializeArgument(objValue).PassedValue)
+			end
+			mreturn result
+		endmethod
+
+
+		protected virtual method PreSerializeArgument, @ArgumentDataDefinition
+			argValue, @Object
+		proc
+			data argDef = new ArgumentDataDefinition()
+				
+			if(argValue .is. DataObjectBase) then
+			begin
+				data doValue = (@DataObjectBase)argValue
+				argDef.DataType = FieldDataType.DataObjectField
+				;;we might want to convert to base64 here for the value and grfa
+				lambda preSerializeDataObject(alphaData, grfaData)
+				begin
+					data dict = new Dictionary<string, object>()
+					dict.Add("Type", doValue.Metadata.RPSStructureName)
+					dict.Add("Value", Convert.ToBase64String(([#]byte)alphaData))
+					dict.Add("GRFA", Convert.ToBase64String(([#]byte)grfaData))
+					argDef.PassedValue = dict
+				end
+				doValue.InternalSynergyRecord(preSerializeDataObject)
+			end
+			else if(argValue .is. @String) then
+			begin
+				argDef.DataType = FieldDataType.AlphaField
+				argDef.PassedValue = argValue
+			end
+			else if(argValue .is. System.Collections.IEnumerable) then
+			begin
+				argDef.DataType = FieldDataType.DataObjectCollectionField
+				argDef.PassedValue = PreSerializeIEnumerable((@System.Collections.IEnumerable)argValue)
+			end
+			else if(argValue .is. @a) then
+			begin
+				argDef.DataType = FieldDataType.AlphaField
+				;;we might want to convert to base64 here for the value
+				argDef.PassedValue = argValue
+			end
+			else if(argValue .is. @d) then
+			begin
+				argDef.DataType = FieldDataType.DecimalField
+				argDef.PassedValue = argValue.ToString()
+			end
+			else if(argValue .is. @id) then
+			begin
+				argDef.DataType = FieldDataType.ImpliedDecimal
+				argDef.PassedValue = argValue.ToString()
+			end
+			else if(argValue .is. @i) then
+			begin
+				argDef.DataType = FieldDataType.IntegerField
+				argDef.PassedValue = argValue
+			end
+			else if(argValue .is. double || argValue .is. float || argValue .is. decimal) then
+			begin
+				argDef.DataType = FieldDataType.ImpliedDecimal
+				argDef.PassedValue = Convert.ToString(argValue)
+				argDef.DecimalPrecision = 28
+				argDef.ElementSize = 56
+			end
+			else if(argValue .is. byte || argValue .is. sbyte || argValue .is. char || argValue .is. short || argValue .is. ushort || argValue .is. int || argValue .is. uint || argValue .is. long || argValue .is. ulong) then
+			begin
+				argDef.DataType = FieldDataType.IntegerField
+				argDef.PassedValue = argValue
+			end
+			else
+				throw new NotImplementedException()
+
+			mreturn argDef
+		endmethod
+
+		protected static SerializerSettings, @JsonSerializerSettings, new JsonSerializerSettings() { NullValueHandling=NullValueHandling.Ignore }
 		protected method CallMethodImplementation, void
 			name, @string
 			inout args, [#]@ArgumentDataDefinition
@@ -60,16 +153,14 @@ namespace Harmony.Core.Context
 			;;deserialize contents
 			;;assign return value if there is one
 			;;write into args array if the argument values are present in the payload
-
-			data serializedData = JsonConvert.SerializeObject(new CallFrame() { Arguments = args, Name = name })
+			data serializedData = JsonConvert.SerializeObject(new CallFrame() { Arguments = args, Name = name }, SerializerSettings)
 			data serializedBytes = Encoding.ASCII.GetBytes(serializedData)
-			connection.WriteRaw(BitConverter.GetBytes(serializedBytes.Length))
 			connection.WriteRaw(serializedBytes)
-			data responseBytes = connection.ReadRaw('\n')
+			data responseBytes = connection.ReadRaw(%char(13))
 			data responseObject = JsonConvert.DeserializeObject<MethodCallResponse>(responseBytes)
 			if(responseObject.IsError) then
 				throw new Exception(responseObject.Exception)
-			else
+			else if(responseObject.Result.ReturnParameters != ^null)
 			begin
 				data retArg, @ReturnParameterDefintion
 				foreach retArg in responseObject.Result.ReturnParameters

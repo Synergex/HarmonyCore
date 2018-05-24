@@ -3,6 +3,15 @@ import System.Collections
 
 namespace TraditionalBridge
 	abstract class RoutineDispatcher
+		protected loggingChannel, i4
+
+		public method RoutineDispatcher
+		proc
+			loggingChannel = 0
+			open(loggingChannel, O, "c:\wrk\dispatcher.log")
+		
+		endmethod
+
 		protected abstract method DeserializeObject, @DataObjectBase
 			obj, @Json.JsonObject
 		proc
@@ -18,6 +27,45 @@ namespace TraditionalBridge
 			collection, @ArrayList
 		proc
 			
+		endmethod
+
+		protected method UnwrapObjectCollection, void
+			inout buffer, a
+			elementSize, i
+			inout bufferPosition, i
+			collection, @Json.JsonArray
+			record
+				element, @Json.JsonValue
+		proc
+			foreach element in collection.arrayValues
+			begin
+				if(element .is. Json.JsonObject) then
+				begin
+					data stringValue = ((@Json.JsonText)((@Json.JsonObject)element).GetProperty("Value")).Value
+					buffer(bufferPosition:elementSize) = stringValue
+				end
+				else if(element .is. Json.JsonText) then
+				begin
+					buffer(bufferPosition:elementSize) = ((@Json.JsonText)element).Value
+				end
+				else if(element .is. Json.JsonNumber) then
+				begin
+
+				end
+				else if(element .is. Json.JsonInt) then
+				begin
+
+				end
+				else if(element .is. Json.JsonBoolean) then
+				begin
+				end
+				else if(element .is. Json.JsonArray)
+				begin
+
+				end
+				bufferPosition += elementSize
+			end
+
 		endmethod
 
 		protected abstract method SerializeObject, void
@@ -50,6 +98,27 @@ namespace TraditionalBridge
 			mreturn valueInt.Value
 		endmethod
 
+		protected method GetDecimal, d
+			value, @Json.JsonObject
+			record
+				passedValue, @Json.JsonValue
+				valueInt, @Json.JsonInt
+				valuestring, @Json.JsonText
+				tempD, d28
+		proc
+			passedValue = value.GetProperty("PassedValue")
+			if(passedValue.JsonType == Json.JSON_TYPE.INT_VAL ) then
+			begin
+				valueInt = (@Json.JsonInt)passedValue
+				tempD = valueInt.Value
+				mreturn tempD
+			end
+			else
+			begin
+				valuestring = (@Json.JsonText)passedValue
+				mreturn ^d((a)valuestring.Value)
+			end
+		endmethod
 
 		protected method SerializeObject, void
 			obj, @object
@@ -121,20 +190,41 @@ namespace TraditionalBridge
 			record
 				frameDataHandle, D_HANDLE
 				jsonReader, @Json.Json
+				parsedJson, @Json.JsonValue
 		proc
+			jsonReader = new Json.Json()
 			frameDataHandle = %mem_proc(DM_ALLOC, frameHeader)
 			gets(ttChannel, ^m(frameDataHandle))
-			mreturn ProcessCallBlock((@Json.JsonObject)jsonReader.ParseJson(^m(frameDataHandle)), ttChannel)
+			writes(loggingChannel, "reading callblock: ")
+			writes(loggingChannel, ^m(frameDataHandle))
+			parsedJson = jsonReader.ParseJson(^m(frameDataHandle))
+			if(parsedJson .is. @Json.JsonObject) then
+			begin
+				data result, boolean, ProcessCallBlock((@Json.JsonObject)parsedJson, ttChannel)
+				mreturn result
+			end
+			else
+			begin
+				data serializer = new Json.ChannelSerializer(ttChannel)
+				serializer.MapOpen()
+				serializer.String("IsError")
+				serializer.Bool(true)
+				serializer.String("Exception")
+				serializer.String("failed to parse json request")
+				serializer.MapClose()
+				mreturn true
+			end
 		endmethod
 
 
 		public method Dispatch, void
 			ttChannel, i
+			record aData
+				frameHeader, d10
 			record
-				frameHeader, i4
 				running, boolean
 		proc
-			;;read 4 bytes of data from input when its available
+			;;read 10 bytes of data from input when its available
 			;;read count of bytes from input (in chunks ideally) 
 			;;look for the target routine name
 			;;build rcb block for the call
@@ -144,12 +234,14 @@ namespace TraditionalBridge
 			running = true
 			while(running)
 			begin
-				gets(ttChannel, ^a(frameHeader))
-				running = ReadCallBlock(ttChannel, frameHeader)
+				gets(ttChannel, aData, wait:-1)
+				puts(ttChannel, aData + %char(13) + %char(10))
+				running = ReadCallBlock(ttChannel, (int)frameHeader)
 			end
+			writes(ttChannel, "Shutting down due to running == false")
 		endmethod
 
-		private method ProcessCallBlock, boolean
+		public method ProcessCallBlock, boolean
 			jsonData, @Json.JsonObject
 			responseChannel, i4
 			record
@@ -159,17 +251,29 @@ namespace TraditionalBridge
 		proc
 			;;we've been asked to shutdown so return false and let the outer loop take care of it
 			if(jsonData.HasProperty("IsShutdownRequest") && ((@Json.JsonBoolean)jsonData.GetProperty("IsShutdownRequest")).Value)
+			begin
+				writes(responseChannel, "Shutting down due to request")
 				mreturn false
+			end
+
 
 			serializer = new Json.ChannelSerializer(responseChannel)
 
 			try
 			begin
 				;;we've been asked if we're alive
-				if(jsonData.HasProperty("IsPingRequest") && ((@Json.JsonBoolean)jsonData.GetProperty("IsPingRequest")).Value)
+				if(jsonData.HasProperty("IsPingRequest") && ((@Json.JsonBoolean)jsonData.GetProperty("IsPingRequest")).Value) then
 				begin
 					serializer.MapOpen()
 					serializer.String("IsAlive")
+					serializer.Bool(true)
+					serializer.MapClose()
+					mreturn true
+				end
+				else if(jsonData.HasProperty("ProtocolVersion") && ((@Json.JsonText)jsonData.GetProperty("ProtocolVersion")).Value =="1.0")
+				begin
+					serializer.MapOpen()
+					serializer.String("ProtocolSupported")
 					serializer.Bool(true)
 					serializer.MapClose()
 					mreturn true
@@ -180,6 +284,7 @@ namespace TraditionalBridge
 				if(IsStubbedRoutine(name)) then
 				begin
 					DispatchRoutineStub(name, jsonData, serializer)
+					mreturn true
 				end
 				else
 				begin
@@ -245,9 +350,7 @@ namespace TraditionalBridge
 					serializer.ArrayClose()
 					serializer.MapClose()
 					serializer.MapClose()
-					writes(responseChannel, "")
 				end
-				mreturn true
 			end
 			catch(ex, @Exception)
 			begin
@@ -261,6 +364,9 @@ namespace TraditionalBridge
 				mreturn false
 			end
 			endtry
+
+			writes(responseChannel, "unhandled message")
+			mreturn false
 		endmethod
 
 	endclass

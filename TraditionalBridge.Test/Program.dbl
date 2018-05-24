@@ -5,15 +5,30 @@ import Harmony.Core
 ;;; The main entry point for the application.
 ;;; </summary>
 main
-
+	record
+		dispatcher, @TestDispatcher
+		ttChan, i4, 0
+		jsonReader, @Json.Json
+		jsonVal, @Json.JsonValue
 proc
-
+	;jsonReader = new Json.Json()
+;	if('}' >= '0' && '}' <= '9')
+;		nop
+	;jsonVal = jsonReader.ParseJson('{"Name":"fred","Arguments":[{"PassedValue":"hello","DataType":1},{"PassedValue":55,"DataType":8},{"PassedValue":23,"DataType":8},{"PassedValue":{"Type":"ORDERS","Value":"MDAwMDAzMDAwMDAxMDAwMDA2MDAwMDI1MDAwMDQwMDAwMDE0OTAxOTMwMzAxMDAwMDAwICAgICAgMDkzMDMwMQ==","GRFA":"AAAAAAAAzsGd5A=="},"DataType":16},{"PassedValue":[{"Type":"ORDERS","Value":"MDAwMDAzMDAwMDAxMDAwMDA2MDAwMDI1MDAwMDQwMDAwMDE0OTAxOTMwMzAxMDAwMDAwICAgICAgMDkzMDMwMQ==","GRFA":"AAAAAAAAzsGd5A=="},{"Type":"ORDERS","Value":"MDAwMDA0MDAwMDA4MDAwMDE0MDAwMDIzMDAwMDcwMDAwMDE0OTAxOTMwMzA1MDAwMDAwICAgICAgNzQ0MjQ0MA==","GRFA":"QgAAAAAAQsjWVg=="},{"Type":"ORDERS","Value":"MDAwMDA1MDAwMDA1MDAwMDEzMDAwMDM3MDAwMDQ1MDAwMTcwMDAzOTMwMzE1ICAgICAgICAgICAgNDY1MTU3NQ==","GRFA":"hAAAAAAABnWyXw=="},{"Type":"ORDERS","Value":"MDAwMDA2MDAwMDAyMDAwMDExMDAwMDE1MDAwMDc1MDAwMDE0OTAzOTMwMzE3ICAgICAgICAgICAgMTg2MDYzNA==","GRFA":"xgAAAAAA4FXMkA=="},{"Type":"ORDERS","Value":"MDAwMDA3MDAwMDA5MDAwMDIwMDAwMDA4MDAwMDI1MDAwMDE0OTA0OTMwMzA3ICAgICAgICAgICAgODM3Mjc2Mw==","GRFA":"CAEAAAAAPGvldQ=="},{"Type":"ORDERS","Value":"MDAwMDA4MDAwMDA2MDAwMDE4MDAwMDA4MDAwMDMwMDAwMDE5OTA0OTMwMzA3ICAgICAgICAgICAgNTU4MTg0Mg==","GRFA":"SgEAAAAAER5W7Q=="},{"Type":"ORDERS","Value":"MDAwMDA5MDAwMDAzMDAwMDE3MDAwMDA4MDAwMTAwMDAwMDE4MTA0OTMwMzA3ICAgICAgICAgICAgMjc5MDkyMQ==","GRFA":"jAEAAAAAvBK2Kw=="},{"Type":"ORDERS","Value":"MDAwMDEwMDAwMDM4MDAwMDE5MDAwMDE2MDAwMDk5MDAwMDE5MTA1OTUwMzAzOTUwNTA5OTUwMzEwMDAwODg4OQ==","GRFA":"zgEAAAAAnohNmQ=="}],"DataType":32}]}')
+;	nop
+	xcall flags(0101010010)
+	open(ttChan, O, "TT:")
+	puts(ttChan, "READY" + %char(13)+ %char(10))
+	dispatcher = new TestDispatcher()
+	dispatcher.Dispatch(ttChan)
+	;dispatcher.ProcessCallBlock((@Json.JsonObject)jsonVal, ttChan) 
 endmain
 
 subroutine MetaOrders
 	req out metadata, @Harmony.Core.DataObjectMetadataBase
 proc
 	metadata = Orders.sMetadata
+	xreturn
 endsubroutine
 .include 'orders' repository  , structure = 'STROrders', end
 
@@ -275,6 +290,7 @@ subroutine fred
 	req in arg4, STROrders
 	req in arg5, [*]STROrders
 proc
+	xreturn
 endsubroutine
 
 
@@ -285,7 +301,7 @@ function blob, ^val
 	req in arg4, @Orders
 	req in arg5, @ArrayList
 proc
-
+	freturn 1337
 endfunction
 
 
@@ -294,12 +310,26 @@ namespace TraditionalBridge.Test
 	class TestDispatcher extends RoutineDispatcher
 		protected override method DeserializeObject, @DataObjectBase
 			obj, @Json.JsonObject
+			record
+				passedValue, @Json.JsonObject
+				objectMetadata, @DataObjectMetadataBase
+				objectType, @Json.JsonText
+				objectValue, @Json.JsonText
+				objectGRFA, @Json.JsonText
 		proc
-			mreturn ^null
+			passedValue = (@Json.JsonObject)obj.GetProperty("PassedValue")
+			objectType = (@Json.JsonText)passedValue.GetProperty("Type")
+			objectValue = (@Json.JsonText)passedValue.GetProperty("Value")
+			objectGRFA = (@Json.JsonText)passedValue.GetProperty("GRFA")
+			objectMetadata = DataObjectMetadataBase.LookupType(objectType.Value)
+			mreturn objectMetadata.MakeNew(objectValue.Value, objectGRFA.Value)
+			;throw new Exception("Attempted to deserialize invalid object type: " + objectType.Value)
 		endmethod
 
 		protected override method DeserializeObjectCollection, @ArrayList
 			obj, @Json.JsonObject
+			record
+				arrayValue, @Json.JsonArray
 		proc
 			mreturn new ArrayList()
 		endmethod
@@ -336,19 +366,22 @@ namespace TraditionalBridge.Test
 			if(name == "fred") then
 			begin
 				data fredArguments = (@Json.JsonArray)callFrame.GetProperty("Arguments")
-				data fredArg4, @DataObjectBase, DeserializeObject((@Json.JsonObject)fredArguments.arrayValues[4])
+				data fredArg4, @DataObjectBase, DeserializeObject((@Json.JsonObject)fredArguments.arrayValues[3])
 				data fredArg4Data, STROrders, fredArg4.SynergyRecord
-				data fredArg5, @ArrayList, DeserializeObjectCollection((@Json.JsonObject)fredArguments.arrayValues[5])
+				data fredArg5Array, @Json.JsonArray
 				data fredArg5Handle, i4
-				data fredArg5Size, i4 
-				if(fredArg5.Count > 0) then
-					fredArg5Size = ((@DataObjectBase)fredArg5[0]).Metadata.RPSStructureSize
-				else
-					fredArg5Size = 1
-
-				fredArg5Handle = %mem_proc(DM_ALLOC, fredArg5.Count * fredArg5Size)
-				UnwrapObjectCollection(fredArg5Handle, fredArg5)
-				xcall fred(GetText((@Json.JsonObject)fredArguments.arrayValues[1]), ^d(GetText((@Json.JsonObject)fredArguments.arrayValues[2])), GetInt((@Json.JsonObject)fredArguments.arrayValues[3]), fredArg4Data, ^m(STROrders, fredArg5Handle))
+				data fredArg5HandlePosition, i4, 1
+				fredArg5Array = (@Json.JsonArray)((@Json.JsonObject)fredArguments.arrayValues[4]).GetProperty("PassedValue")
+				fredArg5Handle = %mem_proc(DM_ALLOC, ^size(STROrders) * fredArg5Array.arrayValues.Count)
+				UnwrapObjectCollection(^m(fredArg5Handle), ^size(STROrders), fredArg5HandlePosition, fredArg5Array)
+				xcall fred(GetText((@Json.JsonObject)fredArguments.arrayValues[0]), GetDecimal((@Json.JsonObject)fredArguments.arrayValues[1]), GetInt((@Json.JsonObject)fredArguments.arrayValues[2]), fredArg4Data, ^m(STROrders, fredArg5Handle))
+				serializer.MapOpen()
+				serializer.String("IsError")
+				serializer.Bool(false)
+				serializer.String("Result")
+				serializer.MapOpen()
+				serializer.MapClose()
+				serializer.MapClose()
 			end
 			else
 				throw new Exception("Invalid dispatch")
