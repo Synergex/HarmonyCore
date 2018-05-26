@@ -1,35 +1,65 @@
-import Harmony.Core
 import System.Collections
 
-namespace TraditionalBridge
+namespace Harmony.TraditionalBridge
 	abstract class RoutineDispatcher
 		protected loggingChannel, i4
-
+		protected mDispatchStubs, @StringDictionary
 		public method RoutineDispatcher
 		proc
+			mDispatchStubs = new StringDictionary()
 			loggingChannel = 0
 			open(loggingChannel, O, "c:\wrk\dispatcher.log")
-		
 		endmethod
 
-		protected abstract method DeserializeObject, @DataObjectBase
+		public virtual method DeserializeObject, @DataObjectBase
 			obj, @Json.JsonObject
+			targetType, @DataObjectMetadataBase
+			record
+				passedValue, @Json.JsonObject
+				objectMetadata, @DataObjectMetadataBase
+				objectType, @Json.JsonText
 		proc
+			passedValue = (@Json.JsonObject)obj.GetProperty("PassedValue")
+			objectMetadata = targetType
+			if(objectMetadata == ^null)
+			begin
+				objectType = (@Json.JsonText)passedValue.GetProperty("Type")
+				objectMetadata = DataObjectMetadataBase.LookupType(objectType.Value)
+			end
+			mreturn objectMetadata.Deserialize(passedValue)
 		endmethod
 
-		protected abstract method DeserializeObjectCollection, @ArrayList
+		;;Protocol note: this is another place where we need to decide how much we can ommit from the contents of collections
+		;;this is currently assuming we are only working with DataObjectBase
+		public virtual method DeserializeObjectCollection, @ArrayList
 			obj, @Json.JsonObject
+			record
+				passedValue, @Json.JsonArray
+				elementValue, @Json.JsonObject
+				objectMetadata, @DataObjectMetadataBase
+				objectType, @Json.JsonText
+				result, @ArrayList
 		proc
+			result = new ArrayList()
+			passedValue = (@Json.JsonArray)obj.GetProperty("PassedValue")
+			foreach elementValue in passedValue.arrayValues
+			begin
+				;;TODO might be able to skip the lookup if the typename hasnt changed
+				objectType = (@Json.JsonText)elementValue.GetProperty("Type")
+				objectMetadata = DataObjectMetadataBase.LookupType(objectType.Value)
+				result.Add(objectMetadata.Deserialize(elementValue))
+			end
+			mreturn result
 		endmethod
 
-		protected method UnwrapObjectCollection, void
+		public method UnwrapObjectCollection, void
 			memoryHandle, i4
 			collection, @ArrayList
 		proc
 			
 		endmethod
 
-		protected method UnwrapObjectCollection, void
+		public method UnwrapObjectCollection, void
 			inout buffer, a
 			elementSize, i
 			inout bufferPosition, i
@@ -68,19 +98,49 @@ namespace TraditionalBridge
 
 		endmethod
 
-		protected abstract method SerializeObject, void
+		public virtual method SerializeObject, void
 			obj, @DataObjectBase
 			serializer, @Json.ChannelSerializer
 		proc
+			obj.Serialize(serializer)
 		endmethod
 
-		protected abstract method SerializeObjectCollection, void
+		;;Protocol note: its not entirely decided how explicit we need to be about types for things
+		;;most things in synergy dont jump from one primative type to another
+		;;its possible for this to happen with an arraylist but this might be an acceptable tradoff for the significant protocol efficiancy gains
+		;;in only specifying the element type once
+		public virtual method SerializeObjectCollection, void
 			obj, @ArrayList
 			serializer, @Json.ChannelSerializer
+			record
+				doElement, @DataObjectBase
+				primativeElement, @object
 		proc
+			;;determine the collection type from the first element type then serialize assuming we dont switch between primatives and objects
+			serializer.ArrayOpen()
+			if(obj.Count > 0)
+			begin
+				if(obj[0] .is. @DataObjectBase) then
+				begin
+					foreach doElement in obj
+					begin
+						doElement.Serialize(serializer)
+					end
+				end
+				else
+				begin
+					;;this should encode something like this
+					;;serializer.String("ElementSize")
+					;;serializer.Int(^size(unboxedElement))
+					;;get the unboxed type and put that in as serializer.String("ElementType")
+					throw new Exception("primative arrays not yet supported")
+				end
+
+			end
+			serializer.ArrayClose()
 		endmethod
 
-		protected method GetText, a
+		public method GetText, a
 			value, @Json.JsonObject
 			record
 				valueText, @Json.JsonText
@@ -89,7 +149,7 @@ namespace TraditionalBridge
 			mreturn valueText.Value
 		endmethod
 
-		protected method GetInt, i
+		public method GetInt, i
 			value, @Json.JsonObject
 			record
 				valueInt, @Json.JsonInt
@@ -98,7 +158,7 @@ namespace TraditionalBridge
 			mreturn valueInt.Value
 		endmethod
 
-		protected method GetDecimal, d
+		public method GetDecimal, d
 			value, @Json.JsonObject
 			record
 				passedValue, @Json.JsonValue
@@ -120,7 +180,7 @@ namespace TraditionalBridge
 			end
 		endmethod
 
-		protected method SerializeObject, void
+		public method SerializeObject, void
 			obj, @object
 			serializer, @Json.ChannelSerializer
 		proc
@@ -136,7 +196,7 @@ namespace TraditionalBridge
 				throw new Exception("Attempted to serialize an unknown object type")
 		endmethod
 
-		protected method DeserializeObject, @object
+		public method DeserializeObject, @object
 			obj, @Json.JsonObject
 			out dataType, FieldDataType
 			record
@@ -146,7 +206,7 @@ namespace TraditionalBridge
 			dataType = (FieldDataType)dataTypeInt.Value
 			if(dataType == FieldDataType.DataObjectField) then
 			begin
-				mreturn DeserializeObject(obj)
+				mreturn DeserializeObject(obj, ^null)
 			end
 			else if(dataType == FieldDataType.DataObjectCollectionField) then
 			begin
@@ -170,18 +230,6 @@ namespace TraditionalBridge
 				data intValue, i4, ((@Json.JsonInt)obj.GetProperty("PassedValue")).Value
 				mreturn (@object)intValue
 			end
-		endmethod
-
-		protected abstract method DispatchRoutineStub, void
-			name, @string
-			callFrame, @Json.JsonObject
-			serializer, @Json.ChannelSerializer
-		proc
-		endmethod
-
-		protected abstract method IsStubbedRoutine, boolean
-			name, @string
-		proc
 		endmethod
 
 		private method ReadCallBlock, boolean
@@ -248,6 +296,7 @@ namespace TraditionalBridge
 				name, @string
 				argArray, @Json.JsonArray
 				serializer, @Json.ChannelSerializer
+				dispatchStub, @RoutineStub
 		proc
 			;;we've been asked to shutdown so return false and let the outer loop take care of it
 			if(jsonData.HasProperty("IsShutdownRequest") && ((@Json.JsonBoolean)jsonData.GetProperty("IsShutdownRequest")).Value)
@@ -281,9 +330,9 @@ namespace TraditionalBridge
 
 				name = ((@Json.JsonText)jsonData.GetProperty("Name")).Value
 
-				if(IsStubbedRoutine(name)) then
+				if(mDispatchStubs.TryGet(name, dispatchStub)) then
 				begin
-					DispatchRoutineStub(name, jsonData, serializer)
+					dispatchStub.Dispatch(name, jsonData, serializer, this)
 					mreturn true
 				end
 				else
@@ -369,6 +418,16 @@ namespace TraditionalBridge
 			mreturn false
 		endmethod
 
+	endclass
+
+	abstract class RoutineStub
+		public abstract method Dispatch, void
+			name, @string
+			callFrame, @Json.JsonObject
+			serializer, @Json.ChannelSerializer
+			dispatcher, @RoutineDispatcher
+		proc
+		endmethod
 	endclass
 
 endnamespace

@@ -1,6 +1,5 @@
-import TraditionalBridge
 import System.Collections
-import Harmony.Core
+import Harmony.TraditionalBridge
 ;;; <summary>
 ;;; The main entry point for the application.
 ;;; </summary>
@@ -25,7 +24,7 @@ proc
 endmain
 
 subroutine MetaOrders
-	req out metadata, @Harmony.Core.DataObjectMetadataBase
+	req out metadata, @DataObjectMetadataBase
 proc
 	metadata = Orders.sMetadata
 	xreturn
@@ -39,7 +38,7 @@ namespace Test
 	;endstructure
 
 
-	public partial class Orders extends Harmony.Core.DataObjectBase
+	public partial class Orders extends DataObjectBase
 		;;make the record available and a copy
 		private mSynergyData, STROrders 
 		private mOriginalSynergyData, STROrders 
@@ -47,7 +46,9 @@ namespace Test
 		public static sMetadata, @OrdersMetadata
 		static method Orders
 		proc
-			sMetadata = new OrdersMetadata()
+			if(sMetadata == ^null)
+				sMetadata = new OrdersMetadata()
+
 		endmethod
 		
 		;;; <summary>
@@ -72,7 +73,7 @@ namespace Test
 		endmethod
 
 		public override method InternalSynergyRecord, void
-			targetMethod, @Harmony.Core.AlphaAction
+			targetMethod, @AlphaAction
 		proc
 			targetMethod.Run(mSynergyData, mGlobalRFA)
 		endmethod
@@ -240,7 +241,7 @@ namespace Test
 		endproperty
 	endclass
 	
-	public partial class OrdersMetadata extends Harmony.Core.DataObjectMetadataBase
+	public partial class OrdersMetadata extends DataObjectMetadataBase
 		
 		public method OrdersMetadata
 		proc
@@ -308,94 +309,55 @@ endfunction
 namespace TraditionalBridge.Test
 
 	class TestDispatcher extends RoutineDispatcher
-		protected override method DeserializeObject, @DataObjectBase
-			obj, @Json.JsonObject
-			record
-				passedValue, @Json.JsonObject
-				objectMetadata, @DataObjectMetadataBase
-				objectType, @Json.JsonText
-				objectValue, @Json.JsonText
-				objectGRFA, @Json.JsonText
+		public method TestDispatcher
 		proc
-			passedValue = (@Json.JsonObject)obj.GetProperty("PassedValue")
-			objectType = (@Json.JsonText)passedValue.GetProperty("Type")
-			objectValue = (@Json.JsonText)passedValue.GetProperty("Value")
-			objectGRFA = (@Json.JsonText)passedValue.GetProperty("GRFA")
-			objectMetadata = DataObjectMetadataBase.LookupType(objectType.Value)
-			mreturn objectMetadata.MakeNew(objectValue.Value, objectGRFA.Value)
-			;throw new Exception("Attempted to deserialize invalid object type: " + objectType.Value)
-		endmethod
+			;;all of the routine dispatchers to the string lookup for rapid dispatch when we have a large number of routines
+			mDispatchStubs.Add("fred", new FredDispatch())
 
-		protected override method DeserializeObjectCollection, @ArrayList
-			obj, @Json.JsonObject
-			record
-				arrayValue, @Json.JsonArray
-		proc
-			mreturn new ArrayList()
-		endmethod
-
-		protected override method SerializeObject, void
-			obj, @DataObjectBase
-			serializer, @Json.ChannelSerializer
-		proc
-			if(obj .is. @Orders)
-			begin
-				serializer.MapOpen()
-				serializer.String("Type")
-				serializer.String(obj.Metadata.RPSStructureName)
-				serializer.String("Value")
-				serializer.String(obj.SynergyRecord)
-				serializer.String("GRFA")
-				serializer.String(obj.GlobalRFA)
-				serializer.MapClose()
-			end
-
-		endmethod
-
-		protected override method SerializeObjectCollection, void
-			obj, @ArrayList
-			serializer, @Json.ChannelSerializer
-		proc
-		endmethod
-
-		protected override method DispatchRoutineStub, void
-			name, @string
-			callFrame, @Json.JsonObject
-			serializer, @Json.ChannelSerializer
-		proc
-			if(name == "fred") then
-			begin
-				data fredArguments = (@Json.JsonArray)callFrame.GetProperty("Arguments")
-				data fredArg4, @DataObjectBase, DeserializeObject((@Json.JsonObject)fredArguments.arrayValues[3])
-				data fredArg4Data, STROrders, fredArg4.SynergyRecord
-				data fredArg5Array, @Json.JsonArray
-				data fredArg5Handle, i4
-				data fredArg5HandlePosition, i4, 1
-				fredArg5Array = (@Json.JsonArray)((@Json.JsonObject)fredArguments.arrayValues[4]).GetProperty("PassedValue")
-				fredArg5Handle = %mem_proc(DM_ALLOC, ^size(STROrders) * fredArg5Array.arrayValues.Count)
-				UnwrapObjectCollection(^m(fredArg5Handle), ^size(STROrders), fredArg5HandlePosition, fredArg5Array)
-				xcall fred(GetText((@Json.JsonObject)fredArguments.arrayValues[0]), GetDecimal((@Json.JsonObject)fredArguments.arrayValues[1]), GetInt((@Json.JsonObject)fredArguments.arrayValues[2]), fredArg4Data, ^m(STROrders, fredArg5Handle))
-				serializer.MapOpen()
-				serializer.String("IsError")
-				serializer.Bool(false)
-				serializer.String("Result")
-				serializer.MapOpen()
-				serializer.MapClose()
-				serializer.MapClose()
-			end
-			else
-				throw new Exception("Invalid dispatch")
-		endmethod
-
-		protected override method IsStubbedRoutine, boolean
-			name, @string
-		proc
-			if(name == "fred") then
-				mreturn true
-			else
-				mreturn false
+			;;init all dataobject metadata objects here
+			DataObjectMetadataBase.LookupType("ORDERS")
 		endmethod
 	endclass
 
+	class FredDispatch extends RoutineStub
+		private mOrdersMetadataInstance, @DataObjectMetadataBase
 
+
+		public method FredDispatch
+		proc
+			;;init all dataobject metadata we use directly in this stub
+			mOrdersMetadataInstance = DataObjectMetadataBase.LookupType("ORDERS")
+		endmethod
+
+
+		public override method Dispatch, void
+			name, @string
+			callFrame, @Json.JsonObject
+			serializer, @Json.ChannelSerializer
+			dispatcher, @RoutineDispatcher
+			record
+				fredArguments, @Json.JsonArray
+				fredArg4, @DataObjectBase
+				fredArg4Data, STROrders
+				fredArg5Array, @Json.JsonArray
+				fredArg5Handle, i4
+				fredArg5HandlePosition, i4
+		proc
+			fredArguments = (@Json.JsonArray)callFrame.GetProperty("Arguments")
+			fredArg4 = dispatcher.DeserializeObject((@Json.JsonObject)fredArguments.arrayValues[3], mOrdersMetadataInstance)
+			fredArg4Data = fredArg4.SynergyRecord
+			fredArg5Array = (@Json.JsonArray)((@Json.JsonObject)fredArguments.arrayValues[4]).GetProperty("PassedValue")
+			fredArg5Handle = %mem_proc(DM_ALLOC, ^size(STROrders) * fredArg5Array.arrayValues.Count)
+			fredArg5HandlePosition = 1
+			dispatcher.UnwrapObjectCollection(^m(fredArg5Handle), ^size(STROrders), fredArg5HandlePosition, fredArg5Array)
+			xcall fred(dispatcher.GetText((@Json.JsonObject)fredArguments.arrayValues[0]), dispatcher.GetDecimal((@Json.JsonObject)fredArguments.arrayValues[1]), dispatcher.GetInt((@Json.JsonObject)fredArguments.arrayValues[2]), fredArg4Data, ^m(STROrders, fredArg5Handle))
+			serializer.MapOpen()
+			serializer.String("IsError")
+			serializer.Bool(false)
+			serializer.String("Result")
+			serializer.MapOpen()
+			serializer.MapClose()
+			serializer.MapClose()
+		endmethod
+	endclass
 endnamespace

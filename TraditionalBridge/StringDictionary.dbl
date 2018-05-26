@@ -2,7 +2,7 @@ import System.Collections
 
 .include 'DBLDIR:namspc.def'
 
-namespace TraditionalBridge
+namespace Harmony.TraditionalBridge
 
 	public class StringDictionary
 		private symbolTableId, i4
@@ -58,6 +58,24 @@ namespace TraditionalBridge
 			end
 			else 
 				throw new Exception("duplicate key")
+		endmethod
+
+		public method TryGet, boolean
+			req in key, @string 
+			req out value, @object
+			record
+				objectIndex, i4
+		proc
+			if(nspc_find(symbolTableId, key,objectIndex) != 0) then
+			begin
+				value = objectStore[objectIndex]
+				mreturn true
+			end
+			else
+			begin
+				value = ^null
+				mreturn false
+			end
 		endmethod
 
 		public method Get, @object

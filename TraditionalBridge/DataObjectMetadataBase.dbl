@@ -1,29 +1,38 @@
 import System
 import System.Collections
 
-namespace Harmony.Core
+namespace Harmony.TraditionalBridge
 
 	public abstract class DataObjectMetadataBase
 	
 		private static mLookupRCBId, i4
+		private static mLookupDictionary, @StringDictionary
 		public static method LookupType, @DataObjectMetadataBase
 			targetType, @string
 			record
 				result, @DataObjectMetadataBase
 		proc
-			if(mLookupRCBId == 0)
+			if(mLookupDictionary == ^null)
+			begin
+				mLookupDictionary = new StringDictionary()
 				mLookupRCBId = %rcb_create(1, DM_STATIC)
-
-			;;it might be possible to use the symbol api as a dictionary here so we dont have to make an rcb call each time we want to look this up
-			xcall rcb_setarg(mLookupRCBId, result, 1) 
-			xcall rcb_setfnc(mLookupRCBId, "Meta" + targetType)  ;this doesnt deal with namespaces, users must not allow dataobjects that differ only by namespace
-			xcall rcb_call(mLookupRCBId)  
-			xcall rcb_setarg(mLookupRCBId, ^null, 1) ;;dont leave around a reference to the last DataObjectMetadataBase handle, that might corrupt memory
+			end
+			
+			if(!mLookupDictionary.TryGet("Meta" + targetType, result))
+			begin
+				;;it might be possible to use the symbol api as a dictionary here so we dont have to make an rcb call each time we want to look this up
+				xcall rcb_setarg(mLookupRCBId, result, 1) 
+				xcall rcb_setfnc(mLookupRCBId, "Meta" + targetType)  ;this doesnt deal with namespaces, users must not allow dataobjects that differ only by namespace
+				xcall rcb_call(mLookupRCBId)  
+				xcall rcb_setarg(mLookupRCBId, ^null, 1) ;;dont leave around a reference to the last DataObjectMetadataBase handle, that might corrupt memory
+				mLookupDictionary.Add("Meta" + targetType, result)
+			end
 			mreturn result
 		endmethod
 
-		public RPSStructureName	,String
-		public RPSStructureSize	,i4
+		public RPSStructureHasBinaryData, boolean
+		public RPSStructureName, String
+		public RPSStructureSize, i4
 
 		;;backing field to store the objects field names
 		protected mFieldNames	,@ArrayList
@@ -122,6 +131,33 @@ namespace Harmony.Core
 			grfa, a
 		proc
 		endmethod
+
+		public method Deserialize, @DataObjectBase
+			passedValue, @Json.JsonObject
+			record
+				passedValue, @Json.JsonObject
+				objectMetadata, @DataObjectMetadataBase
+				objectType, @Json.JsonText
+				objectValue, @Json.JsonText
+				objectGRFA, @Json.JsonText
+				stringValue, @string
+		proc
+			if(RPSStructureHasBinaryData) then
+			begin
+				objectValue = (@Json.JsonText)passedValue.GetProperty("Base64Value")
+				stringValue = Convert.FromBase64String(objectValue.Value)
+			end
+			else
+			begin
+				objectValue = (@Json.JsonText)passedValue.GetProperty("Value")
+				stringValue = objectValue.Value
+			end
+
+			objectGRFA = (@Json.JsonText)passedValue.GetProperty("GRFA")
+			mreturn MakeNew(stringValue, Convert.FromBase64String(objectGRFA.Value))
+
+		endmethod
+
 	endclass
 
 endnamespace

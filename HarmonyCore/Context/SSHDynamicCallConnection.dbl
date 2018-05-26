@@ -1,0 +1,115 @@
+import System
+import System.Collections.Generic
+import System.Text
+import Renci.SshNet
+import Renci.SshNet.Common
+import System.IO
+import Newtonsoft.Json
+import System.Diagnostics
+
+namespace Harmony.Core.Context
+
+	public class SSHDynamicCallConnection implements IDynamicCallConnection
+		private static NewLineBytes, [#]Byte, new byte[#] { 10, 13 }
+		private mTargetConnection, @SshClient
+		private mTargetInput, @PipeStream
+		private mTargetOutput, @PipeStream
+		private mTargetReader, @StreamReader
+		private mTargetShell, @Shell
+		private mProtocolInfo, @ProtocolMessage
+		public method SSHDynamicCallConnection
+			startInfo, @ConnectionInfo
+			command, @string
+		proc
+			mTargetConnection = new SshClient(startInfo)
+			mTargetInput = new PipeStream()
+			mTargetOutput = new PipeStream()
+			mTargetReader = new StreamReader(mTargetOutput)
+		endmethod
+
+		public virtual method ReadRaw, @string
+			terminator, Char 
+			endparams
+		proc
+			data lengthBuffer = new char[10]
+			
+			mTargetReader.ReadBlock(lengthBuffer, 0, 10)
+			try
+			begin
+				data expectedMessageLength = Convert.ToInt32(new string(lengthBuffer))
+				data messageBuffer = new char[expectedMessageLength]
+				mTargetReader.ReadBlock(messageBuffer, 0, expectedMessageLength)
+				mreturn new string(messageBuffer)
+			end
+			catch(ex, @Exception)
+			begin
+				mreturn new string(lengthBuffer) + mTargetReader.ReadLine()
+			end
+			endtry
+		endmethod
+		
+		public virtual method Recycle, void
+			endparams
+		proc
+			
+		endmethod
+				
+		public virtual method Disconnect, void
+			endparams
+		proc
+			mTargetConnection.Disconnect()
+		endmethod
+		
+		class ProtocolMessage
+			public readwrite property ProtocolSupported, boolean
+		endclass
+
+
+		public virtual method Connect, void
+			endparams
+		proc
+			mTargetConnection.Connect()
+			mTargetShell = mTargetConnection.CreateShell(mTargetInput, mTargetOutput, new MemoryStream())
+			data handshakeString = '{"ProtocolVersion":"1.0"}'
+			data readLine, @string
+
+			while((readLine = mTargetReader.ReadLine()) != "READY")
+			begin
+				Debug.WriteLine("Not Ready")
+			end
+			data paddedLengthString = handshakeString.Length.ToString().PadLeft(10, '0')
+			data tempBytes = ASCIIEncoding.ASCII.GetBytes(paddedLengthString + %char(10) + %char(13))
+			mTargetInput.Write(tempBytes, 0, tempBytes.Length)
+			mTargetInput.Flush()
+			data response = mTargetReader.ReadLine()
+			tempBytes = ASCIIEncoding.ASCII.GetBytes(handshakeString + %char(10) + %char(13))
+			mTargetInput.Write(tempBytes, 0, tempBytes.Length)
+			mTargetInput.Flush()
+			data lengthBuffer = new char[10]
+			mTargetReader.ReadBlock(lengthBuffer, 0, 10)
+			data expectedMessageLength = Convert.ToInt32(new string(lengthBuffer))
+			data messageBuffer = new char[expectedMessageLength]
+			mTargetReader.ReadBlock(messageBuffer, 0, expectedMessageLength)
+			data deserializedMessage = JsonConvert.DeserializeObject<ProtocolMessage>(new string(messageBuffer))
+			if(!deserializedMessage.ProtocolSupported)
+				throw new Exception("Protocol not supported")
+		endmethod
+		
+		public virtual method WriteRaw, void
+			rawData, [#]byte
+			endparams
+		proc
+			data paddedLengthString = rawData.Length.ToString().PadLeft(10, '0')
+			data tempBytes = ASCIIEncoding.ASCII.GetBytes(paddedLengthString + %char(10) + %char(13))
+			mTargetInput.Write(tempBytes, 0, tempBytes.Length)
+			mTargetInput.Flush()
+			data response = mTargetReader.ReadLine()
+			mTargetInput.Write(rawData, 0, rawData.Length)
+			mTargetInput.Write(NewLineBytes, 0, NewLineBytes.Length)
+			mTargetInput.Flush()
+			
+		endmethod
+	
+	endclass
+
+endnamespace

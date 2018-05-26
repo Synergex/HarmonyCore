@@ -6,25 +6,37 @@ import Microsoft.Extensions.DependencyInjection
 
 namespace Harmony.Core.Context
 
-	public abstract class RemoteExternalContextPool<T(IContextBase, class)> extends FreeThreadedContextPool<T>
+	public class RemoteExternalContextPool<T(IContextBase, class)> extends FreeThreadedContextPool<T>
+		private mTargetMachine, @string
+		private mUsername, @string
+		private mAuthentication, @AuthenticationMethod
+		private mTargetCommand, @string
+		
 		public method RemoteExternalContextPool
 			targetMachine, @string
+			username, @string
 			authentication, @AuthenticationMethod
-			targetExe, @string
-			targetArguments, @string
-			targetDirectory, @string
+			targetCommand, @string
 			min, int
 			endparams
 			parent(min)
 		proc
-			
+			mTargetMachine = targetMachine
+			mUsername = username
+			mAuthentication = authentication
+			mTargetCommand = targetCommand
 		endmethod
 		
 		protected override method SlowMakeContext, T
 			provider, @IServiceProvider
 		proc
-			
-			mreturn ActivatorUtilities.CreateInstance<T>(provider);;, new RemoteDynamicCallConnection(targetMachine, authentication))
+			;;BUG BUG BUG
+			;;data callConnection = new SSHDynamicCallConnection(new ConnectionInfo(mTargetMachine, mUsername, mAuthentication), mTargetCommand)
+			;;callConnection.Connection()
+			;;mreturn ActivatorUtilities.CreateInstance<T>(provider, callConnection)
+			data connection = new SSHDynamicCallConnection(new ConnectionInfo(mTargetMachine, mUsername, mAuthentication), mTargetCommand)
+			connection.Connect()
+			mreturn ActivatorUtilities.CreateInstance<T>(provider, connection)
 		endmethod
 	endclass
 

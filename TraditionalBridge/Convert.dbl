@@ -1,0 +1,343 @@
+;;**********************************************************************
+;;
+;; Title:       Convert.dbl
+;;
+;; Type:        Class
+;;
+;; Description: Converts a base data type to another base data type.
+;;
+;; Author:      Tod Phillips, Synergex Professional Services Group
+;;
+;; Copyright    ? 2009 Synergex International Corporation.  All rights reserved.
+;;
+;; WARNING:     All content constituting or related to this code ("Code") is the
+;;              property of Synergex International Corporation ("Synergex") and
+;;              is protected by U.S. and international copyright laws.
+;;              If you were given this Code by a Synergex employee then you may
+;;              use and modify it freely for use within your applications.
+;;
+;;              However, you may use the Code only for your personal use.
+;;              Any other use, unless otherwise authorized in writing by
+;;              Synergex is strictly prohibited.  You may not under any
+;;              circumstances distribute this Code, or any modified version
+;;              or part of this Code, to any third party without first
+;;              obtaining written permission to do so from Synergex.
+;;              In using this Code you accept that it is provided as is,
+;;              and without support or warranty of any kind.
+;;
+;;              Neither Synergex nor the author accept any responsibility
+;;              for any losses or damages of any nature which may arise
+;;              from the use of this Code.  This header information must
+;;              remain unaltered in the Code at all times.  Possession
+;;              of this Code, or any modified version or part of this Code,
+;;              indicates your acceptance of these terms.
+;;
+;;***********************************************************************************
+
+import System
+
+namespace Harmony.TraditionalBridge
+
+	;;;<summary>Specifies whether relevant Convert.ToBase64CharArray and
+	;;;Convert.ToBase64String methods insert line breaks in their output.
+	;;;</summary>
+	public enum Base64FormattingOptions
+		InsertLineBreaks
+		None
+	endenum
+
+	public class Convert
+
+		public static method FromBase64String, string
+			inEncodedString,	a
+			endparams
+			stack record wrkVars
+				byteCtr				,i4
+				count				,i4
+				decodeCtr			,i4
+				extraChars			,i4
+				fillerPos			,i4
+				lineBreaksNeeded	,i4
+				linePos				,i4
+				lineSize			,i4
+				mh_decodedString	,D_HANDLE
+				tmpLength			,i4
+				b64CharArray		,a65
+				group bits			,a24
+					bits24          ,[4]a6
+				endgroup
+				bits32_1			,a8 @bits24
+				bits32_2			,a8 @bits24+8
+				bits32_3			,a8 @bits24+16
+				tmpAlpha			,a1
+				tmpByte				,byte @tmpAlpha
+			endrecord
+			stack record
+				decodedString		,string
+			endrecord
+			structure dataBlock
+				,a32768
+			endstructure
+			structure byteStruct
+				oneByte				,a1
+			endstructure
+		proc
+			;; Set up the Base 64 character array, and initialize other values
+			init wrkVars
+			b64CharArray = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
+
+			if (tmpLength = %trimz(inEncodedString))
+			begin
+				;; IF the encoded string has been segmented with CR/LF characters, determine
+				;; the size of each line and assume ALL lines follow the same pattern.
+				if (lineSize = %instr(1, inEncodedString, %char(13))) then
+				begin
+					lineSize -= 1
+					lineBreaksNeeded = tmpLength/(lineSize+2)
+				end
+				else
+					lineSize = tmpLength
+				;; Make sure the line size is evenly divisible by 4 and there are no space characters
+				if ((((lineSize/4)*4) != lineSize) || (%instr(1,inEncodedString," ")))
+					throw new applicationException("Invalid base 64 format.")
+				;; Determine if there are extra character "filler" spaces from the Base64 string.
+				if (%instr(1,inEncodedString,"=",fillerPos))
+					if (fillerPos < tmpLength) then
+						extraChars = 2
+					else
+						extraChars = 1
+
+				;; Set up a memory handle that has enough space for 3 bytes for every 4 encoded characters,
+				;; MINUS the number of CRLF's assumed to be in the string, MINUS extra "filler" characters.
+				mh_decodedString = %mem_proc(DM_ALLOC+DM_BLANK, ((((tmpLength-lineBreaksNeeded*2))*3)/4)-extraChars)
+
+				;; Now that calculations are done, remove extra characters -- represented by "=" -- from length
+				tmpLength -= extraChars
+
+				;; Decode in blocks of 4 base64-encoded characters
+				do
+				begin
+					;; Place the binary equivalent of the character into a 6-bit-long alpha. Remember
+					;; that %bin returns an a8, so we need to take the last 6 digits in the value. Also,
+					;; remember that the value of Base64 characters is offset by one, where A=0, B=1, etc.
+					bits24[byteCtr+=1]=%bin(%instr(1,b64CharArray,inEncodedString((count+=1):1))-1,1)(3:6)
+					if (count==(tmpLength - extraChars))
+						tmpAlpha = inEncodedString(count:1)
+					if (byteCtr==4)
+					begin
+						^m(byteStruct[decodeCtr+=1],mh_decodedString) = ^a(^b(bits32_1))
+						^m(byteStruct[decodeCtr+=1],mh_decodedString) = ^a(^b(bits32_2))
+						^m(byteStruct[decodeCtr+=1],mh_decodedString) = ^a(^b(bits32_3))
+						init byteCtr
+					end
+					;; Check if we're at the end of a line, and if so, move the bytes forward by three to jump
+					;; over the CRLF, else just move it forward to the next character in the sequence.
+					if ((linePos+=1) == lineSize)
+					begin
+						count += 2
+						init linePos
+					end
+				end
+				until (count >= tmpLength)
+
+				;; Add the final extra characters, that would not have been added yet to the
+				;; memory handle since byteCtr never reached 4.
+				if (extraChars && byteCtr)
+				begin
+					^m(byteStruct[decodeCtr+=1],mh_decodedString) = ^a(^b(bits32_1))
+					if (extraChars==1)
+						^m(byteStruct[decodeCtr+=1],mh_decodedString) = ^a(^b(bits32_2))
+				end
+
+				;; Build up the return string one block at a time
+				for count from 1 thru (%mem_proc(DM_GETSIZE,mh_decodedString)/^size(dataBlock))
+					decodedString = String.Concat(decodedString,^m(dataBlock[count],mh_decodedString))
+				;; Check for remaining characters, and if present, append to the Base64 return string
+				extraChars = %mem_proc(DM_GETSIZE,mh_decodedString)-((count-1)*^size(dataBlock))
+				if extraChars
+					decodedString = String.Concat(decodedString,^m(dataBlock[count](1:extraChars),mh_decodedString))
+			end
+
+			mreturn decodedString
+		endmethod
+
+		;;;<summary>Converts the value of an array of 8-bit unsigned integers
+		;;;to its equivalent String representation encoded with base 64
+		;;;digits.</summary>
+		;;;<param name=inArray>An array of 8-bit unsigned integers.</param>
+		;;;<param name=formattingOptions>InsertLineBreaks to insert a line
+		;;;break every 76 characters, or None to not insert line breaks.</param>
+		;;;<returns>string</returns>
+		public static method ToBase64String, string
+			in inArray,				[#]@byte
+			in formattingOptions,	Base64FormattingOptions
+			endparams
+.align
+			stack record wrkVars
+				b64ctr				,i4
+				b64LineLength		,i4
+				base64Chars			,i4
+				byteCtr				,i4
+				ctr					,i4
+				setsOf3				,i4
+				lineBreaksNeeded	,i4
+				lineCtr				,i4
+				mh_b64String		,D_HANDLE
+				tmpLength			,i4
+				remainingChars		,d1
+				b64CharArray		,a65
+				group bits24		,a24
+					bits24_1		,a6
+					bits24_2		,a6
+					bits24_3		,a6
+					bits24_4		,a6
+				endgroup
+			endrecord
+
+			stack record
+				b64String			,string
+				tmpByte				,@byte
+			endrecord
+
+			structure dataBlock
+				,a32768
+			endstructure
+
+			structure byteStruct
+				oneByte				,a1
+			endstructure
+
+		proc
+			;; Set up the Base 64 character array, and initialize other values
+			init wrkVars
+			b64CharArray = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
+
+			;; Set tmpLength and make sure something was passed...
+			if (tmpLength = inArray.Length)>0
+			begin
+				;; Determine the length of the new memory handle which will hold our completed base 64 string
+				;; If there are remaining bits (which will be either 2 bits or 4 bits), then that will
+				;; equate to either 1 or 2 extra "Filler" characters needed at the end of the line
+				setsOf3 = tmpLength/3
+				remainingChars = tmpLength - (setsOf3*3)
+
+				base64Chars = setsOf3*4
+				;; If there are remaining characters, they will be transposed into 4 base64 characters with
+				;;special "filler" alphas (the '=' sign) making up the last 1-2 characters
+				if (remainingChars)
+					base64Chars += 4
+
+				;; if inserting line breaks, add two characters for a CRLF for each 76-characters
+				if (formattingOptions==Base64FormattingOptions.InsertLineBreaks)
+				begin
+					lineBreaksNeeded = base64Chars/76
+					if ((base64Chars/76)*76 == base64Chars)
+						lineBreaksNeeded -= 1
+				end
+
+				;; Create the memory handle for our final Base64 string
+				mh_b64String = %mem_proc(DM_ALLOC+DM_BLANK,base64Chars+(lineBreaksNeeded*2))
+
+				foreach tmpByte in inArray
+				begin
+					bits24((byteCtr*8)+1:8)=%bin(tmpByte,1)
+					if ((byteCtr+=1)==3)
+					begin
+						^m(byteStruct[b64ctr+=1],mh_b64String) = b64CharArray(^b(bits24_1)+1:1)
+						^m(byteStruct[b64ctr+=1],mh_b64String) = b64CharArray(^b(bits24_2)+1:1)
+						^m(byteStruct[b64ctr+=1],mh_b64String) = b64CharArray(^b(bits24_3)+1:1)
+						^m(byteStruct[b64ctr+=1],mh_b64String) = b64CharArray(^b(bits24_4)+1:1)
+						;; Insert line break (CRLF) if necessary
+						if (formattingOptions==Base64FormattingOptions.InsertLineBreaks)
+						begin
+							if (b64LineLength+=4)==76
+							begin
+								if ((lineCtr+=1) <= lineBreaksNeeded)
+								begin
+									^m(byteStruct[b64ctr+=1],mh_b64String)=%char(13)
+									^m(byteStruct[b64ctr+=1],mh_b64String)=%char(10)
+								end
+								init b64LineLength
+							end
+						end
+						init byteCtr
+					end
+				end
+
+				if remainingChars
+				begin
+					xcall fill('0',bits24)
+					for ctr from 1 thru remainingChars
+						bits24(((ctr-1)*8)+1:8)=%bin(inArray[ctr+(SetsOf3*3)],1)
+
+					^m(byteStruct[b64ctr+=1],mh_b64String) = b64CharArray(^b(bits24_1)+1:1)
+					^m(byteStruct[b64ctr+=1],mh_b64String) = b64CharArray(^b(bits24_2)+1:1)
+
+					if (remainingChars==2) then
+						^m(byteStruct[b64ctr+=1],mh_b64String) = b64CharArray(^b(bits24_3)+1:1)
+					else
+						^m(byteStruct[b64ctr+=1],mh_b64String) = b64CharArray(65:1)
+
+					^m(byteStruct[b64ctr+=1],mh_b64String)=b64CharArray(65:1)
+				end
+
+				for ctr from 1 thru (%mem_proc(DM_GETSIZE,mh_b64String)/^size(dataBlock))
+					b64String = String.Concat(b64String,^m(dataBlock[ctr],mh_b64String))
+
+				;; Check for remaining characters, and if present, append to the Base64 return string
+				base64Chars = %mem_proc(DM_GETSIZE,mh_b64String)-((ctr-1)*^size(dataBlock))
+				if base64Chars
+					b64String = String.Concat(b64String,^m(dataBlock[ctr](1:base64Chars),mh_b64String))
+				mh_b64String = %mem_proc(DM_FREE,mh_b64String)
+			end
+
+			mreturn b64String
+
+		endmethod
+
+		;;;<summary>Converts the value of an alpha variable to its
+		;;;equivalent String representation encoded with base 64
+		;;;digits.</summary>
+		;;;<param name=inAlpha>An alpha variable.</param>
+		;;;<returns>string</returns>
+		public static method ToBase64String, string
+			in inAlpha,	a
+			endparams
+
+			stack record wrkvars
+				m_alphaLength   ,i4
+				m_count         ,i4
+				m_inBytes       ,[#]@byte
+				tmpAlpha        ,a1
+				tmpByte         ,byte @tmpAlpha
+			endrecord
+		proc
+			if (inAlpha)
+			begin
+				m_alphaLength=%trim(inAlpha)
+				m_inBytes = new @byte[m_alphaLength]
+				for m_count from 1 thru m_alphaLength
+				begin
+					tmpAlpha = inAlpha(m_count:1)
+					m_inBytes[m_count] = (@byte)(tmpByte)
+				end
+				mreturn ToBase64String(m_inBytes,Base64FormattingOptions.InsertLineBreaks)
+			end
+			mreturn " "
+		endmethod
+
+		;;;<summary>Converts the value of an array of 8-bit unsigned integers
+		;;;to its equivalent String representation encoded with base 64
+		;;;digits.</summary>
+		;;;<param name=inArray>An array of 8-bit unsigned integers.</param>
+		;;;<returns>string</returns>
+		public static method ToBase64String, string
+			in inArray, [#]@byte
+			endparams
+		proc
+			mreturn ToBase64String(inArray,Base64FormattingOptions.InsertLineBreaks)
+		endmethod
+
+	endclass
+
+endnamespace

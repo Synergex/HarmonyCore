@@ -35,7 +35,7 @@
 ;;*****************************************************************************
 import System
 ;import System.ComponentModel.Annotations
-namespace Harmony.Core
+namespace Harmony.TraditionalBridge
 
 	public enum SynergySortOrder
 		Ascending		;;this is the default to start with
@@ -251,7 +251,30 @@ namespace Harmony.Core
 				mGlobalRFA = value
 			endmethod
 		endproperty
-		
+
+		;;override this in a dataobjectbase where we have to deal with binary data being sent from a big endian to a little endian system
+		public virtual method Serialize, void
+			serializer, @Json.ChannelSerializer
+			;;TODO maybe add serializer options here?
+		proc
+			serializer.MapOpen()
+			serializer.String("Type")
+			serializer.String(Metadata.RPSStructureName)
+			if(Metadata.RPSStructureHasBinaryData) then
+			begin
+				serializer.String("Value")
+				serializer.String(SynergyRecord)
+			end
+			else
+			begin
+				serializer.String("Base64Value")
+				serializer.String(Convert.ToBase64String(SynergyRecord))
+			end
+			serializer.String("GRFA")
+			serializer.String(mGlobalRFA)
+			serializer.MapClose()
+		endmethod
+
 		public abstract property Metadata, @DataObjectMetadataBase
 			method get
 			proc
