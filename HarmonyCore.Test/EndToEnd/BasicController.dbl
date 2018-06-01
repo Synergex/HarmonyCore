@@ -32,6 +32,8 @@ namespace HarmonyCore.Test.EndToEnd
 		server, @TestServer 
 		public method BasicControllerTest
 		proc
+			data status, i4
+			setlog("DAT", EnvironmentRootBuilder.FindRelativeFolderForAssembly("Dat"), status)
 			server = new TestServer(new WebHostBuilder().UseStartup<BasicControllerTestStartup>())
 		endmethod
 
@@ -41,7 +43,7 @@ namespace HarmonyCore.Test.EndToEnd
 		proc
 
 			data client = server.CreateClient()
-			data request = "/odata/BasicOrders"
+			data request = "/odata/BasicOrders?$filter=Or_number gt 5"
 			data response = client.GetAsync(request).Result
 			response.EnsureSuccessStatusCode()
 
