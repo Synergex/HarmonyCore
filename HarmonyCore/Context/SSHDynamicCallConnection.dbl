@@ -12,38 +12,38 @@ namespace Harmony.Core.Context
 	public class SSHDynamicCallConnection implements IDynamicCallConnection
 		private static NewLineBytes, [#]Byte, new byte[#] { 10, 13 }
 		private mTargetConnection, @SshClient
-		private mTargetInput, @PipeStream
-		private mTargetOutput, @PipeStream
-		private mTargetReader, @StreamReader
-		private mTargetShell, @Shell
+		private mTargetShell, @ShellStream
 		private mProtocolInfo, @ProtocolMessage
+		private mLaunchCommand, @string
 		public method SSHDynamicCallConnection
 			startInfo, @ConnectionInfo
 			command, @string
 		proc
+			mLaunchCommand = command
 			mTargetConnection = new SshClient(startInfo)
-			mTargetInput = new PipeStream()
-			mTargetOutput = new PipeStream()
-			mTargetReader = new StreamReader(mTargetOutput)
 		endmethod
 
 		public virtual method ReadRaw, @string
 			terminator, Char 
 			endparams
 		proc
-			data lengthBuffer = new char[10]
+			data lengthBuffer = new byte[10]
 			
-			mTargetReader.ReadBlock(lengthBuffer, 0, 10)
+			data offset, int, 0
+			while(offset < 10)
+				offset = mTargetShell.Read(lengthBuffer, offset, 10 - offset)
 			try
 			begin
-				data expectedMessageLength = Convert.ToInt32(new string(lengthBuffer))
-				data messageBuffer = new char[expectedMessageLength]
-				mTargetReader.ReadBlock(messageBuffer, 0, expectedMessageLength)
-				mreturn new string(messageBuffer)
+				data expectedMessageLength = Convert.ToInt32(Encoding.ASCII.GetString(lengthBuffer))
+				data messageBuffer = new byte[expectedMessageLength]
+				offset = 0
+				while(offset < 10)
+					offset = mTargetShell.Read(messageBuffer, offset, expectedMessageLength - offset)
+				mreturn Encoding.ASCII.GetString(messageBuffer)
 			end
 			catch(ex, @Exception)
 			begin
-				mreturn new string(lengthBuffer) + mTargetReader.ReadLine()
+				mreturn Encoding.ASCII.GetString(lengthBuffer) + mTargetShell.ReadLine()
 			end
 			endtry
 		endmethod
@@ -68,31 +68,40 @@ namespace Harmony.Core.Context
 		public virtual method Connect, void
 			endparams
 		proc
-			mTargetConnection.Connect()
-			mTargetShell = mTargetConnection.CreateShell(mTargetInput, mTargetOutput, new MemoryStream())
 			data handshakeString = '{"ProtocolVersion":"1.0"}'
+			mTargetConnection.Connect()
+			mTargetShell = mTargetConnection.CreateShellStream("vt220", 0, 0,0,0, 65535)
+			data guidString = Guid.NewGuid().ToString()
+			mTargetShell.WriteLine("echo " + guidString)
 			data readLine, @string
-
-			while((readLine = mTargetReader.ReadLine()) != "READY")
+			while((readLine = mTargetShell.ReadLine()) != guidString)
 			begin
-				Debug.WriteLine("Not Ready")
+				Debug.Write(".")
 			end
-			data paddedLengthString = handshakeString.Length.ToString().PadLeft(10, '0')
-			data tempBytes = ASCIIEncoding.ASCII.GetBytes(paddedLengthString + %char(10) + %char(13))
-			mTargetInput.Write(tempBytes, 0, tempBytes.Length)
-			mTargetInput.Flush()
-			data response = mTargetReader.ReadLine()
-			tempBytes = ASCIIEncoding.ASCII.GetBytes(handshakeString + %char(10) + %char(13))
-			mTargetInput.Write(tempBytes, 0, tempBytes.Length)
-			mTargetInput.Flush()
-			data lengthBuffer = new char[10]
-			mTargetReader.ReadBlock(lengthBuffer, 0, 10)
-			data expectedMessageLength = Convert.ToInt32(new string(lengthBuffer))
-			data messageBuffer = new char[expectedMessageLength]
-			mTargetReader.ReadBlock(messageBuffer, 0, expectedMessageLength)
-			data deserializedMessage = JsonConvert.DeserializeObject<ProtocolMessage>(new string(messageBuffer))
+			mTargetShell.WriteLine(mLaunchCommand)
+			
+			while((readLine = mTargetShell.ReadLine().Trim()) != "READY")
+			begin
+				Debug.WriteLine(readLine)
+			end
+			mTargetShell.WriteLine(handshakeString.Length.ToString().PadLeft(10, '0'))
+			data lengthStringEcho = mTargetShell.ReadLine()
+			mTargetShell.WriteLine(handshakeString)
+			data lengthBuffer = new byte[10]
+			data offset, int, 0
+			while(offset < 10)
+				offset = mTargetShell.Read(lengthBuffer, offset, 10 - offset)
+			data expectedMessageLengthString = Encoding.ASCII.GetString(lengthBuffer)
+			data expectedMessageLength = Convert.ToInt32(expectedMessageLengthString)
+			data messageBuffer = new byte[expectedMessageLength]
+			offset = 0
+			while(offset < 10)
+				offset = mTargetShell.Read(messageBuffer, offset, expectedMessageLength - offset)
+			data messageString = Encoding.ASCII.GetString(messageBuffer)
+			data deserializedMessage = JsonConvert.DeserializeObject<ProtocolMessage>(messageString)
 			if(!deserializedMessage.ProtocolSupported)
 				throw new Exception("Protocol not supported")
+
 		endmethod
 		
 		public virtual method WriteRaw, void
@@ -100,13 +109,11 @@ namespace Harmony.Core.Context
 			endparams
 		proc
 			data paddedLengthString = rawData.Length.ToString().PadLeft(10, '0')
-			data tempBytes = ASCIIEncoding.ASCII.GetBytes(paddedLengthString + %char(10) + %char(13))
-			mTargetInput.Write(tempBytes, 0, tempBytes.Length)
-			mTargetInput.Flush()
-			data response = mTargetReader.ReadLine()
-			mTargetInput.Write(rawData, 0, rawData.Length)
-			mTargetInput.Write(NewLineBytes, 0, NewLineBytes.Length)
-			mTargetInput.Flush()
+			mTargetShell.WriteLine(paddedLengthString)
+			data response = mTargetShell.ReadLine()
+			mTargetShell.Write(rawData, 0, rawData.Length)
+			mTargetShell.WriteLine("")
+			mTargetShell.Flush()
 			
 		endmethod
 	

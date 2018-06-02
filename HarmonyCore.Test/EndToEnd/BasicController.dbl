@@ -1,192 +1,193 @@
-import System
-import System.Collections.Generic
-import System.Text
-import Microsoft.VisualStudio.TestTools.UnitTesting
-import System.Threading.Tasks
-import Microsoft.AspNetCore.Hosting
-import Microsoft.AspNetCore.TestHost
-import Microsoft.AspNet.OData
-import Microsoft.AspNetCore.Builder
-import Microsoft.AspNet.OData.Routing
-import Microsoft.AspNetCore.Mvc
-import Microsoft.EntityFrameworkCore
-import Microsoft.Extensions.DependencyInjection
-import Microsoft.Extensions.Configuration
-import Microsoft.AspNet.OData.Extensions
-import Microsoft.AspNet.OData.Builder
-import Microsoft.OData.Edm
-import Microsoft.OData
-import Harmony.Core.Test
-import Harmony.Core
-import Harmony.Core.Context
-import Harmony.Core.FileIO
-import Harmony.Core.FileIO.Queryable
-import System.Linq
-import System.Net.Http
-
-namespace HarmonyCore.Test.EndToEnd
-
-	{TestClass}
-	public class BasicControllerTest
-
-		server, @TestServer 
-		public method BasicControllerTest
-		proc
-			data status, i4
-			setlog("DAT", EnvironmentRootBuilder.FindRelativeFolderForAssembly("Dat"), status)
-			server = new TestServer(new WebHostBuilder().UseStartup<BasicControllerTestStartup>())
-		endmethod
-
-
-		{TestMethod}
-		public method SimpleTest, void
-		proc
-
-			data client = server.CreateClient()
-			data request = "/odata/BasicOrders?$filter=Or_number gt 5"
-			data response = client.GetAsync(request).Result
-			response.EnsureSuccessStatusCode()
-
-			data result = response.Content.ReadAsStringAsync().Result
-		endmethod
-
-		{TestMethod}
-		public method SimpleParameterTest, void
-		proc
-			data client = server.CreateClient()
-			data request = "/odata/BasicOrders(3)"
-			data response = client.GetAsync(request).Result
-			response.EnsureSuccessStatusCode()
-
-			data result = response.Content.ReadAsStringAsync().Result
-		endmethod
-
-		{TestMethod}
-		public method SimpleUpdateTest, void
-		proc
-			data client = server.CreateClient()
-			data request = "/odata/BasicOrders(1)"
-			data response = client.PostAsync(request, new StringContent("")).Result
-			response.EnsureSuccessStatusCode()
-
-			data result = response.Content.ReadAsStringAsync().Result
-		endmethod
-
-	endclass
-
-	public class BasicControllerTestStartup
-		public method ConfigureServices, void
-			services, @IServiceCollection 
-		proc
-			;services.AddTransient<PrimeService>()
-			data channelManager = new FileChannelManager() 
-			data objectProvider = new DataObjectProvider(channelManager)
-			objectProvider.AddDataObjectMapping<Orders>("DAT:orders.ddf", FileOpenMode.UpdateRelative)
-			services.AddSingleton<FileChannelManager>(channelManager)
-			services.AddSingleton<IDataObjectProvider>(objectProvider)
-			services.AddSingleton<DbContextOptions<BasicControllerDBContext>>(new DbContextOptions<BasicControllerDBContext>())
-			services.AddSingleton<BasicControllerDBContext, BasicControllerDBContext>()
-			services.AddOData()
-			services.AddMvcCore()
-		endmethod
-
-		public method Configure, void
-			app, @IApplicationBuilder
-			env, @IHostingEnvironment
-		proc
-			data model = BasicControllerTestEdmModelBuilder.GetEdmModel()
-
-			lambda MVCBuilder(builder)
-			begin
-				builder.Select().Expand().Filter().OrderBy().MaxTop(100).Count()
-				builder.MapODataServiceRoute("odata", "odata", model)
-			end
-			app.UseMvc(MVCBuilder)
-		endmethod
-	endclass
-
-	public class BasicControllerDBContext extends DbContext
-	
-		mDataProvider, @IDataObjectProvider
-		public method BasicControllerDBContext
-			options, @DbContextOptions<BasicControllerDBContext>
-			dataProvider, @IDataObjectProvider
-			endparams
-			parent(options)
-		proc
-			mDataProvider = dataProvider
-		endmethod
-
-
-		public readwrite property Orders, @DbSet<Orders>
-
-		protected override method OnConfiguring, void
-			opts, @DbContextOptionsBuilder
-		proc
-			HarmonyDbContextOptionsExtensions.UseHarmonyDatabase(opts, mDataProvider)
-		endmethod
-
-		protected override method OnModelCreating, void
-			parm, @ModelBuilder
-		proc
-			parm.Ignore(^typeof(AlphaDesc))
-			parm.Ignore(^typeof(DataObjectMetadataBase))
-			;modelBuilder.Entity<Orders>().Ignore(lambda(t) { t. })
-			parent.OnModelCreating(parm);
-		endmethod
-
-	endclass
-
-	public class BasicOrdersController extends ODataController
-	
-		public readwrite property DBContext, @BasicControllerDBContext
-
-		public method BasicOrdersController
-			dbContext, @BasicControllerDBContext
-		proc
-			this.DBContext = dbContext
-		endmethod
-		{ODataRoute("BasicOrders")}
-		{EnableQuery(MaxExpansionDepth=3, MaxSkip=10, MaxTop=5, PageSize=4)}
-		public method Get, @IActionResult
-		proc
-			mreturn Ok(DBContext.Orders)
-		endmethod
-
-		{ODataRoute("BasicOrders({id})")}
-		public method Get, @IActionResult
-			{FromODataUri}
-			id, int
-		proc
-			data foundOrder = DBContext.Orders.Find(id)
-			mreturn Ok(foundOrder)
-		endmethod
-
-		{ODataRoute("BasicOrders({id})")}
-		public method Post, @IActionResult
-			{FromODataUri}
-			id, int
-		proc
-			data foundOrder = DBContext.Orders.Find(id)
-			DBContext.SaveChanges()
-			mreturn Ok(foundOrder)
-		endmethod
-	endclass
-
-	public class BasicControllerTestEdmModelBuilder
-		private static mEdmModel, @IEdmModel
-		public static method GetEdmModel, @IEdmModel
-		proc
-			if(mEdmModel == ^null)
-			begin
-				data builder = new ODataConventionModelBuilder()
-				data entitySet = builder.EntitySet<Orders>("BasicOrders")
-				mEdmModel = builder.GetEdmModel()
-			end
-
-			mreturn mEdmModel
-		endmethod
-
-	endclass
-
-endnamespace
+;import System
+;import System.Collections.Generic
+;import System.Text
+;import Microsoft.VisualStudio.TestTools.UnitTesting
+;import System.Threading.Tasks
+;import Microsoft.AspNetCore.Hosting
+;import Microsoft.AspNetCore.TestHost
+;import Microsoft.AspNet.OData
+;import Microsoft.AspNetCore.Builder
+;import Microsoft.AspNet.OData.Routing
+;import Microsoft.AspNetCore.Mvc
+;import Microsoft.EntityFrameworkCore
+;import Microsoft.Extensions.DependencyInjection
+;import Microsoft.Extensions.Configuration
+;import Microsoft.AspNet.OData.Extensions
+;import Microsoft.AspNet.OData.Builder
+;import Microsoft.OData.Edm
+;import Microsoft.OData
+;import Harmony.Core.Test
+;import Harmony.Core
+;import Harmony.Core.Context
+;import Harmony.Core.FileIO
+;import Harmony.Core.FileIO.Queryable
+;import System.Linq
+;import System.Net.Http
+;
+;namespace HarmonyCore.Test.EndToEnd
+;
+;	{TestClass}
+;	public class BasicControllerTest
+;
+;		server, @TestServer 
+;		public method BasicControllerTest
+;		proc
+;			data status, i4
+;			setlog("DAT", EnvironmentRootBuilder.FindRelativeFolderForAssembly("Dat"), status)
+;			server = new TestServer(new WebHostBuilder().UseStartup<BasicControllerTestStartup>())
+;		endmethod
+;
+;
+;		{TestMethod}
+;		public method SimpleTest, void
+;		proc
+;
+;			data client = server.CreateClient()
+;			data request = "/odata/BasicOrders?$filter=Or_number gt 5"
+;			data response = client.GetAsync(request).Result
+;			response.EnsureSuccessStatusCode()
+;
+;			data result = response.Content.ReadAsStringAsync().Result
+;		endmethod
+;
+;		{TestMethod}
+;		public method SimpleParameterTest, void
+;		proc
+;			data client = server.CreateClient()
+;			data request = "/odata/BasicOrders(3)"
+;			data response = client.GetAsync(request).Result
+;			response.EnsureSuccessStatusCode()
+;
+;			data result = response.Content.ReadAsStringAsync().Result
+;		endmethod
+;
+;		{TestMethod}
+;		public method SimpleUpdateTest, void
+;		proc
+;			data client = server.CreateClient()
+;			data request = "/odata/BasicOrders(1)"
+;			data response = client.PostAsync(request, new StringContent("")).Result
+;			response.EnsureSuccessStatusCode()
+;
+;			data result = response.Content.ReadAsStringAsync().Result
+;		endmethod
+;
+;	endclass
+;
+;	public class BasicControllerTestStartup
+;		public method ConfigureServices, void
+;			services, @IServiceCollection 
+;		proc
+;			;services.AddTransient<PrimeService>()
+;			data channelManager = new FileChannelManager() 
+;			data objectProvider = new DataObjectProvider(channelManager)
+;			objectProvider.AddDataObjectMapping<Orders>("DAT:orders.ddf", FileOpenMode.UpdateRelative)
+;			services.AddSingleton<FileChannelManager>(channelManager)
+;			services.AddSingleton<IDataObjectProvider>(objectProvider)
+;			services.AddSingleton<DbContextOptions<BasicControllerDBContext>>(new DbContextOptions<BasicControllerDBContext>())
+;			services.AddSingleton<BasicControllerDBContext, BasicControllerDBContext>()
+;			services.AddOData()
+;			services.AddMvcCore()
+;		endmethod
+;
+;		public method Configure, void
+;			app, @IApplicationBuilder
+;			env, @IHostingEnvironment
+;		proc
+;			data model = BasicControllerTestEdmModelBuilder.GetEdmModel()
+;
+;			lambda MVCBuilder(builder)
+;			begin
+;				builder.Select().Expand().Filter().OrderBy().MaxTop(100).Count()
+;				builder.MapODataServiceRoute("odata", "odata", model)
+;			end
+;			app.UseMvc(MVCBuilder)
+;		endmethod
+;	endclass
+;
+;	public class BasicControllerDBContext extends DbContext
+;	
+;		mDataProvider, @IDataObjectProvider
+;		public method BasicControllerDBContext
+;			options, @DbContextOptions<BasicControllerDBContext>
+;			dataProvider, @IDataObjectProvider
+;			endparams
+;			parent(options)
+;		proc
+;			mDataProvider = dataProvider
+;		endmethod
+;
+;
+;		public readwrite property Orders, @DbSet<Orders>
+;
+;		protected override method OnConfiguring, void
+;			opts, @DbContextOptionsBuilder
+;		proc
+;			HarmonyDbContextOptionsExtensions.UseHarmonyDatabase(opts, mDataProvider)
+;		endmethod
+;
+;		protected override method OnModelCreating, void
+;			parm, @ModelBuilder
+;		proc
+;			parm.Ignore(^typeof(AlphaDesc))
+;			parm.Ignore(^typeof(DataObjectMetadataBase))
+;			;modelBuilder.Entity<Orders>().Ignore(lambda(t) { t. })
+;			parent.OnModelCreating(parm);
+;		endmethod
+;
+;	endclass
+;
+;	public class BasicOrdersController extends ODataController
+;	
+;		public readwrite property DBContext, @BasicControllerDBContext
+;
+;		public method BasicOrdersController
+;			dbContext, @BasicControllerDBContext
+;		proc
+;			this.DBContext = dbContext
+;		endmethod
+;		{ODataRoute("BasicOrders")}
+;		{EnableQuery(MaxExpansionDepth=3, MaxSkip=10, MaxTop=5, PageSize=4)}
+;		public method Get, @IActionResult
+;		proc
+;			mreturn Ok(DBContext.Orders)
+;		endmethod
+;
+;		{ODataRoute("BasicOrders({id})")}
+;		public method Get, @IActionResult
+;			{FromODataUri}
+;			id, int
+;		proc
+;			data foundOrder = DBContext.Orders.Find(id)
+;			mreturn Ok(foundOrder)
+;		endmethod
+;
+;		{ODataRoute("BasicOrders({id})")}
+;		public method Post, @IActionResult
+;			{FromODataUri}
+;			id, int
+;		proc
+;			data foundOrder = DBContext.Orders.Find(id)
+;			DBContext.SaveChanges()
+;			mreturn Ok(foundOrder)
+;		endmethod
+;	endclass
+;
+;	public class BasicControllerTestEdmModelBuilder
+;		private static mEdmModel, @IEdmModel
+;		public static method GetEdmModel, @IEdmModel
+;		proc
+;			if(mEdmModel == ^null)
+;			begin
+;				data builder = new ODataConventionModelBuilder()
+;				data entitySet = builder.EntitySet<Orders>("BasicOrders")
+;				mEdmModel = builder.GetEdmModel()
+;			end
+;
+;			mreturn mEdmModel
+;		endmethod
+;
+;	endclass
+;
+;endnamespace
+;

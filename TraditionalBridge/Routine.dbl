@@ -8,7 +8,7 @@ namespace Harmony.TraditionalBridge
 		proc
 			mDispatchStubs = new StringDictionary()
 			loggingChannel = 0
-			open(loggingChannel, O, "c:\wrk\dispatcher.log")
+			open(loggingChannel, O, "dispatcher.log")
 		endmethod
 
 		public virtual method DeserializeObject, @DataObjectBase
@@ -241,10 +241,14 @@ namespace Harmony.TraditionalBridge
 				parsedJson, @Json.JsonValue
 		proc
 			jsonReader = new Json.Json()
-			frameDataHandle = %mem_proc(DM_ALLOC, frameHeader)
-			gets(ttChannel, ^m(frameDataHandle))
 			writes(loggingChannel, "reading callblock: ")
-			writes(loggingChannel, ^m(frameDataHandle))
+			writes(loggingChannel, %string(frameHeader) + " callblock bytes expected")
+			frameDataHandle = %mem_proc(DM_ALLOC, frameHeader)
+			do gets(ttChannel, ^m(frameDataHandle), wait:-1)
+			until %rdlen() == frameHeader
+
+			writes(loggingChannel, %string(%rdlen()) + ":" + %string(%rdtrm()))
+			writes(loggingChannel, ^m(frameDataHandle) + "data read")
 			parsedJson = jsonReader.ParseJson(^m(frameDataHandle))
 			if(parsedJson .is. @Json.JsonObject) then
 			begin
@@ -254,6 +258,7 @@ namespace Harmony.TraditionalBridge
 			else
 			begin
 				data serializer = new Json.ChannelSerializer(ttChannel)
+				writes(loggingChannel, "failed to read json request")
 				serializer.MapOpen()
 				serializer.String("IsError")
 				serializer.Bool(true)
@@ -262,6 +267,7 @@ namespace Harmony.TraditionalBridge
 				serializer.MapClose()
 				mreturn true
 			end
+			
 		endmethod
 
 
@@ -279,14 +285,30 @@ namespace Harmony.TraditionalBridge
 			;;deserialize arguments based on the types in json
 			;;make the call
 			;;trap any exceptions
-			running = true
-			while(running)
+			try
 			begin
-				gets(ttChannel, aData, wait:-1)
-				puts(ttChannel, aData + %char(13) + %char(10))
-				running = ReadCallBlock(ttChannel, (int)frameHeader)
+				running = true
+				while(running)
+				begin
+					do gets(ttChannel, aData, wait:-1)
+					until %rdlen() == 10
+					puts(ttChannel, aData + %char(13) + %char(10))
+					running = ReadCallBlock(ttChannel, (int)frameHeader)
+				end
+				writes(ttChannel, "Shutting down due to running == false")
 			end
-			writes(ttChannel, "Shutting down due to running == false")
+			catch(ex, @Exception)
+			begin
+				data serializer = new Json.ChannelSerializer(ttChannel)
+				writes(loggingChannel, "FATAL ERROR in dispatcher + " + ex.ToString())
+				serializer.MapOpen()
+				serializer.String("IsError")
+				serializer.Bool(true)
+				serializer.String("Result")
+				serializer.String(ex.ToString())
+				serializer.MapClose()
+			end
+			endtry
 		endmethod
 
 		public method ProcessCallBlock, boolean
