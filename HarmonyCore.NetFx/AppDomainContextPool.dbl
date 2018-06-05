@@ -1,0 +1,39 @@
+import System
+import System.Collections.Generic
+import System.Text
+import Microsoft.Extensions.DependencyInjection
+import Harmony.Core.Context
+
+
+namespace Harmony.Core.NetFx
+
+	public class AppDomainContextPool<T(IContextBase, class), SP(IServiceProvider)> extends IsolatedContextPool<T>
+		public method AppDomainContextPool
+			min, int
+			endparams
+			parent(min)
+		proc
+		endmethod
+		
+		protected override method SlowMakeContext, T
+			provider, @IServiceProvider
+		proc
+			data TType = ^typeof(T)
+			data domainName = TType.FullName + Guid.NewGuid().ToString()
+			data newAppDomain = AppDomain.CreateDomain(domainName) 
+			data activatorInstance = ^as(newAppDomain.CreateInstanceAndUnwrap(^typeof(AppDomainActivator).Assembly.FullName, ^typeof(AppDomainActivator).FullName), @AppDomainActivator)
+			mreturn activatorInstance.MakeContext(provider)
+		endmethod
+
+		private class AppDomainActivator extends MarshalByRefObject
+			public method MakeContext, T
+				provider, @IServiceProvider
+			proc
+				data isolatedProvider = ActivatorUtilities.CreateInstance<SP>(provider)
+				mreturn ActivatorUtilities.CreateInstance<T>(isolatedProvider)
+			endmethod
+		endclass
+
+	endclass
+
+endnamespace

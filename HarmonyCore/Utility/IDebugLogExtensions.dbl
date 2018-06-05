@@ -1,0 +1,123 @@
+import System
+import System.Collections.Generic
+import System.Text
+import Harmony.Core.Interface
+
+
+namespace Harmony.Core.Utility
+
+	public static class IDebugLogExtensions
+		public static extension method LogInfo, void
+			debugLog, @IDebugLogging
+			message, @string
+		proc
+			if((int)debugLog.Level >= (int)LogLevel.Info)
+				debugLog.LogMessage(LogLevel.Info, LogType.File | LogType.DebugView | LogType.Console, message)
+		endmethod
+
+		public static extension method LogInfo, void
+			debugLog, @IDebugLogging
+			formatString, @string
+			{ParamArray}
+			arguments, [#]@object
+		proc
+			if((int)debugLog.Level >= (int)LogLevel.Info)
+				debugLog.LogMessage(LogLevel.Info, LogType.File | LogType.DebugView | LogType.Console, formatString, arguments)
+		endmethod
+
+		public static extension method LogDiagnostic, void
+			debugLog, @IDebugLogging
+			formatString, @string
+			{ParamArray}
+			arguments, [#]@object
+		proc
+			if((int)debugLog.Level >= (int)LogLevel.Diagnostic)
+				debugLog.LogMessage(LogLevel.Diagnostic, LogType.File | LogType.DebugView | LogType.Console, formatString, arguments)
+		endmethod
+
+		public static extension method LogException, void
+			debugLog, @IDebugLogging
+			ex, @Exception
+			logLocation, @string
+		proc
+			if((int)debugLog.Level >= (int)LogLevel.Error)
+				debugLog.LogMessage(LogLevel.Error, LogType.File | LogType.DebugView | LogType.Console | LogType.EventLog, string.Format("Logged Exception while passing through {0}, the exception was {1}", logLocation, ex))
+		endmethod
+
+	endclass
+
+	public class MemoryHandleDebugLogHelper
+		public TargetHandle, D_HANDLE
+		public TargetLength, int
+		public Trim, boolean
+		public method MemoryHandleDebugLogHelper
+			targetHandle, D_HANDLE
+			targetLength, int
+			default trim, boolean, false
+		proc
+			this.TargetHandle = targetHandle
+			this.TargetLength = targetLength
+			this.Trim = trim
+		endmethod
+
+
+		public override method ToString, @string
+			structure tmpAlpha
+				fld	,a1
+			endstructure
+		proc
+			if(Trim) then
+				mreturn %atrim(^m(tmpAlpha(1:TargetLength), TargetHandle))
+			else
+				mreturn ^m(tmpAlpha(1:TargetLength), TargetHandle)
+		endmethod
+
+	endclass
+
+	public class MemoryHandleImpliedDebugLogHelper
+		public TargetHandle, D_HANDLE
+		public TargetLength, int
+
+		public method MemoryHandleImpliedDebugLogHelper
+			targetHandle, D_HANDLE
+			targetLength, int
+		proc
+			this.TargetHandle = targetHandle
+			this.TargetLength = targetLength
+		endmethod
+
+
+		public override method ToString, @string
+			structure tmpAlpha
+				fld	,a1
+			endstructure
+		proc
+			mreturn %string(%implied(^m(tmpAlpha(1:TargetLength), TargetHandle)))
+		endmethod
+
+	endclass
+
+	public class MemoryHandleIntegerDebugLogHelper
+		public TargetHandle, D_HANDLE
+		public TargetLength, int
+
+		public method MemoryHandleIntegerDebugLogHelper
+			targetHandle, D_HANDLE
+			targetLength, int
+		proc
+			this.TargetHandle = targetHandle
+			this.TargetLength = targetLength
+		endmethod
+
+
+		public override method ToString, @string
+			structure tmpAlpha
+				fld	,a1
+			endstructure
+		proc
+			mreturn %string(%integer(^m(tmpAlpha(1:TargetLength), TargetHandle)))
+		endmethod
+
+	endclass
+
+endnamespace

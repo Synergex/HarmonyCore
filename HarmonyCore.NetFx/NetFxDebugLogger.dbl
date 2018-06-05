@@ -1,0 +1,166 @@
+import System
+import System.Collections.Generic
+import System.Text
+import System.Collections.Concurrent
+import Harmony.Core.Interface
+import System.Threading
+
+namespace Harmony.Core.NetFx
+
+	public class DebugLogBase extends MarshalByRefObject implements IDebugLogging, IDisposable
+		public method DebugLogBase
+			eventLogName, @string
+			fileName, @string
+			synchFlush, boolean
+		proc
+			SynchronousFlush = synchFlush
+			if(!SynchronousFlush) then
+			begin
+				mLogThreadRunning = true
+				mLogQueue = new ConcurrentQueue<LogItem>()
+				mLogThread = new Thread(RunLoggingQueue)
+				mLogThread.Start()
+				AppDomain.CurrentDomain.UnhandledException += UnhandledException
+				AppDomain.CurrentDomain.DomainUnload += DomainUnload
+			end
+			else
+			begin
+				mLogThreadRunning = false
+			end
+		endmethod
+
+		public virtual method Dispose, void
+			endparams
+		proc
+			Dispose(true)
+		endmethod
+
+		protected virtual method Dispose, void
+			disposing, boolean
+			endparams
+		proc
+			ShutdownQueue(!disposing)
+
+			if(disposing)
+				GC.SuppressFinalize(this)
+		endmethod
+
+		method ~DebugLogBase
+		proc
+			Dispose(false)
+		endmethod
+
+		protected mLogQueue, @ConcurrentQueue<LogItem>
+		protected mLogThread, @Thread
+		protected mLogThreadRunning, @boolean
+
+		public readwrite property SynchronousFlush, boolean
+		public readwrite property Level, LogLevel
+		;;; <summary>
+		;;;  Process the inbound string value.
+		;;; </summary>
+		;;; <remarks>
+		;;; Log the passed string to your custom logging environment.
+		;;; </remarks>
+		public method LogMessage	,void
+			in req level, LogLevel
+			in req logKind, LogType
+			in req message	,String
+			endparams
+		proc
+
+		endmethod
+
+		;;; <summary>
+		;;;  Process the inbound string value as a format string
+		;;; </summary>
+		;;; <remarks>
+		;;; Log the passed string to your custom logging environment.
+		;;; </remarks>
+		public method LogMessage	,void
+			in req level, LogLevel
+			in req logKind, LogType
+			in req formatString	,String
+			{ParamArray}
+			in req args, [#]@Object
+			endparams
+		proc
+
+		endmethod
+
+		private method RunLoggingQueue, void
+			unused, @object
+		proc
+			try
+			begin
+			end
+			catch(ex, @Exception)
+			begin
+			end
+			endtry
+		endmethod
+
+		private method UnhandledException, void
+			sender, @Object
+			args, @EventArgs
+		proc
+			ShutdownQueue(true)
+		endmethod
+
+		private method DomainUnload, void
+			sender, @Object
+			args, @EventArgs
+		proc
+			ShutdownQueue(true)
+		endmethod
+
+		private method DetachEvents, void
+		proc
+			AppDomain.CurrentDomain.UnhandledException -= UnhandledException
+			AppDomain.CurrentDomain.DomainUnload -= DomainUnload
+		endmethod
+
+		private method ShutdownQueue, void
+			urgent, boolean
+			record
+				item, LogItem
+		proc
+			DetachEvents()
+			mLogThreadRunning = false
+			data shutdownStartTime = DateTime.Now
+			;;try to drain the queue as much as possible if we run out of time, log that we ran out of time
+			while(mLogQueue.TryDequeue(item))
+			begin
+				if(urgent)
+				begin
+					data timeDiff = DateTime.Now - shutdownStartTime
+					if(timeDiff.TotalMilliseconds > 1000)
+					begin
+						data exitEarlyLogItem, LogItem
+						exitEarlyLogItem.level = LogLevel.FatalError
+						exitEarlyLogItem.logKind = LogType.File | LogType.Console | LogType.EventLog
+						exitEarlyLogItem.logString = "Timeout while attempting to finish writing debug log items during shutdown"
+						ProcessLogItem(exitEarlyLogItem)
+						exitloop
+					end
+				end
+
+				ProcessLogItem(item)
+			end
+
+		endmethod
+
+		private method ProcessLogItem, void
+			req in byref item, LogItem
+		proc
+
+		endmethod
+
+		cls structure LogItem
+			level, LogLevel
+			logKind, LogType
+			logString, @string
+		endstructure
+	endclass
+
+endnamespace

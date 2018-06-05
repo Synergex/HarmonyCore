@@ -11,14 +11,6 @@ namespace Harmony.Core.Interface
 	public interface IDebugLogging
 		
 		readonly property Level, LogLevel
-
-		;;; <summary>
-		;;; Should returns a value (True/False) to indicate if debugging is enabled,
-		;;; </summary>
-		method IsLoggingEnabled, boolean
-			endparams
-		endmethod
-
 		;;; <summary>
 		;;;  Process the inbound string value.
 		;;; </summary>
@@ -26,32 +18,26 @@ namespace Harmony.Core.Interface
 		;;; Log the passed string to your custom logging environment.
 		;;; </remarks>
 		method LogMessage	,void
+			in req level, LogLevel
+			in req logKind, LogType
 			in req message	,String
 			endparams
 		endmethod
 
 		;;; <summary>
-		;;;  Process the inbound exception details.
+		;;;  Process the inbound string value as a format string
 		;;; </summary>
 		;;; <remarks>
-		;;; Log the passed expection to your custom logging environment.
+		;;; Log the passed string to your custom logging environment.
 		;;; </remarks>
-		method LogException, void
-			in req exceptionObject	,@Exception
+		method LogMessage	,void
+			in req level, LogLevel
+			in req logKind, LogType
+			in req formatString	,String
+			{ParamArray}
+			in req args, [#]@Object
 			endparams
 		endmethod
-
-		;;; <summary>
-		;;;  Write to the event log.
-		;;; </summary>
-		;;; <remarks>
-		;;; Log the inbound string array to the system event log.
-		;;; </remarks>
-		method WriteToEventLog	,void
-			in req outputString	,[#]String
-			endparams
-		endmethod
-
 	endinterface
 	
 	public enum LogLevel
@@ -62,5 +48,13 @@ namespace Harmony.Core.Interface
 		Diagnostic
 	endenum
 
+	{Flags}
+	public enum LogType
+		File, 0
+		Console, 1
+		EventLog, 2
+		DebugView, 4
+		External, 8
+	endenum
 
 endnamespace

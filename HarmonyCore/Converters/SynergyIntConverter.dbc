@@ -36,6 +36,7 @@
 import System
 import System.Collections.Generic
 import System.Text
+import Harmony.Core.Utility
 
 namespace Harmony.Core.Converters
 	
@@ -69,9 +70,9 @@ namespace Harmony.Core.Converters
 			if (value == ^null)
 				mreturn ^null
 				
-			if (value != ^null) DebugView.Write("Integer Convert Value : " + value.ToString())
-			if (targetType != ^null) DebugView.Write("Integer Convert Target type : " + targetType.ToString())
-			if (parameter != ^null) DebugView.Write("Integer Convert Parameter : " + Parameter.ToString())
+			if (value != ^null) DebugLogSession.Logging.LogInfo("Integer Convert Value : " + value.ToString())
+			if (targetType != ^null) DebugLogSession.Logging.LogInfo("Integer Convert Target type : " + targetType.ToString())
+			if (parameter != ^null) DebugLogSession.Logging.LogInfo("Integer Convert Parameter : " + Parameter.ToString())
 				
 			data tmpI	,i4
 			data tmpInt	,int
@@ -82,14 +83,14 @@ namespace Harmony.Core.Converters
 			end
 			catch (e, @Exception)
 			begin
-				Harmony.Core.DebugView.Write("Value passed to converter (DTF) :" + value.ToString() + ": end value", true)
-				Harmony.Core.DebugView.WriteException(e)
+				DebugLogSession.Logging.LogInfo("Value passed to converter (DTF) : {0} : end value", value)
+				DebugLogSession.Logging.LogException(e, "Int Converter")
 			end
 			endtry
 				
 			tmpInt = tmpI
 				
-			DebugView.Write("Integer Convert return : " + tmpInt.ToString())
+			DebugLogSession.Logging.LogInfo("Integer Convert return : {0}", tmpInt)
 				
 			mreturn (Object)tmpInt 
 				
@@ -118,9 +119,9 @@ namespace Harmony.Core.Converters
 				if (value == ^null)
 					mreturn (Object)((i)0)
 				
-				if (value != ^null) DebugView.Write("Integer ConvertBack Value : " + value.ToString())
-				if (targetType != ^null) DebugView.Write("Integer ConvertBack Target type : " + targetType.ToString())
-				if (parameter != ^null) DebugView.Write("Integer ConvertBack Parameter : " + Parameter.ToString())
+				if (value != ^null) DebugLogSession.Logging.LogInfo("Integer ConvertBack Value : {0}", value)
+				if (targetType != ^null) DebugLogSession.Logging.LogInfo("Integer ConvertBack Target type : {0}", targetType)
+				if (parameter != ^null) DebugLogSession.Logging.LogInfo("Integer ConvertBack Parameter : {0}", Parameter)
 				
 				data iVal	,i4	,0
 				
@@ -131,7 +132,7 @@ namespace Harmony.Core.Converters
 				if (testString.Length)
 					iVal = Convert.ToInt64(value)
 				
-				DebugView.Write("Integer ConvertBack return : " + %string(iVal))
+				DebugLogSession.Logging.LogInfo("Integer ConvertBack return : {0}", iVal)
 				mreturn  (@i)Convert.ToInt64(iVal)
 				
 			end

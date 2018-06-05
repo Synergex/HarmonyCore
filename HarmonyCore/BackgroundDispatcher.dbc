@@ -43,6 +43,8 @@ import System.Text
 import System.Threading
 import System.Threading.Tasks
 import Nito.AsyncEx
+import Harmony.Core.Interface
+import Harmony.Core.Utility
 
 namespace Harmony.Core
 	
@@ -50,209 +52,15 @@ namespace Harmony.Core
 	;;;  The BackgroundDispatcher class should be used to control processing of background tasks
 	;;; </summary>
 	public class BackgroundDispatcher implements IDisposable
-		
-		;;; <summary>
-		;;;  Create an instance of a BackgroundDispatcher to execute code on a background thread.
-		;;; </summary>
-		public static property UtilityBackgroundDispatcher	,@BackgroundDispatcher
-			method get
-			proc
-				try
-				begin
-					Monitor.Enter(mActiveDispatcherList)
-					if (mActiveDispatcherList.Count == 0)
-					begin
-						data item = new DispatcherItem()
-						item.BDitem = new BackgroundDispatcher(false)
-						item.BDUnique = mAreDispatchersUnique
-						item.referenceCount = 1
-						mActiveDispatcherList.Add(item)
-					end
-					mreturn mActiveDispatcherList[0].BDitem
-				end
-				catch (e, @Exception)
-				begin
-					Harmony.Core.DebugView.WriteException(e)
-				end
-				finally
-				begin
-					Monitor.Exit(mActiveDispatcherList)
-				end
-				endtry
-			endmethod
-		endproperty
-		
-		private static mAreDispatchersUnique	,boolean	,false
-		
+		private static mAreDispatchersUnique, boolean
 		;;private memebers
 		private mThread	,@AsyncContextThread
-		
 		;;define the structure of live dispatchers 
 		private class DispatcherItem
 			public referenceCount	,int
 			public BDitem			,@BackgroundDispatcher
 			public BDUnique			,boolean	,false
 		endclass
-		
-		;;store a list of active dispatcher super channels
-		private static mActiveDispatcherList	,@List<DispatcherItem>	,new List<DispatcherItem>()
-		
-		;;; <summary>
-		;;;  Allocate and return a BackgroundDispatcher object.  
-		;;; </summary>
-		public static method AllocateDispatcher	,@BackgroundDispatcher
-			endparams
-		proc
-			data item	,@DispatcherItem
-			try
-			begin
-				Monitor.Enter(mActiveDispatcherList)
-				foreach item in mActiveDispatcherList
-				begin
-					;;have we got room
-					if (item.referenceCount < CONST_MaxReferenceCount && !item.BDUnique)
-					begin
-						incr item.referenceCount
-						mreturn item.BDitem
-					end
-				end
-				
-				;;if we are here then either no active dispatcher items or they are all full
-				item = new DispatcherItem()
-				item.BDitem = new BackgroundDispatcher(false)
-				item.BDUnique = mAreDispatchersUnique
-				item.referenceCount = 1
-				mActiveDispatcherList.Add(item)
-			end
-			catch (e, @Exception)
-			begin
-				Harmony.Core.DebugView.WriteException(e)
-			end
-			finally
-			begin
-				Monitor.Exit(mActiveDispatcherList)
-			end
-			endtry
-			mreturn item.BDitem
-		endmethod
-		
-		;;; <summary>
-		;;;  Allocate and return a BackgroundDispatcher object.  
-		;;; </summary>
-		;;; <param name="uniqueDispatcher">Force the creation of a unique dispatcher.</param>
-		public static method AllocateDispatcher	,@BackgroundDispatcher
-			in req uniqueDispatcher				,boolean
-			endparams
-		proc
-			data item	,@DispatcherItem
-			item = new DispatcherItem()
-			item.BDitem = new BackgroundDispatcher(false)
-			item.referenceCount = 1
-			item.BDUnique = true
-			try
-			begin
-				Monitor.Enter(mActiveDispatcherList)
-				mActiveDispatcherList.Add(item)
-			end
-			catch (e, @Exception)
-			begin
-				Harmony.Core.DebugView.WriteException(e)
-			end
-			finally
-			begin
-				Monitor.Exit(mActiveDispatcherList)
-			end
-			endtry
-			mreturn item.BDitem
-		endmethod
-
-		;;; <summary>
-		;;;  Deallocate the passed dispatcher and remove from the dispatcher collection.
-		;;; </summary>		
-		;;; <param name="dispatchObject">Pass in the BackgroundDispatcher object instance.</param>
-		public static method DeallocateDispatcher	,void
-			in req	dispatchObject					,@BackgroundDispatcher
-			endparams
-		proc
-			data item	,@DispatcherItem
-			try
-			begin
-				Monitor.Enter(mActiveDispatcherList)
-				foreach item in mActiveDispatcherList
-				begin
-					;;find the passd dispatcher object in our list
-					if (item.BDitem == dispatchObject)
-					begin
-						;;found it, so remove it!!
-						decr item.referenceCount
-						if (item.referenceCount == 0 && item.BDitem != ^null)
-						begin
-							;;before we dispose of the dispatcher, let's give the "consumer" the option to close things down
-							;item.BDitem.BackgroundThread.Join()
-							item.BDitem.Dispose()
-							item.BDitem = ^null
-							mActiveDispatcherList.Remove(item)
-							exitloop
-						end
-					end
-				end
-			end
-			catch (e, @Exception)
-			begin
-				Harmony.Core.DebugView.WriteException(e)
-			end
-			finally
-			begin
-				Monitor.Exit(mActiveDispatcherList)
-			end
-			endtry
-			
-			
-
-		endmethod
-		
-		;;; <summary>
-		;;;  Deallocate the passed dispatcher and remove from the dispatcher collection.
-		;;; </summary>		
-		public static method DeallocateAllDispatchers	,void
-			endparams
-		proc
-			data item	,@DispatcherItem
-			try
-			begin
-				Monitor.Enter(mActiveDispatcherList)
-				foreach item in mActiveDispatcherList
-				begin
-					;;found it, so remove it!!
-					decr item.referenceCount
-					if (item.referenceCount == 0 && item.BDitem != ^null)
-					begin
-						;;before we dispose of the dispatcher, let's give the "consumer" the option to close things down
-						;item.BDitem.BackgroundThread.Join()
-						item.BDitem.Dispose()
-						item.BDitem = ^null
-					end
-				end
-			end
-			catch (e, @Exception)
-			begin
-				Harmony.Core.DebugView.WriteException(e)
-			end
-			finally
-			begin
-				mActiveDispatcherList.Clear()
-				Monitor.Exit(mActiveDispatcherList)
-				if (ThreadSafe.ThreadHasRunOnce == true)
-				begin
-.ifdef DBLV1033
-	;;				xcall s_server_thread_shutdown()
-.endc
-					ThreadSafe.ThreadHasRunOnce = false
-				end
-			end
-			endtry
-			
-		endmethod
 		
 		public property BackgroundThread, @AsyncContextThread
 			method get
@@ -293,9 +101,7 @@ namespace Harmony.Core
 
 					catch (e, @Exception)
 					begin
-						Harmony.Core.DebugView.Write("runDispatcher::Exception - " + e.Message, true)
-						Harmony.Core.DebugView.Write(e.Message, true)
-						Harmony.Core.DebugView.WriteException(e)		  
+						DebugLogSession.Logging.LogException(e, "runDispatcher::Exception")	  
 					end
 					endtry
 				end
@@ -382,7 +188,7 @@ namespace Harmony.Core
 			catch (e, @Exception)
 			begin
 				completionSource.SetException(e)
-				Harmony.Core.DebugView.WriteException(e)
+				DebugLogSession.Logging.LogException(e, "InvokeHelper")
 			end
 			endtry
 		endmethod
@@ -406,7 +212,7 @@ namespace Harmony.Core
 			catch (e, @Exception)
 			begin
 				completionSource.SetException(e)
-				Harmony.Core.DebugView.WriteException(e)
+				DebugLogSession.Logging.LogException(e, "InvokeHelper<T>")
 			end
 			endtry
 		endmethod
@@ -416,7 +222,7 @@ namespace Harmony.Core
 			in req subException		,@Exception
 			endparams
 		proc
-			Harmony.Core.DebugView.WriteException(subException)
+			DebugLogSession.Logging.LogException(subException, "AggregateException")
 			mreturn true
 		endmethod
 		

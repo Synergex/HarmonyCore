@@ -36,6 +36,7 @@
 import System
 import System.Collections.Generic
 import System.Text
+import Harmony.Core.Utility
 
 namespace Harmony.Core.Converters
 	
@@ -81,13 +82,13 @@ namespace Harmony.Core.Converters
 
 			if (value == ^null || value.toString().Length == 0) then
 			begin
-				DebugView.Write("Alpha Convert Value : value is NULL")
+				DebugLogSession.Logging.LogInfo("Alpha Convert Value : value is NULL")
 				mreturn ""
 			end
 			else
-				DebugView.Write("Alpha Convert Value : " + value.ToString())
+				DebugLogSession.Logging.LogInfo("Alpha Convert Value : {0}", value)
 
-			if (parameter != ^null) DebugView.Write("Alpha Convert Parameter : " + Parameter.ToString())
+			if (parameter != ^null) DebugLogSession.Logging.LogInfo("Alpha Convert Parameter : {0}", Parameter)
 
 			;;let's check to see if we have any "extra" characters.
 			if (parameter !=^null)
@@ -160,11 +161,11 @@ namespace Harmony.Core.Converters
 			data stringEncoder = System.Text.Encoding.GetEncoding("Windows-1252")
 				
 			if (value == ^null) then
-				DebugView.Write("Alpha ConvertBack Value : value is NULL")
+				DebugLogSession.Logging.LogInfo("Alpha ConvertBack Value : value is NULL")
 			else
-				DebugView.Write("Alpha ConvertBack Value : " + value.ToString())
+				DebugLogSession.Logging.LogInfo("Alpha ConvertBack Value : {0}", value)
 
-			if (parameter != ^null) DebugView.Write("Alpha ConvertBack Parameter : " + Parameter.ToString())
+			if (parameter != ^null) DebugLogSession.Logging.LogInfo("Alpha ConvertBack Parameter : {0}", Parameter)
 			
 			if (value == ^null)
 			begin
@@ -297,7 +298,7 @@ namespace Harmony.Core.Converters
 				
 			end
 			
-			DebugView.Write("Alpha ConvertBack Parameter : " + %atrim(^m(tmpAlpha(1:memLen), memPnt)))
+			DebugLogSession.Logging.LogInfo("Alpha ConvertBack Parameter : {0}", new MemoryHandleDebugLogHelper(memPnt, memLen))
 			
 			mreturn (Object) %atrim(^m(tmpAlpha(1:memLen), memPnt))
 			
