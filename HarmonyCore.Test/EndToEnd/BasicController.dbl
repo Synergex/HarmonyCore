@@ -25,6 +25,15 @@ import Harmony.Core.FileIO.Queryable
 import System.Linq
 import System.Net.Http
 import Harmony.AspNetCore.Context
+
+;.region "Experimental security stuff added by Steve"
+;
+;import Owin
+;import Microsoft.Owin
+;import Microsoft.Owin.Security.OAuth
+;
+;.endregion
+
 namespace HarmonyCore.Test.EndToEnd
 
 	{TestClass}
@@ -96,6 +105,22 @@ namespace HarmonyCore.Test.EndToEnd
 			env, @IHostingEnvironment
 		proc
 			data model = BasicControllerTestEdmModelBuilder.GetEdmModel()
+
+;.region "Experimental security stuff added by Steve"
+;
+;			;; Configure OAuth token generation
+;			app.UseOAuthAuthorizationServer(
+;			&	new OAuthAuthorizationServerOptions() { 
+;			&	AllowInsecureHttp = true,
+;			&	TokenEndpointPath = new PathString("/token"),
+;			&	AccessTokenExpireTimeSpan = TimeSpan.FromHours(8),
+;			&	Provider = new SimpleAuthorizationServerProvider() }
+;			&	)
+;
+;			;;  Configure OAuth token consumption
+;			app.UseOAuthBearerAuthentication(new OAuthBearerAuthenticationOptions())
+;
+;.endregion
 
 			lambda MVCBuilder(builder)
 			begin
