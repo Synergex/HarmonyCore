@@ -3,7 +3,11 @@ import System.Collections.Generic
 import System.Text
 import System.Collections.Concurrent
 import Harmony.Core.Interface
+import Harmony.Core.Utility
 import System.Threading
+import System.Diagnostics
+import Newtonsoft.Json
+import System.Threading.Tasks
 
 namespace Harmony.Core.NetFx
 
@@ -13,6 +17,11 @@ namespace Harmony.Core.NetFx
 			fileName, @string
 			synchFlush, boolean
 		proc
+			mEventLogName = eventLogName
+
+			if(!String.IsNullOrWhiteSpace(fileName))
+				mLogFile = System.IO.File.OpenWrite(fileName)
+
 			SynchronousFlush = synchFlush
 			if(!SynchronousFlush) then
 			begin
@@ -53,6 +62,8 @@ namespace Harmony.Core.NetFx
 		protected mLogQueue, @ConcurrentQueue<LogItem>
 		protected mLogThread, @Thread
 		protected mLogThreadRunning, @boolean
+		private mEventLogName, @string
+		private mLogFile, @System.IO.FileStream
 
 		public readwrite property SynchronousFlush, boolean
 		public readwrite property Level, LogLevel
@@ -68,7 +79,19 @@ namespace Harmony.Core.NetFx
 			in req message	,String
 			endparams
 		proc
+			if((int)Level >= (int)level)
+			begin
+				data logEntry = new LogItem() { Level = level, LogKind = logKind, LogSession = DebugLogSession.CurrentSessionId, LogTime = DateTime.UtcNow }
+				if(SynchronousFlush) then
+				begin
+					ProcessLogItem(logEntry)
+				end
+				else
+				begin
+					mLogQueue.Enqueue(logEntry)
+				end
 
+			end
 		endmethod
 
 		;;; <summary>
@@ -85,14 +108,24 @@ namespace Harmony.Core.NetFx
 			in req args, [#]@Object
 			endparams
 		proc
+			if((int)Level >= (int)level)
+				LogMessage(level, logKind, String.Format(formatString, args))
 
 		endmethod
 
-		private method RunLoggingQueue, void
+		private async method RunLoggingQueue, void
 			unused, @object
 		proc
 			try
 			begin
+				while(mLogThreadRunning)
+				begin
+					data logElement, @LogItem
+					if(mLogQueue.TryDequeue(logElement)) then
+						ProcessLogItem(logElement)
+					else
+						await Task.Delay(50)
+				end
 			end
 			catch(ex, @Exception)
 			begin
@@ -123,11 +156,12 @@ namespace Harmony.Core.NetFx
 		private method ShutdownQueue, void
 			urgent, boolean
 			record
-				item, LogItem
+				item, @LogItem
 		proc
 			DetachEvents()
 			mLogThreadRunning = false
 			data shutdownStartTime = DateTime.Now
+			mLogFile.Flush() ;;if we run into trouble at least some of the data will be flushed to disk
 			;;try to drain the queue as much as possible if we run out of time, log that we ran out of time
 			while(mLogQueue.TryDequeue(item))
 			begin
@@ -136,31 +170,54 @@ namespace Harmony.Core.NetFx
 					data timeDiff = DateTime.Now - shutdownStartTime
 					if(timeDiff.TotalMilliseconds > 1000)
 					begin
-						data exitEarlyLogItem, LogItem
-						exitEarlyLogItem.level = LogLevel.FatalError
-						exitEarlyLogItem.logKind = LogType.File | LogType.Console | LogType.EventLog
-						exitEarlyLogItem.logString = "Timeout while attempting to finish writing debug log items during shutdown"
+						data exitEarlyLogItem, @LogItem
+						exitEarlyLogItem.Level = LogLevel.FatalError
+						exitEarlyLogItem.LogKind = LogType.File | LogType.Console | LogType.EventLog
+						exitEarlyLogItem.LogString = "Timeout while attempting to finish writing debug log items during shutdown"
+						exitEarlyLogItem.LogTime = DateTime.UtcNow
 						ProcessLogItem(exitEarlyLogItem)
 						exitloop
 					end
 				end
 
 				ProcessLogItem(item)
+				mLogFile.Flush()
+				mLogFile.Close()
 			end
 
 		endmethod
 
 		private method ProcessLogItem, void
-			req in byref item, LogItem
+			req in byref item, @LogItem
 		proc
+			if((item.LogKind .band. LogType.Console) == LogType.Console)
+				Console.WriteLine("{0} : Log Session Id {1} : Log Level {2} : Log Message {3}", item.LogTime, item.LogSession, item.Level, item.LogString)
 
+			if((item.LogKind .band. LogType.DebugView) == LogType.DebugView)
+				Debug.WriteLine("{0} : Log Session Id {1} : Log Level {2} : Log Message {3}", item.LogTime, item.LogSession, item.Level, item.LogString)
+
+			if(mLogFile != ^null && (item.LogKind .band. LogType.File) == LogType.File)
+			begin
+				;;log files are in a legth prefixed streaming json format this is still easily human readable but can also be quickly processed by tools
+				;;for example we can pull all of the log items out for a given session to make it easy to follow in multi threaded scenarios
+				data logBytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(item))
+				data lengthBytes = Encoding.UTF8.GetBytes(logBytes.Length.ToString().PadLeft(10, '0'))
+				mLogFile.Write(lengthBytes, 0, lengthBytes.Length)
+				mLogFile.Write(logBytes, 0, logBytes.Length)
+				if(SynchronousFlush)
+					mLogFile.Flush()
+			end
+
+			;;TODO EventLog
 		endmethod
 
-		cls structure LogItem
-			level, LogLevel
-			logKind, LogType
-			logString, @string
-		endstructure
+		class LogItem
+			public Level, LogLevel
+			public LogKind, LogType
+			public LogString, @string
+			public LogSession, @string
+			public LogTime, DateTime
+		endclass
 	endclass
 
 endnamespace
