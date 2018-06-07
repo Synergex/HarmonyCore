@@ -1,10 +1,10 @@
 ;//****************************************************************************
 ;//
-;// Title:       ArgumentDataDefinition.dbc
+;// Title:       TypeConverter.dbl
 ;//
 ;// Type:        Class
 ;//
-;// Description: Define the argument data
+;// Description: Basic object ype converter
 ;//
 ;// Author:      Richard C. Morris, Synergex Technology Evengelist
 ;//
@@ -34,28 +34,70 @@
 ;//
 ;//****************************************************************************
 
-
 import System
 import System.Collections.Generic
 import System.Text
+
 import Newtonsoft.Json
-import Harmony.Core.Enumerations
-import Harmony.Core.Converters
 
-namespace Harmony.Core
+namespace Harmony.Core.Converters
 
-	public class ArgumentDataDefinition
-		public PassedValue			,@Object
-		public ReturnedValue		,boolean?
-		public DataType				,FieldDataType
-		public ElementSize			,int?
-		public DecimalPrecision		,int?
+	;;; <summary>
+	;;; JSON.Net type converter
+	;;; </summary>
+	;;; <remarks>
+	;;; Enables convertion of specific types.
+	;;; </remarks>
+	public class TypeConverter extends JsonConverter
+		
+		;;; <summary>
+		;;; JSON Type converter
+		;;; </summary>
+		;;; <param name="writer"></param>
+		;;; <param name="value"></param>
+		;;; <param name="serializer"></param>
+		;;; <returns></returns>
+		public override method WriteJson, void
+			writer, @JsonWriter 
+			value, @Object 
+			serializer, @JsonSerializer 
+			endparams
+		proc
+			data tmpVal	,@Type	,^as(value, Type)
+			writer.WriteValue(tmpVal.AssemblyQualifiedName)
+		endmethod
+		
+		;;; <summary>
+		;;; Read JSON type
+		;;; </summary>
+		;;; <param name="reader"></param>
+		;;; <param name="objectType"></param>
+		;;; <param name="existingValue"></param>
+		;;; <param name="serializer"></param>
+		;;; <returns></returns>
+		public override method ReadJson, @Object
+			reader, @JsonReader 
+			objectType, @Type 
+			existingValue, @Object 
+			serializer, @JsonSerializer 
+			endparams
+		proc
+			mreturn Type.GetType(reader.Value.ToString())
+		endmethod
+		
+		;;; <summary>
+		;;; Return True for type convertion
+		;;; </summary>
+		;;; <param name="objectType"></param>
+		;;; <returns></returns>
+		public override method CanConvert, Boolean
+			objectType, @Type 
+			endparams
+		proc
+			mreturn true
+		endmethod
+		
+		
 	endclass
-
-	public class ReturnParameterDefintion
-		public Position, int
-		public Value, @Object
-	endclass
-
 
 endnamespace

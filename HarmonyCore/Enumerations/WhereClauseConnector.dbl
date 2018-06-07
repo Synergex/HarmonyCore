@@ -1,10 +1,10 @@
 ;//****************************************************************************
 ;//
-;// Title:       TypeConverter.dbc
+;// Title:       WhereClauseConnector.dbl
 ;//
-;// Type:        Class
+;// Type:        Enumeration
 ;//
-;// Description: Basic object ype converter
+;// Description: Connector between where clause items
 ;//
 ;// Author:      Richard C. Morris, Synergex Technology Evengelist
 ;//
@@ -34,70 +34,15 @@
 ;//
 ;//****************************************************************************
 
-import System
-import System.Collections.Generic
-import System.Text
 
-import Newtonsoft.Json
+namespace Harmony.Core.Enumerations
 
-namespace Harmony.Core.Converters
-
-	;;; <summary>
-	;;; JSON.Net type converter
-	;;; </summary>
-	;;; <remarks>
-	;;; Enables convertion of specific types.
-	;;; </remarks>
-	public class TypeConverter extends JsonConverter
-		
-		;;; <summary>
-		;;; JSON Type converter
-		;;; </summary>
-		;;; <param name="writer"></param>
-		;;; <param name="value"></param>
-		;;; <param name="serializer"></param>
-		;;; <returns></returns>
-		public override method WriteJson, void
-			writer, @JsonWriter 
-			value, @Object 
-			serializer, @JsonSerializer 
-			endparams
-		proc
-			data tmpVal	,@Type	,^as(value, Type)
-			writer.WriteValue(tmpVal.AssemblyQualifiedName)
-		endmethod
-		
-		;;; <summary>
-		;;; Read JSON type
-		;;; </summary>
-		;;; <param name="reader"></param>
-		;;; <param name="objectType"></param>
-		;;; <param name="existingValue"></param>
-		;;; <param name="serializer"></param>
-		;;; <returns></returns>
-		public override method ReadJson, @Object
-			reader, @JsonReader 
-			objectType, @Type 
-			existingValue, @Object 
-			serializer, @JsonSerializer 
-			endparams
-		proc
-			mreturn Type.GetType(reader.Value.ToString())
-		endmethod
-		
-		;;; <summary>
-		;;; Return True for type convertion
-		;;; </summary>
-		;;; <param name="objectType"></param>
-		;;; <returns></returns>
-		public override method CanConvert, Boolean
-			objectType, @Type 
-			endparams
-		proc
-			mreturn true
-		endmethod
-		
-		
-	endclass
+	internal enum WhereClauseConnector
+		Initial
+		AndOperator
+		NestedAndOperator
+		OrOperator
+		NestedOrOperator
+	endenum
 
 endnamespace

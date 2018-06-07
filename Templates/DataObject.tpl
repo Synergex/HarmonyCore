@@ -1,4 +1,4 @@
-<CODEGEN_FILENAME><Structure_name>DataObject.dbc</CODEGEN_FILENAME>
+<CODEGEN_FILENAME><Structure_name>DataObject.dbl</CODEGEN_FILENAME>
 <OPTIONAL_USERTOKEN>RPSDATAFILES= </OPTIONAL_USERTOKEN>
 ;//****************************************************************************
 ;//

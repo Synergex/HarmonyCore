@@ -1,6 +1,6 @@
 ;;**********************************************************************
 ;;
-;; Title:       DataObjectBase.dbc
+;; Title:       DataObjectBase.dbl
 ;;
 ;; Type:        Class
 ;;
@@ -33,15 +33,9 @@
 ;; POSSIBILITY OF SUCH DAMAGE.
 ;;
 ;;*****************************************************************************
-.array 0
 import System
-import System.Collections.Generic
-import Harmony.Core
-import Newtonsoft.Json
-import System.ComponentModel.DataAnnotations
-import Harmony.Core.Utility
 ;import System.ComponentModel.Annotations
-namespace Harmony.Core
+namespace Harmony.TraditionalBridge
 
 	public enum SynergySortOrder
 		Ascending		;;this is the default to start with
@@ -56,7 +50,6 @@ namespace Harmony.Core
 	;;; <remarks>
 	;;; This base class defines the core elemnts of the code-generated data objects.
 	;;; </remarks>
-	{JsonObject(MemberSerialization.OptIn)}
 	public abstract class DataObjectBase
 		private mIsNew, boolean
 		
@@ -66,7 +59,7 @@ namespace Harmony.Core
 		public method DataObjectBase
 			endparams
 		proc
-			DebugLogSession.Logging.LogInfo("Creating an instance of a Data Object, in the base constructor")
+
 		endmethod
 		
 		public abstract method InternalSynergyRecord, void
@@ -136,13 +129,24 @@ namespace Harmony.Core
 		;;; </summary>		
 		public method RestoreOriginalData, void
 			endparams
+			record
+				functor, @RestoreOriginalDataFunctor
 		proc
-			InternalSynergyRecord(lambda(recData, grfaData) { recData = OriginalSynergyRecord })
+			functor = new RestoreOriginalDataFunctor() { parentInstance = this }
+			InternalSynergyRecord(functor)
 			mIsDataModified = false
 			mreturn
 		endmethod
 		
-		
+		private class RestoreOriginalDataFunctor extends AlphaAction
+			public parentInstance, @DataObjectBase
+			public override method Run, void
+				inout alphaData, a
+				inout alphaData2, a
+			proc
+				alphaData = parentInstance.OriginalSynergyRecord
+			endmethod
+		endclass
 		;;; <summary>
 		;;;  Method to be replaced by the extending class to initialise all
 		;;;  member data fields
@@ -236,8 +240,8 @@ namespace Harmony.Core
 		;;; <summary>
 		;;;  Expose a simpler property that allows you to store/retreive the $$Symphony Data Object$$ global RFA address.
 		;;; </summary>		
-		{Timestamp}
-		public property GlobalRFA, [#]byte
+		
+		public property GlobalRFA, a10
 			method get
 			proc
 				mreturn mGlobalRFA
@@ -247,24 +251,44 @@ namespace Harmony.Core
 				mGlobalRFA = value
 			endmethod
 		endproperty
-		
+
+		;;override this in a dataobjectbase where we have to deal with binary data being sent from a big endian to a little endian system
+		public virtual method Serialize, void
+			serializer, @Json.ChannelSerializer
+			;;TODO maybe add serializer options here?
+		proc
+			serializer.MapOpen()
+			serializer.String("Type")
+			serializer.String(Metadata.RPSStructureName)
+			if(Metadata.RPSStructureHasBinaryData) then
+			begin
+				serializer.String("Value")
+				serializer.String(SynergyRecord)
+			end
+			else
+			begin
+				serializer.String("Base64Value")
+				serializer.String(Convert.ToBase64String(SynergyRecord))
+			end
+			serializer.String("GRFA")
+			serializer.String(mGlobalRFA)
+			serializer.MapClose()
+		endmethod
+
 		public abstract property Metadata, @DataObjectMetadataBase
 			method get
 			proc
 			endmethod
 		endproperty
-
-		;;this is to support entity projection and shouldnt be used in other contexts
-		public abstract method InternalGetValues, [#]@object
-		proc
-		endmethod
-
 	endclass
 
-	public delegate AlphaAction, void
-		inout alphaData, a
-		inout alphaData2, a
-	enddelegate
+	public abstract class AlphaAction
+		public abstract method Run, void
+			inout alphaData, a
+			inout alphaData2, a
+		proc
+		endmethod
+	endclass
 
 	
 endnamespace
