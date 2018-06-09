@@ -1,4 +1,4 @@
-<CODEGEN_FILENAME><Structure_name>DataObject.dbl</CODEGEN_FILENAME>
+<CODEGEN_FILENAME><StructureName>.dbl</CODEGEN_FILENAME>
 <OPTIONAL_USERTOKEN>RPSDATAFILES= </OPTIONAL_USERTOKEN>
 ;//****************************************************************************
 ;//
@@ -44,31 +44,35 @@
 ;; Template Name:   Symphony Framework : <TEMPLATE>.tpl
 ;;
 ;;***************************************************************************
+
 import System
 import System.Collections.Generic
 import System.Text
+import Harmony.Core
 import Harmony.Core.Converters
 
 namespace <NAMESPACE>
 
-	.include '<structure_noalias>' repository <RPSDATAFILES>, structure = 'STR<Structure_name>', end
+	.include "<STRUCTURE_NOALIAS>" repository <RPSDATAFILES>, structure="str<StructureName>", end
 
-    public partial class <Structure_name> extends Harmony.Core.DataObjectBase
+    public partial class <StructureName> extends DataObjectBase
+
         ;;make the record available and a copy
-        private mSynergyData, STR<Structure_name> 
-		private mOriginalSynergyData, STR<Structure_name> 
+        private mSynergyData, str<StructureName> 
+		private mOriginalSynergyData, str<StructureName> 
 		
-		private static sMetadata, @<Structure_name>Metadata
-		static method <Structure_name>
+		private static sMetadata, @<StructureName>Metadata
+
+		static method <StructureName>
 		proc
-			sMetadata = new <Structure_name>Metadata()
-			Harmony.Core.DataObjectMetadataBase.MetadataLookup.TryAdd(^typeof(<Structure_name>), sMetadata)
+			sMetadata = new <StructureName>Metadata()
+			DataObjectMetadataBase.MetadataLookup.TryAdd(^typeof(<StructureName>), sMetadata)
 		endmethod
 		
         ;;; <summary>
         ;;;  Constructor, initialise the base fields
         ;;; </summary>
-        public method <Structure_name>
+        public method <StructureName>
             endparams
             parent()
         proc
@@ -78,8 +82,8 @@ namespace <NAMESPACE>
 		;;; <summary>
 		;;;  Alternate Constructor, accepts the structured data
 		;;; </summary>
-		public method <Structure_name>
-			in req inData			,STR<Structure_name>
+		public method <StructureName>
+			in req inData			,str<StructureName>
 			endparams
 			parent()
 		proc
@@ -87,7 +91,7 @@ namespace <NAMESPACE>
 		endmethod
 
 		public override method InternalSynergyRecord, void
-			targetMethod, @Harmony.Core.AlphaAction
+			targetMethod, @AlphaAction
 		proc
 			targetMethod(mSynergyData, mGlobalRFA)
 		endmethod
@@ -176,12 +180,12 @@ namespace <NAMESPACE>
 		endproperty
 	endclass
 	
-	public partial class <Structure_name>Metadata extends Harmony.Core.DataObjectMetadataBase
+	public partial class <StructureName>Metadata extends DataObjectMetadataBase
 		
-		public method <Structure_name>Metadata
+		public method <StructureName>Metadata
 		proc
 			RPSStructureName = "<STRUCTURE_NOALIAS>"
-			RPSStructureSize = ^size(STR<Structure_name>)
+			RPSStructureSize = ^size(str<StructureName>)
 			;;fill in all of the field defs and other type level info here
 			<FIELD_LOOP>
 			<IF CUSTOM_NOT_SYMPHONY_ARRAY_FIELD>
@@ -195,8 +199,10 @@ namespace <NAMESPACE>
 			dataArea, a
 			grfa, a
 		proc
-			mreturn new <Structure_name>((STR<Structure_name>)dataArea) { GlobalRFA = grfa }
+			mreturn new <StructureName>((str<StructureName>)dataArea) { GlobalRFA = grfa }
 		endmethod
+
 	endclass
+
 endnamespace
 
