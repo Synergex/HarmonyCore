@@ -41,6 +41,7 @@
 ;;
 ;;*****************************************************************************
 
+import Harmony.Core
 import Harmony.Core.Context
 import Microsoft.EntityFrameworkCore
 import SampleServices.Models
@@ -60,7 +61,10 @@ namespace SampleServices.Data
 			mDataProvider = dataProvider
 		endmethod
 
-		public readwrite property Orders, @DbSet<Orders>
+		public readwrite property Customers, @DbSet<Customer>
+		public readwrite property Orders, @DbSet<Order>
+		public readwrite property Plants, @DbSet<Plant>
+		public readwrite property Contracts, @DbSet<Contract>
 
 		protected override method OnConfiguring, void
 			opts, @DbContextOptionsBuilder
@@ -73,7 +77,6 @@ namespace SampleServices.Data
 		proc
 			parm.Ignore(^typeof(AlphaDesc))
 			parm.Ignore(^typeof(DataObjectMetadataBase))
-			;modelBuilder.Entity<Orders>().Ignore(lambda(t) { t. })
 			parent.OnModelCreating(parm)
 		endmethod
 

@@ -77,6 +77,7 @@
 ;;
 ;;*****************************************************************************
 
+import Harmony.Core
 import Harmony.Core.Context
 import Microsoft.EntityFrameworkCore
 import <MODELS_NAMESPACE>
@@ -97,7 +98,7 @@ namespace <NAMESPACE>
 		endmethod
 
 		<STRUCTURE_LOOP>
-		public readwrite property <StructureName>, @DbSet<<StructureName>>
+		public readwrite property <StructurePlural>, @DbSet<<StructureNoplural>>
 		</STRUCTURE_LOOP>
 
 		protected override method OnConfiguring, void
@@ -111,9 +112,6 @@ namespace <NAMESPACE>
 		proc
 			parm.Ignore(^typeof(AlphaDesc))
 			parm.Ignore(^typeof(DataObjectMetadataBase))
-			<STRUCTURE_LOOP>
-			;modelBuilder.Entity<<StructureName>>().Ignore(lambda(t) { t. })
-			</STRUCTURE_LOOP>
 			parent.OnModelCreating(parm)
 		endmethod
 

@@ -1,4 +1,5 @@
-<CODEGEN_FILENAME><StructureName>.dbl</CODEGEN_FILENAME>
+<CODEGEN_FILENAME><StructureNoplural>.dbl</CODEGEN_FILENAME>
+<PROCESS_TEMPLATE>DataObjectMetaData</PROCESS_TEMPLATE>
 <OPTIONAL_USERTOKEN>RPSDATAFILES= </OPTIONAL_USERTOKEN>
 ;//****************************************************************************
 ;//
@@ -53,27 +54,26 @@ import Harmony.Core.Converters
 
 namespace <NAMESPACE>
 
-	.include "<STRUCTURE_NOALIAS>" repository <RPSDATAFILES>, structure="str<StructureName>", end
+	.include "<STRUCTURE_NOALIAS>" repository <RPSDATAFILES>, structure="str<StructureNoplural>", end
 
-    public partial class <StructureName> extends DataObjectBase
+    public partial class <StructureNoplural> extends DataObjectBase
 
         ;;make the record available and a copy
-        private mSynergyData, str<StructureName> 
-		private mOriginalSynergyData, str<StructureName> 
+        private mSynergyData, str<StructureNoplural> 
+		private mOriginalSynergyData, str<StructureNoplural> 
 		
-		private static sMetadata, @<StructureName>Metadata
+		private static sMetadata, @<StructureNoplural>Metadata
 
-		static method <StructureName>
+		static method <StructureNoplural>
 		proc
-			sMetadata = new <StructureName>Metadata()
-			DataObjectMetadataBase.MetadataLookup.TryAdd(^typeof(<StructureName>), sMetadata)
+			sMetadata = new <StructureNoplural>Metadata()
+			DataObjectMetadataBase.MetadataLookup.TryAdd(^typeof(<StructureNoplural>), sMetadata)
 		endmethod
 		
         ;;; <summary>
         ;;;  Constructor, initialise the base fields
         ;;; </summary>
-        public method <StructureName>
-            endparams
+        public method <StructureNoplural>
             parent()
         proc
 			init mSynergyData, mOriginalSynergyData
@@ -82,9 +82,8 @@ namespace <NAMESPACE>
 		;;; <summary>
 		;;;  Alternate Constructor, accepts the structured data
 		;;; </summary>
-		public method <StructureName>
-			in req inData			,str<StructureName>
-			endparams
+		public method <StructureNoplural>
+			required in inData, str<StructureNoplural>
 			parent()
 		proc
 			mSynergyData = mOriginalSynergyData = inData
@@ -107,32 +106,43 @@ namespace <NAMESPACE>
 				mreturn (<FIELD_CSTYPE>)SynergyAlphaConverter.Convert(mSynergyData.<Field_name>, ^null, ^null, ^null)
 				</IF ALPHA>
 				<IF DATE>
-				<IF DATE_YYYYMMDD>
-				mreturn (<FIELD_CSTYPE>)mDateConveter.Convert(mSynergyData.<Field_name>, ^null, ^null, ^null)
-				<ELSE>
-				mreturn (<FIELD_CSTYPE>)DateTime.Parse((string)mSynergyData.<Field_name>)
-				</IF>
-				</IF>
+				mreturn (<FIELD_CSTYPE>)SynergyDecimalDateConverter.Convert(mSynergyData.<Field_name>, ^null, ^null, ^null)
+				</IF DATE>
+				<IF TIME>
+				<IF TIME_HHMM>
+				mreturn Convert.ToDateTime(%string(mSynergyData.<Field_name>,"XX:XX"))
+				</IF TIME_HHMM>
+				<IF TIME_HHMMSS>
+				mreturn Convert.ToDateTime(%string(mSynergyData.<Field_name>,"XX:XX:XX"))
+				</IF TIME_HHMMSS>
+				</IF TIME>
 				<IF DECIMAL>
 				<IF PRECISION>
 				mreturn (<FIELD_CSTYPE>)SynergyImpliedDecimalConverter.Convert(mSynergyData.<Field_name>, ^null, "DECIMALPLACES#<FIELD_PRECISION>", ^null)
 				<ELSE>
 				mreturn (<FIELD_CSTYPE>)mSynergyData.<Field_name>
-				</IF>
+				</IF PRECISION>
 				</IF DECIMAL>
 				<IF INTEGER>
 				mreturn (<FIELD_CSTYPE>)mSynergyData.<Field_name>
 				</IF INTEGER>
-				
             endmethod
 			method set
 			proc
 				<IF ALPHA>
 				mSynergyData.<Field_name> = (<FIELD_TYPE>)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
 				</IF ALPHA>
-				<IF DATE_YYYYMMDD>
-				mSynergyData.<Field_name> = (<FIELD_TYPE>)mDateConveter.ConvertBack(value, ^null, ^null, ^null)
-				</IF DATE_YYYYMMDD>
+				<IF DATE>
+				mSynergyData.<Field_name> = (<FIELD_TYPE>)SynergyDecimalDateConverter.ConvertBack(value, ^null, ^null, ^null)
+				</IF DATE>
+				<IF TIME>
+				<IF TIME_HHMM>
+				mSynergyData.<Field_name> = (value.Hour * 100) + value.Minute
+				</IF TIME_HHMM>
+				<IF TIME_HHMMSS>
+				mSynergyData.<Field_name> = (value.Hour * 10000) + (value.Minute * 100) + value.Second
+				</IF TIME_HHMMSS>
+				</IF TIME>
 				<IF DECIMAL>
 				mSynergyData.<Field_name> = value
 				</IF DECIMAL>
@@ -168,7 +178,6 @@ namespace <NAMESPACE>
 		;;; Allow the host to validate all fields. Each field will fire the validation method.
 		;;; </summary>
 		public override method InitialValidateData, void
-			endparams
 		proc
 		endmethod
 		
@@ -178,31 +187,14 @@ namespace <NAMESPACE>
 				mreturn sMetadata
 			endmethod
 		endproperty
-	endclass
-	
-	public partial class <StructureName>Metadata extends DataObjectMetadataBase
-		
-		public method <StructureName>Metadata
+
+		public override method InternalGetValues, [#]@object
 		proc
-			RPSStructureName = "<STRUCTURE_NOALIAS>"
-			RPSStructureSize = ^size(str<StructureName>)
-			;;fill in all of the field defs and other type level info here
-			<FIELD_LOOP>
-			<IF CUSTOM_NOT_SYMPHONY_ARRAY_FIELD>
-			AddFieldInfo("<Field_sqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false)
-			</IF>
-            </FIELD_LOOP>
-			
-		endmethod
-	
-		public override method MakeNew, @DataObjectBase
-			dataArea, a
-			grfa, a
-		proc
-			mreturn new <StructureName>((str<StructureName>)dataArea) { GlobalRFA = grfa }
+			;;TODO: This should be returning boxed values for each of our fields
+			mreturn new Object[0]
 		endmethod
 
 	endclass
-
+	
 endnamespace
 

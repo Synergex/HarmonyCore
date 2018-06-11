@@ -1,0 +1,115 @@
+;;**********************************************************************
+;;
+;; Title:       CustomDateRoutines.dbl
+;;
+;; Type:        Subroutine
+;;
+;; Description: holder file for custom date processing routines
+;;
+;; Author:      Richard C. Morris, Synergex Technology Evangelist
+;;
+;; Copyright (c) 2012, Synergex International, Inc. All rights reserved.
+;;
+;; Redistribution and use in source and binary forms, with or without
+;; modification, are permitted provided that the following conditions are met:
+;;
+;; * Redistributions of source code must retain the above copyright notice,
+;;   this list of conditions and the following disclaimer.
+;;
+;; * Redistributions in binary form must reproduce the above copyright notice,
+;;   this list of conditions and the following disclaimer in the documentation
+;;   and/or other materials provided with the distribution.
+;;
+;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;; ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+;; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+;; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+;; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+;; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+;; POSSIBILITY OF SUCH DAMAGE.
+;;
+;;*****************************************************************************
+.subroutine ConvertJulianDateValue
+	io_d8,  D               ; DDMMCCYY input or DDMMYY, when output DDMMYY unless sized spec'd
+	io_jd,  D               ; julian result
+	i_type, D               ; 1=dat to juno,  2=juno to dat
+	i_size, D               ; <OPTIONAL> 6,8,-8
+	
+	
+	record
+		temp1,          i4
+		temp2,          i4
+		temp_month,     i4
+		temp_year,      i4
+		short_jd,       i4
+		i_day,          i4
+		i_month,        i4
+		i_year,         i4
+		group   dat,    D
+			day,    D2
+			month,  D2
+			year,   D4
+		endgroup
+		size,           i1
+		
+		
+.proc
+	using i_type select
+	(1),    begin
+		if(io_d8.gt.0)then
+		begin
+			dat = io_d8
+			
+			; are we a D6 date ?
+			if(day.eq.0)
+			begin
+				dat = dat * 100                             ; shift left D2 places
+				year = 1900 + year(1,2)
+				if(year(3,4).lt.70) incr year(1,2)      ; FIXME - needs sorting by 31st Dec 2069 !
+			end
+			
+			i_day = day
+			i_month = month
+			i_year = year
+			
+			io_jd = ( 1461 * ( i_year + 4800 + ( i_month - 14 ) / 12 ) ) / 4 +
+&			( 367 * ( i_month - 2 - 12 * ( ( i_month - 14 ) / 12 ) ) ) / 12 -
+&			( 3 * ( ( i_year + 4900 + ( i_month - 14 ) / 12 ) / 100 ) ) / 4 + i_day - 32075 - 2415019
+		end
+		else io_jd = 0
+	end
+	
+	(2),    begin
+		if(io_jd.gt.0 .and. io_jd.lt.999999)then
+		begin
+			if(%passed(i_size))then size = i_size else size = 6
+				
+			short_jd = io_jd + 2415019
+			temp1 = short_jd + 68569
+			temp2 = ( 4 * temp1 ) / 146097
+			temp1 = temp1 - (  146097 * temp2 + 3  ) / 4
+			temp_year  = ( 4000 * (  temp1 + 1  ) ) / 1461001
+			temp1 = temp1 - ( ( 1461 * temp_year ) / 4 ) + 31
+			temp_month = ( 80 * temp1 ) / 2447
+			day   = temp1 - ( 2447 * temp_month ) / 80
+			temp1 = temp_month / 11
+			month = temp_month + 2 - ( 12 * temp1 )
+			year  = 100 * (  temp2 - 49  ) + temp_year + temp1
+			
+			clear io_d8
+			using size select
+			(6),        io_d8(1,6) = dat(1,4) * 100 + dat(7,8)
+			(8),        io_d8 = dat
+			(-8,-6),    io_d8 = (year * 10000) + (month*100) + day
+			endusing
+		end
+		else io_d8 = 0
+	end
+	endusing
+	
+	xreturn
+.end

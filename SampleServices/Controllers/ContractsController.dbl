@@ -1,10 +1,10 @@
 ;;*****************************************************************************
 ;;
-;; Title:       OrdersController.dbl
+;; Title:       ContractsController.dbl
 ;;
 ;; Type:        Class
 ;;
-;; Description: OData controller for the ORDERS structure.
+;; Description: OData controller for the CONTRACT structure.
 ;;
 ;;*****************************************************************************
 ;; WARNING
@@ -50,38 +50,40 @@ import SampleServices.Data
 
 namespace SampleServices.Controllers
 
-	public class OrdersController extends ODataController
+	public class ContractsController extends ODataController
 	
 		public readwrite property DBContext, @ControllerDBContext
 
-		public method OrdersController
+		public method ContractsController
 			dbContext, @ControllerDBContext
 		proc
 			this.DBContext = dbContext
 		endmethod
 
-		{ODataRoute("Orders")}
+		{ODataRoute("Contracts")}
 		{EnableQuery(MaxExpansionDepth=3, MaxSkip=10, MaxTop=5, PageSize=4)}
 		public method Get, @IActionResult
 		proc
-			mreturn Ok(DBContext.Orders)
+			mreturn Ok(DBContext.Contracts)
 		endmethod
 
-		{ODataRoute("Orders({aOrNumber})")}
+		{ODataRoute("Contracts({aCnComp},{aCnContract})")}
 		public method Get, @IActionResult
 			{FromODataUri}
-            required in aOrNumber, int
+            required in aCnComp, int
+			{FromODataUri}
+            required in aCnContract, String
 		proc
-			data result = DBContext.Orders.Find(aOrNumber)
+			data result = DBContext.Contracts.Find(aCnComp,aCnContract)
 			mreturn Ok(result)
 		endmethod
 
-		{ODataRoute("Orders({id})")}
+		{ODataRoute("Contracts({id})")}
 		public method Post, @IActionResult
 			{FromODataUri} 
 			id, int
 		proc
-			data result = DBContext.Orders.Find(id)
+			data result = DBContext.Contracts.Find(id)
 			DBContext.SaveChanges()
 			mreturn Ok(result)
 		endmethod

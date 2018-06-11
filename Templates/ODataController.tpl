@@ -1,4 +1,5 @@
-<CODEGEN_FILENAME><StructureName>Controller.dbl</CODEGEN_FILENAME>
+<CODEGEN_FILENAME><StructurePlural>Controller.dbl</CODEGEN_FILENAME>
+<REQUIRES_USERTOKEN>DBCONTEXT_NAMESPACE</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
 ;// Title:       ODataController.tpl
@@ -35,7 +36,7 @@
 ;//
 ;;*****************************************************************************
 ;;
-;; Title:       <StructureName>Controller.dbl
+;; Title:       <StructurePlural>Controller.dbl
 ;;
 ;; Type:        Class
 ;;
@@ -76,44 +77,53 @@
 ;;
 ;;*****************************************************************************
 
-;TODO: Need to figure out what imports we need
+import Microsoft.AspNetCore.Mvc
+import Microsoft.AspNet.OData
+import Microsoft.AspNet.OData.Routing
+import Microsoft.EntityFrameworkCore
+import Microsoft.EntityFrameworkCore.Infrastructure
+import <DBCONTEXT_NAMESPACE>
 
 namespace <NAMESPACE>
 
-	public class <StructureName>Controller extends ODataController
+	public class <StructurePlural>Controller extends ODataController
 	
 		public readwrite property DBContext, @ControllerDBContext
 
-		public method <StructureName>Controller
+		public method <StructurePlural>Controller
 			dbContext, @ControllerDBContext
 		proc
 			this.DBContext = dbContext
 		endmethod
 
-		{ODataRoute("<StructureName>")}
+		{ODataRoute("<StructurePlural>")}
 		{EnableQuery(MaxExpansionDepth=3, MaxSkip=10, MaxTop=5, PageSize=4)}
 		public method Get, @IActionResult
 		proc
-			mreturn Ok(DBContext.<StructureName>)
+			mreturn Ok(DBContext.<StructurePlural>)
 		endmethod
 
-		{ODataRoute("<StructureName>({id})")}
+		{ODataRoute("<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP>{a<SegmentName>}<,></SEGMENT_LOOP></PRIMARY_KEY>)")}
 		public method Get, @IActionResult
+            <PRIMARY_KEY>
+            <SEGMENT_LOOP>
 			{FromODataUri}
-			id, int
+            required in a<SegmentName>, <SEGMENT_SNTYPE>
+            </SEGMENT_LOOP>
+            </PRIMARY_KEY>
 		proc
-			data found<StructureName> = DBContext.<StructureName>.Find(id)
-			mreturn Ok(found<StructureName>)
+			data result = DBContext.<StructurePlural>.Find(<PRIMARY_KEY><SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP></PRIMARY_KEY>)
+			mreturn Ok(result)
 		endmethod
 
-		{ODataRoute("<StructureName>({id})")}
+		{ODataRoute("<StructurePlural>({id})")}
 		public method Post, @IActionResult
-			{FromODataUri}
+			{FromODataUri} 
 			id, int
 		proc
-			data found<StructureName> = DBContext.<StructureName>.Find(id)
+			data result = DBContext.<StructurePlural>.Find(id)
 			DBContext.SaveChanges()
-			mreturn Ok(found<StructureName>)
+			mreturn Ok(result)
 		endmethod
 
 	endclass

@@ -1,0 +1,488 @@
+;;**********************************************************************
+;;
+;; Title:       SynergyDecimalDateConverter.dbl
+;;
+;; Type:        Class
+;;
+;; Description: Data Converter : convert between a synergy decimal and a DateTime
+;;
+;; Author:      Richard C. Morris, Synergex Technology Evangelist
+;;
+;; Copyright (c) 2012, Synergex International, Inc. All rights reserved.
+;;
+;; Redistribution and use in source and binary forms, with or without
+;; modification, are permitted provided that the following conditions are met:
+;;
+;; * Redistributions of source code must retain the above copyright notice,
+;;   this list of conditions and the following disclaimer.
+;;
+;; * Redistributions in binary form must reproduce the above copyright notice,
+;;   this list of conditions and the following disclaimer in the documentation
+;;   and/or other materials provided with the distribution.
+;;
+;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;; ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+;; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+;; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+;; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+;; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+;; POSSIBILITY OF SUCH DAMAGE.
+;;
+;;*****************************************************************************
+import System
+import System.Collections.Generic
+import System.Text
+import Harmony.Core
+import Harmony.Core.Utility
+
+namespace Harmony.Core.Converters
+	
+	;;; <summary>
+	;;;  The SynergyDecimalDateConverter class is designed to convert a Synergy Decimal data type to a <a href="https://docs.microsoft.com/en-us/dotnet/standard/clr" target="_blank">Command Language Runtime</a> compliant
+	;;;  type.  The Synergy Decimal field is converted to a DateTime type.  This class is used within the XAML Data Binding property
+	;;;  and allows the underlying $$Symphony Data Object$$ to expose Synergy Decimal data 
+	;;;  types.  The Data Bindings work two-way and the SynergyDecimalDateConverter class converts DateTime types to Synergy Decimal types
+	;;;  when the XAML is setting the data bound value
+	;;; </summary>
+	public static class SynergyDecimalDateConverter
+		
+		;;; <summary>
+		;;;	Convertion from a Synergy Decimal type to a <a href="https://docs.microsoft.com/en-us/dotnet/standard/clr" target="_blank">Command Language Runtime</a> DateTime type.
+		;;; </summary>
+		;;; <param name="value">The inbound value to convert.</param>
+		;;; <param name="targetType">The datatype type of the target.</param>
+		;;; <param name="parameter">Any addiotnal binding parameters passed in, as specified by the ConverterParameter property.</param>
+		;;; <param name="culture">An instance of the System.Globalization.CultureInfo class that identifies the culture of the client _UI_.</param>
+		;;; <remarks>
+		;;; The Convert method is utilised by the _WPF_ framework when conversion of a databound source is required.  The SynergyDecimalDateConverter
+		;;; Convert method marshals the data from a Synergy Decimal type to a native <a href="https://docs.microsoft.com/en-us/dotnet/standard/clr" target="_blank">Command Language Runtime</a> Dateime type.
+		;;; The ConversionParameter value can be assigned the following:
+		;;;		FORMAT:YYYYMMDD - standard Synergy date format.
+		;;;		FORMAT:YYMMDD - reversed d6 date.
+		;;;		FORMAT:JULIAN - this will convert a decimal YYJJJ julian date type.
+		;;;		FORMAT:DDMMYY - accepts and converts a DDMMYY date.
+		;;;		FORMAT:DDMMYYYY - accepts and converts a DDMMYYYY date.
+		;;;		FORMAT:MMDDYY - accepts and converts a MMDDYY date.
+		;;;		FORMAT:MMDDYYYY - accepts and converts a MMDDYYYY date.
+		;;;		NODEFAULTODAY - prevents the code from defaulting to todays date.
+		;;; _NEWLINE_
+		;;; Convertion parameters can be combined using the '|' character, for example JULIANDATE|NODEFAULTODAY
+		;;; </remarks>
+		public static method Convert	,@Object
+			value				,@Object
+			targetType			,@Type
+			parameter			,@Object
+			culture				,@System.Globalization.CultureInfo
+			endparams
+			
+			record 
+				dateLayout	,d8
+				dateLayouta	,a8 @dateLayout
+				year		,d4	@dateLayout
+				mon			,d2	@dateLayout + 4
+				day			,d2	@dateLayout + 6
+			endrecord	
+			record
+				iYear		,i4
+				iMon		,i4
+				iDay		,i4
+				tmpDate		,DateTime
+			endrecord
+			
+			record
+				gotDate			,Boolean
+				defaultToToday	,Boolean
+			endrecord
+			
+		proc
+			if (value == ^null)
+				mreturn ^null
+			
+			gotDate = false
+			defaultToToday = true
+			
+			if (value != ^null) DebugLogSession.Logging.LogInfo("Date Convert Value : {0}", value)
+			if (targetType != ^null) DebugLogSession.Logging.LogInfo("Date Convert Target type : {0}", targetType)
+			if (parameter != ^null) DebugLogSession.Logging.LogInfo("Date Convert Parameter {0}", Parameter)
+			
+			clear dateLayout
+			
+			;;do we have a parameter??
+			if (parameter != ^null)
+			begin
+				data p			,String, parameter.ToString()
+				
+				;;regular date
+				if (%instr(1, p.ToUpper(), 'FORMAT:YYYYMMDD'))
+				begin
+					DebugLogSession.Logging.LogInfo("Date Convert doing reverse D8 date processing")
+					data d8Date	,d8
+					d8Date = Convert.ToString(Value)
+					if (d8Date)
+					begin
+						year = d8Date(1:4)
+						mon = d8Date(5:2)
+						day = d8Date(7:2)
+						gotDate = true
+					end
+				end
+				
+				;;not a regular YYYYMMDD date field, do special processing
+				
+				if (%instr(1, p.ToUpper(), 'JULIANDATE') || %instr(1, p.ToUpper(), 'FORMAT:JULIAN'))
+				begin
+					DebugLogSession.Logging.LogInfo("Date Convert doing julian date processing")
+					data intVal		,int
+					data julDate	,d6
+					
+					try
+					begin
+						intVal = Convert.ToInt32(value)
+					end
+					catch (e, @Exception)
+					begin
+						DebugLogSession.Logging.LogInfo("Value passed to converter (Date) {0}: end value", value)
+						Symphony.Core.DebugLogSession.Logging.LogException(e,"SynergyDecimalDateConverter")
+					end
+					endtry
+					
+					if (intVal)
+					begin
+						julDate = intVal
+						xcall ConvertJulianDateValue(dateLayout,julDate,2,-8)
+						dateLayouta = dateLayout, 'XXXXXXXX'
+						gotDate = true
+					end
+				end
+				
+				if (%instr(1, p.ToUpper(), 'NONEREVDATE6') || %instr(1, p.ToUpper(), 'FORMAT:DDMMYY'))
+				begin
+					DebugLogSession.Logging.LogInfo("Date Convert doing none reverse D6 date processing")
+					data d6Date	,d6
+					
+					try
+					begin
+						d6Date = Convert.ToString(Value)
+					end
+					catch (e, @Exception)
+					begin
+						DebugLogSession.Logging.LogInfo("Value passed to converter (Date) :{0}: end value", value)
+						Symphony.Core.DebugLogSession.Logging.LogException(e,"SynergyDecimalDateConverter")
+					end
+					endtry
+					
+					if (d6Date)
+					begin
+						if (d6Date(5:2) > 50) then
+							year = 1900 + d6Date(5:2)
+						else
+							year = 2000 + d6Date(5:2)
+						mon = d6Date(3:2)
+						day = d6Date(1:2)
+						gotDate = true
+					end
+				end
+				
+				if (%instr(1, p.ToUpper(), 'FORMAT:YYMMDD'))
+				begin
+					DebugLogSession.Logging.LogInfo("Date Convert doing reverse D6 date processing")
+					data d6Date	,d6
+					
+					try
+					begin
+						d6Date = Convert.ToString(Value)
+					end
+					catch (e, @Exception)
+					begin
+						DebugLogSession.Logging.LogInfo("Value passed to converter (Date) :{0}: end value",value)
+						Symphony.Core.DebugLogSession.Logging.LogException(e,"SynergyDecimalDateConverter")
+					end
+					endtry
+					
+					if (d6Date)
+					begin
+						if (d6Date(1:2) > 50) then
+							year = 1900 + d6Date(1:2)
+						else
+							year = 2000 + d6Date(1:2)
+						mon = d6Date(3:2)
+						day = d6Date(5:2)
+						gotDate = true
+					end
+				end
+				
+				if (%instr(1, p.ToUpper(), 'FORMAT:DDMMYYYY'))
+				begin
+					DebugLogSession.Logging.LogInfo("Date Convert doing none-reverse D8 date processing")
+					data d8Date	,d8
+					
+					try
+					begin
+						d8Date = Convert.ToString(Value)
+					end
+					catch (e, @Exception)
+					begin
+						DebugLogSession.Logging.LogInfo("Value passed to converter (Date) :{0}: end value", value)
+						Symphony.Core.DebugLogSession.Logging.LogException(e,"SynergyDecimalDateConverter")
+					end
+					endtry
+					
+					if (d8Date)
+					begin
+						year = d8Date(5:4)
+						mon = d8Date(3:2)
+						day = d8Date(1:2)
+						gotDate = true
+					end
+				end
+				
+				if (%instr(1, p.ToUpper(), 'FORMAT:DDMMYY') && gotDate == false)
+				begin
+					DebugLogSession.Logging.LogInfo("Date Convert doing none-reverse D6 date processing")
+					data d6Date	,d6
+					
+					try
+					begin
+						d6Date = Convert.ToString(Value)
+					end
+					catch (e, @Exception)
+					begin
+						DebugLogSession.Logging.LogInfo("Value passed to converter (Date) :{0}:end value",value)
+						Symphony.Core.DebugLogSession.Logging.LogException(e,"SynergyDecimalDateConverter")
+					end
+					endtry
+					
+					if (d6Date)
+					begin
+						year = 2000 + d6Date(5:2)
+						mon = d6Date(3:2)
+						day = d6Date(1:2)
+						gotDate = true
+					end
+				end
+				
+				if (%instr(1, p.ToUpper(), 'FORMAT:MMDDYYYY'))
+				begin
+					DebugLogSession.Logging.LogInfo("Date Convert doing none-reverse D8 US date processing")
+					data d8Date	,d8
+					
+					try
+					begin
+						d8Date = Convert.ToString(Value)
+					end
+					catch (e, @Exception)
+					begin
+						DebugLogSession.Logging.LogInfo("Value passed to converter (Date) :{0}:end value",value)
+						Symphony.Core.DebugLogSession.Logging.LogException(e,"SynergyDecimalDateConverter")
+					end
+					endtry
+					
+					if (d8Date)
+					begin
+						year = d8Date(5:4)
+						mon = d8Date(1:2)
+						day = d8Date(3:2)
+						gotDate = true
+					end
+				end
+				
+				if (%instr(1, p.ToUpper(), 'FORMAT:MMDDYY') && gotDate == false)
+				begin
+					DebugLogSession.Logging.LogInfo("Date Convert doing none-reverse D6 US date processing")
+					data d6Date	,d6
+					
+					try
+					begin
+						d6Date = Convert.ToString(Value)
+					end
+					catch (e, @Exception)
+					begin
+						DebugLogSession.Logging.LogInfo("Value passed to converter (Date) :{0}:end value",value)
+						Symphony.Core.DebugLogSession.Logging.LogException(e,"SynergyDecimalDateConverter")
+					end
+					endtry
+					
+					if (d6Date)
+					begin
+						year = 2000 + d6Date(5:2)
+						mon = d6Date(1:2)
+						day = d6Date(3:2)
+						gotDate = true
+					end
+				end
+				
+				if (%instr(1, p.ToUpper(), 'NODEFAULTODAY'))
+				begin
+					defaultToToday = false
+				end
+				
+			end
+			
+			if (!gotDate)
+			begin
+				dateLayouta = Convert.ToString(Value)
+			end
+			
+			if (dateLayout) then
+			begin
+				iYear = year
+				iMon = mon
+				iDay = day
+				try
+				begin
+					tmpDate = new DateTime(iYear, iMon, iDay)
+				end
+				catch (e, @Exception)
+				begin
+					DebugLogSession.Logging.LogInfo("Value passed to converter (Date) :{0}:end value",value)
+					Symphony.Core.DebugLogSession.Logging.LogException(e,"SynergyDecimalDateConverter")
+				end
+				endtry
+			end
+			else
+				tmpDate=datetime.Today
+			
+			DebugLogSession.Logging.LogInfo("Date Convert resulting date : " + tmpDate.ToString())
+			
+			if (!dateLayout && defaultToToday == false) then
+				mreturn ^null
+			else
+				mreturn (Object) tmpDate
+			
+		endmethod
+		
+		;;; <summary>
+		;;;	Convertion from a <a href="https://docs.microsoft.com/en-us/dotnet/standard/clr" target="_blank">Command Language Runtime</a> DateTime type to s Synergy Decimal type.
+		;;; </summary>
+		;;; <param name="value">The inbound value to convert.</param>
+		;;; <param name="targetType">The datatype type of the target.</param>
+		;;; <param name="parameter">Any addiotnal binding parameters passed in, as specified by the ConverterParameter property.</param>
+		;;; <param name="culture">An instance of the System.Globalization.CultureInfo class that identifies the culture of the client _UI_.</param>
+		;;; <remarks>
+		;;; The Convert method is utilised by the _WPF_ framework when conversion of a databound source is required.  The SynergyDecimalDateConverter
+		;;; ConvertBack method marshals the data from a native <a href="https://docs.microsoft.com/en-us/dotnet/standard/clr" target="_blank">Command Language Runtime</a> DateTime type to a Synergy Decimal type
+		;;; The ConversionParameter value can be assigned the following:
+		;;;		FORMAT:YYYYMMDD - standard Synergy date format.
+		;;;		FORMAT:YYMMDD - reversed d6 date.
+		;;;		FORMAT:JULIAN - this will convert a decimal YYJJJ julian date type.
+		;;;		FORMAT:DDMMYY - accepts and converts a DDMMYY date.
+		;;;		FORMAT:DDMMYYYY - accepts and converts a DDMMYYYY date.
+		;;;		FORMAT:MMDDYY - accepts and converts a DDMMYY date.
+		;;;		FORMAT:MMDDYYYY - accepts and converts a DDMMYYYY date.
+		;;; </remarks>
+		public static method ConvertBack	,@Object
+			value				,@Object
+			targetType			,@Type
+			parameter			,@Object
+			culture				,@System.Globalization.CultureInfo
+			endparams
+			record 
+				dateLayout	,d8
+				year		,d4	@dateLayout
+				mon			,d2	@dateLayout + 4
+				day			,d2	@dateLayout + 6
+				
+				nonRevDate	,d8
+				nrDay		,d2@nonRevDate
+				nrMon		,d2@nonRevDate+2
+				nrYear		,d4@nonRevDate+4
+				
+				tmpDate		,DateTime
+			endrecord	
+		proc
+			if (value == ^null)
+			begin
+				dateLayout = 0
+				mreturn (Object)dateLayout
+			end
+			
+			if (value != ^null) DebugLogSession.Logging.LogInfo("Date ConvertBack Value : " + value.ToString())
+			if (targetType != ^null) DebugLogSession.Logging.LogInfo("Date ConvertBack Target type : " + targetType.ToString())
+			if (parameter != ^null) DebugLogSession.Logging.LogInfo("Date ConvertBack Parameter : " + Parameter.ToString())
+			
+			tmpDate = Convert.ToDateTime(value)
+			year = tmpDate.Year
+			mon = tmpDate.Month
+			day = tmpDate.Day
+			
+			if (parameter != ^null)
+			begin
+				data p			,String, parameter.ToString()
+				
+				;;not a regular YYYYMMDD date field, do special processing
+				
+				if (%instr(1, p.ToUpper(), 'FORMAT:JULIAN'))
+				begin
+					DebugLogSession.Logging.LogInfo("Date ConvertBack doing julian date processing")
+					data julDate	,d6
+					nrDay = day
+					nrMon = mon
+					nrYear = year
+					xcall ConvertJulianDateValue(nonRevDate,julDate,1)
+					mreturn (Object)julDate
+				end
+				
+				if (%instr(1, p.ToUpper(), 'FORMAT:YYMMDD'))
+				begin
+					DebugLogSession.Logging.LogInfo("Date ConvertBack doing YYMMDD date processing")
+					data d6Date	,d6
+					d6Date(1:2) = year(3:2)
+					d6Date(3:2) = mon
+					d6Date(5:2) = day
+					mreturn (Object)d6Date
+				end
+				
+				if (%instr(1, p.ToUpper(), 'FORMAT:DDMMYY'))
+				begin
+					DebugLogSession.Logging.LogInfo("Date ConvertBack doing DDMMYY date processing")
+					data d6Date	,d6
+					d6Date(1:2) = day
+					d6Date(3:2) = mon
+					d6Date(5:2) = year(3:2)
+					mreturn (Object)d6Date
+				end
+				
+				if (%instr(1, p.ToUpper(), 'FORMAT:DDMMYYYY'))
+				begin
+					DebugLogSession.Logging.LogInfo("Date ConvertBack doing DDMMYYYY date processing")
+					data d8Date	,d8
+					d8Date(1:2) = day
+					d8Date(3:2) = mon
+					d8Date(5:4) = year(3:2)
+					mreturn (Object)d8Date
+				end
+				
+				if (%instr(1, p.ToUpper(), 'FORMAT:MMMMYY'))
+				begin
+					DebugLogSession.Logging.LogInfo("Date ConvertBack doing MMDDYY date processing")
+					data d6Date	,d6
+					d6Date(3:2) = day
+					d6Date(1:2) = mon
+					d6Date(5:2) = year(3:2)
+					mreturn (Object)d6Date
+				end
+				
+				if (%instr(1, p.ToUpper(), 'FORMAT:MMDDYYYY'))
+				begin
+					DebugLogSession.Logging.LogInfo("Date ConvertBack doing MMDDYYYY date processing")
+					data d8Date	,d8
+					d8Date(3:2) = day
+					d8Date(1:2) = mon
+					d8Date(5:4) = year(3:2)
+					mreturn (Object)d8Date
+				end
+				
+			end
+			
+			DebugLogSession.Logging.LogInfo("Date ConvertBack resulting date : " + %string(dateLayout))
+			
+			mreturn (Object)dateLayout
+		endmethod
+	endclass
+	
+endnamespace
+

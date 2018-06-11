@@ -1,10 +1,10 @@
 ;;*****************************************************************************
 ;;
-;; Title:       OrdersController.dbl
+;; Title:       CustomersController.dbl
 ;;
 ;; Type:        Class
 ;;
-;; Description: OData controller for the ORDERS structure.
+;; Description: OData controller for the CUSTOMERS structure.
 ;;
 ;;*****************************************************************************
 ;; WARNING
@@ -50,38 +50,38 @@ import SampleServices.Data
 
 namespace SampleServices.Controllers
 
-	public class OrdersController extends ODataController
+	public class CustomersController extends ODataController
 	
 		public readwrite property DBContext, @ControllerDBContext
 
-		public method OrdersController
+		public method CustomersController
 			dbContext, @ControllerDBContext
 		proc
 			this.DBContext = dbContext
 		endmethod
 
-		{ODataRoute("Orders")}
+		{ODataRoute("Customers")}
 		{EnableQuery(MaxExpansionDepth=3, MaxSkip=10, MaxTop=5, PageSize=4)}
 		public method Get, @IActionResult
 		proc
-			mreturn Ok(DBContext.Orders)
+			mreturn Ok(DBContext.Customers)
 		endmethod
 
-		{ODataRoute("Orders({aOrNumber})")}
+		{ODataRoute("Customers({aCustKey})")}
 		public method Get, @IActionResult
 			{FromODataUri}
-            required in aOrNumber, int
+            required in aCustKey, int
 		proc
-			data result = DBContext.Orders.Find(aOrNumber)
+			data result = DBContext.Customers.Find(aCustKey)
 			mreturn Ok(result)
 		endmethod
 
-		{ODataRoute("Orders({id})")}
+		{ODataRoute("Customers({id})")}
 		public method Post, @IActionResult
 			{FromODataUri} 
 			id, int
 		proc
-			data result = DBContext.Orders.Find(id)
+			data result = DBContext.Customers.Find(id)
 			DBContext.SaveChanges()
 			mreturn Ok(result)
 		endmethod

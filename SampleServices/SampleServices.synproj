@@ -1,4 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk" DefaultTargets="restore;Build">
+  <Import Project="$(SolutionDir)Common.props" />
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <DefaultLanguageSourceExtension>.dbl</DefaultLanguageSourceExtension>
@@ -6,10 +7,23 @@
     <Name>SampleServices</Name>
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
     <ProjectGuid>{24a1bbfd-2660-41e1-a4fc-90b7a13a4911}</ProjectGuid>
+    <EnableCommonProperties>True</EnableCommonProperties>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <Prefer32Bit>False</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <Prefer32Bit>False</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Synergex.SynergyDE.Build" Version="10.3.3050" />
-    <PackageReference Include="Synergex.SynergyDE.synrnt" Version="10.3.3050" />
+    <PackageReference Include="Synergex.SynergyDE.Build" Version="10.3.3053" />
+    <PackageReference Include="Synergex.SynergyDE.synrnt" Version="10.3.4001-beta6" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore " Version="2.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core " Version="2.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.OData " Version="7.0.0-beta4" />
+    <PackageReference Include="Microsoft.OData.Core" Version="7.4.4" />
+    <PackageReference Include="Microsoft.OData.Edm" Version="7.4.4" />
+    <PackageReference Include="Microsoft.Spatial" Version="7.4.4" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models" />
@@ -17,11 +31,26 @@
     <Folder Include="Data" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Controllers\ContractsController.dbl" />
+    <Compile Include="Controllers\CustomersController.dbl" />
     <Compile Include="Controllers\OrdersController.dbl" />
+    <Compile Include="Controllers\PlantsController.dbl" />
     <Compile Include="Data\ControllerDbContext.dbl" />
-    <Compile Include="Models\Orders.dbl" />
+    <Compile Include="Models\Contract.dbl" />
+    <Compile Include="Models\ContractMetaData.dbl" />
+    <Compile Include="Models\Customer.dbl" />
+    <Compile Include="Models\CustomerMetaData.dbl" />
+    <Compile Include="Models\Order.dbl" />
+    <Compile Include="Models\OrderMetaData.dbl" />
+    <Compile Include="Models\Plant.dbl" />
+    <Compile Include="Models\PlantMetaData.dbl" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\HarmonyCoreEF\HarmonyCoreEF.csproj">
+      <Name>HarmonyCoreEF</Name>
+      <Project>{44ef405f-6562-4542-aff6-0e4de1a7876b}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\HarmonyCore\HarmonyCore.synproj">
       <Name>HarmonyCore</Name>
       <Project>{250c70bc-fb74-4f9e-b281-4c11126983b2}</Project>
