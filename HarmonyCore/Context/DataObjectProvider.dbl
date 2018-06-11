@@ -35,7 +35,7 @@ namespace Harmony.Core.Context
 
 		public method GetFileIO<T(DataObjectBase)>, @IDataObjectIO<T>
 		proc
-			mreturn (@IDataObjectIO<T>)fileIOMapping.GetOrAdd(^typeof(T), lambda(keyValue) { (@IDataObjectIO)(typeMapping[keyValue].MakeFileIO<T>(channelManager)) })
+			mreturn typeMapping[^typeof(T)].MakeFileIO<T>(channelManager)
 		endmethod
 
 		public method GetFileInfo<T(DataObjectBase)>, @Tuple<string, FileOpenMode>
@@ -67,7 +67,7 @@ namespace Harmony.Core.Context
 		public method GetFileIO, @IDataObjectIO
 			entityType, @Type
 		proc
-			mreturn fileIOMapping.GetOrAdd(entityType, lambda(keyValue) { (@IDataObjectIO)(makeFileIOMethod.MakeGenericMethod(new Type[#] { entityType }).Invoke(typeMapping[keyValue], new Object[#] { channelManager })) })
+			mreturn (@IDataObjectIO)(makeFileIOMethod.MakeGenericMethod(new Type[#] { entityType }).Invoke(typeMapping[entityType], new Object[#] { channelManager }))
 		endmethod
 	endclass
 

@@ -10,22 +10,18 @@ main
 		jsonReader, @Json.Json
 		jsonVal, @Json.JsonValue
 proc
-	;jsonReader = new Json.Json()
-;	if('}' >= '0' && '}' <= '9')
-;		nop
-	;jsonVal = jsonReader.ParseJson('{"Name":"fred","Arguments":[{"PassedValue":"hello","DataType":1},{"PassedValue":55,"DataType":8},{"PassedValue":23,"DataType":8},{"PassedValue":{"Type":"ORDERS","Value":"MDAwMDAzMDAwMDAxMDAwMDA2MDAwMDI1MDAwMDQwMDAwMDE0OTAxOTMwMzAxMDAwMDAwICAgICAgMDkzMDMwMQ==","GRFA":"AAAAAAAAzsGd5A=="},"DataType":16},{"PassedValue":[{"Type":"ORDERS","Value":"MDAwMDAzMDAwMDAxMDAwMDA2MDAwMDI1MDAwMDQwMDAwMDE0OTAxOTMwMzAxMDAwMDAwICAgICAgMDkzMDMwMQ==","GRFA":"AAAAAAAAzsGd5A=="},{"Type":"ORDERS","Value":"MDAwMDA0MDAwMDA4MDAwMDE0MDAwMDIzMDAwMDcwMDAwMDE0OTAxOTMwMzA1MDAwMDAwICAgICAgNzQ0MjQ0MA==","GRFA":"QgAAAAAAQsjWVg=="},{"Type":"ORDERS","Value":"MDAwMDA1MDAwMDA1MDAwMDEzMDAwMDM3MDAwMDQ1MDAwMTcwMDAzOTMwMzE1ICAgICAgICAgICAgNDY1MTU3NQ==","GRFA":"hAAAAAAABnWyXw=="},{"Type":"ORDERS","Value":"MDAwMDA2MDAwMDAyMDAwMDExMDAwMDE1MDAwMDc1MDAwMDE0OTAzOTMwMzE3ICAgICAgICAgICAgMTg2MDYzNA==","GRFA":"xgAAAAAA4FXMkA=="},{"Type":"ORDERS","Value":"MDAwMDA3MDAwMDA5MDAwMDIwMDAwMDA4MDAwMDI1MDAwMDE0OTA0OTMwMzA3ICAgICAgICAgICAgODM3Mjc2Mw==","GRFA":"CAEAAAAAPGvldQ=="},{"Type":"ORDERS","Value":"MDAwMDA4MDAwMDA2MDAwMDE4MDAwMDA4MDAwMDMwMDAwMDE5OTA0OTMwMzA3ICAgICAgICAgICAgNTU4MTg0Mg==","GRFA":"SgEAAAAAER5W7Q=="},{"Type":"ORDERS","Value":"MDAwMDA5MDAwMDAzMDAwMDE3MDAwMDA4MDAwMTAwMDAwMDE4MTA0OTMwMzA3ICAgICAgICAgICAgMjc5MDkyMQ==","GRFA":"jAEAAAAAvBK2Kw=="},{"Type":"ORDERS","Value":"MDAwMDEwMDAwMDM4MDAwMDE5MDAwMDE2MDAwMDk5MDAwMDE5MTA1OTUwMzAzOTUwNTA5OTUwMzEwMDAwODg4OQ==","GRFA":"zgEAAAAAnohNmQ=="}],"DataType":32}]}')
-;	nop
 	xcall flags(0101010010)
 	open(ttChan, O, "TT:")
 	puts(ttChan, "READY" + %char(13)+ %char(10))
 	dispatcher = new TestDispatcher()
 	dispatcher.Dispatch(ttChan)
-	;dispatcher.ProcessCallBlock((@Json.JsonObject)jsonVal, ttChan) 
 endmain
 
 subroutine MetaOrders
 	req out metadata, @DataObjectMetadataBase
 proc
+	if(Orders.sMetadata == ^null)
+		Orders.sMetadata = new OrdersMetadata()
 	metadata = Orders.sMetadata
 	xreturn
 endsubroutine
@@ -44,12 +40,6 @@ namespace Test
 		private mOriginalSynergyData, STROrders 
 		
 		public static sMetadata, @OrdersMetadata
-		static method Orders
-		proc
-			if(sMetadata == ^null)
-				sMetadata = new OrdersMetadata()
-
-		endmethod
 		
 		;;; <summary>
 		;;;  Constructor, initialise the base fields
@@ -236,6 +226,8 @@ namespace Test
 		public override property Metadata, @DataObjectMetadataBase
 			method get
 			proc
+				if(sMetadata == ^null)
+					sMetadata = new OrdersMetadata()
 				mreturn sMetadata
 			endmethod
 		endproperty

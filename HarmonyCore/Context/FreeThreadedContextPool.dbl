@@ -5,6 +5,8 @@ import System.Text
 import Microsoft.CodeAnalysis.PooledObjects
 import System.Threading.Tasks
 import Microsoft.Extensions.DependencyInjection
+import Harmony.Core.Interface
+import Harmony.Core.Utility
 
 namespace Harmony.Core.Context
 
@@ -16,6 +18,7 @@ namespace Harmony.Core.Context
 		proc
 			mSessionLookup = new ConcurrentDictionary<string, T>()
 			mContextPool = new ObjectPool<T>(lambda(provider) { SlowMakeContext(provider) }, min)
+			DebugLogSession.Logging.LogInfo("FreeThreadedContextPool<{0}>::ctor with a minimum size of {1}", ^typeof(T).FullName, min)
 		endmethod
 
 		public override method MakeContextAsync, @Task<T>
@@ -37,6 +40,8 @@ namespace Harmony.Core.Context
 		protected virtual method SlowMakeContext, T
 			provider, @IServiceProvider
 		proc
+			data logging = provider.GetService<IDebugLogging>() ?? DebugLogSession.Logging
+			logging.LogInfo("FreeThreadedContextPool<{0}>::SlowMakeContext", ^typeof(T).FullName)
 			mreturn ActivatorUtilities.CreateInstance<T>(provider)
 		endmethod
 

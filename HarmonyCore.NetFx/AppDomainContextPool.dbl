@@ -3,7 +3,8 @@ import System.Collections.Generic
 import System.Text
 import Microsoft.Extensions.DependencyInjection
 import Harmony.Core.Context
-
+import Harmony.Core.Interface
+import Harmony.Core.Utility
 
 namespace Harmony.Core.NetFx
 
@@ -19,18 +20,26 @@ namespace Harmony.Core.NetFx
 			provider, @IServiceProvider
 		proc
 			data TType = ^typeof(T)
+			data logging = provider.GetService<IDebugLogging>() ?? DebugLogSession.Logging
 			data domainName = TType.FullName + Guid.NewGuid().ToString()
+
+			logging.LogInfo("Creating AppDomain {0} as a container for an instance of {1}", domainName, ^typeof(T).FullName)
+
 			data newAppDomain = AppDomain.CreateDomain(domainName) 
 			data activatorInstance = ^as(newAppDomain.CreateInstanceAndUnwrap(^typeof(AppDomainActivator).Assembly.FullName, ^typeof(AppDomainActivator).FullName), @AppDomainActivator)
-			mreturn activatorInstance.MakeContext(provider)
+			mreturn activatorInstance.MakeContext(provider, logging)
 		endmethod
 
 		private class AppDomainActivator extends MarshalByRefObject
 			public method MakeContext, T
 				provider, @IServiceProvider
+				logging, @IDebugLogging
 			proc
+				logging.LogInfo("Created AppDomain {0}", AppDomain.CurrentDomain.FriendlyName)
 				data isolatedProvider = ActivatorUtilities.CreateInstance<SP>(provider)
-				mreturn ActivatorUtilities.CreateInstance<T>(isolatedProvider)
+				data result = ActivatorUtilities.CreateInstance<T>(isolatedProvider)
+				logging.LogInfo("Created Instance of {0} inside of AppDomain {1}", ^typeof(T).FullName, AppDomain.CurrentDomain.FriendlyName)
+				mreturn result
 			endmethod
 		endclass
 

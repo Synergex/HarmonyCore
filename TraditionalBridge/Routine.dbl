@@ -245,9 +245,9 @@ namespace Harmony.TraditionalBridge
 			writes(loggingChannel, %string(frameHeader) + " callblock bytes expected")
 			frameDataHandle = %mem_proc(DM_ALLOC, frameHeader)
 			do gets(ttChannel, ^m(frameDataHandle), wait:-1)
-			until %rdlen() == frameHeader
+			until %rdlen(ttChannel) == frameHeader
 
-			writes(loggingChannel, %string(%rdlen()) + ":" + %string(%rdtrm()))
+			writes(loggingChannel, %string(%rdlen(ttChannel)) + ":" + %string(%rdtrm(ttChannel)))
 			writes(loggingChannel, ^m(frameDataHandle) + "data read")
 			parsedJson = jsonReader.ParseJson(^m(frameDataHandle))
 			if(parsedJson .is. @Json.JsonObject) then
@@ -291,7 +291,7 @@ namespace Harmony.TraditionalBridge
 				while(running)
 				begin
 					do gets(ttChannel, aData, wait:-1)
-					until %rdlen() == 10
+					until %rdlen(ttChannel) == 10
 					puts(ttChannel, aData + %char(13) + %char(10))
 					running = ReadCallBlock(ttChannel, (int)frameHeader)
 				end
