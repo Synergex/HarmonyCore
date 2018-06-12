@@ -1,0 +1,29 @@
+
+import System
+import System.Collections.Generic
+import System.Text
+import System.IO
+
+namespace SampleServices.Test
+
+	public class EnvironmentRootBuilder
+
+		public static method FindRelativeFolderForAssembly, @string
+			folderName, @string
+		proc
+			data assemblyLocation = ^typeof(EnvironmentRootBuilder).Assembly.Location
+			data currentFolder = Path.GetDirectoryName(assemblyLocation)
+			data rootPath = Path.GetPathRoot(currentFolder)
+			while(currentFolder != rootPath)
+			begin
+				if(Directory.Exists(Path.Combine(currentFolder, folderName))) then
+					mreturn Path.Combine(currentFolder, folderName)
+				else
+					currentFolder = Path.GetFullPath(currentFolder + "..\")
+			end
+			mreturn ^null
+		endmethod
+
+	endclass
+
+endnamespace
