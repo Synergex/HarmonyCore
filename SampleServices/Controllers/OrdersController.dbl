@@ -46,21 +46,30 @@ import Microsoft.AspNet.OData
 import Microsoft.AspNet.OData.Routing
 import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Infrastructure
-import SampleServices.Data
 
 namespace SampleServices.Controllers
 
+	;;; <summary>
+	;;; OData controller for Orders
+	;;; </summary>
 	public class OrdersController extends ODataController
 	
-		public readwrite property DBContext, @ControllerDBContext
+		public readwrite property DBContext, @SampleServices.DBContext
 
+		;;; <summary>
+		;;; Constructs a new instance of OrdersController
+		;;; </summary>
+		;;; <param name="dbContext">Database context</param>
 		public method OrdersController
-			dbContext, @ControllerDBContext
+			dbContext, @SampleServices.DBContext
 		proc
 			this.DBContext = dbContext
 		endmethod
 
 		{ODataRoute("Orders")}
+		;;; <summary>
+		;;; Get all Orders
+		;;; </summary>
 		{EnableQuery(MaxExpansionDepth=3, MaxSkip=10, MaxTop=5, PageSize=4)}
 		public method Get, @IActionResult
 		proc
@@ -68,6 +77,11 @@ namespace SampleServices.Controllers
 		endmethod
 
 		{ODataRoute("Orders({aOrNumber})")}
+		;;; <summary>
+		;;; Get a single Order by primary key.
+		;;; </summary>
+		;;; <param name="aOrNumber">Order number</param>
+		;;; <returns></returns>
 		public method Get, @IActionResult
 			{FromODataUri}
             required in aOrNumber, int
@@ -76,16 +90,48 @@ namespace SampleServices.Controllers
 			mreturn Ok(result)
 		endmethod
 
-		{ODataRoute("Orders({id})")}
-		public method Post, @IActionResult
-			{FromODataUri} 
-			id, int
+		{ODataRoute("Orders/ByKey/Vendor/({aOrVendor})")}
+		;;; <summary>
+		;;; Get a single Order by key Vendor.
+		;;; </summary>
+		;;; <param name="aOrVendor">Vendorcode</param>
+		;;; <returns></returns>
+		public method GetByKeyVendor, @IActionResult
+			{FromODataUri}
+            required in aOrVendor, int
 		proc
-			data result = DBContext.Orders.Find(id)
-			DBContext.SaveChanges()
+			data result = DBContext.Orders.Find(aOrVendor)
 			mreturn Ok(result)
 		endmethod
-
+		
+		{ODataRoute("Orders/ByKey/Item/({aOrItem})")}
+		;;; <summary>
+		;;; Get a single Order by key Item.
+		;;; </summary>
+		;;; <param name="aOrItem">Item code</param>
+		;;; <returns></returns>
+		public method GetByKeyItem, @IActionResult
+			{FromODataUri}
+            required in aOrItem, int
+		proc
+			data result = DBContext.Orders.Find(aOrItem)
+			mreturn Ok(result)
+		endmethod
+		
+		{ODataRoute("Orders/ByKey/Customer/({aOrCustomer})")}
+		;;; <summary>
+		;;; Get a single Order by key Customer.
+		;;; </summary>
+		;;; <param name="aOrCustomer">Customer number</param>
+		;;; <returns></returns>
+		public method GetByKeyCustomer, @IActionResult
+			{FromODataUri}
+            required in aOrCustomer, int
+		proc
+			data result = DBContext.Orders.Find(aOrCustomer)
+			mreturn Ok(result)
+		endmethod
+		
 	endclass
 
 endnamespace

@@ -1,10 +1,10 @@
 ;;*****************************************************************************
 ;;
-;; Title:       CustomersController.dbl
+;; Title:       ControllerDbContext.dbl
 ;;
 ;; Type:        Class
 ;;
-;; Description: OData controller for the CUSTOMERS structure.
+;; Description: OData DbContext class
 ;;
 ;;*****************************************************************************
 ;; WARNING
@@ -41,72 +41,35 @@
 ;;
 ;;*****************************************************************************
 
-import Microsoft.AspNetCore.Mvc
-import Microsoft.AspNet.OData
-import Microsoft.AspNet.OData.Routing
+import Harmony.Core
+import Harmony.Core.Context
 import Microsoft.EntityFrameworkCore
-import Microsoft.EntityFrameworkCore.Infrastructure
+import Microsoft.OData.Edm
+import Microsoft.AspNet.OData.Builder
+import SampleServices.Models
 
-namespace SampleServices.Controllers
+namespace SampleServices
 
-	;;; <summary>
-	;;; OData controller for Customers
-	;;; </summary>
-	public class CustomersController extends ODataController
-	
-		public readwrite property DBContext, @SampleServices.DBContext
+	public class EdmBuilder
 
-		;;; <summary>
-		;;; Constructs a new instance of CustomersController
-		;;; </summary>
-		;;; <param name="dbContext">Database context</param>
-		public method CustomersController
-			dbContext, @SampleServices.DBContext
+		private static mEdmModel, @IEdmModel
+
+		public static method GetEdmModel, @IEdmModel
 		proc
-			this.DBContext = dbContext
+			if(mEdmModel == ^null)
+			begin
+				data builder = new ODataConventionModelBuilder()
+				builder.EntitySet<Customer>("Customers")
+				builder.EntitySet<Order>("Orders")
+				builder.EntitySet<Plant>("Plants")
+				builder.EntitySet<Contract>("Contracts")
+				mEdmModel = builder.GetEdmModel()
+			end
+
+			mreturn mEdmModel
+
 		endmethod
 
-		{ODataRoute("Customers")}
-		;;; <summary>
-		;;; Get all Customers
-		;;; </summary>
-		{EnableQuery(MaxExpansionDepth=3, MaxSkip=10, MaxTop=5, PageSize=4)}
-		public method Get, @IActionResult
-		proc
-			mreturn Ok(DBContext.Customers)
-		endmethod
-
-		{ODataRoute("Customers({aCustKey})")}
-		;;; <summary>
-		;;; Get a single Customer by primary key.
-		;;; </summary>
-		;;; <param name="aCustKey">Customer id</param>
-		;;; <returns></returns>
-		public method Get, @IActionResult
-			{FromODataUri}
-            required in aCustKey, int
-		proc
-			data result = DBContext.Customers.Find(aCustKey)
-			mreturn Ok(result)
-		endmethod
-
-		{ODataRoute("Customers/ByKey/Tagkey/({aCustRtype},{aCustKey})")}
-		;;; <summary>
-		;;; Get a single Customer by key Tagkey.
-		;;; </summary>
-		;;; <param name="aCustRtype">Record Tag Field</param>
-		;;; <param name="aCustKey">Customer id</param>
-		;;; <returns></returns>
-		public method GetByKeyTagkey, @IActionResult
-			{FromODataUri}
-            required in aCustRtype, int
-			{FromODataUri}
-            required in aCustKey, int
-		proc
-			data result = DBContext.Customers.Find(aCustRtype,aCustKey)
-			mreturn Ok(result)
-		endmethod
-		
 	endclass
 
 endnamespace

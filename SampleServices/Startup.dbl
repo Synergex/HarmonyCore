@@ -1,10 +1,10 @@
 ;;*****************************************************************************
 ;;
-;; Title:       CustomersController.dbl
+;; Title:       Startup.dbl
 ;;
 ;; Type:        Class
 ;;
-;; Description: OData controller for the CUSTOMERS structure.
+;; Description: Startup class for an OData / Web API hosting environment
 ;;
 ;;*****************************************************************************
 ;; WARNING
@@ -41,72 +41,53 @@
 ;;
 ;;*****************************************************************************
 
-import Microsoft.AspNetCore.Mvc
-import Microsoft.AspNet.OData
-import Microsoft.AspNet.OData.Routing
+import Harmony.Core.Context
+import Harmony.Core.FileIO
+import Harmony.Core.Utility
+import Harmony.AspNetCore.Context
+import Microsoft.Extensions.DependencyInjection
 import Microsoft.EntityFrameworkCore
-import Microsoft.EntityFrameworkCore.Infrastructure
+import Microsoft.AspNet.OData.Extensions
+import Microsoft.AspNetCore.Builder
+import Microsoft.AspNetCore.Hosting
+import SampleServices.Models
 
-namespace SampleServices.Controllers
+namespace SampleServices.Test
 
-	;;; <summary>
-	;;; OData controller for Customers
-	;;; </summary>
-	public class CustomersController extends ODataController
-	
-		public readwrite property DBContext, @SampleServices.DBContext
+	public class Startup
 
-		;;; <summary>
-		;;; Constructs a new instance of CustomersController
-		;;; </summary>
-		;;; <param name="dbContext">Database context</param>
-		public method CustomersController
-			dbContext, @SampleServices.DBContext
+		public method ConfigureServices, void
+			services, @IServiceCollection 
 		proc
-			this.DBContext = dbContext
+			;services.AddTransient<PrimeService>()
+			data channelManager = new FileChannelManager() 
+			data objectProvider = new DataObjectProvider(channelManager)
+			objectProvider.AddDataObjectMapping<Customer>("ICSTUT:arcust.ism", FileOpenMode.UpdateIndexed)
+			objectProvider.AddDataObjectMapping<Order>("ICSTUT:oorder.ism", FileOpenMode.UpdateIndexed)
+			objectProvider.AddDataObjectMapping<Plant>("ICSTUT:plitem.ism", FileOpenMode.UpdateIndexed)
+			objectProvider.AddDataObjectMapping<Contract>("ICSTUT:contract.ism", FileOpenMode.UpdateIndexed)
+			services.AddSingleton<FileChannelManager>(channelManager)
+			services.AddSingleton<IDataObjectProvider>(objectProvider)
+			services.AddSingleton<DbContextOptions<DBContext>>(new DbContextOptions<DBContext>())
+			services.AddSingleton<DBContext, DBContext>()
+			services.AddOData()
+			services.AddMvcCore()
 		endmethod
 
-		{ODataRoute("Customers")}
-		;;; <summary>
-		;;; Get all Customers
-		;;; </summary>
-		{EnableQuery(MaxExpansionDepth=3, MaxSkip=10, MaxTop=5, PageSize=4)}
-		public method Get, @IActionResult
+		public method Configure, void
+			app, @IApplicationBuilder
+			env, @IHostingEnvironment
 		proc
-			mreturn Ok(DBContext.Customers)
-		endmethod
+			data model = EdmBuilder.GetEdmModel()
 
-		{ODataRoute("Customers({aCustKey})")}
-		;;; <summary>
-		;;; Get a single Customer by primary key.
-		;;; </summary>
-		;;; <param name="aCustKey">Customer id</param>
-		;;; <returns></returns>
-		public method Get, @IActionResult
-			{FromODataUri}
-            required in aCustKey, int
-		proc
-			data result = DBContext.Customers.Find(aCustKey)
-			mreturn Ok(result)
+			lambda MVCBuilder(builder)
+			begin
+				builder.Select().Expand().Filter().OrderBy().MaxTop(100).Count()
+				builder.MapODataServiceRoute("odata", "odata", model)
+			end
+			app.UseLogging(DebugLogSession.Logging)
+			app.UseMvc(MVCBuilder)
 		endmethod
-
-		{ODataRoute("Customers/ByKey/Tagkey/({aCustRtype},{aCustKey})")}
-		;;; <summary>
-		;;; Get a single Customer by key Tagkey.
-		;;; </summary>
-		;;; <param name="aCustRtype">Record Tag Field</param>
-		;;; <param name="aCustKey">Customer id</param>
-		;;; <returns></returns>
-		public method GetByKeyTagkey, @IActionResult
-			{FromODataUri}
-            required in aCustRtype, int
-			{FromODataUri}
-            required in aCustKey, int
-		proc
-			data result = DBContext.Customers.Find(aCustRtype,aCustKey)
-			mreturn Ok(result)
-		endmethod
-		
 	endclass
 
 endnamespace

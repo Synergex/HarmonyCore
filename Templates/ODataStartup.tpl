@@ -1,12 +1,12 @@
-<CODEGEN_FILENAME>DbContext.dbl</CODEGEN_FILENAME>
+<CODEGEN_FILENAME>Startup.dbl</CODEGEN_FILENAME>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
-;// Title:       ODataDbContext.tpl
+;// Title:       ODataEdmBuilder.tpl
 ;//
 ;// Type:        CodeGen Template
 ;//
-;// Description: Used to create OData DbContext classes in a Harmony Core environment
+;// Description: Creates a Startup class for an OData / Web API hosting environment
 ;//
 ;// Author:      Steve Ives, Synergex Professional Services Group
 ;//
@@ -36,11 +36,11 @@
 ;//
 ;;*****************************************************************************
 ;;
-;; Title:       DbContext.dbl
+;; Title:       Startup.dbl
 ;;
 ;; Type:        Class
 ;;
-;; Description: OData DbContext class
+;; Description: Startup class for an OData / Web API hosting environment
 ;;
 ;;*****************************************************************************
 ;; WARNING
@@ -77,44 +77,52 @@
 ;;
 ;;*****************************************************************************
 
-import Harmony.Core
 import Harmony.Core.Context
+import Harmony.Core.FileIO
+import Harmony.Core.Utility
+import Harmony.AspNetCore.Context
+import Microsoft.Extensions.DependencyInjection
 import Microsoft.EntityFrameworkCore
+import Microsoft.AspNet.OData.Extensions
+import Microsoft.AspNetCore.Builder
+import Microsoft.AspNetCore.Hosting
 import <MODELS_NAMESPACE>
 
-namespace <NAMESPACE>
+namespace SampleServices.Test
 
-	public class DbContext extends Microsoft.EntityFrameworkCore.DbContext
-	
-		mDataProvider, @IDataObjectProvider
+	public class Startup
 
-		public method DbContext
-			options, @DbContextOptions<DbContext>
-			dataProvider, @IDataObjectProvider
-			endparams
-			parent(options)
+		public method ConfigureServices, void
+			services, @IServiceCollection 
 		proc
-			mDataProvider = dataProvider
+			;services.AddTransient<PrimeService>()
+			data channelManager = new FileChannelManager() 
+			data objectProvider = new DataObjectProvider(channelManager)
+			<STRUCTURE_LOOP>
+			objectProvider.AddDataObjectMapping<<StructureNoplural>>("<FILE_NAME>", <IF STRUCTURE_ISAM>FileOpenMode.UpdateIndexed</IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>FileOpenMode.UpdateRelative</IF STRUCTURE_RELATIVE>)
+			</STRUCTURE_LOOP>
+			services.AddSingleton<FileChannelManager>(channelManager)
+			services.AddSingleton<IDataObjectProvider>(objectProvider)
+			services.AddSingleton<DbContextOptions<DBContext>>(new DbContextOptions<DBContext>())
+			services.AddSingleton<DBContext, DBContext>()
+			services.AddOData()
+			services.AddMvcCore()
 		endmethod
 
-		<STRUCTURE_LOOP>
-		public readwrite property <StructurePlural>, @DbSet<<StructureNoplural>>
-		</STRUCTURE_LOOP>
-
-		protected override method OnConfiguring, void
-			opts, @DbContextOptionsBuilder
+		public method Configure, void
+			app, @IApplicationBuilder
+			env, @IHostingEnvironment
 		proc
-			HarmonyDbContextOptionsExtensions.UseHarmonyDatabase(opts, mDataProvider)
-		endmethod
+			data model = EdmBuilder.GetEdmModel()
 
-		protected override method OnModelCreating, void
-			parm, @ModelBuilder
-		proc
-			parm.Ignore(^typeof(AlphaDesc))
-			parm.Ignore(^typeof(DataObjectMetadataBase))
-			parent.OnModelCreating(parm)
+			lambda MVCBuilder(builder)
+			begin
+				builder.Select().Expand().Filter().OrderBy().MaxTop(100).Count()
+				builder.MapODataServiceRoute("odata", "odata", model)
+			end
+			app.UseLogging(DebugLogSession.Logging)
+			app.UseMvc(MVCBuilder)
 		endmethod
-
 	endclass
 
 endnamespace

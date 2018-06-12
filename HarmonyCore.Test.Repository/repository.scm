@@ -43961,7 +43961,7 @@ File CMLX00   DBL ISAM   "ICSTUT:cmnx08.ism"
    Description "CMN Detail Information"
    Assign CMLX00   ODBC Name CMN_DETAIL
  
-File CONTRACT   DBL ISAM   "contr"
+File CONTRACT   DBL ISAM   "ICSTUT:contract.ism"
    Description "Contract"
    Density 50   Compress
    Assign CONTRACT
@@ -43981,7 +43981,7 @@ File CUSMAS   DBL ISAM   "EMS_CUSMAS:"
       "Customer Master"
    Assign CUSMAS_SOLDTO
  
-File CUSTOMER   DBL ISAM   "ICSTUT:customer"
+File CUSTOMER   DBL ISAM   "ICSTUT:arcust.ism"
    Description "Customer/Vendor File"
    Assign CUSTOMERS, VENDORS
  
@@ -44072,7 +44072,7 @@ File NULLTABLE   DBL ISAM   "ICSTUT:nulltable"
    Description "Null Key Test File"
    Assign NULLTABLE
  
-File ORDERS   DBL ISAM   "ICSTUT:orders"
+File ORDERS   DBL ISAM   "ICSTUT:oorder.ism"
    Description "Order File"
    Assign ORDERS
  
@@ -44080,7 +44080,7 @@ File PCMAS   RELATIVE   "ISMAS.DD1"
    Description "Product Class File  RELATIVE FILE"
    Assign PCMAS
  
-File PLANTS   DBL ISAM   "ICSTUT:plants"
+File PLANTS   DBL ISAM   "ICSTUT:plitem.ism"
    Description "Plant Inventory File"
    Assign PLANTS
  

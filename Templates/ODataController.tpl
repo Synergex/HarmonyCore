@@ -82,50 +82,76 @@ import Microsoft.AspNet.OData
 import Microsoft.AspNet.OData.Routing
 import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Infrastructure
-import <DBCONTEXT_NAMESPACE>
 
 namespace <NAMESPACE>
 
+	;;; <summary>
+	;;; OData controller for <StructurePlural>
+	;;; </summary>
 	public class <StructurePlural>Controller extends ODataController
 	
-		public readwrite property DBContext, @ControllerDBContext
+		public readwrite property DBContext, @<DBCONTEXT_NAMESPACE>.DBContext
 
+		;;; <summary>
+		;;; Constructs a new instance of <StructurePlural>Controller
+		;;; </summary>
+		;;; <param name="dbContext">Database context</param>
 		public method <StructurePlural>Controller
-			dbContext, @ControllerDBContext
+			dbContext, @<DBCONTEXT_NAMESPACE>.DBContext
 		proc
 			this.DBContext = dbContext
 		endmethod
 
 		{ODataRoute("<StructurePlural>")}
+		;;; <summary>
+		;;; Get all <StructurePlural>
+		;;; </summary>
 		{EnableQuery(MaxExpansionDepth=3, MaxSkip=10, MaxTop=5, PageSize=4)}
 		public method Get, @IActionResult
 		proc
 			mreturn Ok(DBContext.<StructurePlural>)
 		endmethod
 
-		{ODataRoute("<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP>{a<SegmentName>}<,></SEGMENT_LOOP></PRIMARY_KEY>)")}
+		<PRIMARY_KEY>
+		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP>{a<SegmentName>}<,></SEGMENT_LOOP>)")}
+		;;; <summary>
+		;;; Get a single <StructureNoplural> by primary key.
+		;;; </summary>
+        <SEGMENT_LOOP>
+		;;; <param name="a<SegmentName>"><FIELD_DESC></param>
+        </SEGMENT_LOOP>
+		;;; <returns></returns>
 		public method Get, @IActionResult
-            <PRIMARY_KEY>
             <SEGMENT_LOOP>
 			{FromODataUri}
             required in a<SegmentName>, <SEGMENT_SNTYPE>
             </SEGMENT_LOOP>
-            </PRIMARY_KEY>
 		proc
-			data result = DBContext.<StructurePlural>.Find(<PRIMARY_KEY><SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP></PRIMARY_KEY>)
+			data result = DBContext.<StructurePlural>.Find(<SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP>)
 			mreturn Ok(result)
 		endmethod
+		</PRIMARY_KEY>
 
-		{ODataRoute("<StructurePlural>({id})")}
-		public method Post, @IActionResult
-			{FromODataUri} 
-			id, int
+		<ALTERNATE_KEY_LOOP>
+		{ODataRoute("<StructurePlural>/ByKey/<KeyName>/(<SEGMENT_LOOP>{a<SegmentName>}<,></SEGMENT_LOOP>)")}
+		;;; <summary>
+		;;; Get a single <StructureNoplural> by key <KeyName>.
+		;;; </summary>
+        <SEGMENT_LOOP>
+		;;; <param name="a<SegmentName>"><FIELD_DESC></param>
+        </SEGMENT_LOOP>
+		;;; <returns></returns>
+		public method GetByKey<KeyName>, @IActionResult
+            <SEGMENT_LOOP>
+			{FromODataUri}
+            required in a<SegmentName>, <SEGMENT_SNTYPE>
+            </SEGMENT_LOOP>
 		proc
-			data result = DBContext.<StructurePlural>.Find(id)
-			DBContext.SaveChanges()
+			data result = DBContext.<StructurePlural>.Find(<SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP>)
 			mreturn Ok(result)
 		endmethod
-
+		
+		</ALTERNATE_KEY_LOOP>
 	endclass
 
 endnamespace

@@ -46,21 +46,30 @@ import Microsoft.AspNet.OData
 import Microsoft.AspNet.OData.Routing
 import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Infrastructure
-import SampleServices.Data
 
 namespace SampleServices.Controllers
 
+	;;; <summary>
+	;;; OData controller for Plants
+	;;; </summary>
 	public class PlantsController extends ODataController
 	
-		public readwrite property DBContext, @ControllerDBContext
+		public readwrite property DBContext, @SampleServices.DBContext
 
+		;;; <summary>
+		;;; Constructs a new instance of PlantsController
+		;;; </summary>
+		;;; <param name="dbContext">Database context</param>
 		public method PlantsController
-			dbContext, @ControllerDBContext
+			dbContext, @SampleServices.DBContext
 		proc
 			this.DBContext = dbContext
 		endmethod
 
 		{ODataRoute("Plants")}
+		;;; <summary>
+		;;; Get all Plants
+		;;; </summary>
 		{EnableQuery(MaxExpansionDepth=3, MaxSkip=10, MaxTop=5, PageSize=4)}
 		public method Get, @IActionResult
 		proc
@@ -68,6 +77,11 @@ namespace SampleServices.Controllers
 		endmethod
 
 		{ODataRoute("Plants({aInItemid})")}
+		;;; <summary>
+		;;; Get a single Plant by primary key.
+		;;; </summary>
+		;;; <param name="aInItemid">Item ID</param>
+		;;; <returns></returns>
 		public method Get, @IActionResult
 			{FromODataUri}
             required in aInItemid, int
@@ -76,16 +90,76 @@ namespace SampleServices.Controllers
 			mreturn Ok(result)
 		endmethod
 
-		{ODataRoute("Plants({id})")}
-		public method Post, @IActionResult
-			{FromODataUri} 
-			id, int
+		{ODataRoute("Plants/ByKey/Vendor/({aInSource})")}
+		;;; <summary>
+		;;; Get a single Plant by key Vendor.
+		;;; </summary>
+		;;; <param name="aInSource">Vending Source Code</param>
+		;;; <returns></returns>
+		public method GetByKeyVendor, @IActionResult
+			{FromODataUri}
+            required in aInSource, int
 		proc
-			data result = DBContext.Plants.Find(id)
-			DBContext.SaveChanges()
+			data result = DBContext.Plants.Find(aInSource)
 			mreturn Ok(result)
 		endmethod
-
+		
+		{ODataRoute("Plants/ByKey/Color/({aInColor})")}
+		;;; <summary>
+		;;; Get a single Plant by key Color.
+		;;; </summary>
+		;;; <param name="aInColor">Flower color</param>
+		;;; <returns></returns>
+		public method GetByKeyColor, @IActionResult
+			{FromODataUri}
+            required in aInColor, String
+		proc
+			data result = DBContext.Plants.Find(aInColor)
+			mreturn Ok(result)
+		endmethod
+		
+		{ODataRoute("Plants/ByKey/Size/({aInSize})")}
+		;;; <summary>
+		;;; Get a single Plant by key Size.
+		;;; </summary>
+		;;; <param name="aInSize">Size in gallons</param>
+		;;; <returns></returns>
+		public method GetByKeySize, @IActionResult
+			{FromODataUri}
+            required in aInSize, int
+		proc
+			data result = DBContext.Plants.Find(aInSize)
+			mreturn Ok(result)
+		endmethod
+		
+		{ODataRoute("Plants/ByKey/Name/({aInName})")}
+		;;; <summary>
+		;;; Get a single Plant by key Name.
+		;;; </summary>
+		;;; <param name="aInName">Common name</param>
+		;;; <returns></returns>
+		public method GetByKeyName, @IActionResult
+			{FromODataUri}
+            required in aInName, String
+		proc
+			data result = DBContext.Plants.Find(aInName)
+			mreturn Ok(result)
+		endmethod
+		
+		{ODataRoute("Plants/ByKey/ReverseVendor/({aInSource})")}
+		;;; <summary>
+		;;; Get a single Plant by key ReverseVendor.
+		;;; </summary>
+		;;; <param name="aInSource">Vending Source Code</param>
+		;;; <returns></returns>
+		public method GetByKeyReverseVendor, @IActionResult
+			{FromODataUri}
+            required in aInSource, int
+		proc
+			data result = DBContext.Plants.Find(aInSource)
+			mreturn Ok(result)
+		endmethod
+		
 	endclass
 
 endnamespace

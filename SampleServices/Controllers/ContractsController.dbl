@@ -46,21 +46,30 @@ import Microsoft.AspNet.OData
 import Microsoft.AspNet.OData.Routing
 import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Infrastructure
-import SampleServices.Data
 
 namespace SampleServices.Controllers
 
+	;;; <summary>
+	;;; OData controller for Contracts
+	;;; </summary>
 	public class ContractsController extends ODataController
 	
-		public readwrite property DBContext, @ControllerDBContext
+		public readwrite property DBContext, @SampleServices.DBContext
 
+		;;; <summary>
+		;;; Constructs a new instance of ContractsController
+		;;; </summary>
+		;;; <param name="dbContext">Database context</param>
 		public method ContractsController
-			dbContext, @ControllerDBContext
+			dbContext, @SampleServices.DBContext
 		proc
 			this.DBContext = dbContext
 		endmethod
 
 		{ODataRoute("Contracts")}
+		;;; <summary>
+		;;; Get all Contracts
+		;;; </summary>
 		{EnableQuery(MaxExpansionDepth=3, MaxSkip=10, MaxTop=5, PageSize=4)}
 		public method Get, @IActionResult
 		proc
@@ -68,6 +77,12 @@ namespace SampleServices.Controllers
 		endmethod
 
 		{ODataRoute("Contracts({aCnComp},{aCnContract})")}
+		;;; <summary>
+		;;; Get a single Contract by primary key.
+		;;; </summary>
+		;;; <param name="aCnComp"></param>
+		;;; <param name="aCnContract"></param>
+		;;; <returns></returns>
 		public method Get, @IActionResult
 			{FromODataUri}
             required in aCnComp, int
@@ -78,16 +93,270 @@ namespace SampleServices.Controllers
 			mreturn Ok(result)
 		endmethod
 
-		{ODataRoute("Contracts({id})")}
-		public method Post, @IActionResult
-			{FromODataUri} 
-			id, int
+		{ODataRoute("Contracts/ByKey/Cust/({aCnComp},{aCnCust},{aCnContract})")}
+		;;; <summary>
+		;;; Get a single Contract by key Cust.
+		;;; </summary>
+		;;; <param name="aCnComp"></param>
+		;;; <param name="aCnCust"></param>
+		;;; <param name="aCnContract"></param>
+		;;; <returns></returns>
+		public method GetByKeyCust, @IActionResult
+			{FromODataUri}
+            required in aCnComp, int
+			{FromODataUri}
+            required in aCnCust, String
+			{FromODataUri}
+            required in aCnContract, String
 		proc
-			data result = DBContext.Contracts.Find(id)
-			DBContext.SaveChanges()
+			data result = DBContext.Contracts.Find(aCnComp,aCnCust,aCnContract)
 			mreturn Ok(result)
 		endmethod
-
+		
+		{ODataRoute("Contracts/ByKey/Type/({aCnComp},{aCnType},{aCnContract})")}
+		;;; <summary>
+		;;; Get a single Contract by key Type.
+		;;; </summary>
+		;;; <param name="aCnComp"></param>
+		;;; <param name="aCnType">Contract type</param>
+		;;; <param name="aCnContract"></param>
+		;;; <returns></returns>
+		public method GetByKeyType, @IActionResult
+			{FromODataUri}
+            required in aCnComp, int
+			{FromODataUri}
+            required in aCnType, int
+			{FromODataUri}
+            required in aCnContract, String
+		proc
+			data result = DBContext.Contracts.Find(aCnComp,aCnType,aCnContract)
+			mreturn Ok(result)
+		endmethod
+		
+		{ODataRoute("Contracts/ByKey/Stat/({aCnComp},{aCnStage},{aCnType},{aCnContract})")}
+		;;; <summary>
+		;;; Get a single Contract by key Stat.
+		;;; </summary>
+		;;; <param name="aCnComp"></param>
+		;;; <param name="aCnStage">Stage (alternative Status field)</param>
+		;;; <param name="aCnType">Contract type</param>
+		;;; <param name="aCnContract"></param>
+		;;; <returns></returns>
+		public method GetByKeyStat, @IActionResult
+			{FromODataUri}
+            required in aCnComp, int
+			{FromODataUri}
+            required in aCnStage, int
+			{FromODataUri}
+            required in aCnType, int
+			{FromODataUri}
+            required in aCnContract, String
+		proc
+			data result = DBContext.Contracts.Find(aCnComp,aCnStage,aCnType,aCnContract)
+			mreturn Ok(result)
+		endmethod
+		
+		{ODataRoute("Contracts/ByKey/StatCust/({aCnComp},{aCnStage},{aCnType},{aCnCust},{aCnContract})")}
+		;;; <summary>
+		;;; Get a single Contract by key StatCust.
+		;;; </summary>
+		;;; <param name="aCnComp"></param>
+		;;; <param name="aCnStage">Stage (alternative Status field)</param>
+		;;; <param name="aCnType">Contract type</param>
+		;;; <param name="aCnCust"></param>
+		;;; <param name="aCnContract"></param>
+		;;; <returns></returns>
+		public method GetByKeyStatCust, @IActionResult
+			{FromODataUri}
+            required in aCnComp, int
+			{FromODataUri}
+            required in aCnStage, int
+			{FromODataUri}
+            required in aCnType, int
+			{FromODataUri}
+            required in aCnCust, String
+			{FromODataUri}
+            required in aCnContract, String
+		proc
+			data result = DBContext.Contracts.Find(aCnComp,aCnStage,aCnType,aCnCust,aCnContract)
+			mreturn Ok(result)
+		endmethod
+		
+		{ODataRoute("Contracts/ByKey/TypeContCust/({aCnComp},{aCnContType},{aCnContract},{aCnCust})")}
+		;;; <summary>
+		;;; Get a single Contract by key TypeContCust.
+		;;; </summary>
+		;;; <param name="aCnComp"></param>
+		;;; <param name="aCnContType">Contract type (0-std, 1-Mult Del/Coll)</param>
+		;;; <param name="aCnContract"></param>
+		;;; <param name="aCnCust"></param>
+		;;; <returns></returns>
+		public method GetByKeyTypeContCust, @IActionResult
+			{FromODataUri}
+            required in aCnComp, int
+			{FromODataUri}
+            required in aCnContType, int
+			{FromODataUri}
+            required in aCnContract, String
+			{FromODataUri}
+            required in aCnCust, String
+		proc
+			data result = DBContext.Contracts.Find(aCnComp,aCnContType,aCnContract,aCnCust)
+			mreturn Ok(result)
+		endmethod
+		
+		{ODataRoute("Contracts/ByKey/TypeCustCont/({aCnComp},{aCnContType},{aCnCust},{aCnContract})")}
+		;;; <summary>
+		;;; Get a single Contract by key TypeCustCont.
+		;;; </summary>
+		;;; <param name="aCnComp"></param>
+		;;; <param name="aCnContType">Contract type (0-std, 1-Mult Del/Coll)</param>
+		;;; <param name="aCnCust"></param>
+		;;; <param name="aCnContract"></param>
+		;;; <returns></returns>
+		public method GetByKeyTypeCustCont, @IActionResult
+			{FromODataUri}
+            required in aCnComp, int
+			{FromODataUri}
+            required in aCnContType, int
+			{FromODataUri}
+            required in aCnCust, String
+			{FromODataUri}
+            required in aCnContract, String
+		proc
+			data result = DBContext.Contracts.Find(aCnComp,aCnContType,aCnCust,aCnContract)
+			mreturn Ok(result)
+		endmethod
+		
+		{ODataRoute("Contracts/ByKey/Order/({aCnComp},{aCnOrderNo},{aCnCust})")}
+		;;; <summary>
+		;;; Get a single Contract by key Order.
+		;;; </summary>
+		;;; <param name="aCnComp"></param>
+		;;; <param name="aCnOrderNo">Customer order reference</param>
+		;;; <param name="aCnCust"></param>
+		;;; <returns></returns>
+		public method GetByKeyOrder, @IActionResult
+			{FromODataUri}
+            required in aCnComp, int
+			{FromODataUri}
+            required in aCnOrderNo, String
+			{FromODataUri}
+            required in aCnCust, String
+		proc
+			data result = DBContext.Contracts.Find(aCnComp,aCnOrderNo,aCnCust)
+			mreturn Ok(result)
+		endmethod
+		
+		{ODataRoute("Contracts/ByKey/Site/({aCnComp},{aCnCust},{aCnSiteRef})")}
+		;;; <summary>
+		;;; Get a single Contract by key Site.
+		;;; </summary>
+		;;; <param name="aCnComp"></param>
+		;;; <param name="aCnCust"></param>
+		;;; <param name="aCnSiteRef">Site reference</param>
+		;;; <returns></returns>
+		public method GetByKeySite, @IActionResult
+			{FromODataUri}
+            required in aCnComp, int
+			{FromODataUri}
+            required in aCnCust, String
+			{FromODataUri}
+            required in aCnSiteRef, String
+		proc
+			data result = DBContext.Contracts.Find(aCnComp,aCnCust,aCnSiteRef)
+			mreturn Ok(result)
+		endmethod
+		
+		{ODataRoute("Contracts/ByKey/Depot/({aCnComp},{aCnStage},{aCnType},{aCnDepot},{aCnContract})")}
+		;;; <summary>
+		;;; Get a single Contract by key Depot.
+		;;; </summary>
+		;;; <param name="aCnComp"></param>
+		;;; <param name="aCnStage">Stage (alternative Status field)</param>
+		;;; <param name="aCnType">Contract type</param>
+		;;; <param name="aCnDepot"></param>
+		;;; <param name="aCnContract"></param>
+		;;; <returns></returns>
+		public method GetByKeyDepot, @IActionResult
+			{FromODataUri}
+            required in aCnComp, int
+			{FromODataUri}
+            required in aCnStage, int
+			{FromODataUri}
+            required in aCnType, int
+			{FromODataUri}
+            required in aCnDepot, int
+			{FromODataUri}
+            required in aCnContract, String
+		proc
+			data result = DBContext.Contracts.Find(aCnComp,aCnStage,aCnType,aCnDepot,aCnContract)
+			mreturn Ok(result)
+		endmethod
+		
+		{ODataRoute("Contracts/ByKey/Termination/({aCnComp},{aCnStage},{aCnEnDate},{aCnContract})")}
+		;;; <summary>
+		;;; Get a single Contract by key Termination.
+		;;; </summary>
+		;;; <param name="aCnComp"></param>
+		;;; <param name="aCnStage">Stage (alternative Status field)</param>
+		;;; <param name="aCnEnDate">Date of (expected) return</param>
+		;;; <param name="aCnContract"></param>
+		;;; <returns></returns>
+		public method GetByKeyTermination, @IActionResult
+			{FromODataUri}
+            required in aCnComp, int
+			{FromODataUri}
+            required in aCnStage, int
+			{FromODataUri}
+            required in aCnEnDate, DateTime
+			{FromODataUri}
+            required in aCnContract, String
+		proc
+			data result = DBContext.Contracts.Find(aCnComp,aCnStage,aCnEnDate,aCnContract)
+			mreturn Ok(result)
+		endmethod
+		
+		{ODataRoute("Contracts/ByKey/WebKey/({aCnComp},{aCnCust},{aCnWebBusCode})")}
+		;;; <summary>
+		;;; Get a single Contract by key WebKey.
+		;;; </summary>
+		;;; <param name="aCnComp"></param>
+		;;; <param name="aCnCust"></param>
+		;;; <param name="aCnWebBusCode"></param>
+		;;; <returns></returns>
+		public method GetByKeyWebKey, @IActionResult
+			{FromODataUri}
+            required in aCnComp, int
+			{FromODataUri}
+            required in aCnCust, String
+			{FromODataUri}
+            required in aCnWebBusCode, String
+		proc
+			data result = DBContext.Contracts.Find(aCnComp,aCnCust,aCnWebBusCode)
+			mreturn Ok(result)
+		endmethod
+		
+		{ODataRoute("Contracts/ByKey/DepotStage/({aCnComp},{aCnDepot},{aCnStage})")}
+		;;; <summary>
+		;;; Get a single Contract by key DepotStage.
+		;;; </summary>
+		;;; <param name="aCnComp"></param>
+		;;; <param name="aCnDepot"></param>
+		;;; <param name="aCnStage">Stage (alternative Status field)</param>
+		;;; <returns></returns>
+		public method GetByKeyDepotStage, @IActionResult
+			{FromODataUri}
+            required in aCnComp, int
+			{FromODataUri}
+            required in aCnDepot, int
+			{FromODataUri}
+            required in aCnStage, int
+		proc
+			data result = DBContext.Contracts.Find(aCnComp,aCnDepot,aCnStage)
+			mreturn Ok(result)
+		endmethod
+		
 	endclass
 
 endnamespace

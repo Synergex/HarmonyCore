@@ -1,12 +1,12 @@
-<CODEGEN_FILENAME>DbContext.dbl</CODEGEN_FILENAME>
+<CODEGEN_FILENAME>EdmBuilder.dbl</CODEGEN_FILENAME>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
-;// Title:       ODataDbContext.tpl
+;// Title:       ODataEdmBuilder.tpl
 ;//
 ;// Type:        CodeGen Template
 ;//
-;// Description: Used to create OData DbContext classes in a Harmony Core environment
+;// Description: Used to create OData EDM builder class in a Harmony Core environment
 ;//
 ;// Author:      Steve Ives, Synergex Professional Services Group
 ;//
@@ -36,7 +36,7 @@
 ;//
 ;;*****************************************************************************
 ;;
-;; Title:       DbContext.dbl
+;; Title:       ControllerDbContext.dbl
 ;;
 ;; Type:        Class
 ;;
@@ -80,39 +80,29 @@
 import Harmony.Core
 import Harmony.Core.Context
 import Microsoft.EntityFrameworkCore
+import Microsoft.OData.Edm
+import Microsoft.AspNet.OData.Builder
 import <MODELS_NAMESPACE>
 
 namespace <NAMESPACE>
 
-	public class DbContext extends Microsoft.EntityFrameworkCore.DbContext
-	
-		mDataProvider, @IDataObjectProvider
+	public class EdmBuilder
 
-		public method DbContext
-			options, @DbContextOptions<DbContext>
-			dataProvider, @IDataObjectProvider
-			endparams
-			parent(options)
+		private static mEdmModel, @IEdmModel
+
+		public static method GetEdmModel, @IEdmModel
 		proc
-			mDataProvider = dataProvider
-		endmethod
+			if(mEdmModel == ^null)
+			begin
+				data builder = new ODataConventionModelBuilder()
+				<STRUCTURE_LOOP>
+				builder.EntitySet<<StructureNoplural>>("<StructurePlural>")
+				</STRUCTURE_LOOP>
+				mEdmModel = builder.GetEdmModel()
+			end
 
-		<STRUCTURE_LOOP>
-		public readwrite property <StructurePlural>, @DbSet<<StructureNoplural>>
-		</STRUCTURE_LOOP>
+			mreturn mEdmModel
 
-		protected override method OnConfiguring, void
-			opts, @DbContextOptionsBuilder
-		proc
-			HarmonyDbContextOptionsExtensions.UseHarmonyDatabase(opts, mDataProvider)
-		endmethod
-
-		protected override method OnModelCreating, void
-			parm, @ModelBuilder
-		proc
-			parm.Ignore(^typeof(AlphaDesc))
-			parm.Ignore(^typeof(DataObjectMetadataBase))
-			parent.OnModelCreating(parm)
 		endmethod
 
 	endclass
