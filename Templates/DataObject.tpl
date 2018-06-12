@@ -131,10 +131,18 @@ namespace <NAMESPACE>
 
         <FIELD_LOOP>
 		<IF CUSTOM_NOT_SYMPHONY_ARRAY_FIELD>
+		;;; <summary>
+		;;; <FIELD_DESC>
+		;;; </summary>
 		<IF PKSEGMENT>
 		{Key}
 		</IF PKSEGMENT>
-        ;;<Field_name>
+		<IF REQUIRED>
+		{Required(ErrorMessage="<FIELD_DESC> is required. ")}
+		</IF REQUIRED>
+		<IF ALPHA>
+		{StringLength(<FIELD_SIZE>, ErrorMessage="<FIELD_DESC> cannot exceed <FIELD_SIZE> characters. ")}
+		</IF ALPHA>
 		public property <Field_sqlname>, <FIELD_CSTYPE>
 			method get
 			proc
@@ -187,6 +195,7 @@ namespace <NAMESPACE>
 				</IF INTEGER>
 			endmethod
 		endproperty
+
 		</IF CUSTOM_NOT_SYMPHONY_ARRAY_FIELD>
         </FIELD_LOOP>
 
