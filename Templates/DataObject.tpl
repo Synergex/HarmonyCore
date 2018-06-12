@@ -48,6 +48,7 @@
 
 import System
 import System.Collections.Generic
+import System.ComponentModel.DataAnnotations
 import System.Text
 import Harmony.Core
 import Harmony.Core.Converters
@@ -96,8 +97,12 @@ namespace <NAMESPACE>
 		endmethod
 		
         ;;Expose fields as properties for data binding
+
         <FIELD_LOOP>
 		<IF CUSTOM_NOT_SYMPHONY_ARRAY_FIELD>
+		<IF PKSEGMENT>
+		{Key}
+		</IF PKSEGMENT>
         ;;<Field_name>
 		public property <Field_sqlname>, <FIELD_CSTYPE>
 			method get

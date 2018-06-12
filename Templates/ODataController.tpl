@@ -131,26 +131,26 @@ namespace <NAMESPACE>
 			mreturn Ok(result)
 		endmethod
 		</PRIMARY_KEY>
-
-		<ALTERNATE_KEY_LOOP>
-		{ODataRoute("<StructurePlural>/ByKey/<KeyName>/(<SEGMENT_LOOP>{a<SegmentName>}<,></SEGMENT_LOOP>)")}
-		;;; <summary>
-		;;; Get a single <StructureNoplural> by key <KeyName>.
-		;;; </summary>
-        <SEGMENT_LOOP>
-		;;; <param name="a<SegmentName>"><FIELD_DESC></param>
-        </SEGMENT_LOOP>
-		;;; <returns></returns>
-		public method GetByKey<KeyName>, @IActionResult
-            <SEGMENT_LOOP>
-			{FromODataUri}
-            required in a<SegmentName>, <SEGMENT_SNTYPE>
-            </SEGMENT_LOOP>
-		proc
-			data result = DBContext.<StructurePlural>.Find(<SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP>)
-			mreturn Ok(result)
-		endmethod
 		
+		<ALTERNATE_KEY_LOOP>
+;		{ODataRoute("<StructurePlural>/ByKey/<KeyName>/(<SEGMENT_LOOP>{a<SegmentName>}<,></SEGMENT_LOOP>)")}
+;		;;; <summary>
+;		;;; Get a single <StructureNoplural> by key <KeyName>.
+;		;;; </summary>
+;        <SEGMENT_LOOP>
+;		;;; <param name="a<SegmentName>"><FIELD_DESC></param>
+;        </SEGMENT_LOOP>
+;		;;; <returns></returns>
+;		public method GetByKey<KeyName>, @IActionResult
+;            <SEGMENT_LOOP>
+;			{FromODataUri}
+;            required in a<SegmentName>, <SEGMENT_SNTYPE>
+;            </SEGMENT_LOOP>
+;		proc
+;			data result = DBContext.<StructurePlural>.Find(<SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP>)
+;			mreturn Ok(result)
+;		endmethod
+;		
 		</ALTERNATE_KEY_LOOP>
 	endclass
 

@@ -6,7 +6,7 @@ set CODEGEN_TPLDIR=Templates
 set PROJECT=SampleServices
 set OPTS=-e -r -lf
 
-set STRUCTURES=CUSTOMERS ORDERS PLANTS CONTRACT
+set STRUCTURES=CUSTOMERS ORDERS PLANTS
 
 rem Generate model classes
 codegen -s %STRUCTURES%   -t DataObject -n %PROJECT%.Models -o %PROJECT%\Models %OPTS%
