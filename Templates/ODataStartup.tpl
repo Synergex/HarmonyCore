@@ -8,8 +8,6 @@
 ;//
 ;// Description: Creates a Startup class for an OData / Web API hosting environment
 ;//
-;// Author:      Steve Ives, Synergex Professional Services Group
-;//
 ;// Copyright (c) 2018, Synergex International, Inc. All rights reserved.
 ;//
 ;// Redistribution and use in source and binary forms, with or without
@@ -45,8 +43,8 @@
 ;;*****************************************************************************
 ;; WARNING
 ;;
-;; This file was code generated. Avoid editing this file, as any changes that you
-;; make will be lost of the file is re-generated.
+;; This file was code generated. Avoid editing this file, as any changes that
+;; you make will be lost of the file is re-generated.
 ;;
 ;;*****************************************************************************
 ;;
