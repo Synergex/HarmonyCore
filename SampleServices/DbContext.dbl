@@ -45,7 +45,7 @@ import Harmony.Core
 import Harmony.Core.Context
 import Microsoft.EntityFrameworkCore
 import SampleServices.Models
-
+import System.Linq.Expressions
 namespace SampleServices
 
 	public class DbContext extends Microsoft.EntityFrameworkCore.DbContext
@@ -80,8 +80,9 @@ namespace SampleServices
 
 			;;Setup multi-record format files based on tag.
 			;;This will currently only work for single field==value tags.
-			parm.Entity<Customer>().HasDiscriminator("CustRtype",^typeof(int)).HasValue<Customer>(0)
-			parm.Entity<Vendor>().HasDiscriminator("VendRtype",^typeof(int)).HasValue<Vendor>(1)
+			data objParam = Expression.Parameter(^typeof(Customer));
+			parm.Entity(^typeof(Customer)).HasQueryFilter(Expression.Lambda(Expression.Block(Expression.Equal(Expression.Call(^typeof(EF), "Property", new Type[#] { ^typeof(int) }, objParam, Expression.Constant("CustRtype")), Expression.Constant(0))), new ParameterExpression[#] { objParam }))
+	;;		parm.Entity(^typeof(Vendor)).HasDiscriminator<int>("VendRtype");.HasValue<Vendor>(1)
 
 			parent.OnModelCreating(parm)
 
