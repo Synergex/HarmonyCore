@@ -42,6 +42,9 @@
 ;;*****************************************************************************
 
 import Microsoft.VisualStudio.TestTools.UnitTesting
+import Newtonsoft.Json
+import System.Collections.Generic
+import SampleServices.Models
 
 namespace SampleServices.Test
 
@@ -50,12 +53,14 @@ namespace SampleServices.Test
 
 		{TestMethod}
 		{TestCategory("Customer Tests")}
-		public method Gen_GetAllCustomers, void
+		public method GetAllCustomers, void
 		proc
 			data client = TestEnvironment.Server.CreateClient()
 			data request = "/odata/Customers"
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
+
+			data customers, @List<Customer>, JsonConvert.DeserializeObject<List<Customer>>(result)
 
 			response.EnsureSuccessStatusCode()
 

@@ -1,4 +1,5 @@
 <CODEGEN_FILENAME><StructureNoplural>Tests.dbl</CODEGEN_FILENAME>
+<REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
 ;// Title:       ODataUnitTests.tpl
@@ -76,6 +77,9 @@
 ;;*****************************************************************************
 
 import Microsoft.VisualStudio.TestTools.UnitTesting
+import Newtonsoft.Json
+import System.Collections.Generic
+import <MODELS_NAMESPACE>
 
 namespace <NAMESPACE>
 
@@ -90,6 +94,8 @@ namespace <NAMESPACE>
 			data request = "/odata/<StructurePlural>"
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
+
+			data <structurePlural>, @List<<StructureNoplural>>, JsonConvert.DeserializeObject<List<<StructureNoplural>>>(result)
 
 			response.EnsureSuccessStatusCode()
 
