@@ -29,11 +29,11 @@ import System.Threading.Tasks
 namespace SampleServices.Test
 
 	{TestClass}
-	public class OrdersTests
+	public class VendorsTests
 
 		server, @TestServer 
 
-		public method OrdersTests
+		public method VendorsTests
 		proc
 			Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)
 
@@ -43,25 +43,20 @@ namespace SampleServices.Test
 		endmethod
 
 		{TestMethod}
-		public method GetAllOrders, void
+		public method GetAllVendors, void
 		proc
 			data client = server.CreateClient()
-			data request = "/odata/Orders"
+			data request = "/odata/Vendors"
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
+
+			Console.WriteLine(result)
+			throw new exception()
+
 			response.EnsureSuccessStatusCode()
+
 		endmethod
-	
-		{TestMethod}
-		public method GetOrder9013, void
-		proc
-			data client = server.CreateClient()
-			data request = "/odata/Orders(9013)"
-			data response = client.GetAsync(request).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-		endmethod
-	
+
 	endclass
 
 endnamespace

@@ -1,10 +1,10 @@
 ;;*****************************************************************************
 ;;
-;; Title:       DbContext.dbl
+;; Title:       VendorsController.dbl
 ;;
 ;; Type:        Class
 ;;
-;; Description: OData DbContext class
+;; Description: OData controller for the VENDORS structure.
 ;;
 ;;*****************************************************************************
 ;; WARNING
@@ -41,52 +41,72 @@
 ;;
 ;;*****************************************************************************
 
-import Harmony.Core
-import Harmony.Core.Context
+import Microsoft.AspNetCore.Mvc
+import Microsoft.AspNet.OData
+import Microsoft.AspNet.OData.Routing
 import Microsoft.EntityFrameworkCore
-import SampleServices.Models
+import Microsoft.EntityFrameworkCore.Infrastructure
 
-namespace SampleServices
+namespace SampleServices.Controllers
 
-	public class DbContext extends Microsoft.EntityFrameworkCore.DbContext
+	;;; <summary>
+	;;; OData controller for Vendors
+	;;; </summary>
+	public class VendorsController extends ODataController
 	
-		mDataProvider, @IDataObjectProvider
+		public readwrite property DBContext, @SampleServices.DBContext
 
-		public method DbContext
-			options, @DbContextOptions<DbContext>
-			dataProvider, @IDataObjectProvider
-			endparams
-			parent(options)
+		;;; <summary>
+		;;; Constructs a new instance of VendorsController
+		;;; </summary>
+		;;; <param name="dbContext">Database context</param>
+		public method VendorsController
+			dbContext, @SampleServices.DBContext
 		proc
-			mDataProvider = dataProvider
+			this.DBContext = dbContext
 		endmethod
 
-		public readwrite property Customers, @DbSet<Customer>
-		public readwrite property Orders, @DbSet<Order>
-		public readwrite property Plants, @DbSet<Plant>
-		public readwrite property Vendors, @DbSet<Vendor>
-
-		protected override method OnConfiguring, void
-			opts, @DbContextOptionsBuilder
+		{ODataRoute("Vendors")}
+		;;; <summary>
+		;;; Get all Vendors
+		;;; </summary>
+		{EnableQuery(MaxExpansionDepth=3, MaxSkip=10, MaxTop=5, PageSize=4)}
+		public method Get, @IActionResult
 		proc
-			HarmonyDbContextOptionsExtensions.UseHarmonyDatabase(opts, mDataProvider)
+			mreturn Ok(DBContext.Vendors)
 		endmethod
 
-		protected override method OnModelCreating, void
-			parm, @ModelBuilder
+		{ODataRoute("Vendors({aVendKey})")}
+		;;; <summary>
+		;;; Get a single Vendor by primary key.
+		;;; </summary>
+		;;; <param name="aVendKey">Vendor ID</param>
+		;;; <returns></returns>
+		public method Get, @IActionResult
+			{FromODataUri}
+            required in aVendKey, int
 		proc
-			parm.Ignore(^typeof(AlphaDesc))
-			parm.Ignore(^typeof(DataObjectMetadataBase))
-
-			;;Setup multi-record format files based on tag.
-			;;This will currently only work for single field==value tags.
-			parm.Entity<Customer>().HasDiscriminator("CustRtype",^typeof(int)).HasValue<Customer>(0)
-			parm.Entity<Vendor>().HasDiscriminator("VendRtype",^typeof(int)).HasValue<Vendor>(1)
-
-			parent.OnModelCreating(parm)
-
+			data result = DBContext.Vendors.Find(aVendKey)
+			mreturn Ok(result)
 		endmethod
-
+		
+;		{ODataRoute("Vendors/ByKey/Tagkey/({aVendRtype},{aVendKey})")}
+;		;;; <summary>
+;		;;; Get a single Vendor by key Tagkey.
+;		;;; </summary>
+;;		;;; <param name="aVendRtype">Record Type</param>
+;;		;;; <param name="aVendKey">Vendor ID</param>
+;;		;;; <returns></returns>
+;		public method GetByKeyTagkey, @IActionResult
+;;			{FromODataUri}
+;            required in aVendRtype, int
+;;			{FromODataUri}
+;            required in aVendKey, int
+;;		proc
+;			data result = DBContext.Vendors.Find(aVendRtype,aVendKey)
+;			mreturn Ok(result)
+;		endmethod
+;		
 	endclass
 
 endnamespace

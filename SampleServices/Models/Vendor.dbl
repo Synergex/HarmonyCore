@@ -1,11 +1,11 @@
 ;;*****************************************************************************
 ;;
-;; Title:       Order.dbl
+;; Title:       Vendor.dbl
 ;;
 ;; Type:        Class
 ;;
 ;; Description: Data object representing data defined by the repository
-;;              structure ORDERS and from the data file ICSTUT:oorder.ism.
+;;              structure VENDORS and from the data file ICSTUT:arcust.ism.
 ;;
 ;;*****************************************************************************
 ;; WARNING
@@ -51,26 +51,26 @@ import Harmony.Core.Converters
 
 namespace SampleServices.Models
 
-	.include "ORDERS" repository  , structure="strOrder", end
+	.include "VENDORS" repository  , structure="strVendor", end
 
-    public partial class Order extends DataObjectBase
+    public partial class Vendor extends DataObjectBase
 
         ;;make the record available and a copy
-        private mSynergyData, strOrder 
-		private mOriginalSynergyData, strOrder 
+        private mSynergyData, strVendor 
+		private mOriginalSynergyData, strVendor 
 		
-		private static sMetadata, @OrderMetadata
+		private static sMetadata, @VendorMetadata
 
-		static method Order
+		static method Vendor
 		proc
-			sMetadata = new OrderMetadata()
-			DataObjectMetadataBase.MetadataLookup.TryAdd(^typeof(Order), sMetadata)
+			sMetadata = new VendorMetadata()
+			DataObjectMetadataBase.MetadataLookup.TryAdd(^typeof(Vendor), sMetadata)
 		endmethod
 		
         ;;; <summary>
         ;;;  Constructor, initialise the base fields
         ;;; </summary>
-        public method Order
+        public method Vendor
             parent()
         proc
 			init mSynergyData, mOriginalSynergyData
@@ -79,8 +79,8 @@ namespace SampleServices.Models
 		;;; <summary>
 		;;;  Alternate Constructor, accepts the structured data
 		;;; </summary>
-		public method Order
-			required in inData, strOrder
+		public method Vendor
+			required in inData, strVendor
 			parent()
 		proc
 			mSynergyData = mOriginalSynergyData = inData
@@ -95,175 +95,165 @@ namespace SampleServices.Models
         ;;Expose fields as properties for data binding
 
 		;;; <summary>
-		;;; Order number
+		;;; Vendor ID
 		;;; </summary>
 		{Key}
-		public property OrNumber, int
+		public property VendKey, int
 			method get
 			proc
-				mreturn (int)mSynergyData.Or_number
+				mreturn (int)mSynergyData.Vend_key
             endmethod
 			method set
 			proc
-				mSynergyData.Or_number = value
+				mSynergyData.Vend_key = value
 			endmethod
 		endproperty
 
 		;;; <summary>
-		;;; Vendorcode
+		;;; Record Type
 		;;; </summary>
-		public property OrVendor, int
+		public property VendRtype, int
 			method get
 			proc
-				mreturn (int)mSynergyData.Or_vendor
+				mreturn (int)mSynergyData.Vend_rtype
             endmethod
 			method set
 			proc
-				mSynergyData.Or_vendor = value
+				mSynergyData.Vend_rtype = value
 			endmethod
 		endproperty
 
 		;;; <summary>
-		;;; Item code
+		;;; Vendor Name
 		;;; </summary>
-		public property OrItem, int
+		{StringLength(30, ErrorMessage="Vendor Name cannot exceed 30 characters. ")}
+		public property VendName, string
 			method get
 			proc
-				mreturn (int)mSynergyData.Or_item
+				mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.Vend_name, ^null, ^null, ^null)
             endmethod
 			method set
 			proc
-				mSynergyData.Or_item = value
+				mSynergyData.Vend_name = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
 			endmethod
 		endproperty
 
 		;;; <summary>
-		;;; Customer number
+		;;; Street Address
 		;;; </summary>
-		public property OrCustomer, int
+		{StringLength(25, ErrorMessage="Street Address cannot exceed 25 characters. ")}
+		public property VendStreet, string
 			method get
 			proc
-				mreturn (int)mSynergyData.Or_customer
+				mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.Vend_street, ^null, ^null, ^null)
             endmethod
 			method set
 			proc
-				mSynergyData.Or_customer = value
+				mSynergyData.Vend_street = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
 			endmethod
 		endproperty
 
 		;;; <summary>
-		;;; Quantity on order
+		;;; City
 		;;; </summary>
-		public property OrQty, int
+		{StringLength(20, ErrorMessage="City cannot exceed 20 characters. ")}
+		public property VendCity, string
 			method get
 			proc
-				mreturn (int)mSynergyData.Or_qty
+				mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.Vend_city, ^null, ^null, ^null)
             endmethod
 			method set
 			proc
-				mSynergyData.Or_qty = value
+				mSynergyData.Vend_city = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
 			endmethod
 		endproperty
 
 		;;; <summary>
-		;;; Order Price
+		;;; State
 		;;; </summary>
-		public property OrPrice, decimal
+		{StringLength(2, ErrorMessage="State cannot exceed 2 characters. ")}
+		public property VendState, string
 			method get
 			proc
-				mreturn (decimal)SynergyImpliedDecimalConverter.Convert(mSynergyData.Or_price, ^null, "DECIMALPLACES#2", ^null)
+				mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.Vend_state, ^null, ^null, ^null)
             endmethod
 			method set
 			proc
-				mSynergyData.Or_price = value
+				mSynergyData.Vend_state = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
 			endmethod
 		endproperty
 
 		;;; <summary>
-		;;; Order Terms code
+		;;; Zip Code
 		;;; </summary>
-		{StringLength(2, ErrorMessage="Order Terms code cannot exceed 2 characters. ")}
-		public property OrTerms, string
+		public property VendZip, int
 			method get
 			proc
-				mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.Or_terms, ^null, ^null, ^null)
+				mreturn (int)mSynergyData.Vend_zip
             endmethod
 			method set
 			proc
-				mSynergyData.Or_terms = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
+				mSynergyData.Vend_zip = value
 			endmethod
 		endproperty
 
 		;;; <summary>
-		;;; Order date
+		;;; Contact Person
 		;;; </summary>
-		public property OrOdate, DateTime
+		{StringLength(25, ErrorMessage="Contact Person cannot exceed 25 characters. ")}
+		public property VendContact, string
 			method get
 			proc
-				mreturn (DateTime)SynergyDecimalDateConverter.Convert(mSynergyData.Or_odate, ^null, ^null, ^null)
+				mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.Vend_contact, ^null, ^null, ^null)
             endmethod
 			method set
 			proc
-				mSynergyData.Or_odate = (D)SynergyDecimalDateConverter.ConvertBack(value, ^null, ^null, ^null)
+				mSynergyData.Vend_contact = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
 			endmethod
 		endproperty
 
 		;;; <summary>
-		;;; Req ship date
+		;;; Phone number
 		;;; </summary>
-		public property OrSdate, DateTime
+		public property VendTelephone, long
 			method get
 			proc
-				mreturn (DateTime)SynergyDecimalDateConverter.Convert(mSynergyData.Or_sdate, ^null, ^null, ^null)
+				mreturn (long)mSynergyData.Vend_telephone
             endmethod
 			method set
 			proc
-				mSynergyData.Or_sdate = (D)SynergyDecimalDateConverter.ConvertBack(value, ^null, ^null, ^null)
+				mSynergyData.Vend_telephone = value
 			endmethod
 		endproperty
 
 		;;; <summary>
-		;;; Expiration date
+		;;; Fax Number
 		;;; </summary>
-		public property OrEdate, DateTime
+		public property VendFax, long
 			method get
 			proc
-				mreturn (DateTime)SynergyDecimalDateConverter.Convert(mSynergyData.Or_edate, ^null, ^null, ^null)
+				mreturn (long)mSynergyData.Vend_fax
             endmethod
 			method set
 			proc
-				mSynergyData.Or_edate = (D)SynergyDecimalDateConverter.ConvertBack(value, ^null, ^null, ^null)
+				mSynergyData.Vend_fax = value
 			endmethod
 		endproperty
 
 		;;; <summary>
-		;;; Invoice Number
+		;;; Terms & Conditions
 		;;; </summary>
-		public property OrInvoice, int
+		{StringLength(24, ErrorMessage="Terms & Conditions cannot exceed 24 characters. ")}
+		public property VendTerms, string
 			method get
 			proc
-				mreturn (int)mSynergyData.Or_invoice
+				mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.Vend_terms, ^null, ^null, ^null)
             endmethod
 			method set
 			proc
-				mSynergyData.Or_invoice = value
+				mSynergyData.Vend_terms = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
 			endmethod
 		endproperty
-
-		;One to one relationship from VENDOR to Vendors.KEY0
-		;public readwrite property VendorData, @Vendor
-
-		;One to one relationship from CUSTOMER to Customers.KEY0
-		;public readwrite property CustomerData, @Customer
-
-		;One to one relationship from ITEM to Plants.KEY0
-		;public readwrite property ItemData, @Plant
-
-		;One to one relationship from TAG_KEY_CUST to Customers.TAGKEY
-		;public readwrite property TagKeyCustData, @Customer
-
-		;One to one relationship from TAG_KEY_VEND to Vendors.TAGKEY
-		;public readwrite property TagKeyVendData, @Vendor
 
 
         ;;; <summary>

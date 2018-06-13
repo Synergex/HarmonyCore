@@ -143,7 +143,7 @@ namespace <NAMESPACE>
 		<IF ALPHA>
 		{StringLength(<FIELD_SIZE>, ErrorMessage="<FIELD_DESC> cannot exceed <FIELD_SIZE> characters. ")}
 		</IF ALPHA>
-		public property <Field_sqlname>, <FIELD_CSTYPE>
+		public property <FieldSqlname>, <FIELD_CSTYPE>
 			method get
 			proc
 				<IF ALPHA>
@@ -198,6 +198,18 @@ namespace <NAMESPACE>
 
 		</IF CUSTOM_NOT_SYMPHONY_ARRAY_FIELD>
         </FIELD_LOOP>
+		<IF STRUCTURE_RELATIONS>
+		<RELATION_LOOP>
+		<IF ONE_TO_ONE>
+		;One to one relationship from <RELATION_FROMKEY> to <RelationTostructure>.<RELATION_TOKEY>
+		;public readwrite property <RelationFromkey>Data, @<RelationTostructureNoplural>
+		<ELSE>
+		;One to many relationship from <RELATION_FROMKEY> to <RelationTostructure>.<RELATION_TOKEY>
+		;public readwrite property <RelationTostructurePlural>, @ICollection<<RelationTostructureNoplural>>
+		</IF ONE_TO_ONE>
+
+		</RELATION_LOOP>
+		</IF STRUCTURE_RELATIONS>
 
         ;;; <summary>
         ;;; Expose the complete synergy record

@@ -1,10 +1,10 @@
 ;;*****************************************************************************
 ;;
-;; Title:       DbContext.dbl
+;; Title:       VendorMetaData.dbl
 ;;
 ;; Type:        Class
 ;;
-;; Description: OData DbContext class
+;; Description: Defines meta data associated with a data object Vendor.
 ;;
 ;;*****************************************************************************
 ;; WARNING
@@ -14,7 +14,7 @@
 ;;
 ;;*****************************************************************************
 ;;
-;; Copyright (c) 2018, Synergex International, Inc.
+;; Copyright (c) 2012, Synergex International, Inc.
 ;; All rights reserved.
 ;;
 ;; Redistribution and use in source and binary forms, with or without
@@ -41,52 +41,41 @@
 ;;
 ;;*****************************************************************************
 
+import System
+import System.Collections.Generic
+import System.Text
 import Harmony.Core
-import Harmony.Core.Context
-import Microsoft.EntityFrameworkCore
-import SampleServices.Models
+import Harmony.Core.Converters
 
-namespace SampleServices
+namespace SampleServices.Models
 
-	public class DbContext extends Microsoft.EntityFrameworkCore.DbContext
+	public partial class VendorMetadata extends DataObjectMetadataBase
+		
+		public method VendorMetadata
+		proc
+			RPSStructureName = "VENDORS"
+			RPSStructureSize = ^size(strVendor)
+			AddFieldInfo("VendKey", "DECIMAL", 6, 1, 0, false)
+			AddFieldInfo("VendRtype", "DECIMAL", 1, 7, 0, false)
+			AddFieldInfo("VendName", "ALPHA", 30, 8, 0, false)
+			AddFieldInfo("VendStreet", "ALPHA", 25, 38, 0, false)
+			AddFieldInfo("VendCity", "ALPHA", 20, 63, 0, false)
+			AddFieldInfo("VendState", "ALPHA", 2, 83, 0, false)
+			AddFieldInfo("VendZip", "DECIMAL", 9, 85, 0, false)
+			AddFieldInfo("VendContact", "ALPHA", 25, 94, 0, false)
+			AddFieldInfo("VendTelephone", "DECIMAL", 10, 119, 0, false)
+			AddFieldInfo("VendFax", "DECIMAL", 10, 129, 0, false)
+			AddFieldInfo("VendTerms", "ALPHA", 24, 139, 0, false)
+		endmethod
 	
-		mDataProvider, @IDataObjectProvider
-
-		public method DbContext
-			options, @DbContextOptions<DbContext>
-			dataProvider, @IDataObjectProvider
-			endparams
-			parent(options)
+		public override method MakeNew, @DataObjectBase
+			dataArea, a
+			grfa, a
 		proc
-			mDataProvider = dataProvider
-		endmethod
-
-		public readwrite property Customers, @DbSet<Customer>
-		public readwrite property Orders, @DbSet<Order>
-		public readwrite property Plants, @DbSet<Plant>
-		public readwrite property Vendors, @DbSet<Vendor>
-
-		protected override method OnConfiguring, void
-			opts, @DbContextOptionsBuilder
-		proc
-			HarmonyDbContextOptionsExtensions.UseHarmonyDatabase(opts, mDataProvider)
-		endmethod
-
-		protected override method OnModelCreating, void
-			parm, @ModelBuilder
-		proc
-			parm.Ignore(^typeof(AlphaDesc))
-			parm.Ignore(^typeof(DataObjectMetadataBase))
-
-			;;Setup multi-record format files based on tag.
-			;;This will currently only work for single field==value tags.
-			parm.Entity<Customer>().HasDiscriminator("CustRtype",^typeof(int)).HasValue<Customer>(0)
-			parm.Entity<Vendor>().HasDiscriminator("VendRtype",^typeof(int)).HasValue<Vendor>(1)
-
-			parent.OnModelCreating(parm)
-
+			mreturn new Vendor((strVendor)dataArea) { GlobalRFA = grfa }
 		endmethod
 
 	endclass
 
 endnamespace
+

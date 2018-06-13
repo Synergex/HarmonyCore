@@ -90,7 +90,7 @@ namespace <NAMESPACE>
 			RPSStructureSize = ^size(str<StructureNoplural>)
 			<FIELD_LOOP>
 			<IF CUSTOM_NOT_SYMPHONY_ARRAY_FIELD>
-			AddFieldInfo("<Field_sqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false)
+			AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false)
 			</IF>
             </FIELD_LOOP>
 		endmethod

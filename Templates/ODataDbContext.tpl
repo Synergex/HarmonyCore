@@ -110,7 +110,20 @@ namespace <NAMESPACE>
 		proc
 			parm.Ignore(^typeof(AlphaDesc))
 			parm.Ignore(^typeof(DataObjectMetadataBase))
+
+			;;Setup multi-record format files based on tag.
+			;;This will currently only work for single field==value tags.
+			<STRUCTURE_LOOP>
+			<IF STRUCTURE_TAGS>
+			<TAG_LOOP>
+			parm.Entity<<StructureNoplural>>().HasDiscriminator("<TagloopFieldName>",^typeof(<TAGLOOP_FIELD_CSTYPE>)).HasValue<<StructureNoplural>>(<TAGLOOP_TAG_VALUE>)
+;//TODO: Compiler bug: parm.Entity<<StructureNoplural>>().HasDiscriminator<<TAGLOOP_FIELD_CSTYPE>>("<TagloopFieldName>").HasValue<<StructureNoplural>>(<TAGLOOP_TAG_VALUE>)
+			</TAG_LOOP>
+			</IF STRUCTURE_TAGS>
+			</STRUCTURE_LOOP>
+
 			parent.OnModelCreating(parm)
+
 		endmethod
 
 	endclass
