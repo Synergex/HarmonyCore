@@ -79,6 +79,7 @@
 import Microsoft.VisualStudio.TestTools.UnitTesting
 import Newtonsoft.Json
 import System.Collections.Generic
+import System.Net.Http
 import <MODELS_NAMESPACE>
 
 namespace <NAMESPACE>
@@ -90,17 +91,42 @@ namespace <NAMESPACE>
 		{TestCategory("<StructureNoplural> Tests")}
 		public method GetAll<StructurePlural>, void
 		proc
-			data client = TestEnvironment.Server.CreateClient()
-			data request = "/odata/<StructurePlural>"
-			data response = client.GetAsync(request).Result
+			disposable data client = TestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync("/odata/<StructurePlural>").Result
+
+			response.EnsureSuccessStatusCode()
+
+			data result = response.Content.ReadAsStringAsync().Result
+			;data <structurePlural>, @List<<StructureNoplural>>, JsonConvert.DeserializeObject<List<<StructureNoplural>>>(result)
+
+		endmethod
+	
+		{TestMethod}
+		{TestCategory("<StructureNoplural> Tests")}
+		public method Create<StructureNoplural>, void
+		proc
+			disposable data client = TestEnvironment.Server.CreateClient()
+			disposable data requestBody = new StringContent("")
+			disposable data response = client.PostAsync("/odata/<StructurePlural>", requestBody).Result
+
+			response.EnsureSuccessStatusCode()
+
 			data result = response.Content.ReadAsStringAsync().Result
 
-			data <structurePlural>, @List<<StructureNoplural>>, JsonConvert.DeserializeObject<List<<StructureNoplural>>>(result)
+		endmethod
+
+		{TestMethod}
+		{TestCategory("<StructureNoplural> Tests")}
+		public method Update<StructureNoplural>, void
+		proc
+			disposable data client = TestEnvironment.Server.CreateClient()
+			disposable data requestBody = new StringContent("")
+			disposable data response = client.PutAsync("/odata/<StructurePlural>(1)", requestBody).Result
 
 			response.EnsureSuccessStatusCode()
 
 		endmethod
-	
+
 	endclass
 
 endnamespace

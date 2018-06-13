@@ -44,6 +44,7 @@
 import Microsoft.VisualStudio.TestTools.UnitTesting
 import Newtonsoft.Json
 import System.Collections.Generic
+import System.Net.Http
 import SampleServices.Models
 
 namespace SampleServices.Test
@@ -55,17 +56,42 @@ namespace SampleServices.Test
 		{TestCategory("Plant Tests")}
 		public method GetAllPlants, void
 		proc
-			data client = TestEnvironment.Server.CreateClient()
-			data request = "/odata/Plants"
-			data response = client.GetAsync(request).Result
+			disposable data client = TestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync("/odata/Plants").Result
+
+			response.EnsureSuccessStatusCode()
+
+			data result = response.Content.ReadAsStringAsync().Result
+			;data plants, @List<Plant>, JsonConvert.DeserializeObject<List<Plant>>(result)
+
+		endmethod
+	
+		{TestMethod}
+		{TestCategory("Plant Tests")}
+		public method CreatePlant, void
+		proc
+			disposable data client = TestEnvironment.Server.CreateClient()
+			disposable data requestBody = new StringContent("")
+			disposable data response = client.PostAsync("/odata/Plants", requestBody).Result
+
+			response.EnsureSuccessStatusCode()
+
 			data result = response.Content.ReadAsStringAsync().Result
 
-			data plants, @List<Plant>, JsonConvert.DeserializeObject<List<Plant>>(result)
+		endmethod
+
+		{TestMethod}
+		{TestCategory("Plant Tests")}
+		public method UpdatePlant, void
+		proc
+			disposable data client = TestEnvironment.Server.CreateClient()
+			disposable data requestBody = new StringContent("")
+			disposable data response = client.PutAsync("/odata/Plants(1)", requestBody).Result
 
 			response.EnsureSuccessStatusCode()
 
 		endmethod
-	
+
 	endclass
 
 endnamespace

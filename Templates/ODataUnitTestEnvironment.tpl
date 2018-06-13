@@ -1,12 +1,13 @@
-<CODEGEN_FILENAME>DbContext.dbl</CODEGEN_FILENAME>
-<REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
+<CODEGEN_FILENAME>TestEnvironment.dbl</CODEGEN_FILENAME>
+<REQUIRES_USERTOKEN>SERVICES_NAMESPACE</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
-;// Title:       ODataDbContext.tpl
+;// Title:       ODataUnitTestEnvironment.tpl
 ;//
 ;// Type:        CodeGen Template
 ;//
-;// Description: Used to create OData DbContext classes in a Harmony Core environment
+;// Description: Generates a class that configures an environment in which unit
+;//              tests can operate with a known initial data state.
 ;//
 ;// Copyright (c) 2018, Synergex International, Inc. All rights reserved.
 ;//
@@ -34,11 +35,12 @@
 ;//
 ;;*****************************************************************************
 ;;
-;; Title:       DbContext.dbl
+;; Title:       TestEnvironment.dbl
 ;;
 ;; Type:        Class
 ;;
-;; Description: OData DbContext class
+;; Description: Configures an environment in which unit tests can operate
+;;              with a known initial data state.
 ;;
 ;;*****************************************************************************
 ;; WARNING
@@ -75,56 +77,112 @@
 ;;
 ;;*****************************************************************************
 
-import Harmony.Core
-import Harmony.Core.Context
-import Microsoft.EntityFrameworkCore
-import System.Linq.Expressions
-import <MODELS_NAMESPACE>
+import Microsoft.AspNetCore.Hosting
+import Microsoft.AspNetCore.TestHost
+import Microsoft.VisualStudio.TestTools.UnitTesting
+import System.Text
+import <SERVICES_NAMESPACE>
+
+main TestEnvironment
+proc
+	;For debugging!
+
+	TestEnvironment.AssemblyInitialize(^null)
+
+	data tester = new CustomerTests()
+	tester.GetAllCustomers()
+
+	TestEnvironment.AssemblyCleanup()
+
+endmain
 
 namespace <NAMESPACE>
 
-	public class DbContext extends Microsoft.EntityFrameworkCore.DbContext
-	
-		mDataProvider, @IDataObjectProvider
+	{TestClass}
+	public class TestEnvironment
 
-		public method DbContext
-			options, @DbContextOptions<DbContext>
-			dataProvider, @IDataObjectProvider
-			endparams
-			parent(options)
+		public static Server, @TestServer 
+
+		{AssemblyInitialize}
+		public static method AssemblyInitialize, void
+			required in context, @TestContext
 		proc
-			mDataProvider = dataProvider
+			Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)
+
+			;;Set the logical names that will be used to access the data files
+			data status, i4
+			xcall setlog("ICSTUT", EnvironmentRootBuilder.FindRelativeFolderForAssembly("SampleData"), status)
+
+			;;Make sure the files don't already exist
+			deleteFiles()
+
+			;;Create the data files
+			createFiles()
+
+			;;Create a TestServer to host the Web API services
+			Server = new TestServer(new WebHostBuilder().UseStartup<Startup>())
+
 		endmethod
 
-		<STRUCTURE_LOOP>
-		public readwrite property <StructurePlural>, @DbSet<<StructureNoplural>>
-		</STRUCTURE_LOOP>
-
-		protected override method OnConfiguring, void
-			opts, @DbContextOptionsBuilder
+		{AssemblyCleanup}
+		public static method AssemblyCleanup, void
 		proc
-			HarmonyDbContextOptionsExtensions.UseHarmonyDatabase(opts, mDataProvider)
+			;;Clean up the test host
+			Server.Dispose()
+			Server = ^null
+
+			;;Delete the data files
+			deleteFiles()
+
 		endmethod
 
-		protected override method OnModelCreating, void
-			parm, @ModelBuilder
-		proc
-			parm.Ignore(^typeof(AlphaDesc))
-			parm.Ignore(^typeof(DataObjectMetadataBase))
-
-			;;Setup multi-record format files based on tag.
-			;;This will currently only work for single field==value tags.
+		private static method createFiles, void
 			<STRUCTURE_LOOP>
-			<IF STRUCTURE_TAGS>
-			<TAG_LOOP>
-			data <structureNoplural>Param = Expression.Parameter(^typeof(<structureNoplural>))
-			parm.Entity(^typeof(<structureNoplural>)).HasQueryFilter(Expression.Lambda(Expression.Block(Expression.Equal(Expression.Call(^typeof(EF), "Property", new Type[#] { ^typeof(<TAGLOOP_FIELD_CSTYPE>) }, <structureNoplural>Param, Expression.Constant("<TagloopFieldName>")), Expression.Constant(<TAGLOOP_TAG_VALUE>))), new ParameterExpression[#] { <structureNoplural>Param }))
-			</TAG_LOOP>
-			</IF STRUCTURE_TAGS>
+			.include "<STRUCTURE_NOALIAS>" repository, record="<structureNoplural>"
 			</STRUCTURE_LOOP>
+		proc
+			data chout, int
+			data chin, int
+			data dataFile, string
+			data xdlFile, string
+			data textFile, string
 
-			parent.OnModelCreating(parm)
+			<STRUCTURE_LOOP>
+			;;Create and load the <structurePlural> file
 
+			dataFile = "<FILE_NAME>"
+			xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+			textFile = dataFile.ToLower().Replace(".ism",".txt")
+
+			open(chout=0,o:i,dataFile,FDL:xdlFile)
+			open(chin,i,textFile)
+			repeat
+			begin
+				reads(chin,<structureNoplural>,end<structurePlural>)
+				store(chout,<structureNoplural>)
+			end
+		end<structurePlural>,
+			close chin
+			close chout
+
+			</STRUCTURE_LOOP>
+		endmethod
+
+		private static method deleteFiles, void
+		proc
+			<STRUCTURE_LOOP>
+			;;Delete the <structurePlural> file
+			try
+			begin
+				xcall delet("<FILE_NAME>")
+			end
+			catch (e, @NoFileFoundException)
+			begin
+				nop
+			end
+			endtry
+
+			</STRUCTURE_LOOP>
 		endmethod
 
 	endclass

@@ -59,19 +59,24 @@ namespace SampleServices.Test
 		public method ConfigureServices, void
 			services, @IServiceCollection 
 		proc
-			;services.AddTransient<PrimeService>()
-			data channelManager = new FileChannelManager() 
-			data objectProvider = new DataObjectProvider(channelManager)
-			objectProvider.AddDataObjectMapping<Customer>("ICSTUT:customer.ism", FileOpenMode.UpdateIndexed)
-			objectProvider.AddDataObjectMapping<Order>("ICSTUT:orders.ism", FileOpenMode.UpdateIndexed)
-			objectProvider.AddDataObjectMapping<Plant>("ICSTUT:plants.ism", FileOpenMode.UpdateIndexed)
-			objectProvider.AddDataObjectMapping<Vendor>("ICSTUT:customer.ism", FileOpenMode.UpdateIndexed)
-			services.AddSingleton<FileChannelManager>(channelManager)
-			services.AddSingleton<IDataObjectProvider>(objectProvider)
+			lambda AddDataObjectMappings(serviceProvider)
+			begin
+				data objectProvider = new DataObjectProvider(serviceProvider.GetService<IFileChannelManager>())
+				objectProvider.AddDataObjectMapping<Customer>("ICSTUT:customer.ism", FileOpenMode.UpdateIndexed)
+				objectProvider.AddDataObjectMapping<Order>("ICSTUT:orders.ism", FileOpenMode.UpdateIndexed)
+				objectProvider.AddDataObjectMapping<Plant>("ICSTUT:plants.ism", FileOpenMode.UpdateIndexed)
+				objectProvider.AddDataObjectMapping<Vendor>("ICSTUT:customer.ism", FileOpenMode.UpdateIndexed)
+				mreturn objectProvider
+			end
+
+			services.AddSingleton<IFileChannelManager, FileChannelManager>()
+			services.AddSingleton<IDataObjectProvider>(AddDataObjectMappings)
 			services.AddSingleton<DbContextOptions<DBContext>>(new DbContextOptions<DBContext>())
 			services.AddSingleton<DBContext, DBContext>()
+
 			services.AddOData()
 			services.AddMvcCore()
+
 		endmethod
 
 		public method Configure, void

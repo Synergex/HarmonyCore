@@ -1,0 +1,142 @@
+
+import Microsoft.AspNetCore.Hosting
+import Microsoft.AspNetCore.TestHost
+import Microsoft.VisualStudio.TestTools.UnitTesting
+import System.Text
+import SampleServices
+
+main TestEnvironment
+proc
+	;Don't ask!
+endmain
+
+namespace SampleServices.Test
+
+	{TestClass}
+	public class TestEnvironment
+
+		public static Server, @TestServer 
+
+		{AssemblyInitialize}
+		public static method AssemblyInitialize, void
+			required in context, @TestContext
+		proc
+			Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)
+
+			;;Set the logical names that will be used to access the data files
+			data status, i4
+			xcall setlog("ICSTUT", EnvironmentRootBuilder.FindRelativeFolderForAssembly("SampleData"), status)
+
+			;;Make sure the files don't alreeady exist
+			deleteFiles()
+
+			;;Create the data files
+			createFiles()
+
+			;;Create a TestServer to host the Web API services
+			Server = new TestServer(new WebHostBuilder().UseStartup<Startup>())
+
+		endmethod
+
+		{AssemblyCleanup}
+		public static method AssemblyCleanup, void
+		proc
+			;;Clean up the test host
+			Server.Dispose()
+			Server = ^null
+
+			;;Delete the data files
+			deleteFiles()
+
+		endmethod
+
+		private static method createFiles, void
+			.include "CUSTOMERS" repository, record="customer"
+			.include "ORDERS"    repository, record="order"
+			.include "PLANTS"   repository, record="plant"
+		proc
+			data chout, int
+			data chin, int
+
+			;;Create and load the customers file
+
+			open(chout=0,o:i,"ICSTUT:customer.ism",FDL:"@ICSTUT:customer.xdl")
+			open(chin,i,"ICSTUT:customer.txt")
+			repeat
+			begin
+				reads(chin,customer,endCustomers)
+				store(chout,customer)
+			end
+		endCustomers,
+			close chin
+			close chout
+
+			;;Create and load the orders file
+
+			open(chout=0,o:i,"ICSTUT:orders.ism",FDL:"@ICSTUT:orders.xdl")
+			open(chin,i,"ICSTUT:orders.txt")
+			repeat
+			begin
+				reads(chin,order,endOrders)
+				store(chout,order)
+			end
+		endOrders,
+			close chin
+			close chout
+
+			;;Create and load the plants file
+
+			open(chout=0,o:i,"ICSTUT:plants.ism",FDL:"@ICSTUT:plants.xdl")
+			open(chin,i,"ICSTUT:plants.txt")
+			repeat
+			begin
+				reads(chin,plant,endPlants)
+				store(chout,plant)
+			end
+		endPlants,
+			close chin
+			close chout
+
+		endmethod
+
+		private static method deleteFiles, void
+		proc
+			;;Delete the customers file
+			try
+			begin
+				xcall delet("ICSTUT:customer.ism")
+			end
+			catch (e, @NoFileFoundException)
+			begin
+				nop
+			end
+			endtry
+
+			;;Delete the orders file
+			try
+			begin
+				xcall delet("ICSTUT:orders.ism")
+			end
+			catch (e, @NoFileFoundException)
+			begin
+				nop
+			end
+			endtry
+
+			;;Delete the plants file
+			try
+			begin
+				xcall delet("ICSTUT:plants.ism")
+			end
+			catch (e, @NoFileFoundException)
+			begin
+				nop
+			end
+			endtry
+
+		endmethod
+
+
+	endclass
+
+endnamespace

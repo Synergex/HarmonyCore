@@ -44,8 +44,9 @@
 import Harmony.Core
 import Harmony.Core.Context
 import Microsoft.EntityFrameworkCore
-import SampleServices.Models
 import System.Linq.Expressions
+import SampleServices.Models
+
 namespace SampleServices
 
 	public class DbContext extends Microsoft.EntityFrameworkCore.DbContext
@@ -80,9 +81,10 @@ namespace SampleServices
 
 			;;Setup multi-record format files based on tag.
 			;;This will currently only work for single field==value tags.
-			data objParam = Expression.Parameter(^typeof(Customer));
-			parm.Entity(^typeof(Customer)).HasQueryFilter(Expression.Lambda(Expression.Block(Expression.Equal(Expression.Call(^typeof(EF), "Property", new Type[#] { ^typeof(int) }, objParam, Expression.Constant("CustRtype")), Expression.Constant(0))), new ParameterExpression[#] { objParam }))
-	;;		parm.Entity(^typeof(Vendor)).HasDiscriminator<int>("VendRtype");.HasValue<Vendor>(1)
+			data customerParam = Expression.Parameter(^typeof(customer))
+			parm.Entity(^typeof(customer)).HasQueryFilter(Expression.Lambda(Expression.Block(Expression.Equal(Expression.Call(^typeof(EF), "Property", new Type[#] { ^typeof(int) }, customerParam, Expression.Constant("CustRtype")), Expression.Constant(0))), new ParameterExpression[#] { customerParam }))
+			data vendorParam = Expression.Parameter(^typeof(vendor))
+			parm.Entity(^typeof(vendor)).HasQueryFilter(Expression.Lambda(Expression.Block(Expression.Equal(Expression.Call(^typeof(EF), "Property", new Type[#] { ^typeof(int) }, vendorParam, Expression.Constant("VendRtype")), Expression.Constant(1))), new ParameterExpression[#] { vendorParam }))
 
 			parent.OnModelCreating(parm)
 

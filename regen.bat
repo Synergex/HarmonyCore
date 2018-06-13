@@ -20,5 +20,12 @@ codegen -s %STRUCTURES%    -ms -t ODataDbContext ODataEdmBuilder ODataStartup -n
 rem Generate unit tests
 codegen -s %STRUCTURES%   -t ODataUnitTests -n %PROJECT%.Test -o %PROJECT%.Test -ut MODELS_NAMESPACE=%PROJECT%.Models %OPTS%
 
+rem ================================================================================================================================
+
+set FILE_STRUCTURES=CUSTOMERS ORDERS PLANTS
+
+rem Generate the unit test environment class
+codegen -s %FILE_STRUCTURES% -ms -t ODataUnitTestEnvironment -n %PROJECT%.Test -o %PROJECT%.Test -ut SERVICES_NAMESPACE=%PROJECT% %OPTS%
+
 endlocal
 popd

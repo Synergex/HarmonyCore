@@ -93,18 +93,23 @@ namespace SampleServices.Test
 		public method ConfigureServices, void
 			services, @IServiceCollection 
 		proc
-			;services.AddTransient<PrimeService>()
-			data channelManager = new FileChannelManager() 
-			data objectProvider = new DataObjectProvider(channelManager)
-			<STRUCTURE_LOOP>
-			objectProvider.AddDataObjectMapping<<StructureNoplural>>("<FILE_NAME>", <IF STRUCTURE_ISAM>FileOpenMode.UpdateIndexed</IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>FileOpenMode.UpdateRelative</IF STRUCTURE_RELATIVE>)
-			</STRUCTURE_LOOP>
-			services.AddSingleton<FileChannelManager>(channelManager)
-			services.AddSingleton<IDataObjectProvider>(objectProvider)
+			lambda AddDataObjectMappings(serviceProvider)
+			begin
+				data objectProvider = new DataObjectProvider(serviceProvider.GetService<IFileChannelManager>())
+				<STRUCTURE_LOOP>
+				objectProvider.AddDataObjectMapping<<StructureNoplural>>("<FILE_NAME>", <IF STRUCTURE_ISAM>FileOpenMode.UpdateIndexed</IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>FileOpenMode.UpdateRelative</IF STRUCTURE_RELATIVE>)
+				</STRUCTURE_LOOP>
+				mreturn objectProvider
+			end
+
+			services.AddSingleton<IFileChannelManager, FileChannelManager>()
+			services.AddSingleton<IDataObjectProvider>(AddDataObjectMappings)
 			services.AddSingleton<DbContextOptions<DBContext>>(new DbContextOptions<DBContext>())
 			services.AddSingleton<DBContext, DBContext>()
+
 			services.AddOData()
 			services.AddMvcCore()
+
 		endmethod
 
 		public method Configure, void
