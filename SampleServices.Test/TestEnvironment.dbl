@@ -25,25 +25,30 @@ import System.Linq
 import System.Net.Http
 import System.Text
 import System.Threading.Tasks
+import SampleServices
+
+main TestEnvironment
+proc
+	;Don't ask!
+endmain
 
 namespace SampleServices.Test
 
 	{TestClass}
-	public class VendorsTests
+	public class TestEnvironment
 
-		{TestMethod}
-		{TestCategory("Vendor Tests")}
-		public method GetAllVendors, void
+		public static Server, @TestServer 
+
+		{AssemblyInitialize}
+		public static method AssemblyInitialize, void
+			required in context, @TestContext
 		proc
-			data client = TestEnvironment.Server.CreateClient()
-			data request = "/odata/Vendors"
-			data response = client.GetAsync(request).Result
-			data result = response.Content.ReadAsStringAsync().Result
+			Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)
 
-			Console.WriteLine(result)
-			throw new exception()
+			data status, i4
+			setlog("ICSTUT", EnvironmentRootBuilder.FindRelativeFolderForAssembly("SampleData"), status)
 
-			response.EnsureSuccessStatusCode()
+			Server = new TestServer(new WebHostBuilder().UseStartup<Startup>())
 
 		endmethod
 

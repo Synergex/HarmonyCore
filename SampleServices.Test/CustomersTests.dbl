@@ -31,21 +31,11 @@ namespace SampleServices.Test
 	{TestClass}
 	public class CustomersTests
 
-		server, @TestServer 
-
-		public method CustomersTests
-		proc
-			Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)
-
-			data status, i4
-			setlog("ICSTUT", EnvironmentRootBuilder.FindRelativeFolderForAssembly("SampleData"), status)
-			server = new TestServer(new WebHostBuilder().UseStartup<Startup>())
-		endmethod
-
 		{TestMethod}
+		{TestCategory("Customer Tests")}
 		public method GetAllCustomers, void
 		proc
-			data client = server.CreateClient()
+			data client = TestEnvironment.Server.CreateClient()
 			data request = "/odata/Customers"
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
@@ -60,7 +50,3 @@ namespace SampleServices.Test
 	endclass
 
 endnamespace
-
-main
-proc
-endmain
