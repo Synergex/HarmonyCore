@@ -96,6 +96,8 @@ namespace <NAMESPACE>
 		
 		private static sMetadata, @<StructureNoplural>Metadata
 
+.region "Constructors"
+
 		static method <StructureNoplural>
 		proc
 			sMetadata = new <StructureNoplural>Metadata()
@@ -121,13 +123,9 @@ namespace <NAMESPACE>
 			mSynergyData = mOriginalSynergyData = inData
 		endmethod
 
-		public override method InternalSynergyRecord, void
-			targetMethod, @AlphaAction
-		proc
-			targetMethod(mSynergyData, mGlobalRFA)
-		endmethod
-		
-        ;;Expose fields as properties for data binding
+.endregion
+
+.region "Public properties for fields"
 
         <FIELD_LOOP>
 		<IF CUSTOM_NOT_SYMPHONY_ARRAY_FIELD>
@@ -198,18 +196,29 @@ namespace <NAMESPACE>
 
 		</IF CUSTOM_NOT_SYMPHONY_ARRAY_FIELD>
         </FIELD_LOOP>
+.endregion
+
+.region "Public properties for relationships to other data"
+
 		<IF STRUCTURE_RELATIONS>
 		<RELATION_LOOP>
 		<IF ONE_TO_ONE>
-		;One to one relationship from <RELATION_FROMKEY> to <RelationTostructure>.<RELATION_TOKEY>
-		;public readwrite property <RelationFromkey>Data, @<RelationTostructureNoplural>
+        ;;; <summary>
+        ;;; One to one relationship from <RELATION_FROMKEY> to <RelationTostructure>.<RELATION_TOKEY>
+        ;;; </summary>
+		public readwrite property <RelationFromkey>Data, @<RelationTostructureNoplural>
 		<ELSE>
-		;One to many relationship from <RELATION_FROMKEY> to <RelationTostructure>.<RELATION_TOKEY>
-		;public readwrite property <RelationTostructurePlural>, @ICollection<<RelationTostructureNoplural>>
+        ;;; <summary>
+        ;;; One to many relationship from <RELATION_FROMKEY> to <RelationTostructure>.<RELATION_TOKEY>
+        ;;; </summary>
+		public readwrite property <RelationTostructurePlural>, @ICollection<<RelationTostructureNoplural>>
 		</IF ONE_TO_ONE>
 
 		</RELATION_LOOP>
 		</IF STRUCTURE_RELATIONS>
+.endregion
+
+.region "Other public properties"
 
         ;;; <summary>
         ;;; Expose the complete synergy record
@@ -232,12 +241,8 @@ namespace <NAMESPACE>
         endproperty
 
 		;;; <summary>
-		;;; Allow the host to validate all fields. Each field will fire the validation method.
-		;;; </summary>
-		public override method InitialValidateData, void
-		proc
-		endmethod
-		
+        ;;; Metadata describing the public field properties
+        ;;; </summary>
 		public override property Metadata, @DataObjectMetadataBase
 			method get
 			proc
@@ -245,11 +250,36 @@ namespace <NAMESPACE>
 			endmethod
 		endproperty
 
+.endregion
+
+.region "Public methods"
+
+		;;; <summary>
+		;;; 
+		;;; </summary>
+		public override method InternalSynergyRecord, void
+			targetMethod, @AlphaAction
+		proc
+			targetMethod(mSynergyData, mGlobalRFA)
+		endmethod
+		
+		;;; <summary>
+		;;; Allow the host to validate all fields. Each field will fire the validation method.
+		;;; </summary>
+		public override method InitialValidateData, void
+		proc
+		endmethod
+		
+		;;; <summary>
+		;;; 
+		;;; </summary>
 		public override method InternalGetValues, [#]@object
 		proc
 			;;TODO: This should be returning boxed values for each of our fields
 			mreturn new Object[0]
 		endmethod
+
+.endregion
 
 	endclass
 	

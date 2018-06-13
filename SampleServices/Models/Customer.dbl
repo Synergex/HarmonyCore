@@ -61,6 +61,8 @@ namespace SampleServices.Models
 		
 		private static sMetadata, @CustomerMetadata
 
+.region "Constructors"
+
 		static method Customer
 		proc
 			sMetadata = new CustomerMetadata()
@@ -86,13 +88,9 @@ namespace SampleServices.Models
 			mSynergyData = mOriginalSynergyData = inData
 		endmethod
 
-		public override method InternalSynergyRecord, void
-			targetMethod, @AlphaAction
-		proc
-			targetMethod(mSynergyData, mGlobalRFA)
-		endmethod
-		
-        ;;Expose fields as properties for data binding
+.endregion
+
+.region "Public properties for fields"
 
 		;;; <summary>
 		;;; Customer id
@@ -297,12 +295,23 @@ namespace SampleServices.Models
 			endmethod
 		endproperty
 
-		;One to many relationship from KEY0 to Orders.CUSTOMER
-		;public readwrite property Orders, @ICollection<Order>
+.endregion
 
-		;One to one relationship from ITEM to Plants.KEY0
-		;public readwrite property ItemData, @Plant
+.region "Public properties for relationships to other data"
 
+        ;;; <summary>
+        ;;; One to many relationship from KEY0 to Orders.CUSTOMER
+        ;;; </summary>
+		public readwrite property Orders, @ICollection<Order>
+
+        ;;; <summary>
+        ;;; One to one relationship from ITEM to Plants.KEY0
+        ;;; </summary>
+		public readwrite property ItemData, @Plant
+
+.endregion
+
+.region "Other public properties"
 
         ;;; <summary>
         ;;; Expose the complete synergy record
@@ -325,12 +334,8 @@ namespace SampleServices.Models
         endproperty
 
 		;;; <summary>
-		;;; Allow the host to validate all fields. Each field will fire the validation method.
-		;;; </summary>
-		public override method InitialValidateData, void
-		proc
-		endmethod
-		
+        ;;; Metadata describing the public field properties
+        ;;; </summary>
 		public override property Metadata, @DataObjectMetadataBase
 			method get
 			proc
@@ -338,11 +343,36 @@ namespace SampleServices.Models
 			endmethod
 		endproperty
 
+.endregion
+
+.region "Public methods"
+
+		;;; <summary>
+		;;; 
+		;;; </summary>
+		public override method InternalSynergyRecord, void
+			targetMethod, @AlphaAction
+		proc
+			targetMethod(mSynergyData, mGlobalRFA)
+		endmethod
+		
+		;;; <summary>
+		;;; Allow the host to validate all fields. Each field will fire the validation method.
+		;;; </summary>
+		public override method InitialValidateData, void
+		proc
+		endmethod
+		
+		;;; <summary>
+		;;; 
+		;;; </summary>
 		public override method InternalGetValues, [#]@object
 		proc
 			;;TODO: This should be returning boxed values for each of our fields
 			mreturn new Object[0]
 		endmethod
+
+.endregion
 
 	endclass
 	

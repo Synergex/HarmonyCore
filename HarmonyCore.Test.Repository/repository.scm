@@ -1,11 +1,11 @@
  
 ;  SYNERGY DATA LANGUAGE OUTPUT
 ;
-;  REPOSITORY     : rpsmain.ism
-;                 : rpstext.ism
-;                 : Version 10.0.3b
+;  REPOSITORY     : C:\DEV\SYNERGEX\HarmonyWebServices\HarmonyCore.Test.Reposito
+;                 : C:\DEV\SYNERGEX\HarmonyWebServices\HarmonyCore.Test.Reposito
+;                 : Version 10.3.4
 ;
-;  GENERATED      : 26-SEP-2017, 10:44:43
+;  GENERATED      : 13-JUN-2018, 15:01:52
 ;                 : Version 10.3.4
 ;  EXPORT OPTIONS : [ALL] 
  
@@ -1348,6 +1348,9 @@ Template QTY_MTH   Parent QTY_A
  
 Template PREC_IM_COST_FC   Parent FC_A
  
+Template PRICE_VND_LOT_FC   Parent PREC_IM_COST_FC
+   Description "Lot Charge"
+ 
 Template PRICE_VND_FC   Parent PREC_IM_COST_FC   Type USER   Size 14
    Stored ALPHA   User Type "FC:+2"
    Description "Vendor price for quantity"
@@ -1355,9 +1358,6 @@ Template PRICE_VND_FC   Parent PREC_IM_COST_FC   Type USER   Size 14
       "Vendor price for quantity - stock UOM"
       "This field is in foreign currency."
    Report Heading "Vendor Price"
- 
-Template PRICE_VND_LOT_FC   Parent PREC_IM_COST_FC
-   Description "Lot Charge"
  
 Template NAME_VND   Parent NAME
    Description "Vendor Name"
@@ -42945,6 +42945,10 @@ Key REVERSE_VENDOR   ACCESS   Order DESCENDING   Dups YES   Insert END
    Modifiable YES
    Description "in_source in descending order"
    Segment FIELD   IN_SOURCE  SegType ALPHA
+ 
+Relation  1   PLANTS VENDOR   VENDORS KEY0
+ 
+Relation  2   PLANTS KEY0   ORDERS ITEM
  
 Structure PRODUCT   DBL ISAM
    Description "REWARDER PRODUCT FILE"
