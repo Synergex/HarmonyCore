@@ -1,10 +1,10 @@
 ;;*****************************************************************************
 ;;
-;; Title:       Startup.dbl
+;; Title:       OrderTests.dbl
 ;;
 ;; Type:        Class
 ;;
-;; Description: Startup class for an OData / Web API hosting environment
+;; Description: Unit tests for the operastions defined in OrdersController.
 ;;
 ;;*****************************************************************************
 ;; WARNING
@@ -41,53 +41,31 @@
 ;;
 ;;*****************************************************************************
 
-import Harmony.Core.Context
-import Harmony.Core.FileIO
-import Harmony.Core.Utility
-import Harmony.AspNetCore.Context
-import Microsoft.Extensions.DependencyInjection
-import Microsoft.EntityFrameworkCore
-import Microsoft.AspNet.OData.Extensions
-import Microsoft.AspNetCore.Builder
-import Microsoft.AspNetCore.Hosting
+import Microsoft.VisualStudio.TestTools.UnitTesting
+import Newtonsoft.Json
+import System.Collections.Generic
 import SampleServices.Models
 
 namespace SampleServices.Test
 
-	public class Startup
+	{TestClass}
+	public partial class OrderTests
 
-		public method ConfigureServices, void
-			services, @IServiceCollection 
+		{TestMethod}
+		{TestCategory("Order Tests")}
+		public method GetAllOrders, void
 		proc
-			;services.AddTransient<PrimeService>()
-			data channelManager = new FileChannelManager() 
-			data objectProvider = new DataObjectProvider(channelManager)
-			objectProvider.AddDataObjectMapping<Customer>("ICSTUT:customer.ism", FileOpenMode.UpdateIndexed)
-			objectProvider.AddDataObjectMapping<Order>("ICSTUT:orders.ism", FileOpenMode.UpdateIndexed)
-			objectProvider.AddDataObjectMapping<Plant>("ICSTUT:plants.ism", FileOpenMode.UpdateIndexed)
-			objectProvider.AddDataObjectMapping<Vendor>("ICSTUT:customer.ism", FileOpenMode.UpdateIndexed)
-			services.AddSingleton<FileChannelManager>(channelManager)
-			services.AddSingleton<IDataObjectProvider>(objectProvider)
-			services.AddSingleton<DbContextOptions<DBContext>>(new DbContextOptions<DBContext>())
-			services.AddSingleton<DBContext, DBContext>()
-			services.AddOData()
-			services.AddMvcCore()
-		endmethod
+			data client = TestEnvironment.Server.CreateClient()
+			data request = "/odata/Orders"
+			data response = client.GetAsync(request).Result
+			data result = response.Content.ReadAsStringAsync().Result
 
-		public method Configure, void
-			app, @IApplicationBuilder
-			env, @IHostingEnvironment
-		proc
-			data model = EdmBuilder.GetEdmModel()
+			data orders, @List<Order>, JsonConvert.DeserializeObject<List<Order>>(result)
 
-			lambda MVCBuilder(builder)
-			begin
-				builder.Select().Expand().Filter().OrderBy().MaxTop(100).Count()
-				builder.MapODataServiceRoute("odata", "odata", model)
-			end
-			app.UseLogging(DebugLogSession.Logging)
-			app.UseMvc(MVCBuilder)
+			response.EnsureSuccessStatusCode()
+
 		endmethod
+	
 	endclass
 
 endnamespace

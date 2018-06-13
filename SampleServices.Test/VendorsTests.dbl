@@ -1,51 +1,16 @@
 
-import Harmony.AspNetCore.Context
-import Harmony.Core
-import Harmony.Core.Context
-import Harmony.Core.FileIO
-import Harmony.Core.FileIO.Queryable
-import Harmony.Core.Utility
-import Microsoft.AspNet.OData
-import Microsoft.AspNet.OData.Builder
-import Microsoft.AspNet.OData.Extensions
-import Microsoft.AspNet.OData.Routing
-import Microsoft.AspNetCore.Builder
-import Microsoft.AspNetCore.Hosting
-import Microsoft.AspNetCore.Mvc
-import Microsoft.AspNetCore.TestHost
-import Microsoft.EntityFrameworkCore
-import Microsoft.Extensions.Configuration
-import Microsoft.Extensions.DependencyInjection
-import Microsoft.OData
-import Microsoft.OData.Edm
 import Microsoft.VisualStudio.TestTools.UnitTesting
-import System
-import System.Collections.Generic
-import System.Linq
-import System.Net.Http
-import System.Text
-import System.Threading.Tasks
 
 namespace SampleServices.Test
 
 	{TestClass}
 	public class VendorsTests
 
-		server, @TestServer 
-
-		public method VendorsTests
-		proc
-			Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)
-
-			data status, i4
-			setlog("ICSTUT", EnvironmentRootBuilder.FindRelativeFolderForAssembly("SampleData"), status)
-			server = new TestServer(new WebHostBuilder().UseStartup<Startup>())
-		endmethod
-
 		{TestMethod}
+		{TestCategory("Vendor Tests")}
 		public method GetAllVendors, void
 		proc
-			data client = server.CreateClient()
+			data client = TestEnvironment.Server.CreateClient()
 			data request = "/odata/Vendors"
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result

@@ -1,0 +1,35 @@
+
+import Microsoft.AspNetCore.Hosting
+import Microsoft.AspNetCore.TestHost
+import Microsoft.VisualStudio.TestTools.UnitTesting
+import System.Text
+import SampleServices
+
+main TestEnvironment
+proc
+	;Don't ask!
+endmain
+
+namespace SampleServices.Test
+
+	{TestClass}
+	public class TestEnvironment
+
+		public static Server, @TestServer 
+
+		{AssemblyInitialize}
+		public static method AssemblyInitialize, void
+			required in context, @TestContext
+		proc
+			Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)
+
+			data status, i4
+			setlog("ICSTUT", EnvironmentRootBuilder.FindRelativeFolderForAssembly("SampleData"), status)
+
+			Server = new TestServer(new WebHostBuilder().UseStartup<Startup>())
+
+		endmethod
+
+	endclass
+
+endnamespace

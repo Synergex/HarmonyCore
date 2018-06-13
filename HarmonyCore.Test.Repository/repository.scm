@@ -43981,7 +43981,7 @@ File CUSMAS   DBL ISAM   "EMS_CUSMAS:"
       "Customer Master"
    Assign CUSMAS_SOLDTO
  
-File CUSTOMER   DBL ISAM   "ICSTUT:arcust.ism"
+File CUSTOMER   DBL ISAM   "ICSTUT:customer.ism"
    Description "Customer/Vendor File"
    Assign CUSTOMERS, VENDORS
  
@@ -44072,7 +44072,7 @@ File NULLTABLE   DBL ISAM   "ICSTUT:nulltable"
    Description "Null Key Test File"
    Assign NULLTABLE
  
-File ORDERS   DBL ISAM   "ICSTUT:oorder.ism"
+File ORDERS   DBL ISAM   "ICSTUT:orders.ism"
    Description "Order File"
    Assign ORDERS
  
@@ -44080,7 +44080,7 @@ File PCMAS   RELATIVE   "ISMAS.DD1"
    Description "Product Class File  RELATIVE FILE"
    Assign PCMAS
  
-File PLANTS   DBL ISAM   "ICSTUT:plitem.ism"
+File PLANTS   DBL ISAM   "ICSTUT:plants.ism"
    Description "Plant Inventory File"
    Assign PLANTS
  

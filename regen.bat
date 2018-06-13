@@ -17,5 +17,8 @@ codegen -s %STRUCTURES%    -t ODataController -n %PROJECT%.Controllers -o %PROJE
 rem Generate the DbContext, EdmBuilder and Startup classes
 codegen -s %STRUCTURES%    -ms -t ODataDbContext ODataEdmBuilder ODataStartup -n %PROJECT% -o %PROJECT% -ut MODELS_NAMESPACE=%PROJECT%.Models %OPTS%
 
+rem Generate unit tests
+codegen -s %STRUCTURES%   -t ODataUnitTests -n %PROJECT%.Test -o %PROJECT%.Test -ut MODELS_NAMESPACE=%PROJECT%.Models %OPTS%
+
 endlocal
 popd
