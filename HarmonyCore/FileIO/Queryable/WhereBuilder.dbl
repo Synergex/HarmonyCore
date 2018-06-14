@@ -10,55 +10,217 @@ namespace Harmony.Core.FileIO.Queryable
 
 	
 	internal class WhereExpressionBuilder extends ExpressionVisitor
-		private mExpression, @Expression
 		;;this might need to be a stack to handle nesting fully
 		private mWhereStack, @Stack<Synergex.SynergyDE.Select.Where>
-		private mRecordArea, D_HANDLE
-		private mDataObject, @DataObjectMetadataBase
+		private mOnStack, @Stack<Synergex.SynergyDE.Select.On>
+		private mRecordAreas, @Dictionary<string, int>
+		private mDataObjects, @Dictionary<string, DataObjectMetadataBase>
 		private mCaseSensitive, boolean
 		private mParameters, @IReadOnlyDictionary<string, Object>
-		public method WhereExpressionBuilder
-			expression, @Expression
-			recordArea, i
-			dataObject, @DataObjectMetadataBase
-			caseSensitive, boolean
-		proc
-			mExpression = expression
-			mRecordArea = recordArea
-			mDataObject = dataObject
-		endmethod
 
 		public method WhereExpressionBuilder
-			recordArea, i
+			recordArea, int
 			dataObject, @DataObjectMetadataBase
+			fromName, @string
 			caseSensitive, boolean
 			parameters, @IReadOnlyDictionary<string, Object>
 		proc
 			mWhereStack = new Stack<Synergex.SynergyDE.Select.Where>()
-			mRecordArea = recordArea
-			mDataObject = dataObject
+			mRecordAreas = new Dictionary<string, int>() { { fromName, recordArea } }
+			mDataObjects = new Dictionary<string, DataObjectMetadataBase>() { { fromName, dataObject } }
 			mParameters = parameters
+			mWhereStack = new Stack<Synergex.SynergyDE.Select.Where>()
+			mOnStack = new Stack<Synergex.SynergyDE.Select.On>()
 		endmethod
 
-		public property WhereExpression, @Synergex.SynergyDE.Select.Where
-			method get
-			proc
-				if(mWhereStack == ^null)
-				begin
-					mWhereStack = new Stack<Synergex.SynergyDE.Select.Where>()
-					Visit(mExpression)
-				end
+		public method AddFromClause, void
+			fromName, @string
+			recordArea, int
+			dataObject, @DataObjectMetadataBase
+		proc
+			mDataObjects.Add(fromName, dataObject)
+			mRecordAreas.Add(fromName, recordArea)
+		endmethod
 
-				mreturn mWhereStack.Count > 0 ? mWhereStack.Peek() : ^null
-			endmethod
-		endproperty
+;		public property WhereExpression, @Synergex.SynergyDE.Select.Where
+;			method get
+;			proc
+;				if(!mVisited == ^null)
+;				begin
+;					Visit(mExpression)
+;				end
+;
+;				mreturn mWhereStack.Count > 0 ? mWhereStack.Peek() : ^null
+;			endmethod
+;		endproperty
+;
+;		public property OnExpressions, @Dictionary<string, Synergex.SynergyDE.Select.On>
+;			method get
+;			proc
+;				if(mWhereStack == ^null)
+;				begin
+;					mWhereStack = new Stack<Synergex.SynergyDE.Select.Where>()
+;					Visit(mExpression)
+;				end
+;
+;				mreturn mWhereStack.Count > 0 ? mWhereStack.Peek() : ^null
+;			endmethod
+;		endproperty
 
-		public method VisitInternal, void
+		public method VisitForWhere, @Where
+			expr, @Expression
+		proc
+			mWhereStack = new Stack<Synergex.SynergyDE.Select.Where>()
+			mOnStack = new Stack<Synergex.SynergyDE.Select.On>()
+			Visit(expr)
+			mreturn mWhereStack.Count > 0 ? mWhereStack.Peek() : ^null
+		endmethod
+
+		public method VisitForOn, @On
+			expr, @Expression
+		proc
+			mWhereStack = new Stack<Synergex.SynergyDE.Select.Where>()
+			mOnStack = new Stack<Synergex.SynergyDE.Select.On>()
+			Visit(expr)
+			mreturn mOnStack.Count > 0 ? mOnStack.Peek() : ^null
+		endmethod
+
+		public method VisitForOrderBy, @OrderBy
 			expr, @Expression
 		proc
 			Visit(expr)
+			mreturn ^null
 		endmethod
 
+		private method fieldOnClause  ,@On
+			in req dataBuffer1			,a
+			in req dataBuffer2			,a
+			in req fieldDetails1		,@FieldDataDefinition
+			in req fieldDetails2		,@FieldDataDefinition
+			in req theOperator			,whereClauseOperator
+		proc
+
+			if(fieldDetails1.DataType != fieldDetails2.DataType)
+				throw new NotImplementedException("field to field comparisons must be of the same type")
+
+			using theOperator select
+			(whereClauseOperator.EqualTo),
+			begin
+				using fieldDetails1.DataType select
+				(FieldDataType.AlphaField),
+				begin
+					if(mCaseSensitive) then
+						mreturn (On)(dataBuffer1(fieldDetails1.StructurePosition:fieldDetails1.ElementSize) .eqs. dataBuffer2(fieldDetails2.StructurePosition:fieldDetails2.ElementSize))
+					else
+						throw new NotImplementedException()
+				end
+				(FieldDataType.IntegerField),
+				begin
+					mreturn (On)(^i(dataBuffer1(fieldDetails1.StructurePosition:fieldDetails1.ElementSize)) .eqs. ^i(dataBuffer2(fieldDetails2.StructurePosition:fieldDetails2.ElementSize)))
+				end
+				(FieldDataType.DecimalField),
+				begin
+					mreturn (On)(^d(dataBuffer1(fieldDetails1.StructurePosition:fieldDetails1.ElementSize)) .eqs. ^d(dataBuffer2(fieldDetails2.StructurePosition:fieldDetails2.ElementSize)))
+				end
+				(FieldDataType.ImpliedDecimal),
+				begin
+					mreturn (On)(^d(dataBuffer1(fieldDetails1.StructurePosition:fieldDetails1.ElementSize), fieldDetails1.DecimalPrecision) .eqs. ^d(dataBuffer2(fieldDetails2.StructurePosition:fieldDetails2.ElementSize), fieldDetails2.DecimalPrecision))
+				end
+				endusing
+
+			end
+			(whereClauseOperator.NotEqualTo),
+			begin
+			end
+			(whereClauseOperator.GreaterThan),
+			begin
+			end
+			(whereClauseOperator.GreaterThanOrEqualTo),
+			begin
+			end
+			(whereClauseOperator.LessThan),
+			begin
+			end
+			(whereClauseOperator.LessThanOrEqualTo),
+			begin
+			end
+			(whereClauseOperator.IsLike),
+			begin
+			end
+			(whereClauseOperator.IsBetween),
+			begin
+			end
+			(WhereClauseOperator.IsIn),
+			begin
+			end
+			endusing
+			throw new NotImplementedException()
+		endmethod
+
+		private method fieldWhereClause  ,@Where
+			in req dataBuffer1			,a
+			in req dataBuffer2			,a
+			in req fieldDetails1		,@FieldDataDefinition
+			in req fieldDetails2		,@FieldDataDefinition
+			in req theOperator			,whereClauseOperator
+		proc
+
+			if(fieldDetails1.DataType != fieldDetails2.DataType)
+				throw new NotImplementedException("field to field comparisons must be of the same type")
+
+			using theOperator select
+			(whereClauseOperator.EqualTo),
+			begin
+				using fieldDetails1.DataType select
+				(FieldDataType.AlphaField),
+				begin
+					if(mCaseSensitive) then
+						mreturn (Where)(dataBuffer1(fieldDetails1.StructurePosition:fieldDetails1.ElementSize) .eqs. dataBuffer2(fieldDetails2.StructurePosition:fieldDetails2.ElementSize))
+					else
+						mreturn (NoCaseWhere)(dataBuffer1(fieldDetails1.StructurePosition:fieldDetails1.ElementSize) .eqs. dataBuffer2(fieldDetails2.StructurePosition:fieldDetails2.ElementSize))
+				end
+				(FieldDataType.IntegerField),
+				begin
+					mreturn (Where)(^i(dataBuffer1(fieldDetails1.StructurePosition:fieldDetails1.ElementSize)) .eqs. ^i(dataBuffer2(fieldDetails2.StructurePosition:fieldDetails2.ElementSize)))
+				end
+				(FieldDataType.DecimalField),
+				begin
+					mreturn (Where)(^d(dataBuffer1(fieldDetails1.StructurePosition:fieldDetails1.ElementSize)) .eqs. ^d(dataBuffer2(fieldDetails2.StructurePosition:fieldDetails2.ElementSize)))
+				end
+				(FieldDataType.ImpliedDecimal),
+				begin
+					mreturn (Where)(^d(dataBuffer1(fieldDetails1.StructurePosition:fieldDetails1.ElementSize), fieldDetails1.DecimalPrecision) .eqs. ^d(dataBuffer2(fieldDetails2.StructurePosition:fieldDetails2.ElementSize), fieldDetails2.DecimalPrecision))
+				end
+				endusing
+
+			end
+			(whereClauseOperator.NotEqualTo),
+			begin
+			end
+			(whereClauseOperator.GreaterThan),
+			begin
+			end
+			(whereClauseOperator.GreaterThanOrEqualTo),
+			begin
+			end
+			(whereClauseOperator.LessThan),
+			begin
+			end
+			(whereClauseOperator.LessThanOrEqualTo),
+			begin
+			end
+			(whereClauseOperator.IsLike),
+			begin
+			end
+			(whereClauseOperator.IsBetween),
+			begin
+			end
+			(WhereClauseOperator.IsIn),
+			begin
+			end
+			endusing
+			throw new NotImplementedException()
+		endmethod
 
 		;;add the actual field and value to the where clause
 		private method fieldWhereClause	,@Where
@@ -427,7 +589,7 @@ namespace Harmony.Core.FileIO.Queryable
 		proc
 			op = ^null
 			glue = ^null
-			if(node.NodeType == ExpressionType.AndAlso) then
+			if(node.NodeType == ExpressionType.AndAlso || node.NodeType == ExpressionType.And) then
 			begin
 				glue = WhereClauseConnector.AndOperator
 			end
@@ -463,24 +625,32 @@ namespace Harmony.Core.FileIO.Queryable
 				throw new NotImplementedException()
 		endmethod
 
-		private method FindTargetField, @FieldDataDefinition
+		private method FindTargetField, @Tuple<FieldDataDefinition, string>
 			node, @Expression
 		proc
 			if(node .is. MemberExpression) then
 			begin
 				;;TODO this assumes we're only dealing with our target data object
-				mreturn mDataObject.GetFieldByName(((@MemberExpression)node).Member.Name)
+				mreturn Tuple.Create(mDataObjects["$it"].GetFieldByName(((@MemberExpression)node).Member.Name), "$it")
 			end
-			else if(node .is. MethodCallExpression)
+			else if(node .is. MethodCallExpression) then
 			begin
 				data callNode = (@MethodCallExpression)node
 				if(callNode.Method.Name == "Property")
 				begin
 					;;this is where we can do a metadata object lookup for join
+					data memberTargetParameter = (@Remotion.Linq.Clauses.Expressions.QuerySourceReferenceExpression)callNode.Arguments[0]
 					data memberNameConstant = (@ConstantExpression)callNode.Arguments[1]
-					mreturn mDataObject.GetFieldByName(memberNameConstant.Value.ToString())
+					
+					mreturn Tuple.Create(mDataObjects[memberTargetParameter.ReferencedQuerySource.ItemName].GetFieldByName(memberNameConstant.Value.ToString()), memberTargetParameter.ReferencedQuerySource.ItemName)
 				end
 			end
+			else if(node .is. UnaryExpression && node.NodeType == ExpressionType.Convert)
+			begin
+				data convertNode = (@UnaryExpression)node
+				mreturn FindTargetField(convertNode.Operand)
+			end
+
 			mreturn ^null
 		endmethod
 
@@ -513,30 +683,111 @@ namespace Harmony.Core.FileIO.Queryable
 			OpKindFromExpression(node, op, glue)
 			if(op != ^null) then
 			begin
-				;;TODO this doesnt deal with queries like where field1 == field2 and its not dealing with 'between'
+				;;TODO this doesnt deal with 'between'
 				data leftTarget = FindTargetField(node.Left)
-				mWhereStack.Push(fieldWhereClause(^m(tmpStructure(1:mDataObject.StructureSize), mRecordArea), 
-				&	leftTarget, 
-				&	op.Value,
-				&	FindConstantValue(node.Right), ""))
+				data rightTarget = FindTargetField(node.Right)
+				if(leftTarget != ^null && rightTarget != ^null) then
+				begin
+					data dataObject1 = mDataObjects[leftTarget.Item2]
+					data dataObject2 = mDataObjects[rightTarget.Item2]
+					data recordArea1 = mRecordAreas[leftTarget.Item2]
+					data recordArea2 = mRecordAreas[rightTarget.Item2]
+					if(dataObject1 == dataObject2) then
+					begin
+						mWhereStack.Push(fieldWhereClause(^m(tmpStructure(1:dataObject1.StructureSize), recordArea1), 
+						&	^m(tmpStructure(1:dataObject2.StructureSize), recordArea2), 
+						&	leftTarget.Item1, 
+						&	rightTarget.Item1,
+						&	op.Value))
+					end
+					else
+					begin
+						mOnStack.Push(fieldOnClause(^m(tmpStructure(1:dataObject1.StructureSize), recordArea1), 
+						&	^m(tmpStructure(1:dataObject2.StructureSize), recordArea2), 
+						&	leftTarget.Item1, 
+						&	rightTarget.Item1,
+						&	op.Value))
+					end
+				end
+				else if(leftTarget != ^null) then
+				begin
+					data dataObject1 = mDataObjects[leftTarget.Item2]
+					data recordArea1 = mRecordAreas[leftTarget.Item2]
+					mWhereStack.Push(fieldWhereClause(^m(tmpStructure(1:dataObject1.StructureSize), recordArea1), 
+					&	leftTarget.Item1, 
+					&	op.Value,
+					&	FindConstantValue(node.Right), ""))
+				end
+				else if(rightTarget != ^null) then
+				begin
+					data dataObject1 = mDataObjects[rightTarget.Item2]
+					data recordArea1 = mRecordAreas[rightTarget.Item2]
+					mWhereStack.Push(fieldWhereClause(^m(tmpStructure(1:dataObject1.StructureSize), recordArea1), 
+					&	rightTarget.Item1, 
+					&	op.Value,
+					&	FindConstantValue(node.Left), ""))
+				end
+				else
+					throw new NotImplementedException("where expression must contain at least one field or property expression")
+				
 			end
 			else
 			begin
-				Visit(node.Left)
-				data leftWhere = mWhereStack.Pop()
-				Visit(node.Right)
-				data rightWhere = mWhereStack.Pop()
+				if(mOnStack.Count > 0) then
+				begin
+					Visit(node.Left)
+					data leftOn = mOnStack.Pop()
+					Visit(node.Right)
+					if(mOnStack.Count > 0) then
+					begin
+						data rightOn = mOnStack.Pop()
 
-				if(glue.Value == WhereClauseConnector.AndOperator) then
-				begin
-					mWhereStack.Push(leftWhere .and. rightWhere)
-				end
-				else if(glue.Value == WhereClauseConnector.OrOperator) then
-				begin
-					mWhereStack.Push(leftWhere .or. rightWhere)
+						if(glue.Value == WhereClauseConnector.AndOperator) then
+						begin
+							mOnStack.Push(leftOn .and. rightOn)
+						end
+						else if(glue.Value == WhereClauseConnector.OrOperator) then
+						begin
+							mWhereStack.Push(leftOn .or. rightOn)
+						end
+						else
+							throw new NotImplementedException()
+
+					end
+					else
+					begin
+						data rightWhere = mWhereStack.Pop()
+						if(glue.Value == WhereClauseConnector.AndOperator) then
+						begin
+							mWhereStack.Push(leftOn .and. rightWhere)
+						end
+						else if(glue.Value == WhereClauseConnector.OrOperator) then
+						begin
+							mWhereStack.Push(leftOn .or. rightWhere)
+						end
+						else
+							throw new NotImplementedException()
+					end
 				end
 				else
-					throw new NotImplementedException()
+				begin
+					Visit(node.Left)
+					data leftWhere = mWhereStack.Pop()
+					Visit(node.Right)
+					data rightWhere = mWhereStack.Pop()
+
+					if(glue.Value == WhereClauseConnector.AndOperator) then
+					begin
+						mWhereStack.Push(leftWhere .and. rightWhere)
+					end
+					else if(glue.Value == WhereClauseConnector.OrOperator) then
+					begin
+						mWhereStack.Push(leftWhere .or. rightWhere)
+					end
+					else
+						throw new NotImplementedException()
+				end
+
 			end
 
 			mreturn node
