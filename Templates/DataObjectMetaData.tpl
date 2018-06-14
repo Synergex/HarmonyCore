@@ -82,8 +82,14 @@ import Harmony.Core.Converters
 
 namespace <NAMESPACE>
 
+	;;; <summary>
+	;;; 
+	;;; </summary>
 	public partial class <StructureNoplural>Metadata extends DataObjectMetadataBase
 		
+		;;; <summary>
+		;;; 
+		;;; </summary>
 		public method <StructureNoplural>Metadata
 		proc
 			RPSStructureName = "<STRUCTURE_NOALIAS>"
@@ -95,6 +101,9 @@ namespace <NAMESPACE>
             </FIELD_LOOP>
 		endmethod
 	
+		;;; <summary>
+		;;; 
+		;;; </summary>
 		public override method MakeNew, @DataObjectBase
 			dataArea, a
 			grfa, a

@@ -49,10 +49,16 @@ import SampleServices.Models
 
 namespace SampleServices
 
+	;;; <summary>
+	;;; 
+	;;; </summary>
 	public class DbContext extends Microsoft.EntityFrameworkCore.DbContext
 	
 		mDataProvider, @IDataObjectProvider
 
+		;;; <summary>
+		;;; Construct a new DbContext.
+		;;; </summary>
 		public method DbContext
 			options, @DbContextOptions<DbContext>
 			dataProvider, @IDataObjectProvider
@@ -62,30 +68,86 @@ namespace SampleServices
 			mDataProvider = dataProvider
 		endmethod
 
+		;;; <summary>
+		;;; Exposes Customer data.
+		;;; </summary>
 		public readwrite property Customers, @DbSet<Customer>
+
+		;;; <summary>
+		;;; Exposes Order data.
+		;;; </summary>
 		public readwrite property Orders, @DbSet<Order>
+
+		;;; <summary>
+		;;; Exposes Plant data.
+		;;; </summary>
 		public readwrite property Plants, @DbSet<Plant>
+
+		;;; <summary>
+		;;; Exposes Vendor data.
+		;;; </summary>
 		public readwrite property Vendors, @DbSet<Vendor>
 
+		;;; <summary>
+		;;; 
+		;;; </summary>
 		protected override method OnConfiguring, void
 			opts, @DbContextOptionsBuilder
 		proc
 			HarmonyDbContextOptionsExtensions.UseHarmonyDatabase(opts, mDataProvider)
 		endmethod
 
+		;;; <summary>
+		;;; 
+		;;; </summary>
 		protected override method OnModelCreating, void
 			parm, @ModelBuilder
 		proc
 			parm.Ignore(^typeof(AlphaDesc))
 			parm.Ignore(^typeof(DataObjectMetadataBase))
 
-			;;Setup multi-record format files based on tag.
+.region "Tag filtering"
+
 			;;This will currently only work for single field==value tags.
+
 			data customerParam = Expression.Parameter(^typeof(customer))
 			parm.Entity(^typeof(customer)).HasQueryFilter(Expression.Lambda(Expression.Block(Expression.Equal(Expression.Call(^typeof(EF), "Property", new Type[#] { ^typeof(int) }, customerParam, Expression.Constant("CustRtype")), Expression.Constant(0))), new ParameterExpression[#] { customerParam }))
+
 			data vendorParam = Expression.Parameter(^typeof(vendor))
 			parm.Entity(^typeof(vendor)).HasQueryFilter(Expression.Lambda(Expression.Block(Expression.Equal(Expression.Call(^typeof(EF), "Property", new Type[#] { ^typeof(int) }, vendorParam, Expression.Constant("VendRtype")), Expression.Constant(1))), new ParameterExpression[#] { vendorParam }))
 
+.endregion
+
+.region "Relationships to other structures"
+
+	        ;; One to many relationship from structure Customer key KEY0 to structure Orders key CUSTOMER with a backward relationship
+			;TODO: Code needed here!!!
+
+	        ;; One to one relationship from structure Customer key ITEM to structure Plants.KEY0 without a backward relationship
+			;TODO: Code needed here!!!
+
+	        ;; One to one relationship from structure Order key VENDOR to structure Vendors.KEY0 without a backward relationship
+			;TODO: Code needed here!!!
+
+	        ;; One to one relationship from structure Order key CUSTOMER to structure Customers.KEY0 with a backward relationship
+			parm.Entity(^typeof(Order)).HasOne(^typeof(Customer), "Orders").WithOne("CustomerData")
+
+	        ;; One to one relationship from structure Order key ITEM to structure Plants.KEY0 with a backward relationship
+			parm.Entity(^typeof(Order)).HasOne(^typeof(Plant), "Orders").WithOne("ItemData")
+
+	        ;; One to one relationship from structure Order key TAG_KEY_CUST to structure Customers.TAGKEY without a backward relationship
+			;TODO: Code needed here!!!
+
+	        ;; One to one relationship from structure Order key TAG_KEY_VEND to structure Vendors.TAGKEY without a backward relationship
+			;TODO: Code needed here!!!
+
+	        ;; One to one relationship from structure Plant key VENDOR to structure Vendors.KEY0 without a backward relationship
+			;TODO: Code needed here!!!
+
+	        ;; One to many relationship from structure Plant key KEY0 to structure Orders key ITEM with a backward relationship
+			;TODO: Code needed here!!!
+
+.endregion
 			parent.OnModelCreating(parm)
 
 		endmethod
