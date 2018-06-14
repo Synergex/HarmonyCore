@@ -114,7 +114,6 @@ namespace <NAMESPACE>
 
 		public method Configure, void
 			app, @IApplicationBuilder
-			env, @IHostingEnvironment
 		proc
 			data model = EdmBuilder.GetEdmModel()
 
