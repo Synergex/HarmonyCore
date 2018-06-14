@@ -45,6 +45,7 @@
 import Microsoft.AspNetCore.Hosting
 import Microsoft.AspNetCore.TestHost
 import Microsoft.VisualStudio.TestTools.UnitTesting
+import System.Collections.Generic
 import System.Text
 import SampleServices
 
@@ -75,8 +76,7 @@ namespace SampleServices.Test
 			Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)
 
 			;;Set the logical names that will be used to access the data files
-			data status, i4
-			xcall setlog("ICSTUT", EnvironmentRootBuilder.FindRelativeFolderForAssembly("SampleData"), status)
+			setLogicals()
 
 			;;Make sure the files don't already exist
 			deleteFiles()
@@ -102,9 +102,9 @@ namespace SampleServices.Test
 		endmethod
 
 		private static method createFiles, void
-			.include "CUSTOMERS" repository, record="customer"
-			.include "ORDERS" repository, record="order"
-			.include "PLANTS" repository, record="plant"
+			.include "CUSTOMERS" repository, stack record="customer", nofields, end
+			.include "ORDERS" repository, stack record="order", nofields, end
+			.include "PLANTS" repository, stack record="plant", nofields, end
 		proc
 			data chout, int
 			data chin, int
@@ -199,6 +199,45 @@ namespace SampleServices.Test
 				nop
 			end
 			endtry
+
+		endmethod
+
+		private static method setLogicals, void
+		proc
+			data sampleDataFolder = EnvironmentRootBuilder.FindRelativeFolderForAssembly("SampleData")
+			data logicals = new List<string>()
+			data logical = String.Empty
+			data fileSpec = String.Empty
+
+			fileSpec = "ICSTUT:customer.ism"
+			if (fileSpec.Contains(":"))
+			begin
+				logical = fileSpec.Split(":")[0].ToUpper()
+				if (!logicals.Contains(logical))
+					logicals.Add(logical)
+			end
+
+			fileSpec = "ICSTUT:orders.ism"
+			if (fileSpec.Contains(":"))
+			begin
+				logical = fileSpec.Split(":")[0].ToUpper()
+				if (!logicals.Contains(logical))
+					logicals.Add(logical)
+			end
+
+			fileSpec = "ICSTUT:plants.ism"
+			if (fileSpec.Contains(":"))
+			begin
+				logical = fileSpec.Split(":")[0].ToUpper()
+				if (!logicals.Contains(logical))
+					logicals.Add(logical)
+			end
+
+			foreach logical in logicals
+			begin
+				data sts, int
+				xcall setlog(logical,sampleDataFolder,sts)
+			end
 
 		endmethod
 

@@ -80,6 +80,7 @@
 import Microsoft.AspNetCore.Hosting
 import Microsoft.AspNetCore.TestHost
 import Microsoft.VisualStudio.TestTools.UnitTesting
+import System.Collections.Generic
 import System.Text
 import <SERVICES_NAMESPACE>
 
@@ -110,8 +111,7 @@ namespace <NAMESPACE>
 			Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)
 
 			;;Set the logical names that will be used to access the data files
-			data status, i4
-			xcall setlog("ICSTUT", EnvironmentRootBuilder.FindRelativeFolderForAssembly("SampleData"), status)
+			setLogicals()
 
 			;;Make sure the files don't already exist
 			deleteFiles()
@@ -138,7 +138,7 @@ namespace <NAMESPACE>
 
 		private static method createFiles, void
 			<STRUCTURE_LOOP>
-			.include "<STRUCTURE_NOALIAS>" repository, record="<structureNoplural>"
+			.include "<STRUCTURE_NOALIAS>" repository, stack record="<structureNoplural>", nofields, end
 			</STRUCTURE_LOOP>
 		proc
 			data chout, int
@@ -183,6 +183,31 @@ namespace <NAMESPACE>
 			endtry
 
 			</STRUCTURE_LOOP>
+		endmethod
+
+		private static method setLogicals, void
+		proc
+			data sampleDataFolder = EnvironmentRootBuilder.FindRelativeFolderForAssembly("SampleData")
+			data logicals = new List<string>()
+			data logical = String.Empty
+			data fileSpec = String.Empty
+			<STRUCTURE_LOOP>
+
+			fileSpec = "<FILE_NAME>"
+			if (fileSpec.Contains(":"))
+			begin
+				logical = fileSpec.Split(":")[0].ToUpper()
+				if (!logicals.Contains(logical))
+					logicals.Add(logical)
+			end
+			</STRUCTURE_LOOP>
+
+			foreach logical in logicals
+			begin
+				data sts, int
+				xcall setlog(logical,sampleDataFolder,sts)
+			end
+
 		endmethod
 
 	endclass
