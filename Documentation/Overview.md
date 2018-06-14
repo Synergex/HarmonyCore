@@ -50,6 +50,6 @@ endmethod
 This is also an example of how you can provide an explicit route path and enable (and control) the way the underlying framework can satisfy OData queries.
 
 ### Logging
-### ASP .Net Core Middleware
+### ASP<span></span>.Net Core Middleware
 
 ## Quick Starts
