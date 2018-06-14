@@ -4,8 +4,7 @@
 ;;
 ;; Type:        Class
 ;;
-;; Description: Configures an environment in which unit tests can operate
-;;              with a known initial data state.
+;; Description: Utilities for configuting a hosting environment.
 ;;
 ;;*****************************************************************************
 ;; WARNING
@@ -42,168 +41,17 @@
 ;;
 ;;*****************************************************************************
 
-import Microsoft.AspNetCore.Hosting
-import Microsoft.AspNetCore.TestHost
-import Microsoft.VisualStudio.TestTools.UnitTesting
 import System.Collections.Generic
 import System.IO
 import System.Text
-import SampleServices
 
-main TestEnvironment
-proc
-	;For debugging!
+.array 0
 
-	TestEnvironment.AssemblyInitialize(^null)
+namespace SampleServices
 
-	data tester = new CustomerTests()
-	tester.GetAllCustomers()
+	public static class TestEnvironment
 
-	TestEnvironment.AssemblyCleanup()
-
-endmain
-
-namespace SampleServices.Test
-
-	{TestClass}
-	public class TestEnvironment
-
-		public static Server, @TestServer 
-
-		{AssemblyInitialize}
-		public static method AssemblyInitialize, void
-			required in context, @TestContext
-		proc
-			Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)
-
-			;;Set the logical names that will be used to access the data files
-			setLogicals()
-
-			;;Make sure the files don't already exist
-			deleteFiles()
-
-			;;Create the data files
-			createFiles()
-
-			;;Create a TestServer to host the Web API services
-			Server = new TestServer(new WebHostBuilder().UseStartup<Startup>())
-
-		endmethod
-
-		{AssemblyCleanup}
-		public static method AssemblyCleanup, void
-		proc
-			;;Clean up the test host
-			Server.Dispose()
-			Server = ^null
-
-			;;Delete the data files
-			deleteFiles()
-
-		endmethod
-
-		private static method createFiles, void
-			.include "CUSTOMERS" repository, stack record="customer", nofields, end
-			.include "ORDERS" repository, stack record="order", nofields, end
-			.include "PLANTS" repository, stack record="plant", nofields, end
-		proc
-			data chout, int
-			data chin, int
-			data dataFile, string
-			data xdlFile, string
-			data textFile, string
-
-			;;Create and load the customers file
-
-			dataFile = "ICSTUT:customer.ism"
-			xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
-			textFile = dataFile.ToLower().Replace(".ism",".txt")
-
-			open(chout=0,o:i,dataFile,FDL:xdlFile)
-			open(chin,i,textFile)
-			repeat
-			begin
-				reads(chin,customer,endcustomers)
-				store(chout,customer)
-			end
-		endcustomers,
-			close chin
-			close chout
-
-			;;Create and load the orders file
-
-			dataFile = "ICSTUT:orders.ism"
-			xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
-			textFile = dataFile.ToLower().Replace(".ism",".txt")
-
-			open(chout=0,o:i,dataFile,FDL:xdlFile)
-			open(chin,i,textFile)
-			repeat
-			begin
-				reads(chin,order,endorders)
-				store(chout,order)
-			end
-		endorders,
-			close chin
-			close chout
-
-			;;Create and load the plants file
-
-			dataFile = "ICSTUT:plants.ism"
-			xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
-			textFile = dataFile.ToLower().Replace(".ism",".txt")
-
-			open(chout=0,o:i,dataFile,FDL:xdlFile)
-			open(chin,i,textFile)
-			repeat
-			begin
-				reads(chin,plant,endplants)
-				store(chout,plant)
-			end
-		endplants,
-			close chin
-			close chout
-
-		endmethod
-
-		private static method deleteFiles, void
-		proc
-			;;Delete the customers file
-			try
-			begin
-				xcall delet("ICSTUT:customer.ism")
-			end
-			catch (e, @NoFileFoundException)
-			begin
-				nop
-			end
-			endtry
-
-			;;Delete the orders file
-			try
-			begin
-				xcall delet("ICSTUT:orders.ism")
-			end
-			catch (e, @NoFileFoundException)
-			begin
-				nop
-			end
-			endtry
-
-			;;Delete the plants file
-			try
-			begin
-				xcall delet("ICSTUT:plants.ism")
-			end
-			catch (e, @NoFileFoundException)
-			begin
-				nop
-			end
-			endtry
-
-		endmethod
-
-		private static method setLogicals, void
+		public static method SetLogicals, void
 		proc
 			data sampleDataFolder = findRelativeFolderForAssembly("SampleData")
 			data logicals = new List<string>()
@@ -239,6 +87,125 @@ namespace SampleServices.Test
 				data sts, int
 				xcall setlog(logical,sampleDataFolder,sts)
 			end
+
+		endmethod
+
+		public static method CreateFiles, void
+			.include "CUSTOMERS" repository, stack record="customer", nofields, end
+			.include "ORDERS" repository, stack record="order", nofields, end
+			.include "PLANTS" repository, stack record="plant", nofields, end
+		proc
+			data chout, int
+			data chin, int
+			data dataFile, string
+			data xdlFile, string
+			data textFile, string
+
+			;;Create and load the customers file
+
+			dataFile = "ICSTUT:customer.ism"
+			xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+			textFile = dataFile.ToLower().Replace(".ism",".txt")
+
+			try
+			begin
+				open(chout=0,o:i,dataFile,FDL:xdlFile)
+				open(chin,i,textFile)
+				repeat
+				begin
+					reads(chin,customer)
+					store(chout,customer)
+				end
+			end
+			catch (ex, @EndOfFileException)
+			begin
+				close chin
+				close chout
+			end
+			endtry
+
+			;;Create and load the orders file
+
+			dataFile = "ICSTUT:orders.ism"
+			xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+			textFile = dataFile.ToLower().Replace(".ism",".txt")
+
+			try
+			begin
+				open(chout=0,o:i,dataFile,FDL:xdlFile)
+				open(chin,i,textFile)
+				repeat
+				begin
+					reads(chin,order)
+					store(chout,order)
+				end
+			end
+			catch (ex, @EndOfFileException)
+			begin
+				close chin
+				close chout
+			end
+			endtry
+
+			;;Create and load the plants file
+
+			dataFile = "ICSTUT:plants.ism"
+			xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+			textFile = dataFile.ToLower().Replace(".ism",".txt")
+
+			try
+			begin
+				open(chout=0,o:i,dataFile,FDL:xdlFile)
+				open(chin,i,textFile)
+				repeat
+				begin
+					reads(chin,plant)
+					store(chout,plant)
+				end
+			end
+			catch (ex, @EndOfFileException)
+			begin
+				close chin
+				close chout
+			end
+			endtry
+
+		endmethod
+
+		public static method DeleteFiles, void
+		proc
+			;;Delete the customers file
+			try
+			begin
+				xcall delet("ICSTUT:customer.ism")
+			end
+			catch (e, @NoFileFoundException)
+			begin
+				nop
+			end
+			endtry
+
+			;;Delete the orders file
+			try
+			begin
+				xcall delet("ICSTUT:orders.ism")
+			end
+			catch (e, @NoFileFoundException)
+			begin
+				nop
+			end
+			endtry
+
+			;;Delete the plants file
+			try
+			begin
+				xcall delet("ICSTUT:plants.ism")
+			end
+			catch (e, @NoFileFoundException)
+			begin
+				nop
+			end
+			endtry
 
 		endmethod
 

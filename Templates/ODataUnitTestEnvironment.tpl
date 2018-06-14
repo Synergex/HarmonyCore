@@ -1,4 +1,4 @@
-<CODEGEN_FILENAME>TestEnvironment.dbl</CODEGEN_FILENAME>
+<CODEGEN_FILENAME>UnitTestEnvironment.dbl</CODEGEN_FILENAME>
 <REQUIRES_USERTOKEN>SERVICES_NAMESPACE</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
@@ -35,7 +35,7 @@
 ;//
 ;;*****************************************************************************
 ;;
-;; Title:       TestEnvironment.dbl
+;; Title:       UnitTestEnvironment.dbl
 ;;
 ;; Type:        Class
 ;;
@@ -85,23 +85,23 @@ import System.IO
 import System.Text
 import <SERVICES_NAMESPACE>
 
-main TestEnvironment
+main UnitTestEnvironment
 proc
 	;For debugging!
 
-	TestEnvironment.AssemblyInitialize(^null)
+	UnitTestEnvironment.AssemblyInitialize(^null)
 
 	data tester = new CustomerTests()
 	tester.GetAllCustomers()
 
-	TestEnvironment.AssemblyCleanup()
+	UnitTestEnvironment.AssemblyCleanup()
 
 endmain
 
 namespace <NAMESPACE>
 
 	{TestClass}
-	public class TestEnvironment
+	public class UnitTestEnvironment
 
 		public static Server, @TestServer 
 
@@ -112,13 +112,13 @@ namespace <NAMESPACE>
 			Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)
 
 			;;Set the logical names that will be used to access the data files
-			setLogicals()
+			TestEnvironment.SetLogicals()
 
 			;;Make sure the files don't already exist
-			deleteFiles()
+			TestEnvironment.DeleteFiles()
 
 			;;Create the data files
-			createFiles()
+			TestEnvironment.CreateFiles()
 
 			;;Create a TestServer to host the Web API services
 			Server = new TestServer(new WebHostBuilder().UseStartup<Startup>())
@@ -133,98 +133,8 @@ namespace <NAMESPACE>
 			Server = ^null
 
 			;;Delete the data files
-			deleteFiles()
+			TestEnvironment.DeleteFiles()
 
-		endmethod
-
-		private static method createFiles, void
-			<STRUCTURE_LOOP>
-			.include "<STRUCTURE_NOALIAS>" repository, stack record="<structureNoplural>", nofields, end
-			</STRUCTURE_LOOP>
-		proc
-			data chout, int
-			data chin, int
-			data dataFile, string
-			data xdlFile, string
-			data textFile, string
-
-			<STRUCTURE_LOOP>
-			;;Create and load the <structurePlural> file
-
-			dataFile = "<FILE_NAME>"
-			xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
-			textFile = dataFile.ToLower().Replace(".ism",".txt")
-
-			open(chout=0,o:i,dataFile,FDL:xdlFile)
-			open(chin,i,textFile)
-			repeat
-			begin
-				reads(chin,<structureNoplural>,end<structurePlural>)
-				store(chout,<structureNoplural>)
-			end
-		end<structurePlural>,
-			close chin
-			close chout
-
-			</STRUCTURE_LOOP>
-		endmethod
-
-		private static method deleteFiles, void
-		proc
-			<STRUCTURE_LOOP>
-			;;Delete the <structurePlural> file
-			try
-			begin
-				xcall delet("<FILE_NAME>")
-			end
-			catch (e, @NoFileFoundException)
-			begin
-				nop
-			end
-			endtry
-
-			</STRUCTURE_LOOP>
-		endmethod
-
-		private static method setLogicals, void
-		proc
-			data sampleDataFolder = findRelativeFolderForAssembly("SampleData")
-			data logicals = new List<string>()
-			data logical = String.Empty
-			data fileSpec = String.Empty
-			<STRUCTURE_LOOP>
-
-			fileSpec = "<FILE_NAME>"
-			if (fileSpec.Contains(":"))
-			begin
-				logical = fileSpec.Split(":")[0].ToUpper()
-				if (!logicals.Contains(logical))
-					logicals.Add(logical)
-			end
-			</STRUCTURE_LOOP>
-
-			foreach logical in logicals
-			begin
-				data sts, int
-				xcall setlog(logical,sampleDataFolder,sts)
-			end
-
-		endmethod
-
-		private static method findRelativeFolderForAssembly, string
-			folderName, string
-		proc
-			data assemblyLocation = ^typeof(TestEnvironment).Assembly.Location
-			data currentFolder = Path.GetDirectoryName(assemblyLocation)
-			data rootPath = Path.GetPathRoot(currentFolder)
-			while(currentFolder != rootPath)
-			begin
-				if(Directory.Exists(Path.Combine(currentFolder, folderName))) then
-					mreturn Path.Combine(currentFolder, folderName)
-				else
-					currentFolder = Path.GetFullPath(currentFolder + "..\")
-			end
-			mreturn ^null
 		endmethod
 
 	endclass

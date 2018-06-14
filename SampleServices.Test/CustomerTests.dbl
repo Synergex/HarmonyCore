@@ -56,7 +56,7 @@ namespace SampleServices.Test
 		{TestCategory("Customer Tests")}
 		public method GetAllCustomers, void
 		proc
-			disposable data client = TestEnvironment.Server.CreateClient()
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
 			disposable data response = client.GetAsync("/odata/Customers").Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
@@ -67,7 +67,7 @@ namespace SampleServices.Test
 		{TestCategory("Order Tests")}
 		public method GetCustomer, void
 		proc
-			data client = TestEnvironment.Server.CreateClient()
+			data client = UnitTestEnvironment.Server.CreateClient()
 			data request = String.Format("/odata/Customers({0})", TestContext.CustomerID)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
@@ -79,7 +79,7 @@ namespace SampleServices.Test
 ;		{TestCategory("Customer Tests")}
 ;		public method CreateCustomer, void
 ;		proc
-;			disposable data client = TestEnvironment.Server.CreateClient()
+;			disposable data client = UnitTestEnvironment.Server.CreateClient()
 ;			disposable data requestBody = new StringContent("")
 ;			disposable data response = client.PostAsync("/odata/Customers", requestBody).Result
 ;			data result = response.Content.ReadAsStringAsync().Result
@@ -90,7 +90,7 @@ namespace SampleServices.Test
 ;		{TestCategory("Customer Tests")}
 ;		public method UpdateCustomer, void
 ;		proc
-;			disposable data client = TestEnvironment.Server.CreateClient()
+;			disposable data client = UnitTestEnvironment.Server.CreateClient()
 ;			disposable data requestBody = new StringContent("")
 ;			disposable data response = client.PutAsync("/odata/Customers(1)", requestBody).Result
 ;			response.EnsureSuccessStatusCode()

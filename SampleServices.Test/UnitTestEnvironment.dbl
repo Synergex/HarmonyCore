@@ -1,10 +1,11 @@
 ;;*****************************************************************************
 ;;
-;; Title:       VendorTests.dbl
+;; Title:       UnitTestEnvironment.dbl
 ;;
 ;; Type:        Class
 ;;
-;; Description: Unit tests for the operastions defined in VendorsController.
+;; Description: Configures an environment in which unit tests can operate
+;;              with a known initial data state.
 ;;
 ;;*****************************************************************************
 ;; WARNING
@@ -41,60 +42,65 @@
 ;;
 ;;*****************************************************************************
 
+import Microsoft.AspNetCore.Hosting
+import Microsoft.AspNetCore.TestHost
 import Microsoft.VisualStudio.TestTools.UnitTesting
-import Newtonsoft.Json
 import System.Collections.Generic
-import System.Net.Http
-import SampleServices.Test.Models
+import System.IO
+import System.Text
+import SampleServices
+
+main UnitTestEnvironment
+proc
+	;For debugging!
+
+	UnitTestEnvironment.AssemblyInitialize(^null)
+
+	data tester = new CustomerTests()
+	tester.GetAllCustomers()
+
+	UnitTestEnvironment.AssemblyCleanup()
+
+endmain
 
 namespace SampleServices.Test
 
 	{TestClass}
-	public partial class VendorTests
+	public class UnitTestEnvironment
 
-		{TestMethod}
-		{TestCategory("Vendor Tests")}
-		public method GetAllVendors, void
+		public static Server, @TestServer 
+
+		{AssemblyInitialize}
+		public static method AssemblyInitialize, void
+			required in context, @TestContext
 		proc
-			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync("/odata/Vendors").Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data vendors, @ODataVendors, JsonConvert.DeserializeObject<ODataVendors>(result)
+			Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)
+
+			;;Set the logical names that will be used to access the data files
+			TestEnvironment.SetLogicals()
+
+			;;Make sure the files don't already exist
+			TestEnvironment.DeleteFiles()
+
+			;;Create the data files
+			TestEnvironment.CreateFiles()
+
+			;;Create a TestServer to host the Web API services
+			Server = new TestServer(new WebHostBuilder().UseStartup<Startup>())
+
 		endmethod
-	
-		{TestMethod}
-		{TestCategory("Order Tests")}
-		public method GetVendor, void
+
+		{AssemblyCleanup}
+		public static method AssemblyCleanup, void
 		proc
-			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Vendors({0})", TestContext.VendorID)
-			data response = client.GetAsync(request).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data vendor, @ODataVendor, JsonConvert.DeserializeObject<ODataVendor>(result)
+			;;Clean up the test host
+			Server.Dispose()
+			Server = ^null
+
+			;;Delete the data files
+			TestEnvironment.DeleteFiles()
+
 		endmethod
-
-;		{TestMethod}
-;		{TestCategory("Vendor Tests")}
-;		public method CreateVendor, void
-;		proc
-;			disposable data client = UnitTestEnvironment.Server.CreateClient()
-;			disposable data requestBody = new StringContent("")
-;			disposable data response = client.PostAsync("/odata/Vendors", requestBody).Result
-;			data result = response.Content.ReadAsStringAsync().Result
-;			response.EnsureSuccessStatusCode()
-;		endmethod
-
-;		{TestMethod}
-;		{TestCategory("Vendor Tests")}
-;		public method UpdateVendor, void
-;		proc
-;			disposable data client = UnitTestEnvironment.Server.CreateClient()
-;			disposable data requestBody = new StringContent("")
-;			disposable data response = client.PutAsync("/odata/Vendors(1)", requestBody).Result
-;			response.EnsureSuccessStatusCode()
-;		endmethod
 
 	endclass
 

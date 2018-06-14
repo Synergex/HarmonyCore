@@ -91,7 +91,7 @@ namespace <NAMESPACE>
 		{TestCategory("<StructureNoplural> Tests")}
 		public method GetAll<StructurePlural>, void
 		proc
-			disposable data client = TestEnvironment.Server.CreateClient()
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
 			disposable data response = client.GetAsync("/odata/<StructurePlural>").Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
@@ -102,7 +102,7 @@ namespace <NAMESPACE>
 		{TestCategory("Order Tests")}
 		public method Get<StructureNoplural>, void
 		proc
-			data client = TestEnvironment.Server.CreateClient()
+			data client = UnitTestEnvironment.Server.CreateClient()
 			data request = String.Format("/odata/<StructurePlural>({0})", TestContext.<StructureNoplural>ID)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
@@ -114,7 +114,7 @@ namespace <NAMESPACE>
 ;		{TestCategory("<StructureNoplural> Tests")}
 ;		public method Create<StructureNoplural>, void
 ;		proc
-;			disposable data client = TestEnvironment.Server.CreateClient()
+;			disposable data client = UnitTestEnvironment.Server.CreateClient()
 ;			disposable data requestBody = new StringContent("")
 ;			disposable data response = client.PostAsync("/odata/<StructurePlural>", requestBody).Result
 ;			data result = response.Content.ReadAsStringAsync().Result
@@ -125,7 +125,7 @@ namespace <NAMESPACE>
 ;		{TestCategory("<StructureNoplural> Tests")}
 ;		public method Update<StructureNoplural>, void
 ;		proc
-;			disposable data client = TestEnvironment.Server.CreateClient()
+;			disposable data client = UnitTestEnvironment.Server.CreateClient()
 ;			disposable data requestBody = new StringContent("")
 ;			disposable data response = client.PutAsync("/odata/<StructurePlural>(1)", requestBody).Result
 ;			response.EnsureSuccessStatusCode()

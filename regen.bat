@@ -32,6 +32,9 @@ rem structures associated with each file.
 
 set FILE_STRUCTURES=CUSTOMERS ORDERS PLANTS
 
+rem Generate the test environment class
+codegen -s %FILE_STRUCTURES% -ms -t ODataTestEnvironment -n %PROJECT% -o %PROJECT% %OPTS%
+
 rem Generate the unit test environment class
 codegen -s %FILE_STRUCTURES% -ms -t ODataUnitTestEnvironment -n %PROJECT%.Test -o %PROJECT%.Test -ut SERVICES_NAMESPACE=%PROJECT% %OPTS%
 

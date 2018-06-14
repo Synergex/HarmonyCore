@@ -1,12 +1,11 @@
-<CODEGEN_FILENAME>Startup.dbl</CODEGEN_FILENAME>
-<REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
+<CODEGEN_FILENAME>TestEnvironment.dbl</CODEGEN_FILENAME>
 ;//****************************************************************************
 ;//
-;// Title:       ODataEdmBuilder.tpl
+;// Title:       ODataTestEnvironment.tpl
 ;//
 ;// Type:        CodeGen Template
 ;//
-;// Description: Creates a Startup class for an OData / Web API hosting environment
+;// Description: Generates utilities for configuting a hosting environment.
 ;//
 ;// Copyright (c) 2018, Synergex International, Inc. All rights reserved.
 ;//
@@ -34,11 +33,11 @@
 ;//
 ;;*****************************************************************************
 ;;
-;; Title:       Startup.dbl
+;; Title:       TestEnvironment.dbl
 ;;
 ;; Type:        Class
 ;;
-;; Description: Startup class for an OData / Web API hosting environment
+;; Description: Utilities for configuting a hosting environment.
 ;;
 ;;*****************************************************************************
 ;; WARNING
@@ -75,57 +74,112 @@
 ;;
 ;;*****************************************************************************
 
-import Harmony.Core.Context
-import Harmony.Core.FileIO
-import Harmony.Core.Utility
-import Harmony.AspNetCore.Context
-import Microsoft.Extensions.DependencyInjection
-import Microsoft.EntityFrameworkCore
-import Microsoft.AspNet.OData.Extensions
-import Microsoft.AspNetCore.Builder
-import Microsoft.AspNetCore.Hosting
-import <MODELS_NAMESPACE>
+import System.Collections.Generic
+import System.IO
+import System.Text
+
+.array 0
 
 namespace <NAMESPACE>
 
-	public class Startup
+	public static class TestEnvironment
 
-		public method ConfigureServices, void
-			services, @IServiceCollection 
+		public static method SetLogicals, void
 		proc
-			lambda AddDataObjectMappings(serviceProvider)
+			data sampleDataFolder = findRelativeFolderForAssembly("SampleData")
+			data logicals = new List<string>()
+			data logical = String.Empty
+			data fileSpec = String.Empty
+			<STRUCTURE_LOOP>
+
+			fileSpec = "<FILE_NAME>"
+			if (fileSpec.Contains(":"))
 			begin
-				data objectProvider = new DataObjectProvider(serviceProvider.GetService<IFileChannelManager>())
-				<STRUCTURE_LOOP>
-				objectProvider.AddDataObjectMapping<<StructureNoplural>>("<FILE_NAME>", <IF STRUCTURE_ISAM>FileOpenMode.UpdateIndexed</IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>FileOpenMode.UpdateRelative</IF STRUCTURE_RELATIVE>)
-				</STRUCTURE_LOOP>
-				mreturn objectProvider
+				logical = fileSpec.Split(":")[0].ToUpper()
+				if (!logicals.Contains(logical))
+					logicals.Add(logical)
 			end
+			</STRUCTURE_LOOP>
 
-			services.AddSingleton<IFileChannelManager, FileChannelManager>()
-			services.AddSingleton<IDataObjectProvider>(AddDataObjectMappings)
-			services.AddSingleton<DbContextOptions<DBContext>>(new DbContextOptions<DBContext>())
-			services.AddSingleton<DBContext, DBContext>()
-
-			services.AddOData()
-			services.AddMvcCore()
+			foreach logical in logicals
+			begin
+				data sts, int
+				xcall setlog(logical,sampleDataFolder,sts)
+			end
 
 		endmethod
 
-		public method Configure, void
-			app, @IApplicationBuilder
-			env, @IHostingEnvironment
+		public static method CreateFiles, void
+			<STRUCTURE_LOOP>
+			.include "<STRUCTURE_NOALIAS>" repository, stack record="<structureNoplural>", nofields, end
+			</STRUCTURE_LOOP>
 		proc
-			data model = EdmBuilder.GetEdmModel()
+			data chout, int
+			data chin, int
+			data dataFile, string
+			data xdlFile, string
+			data textFile, string
 
-			lambda MVCBuilder(builder)
+			<STRUCTURE_LOOP>
+			;;Create and load the <structurePlural> file
+
+			dataFile = "<FILE_NAME>"
+			xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+			textFile = dataFile.ToLower().Replace(".ism",".txt")
+
+			try
 			begin
-				builder.Select().Expand().Filter().OrderBy().MaxTop(100).Count()
-				builder.MapODataServiceRoute("odata", "odata", model)
+				open(chout=0,o:i,dataFile,FDL:xdlFile)
+				open(chin,i,textFile)
+				repeat
+				begin
+					reads(chin,<structureNoplural>)
+					store(chout,<structureNoplural>)
+				end
 			end
-			app.UseLogging(DebugLogSession.Logging)
-			app.UseMvc(MVCBuilder)
+			catch (ex, @EndOfFileException)
+			begin
+				close chin
+				close chout
+			end
+			endtry
+
+			</STRUCTURE_LOOP>
 		endmethod
+
+		public static method DeleteFiles, void
+		proc
+			<STRUCTURE_LOOP>
+			;;Delete the <structurePlural> file
+			try
+			begin
+				xcall delet("<FILE_NAME>")
+			end
+			catch (e, @NoFileFoundException)
+			begin
+				nop
+			end
+			endtry
+
+			</STRUCTURE_LOOP>
+		endmethod
+
+		private static method findRelativeFolderForAssembly, string
+			folderName, string
+		proc
+			data assemblyLocation = ^typeof(TestEnvironment).Assembly.Location
+			data currentFolder = Path.GetDirectoryName(assemblyLocation)
+			data rootPath = Path.GetPathRoot(currentFolder)
+			while(currentFolder != rootPath)
+			begin
+				if(Directory.Exists(Path.Combine(currentFolder, folderName))) then
+					mreturn Path.Combine(currentFolder, folderName)
+				else
+					currentFolder = Path.GetFullPath(currentFolder + "..\")
+			end
+			mreturn ^null
+		endmethod
+
 	endclass
 
 endnamespace
