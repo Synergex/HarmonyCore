@@ -22,6 +22,9 @@ codegen -s %STRUCTURES%    -ms -t ODataDbContext ODataEdmBuilder ODataStartup -n
 rem Generate unit tests
 codegen -s %STRUCTURES%   -t ODataUnitTests -n %PROJECT%.Test -o %PROJECT%.Test -ut MODELS_NAMESPACE=%PROJECT%.Models %OPTS%
 
+rem Generate OData model classes for client side use
+codegen -s %STRUCTURES%   -t ODataModel -n %PROJECT%.Test.Models -o %PROJECT%.Test\Models %OPTS%
+
 rem ================================================================================================================================
 rem The test environment has slightly different requirements, because we need to generate code based on structures, but when tags
 rem are used to indicate that multiple structures are associated with a single ISAM file, we only need to generate from one of The

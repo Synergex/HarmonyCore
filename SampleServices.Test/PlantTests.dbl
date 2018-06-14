@@ -45,7 +45,7 @@ import Microsoft.VisualStudio.TestTools.UnitTesting
 import Newtonsoft.Json
 import System.Collections.Generic
 import System.Net.Http
-import SampleServices.Models
+import SampleServices.Test.Models
 
 namespace SampleServices.Test
 
@@ -60,20 +60,20 @@ namespace SampleServices.Test
 			disposable data response = client.GetAsync("/odata/Plants").Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
-			;data plants, @List<Plant>, JsonConvert.DeserializeObject<List<Plant>>(result)
-
+			data plants, @ODataPlants, JsonConvert.DeserializeObject<ODataPlants>(result)
 		endmethod
 	
-;		{TestMethod}
-;		{TestCategory("Order Tests")}
-;		public method GetPlant, void
-;		proc
-;			data client = TestEnvironment.Server.CreateClient()
-;			data request = "/odata/Plants(????)"
-;			data response = client.GetAsync(request).Result
-;			data result = response.Content.ReadAsStringAsync().Result
-;			response.EnsureSuccessStatusCode()
-;		endmethod
+		{TestMethod}
+		{TestCategory("Order Tests")}
+		public method GetPlant, void
+		proc
+			data client = TestEnvironment.Server.CreateClient()
+			data request = String.Format("/odata/Plants({0})", TestContext.PlantID)
+			data response = client.GetAsync(request).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data plant, @ODataPlant, JsonConvert.DeserializeObject<ODataPlant>(result)
+		endmethod
 
 ;		{TestMethod}
 ;		{TestCategory("Plant Tests")}

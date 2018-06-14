@@ -45,7 +45,7 @@ import Microsoft.VisualStudio.TestTools.UnitTesting
 import Newtonsoft.Json
 import System.Collections.Generic
 import System.Net.Http
-import SampleServices.Models
+import SampleServices.Test.Models
 
 namespace SampleServices.Test
 
@@ -60,20 +60,20 @@ namespace SampleServices.Test
 			disposable data response = client.GetAsync("/odata/Vendors").Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
-			;data vendors, @List<Vendor>, JsonConvert.DeserializeObject<List<Vendor>>(result)
-
+			data vendors, @ODataVendors, JsonConvert.DeserializeObject<ODataVendors>(result)
 		endmethod
 	
-;		{TestMethod}
-;		{TestCategory("Order Tests")}
-;		public method GetVendor, void
-;		proc
-;			data client = TestEnvironment.Server.CreateClient()
-;			data request = "/odata/Vendors(????)"
-;			data response = client.GetAsync(request).Result
-;			data result = response.Content.ReadAsStringAsync().Result
-;			response.EnsureSuccessStatusCode()
-;		endmethod
+		{TestMethod}
+		{TestCategory("Order Tests")}
+		public method GetVendor, void
+		proc
+			data client = TestEnvironment.Server.CreateClient()
+			data request = String.Format("/odata/Vendors({0})", TestContext.VendorID)
+			data response = client.GetAsync(request).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data vendor, @ODataVendor, JsonConvert.DeserializeObject<ODataVendor>(result)
+		endmethod
 
 ;		{TestMethod}
 ;		{TestCategory("Vendor Tests")}

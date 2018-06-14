@@ -1,13 +1,11 @@
-<CODEGEN_FILENAME><StructureNoplural>Tests.dbl</CODEGEN_FILENAME>
-<REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
+<CODEGEN_FILENAME><StructureNoplural>.dbl</CODEGEN_FILENAME>
 ;//****************************************************************************
 ;//
-;// Title:       ODataUnitTests.tpl
+;// Title:       ODataModel.tpl
 ;//
 ;// Type:        CodeGen Template
 ;//
-;// Description: Generates unit tests for Web API / OData controllers in a
-;//              Harmony Core environment.
+;// Description: Creates model classes suitable for use in OData clients.
 ;//
 ;// Copyright (c) 2018, Synergex International, Inc. All rights reserved.
 ;//
@@ -35,11 +33,12 @@
 ;//
 ;;*****************************************************************************
 ;;
-;; Title:       <StructureNoplural>Tests.dbl
+;; Title:       <StructureNoplural>.dbl
 ;;
 ;; Type:        Class
 ;;
-;; Description: Unit tests for the operastions defined in <StructurePlural>Controller.
+;; Description: OData model class representing data defined by the repository
+;;              structure <STRUCTURE_NOALIAS> and from the data file <FILE_NAME>.
 ;;
 ;;*****************************************************************************
 ;; WARNING
@@ -49,7 +48,7 @@
 ;;
 ;;*****************************************************************************
 ;;
-;; Copyright (c) 2018, Synergex International, Inc.
+;; Copyright (c) 2012, Synergex International, Inc.
 ;; All rights reserved.
 ;;
 ;; Redistribution and use in source and binary forms, with or without
@@ -76,61 +75,44 @@
 ;;
 ;;*****************************************************************************
 
-import Microsoft.VisualStudio.TestTools.UnitTesting
 import Newtonsoft.Json
 import System.Collections.Generic
-import System.Net.Http
-import <NAMESPACE>.Models
 
 namespace <NAMESPACE>
 
-	{TestClass}
-	public partial class <StructureNoplural>Tests
+    public partial class <StructureNoplural>
 
-		{TestMethod}
-		{TestCategory("<StructureNoplural> Tests")}
-		public method GetAll<StructurePlural>, void
-		proc
-			disposable data client = TestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync("/odata/<StructurePlural>").Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data <structurePlural>, @OData<StructurePlural>, JsonConvert.DeserializeObject<OData<StructurePlural>>(result)
-		endmethod
-	
-		{TestMethod}
-		{TestCategory("Order Tests")}
-		public method Get<StructureNoplural>, void
-		proc
-			data client = TestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/<StructurePlural>({0})", TestContext.<StructureNoplural>ID)
-			data response = client.GetAsync(request).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data <structureNoplural>, @OData<StructureNoplural>, JsonConvert.DeserializeObject<OData<StructureNoplural>>(result)
-		endmethod
+		{JsonProperty("odata.type")}
+		public readwrite property Type, string
 
-;		{TestMethod}
-;		{TestCategory("<StructureNoplural> Tests")}
-;		public method Create<StructureNoplural>, void
-;		proc
-;			disposable data client = TestEnvironment.Server.CreateClient()
-;			disposable data requestBody = new StringContent("")
-;			disposable data response = client.PostAsync("/odata/<StructurePlural>", requestBody).Result
-;			data result = response.Content.ReadAsStringAsync().Result
-;			response.EnsureSuccessStatusCode()
-;		endmethod
+        <FIELD_LOOP>
+		<IF CUSTOM_NOT_SYMPHONY_ARRAY_FIELD>
+		;;; <summary>
+		;;; <FIELD_DESC>
+		;;; </summary>
+		public readwrite property <FieldSqlname>, <FIELD_CSTYPE>
 
-;		{TestMethod}
-;		{TestCategory("<StructureNoplural> Tests")}
-;		public method Update<StructureNoplural>, void
-;		proc
-;			disposable data client = TestEnvironment.Server.CreateClient()
-;			disposable data requestBody = new StringContent("")
-;			disposable data response = client.PutAsync("/odata/<StructurePlural>(1)", requestBody).Result
-;			response.EnsureSuccessStatusCode()
-;		endmethod
-
+		</IF CUSTOM_NOT_SYMPHONY_ARRAY_FIELD>
+        </FIELD_LOOP>
 	endclass
 
+	public class OData<StructureNoplural>
+		
+		{JsonProperty("odata.metadata")}
+		public readwrite property Metadata, string
+
+		public readwrite property Value, @<StructureNoplural>
+
+	endclass
+	
+	public class OData<StructurePlural>
+		
+		{JsonProperty("odata.metadata")}
+		public readwrite property Metadata, string
+
+		public readwrite property Value, @List<<StructureNoplural>>
+
+	endclass
+	
 endnamespace
+
