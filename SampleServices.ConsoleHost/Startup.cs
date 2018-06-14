@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Server.Kestrel.Core.Features;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
+using SampleServices;
 
 namespace SampleServices.ConsoleHost
 {

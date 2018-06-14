@@ -21,12 +21,18 @@ namespace SampleServices.ConsoleHost
         #region snippet_DefaultBuilder
         public static void Main(string[] args)
         {
+            TestEnvironment.SetLogicals();
+            TestEnvironment.DeleteFiles();
+            TestEnvironment.CreateFiles();
+
             CreateWebHostBuilder(args).Build().Run();
+
+            TestEnvironment.DeleteFiles();
         }
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
-                .UseStartup<Startup>();
+                .UseStartup<SampleServices.Startup>();
         #endregion
 #elif TCPSocket
         #region snippet_TCPSocket

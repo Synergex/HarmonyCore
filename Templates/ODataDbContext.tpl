@@ -142,32 +142,32 @@ namespace <NAMESPACE>
 			</STRUCTURE_LOOP>
 .endregion
 
-.region "Relationships to other structures"
-
-			<STRUCTURE_LOOP>
-			<IF STRUCTURE_RELATIONS>
-			<RELATION_LOOP>
-			<IF TWO_WAY_ONE_TO_ONE>
-	        ;; One to one relationship from structure <StructureNoplural> key <RELATION_FROMKEY> to structure <RelationTostructure>.<RELATION_TOKEY> with a backward relationship
-			parm.Entity(^typeof(<StructureNoplural>)).HasOne(^typeof(<RelationTostructureNoplural>), "<StructurePlural>").WithOne("<RelationFromkey>Data")
-			</IF TWO_WAY_ONE_TO_ONE>
-			<IF ONE_WAY_ONE_TO_ONE>
-	        ;; One to one relationship from structure <StructureNoplural> key <RELATION_FROMKEY> to structure <RelationTostructure>.<RELATION_TOKEY> without a backward relationship
-			;TODO: Code needed here!!!
-			</IF ONE_WAY_ONE_TO_ONE>
-			<IF TWO_WAY_ONE_TO_MANY>
-	        ;; One to many relationship from structure <StructureNoplural> key <RELATION_FROMKEY> to structure <RelationTostructure> key <RELATION_TOKEY> with a backward relationship
-			;TODO: Code needed here!!!
-			</IF TWO_WAY_ONE_TO_MANY>
-			<IF ONE_WAY_ONE_TO_MANY>
-	        ;; One to many relationship from structure <StructureNoplural> key <RELATION_FROMKEY> to structure <RelationTostructure> key <RELATION_TOKEY> without a backward relationship
-			;TODO: Code needed here!!!
-			</IF ONE_WAY_ONE_TO_MANY>
-
-			</RELATION_LOOP>
-			</IF STRUCTURE_RELATIONS>
-			</STRUCTURE_LOOP>
-.endregion
+;.region "Relationships to other structures"
+;
+;			<STRUCTURE_LOOP>
+;			<IF STRUCTURE_RELATIONS>
+;			<RELATION_LOOP>
+;			<IF TWO_WAY_ONE_TO_ONE>
+;	        ;; One to one relationship from structure <StructureNoplural> key <RELATION_FROMKEY> to structure <RelationTostructure>.<RELATION_TOKEY> with a backward relationship
+;			parm.Entity(^typeof(<StructureNoplural>)).HasOne(^typeof(<RelationTostructureNoplural>), "<StructurePlural>").WithOne("<RelationFromkey>Data")
+;			</IF TWO_WAY_ONE_TO_ONE>
+;			<IF ONE_WAY_ONE_TO_ONE>
+;	        ;; One to one relationship from structure <StructureNoplural> key <RELATION_FROMKEY> to structure <RelationTostructure>.<RELATION_TOKEY> without a backward relationship
+;			;TODO: Code needed here!!!
+;			</IF ONE_WAY_ONE_TO_ONE>
+;			<IF TWO_WAY_ONE_TO_MANY>
+;	        ;; One to many relationship from structure <StructureNoplural> key <RELATION_FROMKEY> to structure <RelationTostructure> key <RELATION_TOKEY> with a backward relationship
+;			;TODO: Code needed here!!!
+;			</IF TWO_WAY_ONE_TO_MANY>
+;			<IF ONE_WAY_ONE_TO_MANY>
+;	        ;; One to many relationship from structure <StructureNoplural> key <RELATION_FROMKEY> to structure <RelationTostructure> key <RELATION_TOKEY> without a backward relationship
+;			;TODO: Code needed here!!!
+;			</IF ONE_WAY_ONE_TO_MANY>
+;
+;			</RELATION_LOOP>
+;			</IF STRUCTURE_RELATIONS>
+;			</STRUCTURE_LOOP>
+;.endregion
 			parent.OnModelCreating(parm)
 
 		endmethod

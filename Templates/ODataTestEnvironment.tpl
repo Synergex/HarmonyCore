@@ -86,6 +86,9 @@ namespace <NAMESPACE>
 
 		public static method SetLogicals, void
 		proc
+
+			Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)
+
 			data sampleDataFolder = findRelativeFolderForAssembly("SampleData")
 			data logicals = new List<string>()
 			data logical = String.Empty
