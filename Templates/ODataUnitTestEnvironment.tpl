@@ -77,6 +77,7 @@
 ;;
 ;;*****************************************************************************
 
+import Microsoft.AspNetCore
 import Microsoft.AspNetCore.Hosting
 import Microsoft.AspNetCore.TestHost
 import Microsoft.VisualStudio.TestTools.UnitTesting
@@ -91,8 +92,10 @@ proc
 
 	UnitTestEnvironment.AssemblyInitialize(^null)
 
-	data tester = new CustomerTests()
-	tester.GetAllCustomers()
+	;data tester = new CustomerTests()
+	;tester.GetAllCustomers()
+
+	WebHost.CreateDefaultBuilder(new string[0]).UseStartup<Startup>().Build().Run()
 
 	UnitTestEnvironment.AssemblyCleanup()
 
