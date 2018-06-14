@@ -1,6 +1,6 @@
 ;;*****************************************************************************
 ;;
-;; Title:       TestEnvironment.dbl
+;; Title:       UnitTestEnvironment.dbl
 ;;
 ;; Type:        Class
 ;;
@@ -42,29 +42,34 @@
 ;;
 ;;*****************************************************************************
 
+import Microsoft.AspNetCore
 import Microsoft.AspNetCore.Hosting
 import Microsoft.AspNetCore.TestHost
 import Microsoft.VisualStudio.TestTools.UnitTesting
+import System.Collections.Generic
+import System.IO
 import System.Text
 import SampleServices
 
-main TestEnvironment
+main UnitTestEnvironment
 proc
 	;For debugging!
 
-	TestEnvironment.AssemblyInitialize(^null)
+	UnitTestEnvironment.AssemblyInitialize(^null)
 
-	data tester = new CustomerTests()
-	tester.GetAllCustomers()
+	;data tester = new CustomerTests()
+	;tester.GetAllCustomers()
 
-	TestEnvironment.AssemblyCleanup()
+	WebHost.CreateDefaultBuilder(new string[0]).UseStartup<Startup>().Build().Run()
+
+	UnitTestEnvironment.AssemblyCleanup()
 
 endmain
 
 namespace SampleServices.Test
 
 	{TestClass}
-	public class TestEnvironment
+	public class UnitTestEnvironment
 
 		public static Server, @TestServer 
 
@@ -75,14 +80,13 @@ namespace SampleServices.Test
 			Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)
 
 			;;Set the logical names that will be used to access the data files
-			data status, i4
-			xcall setlog("ICSTUT", EnvironmentRootBuilder.FindRelativeFolderForAssembly("SampleData"), status)
+			TestEnvironment.SetLogicals()
 
 			;;Make sure the files don't already exist
-			deleteFiles()
+			TestEnvironment.DeleteFiles()
 
 			;;Create the data files
-			createFiles()
+			TestEnvironment.CreateFiles()
 
 			;;Create a TestServer to host the Web API services
 			Server = new TestServer(new WebHostBuilder().UseStartup<Startup>())
@@ -97,108 +101,7 @@ namespace SampleServices.Test
 			Server = ^null
 
 			;;Delete the data files
-			deleteFiles()
-
-		endmethod
-
-		private static method createFiles, void
-			.include "CUSTOMERS" repository, record="customer"
-			.include "ORDERS" repository, record="order"
-			.include "PLANTS" repository, record="plant"
-		proc
-			data chout, int
-			data chin, int
-			data dataFile, string
-			data xdlFile, string
-			data textFile, string
-
-			;;Create and load the customers file
-
-			dataFile = "ICSTUT:customer.ism"
-			xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
-			textFile = dataFile.ToLower().Replace(".ism",".txt")
-
-			open(chout=0,o:i,dataFile,FDL:xdlFile)
-			open(chin,i,textFile)
-			repeat
-			begin
-				reads(chin,customer,endcustomers)
-				store(chout,customer)
-			end
-		endcustomers,
-			close chin
-			close chout
-
-			;;Create and load the orders file
-
-			dataFile = "ICSTUT:orders.ism"
-			xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
-			textFile = dataFile.ToLower().Replace(".ism",".txt")
-
-			open(chout=0,o:i,dataFile,FDL:xdlFile)
-			open(chin,i,textFile)
-			repeat
-			begin
-				reads(chin,order,endorders)
-				store(chout,order)
-			end
-		endorders,
-			close chin
-			close chout
-
-			;;Create and load the plants file
-
-			dataFile = "ICSTUT:plants.ism"
-			xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
-			textFile = dataFile.ToLower().Replace(".ism",".txt")
-
-			open(chout=0,o:i,dataFile,FDL:xdlFile)
-			open(chin,i,textFile)
-			repeat
-			begin
-				reads(chin,plant,endplants)
-				store(chout,plant)
-			end
-		endplants,
-			close chin
-			close chout
-
-		endmethod
-
-		private static method deleteFiles, void
-		proc
-			;;Delete the customers file
-			try
-			begin
-				xcall delet("ICSTUT:customer.ism")
-			end
-			catch (e, @NoFileFoundException)
-			begin
-				nop
-			end
-			endtry
-
-			;;Delete the orders file
-			try
-			begin
-				xcall delet("ICSTUT:orders.ism")
-			end
-			catch (e, @NoFileFoundException)
-			begin
-				nop
-			end
-			endtry
-
-			;;Delete the plants file
-			try
-			begin
-				xcall delet("ICSTUT:plants.ism")
-			end
-			catch (e, @NoFileFoundException)
-			begin
-				nop
-			end
-			endtry
+			TestEnvironment.DeleteFiles()
 
 		endmethod
 

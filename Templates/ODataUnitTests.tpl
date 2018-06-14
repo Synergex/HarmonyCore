@@ -80,7 +80,7 @@ import Microsoft.VisualStudio.TestTools.UnitTesting
 import Newtonsoft.Json
 import System.Collections.Generic
 import System.Net.Http
-import <MODELS_NAMESPACE>
+import <NAMESPACE>.Models
 
 namespace <NAMESPACE>
 
@@ -91,41 +91,45 @@ namespace <NAMESPACE>
 		{TestCategory("<StructureNoplural> Tests")}
 		public method GetAll<StructurePlural>, void
 		proc
-			disposable data client = TestEnvironment.Server.CreateClient()
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
 			disposable data response = client.GetAsync("/odata/<StructurePlural>").Result
-
-			response.EnsureSuccessStatusCode()
-
 			data result = response.Content.ReadAsStringAsync().Result
-			;data <structurePlural>, @List<<StructureNoplural>>, JsonConvert.DeserializeObject<List<<StructureNoplural>>>(result)
-
+			response.EnsureSuccessStatusCode()
+			data <structurePlural>, @OData<StructurePlural>, JsonConvert.DeserializeObject<OData<StructurePlural>>(result)
 		endmethod
 	
 		{TestMethod}
-		{TestCategory("<StructureNoplural> Tests")}
-		public method Create<StructureNoplural>, void
+		{TestCategory("Order Tests")}
+		public method Get<StructureNoplural>, void
 		proc
-			disposable data client = TestEnvironment.Server.CreateClient()
-			disposable data requestBody = new StringContent("")
-			disposable data response = client.PostAsync("/odata/<StructurePlural>", requestBody).Result
-
-			response.EnsureSuccessStatusCode()
-
+			data client = UnitTestEnvironment.Server.CreateClient()
+			data request = String.Format("/odata/<StructurePlural>({0})", TestContext.<StructureNoplural>ID)
+			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
-
-		endmethod
-
-		{TestMethod}
-		{TestCategory("<StructureNoplural> Tests")}
-		public method Update<StructureNoplural>, void
-		proc
-			disposable data client = TestEnvironment.Server.CreateClient()
-			disposable data requestBody = new StringContent("")
-			disposable data response = client.PutAsync("/odata/<StructurePlural>(1)", requestBody).Result
-
 			response.EnsureSuccessStatusCode()
-
+			data <structureNoplural>, @OData<StructureNoplural>, JsonConvert.DeserializeObject<OData<StructureNoplural>>(result)
 		endmethod
+
+;		{TestMethod}
+;		{TestCategory("<StructureNoplural> Tests")}
+;		public method Create<StructureNoplural>, void
+;		proc
+;			disposable data client = UnitTestEnvironment.Server.CreateClient()
+;			disposable data requestBody = new StringContent("")
+;			disposable data response = client.PostAsync("/odata/<StructurePlural>", requestBody).Result
+;			data result = response.Content.ReadAsStringAsync().Result
+;			response.EnsureSuccessStatusCode()
+;		endmethod
+
+;		{TestMethod}
+;		{TestCategory("<StructureNoplural> Tests")}
+;		public method Update<StructureNoplural>, void
+;		proc
+;			disposable data client = UnitTestEnvironment.Server.CreateClient()
+;			disposable data requestBody = new StringContent("")
+;			disposable data response = client.PutAsync("/odata/<StructurePlural>(1)", requestBody).Result
+;			response.EnsureSuccessStatusCode()
+;		endmethod
 
 	endclass
 

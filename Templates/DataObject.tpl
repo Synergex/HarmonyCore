@@ -198,25 +198,38 @@ namespace <NAMESPACE>
         </FIELD_LOOP>
 .endregion
 
-.region "Public properties for relationships to other data"
-
-		<IF STRUCTURE_RELATIONS>
-		<RELATION_LOOP>
-		<IF ONE_TO_ONE>
-        ;;; <summary>
-        ;;; One to one relationship from <RELATION_FROMKEY> to <RelationTostructure>.<RELATION_TOKEY>
-        ;;; </summary>
-		public readwrite property <RelationFromkey>Data, @<RelationTostructureNoplural>
-		<ELSE>
-        ;;; <summary>
-        ;;; One to many relationship from <RELATION_FROMKEY> to <RelationTostructure>.<RELATION_TOKEY>
-        ;;; </summary>
-		public readwrite property <RelationTostructurePlural>, @ICollection<<RelationTostructureNoplural>>
-		</IF ONE_TO_ONE>
-
-		</RELATION_LOOP>
-		</IF STRUCTURE_RELATIONS>
-.endregion
+;.region "Public properties for relationships to other data"
+;
+;		<IF STRUCTURE_RELATIONS>
+;		<RELATION_LOOP>
+;		<IF TWO_WAY_ONE_TO_ONE>
+;        ;;; <summary>
+;        ;;; One to one relationship from stucture <StructureNoplural> key <RELATION_FROMKEY> to structure <RelationTostructure> key <RELATION_TOKEY> with a backward relationship
+;        ;;; </summary>
+;		public readwrite property <RelationFromkey>Data, @<RelationTostructureNoplural>
+;		</IF TWO_WAY_ONE_TO_ONE>
+;		<IF ONE_WAY_ONE_TO_ONE>
+;        ;;; <summary>
+;        ;;; One to one relationship from stucture <StructureNoplural> key <RELATION_FROMKEY> to structure <RelationTostructure> key <RELATION_TOKEY> without a backward relationship
+;        ;;; </summary>
+;		public readwrite property <RelationFromkey>Data, @<RelationTostructureNoplural>
+;		</IF ONE_WAY_ONE_TO_ONE>
+;		<IF TWO_WAY_ONE_TO_MANY>
+;        ;;; <summary>
+;        ;;; One to many relationship from structure <StructureNoplural> key <RELATION_FROMKEY> to structure <RelationTostructure> key <RELATION_TOKEY> with a backward relationship
+;        ;;; </summary>
+;		public readwrite property <RelationTostructurePlural>, @ICollection<<RelationTostructureNoplural>>
+;		</IF TWO_WAY_ONE_TO_MANY>
+;		<IF ONE_WAY_ONE_TO_MANY>
+;        ;;; <summary>
+;        ;;; One to many relationship from structure <StructureNoplural> key <RELATION_FROMKEY> to structure <RelationTostructure> key <RELATION_TOKEY> without a backward relationship
+;        ;;; </summary>
+;		public readwrite property <RelationTostructurePlural>, @ICollection<<RelationTostructureNoplural>>
+;		</IF ONE_WAY_ONE_TO_MANY>
+;
+;		</RELATION_LOOP>
+;		</IF STRUCTURE_RELATIONS>
+;.endregion
 
 .region "Other public properties"
 

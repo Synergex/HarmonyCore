@@ -1,20 +1,14 @@
 ;;*****************************************************************************
 ;;
-;; Title:       OrderMetaData.dbl
+;; Title:       TestContext.dbl
 ;;
 ;; Type:        Class
 ;;
-;; Description: Defines meta data associated with a data object Order.
-;;
-;;*****************************************************************************
-;; WARNING
-;;
-;; This file was code generated. Avoid editing this file, as any changes that
-;; you make will be lost of the file is re-generated.
+;; Description: Provides key values and other data that can be used during tests.
 ;;
 ;;*****************************************************************************
 ;;
-;; Copyright (c) 2012, Synergex International, Inc.
+;; Copyright (c) 2018, Synergex International, Inc.
 ;; All rights reserved.
 ;;
 ;; Redistribution and use in source and binary forms, with or without
@@ -41,50 +35,18 @@
 ;;
 ;;*****************************************************************************
 
-import System
-import System.Collections.Generic
-import System.Text
-import Harmony.Core
-import Harmony.Core.Converters
+namespace SampleServices.Test
 
-namespace SampleServices.Models
-
-	;;; <summary>
-	;;; 
-	;;; </summary>
-	public partial class OrderMetadata extends DataObjectMetadataBase
-		
-		;;; <summary>
-		;;; 
-		;;; </summary>
-		public method OrderMetadata
-		proc
-			RPSStructureName = "ORDERS"
-			RPSStructureSize = ^size(strOrder)
-			AddFieldInfo("OrNumber", "DECIMAL", 6, 1, 0, false)
-			AddFieldInfo("OrVendor", "DECIMAL", 6, 7, 0, false)
-			AddFieldInfo("OrItem", "DECIMAL", 6, 13, 0, false)
-			AddFieldInfo("OrCustomer", "DECIMAL", 6, 19, 0, false)
-			AddFieldInfo("OrQty", "DECIMAL", 6, 25, 0, false)
-			AddFieldInfo("OrPrice", "IMPLIED", 7, 31, 02, false)
-			AddFieldInfo("OrTerms", "ALPHA", 2, 38, 0, false)
-			AddFieldInfo("OrOdate", "DATE", 6, 40, 0, false)
-			AddFieldInfo("OrSdate", "DATE", 6, 46, 0, false)
-			AddFieldInfo("OrEdate", "DATE", 6, 52, 0, false)
-			AddFieldInfo("OrInvoice", "DECIMAL", 7, 58, 0, false)
-		endmethod
+	public static class TestContext
 	
-		;;; <summary>
-		;;; 
-		;;; </summary>
-		public override method MakeNew, @DataObjectBase
-			dataArea, a
-			grfa, a
-		proc
-			mreturn new Order((strOrder)dataArea) { GlobalRFA = grfa }
-		endmethod
+		public static readonly property CustomerID, int, 1
+
+		public static readonly property OrderID,    int, 3
+
+		public static readonly property PlantID,    int, 1
+
+		public static readonly property VendorID,   int, 38
 
 	endclass
 
 endnamespace
-

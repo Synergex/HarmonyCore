@@ -83,10 +83,16 @@ import <MODELS_NAMESPACE>
 
 namespace <NAMESPACE>
 
+	;;; <summary>
+	;;; 
+	;;; </summary>
 	public class DbContext extends Microsoft.EntityFrameworkCore.DbContext
 	
 		mDataProvider, @IDataObjectProvider
 
+		;;; <summary>
+		;;; Construct a new DbContext.
+		;;; </summary>
 		public method DbContext
 			options, @DbContextOptions<DbContext>
 			dataProvider, @IDataObjectProvider
@@ -97,32 +103,71 @@ namespace <NAMESPACE>
 		endmethod
 
 		<STRUCTURE_LOOP>
+		;;; <summary>
+		;;; Exposes <StructureNoplural> data.
+		;;; </summary>
 		public readwrite property <StructurePlural>, @DbSet<<StructureNoplural>>
-		</STRUCTURE_LOOP>
 
+		</STRUCTURE_LOOP>
+		;;; <summary>
+		;;; 
+		;;; </summary>
 		protected override method OnConfiguring, void
 			opts, @DbContextOptionsBuilder
 		proc
 			HarmonyDbContextOptionsExtensions.UseHarmonyDatabase(opts, mDataProvider)
 		endmethod
 
+		;;; <summary>
+		;;; 
+		;;; </summary>
 		protected override method OnModelCreating, void
 			parm, @ModelBuilder
 		proc
 			parm.Ignore(^typeof(AlphaDesc))
 			parm.Ignore(^typeof(DataObjectMetadataBase))
 
-			;;Setup multi-record format files based on tag.
+.region "Tag filtering"
+
 			;;This will currently only work for single field==value tags.
+
 			<STRUCTURE_LOOP>
 			<IF STRUCTURE_TAGS>
 			<TAG_LOOP>
 			data <structureNoplural>Param = Expression.Parameter(^typeof(<structureNoplural>))
 			parm.Entity(^typeof(<structureNoplural>)).HasQueryFilter(Expression.Lambda(Expression.Block(Expression.Equal(Expression.Call(^typeof(EF), "Property", new Type[#] { ^typeof(<TAGLOOP_FIELD_CSTYPE>) }, <structureNoplural>Param, Expression.Constant("<TagloopFieldName>")), Expression.Constant(<TAGLOOP_TAG_VALUE>))), new ParameterExpression[#] { <structureNoplural>Param }))
+
 			</TAG_LOOP>
 			</IF STRUCTURE_TAGS>
 			</STRUCTURE_LOOP>
+.endregion
 
+;.region "Relationships to other structures"
+;
+;			<STRUCTURE_LOOP>
+;			<IF STRUCTURE_RELATIONS>
+;			<RELATION_LOOP>
+;			<IF TWO_WAY_ONE_TO_ONE>
+;	        ;; One to one relationship from structure <StructureNoplural> key <RELATION_FROMKEY> to structure <RelationTostructure>.<RELATION_TOKEY> with a backward relationship
+;			parm.Entity(^typeof(<StructureNoplural>)).HasOne(^typeof(<RelationTostructureNoplural>), "<StructurePlural>").WithOne("<RelationFromkey>Data")
+;			</IF TWO_WAY_ONE_TO_ONE>
+;			<IF ONE_WAY_ONE_TO_ONE>
+;	        ;; One to one relationship from structure <StructureNoplural> key <RELATION_FROMKEY> to structure <RelationTostructure>.<RELATION_TOKEY> without a backward relationship
+;			;TODO: Code needed here!!!
+;			</IF ONE_WAY_ONE_TO_ONE>
+;			<IF TWO_WAY_ONE_TO_MANY>
+;	        ;; One to many relationship from structure <StructureNoplural> key <RELATION_FROMKEY> to structure <RelationTostructure> key <RELATION_TOKEY> with a backward relationship
+;			;TODO: Code needed here!!!
+;			</IF TWO_WAY_ONE_TO_MANY>
+;			<IF ONE_WAY_ONE_TO_MANY>
+;	        ;; One to many relationship from structure <StructureNoplural> key <RELATION_FROMKEY> to structure <RelationTostructure> key <RELATION_TOKEY> without a backward relationship
+;			;TODO: Code needed here!!!
+;			</IF ONE_WAY_ONE_TO_MANY>
+;
+;			</RELATION_LOOP>
+;			</IF STRUCTURE_RELATIONS>
+;			</STRUCTURE_LOOP>
+;.endregion
 			parent.OnModelCreating(parm)
 
 		endmethod

@@ -45,7 +45,7 @@ import Microsoft.VisualStudio.TestTools.UnitTesting
 import Newtonsoft.Json
 import System.Collections.Generic
 import System.Net.Http
-import SampleServices.Models
+import SampleServices.Test.Models
 
 namespace SampleServices.Test
 
@@ -56,41 +56,45 @@ namespace SampleServices.Test
 		{TestCategory("Customer Tests")}
 		public method GetAllCustomers, void
 		proc
-			disposable data client = TestEnvironment.Server.CreateClient()
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
 			disposable data response = client.GetAsync("/odata/Customers").Result
-
-			response.EnsureSuccessStatusCode()
-
 			data result = response.Content.ReadAsStringAsync().Result
-			;data customers, @List<Customer>, JsonConvert.DeserializeObject<List<Customer>>(result)
-
+			response.EnsureSuccessStatusCode()
+			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
 		endmethod
 	
 		{TestMethod}
-		{TestCategory("Customer Tests")}
-		public method CreateCustomer, void
+		{TestCategory("Order Tests")}
+		public method GetCustomer, void
 		proc
-			disposable data client = TestEnvironment.Server.CreateClient()
-			disposable data requestBody = new StringContent("")
-			disposable data response = client.PostAsync("/odata/Customers", requestBody).Result
-
-			response.EnsureSuccessStatusCode()
-
+			data client = UnitTestEnvironment.Server.CreateClient()
+			data request = String.Format("/odata/Customers({0})", TestContext.CustomerID)
+			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
-
-		endmethod
-
-		{TestMethod}
-		{TestCategory("Customer Tests")}
-		public method UpdateCustomer, void
-		proc
-			disposable data client = TestEnvironment.Server.CreateClient()
-			disposable data requestBody = new StringContent("")
-			disposable data response = client.PutAsync("/odata/Customers(1)", requestBody).Result
-
 			response.EnsureSuccessStatusCode()
-
+			data customer, @ODataCustomer, JsonConvert.DeserializeObject<ODataCustomer>(result)
 		endmethod
+
+;		{TestMethod}
+;		{TestCategory("Customer Tests")}
+;		public method CreateCustomer, void
+;		proc
+;			disposable data client = UnitTestEnvironment.Server.CreateClient()
+;			disposable data requestBody = new StringContent("")
+;			disposable data response = client.PostAsync("/odata/Customers", requestBody).Result
+;			data result = response.Content.ReadAsStringAsync().Result
+;			response.EnsureSuccessStatusCode()
+;		endmethod
+
+;		{TestMethod}
+;		{TestCategory("Customer Tests")}
+;		public method UpdateCustomer, void
+;		proc
+;			disposable data client = UnitTestEnvironment.Server.CreateClient()
+;			disposable data requestBody = new StringContent("")
+;			disposable data response = client.PutAsync("/odata/Customers(1)", requestBody).Result
+;			response.EnsureSuccessStatusCode()
+;		endmethod
 
 	endclass
 

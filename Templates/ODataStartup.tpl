@@ -86,7 +86,7 @@ import Microsoft.AspNetCore.Builder
 import Microsoft.AspNetCore.Hosting
 import <MODELS_NAMESPACE>
 
-namespace SampleServices.Test
+namespace <NAMESPACE>
 
 	public class Startup
 
@@ -114,7 +114,6 @@ namespace SampleServices.Test
 
 		public method Configure, void
 			app, @IApplicationBuilder
-			env, @IHostingEnvironment
 		proc
 			data model = EdmBuilder.GetEdmModel()
 

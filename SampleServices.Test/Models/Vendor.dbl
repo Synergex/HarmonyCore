@@ -1,10 +1,11 @@
 ;;*****************************************************************************
 ;;
-;; Title:       OrderMetaData.dbl
+;; Title:       Vendor.dbl
 ;;
 ;; Type:        Class
 ;;
-;; Description: Defines meta data associated with a data object Order.
+;; Description: OData model class representing data defined by the repository
+;;              structure VENDORS and from the data file ICSTUT:customer.ism.
 ;;
 ;;*****************************************************************************
 ;; WARNING
@@ -41,50 +42,90 @@
 ;;
 ;;*****************************************************************************
 
-import System
+import Newtonsoft.Json
 import System.Collections.Generic
-import System.Text
-import Harmony.Core
-import Harmony.Core.Converters
 
-namespace SampleServices.Models
+namespace SampleServices.Test.Models
 
-	;;; <summary>
-	;;; 
-	;;; </summary>
-	public partial class OrderMetadata extends DataObjectMetadataBase
-		
+    public partial class Vendor
+
+		{JsonProperty("odata.type")}
+		public readwrite property Type, string
+
 		;;; <summary>
-		;;; 
+		;;; Vendor ID
 		;;; </summary>
-		public method OrderMetadata
-		proc
-			RPSStructureName = "ORDERS"
-			RPSStructureSize = ^size(strOrder)
-			AddFieldInfo("OrNumber", "DECIMAL", 6, 1, 0, false)
-			AddFieldInfo("OrVendor", "DECIMAL", 6, 7, 0, false)
-			AddFieldInfo("OrItem", "DECIMAL", 6, 13, 0, false)
-			AddFieldInfo("OrCustomer", "DECIMAL", 6, 19, 0, false)
-			AddFieldInfo("OrQty", "DECIMAL", 6, 25, 0, false)
-			AddFieldInfo("OrPrice", "IMPLIED", 7, 31, 02, false)
-			AddFieldInfo("OrTerms", "ALPHA", 2, 38, 0, false)
-			AddFieldInfo("OrOdate", "DATE", 6, 40, 0, false)
-			AddFieldInfo("OrSdate", "DATE", 6, 46, 0, false)
-			AddFieldInfo("OrEdate", "DATE", 6, 52, 0, false)
-			AddFieldInfo("OrInvoice", "DECIMAL", 7, 58, 0, false)
-		endmethod
-	
+		public readwrite property VendKey, int
+
 		;;; <summary>
-		;;; 
+		;;; Record Type
 		;;; </summary>
-		public override method MakeNew, @DataObjectBase
-			dataArea, a
-			grfa, a
-		proc
-			mreturn new Order((strOrder)dataArea) { GlobalRFA = grfa }
-		endmethod
+		public readwrite property VendRtype, int
+
+		;;; <summary>
+		;;; Vendor Name
+		;;; </summary>
+		public readwrite property VendName, string
+
+		;;; <summary>
+		;;; Street Address
+		;;; </summary>
+		public readwrite property VendStreet, string
+
+		;;; <summary>
+		;;; City
+		;;; </summary>
+		public readwrite property VendCity, string
+
+		;;; <summary>
+		;;; State
+		;;; </summary>
+		public readwrite property VendState, string
+
+		;;; <summary>
+		;;; Zip Code
+		;;; </summary>
+		public readwrite property VendZip, int
+
+		;;; <summary>
+		;;; Contact Person
+		;;; </summary>
+		public readwrite property VendContact, string
+
+		;;; <summary>
+		;;; Phone number
+		;;; </summary>
+		public readwrite property VendTelephone, long
+
+		;;; <summary>
+		;;; Fax Number
+		;;; </summary>
+		public readwrite property VendFax, long
+
+		;;; <summary>
+		;;; Terms & Conditions
+		;;; </summary>
+		public readwrite property VendTerms, string
 
 	endclass
 
+	public class ODataVendor
+		
+		{JsonProperty("odata.metadata")}
+		public readwrite property Metadata, string
+
+		public readwrite property Value, @Vendor
+
+	endclass
+	
+	public class ODataVendors
+		
+		{JsonProperty("odata.metadata")}
+		public readwrite property Metadata, string
+
+		public readwrite property Value, @List<Vendor>
+
+	endclass
+	
 endnamespace
 

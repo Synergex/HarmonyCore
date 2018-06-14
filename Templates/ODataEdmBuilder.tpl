@@ -84,10 +84,16 @@ import <MODELS_NAMESPACE>
 
 namespace <NAMESPACE>
 
+	;;; <summary>
+	;;; Builds an entity framework entity data model.
+	;;; </summary>
 	public class EdmBuilder
 
 		private static mEdmModel, @IEdmModel
 
+		;;; <summary>
+		;;; Gets the entity data model.
+		;;; </summary>
 		public static method GetEdmModel, @IEdmModel
 		proc
 			if(mEdmModel == ^null)

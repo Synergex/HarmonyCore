@@ -1,13 +1,11 @@
-<CODEGEN_FILENAME>UnitTestEnvironment.dbl</CODEGEN_FILENAME>
-<REQUIRES_USERTOKEN>SERVICES_NAMESPACE</REQUIRES_USERTOKEN>
+<CODEGEN_FILENAME><StructureNoplural>.dbl</CODEGEN_FILENAME>
 ;//****************************************************************************
 ;//
-;// Title:       ODataUnitTestEnvironment.tpl
+;// Title:       ODataModel.tpl
 ;//
 ;// Type:        CodeGen Template
 ;//
-;// Description: Generates a class that configures an environment in which unit
-;//              tests can operate with a known initial data state.
+;// Description: Creates model classes suitable for use in OData clients.
 ;//
 ;// Copyright (c) 2018, Synergex International, Inc. All rights reserved.
 ;//
@@ -35,12 +33,12 @@
 ;//
 ;;*****************************************************************************
 ;;
-;; Title:       UnitTestEnvironment.dbl
+;; Title:       <StructureNoplural>.dbl
 ;;
 ;; Type:        Class
 ;;
-;; Description: Configures an environment in which unit tests can operate
-;;              with a known initial data state.
+;; Description: OData model class representing data defined by the repository
+;;              structure <STRUCTURE_NOALIAS> and from the data file <FILE_NAME>.
 ;;
 ;;*****************************************************************************
 ;; WARNING
@@ -50,7 +48,7 @@
 ;;
 ;;*****************************************************************************
 ;;
-;; Copyright (c) 2018, Synergex International, Inc.
+;; Copyright (c) 2012, Synergex International, Inc.
 ;; All rights reserved.
 ;;
 ;; Redistribution and use in source and binary forms, with or without
@@ -77,69 +75,44 @@
 ;;
 ;;*****************************************************************************
 
-import Microsoft.AspNetCore
-import Microsoft.AspNetCore.Hosting
-import Microsoft.AspNetCore.TestHost
-import Microsoft.VisualStudio.TestTools.UnitTesting
+import Newtonsoft.Json
 import System.Collections.Generic
-import System.IO
-import System.Text
-import <SERVICES_NAMESPACE>
-
-main UnitTestEnvironment
-proc
-	;For debugging!
-
-	UnitTestEnvironment.AssemblyInitialize(^null)
-
-	;data tester = new CustomerTests()
-	;tester.GetAllCustomers()
-
-	WebHost.CreateDefaultBuilder(new string[0]).UseStartup<Startup>().Build().Run()
-
-	UnitTestEnvironment.AssemblyCleanup()
-
-endmain
 
 namespace <NAMESPACE>
 
-	{TestClass}
-	public class UnitTestEnvironment
+    public partial class <StructureNoplural>
 
-		public static Server, @TestServer 
+		{JsonProperty("odata.type")}
+		public readwrite property Type, string
 
-		{AssemblyInitialize}
-		public static method AssemblyInitialize, void
-			required in context, @TestContext
-		proc
-			Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)
+        <FIELD_LOOP>
+		<IF CUSTOM_NOT_SYMPHONY_ARRAY_FIELD>
+		;;; <summary>
+		;;; <FIELD_DESC>
+		;;; </summary>
+		public readwrite property <FieldSqlname>, <FIELD_CSTYPE>
 
-			;;Set the logical names that will be used to access the data files
-			TestEnvironment.SetLogicals()
-
-			;;Make sure the files don't already exist
-			TestEnvironment.DeleteFiles()
-
-			;;Create the data files
-			TestEnvironment.CreateFiles()
-
-			;;Create a TestServer to host the Web API services
-			Server = new TestServer(new WebHostBuilder().UseStartup<Startup>())
-
-		endmethod
-
-		{AssemblyCleanup}
-		public static method AssemblyCleanup, void
-		proc
-			;;Clean up the test host
-			Server.Dispose()
-			Server = ^null
-
-			;;Delete the data files
-			TestEnvironment.DeleteFiles()
-
-		endmethod
-
+		</IF CUSTOM_NOT_SYMPHONY_ARRAY_FIELD>
+        </FIELD_LOOP>
 	endclass
 
+	public class OData<StructureNoplural>
+		
+		{JsonProperty("odata.metadata")}
+		public readwrite property Metadata, string
+
+		public readwrite property Value, @<StructureNoplural>
+
+	endclass
+	
+	public class OData<StructurePlural>
+		
+		{JsonProperty("odata.metadata")}
+		public readwrite property Metadata, string
+
+		public readwrite property Value, @List<<StructureNoplural>>
+
+	endclass
+	
 endnamespace
+

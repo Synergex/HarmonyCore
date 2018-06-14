@@ -45,7 +45,7 @@ import Microsoft.VisualStudio.TestTools.UnitTesting
 import Newtonsoft.Json
 import System.Collections.Generic
 import System.Net.Http
-import SampleServices.Models
+import SampleServices.Test.Models
 
 namespace SampleServices.Test
 
@@ -56,41 +56,45 @@ namespace SampleServices.Test
 		{TestCategory("Plant Tests")}
 		public method GetAllPlants, void
 		proc
-			disposable data client = TestEnvironment.Server.CreateClient()
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
 			disposable data response = client.GetAsync("/odata/Plants").Result
-
-			response.EnsureSuccessStatusCode()
-
 			data result = response.Content.ReadAsStringAsync().Result
-			;data plants, @List<Plant>, JsonConvert.DeserializeObject<List<Plant>>(result)
-
+			response.EnsureSuccessStatusCode()
+			data plants, @ODataPlants, JsonConvert.DeserializeObject<ODataPlants>(result)
 		endmethod
 	
 		{TestMethod}
-		{TestCategory("Plant Tests")}
-		public method CreatePlant, void
+		{TestCategory("Order Tests")}
+		public method GetPlant, void
 		proc
-			disposable data client = TestEnvironment.Server.CreateClient()
-			disposable data requestBody = new StringContent("")
-			disposable data response = client.PostAsync("/odata/Plants", requestBody).Result
-
-			response.EnsureSuccessStatusCode()
-
+			data client = UnitTestEnvironment.Server.CreateClient()
+			data request = String.Format("/odata/Plants({0})", TestContext.PlantID)
+			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
-
-		endmethod
-
-		{TestMethod}
-		{TestCategory("Plant Tests")}
-		public method UpdatePlant, void
-		proc
-			disposable data client = TestEnvironment.Server.CreateClient()
-			disposable data requestBody = new StringContent("")
-			disposable data response = client.PutAsync("/odata/Plants(1)", requestBody).Result
-
 			response.EnsureSuccessStatusCode()
-
+			data plant, @ODataPlant, JsonConvert.DeserializeObject<ODataPlant>(result)
 		endmethod
+
+;		{TestMethod}
+;		{TestCategory("Plant Tests")}
+;		public method CreatePlant, void
+;		proc
+;			disposable data client = UnitTestEnvironment.Server.CreateClient()
+;			disposable data requestBody = new StringContent("")
+;			disposable data response = client.PostAsync("/odata/Plants", requestBody).Result
+;			data result = response.Content.ReadAsStringAsync().Result
+;			response.EnsureSuccessStatusCode()
+;		endmethod
+
+;		{TestMethod}
+;		{TestCategory("Plant Tests")}
+;		public method UpdatePlant, void
+;		proc
+;			disposable data client = UnitTestEnvironment.Server.CreateClient()
+;			disposable data requestBody = new StringContent("")
+;			disposable data response = client.PutAsync("/odata/Plants(1)", requestBody).Result
+;			response.EnsureSuccessStatusCode()
+;		endmethod
 
 	endclass
 

@@ -1,13 +1,11 @@
-<CODEGEN_FILENAME>UnitTestEnvironment.dbl</CODEGEN_FILENAME>
-<REQUIRES_USERTOKEN>SERVICES_NAMESPACE</REQUIRES_USERTOKEN>
+<CODEGEN_FILENAME>TestEnvironment.dbl</CODEGEN_FILENAME>
 ;//****************************************************************************
 ;//
-;// Title:       ODataUnitTestEnvironment.tpl
+;// Title:       ODataTestEnvironment.tpl
 ;//
 ;// Type:        CodeGen Template
 ;//
-;// Description: Generates a class that configures an environment in which unit
-;//              tests can operate with a known initial data state.
+;// Description: Generates utilities for configuting a hosting environment.
 ;//
 ;// Copyright (c) 2018, Synergex International, Inc. All rights reserved.
 ;//
@@ -35,12 +33,11 @@
 ;//
 ;;*****************************************************************************
 ;;
-;; Title:       UnitTestEnvironment.dbl
+;; Title:       TestEnvironment.dbl
 ;;
 ;; Type:        Class
 ;;
-;; Description: Configures an environment in which unit tests can operate
-;;              with a known initial data state.
+;; Description: Utilities for configuting a hosting environment.
 ;;
 ;;*****************************************************************************
 ;; WARNING
@@ -77,67 +74,113 @@
 ;;
 ;;*****************************************************************************
 
-import Microsoft.AspNetCore
-import Microsoft.AspNetCore.Hosting
-import Microsoft.AspNetCore.TestHost
-import Microsoft.VisualStudio.TestTools.UnitTesting
 import System.Collections.Generic
 import System.IO
 import System.Text
-import <SERVICES_NAMESPACE>
 
-main UnitTestEnvironment
-proc
-	;For debugging!
-
-	UnitTestEnvironment.AssemblyInitialize(^null)
-
-	;data tester = new CustomerTests()
-	;tester.GetAllCustomers()
-
-	WebHost.CreateDefaultBuilder(new string[0]).UseStartup<Startup>().Build().Run()
-
-	UnitTestEnvironment.AssemblyCleanup()
-
-endmain
+.array 0
 
 namespace <NAMESPACE>
 
-	{TestClass}
-	public class UnitTestEnvironment
+	public static class TestEnvironment
 
-		public static Server, @TestServer 
-
-		{AssemblyInitialize}
-		public static method AssemblyInitialize, void
-			required in context, @TestContext
+		public static method SetLogicals, void
 		proc
+
 			Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)
 
-			;;Set the logical names that will be used to access the data files
-			TestEnvironment.SetLogicals()
+			data sampleDataFolder = findRelativeFolderForAssembly("SampleData")
+			data logicals = new List<string>()
+			data logical = String.Empty
+			data fileSpec = String.Empty
+			<STRUCTURE_LOOP>
 
-			;;Make sure the files don't already exist
-			TestEnvironment.DeleteFiles()
+			fileSpec = "<FILE_NAME>"
+			if (fileSpec.Contains(":"))
+			begin
+				logical = fileSpec.Split(":")[0].ToUpper()
+				if (!logicals.Contains(logical))
+					logicals.Add(logical)
+			end
+			</STRUCTURE_LOOP>
 
-			;;Create the data files
-			TestEnvironment.CreateFiles()
-
-			;;Create a TestServer to host the Web API services
-			Server = new TestServer(new WebHostBuilder().UseStartup<Startup>())
+			foreach logical in logicals
+			begin
+				data sts, int
+				xcall setlog(logical,sampleDataFolder,sts)
+			end
 
 		endmethod
 
-		{AssemblyCleanup}
-		public static method AssemblyCleanup, void
+		public static method CreateFiles, void
+			<STRUCTURE_LOOP>
+			.include "<STRUCTURE_NOALIAS>" repository, stack record="<structureNoplural>", nofields, end
+			</STRUCTURE_LOOP>
 		proc
-			;;Clean up the test host
-			Server.Dispose()
-			Server = ^null
+			data chout, int
+			data chin, int
+			data dataFile, string
+			data xdlFile, string
+			data textFile, string
 
-			;;Delete the data files
-			TestEnvironment.DeleteFiles()
+			<STRUCTURE_LOOP>
+			;;Create and load the <structurePlural> file
 
+			dataFile = "<FILE_NAME>"
+			xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+			textFile = dataFile.ToLower().Replace(".ism",".txt")
+
+			try
+			begin
+				open(chout=0,o:i,dataFile,FDL:xdlFile)
+				open(chin,i,textFile)
+				repeat
+				begin
+					reads(chin,<structureNoplural>)
+					store(chout,<structureNoplural>)
+				end
+			end
+			catch (ex, @EndOfFileException)
+			begin
+				close chin
+				close chout
+			end
+			endtry
+
+			</STRUCTURE_LOOP>
+		endmethod
+
+		public static method DeleteFiles, void
+		proc
+			<STRUCTURE_LOOP>
+			;;Delete the <structurePlural> file
+			try
+			begin
+				xcall delet("<FILE_NAME>")
+			end
+			catch (e, @NoFileFoundException)
+			begin
+				nop
+			end
+			endtry
+
+			</STRUCTURE_LOOP>
+		endmethod
+
+		private static method findRelativeFolderForAssembly, string
+			folderName, string
+		proc
+			data assemblyLocation = ^typeof(TestEnvironment).Assembly.Location
+			data currentFolder = Path.GetDirectoryName(assemblyLocation)
+			data rootPath = Path.GetPathRoot(currentFolder)
+			while(currentFolder != rootPath)
+			begin
+				if(Directory.Exists(Path.Combine(currentFolder, folderName))) then
+					mreturn Path.Combine(currentFolder, folderName)
+				else
+					currentFolder = Path.GetFullPath(currentFolder + "..\")
+			end
+			mreturn ^null
 		endmethod
 
 	endclass
