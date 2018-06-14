@@ -81,6 +81,7 @@ import Microsoft.AspNetCore.Hosting
 import Microsoft.AspNetCore.TestHost
 import Microsoft.VisualStudio.TestTools.UnitTesting
 import System.Collections.Generic
+import System.IO
 import System.Text
 import <SERVICES_NAMESPACE>
 
@@ -187,7 +188,7 @@ namespace <NAMESPACE>
 
 		private static method setLogicals, void
 		proc
-			data sampleDataFolder = EnvironmentRootBuilder.FindRelativeFolderForAssembly("SampleData")
+			data sampleDataFolder = findRelativeFolderForAssembly("SampleData")
 			data logicals = new List<string>()
 			data logical = String.Empty
 			data fileSpec = String.Empty
@@ -208,6 +209,22 @@ namespace <NAMESPACE>
 				xcall setlog(logical,sampleDataFolder,sts)
 			end
 
+		endmethod
+
+		private static method findRelativeFolderForAssembly, string
+			folderName, string
+		proc
+			data assemblyLocation = ^typeof(TestEnvironment).Assembly.Location
+			data currentFolder = Path.GetDirectoryName(assemblyLocation)
+			data rootPath = Path.GetPathRoot(currentFolder)
+			while(currentFolder != rootPath)
+			begin
+				if(Directory.Exists(Path.Combine(currentFolder, folderName))) then
+					mreturn Path.Combine(currentFolder, folderName)
+				else
+					currentFolder = Path.GetFullPath(currentFolder + "..\")
+			end
+			mreturn ^null
 		endmethod
 
 	endclass
