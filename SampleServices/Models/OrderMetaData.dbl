@@ -55,7 +55,7 @@ namespace SampleServices.Models
 	public partial class OrderMetadata extends DataObjectMetadataBase
 		
 		;;; <summary>
-		;;; 
+		;;; Constructs an new OrderMetadata object.
 		;;; </summary>
 		public method OrderMetadata
 		proc
@@ -75,42 +75,51 @@ namespace SampleServices.Models
 		endmethod
 	
 		;;; <summary>
-		;;; 
+		;;; Returns a new Order object containing data from a record and a GRFA.
+		;;; The related data properties (REL_Vendor,REL_Customer,REL_Item,REL_TagCustomer,REL_TagVendor) will not be populated.
 		;;; </summary>
+		;;; <param name="dataArea">The record containing the data for the new Order object.</param>
+		;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
+		;;; <returns></returns>
 		public override method MakeNew, @DataObjectBase
-			dataArea, a
-			grfa, a
+			required in dataArea, a
+			required in grfa, a
 		proc
 			mreturn new Order((strOrder)dataArea) { GlobalRFA = grfa }
 		endmethod
 
 		;;; <summary>
-		;;; 
+		;;; Returns a new Order object containing data from a record and a GRFA.
+		;;; The related data properties (REL_Vendor,REL_Customer,REL_Item,REL_TagCustomer,REL_TagVendor) will be populated.
 		;;; </summary>
+		;;; <param name="dataArea">The record containing the data for the new Order object.</param>
+		;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
+		;;; <param name="joinedObjects">Data to allow the related data properties (REL_Vendor,REL_Customer,REL_Item,REL_TagCustomer,REL_TagVendor) to be populated.</param>
+		;;; <returns></returns>
 		public override method MakeNew, @DataObjectBase
-			dataArea, a
-			grfa, a
-			joinedObjects, [#]KeyValuePair<string, Object>
+			required in dataArea, a
+			required in grfa, a
+			required in joinedObjects, [#]KeyValuePair<String, Object>
 		proc
-			data c = new Order((strOrder)dataArea) { GlobalRFA = grfa }
-			data jo, KeyValuePair<string, Object>
-			foreach jo in joinedObjects
+			data newOrder = new Order((strOrder)dataArea) { GlobalRFA = grfa }
+			data joinedObject, KeyValuePair<String, Object>
+			foreach joinedObject in joinedObjects
 			begin
-				using jo.Key select
+				using joinedObject.Key select
 				("REL_Vendor"), 
-					c.REL_Vendor = (@Vendor)jo.Value
+					newOrder.REL_Vendor = (@Vendor)joinedObject.Value
 				("REL_Customer"), 
-					c.REL_Customer = (@Customer)jo.Value
+					newOrder.REL_Customer = (@Customer)joinedObject.Value
 				("REL_Item"), 
-					c.REL_Item = (@Plant)jo.Value
+					newOrder.REL_Item = (@Plant)joinedObject.Value
 				("REL_TagCustomer"),
-					c.REL_TagCustomer = (@Customer)jo.Value
+					newOrder.REL_TagCustomer = (@Customer)joinedObject.Value
 				("REL_TagVendor"),
-					c.REL_TagVendor = (@Vendor)jo.Value
+					newOrder.REL_TagVendor = (@Vendor)joinedObject.Value
 				endusing
 			end
 
-			mreturn c
+			mreturn newOrder
 
 		endmethod
 

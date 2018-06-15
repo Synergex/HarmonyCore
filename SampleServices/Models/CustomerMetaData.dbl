@@ -55,7 +55,7 @@ namespace SampleServices.Models
 	public partial class CustomerMetadata extends DataObjectMetadataBase
 		
 		;;; <summary>
-		;;; 
+		;;; Constructs an new CustomerMetadata object.
 		;;; </summary>
 		public method CustomerMetadata
 		proc
@@ -78,36 +78,45 @@ namespace SampleServices.Models
 		endmethod
 	
 		;;; <summary>
-		;;; 
+		;;; Returns a new Customer object containing data from a record and a GRFA.
+		;;; The related data properties (REL_Orders,REL_Item) will not be populated.
 		;;; </summary>
+		;;; <param name="dataArea">The record containing the data for the new Customer object.</param>
+		;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
+		;;; <returns></returns>
 		public override method MakeNew, @DataObjectBase
-			dataArea, a
-			grfa, a
+			required in dataArea, a
+			required in grfa, a
 		proc
 			mreturn new Customer((strCustomer)dataArea) { GlobalRFA = grfa }
 		endmethod
 
 		;;; <summary>
-		;;; 
+		;;; Returns a new Customer object containing data from a record and a GRFA.
+		;;; The related data properties (REL_Orders,REL_Item) will be populated.
 		;;; </summary>
+		;;; <param name="dataArea">The record containing the data for the new Customer object.</param>
+		;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
+		;;; <param name="joinedObjects">Data to allow the related data properties (REL_Orders,REL_Item) to be populated.</param>
+		;;; <returns></returns>
 		public override method MakeNew, @DataObjectBase
-			dataArea, a
-			grfa, a
-			joinedObjects, [#]KeyValuePair<string, Object>
+			required in dataArea, a
+			required in grfa, a
+			required in joinedObjects, [#]KeyValuePair<String, Object>
 		proc
-			data c = new Customer((strCustomer)dataArea) { GlobalRFA = grfa }
-			data jo, KeyValuePair<string, Object>
-			foreach jo in joinedObjects
+			data newCustomer = new Customer((strCustomer)dataArea) { GlobalRFA = grfa }
+			data joinedObject, KeyValuePair<String, Object>
+			foreach joinedObject in joinedObjects
 			begin
-				using jo.Key select
+				using joinedObject.Key select
 				("REL_Orders"), 
-					c.REL_Orders = (@ICollection<Order>)jo.Value
+					newCustomer.REL_Orders = (@ICollection<Order>)joinedObject.Value
 				("REL_Item"),
-					c.REL_Item = (@Plant)jo.Value
+					newCustomer.REL_Item = (@Plant)joinedObject.Value
 				endusing
 			end
 
-			mreturn c
+			mreturn newCustomer
 
 		endmethod
 

@@ -55,7 +55,7 @@ namespace SampleServices.Models
 	public partial class PlantMetadata extends DataObjectMetadataBase
 		
 		;;; <summary>
-		;;; 
+		;;; Constructs an new PlantMetadata object.
 		;;; </summary>
 		public method PlantMetadata
 		proc
@@ -85,36 +85,45 @@ namespace SampleServices.Models
 		endmethod
 	
 		;;; <summary>
-		;;; 
+		;;; Returns a new Plant object containing data from a record and a GRFA.
+		;;; The related data properties (REL_Vendor,REL_Orders) will not be populated.
 		;;; </summary>
+		;;; <param name="dataArea">The record containing the data for the new Plant object.</param>
+		;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
+		;;; <returns></returns>
 		public override method MakeNew, @DataObjectBase
-			dataArea, a
-			grfa, a
+			required in dataArea, a
+			required in grfa, a
 		proc
 			mreturn new Plant((strPlant)dataArea) { GlobalRFA = grfa }
 		endmethod
 
 		;;; <summary>
-		;;; 
+		;;; Returns a new Plant object containing data from a record and a GRFA.
+		;;; The related data properties (REL_Vendor,REL_Orders) will be populated.
 		;;; </summary>
+		;;; <param name="dataArea">The record containing the data for the new Plant object.</param>
+		;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
+		;;; <param name="joinedObjects">Data to allow the related data properties (REL_Vendor,REL_Orders) to be populated.</param>
+		;;; <returns></returns>
 		public override method MakeNew, @DataObjectBase
-			dataArea, a
-			grfa, a
-			joinedObjects, [#]KeyValuePair<string, Object>
+			required in dataArea, a
+			required in grfa, a
+			required in joinedObjects, [#]KeyValuePair<String, Object>
 		proc
-			data c = new Plant((strPlant)dataArea) { GlobalRFA = grfa }
-			data jo, KeyValuePair<string, Object>
-			foreach jo in joinedObjects
+			data newPlant = new Plant((strPlant)dataArea) { GlobalRFA = grfa }
+			data joinedObject, KeyValuePair<String, Object>
+			foreach joinedObject in joinedObjects
 			begin
-				using jo.Key select
+				using joinedObject.Key select
 				("REL_Vendor"), 
-					c.REL_Vendor = (@Vendor)jo.Value
+					newPlant.REL_Vendor = (@Vendor)joinedObject.Value
 				("REL_Orders"), 
-					c.REL_Orders = (@ICollection<Order>)jo.Value
+					newPlant.REL_Orders = (@ICollection<Order>)joinedObject.Value
 				endusing
 			end
 
-			mreturn c
+			mreturn newPlant
 
 		endmethod
 
