@@ -88,15 +88,17 @@ import <SERVICES_NAMESPACE>
 
 main UnitTestEnvironment
 proc
-	;For debugging!
-
+	;;Configure the environment
 	UnitTestEnvironment.AssemblyInitialize(^null)
 
+	;Leave this here for Jeff
 	;data tester = new CustomerTests()
 	;tester.GetAllCustomers()
 
+	;;Start self-hosting (Kestrel)
 	WebHost.CreateDefaultBuilder(new string[0]).UseStartup<Startup>().Build().Run()
 
+	;;Cleanup the environment
 	UnitTestEnvironment.AssemblyCleanup()
 
 endmain
@@ -110,18 +112,10 @@ namespace <NAMESPACE>
 
 		{AssemblyInitialize}
 		public static method AssemblyInitialize, void
-			required in context, @TestContext
+			required in context, @Microsoft.VisualStudio.TestTools.UnitTesting.TestContext
 		proc
-			Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)
-
-			;;Set the logical names that will be used to access the data files
-			TestEnvironment.SetLogicals()
-
-			;;Make sure the files don't already exist
-			TestEnvironment.DeleteFiles()
-
-			;;Create the data files
-			TestEnvironment.CreateFiles()
+			;;Configure the test environment (set logicals, create files in a known state, etc.)
+			TestEnvironment.Configure()
 
 			;;Create a TestServer to host the Web API services
 			Server = new TestServer(new WebHostBuilder().UseStartup<Startup>())
@@ -136,7 +130,7 @@ namespace <NAMESPACE>
 			Server = ^null
 
 			;;Delete the data files
-			TestEnvironment.DeleteFiles()
+			TestEnvironment.Cleanup()
 
 		endmethod
 

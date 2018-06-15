@@ -20,7 +20,7 @@ rem Generate the DbContext, EdmBuilder and Startup classes
 codegen -s %STRUCTURES%    -ms -t ODataDbContext ODataEdmBuilder ODataStartup -n %PROJECT% -o %PROJECT% -ut MODELS_NAMESPACE=%PROJECT%.Models %OPTS%
 
 rem Generate unit tests
-codegen -s %STRUCTURES%   -t ODataUnitTests -n %PROJECT%.Test -o %PROJECT%.Test -ut MODELS_NAMESPACE=%PROJECT%.Models %OPTS%
+codegen -s %STRUCTURES%   -t ODataUnitTests -n %PROJECT%.Test -o %PROJECT%.Test -ut SERVICES_NAMESPACE=%PROJECT% %OPTS%
 
 rem Generate OData model classes for client side use
 codegen -s %STRUCTURES%   -t ODataModel -n %PROJECT%.Test.Models -o %PROJECT%.Test\Models %OPTS%

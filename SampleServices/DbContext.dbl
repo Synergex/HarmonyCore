@@ -118,36 +118,49 @@ namespace SampleServices
 
 .endregion
 
-;.region "Relationships to other structures"
-;
-;;;;;;;	        ;; One to many relationship from structure Customer key CUST_KEY to structure Orders key CUSTOMER with a backward relationship
-;			;TODO: Code needed here!!!
-;;;
-;;;;	        ;; One to one relationship from structure Customer key ITEM to structure Plants.KEY0 without a backward relationship
-;			;TODO: Code needed here!!!
-;;;;
-;;;;;;;;	        ;; One to one relationship from structure Order key VENDOR to structure Vendors.KEY0 without a backward relationship
-;			;TODO: Code needed here!!!
-;;;;
-;;;	        ;; One to one relationship from structure Order key CUSTOMER to structure Customers.CUST_KEY with a backward relationship
-;			parm.Entity(^typeof(Order)).HasOne(^typeof(Customer), "Orders").WithOne("CustomerData")
-;;;;;
-;;;	        ;; One to one relationship from structure Order key ITEM to structure Plants.KEY0 with a backward relationship
-;			parm.Entity(^typeof(Order)).HasOne(^typeof(Plant), "Orders").WithOne("ItemData")
-;;;;;
-;;;;	        ;; One to one relationship from structure Order key TAG_KEY_CUST to structure Customers.TAGKEY without a backward relationship
-;			;TODO: Code needed here!!!
-;;;;
-;;;;	        ;; One to one relationship from structure Order key TAG_KEY_VEND to structure Vendors.TAGKEY without a backward relationship
-;			;TODO: Code needed here!!!
-;;;;
-;;;;;;;;	        ;; One to one relationship from structure Plant key VENDOR to structure Vendors.KEY0 without a backward relationship
-;			;TODO: Code needed here!!!
-;;;;
-;;;;;	        ;; One to many relationship from structure Plant key KEY0 to structure Orders key ITEM with a backward relationship
-;			;TODO: Code needed here!!!
-;;;
-;;;;;;.endregion
+.define INCLUDE_RELATIONS
+.ifdef INCLUDE_RELATIONS
+.region "Relationships to other structures"
+
+	        ;; One to many relationship from structure Customer key CUSTOMER to structure Orders key CUSTOMER with a backward relationship
+			parm.Entity(^typeof(Customer)).HasMany(^typeof(Order),"REL_Orders").WithOne("REL_Customer").HasForeignKey("Customer")
+
+	        ;; One to one relationship from structure Customer key ITEM to structure Plants key ITEM without a backward relationship
+			;TODO: Code needed here!!!
+
+	        ;; One to one relationship from structure Order key VENDOR to structure Vendors.VENDOR with a backward relationship
+			;TODO: NOT WORKING!!!
+			parm.Entity(^typeof(Order)).HasOne(^typeof(Vendor),"REL_Vendor").WithMany("REL_Orders").HasForeignKey("Vendor")
+
+	        ;; One to one relationship from structure Order key CUSTOMER to structure Customers.CUSTOMER with a backward relationship
+			;TODO: NOT WORKING!!!
+			parm.Entity(^typeof(Order)).HasOne(^typeof(Customer),"REL_Customer").WithMany("REL_Orders").HasForeignKey("Customer")
+
+	        ;; One to one relationship from structure Order key ITEM to structure Plants.ITEM with a backward relationship
+			;TODO: NOT WORKING!!!
+			parm.Entity(^typeof(Order)).HasOne(^typeof(Plant),"REL_Item").WithMany("REL_Orders").HasForeignKey("Item")
+
+	        ;; One to one relationship from structure Order key TAG_CUSTOMER to structure Customers key TAG_CUSTOMER without a backward relationship
+			;TODO: Code needed here!!!
+
+	        ;; One to one relationship from structure Order key TAG_VENDOR to structure Vendors key TAG_VENDOR without a backward relationship
+			;TODO: Code needed here!!!
+
+	        ;; One to one relationship from structure Plant key VENDOR to structure Vendors.VENDOR with a backward relationship
+			;TODO: NOT WORKING!!!
+			parm.Entity(^typeof(Plant)).HasOne(^typeof(Vendor),"REL_Vendor").WithMany("REL_Plants").HasForeignKey("Vendor")
+
+	        ;; One to many relationship from structure Plant key ITEM to structure Orders key ITEM with a backward relationship
+			parm.Entity(^typeof(Plant)).HasMany(^typeof(Order),"REL_Orders").WithOne("REL_Item").HasForeignKey("Item")
+
+	        ;; One to many relationship from structure Vendor key VENDOR to structure Plants key VENDOR with a backward relationship
+			parm.Entity(^typeof(Vendor)).HasMany(^typeof(Plant),"REL_Plants").WithOne("REL_Vendor").HasForeignKey("Vendor")
+
+	        ;; One to many relationship from structure Vendor key VENDOR to structure Orders key VENDOR with a backward relationship
+			parm.Entity(^typeof(Vendor)).HasMany(^typeof(Order),"REL_Orders").WithOne("REL_Vendor").HasForeignKey("Vendor")
+
+.endregion
+.endc
 			parent.OnModelCreating(parm)
 
 		endmethod

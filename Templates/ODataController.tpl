@@ -104,7 +104,7 @@ namespace <NAMESPACE>
 		;;; <summary>
 		;;; Get all <StructurePlural>
 		;;; </summary>
-		{EnableQuery(MaxExpansionDepth=3, MaxSkip=10, MaxTop=5, PageSize=4)}
+		;{EnableQuery(MaxExpansionDepth=3, MaxSkip=10, MaxTop=5, PageSize=4)}
 		public method Get, @IActionResult
 		proc
 			mreturn Ok(DBContext.<StructurePlural>)

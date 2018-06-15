@@ -5,7 +5,7 @@
 ;                 : C:\DEV\SYNERGEX\HarmonyWebServices\HarmonyCore.Test.Reposito
 ;                 : Version 10.3.4
 ;
-;  GENERATED      : 13-JUN-2018, 15:01:52
+;  GENERATED      : 15-JUN-2018, 09:30:57
 ;                 : Version 10.3.4
 ;  EXPORT OPTIONS : [ALL] 
  
@@ -1348,9 +1348,6 @@ Template QTY_MTH   Parent QTY_A
  
 Template PREC_IM_COST_FC   Parent FC_A
  
-Template PRICE_VND_LOT_FC   Parent PREC_IM_COST_FC
-   Description "Lot Charge"
- 
 Template PRICE_VND_FC   Parent PREC_IM_COST_FC   Type USER   Size 14
    Stored ALPHA   User Type "FC:+2"
    Description "Vendor price for quantity"
@@ -1358,6 +1355,9 @@ Template PRICE_VND_FC   Parent PREC_IM_COST_FC   Type USER   Size 14
       "Vendor price for quantity - stock UOM"
       "This field is in foreign currency."
    Report Heading "Vendor Price"
+ 
+Template PRICE_VND_LOT_FC   Parent PREC_IM_COST_FC
+   Description "Lot Charge"
  
 Template NAME_VND   Parent NAME
    Description "Vendor Name"
@@ -38296,10 +38296,10 @@ Field CUST_TAXNO   Type DECIMAL   Size 9
 Field CUST_LIMIT   Type DECIMAL   Size 7   Precision 2
    Description "Credit limit"
  
-Key CUST_KEY   ACCESS   Order ASCENDING   Dups NO
+Key CUSTOMER   ACCESS   Order ASCENDING   Dups NO
    Segment FIELD   CUST_KEY
  
-Key TAGKEY   ACCESS   Order ASCENDING   Dups NO
+Key TAG_CUSTOMER   ACCESS   Order ASCENDING   Dups NO
    Description "access key of tag+key"
    Segment FIELD   CUST_RTYPE  SegType ALPHA
    Segment FIELD   CUST_KEY  SegType ALPHA
@@ -38307,9 +38307,9 @@ Key TAGKEY   ACCESS   Order ASCENDING   Dups NO
 Key ITEM   FOREIGN
    Segment FIELD   CUST_GIFT
  
-Relation  2   CUSTOMERS CUST_KEY   ORDERS CUSTOMER
+Relation  2   CUSTOMERS CUSTOMER   ORDERS CUSTOMER
  
-Relation  3   CUSTOMERS ITEM   PLANTS KEY0
+Relation  3   CUSTOMERS ITEM   PLANTS ITEM
  
 Structure CUSTOMER_1   DBL ISAM
    Description "customer"
@@ -42749,10 +42749,11 @@ Field OR_EDATE   Template DATE
 Field OR_INVOICE   Type DECIMAL   Size 7
    Description "Invoice Number"
  
-Key KEY0   ACCESS   Order ASCENDING   Dups NO
+Key ORDER   ACCESS   Order ASCENDING   Dups NO
    Segment FIELD   OR_NUMBER
  
-Key VENDOR   ACCESS   Order ASCENDING   Dups YES   Insert END   Modifiable YES
+Key VENDOR   ACCESS   Order ASCENDING   Dups YES   Insert END
+   Modifiable YES
    Segment FIELD   OR_VENDOR
  
 Key ITEM   ACCESS   Order ASCENDING   Dups YES   Insert END   Modifiable YES
@@ -42762,25 +42763,25 @@ Key CUSTOMER   ACCESS   Order ASCENDING   Dups YES   Insert END
    Modifiable YES
    Segment FIELD   OR_CUSTOMER
  
-Key TAG_KEY_VEND   FOREIGN
+Key TAG_VENDOR   FOREIGN
    Description "foreign key to vendors (tag + key)"
    Segment LITERAL   "1"
    Segment FIELD   OR_VENDOR
  
-Key TAG_KEY_CUST   FOREIGN
+Key TAG_CUSTOMER   FOREIGN
    Description "foreign key to customers (tag + key)"
    Segment LITERAL   "0"
    Segment FIELD   OR_CUSTOMER
  
-Relation  1   ORDERS VENDOR   VENDORS KEY0
+Relation  1   ORDERS VENDOR   VENDORS VENDOR
  
-Relation  3   ORDERS CUSTOMER   CUSTOMERS CUST_KEY
+Relation  3   ORDERS CUSTOMER   CUSTOMERS CUSTOMER
  
-Relation  4   ORDERS ITEM   PLANTS KEY0
+Relation  4   ORDERS ITEM   PLANTS ITEM
  
-Relation  5   ORDERS TAG_KEY_CUST   CUSTOMERS TAGKEY
+Relation  5   ORDERS TAG_CUSTOMER   CUSTOMERS TAG_CUSTOMER
  
-Relation  6   ORDERS TAG_KEY_VEND   VENDORS TAGKEY
+Relation  6   ORDERS TAG_VENDOR   VENDORS TAG_VENDOR
  
 Structure PCMAS   RELATIVE
    Description "Product Class Master File"
@@ -42923,10 +42924,11 @@ Field IN_PRICE   Type DECIMAL   Size 7   Precision 2
 Field IN_COST   Type DECIMAL   Size 7   Precision 2
    Description "Item Cost"
  
-Key KEY0   ACCESS   Order ASCENDING   Dups NO
+Key ITEM   ACCESS   Order ASCENDING   Dups NO
    Segment FIELD   IN_ITEMID  SegType DECIMAL
  
-Key VENDOR   ACCESS   Order ASCENDING   Dups YES   Insert END   Modifiable YES
+Key VENDOR   ACCESS   Order ASCENDING   Dups YES   Insert END
+   Modifiable YES
    Segment FIELD   IN_SOURCE  SegType ALPHA
  
 Key COLOR   ACCESS   Order DESCENDING   Dups YES   Insert END   Modifiable YES
@@ -42946,9 +42948,9 @@ Key REVERSE_VENDOR   ACCESS   Order DESCENDING   Dups YES   Insert END
    Description "in_source in descending order"
    Segment FIELD   IN_SOURCE  SegType ALPHA
  
-Relation  1   PLANTS VENDOR   VENDORS KEY0
+Relation  1   PLANTS VENDOR   VENDORS VENDOR
  
-Relation  2   PLANTS KEY0   ORDERS ITEM
+Relation  2   PLANTS ITEM   ORDERS ITEM
  
 Structure PRODUCT   DBL ISAM
    Description "REWARDER PRODUCT FILE"
@@ -43936,13 +43938,17 @@ Field VEND_FAX   Template PHONE
 Field VEND_TERMS   Type ALPHA   Size 24
    Description "Terms & Conditions"
  
-Key KEY0   ACCESS   Order ASCENDING   Dups NO
+Key VENDOR   ACCESS   Order ASCENDING   Dups NO
    Segment FIELD   VEND_KEY
  
-Key TAGKEY   ACCESS   Order ASCENDING   Dups NO   Modifiable YES
+Key TAG_VENDOR   ACCESS   Order ASCENDING   Dups NO   Modifiable YES
    Description "Access key of tag+key"
    Segment FIELD   VEND_RTYPE  SegType ALPHA
    Segment FIELD   VEND_KEY  SegType ALPHA
+ 
+Relation  1   VENDORS VENDOR   PLANTS VENDOR
+ 
+Relation  2   VENDORS VENDOR   ORDERS VENDOR
  
 File ACCOUNT   DBL ISAM   "ACCOUNT.ISM"
    Description "Account File"

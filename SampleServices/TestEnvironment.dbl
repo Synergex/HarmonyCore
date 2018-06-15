@@ -51,11 +51,21 @@ namespace SampleServices
 
 	public static class TestEnvironment
 
-		public static method SetLogicals, void
+		public static method Configure, void
 		proc
-
 			Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)
+			setLogicals()
+			deleteFiles()
+			createFiles()
+		endmethod
 
+		public static method Cleanup, void
+		proc
+			deleteFiles()
+		endmethod
+
+		private static method setLogicals, void
+		proc
 			data sampleDataFolder = findRelativeFolderForAssembly("SampleData")
 			data logicals = new List<string>()
 			data logical = String.Empty
@@ -93,7 +103,7 @@ namespace SampleServices
 
 		endmethod
 
-		public static method CreateFiles, void
+		private static method createFiles, void
 			.include "CUSTOMERS" repository, stack record="customer", nofields, end
 			.include "ORDERS" repository, stack record="order", nofields, end
 			.include "PLANTS" repository, stack record="plant", nofields, end
@@ -175,7 +185,7 @@ namespace SampleServices
 
 		endmethod
 
-		public static method DeleteFiles, void
+		private static method deleteFiles, void
 		proc
 			;;Delete the customers file
 			try

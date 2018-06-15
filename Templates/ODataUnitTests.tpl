@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME><StructureNoplural>Tests.dbl</CODEGEN_FILENAME>
-<REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
+<REQUIRES_USERTOKEN>SERVICES_NAMESPACE</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
 ;// Title:       ODataUnitTests.tpl
@@ -80,6 +80,7 @@ import Microsoft.VisualStudio.TestTools.UnitTesting
 import Newtonsoft.Json
 import System.Collections.Generic
 import System.Net.Http
+import <SERVICES_NAMESPACE>
 import <NAMESPACE>.Models
 
 namespace <NAMESPACE>

@@ -84,11 +84,21 @@ namespace <NAMESPACE>
 
 	public static class TestEnvironment
 
-		public static method SetLogicals, void
+		public static method Configure, void
 		proc
-
 			Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)
+			setLogicals()
+			deleteFiles()
+			createFiles()
+		endmethod
 
+		public static method Cleanup, void
+		proc
+			deleteFiles()
+		endmethod
+
+		private static method setLogicals, void
+		proc
 			data sampleDataFolder = findRelativeFolderForAssembly("SampleData")
 			data logicals = new List<string>()
 			data logical = String.Empty
@@ -112,7 +122,7 @@ namespace <NAMESPACE>
 
 		endmethod
 
-		public static method CreateFiles, void
+		private static method createFiles, void
 			<STRUCTURE_LOOP>
 			.include "<STRUCTURE_NOALIAS>" repository, stack record="<structureNoplural>", nofields, end
 			</STRUCTURE_LOOP>
@@ -150,7 +160,7 @@ namespace <NAMESPACE>
 			</STRUCTURE_LOOP>
 		endmethod
 
-		public static method DeleteFiles, void
+		private static method deleteFiles, void
 		proc
 			<STRUCTURE_LOOP>
 			;;Delete the <structurePlural> file
