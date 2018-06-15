@@ -11,9 +11,11 @@ namespace Harmony.Core.FileIO.Queryable
 
 	public class QueryModelVisitor extends QueryModelVisitorBase implements IDisposable
 		mQueryBuffers, @Dictionary<string, int>
+		mQueryBufferTypes, @Dictionary<string, Type>
 		mDataObjectProvider, @Harmony.Core.Context.IDataObjectProvider
 		mChannelManager, @Harmony.Core.FileIO.IFileChannelManager
 		mSelectObject, @Synergex.SynergyDE.Select.Select
+		mJoinObject, @Synergex.SynergyDE.Select.JoinSelect
 		mMainFromObject, @Synergex.SynergyDE.Select.From
 		mWhereObject, @Synergex.SynergyDE.Select.Where
 		mOnObjects, @Dictionary<string, Synergex.SynergyDE.Select.On>
@@ -32,6 +34,7 @@ namespace Harmony.Core.FileIO.Queryable
 			mAdditionalFromObjects = new List<Tuple<string, Synergex.SynergyDE.Select.From>>()
 			mActiveChannels = new List<int>()
 			mParameters = parameters
+			mQueryBufferTypes = new Dictionary<string, Type>()
 		endmethod
 		
 		public virtual method Dispose, void
@@ -46,6 +49,9 @@ namespace Harmony.Core.FileIO.Queryable
 
 			if(mSelectObject != ^null)
 				mSelectObject.Dispose()
+
+			if(mJoinObject != ^null)
+				mJoinObject.Dispose()
 
 			data channel, int
 			foreach channel in mActiveChannels
@@ -67,6 +73,7 @@ namespace Harmony.Core.FileIO.Queryable
 				data structureSize = metadataObject.StructureSize
 				memoryBuffer = %mem_proc(DM_ALLOC | DM_STATIC, structureSize)
 				mQueryBuffers.Add(fromName, memoryBuffer)
+				mQueryBufferTypes.Add(fromName, dataObjectType)
 			end
 			mreturn memoryBuffer
 		endmethod
@@ -150,6 +157,8 @@ namespace Harmony.Core.FileIO.Queryable
 			queryModel, @QueryModel
 			groupJoinClause, @GroupJoinClause 
 		proc
+
+			
 			mOnObjects.Add(joinClause.ItemName, mWhereBuilder.VisitForOn(Expression.Equal(joinClause.InnerKeySelector, joinClause.OuterKeySelector)))
 		endmethod
 
@@ -157,7 +166,23 @@ namespace Harmony.Core.FileIO.Queryable
 			joinClause, @JoinClause
 			queryModel, @QueryModel
 			index, int
+			structure memMapper
+				fld,a1
+			endstructure
 		proc
+			data additionalFromObject = mAdditionalFromObjects.FirstOrDefault(lambda(item) { item.Item1 == joinClause.ItemName })
+			if(additionalFromObject == ^null)
+			begin
+				data channelInfo = mDataObjectProvider.GetFileInfo(joinClause.ItemType)
+				data channel = mChannelManager.GetChannel(channelInfo.Item1, channelInfo.Item2)
+				mActiveChannels.Add(channel)
+				data buffer = GetBufferForType(joinClause.ItemType, joinClause.ItemName)
+				data metadataObject = DataObjectMetadataBase.LookupType(joinClause.ItemType)
+				data structureSize = metadataObject.StructureSize
+				mAdditionalFromObjects.Add(Tuple.Create(joinClause.ItemName, new Synergex.SynergyDE.Select.From(channel, ^m(memMapper.fld(1:structureSize), buffer))))
+				mWhereBuilder.AddFromClause(joinClause.ItemName, buffer, metadataObject)
+			end
+
 			mOnObjects.Add(joinClause.ItemName, mWhereBuilder.VisitForOn(Expression.Equal(joinClause.InnerKeySelector, joinClause.OuterKeySelector)))
 		endmethod
 		
@@ -187,6 +212,9 @@ namespace Harmony.Core.FileIO.Queryable
 		private property SelectObject, @Synergex.SynergyDE.Select.Select
 			method get
 			proc
+				if(IsJoin)
+					throw new NotImplementedException()
+
 				if(mSelectObject == ^null)
 				begin
 					if(mWhereObject != ^null) then
@@ -195,6 +223,23 @@ namespace Harmony.Core.FileIO.Queryable
 						mSelectObject = new Synergex.SynergyDE.Select.Select(mMainFromObject)
 				end
 				mreturn mSelectObject
+			endmethod
+		endproperty
+
+		private property JoinObject, @Synergex.SynergyDE.Select.JoinSelect
+			method get
+			proc
+				if(!IsJoin)
+					throw new NotImplementedException()
+
+				if(mJoinObject == ^null)
+				begin
+					if(mWhereObject != ^null) then
+						mJoinObject = new Synergex.SynergyDE.Select.Select(FromObject, mWhereObject).Join()
+					else
+						mJoinObject = new Synergex.SynergyDE.Select.Select(FromObject).Join()
+				end
+				mreturn mJoinObject
 			endmethod
 		endproperty
 
@@ -209,6 +254,7 @@ namespace Harmony.Core.FileIO.Queryable
 					begin
 						currentJoin = currentJoin.InnerJoin(fromItem.Item2, mOnObjects[fromItem.Item1])
 					end
+					mMainFromObject = currentJoin
 					mreturn currentJoin
 				end
 				else
@@ -232,31 +278,91 @@ namespace Harmony.Core.FileIO.Queryable
 			data result = new List<DataObjectBase>()
 			disposable data modelVisitor = new QueryModelVisitor(dataObjectProvider, parameters)
 			model.Accept(modelVisitor)
-			disposable data selectObject, @Synergex.SynergyDE.Select.Select, modelVisitor.SelectObject
-			data queryBufferKVP = modelVisitor.mQueryBuffers.First()
-			data memPnt, int, queryBufferKVP.Value
-			data targetType, @Type, model.MainFromClause.ItemType
-			data metadataObject = DataObjectMetadataBase.LookupType(targetType)
-			data structureSize = metadataObject.StructureSize
-			foreach ^m(memMapper.fld(1:structureSize), memPnt) in selectObject
+
+			if(modelVisitor.IsJoin) then
 			begin
-				data grfa	,a10
-				incr currentCount
+				disposable data selectObject, @Synergex.SynergyDE.Select.Select, modelVisitor.SelectObject
+				data memPnt, int, modelVisitor.mQueryBuffers[model.MainFromClause.ItemName]
+				data targetType, @Type, model.MainFromClause.ItemType
+				data metadataObject = DataObjectMetadataBase.LookupType(targetType)
+				data structureSize = metadataObject.StructureSize
+				foreach ^m(memMapper.fld(1:structureSize), memPnt) in selectObject
+				begin
+					data grfa	,a10
+					incr currentCount
 					
-				;;if(skip && skip > currentCount)
-				;;	nextloop
+					;;if(skip && skip > currentCount)
+					;;	nextloop
 						
-				;;if (targetCount && currentCount > targetCount)
-				;;	exitloop
+					;;if (targetCount && currentCount > targetCount)
+					;;	exitloop
 					
-				data enumerator, @Synergex.SynergyDE.Select.RestrictedAlphaEnumerator, Synergex.SynergyDE.Select.Select.GetEnum()
-				enumerator.CurrentRFA(grfa)
-				result.Add(metadataObject.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa))
+					data enumerator, @Synergex.SynergyDE.Select.RestrictedAlphaEnumerator, Synergex.SynergyDE.Select.Select.GetEnum()
+					enumerator.CurrentRFA(grfa)
+					result.Add(metadataObject.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa))
+				end
 			end
+			else
+			begin
+				data rows, @Synergex.SynergyDE.Select.Rows
+				disposable data selectObject, @Synergex.SynergyDE.Select.JoinSelect, modelVisitor.JoinObject
+				
+				foreach rows in selectObject
+				begin
+					data grfa	,a10
+					incr currentCount
+					
+					;;if(skip && skip > currentCount)
+					;;	nextloop
+						
+					;;if (targetCount && currentCount > targetCount)
+					;;	exitloop
+					
+					result.Add(MaterializeObject(model.MainFromClause.ItemName, model.MainFromClause.ItemType, rows, modelVisitor))
+				end
+			end
+
 			data enumResult, @IEnumerable<DataObjectBase>
 			enumResult = result.ToArray()
 			mreturn enumResult 
+
 		endmethod
+
+		private static method DependentObjectsForMaterialize, [#]KeyValuePair<string, DataObjectBase>
+			itemName, @string
+			rows, @Synergex.SynergyDE.Select.Rows
+			modelVisitor, @QueryModelVisitor
+		proc
+			data result = new Dictionary<string, DataObjectBase>()
+			data kvp, KeyValuePair<string, int>
+			foreach kvp in modelVisitor.mQueryBuffers
+			begin
+				;;TODO multi level joins here
+				if(kvp.Key != itemName && kvp.Key.StartsWith(itemName))
+				begin
+					result.Add(kvp.Key, MaterializeObject(kvp.Key, modelVisitor.mQueryBufferTypes[kvp.Key], rows, modelVisitor))
+				end
+			end
+			mreturn result.ToArray()
+		endmethod
+
+		private static method MaterializeObject, @DataObjectBase
+			itemName, @string
+			itemType, @Type
+			rows, @Synergex.SynergyDE.Select.Rows
+			modelVisitor, @QueryModelVisitor
+			structure memMapper
+				fld,a1
+			endstructure
+		proc
+			data memPnt, int, modelVisitor.mQueryBuffers[itemName]
+			data metadataObject = DataObjectMetadataBase.LookupType(itemType)
+			data structureSize = metadataObject.StructureSize
+			data grfa, a10
+			rows.RowInfo(^m(memMapper.fld(1:structureSize), memPnt), grfa)
+			mreturn metadataObject.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa, DependentObjectsForMaterialize(itemName, rows, modelVisitor))
+		endmethod
+
 	endclass
 
 endnamespace
