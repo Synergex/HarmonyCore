@@ -87,6 +87,30 @@ namespace SampleServices.Models
 			mreturn new Customer((strCustomer)dataArea) { GlobalRFA = grfa }
 		endmethod
 
+		;;; <summary>
+		;;; 
+		;;; </summary>
+		public override method MakeNew, @DataObjectBase
+			dataArea, a
+			grfa, a
+			joinedObjects, [#]KeyValuePair<string, Object>
+		proc
+			data c = new Customer((strCustomer)dataArea) { GlobalRFA = grfa }
+			data jo, KeyValuePair<string, Object>
+			foreach jo in joinedObjects
+			begin
+				using jo.Key select
+				("REL_Orders"), 
+					c.REL_Orders = (@ICollection<Order>)jo.Value
+				("REL_Item"),
+					c.REL_Item = (@Plant)jo.Value
+				endusing
+			end
+
+			mreturn c
+
+		endmethod
+
 	endclass
 
 endnamespace

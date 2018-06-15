@@ -84,6 +84,36 @@ namespace SampleServices.Models
 			mreturn new Order((strOrder)dataArea) { GlobalRFA = grfa }
 		endmethod
 
+		;;; <summary>
+		;;; 
+		;;; </summary>
+		public override method MakeNew, @DataObjectBase
+			dataArea, a
+			grfa, a
+			joinedObjects, [#]KeyValuePair<string, Object>
+		proc
+			data c = new Order((strOrder)dataArea) { GlobalRFA = grfa }
+			data jo, KeyValuePair<string, Object>
+			foreach jo in joinedObjects
+			begin
+				using jo.Key select
+				("REL_Vendor"), 
+					c.REL_Vendor = (@Vendor)jo.Value
+				("REL_Customer"), 
+					c.REL_Customer = (@Customer)jo.Value
+				("REL_Item"), 
+					c.REL_Item = (@Plant)jo.Value
+				("REL_TagCustomer"),
+					c.REL_TagCustomer = (@Customer)jo.Value
+				("REL_TagVendor"),
+					c.REL_TagVendor = (@Vendor)jo.Value
+				endusing
+			end
+
+			mreturn c
+
+		endmethod
+
 	endclass
 
 endnamespace

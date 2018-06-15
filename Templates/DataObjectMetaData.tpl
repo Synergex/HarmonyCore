@@ -111,6 +111,46 @@ namespace <NAMESPACE>
 			mreturn new <StructureNoplural>((str<StructureNoplural>)dataArea) { GlobalRFA = grfa }
 		endmethod
 
+		;;; <summary>
+		;;; 
+		;;; </summary>
+		public override method MakeNew, @DataObjectBase
+			dataArea, a
+			grfa, a
+			joinedObjects, [#]KeyValuePair<string, Object>
+		proc
+			data c = new <StructureNoplural>((str<StructureNoplural>)dataArea) { GlobalRFA = grfa }
+			<IF STRUCTURE_RELATIONS>
+			data jo, KeyValuePair<string, Object>
+			foreach jo in joinedObjects
+			begin
+				using jo.Key select
+				<RELATION_LOOP>
+				<IF TWO_WAY_ONE_TO_ONE>
+				("REL_<RelationFromkey>"), 
+					c.REL_<RelationFromkey> = (@<RelationTostructureNoplural>)jo.Value
+				</IF TWO_WAY_ONE_TO_ONE>
+				<IF ONE_WAY_ONE_TO_ONE>
+				("REL_<RelationFromkey>"),
+					c.REL_<RelationFromkey> = (@<RelationTostructureNoplural>)jo.Value
+				</IF ONE_WAY_ONE_TO_ONE>
+				<IF TWO_WAY_ONE_TO_MANY>
+				("REL_<RelationTostructurePlural>"), 
+					c.REL_<RelationTostructurePlural> = (@ICollection<<RelationTostructureNoplural>>)jo.Value
+				</IF TWO_WAY_ONE_TO_MANY>
+				<IF ONE_WAY_ONE_TO_MANY>
+				("REL_<RelationTostructurePlural>"),
+					c.REL_<RelationTostructurePlural> = (@ICollection<<RelationTostructureNoplural>>)jo.Value
+				</IF ONE_WAY_ONE_TO_MANY>
+				</RELATION_LOOP>
+				endusing
+			end
+			</IF STRUCTURE_RELATIONS>
+
+			mreturn c
+
+		endmethod
+
 	endclass
 
 endnamespace
