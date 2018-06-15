@@ -54,18 +54,7 @@ namespace SampleServices.Test
 	public partial class PlantTests
 
 		{TestMethod}
-		{TestCategory("Plant Tests")}
-		public method GetAllPlants, void
-		proc
-			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync("/odata/Plants").Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data plants, @ODataPlants, JsonConvert.DeserializeObject<ODataPlants>(result)
-		endmethod
-	
-		{TestMethod}
-		{TestCategory("Order Tests")}
+		{TestCategory("Plant Tests - Single")}
 		public method GetPlant, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
@@ -77,8 +66,31 @@ namespace SampleServices.Test
 		endmethod
 
 		{TestMethod}
-		{TestCategory("Plant Tests")}
-		public method GetAllPlants_Expand_REL_Vendor, void
+		{TestCategory("Plant Tests - Single")}
+		public method GetPlant_Expand_All, void
+		proc
+			data client = UnitTestEnvironment.Server.CreateClient()
+			data request = String.Format("/odata/Plants({0})?$expand=REL_Vendor,REL_Orders", TestContext.PlantID)
+			data response = client.GetAsync(request).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data plant, @ODataPlant, JsonConvert.DeserializeObject<ODataPlant>(result)
+		endmethod
+
+		{TestMethod}
+		{TestCategory("Plant Tests - All")}
+		public method GetPlants, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync("/odata/Plants").Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data plants, @ODataPlants, JsonConvert.DeserializeObject<ODataPlants>(result)
+		endmethod
+	
+		{TestMethod}
+		{TestCategory("Plant Tests - All")}
+		public method GetPlants_Expand_REL_Vendor, void
 		proc
 			data uri = "/odata/Plants?$expand=REL_Vendor"
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
@@ -88,8 +100,8 @@ namespace SampleServices.Test
 		endmethod
 
 		{TestMethod}
-		{TestCategory("Plant Tests")}
-		public method GetAllPlants_Expand_REL_Orders, void
+		{TestCategory("Plant Tests - All")}
+		public method GetPlants_Expand_REL_Orders, void
 		proc
 			data uri = "/odata/Plants?$expand=REL_Orders"
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
@@ -99,9 +111,9 @@ namespace SampleServices.Test
 		endmethod
 
 		{TestMethod}
-		{TestCategory("Plant Tests")}
+		{TestCategory("Plant Tests - All")}
 		
-		public method GetAllPlants_Expand_All, void
+		public method GetPlants_Expand_All, void
 		proc
 			data uri = "/odata/Plants?$expand=REL_Vendor,REL_Orders"
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
@@ -111,7 +123,7 @@ namespace SampleServices.Test
 		endmethod
 		
 ;		{TestMethod}
-;		{TestCategory("Plant Tests")}
+;		{TestCategory("Plant Tests - All")}
 ;		public method CreatePlant, void
 ;		proc
 ;			disposable data client = UnitTestEnvironment.Server.CreateClient()
@@ -122,7 +134,7 @@ namespace SampleServices.Test
 ;		endmethod
 
 ;		{TestMethod}
-;		{TestCategory("Plant Tests")}
+;		{TestCategory("Plant Tests - All")}
 ;		public method UpdatePlant, void
 ;		proc
 ;			disposable data client = UnitTestEnvironment.Server.CreateClient()
