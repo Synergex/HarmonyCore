@@ -54,18 +54,7 @@ namespace SampleServices.Test
 	public partial class OrderTests
 
 		{TestMethod}
-		{TestCategory("Order Tests")}
-		public method GetAllOrders, void
-		proc
-			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync("/odata/Orders").Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data orders, @ODataOrders, JsonConvert.DeserializeObject<ODataOrders>(result)
-		endmethod
-	
-		{TestMethod}
-		{TestCategory("Order Tests")}
+		{TestCategory("Order Tests - Single")}
 		public method GetOrder, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
@@ -77,8 +66,31 @@ namespace SampleServices.Test
 		endmethod
 
 		{TestMethod}
-		{TestCategory("Order Tests")}
-		public method GetAllOrders_Expand_REL_Vendor, void
+		{TestCategory("Order Tests - Single")}
+		public method GetOrder_Expand_All, void
+		proc
+			data client = UnitTestEnvironment.Server.CreateClient()
+			data request = String.Format("/odata/Orders({0})?$expand=REL_Vendor,REL_Customer,REL_Item,REL_TagCustomer,REL_TagVendor", TestContext.OrderID)
+			data response = client.GetAsync(request).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data order, @ODataOrder, JsonConvert.DeserializeObject<ODataOrder>(result)
+		endmethod
+
+		{TestMethod}
+		{TestCategory("Order Tests - All")}
+		public method GetOrders, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync("/odata/Orders").Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data orders, @ODataOrders, JsonConvert.DeserializeObject<ODataOrders>(result)
+		endmethod
+	
+		{TestMethod}
+		{TestCategory("Order Tests - All")}
+		public method GetOrders_Expand_REL_Vendor, void
 		proc
 			data uri = "/odata/Orders?$expand=REL_Vendor"
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
@@ -88,8 +100,8 @@ namespace SampleServices.Test
 		endmethod
 
 		{TestMethod}
-		{TestCategory("Order Tests")}
-		public method GetAllOrders_Expand_REL_Customer, void
+		{TestCategory("Order Tests - All")}
+		public method GetOrders_Expand_REL_Customer, void
 		proc
 			data uri = "/odata/Orders?$expand=REL_Customer"
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
@@ -99,8 +111,8 @@ namespace SampleServices.Test
 		endmethod
 
 		{TestMethod}
-		{TestCategory("Order Tests")}
-		public method GetAllOrders_Expand_REL_Item, void
+		{TestCategory("Order Tests - All")}
+		public method GetOrders_Expand_REL_Item, void
 		proc
 			data uri = "/odata/Orders?$expand=REL_Item"
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
@@ -110,8 +122,8 @@ namespace SampleServices.Test
 		endmethod
 
 		{TestMethod}
-		{TestCategory("Order Tests")}
-		public method GetAllOrders_Expand_REL_TagCustomer, void
+		{TestCategory("Order Tests - All")}
+		public method GetOrders_Expand_REL_TagCustomer, void
 		proc
 			data uri = "/odata/Orders?$expand=REL_TagCustomer"
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
@@ -121,8 +133,8 @@ namespace SampleServices.Test
 		endmethod
 
 		{TestMethod}
-		{TestCategory("Order Tests")}
-		public method GetAllOrders_Expand_REL_TagVendor, void
+		{TestCategory("Order Tests - All")}
+		public method GetOrders_Expand_REL_TagVendor, void
 		proc
 			data uri = "/odata/Orders?$expand=REL_TagVendor"
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
@@ -132,9 +144,9 @@ namespace SampleServices.Test
 		endmethod
 
 		{TestMethod}
-		{TestCategory("Order Tests")}
+		{TestCategory("Order Tests - All")}
 		
-		public method GetAllOrders_Expand_All, void
+		public method GetOrders_Expand_All, void
 		proc
 			data uri = "/odata/Orders?$expand=REL_Vendor,REL_Customer,REL_Item,REL_TagCustomer,REL_TagVendor"
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
@@ -144,7 +156,7 @@ namespace SampleServices.Test
 		endmethod
 		
 ;		{TestMethod}
-;		{TestCategory("Order Tests")}
+;		{TestCategory("Order Tests - All")}
 ;		public method CreateOrder, void
 ;		proc
 ;			disposable data client = UnitTestEnvironment.Server.CreateClient()
@@ -155,7 +167,7 @@ namespace SampleServices.Test
 ;		endmethod
 
 ;		{TestMethod}
-;		{TestCategory("Order Tests")}
+;		{TestCategory("Order Tests - All")}
 ;		public method UpdateOrder, void
 ;		proc
 ;			disposable data client = UnitTestEnvironment.Server.CreateClient()

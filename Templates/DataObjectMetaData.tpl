@@ -88,7 +88,7 @@ namespace <NAMESPACE>
 	public partial class <StructureNoplural>Metadata extends DataObjectMetadataBase
 		
 		;;; <summary>
-		;;; 
+		;;; Constructs an new <StructureNoplural>Metadata object.
 		;;; </summary>
 		public method <StructureNoplural>Metadata
 		proc
@@ -102,52 +102,65 @@ namespace <NAMESPACE>
 		endmethod
 	
 		;;; <summary>
-		;;; 
+		;;; Returns a new <StructureNoplural> object containing data from a record and a GRFA.
+		<IF STRUCTURE_RELATIONS>
+		;;; The related data properties (<RELATION_LOOP><IF TWO_WAY_ONE_TO_ONE>REL_<RelationFromkey></IF TWO_WAY_ONE_TO_ONE><IF ONE_WAY_ONE_TO_ONE>REL_<RelationFromkey></IF ONE_WAY_ONE_TO_ONE><IF TWO_WAY_ONE_TO_MANY>REL_<RelationTostructurePlural></IF TWO_WAY_ONE_TO_MANY><IF ONE_WAY_ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_WAY_ONE_TO_MANY><,and></RELATION_LOOP>) will not be populated.
+		</IF STRUCTURE_RELATIONS>
 		;;; </summary>
+		;;; <param name="dataArea">The record containing the data for the new <StructureNoplural> object.</param>
+		;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
+		;;; <returns></returns>
 		public override method MakeNew, @DataObjectBase
-			dataArea, a
-			grfa, a
+			required in dataArea, a
+			required in grfa, a
 		proc
 			mreturn new <StructureNoplural>((str<StructureNoplural>)dataArea) { GlobalRFA = grfa }
 		endmethod
 
 		;;; <summary>
-		;;; 
+		;;; Returns a new <StructureNoplural> object containing data from a record and a GRFA.
+		<IF STRUCTURE_RELATIONS>
+		;;; The related data properties (<RELATION_LOOP><IF TWO_WAY_ONE_TO_ONE>REL_<RelationFromkey></IF TWO_WAY_ONE_TO_ONE><IF ONE_WAY_ONE_TO_ONE>REL_<RelationFromkey></IF ONE_WAY_ONE_TO_ONE><IF TWO_WAY_ONE_TO_MANY>REL_<RelationTostructurePlural></IF TWO_WAY_ONE_TO_MANY><IF ONE_WAY_ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_WAY_ONE_TO_MANY><,and></RELATION_LOOP>) will be populated.
+		</IF STRUCTURE_RELATIONS>
 		;;; </summary>
+		;;; <param name="dataArea">The record containing the data for the new <StructureNoplural> object.</param>
+		;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
+		;;; <param name="joinedObjects">Data to allow the related data properties (<RELATION_LOOP><IF TWO_WAY_ONE_TO_ONE>REL_<RelationFromkey></IF TWO_WAY_ONE_TO_ONE><IF ONE_WAY_ONE_TO_ONE>REL_<RelationFromkey></IF ONE_WAY_ONE_TO_ONE><IF TWO_WAY_ONE_TO_MANY>REL_<RelationTostructurePlural></IF TWO_WAY_ONE_TO_MANY><IF ONE_WAY_ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_WAY_ONE_TO_MANY><,and></RELATION_LOOP>) to be populated.</param>
+		;;; <returns></returns>
 		public override method MakeNew, @DataObjectBase
-			dataArea, a
-			grfa, a
-			joinedObjects, [#]KeyValuePair<string, Object>
+			required in dataArea, a
+			required in grfa, a
+			required in joinedObjects, [#]KeyValuePair<String, Object>
 		proc
-			data c = new <StructureNoplural>((str<StructureNoplural>)dataArea) { GlobalRFA = grfa }
+			data new<StructureNoplural> = new <StructureNoplural>((str<StructureNoplural>)dataArea) { GlobalRFA = grfa }
 			<IF STRUCTURE_RELATIONS>
-			data jo, KeyValuePair<string, Object>
-			foreach jo in joinedObjects
+			data joinedObject, KeyValuePair<String, Object>
+			foreach joinedObject in joinedObjects
 			begin
-				using jo.Key select
+				using joinedObject.Key select
 				<RELATION_LOOP>
 				<IF TWO_WAY_ONE_TO_ONE>
 				("REL_<RelationFromkey>"), 
-					c.REL_<RelationFromkey> = (@<RelationTostructureNoplural>)jo.Value
+					new<StructureNoplural>.REL_<RelationFromkey> = (@<RelationTostructureNoplural>)joinedObject.Value
 				</IF TWO_WAY_ONE_TO_ONE>
 				<IF ONE_WAY_ONE_TO_ONE>
 				("REL_<RelationFromkey>"),
-					c.REL_<RelationFromkey> = (@<RelationTostructureNoplural>)jo.Value
+					new<StructureNoplural>.REL_<RelationFromkey> = (@<RelationTostructureNoplural>)joinedObject.Value
 				</IF ONE_WAY_ONE_TO_ONE>
 				<IF TWO_WAY_ONE_TO_MANY>
 				("REL_<RelationTostructurePlural>"), 
-					c.REL_<RelationTostructurePlural> = (@ICollection<<RelationTostructureNoplural>>)jo.Value
+					new<StructureNoplural>.REL_<RelationTostructurePlural> = (@ICollection<<RelationTostructureNoplural>>)joinedObject.Value
 				</IF TWO_WAY_ONE_TO_MANY>
 				<IF ONE_WAY_ONE_TO_MANY>
 				("REL_<RelationTostructurePlural>"),
-					c.REL_<RelationTostructurePlural> = (@ICollection<<RelationTostructureNoplural>>)jo.Value
+					new<StructureNoplural>.REL_<RelationTostructurePlural> = (@ICollection<<RelationTostructureNoplural>>)joinedObject.Value
 				</IF ONE_WAY_ONE_TO_MANY>
 				</RELATION_LOOP>
 				endusing
 			end
 			</IF STRUCTURE_RELATIONS>
 
-			mreturn c
+			mreturn new<StructureNoplural>
 
 		endmethod
 

@@ -89,18 +89,7 @@ namespace <NAMESPACE>
 	public partial class <StructureNoplural>Tests
 
 		{TestMethod}
-		{TestCategory("<StructureNoplural> Tests")}
-		public method GetAll<StructurePlural>, void
-		proc
-			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync("/odata/<StructurePlural>").Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data <structurePlural>, @OData<StructurePlural>, JsonConvert.DeserializeObject<OData<StructurePlural>>(result)
-		endmethod
-	
-		{TestMethod}
-		{TestCategory("Order Tests")}
+		{TestCategory("<StructureNoplural> Tests - Single")}
 		public method Get<StructureNoplural>, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
@@ -111,27 +100,50 @@ namespace <NAMESPACE>
 			data <structureNoplural>, @OData<StructureNoplural>, JsonConvert.DeserializeObject<OData<StructureNoplural>>(result)
 		endmethod
 
+		{TestMethod}
+		{TestCategory("<StructureNoplural> Tests - Single")}
+		public method Get<StructureNoplural>_Expand_All, void
+		proc
+			data client = UnitTestEnvironment.Server.CreateClient()
+			data request = String.Format("/odata/<StructurePlural>({0})?$expand=<RELATION_LOOP><IF TWO_WAY_ONE_TO_ONE>REL_<RelationFromkey></IF TWO_WAY_ONE_TO_ONE><IF ONE_WAY_ONE_TO_ONE>REL_<RelationFromkey></IF ONE_WAY_ONE_TO_ONE><IF TWO_WAY_ONE_TO_MANY>REL_<RelationTostructurePlural></IF TWO_WAY_ONE_TO_MANY><IF ONE_WAY_ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_WAY_ONE_TO_MANY><,></RELATION_LOOP>", TestContext.<StructureNoplural>ID)
+			data response = client.GetAsync(request).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data <structureNoplural>, @OData<StructureNoplural>, JsonConvert.DeserializeObject<OData<StructureNoplural>>(result)
+		endmethod
+
+		{TestMethod}
+		{TestCategory("<StructureNoplural> Tests - All")}
+		public method Get<StructurePlural>, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync("/odata/<StructurePlural>").Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data <structurePlural>, @OData<StructurePlural>, JsonConvert.DeserializeObject<OData<StructurePlural>>(result)
+		endmethod
+	
 		<IF STRUCTURE_RELATIONS>
 		<RELATION_LOOP>
 		{TestMethod}
-		{TestCategory("<StructureNoplural> Tests")}
+		{TestCategory("<StructureNoplural> Tests - All")}
 		<IF TWO_WAY_ONE_TO_ONE>
-		public method GetAll<StructurePlural>_Expand_REL_<RelationFromkey>, void
+		public method Get<StructurePlural>_Expand_REL_<RelationFromkey>, void
 		proc
 			data uri = "/odata/<StructurePlural>?$expand=REL_<RelationFromkey>"
 		</IF TWO_WAY_ONE_TO_ONE>
 		<IF ONE_WAY_ONE_TO_ONE>
-		public method GetAll<StructurePlural>_Expand_REL_<RelationFromkey>, void
+		public method Get<StructurePlural>_Expand_REL_<RelationFromkey>, void
 		proc
 			data uri = "/odata/<StructurePlural>?$expand=REL_<RelationFromkey>"
 		</IF ONE_WAY_ONE_TO_ONE>
 		<IF TWO_WAY_ONE_TO_MANY>
-		public method GetAll<StructurePlural>_Expand_REL_<RelationTostructurePlural>, void
+		public method Get<StructurePlural>_Expand_REL_<RelationTostructurePlural>, void
 		proc
 			data uri = "/odata/<StructurePlural>?$expand=REL_<RelationTostructurePlural>"
 		</IF TWO_WAY_ONE_TO_MANY>
 		<IF ONE_WAY_ONE_TO_MANY>
-		public method GetAll<StructurePlural>_Expand_REL_<RelationTostructurePlural>, void
+		public method Get<StructurePlural>_Expand_REL_<RelationTostructurePlural>, void
 		proc
 			data uri = "/odata/<StructurePlural>?$expand=REL_<RelationTostructurePlural>"
 		</IF ONE_WAY_ONE_TO_MANY>
@@ -143,9 +155,9 @@ namespace <NAMESPACE>
 
 		</RELATION_LOOP>
 		{TestMethod}
-		{TestCategory("<StructureNoplural> Tests")}
+		{TestCategory("<StructureNoplural> Tests - All")}
 		
-		public method GetAll<StructurePlural>_Expand_All, void
+		public method Get<StructurePlural>_Expand_All, void
 		proc
 			data uri = "/odata/<StructurePlural>?$expand=<RELATION_LOOP><IF TWO_WAY_ONE_TO_ONE>REL_<RelationFromkey></IF TWO_WAY_ONE_TO_ONE><IF ONE_WAY_ONE_TO_ONE>REL_<RelationFromkey></IF ONE_WAY_ONE_TO_ONE><IF TWO_WAY_ONE_TO_MANY>REL_<RelationTostructurePlural></IF TWO_WAY_ONE_TO_MANY><IF ONE_WAY_ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_WAY_ONE_TO_MANY><,></RELATION_LOOP>"
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
@@ -156,7 +168,7 @@ namespace <NAMESPACE>
 		
 		</IF STRUCTURE_RELATIONS>
 ;		{TestMethod}
-;		{TestCategory("<StructureNoplural> Tests")}
+;		{TestCategory("<StructureNoplural> Tests - All")}
 ;		public method Create<StructureNoplural>, void
 ;		proc
 ;			disposable data client = UnitTestEnvironment.Server.CreateClient()
@@ -167,7 +179,7 @@ namespace <NAMESPACE>
 ;		endmethod
 
 ;		{TestMethod}
-;		{TestCategory("<StructureNoplural> Tests")}
+;		{TestCategory("<StructureNoplural> Tests - All")}
 ;		public method Update<StructureNoplural>, void
 ;		proc
 ;			disposable data client = UnitTestEnvironment.Server.CreateClient()
