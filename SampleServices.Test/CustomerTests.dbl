@@ -76,28 +76,40 @@ namespace SampleServices.Test
 			data customer, @ODataCustomer, JsonConvert.DeserializeObject<ODataCustomer>(result)
 		endmethod
 
-;;;		{TestMethod}
-;		{TestCategory("Customer Tests")}
-;;;;		public method GetAllCustomers_REL_Orders, void
-;;;		proc
-;			disposable data client = UnitTestEnvironment.Server.CreateClient()
-;			disposable data response = client.GetAsync("/odata/Customers").Result
-;			data result = response.Content.ReadAsStringAsync().Result
-;			response.EnsureSuccessStatusCode()
-;			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
-;		endmethod
+		{TestMethod}
+		{TestCategory("Customer Tests")}
+		public method GetAllCustomers_Expand_REL_Orders, void
+		proc
+			data uri = "/odata/Customers?$expand=REL_Orders"
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync(uri).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+		endmethod
 
-;		{TestMethod}
-;		{TestCategory("Customer Tests")}
-;;;		public method GetAllCustomers_REL_Item, void
-;;;;		proc
-;			disposable data client = UnitTestEnvironment.Server.CreateClient()
-;			disposable data response = client.GetAsync("/odata/Customers").Result
-;			data result = response.Content.ReadAsStringAsync().Result
-;			response.EnsureSuccessStatusCode()
-;			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
-;		endmethod
+		{TestMethod}
+		{TestCategory("Customer Tests")}
+		public method GetAllCustomers_Expand_REL_Item, void
+		proc
+			data uri = "/odata/Customers?$expand=REL_Item"
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync(uri).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+		endmethod
 
+		{TestMethod}
+		{TestCategory("Customer Tests")}
+		
+		public method GetAllCustomers_Expand_All, void
+		proc
+			data uri = "/odata/Customers?$expand=REL_Orders,REL_Item"
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync(uri).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+		endmethod
+		
 ;		{TestMethod}
 ;		{TestCategory("Customer Tests")}
 ;		public method CreateCustomer, void

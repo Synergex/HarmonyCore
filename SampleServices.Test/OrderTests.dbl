@@ -76,61 +76,73 @@ namespace SampleServices.Test
 			data order, @ODataOrder, JsonConvert.DeserializeObject<ODataOrder>(result)
 		endmethod
 
-;;;		{TestMethod}
-;		{TestCategory("Order Tests")}
-;;		public method GetAllOrders_REL_Vendor, void
-;;;;;		proc
-;			disposable data client = UnitTestEnvironment.Server.CreateClient()
-;			disposable data response = client.GetAsync("/odata/Orders").Result
-;			data result = response.Content.ReadAsStringAsync().Result
-;			response.EnsureSuccessStatusCode()
-;			data orders, @ODataOrders, JsonConvert.DeserializeObject<ODataOrders>(result)
-;		endmethod
+		{TestMethod}
+		{TestCategory("Order Tests")}
+		public method GetAllOrders_Expand_REL_Vendor, void
+		proc
+			data uri = "/odata/Orders?$expand=REL_Vendor"
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync(uri).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+		endmethod
 
-;		{TestMethod}
-;		{TestCategory("Order Tests")}
-;;		public method GetAllOrders_REL_Customer, void
-;;;;;		proc
-;			disposable data client = UnitTestEnvironment.Server.CreateClient()
-;			disposable data response = client.GetAsync("/odata/Orders").Result
-;			data result = response.Content.ReadAsStringAsync().Result
-;			response.EnsureSuccessStatusCode()
-;			data orders, @ODataOrders, JsonConvert.DeserializeObject<ODataOrders>(result)
-;		endmethod
+		{TestMethod}
+		{TestCategory("Order Tests")}
+		public method GetAllOrders_Expand_REL_Customer, void
+		proc
+			data uri = "/odata/Orders?$expand=REL_Customer"
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync(uri).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+		endmethod
 
-;		{TestMethod}
-;		{TestCategory("Order Tests")}
-;;		public method GetAllOrders_REL_Item, void
-;;;;;		proc
-;			disposable data client = UnitTestEnvironment.Server.CreateClient()
-;			disposable data response = client.GetAsync("/odata/Orders").Result
-;			data result = response.Content.ReadAsStringAsync().Result
-;			response.EnsureSuccessStatusCode()
-;			data orders, @ODataOrders, JsonConvert.DeserializeObject<ODataOrders>(result)
-;		endmethod
+		{TestMethod}
+		{TestCategory("Order Tests")}
+		public method GetAllOrders_Expand_REL_Item, void
+		proc
+			data uri = "/odata/Orders?$expand=REL_Item"
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync(uri).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+		endmethod
 
-;		{TestMethod}
-;		{TestCategory("Order Tests")}
-;;;		public method GetAllOrders_REL_TagCustomer, void
-;;;;		proc
-;			disposable data client = UnitTestEnvironment.Server.CreateClient()
-;			disposable data response = client.GetAsync("/odata/Orders").Result
-;			data result = response.Content.ReadAsStringAsync().Result
-;			response.EnsureSuccessStatusCode()
-;			data orders, @ODataOrders, JsonConvert.DeserializeObject<ODataOrders>(result)
-;		endmethod
+		{TestMethod}
+		{TestCategory("Order Tests")}
+		public method GetAllOrders_Expand_REL_TagCustomer, void
+		proc
+			data uri = "/odata/Orders?$expand=REL_TagCustomer"
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync(uri).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+		endmethod
 
-;		{TestMethod}
-;		{TestCategory("Order Tests")}
-;;;		public method GetAllOrders_REL_TagVendor, void
-;;;;		proc
-;			disposable data client = UnitTestEnvironment.Server.CreateClient()
-;			disposable data response = client.GetAsync("/odata/Orders").Result
-;			data result = response.Content.ReadAsStringAsync().Result
-;			response.EnsureSuccessStatusCode()
-;			data orders, @ODataOrders, JsonConvert.DeserializeObject<ODataOrders>(result)
-;		endmethod
+		{TestMethod}
+		{TestCategory("Order Tests")}
+		public method GetAllOrders_Expand_REL_TagVendor, void
+		proc
+			data uri = "/odata/Orders?$expand=REL_TagVendor"
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync(uri).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+		endmethod
 
+		{TestMethod}
+		{TestCategory("Order Tests")}
+		
+		public method GetAllOrders_Expand_All, void
+		proc
+			data uri = "/odata/Orders?$expand=REL_Vendor,REL_Customer,REL_Item,REL_TagCustomer,REL_TagVendor"
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync(uri).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+		endmethod
+		
 ;		{TestMethod}
 ;		{TestCategory("Order Tests")}
 ;		public method CreateOrder, void
