@@ -266,6 +266,7 @@ namespace Harmony.Core.FileIO.Queryable
 		
 		public static method ExecuteSelectInternal, @IEnumerable<DataObjectBase>
 			model, @QueryModel
+			tracker, @Func<DataObjectBase, DataObjectBase>
 			parameters, @IReadOnlyDictionary<string, Object>
 			dataObjectProvider, @Harmony.Core.Context.IDataObjectProvider
 			endparams
@@ -273,13 +274,13 @@ namespace Harmony.Core.FileIO.Queryable
 				fld,a1
 			endstructure
 		proc
-			data currentCount = 0
+			data currentCount = 0 
 			;;data targetCount = top ? skip + top : 0
 			data result = new List<DataObjectBase>()
 			disposable data modelVisitor = new QueryModelVisitor(dataObjectProvider, parameters)
 			model.Accept(modelVisitor)
-
-			if(modelVisitor.IsJoin) then
+			 
+			if(!modelVisitor.IsJoin) then
 			begin
 				disposable data selectObject, @Synergex.SynergyDE.Select.Select, modelVisitor.SelectObject
 				data memPnt, int, modelVisitor.mQueryBuffers[model.MainFromClause.ItemName]
@@ -294,22 +295,22 @@ namespace Harmony.Core.FileIO.Queryable
 					;;if(skip && skip > currentCount)
 					;;	nextloop
 						
-					;;if (targetCount && currentCount > targetCount)
+					;;if (targetCount && currentCount > targetCount) 
 					;;	exitloop
 					
 					data enumerator, @Synergex.SynergyDE.Select.RestrictedAlphaEnumerator, Synergex.SynergyDE.Select.Select.GetEnum()
 					enumerator.CurrentRFA(grfa)
-					result.Add(metadataObject.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa))
+					result.Add(tracker(metadataObject.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa)))
 				end
 			end
 			else
-			begin
-				data rows, @Synergex.SynergyDE.Select.Rows
+			begin 
+				disposable data rows, @Synergex.SynergyDE.Select.RowEnumerator
 				disposable data selectObject, @Synergex.SynergyDE.Select.JoinSelect, modelVisitor.JoinObject
-				
-				foreach rows in selectObject
+				data hasMoreRows = true
+				rows = selectObject.GetEnumerator()
+				while(hasMoreRows)
 				begin
-					data grfa	,a10
 					incr currentCount
 					
 					;;if(skip && skip > currentCount)
@@ -318,7 +319,10 @@ namespace Harmony.Core.FileIO.Queryable
 					;;if (targetCount && currentCount > targetCount)
 					;;	exitloop
 					
-					result.Add(MaterializeObject(model.MainFromClause.ItemName, model.MainFromClause.ItemType, rows, modelVisitor))
+					result.Add(MaterializeObject(model.MainFromClause.ItemName, model.MainFromClause.ItemType, rows, modelVisitor, tracker))
+
+					;;TODO only maybe increment rows enumerator
+					hasMoreRows = rows.MoveNext()
 				end
 			end
 
@@ -328,19 +332,26 @@ namespace Harmony.Core.FileIO.Queryable
 
 		endmethod
 
-		private static method DependentObjectsForMaterialize, [#]KeyValuePair<string, DataObjectBase>
+		private static method DependentObjectsForMaterialize, [#]KeyValuePair<string, object>
 			itemName, @string
-			rows, @Synergex.SynergyDE.Select.Rows
+			rowEnumerator, @Synergex.SynergyDE.Select.RowEnumerator
 			modelVisitor, @QueryModelVisitor
+			tracker, @Func<DataObjectBase, DataObjectBase>
 		proc
-			data result = new Dictionary<string, DataObjectBase>()
+			data result = new Dictionary<string, object>()
 			data kvp, KeyValuePair<string, int>
 			foreach kvp in modelVisitor.mQueryBuffers
 			begin
 				;;TODO multi level joins here
-				if(kvp.Key != itemName && kvp.Key.StartsWith(itemName))
+				if(kvp.Key != itemName)
 				begin
-					result.Add(kvp.Key, MaterializeObject(kvp.Key, modelVisitor.mQueryBufferTypes[kvp.Key], rows, modelVisitor))
+					if(modelVisitor.mQueryBufferTypes[kvp.Key].FullName == "System.Collections.Generic.ICollection`1") then
+					begin
+					end
+					else if(kvp.Key.StartsWith(itemName))
+					begin
+						result.Add(kvp.Key, MaterializeObject(kvp.Key, modelVisitor.mQueryBufferTypes[kvp.Key], rowEnumerator, modelVisitor, tracker))
+					end
 				end
 			end
 			mreturn result.ToArray()
@@ -349,8 +360,9 @@ namespace Harmony.Core.FileIO.Queryable
 		private static method MaterializeObject, @DataObjectBase
 			itemName, @string
 			itemType, @Type
-			rows, @Synergex.SynergyDE.Select.Rows
+			rowEnumerator, @Synergex.SynergyDE.Select.RowEnumerator
 			modelVisitor, @QueryModelVisitor
+			tracker, @Func<DataObjectBase, DataObjectBase>
 			structure memMapper
 				fld,a1
 			endstructure
@@ -359,8 +371,9 @@ namespace Harmony.Core.FileIO.Queryable
 			data metadataObject = DataObjectMetadataBase.LookupType(itemType)
 			data structureSize = metadataObject.StructureSize
 			data grfa, a10
-			rows.RowInfo(^m(memMapper.fld(1:structureSize), memPnt), grfa)
-			mreturn metadataObject.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa, DependentObjectsForMaterialize(itemName, rows, modelVisitor))
+			rowEnumerator.Current.RowInfo(^m(memMapper.fld(1:structureSize), memPnt), grfa)
+			rowEnumerator.Current.Fill(^m(memMapper.fld(1:structureSize), memPnt))
+			mreturn tracker(metadataObject.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa, DependentObjectsForMaterialize(itemName, rowEnumerator, modelVisitor, tracker)))
 		endmethod
 
 	endclass

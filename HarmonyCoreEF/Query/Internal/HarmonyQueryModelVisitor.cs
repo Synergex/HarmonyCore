@@ -10,6 +10,7 @@ using Harmony.Core.FileIO.Queryable;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
 using Remotion.Linq;
 using Remotion.Linq.Clauses;
@@ -61,11 +62,18 @@ namespace Harmony.Core.EF.Query.Internal
             QueryContext queryContext,
             IEntityType entityType,
             IKey key,
+            EntityTrackingInfo trackingInfo,
             QueryModel queryModel,
             Func<IEntityType, MaterializationContext, object> materializer,
             bool queryStateManager)
             where TEntity : class
-            => QueryModelVisitor.ExecuteSelectInternal(queryModel, queryContext.ParameterValues, (((HarmonyQueryContext)queryContext).Store)).OfType<TEntity>();
+        {
+            return QueryModelVisitor.ExecuteSelectInternal(queryModel, (obj) => 
+            {
+                trackingInfo.StartTracking(queryContext.StateManager, obj, new ValueBuffer(obj.InternalGetValues()));
+                return obj;
+            }, queryContext.ParameterValues, (((HarmonyQueryContext)queryContext).Store)).OfType<TEntity>();
+        }
 
         /// <summary>
         ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
@@ -80,7 +88,7 @@ namespace Harmony.Core.EF.Query.Internal
             QueryContext queryContext,
             QueryModel queryModel,
             IEntityType entityType)
-            => QueryModelVisitor.ExecuteSelectInternal(queryModel, queryContext.ParameterValues, (((HarmonyQueryContext)queryContext).Store)).OfType<DataObjectBase>()
+            => QueryModelVisitor.ExecuteSelectInternal(queryModel, (obj) => { queryContext.QueryBuffer.StartTracking(obj, entityType); return obj; }, queryContext.ParameterValues, (((HarmonyQueryContext)queryContext).Store)).OfType<DataObjectBase>()
                 .Select(t => new ValueBuffer(t.InternalGetValues()));
     }
 }

@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors;
 using Microsoft.EntityFrameworkCore.Utilities;
 using Remotion.Linq.Clauses;
 using Remotion.Linq.Clauses.Expressions;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 
 namespace Harmony.Core.EF.Query.ExpressionVisitors.Internal
 {
@@ -73,6 +74,7 @@ namespace Harmony.Core.EF.Query.ExpressionVisitors.Internal
                     EntityQueryModelVisitor.QueryContextParameter,
                     Expression.Constant(entityType),
                     Expression.Constant(entityType.FindPrimaryKey()),
+                    Expression.Constant(new EntityTrackingInfo(QueryModelVisitor.QueryCompilationContext, new QuerySourceReferenceExpression(_querySource), entityType)),
                     Expression.Constant(QueryModelVisitor.ActiveQueryModel),
                     materializer,
                     Expression.Constant(
