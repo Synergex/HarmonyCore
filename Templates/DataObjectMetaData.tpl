@@ -104,7 +104,7 @@ namespace <NAMESPACE>
 		;;; <summary>
 		;;; Returns a new <StructureNoplural> object containing data from a record and a GRFA.
 		<IF STRUCTURE_RELATIONS>
-		;;; The related data properties (<RELATION_LOOP><IF TWO_WAY_ONE_TO_ONE>REL_<RelationFromkey></IF TWO_WAY_ONE_TO_ONE><IF ONE_WAY_ONE_TO_ONE>REL_<RelationFromkey></IF ONE_WAY_ONE_TO_ONE><IF TWO_WAY_ONE_TO_MANY>REL_<RelationTostructurePlural></IF TWO_WAY_ONE_TO_MANY><IF ONE_WAY_ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_WAY_ONE_TO_MANY><,></RELATION_LOOP>) will not be populated.
+		;;; The related data properties (<RELATION_LOOP><IF TWO_WAY_ONE_TO_ONE>REL_<RelationFromkey></IF TWO_WAY_ONE_TO_ONE><IF ONE_WAY_ONE_TO_ONE>REL_<RelationFromkey></IF ONE_WAY_ONE_TO_ONE><IF TWO_WAY_ONE_TO_MANY>REL_<RelationTostructurePlural></IF TWO_WAY_ONE_TO_MANY><IF ONE_WAY_ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_WAY_ONE_TO_MANY><,and></RELATION_LOOP>) will not be populated.
 		</IF STRUCTURE_RELATIONS>
 		;;; </summary>
 		;;; <param name="dataArea">The record containing the data for the new <StructureNoplural> object.</param>
@@ -120,12 +120,12 @@ namespace <NAMESPACE>
 		;;; <summary>
 		;;; Returns a new <StructureNoplural> object containing data from a record and a GRFA.
 		<IF STRUCTURE_RELATIONS>
-		;;; The related data properties (<RELATION_LOOP><IF TWO_WAY_ONE_TO_ONE>REL_<RelationFromkey></IF TWO_WAY_ONE_TO_ONE><IF ONE_WAY_ONE_TO_ONE>REL_<RelationFromkey></IF ONE_WAY_ONE_TO_ONE><IF TWO_WAY_ONE_TO_MANY>REL_<RelationTostructurePlural></IF TWO_WAY_ONE_TO_MANY><IF ONE_WAY_ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_WAY_ONE_TO_MANY><,></RELATION_LOOP>) will be populated.
+		;;; The related data properties (<RELATION_LOOP><IF TWO_WAY_ONE_TO_ONE>REL_<RelationFromkey></IF TWO_WAY_ONE_TO_ONE><IF ONE_WAY_ONE_TO_ONE>REL_<RelationFromkey></IF ONE_WAY_ONE_TO_ONE><IF TWO_WAY_ONE_TO_MANY>REL_<RelationTostructurePlural></IF TWO_WAY_ONE_TO_MANY><IF ONE_WAY_ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_WAY_ONE_TO_MANY><,and></RELATION_LOOP>) will be populated.
 		</IF STRUCTURE_RELATIONS>
 		;;; </summary>
 		;;; <param name="dataArea">The record containing the data for the new <StructureNoplural> object.</param>
 		;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
-		;;; <param name="joinedObjects">Data to allow the related data properties (<RELATION_LOOP><IF TWO_WAY_ONE_TO_ONE>REL_<RelationFromkey></IF TWO_WAY_ONE_TO_ONE><IF ONE_WAY_ONE_TO_ONE>REL_<RelationFromkey></IF ONE_WAY_ONE_TO_ONE><IF TWO_WAY_ONE_TO_MANY>REL_<RelationTostructurePlural></IF TWO_WAY_ONE_TO_MANY><IF ONE_WAY_ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_WAY_ONE_TO_MANY><,></RELATION_LOOP>) to be populated.</param>
+		;;; <param name="joinedObjects">Data to allow the related data properties (<RELATION_LOOP><IF TWO_WAY_ONE_TO_ONE>REL_<RelationFromkey></IF TWO_WAY_ONE_TO_ONE><IF ONE_WAY_ONE_TO_ONE>REL_<RelationFromkey></IF ONE_WAY_ONE_TO_ONE><IF TWO_WAY_ONE_TO_MANY>REL_<RelationTostructurePlural></IF TWO_WAY_ONE_TO_MANY><IF ONE_WAY_ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_WAY_ONE_TO_MANY><,and></RELATION_LOOP>) to be populated.</param>
 		;;; <returns></returns>
 		public override method MakeNew, @DataObjectBase
 			required in dataArea, a
