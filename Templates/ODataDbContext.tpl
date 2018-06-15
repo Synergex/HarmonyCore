@@ -151,7 +151,7 @@ namespace <NAMESPACE>
 			<RELATION_LOOP>
 			<IF TWO_WAY_ONE_TO_ONE>
 	        ;; One to one relationship from structure <StructureNoplural> key <RELATION_FROMKEY> to structure <RelationTostructure>.<RELATION_TOKEY> with a backward relationship
-			;TODO: NOT WORKING!!!
+			;TODO: HasForeignKey needs to be the name of the FIELD associated with the key in the other structure!
 			parm.Entity(^typeof(<StructureNoplural>)).HasOne(^typeof(<RelationTostructureNoplural>),"REL_<RelationFromkey>").WithMany("REL_<StructurePlural>").HasForeignKey("<RelationTokey>")
 			</IF TWO_WAY_ONE_TO_ONE>
 			<IF ONE_WAY_ONE_TO_ONE>
@@ -160,6 +160,7 @@ namespace <NAMESPACE>
 			</IF ONE_WAY_ONE_TO_ONE>
 			<IF TWO_WAY_ONE_TO_MANY>
 	        ;; One to many relationship from structure <StructureNoplural> key <RELATION_FROMKEY> to structure <RelationTostructure> key <RELATION_TOKEY> with a backward relationship
+			;TODO: HasForeignKey needs to be the name of the FIELD associated with the key in the other structure!
 			parm.Entity(^typeof(<StructureNoplural>)).HasMany(^typeof(<RelationTostructureNoplural>),"REL_<RelationTostructurePlural>").WithOne("REL_<RelationTokey>").HasForeignKey("<RelationTokey>")
 			</IF TWO_WAY_ONE_TO_MANY>
 			<IF ONE_WAY_ONE_TO_MANY>

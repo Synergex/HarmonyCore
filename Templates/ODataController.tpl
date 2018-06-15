@@ -105,12 +105,14 @@ namespace <NAMESPACE>
 		;;; Get all <StructurePlural>
 		;;; </summary>
 		;{EnableQuery(MaxExpansionDepth=3, MaxSkip=10, MaxTop=5, PageSize=4)}
+		{EnableQuery}
 		public method Get, @IActionResult
 		proc
 			mreturn Ok(DBContext.<StructurePlural>)
 		endmethod
 
 		<PRIMARY_KEY>
+		{EnableQuery}
 		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP>{a<SegmentName>}<,></SEGMENT_LOOP>)")}
 		;;; <summary>
 		;;; Get a single <StructureNoplural> by primary key.
@@ -131,6 +133,7 @@ namespace <NAMESPACE>
 		</PRIMARY_KEY>
 		
 		<ALTERNATE_KEY_LOOP>
+;		{EnableQuery}
 ;		{ODataRoute("<StructurePlural>/ByKey/<KeyName>/(<SEGMENT_LOOP>{a<SegmentName>}<,></SEGMENT_LOOP>)")}
 ;		;;; <summary>
 ;		;;; Get a single <StructureNoplural> by key <KeyName>.

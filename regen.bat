@@ -11,19 +11,22 @@ rem ============================================================================
 set STRUCTURES=CUSTOMERS ORDERS PLANTS VENDORS
 
 rem Generate model classes
-codegen -s %STRUCTURES%   -t DataObject -n %PROJECT%.Models -o %PROJECT%\Models %OPTS%
+codegen -s %STRUCTURES%     -t DataObject -n %PROJECT%.Models -o %PROJECT%\Models %OPTS%
 
 rem Generate controller classes
-codegen -s %STRUCTURES%    -t ODataController -n %PROJECT%.Controllers -o %PROJECT%\Controllers %OPTS% -ut DBCONTEXT_NAMESPACE=%PROJECT%
+codegen -s %STRUCTURES%     -t ODataController -n %PROJECT%.Controllers -o %PROJECT%\Controllers %OPTS% -ut DBCONTEXT_NAMESPACE=%PROJECT%
 
 rem Generate the DbContext, EdmBuilder and Startup classes
-codegen -s %STRUCTURES%    -ms -t ODataDbContext ODataEdmBuilder ODataStartup -n %PROJECT% -o %PROJECT% -ut MODELS_NAMESPACE=%PROJECT%.Models %OPTS%
+codegen -s %STRUCTURES% -ms -t ODataDbContext ODataEdmBuilder ODataStartup -n %PROJECT% -o %PROJECT% -ut MODELS_NAMESPACE=%PROJECT%.Models %OPTS%
 
 rem Generate unit tests
-codegen -s %STRUCTURES%   -t ODataUnitTests -n %PROJECT%.Test -o %PROJECT%.Test -ut SERVICES_NAMESPACE=%PROJECT% %OPTS%
+codegen -s %STRUCTURES%     -t ODataUnitTests -n %PROJECT%.Test -o %PROJECT%.Test -ut SERVICES_NAMESPACE=%PROJECT% %OPTS%
 
 rem Generate OData model classes for client side use
-codegen -s %STRUCTURES%   -t ODataModel -n %PROJECT%.Test.Models -o %PROJECT%.Test\Models %OPTS%
+codegen -s %STRUCTURES%     -t ODataModel -n %PROJECT%.Test.Models -o %PROJECT%.Test\Models %OPTS%
+
+rem Generate Postman Tests
+codegen -s %STRUCTURES% -ms -t ODataPostManTests -o .\ %OPTS%
 
 rem ================================================================================================================================
 rem The test environment has slightly different requirements, because we need to generate code based on structures, but when tags
