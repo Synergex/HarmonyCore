@@ -1,4 +1,5 @@
 <CODEGEN_FILENAME><StructureNoplural>MetaData.dbl</CODEGEN_FILENAME>
+<OPTIONAL_USERTOKEN>RPSDATAFILES= </OPTIONAL_USERTOKEN>
 ;//****************************************************************************
 ;//
 ;// Title:       DataObjectMetaData.tpl
@@ -81,6 +82,8 @@ import Harmony.Core
 import Harmony.Core.Converters
 
 namespace <NAMESPACE>
+
+	.include "<STRUCTURE_NOALIAS>" repository <RPSDATAFILES>, structure="str<StructureNoplural>", end
 
 	;;; <summary>
 	;;; 
