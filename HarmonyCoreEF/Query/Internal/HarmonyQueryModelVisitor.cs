@@ -10,10 +10,12 @@ using Harmony.Core.FileIO.Queryable;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors.Internal;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
 using Remotion.Linq;
 using Remotion.Linq.Clauses;
+using Remotion.Linq.Clauses.Expressions;
 
 namespace Harmony.Core.EF.Query.Internal
 {
@@ -38,9 +40,11 @@ namespace Harmony.Core.EF.Query.Internal
         {
             ActiveQueryModel = queryModel;
             base.VisitQueryModel(queryModel);
+            
         }
 
         public QueryModel ActiveQueryModel { get; set; }
+        public IQuerySource QuerySource { get; internal set; }
 
         /// <summary>
         ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
@@ -58,21 +62,35 @@ namespace Harmony.Core.EF.Query.Internal
             = typeof(Enumerable).GetTypeInfo()
                 .GetDeclaredMethod(nameof(Enumerable.OfType));
 
-        private static IEnumerable<TEntity> EntityQuery<TEntity>(
+        Dictionary<Type, IList<object>> _results = null;
+
+        private IEnumerable<TEntity> EntityQuery<TEntity>(
             QueryContext queryContext,
             IEntityType entityType,
-            IKey key,
-            EntityTrackingInfo trackingInfo,
-            QueryModel queryModel,
-            Func<IEntityType, MaterializationContext, object> materializer,
-            bool queryStateManager)
+            Func<Type, EntityTrackingInfo> trackingInfo,
+            QueryModel queryModel)
             where TEntity : class
         {
-            return QueryModelVisitor.ExecuteSelectInternal(queryModel, (obj) => 
+            if (_results == null)
             {
-                trackingInfo.StartTracking(queryContext.StateManager, obj, new ValueBuffer(obj.InternalGetValues()));
-                return obj;
-            }, queryContext.ParameterValues, (((HarmonyQueryContext)queryContext).Store)).OfType<TEntity>();
+                _results = new Dictionary<Type, IList<object>>();
+                var resultList = new List<object>();
+                _results.Add(typeof(TEntity), resultList);
+                var selectInternalResult = QueryModelVisitor.ExecuteSelectInternal(queryModel, (obj) =>
+                {
+                    var objType = obj.GetType();
+                    trackingInfo(obj.GetType()).StartTracking(queryContext.StateManager, obj, new ValueBuffer(obj.InternalGetValues()));
+                    IList<object> targetList;
+                    if (!_results.TryGetValue(objType, out targetList))
+                    {
+                        targetList = new List<object>();
+                        _results.Add(objType, targetList);
+                    }
+                    targetList.Add(obj);
+                    return obj;
+                }, queryContext.ParameterValues, (((HarmonyQueryContext)queryContext).Store)).OfType<TEntity>();
+            }
+            return _results[typeof(TEntity)].OfType<TEntity>();
         }
 
         /// <summary>

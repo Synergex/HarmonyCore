@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore.Utilities;
 using Remotion.Linq.Clauses;
 using Remotion.Linq.Clauses.Expressions;
 using Microsoft.EntityFrameworkCore.Query.Internal;
+using System.Collections.Generic;
 
 namespace Harmony.Core.EF.Query.ExpressionVisitors.Internal
 {
@@ -41,52 +42,45 @@ namespace Harmony.Core.EF.Query.ExpressionVisitors.Internal
             _querySource = querySource;
         }
 
-
-        protected override Expression VisitSubQuery(SubQueryExpression expression)
+        protected override Expression VisitEntityQueryable(Type elementType)
         {
-            return base.VisitSubQuery(expression);
-        }
+            var context = QueryModelVisitor.QueryCompilationContext;
+            var queryModel = QueryModelVisitor.ActiveQueryModel;
+            var model = _model;
+            var entityType = context.FindEntityType(_querySource) ?? model.FindEntityType(elementType.FullName);
+            if (context.QuerySourceRequiresMaterialization(_querySource))
+            {
+                var querySourceReference = new QuerySourceReferenceExpression(_querySource);//new QuerySourceReferenceExpression(queryModel.MainFromClause);
+                var mainTrackingInfo = new EntityTrackingInfo(context, querySourceReference, entityType);
+                var trackingInfoLookup = new Dictionary<Type, EntityTrackingInfo> { { elementType, mainTrackingInfo } };
+                return Expression.Call(Expression.Constant(QueryModelVisitor),
+                    HarmonyQueryModelVisitor.EntityQueryMethodInfo.MakeGenericMethod(elementType),
+                    EntityQueryModelVisitor.QueryContextParameter,
+                    Expression.Constant(entityType),
+                    Expression.Constant((Func<Type, EntityTrackingInfo>)((ty) =>
+                    {
+                        EntityTrackingInfo result;
+                        if (!trackingInfoLookup.TryGetValue(ty, out result))
+                        {
+                            result = new EntityTrackingInfo(context, querySourceReference, model.FindEntityType(ty.FullName));
+                            trackingInfoLookup.Add(ty, result);
+                        }
 
-        protected override Expression VisitParameter(ParameterExpression node)
-        {
-            return base.VisitParameter(node);
+                        return result;
+                    })),
+                    Expression.Constant(queryModel));
+            }
+            else
+            {
+                return Expression.Call(
+                HarmonyQueryModelVisitor.ProjectionQueryMethodInfo,
+                EntityQueryModelVisitor.QueryContextParameter,
+                Expression.Constant(entityType));
+            }
         }
 
         private new HarmonyQueryModelVisitor QueryModelVisitor
             => (HarmonyQueryModelVisitor)base.QueryModelVisitor;
 
-        /// <summary>
-        ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
-        protected override Expression VisitEntityQueryable(Type elementType)
-        {
-            var entityType = QueryModelVisitor.QueryCompilationContext.FindEntityType(_querySource)
-                             ?? _model.FindEntityType(elementType.FullName);
-
-            if (QueryModelVisitor.QueryCompilationContext
-                .QuerySourceRequiresMaterialization(_querySource))
-            {
-                var materializer = _materializerFactory.CreateMaterializer(entityType);
-
-                return Expression.Call(
-                    HarmonyQueryModelVisitor.EntityQueryMethodInfo.MakeGenericMethod(elementType),
-                    EntityQueryModelVisitor.QueryContextParameter,
-                    Expression.Constant(entityType),
-                    Expression.Constant(entityType.FindPrimaryKey()),
-                    Expression.Constant(new EntityTrackingInfo(QueryModelVisitor.QueryCompilationContext, new QuerySourceReferenceExpression(_querySource), entityType)),
-                    Expression.Constant(QueryModelVisitor.ActiveQueryModel),
-                    materializer,
-                    Expression.Constant(
-                        QueryModelVisitor.QueryCompilationContext.IsTrackingQuery
-                        && !entityType.IsQueryType));
-            }
-
-            return Expression.Call(
-                HarmonyQueryModelVisitor.ProjectionQueryMethodInfo,
-                EntityQueryModelVisitor.QueryContextParameter,
-                Expression.Constant(QueryModelVisitor.ActiveQueryModel),
-                Expression.Constant(entityType));
-        }
     }
 }
