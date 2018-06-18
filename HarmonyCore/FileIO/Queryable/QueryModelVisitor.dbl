@@ -183,7 +183,7 @@ namespace Harmony.Core.FileIO.Queryable
 				mWhereBuilder.AddFromClause(joinClause.ItemName, buffer, metadataObject)
 			end
 
-			mOnObjects.Add(joinClause.ItemName, mWhereBuilder.VisitForOn(Expression.Equal(joinClause.InnerKeySelector, joinClause.OuterKeySelector)))
+			mOnObjects.Add(joinClause.ItemName, mWhereBuilder.VisitForOn(Expression.Equal(joinClause.OuterKeySelector, joinClause.InnerKeySelector)))
 		endmethod
 		
 		public override method VisitWhereClause, void
@@ -242,7 +242,7 @@ namespace Harmony.Core.FileIO.Queryable
 				mreturn mJoinObject
 			endmethod
 		endproperty
-
+		
 		private property FromObject, @Synergex.SynergyDE.Select.From
 			method get
 			proc
@@ -319,7 +319,7 @@ namespace Harmony.Core.FileIO.Queryable
 					;;if (targetCount && currentCount > targetCount)
 					;;	exitloop
 					
-					result.Add(MaterializeObject(model.MainFromClause.ItemName, model.MainFromClause.ItemType, rows, modelVisitor, tracker))
+					result.Add(MaterializeObject("", model.MainFromClause.ItemName, model.MainFromClause.ItemType, rows, modelVisitor, tracker))
 
 					;;TODO only maybe increment rows enumerator
 					hasMoreRows = rows.MoveNext()
@@ -329,10 +329,11 @@ namespace Harmony.Core.FileIO.Queryable
 			data enumResult, @IEnumerable<DataObjectBase>
 			enumResult = result.ToArray()
 			mreturn enumResult 
-
+			
 		endmethod
 
 		private static method DependentObjectsForMaterialize, [#]KeyValuePair<string, object>
+			parentItemName, @string
 			itemName, @string
 			rowEnumerator, @Synergex.SynergyDE.Select.RowEnumerator
 			modelVisitor, @QueryModelVisitor
@@ -343,14 +344,15 @@ namespace Harmony.Core.FileIO.Queryable
 			foreach kvp in modelVisitor.mQueryBuffers
 			begin
 				;;TODO multi level joins here
-				if(kvp.Key != itemName)
+				if(kvp.Key != itemName && kvp.Key != parentItemName)
 				begin
+					data shortKeyName = kvp.Key.Split(%char(46))
 					if(modelVisitor.mQueryBufferTypes[kvp.Key].FullName == "System.Collections.Generic.ICollection`1") then
 					begin
 					end
-					else if(kvp.Key.StartsWith(itemName))
+					else ;if(kvp.Key.StartsWith(itemName))
 					begin
-						result.Add(kvp.Key, MaterializeObject(kvp.Key, modelVisitor.mQueryBufferTypes[kvp.Key], rowEnumerator, modelVisitor, tracker))
+						result.Add(shortKeyName.Last(), MaterializeObject(itemName, kvp.Key, modelVisitor.mQueryBufferTypes[kvp.Key], rowEnumerator, modelVisitor, tracker))
 					end
 				end
 			end
@@ -358,6 +360,7 @@ namespace Harmony.Core.FileIO.Queryable
 		endmethod
 
 		private static method MaterializeObject, @DataObjectBase
+			parentItemName, @string
 			itemName, @string
 			itemType, @Type
 			rowEnumerator, @Synergex.SynergyDE.Select.RowEnumerator
@@ -373,7 +376,7 @@ namespace Harmony.Core.FileIO.Queryable
 			data grfa, a10
 			rowEnumerator.Current.RowInfo(^m(memMapper.fld(1:structureSize), memPnt), grfa)
 			rowEnumerator.Current.Fill(^m(memMapper.fld(1:structureSize), memPnt))
-			mreturn tracker(metadataObject.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa, DependentObjectsForMaterialize(itemName, rowEnumerator, modelVisitor, tracker)))
+			mreturn tracker(metadataObject.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa, DependentObjectsForMaterialize(parentItemName, itemName, rowEnumerator, modelVisitor, tracker)))
 		endmethod
 
 	endclass
