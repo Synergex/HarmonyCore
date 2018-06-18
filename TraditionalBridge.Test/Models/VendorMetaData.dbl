@@ -1,0 +1,88 @@
+;;*****************************************************************************
+;;
+;; Title:       VendorMetaData.dbl
+;;
+;; Type:        Class
+;;
+;; Description: Defines meta data associated with a data object Vendor.
+;;
+;;*****************************************************************************
+;; WARNING
+;;
+;; This file was code generated. Avoid editing this file, as any changes that
+;; you make will be lost of the file is re-generated.
+;;
+;;*****************************************************************************
+;;
+;; Copyright (c) 2018, Synergex International, Inc.
+;; All rights reserved.
+;;
+;; Redistribution and use in source and binary forms, with or without
+;; modification, are permitted provided that the following conditions are met:
+;;
+;; * Redistributions of source code must retain the above copyright notice,
+;;   this list of conditions and the following disclaimer.
+;;
+;; * Redistributions in binary form must reproduce the above copyright notice,
+;;   this list of conditions and the following disclaimer in the documentation
+;;   and/or other materials provided with the distribution.
+;;
+;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;; ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+;; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+;; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+;; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+;; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+;; POSSIBILITY OF SUCH DAMAGE.
+;;
+;;*****************************************************************************
+
+import Harmony.TraditionalBridge
+
+namespace TraditionalBridge.Test.Models
+
+	.include "VENDORS" repository  , structure="strVendor", end
+
+	public partial class VendorMetadata extends DataObjectMetadataBase
+		
+		public method VendorMetadata
+		proc
+			RPSStructureName = "VENDORS"
+			RPSStructureSize = ^size(strVendor)
+			;AddFieldInfo("VendKey", "DECIMAL", 6, 1, 0, false)
+			;AddFieldInfo("VendRtype", "DECIMAL", 1, 7, 0, false)
+			;AddFieldInfo("VendName", "ALPHA", 30, 8, 0, false)
+			;AddFieldInfo("VendStreet", "ALPHA", 25, 38, 0, false)
+			;AddFieldInfo("VendCity", "ALPHA", 20, 63, 0, false)
+			;AddFieldInfo("VendState", "ALPHA", 2, 83, 0, false)
+			;AddFieldInfo("VendZip", "DECIMAL", 9, 85, 0, false)
+			;AddFieldInfo("VendContact", "ALPHA", 25, 94, 0, false)
+			;AddFieldInfo("VendTelephone", "DECIMAL", 10, 119, 0, false)
+			;AddFieldInfo("VendFax", "DECIMAL", 10, 129, 0, false)
+			;AddFieldInfo("VendTerms", "ALPHA", 24, 139, 0, false)
+		endmethod
+
+		public override method GetFieldByName, @FieldDataDefinition
+			fieldName, @string
+		proc
+			mreturn ^null
+		endmethod
+
+		public override method MakeNew, @DataObjectBase
+			required in dataArea, a
+			required in grfa, a
+			record
+				newVendor, @Vendor
+		proc
+			newVendor = new Vendor(dataArea) 
+			newVendor.GlobalRFA = grfa
+			mreturn newVendor
+		endmethod
+
+	endclass
+
+endnamespace

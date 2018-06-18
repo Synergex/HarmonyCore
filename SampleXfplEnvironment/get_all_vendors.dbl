@@ -1,0 +1,37 @@
+
+import System.Collections
+import Synergex.SynergyDE.Select
+
+{xfMethod(name="GetAllVendors", interface="SampleXfplEnv", elb="sample_xfpl_env")}
+function get_all_vendors, METHOD_STATUS
+	{xfParameter(name="Vendors",collectionType=xfCollectType.STRUCTURE, structure="strVendor")}
+	required out aVendors, @ArrayList
+	{xfParameter(name="ErrorMessage")}
+	required out aErrorMessage, a80
+	endparams
+
+	stack record
+		status, METHOD_STATUS
+		vendor, strVendor
+	endrecord
+proc
+
+	aVendors = new ArrayList()
+
+	try
+	begin
+		foreach vendor in new Select(new From("ICSTUT:customer.ism",vendor),(Where)(vendor.vend_rtype.eq.1),OrderBy.AscendingKey(1))
+			aVendors.Add((@strVendor)vendor)
+		status = METHOD_STATUS.SUCCESS
+		aErrorMessage = ""
+	end
+	catch (e, @Exception)
+	begin
+		status = METHOD_STATUS.ERROR
+		aErrorMessage = e.Message
+	end
+	endtry
+
+	freturn status
+
+endfunction

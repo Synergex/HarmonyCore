@@ -1,0 +1,98 @@
+;;*****************************************************************************
+;;
+;; Title:       PlantMetaData.dbl
+;;
+;; Type:        Class
+;;
+;; Description: Defines meta data associated with a data object Plant.
+;;
+;;*****************************************************************************
+;; WARNING
+;;
+;; This file was code generated. Avoid editing this file, as any changes that
+;; you make will be lost of the file is re-generated.
+;;
+;;*****************************************************************************
+;;
+;; Copyright (c) 2018, Synergex International, Inc.
+;; All rights reserved.
+;;
+;; Redistribution and use in source and binary forms, with or without
+;; modification, are permitted provided that the following conditions are met:
+;;
+;; * Redistributions of source code must retain the above copyright notice,
+;;   this list of conditions and the following disclaimer.
+;;
+;; * Redistributions in binary form must reproduce the above copyright notice,
+;;   this list of conditions and the following disclaimer in the documentation
+;;   and/or other materials provided with the distribution.
+;;
+;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;; ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+;; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+;; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+;; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+;; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+;; POSSIBILITY OF SUCH DAMAGE.
+;;
+;;*****************************************************************************
+
+import Harmony.TraditionalBridge
+
+namespace TraditionalBridge.Test.Models
+
+	.include "PLANTS" repository  , structure="strPlant", end
+
+	public partial class PlantMetadata extends DataObjectMetadataBase
+		
+		public method PlantMetadata
+		proc
+			RPSStructureName = "PLANTS"
+			RPSStructureSize = ^size(strPlant)
+			;AddFieldInfo("InItemid", "DECIMAL", 6, 1, 0, false)
+			;AddFieldInfo("InSource", "DECIMAL", 6, 7, 0, false)
+			;AddFieldInfo("InSize", "DECIMAL", 3, 13, 0, false)
+			;AddFieldInfo("InName", "ALPHA", 30, 16, 0, false)
+			;AddFieldInfo("InLatin", "ALPHA", 30, 46, 0, false)
+			;AddFieldInfo("InZone", "DECIMAL", 1, 76, 0, false)
+			;AddFieldInfo("InType", "DECIMAL", 1, 77, 0, false)
+			;AddFieldInfo("InFlower", "ALPHA", 1, 78, 0, false)
+			;AddFieldInfo("InColor", "ALPHA", 6, 79, 0, false)
+			;AddFieldInfo("InShape", "ALPHA", 10, 85, 0, false)
+			;AddFieldInfo("InMaxhigh", "DECIMAL", 3, 95, 0, false)
+			;AddFieldInfo("InMaxwide", "DECIMAL", 3, 98, 0, false)
+			;AddFieldInfo("InWater", "ALPHA", 4, 101, 0, false)
+			;AddFieldInfo("InSun", "ALPHA", 6, 105, 0, false)
+			;AddFieldInfo("InLocation", "ALPHA", 3, 111, 0, false)
+			;AddFieldInfo("InOnhand", "DECIMAL", 6, 114, 0, false)
+			;AddFieldInfo("InAllocated", "DECIMAL", 6, 120, 0, false)
+			;AddFieldInfo("InOnorder", "DECIMAL", 6, 126, 0, false)
+			;AddFieldInfo("InMinimum", "DECIMAL", 6, 132, 0, false)
+			;AddFieldInfo("InPrice", "IMPLIED", 7, 138, 02, false)
+			;AddFieldInfo("InCost", "IMPLIED", 7, 145, 02, false)
+		endmethod
+
+		public override method GetFieldByName, @FieldDataDefinition
+			fieldName, @string
+		proc
+			mreturn ^null
+		endmethod
+
+		public override method MakeNew, @DataObjectBase
+			required in dataArea, a
+			required in grfa, a
+			record
+				newPlant, @Plant
+		proc
+			newPlant = new Plant(dataArea) 
+			newPlant.GlobalRFA = grfa
+			mreturn newPlant
+		endmethod
+
+	endclass
+
+endnamespace

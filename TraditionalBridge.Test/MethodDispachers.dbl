@@ -1,0 +1,284 @@
+;;*****************************************************************************
+;;
+;; Title:       DispatcherMethods.dbl
+;;
+;; Type:        Classes
+;;
+;; Description: Dispatcher classes for exposed methods
+;;
+;;*****************************************************************************
+;; WARNING
+;;
+;; This file was code generated. Avoid editing this file, as any changes that
+;; you make will be lost of the file is re-generated.
+;;
+;;*****************************************************************************
+;;
+;; Copyright (c) 2018, Synergex International, Inc.
+;; All rights reserved.
+;;
+;; Redistribution and use in source and binary forms, with or without
+;; modification, are permitted provided that the following conditions are met:
+;;
+;; * Redistributions of source code must retain the above copyright notice,
+;;   this list of conditions and the following disclaimer.
+;;
+;; * Redistributions in binary form must reproduce the above copyright notice,
+;;   this list of conditions and the following disclaimer in the documentation
+;;   and/or other materials provided with the distribution.
+;;
+;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;; ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+;; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+;; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+;; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+;; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+;; POSSIBILITY OF SUCH DAMAGE.
+;;
+;;*****************************************************************************
+
+import Harmony.TraditionalBridge
+
+namespace TraditionalBridge.Test
+
+	public class get_all_customersDispatch extends RoutineStub
+
+		private mCustomerMetadata = DataObjectMetadataBase.LookupType("Customer")
+
+		public method get_all_customersDispatch
+		proc
+			;;Initialize the meta data for any data objects that are used by parameters to the method
+			mCustomerMetadata = DataObjectMetadataBase.LookupType("Customer")
+		endmethod
+
+		public override method Dispatch, void
+			name, @string
+			callFrame, @Json.JsonObject
+			serializer, @Json.ChannelSerializer
+			dispatcher, @RoutineDispatcher
+			record
+				arguments, @Json.JsonArray
+				arg1Array, @Json.JsonArray
+				arg1Handle, D_HANDLE
+				arg1HandlePosition, int
+				returnValue, METHOD_STATUS
+			endrecord
+		proc
+			arguments = (@Json.JsonArray)callFrame.GetProperty("Arguments")
+			arg1Array = (@Json.JsonArray)((@Json.JsonObject)arguments.arrayValues[4]).GetProperty("PassedValue")
+			arg1Handle = %mem_proc(DM_ALLOC,^size(strCustomer)*arg1Array.arrayValues.Count)
+			arg1HandlePosition = 1
+			dispatcher.UnwrapObjectCollection(^m(arg1Handle),^size(strCustomer),arg1HandlePosition,arg1Array)
+
+			;;Now call the method
+
+
+			returnValue = %get_all_customers(
+			&	^m(strCustomer,arg1Handle),
+			&	Collection of alpha not implemented
+			& )
+
+			serializer.MapOpen()
+			serializer.String("IsError")
+			serializer.Bool(false)
+			serializer.String("Result")
+			serializer.MapOpen()
+			serializer.MapClose()
+			serializer.MapClose()
+
+		endmethod
+
+	endclass
+
+	public class get_customers_arrayDispatch extends RoutineStub
+
+
+		public method get_customers_arrayDispatch
+		proc
+			;;Initialize the meta data for any data objects that are used by parameters to the method
+		endmethod
+
+		public override method Dispatch, void
+			name, @string
+			callFrame, @Json.JsonObject
+			serializer, @Json.ChannelSerializer
+			dispatcher, @RoutineDispatcher
+			record
+				arguments, @Json.JsonArray
+				returnValue, METHOD_STATUS
+			endrecord
+		proc
+			arguments = (@Json.JsonArray)callFrame.GetProperty("Arguments")
+
+			;;Now call the method
+
+
+			returnValue = %get_customers_array(
+			&	Collection of alpha not implemented,
+			&	Collection of alpha not implemented
+			& )
+
+			serializer.MapOpen()
+			serializer.String("IsError")
+			serializer.Bool(false)
+			serializer.String("Result")
+			serializer.MapOpen()
+			serializer.MapClose()
+			serializer.MapClose()
+
+		endmethod
+
+	endclass
+
+	public class get_all_ordersDispatch extends RoutineStub
+
+		private mOrderMetadata = DataObjectMetadataBase.LookupType("Order")
+
+		public method get_all_ordersDispatch
+		proc
+			;;Initialize the meta data for any data objects that are used by parameters to the method
+			mOrderMetadata = DataObjectMetadataBase.LookupType("Order")
+		endmethod
+
+		public override method Dispatch, void
+			name, @string
+			callFrame, @Json.JsonObject
+			serializer, @Json.ChannelSerializer
+			dispatcher, @RoutineDispatcher
+			record
+				arguments, @Json.JsonArray
+				arg1Array, @Json.JsonArray
+				arg1Handle, D_HANDLE
+				arg1HandlePosition, int
+				returnValue, METHOD_STATUS
+			endrecord
+		proc
+			arguments = (@Json.JsonArray)callFrame.GetProperty("Arguments")
+			arg1Array = (@Json.JsonArray)((@Json.JsonObject)arguments.arrayValues[4]).GetProperty("PassedValue")
+			arg1Handle = %mem_proc(DM_ALLOC,^size(strOrder)*arg1Array.arrayValues.Count)
+			arg1HandlePosition = 1
+			dispatcher.UnwrapObjectCollection(^m(arg1Handle),^size(strOrder),arg1HandlePosition,arg1Array)
+
+			;;Now call the method
+
+
+			returnValue = %get_all_orders(
+			&	^m(strOrder,arg1Handle),
+			&	Collection of alpha not implemented
+			& )
+
+			serializer.MapOpen()
+			serializer.String("IsError")
+			serializer.Bool(false)
+			serializer.String("Result")
+			serializer.MapOpen()
+			serializer.MapClose()
+			serializer.MapClose()
+
+		endmethod
+
+	endclass
+
+	public class get_all_plantsDispatch extends RoutineStub
+
+		private mPlantMetadata = DataObjectMetadataBase.LookupType("Plant")
+
+		public method get_all_plantsDispatch
+		proc
+			;;Initialize the meta data for any data objects that are used by parameters to the method
+			mPlantMetadata = DataObjectMetadataBase.LookupType("Plant")
+		endmethod
+
+		public override method Dispatch, void
+			name, @string
+			callFrame, @Json.JsonObject
+			serializer, @Json.ChannelSerializer
+			dispatcher, @RoutineDispatcher
+			record
+				arguments, @Json.JsonArray
+				arg1Array, @Json.JsonArray
+				arg1Handle, D_HANDLE
+				arg1HandlePosition, int
+				returnValue, METHOD_STATUS
+			endrecord
+		proc
+			arguments = (@Json.JsonArray)callFrame.GetProperty("Arguments")
+			arg1Array = (@Json.JsonArray)((@Json.JsonObject)arguments.arrayValues[4]).GetProperty("PassedValue")
+			arg1Handle = %mem_proc(DM_ALLOC,^size(strPlant)*arg1Array.arrayValues.Count)
+			arg1HandlePosition = 1
+			dispatcher.UnwrapObjectCollection(^m(arg1Handle),^size(strPlant),arg1HandlePosition,arg1Array)
+
+			;;Now call the method
+
+
+			returnValue = %get_all_plants(
+			&	^m(strPlant,arg1Handle),
+			&	Collection of alpha not implemented
+			& )
+
+			serializer.MapOpen()
+			serializer.String("IsError")
+			serializer.Bool(false)
+			serializer.String("Result")
+			serializer.MapOpen()
+			serializer.MapClose()
+			serializer.MapClose()
+
+		endmethod
+
+	endclass
+
+	public class get_all_vendorsDispatch extends RoutineStub
+
+		private mVendorMetadata = DataObjectMetadataBase.LookupType("Vendor")
+
+		public method get_all_vendorsDispatch
+		proc
+			;;Initialize the meta data for any data objects that are used by parameters to the method
+			mVendorMetadata = DataObjectMetadataBase.LookupType("Vendor")
+		endmethod
+
+		public override method Dispatch, void
+			name, @string
+			callFrame, @Json.JsonObject
+			serializer, @Json.ChannelSerializer
+			dispatcher, @RoutineDispatcher
+			record
+				arguments, @Json.JsonArray
+				arg1Array, @Json.JsonArray
+				arg1Handle, D_HANDLE
+				arg1HandlePosition, int
+				returnValue, METHOD_STATUS
+			endrecord
+		proc
+			arguments = (@Json.JsonArray)callFrame.GetProperty("Arguments")
+			arg1Array = (@Json.JsonArray)((@Json.JsonObject)arguments.arrayValues[4]).GetProperty("PassedValue")
+			arg1Handle = %mem_proc(DM_ALLOC,^size(strVendor)*arg1Array.arrayValues.Count)
+			arg1HandlePosition = 1
+			dispatcher.UnwrapObjectCollection(^m(arg1Handle),^size(strVendor),arg1HandlePosition,arg1Array)
+
+			;;Now call the method
+
+
+			returnValue = %get_all_vendors(
+			&	^m(strVendor,arg1Handle),
+			&	Collection of alpha not implemented
+			& )
+
+			serializer.MapOpen()
+			serializer.String("IsError")
+			serializer.Bool(false)
+			serializer.String("Result")
+			serializer.MapOpen()
+			serializer.MapClose()
+			serializer.MapClose()
+
+		endmethod
+
+	endclass
+
+endnamespace
