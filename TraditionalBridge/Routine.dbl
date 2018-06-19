@@ -59,9 +59,10 @@ namespace Harmony.TraditionalBridge
 			
 		endmethod
 
+		;;this needs to take an expected type parameter of some kind so we can do basic conversions int -> decimal vs int -> int
 		public method UnwrapObjectCollection, void
 			inout buffer, a
-			elementSize, i
+			elementInfo, @ArgumentDataDefinition
 			inout bufferPosition, i
 			collection, @Json.JsonArray
 			record
@@ -72,19 +73,22 @@ namespace Harmony.TraditionalBridge
 				if(element .is. Json.JsonObject) then
 				begin
 					data stringValue = ((@Json.JsonText)((@Json.JsonObject)element).GetProperty("Value")).Value
-					buffer(bufferPosition:elementSize) = stringValue
+					buffer(bufferPosition:elementInfo.ElementSize) = stringValue
 				end
 				else if(element .is. Json.JsonText) then
 				begin
-					buffer(bufferPosition:elementSize) = ((@Json.JsonText)element).Value
+					buffer(bufferPosition:elementInfo.ElementSize) = ((@Json.JsonText)element).Value
 				end
 				else if(element .is. Json.JsonNumber) then
 				begin
-
+					buffer(bufferPosition:elementInfo.ElementSize) = ((@Json.JsonNumber)element).Value
 				end
 				else if(element .is. Json.JsonInt) then
 				begin
-
+					if(elementInfo.DataType == FieldDataType.IntegerField) then
+						buffer(bufferPosition:elementInfo.ElementSize) = ((@Json.JsonNumber)element).Value
+					else
+						buffer(bufferPosition:elementInfo.ElementSize) = %string(((@Json.JsonNumber)element).Value)
 				end
 				else if(element .is. Json.JsonBoolean) then
 				begin
@@ -93,7 +97,64 @@ namespace Harmony.TraditionalBridge
 				begin
 
 				end
-				bufferPosition += elementSize
+				bufferPosition += elementInfo.ElementSize
+			end
+
+		endmethod
+
+		public method GetArgumentDataDefForCollection, @ArgumentDataDefinition
+			argument, @Json.JsonObject
+			record
+				result, @ArgumentDataDefinition
+				dataType, i4
+		proc
+
+			argument.TryGetProperty("DecimalPrecision", result.DecimalPrecision)
+			argument.TryGetProperty("ElementSize", result.ElementSize)
+			if(argument.TryGetProperty("DataType", dataType))
+				result.DataType = (FieldDataType)dataType
+
+			argument.TryGetBoolProperty("ReturnedValue", result.ReturnedValue)
+			mreturn result
+		endmethod
+
+		;;this needs to take an expected type parameter of some kind so we can do basic conversions int -> decimal vs int -> int
+		public method UnwrapObjectCollection, void
+			elementInfo, @ArgumentDataDefinition
+			collection, @Json.JsonArray
+			targetArrayList, @ArrayList
+			record
+				element, @Json.JsonValue
+		proc
+			foreach element in collection.arrayValues
+			begin
+				if(element .is. Json.JsonObject) then
+				begin
+					data stringValue = ((@Json.JsonText)((@Json.JsonObject)element).GetProperty("Value")).Value
+					targetArrayList.Add((@a)(a)stringValue)
+				end
+				else if(element .is. Json.JsonText) then
+				begin
+					;;TODO this needs to handle the arg type, could be d, id, a
+					targetArrayList.Add((@a)(a)((@Json.JsonText)element).Value)
+				end
+				else if(element .is. Json.JsonNumber) then
+				begin
+					targetArrayList.Add((@id)((@Json.JsonNumber)element).Value)
+				end
+				else if(element .is. Json.JsonInt) then
+				begin
+					;;TODO this needs to handle the arg type, could be i, d, id
+					targetArrayList.Add((@i)((@Json.JsonInt)element).Value)
+				end
+				else if(element .is. Json.JsonBoolean) then
+				begin
+					targetArrayList.Add((@boolean)((@Json.JsonBoolean)element).Value)
+				end
+				else if(element .is. Json.JsonArray)
+				begin
+
+				end
 			end
 
 		endmethod

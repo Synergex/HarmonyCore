@@ -641,6 +641,70 @@ namespace Json
 				throw new IndexOutOfRangeException()
 			end
 		endmethod
+
+		public method TryGetProperty, boolean
+			req in name, @string
+			req out value, @JsonValue
+			endparams
+			record 
+				foundNameIndex, int
+		proc
+			foundNameIndex = propertyNames.IndexOf(name)
+			if(foundNameIndex >= 0) then
+			begin
+				value = (@JsonValue)propertyValues[foundNameIndex]
+				mreturn true
+			end
+			else
+			begin
+				mreturn false
+			end
+		endmethod
+
+		public method TryGetProperty, boolean
+			req in name, @string
+			req out value, i
+			endparams
+			record
+				foundValue, @JsonValue
+		proc
+			if(TryGetProperty(name, foundValue))
+			begin
+				value = ((@JsonInt)foundValue).Value
+				mreturn true
+			end
+			mreturn false
+		endmethod
+
+		public method TryGetProperty, boolean
+			req in name, @string
+			req out value, a
+			endparams
+			record
+				foundValue, @JsonValue
+		proc
+			if(TryGetProperty(name, foundValue))
+			begin
+				value = ((@JsonText)foundValue).Value
+				mreturn true
+			end
+			mreturn false
+		endmethod
+
+		public method TryGetBoolProperty, boolean
+			req in name, @string
+			req out value, boolean
+			endparams
+			record
+				foundValue, @JsonValue
+		proc
+			if(TryGetProperty(name, foundValue))
+			begin
+				value = ((@JsonBoolean)foundValue).Value
+				mreturn true
+			end
+			mreturn false
+		endmethod
 	endclass
 
 	class JsonArray extends JsonValue
