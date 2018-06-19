@@ -77,6 +77,15 @@
 
 import Harmony.TraditionalBridge
 
+subroutine Meta<StructureNoplural>
+	required out metadata, @DataObjectMetadataBase
+proc
+	if(<StructureNoplural>.sMetadata == ^null)
+		<StructureNoplural>.sMetadata = new <StructureNoplural>Metadata()
+	metadata = <StructureNoplural>.sMetadata
+	xreturn
+endsubroutine
+
 namespace <NAMESPACE>
 
 	.include "<STRUCTURE_NOALIAS>" repository <RPSDATAFILES>, structure="str<StructureNoplural>", end
