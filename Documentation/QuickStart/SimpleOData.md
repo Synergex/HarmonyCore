@@ -22,14 +22,17 @@ We're going to add to following packages, several of these packages are marked a
 * Microsoft.AspNetCore.Mvc.Core 2.1.0
 * Microsoft.AspNetCore.OData 7.0.0-beta4
 * Microsoft.EntityFrameworkCore 2.1.0
-* Harmony.Core.NetFx 0.1.0
-* Harmony.Core.AspNetCore 0.1.0
+* Harmony.Core 0.1.0 - this package doesn't exist
+* Harmony.Core.NetFx 0.1.0 - this package doesn't exist
+* Harmony.Core.AspNetCore 0.1.0 - this package doesn't exist
+* Harmony.Core.EF 0.1.0 - this package doesn't exist
 
 In this very simple example we're only going to code generate the DataObject. We're doing this because we think its important for users of Harmony Core to understand what's going on behind the scenes, even if most of the time you can just let CodeGen do the heavy lifting. Assuming you've got the HarmonyCore.Test.Repository project, you can run CodeGen against the DataObject.tpl using the following command line.
 
-`CodeGen -t DataObject -some additional options to actually build this file`
+`CodeGen -t DataObject.tpl -some additional options to actually build this file`
+`CodeGen -t DataObjectMetaData.tpl -some additional options to actually build this file`
 
-This should give us an Orders.dbl file that we can just add to the project we've created.
+This should give us an Orders.dbl (and OrdersMetadata.dbl) file that we can just add to the project we've created.
 The first code we write will be our Startup class, ASP .Net Core uses a class (usually called Startup) to do most of the configuration heavy lifting. for more on the Startup class check out this [ASP .Net Core Fundementals Page](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/startup). We're just going to use a small portion of the functionality that can be crammed into a Startup class.
 
 Our Startup class is composed of two parts, the first one is the ConfigureServices method. This is where we perform any [dependency injection](../DependencyInjection.md) related setup.
