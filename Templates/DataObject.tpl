@@ -86,8 +86,6 @@ import Harmony.Core.Converters
 
 namespace <NAMESPACE>
 
-	.include "<STRUCTURE_NOALIAS>" repository <RPSDATAFILES>, structure="str<StructureNoplural>", end
-
     public partial class <StructureNoplural> extends DataObjectBase
 
         ;;make the record available and a copy
@@ -127,6 +125,7 @@ namespace <NAMESPACE>
 
 .region "Public properties for fields"
 
+		<COUNTER_1_RESET>
         <FIELD_LOOP>
 		<IF CUSTOM_NOT_SYMPHONY_ARRAY_FIELD>
 		;;; <summary>
@@ -141,6 +140,7 @@ namespace <NAMESPACE>
 		<IF ALPHA>
 		{StringLength(<FIELD_SIZE>, ErrorMessage="<FIELD_DESC> cannot exceed <FIELD_SIZE> characters. ")}
 		</IF ALPHA>
+		<COUNTER_1_INCREMENT>
 		public property <FieldSqlname>, <FIELD_CSTYPE>
 			method get
 			proc
@@ -204,6 +204,7 @@ namespace <NAMESPACE>
 
 		<IF STRUCTURE_RELATIONS>
 		<RELATION_LOOP>
+		<COUNTER_1_INCREMENT>
 		<IF TWO_WAY_ONE_TO_ONE>
 		;;; <summary>
 		;;; One to one relationship from stucture <StructureNoplural> key <RELATION_FROMKEY> to structure <RelationTostructure> key <RELATION_TOKEY> with a backward relationship
@@ -292,7 +293,7 @@ namespace <NAMESPACE>
 		public override method InternalGetValues, [#]@object
 		proc
 			;;TODO: This should be returning boxed values for each of our fields
-			mreturn new Object[0]
+			mreturn new Object[<COUNTER_1_VALUE>]
 		endmethod
 
 .endregion

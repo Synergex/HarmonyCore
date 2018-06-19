@@ -2,9 +2,10 @@
 pushd %~dp0
 setlocal
 
+set OPTS=-e -r -lf
+
 set CODEGEN_TPLDIR=Templates
 set PROJECT=SampleServices
-set OPTS=-e -r -lf
 
 rem ================================================================================================================================
 
@@ -40,6 +41,20 @@ codegen -s %FILE_STRUCTURES% -ms -t ODataTestEnvironment -n %PROJECT% -o %PROJEC
 
 rem Generate the unit test environment class
 codegen -s %FILE_STRUCTURES% -ms -t ODataUnitTestEnvironment -n %PROJECT%.Test -o %PROJECT%.Test -ut SERVICES_NAMESPACE=%PROJECT% %OPTS%
+
+rem ================================================================================================================================
+rem Generate code for the TraditionalBridge sample environment
+
+set CODEGEN_TPLDIR=Templates\TraditionalBridge
+set PROJECT=TraditionalBridge.Test
+set XFPL_SMCPATH=
+
+rem Generate model classes
+codegen -s %STRUCTURES%     -t DataObject -n %PROJECT%.Models -o %PROJECT%\Models %OPTS%
+
+rem Generate method dispatcher classes
+codegen -smc SampleXfplEnvironment\smc.xml -interface SampleXfplEnv -t DispatcherMethods MethodDispatchers -n %PROJECT% -o %PROJECT% %OPTS%
+codegen -s %STRUCTURES% -ms -t DispatcherStructures -n %PROJECT% -o %PROJECT% %OPTS%
 
 endlocal
 popd

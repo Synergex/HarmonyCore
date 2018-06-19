@@ -1,0 +1,273 @@
+;;*****************************************************************************
+;;
+;; Title:       Order.dbl
+;;
+;; Type:        Class
+;;
+;; Description: Data object representing data defined by the repository
+;;              structure ORDERS and from the data file ICSTUT:orders.ism.
+;;
+;;*****************************************************************************
+;; WARNING
+;;
+;; This file was code generated. Avoid editing this file, as any changes that
+;; you make will be lost of the file is re-generated.
+;;
+;;*****************************************************************************
+;;
+;; Copyright (c) 2018, Synergex International, Inc.
+;; All rights reserved.
+;;
+;; Redistribution and use in source and binary forms, with or without
+;; modification, are permitted provided that the following conditions are met:
+;;
+;; * Redistributions of source code must retain the above copyright notice,
+;;   this list of conditions and the following disclaimer.
+;;
+;; * Redistributions in binary form must reproduce the above copyright notice,
+;;   this list of conditions and the following disclaimer in the documentation
+;;   and/or other materials provided with the distribution.
+;;
+;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;; ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+;; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+;; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+;; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+;; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+;; POSSIBILITY OF SUCH DAMAGE.
+;;
+;;*****************************************************************************
+
+import Harmony.TraditionalBridge
+
+namespace TraditionalBridge.Test.Models
+
+	public partial class Order extends DataObjectBase
+
+		;; Metadata, current record state, and a copy of the original state
+		public static sMetadata, @OrderMetadata
+		private mOrder, strOrder 
+		private mOriginalOrder, strOrder 
+		
+		;;; <summary>
+		;;;  Construct an empty Order object
+		;;; </summary>
+		public method Order
+			parent()
+		proc
+			init mOrder, mOriginalOrder
+		endmethod
+
+		;;; <summary>
+		;;;  Construct a Order object containing data from a record
+		;;; </summary>
+		public method Order
+			required in inData, strOrder
+			parent()
+		proc
+			mOrder = mOriginalOrder = inData
+		endmethod
+
+		public override method InternalSynergyRecord, void
+			targetMethod, @AlphaAction
+		proc
+			targetMethod.Run(mOrder, mGlobalRFA)
+		endmethod
+		
+		;;; <summary>
+		;;; Order number
+		;;; </summary>
+		public property OrNumber, d
+			method get
+			proc
+				mreturn mOrder.or_number				
+			endmethod
+			method set
+			proc
+				mOrder.or_number = value
+			endmethod
+		endproperty
+
+		;;; <summary>
+		;;; Vendorcode
+		;;; </summary>
+		public property OrVendor, d
+			method get
+			proc
+				mreturn mOrder.or_vendor				
+			endmethod
+			method set
+			proc
+				mOrder.or_vendor = value
+			endmethod
+		endproperty
+
+		;;; <summary>
+		;;; Item code
+		;;; </summary>
+		public property OrItem, d
+			method get
+			proc
+				mreturn mOrder.or_item				
+			endmethod
+			method set
+			proc
+				mOrder.or_item = value
+			endmethod
+		endproperty
+
+		;;; <summary>
+		;;; Customer number
+		;;; </summary>
+		public property OrCustomer, d
+			method get
+			proc
+				mreturn mOrder.or_customer				
+			endmethod
+			method set
+			proc
+				mOrder.or_customer = value
+			endmethod
+		endproperty
+
+		;;; <summary>
+		;;; Quantity on order
+		;;; </summary>
+		public property OrQty, d
+			method get
+			proc
+				mreturn mOrder.or_qty				
+			endmethod
+			method set
+			proc
+				mOrder.or_qty = value
+			endmethod
+		endproperty
+
+		;;; <summary>
+		;;; Order Price
+		;;; </summary>
+		public property OrPrice, d
+			method get
+			proc
+				mreturn mOrder.or_price				
+			endmethod
+			method set
+			proc
+				mOrder.or_price = value
+			endmethod
+		endproperty
+
+		;;; <summary>
+		;;; Order Terms code
+		;;; </summary>
+		public property OrTerms, a
+			method get
+			proc
+				mreturn mOrder.or_terms				
+			endmethod
+			method set
+			proc
+				mOrder.or_terms = value
+			endmethod
+		endproperty
+
+		;;; <summary>
+		;;; Order date
+		;;; </summary>
+		public property OrOdate, d
+			method get
+			proc
+				mreturn mOrder.or_odate				
+			endmethod
+			method set
+			proc
+				mOrder.or_odate = value
+			endmethod
+		endproperty
+
+		;;; <summary>
+		;;; Req ship date
+		;;; </summary>
+		public property OrSdate, d
+			method get
+			proc
+				mreturn mOrder.or_sdate				
+			endmethod
+			method set
+			proc
+				mOrder.or_sdate = value
+			endmethod
+		endproperty
+
+		;;; <summary>
+		;;; Expiration date
+		;;; </summary>
+		public property OrEdate, d
+			method get
+			proc
+				mreturn mOrder.or_edate				
+			endmethod
+			method set
+			proc
+				mOrder.or_edate = value
+			endmethod
+		endproperty
+
+		;;; <summary>
+		;;; Invoice Number
+		;;; </summary>
+		public property OrInvoice, d
+			method get
+			proc
+				mreturn mOrder.or_invoice				
+			endmethod
+			method set
+			proc
+				mOrder.or_invoice = value
+			endmethod
+		endproperty
+
+		;;; <summary>
+		;;; Expose the complete synergy record
+		;;; </summary>
+		public override property SynergyRecord, a
+			method get
+			proc
+				mreturn mOrder
+			endmethod
+		endproperty
+		
+		;;; <summary>
+		;;; Expose the complete original synergy record
+		;;; </summary>
+		public override property OriginalSynergyRecord, a
+			method get
+			proc
+				mreturn mOriginalOrder
+			endmethod
+		endproperty
+
+		;;; <summary>
+		;;; Allow the host to validate all fields. Each field will fire the validation method.
+		;;; </summary>
+		public override method InitialValidateData, void
+		proc
+		endmethod
+		
+		public override property Metadata, @DataObjectMetadataBase
+			method get
+			proc
+				if(sMetadata == ^null)
+					sMetadata = new OrderMetadata()
+				mreturn sMetadata
+			endmethod
+		endproperty
+
+	endclass
+
+endnamespace

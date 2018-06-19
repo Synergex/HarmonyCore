@@ -8,7 +8,7 @@
 ;//
 ;// Description: Template to define meta data associated with a data object
 ;//
-;// Copyright (c) 2012, Synergex International, Inc. All rights reserved.
+;// Copyright (c) 2018, Synergex International, Inc. All rights reserved.
 ;//
 ;// Redistribution and use in source and binary forms, with or without
 ;// modification, are permitted provided that the following conditions are met:
@@ -48,7 +48,7 @@
 ;;
 ;;*****************************************************************************
 ;;
-;; Copyright (c) 2012, Synergex International, Inc.
+;; Copyright (c) 2018, Synergex International, Inc.
 ;; All rights reserved.
 ;;
 ;; Redistribution and use in source and binary forms, with or without
@@ -75,99 +75,43 @@
 ;;
 ;;*****************************************************************************
 
-import System
-import System.Collections.Generic
-import System.Text
-import Harmony.Core
-import Harmony.Core.Converters
+import Harmony.TraditionalBridge
 
 namespace <NAMESPACE>
 
 	.include "<STRUCTURE_NOALIAS>" repository <RPSDATAFILES>, structure="str<StructureNoplural>", end
 
-	;;; <summary>
-	;;; 
-	;;; </summary>
 	public partial class <StructureNoplural>Metadata extends DataObjectMetadataBase
 		
-		;;; <summary>
-		;;; Constructs an new <StructureNoplural>Metadata object.
-		;;; </summary>
 		public method <StructureNoplural>Metadata
 		proc
 			RPSStructureName = "<STRUCTURE_NOALIAS>"
 			RPSStructureSize = ^size(str<StructureNoplural>)
 			<FIELD_LOOP>
 			<IF CUSTOM_NOT_SYMPHONY_ARRAY_FIELD>
-			AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false)
+			;AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false)
 			</IF>
             </FIELD_LOOP>
 		endmethod
-	
-		;;; <summary>
-		;;; Returns a new <StructureNoplural> object containing data from a record and a GRFA.
-		<IF STRUCTURE_RELATIONS>
-		;;; The related data properties (<RELATION_LOOP><IF TWO_WAY_ONE_TO_ONE>REL_<RelationFromkey></IF TWO_WAY_ONE_TO_ONE><IF ONE_WAY_ONE_TO_ONE>REL_<RelationFromkey></IF ONE_WAY_ONE_TO_ONE><IF TWO_WAY_ONE_TO_MANY>REL_<RelationTostructurePlural></IF TWO_WAY_ONE_TO_MANY><IF ONE_WAY_ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_WAY_ONE_TO_MANY><,and></RELATION_LOOP>) will not be populated.
-		</IF STRUCTURE_RELATIONS>
-		;;; </summary>
-		;;; <param name="dataArea">The record containing the data for the new <StructureNoplural> object.</param>
-		;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
-		;;; <returns></returns>
-		public override method MakeNew, @DataObjectBase
-			required in dataArea, a
-			required in grfa, a
+
+;//TODO: If we're not going to use this we should remove it from the base class and here
+		public override method GetFieldByName, @FieldDataDefinition
+			fieldName, @string
 		proc
-			mreturn new <StructureNoplural>((str<StructureNoplural>)dataArea) { GlobalRFA = grfa }
+			mreturn ^null
 		endmethod
 
-		;;; <summary>
-		;;; Returns a new <StructureNoplural> object containing data from a record and a GRFA.
-		<IF STRUCTURE_RELATIONS>
-		;;; The related data properties (<RELATION_LOOP><IF TWO_WAY_ONE_TO_ONE>REL_<RelationFromkey></IF TWO_WAY_ONE_TO_ONE><IF ONE_WAY_ONE_TO_ONE>REL_<RelationFromkey></IF ONE_WAY_ONE_TO_ONE><IF TWO_WAY_ONE_TO_MANY>REL_<RelationTostructurePlural></IF TWO_WAY_ONE_TO_MANY><IF ONE_WAY_ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_WAY_ONE_TO_MANY><,and></RELATION_LOOP>) will be populated.
-		</IF STRUCTURE_RELATIONS>
-		;;; </summary>
-		;;; <param name="dataArea">The record containing the data for the new <StructureNoplural> object.</param>
-		;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
-		;;; <param name="joinedObjects">Data to allow the related data properties (<RELATION_LOOP><IF TWO_WAY_ONE_TO_ONE>REL_<RelationFromkey></IF TWO_WAY_ONE_TO_ONE><IF ONE_WAY_ONE_TO_ONE>REL_<RelationFromkey></IF ONE_WAY_ONE_TO_ONE><IF TWO_WAY_ONE_TO_MANY>REL_<RelationTostructurePlural></IF TWO_WAY_ONE_TO_MANY><IF ONE_WAY_ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_WAY_ONE_TO_MANY><,and></RELATION_LOOP>) to be populated.</param>
-		;;; <returns></returns>
 		public override method MakeNew, @DataObjectBase
 			required in dataArea, a
 			required in grfa, a
-			required in joinedObjects, [#]KeyValuePair<String, Object>
+			record
+				new<StructureNoplural>, @<StructureNoplural>
 		proc
-			data new<StructureNoplural> = new <StructureNoplural>((str<StructureNoplural>)dataArea) { GlobalRFA = grfa }
-			<IF STRUCTURE_RELATIONS>
-			data joinedObject, KeyValuePair<String, Object>
-			foreach joinedObject in joinedObjects
-			begin
-				using joinedObject.Key select
-				<RELATION_LOOP>
-				<IF TWO_WAY_ONE_TO_ONE>
-				("REL_<RelationFromkey>"), 
-					new<StructureNoplural>.REL_<RelationFromkey> = (@<RelationTostructureNoplural>)joinedObject.Value
-				</IF TWO_WAY_ONE_TO_ONE>
-				<IF ONE_WAY_ONE_TO_ONE>
-				("REL_<RelationFromkey>"),
-					new<StructureNoplural>.REL_<RelationFromkey> = (@<RelationTostructureNoplural>)joinedObject.Value
-				</IF ONE_WAY_ONE_TO_ONE>
-				<IF TWO_WAY_ONE_TO_MANY>
-				("REL_<RelationTostructurePlural>"), 
-					new<StructureNoplural>.REL_<RelationTostructurePlural> = (@ICollection<<RelationTostructureNoplural>>)joinedObject.Value
-				</IF TWO_WAY_ONE_TO_MANY>
-				<IF ONE_WAY_ONE_TO_MANY>
-				("REL_<RelationTostructurePlural>"),
-					new<StructureNoplural>.REL_<RelationTostructurePlural> = (@ICollection<<RelationTostructureNoplural>>)joinedObject.Value
-				</IF ONE_WAY_ONE_TO_MANY>
-				</RELATION_LOOP>
-				endusing
-			end
-			</IF STRUCTURE_RELATIONS>
-
+			new<StructureNoplural> = new <StructureNoplural>(dataArea) 
+			new<StructureNoplural>.GlobalRFA = grfa
 			mreturn new<StructureNoplural>
-
 		endmethod
 
 	endclass
 
 endnamespace
-

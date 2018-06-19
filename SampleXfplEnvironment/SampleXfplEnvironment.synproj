@@ -3,19 +3,20 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Configuration)' == '' ">x86</Platform>
-    <Name>TraditionalBridge.Test</Name>
-    <StartupObject>&lt;Synergy Main&gt;</StartupObject>
-    <OutputName>TraditionalBridge.Test</OutputName>
-    <ProjectGuid>11f177f9-b8d9-431b-aa6d-887e3bd33b17</ProjectGuid>
+    <Name>SampleXfplEnvironment</Name>
+    <StartupObject>
+    </StartupObject>
+    <OutputName>sample_xfpl_env</OutputName>
+    <ProjectGuid>fcf497b3-de91-4c1e-8e7f-be4151cc8119</ProjectGuid>
     <ProjectTypeGuids>{7B8CF543-378A-4EC1-BB1B-98E4DC6E6820};{BBD0F5D1-1CC4-42fd-BA4C-A96779C64378}</ProjectTypeGuids>
-    <OutputType>application</OutputType>
+    <OutputType>elb</OutputType>
     <DBL_qTrim>True</DBL_qTrim>
     <DBL_qAlign>True</DBL_qAlign>
     <EnableCommonProperties>True</EnableCommonProperties>
     <CommonPropertiesFileLocation>$(SolutionDir)Common.props</CommonPropertiesFileLocation>
-    <RootNamespace>TraditionalBridge.Test</RootNamespace>
-    <OtherOptions>
-    </OtherOptions>
+    <RootNamespace>SampleXfplEnvironment</RootNamespace>
+    <RunPreBuildEvent>Always</RunPreBuildEvent>
+    <RunPostBuildEvent>On successful build</RunPostBuildEvent>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <IncludeDebugInformation>true</IncludeDebugInformation>
@@ -24,7 +25,7 @@
     <PlatformTarget>x86</PlatformTarget>
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
     <DebugOptimize>Debug</DebugOptimize>
-    <TargetRuntimeLevel>10030303</TargetRuntimeLevel>
+    <DBLink_ReferenceCheck>True</DBLink_ReferenceCheck>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
     <IncludeDebugInformation>true</IncludeDebugInformation>
@@ -33,6 +34,7 @@
     <PlatformTarget>x64</PlatformTarget>
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
     <DebugOptimize>Debug</DebugOptimize>
+    <DBLink_ReferenceCheck>True</DBLink_ReferenceCheck>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <IncludeDebugInformation>true</IncludeDebugInformation>
@@ -41,6 +43,7 @@
     <PlatformTarget>x86</PlatformTarget>
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
     <DebugOptimize>Optimize</DebugOptimize>
+    <DBLink_ReferenceCheck>True</DBLink_ReferenceCheck>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
     <IncludeDebugInformation>true</IncludeDebugInformation>
@@ -49,36 +52,8 @@
     <PlatformTarget>x64</PlatformTarget>
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
     <DebugOptimize>Optimize</DebugOptimize>
+    <DBLink_ReferenceCheck>True</DBLink_ReferenceCheck>
   </PropertyGroup>
-  <ItemGroup>
-    <Compile Include="DispatcherMethods.dbl" />
-    <Compile Include="DispatcherStructures.dbl" />
-    <Compile Include="MethodDispachers.dbl" />
-    <Compile Include="Models\Customer.dbl" />
-    <Compile Include="Models\CustomerMetaData.dbl" />
-    <Compile Include="Models\Order.dbl" />
-    <Compile Include="Models\OrderMetaData.dbl" />
-    <Compile Include="Models\Plant.dbl" />
-    <Compile Include="Models\PlantMetaData.dbl" />
-    <Compile Include="Models\Vendor.dbl" />
-    <Compile Include="Models\VendorMetaData.dbl" />
-    <Compile Include="Program.dbl" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\HarmonyCore.Test.Repository\HarmonyCore.Test.Repository.synproj">
-      <Name>HarmonyCore.Test.Repository</Name>
-      <Project>{53aa5b85-6883-416d-9b52-bf754be2d168}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\TraditionalBridge\TraditionalBridge.synproj">
-      <Name>TraditionalBridge</Name>
-      <Project>{e4be1bb4-6303-4270-b81a-38e1c356b50a}</Project>
-      <Private>False</Private>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Models" />
-  </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Synergex\dbl\Synergex.SynergyDE.Traditional.targets" />
   <PropertyGroup>
     <PreBuildEvent>
@@ -86,4 +61,22 @@
     <PostBuildEvent>
     </PostBuildEvent>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="data_definitions.dbl" />
+    <Compile Include="get_all_customers.dbl" />
+    <Compile Include="get_all_orders.dbl" />
+    <Compile Include="get_all_plants.dbl" />
+    <Compile Include="get_all_vendors.dbl" />
+    <Compile Include="sample_method.dbl" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="LoadCatalog.bat">
+      <SubType>Content</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="smc.xml">
+      <SubType>Content</SubType>
+    </Content>
+  </ItemGroup>
 </Project>

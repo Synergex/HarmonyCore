@@ -5,12 +5,16 @@
 ;                 : C:\DEV\SYNERGEX\HarmonyWebServices\HarmonyCore.Test.Reposito
 ;                 : Version 10.3.4
 ;
-;  GENERATED      : 15-JUN-2018, 11:44:28
+;  GENERATED      : 18-JUN-2018, 14:10:59
 ;                 : Version 10.3.4
 ;  EXPORT OPTIONS : [ALL] 
  
  
 Format PHONE   Type NUMERIC   "(ZZZ) ZZZ-ZZZZ"   Justify RIGHT
+ 
+Enumeration METHOD_STATUS
+   Description "Method return status code"
+   Members SUCCESS 0, WARNING 1, ERROR 2, FATAL 3
  
 Template DATE   Type DATE   Size 8   Stored YYYYMMDD
    Description "YYYYMMDD date"
