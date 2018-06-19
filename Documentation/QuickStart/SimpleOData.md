@@ -30,6 +30,7 @@ We're going to add to following packages, several of these packages are marked a
 In this very simple example we're only going to code generate the DataObject. We're doing this because we think its important for users of Harmony Core to understand what's going on behind the scenes, even if most of the time you can just let CodeGen do the heavy lifting. Assuming you've got the HarmonyCore.Test.Repository project, you can run CodeGen against the DataObject.tpl using the following command line.
 
 `CodeGen -t DataObject.tpl -some additional options to actually build this file`
+
 `CodeGen -t DataObjectMetaData.tpl -some additional options to actually build this file`
 
 This should give us an Orders.dbl (and OrdersMetadata.dbl) file that we can just add to the project we've created.
