@@ -180,6 +180,34 @@ namespace Harmony.TraditionalBridge
 			end
 		endmethod
 
+		public method GetImplied, d.
+			value, @Json.JsonObject
+			record
+				passedValue, @Json.JsonValue
+				valueInt, @Json.JsonInt
+				precisionValue, @Json.JsonValue
+				precisionInt, @Json.JsonInt
+				valuestring, @Json.JsonText
+				tempD, d56.28
+		proc
+			passedValue = value.GetProperty("PassedValue")
+
+			precisionValue = value.GetProperty("DecimalPrecision")
+			precisionInt = (@Json.JsonInt)precisionValue
+
+			if(passedValue.JsonType == Json.JSON_TYPE.INT_VAL ) then
+			begin
+				valueInt = (@Json.JsonInt)passedValue
+				tempD = ^d(%string(valueInt.Value),precisionInt.Value)
+				mreturn tempD
+			end
+			else
+			begin
+				valuestring = (@Json.JsonText)passedValue
+				mreturn ^d((a)valuestring.Value,precisionInt.Value)
+			end
+		endmethod
+
 		public method SerializeObject, void
 			obj, @object
 			serializer, @Json.ChannelSerializer

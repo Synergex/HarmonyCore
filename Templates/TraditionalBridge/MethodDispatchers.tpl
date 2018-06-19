@@ -1,4 +1,5 @@
 <CODEGEN_FILENAME>MethodDispachers.dbl</CODEGEN_FILENAME>
+<REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
 ;// Title:       MethodDispachers.tpl
@@ -74,7 +75,9 @@
 ;;
 ;;*****************************************************************************
 
+import Json
 import Harmony.TraditionalBridge
+import <MODELS_NAMESPACE>
 
 namespace <NAMESPACE>
 <METHOD_LOOP>
@@ -83,7 +86,9 @@ namespace <NAMESPACE>
 
 		<PARAMETER_LOOP>
 		<IF STRUCTURE>
-		private m<ParameterStructureNoplural>Metadata = DataObjectMetadataBase.LookupType("<ParameterStructureNoplural>")
+		<IF FIRST_INSTANCE_OF_STRUCTURE>
+		private m<ParameterStructureNoplural>Metadata, @DataObjectMetadataBase
+		</IF FIRST_INSTANCE_OF_STRUCTURE>
 		</IF STRUCTURE>
 		</PARAMETER_LOOP>
 
@@ -92,26 +97,36 @@ namespace <NAMESPACE>
 			;;Initialize the meta data for any data objects that are used by parameters to the method
 			<PARAMETER_LOOP>
 			<IF STRUCTURE>
+			<IF FIRST_INSTANCE_OF_STRUCTURE>
 			m<ParameterStructureNoplural>Metadata = DataObjectMetadataBase.LookupType("<ParameterStructureNoplural>")
+			</IF FIRST_INSTANCE_OF_STRUCTURE>
 			</IF STRUCTURE>
 			</PARAMETER_LOOP>
 		endmethod
 
 		public override method Dispatch, void
-			name, @string
-			callFrame, @Json.JsonObject
-			serializer, @Json.ChannelSerializer
-			dispatcher, @RoutineDispatcher
+			required in name,       string
+			required in callFrame,  @JsonObject
+			required in serializer, @ChannelSerializer
+			required in dispatcher, @RoutineDispatcher
 			record
-				arguments, @Json.JsonArray
+				arguments, @JsonArray
 				<COUNTER_1_RESET>
+				<COUNTER_2_RESET>
 				<PARAMETER_LOOP>
 				<COUNTER_1_INCREMENT>
 				<IF STRUCTURE>
+				<COUNTER_2_INCREMENT>
+				<IF COUNTER_2_EQ_1>
+				;;Data for structure-based arguments
+				</IF COUNTER_2_EQ_1>
 				<IF COLLECTION>
-				arg<COUNTER_1_VALUE>Array, @Json.JsonArray
+				arg<COUNTER_1_VALUE>Array, @JsonArray
 				arg<COUNTER_1_VALUE>Handle, D_HANDLE
-				arg<COUNTER_1_VALUE>HandlePosition, int
+				arg<COUNTER_1_VALUE>HandlePos, int
+				<IF COLLECTION_ARRAYLIST>
+				arg<COUNTER_1_VALUE>List, @ArrayList
+				</IF COLLECTION_ARRAYLIST>
 				<ELSE>
 				arg<COUNTER_1_VALUE>, @DataObjectBase
 				arg<COUNTER_1_VALUE>Data, str<ParameterStructureNoplural>
@@ -123,18 +138,43 @@ namespace <NAMESPACE>
 				</IF FUNCTION>
 			endrecord
 		proc
-			arguments = (@Json.JsonArray)callFrame.GetProperty("Arguments")
+
+			;;Retrieve argument data
+
+			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+
 			<COUNTER_1_RESET>
+			<COUNTER_2_RESET>
 			<PARAMETER_LOOP>
 			<COUNTER_1_INCREMENT>
 			<IF STRUCTURE>
+			<COUNTER_2_INCREMENT>
+			<IF COUNTER_2_EQ_1>
+			;;Prepare data for structure-based arguments
+
+			</IF COUNTER_2_EQ_1>
+;//Collection args
 			<IF COLLECTION>
-			arg<COUNTER_1_VALUE>Array = (@Json.JsonArray)((@Json.JsonObject)arguments.arrayValues[4]).GetProperty("PassedValue")
+			arg<COUNTER_1_VALUE>Array = (@JsonArray)((@JsonObject)arguments.arrayValues[4]).GetProperty("PassedValue")
 			arg<COUNTER_1_VALUE>Handle = %mem_proc(DM_ALLOC,^size(str<ParameterStructureNoplural>)*arg<COUNTER_1_VALUE>Array.arrayValues.Count)
-			arg<COUNTER_1_VALUE>HandlePosition = 1
-			dispatcher.UnwrapObjectCollection(^m(arg<COUNTER_1_VALUE>Handle),^size(str<ParameterStructureNoplural>),arg<COUNTER_1_VALUE>HandlePosition,arg<COUNTER_1_VALUE>Array)
+			arg<COUNTER_1_VALUE>HandlePos = 1
+			</IF COLLECTION>
+			<IF COLLECTION_ARRAY>
+			dispatcher.UnwrapObjectCollection(^m(arg<COUNTER_1_VALUE>Handle),^size(str<ParameterStructureNoplural>),arg<COUNTER_1_VALUE>HandlePos,arg<COUNTER_1_VALUE>Array)
+			</IF COLLECTION_ARRAY>
+			<IF COLLECTION_HANDLE>
+			dispatcher.UnwrapObjectCollection(^m(arg<COUNTER_1_VALUE>Handle),^size(str<ParameterStructureNoplural>),arg<COUNTER_1_VALUE>HandlePos,arg<COUNTER_1_VALUE>Array)
+			</IF COLLECTION_HANDLE>
+			<IF COLLECTION_ARRAYLIST>
+			arg<COUNTER_1_VALUE>List = new ArrayList()
+			dispatcher.UnwrapObjectCollection(^m(arg<COUNTER_1_VALUE>Handle),^size(str<ParameterStructureNoplural>),arg<COUNTER_1_VALUE>HandlePos,arg<COUNTER_1_VALUE>Array,arg<COUNTER_1_VALUE>List)
+			</IF COLLECTION_ARRAYLIST>
+;//Non-collection args
+			<IF COLLECTION>
 			<ELSE>
-			arg<COUNTER_1_VALUE> = dispatcher.DeserializeObject((@Json.JsonObject)arguments.arrayValues[3],m<ParameterStructureNoplural>Metadata)
+			;;Get the data object
+			arg<COUNTER_1_VALUE> = dispatcher.DeserializeObject((@JsonObject)arguments.arrayValues[3],m<ParameterStructureNoplural>Metadata)
+			;;Get the record from the DO
 			arg<COUNTER_1_VALUE>Data = arg<COUNTER_1_VALUE>.SynergyRecord
 			</IF COLLECTION>
 			</IF STRUCTURE>
@@ -149,7 +189,7 @@ namespace <NAMESPACE>
 			</IF SUBROUTINE>
 ;//
 ;// Call a function
-
+;//
 			<IF FUNCTION>
 			returnValue = %<METHOD_ROUTINE>(
 			</IF FUNCTION>
@@ -158,33 +198,53 @@ namespace <NAMESPACE>
 <COUNTER_2_RESET>
 <PARAMETER_LOOP>
 <COUNTER_1_INCREMENT>
+;// arguments.arrayValues is a JSON array of JsonValue types
+;// For simple types the value is a JsonObject and we can use obj.PassedValue to get to the data.
+;// The data is always in the same format, regardless of the ultimate target type here.
+;// Code here needs to move that data into appropriate storage (with the help of dispatcher.Get???(value))
+;//
+;//
+;//
+;//
+;//
+;//
+;//
+;//
 <IF COLLECTION>
 ;//
 ;// Collection parameters (Includes ARRAY, HANDLE collections and ArrayList collections, or any supported type)
 ;//
 			<IF ALPHA>
-			&	Collection of alpha not implemented<,>
+			&	<,>
 			</IF ALPHA>
 			<IF DECIMAL>
-			&	Collection of decimal not implemented<,>
+			&	<,>
 			</IF DECIMAL>
 			<IF IMPLIED>
-			&	Collection of implied decimal not implemented<,>
+			&	<,>
 			</IF IMPLIED>
 			<IF INTEGER>
-			&	Collection of integer not implemented<,>
+			&	<,>
 			</IF INTEGER>
 			<IF DATE>
-			&	Collection of date not implemented<,>
+			&	<,>
 			</IF DATE>
 			<IF TIME>
-			&	Collection of time not implemented<,>
+			&	<,>
 			</IF TIME>
 			<IF STRING>
-			&	Collection of string not implemented<,>
+			&	<,>
 			</IF STRING>
 			<IF STRUCTURE>
+			<IF COLLECTION_ARRAY>
 			&	^m(str<ParameterStructureNoplural>,arg<COUNTER_1_VALUE>Handle)<,>
+			</IF COLLECTION_ARRAY>
+			<IF COLLECTION_HANDLE>
+			&	arg<COUNTER_1_VALUE>Handle<,>
+			</IF COLLECTION_HANDLE>
+			<IF COLLECTION_ARRAYLIST>
+			&	arg<COUNTER_1_VALUE>List<,>
+			</IF COLLECTION_ARRAYLIST>
 			</IF STRUCTURE>
 ;//
 <ELSE>
@@ -192,34 +252,34 @@ namespace <NAMESPACE>
 ;// Non-collection parameters
 ;//
 			<IF ALPHA>
-			&	dispatcher.GetText((@Json.JsonObject)arguments.arrayValues[<COUNTER_2_VALUE>])<,>
+			&	dispatcher.GetText((@JsonObject)arguments.arrayValues[<COUNTER_2_VALUE>])<,>
 			</IF ALPHA>
 			<IF DECIMAL>
-			&	dispatcher.GetDecimal((@Json.JsonObject)arguments.arrayValues[<COUNTER_2_VALUE>])<,>
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[<COUNTER_2_VALUE>])<,>
 			</IF DECIMAL>
 			<IF IMPLIED>
-			&	Implied decimal parameter not implemented<,>
+			&	dispatcher.GetImplied((@JsonObject)arguments.arrayValues[<COUNTER_2_VALUE>])<,>
 			</IF IMPLIED>
 			<IF INTEGER>
-			&	dispatcher.GetInt((@Json.JsonObject)arguments.arrayValues[<COUNTER_2_VALUE>])<,>
+			&	dispatcher.GetInt((@JsonObject)arguments.arrayValues[<COUNTER_2_VALUE>])<,>
 			</IF INTEGER>
 			<IF ENUM>
-			&	Enum parameter not implemented<,>
+			&	dispatcher.GetInt((@JsonObject)arguments.arrayValues[<COUNTER_2_VALUE>])<,>
 			</IF ENUM>
 			<IF DATE>
-			&	Date parameter not implemented<,>
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[<COUNTER_2_VALUE>])<,>
 			</IF DATE>
 			<IF TIME>
-			&	Time parameter not implemented<,>
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[<COUNTER_2_VALUE>])<,>
 			</IF TIME>
 			<IF HANDLE>
-			&	Handle parameter not implemented<,>
+			&	<,>
 			</IF HANDLE>
 			<IF BINARY_HANDLE>
-			&	Binary handle parameter not implemented<,>
+			&	<,>
 			</IF BINARY_HANDLE>
 			<IF STRING>
-			&	String parameter not implemented<,>
+			&	<,>
 			</IF STRING>
 			<IF STRUCTURE>
 			&	arg<COUNTER_1_VALUE>Data,

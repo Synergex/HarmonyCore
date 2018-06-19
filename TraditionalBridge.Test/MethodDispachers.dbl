@@ -41,13 +41,15 @@
 ;;
 ;;*****************************************************************************
 
+import Json
 import Harmony.TraditionalBridge
+import TraditionalBridge.Test.Models
 
 namespace TraditionalBridge.Test
 
 	public class get_all_customersDispatch extends RoutineStub
 
-		private mCustomerMetadata = DataObjectMetadataBase.LookupType("Customer")
+		private mCustomerMetadata, @DataObjectMetadataBase
 
 		public method get_all_customersDispatch
 		proc
@@ -56,30 +58,38 @@ namespace TraditionalBridge.Test
 		endmethod
 
 		public override method Dispatch, void
-			name, @string
-			callFrame, @Json.JsonObject
-			serializer, @Json.ChannelSerializer
-			dispatcher, @RoutineDispatcher
+			required in name,       string
+			required in callFrame,  @JsonObject
+			required in serializer, @ChannelSerializer
+			required in dispatcher, @RoutineDispatcher
 			record
-				arguments, @Json.JsonArray
-				arg1Array, @Json.JsonArray
+				arguments, @JsonArray
+				;;Data for structure-based arguments
+				arg1Array, @JsonArray
 				arg1Handle, D_HANDLE
-				arg1HandlePosition, int
+				arg1HandlePos, int
+				arg1List, @ArrayList
 				returnValue, METHOD_STATUS
 			endrecord
 		proc
-			arguments = (@Json.JsonArray)callFrame.GetProperty("Arguments")
-			arg1Array = (@Json.JsonArray)((@Json.JsonObject)arguments.arrayValues[4]).GetProperty("PassedValue")
+
+			;;Retrieve argument data
+
+			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+
+			;;Prepare data for structure-based arguments
+
+			arg1Array = (@JsonArray)((@JsonObject)arguments.arrayValues[4]).GetProperty("PassedValue")
 			arg1Handle = %mem_proc(DM_ALLOC,^size(strCustomer)*arg1Array.arrayValues.Count)
-			arg1HandlePosition = 1
-			dispatcher.UnwrapObjectCollection(^m(arg1Handle),^size(strCustomer),arg1HandlePosition,arg1Array)
+			arg1HandlePos = 1
+			arg1List = new ArrayList()
+			dispatcher.UnwrapObjectCollection(^m(arg1Handle),^size(strCustomer),arg1HandlePos,arg1Array,arg1List)
 
 			;;Now call the method
 
-
 			returnValue = %get_all_customers(
-			&	^m(strCustomer,arg1Handle),
-			&	Collection of alpha not implemented
+			&	arg1List,
+			&	dispatcher.GetText((@JsonObject)arguments.arrayValues[1])
 			& )
 
 			serializer.MapOpen()
@@ -103,23 +113,26 @@ namespace TraditionalBridge.Test
 		endmethod
 
 		public override method Dispatch, void
-			name, @string
-			callFrame, @Json.JsonObject
-			serializer, @Json.ChannelSerializer
-			dispatcher, @RoutineDispatcher
+			required in name,       string
+			required in callFrame,  @JsonObject
+			required in serializer, @ChannelSerializer
+			required in dispatcher, @RoutineDispatcher
 			record
-				arguments, @Json.JsonArray
+				arguments, @JsonArray
 				returnValue, METHOD_STATUS
 			endrecord
 		proc
-			arguments = (@Json.JsonArray)callFrame.GetProperty("Arguments")
+
+			;;Retrieve argument data
+
+			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+
 
 			;;Now call the method
 
-
 			returnValue = %get_customers_array(
-			&	Collection of alpha not implemented,
-			&	Collection of alpha not implemented
+			&	,
+			&	dispatcher.GetText((@JsonObject)arguments.arrayValues[1])
 			& )
 
 			serializer.MapOpen()
@@ -136,7 +149,7 @@ namespace TraditionalBridge.Test
 
 	public class get_all_ordersDispatch extends RoutineStub
 
-		private mOrderMetadata = DataObjectMetadataBase.LookupType("Order")
+		private mOrderMetadata, @DataObjectMetadataBase
 
 		public method get_all_ordersDispatch
 		proc
@@ -145,30 +158,38 @@ namespace TraditionalBridge.Test
 		endmethod
 
 		public override method Dispatch, void
-			name, @string
-			callFrame, @Json.JsonObject
-			serializer, @Json.ChannelSerializer
-			dispatcher, @RoutineDispatcher
+			required in name,       string
+			required in callFrame,  @JsonObject
+			required in serializer, @ChannelSerializer
+			required in dispatcher, @RoutineDispatcher
 			record
-				arguments, @Json.JsonArray
-				arg1Array, @Json.JsonArray
+				arguments, @JsonArray
+				;;Data for structure-based arguments
+				arg1Array, @JsonArray
 				arg1Handle, D_HANDLE
-				arg1HandlePosition, int
+				arg1HandlePos, int
+				arg1List, @ArrayList
 				returnValue, METHOD_STATUS
 			endrecord
 		proc
-			arguments = (@Json.JsonArray)callFrame.GetProperty("Arguments")
-			arg1Array = (@Json.JsonArray)((@Json.JsonObject)arguments.arrayValues[4]).GetProperty("PassedValue")
+
+			;;Retrieve argument data
+
+			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+
+			;;Prepare data for structure-based arguments
+
+			arg1Array = (@JsonArray)((@JsonObject)arguments.arrayValues[4]).GetProperty("PassedValue")
 			arg1Handle = %mem_proc(DM_ALLOC,^size(strOrder)*arg1Array.arrayValues.Count)
-			arg1HandlePosition = 1
-			dispatcher.UnwrapObjectCollection(^m(arg1Handle),^size(strOrder),arg1HandlePosition,arg1Array)
+			arg1HandlePos = 1
+			arg1List = new ArrayList()
+			dispatcher.UnwrapObjectCollection(^m(arg1Handle),^size(strOrder),arg1HandlePos,arg1Array,arg1List)
 
 			;;Now call the method
 
-
 			returnValue = %get_all_orders(
-			&	^m(strOrder,arg1Handle),
-			&	Collection of alpha not implemented
+			&	arg1List,
+			&	dispatcher.GetText((@JsonObject)arguments.arrayValues[1])
 			& )
 
 			serializer.MapOpen()
@@ -185,7 +206,7 @@ namespace TraditionalBridge.Test
 
 	public class get_all_plantsDispatch extends RoutineStub
 
-		private mPlantMetadata = DataObjectMetadataBase.LookupType("Plant")
+		private mPlantMetadata, @DataObjectMetadataBase
 
 		public method get_all_plantsDispatch
 		proc
@@ -194,30 +215,38 @@ namespace TraditionalBridge.Test
 		endmethod
 
 		public override method Dispatch, void
-			name, @string
-			callFrame, @Json.JsonObject
-			serializer, @Json.ChannelSerializer
-			dispatcher, @RoutineDispatcher
+			required in name,       string
+			required in callFrame,  @JsonObject
+			required in serializer, @ChannelSerializer
+			required in dispatcher, @RoutineDispatcher
 			record
-				arguments, @Json.JsonArray
-				arg1Array, @Json.JsonArray
+				arguments, @JsonArray
+				;;Data for structure-based arguments
+				arg1Array, @JsonArray
 				arg1Handle, D_HANDLE
-				arg1HandlePosition, int
+				arg1HandlePos, int
+				arg1List, @ArrayList
 				returnValue, METHOD_STATUS
 			endrecord
 		proc
-			arguments = (@Json.JsonArray)callFrame.GetProperty("Arguments")
-			arg1Array = (@Json.JsonArray)((@Json.JsonObject)arguments.arrayValues[4]).GetProperty("PassedValue")
+
+			;;Retrieve argument data
+
+			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+
+			;;Prepare data for structure-based arguments
+
+			arg1Array = (@JsonArray)((@JsonObject)arguments.arrayValues[4]).GetProperty("PassedValue")
 			arg1Handle = %mem_proc(DM_ALLOC,^size(strPlant)*arg1Array.arrayValues.Count)
-			arg1HandlePosition = 1
-			dispatcher.UnwrapObjectCollection(^m(arg1Handle),^size(strPlant),arg1HandlePosition,arg1Array)
+			arg1HandlePos = 1
+			arg1List = new ArrayList()
+			dispatcher.UnwrapObjectCollection(^m(arg1Handle),^size(strPlant),arg1HandlePos,arg1Array,arg1List)
 
 			;;Now call the method
 
-
 			returnValue = %get_all_plants(
-			&	^m(strPlant,arg1Handle),
-			&	Collection of alpha not implemented
+			&	arg1List,
+			&	dispatcher.GetText((@JsonObject)arguments.arrayValues[1])
 			& )
 
 			serializer.MapOpen()
@@ -234,7 +263,7 @@ namespace TraditionalBridge.Test
 
 	public class get_all_vendorsDispatch extends RoutineStub
 
-		private mVendorMetadata = DataObjectMetadataBase.LookupType("Vendor")
+		private mVendorMetadata, @DataObjectMetadataBase
 
 		public method get_all_vendorsDispatch
 		proc
@@ -243,30 +272,38 @@ namespace TraditionalBridge.Test
 		endmethod
 
 		public override method Dispatch, void
-			name, @string
-			callFrame, @Json.JsonObject
-			serializer, @Json.ChannelSerializer
-			dispatcher, @RoutineDispatcher
+			required in name,       string
+			required in callFrame,  @JsonObject
+			required in serializer, @ChannelSerializer
+			required in dispatcher, @RoutineDispatcher
 			record
-				arguments, @Json.JsonArray
-				arg1Array, @Json.JsonArray
+				arguments, @JsonArray
+				;;Data for structure-based arguments
+				arg1Array, @JsonArray
 				arg1Handle, D_HANDLE
-				arg1HandlePosition, int
+				arg1HandlePos, int
+				arg1List, @ArrayList
 				returnValue, METHOD_STATUS
 			endrecord
 		proc
-			arguments = (@Json.JsonArray)callFrame.GetProperty("Arguments")
-			arg1Array = (@Json.JsonArray)((@Json.JsonObject)arguments.arrayValues[4]).GetProperty("PassedValue")
+
+			;;Retrieve argument data
+
+			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+
+			;;Prepare data for structure-based arguments
+
+			arg1Array = (@JsonArray)((@JsonObject)arguments.arrayValues[4]).GetProperty("PassedValue")
 			arg1Handle = %mem_proc(DM_ALLOC,^size(strVendor)*arg1Array.arrayValues.Count)
-			arg1HandlePosition = 1
-			dispatcher.UnwrapObjectCollection(^m(arg1Handle),^size(strVendor),arg1HandlePosition,arg1Array)
+			arg1HandlePos = 1
+			arg1List = new ArrayList()
+			dispatcher.UnwrapObjectCollection(^m(arg1Handle),^size(strVendor),arg1HandlePos,arg1Array,arg1List)
 
 			;;Now call the method
 
-
 			returnValue = %get_all_vendors(
-			&	^m(strVendor,arg1Handle),
-			&	Collection of alpha not implemented
+			&	arg1List,
+			&	dispatcher.GetText((@JsonObject)arguments.arrayValues[1])
 			& )
 
 			serializer.MapOpen()
@@ -283,129 +320,137 @@ namespace TraditionalBridge.Test
 
 	public class simple_parametersDispatch extends RoutineStub
 
-		private mCustomerMetadata = DataObjectMetadataBase.LookupType("Customer")
-		private mCustomerMetadata = DataObjectMetadataBase.LookupType("Customer")
-		private mCustomerMetadata = DataObjectMetadataBase.LookupType("Customer")
+		private mCustomerMetadata, @DataObjectMetadataBase
 
 		public method simple_parametersDispatch
 		proc
 			;;Initialize the meta data for any data objects that are used by parameters to the method
 			mCustomerMetadata = DataObjectMetadataBase.LookupType("Customer")
-			mCustomerMetadata = DataObjectMetadataBase.LookupType("Customer")
-			mCustomerMetadata = DataObjectMetadataBase.LookupType("Customer")
 		endmethod
 
 		public override method Dispatch, void
-			name, @string
-			callFrame, @Json.JsonObject
-			serializer, @Json.ChannelSerializer
-			dispatcher, @RoutineDispatcher
+			required in name,       string
+			required in callFrame,  @JsonObject
+			required in serializer, @ChannelSerializer
+			required in dispatcher, @RoutineDispatcher
 			record
-				arguments, @Json.JsonArray
-				arg25Array, @Json.JsonArray
-				arg25Handle, D_HANDLE
-				arg25HandlePosition, int
-				arg26Array, @Json.JsonArray
-				arg26Handle, D_HANDLE
-				arg26HandlePosition, int
-				arg27Array, @Json.JsonArray
-				arg27Handle, D_HANDLE
-				arg27HandlePosition, int
+				arguments, @JsonArray
+				;;Data for structure-based arguments
+				arg25, @DataObjectBase
+				arg25Data, strCustomer
+				arg26, @DataObjectBase
+				arg26Data, strCustomer
+				arg27, @DataObjectBase
+				arg27Data, strCustomer
 			endrecord
 		proc
-			arguments = (@Json.JsonArray)callFrame.GetProperty("Arguments")
-			arg25Array = (@Json.JsonArray)((@Json.JsonObject)arguments.arrayValues[4]).GetProperty("PassedValue")
-			arg25Handle = %mem_proc(DM_ALLOC,^size(strCustomer)*arg25Array.arrayValues.Count)
-			arg25HandlePosition = 1
-			dispatcher.UnwrapObjectCollection(^m(arg25Handle),^size(strCustomer),arg25HandlePosition,arg25Array)
-			arg26Array = (@Json.JsonArray)((@Json.JsonObject)arguments.arrayValues[4]).GetProperty("PassedValue")
-			arg26Handle = %mem_proc(DM_ALLOC,^size(strCustomer)*arg26Array.arrayValues.Count)
-			arg26HandlePosition = 1
-			dispatcher.UnwrapObjectCollection(^m(arg26Handle),^size(strCustomer),arg26HandlePosition,arg26Array)
-			arg27Array = (@Json.JsonArray)((@Json.JsonObject)arguments.arrayValues[4]).GetProperty("PassedValue")
-			arg27Handle = %mem_proc(DM_ALLOC,^size(strCustomer)*arg27Array.arrayValues.Count)
-			arg27HandlePosition = 1
-			dispatcher.UnwrapObjectCollection(^m(arg27Handle),^size(strCustomer),arg27HandlePosition,arg27Array)
+
+			;;Retrieve argument data
+
+			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+
+			;;Prepare data for structure-based arguments
+
+			;;Get the data object
+			arg25 = dispatcher.DeserializeObject((@JsonObject)arguments.arrayValues[3],mCustomerMetadata)
+			;;Get the record from the DO
+			arg25Data = arg25.SynergyRecord
+			;;Get the data object
+			arg26 = dispatcher.DeserializeObject((@JsonObject)arguments.arrayValues[3],mCustomerMetadata)
+			;;Get the record from the DO
+			arg26Data = arg26.SynergyRecord
+			;;Get the data object
+			arg27 = dispatcher.DeserializeObject((@JsonObject)arguments.arrayValues[3],mCustomerMetadata)
+			;;Get the record from the DO
+			arg27Data = arg27.SynergyRecord
 
 			;;Now call the method
 
 			xcall simple_parameters(
-
-			&	Collection of alpha not implemented,
-			&	Collection of alpha not implemented,
-			&	Collection of alpha not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of implied decimal not implemented,
-			&	Collection of implied decimal not implemented,
-			&	Collection of implied decimal not implemented,
-			&	Collection of integer not implemented,
-			&	Collection of integer not implemented,
-			&	Collection of integer not implemented,
-			&	Collection of integer not implemented,
-			&	Collection of integer not implemented,
-			&	Collection of integer not implemented,
-			&	Collection of integer not implemented,
-			&	Collection of integer not implemented,
-			&	Collection of integer not implemented,
-			&	Collection of integer not implemented,
-			&	Collection of integer not implemented,
-			&	Collection of integer not implemented,
-			&	^m(strCustomer,arg25Handle),
-			&	^m(strCustomer,arg26Handle),
-			&	^m(strCustomer,arg27Handle),
-			&	Collection of decimal not implemented,
-			&	Collection of date not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of date not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of date not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of date not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of date not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of date not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of date not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of date not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of date not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of date not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of date not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of date not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of time not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of time not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of time not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of time not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of time not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of time not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of date not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of time not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of time not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of date not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of date not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of date not implemented,
+			&	dispatcher.GetText((@JsonObject)arguments.arrayValues[0]),
+			&	dispatcher.GetText((@JsonObject)arguments.arrayValues[1]),
+			&	dispatcher.GetText((@JsonObject)arguments.arrayValues[2]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[3]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[4]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[5]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[6]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[7]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[8]),
+			&	dispatcher.GetImplied((@JsonObject)arguments.arrayValues[9]),
+			&	dispatcher.GetImplied((@JsonObject)arguments.arrayValues[10]),
+			&	dispatcher.GetImplied((@JsonObject)arguments.arrayValues[11]),
+			&	dispatcher.GetInt((@JsonObject)arguments.arrayValues[12]),
+			&	dispatcher.GetInt((@JsonObject)arguments.arrayValues[13]),
+			&	dispatcher.GetInt((@JsonObject)arguments.arrayValues[14]),
+			&	dispatcher.GetInt((@JsonObject)arguments.arrayValues[15]),
+			&	dispatcher.GetInt((@JsonObject)arguments.arrayValues[16]),
+			&	dispatcher.GetInt((@JsonObject)arguments.arrayValues[17]),
+			&	dispatcher.GetInt((@JsonObject)arguments.arrayValues[18]),
+			&	dispatcher.GetInt((@JsonObject)arguments.arrayValues[19]),
+			&	dispatcher.GetInt((@JsonObject)arguments.arrayValues[20]),
+			&	dispatcher.GetInt((@JsonObject)arguments.arrayValues[21]),
+			&	dispatcher.GetInt((@JsonObject)arguments.arrayValues[22]),
+			&	dispatcher.GetInt((@JsonObject)arguments.arrayValues[23]),
+			&	arg25Data,
+			&	arg26Data,
+			&	arg27Data,
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[27]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[27]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[28]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[28]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[29]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[29]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[30]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[30]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[31]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[31]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[32]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[32]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[33]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[33]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[34]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[34]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[35]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[35]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[36]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[36]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[37]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[37]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[38]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[38]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[39]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[39]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[40]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[40]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[41]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[41]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[42]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[42]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[43]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[43]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[44]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[44]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[45]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[45]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[46]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[46]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[47]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[47]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[48]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[48]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[49]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[49]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[50]),
+			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[50]),
+			&	dispatcher.GetInt((@JsonObject)arguments.arrayValues[51]),
+			&	dispatcher.GetInt((@JsonObject)arguments.arrayValues[52]),
+			&	dispatcher.GetInt((@JsonObject)arguments.arrayValues[53]),
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	
 			& )
 
 			serializer.MapOpen()
@@ -422,129 +467,131 @@ namespace TraditionalBridge.Test
 
 	public class array_parametersDispatch extends RoutineStub
 
-		private mCustomerMetadata = DataObjectMetadataBase.LookupType("Customer")
-		private mCustomerMetadata = DataObjectMetadataBase.LookupType("Customer")
-		private mCustomerMetadata = DataObjectMetadataBase.LookupType("Customer")
+		private mCustomerMetadata, @DataObjectMetadataBase
 
 		public method array_parametersDispatch
 		proc
 			;;Initialize the meta data for any data objects that are used by parameters to the method
 			mCustomerMetadata = DataObjectMetadataBase.LookupType("Customer")
-			mCustomerMetadata = DataObjectMetadataBase.LookupType("Customer")
-			mCustomerMetadata = DataObjectMetadataBase.LookupType("Customer")
 		endmethod
 
 		public override method Dispatch, void
-			name, @string
-			callFrame, @Json.JsonObject
-			serializer, @Json.ChannelSerializer
-			dispatcher, @RoutineDispatcher
+			required in name,       string
+			required in callFrame,  @JsonObject
+			required in serializer, @ChannelSerializer
+			required in dispatcher, @RoutineDispatcher
 			record
-				arguments, @Json.JsonArray
-				arg25Array, @Json.JsonArray
+				arguments, @JsonArray
+				;;Data for structure-based arguments
+				arg25Array, @JsonArray
 				arg25Handle, D_HANDLE
-				arg25HandlePosition, int
-				arg26Array, @Json.JsonArray
+				arg25HandlePos, int
+				arg26Array, @JsonArray
 				arg26Handle, D_HANDLE
-				arg26HandlePosition, int
-				arg27Array, @Json.JsonArray
+				arg26HandlePos, int
+				arg27Array, @JsonArray
 				arg27Handle, D_HANDLE
-				arg27HandlePosition, int
+				arg27HandlePos, int
 			endrecord
 		proc
-			arguments = (@Json.JsonArray)callFrame.GetProperty("Arguments")
-			arg25Array = (@Json.JsonArray)((@Json.JsonObject)arguments.arrayValues[4]).GetProperty("PassedValue")
+
+			;;Retrieve argument data
+
+			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+
+			;;Prepare data for structure-based arguments
+
+			arg25Array = (@JsonArray)((@JsonObject)arguments.arrayValues[4]).GetProperty("PassedValue")
 			arg25Handle = %mem_proc(DM_ALLOC,^size(strCustomer)*arg25Array.arrayValues.Count)
-			arg25HandlePosition = 1
-			dispatcher.UnwrapObjectCollection(^m(arg25Handle),^size(strCustomer),arg25HandlePosition,arg25Array)
-			arg26Array = (@Json.JsonArray)((@Json.JsonObject)arguments.arrayValues[4]).GetProperty("PassedValue")
+			arg25HandlePos = 1
+			dispatcher.UnwrapObjectCollection(^m(arg25Handle),^size(strCustomer),arg25HandlePos,arg25Array)
+			arg26Array = (@JsonArray)((@JsonObject)arguments.arrayValues[4]).GetProperty("PassedValue")
 			arg26Handle = %mem_proc(DM_ALLOC,^size(strCustomer)*arg26Array.arrayValues.Count)
-			arg26HandlePosition = 1
-			dispatcher.UnwrapObjectCollection(^m(arg26Handle),^size(strCustomer),arg26HandlePosition,arg26Array)
-			arg27Array = (@Json.JsonArray)((@Json.JsonObject)arguments.arrayValues[4]).GetProperty("PassedValue")
+			arg26HandlePos = 1
+			dispatcher.UnwrapObjectCollection(^m(arg26Handle),^size(strCustomer),arg26HandlePos,arg26Array)
+			arg27Array = (@JsonArray)((@JsonObject)arguments.arrayValues[4]).GetProperty("PassedValue")
 			arg27Handle = %mem_proc(DM_ALLOC,^size(strCustomer)*arg27Array.arrayValues.Count)
-			arg27HandlePosition = 1
-			dispatcher.UnwrapObjectCollection(^m(arg27Handle),^size(strCustomer),arg27HandlePosition,arg27Array)
+			arg27HandlePos = 1
+			dispatcher.UnwrapObjectCollection(^m(arg27Handle),^size(strCustomer),arg27HandlePos,arg27Array)
 
 			;;Now call the method
 
 			xcall array_parameters(
-
-			&	Collection of alpha not implemented,
-			&	Collection of alpha not implemented,
-			&	Collection of alpha not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of implied decimal not implemented,
-			&	Collection of implied decimal not implemented,
-			&	Collection of implied decimal not implemented,
-			&	Collection of integer not implemented,
-			&	Collection of integer not implemented,
-			&	Collection of integer not implemented,
-			&	Collection of integer not implemented,
-			&	Collection of integer not implemented,
-			&	Collection of integer not implemented,
-			&	Collection of integer not implemented,
-			&	Collection of integer not implemented,
-			&	Collection of integer not implemented,
-			&	Collection of integer not implemented,
-			&	Collection of integer not implemented,
-			&	Collection of integer not implemented,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
 			&	^m(strCustomer,arg25Handle),
 			&	^m(strCustomer,arg26Handle),
 			&	^m(strCustomer,arg27Handle),
-			&	Collection of decimal not implemented,
-			&	Collection of date not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of date not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of date not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of date not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of date not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of date not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of date not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of date not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of date not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of date not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of date not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of date not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of time not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of time not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of time not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of time not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of time not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of time not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of date not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of time not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of time not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of date not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of date not implemented,
-			&	Collection of decimal not implemented
-			&	Collection of date not implemented
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	
+			&	
 			& )
 
 			serializer.MapOpen()
@@ -561,95 +608,103 @@ namespace TraditionalBridge.Test
 
 	public class arraylist_parametersDispatch extends RoutineStub
 
-		private mCustomerMetadata = DataObjectMetadataBase.LookupType("Customer")
-		private mCustomerMetadata = DataObjectMetadataBase.LookupType("Customer")
+		private mCustomerMetadata, @DataObjectMetadataBase
 
 		public method arraylist_parametersDispatch
 		proc
 			;;Initialize the meta data for any data objects that are used by parameters to the method
 			mCustomerMetadata = DataObjectMetadataBase.LookupType("Customer")
-			mCustomerMetadata = DataObjectMetadataBase.LookupType("Customer")
 		endmethod
 
 		public override method Dispatch, void
-			name, @string
-			callFrame, @Json.JsonObject
-			serializer, @Json.ChannelSerializer
-			dispatcher, @RoutineDispatcher
+			required in name,       string
+			required in callFrame,  @JsonObject
+			required in serializer, @ChannelSerializer
+			required in dispatcher, @RoutineDispatcher
 			record
-				arguments, @Json.JsonArray
-				arg17Array, @Json.JsonArray
+				arguments, @JsonArray
+				;;Data for structure-based arguments
+				arg17Array, @JsonArray
 				arg17Handle, D_HANDLE
-				arg17HandlePosition, int
-				arg18Array, @Json.JsonArray
+				arg17HandlePos, int
+				arg17List, @ArrayList
+				arg18Array, @JsonArray
 				arg18Handle, D_HANDLE
-				arg18HandlePosition, int
+				arg18HandlePos, int
+				arg18List, @ArrayList
 			endrecord
 		proc
-			arguments = (@Json.JsonArray)callFrame.GetProperty("Arguments")
-			arg17Array = (@Json.JsonArray)((@Json.JsonObject)arguments.arrayValues[4]).GetProperty("PassedValue")
+
+			;;Retrieve argument data
+
+			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+
+			;;Prepare data for structure-based arguments
+
+			arg17Array = (@JsonArray)((@JsonObject)arguments.arrayValues[4]).GetProperty("PassedValue")
 			arg17Handle = %mem_proc(DM_ALLOC,^size(strCustomer)*arg17Array.arrayValues.Count)
-			arg17HandlePosition = 1
-			dispatcher.UnwrapObjectCollection(^m(arg17Handle),^size(strCustomer),arg17HandlePosition,arg17Array)
-			arg18Array = (@Json.JsonArray)((@Json.JsonObject)arguments.arrayValues[4]).GetProperty("PassedValue")
+			arg17HandlePos = 1
+			arg17List = new ArrayList()
+			dispatcher.UnwrapObjectCollection(^m(arg17Handle),^size(strCustomer),arg17HandlePos,arg17Array,arg17List)
+			arg18Array = (@JsonArray)((@JsonObject)arguments.arrayValues[4]).GetProperty("PassedValue")
 			arg18Handle = %mem_proc(DM_ALLOC,^size(strCustomer)*arg18Array.arrayValues.Count)
-			arg18HandlePosition = 1
-			dispatcher.UnwrapObjectCollection(^m(arg18Handle),^size(strCustomer),arg18HandlePosition,arg18Array)
+			arg18HandlePos = 1
+			arg18List = new ArrayList()
+			dispatcher.UnwrapObjectCollection(^m(arg18Handle),^size(strCustomer),arg18HandlePos,arg18Array,arg18List)
 
 			;;Now call the method
 
 			xcall arraylist_parameters(
-
-			&	Collection of alpha not implemented,
-			&	Collection of alpha not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of implied decimal not implemented,
-			&	Collection of implied decimal not implemented,
-			&	Collection of integer not implemented,
-			&	Collection of integer not implemented,
-			&	Collection of integer not implemented,
-			&	Collection of integer not implemented,
-			&	Collection of integer not implemented,
-			&	Collection of integer not implemented,
-			&	Collection of integer not implemented,
-			&	Collection of integer not implemented,
-			&	^m(strCustomer,arg17Handle),
-			&	^m(strCustomer,arg18Handle),
-			&	Collection of decimal not implemented,
-			&	Collection of date not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of date not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of date not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of date not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of date not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of date not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of date not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of date not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of time not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of time not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of time not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of time not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of date not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of date not implemented,
-			&	Collection of decimal not implemented,
-			&	Collection of date not implemented,
-			&	Collection of decimal not implemented
-			&	Collection of date not implemented
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	arg17List,
+			&	arg18List,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	,
+			&	
+			&	
 			& )
 
 			serializer.MapOpen()
