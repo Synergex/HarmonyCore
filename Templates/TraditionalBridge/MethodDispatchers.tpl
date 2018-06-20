@@ -123,6 +123,9 @@ namespace <NAMESPACE>
 				argumentDefinition, @ArgumentDataDefinition
 <COUNTER_1_RESET>
 <PARAMETER_LOOP>
+	<IF DEFINED_VERBOSE>
+				;;Argument 1 (<PARAMETER_REQUIRED> <PARAMETER_DIRECTION> <PARAMETER_NAME> <IF COLLECTION_ARRAY>[*]</IF COLLECTION_ARRAY><IF COLLECTION_HANDLE>memory handle collection of </IF COLLECTION_HANDLE><IF COLLECTION_ARRAYLIST>ArrayList collection of </IF COLLECTION_ARRAYLIST><IF STRUCTURE>structure </IF STRUCTURE><IF ENUM>enum </IF ENUM><IF STRUCTURE>@<ParameterStructureNoplural><ELSE><PARAMETER_DEFINITION></IF STRUCTURE><IF DATE> <PARAMETER_DATE_FORMAT> date</IF DATE><IF TIME> <PARAMETER_DATE_FORMAT> time</IF TIME><IF REFERENCE> passed by REFERENCE</IF REFERENCE><IF VALUE> passed by VALUE</IF VALUE><IF DATATABLE> returned as DataTable</IF DATATABLE>)
+	</IF DEFINED_VERBOSE>
 	<COUNTER_1_INCREMENT>
 ;//
 ;//=========================================================================================================================
@@ -160,20 +163,36 @@ namespace <NAMESPACE>
 ;//=========================================================================================================================
 			endrecord
 		proc
+			;;------------------------------------------------------------
 			;;Retrieve argument data
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
 
+			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
 ;//
 ;//=========================================================================================================================
 ;// Assign values to argument variables
 ;//
-			;;Populate variables for IN and INOUT arguments
+<COUNTER_1_RESET>
+<PARAMETER_LOOP>
+	<IF IN_OR_INOUT>
+		<COUNTER_1_INCREMENT>
+	</IF IN_OR_INOUT>
+</PARAMETER_LOOP>
+;//
+
+			;;------------------------------------------------------------
+			;;Process inbound arguments
+
+<IF COUNTER_1>
+<ELSE>
+			;;There are no inbound arguments to process
+</IF COUNTER_1>
+;//
 <COUNTER_1_RESET>
 <PARAMETER_LOOP>
 	<COUNTER_1_INCREMENT>
 	<IF IN_OR_INOUT>
 	<IF COLLECTION>
-
+;//
 			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>])
 			arg<COUNTER_1_VALUE>Array = (@JsonArray)((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>]).GetProperty("PassedValue")
 ;//
@@ -194,7 +213,7 @@ namespace <NAMESPACE>
 			dispatcher.UnwrapObjectCollection(argumentDefinition,arg<COUNTER_1_VALUE>Array,arg<COUNTER_1_VALUE>)
 		</IF COLLECTION_ARRAYLIST>
 	<ELSE>
-
+;//
 		<IF ALPHA>
 			arg<COUNTER_1_VALUE> = dispatcher.GetText((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>])
 		</IF ALPHA>
@@ -238,9 +257,8 @@ namespace <NAMESPACE>
 		</IF STRING>
 ;//
 		<IF STRUCTURE>
-			;; Structure: get the data object
+			;;Structure argument. Get the data object then get the record from it
 			arg<COUNTER_1_VALUE>DataObject = dispatcher.DeserializeObject((@JsonObject)arguments.arrayValues[3],m<ParameterStructureNoplural>Metadata)
-			;; Then get the record from the data object
 			arg<COUNTER_1_VALUE> = arg<COUNTER_1_VALUE>DataObject.SynergyRecord
 		</IF STRUCTURE>
 ;//
@@ -252,56 +270,42 @@ namespace <NAMESPACE>
 ;// Make the method call
 ;//
 
-			;; Call the method
+			;;------------------------------------------------------------
+			;; Call the underlying routine
 
-			<IF SUBROUTINE>
-			xcall <METHOD_ROUTINE>(
-			</IF SUBROUTINE>
-;//
-			<IF FUNCTION>
-			returnValue = %<METHOD_ROUTINE>(
-			</IF FUNCTION>
-;//
-;//=========================================================================================================================
-;// Pass the arguments
-;//
-<COUNTER_1_RESET>
-<PARAMETER_LOOP>
-	<COUNTER_1_INCREMENT>
-	<IF COLLECTION>
-		<IF COLLECTION_ARRAY>
-			&	^m(<IF STRUCTURE>str<ParameterStructureNoplural><ELSE>strFake(1:<PARAMETER_SIZE>)</IF STRUCTURE>,arg<COUNTER_1_VALUE>Handle)<,>
-		</IF COLLECTION_ARRAY>
-		<IF COLLECTION_HANDLE>
-			&	arg<COUNTER_1_VALUE>Handle<,>
-		</IF COLLECTION_HANDLE>
-		<IF COLLECTION_ARRAYLIST>
-			&	arg<COUNTER_1_VALUE><,>
-		</IF COLLECTION_ARRAYLIST>
-	<ELSE>
-			&	arg<COUNTER_1_VALUE><,>
-	</IF COLLECTION>
-</PARAMETER_LOOP>			
-			& )
-
+			<IF SUBROUTINE>xcall <ELSE>returnValue = %</IF SUBROUTINE><METHOD_ROUTINE>(<COUNTER_1_RESET><PARAMETER_LOOP><COUNTER_1_INCREMENT><IF COLLECTION><IF COLLECTION_ARRAY>^m(<IF STRUCTURE>str<ParameterStructureNoplural><ELSE>strFake(1:<PARAMETER_SIZE>)</IF STRUCTURE>,arg<COUNTER_1_VALUE>Handle)<,></IF COLLECTION_ARRAY><IF COLLECTION_HANDLE>arg<COUNTER_1_VALUE>Handle<,></IF COLLECTION_HANDLE><IF COLLECTION_ARRAYLIST>arg<COUNTER_1_VALUE><,></IF COLLECTION_ARRAYLIST><ELSE>arg<COUNTER_1_VALUE><,></IF COLLECTION></PARAMETER_LOOP>)
 ;//
 ;//=========================================================================================================================
 ;// Process the returned data
 ;//
-			;Process any returned data
-
 <COUNTER_1_RESET>
 <PARAMETER_LOOP>
-	<COUNTER_1_INCREMENT>
 	<IF OUT_OR_INOUT>
-			;TODO: Need to return parameter <COUNTER_1_VALUE>
+		<COUNTER_1_INCREMENT>
 	</IF OUT_OR_INOUT>
 </PARAMETER_LOOP>
+;//
 
+			;;------------------------------------------------------------
+			;Process outbound arguments
+
+<IF COUNTER_1>
+	<COUNTER_1_RESET>
+	<PARAMETER_LOOP>
+		<COUNTER_1_INCREMENT>
+		<IF OUT_OR_INOUT>
+			;TODO: Need to return parameter <COUNTER_1_VALUE> (<PARAMETER_REQUIRED> <PARAMETER_DIRECTION> <PARAMETER_NAME> <IF COLLECTION_ARRAY>[*]</IF COLLECTION_ARRAY><IF COLLECTION_HANDLE>memory handle collection of </IF COLLECTION_HANDLE><IF COLLECTION_ARRAYLIST>ArrayList collection of </IF COLLECTION_ARRAYLIST><IF STRUCTURE>structure </IF STRUCTURE><IF ENUM>enum </IF ENUM><IF STRUCTURE>@<ParameterStructureNoplural><ELSE><PARAMETER_DEFINITION></IF STRUCTURE><IF DATE> <PARAMETER_DATE_FORMAT> date</IF DATE><IF TIME> <PARAMETER_DATE_FORMAT> time</IF TIME><IF REFERENCE> passed by REFERENCE</IF REFERENCE><IF VALUE> passed by VALUE</IF VALUE><IF DATATABLE> returned as DataTable</IF DATATABLE>)
+		</IF OUT_OR_INOUT>
+	</PARAMETER_LOOP>
+<ELSE>
+			;There are no outbound arguments to process
+</IF COUNTER_1>
 ;//
 ;//=========================================================================================================================
 ;// Build the JSON response
 ;//
+
+			;;------------------------------------------------------------
 			;Build the JSON response
 
 			serializer.MapOpen()
