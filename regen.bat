@@ -53,7 +53,7 @@ rem Generate model classes
 codegen -s %STRUCTURES%     -t DataObject -n %PROJECT%.Models -o %PROJECT%\Models %OPTS%
 
 rem Generate method dispatcher classes
-codegen -smc SampleXfplEnvironment\smc.xml -interface SampleXfplEnv -t DispatcherMethods MethodDispatchers -n %PROJECT% -o %PROJECT% %OPTS% -ut MODELS_NAMESPACE=%PROJECT%.Models
+codegen -smc SampleXfplEnvironment\smc.xml -interface SampleXfplEnv -t DispatcherMethods MethodDispatchers -n %PROJECT% -o %PROJECT% %OPTS% -ut MODELS_NAMESPACE=%PROJECT%.Models -define VERBOSE
 codegen -s %STRUCTURES% -ms -t DispatcherStructures -n %PROJECT% -o %PROJECT% %OPTS%
 
 endlocal

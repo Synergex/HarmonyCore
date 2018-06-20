@@ -1,5 +1,6 @@
 <CODEGEN_FILENAME><StructureNoplural>Tests.dbl</CODEGEN_FILENAME>
 <REQUIRES_USERTOKEN>SERVICES_NAMESPACE</REQUIRES_USERTOKEN>
+<REQUIRES_CODEGEN_VERSION>5.3.3</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
 ;// Title:       ODataUnitTests.tpl

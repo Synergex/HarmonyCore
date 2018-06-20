@@ -1,5 +1,6 @@
 <CODEGEN_FILENAME><StructureNoplural>MetaData.dbl</CODEGEN_FILENAME>
 <OPTIONAL_USERTOKEN>RPSDATAFILES= </OPTIONAL_USERTOKEN>
+<REQUIRES_CODEGEN_VERSION>5.3.3</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
 ;// Title:       DataObjectMetaData.tpl
@@ -76,6 +77,15 @@
 ;;*****************************************************************************
 
 import Harmony.TraditionalBridge
+
+subroutine Meta<StructureNoplural>
+	required out metadata, @DataObjectMetadataBase
+proc
+	if(<StructureNoplural>.sMetadata == ^null)
+		<StructureNoplural>.sMetadata = new <StructureNoplural>Metadata()
+	metadata = <StructureNoplural>.sMetadata
+	xreturn
+endsubroutine
 
 namespace <NAMESPACE>
 

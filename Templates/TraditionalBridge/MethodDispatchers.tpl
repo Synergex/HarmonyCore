@@ -1,5 +1,6 @@
 <CODEGEN_FILENAME>MethodDispachers.dbl</CODEGEN_FILENAME>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
+<REQUIRES_CODEGEN_VERSION>5.3.3</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
 ;// Title:       MethodDispachers.tpl
@@ -77,10 +78,18 @@
 
 import Json
 import Harmony.TraditionalBridge
+import System.Collections
 import <MODELS_NAMESPACE>
 
 namespace <NAMESPACE>
+
+	structure strFake
+		,a1
+	endstructure
 <METHOD_LOOP>
+
+	;;-------------------------------------------------------------------------
+	;;Dispatcher for method <METHOD_NAME>
 
 	public class <METHOD_ROUTINE>Dispatch extends RoutineStub
 
@@ -110,185 +119,194 @@ namespace <NAMESPACE>
 			required in serializer, @ChannelSerializer
 			required in dispatcher, @RoutineDispatcher
 			record
-				arguments, @JsonArray
-				<COUNTER_1_RESET>
-				<COUNTER_2_RESET>
-				<PARAMETER_LOOP>
-				<COUNTER_1_INCREMENT>
-				<IF STRUCTURE>
-				<COUNTER_2_INCREMENT>
-				<IF COUNTER_2_EQ_1>
-				;;Data for structure-based arguments
-				</IF COUNTER_2_EQ_1>
-				<IF COLLECTION>
-				arg<COUNTER_1_VALUE>Array, @JsonArray
+				arguments,			@JsonArray
+				argumentDefinition, @ArgumentDataDefinition
+<COUNTER_1_RESET>
+<PARAMETER_LOOP>
+	<IF DEFINED_VERBOSE>
+				;;Argument 1 (<PARAMETER_REQUIRED> <PARAMETER_DIRECTION> <PARAMETER_NAME> <IF COLLECTION_ARRAY>[*]</IF COLLECTION_ARRAY><IF COLLECTION_HANDLE>memory handle collection of </IF COLLECTION_HANDLE><IF COLLECTION_ARRAYLIST>ArrayList collection of </IF COLLECTION_ARRAYLIST><IF STRUCTURE>structure </IF STRUCTURE><IF ENUM>enum </IF ENUM><IF STRUCTURE>@<ParameterStructureNoplural><ELSE><PARAMETER_DEFINITION></IF STRUCTURE><IF DATE> <PARAMETER_DATE_FORMAT> date</IF DATE><IF TIME> <PARAMETER_DATE_FORMAT> time</IF TIME><IF REFERENCE> passed by REFERENCE</IF REFERENCE><IF VALUE> passed by VALUE</IF VALUE><IF DATATABLE> returned as DataTable</IF DATATABLE>)
+	</IF DEFINED_VERBOSE>
+	<COUNTER_1_INCREMENT>
+;//
+;//=========================================================================================================================
+;// Declare variables for arguments
+;//
+	<IF COLLECTION>
+				arg<COUNTER_1_VALUE>Array,			@JsonArray
+		<IF COLLECTION_ARRAY>
 				arg<COUNTER_1_VALUE>Handle, D_HANDLE
 				arg<COUNTER_1_VALUE>HandlePos, int
-				<IF COLLECTION_ARRAYLIST>
-				arg<COUNTER_1_VALUE>List, @ArrayList
-				</IF COLLECTION_ARRAYLIST>
-				<ELSE>
-				arg<COUNTER_1_VALUE>, @DataObjectBase
-				arg<COUNTER_1_VALUE>Data, str<ParameterStructureNoplural>
-				</IF COLLECTION>
-				</IF STRUCTURE>
-				</PARAMETER_LOOP>
-				<IF FUNCTION>
-				returnValue, <METHOD_RETURN_TYPE>
-				</IF FUNCTION>
+		</IF COLLECTION_ARRAY>
+		<IF COLLECTION_HANDLE>
+				arg<COUNTER_1_VALUE>Handle, D_HANDLE
+				arg<COUNTER_1_VALUE>HandlePos, int
+		</IF COLLECTION_HANDLE>
+		<IF COLLECTION_ARRAYLIST>
+				arg<COUNTER_1_VALUE>,				@ArrayList
+		</IF COLLECTION_ARRAYLIST>
+	<ELSE>
+		<IF STRUCTURE>
+				arg<COUNTER_1_VALUE>DataObject, @DataObjectBase
+				arg<COUNTER_1_VALUE>, str<ParameterStructureNoplural>
+		<ELSE>
+				arg<COUNTER_1_VALUE>,				<parameter_definition>
+		</IF STRUCTURE>
+	</IF COLLECTION>
+</PARAMETER_LOOP>
+;//
+;//=========================================================================================================================
+;// Declare variable for function return value
+;//
+<IF FUNCTION>
+				returnValue,		<METHOD_RETURN_TYPE>
+</IF FUNCTION>
+;//=========================================================================================================================
 			endrecord
 		proc
-
+			;;------------------------------------------------------------
 			;;Retrieve argument data
 
 			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
-
-			<COUNTER_1_RESET>
-			<COUNTER_2_RESET>
-			<PARAMETER_LOOP>
-			<COUNTER_1_INCREMENT>
-			<IF STRUCTURE>
-			<COUNTER_2_INCREMENT>
-			<IF COUNTER_2_EQ_1>
-			;;Prepare data for structure-based arguments
-
-			</IF COUNTER_2_EQ_1>
-;//Collection args
-			<IF COLLECTION>
-			arg<COUNTER_1_VALUE>Array = (@JsonArray)((@JsonObject)arguments.arrayValues[4]).GetProperty("PassedValue")
-			arg<COUNTER_1_VALUE>Handle = %mem_proc(DM_ALLOC,^size(str<ParameterStructureNoplural>)*arg<COUNTER_1_VALUE>Array.arrayValues.Count)
-			arg<COUNTER_1_VALUE>HandlePos = 1
-			</IF COLLECTION>
-			<IF COLLECTION_ARRAY>
-			dispatcher.UnwrapObjectCollection(^m(arg<COUNTER_1_VALUE>Handle),^size(str<ParameterStructureNoplural>),arg<COUNTER_1_VALUE>HandlePos,arg<COUNTER_1_VALUE>Array)
-			</IF COLLECTION_ARRAY>
-			<IF COLLECTION_HANDLE>
-			dispatcher.UnwrapObjectCollection(^m(arg<COUNTER_1_VALUE>Handle),^size(str<ParameterStructureNoplural>),arg<COUNTER_1_VALUE>HandlePos,arg<COUNTER_1_VALUE>Array)
-			</IF COLLECTION_HANDLE>
-			<IF COLLECTION_ARRAYLIST>
-			arg<COUNTER_1_VALUE>List = new ArrayList()
-			dispatcher.UnwrapObjectCollection(^m(arg<COUNTER_1_VALUE>Handle),^size(str<ParameterStructureNoplural>),arg<COUNTER_1_VALUE>HandlePos,arg<COUNTER_1_VALUE>Array,arg<COUNTER_1_VALUE>List)
-			</IF COLLECTION_ARRAYLIST>
-;//Non-collection args
-			<IF COLLECTION>
-			<ELSE>
-			;;Get the data object
-			arg<COUNTER_1_VALUE> = dispatcher.DeserializeObject((@JsonObject)arguments.arrayValues[3],m<ParameterStructureNoplural>Metadata)
-			;;Get the record from the DO
-			arg<COUNTER_1_VALUE>Data = arg<COUNTER_1_VALUE>.SynergyRecord
-			</IF COLLECTION>
-			</IF STRUCTURE>
-			</PARAMETER_LOOP>
-
-			;;Now call the method
-
-;// Call a subroutine
 ;//
-			<IF SUBROUTINE>
-			xcall <METHOD_ROUTINE>(
-			</IF SUBROUTINE>
-;//
-;// Call a function
-;//
-			<IF FUNCTION>
-			returnValue = %<METHOD_ROUTINE>(
-			</IF FUNCTION>
+;//=========================================================================================================================
+;// Assign values to argument variables
 ;//
 <COUNTER_1_RESET>
-<COUNTER_2_RESET>
 <PARAMETER_LOOP>
-<COUNTER_1_INCREMENT>
-;// arguments.arrayValues is a JSON array of JsonValue types
-;// For simple types the value is a JsonObject and we can use obj.PassedValue to get to the data.
-;// The data is always in the same format, regardless of the ultimate target type here.
-;// Code here needs to move that data into appropriate storage (with the help of dispatcher.Get???(value))
+	<IF IN_OR_INOUT>
+		<COUNTER_1_INCREMENT>
+	</IF IN_OR_INOUT>
+</PARAMETER_LOOP>
 ;//
-;//
-;//
-;//
-;//
-;//
-;//
-;//
-<IF COLLECTION>
-;//
-;// Collection parameters (Includes ARRAY, HANDLE collections and ArrayList collections, or any supported type)
-;//
-			<IF ALPHA>
-			&	<,>
-			</IF ALPHA>
-			<IF DECIMAL>
-			&	<,>
-			</IF DECIMAL>
-			<IF IMPLIED>
-			&	<,>
-			</IF IMPLIED>
-			<IF INTEGER>
-			&	<,>
-			</IF INTEGER>
-			<IF DATE>
-			&	<,>
-			</IF DATE>
-			<IF TIME>
-			&	<,>
-			</IF TIME>
-			<IF STRING>
-			&	<,>
-			</IF STRING>
-			<IF STRUCTURE>
-			<IF COLLECTION_ARRAY>
-			&	^m(str<ParameterStructureNoplural>,arg<COUNTER_1_VALUE>Handle)<,>
-			</IF COLLECTION_ARRAY>
-			<IF COLLECTION_HANDLE>
-			&	arg<COUNTER_1_VALUE>Handle<,>
-			</IF COLLECTION_HANDLE>
-			<IF COLLECTION_ARRAYLIST>
-			&	arg<COUNTER_1_VALUE>List<,>
-			</IF COLLECTION_ARRAYLIST>
-			</IF STRUCTURE>
-;//
+
+			;;------------------------------------------------------------
+			;;Process inbound arguments
+
+<IF COUNTER_1>
 <ELSE>
+			;;There are no inbound arguments to process
+</IF COUNTER_1>
 ;//
-;// Non-collection parameters
+<COUNTER_1_RESET>
+<PARAMETER_LOOP>
+	<COUNTER_1_INCREMENT>
+	<IF IN_OR_INOUT>
+	<IF COLLECTION>
 ;//
-			<IF ALPHA>
-			&	dispatcher.GetText((@JsonObject)arguments.arrayValues[<COUNTER_2_VALUE>])<,>
-			</IF ALPHA>
-			<IF DECIMAL>
-			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[<COUNTER_2_VALUE>])<,>
-			</IF DECIMAL>
-			<IF IMPLIED>
-			&	dispatcher.GetImplied((@JsonObject)arguments.arrayValues[<COUNTER_2_VALUE>])<,>
-			</IF IMPLIED>
-			<IF INTEGER>
-			&	dispatcher.GetInt((@JsonObject)arguments.arrayValues[<COUNTER_2_VALUE>])<,>
-			</IF INTEGER>
-			<IF ENUM>
-			&	dispatcher.GetInt((@JsonObject)arguments.arrayValues[<COUNTER_2_VALUE>])<,>
-			</IF ENUM>
-			<IF DATE>
-			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[<COUNTER_2_VALUE>])<,>
-			</IF DATE>
-			<IF TIME>
-			&	dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[<COUNTER_2_VALUE>])<,>
-			</IF TIME>
-			<IF HANDLE>
-			&	<,>
-			</IF HANDLE>
-			<IF BINARY_HANDLE>
-			&	<,>
-			</IF BINARY_HANDLE>
-			<IF STRING>
-			&	<,>
-			</IF STRING>
-			<IF STRUCTURE>
-			&	arg<COUNTER_1_VALUE>Data,
-			</IF STRUCTURE>
+			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>])
+			arg<COUNTER_1_VALUE>Array = (@JsonArray)((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>]).GetProperty("PassedValue")
 ;//
-</IF COLLECTION>
-<COUNTER_2_INCREMENT>
-</PARAMETER_LOOP>			
-			& )
+		<IF COLLECTION_ARRAY>
+			arg<COUNTER_1_VALUE>Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg<COUNTER_1_VALUE>Array.arrayValues.Count)
+			arg<COUNTER_1_VALUE>HandlePos = 1
+			dispatcher.UnwrapObjectCollection(^m(arg<COUNTER_1_VALUE>Handle),argumentDefinition,arg<COUNTER_1_VALUE>HandlePos,arg<COUNTER_1_VALUE>Array)
+		</IF COLLECTION_ARRAY>
+;//
+		<IF COLLECTION_HANDLE>
+			arg<COUNTER_1_VALUE>Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg<COUNTER_1_VALUE>Array.arrayValues.Count)
+			arg<COUNTER_1_VALUE>HandlePos = 1
+			dispatcher.UnwrapObjectCollection(^m(arg<COUNTER_1_VALUE>Handle),argumentDefinition,arg<COUNTER_1_VALUE>HandlePos,arg<COUNTER_1_VALUE>Array)
+		</IF COLLECTION_HANDLE>
+;//
+		<IF COLLECTION_ARRAYLIST>
+			arg<COUNTER_1_VALUE> = new ArrayList()
+			dispatcher.UnwrapObjectCollection(argumentDefinition,arg<COUNTER_1_VALUE>Array,arg<COUNTER_1_VALUE>)
+		</IF COLLECTION_ARRAYLIST>
+	<ELSE>
+;//
+		<IF ALPHA>
+			arg<COUNTER_1_VALUE> = dispatcher.GetText((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>])
+		</IF ALPHA>
+;//
+		<IF DECIMAL>
+			arg<COUNTER_1_VALUE> = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>])
+		</IF DECIMAL>
+;//
+		<IF IMPLIED>
+			arg<COUNTER_1_VALUE> = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>])
+		</IF IMPLIED>
+;//
+		<IF INTEGER>
+			arg<COUNTER_1_VALUE> = dispatcher.GetInt((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>])
+		</IF INTEGER>
+;//
+		<IF ENUM>
+			arg<COUNTER_1_VALUE> = (<PARAMETER_ENUM>)dispatcher.GetInt((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>])
+		</IF ENUM>
+;//
+		<IF DATE>
+			arg<COUNTER_1_VALUE> = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>])
+		</IF DATE>
+;//
+		<IF TIME>
+			arg<COUNTER_1_VALUE> = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>])
+		</IF TIME>
+;//
+		<IF HANDLE>
+			;TODO: Template needs code for HANDLE arguments!
+			arg<COUNTER_1_VALUE> = 
+		</IF HANDLE>
+;//
+		<IF BINARY_HANDLE>
+			;TODO: Template needs code for BINARY HANDLE arguments!
+			arg<COUNTER_1_VALUE> =
+		</IF BINARY_HANDLE>
+;//
+		<IF STRING>
+			arg<COUNTER_1_VALUE> = dispatcher.GetText((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>])
+		</IF STRING>
+;//
+		<IF STRUCTURE>
+			;;Structure argument. Get the data object then get the record from it
+			arg<COUNTER_1_VALUE>DataObject = dispatcher.DeserializeObject((@JsonObject)arguments.arrayValues[3],m<ParameterStructureNoplural>Metadata)
+			arg<COUNTER_1_VALUE> = arg<COUNTER_1_VALUE>DataObject.SynergyRecord
+		</IF STRUCTURE>
+;//
+	</IF COLLECTION>
+	</IF IN_OR_INOUT>
+</PARAMETER_LOOP>
+;//
+;//=========================================================================================================================
+;// Make the method call
+;//
+
+			;;------------------------------------------------------------
+			;; Call the underlying routine
+
+			<IF SUBROUTINE>xcall <ELSE>returnValue = %</IF SUBROUTINE><METHOD_ROUTINE>(<COUNTER_1_RESET><PARAMETER_LOOP><COUNTER_1_INCREMENT><IF COLLECTION><IF COLLECTION_ARRAY>^m(<IF STRUCTURE>str<ParameterStructureNoplural><ELSE>strFake(1:<PARAMETER_SIZE>)</IF STRUCTURE>,arg<COUNTER_1_VALUE>Handle)<,></IF COLLECTION_ARRAY><IF COLLECTION_HANDLE>arg<COUNTER_1_VALUE>Handle<,></IF COLLECTION_HANDLE><IF COLLECTION_ARRAYLIST>arg<COUNTER_1_VALUE><,></IF COLLECTION_ARRAYLIST><ELSE>arg<COUNTER_1_VALUE><,></IF COLLECTION></PARAMETER_LOOP>)
+;//
+;//=========================================================================================================================
+;// Process the returned data
+;//
+<COUNTER_1_RESET>
+<PARAMETER_LOOP>
+	<IF OUT_OR_INOUT>
+		<COUNTER_1_INCREMENT>
+	</IF OUT_OR_INOUT>
+</PARAMETER_LOOP>
+;//
+
+			;;------------------------------------------------------------
+			;Process outbound arguments
+
+<IF COUNTER_1>
+	<COUNTER_1_RESET>
+	<PARAMETER_LOOP>
+		<COUNTER_1_INCREMENT>
+		<IF OUT_OR_INOUT>
+			;TODO: Need to return parameter <COUNTER_1_VALUE> (<PARAMETER_REQUIRED> <PARAMETER_DIRECTION> <PARAMETER_NAME> <IF COLLECTION_ARRAY>[*]</IF COLLECTION_ARRAY><IF COLLECTION_HANDLE>memory handle collection of </IF COLLECTION_HANDLE><IF COLLECTION_ARRAYLIST>ArrayList collection of </IF COLLECTION_ARRAYLIST><IF STRUCTURE>structure </IF STRUCTURE><IF ENUM>enum </IF ENUM><IF STRUCTURE>@<ParameterStructureNoplural><ELSE><PARAMETER_DEFINITION></IF STRUCTURE><IF DATE> <PARAMETER_DATE_FORMAT> date</IF DATE><IF TIME> <PARAMETER_DATE_FORMAT> time</IF TIME><IF REFERENCE> passed by REFERENCE</IF REFERENCE><IF VALUE> passed by VALUE</IF VALUE><IF DATATABLE> returned as DataTable</IF DATATABLE>)
+		</IF OUT_OR_INOUT>
+	</PARAMETER_LOOP>
+<ELSE>
+			;There are no outbound arguments to process
+</IF COUNTER_1>
+;//
+;//=========================================================================================================================
+;// Build the JSON response
+;//
+
+			;;------------------------------------------------------------
+			;Build the JSON response
 
 			serializer.MapOpen()
 			serializer.String("IsError")
@@ -301,6 +319,6 @@ namespace <NAMESPACE>
 		endmethod
 
 	endclass
-	</METHOD_LOOP>
+</METHOD_LOOP>
 
 endnamespace

@@ -1,4 +1,5 @@
 <CODEGEN_FILENAME>DispatcherStructures.dbl</CODEGEN_FILENAME>
+<REQUIRES_CODEGEN_VERSION>5.3.3</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
 ;// Title:       DispatcherMethods.tpl
