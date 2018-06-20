@@ -82,11 +82,13 @@ import <MODELS_NAMESPACE>
 
 namespace <NAMESPACE>
 
-structure strFake
-	,a1
-endstructure
-
+	structure strFake
+		,a1
+	endstructure
 <METHOD_LOOP>
+
+	;;-------------------------------------------------------------------------
+	;;Dispatcher for method <METHOD_NAME>
 
 	public class <METHOD_ROUTINE>Dispatch extends RoutineStub
 
@@ -116,16 +118,17 @@ endstructure
 			required in serializer, @ChannelSerializer
 			required in dispatcher, @RoutineDispatcher
 			record
-				arguments, @JsonArray
+				arguments,			@JsonArray
 				argumentDefinition, @ArgumentDataDefinition
 <COUNTER_1_RESET>
 <PARAMETER_LOOP>
 	<COUNTER_1_INCREMENT>
 ;//
-;//Now the variables for argument data
+;//=========================================================================================================================
+;// Declare variables for arguments
 ;//
 	<IF COLLECTION>
-				arg<COUNTER_1_VALUE>Array, @JsonArray
+				arg<COUNTER_1_VALUE>Array,			@JsonArray
 		<IF COLLECTION_ARRAY>
 				arg<COUNTER_1_VALUE>Handle, D_HANDLE
 				arg<COUNTER_1_VALUE>HandlePos, int
@@ -135,146 +138,170 @@ endstructure
 				arg<COUNTER_1_VALUE>HandlePos, int
 		</IF COLLECTION_HANDLE>
 		<IF COLLECTION_ARRAYLIST>
-				arg<COUNTER_1_VALUE>, @ArrayList
+				arg<COUNTER_1_VALUE>,				@ArrayList
 		</IF COLLECTION_ARRAYLIST>
 	<ELSE>
 		<IF STRUCTURE>
 				arg<COUNTER_1_VALUE>DataObject, @DataObjectBase
 				arg<COUNTER_1_VALUE>, str<ParameterStructureNoplural>
 		<ELSE>
-				arg<COUNTER_1_VALUE>, <parameter_definition>
+				arg<COUNTER_1_VALUE>,				<parameter_definition>
 		</IF STRUCTURE>
 	</IF COLLECTION>
 </PARAMETER_LOOP>
 ;//
-;//Function return value
+;//=========================================================================================================================
+;// Declare variable for function return value
 ;//
 <IF FUNCTION>
-
-				;Function return value
-				returnValue, <METHOD_RETURN_TYPE>
+				returnValue,		<METHOD_RETURN_TYPE>
 </IF FUNCTION>
+;//=========================================================================================================================
 			endrecord
 		proc
-
 			;;Retrieve argument data
-
 			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+
 ;//
-;//Populate argument variables
+;//=========================================================================================================================
+;// Assign values to argument variables
 ;//
-	<COUNTER_1_RESET>
-	<PARAMETER_LOOP>
-		<COUNTER_1_INCREMENT>
-		<IF COLLECTION>
+			;;Populate variables for IN and INOUT arguments
+<COUNTER_1_RESET>
+<PARAMETER_LOOP>
+	<COUNTER_1_INCREMENT>
+	<IF IN_OR_INOUT>
+	<IF COLLECTION>
 
 			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>])
-
 			arg<COUNTER_1_VALUE>Array = (@JsonArray)((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>]).GetProperty("PassedValue")
 ;//
-			<IF COLLECTION_ARRAY>
+		<IF COLLECTION_ARRAY>
 			arg<COUNTER_1_VALUE>Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg<COUNTER_1_VALUE>Array.arrayValues.Count)
 			arg<COUNTER_1_VALUE>HandlePos = 1
 			dispatcher.UnwrapObjectCollection(^m(arg<COUNTER_1_VALUE>Handle),argumentDefinition,arg<COUNTER_1_VALUE>HandlePos,arg<COUNTER_1_VALUE>Array)
-			</IF COLLECTION_ARRAY>
+		</IF COLLECTION_ARRAY>
 ;//
-			<IF COLLECTION_HANDLE>
+		<IF COLLECTION_HANDLE>
 			arg<COUNTER_1_VALUE>Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg<COUNTER_1_VALUE>Array.arrayValues.Count)
 			arg<COUNTER_1_VALUE>HandlePos = 1
 			dispatcher.UnwrapObjectCollection(^m(arg<COUNTER_1_VALUE>Handle),argumentDefinition,arg<COUNTER_1_VALUE>HandlePos,arg<COUNTER_1_VALUE>Array)
-			</IF COLLECTION_HANDLE>
+		</IF COLLECTION_HANDLE>
 ;//
-			<IF COLLECTION_ARRAYLIST>
+		<IF COLLECTION_ARRAYLIST>
 			arg<COUNTER_1_VALUE> = new ArrayList()
 			dispatcher.UnwrapObjectCollection(argumentDefinition,arg<COUNTER_1_VALUE>Array,arg<COUNTER_1_VALUE>)
-			</IF COLLECTION_ARRAYLIST>
+		</IF COLLECTION_ARRAYLIST>
+	<ELSE>
 
-		<ELSE>
-;//Alpha
 		<IF ALPHA>
 			arg<COUNTER_1_VALUE> = dispatcher.GetText((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>])
 		</IF ALPHA>
-;//Decimal
+;//
 		<IF DECIMAL>
 			arg<COUNTER_1_VALUE> = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>])
 		</IF DECIMAL>
-;//Implied
+;//
 		<IF IMPLIED>
 			arg<COUNTER_1_VALUE> = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>])
 		</IF IMPLIED>
-;//Integer
+;//
 		<IF INTEGER>
 			arg<COUNTER_1_VALUE> = dispatcher.GetInt((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>])
 		</IF INTEGER>
-;//Enum
+;//
 		<IF ENUM>
 			arg<COUNTER_1_VALUE> = (<PARAMETER_ENUM>)dispatcher.GetInt((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>])
 		</IF ENUM>
-;//Date
+;//
 		<IF DATE>
 			arg<COUNTER_1_VALUE> = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>])
 		</IF DATE>
-;//Time
+;//
 		<IF TIME>
 			arg<COUNTER_1_VALUE> = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>])
 		</IF TIME>
-;//Handle
+;//
 		<IF HANDLE>
+			;TODO: Template needs code for HANDLE arguments!
 			arg<COUNTER_1_VALUE> = 
 		</IF HANDLE>
-;//Binary handle
+;//
 		<IF BINARY_HANDLE>
+			;TODO: Template needs code for BINARY HANDLE arguments!
 			arg<COUNTER_1_VALUE> =
 		</IF BINARY_HANDLE>
-;//String
+;//
 		<IF STRING>
 			arg<COUNTER_1_VALUE> = dispatcher.GetText((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>])
 		</IF STRING>
-;//Structrure
+;//
 		<IF STRUCTURE>
-			;;Get the data object
+			;; Structure: get the data object
 			arg<COUNTER_1_VALUE>DataObject = dispatcher.DeserializeObject((@JsonObject)arguments.arrayValues[3],m<ParameterStructureNoplural>Metadata)
-			;;Get the record from the DO
+			;; Then get the record from the data object
 			arg<COUNTER_1_VALUE> = arg<COUNTER_1_VALUE>DataObject.SynergyRecord
 		</IF STRUCTURE>
-
-		</IF COLLECTION>
-	</PARAMETER_LOOP>
-
-			;;Now call the method
-
-;// Call a subroutine
 ;//
+	</IF COLLECTION>
+	</IF IN_OR_INOUT>
+</PARAMETER_LOOP>
+;//
+;//=========================================================================================================================
+;// Make the method call
+;//
+
+			;; Call the method
+
 			<IF SUBROUTINE>
 			xcall <METHOD_ROUTINE>(
 			</IF SUBROUTINE>
-;//
-;// Call a function
 ;//
 			<IF FUNCTION>
 			returnValue = %<METHOD_ROUTINE>(
 			</IF FUNCTION>
 ;//
+;//=========================================================================================================================
+;// Pass the arguments
+;//
 <COUNTER_1_RESET>
 <PARAMETER_LOOP>
-<COUNTER_1_INCREMENT>
-<IF COLLECTION>
-;// Collection parameters
-			<IF COLLECTION_ARRAY>
+	<COUNTER_1_INCREMENT>
+	<IF COLLECTION>
+		<IF COLLECTION_ARRAY>
 			&	^m(<IF STRUCTURE>str<ParameterStructureNoplural><ELSE>strFake(1:<PARAMETER_SIZE>)</IF STRUCTURE>,arg<COUNTER_1_VALUE>Handle)<,>
-			</IF COLLECTION_ARRAY>
-			<IF COLLECTION_HANDLE>
+		</IF COLLECTION_ARRAY>
+		<IF COLLECTION_HANDLE>
 			&	arg<COUNTER_1_VALUE>Handle<,>
-			</IF COLLECTION_HANDLE>
-			<IF COLLECTION_ARRAYLIST>
+		</IF COLLECTION_HANDLE>
+		<IF COLLECTION_ARRAYLIST>
 			&	arg<COUNTER_1_VALUE><,>
-			</IF COLLECTION_ARRAYLIST>
-<ELSE>
-;// Non-collection parameters
+		</IF COLLECTION_ARRAYLIST>
+	<ELSE>
 			&	arg<COUNTER_1_VALUE><,>
-</IF COLLECTION>
+	</IF COLLECTION>
 </PARAMETER_LOOP>			
 			& )
+
+;//
+;//=========================================================================================================================
+;// Process the returned data
+;//
+			;Process any returned data
+
+<COUNTER_1_RESET>
+<PARAMETER_LOOP>
+	<COUNTER_1_INCREMENT>
+	<IF OUT_OR_INOUT>
+			;TODO: Need to return parameter <COUNTER_1_VALUE>
+	</IF OUT_OR_INOUT>
+</PARAMETER_LOOP>
+
+;//
+;//=========================================================================================================================
+;// Build the JSON response
+;//
+			;Build the JSON response
 
 			serializer.MapOpen()
 			serializer.String("IsError")
@@ -287,6 +314,6 @@ endstructure
 		endmethod
 
 	endclass
-	</METHOD_LOOP>
+</METHOD_LOOP>
 
 endnamespace
