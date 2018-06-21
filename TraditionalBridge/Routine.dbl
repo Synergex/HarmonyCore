@@ -1,4 +1,4 @@
-import System.Collections
+
 import System.Collections
 
 namespace Harmony.TraditionalBridge
@@ -334,7 +334,9 @@ namespace Harmony.TraditionalBridge
 			writes(loggingChannel, "reading callblock: ")
 			writes(loggingChannel, %string(frameHeader) + " callblock bytes expected")
 			frameDataHandle = %mem_proc(DM_ALLOC, frameHeader)
-again,		do gets(ttChannel, ^m(frameDataHandle), wait:100) [$err_timout=again] 
+;TODO: the wait:100 is in the wrong argument position and should be wait:q_wait, but when fixed still doesn't work.
+;Roger says this needs to be done a different way (in C)!
+again,		do gets(ttChannel, ^m(frameDataHandle), wait:100) [$ERR_TIMOUT=again]
 			until %rdlen(ttChannel) == frameHeader
 
 			writes(loggingChannel, %string(%rdlen(ttChannel)) + ":" + %string(%rdtrm(ttChannel)))
@@ -380,7 +382,9 @@ again,		do gets(ttChannel, ^m(frameDataHandle), wait:100) [$err_timout=again]
 				running = true
 				while(running)
 				begin
-again,				do gets(ttChannel, aData, wait:100) [$err_timout=again] 
+;TODO: the wait:100 is in the wrong argument position and should be wait:q_wait, but when fixed still doesn't work.
+;Roger says this needs to be done a different way (in C)!
+again,				do gets(ttChannel, aData, wait:100)  [$ERR_TIMOUT=again]
 					until %rdlen(ttChannel) == 10
 					puts(ttChannel, aData + %char(13) + %char(10))
 					running = ReadCallBlock(ttChannel, (int)frameHeader)
