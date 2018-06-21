@@ -334,7 +334,7 @@ namespace Harmony.TraditionalBridge
 			writes(loggingChannel, "reading callblock: ")
 			writes(loggingChannel, %string(frameHeader) + " callblock bytes expected")
 			frameDataHandle = %mem_proc(DM_ALLOC, frameHeader)
-			do gets(ttChannel, ^m(frameDataHandle), wait:-1)
+again,		do gets(ttChannel, ^m(frameDataHandle), wait:100) [$err_timout=again] 
 			until %rdlen(ttChannel) == frameHeader
 
 			writes(loggingChannel, %string(%rdlen(ttChannel)) + ":" + %string(%rdtrm(ttChannel)))
@@ -380,7 +380,7 @@ namespace Harmony.TraditionalBridge
 				running = true
 				while(running)
 				begin
-					do gets(ttChannel, aData, wait:-1)
+again,				do gets(ttChannel, aData, wait:100) [$err_timout=again] 
 					until %rdlen(ttChannel) == 10
 					puts(ttChannel, aData + %char(13) + %char(10))
 					running = ReadCallBlock(ttChannel, (int)frameHeader)
