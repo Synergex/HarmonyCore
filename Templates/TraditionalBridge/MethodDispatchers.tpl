@@ -123,23 +123,23 @@ namespace <NAMESPACE>
 				argumentDefinition, @ArgumentDataDefinition
 <COUNTER_1_RESET>
 <PARAMETER_LOOP>
-	<IF DEFINED_VERBOSE>
-				;;Argument 1 (<PARAMETER_REQUIRED> <PARAMETER_DIRECTION> <PARAMETER_NAME> <IF COLLECTION_ARRAY>[*]</IF COLLECTION_ARRAY><IF COLLECTION_HANDLE>memory handle collection of </IF COLLECTION_HANDLE><IF COLLECTION_ARRAYLIST>ArrayList collection of </IF COLLECTION_ARRAYLIST><IF STRUCTURE>structure </IF STRUCTURE><IF ENUM>enum </IF ENUM><IF STRUCTURE>@<ParameterStructureNoplural><ELSE><PARAMETER_DEFINITION></IF STRUCTURE><IF DATE> <PARAMETER_DATE_FORMAT> date</IF DATE><IF TIME> <PARAMETER_DATE_FORMAT> time</IF TIME><IF REFERENCE> passed by REFERENCE</IF REFERENCE><IF VALUE> passed by VALUE</IF VALUE><IF DATATABLE> returned as DataTable</IF DATATABLE>)
-	</IF DEFINED_VERBOSE>
 	<COUNTER_1_INCREMENT>
 ;//
 ;//=========================================================================================================================
 ;// Declare variables for arguments
 ;//
+				;;Argument <COUNTER_1_VALUE> (<PARAMETER_REQUIRED> <PARAMETER_DIRECTION> <PARAMETER_NAME> <IF COLLECTION_ARRAY>[*]</IF COLLECTION_ARRAY><IF COLLECTION_HANDLE>memory handle collection of </IF COLLECTION_HANDLE><IF COLLECTION_ARRAYLIST>ArrayList collection of </IF COLLECTION_ARRAYLIST><IF STRUCTURE>structure </IF STRUCTURE><IF ENUM>enum </IF ENUM><IF STRUCTURE>@<ParameterStructureNoplural><ELSE><PARAMETER_DEFINITION></IF STRUCTURE><IF DATE> <PARAMETER_DATE_FORMAT> date</IF DATE><IF TIME> <PARAMETER_DATE_FORMAT> time</IF TIME><IF REFERENCE> passed by REFERENCE</IF REFERENCE><IF VALUE> passed by VALUE</IF VALUE><IF DATATABLE> returned as DataTable</IF DATATABLE>)
 	<IF COLLECTION>
+		<IF IN_OR_INOUT>
 				arg<COUNTER_1_VALUE>Array,			@JsonArray
+		</IF IN_OR_INOUT>
 		<IF COLLECTION_ARRAY>
-				arg<COUNTER_1_VALUE>Handle, D_HANDLE
-				arg<COUNTER_1_VALUE>HandlePos, int
+				arg<COUNTER_1_VALUE>Handle,			D_HANDLE
+				arg<COUNTER_1_VALUE>HandlePos,		int
 		</IF COLLECTION_ARRAY>
 		<IF COLLECTION_HANDLE>
-				arg<COUNTER_1_VALUE>Handle, D_HANDLE
-				arg<COUNTER_1_VALUE>HandlePos, int
+				arg<COUNTER_1_VALUE>Handle,			D_HANDLE
+				arg<COUNTER_1_VALUE>HandlePos,		int
 		</IF COLLECTION_HANDLE>
 		<IF COLLECTION_ARRAYLIST>
 				arg<COUNTER_1_VALUE>,				@ArrayList
@@ -188,6 +188,8 @@ namespace <NAMESPACE>
 <PARAMETER_LOOP>
 	<COUNTER_1_INCREMENT>
 	<IF IN_OR_INOUT>
+
+			;;Argument 1 (<PARAMETER_REQUIRED> <PARAMETER_DIRECTION> <PARAMETER_NAME> <IF COLLECTION_ARRAY>[*]</IF COLLECTION_ARRAY><IF COLLECTION_HANDLE>memory handle collection of </IF COLLECTION_HANDLE><IF COLLECTION_ARRAYLIST>ArrayList collection of </IF COLLECTION_ARRAYLIST><IF STRUCTURE>structure </IF STRUCTURE><IF ENUM>enum </IF ENUM><IF STRUCTURE>@<ParameterStructureNoplural><ELSE><PARAMETER_DEFINITION></IF STRUCTURE><IF DATE> <PARAMETER_DATE_FORMAT> date</IF DATE><IF TIME> <PARAMETER_DATE_FORMAT> time</IF TIME><IF REFERENCE> passed by REFERENCE</IF REFERENCE><IF VALUE> passed by VALUE</IF VALUE><IF DATATABLE> returned as DataTable</IF DATATABLE>)
 	<IF COLLECTION>
 ;//
 			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>])
@@ -273,37 +275,11 @@ namespace <NAMESPACE>
 			<IF SUBROUTINE>xcall <ELSE>returnValue = %</IF SUBROUTINE><METHOD_ROUTINE>(<COUNTER_1_RESET><PARAMETER_LOOP><COUNTER_1_INCREMENT><IF COLLECTION><IF COLLECTION_ARRAY>^m(<IF STRUCTURE>str<ParameterStructureNoplural><ELSE>strFake(1:<PARAMETER_SIZE>)</IF STRUCTURE>,arg<COUNTER_1_VALUE>Handle)<,></IF COLLECTION_ARRAY><IF COLLECTION_HANDLE>arg<COUNTER_1_VALUE>Handle<,></IF COLLECTION_HANDLE><IF COLLECTION_ARRAYLIST>arg<COUNTER_1_VALUE><,></IF COLLECTION_ARRAYLIST><ELSE>arg<COUNTER_1_VALUE><,></IF COLLECTION></PARAMETER_LOOP>)
 ;//
 ;//=========================================================================================================================
-;// Process the returned data
-;//
-<COUNTER_1_RESET>
-<PARAMETER_LOOP>
-	<IF OUT_OR_INOUT>
-		<COUNTER_1_INCREMENT>
-	</IF OUT_OR_INOUT>
-</PARAMETER_LOOP>
-;//
-
-			;;------------------------------------------------------------
-			;Process outbound arguments
-
-<IF COUNTER_1>
-	<COUNTER_1_RESET>
-	<PARAMETER_LOOP>
-		<COUNTER_1_INCREMENT>
-		<IF OUT_OR_INOUT>
-			;TODO: Need to return parameter <COUNTER_1_VALUE> (<PARAMETER_REQUIRED> <PARAMETER_DIRECTION> <PARAMETER_NAME> <IF COLLECTION_ARRAY>[*]</IF COLLECTION_ARRAY><IF COLLECTION_HANDLE>memory handle collection of </IF COLLECTION_HANDLE><IF COLLECTION_ARRAYLIST>ArrayList collection of </IF COLLECTION_ARRAYLIST><IF STRUCTURE>structure </IF STRUCTURE><IF ENUM>enum </IF ENUM><IF STRUCTURE>@<ParameterStructureNoplural><ELSE><PARAMETER_DEFINITION></IF STRUCTURE><IF DATE> <PARAMETER_DATE_FORMAT> date</IF DATE><IF TIME> <PARAMETER_DATE_FORMAT> time</IF TIME><IF REFERENCE> passed by REFERENCE</IF REFERENCE><IF VALUE> passed by VALUE</IF VALUE><IF DATATABLE> returned as DataTable</IF DATATABLE>)
-		</IF OUT_OR_INOUT>
-	</PARAMETER_LOOP>
-<ELSE>
-			;There are no outbound arguments to process
-</IF COUNTER_1>
-;//
-;//=========================================================================================================================
 ;// Build the JSON response
 ;//
 
 			;;------------------------------------------------------------
-			;Build the JSON response
+			;;Build the JSON response
 
 			serializer.MapOpen()
 			serializer.String("IsError")
@@ -337,6 +313,7 @@ namespace <NAMESPACE>
 <COUNTER_1_INCREMENT>
 <IF OUT_OR_INOUT>
 
+			;;--------------------------------------------------------------------------------
 			;;Argument <COUNTER_1_VALUE> (<PARAMETER_REQUIRED> <PARAMETER_DIRECTION> <PARAMETER_NAME> <IF COLLECTION_ARRAY>[*]</IF COLLECTION_ARRAY><IF COLLECTION_HANDLE>memory handle collection of </IF COLLECTION_HANDLE><IF COLLECTION_ARRAYLIST>ArrayList collection of </IF COLLECTION_ARRAYLIST><IF STRUCTURE>structure </IF STRUCTURE><IF ENUM>enum </IF ENUM><IF STRUCTURE>@<ParameterStructureNoplural><ELSE><PARAMETER_DEFINITION></IF STRUCTURE><IF DATE> <PARAMETER_DATE_FORMAT> date</IF DATE><IF TIME> <PARAMETER_DATE_FORMAT> time</IF TIME><IF REFERENCE> passed by REFERENCE</IF REFERENCE><IF VALUE> passed by VALUE</IF VALUE><IF DATATABLE> returned as DataTable</IF DATATABLE>)
 
 			serializer.MapOpen()
@@ -348,7 +325,11 @@ namespace <NAMESPACE>
 ;//
 	<IF ALPHA>
 		<IF COLLECTION>
-			;TODO: Need to add support for collection of alpha
+			serializer.Integer(FieldDataType.AlphaArrayField)
+			serializer.String("PassedValue")
+			serializer.ArrayOpen()
+
+			serializer.ArrayClose()
 		<ELSE>
 			serializer.Integer(FieldDataType.AlphaField)
 			serializer.String("PassedValue")
@@ -464,7 +445,6 @@ namespace <NAMESPACE>
 ;//
 		<IF COLLECTION_ARRAYLIST>
 			begin
-				;TODO: THIS IS NOT WORKING!!!
 				data this<ParameterStructureNoplural>, @str<ParameterStructureNoplural>
 				foreach this<ParameterStructureNoplural> in arg<COUNTER_1_VALUE>
 					new <ParameterStructureNoplural>((str<ParameterStructureNoplural>)this<ParameterStructureNoplural>).Serialize(serializer)
@@ -490,12 +470,15 @@ namespace <NAMESPACE>
 </IF OUT_OR_INOUT>
 </PARAMETER_LOOP>
 
-			;;All done!
-
+			;;Terminate the "ReturnParameters" array
 			serializer.ArrayClose()
+
+			;;Terminate the "Result" object
 			serializer.MapClose()
 
+			;;Terminate the response object
 			begin
+				;;Structured this way to assist with debugging
 				data protocolMessage, string
 				serializer.MapClose(protocolMessage)
 				nop
