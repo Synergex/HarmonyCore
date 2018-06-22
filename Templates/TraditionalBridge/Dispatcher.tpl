@@ -1,6 +1,40 @@
+<CODEGEN_FILENAME><INTERFACE_NAME>Dispatcher.dbl</CODEGEN_FILENAME>
+<REQUIRES_CODEGEN_VERSION>5.3.3</REQUIRES_CODEGEN_VERSION>
+;//****************************************************************************
+;//
+;// Title:       Dispatcher.tpl
+;//
+;// Type:        CodeGen Template
+;//
+;// Description: Creates a class that declares dispacher classes for exposed methods
+;//
+;// Copyright (c) 2018, Synergex International, Inc. All rights reserved.
+;//
+;// Redistribution and use in source and binary forms, with or without
+;// modification, are permitted provided that the following conditions are met:
+;//
+;// * Redistributions of source code must retain the above copyright notice,
+;//   this list of conditions and the following disclaimer.
+;//
+;// * Redistributions in binary form must reproduce the above copyright notice,
+;//   this list of conditions and the following disclaimer in the documentation
+;//   and/or other materials provided with the distribution.
+;//
+;// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+;// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+;// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+;// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+;// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+;// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+;// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+;// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+;// POSSIBILITY OF SUCH DAMAGE.
+;//
 ;;*****************************************************************************
 ;;
-;; Title:       DispatcherMethods.dbl
+;; Title:       <INTERFACE_NAME>Dispatcher.dbl
 ;;
 ;; Type:        Class
 ;;
@@ -43,21 +77,16 @@
 
 import Harmony.TraditionalBridge
 
-namespace TraditionalBridge.Test
+namespace <NAMESPACE>
 
-	public partial class Dispatcher extends RoutineDispatcher
+	public partial class <INTERFACE_NAME>Dispatcher extends RoutineDispatcher
 
-		public method Dispatcher
+		public method <INTERFACE_NAME>Dispatcher
 		proc
 			;;All of the routine dispatchers to the string lookup for rapid dispatch when we have a large number of routines
-			mDispatchStubs.Add("get_all_customers", new get_all_customersDispatch())
-			mDispatchStubs.Add("get_customers_array", new get_customers_arrayDispatch())
-			mDispatchStubs.Add("get_all_orders", new get_all_ordersDispatch())
-			mDispatchStubs.Add("get_all_plants", new get_all_plantsDispatch())
-			mDispatchStubs.Add("get_all_vendors", new get_all_vendorsDispatch())
-			mDispatchStubs.Add("simple_parameters", new simple_parametersDispatch())
-			mDispatchStubs.Add("array_parameters", new array_parametersDispatch())
-			mDispatchStubs.Add("arraylist_parameters", new arraylist_parametersDispatch())
+			<METHOD_LOOP>
+			mDispatchStubs.Add("<METHOD_ROUTINE>", new <METHOD_ROUTINE>Dispatch())
+			</METHOD_LOOP>
 
 			;;Initialize all data object metadata
 			this.initMetaData()

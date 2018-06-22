@@ -1,30 +1,46 @@
 
+import Json
 import System.Collections
 
 namespace Harmony.TraditionalBridge
-	abstract class RoutineDispatcher
+
+	;;; <summary>
+	;;; 
+	;;; </summary>
+	public abstract class RoutineDispatcher
+
 		protected loggingChannel, i4
 		protected mDispatchStubs, @StringDictionary
+
+		;;; <summary>
+		;;; Constructor
+		;;; </summary>
 		public method RoutineDispatcher
 		proc
 			mDispatchStubs = new StringDictionary()
-			loggingChannel = 0
-			open(loggingChannel, O, "dispatcher.log")
+			open(loggingChannel=0, O, "dispatcher.log")
 		endmethod
 
+		;;; <summary>
+		;;; Deserialize a JSON object to a data object
+		;;; </summary>
+		;;; <param name="obj">JSON object to deserialize</param>
+		;;; <param name="targetType">Instance of a data object metadata class indicating the type to deserialize to</param>
+		;;; <returns>A data object of the appropriate type</returns>
 		public virtual method DeserializeObject, @DataObjectBase
-			obj, @Json.JsonObject
+			obj, @JsonObject
 			targetType, @DataObjectMetadataBase
 			record
-				passedValue, @Json.JsonObject
+				passedValue, @JsonObject
 				objectMetadata, @DataObjectMetadataBase
-				objectType, @Json.JsonText
+				objectType, @JsonText
+			endrecord
 		proc
-			passedValue = (@Json.JsonObject)obj.GetProperty("PassedValue")
+			passedValue = (@JsonObject)obj.GetProperty("PassedValue")
 			objectMetadata = targetType
 			if(objectMetadata == ^null)
 			begin
-				objectType = (@Json.JsonText)passedValue.GetProperty("Type")
+				objectType = (@JsonText)passedValue.GetProperty("Type")
 				objectMetadata = DataObjectMetadataBase.LookupType(objectType.Value)
 			end
 			mreturn objectMetadata.Deserialize(passedValue)
@@ -32,27 +48,40 @@ namespace Harmony.TraditionalBridge
 
 		;;Protocol note: this is another place where we need to decide how much we can ommit from the contents of collections
 		;;this is currently assuming we are only working with DataObjectBase
+
+		;;; <summary>
+		;;; Deserializes a JSON object containing a collection of serialized data objects into an ArrayList of data objects.
+		;;; Each of the data objects in the collection could be of a different type.
+		;;; </summary>
+		;;; <param name="obj">JSON object to deserialize</param>
+		;;; <returns>ArrayList containing data objects.</returns>
 		public virtual method DeserializeObjectCollection, @ArrayList
-			obj, @Json.JsonObject
+			obj, @JsonObject
 			record
-				passedValue, @Json.JsonArray
-				elementValue, @Json.JsonObject
+				passedValue, @JsonArray
+				elementValue, @JsonObject
 				objectMetadata, @DataObjectMetadataBase
-				objectType, @Json.JsonText
+				objectType, @JsonText
 				result, @ArrayList
+			endrecord
 		proc
 			result = new ArrayList()
-			passedValue = (@Json.JsonArray)obj.GetProperty("PassedValue")
+			passedValue = (@JsonArray)obj.GetProperty("PassedValue")
 			foreach elementValue in passedValue.arrayValues
 			begin
 				;;TODO might be able to skip the lookup if the typename hasnt changed
-				objectType = (@Json.JsonText)elementValue.GetProperty("Type")
+				objectType = (@JsonText)elementValue.GetProperty("Type")
 				objectMetadata = DataObjectMetadataBase.LookupType(objectType.Value)
 				result.Add(objectMetadata.Deserialize(elementValue))
 			end
 			mreturn result
 		endmethod
 
+		;;; <summary>
+		;;; 
+		;;; </summary>
+		;;; <param name="memoryHandle"></param>
+		;;; <param name="collection"></param>
 		public method UnwrapObjectCollection, void
 			memoryHandle, i4
 			collection, @ArrayList
@@ -61,40 +90,50 @@ namespace Harmony.TraditionalBridge
 		endmethod
 
 		;;this needs to take an expected type parameter of some kind so we can do basic conversions int -> decimal vs int -> int
+
+		;;; <summary>
+		;;; 
+		;;; </summary>
+		;;; <param name="buffer"></param>
+		;;; <param name="elementInfo"></param>
+		;;; <param name="bufferPosition"></param>
+		;;; <param name="collection"></param>
 		public method UnwrapObjectCollection, void
 			inout buffer, a
 			elementInfo, @ArgumentDataDefinition
 			inout bufferPosition, i
-			collection, @Json.JsonArray
+			collection, @JsonArray
 			record
-				element, @Json.JsonValue
+				element, @JsonValue
+			endrecord
 		proc
 			foreach element in collection.arrayValues
 			begin
-				if(element .is. Json.JsonObject) then
+				if(element .is. JsonObject) then
 				begin
-					data stringValue = ((@Json.JsonText)((@Json.JsonObject)element).GetProperty("Value")).Value
+					data stringValue = ((@JsonText)((@JsonObject)element).GetProperty("Value")).Value
 					buffer(bufferPosition:elementInfo.ElementSize) = stringValue
 				end
-				else if(element .is. Json.JsonText) then
+				else if(element .is. JsonText) then
 				begin
-					buffer(bufferPosition:elementInfo.ElementSize) = ((@Json.JsonText)element).Value
+					buffer(bufferPosition:elementInfo.ElementSize) = ((@JsonText)element).Value
 				end
-				else if(element .is. Json.JsonNumber) then
+				else if(element .is. JsonNumber) then
 				begin
-					buffer(bufferPosition:elementInfo.ElementSize) = ((@Json.JsonNumber)element).Value
+					buffer(bufferPosition:elementInfo.ElementSize) = ((@JsonNumber)element).Value
 				end
-				else if(element .is. Json.JsonInt) then
+				else if(element .is. JsonInt) then
 				begin
 					if(elementInfo.DataType == FieldDataType.IntegerField) then
-						buffer(bufferPosition:elementInfo.ElementSize) = ((@Json.JsonNumber)element).Value
+						buffer(bufferPosition:elementInfo.ElementSize) = ((@JsonNumber)element).Value
 					else
-						buffer(bufferPosition:elementInfo.ElementSize) = %string(((@Json.JsonNumber)element).Value)
+						buffer(bufferPosition:elementInfo.ElementSize) = %string(((@JsonNumber)element).Value)
 				end
-				else if(element .is. Json.JsonBoolean) then
+				else if(element .is. JsonBoolean) then
 				begin
+					
 				end
-				else if(element .is. Json.JsonArray)
+				else if(element .is. JsonArray)
 				begin
 
 				end
@@ -103,66 +142,85 @@ namespace Harmony.TraditionalBridge
 
 		endmethod
 
+		;;; <summary>
+		;;; 
+		;;; </summary>
+		;;; <param name="argument"></param>
+		;;; <returns></returns>
 		public method GetArgumentDataDefForCollection, @ArgumentDataDefinition
-			argument, @Json.JsonObject
+			argument, @JsonObject
 			record
 				result, @ArgumentDataDefinition
 				dataType, i4
+			endrecord
 		proc
-
 			argument.TryGetProperty("DecimalPrecision", result.DecimalPrecision)
 			argument.TryGetProperty("ElementSize", result.ElementSize)
 			if(argument.TryGetProperty("DataType", dataType))
 				result.DataType = (FieldDataType)dataType
 
 			argument.TryGetBoolProperty("ReturnedValue", result.ReturnedValue)
+
 			mreturn result
+
 		endmethod
 
-		;;this needs to take an expected type parameter of some kind so we can do basic conversions int -> decimal vs int -> int
+		;;TODO: This needs to take an expected type parameter of some kind so we can do basic conversions int -> decimal vs int -> int
+
+		;;; <summary>
+		;;; 
+		;;; </summary>
+		;;; <param name="elementInfo"></param>
+		;;; <param name="collection"></param>
+		;;; <param name="targetArrayList"></param>
 		public method UnwrapObjectCollection, void
 			elementInfo, @ArgumentDataDefinition
-			collection, @Json.JsonArray
+			collection, @JsonArray
 			targetArrayList, @ArrayList
 			record
-				element, @Json.JsonValue
+				element, @JsonValue
+			endrecord
 		proc
 			foreach element in collection.arrayValues
 			begin
-				if(element .is. Json.JsonObject) then
+				if(element .is. JsonObject) then
 				begin
-					data stringValue = ((@Json.JsonText)((@Json.JsonObject)element).GetProperty("Value")).Value
+					data stringValue = ((@JsonText)((@JsonObject)element).GetProperty("Value")).Value
 					targetArrayList.Add((@a)(a)stringValue)
 				end
-				else if(element .is. Json.JsonText) then
+				else if(element .is. JsonText) then
 				begin
 					;;TODO this needs to handle the arg type, could be d, id, a
-					targetArrayList.Add((@a)(a)((@Json.JsonText)element).Value)
+					targetArrayList.Add((@a)(a)((@JsonText)element).Value)
 				end
-				else if(element .is. Json.JsonNumber) then
+				else if(element .is. JsonNumber) then
 				begin
-					targetArrayList.Add((@id)((@Json.JsonNumber)element).Value)
+					targetArrayList.Add((@id)((@JsonNumber)element).Value)
 				end
-				else if(element .is. Json.JsonInt) then
+				else if(element .is. JsonInt) then
 				begin
 					;;TODO this needs to handle the arg type, could be i, d, id
-					targetArrayList.Add((@i)((@Json.JsonInt)element).Value)
+					targetArrayList.Add((@i)((@JsonInt)element).Value)
 				end
-				else if(element .is. Json.JsonBoolean) then
+				else if(element .is. JsonBoolean) then
 				begin
-					targetArrayList.Add((@boolean)((@Json.JsonBoolean)element).Value)
+					targetArrayList.Add((@boolean)((@JsonBoolean)element).Value)
 				end
-				else if(element .is. Json.JsonArray)
+				else if(element .is. JsonArray)
 				begin
 
 				end
 			end
-
 		endmethod
 
+		;;; <summary>
+		;;; 
+		;;; </summary>
+		;;; <param name="obj"></param>
+		;;; <param name="serializer"></param>
 		public virtual method SerializeObject, void
 			obj, @DataObjectBase
-			serializer, @Json.ChannelSerializer
+			serializer, @ChannelSerializer
 		proc
 			obj.Serialize(serializer)
 		endmethod
@@ -171,12 +229,19 @@ namespace Harmony.TraditionalBridge
 		;;most things in synergy dont jump from one primative type to another
 		;;its possible for this to happen with an arraylist but this might be an acceptable tradoff for the significant protocol efficiancy gains
 		;;in only specifying the element type once
+
+		;;; <summary>
+		;;; 
+		;;; </summary>
+		;;; <param name="obj"></param>
+		;;; <param name="serializer"></param>
 		public virtual method SerializeObjectCollection, void
 			obj, @ArrayList
-			serializer, @Json.ChannelSerializer
+			serializer, @ChannelSerializer
 			record
 				doElement, @DataObjectBase
 				primativeElement, @object
+			endrecord
 		proc
 			;;determine the collection type from the first element type then serialize assuming we dont switch between primatives and objects
 			serializer.ArrayOpen()
@@ -197,82 +262,110 @@ namespace Harmony.TraditionalBridge
 					;;get the unboxed type and put that in as serializer.String("ElementType")
 					throw new Exception("primative arrays not yet supported")
 				end
-
 			end
 			serializer.ArrayClose()
 		endmethod
 
+		;;; <summary>
+		;;; 
+		;;; </summary>
+		;;; <param name="value"></param>
+		;;; <returns></returns>
 		public method GetText, a
-			value, @Json.JsonObject
+			value, @JsonObject
 			record
-				valueText, @Json.JsonText
+				valueText, @JsonText
+			endrecord
 		proc
-			valueText = (@Json.JsonText)value.GetProperty("PassedValue")
+			valueText = (@JsonText)value.GetProperty("PassedValue")
 			mreturn valueText.Value
 		endmethod
 
+		;;; <summary>
+		;;; 
+		;;; </summary>
+		;;; <param name="value"></param>
+		;;; <returns></returns>
 		public method GetInt, i
-			value, @Json.JsonObject
+			value, @JsonObject
 			record
-				valueInt, @Json.JsonInt
+				valueInt, @JsonInt
+			endrecord
 		proc
-			valueInt = (@Json.JsonInt)value.GetProperty("PassedValue")
+			valueInt = (@JsonInt)value.GetProperty("PassedValue")
 			mreturn valueInt.Value
 		endmethod
 
+		;;; <summary>
+		;;; 
+		;;; </summary>
+		;;; <param name="value"></param>
+		;;; <returns></returns>
 		public method GetDecimal, d
-			value, @Json.JsonObject
+			value, @JsonObject
 			record
-				passedValue, @Json.JsonValue
-				valueInt, @Json.JsonInt
-				valuestring, @Json.JsonText
+				passedValue, @JsonValue
+				valueInt, @JsonInt
+				valuestring, @JsonText
 				tempD, d28
+			endrecord
 		proc
 			passedValue = value.GetProperty("PassedValue")
-			if(passedValue.JsonType == Json.JSON_TYPE.INT_VAL ) then
+			if(passedValue.JsonType == JSON_TYPE.INT_VAL ) then
 			begin
-				valueInt = (@Json.JsonInt)passedValue
+				valueInt = (@JsonInt)passedValue
 				tempD = valueInt.Value
 				mreturn tempD
 			end
 			else
 			begin
-				valuestring = (@Json.JsonText)passedValue
+				valuestring = (@JsonText)passedValue
 				mreturn ^d((a)valuestring.Value)
 			end
 		endmethod
 
+		;;; <summary>
+		;;; 
+		;;; </summary>
+		;;; <param name="value"></param>
+		;;; <returns></returns>
 		public method GetImplied, d.
-			value, @Json.JsonObject
+			value, @JsonObject
 			record
-				passedValue, @Json.JsonValue
-				valueInt, @Json.JsonInt
-				precisionValue, @Json.JsonValue
-				precisionInt, @Json.JsonInt
-				valuestring, @Json.JsonText
+				passedValue, @JsonValue
+				valueInt, @JsonInt
+				precisionValue, @JsonValue
+				precisionInt, @JsonInt
+				valuestring, @JsonText
 				tempD, d56.28
+			endrecord
 		proc
 			passedValue = value.GetProperty("PassedValue")
 
 			precisionValue = value.GetProperty("DecimalPrecision")
-			precisionInt = (@Json.JsonInt)precisionValue
+			precisionInt = (@JsonInt)precisionValue
 
-			if(passedValue.JsonType == Json.JSON_TYPE.INT_VAL ) then
+			if(passedValue.JsonType == JSON_TYPE.INT_VAL ) then
 			begin
-				valueInt = (@Json.JsonInt)passedValue
+				valueInt = (@JsonInt)passedValue
 				tempD = ^d(%string(valueInt.Value),precisionInt.Value)
 				mreturn tempD
 			end
 			else
 			begin
-				valuestring = (@Json.JsonText)passedValue
+				valuestring = (@JsonText)passedValue
 				mreturn ^d((a)valuestring.Value,precisionInt.Value)
 			end
 		endmethod
 
+		;;; <summary>
+		;;; 
+		;;; </summary>
+		;;; <param name="obj"></param>
+		;;; <param name="serializer"></param>
 		public method SerializeObject, void
 			obj, @object
-			serializer, @Json.ChannelSerializer
+			serializer, @ChannelSerializer
 		proc
 			if(obj .is. @DataObjectBase) then
 				SerializeObject((@DataObjectBase)obj, serializer)
@@ -286,13 +379,20 @@ namespace Harmony.TraditionalBridge
 				throw new Exception("Attempted to serialize an unknown object type")
 		endmethod
 
+		;;; <summary>
+		;;; 
+		;;; </summary>
+		;;; <param name="obj"></param>
+		;;; <param name="dataType"></param>
+		;;; <returns></returns>
 		public method DeserializeObject, @object
-			obj, @Json.JsonObject
+			obj, @JsonObject
 			out dataType, FieldDataType
 			record
-				dataTypeInt, @Json.JsonInt
+				dataTypeInt, @JsonInt
+			endrecord
 		proc
-			dataTypeInt = ((@Json.JsonInt)obj.GetProperty("DataType"))
+			dataTypeInt = ((@JsonInt)obj.GetProperty("DataType"))
 			dataType = (FieldDataType)dataTypeInt.Value
 			if(dataType == FieldDataType.DataObjectField) then
 			begin
@@ -304,53 +404,63 @@ namespace Harmony.TraditionalBridge
 			end
 			else if(dataType == FieldDataType.AlphaField) then
 			begin
-				data textObject, @Json.JsonText, ((@Json.JsonText)obj.GetProperty("PassedValue"))
+				data textObject, @JsonText, ((@JsonText)obj.GetProperty("PassedValue"))
 				mreturn textObject.Value
 			end
 			else if(dataType == FieldDataType.DecimalField) then
 			begin
-				mreturn ((@Json.JsonText)obj.GetProperty("PassedValue")).Value
+				mreturn ((@JsonText)obj.GetProperty("PassedValue")).Value
 			end
 			else if(dataType == FieldDataType.ImpliedDecimal) then
 			begin
-				mreturn ((@Json.JsonText)obj.GetProperty("PassedValue")).Value
+				mreturn ((@JsonText)obj.GetProperty("PassedValue")).Value
 			end
 			else if(dataType == FieldDataType.IntegerField)
 			begin
-				data intValue, i4, ((@Json.JsonInt)obj.GetProperty("PassedValue")).Value
+				data intValue, i4, ((@JsonInt)obj.GetProperty("PassedValue")).Value
 				mreturn (@object)intValue
 			end
 		endmethod
 
+		;;; <summary>
+		;;; 
+		;;; </summary>
+		;;; <param name="ttChannel"></param>
+		;;; <param name="frameHeader"></param>
+		;;; <returns></returns>
 		private method ReadCallBlock, boolean
-			ttChannel, i
-			frameHeader, i4
+			required in ttChannel, i
+			required in frameHeader, i4
 			record
 				frameDataHandle, D_HANDLE
-				jsonReader, @Json.Json
-				parsedJson, @Json.JsonValue
+				jsonReader, @Json
+				parsedJson, @JsonValue
+				serializer, @ChannelSerializer
+			endrecord
 		proc
-			jsonReader = new Json.Json()
 			writes(loggingChannel, "reading callblock: ")
 			writes(loggingChannel, %string(frameHeader) + " callblock bytes expected")
+
+			jsonReader = new Json()
 			frameDataHandle = %mem_proc(DM_ALLOC, frameHeader)
+
 ;TODO: the wait:100 is in the wrong argument position and should be wait:q_wait, but when fixed still doesn't work.
-;Roger says this needs to be done a different way (in C)!
-again,		do gets(ttChannel, ^m(frameDataHandle), wait:100) [$ERR_TIMOUT=again]
+;Roger says this will never work and needs to be done in C!
+
+		again,
+			do gets(ttChannel, ^m(frameDataHandle), wait:100) [$ERR_TIMOUT=again]
 			until %rdlen(ttChannel) == frameHeader
 
 			writes(loggingChannel, %string(%rdlen(ttChannel)) + ":" + %string(%rdtrm(ttChannel)))
 			writes(loggingChannel, ^m(frameDataHandle) + "data read")
+
 			parsedJson = jsonReader.ParseJson(^m(frameDataHandle))
-			if(parsedJson .is. @Json.JsonObject) then
+			frameDataHandle = %mem_proc(DM_FREE, frameDataHandle)
+
+			if !(parsedJson .is. @JsonObject)
 			begin
-				data result, boolean, ProcessCallBlock((@Json.JsonObject)parsedJson, ttChannel)
-				mreturn result
-			end
-			else
-			begin
-				data serializer = new Json.ChannelSerializer(ttChannel)
 				writes(loggingChannel, "failed to read json request")
+				serializer = new ChannelSerializer(ttChannel)
 				serializer.MapOpen()
 				serializer.String("IsError")
 				serializer.Bool(true)
@@ -359,16 +469,23 @@ again,		do gets(ttChannel, ^m(frameDataHandle), wait:100) [$ERR_TIMOUT=again]
 				serializer.MapClose()
 				mreturn true
 			end
-			
+
+			mreturn ProcessCallBlock((@JsonObject)parsedJson, ttChannel)
+
 		endmethod
 
-
+		;;; <summary>
+		;;; 
+		;;; </summary>
+		;;; <param name="ttChannel"></param>
 		public method Dispatch, void
 			ttChannel, i
-			record aData
+			record PacketLength
 				frameHeader, d10
+			endrecord
 			record
 				running, boolean
+			endrecord
 		proc
 			;;read 10 bytes of data from input when its available
 			;;read count of bytes from input (in chunks ideally) 
@@ -383,17 +500,17 @@ again,		do gets(ttChannel, ^m(frameDataHandle), wait:100) [$ERR_TIMOUT=again]
 				while(running)
 				begin
 ;TODO: the wait:100 is in the wrong argument position and should be wait:q_wait, but when fixed still doesn't work.
-;Roger says this needs to be done a different way (in C)!
-again,				do gets(ttChannel, aData, wait:100)  [$ERR_TIMOUT=again]
+;Roger says this will never work and needs to be done in C!
+		again,		do gets(ttChannel, PacketLength, wait:100)  [$ERR_TIMOUT=again]
 					until %rdlen(ttChannel) == 10
-					puts(ttChannel, aData + %char(13) + %char(10))
+					puts(ttChannel, PacketLength + %char(13) + %char(10))
 					running = ReadCallBlock(ttChannel, (int)frameHeader)
 				end
 				writes(ttChannel, "Shutting down due to running == false")
 			end
 			catch(ex, @Exception)
 			begin
-				data serializer = new Json.ChannelSerializer(ttChannel)
+				data serializer = new ChannelSerializer(ttChannel)
 				writes(loggingChannel, "FATAL ERROR in dispatcher + " + ex.ToString())
 				serializer.MapOpen()
 				serializer.String("IsError")
@@ -405,29 +522,35 @@ again,				do gets(ttChannel, aData, wait:100)  [$ERR_TIMOUT=again]
 			endtry
 		endmethod
 
+		;;; <summary>
+		;;; 
+		;;; </summary>
+		;;; <param name="jsonData"></param>
+		;;; <param name="responseChannel"></param>
+		;;; <returns></returns>
 		public method ProcessCallBlock, boolean
-			jsonData, @Json.JsonObject
+			jsonData, @JsonObject
 			responseChannel, i4
 			record
 				name, @string
-				argArray, @Json.JsonArray
-				serializer, @Json.ChannelSerializer
+				argArray, @JsonArray
+				serializer, @ChannelSerializer
 				dispatchStub, @RoutineStub
+			endrecord
 		proc
 			;;we've been asked to shutdown so return false and let the outer loop take care of it
-			if(jsonData.HasProperty("IsShutdownRequest") && ((@Json.JsonBoolean)jsonData.GetProperty("IsShutdownRequest")).Value)
+			if(jsonData.HasProperty("IsShutdownRequest") && ((@JsonBoolean)jsonData.GetProperty("IsShutdownRequest")).Value)
 			begin
 				writes(responseChannel, "Shutting down due to request")
 				mreturn false
 			end
 
-
-			serializer = new Json.ChannelSerializer(responseChannel)
+			serializer = new ChannelSerializer(responseChannel)
 
 			try
 			begin
 				;;we've been asked if we're alive
-				if(jsonData.HasProperty("IsPingRequest") && ((@Json.JsonBoolean)jsonData.GetProperty("IsPingRequest")).Value) then
+				if(jsonData.HasProperty("IsPingRequest") && ((@JsonBoolean)jsonData.GetProperty("IsPingRequest")).Value) then
 				begin
 					serializer.MapOpen()
 					serializer.String("IsAlive")
@@ -435,7 +558,7 @@ again,				do gets(ttChannel, aData, wait:100)  [$ERR_TIMOUT=again]
 					serializer.MapClose()
 					mreturn true
 				end
-				else if(jsonData.HasProperty("ProtocolVersion") && ((@Json.JsonText)jsonData.GetProperty("ProtocolVersion")).Value =="1.0")
+				else if(jsonData.HasProperty("ProtocolVersion") && ((@JsonText)jsonData.GetProperty("ProtocolVersion")).Value =="1.0")
 				begin
 					serializer.MapOpen()
 					serializer.String("ProtocolSupported")
@@ -444,7 +567,7 @@ again,				do gets(ttChannel, aData, wait:100)  [$ERR_TIMOUT=again]
 					mreturn true
 				end
 
-				name = ((@Json.JsonText)jsonData.GetProperty("Name")).Value
+				name = ((@JsonText)jsonData.GetProperty("Name")).Value
 
 				if(mDispatchStubs.TryGet(name, dispatchStub)) then
 				begin
@@ -453,21 +576,21 @@ again,				do gets(ttChannel, aData, wait:100)  [$ERR_TIMOUT=again]
 				end
 				else
 				begin
-					data arg, @Json.JsonObject
+					data arg, @JsonObject
 					data argArray, @ArrayList, new ArrayList()
 					data argValueArray, [#]@Object
 					data rcbid, i4
 					data ii, i4, 0
 					if(jsonData.HasProperty("Arguments"))
 					begin
-						data arg, @Json.JsonObject
+						data arg, @JsonObject
 						data ii = 0
-						argArray = ((@Json.JsonArray)jsonData.GetProperty("Arguments")).arrayValues
+						argArray = ((@JsonArray)jsonData.GetProperty("Arguments")).arrayValues
 					end
 					argValueArray = new object[argArray.Count]
 					rcbid = %rcb_create(argArray.Count) 
 					xcall rcb_setfnc(rcbid, name)
-					foreach arg in argArray as @Json.JsonObject
+					foreach arg in argArray as @JsonObject
 					begin
 						data argType, FieldDataType
 						data argLength, i4, 0
@@ -478,9 +601,9 @@ again,				do gets(ttChannel, aData, wait:100)  [$ERR_TIMOUT=again]
 						if(argType != FieldDataType.DataObjectField && argType != FieldDataType.DataObjectCollectionField) then
 						begin
 							if(jsonData.HasProperty("DecimalPrecision"))
-								argPrecision = ((@Json.JsonInt)jsonData.GetProperty("DecimalPrecision")).Value
+								argPrecision = ((@JsonInt)jsonData.GetProperty("DecimalPrecision")).Value
 
-							argLength = ((@Json.JsonInt)jsonData.GetProperty("ElementSize")).Value
+							argLength = ((@JsonInt)jsonData.GetProperty("ElementSize")).Value
 
 							xcall rcb_setarg(rcbid, (n)argValueArray[ii], ii, (i)argType, argLength, argPrecision)
 						end
@@ -498,10 +621,10 @@ again,				do gets(ttChannel, aData, wait:100)  [$ERR_TIMOUT=again]
 					serializer.String("ReturnParameters")
 					serializer.ArrayOpen()
 
-					foreach arg in argArray as @Json.JsonObject
+					foreach arg in argArray as @JsonObject
 					begin
 						incr ii
-						if(arg.HasProperty("ReturnParameter") && ((@Json.JsonBoolean)arg.GetProperty("ReturnParameter")).Value)
+						if(arg.HasProperty("ReturnParameter") && ((@JsonBoolean)arg.GetProperty("ReturnParameter")).Value)
 						begin
 							serializer.MapOpen()
 							serializer.String("Position")
@@ -531,19 +654,34 @@ again,				do gets(ttChannel, aData, wait:100)  [$ERR_TIMOUT=again]
 			endtry
 
 			writes(responseChannel, "unhandled message")
+
 			mreturn false
+
 		endmethod
 
 	endclass
 
+	;;; <summary>
+	;;; 
+	;;; </summary>
 	abstract class RoutineStub
+		
+		;;; <summary>
+		;;; 
+		;;; </summary>
+		;;; <param name="name"></param>
+		;;; <param name="callFrame"></param>
+		;;; <param name="serializer"></param>
+		;;; <param name="dispatcher"></param>
 		public abstract method Dispatch, void
 			name, @string
-			callFrame, @Json.JsonObject
-			serializer, @Json.ChannelSerializer
+			callFrame, @JsonObject
+			serializer, @ChannelSerializer
 			dispatcher, @RoutineDispatcher
 		proc
+
 		endmethod
+
 	endclass
 
 endnamespace

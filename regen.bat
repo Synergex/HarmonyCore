@@ -47,15 +47,17 @@ rem Generate code for the TraditionalBridge sample environment
 
 set CODEGEN_TPLDIR=Templates\TraditionalBridge
 set PROJECT=TraditionalBridge.Test
+set SMC_INTERFACE=SampleXfplEnv
 set XFPL_SMCPATH=
 
 rem Generate model classes
 codegen -s %STRUCTURES%     -t DataObject -n %PROJECT%.Models -o %PROJECT%\Models %OPTS%
 
 rem Generate method dispatcher classes
-codegen -smc SampleXfplEnvironment\smc.xml -interface SampleXfplEnv -t DispatcherMethods -n %PROJECT% -o %PROJECT% %OPTS% -ut MODELS_NAMESPACE=%PROJECT%.Models
-codegen -smc SampleXfplEnvironment\smc.xml -interface SampleXfplEnv -t MethodDispatchers -n %PROJECT% -o %PROJECT% %OPTS% -ut MODELS_NAMESPACE=%PROJECT%.Models
-codegen -s %STRUCTURES% -ms -t DispatcherStructures -n %PROJECT% -o %PROJECT% %OPTS%
+codegen -smc SampleXfplEnvironment\smc.xml -interface %SMC_INTERFACE% -t Dispatcher        -n %PROJECT% -o %PROJECT% %OPTS% -ut MODELS_NAMESPACE=%PROJECT%.Models
+codegen -smc SampleXfplEnvironment\smc.xml -interface %SMC_INTERFACE% -t MethodDispatchers -n %PROJECT% -o %PROJECT% %OPTS% -ut MODELS_NAMESPACE=%PROJECT%.Models
+
+codegen -s %STRUCTURES% -ms -t DispatcherData -n %PROJECT% -o %PROJECT% %OPTS% -ut SMC_INTERFACE=%SMC_INTERFACE%
 
 endlocal
 popd
