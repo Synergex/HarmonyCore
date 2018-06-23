@@ -1,18 +1,22 @@
 
-import System.Collections
 import Harmony.TraditionalBridge
 import TraditionalBridge.Test
 
 main
 	record
-		disp, @Dispatcher
-		ttChan, i4, 0
-		jsonReader, @Json.Json
-		jsonVal, @Json.JsonValue
+		disp, @SampleXfplEnvDispatcher
+		ttChan, i4
+	endrecord
 proc
-	xcall flags(0101010010)
-	open(ttChan, O, "TT:")
+	xcall flags(0907050020)
+	open(ttChan=0, O, "TT:")
+
 	puts(ttChan, "READY" + %char(13)+ %char(10))
-	disp = new Dispatcher()
+
+	disp = new SampleXfplEnvDispatcher()
+
 	disp.Dispatch(ttChan)
+
+	puts(ttChan, "DISPATCHER EXITED" + %char(13)+ %char(10))
+
 endmain

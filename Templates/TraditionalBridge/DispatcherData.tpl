@@ -1,8 +1,9 @@
-<CODEGEN_FILENAME>DispatcherStructures.dbl</CODEGEN_FILENAME>
+<CODEGEN_FILENAME><SMC_INTERFACE>DispatcherData.dbl</CODEGEN_FILENAME>
+<REQUIRES_USERTOKEN>SMC_INTERFACE</REQUIRES_USERTOKEN>
 <REQUIRES_CODEGEN_VERSION>5.3.3</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
-;// Title:       DispatcherMethods.tpl
+;// Title:       DispatcherData.tpl
 ;//
 ;// Type:        CodeGen Template
 ;//
@@ -34,7 +35,7 @@
 ;//
 ;;*****************************************************************************
 ;;
-;; Title:       DispatcherStructures.dbl
+;; Title:       <SMC_INTERFACE>DispatcherData.dbl
 ;;
 ;; Type:        Class
 ;;
@@ -79,7 +80,7 @@ import Harmony.TraditionalBridge
 
 namespace <NAMESPACE>
 
-	public partial class Dispatcher
+	public partial class <SMC_INTERFACE>Dispatcher
 
 		;;; <summary>
 		;;; Initialize all data object metadata

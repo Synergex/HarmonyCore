@@ -1,19 +1,36 @@
+
+import System.Collections
+
 namespace Json
+
+	;;; <summary>
+	;;; Defines the return value states for various serializer methods.
+	;;; </summary>
 	public enum SerializerStatus
+		;;; <summary>
+		;;; Successful operation.
+		;;; </summary>
 		Ok
 	endenum
 
+	;;; <summary>
+	;;; Defines the various states that can be pushed to the stack.
+	;;; </summary>
 	public enum SerializerStackType
 		None,
 		Object,
 		Array
 	endenum
 
-	class ChannelSerializer
+	;;; <summary>
+	;;; Builds a Harmony Core TraditionalBridge JSON message and writes it to a channel.
+	;;; </summary>
+	public class ChannelSerializer
+
 		private channel, i4
 		private buffer, @string
 		;;TODO: make a real stack out of a dynamic array or something like that
-		private serializerStack, @System.Collections.ArrayList
+		private serializerStack, @ArrayList
 		;;TODO: buffer writes into an a65535 instead of calling write directly
 		;;TODO: validation 
 		private expectingName, boolean, true
@@ -21,8 +38,13 @@ namespace Json
 
 .define STACK_STATE, ((SerializerStackType)serializerStack[serializerStack.Count - 1])
 .define STACK_STATE_ARRAY, (STACK_STATE == SerializerStackType.Array)
+
+		;;; <summary>
+		;;; Constructs a new serializer associated with an open channel.
+		;;; </summary>
+		;;; <param name="chan">Channel to write JSON data to.</param>
 		public method ChannelSerializer
-			chan, i
+			required in chan, i
 		proc
 			buffer = ""
 			channel = chan
@@ -30,12 +52,22 @@ namespace Json
 			serializerStack.Add((@SerializerStackType)SerializerStackType.None)
 		endmethod
 
+		;;; <summary>
+		;;; Adds a new serializer state to the top of the stack. The stack indicates
+		;;; whether the serializer is currently processing an onject or an array.
+		;;; </summary>
+		;;; <param name="type">SerializerStackType to push</param>
 		private method Push, void
 			req in type, SerializerStackType
 		proc
 			serializerStack.Add((@SerializerStackType)type)
 		endmethod
 
+		;;; <summary>
+		;;; Removes the top serializer state from the stack. The stack indicates
+		;;; whether the serializer is currently processing an onject or an array.
+		;;; </summary>
+		;;; <returns>The SerializerStackType that was removed from the stack.</returns>
 		private method Pop, SerializerStackType
 			record
 				stackResult, SerializerStackType
@@ -45,7 +77,129 @@ namespace Json
 			mreturn stackResult
 		endmethod
 
-		
+		;;; <summary>
+		;;; 
+		;;; </summary>
+		;;; <returns>Always returns SerializerStatus.Ok</returns>
+		public method Null, SerializerStatus
+			record
+				inArray, boolean
+		proc
+			inArray = STACK_STATE_ARRAY
+			if(!first && inArray)
+				buffer += ","
+			first = false
+
+			buffer += "null"
+
+			if(!inArray)
+				expectingName = true
+
+			mreturn SerializerStatus.Ok
+		endmethod
+
+.region "Serialization methods"
+
+		;TODO: Consider renaming this to ObjectOpen
+
+		;;; <summary>
+		;;; Begins the definition of a new JSON object by adding a { character to the buffer.
+		;;; </summary>
+		;;; <returns>Always returns SerializerStatus.Ok</returns>
+		public method MapOpen, SerializerStatus
+		proc
+			if(!first && STACK_STATE_ARRAY)
+				buffer += ","
+			expectingName = true
+			first = true
+			Push(SerializerStackType.Object)
+			buffer += "{"
+			mreturn SerializerStatus.Ok
+		endmethod
+
+		;TODO: Consider renaming this to ObjectClose
+
+		;;; <summary>
+		;;; Ends the definition of the current JSON object by adding a } character to the buffer.
+		;;; If the object being closed represents the entire JSON "packet" (because the } matches
+		;;; an { at the beginning of the buffer) then the buffer is written to the channel and cleared.
+		;;; </summary>
+		;;; <param name="sentMessage">(Optional) If the operation resulted in the sending of the json message to the channel then the message content can be returned.</param>
+		;;; <returns>Always returns SerializerStatus.Ok</returns>
+		public method MapClose, SerializerStatus
+			optional out sentMessage, string
+			stack record
+				message, string
+			endrecord
+		proc
+			first = false
+			Pop()
+			expectingName = !STACK_STATE_ARRAY
+			buffer += "}"
+
+			if (serializerStack.Count == 1) then
+				message = sendMessage()
+			else
+				message = buffer
+
+			if (^passed(sentMessage))
+				sentMessage = message
+
+			mreturn SerializerStatus.Ok
+
+		endmethod
+
+		;;; <summary>
+		;;; Begins the definition of a new JSON array by adding a [ character to the buffer.
+		;;; </summary>
+		;;; <returns>Always returns SerializerStatus.Ok</returns>
+		public method ArrayOpen, SerializerStatus
+		proc
+			if(!first && STACK_STATE_ARRAY)
+				buffer += ","
+
+			first = true
+			expectingName = false
+			Push(SerializerStackType.Array)
+			buffer += "["
+			mreturn SerializerStatus.Ok
+		endmethod
+
+		;;; <summary>
+		;;; Ends the definition of the current JSON array by adding a ] character to the buffer.
+		;;; If the array being closed represents the entire JSON "packet" (because the ] matches
+		;;; an [ at the beginning of the buffer) then the buffer is written to the channel and cleared.
+		;;; </summary>
+		;;; <param name="sentMessage">(Optional) If the operation resulted in the sending of the json message to the channel then the message content can be returned.</param>
+		;;; <returns>Always returns SerializerStatus.Ok</returns>
+		public method ArrayClose, SerializerStatus
+			optional out sentMessage, string
+			stack record
+				message, string
+			endrecord
+		proc
+			first = false
+			Pop()
+			expectingName = !STACK_STATE_ARRAY
+			buffer += "]"
+
+			if (serializerStack.Count == 1) then
+				message = sendMessage()
+			else
+				message = buffer
+
+			if (^passed(sentMessage))
+				sentMessage = message
+
+			mreturn SerializerStatus.Ok
+
+		endmethod
+
+		;;; <summary>
+		;;; Adds an integer value to the JSON buffer.
+		;;; </summary>
+		;;; <param name="value">Value to add.</param>
+		;;; <returns>Always returns SerializerStatus.Ok</returns>
 		public method Integer, SerializerStatus
 			req in value, n
 			record
@@ -64,6 +218,11 @@ namespace Json
 			mreturn SerializerStatus.Ok
 		endmethod
 
+		;;; <summary>
+		;;; Adds a double value to the JSON buffer.
+		;;; </summary>
+		;;; <param name="value">Value to add.</param>
+		;;; <returns>Always returns SerializerStatus.Ok</returns>
 		public method Double, SerializerStatus
 			req in value, id
 			record
@@ -82,23 +241,11 @@ namespace Json
 			mreturn SerializerStatus.Ok
 		endmethod
 
-		public method Null, SerializerStatus
-			record
-				inArray, boolean
-		proc
-			inArray = STACK_STATE_ARRAY
-			if(!first && inArray)
-				buffer += ","
-			first = false
-
-			buffer += "null"
-
-			if(!inArray)
-				expectingName = true
-
-			mreturn SerializerStatus.Ok
-		endmethod
-
+		;;; <summary>
+		;;; Adds a boolean value to the JSON buffer.
+		;;; </summary>
+		;;; <param name="value">Value to add.</param>
+		;;; <returns>Always returns SerializerStatus.Ok</returns>
 		public method Bool, SerializerStatus
 			req in value, boolean
 			record
@@ -120,6 +267,11 @@ namespace Json
 			mreturn SerializerStatus.Ok
 		endmethod
 
+		;;; <summary>
+		;;; Adds a string value to the JSON buffer.
+		;;; </summary>
+		;;; <param name="value">Value to add.</param>
+		;;; <returns>Always returns SerializerStatus.Ok</returns>
 		public method String, SerializerStatus
 			req in value, @string
 			record
@@ -138,70 +290,44 @@ namespace Json
 				buffer += ":"
 			end
 			
-			if(inArray)
+			if(!inArray)
 				expectingName = !expectingName
 
 			mreturn SerializerStatus.Ok
 		endmethod
 
-		public method MapOpen, SerializerStatus
+.endregion
+
+.region "Other public members"
+
+		public property CurrentBuffer, string
+			method get
+			proc
+				mreturn buffer
+			endmethod
+		endproperty
+
+.endregion
+
+.region "Helper methods"
+
+		;;; <summary>
+		;;; Constructs the TraditionalBridge protocol message and sends it to the channel.
+		;;; After sending the message the JSON buffer is cleared.
+		;;; </summary>
+		;;; <returns>The complete protocol message that was sent.</returns>
+		private method sendMessage, string
+			stack record
+				message, string
+			endrecord
 		proc
-			if(!first && STACK_STATE_ARRAY)
-				buffer += ","
-			expectingName = true
-			first = true
-			Push(SerializerStackType.Object)
-			buffer += "{"
-			mreturn SerializerStatus.Ok
+			message = %string(buffer.Length,"XXXXXXXXXX") + buffer
+			puts(channel, message)
+			buffer = ""
+			mreturn message
 		endmethod
 
-		public method MapClose, SerializerStatus
-			record
-				bufferLength, d10
-		proc
-			first = false
-			Pop()
-			expectingName = !STACK_STATE_ARRAY
-			buffer += "}"
-			if(serializerStack.Count == 1)
-			begin
-				bufferLength = buffer.Length
-				puts(channel, ^a(bufferLength))
-				puts(channel, buffer)
-				buffer = ""
-			end
-			mreturn SerializerStatus.Ok
-		endmethod
+.endregion
 
-		public method ArrayOpen, SerializerStatus
-		proc
-			if(!first && STACK_STATE_ARRAY)
-				buffer += ","
-
-			first = true
-			expectingName = false
-			Push(SerializerStackType.Array)
-			buffer += "["
-			mreturn SerializerStatus.Ok
-		endmethod
-
-		public method ArrayClose, SerializerStatus
-			record
-				bufferLength, d10
-		proc
-			first = false
-			Pop()
-			expectingName = !STACK_STATE_ARRAY
-			buffer += "]"
-			if(serializerStack.Count == 1)
-			begin
-				bufferLength = buffer.Length
-				puts(channel, ^a(bufferLength))
-				puts(channel, buffer)
-				buffer = ""
-			end
-
-			mreturn SerializerStatus.Ok
-		endmethod
 	endclass
 endnamespace
