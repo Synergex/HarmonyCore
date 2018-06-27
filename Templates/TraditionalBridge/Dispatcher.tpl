@@ -76,6 +76,7 @@
 ;;*****************************************************************************
 
 import Harmony.TraditionalBridge
+import <NAMESPACE>.<INTERFACE_NAME>
 
 namespace <NAMESPACE>
 

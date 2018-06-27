@@ -1,4 +1,4 @@
-<CODEGEN_FILENAME>MethodDispachers.dbl</CODEGEN_FILENAME>
+<CODEGEN_FILENAME><INTERFACE_NAME>MethodDispachers.dbl</CODEGEN_FILENAME>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
 <REQUIRES_CODEGEN_VERSION>5.3.3</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
@@ -35,7 +35,7 @@
 ;//
 ;;*****************************************************************************
 ;;
-;; Title:       DispatcherMethods.dbl
+;; Title:       <INTERFACE_NAME>MethodDispachers.dbl
 ;;
 ;; Type:        Classes
 ;;
@@ -81,7 +81,7 @@ import Harmony.TraditionalBridge
 import System.Collections
 import <MODELS_NAMESPACE>
 
-namespace <NAMESPACE>
+namespace <NAMESPACE>.<INTERFACE_NAME>
 
 	structure strFake
 		,a1
