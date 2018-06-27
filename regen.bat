@@ -54,10 +54,10 @@ rem Generate model classes
 codegen -s %STRUCTURES%     -t DataObject -n %PROJECT%.Models -o %PROJECT%\Models %OPTS%
 
 rem Generate method dispatcher classes
-codegen -smc SampleXfplEnvironment\smc.xml -interface %SMC_INTERFACE% -t Dispatcher        -n %PROJECT% -o %PROJECT% %OPTS% -ut MODELS_NAMESPACE=%PROJECT%.Models
-codegen -smc SampleXfplEnvironment\smc.xml -interface %SMC_INTERFACE% -t MethodDispatchers -n %PROJECT% -o %PROJECT% %OPTS% -ut MODELS_NAMESPACE=%PROJECT%.Models
+codegen -smc SampleXfplEnvironment\smc.xml -interface %SMC_INTERFACE% -t InterfaceDispatcher        -n %PROJECT% -o %PROJECT% %OPTS% -ut MODELS_NAMESPACE=%PROJECT%.Models
+codegen -smc SampleXfplEnvironment\smc.xml -interface %SMC_INTERFACE% -t InterfaceMethodDispatchers -n %PROJECT% -o %PROJECT% %OPTS% -ut MODELS_NAMESPACE=%PROJECT%.Models
 
-codegen -s %STRUCTURES% -ms -t DispatcherData -n %PROJECT% -o %PROJECT% %OPTS% -ut SMC_INTERFACE=%SMC_INTERFACE%
+codegen -s %STRUCTURES% -ms -t InterfaceDispatcherData -n %PROJECT% -o %PROJECT% %OPTS% -ut SMC_INTERFACE=%SMC_INTERFACE%
 
 endlocal
 popd
