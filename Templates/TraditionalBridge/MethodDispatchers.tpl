@@ -89,9 +89,10 @@ namespace <NAMESPACE>
 <METHOD_LOOP>
 
 	;;-------------------------------------------------------------------------
-	;;Dispatcher for method <METHOD_NAME>
-
-	public class <METHOD_ROUTINE>Dispatch extends RoutineStub
+	;;; <summary>
+	;;; Dispatcher for method <INTERFACE_NAME>.<METHOD_NAME>
+	;;; </summary>
+	public class <METHOD_NAME>_Dispatch extends RoutineStub
 
 		<PARAMETER_LOOP>
 		<IF STRUCTURE>
@@ -101,7 +102,7 @@ namespace <NAMESPACE>
 		</IF STRUCTURE>
 		</PARAMETER_LOOP>
 
-		public method <METHOD_ROUTINE>Dispatch
+		public method <METHOD_NAME>_Dispatch
 		proc
 			;;Initialize the meta data for any data objects that are used by parameters to the method
 			<PARAMETER_LOOP>

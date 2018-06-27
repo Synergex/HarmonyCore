@@ -85,7 +85,7 @@ namespace <NAMESPACE>
 		proc
 			;;All of the routine dispatchers to the string lookup for rapid dispatch when we have a large number of routines
 			<METHOD_LOOP>
-			mDispatchStubs.Add("<METHOD_ROUTINE>", new <METHOD_ROUTINE>Dispatch())
+			mDispatchStubs.Add("<METHOD_NAME>", new <METHOD_NAME>_Dispatch())
 			</METHOD_LOOP>
 
 			;;Initialize all data object metadata
