@@ -8,6 +8,7 @@ set CODEGEN_TPLDIR=Templates
 set PROJECT=SampleServices
 
 rem ================================================================================================================================
+rem Generate a Web API / OData CRUD environment
 
 set STRUCTURES=CUSTOMERS ORDERS PLANTS VENDORS
 
@@ -28,6 +29,9 @@ codegen -s %STRUCTURES%     -t ODataModel -n %PROJECT%.Test.Models -o %PROJECT%.
 
 rem Generate Postman Tests
 codegen -s %STRUCTURES% -ms -t ODataPostManTests -o .\ %OPTS%
+
+rem Generate a Swagger file
+rem codegen -s %STRUCTURES% -ms -t ODataSwaggerFile -o .\ %OPTS%
 
 rem ================================================================================================================================
 rem The test environment has slightly different requirements, because we need to generate code based on structures, but when tags
