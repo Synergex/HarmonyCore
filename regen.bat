@@ -19,7 +19,7 @@ rem Generate controller classes
 codegen -s %STRUCTURES%     -t ODataController -n %PROJECT%.Controllers -o %PROJECT%\Controllers %OPTS% -ut DBCONTEXT_NAMESPACE=%PROJECT%
 
 rem Generate the DbContext, EdmBuilder and Startup classes
-codegen -s %STRUCTURES% -ms -t ODataDbContext ODataEdmBuilder ODataStartup -n %PROJECT% -o %PROJECT% -ut MODELS_NAMESPACE=%PROJECT%.Models %OPTS%
+codegen -s %STRUCTURES% -ms -t ODataDbContext ODataEdmBuilder ODataStartup -n %PROJECT% -o %PROJECT% -ut MODELS_NAMESPACE=%PROJECT%.Models API_PAGE_TITLE="Harmony Core Sample API" %OPTS%
 
 rem Generate unit tests
 codegen -s %STRUCTURES%     -t ODataUnitTests -n %PROJECT%.Test -o %PROJECT%.Test -ut SERVICES_NAMESPACE=%PROJECT% %OPTS%
@@ -31,7 +31,7 @@ rem Generate Postman Tests
 codegen -s %STRUCTURES% -ms -t ODataPostManTests -o .\ %OPTS%
 
 rem Generate a Swagger file
-codegen -s %STRUCTURES% -ms -t ODataSwaggerYaml ODataSwaggerJson -o .\ %OPTS% -ut API_DESCRIPTION="API Description" API_VERSION=1.0.0 API_TITLE="API Title" API_TERMS_URL=http://some.url
+codegen -s %STRUCTURES% -ms -t ODataSwaggerYaml ODataSwaggerJson -o %PROJECT%\wwwroot %OPTS% -ut API_DESCRIPTION="Harmony Core Sample API" API_VERSION=1.0.0 API_TITLE="Harmony Core Sample API" API_TERMS_URL=http://some.url
 
 rem ================================================================================================================================
 rem The test environment has slightly different requirements, because we need to generate code based on structures, but when tags

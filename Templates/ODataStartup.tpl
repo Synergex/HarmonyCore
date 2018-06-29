@@ -1,5 +1,6 @@
 <CODEGEN_FILENAME>Startup.dbl</CODEGEN_FILENAME>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
+<REQUIRES_USERTOKEN>API_PAGE_TITLE</REQUIRES_USERTOKEN>
 <REQUIRES_CODEGEN_VERSION>5.3.3</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
@@ -135,7 +136,6 @@ namespace <NAMESPACE>
 			services.AddMvcCore()
 
 			;;Load Swagger API documentation services
-			;;Can't currently make this work with ODataController
 
 			services.AddMvcCore().AddApiExplorer()
 
@@ -172,9 +172,12 @@ namespace <NAMESPACE>
 			app.UseMvc(MVCBuilder)
 
 			;;Add middleware to generate Swagger UI for documentation ("available at /swagger")
+			app.UseStaticFiles()
 			lambda configureSwaggerUi(config)
 			begin
-				config.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1")
+				config.SwaggerEndpoint("/HarmonyCoreSwaggerFile.json", "<API_PAGE_TITLE>")
+				config.RoutePrefix = "api-docs"
+				config.DocumentTitle = "<API_PAGE_TITLE>"
 			end
 			app.UseSwaggerUI(configureSwaggerUi)
 

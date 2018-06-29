@@ -118,8 +118,11 @@ namespace <NAMESPACE>
 			;;Configure the test environment (set logicals, create files in a known state, etc.)
 			TestEnvironment.Configure()
 
+			;;Define the content root and web root folders (so we can pick up the Swagger file for API documentation)
+			data wwwroot = Environment.GetEnvironmentVariable("WWWROOT")
+
 			;;Create a TestServer to host the Web API services
-			Server = new TestServer(new WebHostBuilder().UseStartup<Startup>())
+			Server = new TestServer(new WebHostBuilder().UseContentRoot(wwwroot).UseWebRoot(wwwroot).UseStartup<Startup>())
 
 		endmethod
 
