@@ -101,10 +101,10 @@ namespace <NAMESPACE>
 			this.DBContext = dbContext
 		endmethod
 
-;//Swagger {HttpGet}
+		{HttpGet};For Swagger
 		{ODataRoute("<StructurePlural>")}
 		{EnableQuery}
-;//Swagger;{EnableQuery(MaxExpansionDepth=3, MaxSkip=10, MaxTop=5, PageSize=4)}
+		;{EnableQuery(MaxExpansionDepth=3, MaxSkip=10, MaxTop=5, PageSize=4)}
 		;;; <summary>
 		;;; Get all <StructurePlural>
 		;;; </summary>
@@ -114,7 +114,7 @@ namespace <NAMESPACE>
 		endmethod
 
 		<PRIMARY_KEY>
-;//Swagger {HttpGet}
+		{HttpGet};For Swagger
 		{EnableQuery}
 		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP>{a<SegmentName>}<,></SEGMENT_LOOP>)")}
 		;;; <summary>
@@ -126,7 +126,7 @@ namespace <NAMESPACE>
 		;;; <returns></returns>
 		public method Get, @IActionResult
             <SEGMENT_LOOP>
-;//Swagger 	{FromQuery}
+			{FromQuery};For Swagger
 			{FromODataUri}
             required in a<SegmentName>, <SEGMENT_SNTYPE>
             </SEGMENT_LOOP>
@@ -137,7 +137,7 @@ namespace <NAMESPACE>
 		</PRIMARY_KEY>
 		
 		<ALTERNATE_KEY_LOOP>
-;//Swagger ;		{HttpGet}
+;		{HttpGet};For Swagger
 ;		{EnableQuery}
 ;		{ODataRoute("<StructurePlural>/ByKey/<KeyName>/(<SEGMENT_LOOP>{a<SegmentName>}<,></SEGMENT_LOOP>)")}
 ;		;;; <summary>
@@ -149,7 +149,7 @@ namespace <NAMESPACE>
 ;		;;; <returns></returns>
 ;		public method GetByKey<KeyName>, @IActionResult
 ;			<SEGMENT_LOOP>
-;//Swagger ;			{FromQuery}
+;			{FromQuery};For Swagger
 ;			{FromODataUri}
 ;			required in a<SegmentName>, <SEGMENT_SNTYPE>
 ;			</SEGMENT_LOOP>

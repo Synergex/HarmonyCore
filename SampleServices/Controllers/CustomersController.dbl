@@ -66,8 +66,10 @@ namespace SampleServices.Controllers
 			this.DBContext = dbContext
 		endmethod
 
+		{HttpGet};For Swagger
 		{ODataRoute("Customers")}
 		{EnableQuery}
+		;{EnableQuery(MaxExpansionDepth=3, MaxSkip=10, MaxTop=5, PageSize=4)}
 		;;; <summary>
 		;;; Get all Customers
 		;;; </summary>
@@ -76,6 +78,7 @@ namespace SampleServices.Controllers
 			mreturn Ok(DBContext.Customers)
 		endmethod
 
+		{HttpGet};For Swagger
 		{EnableQuery}
 		{ODataRoute("Customers({aCustKey})")}
 		;;; <summary>
@@ -84,6 +87,7 @@ namespace SampleServices.Controllers
 		;;; <param name="aCustKey">Customer id</param>
 		;;; <returns></returns>
 		public method Get, @IActionResult
+			{FromQuery};For Swagger
 			{FromODataUri}
             required in aCustKey, int
 		proc
@@ -91,6 +95,7 @@ namespace SampleServices.Controllers
 			mreturn Ok(result)
 		endmethod
 		
+;		{HttpGet};For Swagger
 ;		{EnableQuery}
 ;		{ODataRoute("Customers/ByKey/TagCustomer/({aCustRtype},{aCustKey})")}
 ;		;;; <summary>
@@ -100,9 +105,11 @@ namespace SampleServices.Controllers
 ;;		;;; <param name="aCustKey">Customer id</param>
 ;;		;;; <returns></returns>
 ;		public method GetByKeyTagCustomer, @IActionResult
-;;			{FromODataUri}
+;;			{FromQuery};For Swagger
+;			{FromODataUri}
 ;			required in aCustRtype, int
-;;			{FromODataUri}
+;;			{FromQuery};For Swagger
+;			{FromODataUri}
 ;			required in aCustKey, int
 ;;		proc
 ;			data result = DBContext.Customers.Find(aCustRtype,aCustKey)

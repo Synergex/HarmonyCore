@@ -66,8 +66,10 @@ namespace SampleServices.Controllers
 			this.DBContext = dbContext
 		endmethod
 
+		{HttpGet};For Swagger
 		{ODataRoute("Vendors")}
 		{EnableQuery}
+		;{EnableQuery(MaxExpansionDepth=3, MaxSkip=10, MaxTop=5, PageSize=4)}
 		;;; <summary>
 		;;; Get all Vendors
 		;;; </summary>
@@ -76,6 +78,7 @@ namespace SampleServices.Controllers
 			mreturn Ok(DBContext.Vendors)
 		endmethod
 
+		{HttpGet};For Swagger
 		{EnableQuery}
 		{ODataRoute("Vendors({aVendKey})")}
 		;;; <summary>
@@ -84,6 +87,7 @@ namespace SampleServices.Controllers
 		;;; <param name="aVendKey">Vendor ID</param>
 		;;; <returns></returns>
 		public method Get, @IActionResult
+			{FromQuery};For Swagger
 			{FromODataUri}
             required in aVendKey, int
 		proc
@@ -91,6 +95,7 @@ namespace SampleServices.Controllers
 			mreturn Ok(result)
 		endmethod
 		
+;		{HttpGet};For Swagger
 ;		{EnableQuery}
 ;		{ODataRoute("Vendors/ByKey/TagVendor/({aVendRtype},{aVendKey})")}
 ;		;;; <summary>
@@ -100,9 +105,11 @@ namespace SampleServices.Controllers
 ;;		;;; <param name="aVendKey">Vendor ID</param>
 ;;		;;; <returns></returns>
 ;		public method GetByKeyTagVendor, @IActionResult
-;;			{FromODataUri}
+;;			{FromQuery};For Swagger
+;			{FromODataUri}
 ;			required in aVendRtype, int
-;;			{FromODataUri}
+;;			{FromQuery};For Swagger
+;			{FromODataUri}
 ;			required in aVendKey, int
 ;;		proc
 ;			data result = DBContext.Vendors.Find(aVendRtype,aVendKey)

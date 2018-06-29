@@ -1,19 +1,22 @@
 <CODEGEN_FILENAME>HarmonyCoreSwaggerFile.yaml</CODEGEN_FILENAME>
 <REQUIRES_CODEGEN_VERSION>5.3.3</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_USERTOKEN>API_DESCRIPTION</REQUIRES_USERTOKEN>
+<REQUIRES_USERTOKEN>API_VERSION</REQUIRES_USERTOKEN>
+<REQUIRES_USERTOKEN>API_TITLE</REQUIRES_USERTOKEN>
+<REQUIRES_USERTOKEN>API_TERMS_URL</REQUIRES_USERTOKEN>
+---
 swagger: "2.0"
 info:
-  description: This is a description of the API.
-  version: 1.0.0
-  title: This is the Title of the API
-  termsOfService: http://www.synergexpsg.com/terms
+  description: <API_DESCRIPTION>
+  version: <API_VERSION>
+  title: <API_TITLE>
+  termsOfService: <API_TERMS_URL>
 schemes:
 - https
 consumes:
 - application/json
 produces:
 - application/json
-# host: http://localhost:5000
-# basePath: /odata
 paths:
 <STRUCTURE_LOOP>
   /<StructurePlural>:
@@ -28,51 +31,56 @@ paths:
             items:
               $ref: '#/definitions/<StructureNoplural>'
 </STRUCTURE_LOOP>
-
 definitions:
-  <STRUCTURE_LOOP>
+<STRUCTURE_LOOP>
   <StructureNoplural>:
     required:
-    <PRIMARY_KEY>
-    <SEGMENT_LOOP>
-      - <FieldSqlname>
-    </SEGMENT_LOOP>
-    </PRIMARY_KEY>
+<PRIMARY_KEY>
+<SEGMENT_LOOP>
+    - <FieldSqlname>
     properties:
-    <FIELD_LOOP>
-	  <FieldSqlname>:
-<IF ALPHA>
+</SEGMENT_LOOP>
+</PRIMARY_KEY>
+<FIELD_LOOP>
+      <FieldSqlname>:
+ 	<IF ALPHA>
         type: string
+        example: <FIELD_SAMPLE_DATA>
         description: <FIELD_DESC>
-        example: "ABC"
-</IF ALPHA>
-<IF DECIMAL>
-  <IF PRECISION>
+	</IF ALPHA>
+	<IF DECIMAL>
+	  <IF PRECISION>
         type: number
         format: float
+        example : <FIELD_SAMPLE_DATA>
         description: <FIELD_DESC>
-        example: 1.23
-  <ELSE>
+	  <ELSE>
         type: integer
+        example: <FIELD_SAMPLE_DATA>
         description: <FIELD_DESC>
-        example: 123
-  </IF PRECISION>
-</IF DECIMAL>
-<IF DATE>
+	  </IF PRECISION>
+	</IF DECIMAL>
+	<IF DATE>
         type: string
         format: date-time
+        example: <FIELD_SAMPLE_DATA>
         description: <FIELD_DESC>
-</IF DATE>
-<IF TIME>
+	</IF DATE>
+	<IF TIME>
         type: string
         format: date-time
+        example: <FIELD_SAMPLE_DATA>
         description: <FIELD_DESC>
-</IF TIME>
-<IF INTEGER>
-        type: integer
-		format: <IF I124>int32<ELSE>int64</IF I124>
+	</IF TIME>
+	<IF INTEGER>
+        type: number
+        format: <IF I124>int32<ELSE>int64</IF I124>
+        example: <FIELD_SAMPLE_DATA>
         description: <FIELD_DESC>
-        example: 123
-</IF INTEGER>
-    </FIELD_LOOP>
-  </STRUCTURE_LOOP>
+	</IF INTEGER>
+</FIELD_LOOP>
+    example:
+<FIELD_LOOP>
+      <FieldSqlname>: <FIELD_SAMPLE_DATA>
+</FIELD_LOOP>
+</STRUCTURE_LOOP>

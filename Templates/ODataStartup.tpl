@@ -86,8 +86,11 @@
 ;;  Microsoft.OData.Edm
 ;;  Microsoft.Spatial
 ;;  system.text.encoding.codepages
+;;
+;;  And for Swashbuckle / swagger support:
+;;
 ;;  Swashbuckle.AspNetCore
-;;  Swashbuckle.OData
+;;  Microsoft.AspNetCore.StaticFiles
 ;;
 
 import Harmony.Core.Context
@@ -131,19 +134,17 @@ namespace <NAMESPACE>
 			services.AddOData()
 			services.AddMvcCore()
 
-;
-;			;;Can't currently make this work with ODataController
-;
-;			;;Load Swagger API documentation services
-;
-;			services.AddMvcCore().AddApiExplorer()
-;
-;			lambda configureSwaggerGen(config)
-;			begin
-;				config.SwaggerDoc("v1", new Info() { Title = "My API", Version = "v1" })
-;			end
-;
-;			services.AddSwaggerGen(configureSwaggerGen)
+			;;Load Swagger API documentation services
+			;;Can't currently make this work with ODataController
+
+			services.AddMvcCore().AddApiExplorer()
+
+			lambda configureSwaggerGen(config)
+			begin
+				config.SwaggerDoc("v1", new Info() { Title = "My API", Version = "v1" })
+			end
+
+			services.AddSwaggerGen(configureSwaggerGen)
 
 		endmethod
 
@@ -151,9 +152,9 @@ namespace <NAMESPACE>
 			app, @IApplicationBuilder
 		proc
 
-;			;;Add the middleware to generate API documentation to a file
-;
-;			app.UseSwagger()
+			;;Add the middleware to generate API documentation to a file
+
+			app.UseSwagger()
 
 			app.UseLogging(DebugLogSession.Logging)
 
@@ -170,12 +171,12 @@ namespace <NAMESPACE>
 			;;Add the MVC middleware
 			app.UseMvc(MVCBuilder)
 
-;			;;Add middleware to generate Swagger UI for documentation ("available at /swagger")
-;			lambda configureSwaggerUi(config)
-;			begin
-;				config.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1")
-;			end
-;			app.UseSwaggerUI(configureSwaggerUi)
+			;;Add middleware to generate Swagger UI for documentation ("available at /swagger")
+			lambda configureSwaggerUi(config)
+			begin
+				config.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1")
+			end
+			app.UseSwaggerUI(configureSwaggerUi)
 
 		endmethod
 	endclass

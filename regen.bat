@@ -31,7 +31,7 @@ rem Generate Postman Tests
 codegen -s %STRUCTURES% -ms -t ODataPostManTests -o .\ %OPTS%
 
 rem Generate a Swagger file
-rem codegen -s %STRUCTURES% -ms -t ODataSwaggerFile -o .\ %OPTS%
+codegen -s %STRUCTURES% -ms -t ODataSwaggerYaml ODataSwaggerJson -o .\ %OPTS% -ut API_DESCRIPTION="API Description" API_VERSION=1.0.0 API_TITLE="API Title" API_TERMS_URL=http://some.url
 
 rem ================================================================================================================================
 rem The test environment has slightly different requirements, because we need to generate code based on structures, but when tags
