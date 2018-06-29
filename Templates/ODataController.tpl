@@ -101,18 +101,20 @@ namespace <NAMESPACE>
 			this.DBContext = dbContext
 		endmethod
 
+;//Swagger {HttpGet}
 		{ODataRoute("<StructurePlural>")}
+		{EnableQuery}
+;//Swagger;{EnableQuery(MaxExpansionDepth=3, MaxSkip=10, MaxTop=5, PageSize=4)}
 		;;; <summary>
 		;;; Get all <StructurePlural>
 		;;; </summary>
-		;{EnableQuery(MaxExpansionDepth=3, MaxSkip=10, MaxTop=5, PageSize=4)}
-		{EnableQuery}
 		public method Get, @IActionResult
 		proc
 			mreturn Ok(DBContext.<StructurePlural>)
 		endmethod
 
 		<PRIMARY_KEY>
+;//Swagger {HttpGet}
 		{EnableQuery}
 		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP>{a<SegmentName>}<,></SEGMENT_LOOP>)")}
 		;;; <summary>
@@ -124,6 +126,7 @@ namespace <NAMESPACE>
 		;;; <returns></returns>
 		public method Get, @IActionResult
             <SEGMENT_LOOP>
+;//Swagger 	{FromQuery}
 			{FromODataUri}
             required in a<SegmentName>, <SEGMENT_SNTYPE>
             </SEGMENT_LOOP>
@@ -134,25 +137,27 @@ namespace <NAMESPACE>
 		</PRIMARY_KEY>
 		
 		<ALTERNATE_KEY_LOOP>
+;//Swagger ;		{HttpGet}
 ;		{EnableQuery}
 ;		{ODataRoute("<StructurePlural>/ByKey/<KeyName>/(<SEGMENT_LOOP>{a<SegmentName>}<,></SEGMENT_LOOP>)")}
 ;		;;; <summary>
 ;		;;; Get a single <StructureNoplural> by key <KeyName>.
 ;		;;; </summary>
-;        <SEGMENT_LOOP>
+;		<SEGMENT_LOOP>
 ;		;;; <param name="a<SegmentName>"><FIELD_DESC></param>
-;        </SEGMENT_LOOP>
+;		</SEGMENT_LOOP>
 ;		;;; <returns></returns>
 ;		public method GetByKey<KeyName>, @IActionResult
-;            <SEGMENT_LOOP>
+;			<SEGMENT_LOOP>
+;//Swagger ;			{FromQuery}
 ;			{FromODataUri}
-;            required in a<SegmentName>, <SEGMENT_SNTYPE>
-;            </SEGMENT_LOOP>
+;			required in a<SegmentName>, <SEGMENT_SNTYPE>
+;			</SEGMENT_LOOP>
 ;		proc
 ;			data result = DBContext.<StructurePlural>.Find(<SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP>)
 ;			mreturn Ok(result)
 ;		endmethod
-;		
+;
 		</ALTERNATE_KEY_LOOP>
 	endclass
 

@@ -75,6 +75,20 @@
 ;; POSSIBILITY OF SUCH DAMAGE.
 ;;
 ;;*****************************************************************************
+;; 
+;;  This environment requires the following NuGet packages:
+;;
+;;  Microsoft.AspNetCore.Mvc.Core
+;;  Microsoft.AspNetCore.OData
+;;  Microsoft.EntityFrameworkCore
+;;  Microsoft.EntityFrameworkCore.Relational
+;;  Microsoft.OData.Core
+;;  Microsoft.OData.Edm
+;;  Microsoft.Spatial
+;;  system.text.encoding.codepages
+;;  Swashbuckle.AspNetCore
+;;  Swashbuckle.OData
+;;
 
 import Harmony.Core.Context
 import Harmony.Core.FileIO
@@ -85,6 +99,7 @@ import Microsoft.EntityFrameworkCore
 import Microsoft.AspNet.OData.Extensions
 import Microsoft.AspNetCore.Builder
 import Microsoft.AspNetCore.Hosting
+import Swashbuckle.AspNetCore.Swagger
 import <MODELS_NAMESPACE>
 
 namespace <NAMESPACE>
@@ -94,6 +109,9 @@ namespace <NAMESPACE>
 		public method ConfigureServices, void
 			services, @IServiceCollection 
 		proc
+
+			;;Load Harmony Core
+
 			lambda AddDataObjectMappings(serviceProvider)
 			begin
 				data objectProvider = new DataObjectProvider(serviceProvider.GetService<IFileChannelManager>())
@@ -108,14 +126,39 @@ namespace <NAMESPACE>
 			services.AddSingleton<DbContextOptions<DBContext>>(new DbContextOptions<DBContext>())
 			services.AddSingleton<DBContext, DBContext>()
 
+			;;Load OData and ASP.NET
+
 			services.AddOData()
 			services.AddMvcCore()
+
+;
+;			;;Can't currently make this work with ODataController
+;
+;			;;Load Swagger API documentation services
+;
+;			services.AddMvcCore().AddApiExplorer()
+;
+;			lambda configureSwaggerGen(config)
+;			begin
+;				config.SwaggerDoc("v1", new Info() { Title = "My API", Version = "v1" })
+;			end
+;
+;			services.AddSwaggerGen(configureSwaggerGen)
 
 		endmethod
 
 		public method Configure, void
 			app, @IApplicationBuilder
 		proc
+
+;			;;Add the middleware to generate API documentation to a file
+;
+;			app.UseSwagger()
+
+			app.UseLogging(DebugLogSession.Logging)
+
+			;;Configure the MVC / OData environment
+
 			data model = EdmBuilder.GetEdmModel()
 
 			lambda MVCBuilder(builder)
@@ -123,8 +166,17 @@ namespace <NAMESPACE>
 				builder.Select().Expand().Filter().OrderBy().MaxTop(100).Count()
 				builder.MapODataServiceRoute("odata", "odata", model)
 			end
-			app.UseLogging(DebugLogSession.Logging)
+
+			;;Add the MVC middleware
 			app.UseMvc(MVCBuilder)
+
+;			;;Add middleware to generate Swagger UI for documentation ("available at /swagger")
+;			lambda configureSwaggerUi(config)
+;			begin
+;				config.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1")
+;			end
+;			app.UseSwaggerUI(configureSwaggerUi)
+
 		endmethod
 	endclass
 
