@@ -1,6 +1,8 @@
 # Harmony Core
 Harmony Core is a framework that consists of libraries, [CodeGen](https://github.com/SteveIves/CodeGen) templates, and conventions that enable you to expose Synergy logic and data as a RESTful web service using [OData](http://www.odata.org/) and [ASP.NET Core](https://docs.microsoft.com/en-us/aspnet/core/).
 
+Development builds are available via nuget [here](http://harmonybuild.westus.cloudapp.azure.com:8624/nuget/HarmonyCore/)
+
 ### Why REST?
 We think [REST](https://en.wikipedia.org/wiki/Representational_state_transfer) is the best possible way to expose Synergy data and logic over a network. Our customers are most successful when they turn the logic and data they've worked on for the last 40 years into easily consumable black boxes of functionality. The best black boxes can be used without a proprietary protocol and without needing to make a complex series of calls that have little or no relation to one another. Maintaining state between calls is fraught with peril. It is difficult to protect a system sufficiently from misuse when a web service consumer is allowed to partially complete a transaction and then disappear. When possible, web service operations should be [idempotent](https://en.wikipedia.org/wiki/Idempotence). If that isn't possible, they should at least strive to be [atomic](https://en.wikipedia.org/wiki/Atomicity_(database_systems)). 
 
