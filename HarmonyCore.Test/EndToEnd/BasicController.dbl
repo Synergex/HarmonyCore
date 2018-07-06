@@ -43,7 +43,9 @@ namespace HarmonyCore.Test.EndToEnd
 		public method BasicControllerTest
 		proc
 			data status, i4
-			setlog("DAT", EnvironmentRootBuilder.FindRelativeFolderForAssembly("Dat"), status)
+			data datEnv = EnvironmentRootBuilder.FindRelativeFolderForAssembly("Dat")
+			Assert.IsNotNull(datEnv)
+			setlog("DAT", datEnv, status)
 			server = new TestServer(new WebHostBuilder().UseStartup<BasicControllerTestStartup>())
 		endmethod
 
