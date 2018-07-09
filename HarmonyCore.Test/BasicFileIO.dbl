@@ -11,18 +11,16 @@ namespace Harmony.Core.Test
 		public method ReadInputRelative, void
 		proc
 			data status, i4
-			data datEnv = EnvironmentRootBuilder.FindRelativeFolderForAssembly("Dat")
-			Assert.IsNotNull(datEnv)
-			setlog("DAT", datEnv, status)
-			disposable data fileIO = new IsamDataObjectIO<Orders>(new FileChannelManager(), "DAT:orders.ddf", FileOpenMode.InputRelative)
+			EnvironmentRootBuilder.Configure()
+			disposable data fileIO = new IsamDataObjectIO<Orders>(new FileChannelManager(), "ICSTUT:orders.ism", FileOpenMode.InputIndexed)
 			data firstOrder, @Orders
 			data lastOrder, @Orders
 			data nextOrder, @Orders
 			data shouldBeFirstOrder, @Orders
 			data shouldBeFirstOrder2, @Orders
-
 			Assert.AreEqual(Harmony.Core.FileIO.FileAccessResults.Success, fileIO.ReadFirstRecord(firstOrder))
-			Assert.AreEqual(Harmony.Core.FileIO.FileAccessResults.Success, fileIO.ReadRecord(shouldBeFirstOrder, 1))
+			firstOrder.InternalSynergyRecord(lambda(recordData, grfaData) { Assert.AreEqual(Harmony.Core.FileIO.FileAccessResults.Success, fileIO.FindRecord(-1, grfaData)) })
+			Assert.AreEqual(Harmony.Core.FileIO.FileAccessResults.Success, fileIO.ReadRecord(shouldBeFirstOrder))
 			Assert.AreEqual(Harmony.Core.FileIO.FileAccessResults.Success, fileIO.FindFirstRecord())
 			Assert.AreEqual(Harmony.Core.FileIO.FileAccessResults.Success, fileIO.ReadRecord(shouldBeFirstOrder2))
 			Assert.AreEqual(Harmony.Core.FileIO.FileAccessResults.Success, fileIO.ReadNextRecord(nextOrder))
