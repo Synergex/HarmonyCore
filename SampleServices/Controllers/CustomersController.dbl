@@ -46,6 +46,7 @@ import Microsoft.AspNet.OData
 import Microsoft.AspNet.OData.Routing
 import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Infrastructure
+import SampleServices.Models
 
 namespace SampleServices.Controllers
 
@@ -65,6 +66,55 @@ namespace SampleServices.Controllers
 		proc
 			this.DBContext = dbContext
 		endmethod
+
+.region "CREATE"
+
+		{HttpPost};For Swagger
+		{ODataRoute("Customers")}
+		;;; <summary>
+		;;; Create a new customer (automatically assigned primary key).
+		;;; </summary>
+		;;; <returns></returns>
+		public method Post, @IActionResult
+			{FromBody}
+			required in aCustomer, @Customer
+		proc
+			;TODO: How do we support the auto-generation of primary key in this scenario?
+			data result = DBContext.Customers.Add(aCustomer)
+			;TODO: Commit the change
+			DBContext.SaveChanges()
+			;TODO: What about failures?
+			mreturn Ok(result)
+		endmethod
+
+		{HttpPost};For Swagger
+		{ODataRoute("Customers({aCustKey})")}
+		;;; <summary>
+		;;; Create a new customer (client-supplied primary key).
+		;;; </summary>
+		;;; <param name="aCustKey">Customer id</param>
+		;;; <returns></returns>
+		public method Put, @IActionResult
+			{FromQuery};For Swagger
+			{FromODataUri}
+            required in aCustKey, int
+			{FromBody}
+			required in aCustomer, @Customer
+		proc
+			;;Ensure that the key values in the URI win over any data that may be in the data object
+            aCustomer.CustKey = aCustKey
+			;;Add the new customer
+			data result = DBContext.Customers.Add(aCustomer)
+			;TODO: Commit the change
+			DBContext.SaveChanges()
+			;TODO: What about failures?
+			mreturn Ok(result)
+		endmethod
+
+
+.endregion
+
+.region "READ"
 
 		{HttpGet};For Swagger
 		{ODataRoute("Customers")}
@@ -95,27 +145,62 @@ namespace SampleServices.Controllers
 			mreturn Ok(result)
 		endmethod
 		
-;		{HttpGet};For Swagger
-;		{EnableQuery}
-;		{ODataRoute("Customers/ByKey/TagCustomer/({aCustRtype},{aCustKey})")}
-;		;;; <summary>
-;		;;; Get a single Customer by key TagCustomer.
-;		;;; </summary>
-;;		;;; <param name="aCustRtype">Record Tag Field</param>
-;;		;;; <param name="aCustKey">Customer id</param>
-;;		;;; <returns></returns>
-;		public method GetByKeyTagCustomer, @IActionResult
-;;			{FromQuery};For Swagger
-;			{FromODataUri}
-;			required in aCustRtype, int
-;;			{FromQuery};For Swagger
-;			{FromODataUri}
-;			required in aCustKey, int
-;;		proc
-;			data result = DBContext.Customers.Find(aCustRtype,aCustKey)
-;			mreturn Ok(result)
-;		endmethod
-;
+		{HttpGet};For Swagger
+		{EnableQuery}
+		{ODataRoute("Customers/ByKey/TagCustomer/({aCustRtype},{aCustKey})")}
+		;;; <summary>
+		;;; Get a single Customer by key TagCustomer.
+		;;; </summary>
+		;;; <param name="aCustRtype">Record Tag Field</param>
+		;;; <param name="aCustKey">Customer id</param>
+		;;; <returns></returns>
+		public method GetByKeyTagCustomer, @IActionResult
+			{FromQuery};For Swagger
+			{FromODataUri}
+			required in aCustRtype, int
+			{FromQuery};For Swagger
+			{FromODataUri}
+			required in aCustKey, int
+		proc
+			data result = DBContext.Customers.Find(aCustRtype,aCustKey)
+			mreturn Ok(result)
+		endmethod
+
+
+.endregion
+
+.region "UPDATE"
+
+
+
+.endregion
+
+.region "DELETE"
+
+		{HttpPost};For Swagger
+		{ODataRoute("Customers({aCustKey})")}
+		;;; <summary>
+		;;; Delete a customer.
+		;;; </summary>
+		;;; <param name="aCustKey">Customer id</param>
+		;;; <returns></returns>
+		public method Delete, @IActionResult
+			{FromQuery};For Swagger
+			{FromODataUri}
+            required in aCustKey, int
+		proc
+			;;Get the customer to be deleted
+			data customerToRemove = DBContext.Customers.Find(aCustKey)
+			;;Mark it for removal
+			data result = DBContext.Customers.Remove(customerToRemove)
+			;TODO: Commit the change
+			DBContext.SaveChanges()
+			;TODO: What about failures?
+			mreturn Ok(result)
+		endmethod
+
+.endregion
+
 	endclass
 
 endnamespace

@@ -46,6 +46,7 @@ import Microsoft.AspNet.OData
 import Microsoft.AspNet.OData.Routing
 import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Infrastructure
+import SampleServices.Models
 
 namespace SampleServices.Controllers
 
@@ -65,6 +66,55 @@ namespace SampleServices.Controllers
 		proc
 			this.DBContext = dbContext
 		endmethod
+
+.region "CREATE"
+
+		{HttpPost};For Swagger
+		{ODataRoute("Vendors")}
+		;;; <summary>
+		;;; Create a new vendor (automatically assigned primary key).
+		;;; </summary>
+		;;; <returns></returns>
+		public method Post, @IActionResult
+			{FromBody}
+			required in aVendor, @Vendor
+		proc
+			;TODO: How do we support the auto-generation of primary key in this scenario?
+			data result = DBContext.Vendors.Add(aVendor)
+			;TODO: Commit the change
+			DBContext.SaveChanges()
+			;TODO: What about failures?
+			mreturn Ok(result)
+		endmethod
+
+		{HttpPost};For Swagger
+		{ODataRoute("Vendors({aVendKey})")}
+		;;; <summary>
+		;;; Create a new vendor (client-supplied primary key).
+		;;; </summary>
+		;;; <param name="aVendKey">Vendor ID</param>
+		;;; <returns></returns>
+		public method Put, @IActionResult
+			{FromQuery};For Swagger
+			{FromODataUri}
+            required in aVendKey, int
+			{FromBody}
+			required in aVendor, @Vendor
+		proc
+			;;Ensure that the key values in the URI win over any data that may be in the data object
+            aVendor.VendKey = aVendKey
+			;;Add the new vendor
+			data result = DBContext.Vendors.Add(aVendor)
+			;TODO: Commit the change
+			DBContext.SaveChanges()
+			;TODO: What about failures?
+			mreturn Ok(result)
+		endmethod
+
+
+.endregion
+
+.region "READ"
 
 		{HttpGet};For Swagger
 		{ODataRoute("Vendors")}
@@ -95,27 +145,62 @@ namespace SampleServices.Controllers
 			mreturn Ok(result)
 		endmethod
 		
-;		{HttpGet};For Swagger
-;		{EnableQuery}
-;		{ODataRoute("Vendors/ByKey/TagVendor/({aVendRtype},{aVendKey})")}
-;		;;; <summary>
-;		;;; Get a single Vendor by key TagVendor.
-;		;;; </summary>
-;;		;;; <param name="aVendRtype">Record Type</param>
-;;		;;; <param name="aVendKey">Vendor ID</param>
-;;		;;; <returns></returns>
-;		public method GetByKeyTagVendor, @IActionResult
-;;			{FromQuery};For Swagger
-;			{FromODataUri}
-;			required in aVendRtype, int
-;;			{FromQuery};For Swagger
-;			{FromODataUri}
-;			required in aVendKey, int
-;;		proc
-;			data result = DBContext.Vendors.Find(aVendRtype,aVendKey)
-;			mreturn Ok(result)
-;		endmethod
-;
+		{HttpGet};For Swagger
+		{EnableQuery}
+		{ODataRoute("Vendors/ByKey/TagVendor/({aVendRtype},{aVendKey})")}
+		;;; <summary>
+		;;; Get a single Vendor by key TagVendor.
+		;;; </summary>
+		;;; <param name="aVendRtype">Record Type</param>
+		;;; <param name="aVendKey">Vendor ID</param>
+		;;; <returns></returns>
+		public method GetByKeyTagVendor, @IActionResult
+			{FromQuery};For Swagger
+			{FromODataUri}
+			required in aVendRtype, int
+			{FromQuery};For Swagger
+			{FromODataUri}
+			required in aVendKey, int
+		proc
+			data result = DBContext.Vendors.Find(aVendRtype,aVendKey)
+			mreturn Ok(result)
+		endmethod
+
+
+.endregion
+
+.region "UPDATE"
+
+
+
+.endregion
+
+.region "DELETE"
+
+		{HttpPost};For Swagger
+		{ODataRoute("Vendors({aVendKey})")}
+		;;; <summary>
+		;;; Delete a vendor.
+		;;; </summary>
+		;;; <param name="aVendKey">Vendor ID</param>
+		;;; <returns></returns>
+		public method Delete, @IActionResult
+			{FromQuery};For Swagger
+			{FromODataUri}
+            required in aVendKey, int
+		proc
+			;;Get the vendor to be deleted
+			data vendorToRemove = DBContext.Vendors.Find(aVendKey)
+			;;Mark it for removal
+			data result = DBContext.Vendors.Remove(vendorToRemove)
+			;TODO: Commit the change
+			DBContext.SaveChanges()
+			;TODO: What about failures?
+			mreturn Ok(result)
+		endmethod
+
+.endregion
+
 	endclass
 
 endnamespace
