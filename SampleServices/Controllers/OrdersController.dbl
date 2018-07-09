@@ -46,6 +46,7 @@ import Microsoft.AspNet.OData
 import Microsoft.AspNet.OData.Routing
 import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Infrastructure
+import SampleServices.Models
 
 namespace SampleServices.Controllers
 
@@ -65,6 +66,55 @@ namespace SampleServices.Controllers
 		proc
 			this.DBContext = dbContext
 		endmethod
+
+.region "CREATE"
+
+		{HttpPost};For Swagger
+		{ODataRoute("Orders")}
+		;;; <summary>
+		;;; Create a new order (automatically assigned primary key).
+		;;; </summary>
+		;;; <returns></returns>
+		public method Post, @IActionResult
+			{FromBody}
+			required in aOrder, @Order
+		proc
+			;TODO: How do we support the auto-generation of primary key in this scenario?
+			data result = DBContext.Orders.Add(aOrder)
+			;TODO: Commit the change
+			DBContext.SaveChanges()
+			;TODO: What about failures?
+			mreturn Ok(result)
+		endmethod
+
+		{HttpPost};For Swagger
+		{ODataRoute("Orders({aOrNumber})")}
+		;;; <summary>
+		;;; Create a new order (client-supplied primary key).
+		;;; </summary>
+		;;; <param name="aOrNumber">Order number</param>
+		;;; <returns></returns>
+		public method Put, @IActionResult
+			{FromQuery};For Swagger
+			{FromODataUri}
+            required in aOrNumber, int
+			{FromBody}
+			required in aOrder, @Order
+		proc
+			;;Ensure that the key values in the URI win over any data that may be in the data object
+            aOrder.OrNumber = aOrNumber
+			;;Add the new order
+			data result = DBContext.Orders.Add(aOrder)
+			;TODO: Commit the change
+			DBContext.SaveChanges()
+			;TODO: What about failures?
+			mreturn Ok(result)
+		endmethod
+
+
+.endregion
+
+.region "READ"
 
 		{HttpGet};For Swagger
 		{ODataRoute("Orders")}
@@ -95,57 +145,92 @@ namespace SampleServices.Controllers
 			mreturn Ok(result)
 		endmethod
 		
-;		{HttpGet};For Swagger
-;		{EnableQuery}
-;		{ODataRoute("Orders/ByKey/Vendor/({aOrVendor})")}
-;		;;; <summary>
-;		;;; Get a single Order by key Vendor.
-;		;;; </summary>
-;;		;;; <param name="aOrVendor">Vendorcode</param>
-;;		;;; <returns></returns>
-;		public method GetByKeyVendor, @IActionResult
-;;			{FromQuery};For Swagger
-;			{FromODataUri}
-;			required in aOrVendor, int
-;;		proc
-;			data result = DBContext.Orders.Find(aOrVendor)
-;			mreturn Ok(result)
-;		endmethod
-;
-;		{HttpGet};For Swagger
-;		{EnableQuery}
-;		{ODataRoute("Orders/ByKey/Item/({aOrItem})")}
-;		;;; <summary>
-;		;;; Get a single Order by key Item.
-;		;;; </summary>
-;;		;;; <param name="aOrItem">Item code</param>
-;;		;;; <returns></returns>
-;		public method GetByKeyItem, @IActionResult
-;;			{FromQuery};For Swagger
-;			{FromODataUri}
-;			required in aOrItem, int
-;;		proc
-;			data result = DBContext.Orders.Find(aOrItem)
-;			mreturn Ok(result)
-;		endmethod
-;
-;		{HttpGet};For Swagger
-;		{EnableQuery}
-;		{ODataRoute("Orders/ByKey/Customer/({aOrCustomer})")}
-;		;;; <summary>
-;		;;; Get a single Order by key Customer.
-;		;;; </summary>
-;;		;;; <param name="aOrCustomer">Customer number</param>
-;;		;;; <returns></returns>
-;		public method GetByKeyCustomer, @IActionResult
-;;			{FromQuery};For Swagger
-;			{FromODataUri}
-;			required in aOrCustomer, int
-;;		proc
-;			data result = DBContext.Orders.Find(aOrCustomer)
-;			mreturn Ok(result)
-;		endmethod
-;
+		{HttpGet};For Swagger
+		{EnableQuery}
+		{ODataRoute("Orders/ByKey/Vendor/({aOrVendor})")}
+		;;; <summary>
+		;;; Get a single Order by key Vendor.
+		;;; </summary>
+		;;; <param name="aOrVendor">Vendorcode</param>
+		;;; <returns></returns>
+		public method GetByKeyVendor, @IActionResult
+			{FromQuery};For Swagger
+			{FromODataUri}
+			required in aOrVendor, int
+		proc
+			data result = DBContext.Orders.Find(aOrVendor)
+			mreturn Ok(result)
+		endmethod
+
+		{HttpGet};For Swagger
+		{EnableQuery}
+		{ODataRoute("Orders/ByKey/Item/({aOrItem})")}
+		;;; <summary>
+		;;; Get a single Order by key Item.
+		;;; </summary>
+		;;; <param name="aOrItem">Item code</param>
+		;;; <returns></returns>
+		public method GetByKeyItem, @IActionResult
+			{FromQuery};For Swagger
+			{FromODataUri}
+			required in aOrItem, int
+		proc
+			data result = DBContext.Orders.Find(aOrItem)
+			mreturn Ok(result)
+		endmethod
+
+		{HttpGet};For Swagger
+		{EnableQuery}
+		{ODataRoute("Orders/ByKey/Customer/({aOrCustomer})")}
+		;;; <summary>
+		;;; Get a single Order by key Customer.
+		;;; </summary>
+		;;; <param name="aOrCustomer">Customer number</param>
+		;;; <returns></returns>
+		public method GetByKeyCustomer, @IActionResult
+			{FromQuery};For Swagger
+			{FromODataUri}
+			required in aOrCustomer, int
+		proc
+			data result = DBContext.Orders.Find(aOrCustomer)
+			mreturn Ok(result)
+		endmethod
+
+
+.endregion
+
+.region "UPDATE"
+
+
+
+.endregion
+
+.region "DELETE"
+
+		{HttpPost};For Swagger
+		{ODataRoute("Orders({aOrNumber})")}
+		;;; <summary>
+		;;; Delete a order.
+		;;; </summary>
+		;;; <param name="aOrNumber">Order number</param>
+		;;; <returns></returns>
+		public method Delete, @IActionResult
+			{FromQuery};For Swagger
+			{FromODataUri}
+            required in aOrNumber, int
+		proc
+			;;Get the order to be deleted
+			data orderToRemove = DBContext.Orders.Find(aOrNumber)
+			;;Mark it for removal
+			data result = DBContext.Orders.Remove(orderToRemove)
+			;TODO: Commit the change
+			DBContext.SaveChanges()
+			;TODO: What about failures?
+			mreturn Ok(result)
+		endmethod
+
+.endregion
+
 	endclass
 
 endnamespace
