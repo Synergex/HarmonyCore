@@ -42,11 +42,15 @@ namespace HarmonyCore.Test.EndToEnd
 		server, @TestServer 
 		public method BasicControllerTest
 		proc
-			data status, i4
-			data datEnv = EnvironmentRootBuilder.FindRelativeFolderForAssembly("Dat")
-			Assert.IsNotNull(datEnv)
-			setlog("DAT", datEnv, status)
+			
 			server = new TestServer(new WebHostBuilder().UseStartup<BasicControllerTestStartup>())
+		endmethod
+
+		{AssemblyInitialize}
+		public static method AssemblyInitialize, void
+			required in context, @Microsoft.VisualStudio.TestTools.UnitTesting.TestContext
+		proc
+			EnvironmentRootBuilder.Configure()
 		endmethod
 
 
@@ -93,7 +97,7 @@ namespace HarmonyCore.Test.EndToEnd
 			;services.AddTransient<PrimeService>()
 			data channelManager = new FileChannelManager() 
 			data objectProvider = new DataObjectProvider(channelManager)
-			objectProvider.AddDataObjectMapping<Orders>("DAT:orders.ddf", FileOpenMode.UpdateRelative)
+			objectProvider.AddDataObjectMapping<Orders>("ICSTUT:orders.ism", FileOpenMode.UpdateIndexed)
 			services.AddSingleton<FileChannelManager>(channelManager)
 			services.AddSingleton<IDataObjectProvider>(objectProvider)
 			services.AddSingleton<DbContextOptions<BasicControllerDBContext>>(new DbContextOptions<BasicControllerDBContext>())
