@@ -46,6 +46,7 @@ import Microsoft.AspNet.OData
 import Microsoft.AspNet.OData.Routing
 import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Infrastructure
+import SampleServices.Models
 
 namespace SampleServices.Controllers
 
@@ -65,6 +66,55 @@ namespace SampleServices.Controllers
 		proc
 			this.DBContext = dbContext
 		endmethod
+
+.region "CREATE"
+
+		{HttpPost};For Swagger
+		{ODataRoute("Plants")}
+		;;; <summary>
+		;;; Create a new plant (automatically assigned primary key).
+		;;; </summary>
+		;;; <returns></returns>
+		public method Post, @IActionResult
+			{FromBody}
+			required in aPlant, @Plant
+		proc
+			;TODO: How do we support the auto-generation of primary key in this scenario?
+			data result = DBContext.Plants.Add(aPlant)
+			;TODO: Commit the change
+			DBContext.SaveChanges()
+			;TODO: What about failures?
+			mreturn Ok(result)
+		endmethod
+
+		{HttpPost};For Swagger
+		{ODataRoute("Plants({aInItemid})")}
+		;;; <summary>
+		;;; Create a new plant (client-supplied primary key).
+		;;; </summary>
+		;;; <param name="aInItemid">Item ID</param>
+		;;; <returns></returns>
+		public method Put, @IActionResult
+			{FromQuery};For Swagger
+			{FromODataUri}
+            required in aInItemid, int
+			{FromBody}
+			required in aPlant, @Plant
+		proc
+			;;Ensure that the key values in the URI win over any data that may be in the data object
+            aPlant.InItemid = aInItemid
+			;;Add the new plant
+			data result = DBContext.Plants.Add(aPlant)
+			;TODO: Commit the change
+			DBContext.SaveChanges()
+			;TODO: What about failures?
+			mreturn Ok(result)
+		endmethod
+
+
+.endregion
+
+.region "READ"
 
 		{HttpGet};For Swagger
 		{ODataRoute("Plants")}
@@ -95,91 +145,126 @@ namespace SampleServices.Controllers
 			mreturn Ok(result)
 		endmethod
 		
-;		{HttpGet};For Swagger
-;		{EnableQuery}
-;		{ODataRoute("Plants/ByKey/Vendor/({aInSource})")}
-;		;;; <summary>
-;		;;; Get a single Plant by key Vendor.
-;		;;; </summary>
-;;		;;; <param name="aInSource">Vending Source Code</param>
-;;		;;; <returns></returns>
-;		public method GetByKeyVendor, @IActionResult
-;;			{FromQuery};For Swagger
-;			{FromODataUri}
-;			required in aInSource, int
-;;		proc
-;			data result = DBContext.Plants.Find(aInSource)
-;			mreturn Ok(result)
-;		endmethod
-;
-;		{HttpGet};For Swagger
-;		{EnableQuery}
-;		{ODataRoute("Plants/ByKey/Color/({aInColor})")}
-;		;;; <summary>
-;		;;; Get a single Plant by key Color.
-;		;;; </summary>
-;;		;;; <param name="aInColor">Flower color</param>
-;;		;;; <returns></returns>
-;		public method GetByKeyColor, @IActionResult
-;;			{FromQuery};For Swagger
-;			{FromODataUri}
-;			required in aInColor, String
-;;		proc
-;			data result = DBContext.Plants.Find(aInColor)
-;			mreturn Ok(result)
-;		endmethod
-;
-;		{HttpGet};For Swagger
-;		{EnableQuery}
-;		{ODataRoute("Plants/ByKey/Size/({aInSize})")}
-;		;;; <summary>
-;		;;; Get a single Plant by key Size.
-;		;;; </summary>
-;;		;;; <param name="aInSize">Size in gallons</param>
-;;		;;; <returns></returns>
-;		public method GetByKeySize, @IActionResult
-;;			{FromQuery};For Swagger
-;			{FromODataUri}
-;			required in aInSize, int
-;;		proc
-;			data result = DBContext.Plants.Find(aInSize)
-;			mreturn Ok(result)
-;		endmethod
-;
-;		{HttpGet};For Swagger
-;		{EnableQuery}
-;		{ODataRoute("Plants/ByKey/Name/({aInName})")}
-;		;;; <summary>
-;		;;; Get a single Plant by key Name.
-;		;;; </summary>
-;;		;;; <param name="aInName">Common name</param>
-;;		;;; <returns></returns>
-;		public method GetByKeyName, @IActionResult
-;;			{FromQuery};For Swagger
-;			{FromODataUri}
-;			required in aInName, String
-;;		proc
-;			data result = DBContext.Plants.Find(aInName)
-;			mreturn Ok(result)
-;		endmethod
-;
-;		{HttpGet};For Swagger
-;		{EnableQuery}
-;		{ODataRoute("Plants/ByKey/ReverseVendor/({aInSource})")}
-;		;;; <summary>
-;		;;; Get a single Plant by key ReverseVendor.
-;		;;; </summary>
-;;		;;; <param name="aInSource">Vending Source Code</param>
-;;		;;; <returns></returns>
-;		public method GetByKeyReverseVendor, @IActionResult
-;;			{FromQuery};For Swagger
-;			{FromODataUri}
-;			required in aInSource, int
-;;		proc
-;			data result = DBContext.Plants.Find(aInSource)
-;			mreturn Ok(result)
-;		endmethod
-;
+		{HttpGet};For Swagger
+		{EnableQuery}
+		{ODataRoute("Plants/ByKey/Vendor/({aInSource})")}
+		;;; <summary>
+		;;; Get a single Plant by key Vendor.
+		;;; </summary>
+		;;; <param name="aInSource">Vending Source Code</param>
+		;;; <returns></returns>
+		public method GetByKeyVendor, @IActionResult
+			{FromQuery};For Swagger
+			{FromODataUri}
+			required in aInSource, int
+		proc
+			data result = DBContext.Plants.Find(aInSource)
+			mreturn Ok(result)
+		endmethod
+
+		{HttpGet};For Swagger
+		{EnableQuery}
+		{ODataRoute("Plants/ByKey/Color/({aInColor})")}
+		;;; <summary>
+		;;; Get a single Plant by key Color.
+		;;; </summary>
+		;;; <param name="aInColor">Flower color</param>
+		;;; <returns></returns>
+		public method GetByKeyColor, @IActionResult
+			{FromQuery};For Swagger
+			{FromODataUri}
+			required in aInColor, String
+		proc
+			data result = DBContext.Plants.Find(aInColor)
+			mreturn Ok(result)
+		endmethod
+
+		{HttpGet};For Swagger
+		{EnableQuery}
+		{ODataRoute("Plants/ByKey/Size/({aInSize})")}
+		;;; <summary>
+		;;; Get a single Plant by key Size.
+		;;; </summary>
+		;;; <param name="aInSize">Size in gallons</param>
+		;;; <returns></returns>
+		public method GetByKeySize, @IActionResult
+			{FromQuery};For Swagger
+			{FromODataUri}
+			required in aInSize, int
+		proc
+			data result = DBContext.Plants.Find(aInSize)
+			mreturn Ok(result)
+		endmethod
+
+		{HttpGet};For Swagger
+		{EnableQuery}
+		{ODataRoute("Plants/ByKey/Name/({aInName})")}
+		;;; <summary>
+		;;; Get a single Plant by key Name.
+		;;; </summary>
+		;;; <param name="aInName">Common name</param>
+		;;; <returns></returns>
+		public method GetByKeyName, @IActionResult
+			{FromQuery};For Swagger
+			{FromODataUri}
+			required in aInName, String
+		proc
+			data result = DBContext.Plants.Find(aInName)
+			mreturn Ok(result)
+		endmethod
+
+		{HttpGet};For Swagger
+		{EnableQuery}
+		{ODataRoute("Plants/ByKey/ReverseVendor/({aInSource})")}
+		;;; <summary>
+		;;; Get a single Plant by key ReverseVendor.
+		;;; </summary>
+		;;; <param name="aInSource">Vending Source Code</param>
+		;;; <returns></returns>
+		public method GetByKeyReverseVendor, @IActionResult
+			{FromQuery};For Swagger
+			{FromODataUri}
+			required in aInSource, int
+		proc
+			data result = DBContext.Plants.Find(aInSource)
+			mreturn Ok(result)
+		endmethod
+
+
+.endregion
+
+.region "UPDATE"
+
+
+
+.endregion
+
+.region "DELETE"
+
+		{HttpPost};For Swagger
+		{ODataRoute("Plants({aInItemid})")}
+		;;; <summary>
+		;;; Delete a plant.
+		;;; </summary>
+		;;; <param name="aInItemid">Item ID</param>
+		;;; <returns></returns>
+		public method Delete, @IActionResult
+			{FromQuery};For Swagger
+			{FromODataUri}
+            required in aInItemid, int
+		proc
+			;;Get the plant to be deleted
+			data plantToRemove = DBContext.Plants.Find(aInItemid)
+			;;Mark it for removal
+			data result = DBContext.Plants.Remove(plantToRemove)
+			;TODO: Commit the change
+			DBContext.SaveChanges()
+			;TODO: What about failures?
+			mreturn Ok(result)
+		endmethod
+
+.endregion
+
 	endclass
 
 endnamespace

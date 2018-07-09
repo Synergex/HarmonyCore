@@ -1,4 +1,5 @@
 <CODEGEN_FILENAME><StructurePlural>Controller.dbl</CODEGEN_FILENAME>
+<REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>DBCONTEXT_NAMESPACE</REQUIRES_USERTOKEN>
 <REQUIRES_CODEGEN_VERSION>5.3.3</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
@@ -81,6 +82,7 @@ import Microsoft.AspNet.OData
 import Microsoft.AspNet.OData.Routing
 import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Infrastructure
+import <MODELS_NAMESPACE>
 
 namespace <NAMESPACE>
 
@@ -100,6 +102,63 @@ namespace <NAMESPACE>
 		proc
 			this.DBContext = dbContext
 		endmethod
+
+.region "CREATE"
+
+		{HttpPost};For Swagger
+		{ODataRoute("<StructurePlural>")}
+		;;; <summary>
+		;;; Create a new <structureNoplural> (automatically assigned primary key).
+		;;; </summary>
+		;;; <returns></returns>
+		public method Post, @IActionResult
+			{FromBody}
+			required in a<StructureNoplural>, @<StructureNoplural>
+		proc
+			;TODO: How do we support the auto-generation of primary key in this scenario?
+			data result = DBContext.<StructurePlural>.Add(a<StructureNoplural>)
+			;TODO: Commit the change
+			DBContext.SaveChanges()
+			;TODO: What about failures?
+			mreturn Ok(result)
+		endmethod
+
+		<PRIMARY_KEY>
+		{HttpPost};For Swagger
+		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP>{a<SegmentName>}<,></SEGMENT_LOOP>)")}
+		;;; <summary>
+		;;; Create a new <structureNoplural> (client-supplied primary key).
+		;;; </summary>
+        <SEGMENT_LOOP>
+		;;; <param name="a<SegmentName>"><FIELD_DESC></param>
+        </SEGMENT_LOOP>
+		;;; <returns></returns>
+		public method Put, @IActionResult
+            <SEGMENT_LOOP>
+			{FromQuery};For Swagger
+			{FromODataUri}
+            required in a<SegmentName>, <SEGMENT_SNTYPE>
+            </SEGMENT_LOOP>
+			{FromBody}
+			required in a<StructureNoplural>, @<StructureNoplural>
+		proc
+			;;Ensure that the key values in the URI win over any data that may be in the data object
+            <SEGMENT_LOOP>
+            a<StructureNoplural>.<FieldSqlname> = a<SegmentName>
+            </SEGMENT_LOOP>
+			;;Add the new <structureNoplural>
+			data result = DBContext.<StructurePlural>.Add(a<StructureNoplural>)
+			;TODO: Commit the change
+			DBContext.SaveChanges()
+			;TODO: What about failures?
+			mreturn Ok(result)
+		endmethod
+
+		</PRIMARY_KEY>
+
+.endregion
+
+.region "READ"
 
 		{HttpGet};For Swagger
 		{ODataRoute("<StructurePlural>")}
@@ -137,28 +196,69 @@ namespace <NAMESPACE>
 		</PRIMARY_KEY>
 		
 		<ALTERNATE_KEY_LOOP>
-;		{HttpGet};For Swagger
-;		{EnableQuery}
-;		{ODataRoute("<StructurePlural>/ByKey/<KeyName>/(<SEGMENT_LOOP>{a<SegmentName>}<,></SEGMENT_LOOP>)")}
-;		;;; <summary>
-;		;;; Get a single <StructureNoplural> by key <KeyName>.
-;		;;; </summary>
-;		<SEGMENT_LOOP>
-;		;;; <param name="a<SegmentName>"><FIELD_DESC></param>
-;		</SEGMENT_LOOP>
-;		;;; <returns></returns>
-;		public method GetByKey<KeyName>, @IActionResult
-;			<SEGMENT_LOOP>
-;			{FromQuery};For Swagger
-;			{FromODataUri}
-;			required in a<SegmentName>, <SEGMENT_SNTYPE>
-;			</SEGMENT_LOOP>
-;		proc
-;			data result = DBContext.<StructurePlural>.Find(<SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP>)
-;			mreturn Ok(result)
-;		endmethod
-;
+		{HttpGet};For Swagger
+		{EnableQuery}
+		{ODataRoute("<StructurePlural>/ByKey/<KeyName>/(<SEGMENT_LOOP>{a<SegmentName>}<,></SEGMENT_LOOP>)")}
+		;;; <summary>
+		;;; Get a single <StructureNoplural> by key <KeyName>.
+		;;; </summary>
+		<SEGMENT_LOOP>
+		;;; <param name="a<SegmentName>"><FIELD_DESC></param>
+		</SEGMENT_LOOP>
+		;;; <returns></returns>
+		public method GetByKey<KeyName>, @IActionResult
+			<SEGMENT_LOOP>
+			{FromQuery};For Swagger
+			{FromODataUri}
+			required in a<SegmentName>, <SEGMENT_SNTYPE>
+			</SEGMENT_LOOP>
+		proc
+			data result = DBContext.<StructurePlural>.Find(<SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP>)
+			mreturn Ok(result)
+		endmethod
+
 		</ALTERNATE_KEY_LOOP>
+
+.endregion
+
+.region "UPDATE"
+
+
+
+.endregion
+
+.region "DELETE"
+
+		<PRIMARY_KEY>
+		{HttpPost};For Swagger
+		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP>{a<SegmentName>}<,></SEGMENT_LOOP>)")}
+		;;; <summary>
+		;;; Delete a <structureNoplural>.
+		;;; </summary>
+        <SEGMENT_LOOP>
+		;;; <param name="a<SegmentName>"><FIELD_DESC></param>
+        </SEGMENT_LOOP>
+		;;; <returns></returns>
+		public method Delete, @IActionResult
+            <SEGMENT_LOOP>
+			{FromQuery};For Swagger
+			{FromODataUri}
+            required in a<SegmentName>, <SEGMENT_SNTYPE>
+            </SEGMENT_LOOP>
+		proc
+			;;Get the <structureNoplural> to be deleted
+			data <structureNoplural>ToRemove = DBContext.<StructurePlural>.Find(<SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP>)
+			;;Mark it for removal
+			data result = DBContext.<StructurePlural>.Remove(<structureNoplural>ToRemove)
+			;TODO: Commit the change
+			DBContext.SaveChanges()
+			;TODO: What about failures?
+			mreturn Ok(result)
+		endmethod
+		</PRIMARY_KEY>
+
+.endregion
+
 	endclass
 
 endnamespace
