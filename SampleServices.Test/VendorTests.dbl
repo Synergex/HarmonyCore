@@ -122,6 +122,16 @@ namespace SampleServices.Test
 			response.EnsureSuccessStatusCode()
 		endmethod
 		
+		public method GetByKeyTagVendor, void
+		proc
+			data client = UnitTestEnvironment.Server.CreateClient()
+			data request = String.Format("/odata/Vendors(VendRtype={1},VendKey={2})", "", TestContext.VendorVendRtype,TestContext.VendorVendKey)
+			data response = client.GetAsync(request).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data vendor, @ODataVendor, JsonConvert.DeserializeObject<ODataVendor>(result)
+		endmethod
+
 ;		{TestMethod}
 ;		{TestCategory("Vendor Tests - All")}
 ;		public method CreateVendor, void

@@ -1,12 +1,12 @@
  
 ;  SYNERGY DATA LANGUAGE OUTPUT
 ;
-;  REPOSITORY     : C:\DEV\SYNERGEX\HarmonyWebServices\HarmonyCore.Test.Reposito
-;                 : C:\DEV\SYNERGEX\HarmonyWebServices\HarmonyCore.Test.Reposito
-;                 : Version 10.3.4
+;  REPOSITORY     : C:\DEV\HarmonyCore\HarmonyCore.Test.Repository\bin\Debug\rps
+;                 : C:\DEV\HarmonyCore\HarmonyCore.Test.Repository\bin\Debug\rps
+;                 : Version 11.0.1
 ;
-;  GENERATED      : 18-JUN-2018, 14:10:59
-;                 : Version 10.3.4
+;  GENERATED      : 12-JUL-2018, 15:33:48
+;                 : Version 11.0.1
 ;  EXPORT OPTIONS : [ALL] 
  
  
@@ -266,11 +266,6 @@ Key SIZE   ACCESS   Order DESCENDING   Dups YES   Insert END   Modifiable YES
 Key NAME   ACCESS   Order ASCENDING   Dups YES   Insert END   Modifiable YES
    Description "alpha30 ascending key"
    Segment FIELD   IN_NAME
- 
-Key REVERSE_VENDOR   ACCESS   Order DESCENDING   Dups YES   Insert END
-   Modifiable YES
-   Description "in_source in descending order"
-   Segment FIELD   IN_SOURCE  SegType ALPHA
  
 Relation  1   PLANTS VENDOR   VENDORS VENDOR
  

@@ -168,6 +168,18 @@ namespace <NAMESPACE>
 		endmethod
 		
 		</IF STRUCTURE_RELATIONS>
+		<ALTERNATE_KEY_LOOP>
+		public method GetByKey<KeyName>, void
+		proc
+			data client = UnitTestEnvironment.Server.CreateClient()
+			data request = String.Format("/odata/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)", "", <SEGMENT_LOOP>TestContext.<StructureNoplural><SegmentName><,></SEGMENT_LOOP>)
+			data response = client.GetAsync(request).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data <structureNoplural>, @OData<StructureNoplural>, JsonConvert.DeserializeObject<OData<StructureNoplural>>(result)
+		endmethod
+
+		</ALTERNATE_KEY_LOOP>
 ;		{TestMethod}
 ;		{TestCategory("<StructureNoplural> Tests - All")}
 ;		public method Create<StructureNoplural>, void

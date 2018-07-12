@@ -122,6 +122,16 @@ namespace SampleServices.Test
 			response.EnsureSuccessStatusCode()
 		endmethod
 		
+		public method GetByKeyTagCustomer, void
+		proc
+			data client = UnitTestEnvironment.Server.CreateClient()
+			data request = String.Format("/odata/Customers(CustRtype={1},CustKey={2})", "", TestContext.CustomerCustRtype,TestContext.CustomerCustKey)
+			data response = client.GetAsync(request).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data customer, @ODataCustomer, JsonConvert.DeserializeObject<ODataCustomer>(result)
+		endmethod
+
 ;		{TestMethod}
 ;		{TestCategory("Customer Tests - All")}
 ;		public method CreateCustomer, void

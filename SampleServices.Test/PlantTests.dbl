@@ -122,6 +122,46 @@ namespace SampleServices.Test
 			response.EnsureSuccessStatusCode()
 		endmethod
 		
+		public method GetByKeyVendor, void
+		proc
+			data client = UnitTestEnvironment.Server.CreateClient()
+			data request = String.Format("/odata/Plants(InSource={1})", "", TestContext.PlantInSource)
+			data response = client.GetAsync(request).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data plant, @ODataPlant, JsonConvert.DeserializeObject<ODataPlant>(result)
+		endmethod
+
+		public method GetByKeyColor, void
+		proc
+			data client = UnitTestEnvironment.Server.CreateClient()
+			data request = String.Format("/odata/Plants(InColor='{1}')", "", TestContext.PlantInColor)
+			data response = client.GetAsync(request).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data plant, @ODataPlant, JsonConvert.DeserializeObject<ODataPlant>(result)
+		endmethod
+
+		public method GetByKeySize, void
+		proc
+			data client = UnitTestEnvironment.Server.CreateClient()
+			data request = String.Format("/odata/Plants(InSize={1})", "", TestContext.PlantInSize)
+			data response = client.GetAsync(request).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data plant, @ODataPlant, JsonConvert.DeserializeObject<ODataPlant>(result)
+		endmethod
+
+		public method GetByKeyName, void
+		proc
+			data client = UnitTestEnvironment.Server.CreateClient()
+			data request = String.Format("/odata/Plants(InName='{1}')", "", TestContext.PlantInName)
+			data response = client.GetAsync(request).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data plant, @ODataPlant, JsonConvert.DeserializeObject<ODataPlant>(result)
+		endmethod
+
 ;		{TestMethod}
 ;		{TestCategory("Plant Tests - All")}
 ;		public method CreatePlant, void

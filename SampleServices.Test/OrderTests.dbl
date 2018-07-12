@@ -155,6 +155,36 @@ namespace SampleServices.Test
 			response.EnsureSuccessStatusCode()
 		endmethod
 		
+		public method GetByKeyVendor, void
+		proc
+			data client = UnitTestEnvironment.Server.CreateClient()
+			data request = String.Format("/odata/Orders(OrVendor={1})", "", TestContext.OrderOrVendor)
+			data response = client.GetAsync(request).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data order, @ODataOrder, JsonConvert.DeserializeObject<ODataOrder>(result)
+		endmethod
+
+		public method GetByKeyItem, void
+		proc
+			data client = UnitTestEnvironment.Server.CreateClient()
+			data request = String.Format("/odata/Orders(OrItem={1})", "", TestContext.OrderOrItem)
+			data response = client.GetAsync(request).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data order, @ODataOrder, JsonConvert.DeserializeObject<ODataOrder>(result)
+		endmethod
+
+		public method GetByKeyCustomer, void
+		proc
+			data client = UnitTestEnvironment.Server.CreateClient()
+			data request = String.Format("/odata/Orders(OrCustomer={1})", "", TestContext.OrderOrCustomer)
+			data response = client.GetAsync(request).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data order, @ODataOrder, JsonConvert.DeserializeObject<ODataOrder>(result)
+		endmethod
+
 ;		{TestMethod}
 ;		{TestCategory("Order Tests - All")}
 ;		public method CreateOrder, void
