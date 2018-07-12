@@ -1,3 +1,4 @@
+import Microsoft.AspNet.OData
 ;;*****************************************************************************
 ;;
 ;; Title:       Startup.dbl
@@ -61,10 +62,15 @@
 import Harmony.Core.Context
 import Harmony.Core.FileIO
 import Harmony.Core.Utility
+import Harmony.OData
 import Harmony.AspNetCore.Context
 import Microsoft.Extensions.DependencyInjection
 import Microsoft.EntityFrameworkCore
 import Microsoft.AspNet.OData.Extensions
+import Microsoft.AspNet.OData.Builder
+import Microsoft.AspNet.OData.Routing
+import Microsoft.OData
+import Microsoft.OData.UriParser
 import Microsoft.AspNetCore.Builder
 import Microsoft.AspNetCore.Hosting
 import Swashbuckle.AspNetCore.Swagger
@@ -77,9 +83,8 @@ namespace SampleServices
 		public method ConfigureServices, void
 			services, @IServiceCollection 
 		proc
-
+			
 			;;Load Harmony Core
-
 			lambda AddDataObjectMappings(serviceProvider)
 			begin
 				data objectProvider = new DataObjectProvider(serviceProvider.GetService<IFileChannelManager>())
@@ -96,10 +101,25 @@ namespace SampleServices
 			services.AddSingleton<DBContext, DBContext>()
 
 			;;Load OData and ASP.NET
+			lambda AddAltKeySupport(serviceProvider)
+			begin
+				data model = EdmBuilder.GetEdmModel(serviceProvider)
+				mreturn new AlternateKeysODataUriResolver(model)
+			end
 
+			services.AddSingleton<ODataUriResolver>(AddAltKeySupport)
+			
 			services.AddOData()
-			services.AddMvcCore()
-
+;			data serviceDescrip, @ServiceDescriptor
+;			foreach serviceDescrip in services
+;			begin
+;				if(serviceDescrip.ServiceType == ^typeof(IPerRouteContainer))
+;				begin
+;					services.Remove(serviceDescrip)
+;					exitloop
+;				end
+;			end
+			services.AddSingleton<IPerRouteContainer, HarmonyPerRouteContainer>()
 			;;Load Swagger API documentation services
 
 			services.AddMvcCore().AddApiExplorer()
@@ -119,18 +139,30 @@ namespace SampleServices
 
 			;;Add the middleware to generate API documentation to a file
 
-			app.UseSwagger()
+			app.UseSwagger() 
 
 			app.UseLogging(DebugLogSession.Logging)
 
 			;;Configure the MVC / OData environment
-
-			data model = EdmBuilder.GetEdmModel()
-
 			lambda MVCBuilder(builder)
 			begin
+				data model = EdmBuilder.GetEdmModel(app.ApplicationServices)
+				lambda UriResolver(s)
+				begin
+					data result = app.ApplicationServices.GetRequiredService<ODataUriResolver>()
+					mreturn result
+				end
+
+				lambda EnableDI(containerBuilder)
+				begin
+					containerBuilder.AddService<Microsoft.OData.UriParser.ODataUriResolver>( Microsoft.OData.ServiceLifetime.Singleton, UriResolver)
+					nop
+				end
+
+				builder.EnableDependencyInjection(EnableDI)
 				builder.Select().Expand().Filter().OrderBy().MaxTop(100).Count()
 				builder.MapODataServiceRoute("odata", "odata", model)
+				
 			end
 
 			;;Add the MVC middleware
@@ -148,5 +180,4 @@ namespace SampleServices
 
 		endmethod
 	endclass
-
 endnamespace

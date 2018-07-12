@@ -1,0 +1,278 @@
+import System
+import System.Collections.Generic
+import System.Text
+import System.Collections.Concurrent
+import Microsoft.Extensions.DependencyInjection
+import Microsoft.AspNet.OData.Extensions
+import Microsoft.AspNet.OData.Builder
+import Microsoft.AspNet.OData.Routing
+import Microsoft.AspNet.OData
+import Microsoft.OData
+import Microsoft.OData.UriParser
+import Microsoft.AspNetCore.Builder
+
+namespace Harmony.OData
+
+	public class HarmonyPerRouteContainer extends HarmonyPerRouteContainerBase
+    
+		private _perRouteContainers, @ConcurrentDictionary<string, IServiceProvider>
+		private _nonODataRouteContainer, @IServiceProvider
+    
+		;;;  <summary>
+		;;;  Initializes a new instance of the <see cref="ODataSerializerContext"/> class.
+		;;;  </summary>
+		public method HarmonyPerRouteContainer
+			endparams
+		proc
+			this._perRouteContainers = new ConcurrentDictionary<string, IServiceProvider>()
+		endmethod
+    
+		;;;  <summary>
+		;;;  Gets the container for a given route name.
+		;;;  </summary>
+		;;;  <param name="routeName">The route name.</param>
+		;;;  <returns>The root container for the route name.</returns>
+		protected override method GetContainer, @IServiceProvider
+			routeName, string 
+			endparams
+		proc
+			if (String.IsNullOrEmpty(routeName))
+			begin
+				mreturn _nonODataRouteContainer
+			end
+			data rootContainer, @IServiceProvider
+			if (_perRouteContainers.TryGetValue(routeName, rootContainer))
+			begin
+				mreturn rootContainer
+			end
+			mreturn ^null
+		endmethod
+    
+		;;;  <summary>
+		;;;  Sets the container for a given route name.
+		;;;  </summary>
+		;;;  <param name="routeName">The route name.</param>
+		;;;  <param name="rootContainer">The root container to set.</param>
+		;;;  <remarks>Used by unit tests to insert root containers.</remarks>
+		protected override method SetContainer, void
+			routeName, string 
+			rootContainer, @IServiceProvider 
+			endparams
+		proc
+			if (rootContainer == ^null)
+			begin
+				throw new InvalidOperationException()
+			end
+			if (String.IsNullOrEmpty(routeName)) then
+			begin
+				_nonODataRouteContainer = rootContainer
+			end
+			else
+			begin
+				lambda generated_lambda1(k, v)
+				begin
+					mreturn rootContainer
+				end
+				this._perRouteContainers.AddOrUpdate(routeName, rootContainer, generated_lambda1)
+			end
+		endmethod
+
+		;public readwrite property Services, @IServiceProvider
+		protected override method CreateContainerBuilderWithCoreServices, @IContainerBuilder
+		proc
+			data builder, @IContainerBuilder 
+			if (this.BuilderFactory != ^null) then
+			begin
+				builder = this.BuilderFactory()
+				if (builder == ^null)
+				begin
+					throw new InvalidOperationException()
+				end
+			end
+			else
+			begin
+				builder = new DefaultContainerBuilder()
+			end
+
+			builder.AddDefaultODataServices()
+
+			lambda UriResolver(s)
+			begin
+				data result = _nonODataRouteContainer.GetRequiredService<ODataUriResolver>()
+				mreturn result
+			end
+			builder.AddService<ODataUriResolver>( Microsoft.OData.ServiceLifetime.Singleton, UriResolver)
+
+
+			;; Set Uri resolver to by default enabling unqualified functions/actions and case insensitive match.
+;			builder.AddService(
+;			ServiceLifetime.Singleton,
+;			typeof(ODataUriResolver),
+;			sp => new UnqualifiedODataUriResolver { EnableCaseInsensitive = true });
+
+			mreturn builder
+		endmethod
+
+	endclass
+
+	public abstract class HarmonyPerRouteContainerBase implements IPerRouteContainer
+    
+		;;;  <summary>
+		;;;  Gets or sets a function to build an <see cref="IContainerBuilder"/>
+		;;;  </summary>
+		public property BuilderFactory, @Func<IContainerBuilder>
+			method get
+			endmethod
+			method set
+			endmethod
+		endproperty
+    
+		;;;  <summary>
+		;;;  Create a root container for a given route name.
+		;;;  </summary>
+		;;;  <param name="routeName">The route name.</param>
+		;;;  <param name="configureAction">The configuration actions to apply to the container.</param>
+		;;;  <returns>An instance of <see cref="IServiceProvider"/> to manage services for a route.</returns>
+		public method CreateODataRootContainer, @IServiceProvider
+			routeName, string 
+			configureAction, @Action<IContainerBuilder> 
+			endparams
+		proc
+			data rootContainer, @IServiceProvider, this.CreateODataRootContainer(configureAction)
+			this.SetContainer(routeName, rootContainer)
+			mreturn rootContainer
+		endmethod
+    
+		;;;  <summary>
+		;;;  Create a root container not associated with a route.
+		;;;  </summary>
+		;;;  <param name="configureAction">The configuration actions to apply to the container.</param>
+		;;;  <returns>An instance of <see cref="IServiceProvider"/> to manage services for a route.</returns>
+		public method CreateODataRootContainer, @IServiceProvider
+			configureAction, @Action<IContainerBuilder> 
+			endparams
+		proc
+			data builder, @IContainerBuilder, CreateContainerBuilderWithCoreServices()
+			if (configureAction != ^null)
+			begin
+				configureAction(builder)
+			end
+			data rootContainer, @IServiceProvider, builder.BuildContainer()
+			if (rootContainer == ^null)
+			begin
+				throw new InvalidOperationException()
+			end
+			mreturn rootContainer
+		endmethod
+    
+		;;;  <summary>
+		;;;  Check if the root container for a given route name exists.
+		;;;  </summary>
+		;;;  <param name="routeName">The route name.</param>
+		;;;  <returns>true if root container for the route name exists, false otherwise.</returns>
+		public method HasODataRootContainer, boolean
+			routeName, string 
+			endparams
+		proc
+			data rootContainer, @IServiceProvider, this.GetContainer(routeName)
+			mreturn rootContainer != ^null
+		endmethod
+    
+		;;;  <summary>
+		;;;  Get the root container for a given route name.
+		;;;  </summary>
+		;;;  <param name="routeName">The route name.</param>
+		;;;  <returns>The root container for the route name.</returns>
+		;;;  <remarks>
+		;;;  This function will throw an exception if no container is found
+		;;;  in order to localize the failure and provide a consistent error
+		;;;  message. Use <see cref="HasODataRootContainer"/> to test of a container
+		;;;  exists without throwing an exception.
+		;;;  </remarks>
+		public method GetODataRootContainer, @IServiceProvider
+			routeName, string 
+			endparams
+		proc
+			data rootContainer, @IServiceProvider, this.GetContainer(routeName)
+			if (rootContainer == ^null)
+			begin
+				if (String.IsNullOrEmpty(routeName)) then
+				begin
+					throw new InvalidOperationException()
+				end
+				else
+				begin
+					throw new InvalidOperationException()
+				end
+			end
+			mreturn rootContainer
+		endmethod
+    
+		;;;  <summary>
+		;;;  Set the root container for a given route name.
+		;;;  </summary>
+		;;;  <param name="routeName">The route name.</param>
+		;;;  <param name="rootContainer">The root container to set.</param>
+		;;;  <remarks>Used by unit tests to insert root containers.</remarks>
+		internal method SetODataRootContainer, void
+			routeName, string 
+			rootContainer, @IServiceProvider 
+			endparams
+		proc
+			this.SetContainer(routeName, rootContainer)
+		endmethod
+    
+		;;;  <summary>
+		;;;  Get the root container for a given route name.
+		;;;  </summary>
+		;;;  <param name="routeName">The route name.</param>
+		protected abstract method GetContainer, @IServiceProvider
+			routeName, string 
+			endparams
+		proc
+		endmethod
+    
+		;;;  <summary>
+		;;;  Set the root container for a given route name.
+		;;;  </summary>
+		;;;  <param name="routeName">The route name.</param>
+		;;;  <param name="rootContainer">The root container to set.</param>
+		protected abstract method SetContainer, void
+			routeName, string 
+			rootContainer, @IServiceProvider 
+			endparams
+		proc
+		endmethod
+    
+		;;;  <summary>
+		;;;  Create a container builder with the default OData services.
+		;;;  </summary>
+		;;;  <returns>An instance of <see cref="IContainerBuilder"/> to manage services.</returns>
+		protected virtual method CreateContainerBuilderWithCoreServices, @IContainerBuilder
+			endparams
+		proc
+			data builder, @IContainerBuilder
+			if (this.BuilderFactory != ^null) then
+			begin
+				builder = this.BuilderFactory()
+				if (builder == ^null)
+				begin
+					throw new InvalidOperationException()
+				end
+			end
+			else
+			begin
+				builder = new DefaultContainerBuilder()
+			end
+			builder.AddDefaultODataServices()
+			lambda generated_lambda1(sp)
+			begin
+				mreturn new UnqualifiedODataUriResolver() { EnableCaseInsensitive = true }
+			end
+			;;  Set Uri resolver to by default enabling unqualified functions/actions and case insensitive match.
+			builder.AddService(Microsoft.OData.ServiceLifetime.Singleton, ^typeof(ODataUriResolver), generated_lambda1)
+			mreturn builder
+		endmethod
+	endclass
+
+endnamespace

@@ -47,6 +47,7 @@ import Microsoft.EntityFrameworkCore
 import Microsoft.OData.Edm
 import Microsoft.AspNet.OData.Builder
 import SampleServices.Models
+import System.Collections.Generic
 
 namespace SampleServices
 
@@ -55,21 +56,38 @@ namespace SampleServices
 	;;; </summary>
 	public class EdmBuilder
 
-		private static mEdmModel, @IEdmModel
+		private static mEdmModel, @EdmModel
 
 		;;; <summary>
 		;;; Gets the entity data model.
 		;;; </summary>
 		public static method GetEdmModel, @IEdmModel
+			serviceProvider, @IServiceProvider
 		proc
 			if(mEdmModel == ^null)
 			begin
-				data builder = new ODataConventionModelBuilder()
+				data builder = new ODataConventionModelBuilder(serviceProvider)
 				builder.EntitySet<Customer>("Customers")
 				builder.EntitySet<Order>("Orders")
 				builder.EntitySet<Plant>("Plants")
 				builder.EntitySet<Vendor>("Vendors")
-				mEdmModel = builder.GetEdmModel()
+				data tempModel = (@EdmModel)builder.GetEdmModel()
+				data plantType = (@EdmEntityType)tempModel.FindDeclaredType("SampleServices.Models.Plant")
+				data vendorType = (@EdmEntityType)tempModel.FindDeclaredType("SampleServices.Models.Vendor")
+				data customerType = (@EdmEntityType)tempModel.FindDeclaredType("SampleServices.Models.Customer")
+				data inSourceProperty = plantType.FindProperty("InSource")
+
+				data vendRtypeProperty = vendorType.FindProperty("VendRtype")
+				data vendKeyProperty = vendorType.FindProperty("VendKey")
+
+				data custRtypeProperty = customerType.FindProperty("CustRtype")
+				data custKeyProperty = customerType.FindProperty("CustKey")
+
+				tempModel.AddAlternateKeyAnnotation(plantType, new Dictionary<string, IEdmProperty>() { {"InSource", inSourceProperty} })
+				tempModel.AddAlternateKeyAnnotation(vendorType, new Dictionary<string, IEdmProperty>() { {"VendRtype", vendRtypeProperty}, {"VendKey", vendKeyProperty} })
+				tempModel.AddAlternateKeyAnnotation(customerType, new Dictionary<string, IEdmProperty>() { {"CustRtype", custRtypeProperty}, {"CustKey", custKeyProperty} })
+				mEdmModel = tempModel
+				mreturn mEdmModel
 			end
 
 			mreturn mEdmModel
