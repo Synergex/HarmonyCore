@@ -46,8 +46,8 @@ import Harmony.Core.Context
 import Microsoft.EntityFrameworkCore
 import Microsoft.OData.Edm
 import Microsoft.AspNet.OData.Builder
-import SampleServices.Models
 import System.Collections.Generic
+import SampleServices.Models
 
 namespace SampleServices
 
@@ -56,13 +56,13 @@ namespace SampleServices
 	;;; </summary>
 	public class EdmBuilder
 
-		private static mEdmModel, @EdmModel
+		private static mEdmModel, @IEdmModel
 
 		;;; <summary>
 		;;; Gets the entity data model.
 		;;; </summary>
 		public static method GetEdmModel, @IEdmModel
-			serviceProvider, @IServiceProvider
+			required in serviceProvider, @IServiceProvider
 		proc
 			if(mEdmModel == ^null)
 			begin
@@ -71,23 +71,28 @@ namespace SampleServices
 				builder.EntitySet<Order>("Orders")
 				builder.EntitySet<Plant>("Plants")
 				builder.EntitySet<Vendor>("Vendors")
+
 				data tempModel = (@EdmModel)builder.GetEdmModel()
-				data plantType = (@EdmEntityType)tempModel.FindDeclaredType("SampleServices.Models.Plant")
-				data vendorType = (@EdmEntityType)tempModel.FindDeclaredType("SampleServices.Models.Vendor")
+
 				data customerType = (@EdmEntityType)tempModel.FindDeclaredType("SampleServices.Models.Customer")
-				data inSourceProperty = plantType.FindProperty("InSource")
+				tempModel.AddAlternateKeyAnnotation(customerType, new Dictionary<string, IEdmProperty>() {{"CustRtype",customerType.FindProperty("CustRtype")},{"CustKey",customerType.FindProperty("CustKey")}})
 
-				data vendRtypeProperty = vendorType.FindProperty("VendRtype")
-				data vendKeyProperty = vendorType.FindProperty("VendKey")
+				data orderType = (@EdmEntityType)tempModel.FindDeclaredType("SampleServices.Models.Order")
+				tempModel.AddAlternateKeyAnnotation(orderType, new Dictionary<string, IEdmProperty>() {{"OrVendor",orderType.FindProperty("OrVendor")}})
+				tempModel.AddAlternateKeyAnnotation(orderType, new Dictionary<string, IEdmProperty>() {{"OrItem",orderType.FindProperty("OrItem")}})
+				tempModel.AddAlternateKeyAnnotation(orderType, new Dictionary<string, IEdmProperty>() {{"OrCustomer",orderType.FindProperty("OrCustomer")}})
 
-				data custRtypeProperty = customerType.FindProperty("CustRtype")
-				data custKeyProperty = customerType.FindProperty("CustKey")
+				data plantType = (@EdmEntityType)tempModel.FindDeclaredType("SampleServices.Models.Plant")
+				tempModel.AddAlternateKeyAnnotation(plantType, new Dictionary<string, IEdmProperty>() {{"InSource",plantType.FindProperty("InSource")}})
+				tempModel.AddAlternateKeyAnnotation(plantType, new Dictionary<string, IEdmProperty>() {{"InColor",plantType.FindProperty("InColor")}})
+				tempModel.AddAlternateKeyAnnotation(plantType, new Dictionary<string, IEdmProperty>() {{"InSize",plantType.FindProperty("InSize")}})
+				tempModel.AddAlternateKeyAnnotation(plantType, new Dictionary<string, IEdmProperty>() {{"InName",plantType.FindProperty("InName")}})
+				tempModel.AddAlternateKeyAnnotation(plantType, new Dictionary<string, IEdmProperty>() {{"InSource",plantType.FindProperty("InSource")}})
 
-				tempModel.AddAlternateKeyAnnotation(plantType, new Dictionary<string, IEdmProperty>() { {"InSource", inSourceProperty} })
-				tempModel.AddAlternateKeyAnnotation(vendorType, new Dictionary<string, IEdmProperty>() { {"VendRtype", vendRtypeProperty}, {"VendKey", vendKeyProperty} })
-				tempModel.AddAlternateKeyAnnotation(customerType, new Dictionary<string, IEdmProperty>() { {"CustRtype", custRtypeProperty}, {"CustKey", custKeyProperty} })
+				data vendorType = (@EdmEntityType)tempModel.FindDeclaredType("SampleServices.Models.Vendor")
+				tempModel.AddAlternateKeyAnnotation(vendorType, new Dictionary<string, IEdmProperty>() {{"VendRtype",vendorType.FindProperty("VendRtype")},{"VendKey",vendorType.FindProperty("VendKey")}})
+
 				mEdmModel = tempModel
-				mreturn mEdmModel
 			end
 
 			mreturn mEdmModel

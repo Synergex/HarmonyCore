@@ -81,6 +81,7 @@ import Harmony.Core.Context
 import Microsoft.EntityFrameworkCore
 import Microsoft.OData.Edm
 import Microsoft.AspNet.OData.Builder
+import System.Collections.Generic
 import <MODELS_NAMESPACE>
 
 namespace <NAMESPACE>
@@ -96,14 +97,25 @@ namespace <NAMESPACE>
 		;;; Gets the entity data model.
 		;;; </summary>
 		public static method GetEdmModel, @IEdmModel
+			required in serviceProvider, @IServiceProvider
 		proc
 			if(mEdmModel == ^null)
 			begin
-				data builder = new ODataConventionModelBuilder()
+				data builder = new ODataConventionModelBuilder(serviceProvider)
 				<STRUCTURE_LOOP>
 				builder.EntitySet<<StructureNoplural>>("<StructurePlural>")
 				</STRUCTURE_LOOP>
-				mEdmModel = builder.GetEdmModel()
+
+				data tempModel = (@EdmModel)builder.GetEdmModel()
+				<STRUCTURE_LOOP>
+
+				data <structureNoplural>Type = (@EdmEntityType)tempModel.FindDeclaredType("<MODELS_NAMESPACE>.<StructureNoplural>")
+				<ALTERNATE_KEY_LOOP>
+				tempModel.AddAlternateKeyAnnotation(<structureNoplural>Type, new Dictionary<string, IEdmProperty>() {<SEGMENT_LOOP>{"<SegmentName>",<structureNoplural>Type.FindProperty("<SegmentName>")}<,></SEGMENT_LOOP>})
+				</ALTERNATE_KEY_LOOP>
+				</STRUCTURE_LOOP>
+
+				mEdmModel = tempModel
 			end
 
 			mreturn mEdmModel

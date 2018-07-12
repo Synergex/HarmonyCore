@@ -198,7 +198,7 @@ namespace <NAMESPACE>
 		<ALTERNATE_KEY_LOOP>
 		{HttpGet};For Swagger
 		{EnableQuery}
-		{ODataRoute("<StructurePlural>/ByKey/<KeyName>/(<SEGMENT_LOOP>{a<SegmentName>}<,></SEGMENT_LOOP>)")}
+		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
 		;;; <summary>
 		;;; Get a single <StructureNoplural> by key <KeyName>.
 		;;; </summary>
@@ -213,7 +213,7 @@ namespace <NAMESPACE>
 			required in a<SegmentName>, <SEGMENT_SNTYPE>
 			</SEGMENT_LOOP>
 		proc
-			data result = DBContext.<StructurePlural>.Find(<SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP>)
+			data result = DBContext.<StructurePlural>.FindAlternate(<SEGMENT_LOOP>"<SegmentName>",a<SegmentName><,></SEGMENT_LOOP>)
 			mreturn Ok(result)
 		endmethod
 

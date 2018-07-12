@@ -1,4 +1,3 @@
-import Microsoft.AspNet.OData
 ;;*****************************************************************************
 ;;
 ;; Title:       Startup.dbl
@@ -66,6 +65,7 @@ import Harmony.OData
 import Harmony.AspNetCore.Context
 import Microsoft.Extensions.DependencyInjection
 import Microsoft.EntityFrameworkCore
+import Microsoft.AspNet.OData
 import Microsoft.AspNet.OData.Extensions
 import Microsoft.AspNet.OData.Builder
 import Microsoft.AspNet.OData.Routing
@@ -83,8 +83,9 @@ namespace SampleServices
 		public method ConfigureServices, void
 			services, @IServiceCollection 
 		proc
-			
+
 			;;Load Harmony Core
+
 			lambda AddDataObjectMappings(serviceProvider)
 			begin
 				data objectProvider = new DataObjectProvider(serviceProvider.GetService<IFileChannelManager>())
@@ -101,6 +102,7 @@ namespace SampleServices
 			services.AddSingleton<DBContext, DBContext>()
 
 			;;Load OData and ASP.NET
+
 			lambda AddAltKeySupport(serviceProvider)
 			begin
 				data model = EdmBuilder.GetEdmModel(serviceProvider)
@@ -108,18 +110,13 @@ namespace SampleServices
 			end
 
 			services.AddSingleton<ODataUriResolver>(AddAltKeySupport)
-			
+
 			services.AddOData()
-;			data serviceDescrip, @ServiceDescriptor
-;			foreach serviceDescrip in services
-;			begin
-;				if(serviceDescrip.ServiceType == ^typeof(IPerRouteContainer))
-;				begin
-;					services.Remove(serviceDescrip)
-;					exitloop
-;				end
-;			end
+
+			;;Load our workaround for the fact that OData alternate key support is messed up right now!
+
 			services.AddSingleton<IPerRouteContainer, HarmonyPerRouteContainer>()
+
 			;;Load Swagger API documentation services
 
 			services.AddMvcCore().AddApiExplorer()
@@ -139,11 +136,12 @@ namespace SampleServices
 
 			;;Add the middleware to generate API documentation to a file
 
-			app.UseSwagger() 
+			app.UseSwagger()
 
 			app.UseLogging(DebugLogSession.Logging)
 
 			;;Configure the MVC / OData environment
+
 			lambda MVCBuilder(builder)
 			begin
 				data model = EdmBuilder.GetEdmModel(app.ApplicationServices)
@@ -160,9 +158,9 @@ namespace SampleServices
 				end
 
 				builder.EnableDependencyInjection(EnableDI)
+
 				builder.Select().Expand().Filter().OrderBy().MaxTop(100).Count()
 				builder.MapODataServiceRoute("odata", "odata", model)
-				
 			end
 
 			;;Add the MVC middleware
@@ -180,4 +178,5 @@ namespace SampleServices
 
 		endmethod
 	endclass
+
 endnamespace

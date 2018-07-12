@@ -145,7 +145,7 @@ namespace SampleServices.Controllers
 			mreturn Ok(result)
 		endmethod
 		
-		;{HttpGet};For Swagger
+		{HttpGet};For Swagger
 		{EnableQuery}
 		{ODataRoute("Vendors(VendRtype={aVendRtype},VendKey={aVendKey})")}
 		;;; <summary>
@@ -155,14 +155,14 @@ namespace SampleServices.Controllers
 		;;; <param name="aVendKey">Vendor ID</param>
 		;;; <returns></returns>
 		public method GetByKeyTagVendor, @IActionResult
-			;{FromQuery};For Swagger
+			{FromQuery};For Swagger
 			{FromODataUri}
 			required in aVendRtype, int
-			;{FromQuery};For Swagger
+			{FromQuery};For Swagger
 			{FromODataUri}
 			required in aVendKey, int
 		proc
-			data result = DBContext.Vendors.Find(aVendRtype,aVendKey)
+			data result = DBContext.Vendors.FindAlternate("VendRtype",aVendRtype,"VendKey",aVendKey)
 			mreturn Ok(result)
 		endmethod
 

@@ -97,10 +97,16 @@
 import Harmony.Core.Context
 import Harmony.Core.FileIO
 import Harmony.Core.Utility
+import Harmony.OData
 import Harmony.AspNetCore.Context
 import Microsoft.Extensions.DependencyInjection
 import Microsoft.EntityFrameworkCore
+import Microsoft.AspNet.OData
 import Microsoft.AspNet.OData.Extensions
+import Microsoft.AspNet.OData.Builder
+import Microsoft.AspNet.OData.Routing
+import Microsoft.OData
+import Microsoft.OData.UriParser
 import Microsoft.AspNetCore.Builder
 import Microsoft.AspNetCore.Hosting
 import Swashbuckle.AspNetCore.Swagger
@@ -132,8 +138,19 @@ namespace <NAMESPACE>
 
 			;;Load OData and ASP.NET
 
+			lambda AddAltKeySupport(serviceProvider)
+			begin
+				data model = EdmBuilder.GetEdmModel(serviceProvider)
+				mreturn new AlternateKeysODataUriResolver(model)
+			end
+
+			services.AddSingleton<ODataUriResolver>(AddAltKeySupport)
+
 			services.AddOData()
-			services.AddMvcCore()
+
+			;;Load our workaround for the fact that OData alternate key support is messed up right now!
+
+			services.AddSingleton<IPerRouteContainer, HarmonyPerRouteContainer>()
 
 			;;Load Swagger API documentation services
 
@@ -160,10 +177,23 @@ namespace <NAMESPACE>
 
 			;;Configure the MVC / OData environment
 
-			data model = EdmBuilder.GetEdmModel()
-
 			lambda MVCBuilder(builder)
 			begin
+				data model = EdmBuilder.GetEdmModel(app.ApplicationServices)
+				lambda UriResolver(s)
+				begin
+					data result = app.ApplicationServices.GetRequiredService<ODataUriResolver>()
+					mreturn result
+				end
+
+				lambda EnableDI(containerBuilder)
+				begin
+					containerBuilder.AddService<Microsoft.OData.UriParser.ODataUriResolver>( Microsoft.OData.ServiceLifetime.Singleton, UriResolver)
+					nop
+				end
+
+				builder.EnableDependencyInjection(EnableDI)
+
 				builder.Select().Expand().Filter().OrderBy().MaxTop(100).Count()
 				builder.MapODataServiceRoute("odata", "odata", model)
 			end
