@@ -116,7 +116,7 @@ namespace <NAMESPACE>
 		protected override method OnConfiguring, void
 			opts, @DbContextOptionsBuilder
 		proc
-			HarmonyDbContextOptionsExtensions.UseHarmonyDatabase(opts, mDataProvider)
+			HarmonyDbContextOptionsExtensions.UseHarmonyDatabase(opts, mDataProvider, this)
 		endmethod
 
 		;;; <summary>
