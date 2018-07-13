@@ -82,6 +82,7 @@ import Microsoft.AspNet.OData
 import Microsoft.AspNet.OData.Routing
 import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Infrastructure
+import Harmony.Core.EF.Extensions
 import <MODELS_NAMESPACE>
 
 namespace <NAMESPACE>
