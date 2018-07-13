@@ -80,12 +80,19 @@ namespace SampleServices.Controllers
 			{FromBody}
 			required in aPlant, @Plant
 		proc
+			;; Validate inbound data
+			if (!ModelState.IsValid)
+				mreturn BadRequest(ModelState)
+
 			;TODO: How do we support the auto-generation of primary key in this scenario?
 			data result = DBContext.Plants.Add(aPlant)
-			;TODO: Commit the change
+
+			;;Commit the change
 			DBContext.SaveChanges()
+
 			;TODO: What about failures?
 			mreturn Ok(result)
+
 		endmethod
 
 		{HttpPost};For Swagger
@@ -102,16 +109,23 @@ namespace SampleServices.Controllers
 			{FromBody}
 			required in aPlant, @Plant
 		proc
+			;; Validate inbound data
+			if (!ModelState.IsValid)
+				mreturn BadRequest(ModelState)
+
 			;;Ensure that the key values in the URI win over any data that may be in the data object
             aPlant.InItemid = aInItemid
+
 			;;Add the new plant
 			data result = DBContext.Plants.Add(aPlant)
-			;TODO: Commit the change
+
+			;;Commit the change
 			DBContext.SaveChanges()
+
 			;TODO: What about failures?
 			mreturn Ok(result)
-		endmethod
 
+		endmethod
 
 .endregion
 
@@ -143,7 +157,12 @@ namespace SampleServices.Controllers
             required in aInItemid, int
 		proc
 			data result = DBContext.Plants.Find(aInItemid)
+
+			if (result == ^null)
+				mreturn NotFound()
+
 			mreturn Ok(result)
+
 		endmethod
 		
 		{HttpGet};For Swagger
@@ -160,7 +179,12 @@ namespace SampleServices.Controllers
 			required in aInSource, int
 		proc
 			data result = DBContext.Plants.FindAlternate("InSource",aInSource)
+
+			if (result == ^null)
+				mreturn NotFound()
+
 			mreturn Ok(result)
+
 		endmethod
 
 		{HttpGet};For Swagger
@@ -177,7 +201,12 @@ namespace SampleServices.Controllers
 			required in aInColor, String
 		proc
 			data result = DBContext.Plants.FindAlternate("InColor",aInColor)
+
+			if (result == ^null)
+				mreturn NotFound()
+
 			mreturn Ok(result)
+
 		endmethod
 
 		{HttpGet};For Swagger
@@ -194,7 +223,12 @@ namespace SampleServices.Controllers
 			required in aInSize, int
 		proc
 			data result = DBContext.Plants.FindAlternate("InSize",aInSize)
+
+			if (result == ^null)
+				mreturn NotFound()
+
 			mreturn Ok(result)
+
 		endmethod
 
 		{HttpGet};For Swagger
@@ -211,15 +245,55 @@ namespace SampleServices.Controllers
 			required in aInName, String
 		proc
 			data result = DBContext.Plants.FindAlternate("InName",aInName)
-			mreturn Ok(result)
-		endmethod
 
+			if (result == ^null)
+				mreturn NotFound()
+
+			mreturn Ok(result)
+
+		endmethod
 
 .endregion
 
 .region "UPDATE"
 
+		{HttpPatch};For Swagger
+		{ODataRoute("Plants({aInItemid})")}
+		;;; <summary>
+		;;; Update a plant (partial updates are supported).
+		;;; </summary>
+		;;; <param name="aInItemid">Item ID</param>
+		;;; <returns></returns>
+		public method Patch, @IActionResult
+			{FromQuery};For Swagger
+			{FromODataUri}
+            required in aInItemid, int
+			{FromBody}
+			required in aPlant, @Plant
+		proc
+			;; Validate inbound data
+			if (!ModelState.IsValid)
+				mreturn BadRequest(ModelState)
 
+			;;Ensure that the key values in the URI win over any data that may be in the data object
+            aPlant.InItemid = aInItemid
+
+			;TODO: Not sure what to do here, I'm not seting any DBSet methods relating to update?
+			;
+			;
+			;
+			;
+			;
+
+
+			;;Commit the change
+			DBContext.SaveChanges()
+
+			;TODO: What about failures?
+			;mreturn Ok(result)
+			mreturn Ok()
+
+		endmethod
 
 .endregion
 
@@ -239,12 +313,19 @@ namespace SampleServices.Controllers
 		proc
 			;;Get the plant to be deleted
 			data plantToRemove = DBContext.Plants.Find(aInItemid)
-			;;Mark it for removal
+
+			if (plantToRemove == ^null)
+				mreturn NotFound()
+
+			;;Mark the plant for removal
 			data result = DBContext.Plants.Remove(plantToRemove)
-			;TODO: Commit the change
+
+			;;Commit the change
 			DBContext.SaveChanges()
+
 			;TODO: What about failures?
 			mreturn Ok(result)
+
 		endmethod
 
 .endregion

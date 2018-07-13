@@ -116,12 +116,19 @@ namespace <NAMESPACE>
 			{FromBody}
 			required in a<StructureNoplural>, @<StructureNoplural>
 		proc
+			;; Validate inbound data
+			if (!ModelState.IsValid)
+				mreturn BadRequest(ModelState)
+
 			;TODO: How do we support the auto-generation of primary key in this scenario?
 			data result = DBContext.<StructurePlural>.Add(a<StructureNoplural>)
-			;TODO: Commit the change
+
+			;;Commit the change
 			DBContext.SaveChanges()
+
 			;TODO: What about failures?
 			mreturn Ok(result)
+
 		endmethod
 
 		<PRIMARY_KEY>
@@ -143,18 +150,25 @@ namespace <NAMESPACE>
 			{FromBody}
 			required in a<StructureNoplural>, @<StructureNoplural>
 		proc
+			;; Validate inbound data
+			if (!ModelState.IsValid)
+				mreturn BadRequest(ModelState)
+
 			;;Ensure that the key values in the URI win over any data that may be in the data object
             <SEGMENT_LOOP>
             a<StructureNoplural>.<FieldSqlname> = a<SegmentName>
             </SEGMENT_LOOP>
+
 			;;Add the new <structureNoplural>
 			data result = DBContext.<StructurePlural>.Add(a<StructureNoplural>)
-			;TODO: Commit the change
+
+			;;Commit the change
 			DBContext.SaveChanges()
+
 			;TODO: What about failures?
 			mreturn Ok(result)
-		endmethod
 
+		endmethod
 		</PRIMARY_KEY>
 
 .endregion
@@ -192,7 +206,12 @@ namespace <NAMESPACE>
             </SEGMENT_LOOP>
 		proc
 			data result = DBContext.<StructurePlural>.Find(<SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP>)
+
+			if (result == ^null)
+				mreturn NotFound()
+
 			mreturn Ok(result)
+
 		endmethod
 		</PRIMARY_KEY>
 		
@@ -215,16 +234,64 @@ namespace <NAMESPACE>
 			</SEGMENT_LOOP>
 		proc
 			data result = DBContext.<StructurePlural>.FindAlternate(<SEGMENT_LOOP>"<SegmentName>",a<SegmentName><,></SEGMENT_LOOP>)
+
+			if (result == ^null)
+				mreturn NotFound()
+
 			mreturn Ok(result)
+
 		endmethod
 
 		</ALTERNATE_KEY_LOOP>
-
 .endregion
 
 .region "UPDATE"
 
+		<PRIMARY_KEY>
+		{HttpPatch};For Swagger
+		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP>{a<SegmentName>}<,></SEGMENT_LOOP>)")}
+		;;; <summary>
+		;;; Update a <structureNoplural> (partial updates are supported).
+		;;; </summary>
+        <SEGMENT_LOOP>
+		;;; <param name="a<SegmentName>"><FIELD_DESC></param>
+        </SEGMENT_LOOP>
+		;;; <returns></returns>
+		public method Patch, @IActionResult
+            <SEGMENT_LOOP>
+			{FromQuery};For Swagger
+			{FromODataUri}
+            required in a<SegmentName>, <SEGMENT_SNTYPE>
+            </SEGMENT_LOOP>
+			{FromBody}
+			required in a<StructureNoplural>, @<StructureNoplural>
+		proc
+			;; Validate inbound data
+			if (!ModelState.IsValid)
+				mreturn BadRequest(ModelState)
 
+			;;Ensure that the key values in the URI win over any data that may be in the data object
+            <SEGMENT_LOOP>
+            a<StructureNoplural>.<FieldSqlname> = a<SegmentName>
+            </SEGMENT_LOOP>
+
+			;TODO: Not sure what to do here, I'm not seting any DBSet methods relating to update?
+			;
+			;
+			;
+			;
+			;
+
+
+			;;Commit the change
+			DBContext.SaveChanges()
+
+			;TODO: What about failures?
+			;mreturn Ok(result)
+			mreturn Ok()
+
+		endmethod
+		</PRIMARY_KEY>
 
 .endregion
 
@@ -249,12 +316,19 @@ namespace <NAMESPACE>
 		proc
 			;;Get the <structureNoplural> to be deleted
 			data <structureNoplural>ToRemove = DBContext.<StructurePlural>.Find(<SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP>)
-			;;Mark it for removal
+
+			if (<structureNoplural>ToRemove == ^null)
+				mreturn NotFound()
+
+			;;Mark the <structureNoplural> for removal
 			data result = DBContext.<StructurePlural>.Remove(<structureNoplural>ToRemove)
-			;TODO: Commit the change
+
+			;;Commit the change
 			DBContext.SaveChanges()
+
 			;TODO: What about failures?
 			mreturn Ok(result)
+
 		endmethod
 		</PRIMARY_KEY>
 
