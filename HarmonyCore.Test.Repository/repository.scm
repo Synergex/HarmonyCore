@@ -81,12 +81,12 @@ Field CUST_LIMIT   Type DECIMAL   Size 7   Precision 2
    Description "Credit limit"
  
 Key CUSTOMER   ACCESS   Order ASCENDING   Dups NO
-   Segment FIELD   CUST_KEY
+   Segment FIELD   CUST_KEY  SegType DECIMAL
  
 Key TAG_CUSTOMER   ACCESS   Order ASCENDING   Dups NO
    Description "access key of tag+key"
-   Segment FIELD   CUST_RTYPE  SegType ALPHA
-   Segment FIELD   CUST_KEY  SegType ALPHA
+   Segment FIELD   CUST_RTYPE  SegType DECIMAL
+   Segment FIELD   CUST_KEY  SegType DECIMAL
  
 Key ITEM   FOREIGN
    Segment FIELD   CUST_GIFT
@@ -138,17 +138,17 @@ Field OR_INVOICE   Type DECIMAL   Size 7
    Description "Invoice Number"
  
 Key ORDER   ACCESS   Order ASCENDING   Dups NO
-   Segment FIELD   OR_NUMBER
+   Segment FIELD   OR_NUMBER  SegType DECIMAL
  
 Key VENDOR   ACCESS   Order ASCENDING   Dups YES   Insert END   Modifiable YES
-   Segment FIELD   OR_VENDOR
+   Segment FIELD   OR_VENDOR  SegType DECIMAL
  
 Key ITEM   ACCESS   Order ASCENDING   Dups YES   Insert END   Modifiable YES
-   Segment FIELD   OR_ITEM
+   Segment FIELD   OR_ITEM  SegType DECIMAL
  
 Key CUSTOMER   ACCESS   Order ASCENDING   Dups YES   Insert END
    Modifiable YES
-   Segment FIELD   OR_CUSTOMER
+   Segment FIELD   OR_CUSTOMER  SegType DECIMAL
  
 Key TAG_VENDOR   FOREIGN
    Description "foreign key to vendors (tag + key)"
@@ -253,7 +253,7 @@ Key ITEM   ACCESS   Order ASCENDING   Dups NO
    Segment FIELD   IN_ITEMID  SegType DECIMAL
  
 Key VENDOR   ACCESS   Order ASCENDING   Dups YES   Insert END   Modifiable YES
-   Segment FIELD   IN_SOURCE  SegType ALPHA
+   Segment FIELD   IN_SOURCE  SegType DECIMAL
  
 Key COLOR   ACCESS   Order DESCENDING   Dups YES   Insert END   Modifiable YES
    Description "descending a6 key"
@@ -261,7 +261,7 @@ Key COLOR   ACCESS   Order DESCENDING   Dups YES   Insert END   Modifiable YES
  
 Key SIZE   ACCESS   Order DESCENDING   Dups YES   Insert END   Modifiable YES
    Description "descending decimal key"
-   Segment FIELD   IN_SIZE  SegType ALPHA
+   Segment FIELD   IN_SIZE  SegType DECIMAL
  
 Key NAME   ACCESS   Order ASCENDING   Dups YES   Insert END   Modifiable YES
    Description "alpha30 ascending key"
@@ -313,12 +313,12 @@ Field VEND_TERMS   Type ALPHA   Size 24
    Description "Terms & Conditions"
  
 Key VENDOR   ACCESS   Order ASCENDING   Dups NO
-   Segment FIELD   VEND_KEY
+   Segment FIELD   VEND_KEY  SegType DECIMAL
  
 Key TAG_VENDOR   ACCESS   Order ASCENDING   Dups NO   Modifiable YES
    Description "Access key of tag+key"
-   Segment FIELD   VEND_RTYPE  SegType ALPHA
-   Segment FIELD   VEND_KEY  SegType ALPHA
+   Segment FIELD   VEND_RTYPE  SegType DECIMAL
+   Segment FIELD   VEND_KEY  SegType DECIMAL
  
 Relation  1   VENDORS VENDOR   PLANTS VENDOR
  
