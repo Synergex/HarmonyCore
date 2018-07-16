@@ -8,6 +8,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Harmony.Core.FileIO.Queryable;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors.Internal;
@@ -64,19 +65,43 @@ namespace Harmony.Core.EF.Query.Internal
 
         Dictionary<Type, IList<object>> _results = null;
 
+        
+
         private IEnumerable<TEntity> EntityQuery<TEntity>(
             QueryContext queryContext,
             IEntityType entityType,
             Func<Type, EntityTrackingInfo> trackingInfo,
-            QueryModel queryModel)
+            QueryModel queryModel,
+            QueryCompilationContext compilationContext)
             where TEntity : class
         {
             if (_results == null)
             {
+                //compilationContext.FindEntityType(null).FindForeignKeys((IProperty)null).FirstOrDefault().PrincipalKey.Properties.First().ClrType
                 _results = new Dictionary<Type, IList<object>>();
                 var resultList = new List<object>();
                 _results.Add(typeof(TEntity), resultList);
-                var selectInternalResult = QueryModelVisitor.ExecuteSelectInternal(queryModel, (obj) =>
+                var selectInternalResult = QueryModelVisitor.ExecuteSelectInternal((expr, propName, outerQuery, innerQuery) =>
+                {
+                    
+                    var joiningType = compilationContext.Model.FindEntityType(outerQuery.ItemType);
+                    var mainEntityType = compilationContext.Model.FindEntityType(innerQuery.ItemType);
+                    var targetProperty = joiningType.FindProperty(propName);
+                    var maybeForeignKeys = joiningType.FindForeignKeys(targetProperty);
+                    var targetKey = maybeForeignKeys.FirstOrDefault((key) => key.PrincipalEntityType == mainEntityType);
+
+                    if (targetKey == null)
+                    {
+                        var primaryKey = joiningType.FindKey(targetProperty);
+                        if (primaryKey == null)
+                            throw new NotImplementedException();
+                        targetKey = primaryKey.GetReferencingForeignKeys().FirstOrDefault((key) => key.DeclaringEntityType == mainEntityType);
+                        if (targetKey == null)
+                            throw new NotImplementedException();
+                    }
+
+                    return Expression.Equal(expr, Expression.Call(typeof(Microsoft.EntityFrameworkCore.EF), "Property", new Type[] { expr.Type }, new QuerySourceReferenceExpression(outerQuery), Expression.Constant(targetKey.PrincipalKey.Properties.First().Name)));
+                }, queryModel, (obj) =>
                 {
                     var objType = obj.GetType();
                     trackingInfo(obj.GetType()).StartTracking(queryContext.StateManager, obj, new ValueBuffer(obj.InternalGetValues()));
@@ -105,8 +130,20 @@ namespace Harmony.Core.EF.Query.Internal
         private static IEnumerable<ValueBuffer> ProjectionQuery(
             QueryContext queryContext,
             QueryModel queryModel,
-            IEntityType entityType)
-            => QueryModelVisitor.ExecuteSelectInternal(queryModel, (obj) => { queryContext.QueryBuffer.StartTracking(obj, entityType); return obj; }, queryContext.ParameterValues, (((HarmonyQueryContext)queryContext).Store)).OfType<DataObjectBase>()
+            IEntityType entityType,
+            QueryCompilationContext compilationContext)
+            => QueryModelVisitor.ExecuteSelectInternal((expr, propName, outerQuery, innerQuery) =>
+            {
+                var joiningType = compilationContext.Model.FindEntityType(outerQuery.ItemType);
+                var mainEntityType = compilationContext.Model.FindEntityType(innerQuery.ItemType);
+                var maybeForeignKeys = joiningType.FindForeignKeys(joiningType.FindProperty(propName));
+                var targetKey = maybeForeignKeys.FirstOrDefault((key) => key.PrincipalEntityType == mainEntityType);
+
+                if (targetKey == null)
+                    throw new NotImplementedException();
+
+                return Expression.And(expr, Expression.Call(typeof(Microsoft.EntityFrameworkCore.EF), "Property", new Type[] { targetKey.PrincipalKey.Properties.First().ClrType }, Expression.Constant(outerQuery), Expression.Constant(targetKey.PrincipalKey.Properties.First().Name)));
+            }, queryModel, (obj) => { queryContext.QueryBuffer.StartTracking(obj, entityType); return obj; }, queryContext.ParameterValues, (((HarmonyQueryContext)queryContext).Store)).OfType<DataObjectBase>()
                 .Select(t => new ValueBuffer(t.InternalGetValues()));
     }
 }

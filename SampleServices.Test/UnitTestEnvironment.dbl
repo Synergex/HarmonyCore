@@ -48,20 +48,20 @@ import Microsoft.AspNetCore.TestHost
 import Microsoft.VisualStudio.TestTools.UnitTesting
 import System.Collections.Generic
 import System.IO
-import System.Text
+import System.Text 
 import SampleServices
 
 main UnitTestEnvironment
 proc
 	;;Configure the environment
-	UnitTestEnvironment.AssemblyInitialize(^null)
-
+	UnitTestEnvironment.AssemblyInitialize(^null) 
+	 
 	;Leave this here for Jeff
-	;data tester = new CustomerTests()
-	;tester.GetByKeyTagCustomer()
+	data tester = new CustomerTests() 
+	tester.GetCustomers_Expand_REL_Orders() 
 	
 	;;Start self-hosting (Kestrel)
-	WebHost.CreateDefaultBuilder(new string[0]).UseStartup<Startup>().Build().Run()
+	;WebHost.CreateDefaultBuilder(new string[0]).UseStartup<Startup>().Build().Run()
 
 	;;Cleanup the environment
 	UnitTestEnvironment.AssemblyCleanup()
@@ -83,10 +83,17 @@ namespace SampleServices.Test
 			TestEnvironment.Configure()
 
 			;;Define the content root and web root folders (so we can pick up the Swagger file for API documentation)
-			data wwwroot = Environment.GetEnvironmentVariable("WWWROOT")
-
-			;;Create a TestServer to host the Web API services
-			Server = new TestServer(new WebHostBuilder().UseContentRoot(wwwroot).UseWebRoot(wwwroot).UseStartup<Startup>())
+			data wwwroot = Environment.GetEnvironmentVariable("WWWROOT") 
+			if(string.IsNullOrEmpty(wwwroot)) then
+			begin
+				;;Create a TestServer to host the Web API services
+				Server = new TestServer(new WebHostBuilder().UseStartup<Startup>())
+			end
+			else
+			begin
+				;;Create a TestServer to host the Web API services
+				Server = new TestServer(new WebHostBuilder().UseContentRoot(wwwroot).UseWebRoot(wwwroot).UseStartup<Startup>())
+			end
 
 		endmethod
 

@@ -68,14 +68,16 @@ namespace Harmony.Core.EF.Query.ExpressionVisitors.Internal
 
                         return result;
                     })),
-                    Expression.Constant(queryModel));
+                    Expression.Constant(queryModel),
+                    Expression.Constant(context));
             }
             else
             {
                 return Expression.Call(
                 HarmonyQueryModelVisitor.ProjectionQueryMethodInfo,
                 EntityQueryModelVisitor.QueryContextParameter,
-                Expression.Constant(entityType));
+                Expression.Constant(entityType),
+                Expression.Constant(context));
             }
         }
 

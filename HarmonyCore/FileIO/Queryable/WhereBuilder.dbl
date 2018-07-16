@@ -5,6 +5,8 @@ import Harmony.Core.Enumerations
 import Synergex.SynergyDE.Select
 import System.Linq.Expressions
 import Harmony.Core.Utility
+import Remotion.Linq.Clauses
+import System.Linq
 
 namespace Harmony.Core.FileIO.Queryable
 
@@ -13,33 +15,35 @@ namespace Harmony.Core.FileIO.Queryable
 		;;this might need to be a stack to handle nesting fully
 		private mWhereStack, @Stack<Synergex.SynergyDE.Select.Where>
 		private mOnStack, @Stack<Synergex.SynergyDE.Select.On>
-		private mRecordAreas, @Dictionary<string, int>
-		private mDataObjects, @Dictionary<string, DataObjectMetadataBase>
+		private mRecordAreas, @Dictionary<IQuerySource, int>
+		private mDataObjects, @Dictionary<IQuerySource, DataObjectMetadataBase>
 		private mCaseSensitive, boolean
 		private mParameters, @IReadOnlyDictionary<string, Object>
-
+		private mAddAdditionalSource, @Action<IQuerySource, Expression, Expression> 
 		public method WhereExpressionBuilder
 			recordArea, int
 			dataObject, @DataObjectMetadataBase
-			fromName, @string
+			fromSource, @IQuerySource
 			caseSensitive, boolean
 			parameters, @IReadOnlyDictionary<string, Object>
+			addAdditionalSource, @Action<IQuerySource, Expression, Expression> 
 		proc
 			mWhereStack = new Stack<Synergex.SynergyDE.Select.Where>()
-			mRecordAreas = new Dictionary<string, int>() { { fromName, recordArea } }
-			mDataObjects = new Dictionary<string, DataObjectMetadataBase>() { { fromName, dataObject } }
+			mRecordAreas = new Dictionary<IQuerySource, int>() { { fromSource, recordArea } }
+			mDataObjects = new Dictionary<IQuerySource, DataObjectMetadataBase>() { { fromSource, dataObject } }
 			mParameters = parameters
 			mWhereStack = new Stack<Synergex.SynergyDE.Select.Where>()
 			mOnStack = new Stack<Synergex.SynergyDE.Select.On>()
+			mAddAdditionalSource = addAdditionalSource
 		endmethod
 
 		public method AddFromClause, void
-			fromName, @string
+			fromSource, @IQuerySource
 			recordArea, int
 			dataObject, @DataObjectMetadataBase
 		proc
-			mDataObjects.Add(fromName, dataObject)
-			mRecordAreas.Add(fromName, recordArea)
+			mDataObjects.Add(fromSource, dataObject)
+			mRecordAreas.Add(fromSource, recordArea)
 		endmethod
 
 ;		public property WhereExpression, @Synergex.SynergyDE.Select.Where
@@ -625,13 +629,19 @@ namespace Harmony.Core.FileIO.Queryable
 				throw new NotImplementedException()
 		endmethod
 
-		private method FindTargetField, @Tuple<FieldDataDefinition, string>
+		private method FindTargetField, @Tuple<FieldDataDefinition, IQuerySource>
 			node, @Expression
+			node2, @Expression
+			inout skipClause, boolean
 		proc
+			if(skipClause)
+				mreturn ^null
+
 			if(node .is. MemberExpression) then
 			begin
 				;;TODO this assumes we're only dealing with our target data object
-				mreturn Tuple.Create(mDataObjects["$it"].GetFieldByName(((@MemberExpression)node).Member.Name), "$it")
+				data dObj = mDataObjects.First()
+				mreturn Tuple.Create(dObj.Value.GetFieldByName(((@MemberExpression)node).Member.Name), dObj.Key)
 			end
 			else if(node .is. MethodCallExpression) then
 			begin
@@ -641,14 +651,22 @@ namespace Harmony.Core.FileIO.Queryable
 					;;this is where we can do a metadata object lookup for join
 					data memberTargetParameter = (@Remotion.Linq.Clauses.Expressions.QuerySourceReferenceExpression)callNode.Arguments[0]
 					data memberNameConstant = (@ConstantExpression)callNode.Arguments[1]
-					
-					mreturn Tuple.Create(mDataObjects[memberTargetParameter.ReferencedQuerySource.ItemName].GetFieldByName(memberNameConstant.Value.ToString()), memberTargetParameter.ReferencedQuerySource.ItemName)
+					data memberTargetType, @DataObjectMetadataBase, ^null
+					if(!mDataObjects.TryGetValue(memberTargetParameter.ReferencedQuerySource, memberTargetType))
+					begin
+						skipClause = true
+						mAddAdditionalSource(memberTargetParameter.ReferencedQuerySource, callNode, node2)
+						mreturn ^null
+					end
+
+						
+					mreturn Tuple.Create(memberTargetType.GetFieldByName(memberNameConstant.Value.ToString()), memberTargetParameter.ReferencedQuerySource)
 				end
 			end
 			else if(node .is. UnaryExpression && node.NodeType == ExpressionType.Convert)
 			begin
 				data convertNode = (@UnaryExpression)node
-				mreturn FindTargetField(convertNode.Operand)
+				mreturn FindTargetField(convertNode.Operand, node2, skipClause)
 			end
 
 			mreturn ^null
@@ -662,14 +680,37 @@ namespace Harmony.Core.FileIO.Queryable
 				data constNode = (@ConstantExpression)node
 				mreturn constNode.Value.ToString()
 			end
-			else if(node .is. ParameterExpression && mParameters != ^null)
+			else if(node .is. ParameterExpression && mParameters != ^null) then
 			begin
 				data paramNode = (@ParameterExpression)node
 				data paramValue, @object
 				if(mParameters.TryGetValue(paramNode.Name, paramValue))
 					mreturn paramValue.ToString()
 			end
+			else if(node .is. MethodCallExpression)
+			begin
+				data callNode = (@MethodCallExpression)node
+				if(callNode.Method.Name == "Property")
+				begin
+					;;this is where we can do a metadata object lookup for join
+					data memberTargetParameter = (@Remotion.Linq.Clauses.Expressions.QuerySourceReferenceExpression)callNode.Arguments[0]
+					data memberNameConstant = (@ConstantExpression)callNode.Arguments[1]
+					throw new NotImplementedException()
+				end
+			end
 			throw new NotImplementedException()
+		endmethod
+
+		protected override method VisitExtension, @Expression
+			node, @System.Linq.Expressions.Expression 
+			endparams
+		proc
+			if(node.GetType().Name == "NullSafeEqualExpression")
+			begin
+				data equalExpr = node.GetType().GetProperty("EqualExpression").GetValue(node)
+				Visit((@BinaryExpression)equalExpr)
+			end
+			mreturn node
 		endmethod
 
 		protected override method VisitBinary, @Expression
@@ -683,9 +724,13 @@ namespace Harmony.Core.FileIO.Queryable
 			OpKindFromExpression(node, op, glue)
 			if(op != ^null) then
 			begin
+				data skipClause, boolean, false
 				;;TODO this doesnt deal with 'between'
-				data leftTarget = FindTargetField(node.Left)
-				data rightTarget = FindTargetField(node.Right)
+				data leftTarget = FindTargetField(node.Left, node.Right, skipClause)
+				data rightTarget = FindTargetField(node.Right, node.Left, skipClause)
+				if(skipClause)
+					mreturn node
+
 				if(leftTarget != ^null && rightTarget != ^null) then
 				begin
 					data dataObject1 = mDataObjects[leftTarget.Item2]

@@ -121,8 +121,16 @@ namespace <NAMESPACE>
 			;;Define the content root and web root folders (so we can pick up the Swagger file for API documentation)
 			data wwwroot = Environment.GetEnvironmentVariable("WWWROOT")
 
-			;;Create a TestServer to host the Web API services
-			Server = new TestServer(new WebHostBuilder().UseContentRoot(wwwroot).UseWebRoot(wwwroot).UseStartup<Startup>())
+			if(string.IsNullOrEmpty(wwwroot)) then
+			begin
+				;;Create a TestServer to host the Web API services
+				Server = new TestServer(new WebHostBuilder().UseStartup<Startup>())
+			end
+			else
+			begin
+				;;Create a TestServer to host the Web API services
+				Server = new TestServer(new WebHostBuilder().UseContentRoot(wwwroot).UseWebRoot(wwwroot).UseStartup<Startup>())
+			end
 
 		endmethod
 
