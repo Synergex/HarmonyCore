@@ -80,12 +80,19 @@ namespace SampleServices.Controllers
 			{FromBody}
 			required in aOrder, @Order
 		proc
+			;; Validate inbound data
+			if (!ModelState.IsValid)
+				mreturn BadRequest(ModelState)
+
 			;TODO: How do we support the auto-generation of primary key in this scenario?
 			data result = DBContext.Orders.Add(aOrder)
-			;TODO: Commit the change
+
+			;;Commit the change
 			DBContext.SaveChanges()
+
 			;TODO: What about failures?
 			mreturn Ok(result)
+
 		endmethod
 
 		{HttpPost};For Swagger
@@ -102,16 +109,23 @@ namespace SampleServices.Controllers
 			{FromBody}
 			required in aOrder, @Order
 		proc
+			;; Validate inbound data
+			if (!ModelState.IsValid)
+				mreturn BadRequest(ModelState)
+
 			;;Ensure that the key values in the URI win over any data that may be in the data object
             aOrder.OrNumber = aOrNumber
+
 			;;Add the new order
 			data result = DBContext.Orders.Add(aOrder)
-			;TODO: Commit the change
+
+			;;Commit the change
 			DBContext.SaveChanges()
+
 			;TODO: What about failures?
 			mreturn Ok(result)
-		endmethod
 
+		endmethod
 
 .endregion
 
@@ -143,7 +157,12 @@ namespace SampleServices.Controllers
             required in aOrNumber, int
 		proc
 			data result = DBContext.Orders.Find(aOrNumber)
+
+			if (result == ^null)
+				mreturn NotFound()
+
 			mreturn Ok(result)
+
 		endmethod
 		
 		{HttpGet};For Swagger
@@ -160,7 +179,12 @@ namespace SampleServices.Controllers
 			required in aOrVendor, int
 		proc
 			data result = DBContext.Orders.FindAlternate("OrVendor",aOrVendor)
+
+			if (result == ^null)
+				mreturn NotFound()
+
 			mreturn Ok(result)
+
 		endmethod
 
 		{HttpGet};For Swagger
@@ -177,7 +201,12 @@ namespace SampleServices.Controllers
 			required in aOrItem, int
 		proc
 			data result = DBContext.Orders.FindAlternate("OrItem",aOrItem)
+
+			if (result == ^null)
+				mreturn NotFound()
+
 			mreturn Ok(result)
+
 		endmethod
 
 		{HttpGet};For Swagger
@@ -194,15 +223,55 @@ namespace SampleServices.Controllers
 			required in aOrCustomer, int
 		proc
 			data result = DBContext.Orders.FindAlternate("OrCustomer",aOrCustomer)
-			mreturn Ok(result)
-		endmethod
 
+			if (result == ^null)
+				mreturn NotFound()
+
+			mreturn Ok(result)
+
+		endmethod
 
 .endregion
 
 .region "UPDATE"
 
+		{HttpPatch};For Swagger
+		{ODataRoute("Orders({aOrNumber})")}
+		;;; <summary>
+		;;; Update a order (partial updates are supported).
+		;;; </summary>
+		;;; <param name="aOrNumber">Order number</param>
+		;;; <returns></returns>
+		public method Patch, @IActionResult
+			{FromQuery};For Swagger
+			{FromODataUri}
+            required in aOrNumber, int
+			{FromBody}
+			required in aOrder, @Order
+		proc
+			;; Validate inbound data
+			if (!ModelState.IsValid)
+				mreturn BadRequest(ModelState)
 
+			;;Ensure that the key values in the URI win over any data that may be in the data object
+            aOrder.OrNumber = aOrNumber
+
+			;TODO: Not sure what to do here, I'm not seting any DBSet methods relating to update?
+			;
+			;
+			;
+			;
+			;
+
+
+			;;Commit the change
+			DBContext.SaveChanges()
+
+			;TODO: What about failures?
+			;mreturn Ok(result)
+			mreturn Ok()
+
+		endmethod
 
 .endregion
 
@@ -222,12 +291,19 @@ namespace SampleServices.Controllers
 		proc
 			;;Get the order to be deleted
 			data orderToRemove = DBContext.Orders.Find(aOrNumber)
-			;;Mark it for removal
+
+			if (orderToRemove == ^null)
+				mreturn NotFound()
+
+			;;Mark the order for removal
 			data result = DBContext.Orders.Remove(orderToRemove)
-			;TODO: Commit the change
+
+			;;Commit the change
 			DBContext.SaveChanges()
+
 			;TODO: What about failures?
 			mreturn Ok(result)
+
 		endmethod
 
 .endregion

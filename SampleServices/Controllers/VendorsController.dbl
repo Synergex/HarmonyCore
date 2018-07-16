@@ -80,12 +80,19 @@ namespace SampleServices.Controllers
 			{FromBody}
 			required in aVendor, @Vendor
 		proc
+			;; Validate inbound data
+			if (!ModelState.IsValid)
+				mreturn BadRequest(ModelState)
+
 			;TODO: How do we support the auto-generation of primary key in this scenario?
 			data result = DBContext.Vendors.Add(aVendor)
-			;TODO: Commit the change
+
+			;;Commit the change
 			DBContext.SaveChanges()
+
 			;TODO: What about failures?
 			mreturn Ok(result)
+
 		endmethod
 
 		{HttpPost};For Swagger
@@ -102,16 +109,23 @@ namespace SampleServices.Controllers
 			{FromBody}
 			required in aVendor, @Vendor
 		proc
+			;; Validate inbound data
+			if (!ModelState.IsValid)
+				mreturn BadRequest(ModelState)
+
 			;;Ensure that the key values in the URI win over any data that may be in the data object
             aVendor.VendKey = aVendKey
+
 			;;Add the new vendor
 			data result = DBContext.Vendors.Add(aVendor)
-			;TODO: Commit the change
+
+			;;Commit the change
 			DBContext.SaveChanges()
+
 			;TODO: What about failures?
 			mreturn Ok(result)
-		endmethod
 
+		endmethod
 
 .endregion
 
@@ -143,7 +157,12 @@ namespace SampleServices.Controllers
             required in aVendKey, int
 		proc
 			data result = DBContext.Vendors.Find(aVendKey)
+
+			if (result == ^null)
+				mreturn NotFound()
+
 			mreturn Ok(result)
+
 		endmethod
 		
 		{HttpGet};For Swagger
@@ -164,15 +183,55 @@ namespace SampleServices.Controllers
 			required in aVendKey, int
 		proc
 			data result = DBContext.Vendors.FindAlternate("VendRtype",aVendRtype,"VendKey",aVendKey)
-			mreturn Ok(result)
-		endmethod
 
+			if (result == ^null)
+				mreturn NotFound()
+
+			mreturn Ok(result)
+
+		endmethod
 
 .endregion
 
 .region "UPDATE"
 
+		{HttpPatch};For Swagger
+		{ODataRoute("Vendors({aVendKey})")}
+		;;; <summary>
+		;;; Update a vendor (partial updates are supported).
+		;;; </summary>
+		;;; <param name="aVendKey">Vendor ID</param>
+		;;; <returns></returns>
+		public method Patch, @IActionResult
+			{FromQuery};For Swagger
+			{FromODataUri}
+            required in aVendKey, int
+			{FromBody}
+			required in aVendor, @Vendor
+		proc
+			;; Validate inbound data
+			if (!ModelState.IsValid)
+				mreturn BadRequest(ModelState)
 
+			;;Ensure that the key values in the URI win over any data that may be in the data object
+            aVendor.VendKey = aVendKey
+
+			;TODO: Not sure what to do here, I'm not seting any DBSet methods relating to update?
+			;
+			;
+			;
+			;
+			;
+
+
+			;;Commit the change
+			DBContext.SaveChanges()
+
+			;TODO: What about failures?
+			;mreturn Ok(result)
+			mreturn Ok()
+
+		endmethod
 
 .endregion
 
@@ -192,12 +251,19 @@ namespace SampleServices.Controllers
 		proc
 			;;Get the vendor to be deleted
 			data vendorToRemove = DBContext.Vendors.Find(aVendKey)
-			;;Mark it for removal
+
+			if (vendorToRemove == ^null)
+				mreturn NotFound()
+
+			;;Mark the vendor for removal
 			data result = DBContext.Vendors.Remove(vendorToRemove)
-			;TODO: Commit the change
+
+			;;Commit the change
 			DBContext.SaveChanges()
+
 			;TODO: What about failures?
 			mreturn Ok(result)
+
 		endmethod
 
 .endregion

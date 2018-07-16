@@ -46,8 +46,8 @@ import Microsoft.AspNet.OData
 import Microsoft.AspNet.OData.Routing
 import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Infrastructure
-import SampleServices.Models
 import Harmony.Core.EF.Extensions
+import SampleServices.Models
 
 namespace SampleServices.Controllers
 
@@ -80,12 +80,19 @@ namespace SampleServices.Controllers
 			{FromBody}
 			required in aCustomer, @Customer
 		proc
+			;; Validate inbound data
+			if (!ModelState.IsValid)
+				mreturn BadRequest(ModelState)
+
 			;TODO: How do we support the auto-generation of primary key in this scenario?
 			data result = DBContext.Customers.Add(aCustomer)
-			;TODO: Commit the change
+
+			;;Commit the change
 			DBContext.SaveChanges()
+
 			;TODO: What about failures?
 			mreturn Ok(result)
+
 		endmethod
 
 		{HttpPost};For Swagger
@@ -102,16 +109,23 @@ namespace SampleServices.Controllers
 			{FromBody}
 			required in aCustomer, @Customer
 		proc
+			;; Validate inbound data
+			if (!ModelState.IsValid)
+				mreturn BadRequest(ModelState)
+
 			;;Ensure that the key values in the URI win over any data that may be in the data object
             aCustomer.CustKey = aCustKey
+
 			;;Add the new customer
 			data result = DBContext.Customers.Add(aCustomer)
-			;TODO: Commit the change
+
+			;;Commit the change
 			DBContext.SaveChanges()
+
 			;TODO: What about failures?
 			mreturn Ok(result)
-		endmethod
 
+		endmethod
 
 .endregion
 
@@ -143,7 +157,12 @@ namespace SampleServices.Controllers
             required in aCustKey, int
 		proc
 			data result = DBContext.Customers.Find(aCustKey)
+
+			if (result == ^null)
+				mreturn NotFound()
+
 			mreturn Ok(result)
+
 		endmethod
 		
 		{HttpGet};For Swagger
@@ -164,15 +183,55 @@ namespace SampleServices.Controllers
 			required in aCustKey, int
 		proc
 			data result = DBContext.Customers.FindAlternate("CustRtype",aCustRtype,"CustKey",aCustKey)
-			mreturn Ok(result)
-		endmethod
 
+			if (result == ^null)
+				mreturn NotFound()
+
+			mreturn Ok(result)
+
+		endmethod
 
 .endregion
 
 .region "UPDATE"
 
+		{HttpPatch};For Swagger
+		{ODataRoute("Customers({aCustKey})")}
+		;;; <summary>
+		;;; Update a customer (partial updates are supported).
+		;;; </summary>
+		;;; <param name="aCustKey">Customer id</param>
+		;;; <returns></returns>
+		public method Patch, @IActionResult
+			{FromQuery};For Swagger
+			{FromODataUri}
+            required in aCustKey, int
+			{FromBody}
+			required in aCustomer, @Customer
+		proc
+			;; Validate inbound data
+			if (!ModelState.IsValid)
+				mreturn BadRequest(ModelState)
 
+			;;Ensure that the key values in the URI win over any data that may be in the data object
+            aCustomer.CustKey = aCustKey
+
+			;TODO: Not sure what to do here, I'm not seting any DBSet methods relating to update?
+			;
+			;
+			;
+			;
+			;
+
+
+			;;Commit the change
+			DBContext.SaveChanges()
+
+			;TODO: What about failures?
+			;mreturn Ok(result)
+			mreturn Ok()
+
+		endmethod
 
 .endregion
 
@@ -192,12 +251,19 @@ namespace SampleServices.Controllers
 		proc
 			;;Get the customer to be deleted
 			data customerToRemove = DBContext.Customers.Find(aCustKey)
-			;;Mark it for removal
+
+			if (customerToRemove == ^null)
+				mreturn NotFound()
+
+			;;Mark the customer for removal
 			data result = DBContext.Customers.Remove(customerToRemove)
-			;TODO: Commit the change
+
+			;;Commit the change
 			DBContext.SaveChanges()
+
 			;TODO: What about failures?
 			mreturn Ok(result)
+
 		endmethod
 
 .endregion
