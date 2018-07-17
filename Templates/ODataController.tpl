@@ -133,7 +133,7 @@ namespace <NAMESPACE>
 
 		<PRIMARY_KEY>
 		{HttpPost};For Swagger
-		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP>{a<SegmentName>}<,></SEGMENT_LOOP>)")}
+		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
 		;;; <summary>
 		;;; Create a new <structureNoplural> (client-supplied primary key).
 		;;; </summary>
@@ -190,7 +190,7 @@ namespace <NAMESPACE>
 		<PRIMARY_KEY>
 		{HttpGet};For Swagger
 		{EnableQuery}
-		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP>{a<SegmentName>}<,></SEGMENT_LOOP>)")}
+		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
 		;;; <summary>
 		;;; Get a single <StructureNoplural> by primary key.
 		;;; </summary>
@@ -249,7 +249,7 @@ namespace <NAMESPACE>
 
 		<PRIMARY_KEY>
 		{HttpPatch};For Swagger
-		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP>{a<SegmentName>}<,></SEGMENT_LOOP>)")}
+		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
 		;;; <summary>
 		;;; Update a <structureNoplural> (partial updates are supported).
 		;;; </summary>
@@ -299,7 +299,7 @@ namespace <NAMESPACE>
 
 		<PRIMARY_KEY>
 		{HttpPost};For Swagger
-		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP>{a<SegmentName>}<,></SEGMENT_LOOP>)")}
+		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
 		;;; <summary>
 		;;; Delete a <structureNoplural>.
 		;;; </summary>
