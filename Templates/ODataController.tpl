@@ -143,7 +143,6 @@ namespace <NAMESPACE>
 		;;; <returns></returns>
 		public method Put, @IActionResult
             <SEGMENT_LOOP>
-			{FromQuery};For Swagger
 			{FromODataUri}
             required in a<SegmentName>, <SEGMENT_SNTYPE>
             </SEGMENT_LOOP>
@@ -200,7 +199,6 @@ namespace <NAMESPACE>
 		;;; <returns></returns>
 		public method Get, @IActionResult
             <SEGMENT_LOOP>
-			{FromQuery};For Swagger
 			{FromODataUri}
             required in a<SegmentName>, <SEGMENT_SNTYPE>
             </SEGMENT_LOOP>
@@ -228,7 +226,6 @@ namespace <NAMESPACE>
 		;;; <returns></returns>
 		public method GetByKey<KeyName>, @IActionResult
 			<SEGMENT_LOOP>
-			{FromQuery};For Swagger
 			{FromODataUri}
 			required in a<SegmentName>, <SEGMENT_SNTYPE>
 			</SEGMENT_LOOP>
@@ -259,7 +256,6 @@ namespace <NAMESPACE>
 		;;; <returns></returns>
 		public method Patch, @IActionResult
             <SEGMENT_LOOP>
-			{FromQuery};For Swagger
 			{FromODataUri}
             required in a<SegmentName>, <SEGMENT_SNTYPE>
             </SEGMENT_LOOP>
@@ -309,7 +305,6 @@ namespace <NAMESPACE>
 		;;; <returns></returns>
 		public method Delete, @IActionResult
             <SEGMENT_LOOP>
-			{FromQuery};For Swagger
 			{FromODataUri}
             required in a<SegmentName>, <SEGMENT_SNTYPE>
             </SEGMENT_LOOP>
