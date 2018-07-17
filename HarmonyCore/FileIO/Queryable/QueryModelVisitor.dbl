@@ -86,7 +86,7 @@ namespace Harmony.Core.FileIO.Queryable
 			bodyClauses, @ObservableCollection<IBodyClause>
 			queryModel, @QueryModel 
 		proc
-			data whereClause = bodyClauses.OfType<WhereClause>().FirstOrDefault()
+			data whereClauses = bodyClauses.OfType<WhereClause>()
 			data fromClauses = bodyClauses.OfType<AdditionalFromClause>()
 			data joinClauses = bodyClauses.OfType<JoinClause>()
 			data groupJoinClauses = bodyClauses.OfType<GroupJoinClause>()
@@ -109,8 +109,20 @@ namespace Harmony.Core.FileIO.Queryable
 				VisitJoinClause(groupJoinClause.JoinClause, queryModel, groupJoinClause)
 			end
 
-			if(whereClause != ^null)
-				VisitWhereClause(whereClause, queryModel, 0)
+			data mergedWhereClause, @Expression, ^null
+			data whereClause, @WhereClause
+			foreach whereClause in whereClauses
+			begin
+				if(mergedWhereClause == ^null) then
+					mergedWhereClause = whereClause.Predicate
+				else
+					mergedWhereClause = Expression.AndAlso(mergedWhereClause, whereClause.Predicate)
+			end
+
+
+			
+			if(mergedWhereClause != ^null)
+				VisitWhereClause(new WhereClause(mergedWhereClause), queryModel, 0)
 ;			data i = 0
 ;			for i from 0 thru bodyClauses.Count
 ;			begin
@@ -158,13 +170,32 @@ namespace Harmony.Core.FileIO.Queryable
 			;;TODO we have to signal case sensitive somehow, not sure what the mechanism will be, maybe an option during setup per key?
 		endmethod
 
+		private method TypeSafeEqual, @Expression
+			left, @Expression
+			right, @Expression
+		proc
+			data leftType = left.Type
+			data rightType = right.Type
+			if(leftType == rightType)
+				mreturn Expression.Equal(left, right)
+			if(leftType.IsGenericType && leftType.GetGenericTypeDefinition() == ^typeof(System.Nullable<>)) then
+			begin
+				mreturn Expression.Equal(left, Expression.Convert(right, leftType))
+			end
+			else
+			begin
+				mreturn Expression.Equal(Expression.Convert(left, rightType), right)
+			end
+		endmethod
+
+
 		public override method VisitJoinClause, void
 			joinClause, @JoinClause
 			queryModel, @QueryModel
 			groupJoinClause, @GroupJoinClause 
 		proc
 			data querySource, @IQuerySource, (@IQuerySource)joinClause;FindQuerySource(joinClause.InnerSequence)
-			mOnObjects.Add(querySource, mWhereBuilder.VisitForOn(Expression.Equal(joinClause.InnerKeySelector, joinClause.OuterKeySelector)))
+			mOnObjects.Add(querySource, mWhereBuilder.VisitForOn(TypeSafeEqual(joinClause.InnerKeySelector, joinClause.OuterKeySelector)))
 		endmethod
 
 		private method VisitJoinClauseInternal, void
@@ -201,7 +232,7 @@ namespace Harmony.Core.FileIO.Queryable
 			end
 			else
 			begin
-				mOnObjects.Add(querySource, mWhereBuilder.VisitForOn(Expression.Equal(outerKeySelector, innerKeySelector)))
+				mOnObjects.Add(querySource, mWhereBuilder.VisitForOn(TypeSafeEqual(outerKeySelector, innerKeySelector)))
 			end
 
 			
