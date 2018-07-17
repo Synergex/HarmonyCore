@@ -338,6 +338,7 @@ namespace Harmony.Core.FileIO.Queryable
 				disposable data rows, @Synergex.SynergyDE.Select.RowEnumerator
 				disposable data selectObject, @Synergex.SynergyDE.Select.JoinSelect, modelVisitor.JoinObject
 				data hasMoreRows = true
+				data consumeSet, @HashSet<string>, new HashSet<string>()
 				rows = selectObject.GetEnumerator()
 				while(hasMoreRows)
 				begin
@@ -348,9 +349,9 @@ namespace Harmony.Core.FileIO.Queryable
 						
 					;;if (targetCount && currentCount > targetCount)
 					;;	exitloop
-					
-					result.Add(MaterializeObject("", model.MainFromClause.ItemName, model.MainFromClause.ItemType, rows, modelVisitor, tracker))
-
+					consumeSet.Add(model.MainFromClause.ItemType.FullName + model.MainFromClause.ItemName)
+					result.Add(MaterializeObject("", model.MainFromClause.ItemName, model.MainFromClause.ItemType, rows, modelVisitor, tracker, consumeSet))
+					consumeSet.Clear()
 					;;TODO only maybe increment rows enumerator
 					hasMoreRows = rows.MoveNext()
 				end
@@ -368,21 +369,24 @@ namespace Harmony.Core.FileIO.Queryable
 			rowEnumerator, @Synergex.SynergyDE.Select.RowEnumerator
 			modelVisitor, @QueryModelVisitor
 			tracker, @Func<DataObjectBase, DataObjectBase>
+			consumeSet, @HashSet<string>
 		proc
 			data result = new Dictionary<string, object>()
 			data kvp, KeyValuePair<string, int>
 			foreach kvp in modelVisitor.mQueryBuffers
 			begin
 				;;TODO multi level joins here
-				if(kvp.Key != itemName && kvp.Key != parentItemName)
+				if(!consumeSet.Contains(kvp.Key))
 				begin
 					data shortKeyName = kvp.Key.Split(%char(46))
-					if(modelVisitor.mQueryBufferTypes[kvp.Key].FullName == "System.Collections.Generic.ICollection`1") then
+					data queryBufferType = modelVisitor.mQueryBufferTypes[kvp.Key]
+					if(queryBufferType.FullName == "System.Collections.Generic.ICollection`1") then
 					begin
 					end
-					else ;if(kvp.Key.StartsWith(itemName))
+					else
 					begin
-						result.Add(shortKeyName.Last(), MaterializeObject(itemName, kvp.Key, modelVisitor.mQueryBufferTypes[kvp.Key], rowEnumerator, modelVisitor, tracker))
+						consumeSet.Add(kvp.Key)
+						result.Add(shortKeyName.Last(), MaterializeObject(itemName, kvp.Key.Replace(queryBufferType.FullName, ""), queryBufferType, rowEnumerator, modelVisitor, tracker, consumeSet))
 					end
 				end
 			end
@@ -396,6 +400,7 @@ namespace Harmony.Core.FileIO.Queryable
 			rowEnumerator, @Synergex.SynergyDE.Select.RowEnumerator
 			modelVisitor, @QueryModelVisitor
 			tracker, @Func<DataObjectBase, DataObjectBase>
+			consumeSet, @HashSet<string>
 			structure memMapper
 				fld,a1
 			endstructure
@@ -406,7 +411,7 @@ namespace Harmony.Core.FileIO.Queryable
 			data grfa, a10
 			rowEnumerator.Current.RowInfo(^m(memMapper.fld(1:structureSize), memPnt), grfa)
 			rowEnumerator.Current.Fill(^m(memMapper.fld(1:structureSize), memPnt))
-			mreturn tracker(metadataObject.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa, DependentObjectsForMaterialize(parentItemName, itemName, rowEnumerator, modelVisitor, tracker)))
+			mreturn tracker(metadataObject.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa, DependentObjectsForMaterialize(parentItemName, itemName, rowEnumerator, modelVisitor, tracker, consumeSet)))
 		endmethod
 
 	endclass
