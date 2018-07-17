@@ -117,7 +117,8 @@ namespace SampleServices
 			parm.Entity(^typeof(vendor)).HasQueryFilter(Expression.Lambda(Expression.Block(Expression.Equal(Expression.Call(^typeof(EF), "Property", new Type[#] { ^typeof(int) }, vendorParam, Expression.Constant("VendRtype")), Expression.Constant(1))), new ParameterExpression[#] { vendorParam }))
 
 .endregion
-
+			;;parm.Entity(^typeof(Order)).Property<int>("OrCustomerRType").HasDefaultValue(0)
+			;;parm.Entity(^typeof(Order)).Property<int>("OrVendorRType").HasDefaultValue(1)
 .define INCLUDE_RELATIONS
 .ifdef INCLUDE_RELATIONS
 .region "Relationships to other structures"
@@ -128,7 +129,7 @@ namespace SampleServices
 
 	        ;; One to one relationship from structure Customer key ITEM to structure Plants key ITEM without a backward relationship
 			;TODO: Code needed here!!!
-
+			parm.Entity(^typeof(Customer)).HasOne(^typeof(Plant),"REL_Item").WithOne(^null).HasForeignKey("SampleServices.Models.Customer", "CustGift").HasPrincipalKey("SampleServices.Models.Plant", "InItemid")
 	        ;; One to one relationship from structure Order key VENDOR to structure Vendors.VENDOR with a backward relationship
 			;TODO: HasForeignKey needs to be the name of the FIELD associated with the key in the other structure!
 			parm.Entity(^typeof(Order)).HasOne(^typeof(Vendor),"REL_Vendor").WithMany("REL_Orders").HasForeignKey("OrVendor")
@@ -139,13 +140,14 @@ namespace SampleServices
 
 	        ;; One to one relationship from structure Order key ITEM to structure Plants.ITEM with a backward relationship
 			;TODO: HasForeignKey needs to be the name of the FIELD associated with the key in the other structure!
-			parm.Entity(^typeof(Order)).HasOne(^typeof(Plant),"REL_Item").WithMany("REL_Orders").HasForeignKey("OrItem")
+			parm.Entity(^typeof(Order)).HasOne(^typeof(Plant),"REL_Item").WithMany("REL_Orders").HasForeignKey("OrItem").HasPrincipalKey("InItemid")
 
 	        ;; One to one relationship from structure Order key TAG_CUSTOMER to structure Customers key TAG_CUSTOMER without a backward relationship
 			;TODO: Code needed here!!!
-
+			parm.Entity(^typeof(Order)).HasOne(^typeof(Customer),"REL_TagCustomer").WithOne(^null).HasForeignKey("SampleServices.Models.Order", "OrCustomer", "OrCustomerRType").HasPrincipalKey("SampleServices.Models.Customer", "CustKey", "CustRtype")
 	        ;; One to one relationship from structure Order key TAG_VENDOR to structure Vendors key TAG_VENDOR without a backward relationship
 			;TODO: Code needed here!!!
+			parm.Entity(^typeof(Order)).HasOne(^typeof(Vendor),"REL_TagVendor").WithOne(^null).HasForeignKey("SampleServices.Models.Order", "OrVendor", "OrVendorRType").HasPrincipalKey("SampleServices.Models.Vendor", "VendKey", "VendRtype")
 
 	        ;; One to one relationship from structure Plant key VENDOR to structure Vendors.VENDOR with a backward relationship
 			;TODO: HasForeignKey needs to be the name of the FIELD associated with the key in the other structure!
@@ -153,7 +155,7 @@ namespace SampleServices
 
 	        ;; One to many relationship from structure Plant key ITEM to structure Orders key ITEM with a backward relationship
 			;TODO: HasForeignKey needs to be the name of the FIELD associated with the key in the other structure!
-			parm.Entity(^typeof(Plant)).HasMany(^typeof(Order),"REL_Orders").WithOne("REL_Item").HasForeignKey("OrItem")
+			parm.Entity(^typeof(Plant)).HasMany(^typeof(Order),"REL_Orders").WithOne("REL_Item").HasForeignKey("OrItem").HasPrincipalKey("InItemid")
 
 	        ;; One to many relationship from structure Vendor key VENDOR to structure Plants key VENDOR with a backward relationship
 			;TODO: HasForeignKey needs to be the name of the FIELD associated with the key in the other structure!

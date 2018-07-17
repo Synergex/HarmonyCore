@@ -658,9 +658,15 @@ namespace Harmony.Core.FileIO.Queryable
 						mAddAdditionalSource(memberTargetParameter.ReferencedQuerySource, callNode, node2)
 						mreturn ^null
 					end
-
+					
+					;;if we're looking at a tag literal (fake) field just drop out here
+					data targetField = memberTargetType.GetFieldByName(memberNameConstant.Value.ToString())
+					if(((int)targetField.DataType & (int)FieldDataType.TagLiteral) != 0)
+					begin
+						mreturn ^null
+					end
 						
-					mreturn Tuple.Create(memberTargetType.GetFieldByName(memberNameConstant.Value.ToString()), memberTargetParameter.ReferencedQuerySource)
+					mreturn Tuple.Create(targetField, memberTargetParameter.ReferencedQuerySource)
 				end
 			end
 			else if(node .is. UnaryExpression && node.NodeType == ExpressionType.Convert)
@@ -687,16 +693,26 @@ namespace Harmony.Core.FileIO.Queryable
 				if(mParameters.TryGetValue(paramNode.Name, paramValue))
 					mreturn paramValue.ToString()
 			end
-			else if(node .is. MethodCallExpression)
+			else if(node .is. MethodCallExpression) then
 			begin
 				data callNode = (@MethodCallExpression)node
 				if(callNode.Method.Name == "Property")
 				begin
 					;;this is where we can do a metadata object lookup for join
 					data memberTargetParameter = (@Remotion.Linq.Clauses.Expressions.QuerySourceReferenceExpression)callNode.Arguments[0]
-					data memberNameConstant = (@ConstantExpression)callNode.Arguments[1]
-					throw new NotImplementedException()
+					data memberNameConstant, @ConstantExpression, (@ConstantExpression)callNode.Arguments[1]
+					data memberTargetType, @DataObjectMetadataBase, mDataObjects[memberTargetParameter.ReferencedQuerySource]
+					data targetField = memberTargetType.GetFieldByName(memberNameConstant.Value.ToString())
+					if(((int)targetField.DataType & (int)FieldDataType.TagLiteral) != 0)
+					begin
+						mreturn targetField.TagValue
+					end
 				end
+			end
+			else if(node .is. UnaryExpression && node.NodeType == ExpressionType.Convert)
+			begin
+				data convertNode = (@UnaryExpression)node
+				mreturn FindConstantValue(convertNode.Operand)
 			end
 			throw new NotImplementedException()
 		endmethod
@@ -713,68 +729,92 @@ namespace Harmony.Core.FileIO.Queryable
 			mreturn node
 		endmethod
 
-		protected override method VisitBinary, @Expression
-			node, @BinaryExpression
+		private method ProcessWhereClause, void
+			left, @Expression
+			right, @Expression
+			op, WhereClauseOperator
 			structure tmpStructure
 				fld,a1
 			endstructure
+		proc
+			data skipClause, boolean, false
+			;;TODO this doesnt deal with 'between'
+			data leftTarget = FindTargetField(left, right, skipClause)
+			data rightTarget = FindTargetField(right, left, skipClause)
+			if(skipClause)
+				mreturn
+
+			if(leftTarget != ^null && rightTarget != ^null) then
+			begin
+				data dataObject1 = mDataObjects[leftTarget.Item2]
+				data dataObject2 = mDataObjects[rightTarget.Item2]
+				data recordArea1 = mRecordAreas[leftTarget.Item2]
+				data recordArea2 = mRecordAreas[rightTarget.Item2]
+				if(dataObject1 == dataObject2) then
+				begin
+					mWhereStack.Push(fieldWhereClause(^m(tmpStructure(1:dataObject1.StructureSize), recordArea1), 
+					&	^m(tmpStructure(1:dataObject2.StructureSize), recordArea2), 
+					&	leftTarget.Item1, 
+					&	rightTarget.Item1,
+					&	op))
+				end
+				else
+				begin
+					mOnStack.Push(fieldOnClause(^m(tmpStructure(1:dataObject1.StructureSize), recordArea1), 
+					&	^m(tmpStructure(1:dataObject2.StructureSize), recordArea2), 
+					&	leftTarget.Item1, 
+					&	rightTarget.Item1,
+					&	op))
+				end
+			end
+			else if(leftTarget != ^null) then
+			begin
+				data dataObject1 = mDataObjects[leftTarget.Item2]
+				data recordArea1 = mRecordAreas[leftTarget.Item2]
+				mWhereStack.Push(fieldWhereClause(^m(tmpStructure(1:dataObject1.StructureSize), recordArea1), 
+				&	leftTarget.Item1, 
+				&	op,
+				&	FindConstantValue(right), ""))
+			end
+			else if(rightTarget != ^null) then
+			begin
+				data dataObject1 = mDataObjects[rightTarget.Item2]
+				data recordArea1 = mRecordAreas[rightTarget.Item2]
+				mWhereStack.Push(fieldWhereClause(^m(tmpStructure(1:dataObject1.StructureSize), recordArea1), 
+				&	rightTarget.Item1, 
+				&	op,
+				&	FindConstantValue(left), ""))
+			end
+			else
+				throw new NotImplementedException("where expression must contain at least one field or property expression")
+		endmethod
+
+
+		protected override method VisitBinary, @Expression
+			node, @BinaryExpression
 		proc
 			data op, WhereClauseOperator?, ^null
 			data glue, WhereClauseConnector?, ^null
 			OpKindFromExpression(node, op, glue)
 			if(op != ^null) then
 			begin
-				data skipClause, boolean, false
-				;;TODO this doesnt deal with 'between'
-				data leftTarget = FindTargetField(node.Left, node.Right, skipClause)
-				data rightTarget = FindTargetField(node.Right, node.Left, skipClause)
-				if(skipClause)
-					mreturn node
+				;;this should be a composite key match them up by order
+				if(node.Left .is. NewExpression && node.Right .is. NewExpression) then
+				begin
+					data newLeft = (@NewExpression)node.Left
+					data newRight = (@NewExpression)node.Right
+					data leftArgument = (@NewArrayExpression)newLeft.Arguments.First()
+					data rightArgument = (@NewArrayExpression)newRight.Arguments.First()
+					data i, int, 0
+					for i from 0 thru leftArgument.Expressions.Count - 1 by 1
+					begin
+						ProcessWhereClause(leftArgument.Expressions[i], rightArgument.Expressions[i], op.Value)
+					end
 
-				if(leftTarget != ^null && rightTarget != ^null) then
-				begin
-					data dataObject1 = mDataObjects[leftTarget.Item2]
-					data dataObject2 = mDataObjects[rightTarget.Item2]
-					data recordArea1 = mRecordAreas[leftTarget.Item2]
-					data recordArea2 = mRecordAreas[rightTarget.Item2]
-					if(dataObject1 == dataObject2) then
-					begin
-						mWhereStack.Push(fieldWhereClause(^m(tmpStructure(1:dataObject1.StructureSize), recordArea1), 
-						&	^m(tmpStructure(1:dataObject2.StructureSize), recordArea2), 
-						&	leftTarget.Item1, 
-						&	rightTarget.Item1,
-						&	op.Value))
-					end
-					else
-					begin
-						mOnStack.Push(fieldOnClause(^m(tmpStructure(1:dataObject1.StructureSize), recordArea1), 
-						&	^m(tmpStructure(1:dataObject2.StructureSize), recordArea2), 
-						&	leftTarget.Item1, 
-						&	rightTarget.Item1,
-						&	op.Value))
-					end
-				end
-				else if(leftTarget != ^null) then
-				begin
-					data dataObject1 = mDataObjects[leftTarget.Item2]
-					data recordArea1 = mRecordAreas[leftTarget.Item2]
-					mWhereStack.Push(fieldWhereClause(^m(tmpStructure(1:dataObject1.StructureSize), recordArea1), 
-					&	leftTarget.Item1, 
-					&	op.Value,
-					&	FindConstantValue(node.Right), ""))
-				end
-				else if(rightTarget != ^null) then
-				begin
-					data dataObject1 = mDataObjects[rightTarget.Item2]
-					data recordArea1 = mRecordAreas[rightTarget.Item2]
-					mWhereStack.Push(fieldWhereClause(^m(tmpStructure(1:dataObject1.StructureSize), recordArea1), 
-					&	rightTarget.Item1, 
-					&	op.Value,
-					&	FindConstantValue(node.Left), ""))
+					
 				end
 				else
-					throw new NotImplementedException("where expression must contain at least one field or property expression")
-				
+					ProcessWhereClause(node.Left, node.Right, op.Value)
 			end
 			else
 			begin

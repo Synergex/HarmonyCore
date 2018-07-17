@@ -74,9 +74,10 @@ namespace Harmony.Core
 			structurePosition, int
 			decimalPrecision ,int
 			clearField, boolean
+			default tagValue, @string, ^null
 			endparams
 		proc
-			data fieldInfo = new FieldDataDefinition() { LanguageName = languageName, ElementSize = elementSize, StructurePosition = structurePosition, DecimalPrecision = decimalPrecision, ClearField = clearField }
+			data fieldInfo = new FieldDataDefinition() { LanguageName = languageName, ElementSize = elementSize, StructurePosition = structurePosition, DecimalPrecision = decimalPrecision, ClearField = clearField, TagValue = tagValue }
 
 			using dataType select
 			("ALPHA"),
@@ -122,6 +123,10 @@ namespace Harmony.Core
 			("USER NUMERIC"),
 			begin
 				fieldInfo.DataType = FieldDataType.AlphaField
+			end
+			("TAG_LITERAL"),
+			begin
+				fieldInfo.DataType = FieldDataType.TagLiteral
 			end
 			endusing
 
