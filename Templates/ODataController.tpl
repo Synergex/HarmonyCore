@@ -106,7 +106,6 @@ namespace <NAMESPACE>
 
 .region "CREATE"
 
-		{HttpPost};For Swagger
 		{ODataRoute("<StructurePlural>")}
 		;;; <summary>
 		;;; Create a new <structureNoplural> (automatically assigned primary key).
@@ -132,7 +131,6 @@ namespace <NAMESPACE>
 		endmethod
 
 		<PRIMARY_KEY>
-		{HttpPost};For Swagger
 		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
 		;;; <summary>
 		;;; Create a new <structureNoplural> (client-supplied primary key).
@@ -174,7 +172,6 @@ namespace <NAMESPACE>
 
 .region "READ"
 
-		{HttpGet};For Swagger
 		{ODataRoute("<StructurePlural>")}
 		{EnableQuery}
 		;{EnableQuery(MaxExpansionDepth=3, MaxSkip=10, MaxTop=5, PageSize=4)}
@@ -187,7 +184,6 @@ namespace <NAMESPACE>
 		endmethod
 
 		<PRIMARY_KEY>
-		{HttpGet};For Swagger
 		{EnableQuery}
 		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
 		;;; <summary>
@@ -214,7 +210,6 @@ namespace <NAMESPACE>
 		</PRIMARY_KEY>
 		
 		<ALTERNATE_KEY_LOOP>
-		{HttpGet};For Swagger
 		{EnableQuery}
 		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
 		;;; <summary>
@@ -245,7 +240,6 @@ namespace <NAMESPACE>
 .region "UPDATE"
 
 		<PRIMARY_KEY>
-		{HttpPatch};For Swagger
 		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
 		;;; <summary>
 		;;; Update a <structureNoplural> (partial updates are supported).
@@ -294,7 +288,6 @@ namespace <NAMESPACE>
 .region "DELETE"
 
 		<PRIMARY_KEY>
-		{HttpPost};For Swagger
 		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
 		;;; <summary>
 		;;; Delete a <structureNoplural>.

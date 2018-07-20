@@ -70,7 +70,6 @@ namespace SampleServices.Controllers
 
 .region "CREATE"
 
-		{HttpPost};For Swagger
 		{ODataRoute("Vendors")}
 		;;; <summary>
 		;;; Create a new vendor (automatically assigned primary key).
@@ -95,7 +94,6 @@ namespace SampleServices.Controllers
 
 		endmethod
 
-		{HttpPost};For Swagger
 		{ODataRoute("Vendors(VendKey={aVendKey})")}
 		;;; <summary>
 		;;; Create a new vendor (client-supplied primary key).
@@ -103,7 +101,6 @@ namespace SampleServices.Controllers
 		;;; <param name="aVendKey">Vendor ID</param>
 		;;; <returns></returns>
 		public method Put, @IActionResult
-			;{FromQuery};For Swagger
 			{FromODataUri}
             required in aVendKey, int
 			{FromBody}
@@ -131,7 +128,6 @@ namespace SampleServices.Controllers
 
 .region "READ"
 
-		{HttpGet};For Swagger
 		{ODataRoute("Vendors")}
 		{EnableQuery}
 		;{EnableQuery(MaxExpansionDepth=3, MaxSkip=10, MaxTop=5, PageSize=4)}
@@ -143,7 +139,6 @@ namespace SampleServices.Controllers
 			mreturn Ok(DBContext.Vendors)
 		endmethod
 
-		{HttpGet};For Swagger
 		{EnableQuery}
 		{ODataRoute("Vendors(VendKey={aVendKey})")}
 		;;; <summary>
@@ -152,7 +147,6 @@ namespace SampleServices.Controllers
 		;;; <param name="aVendKey">Vendor ID</param>
 		;;; <returns></returns>
 		public method Get, @IActionResult
-			;{FromQuery};For Swagger
 			{FromODataUri}
             required in aVendKey, int
 		proc
@@ -165,7 +159,6 @@ namespace SampleServices.Controllers
 
 		endmethod
 		
-		{HttpGet};For Swagger
 		{EnableQuery}
 		{ODataRoute("Vendors(VendRtype={aVendRtype},VendKey={aVendKey})")}
 		;;; <summary>
@@ -175,10 +168,8 @@ namespace SampleServices.Controllers
 		;;; <param name="aVendKey">Vendor ID</param>
 		;;; <returns></returns>
 		public method GetByKeyTagVendor, @IActionResult
-			;{FromQuery};For Swagger
 			{FromODataUri}
 			required in aVendRtype, int
-			;{FromQuery};For Swagger
 			{FromODataUri}
 			required in aVendKey, int
 		proc
@@ -195,7 +186,6 @@ namespace SampleServices.Controllers
 
 .region "UPDATE"
 
-		{HttpPatch};For Swagger
 		{ODataRoute("Vendors(VendKey={aVendKey})")}
 		;;; <summary>
 		;;; Update a vendor (partial updates are supported).
@@ -203,7 +193,6 @@ namespace SampleServices.Controllers
 		;;; <param name="aVendKey">Vendor ID</param>
 		;;; <returns></returns>
 		public method Patch, @IActionResult
-			;{FromQuery};For Swagger
 			{FromODataUri}
             required in aVendKey, int
 			{FromBody}
@@ -237,7 +226,6 @@ namespace SampleServices.Controllers
 
 .region "DELETE"
 
-		{HttpPost};For Swagger
 		{ODataRoute("Vendors(VendKey={aVendKey})")}
 		;;; <summary>
 		;;; Delete a vendor.
@@ -245,7 +233,6 @@ namespace SampleServices.Controllers
 		;;; <param name="aVendKey">Vendor ID</param>
 		;;; <returns></returns>
 		public method Delete, @IActionResult
-			;{FromQuery};For Swagger
 			{FromODataUri}
             required in aVendKey, int
 		proc
