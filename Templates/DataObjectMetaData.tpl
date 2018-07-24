@@ -103,12 +103,22 @@ namespace <NAMESPACE>
 			AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false)
 			</IF>
             </FIELD_LOOP>
+<IF STRUCTURE_RELATIONS>
+<RELATION_LOOP>
+<COUNTER_1_RESET>
+<FROM_KEY_SEGMENT_LOOP>
+<IF SEG_TYPE_LITERAL>
+			AddFieldInfo("<RelationFromkey>Literal<COUNTER_1_INCREMENT><COUNTER_1_VALUE>", "TAG_LITERAL", 0, 0, 0, false,"<SEGMENT_LITVAL>")
+</IF SEG_TYPE_LITERAL>
+</FROM_KEY_SEGMENT_LOOP>
+</RELATION_LOOP>
+</IF STRUCTURE_RELATIONS>
 		endmethod
 	
 		;;; <summary>
 		;;; Returns a new <StructureNoplural> object containing data from a record and a GRFA.
 		<IF STRUCTURE_RELATIONS>
-		;;; The related data properties (<RELATION_LOOP><IF TWO_WAY_ONE_TO_ONE>REL_<RelationFromkey></IF TWO_WAY_ONE_TO_ONE><IF ONE_WAY_ONE_TO_ONE>REL_<RelationFromkey></IF ONE_WAY_ONE_TO_ONE><IF TWO_WAY_ONE_TO_MANY>REL_<RelationTostructurePlural></IF TWO_WAY_ONE_TO_MANY><IF ONE_WAY_ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_WAY_ONE_TO_MANY><,and></RELATION_LOOP>) will not be populated.
+		;;; The related data properties (<RELATION_LOOP><IF MANY_TO_ONE_TO_MANY>REL_<RelationFromkey></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationFromkey></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY><,and></RELATION_LOOP>) will not be populated.
 		</IF STRUCTURE_RELATIONS>
 		;;; </summary>
 		;;; <param name="dataArea">The record containing the data for the new <StructureNoplural> object.</param>
@@ -124,12 +134,12 @@ namespace <NAMESPACE>
 		;;; <summary>
 		;;; Returns a new <StructureNoplural> object containing data from a record and a GRFA.
 		<IF STRUCTURE_RELATIONS>
-		;;; The related data properties (<RELATION_LOOP><IF TWO_WAY_ONE_TO_ONE>REL_<RelationFromkey></IF TWO_WAY_ONE_TO_ONE><IF ONE_WAY_ONE_TO_ONE>REL_<RelationFromkey></IF ONE_WAY_ONE_TO_ONE><IF TWO_WAY_ONE_TO_MANY>REL_<RelationTostructurePlural></IF TWO_WAY_ONE_TO_MANY><IF ONE_WAY_ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_WAY_ONE_TO_MANY><,and></RELATION_LOOP>) will be populated.
+		;;; The related data properties (<RELATION_LOOP><IF MANY_TO_ONE_TO_MANY>REL_<RelationFromkey></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationFromkey></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY><,and></RELATION_LOOP>) will be populated.
 		</IF STRUCTURE_RELATIONS>
 		;;; </summary>
 		;;; <param name="dataArea">The record containing the data for the new <StructureNoplural> object.</param>
 		;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
-		;;; <param name="joinedObjects">Data to allow the related data properties (<RELATION_LOOP><IF TWO_WAY_ONE_TO_ONE>REL_<RelationFromkey></IF TWO_WAY_ONE_TO_ONE><IF ONE_WAY_ONE_TO_ONE>REL_<RelationFromkey></IF ONE_WAY_ONE_TO_ONE><IF TWO_WAY_ONE_TO_MANY>REL_<RelationTostructurePlural></IF TWO_WAY_ONE_TO_MANY><IF ONE_WAY_ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_WAY_ONE_TO_MANY><,and></RELATION_LOOP>) to be populated.</param>
+		;;; <param name="joinedObjects">Data to allow the related data properties (<RELATION_LOOP><IF MANY_TO_ONE_TO_MANY>REL_<RelationFromkey></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationFromkey></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY><,and></RELATION_LOOP>) to be populated.</param>
 		;;; <returns></returns>
 		public override method MakeNew, @DataObjectBase
 			required in dataArea, a
@@ -143,22 +153,22 @@ namespace <NAMESPACE>
 			begin
 				using joinedObject.Key select
 				<RELATION_LOOP>
-				<IF TWO_WAY_ONE_TO_ONE>
+				<IF MANY_TO_ONE_TO_MANY>
 				("REL_<RelationFromkey>"), 
 					new<StructureNoplural>.REL_<RelationFromkey> = (@<RelationTostructureNoplural>)joinedObject.Value
-				</IF TWO_WAY_ONE_TO_ONE>
-				<IF ONE_WAY_ONE_TO_ONE>
+				</IF MANY_TO_ONE_TO_MANY>
+				<IF ONE_TO_ONE>
 				("REL_<RelationFromkey>"),
 					new<StructureNoplural>.REL_<RelationFromkey> = (@<RelationTostructureNoplural>)joinedObject.Value
-				</IF ONE_WAY_ONE_TO_ONE>
-				<IF TWO_WAY_ONE_TO_MANY>
+				</IF ONE_TO_ONE>
+				<IF ONE_TO_MANY_TO_ONE>
 				("REL_<RelationTostructurePlural>"), 
 					new<StructureNoplural>.REL_<RelationTostructurePlural> = (@ICollection<<RelationTostructureNoplural>>)joinedObject.Value
-				</IF TWO_WAY_ONE_TO_MANY>
-				<IF ONE_WAY_ONE_TO_MANY>
+				</IF ONE_TO_MANY_TO_ONE>
+				<IF ONE_TO_MANY>
 				("REL_<RelationTostructurePlural>"),
 					new<StructureNoplural>.REL_<RelationTostructurePlural> = (@ICollection<<RelationTostructureNoplural>>)joinedObject.Value
-				</IF ONE_WAY_ONE_TO_MANY>
+				</IF ONE_TO_MANY>
 				</RELATION_LOOP>
 				endusing
 			end

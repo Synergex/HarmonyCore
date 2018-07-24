@@ -88,7 +88,7 @@ namespace SampleServices.Models
 
 .endregion
 
-.region "Public properties for fields"
+.region "Attributes of this entity"
 
 		;;; <summary>
 		;;; Order number
@@ -133,8 +133,6 @@ namespace SampleServices.Models
 			endmethod
 		endproperty
 
-		public readwrite property OrCustomerRType, int, 0
-		public readwrite property OrVendorRType, int, 1
 		;;; <summary>
 		;;; Customer number
 		;;; </summary>
@@ -252,37 +250,56 @@ namespace SampleServices.Models
 
 .define INCLUDE_RELATIONS
 .ifdef INCLUDE_RELATIONS
-.region "Public properties for relationships to other data"
+.region "Relationships to other entities"
 
 		;;; <summary>
-		;;; One to one relationship from stucture Order key VENDOR to structure Vendors key VENDOR with a backward relationship
+		;;; Relationship (Type A)
+		;;; ORDER.VENDOR (one) --> (one) --> (many) VENDOR.VENDOR
 		;;; </summary>
 		public readwrite property REL_Vendor, @Vendor
 
 		;;; <summary>
-		;;; One to one relationship from stucture Order key CUSTOMER to structure Customers key CUSTOMER with a backward relationship
+		;;; Relationship (Type A)
+		;;; ORDER.CUSTOMER (one) --> (one) --> (many) CUSTOMER.CUSTOMER
 		;;; </summary>
 		public readwrite property REL_Customer, @Customer
 
 		;;; <summary>
-		;;; One to one relationship from stucture Order key ITEM to structure Plants key ITEM with a backward relationship
+		;;; Relationship (Type A)
+		;;; ORDER.ITEM (one) --> (one) --> (many) PLANT.ITEM
 		;;; </summary>
 		public readwrite property REL_Item, @Plant
 
 		;;; <summary>
-		;;; One to one relationship from stucture Order key TAG_CUSTOMER to structure Customers key TAG_CUSTOMER without a backward relationship
+		;;; Relationship (Type C)
+		;;; ORDER.TAG_CUSTOMER (one) --> (one) CUSTOMER.TAG_CUSTOMER
 		;;; </summary>
 		public readwrite property REL_TagCustomer, @Customer
 
 		;;; <summary>
-		;;; One to one relationship from stucture Order key TAG_VENDOR to structure Vendors key TAG_VENDOR without a backward relationship
+		;;; Relationship (Type C)
+		;;; ORDER.TAG_VENDOR (one) --> (one) VENDOR.TAG_VENDOR
 		;;; </summary>
 		public readwrite property REL_TagVendor, @Vendor
 
 .endregion
 .endc
 
-.region "Other public properties"
+.region "Properties to represent literal key segments"
+
+	;;; <summary>
+	;;; 
+	;;; </summary>
+	public readwrite property TagCustomerLiteral1, int, 0
+
+	;;; <summary>
+	;;; 
+	;;; </summary>
+	public readwrite property TagVendorLiteral1, int, 1
+
+.endregion
+
+.region "Other attributes"
 
         ;;; <summary>
         ;;; Expose the complete synergy record
@@ -340,7 +357,7 @@ namespace SampleServices.Models
 		public override method InternalGetValues, [#]@object
 		proc
 			;;TODO: This should be returning boxed values for each of our fields
-			mreturn new Object[16]
+			mreturn new Object[1]
 		endmethod
 
 .endregion

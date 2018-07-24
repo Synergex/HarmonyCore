@@ -124,7 +124,7 @@ namespace <NAMESPACE>
 
 .endregion
 
-.region "Public properties for fields"
+.region "Attributes of this entity"
 
 		<COUNTER_1_RESET>
         <FIELD_LOOP>
@@ -201,42 +201,71 @@ namespace <NAMESPACE>
 
 .define INCLUDE_RELATIONS
 .ifdef INCLUDE_RELATIONS
-.region "Public properties for relationships to other data"
+.region "Relationships to other entities"
 
 		<IF STRUCTURE_RELATIONS>
 		<RELATION_LOOP>
 		<COUNTER_1_INCREMENT>
-		<IF TWO_WAY_ONE_TO_ONE>
+		<IF MANY_TO_ONE_TO_MANY>
 		;;; <summary>
-		;;; One to one relationship from stucture <StructureNoplural> key <RELATION_FROMKEY> to structure <RelationTostructure> key <RELATION_TOKEY> with a backward relationship
+		;;; Relationship (Type A)
+		;;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) --> (one) --> (many) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
 		;;; </summary>
 		public readwrite property REL_<RelationFromkey>, @<RelationTostructureNoplural>
-		</IF TWO_WAY_ONE_TO_ONE>
-		<IF ONE_WAY_ONE_TO_ONE>
+		</IF MANY_TO_ONE_TO_MANY>
+		<IF ONE_TO_ONE_TO_ONE>
 		;;; <summary>
-		;;; One to one relationship from stucture <StructureNoplural> key <RELATION_FROMKEY> to structure <RelationTostructure> key <RELATION_TOKEY> without a backward relationship
+		;;; Relationship (Type B)
+		;;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) --> (one) --> (one) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
 		;;; </summary>
 		public readwrite property REL_<RelationFromkey>, @<RelationTostructureNoplural>
-		</IF ONE_WAY_ONE_TO_ONE>
-		<IF TWO_WAY_ONE_TO_MANY>
+		</IF ONE_TO_ONE_TO_ONE>
+		<IF ONE_TO_ONE>
 		;;; <summary>
-		;;; One to many relationship from structure <StructureNoplural> key <RELATION_FROMKEY> to structure <RelationTostructure> key <RELATION_TOKEY> with a backward relationship
+		;;; Relationship (Type C)
+		;;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) --> (one) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
+		;;; </summary>
+		public readwrite property REL_<RelationFromkey>, @<RelationTostructureNoplural>
+		</IF ONE_TO_ONE>
+		<IF ONE_TO_MANY_TO_ONE>
+		;;; <summary>
+		;;; Relationship (Type D)
+		;;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) <-> (many) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
 		;;; </summary>
 		public readwrite property REL_<RelationTostructurePlural>, @ICollection<<RelationTostructureNoplural>>
-		</IF TWO_WAY_ONE_TO_MANY>
-		<IF ONE_WAY_ONE_TO_MANY>
+		</IF ONE_TO_MANY_TO_ONE>
+		<IF ONE_TO_MANY>
 		;;; <summary>
-		;;; One to many relationship from structure <StructureNoplural> key <RELATION_FROMKEY> to structure <RelationTostructure> key <RELATION_TOKEY> without a backward relationship
+		;;; Relationship (Type E)
+		;;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) --> (many) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
 		;;; </summary>
 		public readwrite property REL_<RelationTostructurePlural>, @ICollection<<RelationTostructureNoplural>>
-		</IF ONE_WAY_ONE_TO_MANY>
+		</IF ONE_TO_MANY>
 
 		</RELATION_LOOP>
 		</IF STRUCTURE_RELATIONS>
 .endregion
 .endc
 
-.region "Other public properties"
+<IF STRUCTURE_RELATIONS>
+.region "Properties to represent literal key segments"
+
+<RELATION_LOOP>
+<COUNTER_1_RESET>
+<FROM_KEY_SEGMENT_LOOP>
+<IF SEG_TYPE_LITERAL>
+	;;; <summary>
+	;;; 
+	;;; </summary>
+	public readwrite property <RelationFromkey>Literal<COUNTER_1_INCREMENT><COUNTER_1_VALUE>, <LITERAL_SEGMENT_CSTYPE>, <LITERAL_SEGMENT_VALUE>
+
+</IF SEG_TYPE_LITERAL>
+</FROM_KEY_SEGMENT_LOOP>
+</RELATION_LOOP>
+.endregion
+
+</IF STRUCTURE_RELATIONS>
+.region "Other attributes"
 
         ;;; <summary>
         ;;; Expose the complete synergy record

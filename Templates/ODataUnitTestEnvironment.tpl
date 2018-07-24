@@ -92,9 +92,12 @@ proc
 	;;Configure the environment
 	UnitTestEnvironment.AssemblyInitialize(^null)
 
-	;Leave this here for Jeff
-	;data tester = new CustomerTests()
-	;tester.GetAllCustomers()
+	;Leave this here for Jeff 
+	;data tester = new OrderTests()  
+	;tester.GetOrders_Expand_REL_TagCustomer() 
+	;tester.GetOrders_Expand_REL_TagVendor()
+	;tester.GetOrders_Expand_All()
+	;tester.GetCustomer()      
 
 	;;Start self-hosting (Kestrel)
 	WebHost.CreateDefaultBuilder(new string[0]).UseStartup<Startup>().Build().Run()

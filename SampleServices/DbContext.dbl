@@ -111,59 +111,195 @@ namespace SampleServices
 			;;This will currently only work for single field==value tags.
 
 			data customerParam = Expression.Parameter(^typeof(customer))
-			parm.Entity(^typeof(customer)).HasQueryFilter(Expression.Lambda(Expression.Block(Expression.Equal(Expression.Call(^typeof(EF), "Property", new Type[#] { ^typeof(int) }, customerParam, Expression.Constant("CustRtype")), Expression.Constant(0))), new ParameterExpression[#] { customerParam }))
+
+			parm.Entity(^typeof(customer))
+			&	.HasQueryFilter
+			&	(
+			&		Expression.Lambda
+			&		(
+			&			Expression.Block
+			&			(
+			&				Expression.Equal
+			&				(
+			&					Expression.Call
+			&					(
+			&						^typeof(EF),
+			&						"Property",
+			&						new Type[#] { ^typeof(int) },
+			&						customerParam,
+			&						Expression.Constant("CustRtype")
+			&					),
+			&					Expression.Constant(0)
+			&				)
+			&			),
+			&			new ParameterExpression[#] { customerParam }
+			&		)
+			&	)
 
 			data vendorParam = Expression.Parameter(^typeof(vendor))
-			parm.Entity(^typeof(vendor)).HasQueryFilter(Expression.Lambda(Expression.Block(Expression.Equal(Expression.Call(^typeof(EF), "Property", new Type[#] { ^typeof(int) }, vendorParam, Expression.Constant("VendRtype")), Expression.Constant(1))), new ParameterExpression[#] { vendorParam }))
+
+			parm.Entity(^typeof(vendor))
+			&	.HasQueryFilter
+			&	(
+			&		Expression.Lambda
+			&		(
+			&			Expression.Block
+			&			(
+			&				Expression.Equal
+			&				(
+			&					Expression.Call
+			&					(
+			&						^typeof(EF),
+			&						"Property",
+			&						new Type[#] { ^typeof(int) },
+			&						vendorParam,
+			&						Expression.Constant("VendRtype")
+			&					),
+			&					Expression.Constant(1)
+			&				)
+			&			),
+			&			new ParameterExpression[#] { vendorParam }
+			&		)
+			&	)
 
 .endregion
-			;;parm.Entity(^typeof(Order)).Property<int>("OrCustomerRType").HasDefaultValue(0)
-			;;parm.Entity(^typeof(Order)).Property<int>("OrVendorRType").HasDefaultValue(1)
+
 .define INCLUDE_RELATIONS
 .ifdef INCLUDE_RELATIONS
-.region "Relationships to other structures"
+.region "Entity Relationships"
 
-	        ;; One to many relationship from structure Customer key CUSTOMER to structure Orders key CUSTOMER with a backward relationship
-			;TODO: HasForeignKey needs to be the name of the FIELD associated with the key in the other structure!
-			parm.Entity(^typeof(Customer)).HasMany(^typeof(Order),"REL_Orders").WithOne("REL_Customer").HasForeignKey("OrCustomer").HasPrincipalKey("CustKey")
+			;;--------------------------------------
+			;; Relationships from CUSTOMER
 
-	        ;; One to one relationship from structure Customer key ITEM to structure Plants key ITEM without a backward relationship
-			;TODO: Code needed here!!!
-			parm.Entity(^typeof(Customer)).HasOne(^typeof(Plant),"REL_Item").WithOne(^null).HasForeignKey("SampleServices.Models.Customer", "CustGift").HasPrincipalKey("SampleServices.Models.Plant", "InItemid")
-	        ;; One to one relationship from structure Order key VENDOR to structure Vendors.VENDOR with a backward relationship
-			;TODO: HasForeignKey needs to be the name of the FIELD associated with the key in the other structure!
-			parm.Entity(^typeof(Order)).HasOne(^typeof(Vendor),"REL_Vendor").WithMany("REL_Orders").HasForeignKey("OrVendor")
+	        ;; CUSTOMER.CUSTOMER (one) --> (many) --> (one) ORDER.CUSTOMER
+			;;    Type          : D
+			;;    From segments : CUST_KEY(D6) 
+			;;    To segments   : OR_CUSTOMER(D6) 
 
-	        ;; One to one relationship from structure Order key CUSTOMER to structure Customers.CUSTOMER with a backward relationship
-			;TODO: HasForeignKey needs to be the name of the FIELD associated with the key in the other structure!
-			parm.Entity(^typeof(Order)).HasOne(^typeof(Customer),"REL_Customer").WithMany("REL_Orders").HasForeignKey("OrCustomer").HasPrincipalKey("CustKey")
+			parm.Entity(^typeof(Customer))
+			&	.HasMany(^typeof(Order),"REL_Orders")
+			&	.WithOne("REL_Customer")
+			&	.HasForeignKey("OrCustomer")
+			&	.HasPrincipalKey("CustKey")
 
-	        ;; One to one relationship from structure Order key ITEM to structure Plants.ITEM with a backward relationship
-			;TODO: HasForeignKey needs to be the name of the FIELD associated with the key in the other structure!
-			parm.Entity(^typeof(Order)).HasOne(^typeof(Plant),"REL_Item").WithMany("REL_Orders").HasForeignKey("OrItem").HasPrincipalKey("InItemid")
+	        ;; CUSTOMER.ITEM (one) --> (one) PLANT.ITEM
+			;;    Type          : C
+			;;    From segments : CUST_GIFT(D6) 
+			;;    To segments   : IN_ITEMID(D6) 
 
-	        ;; One to one relationship from structure Order key TAG_CUSTOMER to structure Customers key TAG_CUSTOMER without a backward relationship
-			;TODO: Code needed here!!!
-			parm.Entity(^typeof(Order)).HasOne(^typeof(Customer),"REL_TagCustomer").WithOne(^null).HasForeignKey("SampleServices.Models.Order", "OrCustomer", "OrCustomerRType").HasPrincipalKey("SampleServices.Models.Customer", "CustKey", "CustRtype")
-	        ;; One to one relationship from structure Order key TAG_VENDOR to structure Vendors key TAG_VENDOR without a backward relationship
-			;TODO: Code needed here!!!
-			parm.Entity(^typeof(Order)).HasOne(^typeof(Vendor),"REL_TagVendor").WithOne(^null).HasForeignKey("SampleServices.Models.Order", "OrVendor", "OrVendorRType").HasPrincipalKey("SampleServices.Models.Vendor", "VendKey", "VendRtype")
+			parm.Entity(^typeof(Customer))
+			&	.HasOne(^typeof(Plant),"REL_Item")
+			&	.WithOne(^null)
+			&	.HasForeignKey(^typeof(Plant),"CustGift")
+			&	.HasPrincipalKey(^typeof(Plant), "InItemid")
 
-	        ;; One to one relationship from structure Plant key VENDOR to structure Vendors.VENDOR with a backward relationship
-			;TODO: HasForeignKey needs to be the name of the FIELD associated with the key in the other structure!
-			parm.Entity(^typeof(Plant)).HasOne(^typeof(Vendor),"REL_Vendor").WithMany("REL_Plants").HasForeignKey("InSource")
+			;;--------------------------------------
+			;; Relationships from ORDER
 
-	        ;; One to many relationship from structure Plant key ITEM to structure Orders key ITEM with a backward relationship
-			;TODO: HasForeignKey needs to be the name of the FIELD associated with the key in the other structure!
-			parm.Entity(^typeof(Plant)).HasMany(^typeof(Order),"REL_Orders").WithOne("REL_Item").HasForeignKey("OrItem").HasPrincipalKey("InItemid")
+	        ;; ORDER.VENDOR (one) --> (one) --> (many) VENDOR.VENDOR
+			;;    Type          : A
+			;;    From segments : OR_VENDOR(D6) 
+			;;    To segments   : VEND_KEY(D6) 
 
-	        ;; One to many relationship from structure Vendor key VENDOR to structure Plants key VENDOR with a backward relationship
-			;TODO: HasForeignKey needs to be the name of the FIELD associated with the key in the other structure!
-			parm.Entity(^typeof(Vendor)).HasMany(^typeof(Plant),"REL_Plants").WithOne("REL_Vendor").HasForeignKey("InSource")
+			parm.Entity(^typeof(Order))
+			&	.HasOne(^typeof(Vendor),"REL_Vendor")
+			&	.WithMany("REL_Orders")
+			&	.HasForeignKey("OrVendor")
+			&	.HasPrincipalKey("VendKey")
 
-	        ;; One to many relationship from structure Vendor key VENDOR to structure Orders key VENDOR with a backward relationship
-			;TODO: HasForeignKey needs to be the name of the FIELD associated with the key in the other structure!
-			parm.Entity(^typeof(Vendor)).HasMany(^typeof(Order),"REL_Orders").WithOne("REL_Vendor").HasForeignKey("OrVendor")
+	        ;; ORDER.CUSTOMER (one) --> (one) --> (many) CUSTOMER.CUSTOMER
+			;;    Type          : A
+			;;    From segments : OR_CUSTOMER(D6) 
+			;;    To segments   : CUST_KEY(D6) 
+
+			parm.Entity(^typeof(Order))
+			&	.HasOne(^typeof(Customer),"REL_Customer")
+			&	.WithMany("REL_Orders")
+			&	.HasForeignKey("OrCustomer")
+			&	.HasPrincipalKey("CustKey")
+
+	        ;; ORDER.ITEM (one) --> (one) --> (many) PLANT.ITEM
+			;;    Type          : A
+			;;    From segments : OR_ITEM(D6) 
+			;;    To segments   : IN_ITEMID(D6) 
+
+			parm.Entity(^typeof(Order))
+			&	.HasOne(^typeof(Plant),"REL_Item")
+			&	.WithMany("REL_Orders")
+			&	.HasForeignKey("OrItem")
+			&	.HasPrincipalKey("InItemid")
+
+	        ;; ORDER.TAG_CUSTOMER (one) --> (one) CUSTOMER.TAG_CUSTOMER
+			;;    Type          : C
+			;;    From segments : Literal(0), OR_CUSTOMER(D6) 
+			;;    To segments   : CUST_RTYPE(D1), CUST_KEY(D6) 
+
+			parm.Entity(^typeof(Order))
+			&	.HasOne(^typeof(Customer),"REL_TagCustomer")
+			&	.WithOne(^null)
+			&	.HasForeignKey(^typeof(Customer),"TagCustomerLiteral1","OrCustomer")
+			&	.HasPrincipalKey(^typeof(Customer), "CustRtype","CustKey")
+
+	        ;; ORDER.TAG_VENDOR (one) --> (one) VENDOR.TAG_VENDOR
+			;;    Type          : C
+			;;    From segments : Literal(1), OR_VENDOR(D6) 
+			;;    To segments   : VEND_RTYPE(D1), VEND_KEY(D6) 
+
+			parm.Entity(^typeof(Order))
+			&	.HasOne(^typeof(Vendor),"REL_TagVendor")
+			&	.WithOne(^null)
+			&	.HasForeignKey(^typeof(Vendor),"TagVendorLiteral1","OrVendor")
+			&	.HasPrincipalKey(^typeof(Vendor), "VendRtype","VendKey")
+
+			;;--------------------------------------
+			;; Relationships from PLANT
+
+	        ;; PLANT.VENDOR (one) --> (one) --> (many) VENDOR.VENDOR
+			;;    Type          : A
+			;;    From segments : IN_SOURCE(D6) 
+			;;    To segments   : VEND_KEY(D6) 
+
+			parm.Entity(^typeof(Plant))
+			&	.HasOne(^typeof(Vendor),"REL_Vendor")
+			&	.WithMany("REL_Plants")
+			&	.HasForeignKey("InSource")
+			&	.HasPrincipalKey("VendKey")
+
+	        ;; PLANT.ITEM (one) --> (many) --> (one) ORDER.ITEM
+			;;    Type          : D
+			;;    From segments : IN_ITEMID(D6) 
+			;;    To segments   : OR_ITEM(D6) 
+
+			parm.Entity(^typeof(Plant))
+			&	.HasMany(^typeof(Order),"REL_Orders")
+			&	.WithOne("REL_Item")
+			&	.HasForeignKey("OrItem")
+			&	.HasPrincipalKey("InItemid")
+
+			;;--------------------------------------
+			;; Relationships from VENDOR
+
+	        ;; VENDOR.VENDOR (one) --> (many) --> (one) PLANT.VENDOR
+			;;    Type          : D
+			;;    From segments : VEND_KEY(D6) 
+			;;    To segments   : IN_SOURCE(D6) 
+
+			parm.Entity(^typeof(Vendor))
+			&	.HasMany(^typeof(Plant),"REL_Plants")
+			&	.WithOne("REL_Vendor")
+			&	.HasForeignKey("InSource")
+			&	.HasPrincipalKey("VendKey")
+
+	        ;; VENDOR.VENDOR (one) --> (many) --> (one) ORDER.VENDOR
+			;;    Type          : D
+			;;    From segments : VEND_KEY(D6) 
+			;;    To segments   : OR_VENDOR(D6) 
+
+			parm.Entity(^typeof(Vendor))
+			&	.HasMany(^typeof(Order),"REL_Orders")
+			&	.WithOne("REL_Vendor")
+			&	.HasForeignKey("OrVendor")
+			&	.HasPrincipalKey("VendKey")
 
 .endregion
 .endc
