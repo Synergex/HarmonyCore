@@ -9,77 +9,19 @@ import System.Linq
 
 namespace Harmony.Core.FileIO.Queryable
 
-	public class QueryModelVisitor extends QueryModelVisitorBase implements IDisposable
-		mQueryBuffers, @Dictionary<string, int>
-		mQueryBufferTypes, @Dictionary<string, Type>
-		mDataObjectProvider, @Harmony.Core.Context.IDataObjectProvider
-		mChannelManager, @Harmony.Core.FileIO.IFileChannelManager
-		mSelectObject, @Synergex.SynergyDE.Select.Select
-		mJoinObject, @Synergex.SynergyDE.Select.JoinSelect
-		mMainFromObject, @Synergex.SynergyDE.Select.From
-		mWhereObject, @Synergex.SynergyDE.Select.Where
-		mOnObjects, @Dictionary<IQuerySource, Synergex.SynergyDE.Select.On>
-		mAdditionalFromObjects, @List<Tuple<IQuerySource, Synergex.SynergyDE.Select.From>>
-		mActiveChannels, @List<int>
-		mWhereBuilder, @WhereExpressionBuilder
-		mParameters, @IReadOnlyDictionary<string, Object>
-		mSurpriseJoinFactory, @Func<Expression, string, IQuerySource, IQuerySource, Expression>
-		public method QueryModelVisitor
-			surpriseJoinFactory, @Func<Expression, string, IQuerySource, IQuerySource, Expression>
-			dataObjectProvider, @Harmony.Core.Context.IDataObjectProvider
-			parameters, @IReadOnlyDictionary<string, Object>
+	public class QueryModelVisitor extends QueryModelVisitorBase
+		private mWhereParts, @List<object>, new List<Object>()
+		private mOnParts, @List<object>, new List<Object>()
+		private mOrderBy, @Tuple<FieldReference, Boolean>, ^null
+		private mQuerySourceTypes, @List<Type>, new List<Type>()
+		private mTypeBuffers, @List<QueryBuffer.TypeBuffer>, new List<QueryBuffer.TypeBuffer>()
+		private mQuerySourceMapping, @Dictionary<IQuerySource, int>, new Dictionary<IQuerySource, int>()
+		private mMakeJoinExpression, @Func<Expression, Expression, QueryModel, Expression>
+		private mWhereBuilder, @WhereExpressionBuilder
+		private method QueryModelVisitor
+			makeJoinExpression, @Func<Expression, Expression, QueryModel, Expression>
 		proc
-			mOnObjects = new Dictionary<IQuerySource, Synergex.SynergyDE.Select.On>()
-			mQueryBuffers = new Dictionary<string, int>()
-			mDataObjectProvider = dataObjectProvider
-			mChannelManager = dataObjectProvider.ChannelManager
-			mAdditionalFromObjects = new List<Tuple<IQuerySource, Synergex.SynergyDE.Select.From>>()
-			mActiveChannels = new List<int>()
-			mParameters = parameters
-			mQueryBufferTypes = new Dictionary<string, Type>()
-			mSurpriseJoinFactory = surpriseJoinFactory
-		endmethod
-		
-		public virtual method Dispose, void
-			endparams
-		proc
-			data fromObject, @Tuple<IQuerySource, Synergex.SynergyDE.Select.From>
-			foreach fromObject in mAdditionalFromObjects
-				fromObject.Item2.Dispose()
-
-			if(mMainFromObject != ^null)
-				mMainFromObject.Dispose()
-
-			if(mSelectObject != ^null)
-				mSelectObject.Dispose()
-
-			if(mJoinObject != ^null)
-				mJoinObject.Dispose()
-
-			data channel, int
-			foreach channel in mActiveChannels
-				mChannelManager.ReturnChannel(channel)
-
-			data memoryBuffer, int
-			foreach memoryBuffer in mQueryBuffers.Values
-				memoryBuffer = %mem_proc(DM_FREE, memoryBuffer)
-		endmethod
-		
-		private method GetBufferForType, int
-			dataObjectType, @Type
-			fromName, @string
-		proc
-			data fqFromName = dataObjectType.FullName + fromName
-			data memoryBuffer, int
-			if(!mQueryBuffers.TryGetValue(fqFromName, memoryBuffer))
-			begin
-				data metadataObject = DataObjectMetadataBase.LookupType(dataObjectType)
-				data structureSize = metadataObject.StructureSize
-				memoryBuffer = %mem_proc(DM_ALLOC | DM_STATIC, structureSize)
-				mQueryBuffers.Add(fqFromName, memoryBuffer)
-				mQueryBufferTypes.Add(fqFromName, dataObjectType)
-			end
-			mreturn memoryBuffer
+			mMakeJoinExpression = makeJoinExpression
 		endmethod
 
 		protected override method VisitBodyClauses, void
@@ -119,16 +61,18 @@ namespace Harmony.Core.FileIO.Queryable
 					mergedWhereClause = Expression.AndAlso(mergedWhereClause, whereClause.Predicate)
 			end
 
-
-			
 			if(mergedWhereClause != ^null)
 				VisitWhereClause(new WhereClause(mergedWhereClause), queryModel, 0)
-;			data i = 0
-;			for i from 0 thru bodyClauses.Count
-;			begin
-;				bodyClauses[i].Accept(this, queryModel, i)
-;			end;
+
 		endmethod
+
+		private method GetOrMakeTypeBuffer, @QueryBuffer.TypeBuffer
+			querySource, @IQuerySource
+		proc
+			;mQuerySourceMapping.Add(fromClause, typeBuffer)
+			mreturn ^null
+		endmethod
+
 
 		public override method VisitMainFromClause, void
 			fromClause, @MainFromClause 
@@ -137,17 +81,7 @@ namespace Harmony.Core.FileIO.Queryable
 				fld,a1
 			endstructure
 		proc
-
-			data channelInfo = mDataObjectProvider.GetFileInfo(fromClause.ItemType)
-			data channel = mChannelManager.GetChannel(channelInfo.Item1, channelInfo.Item2)
-			mActiveChannels.Add(channel)
-			data buffer = GetBufferForType(fromClause.ItemType, fromClause.ItemName)
-			data metadataObject = DataObjectMetadataBase.LookupType(fromClause.ItemType)
-			data structureSize = metadataObject.StructureSize
-			mMainFromObject = new Synergex.SynergyDE.Select.From(channel, ^m(memMapper.fld(1:structureSize), buffer))
-			;;TODO we have to signal case sensitive somehow, not sure what the mechanism will be, maybe an option during setup per key?
-			data querySource = (@IQuerySource)fromClause;
-			mWhereBuilder = new WhereExpressionBuilder(buffer, metadataObject, querySource, true, mParameters, lambda(target, inner, outer) { VisitJoinClauseInternal(target, inner, outer, queryModel) })
+			mWhereBuilder = new WhereExpressionBuilder(true, mQuerySourceMapping.OrderBy(lambda(kvp) { kvp.Value }).Select(lambda(kvp) { kvp.Key }).ToList())
 		endmethod
 		
 		public override method VisitAdditionalFromClause, void 
@@ -158,15 +92,7 @@ namespace Harmony.Core.FileIO.Queryable
 				fld,a1
 			endstructure
 		proc
-			data channelInfo = mDataObjectProvider.GetFileInfo(fromClause.ItemType)
-			data channel = mChannelManager.GetChannel(channelInfo.Item1, channelInfo.Item2)
-			mActiveChannels.Add(channel)
-			data buffer = GetBufferForType(fromClause.ItemType, fromClause.ItemName)
-			data metadataObject = DataObjectMetadataBase.LookupType(fromClause.ItemType)
-			data structureSize = metadataObject.StructureSize
-			data querySource, @IQuerySource, (@IQuerySource)fromClause;FindQuerySource(fromClause.FromExpression)
-			mAdditionalFromObjects.Add(Tuple.Create(querySource, new Synergex.SynergyDE.Select.From(channel, ^m(memMapper.fld(1:structureSize), buffer))))
-			mWhereBuilder.AddFromClause(querySource, buffer, metadataObject)
+			data typeBuffer = GetOrMakeTypeBuffer(fromClause)
 			;;TODO we have to signal case sensitive somehow, not sure what the mechanism will be, maybe an option during setup per key?
 		endmethod
 
@@ -194,8 +120,7 @@ namespace Harmony.Core.FileIO.Queryable
 			queryModel, @QueryModel
 			groupJoinClause, @GroupJoinClause 
 		proc
-			data querySource, @IQuerySource, (@IQuerySource)joinClause;FindQuerySource(joinClause.InnerSequence)
-			mOnObjects.Add(querySource, mWhereBuilder.VisitForOn(TypeSafeEqual(joinClause.InnerKeySelector, joinClause.OuterKeySelector)))
+			mOnParts.Add(mWhereBuilder.VisitForOn(TypeSafeEqual(joinClause.InnerKeySelector, joinClause.OuterKeySelector)))
 		endmethod
 
 		private method VisitJoinClauseInternal, void
@@ -204,35 +129,16 @@ namespace Harmony.Core.FileIO.Queryable
 			innerKeySelector, @Expression
 			queryModel, @QueryModel
 			structure memMapper
-			fld,a1
+				fld,a1
 			endstructure
 		proc
-			data additionalFromObject = mAdditionalFromObjects.FirstOrDefault(lambda(item) { item.Item1 ==  querySource})
-			if(additionalFromObject == ^null)
-			begin
-				data channelInfo = mDataObjectProvider.GetFileInfo(querySource.ItemType)
-				data channel = mChannelManager.GetChannel(channelInfo.Item1, channelInfo.Item2)
-				mActiveChannels.Add(channel)
-				data buffer = GetBufferForType(querySource.ItemType, querySource.ItemName)
-				data metadataObject = DataObjectMetadataBase.LookupType(querySource.ItemType)
-				data structureSize = metadataObject.StructureSize
-				mAdditionalFromObjects.Add(Tuple.Create(querySource, new Synergex.SynergyDE.Select.From(channel, ^m(memMapper.fld(1:structureSize), buffer))))
-				mWhereBuilder.AddFromClause(querySource, buffer, metadataObject)
-			end
 			if(innerKeySelector == ^null || (innerKeySelector .is. @ConstantExpression && ((@ConstantExpression)innerKeySelector).Value == ^null)) then
 			begin
-				data callNode = (@MethodCallExpression)outerKeySelector
-				if(callNode.Method.Name != "Property")
-				begin
-					throw new NotImplementedException()
-				end
-				data memberNameConstant = (@ConstantExpression)callNode.Arguments[1]
-				data memberName = (@string)memberNameConstant.Value
-				mOnObjects.Add(querySource, mWhereBuilder.VisitForOn(mSurpriseJoinFactory(outerKeySelector, memberName, querySource, queryModel.MainFromClause)))
+				mOnParts.Add(mWhereBuilder.VisitForOn(mMakeJoinExpression(outerKeySelector, innerKeySelector, queryModel)))
 			end
 			else
 			begin
-				mOnObjects.Add(querySource, mWhereBuilder.VisitForOn(TypeSafeEqual(outerKeySelector, innerKeySelector)))
+				mOnParts.Add(mWhereBuilder.VisitForOn(TypeSafeEqual(outerKeySelector, innerKeySelector)))
 			end
 
 			
@@ -251,7 +157,7 @@ namespace Harmony.Core.FileIO.Queryable
 			queryModel, @QueryModel
 			index, int
 		proc
-			mWhereObject = mWhereBuilder.VisitForWhere(whereClause.Predicate)
+			mWhereBuilder.VisitForWhere(whereClause.Predicate, mWhereParts, mOnParts)
 		endmethod
 		
 		public override method VisitOrderByClause, void
@@ -261,189 +167,16 @@ namespace Harmony.Core.FileIO.Queryable
 		proc
 		endmethod
 
-		private property IsJoin, boolean
-			method get
-			proc
-				mreturn mOnObjects.Count > 0
-			endmethod
-		endproperty
-
-
-		private property SelectObject, @Synergex.SynergyDE.Select.Select
-			method get
-			proc
-				if(IsJoin)
-					throw new NotImplementedException()
-
-				if(mSelectObject == ^null)
-				begin
-					if(mWhereObject != ^null) then
-						mSelectObject = new Synergex.SynergyDE.Select.Select(mMainFromObject, mWhereObject)
-					else
-						mSelectObject = new Synergex.SynergyDE.Select.Select(mMainFromObject)
-				end
-				mreturn mSelectObject
-			endmethod
-		endproperty
-
-		private property JoinObject, @Synergex.SynergyDE.Select.JoinSelect
-			method get
-			proc
-				if(!IsJoin)
-					throw new NotImplementedException()
-
-				if(mJoinObject == ^null)
-				begin
-					if(mWhereObject != ^null) then
-						mJoinObject = new Synergex.SynergyDE.Select.Select(FromObject, mWhereObject).Join()
-					else
-						mJoinObject = new Synergex.SynergyDE.Select.Select(FromObject).Join()
-				end
-				mreturn mJoinObject
-			endmethod
-		endproperty
-		
-		private property FromObject, @Synergex.SynergyDE.Select.From
-			method get
-			proc
-				if(IsJoin) then
-				begin
-					data fromItem, @Tuple<IQuerySource, Synergex.SynergyDE.Select.From>
-					data currentJoin = mMainFromObject
-					foreach fromItem in mAdditionalFromObjects
-					begin
-						currentJoin = currentJoin.InnerJoin(fromItem.Item2, mOnObjects[fromItem.Item1])
-					end
-					mMainFromObject = currentJoin
-					mreturn currentJoin
-				end
-				else
-				begin
-					mreturn mMainFromObject
-				end
-			endmethod
-		endproperty
-		
-		public static method ExecuteSelectInternal, @IEnumerable<DataObjectBase>
-			surpriseJoinFactory, @Func<Expression, string, IQuerySource, IQuerySource, Expression>
+		public static method PrepareQuery, @PreparedQueryPlan
 			model, @QueryModel
-			tracker, @Func<DataObjectBase, DataObjectBase>
-			parameters, @IReadOnlyDictionary<string, Object>
-			dataObjectProvider, @Harmony.Core.Context.IDataObjectProvider
-			endparams
-			structure memMapper
-				fld,a1
-			endstructure
+			makeJoinExpression, @Func<Expression, Expression, QueryModel, Expression>
 		proc
-			data currentCount = 0 
-			;;data targetCount = top ? skip + top : 0
-			data result = new List<DataObjectBase>()
-			disposable data modelVisitor = new QueryModelVisitor(surpriseJoinFactory, dataObjectProvider, parameters)
+			data modelVisitor = new QueryModelVisitor(makeJoinExpression)
 			model.Accept(modelVisitor)
-			 
-			if(!modelVisitor.IsJoin) then
-			begin
-				disposable data selectObject, @Synergex.SynergyDE.Select.Select, modelVisitor.SelectObject
-				data memPnt, int, modelVisitor.mQueryBuffers[model.MainFromClause.ItemType.FullName + model.MainFromClause.ItemName]
-				data targetType, @Type, model.MainFromClause.ItemType
-				data metadataObject = DataObjectMetadataBase.LookupType(targetType)
-				data structureSize = metadataObject.StructureSize
-				foreach ^m(memMapper.fld(1:structureSize), memPnt) in selectObject
-				begin
-					data grfa	,a10
-					incr currentCount
-					
-					;;if(skip && skip > currentCount)
-					;;	nextloop
-						
-					;;if (targetCount && currentCount > targetCount) 
-					;;	exitloop
-					
-					data enumerator, @Synergex.SynergyDE.Select.RestrictedAlphaEnumerator, Synergex.SynergyDE.Select.Select.GetEnum()
-					enumerator.CurrentRFA(grfa)
-					result.Add(tracker(metadataObject.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa)))
-				end
-			end
-			else
-			begin 
-				disposable data rows, @Synergex.SynergyDE.Select.RowEnumerator
-				disposable data selectObject, @Synergex.SynergyDE.Select.JoinSelect, modelVisitor.JoinObject
-				data hasMoreRows = true
-				data consumeSet, @HashSet<string>, new HashSet<string>()
-				rows = selectObject.GetEnumerator()
-				while(hasMoreRows)
-				begin
-					incr currentCount
-					
-					;;if(skip && skip > currentCount)
-					;;	nextloop
-						
-					;;if (targetCount && currentCount > targetCount)
-					;;	exitloop
-					consumeSet.Add(model.MainFromClause.ItemType.FullName + model.MainFromClause.ItemName)
-					result.Add(MaterializeObject("", model.MainFromClause.ItemName, model.MainFromClause.ItemType, rows, modelVisitor, tracker, consumeSet))
-					consumeSet.Clear()
-					;;TODO only maybe increment rows enumerator
-					hasMoreRows = rows.MoveNext()
-				end
-			end
-
-			data enumResult, @IEnumerable<DataObjectBase>
-			enumResult = result.ToArray()
-			mreturn enumResult 
-			
+			;;TODO need to detect if the result selector is FirstOrDefault or something like that
+			mreturn new PreparedQueryPlan(true, modelVisitor.mWhereParts, modelVisitor.mOnParts, modelVisitor.mOrderBy, new QueryBuffer(modelVisitor.mTypeBuffers))
 		endmethod
 
-		private static method DependentObjectsForMaterialize, [#]KeyValuePair<string, object>
-			parentItemName, @string
-			itemName, @string
-			rowEnumerator, @Synergex.SynergyDE.Select.RowEnumerator
-			modelVisitor, @QueryModelVisitor
-			tracker, @Func<DataObjectBase, DataObjectBase>
-			consumeSet, @HashSet<string>
-		proc
-			data result = new Dictionary<string, object>()
-			data kvp, KeyValuePair<string, int>
-			foreach kvp in modelVisitor.mQueryBuffers
-			begin
-				;;TODO multi level joins here
-				if(!consumeSet.Contains(kvp.Key))
-				begin
-					data shortKeyName = kvp.Key.Split(%char(46))
-					data queryBufferType = modelVisitor.mQueryBufferTypes[kvp.Key]
-					if(queryBufferType.FullName == "System.Collections.Generic.ICollection`1") then
-					begin
-					end
-					else
-					begin
-						consumeSet.Add(kvp.Key)
-						result.Add(shortKeyName.Last(), MaterializeObject(itemName, kvp.Key.Replace(queryBufferType.FullName, ""), queryBufferType, rowEnumerator, modelVisitor, tracker, consumeSet))
-					end
-				end
-			end
-			mreturn result.ToArray()
-		endmethod
-
-		private static method MaterializeObject, @DataObjectBase
-			parentItemName, @string
-			itemName, @string
-			itemType, @Type
-			rowEnumerator, @Synergex.SynergyDE.Select.RowEnumerator
-			modelVisitor, @QueryModelVisitor
-			tracker, @Func<DataObjectBase, DataObjectBase>
-			consumeSet, @HashSet<string>
-			structure memMapper
-				fld,a1
-			endstructure
-		proc
-			data memPnt, int, modelVisitor.mQueryBuffers[itemType.FullName + itemName]
-			data metadataObject = DataObjectMetadataBase.LookupType(itemType)
-			data structureSize = metadataObject.StructureSize
-			data grfa, a10
-			rowEnumerator.Current.RowInfo(^m(memMapper.fld(1:structureSize), memPnt), grfa)
-			rowEnumerator.Current.Fill(^m(memMapper.fld(1:structureSize), memPnt))
-			mreturn tracker(metadataObject.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa, DependentObjectsForMaterialize(parentItemName, itemName, rowEnumerator, modelVisitor, tracker, consumeSet)))
-		endmethod
 
 	endclass
 

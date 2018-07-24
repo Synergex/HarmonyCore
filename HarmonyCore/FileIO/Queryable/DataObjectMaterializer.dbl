@@ -1,0 +1,47 @@
+import System
+import System.Collections.Generic
+import System.Text
+import System.Linq
+
+namespace Harmony.Core.FileIO.Queryable
+
+	public class DataObjectMaterializer
+		private static method DependentObjectsForMaterialize, [#]KeyValuePair<string, object>
+			typeBuf, @QueryBuffer.TypeBuffer
+			rowEnumerator, @Synergex.SynergyDE.Select.RowEnumerator
+			tracker, @Func<DataObjectBase, DataObjectBase>
+		proc
+			data result = new Dictionary<string, object>()
+			data buffer, @QueryBuffer.TypeBuffer
+			foreach buffer in typeBuf.JoinedBuffers
+			begin
+				if(buffer.IsCollection) then
+				begin
+				end
+				else
+				begin
+					result.Add(buffer.ParentFieldName, MaterializeObject(buffer, rowEnumerator, tracker))
+				end
+			end
+			mreturn result.ToArray()
+		endmethod
+
+		public static method MaterializeObject, @DataObjectBase
+			typeBuf, @QueryBuffer.TypeBuffer
+			rowEnumerator, @Synergex.SynergyDE.Select.RowEnumerator
+			tracker, @Func<DataObjectBase, DataObjectBase>
+			structure memMapper
+				fld,a1
+			endstructure
+		proc
+			data memPnt, int, typeBuf.MemoryHandle.Value
+			data metadataObject = typeBuf.Metadata
+			data structureSize = metadataObject.StructureSize
+			data grfa, a10
+			rowEnumerator.Current.RowInfo(^m(memMapper.fld(1:structureSize), memPnt), grfa)
+			rowEnumerator.Current.Fill(^m(memMapper.fld(1:structureSize), memPnt))
+			mreturn tracker(metadataObject.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa, DependentObjectsForMaterialize(typeBuf, rowEnumerator, tracker)))
+		endmethod
+	endclass
+
+endnamespace

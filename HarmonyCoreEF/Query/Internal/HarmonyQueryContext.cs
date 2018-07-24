@@ -25,7 +25,10 @@ namespace Harmony.Core.EF.Query.Internal
             Func<IQueryBuffer> queryBufferFactory,
             IDataObjectProvider store)
             : base(dependencies, queryBufferFactory)
-            => Store = store;
+        { 
+            Store = store;
+            
+        }
 
         /// <summary>
         ///     This API supports the Entity Framework Core infrastructure and is not intended to be used

@@ -39,6 +39,21 @@ namespace Harmony.Core
 			mreturn mFields[mfieldDictionary[fldName]]
 		endmethod
 		
+		public abstract method FormatKeyLiteral, a
+			keyNumber, int
+			parts, @Dictionary<string, Object>
+		proc
+		endmethod
+
+
+		;;this returns null if there is no key, fully satsified by the supplied set of key names
+		public method GetKeyNumberByFieldNames, int?
+			in required fldNames, [#]string
+		proc
+			mreturn ^null
+		endmethod
+
+
 		;;; <summary>
 		;;;  Readonly property that returns the names of the fields defined within the $$Symphony Data Object$$.
 		;;; </summary>
@@ -66,7 +81,31 @@ namespace Harmony.Core
 		;;and prevent itself from re-creating them
 		
 		protected mfieldDictionary	,@Dictionary<string, int>, new Dictionary<string, int>()
-		
+		protected mFieldsInKeys, @Dictionary<string, List<int>>
+		protected mKeyDictionary, @Dictionary<int, List<string>>
+		;;this can be called multiple times with the same key number to create a composite key
+		protected method AddKeyInfo, void
+			keyNumber, int
+			fieldName, @string
+		proc
+			data memberOfKeys, @List<int>
+			if(!mFieldsInKeys.TryGetValue(fieldName, memberOfKeys))
+			begin
+				memberOfKeys = new List<int>()
+				mFieldsInKeys.Add(fieldName, memberOfKeys)
+			end
+			memberOfKeys.Add(keyNumber)
+
+			data keyParts, @List<string>
+			if(!mKeyDictionary.TryGetValue(keyNumber, keyParts))
+			begin
+				keyParts = new List<string>()
+				mKeyDictionary.Add(keyNumber, keyParts)
+			end
+			keyParts.Add(fieldName)
+		endmethod
+
+
 		protected method AddFieldInfo, void
 			languageName, String
 			dataType, string

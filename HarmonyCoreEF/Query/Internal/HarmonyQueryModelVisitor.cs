@@ -45,7 +45,7 @@ namespace Harmony.Core.EF.Query.Internal
         }
 
         public QueryModel ActiveQueryModel { get; set; }
-        public IQuerySource QuerySource { get; internal set; }
+        //public IQuerySource QuerySource { get; internal set; }
 
         /// <summary>
         ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
@@ -63,59 +63,59 @@ namespace Harmony.Core.EF.Query.Internal
             = typeof(Enumerable).GetTypeInfo()
                 .GetDeclaredMethod(nameof(Enumerable.OfType));
 
-        Dictionary<Type, IList<object>> _results = null;
+        //Dictionary<Type, IList<object>> _results = null;
 
         
 
-        private IEnumerable<TEntity> EntityQuery<TEntity>(
+        private static IEnumerable<TEntity> EntityQuery<TEntity>(
             QueryContext queryContext,
             IEntityType entityType,
-            Func<Type, EntityTrackingInfo> trackingInfo,
-            QueryModel queryModel,
-            QueryCompilationContext compilationContext)
+            QueryModel queryModel)
             where TEntity : class
         {
-            if (_results == null)
+            var results = new Dictionary<Type, IList<object>>();
+            
+            //compilationContext.FindEntityType(null).FindForeignKeys((IProperty)null).FirstOrDefault().PrincipalKey.Properties.First().ClrType
+            var resultList = new List<object>();
+            results.Add(typeof(TEntity), resultList);
+            var selectInternalResult = QueryModelVisitor.ExecuteSelectInternal((expr, propName, outerQuery, innerQuery) =>
             {
-                //compilationContext.FindEntityType(null).FindForeignKeys((IProperty)null).FirstOrDefault().PrincipalKey.Properties.First().ClrType
-                _results = new Dictionary<Type, IList<object>>();
-                var resultList = new List<object>();
-                _results.Add(typeof(TEntity), resultList);
-                var selectInternalResult = QueryModelVisitor.ExecuteSelectInternal((expr, propName, outerQuery, innerQuery) =>
-                {
                     
-                    var joiningType = compilationContext.Model.FindEntityType(outerQuery.ItemType);
-                    var mainEntityType = compilationContext.Model.FindEntityType(innerQuery.ItemType);
-                    var targetProperty = joiningType.FindProperty(propName);
-                    var maybeForeignKeys = joiningType.FindForeignKeys(targetProperty);
-                    var targetKey = maybeForeignKeys.FirstOrDefault((key) => key.PrincipalEntityType == mainEntityType);
+                var joiningType = queryContext.Context.Model.FindEntityType(outerQuery.ItemType);
+                var mainEntityType = queryContext.Context.Model.FindEntityType(innerQuery.ItemType);
+                var targetProperty = joiningType.FindProperty(propName);
+                var maybeForeignKeys = joiningType.FindForeignKeys(targetProperty);
+                var targetKey = maybeForeignKeys.FirstOrDefault((key) => key.PrincipalEntityType == mainEntityType);
 
-                    if (targetKey == null)
-                    {
-                        var primaryKey = joiningType.FindKey(targetProperty);
-                        if (primaryKey == null)
-                            throw new NotImplementedException();
-                        targetKey = primaryKey.GetReferencingForeignKeys().FirstOrDefault((key) => key.DeclaringEntityType == mainEntityType);
-                        if (targetKey == null)
-                            throw new NotImplementedException();
-                    }
-
-                    return Expression.Equal(expr, Expression.Call(typeof(Microsoft.EntityFrameworkCore.EF), "Property", new Type[] { expr.Type }, new QuerySourceReferenceExpression(outerQuery), Expression.Constant(targetKey.PrincipalKey.Properties.First().Name)));
-                }, queryModel, (obj) =>
+                if (targetKey == null)
                 {
-                    var objType = obj.GetType();
-                    trackingInfo(obj.GetType()).StartTracking(queryContext.StateManager, obj, new ValueBuffer(obj.InternalGetValues()));
-                    IList<object> targetList;
-                    if (!_results.TryGetValue(objType, out targetList))
-                    {
-                        targetList = new List<object>();
-                        _results.Add(objType, targetList);
-                    }
-                    targetList.Add(obj);
-                    return obj;
-                }, queryContext.ParameterValues, (((HarmonyQueryContext)queryContext).Store)).OfType<TEntity>();
-            }
-            return _results[typeof(TEntity)].OfType<TEntity>();
+                    var primaryKey = joiningType.FindKey(targetProperty);
+                    if (primaryKey == null)
+                        throw new NotImplementedException();
+                    targetKey = primaryKey.GetReferencingForeignKeys().FirstOrDefault((key) => key.DeclaringEntityType == mainEntityType);
+                    if (targetKey == null)
+                        throw new NotImplementedException();
+                }
+
+                return Expression.Equal(expr, Expression.Call(typeof(Microsoft.EntityFrameworkCore.EF), "Property", new Type[] { expr.Type }, new QuerySourceReferenceExpression(outerQuery), Expression.Constant(targetKey.PrincipalKey.Properties.First().Name)));
+            }, queryModel, (obj) =>
+            {
+                var objType = obj.GetType();
+                //var trackingEntity = trackingInfo(obj.GetType());
+                //if (trackingEntity != null)
+                //    trackingEntity.StartTracking(queryContext.StateManager, obj, new ValueBuffer(obj.InternalGetValues()));
+
+                IList<object> targetList;
+                if (!results.TryGetValue(objType, out targetList))
+                {
+                    targetList = new List<object>();
+                    results.Add(objType, targetList);
+                }
+                targetList.Add(obj);
+                return obj;
+            }, queryContext.ParameterValues, (((HarmonyQueryContext)queryContext).Store)).OfType<TEntity>();
+            
+            return results[typeof(TEntity)].OfType<TEntity>();
         }
 
         /// <summary>

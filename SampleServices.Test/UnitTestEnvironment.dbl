@@ -50,6 +50,9 @@ import System.Collections.Generic
 import System.IO
 import System.Text
 import SampleServices
+import SampleServices.Models
+import System.Linq
+import Harmony.Core.EF.Extensions
 
 main UnitTestEnvironment
 proc
@@ -57,10 +60,35 @@ proc
 	UnitTestEnvironment.AssemblyInitialize(^null)
 
 	;Leave this here for Jeff 
-	;data tester = new OrderTests()  
-	;tester.GetOrders_Expand_REL_TagCustomer() 
-	;tester.GetOrders_Expand_REL_TagVendor()
-	;tester.GetOrders_Expand_All()
+;	data tester = new OrderTests()  
+;	tester.GetOrders_Expand_REL_TagCustomer() 
+;	tester.GetOrders_Expand_REL_TagVendor()
+;	tester.GetOrders_Expand_All()
+	begin
+		disposable data fileChannelManager = new Harmony.Core.FileIO.FileChannelManager()
+		data objectProvider = new Harmony.Core.Context.DataObjectProvider(fileChannelManager)
+		objectProvider.AddDataObjectMapping<Customer>("ICSTUT:customer.ism", Harmony.Core.FileIO.FileOpenMode.UpdateIndexed)
+		objectProvider.AddDataObjectMapping<Order>("ICSTUT:orders.ism", Harmony.Core.FileIO.FileOpenMode.UpdateIndexed)
+		objectProvider.AddDataObjectMapping<Plant>("ICSTUT:plants.ism", Harmony.Core.FileIO.FileOpenMode.UpdateIndexed)
+		objectProvider.AddDataObjectMapping<Vendor>("ICSTUT:customer.ism", Harmony.Core.FileIO.FileOpenMode.UpdateIndexed)
+		data contextOptions = new Microsoft.EntityFrameworkCore.DbContextOptions<DBContext>()
+		disposable data dbCon = new DbContext(contextOptions, objectProvider)
+		dbCon.ChangeTracker.QueryTrackingBehavior = Microsoft.EntityFrameworkCore.QueryTrackingBehavior.NoTracking;
+		data startTime = DateTime.Now
+		data i = 0
+		for i from 0 thru 10000 by 1
+		begin
+			dbCon.Customers.FindCompiled(dbCon, TestContext.CustomerID)
+			dbCon.Vendors.FindCompiled(dbCon, TestContext.VendorID)
+			dbCon.Plants.FindCompiled(dbCon, TestContext.PlantID)
+			dbCon.Orders.FindCompiled(dbCon, TestContext.OrderID)
+		end
+		data endTime = DateTime.Now
+		data timeDiff = endTime - startTime
+		Console.WriteLine(timeDiff.TotalMilliseconds)
+		Console.WriteLine(dbCon.ChangeTracker.Entries().Count())
+		Console.ReadKey()
+	end
 	;tester.GetCustomer()      
 
 	;;Start self-hosting (Kestrel)

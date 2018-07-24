@@ -50,26 +50,35 @@ namespace Harmony.Core.EF.Query.ExpressionVisitors.Internal
             var entityType = context.FindEntityType(_querySource) ?? model.FindEntityType(elementType.FullName);
             if (context.QuerySourceRequiresMaterialization(_querySource))
             {
-                var querySourceReference = new QuerySourceReferenceExpression(_querySource);//new QuerySourceReferenceExpression(queryModel.MainFromClause);
-                var mainTrackingInfo = new EntityTrackingInfo(context, querySourceReference, entityType);
-                var trackingInfoLookup = new Dictionary<Type, EntityTrackingInfo> { { elementType, mainTrackingInfo } };
-                return Expression.Call(Expression.Constant(QueryModelVisitor),
-                    HarmonyQueryModelVisitor.EntityQueryMethodInfo.MakeGenericMethod(elementType),
-                    EntityQueryModelVisitor.QueryContextParameter,
-                    Expression.Constant(entityType),
-                    Expression.Constant((Func<Type, EntityTrackingInfo>)((ty) =>
-                    {
-                        EntityTrackingInfo result;
-                        if (!trackingInfoLookup.TryGetValue(ty, out result))
-                        {
-                            result = new EntityTrackingInfo(context, querySourceReference, model.FindEntityType(ty.FullName));
-                            trackingInfoLookup.Add(ty, result);
-                        }
+                //Func<Type, EntityTrackingInfo> tracking = null;
+                //if (context.IsTrackingQuery)
+                //{
+                //    var querySourceReference = new QuerySourceReferenceExpression(_querySource);//new QuerySourceReferenceExpression(queryModel.MainFromClause);
+                //    var mainTrackingInfo = new EntityTrackingInfo(context, querySourceReference, entityType);
+                //    var trackingInfoLookup = new Dictionary<Type, EntityTrackingInfo> { { elementType, mainTrackingInfo } };
+                //    tracking = ((ty, lookup) =>
+                //    {
+                //        EntityTrackingInfo
+                //        EntityTrackingInfo result;
+                //        if (!trackingInfoLookup.TryGetValue(ty, out result))
+                //        {
+                //            result = new EntityTrackingInfo(context, querySourceReference, model.FindEntityType(ty.FullName));
+                //            trackingInfoLookup.Add(ty, result);
+                //        }
 
-                        return result;
-                    })),
-                    Expression.Constant(queryModel),
-                    Expression.Constant(context));
+                //        return result;
+                //    });
+                //}
+                //else
+                //{
+                //    tracking = ((ty) => null);
+                //}
+                return Expression.Call(typeof(System.Linq.Enumerable), "Empty", new Type[] { elementType });
+                //return Expression.Call(
+                //    HarmonyQueryModelVisitor.EntityQueryMethodInfo.MakeGenericMethod(elementType),
+                //    EntityQueryModelVisitor.QueryContextParameter,
+                //    Expression.Constant(entityType),
+                //    Expression.Constant(queryModel));
             }
             else
             {
