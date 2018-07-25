@@ -66,34 +66,56 @@ namespace Harmony.Core.FileIO.Queryable
 
 		endmethod
 
-		private method GetOrMakeTypeBuffer, @QueryBuffer.TypeBuffer
+		private method MakeTypeBuffer, @QueryBuffer.TypeBuffer
 			querySource, @IQuerySource
 		proc
-			;mQuerySourceMapping.Add(fromClause, typeBuffer)
-			mreturn ^null
+			;data parentType = 
+			;data targetField = 
+			data result = new QueryBuffer.TypeBuffer()
+			&	{	
+			&	Metadata = DataObjectMetadataBase.LookupType(querySource.ItemType),
+			&	IsCollection = true,
+			&	ParentFieldName = "",
+			&	DataObjectType = querySource.ItemType,
+			&	JoinOn = ^null,
+			&	JoinedBuffers = new List<QueryBuffer.TypeBuffer>()
+			&	}
+			mreturn result
 		endmethod
 
 
 		public override method VisitMainFromClause, void
 			fromClause, @MainFromClause 
 			queryModel, @QueryModel
-			structure memMapper
-				fld,a1
-			endstructure
 		proc
-			mWhereBuilder = new WhereExpressionBuilder(true, mQuerySourceMapping.OrderBy(lambda(kvp) { kvp.Value }).Select(lambda(kvp) { kvp.Key }).ToList())
+			data querySourceFinder = new QuerySourceVisitor()
+			querySourceFinder.QuerySources.Add(fromClause)
+			querySourceFinder.QuerySources.AddRange(queryModel.BodyClauses.OfType<IQuerySource>())
+			data whereClauses = queryModel.BodyClauses.OfType<WhereClause>()
+			data clause, @WhereClause
+			foreach clause in whereClauses
+			begin
+				querySourceFinder.Visit(clause.Predicate)
+			end
+
+			data querySource, @IQuerySource
+			foreach querySource in querySourceFinder.QuerySources
+			begin
+				data typeBuffer = MakeTypeBuffer(querySource)
+				mQuerySourceMapping.Add(querySource, mTypeBuffers.Count)
+				mTypeBuffers.Add(typeBuffer)
+				mQuerySourceTypes.Add(querySource.ItemType)
+			end
+
+			mWhereBuilder = new WhereExpressionBuilder(true, querySourceFinder.QuerySources)
 		endmethod
 		
 		public override method VisitAdditionalFromClause, void 
 			fromClause, @AdditionalFromClause
 			queryModel, @QueryModel
 			index, int
-			structure memMapper
-				fld,a1
-			endstructure
 		proc
-			data typeBuffer = GetOrMakeTypeBuffer(fromClause)
-			;;TODO we have to signal case sensitive somehow, not sure what the mechanism will be, maybe an option during setup per key?
+
 		endmethod
 
 		private method TypeSafeEqual, @Expression
@@ -120,8 +142,17 @@ namespace Harmony.Core.FileIO.Queryable
 			queryModel, @QueryModel
 			groupJoinClause, @GroupJoinClause 
 		proc
-			mOnParts.Add(mWhereBuilder.VisitForOn(TypeSafeEqual(joinClause.InnerKeySelector, joinClause.OuterKeySelector)))
+			data typeBuffer = mTypeBuffers[mQuerySourceMapping[joinClause]]
+			typeBuffer.JoinOn = mWhereBuilder.VisitForOn(TypeSafeEqual(joinClause.InnerKeySelector, joinClause.OuterKeySelector))
 		endmethod
+
+		private static DotArray, [#]char
+		static method QueryModelVisitor
+		proc
+			data str = "."
+			DotArray = str.ToArray()
+		endmethod
+
 
 		private method VisitJoinClauseInternal, void
 			querySource, @IQuerySource
@@ -132,16 +163,71 @@ namespace Harmony.Core.FileIO.Queryable
 				fld,a1
 			endstructure
 		proc
+			data onPart, @object
 			if(innerKeySelector == ^null || (innerKeySelector .is. @ConstantExpression && ((@ConstantExpression)innerKeySelector).Value == ^null)) then
 			begin
-				mOnParts.Add(mWhereBuilder.VisitForOn(mMakeJoinExpression(outerKeySelector, innerKeySelector, queryModel)))
+				onPart = mWhereBuilder.VisitForOn(mMakeJoinExpression(outerKeySelector, innerKeySelector, queryModel))
 			end
 			else
 			begin
-				mOnParts.Add(mWhereBuilder.VisitForOn(TypeSafeEqual(outerKeySelector, innerKeySelector)))
+				onPart = mWhereBuilder.VisitForOn(TypeSafeEqual(outerKeySelector, innerKeySelector))
 			end
+			data typeBuffer = mTypeBuffers[mQuerySourceMapping[querySource]]
+			typeBuffer.JoinOn = onPart
+			data otherQuerySource = FindOtherQuerySource(onPart, querySource)
+			if(otherQuerySource != ^null)
+			begin
+				data parentBuffer = mTypeBuffers[otherQuerySource.Value]
+				parentBuffer.JoinedBuffers.Add(typeBuffer)
+				;;TODO compiler bug here
+				;typeBuffer.ParentFieldName = querySource.ItemName.Split(DotArray).Last()
+				data splitArray = querySource.ItemName.Split(DotArray)
+				typeBuffer.ParentFieldName = splitArray.Last()
+			end
+		endmethod
 
-			
+		private method FindOtherQuerySource, int?
+			onPart, @object
+			innerSource, @IQuerySource
+		proc
+			if(onPart .is. @ConnectorPart) then
+				mreturn FindOtherQuerySource((@ConnectorPart)onPart, innerSource)
+			else if(onPart .is. @ExprPart) then
+				mreturn FindOtherQuerySource((@ExprPart)onPart, innerSource)
+			else if(onPart .is. @FieldReference) then
+				mreturn FindOtherQuerySource((@FieldReference)onPart, innerSource)
+			else
+				mreturn ^null
+		endmethod
+
+		private method FindOtherQuerySource, int?
+			onPart, @ConnectorPart
+			innerSource, @IQuerySource
+		proc
+			data leftResult = FindOtherQuerySource(onPart.Left, innerSource)
+			data rightResult = FindOtherQuerySource(onPart.Right, innerSource)
+			mreturn leftResult != ^null ? leftResult : rightResult
+		endmethod
+
+		private method FindOtherQuerySource, int?
+			onPart, @ExprPart
+			innerSource, @IQuerySource
+		proc
+			data leftResult = FindOtherQuerySource(onPart.Left, innerSource)
+			data rightResult = FindOtherQuerySource(onPart.Right, innerSource)
+			mreturn leftResult != ^null ? leftResult : rightResult
+		endmethod
+
+		private method FindOtherQuerySource, int?
+			onPart, @FieldReference
+			innerSource, @IQuerySource
+		proc
+			if(mQuerySourceMapping[innerSource] != onPart.QuerySourceKey) then
+			begin
+				mreturn onPart.QuerySourceKey
+			end
+			else
+				mreturn ^null
 		endmethod
 
 		public override method VisitJoinClause, void
@@ -173,10 +259,44 @@ namespace Harmony.Core.FileIO.Queryable
 		proc
 			data modelVisitor = new QueryModelVisitor(makeJoinExpression)
 			model.Accept(modelVisitor)
-			;;TODO need to detect if the result selector is FirstOrDefault or something like that
-			mreturn new PreparedQueryPlan(true, modelVisitor.mWhereParts, modelVisitor.mOnParts, modelVisitor.mOrderBy, new QueryBuffer(modelVisitor.mTypeBuffers))
+
+			data isCollection = !model.ResultOperators.Any(lambda (op) { op.GetType() == ^typeof(Remotion.Linq.Clauses.ResultOperators.FirstResultOperator) })
+			mreturn new PreparedQueryPlan(isCollection, modelVisitor.mWhereParts, modelVisitor.mOnParts, modelVisitor.mOrderBy, new QueryBuffer(modelVisitor.mTypeBuffers))
 		endmethod
 
+		class QuerySourceVisitor extends ExpressionVisitor
+			public QuerySources, @List<IQuerySource>, new List<IQuerySource>()
+			protected override method VisitMethodCall, @Expression
+				node, @System.Linq.Expressions.MethodCallExpression  
+				endparams
+			proc
+				if(node.Method.Name == "Property")
+				begin
+					;;this is where we can do a metadata object lookup for join
+					data memberTargetParameter = (@Remotion.Linq.Clauses.Expressions.QuerySourceReferenceExpression)node.Arguments[0]
+					data memberNameConstant = (@ConstantExpression)node.Arguments[1]
+					;data memberTargetType, @DataObjectMetadataBase, mDataObjects[memberTargetParameter.ReferencedQuerySource]
+					if(!QuerySources.Contains(memberTargetParameter.ReferencedQuerySource))
+					begin
+						QuerySources.Add(memberTargetParameter.ReferencedQuerySource)
+					end
+				end
+				mreturn node
+			endmethod
+
+			protected override method VisitConstant, @Expression
+				node, @ConstantExpression
+			proc
+				mreturn node
+			endmethod
+
+			protected override method VisitMember, @Expression
+				node, @MemberExpression
+			proc
+				mreturn node
+			endmethod
+
+		endclass
 
 	endclass
 

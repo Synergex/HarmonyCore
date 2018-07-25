@@ -54,7 +54,19 @@ namespace Harmony.Core.FileIO.Queryable
 			mWhereStack = new Stack<object>()
 			mOnStack = new Stack<object>()
 			Visit(expr)
-			mreturn mOnStack.Count > 0 ? mOnStack.Peek() : ^null
+			if(mOnStack.Count == 1) then
+				mreturn mOnStack.Peek()
+			else if(mOnStack.Count > 1) then
+			begin
+				data resultObj = mOnStack.Pop()
+				while(mOnStack.Count > 0)
+				begin
+					resultObj = new ConnectorPart() { Op = WhereClauseConnector.AndOperator, Left = resultObj, Right = mOnStack.Pop() }
+				end
+				mreturn resultObj
+			end
+			else 
+				mreturn ^null
 		endmethod
 
 		public method VisitForOrderBy, @Tuple<FieldDataDefinition, Boolean>
@@ -131,7 +143,7 @@ namespace Harmony.Core.FileIO.Queryable
 					data targetField = memberTargetType.GetFieldByName(memberNameConstant.Value.ToString())
 					if(((int)targetField.DataType & (int)FieldDataType.TagLiteral) != 0) then
 					begin
-						mreturn FieldDataType.TagLiteral
+						mreturn targetField.TagValue
 					end
 					else
 						mreturn new FieldReference() { FieldDef = targetField, QuerySourceKey = mQuerySources.IndexOf(memberTargetParameter.ReferencedQuerySource) }

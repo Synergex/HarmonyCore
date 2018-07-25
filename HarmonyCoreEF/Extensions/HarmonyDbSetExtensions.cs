@@ -42,7 +42,7 @@ namespace Harmony.Core.EF.Extensions
                 Expression whereClause = Expression.Equal(
                         Expression.Property(entityParameter, primaryKeyName),
                         keyParameter);
-                var querySet = Expression.Call(typeof(DbContext), "Set", new Type[] { typeof(T) }, contextParameter);
+                var querySet = Expression.Call(contextParameter, typeof(DbContext).GetMethod("Set").MakeGenericMethod(new Type[] { typeof(T) }));
                 var whereLambda = Expression.Lambda<Func<T, bool>>(whereClause, entityParameter);
                 var whereCall = Expression.Call(typeof(System.Linq.Queryable), "Where", new Type[] { typeof(T) }, querySet, whereLambda);
                 var firstOrDefaultResult = Expression.Call(typeof(System.Linq.Queryable), "FirstOrDefault", new Type[] { typeof(T) }, whereCall);

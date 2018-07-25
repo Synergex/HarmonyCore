@@ -4,6 +4,7 @@ import System.Collections.Generic
 import System.Text
 import System.Collections.Concurrent
 import System.Runtime.CompilerServices
+import System.Linq
 
 namespace Harmony.Core
 
@@ -34,7 +35,7 @@ namespace Harmony.Core
 		protected mFields, @List<FieldDataDefinition>, new List<FieldDataDefinition>()
 		
 		public method GetFieldByName, @FieldDataDefinition
-				in required fldName,	string
+			in required fldName,	string
 		proc
 			mreturn mFields[mfieldDictionary[fldName]]
 		endmethod
@@ -47,10 +48,33 @@ namespace Harmony.Core
 
 
 		;;this returns null if there is no key, fully satsified by the supplied set of key names
-		public method GetKeyNumberByFieldNames, int?
+		public method GetKeyNumberByFieldNames, short?
 			in required fldNames, [#]string
 		proc
-			mreturn ^null
+			data inKeys, @List<int>, ^null 
+			data fieldName, @string
+			foreach fieldName in fldNames
+			begin
+				data fieldInKeys, @List<int>
+				if(!mFieldsInKeys.TryGetValue(fieldName, fieldInKeys))
+					mreturn ^null
+
+				if(inKeys == ^null) then
+					inKeys = new List<int>(fieldInKeys)
+				else
+				begin
+					inKeys.RemoveAll(lambda(keyNum) { !fieldInKeys.Contains(keyNum) })
+				end
+
+				if(inKeys.Count < 0)
+					mreturn ^null
+			end
+
+			if(inKeys == ^null || inKeys.Count < 0) then
+				mreturn ^null
+			else
+				mreturn (short)inKeys.First()
+
 		endmethod
 
 
@@ -81,8 +105,8 @@ namespace Harmony.Core
 		;;and prevent itself from re-creating them
 		
 		protected mfieldDictionary	,@Dictionary<string, int>, new Dictionary<string, int>()
-		protected mFieldsInKeys, @Dictionary<string, List<int>>
-		protected mKeyDictionary, @Dictionary<int, List<string>>
+		protected mFieldsInKeys, @Dictionary<string, List<int>>, new Dictionary<string, List<int>>()
+		protected mKeyDictionary, @Dictionary<int, List<string>>, new Dictionary<int, List<string>>()
 		;;this can be called multiple times with the same key number to create a composite key
 		protected method AddKeyInfo, void
 			keyNumber, int

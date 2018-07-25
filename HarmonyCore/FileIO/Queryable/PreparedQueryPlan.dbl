@@ -36,7 +36,7 @@ namespace Harmony.Core.FileIO.Queryable
 		private mOrderBy, @Tuple<FieldReference, Boolean>
 		private mQuerySourceTypes, @List<Type>
 		private mQueryBufferPrototype, @QueryBuffer
-
+		private mSimpleKeyNumber, short
 		public readwrite property IsJoin, boolean
 		public readwrite property IsCollection, boolean
 		public readwrite property IsKeyedRead, boolean
@@ -52,8 +52,19 @@ namespace Harmony.Core.FileIO.Queryable
 			mOnParts = onParts.ToList()
 			mOrderBy = orderBy
 			mQueryBufferPrototype = queryBufferPrototype
-			IsJoin = mOnParts.Count > 0
+			IsJoin = mQueryBufferPrototype.TypeBuffers.Count > 0
 			this.IsCollection = isCollection
+			if(!IsJoin)
+			begin
+				data fieldNames = new List<string>()
+				GetWhereFieldNames(fieldNames, mWhereParts.FirstOrDefault())
+				data simpleKey, short?, mQueryBufferPrototype.TypeBuffers[0].Metadata.GetKeyNumberByFieldNames(fieldNames.ToArray())
+				if(simpleKey != ^null)
+				begin
+					IsKeyedRead = true
+					mSimpleKeyNumber = simpleKey.Value
+				end
+			end
 		endmethod
 
 		public method ExecuteCollectionPlan<T(DataObjectBase)>, @IEnumerable<T>
@@ -61,7 +72,10 @@ namespace Harmony.Core.FileIO.Queryable
 			parameters, @IReadOnlyDictionary<string, Object>
 			dataObjectProvider, @Harmony.Core.Context.IDataObjectProvider
 		proc
-			mreturn ^null
+			if(IsKeyedRead && !IsJoin) then
+				mreturn ExecuteKeyedCollectionPlan<T>(tracker, parameters, dataObjectProvider)
+			else
+				mreturn ExecuteSelectCollectionPlan<T>(tracker, parameters, dataObjectProvider)
 		endmethod
 
 		public method ExecutePlan<T(DataObjectBase)>, T
@@ -83,7 +97,7 @@ namespace Harmony.Core.FileIO.Queryable
 		proc
 			data currentCount = 0 
 			;;data targetCount = top ? skip + top : 0
-			data result = new List<DataObjectBase>()
+			data result = new List<T>()
 			;;dont ever use mQueryBufferPrototype for operations directly
 			disposable data queryBuffer = new QueryBuffer(mQueryBufferPrototype, dataObjectProvider, parameters)
 			disposable data fromObj = FromObject(queryBuffer)
@@ -133,10 +147,7 @@ namespace Harmony.Core.FileIO.Queryable
 				end
 			end
 
-			data enumResult, @IEnumerable<T>
-			enumResult = result.OfType<T>().ToArray()
-			mreturn enumResult 
-			
+			mreturn result
 		endmethod
 
 		private method ExecuteKeyedCollectionPlan<T(DataObjectBase)>, @IEnumerable<T>
@@ -146,7 +157,7 @@ namespace Harmony.Core.FileIO.Queryable
 		proc
 			data resultList = new List<T>()
 			disposable data fileIO = dataObjectProvider.GetFileIO<T>()
-			fileIO.KeyReference = GetKeyOfReference()
+			fileIO.KeyReference = mSimpleKeyNumber
 			FileIOErrorHelper.EnsureSuccess(fileIO.FindRecord(GetKeyLiteral(parameters)))	
 			data result, T
 			while(FileIOErrorHelper.EnsureRead(fileIO.ReadNextRecord(result)))
@@ -163,7 +174,7 @@ namespace Harmony.Core.FileIO.Queryable
 			dataObjectProvider, @Harmony.Core.Context.IDataObjectProvider
 		proc
 			disposable data fileIO = dataObjectProvider.GetFileIO<T>()
-			fileIO.KeyReference = GetKeyOfReference()
+			fileIO.KeyReference = mSimpleKeyNumber
 			FileIOErrorHelper.EnsureSuccess(fileIO.FindRecord(GetKeyLiteral(parameters)))	
 			data result, T
 			if(FileIOErrorHelper.EnsureRead(fileIO.ReadRecord(result))) then
@@ -183,14 +194,24 @@ namespace Harmony.Core.FileIO.Queryable
 		private method WhereObject, @Synergex.SynergyDE.Select.Where
 			queryBuf, @QueryBuffer
 		proc
-			mreturn ^null
+			data selectBuilder = new SelectBuilder(queryBuf)
+			if(mWhereParts.Count == 1) then
+				mreturn selectBuilder.ProcessWhere(mWhereParts.First())
+			else if(mWhereParts.Count > 1) then
+				throw new NotImplementedException()
+			else
+				mreturn ^null
 		endmethod
 
 		private method OnObject, @Synergex.SynergyDE.Select.On
 			queryBuf, @QueryBuffer
 			typeBuf, @QueryBuffer.TypeBuffer
 		proc
-			mreturn ^null
+			data selectBuilder = new SelectBuilder(queryBuf)
+			if(typeBuf.JoinOn != ^null) then
+				mreturn selectBuilder.ProcessOn(typeBuf.JoinOn)
+			else
+				mreturn ^null
 		endmethod
 
 		private method OrderByObject, @Synergex.SynergyDE.Select.OrderBy
@@ -236,11 +257,10 @@ namespace Harmony.Core.FileIO.Queryable
 		proc
 			data fromItem, @QueryBuffer.TypeBuffer
 			data currentJoin, @Synergex.SynergyDE.Select.From, ^null
-			foreach fromItem in mQueryBufferPrototype.TypeBuffers
+			foreach fromItem in queryBuf.TypeBuffers
 			begin
-				;;TODO there is a bug here when using ^m(fromItem.MemoryHandle.Value) directly but its not easy to repro
-				;data memPtr, i4, fromItem.MemoryHandle.Value
-				data madeJoin = new Synergex.SynergyDE.Select.From(fromItem.IOChannel.Value, ^m(fromItem.MemoryHandle.Value))
+				data memPtr, i4, fromItem.MemoryHandle.Value
+				data madeJoin = new Synergex.SynergyDE.Select.From(fromItem.IOChannel.Value, ^m(memPtr))
 				if(currentJoin == ^null) then
 				begin
 					currentJoin = madeJoin
@@ -257,7 +277,15 @@ namespace Harmony.Core.FileIO.Queryable
 		private method GetKeyLiteral, a
 			params, @IReadOnlyDictionary<string, Object>
 		proc
-			mreturn ""
+			data mainTypeBuffer = mQueryBufferPrototype.TypeBuffers[0]
+			if(mWhereParts.Count != 1) then
+				throw new InvalidOperationException()
+			else
+			begin
+				data allParams = new Dictionary<string, Object>()
+				GetWhereFieldValues(params, allParams, mWhereParts[0])
+				mainTypeBuffer.Metadata.FormatKeyLiteral(mSimpleKeyNumber, allParams)
+			end
 		endmethod
 
 		private method GetKeyOfReference, short
@@ -297,37 +325,78 @@ namespace Harmony.Core.FileIO.Queryable
 		endmethod
 
 		private method GetWhereFieldValue, void
+			params, @IReadOnlyDictionary<string, Object>
 			values, @Dictionary<string, Object>
 			left, @object
 			right, @object
 		proc
 			if(left .is. @FieldReference) then
 			begin
-				;values.Add(((@FieldReference)obj).FieldDef.LanguageName)
+				if(right .is. @FieldReference) then
+				begin
+					data rFieldDef, @FieldDataDefinition, ((@FieldReference)right).FieldDef
+					data lFieldDef, @FieldDataDefinition, ((@FieldReference)right).FieldDef
+					;;one and only one can be a tag literal
+					if(rFieldDef.DataType != FieldDataType.TagLiteral && lFieldDef.DataType != FieldDataType.TagLiteral || rFieldDef.DataType == lFieldDef.DataType)
+						throw new NotImplementedException()
+					if(rFieldDef.DataType == FieldDataType.TagLiteral) then
+					begin
+						values.Add(lFieldDef.LanguageName, rFieldDef.TagValue)
+					end
+					else
+					begin
+						values.Add(rFieldDef.LanguageName, lFieldDef.TagValue)
+					end
+				end
+				else if(right .is. @ParameterReference) then
+				begin
+					values.Add(((@FieldReference)left).FieldDef.LanguageName, params[((@ParameterReference)params).Name])
+				end
+				else
+				begin
+					values.Add(((@FieldReference)left).FieldDef.LanguageName, right)
+				end
 			end
 			else if(left .is. @ParameterReference) then
 			begin
+				if(right .is. @FieldReference) then
+				begin
+					values.Add(((@FieldReference)right).FieldDef.LanguageName, left)
+				end
+				else
+				begin
+					throw new NotImplementedException()
+				end
 			end
 			else
 			begin
+				if(right .is. @FieldReference) then
+				begin
+					values.Add(((@FieldReference)right).FieldDef.LanguageName, left)
+				end
+				else
+				begin
+					throw new NotImplementedException()
+				end
 			end
 
 		endmethod
 
 		private method GetWhereFieldValues, void
+			params, @IReadOnlyDictionary<string, Object>
 			values, @Dictionary<string, Object>
 			obj, @object
 		proc
 			if(obj .is. @ExprPart) then
 			begin
 				data exp = (@ExprPart)obj
-				GetWhereFieldValue(values, exp.Left, exp.Right)
+				GetWhereFieldValue(params, values, exp.Left, exp.Right)
 			end
 			else if(obj .is. @ConnectorPart)
 			begin
 				data conPart = (@ConnectorPart)obj
-				GetWhereFieldValues(values, conPart.Left)
-				GetWhereFieldValues(values, conPart.Right)
+				GetWhereFieldValues(params, values, conPart.Left)
+				GetWhereFieldValues(params, values, conPart.Right)
 			end
 		endmethod
 
