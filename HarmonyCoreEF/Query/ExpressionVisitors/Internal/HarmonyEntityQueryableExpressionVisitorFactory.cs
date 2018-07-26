@@ -37,12 +37,13 @@ namespace Harmony.Core.EF.Query.ExpressionVisitors.Internal
         ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
-        public virtual ExpressionVisitor Create(
-            EntityQueryModelVisitor queryModelVisitor, IQuerySource querySource)
-            => new HarmonyEntityQueryableExpressionVisitor(
+        public virtual ExpressionVisitor Create(EntityQueryModelVisitor queryModelVisitor, IQuerySource querySource)
+        {
+            return new HarmonyEntityQueryableExpressionVisitor(
                 _model,
                 _materializerFactory,
                 queryModelVisitor,
                 querySource);
+        }
     }
 }

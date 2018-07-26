@@ -45,34 +45,18 @@ namespace Harmony.Core.EF.Query.ExpressionVisitors.Internal
         protected override Expression VisitEntityQueryable(Type elementType)
         {
             var context = QueryModelVisitor.QueryCompilationContext;
-            var queryModel = QueryModelVisitor.ActiveQueryModel;
-            var model = _model;
-            var entityType = context.FindEntityType(_querySource) ?? model.FindEntityType(elementType.FullName);
+            var queryModel = QueryModelVisitor.QueryPlan;
             if (context.QuerySourceRequiresMaterialization(_querySource))
             {
-                var querySourceReference = new QuerySourceReferenceExpression(_querySource);//new QuerySourceReferenceExpression(queryModel.MainFromClause);
-                var mainTrackingInfo = new EntityTrackingInfo(context, querySourceReference, entityType);
-                var trackingInfoLookup = new Dictionary<Type, EntityTrackingInfo> { { elementType, mainTrackingInfo } };
-                return Expression.Call(Expression.Constant(QueryModelVisitor),
+                return Expression.Call(
                     HarmonyQueryModelVisitor.EntityQueryMethodInfo.MakeGenericMethod(elementType),
                     EntityQueryModelVisitor.QueryContextParameter,
-                    Expression.Constant(entityType),
-                    Expression.Constant((Func<Type, EntityTrackingInfo>)((ty) =>
-                    {
-                        EntityTrackingInfo result;
-                        if (!trackingInfoLookup.TryGetValue(ty, out result))
-                        {
-                            result = new EntityTrackingInfo(context, querySourceReference, model.FindEntityType(ty.FullName));
-                            trackingInfoLookup.Add(ty, result);
-                        }
-
-                        return result;
-                    })),
-                    Expression.Constant(queryModel),
-                    Expression.Constant(context));
+                    Expression.Constant(QueryModelVisitor.QueryPlan),
+                    Expression.Constant(context.IsTrackingQuery));
             }
             else
             {
+                var entityType = context.FindEntityType(_querySource) ?? _model.FindEntityType(elementType.FullName);
                 return Expression.Call(
                 HarmonyQueryModelVisitor.ProjectionQueryMethodInfo,
                 EntityQueryModelVisitor.QueryContextParameter,

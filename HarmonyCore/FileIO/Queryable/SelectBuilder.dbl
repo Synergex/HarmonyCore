@@ -1,0 +1,1153 @@
+import System
+import System.Collections.Generic
+import System.Text
+import Synergex.SynergyDE.Select
+import Harmony.Core
+import Harmony.Core.Utility
+import Harmony.Core.Enumerations
+import System.Linq.Expressions
+
+namespace Harmony.Core.FileIO.Queryable
+
+	public class SelectBuilder
+		private mQueryBuffer, @QueryBuffer
+		private mCaseSensitive, boolean, true
+
+		public method SelectBuilder
+			queryBuffer, @QueryBuffer
+		proc
+			mQueryBuffer = queryBuffer
+		endmethod
+
+
+		private method fieldOnClause  ,@On
+			in req dataBuffer1			,a
+			in req dataBuffer2			,a
+			in req fieldDetails1		,@FieldDataDefinition
+			in req fieldDetails2		,@FieldDataDefinition
+			in req theOperator			,WhereClauseOperator
+		proc
+
+			if(fieldDetails1.DataType != fieldDetails2.DataType)
+				throw new NotImplementedException("field to field comparisons must be of the same type")
+
+			using theOperator select
+			(whereClauseOperator.EqualTo),
+			begin
+				using fieldDetails1.DataType select
+				(FieldDataType.AlphaField),
+				begin
+					if(mCaseSensitive) then
+						mreturn (On)(dataBuffer1(fieldDetails1.StructurePosition:fieldDetails1.ElementSize) .eqs. dataBuffer2(fieldDetails2.StructurePosition:fieldDetails2.ElementSize))
+					else
+						throw new NotImplementedException()
+				end
+				(FieldDataType.IntegerField),
+				begin
+					mreturn (On)(^i(dataBuffer1(fieldDetails1.StructurePosition:fieldDetails1.ElementSize)) .eqs. ^i(dataBuffer2(fieldDetails2.StructurePosition:fieldDetails2.ElementSize)))
+				end
+				(FieldDataType.DecimalField),
+				begin
+					mreturn (On)(^d(dataBuffer1(fieldDetails1.StructurePosition:fieldDetails1.ElementSize)) .eqs. ^d(dataBuffer2(fieldDetails2.StructurePosition:fieldDetails2.ElementSize)))
+				end
+				(FieldDataType.ImpliedDecimal),
+				begin
+					mreturn (On)(^d(dataBuffer1(fieldDetails1.StructurePosition:fieldDetails1.ElementSize), fieldDetails1.DecimalPrecision) .eqs. ^d(dataBuffer2(fieldDetails2.StructurePosition:fieldDetails2.ElementSize), fieldDetails2.DecimalPrecision))
+				end
+				endusing
+
+			end
+			(whereClauseOperator.NotEqualTo),
+			begin
+			end
+			(whereClauseOperator.GreaterThan),
+			begin
+			end
+			(whereClauseOperator.GreaterThanOrEqualTo),
+			begin
+			end
+			(whereClauseOperator.LessThan),
+			begin
+			end
+			(whereClauseOperator.LessThanOrEqualTo),
+			begin
+			end
+			(whereClauseOperator.IsLike),
+			begin
+			end
+			(whereClauseOperator.IsBetween),
+			begin
+			end
+			(WhereClauseOperator.IsIn),
+			begin
+			end
+			endusing
+			throw new NotImplementedException()
+		endmethod
+
+		private method fieldWhereClause  ,@Where
+			in req dataBuffer1			,a
+			in req dataBuffer2			,a
+			in req fieldDetails1		,@FieldDataDefinition
+			in req fieldDetails2		,@FieldDataDefinition
+			in req theOperator			,whereClauseOperator
+		proc
+
+			if(fieldDetails1.DataType != fieldDetails2.DataType)
+				throw new NotImplementedException("field to field comparisons must be of the same type")
+
+			using theOperator select
+			(whereClauseOperator.EqualTo),
+			begin
+				using fieldDetails1.DataType select
+				(FieldDataType.AlphaField),
+				begin
+					if(mCaseSensitive) then
+						mreturn (Where)(dataBuffer1(fieldDetails1.StructurePosition:fieldDetails1.ElementSize) .eqs. dataBuffer2(fieldDetails2.StructurePosition:fieldDetails2.ElementSize))
+					else
+						mreturn (NoCaseWhere)(dataBuffer1(fieldDetails1.StructurePosition:fieldDetails1.ElementSize) .eqs. dataBuffer2(fieldDetails2.StructurePosition:fieldDetails2.ElementSize))
+				end
+				(FieldDataType.IntegerField),
+				begin
+					mreturn (Where)(^i(dataBuffer1(fieldDetails1.StructurePosition:fieldDetails1.ElementSize)) .eqs. ^i(dataBuffer2(fieldDetails2.StructurePosition:fieldDetails2.ElementSize)))
+				end
+				(FieldDataType.DecimalField),
+				begin
+					mreturn (Where)(^d(dataBuffer1(fieldDetails1.StructurePosition:fieldDetails1.ElementSize)) .eqs. ^d(dataBuffer2(fieldDetails2.StructurePosition:fieldDetails2.ElementSize)))
+				end
+				(FieldDataType.ImpliedDecimal),
+				begin
+					mreturn (Where)(^d(dataBuffer1(fieldDetails1.StructurePosition:fieldDetails1.ElementSize), fieldDetails1.DecimalPrecision) .eqs. ^d(dataBuffer2(fieldDetails2.StructurePosition:fieldDetails2.ElementSize), fieldDetails2.DecimalPrecision))
+				end
+				endusing
+
+			end
+			(whereClauseOperator.NotEqualTo),
+			begin
+			end
+			(whereClauseOperator.GreaterThan),
+			begin
+			end
+			(whereClauseOperator.GreaterThanOrEqualTo),
+			begin
+			end
+			(whereClauseOperator.LessThan),
+			begin
+			end
+			(whereClauseOperator.LessThanOrEqualTo),
+			begin
+			end
+			(whereClauseOperator.IsLike),
+			begin
+			end
+			(whereClauseOperator.IsBetween),
+			begin
+			end
+			(WhereClauseOperator.IsIn),
+			begin
+			end
+			endusing
+			throw new NotImplementedException()
+		endmethod
+
+		;;add the actual field and value to the where clause
+		private method fieldWhereClause	,@Where
+			in req dataBuffer			,a
+			in req fieldDetails			,@FieldDataDefinition
+			in req theOperator			,whereClauseOperator
+			in req theValue				,a
+			in req theValue2			,a
+			endparams
+			
+			structure tmpStructure
+				fld	,a1
+			endstructure
+			
+			record
+				stPos	,i4
+				edPos	,i4
+				bNum	,d3
+				memPnt	,i4
+			endrecord
+		proc
+			memPnt = %mem_proc(DM_ALLOC, fieldDetails.ElementSize)
+			^m(tmpStructure(1:fieldDetails.ElementSize), memPnt) = theValue
+			
+			using theOperator select
+			(whereClauseOperator.EqualTo),
+			begin
+				using fieldDetails.DataType select
+				(FieldDataType.AlphaField),
+				begin
+					;;if we have a "%" as the last character let's do a "starts with" type operation
+					data length	,i4	,%trim(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt))
+					if (!length) length = fieldDetails.ElementSize
+
+					if (length > 1 && %atrim(^m(tmpStructure(length:1), memPnt)) == "%") then
+					begin
+						decr length
+						if (mCaseSensitive == true) then
+						begin
+							DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: StartsWith Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, length, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
+							mreturn (Where)(dataBuffer(fieldDetails.StructurePosition:length) .eqs. (^m(tmpStructure(1:length), memPnt)))
+						end
+						else
+						begin
+							DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: StartsWith NoCaseWhere (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, length, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
+							mreturn (NoCaseWhere)(dataBuffer(fieldDetails.StructurePosition:length) .eqs. (^m(tmpStructure(1:length), memPnt)))
+						end
+					end
+					else
+					begin
+						if (mCaseSensitive == true) then
+						begin
+							DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: EqualTo Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
+							mreturn (Where)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .eqs. (^m(tmpStructure(1:length), memPnt)))
+						end
+						else
+						begin
+							DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: EqualTo NoCaseWhere (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
+							mreturn (NoCaseWhere)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .eqs. (^m(tmpStructure(1:length), memPnt)))
+						end
+					end
+				end
+				(FieldDataType.IntegerField),
+				begin
+					data intValue	,string	,^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)
+					;;we may be a boolean type!!
+					if (fieldDetails.ElementSize == 4 && intValue.ToUpper() == "TRUE") intValue = 1
+					if (fieldDetails.ElementSize == 4 && intValue.ToUpper() == "FALS") intValue = 0
+
+					DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: EqualTo Where (IntegerField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleIntegerDebugLogHelper(memPnt, fieldDetails.ElementSize))
+					mreturn (Where)(^i(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize)) .eq. %integer(intValue, fieldDetails.ElementSize))
+				end
+				(FieldDataType.ImpliedDecimal),
+				begin
+					DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: EqualTo Where (ImpliedDecimal) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleImpliedDebugLogHelper(memPnt, fieldDetails.ElementSize))
+					mreturn (Where)(^d(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), fieldDetails.DecimalPrecision) .eq. %implied(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)))
+				end
+				(FieldDataType.DecimalField),
+				begin
+					DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: EqualTo Where (DecimalField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleImpliedDebugLogHelper(memPnt, fieldDetails.ElementSize))
+					mreturn (Where)(^d(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize)) .eq. %implied(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)))
+				end
+				endusing
+			end
+			(whereClauseOperator.NotEqualTo),
+			begin
+				using fieldDetails.DataType select
+				(FieldDataType.AlphaField),
+				begin
+					data length	,i4	,%trim(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt))
+					if (!length) length = fieldDetails.ElementSize
+					if (mCaseSensitive == true) then
+					begin
+						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: NotEqualTo Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
+						mreturn (Where)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .nes. (^m(tmpStructure(1:length), memPnt)))
+					end
+					else
+					begin
+						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: NotEqualTo NoCaseWhere (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
+						mreturn (NoCaseWhere)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .nes. (^m(tmpStructure(1:length), memPnt)))
+					end
+				end
+				(FieldDataType.IntegerField),
+				begin
+					data intValue	,string	,^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)
+					;;we may be a boolean type!!
+					if (fieldDetails.ElementSize == 4 && intValue.ToUpper() == "TRUE") intValue = 1
+					if (fieldDetails.ElementSize == 4 && intValue.ToUpper() == "FALS") intValue = 0
+
+					DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: NotEqualTo Where (IntegerField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleIntegerDebugLogHelper(memPnt, fieldDetails.ElementSize))
+					mreturn (Where)(^i(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize)) .ne. %integer(intValue, fieldDetails.ElementSize))
+				end
+				(FieldDataType.ImpliedDecimal),
+				begin
+					DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: NotEqualTo Where (ImpliedDecimal) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleImpliedDebugLogHelper(memPnt, fieldDetails.ElementSize))
+					mreturn (Where)(^d(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), fieldDetails.DecimalPrecision) .ne. %implied(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)))
+				end
+				(FieldDataType.DecimalField),
+				begin
+					DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: NotEqualTo Where (DecimalField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleImpliedDebugLogHelper(memPnt, fieldDetails.ElementSize))
+					mreturn (Where)(^d(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize)) .ne. %implied(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)))
+				end
+				endusing
+			end
+			(whereClauseOperator.GreaterThan),
+			begin
+				using fieldDetails.DataType select
+				(FieldDataType.AlphaField),
+				begin
+					data length	,i4	,%trim(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt))
+					if (!length) length = fieldDetails.ElementSize
+
+					if (mCaseSensitive == true) then
+					begin
+						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: GreaterThan Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
+						mreturn (Where)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .gts. (^m(tmpStructure(1:length), memPnt)))
+					end
+					else
+					begin
+						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: GreaterThan NoCaseWhere (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
+						mreturn (NoCaseWhere)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .gts. (^m(tmpStructure(1:length), memPnt)))
+					end
+				end
+				(FieldDataType.IntegerField),
+				begin
+					data intValue	,string	,^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)
+					;;we may be a boolean type!!
+					if (fieldDetails.ElementSize == 4 && intValue.ToUpper() == "TRUE") intValue = 1
+					if (fieldDetails.ElementSize == 4 && intValue.ToUpper() == "FALS") intValue = 0
+
+					DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: GreaterThan Where (IntegerField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleIntegerDebugLogHelper(memPnt, fieldDetails.ElementSize))
+					mreturn (Where)(^i(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize)) .gt. %integer(intValue, fieldDetails.ElementSize))
+				end
+				(FieldDataType.ImpliedDecimal),
+				begin
+					DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: GreaterThan Where (ImpliedDecimal) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleImpliedDebugLogHelper(memPnt, fieldDetails.ElementSize))
+					mreturn (Where)(^d(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), fieldDetails.DecimalPrecision) .gt. %implied(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)))
+				end
+				(FieldDataType.DecimalField),
+				begin
+					DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: GreaterThan Where (DecimalField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleImpliedDebugLogHelper(memPnt, fieldDetails.ElementSize))
+					mreturn (Where)(^d(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize)) .gt. %implied(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)))
+				end
+				endusing
+			end
+			(whereClauseOperator.GreaterThanOrEqualTo),
+			begin
+				using fieldDetails.DataType select
+				(FieldDataType.AlphaField),
+				begin
+					data length	,i4	,%trim(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt))
+					if (!length) length = fieldDetails.ElementSize
+
+					if (mCaseSensitive == true) then
+					begin
+						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: GreaterThanOrEqualTo Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
+						mreturn (Where)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .ges. (^m(tmpStructure(1:length), memPnt)))
+					end
+					else
+					begin
+						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: GreaterThanOrEqualTo NoCaseWhere (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
+						mreturn (NoCaseWhere)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .ges. (^m(tmpStructure(1:length), memPnt)))
+					end
+				end
+				(FieldDataType.IntegerField),
+				begin
+					data intValue	,string	,^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)
+					;;we may be a boolean type!!
+					if (fieldDetails.ElementSize == 4 && intValue.ToUpper() == "TRUE") intValue = 1
+					if (fieldDetails.ElementSize == 4 && intValue.ToUpper() == "FALS") intValue = 0
+
+					DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: GreaterThanOrEqualTo Where (IntegerField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleIntegerDebugLogHelper(memPnt, fieldDetails.ElementSize))
+					mreturn (Where)(^i(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize)) .ge. %integer(intValue, fieldDetails.ElementSize))
+				end
+				(FieldDataType.ImpliedDecimal),
+				begin
+					DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: GreaterThanOrEqualTo Where (ImpliedDecimal) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleImpliedDebugLogHelper(memPnt, fieldDetails.ElementSize))
+					mreturn (Where)(^d(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), fieldDetails.DecimalPrecision) .ge. %implied(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)))
+				end
+				(FieldDataType.DecimalField),
+				begin
+					DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: GreaterThanOrEqualTo Where (DecimalField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleImpliedDebugLogHelper(memPnt, fieldDetails.ElementSize))
+					mreturn (Where)(^d(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize)) .ge. %implied(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)))
+				end
+				endusing
+			end
+			(whereClauseOperator.LessThan),
+			begin
+				using fieldDetails.DataType select
+				(FieldDataType.AlphaField),
+				begin
+					data length	,i4	,%trim(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt))
+					if (!length) length = fieldDetails.ElementSize
+					
+					if (mCaseSensitive == true) then
+					begin
+						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: LessThan Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
+						mreturn (Where)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .lts. (^m(tmpStructure(1:length), memPnt)))
+					end
+					else
+					begin
+						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: LessThan NoCaseWhere (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
+						mreturn (NoCaseWhere)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .lts. (^m(tmpStructure(1:length), memPnt)))
+					end
+				end
+				(FieldDataType.IntegerField),
+				begin
+					data intValue	,string	,^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)
+					;;we may be a boolean type!!
+					if (fieldDetails.ElementSize == 4 && intValue.ToUpper() == "TRUE") intValue = 1
+					if (fieldDetails.ElementSize == 4 && intValue.ToUpper() == "FALS") intValue = 0
+
+					DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: LessThan Where (IntegerField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleIntegerDebugLogHelper(memPnt, fieldDetails.ElementSize))
+					mreturn (Where)(^i(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize)) .lt. %integer(intValue, fieldDetails.ElementSize))
+				end
+				(FieldDataType.ImpliedDecimal),
+				begin
+					DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: LessThan Where (ImpliedDecimal) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleImpliedDebugLogHelper(memPnt, fieldDetails.ElementSize))
+					mreturn (Where)(^d(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), fieldDetails.DecimalPrecision) .lt. %implied(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)))
+				end
+				(FieldDataType.DecimalField),
+				begin
+					DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: LessThan Where (DecimalField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleImpliedDebugLogHelper(memPnt, fieldDetails.ElementSize))
+					mreturn (Where)(^d(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize)) .lt. %implied(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)))
+				end
+				endusing
+			end
+			(whereClauseOperator.LessThanOrEqualTo),
+			begin
+				using fieldDetails.DataType select
+				(FieldDataType.AlphaField),
+				begin
+					data length	,i4	,%trim(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt))
+					if (!length) length = fieldDetails.ElementSize
+
+					if (mCaseSensitive == true) then
+					begin
+						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: LessThanOrEqualTo Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
+						mreturn (Where)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .les. (^m(tmpStructure(1:length), memPnt)))
+					end
+					else
+					begin
+						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: LessThanOrEqualTo NoCaseWhere (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
+						mreturn (NoCaseWhere)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .les. ^m(tmpStructure(1:length), memPnt))
+					end
+				end
+				(FieldDataType.IntegerField),
+				begin
+					DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: LessThanOrEqualTo Where (IntegerField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleIntegerDebugLogHelper(memPnt, fieldDetails.ElementSize))
+					mreturn (Where)(^i(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize)) .le. %integer(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt), fieldDetails.ElementSize))
+				end
+				(FieldDataType.ImpliedDecimal),
+				begin
+					DebugLogSession.Logging.LogDiagnostic("LessThanOrEqualTo Where (ImpliedDecimal) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleImpliedDebugLogHelper(memPnt, fieldDetails.ElementSize))
+					mreturn (Where)(^d(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), fieldDetails.DecimalPrecision) .le. %implied(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)))
+				end
+				(FieldDataType.DecimalField),
+				begin
+					DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: LessThanOrEqualTo Where (DecimalField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize,new MemoryHandleImpliedDebugLogHelper(memPnt, fieldDetails.ElementSize))
+					mreturn (Where)(^d(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize)) .le. %implied(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)))
+				end
+				endusing
+			end
+			(whereClauseOperator.IsLike),
+			begin
+				using fieldDetails.DataType select
+				(FieldDataType.AlphaField),
+				begin
+					data length	,i4	,%trim(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt))
+					if (!length) length = fieldDetails.ElementSize
+
+					if (mCaseSensitive == true) then
+					begin
+						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: IsLike Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
+						mreturn Where.Contains(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), ((^m(tmpStructure(1:length), memPnt) - "%") - "%"))
+					end
+					else
+					begin
+						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: IsLike NoCaseWhere (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
+						mreturn NoCaseWhere.Contains(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), (^m(tmpStructure(1:length), memPnt) - "%") - "%")
+					end
+				end
+				endusing
+			end
+			(whereClauseOperator.IsBetween),
+			begin
+				using fieldDetails.DataType select
+				(FieldDataType.AlphaField),
+				begin
+					data length	,i4	,%trim(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt))
+					if (!length) length = fieldDetails.ElementSize
+					
+					if (mCaseSensitive == true) then
+					begin
+						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: IsBetween Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2} and {3}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize), %atrim(theValue2))
+						mreturn Where.Between(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), (^m(tmpStructure(1:length), memPnt)), %atrim(theValue2))
+					end
+					else
+					begin
+						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: IsBetween Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2} and {3}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize), %atrim(theValue2))
+						mreturn NoCaseWhere.Between(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), (^m(tmpStructure(1:length), memPnt)), %atrim(theValue2))
+					end
+				end
+				(FieldDataType.IntegerField),
+					mreturn Where.Between(^i(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize)), %integer(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt), fieldDetails.ElementSize), %integer(theValue2, fieldDetails.ElementSize))
+				(FieldDataType.ImpliedDecimal),
+					mreturn Where.Between(^d(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), fieldDetails.DecimalPrecision), %implied(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)), %implied(theValue2))
+				(FieldDataType.DecimalField),
+					mreturn Where.Between(^d(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize)), %implied(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)), %implied(theValue2))
+				endusing
+			end
+			(whereClauseOperator.IsIn),
+			begin
+				using fieldDetails.DataType select
+				(FieldDataType.AlphaField),
+				begin
+					data length	,i4	,%trim(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt))
+					if (!length) length = fieldDetails.ElementSize
+					
+					if (mCaseSensitive == true) then
+					begin
+						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: IsIn Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
+						mreturn Where.In(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), (^m(tmpStructure(1:length), memPnt)), %atrim(theValue2))
+					end
+					else
+					begin
+						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: IsIn Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
+						mreturn NoCaseWhere.Between(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), (^m(tmpStructure(1:length), memPnt)), %atrim(theValue2))
+					end
+				end
+				(FieldDataType.IntegerField),
+					mreturn Where.Between(^i(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize)), %integer(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt), fieldDetails.ElementSize), %integer(theValue2, fieldDetails.ElementSize))
+				(FieldDataType.ImpliedDecimal),
+					mreturn Where.Between(^d(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), fieldDetails.DecimalPrecision), %implied(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)), %implied(theValue2))
+				(FieldDataType.DecimalField),
+					mreturn Where.Between(^d(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize)), %implied(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)), %implied(theValue2))
+				endusing
+			end
+			endusing
+		endmethod
+
+		private method fieldOnClause	,@On
+			in req dataBuffer			,a
+			in req fieldDetails			,@FieldDataDefinition
+			in req theOperator			,whereClauseOperator
+			in req theValue				,a
+			in req theValue2			,a
+			endparams
+			
+			structure tmpStructure
+				fld	,a1
+			endstructure
+			
+			record
+				stPos	,i4
+				edPos	,i4
+				bNum	,d3
+				memPnt	,i4
+			endrecord
+		proc
+			memPnt = %mem_proc(DM_ALLOC, fieldDetails.ElementSize)
+			^m(tmpStructure(1:fieldDetails.ElementSize), memPnt) = theValue
+			
+			using theOperator select
+			(whereClauseOperator.EqualTo),
+			begin
+				using fieldDetails.DataType select
+				(FieldDataType.AlphaField),
+				begin
+					;;if we have a "%" as the last character let's do a "starts with" type operation
+					data length	,i4	,%trim(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt))
+					if (!length) length = fieldDetails.ElementSize
+
+					if (length > 1 && %atrim(^m(tmpStructure(length:1), memPnt)) == "%") then
+					begin
+						decr length
+						if (mCaseSensitive == true) then
+						begin
+							DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: StartsWith Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, length, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
+							mreturn (On)(dataBuffer(fieldDetails.StructurePosition:length) .eqs. (^m(tmpStructure(1:length), memPnt)))
+						end
+						else
+						begin
+							throw new NotImplementedException()
+							DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: StartsWith NoCaseWhere (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, length, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
+							mreturn (On)(dataBuffer(fieldDetails.StructurePosition:length) .eqs. (^m(tmpStructure(1:length), memPnt)))
+						end
+					end
+					else
+					begin
+						if (mCaseSensitive == true) then
+						begin
+							DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: EqualTo Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
+							mreturn (On)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .eqs. (^m(tmpStructure(1:length), memPnt)))
+						end
+						else
+						begin
+							throw new NotImplementedException()
+							DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: EqualTo NoCaseWhere (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
+							mreturn (On)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .eqs. (^m(tmpStructure(1:length), memPnt)))
+						end
+					end
+				end
+				(FieldDataType.IntegerField),
+				begin
+					data intValue	,string	,^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)
+					;;we may be a boolean type!!
+					if (fieldDetails.ElementSize == 4 && intValue.ToUpper() == "TRUE") intValue = 1
+					if (fieldDetails.ElementSize == 4 && intValue.ToUpper() == "FALS") intValue = 0
+
+					DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: EqualTo Where (IntegerField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleIntegerDebugLogHelper(memPnt, fieldDetails.ElementSize))
+					mreturn (On)(^i(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize)) .eq. %integer(intValue, fieldDetails.ElementSize))
+				end
+				(FieldDataType.ImpliedDecimal),
+				begin
+					DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: EqualTo Where (ImpliedDecimal) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleImpliedDebugLogHelper(memPnt, fieldDetails.ElementSize))
+					mreturn (On)(^d(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), fieldDetails.DecimalPrecision) .eq. %implied(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)))
+				end
+				(FieldDataType.DecimalField),
+				begin
+					DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: EqualTo Where (DecimalField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleImpliedDebugLogHelper(memPnt, fieldDetails.ElementSize))
+					mreturn (On)(^d(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize)) .eq. %implied(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)))
+				end
+				endusing
+			end
+			(whereClauseOperator.NotEqualTo),
+			begin
+				using fieldDetails.DataType select
+				(FieldDataType.AlphaField),
+				begin
+					data length	,i4	,%trim(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt))
+					if (!length) length = fieldDetails.ElementSize
+					if (mCaseSensitive == true) then
+					begin
+						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: NotEqualTo Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
+						mreturn (On)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .nes. (^m(tmpStructure(1:length), memPnt)))
+					end
+					else
+					begin
+						throw new NotImplementedException()
+						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: NotEqualTo NoCaseWhere (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
+						mreturn (On)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .nes. (^m(tmpStructure(1:length), memPnt)))
+					end
+				end
+				(FieldDataType.IntegerField),
+				begin
+					data intValue	,string	,^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)
+					;;we may be a boolean type!!
+					if (fieldDetails.ElementSize == 4 && intValue.ToUpper() == "TRUE") intValue = 1
+					if (fieldDetails.ElementSize == 4 && intValue.ToUpper() == "FALS") intValue = 0
+
+					DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: NotEqualTo Where (IntegerField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleIntegerDebugLogHelper(memPnt, fieldDetails.ElementSize))
+					mreturn (On)(^i(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize)) .ne. %integer(intValue, fieldDetails.ElementSize))
+				end
+				(FieldDataType.ImpliedDecimal),
+				begin
+					DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: NotEqualTo Where (ImpliedDecimal) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleImpliedDebugLogHelper(memPnt, fieldDetails.ElementSize))
+					mreturn (On)(^d(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), fieldDetails.DecimalPrecision) .ne. %implied(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)))
+				end
+				(FieldDataType.DecimalField),
+				begin
+					DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: NotEqualTo Where (DecimalField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleImpliedDebugLogHelper(memPnt, fieldDetails.ElementSize))
+					mreturn (On)(^d(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize)) .ne. %implied(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)))
+				end
+				endusing
+			end
+			(whereClauseOperator.GreaterThan),
+			begin
+				using fieldDetails.DataType select
+				(FieldDataType.AlphaField),
+				begin
+					data length	,i4	,%trim(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt))
+					if (!length) length = fieldDetails.ElementSize
+
+					if (mCaseSensitive == true) then
+					begin
+						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: GreaterThan Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
+						mreturn (On)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .gts. (^m(tmpStructure(1:length), memPnt)))
+					end
+					else
+					begin
+						throw new NotImplementedException()
+						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: GreaterThan NoCaseWhere (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
+						mreturn (On)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .gts. (^m(tmpStructure(1:length), memPnt)))
+					end
+				end
+				(FieldDataType.IntegerField),
+				begin
+					data intValue	,string	,^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)
+					;;we may be a boolean type!!
+					if (fieldDetails.ElementSize == 4 && intValue.ToUpper() == "TRUE") intValue = 1
+					if (fieldDetails.ElementSize == 4 && intValue.ToUpper() == "FALS") intValue = 0
+
+					DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: GreaterThan Where (IntegerField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleIntegerDebugLogHelper(memPnt, fieldDetails.ElementSize))
+					mreturn (On)(^i(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize)) .gt. %integer(intValue, fieldDetails.ElementSize))
+				end
+				(FieldDataType.ImpliedDecimal),
+				begin
+					DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: GreaterThan Where (ImpliedDecimal) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleImpliedDebugLogHelper(memPnt, fieldDetails.ElementSize))
+					mreturn (On)(^d(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), fieldDetails.DecimalPrecision) .gt. %implied(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)))
+				end
+				(FieldDataType.DecimalField),
+				begin
+					DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: GreaterThan Where (DecimalField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleImpliedDebugLogHelper(memPnt, fieldDetails.ElementSize))
+					mreturn (On)(^d(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize)) .gt. %implied(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)))
+				end
+				endusing
+			end
+			(whereClauseOperator.GreaterThanOrEqualTo),
+			begin
+				using fieldDetails.DataType select
+				(FieldDataType.AlphaField),
+				begin
+					data length	,i4	,%trim(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt))
+					if (!length) length = fieldDetails.ElementSize
+
+					if (mCaseSensitive == true) then
+					begin
+						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: GreaterThanOrEqualTo Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
+						mreturn (On)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .ges. (^m(tmpStructure(1:length), memPnt)))
+					end
+					else
+					begin
+						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: GreaterThanOrEqualTo NoCaseWhere (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
+						mreturn (On)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .ges. (^m(tmpStructure(1:length), memPnt)))
+					end
+				end
+				(FieldDataType.IntegerField),
+				begin
+					data intValue	,string	,^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)
+					;;we may be a boolean type!!
+					if (fieldDetails.ElementSize == 4 && intValue.ToUpper() == "TRUE") intValue = 1
+					if (fieldDetails.ElementSize == 4 && intValue.ToUpper() == "FALS") intValue = 0
+
+					DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: GreaterThanOrEqualTo Where (IntegerField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleIntegerDebugLogHelper(memPnt, fieldDetails.ElementSize))
+					mreturn (On)(^i(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize)) .ge. %integer(intValue, fieldDetails.ElementSize))
+				end
+				(FieldDataType.ImpliedDecimal),
+				begin
+					DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: GreaterThanOrEqualTo Where (ImpliedDecimal) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleImpliedDebugLogHelper(memPnt, fieldDetails.ElementSize))
+					mreturn (On)(^d(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), fieldDetails.DecimalPrecision) .ge. %implied(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)))
+				end
+				(FieldDataType.DecimalField),
+				begin
+					DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: GreaterThanOrEqualTo Where (DecimalField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleImpliedDebugLogHelper(memPnt, fieldDetails.ElementSize))
+					mreturn (On)(^d(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize)) .ge. %implied(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)))
+				end
+				endusing
+			end
+			(whereClauseOperator.LessThan),
+			begin
+				using fieldDetails.DataType select
+				(FieldDataType.AlphaField),
+				begin
+					data length	,i4	,%trim(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt))
+					if (!length) length = fieldDetails.ElementSize
+					
+					if (mCaseSensitive == true) then
+					begin
+						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: LessThan Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
+						mreturn (On)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .lts. (^m(tmpStructure(1:length), memPnt)))
+					end
+					else
+					begin
+						throw new NotImplementedException()
+						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: LessThan NoCaseWhere (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
+						mreturn (On)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .lts. (^m(tmpStructure(1:length), memPnt)))
+					end
+				end
+				(FieldDataType.IntegerField),
+				begin
+					data intValue	,string	,^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)
+					;;we may be a boolean type!!
+					if (fieldDetails.ElementSize == 4 && intValue.ToUpper() == "TRUE") intValue = 1
+					if (fieldDetails.ElementSize == 4 && intValue.ToUpper() == "FALS") intValue = 0
+
+					DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: LessThan Where (IntegerField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleIntegerDebugLogHelper(memPnt, fieldDetails.ElementSize))
+					mreturn (On)(^i(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize)) .lt. %integer(intValue, fieldDetails.ElementSize))
+				end
+				(FieldDataType.ImpliedDecimal),
+				begin
+					DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: LessThan Where (ImpliedDecimal) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleImpliedDebugLogHelper(memPnt, fieldDetails.ElementSize))
+					mreturn (On)(^d(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), fieldDetails.DecimalPrecision) .lt. %implied(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)))
+				end
+				(FieldDataType.DecimalField),
+				begin
+					DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: LessThan Where (DecimalField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleImpliedDebugLogHelper(memPnt, fieldDetails.ElementSize))
+					mreturn (On)(^d(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize)) .lt. %implied(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)))
+				end
+				endusing
+			end
+			(whereClauseOperator.LessThanOrEqualTo),
+			begin
+				using fieldDetails.DataType select
+				(FieldDataType.AlphaField),
+				begin
+					data length	,i4	,%trim(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt))
+					if (!length) length = fieldDetails.ElementSize
+
+					if (mCaseSensitive == true) then
+					begin
+						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: LessThanOrEqualTo Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
+						mreturn (On)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .les. (^m(tmpStructure(1:length), memPnt)))
+					end
+					else
+					begin
+						throw new NotImplementedException()
+						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: LessThanOrEqualTo NoCaseWhere (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
+						mreturn (On)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .les. ^m(tmpStructure(1:length), memPnt))
+					end
+				end
+				(FieldDataType.IntegerField),
+				begin
+					DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: LessThanOrEqualTo Where (IntegerField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleIntegerDebugLogHelper(memPnt, fieldDetails.ElementSize))
+					mreturn (On)(^i(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize)) .le. %integer(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt), fieldDetails.ElementSize))
+				end
+				(FieldDataType.ImpliedDecimal),
+				begin
+					DebugLogSession.Logging.LogDiagnostic("LessThanOrEqualTo Where (ImpliedDecimal) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleImpliedDebugLogHelper(memPnt, fieldDetails.ElementSize))
+					mreturn (On)(^d(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), fieldDetails.DecimalPrecision) .le. %implied(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)))
+				end
+				(FieldDataType.DecimalField),
+				begin
+					DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: LessThanOrEqualTo Where (DecimalField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize,new MemoryHandleImpliedDebugLogHelper(memPnt, fieldDetails.ElementSize))
+					mreturn (On)(^d(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize)) .le. %implied(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)))
+				end
+				endusing
+			end
+			endusing
+		endmethod
+
+		public method ProcessWhere, @Where
+			expr, @object
+		proc
+			if(expr .is. @ConnectorPart) then
+			begin
+				mreturn ProcessWhereConnector(^as(expr, @ConnectorPart))
+			end
+			else if(expr .is. @ExprPart) then
+			begin
+				mreturn ProcessWhereExpression(^as(expr, @ExprPart))
+			end
+			else
+				throw new InvalidOperationException("Invalid Where Expression Tree")
+		endmethod
+
+
+		private method ProcessWhereConnector, @Where
+			connector, @ConnectorPart
+		proc
+			data leftWhere = ProcessWhere(connector.Left)
+			data rightWhere = ProcessWhere(connector.Right)
+
+			if(connector.Op == WhereClauseConnector.AndOperator) then
+			begin
+				mreturn leftWhere .and. rightWhere
+			end
+			else if(connector.Op == WhereClauseConnector.OrOperator) then
+			begin
+				mreturn leftWhere .or. rightWhere
+			end
+			else
+				throw new InvalidOperationException("Invalid Where Expression Tree")
+		endmethod
+
+		private method ProcessWhereExpression, @Where
+			expr, @ExprPart
+			structure tmpStructure
+				fld	,a1
+			endstructure
+		proc
+			data leftField = ^as(expr.Left, @FieldReference)
+			data rightField = ^as(expr.Right, @FieldReference)
+			data leftBuffer, @QueryBuffer.TypeBuffer, ^null
+			data rightBuffer, @QueryBuffer.TypeBuffer, ^null
+			leftBuffer = leftField != ^null ? mQueryBuffer.TypeBuffers[leftField.QuerySourceKey] : ^null
+			rightBuffer = rightField != ^null ? mQueryBuffer.TypeBuffers[rightField.QuerySourceKey] : ^null
+
+			if(leftField != ^null && rightField != ^null) then
+			begin
+				if(leftBuffer == rightBuffer) then
+				begin
+					mreturn fieldWhereClause(^m(tmpStructure(1:leftBuffer.Metadata.StructureSize), leftBuffer.MemoryHandle.Value), 
+					&	^m(tmpStructure(1:rightBuffer.Metadata.StructureSize), rightBuffer.MemoryHandle.Value), 
+					&	leftField.FieldDef, 
+					&	rightField.FieldDef,
+					&	expr.Op)
+				end
+				else
+				begin
+					throw new InvalidOperationException("Invalid Where Expression Tree")
+				end
+			end
+			else if(leftField != ^null) then
+			begin
+				mreturn fieldWhereClause(^m(tmpStructure(1:leftBuffer.Metadata.StructureSize), leftBuffer.MemoryHandle.Value), 
+				&	leftField.FieldDef, 
+				&	expr.Op,
+				&	ProcessValue(expr.Right), "")
+			end
+			else if(rightField != ^null)
+			begin
+				mreturn fieldWhereClause(^m(tmpStructure(1:rightBuffer.Metadata.StructureSize), rightBuffer.MemoryHandle.Value), 
+				&	rightField.FieldDef, 
+				&	expr.Op,
+				&	ProcessValue(expr.Left), "")
+			end
+			
+			throw new InvalidOperationException("Invalid Where Expression Tree")
+		endmethod
+
+		public method ProcessOn, @On
+			expr, @object
+		proc
+			if(expr .is. @ConnectorPart) then
+			begin
+				mreturn ProcessOnConnector(^as(expr, @ConnectorPart))
+			end
+			else if(expr .is. @ExprPart) then
+			begin
+				mreturn ProcessOnExpression(^as(expr, @ExprPart))
+			end
+			else
+				throw new InvalidOperationException("Invalid Where Expression Tree")
+		endmethod
+
+		;;we have to pick a non literal as the first expression when creating an On object
+		private method ExprPartIsLiteral, boolean
+			expr, @object
+		proc
+			data exPart = ^as(expr, @ExprPart)
+			data conPart = ^as(expr, @ConnectorPart)
+			data fieldPart = ^as(expr, @FieldReference)
+			if(exPart != ^null) then
+			begin
+				mreturn ExprPartIsLiteral(exPart.Left)
+			end
+			else if(conPart != ^null) then
+			begin
+				mreturn ExprPartIsLiteral(conPart.Left)
+			end
+			else if(fieldPart != ^null) then
+			begin
+				mreturn fieldPart.FieldDef.DataType == FieldDataType.TagLiteral
+			end
+			else
+			begin
+				mreturn true
+			end
+		endmethod
+
+
+		private method ProcessOnConnector, @On
+			connector, @ConnectorPart
+		proc
+			data leftOn = ProcessOn(connector.Left)
+			data rightOn = ProcessOn(connector.Right)
+
+			if(connector.Op == WhereClauseConnector.AndOperator) then
+			begin
+				;;cant pass a literal part as the first element to an On object
+				if(ExprPartIsLiteral(connector.Left)) then
+					mreturn rightOn .and. leftOn
+				else
+					mreturn leftOn .and. rightOn
+			end
+			else if(connector.Op == WhereClauseConnector.OrOperator) then
+			begin
+				mreturn leftOn .or. rightOn
+			end
+			else
+				throw new InvalidOperationException("Invalid Where Expression Tree")
+		endmethod
+
+		private method ProcessOnExpression, @On
+			expr, @ExprPart
+			structure tmpStructure
+				fld	,a1
+			endstructure
+		proc
+			data leftField = ^as(expr.Left, @FieldReference)
+			data rightField = ^as(expr.Right, @FieldReference)
+			data leftBuffer, @QueryBuffer.TypeBuffer, ^null
+			data rightBuffer, @QueryBuffer.TypeBuffer, ^null
+			leftBuffer = leftField != ^null ? mQueryBuffer.TypeBuffers[leftField.QuerySourceKey] : ^null
+			rightBuffer = rightField != ^null ? mQueryBuffer.TypeBuffers[rightField.QuerySourceKey] : ^null
+
+			if(leftField != ^null && rightField != ^null) then
+			begin
+				if(leftBuffer != rightBuffer) then
+				begin
+					mreturn fieldOnClause(^m(tmpStructure(1:leftBuffer.Metadata.StructureSize), leftBuffer.MemoryHandle.Value), 
+					&	^m(tmpStructure(1:rightBuffer.Metadata.StructureSize), rightBuffer.MemoryHandle.Value), 
+					&	leftField.FieldDef, 
+					&	rightField.FieldDef,
+					&	expr.Op)
+				end
+				else
+				begin
+					throw new InvalidOperationException("Invalid Where Expression Tree")
+				end
+			end
+			else if(leftField != ^null) then
+			begin
+				mreturn fieldOnClause(^m(tmpStructure(1:leftBuffer.Metadata.StructureSize), leftBuffer.MemoryHandle.Value), 
+				&	leftField.FieldDef, 
+				&	expr.Op,
+				&	ProcessValue(expr.Right), "")
+			end
+			else if(rightField != ^null)
+			begin
+				mreturn fieldOnClause(^m(tmpStructure(1:rightBuffer.Metadata.StructureSize), rightBuffer.MemoryHandle.Value), 
+				&	rightField.FieldDef, 
+				&	expr.Op,
+				&	ProcessValue(expr.Left), "")
+			end
+			throw new InvalidOperationException("Invalid Where Expression Tree")
+		endmethod
+
+		private method ProcessValue, @string
+			expr, @object
+		proc
+			if(expr .is. @ParameterReference) then
+				mreturn mQueryBuffer.Parameters[((@ParameterReference)expr).Name].ToString()
+			else if(expr .is. @FieldReference) then
+				mreturn ((@FieldReference)expr).FieldDef.TagValue
+			else
+				mreturn expr.ToString()
+		endmethod
+
+
+;		private method ProcessWhereClause, void
+;			left, @Expression
+;			right, @Expression
+;			op, WhereClauseOperator
+;			structure tmpStructure
+;				fld,a1
+;			endstructure
+;		proc
+;			data skipClause, boolean, false
+;			;;TODO this doesnt deal with 'between'
+;			data leftTarget = FindTargetField(left, right)
+;			data rightTarget = FindTargetField(right, left)
+;			if(skipClause)
+;				mreturn
+;
+;			if(leftTarget != ^null && rightTarget != ^null) then
+;			begin
+;				data dataObject1 = mDataObjects[leftTarget.Item2]
+;				data dataObject2 = mDataObjects[rightTarget.Item2]
+;				data recordArea1 = mRecordAreas[leftTarget.Item2]
+;				data recordArea2 = mRecordAreas[rightTarget.Item2]
+;				if(dataObject1 == dataObject2) then
+;				begin
+;					mWhereStack.Push(fieldWhereClause(^m(tmpStructure(1:dataObject1.StructureSize), recordArea1), 
+;					&	^m(tmpStructure(1:dataObject2.StructureSize), recordArea2), 
+;					&	leftTarget.Item1, 
+;					&	rightTarget.Item1,
+;					&	op))
+;				end
+;				else
+;				begin
+;					mOnStack.Push(fieldOnClause(^m(tmpStructure(1:dataObject1.StructureSize), recordArea1), 
+;					&	^m(tmpStructure(1:dataObject2.StructureSize), recordArea2), 
+;					&	leftTarget.Item1, 
+;					&	rightTarget.Item1,
+;					&	op))
+;				end
+;			end
+;			else if(leftTarget != ^null) then
+;			begin
+;				data dataObject1 = mDataObjects[leftTarget.Item2]
+;				data recordArea1 = mRecordAreas[leftTarget.Item2]
+;				mWhereStack.Push(fieldWhereClause(^m(tmpStructure(1:dataObject1.StructureSize), recordArea1), 
+;				&	leftTarget.Item1, 
+;				&	op,
+;				&	FindConstantValue(right), ""))
+;			end
+;			else if(rightTarget != ^null) then
+;			begin
+;				data dataObject1 = mDataObjects[rightTarget.Item2]
+;				data recordArea1 = mRecordAreas[rightTarget.Item2]
+;				mWhereStack.Push(fieldWhereClause(^m(tmpStructure(1:dataObject1.StructureSize), recordArea1), 
+;				&	rightTarget.Item1, 
+;				&	op,
+;				&	FindConstantValue(left), ""))
+;			end
+;			else
+;				throw new NotImplementedException("where expression must contain at least one field or property expression")
+;		endmethod
+;
+;
+;		protected override method VisitBinary, @Expression
+;			node, @BinaryExpression
+;		proc
+;			data op, WhereClauseOperator?, ^null
+;			data glue, WhereClauseConnector?, ^null
+;			OpKindFromExpression(node, op, glue)
+;			if(op != ^null) then
+;			begin
+;				;;this should be a composite key match them up by order
+;				if(node.Left .is. NewExpression && node.Right .is. NewExpression) then
+;				begin
+;					data newLeft = (@NewExpression)node.Left
+;					data newRight = (@NewExpression)node.Right
+;					data leftArgument = (@NewArrayExpression)newLeft.Arguments.First()
+;					data rightArgument = (@NewArrayExpression)newRight.Arguments.First()
+;					data i, int, 0
+;					for i from 0 thru leftArgument.Expressions.Count - 1 by 1
+;					begin
+;						ProcessWhereClause(leftArgument.Expressions[i], rightArgument.Expressions[i], op.Value)
+;					end
+;
+;					
+;				end
+;				else
+;					ProcessWhereClause(node.Left, node.Right, op.Value)
+;			end
+;			else
+;			begin
+;				if(mOnStack.Count > 0) then
+;				begin
+;					Visit(node.Left)
+;					data leftOn = mOnStack.Pop()
+;					Visit(node.Right)
+;					if(mOnStack.Count > 0) then
+;					begin
+;						data rightOn = mOnStack.Pop()
+;
+;						if(glue.Value == WhereClauseConnector.AndOperator) then
+;						begin
+;							mOnStack.Push(leftOn .and. rightOn)
+;						end
+;						else if(glue.Value == WhereClauseConnector.OrOperator) then
+;						begin
+;							mOnStack.Push(leftOn .or. rightOn)
+;						end
+;						else
+;							throw new NotImplementedException()
+;
+;					end
+;					else
+;					begin
+;						data rightWhere = mWhereStack.Pop()
+;						if(glue.Value == WhereClauseConnector.AndOperator) then
+;						begin
+;							mWhereStack.Push(leftOn .and. rightWhere)
+;						end
+;						else if(glue.Value == WhereClauseConnector.OrOperator) then
+;						begin
+;							mWhereStack.Push(leftOn .or. rightWhere)
+;						end
+;						else
+;							throw new NotImplementedException()
+;					end
+;				end
+;				else
+;				begin
+;					Visit(node.Left)
+;					data leftWhere = mWhereStack.Pop()
+;					Visit(node.Right)
+;					data rightWhere = mWhereStack.Pop()
+;
+;					if(glue.Value == WhereClauseConnector.AndOperator) then
+;					begin
+;						mWhereStack.Push(leftWhere .and. rightWhere)
+;					end
+;					else if(glue.Value == WhereClauseConnector.OrOperator) then
+;					begin
+;						mWhereStack.Push(leftWhere .or. rightWhere)
+;					end
+;					else
+;						throw new NotImplementedException()
+;				end
+;
+;			end
+;
+;			mreturn node
+;		endmethod
+	endclass
+
+endnamespace
