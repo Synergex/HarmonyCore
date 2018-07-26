@@ -194,22 +194,28 @@ namespace <NAMESPACE>
 		public override method FormatKeyLiteral, a
 			required in keyNumber, int
 			required in parts, @Dictionary<String, Object>
+			endparams
+			<KEY_LOOP>
+			stack record key<KEY_NUMBER>
+				<SEGMENT_LOOP>
+				<FieldSqlName>, <SEGMENT_SPEC>
+				</SEGMENT_LOOP>
+			endrecord
+			</KEY_LOOP>
 		proc
 			using keyNumber select
 			<KEY_LOOP>
 			(<KEY_NUMBER>),
 			begin
-				data keyValue, a<KEY_LENGTH>
 				data startPos = 1
 				<SEGMENT_LOOP>
-				<IF SEG_TYPE_LITERAL>
-				keyValue(startPos:<SEGMENT_LENGTH>) = "<SEGMENT_LITVAL>"
-				<ELSE>
-				KeyValueHelper(keyValue(startPos:<SEGMENT_LENGTH>), "<FieldSqlname>", parts)
-				</IF SEG_TYPE_LITERAL>
+				if(!KeyValueHelper(key<KEY_NUMBER>.<FieldSqlName>, "<FieldSqlname>", parts))
+					mreturn key<KEY_NUMBER>(1:startPos - 1)
+				<IF MORE>
 				startPos += <SEGMENT_LENGTH>
+				</IF MORE>
 				</SEGMENT_LOOP>
-				mreturn keyValue
+				mreturn key<KEY_NUMBER>
 			end
 			</KEY_LOOP>
 			endusing
