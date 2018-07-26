@@ -156,33 +156,31 @@ namespace SampleServices.Models
 				OrCustomer, D6
 			endrecord
 		proc
+			data startPos = 0
+			data segValueLength, int
 			using keyNumber select
 			(0),
 			begin
-				data startPos = 1
-				if(!KeyValueHelper(key0.OrNumber, "OrNumber", parts))
-					mreturn key0(1:startPos - 1)
+				if((segValueLength=KeyValueHelper(key0.OrNumber, "OrNumber", parts))<6)
+					mreturn key0(1:startPos+segValueLength)
 				mreturn key0
 			end
 			(1),
 			begin
-				data startPos = 1
-				if(!KeyValueHelper(key1.OrVendor, "OrVendor", parts))
-					mreturn key1(1:startPos - 1)
+				if((segValueLength=KeyValueHelper(key1.OrVendor, "OrVendor", parts))<6)
+					mreturn key1(1:startPos+segValueLength)
 				mreturn key1
 			end
 			(2),
 			begin
-				data startPos = 1
-				if(!KeyValueHelper(key2.OrItem, "OrItem", parts))
-					mreturn key2(1:startPos - 1)
+				if((segValueLength=KeyValueHelper(key2.OrItem, "OrItem", parts))<6)
+					mreturn key2(1:startPos+segValueLength)
 				mreturn key2
 			end
 			(3),
 			begin
-				data startPos = 1
-				if(!KeyValueHelper(key3.OrCustomer, "OrCustomer", parts))
-					mreturn key3(1:startPos - 1)
+				if((segValueLength=KeyValueHelper(key3.OrCustomer, "OrCustomer", parts))<6)
+					mreturn key3(1:startPos+segValueLength)
 				mreturn key3
 			end
 			endusing

@@ -142,22 +142,22 @@ namespace SampleServices.Models
 				VendKey, D6
 			endrecord
 		proc
+			data startPos = 0
+			data segValueLength, int
 			using keyNumber select
 			(0),
 			begin
-				data startPos = 1
-				if(!KeyValueHelper(key0.VendKey, "VendKey", parts))
-					mreturn key0(1:startPos - 1)
+				if((segValueLength=KeyValueHelper(key0.VendKey, "VendKey", parts))<6)
+					mreturn key0(1:startPos+segValueLength)
 				mreturn key0
 			end
 			(1),
 			begin
-				data startPos = 1
-				if(!KeyValueHelper(key1.VendRtype, "VendRtype", parts))
-					mreturn key1(1:startPos - 1)
+				if((segValueLength=KeyValueHelper(key1.VendRtype, "VendRtype", parts))<1)
+					mreturn key1(1:startPos+segValueLength)
 				startPos += 1
-				if(!KeyValueHelper(key1.VendKey, "VendKey", parts))
-					mreturn key1(1:startPos - 1)
+				if((segValueLength=KeyValueHelper(key1.VendKey, "VendKey", parts))<6)
+					mreturn key1(1:startPos+segValueLength)
 				mreturn key1
 			end
 			endusing

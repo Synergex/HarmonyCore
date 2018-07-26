@@ -203,14 +203,15 @@ namespace <NAMESPACE>
 			endrecord
 			</KEY_LOOP>
 		proc
+			data startPos = 0
+			data segValueLength, int
 			using keyNumber select
 			<KEY_LOOP>
 			(<KEY_NUMBER>),
 			begin
-				data startPos = 1
 				<SEGMENT_LOOP>
-				if(!KeyValueHelper(key<KEY_NUMBER>.<FieldSqlName>, "<FieldSqlname>", parts))
-					mreturn key<KEY_NUMBER>(1:startPos - 1)
+				if((segValueLength=KeyValueHelper(key<KEY_NUMBER>.<FieldSqlName>, "<FieldSqlname>", parts))<<SEGMENT_LENGTH>)
+					mreturn key<KEY_NUMBER>(1:startPos+segValueLength)
 				<IF MORE>
 				startPos += <SEGMENT_LENGTH>
 				</IF MORE>
