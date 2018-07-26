@@ -895,6 +895,31 @@ namespace Harmony.Core.FileIO.Queryable
 				throw new InvalidOperationException("Invalid Where Expression Tree")
 		endmethod
 
+		;;we have to pick a non literal as the first expression when creating an On object
+		private method ExprPartIsLiteral, boolean
+			expr, @object
+		proc
+			data exPart = ^as(expr, @ExprPart)
+			data conPart = ^as(expr, @ConnectorPart)
+			data fieldPart = ^as(expr, @FieldReference)
+			if(exPart != ^null) then
+			begin
+				mreturn ExprPartIsLiteral(exPart.Left)
+			end
+			else if(conPart != ^null) then
+			begin
+				mreturn ExprPartIsLiteral(conPart.Left)
+			end
+			else if(fieldPart != ^null) then
+			begin
+				mreturn fieldPart.FieldDef.DataType == FieldDataType.TagLiteral
+			end
+			else
+			begin
+				mreturn true
+			end
+		endmethod
+
 
 		private method ProcessOnConnector, @On
 			connector, @ConnectorPart
@@ -904,7 +929,11 @@ namespace Harmony.Core.FileIO.Queryable
 
 			if(connector.Op == WhereClauseConnector.AndOperator) then
 			begin
-				mreturn leftOn .and. rightOn
+				;;cant pass a literal part as the first element to an On object
+				if(ExprPartIsLiteral(connector.Left)) then
+					mreturn rightOn .and. leftOn
+				else
+					mreturn leftOn .and. rightOn
 			end
 			else if(connector.Op == WhereClauseConnector.OrOperator) then
 			begin
