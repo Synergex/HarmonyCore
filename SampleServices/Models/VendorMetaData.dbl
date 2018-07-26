@@ -74,6 +74,11 @@ namespace SampleServices.Models
 			AddFieldInfo("VendTelephone", "DECIMAL", 10, 119, 0, false)
 			AddFieldInfo("VendFax", "DECIMAL", 10, 129, 0, false)
 			AddFieldInfo("VendTerms", "ALPHA", 24, 139, 0, false)
+
+			AddKeyInfo(0, "VendKey")
+			AddKeyInfo(1, "VendRtype")
+			AddKeyInfo(1, "VendKey")
+
 		endmethod
 	
 		;;; <summary>
@@ -118,12 +123,42 @@ namespace SampleServices.Models
 			mreturn newVendor
 
 		endmethod
+
+		;;; <summary>
+		;;; 
+		;;; </summary>
+		;;; <param name=""></param>
+		;;; <param name=""></param>
+		;;; <returns></returns>
 		public override method FormatKeyLiteral, a
-			keyNumber, int
-			parts, @Dictionary<string, Object>
+			required in keyNumber, int
+			required in parts, @Dictionary<String, Object>
 		proc
-			mreturn ""
+			using keyNumber select
+			(0),
+			begin
+				data keyValue, a6
+				data startPos = 1
+				keyValue(startPos:6) = parts["VendKey"].ToString()
+				startPos += 6
+				mreturn keyValue
+			end
+			(1),
+			begin
+				data keyValue, a7
+				data startPos = 1
+				keyValue(startPos:1) = parts["VendRtype"].ToString()
+				startPos += 1
+				keyValue(startPos:6) = parts["VendKey"].ToString()
+				startPos += 6
+				mreturn keyValue
+			end
+			endusing
+
+			throw new ApplicationException(String.Format("Invalid key number {0} encountered in VendorMetadata.FormatKeyLiteral",keyNumber))
+
 		endmethod
+
 	endclass
 
 endnamespace

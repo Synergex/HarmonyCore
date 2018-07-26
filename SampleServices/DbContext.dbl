@@ -46,8 +46,6 @@ import Harmony.Core.Context
 import Microsoft.EntityFrameworkCore
 import System.Linq.Expressions
 import SampleServices.Models
-import Microsoft.Extensions.Logging
-import Microsoft.Extensions.Logging.Console
 
 namespace SampleServices
 
@@ -90,12 +88,6 @@ namespace SampleServices
 		;;; </summary>
 		public readwrite property Vendors, @DbSet<Vendor>
 
-		private method ShouldItBeLogged, boolean
-			str, @string
-			level, LogLevel
-		proc
-			mreturn true
-		endmethod
 		;;; <summary>
 		;;; 
 		;;; </summary>
@@ -103,11 +95,6 @@ namespace SampleServices
 			opts, @DbContextOptionsBuilder
 		proc
 			HarmonyDbContextOptionsExtensions.UseHarmonyDatabase(opts, mDataProvider, this)
-;			lambda ShouldItBeLogged(p1, p2) 
-;			begin
-;				mreturn true
-;			end
-			;opts.UseLoggerFactory(new LoggerFactory(new ILoggerProvider[#] { new ConsoleLoggerProvider(ShouldItBeLogged, true)}))
 		endmethod
 
 		;;; <summary>

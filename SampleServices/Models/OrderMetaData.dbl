@@ -76,6 +76,12 @@ namespace SampleServices.Models
 			AddFieldInfo("OrInvoice", "DECIMAL", 7, 64, 0, false)
 			AddFieldInfo("TagCustomerLiteral1", "TAG_LITERAL", 0, 0, 0, false,"0")
 			AddFieldInfo("TagVendorLiteral1", "TAG_LITERAL", 0, 0, 0, false,"1")
+
+			AddKeyInfo(0, "OrNumber")
+			AddKeyInfo(1, "OrVendor")
+			AddKeyInfo(2, "OrItem")
+			AddKeyInfo(3, "OrCustomer")
+
 		endmethod
 	
 		;;; <summary>
@@ -126,12 +132,56 @@ namespace SampleServices.Models
 			mreturn newOrder
 
 		endmethod
+
+		;;; <summary>
+		;;; 
+		;;; </summary>
+		;;; <param name=""></param>
+		;;; <param name=""></param>
+		;;; <returns></returns>
 		public override method FormatKeyLiteral, a
-			keyNumber, int
-			parts, @Dictionary<string, Object>
+			required in keyNumber, int
+			required in parts, @Dictionary<String, Object>
 		proc
-			mreturn ""
+			using keyNumber select
+			(0),
+			begin
+				data keyValue, a6
+				data startPos = 1
+				keyValue(startPos:6) = parts["OrNumber"].ToString()
+				startPos += 6
+				mreturn keyValue
+			end
+			(1),
+			begin
+				data keyValue, a6
+				data startPos = 1
+				keyValue(startPos:6) = parts["OrVendor"].ToString()
+				startPos += 6
+				mreturn keyValue
+			end
+			(2),
+			begin
+				data keyValue, a6
+				data startPos = 1
+				keyValue(startPos:6) = parts["OrItem"].ToString()
+				startPos += 6
+				mreturn keyValue
+			end
+			(3),
+			begin
+				data keyValue, a6
+				data startPos = 1
+				keyValue(startPos:6) = parts["OrCustomer"].ToString()
+				startPos += 6
+				mreturn keyValue
+			end
+			endusing
+
+			throw new ApplicationException(String.Format("Invalid key number {0} encountered in OrderMetadata.FormatKeyLiteral",keyNumber))
+
 		endmethod
+
 	endclass
 
 endnamespace

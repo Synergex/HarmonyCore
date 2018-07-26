@@ -84,6 +84,13 @@ namespace SampleServices.Models
 			AddFieldInfo("InMinimum", "DECIMAL", 6, 132, 0, false)
 			AddFieldInfo("InPrice", "IMPLIED", 7, 138, 02, false)
 			AddFieldInfo("InCost", "IMPLIED", 7, 145, 02, false)
+
+			AddKeyInfo(0, "InItemid")
+			AddKeyInfo(1, "InSource")
+			AddKeyInfo(2, "InColor")
+			AddKeyInfo(3, "InSize")
+			AddKeyInfo(4, "InName")
+
 		endmethod
 	
 		;;; <summary>
@@ -128,12 +135,64 @@ namespace SampleServices.Models
 			mreturn newPlant
 
 		endmethod
+
+		;;; <summary>
+		;;; 
+		;;; </summary>
+		;;; <param name=""></param>
+		;;; <param name=""></param>
+		;;; <returns></returns>
 		public override method FormatKeyLiteral, a
-			keyNumber, int
-			parts, @Dictionary<string, Object>
+			required in keyNumber, int
+			required in parts, @Dictionary<String, Object>
 		proc
-			mreturn ""
+			using keyNumber select
+			(0),
+			begin
+				data keyValue, a6
+				data startPos = 1
+				keyValue(startPos:6) = parts["InItemid"].ToString()
+				startPos += 6
+				mreturn keyValue
+			end
+			(1),
+			begin
+				data keyValue, a6
+				data startPos = 1
+				keyValue(startPos:6) = parts["InSource"].ToString()
+				startPos += 6
+				mreturn keyValue
+			end
+			(2),
+			begin
+				data keyValue, a6
+				data startPos = 1
+				keyValue(startPos:6) = parts["InColor"].ToString()
+				startPos += 6
+				mreturn keyValue
+			end
+			(3),
+			begin
+				data keyValue, a3
+				data startPos = 1
+				keyValue(startPos:3) = parts["InSize"].ToString()
+				startPos += 3
+				mreturn keyValue
+			end
+			(4),
+			begin
+				data keyValue, a30
+				data startPos = 1
+				keyValue(startPos:30) = parts["InName"].ToString()
+				startPos += 30
+				mreturn keyValue
+			end
+			endusing
+
+			throw new ApplicationException(String.Format("Invalid key number {0} encountered in PlantMetadata.FormatKeyLiteral",keyNumber))
+
 		endmethod
+
 	endclass
 
 endnamespace

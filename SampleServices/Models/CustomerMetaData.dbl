@@ -78,7 +78,10 @@ namespace SampleServices.Models
 			AddFieldInfo("CustTaxno", "DECIMAL", 9, 147, 0, false)
 			AddFieldInfo("CustLimit", "IMPLIED", 7, 156, 02, false)
 
-			
+			AddKeyInfo(0, "CustKey")
+			AddKeyInfo(1, "CustRtype")
+			AddKeyInfo(1, "CustKey")
+
 		endmethod
 	
 		;;; <summary>
@@ -124,11 +127,39 @@ namespace SampleServices.Models
 
 		endmethod
 
+		;;; <summary>
+		;;; 
+		;;; </summary>
+		;;; <param name=""></param>
+		;;; <param name=""></param>
+		;;; <returns></returns>
 		public override method FormatKeyLiteral, a
-			keyNumber, int
-			parts, @Dictionary<string, Object>
+			required in keyNumber, int
+			required in parts, @Dictionary<String, Object>
 		proc
-			mreturn ""
+			using keyNumber select
+			(0),
+			begin
+				data keyValue, a6
+				data startPos = 1
+				keyValue(startPos:6) = parts["CustKey"].ToString()
+				startPos += 6
+				mreturn keyValue
+			end
+			(1),
+			begin
+				data keyValue, a7
+				data startPos = 1
+				keyValue(startPos:1) = parts["CustRtype"].ToString()
+				startPos += 1
+				keyValue(startPos:6) = parts["CustKey"].ToString()
+				startPos += 6
+				mreturn keyValue
+			end
+			endusing
+
+			throw new ApplicationException(String.Format("Invalid key number {0} encountered in CustomerMetadata.FormatKeyLiteral",keyNumber))
+
 		endmethod
 
 	endclass

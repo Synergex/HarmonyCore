@@ -103,16 +103,23 @@ namespace <NAMESPACE>
 			AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false)
 			</IF>
             </FIELD_LOOP>
-<IF STRUCTURE_RELATIONS>
-<RELATION_LOOP>
-<COUNTER_1_RESET>
-<FROM_KEY_SEGMENT_LOOP>
-<IF SEG_TYPE_LITERAL>
+			<IF STRUCTURE_RELATIONS>
+			<RELATION_LOOP>
+			<COUNTER_1_RESET>
+			<FROM_KEY_SEGMENT_LOOP>
+			<IF SEG_TYPE_LITERAL>
 			AddFieldInfo("<RelationFromkey>Literal<COUNTER_1_INCREMENT><COUNTER_1_VALUE>", "TAG_LITERAL", 0, 0, 0, false,"<SEGMENT_LITVAL>")
-</IF SEG_TYPE_LITERAL>
-</FROM_KEY_SEGMENT_LOOP>
-</RELATION_LOOP>
-</IF STRUCTURE_RELATIONS>
+			</IF SEG_TYPE_LITERAL>
+			</FROM_KEY_SEGMENT_LOOP>
+			</RELATION_LOOP>
+			</IF STRUCTURE_RELATIONS>
+
+			<KEY_LOOP>
+			<SEGMENT_LOOP>
+			AddKeyInfo(<KEY_NUMBER>, "<FieldSqlname>")
+			</SEGMENT_LOOP>
+            </KEY_LOOP>
+
 		endmethod
 	
 		;;; <summary>
@@ -175,6 +182,39 @@ namespace <NAMESPACE>
 			</IF STRUCTURE_RELATIONS>
 
 			mreturn new<StructureNoplural>
+
+		endmethod
+
+		;;; <summary>
+		;;; 
+		;;; </summary>
+		;;; <param name=""></param>
+		;;; <param name=""></param>
+		;;; <returns></returns>
+		public override method FormatKeyLiteral, a
+			required in keyNumber, int
+			required in parts, @Dictionary<String, Object>
+		proc
+			using keyNumber select
+			<KEY_LOOP>
+			(<KEY_NUMBER>),
+			begin
+				data keyValue, a<KEY_LENGTH>
+				data startPos = 1
+				<SEGMENT_LOOP>
+				<IF SEG_TYPE_LITERAL>
+				keyValue(startPos:<SEGMENT_LENGTH>) = "<SEGMENT_LITVAL>"
+				<ELSE>
+				keyValue(startPos:<SEGMENT_LENGTH>) = parts["<FieldSqlname>"].ToString()
+				</IF SEG_TYPE_LITERAL>
+				startPos += <SEGMENT_LENGTH>
+				</SEGMENT_LOOP>
+				mreturn keyValue
+			end
+			</KEY_LOOP>
+			endusing
+
+			throw new ApplicationException(String.Format("Invalid key number {0} encountered in <StructureNoplural>Metadata.FormatKeyLiteral",keyNumber))
 
 		endmethod
 
