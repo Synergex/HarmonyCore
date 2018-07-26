@@ -205,7 +205,7 @@ namespace <NAMESPACE>
 				<IF SEG_TYPE_LITERAL>
 				keyValue(startPos:<SEGMENT_LENGTH>) = "<SEGMENT_LITVAL>"
 				<ELSE>
-				keyValue(startPos:<SEGMENT_LENGTH>) = parts["<FieldSqlname>"].ToString()
+				KeyValueHelper(keyValue(startPos:<SEGMENT_LENGTH>), "<FieldSqlname>", parts)
 				</IF SEG_TYPE_LITERAL>
 				startPos += <SEGMENT_LENGTH>
 				</SEGMENT_LOOP>

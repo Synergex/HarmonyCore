@@ -150,9 +150,11 @@ namespace SampleServices.Models
 			begin
 				data keyValue, a7
 				data startPos = 1
-				keyValue(startPos:1) = parts["CustRtype"].ToString()
+				if(!KeyValueHelper(keyValue(startPos:1), "CustRtype", parts))
+					mreturn keyValue(1:startPos - 1)
 				startPos += 1
-				keyValue(startPos:6) = parts["CustKey"].ToString()
+				if(!KeyValueHelper(keyValue(startPos:6), "CustKey", parts))
+					mreturn keyValue(1:startPos - 1)
 				startPos += 6
 				mreturn keyValue
 			end

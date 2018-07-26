@@ -212,7 +212,7 @@ namespace <NAMESPACE>
 			parm.Entity(^typeof(<StructureNoplural>))
 			&	.HasOne(^typeof(<RelationTostructureNoplural>),"REL_<RelationFromkey>")
 			&	.WithOne(^null)
-			&	.HasForeignKey(^typeof(<RelationTostructureNoplural>),<FROM_KEY_SEGMENT_LOOP><COUNTER_1_RESET>"<IF SEG_TYPE_FIELD><FieldSqlname></IF SEG_TYPE_FIELD><IF SEG_TYPE_LITERAL><COUNTER_1_INCREMENT><RelationFromkey>Literal<COUNTER_1_VALUE></IF SEG_TYPE_LITERAL>"<,></FROM_KEY_SEGMENT_LOOP>)
+			&	.HasForeignKey(^typeof(<StructureNoplural>),<FROM_KEY_SEGMENT_LOOP><COUNTER_1_RESET>"<IF SEG_TYPE_FIELD><FieldSqlname></IF SEG_TYPE_FIELD><IF SEG_TYPE_LITERAL><COUNTER_1_INCREMENT><RelationFromkey>Literal<COUNTER_1_VALUE></IF SEG_TYPE_LITERAL>"<,></FROM_KEY_SEGMENT_LOOP>)
 			&	.HasPrincipalKey(^typeof(<RelationTostructureNoplural>), <TO_KEY_SEGMENT_LOOP><IF SEG_TYPE_FIELD>"<FieldSqlname>"</IF SEG_TYPE_FIELD><,></TO_KEY_SEGMENT_LOOP>)
 			</IF ONE_TO_ONE>
 ;// D
@@ -238,7 +238,7 @@ namespace <NAMESPACE>
 			parm.Entity(^typeof(<StructureNoplural>))
 			&	.HasMany(^typeof(<RelationTostructureNoplural>),"REL_<RelationFromkey>")
 			&	.WithOne(^null)
-			&	.HasForeignKey(^typeof(<RelationTostructureNoplural>),<FROM_KEY_SEGMENT_LOOP><COUNTER_1_RESET>"<IF SEG_TYPE_FIELD><FieldSqlname></IF SEG_TYPE_FIELD><IF SEG_TYPE_LITERAL><COUNTER_1_INCREMENT><RelationFromkey>Literal<COUNTER_1_VALUE></IF SEG_TYPE_LITERAL>"<,></FROM_KEY_SEGMENT_LOOP>)
+			&	.HasForeignKey(^typeof(<StructureNoplural>),<FROM_KEY_SEGMENT_LOOP><COUNTER_1_RESET>"<IF SEG_TYPE_FIELD><FieldSqlname></IF SEG_TYPE_FIELD><IF SEG_TYPE_LITERAL><COUNTER_1_INCREMENT><RelationFromkey>Literal<COUNTER_1_VALUE></IF SEG_TYPE_LITERAL>"<,></FROM_KEY_SEGMENT_LOOP>)
 			&	.HasPrincipalKey(^typeof(<RelationTostructureNoplural>), <TO_KEY_SEGMENT_LOOP><IF SEG_TYPE_FIELD>"<FieldSqlname>"</IF SEG_TYPE_FIELD><,></TO_KEY_SEGMENT_LOOP>)
 			</IF ONE_TO_MANY>
 

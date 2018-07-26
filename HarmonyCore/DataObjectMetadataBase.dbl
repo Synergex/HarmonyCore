@@ -46,6 +46,51 @@ namespace Harmony.Core
 		proc
 		endmethod
 
+		protected method KeyValueHelper, boolean
+			inout destination, a
+			partName, @string
+			parts, @Dictionary<string, Object>
+		proc
+			data valueObject, @object
+			if(parts.TryGetValue(partName, valueObject)) then
+			begin
+				data targetField = GetFieldByName(partName)
+				if(valueObject .is. @i) then
+				begin
+					if(targetField.DataType == FieldDataType.DecimalField || targetField.DataType == FieldDataType.ImpliedDecimal) then
+					begin
+						^d(destination) = (@i)valueObject
+					end
+					else
+					begin
+						destination = ^a((@i)valueObject)
+					end
+				end
+				else if(valueObject .is. @VariantDesc) then
+				begin
+					data destDesc, @VariantDesc
+					destDesc = (@VariantDesc)destination
+					destDesc.Store((@VariantDesc)valueObject)
+				end
+				else ;;this might need to deal with numeric values differently
+				begin
+					if(targetField.DataType == FieldDataType.DecimalField || targetField.DataType == FieldDataType.ImpliedDecimal) then
+					begin
+						^d(destination) = %implied(valueObject.ToString())
+					end
+					else
+					begin
+						destination = valueObject.ToString()
+					end
+				end
+
+				mreturn true
+			end
+			else
+				mreturn false
+		endmethod
+
+
 
 		;;this returns null if there is no key, fully satsified by the supplied set of key names
 		public method GetKeyNumberByFieldNames, short?

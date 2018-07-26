@@ -21,8 +21,9 @@ namespace Harmony.Core.FileIO
 		public static method EnsureRead, boolean
 			result, FileAccessResults
 		proc
-			;;todo identify key not same
-			if(result != FileAccessResults.Success) then
+			if(result == FileAccessResults.EndOFDataFile || result == FileAccessResults.RecordNotFound) then
+				mreturn false
+			else if(result != FileAccessResults.Success) then
 				throw new Exception(result.ToString())
 			else
 				mreturn true

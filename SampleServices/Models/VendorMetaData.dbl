@@ -133,6 +133,10 @@ namespace SampleServices.Models
 		public override method FormatKeyLiteral, a
 			required in keyNumber, int
 			required in parts, @Dictionary<String, Object>
+			literal
+				dZero, d6, 0
+			endliteral
+
 		proc
 			using keyNumber select
 			(0),
@@ -147,9 +151,11 @@ namespace SampleServices.Models
 			begin
 				data keyValue, a7
 				data startPos = 1
-				keyValue(startPos:1) = parts["VendRtype"].ToString()
+				if(!KeyValueHelper(keyValue(startPos:1), "VendRtype", parts))
+					mreturn keyValue(1:startPos - 1)
 				startPos += 1
-				keyValue(startPos:6) = parts["VendKey"].ToString()
+				if(!KeyValueHelper(keyValue(startPos:6), "VendKey", parts))
+					mreturn keyValue(1:startPos - 1)
 				startPos += 6
 				mreturn keyValue
 			end

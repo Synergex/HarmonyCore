@@ -158,7 +158,7 @@ namespace Harmony.Core.FileIO.Queryable
 			data resultList = new List<T>()
 			disposable data fileIO = dataObjectProvider.GetFileIO<T>()
 			fileIO.KeyReference = mSimpleKeyNumber
-			FileIOErrorHelper.EnsureSuccess(fileIO.FindRecord(GetKeyLiteral(parameters)))	
+			FileIOErrorHelper.EnsureSuccess(fileIO.FindRecord(mSimpleKeyNumber, GetKeyLiteral(parameters)))	
 			data result, T
 			while(FileIOErrorHelper.EnsureRead(fileIO.ReadNextRecord(result)))
 			begin
@@ -175,7 +175,7 @@ namespace Harmony.Core.FileIO.Queryable
 		proc
 			disposable data fileIO = dataObjectProvider.GetFileIO<T>()
 			fileIO.KeyReference = mSimpleKeyNumber
-			FileIOErrorHelper.EnsureSuccess(fileIO.FindRecord(GetKeyLiteral(parameters)))	
+			FileIOErrorHelper.EnsureSuccess(fileIO.FindRecord(mSimpleKeyNumber, GetKeyLiteral(parameters)))	
 			data result, T
 			if(FileIOErrorHelper.EnsureRead(fileIO.ReadRecord(result))) then
 				mreturn result
@@ -284,7 +284,7 @@ namespace Harmony.Core.FileIO.Queryable
 			begin
 				data allParams = new Dictionary<string, Object>()
 				GetWhereFieldValues(params, allParams, mWhereParts[0])
-				mainTypeBuffer.Metadata.FormatKeyLiteral(mSimpleKeyNumber, allParams)
+				mreturn mainTypeBuffer.Metadata.FormatKeyLiteral(mSimpleKeyNumber, allParams)
 			end
 		endmethod
 
@@ -350,7 +350,7 @@ namespace Harmony.Core.FileIO.Queryable
 				end
 				else if(right .is. @ParameterReference) then
 				begin
-					values.Add(((@FieldReference)left).FieldDef.LanguageName, params[((@ParameterReference)params).Name])
+					values.Add(((@FieldReference)left).FieldDef.LanguageName, params[((@ParameterReference)right).Name])
 				end
 				else
 				begin
@@ -361,7 +361,7 @@ namespace Harmony.Core.FileIO.Queryable
 			begin
 				if(right .is. @FieldReference) then
 				begin
-					values.Add(((@FieldReference)right).FieldDef.LanguageName, left)
+					values.Add(((@FieldReference)right).FieldDef.LanguageName, params[((@ParameterReference)left).Name])
 				end
 				else
 				begin
