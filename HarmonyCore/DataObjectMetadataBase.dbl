@@ -46,7 +46,7 @@ namespace Harmony.Core
 		proc
 		endmethod
 
-		protected method KeyValueHelper, boolean
+		protected method KeyValueHelper, int
 			inout destination, a
 			partName, @string
 			parts, @Dictionary<string, Object>
@@ -54,43 +54,64 @@ namespace Harmony.Core
 			data valueObject, @object
 			if(parts.TryGetValue(partName, valueObject)) then
 			begin
-				data targetField = GetFieldByName(partName)
-				if(valueObject .is. @i) then
-				begin
-					if(targetField.DataType == FieldDataType.DecimalField || targetField.DataType == FieldDataType.ImpliedDecimal) then
-					begin
-						^d(destination) = (@i)valueObject
-					end
-					else
-					begin
-						destination = ^a((@i)valueObject)
-					end
-				end
-				else if(valueObject .is. @VariantDesc) then
-				begin
-					data destDesc, @VariantDesc
-					destDesc = (@VariantDesc)destination
-					destDesc.Store((@VariantDesc)valueObject)
-				end
-				else ;;this might need to deal with numeric values differently
-				begin
-					if(targetField.DataType == FieldDataType.DecimalField || targetField.DataType == FieldDataType.ImpliedDecimal) then
-					begin
-						^d(destination) = %implied(valueObject.ToString())
-					end
-					else
-					begin
-						destination = valueObject.ToString()
-					end
-				end
-
-				mreturn true
+				data valueObjectString = valueObject.ToString()
+				destination = valueObjectString
+				mreturn valueObjectString.Length
 			end
 			else
-				mreturn false
+				mreturn 0
+		endmethod
+
+		protected method KeyValueHelper, int
+			inout destination, d
+			partName, @string
+			parts, @Dictionary<string, Object>
+		proc
+			data valueObject, @object
+			if(parts.TryGetValue(partName, valueObject)) then
+			begin
+				destination = %implied(valueObject.ToString())
+				mreturn ^size(destination)
+			end
+			else
+				mreturn 0
 		endmethod
 
 
+		protected method KeyValueHelper, int
+			inout destination, i
+			partName, @string
+			parts, @Dictionary<string, Object>
+		proc
+			data valueObject, @object
+			if(parts.TryGetValue(partName, valueObject)) then
+			begin
+				if(valueObject .is. @i) then
+					destination = (@i)valueObject
+				else if(valueObject .is. int) then
+					destination = (int)valueObject
+				else
+					destination = %integer(valueObject.ToString())
+				mreturn ^size(destination)
+			end
+			else
+				mreturn 0
+		endmethod
+
+		protected method KeyValueHelper, int
+			inout destination, id
+			partName, @string
+			parts, @Dictionary<string, Object>
+		proc
+			data valueObject, @object
+			if(parts.TryGetValue(partName, valueObject)) then
+			begin
+				destination = %implied(valueObject.ToString())
+				mreturn ^size(destination)
+			end
+			else
+				mreturn 0
+		endmethod
 
 		;;this returns null if there is no key, fully satsified by the supplied set of key names
 		public method GetKeyNumberByFieldNames, short?
