@@ -13,7 +13,7 @@ rem Generate a Web API / OData CRUD environment
 set STRUCTURES=CUSTOMERS ORDERS PLANTS VENDORS
 
 rem Generate model classes
-codegen -s %STRUCTURES%     -t DataObject -n %PROJECT%.Models -o %PROJECT%\Models %OPTS%
+codegen -s %STRUCTURES%     -t ODataModel -n %PROJECT%.Models -o %PROJECT%\Models %OPTS%
 
 rem Generate controller classes
 codegen -s %STRUCTURES%     -t ODataController -n %PROJECT%.Controllers -o %PROJECT%\Controllers %OPTS% -ut MODELS_NAMESPACE=%PROJECT%.Models DBCONTEXT_NAMESPACE=%PROJECT%
@@ -25,7 +25,7 @@ rem Generate unit tests
 codegen -s %STRUCTURES%     -t ODataUnitTests -n %PROJECT%.Test -o %PROJECT%.Test -ut SERVICES_NAMESPACE=%PROJECT% %OPTS%
 
 rem Generate OData model classes for client side use
-codegen -s %STRUCTURES%     -t ODataModel -n %PROJECT%.Test.Models -o %PROJECT%.Test\Models %OPTS%
+codegen -s %STRUCTURES%     -t ODataClientModel -n %PROJECT%.Test.Models -o %PROJECT%.Test\Models %OPTS%
 
 rem Generate Postman Tests
 codegen -s %STRUCTURES% -ms -t ODataPostManTests -o .\ %OPTS%
@@ -40,11 +40,8 @@ rem structures associated with each file.
 
 set FILE_STRUCTURES=CUSTOMERS ORDERS PLANTS
 
-rem Generate the test environment class
-codegen -s %FILE_STRUCTURES% -ms -t ODataTestEnvironment -n %PROJECT% -o %PROJECT% %OPTS%
-
-rem Generate the unit test environment class
-codegen -s %FILE_STRUCTURES% -ms -t ODataUnitTestEnvironment -n %PROJECT%.Test -o %PROJECT%.Test -ut SERVICES_NAMESPACE=%PROJECT% %OPTS%
+rem Generate the test environment and unit test environment classes
+codegen -s %FILE_STRUCTURES% -ms -t ODataTestEnvironment ODataUnitTestEnvironment -n %PROJECT%.Test -o %PROJECT%.Test -ut SERVICES_NAMESPACE=%PROJECT% MODELS_NAMESPACE=%PROJECT%.Models %OPTS%
 
 rem ================================================================================================================================
 rem Generate code for the TraditionalBridge sample environment
@@ -55,7 +52,7 @@ set SMC_INTERFACE=SampleXfplEnv
 set XFPL_SMCPATH=
 
 rem Generate model classes
-codegen -s %STRUCTURES%     -t DataObject -n %PROJECT%.Models -o %PROJECT%\Models %OPTS%
+codegen -s %STRUCTURES% -t DataObject -n %PROJECT%.Models -o %PROJECT%\Models %OPTS%
 
 rem Generate method dispatcher classes
 codegen -smc SampleXfplEnvironment\smc.xml -interface %SMC_INTERFACE% -t InterfaceDispatcher        -n %PROJECT% -o %PROJECT% %OPTS% -ut MODELS_NAMESPACE=%PROJECT%.Models
