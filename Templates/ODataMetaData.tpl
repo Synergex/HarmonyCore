@@ -3,11 +3,11 @@
 <REQUIRES_CODEGEN_VERSION>5.3.3</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
-;// Title:       DataObjectMetaData.tpl
+;// Title:       ODataMetaData.tpl
 ;//
 ;// Type:        CodeGen Template
 ;//
-;// Description: Template to define meta data associated with a data object
+;// Description: Template to define meta data associated with a data model
 ;//
 ;// Copyright (c) 2012, Synergex International, Inc. All rights reserved.
 ;//
@@ -39,7 +39,7 @@
 ;;
 ;; Type:        Class
 ;;
-;; Description: Defines meta data associated with a data object <StructureNoplural>.
+;; Description: Defines meta data associated with a <StructureNoplural> model.
 ;;
 ;;*****************************************************************************
 ;; WARNING

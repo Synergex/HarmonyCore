@@ -13,7 +13,7 @@ rem Generate a Web API / OData CRUD environment
 set STRUCTURES=CUSTOMERS ORDERS PLANTS VENDORS
 
 rem Generate model classes
-codegen -s %STRUCTURES%     -t DataObject -n %PROJECT%.Models -o %PROJECT%\Models %OPTS%
+codegen -s %STRUCTURES%     -t ODataModel -n %PROJECT%.Models -o %PROJECT%\Models %OPTS%
 
 rem Generate controller classes
 codegen -s %STRUCTURES%     -t ODataController -n %PROJECT%.Controllers -o %PROJECT%\Controllers %OPTS% -ut MODELS_NAMESPACE=%PROJECT%.Models DBCONTEXT_NAMESPACE=%PROJECT%
@@ -25,7 +25,7 @@ rem Generate unit tests
 codegen -s %STRUCTURES%     -t ODataUnitTests -n %PROJECT%.Test -o %PROJECT%.Test -ut SERVICES_NAMESPACE=%PROJECT% %OPTS%
 
 rem Generate OData model classes for client side use
-codegen -s %STRUCTURES%     -t ODataModel -n %PROJECT%.Test.Models -o %PROJECT%.Test\Models %OPTS%
+codegen -s %STRUCTURES%     -t ODataClientModel -n %PROJECT%.Test.Models -o %PROJECT%.Test\Models %OPTS%
 
 rem Generate Postman Tests
 codegen -s %STRUCTURES% -ms -t ODataPostManTests -o .\ %OPTS%
