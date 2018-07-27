@@ -98,11 +98,18 @@ namespace <NAMESPACE>
 		proc
 			RPSStructureName = "<STRUCTURE_NOALIAS>"
 			RPSStructureSize = ^size(str<StructureNoplural>)
+;//
+;//	Add definitions for the structures fields
+;//
+
 			<FIELD_LOOP>
 			<IF CUSTOM_NOT_HARMONY_EXCLUDE>
 			AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false)
 			</IF CUSTOM_NOT_HARMONY_EXCLUDE>
             </FIELD_LOOP>
+;//
+;//	Add definitions for the properties related to literal field segments
+;//
 			<IF STRUCTURE_RELATIONS>
 			<RELATION_LOOP>
 			<COUNTER_1_RESET>
@@ -113,6 +120,9 @@ namespace <NAMESPACE>
 			</FROM_KEY_SEGMENT_LOOP>
 			</RELATION_LOOP>
 			</IF STRUCTURE_RELATIONS>
+;//
+;//	Declare all of the fields associated with key segments
+;//
 
 			<KEY_LOOP>
 			<SEGMENT_LOOP>

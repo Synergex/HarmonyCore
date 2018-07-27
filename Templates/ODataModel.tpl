@@ -126,77 +126,93 @@ namespace <NAMESPACE>
 
 .region "Attributes of this entity"
 
-		<COUNTER_1_RESET>
-        <FIELD_LOOP>
-		<IF CUSTOM_NOT_HARMONY_EXCLUDE>
+<COUNTER_1_RESET>
+<FIELD_LOOP>
+<IF CUSTOM_NOT_HARMONY_EXCLUDE>
 		;;; <summary>
 		;;; <FIELD_DESC>
 		;;; </summary>
-		<IF PKSEGMENT>
+	<IF PKSEGMENT>
 		{Key}
-		</IF PKSEGMENT>
-		<IF REQUIRED>
+	</IF PKSEGMENT>
+	<IF REQUIRED>
 		{Required(ErrorMessage="<FIELD_DESC> is required. ")}
-		</IF REQUIRED>
-		<IF ALPHA>
+	</IF REQUIRED>
+	<IF ALPHA>
 		{StringLength(<FIELD_SIZE>, ErrorMessage="<FIELD_DESC> cannot exceed <FIELD_SIZE> characters. ")}
-		</IF ALPHA>
-		<COUNTER_1_INCREMENT>
+	</IF ALPHA>
+	<COUNTER_1_INCREMENT>
+	<IF CUSTOM_HARMONY_AS_STRING>
+		public property <FieldSqlname>, String
+	<ELSE>
 		public property <FieldSqlname>, <FIELD_CSTYPE>
+	</IF CUSTOM_HARMONY_AS_STRING>
 			method get
 			proc
-				<IF ALPHA>
+	<IF ALPHA>
 				mreturn (<FIELD_CSTYPE>)SynergyAlphaConverter.Convert(mSynergyData.<Field_name>, ^null, ^null, ^null)
-				</IF ALPHA>
-				<IF DATE>
+	</IF ALPHA>
+	<IF DATE>
 				mreturn (<FIELD_CSTYPE>)SynergyDecimalDateConverter.Convert(mSynergyData.<Field_name>, ^null, ^null, ^null)
-				</IF DATE>
-				<IF TIME>
-				<IF TIME_HHMM>
+	</IF DATE>
+	<IF TIME_HHMM>
 				mreturn Convert.ToDateTime(%string(mSynergyData.<Field_name>,"XX:XX"))
-				</IF TIME_HHMM>
-				<IF TIME_HHMMSS>
+	</IF TIME_HHMM>
+	<IF TIME_HHMMSS>
 				mreturn Convert.ToDateTime(%string(mSynergyData.<Field_name>,"XX:XX:XX"))
-				</IF TIME_HHMMSS>
-				</IF TIME>
-				<IF DECIMAL>
-				<IF PRECISION>
+	</IF TIME_HHMMSS>
+	<IF DECIMAL>
+		<IF CUSTOM_HARMONY_AS_STRING>
+			<IF PRECISION>
+				mreturn %string(SynergyImpliedDecimalConverter.Convert(mSynergyData.<Field_name>, ^null, "DECIMALPLACES#<FIELD_PRECISION>", ^null),"<FIELD_FORMATSTRING>")
+			<ELSE>
+				mreturn %string(mSynergyData.<Field_name>,"<FIELD_FORMATSTRING>")
+			</IF PRECISION>
+		<ELSE>
+			<IF PRECISION>
 				mreturn (<FIELD_CSTYPE>)SynergyImpliedDecimalConverter.Convert(mSynergyData.<Field_name>, ^null, "DECIMALPLACES#<FIELD_PRECISION>", ^null)
-				<ELSE>
+			<ELSE>
 				mreturn (<FIELD_CSTYPE>)mSynergyData.<Field_name>
-				</IF PRECISION>
-				</IF DECIMAL>
-				<IF INTEGER>
+			</IF PRECISION>
+		</IF CUSTOM_HARMONY_AS_STRING>
+	</IF DECIMAL>
+	<IF INTEGER>
 				mreturn (<FIELD_CSTYPE>)mSynergyData.<Field_name>
-				</IF INTEGER>
+	</IF INTEGER>
             endmethod
 			method set
 			proc
-				<IF ALPHA>
+	<IF ALPHA>
 				mSynergyData.<Field_name> = (<FIELD_TYPE>)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
-				</IF ALPHA>
-				<IF DATE>
+	</IF ALPHA>
+	<IF DATE>
 				mSynergyData.<Field_name> = (<FIELD_TYPE>)SynergyDecimalDateConverter.ConvertBack(value, ^null, ^null, ^null)
-				</IF DATE>
-				<IF TIME>
-				<IF TIME_HHMM>
+	</IF DATE>
+	<IF TIME_HHMM>
 				mSynergyData.<Field_name> = (value.Hour * 100) + value.Minute
-				</IF TIME_HHMM>
-				<IF TIME_HHMMSS>
+	</IF TIME_HHMM>
+	<IF TIME_HHMMSS>
 				mSynergyData.<Field_name> = (value.Hour * 10000) + (value.Minute * 100) + value.Second
-				</IF TIME_HHMMSS>
-				</IF TIME>
-				<IF DECIMAL>
+	</IF TIME_HHMMSS>
+	<IF DECIMAL>
+		<IF CUSTOM_HARMONY_AS_STRING>
+			<IF PRECISION>
+				mSynergyData.<Field_name> = SynergyImpliedDecimalConverter.UnformatString(value,"<FIELD_FORMATSTRING>")
+			<ELSE>
+				mSynergyData.<Field_name> = SynergyDecimalConverter.UnformatString(value,"<FIELD_FORMATSTRING>")
+			</IF PRECISION>
+		<ELSE>
 				mSynergyData.<Field_name> = value
-				</IF DECIMAL>
-				<IF INTEGER>
+		</IF CUSTOM_HARMONY_AS_STRING>
+	</IF DECIMAL>
+	<IF INTEGER>
 				mSynergyData.<Field_name> = value
-				</IF INTEGER>
+	</IF INTEGER>
 			endmethod
 		endproperty
 
-		</IF CUSTOM_NOT_HARMONY_EXCLUDE>
-        </FIELD_LOOP>
+</IF CUSTOM_NOT_HARMONY_EXCLUDE>
+</FIELD_LOOP>
 .endregion
 
 .define INCLUDE_RELATIONS
