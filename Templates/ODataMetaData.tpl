@@ -99,9 +99,9 @@ namespace <NAMESPACE>
 			RPSStructureName = "<STRUCTURE_NOALIAS>"
 			RPSStructureSize = ^size(str<StructureNoplural>)
 			<FIELD_LOOP>
-			<IF CUSTOM_NOT_SYMPHONY_ARRAY_FIELD>
+			<IF CUSTOM_NOT_HARMONY_EXCLUDE>
 			AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false)
-			</IF>
+			</IF CUSTOM_NOT_HARMONY_EXCLUDE>
             </FIELD_LOOP>
 			<IF STRUCTURE_RELATIONS>
 			<RELATION_LOOP>

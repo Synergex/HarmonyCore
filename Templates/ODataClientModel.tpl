@@ -87,13 +87,13 @@ namespace <NAMESPACE>
 		public readwrite property Type, string
 
         <FIELD_LOOP>
-		<IF CUSTOM_NOT_SYMPHONY_ARRAY_FIELD>
+		<IF CUSTOM_NOT_HARMONY_EXCLUDE>
 		;;; <summary>
 		;;; <FIELD_DESC>
 		;;; </summary>
 		public readwrite property <FieldSqlname>, <FIELD_CSTYPE>
 
-		</IF CUSTOM_NOT_SYMPHONY_ARRAY_FIELD>
+		</IF CUSTOM_NOT_HARMONY_EXCLUDE>
         </FIELD_LOOP>
 	endclass
 

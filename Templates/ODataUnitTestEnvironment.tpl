@@ -90,7 +90,7 @@ import System.Text
 
 import Harmony.Core.EF.Extensions
 import <SERVICES_NAMESPACE>
-import <NODELS_NAMESPACE>
+import <MODELS_NAMESPACE>
 
 main UnitTestEnvironment
 
