@@ -5,6 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Dynamic.Core;
 using System.Linq.Expressions;
 using System.Text;
 
@@ -13,31 +14,21 @@ namespace Harmony.Core.EF.Extensions
     public static class HarmonyDbSetExtensions
     {
         static ConcurrentDictionary<Type, ConcurrentDictionary<Type, object>> _compiledFindQueryLookup = new ConcurrentDictionary<Type, ConcurrentDictionary<Type, object>>();
-        static ConcurrentDictionary<Type, ConcurrentDictionary<Type, AlternateKeyQuerys>> _compiledAltQueryLookup = new ConcurrentDictionary<Type, ConcurrentDictionary<Type, AlternateKeyQuerys>>();
-        class AlternateKeyQuerys
-        {
-            public object OneParam { get; set; }
-            public object TwoParam { get; set; }
-            public object ThreeParam { get; set; }
-            public object FourParam { get; set; }
-            public object FiveParam { get; set; }
-            public object SixParam { get; set; }
-            public object SevenParam { get; set; }
-            public object EightParam { get; set; }
-        }
-
-        public static T FindCompiled<C, K, T>(this DbSet<T> thisp, C context, K keyValue) 
+        static ConcurrentDictionary<Type, ConcurrentDictionary<string, object>> _compiledFirstOrDefaultLookup = new ConcurrentDictionary<Type, ConcurrentDictionary<string, object>>();
+        static ParsingConfig DefaultParseConfig = new ParsingConfig();
+        public static T FindCompiled<K, T>(this DbSet<T> thisp, K keyValue) 
             where T : class
-            where C : DbContext
         {
+            var context = ((IInfrastructure<IServiceProvider>)thisp).Instance.GetService(typeof(DbContext)) as DbContext;
+            var contextType = context.GetType();
             var entityType = context.Model.FindEntityType(typeof(T));
             var primaryKey = entityType.FindPrimaryKey();
             var primaryKeyName = primaryKey.Properties.First().Name;
-            var compiledQueryLookup = _compiledFindQueryLookup.GetOrAdd(typeof(C), (ty) => new ConcurrentDictionary<Type, object>());
+            var compiledQueryLookup = _compiledFindQueryLookup.GetOrAdd(contextType, (ty) => new ConcurrentDictionary<Type, object>());
             var compiledQuery = compiledQueryLookup.GetOrAdd(typeof(T), (ty) =>
             {
                 var keyParameter = Expression.Parameter(typeof(K), "keyValue");
-                var contextParameter = Expression.Parameter(typeof(C), "context");
+                var contextParameter = Expression.Parameter(typeof(DbContext), "context");
                 var entityParameter = Expression.Parameter(typeof(T), "entity");
                 Expression whereClause = Expression.Equal(
                         Expression.Property(entityParameter, primaryKeyName),
@@ -46,9 +37,9 @@ namespace Harmony.Core.EF.Extensions
                 var whereLambda = Expression.Lambda<Func<T, bool>>(whereClause, entityParameter);
                 var whereCall = Expression.Call(typeof(System.Linq.Queryable), "Where", new Type[] { typeof(T) }, querySet, whereLambda);
                 var firstOrDefaultResult = Expression.Call(typeof(System.Linq.Queryable), "FirstOrDefault", new Type[] { typeof(T) }, whereCall);
-                var resultLambda = Expression.Lambda<Func<C, K, T>>(firstOrDefaultResult, contextParameter, keyParameter);
+                var resultLambda = Expression.Lambda<Func<DbContext, K, T>>(firstOrDefaultResult, contextParameter, keyParameter);
                 return Microsoft.EntityFrameworkCore.EF.CompileQuery(resultLambda);
-            }) as Func<C, K, T>;
+            }) as Func<DbContext, K, T>;
 
             //Precompile this func seperately
             //if (context.ChangeTracker.QueryTrackingBehavior != QueryTrackingBehavior.NoTracking)
@@ -64,6 +55,113 @@ namespace Harmony.Core.EF.Extensions
             // Otherwise execute the query against the database.
             return compiledQuery(context, keyValue);
         }
+
+        public static T FirstOrDefault<T>(this DbSet<T> thisp, string expression, params object[] parameters)
+            where T : class
+        {
+            if (parameters.Length > 5)
+            {
+                return thisp.FirstOrDefault(expression, parameters);
+            }
+            else
+            {
+                var context = ((IInfrastructure<IServiceProvider>)thisp).Instance.GetService(typeof(DbContext)) as DbContext;
+                var contextType = context.GetType();
+                var compiledQueryLookup = _compiledFirstOrDefaultLookup.GetOrAdd(contextType, (ty) => new ConcurrentDictionary<string, object>());
+                var compiledQuery = compiledQueryLookup.GetOrAdd(expression, (ex) =>
+                {
+                    var contextParameter = Expression.Parameter(typeof(DbContext), "context");
+                    var linqParameters = new ParameterExpression[parameters.Length + 1];
+                    var exprLinqParameters = new ParameterExpression[parameters.Length];
+                    linqParameters[0] = contextParameter;
+                    for (int i = 1; i < linqParameters.Length; i++)
+                    {
+                        exprLinqParameters[i - 1] = linqParameters[i] = Expression.Parameter(typeof(object));
+                    }
+
+                    var querySet = Expression.Call(contextParameter, typeof(DbContext).GetMethod("Set").MakeGenericMethod(new Type[] { typeof(T) }));
+                    var whereLambda = DynamicExpressionParser.ParseLambda<T, bool>(DefaultParseConfig, false, expression, exprLinqParameters);
+                    var firstOrDefaultResult = Expression.Call(typeof(System.Linq.Queryable), "FirstOrDefault", new Type[] { typeof(T) }, querySet, whereLambda);
+
+                    switch (parameters.Length)
+                    {
+                        case 0:
+                            var resultLambda = Expression.Lambda<Func<DbContext, T>>(firstOrDefaultResult, linqParameters);
+                            return Microsoft.EntityFrameworkCore.EF.CompileQuery(resultLambda);
+                        case 1:
+                            var resultLambda1 = Expression.Lambda<Func<DbContext, object, T>>(firstOrDefaultResult, linqParameters);
+                            return Microsoft.EntityFrameworkCore.EF.CompileQuery(resultLambda1);
+                        case 2:
+                            var resultLambda2 = Expression.Lambda<Func<DbContext, object, object, T>>(firstOrDefaultResult, linqParameters);
+                            return Microsoft.EntityFrameworkCore.EF.CompileQuery(resultLambda2);
+                        case 3:
+                            var resultLambda3 = Expression.Lambda<Func<DbContext, object, object, object, T>>(firstOrDefaultResult, linqParameters);
+                            return Microsoft.EntityFrameworkCore.EF.CompileQuery(resultLambda3);
+                        case 4:
+                            var resultLambda4 = Expression.Lambda<Func<DbContext, object, object, object, object, T>>(firstOrDefaultResult, linqParameters);
+                            return Microsoft.EntityFrameworkCore.EF.CompileQuery(resultLambda4);
+                        case 5:
+                            var resultLambda5 = Expression.Lambda<Func<DbContext, object, object, object, object, object, T>>(firstOrDefaultResult, linqParameters);
+                            return Microsoft.EntityFrameworkCore.EF.CompileQuery(resultLambda5);
+                        default:
+                            throw new NotImplementedException();
+                    }
+                });
+
+                switch (parameters.Length)
+                {
+                    case 0:
+                        return ((Func<DbContext, T>)compiledQuery)(context);
+                    case 1:
+                        return ((Func<DbContext, object, T>)compiledQuery)(context, parameters[0]);
+                    case 2:
+                        return ((Func<DbContext, object, object, T>)compiledQuery)(context, parameters[0], parameters[1]);
+                    case 3:
+                        return ((Func<DbContext, object, object, object, T>)compiledQuery)(context, parameters[0], parameters[1], parameters[2]);
+                    case 4:
+                        return ((Func<DbContext, object, object, object, object, T>)compiledQuery)(context, parameters[0], parameters[1], parameters[2], parameters[3]);
+                    case 5:
+                        return ((Func<DbContext, object, object, object, object, object, T>)compiledQuery)(context, parameters[0], parameters[1], parameters[2], parameters[3], parameters[4]);
+                    default:
+                        throw new NotImplementedException();
+                }
+            }
+        }
+
+        //public static T FirstOrDefaultIncluding<T>(this DbSet<T> thisp, string expression, string[] include, params object[] parameters)
+        //    where T : class
+        //{
+
+        //    var linqParameters = new ParameterExpression[parameters.Length];
+        //    for (int i = 0; i < linqParameters.Length; i++)
+        //    {
+        //        linqParameters[i] = Expression.Parameter(parameters[i].GetType());
+        //    }
+        //    var context = ((IInfrastructure<IServiceProvider>)thisp).Instance.GetService(typeof(DbContext)) as DbContext;
+        //    var contextType = context.GetType();
+        //    var keyParameter = Expression.Parameter(typeof(K), "keyValue");
+        //    var contextParameter = Expression.Parameter(contextType, "context");
+        //    var entityParameter = Expression.Parameter(typeof(T), "entity");
+        //    var querySet = Expression.Call(contextParameter, typeof(DbContext).GetMethod("Set").MakeGenericMethod(new Type[] { typeof(T) }));
+        //    var whereLambda = DynamicExpressionParser.ParseLambda<T>(DefaultParseConfig, false, expression, entityParameter);
+        //    var firstOrDefaultResult = Expression.Call(typeof(System.Linq.Queryable), "FirstOrDefault", new Type[] { typeof(T) }, querySet, whereLambda);
+        //    var resultLambda = Expression.Lambda(firstOrDefaultResult, contextParameter, keyParameter);
+        //    return Microsoft.EntityFrameworkCore.EF.CompileQuery(resultLambda);
+        //}
+
+        //public static IEnumerable<T> Where<T>(this DbSet<T> thisp, string expression, params object[] parameters)
+        //    where T : class
+        //{
+        //    var context = ((IInfrastructure<IServiceProvider>)thisp).Instance.GetService(typeof(DbContext)) as DbContext;
+        //    var contextType = context.GetType();
+        //}
+
+        //public static IEnumerable<T> WhereIncluding<T>(this DbSet<T> thisp, string expression, string[] include, params object[] parameters)
+        //    where T : class
+        //{
+        //    var context = ((IInfrastructure<IServiceProvider>)thisp).Instance.GetService(typeof(DbContext)) as DbContext;
+        //    var contextType = context.GetType();
+        //}
 
         public static T FindAlternate<T>(this DbSet<T> thisp, string keyName, object keyValue) where T : class
         {

@@ -53,7 +53,6 @@ import SampleServices
 import SampleServices.Models
 import System.Linq
 import Harmony.Core.EF.Extensions
-
 main UnitTestEnvironment
 proc
 	;;Configure the environment
@@ -78,10 +77,12 @@ proc
 		data i = 0
 		for i from 0 thru 10000 by 1
 		begin
-			dbCon.Customers.FindCompiled(dbCon, TestContext.CustomerID)
-			dbCon.Vendors.FindCompiled(dbCon, TestContext.VendorID)
-			dbCon.Plants.FindCompiled(dbCon, TestContext.PlantID)
-			dbCon.Orders.FindCompiled(dbCon, TestContext.OrderID)
+			dbCon.Customers.FindCompiled(TestContext.CustomerID)
+			dbCon.Vendors.FindCompiled(TestContext.VendorID)
+			dbCon.Plants.FindCompiled(TestContext.PlantID)
+			dbCon.Orders.FindCompiled(TestContext.OrderID) 
+			;HarmonyDbSetExtensions.FirstOrDefault(dbCon.Customers, "CustCity == @0", new Object[#] { "Glendale" })
+			data firstCustomer = dbCon.Customers.FirstOrDefault("CustCity == @0", "Glendale")
 		end
 		data endTime = DateTime.Now
 		data timeDiff = endTime - startTime
