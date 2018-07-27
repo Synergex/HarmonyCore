@@ -40,11 +40,8 @@ rem structures associated with each file.
 
 set FILE_STRUCTURES=CUSTOMERS ORDERS PLANTS
 
-rem Generate the test environment class
-codegen -s %FILE_STRUCTURES% -ms -t ODataTestEnvironment -n %PROJECT% -o %PROJECT% %OPTS%
-
-rem Generate the unit test environment class
-codegen -s %FILE_STRUCTURES% -ms -t ODataUnitTestEnvironment -n %PROJECT%.Test -o %PROJECT%.Test -ut SERVICES_NAMESPACE=%PROJECT% %OPTS%
+rem Generate the test environment and unit test environment classes
+codegen -s %FILE_STRUCTURES% -ms -t ODataTestEnvironment ODataUnitTestEnvironment -n %PROJECT%.Test -o %PROJECT%.Test -ut SERVICES_NAMESPACE=%PROJECT% MODELS_NAMESPACE=%PROJECT%.Models %OPTS%
 
 rem ================================================================================================================================
 rem Generate code for the TraditionalBridge sample environment
@@ -55,7 +52,7 @@ set SMC_INTERFACE=SampleXfplEnv
 set XFPL_SMCPATH=
 
 rem Generate model classes
-codegen -s %STRUCTURES%     -t DataObject -n %PROJECT%.Models -o %PROJECT%\Models %OPTS%
+codegen -s %STRUCTURES% -t DataObject -n %PROJECT%.Models -o %PROJECT%\Models %OPTS%
 
 rem Generate method dispatcher classes
 codegen -smc SampleXfplEnvironment\smc.xml -interface %SMC_INTERFACE% -t InterfaceDispatcher        -n %PROJECT% -o %PROJECT% %OPTS% -ut MODELS_NAMESPACE=%PROJECT%.Models

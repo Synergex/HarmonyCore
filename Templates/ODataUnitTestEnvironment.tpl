@@ -1,5 +1,6 @@
 <CODEGEN_FILENAME>UnitTestEnvironment.dbl</CODEGEN_FILENAME>
 <REQUIRES_USERTOKEN>SERVICES_NAMESPACE</REQUIRES_USERTOKEN>
+<REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
 <REQUIRES_CODEGEN_VERSION>5.3.4</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
@@ -84,10 +85,15 @@ import Microsoft.AspNetCore.TestHost
 import Microsoft.VisualStudio.TestTools.UnitTesting
 import System.Collections.Generic
 import System.IO
+import System.Linq
 import System.Text
+
+import Harmony.Core.EF.Extensions
 import <SERVICES_NAMESPACE>
+import <NODELS_NAMESPACE>
 
 main UnitTestEnvironment
+
 proc
 	;;Configure the environment
 	UnitTestEnvironment.AssemblyInitialize(^null)
