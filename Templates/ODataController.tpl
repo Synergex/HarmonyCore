@@ -120,13 +120,14 @@ namespace <NAMESPACE>
 				mreturn BadRequest(ModelState)
 
 			;TODO: How do we support the auto-generation of primary key in this scenario?
-			data result = DBContext.<StructurePlural>.Add(a<StructureNoplural>)
+			DBContext.<StructurePlural>.Add(a<StructureNoplural>)
+
+			;TODO: Need to add a Location header
 
 			;;Commit the change
 			DBContext.SaveChanges()
 
-			;TODO: What about failures?
-			mreturn Ok(result)
+			mreturn Ok()
 
 		endmethod
 
@@ -151,19 +152,28 @@ namespace <NAMESPACE>
 			if (!ModelState.IsValid)
 				mreturn BadRequest(ModelState)
 
-			;;Ensure that the key values in the URI win over any data that may be in the data object
+			;;Ensure that the key values in the URI win over any data that may be in the model object
             <SEGMENT_LOOP>
             a<StructureNoplural>.<FieldSqlname> = a<SegmentName>
             </SEGMENT_LOOP>
 
 			;;Add the new <structureNoplural>
-			data result = DBContext.<StructurePlural>.Add(a<StructureNoplural>)
+			try
+			begin
+				DBContext.<StructurePlural>.Add(a<StructureNoplural>)
+			end
+			catch (e, @InvalidOperationException)
+			begin
+				mreturn BadRequest(e)
+			end
+			endtry
+
+			;TODO: Need to add a Location header
 
 			;;Commit the change
 			DBContext.SaveChanges()
 
-			;TODO: What about failures?
-			mreturn Ok(result)
+			mreturn NoContent()
 
 		endmethod
 		</PRIMARY_KEY>
@@ -277,7 +287,6 @@ namespace <NAMESPACE>
 			DBContext.SaveChanges()
 
 			;TODO: What about failures?
-			;mreturn Ok(result)
 			mreturn Ok()
 
 		endmethod
@@ -309,13 +318,12 @@ namespace <NAMESPACE>
 				mreturn NotFound()
 
 			;;Mark the <structureNoplural> for removal
-			data result = DBContext.<StructurePlural>.Remove(<structureNoplural>ToRemove)
+			DBContext.<StructurePlural>.Remove(<structureNoplural>ToRemove)
 
 			;;Commit the change
 			DBContext.SaveChanges()
 
-			;TODO: What about failures?
-			mreturn Ok(result)
+			mreturn Ok()
 
 		endmethod
 		</PRIMARY_KEY>

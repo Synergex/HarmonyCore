@@ -128,100 +128,119 @@ namespace <NAMESPACE>
 
 <COUNTER_1_RESET>
 <FIELD_LOOP>
-<IF CUSTOM_NOT_HARMONY_EXCLUDE>
+	<IF CUSTOM_NOT_HARMONY_EXCLUDE>
 		;;; <summary>
 		;;; <FIELD_DESC>
 		;;; </summary>
-	<IF PKSEGMENT>
+;//
+;// Field property attributes
+;//
+		<IF PKSEGMENT>
 		{Key}
-	</IF PKSEGMENT>
-	<IF REQUIRED>
+		</IF PKSEGMENT>
+		<IF REQUIRED>
 		{Required(ErrorMessage="<FIELD_DESC> is required. ")}
-	</IF REQUIRED>
-	<IF ALPHA>
+		</IF REQUIRED>
+		<IF ALPHA>
 		{StringLength(<FIELD_SIZE>, ErrorMessage="<FIELD_DESC> cannot exceed <FIELD_SIZE> characters. ")}
-	</IF ALPHA>
-	<COUNTER_1_INCREMENT>
-	<IF CUSTOM_HARMONY_AS_STRING>
+		</IF ALPHA>
+;//
+;// Field property
+;//
+		<COUNTER_1_INCREMENT>
+		<IF CUSTOM_HARMONY_AS_STRING>
 		public property <FieldSqlname>, String
-	<ELSE>
+		<ELSE>
 		public property <FieldSqlname>, <FIELD_CSTYPE>
-	</IF CUSTOM_HARMONY_AS_STRING>
+		</IF CUSTOM_HARMONY_AS_STRING>
+;//
+;// Field property get method
+;//
 			method get
 			proc
-	<IF ALPHA>
+		<IF ALPHA>
 				mreturn (<FIELD_CSTYPE>)SynergyAlphaConverter.Convert(mSynergyData.<Field_name>, ^null, ^null, ^null)
-	</IF ALPHA>
-	<IF DATE>
+		</IF ALPHA>
+		<IF DATE>
 				mreturn (<FIELD_CSTYPE>)SynergyDecimalDateConverter.Convert(mSynergyData.<Field_name>, ^null, ^null, ^null)
-	</IF DATE>
-	<IF TIME_HHMM>
+		</IF DATE>
+		<IF TIME_HHMM>
 				mreturn Convert.ToDateTime(%string(mSynergyData.<Field_name>,"XX:XX"))
-	</IF TIME_HHMM>
-	<IF TIME_HHMMSS>
+		</IF TIME_HHMM>
+		<IF TIME_HHMMSS>
 				mreturn Convert.ToDateTime(%string(mSynergyData.<Field_name>,"XX:XX:XX"))
-	</IF TIME_HHMMSS>
-	<IF DECIMAL>
-		<IF CUSTOM_HARMONY_AS_STRING>
-			<IF PRECISION>
+		</IF TIME_HHMMSS>
+		<IF DECIMAL>
+			<IF CUSTOM_HARMONY_AS_STRING>
+				<IF PRECISION>
 				mreturn %string(SynergyImpliedDecimalConverter.Convert(mSynergyData.<Field_name>, ^null, "DECIMALPLACES#<FIELD_PRECISION>", ^null),"<FIELD_FORMATSTRING>")
-			<ELSE>
+				<ELSE>
 				mreturn %string(mSynergyData.<Field_name>,"<FIELD_FORMATSTRING>")
-			</IF PRECISION>
-		<ELSE>
-			<IF PRECISION>
-				mreturn (<FIELD_CSTYPE>)SynergyImpliedDecimalConverter.Convert(mSynergyData.<Field_name>, ^null, "DECIMALPLACES#<FIELD_PRECISION>", ^null)
+				</IF PRECISION>
 			<ELSE>
+				<IF PRECISION>
+				mreturn (<FIELD_CSTYPE>)SynergyImpliedDecimalConverter.Convert(mSynergyData.<Field_name>, ^null, "DECIMALPLACES#<FIELD_PRECISION>", ^null)
+				<ELSE>
 				mreturn (<FIELD_CSTYPE>)mSynergyData.<Field_name>
-			</IF PRECISION>
-		</IF CUSTOM_HARMONY_AS_STRING>
-	</IF DECIMAL>
-	<IF INTEGER>
+				</IF PRECISION>
+			</IF CUSTOM_HARMONY_AS_STRING>
+		</IF DECIMAL>
+		<IF INTEGER>
 				mreturn (<FIELD_CSTYPE>)mSynergyData.<Field_name>
-	</IF INTEGER>
+		</IF INTEGER>
             endmethod
+;//
+;// Field property set method
+;//
 			method set
 			proc
-	<IF ALPHA>
+		<IF ALPHA>
 				mSynergyData.<Field_name> = (<FIELD_TYPE>)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
-	</IF ALPHA>
-	<IF DATE>
+		</IF ALPHA>
+		<IF DATE>
 				mSynergyData.<Field_name> = (<FIELD_TYPE>)SynergyDecimalDateConverter.ConvertBack(value, ^null, ^null, ^null)
-	</IF DATE>
-	<IF TIME_HHMM>
+		</IF DATE>
+		<IF TIME_HHMM>
 				mSynergyData.<Field_name> = (value.Hour * 100) + value.Minute
-	</IF TIME_HHMM>
-	<IF TIME_HHMMSS>
+		</IF TIME_HHMM>
+		<IF TIME_HHMMSS>
 				mSynergyData.<Field_name> = (value.Hour * 10000) + (value.Minute * 100) + value.Second
-	</IF TIME_HHMMSS>
-	<IF DECIMAL>
-		<IF CUSTOM_HARMONY_AS_STRING>
-			<IF PRECISION>
+		</IF TIME_HHMMSS>
+		<IF DECIMAL>
+			<IF CUSTOM_HARMONY_AS_STRING>
+				<IF PRECISION>
 				mSynergyData.<Field_name> = SynergyImpliedDecimalConverter.UnformatString(value,"<FIELD_FORMATSTRING>")
-			<ELSE>
+				<ELSE>
 				mSynergyData.<Field_name> = SynergyDecimalConverter.UnformatString(value,"<FIELD_FORMATSTRING>")
-			</IF PRECISION>
-		<ELSE>
+				</IF PRECISION>
+			<ELSE>
 				mSynergyData.<Field_name> = value
-		</IF CUSTOM_HARMONY_AS_STRING>
-	</IF DECIMAL>
-	<IF INTEGER>
+			</IF CUSTOM_HARMONY_AS_STRING>
+		</IF DECIMAL>
+		<IF INTEGER>
 				mSynergyData.<Field_name> = value
-	</IF INTEGER>
+		</IF INTEGER>
 			endmethod
+;//
+;// End of field property
+;//
 		endproperty
 
-</IF CUSTOM_NOT_HARMONY_EXCLUDE>
+	</IF CUSTOM_NOT_HARMONY_EXCLUDE>
 </FIELD_LOOP>
 .endregion
+;//
+;// Relations
+;//
+<IF STRUCTURE_RELATIONS>
 
-.define INCLUDE_RELATIONS
-.ifdef INCLUDE_RELATIONS
 .region "Relationships to other entities"
 
-		<IF STRUCTURE_RELATIONS>
-		<RELATION_LOOP>
+	<RELATION_LOOP>
 		<COUNTER_1_INCREMENT>
+;//
+;//
+;//
 		<IF MANY_TO_ONE_TO_MANY>
 		;;; <summary>
 		;;; Relationship (Type A)
@@ -229,6 +248,9 @@ namespace <NAMESPACE>
 		;;; </summary>
 		public readwrite property REL_<RelationFromkey>, @<RelationTostructureNoplural>
 		</IF MANY_TO_ONE_TO_MANY>
+;//
+;//
+;//
 		<IF ONE_TO_ONE_TO_ONE>
 		;;; <summary>
 		;;; Relationship (Type B)
@@ -236,6 +258,9 @@ namespace <NAMESPACE>
 		;;; </summary>
 		public readwrite property REL_<RelationFromkey>, @<RelationTostructureNoplural>
 		</IF ONE_TO_ONE_TO_ONE>
+;//
+;//
+;//
 		<IF ONE_TO_ONE>
 		;;; <summary>
 		;;; Relationship (Type C)
@@ -243,6 +268,9 @@ namespace <NAMESPACE>
 		;;; </summary>
 		public readwrite property REL_<RelationFromkey>, @<RelationTostructureNoplural>
 		</IF ONE_TO_ONE>
+;//
+;//
+;//
 		<IF ONE_TO_MANY_TO_ONE>
 		;;; <summary>
 		;;; Relationship (Type D)
@@ -250,6 +278,9 @@ namespace <NAMESPACE>
 		;;; </summary>
 		public readwrite property REL_<RelationTostructurePlural>, @ICollection<<RelationTostructureNoplural>>
 		</IF ONE_TO_MANY_TO_ONE>
+;//
+;//
+;//
 		<IF ONE_TO_MANY>
 		;;; <summary>
 		;;; Relationship (Type E)
@@ -258,29 +289,42 @@ namespace <NAMESPACE>
 		public readwrite property REL_<RelationTostructurePlural>, @ICollection<<RelationTostructureNoplural>>
 		</IF ONE_TO_MANY>
 
-		</RELATION_LOOP>
-		</IF STRUCTURE_RELATIONS>
+	</RELATION_LOOP>
 .endregion
-.endc
-
+</IF STRUCTURE_RELATIONS>
+;//
+;//
+;//
 <IF STRUCTURE_RELATIONS>
+	<COUNTER_2_RESET>
+	<RELATION_LOOP>
+		<COUNTER_1_RESET>
+		<FROM_KEY_SEGMENT_LOOP>
+			<IF SEG_TYPE_LITERAL>
+				<COUNTER_2_INCREMENT>
+				<IF COUNTER_2_EQ_1>
+
 .region "Properties to represent literal key segments"
 
-<RELATION_LOOP>
-<COUNTER_1_RESET>
-<FROM_KEY_SEGMENT_LOOP>
-<IF SEG_TYPE_LITERAL>
-	;;; <summary>
-	;;; 
-	;;; </summary>
-	public readwrite property <RelationFromkey>Literal<COUNTER_1_INCREMENT><COUNTER_1_VALUE>, <LITERAL_SEGMENT_CSTYPE>, <LITERAL_SEGMENT_VALUE>
+				</IF COUNTER_2_EQ_1>
+		;;; <summary>
+		;;; 
+		;;; </summary>
+		public readwrite property <RelationFromkey>Literal<COUNTER_1_INCREMENT><COUNTER_1_VALUE>, <LITERAL_SEGMENT_CSTYPE>, <LITERAL_SEGMENT_VALUE>
 
-</IF SEG_TYPE_LITERAL>
-</FROM_KEY_SEGMENT_LOOP>
-</RELATION_LOOP>
+			</IF SEG_TYPE_LITERAL>
+		</FROM_KEY_SEGMENT_LOOP>
+	</RELATION_LOOP>
+	<IF COUNTER_2_GT_0>
+
 .endregion
 
+	</IF COUNTER_2_GT_0>
 </IF STRUCTURE_RELATIONS>
+;//
+;//
+;//
+
 .region "Other attributes"
 
         ;;; <summary>
@@ -347,4 +391,3 @@ namespace <NAMESPACE>
 	endclass
 	
 endnamespace
-

@@ -87,7 +87,7 @@ namespace <NAMESPACE>
 	.include "<STRUCTURE_NOALIAS>" repository <RPSDATAFILES>, structure="str<StructureNoplural>", end
 
 	;;; <summary>
-	;;; 
+	;;; Exposes metadata relating to the <StructureNoplural> model class.
 	;;; </summary>
 	public partial class <StructureNoplural>Metadata extends DataObjectMetadataBase
 		
@@ -102,41 +102,41 @@ namespace <NAMESPACE>
 ;//	Add definitions for the structures fields
 ;//
 
-			<FIELD_LOOP>
-			<IF CUSTOM_NOT_HARMONY_EXCLUDE>
+<FIELD_LOOP>
+	<IF CUSTOM_NOT_HARMONY_EXCLUDE>
 			AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false)
-			</IF CUSTOM_NOT_HARMONY_EXCLUDE>
-            </FIELD_LOOP>
+	</IF CUSTOM_NOT_HARMONY_EXCLUDE>
+</FIELD_LOOP>
 ;//
 ;//	Add definitions for the properties related to literal field segments
 ;//
-			<IF STRUCTURE_RELATIONS>
-			<RELATION_LOOP>
-			<COUNTER_1_RESET>
-			<FROM_KEY_SEGMENT_LOOP>
+<IF STRUCTURE_RELATIONS>
+	<RELATION_LOOP>
+		<COUNTER_1_RESET>
+		<FROM_KEY_SEGMENT_LOOP>
 			<IF SEG_TYPE_LITERAL>
 			AddFieldInfo("<RelationFromkey>Literal<COUNTER_1_INCREMENT><COUNTER_1_VALUE>", "TAG_LITERAL", 0, 0, 0, false,"<SEGMENT_LITVAL>")
 			</IF SEG_TYPE_LITERAL>
-			</FROM_KEY_SEGMENT_LOOP>
-			</RELATION_LOOP>
-			</IF STRUCTURE_RELATIONS>
+		</FROM_KEY_SEGMENT_LOOP>
+	</RELATION_LOOP>
+</IF STRUCTURE_RELATIONS>
 ;//
 ;//	Declare all of the fields associated with key segments
 ;//
 
-			<KEY_LOOP>
-			<SEGMENT_LOOP>
+<KEY_LOOP>
+	<SEGMENT_LOOP>
 			AddKeyInfo(<KEY_NUMBER>, "<FieldSqlname>")
-			</SEGMENT_LOOP>
-            </KEY_LOOP>
+	</SEGMENT_LOOP>
+</KEY_LOOP>
 
 		endmethod
 	
 		;;; <summary>
 		;;; Returns a new <StructureNoplural> object containing data from a record and a GRFA.
-		<IF STRUCTURE_RELATIONS>
+<IF STRUCTURE_RELATIONS>
 		;;; The related data properties (<RELATION_LOOP><IF MANY_TO_ONE_TO_MANY>REL_<RelationFromkey></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationFromkey></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY><,and></RELATION_LOOP>) will not be populated.
-		</IF STRUCTURE_RELATIONS>
+</IF STRUCTURE_RELATIONS>
 		;;; </summary>
 		;;; <param name="dataArea">The record containing the data for the new <StructureNoplural> object.</param>
 		;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
@@ -150,9 +150,9 @@ namespace <NAMESPACE>
 
 		;;; <summary>
 		;;; Returns a new <StructureNoplural> object containing data from a record and a GRFA.
-		<IF STRUCTURE_RELATIONS>
+<IF STRUCTURE_RELATIONS>
 		;;; The related data properties (<RELATION_LOOP><IF MANY_TO_ONE_TO_MANY>REL_<RelationFromkey></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationFromkey></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY><,and></RELATION_LOOP>) will be populated.
-		</IF STRUCTURE_RELATIONS>
+</IF STRUCTURE_RELATIONS>
 		;;; </summary>
 		;;; <param name="dataArea">The record containing the data for the new <StructureNoplural> object.</param>
 		;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
@@ -164,71 +164,76 @@ namespace <NAMESPACE>
 			required in joinedObjects, [#]KeyValuePair<String, Object>
 		proc
 			data new<StructureNoplural> = new <StructureNoplural>((str<StructureNoplural>)dataArea) { GlobalRFA = grfa }
-			<IF STRUCTURE_RELATIONS>
+<IF STRUCTURE_RELATIONS>
 			data joinedObject, KeyValuePair<String, Object>
 			foreach joinedObject in joinedObjects
 			begin
 				using joinedObject.Key select
-				<RELATION_LOOP>
-				<IF MANY_TO_ONE_TO_MANY>
+	<RELATION_LOOP>
+;//
+		<IF MANY_TO_ONE_TO_MANY>
 				("REL_<RelationFromkey>"), 
 					new<StructureNoplural>.REL_<RelationFromkey> = (@<RelationTostructureNoplural>)joinedObject.Value
-				</IF MANY_TO_ONE_TO_MANY>
-				<IF ONE_TO_ONE>
+		</IF MANY_TO_ONE_TO_MANY>
+;//
+		<IF ONE_TO_ONE>
 				("REL_<RelationFromkey>"),
 					new<StructureNoplural>.REL_<RelationFromkey> = (@<RelationTostructureNoplural>)joinedObject.Value
-				</IF ONE_TO_ONE>
-				<IF ONE_TO_MANY_TO_ONE>
+		</IF ONE_TO_ONE>
+;//
+		<IF ONE_TO_MANY_TO_ONE>
 				("REL_<RelationTostructurePlural>"), 
 					new<StructureNoplural>.REL_<RelationTostructurePlural> = (@ICollection<<RelationTostructureNoplural>>)joinedObject.Value
-				</IF ONE_TO_MANY_TO_ONE>
-				<IF ONE_TO_MANY>
+		</IF ONE_TO_MANY_TO_ONE>
+;//
+		<IF ONE_TO_MANY>
 				("REL_<RelationTostructurePlural>"),
 					new<StructureNoplural>.REL_<RelationTostructurePlural> = (@ICollection<<RelationTostructureNoplural>>)joinedObject.Value
-				</IF ONE_TO_MANY>
-				</RELATION_LOOP>
+		</IF ONE_TO_MANY>
+;//
+	</RELATION_LOOP>
 				endusing
 			end
-			</IF STRUCTURE_RELATIONS>
+</IF STRUCTURE_RELATIONS>
 
 			mreturn new<StructureNoplural>
 
 		endmethod
 
 		;;; <summary>
-		;;; 
+		;;; Formats a literal value for a key lookup.
 		;;; </summary>
-		;;; <param name=""></param>
-		;;; <param name=""></param>
+		;;; <param name="keyNumber">Key number.</param>
+		;;; <param name="parts">Dictionary containing key segment names and values.</param>
 		;;; <returns></returns>
 		public override method FormatKeyLiteral, a
 			required in keyNumber, int
 			required in parts, @Dictionary<String, Object>
 			endparams
-			<KEY_LOOP>
+<KEY_LOOP>
 			stack record key<KEY_NUMBER>
-				<SEGMENT_LOOP>
+	<SEGMENT_LOOP>
 				<FieldSqlName>, <SEGMENT_SPEC>
-				</SEGMENT_LOOP>
+	</SEGMENT_LOOP>
 			endrecord
-			</KEY_LOOP>
+</KEY_LOOP>
 		proc
 			data startPos = 0
 			data segValueLength, int
 			using keyNumber select
-			<KEY_LOOP>
+<KEY_LOOP>
 			(<KEY_NUMBER>),
 			begin
-				<SEGMENT_LOOP>
+	<SEGMENT_LOOP>
 				if((segValueLength=KeyValueHelper(key<KEY_NUMBER>.<FieldSqlName>, "<FieldSqlname>", parts))<<SEGMENT_LENGTH>)
 					mreturn key<KEY_NUMBER>(1:startPos+segValueLength)
-				<IF MORE>
+		<IF MORE>
 				startPos += <SEGMENT_LENGTH>
-				</IF MORE>
-				</SEGMENT_LOOP>
+		</IF MORE>
+	</SEGMENT_LOOP>
 				mreturn key<KEY_NUMBER>
 			end
-			</KEY_LOOP>
+</KEY_LOOP>
 			endusing
 
 			throw new ApplicationException(String.Format("Invalid key number {0} encountered in <StructureNoplural>Metadata.FormatKeyLiteral",keyNumber))
@@ -238,4 +243,3 @@ namespace <NAMESPACE>
 	endclass
 
 endnamespace
-
