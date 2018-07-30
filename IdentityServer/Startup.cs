@@ -108,22 +108,22 @@ namespace IdentityServer
         private void initializeDatabase(IApplicationBuilder app) {
             using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
             {
-                //Create or update the application database
+                //Create or update the ASP.NET Core Identity database tables
                 var appDbContext = serviceScope.ServiceProvider
                     .GetRequiredService<ApplicationDbContext>();
                 appDbContext.Database.Migrate();
 
-                //Create or update the configuration database
+                //Create or update the IdentityServer configuration database tables
                 var configDbContext = serviceScope.ServiceProvider
                     .GetRequiredService<ConfigurationDbContext>();
                 configDbContext.Database.Migrate();
 
-                //Create or update the persisted grants database
+                //Create or update the IdentityServer persisted grants database tables
                 var pgDbContext = serviceScope.ServiceProvider
                     .GetRequiredService<PersistedGrantDbContext>();
                 pgDbContext.Database.Migrate();
 
-                //Generate records corresponding to the clients resources from the Config class
+                //Populate the IdentityServer clients data based on seed data hard-coded in the Config class
                 if (!configDbContext.Clients.Any())
                 {
                     foreach (var client in Config.GetClients())
@@ -133,7 +133,7 @@ namespace IdentityServer
                     configDbContext.SaveChanges();
                 }
 
-                //Generate records corresponding to the identity resources from the Config class
+                //Populate the IdentityServer isentity data based on seed data hard-coded in the Config class
                 if (!configDbContext.IdentityResources.Any())
                 {
                     foreach (var resource in Config.GetIdentityResources())
@@ -143,7 +143,7 @@ namespace IdentityServer
                     configDbContext.SaveChanges();
                 }
 
-                //Generate records corresponding to the API resources from the Config class
+                //Populate the IdentityServer API data based on seed data hard-coded in the Config class
                 if (!configDbContext.ApiResources.Any())
                 {
                     foreach (var api in Config.GetApis())
