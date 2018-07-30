@@ -84,13 +84,14 @@ namespace SampleServices.Controllers
 				mreturn BadRequest(ModelState)
 
 			;TODO: How do we support the auto-generation of primary key in this scenario?
-			data result = DBContext.Vendors.Add(aVendor)
+			DBContext.Vendors.Add(aVendor)
+
+			;TODO: Need to add a Location header
 
 			;;Commit the change
 			DBContext.SaveChanges()
 
-			;TODO: What about failures?
-			mreturn Ok(result)
+			mreturn Ok()
 
 		endmethod
 
@@ -110,17 +111,26 @@ namespace SampleServices.Controllers
 			if (!ModelState.IsValid)
 				mreturn BadRequest(ModelState)
 
-			;;Ensure that the key values in the URI win over any data that may be in the data object
+			;;Ensure that the key values in the URI win over any data that may be in the model object
             aVendor.VendKey = aVendKey
 
 			;;Add the new vendor
-			data result = DBContext.Vendors.Add(aVendor)
+			try
+			begin
+				DBContext.Vendors.Add(aVendor)
+			end
+			catch (e, @InvalidOperationException)
+			begin
+				mreturn BadRequest(e)
+			end
+			endtry
+
+			;TODO: Need to add a Location header
 
 			;;Commit the change
 			DBContext.SaveChanges()
 
-			;TODO: What about failures?
-			mreturn Ok(result)
+			mreturn NoContent()
 
 		endmethod
 
@@ -217,7 +227,6 @@ namespace SampleServices.Controllers
 			DBContext.SaveChanges()
 
 			;TODO: What about failures?
-			;mreturn Ok(result)
 			mreturn Ok()
 
 		endmethod
@@ -243,13 +252,12 @@ namespace SampleServices.Controllers
 				mreturn NotFound()
 
 			;;Mark the vendor for removal
-			data result = DBContext.Vendors.Remove(vendorToRemove)
+			DBContext.Vendors.Remove(vendorToRemove)
 
 			;;Commit the change
 			DBContext.SaveChanges()
 
-			;TODO: What about failures?
-			mreturn Ok(result)
+			mreturn Ok()
 
 		endmethod
 

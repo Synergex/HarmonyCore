@@ -1,16 +1,16 @@
  
 ;  SYNERGY DATA LANGUAGE OUTPUT
 ;
-;  REPOSITORY     : C:\DEV\HarmonyCore\HarmonyCore.Test.Repository\bin\Debug\rps
-;                 : C:\DEV\HarmonyCore\HarmonyCore.Test.Repository\bin\Debug\rps
+;  REPOSITORY     : D:\HarmonyCore\HarmonyCore.Test.Repository\bin\Debug\rpsmain
+;                 : D:\HarmonyCore\HarmonyCore.Test.Repository\bin\Debug\rpstext
 ;                 : Version 11.0.1
 ;
-;  GENERATED      : 12-JUL-2018, 15:33:48
+;  GENERATED      : 27-JUL-2018, 14:20:45
 ;                 : Version 11.0.1
 ;  EXPORT OPTIONS : [ALL] 
  
  
-Format PHONE   Type NUMERIC   "(ZZZ) ZZZ-ZZZZ"   Justify RIGHT
+Format PHONE   Type NUMERIC   "(XXX) XXX-XXXX"   Justify RIGHT
  
 Enumeration METHOD_STATUS
    Description "Method return status code"
@@ -18,15 +18,12 @@ Enumeration METHOD_STATUS
  
 Template DATE   Type DATE   Size 8   Stored YYYYMMDD
    Description "YYYYMMDD date"
-   Long Description
-      "Date in CCYYMMDD format"
    Prompt "Date"   Report Heading "Date"   ODBC Name DATE
  
 Template PHONE   Type DECIMAL   Size 10
    Description "Phone number (American)"
-   Long Description
-      "Telephone number"
-   Prompt "Phone #:"   Format PHONE   Report Heading "Phone Number"
+   Prompt "Phone #:"   User Text "HARMONY_AS_STRING"   Format PHONE
+   Report Heading "Phone Number"
  
 Structure CUSTOMERS   DBL ISAM
    Description "Customer Record"
@@ -121,6 +118,7 @@ Field OR_PRICE   Type DECIMAL   Size 7   Precision 2
  
 Field OR_TERMS   Type ALPHA   Size 2
    Description "Order Terms code"
+   User Text "HARMONY_EXCLUDE"
  
 Field OR_ODATE   Template DATE
    Description "Order date"

@@ -42,6 +42,7 @@
       "required" : [<PRIMARY_KEY><SEGMENT_LOOP> "<FieldSqlname>"<,></SEGMENT_LOOP></PRIMARY_KEY> ],
       "properties" : {
 <FIELD_LOOP>
+<IF CUSTOM_NOT_HARMONY_EXCLUDE>
         "<FieldSqlname>": {
  	<IF ALPHA>
           "type": "string",
@@ -79,11 +80,14 @@
           "description": "<FIELD_DESC>"
 	</IF INTEGER>
         }<,>
+</IF CUSTOM_NOT_HARMONY_EXCLUDE>
 </FIELD_LOOP>
       },
       "example" : {
 <FIELD_LOOP>
+<IF CUSTOM_NOT_HARMONY_EXCLUDE>
         "<FieldSqlname>" : <FIELD_SAMPLE_DATA><,>
+</IF CUSTOM_NOT_HARMONY_EXCLUDE>
 </FIELD_LOOP>
       }
     }<,>

@@ -52,7 +52,7 @@ set SMC_INTERFACE=SampleXfplEnv
 set XFPL_SMCPATH=
 
 rem Generate model classes
-codegen -s %STRUCTURES% -t DataObject -n %PROJECT%.Models -o %PROJECT%\Models %OPTS%
+codegen -s %STRUCTURES% -t ODataModel -n %PROJECT%.Models -o %PROJECT%\Models %OPTS%
 
 rem Generate method dispatcher classes
 codegen -smc SampleXfplEnvironment\smc.xml -interface %SMC_INTERFACE% -t InterfaceDispatcher        -n %PROJECT% -o %PROJECT% %OPTS% -ut MODELS_NAMESPACE=%PROJECT%.Models

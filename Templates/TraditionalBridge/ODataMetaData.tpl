@@ -1,13 +1,13 @@
-<CODEGEN_FILENAME><StructureNoplural>.dbl</CODEGEN_FILENAME>
-<PROCESS_TEMPLATE>DataObjectMetaData</PROCESS_TEMPLATE>
+<CODEGEN_FILENAME><StructureNoplural>MetaData.dbl</CODEGEN_FILENAME>
+<OPTIONAL_USERTOKEN>RPSDATAFILES= </OPTIONAL_USERTOKEN>
 <REQUIRES_CODEGEN_VERSION>5.3.4</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
-;// Title:       DataObject.tpl
+;// Title:       DataObjectMetaData.tpl
 ;//
 ;// Type:        CodeGen Template
 ;//
-;// Description: Template to define structure based Data Object with DBL types
+;// Description: Template to define meta data associated with a data object
 ;//
 ;// Copyright (c) 2018, Synergex International, Inc. All rights reserved.
 ;//
@@ -35,12 +35,11 @@
 ;//
 ;;*****************************************************************************
 ;;
-;; Title:       <StructureNoplural>.dbl
+;; Title:       <StructureNoplural>MetaData.dbl
 ;;
 ;; Type:        Class
 ;;
-;; Description: Data object representing data defined by the repository
-;;              structure <STRUCTURE_NOALIAS> and from the data file <FILE_NAME>.
+;; Description: Defines meta data associated with a data object <StructureNoplural>.
 ;;
 ;;*****************************************************************************
 ;; WARNING
@@ -79,93 +78,49 @@
 
 import Harmony.TraditionalBridge
 
+subroutine Meta<StructureNoplural>
+	required out metadata, @DataObjectMetadataBase
+proc
+	if(<StructureNoplural>.sMetadata == ^null)
+		<StructureNoplural>.sMetadata = new <StructureNoplural>Metadata()
+	metadata = <StructureNoplural>.sMetadata
+	xreturn
+endsubroutine
+
 namespace <NAMESPACE>
 
-	public partial class <StructureNoplural> extends DataObjectBase
+	.include "<STRUCTURE_NOALIAS>" repository <RPSDATAFILES>, structure="str<StructureNoplural>", end
 
-		;; Metadata, current record state, and a copy of the original state
-		public static sMetadata, @<StructureNoplural>Metadata
-		private m<StructureNoplural>, str<StructureNoplural> 
-		private mOriginal<StructureNoplural>, str<StructureNoplural> 
+	public partial class <StructureNoplural>Metadata extends DataObjectMetadataBase
 		
-		;;; <summary>
-		;;;  Construct an empty <StructureNoplural> object
-		;;; </summary>
-		public method <StructureNoplural>
-			parent()
+		public method <StructureNoplural>Metadata
 		proc
-			init m<StructureNoplural>, mOriginal<StructureNoplural>
+			RPSStructureName = "<STRUCTURE_NOALIAS>"
+			RPSStructureSize = ^size(str<StructureNoplural>)
+<FIELD_LOOP>
+	<IF CUSTOM_NOT_HARMONY_EXCLUDE>
+			;AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false)
+	</IF CUSTOM_NOT_HARMONY_EXCLUDE>
+</FIELD_LOOP>
 		endmethod
 
-		;;; <summary>
-		;;;  Construct a <StructureNoplural> object containing data from a record
-		;;; </summary>
-		public method <StructureNoplural>
-			required in inData, str<StructureNoplural>
-			parent()
+;//TODO: If we're not going to use this we should remove it from the base class and here
+		public override method GetFieldByName, @FieldDataDefinition
+			fieldName, @string
 		proc
-			m<StructureNoplural> = mOriginal<StructureNoplural> = inData
+			mreturn ^null
 		endmethod
 
-		public override method InternalSynergyRecord, void
-			targetMethod, @AlphaAction
+		public override method MakeNew, @DataObjectBase
+			required in dataArea, a
+			required in grfa, a
+			record
+				new<StructureNoplural>, @<StructureNoplural>
 		proc
-			targetMethod.Run(m<StructureNoplural>, mGlobalRFA)
+			new<StructureNoplural> = new <StructureNoplural>(dataArea) 
+			new<StructureNoplural>.GlobalRFA = grfa
+			mreturn new<StructureNoplural>
 		endmethod
-		
-		<FIELD_LOOP>
-		<IF CUSTOM_NOT_SYMPHONY_ARRAY_FIELD>
-		;;; <summary>
-		;;; <FIELD_DESC>
-		;;; </summary>
-		public property <FieldSqlname>, <field_type>
-			method get
-			proc
-				mreturn m<StructureNoplural>.<field_name>				
-			endmethod
-			method set
-			proc
-				m<StructureNoplural>.<field_name> = value
-			endmethod
-		endproperty
-
-		</IF CUSTOM_NOT_SYMPHONY_ARRAY_FIELD>
-		</FIELD_LOOP>
-		;;; <summary>
-		;;; Expose the complete synergy record
-		;;; </summary>
-		public override property SynergyRecord, a
-			method get
-			proc
-				mreturn m<StructureNoplural>
-			endmethod
-		endproperty
-		
-		;;; <summary>
-		;;; Expose the complete original synergy record
-		;;; </summary>
-		public override property OriginalSynergyRecord, a
-			method get
-			proc
-				mreturn mOriginal<StructureNoplural>
-			endmethod
-		endproperty
-
-		;;; <summary>
-		;;; Allow the host to validate all fields. Each field will fire the validation method.
-		;;; </summary>
-		public override method InitialValidateData, void
-		proc
-		endmethod
-		
-		public override property Metadata, @DataObjectMetadataBase
-			method get
-			proc
-				if(sMetadata == ^null)
-					sMetadata = new <StructureNoplural>Metadata()
-				mreturn sMetadata
-			endmethod
-		endproperty
 
 	endclass
 

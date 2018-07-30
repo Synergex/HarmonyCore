@@ -160,7 +160,6 @@ namespace <NAMESPACE>
 			begin
 				config.SwaggerDoc("v1", new Info() { Title = "My API", Version = "v1" })
 			end
-
 			services.AddSwaggerGen(configureSwaggerGen)
 
 		endmethod
@@ -201,7 +200,7 @@ namespace <NAMESPACE>
 			;;Add the MVC middleware
 			app.UseMvc(MVCBuilder)
 
-			;;Add middleware to generate Swagger UI for documentation ("available at /swagger")
+			;;Add middleware to generate Swagger UI for documentation ("available at /api-docs")
 			app.UseStaticFiles()
 			lambda configureSwaggerUi(config)
 			begin
