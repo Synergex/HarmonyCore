@@ -133,18 +133,21 @@ namespace Harmony.Core.FileIO.Queryable
 				disposable data selectObject, @Synergex.SynergyDE.Select.JoinSelect, JoinObject(queryBuffer, fromObj, WhereObject(queryBuffer), OrderByObject(queryBuffer))
 				data hasMoreRows = true
 				rows = selectObject.GetEnumerator()
-				while(hasMoreRows)
-				begin
-					incr currentCount
-					
-					;;if(skip && skip > currentCount)
-					;;	nextloop
-						
-					;;if (targetCount && currentCount > targetCount)
-					;;	exitloop
-					result.Add(DataObjectMaterializer.MaterializeObject(queryBuffer.TypeBuffers[0], rows, tracker))
-					hasMoreRows = rows.MoveNext()
-				end
+
+				result.AddRange(DataObjectMaterializer.MaterializeObject(queryBuffer.TypeBuffers[0], rows, tracker).OfType<T>())
+
+				;while(hasMoreRows)
+				;begin
+;					incr currentCount
+;					
+;					;;if(skip && skip > currentCount)
+;					;;	nextloop
+;						
+;					;;if (targetCount && currentCount > targetCount)
+;					;;	exitloop
+;					result.Add()
+;					hasMoreRows = rows.MoveNext()
+				;end
 			end
 
 			mreturn result
