@@ -108,6 +108,11 @@ namespace IdentityServer
         private void initializeDatabase(IApplicationBuilder app) {
             using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
             {
+                //Create or update the application database
+                var appDbContext = serviceScope.ServiceProvider
+                    .GetRequiredService<ApplicationDbContext>();
+                appDbContext.Database.Migrate();
+
                 //Create or update the configuration database
                 var configDbContext = serviceScope.ServiceProvider
                     .GetRequiredService<ConfigurationDbContext>();
