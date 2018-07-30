@@ -4,6 +4,8 @@
 
 using IdentityServer.Data;
 using IdentityServer.Models;
+using IdentityServer4.EntityFramework.DbContexts;
+using IdentityServer4.EntityFramework.Mappers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
@@ -11,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Linq;
 using System.Reflection;
 
 namespace IdentityServer
@@ -84,6 +87,9 @@ namespace IdentityServer
 
         public void Configure(IApplicationBuilder app)
         {
+            //Make sure the database is up to date and has been initialized
+            initializeDatabase(app);
+
             if (Environment.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -98,5 +104,51 @@ namespace IdentityServer
             app.UseIdentityServer();
             app.UseMvcWithDefaultRoute();
         }
+
+        private void initializeDatabase(IApplicationBuilder app) {
+            using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
+            {
+                //Create or update the configuration database
+                var configDbContext = serviceScope.ServiceProvider
+                    .GetRequiredService<ConfigurationDbContext>();
+                configDbContext.Database.Migrate();
+
+                //Create or update the persisted grants database
+                var pgDbContext = serviceScope.ServiceProvider
+                    .GetRequiredService<PersistedGrantDbContext>();
+                pgDbContext.Database.Migrate();
+
+                //Generate records corresponding to the clients resources from the Config class
+                if (!configDbContext.Clients.Any())
+                {
+                    foreach (var client in Config.GetClients())
+                    {
+                        configDbContext.Clients.Add(client.ToEntity());
+                    }
+                    configDbContext.SaveChanges();
+                }
+
+                //Generate records corresponding to the identity resources from the Config class
+                if (!configDbContext.IdentityResources.Any())
+                {
+                    foreach (var resource in Config.GetIdentityResources())
+                    {
+                        configDbContext.IdentityResources.Add(resource.ToEntity());
+                    }
+                    configDbContext.SaveChanges();
+                }
+
+                //Generate records corresponding to the API resources from the Config class
+                if (!configDbContext.ApiResources.Any())
+                {
+                    foreach (var api in Config.GetApis())
+                    {
+                        configDbContext.ApiResources.Add(api.ToEntity());
+                    }
+                    configDbContext.SaveChanges();
+                }
+            }
+        }
+
     }
 }
