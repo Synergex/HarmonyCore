@@ -1,8 +1,4 @@
-﻿// Copyright (c) Brock Allen & Dominick Baier. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
-
-
-using IdentityServer.Data;
+﻿using IdentityServer.Data;
 using IdentityServer.Models;
 using IdentityServer4.EntityFramework.DbContexts;
 using IdentityServer4.EntityFramework.Mappers;
@@ -31,15 +27,13 @@ namespace IdentityServer
 
         public void ConfigureServices(IServiceCollection services)
         {
-            //Database connection string
-            var connectionString = Configuration.GetConnectionString("DefaultConnection");
-
             //Assembly that contains migrations
             var migrationsAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
 
-            //Use a PostgreSQL database for our ASP.NET Identity data
+            //Configure a DbContext for the ASP.NET Identity data
+            var connectionString = Configuration.GetConnectionString("DefaultConnection");
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseNpgsql(connectionString));
+                options.UseSqlite(connectionString));
 
             //Add the ASP.NET Identity service
             services.AddIdentity<ApplicationUser, IdentityRole>()
@@ -80,7 +74,7 @@ namespace IdentityServer
                 //Use a PostgreSQL database for the IdentityServer configuration data
                 .AddConfigurationStore(configDb =>
                 {
-                    configDb.ConfigureDbContext = db => db.UseNpgsql(
+                    configDb.ConfigureDbContext = db => db.UseSqlite(
                         connectionString,
                         sql => sql.MigrationsAssembly(migrationsAssembly)
                     );
@@ -89,7 +83,7 @@ namespace IdentityServer
                 //Use a PostgreSQL database for the IdentityServer operational data (persisted grants)
                 .AddOperationalStore(operationalDb =>
                 {
-                    operationalDb.ConfigureDbContext = db => db.UseNpgsql(
+                    operationalDb.ConfigureDbContext = db => db.UseSqlite(
                         connectionString,
                         sql => sql.MigrationsAssembly(migrationsAssembly)
                     );
@@ -108,12 +102,12 @@ namespace IdentityServer
             }
 
             //Enable login via Google
-            services.AddAuthentication()
-                .AddGoogle(options =>
-                {
-                    options.ClientId = "708996912208-9m4dkjb5hscn7cjrn5u0r4tbgkbj1fko.apps.googleusercontent.com";
-                    options.ClientSecret = "wdfPY6t8H8cecgjlxud__4Gh";
-                });
+            //services.AddAuthentication()
+            //    .AddGoogle(options =>
+            //    {
+            //        options.ClientId = "708996912208-9m4dkjb5hscn7cjrn5u0r4tbgkbj1fko.apps.googleusercontent.com";
+            //        options.ClientSecret = "wdfPY6t8H8cecgjlxud__4Gh";
+            //    });
         }
 
         public void Configure(IApplicationBuilder app)
@@ -186,6 +180,5 @@ namespace IdentityServer
                 }
             }
         }
-
     }
 }

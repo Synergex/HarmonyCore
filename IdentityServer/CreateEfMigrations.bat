@@ -1,5 +1,5 @@
 @echo off
-pushd %~dp0..
+pushd %~dp0
 
 if exist Data\Migrations\. rmdir /s /q Data\Migrations
 
