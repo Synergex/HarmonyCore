@@ -37,7 +37,7 @@ namespace IdentityServer
             //Assembly that contains migrations
             var migrationsAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
 
-
+            //Use a PostgreSQL database for our ASP.NET Identity data
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseNpgsql(connectionString));
 
@@ -54,18 +54,26 @@ namespace IdentityServer
             });
 
             var builder = services.AddIdentityServer()
-                //Use Postgres database fior configuration data
-                .AddConfigurationStore(configDb => {
-                    configDb.ConfigureDbContext = db => db.UseNpgsql( connectionString,
-                    sql => sql.MigrationsAssembly(migrationsAssembly));
+
+                //Use a PostgreSQL database for the IdentityServer configuration data
+                .AddConfigurationStore(configDb =>
+                {
+                    configDb.ConfigureDbContext = db => db.UseNpgsql(
+                        connectionString,
+                        sql => sql.MigrationsAssembly(migrationsAssembly)
+                    );
                 })
 
-                //Use Postgres database fior operational data
-                .AddOperationalStore(operationalDb => {
-                    operationalDb.ConfigureDbContext = db => db.UseNpgsql( connectionString,
-                    sql => sql.MigrationsAssembly(migrationsAssembly));
+                //Use a PostgreSQL database for the IdentityServer operational data (persisted grants)
+                .AddOperationalStore(operationalDb =>
+                {
+                    operationalDb.ConfigureDbContext = db => db.UseNpgsql(
+                        connectionString,
+                        sql => sql.MigrationsAssembly(migrationsAssembly)
+                    );
                 })
 
+                //Use ASP.NET Identity for authentication and authorization
                 .AddAspNetIdentity<ApplicationUser>();
 
             if (Environment.IsDevelopment())
@@ -77,6 +85,7 @@ namespace IdentityServer
                 throw new Exception("need to configure key material");
             }
 
+            //Enable login via Google
             services.AddAuthentication()
                 .AddGoogle(options =>
                 {
@@ -105,7 +114,8 @@ namespace IdentityServer
             app.UseMvcWithDefaultRoute();
         }
 
-        private void initializeDatabase(IApplicationBuilder app) {
+        private void initializeDatabase(IApplicationBuilder app)
+        {
             using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
             {
                 //Create or update the configuration database
