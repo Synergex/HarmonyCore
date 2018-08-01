@@ -56,15 +56,15 @@ import Harmony.Core.EF.Extensions
 main UnitTestEnvironment
 proc
 	;;Configure the environment
-	UnitTestEnvironment.AssemblyInitialize(^null) 
+	UnitTestEnvironment.AssemblyInitialize(^null)
 
-	;Leave this here for Jeff 
-	data tester = new OrderTests() 
-;	tester.GetOrders_Expand_REL_TagCustomer() 
-	tester.GetOrders_Expand_REL_TagVendor()
-;	tester.GetOrders_Expand_All()
+	;Leave this here for Jeff  
+	;data tester = new OrderTests() 
+	;tester.GetOrders_Expand_REL_TagCustomer()
+	;tester.GetOrders_Expand_REL_TagVendor()
+	;tester.GetOrders_Expand_All()
 	begin
-		disposable data fileChannelManager = new Harmony.Core.FileIO.FileChannelManager()
+		disposable data fileChannelManager = new Harmony.Core.FileIO.FileChannelManager() 
 		data objectProvider = new Harmony.Core.Context.DataObjectProvider(fileChannelManager)
 		objectProvider.AddDataObjectMapping<Customer>("ICSTUT:customer.ism", Harmony.Core.FileIO.FileOpenMode.UpdateIndexed)
 		objectProvider.AddDataObjectMapping<Order>("ICSTUT:orders.ism", Harmony.Core.FileIO.FileOpenMode.UpdateIndexed)
@@ -73,18 +73,22 @@ proc
 		data contextOptions = new Microsoft.EntityFrameworkCore.DbContextOptions<DBContext>()
 		disposable data dbCon = new DbContext(contextOptions, objectProvider)
 		dbCon.ChangeTracker.QueryTrackingBehavior = Microsoft.EntityFrameworkCore.QueryTrackingBehavior.NoTracking;
+		
+		;data firstCustomer = dbCon.Customers.FirstOrDefault("CustCity == @0", "Glendale")
+		;firstCustomer = dbCon.Customers.FirstOrDefaultIncluding("CustCity == @0", "REL_Item", "Glendale")
+	data	firstCustomer = dbCon.Customers.FirstOrDefaultIncluding("CustCity == @0", "REL_Item;REL_Orders", "Glendale")
 
-		data firstCustomer = dbCon.Customers.FirstOrDefault("CustCity == @0", "Glendale")
-		firstCustomer = dbCon.Customers.FirstOrDefaultIncluding("CustCity == @0", "REL_Item", "Glendale")
-		firstCustomer = dbCon.Customers.FirstOrDefaultIncluding("CustCity == @0", "REL_Item;REL_Orders", "Glendale")
-
-		data customers = dbCon.Customers.Where("CustCity == @0", "Glendale").ToList()
-		customers = dbCon.Customers.WhereIncluding("CustCity == @0", "REL_Item", "Glendale").ToList()
-		customers = dbCon.Customers.WhereIncluding("CustCity == @0", "REL_Item;REL_Orders", "Glendale").ToList()
-
+		data customers = dbCon.Customers.Where("CustCity == @0", "Glendale").ToList() 
+		Assert.AreEqual(customers.Count, 2)
+		customers = dbCon.Customers.WhereIncluding("CustCity == @0", "REL_Item", "Glendale").ToList() 
+		Assert.AreEqual(customers.Count, 2)
+		customers = dbCon.Customers.WhereIncluding("CustCity == @0", "REL_Orders", "Glendale").ToList() 
+		Assert.AreEqual(customers.Count, 2)
+		customers = dbCon.Customers.WhereIncluding("CustCity == @0", "REL_Item;REL_Orders", "Glendale").ToList() 
+		Assert.AreEqual(customers.Count, 2)
 		data startTime = DateTime.Now
 		data i = 0
-		for i from 0 thru 10000 by 1
+		for i from 0 thru 10000 by 1 
 		begin
 			dbCon.Customers.FindCompiled(TestContext.CustomerID)
 			dbCon.Vendors.FindCompiled(TestContext.VendorID)

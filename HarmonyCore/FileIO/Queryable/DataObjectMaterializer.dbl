@@ -11,6 +11,7 @@ namespace Harmony.Core.FileIO.Queryable
 			public typeBuf, @QueryBuffer.TypeBuffer
 			public grfa, a10
 			public madeItems, @List<DataObjectBase>
+			public lastMadeItem, @DataObjectBase
 			public dependentItems, @Dictionary<string, Object>
 			public changed, boolean
 			public filled, boolean
@@ -35,15 +36,51 @@ namespace Harmony.Core.FileIO.Queryable
 				begin
 					data memPnt, i4, matState.typeBuf.MemoryHandle.Value
 					data structureSize, i4, matState.typeBuf.Metadata.StructureSize
-					data changed, i4
-					rowEnumerator.Current.RowInfo(^m(memMapper.fld(1:structureSize), memPnt), ,changed)
-					matState.changed = changed
-					if(matState.changed && matState.filled)
+					rowEnumerator.Current.RowInfo(^m(memMapper.fld(1:structureSize), memPnt), , ,matState.changed)
+					
+					;;if our parent was constructed last time around we need to clean up our made items
+					if(matState.parentState != ^null && matState.parentState.changed && matState.parentState.filled)
+					begin
+						if(matState.madeItems != ^null)
+							matState.madeItems = new List<DataObjectBase>()
+					end
+
+					if(!matState.changed && matState.filled) then
+					begin
+						;;if the leg hasnt changed we still need to check if we've push up to our current parent
+						if(matState.parentState != ^null)
+						begin
+							if(matState.parentState.dependentItems != ^null && !matState.parentState.dependentItems.ContainsKey(matState.typeBuf.ParentFieldName))
+							begin
+
+								if(matState.lastMadeItem == ^null)
+								begin
+									;;hasnt been made yet
+									nop
+								end
+
+								if(matState.madeItems != ^null) then
+								begin
+									if(matState.madeItems.Count == 0 && matState.lastMadeItem != ^null)
+									begin
+										matState.madeItems.Add(matState.lastMadeItem)
+									end
+									matState.parentState.dependentItems.Add(matState.typeBuf.ParentFieldName, matState.madeItems)
+								end
+								else if(matState.lastMadeItem != ^null)
+									matState.parentState.dependentItems.Add(matState.typeBuf.ParentFieldName, matState.lastMadeItem)
+							end
+						end
+					end
+					else if(matState.changed && matState.filled)
 					begin
 						;;construct the object
 						data madeObject = matState.dependentItems != ^null ? 
 						&	matState.typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), matState.grfa, matState.dependentItems.ToArray()) : 
 						&	matState.typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), matState.grfa)
+
+						matState.LastMadeItem = madeObject
+
 						;;we only need to track top level objects
 						if(matState.typeBuf == typeBuf)
 							tracker(madeObject)
@@ -81,7 +118,7 @@ namespace Harmony.Core.FileIO.Queryable
 						if(matState.dependentItems != ^null)
 							matState.dependentItems.Clear()
 					end
-				
+
 					if(matState.changed)
 					begin
 						matState.filled = true
@@ -91,7 +128,7 @@ namespace Harmony.Core.FileIO.Queryable
 					end
 				end
 				;;we only want one object if we dont have a collection result
-				if(!resultState.madeItems.Count == 1 && typeBuf.IsCollection)
+				if(resultState.madeItems.Count == 1 && !typeBuf.IsCollection)
 					mreturn resultState.madeItems
 			end
 
@@ -101,40 +138,43 @@ namespace Harmony.Core.FileIO.Queryable
 			begin
 				data memPnt, i4, matState.typeBuf.MemoryHandle.Value
 				data structureSize, i4, matState.typeBuf.Metadata.StructureSize
-				;;construct the object
-				;;construct the object
-				data madeObject = matState.dependentItems != ^null ? 
-				&	matState.typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), matState.grfa, matState.dependentItems.ToArray()) : 
-				&	matState.typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), matState.grfa)
-				;;we only need to track top level objects
-				if(matState.typeBuf == typeBuf)
-					tracker(madeObject)
+				if(matState.filled)
+				begin
+					;;construct the object
+					data madeObject = matState.dependentItems != ^null ? 
+					&	matState.typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), matState.grfa, matState.dependentItems.ToArray()) : 
+					&	matState.typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), matState.grfa)
+					;;we only need to track top level objects
+					if(matState.typeBuf == typeBuf)
+						tracker(madeObject)
 
-				if(matState.madeItems == ^null && matState.parentState != ^null) then
-				begin
-					;;we must be constructing singles, just push our madeObject into the parent
-					if(matState.parentState.dependentItems.ContainsKey(matState.typeBuf.ParentFieldName))
+					if(matState.madeItems == ^null && matState.parentState != ^null) then
 					begin
-						;;this leg should have only had one result, throw
-						throw new InvalidOperationException(string.Format("Unexpected record during enumeration, additional item encountered was {0} joined to a {1} at {2}", 
-						&	matState.typeBuf.DataObjectType.FullName, matState.parentState.typeBuf.DataObjectType, matState.typeBuf.ParentFieldName))
+						;;we must be constructing singles, just push our madeObject into the parent
+						if(matState.parentState.dependentItems.ContainsKey(matState.typeBuf.ParentFieldName))
+						begin
+							;;this leg should have only had one result, throw
+							throw new InvalidOperationException(string.Format("Unexpected record during enumeration, additional item encountered was {0} joined to a {1} at {2}", 
+							&	matState.typeBuf.DataObjectType.FullName, matState.parentState.typeBuf.DataObjectType, matState.typeBuf.ParentFieldName))
+						end
+						matState.parentState.dependentItems.Add(matState.typeBuf.ParentFieldName, madeObject)
 					end
-					matState.parentState.dependentItems.Add(matState.typeBuf.ParentFieldName, madeObject)
-				end
-				else if(matState.madeItems != ^null) then
-				begin
-					matState.madeItems.Add(madeObject)
-				end
-				else
-					throw new InvalidOperationException("Invalid materializer state")
+					else if(matState.madeItems != ^null) then
+					begin
+						matState.madeItems.Add(madeObject)
+					end
+					else
+						throw new InvalidOperationException("Invalid materializer state")
 					
-				if(matState.parentState != ^null)
-				begin
-					if(matState.madeItems != ^null && matState.madeItems.Count == 1)
+					if(matState.parentState != ^null)
 					begin
-						matState.parentState.dependentItems.Add(matState.typeBuf.ParentFieldName, matState.madeItems)
+						if(matState.madeItems != ^null && matState.madeItems.Count == 1)
+						begin
+							matState.parentState.dependentItems.Add(matState.typeBuf.ParentFieldName, matState.madeItems)
+						end
 					end
 				end
+
 			end
 			mreturn resultState.madeItems
 		endmethod
@@ -150,6 +190,7 @@ namespace Harmony.Core.FileIO.Queryable
 				rootState.dependentItems = new Dictionary<string, Object>()
 
 			q.Enqueue(rootState) 
+			result.Add(rootState)
 			;;this is constructing a bredth first traversal list
 			while(q.Count > 0)
 			begin
@@ -165,6 +206,7 @@ namespace Harmony.Core.FileIO.Queryable
 						newMatState.dependentItems = new Dictionary<string, Object>()
 
 					q.Enqueue(newMatState) 
+					result.Add(newMatState)
 				end
 			end
 			mreturn result

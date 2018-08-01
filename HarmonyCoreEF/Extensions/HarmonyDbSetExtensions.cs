@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -74,11 +75,11 @@ namespace Harmony.Core.EF.Extensions
                 {
                     var contextParameter = Expression.Parameter(typeof(DbContext), "context");
                     var linqParameters = new ParameterExpression[parameters.Length + 1];
-                    var exprLinqParameters = new ParameterExpression[parameters.Length];
+                    var exprLinqParameters = new Expression[parameters.Length];
                     linqParameters[0] = contextParameter;
                     for (int i = 1; i < linqParameters.Length; i++)
                     {
-                        exprLinqParameters[i - 1] = linqParameters[i] = Expression.Parameter(typeof(object));
+                        exprLinqParameters[i - 1] = Expression.Convert(linqParameters[i] = Expression.Parameter(typeof(object)), parameters[i -1].GetType());
                     }
 
                     var querySet = Expression.Call(contextParameter, typeof(DbContext).GetMethod("Set").MakeGenericMethod(new Type[] { typeof(T) }));
@@ -142,24 +143,25 @@ namespace Harmony.Core.EF.Extensions
                 var context = ((IInfrastructure<IServiceProvider>)thisp).Instance.GetService(typeof(DbContext)) as DbContext;
                 var contextType = context.GetType();
                 var compiledQueryLookup = _compiledFirstOrDefaultLookup.GetOrAdd(contextType, (ty) => new ConcurrentDictionary<string, object>());
-                var compiledQuery = compiledQueryLookup.GetOrAdd(expression, (ex) =>
+                var compiledQuery = compiledQueryLookup.GetOrAdd(expression + ";including;" + including, (ex) =>
                 {
                     var contextParameter = Expression.Parameter(typeof(DbContext), "context");
                     var linqParameters = new ParameterExpression[parameters.Length + 1];
-                    var exprLinqParameters = new ParameterExpression[parameters.Length];
+                    var exprLinqParameters = new Expression[parameters.Length];
                     linqParameters[0] = contextParameter;
                     for (int i = 1; i < linqParameters.Length; i++)
                     {
-                        exprLinqParameters[i - 1] = linqParameters[i] = Expression.Parameter(typeof(object));
+                        exprLinqParameters[i - 1] = Expression.Convert(linqParameters[i] = Expression.Parameter(typeof(object)), parameters[i - 1].GetType());
                     }
 
                     var querySet = Expression.Call(contextParameter, typeof(DbContext).GetMethod("Set").MakeGenericMethod(new Type[] { typeof(T) }));
                     var whereLambda = DynamicExpressionParser.ParseLambda<T, bool>(DefaultParseConfig, false, expression, exprLinqParameters);
                     var whereResult = Expression.Call(typeof(System.Linq.Queryable), "Where", new Type[] { typeof(T) }, querySet, whereLambda);
                     var includeResult = whereResult;
-                    foreach (var includeBit in including.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                    foreach (var includeBit in including.Split(new char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries))
                     {
-                        includeResult = Expression.Call(typeof(EntityFrameworkQueryableExtensions), "Include", new Type[] { typeof(T) }, includeResult, Expression.Constant(includeBit));
+                        var propertyType = typeof(T).GetProperty(includeBit).PropertyType;
+                        includeResult = Expression.Call(typeof(EntityFrameworkQueryableExtensions), "Include", new Type[] { typeof(T), propertyType }, includeResult, MakePropertySelector<T>(includeBit, propertyType));
                     }
 
                     var firstOrDefaultResult = Expression.Call(typeof(System.Linq.Queryable), "FirstOrDefault", new Type[] { typeof(T) }, includeResult);
@@ -246,11 +248,11 @@ namespace Harmony.Core.EF.Extensions
                 {
                     var contextParameter = Expression.Parameter(typeof(DbContext), "context");
                     var linqParameters = new ParameterExpression[parameters.Length + 1];
-                    var exprLinqParameters = new ParameterExpression[parameters.Length];
+                    var exprLinqParameters = new Expression[parameters.Length];
                     linqParameters[0] = contextParameter;
                     for (int i = 1; i < linqParameters.Length; i++)
                     {
-                        exprLinqParameters[i - 1] = linqParameters[i] = Expression.Parameter(typeof(object));
+                        exprLinqParameters[i - 1] = Expression.Convert(linqParameters[i] = Expression.Parameter(typeof(object)), parameters[i - 1].GetType());
                     }
 
                     var querySet = Expression.Call(contextParameter, typeof(DbContext).GetMethod("Set").MakeGenericMethod(new Type[] { typeof(T) }));
@@ -302,37 +304,44 @@ namespace Harmony.Core.EF.Extensions
             }
         }
 
+        public static LambdaExpression MakePropertySelector<T>(string propertyName, Type propertyType)
+        {
+            var instance = Expression.Parameter(typeof(T), "instance");
+            var delegateType = typeof(Func<,>).MakeGenericType(typeof(T), propertyType);
+            return Expression.Lambda(delegateType, Expression.Property(instance, propertyName), instance);
+        }
 
         public static IEnumerable<T> WhereIncluding<T>(this DbSet<T> thisp, string expression, string including, params object[] parameters)
             where T : class
         {
+            var context = ((IInfrastructure<IServiceProvider>)thisp).Instance.GetService(typeof(DbContext)) as DbContext;
+            var contextType = context.GetType();
             if (parameters.Length > 5)
             {
                 return thisp.Where(expression, parameters);
             }
             else
             {
-                var context = ((IInfrastructure<IServiceProvider>)thisp).Instance.GetService(typeof(DbContext)) as DbContext;
-                var contextType = context.GetType();
                 var compiledQueryLookup = _compiledWhereIncludeLookup.GetOrAdd(contextType, (ty) => new ConcurrentDictionary<string, object>());
                 var compiledQuery = compiledQueryLookup.GetOrAdd(expression + ";including;" + including, (ex) =>
                 {
                     var contextParameter = Expression.Parameter(typeof(DbContext), "context");
                     var linqParameters = new ParameterExpression[parameters.Length + 1];
-                    var exprLinqParameters = new ParameterExpression[parameters.Length];
+                    var exprLinqParameters = new Expression[parameters.Length];
                     linqParameters[0] = contextParameter;
                     for (int i = 1; i < linqParameters.Length; i++)
                     {
-                        exprLinqParameters[i - 1] = linqParameters[i] = Expression.Parameter(typeof(object));
+                        exprLinqParameters[i - 1] = Expression.Convert(linqParameters[i] = Expression.Parameter(typeof(object)), parameters[i - 1].GetType());
                     }
 
                     var querySet = Expression.Call(contextParameter, typeof(DbContext).GetMethod("Set").MakeGenericMethod(new Type[] { typeof(T) }));
                     var whereLambda = DynamicExpressionParser.ParseLambda<T, bool>(DefaultParseConfig, false, expression, exprLinqParameters);
                     var whereResult = Expression.Call(typeof(System.Linq.Queryable), "Where", new Type[] { typeof(T) }, querySet, whereLambda);
                     var includeResult = whereResult;
-                    foreach (var includeBit in including.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                    foreach (var includeBit in including.Split(new char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries))
                     {
-                        includeResult = Expression.Call(typeof(EntityFrameworkQueryableExtensions), "Include", new Type[] { typeof(T) }, includeResult, Expression.Constant(includeBit));
+                        var propertyType = typeof(T).GetProperty(includeBit).PropertyType;
+                        includeResult = Expression.Call(typeof(EntityFrameworkQueryableExtensions), "Include", new Type[] { typeof(T), propertyType }, includeResult, MakePropertySelector<T>(includeBit, propertyType));
                     }
 
                     switch (parameters.Length)

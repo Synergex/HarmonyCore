@@ -101,10 +101,13 @@ namespace Harmony.Core.FileIO.Queryable
 			data querySource, @IQuerySource
 			foreach querySource in querySourceFinder.QuerySources
 			begin
-				data typeBuffer = MakeTypeBuffer(querySource)
-				mQuerySourceMapping.Add(querySource, mTypeBuffers.Count)
-				mTypeBuffers.Add(typeBuffer)
-				mQuerySourceTypes.Add(querySource.ItemType)
+				if(^typeof(DataObjectBase).IsAssignableFrom(querySource.ItemType))
+				begin
+					data typeBuffer = MakeTypeBuffer(querySource)
+					mQuerySourceMapping.Add(querySource, mTypeBuffers.Count)
+					mTypeBuffers.Add(typeBuffer)
+					mQuerySourceTypes.Add(querySource.ItemType)
+				end
 			end
 
 			mWhereBuilder = new WhereExpressionBuilder(true, querySourceFinder.QuerySources)
@@ -163,6 +166,9 @@ namespace Harmony.Core.FileIO.Queryable
 				fld,a1
 			endstructure
 		proc
+			if(!(^typeof(DataObjectBase).IsAssignableFrom(querySource.ItemType)))
+				mreturn 
+
 			data onPart, @object
 			if(innerKeySelector == ^null || (innerKeySelector .is. @ConstantExpression && ((@ConstantExpression)innerKeySelector).Value == ^null)) then
 			begin
@@ -258,10 +264,11 @@ namespace Harmony.Core.FileIO.Queryable
 		public static method PrepareQuery, @PreparedQueryPlan
 			model, @QueryModel
 			makeJoinExpression, @Func<Expression, Expression, QueryModel, Expression>
+			out querySourceBufferMap, @Dictionary<IQuerySource, int>
 		proc
 			data modelVisitor = new QueryModelVisitor(makeJoinExpression)
 			model.Accept(modelVisitor)
-
+			querySourceBufferMap = modelVisitor.mQuerySourceMapping
 			data isCollection = !model.ResultOperators.Any(lambda (op) { op.GetType() == ^typeof(Remotion.Linq.Clauses.ResultOperators.FirstResultOperator) })
 			mreturn new PreparedQueryPlan(isCollection, modelVisitor.mWhereParts, modelVisitor.mOnParts, modelVisitor.mOrderBy, new QueryBuffer(modelVisitor.mTypeBuffers))
 		endmethod

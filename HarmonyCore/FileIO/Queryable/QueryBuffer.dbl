@@ -6,7 +6,7 @@ import Harmony.Core.Context
 
 namespace Harmony.Core.FileIO.Queryable
 
-	internal class QueryBuffer implements IDisposable
+	public class QueryBuffer implements IDisposable
 		public class TypeBuffer
 			public MemoryHandle, int?
 			public IOChannel, int?
@@ -31,6 +31,36 @@ namespace Harmony.Core.FileIO.Queryable
 			TypeBuffers = buffers.ToList()
 		endmethod
 		
+		private static method MakeTypeBuffer, @QueryBuffer.TypeBuffer
+			buf, @QueryBuffer.TypeBuffer
+			dataObjectProvider, @IDataObjectProvider
+			bufferMap, @Dictionary<QueryBuffer.TypeBuffer, QueryBuffer.TypeBuffer>
+		proc
+			data madeBuffer, @QueryBuffer.TypeBuffer
+			if(bufferMap.TryGetValue(buf,madeBuffer)) then
+				mreturn madeBuffer
+			else
+			begin
+				data newTypeBuf = new QueryBuffer.TypeBuffer() 
+				&	{ 
+				&	Metadata = buf.Metadata,
+				&	IsCollection = buf.IsCollection,
+				&	ParentFieldName = buf.ParentFieldName,
+				&	DataObjectType = buf.DataObjectType,
+				&	JoinOn = buf.JoinOn,
+				&	JoinedBuffers = buf.JoinedBuffers.Select(lambda(jBuf) { MakeTypeBuffer(jBuf, dataObjectProvider, bufferMap) }).ToList()
+				&	}
+
+				newTypeBuf.MemoryHandle = mem_proc(DM_ALLOC|DM_STATIC, buf.Metadata.StructureSize)
+				data fileInfo = dataObjectProvider.GetFileInfo(buf.DataObjectType)
+				newTypeBuf.IOChannel = dataObjectProvider.ChannelManager.GetChannel(fileInfo.Item1, fileInfo.Item2)
+				bufferMap.Add(buf, newTypeBuf)
+				mreturn newTypeBuf
+			end
+
+		endmethod
+
+
 		public method QueryBuffer
 			bufferProtoType, @QueryBuffer
 			dataObjectProvider, @IDataObjectProvider
@@ -39,24 +69,14 @@ namespace Harmony.Core.FileIO.Queryable
 			Parameters = params
 			this.DataObjectProvider = dataObjectProvider
 			TypeBuffers = new List<QueryBuffer.TypeBuffer>()
+			data protoBufferMap = new Dictionary<QueryBuffer.TypeBuffer, QueryBuffer.TypeBuffer>()
 			data buf, @QueryBuffer.TypeBuffer
 			foreach buf in bufferProtoType.TypeBuffers
 			begin
 				if(buf.MemoryHandle != ^null || buf.IOChannel != ^null )
 					throw new InvalidOperationException("TypeBuffer should not have its MemoryHandle member set during QueryBuffer construction")
-				data newTypeBuf = new QueryBuffer.TypeBuffer() 
-				&	{ 
-				&	Metadata = buf.Metadata,
-				&	IsCollection = buf.IsCollection,
-				&	ParentFieldName = buf.ParentFieldName,
-				&	DataObjectType = buf.DataObjectType,
-				&	JoinOn = buf.JoinOn,
-				&	JoinedBuffers = buf.JoinedBuffers
-				&	}
-				newTypeBuf.MemoryHandle = mem_proc(DM_ALLOC|DM_STATIC, buf.Metadata.StructureSize)
-				data fileInfo = dataObjectProvider.GetFileInfo(buf.DataObjectType)
-				newTypeBuf.IOChannel = dataObjectProvider.ChannelManager.GetChannel(fileInfo.Item1, fileInfo.Item2)
-				TypeBuffers.Add(newTypeBuf)
+				
+				TypeBuffers.Add(MakeTypeBuffer(buf, dataObjectProvider, protoBufferMap))
 			end
 		endmethod
 		

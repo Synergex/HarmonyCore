@@ -28,8 +28,11 @@ namespace Harmony.Core.FileIO.Queryable
 			data querySource, @IQuerySource
 			foreach querySource in mQuerySources
 			begin
-				data metadataObject = DataObjectMetadataBase.LookupType(querySource.ItemType)
-				mDataObjects.Add(querySource, metadataObject)
+				if(^typeof(DataObjectBase).IsAssignableFrom(querySource.ItemType))
+				begin
+					data metadataObject = DataObjectMetadataBase.LookupType(querySource.ItemType)
+					mDataObjects.Add(querySource, metadataObject)
+				end
 			end
 		endmethod
 
