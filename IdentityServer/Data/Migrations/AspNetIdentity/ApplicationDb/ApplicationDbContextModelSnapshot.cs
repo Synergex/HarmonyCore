@@ -4,7 +4,6 @@ using IdentityServer.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace IdentityServer.Data.Migrations.AspNetIdentity.ApplicationDb
 {
@@ -15,9 +14,7 @@ namespace IdentityServer.Data.Migrations.AspNetIdentity.ApplicationDb
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn)
-                .HasAnnotation("ProductVersion", "2.1.0-rtm-30799")
-                .HasAnnotation("Relational:MaxIdentifierLength", 63);
+                .HasAnnotation("ProductVersion", "2.1.0-rtm-30799");
 
             modelBuilder.Entity("IdentityServer.Models.ApplicationUser", b =>
                 {
