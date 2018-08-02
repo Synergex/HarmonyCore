@@ -172,11 +172,11 @@ namespace Harmony.Core.EF.Query.Internal
             this.CurrentParameter = Expression.Parameter(MainQueryType, queryModel.MainFromClause.ItemName);
 
             Type resultTypeParameter = queryModel.ResultTypeOverride;
+            var implementsIEnumerable = queryModel.ResultTypeOverride.GetInterfaces().FirstOrDefault(inter => inter.GetGenericTypeDefinition() == typeof(IEnumerable<>));
             //this is cheating this will not cause any issues for our DataObject related use cases but its not quite right for non sequence generics
-            if (queryModel.ResultTypeOverride.IsGenericType && (queryModel.ResultTypeOverride.GetGenericTypeDefinition() == typeof(IQueryable<>)
-                || queryModel.ResultTypeOverride.GetGenericTypeDefinition() == typeof(IEnumerable<>) || queryModel.ResultTypeOverride.GetGenericTypeDefinition() == typeof(IIncludableQueryable<,>)))
+            if (implementsIEnumerable != null)
             {
-                resultTypeParameter = queryModel.ResultTypeOverride.GenericTypeArguments.First();
+                resultTypeParameter = implementsIEnumerable.GenericTypeArguments.First();
             }
 
             if (!(from ro in queryModel.ResultOperators
@@ -190,7 +190,7 @@ namespace Harmony.Core.EF.Query.Internal
                   }))
             {
                 
-                var subQueryVisitor = new IncludeRewriter { QueryModel = queryModel };
+                var subQueryVisitor = new SubQueryRewriter { QueryModel = queryModel, Parent = this, QuerySourceMapping = QueryCompilationContext.QuerySourceMapping };
                 //Expression expression = selectorRewriter.Visit(queryModel.SelectClause.Selector);
                 var selector = subQueryVisitor.Visit(queryModel.SelectClause.Selector);
                 QueryPlan = QueryModelVisitor.PrepareQuery(queryModel, ProcessWeirdJoin, out var querySourceBuffer);
@@ -202,19 +202,20 @@ namespace Harmony.Core.EF.Query.Internal
 
                 var memberAccessVisitor = new MemberAccessBindingExpressionVisitor(QueryCompilationContext.QuerySourceMapping, this, false);
                 var buffers = QueryPlan.GetQueryBuffer().TypeBuffers;
-                var queryMapping = new QuerySourceMapping();
                 foreach (var kvp in querySourceBuffer)
                 {
-                    if (!string.IsNullOrWhiteSpace(buffers[kvp.Value].ParentFieldName))
+                    if (!QueryCompilationContext.QuerySourceMapping.ContainsMapping(kvp.Key))
                     {
-                        var propertyNode = Expression.Property(this.CurrentParameter, MainQueryType.GetProperty(buffers[kvp.Value].ParentFieldName));
-                        QueryCompilationContext.QuerySourceMapping.AddMapping(kvp.Key, propertyNode);
+                        if (!string.IsNullOrWhiteSpace(buffers[kvp.Value].ParentFieldName))
+                        {
+                            var propertyNode = Expression.Property(this.CurrentParameter, MainQueryType.GetProperty(buffers[kvp.Value].ParentFieldName));
+                            QueryCompilationContext.QuerySourceMapping.AddMapping(kvp.Key, propertyNode);
+                        }
+                        else
+                        {
+                            QueryCompilationContext.QuerySourceMapping.AddMapping(kvp.Key, this.CurrentParameter);
+                        }
                     }
-                    else
-                    {
-                        QueryCompilationContext.QuerySourceMapping.AddMapping(kvp.Key, this.CurrentParameter);
-                    }
-
                 }
                 
                 var expression = memberAccessVisitor.Visit(selector);
@@ -238,9 +239,16 @@ namespace Harmony.Core.EF.Query.Internal
             return base.CreateExecutorLambda<TResults>();
         }
 
-        public class IncludeRewriter : System.Linq.Expressions.ExpressionVisitor
+        public class SubQueryRewriter : System.Linq.Expressions.ExpressionVisitor
         {
+            public QuerySourceMapping QuerySourceMapping;
+            public HarmonyQueryModelVisitor Parent;
             public QueryModel QueryModel;
+            private QuerySourceReferenceExpression Source;
+            private string SubQueryTargetName;
+            private SubQueryExpression SubQuery;
+            private ReadOnlyCollection<ParameterExpression> CurrentParameters;
+
             protected override Expression VisitConstant(ConstantExpression node)
             {
                 return node;
@@ -251,6 +259,82 @@ namespace Harmony.Core.EF.Query.Internal
             {
                 return node;
             }
+
+            protected override Expression VisitLambda<T>(Expression<T> node)
+            {
+                CurrentParameters = node.Parameters;
+                return base.VisitLambda(node);
+            }
+
+            protected override MemberAssignment VisitMemberAssignment(MemberAssignment node)
+            {
+                if (node.Member.Name == "Instance")
+                {
+                    Source = node.Expression as QuerySourceReferenceExpression;
+                }
+                else if (node.Member.Name == "Name")
+                {
+                    SubQueryTargetName = ((ConstantExpression)node.Expression).Value as string;
+                }
+                else if (node.Member.Name == "Value" && node.Expression is SubQueryExpression)
+                {
+                    SubQuery = node.Expression as SubQueryExpression;
+                    var queryModel = SubQuery.QueryModel;
+                    var propValue = Expression.PropertyOrField(Parent.CurrentParameter, SubQueryTargetName);
+                    var resultExpressionElementType = propValue.Type.IsGenericType ? propValue.Type.GenericTypeArguments.First() : propValue.Type;
+                    Expression resultExpression = (propValue.Type.GetGenericTypeDefinition() == typeof(ICollection<>)) ? 
+                        Expression.Condition(Expression.Equal(propValue, Expression.Constant(null)), Expression.Convert(Expression.New(typeof(List<>).MakeGenericType(new Type[] { resultExpressionElementType })), propValue.Type), propValue) : 
+                        (Expression)propValue;
+                    
+                    Type resultTypeParameter = queryModel.ResultTypeOverride;
+                    var currentParameter = Expression.Parameter(resultExpressionElementType);
+                    if(Source != null && !QuerySourceMapping.ContainsMapping(Source.ReferencedQuerySource))
+                        QuerySourceMapping.AddMapping(Source.ReferencedQuerySource, Parent.CurrentParameter);
+
+                    if (!QuerySourceMapping.ContainsMapping(queryModel.MainFromClause))
+                        QuerySourceMapping.AddMapping(queryModel.MainFromClause, currentParameter);
+                    //this is cheating this will not cause any issues for our DataObject related use cases but its not quite right for non sequence generics
+                    if (queryModel.ResultTypeOverride.IsGenericType && (queryModel.ResultTypeOverride.GetGenericTypeDefinition() == typeof(IQueryable<>)
+                        || queryModel.ResultTypeOverride.GetGenericTypeDefinition() == typeof(IEnumerable<>) || queryModel.ResultTypeOverride.GetGenericTypeDefinition() == typeof(IIncludableQueryable<,>)))
+                    {
+                        resultTypeParameter = queryModel.ResultTypeOverride.GenericTypeArguments.First();
+                    }
+
+                    if (!(from ro in queryModel.ResultOperators
+                          select ro.GetType()).Any(delegate (Type t)
+                          {
+                              if (!(t == typeof(GroupResultOperator)))
+                              {
+                                  return t == typeof(AllResultOperator);
+                              }
+                              return true;
+                          }))
+                    {
+
+                        var subQueryVisitor = new SubQueryRewriter { QueryModel = queryModel, Parent = Parent, QuerySourceMapping = QuerySourceMapping };
+                        //Expression expression = selectorRewriter.Visit(queryModel.SelectClause.Selector);
+                        var selector = subQueryVisitor.Visit(queryModel.SelectClause.Selector);
+                        var memberAccessVisitor = new MemberAccessBindingExpressionVisitor(QuerySourceMapping, Parent, false);
+                        // querySourceMapping.AddMapping(kvp.Key, propertyNode);
+
+                        var expression = memberAccessVisitor.Visit(selector);
+                        Expression expression2 = expression;
+                        TaskLiftingExpressionVisitor taskLiftingExpressionVisitor = new TaskLiftingExpressionVisitor();
+                        if (resultExpression.Type.TryGetElementType(typeof(IAsyncEnumerable<>)) != (Type)null)
+                        {
+                            expression2 = taskLiftingExpressionVisitor.LiftTasks(expression);
+                        }
+
+                        resultExpression = ((expression2 == expression) ?
+                            Expression.Call(Parent.LinqOperatorProvider.Select.MakeGenericMethod(resultExpressionElementType, resultTypeParameter), resultExpression, Expression.Lambda(expression, currentParameter)) :
+                            Expression.Call(EntityQueryModelVisitor.SelectAsyncMethod.MakeGenericMethod(resultExpressionElementType, resultTypeParameter), resultExpression, Expression.Lambda(expression2, currentParameter, taskLiftingExpressionVisitor.CancellationTokenParameter)));
+                    }
+
+                    return node.Update(resultExpression);
+                }
+                return base.VisitMemberAssignment(node);
+            }
+
             protected override Expression VisitMethodCall(MethodCallExpression node)
             {
                 if (IncludeCompiler.IsIncludeMethod(node))
