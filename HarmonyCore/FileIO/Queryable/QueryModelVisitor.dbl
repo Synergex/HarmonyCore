@@ -68,15 +68,14 @@ namespace Harmony.Core.FileIO.Queryable
 
 		private method MakeTypeBuffer, @QueryBuffer.TypeBuffer
 			querySource, @IQuerySource
+			itemType, @Type
 		proc
-			;data parentType = 
-			;data targetField = 
 			data result = new QueryBuffer.TypeBuffer()
 			&	{	
-			&	Metadata = DataObjectMetadataBase.LookupType(querySource.ItemType),
+			&	Metadata = DataObjectMetadataBase.LookupType(itemType),
 			&	IsCollection = true,
 			&	ParentFieldName = "",
-			&	DataObjectType = querySource.ItemType,
+			&	DataObjectType = itemType,
 			&	JoinOn = ^null,
 			&	JoinedBuffers = new List<QueryBuffer.TypeBuffer>()
 			&	}
@@ -101,12 +100,14 @@ namespace Harmony.Core.FileIO.Queryable
 			data querySource, @IQuerySource
 			foreach querySource in querySourceFinder.QuerySources
 			begin
-				if(^typeof(DataObjectBase).IsAssignableFrom(querySource.ItemType))
+				if(^typeof(DataObjectBase).IsAssignableFrom(querySource.ItemType) ||
+				&	(querySource.ItemType.IsGenericType && ^typeof(DataObjectBase).IsAssignableFrom(querySource.ItemType.GenericTypeArguments.First())))
 				begin
-					data typeBuffer = MakeTypeBuffer(querySource)
+					data itemType = querySource.ItemType.IsGenericType ? querySource.ItemType.GenericTypeArguments.First() : querySource.ItemType
+					data typeBuffer = MakeTypeBuffer(querySource, itemType)
 					mQuerySourceMapping.Add(querySource, mTypeBuffers.Count)
 					mTypeBuffers.Add(typeBuffer)
-					mQuerySourceTypes.Add(querySource.ItemType)
+					mQuerySourceTypes.Add(itemType)
 				end
 			end
 
@@ -145,8 +146,7 @@ namespace Harmony.Core.FileIO.Queryable
 			queryModel, @QueryModel
 			groupJoinClause, @GroupJoinClause 
 		proc
-			data typeBuffer = mTypeBuffers[mQuerySourceMapping[joinClause]]
-			typeBuffer.JoinOn = mWhereBuilder.VisitForOn(TypeSafeEqual(joinClause.InnerKeySelector, joinClause.OuterKeySelector))
+			VisitJoinClauseInternal(groupJoinClause, joinClause.OuterKeySelector, joinClause.InnerKeySelector, queryModel, false)
 		endmethod
 
 		private static DotArray, [#]char
@@ -162,11 +162,13 @@ namespace Harmony.Core.FileIO.Queryable
 			outerKeySelector, @Expression
 			innerKeySelector, @Expression
 			queryModel, @QueryModel
+			innerJoin, boolean
 			structure memMapper
 				fld,a1
 			endstructure
 		proc
-			if(!(^typeof(DataObjectBase).IsAssignableFrom(querySource.ItemType)))
+			data itemType = querySource.ItemType.IsGenericType ? querySource.ItemType.GenericTypeArguments.First() : querySource.ItemType
+			if(!(^typeof(DataObjectBase).IsAssignableFrom(itemType)))
 				mreturn 
 
 			data onPart, @object
@@ -192,6 +194,8 @@ namespace Harmony.Core.FileIO.Queryable
 				data parentField = parentBuffer.Metadata.GetFieldByName(typeBuffer.ParentFieldName)
 				typeBuffer.IsCollection = parentField.DataType == FieldDataType.DataObjectCollectionField
 			end
+
+			typeBuffer.IsInnerJoin = innerJoin
 		endmethod
 
 		private method FindOtherQuerySource, int?
@@ -243,7 +247,7 @@ namespace Harmony.Core.FileIO.Queryable
 			queryModel, @QueryModel
 			index, int
 		proc
-			VisitJoinClauseInternal(joinClause, joinClause.OuterKeySelector, joinClause.InnerKeySelector, queryModel)
+			VisitJoinClauseInternal(joinClause, joinClause.OuterKeySelector, joinClause.InnerKeySelector, queryModel, true)
 		endmethod
 		
 		public override method VisitWhereClause, void

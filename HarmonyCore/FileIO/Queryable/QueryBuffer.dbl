@@ -16,6 +16,7 @@ namespace Harmony.Core.FileIO.Queryable
 			public DataObjectType, @Type
 			public JoinOn, @object
 			public JoinedBuffers, @List<TypeBuffer>
+			public IsInnerJoin, boolean
 		endclass
 		
 		public readwrite property TypeBuffers, @List<QueryBuffer.TypeBuffer>
@@ -48,7 +49,8 @@ namespace Harmony.Core.FileIO.Queryable
 				&	ParentFieldName = buf.ParentFieldName,
 				&	DataObjectType = buf.DataObjectType,
 				&	JoinOn = buf.JoinOn,
-				&	JoinedBuffers = buf.JoinedBuffers.Select(lambda(jBuf) { MakeTypeBuffer(jBuf, dataObjectProvider, bufferMap) }).ToList()
+				&	JoinedBuffers = buf.JoinedBuffers.Select(lambda(jBuf) { MakeTypeBuffer(jBuf, dataObjectProvider, bufferMap) }).ToList(),
+				&	IsInnerJoin = buf.IsInnerJoin
 				&	}
 
 				newTypeBuf.MemoryHandle = mem_proc(DM_ALLOC|DM_STATIC, buf.Metadata.StructureSize)

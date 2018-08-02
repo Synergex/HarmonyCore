@@ -261,7 +261,7 @@ namespace Harmony.Core.FileIO.Queryable
 				mreturn new Synergex.SynergyDE.Select.Select(fromObject).Join()
 
 		endmethod
-		
+
 		private method FromObject, @Synergex.SynergyDE.Select.From
 			queryBuf, @QueryBuffer
 		proc
@@ -275,9 +275,13 @@ namespace Harmony.Core.FileIO.Queryable
 				begin
 					currentJoin = madeJoin
 				end
-				else
+				else if(fromItem.IsInnerJoin) then
 				begin
 					currentJoin = currentJoin.InnerJoin(madeJoin, OnObject(queryBuf, fromItem))
+				end
+				else
+				begin
+					currentJoin = currentJoin.LeftJoin(madeJoin, OnObject(queryBuf, fromItem))
 				end
 			end
 			mreturn currentJoin

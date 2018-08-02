@@ -194,7 +194,6 @@ namespace Harmony.Core.EF.Query.Internal
                 //Expression expression = selectorRewriter.Visit(queryModel.SelectClause.Selector);
                 var selector = subQueryVisitor.Visit(queryModel.SelectClause.Selector);
                 QueryPlan = QueryModelVisitor.PrepareQuery(queryModel, ProcessWeirdJoin, out var querySourceBuffer);
-                //base.VisitQueryModel(queryModel);
                 Expression = Expression.Call(
                         HarmonyQueryModelVisitor.EntityQueryMethodInfo.MakeGenericMethod(MainQueryType),
                         EntityQueryModelVisitor.QueryContextParameter,
@@ -275,9 +274,10 @@ namespace Harmony.Core.EF.Query.Internal
                     var joinOnLambda = node.Arguments.Last() as LambdaExpression;
                     var entitySourceType = typeof(EntityQueryable<>).MakeGenericType(joinOnLambda.Parameters[0].Type);
                     var entityQueryable = Expression.Constant(Activator.CreateInstance(entitySourceType, ((dynamic)_currentIncludeSource.ReferencedQuerySource).FromExpression.Value.Provider as IQueryProvider));
-                    var madeJoin = new JoinClause(_currentIncludeSource.ReferencedQuerySource.ItemName + "." + realNavProp.Name,
+                    var madeJoin = new JoinClause(realNavProp.Name,
                         realNavProp.PropertyInfo.PropertyType.GenericTypeArguments[0], entityQueryable, Expression.Constant(true), Expression.Constant(true));
-                    var newQuerySource = new QuerySourceReferenceExpression(madeJoin);
+                    var madeGroupJoin = new GroupJoinClause(_currentIncludeSource.ReferencedQuerySource.ItemName + "." + realNavProp.Name, typeof(IEnumerable<>).MakeGenericType(madeJoin.ItemType), madeJoin);
+                    var newQuerySource = new QuerySourceReferenceExpression(madeGroupJoin);
                     var rewrite = new SelectorRewriter()
                     {
                         Replacements = new Dictionary<Expression, Expression>
@@ -291,7 +291,7 @@ namespace Harmony.Core.EF.Query.Internal
 
                     madeJoin.InnerKeySelector = simpleJoinCondition.Right;
                     madeJoin.OuterKeySelector = simpleJoinCondition.Left;
-                    QueryModel.BodyClauses.Add(madeJoin);
+                    QueryModel.BodyClauses.Add(madeGroupJoin);
                 }
 
                 return node;
