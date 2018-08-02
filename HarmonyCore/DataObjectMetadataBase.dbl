@@ -27,8 +27,24 @@ namespace Harmony.Core
 			mreturn result
 		endmethod
 
+		private RecordBuffers, @ConcurrentBag<int>, new ConcurrentBag<int>()
 		public RPSStructureName	,String
 		public RPSStructureSize	,Int32
+
+		public method GetBuffer, int
+		proc
+			data result, int
+			if(!RecordBuffers.TryTake(result))
+				result = mem_proc(DM_ALLOC | DM_STATIC, RPSStructureSize)
+
+			mreturn result
+		endmethod
+
+		public method ReturnBuffer, void
+			handle, int
+		proc
+			RecordBuffers.Add(handle)
+		endmethod
 
 		;;backing field to store the objects field names
 		protected mFieldNames	,@List<String>, new List<String>()
