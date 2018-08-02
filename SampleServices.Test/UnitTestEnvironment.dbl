@@ -76,16 +76,16 @@ proc
 		
 		;data firstCustomer = dbCon.Customers.FirstOrDefault("CustCity == @0", "Glendale")
 		;firstCustomer = dbCon.Customers.FirstOrDefaultIncluding("CustCity == @0", "REL_Item", "Glendale")
-	data	firstCustomer = dbCon.Customers.FirstOrDefaultIncluding("CustCity == @0", "REL_Item;REL_Orders", "Glendale")
-
-		data customers = dbCon.Customers.Where("CustCity == @0", "Glendale").ToList() 
+		data firstCustomer = dbCon.Customers.FirstOrDefaultIncluding("CustCity == @0", "REL_Item;REL_Orders", "Glendale")
+		
+		data customers = dbCon.Customers.Where("CustCity == @0", "Glendale").ToList()
 		Assert.AreEqual(customers.Count, 2)
 		customers = dbCon.Customers.WhereIncluding("CustCity == @0", "REL_Item", "Glendale").ToList() 
 		Assert.AreEqual(customers.Count, 2)
 		customers = dbCon.Customers.WhereIncluding("CustCity == @0", "REL_Orders", "Glendale").ToList() 
-		Assert.AreEqual(customers.Count, 2)
+		Assert.AreEqual(customers.Count, 0)
 		customers = dbCon.Customers.WhereIncluding("CustCity == @0", "REL_Item;REL_Orders", "Glendale").ToList() 
-		Assert.AreEqual(customers.Count, 2)
+		Assert.AreEqual(customers.Count, 0)
 		data startTime = DateTime.Now
 		data i = 0
 		for i from 0 thru 10000 by 1 

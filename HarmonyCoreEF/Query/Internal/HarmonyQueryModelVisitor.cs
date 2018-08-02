@@ -131,12 +131,12 @@ namespace Harmony.Core.EF.Query.Internal
         //        this.TryOptimizeCorrelatedCollections(queryModel);
         //    }
 
-        //    QueryPlan = QueryModelVisitor.PrepareQuery(queryModel, ProcessWeirdJoin, out var querySourceBuffer);
-        //    Expression = Expression.Call(
-        //            HarmonyQueryModelVisitor.EntityQueryMethodInfo.MakeGenericMethod(MainQueryType),
-        //            EntityQueryModelVisitor.QueryContextParameter,
-        //            Expression.Constant(QueryPlan),
-        //            Expression.Constant(QueryCompilationContext.IsTrackingQuery));
+        //    //var queryPlan = QueryModelVisitor.PrepareQuery(queryModel, ProcessWeirdJoin, out var querySourceBuffer);
+        //    //Expression = Expression.Call(
+        //    //        HarmonyQueryModelVisitor.EntityQueryMethodInfo.MakeGenericMethod(MainQueryType),
+        //    //        EntityQueryModelVisitor.QueryContextParameter,
+        //    //        Expression.Constant(queryPlan),
+        //    //        Expression.Constant(QueryCompilationContext.IsTrackingQuery));
 
         //    Expression expression = this.ReplaceClauseReferences(this._projectionExpressionVisitorFactory.Create(this, queryModel.MainFromClause).Visit(selectClause.Selector), null, true);
         //    if (!(expression.Type != Expression.Type.GetSequenceType()) && selectClause.Selector is QuerySourceReferenceExpression)
@@ -159,7 +159,7 @@ namespace Harmony.Core.EF.Query.Internal
         //        {
         //            expression2 = taskLiftingExpressionVisitor.LiftTasks(expression);
         //        }
-        //        Expression = ((expression2 == expression) ? 
+        //        Expression = ((expression2 == expression) ?
         //            Expression.Call(this.LinqOperatorProvider.Select.MakeGenericMethod(this.CurrentParameter.Type, expression.Type), Expression, Expression.Lambda(expression, this.CurrentParameter)) :
         //            Expression.Call(EntityQueryModelVisitor.SelectAsyncMethod.MakeGenericMethod(this.CurrentParameter.Type, expression.Type), Expression, Expression.Lambda(expression2, this.CurrentParameter, taskLiftingExpressionVisitor.CancellationTokenParameter)));
         //    }
@@ -169,19 +169,12 @@ namespace Harmony.Core.EF.Query.Internal
         {
             MainQueryType = queryModel.MainFromClause.ItemType;
             this.TryOptimizeCorrelatedCollections(queryModel);
-            QueryPlan = QueryModelVisitor.PrepareQuery(queryModel, ProcessWeirdJoin, out var querySourceBuffer);
-            //base.VisitQueryModel(queryModel);
-            Expression = Expression.Call(
-                    HarmonyQueryModelVisitor.EntityQueryMethodInfo.MakeGenericMethod(MainQueryType),
-                    EntityQueryModelVisitor.QueryContextParameter,
-                    Expression.Constant(QueryPlan),
-                    Expression.Constant(QueryCompilationContext.IsTrackingQuery));
-
             this.CurrentParameter = Expression.Parameter(MainQueryType, queryModel.MainFromClause.ItemName);
 
             Type resultTypeParameter = queryModel.ResultTypeOverride;
+            //this is cheating this will not cause any issues for our DataObject related use cases but its not quite right for non sequence generics
             if (queryModel.ResultTypeOverride.IsGenericType && (queryModel.ResultTypeOverride.GetGenericTypeDefinition() == typeof(IQueryable<>)
-                || queryModel.ResultTypeOverride.GetGenericTypeDefinition() == typeof(IEnumerable<>)))
+                || queryModel.ResultTypeOverride.GetGenericTypeDefinition() == typeof(IEnumerable<>) || queryModel.ResultTypeOverride.GetGenericTypeDefinition() == typeof(IIncludableQueryable<,>)))
             {
                 resultTypeParameter = queryModel.ResultTypeOverride.GenericTypeArguments.First();
             }
@@ -196,7 +189,19 @@ namespace Harmony.Core.EF.Query.Internal
                       return true;
                   }))
             {
-                //Dictionary<IQuerySource, Expression> sourceMapping = new Dictionary<IQuerySource, Expression>();
+                
+                var subQueryVisitor = new IncludeRewriter { QueryModel = queryModel };
+                //Expression expression = selectorRewriter.Visit(queryModel.SelectClause.Selector);
+                var selector = subQueryVisitor.Visit(queryModel.SelectClause.Selector);
+                QueryPlan = QueryModelVisitor.PrepareQuery(queryModel, ProcessWeirdJoin, out var querySourceBuffer);
+                //base.VisitQueryModel(queryModel);
+                Expression = Expression.Call(
+                        HarmonyQueryModelVisitor.EntityQueryMethodInfo.MakeGenericMethod(MainQueryType),
+                        EntityQueryModelVisitor.QueryContextParameter,
+                        Expression.Constant(QueryPlan),
+                        Expression.Constant(QueryCompilationContext.IsTrackingQuery));
+
+                var memberAccessVisitor = new MemberAccessBindingExpressionVisitor(QueryCompilationContext.QuerySourceMapping, this, false);
                 var buffers = QueryPlan.GetQueryBuffer().TypeBuffers;
                 var queryMapping = new QuerySourceMapping();
                 foreach (var kvp in querySourceBuffer)
@@ -204,79 +209,104 @@ namespace Harmony.Core.EF.Query.Internal
                     if (!string.IsNullOrWhiteSpace(buffers[kvp.Value].ParentFieldName))
                     {
                         var propertyNode = Expression.Property(this.CurrentParameter, MainQueryType.GetProperty(buffers[kvp.Value].ParentFieldName));
-                        //queryMapping.AddMapping(kvp.Key, Expression.Condition(Expression.Equal(this.CurrentParameter, Expression.Constant(null)), Expression.Constant(null, propertyNode.Type), propertyNode, propertyNode.Type));
-                        queryMapping.AddMapping(kvp.Key, propertyNode);
+                        QueryCompilationContext.QuerySourceMapping.AddMapping(kvp.Key, propertyNode);
                     }
                     else
                     {
-                        queryMapping.AddMapping(kvp.Key, this.CurrentParameter);
+                        QueryCompilationContext.QuerySourceMapping.AddMapping(kvp.Key, this.CurrentParameter);
                     }
 
                 }
-                if (queryModel.SelectClause.Selector is MethodCallExpression && ((MethodCallExpression)queryModel.SelectClause.Selector).Method.DeclaringType == typeof(IncludeCompiler))
-                    return;
-                else
+                
+                var expression = memberAccessVisitor.Visit(selector);
+                Expression expression2 = expression;
+                TaskLiftingExpressionVisitor taskLiftingExpressionVisitor = new TaskLiftingExpressionVisitor();
+                if (Expression.Type.TryGetElementType(typeof(IAsyncEnumerable<>)) != (Type)null)
                 {
-                    //var selectorRewriter = new ReplaceQuerySource(sourceMapping);
-                    //Expression expression = selectorRewriter.Visit(queryModel.SelectClause.Selector);
-                    var memberAccessVisitor = new MemberAccessBindingExpressionVisitor(queryMapping, this, false);
-                    var expression = memberAccessVisitor.Visit(queryModel.SelectClause.Selector);
-                    Expression expression2 = expression;
-                    TaskLiftingExpressionVisitor taskLiftingExpressionVisitor = new TaskLiftingExpressionVisitor();
-                    if (Expression.Type.TryGetElementType(typeof(IAsyncEnumerable<>)) != (Type)null)
-                    {
-                        expression2 = taskLiftingExpressionVisitor.LiftTasks(expression);
-                    }
-
-                    Expression = ((expression2 == expression) ?
-                        Expression.Call(this.LinqOperatorProvider.Select.MakeGenericMethod(this.CurrentParameter.Type, resultTypeParameter), Expression, Expression.Lambda(expression, this.CurrentParameter)) :
-                        Expression.Call(EntityQueryModelVisitor.SelectAsyncMethod.MakeGenericMethod(this.CurrentParameter.Type, resultTypeParameter), Expression, Expression.Lambda(expression2, this.CurrentParameter, taskLiftingExpressionVisitor.CancellationTokenParameter)));
+                    expression2 = taskLiftingExpressionVisitor.LiftTasks(expression);
                 }
+
+                Expression = ((expression2 == expression) ?
+                    Expression.Call(this.LinqOperatorProvider.Select.MakeGenericMethod(this.CurrentParameter.Type, resultTypeParameter), Expression, Expression.Lambda(expression, this.CurrentParameter)) :
+                    Expression.Call(EntityQueryModelVisitor.SelectAsyncMethod.MakeGenericMethod(this.CurrentParameter.Type, resultTypeParameter), Expression, Expression.Lambda(expression2, this.CurrentParameter, taskLiftingExpressionVisitor.CancellationTokenParameter)));
+                
             }
+
+            VisitResultOperators(queryModel.ResultOperators, queryModel);
         }
         protected override Func<QueryContext, TResults> CreateExecutorLambda<TResults>()
         {
             return base.CreateExecutorLambda<TResults>();
         }
 
-        public class ReplaceQuerySource : System.Linq.Expressions.ExpressionVisitor
+        public class IncludeRewriter : System.Linq.Expressions.ExpressionVisitor
         {
-            private readonly Dictionary<IQuerySource, Expression> fromMapping;
-            public ReplaceQuerySource(Dictionary<IQuerySource, Expression> fromMapping)
-            {
-                this.fromMapping = fromMapping;
-            }
-
-            protected override Expression VisitLambda<T>(Expression<T> node)
-            {
-                var updatedBody = this.Visit(node.Body);        // which will convert parameters to 'to'
-                return Expression.Lambda(updatedBody, node.Parameters);
-            }
-
-            protected override Expression VisitMethodCall(MethodCallExpression node)
-            {
-                var newNode = base.VisitMethodCall(node) as MethodCallExpression;
-                if (newNode.Method.Name == "Property")
-                {
-                    var resultExpr = Expression.Property(newNode.Arguments[0], (((ConstantExpression)newNode.Arguments[1]).Value as string));
-                    if (resultExpr.Type != newNode.Type)
-                        return Expression.Convert(resultExpr, newNode.Type);
-                    else
-                        return resultExpr;
-                }
-                else
-                    return newNode;
-            }
-
+            public QueryModel QueryModel;
             protected override Expression VisitConstant(ConstantExpression node)
             {
                 return node;
             }
 
+            private QuerySourceReferenceExpression _currentIncludeSource;
             protected override Expression VisitExtension(Expression node)
             {
-                if (node is QuerySourceReferenceExpression)
-                    return fromMapping[((QuerySourceReferenceExpression)node).ReferencedQuerySource];
+                return node;
+            }
+            protected override Expression VisitMethodCall(MethodCallExpression node)
+            {
+                if (IncludeCompiler.IsIncludeMethod(node))
+                {
+                    _currentIncludeSource = node.Arguments[1] as QuerySourceReferenceExpression;
+                }
+
+                Visit(node.Arguments.Last());
+
+                //we fold the include directly into the query this is a nop
+                if (IncludeCompiler.IsIncludeMethod(node))
+                {
+                    _currentIncludeSource = null;
+                    return node.Arguments[1];
+                }
+                else if(node.Method.Name == "IncludeCollection")
+                {
+                    //get the target navigation property
+                    var navProp = node.Arguments[1] as ConstantExpression;
+                    var realNavProp = navProp.Value as INavigation;
+                    var joinOnLambda = node.Arguments.Last() as LambdaExpression;
+                    var entitySourceType = typeof(EntityQueryable<>).MakeGenericType(joinOnLambda.Parameters[0].Type);
+                    var entityQueryable = Expression.Constant(Activator.CreateInstance(entitySourceType, ((dynamic)_currentIncludeSource.ReferencedQuerySource).FromExpression.Value.Provider as IQueryProvider));
+                    var madeJoin = new JoinClause(_currentIncludeSource.ReferencedQuerySource.ItemName + "." + realNavProp.Name,
+                        realNavProp.PropertyInfo.PropertyType.GenericTypeArguments[0], entityQueryable, Expression.Constant(true), Expression.Constant(true));
+                    var newQuerySource = new QuerySourceReferenceExpression(madeJoin);
+                    var rewrite = new SelectorRewriter()
+                    {
+                        Replacements = new Dictionary<Expression, Expression>
+                        {
+                            { joinOnLambda.Parameters[1], newQuerySource },
+                            { joinOnLambda.Parameters[0], _currentIncludeSource }
+                        }
+                    };
+                    var rewrittenJoinLambda = rewrite.Visit(joinOnLambda) as LambdaExpression;
+                    var simpleJoinCondition = rewrittenJoinLambda.Body as BinaryExpression;
+
+                    madeJoin.InnerKeySelector = simpleJoinCondition.Right;
+                    madeJoin.OuterKeySelector = simpleJoinCondition.Left;
+                    QueryModel.BodyClauses.Add(madeJoin);
+                }
+
+                return node;
+            }
+        }
+
+        public class SelectorRewriter : System.Linq.Expressions.ExpressionVisitor
+        {
+            public Dictionary<Expression, Expression> Replacements;
+            protected override Expression VisitMember(MemberExpression node)
+            {
+                if (Replacements.TryGetValue(node.Expression, out var replacement))
+                {
+                    return Expression.Call(typeof(Microsoft.EntityFrameworkCore.EF), "Property", new Type[] { ((PropertyInfo) node.Member).PropertyType }, replacement, Expression.Constant(node.Member.Name));
+                }
                 else
                     return node;
             }
