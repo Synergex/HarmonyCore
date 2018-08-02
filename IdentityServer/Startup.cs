@@ -135,29 +135,32 @@ namespace IdentityServer
             using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
             {
                 //Create or update the ASP.NET Core Identity database tables
-                var appDbContext = serviceScope.ServiceProvider
-                    .GetRequiredService<ApplicationDbContext>();
+                var appDbContext = serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 appDbContext.Database.Migrate();
 
                 //Create or update the IdentityServer configuration database tables
-                var configDbContext = serviceScope.ServiceProvider
-                    .GetRequiredService<ConfigurationDbContext>();
+                var configDbContext = serviceScope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
                 configDbContext.Database.Migrate();
 
                 //Create or update the IdentityServer persisted grants database tables
-                var pgDbContext = serviceScope.ServiceProvider
-                    .GetRequiredService<PersistedGrantDbContext>();
+                var pgDbContext = serviceScope.ServiceProvider.GetRequiredService<PersistedGrantDbContext>();
                 pgDbContext.Database.Migrate();
 
-                //Populate the IdentityServer clients data based on seed data hard-coded in the Config class
-                if (!configDbContext.Clients.Any())
+                //Create or update IdentityServer clients data based on seed data hard-coded in the Config class
+                foreach (var client in Config.GetClients())
                 {
-                    foreach (var client in Config.GetClients())
+                    if (configDbContext.Clients.FirstOrDefault(c => c.ClientId == client.ClientId) == null)
                     {
                         configDbContext.Clients.Add(client.ToEntity());
                     }
-                    configDbContext.SaveChanges();
+                    //TODO: I'm doing something wrong here because I get a "UNIQUE constraint failed"
+                    //exception from SQLite during the SaveChanges() call.
+                    //else
+                    //{
+                    //    configDbContext.Clients.Update(client.ToEntity());
+                    //}
                 }
+                configDbContext.SaveChanges();
 
                 //Populate the IdentityServer isentity data based on seed data hard-coded in the Config class
                 if (!configDbContext.IdentityResources.Any())
