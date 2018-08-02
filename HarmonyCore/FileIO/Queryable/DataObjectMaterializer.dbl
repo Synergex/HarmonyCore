@@ -6,27 +6,18 @@ import System.Linq
 namespace Harmony.Core.FileIO.Queryable
 
 	public class DataObjectMaterializer
-		private static method DependentObjectsForMaterialize, [#]KeyValuePair<string, object>
-			typeBuf, @QueryBuffer.TypeBuffer
-			rowEnumerator, @Synergex.SynergyDE.Select.RowEnumerator
-			tracker, @Func<DataObjectBase, DataObjectBase>
-		proc
-			data result = new Dictionary<string, object>()
-			data buffer, @QueryBuffer.TypeBuffer
-			foreach buffer in typeBuf.JoinedBuffers
-			begin
-				if(buffer.IsCollection) then
-				begin
-				end
-				else
-				begin
-					result.Add(buffer.ParentFieldName, MaterializeObject(buffer, rowEnumerator, tracker))
-				end
-			end
-			mreturn result.ToArray()
-		endmethod
+		private class MaterializerState
+			public parentState, @DataObjectMaterializer.MaterializerState
+			public typeBuf, @QueryBuffer.TypeBuffer
+			public grfa, a10
+			public madeItems, @List<DataObjectBase>
+			public lastMadeItem, @DataObjectBase
+			public dependentItems, @Dictionary<string, Object>
+			public changed, boolean
+			public filled, boolean
+		endclass
 
-		public static method MaterializeObject, @DataObjectBase
+		public static method MaterializeObject, @IEnumerable<DataObjectBase>
 			typeBuf, @QueryBuffer.TypeBuffer
 			rowEnumerator, @Synergex.SynergyDE.Select.RowEnumerator
 			tracker, @Func<DataObjectBase, DataObjectBase>
@@ -34,14 +25,192 @@ namespace Harmony.Core.FileIO.Queryable
 				fld,a1
 			endstructure
 		proc
-			data memPnt, int, typeBuf.MemoryHandle.Value
-			data metadataObject = typeBuf.Metadata
-			data structureSize = metadataObject.StructureSize
-			data grfa, a10
-			rowEnumerator.Current.RowInfo(^m(memMapper.fld(1:structureSize), memPnt), grfa)
-			rowEnumerator.Current.Fill(^m(memMapper.fld(1:structureSize), memPnt))
-			mreturn tracker(metadataObject.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa, DependentObjectsForMaterialize(typeBuf, rowEnumerator, tracker)))
+			data materializerQueue = MakeIterationQueue(typeBuf)
+			data resultState = materializerQueue.First()
+			materializerQueue.Reverse()
+			data matState, @DataObjectMaterializer.MaterializerState
+			while(rowEnumerator.MoveNext())
+			begin
+				;;start at the limbs for actual object construction
+				foreach matState in materializerQueue
+				begin
+					data memPnt, i4, matState.typeBuf.MemoryHandle.Value
+					data structureSize, i4, matState.typeBuf.Metadata.StructureSize
+					rowEnumerator.Current.RowInfo(^m(memMapper.fld(1:structureSize), memPnt), , ,matState.changed)
+					
+					;;if our parent was constructed last time around we need to clean up our made items
+					if(matState.parentState != ^null && matState.parentState.changed && matState.parentState.filled)
+					begin
+						if(matState.madeItems != ^null)
+							matState.madeItems = new List<DataObjectBase>()
+					end
+
+					if(!matState.changed && matState.filled) then
+					begin
+						;;if the leg hasnt changed we still need to check if we've push up to our current parent
+						if(matState.parentState != ^null)
+						begin
+							if(matState.parentState.dependentItems != ^null && !matState.parentState.dependentItems.ContainsKey(matState.typeBuf.ParentFieldName))
+							begin
+
+								if(matState.lastMadeItem == ^null)
+								begin
+									;;hasnt been made yet
+									nop
+								end
+
+								if(matState.madeItems != ^null) then
+								begin
+									if(matState.madeItems.Count == 0 && matState.lastMadeItem != ^null)
+									begin
+										matState.madeItems.Add(matState.lastMadeItem)
+									end
+									matState.parentState.dependentItems.Add(matState.typeBuf.ParentFieldName, matState.madeItems)
+								end
+								else if(matState.lastMadeItem != ^null)
+									matState.parentState.dependentItems.Add(matState.typeBuf.ParentFieldName, matState.lastMadeItem)
+							end
+						end
+					end
+					else if(matState.changed && matState.filled)
+					begin
+						;;construct the object
+						data madeObject = matState.dependentItems != ^null ? 
+						&	matState.typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), matState.grfa, matState.dependentItems.ToArray()) : 
+						&	matState.typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), matState.grfa)
+
+						matState.LastMadeItem = madeObject
+
+						;;we only need to track top level objects
+						if(matState.typeBuf == typeBuf)
+							tracker(madeObject)
+
+						;;if there is a parent state and we're a collection
+						;;and if madeItems is empty, add ourselves to it and then add our madeItems
+						;;to our parent states, dependentItems, using typeBuf.ParentFieldName as the key
+						if(matState.madeItems == ^null && matState.parentState != ^null) then
+						begin
+							;;we must be constructing singles, just push our madeObject into the parent
+							if(matState.parentState.dependentItems.ContainsKey(matState.typeBuf.ParentFieldName))
+							begin
+								;;this leg should have only had one result, throw
+								throw new InvalidOperationException(string.Format("Unexpected record during enumeration, additional item encountered was {0} joined to a {1} at {2}", 
+								&	matState.typeBuf.DataObjectType.FullName, matState.parentState.typeBuf.DataObjectType, matState.typeBuf.ParentFieldName))
+							end
+							matState.parentState.dependentItems.Add(matState.typeBuf.ParentFieldName, madeObject)
+						end
+						else if(matState.madeItems != ^null) then
+						begin
+							matState.madeItems.Add(madeObject)
+						end
+						else
+							throw new InvalidOperationException("Invalid materializer state")
+					
+						if(matState.parentState != ^null)
+						begin
+							if(matState.madeItems != ^null && matState.madeItems.Count == 1)
+							begin
+								matState.parentState.dependentItems.Add(matState.typeBuf.ParentFieldName, matState.madeItems)
+							end
+						end
+
+						;;cleanup the materializer state for this step
+						if(matState.dependentItems != ^null)
+							matState.dependentItems.Clear()
+					end
+
+					if(matState.changed)
+					begin
+						;;fill the row
+						rowEnumerator.Current.RowInfo(^m(memMapper.fld(1:structureSize), memPnt), matState.grfa)
+						matState.filled = rowEnumerator.Current.Fill(^m(memMapper.fld(1:structureSize), memPnt))
+					end
+				end
+				;;we only want one object if we dont have a collection result
+				if(resultState.madeItems.Count == 1 && !typeBuf.IsCollection)
+					mreturn resultState.madeItems
+			end
+
+
+			;;finsh up the leftover materialization process here
+			foreach matState in materializerQueue
+			begin
+				data memPnt, i4, matState.typeBuf.MemoryHandle.Value
+				data structureSize, i4, matState.typeBuf.Metadata.StructureSize
+				if(matState.filled)
+				begin
+					;;construct the object
+					data madeObject = matState.dependentItems != ^null ? 
+					&	matState.typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), matState.grfa, matState.dependentItems.ToArray()) : 
+					&	matState.typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), matState.grfa)
+					;;we only need to track top level objects
+					if(matState.typeBuf == typeBuf)
+						tracker(madeObject)
+
+					if(matState.madeItems == ^null && matState.parentState != ^null) then
+					begin
+						;;we must be constructing singles, just push our madeObject into the parent
+						if(matState.parentState.dependentItems.ContainsKey(matState.typeBuf.ParentFieldName))
+						begin
+							;;this leg should have only had one result, throw
+							throw new InvalidOperationException(string.Format("Unexpected record during enumeration, additional item encountered was {0} joined to a {1} at {2}", 
+							&	matState.typeBuf.DataObjectType.FullName, matState.parentState.typeBuf.DataObjectType, matState.typeBuf.ParentFieldName))
+						end
+						matState.parentState.dependentItems.Add(matState.typeBuf.ParentFieldName, madeObject)
+					end
+					else if(matState.madeItems != ^null) then
+					begin
+						matState.madeItems.Add(madeObject)
+					end
+					else
+						throw new InvalidOperationException("Invalid materializer state")
+					
+					if(matState.parentState != ^null)
+					begin
+						if(matState.madeItems != ^null && matState.madeItems.Count == 1)
+						begin
+							matState.parentState.dependentItems.Add(matState.typeBuf.ParentFieldName, matState.madeItems)
+						end
+					end
+				end
+
+			end
+			mreturn resultState.madeItems
 		endmethod
+
+		private static method MakeIterationQueue, @List<DataObjectMaterializer.MaterializerState>
+			source, @QueryBuffer.TypeBuffer
+		proc
+			data result = new List<DataObjectMaterializer.MaterializerState>()
+			data q = new @Queue<DataObjectMaterializer.MaterializerState>()
+
+			data rootState = new MaterializerState() { typeBuf = source, changed = false, filled = false, madeItems = new List<DataObjectBase>() }
+			if(source.JoinedBuffers != ^null && source.JoinedBuffers.Count > 0)
+				rootState.dependentItems = new Dictionary<string, Object>()
+
+			q.Enqueue(rootState) 
+			result.Add(rootState)
+			;;this is constructing a bredth first traversal list
+			while(q.Count > 0)
+			begin
+				data current = q.Dequeue()
+				data joined, @QueryBuffer.TypeBuffer
+				foreach joined in current.typeBuf.JoinedBuffers
+				begin
+					data newMatState = new MaterializerState() { typeBuf = joined, changed = false, filled = false, parentState = current }
+					if(joined.IsCollection)
+						newMatState.madeItems = new List<DataObjectBase>()
+
+					if(joined.JoinedBuffers != ^null && joined.JoinedBuffers.Count > 0)
+						newMatState.dependentItems = new Dictionary<string, Object>()
+
+					q.Enqueue(newMatState) 
+					result.Add(newMatState)
+				end
+			end
+			mreturn result
+		endmethod
+
 	endclass
 
 endnamespace

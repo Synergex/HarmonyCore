@@ -67,13 +67,24 @@ namespace Harmony.Core.FileIO.Queryable
 			end
 		endmethod
 
+		public method GetQueryBuffer, @QueryBuffer
+		proc
+			mreturn mQueryBufferPrototype
+		endmethod
+
 		public method ExecuteCollectionPlan<T(DataObjectBase)>, @IEnumerable<T>
 			tracker, @Func<DataObjectBase, DataObjectBase>
 			parameters, @IReadOnlyDictionary<string, Object>
 			dataObjectProvider, @Harmony.Core.Context.IDataObjectProvider
 		proc
-			if(IsKeyedRead && !IsJoin) then
-				mreturn ExecuteKeyedCollectionPlan<T>(tracker, parameters, dataObjectProvider)
+			if(!IsCollection) then
+			begin
+				data result = ExecutePlan<T>(tracker, parameters, dataObjectProvider)
+				if(result == ^null) then
+					mreturn Enumerable.Empty<T>()
+				else
+					mreturn new T[#] { result }
+			end
 			else
 				mreturn ExecuteSelectCollectionPlan<T>(tracker, parameters, dataObjectProvider)
 		endmethod
@@ -133,23 +144,27 @@ namespace Harmony.Core.FileIO.Queryable
 				disposable data selectObject, @Synergex.SynergyDE.Select.JoinSelect, JoinObject(queryBuffer, fromObj, WhereObject(queryBuffer), OrderByObject(queryBuffer))
 				data hasMoreRows = true
 				rows = selectObject.GetEnumerator()
-				while(hasMoreRows)
-				begin
-					incr currentCount
-					
-					;;if(skip && skip > currentCount)
-					;;	nextloop
-						
-					;;if (targetCount && currentCount > targetCount)
-					;;	exitloop
-					result.Add(DataObjectMaterializer.MaterializeObject(queryBuffer.TypeBuffers[0], rows, tracker))
-					hasMoreRows = rows.MoveNext()
-				end
+
+				result.AddRange(DataObjectMaterializer.MaterializeObject(queryBuffer.TypeBuffers[0], rows, tracker).OfType<T>())
+
+				;while(hasMoreRows)
+				;begin
+;					incr currentCount
+;					
+;					;;if(skip && skip > currentCount)
+;					;;	nextloop
+;						
+;					;;if (targetCount && currentCount > targetCount)
+;					;;	exitloop
+;					result.Add()
+;					hasMoreRows = rows.MoveNext()
+				;end
 			end
 
 			mreturn result
 		endmethod
 
+		;;this isnt right, dont use it for now
 		private method ExecuteKeyedCollectionPlan<T(DataObjectBase)>, @IEnumerable<T>
 			tracker, @Func<DataObjectBase, DataObjectBase>
 			parameters, @IReadOnlyDictionary<string, Object>
@@ -251,7 +266,7 @@ namespace Harmony.Core.FileIO.Queryable
 				mreturn new Synergex.SynergyDE.Select.Select(fromObject).Join()
 
 		endmethod
-		
+
 		private method FromObject, @Synergex.SynergyDE.Select.From
 			queryBuf, @QueryBuffer
 		proc
@@ -265,9 +280,13 @@ namespace Harmony.Core.FileIO.Queryable
 				begin
 					currentJoin = madeJoin
 				end
-				else
+				else if(fromItem.IsInnerJoin) then
 				begin
 					currentJoin = currentJoin.InnerJoin(madeJoin, OnObject(queryBuf, fromItem))
+				end
+				else
+				begin
+					currentJoin = currentJoin.LeftJoin(madeJoin, OnObject(queryBuf, fromItem))
 				end
 			end
 			mreturn currentJoin

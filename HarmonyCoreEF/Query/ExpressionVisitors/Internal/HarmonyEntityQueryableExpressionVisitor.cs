@@ -45,7 +45,6 @@ namespace Harmony.Core.EF.Query.ExpressionVisitors.Internal
         protected override Expression VisitEntityQueryable(Type elementType)
         {
             var context = QueryModelVisitor.QueryCompilationContext;
-            var queryModel = QueryModelVisitor.QueryPlan;
             if (context.QuerySourceRequiresMaterialization(_querySource))
             {
                 return Expression.Call(
@@ -60,8 +59,8 @@ namespace Harmony.Core.EF.Query.ExpressionVisitors.Internal
                 return Expression.Call(
                 HarmonyQueryModelVisitor.ProjectionQueryMethodInfo,
                 EntityQueryModelVisitor.QueryContextParameter,
-                Expression.Constant(entityType),
-                Expression.Constant(context));
+                Expression.Constant(QueryModelVisitor.QueryPlan),
+                Expression.Constant(context.IsTrackingQuery));
             }
         }
 

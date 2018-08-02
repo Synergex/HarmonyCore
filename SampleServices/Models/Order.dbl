@@ -51,10 +51,10 @@ import Harmony.Core.Converters
 
 namespace SampleServices.Models
 
-    public partial class Order extends DataObjectBase
+	public partial class Order extends DataObjectBase
 
-        ;;make the record available and a copy
-        private mSynergyData, strOrder 
+		;;make the record available and a copy
+		private mSynergyData, strOrder 
 		private mOriginalSynergyData, strOrder 
 		
 		private static sMetadata, @OrderMetadata
@@ -67,14 +67,14 @@ namespace SampleServices.Models
 			DataObjectMetadataBase.MetadataLookup.TryAdd(^typeof(Order), sMetadata)
 		endmethod
 		
-        ;;; <summary>
-        ;;;  Constructor, initialise the base fields
-        ;;; </summary>
-        public method Order
-            parent()
-        proc
+		;;; <summary>
+		;;;  Constructor, initialise the base fields
+		;;; </summary>
+		public method Order
+			parent()
+		proc
 			init mSynergyData, mOriginalSynergyData
-        endmethod
+		endmethod
 
 		;;; <summary>
 		;;;  Alternate Constructor, accepts the structured data
@@ -98,7 +98,7 @@ namespace SampleServices.Models
 			method get
 			proc
 				mreturn (int)mSynergyData.Or_number
-            endmethod
+			endmethod
 			method set
 			proc
 				mSynergyData.Or_number = value
@@ -112,7 +112,7 @@ namespace SampleServices.Models
 			method get
 			proc
 				mreturn (int)mSynergyData.Or_vendor
-            endmethod
+			endmethod
 			method set
 			proc
 				mSynergyData.Or_vendor = value
@@ -126,7 +126,7 @@ namespace SampleServices.Models
 			method get
 			proc
 				mreturn (int)mSynergyData.Or_item
-            endmethod
+			endmethod
 			method set
 			proc
 				mSynergyData.Or_item = value
@@ -140,7 +140,7 @@ namespace SampleServices.Models
 			method get
 			proc
 				mreturn (int)mSynergyData.Or_customer
-            endmethod
+			endmethod
 			method set
 			proc
 				mSynergyData.Or_customer = value
@@ -154,7 +154,7 @@ namespace SampleServices.Models
 			method get
 			proc
 				mreturn (int)mSynergyData.Or_qty
-            endmethod
+			endmethod
 			method set
 			proc
 				mSynergyData.Or_qty = value
@@ -168,7 +168,7 @@ namespace SampleServices.Models
 			method get
 			proc
 				mreturn (decimal)SynergyImpliedDecimalConverter.Convert(mSynergyData.Or_price, ^null, "DECIMALPLACES#2", ^null)
-            endmethod
+			endmethod
 			method set
 			proc
 				mSynergyData.Or_price = value
@@ -182,7 +182,7 @@ namespace SampleServices.Models
 			method get
 			proc
 				mreturn (DateTime)SynergyDecimalDateConverter.Convert(mSynergyData.Or_odate, ^null, ^null, ^null)
-            endmethod
+			endmethod
 			method set
 			proc
 				mSynergyData.Or_odate = (D)SynergyDecimalDateConverter.ConvertBack(value, ^null, ^null, ^null)
@@ -196,7 +196,7 @@ namespace SampleServices.Models
 			method get
 			proc
 				mreturn (DateTime)SynergyDecimalDateConverter.Convert(mSynergyData.Or_sdate, ^null, ^null, ^null)
-            endmethod
+			endmethod
 			method set
 			proc
 				mSynergyData.Or_sdate = (D)SynergyDecimalDateConverter.ConvertBack(value, ^null, ^null, ^null)
@@ -210,7 +210,7 @@ namespace SampleServices.Models
 			method get
 			proc
 				mreturn (DateTime)SynergyDecimalDateConverter.Convert(mSynergyData.Or_edate, ^null, ^null, ^null)
-            endmethod
+			endmethod
 			method set
 			proc
 				mSynergyData.Or_edate = (D)SynergyDecimalDateConverter.ConvertBack(value, ^null, ^null, ^null)
@@ -224,7 +224,7 @@ namespace SampleServices.Models
 			method get
 			proc
 				mreturn (int)mSynergyData.Or_invoice
-            endmethod
+			endmethod
 			method set
 			proc
 				mSynergyData.Or_invoice = value
@@ -257,14 +257,33 @@ namespace SampleServices.Models
 		;;; Relationship (Type C)
 		;;; ORDER.TAG_CUSTOMER (one) --> (one) CUSTOMER.TAG_CUSTOMER
 		;;; </summary>
-		public readwrite property REL_TagCustomer, @Customer
+		mREL_TagCustomer, @Customer
+		public property REL_TagCustomer, @Customer
+			method get
+			proc
+				mreturn mREL_TagCustomer
+			endmethod
+			method set
+			proc
+				mREL_TagCustomer = value
+			endmethod
+		endproperty
 
 		;;; <summary>
 		;;; Relationship (Type C)
 		;;; ORDER.TAG_VENDOR (one) --> (one) VENDOR.TAG_VENDOR
 		;;; </summary>
-		public readwrite property REL_TagVendor, @Vendor
-
+		mREL_TagVendor, @Vendor
+		public property REL_TagVendor, @Vendor
+			method get
+			proc
+				mreturn mREL_TagVendor
+			endmethod
+			method set
+			proc
+				mREL_TagVendor = value
+			endmethod
+		endproperty
 .endregion
 
 .region "Properties to represent literal key segments"
@@ -285,29 +304,29 @@ namespace SampleServices.Models
 
 .region "Other attributes"
 
-        ;;; <summary>
-        ;;; Expose the complete synergy record
-        ;;; </summary>
+		;;; <summary>
+		;;; Expose the complete synergy record
+		;;; </summary>
 		public override property SynergyRecord, a
-            method get
-            proc
-                mreturn mSynergyData
-            endmethod
-        endproperty
+			method get
+			proc
+				mreturn mSynergyData
+			endmethod
+		endproperty
 		
 		;;; <summary>
-        ;;; Expose the complete original synergy record
-        ;;; </summary>
+		;;; Expose the complete original synergy record
+		;;; </summary>
 		public override property OriginalSynergyRecord, a
-            method get
-            proc
-                mreturn mOriginalSynergyData
-            endmethod
-        endproperty
+			method get
+			proc
+				mreturn mOriginalSynergyData
+			endmethod
+		endproperty
 
 		;;; <summary>
-        ;;; Metadata describing the public field properties
-        ;;; </summary>
+		;;; Metadata describing the public field properties
+		;;; </summary>
 		public override property Metadata, @DataObjectMetadataBase
 			method get
 			proc

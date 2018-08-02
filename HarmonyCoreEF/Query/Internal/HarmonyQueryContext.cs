@@ -38,6 +38,7 @@ namespace Harmony.Core.EF.Query.Internal
         /// </summary>
         public virtual IDataObjectProvider Store { get; }
         private Dictionary<Type, IEntityType> MetadataLookup = new Dictionary<Type, IEntityType>();
+        public Dictionary<Type, List<DataObjectBase>> ResultLookup;
 
         public IEntityType GetEntityType(Type ty)
         {

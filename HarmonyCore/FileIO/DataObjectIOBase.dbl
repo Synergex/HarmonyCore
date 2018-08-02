@@ -9,20 +9,41 @@ namespace Harmony.Core.FileIO
 		fld,a1
 	endstructure
 
-	public abstract class DataObjectIOBase<T(DataObjectBase)> implements IDataObjectIO<T>
+	public abstract class DataObjectIOBase<T(DataObjectBase)> implements IDataObjectIO<T>, IDisposable
 		private mRecordBuffer, int ;D_HANDLE
 		protected mDataObjectMetadata, @DataObjectMetadataBase
 		
 		protected method DataObjectIOBase
 		proc
 			mDataObjectMetadata = DataObjectMetadataBase.LookupType(^typeof(T))
-			mRecordBuffer = %mem_proc(DM_ALLOC + DM_STATIC, mDataObjectMetadata.StructureSize)
+			mRecordBuffer = mDataObjectMetadata.GetBuffer()
 		endmethod
 		
-		;;method ~DataObjectIOBase
-		;;proc
-		;;	if (mRecordBuffer) mRecordBuffer = %mem_proc(DM_FREE, mRecordBuffer)
-		;;endmethod
+		;method ~DataObjectIOBase
+		;proc
+		;	if (mRecordBuffer) mRecordBuffer = %mem_proc(DM_FREE, mRecordBuffer)
+		;endmethod
+
+		method ~DataObjectIOBase
+		proc
+			Dispose(true)
+		endmethod
+
+		public method Dispose, void
+		proc
+			Dispose(false)
+		endmethod
+
+		protected virtual method Dispose, void
+			isFinalizer, boolean
+		proc
+			if (mRecordBuffer) 
+			begin
+				mDataObjectMetadata.ReturnBuffer(mRecordBuffer)
+				mRecordBuffer = 0
+			end
+
+		endmethod
 		
 		protected abstract method Find, FileAccessResults
 			in req keyOfReference, int
