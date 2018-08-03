@@ -1,11 +1,11 @@
 <CODEGEN_FILENAME>UnitTestEnvironment.dbl</CODEGEN_FILENAME>
 <REQUIRES_USERTOKEN>SERVICES_NAMESPACE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
-<OPTIONAL_USERTOKEN>OAUTH_SERVER=https://localhost:44309</OPTIONAL_USERTOKEN>
+<OPTIONAL_USERTOKEN>OAUTH_SERVER=http://localhost:5000</OPTIONAL_USERTOKEN>
 <OPTIONAL_USERTOKEN>OAUTH_CLIENT=ro.client</OPTIONAL_USERTOKEN>
 <OPTIONAL_USERTOKEN>OAUTH_SECRET=CBF7EBE6-D46E-41A7-903B-766A280616C3</OPTIONAL_USERTOKEN>
 <OPTIONAL_USERTOKEN>TEST_USER=jodah</OPTIONAL_USERTOKEN>
-<OPTIONAL_USERTOKEN>TEST_PASSWORD=veloper</OPTIONAL_USERTOKEN>
+<OPTIONAL_USERTOKEN>TEST_PASSWORD=P@ssw0rd</OPTIONAL_USERTOKEN>
 <OPTIONAL_USERTOKEN>TEST_API=api1</OPTIONAL_USERTOKEN>
 <REQUIRES_CODEGEN_VERSION>5.3.4</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
@@ -155,7 +155,7 @@ namespace <NAMESPACE>
 
 <IF DEFINED_AUTHENTICATION>
 			;;Get the access token from the OAuth Server
-			data disco = await DiscoveryClient.GetAsync("<OAUTH_SERVER>").GetAwaiter().GetResult()
+			data disco = DiscoveryClient.GetAsync("<OAUTH_SERVER>").GetAwaiter().GetResult()
 
 			if (disco.IsError) then
 			begin
@@ -164,7 +164,7 @@ namespace <NAMESPACE>
 			else
 			begin
                 data tokenClient = new TokenClient(disco.TokenEndpoint, "<OAUTH_CLIENT>", "<OAUTH_SECRET>");
-                data tokenResponse = await tokenClient.RequestResourceOwnerPasswordAsync("<TEST_USER>","<TEST_PASSWORD>","<TEST_API>").GetAwaiter().GetResult()
+                data tokenResponse = tokenClient.RequestResourceOwnerPasswordAsync("<TEST_USER>","<TEST_PASSWORD>","<TEST_API>").GetAwaiter().GetResult()
 
                 if (tokenResponse.IsError) then
                 begin
