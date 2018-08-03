@@ -134,7 +134,7 @@ namespace <NAMESPACE>
 			services.AddSingleton<IFileChannelManager, FileChannelManager>()
 			services.AddSingleton<IDataObjectProvider>(AddDataObjectMappings)
 			services.AddSingleton<DbContextOptions<DBContext>>(new DbContextOptions<DBContext>())
-			services.AddSingleton<DBContext, DBContext>()
+			services.AddScoped<DBContext, DBContext>()
 
 			;;Load OData and ASP.NET
 
