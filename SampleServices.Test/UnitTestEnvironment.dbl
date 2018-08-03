@@ -48,63 +48,24 @@ import Microsoft.AspNetCore.TestHost
 import Microsoft.VisualStudio.TestTools.UnitTesting
 import System.Collections.Generic
 import System.IO
+import System.Linq
 import System.Text
+
+import Harmony.Core.EF.Extensions
 import SampleServices
 import SampleServices.Models
-import System.Linq
-import Harmony.Core.EF.Extensions
+
 main UnitTestEnvironment
+
 proc
 	;;Configure the environment
 	UnitTestEnvironment.AssemblyInitialize(^null)
 
-	;Leave this here for Jeff  
-	data tester = new CustomerTests() 
-	tester.GetCustomers() 
-	;tester.GetVendors_Expand_REL_Plants()
-	;tester.GetOrders_Expand_REL_TagCustomer()
+	;Leave this here for Jeff 
+	;data tester = new OrderTests()  
+	;tester.GetOrders_Expand_REL_TagCustomer() 
 	;tester.GetOrders_Expand_REL_TagVendor()
 	;tester.GetOrders_Expand_All()
-	begin
-		disposable data fileChannelManager = new Harmony.Core.FileIO.FileChannelManager() 
-		data objectProvider = new Harmony.Core.Context.DataObjectProvider(fileChannelManager)
-		objectProvider.AddDataObjectMapping<Customer>("ICSTUT:customer.ism", Harmony.Core.FileIO.FileOpenMode.UpdateIndexed)
-		objectProvider.AddDataObjectMapping<Order>("ICSTUT:orders.ism", Harmony.Core.FileIO.FileOpenMode.UpdateIndexed)
-		objectProvider.AddDataObjectMapping<Plant>("ICSTUT:plants.ism", Harmony.Core.FileIO.FileOpenMode.UpdateIndexed)
-		objectProvider.AddDataObjectMapping<Vendor>("ICSTUT:customer.ism", Harmony.Core.FileIO.FileOpenMode.UpdateIndexed)
-		data contextOptions = new Microsoft.EntityFrameworkCore.DbContextOptions<DBContext>()
-		disposable data dbCon = new DbContext(contextOptions, objectProvider)
-		dbCon.ChangeTracker.QueryTrackingBehavior = Microsoft.EntityFrameworkCore.QueryTrackingBehavior.NoTracking;
-		
-		;data firstCustomer = dbCon.Customers.FirstOrDefault("CustCity == @0", "Glendale")
-		;firstCustomer = dbCon.Customers.FirstOrDefaultIncluding("CustCity == @0", "REL_Item", "Glendale")
-		data firstCustomer = dbCon.Customers.FirstOrDefaultIncluding("CustCity == @0", "REL_Item;REL_Orders", "Glendale")
-		
-		data customers = dbCon.Customers.Where("CustCity == @0", "Glendale").ToList()
-		Assert.AreEqual(customers.Count, 2)
-		customers = dbCon.Customers.WhereIncluding("CustCity == @0", "REL_Item", "Glendale").ToList() 
-		Assert.AreEqual(customers.Count, 2)
-		customers = dbCon.Customers.WhereIncluding("CustCity == @0", "REL_Orders", "Glendale").ToList() 
-		Assert.AreEqual(customers.Count, 2)
-		customers = dbCon.Customers.WhereIncluding("CustCity == @0", "REL_Item;REL_Orders", "Glendale").ToList() 
-		Assert.AreEqual(customers.Count, 2)
-		data startTime = DateTime.Now
-		data i = 0
-		for i from 0 thru 10000 by 1 
-		begin
-			dbCon.Customers.FindCompiled(TestContext.CustomerID)
-			dbCon.Vendors.FindCompiled(TestContext.VendorID)
-			dbCon.Plants.FindCompiled(TestContext.PlantID)
-			dbCon.Orders.FindCompiled(TestContext.OrderID) 
-			;HarmonyDbSetExtensions.FirstOrDefault(dbCon.Customers, "CustCity == @0", new Object[#] { "Glendale" })
-			
-		end
-		data endTime = DateTime.Now
-		data timeDiff = endTime - startTime
-		Console.WriteLine(timeDiff.TotalMilliseconds)
-		Console.WriteLine(dbCon.ChangeTracker.Entries().Count())
-		Console.ReadKey() 
-	end
 	;tester.GetCustomer()      
 
 	;;Start self-hosting (Kestrel)
@@ -120,14 +81,12 @@ namespace SampleServices.Test
 	{TestClass}
 	public class UnitTestEnvironment
 
-		public static Server, @TestServer 
+		public static Server, @TestServer
 
 		{AssemblyInitialize}
 		public static method AssemblyInitialize, void
 			required in context, @Microsoft.VisualStudio.TestTools.UnitTesting.TestContext
 		proc
-			data status, int
-			setlog("SYNSEL_NUMALPHA_KEYS", 1, status) 
 			;;Configure the test environment (set logicals, create files in a known state, etc.)
 			TestEnvironment.Configure()
 
