@@ -99,7 +99,7 @@ namespace SampleServices
 			services.AddSingleton<IFileChannelManager, FileChannelManager>()
 			services.AddSingleton<IDataObjectProvider>(AddDataObjectMappings)
 			services.AddSingleton<DbContextOptions<DBContext>>(new DbContextOptions<DBContext>())
-			services.AddScoped<DBContext, DBContext>()
+			services.AddSingleton<DBContext, DBContext>()
 
 			;;Load OData and ASP.NET
 
@@ -119,7 +119,8 @@ namespace SampleServices
 
 			;;Load Swagger API documentation services
 
-			services.AddMvcCore().AddApiExplorer()
+			services.AddMvcCore()
+			&	.AddApiExplorer()
 
 			lambda configureSwaggerGen(config)
 			begin
@@ -132,15 +133,12 @@ namespace SampleServices
 		public method Configure, void
 			app, @IApplicationBuilder
 		proc
-
 			;;Add the middleware to generate API documentation to a file
-
 			app.UseSwagger()
 
 			app.UseLogging(DebugLogSession.Logging)
 
 			;;Configure the MVC / OData environment
-
 			lambda MVCBuilder(builder)
 			begin
 				data model = EdmBuilder.GetEdmModel(app.ApplicationServices)

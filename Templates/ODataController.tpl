@@ -83,10 +83,16 @@ import Microsoft.AspNet.OData.Routing
 import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Infrastructure
 import Harmony.Core.EF.Extensions
+<IF DEFINED_AUTHENTICATION>
+import Microsoft.AspNetCore.Authorization
+</IF DEFINED_AUTHENTICATION>
 import <MODELS_NAMESPACE>
 
 namespace <NAMESPACE>
 
+<IF DEFINED_AUTHENTICATION>
+	{Authorize}
+</IF DEFINED_AUTHENTICATION>
 	;;; <summary>
 	;;; OData controller for <StructurePlural>
 	;;; </summary>
