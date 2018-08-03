@@ -192,6 +192,15 @@ namespace Harmony.Core.EF.Extensions.Internal
             return type.TryGetElementType(typeof(IEnumerable<>)) ?? type.TryGetElementType(typeof(IAsyncEnumerable<>));
         }
 
+        public static Type ForceSequenceType(this Type type)
+        {
+            var implementsIEnumerable = type.GetInterfaces().FirstOrDefault(inter => inter.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+            if (implementsIEnumerable != null)
+                return implementsIEnumerable.GenericTypeArguments.First();
+            else
+                return type;
+        }
+
         public static Type TryGetElementType(this Type type, Type interfaceOrBaseType)
         {
             if (type.GetTypeInfo().IsGenericTypeDefinition)

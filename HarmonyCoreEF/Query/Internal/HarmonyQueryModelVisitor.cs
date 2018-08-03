@@ -105,79 +105,13 @@ namespace Harmony.Core.EF.Query.Internal
             }
         }
 
-        //public override void VisitJoinClause(JoinClause joinClause, QueryModel queryModel, int index)
-        //{
-        //    QuerySourceMapping
-        //    Microsoft.EntityFrameworkCore.Utilities.Check.NotNull(joinClause, "joinClause");
-        //    Microsoft.EntityFrameworkCore.Utilities.Check.NotNull(queryModel, "queryModel");
-        //    Expression expression = this.ReplaceClauseReferences(joinClause.OuterKeySelector, joinClause, false);
-        //    Expression expression2 = this.CompileJoinClauseInnerSequenceExpression(joinClause, queryModel);
-        //    ParameterExpression parameterExpression = Expression.Parameter(expression2.Type.GetSequenceType(), joinClause.ItemName);
-        //    this.QueryCompilationContext.AddOrUpdateMapping(joinClause, parameterExpression);
-        //    Expression body = this.ReplaceClauseReferences(joinClause.InnerKeySelector, joinClause, false);
-        //    Type type = typeof(TransparentIdentifier<,>).MakeGenericType(this.CurrentParameter.Type, parameterExpression.Type);
-        //    this._expression = Expression.Call(this.LinqOperatorProvider.Join.MakeGenericMethod(this.CurrentParameter.Type, parameterExpression.Type, expression.Type, type), this._expression, expression2, Expression.Lambda(expression, this.CurrentParameter), Expression.Lambda(body, parameterExpression), Expression.Lambda(this.CallCreateTransparentIdentifier(type, this.CurrentParameter, parameterExpression), this.CurrentParameter, parameterExpression));
-        //    this.IntroduceTransparentScope(joinClause, queryModel, index, type);
-        //}
-
-        //public override void VisitSelectClause(SelectClause selectClause, QueryModel queryModel)
-        //{
-        //    if (selectClause.Selector.Type == Expression.Type.GetSequenceType() && selectClause.Selector is QuerySourceReferenceExpression)
-        //    {
-        //        return;
-        //    }
-        //    if (this.CanOptimizeCorrelatedCollections())
-        //    {
-        //        this.TryOptimizeCorrelatedCollections(queryModel);
-        //    }
-
-        //    //var queryPlan = QueryModelVisitor.PrepareQuery(queryModel, ProcessWeirdJoin, out var querySourceBuffer);
-        //    //Expression = Expression.Call(
-        //    //        HarmonyQueryModelVisitor.EntityQueryMethodInfo.MakeGenericMethod(MainQueryType),
-        //    //        EntityQueryModelVisitor.QueryContextParameter,
-        //    //        Expression.Constant(queryPlan),
-        //    //        Expression.Constant(QueryCompilationContext.IsTrackingQuery));
-
-        //    Expression expression = this.ReplaceClauseReferences(this._projectionExpressionVisitorFactory.Create(this, queryModel.MainFromClause).Visit(selectClause.Selector), null, true);
-        //    if (!(expression.Type != Expression.Type.GetSequenceType()) && selectClause.Selector is QuerySourceReferenceExpression)
-        //    {
-        //        return;
-        //    }
-        //    if (!(from ro in queryModel.ResultOperators
-        //          select ro.GetType()).Any(delegate (Type t)
-        //          {
-        //              if (!(t == typeof(GroupResultOperator)))
-        //              {
-        //                  return t == typeof(AllResultOperator);
-        //              }
-        //              return true;
-        //          }))
-        //    {
-        //        Expression expression2 = expression;
-        //        TaskLiftingExpressionVisitor taskLiftingExpressionVisitor = new TaskLiftingExpressionVisitor();
-        //        if (Expression.Type.TryGetElementType(typeof(IAsyncEnumerable<>)) != (Type)null)
-        //        {
-        //            expression2 = taskLiftingExpressionVisitor.LiftTasks(expression);
-        //        }
-        //        Expression = ((expression2 == expression) ?
-        //            Expression.Call(this.LinqOperatorProvider.Select.MakeGenericMethod(this.CurrentParameter.Type, expression.Type), Expression, Expression.Lambda(expression, this.CurrentParameter)) :
-        //            Expression.Call(EntityQueryModelVisitor.SelectAsyncMethod.MakeGenericMethod(this.CurrentParameter.Type, expression.Type), Expression, Expression.Lambda(expression2, this.CurrentParameter, taskLiftingExpressionVisitor.CancellationTokenParameter)));
-        //    }
-        //}
-
         public override void VisitQueryModel(QueryModel queryModel)
         {
             MainQueryType = queryModel.MainFromClause.ItemType;
             this.TryOptimizeCorrelatedCollections(queryModel);
             this.CurrentParameter = Expression.Parameter(MainQueryType, queryModel.MainFromClause.ItemName);
 
-            Type resultTypeParameter = queryModel.ResultTypeOverride;
-            var implementsIEnumerable = queryModel.ResultTypeOverride.GetInterfaces().FirstOrDefault(inter => inter.GetGenericTypeDefinition() == typeof(IEnumerable<>));
-            //this is cheating this will not cause any issues for our DataObject related use cases but its not quite right for non sequence generics
-            if (implementsIEnumerable != null)
-            {
-                resultTypeParameter = implementsIEnumerable.GenericTypeArguments.First();
-            }
+            Type resultTypeParameter = queryModel.ResultTypeOverride.ForceSequenceType();
 
             if (!(from ro in queryModel.ResultOperators
                   select ro.GetType()).Any(delegate (Type t)
@@ -268,6 +202,8 @@ namespace Harmony.Core.EF.Query.Internal
 
             protected override MemberAssignment VisitMemberAssignment(MemberAssignment node)
             {
+                //this is for things like SelectAllAndExpand from OData
+                //we should be able to shake things into this pattern if they have a similar purpose with a subquery
                 if (node.Member.Name == "Instance")
                 {
                     Source = node.Expression as QuerySourceReferenceExpression;
@@ -286,19 +222,13 @@ namespace Harmony.Core.EF.Query.Internal
                         Expression.Condition(Expression.Equal(propValue, Expression.Constant(null)), Expression.Convert(Expression.New(typeof(List<>).MakeGenericType(new Type[] { resultExpressionElementType })), propValue.Type), propValue) : 
                         (Expression)propValue;
                     
-                    Type resultTypeParameter = queryModel.ResultTypeOverride;
+                    Type resultTypeParameter = queryModel.ResultTypeOverride.ForceSequenceType();
                     var currentParameter = Expression.Parameter(resultExpressionElementType);
                     if(Source != null && !QuerySourceMapping.ContainsMapping(Source.ReferencedQuerySource))
                         QuerySourceMapping.AddMapping(Source.ReferencedQuerySource, Parent.CurrentParameter);
 
                     if (!QuerySourceMapping.ContainsMapping(queryModel.MainFromClause))
                         QuerySourceMapping.AddMapping(queryModel.MainFromClause, currentParameter);
-                    //this is cheating this will not cause any issues for our DataObject related use cases but its not quite right for non sequence generics
-                    if (queryModel.ResultTypeOverride.IsGenericType && (queryModel.ResultTypeOverride.GetGenericTypeDefinition() == typeof(IQueryable<>)
-                        || queryModel.ResultTypeOverride.GetGenericTypeDefinition() == typeof(IEnumerable<>) || queryModel.ResultTypeOverride.GetGenericTypeDefinition() == typeof(IIncludableQueryable<,>)))
-                    {
-                        resultTypeParameter = queryModel.ResultTypeOverride.GenericTypeArguments.First();
-                    }
 
                     if (!(from ro in queryModel.ResultOperators
                           select ro.GetType()).Any(delegate (Type t)
