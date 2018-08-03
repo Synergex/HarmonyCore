@@ -133,7 +133,7 @@ namespace <NAMESPACE>
 </IF DEFINED_AUTHENTICATION>
 
 		{AssemblyInitialize}
-		public static <IF DEFINED_AUTHENTICATION>async </IF DEFINED_AUTHENTICATION>method AssemblyInitialize, void
+		public static method AssemblyInitialize, void
 			required in context, @Microsoft.VisualStudio.TestTools.UnitTesting.TestContext
 		proc
 			;;Configure the test environment (set logicals, create files in a known state, etc.)
@@ -155,7 +155,7 @@ namespace <NAMESPACE>
 
 <IF DEFINED_AUTHENTICATION>
 			;;Get the access token from the OAuth Server
-			data disco = await DiscoveryClient.GetAsync("<OAUTH_SERVER>");
+			data disco = await DiscoveryClient.GetAsync("<OAUTH_SERVER>").GetAwaiter().GetResult()
 
 			if (disco.IsError) then
 			begin
@@ -164,7 +164,7 @@ namespace <NAMESPACE>
 			else
 			begin
                 data tokenClient = new TokenClient(disco.TokenEndpoint, "<OAUTH_CLIENT>", "<OAUTH_SECRET>");
-                data tokenResponse = await tokenClient.RequestResourceOwnerPasswordAsync("<TEST_USER>","<TEST_PASSWORD>","<TEST_API>");
+                data tokenResponse = await tokenClient.RequestResourceOwnerPasswordAsync("<TEST_USER>","<TEST_PASSWORD>","<TEST_API>").GetAwaiter().GetResult()
 
                 if (tokenResponse.IsError) then
                 begin

@@ -2,176 +2,200 @@
 <REQUIRES_CODEGEN_VERSION>5.3.4</REQUIRES_CODEGEN_VERSION>
 {
 	"info": {
-		"_postman_id": "<GUID1>",
+		"_postman_id": "<guid_nobrace>",
 		"name": "Harmony Core Sample Tests",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 <STRUCTURE_LOOP>
 		{
-			"name": "Get all <structurePlural>",
-			"request": {
-				"method": "GET",
-				"header": [
-					{
+			"_postman_id": "<guid_nobrace>",
+			"name": "<StructureNoplural> Tests",
+			"item": [
+				{
+					"_postman_id": "<guid_nobrace>",
+					"name": "Get all <structurePlural>",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://localhost:5000/odata/<StructurePlural>",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"odata",
+								"<StructurePlural>"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"_postman_id": "<guid_nobrace>",
+					"name": "Get single <structureNoplural>",
+					"request": {
+					"method": "GET",
+					"header": [
+						{
 						"key": "Accept",
 						"value": "application/json"
-					}
-				],
-				"body": {},
-				"url": {
-					"raw": "http://localhost:5000/odata/<StructurePlural>",
-					"protocol": "http",
-					"host": [
-						"localhost"
+						}
 					],
-					"port": "5000",
-					"path": [
-						"odata",
-						"<StructurePlural>"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Get single <structureNoplural>",
-			"request": {
-			"method": "GET",
-			"header": [
+					"body": {
+						"mode": "raw",
+						"raw": ""
+					},
+					"url": {
+						"raw": "http://localhost:5000/odata/<StructurePlural>({{Existing<StructureNoplural>ID}})",
+						"protocol": "http",
+						"host": [
+							"localhost"
+						],
+						"port": "5000",
+						"path": [
+							"odata",
+							"<StructurePlural>({{Existing<StructureNoplural>ID}})"
+						]
+					}
+					},
+					"response": []
+				},
 				{
-				"key": "Accept",
-				"value": "application/json"
-				}
-			],
-			"body": {},
-			"url": {
-				"raw": "http://localhost:5000/odata/<StructurePlural>({{Existing<StructureNoplural>ID}})",
-				"protocol": "http",
-				"host": [
-					"localhost"
-				],
-				"port": "5000",
-				"path": [
-					"odata",
-					"<StructurePlural>({{Existing<StructureNoplural>ID}})"
-				]
-			}
-			},
-			"response": []
-		},
-		{
-			"name": "Create new <structureNoplural> (auto assign key)",
-			"request": {
-			"method": "POST",
-			"header": [],
-			"body": {
-				"mode": "raw",
-				"raw": "Put new <structureNoplural> json here. Do not include the primary key fields."
-			},
-			"url": {
-				"raw": "http://localhost:5000/odata/<StructurePlural>",
-				"protocol": "http",
-				"host": [
-					"localhost"
-				],
-				"port": "5000",
-				"path": [
-					"odata",
-					"<StructurePlural>"
-				]
-			}
-			},
-			"response": []
-		},
-		{
-			"name": "Create new <structureNoplural>",
-			"request": {
-			"method": "PUT",
-			"header": [
+					"_postman_id": "<guid_nobrace>",
+					"name": "Create new <structureNoplural> (auto assign key)",
+					"request": {
+					"method": "POST",
+					"header": [],
+					"body": {
+						"mode": "raw",
+						"raw": "Put new <structureNoplural> json here. Do not include the primary key fields."
+					},
+					"url": {
+						"raw": "http://localhost:5000/odata/<StructurePlural>",
+						"protocol": "http",
+						"host": [
+							"localhost"
+						],
+						"port": "5000",
+						"path": [
+							"odata",
+							"<StructurePlural>"
+						]
+					}
+					},
+					"response": []
+				},
 				{
-				"key": "Content-Type",
-				"value": "application/json"
-				}
-			],
-			"body": {
-				"mode": "raw",
-				"raw": "Put new <structureNoplural> json here. Include primary key fields."
-			},
-			"url": {
-				"raw": "http://localhost:5000/odata/<StructurePlural>({{New<StructureNoplural>ID}})",
-				"protocol": "http",
-				"host": [
-					"localhost"
-				],
-				"port": "5000",
-				"path": [
-					"odata",
-					"<StructurePlural>({{New<StructureNoplural>ID}})"
-				]
-			}
-			},
-			"response": []
-		},
-		{
-			"name": "Get created <structureNoplural>",
-			"request": {
-			"method": "GET",
-			"header": [
+					"_postman_id": "<guid_nobrace>",
+					"name": "Create new <structureNoplural>",
+					"request": {
+					"method": "PUT",
+					"header": [
+						{
+						"key": "Content-Type",
+						"value": "application/json"
+						}
+					],
+					"body": {
+						"mode": "raw",
+						"raw": "Put new <structureNoplural> json here. Include primary key fields."
+					},
+					"url": {
+						"raw": "http://localhost:5000/odata/<StructurePlural>({{New<StructureNoplural>ID}})",
+						"protocol": "http",
+						"host": [
+							"localhost"
+						],
+						"port": "5000",
+						"path": [
+							"odata",
+							"<StructurePlural>({{New<StructureNoplural>ID}})"
+						]
+					}
+					},
+					"response": []
+				},
 				{
-				"key": "Accept",
-				"value": "application/json"
-				}
-			],
-			"body": {},
-			"url": {
-				"raw": "http://localhost:5000/odata/<StructurePlural>({{New<StructureNoplural>ID}})",
-				"protocol": "http",
-				"host": [
-					"localhost"
-				],
-				"port": "5000",
-				"path": [
-					"odata",
-					"<StructurePlural>({{New<StructureNoplural>ID}})"
-				]
-			}
-			},
-			"response": []
-		},
-		{
-			"name": "Delete created <structureNoplural>",
-			"request": {
-			"method": "DELETE",
-			"header": [
+					"_postman_id": "<guid_nobrace>",
+					"name": "Get created <structureNoplural>",
+					"request": {
+					"method": "GET",
+					"header": [
+						{
+						"key": "Accept",
+						"value": "application/json"
+						}
+					],
+					"body": {
+						"mode": "raw",
+						"raw": ""
+					},
+					"url": {
+						"raw": "http://localhost:5000/odata/<StructurePlural>({{New<StructureNoplural>ID}})",
+						"protocol": "http",
+						"host": [
+							"localhost"
+						],
+						"port": "5000",
+						"path": [
+							"odata",
+							"<StructurePlural>({{New<StructureNoplural>ID}})"
+						]
+					}
+					},
+					"response": []
+				},
 				{
-				"key": "Accept",
-				"value": "application/json"
+					"_postman_id": "<guid_nobrace>",
+					"name": "Delete created <structureNoplural>",
+					"request": {
+					"method": "DELETE",
+					"header": [
+						{
+						"key": "Accept",
+						"value": "application/json"
+						}
+					],
+					"body": {
+						"mode": "raw",
+						"raw": ""
+					},
+					"url": {
+						"raw": "http://localhost:5000/odata/<StructurePlural>({{New<StructureNoplural>ID}})",
+						"protocol": "http",
+						"host": [
+							"localhost"
+						],
+						"port": "5000",
+						"path": [
+							"odata",
+							"<StructurePlural>({{New<StructureNoplural>ID}})"
+						]
+					}
+					},
+					"response": []
 				}
-			],
-			"body": {},
-			"url": {
-				"raw": "http://localhost:5000/odata/<StructurePlural>({{New<StructureNoplural>ID}})",
-				"protocol": "http",
-				"host": [
-					"localhost"
-				],
-				"port": "5000",
-				"path": [
-					"odata",
-					"<StructurePlural>({{New<StructureNoplural>ID}})"
-				]
-			}
-			},
-			"response": []
+			]
 		}<,>
 </STRUCTURE_LOOP>
-  ],
+	],
 	"event": [
 		{
 			"listen": "prerequest",
 			"script": {
-				"id": "<GUID>",
+				"id": "<guid_nobrace>",
 				"type": "text/javascript",
 				"exec": [
 					""
@@ -181,7 +205,7 @@
 		{
 			"listen": "test",
 			"script": {
-				"id": "<GUID>",
+				"id": "<guid_nobrace>",
 				"type": "text/javascript",
 				"exec": [
 					""
@@ -192,14 +216,14 @@
 	"variable": [
 <STRUCTURE_LOOP>
 		{
-			"id": "GUID",
+			"id": "guid",
 			"key": "Existing<StructureNoplural>ID",
 			"value": "?",
 			"type": "string",
 			"description": "The ID of an existing <structureNoplural>."
 		},
 		{
-			"id": "GUID",
+			"id": "guid",
 			"key": "New<StructureNoplural>ID",
 			"value": "?",
 			"type": "string",
