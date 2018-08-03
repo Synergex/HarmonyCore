@@ -1,6 +1,12 @@
 <CODEGEN_FILENAME>UnitTestEnvironment.dbl</CODEGEN_FILENAME>
 <REQUIRES_USERTOKEN>SERVICES_NAMESPACE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
+<OPTIONAL_USERTOKEN>OAUTH_SERVER=https://localhost:44309</OPTIONAL_USERTOKEN>
+<OPTIONAL_USERTOKEN>OAUTH_CLIENT=ro.client</OPTIONAL_USERTOKEN>
+<OPTIONAL_USERTOKEN>OAUTH_SECRET=CBF7EBE6-D46E-41A7-903B-766A280616C3</OPTIONAL_USERTOKEN>
+<OPTIONAL_USERTOKEN>TEST_USER=jodah</OPTIONAL_USERTOKEN>
+<OPTIONAL_USERTOKEN>TEST_PASSWORD=veloper</OPTIONAL_USERTOKEN>
+<OPTIONAL_USERTOKEN>TEST_API=api1</OPTIONAL_USERTOKEN>
 <REQUIRES_CODEGEN_VERSION>5.3.4</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
@@ -79,6 +85,9 @@
 ;;
 ;;*****************************************************************************
 
+<IF DEFINED_AUTHENTICATION>
+import IdentityModel.Client
+</IF DEFINED_AUTHENTICATION>
 import Microsoft.AspNetCore
 import Microsoft.AspNetCore.Hosting
 import Microsoft.AspNetCore.TestHost
@@ -118,10 +127,13 @@ namespace <NAMESPACE>
 	{TestClass}
 	public class UnitTestEnvironment
 
-		public static Server, @TestServer 
+		public static Server, @TestServer
+<IF DEFINED_AUTHENTICATION>
+		public static AccessToken, string
+</IF DEFINED_AUTHENTICATION>
 
 		{AssemblyInitialize}
-		public static method AssemblyInitialize, void
+		public static <IF DEFINED_AUTHENTICATION>async </IF DEFINED_AUTHENTICATION>method AssemblyInitialize, void
 			required in context, @Microsoft.VisualStudio.TestTools.UnitTesting.TestContext
 		proc
 			;;Configure the test environment (set logicals, create files in a known state, etc.)
@@ -141,6 +153,32 @@ namespace <NAMESPACE>
 				Server = new TestServer(new WebHostBuilder().UseContentRoot(wwwroot).UseWebRoot(wwwroot).UseStartup<Startup>())
 			end
 
+<IF DEFINED_AUTHENTICATION>
+			;;Get the access token from the OAuth Server
+			data disco = await DiscoveryClient.GetAsync("<OAUTH_SERVER>");
+
+			if (disco.IsError) then
+			begin
+				throw new Exception("OAuth endpoint discovery failed. Error was: " + disco.Error)
+			end
+			else
+			begin
+                data tokenClient = new TokenClient(disco.TokenEndpoint, "<OAUTH_CLIENT>", "<OAUTH_SECRET>");
+                data tokenResponse = await tokenClient.RequestResourceOwnerPasswordAsync("<TEST_USER>","<TEST_PASSWORD>","<TEST_API>");
+
+                if (tokenResponse.IsError) then
+                begin
+                    ;;Failed to get an access token from the OAuth server
+                    throw new Exception(tokenResponse.Error);
+                end
+                else
+                begin
+                    ;;Now we have an access token that we can use to call our protected API
+					AccessToken = tokenResponse.AccessToken
+                end
+			end
+
+</IF DEFINED_AUTHENTICATION>
 		endmethod
 
 		{AssemblyCleanup}

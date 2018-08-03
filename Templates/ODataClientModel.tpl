@@ -86,15 +86,19 @@ namespace <NAMESPACE>
 		{JsonProperty("odata.type")}
 		public readwrite property Type, string
 
-        <FIELD_LOOP>
-		<IF CUSTOM_NOT_HARMONY_EXCLUDE>
+<FIELD_LOOP>
+	<IF CUSTOM_NOT_HARMONY_EXCLUDE>
 		;;; <summary>
 		;;; <FIELD_DESC>
 		;;; </summary>
+		<IF CUSTOM_HARMONY_AS_STRING>
+		public readwrite property <FieldSqlname>, String
+		<ELSE>
 		public readwrite property <FieldSqlname>, <FIELD_CSTYPE>
+		</IF CUSTOM_HARMONY_AS_STRING>
 
-		</IF CUSTOM_NOT_HARMONY_EXCLUDE>
-        </FIELD_LOOP>
+	</IF CUSTOM_NOT_HARMONY_EXCLUDE>
+</FIELD_LOOP>
 	endclass
 
 	public class OData<StructureNoplural>

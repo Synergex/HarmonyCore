@@ -134,7 +134,7 @@ namespace <NAMESPACE>
 			services.AddSingleton<IFileChannelManager, FileChannelManager>()
 			services.AddSingleton<IDataObjectProvider>(AddDataObjectMappings)
 			services.AddSingleton<DbContextOptions<DBContext>>(new DbContextOptions<DBContext>())
-			services.AddSingleton<DBContext, DBContext>()
+			services.AddScoped<DBContext, DBContext>()
 
 			;;Load OData and ASP.NET
 
@@ -154,7 +154,20 @@ namespace <NAMESPACE>
 
 			;;Load Swagger API documentation services
 
-			services.AddMvcCore().AddApiExplorer()
+			services.AddMvcCore()
+			&	.AddApiExplorer()
+<IF DEFINED_AUTHENTICATION>
+			&	.AddAuthorization()
+
+			lambda authenticationOptions(options)
+			begin
+				options.Authority = "https://localhost:44309"
+				options.RequireHttpsMetadata = true
+				options.ApiName = "api1"
+			end
+
+			services.AddAuthentication("Bearer").AddIdentityServerAuthentication(authenticationOptions)
+</IF DEFINED_AUTHENTICATION>
 
 			lambda configureSwaggerGen(config)
 			begin
@@ -167,15 +180,17 @@ namespace <NAMESPACE>
 		public method Configure, void
 			app, @IApplicationBuilder
 		proc
+<IF DEFINED_AUTHENTICATION>
+			;;Add the authentication middleware
+			app.UseAuthentication()
 
+</IF DEFINED_AUTHENTICATION>
 			;;Add the middleware to generate API documentation to a file
-
 			app.UseSwagger()
 
 			app.UseLogging(DebugLogSession.Logging)
 
 			;;Configure the MVC / OData environment
-
 			lambda MVCBuilder(builder)
 			begin
 				data model = EdmBuilder.GetEdmModel(app.ApplicationServices)

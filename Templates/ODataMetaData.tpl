@@ -108,6 +108,32 @@ namespace <NAMESPACE>
 	</IF CUSTOM_NOT_HARMONY_EXCLUDE>
 </FIELD_LOOP>
 ;//
+;//
+;// Add definitions for the properties related to relations
+;//
+	<RELATION_LOOP>
+;//
+		<IF MANY_TO_ONE_TO_MANY>
+			AddFieldInfo("REL_<RelationFromkey>", "DATAOBJECT", 0, 0, 0, false)
+		</IF MANY_TO_ONE_TO_MANY>
+;//
+		<IF ONE_TO_ONE_TO_ONE>
+			AddFieldInfo("REL_<RelationFromkey>", "DATAOBJECT", 0, 0, 0, false)
+		</IF ONE_TO_ONE_TO_ONE>
+;//
+		<IF ONE_TO_ONE>
+			AddFieldInfo("REL_<RelationFromkey>", "DATAOBJECT", 0, 0, 0, false)
+		</IF ONE_TO_ONE>
+;//
+		<IF ONE_TO_MANY_TO_ONE>
+			AddFieldInfo("REL_<RelationTostructurePlural>", "COLLECTION", 0, 0, 0, false)
+		</IF ONE_TO_MANY_TO_ONE>
+;//
+		<IF ONE_TO_MANY>
+			AddFieldInfo("REL_<RelationTostructurePlural>", "COLLECTION", 0, 0, 0, false)
+		</IF ONE_TO_MANY>
+	</RELATION_LOOP>
+;//
 ;//	Add definitions for the properties related to literal field segments
 ;//
 <IF STRUCTURE_RELATIONS>
