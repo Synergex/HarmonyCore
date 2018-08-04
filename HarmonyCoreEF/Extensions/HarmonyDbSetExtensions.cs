@@ -131,7 +131,7 @@ namespace Harmony.Core.EF.Extensions
             }
         }
 
-        public static T FirstOrDefaultIncluding<T>(this DbSet<T> thisp, string expression, string including, params object[] parameters)
+        public static T FirstOrDefaultIncluding<T>(this DbSet<T> thisp, string including, string expression, params object[] parameters)
             where T : class
         {
             if (parameters.Length > 5)
@@ -311,7 +311,7 @@ namespace Harmony.Core.EF.Extensions
             return Expression.Lambda(delegateType, Expression.Property(instance, propertyName), instance);
         }
 
-        public static IEnumerable<T> WhereIncluding<T>(this DbSet<T> thisp, string expression, string including, params object[] parameters)
+        public static IEnumerable<T> WhereIncluding<T>(this DbSet<T> thisp, string including, string expression, params object[] parameters)
             where T : class
         {
             var context = ((IInfrastructure<IServiceProvider>)thisp).Instance.GetService(typeof(DbContext)) as DbContext;

@@ -102,9 +102,11 @@ namespace Harmony.Core.FileIO.Queryable
 			begin
 				if(buf.MemoryHandle != ^null)
 					mem_proc(DM_FREE, buf.MemoryHandle.Value)
+				buf.MemoryHandle = ^null
 				if(DataObjectProvider != ^null && buf.IOChannel != ^null)
 				begin
 					DataObjectProvider.ChannelManager.ReturnChannel(buf.IOChannel.Value)
+					buf.IOChannel = ^null
 				end
 			end
 			TypeBuffers.Clear()

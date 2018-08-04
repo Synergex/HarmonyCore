@@ -194,7 +194,11 @@ namespace Harmony.Core.EF.Extensions.Internal
 
         public static Type ForceSequenceType(this Type type)
         {
-            var implementsIEnumerable = type.GetInterfaces().FirstOrDefault(inter => inter.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+            if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                return type.GenericTypeArguments.First();
+
+
+            var implementsIEnumerable = type.GetInterfaces().FirstOrDefault(inter => inter.IsGenericType && inter.GetGenericTypeDefinition() == typeof(IEnumerable<>));
             if (implementsIEnumerable != null)
                 return implementsIEnumerable.GenericTypeArguments.First();
             else
