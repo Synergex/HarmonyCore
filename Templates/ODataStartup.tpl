@@ -161,8 +161,8 @@ namespace <NAMESPACE>
 
 			lambda authenticationOptions(options)
 			begin
-				options.Authority = "https://localhost:44309"
-				options.RequireHttpsMetadata = true
+				options.Authority = "http://localhost:5000"
+				options.RequireHttpsMetadata = false
 				options.ApiName = "api1"
 			end
 
