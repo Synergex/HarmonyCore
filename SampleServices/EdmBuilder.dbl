@@ -69,6 +69,7 @@ namespace SampleServices
 				data builder = new ODataConventionModelBuilder(serviceProvider)
 				builder.EntitySet<Customer>("Customers")
 				builder.EntitySet<Order>("Orders")
+				builder.EntitySet<OrderItem>("OrderItems")
 				builder.EntitySet<Plant>("Plants")
 				builder.EntitySet<Vendor>("Vendors")
 
@@ -78,9 +79,14 @@ namespace SampleServices
 				tempModel.AddAlternateKeyAnnotation(customerType, new Dictionary<string, IEdmProperty>() {{"CustRtype",customerType.FindProperty("CustRtype")},{"CustKey",customerType.FindProperty("CustKey")}})
 
 				data orderType = (@EdmEntityType)tempModel.FindDeclaredType("SampleServices.Models.Order")
-				tempModel.AddAlternateKeyAnnotation(orderType, new Dictionary<string, IEdmProperty>() {{"OrVendor",orderType.FindProperty("OrVendor")}})
-				tempModel.AddAlternateKeyAnnotation(orderType, new Dictionary<string, IEdmProperty>() {{"OrItem",orderType.FindProperty("OrItem")}})
 				tempModel.AddAlternateKeyAnnotation(orderType, new Dictionary<string, IEdmProperty>() {{"OrCustomer",orderType.FindProperty("OrCustomer")}})
+				tempModel.AddAlternateKeyAnnotation(orderType, new Dictionary<string, IEdmProperty>() {{"OrOrdered",orderType.FindProperty("OrOrdered")}})
+				tempModel.AddAlternateKeyAnnotation(orderType, new Dictionary<string, IEdmProperty>() {{"OrCompleted",orderType.FindProperty("OrCompleted")}})
+
+				data orderItemType = (@EdmEntityType)tempModel.FindDeclaredType("SampleServices.Models.OrderItem")
+				tempModel.AddAlternateKeyAnnotation(orderItemType, new Dictionary<string, IEdmProperty>() {{"OiItemOrdered",orderItemType.FindProperty("OiItemOrdered")}})
+				tempModel.AddAlternateKeyAnnotation(orderItemType, new Dictionary<string, IEdmProperty>() {{"OiShipped",orderItemType.FindProperty("OiShipped")}})
+				tempModel.AddAlternateKeyAnnotation(orderItemType, new Dictionary<string, IEdmProperty>() {{"OiInvoice",orderItemType.FindProperty("OiInvoice")}})
 
 				data plantType = (@EdmEntityType)tempModel.FindDeclaredType("SampleServices.Models.Plant")
 				tempModel.AddAlternateKeyAnnotation(plantType, new Dictionary<string, IEdmProperty>() {{"InSource",plantType.FindProperty("InSource")}})

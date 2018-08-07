@@ -13,7 +13,7 @@ rem set DO_AUTHENTICATION=-define AUTHENTICATION
 rem ================================================================================================================================
 rem Generate a Web API / OData CRUD environment
 
-set STRUCTURES=CUSTOMERS ORDERS PLANTS VENDORS
+set STRUCTURES=CUSTOMERS ORDERS ORDER_ITEMS PLANTS VENDORS
 
 rem Generate model classes
 codegen -s %STRUCTURES%     -t ODataModel -n %PROJECT%.Models -o %PROJECT%\Models %OPTS%
@@ -41,7 +41,7 @@ rem The test environment has slightly different requirements, because we need to
 rem are used to indicate that multiple structures are associated with a single ISAM file, we only need to generate from one of The
 rem structures associated with each file.
 
-set FILE_STRUCTURES=CUSTOMERS ORDERS PLANTS
+set FILE_STRUCTURES=CUSTOMERS ORDERS ORDER_ITEMS PLANTS
 
 rem Generate the test environment and unit test environment classes
 codegen -s %FILE_STRUCTURES% -ms -t ODataTestEnvironment ODataUnitTestEnvironment -n %PROJECT%.Test -o %PROJECT%.Test -ut SERVICES_NAMESPACE=%PROJECT% MODELS_NAMESPACE=%PROJECT%.Models %OPTS% %DO_AUTHENTICATION%

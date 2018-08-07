@@ -1,10 +1,11 @@
 ;;*****************************************************************************
 ;;
-;; Title:       SampleXfplEnvDispatcherData.dbl
+;; Title:       OrderItem.dbl
 ;;
 ;; Type:        Class
 ;;
-;; Description: Initializes all data object metadata
+;; Description: OData model class representing data defined by the repository
+;;              structure ORDER_ITEMS and from the data file ICSTUT:order_items.ism.
 ;;
 ;;*****************************************************************************
 ;; WARNING
@@ -14,7 +15,7 @@
 ;;
 ;;*****************************************************************************
 ;;
-;; Copyright (c) 2018, Synergex International, Inc.
+;; Copyright (c) 2012, Synergex International, Inc.
 ;; All rights reserved.
 ;;
 ;; Redistribution and use in source and binary forms, with or without
@@ -41,24 +42,70 @@
 ;;
 ;;*****************************************************************************
 
-import Harmony.TraditionalBridge
+import Newtonsoft.Json
+import System.Collections.Generic
 
-namespace TraditionalBridge.Test
+namespace SampleServices.Test.Models
 
-	public partial class SampleXfplEnvDispatcher
+    public partial class OrderItem
+
+		{JsonProperty("odata.type")}
+		public readwrite property Type, string
 
 		;;; <summary>
-		;;; Initialize all data object metadata
+		;;; Order number
+		;;; </summary>
+		public readwrite property OiNumber, int
+
 		;;; <summary>
-		private method initMetaData, void
-		proc
-			DataObjectMetadataBase.LookupType("Customer")
-			DataObjectMetadataBase.LookupType("Order")
-			DataObjectMetadataBase.LookupType("OrderItem")
-			DataObjectMetadataBase.LookupType("Plant")
-			DataObjectMetadataBase.LookupType("Vendor")
-		endmethod
+		;;; Line item number
+		;;; </summary>
+		public readwrite property OiLineItem, int
+
+		;;; <summary>
+		;;; Item ordered
+		;;; </summary>
+		public readwrite property OiItemOrdered, int
+
+		;;; <summary>
+		;;; Quantity ordered
+		;;; </summary>
+		public readwrite property OiQty, int
+
+		;;; <summary>
+		;;; Unit price
+		;;; </summary>
+		public readwrite property OiUnitPrice, decimal
+
+		;;; <summary>
+		;;; Date shipped
+		;;; </summary>
+		public readwrite property OiShipped, DateTime
+
+		;;; <summary>
+		;;; Invoice number
+		;;; </summary>
+		public readwrite property OiInvoice, int
 
 	endclass
 
+	public class ODataOrderItem
+		
+		{JsonProperty("odata.metadata")}
+		public readwrite property Metadata, string
+
+		public readwrite property Value, @OrderItem
+
+	endclass
+	
+	public class ODataOrderItems
+		
+		{JsonProperty("odata.metadata")}
+		public readwrite property Metadata, string
+
+		public readwrite property Value, @List<OrderItem>
+
+	endclass
+	
 endnamespace
+

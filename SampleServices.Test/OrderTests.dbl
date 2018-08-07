@@ -70,7 +70,7 @@ namespace SampleServices.Test
 		public method GetOrder_Expand_All, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Orders({0})?$expand=REL_Vendor,REL_Customer,REL_Item,REL_TagCustomer,REL_TagVendor", TestContext.OrderID)
+			data request = String.Format("/odata/Orders({0})?$expand=REL_OrderItems,REL_OrCustomer", TestContext.OrderID)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
@@ -90,9 +90,9 @@ namespace SampleServices.Test
 	
 		{TestMethod}
 		{TestCategory("Order Tests - All")}
-		public method GetOrders_Expand_REL_Vendor, void
+		public method GetOrders_Expand_REL_OrderItems, void
 		proc
-			data uri = "/odata/Orders?$expand=REL_Vendor"
+			data uri = "/odata/Orders?$expand=REL_OrderItems"
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
 			disposable data response = client.GetAsync(uri).Result
 			data result = response.Content.ReadAsStringAsync().Result
@@ -101,42 +101,9 @@ namespace SampleServices.Test
 
 		{TestMethod}
 		{TestCategory("Order Tests - All")}
-		public method GetOrders_Expand_REL_Customer, void
+		public method GetOrders_Expand_REL_OrCustomer, void
 		proc
-			data uri = "/odata/Orders?$expand=REL_Customer"
-			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync(uri).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-		endmethod
-
-		{TestMethod}
-		{TestCategory("Order Tests - All")}
-		public method GetOrders_Expand_REL_Item, void
-		proc
-			data uri = "/odata/Orders?$expand=REL_Item"
-			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync(uri).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-		endmethod
-
-		{TestMethod}
-		{TestCategory("Order Tests - All")}
-		public method GetOrders_Expand_REL_TagCustomer, void
-		proc
-			data uri = "/odata/Orders?$expand=REL_TagCustomer"
-			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync(uri).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-		endmethod
-
-		{TestMethod}
-		{TestCategory("Order Tests - All")}
-		public method GetOrders_Expand_REL_TagVendor, void
-		proc
-			data uri = "/odata/Orders?$expand=REL_TagVendor"
+			data uri = "/odata/Orders?$expand=REL_OrCustomer"
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
 			disposable data response = client.GetAsync(uri).Result
 			data result = response.Content.ReadAsStringAsync().Result
@@ -148,37 +115,37 @@ namespace SampleServices.Test
 		
 		public method GetOrders_Expand_All, void
 		proc
-			data uri = "/odata/Orders?$expand=REL_Vendor,REL_Customer,REL_Item,REL_TagCustomer,REL_TagVendor"
+			data uri = "/odata/Orders?$expand=REL_OrderItems,REL_OrCustomer"
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
 			disposable data response = client.GetAsync(uri).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 		endmethod
 		
-		public method GetByKeyVendor, void
-		proc
-			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Orders(OrVendor={1})", "", TestContext.OrderOrVendor)
-			data response = client.GetAsync(request).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data order, @ODataOrder, JsonConvert.DeserializeObject<ODataOrder>(result)
-		endmethod
-
-		public method GetByKeyItem, void
-		proc
-			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Orders(OrItem={1})", "", TestContext.OrderOrItem)
-			data response = client.GetAsync(request).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data order, @ODataOrder, JsonConvert.DeserializeObject<ODataOrder>(result)
-		endmethod
-
-		public method GetByKeyCustomer, void
+		public method GetByKeyOrCustomer, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
 			data request = String.Format("/odata/Orders(OrCustomer={1})", "", TestContext.OrderOrCustomer)
+			data response = client.GetAsync(request).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data order, @ODataOrder, JsonConvert.DeserializeObject<ODataOrder>(result)
+		endmethod
+
+		public method GetByKeyOrOrdered, void
+		proc
+			data client = UnitTestEnvironment.Server.CreateClient()
+			data request = String.Format("/odata/Orders(OrOrdered={1})", "", TestContext.OrderOrOrdered)
+			data response = client.GetAsync(request).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data order, @ODataOrder, JsonConvert.DeserializeObject<ODataOrder>(result)
+		endmethod
+
+		public method GetByKeyOrCompleted, void
+		proc
+			data client = UnitTestEnvironment.Server.CreateClient()
+			data request = String.Format("/odata/Orders(OrCompleted={1})", "", TestContext.OrderOrCompleted)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()

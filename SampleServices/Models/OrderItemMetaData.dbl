@@ -1,10 +1,10 @@
 ;;*****************************************************************************
 ;;
-;; Title:       OrderMetaData.dbl
+;; Title:       OrderItemMetaData.dbl
 ;;
 ;; Type:        Class
 ;;
-;; Description: Defines meta data associated with a Order model.
+;; Description: Defines meta data associated with a OrderItem model.
 ;;
 ;;*****************************************************************************
 ;; WARNING
@@ -49,79 +49,79 @@ import Harmony.Core.Converters
 
 namespace SampleServices.Models
 
-	.include "ORDERS" repository  , structure="strOrder", end
+	.include "ORDER_ITEMS" repository  , structure="strOrderItem", end
 
 	;;; <summary>
-	;;; Exposes metadata relating to the Order model class.
+	;;; Exposes metadata relating to the OrderItem model class.
 	;;; </summary>
-	public partial class OrderMetadata extends DataObjectMetadataBase
+	public partial class OrderItemMetadata extends DataObjectMetadataBase
 		
 		;;; <summary>
-		;;; Constructs an new OrderMetadata object.
+		;;; Constructs an new OrderItemMetadata object.
 		;;; </summary>
-		public method OrderMetadata
+		public method OrderItemMetadata
 		proc
-			RPSStructureName = "ORDERS"
-			RPSStructureSize = ^size(strOrder)
+			RPSStructureName = "ORDER_ITEMS"
+			RPSStructureSize = ^size(strOrderItem)
 
-			AddFieldInfo("OrNumber", "DECIMAL", 6, 1, 0, false)
-			AddFieldInfo("OrCustomer", "DECIMAL", 6, 7, 0, false)
-			AddFieldInfo("OrPlacedBy", "ALPHA", 25, 13, 0, false)
-			AddFieldInfo("OrCustomerRef", "ALPHA", 25, 38, 0, false)
-			AddFieldInfo("OrTerms", "ALPHA", 2, 63, 0, false)
-			AddFieldInfo("OrOrdered", "DATE", 8, 65, 0, false)
-			AddFieldInfo("OrCompleted", "DATE", 8, 73, 0, false)
-			AddFieldInfo("Noname001", "ALPHA", 20, 81, 0, false)
-			AddFieldInfo("REL_OrderItems", "COLLECTION", 0, 0, 0, false)
-			AddFieldInfo("REL_OrCustomer", "DATAOBJECT", 0, 0, 0, false)
+			AddFieldInfo("OiNumber", "DECIMAL", 6, 1, 0, false)
+			AddFieldInfo("OiLineItem", "DECIMAL", 2, 7, 0, false)
+			AddFieldInfo("OiItemOrdered", "DECIMAL", 6, 9, 0, false)
+			AddFieldInfo("OiQty", "DECIMAL", 6, 15, 0, false)
+			AddFieldInfo("OiUnitPrice", "IMPLIED", 7, 21, 02, false)
+			AddFieldInfo("OiShipped", "DATE", 8, 28, 0, false)
+			AddFieldInfo("OiInvoice", "DECIMAL", 7, 36, 0, false)
+			AddFieldInfo("REL_OiNumberLineItem", "DATAOBJECT", 0, 0, 0, false)
+			AddFieldInfo("REL_OiItemOrdered", "DATAOBJECT", 0, 0, 0, false)
 
-			AddKeyInfo(0, "OrNumber")
-			AddKeyInfo(1, "OrCustomer")
-			AddKeyInfo(2, "OrOrdered")
-			AddKeyInfo(3, "OrCompleted")
+			AddKeyInfo(0, "OiNumber")
+			AddKeyInfo(0, "OiLineItem")
+			AddKeyInfo(1, "OiItemOrdered")
+			AddKeyInfo(2, "OiShipped")
+			AddKeyInfo(3, "OiInvoice")
 
 		endmethod
 	
 		;;; <summary>
-		;;; Returns a new Order object containing data from a record and a GRFA.
-		;;; The related data properties (REL_OrderItems and REL_OrCustomer) will not be populated.
+		;;; Returns a new OrderItem object containing data from a record and a GRFA.
+		;;; The related data properties (REL_OiNumberLineItem and REL_OiItemOrdered) will not be populated.
 		;;; </summary>
-		;;; <param name="dataArea">The record containing the data for the new Order object.</param>
+		;;; <param name="dataArea">The record containing the data for the new OrderItem object.</param>
 		;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
 		;;; <returns></returns>
 		public override method MakeNew, @DataObjectBase
 			required in dataArea, a
 			required in grfa, a
 		proc
-			mreturn new Order((strOrder)dataArea) { GlobalRFA = grfa }
+			mreturn new OrderItem((strOrderItem)dataArea) { GlobalRFA = grfa }
 		endmethod
 
 		;;; <summary>
-		;;; Returns a new Order object containing data from a record and a GRFA.
-		;;; The related data properties (REL_OrderItems and REL_OrCustomer) will be populated.
+		;;; Returns a new OrderItem object containing data from a record and a GRFA.
+		;;; The related data properties (REL_OiNumberLineItem and REL_OiItemOrdered) will be populated.
 		;;; </summary>
-		;;; <param name="dataArea">The record containing the data for the new Order object.</param>
+		;;; <param name="dataArea">The record containing the data for the new OrderItem object.</param>
 		;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
-		;;; <param name="joinedObjects">Data to allow the related data properties (REL_OrderItems and REL_OrCustomer) to be populated.</param>
+		;;; <param name="joinedObjects">Data to allow the related data properties (REL_OiNumberLineItem and REL_OiItemOrdered) to be populated.</param>
 		;;; <returns></returns>
 		public override method MakeNew, @DataObjectBase
 			required in dataArea, a
 			required in grfa, a
 			required in joinedObjects, [#]KeyValuePair<String, Object>
 		proc
-			data newOrder = new Order((strOrder)dataArea) { GlobalRFA = grfa }
+			data newOrderItem = new OrderItem((strOrderItem)dataArea) { GlobalRFA = grfa }
 			data joinedObject, KeyValuePair<String, Object>
 			foreach joinedObject in joinedObjects
 			begin
 				using joinedObject.Key select
-				("REL_OrderItems"), 
-					newOrder.REL_OrderItems = (@ICollection<OrderItem>)joinedObject.Value
-				("REL_OrCustomer"), 
-					newOrder.REL_OrCustomer = (@Customer)joinedObject.Value
+				("REL_OiNumberLineItem"), 
+					newOrderItem.REL_OiNumberLineItem = (@Order)joinedObject.Value
+				("REL_OiItemOrdered"), 
+					newOrderItem.REL_OiItemOrdered = (@Plant)joinedObject.Value
 				endusing
 			end
 
-			mreturn newOrder
+			mreturn newOrderItem
 
 		endmethod
 
@@ -136,16 +136,17 @@ namespace SampleServices.Models
 			required in parts, @Dictionary<String, Object>
 			endparams
 			stack record key0
-				OrNumber, D6
+				OiNumber, D6
+				OiLineItem, D2
 			endrecord
 			stack record key1
-				OrCustomer, D6
+				OiItemOrdered, D6
 			endrecord
 			stack record key2
-				OrOrdered, D8
+				OiShipped, D8
 			endrecord
 			stack record key3
-				OrCompleted, D8
+				OiInvoice, D7
 			endrecord
 		proc
 			data startPos = 0
@@ -153,31 +154,34 @@ namespace SampleServices.Models
 			using keyNumber select
 			(0),
 			begin
-				if((segValueLength=KeyValueHelper(key0.OrNumber, "OrNumber", parts))<6)
+				if((segValueLength=KeyValueHelper(key0.OiNumber, "OiNumber", parts))<6)
+					mreturn key0(1:startPos+segValueLength)
+				startPos += 6
+				if((segValueLength=KeyValueHelper(key0.OiLineItem, "OiLineItem", parts))<2)
 					mreturn key0(1:startPos+segValueLength)
 				mreturn key0
 			end
 			(1),
 			begin
-				if((segValueLength=KeyValueHelper(key1.OrCustomer, "OrCustomer", parts))<6)
+				if((segValueLength=KeyValueHelper(key1.OiItemOrdered, "OiItemOrdered", parts))<6)
 					mreturn key1(1:startPos+segValueLength)
 				mreturn key1
 			end
 			(2),
 			begin
-				if((segValueLength=KeyValueHelper(key2.OrOrdered, "OrOrdered", parts))<8)
+				if((segValueLength=KeyValueHelper(key2.OiShipped, "OiShipped", parts))<8)
 					mreturn key2(1:startPos+segValueLength)
 				mreturn key2
 			end
 			(3),
 			begin
-				if((segValueLength=KeyValueHelper(key3.OrCompleted, "OrCompleted", parts))<8)
+				if((segValueLength=KeyValueHelper(key3.OiInvoice, "OiInvoice", parts))<7)
 					mreturn key3(1:startPos+segValueLength)
 				mreturn key3
 			end
 			endusing
 
-			throw new ApplicationException(String.Format("Invalid key number {0} encountered in OrderMetadata.FormatKeyLiteral",keyNumber))
+			throw new ApplicationException(String.Format("Invalid key number {0} encountered in OrderItemMetadata.FormatKeyLiteral",keyNumber))
 
 		endmethod
 

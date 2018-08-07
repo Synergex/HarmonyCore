@@ -1,6 +1,6 @@
-!	Synergy ISAM XDL File created Mon Aug  6 20:22:40 2018
+!	Synergy ISAM XDL File created Mon Aug  6 20:22:55 2018
 FILE
-	NAME		"orders.ism"
+	NAME		"order_items.ism"
 	ADDRESSING	32
 	PAGE_SIZE	1024
 	NETWORK_ENCRYPT	no
@@ -18,32 +18,32 @@ RECORD
 	!  Static RFAs enabled (Required)
 	!Creation version 11.0.1  {Compat Level 6.0}
 	!0 of 32 byte file text allocation in use, @0x16a0
-	!File created on Mon Aug  6 20:21:30 2018
+	!File created on Mon Aug  6 20:22:21 2018
 	!11 byte longest key
 	!0 free index blocks, 0x0 free list head
 	!0 records, 0 free
 
 KEY 0
 	!Primary key
-	START		1
-	LENGTH		6
-	TYPE		decimal
-	ORDER		ascending
-	NAME		"OR_NUMBER"
+	START		1:7
+	LENGTH		6:2
+	TYPE		decimal:decimal
+	ORDER		ascending:ascending
+	NAME		"OI_NUMBER_LINE_"
 	DUPLICATES	no
 	MODIFIABLE	no
 	DENSITY		50
 
 	!Root 0x2000, index depth 1
-	!Minimum keys per block 51
+	!Minimum keys per block 42
 
 KEY 1
 	!Alternate key #1
-	START		7
+	START		9
 	LENGTH		6
 	TYPE		decimal
 	ORDER		ascending
-	NAME		"OR_CUSTOMER"
+	NAME		"OI_ITEM_ORDERED"
 	DUPLICATES	yes
 	DUPLICATE_ORDER	fifo
 	MODIFIABLE	yes
@@ -55,11 +55,11 @@ KEY 1
 
 KEY 2
 	!Alternate key #2
-	START		65
+	START		28
 	LENGTH		8
 	TYPE		decimal
-	ORDER		ascending
-	NAME		"OR_ORDERED"
+	ORDER		descending
+	NAME		"OI_SHIPPED"
 	DUPLICATES	yes
 	DUPLICATE_ORDER	fifo
 	MODIFIABLE	yes
@@ -71,11 +71,11 @@ KEY 2
 
 KEY 3
 	!Alternate key #3
-	START		73
-	LENGTH		8
+	START		36
+	LENGTH		7
 	TYPE		decimal
 	ORDER		ascending
-	NAME		"OR_COMPLETED"
+	NAME		"OI_INVOICE"
 	DUPLICATES	yes
 	DUPLICATE_ORDER	fifo
 	MODIFIABLE	yes
@@ -83,4 +83,4 @@ KEY 3
 
 	!Root 0x2c00, index depth 1
 	!Qualifier offset 7
-	!Minimum keys per block 34
+	!Minimum keys per block 36

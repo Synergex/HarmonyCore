@@ -44,6 +44,23 @@
         }
       }
     },
+    "/OrderItems" : {
+      "get" : {
+        "description" : "Get all OrderItems",
+        "parameters" : [ ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "schema" : {
+              "type" : "array",
+              "items" : {
+                "$ref" : "#/definitions/OrderItem"
+              }
+            }
+          }
+        }
+      }
+    },
     "/Plants" : {
       "get" : {
         "description" : "Get all Plants",
@@ -180,67 +197,104 @@
           "example" : 123,
           "description": "Order number"
         },
-        "OrVendor": {
-          "type": "integer",
-          "example" : 123,
-          "description": "Vendorcode"
-        },
-        "OrItem": {
-          "type": "integer",
-          "example" : 123,
-          "description": "Item code"
-        },
         "OrCustomer": {
           "type": "integer",
           "example" : 123,
-          "description": "Customer number"
+          "description": "Customer ID"
         },
-        "OrQty": {
-          "type": "integer",
-          "example" : 123,
-          "description": "Quantity on order"
+        "OrPlacedBy": {
+          "type": "string",
+          "example" : "ABC",
+          "description": "Order placed by"
         },
-        "OrPrice": {
-          "type": "number",
-          "format": "float",
-          "example" : 1.23,
-          "description": "Order Price"
+        "OrCustomerRef": {
+          "type": "string",
+          "example" : "ABC",
+          "description": "Customer order reference"
         },
-        "OrOdate": {
+        "OrTerms": {
+          "type": "string",
+          "example" : "ABC",
+          "description": "Payment terms code"
+        },
+        "OrOrdered": {
           "type": "string",
           "format": "date-time",
           "example" : 123,
-          "description": "Order date"
+          "description": "Date ordered"
         },
-        "OrSdate": {
+        "OrCompleted": {
           "type": "string",
           "format": "date-time",
           "example" : 123,
-          "description": "Req ship date"
+          "description": "Date order completed"
         },
-        "OrEdate": {
+        "Noname001": {
           "type": "string",
-          "format": "date-time",
-          "example" : 123,
-          "description": "Expiration date"
-        },
-        "OrInvoice": {
-          "type": "integer",
-          "example" : 123,
-          "description": "Invoice Number"
+          "example" : "ABC",
+          "description": "Spare space"
         }
       },
       "example" : {
         "OrNumber" : 123,
-        "OrVendor" : 123,
-        "OrItem" : 123,
         "OrCustomer" : 123,
-        "OrQty" : 123,
-        "OrPrice" : 1.23,
-        "OrOdate" : 123,
-        "OrSdate" : 123,
-        "OrEdate" : 123,
-        "OrInvoice" : 123
+        "OrPlacedBy" : "ABC",
+        "OrCustomerRef" : "ABC",
+        "OrTerms" : "ABC",
+        "OrOrdered" : 123,
+        "OrCompleted" : 123,
+        "Noname001" : "ABC"
+      }
+    },
+    "OrderItem" : {
+      "required" : [ "OiNumber", "OiLineItem" ],
+      "properties" : {
+        "OiNumber": {
+          "type": "integer",
+          "example" : 123,
+          "description": "Order number"
+        },
+        "OiLineItem": {
+          "type": "integer",
+          "example" : 123,
+          "description": "Line item number"
+        },
+        "OiItemOrdered": {
+          "type": "integer",
+          "example" : 123,
+          "description": "Item ordered"
+        },
+        "OiQty": {
+          "type": "integer",
+          "example" : 123,
+          "description": "Quantity ordered"
+        },
+        "OiUnitPrice": {
+          "type": "number",
+          "format": "float",
+          "example" : 1.23,
+          "description": "Unit price"
+        },
+        "OiShipped": {
+          "type": "string",
+          "format": "date-time",
+          "example" : 123,
+          "description": "Date shipped"
+        },
+        "OiInvoice": {
+          "type": "integer",
+          "example" : 123,
+          "description": "Invoice number"
+        }
+      },
+      "example" : {
+        "OiNumber" : 123,
+        "OiLineItem" : 123,
+        "OiItemOrdered" : 123,
+        "OiQty" : 123,
+        "OiUnitPrice" : 1.23,
+        "OiShipped" : 123,
+        "OiInvoice" : 123
       }
     },
     "Plant" : {

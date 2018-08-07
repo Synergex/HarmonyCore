@@ -1,11 +1,11 @@
 ;;*****************************************************************************
 ;;
-;; Title:       Customer.dbl
+;; Title:       OrderItem.dbl
 ;;
 ;; Type:        Class
 ;;
 ;; Description: Data model representing data defined by the repository
-;;              structure CUSTOMERS and from the data file ICSTUT:customer.ism.
+;;              structure ORDER_ITEMS and from the data file ICSTUT:order_items.ism.
 ;;
 ;;*****************************************************************************
 ;; WARNING
@@ -51,26 +51,26 @@ import Harmony.Core.Converters
 
 namespace SampleServices.Models
 
-    public partial class Customer extends DataObjectBase
+    public partial class OrderItem extends DataObjectBase
 
         ;;make the record available and a copy
-        private mSynergyData, strCustomer 
-		private mOriginalSynergyData, strCustomer 
+        private mSynergyData, strOrderItem 
+		private mOriginalSynergyData, strOrderItem 
 		
-		private static sMetadata, @CustomerMetadata
+		private static sMetadata, @OrderItemMetadata
 
 .region "Constructors"
 
-		static method Customer
+		static method OrderItem
 		proc
-			sMetadata = new CustomerMetadata()
-			DataObjectMetadataBase.MetadataLookup.TryAdd(^typeof(Customer), sMetadata)
+			sMetadata = new OrderItemMetadata()
+			DataObjectMetadataBase.MetadataLookup.TryAdd(^typeof(OrderItem), sMetadata)
 		endmethod
 		
         ;;; <summary>
         ;;;  Constructor, initialise the base fields
         ;;; </summary>
-        public method Customer
+        public method OrderItem
             parent()
         proc
 			init mSynergyData, mOriginalSynergyData
@@ -79,8 +79,8 @@ namespace SampleServices.Models
 		;;; <summary>
 		;;;  Alternate Constructor, accepts the structured data
 		;;; </summary>
-		public method Customer
-			required in inData, strCustomer
+		public method OrderItem
+			required in inData, strOrderItem
 			parent()
 		proc
 			mSynergyData = mOriginalSynergyData = inData
@@ -91,205 +91,107 @@ namespace SampleServices.Models
 .region "Attributes of this entity"
 
 		;;; <summary>
-		;;; Customer id
+		;;; Order number
 		;;; </summary>
 		{Key}
-		public property CustKey, int
+		{Required(ErrorMessage="Order number is required. ")}
+		public property OiNumber, int
 			method get
 			proc
-				mreturn (int)mSynergyData.Cust_key
+				mreturn (int)mSynergyData.Oi_number
             endmethod
 			method set
 			proc
-				mSynergyData.Cust_key = value
+				mSynergyData.Oi_number = value
 			endmethod
 		endproperty
 
 		;;; <summary>
-		;;; Record Tag Field
+		;;; Line item number
 		;;; </summary>
-		public property CustRtype, int
+		{Key}
+		{Required(ErrorMessage="Line item number is required. ")}
+		public property OiLineItem, int
 			method get
 			proc
-				mreturn (int)mSynergyData.Cust_rtype
+				mreturn (int)mSynergyData.Oi_line_item
             endmethod
 			method set
 			proc
-				mSynergyData.Cust_rtype = value
+				mSynergyData.Oi_line_item = value
 			endmethod
 		endproperty
 
 		;;; <summary>
-		;;; Customer Name
+		;;; Item ordered
 		;;; </summary>
-		{StringLength(30, ErrorMessage="Customer Name cannot exceed 30 characters. ")}
-		public property CustName, string
+		{Required(ErrorMessage="Item ordered is required. ")}
+		public property OiItemOrdered, int
 			method get
 			proc
-				mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.Cust_name, ^null, ^null, ^null)
+				mreturn (int)mSynergyData.Oi_item_ordered
             endmethod
 			method set
 			proc
-				mSynergyData.Cust_name = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
+				mSynergyData.Oi_item_ordered = value
 			endmethod
 		endproperty
 
 		;;; <summary>
-		;;; Street Address
+		;;; Quantity ordered
 		;;; </summary>
-		{StringLength(25, ErrorMessage="Street Address cannot exceed 25 characters. ")}
-		public property CustStreet, string
+		{Required(ErrorMessage="Quantity ordered is required. ")}
+		public property OiQty, int
 			method get
 			proc
-				mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.Cust_street, ^null, ^null, ^null)
+				mreturn (int)mSynergyData.Oi_qty
             endmethod
 			method set
 			proc
-				mSynergyData.Cust_street = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
+				mSynergyData.Oi_qty = value
 			endmethod
 		endproperty
 
 		;;; <summary>
-		;;; City
+		;;; Unit price
 		;;; </summary>
-		{StringLength(20, ErrorMessage="City cannot exceed 20 characters. ")}
-		public property CustCity, string
+		{Required(ErrorMessage="Unit price is required. ")}
+		public property OiUnitPrice, decimal
 			method get
 			proc
-				mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.Cust_city, ^null, ^null, ^null)
+				mreturn (decimal)SynergyImpliedDecimalConverter.Convert(mSynergyData.Oi_unit_price, ^null, "DECIMALPLACES#2", ^null)
             endmethod
 			method set
 			proc
-				mSynergyData.Cust_city = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
+				mSynergyData.Oi_unit_price = value
 			endmethod
 		endproperty
 
 		;;; <summary>
-		;;; State
+		;;; Date shipped
 		;;; </summary>
-		{StringLength(2, ErrorMessage="State cannot exceed 2 characters. ")}
-		public property CustState, string
+		public property OiShipped, DateTime
 			method get
 			proc
-				mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.Cust_state, ^null, ^null, ^null)
+				mreturn (DateTime)SynergyDecimalDateConverter.Convert(mSynergyData.Oi_shipped, ^null, ^null, ^null)
             endmethod
 			method set
 			proc
-				mSynergyData.Cust_state = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
+				mSynergyData.Oi_shipped = (D)SynergyDecimalDateConverter.ConvertBack(value, ^null, ^null, ^null)
 			endmethod
 		endproperty
 
 		;;; <summary>
-		;;; Zip code
+		;;; Invoice number
 		;;; </summary>
-		public property CustZip, int
+		public property OiInvoice, int
 			method get
 			proc
-				mreturn (int)mSynergyData.Cust_zip
+				mreturn (int)mSynergyData.Oi_invoice
             endmethod
 			method set
 			proc
-				mSynergyData.Cust_zip = value
-			endmethod
-		endproperty
-
-		;;; <summary>
-		;;; Contact
-		;;; </summary>
-		{StringLength(25, ErrorMessage="Contact cannot exceed 25 characters. ")}
-		public property CustContact, string
-			method get
-			proc
-				mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.Cust_contact, ^null, ^null, ^null)
-            endmethod
-			method set
-			proc
-				mSynergyData.Cust_contact = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
-			endmethod
-		endproperty
-
-		;;; <summary>
-		;;; Phone number
-		;;; </summary>
-		public property CustPhone, String
-			method get
-			proc
-				mreturn %string(mSynergyData.Cust_phone,"(XXX) XXX-XXXX")
-            endmethod
-			method set
-			proc
-				mSynergyData.Cust_phone = SynergyDecimalConverter.UnformatString(value,"(XXX) XXX-XXXX")
-			endmethod
-		endproperty
-
-		;;; <summary>
-		;;; FAX number
-		;;; </summary>
-		public property CustFax, String
-			method get
-			proc
-				mreturn %string(mSynergyData.Cust_fax,"(XXX) XXX-XXXX")
-            endmethod
-			method set
-			proc
-				mSynergyData.Cust_fax = SynergyDecimalConverter.UnformatString(value,"(XXX) XXX-XXXX")
-			endmethod
-		endproperty
-
-		;;; <summary>
-		;;; Customer Premium Gift
-		;;; </summary>
-		public property CustGift, int
-			method get
-			proc
-				mreturn (int)mSynergyData.Cust_gift
-            endmethod
-			method set
-			proc
-				mSynergyData.Cust_gift = value
-			endmethod
-		endproperty
-
-		;;; <summary>
-		;;; Terms code
-		;;; </summary>
-		{StringLength(2, ErrorMessage="Terms code cannot exceed 2 characters. ")}
-		public property CustTcode, string
-			method get
-			proc
-				mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.Cust_tcode, ^null, ^null, ^null)
-            endmethod
-			method set
-			proc
-				mSynergyData.Cust_tcode = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
-			endmethod
-		endproperty
-
-		;;; <summary>
-		;;; Customer Tax Number
-		;;; </summary>
-		public property CustTaxno, int
-			method get
-			proc
-				mreturn (int)mSynergyData.Cust_taxno
-            endmethod
-			method set
-			proc
-				mSynergyData.Cust_taxno = value
-			endmethod
-		endproperty
-
-		;;; <summary>
-		;;; Credit limit
-		;;; </summary>
-		public property CustLimit, decimal
-			method get
-			proc
-				mreturn (decimal)SynergyImpliedDecimalConverter.Convert(mSynergyData.Cust_limit, ^null, "DECIMALPLACES#2", ^null)
-            endmethod
-			method set
-			proc
-				mSynergyData.Cust_limit = value
+				mSynergyData.Oi_invoice = value
 			endmethod
 		endproperty
 
@@ -298,16 +200,16 @@ namespace SampleServices.Models
 .region "Relationships to other entities"
 
 		;;; <summary>
-		;;; Relationship (Type D)
-		;;; CUSTOMER.CUSTOMER (one) <-> (many) ORDER.OR_CUSTOMER
+		;;; Relationship (Type A)
+		;;; ORDER_ITEM.OI_NUMBER_LINE_ITEM (one) --> (one) --> (many) ORDER.OR_NUMBER
 		;;; </summary>
-		public readwrite property REL_Orders, @ICollection<Order>
+		public readwrite property REL_OiNumberLineItem, @Order
 
 		;;; <summary>
-		;;; Relationship (Type C)
-		;;; CUSTOMER.ITEM (one) --> (one) PLANT.ITEM
+		;;; Relationship (Type A)
+		;;; ORDER_ITEM.OI_ITEM_ORDERED (one) --> (one) --> (many) PLANT.ITEM
 		;;; </summary>
-		public readwrite property REL_Item, @Plant
+		public readwrite property REL_OiItemOrdered, @Plant
 
 .endregion
 

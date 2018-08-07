@@ -76,7 +76,6 @@ namespace SampleServices.Models
 			AddFieldInfo("VendFax", "DECIMAL", 10, 129, 0, false)
 			AddFieldInfo("VendTerms", "ALPHA", 24, 139, 0, false)
 			AddFieldInfo("REL_Plants", "COLLECTION", 0, 0, 0, false)
-			AddFieldInfo("REL_Orders", "COLLECTION", 0, 0, 0, false)
 
 			AddKeyInfo(0, "VendKey")
 			AddKeyInfo(1, "VendRtype")
@@ -86,7 +85,7 @@ namespace SampleServices.Models
 	
 		;;; <summary>
 		;;; Returns a new Vendor object containing data from a record and a GRFA.
-		;;; The related data properties (REL_Plants and REL_Orders) will not be populated.
+		;;; The related data properties (REL_Plants) will not be populated.
 		;;; </summary>
 		;;; <param name="dataArea">The record containing the data for the new Vendor object.</param>
 		;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
@@ -100,11 +99,11 @@ namespace SampleServices.Models
 
 		;;; <summary>
 		;;; Returns a new Vendor object containing data from a record and a GRFA.
-		;;; The related data properties (REL_Plants and REL_Orders) will be populated.
+		;;; The related data properties (REL_Plants) will be populated.
 		;;; </summary>
 		;;; <param name="dataArea">The record containing the data for the new Vendor object.</param>
 		;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
-		;;; <param name="joinedObjects">Data to allow the related data properties (REL_Plants and REL_Orders) to be populated.</param>
+		;;; <param name="joinedObjects">Data to allow the related data properties (REL_Plants) to be populated.</param>
 		;;; <returns></returns>
 		public override method MakeNew, @DataObjectBase
 			required in dataArea, a
@@ -118,8 +117,6 @@ namespace SampleServices.Models
 				using joinedObject.Key select
 				("REL_Plants"), 
 					newVendor.REL_Plants = (@ICollection<Plant>)joinedObject.Value
-				("REL_Orders"), 
-					newVendor.REL_Orders = (@ICollection<Order>)joinedObject.Value
 				endusing
 			end
 
