@@ -63,5 +63,16 @@ codegen -smc SampleXfplEnvironment\smc.xml -interface %SMC_INTERFACE% -t Interfa
 
 codegen -s %STRUCTURES% -ms -t InterfaceDispatcherData -n %PROJECT% -o %PROJECT% %OPTS% -ut SMC_INTERFACE=%SMC_INTERFACE%
 
+rem ================================================================================================================================
+rem Generate OData action return data models
+
+set CODEGEN_TPLDIR=Templates
+set CODEGEN_OUTDIR=SampleServices\Models
+set PROJECT=SampleServices.Models
+set SMC_INTERFACE=SampleXfplEnv
+set XFPL_SMCPATH=
+
+codegen -smc SampleXfplEnvironment\smc.xml -interface %SMC_INTERFACE% -t ODataActionModels -n %PROJECT% %OPTS%
+
 endlocal
 popd
