@@ -19,9 +19,9 @@ This is a full .Net Framework Console App, we could have used a .Net Core Consol
 ![Nuget Package Manager](link_to_nuget_package_manager_dialog_screenshot "Add Nuget Package")
 
 We're going to add to following packages, several of these packages are marked as prerelease so you will need to check the box to allow prerelease software from the nuget package manager.
-* Microsoft.AspNetCore.Mvc.Core 2.1.0
-* Microsoft.AspNetCore.OData 7.0.0-beta4
-* Microsoft.EntityFrameworkCore 2.1.0
+* Microsoft.AspNetCore.Mvc.Core 2.1.1
+* Microsoft.AspNetCore.OData 7.0.1
+* Microsoft.EntityFrameworkCore 2.1.1
 * Harmony.Core 0.1.0 - this package doesn't exist
 * Harmony.Core.NetFx 0.1.0 - this package doesn't exist
 * Harmony.Core.AspNetCore 0.1.0 - this package doesn't exist
