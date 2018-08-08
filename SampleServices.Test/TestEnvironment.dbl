@@ -87,6 +87,14 @@ namespace SampleServices.Test
 					logicals.Add(logical)
 			end
 
+			fileSpec = "ICSTUT:order_items.ism"
+			if (fileSpec.Contains(":"))
+			begin
+				logical = fileSpec.Split(":")[0].ToUpper()
+				if (!logicals.Contains(logical))
+					logicals.Add(logical)
+			end
+
 			fileSpec = "ICSTUT:plants.ism"
 			if (fileSpec.Contains(":"))
 			begin
@@ -106,6 +114,7 @@ namespace SampleServices.Test
 		private static method createFiles, void
 			.include "CUSTOMERS" repository, stack record="customer", nofields, end
 			.include "ORDERS" repository, stack record="order", nofields, end
+			.include "ORDER_ITEMS" repository, stack record="orderItem", nofields, end
 			.include "PLANTS" repository, stack record="plant", nofields, end
 		proc
 			data chout, int
@@ -160,6 +169,29 @@ namespace SampleServices.Test
 			end
 			endtry
 
+			;;Create and load the orderItems file
+
+			dataFile = "ICSTUT:order_items.ism"
+			xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+			textFile = dataFile.ToLower().Replace(".ism",".txt")
+
+			try
+			begin
+				open(chout=0,o:i,dataFile,FDL:xdlFile)
+				open(chin,i,textFile)
+				repeat
+				begin
+					reads(chin,orderItem)
+					store(chout,orderItem)
+				end
+			end
+			catch (ex, @EndOfFileException)
+			begin
+				close chin
+				close chout
+			end
+			endtry
+
 			;;Create and load the plants file
 
 			dataFile = "ICSTUT:plants.ism"
@@ -202,6 +234,17 @@ namespace SampleServices.Test
 			try
 			begin
 				xcall delet("ICSTUT:orders.ism")
+			end
+			catch (e, @NoFileFoundException)
+			begin
+				nop
+			end
+			endtry
+
+			;;Delete the orderItems file
+			try
+			begin
+				xcall delet("ICSTUT:order_items.ism")
 			end
 			catch (e, @NoFileFoundException)
 			begin

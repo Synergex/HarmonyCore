@@ -1,10 +1,10 @@
 ;;*****************************************************************************
 ;;
-;; Title:       PlantTests.dbl
+;; Title:       OrderItemTests.dbl
 ;;
 ;; Type:        Class
 ;;
-;; Description: Unit tests for the operastions defined in PlantsController.
+;; Description: Unit tests for the operastions defined in OrderItemsController.
 ;;
 ;;*****************************************************************************
 ;; WARNING
@@ -51,48 +51,48 @@ import SampleServices.Test.Models
 namespace SampleServices.Test
 
 	{TestClass}
-	public partial class PlantTests
+	public partial class OrderItemTests
 
 		{TestMethod}
-		{TestCategory("Plant Tests - Single")}
-		public method GetPlant, void
+		{TestCategory("OrderItem Tests - Single")}
+		public method GetOrderItem, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Plants({0})", TestContext.PlantID)
+			data request = String.Format("/odata/OrderItems({0})", TestContext.OrderItemID)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
-			data plant, @ODataPlant, JsonConvert.DeserializeObject<ODataPlant>(result)
+			data orderItem, @ODataOrderItem, JsonConvert.DeserializeObject<ODataOrderItem>(result)
 		endmethod
 
 		{TestMethod}
-		{TestCategory("Plant Tests - Single")}
-		public method GetPlant_Expand_All, void
+		{TestCategory("OrderItem Tests - Single")}
+		public method GetOrderItem_Expand_All, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Plants({0})?$expand=REL_Vendor,REL_OrderItems", TestContext.PlantID)
+			data request = String.Format("/odata/OrderItems({0})?$expand=REL_OiNumberLineItem,REL_OiItemOrdered", TestContext.OrderItemID)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
-			data plant, @ODataPlant, JsonConvert.DeserializeObject<ODataPlant>(result)
+			data orderItem, @ODataOrderItem, JsonConvert.DeserializeObject<ODataOrderItem>(result)
 		endmethod
 
 		{TestMethod}
-		{TestCategory("Plant Tests - All")}
-		public method GetPlants, void
+		{TestCategory("OrderItem Tests - All")}
+		public method GetOrderItems, void
 		proc
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync("/odata/Plants").Result
+			disposable data response = client.GetAsync("/odata/OrderItems").Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
-			data plants, @ODataPlants, JsonConvert.DeserializeObject<ODataPlants>(result)
+			data orderItems, @ODataOrderItems, JsonConvert.DeserializeObject<ODataOrderItems>(result)
 		endmethod
 	
 		{TestMethod}
-		{TestCategory("Plant Tests - All")}
-		public method GetPlants_Expand_REL_Vendor, void
+		{TestCategory("OrderItem Tests - All")}
+		public method GetOrderItems_Expand_REL_OiNumberLineItem, void
 		proc
-			data uri = "/odata/Plants?$expand=REL_Vendor"
+			data uri = "/odata/OrderItems?$expand=REL_OiNumberLineItem"
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
 			disposable data response = client.GetAsync(uri).Result
 			data result = response.Content.ReadAsStringAsync().Result
@@ -100,10 +100,10 @@ namespace SampleServices.Test
 		endmethod
 
 		{TestMethod}
-		{TestCategory("Plant Tests - All")}
-		public method GetPlants_Expand_REL_OrderItems, void
+		{TestCategory("OrderItem Tests - All")}
+		public method GetOrderItems_Expand_REL_OiItemOrdered, void
 		proc
-			data uri = "/odata/Plants?$expand=REL_OrderItems"
+			data uri = "/odata/OrderItems?$expand=REL_OiItemOrdered"
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
 			disposable data response = client.GetAsync(uri).Result
 			data result = response.Content.ReadAsStringAsync().Result
@@ -111,75 +111,65 @@ namespace SampleServices.Test
 		endmethod
 
 		{TestMethod}
-		{TestCategory("Plant Tests - All")}
+		{TestCategory("OrderItem Tests - All")}
 		
-		public method GetPlants_Expand_All, void
+		public method GetOrderItems_Expand_All, void
 		proc
-			data uri = "/odata/Plants?$expand=REL_Vendor,REL_OrderItems"
+			data uri = "/odata/OrderItems?$expand=REL_OiNumberLineItem,REL_OiItemOrdered"
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
 			disposable data response = client.GetAsync(uri).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 		endmethod
 		
-		public method GetByKeyVendor, void
+		public method GetByKeyOiItemOrdered, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Plants(InSource={1})", "", TestContext.PlantInSource)
+			data request = String.Format("/odata/OrderItems(OiItemOrdered={1})", "", TestContext.OrderItemOiItemOrdered)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
-			data plant, @ODataPlant, JsonConvert.DeserializeObject<ODataPlant>(result)
+			data orderItem, @ODataOrderItem, JsonConvert.DeserializeObject<ODataOrderItem>(result)
 		endmethod
 
-		public method GetByKeyColor, void
+		public method GetByKeyOiShipped, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Plants(InColor='{1}')", "", TestContext.PlantInColor)
+			data request = String.Format("/odata/OrderItems(OiShipped={1})", "", TestContext.OrderItemOiShipped)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
-			data plant, @ODataPlant, JsonConvert.DeserializeObject<ODataPlant>(result)
+			data orderItem, @ODataOrderItem, JsonConvert.DeserializeObject<ODataOrderItem>(result)
 		endmethod
 
-		public method GetByKeySize, void
+		public method GetByKeyOiInvoice, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Plants(InSize={1})", "", TestContext.PlantInSize)
+			data request = String.Format("/odata/OrderItems(OiInvoice={1})", "", TestContext.OrderItemOiInvoice)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
-			data plant, @ODataPlant, JsonConvert.DeserializeObject<ODataPlant>(result)
-		endmethod
-
-		public method GetByKeyName, void
-		proc
-			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Plants(InName='{1}')", "", TestContext.PlantInName)
-			data response = client.GetAsync(request).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data plant, @ODataPlant, JsonConvert.DeserializeObject<ODataPlant>(result)
+			data orderItem, @ODataOrderItem, JsonConvert.DeserializeObject<ODataOrderItem>(result)
 		endmethod
 
 ;		{TestMethod}
-;		{TestCategory("Plant Tests - All")}
-;		public method CreatePlant, void
+;		{TestCategory("OrderItem Tests - All")}
+;		public method CreateOrderItem, void
 ;		proc
 ;			disposable data client = UnitTestEnvironment.Server.CreateClient()
 ;			disposable data requestBody = new StringContent("")
-;			disposable data response = client.PostAsync("/odata/Plants", requestBody).Result
+;			disposable data response = client.PostAsync("/odata/OrderItems", requestBody).Result
 ;			data result = response.Content.ReadAsStringAsync().Result
 ;			response.EnsureSuccessStatusCode()
 ;		endmethod
 
 ;		{TestMethod}
-;		{TestCategory("Plant Tests - All")}
-;		public method UpdatePlant, void
+;		{TestCategory("OrderItem Tests - All")}
+;		public method UpdateOrderItem, void
 ;		proc
 ;			disposable data client = UnitTestEnvironment.Server.CreateClient()
 ;			disposable data requestBody = new StringContent("")
-;			disposable data response = client.PutAsync("/odata/Plants(1)", requestBody).Result
+;			disposable data response = client.PutAsync("/odata/OrderItems(1)", requestBody).Result
 ;			response.EnsureSuccessStatusCode()
 ;		endmethod
 

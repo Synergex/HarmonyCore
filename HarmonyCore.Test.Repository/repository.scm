@@ -5,7 +5,7 @@
 ;                 : D:\HarmonyCore\HarmonyCore.Test.Repository\bin\Debug\rpstext
 ;                 : Version 11.0.1
 ;
-;  GENERATED      : 27-JUL-2018, 14:20:45
+;  GENERATED      : 06-AUG-2018, 20:22:16
 ;                 : Version 11.0.1
 ;  EXPORT OPTIONS : [ALL] 
  
@@ -88,12 +88,66 @@ Key TAG_CUSTOMER   ACCESS   Order ASCENDING   Dups NO
 Key ITEM   FOREIGN
    Segment FIELD   CUST_GIFT
  
-Relation  2   CUSTOMERS CUSTOMER   ORDERS CUSTOMER
+Relation  2   CUSTOMERS CUSTOMER   ORDERS OR_CUSTOMER
  
 Relation  3   CUSTOMERS ITEM   PLANTS ITEM
  
 Structure ORDERS   DBL ISAM
-   Description "Open Orders Record"
+   Description "Orders"
+ 
+Field OR_NUMBER   Type DECIMAL   Size 6
+   Description "Order number"
+   Required
+ 
+Field OR_CUSTOMER   Type DECIMAL   Size 6
+   Description "Customer ID"
+   Required
+ 
+Field OR_PLACED_BY   Type ALPHA   Size 25
+   Description "Order placed by"
+   Required
+ 
+Field OR_CUSTOMER_REF   Type ALPHA   Size 25
+   Description "Customer order reference"
+ 
+Field OR_TERMS   Type ALPHA   Size 2
+   Description "Payment terms code"
+ 
+Field OR_ORDERED   Type DATE   Size 8   Stored YYYYMMDD
+   Description "Date ordered"
+   Required
+ 
+Field OR_COMPLETED   Type DATE   Size 8   Stored YYYYMMDD
+   Description "Date order completed"
+ 
+Field NONAME_001   Type ALPHA   Size 20
+   Description "Spare space"
+ 
+Key OR_NUMBER   ACCESS   Order ASCENDING   Dups NO
+   Description "Order number"
+   Segment FIELD   OR_NUMBER  SegType DECIMAL  SegOrder ASCENDING
+ 
+Key OR_CUSTOMER   ACCESS   Order ASCENDING   Dups YES   Insert END
+   Modifiable YES   Krf 001
+   Description "Customer ID"
+   Segment FIELD   OR_CUSTOMER  SegType DECIMAL  SegOrder ASCENDING
+ 
+Key OR_ORDERED   ACCESS   Order ASCENDING   Dups YES   Insert END
+   Modifiable YES   Krf 002
+   Description "Date ordered"
+   Segment FIELD   OR_ORDERED  SegType DECIMAL  SegOrder ASCENDING
+ 
+Key OR_COMPLETED   ACCESS   Order ASCENDING   Dups YES   Insert END
+   Modifiable YES   Krf 003
+   Description "Date order completed"
+   Segment FIELD   OR_COMPLETED  SegType DECIMAL  SegOrder ASCENDING
+ 
+Relation  1   ORDERS OR_NUMBER   ORDER_ITEMS OI_NUMBER_LINE_ITEM
+ 
+Relation  2   ORDERS OR_CUSTOMER   CUSTOMERS CUSTOMER
+ 
+Structure ORDERS_OLD   DBL ISAM
+   Description "Open Orders Record (OLD)"
  
 Field OR_NUMBER   Type DECIMAL   Size 6
    Description "Order number"
@@ -158,15 +212,62 @@ Key TAG_CUSTOMER   FOREIGN
    Segment LITERAL   "0"
    Segment FIELD   OR_CUSTOMER
  
-Relation  1   ORDERS VENDOR   VENDORS VENDOR
+Structure ORDER_ITEMS   DBL ISAM
+   Description "Order items"
  
-Relation  3   ORDERS CUSTOMER   CUSTOMERS CUSTOMER
+Field OI_NUMBER   Type DECIMAL   Size 6
+   Description "Order number"
+   Required
  
-Relation  4   ORDERS ITEM   PLANTS ITEM
+Field OI_LINE_ITEM   Type DECIMAL   Size 2
+   Description "Line item number"
+   Required
  
-Relation  5   ORDERS TAG_CUSTOMER   CUSTOMERS TAG_CUSTOMER
+Field OI_ITEM_ORDERED   Type DECIMAL   Size 6
+   Description "Item ordered"
+   Required
  
-Relation  6   ORDERS TAG_VENDOR   VENDORS TAG_VENDOR
+Field OI_QTY   Type DECIMAL   Size 6
+   Description "Quantity ordered"
+   Required
+ 
+Field OI_UNIT_PRICE   Type DECIMAL   Size 7   Precision 2
+   Description "Unit price"
+   Required
+ 
+Field OI_SHIPPED   Type DATE   Size 8   Stored YYYYMMDD
+   Description "Date shipped"
+ 
+Field OI_INVOICE   Type DECIMAL   Size 7
+   Description "Invoice number"
+ 
+Field NONAME_001   Type ALPHA   Size 58   Language Noview   Script Noview
+   Report Noview   Nonamelink
+   Description "Spare space"
+ 
+Key OI_NUMBER_LINE_ITEM   ACCESS   Order ASCENDING   Dups NO
+   Description "Order number and line number"
+   Segment FIELD   OI_NUMBER  SegType DECIMAL  SegOrder ASCENDING
+   Segment FIELD   OI_LINE_ITEM  SegType DECIMAL  SegOrder ASCENDING
+ 
+Key OI_ITEM_ORDERED   ACCESS   Order ASCENDING   Dups YES   Insert END
+   Modifiable YES   Krf 001
+   Description "Item ordered"
+   Segment FIELD   OI_ITEM_ORDERED  SegType DECIMAL  SegOrder ASCENDING
+ 
+Key OI_SHIPPED   ACCESS   Order ASCENDING   Dups YES   Insert END
+   Modifiable YES   Krf 002
+   Description "Date item shipped"
+   Segment FIELD   OI_SHIPPED  SegType DECIMAL  SegOrder DESCENDING
+ 
+Key OI_INVOICE   ACCESS   Order ASCENDING   Dups YES   Insert END
+   Modifiable YES   Krf 003
+   Description "Invoice number billed on"
+   Segment FIELD   OI_INVOICE  SegType DECIMAL  SegOrder ASCENDING
+ 
+Relation  1   ORDER_ITEMS OI_NUMBER_LINE_ITEM   ORDERS OR_NUMBER
+ 
+Relation  2   ORDER_ITEMS OI_ITEM_ORDERED   PLANTS ITEM
  
 Structure PLANTS   DBL ISAM
    Description "Plant Master Record"
@@ -267,7 +368,7 @@ Key NAME   ACCESS   Order ASCENDING   Dups YES   Insert END   Modifiable YES
  
 Relation  1   PLANTS VENDOR   VENDORS VENDOR
  
-Relation  2   PLANTS ITEM   ORDERS ITEM
+Relation  2   PLANTS ITEM   ORDER_ITEMS OI_ITEM_ORDERED
  
 Structure VENDORS   DBL ISAM
    Description "Vendor Record"
@@ -320,8 +421,6 @@ Key TAG_VENDOR   ACCESS   Order ASCENDING   Dups NO   Modifiable YES
  
 Relation  1   VENDORS VENDOR   PLANTS VENDOR
  
-Relation  2   VENDORS VENDOR   ORDERS VENDOR
- 
 File CUSTOMER   DBL ISAM   "ICSTUT:customer.ism"
    Description "Customer/Vendor File"
    Assign CUSTOMERS, VENDORS
@@ -329,6 +428,10 @@ File CUSTOMER   DBL ISAM   "ICSTUT:customer.ism"
 File ORDERS   DBL ISAM   "ICSTUT:orders.ism"
    Description "Order File"
    Assign ORDERS
+ 
+File ORDER_ITEMS   DBL ISAM   "ICSTUT:order_items.ism"
+   Description "Order items"
+   Assign ORDER_ITEMS
  
 File PLANTS   DBL ISAM   "ICSTUT:plants.ism"
    Description "Plant Inventory File"

@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME>HarmonyCoreSampleTests.postman_collection.json</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.3.4</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.3.5</REQUIRES_CODEGEN_VERSION>
 {
 	"info": {
 		"_postman_id": "<guid_nobrace>",

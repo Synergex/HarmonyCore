@@ -70,7 +70,7 @@ namespace SampleServices.Test
 		public method GetVendor_Expand_All, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Vendors({0})?$expand=REL_Plants,REL_Orders", TestContext.VendorID)
+			data request = String.Format("/odata/Vendors({0})?$expand=REL_Plants", TestContext.VendorID)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
@@ -101,21 +101,10 @@ namespace SampleServices.Test
 
 		{TestMethod}
 		{TestCategory("Vendor Tests - All")}
-		public method GetVendors_Expand_REL_Orders, void
-		proc
-			data uri = "/odata/Vendors?$expand=REL_Orders"
-			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync(uri).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-		endmethod
-
-		{TestMethod}
-		{TestCategory("Vendor Tests - All")}
 		
 		public method GetVendors_Expand_All, void
 		proc
-			data uri = "/odata/Vendors?$expand=REL_Plants,REL_Orders"
+			data uri = "/odata/Vendors?$expand=REL_Plants"
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
 			disposable data response = client.GetAsync(uri).Result
 			data result = response.Content.ReadAsStringAsync().Result

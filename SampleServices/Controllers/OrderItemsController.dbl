@@ -1,10 +1,10 @@
 ;;*****************************************************************************
 ;;
-;; Title:       OrdersController.dbl
+;; Title:       OrderItemsController.dbl
 ;;
 ;; Type:        Class
 ;;
-;; Description: OData controller for the ORDERS structure.
+;; Description: OData controller for the ORDER_ITEMS structure.
 ;;
 ;;*****************************************************************************
 ;; WARNING
@@ -52,17 +52,17 @@ import SampleServices.Models
 namespace SampleServices.Controllers
 
 	;;; <summary>
-	;;; OData controller for Orders
+	;;; OData controller for OrderItems
 	;;; </summary>
-	public class OrdersController extends ODataController
+	public class OrderItemsController extends ODataController
 	
 		public readwrite property DBContext, @SampleServices.DBContext
 
 		;;; <summary>
-		;;; Constructs a new instance of OrdersController
+		;;; Constructs a new instance of OrderItemsController
 		;;; </summary>
 		;;; <param name="dbContext">Database context</param>
-		public method OrdersController
+		public method OrderItemsController
 			dbContext, @SampleServices.DBContext
 		proc
 			this.DBContext = dbContext
@@ -70,21 +70,21 @@ namespace SampleServices.Controllers
 
 .region "CREATE"
 
-		{ODataRoute("Orders")}
+		{ODataRoute("OrderItems")}
 		;;; <summary>
-		;;; Create a new order (automatically assigned primary key).
+		;;; Create a new orderItem (automatically assigned primary key).
 		;;; </summary>
 		;;; <returns></returns>
 		public method Post, @IActionResult
 			{FromBody}
-			required in aOrder, @Order
+			required in aOrderItem, @OrderItem
 		proc
 			;; Validate inbound data
 			if (!ModelState.IsValid)
 				mreturn BadRequest(ModelState)
 
 			;TODO: How do we support the auto-generation of primary key in this scenario?
-			DBContext.Orders.Add(aOrder)
+			DBContext.OrderItems.Add(aOrderItem)
 
 			;TODO: Need to add a Location header
 
@@ -95,29 +95,33 @@ namespace SampleServices.Controllers
 
 		endmethod
 
-		{ODataRoute("Orders(OrNumber={aOrNumber})")}
+		{ODataRoute("OrderItems(OiNumber={aOiNumber},OiLineItem={aOiLineItem})")}
 		;;; <summary>
-		;;; Create a new order (client-supplied primary key).
+		;;; Create a new orderItem (client-supplied primary key).
 		;;; </summary>
-		;;; <param name="aOrNumber">Order number</param>
+		;;; <param name="aOiNumber">Order number</param>
+		;;; <param name="aOiLineItem">Line item number</param>
 		;;; <returns></returns>
 		public method Put, @IActionResult
 			{FromODataUri}
-            required in aOrNumber, int
+            required in aOiNumber, int
+			{FromODataUri}
+            required in aOiLineItem, int
 			{FromBody}
-			required in aOrder, @Order
+			required in aOrderItem, @OrderItem
 		proc
 			;; Validate inbound data
 			if (!ModelState.IsValid)
 				mreturn BadRequest(ModelState)
 
 			;;Ensure that the key values in the URI win over any data that may be in the model object
-            aOrder.OrNumber = aOrNumber
+            aOrderItem.OiNumber = aOiNumber
+            aOrderItem.OiLineItem = aOiLineItem
 
-			;;Add the new order
+			;;Add the new orderItem
 			try
 			begin
-				DBContext.Orders.Add(aOrder)
+				DBContext.OrderItems.Add(aOrderItem)
 			end
 			catch (e, @InvalidOperationException)
 			begin
@@ -138,29 +142,32 @@ namespace SampleServices.Controllers
 
 .region "READ"
 
-		{ODataRoute("Orders")}
+		{ODataRoute("OrderItems")}
 		{EnableQuery}
 		;{EnableQuery(MaxExpansionDepth=3, MaxSkip=10, MaxTop=5, PageSize=4)}
 		;;; <summary>
-		;;; Get all Orders
+		;;; Get all OrderItems
 		;;; </summary>
 		public method Get, @IActionResult
 		proc
-			mreturn Ok(DBContext.Orders)
+			mreturn Ok(DBContext.OrderItems)
 		endmethod
 
 		{EnableQuery}
-		{ODataRoute("Orders(OrNumber={aOrNumber})")}
+		{ODataRoute("OrderItems(OiNumber={aOiNumber},OiLineItem={aOiLineItem})")}
 		;;; <summary>
-		;;; Get a single Order by primary key.
+		;;; Get a single OrderItem by primary key.
 		;;; </summary>
-		;;; <param name="aOrNumber">Order number</param>
+		;;; <param name="aOiNumber">Order number</param>
+		;;; <param name="aOiLineItem">Line item number</param>
 		;;; <returns></returns>
 		public method Get, @IActionResult
 			{FromODataUri}
-            required in aOrNumber, int
+            required in aOiNumber, int
+			{FromODataUri}
+            required in aOiLineItem, int
 		proc
-			data result = DBContext.Orders.Find(aOrNumber)
+			data result = DBContext.OrderItems.Find(aOiNumber,aOiLineItem)
 
 			if (result == ^null)
 				mreturn NotFound()
@@ -170,17 +177,17 @@ namespace SampleServices.Controllers
 		endmethod
 		
 		{EnableQuery}
-		{ODataRoute("Orders(OrCustomer={aOrCustomer})")}
+		{ODataRoute("OrderItems(OiItemOrdered={aOiItemOrdered})")}
 		;;; <summary>
-		;;; Get a single Order by key OrCustomer.
+		;;; Get a single OrderItem by key OiItemOrdered.
 		;;; </summary>
-		;;; <param name="aOrCustomer">Customer ID</param>
+		;;; <param name="aOiItemOrdered">Item ordered</param>
 		;;; <returns></returns>
-		public method GetByKeyOrCustomer, @IActionResult
+		public method GetByKeyOiItemOrdered, @IActionResult
 			{FromODataUri}
-			required in aOrCustomer, int
+			required in aOiItemOrdered, int
 		proc
-			data result = DBContext.Orders.FindAlternate("OrCustomer",aOrCustomer)
+			data result = DBContext.OrderItems.FindAlternate("OiItemOrdered",aOiItemOrdered)
 
 			if (result == ^null)
 				mreturn NotFound()
@@ -190,17 +197,17 @@ namespace SampleServices.Controllers
 		endmethod
 
 		{EnableQuery}
-		{ODataRoute("Orders(OrOrdered={aOrOrdered})")}
+		{ODataRoute("OrderItems(OiShipped={aOiShipped})")}
 		;;; <summary>
-		;;; Get a single Order by key OrOrdered.
+		;;; Get a single OrderItem by key OiShipped.
 		;;; </summary>
-		;;; <param name="aOrOrdered">Date ordered</param>
+		;;; <param name="aOiShipped">Date shipped</param>
 		;;; <returns></returns>
-		public method GetByKeyOrOrdered, @IActionResult
+		public method GetByKeyOiShipped, @IActionResult
 			{FromODataUri}
-			required in aOrOrdered, DateTime
+			required in aOiShipped, DateTime
 		proc
-			data result = DBContext.Orders.FindAlternate("OrOrdered",aOrOrdered)
+			data result = DBContext.OrderItems.FindAlternate("OiShipped",aOiShipped)
 
 			if (result == ^null)
 				mreturn NotFound()
@@ -210,17 +217,17 @@ namespace SampleServices.Controllers
 		endmethod
 
 		{EnableQuery}
-		{ODataRoute("Orders(OrCompleted={aOrCompleted})")}
+		{ODataRoute("OrderItems(OiInvoice={aOiInvoice})")}
 		;;; <summary>
-		;;; Get a single Order by key OrCompleted.
+		;;; Get a single OrderItem by key OiInvoice.
 		;;; </summary>
-		;;; <param name="aOrCompleted">Date order completed</param>
+		;;; <param name="aOiInvoice">Invoice number</param>
 		;;; <returns></returns>
-		public method GetByKeyOrCompleted, @IActionResult
+		public method GetByKeyOiInvoice, @IActionResult
 			{FromODataUri}
-			required in aOrCompleted, DateTime
+			required in aOiInvoice, int
 		proc
-			data result = DBContext.Orders.FindAlternate("OrCompleted",aOrCompleted)
+			data result = DBContext.OrderItems.FindAlternate("OiInvoice",aOiInvoice)
 
 			if (result == ^null)
 				mreturn NotFound()
@@ -233,24 +240,28 @@ namespace SampleServices.Controllers
 
 .region "UPDATE"
 
-		{ODataRoute("Orders(OrNumber={aOrNumber})")}
+		{ODataRoute("OrderItems(OiNumber={aOiNumber},OiLineItem={aOiLineItem})")}
 		;;; <summary>
-		;;; Update a order (partial updates are supported).
+		;;; Update a orderItem (partial updates are supported).
 		;;; </summary>
-		;;; <param name="aOrNumber">Order number</param>
+		;;; <param name="aOiNumber">Order number</param>
+		;;; <param name="aOiLineItem">Line item number</param>
 		;;; <returns></returns>
 		public method Patch, @IActionResult
 			{FromODataUri}
-            required in aOrNumber, int
+            required in aOiNumber, int
+			{FromODataUri}
+            required in aOiLineItem, int
 			{FromBody}
-			required in aOrder, @Order
+			required in aOrderItem, @OrderItem
 		proc
 			;; Validate inbound data
 			if (!ModelState.IsValid)
 				mreturn BadRequest(ModelState)
 
 			;;Ensure that the key values in the URI win over any data that may be in the data object
-            aOrder.OrNumber = aOrNumber
+            aOrderItem.OiNumber = aOiNumber
+            aOrderItem.OiLineItem = aOiLineItem
 
 			;TODO: Not sure what to do here, I'm not seting any DBSet methods relating to update?
 			;
@@ -272,24 +283,27 @@ namespace SampleServices.Controllers
 
 .region "DELETE"
 
-		{ODataRoute("Orders(OrNumber={aOrNumber})")}
+		{ODataRoute("OrderItems(OiNumber={aOiNumber},OiLineItem={aOiLineItem})")}
 		;;; <summary>
-		;;; Delete a order.
+		;;; Delete a orderItem.
 		;;; </summary>
-		;;; <param name="aOrNumber">Order number</param>
+		;;; <param name="aOiNumber">Order number</param>
+		;;; <param name="aOiLineItem">Line item number</param>
 		;;; <returns></returns>
 		public method Delete, @IActionResult
 			{FromODataUri}
-            required in aOrNumber, int
+            required in aOiNumber, int
+			{FromODataUri}
+            required in aOiLineItem, int
 		proc
-			;;Get the order to be deleted
-			data orderToRemove = DBContext.Orders.Find(aOrNumber)
+			;;Get the orderItem to be deleted
+			data orderItemToRemove = DBContext.OrderItems.Find(aOiNumber,aOiLineItem)
 
-			if (orderToRemove == ^null)
+			if (orderItemToRemove == ^null)
 				mreturn NotFound()
 
-			;;Mark the order for removal
-			DBContext.Orders.Remove(orderToRemove)
+			;;Mark the orderItem for removal
+			DBContext.OrderItems.Remove(orderItemToRemove)
 
 			;;Commit the change
 			DBContext.SaveChanges()

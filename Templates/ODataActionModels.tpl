@@ -1,12 +1,12 @@
-<CODEGEN_FILENAME><StructureNoplural>.dbl</CODEGEN_FILENAME>
+<CODEGEN_FILENAME><INTERFACE_NAME>ActionModels.dbl</CODEGEN_FILENAME>
 <REQUIRES_CODEGEN_VERSION>5.3.5</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
-;// Title:       ODataClientModel.tpl
+;// Title:       ODataActionModels.tpl
 ;//
 ;// Type:        CodeGen Template
 ;//
-;// Description: Creates model classes suitable for use in OData clients.
+;// Description: Generates model classes for methods exposed as OData Actions
 ;//
 ;// Copyright (c) 2018, Synergex International, Inc. All rights reserved.
 ;//
@@ -34,12 +34,12 @@
 ;//
 ;;*****************************************************************************
 ;;
-;; Title:       <StructureNoplural>.dbl
+;; Title:       <INTERFACE_NAME>ActionModels.dbl
 ;;
-;; Type:        Class
+;; Type:        Classes
 ;;
-;; Description: OData model class representing data defined by the repository
-;;              structure <STRUCTURE_NOALIAS> and from the data file <FILE_NAME>.
+;; Description: Model classes for methods in the <INTERFACE_NAME> interface
+;;              that are exposed as OData Actions
 ;;
 ;;*****************************************************************************
 ;; WARNING
@@ -49,7 +49,7 @@
 ;;
 ;;*****************************************************************************
 ;;
-;; Copyright (c) 2012, Synergex International, Inc.
+;; Copyright (c) 2018, Synergex International, Inc.
 ;; All rights reserved.
 ;;
 ;; Redistribution and use in source and binary forms, with or without
@@ -76,48 +76,94 @@
 ;;
 ;;*****************************************************************************
 
-import Newtonsoft.Json
 import System.Collections.Generic
 
 namespace <NAMESPACE>
+;//
+;//
+;//
+<METHOD_LOOP>
+<COUNTER_1_RESET>
+<PARAMETER_LOOP>
+<IF OUT_OR_INOUT>
+<COUNTER_1_INCREMENT>
+</IF OUT_OR_INOUT>
+</PARAMETER_LOOP>
+;//
+;//
+;//
+<IF COUNTER_1>
+	;;-------------------------------------------------------------------------
+	;;; <summary>
+	;;; Return data model for <INTERFACE_NAME>.<METHOD_NAME>
+	;;; </summary>
+	public class <INTERFACE_NAME>_<METHOD_NAME>
 
-    public partial class <StructureNoplural>
+<PARAMETER_LOOP>
+<IF OUT_OR_INOUT>
+<IF COLLECTION>
+		<IF STRUCTURE>
+		public readwrite property <PARAMETER_NAME>, @List<<ParameterStructureNoplural>>
+		</IF STRUCTURE>
+		<IF ALPHA>
+		public readwrite property <PARAMETER_NAME>, @List<string>
+		</IF ALPHA>
+		<IF DECIMAL>
+		public readwrite property <PARAMETER_NAME>, @List<int>
+		</IF DECIMAL>
+		<IF IMPLIED>
+		public readwrite property <PARAMETER_NAME>, @List<decimal>
+		</IF IMPLIED>
+		<IF INTEGER>
+		public readwrite property <PARAMETER_NAME>, @List<int>
+		</IF INTEGER>
+<ELSE>
+		<IF STRUCTURE>
+		public readwrite property <PARAMETER_NAME>, @<ParameterStructureNoplural>
+		</IF STRUCTURE>
+		<IF ALPHA>
+		public readwrite property <PARAMETER_NAME>, string
+		</IF ALPHA>
+		<IF DECIMAL>
+		public readwrite property <PARAMETER_NAME>, int
+		</IF DECIMAL>
+		<IF IMPLIED>
+		public readwrite property <PARAMETER_NAME>, decimal
+		</IF IMPLIED>
+		<IF INTEGER>
+		public readwrite property <PARAMETER_NAME>, int
+		</IF INTEGER>
+</IF COLLECTION>
+</IF OUT_OR_INOUT>
+</PARAMETER_LOOP>
+<IF FUNCTION>
 
-		{JsonProperty("odata.type")}
-		public readwrite property Type, string
+		;Function return value
+		<IF ALPHA>
+		public readwrite property ReturnValue, string
+		</IF ALPHA>
+		<IF DECIMAL>
+		public readwrite property ReturnValue, int
+		</IF DECIMAL>
+		<IF IMPLIED>
+		public readwrite property ReturnValue, decimal
+		</IF IMPLIED>
+		<IF INTEGER>
+		public readwrite property ReturnValue, int
+		</IF INTEGER>
+		<IF HATVAL>
+		public readwrite property ReturnValue, int
+		</IF HATVAL>
+		<IF ENUM>
+		public readwrite property ReturnValue, <METHOD_RETURN_ENUM>
+		</IF ENUM>
+		<IF STRING>
+		public readwrite property ReturnValue, string
+		</IF STRING>
 
-<FIELD_LOOP>
-	<IF CUSTOM_NOT_HARMONY_EXCLUDE>
-		;;; <summary>
-		;;; <FIELD_DESC>
-		;;; </summary>
-		<IF CUSTOM_HARMONY_AS_STRING>
-		public readwrite property <FieldSqlname>, String
-		<ELSE>
-		public readwrite property <FieldSqlname>, <FIELD_CSTYPE>
-		</IF CUSTOM_HARMONY_AS_STRING>
-
-	</IF CUSTOM_NOT_HARMONY_EXCLUDE>
-</FIELD_LOOP>
+</IF FUNCTION>
 	endclass
 
-	public class OData<StructureNoplural>
-		
-		{JsonProperty("odata.metadata")}
-		public readwrite property Metadata, string
-
-		public readwrite property Value, @<StructureNoplural>
-
-	endclass
-	
-	public class OData<StructurePlural>
-		
-		{JsonProperty("odata.metadata")}
-		public readwrite property Metadata, string
-
-		public readwrite property Value, @List<<StructureNoplural>>
-
-	endclass
-	
+</IF COUNTER_1>
+</METHOD_LOOP>
 endnamespace
-

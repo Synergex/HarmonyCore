@@ -73,125 +73,76 @@ namespace Harmony.Core.Test
 				mSynergyData.Or_number = value
 			endmethod
 		endproperty
-        ;;Or_vendor
-		public property Or_vendor, int
-			method get
-			proc
-				mreturn (int)mSynergyData.Or_vendor
-				
-            endmethod
-			method set
-			proc
-				mSynergyData.Or_vendor = value
-			endmethod
-		endproperty
-        ;;Or_item
-		public property Or_item, int
-			method get
-			proc
-				mreturn (int)mSynergyData.Or_item
-				
-            endmethod
-			method set
-			proc
-				mSynergyData.Or_item = value
-			endmethod
-		endproperty
-        ;;Or_customer
+		;;Or_customer
 		public property Or_customer, int
 			method get
 			proc
 				mreturn (int)mSynergyData.Or_customer
 				
-            endmethod
+			endmethod
 			method set
 			proc
 				mSynergyData.Or_customer = value
 			endmethod
 		endproperty
-        ;;Or_qty
-		public property Or_qty, int
+		;;Or_placed_by
+		public property Or_placed_by, string
 			method get
 			proc
-				mreturn (int)mSynergyData.Or_qty
+				mreturn (string)mSynergyData.OR_PLACED_BY
 				
-            endmethod
+			endmethod
 			method set
 			proc
-				mSynergyData.Or_qty = value
+				mSynergyData.OR_PLACED_BY = value
 			endmethod
 		endproperty
-        ;;Or_price
-		public property Or_price, decimal
+		;;Or_customer_ref
+		public property Or_customer_ref, string
 			method get
 			proc
-				mreturn (decimal)SynergyImpliedDecimalConverter.Convert(mSynergyData.Or_price, ^null, "DECIMALPLACES#2", ^null)
+				mreturn (string)mSynergyData.OR_CUSTOMER_REF
 				
-            endmethod
+			endmethod
 			method set
 			proc
-				mSynergyData.Or_price = value
+				mSynergyData.OR_CUSTOMER_REF = value
 			endmethod
 		endproperty
-        ;;Or_terms
+		;;Or_terms
 		public property Or_terms, string
 			method get
 			proc
 				mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.Or_terms, ^null, ^null, ^null)
 				
-            endmethod
+			endmethod
 			method set
 			proc
 				mSynergyData.Or_terms = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
 			endmethod
 		endproperty
-        ;;Or_odate
-		public property Or_odate, DateTime
+		;;Or_odate
+		public property Or_ordered, DateTime
 			method get
 			proc
 				data dt, DateTime
-				DateTime.TryParse((string)mSynergyData.Or_odate, dt)
+				DateTime.TryParse((string)mSynergyData.OR_ORDERED, dt)
 				mreturn dt
-            endmethod
+			endmethod
 			method set
 			proc
 			endmethod
 		endproperty
-        ;;Or_sdate
-		public property Or_sdate, DateTime
+		;;Or_sdate
+		public property Or_completed, DateTime
 			method get
 			proc
 				data dt, DateTime
-				DateTime.TryParse((string)mSynergyData.Or_sdate, dt)
+				DateTime.TryParse((string)mSynergyData.OR_COMPLETED, dt)
 				mreturn dt
-            endmethod
-			method set
-			proc
 			endmethod
-		endproperty
-        ;;Or_edate
-		public property Or_edate, DateTime
-			method get
-			proc
-				data dt, DateTime
-				DateTime.TryParse((string)mSynergyData.Or_edate, dt)
-				mreturn dt
-				
-            endmethod
 			method set
 			proc
-			endmethod
-		endproperty
-        ;;Or_invoice
-		public property Or_invoice, int
-			method get
-			proc
-				mreturn (int)mSynergyData.Or_invoice
-				
-            endmethod
-			method set
-			proc
-				mSynergyData.Or_invoice = value
 			endmethod
 		endproperty
 
@@ -246,17 +197,12 @@ namespace Harmony.Core.Test
 			RPSStructureSize = ^size(STROrders)
 			;;fill in all of the field defs and other type level info here
 			AddFieldInfo("Or_number", "DECIMAL", 6, 1, 0, false)
-			AddFieldInfo("Or_vendor", "DECIMAL", 6, 7, 0, false)
-			AddFieldInfo("Or_item", "DECIMAL", 6, 13, 0, false)
-			AddFieldInfo("Or_customer", "DECIMAL", 6, 19, 0, false)
-			AddFieldInfo("Or_qty", "DECIMAL", 6, 25, 0, false)
-			AddFieldInfo("Or_price", "IMPLIED", 7, 31, 02, false)
-			AddFieldInfo("Or_terms", "ALPHA", 2, 38, 0, false)
-			AddFieldInfo("Or_odate", "DATE", 6, 40, 0, false)
-			AddFieldInfo("Or_sdate", "DATE", 6, 46, 0, false)
-			AddFieldInfo("Or_edate", "DATE", 6, 52, 0, false)
-			AddFieldInfo("Or_invoice", "DECIMAL", 7, 58, 0, false)
-			
+			AddFieldInfo("Or_customer", "DECIMAL", 6, 7, 0, false)
+			AddFieldInfo("Or_placed_by", "ALPHA", 25, 13, 0, false)
+			AddFieldInfo("Or_customer_ref", "ALPHA", 25, 38, 0, false)
+			AddFieldInfo("Or_terms", "ALPHA", 2, 63, 0, false)
+			AddFieldInfo("Or_ordered", "DATE", 6, 65, 0, false)
+			AddFieldInfo("Or_completed", "DATE", 6, 73, 0, false)
 		endmethod
 	
 		public override method MakeNew, @DataObjectBase

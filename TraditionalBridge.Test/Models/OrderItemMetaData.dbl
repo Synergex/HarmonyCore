@@ -1,10 +1,10 @@
 ;;*****************************************************************************
 ;;
-;; Title:       SampleXfplEnvDispatcherData.dbl
+;; Title:       OrderItemMetaData.dbl
 ;;
 ;; Type:        Class
 ;;
-;; Description: Initializes all data object metadata
+;; Description: Defines meta data associated with a data object OrderItem.
 ;;
 ;;*****************************************************************************
 ;; WARNING
@@ -43,20 +43,49 @@
 
 import Harmony.TraditionalBridge
 
-namespace TraditionalBridge.Test
+subroutine MetaOrderItem
+	required out metadata, @DataObjectMetadataBase
+proc
+	if(OrderItem.sMetadata == ^null)
+		OrderItem.sMetadata = new OrderItemMetadata()
+	metadata = OrderItem.sMetadata
+	xreturn
+endsubroutine
 
-	public partial class SampleXfplEnvDispatcher
+namespace TraditionalBridge.Test.Models
 
-		;;; <summary>
-		;;; Initialize all data object metadata
-		;;; <summary>
-		private method initMetaData, void
+	.include "ORDER_ITEMS" repository  , structure="strOrderItem", end
+
+	public partial class OrderItemMetadata extends DataObjectMetadataBase
+		
+		public method OrderItemMetadata
 		proc
-			DataObjectMetadataBase.LookupType("Customer")
-			DataObjectMetadataBase.LookupType("Order")
-			DataObjectMetadataBase.LookupType("OrderItem")
-			DataObjectMetadataBase.LookupType("Plant")
-			DataObjectMetadataBase.LookupType("Vendor")
+			RPSStructureName = "ORDER_ITEMS"
+			RPSStructureSize = ^size(strOrderItem)
+			;AddFieldInfo("OiNumber", "DECIMAL", 6, 1, 0, false)
+			;AddFieldInfo("OiLineItem", "DECIMAL", 2, 7, 0, false)
+			;AddFieldInfo("OiItemOrdered", "DECIMAL", 6, 9, 0, false)
+			;AddFieldInfo("OiQty", "DECIMAL", 6, 15, 0, false)
+			;AddFieldInfo("OiUnitPrice", "IMPLIED", 7, 21, 02, false)
+			;AddFieldInfo("OiShipped", "DATE", 8, 28, 0, false)
+			;AddFieldInfo("OiInvoice", "DECIMAL", 7, 36, 0, false)
+		endmethod
+
+		public override method GetFieldByName, @FieldDataDefinition
+			fieldName, @string
+		proc
+			mreturn ^null
+		endmethod
+
+		public override method MakeNew, @DataObjectBase
+			required in dataArea, a
+			required in grfa, a
+			record
+				newOrderItem, @OrderItem
+		proc
+			newOrderItem = new OrderItem(dataArea) 
+			newOrderItem.GlobalRFA = grfa
+			mreturn newOrderItem
 		endmethod
 
 	endclass
