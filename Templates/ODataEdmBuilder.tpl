@@ -78,6 +78,7 @@
 
 import Harmony.Core
 import Harmony.Core.Context
+import Harmony.OData
 import Microsoft.EntityFrameworkCore
 import Microsoft.OData.Edm
 import Microsoft.AspNet.OData.Builder
@@ -102,9 +103,25 @@ namespace <NAMESPACE>
 			if(mEdmModel == ^null)
 			begin
 				data builder = new ODataConventionModelBuilder(serviceProvider)
-				<STRUCTURE_LOOP>
+
+				;;Declare entities
+<STRUCTURE_LOOP>
 				builder.EntitySet<<StructureNoplural>>("<StructurePlural>")
-				</STRUCTURE_LOOP>
+</STRUCTURE_LOOP>
+
+				;;Entities with a single primary key segment have the key declared to EF via a
+				;;{Key} attribute on the appropriate property in the data model, but only one {key}
+				;;attribute can be used in a class, so keys with multiple segments are defined
+				;;using the "Fluent API" here.
+<STRUCTURE_LOOP>
+	<PRIMARY_KEY>
+		<IF MULTIPLE_SEGMENTS>
+			<SEGMENT_LOOP>
+				builder.EntityType<<StructureNoplural>>().HasKey<<StructureNoplural>,<FIELD_CSTYPE>>("<FieldSqlname>")
+			</SEGMENT_LOOP>
+		</IF MULTIPLE_SEGMENTS>
+	</PRIMARY_KEY>
+</STRUCTURE_LOOP>
 
 				data tempModel = (@EdmModel)builder.GetEdmModel()
 				<STRUCTURE_LOOP>
