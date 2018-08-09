@@ -135,9 +135,9 @@ namespace <NAMESPACE>
 ;//
 ;// Field property attributes
 ;//
-		<IF PKSEGMENT>
+		<IF ONLY_PKSEGMENT>
 		{Key}
-		</IF PKSEGMENT>
+		</IF ONLY_PKSEGMENT>
 		<IF REQUIRED>
 		{Required(ErrorMessage="<FIELD_DESC> is required. ")}
 		</IF REQUIRED>

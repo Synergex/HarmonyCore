@@ -128,6 +128,23 @@ namespace <NAMESPACE>
 			parm.Ignore(^typeof(AlphaDesc))
 			parm.Ignore(^typeof(DataObjectMetadataBase))
 
+.region "Composite key definitions"
+
+			;;Entities with a single primary key segment have the key declared to EF via a
+			;;{Key} attribute on the appropriate property in the data model, but only one {key}
+			;;attribute can be used in a class, so keys with multiple segments are defined
+			;;using the "Fluent API" here.
+
+<STRUCTURE_LOOP>
+<PRIMARY_KEY>
+<IF MULTIPLE_SEGMENTS>
+			parm.Entity<<StructureNoplural>>().HasKey(<SEGMENT_LOOP>"<FieldSqlname>"<,></SEGMENT_LOOP>)
+</IF MULTIPLE_SEGMENTS>
+</PRIMARY_KEY>
+</STRUCTURE_LOOP>
+
+.endregion
+
 .region "Tag filtering"
 
 			;;This will currently only work for single field==value tags.
@@ -186,7 +203,7 @@ namespace <NAMESPACE>
 			parm.Entity(^typeof(<StructureNoplural>))
 			&	.HasOne(^typeof(<RelationTostructureNoplural>),"REL_<RelationFromkey>")
 			&	.WithMany("REL_<StructurePlural>")
-			&	.HasForeignKey(<FROM_KEY_SEGMENT_LOOP><COUNTER_1_RESET>"<IF SEG_TYPE_FIELD><FieldSqlname></IF SEG_TYPE_FIELD><IF SEG_TYPE_LITERAL><COUNTER_1_INCREMENT><RelationFromkey>Literal<COUNTER_1_VALUE></IF SEG_TYPE_LITERAL>"<,></FROM_KEY_SEGMENT_LOOP>)
+			&	.HasForeignKey(<FROM_KEY_SEGMENT_LOOP_RESTRICTED><COUNTER_1_RESET>"<IF SEG_TYPE_FIELD><FieldSqlname></IF SEG_TYPE_FIELD><IF SEG_TYPE_LITERAL><COUNTER_1_INCREMENT><RelationFromkey>Literal<COUNTER_1_VALUE></IF SEG_TYPE_LITERAL>"<,></FROM_KEY_SEGMENT_LOOP_RESTRICTED>)
 			&	.HasPrincipalKey(<TO_KEY_SEGMENT_LOOP><IF SEG_TYPE_FIELD>"<FieldSqlname>"</IF SEG_TYPE_FIELD><,></TO_KEY_SEGMENT_LOOP>)
 			</IF MANY_TO_ONE_TO_MANY>
 ;// B
@@ -225,7 +242,7 @@ namespace <NAMESPACE>
 			parm.Entity(^typeof(<StructureNoplural>))
 			&	.HasMany(^typeof(<RelationTostructureNoplural>),"REL_<RelationTostructurePlural>")
 			&	.WithOne("REL_<RelationTokey>")
-			&	.HasForeignKey(<TO_KEY_SEGMENT_LOOP><IF SEG_TYPE_FIELD>"<FieldSqlname>"</IF SEG_TYPE_FIELD><,></TO_KEY_SEGMENT_LOOP>)
+			&	.HasForeignKey(<TO_KEY_SEGMENT_LOOP_RESTRICTED><IF SEG_TYPE_FIELD>"<FieldSqlname>"</IF SEG_TYPE_FIELD><,></TO_KEY_SEGMENT_LOOP_RESTRICTED>)
 			&	.HasPrincipalKey(<FROM_KEY_SEGMENT_LOOP><COUNTER_1_RESET>"<IF SEG_TYPE_FIELD><FieldSqlname></IF SEG_TYPE_FIELD><IF SEG_TYPE_LITERAL><COUNTER_1_INCREMENT><RelationFromkey>Literal<COUNTER_1_VALUE></IF SEG_TYPE_LITERAL>"<,></FROM_KEY_SEGMENT_LOOP>)
 			</IF ONE_TO_MANY_TO_ONE>
 ;// E

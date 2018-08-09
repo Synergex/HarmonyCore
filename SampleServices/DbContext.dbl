@@ -111,6 +111,17 @@ namespace SampleServices
 			parm.Ignore(^typeof(AlphaDesc))
 			parm.Ignore(^typeof(DataObjectMetadataBase))
 
+.region "Composite key definitions"
+
+			;;Entities with single primary key segments have the keys declared to EF via
+			;;a {Key} attribute on the appropriate property in the data model, but only
+			;;one {key} attribute can be used in a class, so keys with multiple segments
+			;;are defined using the "Fluent API" here.
+
+			parm.Entity<OrderItem>().HasKey("OiNumber","OiLineItem")
+
+.endregion
+
 .region "Tag filtering"
 
 			;;This will currently only work for single field==value tags.
@@ -209,7 +220,7 @@ namespace SampleServices
 			parm.Entity(^typeof(Order))
 			&	.HasMany(^typeof(OrderItem),"REL_OrderItems")
 			&	.WithOne("REL_OiNumberLineItem")
-			&	.HasForeignKey("OiNumber","OiLineItem")
+			&	.HasForeignKey("OiNumber")
 			&	.HasPrincipalKey("OrNumber")
 
 	        ;; ORDER.OR_CUSTOMER (one) --> (one) --> (many) CUSTOMER.CUSTOMER
@@ -234,7 +245,7 @@ namespace SampleServices
 			parm.Entity(^typeof(OrderItem))
 			&	.HasOne(^typeof(Order),"REL_OiNumberLineItem")
 			&	.WithMany("REL_OrderItems")
-			&	.HasForeignKey("OiNumber","OiLineItem")
+			&	.HasForeignKey("OiNumber")
 			&	.HasPrincipalKey("OrNumber")
 
 	        ;; ORDER_ITEM.OI_ITEM_ORDERED (one) --> (one) --> (many) PLANT.ITEM
