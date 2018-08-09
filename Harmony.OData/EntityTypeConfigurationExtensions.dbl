@@ -1,0 +1,24 @@
+import System
+import System.Collections.Generic
+import System.Text
+import Microsoft.AspNet.OData.Builder
+import System.Linq.Expressions
+
+
+namespace Harmony.OData
+
+	public static class EntityTypeConfigurationExtensions
+	
+		public static extension method HasKey<T(class), KeyType>, @EntityTypeConfiguration<T>
+			config, @EntityTypeConfiguration<T>
+			keyName, @string
+		proc
+			data lambdaParam = Expression.Parameter(^typeof(T))
+			data expr = Expression.PropertyOrField(lambdaParam, keyName)
+			data lambdaExpr = Expression.Lambda<Func<T, KeyType>>(expr, new ParameterExpression[#] { lambdaParam })
+			mreturn config.HasKey(lambdaExpr)
+		endmethod
+
+	endclass
+
+endnamespace

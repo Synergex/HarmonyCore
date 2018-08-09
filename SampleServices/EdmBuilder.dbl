@@ -48,6 +48,7 @@ import Microsoft.OData.Edm
 import Microsoft.AspNet.OData.Builder
 import System.Collections.Generic
 import SampleServices.Models
+import Harmony.OData
 
 namespace SampleServices
 
@@ -71,7 +72,8 @@ namespace SampleServices
 				builder.EntitySet<Order>("Orders")
 				
 				builder.EntitySet<OrderItem>("OrderItems")
-				builder.EntityType<OrderItem>().HasKey("OiNumber")				
+				builder.EntityType<OrderItem>().HasKey<OrderItem,int>("OiNumber")
+				builder.EntityType<OrderItem>().HasKey<OrderItem, int>("OiLineItem")
 
 				builder.EntitySet<Plant>("Plants")
 				builder.EntitySet<Vendor>("Vendors")
