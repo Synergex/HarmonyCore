@@ -224,7 +224,7 @@ namespace Harmony.Core.EF.Query.Internal
                     
                     Type resultTypeParameter = queryModel.ResultTypeOverride.ForceSequenceType();
                     var currentParameter = Expression.Parameter(resultExpressionElementType);
-                    if(Source != null && !QuerySourceMapping.ContainsMapping(Source.ReferencedQuerySource))
+                    if(Source != null && Source.ReferencedQuerySource.ItemType == Parent.CurrentParameter.Type && !QuerySourceMapping.ContainsMapping(Source.ReferencedQuerySource))
                         QuerySourceMapping.AddMapping(Source.ReferencedQuerySource, Parent.CurrentParameter);
 
                     if (!QuerySourceMapping.ContainsMapping(queryModel.MainFromClause))
