@@ -43,12 +43,12 @@
 
 import Harmony.Core
 import Harmony.Core.Context
+import Harmony.OData
 import Microsoft.EntityFrameworkCore
 import Microsoft.OData.Edm
 import Microsoft.AspNet.OData.Builder
 import System.Collections.Generic
 import SampleServices.Models
-import Harmony.OData
 
 namespace SampleServices
 
@@ -68,15 +68,20 @@ namespace SampleServices
 			if(mEdmModel == ^null)
 			begin
 				data builder = new ODataConventionModelBuilder(serviceProvider)
+
+				;;Declare entities
 				builder.EntitySet<Customer>("Customers")
 				builder.EntitySet<Order>("Orders")
-				
 				builder.EntitySet<OrderItem>("OrderItems")
-				builder.EntityType<OrderItem>().HasKey<OrderItem,int>("OiNumber")
-				builder.EntityType<OrderItem>().HasKey<OrderItem, int>("OiLineItem")
-
 				builder.EntitySet<Plant>("Plants")
 				builder.EntitySet<Vendor>("Vendors")
+
+				;;Entities with a single primary key segment have the key declared to EF via a
+				;;{Key} attribute on the appropriate property in the data model, but only one {key}
+				;;attribute can be used in a class, so keys with multiple segments are defined
+				;;using the "Fluent API" here.
+				builder.EntityType<OrderItem>().HasKey<OrderItem,int>("OiNumber")
+				builder.EntityType<OrderItem>().HasKey<OrderItem,int>("OiLineItem")
 
 				data tempModel = (@EdmModel)builder.GetEdmModel()
 
