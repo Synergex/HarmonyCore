@@ -4,7 +4,14 @@
 ;;
 ;; Type:        Class
 ;;
-;; Description: Provides key values and other data that can be used during tests.
+;; Description: Test context class with static values that can be used to feed
+;;              data into unit tests.
+;;
+;;*****************************************************************************
+;; WARNING
+;;
+;; This file was code generated. Avoid editing this file, as any changes that
+;; you make will be lost of the file is re-generated.
 ;;
 ;;*****************************************************************************
 ;;
@@ -35,34 +42,98 @@
 ;;
 ;;*****************************************************************************
 
+import Microsoft.VisualStudio.TestTools.UnitTesting
+import Newtonsoft.Json
+import System.Collections.Generic
+import System.Net.Http
+
 namespace SampleServices.Test
 
-	public static class TestContext
+	public static partial class TestContext
+
+		;;------------------------------------------------------------
+		;;Test data for Customer
+
+		public static readwrite property GetCustomer_CustKey, int
+
+		public static readwrite property GetCustomer_Expand_REL_Orders_CustKey, int
+
+		public static readwrite property GetCustomer_Expand_REL_Item_CustKey, int
+
+		public static readwrite property GetCustomer_Expand_All_CustKey, int
 	
-		public static readonly property CustomerID, int, 1
-		public static readonly property OrderID,    int, 3
-		public static readonly property PlantID,    int, 1
-		public static readonly property VendorID,   int, 38
+		public static readwrite property GetCustomer_ByAltKey_TagCustomer_CustRtype, int
+		public static readwrite property GetCustomer_ByAltKey_TagCustomer_CustKey, int
 
-		public static readonly property CustomerCustRtype, int, 0 
-		public static readonly property CustomerCustKey, int, 1
+		;;------------------------------------------------------------
+		;;Test data for Order
 
-		public static readonly property OrderOrCustomer, int, 8
-		public static readonly property OrderOrOrdered, int, 0			;TODO: Needs figuring out
-		public static readonly property OrderOrCompleted, int, 0		;TODO: Needs figuring out
+		public static readwrite property GetOrder_OrNumber, int
 
-		public static readonly property OrderItemID, int, 0				;TODO: Needs figuring out
-		public static readonly property OrderItemOiItemOrdered, int, 0	;TODO: Needs figuring out
-		public static readonly property OrderItemOiShipped, int, 0		;TODO: Needs figuring out
-		public static readonly property OrderItemOiInvoice, int, 0		;TODO: Needs figuring out
+		public static readwrite property GetOrder_Expand_REL_OrderItems_OrNumber, int
 
-		public static readonly property  PlantInSource, int, 42
-		public static readonly property  PlantInColor, int, -1
-		public static readonly property  PlantInSize, int, 5
-		public static readonly property  PlantInName, string, "Paper Mulberry"
+		public static readwrite property GetOrder_Expand_REL_OrCustomer_OrNumber, int
 
-		public static readonly property  VendorVendRtype, int, 1
-		public static readonly property  VendorVendKey, int, 43	
+		public static readwrite property GetOrder_Expand_All_OrNumber, int
+	
+		public static readwrite property GetOrder_ByAltKey_OrCustomer_OrCustomer, int
+	
+		public static readwrite property GetOrder_ByAltKey_OrOrdered_OrOrdered, DateTime
+	
+		public static readwrite property GetOrder_ByAltKey_OrCompleted_OrCompleted, DateTime
+
+		;;------------------------------------------------------------
+		;;Test data for OrderItem
+
+		public static readwrite property GetOrderItem_OiNumber, int
+		public static readwrite property GetOrderItem_OiLineItem, int
+
+		public static readwrite property GetOrderItem_Expand_REL_OiNumberLineItem_OiNumber, int
+		public static readwrite property GetOrderItem_Expand_REL_OiNumberLineItem_OiLineItem, int
+
+		public static readwrite property GetOrderItem_Expand_REL_OiItemOrdered_OiNumber, int
+		public static readwrite property GetOrderItem_Expand_REL_OiItemOrdered_OiLineItem, int
+
+		public static readwrite property GetOrderItem_Expand_All_OiNumber, int
+		public static readwrite property GetOrderItem_Expand_All_OiLineItem, int
+	
+		public static readwrite property GetOrderItem_ByAltKey_OiItemOrdered_OiItemOrdered, int
+	
+		public static readwrite property GetOrderItem_ByAltKey_OiShipped_OiShipped, DateTime
+	
+		public static readwrite property GetOrderItem_ByAltKey_OiInvoice_OiInvoice, int
+
+		;;------------------------------------------------------------
+		;;Test data for Plant
+
+		public static readwrite property GetPlant_InItemid, int
+
+		public static readwrite property GetPlant_Expand_REL_Vendor_InItemid, int
+
+		public static readwrite property GetPlant_Expand_REL_OrderItems_InItemid, int
+
+		public static readwrite property GetPlant_Expand_All_InItemid, int
+	
+		public static readwrite property GetPlant_ByAltKey_Vendor_InSource, int
+	
+		public static readwrite property GetPlant_ByAltKey_Color_InColor, string
+	
+		public static readwrite property GetPlant_ByAltKey_Size_InSize, int
+	
+		public static readwrite property GetPlant_ByAltKey_Name_InName, string
+
+		;;------------------------------------------------------------
+		;;Test data for Vendor
+
+		public static readwrite property GetVendor_VendKey, int
+
+		public static readwrite property GetVendor_Expand_REL_Plants_VendKey, int
+
+		public static readwrite property GetVendor_Expand_All_VendKey, int
+	
+		public static readwrite property GetVendor_ByAltKey_TagVendor_VendRtype, int
+		public static readwrite property GetVendor_ByAltKey_TagVendor_VendKey, int
+
 	endclass
 
 endnamespace

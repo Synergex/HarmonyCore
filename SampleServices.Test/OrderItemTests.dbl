@@ -53,29 +53,8 @@ namespace SampleServices.Test
 	{TestClass}
 	public partial class OrderItemTests
 
-		{TestMethod}
-		{TestCategory("OrderItem Tests - Single")}
-		public method GetOrderItem, void
-		proc
-			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/OrderItems({0})", TestContext.OrderItemID)
-			data response = client.GetAsync(request).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data orderItem, @ODataOrderItem, JsonConvert.DeserializeObject<ODataOrderItem>(result)
-		endmethod
-
-		{TestMethod}
-		{TestCategory("OrderItem Tests - Single")}
-		public method GetOrderItem_Expand_All, void
-		proc
-			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/OrderItems({0})?$expand=REL_OiNumberLineItem,REL_OiItemOrdered", TestContext.OrderItemID)
-			data response = client.GetAsync(request).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data orderItem, @ODataOrderItem, JsonConvert.DeserializeObject<ODataOrderItem>(result)
-		endmethod
+		;;------------------------------------------------------------
+		;;Get all
 
 		{TestMethod}
 		{TestCategory("OrderItem Tests - All")}
@@ -87,7 +66,10 @@ namespace SampleServices.Test
 			response.EnsureSuccessStatusCode()
 			data orderItems, @ODataOrderItems, JsonConvert.DeserializeObject<ODataOrderItems>(result)
 		endmethod
-	
+
+		;;------------------------------------------------------------
+		;;Get all and expand relation REL_OiNumberLineItem
+
 		{TestMethod}
 		{TestCategory("OrderItem Tests - All")}
 		public method GetOrderItems_Expand_REL_OiNumberLineItem, void
@@ -98,6 +80,9 @@ namespace SampleServices.Test
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 		endmethod
+
+		;;------------------------------------------------------------
+		;;Get all and expand relation REL_OiItemOrdered
 
 		{TestMethod}
 		{TestCategory("OrderItem Tests - All")}
@@ -110,9 +95,11 @@ namespace SampleServices.Test
 			response.EnsureSuccessStatusCode()
 		endmethod
 
+		;;------------------------------------------------------------
+		;;Get all and expand all relations
+
 		{TestMethod}
 		{TestCategory("OrderItem Tests - All")}
-		
 		public method GetOrderItems_Expand_All, void
 		proc
 			data uri = "/odata/OrderItems?$expand=REL_OiNumberLineItem,REL_OiItemOrdered"
@@ -122,36 +109,101 @@ namespace SampleServices.Test
 			response.EnsureSuccessStatusCode()
 		endmethod
 		
-		public method GetByKeyOiItemOrdered, void
+		;;------------------------------------------------------------
+		;;Get single
+
+		{TestMethod}
+		{TestCategory("OrderItem Tests - Single")}
+		public method GetOrderItem, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/OrderItems(OiItemOrdered={1})", "", TestContext.OrderItemOiItemOrdered)
+			data request = String.Format("/odata/OrderItems(OiNumber={1},OiLineItem={2})","",TestContext.GetOrderItem_OiNumber,TestContext.GetOrderItem_OiLineItem)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 			data orderItem, @ODataOrderItem, JsonConvert.DeserializeObject<ODataOrderItem>(result)
 		endmethod
 
-		public method GetByKeyOiShipped, void
+		;;------------------------------------------------------------
+		;;Get single and expand relation REL_OiNumberLineItem
+		{TestMethod}
+		{TestCategory("OrderItem Tests - Single")}
+		public method GetOrderItem_Expand_REL_OiNumberLineItem, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/OrderItems(OiShipped={1})", "", TestContext.OrderItemOiShipped)
+			data request = String.Format("/odata/OrderItems(OiNumber={1},OiLineItem={2})?$expand=REL_OiNumberLineItem","",TestContext.GetOrderItem_Expand_REL_OiNumberLineItem_OiNumber,TestContext.GetOrderItem_Expand_REL_OiNumberLineItem_OiLineItem)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 			data orderItem, @ODataOrderItem, JsonConvert.DeserializeObject<ODataOrderItem>(result)
 		endmethod
 
-		public method GetByKeyOiInvoice, void
+		;;------------------------------------------------------------
+		;;Get single and expand relation REL_OiItemOrdered
+		{TestMethod}
+		{TestCategory("OrderItem Tests - Single")}
+		public method GetOrderItem_Expand_REL_OiItemOrdered, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/OrderItems(OiInvoice={1})", "", TestContext.OrderItemOiInvoice)
+			data request = String.Format("/odata/OrderItems(OiNumber={1},OiLineItem={2})?$expand=REL_OiItemOrdered","",TestContext.GetOrderItem_Expand_REL_OiItemOrdered_OiNumber,TestContext.GetOrderItem_Expand_REL_OiItemOrdered_OiLineItem)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 			data orderItem, @ODataOrderItem, JsonConvert.DeserializeObject<ODataOrderItem>(result)
 		endmethod
 
+		;;------------------------------------------------------------
+		;;Get single and expand all relations
+
+		{TestMethod}
+		{TestCategory("OrderItem Tests - Single")}
+		public method GetOrderItem_Expand_All, void
+		proc
+			data client = UnitTestEnvironment.Server.CreateClient()
+			data request = String.Format("/odata/OrderItems(OiNumber={1},OiLineItem={2})?$expand=REL_OiNumberLineItem,REL_OiItemOrdered","",TestContext.GetOrderItem_Expand_All_OiNumber,TestContext.GetOrderItem_Expand_All_OiLineItem)
+			data response = client.GetAsync(request).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data orderItem, @ODataOrderItem, JsonConvert.DeserializeObject<ODataOrderItem>(result)
+		endmethod
+
+
+		;;------------------------------------------------------------
+		;;Get single by alternate key
+
+		public method GetOrderItem_ByAltKey_OiItemOrdered, void
+		proc
+			data client = UnitTestEnvironment.Server.CreateClient()
+			data request = String.Format("/odata/OrderItems(OiItemOrdered={1})", "", TestContext.GetOrderItem_ByAltKey_OiItemOrdered_OiItemOrdered)
+			data response = client.GetAsync(request).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data orderItem, @ODataOrderItem, JsonConvert.DeserializeObject<ODataOrderItem>(result)
+		endmethod
+
+		public method GetOrderItem_ByAltKey_OiShipped, void
+		proc
+			data client = UnitTestEnvironment.Server.CreateClient()
+			data request = String.Format("/odata/OrderItems(OiShipped={1})", "", TestContext.GetOrderItem_ByAltKey_OiShipped_OiShipped)
+			data response = client.GetAsync(request).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data orderItem, @ODataOrderItem, JsonConvert.DeserializeObject<ODataOrderItem>(result)
+		endmethod
+
+		public method GetOrderItem_ByAltKey_OiInvoice, void
+		proc
+			data client = UnitTestEnvironment.Server.CreateClient()
+			data request = String.Format("/odata/OrderItems(OiInvoice={1})", "", TestContext.GetOrderItem_ByAltKey_OiInvoice_OiInvoice)
+			data response = client.GetAsync(request).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data orderItem, @ODataOrderItem, JsonConvert.DeserializeObject<ODataOrderItem>(result)
+		endmethod
+
+;		;;------------------------------------------------------------
+;		;;Create new - auto assign key
+;
 ;		{TestMethod}
 ;		{TestCategory("OrderItem Tests - All")}
 ;		public method CreateOrderItem, void
@@ -163,6 +215,9 @@ namespace SampleServices.Test
 ;			response.EnsureSuccessStatusCode()
 ;		endmethod
 
+;		;;------------------------------------------------------------
+;		;;Create new - client specified key
+;
 ;		{TestMethod}
 ;		{TestCategory("OrderItem Tests - All")}
 ;		public method UpdateOrderItem, void

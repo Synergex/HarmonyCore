@@ -53,29 +53,8 @@ namespace SampleServices.Test
 	{TestClass}
 	public partial class OrderTests
 
-		{TestMethod}
-		{TestCategory("Order Tests - Single")}
-		public method GetOrder, void
-		proc
-			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Orders({0})", TestContext.OrderID)
-			data response = client.GetAsync(request).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data order, @ODataOrder, JsonConvert.DeserializeObject<ODataOrder>(result)
-		endmethod
-
-		{TestMethod}
-		{TestCategory("Order Tests - Single")}
-		public method GetOrder_Expand_All, void
-		proc
-			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Orders({0})?$expand=REL_OrderItems,REL_OrCustomer", TestContext.OrderID)
-			data response = client.GetAsync(request).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data order, @ODataOrder, JsonConvert.DeserializeObject<ODataOrder>(result)
-		endmethod
+		;;------------------------------------------------------------
+		;;Get all
 
 		{TestMethod}
 		{TestCategory("Order Tests - All")}
@@ -87,7 +66,10 @@ namespace SampleServices.Test
 			response.EnsureSuccessStatusCode()
 			data orders, @ODataOrders, JsonConvert.DeserializeObject<ODataOrders>(result)
 		endmethod
-	
+
+		;;------------------------------------------------------------
+		;;Get all and expand relation REL_OrNumber
+
 		{TestMethod}
 		{TestCategory("Order Tests - All")}
 		public method GetOrders_Expand_REL_OrderItems, void
@@ -98,6 +80,9 @@ namespace SampleServices.Test
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 		endmethod
+
+		;;------------------------------------------------------------
+		;;Get all and expand relation REL_OrCustomer
 
 		{TestMethod}
 		{TestCategory("Order Tests - All")}
@@ -110,9 +95,11 @@ namespace SampleServices.Test
 			response.EnsureSuccessStatusCode()
 		endmethod
 
+		;;------------------------------------------------------------
+		;;Get all and expand all relations
+
 		{TestMethod}
 		{TestCategory("Order Tests - All")}
-		
 		public method GetOrders_Expand_All, void
 		proc
 			data uri = "/odata/Orders?$expand=REL_OrderItems,REL_OrCustomer"
@@ -122,36 +109,101 @@ namespace SampleServices.Test
 			response.EnsureSuccessStatusCode()
 		endmethod
 		
-		public method GetByKeyOrCustomer, void
+		;;------------------------------------------------------------
+		;;Get single
+
+		{TestMethod}
+		{TestCategory("Order Tests - Single")}
+		public method GetOrder, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Orders(OrCustomer={1})", "", TestContext.OrderOrCustomer)
+			data request = String.Format("/odata/Orders(OrNumber={1})","",TestContext.GetOrder_OrNumber)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 			data order, @ODataOrder, JsonConvert.DeserializeObject<ODataOrder>(result)
 		endmethod
 
-		public method GetByKeyOrOrdered, void
+		;;------------------------------------------------------------
+		;;Get single and expand relation REL_OrderItems
+		{TestMethod}
+		{TestCategory("Order Tests - Single")}
+		public method GetOrder_Expand_REL_OrderItems, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Orders(OrOrdered={1})", "", TestContext.OrderOrOrdered)
+			data request = String.Format("/odata/Orders(OrNumber={1})?$expand=REL_OrderItems","",TestContext.GetOrder_Expand_REL_OrderItems_OrNumber)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 			data order, @ODataOrder, JsonConvert.DeserializeObject<ODataOrder>(result)
 		endmethod
 
-		public method GetByKeyOrCompleted, void
+		;;------------------------------------------------------------
+		;;Get single and expand relation REL_OrCustomer
+		{TestMethod}
+		{TestCategory("Order Tests - Single")}
+		public method GetOrder_Expand_REL_OrCustomer, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Orders(OrCompleted={1})", "", TestContext.OrderOrCompleted)
+			data request = String.Format("/odata/Orders(OrNumber={1})?$expand=REL_OrCustomer","",TestContext.GetOrder_Expand_REL_OrCustomer_OrNumber)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 			data order, @ODataOrder, JsonConvert.DeserializeObject<ODataOrder>(result)
 		endmethod
 
+		;;------------------------------------------------------------
+		;;Get single and expand all relations
+
+		{TestMethod}
+		{TestCategory("Order Tests - Single")}
+		public method GetOrder_Expand_All, void
+		proc
+			data client = UnitTestEnvironment.Server.CreateClient()
+			data request = String.Format("/odata/Orders(OrNumber={1})?$expand=REL_OrderItems,REL_OrCustomer","",TestContext.GetOrder_Expand_All_OrNumber)
+			data response = client.GetAsync(request).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data order, @ODataOrder, JsonConvert.DeserializeObject<ODataOrder>(result)
+		endmethod
+
+
+		;;------------------------------------------------------------
+		;;Get single by alternate key
+
+		public method GetOrder_ByAltKey_OrCustomer, void
+		proc
+			data client = UnitTestEnvironment.Server.CreateClient()
+			data request = String.Format("/odata/Orders(OrCustomer={1})", "", TestContext.GetOrder_ByAltKey_OrCustomer_OrCustomer)
+			data response = client.GetAsync(request).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data order, @ODataOrder, JsonConvert.DeserializeObject<ODataOrder>(result)
+		endmethod
+
+		public method GetOrder_ByAltKey_OrOrdered, void
+		proc
+			data client = UnitTestEnvironment.Server.CreateClient()
+			data request = String.Format("/odata/Orders(OrOrdered={1})", "", TestContext.GetOrder_ByAltKey_OrOrdered_OrOrdered)
+			data response = client.GetAsync(request).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data order, @ODataOrder, JsonConvert.DeserializeObject<ODataOrder>(result)
+		endmethod
+
+		public method GetOrder_ByAltKey_OrCompleted, void
+		proc
+			data client = UnitTestEnvironment.Server.CreateClient()
+			data request = String.Format("/odata/Orders(OrCompleted={1})", "", TestContext.GetOrder_ByAltKey_OrCompleted_OrCompleted)
+			data response = client.GetAsync(request).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data order, @ODataOrder, JsonConvert.DeserializeObject<ODataOrder>(result)
+		endmethod
+
+;		;;------------------------------------------------------------
+;		;;Create new - auto assign key
+;
 ;		{TestMethod}
 ;		{TestCategory("Order Tests - All")}
 ;		public method CreateOrder, void
@@ -163,6 +215,9 @@ namespace SampleServices.Test
 ;			response.EnsureSuccessStatusCode()
 ;		endmethod
 
+;		;;------------------------------------------------------------
+;		;;Create new - client specified key
+;
 ;		{TestMethod}
 ;		{TestCategory("Order Tests - All")}
 ;		public method UpdateOrder, void

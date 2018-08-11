@@ -53,29 +53,8 @@ namespace SampleServices.Test
 	{TestClass}
 	public partial class CustomerTests
 
-		{TestMethod}
-		{TestCategory("Customer Tests - Single")}
-		public method GetCustomer, void
-		proc
-			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Customers({0})", TestContext.CustomerID)
-			data response = client.GetAsync(request).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data customer, @ODataCustomer, JsonConvert.DeserializeObject<ODataCustomer>(result)
-		endmethod
-
-		{TestMethod}
-		{TestCategory("Customer Tests - Single")}
-		public method GetCustomer_Expand_All, void
-		proc
-			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Customers({0})?$expand=REL_Orders,REL_Item", TestContext.CustomerID)
-			data response = client.GetAsync(request).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data customer, @ODataCustomer, JsonConvert.DeserializeObject<ODataCustomer>(result)
-		endmethod
+		;;------------------------------------------------------------
+		;;Get all
 
 		{TestMethod}
 		{TestCategory("Customer Tests - All")}
@@ -87,7 +66,10 @@ namespace SampleServices.Test
 			response.EnsureSuccessStatusCode()
 			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
 		endmethod
-	
+
+		;;------------------------------------------------------------
+		;;Get all and expand relation REL_Customer
+
 		{TestMethod}
 		{TestCategory("Customer Tests - All")}
 		public method GetCustomers_Expand_REL_Orders, void
@@ -98,6 +80,9 @@ namespace SampleServices.Test
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 		endmethod
+
+		;;------------------------------------------------------------
+		;;Get all and expand relation REL_Item
 
 		{TestMethod}
 		{TestCategory("Customer Tests - All")}
@@ -110,9 +95,11 @@ namespace SampleServices.Test
 			response.EnsureSuccessStatusCode()
 		endmethod
 
+		;;------------------------------------------------------------
+		;;Get all and expand all relations
+
 		{TestMethod}
 		{TestCategory("Customer Tests - All")}
-		
 		public method GetCustomers_Expand_All, void
 		proc
 			data uri = "/odata/Customers?$expand=REL_Orders,REL_Item"
@@ -122,16 +109,81 @@ namespace SampleServices.Test
 			response.EnsureSuccessStatusCode()
 		endmethod
 		
-		public method GetByKeyTagCustomer, void
+		;;------------------------------------------------------------
+		;;Get single
+
+		{TestMethod}
+		{TestCategory("Customer Tests - Single")}
+		public method GetCustomer, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Customers(CustRtype={1},CustKey={2})", "", TestContext.CustomerCustRtype,TestContext.CustomerCustKey)
+			data request = String.Format("/odata/Customers(CustKey={1})","",TestContext.GetCustomer_CustKey)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 			data customer, @ODataCustomer, JsonConvert.DeserializeObject<ODataCustomer>(result)
 		endmethod
 
+		;;------------------------------------------------------------
+		;;Get single and expand relation REL_Orders
+		{TestMethod}
+		{TestCategory("Customer Tests - Single")}
+		public method GetCustomer_Expand_REL_Orders, void
+		proc
+			data client = UnitTestEnvironment.Server.CreateClient()
+			data request = String.Format("/odata/Customers(CustKey={1})?$expand=REL_Orders","",TestContext.GetCustomer_Expand_REL_Orders_CustKey)
+			data response = client.GetAsync(request).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data customer, @ODataCustomer, JsonConvert.DeserializeObject<ODataCustomer>(result)
+		endmethod
+
+		;;------------------------------------------------------------
+		;;Get single and expand relation REL_Item
+		{TestMethod}
+		{TestCategory("Customer Tests - Single")}
+		public method GetCustomer_Expand_REL_Item, void
+		proc
+			data client = UnitTestEnvironment.Server.CreateClient()
+			data request = String.Format("/odata/Customers(CustKey={1})?$expand=REL_Item","",TestContext.GetCustomer_Expand_REL_Item_CustKey)
+			data response = client.GetAsync(request).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data customer, @ODataCustomer, JsonConvert.DeserializeObject<ODataCustomer>(result)
+		endmethod
+
+		;;------------------------------------------------------------
+		;;Get single and expand all relations
+
+		{TestMethod}
+		{TestCategory("Customer Tests - Single")}
+		public method GetCustomer_Expand_All, void
+		proc
+			data client = UnitTestEnvironment.Server.CreateClient()
+			data request = String.Format("/odata/Customers(CustKey={1})?$expand=REL_Orders,REL_Item","",TestContext.GetCustomer_Expand_All_CustKey)
+			data response = client.GetAsync(request).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data customer, @ODataCustomer, JsonConvert.DeserializeObject<ODataCustomer>(result)
+		endmethod
+
+
+		;;------------------------------------------------------------
+		;;Get single by alternate key
+
+		public method GetCustomer_ByAltKey_TagCustomer, void
+		proc
+			data client = UnitTestEnvironment.Server.CreateClient()
+			data request = String.Format("/odata/Customers(CustRtype={1},CustKey={2})", "", TestContext.GetCustomer_ByAltKey_TagCustomer_CustRtype,TestContext.GetCustomer_ByAltKey_TagCustomer_CustKey)
+			data response = client.GetAsync(request).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data customer, @ODataCustomer, JsonConvert.DeserializeObject<ODataCustomer>(result)
+		endmethod
+
+;		;;------------------------------------------------------------
+;		;;Create new - auto assign key
+;
 ;		{TestMethod}
 ;		{TestCategory("Customer Tests - All")}
 ;		public method CreateCustomer, void
@@ -143,6 +195,9 @@ namespace SampleServices.Test
 ;			response.EnsureSuccessStatusCode()
 ;		endmethod
 
+;		;;------------------------------------------------------------
+;		;;Create new - client specified key
+;
 ;		{TestMethod}
 ;		{TestCategory("Customer Tests - All")}
 ;		public method UpdateCustomer, void

@@ -53,29 +53,8 @@ namespace SampleServices.Test
 	{TestClass}
 	public partial class VendorTests
 
-		{TestMethod}
-		{TestCategory("Vendor Tests - Single")}
-		public method GetVendor, void
-		proc
-			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Vendors({0})", TestContext.VendorID)
-			data response = client.GetAsync(request).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data vendor, @ODataVendor, JsonConvert.DeserializeObject<ODataVendor>(result)
-		endmethod
-
-		{TestMethod}
-		{TestCategory("Vendor Tests - Single")}
-		public method GetVendor_Expand_All, void
-		proc
-			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Vendors({0})?$expand=REL_Plants", TestContext.VendorID)
-			data response = client.GetAsync(request).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data vendor, @ODataVendor, JsonConvert.DeserializeObject<ODataVendor>(result)
-		endmethod
+		;;------------------------------------------------------------
+		;;Get all
 
 		{TestMethod}
 		{TestCategory("Vendor Tests - All")}
@@ -87,7 +66,10 @@ namespace SampleServices.Test
 			response.EnsureSuccessStatusCode()
 			data vendors, @ODataVendors, JsonConvert.DeserializeObject<ODataVendors>(result)
 		endmethod
-	
+
+		;;------------------------------------------------------------
+		;;Get all and expand relation REL_Vendor
+
 		{TestMethod}
 		{TestCategory("Vendor Tests - All")}
 		public method GetVendors_Expand_REL_Plants, void
@@ -99,9 +81,11 @@ namespace SampleServices.Test
 			response.EnsureSuccessStatusCode()
 		endmethod
 
+		;;------------------------------------------------------------
+		;;Get all and expand all relations
+
 		{TestMethod}
 		{TestCategory("Vendor Tests - All")}
-		
 		public method GetVendors_Expand_All, void
 		proc
 			data uri = "/odata/Vendors?$expand=REL_Plants"
@@ -111,16 +95,67 @@ namespace SampleServices.Test
 			response.EnsureSuccessStatusCode()
 		endmethod
 		
-		public method GetByKeyTagVendor, void
+		;;------------------------------------------------------------
+		;;Get single
+
+		{TestMethod}
+		{TestCategory("Vendor Tests - Single")}
+		public method GetVendor, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Vendors(VendRtype={1},VendKey={2})", "", TestContext.VendorVendRtype,TestContext.VendorVendKey)
+			data request = String.Format("/odata/Vendors(VendKey={1})","",TestContext.GetVendor_VendKey)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 			data vendor, @ODataVendor, JsonConvert.DeserializeObject<ODataVendor>(result)
 		endmethod
 
+		;;------------------------------------------------------------
+		;;Get single and expand relation REL_Plants
+		{TestMethod}
+		{TestCategory("Vendor Tests - Single")}
+		public method GetVendor_Expand_REL_Plants, void
+		proc
+			data client = UnitTestEnvironment.Server.CreateClient()
+			data request = String.Format("/odata/Vendors(VendKey={1})?$expand=REL_Plants","",TestContext.GetVendor_Expand_REL_Plants_VendKey)
+			data response = client.GetAsync(request).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data vendor, @ODataVendor, JsonConvert.DeserializeObject<ODataVendor>(result)
+		endmethod
+
+		;;------------------------------------------------------------
+		;;Get single and expand all relations
+
+		{TestMethod}
+		{TestCategory("Vendor Tests - Single")}
+		public method GetVendor_Expand_All, void
+		proc
+			data client = UnitTestEnvironment.Server.CreateClient()
+			data request = String.Format("/odata/Vendors(VendKey={1})?$expand=REL_Plants","",TestContext.GetVendor_Expand_All_VendKey)
+			data response = client.GetAsync(request).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data vendor, @ODataVendor, JsonConvert.DeserializeObject<ODataVendor>(result)
+		endmethod
+
+
+		;;------------------------------------------------------------
+		;;Get single by alternate key
+
+		public method GetVendor_ByAltKey_TagVendor, void
+		proc
+			data client = UnitTestEnvironment.Server.CreateClient()
+			data request = String.Format("/odata/Vendors(VendRtype={1},VendKey={2})", "", TestContext.GetVendor_ByAltKey_TagVendor_VendRtype,TestContext.GetVendor_ByAltKey_TagVendor_VendKey)
+			data response = client.GetAsync(request).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data vendor, @ODataVendor, JsonConvert.DeserializeObject<ODataVendor>(result)
+		endmethod
+
+;		;;------------------------------------------------------------
+;		;;Create new - auto assign key
+;
 ;		{TestMethod}
 ;		{TestCategory("Vendor Tests - All")}
 ;		public method CreateVendor, void
@@ -132,6 +167,9 @@ namespace SampleServices.Test
 ;			response.EnsureSuccessStatusCode()
 ;		endmethod
 
+;		;;------------------------------------------------------------
+;		;;Create new - client specified key
+;
 ;		{TestMethod}
 ;		{TestCategory("Vendor Tests - All")}
 ;		public method UpdateVendor, void

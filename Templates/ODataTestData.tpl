@@ -1,13 +1,13 @@
-<CODEGEN_FILENAME>TestEnvironment.dbl</CODEGEN_FILENAME>
-<OPTIONAL_USERTOKEN>DATA_FOLDER_NAME=SampleData</OPTIONAL_USERTOKEN>
+<CODEGEN_FILENAME>TestContext.Data.dbl</CODEGEN_FILENAME>
 <REQUIRES_CODEGEN_VERSION>5.3.5</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
-;// Title:       ODataTestEnvironment.tpl
+;// Title:       ODataTestData.tpl
 ;//
 ;// Type:        CodeGen Template
 ;//
-;// Description: Generates utilities for configuting a hosting environment.
+;// Description: Generates a test context class with static values that can
+;//              be used to feed data into unit tests.
 ;//
 ;// Copyright (c) 2018, Synergex International, Inc. All rights reserved.
 ;//
@@ -35,11 +35,12 @@
 ;//
 ;;*****************************************************************************
 ;;
-;; Title:       TestEnvironment.dbl
+;; Title:       TestContext.Data.dbl
 ;;
 ;; Type:        Class
 ;;
-;; Description: Utilities for configuting a hosting environment.
+;; Description: Test context class with static values that can be used to feed
+;;              data into unit tests.
 ;;
 ;;*****************************************************************************
 ;; WARNING
@@ -76,129 +77,60 @@
 ;;
 ;;*****************************************************************************
 
+import Microsoft.VisualStudio.TestTools.UnitTesting
+import Newtonsoft.Json
 import System.Collections.Generic
-import System.IO
-import System.Text
-
-.array 0
+import System.Net.Http
 
 namespace <NAMESPACE>
 
-	public static class TestEnvironment
+	public static partial class TestContext
 
-		public static method Configure, void
+		static method TestContext
 		proc
-			Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)
-			setLogicals()
-<IF DEFINED_CREATE_FILES>
-			deleteFiles()
-			createFiles()
-</IF DEFINED_CREATE_FILES>
-		endmethod
+<STRUCTURE_LOOP>
 
-		public static method Cleanup, void
-		proc
-<IF DEFINED_CREATE_FILES>
-			deleteFiles()
-</IF DEFINED_CREATE_FILES>
-		endmethod
+			;;------------------------------------------------------------
+			;;Test data for <StructureNoplural>
 
-		private static method setLogicals, void
-		proc
-			data sampleDataFolder = findRelativeFolderForAssembly("<DATA_FOLDER_NAME>")
-			data logicals = new List<string>()
-			data logical = String.Empty
-			data fileSpec = String.Empty
-			<STRUCTURE_LOOP>
+	<PRIMARY_KEY>
+		<SEGMENT_LOOP>
+			Get<StructureNoplural>_<SegmentName> = <FIELD_CSDEFAULT>
+		</SEGMENT_LOOP>
+	</PRIMARY_KEY>
+;//
+;//
+;//
+<IF STRUCTURE_RELATIONS>
+	<RELATION_LOOP>
 
-			fileSpec = "<FILE_NAME>"
-			if (fileSpec.Contains(":"))
-			begin
-				logical = fileSpec.Split(":")[0].ToUpper()
-				if (!logicals.Contains(logical))
-					logicals.Add(logical)
-			end
-			</STRUCTURE_LOOP>
+		<PRIMARY_KEY>
+		<SEGMENT_LOOP>
+			Get<StructureNoplural>_Expand_<IF MANY_TO_ONE_TO_MANY>REL_<RelationFromkey></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationFromkey></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY>_<SegmentName> = <FIELD_CSDEFAULT>
+		</SEGMENT_LOOP>
+		</PRIMARY_KEY>
+	</RELATION_LOOP>
+</IF STRUCTURE_RELATIONS>
+;//
+;//
+;//
+		<PRIMARY_KEY>
 
-			foreach logical in logicals
-			begin
-				data sts, int
-				xcall setlog(logical,sampleDataFolder,sts)
-			end
+		<SEGMENT_LOOP>
+			Get<StructureNoplural>_Expand_All_<SegmentName> = <FIELD_CSDEFAULT>
+		</SEGMENT_LOOP>
+		</PRIMARY_KEY>
+;//
+;//
+;//
+	<ALTERNATE_KEY_LOOP>
+	
+		<SEGMENT_LOOP>
+			Get<StructureNoplural>_ByAltKey_<KeyName>_<SegmentName> = <FIELD_CSDEFAULT>
+		</SEGMENT_LOOP>
+	</ALTERNATE_KEY_LOOP>
+</STRUCTURE_LOOP>
 
-		endmethod
-
-<IF DEFINED_CREATE_FILES>
-		private static method createFiles, void
-			<STRUCTURE_LOOP>
-			.include "<STRUCTURE_NOALIAS>" repository, stack record="<structureNoplural>", nofields, end
-			</STRUCTURE_LOOP>
-		proc
-			data chout, int
-			data chin, int
-			data dataFile, string
-			data xdlFile, string
-			data textFile, string
-
-			<STRUCTURE_LOOP>
-			;;Create and load the <structurePlural> file
-
-			dataFile = "<FILE_NAME>"
-			xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
-			textFile = dataFile.ToLower().Replace(".ism",".txt")
-
-			try
-			begin
-				open(chout=0,o:i,dataFile,FDL:xdlFile)
-				open(chin,i,textFile)
-				repeat
-				begin
-					reads(chin,<structureNoplural>)
-					store(chout,<structureNoplural>)
-				end
-			end
-			catch (ex, @EndOfFileException)
-			begin
-				close chin
-				close chout
-			end
-			endtry
-
-			</STRUCTURE_LOOP>
-		endmethod
-
-		private static method deleteFiles, void
-		proc
-			<STRUCTURE_LOOP>
-			;;Delete the <structurePlural> file
-			try
-			begin
-				xcall delet("<FILE_NAME>")
-			end
-			catch (e, @NoFileFoundException)
-			begin
-				nop
-			end
-			endtry
-
-			</STRUCTURE_LOOP>
-		endmethod
-
-</IF DEFINED_CREATE_FILES>
-		private static method findRelativeFolderForAssembly, string
-			folderName, string
-		proc
-			data assemblyLocation = ^typeof(TestEnvironment).Assembly.Location
-			data currentFolder = Path.GetDirectoryName(assemblyLocation)
-			data rootPath = Path.GetPathRoot(currentFolder)
-			while(currentFolder != rootPath)
-			begin
-				if(Directory.Exists(Path.Combine(currentFolder, folderName))) then
-					mreturn Path.Combine(currentFolder, folderName)
-				else
-					currentFolder = Path.GetFullPath(currentFolder + "..\")
-			end
-			mreturn ^null
 		endmethod
 
 	endclass
