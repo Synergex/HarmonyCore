@@ -4,7 +4,7 @@
 ;;
 ;; Type:        Class
 ;;
-;; Description: Unit tests for the operastions defined in CustomersController.
+;; Description: Unit tests for the operations defined in CustomersController.
 ;;
 ;;*****************************************************************************
 ;; WARNING
@@ -54,10 +54,10 @@ namespace SampleServices.Test
 	public partial class CustomerTests
 
 		;;------------------------------------------------------------
-		;;Get all
+		;;Get all Customers
 
 		{TestMethod}
-		{TestCategory("Customer Tests - All")}
+		{TestCategory("Customer Tests - Read All")}
 		public method GetCustomers, void
 		proc
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
@@ -68,10 +68,10 @@ namespace SampleServices.Test
 		endmethod
 
 		;;------------------------------------------------------------
-		;;Get all and expand relation REL_Customer
+		;;Get all Customers and expand relation REL_Customer
 
 		{TestMethod}
-		{TestCategory("Customer Tests - All")}
+		{TestCategory("Customer Tests - Read All")}
 		public method GetCustomers_Expand_REL_Orders, void
 		proc
 			data uri = "/odata/Customers?$expand=REL_Orders"
@@ -82,10 +82,10 @@ namespace SampleServices.Test
 		endmethod
 
 		;;------------------------------------------------------------
-		;;Get all and expand relation REL_Item
+		;;Get all Customers and expand relation REL_Item
 
 		{TestMethod}
-		{TestCategory("Customer Tests - All")}
+		{TestCategory("Customer Tests - Read All")}
 		public method GetCustomers_Expand_REL_Item, void
 		proc
 			data uri = "/odata/Customers?$expand=REL_Item"
@@ -96,10 +96,10 @@ namespace SampleServices.Test
 		endmethod
 
 		;;------------------------------------------------------------
-		;;Get all and expand all relations
+		;;Get all Customers and expand all relations
 
 		{TestMethod}
-		{TestCategory("Customer Tests - All")}
+		{TestCategory("Customer Tests - Read All")}
 		public method GetCustomers_Expand_All, void
 		proc
 			data uri = "/odata/Customers?$expand=REL_Orders,REL_Item"
@@ -110,10 +110,10 @@ namespace SampleServices.Test
 		endmethod
 		
 		;;------------------------------------------------------------
-		;;Get single
+		;;Get a single Customer
 
 		{TestMethod}
-		{TestCategory("Customer Tests - Single")}
+		{TestCategory("Customer Tests - Read by Primary Key")}
 		public method GetCustomer, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
@@ -125,9 +125,10 @@ namespace SampleServices.Test
 		endmethod
 
 		;;------------------------------------------------------------
-		;;Get single and expand relation REL_Orders
+		;;Get a single Customer and expand relation REL_Orders
+
 		{TestMethod}
-		{TestCategory("Customer Tests - Single")}
+		{TestCategory("Customer Tests - Read by Primary Key")}
 		public method GetCustomer_Expand_REL_Orders, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
@@ -139,9 +140,10 @@ namespace SampleServices.Test
 		endmethod
 
 		;;------------------------------------------------------------
-		;;Get single and expand relation REL_Item
+		;;Get a single Customer and expand relation REL_Item
+
 		{TestMethod}
-		{TestCategory("Customer Tests - Single")}
+		{TestCategory("Customer Tests - Read by Primary Key")}
 		public method GetCustomer_Expand_REL_Item, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
@@ -153,10 +155,10 @@ namespace SampleServices.Test
 		endmethod
 
 		;;------------------------------------------------------------
-		;;Get single and expand all relations
+		;;Get a single Customer and expand all relations
 
 		{TestMethod}
-		{TestCategory("Customer Tests - Single")}
+		{TestCategory("Customer Tests - Read by Primary Key")}
 		public method GetCustomer_Expand_All, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
@@ -167,10 +169,11 @@ namespace SampleServices.Test
 			data customer, @ODataCustomer, JsonConvert.DeserializeObject<ODataCustomer>(result)
 		endmethod
 
-
 		;;------------------------------------------------------------
-		;;Get single by alternate key
+		;;Get a single Customer by alternate key 1 (TagCustomer)
 
+		{TestMethod}
+		{TestCategory("Customer Tests - Read by Alternate Key")}
 		public method GetCustomer_ByAltKey_TagCustomer, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
@@ -182,10 +185,10 @@ namespace SampleServices.Test
 		endmethod
 
 ;		;;------------------------------------------------------------
-;		;;Create new - auto assign key
+;		;;Create a new Customer (auto assign key)
 ;
 ;		{TestMethod}
-;		{TestCategory("Customer Tests - All")}
+;		{TestCategory("Customer Tests - Create, Update & Delete")}
 ;		public method CreateCustomer, void
 ;		proc
 ;			disposable data client = UnitTestEnvironment.Server.CreateClient()
@@ -196,10 +199,10 @@ namespace SampleServices.Test
 ;		endmethod
 
 ;		;;------------------------------------------------------------
-;		;;Create new - client specified key
+;		;;Create new Customer (client specified key)
 ;
 ;		{TestMethod}
-;		{TestCategory("Customer Tests - All")}
+;		{TestCategory("Customer Tests - Create, Update & Delete")}
 ;		public method UpdateCustomer, void
 ;		proc
 ;			disposable data client = UnitTestEnvironment.Server.CreateClient()

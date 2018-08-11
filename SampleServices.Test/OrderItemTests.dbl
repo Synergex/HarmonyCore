@@ -4,7 +4,7 @@
 ;;
 ;; Type:        Class
 ;;
-;; Description: Unit tests for the operastions defined in OrderItemsController.
+;; Description: Unit tests for the operations defined in OrderItemsController.
 ;;
 ;;*****************************************************************************
 ;; WARNING
@@ -54,10 +54,10 @@ namespace SampleServices.Test
 	public partial class OrderItemTests
 
 		;;------------------------------------------------------------
-		;;Get all
+		;;Get all OrderItems
 
 		{TestMethod}
-		{TestCategory("OrderItem Tests - All")}
+		{TestCategory("OrderItem Tests - Read All")}
 		public method GetOrderItems, void
 		proc
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
@@ -68,10 +68,10 @@ namespace SampleServices.Test
 		endmethod
 
 		;;------------------------------------------------------------
-		;;Get all and expand relation REL_OiNumberLineItem
+		;;Get all OrderItems and expand relation REL_OiNumberLineItem
 
 		{TestMethod}
-		{TestCategory("OrderItem Tests - All")}
+		{TestCategory("OrderItem Tests - Read All")}
 		public method GetOrderItems_Expand_REL_OiNumberLineItem, void
 		proc
 			data uri = "/odata/OrderItems?$expand=REL_OiNumberLineItem"
@@ -82,10 +82,10 @@ namespace SampleServices.Test
 		endmethod
 
 		;;------------------------------------------------------------
-		;;Get all and expand relation REL_OiItemOrdered
+		;;Get all OrderItems and expand relation REL_OiItemOrdered
 
 		{TestMethod}
-		{TestCategory("OrderItem Tests - All")}
+		{TestCategory("OrderItem Tests - Read All")}
 		public method GetOrderItems_Expand_REL_OiItemOrdered, void
 		proc
 			data uri = "/odata/OrderItems?$expand=REL_OiItemOrdered"
@@ -96,10 +96,10 @@ namespace SampleServices.Test
 		endmethod
 
 		;;------------------------------------------------------------
-		;;Get all and expand all relations
+		;;Get all OrderItems and expand all relations
 
 		{TestMethod}
-		{TestCategory("OrderItem Tests - All")}
+		{TestCategory("OrderItem Tests - Read All")}
 		public method GetOrderItems_Expand_All, void
 		proc
 			data uri = "/odata/OrderItems?$expand=REL_OiNumberLineItem,REL_OiItemOrdered"
@@ -110,10 +110,10 @@ namespace SampleServices.Test
 		endmethod
 		
 		;;------------------------------------------------------------
-		;;Get single
+		;;Get a single OrderItem
 
 		{TestMethod}
-		{TestCategory("OrderItem Tests - Single")}
+		{TestCategory("OrderItem Tests - Read by Primary Key")}
 		public method GetOrderItem, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
@@ -125,9 +125,10 @@ namespace SampleServices.Test
 		endmethod
 
 		;;------------------------------------------------------------
-		;;Get single and expand relation REL_OiNumberLineItem
+		;;Get a single OrderItem and expand relation REL_OiNumberLineItem
+
 		{TestMethod}
-		{TestCategory("OrderItem Tests - Single")}
+		{TestCategory("OrderItem Tests - Read by Primary Key")}
 		public method GetOrderItem_Expand_REL_OiNumberLineItem, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
@@ -139,9 +140,10 @@ namespace SampleServices.Test
 		endmethod
 
 		;;------------------------------------------------------------
-		;;Get single and expand relation REL_OiItemOrdered
+		;;Get a single OrderItem and expand relation REL_OiItemOrdered
+
 		{TestMethod}
-		{TestCategory("OrderItem Tests - Single")}
+		{TestCategory("OrderItem Tests - Read by Primary Key")}
 		public method GetOrderItem_Expand_REL_OiItemOrdered, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
@@ -153,10 +155,10 @@ namespace SampleServices.Test
 		endmethod
 
 		;;------------------------------------------------------------
-		;;Get single and expand all relations
+		;;Get a single OrderItem and expand all relations
 
 		{TestMethod}
-		{TestCategory("OrderItem Tests - Single")}
+		{TestCategory("OrderItem Tests - Read by Primary Key")}
 		public method GetOrderItem_Expand_All, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
@@ -167,10 +169,11 @@ namespace SampleServices.Test
 			data orderItem, @ODataOrderItem, JsonConvert.DeserializeObject<ODataOrderItem>(result)
 		endmethod
 
-
 		;;------------------------------------------------------------
-		;;Get single by alternate key
+		;;Get a single OrderItem by alternate key 1 (OiItemOrdered)
 
+		{TestMethod}
+		{TestCategory("OrderItem Tests - Read by Alternate Key")}
 		public method GetOrderItem_ByAltKey_OiItemOrdered, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
@@ -181,6 +184,11 @@ namespace SampleServices.Test
 			data orderItem, @ODataOrderItem, JsonConvert.DeserializeObject<ODataOrderItem>(result)
 		endmethod
 
+		;;------------------------------------------------------------
+		;;Get a single OrderItem by alternate key 2 (OiShipped)
+
+		{TestMethod}
+		{TestCategory("OrderItem Tests - Read by Alternate Key")}
 		public method GetOrderItem_ByAltKey_OiShipped, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
@@ -191,6 +199,11 @@ namespace SampleServices.Test
 			data orderItem, @ODataOrderItem, JsonConvert.DeserializeObject<ODataOrderItem>(result)
 		endmethod
 
+		;;------------------------------------------------------------
+		;;Get a single OrderItem by alternate key 3 (OiInvoice)
+
+		{TestMethod}
+		{TestCategory("OrderItem Tests - Read by Alternate Key")}
 		public method GetOrderItem_ByAltKey_OiInvoice, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
@@ -202,10 +215,10 @@ namespace SampleServices.Test
 		endmethod
 
 ;		;;------------------------------------------------------------
-;		;;Create new - auto assign key
+;		;;Create a new OrderItem (auto assign key)
 ;
 ;		{TestMethod}
-;		{TestCategory("OrderItem Tests - All")}
+;		{TestCategory("OrderItem Tests - Create, Update & Delete")}
 ;		public method CreateOrderItem, void
 ;		proc
 ;			disposable data client = UnitTestEnvironment.Server.CreateClient()
@@ -216,10 +229,10 @@ namespace SampleServices.Test
 ;		endmethod
 
 ;		;;------------------------------------------------------------
-;		;;Create new - client specified key
+;		;;Create new OrderItem (client specified key)
 ;
 ;		{TestMethod}
-;		{TestCategory("OrderItem Tests - All")}
+;		{TestCategory("OrderItem Tests - Create, Update & Delete")}
 ;		public method UpdateOrderItem, void
 ;		proc
 ;			disposable data client = UnitTestEnvironment.Server.CreateClient()

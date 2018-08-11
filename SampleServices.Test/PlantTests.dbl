@@ -4,7 +4,7 @@
 ;;
 ;; Type:        Class
 ;;
-;; Description: Unit tests for the operastions defined in PlantsController.
+;; Description: Unit tests for the operations defined in PlantsController.
 ;;
 ;;*****************************************************************************
 ;; WARNING
@@ -54,10 +54,10 @@ namespace SampleServices.Test
 	public partial class PlantTests
 
 		;;------------------------------------------------------------
-		;;Get all
+		;;Get all Plants
 
 		{TestMethod}
-		{TestCategory("Plant Tests - All")}
+		{TestCategory("Plant Tests - Read All")}
 		public method GetPlants, void
 		proc
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
@@ -68,10 +68,10 @@ namespace SampleServices.Test
 		endmethod
 
 		;;------------------------------------------------------------
-		;;Get all and expand relation REL_Vendor
+		;;Get all Plants and expand relation REL_Vendor
 
 		{TestMethod}
-		{TestCategory("Plant Tests - All")}
+		{TestCategory("Plant Tests - Read All")}
 		public method GetPlants_Expand_REL_Vendor, void
 		proc
 			data uri = "/odata/Plants?$expand=REL_Vendor"
@@ -82,10 +82,10 @@ namespace SampleServices.Test
 		endmethod
 
 		;;------------------------------------------------------------
-		;;Get all and expand relation REL_Item
+		;;Get all Plants and expand relation REL_Item
 
 		{TestMethod}
-		{TestCategory("Plant Tests - All")}
+		{TestCategory("Plant Tests - Read All")}
 		public method GetPlants_Expand_REL_OrderItems, void
 		proc
 			data uri = "/odata/Plants?$expand=REL_OrderItems"
@@ -96,10 +96,10 @@ namespace SampleServices.Test
 		endmethod
 
 		;;------------------------------------------------------------
-		;;Get all and expand all relations
+		;;Get all Plants and expand all relations
 
 		{TestMethod}
-		{TestCategory("Plant Tests - All")}
+		{TestCategory("Plant Tests - Read All")}
 		public method GetPlants_Expand_All, void
 		proc
 			data uri = "/odata/Plants?$expand=REL_Vendor,REL_OrderItems"
@@ -110,10 +110,10 @@ namespace SampleServices.Test
 		endmethod
 		
 		;;------------------------------------------------------------
-		;;Get single
+		;;Get a single Plant
 
 		{TestMethod}
-		{TestCategory("Plant Tests - Single")}
+		{TestCategory("Plant Tests - Read by Primary Key")}
 		public method GetPlant, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
@@ -125,9 +125,10 @@ namespace SampleServices.Test
 		endmethod
 
 		;;------------------------------------------------------------
-		;;Get single and expand relation REL_Vendor
+		;;Get a single Plant and expand relation REL_Vendor
+
 		{TestMethod}
-		{TestCategory("Plant Tests - Single")}
+		{TestCategory("Plant Tests - Read by Primary Key")}
 		public method GetPlant_Expand_REL_Vendor, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
@@ -139,9 +140,10 @@ namespace SampleServices.Test
 		endmethod
 
 		;;------------------------------------------------------------
-		;;Get single and expand relation REL_OrderItems
+		;;Get a single Plant and expand relation REL_OrderItems
+
 		{TestMethod}
-		{TestCategory("Plant Tests - Single")}
+		{TestCategory("Plant Tests - Read by Primary Key")}
 		public method GetPlant_Expand_REL_OrderItems, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
@@ -153,10 +155,10 @@ namespace SampleServices.Test
 		endmethod
 
 		;;------------------------------------------------------------
-		;;Get single and expand all relations
+		;;Get a single Plant and expand all relations
 
 		{TestMethod}
-		{TestCategory("Plant Tests - Single")}
+		{TestCategory("Plant Tests - Read by Primary Key")}
 		public method GetPlant_Expand_All, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
@@ -167,10 +169,11 @@ namespace SampleServices.Test
 			data plant, @ODataPlant, JsonConvert.DeserializeObject<ODataPlant>(result)
 		endmethod
 
-
 		;;------------------------------------------------------------
-		;;Get single by alternate key
+		;;Get a single Plant by alternate key 1 (Vendor)
 
+		{TestMethod}
+		{TestCategory("Plant Tests - Read by Alternate Key")}
 		public method GetPlant_ByAltKey_Vendor, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
@@ -181,6 +184,11 @@ namespace SampleServices.Test
 			data plant, @ODataPlant, JsonConvert.DeserializeObject<ODataPlant>(result)
 		endmethod
 
+		;;------------------------------------------------------------
+		;;Get a single Plant by alternate key 2 (Color)
+
+		{TestMethod}
+		{TestCategory("Plant Tests - Read by Alternate Key")}
 		public method GetPlant_ByAltKey_Color, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
@@ -191,6 +199,11 @@ namespace SampleServices.Test
 			data plant, @ODataPlant, JsonConvert.DeserializeObject<ODataPlant>(result)
 		endmethod
 
+		;;------------------------------------------------------------
+		;;Get a single Plant by alternate key 3 (Size)
+
+		{TestMethod}
+		{TestCategory("Plant Tests - Read by Alternate Key")}
 		public method GetPlant_ByAltKey_Size, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
@@ -201,6 +214,11 @@ namespace SampleServices.Test
 			data plant, @ODataPlant, JsonConvert.DeserializeObject<ODataPlant>(result)
 		endmethod
 
+		;;------------------------------------------------------------
+		;;Get a single Plant by alternate key 4 (Name)
+
+		{TestMethod}
+		{TestCategory("Plant Tests - Read by Alternate Key")}
 		public method GetPlant_ByAltKey_Name, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
@@ -212,10 +230,10 @@ namespace SampleServices.Test
 		endmethod
 
 ;		;;------------------------------------------------------------
-;		;;Create new - auto assign key
+;		;;Create a new Plant (auto assign key)
 ;
 ;		{TestMethod}
-;		{TestCategory("Plant Tests - All")}
+;		{TestCategory("Plant Tests - Create, Update & Delete")}
 ;		public method CreatePlant, void
 ;		proc
 ;			disposable data client = UnitTestEnvironment.Server.CreateClient()
@@ -226,10 +244,10 @@ namespace SampleServices.Test
 ;		endmethod
 
 ;		;;------------------------------------------------------------
-;		;;Create new - client specified key
+;		;;Create new Plant (client specified key)
 ;
 ;		{TestMethod}
-;		{TestCategory("Plant Tests - All")}
+;		{TestCategory("Plant Tests - Create, Update & Delete")}
 ;		public method UpdatePlant, void
 ;		proc
 ;			disposable data client = UnitTestEnvironment.Server.CreateClient()

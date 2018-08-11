@@ -4,7 +4,7 @@
 ;;
 ;; Type:        Class
 ;;
-;; Description: Unit tests for the operastions defined in OrdersController.
+;; Description: Unit tests for the operations defined in OrdersController.
 ;;
 ;;*****************************************************************************
 ;; WARNING
@@ -54,10 +54,10 @@ namespace SampleServices.Test
 	public partial class OrderTests
 
 		;;------------------------------------------------------------
-		;;Get all
+		;;Get all Orders
 
 		{TestMethod}
-		{TestCategory("Order Tests - All")}
+		{TestCategory("Order Tests - Read All")}
 		public method GetOrders, void
 		proc
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
@@ -68,10 +68,10 @@ namespace SampleServices.Test
 		endmethod
 
 		;;------------------------------------------------------------
-		;;Get all and expand relation REL_OrNumber
+		;;Get all Orders and expand relation REL_OrNumber
 
 		{TestMethod}
-		{TestCategory("Order Tests - All")}
+		{TestCategory("Order Tests - Read All")}
 		public method GetOrders_Expand_REL_OrderItems, void
 		proc
 			data uri = "/odata/Orders?$expand=REL_OrderItems"
@@ -82,10 +82,10 @@ namespace SampleServices.Test
 		endmethod
 
 		;;------------------------------------------------------------
-		;;Get all and expand relation REL_OrCustomer
+		;;Get all Orders and expand relation REL_OrCustomer
 
 		{TestMethod}
-		{TestCategory("Order Tests - All")}
+		{TestCategory("Order Tests - Read All")}
 		public method GetOrders_Expand_REL_OrCustomer, void
 		proc
 			data uri = "/odata/Orders?$expand=REL_OrCustomer"
@@ -96,10 +96,10 @@ namespace SampleServices.Test
 		endmethod
 
 		;;------------------------------------------------------------
-		;;Get all and expand all relations
+		;;Get all Orders and expand all relations
 
 		{TestMethod}
-		{TestCategory("Order Tests - All")}
+		{TestCategory("Order Tests - Read All")}
 		public method GetOrders_Expand_All, void
 		proc
 			data uri = "/odata/Orders?$expand=REL_OrderItems,REL_OrCustomer"
@@ -110,10 +110,10 @@ namespace SampleServices.Test
 		endmethod
 		
 		;;------------------------------------------------------------
-		;;Get single
+		;;Get a single Order
 
 		{TestMethod}
-		{TestCategory("Order Tests - Single")}
+		{TestCategory("Order Tests - Read by Primary Key")}
 		public method GetOrder, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
@@ -125,9 +125,10 @@ namespace SampleServices.Test
 		endmethod
 
 		;;------------------------------------------------------------
-		;;Get single and expand relation REL_OrderItems
+		;;Get a single Order and expand relation REL_OrderItems
+
 		{TestMethod}
-		{TestCategory("Order Tests - Single")}
+		{TestCategory("Order Tests - Read by Primary Key")}
 		public method GetOrder_Expand_REL_OrderItems, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
@@ -139,9 +140,10 @@ namespace SampleServices.Test
 		endmethod
 
 		;;------------------------------------------------------------
-		;;Get single and expand relation REL_OrCustomer
+		;;Get a single Order and expand relation REL_OrCustomer
+
 		{TestMethod}
-		{TestCategory("Order Tests - Single")}
+		{TestCategory("Order Tests - Read by Primary Key")}
 		public method GetOrder_Expand_REL_OrCustomer, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
@@ -153,10 +155,10 @@ namespace SampleServices.Test
 		endmethod
 
 		;;------------------------------------------------------------
-		;;Get single and expand all relations
+		;;Get a single Order and expand all relations
 
 		{TestMethod}
-		{TestCategory("Order Tests - Single")}
+		{TestCategory("Order Tests - Read by Primary Key")}
 		public method GetOrder_Expand_All, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
@@ -167,10 +169,11 @@ namespace SampleServices.Test
 			data order, @ODataOrder, JsonConvert.DeserializeObject<ODataOrder>(result)
 		endmethod
 
-
 		;;------------------------------------------------------------
-		;;Get single by alternate key
+		;;Get a single Order by alternate key 1 (OrCustomer)
 
+		{TestMethod}
+		{TestCategory("Order Tests - Read by Alternate Key")}
 		public method GetOrder_ByAltKey_OrCustomer, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
@@ -181,6 +184,11 @@ namespace SampleServices.Test
 			data order, @ODataOrder, JsonConvert.DeserializeObject<ODataOrder>(result)
 		endmethod
 
+		;;------------------------------------------------------------
+		;;Get a single Order by alternate key 2 (OrOrdered)
+
+		{TestMethod}
+		{TestCategory("Order Tests - Read by Alternate Key")}
 		public method GetOrder_ByAltKey_OrOrdered, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
@@ -191,6 +199,11 @@ namespace SampleServices.Test
 			data order, @ODataOrder, JsonConvert.DeserializeObject<ODataOrder>(result)
 		endmethod
 
+		;;------------------------------------------------------------
+		;;Get a single Order by alternate key 3 (OrCompleted)
+
+		{TestMethod}
+		{TestCategory("Order Tests - Read by Alternate Key")}
 		public method GetOrder_ByAltKey_OrCompleted, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
@@ -202,10 +215,10 @@ namespace SampleServices.Test
 		endmethod
 
 ;		;;------------------------------------------------------------
-;		;;Create new - auto assign key
+;		;;Create a new Order (auto assign key)
 ;
 ;		{TestMethod}
-;		{TestCategory("Order Tests - All")}
+;		{TestCategory("Order Tests - Create, Update & Delete")}
 ;		public method CreateOrder, void
 ;		proc
 ;			disposable data client = UnitTestEnvironment.Server.CreateClient()
@@ -216,10 +229,10 @@ namespace SampleServices.Test
 ;		endmethod
 
 ;		;;------------------------------------------------------------
-;		;;Create new - client specified key
+;		;;Create new Order (client specified key)
 ;
 ;		{TestMethod}
-;		{TestCategory("Order Tests - All")}
+;		{TestCategory("Order Tests - Create, Update & Delete")}
 ;		public method UpdateOrder, void
 ;		proc
 ;			disposable data client = UnitTestEnvironment.Server.CreateClient()

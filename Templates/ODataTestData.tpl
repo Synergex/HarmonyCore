@@ -43,12 +43,6 @@
 ;;              data into unit tests.
 ;;
 ;;*****************************************************************************
-;; WARNING
-;;
-;; This file was code generated. Avoid editing this file, as any changes that
-;; you make will be lost of the file is re-generated.
-;;
-;;*****************************************************************************
 ;;
 ;; Copyright (c) 2018, Synergex International, Inc.
 ;; All rights reserved.

@@ -40,7 +40,7 @@
 ;;
 ;; Type:        Class
 ;;
-;; Description: Unit tests for the operastions defined in <StructurePlural>Controller.
+;; Description: Unit tests for the operations defined in <StructurePlural>Controller.
 ;;
 ;;*****************************************************************************
 ;; WARNING
@@ -90,10 +90,10 @@ namespace <NAMESPACE>
 	public partial class <StructureNoplural>Tests
 
 		;;------------------------------------------------------------
-		;;Get all
+		;;Get all <StructurePlural>
 
 		{TestMethod}
-		{TestCategory("<StructureNoplural> Tests - All")}
+		{TestCategory("<StructureNoplural> Tests - Read All")}
 		public method Get<StructurePlural>, void
 		proc
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
@@ -109,10 +109,10 @@ namespace <NAMESPACE>
 <IF STRUCTURE_RELATIONS>
 	<RELATION_LOOP>
 		;;------------------------------------------------------------
-		;;Get all and expand relation REL_<RelationFromkey>
+		;;Get all <StructurePlural> and expand relation REL_<RelationFromkey>
 
 		{TestMethod}
-		{TestCategory("<StructureNoplural> Tests - All")}
+		{TestCategory("<StructureNoplural> Tests - Read All")}
 		<IF MANY_TO_ONE_TO_MANY>
 		public method Get<StructurePlural>_Expand_REL_<RelationFromkey>, void
 		proc
@@ -144,10 +144,10 @@ namespace <NAMESPACE>
 
 	</RELATION_LOOP>
 		;;------------------------------------------------------------
-		;;Get all and expand all relations
+		;;Get all <StructurePlural> and expand all relations
 
 		{TestMethod}
-		{TestCategory("<StructureNoplural> Tests - All")}
+		{TestCategory("<StructureNoplural> Tests - Read All")}
 		public method Get<StructurePlural>_Expand_All, void
 		proc
 			data uri = "/odata/<StructurePlural>?$expand=<RELATION_LOOP><IF MANY_TO_ONE_TO_MANY>REL_<RelationFromkey></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationFromkey></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY><,></RELATION_LOOP>"
@@ -162,10 +162,10 @@ namespace <NAMESPACE>
 		
 </IF STRUCTURE_RELATIONS>
 		;;------------------------------------------------------------
-		;;Get single
+		;;Get a single <StructureNoplural>
 
 		{TestMethod}
-		{TestCategory("<StructureNoplural> Tests - Single")}
+		{TestCategory("<StructureNoplural> Tests - Read by Primary Key")}
 		public method Get<StructureNoplural>, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
@@ -182,10 +182,11 @@ namespace <NAMESPACE>
 <IF STRUCTURE_RELATIONS>
 	<RELATION_LOOP>
 		;;------------------------------------------------------------
-		;;Get single and expand relation <IF MANY_TO_ONE_TO_MANY>REL_<RelationFromkey></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationFromkey></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY>
+		;;Get a single <StructureNoplural> and expand relation <IF MANY_TO_ONE_TO_MANY>REL_<RelationFromkey></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationFromkey></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY>
+
 
 		{TestMethod}
-		{TestCategory("<StructureNoplural> Tests - Single")}
+		{TestCategory("<StructureNoplural> Tests - Read by Primary Key")}
 		public method Get<StructureNoplural>_Expand_<IF MANY_TO_ONE_TO_MANY>REL_<RelationFromkey></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationFromkey></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY>, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
@@ -201,10 +202,10 @@ namespace <NAMESPACE>
 
 	</RELATION_LOOP>
 		;;------------------------------------------------------------
-		;;Get single and expand all relations
+		;;Get a single <StructureNoplural> and expand all relations
 
 		{TestMethod}
-		{TestCategory("<StructureNoplural> Tests - Single")}
+		{TestCategory("<StructureNoplural> Tests - Read by Primary Key")}
 		public method Get<StructureNoplural>_Expand_All, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
@@ -219,11 +220,12 @@ namespace <NAMESPACE>
 		endmethod
 
 </IF STRUCTURE_RELATIONS>
-
-		;;------------------------------------------------------------
-		;;Get single by alternate key
-
 <ALTERNATE_KEY_LOOP>
+		;;------------------------------------------------------------
+		;;Get a single <StructureNoplural> by alternate key <KEY_NUMBER> (<KeyName>)
+
+		{TestMethod}
+		{TestCategory("<StructureNoplural> Tests - Read by Alternate Key")}
 		public method Get<StructureNoplural>_ByAltKey_<KeyName>, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
@@ -239,10 +241,10 @@ namespace <NAMESPACE>
 
 </ALTERNATE_KEY_LOOP>
 ;		;;------------------------------------------------------------
-;		;;Create new - auto assign key
+;		;;Create a new <StructureNoplural> (auto assign key)
 ;
 ;		{TestMethod}
-;		{TestCategory("<StructureNoplural> Tests - All")}
+;		{TestCategory("<StructureNoplural> Tests - Create, Update & Delete")}
 ;		public method Create<StructureNoplural>, void
 ;		proc
 ;			disposable data client = UnitTestEnvironment.Server.CreateClient()
@@ -256,10 +258,10 @@ namespace <NAMESPACE>
 ;		endmethod
 
 ;		;;------------------------------------------------------------
-;		;;Create new - client specified key
+;		;;Create new <StructureNoplural> (client specified key)
 ;
 ;		{TestMethod}
-;		{TestCategory("<StructureNoplural> Tests - All")}
+;		{TestCategory("<StructureNoplural> Tests - Create, Update & Delete")}
 ;		public method Update<StructureNoplural>, void
 ;		proc
 ;			disposable data client = UnitTestEnvironment.Server.CreateClient()
