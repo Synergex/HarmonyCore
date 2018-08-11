@@ -53,29 +53,8 @@ namespace SampleServices.Test
 	{TestClass}
 	public partial class PlantTests
 
-		{TestMethod}
-		{TestCategory("Plant Tests - Single")}
-		public method GetPlant, void
-		proc
-			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Plants({0})", TestContext.PlantID)
-			data response = client.GetAsync(request).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data plant, @ODataPlant, JsonConvert.DeserializeObject<ODataPlant>(result)
-		endmethod
-
-		{TestMethod}
-		{TestCategory("Plant Tests - Single")}
-		public method GetPlant_Expand_All, void
-		proc
-			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Plants({0})?$expand=REL_Vendor,REL_OrderItems", TestContext.PlantID)
-			data response = client.GetAsync(request).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data plant, @ODataPlant, JsonConvert.DeserializeObject<ODataPlant>(result)
-		endmethod
+		;;------------------------------------------------------------
+		;;Get all
 
 		{TestMethod}
 		{TestCategory("Plant Tests - All")}
@@ -87,7 +66,10 @@ namespace SampleServices.Test
 			response.EnsureSuccessStatusCode()
 			data plants, @ODataPlants, JsonConvert.DeserializeObject<ODataPlants>(result)
 		endmethod
-	
+
+		;;------------------------------------------------------------
+		;;Get all and expand relation REL_Vendor
+
 		{TestMethod}
 		{TestCategory("Plant Tests - All")}
 		public method GetPlants_Expand_REL_Vendor, void
@@ -98,6 +80,9 @@ namespace SampleServices.Test
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 		endmethod
+
+		;;------------------------------------------------------------
+		;;Get all and expand relation REL_Item
 
 		{TestMethod}
 		{TestCategory("Plant Tests - All")}
@@ -110,9 +95,11 @@ namespace SampleServices.Test
 			response.EnsureSuccessStatusCode()
 		endmethod
 
+		;;------------------------------------------------------------
+		;;Get all and expand all relations
+
 		{TestMethod}
 		{TestCategory("Plant Tests - All")}
-		
 		public method GetPlants_Expand_All, void
 		proc
 			data uri = "/odata/Plants?$expand=REL_Vendor,REL_OrderItems"
@@ -122,46 +109,111 @@ namespace SampleServices.Test
 			response.EnsureSuccessStatusCode()
 		endmethod
 		
-		public method GetByKeyVendor, void
+		;;------------------------------------------------------------
+		;;Get single
+
+		{TestMethod}
+		{TestCategory("Plant Tests - Single")}
+		public method GetPlant, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Plants(InSource={1})", "", TestContext.PlantInSource)
+			data request = String.Format("/odata/Plants(InItemid={1})","",TestContext.GetPlant_InItemid)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 			data plant, @ODataPlant, JsonConvert.DeserializeObject<ODataPlant>(result)
 		endmethod
 
-		public method GetByKeyColor, void
+		;;------------------------------------------------------------
+		;;Get single and expand relation REL_Vendor
+		{TestMethod}
+		{TestCategory("Plant Tests - Single")}
+		public method GetPlant_Expand_REL_Vendor, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Plants(InColor='{1}')", "", TestContext.PlantInColor)
+			data request = String.Format("/odata/Plants(InItemid={1})?$expand=REL_Vendor","",TestContext.GetPlant_Expand_REL_Vendor_InItemid)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 			data plant, @ODataPlant, JsonConvert.DeserializeObject<ODataPlant>(result)
 		endmethod
 
-		public method GetByKeySize, void
+		;;------------------------------------------------------------
+		;;Get single and expand relation REL_OrderItems
+		{TestMethod}
+		{TestCategory("Plant Tests - Single")}
+		public method GetPlant_Expand_REL_OrderItems, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Plants(InSize={1})", "", TestContext.PlantInSize)
+			data request = String.Format("/odata/Plants(InItemid={1})?$expand=REL_OrderItems","",TestContext.GetPlant_Expand_REL_OrderItems_InItemid)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 			data plant, @ODataPlant, JsonConvert.DeserializeObject<ODataPlant>(result)
 		endmethod
 
-		public method GetByKeyName, void
+		;;------------------------------------------------------------
+		;;Get single and expand all relations
+
+		{TestMethod}
+		{TestCategory("Plant Tests - Single")}
+		public method GetPlant_Expand_All, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Plants(InName='{1}')", "", TestContext.PlantInName)
+			data request = String.Format("/odata/Plants(InItemid={1})?$expand=REL_Vendor,REL_OrderItems","",TestContext.GetPlant_Expand_All_InItemid)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 			data plant, @ODataPlant, JsonConvert.DeserializeObject<ODataPlant>(result)
 		endmethod
 
+
+		;;------------------------------------------------------------
+		;;Get single by alternate key
+
+		public method GetPlant_ByAltKey_Vendor, void
+		proc
+			data client = UnitTestEnvironment.Server.CreateClient()
+			data request = String.Format("/odata/Plants(InSource={1})", "", TestContext.GetPlant_ByAltKey_Vendor_InSource)
+			data response = client.GetAsync(request).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data plant, @ODataPlant, JsonConvert.DeserializeObject<ODataPlant>(result)
+		endmethod
+
+		public method GetPlant_ByAltKey_Color, void
+		proc
+			data client = UnitTestEnvironment.Server.CreateClient()
+			data request = String.Format("/odata/Plants(InColor='{1}')", "", TestContext.GetPlant_ByAltKey_Color_InColor)
+			data response = client.GetAsync(request).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data plant, @ODataPlant, JsonConvert.DeserializeObject<ODataPlant>(result)
+		endmethod
+
+		public method GetPlant_ByAltKey_Size, void
+		proc
+			data client = UnitTestEnvironment.Server.CreateClient()
+			data request = String.Format("/odata/Plants(InSize={1})", "", TestContext.GetPlant_ByAltKey_Size_InSize)
+			data response = client.GetAsync(request).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data plant, @ODataPlant, JsonConvert.DeserializeObject<ODataPlant>(result)
+		endmethod
+
+		public method GetPlant_ByAltKey_Name, void
+		proc
+			data client = UnitTestEnvironment.Server.CreateClient()
+			data request = String.Format("/odata/Plants(InName='{1}')", "", TestContext.GetPlant_ByAltKey_Name_InName)
+			data response = client.GetAsync(request).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data plant, @ODataPlant, JsonConvert.DeserializeObject<ODataPlant>(result)
+		endmethod
+
+;		;;------------------------------------------------------------
+;		;;Create new - auto assign key
+;
 ;		{TestMethod}
 ;		{TestCategory("Plant Tests - All")}
 ;		public method CreatePlant, void
@@ -173,6 +225,9 @@ namespace SampleServices.Test
 ;			response.EnsureSuccessStatusCode()
 ;		endmethod
 
+;		;;------------------------------------------------------------
+;		;;Create new - client specified key
+;
 ;		{TestMethod}
 ;		{TestCategory("Plant Tests - All")}
 ;		public method UpdatePlant, void

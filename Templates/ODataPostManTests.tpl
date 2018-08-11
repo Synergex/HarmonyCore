@@ -1,9 +1,10 @@
-<CODEGEN_FILENAME>HarmonyCoreSampleTests.postman_collection.json</CODEGEN_FILENAME>
+<CODEGEN_FILENAME>PostManTests.postman_collection.json</CODEGEN_FILENAME>
+<OPTIONAL_USERTOKEN>TITLE=Tests</OPTIONAL_USERTOKEN>
 <REQUIRES_CODEGEN_VERSION>5.3.5</REQUIRES_CODEGEN_VERSION>
 {
 	"info": {
 		"_postman_id": "<guid_nobrace>",
-		"name": "Harmony Core Sample Tests",
+		"name": "<TITLE>",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -57,8 +58,9 @@
 						"mode": "raw",
 						"raw": ""
 					},
+<PRIMARY_KEY>
 					"url": {
-						"raw": "http://localhost:5000/odata/<StructurePlural>({{Existing<StructureNoplural>ID}})",
+						"raw": "http://localhost:5000/odata/<StructurePlural>(<SEGMENT_LOOP>{{Existing<StructureNoplural>_<SegmentName>}}<,></SEGMENT_LOOP>)",
 						"protocol": "http",
 						"host": [
 							"localhost"
@@ -66,9 +68,10 @@
 						"port": "5000",
 						"path": [
 							"odata",
-							"<StructurePlural>({{Existing<StructureNoplural>ID}})"
+							"<StructurePlural>(<SEGMENT_LOOP>{{Existing<StructureNoplural>_<SegmentName>}}<,></SEGMENT_LOOP>)"
 						]
 					}
+</PRIMARY_KEY>
 					},
 					"response": []
 				},
