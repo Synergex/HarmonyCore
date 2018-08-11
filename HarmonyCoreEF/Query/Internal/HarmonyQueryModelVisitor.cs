@@ -111,6 +111,25 @@ namespace Harmony.Core.EF.Query.Internal
             this.TryOptimizeCorrelatedCollections(queryModel);
             this.CurrentParameter = Expression.Parameter(MainQueryType, queryModel.MainFromClause.ItemName);
 
+            var aliasMapping = new Dictionary<IQuerySource, IQuerySource>();
+            foreach (var bodyClause in queryModel.BodyClauses)
+            {
+                var groupJoin = bodyClause as GroupJoinClause;
+                var additionalFrom = bodyClause as AdditionalFromClause;
+                if (groupJoin != null && groupJoin.ItemName != groupJoin.JoinClause.ItemName)
+                {
+                    if (!aliasMapping.ContainsKey(groupJoin))
+                        aliasMapping.Add(groupJoin, groupJoin.JoinClause);
+                }
+
+                if (additionalFrom != null)
+                {
+                    var flatGroupJoin = additionalFrom.TryGetFlattenedGroupJoinClause();
+                    if (flatGroupJoin != null && aliasMapping.ContainsKey(flatGroupJoin))
+                        aliasMapping.Add(additionalFrom, flatGroupJoin.JoinClause);
+                }
+            }
+
             Type resultTypeParameter = queryModel.ResultTypeOverride.ForceSequenceType();
 
             if (!(from ro in queryModel.ResultOperators
@@ -124,7 +143,7 @@ namespace Harmony.Core.EF.Query.Internal
                   }))
             {
                 
-                var subQueryVisitor = new SubQueryRewriter { QueryModel = queryModel, Parent = this, QuerySourceMapping = QueryCompilationContext.QuerySourceMapping };
+                var subQueryVisitor = new SubQueryRewriter { QueryModel = queryModel, Parent = this, QuerySourceMapping = QueryCompilationContext.QuerySourceMapping, QuerySourceAliases = aliasMapping };
                 //Expression expression = selectorRewriter.Visit(queryModel.SelectClause.Selector);
                 var selector = subQueryVisitor.Visit(queryModel.SelectClause.Selector);
                 QueryPlan = QueryModelVisitor.PrepareQuery(queryModel, ProcessWeirdJoin, out var querySourceBuffer);
@@ -151,7 +170,21 @@ namespace Harmony.Core.EF.Query.Internal
                         }
                     }
                 }
-                
+
+                foreach (var queryAlias in aliasMapping)
+                {
+                    if (QueryCompilationContext.QuerySourceMapping.ContainsMapping(queryAlias.Value))
+                    {
+                        if (!QueryCompilationContext.QuerySourceMapping.ContainsMapping(queryAlias.Key))
+                        {
+                            QueryCompilationContext.QuerySourceMapping.AddMapping(queryAlias.Key, QueryCompilationContext.QuerySourceMapping.GetExpression(queryAlias.Value));
+                        }
+                        else
+                        {
+                            QueryCompilationContext.QuerySourceMapping.ReplaceMapping(queryAlias.Key, QueryCompilationContext.QuerySourceMapping.GetExpression(queryAlias.Value));
+                        }
+                    }
+                }
                 var expression = memberAccessVisitor.Visit(selector);
                 Expression expression2 = expression;
                 TaskLiftingExpressionVisitor taskLiftingExpressionVisitor = new TaskLiftingExpressionVisitor();
@@ -175,6 +208,7 @@ namespace Harmony.Core.EF.Query.Internal
 
         public class SubQueryRewriter : System.Linq.Expressions.ExpressionVisitor
         {
+            public Dictionary<IQuerySource, IQuerySource> QuerySourceAliases;
             public QuerySourceMapping QuerySourceMapping;
             public HarmonyQueryModelVisitor Parent;
             public QueryModel QueryModel;
@@ -221,13 +255,31 @@ namespace Harmony.Core.EF.Query.Internal
                     Expression resultExpression = (propValue.Type.GetGenericTypeDefinition() == typeof(ICollection<>)) ? 
                         Expression.Condition(Expression.Equal(propValue, Expression.Constant(null)), Expression.Convert(Expression.New(typeof(List<>).MakeGenericType(new Type[] { resultExpressionElementType })), propValue.Type), propValue) : 
                         (Expression)propValue;
-                    
+
+                    foreach (var bodyClause in queryModel.BodyClauses)
+                    {
+                        var groupJoin = bodyClause as GroupJoinClause;
+                        var additionalFrom = bodyClause as AdditionalFromClause;
+                        if (groupJoin != null && groupJoin.ItemName != groupJoin.JoinClause.ItemName)
+                        {
+                            if (!QuerySourceAliases.ContainsKey(groupJoin))
+                                QuerySourceAliases.Add(groupJoin, groupJoin.JoinClause);
+                        }
+
+                        if (additionalFrom != null)
+                        {
+                            var flatGroupJoin = additionalFrom.TryGetFlattenedGroupJoinClause();
+                            if (flatGroupJoin != null && QuerySourceAliases.ContainsKey(flatGroupJoin))
+                                QuerySourceAliases.Add(additionalFrom, flatGroupJoin.JoinClause);
+                        }
+                    }
+
                     Type resultTypeParameter = queryModel.ResultTypeOverride.ForceSequenceType();
                     var currentParameter = Expression.Parameter(resultExpressionElementType);
                     if(Source != null && Source.ReferencedQuerySource.ItemType == Parent.CurrentParameter.Type && !QuerySourceMapping.ContainsMapping(Source.ReferencedQuerySource))
                         QuerySourceMapping.AddMapping(Source.ReferencedQuerySource, Parent.CurrentParameter);
 
-                    if (!QuerySourceMapping.ContainsMapping(queryModel.MainFromClause))
+                    if (!QuerySourceMapping.ContainsMapping(queryModel.MainFromClause) && queryModel.MainFromClause.ItemType == currentParameter.Type)
                         QuerySourceMapping.AddMapping(queryModel.MainFromClause, currentParameter);
 
                     if (!(from ro in queryModel.ResultOperators
@@ -241,11 +293,27 @@ namespace Harmony.Core.EF.Query.Internal
                           }))
                     {
 
-                        var subQueryVisitor = new SubQueryRewriter { QueryModel = queryModel, Parent = Parent, QuerySourceMapping = QuerySourceMapping };
+                        var subQueryVisitor = new SubQueryRewriter { QueryModel = queryModel, Parent = Parent, QuerySourceMapping = QuerySourceMapping, QuerySourceAliases = QuerySourceAliases };
                         //Expression expression = selectorRewriter.Visit(queryModel.SelectClause.Selector);
                         var selector = subQueryVisitor.Visit(queryModel.SelectClause.Selector);
                         var memberAccessVisitor = new MemberAccessBindingExpressionVisitor(QuerySourceMapping, Parent, false);
                         // querySourceMapping.AddMapping(kvp.Key, propertyNode);
+
+                        foreach (var queryAlias in QuerySourceAliases)
+                        {
+                            if (QuerySourceMapping.ContainsMapping(queryAlias.Value))
+                            {
+                                if (!QuerySourceMapping.ContainsMapping(queryAlias.Key))
+                                {
+                                    QuerySourceMapping.AddMapping(queryAlias.Key, QuerySourceMapping.GetExpression(queryAlias.Value));
+                                }
+                                else
+                                {
+                                    QuerySourceMapping.ReplaceMapping(queryAlias.Key, QuerySourceMapping.GetExpression(queryAlias.Value));
+                                }
+                            }
+                        }
+
 
                         var expression = memberAccessVisitor.Visit(selector);
                         Expression expression2 = expression;

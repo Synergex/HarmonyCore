@@ -280,11 +280,11 @@ namespace Harmony.Core.FileIO.Queryable
 				begin
 					currentJoin = madeJoin
 				end
-				else if(fromItem.IsInnerJoin) then
+				else if(fromItem.IsInnerJoin && fromItem.JoinOn != ^null) then
 				begin
 					currentJoin = currentJoin.InnerJoin(madeJoin, OnObject(queryBuf, fromItem))
 				end
-				else
+				else if(fromItem.JoinOn != ^null)
 				begin
 					currentJoin = currentJoin.LeftJoin(madeJoin, OnObject(queryBuf, fromItem))
 				end
@@ -360,27 +360,32 @@ namespace Harmony.Core.FileIO.Queryable
 						throw new NotImplementedException()
 					if(rFieldDef.DataType == FieldDataType.TagLiteral) then
 					begin
-						values.Add(lFieldDef.LanguageName, rFieldDef.TagValue)
+						if(!values.ContainsKey(lFieldDef.LanguageName))
+							values.Add(lFieldDef.LanguageName, rFieldDef.TagValue)
 					end
 					else
 					begin
-						values.Add(rFieldDef.LanguageName, lFieldDef.TagValue)
+						if(!values.ContainsKey(rFieldDef.LanguageName))
+							values.Add(rFieldDef.LanguageName, lFieldDef.TagValue)
 					end
 				end
 				else if(right .is. @ParameterReference) then
 				begin
-					values.Add(((@FieldReference)left).FieldDef.LanguageName, params[((@ParameterReference)right).Name])
+					if(!values.ContainsKey(((@FieldReference)left).FieldDef.LanguageName))
+						values.Add(((@FieldReference)left).FieldDef.LanguageName, params[((@ParameterReference)right).Name])
 				end
 				else
 				begin
-					values.Add(((@FieldReference)left).FieldDef.LanguageName, right)
+					if(!values.ContainsKey(((@FieldReference)left).FieldDef.LanguageName))
+						values.Add(((@FieldReference)left).FieldDef.LanguageName, right)
 				end
 			end
 			else if(left .is. @ParameterReference) then
 			begin
 				if(right .is. @FieldReference) then
 				begin
-					values.Add(((@FieldReference)right).FieldDef.LanguageName, params[((@ParameterReference)left).Name])
+					if(!values.ContainsKey(((@FieldReference)right).FieldDef.LanguageName))
+						values.Add(((@FieldReference)right).FieldDef.LanguageName, params[((@ParameterReference)left).Name])
 				end
 				else
 				begin
@@ -391,7 +396,8 @@ namespace Harmony.Core.FileIO.Queryable
 			begin
 				if(right .is. @FieldReference) then
 				begin
-					values.Add(((@FieldReference)right).FieldDef.LanguageName, left)
+					if(!values.ContainsKey(((@FieldReference)right).FieldDef.LanguageName))
+						values.Add(((@FieldReference)right).FieldDef.LanguageName, left)
 				end
 				else
 				begin

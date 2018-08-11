@@ -107,11 +107,13 @@ namespace Harmony.Core.FileIO.Queryable
 					querySourceFinder.Visit(groupClause.JoinClause.InnerKeySelector)
 					querySourceFinder.Visit(groupClause.JoinClause.OuterKeySelector)
 				end
-				else if(bodyClause .is. IQuerySource)
+				else if(bodyClause .is. IQuerySource) then
 				begin
 					querySourceFinder.QuerySources.Add((@IQuerySource)bodyClause)
 				end
-
+				else if(bodyClause .is. AdditionalFromClause)
+				begin
+				end
 				if(bodyClause .is. WhereClause) then
 				begin
 					data wClause, @WhereClause, (@WhereClause)bodyClause
@@ -307,6 +309,7 @@ namespace Harmony.Core.FileIO.Queryable
 			model.Accept(modelVisitor)
 			querySourceBufferMap = modelVisitor.mQuerySourceMapping
 			data isCollection = !model.ResultOperators.Any(lambda (op) { op.GetType() == ^typeof(Remotion.Linq.Clauses.ResultOperators.FirstResultOperator) })
+
 			mreturn new PreparedQueryPlan(isCollection, modelVisitor.mWhereParts, modelVisitor.mOnParts, modelVisitor.mOrderBy, new QueryBuffer(modelVisitor.mTypeBuffers))
 		endmethod
 
