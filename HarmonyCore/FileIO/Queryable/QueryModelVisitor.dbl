@@ -89,20 +89,50 @@ namespace Harmony.Core.FileIO.Queryable
 		proc
 			data querySourceFinder = new QuerySourceVisitor()
 			querySourceFinder.QuerySources.Add(fromClause)
-			querySourceFinder.QuerySources.AddRange(queryModel.BodyClauses.OfType<IQuerySource>())
-			data whereClauses = queryModel.BodyClauses.OfType<WhereClause>()
-			data clause, @WhereClause
-			foreach clause in whereClauses
+			data bodyClause, @IBodyClause
+			foreach bodyClause in queryModel.BodyClauses
 			begin
-				querySourceFinder.Visit(clause.Predicate)
-			end
+				if(bodyClause .is. GroupJoinClause) then
+				begin
+					data groupClause, @GroupJoinClause, (@GroupJoinClause)bodyClause
+					;;this is a hack to recognize the special join clauses we inject for includes
+					if(groupClause.ItemName == groupClause.JoinClause.ItemName) then
+					begin
+						querySourceFinder.QuerySources.Add((@IQuerySource)bodyClause)
+					end
+					else
+					begin
+						querySourceFinder.QuerySources.Add(groupClause.JoinClause)
+					end
+					querySourceFinder.Visit(groupClause.JoinClause.InnerKeySelector)
+					querySourceFinder.Visit(groupClause.JoinClause.OuterKeySelector)
+				end
+				else if(bodyClause .is. IQuerySource)
+				begin
+					querySourceFinder.QuerySources.Add((@IQuerySource)bodyClause)
+				end
 
+				if(bodyClause .is. WhereClause) then
+				begin
+					data wClause, @WhereClause, (@WhereClause)bodyClause
+					querySourceFinder.Visit(wClause.Predicate)
+				end
+				else if(bodyClause .is. JoinClause)
+				begin
+					data joinClause, @JoinClause, (@JoinClause)bodyClause
+					querySourceFinder.Visit(joinClause.InnerKeySelector)
+					querySourceFinder.Visit(joinClause.OuterKeySelector)
+				end
+			end
 			data querySource, @IQuerySource
 			foreach querySource in querySourceFinder.QuerySources
 			begin
 				if(^typeof(DataObjectBase).IsAssignableFrom(querySource.ItemType) ||
 				&	(querySource.ItemType.IsGenericType && ^typeof(DataObjectBase).IsAssignableFrom(querySource.ItemType.GenericTypeArguments.First())))
 				begin
+					if(mQuerySourceMapping.ContainsKey(querySource))
+						nextloop
+
 					data itemType = querySource.ItemType.IsGenericType ? querySource.ItemType.GenericTypeArguments.First() : querySource.ItemType
 					data typeBuffer = MakeTypeBuffer(querySource, itemType)
 					mQuerySourceMapping.Add(querySource, mTypeBuffers.Count)
@@ -111,7 +141,7 @@ namespace Harmony.Core.FileIO.Queryable
 				end
 			end
 
-			mWhereBuilder = new WhereExpressionBuilder(true, querySourceFinder.QuerySources)
+			mWhereBuilder = new WhereExpressionBuilder(true, mQuerySourceMapping.Keys.ToList())
 		endmethod
 		
 		public override method VisitAdditionalFromClause, void 
