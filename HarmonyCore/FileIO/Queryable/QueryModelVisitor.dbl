@@ -176,7 +176,10 @@ namespace Harmony.Core.FileIO.Queryable
 			queryModel, @QueryModel
 			groupJoinClause, @GroupJoinClause 
 		proc
-			VisitJoinClauseInternal(groupJoinClause, joinClause.OuterKeySelector, joinClause.InnerKeySelector, queryModel, false)
+			if(groupJoinClause.ItemName == groupJoinClause.JoinClause.ItemName) then
+				VisitJoinClauseInternal(groupJoinClause, joinClause.OuterKeySelector, joinClause.InnerKeySelector, queryModel, false)
+			else
+				VisitJoinClauseInternal(groupJoinClause.JoinClause, joinClause.OuterKeySelector, joinClause.InnerKeySelector, queryModel, false)
 		endmethod
 
 		private static DotArray, [#]char
