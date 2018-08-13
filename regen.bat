@@ -19,7 +19,8 @@ rem Generate model classes
 codegen -s %STRUCTURES%     -t ODataModel -n %PROJECT%.Models -o %PROJECT%\Models %OPTS%
 
 rem Generate controller classes
-codegen -s %STRUCTURES%     -t ODataController -n %PROJECT%.Controllers -o %PROJECT%\Controllers %OPTS% -ut MODELS_NAMESPACE=%PROJECT%.Models DBCONTEXT_NAMESPACE=%PROJECT% %DO_AUTHENTICATION%
+codegen -s %STRUCTURES%     -t ODataController         -n %PROJECT%.Controllers -o %PROJECT%\Controllers %OPTS% -ut MODELS_NAMESPACE=%PROJECT%.Models DBCONTEXT_NAMESPACE=%PROJECT% %DO_AUTHENTICATION%
+codegen -s %STRUCTURES% -ms -t ODataMetadataController -n %PROJECT%.Controllers -o %PROJECT%\Controllers %OPTS% %DO_AUTHENTICATION%
 
 rem Generate the DbContext, EdmBuilder and Startup classes
 codegen -s %STRUCTURES% -ms -t ODataDbContext ODataEdmBuilder ODataStartup -n %PROJECT% -o %PROJECT% -ut MODELS_NAMESPACE=%PROJECT%.Models API_PAGE_TITLE="Harmony Core Sample API" %OPTS% %DO_AUTHENTICATION%
