@@ -274,18 +274,18 @@ namespace <NAMESPACE>
 			data getResponse = client.GetAsync(getRequest).Result
 			data getResult = getResponse.Content.ReadAsStringAsync().Result
 			getResponse.EnsureSuccessStatusCode()
-			data do<StructureNoplural>, @OData<StructureNoplural>, JsonConvert.DeserializeObject<OData<StructureNoplural>>(getResult)
+			data do<StructureNoplural>, @<StructureNoplural>, JsonConvert.DeserializeObject<<StructureNoplural>>(getResult)
 
 			<PRIMARY_KEY>
 			<SEGMENT_LOOP>
-			do<StructureNoplural>.Value.<FieldSqlName> = TestContext.Update<StructureNoplural>_<SegmentName>
+			do<StructureNoplural>.<FieldSqlName> = TestContext.Update<StructureNoplural>_<SegmentName>
 			</SEGMENT_LOOP>
 			</PRIMARY_KEY>
 
 			;TODO: Also need to ensure any nodups alternate keys get unique values
 
 			;;Update it
-			disposable data requestBody = new StringContent(JsonConvert.SerializeObject(do<StructureNoplural>.Value))
+			disposable data requestBody = new StringContent(JsonConvert.SerializeObject(do<StructureNoplural>),System.Text.Encoding.UTF8, "application/json")
 			data request = String.Format("/odata/<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)","",<SEGMENT_LOOP>TestContext.Update<StructureNoplural>_<SegmentName><,></SEGMENT_LOOP></PRIMARY_KEY>)
 			disposable data response = client.PutAsync(request, requestBody).Result
 			response.EnsureSuccessStatusCode()
@@ -294,11 +294,11 @@ namespace <NAMESPACE>
 			getResponse = client.GetAsync(request).Result
 			getResult = getResponse.Content.ReadAsStringAsync().Result
 			getResponse.EnsureSuccessStatusCode()
-			do<StructureNoplural> = JsonConvert.DeserializeObject<OData<StructureNoplural>>(getResult)
+			do<StructureNoplural> = JsonConvert.DeserializeObject<<StructureNoplural>>(getResult)
 
 			<PRIMARY_KEY>
 			<SEGMENT_LOOP>
-			Assert.AreEqual(do<StructureNoplural>.Value.<FieldSqlName>, TestContext.Update<StructureNoplural>_<SegmentName>)
+			Assert.AreEqual(do<StructureNoplural>.<FieldSqlName>, TestContext.Update<StructureNoplural>_<SegmentName>)
 			</SEGMENT_LOOP>
 			</PRIMARY_KEY>
 

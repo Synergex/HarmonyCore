@@ -61,7 +61,7 @@ namespace SampleServices.Test
 		public method GetCustomers, void
 		proc
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync("/odata/Customers").Result
+			disposable data response = client.GetAsync("/odata/Customers?$filter=CustKey eq 1&$expand=REL_Item").Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
@@ -198,14 +198,15 @@ namespace SampleServices.Test
 			data getResponse = client.GetAsync(getRequest).Result
 			data getResult = getResponse.Content.ReadAsStringAsync().Result
 			getResponse.EnsureSuccessStatusCode()
-			data doCustomer, @ODataCustomer, JsonConvert.DeserializeObject<ODataCustomer>(getResult)
+			data doCustomer, @Customer, JsonConvert.DeserializeObject<Customer>(getResult)
 
-			doCustomer.Value.CustKey = TestContext.UpdateCustomer_CustKey
+			doCustomer.CustKey = TestContext.UpdateCustomer_CustKey
 
 			;TODO: Also need to ensure any nodups alternate keys get unique values
 
 			;;Update it
-			disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doCustomer.Value))
+			data serializedCustomer = JsonConvert.SerializeObject(doCustomer)
+			disposable data requestBody = new StringContent(serializedCustomer,System.Text.Encoding.UTF8, "application/json")
 			data request = String.Format("/odata/Customers(CustKey={1})","",TestContext.UpdateCustomer_CustKey)
 			disposable data response = client.PutAsync(request, requestBody).Result
 			response.EnsureSuccessStatusCode()
@@ -214,9 +215,9 @@ namespace SampleServices.Test
 			getResponse = client.GetAsync(request).Result
 			getResult = getResponse.Content.ReadAsStringAsync().Result
 			getResponse.EnsureSuccessStatusCode()
-			doCustomer = JsonConvert.DeserializeObject<ODataCustomer>(getResult)
+			doCustomer = JsonConvert.DeserializeObject<Customer>(getResult)
 
-			Assert.AreEqual(doCustomer.Value.CustKey, TestContext.UpdateCustomer_CustKey)
+			Assert.AreEqual(doCustomer.CustKey, TestContext.UpdateCustomer_CustKey)
 
 		endmethod
 

@@ -83,9 +83,6 @@ namespace <NAMESPACE>
 
     public partial class <StructureNoplural>
 
-		{JsonProperty("odata.type")}
-		public readwrite property Type, string
-
 <FIELD_LOOP>
 	<IF CUSTOM_NOT_HARMONY_EXCLUDE>
 		;;; <summary>
@@ -105,7 +102,7 @@ namespace <NAMESPACE>
 		
 		{JsonProperty("odata.metadata")}
 		public readwrite property Metadata, string
-
+		{JsonProperty("value")}
 		public readwrite property Value, @<StructureNoplural>
 
 	endclass
@@ -114,7 +111,7 @@ namespace <NAMESPACE>
 		
 		{JsonProperty("odata.metadata")}
 		public readwrite property Metadata, string
-
+		{JsonProperty("value")}
 		public readwrite property Value, @List<<StructureNoplural>>
 
 	endclass
