@@ -6,16 +6,72 @@ import System.Linq
 namespace Harmony.Core.FileIO.Queryable
 
 	public class DataObjectMaterializer
-		private class MaterializerState
+		private abstract class MaterializerState
 			public parentState, @DataObjectMaterializer.MaterializerState
 			public typeBuf, @QueryBuffer.TypeBuffer
 			public grfa, a10
-			public madeItems, @List<DataObjectBase>
+			public madeItems, @IEnumerable<DataObjectBase>
 			public lastMadeItem, @DataObjectBase
 			public dependentItems, @Dictionary<string, Object>
 			public changed, boolean
 			public filled, boolean
+
+			public abstract method AddItem, void
+				obj, @DataObjectBase
+			proc
+			endmethod
+
+			public abstract method InitItems, void
+			proc
+			endmethod
+
+			public abstract method HasOneItem, boolean
+			proc
+			endmethod
+
+			public abstract method IsEmpty, boolean
+			proc
+			endmethod
+
+			public static method MakeState, @MaterializerState
+				buf, @QueryBuffer.TypeBuffer
+				parentState, @DataObjectMaterializer.MaterializerState
+			proc
+				data madeState = (@MaterializerState)Activator.CreateInstance(^typeof(MaterializerState<>).MakeGenericType(new Type[#] { buf.DataObjectType }))
+				if(parentState == ^null)
+					madeState.InitItems()
+
+				madeState.typeBuf = buf
+				madeState.parentState = parentState
+				madeState.changed = false
+				madeState.filled = false
+				mreturn madeState
+			endmethod
+
 		endclass
+		private class MaterializerState<T(DataObjectBase)> extends MaterializerState
+			public override method AddItem, void
+				obj, @DataObjectBase
+			proc
+				((@List<T>)madeItems).Add((T)obj)
+			endmethod
+
+			public override method InitItems, void
+			proc
+				madeItems = (@IEnumerable<DataObjectBase>)new List<T>()
+			endmethod
+
+			public override method HasOneItem, boolean
+			proc
+				mreturn ((@List<T>)madeItems).Count == 1
+			endmethod
+
+			public override method IsEmpty, boolean
+			proc
+				mreturn ((@List<T>)madeItems).Count == 0
+			endmethod
+		endclass
+
 
 		public static method MaterializeObject, @IEnumerable<DataObjectBase>
 			typeBuf, @QueryBuffer.TypeBuffer
@@ -42,7 +98,7 @@ namespace Harmony.Core.FileIO.Queryable
 					if(matState.parentState != ^null && matState.parentState.changed && matState.parentState.filled)
 					begin
 						if(matState.madeItems != ^null)
-							matState.madeItems = new List<DataObjectBase>()
+							matState.InitItems()
 					end
 
 					if(!matState.changed && matState.filled) then
@@ -61,9 +117,9 @@ namespace Harmony.Core.FileIO.Queryable
 
 								if(matState.madeItems != ^null) then
 								begin
-									if(matState.madeItems.Count == 0 && matState.lastMadeItem != ^null)
+									if(matState.IsEmpty() && matState.lastMadeItem != ^null)
 									begin
-										matState.madeItems.Add(matState.lastMadeItem)
+										matState.AddItem(matState.lastMadeItem)
 									end
 									matState.parentState.dependentItems.Add(matState.typeBuf.ParentFieldName, matState.madeItems)
 								end
@@ -101,14 +157,14 @@ namespace Harmony.Core.FileIO.Queryable
 						end
 						else if(matState.madeItems != ^null) then
 						begin
-							matState.madeItems.Add(madeObject)
+							matState.AddItem(madeObject)
 						end
 						else
 							throw new InvalidOperationException("Invalid materializer state")
 					
 						if(matState.parentState != ^null)
 						begin
-							if(matState.madeItems != ^null && matState.madeItems.Count == 1)
+							if(matState.madeItems != ^null && matState.HasOneItem())
 							begin
 								matState.parentState.dependentItems.Add(matState.typeBuf.ParentFieldName, matState.madeItems)
 							end
@@ -127,7 +183,7 @@ namespace Harmony.Core.FileIO.Queryable
 					end
 				end
 				;;we only want one object if we dont have a collection result
-				if(resultState.madeItems.Count == 1 && !typeBuf.IsCollection)
+				if(!typeBuf.IsCollection && resultState.HasOneItem())
 					mreturn resultState.madeItems
 			end
 
@@ -160,14 +216,14 @@ namespace Harmony.Core.FileIO.Queryable
 					end
 					else if(matState.madeItems != ^null) then
 					begin
-						matState.madeItems.Add(madeObject)
+						matState.AddItem(madeObject)
 					end
 					else
 						throw new InvalidOperationException("Invalid materializer state")
 					
 					if(matState.parentState != ^null)
 					begin
-						if(matState.madeItems != ^null && matState.madeItems.Count == 1)
+						if(matState.madeItems != ^null && matState.HasOneItem())
 						begin
 							matState.parentState.dependentItems.Add(matState.typeBuf.ParentFieldName, matState.madeItems)
 						end
@@ -184,7 +240,7 @@ namespace Harmony.Core.FileIO.Queryable
 			data result = new List<DataObjectMaterializer.MaterializerState>()
 			data q = new @Queue<DataObjectMaterializer.MaterializerState>()
 
-			data rootState = new MaterializerState() { typeBuf = source, changed = false, filled = false, madeItems = new List<DataObjectBase>() }
+			data rootState = MaterializerState.MakeState(source, ^null)
 			if(source.JoinedBuffers != ^null && source.JoinedBuffers.Count > 0)
 				rootState.dependentItems = new Dictionary<string, Object>()
 
@@ -197,9 +253,9 @@ namespace Harmony.Core.FileIO.Queryable
 				data joined, @QueryBuffer.TypeBuffer
 				foreach joined in current.typeBuf.JoinedBuffers
 				begin
-					data newMatState = new MaterializerState() { typeBuf = joined, changed = false, filled = false, parentState = current }
+					data newMatState = MaterializerState.MakeState(joined, current)
 					if(joined.IsCollection)
-						newMatState.madeItems = new List<DataObjectBase>()
+						newMatState.InitItems()
 
 					if(joined.JoinedBuffers != ^null && joined.JoinedBuffers.Count > 0)
 						newMatState.dependentItems = new Dictionary<string, Object>()

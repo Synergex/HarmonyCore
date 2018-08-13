@@ -14,6 +14,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Query.Expressions.Internal;
 using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors;
 using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors.Internal;
 using Microsoft.EntityFrameworkCore.Query.Internal;
@@ -111,6 +112,8 @@ namespace Harmony.Core.EF.Query.Internal
             this.TryOptimizeCorrelatedCollections(queryModel);
             this.CurrentParameter = Expression.Parameter(MainQueryType, queryModel.MainFromClause.ItemName);
 
+            //some of the query sources are pointless SQLism around their inability to return collections outside of grouping
+            //we need to replace those sources with the materialized properties to allow Selectors to operate on a consistant model
             var aliasMapping = new Dictionary<IQuerySource, IQuerySource>();
             foreach (var bodyClause in queryModel.BodyClauses)
             {
@@ -212,10 +215,18 @@ namespace Harmony.Core.EF.Query.Internal
             public QuerySourceMapping QuerySourceMapping;
             public HarmonyQueryModelVisitor Parent;
             public QueryModel QueryModel;
-            private QuerySourceReferenceExpression Source;
+            private Stack<QuerySourceReferenceExpression> SourceStack= new Stack<QuerySourceReferenceExpression>();
             private string SubQueryTargetName;
             private SubQueryExpression SubQuery;
             private ReadOnlyCollection<ParameterExpression> CurrentParameters;
+
+            private QuerySourceReferenceExpression Source
+            {
+                get
+                {
+                    return SourceStack.Count > 0  ? SourceStack.Peek() : null;
+                }
+            }
 
             protected override Expression VisitConstant(ConstantExpression node)
             {
@@ -234,17 +245,30 @@ namespace Harmony.Core.EF.Query.Internal
                 return base.VisitLambda(node);
             }
 
+            protected override Expression VisitMemberInit(MemberInitExpression node)
+            {
+                var sourceStackCount = SourceStack.Count;
+                var result = base.VisitMemberInit(node);
+                if (SourceStack.Count > sourceStackCount)
+                    SourceStack.Pop();
+
+                return result;
+            }
+
             protected override MemberAssignment VisitMemberAssignment(MemberAssignment node)
             {
                 //this is for things like SelectAllAndExpand from OData
                 //we should be able to shake things into this pattern if they have a similar purpose with a subquery
                 if (node.Member.Name == "Instance")
                 {
-                    Source = node.Expression as QuerySourceReferenceExpression;
+                    SourceStack.Push(node.Expression as QuerySourceReferenceExpression);
                 }
                 else if (node.Member.Name == "Name")
                 {
                     SubQueryTargetName = ((ConstantExpression)node.Expression).Value as string;
+                }
+                else if (node.Member.Name.StartsWith("Next") && node.Expression is MemberInitExpression)
+                {
                 }
                 else if (node.Member.Name == "Value" && node.Expression is SubQueryExpression)
                 {
@@ -252,10 +276,12 @@ namespace Harmony.Core.EF.Query.Internal
                     var queryModel = SubQuery.QueryModel;
                     var propValue = Expression.PropertyOrField(Parent.CurrentParameter, SubQueryTargetName);
                     var resultExpressionElementType = propValue.Type.IsGenericType ? propValue.Type.GenericTypeArguments.First() : propValue.Type;
-                    Expression resultExpression = (propValue.Type.GetGenericTypeDefinition() == typeof(ICollection<>)) ? 
-                        Expression.Condition(Expression.Equal(propValue, Expression.Constant(null)), Expression.Convert(Expression.New(typeof(List<>).MakeGenericType(new Type[] { resultExpressionElementType })), propValue.Type), propValue) : 
+                    Expression resultExpression = (propValue.Type.GetGenericTypeDefinition() == typeof(ICollection<>)) ?
+                        Expression.Condition(Expression.Equal(propValue, Expression.Constant(null)), Expression.Convert(Expression.New(typeof(List<>).MakeGenericType(new Type[] { resultExpressionElementType })), propValue.Type), propValue) :
                         (Expression)propValue;
 
+                    //some of the query sources are pointless SQLism around their inability to return collections outside of grouping
+                    //we need to replace those sources with the materialized properties to allow Selectors to operate on a consistant model
                     foreach (var bodyClause in queryModel.BodyClauses)
                     {
                         var groupJoin = bodyClause as GroupJoinClause;
@@ -276,11 +302,38 @@ namespace Harmony.Core.EF.Query.Internal
 
                     Type resultTypeParameter = queryModel.ResultTypeOverride.ForceSequenceType();
                     var currentParameter = Expression.Parameter(resultExpressionElementType);
-                    if(Source != null && Source.ReferencedQuerySource.ItemType == Parent.CurrentParameter.Type && !QuerySourceMapping.ContainsMapping(Source.ReferencedQuerySource))
+                    if (Source != null && Source.ReferencedQuerySource.ItemType == Parent.CurrentParameter.Type && !QuerySourceMapping.ContainsMapping(Source.ReferencedQuerySource))
                         QuerySourceMapping.AddMapping(Source.ReferencedQuerySource, Parent.CurrentParameter);
 
                     if (!QuerySourceMapping.ContainsMapping(queryModel.MainFromClause) && queryModel.MainFromClause.ItemType == currentParameter.Type)
+                    {
                         QuerySourceMapping.AddMapping(queryModel.MainFromClause, currentParameter);
+
+                        var whereClause = queryModel.BodyClauses.OfType<WhereClause>().FirstOrDefault();
+                        if (whereClause != null)
+                        {
+                            var joinOnLambda = whereClause.Predicate;
+                            var navPropInfo = Source.Type.GetProperty(SubQueryTargetName);
+                            var madeJoin = new JoinClause(Source.ReferencedQuerySource.ItemName + "." + SubQueryTargetName,
+                                navPropInfo.PropertyType.GenericTypeArguments[0], Source, Expression.Constant(true), Expression.Constant(true));
+
+                            var madeGroupJoin = new GroupJoinClause(Source.ReferencedQuerySource.ItemName + "." + SubQueryTargetName, typeof(IEnumerable<>).MakeGenericType(madeJoin.ItemType), madeJoin);
+                            var newQuerySource = new QuerySourceReferenceExpression(madeGroupJoin);
+                            var rewrite = new SelectorRewriter()
+                            {
+                                Replacements = new Dictionary<Expression, Expression>
+                            {
+                                { new QuerySourceReferenceExpression(queryModel.MainFromClause), newQuerySource }
+                            }
+                            };
+                            var rewrittenJoinLambda = rewrite.Visit(joinOnLambda) as Expression;
+                            var simpleJoinCondition = rewrittenJoinLambda as BinaryExpression ?? (rewrittenJoinLambda as NullSafeEqualExpression)?.EqualExpression;
+
+                            madeJoin.InnerKeySelector = simpleJoinCondition.Right;
+                            madeJoin.OuterKeySelector = simpleJoinCondition.Left;
+                            QueryModel.BodyClauses.Add(madeGroupJoin);
+                        }
+                    }
 
                     if (!(from ro in queryModel.ResultOperators
                           select ro.GetType()).Any(delegate (Type t)
@@ -356,7 +409,7 @@ namespace Harmony.Core.EF.Query.Internal
                     var joinOnLambda = node.Arguments.Last() as LambdaExpression;
                     var entitySourceType = typeof(EntityQueryable<>).MakeGenericType(joinOnLambda.Parameters[0].Type);
                     var entityQueryable = Expression.Constant(Activator.CreateInstance(entitySourceType, ((dynamic)_currentIncludeSource.ReferencedQuerySource).FromExpression.Value.Provider as IQueryProvider));
-                    var madeJoin = new JoinClause(realNavProp.Name,
+                    var madeJoin = new JoinClause(_currentIncludeSource.ReferencedQuerySource.ItemName + "." + realNavProp.Name,
                         realNavProp.PropertyInfo.PropertyType.GenericTypeArguments[0], entityQueryable, Expression.Constant(true), Expression.Constant(true));
                     var madeGroupJoin = new GroupJoinClause(_currentIncludeSource.ReferencedQuerySource.ItemName + "." + realNavProp.Name, typeof(IEnumerable<>).MakeGenericType(madeJoin.ItemType), madeJoin);
                     var newQuerySource = new QuerySourceReferenceExpression(madeGroupJoin);
@@ -383,6 +436,23 @@ namespace Harmony.Core.EF.Query.Internal
         public class SelectorRewriter : System.Linq.Expressions.ExpressionVisitor
         {
             public Dictionary<Expression, Expression> Replacements;
+
+            protected override Expression VisitExtension(Expression node)
+            {
+                if (node is NullSafeEqualExpression)
+                {
+                    return Visit(((NullSafeEqualExpression)node).EqualExpression);
+                }
+                else if (Replacements.TryGetValue(node, out var replacement))
+                {
+                    return replacement;
+                }
+                else
+                {
+                    return node;
+                }
+            }
+
             protected override Expression VisitMember(MemberExpression node)
             {
                 if (Replacements.TryGetValue(node.Expression, out var replacement))
