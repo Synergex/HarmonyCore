@@ -162,7 +162,7 @@ namespace <NAMESPACE>
 		
 </IF STRUCTURE_RELATIONS>
 		;;------------------------------------------------------------
-		;;Get a single <StructureNoplural>
+		;;Get a single <StructureNoplural> by primary key
 
 		{TestMethod}
 		{TestCategory("<StructureNoplural> Tests - Read by Primary Key")}
@@ -182,7 +182,7 @@ namespace <NAMESPACE>
 <IF STRUCTURE_RELATIONS>
 	<RELATION_LOOP>
 		;;------------------------------------------------------------
-		;;Get a single <StructureNoplural> and expand relation <IF MANY_TO_ONE_TO_MANY>REL_<RelationFromkey></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationFromkey></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY>
+		;;Get a single <StructureNoplural> by primary key and expand relation <IF MANY_TO_ONE_TO_MANY>REL_<RelationFromkey></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationFromkey></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY>
 
 
 		{TestMethod}
@@ -202,7 +202,7 @@ namespace <NAMESPACE>
 
 	</RELATION_LOOP>
 		;;------------------------------------------------------------
-		;;Get a single <StructureNoplural> and expand all relations
+		;;Get a single <StructureNoplural> by primary key and expand all relations
 
 		{TestMethod}
 		{TestCategory("<StructureNoplural> Tests - Read by Primary Key")}
@@ -273,6 +273,28 @@ namespace <NAMESPACE>
 ;			response.EnsureSuccessStatusCode()
 ;		endmethod
 
+;//<PRIMARY_KEY>
+;//<IF MULTIPLE_SEGMENTS>
+;//		;;------------------------------------------------------------
+;//		;;Get multiple <StructureNoplural> by partial primary key
+;//
+;//		{TestMethod}
+;//		{TestCategory("<StructureNoplural> Tests - Read by Primary Key")}
+;//		public method Get<StructureNoplural>_ByPartialPrimaryKey, void
+;//		proc
+;//			data client = UnitTestEnvironment.Server.CreateClient()
+;//			<IF DEFINED_AUTHENTICATION>
+;//			client.SetBearerToken(UnitTestEnvironment.AccessToken)
+;//			</IF DEFINED_AUTHENTICATION>
+;//			data request = String.Format("/odata/<StructurePlural>(<SEGMENT_LOOP_FILTER><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP_FILTER>)","",<SEGMENT_LOOP_FILTER>TestContext.Get<StructureNoplural>_ByPartialPrimaryKey_<SegmentName><,></SEGMENT_LOOPFILTER>)
+;//			data response = client.GetAsync(request).Result
+;//			data result = response.Content.ReadAsStringAsync().Result
+;//			response.EnsureSuccessStatusCode()
+;//			data <structureNoplural>, @OData<StructureNoplural>, JsonConvert.DeserializeObject<OData<StructureNoplural>>(result)
+;//		endmethod
+;//
+;//</IF MULTIPLE_SEGMENTS>
+;//</PRIMARY_KEY>
 	endclass
 
 endnamespace
