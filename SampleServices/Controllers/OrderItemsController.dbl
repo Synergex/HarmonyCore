@@ -68,78 +68,6 @@ namespace SampleServices.Controllers
 			this.DBContext = dbContext
 		endmethod
 
-.region "CREATE"
-
-		{ODataRoute("OrderItems")}
-		;;; <summary>
-		;;; Create a new orderItem (automatically assigned primary key).
-		;;; </summary>
-		;;; <returns></returns>
-		public method Post, @IActionResult
-			{FromBody}
-			required in aOrderItem, @OrderItem
-		proc
-			;; Validate inbound data
-			if (!ModelState.IsValid)
-				mreturn BadRequest(ModelState)
-
-			;TODO: How do we support the auto-generation of primary key in this scenario?
-			DBContext.OrderItems.Add(aOrderItem)
-
-			;TODO: Need to add a Location header
-
-			;;Commit the change
-			DBContext.SaveChanges()
-
-			mreturn Ok()
-
-		endmethod
-
-		{ODataRoute("OrderItems(OiNumber={aOiNumber},OiLineItem={aOiLineItem})")}
-		;;; <summary>
-		;;; Create a new orderItem (client-supplied primary key).
-		;;; </summary>
-		;;; <param name="aOiNumber">Order number</param>
-		;;; <param name="aOiLineItem">Line item number</param>
-		;;; <returns></returns>
-		public method Put, @IActionResult
-			{FromODataUri}
-            required in aOiNumber, int
-			{FromODataUri}
-            required in aOiLineItem, int
-			{FromBody}
-			required in aOrderItem, @OrderItem
-		proc
-			;; Validate inbound data
-			if (!ModelState.IsValid)
-				mreturn BadRequest(ModelState)
-
-			;;Ensure that the key values in the URI win over any data that may be in the model object
-            aOrderItem.OiNumber = aOiNumber
-            aOrderItem.OiLineItem = aOiLineItem
-
-			;;Add the new orderItem
-			try
-			begin
-				DBContext.OrderItems.Add(aOrderItem)
-			end
-			catch (e, @InvalidOperationException)
-			begin
-				mreturn BadRequest(e)
-			end
-			endtry
-
-			;TODO: Need to add a Location header
-
-			;;Commit the change
-			DBContext.SaveChanges()
-
-			mreturn NoContent()
-
-		endmethod
-
-.endregion
-
 .region "READ"
 
 		{ODataRoute("OrderItems")}
@@ -238,16 +166,16 @@ namespace SampleServices.Controllers
 
 .endregion
 
-.region "UPDATE"
+.region "CREATE"
 
 		{ODataRoute("OrderItems(OiNumber={aOiNumber},OiLineItem={aOiLineItem})")}
 		;;; <summary>
-		;;; Update a orderItem (partial updates are supported).
+		;;; Create (with a client-supplied primary key) or replace a orderItem.
 		;;; </summary>
 		;;; <param name="aOiNumber">Order number</param>
 		;;; <param name="aOiLineItem">Line item number</param>
 		;;; <returns></returns>
-		public method Patch, @IActionResult
+		public method Put, @IActionResult
 			{FromODataUri}
             required in aOiNumber, int
 			{FromODataUri}
@@ -259,23 +187,25 @@ namespace SampleServices.Controllers
 			if (!ModelState.IsValid)
 				mreturn BadRequest(ModelState)
 
-			;;Ensure that the key values in the URI win over any data that may be in the data object
+			;;Ensure that the key values in the URI win over any data that may be in the model object
             aOrderItem.OiNumber = aOiNumber
             aOrderItem.OiLineItem = aOiLineItem
 
-			;TODO: Not sure what to do here, I'm not seting any DBSet methods relating to update?
-			;
-			;
-			;
-			;
-			;
-
+			;;Add the new orderItem
+			try
+			begin
+				DBContext.OrderItems.Add(aOrderItem)
+			end
+			catch (e, @InvalidOperationException)
+			begin
+				mreturn BadRequest(e)
+			end
+			endtry
 
 			;;Commit the change
 			DBContext.SaveChanges()
 
-			;TODO: What about failures?
-			mreturn Ok()
+			mreturn NoContent()
 
 		endmethod
 

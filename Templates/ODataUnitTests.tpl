@@ -240,38 +240,69 @@ namespace <NAMESPACE>
 		endmethod
 
 </ALTERNATE_KEY_LOOP>
-;		;;------------------------------------------------------------
-;		;;Create a new <StructureNoplural> (auto assign key)
-;
-;		{TestMethod}
-;		{TestCategory("<StructureNoplural> Tests - Create, Update & Delete")}
-;		public method Create<StructureNoplural>, void
-;		proc
-;			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			<IF DEFINED_AUTHENTICATION>
-;			client.SetBearerToken(UnitTestEnvironment.AccessToken)
-			</IF DEFINED_AUTHENTICATION>
-;			disposable data requestBody = new StringContent("")
-;			disposable data response = client.PostAsync("/odata/<StructurePlural>", requestBody).Result
-;			data result = response.Content.ReadAsStringAsync().Result
-;			response.EnsureSuccessStatusCode()
-;		endmethod
+;//		;;------------------------------------------------------------
+;//		;;Create a new <StructureNoplural> (auto assign key)
+;//
+;//		{TestMethod}
+;//		{TestCategory("<StructureNoplural> Tests - Create, Update & Delete")}
+;//		public method Create<StructureNoplural>, void
+;//		proc
+;//			disposable data client = UnitTestEnvironment.Server.CreateClient()
+;//			<IF DEFINED_AUTHENTICATION>
+;//			client.SetBearerToken(UnitTestEnvironment.AccessToken)
+;//			</IF DEFINED_AUTHENTICATION>
+;//			disposable data requestBody = new StringContent("")
+;//			disposable data response = client.PostAsync("/odata/<StructurePlural>", requestBody).Result
+;//			data result = response.Content.ReadAsStringAsync().Result
+;//			response.EnsureSuccessStatusCode()
+;//		endmethod
+;//
+		;;------------------------------------------------------------
+		;;Create new <StructureNoplural> (client specified key)
 
-;		;;------------------------------------------------------------
-;		;;Create new <StructureNoplural> (client specified key)
-;
-;		{TestMethod}
-;		{TestCategory("<StructureNoplural> Tests - Create, Update & Delete")}
-;		public method Update<StructureNoplural>, void
-;		proc
-;			disposable data client = UnitTestEnvironment.Server.CreateClient()
+		{TestMethod}
+		{TestCategory("<StructureNoplural> Tests - Create, Update & Delete")}
+		public method Update<StructureNoplural>, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
 			<IF DEFINED_AUTHENTICATION>
-;			client.SetBearerToken(UnitTestEnvironment.AccessToken)
+			client.SetBearerToken(UnitTestEnvironment.AccessToken)
 			</IF DEFINED_AUTHENTICATION>
-;			disposable data requestBody = new StringContent("")
-;			disposable data response = client.PutAsync("/odata/<StructurePlural>(1)", requestBody).Result
-;			response.EnsureSuccessStatusCode()
-;		endmethod
+
+			;;Get the first record from the file
+			data getRequest = String.Format("/odata/<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)","",<SEGMENT_LOOP>TestContext.Get<StructureNoplural>_<SegmentName><,></SEGMENT_LOOP></PRIMARY_KEY>)
+			data getResponse = client.GetAsync(getRequest).Result
+			data getResult = getResponse.Content.ReadAsStringAsync().Result
+			getResponse.EnsureSuccessStatusCode()
+			data do<StructureNoplural>, @OData<StructureNoplural>, JsonConvert.DeserializeObject<OData<StructureNoplural>>(getResult)
+
+			<PRIMARY_KEY>
+			<SEGMENT_LOOP>
+			do<StructureNoplural>.Value.<FieldSqlName> = TestContext.Update<StructureNoplural>_<SegmentName>
+			</SEGMENT_LOOP>
+			</PRIMARY_KEY>
+
+			;TODO: Also need to ensure any nodups alternate keys get unique values
+
+			;;Update it
+			disposable data requestBody = new StringContent(JsonConvert.SerializeObject(do<StructureNoplural>.Value))
+			data request = String.Format("/odata/<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)","",<SEGMENT_LOOP>TestContext.Update<StructureNoplural>_<SegmentName><,></SEGMENT_LOOP></PRIMARY_KEY>)
+			disposable data response = client.PutAsync(request, requestBody).Result
+			response.EnsureSuccessStatusCode()
+
+			;;Get the inserted record
+			getResponse = client.GetAsync(request).Result
+			getResult = getResponse.Content.ReadAsStringAsync().Result
+			getResponse.EnsureSuccessStatusCode()
+			do<StructureNoplural> = JsonConvert.DeserializeObject<OData<StructureNoplural>>(getResult)
+
+			<PRIMARY_KEY>
+			<SEGMENT_LOOP>
+			Assert.AreEqual(do<StructureNoplural>.Value.<FieldSqlName>, TestContext.Update<StructureNoplural>_<SegmentName>)
+			</SEGMENT_LOOP>
+			</PRIMARY_KEY>
+
+		endmethod
 
 ;//<PRIMARY_KEY>
 ;//<IF MULTIPLE_SEGMENTS>

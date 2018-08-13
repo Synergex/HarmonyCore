@@ -68,74 +68,6 @@ namespace SampleServices.Controllers
 			this.DBContext = dbContext
 		endmethod
 
-.region "CREATE"
-
-		{ODataRoute("Customers")}
-		;;; <summary>
-		;;; Create a new customer (automatically assigned primary key).
-		;;; </summary>
-		;;; <returns></returns>
-		public method Post, @IActionResult
-			{FromBody}
-			required in aCustomer, @Customer
-		proc
-			;; Validate inbound data
-			if (!ModelState.IsValid)
-				mreturn BadRequest(ModelState)
-
-			;TODO: How do we support the auto-generation of primary key in this scenario?
-			DBContext.Customers.Add(aCustomer)
-
-			;TODO: Need to add a Location header
-
-			;;Commit the change
-			DBContext.SaveChanges()
-
-			mreturn Ok()
-
-		endmethod
-
-		{ODataRoute("Customers(CustKey={aCustKey})")}
-		;;; <summary>
-		;;; Create a new customer (client-supplied primary key).
-		;;; </summary>
-		;;; <param name="aCustKey">Customer id</param>
-		;;; <returns></returns>
-		public method Put, @IActionResult
-			{FromODataUri}
-            required in aCustKey, int
-			{FromBody}
-			required in aCustomer, @Customer
-		proc
-			;; Validate inbound data
-			if (!ModelState.IsValid)
-				mreturn BadRequest(ModelState)
-
-			;;Ensure that the key values in the URI win over any data that may be in the model object
-            aCustomer.CustKey = aCustKey
-
-			;;Add the new customer
-			try
-			begin
-				DBContext.Customers.Add(aCustomer)
-			end
-			catch (e, @InvalidOperationException)
-			begin
-				mreturn BadRequest(e)
-			end
-			endtry
-
-			;TODO: Need to add a Location header
-
-			;;Commit the change
-			DBContext.SaveChanges()
-
-			mreturn NoContent()
-
-		endmethod
-
-.endregion
-
 .region "READ"
 
 		{ODataRoute("Customers")}
@@ -194,15 +126,15 @@ namespace SampleServices.Controllers
 
 .endregion
 
-.region "UPDATE"
+.region "CREATE"
 
 		{ODataRoute("Customers(CustKey={aCustKey})")}
 		;;; <summary>
-		;;; Update a customer (partial updates are supported).
+		;;; Create (with a client-supplied primary key) or replace a customer.
 		;;; </summary>
 		;;; <param name="aCustKey">Customer id</param>
 		;;; <returns></returns>
-		public method Patch, @IActionResult
+		public method Put, @IActionResult
 			{FromODataUri}
             required in aCustKey, int
 			{FromBody}
@@ -212,22 +144,24 @@ namespace SampleServices.Controllers
 			if (!ModelState.IsValid)
 				mreturn BadRequest(ModelState)
 
-			;;Ensure that the key values in the URI win over any data that may be in the data object
+			;;Ensure that the key values in the URI win over any data that may be in the model object
             aCustomer.CustKey = aCustKey
 
-			;TODO: Not sure what to do here, I'm not seting any DBSet methods relating to update?
-			;
-			;
-			;
-			;
-			;
-
+			;;Add the new customer
+			try
+			begin
+				DBContext.Customers.Add(aCustomer)
+			end
+			catch (e, @InvalidOperationException)
+			begin
+				mreturn BadRequest(e)
+			end
+			endtry
 
 			;;Commit the change
 			DBContext.SaveChanges()
 
-			;TODO: What about failures?
-			mreturn Ok()
+			mreturn NoContent()
 
 		endmethod
 

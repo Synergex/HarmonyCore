@@ -123,6 +123,14 @@ namespace <NAMESPACE>
 			Get<StructureNoplural>_ByAltKey_<KeyName>_<SegmentName> = <FIELD_CSDEFAULT>
 		</SEGMENT_LOOP>
 	</ALTERNATE_KEY_LOOP>
+;//
+;//
+;//
+	<PRIMARY_KEY>
+		<SEGMENT_LOOP>
+			Update<StructureNoplural>_<SegmentName> = <FIELD_CSDEFAULT>
+		</SEGMENT_LOOP>
+	</PRIMARY_KEY>
 </STRUCTURE_LOOP>
 
 		endmethod

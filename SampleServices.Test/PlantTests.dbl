@@ -229,32 +229,41 @@ namespace SampleServices.Test
 			data plant, @ODataPlant, JsonConvert.DeserializeObject<ODataPlant>(result)
 		endmethod
 
-;		;;------------------------------------------------------------
-;		;;Create a new Plant (auto assign key)
-;
-;		{TestMethod}
-;		{TestCategory("Plant Tests - Create, Update & Delete")}
-;		public method CreatePlant, void
-;		proc
-;			disposable data client = UnitTestEnvironment.Server.CreateClient()
-;			disposable data requestBody = new StringContent("")
-;			disposable data response = client.PostAsync("/odata/Plants", requestBody).Result
-;			data result = response.Content.ReadAsStringAsync().Result
-;			response.EnsureSuccessStatusCode()
-;		endmethod
+		;;------------------------------------------------------------
+		;;Create new Plant (client specified key)
 
-;		;;------------------------------------------------------------
-;		;;Create new Plant (client specified key)
-;
-;		{TestMethod}
-;		{TestCategory("Plant Tests - Create, Update & Delete")}
-;		public method UpdatePlant, void
-;		proc
-;			disposable data client = UnitTestEnvironment.Server.CreateClient()
-;			disposable data requestBody = new StringContent("")
-;			disposable data response = client.PutAsync("/odata/Plants(1)", requestBody).Result
-;			response.EnsureSuccessStatusCode()
-;		endmethod
+		{TestMethod}
+		{TestCategory("Plant Tests - Create, Update & Delete")}
+		public method UpdatePlant, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+
+			;;Get the first record from the file
+			data getRequest = String.Format("/odata/Plants(InItemid={1})","",TestContext.GetPlant_InItemid)
+			data getResponse = client.GetAsync(getRequest).Result
+			data getResult = getResponse.Content.ReadAsStringAsync().Result
+			getResponse.EnsureSuccessStatusCode()
+			data doPlant, @ODataPlant, JsonConvert.DeserializeObject<ODataPlant>(getResult)
+
+			doPlant.Value.InItemid = TestContext.UpdatePlant_InItemid
+
+			;TODO: Also need to ensure any nodups alternate keys get unique values
+
+			;;Update it
+			disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doPlant.Value))
+			data request = String.Format("/odata/Plants(InItemid={1})","",TestContext.UpdatePlant_InItemid)
+			disposable data response = client.PutAsync(request, requestBody).Result
+			response.EnsureSuccessStatusCode()
+
+			;;Get the inserted record
+			getResponse = client.GetAsync(request).Result
+			getResult = getResponse.Content.ReadAsStringAsync().Result
+			getResponse.EnsureSuccessStatusCode()
+			doPlant = JsonConvert.DeserializeObject<ODataPlant>(getResult)
+
+			Assert.AreEqual(doPlant.Value.InItemid, TestContext.UpdatePlant_InItemid)
+
+		endmethod
 
 	endclass
 

@@ -126,7 +126,17 @@ namespace <NAMESPACE>
 		public static readwrite property Get<StructureNoplural>_ByAltKey_<KeyName>_<SegmentName>, <SEGMENT_CSTYPE>
 		</SEGMENT_LOOP>
 	</ALTERNATE_KEY_LOOP>
+;//
+;//
+;//
+	<PRIMARY_KEY>
+		<SEGMENT_LOOP>
+		public static readwrite property Update<StructureNoplural>_<SegmentName>, <SEGMENT_CSTYPE>
+		</SEGMENT_LOOP>
+	</PRIMARY_KEY>
+
 </STRUCTURE_LOOP>
+
 
 	endclass
 

@@ -184,32 +184,41 @@ namespace SampleServices.Test
 			data customer, @ODataCustomer, JsonConvert.DeserializeObject<ODataCustomer>(result)
 		endmethod
 
-;		;;------------------------------------------------------------
-;		;;Create a new Customer (auto assign key)
-;
-;		{TestMethod}
-;		{TestCategory("Customer Tests - Create, Update & Delete")}
-;		public method CreateCustomer, void
-;		proc
-;			disposable data client = UnitTestEnvironment.Server.CreateClient()
-;			disposable data requestBody = new StringContent("")
-;			disposable data response = client.PostAsync("/odata/Customers", requestBody).Result
-;			data result = response.Content.ReadAsStringAsync().Result
-;			response.EnsureSuccessStatusCode()
-;		endmethod
+		;;------------------------------------------------------------
+		;;Create new Customer (client specified key)
 
-;		;;------------------------------------------------------------
-;		;;Create new Customer (client specified key)
-;
-;		{TestMethod}
-;		{TestCategory("Customer Tests - Create, Update & Delete")}
-;		public method UpdateCustomer, void
-;		proc
-;			disposable data client = UnitTestEnvironment.Server.CreateClient()
-;			disposable data requestBody = new StringContent("")
-;			disposable data response = client.PutAsync("/odata/Customers(1)", requestBody).Result
-;			response.EnsureSuccessStatusCode()
-;		endmethod
+		{TestMethod}
+		{TestCategory("Customer Tests - Create, Update & Delete")}
+		public method UpdateCustomer, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+
+			;;Get the first record from the file
+			data getRequest = String.Format("/odata/Customers(CustKey={1})","",TestContext.GetCustomer_CustKey)
+			data getResponse = client.GetAsync(getRequest).Result
+			data getResult = getResponse.Content.ReadAsStringAsync().Result
+			getResponse.EnsureSuccessStatusCode()
+			data doCustomer, @ODataCustomer, JsonConvert.DeserializeObject<ODataCustomer>(getResult)
+
+			doCustomer.Value.CustKey = TestContext.UpdateCustomer_CustKey
+
+			;TODO: Also need to ensure any nodups alternate keys get unique values
+
+			;;Update it
+			disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doCustomer.Value))
+			data request = String.Format("/odata/Customers(CustKey={1})","",TestContext.UpdateCustomer_CustKey)
+			disposable data response = client.PutAsync(request, requestBody).Result
+			response.EnsureSuccessStatusCode()
+
+			;;Get the inserted record
+			getResponse = client.GetAsync(request).Result
+			getResult = getResponse.Content.ReadAsStringAsync().Result
+			getResponse.EnsureSuccessStatusCode()
+			doCustomer = JsonConvert.DeserializeObject<ODataCustomer>(getResult)
+
+			Assert.AreEqual(doCustomer.Value.CustKey, TestContext.UpdateCustomer_CustKey)
+
+		endmethod
 
 	endclass
 

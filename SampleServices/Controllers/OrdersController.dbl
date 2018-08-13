@@ -68,74 +68,6 @@ namespace SampleServices.Controllers
 			this.DBContext = dbContext
 		endmethod
 
-.region "CREATE"
-
-		{ODataRoute("Orders")}
-		;;; <summary>
-		;;; Create a new order (automatically assigned primary key).
-		;;; </summary>
-		;;; <returns></returns>
-		public method Post, @IActionResult
-			{FromBody}
-			required in aOrder, @Order
-		proc
-			;; Validate inbound data
-			if (!ModelState.IsValid)
-				mreturn BadRequest(ModelState)
-
-			;TODO: How do we support the auto-generation of primary key in this scenario?
-			DBContext.Orders.Add(aOrder)
-
-			;TODO: Need to add a Location header
-
-			;;Commit the change
-			DBContext.SaveChanges()
-
-			mreturn Ok()
-
-		endmethod
-
-		{ODataRoute("Orders(OrNumber={aOrNumber})")}
-		;;; <summary>
-		;;; Create a new order (client-supplied primary key).
-		;;; </summary>
-		;;; <param name="aOrNumber">Order number</param>
-		;;; <returns></returns>
-		public method Put, @IActionResult
-			{FromODataUri}
-            required in aOrNumber, int
-			{FromBody}
-			required in aOrder, @Order
-		proc
-			;; Validate inbound data
-			if (!ModelState.IsValid)
-				mreturn BadRequest(ModelState)
-
-			;;Ensure that the key values in the URI win over any data that may be in the model object
-            aOrder.OrNumber = aOrNumber
-
-			;;Add the new order
-			try
-			begin
-				DBContext.Orders.Add(aOrder)
-			end
-			catch (e, @InvalidOperationException)
-			begin
-				mreturn BadRequest(e)
-			end
-			endtry
-
-			;TODO: Need to add a Location header
-
-			;;Commit the change
-			DBContext.SaveChanges()
-
-			mreturn NoContent()
-
-		endmethod
-
-.endregion
-
 .region "READ"
 
 		{ODataRoute("Orders")}
@@ -231,15 +163,15 @@ namespace SampleServices.Controllers
 
 .endregion
 
-.region "UPDATE"
+.region "CREATE"
 
 		{ODataRoute("Orders(OrNumber={aOrNumber})")}
 		;;; <summary>
-		;;; Update a order (partial updates are supported).
+		;;; Create (with a client-supplied primary key) or replace a order.
 		;;; </summary>
 		;;; <param name="aOrNumber">Order number</param>
 		;;; <returns></returns>
-		public method Patch, @IActionResult
+		public method Put, @IActionResult
 			{FromODataUri}
             required in aOrNumber, int
 			{FromBody}
@@ -249,22 +181,24 @@ namespace SampleServices.Controllers
 			if (!ModelState.IsValid)
 				mreturn BadRequest(ModelState)
 
-			;;Ensure that the key values in the URI win over any data that may be in the data object
+			;;Ensure that the key values in the URI win over any data that may be in the model object
             aOrder.OrNumber = aOrNumber
 
-			;TODO: Not sure what to do here, I'm not seting any DBSet methods relating to update?
-			;
-			;
-			;
-			;
-			;
-
+			;;Add the new order
+			try
+			begin
+				DBContext.Orders.Add(aOrder)
+			end
+			catch (e, @InvalidOperationException)
+			begin
+				mreturn BadRequest(e)
+			end
+			endtry
 
 			;;Commit the change
 			DBContext.SaveChanges()
 
-			;TODO: What about failures?
-			mreturn Ok()
+			mreturn NoContent()
 
 		endmethod
 

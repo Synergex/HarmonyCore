@@ -214,32 +214,41 @@ namespace SampleServices.Test
 			data order, @ODataOrder, JsonConvert.DeserializeObject<ODataOrder>(result)
 		endmethod
 
-;		;;------------------------------------------------------------
-;		;;Create a new Order (auto assign key)
-;
-;		{TestMethod}
-;		{TestCategory("Order Tests - Create, Update & Delete")}
-;		public method CreateOrder, void
-;		proc
-;			disposable data client = UnitTestEnvironment.Server.CreateClient()
-;			disposable data requestBody = new StringContent("")
-;			disposable data response = client.PostAsync("/odata/Orders", requestBody).Result
-;			data result = response.Content.ReadAsStringAsync().Result
-;			response.EnsureSuccessStatusCode()
-;		endmethod
+		;;------------------------------------------------------------
+		;;Create new Order (client specified key)
 
-;		;;------------------------------------------------------------
-;		;;Create new Order (client specified key)
-;
-;		{TestMethod}
-;		{TestCategory("Order Tests - Create, Update & Delete")}
-;		public method UpdateOrder, void
-;		proc
-;			disposable data client = UnitTestEnvironment.Server.CreateClient()
-;			disposable data requestBody = new StringContent("")
-;			disposable data response = client.PutAsync("/odata/Orders(1)", requestBody).Result
-;			response.EnsureSuccessStatusCode()
-;		endmethod
+		{TestMethod}
+		{TestCategory("Order Tests - Create, Update & Delete")}
+		public method UpdateOrder, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+
+			;;Get the first record from the file
+			data getRequest = String.Format("/odata/Orders(OrNumber={1})","",TestContext.GetOrder_OrNumber)
+			data getResponse = client.GetAsync(getRequest).Result
+			data getResult = getResponse.Content.ReadAsStringAsync().Result
+			getResponse.EnsureSuccessStatusCode()
+			data doOrder, @ODataOrder, JsonConvert.DeserializeObject<ODataOrder>(getResult)
+
+			doOrder.Value.OrNumber = TestContext.UpdateOrder_OrNumber
+
+			;TODO: Also need to ensure any nodups alternate keys get unique values
+
+			;;Update it
+			disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doOrder.Value))
+			data request = String.Format("/odata/Orders(OrNumber={1})","",TestContext.UpdateOrder_OrNumber)
+			disposable data response = client.PutAsync(request, requestBody).Result
+			response.EnsureSuccessStatusCode()
+
+			;;Get the inserted record
+			getResponse = client.GetAsync(request).Result
+			getResult = getResponse.Content.ReadAsStringAsync().Result
+			getResponse.EnsureSuccessStatusCode()
+			doOrder = JsonConvert.DeserializeObject<ODataOrder>(getResult)
+
+			Assert.AreEqual(doOrder.Value.OrNumber, TestContext.UpdateOrder_OrNumber)
+
+		endmethod
 
 	endclass
 

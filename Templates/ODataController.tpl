@@ -110,82 +110,6 @@ namespace <NAMESPACE>
 			this.DBContext = dbContext
 		endmethod
 
-.region "CREATE"
-
-		{ODataRoute("<StructurePlural>")}
-		;;; <summary>
-		;;; Create a new <structureNoplural> (automatically assigned primary key).
-		;;; </summary>
-		;;; <returns></returns>
-		public method Post, @IActionResult
-			{FromBody}
-			required in a<StructureNoplural>, @<StructureNoplural>
-		proc
-			;; Validate inbound data
-			if (!ModelState.IsValid)
-				mreturn BadRequest(ModelState)
-
-			;TODO: How do we support the auto-generation of primary key in this scenario?
-			DBContext.<StructurePlural>.Add(a<StructureNoplural>)
-
-			;TODO: Need to add a Location header
-
-			;;Commit the change
-			DBContext.SaveChanges()
-
-			mreturn Ok()
-
-		endmethod
-
-		<PRIMARY_KEY>
-		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
-		;;; <summary>
-		;;; Create a new <structureNoplural> (client-supplied primary key).
-		;;; </summary>
-        <SEGMENT_LOOP>
-		;;; <param name="a<SegmentName>"><FIELD_DESC></param>
-        </SEGMENT_LOOP>
-		;;; <returns></returns>
-		public method Put, @IActionResult
-            <SEGMENT_LOOP>
-			{FromODataUri}
-            required in a<SegmentName>, <SEGMENT_SNTYPE>
-            </SEGMENT_LOOP>
-			{FromBody}
-			required in a<StructureNoplural>, @<StructureNoplural>
-		proc
-			;; Validate inbound data
-			if (!ModelState.IsValid)
-				mreturn BadRequest(ModelState)
-
-			;;Ensure that the key values in the URI win over any data that may be in the model object
-            <SEGMENT_LOOP>
-            a<StructureNoplural>.<FieldSqlname> = a<SegmentName>
-            </SEGMENT_LOOP>
-
-			;;Add the new <structureNoplural>
-			try
-			begin
-				DBContext.<StructurePlural>.Add(a<StructureNoplural>)
-			end
-			catch (e, @InvalidOperationException)
-			begin
-				mreturn BadRequest(e)
-			end
-			endtry
-
-			;TODO: Need to add a Location header
-
-			;;Commit the change
-			DBContext.SaveChanges()
-
-			mreturn NoContent()
-
-		endmethod
-		</PRIMARY_KEY>
-
-.endregion
-
 .region "READ"
 
 		{ODataRoute("<StructurePlural>")}
@@ -253,18 +177,43 @@ namespace <NAMESPACE>
 		</ALTERNATE_KEY_LOOP>
 .endregion
 
-.region "UPDATE"
+.region "CREATE"
 
+;//		{ODataRoute("<StructurePlural>")}
+;//		;;; <summary>
+;//		;;; Create a new <structureNoplural> (automatically assigned primary key).
+;//		;;; </summary>
+;//		;;; <returns></returns>
+;//		public method Post, @IActionResult
+;//			{FromBody}
+;//			required in a<StructureNoplural>, @<StructureNoplural>
+;//		proc
+;//			;; Validate inbound data
+;//			if (!ModelState.IsValid)
+;//				mreturn BadRequest(ModelState)
+;//
+;//			;TODO: How do we support the auto-generation of primary key in this scenario?
+;//			DBContext.<StructurePlural>.Add(a<StructureNoplural>)
+;//
+;//			;TODO: Need to add a Location header
+;//
+;//			;;Commit the change
+;//			DBContext.SaveChanges()
+;//
+;//			mreturn Ok()
+;//
+;//		endmethod
+;//
 		<PRIMARY_KEY>
 		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
 		;;; <summary>
-		;;; Update a <structureNoplural> (partial updates are supported).
+		;;; Create (with a client-supplied primary key) or replace a <structureNoplural>.
 		;;; </summary>
         <SEGMENT_LOOP>
 		;;; <param name="a<SegmentName>"><FIELD_DESC></param>
         </SEGMENT_LOOP>
 		;;; <returns></returns>
-		public method Patch, @IActionResult
+		public method Put, @IActionResult
             <SEGMENT_LOOP>
 			{FromODataUri}
             required in a<SegmentName>, <SEGMENT_SNTYPE>
@@ -276,30 +225,79 @@ namespace <NAMESPACE>
 			if (!ModelState.IsValid)
 				mreturn BadRequest(ModelState)
 
-			;;Ensure that the key values in the URI win over any data that may be in the data object
+			;;Ensure that the key values in the URI win over any data that may be in the model object
             <SEGMENT_LOOP>
             a<StructureNoplural>.<FieldSqlname> = a<SegmentName>
             </SEGMENT_LOOP>
 
-			;TODO: Not sure what to do here, I'm not seting any DBSet methods relating to update?
-			;
-			;
-			;
-			;
-			;
-
+			;;Add the new <structureNoplural>
+			try
+			begin
+				DBContext.<StructurePlural>.Add(a<StructureNoplural>)
+			end
+			catch (e, @InvalidOperationException)
+			begin
+				mreturn BadRequest(e)
+			end
+			endtry
 
 			;;Commit the change
 			DBContext.SaveChanges()
 
-			;TODO: What about failures?
-			mreturn Ok()
+			mreturn NoContent()
 
 		endmethod
 		</PRIMARY_KEY>
 
 .endregion
 
+;//.region "UPDATE"
+;//
+;//		<PRIMARY_KEY>
+;//		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
+;//		;;; <summary>
+;//		;;; Update a <structureNoplural> (partial updates are supported).
+;//		;;; </summary>
+;//        <SEGMENT_LOOP>
+;//		;;; <param name="a<SegmentName>"><FIELD_DESC></param>
+;//        </SEGMENT_LOOP>
+;//		;;; <returns></returns>
+;//		public method Patch, @IActionResult
+;//            <SEGMENT_LOOP>
+;//			{FromODataUri}
+;//            required in a<SegmentName>, <SEGMENT_SNTYPE>
+;//            </SEGMENT_LOOP>
+;//			{FromBody}
+;//			required in a<StructureNoplural>, @<StructureNoplural>
+;//		proc
+;//			;; Validate inbound data
+;//			if (!ModelState.IsValid)
+;//				mreturn BadRequest(ModelState)
+;//
+;//			;;Ensure that the key values in the URI win over any data that may be in the data object
+;//            <SEGMENT_LOOP>
+;//            a<StructureNoplural>.<FieldSqlname> = a<SegmentName>
+;//            </SEGMENT_LOOP>
+;//
+;//			;TODO: Not sure what to do here, I'm not seting any DBSet methods relating to update?
+;//			;
+;//			;
+;//			;
+;//			;
+;//			;
+;//
+;//
+;//			;;Commit the change
+;//			DBContext.SaveChanges()
+;//
+;//			;TODO: What about failures?
+;//			mreturn Ok()
+;//
+;//		endmethod
+;//		</PRIMARY_KEY>
+;//
+;//.endregion
+;//
 .region "DELETE"
 
 		<PRIMARY_KEY>

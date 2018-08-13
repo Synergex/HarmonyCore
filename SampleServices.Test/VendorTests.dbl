@@ -155,32 +155,41 @@ namespace SampleServices.Test
 			data vendor, @ODataVendor, JsonConvert.DeserializeObject<ODataVendor>(result)
 		endmethod
 
-;		;;------------------------------------------------------------
-;		;;Create a new Vendor (auto assign key)
-;
-;		{TestMethod}
-;		{TestCategory("Vendor Tests - Create, Update & Delete")}
-;		public method CreateVendor, void
-;		proc
-;			disposable data client = UnitTestEnvironment.Server.CreateClient()
-;			disposable data requestBody = new StringContent("")
-;			disposable data response = client.PostAsync("/odata/Vendors", requestBody).Result
-;			data result = response.Content.ReadAsStringAsync().Result
-;			response.EnsureSuccessStatusCode()
-;		endmethod
+		;;------------------------------------------------------------
+		;;Create new Vendor (client specified key)
 
-;		;;------------------------------------------------------------
-;		;;Create new Vendor (client specified key)
-;
-;		{TestMethod}
-;		{TestCategory("Vendor Tests - Create, Update & Delete")}
-;		public method UpdateVendor, void
-;		proc
-;			disposable data client = UnitTestEnvironment.Server.CreateClient()
-;			disposable data requestBody = new StringContent("")
-;			disposable data response = client.PutAsync("/odata/Vendors(1)", requestBody).Result
-;			response.EnsureSuccessStatusCode()
-;		endmethod
+		{TestMethod}
+		{TestCategory("Vendor Tests - Create, Update & Delete")}
+		public method UpdateVendor, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+
+			;;Get the first record from the file
+			data getRequest = String.Format("/odata/Vendors(VendKey={1})","",TestContext.GetVendor_VendKey)
+			data getResponse = client.GetAsync(getRequest).Result
+			data getResult = getResponse.Content.ReadAsStringAsync().Result
+			getResponse.EnsureSuccessStatusCode()
+			data doVendor, @ODataVendor, JsonConvert.DeserializeObject<ODataVendor>(getResult)
+
+			doVendor.Value.VendKey = TestContext.UpdateVendor_VendKey
+
+			;TODO: Also need to ensure any nodups alternate keys get unique values
+
+			;;Update it
+			disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doVendor.Value))
+			data request = String.Format("/odata/Vendors(VendKey={1})","",TestContext.UpdateVendor_VendKey)
+			disposable data response = client.PutAsync(request, requestBody).Result
+			response.EnsureSuccessStatusCode()
+
+			;;Get the inserted record
+			getResponse = client.GetAsync(request).Result
+			getResult = getResponse.Content.ReadAsStringAsync().Result
+			getResponse.EnsureSuccessStatusCode()
+			doVendor = JsonConvert.DeserializeObject<ODataVendor>(getResult)
+
+			Assert.AreEqual(doVendor.Value.VendKey, TestContext.UpdateVendor_VendKey)
+
+		endmethod
 
 	endclass
 
