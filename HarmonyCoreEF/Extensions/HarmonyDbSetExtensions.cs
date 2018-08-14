@@ -59,6 +59,20 @@ namespace Harmony.Core.EF.Extensions
             return compiledQuery(context, keyValue);
         }
 
+        public static void AddOrUpdate<T, K>(this DbSet<T> thisp, K primaryKey, T obj)
+             where T : class
+        {
+            var found = FindCompiled<K, T>(thisp, primaryKey);
+            if (found != null)
+            {
+                thisp.Update(obj);
+            }
+            else
+            {
+                thisp.Add(obj);
+            }
+        }
+
         public static T FirstOrDefault<T>(this DbSet<T> thisp, string expression, params object[] parameters)
             where T : class
         {
