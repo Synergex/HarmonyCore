@@ -2,12 +2,14 @@ import System
 import System.Collections.Generic
 import System.Text
 import System.Linq
+import System.Diagnostics
 
 namespace Harmony.Core.FileIO.Queryable
 
 	public class DataObjectMaterializer
 		private abstract class MaterializerState
 			public parentState, @DataObjectMaterializer.MaterializerState
+			public childrenState, @List<DataObjectMaterializer.MaterializerState>
 			public typeBuf, @QueryBuffer.TypeBuffer
 			public grfa, a10
 			public madeItems, @IEnumerable<DataObjectBase>
@@ -15,6 +17,80 @@ namespace Harmony.Core.FileIO.Queryable
 			public dependentItems, @Dictionary<string, Object>
 			public changed, boolean
 			public filled, boolean
+
+			public method MaybeBubbleMake, void
+				tracker, @Func<DataObjectBase, DataObjectBase>
+				alwaysBubble, boolean
+				structure memMapper
+					fld,a1
+				endstructure
+			proc
+				if(filled)
+				begin
+					data doBubble = lastMadeItem == ^null || alwaysBubble
+					if(lastMadeItem == ^null)
+					begin
+						data childState, @DataObjectMaterializer.MaterializerState
+						foreach childState in childrenState
+						begin
+							childState.MaybeBubbleMake(tracker, alwaysBubble)
+						end
+						data structureSize, i4, typeBuf.Metadata.StructureSize
+						data memPnt, i4, typeBuf.MemoryHandle.Value
+						;;construct the object
+						lastMadeItem = dependentItems != ^null ? 
+						&	typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa, dependentItems.ToArray()) : 
+						&	typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa)
+
+						;;cleanup the materializer state for this step
+						if(dependentItems != ^null)
+							dependentItems.Clear()
+					end
+
+					if(doBubble)
+						Bubble(lastMadeItem, parentState == ^null, tracker)
+				end
+			endmethod
+
+			public method Bubble, void
+				madeObject, @DataObjectBase
+				isRoot, boolean
+				tracker, @Func<DataObjectBase, DataObjectBase>
+			proc
+				;;we only need to track top level objects
+				if(isRoot)
+					tracker(madeObject)
+
+				;;if there is a parent state and we're a collection
+				;;and if madeItems is empty, add ourselves to it and then add our madeItems
+				;;to our parent states, dependentItems, using typeBuf.ParentFieldName as the key
+				if(madeItems == ^null && parentState != ^null) then
+				begin
+					;;we must be constructing singles, just push our madeObject into the parent
+					if(LastMadeItem == ^null && parentState.dependentItems.ContainsKey(typeBuf.ParentFieldName))
+					begin
+						;;this leg should have only had one result, throw
+						throw new InvalidOperationException(string.Format("Unexpected record during enumeration, additional item encountered was {0} joined to a {1} at {2}", 
+						&	typeBuf.DataObjectType.FullName, parentState.typeBuf.DataObjectType, typeBuf.ParentFieldName))
+					end
+					parentState.dependentItems.Add(typeBuf.ParentFieldName, madeObject)
+				end
+				else if(madeItems != ^null) then
+				begin
+					AddItem(madeObject)
+				end
+				else
+					throw new InvalidOperationException("Invalid materializer state")
+					
+				if(parentState != ^null)
+				begin
+					if(madeItems != ^null && HasOneItem())
+					begin
+						parentState.dependentItems.Add(typeBuf.ParentFieldName, madeItems)
+					end
+				end
+			endmethod
+
 
 			public abstract method AddItem, void
 				obj, @DataObjectBase
@@ -41,6 +117,7 @@ namespace Harmony.Core.FileIO.Queryable
 				if(parentState == ^null)
 					madeState.InitItems()
 
+				madeState.childrenState = new List<DataObjectMaterializer.MaterializerState>()
 				madeState.typeBuf = buf
 				madeState.parentState = parentState
 				madeState.changed = false
@@ -93,7 +170,6 @@ namespace Harmony.Core.FileIO.Queryable
 					data memPnt, i4, matState.typeBuf.MemoryHandle.Value
 					data structureSize, i4, matState.typeBuf.Metadata.StructureSize
 					data rowExists = rowEnumerator.Current.RowInfo(^m(memMapper.fld(1:structureSize), memPnt), , ,matState.changed)
-					
 					;;if our parent was constructed last time around we need to clean up our made items
 					if(matState.parentState != ^null && matState.parentState.changed && matState.parentState.filled)
 					begin
@@ -104,75 +180,34 @@ namespace Harmony.Core.FileIO.Queryable
 					if(!matState.changed && matState.filled) then
 					begin
 						;;if the leg hasnt changed we still need to check if we've push up to our current parent
-						if(matState.parentState != ^null)
+						if(matState.parentState != ^null && matState.parentState.changed && matState.parentState.filled)
 						begin
 							if(matState.parentState.dependentItems != ^null && !matState.parentState.dependentItems.ContainsKey(matState.typeBuf.ParentFieldName))
 							begin
-
-								if(matState.lastMadeItem == ^null)
-								begin
-									;;hasnt been made yet
-									nop
-								end
-
-								if(matState.madeItems != ^null) then
-								begin
-									if(matState.IsEmpty() && matState.lastMadeItem != ^null)
-									begin
-										matState.AddItem(matState.lastMadeItem)
-									end
-									matState.parentState.dependentItems.Add(matState.typeBuf.ParentFieldName, matState.madeItems)
-								end
-								else if(matState.lastMadeItem != ^null)
-									matState.parentState.dependentItems.Add(matState.typeBuf.ParentFieldName, matState.lastMadeItem)
+								matState.MaybeBubbleMake(tracker, true)
 							end
 						end
 					end
 					else if(matState.changed && matState.filled)
 					begin
-						;;construct the object
-						data madeObject = matState.dependentItems != ^null ? 
-						&	matState.typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), matState.grfa, matState.dependentItems.ToArray()) : 
-						&	matState.typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), matState.grfa)
-
-						matState.LastMadeItem = madeObject
-
-						;;we only need to track top level objects
-						if(matState.typeBuf == typeBuf)
-							tracker(madeObject)
-
-						;;if there is a parent state and we're a collection
-						;;and if madeItems is empty, add ourselves to it and then add our madeItems
-						;;to our parent states, dependentItems, using typeBuf.ParentFieldName as the key
-						if(matState.madeItems == ^null && matState.parentState != ^null) then
+						;;if the object was initialized on demand we dont need to make another one here
+						;;its already been bubbled up to the parent state
+						if(matState.LastMadeItem == ^null)
 						begin
-							;;we must be constructing singles, just push our madeObject into the parent
-							if(matState.parentState.dependentItems.ContainsKey(matState.typeBuf.ParentFieldName))
-							begin
-								;;this leg should have only had one result, throw
-								throw new InvalidOperationException(string.Format("Unexpected record during enumeration, additional item encountered was {0} joined to a {1} at {2}", 
-								&	matState.typeBuf.DataObjectType.FullName, matState.parentState.typeBuf.DataObjectType, matState.typeBuf.ParentFieldName))
-							end
-							matState.parentState.dependentItems.Add(matState.typeBuf.ParentFieldName, madeObject)
-						end
-						else if(matState.madeItems != ^null) then
-						begin
-							matState.AddItem(madeObject)
-						end
-						else
-							throw new InvalidOperationException("Invalid materializer state")
-					
-						if(matState.parentState != ^null)
-						begin
-							if(matState.madeItems != ^null && matState.HasOneItem())
-							begin
-								matState.parentState.dependentItems.Add(matState.typeBuf.ParentFieldName, matState.madeItems)
-							end
+							;;construct the object
+							data madeObject = matState.dependentItems != ^null ? 
+							&	matState.typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), matState.grfa, matState.dependentItems.ToArray()) : 
+							&	matState.typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), matState.grfa)
+
+							matState.Bubble(madeObject, matState.typeBuf == typeBuf, tracker)
+						
+							;;cleanup the materializer state for this step
+							if(matState.dependentItems != ^null)
+								matState.dependentItems.Clear()
+
 						end
 
-						;;cleanup the materializer state for this step
-						if(matState.dependentItems != ^null)
-							matState.dependentItems.Clear()
+						matState.LastMadeItem = ^null
 					end
 
 					if(matState.changed)
@@ -191,45 +226,7 @@ namespace Harmony.Core.FileIO.Queryable
 			;;finsh up the leftover materialization process here
 			foreach matState in materializerQueue
 			begin
-				data memPnt, i4, matState.typeBuf.MemoryHandle.Value
-				data structureSize, i4, matState.typeBuf.Metadata.StructureSize
-				if(matState.filled)
-				begin
-					;;construct the object
-					data madeObject = matState.dependentItems != ^null ? 
-					&	matState.typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), matState.grfa, matState.dependentItems.ToArray()) : 
-					&	matState.typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), matState.grfa)
-					;;we only need to track top level objects
-					if(matState.typeBuf == typeBuf)
-						tracker(madeObject)
-
-					if(matState.madeItems == ^null && matState.parentState != ^null) then
-					begin
-						;;we must be constructing singles, just push our madeObject into the parent
-						if(matState.parentState.dependentItems.ContainsKey(matState.typeBuf.ParentFieldName))
-						begin
-							;;this leg should have only had one result, throw
-							throw new InvalidOperationException(string.Format("Unexpected record during enumeration, additional item encountered was {0} joined to a {1} at {2}", 
-							&	matState.typeBuf.DataObjectType.FullName, matState.parentState.typeBuf.DataObjectType, matState.typeBuf.ParentFieldName))
-						end
-						matState.parentState.dependentItems.Add(matState.typeBuf.ParentFieldName, madeObject)
-					end
-					else if(matState.madeItems != ^null) then
-					begin
-						matState.AddItem(madeObject)
-					end
-					else
-						throw new InvalidOperationException("Invalid materializer state")
-					
-					if(matState.parentState != ^null)
-					begin
-						if(matState.madeItems != ^null && matState.HasOneItem())
-						begin
-							matState.parentState.dependentItems.Add(matState.typeBuf.ParentFieldName, matState.madeItems)
-						end
-					end
-				end
-
+				matState.MaybeBubbleMake(tracker, false)
 			end
 			mreturn resultState.madeItems
 		endmethod
@@ -262,6 +259,7 @@ namespace Harmony.Core.FileIO.Queryable
 
 					q.Enqueue(newMatState) 
 					result.Add(newMatState)
+					current.childrenState.Add(newMatState)
 				end
 			end
 			mreturn result
