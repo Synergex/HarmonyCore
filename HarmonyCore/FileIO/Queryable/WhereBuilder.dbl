@@ -70,11 +70,14 @@ namespace Harmony.Core.FileIO.Queryable
 				mreturn ^null
 		endmethod
 
-		public method VisitForOrderBy, @Tuple<FieldDataDefinition, Boolean>
+		public method VisitForOrderBy, @FieldReference
 			expr, @Expression
 		proc
-			Visit(expr)
-			mreturn ^null
+			data targetField = ^as(FindTargetField(expr, ^null), @FieldReference)
+			if(targetField != ^null) then
+				mreturn targetField
+			else
+				throw new NotImplementedException("encountered order by, but failed to find field definition")
 		endmethod
 
 		private static method OpKindFromExpression, void

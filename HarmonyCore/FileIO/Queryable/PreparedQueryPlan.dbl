@@ -33,7 +33,7 @@ namespace Harmony.Core.FileIO.Queryable
 		endstructure
 		private mWhereParts, @List<object>
 		private mOnParts, @List<object>
-		private mOrderBy, @Tuple<FieldReference, Boolean>
+		private mOrderBy, @List<Tuple<FieldReference, Boolean>>
 		private mQuerySourceTypes, @List<Type>
 		private mQueryBufferPrototype, @QueryBuffer
 		private mSimpleKeyNumber, short
@@ -45,7 +45,7 @@ namespace Harmony.Core.FileIO.Queryable
 			isCollection, boolean
 			whereParts, @IEnumerable<object>
 			onParts, @IEnumerable<object>
-			orderBy, @Tuple<FieldReference, Boolean>
+			orderBy, @List<Tuple<FieldReference, Boolean>>
 			queryBufferPrototype, @QueryBuffer
 		proc
 			mWhereParts = whereParts.ToList()
@@ -229,10 +229,39 @@ namespace Harmony.Core.FileIO.Queryable
 				mreturn ^null
 		endmethod
 
+		private method MapField, @Synergex.SynergyDE.Select.OrderBy
+			recordArea, a
+			fieldDef, @FieldDataDefinition
+			asc, boolean
+		proc
+			if(asc) then
+				mreturn Synergex.SynergyDE.Select.OrderBy.Ascending(recordArea(fieldDef.StructurePosition:fieldDef.ElementSize))
+			else
+				mreturn Synergex.SynergyDE.Select.OrderBy.Descending(recordArea(fieldDef.StructurePosition:fieldDef.ElementSize))
+		endmethod
+
 		private method OrderByObject, @Synergex.SynergyDE.Select.OrderBy
 			queryBuf, @QueryBuffer
 		proc
-			mreturn ^null
+			data orderByResult, @Synergex.SynergyDE.Select.OrderBy, ^null
+			if(mOrderBy != ^null)
+			begin
+				data tpl, @Tuple<FieldReference, boolean>
+				foreach tpl in mOrderBy
+				begin
+					data madeOrderBy, @Synergex.SynergyDE.Select.OrderBy, ^null
+					data typeBuffer = queryBuf.TypeBuffers[tpl.Item1.QuerySourceKey]
+					data handle = typeBuffer.MemoryHandle.Value
+					madeOrderBy = MapField(^m(handle), tpl.Item1.FieldDef, tpl.Item2)
+
+					if(orderByResult == ^null) then
+						orderByResult = madeOrderBy
+					else
+						orderByResult = orderByResult .and. madeOrderBy
+				end
+			end
+
+			mreturn orderByResult
 		endmethod
 
 		private method SelectObject, @Synergex.SynergyDE.Select.Select
@@ -243,12 +272,20 @@ namespace Harmony.Core.FileIO.Queryable
 		proc
 			if(IsJoin)
 				throw new NotImplementedException()
-
-			if(whereObject != ^null) then
-				mreturn new Synergex.SynergyDE.Select.Select(fromObject, whereObject)
+			if(orderObject != ^null) then
+			begin
+				if(whereObject != ^null) then
+					mreturn new Synergex.SynergyDE.Select.Select(fromObject, whereObject, orderObject)
+				else
+					mreturn new Synergex.SynergyDE.Select.Select(fromObject, orderObject)
+			end
 			else
-				mreturn new Synergex.SynergyDE.Select.Select(fromObject)
-
+			begin
+				if(whereObject != ^null) then
+					mreturn new Synergex.SynergyDE.Select.Select(fromObject, whereObject)
+				else
+					mreturn new Synergex.SynergyDE.Select.Select(fromObject)
+			end
 		endmethod
 
 		private method JoinObject, @Synergex.SynergyDE.Select.JoinSelect
@@ -260,11 +297,20 @@ namespace Harmony.Core.FileIO.Queryable
 			if(!IsJoin)
 				throw new NotImplementedException()
 
-			if(whereObject != ^null) then
-				mreturn new Synergex.SynergyDE.Select.Select(fromObject, whereObject).Join()
+			if(orderObject != ^null) then
+			begin
+				if(whereObject != ^null) then
+					mreturn new Synergex.SynergyDE.Select.Select(fromObject, whereObject, orderObject).Join()
+				else
+					mreturn new Synergex.SynergyDE.Select.Select(fromObject, orderObject).Join()
+			end
 			else
-				mreturn new Synergex.SynergyDE.Select.Select(fromObject).Join()
-
+			begin
+				if(whereObject != ^null) then
+					mreturn new Synergex.SynergyDE.Select.Select(fromObject, whereObject).Join()
+				else
+					mreturn new Synergex.SynergyDE.Select.Select(fromObject).Join()
+			end
 		endmethod
 
 		private method FromObject, @Synergex.SynergyDE.Select.From
