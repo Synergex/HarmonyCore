@@ -7,6 +7,7 @@ import System.Linq.Expressions
 import Harmony.Core.Utility
 import Remotion.Linq.Clauses
 import System.Linq
+import System.Reflection
 
 namespace Harmony.Core.FileIO.Queryable
 
@@ -248,6 +249,24 @@ namespace Harmony.Core.FileIO.Queryable
 				throw new NotImplementedException("where expression must contain at least one field or property expression")
 		endmethod
 
+		private static StringContains, @MethodInfo, ^typeof(string).GetMethod("Contains", new Type[#] { ^typeof(String) })
+
+		protected override method VisitMethodCall, @Expression
+			node, @System.Linq.Expressions.MethodCallExpression  
+			endparams
+		proc
+			if(node.Method == StringContains) then
+			begin
+				ProcessWhereClause(node.Object, node.Arguments[0], WhereClauseOperator.IsLike)
+			end
+			else
+			begin
+				mreturn parent.VisitMethodCall(node)
+			end
+
+
+			mreturn node
+		endmethod
 
 		protected override method VisitBinary, @Expression
 			node, @BinaryExpression
