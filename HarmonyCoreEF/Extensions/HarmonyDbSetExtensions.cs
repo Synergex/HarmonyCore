@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Metadata;
 using System;
 using System.Collections.Concurrent;
@@ -22,7 +23,8 @@ namespace Harmony.Core.EF.Extensions
         public static T FindCompiled<K, T>(this DbSet<T> thisp, K keyValue) 
             where T : class
         {
-            var context = ((IInfrastructure<IServiceProvider>)thisp).Instance.GetService(typeof(DbContext)) as DbContext;
+            var currentContext = ((IInfrastructure<IServiceProvider>)thisp).Instance.GetService(typeof(ICurrentDbContext)) as ICurrentDbContext;
+            var context = currentContext.Context;
             var contextType = context.GetType();
             var entityType = context.Model.FindEntityType(typeof(T));
             var primaryKey = entityType.FindPrimaryKey();
@@ -82,7 +84,8 @@ namespace Harmony.Core.EF.Extensions
             }
             else
             {
-                var context = ((IInfrastructure<IServiceProvider>)thisp).Instance.GetService(typeof(DbContext)) as DbContext;
+                var currentContext = ((IInfrastructure<IServiceProvider>)thisp).Instance.GetService(typeof(ICurrentDbContext)) as ICurrentDbContext;
+                var context = currentContext.Context;
                 var contextType = context.GetType();
                 var compiledQueryLookup = _compiledFirstOrDefaultLookup.GetOrAdd(contextType, (ty) => new ConcurrentDictionary<string, object>());
                 var compiledQuery = compiledQueryLookup.GetOrAdd(expression, (ex) =>
@@ -154,7 +157,8 @@ namespace Harmony.Core.EF.Extensions
             }
             else
             {
-                var context = ((IInfrastructure<IServiceProvider>)thisp).Instance.GetService(typeof(DbContext)) as DbContext;
+                var currentContext = ((IInfrastructure<IServiceProvider>)thisp).Instance.GetService(typeof(ICurrentDbContext)) as ICurrentDbContext;
+                var context = currentContext.Context;
                 var contextType = context.GetType();
                 var compiledQueryLookup = _compiledFirstOrDefaultLookup.GetOrAdd(contextType, (ty) => new ConcurrentDictionary<string, object>());
                 var compiledQuery = compiledQueryLookup.GetOrAdd(expression + ";including;" + including, (ex) =>
@@ -255,7 +259,8 @@ namespace Harmony.Core.EF.Extensions
             }
             else
             {
-                var context = ((IInfrastructure<IServiceProvider>)thisp).Instance.GetService(typeof(DbContext)) as DbContext;
+                var currentContext = ((IInfrastructure<IServiceProvider>)thisp).Instance.GetService(typeof(ICurrentDbContext)) as ICurrentDbContext;
+                var context = currentContext.Context;
                 var contextType = context.GetType();
                 var compiledQueryLookup = _compiledWhereLookup.GetOrAdd(contextType, (ty) => new ConcurrentDictionary<string, object>());
                 var compiledQuery = compiledQueryLookup.GetOrAdd(expression, (ex) =>
@@ -328,7 +333,8 @@ namespace Harmony.Core.EF.Extensions
         public static IEnumerable<T> WhereIncluding<T>(this DbSet<T> thisp, string including, string expression, params object[] parameters)
             where T : class
         {
-            var context = ((IInfrastructure<IServiceProvider>)thisp).Instance.GetService(typeof(DbContext)) as DbContext;
+            var currentContext = ((IInfrastructure<IServiceProvider>)thisp).Instance.GetService(typeof(ICurrentDbContext)) as ICurrentDbContext;
+            var context = currentContext.Context;
             var contextType = context.GetType();
             if (parameters.Length > 5)
             {
@@ -406,7 +412,8 @@ namespace Harmony.Core.EF.Extensions
         public static T FindAlternate<T>(this DbSet<T> thisp, string keyName, object keyValue) where T : class
         {
             // Find DbContext, entity type, and primary key.
-            var context = ((IInfrastructure<IServiceProvider>)thisp).GetService<DbContext>();
+            var currentContext = ((IInfrastructure<IServiceProvider>)thisp).Instance.GetService(typeof(ICurrentDbContext)) as ICurrentDbContext;
+            var context = currentContext.Context;
             var entityType = context.Model.FindEntityType(typeof(T));
             // Build the lambda expression for the query: (TEntity entity) => AND( entity.keyProperty[i] == keyValues[i])
             var entityParameter = Expression.Parameter(typeof(T), "entity");
@@ -458,7 +465,8 @@ namespace Harmony.Core.EF.Extensions
         public static T FindAlternate<T>(this DbSet<T> thisp, string keyName, object keyValue, string keyName2, object keyValue2, string keyName3, object keyValue3) where T : class
         {
             // Find DbContext, entity type, and primary key.
-            var context = ((IInfrastructure<IServiceProvider>)thisp).GetService<DbContext>();
+            var currentContext = ((IInfrastructure<IServiceProvider>)thisp).Instance.GetService(typeof(ICurrentDbContext)) as ICurrentDbContext;
+            var context = currentContext.Context;
             var entityType = context.Model.FindEntityType(typeof(T));
             // Build the lambda expression for the query: (TEntity entity) => AND( entity.keyProperty[i] == keyValues[i])
             var entityParameter = Expression.Parameter(typeof(T), "entity");
@@ -491,7 +499,8 @@ namespace Harmony.Core.EF.Extensions
         public static IQueryable<T> FindAlternates<T>(this DbSet<T> thisp, string keyName, object keyValue) where T : class
         {
             // Find DbContext, entity type, and primary key.
-            var context = ((IInfrastructure<IServiceProvider>)thisp).GetService<DbContext>();
+            var currentContext = ((IInfrastructure<IServiceProvider>)thisp).Instance.GetService(typeof(ICurrentDbContext)) as ICurrentDbContext;
+            var context = currentContext.Context;
             var entityType = context.Model.FindEntityType(typeof(T));
             // Build the lambda expression for the query: (TEntity entity) => AND( entity.keyProperty[i] == keyValues[i])
             var entityParameter = Expression.Parameter(typeof(T), "entity");
@@ -507,7 +516,8 @@ namespace Harmony.Core.EF.Extensions
         public static IQueryable<T> FindAlternates<T>(this DbSet<T> thisp, string keyName, object keyValue, string keyName2, object keyValue2) where T : class
         {
             // Find DbContext, entity type, and primary key.
-            var context = ((IInfrastructure<IServiceProvider>)thisp).GetService<DbContext>();
+            var currentContext = ((IInfrastructure<IServiceProvider>)thisp).Instance.GetService(typeof(ICurrentDbContext)) as ICurrentDbContext;
+            var context = currentContext.Context;
             var entityType = context.Model.FindEntityType(typeof(T));
             // Build the lambda expression for the query: (TEntity entity) => AND( entity.keyProperty[i] == keyValues[i])
             var entityParameter = Expression.Parameter(typeof(T), "entity");

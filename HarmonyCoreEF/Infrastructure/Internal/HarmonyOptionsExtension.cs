@@ -22,7 +22,6 @@ namespace Harmony.Core.EF.Infrastructure.Internal
         private HarmonyDatabaseRoot _databaseRoot;
         private string _logFragment;
         private IDataObjectProvider _objectProvider;
-        private DbContext _context;
         /// <summary>
         ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
         ///     directly from your code. This API may change or be removed in future releases.
@@ -31,11 +30,10 @@ namespace Harmony.Core.EF.Infrastructure.Internal
         {
         }
 
-        public HarmonyOptionsExtension(IDataObjectProvider objectProvider, DbContext context)
+        public HarmonyOptionsExtension(IDataObjectProvider objectProvider)
         {
             _objectProvider = objectProvider;
             _databaseRoot = new HarmonyDatabaseRoot { Instance = _objectProvider };
-            _context = context;
         }
 
         /// <summary>
@@ -99,7 +97,6 @@ namespace Harmony.Core.EF.Infrastructure.Internal
         /// </summary>
         public virtual bool ApplyServices(IServiceCollection services)
         {
-            services.AddSingleton<DbContext>(_context);
             services.AddSingleton<IDataObjectProvider>(_objectProvider);
             services.AddEntityFrameworkHarmonyDatabase();
 
