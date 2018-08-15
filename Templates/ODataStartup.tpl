@@ -133,8 +133,7 @@ namespace <NAMESPACE>
 
 			services.AddSingleton<IFileChannelManager, FileChannelManager>()
 			services.AddSingleton<IDataObjectProvider>(AddDataObjectMappings)
-			services.AddSingleton<DbContextOptions<DBContext>>(new DbContextOptions<DBContext>())
-			services.AddScoped<DBContext, DBContext>()
+			services.AddDbContextPool<DBContext>(ConfigureDBContext)
 
 			;;Load OData and ASP.NET
 
@@ -175,6 +174,13 @@ namespace <NAMESPACE>
 			end
 			services.AddSwaggerGen(configureSwaggerGen)
 
+		endmethod
+
+		private method ConfigureDBContext, void
+			sp, @IServiceProvider
+			opts, @DbContextOptionsBuilder
+		proc
+			HarmonyDbContextOptionsExtensions.UseHarmonyDatabase(opts, sp.GetService<IDataObjectProvider>())
 		endmethod
 
 		public method Configure, void
