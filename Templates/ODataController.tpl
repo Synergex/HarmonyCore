@@ -114,7 +114,7 @@ namespace <NAMESPACE>
 .region "READ"
 
 		{ODataRoute("<StructurePlural>")}
-		{ProducesResponseType(Type=^typeof(DbSet<<StructureNoplural>>), StatusCode=200)}
+;//		{ProducesResponseType(^typeof(IEnumerable<<StructureNoplural>>), 200)}
 		{EnableQuery}
 		;{EnableQuery(MaxExpansionDepth=3, MaxSkip=10, MaxTop=5, PageSize=4)}
 		;;; <summary>
@@ -128,7 +128,7 @@ namespace <NAMESPACE>
 
 		<PRIMARY_KEY>
 		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
-		{ProducesResponseType(Type=^typeof(<StructureNoplural>), StatusCode=200)}
+;//		{ProducesResponseType(^typeof(<StructureNoplural>), 200)}
 		{EnableQuery}
 		;;; <summary>
 		;;; Get a single <StructureNoplural> by primary key.
@@ -155,7 +155,7 @@ namespace <NAMESPACE>
 		
 		<ALTERNATE_KEY_LOOP>
 		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
-		{ProducesResponseType(Type=^typeof(<StructureNoplural>), StatusCode=200)}
+;//		{ProducesResponseType(^typeof(<StructureNoplural>), 200)}
 		{EnableQuery}
 		;;; <summary>
 		;;; Get a single <StructureNoplural> by key <KeyName>.
@@ -185,7 +185,7 @@ namespace <NAMESPACE>
 .region "CREATE"
 
 ;//		{ODataRoute("<StructurePlural>")}
-;//		{ProducesResponseType(Type=^typeof(void), StatusCode=200)}
+;//		{ProducesResponseType(^typeof(void), 200)}
 ;//		;;; <summary>
 ;//		;;; Create a new <structureNoplural> (automatically assigned primary key).
 ;//		;;; </summary>
@@ -212,7 +212,7 @@ namespace <NAMESPACE>
 ;//
 		<PRIMARY_KEY>
 		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
-		{ProducesResponseType(Type=^typeof(void), StatusCode=204)}
+;//		{ProducesResponseType(^typeof(void), 204)}
 		;;; <summary>
 		;;; Create (with a client-supplied primary key) or replace a <structureNoplural>.
 		;;; </summary>
@@ -268,7 +268,7 @@ namespace <NAMESPACE>
 
 		<PRIMARY_KEY>
 		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
-		{ProducesResponseType(Type=^typeof(void), StatusCode=204)}
+;//		{ProducesResponseType(^typeof(void), 204)}
 		;;; <summary>
 		;;; Patch  (partial update) a <structureNoplural>.
 		;;; </summary>
@@ -322,7 +322,7 @@ namespace <NAMESPACE>
 
 		<PRIMARY_KEY>
 		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
-		{ProducesResponseType(Type=^typeof(void), StatusCode=204)}
+;//		{ProducesResponseType(^typeof(void), 204)}
 		;;; <summary>
 		;;; Delete a <structureNoplural>.
 		;;; </summary>
