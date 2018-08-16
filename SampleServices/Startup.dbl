@@ -98,14 +98,9 @@ namespace SampleServices
 				mreturn objectProvider
 			end
 
-			lambda AddDBContextOptions(serviceProvider)
-			begin
-			end
-
 
 			services.AddSingleton<IFileChannelManager, FileChannelManager>()
 			services.AddSingleton<IDataObjectProvider>(AddDataObjectMappings)
-			;services.AddSingleton<DbContextOptions<DBContext>>(new DbContextOptions<DBContext>())
 			services.AddDbContextPool<DBContext>(ConfigureDBContext)
 
 			;;Load OData and ASP.NET
@@ -113,7 +108,7 @@ namespace SampleServices
 			lambda AddAltKeySupport(serviceProvider)
 			begin
 				data model = EdmBuilder.GetEdmModel(serviceProvider)
-				mreturn new AlternateKeysODataUriResolver(model)
+				mreturn new AlternateKeysODataUriResolver(model) { EnableCaseInsensitive = true }
 			end
 
 			services.AddSingleton<ODataUriResolver>(AddAltKeySupport)
@@ -148,7 +143,7 @@ namespace SampleServices
 			app, @IApplicationBuilder
 		proc
 			;;Add the middleware to generate API documentation to a file
-			;;app.UseSwagger()
+			app.UseSwagger()
 
 			app.UseLogging(DebugLogSession.Logging)
 
@@ -178,14 +173,14 @@ namespace SampleServices
 			app.UseMvc(MVCBuilder)
 
 			;;Add middleware to generate Swagger UI for documentation ("available at /api-docs")
-			;app.UseStaticFiles()
-			;lambda configureSwaggerUi(config)
-			;begin
-			;	config.SwaggerEndpoint("/HarmonyCoreSwaggerFile.json", "Harmony Core Sample API")
-			;	config.RoutePrefix = "api-docs"
-			;	config.DocumentTitle = "Harmony Core Sample API"
-			;end
-			;app.UseSwaggerUI(configureSwaggerUi)
+			app.UseStaticFiles()
+			lambda configureSwaggerUi(config)
+			begin
+				config.SwaggerEndpoint("/HarmonyCoreSwaggerFile.json", "Harmony Core Sample API")
+				config.RoutePrefix = "api-docs"
+				config.DocumentTitle = "Harmony Core Sample API"
+			end
+			app.UseSwaggerUI(configureSwaggerUi)
 
 		endmethod
 	endclass
