@@ -41,21 +41,19 @@
 ;;
 ;;*****************************************************************************
 ;; 
-;;  This environment requires the following NuGet packages:
+;; This environment requires the following NuGet packages:
 ;;
-;;  Microsoft.AspNetCore.Mvc.Core
-;;  Microsoft.AspNetCore.OData
-;;  Microsoft.EntityFrameworkCore
-;;  Microsoft.EntityFrameworkCore.Relational
-;;  Microsoft.OData.Core
-;;  Microsoft.OData.Edm
-;;  Microsoft.Spatial
-;;  system.text.encoding.codepages
-;;
-;;  And for Swashbuckle / swagger support:
-;;
-;;  Swashbuckle.AspNetCore
-;;  Microsoft.AspNetCore.StaticFiles
+;;	Microsoft.AspNetCore.HttpsPolicy
+;;	Microsoft.AspNetCore.Mvc.Core
+;;	Microsoft.AspNetCore.OData
+;;	Microsoft.AspNetCore.StaticFiles
+;;	Microsoft.EntityFrameworkCore
+;;	Microsoft.EntityFrameworkCore.Relational
+;;	Microsoft.OData.Core
+;;	Microsoft.OData.Edm
+;;	Microsoft.Spatial
+;;	Swashbuckle.AspNetCore
+;;	system.text.encoding.codepages
 ;;
 
 import Harmony.Core.Context
@@ -63,16 +61,17 @@ import Harmony.Core.FileIO
 import Harmony.Core.Utility
 import Harmony.OData
 import Harmony.AspNetCore.Context
-import Microsoft.Extensions.DependencyInjection
-import Microsoft.EntityFrameworkCore
+import Microsoft.AspNetCore.Builder
+import Microsoft.AspNetCore.Hosting
+import Microsoft.AspNetCore.Http
 import Microsoft.AspNet.OData
 import Microsoft.AspNet.OData.Extensions
 import Microsoft.AspNet.OData.Builder
 import Microsoft.AspNet.OData.Routing
+import Microsoft.EntityFrameworkCore
+import Microsoft.Extensions.DependencyInjection
 import Microsoft.OData
 import Microsoft.OData.UriParser
-import Microsoft.AspNetCore.Builder
-import Microsoft.AspNetCore.Hosting
 import Swashbuckle.AspNetCore.Swagger
 import SampleServices.Models
 
@@ -118,16 +117,19 @@ namespace SampleServices
 			services.AddSingleton<IPerRouteContainer, HarmonyPerRouteContainer>()
 
 			;;Load Swagger API documentation services
+			services.AddSwaggerGen()
 
 			services.AddMvcCore()
 			&	.AddJsonFormatters()	;;For PATCH
 			&	.AddApiExplorer()		;;Swagger UI
 
-			lambda configureSwaggerGen(config)
+			lambda httpsConfig(options)
 			begin
-				config.SwaggerDoc("v1", new Info() { Title = "My API", Version = "v1" })
+				options.RedirectStatusCode = StatusCodes.Status307TemporaryRedirect
+				options.HttpsPort = 5001
 			end
-			services.AddSwaggerGen(configureSwaggerGen)
+
+			services.AddHttpsRedirection(httpsConfig)
 
 		endmethod
 
@@ -140,14 +142,31 @@ namespace SampleServices
 
 		public method Configure, void
 			required in app, @IApplicationBuilder
+			required in env, @IHostingEnvironment
 		proc
-			;;Add the middleware to generate API documentation to a file
-			app.UseSwagger()
+			;;-------------------------------------------------------
+			;;Configure development and production specific components
 
-			app.UseLogging(DebugLogSession.Logging)
+			if (env.IsDevelopment()) then
+			begin
+				app.UseDeveloperExceptionPage()
+				app.UseLogging(DebugLogSession.Logging)
+			end
+			else
+			begin
+				;;Enable HTTP Strict Transport Security Protocol (HSTS)
+				app.UseHsts()
+			end
 
-			;;Configure the MVC / OData environment
-			lambda MVCBuilder(builder)
+			;;-------------------------------------------------------
+			;;Enable HTTP redirection to HTTPS
+
+			app.UseHttpsRedirection()
+
+			;;-------------------------------------------------------
+			;;Configure the MVC & OData environments
+
+			lambda mvcBuilder(builder)
 			begin
 				data model = EdmBuilder.GetEdmModel(app.ApplicationServices)
 				lambda UriResolver(s)
@@ -168,20 +187,24 @@ namespace SampleServices
 				builder.MapODataServiceRoute("odata", "odata", model)
 			end
 
-			;;Add the MVC middleware
-			app.UseMvc(MVCBuilder)
+			app.UseMvc(mvcBuilder)
 
-			;;Add middleware to generate Swagger UI for documentation ("available at /api-docs")
-			app.UseStaticFiles()
+			;;-------------------------------------------------------
+			;;Configure and enable SwaggerUI
+
 			lambda configureSwaggerUi(config)
 			begin
 				config.SwaggerEndpoint("/HarmonyCoreSwaggerFile.json", "Harmony Core Sample API")
 				config.RoutePrefix = "api-docs"
 				config.DocumentTitle = "Harmony Core Sample API"
 			end
+
+			app.UseStaticFiles()
+			app.UseSwagger()
 			app.UseSwaggerUI(configureSwaggerUi)
 
 		endmethod
+
 	endclass
 
 endnamespace

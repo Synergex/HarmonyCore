@@ -77,21 +77,19 @@
 ;;
 ;;*****************************************************************************
 ;; 
-;;  This environment requires the following NuGet packages:
+;; This environment requires the following NuGet packages:
 ;;
-;;  Microsoft.AspNetCore.Mvc.Core
-;;  Microsoft.AspNetCore.OData
-;;  Microsoft.EntityFrameworkCore
-;;  Microsoft.EntityFrameworkCore.Relational
-;;  Microsoft.OData.Core
-;;  Microsoft.OData.Edm
-;;  Microsoft.Spatial
-;;  system.text.encoding.codepages
-;;
-;;  And for Swashbuckle / swagger support:
-;;
-;;  Swashbuckle.AspNetCore
-;;  Microsoft.AspNetCore.StaticFiles
+;;	Microsoft.AspNetCore.HttpsPolicy
+;;	Microsoft.AspNetCore.Mvc.Core
+;;	Microsoft.AspNetCore.OData
+;;	Microsoft.AspNetCore.StaticFiles
+;;	Microsoft.EntityFrameworkCore
+;;	Microsoft.EntityFrameworkCore.Relational
+;;	Microsoft.OData.Core
+;;	Microsoft.OData.Edm
+;;	Microsoft.Spatial
+;;	Swashbuckle.AspNetCore
+;;	system.text.encoding.codepages
 ;;
 
 import Harmony.Core.Context
@@ -99,16 +97,17 @@ import Harmony.Core.FileIO
 import Harmony.Core.Utility
 import Harmony.OData
 import Harmony.AspNetCore.Context
-import Microsoft.Extensions.DependencyInjection
-import Microsoft.EntityFrameworkCore
+import Microsoft.AspNetCore.Builder
+import Microsoft.AspNetCore.Hosting
+import Microsoft.AspNetCore.Http
 import Microsoft.AspNet.OData
 import Microsoft.AspNet.OData.Extensions
 import Microsoft.AspNet.OData.Builder
 import Microsoft.AspNet.OData.Routing
+import Microsoft.EntityFrameworkCore
+import Microsoft.Extensions.DependencyInjection
 import Microsoft.OData
 import Microsoft.OData.UriParser
-import Microsoft.AspNetCore.Builder
-import Microsoft.AspNetCore.Hosting
 import Swashbuckle.AspNetCore.Swagger
 import <MODELS_NAMESPACE>
 
@@ -152,6 +151,7 @@ namespace <NAMESPACE>
 			services.AddSingleton<IPerRouteContainer, HarmonyPerRouteContainer>()
 
 			;;Load Swagger API documentation services
+			services.AddSwaggerGen()
 
 			services.AddMvcCore()
 			&	.AddJsonFormatters()	;;For PATCH
@@ -169,12 +169,19 @@ namespace <NAMESPACE>
 			services.AddAuthentication("Bearer").AddIdentityServerAuthentication(authenticationOptions)
 </IF DEFINED_AUTHENTICATION>
 
-			lambda configureSwaggerGen(config)
+			lambda httpsConfig(options)
 			begin
-				config.SwaggerDoc("v1", new Info() { Title = "My API", Version = "v1" })
+				options.RedirectStatusCode = StatusCodes.Status307TemporaryRedirect
+				options.HttpsPort = 5001
 			end
-			services.AddSwaggerGen(configureSwaggerGen)
 
+			services.AddHttpsRedirection(httpsConfig)
+
+<IF DEFINED_ENABLE_CORS>
+			;;Add "Cross Origin Resource Sharing" (CORS) support
+			services.AddCors()
+
+</IF DEFINED_ENABLE_CORS>
 		endmethod
 
 		private method ConfigureDBContext, void
@@ -186,19 +193,38 @@ namespace <NAMESPACE>
 
 		public method Configure, void
 			required in app, @IApplicationBuilder
+			required in env, @IHostingEnvironment
 		proc
+			;;-------------------------------------------------------
+			;;Configure development and production specific components
+
+			if (env.IsDevelopment()) then
+			begin
+				app.UseDeveloperExceptionPage()
+				app.UseLogging(DebugLogSession.Logging)
+			end
+			else
+			begin
+				;;Enable HTTP Strict Transport Security Protocol (HSTS)
+				app.UseHsts()
+			end
+
+			;;-------------------------------------------------------
+			;;Enable HTTP redirection to HTTPS
+
+			app.UseHttpsRedirection()
+
 <IF DEFINED_AUTHENTICATION>
-			;;Add the authentication middleware
+			;;-------------------------------------------------------
+			;;Enable the authentication middleware
+
 			app.UseAuthentication()
 
 </IF DEFINED_AUTHENTICATION>
-			;;Add the middleware to generate API documentation to a file
-			app.UseSwagger()
+			;;-------------------------------------------------------
+			;;Configure the MVC & OData environments
 
-			app.UseLogging(DebugLogSession.Logging)
-
-			;;Configure the MVC / OData environment
-			lambda MVCBuilder(builder)
+			lambda mvcBuilder(builder)
 			begin
 				data model = EdmBuilder.GetEdmModel(app.ApplicationServices)
 				lambda UriResolver(s)
@@ -219,11 +245,12 @@ namespace <NAMESPACE>
 				builder.MapODataServiceRoute("odata", "odata", model)
 			end
 
-			;;Add the MVC middleware
-			app.UseMvc(MVCBuilder)
+			app.UseMvc(mvcBuilder)
 
-			<IF DEFINED_ENABLE_CORS>
-			;;Enable CORS
+<IF DEFINED_ENABLE_CORS>
+			;;-------------------------------------------------------
+			;;Add "Cross Origin Resource Sharing" (CORS) support
+
 			lambda corsOptions(builder)
 			begin
 				builder.AllowAnyOrigin()
@@ -231,18 +258,25 @@ namespace <NAMESPACE>
 				&	.AllowAnyHeader()
 			end
 
-			</IF DEFINED_ENABLE_CORS>
-			;;Add middleware to generate Swagger UI for documentation ("available at /api-docs")
-			app.UseStaticFiles()
+			app.UseCors(corsOptions)
+
+</IF DEFINED_ENABLE_CORS>
+			;;-------------------------------------------------------
+			;;Configure and enable SwaggerUI
+
 			lambda configureSwaggerUi(config)
 			begin
 				config.SwaggerEndpoint("/HarmonyCoreSwaggerFile.json", "<API_PAGE_TITLE>")
 				config.RoutePrefix = "api-docs"
 				config.DocumentTitle = "<API_PAGE_TITLE>"
 			end
+
+			app.UseStaticFiles()
+			app.UseSwagger()
 			app.UseSwaggerUI(configureSwaggerUi)
 
 		endmethod
+
 	endclass
 
 endnamespace

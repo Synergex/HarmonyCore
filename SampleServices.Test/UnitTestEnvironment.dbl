@@ -62,18 +62,18 @@ proc
 	UnitTestEnvironment.AssemblyInitialize(^null)
 
 	;Leave this here for Jeff 
-	;data tester = new CustomerTests()  
+	;data tester = new OrderTests()  
 	;tester.GetOrders_Expand_REL_TagCustomer() 
 	;tester.GetOrders_Expand_REL_TagVendor()
 	;tester.GetOrders_Expand_All()
-	;tester.GetCustomers_Perf()      
-	;tester.UpdateCustomer()    
+	;tester.GetCustomer()      
+
 	;;Start self-hosting (Kestrel)
 	data wwwroot = Path.Combine(AppContext.BaseDirectory, "wwwroot")
 	WebHost.CreateDefaultBuilder(new string[0]).UseContentRoot(wwwroot).UseWebRoot(wwwroot).UseStartup<Startup>().Build().Run()
 
 	;;Cleanup the environment
-	;UnitTestEnvironment.AssemblyCleanup()
+	UnitTestEnvironment.AssemblyCleanup()
 
 endmain
 
@@ -88,8 +88,6 @@ namespace SampleServices.Test
 		public static method AssemblyInitialize, void
 			required in context, @Microsoft.VisualStudio.TestTools.UnitTesting.TestContext
 		proc
-			data status, int
-			setlog("SYNSEL_NUMALPHA_KEYS", 1, status) 
 			;;Configure the test environment (set logicals, create files in a known state, etc.)
 			TestEnvironment.Configure()
 
