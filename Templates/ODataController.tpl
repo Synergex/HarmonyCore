@@ -114,6 +114,7 @@ namespace <NAMESPACE>
 .region "READ"
 
 		{ODataRoute("<StructurePlural>")}
+		{ProducesResponseType(Type=^typeof(DbSet<<StructureNoplural>>), StatusCode=200)}
 		{EnableQuery}
 		;{EnableQuery(MaxExpansionDepth=3, MaxSkip=10, MaxTop=5, PageSize=4)}
 		;;; <summary>
@@ -126,8 +127,9 @@ namespace <NAMESPACE>
 		endmethod
 
 		<PRIMARY_KEY>
-		{EnableQuery}
 		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
+		{ProducesResponseType(Type=^typeof(<StructureNoplural>), StatusCode=200)}
+		{EnableQuery}
 		;;; <summary>
 		;;; Get a single <StructureNoplural> by primary key.
 		;;; </summary>
@@ -152,8 +154,9 @@ namespace <NAMESPACE>
 		</PRIMARY_KEY>
 		
 		<ALTERNATE_KEY_LOOP>
-		{EnableQuery}
 		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
+		{ProducesResponseType(Type=^typeof(<StructureNoplural>), StatusCode=200)}
+		{EnableQuery}
 		;;; <summary>
 		;;; Get a single <StructureNoplural> by key <KeyName>.
 		;;; </summary>
@@ -182,6 +185,7 @@ namespace <NAMESPACE>
 .region "CREATE"
 
 ;//		{ODataRoute("<StructurePlural>")}
+;//		{ProducesResponseType(Type=^typeof(void), StatusCode=200)}
 ;//		;;; <summary>
 ;//		;;; Create a new <structureNoplural> (automatically assigned primary key).
 ;//		;;; </summary>
@@ -208,6 +212,7 @@ namespace <NAMESPACE>
 ;//
 		<PRIMARY_KEY>
 		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
+		{ProducesResponseType(Type=^typeof(void), StatusCode=204)}
 		;;; <summary>
 		;;; Create (with a client-supplied primary key) or replace a <structureNoplural>.
 		;;; </summary>
@@ -263,6 +268,7 @@ namespace <NAMESPACE>
 
 		<PRIMARY_KEY>
 		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
+		{ProducesResponseType(Type=^typeof(void), StatusCode=204)}
 		;;; <summary>
 		;;; Patch  (partial update) a <structureNoplural>.
 		;;; </summary>
@@ -305,7 +311,7 @@ namespace <NAMESPACE>
 			end
 			endtry
 
-			mreturn Ok()
+			mreturn NoContent()
 
 		endmethod
 		</PRIMARY_KEY>
@@ -316,6 +322,7 @@ namespace <NAMESPACE>
 
 		<PRIMARY_KEY>
 		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
+		{ProducesResponseType(Type=^typeof(void), StatusCode=204)}
 		;;; <summary>
 		;;; Delete a <structureNoplural>.
 		;;; </summary>
@@ -340,7 +347,7 @@ namespace <NAMESPACE>
 			DBContext.<StructurePlural>.Remove(<structureNoplural>ToRemove)
 			DBContext.SaveChanges()
 
-			mreturn Ok()
+			mreturn NoContent()
 
 		endmethod
 		</PRIMARY_KEY>

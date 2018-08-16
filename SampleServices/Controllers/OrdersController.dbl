@@ -72,6 +72,7 @@ namespace SampleServices.Controllers
 .region "READ"
 
 		{ODataRoute("Orders")}
+		{ProducesResponseType(Type=^typeof(DbSet<Order>), StatusCode=200)}
 		{EnableQuery}
 		;{EnableQuery(MaxExpansionDepth=3, MaxSkip=10, MaxTop=5, PageSize=4)}
 		;;; <summary>
@@ -83,8 +84,9 @@ namespace SampleServices.Controllers
 			mreturn Ok(DBContext.Orders)
 		endmethod
 
-		{EnableQuery}
 		{ODataRoute("Orders(OrNumber={aOrNumber})")}
+		{ProducesResponseType(Type=^typeof(Order), StatusCode=200)}
+		{EnableQuery}
 		;;; <summary>
 		;;; Get a single Order by primary key.
 		;;; </summary>
@@ -103,8 +105,9 @@ namespace SampleServices.Controllers
 
 		endmethod
 		
-		{EnableQuery}
 		{ODataRoute("Orders(OrCustomer={aOrCustomer})")}
+		{ProducesResponseType(Type=^typeof(Order), StatusCode=200)}
+		{EnableQuery}
 		;;; <summary>
 		;;; Get a single Order by key OrCustomer.
 		;;; </summary>
@@ -123,8 +126,9 @@ namespace SampleServices.Controllers
 
 		endmethod
 
-		{EnableQuery}
 		{ODataRoute("Orders(OrOrdered={aOrOrdered})")}
+		{ProducesResponseType(Type=^typeof(Order), StatusCode=200)}
+		{EnableQuery}
 		;;; <summary>
 		;;; Get a single Order by key OrOrdered.
 		;;; </summary>
@@ -143,8 +147,9 @@ namespace SampleServices.Controllers
 
 		endmethod
 
-		{EnableQuery}
 		{ODataRoute("Orders(OrCompleted={aOrCompleted})")}
+		{ProducesResponseType(Type=^typeof(Order), StatusCode=200)}
+		{EnableQuery}
 		;;; <summary>
 		;;; Get a single Order by key OrCompleted.
 		;;; </summary>
@@ -168,6 +173,7 @@ namespace SampleServices.Controllers
 .region "CREATE"
 
 		{ODataRoute("Orders(OrNumber={aOrNumber})")}
+		{ProducesResponseType(Type=^typeof(void), StatusCode=204)}
 		;;; <summary>
 		;;; Create (with a client-supplied primary key) or replace a order.
 		;;; </summary>
@@ -215,6 +221,7 @@ namespace SampleServices.Controllers
 .region "UPDATE"
 
 		{ODataRoute("Orders(OrNumber={aOrNumber})")}
+		{ProducesResponseType(Type=^typeof(void), StatusCode=204)}
 		;;; <summary>
 		;;; Patch  (partial update) a order.
 		;;; </summary>
@@ -253,7 +260,7 @@ namespace SampleServices.Controllers
 			end
 			endtry
 
-			mreturn Ok()
+			mreturn NoContent()
 
 		endmethod
 
@@ -262,6 +269,7 @@ namespace SampleServices.Controllers
 .region "DELETE"
 
 		{ODataRoute("Orders(OrNumber={aOrNumber})")}
+		{ProducesResponseType(Type=^typeof(void), StatusCode=204)}
 		;;; <summary>
 		;;; Delete a order.
 		;;; </summary>
@@ -282,7 +290,7 @@ namespace SampleServices.Controllers
 			DBContext.Orders.Remove(orderToRemove)
 			DBContext.SaveChanges()
 
-			mreturn Ok()
+			mreturn NoContent()
 
 		endmethod
 

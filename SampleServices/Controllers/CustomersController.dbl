@@ -72,6 +72,7 @@ namespace SampleServices.Controllers
 .region "READ"
 
 		{ODataRoute("Customers")}
+		{ProducesResponseType(Type=^typeof(DbSet<Customer>), StatusCode=200)}
 		{EnableQuery}
 		;{EnableQuery(MaxExpansionDepth=3, MaxSkip=10, MaxTop=5, PageSize=4)}
 		;;; <summary>
@@ -83,8 +84,9 @@ namespace SampleServices.Controllers
 			mreturn Ok(DBContext.Customers)
 		endmethod
 
-		{EnableQuery}
 		{ODataRoute("Customers(CustKey={aCustKey})")}
+		{ProducesResponseType(Type=^typeof(Customer), StatusCode=200)}
+		{EnableQuery}
 		;;; <summary>
 		;;; Get a single Customer by primary key.
 		;;; </summary>
@@ -103,8 +105,9 @@ namespace SampleServices.Controllers
 
 		endmethod
 		
-		{EnableQuery}
 		{ODataRoute("Customers(CustRtype={aCustRtype},CustKey={aCustKey})")}
+		{ProducesResponseType(Type=^typeof(Customer), StatusCode=200)}
+		{EnableQuery}
 		;;; <summary>
 		;;; Get a single Customer by key TagCustomer.
 		;;; </summary>
@@ -131,6 +134,7 @@ namespace SampleServices.Controllers
 .region "CREATE"
 
 		{ODataRoute("Customers(CustKey={aCustKey})")}
+		{ProducesResponseType(Type=^typeof(void), StatusCode=204)}
 		;;; <summary>
 		;;; Create (with a client-supplied primary key) or replace a customer.
 		;;; </summary>
@@ -178,6 +182,7 @@ namespace SampleServices.Controllers
 .region "UPDATE"
 
 		{ODataRoute("Customers(CustKey={aCustKey})")}
+		{ProducesResponseType(Type=^typeof(void), StatusCode=204)}
 		;;; <summary>
 		;;; Patch  (partial update) a customer.
 		;;; </summary>
@@ -216,7 +221,7 @@ namespace SampleServices.Controllers
 			end
 			endtry
 
-			mreturn Ok()
+			mreturn NoContent()
 
 		endmethod
 
@@ -225,6 +230,7 @@ namespace SampleServices.Controllers
 .region "DELETE"
 
 		{ODataRoute("Customers(CustKey={aCustKey})")}
+		{ProducesResponseType(Type=^typeof(void), StatusCode=204)}
 		;;; <summary>
 		;;; Delete a customer.
 		;;; </summary>
@@ -245,7 +251,7 @@ namespace SampleServices.Controllers
 			DBContext.Customers.Remove(customerToRemove)
 			DBContext.SaveChanges()
 
-			mreturn Ok()
+			mreturn NoContent()
 
 		endmethod
 
