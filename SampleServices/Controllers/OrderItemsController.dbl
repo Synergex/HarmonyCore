@@ -41,6 +41,7 @@
 ;;
 ;;*****************************************************************************
 
+import Microsoft.AspNetCore.JsonPatch
 import Microsoft.AspNetCore.Mvc
 import Microsoft.AspNet.OData
 import Microsoft.AspNet.OData.Routing
@@ -76,6 +77,7 @@ namespace SampleServices.Controllers
 		;;; <summary>
 		;;; Get all OrderItems
 		;;; </summary>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Get, @IActionResult
 		proc
 			mreturn Ok(DBContext.OrderItems)
@@ -88,7 +90,7 @@ namespace SampleServices.Controllers
 		;;; </summary>
 		;;; <param name="aOiNumber">Order number</param>
 		;;; <param name="aOiLineItem">Line item number</param>
-		;;; <returns></returns>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Get, @IActionResult
 			{FromODataUri}
             required in aOiNumber, int
@@ -110,7 +112,7 @@ namespace SampleServices.Controllers
 		;;; Get a single OrderItem by key OiItemOrdered.
 		;;; </summary>
 		;;; <param name="aOiItemOrdered">Item ordered</param>
-		;;; <returns></returns>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method GetByKeyOiItemOrdered, @IActionResult
 			{FromODataUri}
 			required in aOiItemOrdered, int
@@ -130,7 +132,7 @@ namespace SampleServices.Controllers
 		;;; Get a single OrderItem by key OiShipped.
 		;;; </summary>
 		;;; <param name="aOiShipped">Date shipped</param>
-		;;; <returns></returns>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method GetByKeyOiShipped, @IActionResult
 			{FromODataUri}
 			required in aOiShipped, DateTime
@@ -150,7 +152,7 @@ namespace SampleServices.Controllers
 		;;; Get a single OrderItem by key OiInvoice.
 		;;; </summary>
 		;;; <param name="aOiInvoice">Invoice number</param>
-		;;; <returns></returns>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method GetByKeyOiInvoice, @IActionResult
 			{FromODataUri}
 			required in aOiInvoice, int
@@ -174,7 +176,7 @@ namespace SampleServices.Controllers
 		;;; </summary>
 		;;; <param name="aOiNumber">Order number</param>
 		;;; <param name="aOiLineItem">Line item number</param>
-		;;; <returns></returns>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Put, @IActionResult
 			{FromODataUri}
             required in aOiNumber, int
@@ -191,10 +193,19 @@ namespace SampleServices.Controllers
             aOrderItem.OiNumber = aOiNumber
             aOrderItem.OiLineItem = aOiLineItem
 
-			;;Add the new orderItem
 			try
 			begin
-				DBContext.OrderItems.Add(aOrderItem)
+				;;Add and commit
+				data existing = DBContext.OrderItems.Find(aOiNumber,aOiLineItem)
+				if(existing != ^null) then
+				begin
+					DBContext.OrderItems.Update(aOrderItem)
+				end
+				else
+				begin
+					DBContext.OrderItems.Add(aOrderItem)
+				end
+				DBContext.SaveChanges()
 			end
 			catch (e, @InvalidOperationException)
 			begin
@@ -202,10 +213,57 @@ namespace SampleServices.Controllers
 			end
 			endtry
 
-			;;Commit the change
-			DBContext.SaveChanges()
-
 			mreturn NoContent()
+
+		endmethod
+
+.endregion
+
+.region "UPDATE"
+
+		{ODataRoute("OrderItems(OiNumber={aOiNumber},OiLineItem={aOiLineItem})")}
+		;;; <summary>
+		;;; Patch  (partial update) a orderItem.
+		;;; </summary>
+		;;; <param name="aOiNumber">Order number</param>
+		;;; <param name="aOiLineItem">Line item number</param>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+		public method Patch, @IActionResult
+			{FromODataUri}
+            required in aOiNumber, int
+			{FromODataUri}
+            required in aOiLineItem, int
+			{FromBody}
+			required in aOrderItem, @JsonPatchDocument<OrderItem>
+		proc
+			;; Validate inbound data
+			if (!ModelState.IsValid)
+				mreturn BadRequest(ModelState)
+
+			;;Patch the existing orderItem
+			try
+			begin
+				;;Get the orderItem to be updated
+				data orderItemToUpdate = DBContext.OrderItems.Find(aOiNumber,aOiLineItem)
+
+				;;Did we find it?
+				if(orderItemToUpdate == ^null)
+					mreturn NotFound()
+
+				;;Apply the changes to the orderItem we read
+				aOrderItem.ApplyTo(orderItemToUpdate)
+
+				;;Update and commit
+				DBContext.OrderItems.Update(orderItemToUpdate)
+				DBContext.SaveChanges()
+			end
+			catch (e, @InvalidOperationException)
+			begin
+				mreturn BadRequest(e)
+			end
+			endtry
+
+			mreturn Ok()
 
 		endmethod
 
@@ -219,7 +277,7 @@ namespace SampleServices.Controllers
 		;;; </summary>
 		;;; <param name="aOiNumber">Order number</param>
 		;;; <param name="aOiLineItem">Line item number</param>
-		;;; <returns></returns>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Delete, @IActionResult
 			{FromODataUri}
             required in aOiNumber, int
@@ -229,13 +287,12 @@ namespace SampleServices.Controllers
 			;;Get the orderItem to be deleted
 			data orderItemToRemove = DBContext.OrderItems.Find(aOiNumber,aOiLineItem)
 
+			;;Did we find it?
 			if (orderItemToRemove == ^null)
 				mreturn NotFound()
 
-			;;Mark the orderItem for removal
+			;;Delete and commit
 			DBContext.OrderItems.Remove(orderItemToRemove)
-
-			;;Commit the change
 			DBContext.SaveChanges()
 
 			mreturn Ok()

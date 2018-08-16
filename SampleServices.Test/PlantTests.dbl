@@ -41,6 +41,7 @@
 ;;
 ;;*****************************************************************************
 
+import Microsoft.AspNetCore.JsonPatch
 import Microsoft.VisualStudio.TestTools.UnitTesting
 import Newtonsoft.Json
 import System.Collections.Generic
@@ -238,11 +239,15 @@ namespace SampleServices.Test
 		proc
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
 
-			;;Get the first record from the file
+			;;Get one plant from the file
 			data getRequest = String.Format("/odata/Plants(InItemid={1})","",TestContext.GetPlant_InItemid)
 			data getResponse = client.GetAsync(getRequest).Result
 			data getResult = getResponse.Content.ReadAsStringAsync().Result
+
+			;;Check that we got a successful response from the web service
 			getResponse.EnsureSuccessStatusCode()
+
+			;;Deserialize the JSON into a Plant object
 			data doPlant, @Plant, JsonConvert.DeserializeObject<Plant>(getResult)
 
 			doPlant.InItemid = TestContext.UpdatePlant_InItemid
@@ -253,15 +258,60 @@ namespace SampleServices.Test
 			disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doPlant),System.Text.Encoding.UTF8, "application/json")
 			data request = String.Format("/odata/Plants(InItemid={1})","",TestContext.UpdatePlant_InItemid)
 			disposable data response = client.PutAsync(request, requestBody).Result
+
+			;;Check that we got a successful response from the web service
 			response.EnsureSuccessStatusCode()
 
 			;;Get the inserted record
 			getResponse = client.GetAsync(request).Result
 			getResult = getResponse.Content.ReadAsStringAsync().Result
+
+			;;Check that we got a successful response from the web service
 			getResponse.EnsureSuccessStatusCode()
+
+			;;Deserialize the JSON into a Plant object
 			doPlant = JsonConvert.DeserializeObject<Plant>(getResult)
 
 			Assert.AreEqual(doPlant.InItemid, TestContext.UpdatePlant_InItemid)
+
+			;;Update one property in the plant
+			data patchDoc = new JsonPatchDocument()
+			patchDoc.Replace("InLatin", "Z")
+
+			;;Serialize the patch to JSON
+			data serializedPatch = JsonConvert.SerializeObject(patchDoc)
+
+			;;Apply the patch
+			disposable data patchRequestBody = new StringContent(serializedPatch,System.Text.Encoding.UTF8, "application/json-patch+json")
+			disposable data patchResponse = client.PatchAsync(request, patchRequestBody).Result
+
+			;;Check that we got a successful response from the web service
+			patchResponse.EnsureSuccessStatusCode()
+
+			;;Get the updated plant record
+			getResponse = client.GetAsync(request).Result
+			getResult = getResponse.Content.ReadAsStringAsync().Result
+
+			;;Check that we got a successful response from the web service
+			getResponse.EnsureSuccessStatusCode()
+
+			;;Deserialize the JSON into a Plant object
+			doPlant = JsonConvert.DeserializeObject<Plant>(getResult)
+
+			;;Verify that the property was changed
+			Assert.AreEqual(doPlant.InLatin, "Z")
+
+			;;Delete It
+			disposable data deleteResponse = client.DeleteAsync(request).Result
+
+			;;Check that we got a successful response from the web service
+			getResponse.EnsureSuccessStatusCode()
+
+			;;Attempt to get the deleted record
+			getResponse = client.GetAsync(request).Result
+
+			;;Check we got a fail state from the web service
+			Assert.AreEqual(getResponse.IsSuccessStatusCode, false)
 
 		endmethod
 

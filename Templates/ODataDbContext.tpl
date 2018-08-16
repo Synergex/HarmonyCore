@@ -88,6 +88,7 @@ namespace <NAMESPACE>
 	;;; 
 	;;; </summary>
 	public class DbContext extends Microsoft.EntityFrameworkCore.DbContext
+
 		;;; <summary>
 		;;; Construct a new DbContext.
 		;;; </summary>
@@ -96,7 +97,7 @@ namespace <NAMESPACE>
 			endparams
 			parent(options)
 		proc
-			mDataProvider = dataProvider
+
 		endmethod
 
 		<STRUCTURE_LOOP>
@@ -105,6 +106,7 @@ namespace <NAMESPACE>
 		;;; </summary>
 		public readwrite property <StructurePlural>, @DbSet<<StructureNoplural>>
 
+		</STRUCTURE_LOOP>
 		;;; <summary>
 		;;; 
 		;;; </summary>
@@ -121,13 +123,13 @@ namespace <NAMESPACE>
 			;;attribute can be used in a class, so keys with multiple segments are defined
 			;;using the "Fluent API" here.
 
-<STRUCTURE_LOOP>
-<PRIMARY_KEY>
-<IF MULTIPLE_SEGMENTS>
+			<STRUCTURE_LOOP>
+			<PRIMARY_KEY>
+			<IF MULTIPLE_SEGMENTS>
 			parm.Entity<<StructureNoplural>>().HasKey(<SEGMENT_LOOP>"<FieldSqlname>"<,></SEGMENT_LOOP>)
-</IF MULTIPLE_SEGMENTS>
-</PRIMARY_KEY>
-</STRUCTURE_LOOP>
+			</IF MULTIPLE_SEGMENTS>
+			</PRIMARY_KEY>
+			</STRUCTURE_LOOP>
 
 .endregion
 

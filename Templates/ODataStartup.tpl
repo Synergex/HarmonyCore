@@ -140,7 +140,7 @@ namespace <NAMESPACE>
 			lambda AddAltKeySupport(serviceProvider)
 			begin
 				data model = EdmBuilder.GetEdmModel(serviceProvider)
-				mreturn new AlternateKeysODataUriResolver(model)
+				mreturn new AlternateKeysODataUriResolver(model) <IF NOT_DEFINED_NOCASE_URL>{ EnableCaseInsensitive = true }</IF NOT_DEFINED_NOCASE_URL>
 			end
 
 			services.AddSingleton<ODataUriResolver>(AddAltKeySupport)
@@ -154,7 +154,8 @@ namespace <NAMESPACE>
 			;;Load Swagger API documentation services
 
 			services.AddMvcCore()
-			&	.AddApiExplorer()
+			&	.AddJsonFormatters()	;;For PATCH
+			&	.AddApiExplorer()		;;Swagger UI
 <IF DEFINED_AUTHENTICATION>
 			&	.AddAuthorization()
 
@@ -177,14 +178,14 @@ namespace <NAMESPACE>
 		endmethod
 
 		private method ConfigureDBContext, void
-			sp, @IServiceProvider
-			opts, @DbContextOptionsBuilder
+			required in sp, @IServiceProvider
+			required in opts, @DbContextOptionsBuilder
 		proc
 			HarmonyDbContextOptionsExtensions.UseHarmonyDatabase(opts, sp.GetService<IDataObjectProvider>())
 		endmethod
 
 		public method Configure, void
-			app, @IApplicationBuilder
+			required in app, @IApplicationBuilder
 		proc
 <IF DEFINED_AUTHENTICATION>
 			;;Add the authentication middleware
@@ -221,6 +222,16 @@ namespace <NAMESPACE>
 			;;Add the MVC middleware
 			app.UseMvc(MVCBuilder)
 
+			<IF DEFINED_ENABLE_CORS>
+			;;Enable CORS
+			lambda corsOptions(builder)
+			begin
+				builder.AllowAnyOrigin()
+				&	.AllowAnyMethod()
+				&	.AllowAnyHeader()
+			end
+
+			</IF DEFINED_ENABLE_CORS>
 			;;Add middleware to generate Swagger UI for documentation ("available at /api-docs")
 			app.UseStaticFiles()
 			lambda configureSwaggerUi(config)

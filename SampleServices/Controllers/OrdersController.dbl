@@ -41,6 +41,7 @@
 ;;
 ;;*****************************************************************************
 
+import Microsoft.AspNetCore.JsonPatch
 import Microsoft.AspNetCore.Mvc
 import Microsoft.AspNet.OData
 import Microsoft.AspNet.OData.Routing
@@ -76,6 +77,7 @@ namespace SampleServices.Controllers
 		;;; <summary>
 		;;; Get all Orders
 		;;; </summary>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Get, @IActionResult
 		proc
 			mreturn Ok(DBContext.Orders)
@@ -87,7 +89,7 @@ namespace SampleServices.Controllers
 		;;; Get a single Order by primary key.
 		;;; </summary>
 		;;; <param name="aOrNumber">Order number</param>
-		;;; <returns></returns>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Get, @IActionResult
 			{FromODataUri}
             required in aOrNumber, int
@@ -107,7 +109,7 @@ namespace SampleServices.Controllers
 		;;; Get a single Order by key OrCustomer.
 		;;; </summary>
 		;;; <param name="aOrCustomer">Customer ID</param>
-		;;; <returns></returns>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method GetByKeyOrCustomer, @IActionResult
 			{FromODataUri}
 			required in aOrCustomer, int
@@ -127,7 +129,7 @@ namespace SampleServices.Controllers
 		;;; Get a single Order by key OrOrdered.
 		;;; </summary>
 		;;; <param name="aOrOrdered">Date ordered</param>
-		;;; <returns></returns>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method GetByKeyOrOrdered, @IActionResult
 			{FromODataUri}
 			required in aOrOrdered, DateTime
@@ -147,7 +149,7 @@ namespace SampleServices.Controllers
 		;;; Get a single Order by key OrCompleted.
 		;;; </summary>
 		;;; <param name="aOrCompleted">Date order completed</param>
-		;;; <returns></returns>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method GetByKeyOrCompleted, @IActionResult
 			{FromODataUri}
 			required in aOrCompleted, DateTime
@@ -170,7 +172,7 @@ namespace SampleServices.Controllers
 		;;; Create (with a client-supplied primary key) or replace a order.
 		;;; </summary>
 		;;; <param name="aOrNumber">Order number</param>
-		;;; <returns></returns>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Put, @IActionResult
 			{FromODataUri}
             required in aOrNumber, int
@@ -184,10 +186,19 @@ namespace SampleServices.Controllers
 			;;Ensure that the key values in the URI win over any data that may be in the model object
             aOrder.OrNumber = aOrNumber
 
-			;;Add the new order
 			try
 			begin
-				DBContext.Orders.Add(aOrder)
+				;;Add and commit
+				data existing = DBContext.Orders.Find(aOrNumber)
+				if(existing != ^null) then
+				begin
+					DBContext.Orders.Update(aOrder)
+				end
+				else
+				begin
+					DBContext.Orders.Add(aOrder)
+				end
+				DBContext.SaveChanges()
 			end
 			catch (e, @InvalidOperationException)
 			begin
@@ -195,10 +206,54 @@ namespace SampleServices.Controllers
 			end
 			endtry
 
-			;;Commit the change
-			DBContext.SaveChanges()
-
 			mreturn NoContent()
+
+		endmethod
+
+.endregion
+
+.region "UPDATE"
+
+		{ODataRoute("Orders(OrNumber={aOrNumber})")}
+		;;; <summary>
+		;;; Patch  (partial update) a order.
+		;;; </summary>
+		;;; <param name="aOrNumber">Order number</param>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+		public method Patch, @IActionResult
+			{FromODataUri}
+            required in aOrNumber, int
+			{FromBody}
+			required in aOrder, @JsonPatchDocument<Order>
+		proc
+			;; Validate inbound data
+			if (!ModelState.IsValid)
+				mreturn BadRequest(ModelState)
+
+			;;Patch the existing order
+			try
+			begin
+				;;Get the order to be updated
+				data orderToUpdate = DBContext.Orders.Find(aOrNumber)
+
+				;;Did we find it?
+				if(orderToUpdate == ^null)
+					mreturn NotFound()
+
+				;;Apply the changes to the order we read
+				aOrder.ApplyTo(orderToUpdate)
+
+				;;Update and commit
+				DBContext.Orders.Update(orderToUpdate)
+				DBContext.SaveChanges()
+			end
+			catch (e, @InvalidOperationException)
+			begin
+				mreturn BadRequest(e)
+			end
+			endtry
+
+			mreturn Ok()
 
 		endmethod
 
@@ -211,7 +266,7 @@ namespace SampleServices.Controllers
 		;;; Delete a order.
 		;;; </summary>
 		;;; <param name="aOrNumber">Order number</param>
-		;;; <returns></returns>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Delete, @IActionResult
 			{FromODataUri}
             required in aOrNumber, int
@@ -219,13 +274,12 @@ namespace SampleServices.Controllers
 			;;Get the order to be deleted
 			data orderToRemove = DBContext.Orders.Find(aOrNumber)
 
+			;;Did we find it?
 			if (orderToRemove == ^null)
 				mreturn NotFound()
 
-			;;Mark the order for removal
+			;;Delete and commit
 			DBContext.Orders.Remove(orderToRemove)
-
-			;;Commit the change
 			DBContext.SaveChanges()
 
 			mreturn Ok()

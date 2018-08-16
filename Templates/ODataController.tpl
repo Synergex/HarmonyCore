@@ -77,6 +77,7 @@
 ;;
 ;;*****************************************************************************
 
+import Microsoft.AspNetCore.JsonPatch
 import Microsoft.AspNetCore.Mvc
 import Microsoft.AspNet.OData
 import Microsoft.AspNet.OData.Routing
@@ -118,6 +119,7 @@ namespace <NAMESPACE>
 		;;; <summary>
 		;;; Get all <StructurePlural>
 		;;; </summary>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Get, @IActionResult
 		proc
 			mreturn Ok(DBContext.<StructurePlural>)
@@ -132,7 +134,7 @@ namespace <NAMESPACE>
         <SEGMENT_LOOP>
 		;;; <param name="a<SegmentName>"><FIELD_DESC></param>
         </SEGMENT_LOOP>
-		;;; <returns></returns>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Get, @IActionResult
             <SEGMENT_LOOP>
 			{FromODataUri}
@@ -158,7 +160,7 @@ namespace <NAMESPACE>
 		<SEGMENT_LOOP>
 		;;; <param name="a<SegmentName>"><FIELD_DESC></param>
 		</SEGMENT_LOOP>
-		;;; <returns></returns>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method GetByKey<KeyName>, @IActionResult
 			<SEGMENT_LOOP>
 			{FromODataUri}
@@ -183,7 +185,7 @@ namespace <NAMESPACE>
 ;//		;;; <summary>
 ;//		;;; Create a new <structureNoplural> (automatically assigned primary key).
 ;//		;;; </summary>
-;//		;;; <returns></returns>
+;//		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 ;//		public method Post, @IActionResult
 ;//			{FromBody}
 ;//			required in a<StructureNoplural>, @<StructureNoplural>
@@ -212,7 +214,7 @@ namespace <NAMESPACE>
         <SEGMENT_LOOP>
 		;;; <param name="a<SegmentName>"><FIELD_DESC></param>
         </SEGMENT_LOOP>
-		;;; <returns></returns>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Put, @IActionResult
             <SEGMENT_LOOP>
 			{FromODataUri}
@@ -230,19 +232,25 @@ namespace <NAMESPACE>
             a<StructureNoplural>.<FieldSqlname> = a<SegmentName>
             </SEGMENT_LOOP>
 
-			;;Add the new <structureNoplural>
 			try
 			begin
-				DBContext.<StructurePlural>.Add(a<StructureNoplural>)
+				;;Add and commit
+				data existing = DBContext.<StructurePlural>.Find(<SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP>)
+				if(existing != ^null) then
+				begin
+					DBContext.<StructurePlural>.Update(a<StructureNoplural>)
+				end
+				else
+				begin
+					DBContext.<StructurePlural>.Add(a<StructureNoplural>)
+				end
+				DBContext.SaveChanges()
 			end
 			catch (e, @InvalidOperationException)
 			begin
 				mreturn BadRequest(e)
 			end
 			endtry
-
-			;;Commit the change
-			DBContext.SaveChanges()
 
 			mreturn NoContent()
 
@@ -251,53 +259,59 @@ namespace <NAMESPACE>
 
 .endregion
 
-;//.region "UPDATE"
-;//
-;//		<PRIMARY_KEY>
-;//		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
-;//		;;; <summary>
-;//		;;; Update a <structureNoplural> (partial updates are supported).
-;//		;;; </summary>
-;//        <SEGMENT_LOOP>
-;//		;;; <param name="a<SegmentName>"><FIELD_DESC></param>
-;//        </SEGMENT_LOOP>
-;//		;;; <returns></returns>
-;//		public method Patch, @IActionResult
-;//            <SEGMENT_LOOP>
-;//			{FromODataUri}
-;//            required in a<SegmentName>, <SEGMENT_SNTYPE>
-;//            </SEGMENT_LOOP>
-;//			{FromBody}
-;//			required in a<StructureNoplural>, @<StructureNoplural>
-;//		proc
-;//			;; Validate inbound data
-;//			if (!ModelState.IsValid)
-;//				mreturn BadRequest(ModelState)
-;//
-;//			;;Ensure that the key values in the URI win over any data that may be in the data object
-;//            <SEGMENT_LOOP>
-;//            a<StructureNoplural>.<FieldSqlname> = a<SegmentName>
-;//            </SEGMENT_LOOP>
-;//
-;//			;TODO: Not sure what to do here, I'm not seting any DBSet methods relating to update?
-;//			;
-;//			;
-;//			;
-;//			;
-;//			;
-;//
-;//
-;//			;;Commit the change
-;//			DBContext.SaveChanges()
-;//
-;//			;TODO: What about failures?
-;//			mreturn Ok()
-;//
-;//		endmethod
-;//		</PRIMARY_KEY>
-;//
-;//.endregion
-;//
+.region "UPDATE"
+
+		<PRIMARY_KEY>
+		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
+		;;; <summary>
+		;;; Patch  (partial update) a <structureNoplural>.
+		;;; </summary>
+        <SEGMENT_LOOP>
+		;;; <param name="a<SegmentName>"><FIELD_DESC></param>
+        </SEGMENT_LOOP>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+		public method Patch, @IActionResult
+            <SEGMENT_LOOP>
+			{FromODataUri}
+            required in a<SegmentName>, <SEGMENT_SNTYPE>
+            </SEGMENT_LOOP>
+			{FromBody}
+			required in a<StructureNoplural>, @JsonPatchDocument<<StructureNoplural>>
+		proc
+			;; Validate inbound data
+			if (!ModelState.IsValid)
+				mreturn BadRequest(ModelState)
+
+			;;Patch the existing <structureNoplural>
+			try
+			begin
+				;;Get the <structureNoplural> to be updated
+				data <structureNoplural>ToUpdate = DBContext.<StructurePlural>.Find(<SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP>)
+
+				;;Did we find it?
+				if(<structureNoplural>ToUpdate == ^null)
+					mreturn NotFound()
+
+				;;Apply the changes to the <structureNoplural> we read
+				a<StructureNoplural>.ApplyTo(<structureNoplural>ToUpdate)
+
+				;;Update and commit
+				DBContext.<StructurePlural>.Update(<structureNoplural>ToUpdate)
+				DBContext.SaveChanges()
+			end
+			catch (e, @InvalidOperationException)
+			begin
+				mreturn BadRequest(e)
+			end
+			endtry
+
+			mreturn Ok()
+
+		endmethod
+		</PRIMARY_KEY>
+
+.endregion
+
 .region "DELETE"
 
 		<PRIMARY_KEY>
@@ -308,7 +322,7 @@ namespace <NAMESPACE>
         <SEGMENT_LOOP>
 		;;; <param name="a<SegmentName>"><FIELD_DESC></param>
         </SEGMENT_LOOP>
-		;;; <returns></returns>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Delete, @IActionResult
             <SEGMENT_LOOP>
 			{FromODataUri}
@@ -318,13 +332,12 @@ namespace <NAMESPACE>
 			;;Get the <structureNoplural> to be deleted
 			data <structureNoplural>ToRemove = DBContext.<StructurePlural>.Find(<SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP>)
 
+			;;Did we find it?
 			if (<structureNoplural>ToRemove == ^null)
 				mreturn NotFound()
 
-			;;Mark the <structureNoplural> for removal
+			;;Delete and commit
 			DBContext.<StructurePlural>.Remove(<structureNoplural>ToRemove)
-
-			;;Commit the change
 			DBContext.SaveChanges()
 
 			mreturn Ok()

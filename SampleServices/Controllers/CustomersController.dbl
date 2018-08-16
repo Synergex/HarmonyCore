@@ -41,6 +41,7 @@
 ;;
 ;;*****************************************************************************
 
+import Microsoft.AspNetCore.JsonPatch
 import Microsoft.AspNetCore.Mvc
 import Microsoft.AspNet.OData
 import Microsoft.AspNet.OData.Routing
@@ -48,7 +49,6 @@ import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Infrastructure
 import Harmony.Core.EF.Extensions
 import SampleServices.Models
-import Microsoft.AspNetCore.JsonPatch
 
 namespace SampleServices.Controllers
 
@@ -77,6 +77,7 @@ namespace SampleServices.Controllers
 		;;; <summary>
 		;;; Get all Customers
 		;;; </summary>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Get, @IActionResult
 		proc
 			mreturn Ok(DBContext.Customers)
@@ -88,12 +89,12 @@ namespace SampleServices.Controllers
 		;;; Get a single Customer by primary key.
 		;;; </summary>
 		;;; <param name="aCustKey">Customer id</param>
-		;;; <returns></returns>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Get, @IActionResult
 			{FromODataUri}
             required in aCustKey, int
 		proc
-			data result = DBContext.Customers.FindCompiled(aCustKey)
+			data result = DBContext.Customers.Find(aCustKey)
 
 			if (result == ^null)
 				mreturn NotFound()
@@ -109,7 +110,7 @@ namespace SampleServices.Controllers
 		;;; </summary>
 		;;; <param name="aCustRtype">Record Tag Field</param>
 		;;; <param name="aCustKey">Customer id</param>
-		;;; <returns></returns>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method GetByKeyTagCustomer, @IActionResult
 			{FromODataUri}
 			required in aCustRtype, int
@@ -134,7 +135,7 @@ namespace SampleServices.Controllers
 		;;; Create (with a client-supplied primary key) or replace a customer.
 		;;; </summary>
 		;;; <param name="aCustKey">Customer id</param>
-		;;; <returns></returns>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Put, @IActionResult
 			{FromODataUri}
             required in aCustKey, int
@@ -148,50 +149,18 @@ namespace SampleServices.Controllers
 			;;Ensure that the key values in the URI win over any data that may be in the model object
             aCustomer.CustKey = aCustKey
 
-			;;Add the new customer
 			try
 			begin
-				DBContext.Customers.Add(aCustomer)
-			end
-			catch (e, @InvalidOperationException)
-			begin
-				mreturn BadRequest(e)
-			end
-			endtry
-
-			;;Commit the change
-			DBContext.SaveChanges()
-
-			mreturn NoContent()
-
-		endmethod
-
-		{ODataRoute("Customers(CustKey={aCustKey})")}
-		;;; <summary>
-		;;; Create (with a client-supplied primary key) or replace a customer.
-		;;; </summary>
-		;;; <param name="aCustKey">Customer id</param>
-		;;; <returns></returns>
-		public method Patch, @IActionResult
-			{FromODataUri}
-			required in aCustKey, int
-			{FromBody}
-			required in aCustomer, @JsonPatchDocument<Customer>
-		proc
-			;; Validate inbound data
-			if (!ModelState.IsValid)
-				mreturn BadRequest(ModelState)
-
-			;;Patch the existing customer data 
-			try
-			begin
-				data foundCustomer = DBContext.Customers.Find(aCustKey)
-				if(foundCustomer == ^null)
-					mreturn NotFound()
-
-				aCustomer.ApplyTo(foundCustomer)
-				DBContext.Customers.Update(foundCustomer)
-				;;Commit the change
+				;;Add and commit
+				data existing = DBContext.Customers.Find(aCustKey)
+				if(existing != ^null) then
+				begin
+					DBContext.Customers.Update(aCustomer)
+				end
+				else
+				begin
+					DBContext.Customers.Add(aCustomer)
+				end
 				DBContext.SaveChanges()
 			end
 			catch (e, @InvalidOperationException)
@@ -199,6 +168,54 @@ namespace SampleServices.Controllers
 				mreturn BadRequest(e)
 			end
 			endtry
+
+			mreturn NoContent()
+
+		endmethod
+
+.endregion
+
+.region "UPDATE"
+
+		{ODataRoute("Customers(CustKey={aCustKey})")}
+		;;; <summary>
+		;;; Patch  (partial update) a customer.
+		;;; </summary>
+		;;; <param name="aCustKey">Customer id</param>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+		public method Patch, @IActionResult
+			{FromODataUri}
+            required in aCustKey, int
+			{FromBody}
+			required in aCustomer, @JsonPatchDocument<Customer>
+		proc
+			;; Validate inbound data
+			if (!ModelState.IsValid)
+				mreturn BadRequest(ModelState)
+
+			;;Patch the existing customer
+			try
+			begin
+				;;Get the customer to be updated
+				data customerToUpdate = DBContext.Customers.Find(aCustKey)
+
+				;;Did we find it?
+				if(customerToUpdate == ^null)
+					mreturn NotFound()
+
+				;;Apply the changes to the customer we read
+				aCustomer.ApplyTo(customerToUpdate)
+
+				;;Update and commit
+				DBContext.Customers.Update(customerToUpdate)
+				DBContext.SaveChanges()
+			end
+			catch (e, @InvalidOperationException)
+			begin
+				mreturn BadRequest(e)
+			end
+			endtry
+
 			mreturn Ok()
 
 		endmethod
@@ -212,7 +229,7 @@ namespace SampleServices.Controllers
 		;;; Delete a customer.
 		;;; </summary>
 		;;; <param name="aCustKey">Customer id</param>
-		;;; <returns></returns>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Delete, @IActionResult
 			{FromODataUri}
             required in aCustKey, int
@@ -220,13 +237,12 @@ namespace SampleServices.Controllers
 			;;Get the customer to be deleted
 			data customerToRemove = DBContext.Customers.Find(aCustKey)
 
+			;;Did we find it?
 			if (customerToRemove == ^null)
 				mreturn NotFound()
 
-			;;Mark the customer for removal
+			;;Delete and commit
 			DBContext.Customers.Remove(customerToRemove)
-
-			;;Commit the change
 			DBContext.SaveChanges()
 
 			mreturn Ok()

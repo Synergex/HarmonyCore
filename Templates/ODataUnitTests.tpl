@@ -77,6 +77,7 @@
 ;;
 ;;*****************************************************************************
 
+import Microsoft.AspNetCore.JsonPatch
 import Microsoft.VisualStudio.TestTools.UnitTesting
 import Newtonsoft.Json
 import System.Collections.Generic
@@ -269,11 +270,15 @@ namespace <NAMESPACE>
 			client.SetBearerToken(UnitTestEnvironment.AccessToken)
 			</IF DEFINED_AUTHENTICATION>
 
-			;;Get the first record from the file
+			;;Get one <structureNoplural> from the file
 			data getRequest = String.Format("/odata/<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)","",<SEGMENT_LOOP>TestContext.Get<StructureNoplural>_<SegmentName><,></SEGMENT_LOOP></PRIMARY_KEY>)
 			data getResponse = client.GetAsync(getRequest).Result
 			data getResult = getResponse.Content.ReadAsStringAsync().Result
+
+			;;Check that we got a successful response from the web service
 			getResponse.EnsureSuccessStatusCode()
+
+			;;Deserialize the JSON into a <StructureNoplural> object
 			data do<StructureNoplural>, @<StructureNoplural>, JsonConvert.DeserializeObject<<StructureNoplural>>(getResult)
 
 			<PRIMARY_KEY>
@@ -288,12 +293,18 @@ namespace <NAMESPACE>
 			disposable data requestBody = new StringContent(JsonConvert.SerializeObject(do<StructureNoplural>),System.Text.Encoding.UTF8, "application/json")
 			data request = String.Format("/odata/<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)","",<SEGMENT_LOOP>TestContext.Update<StructureNoplural>_<SegmentName><,></SEGMENT_LOOP></PRIMARY_KEY>)
 			disposable data response = client.PutAsync(request, requestBody).Result
+
+			;;Check that we got a successful response from the web service
 			response.EnsureSuccessStatusCode()
 
 			;;Get the inserted record
 			getResponse = client.GetAsync(request).Result
 			getResult = getResponse.Content.ReadAsStringAsync().Result
+
+			;;Check that we got a successful response from the web service
 			getResponse.EnsureSuccessStatusCode()
+
+			;;Deserialize the JSON into a <StructureNoplural> object
 			do<StructureNoplural> = JsonConvert.DeserializeObject<<StructureNoplural>>(getResult)
 
 			<PRIMARY_KEY>
@@ -301,6 +312,69 @@ namespace <NAMESPACE>
 			Assert.AreEqual(do<StructureNoplural>.<FieldSqlName>, TestContext.Update<StructureNoplural>_<SegmentName>)
 			</SEGMENT_LOOP>
 			</PRIMARY_KEY>
+
+			;;Update one property in the <structureNoplural>
+			data patchDoc = new JsonPatchDocument()
+			<COUNTER_1_RESET>
+			<FIELD_LOOP>
+			<IF NOTKEYSEGMENT>
+			<COUNTER_1_INCREMENT>
+			<IF COUNTER_1_EQ_1>
+			<IF ALPHA>
+			patchDoc.Replace("<FieldSqlName>", "Z")
+			<ELSE>
+			patchDoc.Replace("<FieldSqlName>", "9")
+			</IF ALPHA>
+			</IF COUNTER_1_EQ_1>
+			</IF NOTKEYSEGMENT>
+			</FIELD_LOOP>
+
+			;;Serialize the patch to JSON
+			data serializedPatch = JsonConvert.SerializeObject(patchDoc)
+
+			;;Apply the patch
+			disposable data patchRequestBody = new StringContent(serializedPatch,System.Text.Encoding.UTF8, "application/json-patch+json")
+			disposable data patchResponse = client.PatchAsync(request, patchRequestBody).Result
+
+			;;Check that we got a successful response from the web service
+			patchResponse.EnsureSuccessStatusCode()
+
+			;;Get the updated <structureNoplural> record
+			getResponse = client.GetAsync(request).Result
+			getResult = getResponse.Content.ReadAsStringAsync().Result
+
+			;;Check that we got a successful response from the web service
+			getResponse.EnsureSuccessStatusCode()
+
+			;;Deserialize the JSON into a <StructureNoplural> object
+			do<StructureNoplural> = JsonConvert.DeserializeObject<<StructureNoplural>>(getResult)
+
+			;;Verify that the property was changed
+			<COUNTER_1_RESET>
+			<FIELD_LOOP>
+			<IF NOTKEYSEGMENT>
+			<COUNTER_1_INCREMENT>
+			<IF COUNTER_1_EQ_1>
+			<IF ALPHA>
+			Assert.AreEqual(do<StructureNoplural>.<FieldSqlName>, "Z")
+			<ELSE>
+			Assert.AreEqual(do<StructureNoplural>.<FieldSqlName>, 9)
+			</IF ALPHA>
+			</IF COUNTER_1_EQ_1>
+			</IF NOTKEYSEGMENT>
+			</FIELD_LOOP>
+
+			;;Delete It
+			disposable data deleteResponse = client.DeleteAsync(request).Result
+
+			;;Check that we got a successful response from the web service
+			getResponse.EnsureSuccessStatusCode()
+
+			;;Attempt to get the deleted record
+			getResponse = client.GetAsync(request).Result
+
+			;;Check we got a fail state from the web service
+			Assert.AreEqual(getResponse.IsSuccessStatusCode, false)
 
 		endmethod
 

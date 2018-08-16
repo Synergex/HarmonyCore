@@ -41,6 +41,7 @@
 ;;
 ;;*****************************************************************************
 
+import Microsoft.AspNetCore.JsonPatch
 import Microsoft.AspNetCore.Mvc
 import Microsoft.AspNet.OData
 import Microsoft.AspNet.OData.Routing
@@ -76,6 +77,7 @@ namespace SampleServices.Controllers
 		;;; <summary>
 		;;; Get all Vendors
 		;;; </summary>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Get, @IActionResult
 		proc
 			mreturn Ok(DBContext.Vendors)
@@ -87,7 +89,7 @@ namespace SampleServices.Controllers
 		;;; Get a single Vendor by primary key.
 		;;; </summary>
 		;;; <param name="aVendKey">Vendor ID</param>
-		;;; <returns></returns>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Get, @IActionResult
 			{FromODataUri}
             required in aVendKey, int
@@ -108,7 +110,7 @@ namespace SampleServices.Controllers
 		;;; </summary>
 		;;; <param name="aVendRtype">Record Type</param>
 		;;; <param name="aVendKey">Vendor ID</param>
-		;;; <returns></returns>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method GetByKeyTagVendor, @IActionResult
 			{FromODataUri}
 			required in aVendRtype, int
@@ -133,7 +135,7 @@ namespace SampleServices.Controllers
 		;;; Create (with a client-supplied primary key) or replace a vendor.
 		;;; </summary>
 		;;; <param name="aVendKey">Vendor ID</param>
-		;;; <returns></returns>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Put, @IActionResult
 			{FromODataUri}
             required in aVendKey, int
@@ -147,10 +149,19 @@ namespace SampleServices.Controllers
 			;;Ensure that the key values in the URI win over any data that may be in the model object
             aVendor.VendKey = aVendKey
 
-			;;Add the new vendor
 			try
 			begin
-				DBContext.Vendors.Add(aVendor)
+				;;Add and commit
+				data existing = DBContext.Vendors.Find(aVendKey)
+				if(existing != ^null) then
+				begin
+					DBContext.Vendors.Update(aVendor)
+				end
+				else
+				begin
+					DBContext.Vendors.Add(aVendor)
+				end
+				DBContext.SaveChanges()
 			end
 			catch (e, @InvalidOperationException)
 			begin
@@ -158,10 +169,54 @@ namespace SampleServices.Controllers
 			end
 			endtry
 
-			;;Commit the change
-			DBContext.SaveChanges()
-
 			mreturn NoContent()
+
+		endmethod
+
+.endregion
+
+.region "UPDATE"
+
+		{ODataRoute("Vendors(VendKey={aVendKey})")}
+		;;; <summary>
+		;;; Patch  (partial update) a vendor.
+		;;; </summary>
+		;;; <param name="aVendKey">Vendor ID</param>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+		public method Patch, @IActionResult
+			{FromODataUri}
+            required in aVendKey, int
+			{FromBody}
+			required in aVendor, @JsonPatchDocument<Vendor>
+		proc
+			;; Validate inbound data
+			if (!ModelState.IsValid)
+				mreturn BadRequest(ModelState)
+
+			;;Patch the existing vendor
+			try
+			begin
+				;;Get the vendor to be updated
+				data vendorToUpdate = DBContext.Vendors.Find(aVendKey)
+
+				;;Did we find it?
+				if(vendorToUpdate == ^null)
+					mreturn NotFound()
+
+				;;Apply the changes to the vendor we read
+				aVendor.ApplyTo(vendorToUpdate)
+
+				;;Update and commit
+				DBContext.Vendors.Update(vendorToUpdate)
+				DBContext.SaveChanges()
+			end
+			catch (e, @InvalidOperationException)
+			begin
+				mreturn BadRequest(e)
+			end
+			endtry
+
+			mreturn Ok()
 
 		endmethod
 
@@ -174,7 +229,7 @@ namespace SampleServices.Controllers
 		;;; Delete a vendor.
 		;;; </summary>
 		;;; <param name="aVendKey">Vendor ID</param>
-		;;; <returns></returns>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Delete, @IActionResult
 			{FromODataUri}
             required in aVendKey, int
@@ -182,13 +237,12 @@ namespace SampleServices.Controllers
 			;;Get the vendor to be deleted
 			data vendorToRemove = DBContext.Vendors.Find(aVendKey)
 
+			;;Did we find it?
 			if (vendorToRemove == ^null)
 				mreturn NotFound()
 
-			;;Mark the vendor for removal
+			;;Delete and commit
 			DBContext.Vendors.Remove(vendorToRemove)
-
-			;;Commit the change
 			DBContext.SaveChanges()
 
 			mreturn Ok()

@@ -69,7 +69,6 @@ import Microsoft.AspNet.OData
 import Microsoft.AspNet.OData.Extensions
 import Microsoft.AspNet.OData.Builder
 import Microsoft.AspNet.OData.Routing
-import Microsoft.AspNetCore.Mvc.Formatters
 import Microsoft.OData
 import Microsoft.OData.UriParser
 import Microsoft.AspNetCore.Builder
@@ -98,7 +97,6 @@ namespace SampleServices
 				mreturn objectProvider
 			end
 
-
 			services.AddSingleton<IFileChannelManager, FileChannelManager>()
 			services.AddSingleton<IDataObjectProvider>(AddDataObjectMappings)
 			services.AddDbContextPool<DBContext>(ConfigureDBContext)
@@ -112,7 +110,7 @@ namespace SampleServices
 			end
 
 			services.AddSingleton<ODataUriResolver>(AddAltKeySupport)
-			services.AddMvcCore().AddJsonFormatters()
+
 			services.AddOData()
 
 			;;Load our workaround for the fact that OData alternate key support is messed up right now!
@@ -122,7 +120,8 @@ namespace SampleServices
 			;;Load Swagger API documentation services
 
 			services.AddMvcCore()
-			&	.AddApiExplorer()
+			&	.AddJsonFormatters()	;;For PATCH
+			&	.AddApiExplorer()		;;Swagger UI
 
 			lambda configureSwaggerGen(config)
 			begin
@@ -133,14 +132,14 @@ namespace SampleServices
 		endmethod
 
 		private method ConfigureDBContext, void
-			sp, @IServiceProvider
-			opts, @DbContextOptionsBuilder
+			required in sp, @IServiceProvider
+			required in opts, @DbContextOptionsBuilder
 		proc
 			HarmonyDbContextOptionsExtensions.UseHarmonyDatabase(opts, sp.GetService<IDataObjectProvider>())
 		endmethod
 
 		public method Configure, void
-			app, @IApplicationBuilder
+			required in app, @IApplicationBuilder
 		proc
 			;;Add the middleware to generate API documentation to a file
 			app.UseSwagger()

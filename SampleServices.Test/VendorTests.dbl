@@ -41,6 +41,7 @@
 ;;
 ;;*****************************************************************************
 
+import Microsoft.AspNetCore.JsonPatch
 import Microsoft.VisualStudio.TestTools.UnitTesting
 import Newtonsoft.Json
 import System.Collections.Generic
@@ -164,11 +165,15 @@ namespace SampleServices.Test
 		proc
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
 
-			;;Get the first record from the file
+			;;Get one vendor from the file
 			data getRequest = String.Format("/odata/Vendors(VendKey={1})","",TestContext.GetVendor_VendKey)
 			data getResponse = client.GetAsync(getRequest).Result
 			data getResult = getResponse.Content.ReadAsStringAsync().Result
+
+			;;Check that we got a successful response from the web service
 			getResponse.EnsureSuccessStatusCode()
+
+			;;Deserialize the JSON into a Vendor object
 			data doVendor, @Vendor, JsonConvert.DeserializeObject<Vendor>(getResult)
 
 			doVendor.VendKey = TestContext.UpdateVendor_VendKey
@@ -179,15 +184,60 @@ namespace SampleServices.Test
 			disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doVendor),System.Text.Encoding.UTF8, "application/json")
 			data request = String.Format("/odata/Vendors(VendKey={1})","",TestContext.UpdateVendor_VendKey)
 			disposable data response = client.PutAsync(request, requestBody).Result
+
+			;;Check that we got a successful response from the web service
 			response.EnsureSuccessStatusCode()
 
 			;;Get the inserted record
 			getResponse = client.GetAsync(request).Result
 			getResult = getResponse.Content.ReadAsStringAsync().Result
+
+			;;Check that we got a successful response from the web service
 			getResponse.EnsureSuccessStatusCode()
+
+			;;Deserialize the JSON into a Vendor object
 			doVendor = JsonConvert.DeserializeObject<Vendor>(getResult)
 
 			Assert.AreEqual(doVendor.VendKey, TestContext.UpdateVendor_VendKey)
+
+			;;Update one property in the vendor
+			data patchDoc = new JsonPatchDocument()
+			patchDoc.Replace("VendName", "Z")
+
+			;;Serialize the patch to JSON
+			data serializedPatch = JsonConvert.SerializeObject(patchDoc)
+
+			;;Apply the patch
+			disposable data patchRequestBody = new StringContent(serializedPatch,System.Text.Encoding.UTF8, "application/json-patch+json")
+			disposable data patchResponse = client.PatchAsync(request, patchRequestBody).Result
+
+			;;Check that we got a successful response from the web service
+			patchResponse.EnsureSuccessStatusCode()
+
+			;;Get the updated vendor record
+			getResponse = client.GetAsync(request).Result
+			getResult = getResponse.Content.ReadAsStringAsync().Result
+
+			;;Check that we got a successful response from the web service
+			getResponse.EnsureSuccessStatusCode()
+
+			;;Deserialize the JSON into a Vendor object
+			doVendor = JsonConvert.DeserializeObject<Vendor>(getResult)
+
+			;;Verify that the property was changed
+			Assert.AreEqual(doVendor.VendName, "Z")
+
+			;;Delete It
+			disposable data deleteResponse = client.DeleteAsync(request).Result
+
+			;;Check that we got a successful response from the web service
+			getResponse.EnsureSuccessStatusCode()
+
+			;;Attempt to get the deleted record
+			getResponse = client.GetAsync(request).Result
+
+			;;Check we got a fail state from the web service
+			Assert.AreEqual(getResponse.IsSuccessStatusCode, false)
 
 		endmethod
 

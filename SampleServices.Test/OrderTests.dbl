@@ -41,6 +41,7 @@
 ;;
 ;;*****************************************************************************
 
+import Microsoft.AspNetCore.JsonPatch
 import Microsoft.VisualStudio.TestTools.UnitTesting
 import Newtonsoft.Json
 import System.Collections.Generic
@@ -223,11 +224,15 @@ namespace SampleServices.Test
 		proc
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
 
-			;;Get the first record from the file
+			;;Get one order from the file
 			data getRequest = String.Format("/odata/Orders(OrNumber={1})","",TestContext.GetOrder_OrNumber)
 			data getResponse = client.GetAsync(getRequest).Result
 			data getResult = getResponse.Content.ReadAsStringAsync().Result
+
+			;;Check that we got a successful response from the web service
 			getResponse.EnsureSuccessStatusCode()
+
+			;;Deserialize the JSON into a Order object
 			data doOrder, @Order, JsonConvert.DeserializeObject<Order>(getResult)
 
 			doOrder.OrNumber = TestContext.UpdateOrder_OrNumber
@@ -238,15 +243,60 @@ namespace SampleServices.Test
 			disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doOrder),System.Text.Encoding.UTF8, "application/json")
 			data request = String.Format("/odata/Orders(OrNumber={1})","",TestContext.UpdateOrder_OrNumber)
 			disposable data response = client.PutAsync(request, requestBody).Result
+
+			;;Check that we got a successful response from the web service
 			response.EnsureSuccessStatusCode()
 
 			;;Get the inserted record
 			getResponse = client.GetAsync(request).Result
 			getResult = getResponse.Content.ReadAsStringAsync().Result
+
+			;;Check that we got a successful response from the web service
 			getResponse.EnsureSuccessStatusCode()
+
+			;;Deserialize the JSON into a Order object
 			doOrder = JsonConvert.DeserializeObject<Order>(getResult)
 
 			Assert.AreEqual(doOrder.OrNumber, TestContext.UpdateOrder_OrNumber)
+
+			;;Update one property in the order
+			data patchDoc = new JsonPatchDocument()
+			patchDoc.Replace("OrPlacedBy", "Z")
+
+			;;Serialize the patch to JSON
+			data serializedPatch = JsonConvert.SerializeObject(patchDoc)
+
+			;;Apply the patch
+			disposable data patchRequestBody = new StringContent(serializedPatch,System.Text.Encoding.UTF8, "application/json-patch+json")
+			disposable data patchResponse = client.PatchAsync(request, patchRequestBody).Result
+
+			;;Check that we got a successful response from the web service
+			patchResponse.EnsureSuccessStatusCode()
+
+			;;Get the updated order record
+			getResponse = client.GetAsync(request).Result
+			getResult = getResponse.Content.ReadAsStringAsync().Result
+
+			;;Check that we got a successful response from the web service
+			getResponse.EnsureSuccessStatusCode()
+
+			;;Deserialize the JSON into a Order object
+			doOrder = JsonConvert.DeserializeObject<Order>(getResult)
+
+			;;Verify that the property was changed
+			Assert.AreEqual(doOrder.OrPlacedBy, "Z")
+
+			;;Delete It
+			disposable data deleteResponse = client.DeleteAsync(request).Result
+
+			;;Check that we got a successful response from the web service
+			getResponse.EnsureSuccessStatusCode()
+
+			;;Attempt to get the deleted record
+			getResponse = client.GetAsync(request).Result
+
+			;;Check we got a fail state from the web service
+			Assert.AreEqual(getResponse.IsSuccessStatusCode, false)
 
 		endmethod
 

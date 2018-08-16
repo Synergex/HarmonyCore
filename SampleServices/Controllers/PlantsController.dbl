@@ -41,6 +41,7 @@
 ;;
 ;;*****************************************************************************
 
+import Microsoft.AspNetCore.JsonPatch
 import Microsoft.AspNetCore.Mvc
 import Microsoft.AspNet.OData
 import Microsoft.AspNet.OData.Routing
@@ -76,6 +77,7 @@ namespace SampleServices.Controllers
 		;;; <summary>
 		;;; Get all Plants
 		;;; </summary>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Get, @IActionResult
 		proc
 			mreturn Ok(DBContext.Plants)
@@ -87,7 +89,7 @@ namespace SampleServices.Controllers
 		;;; Get a single Plant by primary key.
 		;;; </summary>
 		;;; <param name="aInItemid">Item ID</param>
-		;;; <returns></returns>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Get, @IActionResult
 			{FromODataUri}
             required in aInItemid, int
@@ -107,7 +109,7 @@ namespace SampleServices.Controllers
 		;;; Get a single Plant by key Vendor.
 		;;; </summary>
 		;;; <param name="aInSource">Vending Source Code</param>
-		;;; <returns></returns>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method GetByKeyVendor, @IActionResult
 			{FromODataUri}
 			required in aInSource, int
@@ -127,7 +129,7 @@ namespace SampleServices.Controllers
 		;;; Get a single Plant by key Color.
 		;;; </summary>
 		;;; <param name="aInColor">Flower color</param>
-		;;; <returns></returns>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method GetByKeyColor, @IActionResult
 			{FromODataUri}
 			required in aInColor, String
@@ -147,7 +149,7 @@ namespace SampleServices.Controllers
 		;;; Get a single Plant by key Size.
 		;;; </summary>
 		;;; <param name="aInSize">Size in gallons</param>
-		;;; <returns></returns>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method GetByKeySize, @IActionResult
 			{FromODataUri}
 			required in aInSize, int
@@ -167,7 +169,7 @@ namespace SampleServices.Controllers
 		;;; Get a single Plant by key Name.
 		;;; </summary>
 		;;; <param name="aInName">Common name</param>
-		;;; <returns></returns>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method GetByKeyName, @IActionResult
 			{FromODataUri}
 			required in aInName, String
@@ -190,7 +192,7 @@ namespace SampleServices.Controllers
 		;;; Create (with a client-supplied primary key) or replace a plant.
 		;;; </summary>
 		;;; <param name="aInItemid">Item ID</param>
-		;;; <returns></returns>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Put, @IActionResult
 			{FromODataUri}
             required in aInItemid, int
@@ -204,10 +206,19 @@ namespace SampleServices.Controllers
 			;;Ensure that the key values in the URI win over any data that may be in the model object
             aPlant.InItemid = aInItemid
 
-			;;Add the new plant
 			try
 			begin
-				DBContext.Plants.Add(aPlant)
+				;;Add and commit
+				data existing = DBContext.Plants.Find(aInItemid)
+				if(existing != ^null) then
+				begin
+					DBContext.Plants.Update(aPlant)
+				end
+				else
+				begin
+					DBContext.Plants.Add(aPlant)
+				end
+				DBContext.SaveChanges()
 			end
 			catch (e, @InvalidOperationException)
 			begin
@@ -215,10 +226,54 @@ namespace SampleServices.Controllers
 			end
 			endtry
 
-			;;Commit the change
-			DBContext.SaveChanges()
-
 			mreturn NoContent()
+
+		endmethod
+
+.endregion
+
+.region "UPDATE"
+
+		{ODataRoute("Plants(InItemid={aInItemid})")}
+		;;; <summary>
+		;;; Patch  (partial update) a plant.
+		;;; </summary>
+		;;; <param name="aInItemid">Item ID</param>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+		public method Patch, @IActionResult
+			{FromODataUri}
+            required in aInItemid, int
+			{FromBody}
+			required in aPlant, @JsonPatchDocument<Plant>
+		proc
+			;; Validate inbound data
+			if (!ModelState.IsValid)
+				mreturn BadRequest(ModelState)
+
+			;;Patch the existing plant
+			try
+			begin
+				;;Get the plant to be updated
+				data plantToUpdate = DBContext.Plants.Find(aInItemid)
+
+				;;Did we find it?
+				if(plantToUpdate == ^null)
+					mreturn NotFound()
+
+				;;Apply the changes to the plant we read
+				aPlant.ApplyTo(plantToUpdate)
+
+				;;Update and commit
+				DBContext.Plants.Update(plantToUpdate)
+				DBContext.SaveChanges()
+			end
+			catch (e, @InvalidOperationException)
+			begin
+				mreturn BadRequest(e)
+			end
+			endtry
+
+			mreturn Ok()
 
 		endmethod
 
@@ -231,7 +286,7 @@ namespace SampleServices.Controllers
 		;;; Delete a plant.
 		;;; </summary>
 		;;; <param name="aInItemid">Item ID</param>
-		;;; <returns></returns>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Delete, @IActionResult
 			{FromODataUri}
             required in aInItemid, int
@@ -239,13 +294,12 @@ namespace SampleServices.Controllers
 			;;Get the plant to be deleted
 			data plantToRemove = DBContext.Plants.Find(aInItemid)
 
+			;;Did we find it?
 			if (plantToRemove == ^null)
 				mreturn NotFound()
 
-			;;Mark the plant for removal
+			;;Delete and commit
 			DBContext.Plants.Remove(plantToRemove)
-
-			;;Commit the change
 			DBContext.SaveChanges()
 
 			mreturn Ok()
