@@ -1,0 +1,28 @@
+import System.Collections.Generic
+import SampleServices.Models
+
+namespace SampleServices.Test
+
+	public static partial class OrderItemLoader
+	
+		public static method LoadFromFile, @List<OrderItem>
+		proc
+			data dataFile = "ICSTUT:order_items.ism"
+			data textFile = dataFile.ToLower().Replace(".ism",".txt")
+			data orderItemCh, int, 0
+			data orderItemRec, strOrderItem
+			data orderItems = new List<OrderItem>()
+			open(orderItemCh,i:s,textFile)
+			repeat
+			begin
+				reads(orderItemCh,orderItemRec,eof)
+				orderItems.Add(new OrderItem(orderItemRec))
+			end
+		eof,
+			close orderItemCh
+			mreturn orderItems
+		endmethod
+
+	endclass
+
+endnamespace

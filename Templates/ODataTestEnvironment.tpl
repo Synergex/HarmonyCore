@@ -1,4 +1,5 @@
 <CODEGEN_FILENAME>TestEnvironment.dbl</CODEGEN_FILENAME>
+<REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
 <OPTIONAL_USERTOKEN>DATA_FOLDER_NAME=SampleData</OPTIONAL_USERTOKEN>
 <REQUIRES_CODEGEN_VERSION>5.3.5</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
@@ -79,6 +80,8 @@
 import System.Collections.Generic
 import System.IO
 import System.Text
+import <MODELS_NAMESPACE>
+import <NAMESPACE>.DataGenerators
 
 .array 0
 
@@ -130,39 +133,26 @@ namespace <NAMESPACE>
 
 <IF DEFINED_CREATE_FILES>
 		private static method createFiles, void
-			<STRUCTURE_LOOP>
-			.include "<STRUCTURE_NOALIAS>" repository, stack record="<structureNoplural>", nofields, end
-			</STRUCTURE_LOOP>
 		proc
 			data chout, int
-			data chin, int
 			data dataFile, string
 			data xdlFile, string
-			data textFile, string
+
+			<STRUCTURE_LOOP>
+			data <structurePlural> = <StructureNoplural>Loader.LoadFromFile()
+			</STRUCTURE_LOOP>
 
 			<STRUCTURE_LOOP>
 			;;Create and load the <structurePlural> file
 
 			dataFile = "<FILE_NAME>"
 			xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
-			textFile = dataFile.ToLower().Replace(".ism",".txt")
 
-			try
-			begin
-				open(chout=0,o:i,dataFile,FDL:xdlFile)
-				open(chin,i,textFile)
-				repeat
-				begin
-					reads(chin,<structureNoplural>)
-					store(chout,<structureNoplural>)
-				end
-			end
-			catch (ex, @EndOfFileException)
-			begin
-				close chin
-				close chout
-			end
-			endtry
+			data <structureNoplural>, @<StructureNoplural>
+			open(chout=0,o:i,dataFile,FDL:xdlFile)
+			foreach <structureNoplural> in <structurePlural>
+				store(chout,<structureNoplural>.SynergyRecord)
+			close chout
 
 			</STRUCTURE_LOOP>
 		endmethod

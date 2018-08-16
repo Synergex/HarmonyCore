@@ -1,0 +1,28 @@
+import System.Collections.Generic
+import SampleServices.Models
+
+namespace SampleServices.Test
+
+	public static partial class CustomerLoader
+	
+		public static method LoadFromFile, @List<Customer>
+		proc
+			data dataFile = "ICSTUT:customer.ism"
+			data textFile = dataFile.ToLower().Replace(".ism",".txt")
+			data customerCh, int, 0
+			data customerRec, strCustomer
+			data customers = new List<Customer>()
+			open(customerCh,i:s,textFile)
+			repeat
+			begin
+				reads(customerCh,customerRec,eof)
+				customers.Add(new Customer(customerRec))
+			end
+		eof,
+			close customerCh
+			mreturn customers
+		endmethod
+
+	endclass
+
+endnamespace

@@ -61,7 +61,7 @@ namespace SampleServices.Test
 		public method GetCustomers, void
 		proc
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync("/odata/Customers?$filter=CustKey eq 1&$expand=REL_Item").Result
+			disposable data response = client.GetAsync("/odata/Customers").Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
@@ -205,8 +205,7 @@ namespace SampleServices.Test
 			;TODO: Also need to ensure any nodups alternate keys get unique values
 
 			;;Update it
-			data serializedCustomer = JsonConvert.SerializeObject(doCustomer)
-			disposable data requestBody = new StringContent(serializedCustomer,System.Text.Encoding.UTF8, "application/json")
+			disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doCustomer),System.Text.Encoding.UTF8, "application/json")
 			data request = String.Format("/odata/Customers(CustKey={1})","",TestContext.UpdateCustomer_CustKey)
 			disposable data response = client.PutAsync(request, requestBody).Result
 			response.EnsureSuccessStatusCode()

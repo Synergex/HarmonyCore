@@ -169,14 +169,14 @@ namespace SampleServices.Test
 			data getResponse = client.GetAsync(getRequest).Result
 			data getResult = getResponse.Content.ReadAsStringAsync().Result
 			getResponse.EnsureSuccessStatusCode()
-			data doVendor, @ODataVendor, JsonConvert.DeserializeObject<ODataVendor>(getResult)
+			data doVendor, @Vendor, JsonConvert.DeserializeObject<Vendor>(getResult)
 
-			doVendor.Value.VendKey = TestContext.UpdateVendor_VendKey
+			doVendor.VendKey = TestContext.UpdateVendor_VendKey
 
 			;TODO: Also need to ensure any nodups alternate keys get unique values
 
 			;;Update it
-			disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doVendor.Value))
+			disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doVendor),System.Text.Encoding.UTF8, "application/json")
 			data request = String.Format("/odata/Vendors(VendKey={1})","",TestContext.UpdateVendor_VendKey)
 			disposable data response = client.PutAsync(request, requestBody).Result
 			response.EnsureSuccessStatusCode()
@@ -185,9 +185,9 @@ namespace SampleServices.Test
 			getResponse = client.GetAsync(request).Result
 			getResult = getResponse.Content.ReadAsStringAsync().Result
 			getResponse.EnsureSuccessStatusCode()
-			doVendor = JsonConvert.DeserializeObject<ODataVendor>(getResult)
+			doVendor = JsonConvert.DeserializeObject<Vendor>(getResult)
 
-			Assert.AreEqual(doVendor.Value.VendKey, TestContext.UpdateVendor_VendKey)
+			Assert.AreEqual(doVendor.VendKey, TestContext.UpdateVendor_VendKey)
 
 		endmethod
 
