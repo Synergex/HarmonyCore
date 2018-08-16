@@ -48,6 +48,7 @@ import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Infrastructure
 import Harmony.Core.EF.Extensions
 import SampleServices.Models
+import Microsoft.AspNetCore.JsonPatch
 
 namespace SampleServices.Controllers
 
@@ -92,7 +93,7 @@ namespace SampleServices.Controllers
 			{FromODataUri}
             required in aCustKey, int
 		proc
-			data result = DBContext.Customers.Find(aCustKey)
+			data result = DBContext.Customers.FindCompiled(aCustKey)
 
 			if (result == ^null)
 				mreturn NotFound()
@@ -162,6 +163,43 @@ namespace SampleServices.Controllers
 			DBContext.SaveChanges()
 
 			mreturn NoContent()
+
+		endmethod
+
+		{ODataRoute("Customers(CustKey={aCustKey})")}
+		;;; <summary>
+		;;; Create (with a client-supplied primary key) or replace a customer.
+		;;; </summary>
+		;;; <param name="aCustKey">Customer id</param>
+		;;; <returns></returns>
+		public method Patch, @IActionResult
+			{FromODataUri}
+			required in aCustKey, int
+			{FromBody}
+			required in aCustomer, @JsonPatchDocument<Customer>
+		proc
+			;; Validate inbound data
+			if (!ModelState.IsValid)
+				mreturn BadRequest(ModelState)
+
+			;;Patch the existing customer data 
+			try
+			begin
+				data foundCustomer = DBContext.Customers.Find(aCustKey)
+				if(foundCustomer == ^null)
+					mreturn NotFound()
+
+				aCustomer.ApplyTo(foundCustomer)
+				DBContext.Customers.Update(foundCustomer)
+				;;Commit the change
+				DBContext.SaveChanges()
+			end
+			catch (e, @InvalidOperationException)
+			begin
+				mreturn BadRequest(e)
+			end
+			endtry
+			mreturn Ok()
 
 		endmethod
 

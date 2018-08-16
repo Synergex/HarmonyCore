@@ -109,10 +109,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns> The options builder so that further configuration can be chained. </returns>
         public static DbContextOptionsBuilder UseHarmonyDatabase(
             this DbContextOptionsBuilder optionsBuilder,
-            IDataObjectProvider dataProvider,
-            DbContext context)
+            IDataObjectProvider dataProvider)
         {
-            var extension = new HarmonyOptionsExtension(dataProvider, context);
+            var extension = optionsBuilder.Options.FindExtension<HarmonyOptionsExtension>() ?? new HarmonyOptionsExtension(dataProvider);
             ConfigureWarnings(optionsBuilder);
 
             ((IDbContextOptionsBuilderInfrastructure)optionsBuilder).AddOrUpdateExtension(extension);

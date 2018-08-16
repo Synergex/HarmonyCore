@@ -47,6 +47,7 @@ import System.Collections.Generic
 import System.Net.Http
 import SampleServices
 import SampleServices.Test.Models
+import Microsoft.AspNetCore.JsonPatch
 
 namespace SampleServices.Test
 
@@ -61,7 +62,7 @@ namespace SampleServices.Test
 		public method GetCustomers, void
 		proc
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync("/odata/Customers").Result
+			disposable data response = client.GetAsync("/odata/Customers?$filter=contains(CustContact,'Gilbert')&$expand=REL_Item").Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
@@ -80,6 +81,24 @@ namespace SampleServices.Test
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 		endmethod
+
+		;public method GetCustomers_Perf, void
+		;proc
+		;	disposable data client = UnitTestEnvironment.Server.CreateClient()
+		;	data uri = string.Format("/odata/Customers(CustKey={0})", TestContext.GetCustomer_Expand_REL_Orders_CustKey)
+		;	data startTime = DateTime.Now
+		;	data endTime = DateTime.Now
+		;	data i = 0
+		;	while(i < 1000)
+		;	begin
+		;		disposable data response = client.GetAsync(uri).Result
+		;		data result = response.Content.ReadAsStringAsync().Result
+		;		response.EnsureSuccessStatusCode()
+		;		i = i + 1
+		;	end
+		;	endTime = DateTime.Now
+		;	Console.WriteLine(endTime - startTime)
+		;endmethod
 
 		;;------------------------------------------------------------
 		;;Get all Customers and expand relation REL_Item
@@ -102,7 +121,7 @@ namespace SampleServices.Test
 		{TestCategory("Customer Tests - Read All")}
 		public method GetCustomers_Expand_All, void
 		proc
-			data uri = "/odata/Customers?$expand=REL_Orders,REL_Item"
+			data uri = "/odata/Customers?$expand=REL_Orders,REL_Item&$orderby=CustZip"
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
 			disposable data response = client.GetAsync(uri).Result
 			data result = response.Content.ReadAsStringAsync().Result
@@ -204,8 +223,9 @@ namespace SampleServices.Test
 
 			;TODO: Also need to ensure any nodups alternate keys get unique values
 
-			;;Update it
-			disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doCustomer),System.Text.Encoding.UTF8, "application/json")
+			;;Put it
+			data serializedCustomer = JsonConvert.SerializeObject(doCustomer)
+			disposable data requestBody = new StringContent(serializedCustomer,System.Text.Encoding.UTF8, "application/json")
 			data request = String.Format("/odata/Customers(CustKey={1})","",TestContext.UpdateCustomer_CustKey)
 			disposable data response = client.PutAsync(request, requestBody).Result
 			response.EnsureSuccessStatusCode()
@@ -218,6 +238,29 @@ namespace SampleServices.Test
 
 			Assert.AreEqual(doCustomer.CustKey, TestContext.UpdateCustomer_CustKey)
 
+			;;Update It
+			data patchDoc = new JsonPatchDocument();
+			patchDoc.Replace("CustName", "Fred")
+			data serializedPatch = JsonConvert.SerializeObject(patchDoc)
+			disposable data patchRequestBody = new StringContent(serializedPatch,System.Text.Encoding.UTF8, "application/json-patch+json")
+			disposable data patchResponse = client.PatchAsync(request, patchRequestBody).Result
+			patchResponse.EnsureSuccessStatusCode()
+
+			;;Get the updated record
+			getResponse = client.GetAsync(request).Result
+			getResult = getResponse.Content.ReadAsStringAsync().Result
+			getResponse.EnsureSuccessStatusCode()
+			doCustomer = JsonConvert.DeserializeObject<Customer>(getResult)
+
+			Assert.AreEqual(doCustomer.CustName, "Fred")
+
+			;;Delete It
+			disposable data deleteResponse = client.DeleteAsync(request).Result
+			getResponse.EnsureSuccessStatusCode()
+
+			;;Get the deleted
+			getResponse = client.GetAsync(request).Result
+			Assert.AreEqual(getResponse.IsSuccessStatusCode, false)
 		endmethod
 
 	endclass

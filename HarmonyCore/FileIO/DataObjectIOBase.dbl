@@ -496,7 +496,7 @@ namespace Harmony.Core.FileIO
 			data result = FileAccessResults.Success
 			lambda writeOperation(recordData, grfaData)
 			begin
-				data updatedGrfa, a10
+				data updatedGrfa, a10, grfaData
 				result = this.Write(recordData, true, false, updatedGrfa)
 				if(result == FileAccessResults.Success)
 					grfaData = updatedGrfa
@@ -518,10 +518,12 @@ namespace Harmony.Core.FileIO
 			data result = FileAccessResults.Success
 			lambda writeOperation(recordData, grfaData)
 			begin
-				data updatedGrfa, a10
+				data updatedGrfa, a10, grfaData
 				result = this.Write(recordData, false, true, updatedGrfa)
-				if(result == FileAccessResults.Success)
+				if(result == FileAccessResults.Success) then
 					grfaData = updatedGrfa
+				else
+					throw new Exception(string.Format("file access result was {0}", result))
 			end
 			dataObject.InternalSynergyRecord(writeOperation)
 			mreturn result
@@ -581,7 +583,33 @@ namespace Harmony.Core.FileIO
 			mreturn result
 		endmethod
 		
+
+		public virtual method ReadRecord, FileAccessResults
+			out req dataObject, T
+			in req keyNumber, n
+			in req keyValue, a
+			in req noLock, Boolean
+		proc
+			data grfaBuffer, a10
+			dataObject = ^null
+			data result = this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, keyNumber, keyValue, FindOperation.AtCurrent, !noLock)
+			if(result == FileAccessResults.Success)
+				dataObject = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
+				
+			mreturn result
+		endmethod
 		
+		public virtual method IDataObjectIO.ReadRecord, FileAccessResults
+			out req dataObject, @DataObjectBase
+			in req keyNumber, n
+			in req keyValue, a
+			in req noLock, Boolean
+		proc
+			data tempObject, T
+			data result = ReadRecord(tempObject, keyNumber, keyValue, noLock)
+			dataObject = tempObject
+			mreturn result
+		endmethod
 		
 		public virtual method IDataObjectIO.ReadRecord, FileAccessResults
 			out dataObject, @DataObjectBase 

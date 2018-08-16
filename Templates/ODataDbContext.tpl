@@ -88,15 +88,11 @@ namespace <NAMESPACE>
 	;;; 
 	;;; </summary>
 	public class DbContext extends Microsoft.EntityFrameworkCore.DbContext
-	
-		mDataProvider, @IDataObjectProvider
-
 		;;; <summary>
 		;;; Construct a new DbContext.
 		;;; </summary>
 		public method DbContext
 			options, @DbContextOptions<DbContext>
-			dataProvider, @IDataObjectProvider
 			endparams
 			parent(options)
 		proc
@@ -108,16 +104,6 @@ namespace <NAMESPACE>
 		;;; Exposes <StructureNoplural> data.
 		;;; </summary>
 		public readwrite property <StructurePlural>, @DbSet<<StructureNoplural>>
-
-		</STRUCTURE_LOOP>
-		;;; <summary>
-		;;; 
-		;;; </summary>
-		protected override method OnConfiguring, void
-			opts, @DbContextOptionsBuilder
-		proc
-			HarmonyDbContextOptionsExtensions.UseHarmonyDatabase(opts, mDataProvider, this)
-		endmethod
 
 		;;; <summary>
 		;;; 
