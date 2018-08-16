@@ -1,0 +1,28 @@
+import System.Collections.Generic
+import SampleServices.Models
+
+namespace SampleServices.Test
+
+	public static partial class PlantLoader
+	
+		public static method LoadFromFile, @List<Plant>
+		proc
+			data dataFile = "ICSTUT:plants.ism"
+			data textFile = dataFile.ToLower().Replace(".ism",".txt")
+			data plantCh, int, 0
+			data plantRec, strPlant
+			data plants = new List<Plant>()
+			open(plantCh,i:s,textFile)
+			repeat
+			begin
+				reads(plantCh,plantRec,eof)
+				plants.Add(new Plant(plantRec))
+			end
+		eof,
+			close plantCh
+			mreturn plants
+		endmethod
+
+	endclass
+
+endnamespace

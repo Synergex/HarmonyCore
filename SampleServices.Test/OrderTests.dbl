@@ -228,14 +228,14 @@ namespace SampleServices.Test
 			data getResponse = client.GetAsync(getRequest).Result
 			data getResult = getResponse.Content.ReadAsStringAsync().Result
 			getResponse.EnsureSuccessStatusCode()
-			data doOrder, @ODataOrder, JsonConvert.DeserializeObject<ODataOrder>(getResult)
+			data doOrder, @Order, JsonConvert.DeserializeObject<Order>(getResult)
 
-			doOrder.Value.OrNumber = TestContext.UpdateOrder_OrNumber
+			doOrder.OrNumber = TestContext.UpdateOrder_OrNumber
 
 			;TODO: Also need to ensure any nodups alternate keys get unique values
 
 			;;Update it
-			disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doOrder.Value))
+			disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doOrder),System.Text.Encoding.UTF8, "application/json")
 			data request = String.Format("/odata/Orders(OrNumber={1})","",TestContext.UpdateOrder_OrNumber)
 			disposable data response = client.PutAsync(request, requestBody).Result
 			response.EnsureSuccessStatusCode()
@@ -244,9 +244,9 @@ namespace SampleServices.Test
 			getResponse = client.GetAsync(request).Result
 			getResult = getResponse.Content.ReadAsStringAsync().Result
 			getResponse.EnsureSuccessStatusCode()
-			doOrder = JsonConvert.DeserializeObject<ODataOrder>(getResult)
+			doOrder = JsonConvert.DeserializeObject<Order>(getResult)
 
-			Assert.AreEqual(doOrder.Value.OrNumber, TestContext.UpdateOrder_OrNumber)
+			Assert.AreEqual(doOrder.OrNumber, TestContext.UpdateOrder_OrNumber)
 
 		endmethod
 

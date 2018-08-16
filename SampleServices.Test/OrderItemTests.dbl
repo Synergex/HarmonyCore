@@ -228,15 +228,15 @@ namespace SampleServices.Test
 			data getResponse = client.GetAsync(getRequest).Result
 			data getResult = getResponse.Content.ReadAsStringAsync().Result
 			getResponse.EnsureSuccessStatusCode()
-			data doOrderItem, @ODataOrderItem, JsonConvert.DeserializeObject<ODataOrderItem>(getResult)
+			data doOrderItem, @OrderItem, JsonConvert.DeserializeObject<OrderItem>(getResult)
 
-			doOrderItem.Value.OiNumber = TestContext.UpdateOrderItem_OiNumber
-			doOrderItem.Value.OiLineItem = TestContext.UpdateOrderItem_OiLineItem
+			doOrderItem.OiNumber = TestContext.UpdateOrderItem_OiNumber
+			doOrderItem.OiLineItem = TestContext.UpdateOrderItem_OiLineItem
 
 			;TODO: Also need to ensure any nodups alternate keys get unique values
 
 			;;Update it
-			disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doOrderItem.Value))
+			disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doOrderItem),System.Text.Encoding.UTF8, "application/json")
 			data request = String.Format("/odata/OrderItems(OiNumber={1},OiLineItem={2})","",TestContext.UpdateOrderItem_OiNumber,TestContext.UpdateOrderItem_OiLineItem)
 			disposable data response = client.PutAsync(request, requestBody).Result
 			response.EnsureSuccessStatusCode()
@@ -245,10 +245,10 @@ namespace SampleServices.Test
 			getResponse = client.GetAsync(request).Result
 			getResult = getResponse.Content.ReadAsStringAsync().Result
 			getResponse.EnsureSuccessStatusCode()
-			doOrderItem = JsonConvert.DeserializeObject<ODataOrderItem>(getResult)
+			doOrderItem = JsonConvert.DeserializeObject<OrderItem>(getResult)
 
-			Assert.AreEqual(doOrderItem.Value.OiNumber, TestContext.UpdateOrderItem_OiNumber)
-			Assert.AreEqual(doOrderItem.Value.OiLineItem, TestContext.UpdateOrderItem_OiLineItem)
+			Assert.AreEqual(doOrderItem.OiNumber, TestContext.UpdateOrderItem_OiNumber)
+			Assert.AreEqual(doOrderItem.OiLineItem, TestContext.UpdateOrderItem_OiLineItem)
 
 		endmethod
 

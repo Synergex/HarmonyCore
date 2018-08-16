@@ -51,6 +51,10 @@ set FILE_STRUCTURES=CUSTOMERS ORDERS ORDER_ITEMS PLANTS
 rem Generate the test environment and unit test environment classes
 codegen -s %FILE_STRUCTURES% -ms -t ODataTestEnvironment ODataUnitTestEnvironment -n %PROJECT%.Test -o %PROJECT%.Test -ut SERVICES_NAMESPACE=%PROJECT% MODELS_NAMESPACE=%PROJECT%.Models DATA_FOLDER_NAME=SampleData %OPTS% %DO_AUTHENTICATION% -define CREATE_FILES
 
+rem Generate the data loader and generatror classes
+codegen -s %FILE_STRUCTURES% -t ODataTestDataLoader    -n %PROJECT%.Test -o %PROJECT%.Test\DataGenerators -ut MODELS_NAMESPACE=%PROJECT%.Models %OPTS%
+codegen -s %FILE_STRUCTURES% -t ODataTestDataGenerator -n %PROJECT%.Test -o %PROJECT%.Test\DataGenerators -ut MODELS_NAMESPACE=%PROJECT%.Models -lf
+
 rem ================================================================================================================================
 rem Generate code for the TraditionalBridge sample environment
 

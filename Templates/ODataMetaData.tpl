@@ -84,7 +84,7 @@ import Harmony.Core.Converters
 
 namespace <NAMESPACE>
 
-	.include "<STRUCTURE_NOALIAS>" repository <RPSDATAFILES>, structure="str<StructureNoplural>", end
+	.include "<STRUCTURE_NOALIAS>" repository <RPSDATAFILES>, public structure="str<StructureNoplural>", end
 
 	;;; <summary>
 	;;; Exposes metadata relating to the <StructureNoplural> model class.

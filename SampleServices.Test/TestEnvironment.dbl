@@ -44,6 +44,8 @@
 import System.Collections.Generic
 import System.IO
 import System.Text
+import SampleServices.Models
+import SampleServices.Test.DataGenerators
 
 .array 0
 
@@ -112,108 +114,59 @@ namespace SampleServices.Test
 		endmethod
 
 		private static method createFiles, void
-			.include "CUSTOMERS" repository, stack record="customer", nofields, end
-			.include "ORDERS" repository, stack record="order", nofields, end
-			.include "ORDER_ITEMS" repository, stack record="orderItem", nofields, end
-			.include "PLANTS" repository, stack record="plant", nofields, end
 		proc
 			data chout, int
-			data chin, int
 			data dataFile, string
 			data xdlFile, string
-			data textFile, string
+
+			data customers = CustomerLoader.LoadFromFile()
+			data orders = OrderLoader.LoadFromFile()
+			data orderItems = OrderItemLoader.LoadFromFile()
+			data plants = PlantLoader.LoadFromFile()
 
 			;;Create and load the customers file
 
 			dataFile = "ICSTUT:customer.ism"
 			xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
-			textFile = dataFile.ToLower().Replace(".ism",".txt")
 
-			try
-			begin
-				open(chout=0,o:i,dataFile,FDL:xdlFile)
-				open(chin,i,textFile)
-				repeat
-				begin
-					reads(chin,customer)
-					store(chout,customer)
-				end
-			end
-			catch (ex, @EndOfFileException)
-			begin
-				close chin
-				close chout
-			end
-			endtry
+			data customer, @Customer
+			open(chout=0,o:i,dataFile,FDL:xdlFile)
+			foreach customer in customers
+				store(chout,customer.SynergyRecord)
+			close chout
 
 			;;Create and load the orders file
 
 			dataFile = "ICSTUT:orders.ism"
 			xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
-			textFile = dataFile.ToLower().Replace(".ism",".txt")
 
-			try
-			begin
-				open(chout=0,o:i,dataFile,FDL:xdlFile)
-				open(chin,i,textFile)
-				repeat
-				begin
-					reads(chin,order)
-					store(chout,order)
-				end
-			end
-			catch (ex, @EndOfFileException)
-			begin
-				close chin
-				close chout
-			end
-			endtry
+			data order, @Order
+			open(chout=0,o:i,dataFile,FDL:xdlFile)
+			foreach order in orders
+				store(chout,order.SynergyRecord)
+			close chout
 
 			;;Create and load the orderItems file
 
 			dataFile = "ICSTUT:order_items.ism"
 			xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
-			textFile = dataFile.ToLower().Replace(".ism",".txt")
 
-			try
-			begin
-				open(chout=0,o:i,dataFile,FDL:xdlFile)
-				open(chin,i,textFile)
-				repeat
-				begin
-					reads(chin,orderItem)
-					store(chout,orderItem)
-				end
-			end
-			catch (ex, @EndOfFileException)
-			begin
-				close chin
-				close chout
-			end
-			endtry
+			data orderItem, @OrderItem
+			open(chout=0,o:i,dataFile,FDL:xdlFile)
+			foreach orderItem in orderItems
+				store(chout,orderItem.SynergyRecord)
+			close chout
 
 			;;Create and load the plants file
 
 			dataFile = "ICSTUT:plants.ism"
 			xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
-			textFile = dataFile.ToLower().Replace(".ism",".txt")
 
-			try
-			begin
-				open(chout=0,o:i,dataFile,FDL:xdlFile)
-				open(chin,i,textFile)
-				repeat
-				begin
-					reads(chin,plant)
-					store(chout,plant)
-				end
-			end
-			catch (ex, @EndOfFileException)
-			begin
-				close chin
-				close chout
-			end
-			endtry
+			data plant, @Plant
+			open(chout=0,o:i,dataFile,FDL:xdlFile)
+			foreach plant in plants
+				store(chout,plant.SynergyRecord)
+			close chout
 
 		endmethod
 

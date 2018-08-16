@@ -243,14 +243,14 @@ namespace SampleServices.Test
 			data getResponse = client.GetAsync(getRequest).Result
 			data getResult = getResponse.Content.ReadAsStringAsync().Result
 			getResponse.EnsureSuccessStatusCode()
-			data doPlant, @ODataPlant, JsonConvert.DeserializeObject<ODataPlant>(getResult)
+			data doPlant, @Plant, JsonConvert.DeserializeObject<Plant>(getResult)
 
-			doPlant.Value.InItemid = TestContext.UpdatePlant_InItemid
+			doPlant.InItemid = TestContext.UpdatePlant_InItemid
 
 			;TODO: Also need to ensure any nodups alternate keys get unique values
 
 			;;Update it
-			disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doPlant.Value))
+			disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doPlant),System.Text.Encoding.UTF8, "application/json")
 			data request = String.Format("/odata/Plants(InItemid={1})","",TestContext.UpdatePlant_InItemid)
 			disposable data response = client.PutAsync(request, requestBody).Result
 			response.EnsureSuccessStatusCode()
@@ -259,9 +259,9 @@ namespace SampleServices.Test
 			getResponse = client.GetAsync(request).Result
 			getResult = getResponse.Content.ReadAsStringAsync().Result
 			getResponse.EnsureSuccessStatusCode()
-			doPlant = JsonConvert.DeserializeObject<ODataPlant>(getResult)
+			doPlant = JsonConvert.DeserializeObject<Plant>(getResult)
 
-			Assert.AreEqual(doPlant.Value.InItemid, TestContext.UpdatePlant_InItemid)
+			Assert.AreEqual(doPlant.InItemid, TestContext.UpdatePlant_InItemid)
 
 		endmethod
 
