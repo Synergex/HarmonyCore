@@ -81,7 +81,9 @@ import System.Collections.Generic
 import System.IO
 import System.Text
 import <MODELS_NAMESPACE>
+<IF DEFINED_CREATE_FILES>
 import <NAMESPACE>.DataGenerators
+</IF DEFINED_CREATE_FILES>
 
 .array 0
 
