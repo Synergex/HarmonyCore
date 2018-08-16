@@ -173,13 +173,14 @@ namespace Harmony.Core.FileIO.Queryable
 			data resultList = new List<T>()
 			disposable data fileIO = dataObjectProvider.GetFileIO<T>()
 			fileIO.KeyReference = mSimpleKeyNumber
-			FileIOErrorHelper.EnsureSuccess(fileIO.FindRecord(mSimpleKeyNumber, GetKeyLiteral(parameters)))	
-			data result, T
-			while(FileIOErrorHelper.EnsureRead(fileIO.ReadNextRecord(result)))
+			if(FileIOErrorHelper.EnsureRead(fileIO.FindRecord(mSimpleKeyNumber, GetKeyLiteral(parameters))))
 			begin
-				resultList.Add(result)
+				data result, T
+				while(FileIOErrorHelper.EnsureRead(fileIO.ReadNextRecord(result)))
+				begin
+					resultList.Add(tracker(result))
+				end
 			end
-
 			mreturn resultList
 		endmethod
 
@@ -189,13 +190,14 @@ namespace Harmony.Core.FileIO.Queryable
 			dataObjectProvider, @Harmony.Core.Context.IDataObjectProvider
 		proc
 			disposable data fileIO = dataObjectProvider.GetFileIO<T>()
-			fileIO.KeyReference = mSimpleKeyNumber
-			FileIOErrorHelper.EnsureSuccess(fileIO.FindRecord(mSimpleKeyNumber, GetKeyLiteral(parameters)))	
+			fileIO.KeyReference = mSimpleKeyNumber	
 			data result, T
-			if(FileIOErrorHelper.EnsureRead(fileIO.ReadRecord(result))) then
-				mreturn result
-			else
-				mreturn ^null
+			if(FileIOErrorHelper.EnsureRead(fileIO.ReadRecord(result, mSimpleKeyNumber, GetKeyLiteral(parameters), true)))
+			begin
+				mreturn tracker(result)
+			end
+
+			mreturn ^null
 		endmethod
 
 		private method ExecuteSelectPlan<T(DataObjectBase)>, T

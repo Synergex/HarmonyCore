@@ -59,18 +59,18 @@ namespace Harmony.Core.FileIO
 			in req operation, FindOperation
 			in req lockRecord, boolean
 		proc
+			data lockValue, int, lockRecord ? Q_AUTO_LOCK : Q_NO_LOCK
 			try
 			begin
 				do forever
 				begin
-					;;TODO use the lockRecord parameter to actually lock the found record
 					if(operation == FindOperation.FromBeginingOfFile && %size(keyValue) == 0) then
 					begin
 						using mOpenMode select
 						(FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
 						begin
 							;;TODO why is this only 6 bytes?
-							find(mChannel,, ^FIRST)
+							find(mChannel,, ^FIRST, LOCK:lockValue)
 							&	[$ERR_EOF = end_of_file,
 							&	$ERR_LOCKED = record_locked,
 							&	$ERR_KEYNOT = key_not_found]
@@ -78,7 +78,7 @@ namespace Harmony.Core.FileIO
 						end
 						(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
 						begin
-							find(mChannel,, ^FIRST, KEYNUM:keyOfReference)
+							find(mChannel,, ^FIRST, KEYNUM:keyOfReference, LOCK:lockValue)
 							&	[$ERR_EOF = end_of_file,
 							&	$ERR_LOCKED = record_locked,
 							&	$ERR_KEYNOT = key_not_found]
@@ -86,7 +86,7 @@ namespace Harmony.Core.FileIO
 						end
 						(FileOpenMode.InputSequential,FileOpenMode.OutputSequential),
 						begin
-							find(mChannel,, ^FIRST)
+							find(mChannel,, ^FIRST, LOCK:lockValue)
 							&	[$ERR_EOF = end_of_file]
 							mreturn FileAccessResults.Success
 						end
@@ -97,7 +97,7 @@ namespace Harmony.Core.FileIO
 						using mOpenMode select
 						(FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
 						begin
-							find(mChannel,, ^LAST)
+							find(mChannel,, ^LAST, LOCK:lockValue)
 							&	[$ERR_EOF = end_of_file,
 							&	$ERR_LOCKED = record_locked,
 							&	$ERR_KEYNOT = key_not_found]
@@ -105,7 +105,7 @@ namespace Harmony.Core.FileIO
 						end
 						(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
 						begin
-							find(mChannel,, ^LAST, KEYNUM:keyOfReference)
+							find(mChannel,, ^LAST, KEYNUM:keyOfReference, LOCK:lockValue)
 							&	[$ERR_EOF = end_of_file,
 							&	$ERR_LOCKED = record_locked,
 							&	$ERR_KEYNOT = key_not_found]
@@ -113,7 +113,7 @@ namespace Harmony.Core.FileIO
 						end
 						(FileOpenMode.InputSequential,FileOpenMode.OutputSequential),
 						begin
-							find(mChannel,, ^LAST)
+							find(mChannel,, ^LAST, LOCK:lockValue)
 							&	[$ERR_EOF = end_of_file]
 							mreturn FileAccessResults.Success
 						end
@@ -124,7 +124,7 @@ namespace Harmony.Core.FileIO
 						using mOpenMode select
 						(FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
 						begin
-							find(mChannel,, keyValue)
+							find(mChannel,, keyValue, LOCK:lockValue)
 							&	[$ERR_EOF = end_of_file,
 							&	$ERR_LOCKED = record_locked,
 							&	$ERR_KEYNOT = key_not_found]
@@ -132,7 +132,7 @@ namespace Harmony.Core.FileIO
 						end
 						(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
 						begin
-							find(mChannel,, keyValue, KEYNUM:keyOfReference)
+							find(mChannel,, keyValue, KEYNUM:keyOfReference, LOCK:lockValue)
 							&	[$ERR_EOF = end_of_file,
 							&	$ERR_LOCKED = record_locked,
 							&	$ERR_KEYNOT = key_not_found]
@@ -145,7 +145,7 @@ namespace Harmony.Core.FileIO
 						using mOpenMode select
 						(FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
 						begin
-							find(mChannel, RFA:keyValue)
+							find(mChannel, RFA:keyValue, LOCK:lockValue)
 							&	[$ERR_EOF = end_of_file,
 							&	$ERR_LOCKED = record_locked,
 							&	$ERR_KEYNOT = key_not_found]
@@ -153,7 +153,7 @@ namespace Harmony.Core.FileIO
 						end
 						(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
 						begin
-							find(mChannel, RFA:keyValue)
+							find(mChannel, RFA:keyValue, LOCK:lockValue)
 							&	[$ERR_EOF = end_of_file,
 							&	$ERR_LOCKED = record_locked,
 							&	$ERR_KEYNOT = key_not_found]
