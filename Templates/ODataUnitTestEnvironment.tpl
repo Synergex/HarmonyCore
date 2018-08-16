@@ -115,7 +115,8 @@ proc
 	;tester.GetCustomer()      
 
 	;;Start self-hosting (Kestrel)
-	WebHost.CreateDefaultBuilder(new string[0]).UseStartup<Startup>().Build().Run()
+	data wwwroot = Path.Combine(AppContext.BaseDirectory, "wwwroot")
+	WebHost.CreateDefaultBuilder(new string[0]).UseContentRoot(wwwroot).UseWebRoot(wwwroot).UseStartup<Startup>().Build().Run()
 
 	;;Cleanup the environment
 	UnitTestEnvironment.AssemblyCleanup()
@@ -140,7 +141,7 @@ namespace <NAMESPACE>
 			TestEnvironment.Configure()
 
 			;;Define the content root and web root folders (so we can pick up the Swagger file for API documentation)
-			data wwwroot = Environment.GetEnvironmentVariable("WWWROOT")
+			data wwwroot = Path.Combine(AppContext.BaseDirectory, "wwwroot")
 
 			if(string.IsNullOrEmpty(wwwroot)) then
 			begin
