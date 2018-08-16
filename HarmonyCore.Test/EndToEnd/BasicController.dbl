@@ -100,12 +100,16 @@ namespace HarmonyCore.Test.EndToEnd
 			objectProvider.AddDataObjectMapping<Orders>("ICSTUT:orders.ism", FileOpenMode.UpdateIndexed)
 			services.AddSingleton<FileChannelManager>(channelManager)
 			services.AddSingleton<IDataObjectProvider>(objectProvider)
-			services.AddSingleton<DbContextOptions<BasicControllerDBContext>>(new DbContextOptions<BasicControllerDBContext>())
-			services.AddSingleton<BasicControllerDBContext, BasicControllerDBContext>()
+			services.AddDbContext<BasicControllerDBContext>(ConfigureDBContext)
 			services.AddOData()
 			services.AddMvcCore()
 		endmethod
-
+		private method ConfigureDBContext, void
+			sp, @IServiceProvider
+			opts, @DbContextOptionsBuilder
+		proc
+			HarmonyDbContextOptionsExtensions.UseHarmonyDatabase(opts, sp.GetService<IDataObjectProvider>())
+		endmethod
 		public method Configure, void
 			app, @IApplicationBuilder
 			env, @IHostingEnvironment
@@ -139,25 +143,15 @@ namespace HarmonyCore.Test.EndToEnd
 	endclass
 
 	public class BasicControllerDBContext extends DbContext
-	
-		mDataProvider, @IDataObjectProvider
 		public method BasicControllerDBContext
 			options, @DbContextOptions<BasicControllerDBContext>
-			dataProvider, @IDataObjectProvider
 			endparams
 			parent(options)
 		proc
-			mDataProvider = dataProvider
 		endmethod
 
 
 		public readwrite property Orders, @DbSet<Orders>
-
-		protected override method OnConfiguring, void
-			opts, @DbContextOptionsBuilder
-		proc
-			HarmonyDbContextOptionsExtensions.UseHarmonyDatabase(opts, mDataProvider, this)
-		endmethod
 
 		protected override method OnModelCreating, void
 			parm, @ModelBuilder
