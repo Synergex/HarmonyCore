@@ -114,12 +114,20 @@ proc
 	;tester.GetOrders_Expand_All()
 	;tester.GetCustomer()      
 
+	Console.WriteLine("API documentation is available at /api-docs")
+
 	;;Start self-hosting (Kestrel)
 	data wwwroot = Path.Combine(AppContext.BaseDirectory, "wwwroot")
 
-	Console.WriteLine("API documentation is available at /api-docs")
-
-	WebHost.CreateDefaultBuilder(new string[0]).UseContentRoot(wwwroot).UseWebRoot(wwwroot).UseStartup<Startup>().Build().Run()
+	WebHost.CreateDefaultBuilder(new string[0])
+	&	.UseContentRoot(wwwroot)
+	&	.UseWebRoot(wwwroot)
+<IF DEFINED_IIS_SUPPORT>
+	&	.UseIISIntegration()
+</IF DEFINED_IIS_SUPPORT>
+	&	.UseStartup<Startup>()
+	&	.Build()
+	&	.Run()
 
 	;;Cleanup the environment
 	UnitTestEnvironment.AssemblyCleanup()

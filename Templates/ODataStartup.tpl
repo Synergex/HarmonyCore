@@ -119,6 +119,7 @@ namespace <NAMESPACE>
 			services, @IServiceCollection 
 		proc
 
+			;;-------------------------------------------------------
 			;;Load Harmony Core
 
 			lambda AddDataObjectMappings(serviceProvider)
@@ -134,6 +135,7 @@ namespace <NAMESPACE>
 			services.AddSingleton<IDataObjectProvider>(AddDataObjectMappings)
 			services.AddDbContextPool<DBContext>(ConfigureDBContext)
 
+			;;-------------------------------------------------------
 			;;Load OData and ASP.NET
 
 			lambda AddAltKeySupport(serviceProvider)
@@ -146,18 +148,23 @@ namespace <NAMESPACE>
 
 			services.AddOData()
 
+			;;-------------------------------------------------------
 			;;Load our workaround for the fact that OData alternate key support is messed up right now!
 
 			services.AddSingleton<IPerRouteContainer, HarmonyPerRouteContainer>()
 
+			;;-------------------------------------------------------
 			;;Load Swagger API documentation services
+
 			services.AddSwaggerGen()
 
 			services.AddMvcCore()
 			&	.AddJsonFormatters()	;;For PATCH
 			&	.AddApiExplorer()		;;Swagger UI
+
 <IF DEFINED_AUTHENTICATION>
-			&	.AddAuthorization()
+			;;-------------------------------------------------------
+			;;Enable authentication and authorization
 
 			lambda authenticationOptions(options)
 			begin
@@ -166,8 +173,13 @@ namespace <NAMESPACE>
 				options.ApiName = "api1"
 			end
 
-			services.AddAuthentication("Bearer").AddIdentityServerAuthentication(authenticationOptions)
+			services.AddAuthentication("Bearer")
+			&	.AddIdentityServerAuthentication(authenticationOptions)
+			&	.AddAuthorization()
+
 </IF DEFINED_AUTHENTICATION>
+			;;-------------------------------------------------------
+			;;Enable HTTP redirection to HTTPS
 
 			lambda httpsConfig(options)
 			begin
@@ -177,8 +189,22 @@ namespace <NAMESPACE>
 
 			services.AddHttpsRedirection(httpsConfig)
 
+<IF DEFINED_IIS_SUPPORT>
+			;;-------------------------------------------------------
+			;;Enable support for hosting in IIS
+
+			lambda iisOptions(options)
+			begin
+				options.ForwardClientCertificate = false
+			end
+
+			services.Configure<IISOptions>(iisOptions)
+			
+</IF DEFINED_IIS_SUPPORT>
 <IF DEFINED_ENABLE_CORS>
+			;;-------------------------------------------------------
 			;;Add "Cross Origin Resource Sharing" (CORS) support
+
 			services.AddCors()
 
 </IF DEFINED_ENABLE_CORS>
@@ -206,7 +232,11 @@ namespace <NAMESPACE>
 			else
 			begin
 				;;Enable HTTP Strict Transport Security Protocol (HSTS)
-				app.UseHsts()
+				;
+				;You need to research this and know what you are doing with this. Here's a starting point:
+				;https://docs.microsoft.com/en-us/aspnet/core/security/enforcing-ssl?view=aspnetcore-2.1&tabs=visual-studio
+				;
+				;app.UseHsts()
 			end
 
 			;;-------------------------------------------------------
@@ -266,11 +296,12 @@ namespace <NAMESPACE>
 
 			lambda configureSwaggerUi(config)
 			begin
-				config.SwaggerEndpoint("/HarmonyCoreSwaggerFile.json", "<API_PAGE_TITLE>")
+				config.SwaggerEndpoint("/SwaggerFile.json", "<API_PAGE_TITLE>")
 				config.RoutePrefix = "api-docs"
 				config.DocumentTitle = "<API_PAGE_TITLE>"
 			end
 
+			app.UseDefaultFiles()
 			app.UseStaticFiles()
 			app.UseSwagger()
 			app.UseSwaggerUI(configureSwaggerUi)

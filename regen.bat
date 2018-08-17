@@ -38,7 +38,7 @@ rem Generate Postman Tests
 codegen -s %STRUCTURES% -ms -t ODataPostManTests -o .\ %OPTS% -ut TITLE="Harmony Core Sample Tests"
 
 rem Generate a Swagger file
-codegen -s %STRUCTURES% -ms -t ODataSwaggerJson -o %PROJECT%\wwwroot %OPTS% -ut  API_TITLE="Harmony Core Sample API" API_VERSION=1.0.0 API_DESCRIPTION="This environment presents an example of using Harmony Core to expose a collection of RESTful Web Service endpoints that alklow you to interact with a small sample dataset." API_TERMS_URL=https://localhost:5001/license.htm
+codegen -s %STRUCTURES% -ms -t ODataSwaggerJson -o %PROJECT%\wwwroot %OPTS% -ut  API_TITLE="Harmony Core Sample API" API_VERSION=1.0.0 API_DESCRIPTION="This environment presents an example of using Harmony Core to expose a collection of RESTful Web Service endpoints that alklow you to interact with a small sample dataset." API_TERMS_URL=/license.html
 
 rem ================================================================================================================================
 rem The test environment has slightly different requirements, because we need to generate code based on structures, but when tags
@@ -48,7 +48,7 @@ rem structures associated with each file.
 set FILE_STRUCTURES=CUSTOMERS ORDERS ORDER_ITEMS PLANTS
 
 rem Generate the test environment and unit test environment classes
-codegen -s %FILE_STRUCTURES% -ms -t ODataTestEnvironment ODataUnitTestEnvironment -n %PROJECT%.Test -o %PROJECT%.Test -ut SERVICES_NAMESPACE=%PROJECT% MODELS_NAMESPACE=%PROJECT%.Models DATA_FOLDER_NAME=SampleData %OPTS% %DO_AUTHENTICATION% -define CREATE_FILES
+codegen -s %FILE_STRUCTURES% -ms -t ODataTestEnvironment ODataUnitTestEnvironment -n %PROJECT%.Test -o %PROJECT%.Test -ut SERVICES_NAMESPACE=%PROJECT% MODELS_NAMESPACE=%PROJECT%.Models DATA_FOLDER_NAME=SampleData %OPTS% %DO_AUTHENTICATION% -define CREATE_FILES IIS_SUPPORT
 
 rem Generate the data loader and generatror classes
 codegen -s %FILE_STRUCTURES% -t ODataTestDataLoader    -n %PROJECT%.Test -o %PROJECT%.Test\DataGenerators -ut MODELS_NAMESPACE=%PROJECT%.Models %OPTS%

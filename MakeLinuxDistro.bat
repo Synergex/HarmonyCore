@@ -3,7 +3,8 @@ setlocal
 
 set PATH=C:\Program Files\7-Zip;%PATH%
 
-pushd %~dp0
+set SolutionDir=%~dp0
+pushd %SolutionDir%
 
 if not exist distribution\linux\debug\.   mkdir distribution\linux\debug
 if not exist distribution\linux\release\. mkdir distribution\linux\release
