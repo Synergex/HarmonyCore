@@ -29,12 +29,12 @@
 							"raw": ""
 						},
 						"url": {
-							"raw": "http://localhost:5000/odata/<StructurePlural>",
-							"protocol": "http",
+							"raw": "https://localhost:5001/odata/<StructurePlural>",
+							"protocol": "https",
 							"host": [
 								"localhost"
 							],
-							"port": "5000",
+							"port": "5001",
 							"path": [
 								"odata",
 								"<StructurePlural>"
@@ -60,12 +60,12 @@
 					},
 <PRIMARY_KEY>
 					"url": {
-						"raw": "http://localhost:5000/odata/<StructurePlural>(<SEGMENT_LOOP>{{Existing<StructureNoplural>_<SegmentName>}}<,></SEGMENT_LOOP>)",
-						"protocol": "http",
+						"raw": "https://localhost:5001/odata/<StructurePlural>(<SEGMENT_LOOP>{{Existing<StructureNoplural>_<SegmentName>}}<,></SEGMENT_LOOP>)",
+						"protocol": "https",
 						"host": [
 							"localhost"
 						],
-						"port": "5000",
+						"port": "5001",
 						"path": [
 							"odata",
 							"<StructurePlural>(<SEGMENT_LOOP>{{Existing<StructureNoplural>_<SegmentName>}}<,></SEGMENT_LOOP>)"
@@ -86,12 +86,12 @@
 						"raw": "Put new <structureNoplural> json here. Do not include the primary key fields."
 					},
 					"url": {
-						"raw": "http://localhost:5000/odata/<StructurePlural>",
-						"protocol": "http",
+						"raw": "https://localhost:5001/odata/<StructurePlural>",
+						"protocol": "https",
 						"host": [
 							"localhost"
 						],
-						"port": "5000",
+						"port": "5001",
 						"path": [
 							"odata",
 							"<StructurePlural>"
@@ -116,12 +116,12 @@
 						"raw": "Put new <structureNoplural> json here. Include primary key fields."
 					},
 					"url": {
-						"raw": "http://localhost:5000/odata/<StructurePlural>({{New<StructureNoplural>ID}})",
-						"protocol": "http",
+						"raw": "https://localhost:5001/odata/<StructurePlural>({{New<StructureNoplural>ID}})",
+						"protocol": "https",
 						"host": [
 							"localhost"
 						],
-						"port": "5000",
+						"port": "5001",
 						"path": [
 							"odata",
 							"<StructurePlural>({{New<StructureNoplural>ID}})"
@@ -146,12 +146,12 @@
 						"raw": ""
 					},
 					"url": {
-						"raw": "http://localhost:5000/odata/<StructurePlural>({{New<StructureNoplural>ID}})",
-						"protocol": "http",
+						"raw": "https://localhost:5001/odata/<StructurePlural>({{New<StructureNoplural>ID}})",
+						"protocol": "https",
 						"host": [
 							"localhost"
 						],
-						"port": "5000",
+						"port": "5001",
 						"path": [
 							"odata",
 							"<StructurePlural>({{New<StructureNoplural>ID}})"
@@ -176,12 +176,12 @@
 						"raw": ""
 					},
 					"url": {
-						"raw": "http://localhost:5000/odata/<StructurePlural>({{New<StructureNoplural>ID}})",
-						"protocol": "http",
+						"raw": "https://localhost:5001/odata/<StructurePlural>({{New<StructureNoplural>ID}})",
+						"protocol": "https",
 						"host": [
 							"localhost"
 						],
-						"port": "5000",
+						"port": "5001",
 						"path": [
 							"odata",
 							"<StructurePlural>({{New<StructureNoplural>ID}})"

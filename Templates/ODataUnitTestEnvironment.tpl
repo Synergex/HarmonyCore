@@ -116,6 +116,9 @@ proc
 
 	;;Start self-hosting (Kestrel)
 	data wwwroot = Path.Combine(AppContext.BaseDirectory, "wwwroot")
+
+	Console.WriteLine("API documentation is available at https://localhost:5001/api-docs")
+
 	WebHost.CreateDefaultBuilder(new string[0]).UseContentRoot(wwwroot).UseWebRoot(wwwroot).UseStartup<Startup>().Build().Run()
 
 	;;Cleanup the environment
