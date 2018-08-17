@@ -23,9 +23,9 @@
     "/<StructurePlural>" : {
       "get" : {
         "description" : "Get all <StructurePlural>",
-		"tags": [
-			"<StructureNoplural> Operations"
-		],
+        "tags": [
+          "<StructureNoplural> Operations"
+        ],
         "parameters" : [ ],
         "responses" : {
           "200" : {
@@ -47,27 +47,27 @@
     "/<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)" : {
       "get" : {
         "description" : "Get a <StructureNoplural> by primary key.",
-		"operationId": "Get a <StructureNoplural> by primary key.",
-		"tags": [
-			"<StructureNoplural> Operations"
-		],
+        "operationId": "Get a <StructureNoplural> by primary key.",
+        "tags": [
+          "<StructureNoplural> Operations"
+        ],
         "parameters" : [ 
 <SEGMENT_LOOP>
-		{
-			"name": "a<SegmentName>",
-			"in": "path",
-			"description": "<SEGMENT_DESC>",
-			"required": true,
-				"type": "<IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>",
-				<IF DATE>
-				"format": "date-time"
-				</IF DATE>
-				<IF TIME>
-				"format": "date-time"
-				</IF TIME>
-			}<,>
+          {
+            "name": "a<SegmentName>",
+            "in": "path",
+            "description": "<SEGMENT_DESC>",
+            "required": true,
+            "type": "<IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>",
+<IF DATE>
+            "format": "date-time"
+</IF DATE>
+<IF TIME>
+            "format": "date-time"
+</IF TIME>
+          }<,>
 </SEGMENT_LOOP>
-			],
+        ],
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -81,65 +81,65 @@
       "delete": {
         "description": "Delete a <StructureNoplural> by primary key.",
         "operationId": "Delete a <StructureNoplural> by primary key.",
-		"tags": [
-			"<StructureNoplural> Operations"
-		],
+        "tags": [
+          "<StructureNoplural> Operations"
+        ],
         "parameters" : [ 
 <SEGMENT_LOOP>
-		{
-			"name": "a<SegmentName>",
-			"in": "path",
-			"description": "<SEGMENT_DESC>",
-			"required": true,
-				"type": "<IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>",
-				<IF DATE>
-				"format": "date-time"
-				</IF DATE>
-				<IF TIME>
-				"format": "date-time"
-				</IF TIME>
-			}<,>
+          {
+            "name": "a<SegmentName>",
+            "in": "path",
+            "description": "<SEGMENT_DESC>",
+            "required": true,
+            "type": "<IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>",
+<IF DATE>
+            "format": "date-time"
+</IF DATE>
+<IF TIME>
+            "format": "date-time"
+</IF TIME>
+          }<,>
 </SEGMENT_LOOP>
-			],
+        ],
         "responses": {
           "204": {
             "description": "OK"
           }
-		  }
-        },
+        }
+      },
       "put": {
         "description": "Create or update a <StructureNoplural> by primary key.",
         "operationId": "Create or update a <StructureNoplural> by primary key.",
-		"tags": [
-			"<StructureNoplural> Operations"
-		],
+        "tags": [
+          "<StructureNoplural> Operations"
+        ],
         "parameters" : [ 
 <SEGMENT_LOOP>
-		{
-			"name": "a<SegmentName>",
-			"in": "path",
-			"description": "<SEGMENT_DESC>",
-			"required": true,
-				"type": "<IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>",
-				<IF DATE>
-				"format": "date-time"
-				</IF DATE>
-				<IF TIME>
-				"format": "date-time"
-				</IF TIME>
-			},
+          {
+            "name": "a<SegmentName>",
+            "in": "path",
+            "description": "<SEGMENT_DESC>",
+            "required": true,
+            "type": "<IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>",
+<IF DATE>
+            "format": "date-time"
+</IF DATE>
+<IF TIME>
+            "format": "date-time"
+</IF TIME>
+          },
 </SEGMENT_LOOP>
-			{
-			"name": "a<StructureNoplural>",
-			"in": "body",
-			"description": "Data for <structureNoplural> to create or update.",
-			"required": true,
+          {
+            "name": "a<StructureNoplural>",
+            "in": "body",
+            "description": "Data for <structureNoplural> to create or update.",
+            "required": true,
             "schema" : {
               "type" : "object",
               "$ref" : "#/definitions/<StructureNoplural>"
             }
-			}
-			],
+          }
+        ],
         "responses": {
           "204": {
             "description": "OK"
@@ -149,69 +149,69 @@
       "patch": {
         "description": "Patch a <StructureNoplural> by primary key.",
         "operationId": "Patch a <StructureNoplural> by primary key.",
-		"tags": [
-			"<StructureNoplural> Operations"
-		],
+        "tags": [
+          "<StructureNoplural> Operations"
+        ],
         "parameters" : [ 
 <SEGMENT_LOOP>
-		{
-			"name": "a<SegmentName>",
-			"in": "path",
-			"description": "<SEGMENT_DESC>",
-			"required": true,
-				"type": "<IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>",
-				<IF DATE>
-				"format": "date-time"
-				</IF DATE>
-				<IF TIME>
-				"format": "date-time"
-				</IF TIME>
-			},
+          {
+            "name": "a<SegmentName>",
+            "in": "path",
+            "description": "<SEGMENT_DESC>",
+            "required": true,
+            "type": "<IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>",
+<IF DATE>
+            "format": "date-time"
+</IF DATE>
+<IF TIME>
+            "format": "date-time"
+</IF TIME>
+          },
 </SEGMENT_LOOP>
-			{
-			"name": "a<StructureNoplural>",
-			"in": "body",
-			"description": "Data for <structureNoplural> to create or update.",
-			"required": true,
+          {
+            "name": "a<StructureNoplural>",
+            "in": "body",
+            "description": "Data for <structureNoplural> to create or update.",
+            "required": true,
             "schema" : {
               "type" : "object",
               "$ref" : "#/definitions/<StructureNoplural>"
             }
-			}
-			],
+          }
+        ],
         "responses": {
           "204": {
             "description": "OK"
           }
         }
       }
-	  },
+    },
 </PRIMARY_KEY>
 <ALTERNATE_KEY_LOOP>
     "/<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)" : {
       "get" : {
         "description" : "Get a <StructureNoplural> by alternate key <KEY_NAME>.",
-		"operationId": "Get a <StructureNoplural> by alternate key <KEY_NAME>.",
-		"tags": [
-			"<StructureNoplural> Operations"
-		],
+        "operationId": "Get a <StructureNoplural> by alternate key <KEY_NAME>.",
+        "tags": [
+          "<StructureNoplural> Operations"
+        ],
         "parameters" : [ 
 <SEGMENT_LOOP>
-		{
-			"name": "a<SegmentName>",
-			"in": "path",
-			"description": "<SEGMENT_DESC>",
-			"required": true,
-				"type": "<IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>",
-				<IF DATE>
-				"format": "date-time"
-				</IF DATE>
-				<IF TIME>
-				"format": "date-time"
-				</IF TIME>
-			}<,>
+          {
+            "name": "a<SegmentName>",
+            "in": "path",
+            "description": "<SEGMENT_DESC>",
+            "required": true,
+            "type": "<IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>",
+<IF DATE>
+            "format": "date-time"
+</IF DATE>
+<IF TIME>
+            "format": "date-time"
+</IF TIME>
+          }<,>
 </SEGMENT_LOOP>
-			],
+        ],
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -235,41 +235,41 @@
 <FIELD_LOOP>
 <IF CUSTOM_NOT_HARMONY_EXCLUDE>
         "<FieldSqlname>": {
- 	<IF ALPHA>
+ <IF ALPHA>
           "type": "string",
           "example" : <FIELD_SAMPLE_DATA>,
           "description": "<FIELD_DESC>"
-	</IF ALPHA>
-	<IF DECIMAL>
-	  <IF PRECISION>
+</IF ALPHA>
+<IF DECIMAL>
+<IF PRECISION>
           "type": "number",
           "format": "float",
           "example" : <FIELD_SAMPLE_DATA>,
           "description": "<FIELD_DESC>"
-	  <ELSE>
+<ELSE>
           "type": "integer",
           "example" : <FIELD_SAMPLE_DATA>,
           "description": "<FIELD_DESC>"
-	  </IF PRECISION>
-	</IF DECIMAL>
-	<IF DATE>
+</IF PRECISION>
+</IF DECIMAL>
+<IF DATE>
           "type": "string",
           "format": "date-time",
           "example" : <FIELD_SAMPLE_DATA>,
           "description": "<FIELD_DESC>"
-	</IF DATE>
-	<IF TIME>
+</IF DATE>
+<IF TIME>
           "type": "string",
           "format": "date-time",
           "example" : <FIELD_SAMPLE_DATA>,
           "description": "<FIELD_DESC>"
-	</IF TIME>
-	<IF INTEGER>
+</IF TIME>
+<IF INTEGER>
           "type": "number",
           "format": "<IF I124>int32<ELSE>int64</IF I124>",
           "example" : <FIELD_SAMPLE_DATA>,
           "description": "<FIELD_DESC>"
-	</IF INTEGER>
+</IF INTEGER>
         }<,>
 </IF CUSTOM_NOT_HARMONY_EXCLUDE>
 </FIELD_LOOP>

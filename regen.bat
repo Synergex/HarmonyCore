@@ -38,7 +38,7 @@ rem Generate Postman Tests
 codegen -s %STRUCTURES% -ms -t ODataPostManTests -o .\ %OPTS% -ut TITLE="Harmony Core Sample Tests"
 
 rem Generate a Swagger file
-codegen -s %STRUCTURES% -ms -t ODataSwaggerJson -o %PROJECT%\wwwroot %OPTS% -ut API_DESCRIPTION="Harmony Core Sample API" API_VERSION=1.0.0 API_TITLE="Harmony Core Sample API" API_TERMS_URL=http://some.url
+codegen -s %STRUCTURES% -ms -t ODataSwaggerJson -o %PROJECT%\wwwroot %OPTS% -ut  API_TITLE="Harmony Core Sample API" API_VERSION=1.0.0 API_DESCRIPTION="This environment presents an example of using Harmony Core to expose a collection of RESTful Web Service endpoints that alklow you to interact with a small sample dataset." API_TERMS_URL=https://localhost:5001/license.htm
 
 rem ================================================================================================================================
 rem The test environment has slightly different requirements, because we need to generate code based on structures, but when tags

@@ -1,4 +1,4 @@
-Copyright (c) 2016, Synergex International, Inc.
+Copyright (c) 2018, Synergex International, Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
