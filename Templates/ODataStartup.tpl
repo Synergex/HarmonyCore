@@ -1,6 +1,10 @@
 <CODEGEN_FILENAME>Startup.dbl</CODEGEN_FILENAME>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
-<REQUIRES_USERTOKEN>API_PAGE_TITLE</REQUIRES_USERTOKEN>
+<OPTIONAL_USERTOKEN>HTTPS_PORT=8081</OPTIONAL_USERTOKEN>
+<OPTIONAL_USERTOKEN>ODATA_SERVER=http://localhost:5000</OPTIONAL_USERTOKEN>
+<OPTIONAL_USERTOKEN>ODATA_API=api1</OPTIONAL_USERTOKEN>
+<OPTIONAL_USERTOKEN>SWAGGER_PAGE_TITLE=Harmony Core Sample API</OPTIONAL_USERTOKEN>
+<OPTIONAL_USERTOKEN>SWAGGER_PATH=api-docs</OPTIONAL_USERTOKEN>
 <REQUIRES_CODEGEN_VERSION>5.3.5</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
@@ -168,9 +172,9 @@ namespace <NAMESPACE>
 
 			lambda authenticationOptions(options)
 			begin
-				options.Authority = "http://localhost:5000"
+				options.Authority = "<ODATA_SERVER>"
 				options.RequireHttpsMetadata = false
-				options.ApiName = "api1"
+				options.ApiName = "<ODATA_API>"
 			end
 
 			services.AddAuthentication("Bearer")
@@ -184,7 +188,7 @@ namespace <NAMESPACE>
 			lambda httpsConfig(options)
 			begin
 				options.RedirectStatusCode = StatusCodes.Status307TemporaryRedirect
-				options.HttpsPort = 5001
+				options.HttpsPort = <HTTPS_PORT>
 			end
 
 			services.AddHttpsRedirection(httpsConfig)
@@ -257,6 +261,7 @@ namespace <NAMESPACE>
 			lambda mvcBuilder(builder)
 			begin
 				data model = EdmBuilder.GetEdmModel(app.ApplicationServices)
+
 				lambda UriResolver(s)
 				begin
 					data result = app.ApplicationServices.GetRequiredService<ODataUriResolver>()
@@ -271,7 +276,10 @@ namespace <NAMESPACE>
 
 				builder.EnableDependencyInjection(EnableDI)
 
+				;;Enable optional OData features
 				builder.Select().Expand().Filter().OrderBy().MaxTop(100).Count()
+
+				;;Configure the default OData route
 				builder.MapODataServiceRoute("odata", "odata", model)
 			end
 
@@ -296,9 +304,9 @@ namespace <NAMESPACE>
 
 			lambda configureSwaggerUi(config)
 			begin
-				config.SwaggerEndpoint("/SwaggerFile.json", "<API_PAGE_TITLE>")
-				config.RoutePrefix = "api-docs"
-				config.DocumentTitle = "<API_PAGE_TITLE>"
+				config.SwaggerEndpoint("/SwaggerFile.json", "<SWAGGER_PAGE_TITLE>")
+				config.RoutePrefix = "<SWAGGER_PATH>"
+				config.DocumentTitle = "<SWAGGER_PAGE_TITLE>"
 			end
 
 			app.UseDefaultFiles()

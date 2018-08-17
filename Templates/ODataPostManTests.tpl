@@ -1,5 +1,9 @@
 <CODEGEN_FILENAME>PostManTests.postman_collection.json</CODEGEN_FILENAME>
 <OPTIONAL_USERTOKEN>TITLE=Tests</OPTIONAL_USERTOKEN>
+<OPTIONAL_USERTOKEN>SERVER_PROTOCOL=https</OPTIONAL_USERTOKEN>
+<OPTIONAL_USERTOKEN>SERVER_NAME=localhost</OPTIONAL_USERTOKEN>
+<OPTIONAL_USERTOKEN>SERVER_PORT=8081</OPTIONAL_USERTOKEN>
+<OPTIONAL_USERTOKEN>BASE_PATH=/odata</OPTIONAL_USERTOKEN>
 <REQUIRES_CODEGEN_VERSION>5.3.5</REQUIRES_CODEGEN_VERSION>
 {
 	"info": {
@@ -29,12 +33,12 @@
 							"raw": ""
 						},
 						"url": {
-							"raw": "https://localhost:5001/odata/<StructurePlural>",
-							"protocol": "https",
+							"raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_PORT><BASE_PATH>/<StructurePlural>",
+							"protocol": "<SERVER_PROTOCOL>",
 							"host": [
-								"localhost"
+								"<SERVER_NAME>"
 							],
-							"port": "5001",
+							"port": "<SERVER_PORT>",
 							"path": [
 								"odata",
 								"<StructurePlural>"
@@ -60,15 +64,15 @@
 					},
 <PRIMARY_KEY>
 					"url": {
-						"raw": "https://localhost:5001/odata/<StructurePlural>(<SEGMENT_LOOP>{{Existing<StructureNoplural>_<SegmentName>}}<,></SEGMENT_LOOP>)",
-						"protocol": "https",
+						"raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_PORT><BASE_PATH>/<StructurePlural>(<SEGMENT_LOOP><SegmentName><,></SEGMENT_LOOP>)",
+						"protocol": "<SERVER_PROTOCOL>",
 						"host": [
-							"localhost"
+							"<SERVER_NAME>"
 						],
-						"port": "5001",
+						"port": "<SERVER_PORT>",
 						"path": [
 							"odata",
-							"<StructurePlural>(<SEGMENT_LOOP>{{Existing<StructureNoplural>_<SegmentName>}}<,></SEGMENT_LOOP>)"
+							"<StructurePlural>(<SEGMENT_LOOP><SegmentName><,></SEGMENT_LOOP>)"
 						]
 					}
 </PRIMARY_KEY>
@@ -86,12 +90,12 @@
 						"raw": "Put new <structureNoplural> json here. Do not include the primary key fields."
 					},
 					"url": {
-						"raw": "https://localhost:5001/odata/<StructurePlural>",
-						"protocol": "https",
+						"raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_PORT><BASE_PATH>/<StructurePlural>",
+						"protocol": "<SERVER_PROTOCOL>",
 						"host": [
-							"localhost"
+							"<SERVER_NAME>"
 						],
-						"port": "5001",
+						"port": "<SERVER_PORT>",
 						"path": [
 							"odata",
 							"<StructurePlural>"
@@ -116,15 +120,15 @@
 						"raw": "Put new <structureNoplural> json here. Include primary key fields."
 					},
 					"url": {
-						"raw": "https://localhost:5001/odata/<StructurePlural>({{New<StructureNoplural>ID}})",
-						"protocol": "https",
+						"raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_PORT><BASE_PATH>/<StructurePlural>(New<StructureNoplural>ID)",
+						"protocol": "<SERVER_PROTOCOL>",
 						"host": [
-							"localhost"
+							"<SERVER_NAME>"
 						],
-						"port": "5001",
+						"port": "<SERVER_PORT>",
 						"path": [
 							"odata",
-							"<StructurePlural>({{New<StructureNoplural>ID}})"
+							"<StructurePlural>(New<StructureNoplural>ID)"
 						]
 					}
 					},
@@ -146,15 +150,15 @@
 						"raw": ""
 					},
 					"url": {
-						"raw": "https://localhost:5001/odata/<StructurePlural>({{New<StructureNoplural>ID}})",
-						"protocol": "https",
+						"raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_PORT><BASE_PATH>/<StructurePlural>(New<StructureNoplural>ID)",
+						"protocol": "<SERVER_PROTOCOL>",
 						"host": [
-							"localhost"
+							"<SERVER_NAME>"
 						],
-						"port": "5001",
+						"port": "<SERVER_PORT>",
 						"path": [
 							"odata",
-							"<StructurePlural>({{New<StructureNoplural>ID}})"
+							"<StructurePlural>(New<StructureNoplural>ID)"
 						]
 					}
 					},
@@ -176,15 +180,15 @@
 						"raw": ""
 					},
 					"url": {
-						"raw": "https://localhost:5001/odata/<StructurePlural>({{New<StructureNoplural>ID}})",
-						"protocol": "https",
+						"raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_PORT><BASE_PATH>/<StructurePlural>(<StructureNoplural>IdToDelete)",
+						"protocol": "<SERVER_PROTOCOL>",
 						"host": [
-							"localhost"
+							"<SERVER_NAME>"
 						],
-						"port": "5001",
+						"port": "<SERVER_PORT>",
 						"path": [
 							"odata",
-							"<StructurePlural>({{New<StructureNoplural>ID}})"
+							"<StructurePlural>(<StructureNoplural>IdToDelete)"
 						]
 					}
 					},
@@ -215,23 +219,5 @@
 				]
 			}
 		}
-	],
-	"variable": [
-<STRUCTURE_LOOP>
-		{
-			"id": "guid",
-			"key": "Existing<StructureNoplural>ID",
-			"value": "?",
-			"type": "string",
-			"description": "The ID of an existing <structureNoplural>."
-		},
-		{
-			"id": "guid",
-			"key": "New<StructureNoplural>ID",
-			"value": "?",
-			"type": "string",
-			"description": "The ID of a new <structureNoplural>."
-		}<,>
-</STRUCTURE_LOOP>
 	]
 }

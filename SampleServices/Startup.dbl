@@ -134,7 +134,7 @@ namespace SampleServices
 			lambda httpsConfig(options)
 			begin
 				options.RedirectStatusCode = StatusCodes.Status307TemporaryRedirect
-				options.HttpsPort = 5001
+				options.HttpsPort = 8081
 			end
 
 			services.AddHttpsRedirection(httpsConfig)
@@ -181,6 +181,7 @@ namespace SampleServices
 			lambda mvcBuilder(builder)
 			begin
 				data model = EdmBuilder.GetEdmModel(app.ApplicationServices)
+
 				lambda UriResolver(s)
 				begin
 					data result = app.ApplicationServices.GetRequiredService<ODataUriResolver>()
@@ -195,7 +196,10 @@ namespace SampleServices
 
 				builder.EnableDependencyInjection(EnableDI)
 
+				;;Enable optional OData features
 				builder.Select().Expand().Filter().OrderBy().MaxTop(100).Count()
+
+				;;Configure the default OData route
 				builder.MapODataServiceRoute("odata", "odata", model)
 			end
 

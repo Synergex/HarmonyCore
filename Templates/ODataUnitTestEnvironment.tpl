@@ -126,6 +126,7 @@ proc
 	&	.UseIISIntegration()
 </IF DEFINED_IIS_SUPPORT>
 	&	.UseStartup<Startup>()
+	&	.UseUrls("http://localhost:8080", "https://localhost:8081")
 	&	.Build()
 	&	.Run()
 
