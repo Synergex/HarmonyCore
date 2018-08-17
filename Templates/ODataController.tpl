@@ -170,7 +170,7 @@ namespace <NAMESPACE>
 			required in a<SegmentName>, <SEGMENT_SNTYPE>
 			</SEGMENT_LOOP>
 		proc
-			data result = DBContext.<StructurePlural>.FindAlternate(<SEGMENT_LOOP>"<SegmentName>",a<SegmentName><,></SEGMENT_LOOP>)
+			data result = DBContext.<StructurePlural>.FindAlternate<IF DUPLICATES>s</IF DUPLICATES>(<SEGMENT_LOOP>"<SegmentName>",a<SegmentName><,></SEGMENT_LOOP>)
 
 			if (result == ^null)
 				mreturn NotFound()

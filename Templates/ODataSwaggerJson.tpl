@@ -20,7 +20,7 @@
 ;//
 ;// Get all
 ;//
-    "/<StructurePlural>" : {
+    "/odata/<StructurePlural>" : {
       "get" : {
         "description" : "Get all <StructurePlural>",
         "tags": [
@@ -44,7 +44,7 @@
 ;// Get single by primary key
 ;//
 <PRIMARY_KEY>
-    "/<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)" : {
+    "/odata/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{a<SegmentName>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)" : {
       "get" : {
         "description" : "Get a <StructureNoplural> by primary key.",
         "operationId": "Get a <StructureNoplural> by primary key.",
@@ -188,7 +188,7 @@
     },
 </PRIMARY_KEY>
 <ALTERNATE_KEY_LOOP>
-    "/<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)" : {
+    "/odata/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{a<SegmentName>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)" : {
       "get" : {
         "description" : "Get a <StructureNoplural> by alternate key <KEY_NAME>.",
         "operationId": "Get a <StructureNoplural> by alternate key <KEY_NAME>.",
