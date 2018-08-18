@@ -1,11 +1,11 @@
 <CODEGEN_FILENAME>Startup.dbl</CODEGEN_FILENAME>
-<REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
-<OPTIONAL_USERTOKEN>HTTPS_PORT=8081</OPTIONAL_USERTOKEN>
-<OPTIONAL_USERTOKEN>ODATA_SERVER=http://localhost:5000</OPTIONAL_USERTOKEN>
-<OPTIONAL_USERTOKEN>ODATA_API=api1</OPTIONAL_USERTOKEN>
-<OPTIONAL_USERTOKEN>SWAGGER_PAGE_TITLE=Harmony Core Sample API</OPTIONAL_USERTOKEN>
-<OPTIONAL_USERTOKEN>SWAGGER_PATH=api-docs</OPTIONAL_USERTOKEN>
 <REQUIRES_CODEGEN_VERSION>5.3.5</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_USERTOKEN>API_DOCS_PATH</REQUIRES_USERTOKEN>
+<REQUIRES_USERTOKEN>API_TITLE</REQUIRES_USERTOKEN>
+<REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
+<REQUIRES_USERTOKEN>OAUTH_API</REQUIRES_USERTOKEN>
+<REQUIRES_USERTOKEN>OAUTH_SERVER</REQUIRES_USERTOKEN>
+<REQUIRES_USERTOKEN>SERVER_HTTPS_PORT</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
 ;// Title:       ODataEdmBuilder.tpl
@@ -172,9 +172,9 @@ namespace <NAMESPACE>
 
 			lambda authenticationOptions(options)
 			begin
-				options.Authority = "<ODATA_SERVER>"
+				options.Authority = "<OAUTH_SERVER>"
 				options.RequireHttpsMetadata = false
-				options.ApiName = "<ODATA_API>"
+				options.ApiName = "<OAUTH_API>"
 			end
 
 			services.AddAuthentication("Bearer")
@@ -188,7 +188,7 @@ namespace <NAMESPACE>
 			lambda httpsConfig(options)
 			begin
 				options.RedirectStatusCode = StatusCodes.Status307TemporaryRedirect
-				options.HttpsPort = <HTTPS_PORT>
+				options.HttpsPort = <SERVER_HTTPS_PORT>
 			end
 
 			services.AddHttpsRedirection(httpsConfig)
@@ -304,9 +304,9 @@ namespace <NAMESPACE>
 
 			lambda configureSwaggerUi(config)
 			begin
-				config.SwaggerEndpoint("/SwaggerFile.json", "<SWAGGER_PAGE_TITLE>")
-				config.RoutePrefix = "<SWAGGER_PATH>"
-				config.DocumentTitle = "<SWAGGER_PAGE_TITLE>"
+				config.SwaggerEndpoint("/SwaggerFile.json", "<API_TITLE>")
+				config.RoutePrefix = "<API_DOCS_PATH>"
+				config.DocumentTitle = "<API_TITLE>"
 			end
 
 			app.UseDefaultFiles()
