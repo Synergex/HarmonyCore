@@ -149,6 +149,10 @@ namespace <NAMESPACE>
 		public static method AssemblyInitialize, void
 			required in context, @Microsoft.VisualStudio.TestTools.UnitTesting.TestContext
 		proc
+			;;Allows select to join when the keys in the file are not the same type as the keys in the code
+			data status, int
+			xcall setlog("SYNSEL_NUMALPHA_KEYS", 1, status) 
+
 			;;Configure the test environment (set logicals, create files in a known state, etc.)
 			TestEnvironment.Configure()
 
