@@ -5,8 +5,8 @@
 ;                 : D:\HarmonyCore\HarmonyCore.Test.Repository\bin\Debug\rpstext
 ;                 : Version 11.0.1
 ;
-;  GENERATED      : 06-AUG-2018, 20:22:16
-;                 : Version 11.0.1
+;  GENERATED      : 17-AUG-2018, 22:19:15
+;                 : Version 10.3.3e
 ;  EXPORT OPTIONS : [ALL] 
  
  
@@ -32,50 +32,76 @@ Tag FIELD   CUST_RTYPE EQ "0"
  
 Field CUST_KEY   Type DECIMAL   Size 6
    Description "Customer id"
+   Long Description
+      "<SAMPLE_DATA>355232</SAMPLE_DATA>"
    Report Just LEFT   Input Just LEFT
  
 Field CUST_RTYPE   Type DECIMAL   Size 1
    Description "Record Tag Field"
+   Long Description
+      "<SAMPLE_DATA>0</SAMPLE_DATA>"
  
 Field CUST_NAME   Type ALPHA   Size 30
    Description "Customer Name"
+   Long Description
+      "<SAMPLE_DATA>Abe's Nursery</SAMPLE_DATA>"
  
 Field CUST_STREET   Type ALPHA   Size 25
    Description "Street Address"
+   Long Description
+      "<SAMPLE_DATA>1032 Main Street</SAMPLE_DATA>"
  
 Field CUST_CITY   Type ALPHA   Size 20
    Description "City"
+   Long Description
+      "<SAMPLE_DATA>Springfield</SAMPLE_DATA>"
  
 Field CUST_STATE   Type ALPHA   Size 2
    Description "State"
+   Long Description
+      "<SAMPLE_DATA>MO</SAMPLE_DATA>"
  
 Field CUST_ZIP   Type DECIMAL   Size 9
    Description "Zip code"
+   Long Description
+      "<SAMPLE_DATA>64127</SAMPLE_DATA>"
    Report Just LEFT   Input Just LEFT
  
 Field CUST_CONTACT   Type ALPHA   Size 25
    Description "Contact"
+   Long Description
+      "<SAMPLE_DATA>Abe Albright</SAMPLE_DATA>"
  
 Field CUST_PHONE   Template PHONE
    Description "Phone number"
-   NoODBC Name
+   Long Description
+      "<SAMPLE_DATA>(555) 123-4567</SAMPLE_DATA>"
  
 Field CUST_FAX   Template PHONE
    Description "FAX number"
-   NoODBC Name
+   Long Description
+      "<SAMPLE_DATA>(555) 987-6543</SAMPLE_DATA>"
  
 Field CUST_GIFT   Type DECIMAL   Size 6
    Description "Customer Premium Gift"
+   Long Description
+      "<SAMPLE_DATA>7</SAMPLE_DATA>"
    Report Just LEFT   Input Just LEFT
  
 Field CUST_TCODE   Type ALPHA   Size 2
    Description "Terms code"
+   Long Description
+      "<SAMPLE_DATA>30</SAMPLE_DATA>"
  
 Field CUST_TAXNO   Type DECIMAL   Size 9
    Description "Customer Tax Number"
+   Long Description
+      "<SAMPLE_DATA>546874521</SAMPLE_DATA>"
  
 Field CUST_LIMIT   Type DECIMAL   Size 7   Precision 2
    Description "Credit limit"
+   Long Description
+      "<SAMPLE_DATA>5000</SAMPLE_DATA>"
  
 Key CUSTOMER   ACCESS   Order ASCENDING   Dups NO
    Segment FIELD   CUST_KEY  SegType DECIMAL
@@ -97,28 +123,42 @@ Structure ORDERS   DBL ISAM
  
 Field OR_NUMBER   Type DECIMAL   Size 6
    Description "Order number"
+   Long Description
+      "<SAMPLE_DATA>162512</SAMPLE_DATA>"
    Required
  
 Field OR_CUSTOMER   Type DECIMAL   Size 6
    Description "Customer ID"
+   Long Description
+      "<SAMPLE_DATA>622822</SAMPLE_DATA>"
    Required
  
 Field OR_PLACED_BY   Type ALPHA   Size 25
    Description "Order placed by"
+   Long Description
+      "<SAMPLE_DATA>John Doe</SAMPLE_DATA>"
    Required
  
 Field OR_CUSTOMER_REF   Type ALPHA   Size 25
    Description "Customer order reference"
+   Long Description
+      "<SAMPLE_DATA>PO12345</SAMPLE_DATA>"
  
 Field OR_TERMS   Type ALPHA   Size 2
    Description "Payment terms code"
+   Long Description
+      "<SAMPLE_DATA>30</SAMPLE_DATA>"
  
 Field OR_ORDERED   Type DATE   Size 8   Stored YYYYMMDD
    Description "Date ordered"
+   Long Description
+      "<SAMPLE_DATA>2018-03-01T00:00:00-08:00</SAMPLE_DATA>"
    Required
  
 Field OR_COMPLETED   Type DATE   Size 8   Stored YYYYMMDD
    Description "Date order completed"
+   Long Description
+      "<SAMPLE_DATA>2018-03-12T00:00:00-08:00</SAMPLE_DATA>"
  
 Field NONAME_001   Type ALPHA   Size 20
    Description "Spare space"
@@ -217,29 +257,43 @@ Structure ORDER_ITEMS   DBL ISAM
  
 Field OI_NUMBER   Type DECIMAL   Size 6
    Description "Order number"
+   Long Description
+      "<SAMPLE_DATA>5238</SAMPLE_DATA>"
    Required
  
 Field OI_LINE_ITEM   Type DECIMAL   Size 2
    Description "Line item number"
+   Long Description
+      "<SAMPLE_DATA>1</SAMPLE_DATA>"
    Required
  
 Field OI_ITEM_ORDERED   Type DECIMAL   Size 6
    Description "Item ordered"
+   Long Description
+      "<SAMPLE_DATA>21</SAMPLE_DATA>"
    Required
  
 Field OI_QTY   Type DECIMAL   Size 6
    Description "Quantity ordered"
+   Long Description
+      "<SAMPLE_DATA>3</SAMPLE_DATA>"
    Required
  
 Field OI_UNIT_PRICE   Type DECIMAL   Size 7   Precision 2
    Description "Unit price"
+   Long Description
+      "<SAMPLE_DATA>15.99</SAMPLE_DATA>"
    Required
  
 Field OI_SHIPPED   Type DATE   Size 8   Stored YYYYMMDD
    Description "Date shipped"
+   Long Description
+      "<SAMPLE_DATA>2018-03-17T00:00:00-08:00</SAMPLE_DATA>"
  
 Field OI_INVOICE   Type DECIMAL   Size 7
    Description "Invoice number"
+   Long Description
+      "<SAMPLE_DATA>166825</SAMPLE_DATA>"
  
 Field NONAME_001   Type ALPHA   Size 58   Language Noview   Script Noview
    Report Noview   Nonamelink
@@ -274,79 +328,121 @@ Structure PLANTS   DBL ISAM
  
 Field IN_ITEMID   Type DECIMAL   Size 6
    Description "Item ID"
+   Long Description
+      "<SAMPLE_DATA>19</SAMPLE_DATA>"
    Report Just LEFT
    Required
  
 Field IN_SOURCE   Type DECIMAL   Size 6
    Description "Vending Source Code"
+   Long Description
+      "<SAMPLE_DATA>41</SAMPLE_DATA>"
    Report Just LEFT   Input Just LEFT
  
 Field IN_SIZE   Type DECIMAL   Size 3
    Description "Size in gallons"
+   Long Description
+      "<SAMPLE_DATA>5</SAMPLE_DATA>"
    Required
    Selection List 1 2 6  Entries "1", "3", "5", "10", "15", "30"
  
 Field IN_NAME   Type ALPHA   Size 30
    Description "Common name"
+   Long Description
+      "<SAMPLE_DATA>European Hackberry</SAMPLE_DATA>"
  
 Field IN_LATIN   Type ALPHA   Size 30
    Description "Latin name"
+   Long Description
+      "<SAMPLE_DATA>Celtis australis</SAMPLE_DATA>"
    Prompt "Latin name"
  
 Field IN_ZONE   Type DECIMAL   Size 1
    Description "Zone"
+   Long Description
+      "<SAMPLE_DATA>2</SAMPLE_DATA>"
    Break
  
 Field IN_TYPE   Type DECIMAL   Size 1
    Description "Type code"
+   Long Description
+      "<SAMPLE_DATA>1</SAMPLE_DATA>"
    Selection List 1 2 2  Entries "Annual", "Perenn"
    Enumerated 6 1 1
  
 Field IN_FLOWER   Type ALPHA   Size 1
    Description "Flowering?"
+   Long Description
+      "<SAMPLE_DATA>Y</SAMPLE_DATA>"
  
 Field IN_COLOR   Type ALPHA   Size 6
    Description "Flower color"
+   Long Description
+      "<SAMPLE_DATA>Red</SAMPLE_DATA>"
  
 Field IN_SHAPE   Type ALPHA   Size 10
    Description "Plant shape"
+   Long Description
+      "<SAMPLE_DATA>1</SAMPLE_DATA>"
    Selection List 1 2 4  Entries "Bush", "Tree", "Vine", "Gcover"
  
 Field IN_MAXHIGH   Type DECIMAL   Size 3
    Description "Maximum height (in inches)"
+   Long Description
+      "<SAMPLE_DATA>24</SAMPLE_DATA>"
  
 Field IN_MAXWIDE   Type DECIMAL   Size 3
    Description "Maximum width (in inches)"
+   Long Description
+      "<SAMPLE_DATA>30</SAMPLE_DATA>"
  
 Field IN_WATER   Type ALPHA   Size 4
    Description "Water requirements"
+   Long Description
+      "<SAMPLE_DATA>Low</SAMPLE_DATA>"
    Selection List 1 2 3  Entries "Hig", "Med", "Low"
  
 Field IN_SUN   Type ALPHA   Size 6
    Description "Sun requirements"
+   Long Description
+      "<SAMPLE_DATA>Part</SAMPLE_DATA>"
    Selection List 1 2 4  Entries "Full", "Part", "Shade", "Any"
  
 Field IN_LOCATION   Type ALPHA   Size 3
    Description "Bin/aisle"
+   Long Description
+      "<SAMPLE_DATA>B06</SAMPLE_DATA>"
  
 Field IN_ONHAND   Type DECIMAL   Size 6
    Description "Qty on hand"
+   Long Description
+      "<SAMPLE_DATA>17</SAMPLE_DATA>"
    Negative
  
 Field IN_ALLOCATED   Type DECIMAL   Size 6
    Description "Qty allocated"
+   Long Description
+      "<SAMPLE_DATA>2</SAMPLE_DATA>"
  
 Field IN_ONORDER   Type DECIMAL   Size 6
    Description "Qty on order"
+   Long Description
+      "<SAMPLE_DATA>10</SAMPLE_DATA>"
  
 Field IN_MINIMUM   Type DECIMAL   Size 6
    Description "Reorder point"
+   Long Description
+      "<SAMPLE_DATA>20</SAMPLE_DATA>"
  
 Field IN_PRICE   Type DECIMAL   Size 7   Precision 2
    Description "Unit Price"
+   Long Description
+      "<SAMPLE_DATA>15.99</SAMPLE_DATA>"
  
 Field IN_COST   Type DECIMAL   Size 7   Precision 2
    Description "Item Cost"
+   Long Description
+      "<SAMPLE_DATA>9.99</SAMPLE_DATA>"
  
 Key ITEM   ACCESS   Order ASCENDING   Dups NO
    Segment FIELD   IN_ITEMID  SegType DECIMAL
@@ -377,39 +473,61 @@ Tag FIELD   VEND_RTYPE EQ "1"
  
 Field VEND_KEY   Type DECIMAL   Size 6
    Description "Vendor ID"
+   Long Description
+      "<SAMPLE_DATA>39</SAMPLE_DATA>"
    Report Just LEFT   Input Just LEFT
  
 Field VEND_RTYPE   Type DECIMAL   Size 1
    Description "Record Type"
+   Long Description
+      "<SAMPLE_DATA>1</SAMPLE_DATA>"
    Report Just LEFT   Input Just LEFT
  
 Field VEND_NAME   Type ALPHA   Size 30
    Description "Vendor Name"
+   Long Description
+      "<SAMPLE_DATA>Gardens R Us</SAMPLE_DATA>"
  
 Field VEND_STREET   Type ALPHA   Size 25
    Description "Street Address"
+   Long Description
+      "<SAMPLE_DATA>97 Main St</SAMPLE_DATA>"
  
 Field VEND_CITY   Type ALPHA   Size 20
    Description "City"
+   Long Description
+      "<SAMPLE_DATA>Concord</SAMPLE_DATA>"
  
 Field VEND_STATE   Type ALPHA   Size 2
    Description "State"
+   Long Description
+      "<SAMPLE_DATA>NH</SAMPLE_DATA>"
  
 Field VEND_ZIP   Type DECIMAL   Size 9
    Description "Zip Code"
+   Long Description
+      "<SAMPLE_DATA>03214</SAMPLE_DATA>"
  
 Field VEND_CONTACT   Type ALPHA   Size 25
    Description "Contact Person"
+   Long Description
+      "<SAMPLE_DATA>Jeremiah Johnson</SAMPLE_DATA>"
  
 Field VEND_TELEPHONE   Template PHONE
    Description "Phone number"
+   Long Description
+      "<SAMPLE_DATA>(555) 627-2663</SAMPLE_DATA>"
    Report Heading "Telephone"
  
 Field VEND_FAX   Template PHONE
    Description "Fax Number"
+   Long Description
+      "<SAMPLE_DATA>(555) 627-6382</SAMPLE_DATA>"
  
 Field VEND_TERMS   Type ALPHA   Size 24
    Description "Terms & Conditions"
+   Long Description
+      "<SAMPLE_DATA>60</SAMPLE_DATA>"
  
 Key VENDOR   ACCESS   Order ASCENDING   Dups NO
    Segment FIELD   VEND_KEY  SegType DECIMAL
