@@ -34,7 +34,7 @@ codegen -s %STRUCTURES% -ms -t ODataTestContext -n %PROJECT%.Test -o %PROJECT%.T
 if ERRORLEVEL 1 goto error
 
 rem One time, not replaced!
-codegen -s %STRUCTURES% -ms -t ODataTestData    -n %PROJECT%.Test -o %PROJECT%.Test -e -lf
+codegen -s %STRUCTURES% -ms -t ODataTestData    -n %PROJECT%.Test -o %PROJECT%.Test %NOREPLACEOPTS%
 if ERRORLEVEL 1 goto error
 
 rem Generate OData model classes for client side use
