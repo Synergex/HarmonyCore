@@ -63,11 +63,40 @@
         ],
         "parameters" : [
           {
+            "name": "$expand",
+            "in": "query",
+            "description": "Expand navigation property",
+            "type": "string"
+          },
+          {
             "name": "$select",
             "in": "query",
-            "description": "Comma separated list of properties to retrieve.",
-            "required": false,
+            "description": "Select structural property",
             "type": "string"
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "Order by some property",
+            "type": "string"
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "Top elements",
+            "type": "integer"
+          },
+;//          {
+;//            "name": "$skip",
+;//            "in": "query",
+;//            "description": "Skip elements",
+;//            "type": "integer"
+;//          },
+          {
+            "name": "$count",
+            "in": "query",
+            "description": "Inlcude count in response",
+            "type": "boolean"
           }
         ],
         "responses" : {
@@ -112,11 +141,40 @@
           },
 </SEGMENT_LOOP>
           {
+            "name": "$expand",
+            "in": "query",
+            "description": "Expand navigation property",
+            "type": "string"
+          },
+          {
             "name": "$select",
             "in": "query",
-            "description": "Comma separated list of properties to retrieve.",
-            "required": false,
+            "description": "Select structural property",
             "type": "string"
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "Order by some property",
+            "type": "string"
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "Top elements",
+            "type": "integer"
+          },
+;//          {
+;//            "name": "$skip",
+;//            "in": "query",
+;//            "description": "Skip elements",
+;//            "type": "integer"
+;//          },
+          {
+            "name": "$count",
+            "in": "query",
+            "description": "Inlcude count in response",
+            "type": "boolean"
           }
         ],
         "responses" : {
@@ -268,11 +326,40 @@
           },
 </SEGMENT_LOOP>
           {
+            "name": "$expand",
+            "in": "query",
+            "description": "Expand navigation property",
+            "type": "string"
+          },
+          {
             "name": "$select",
             "in": "query",
-            "description": "Comma separated list of properties to retrieve.",
-            "required": false,
+            "description": "Select structural property",
             "type": "string"
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "Order by some property",
+            "type": "string"
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "Top elements",
+            "type": "integer"
+          },
+;//          {
+;//            "name": "$skip",
+;//            "in": "query",
+;//            "description": "Skip elements",
+;//            "type": "integer"
+;//          },
+          {
+            "name": "$count",
+            "in": "query",
+            "description": "Inlcude count in response",
+            "type": "boolean"
           }
         ],
         "responses" : {
