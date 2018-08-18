@@ -30,8 +30,24 @@
     {
       "name": "<StructureNoplural>",
       "description": "Operations related to <STRUCTURE_DESC>",
-    }<,>
+    },
 </STRUCTURE_LOOP>
+    {
+      "name": "Create",
+      "description": "All create operations",
+    },
+    {
+      "name": "Read",
+      "description": "All read operations",
+    },
+    {
+      "name": "Update",
+      "description": "All update operations",
+    },
+    {
+      "name": "Delete",
+      "description": "All delete operations",
+    }
   ],
   "paths" : {
 <STRUCTURE_LOOP>
@@ -42,9 +58,18 @@
       "get" : {
         "description" : "Get all <StructurePlural>",
         "tags": [
-          "<StructureNoplural>"
+          "<StructureNoplural>",
+          "Read"
         ],
-        "parameters" : [ ],
+        "parameters" : [
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "Comma separated list of properties to retrieve.",
+            "required": false,
+            "type": "string"
+          }
+        ],
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -67,7 +92,8 @@
         "description" : "Get a <StructureNoplural> by primary key.",
         "operationId": "Get a <StructureNoplural> by primary key.",
         "tags": [
-          "<StructureNoplural>"
+          "<StructureNoplural>",
+          "Read"
         ],
         "parameters" : [ 
 <SEGMENT_LOOP>
@@ -83,8 +109,15 @@
 <IF TIME>
             "format": "date-time"
 </IF TIME>
-          }<,>
+          },
 </SEGMENT_LOOP>
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "Comma separated list of properties to retrieve.",
+            "required": false,
+            "type": "string"
+          }
         ],
         "responses" : {
           "200" : {
@@ -100,7 +133,8 @@
         "description": "Delete a <StructureNoplural> by primary key.",
         "operationId": "Delete a <StructureNoplural> by primary key.",
         "tags": [
-          "<StructureNoplural>"
+          "<StructureNoplural>",
+          "Delete"
         ],
         "parameters" : [ 
 <SEGMENT_LOOP>
@@ -129,7 +163,9 @@
         "description": "Create or update a <StructureNoplural> by primary key.",
         "operationId": "Create or update a <StructureNoplural> by primary key.",
         "tags": [
-          "<StructureNoplural>"
+          "<StructureNoplural>",
+          "Create",
+          "Update"
         ],
         "parameters" : [ 
 <SEGMENT_LOOP>
@@ -168,7 +204,8 @@
         "description": "Patch a <StructureNoplural> by primary key.",
         "operationId": "Patch a <StructureNoplural> by primary key.",
         "tags": [
-          "<StructureNoplural>"
+          "<StructureNoplural>",
+          "Update"
         ],
         "parameters" : [ 
 <SEGMENT_LOOP>
@@ -211,7 +248,8 @@
         "description" : "Get a <StructureNoplural> by alternate key <KEY_NAME>.",
         "operationId": "Get a <StructureNoplural> by alternate key <KEY_NAME>.",
         "tags": [
-          "<StructureNoplural>"
+          "<StructureNoplural>",
+		  "Read"
         ],
         "parameters" : [ 
 <SEGMENT_LOOP>
@@ -227,8 +265,15 @@
 <IF TIME>
             "format": "date-time"
 </IF TIME>
-          }<,>
+          },
 </SEGMENT_LOOP>
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "Comma separated list of properties to retrieve.",
+            "required": false,
+            "type": "string"
+          }
         ],
         "responses" : {
           "200" : {
