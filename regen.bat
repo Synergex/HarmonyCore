@@ -26,35 +26,23 @@ rem Generate a Web API / OData CRUD environment
 set PROJECT=SampleServices
 set STRUCTURES=CUSTOMERS ORDERS ORDER_ITEMS PLANTS VENDORS
 
-rem Generate model classes
+rem Generate model and metadata classes
 codegen -s %STRUCTURES% -t ODataModel -n %PROJECT%.Models -o %PROJECT%\Models %STDOPTS%
 if ERRORLEVEL 1 goto error
 
+rem Generate the DbContext and EdmBuilder classes
+codegen -s %STRUCTURES% -ms -t ODataDbContext ODataEdmBuilder -n %PROJECT% -o %PROJECT% %STDOPTS%
+if ERRORLEVEL 1 goto error
+
 rem Generate controller classes
-rem
-rem Optional features for ODataController
-rem   -define AUTHENTICATION
-rem   -define PROPERTY_ENDPOINTS
-rem 
 codegen -s %STRUCTURES% -t ODataController -n %PROJECT%.Controllers -o %PROJECT%\Controllers %STDOPTS%
 if ERRORLEVEL 1 goto error
 
-rem Generate the DbContext, EdmBuilder and Startup classes
-rem
-rem Optional features for ODataStartup
-rem   -define AUTHENTICATION
-rem   -define CASE_SENSITIVE_URL
-rem   -define ENABLE_CORS
-rem   -define IIS_SUPPORT
-rem 
-codegen -s %STRUCTURES% -ms -t ODataDbContext ODataEdmBuilder ODataStartup -n %PROJECT% -o %PROJECT% %STDOPTS%
+rem Generate the DbContext and EdmBuilder classes
+codegen -s %STRUCTURES% -ms -t ODataStartup -n %PROJECT% -o %PROJECT% %STDOPTS%
 if ERRORLEVEL 1 goto error
 
 rem Generate unit tests
-rem 
-rem Optional features for ODataUnitTests
-rem   -define AUTHENTICATION
-rem
 codegen -s %STRUCTURES% -t ODataUnitTests -n %PROJECT%.Test -o %PROJECT%.Test %STDOPTS%
 if ERRORLEVEL 1 goto error
 codegen -s %STRUCTURES% -ms -t ODataTestContext -n %PROJECT%.Test -o %PROJECT%.Test %STDOPTS%
@@ -82,17 +70,8 @@ rem are used to indicate that multiple structures are associated with a single I
 rem structures associated with each file.
 
 set FILE_STRUCTURES=CUSTOMERS ORDERS ORDER_ITEMS PLANTS
-if ERRORLEVEL 1 goto error
 
 rem Generate the test environment and unit test environment classes
-rem
-rem Optional features for ODataTestEnvironment
-rem   -define CREATE_TEST_FILES
-rem 
-rem Optional features for ODataUnitTestEnvironment
-rem   -define AUTHENTICATION
-rem   -define IIS_SUPPORT
-rem 
 codegen -s %FILE_STRUCTURES% -ms -t ODataTestEnvironment ODataUnitTestEnvironment -n %PROJECT%.Test -o %PROJECT%.Test %STDOPTS%
 if ERRORLEVEL 1 goto error
 

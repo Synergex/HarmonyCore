@@ -39,7 +39,7 @@
 ;;
 ;; Type:        Class
 ;;
-;; Description: OData DbContext class
+;; Description: Builds a Harmony Core Enterprise Data Model (EDM)
 ;;
 ;;*****************************************************************************
 ;; WARNING

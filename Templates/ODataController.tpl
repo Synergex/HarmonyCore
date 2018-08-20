@@ -203,27 +203,39 @@ namespace <NAMESPACE>
 <IF DEFINED_PROPERTY_ENDPOINTS>
 
 .region "READ Individual Properties"
-
+;//
+;// Turns out that in order for the $value function to work in conjunction with these properties,
+;// the name of the single key segment MUST be "key"!!! Likely doesn't work with segmented keys.
+;//
 <FIELD_LOOP>
 <PRIMARY_KEY>
-		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)/<FieldSqlName>")}
+		{ODataRoute("<StructurePlural>(<IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP></IF SINGLE_SEGMENT>)/<FieldSqlName>")}
 ;//		{ProducesResponseType(^typeof(<StructureNoplural>), 200)}
 		;;; <summary>
 		;;; Get the <FieldSqlName> property of a single <StructureNoplural>, by primary key.
 		;;; </summary>
-        <SEGMENT_LOOP>
+	<IF SINGLE_SEGMENT>
+		;;; <param name="key"><FIELD_DESC></param>
+	<ELSE>
+		<SEGMENT_LOOP>
 		;;; <param name="a<SegmentName>"><FIELD_DESC></param>
         </SEGMENT_LOOP>
+	</IF SINGLE_SEGMENT>
 		;;; <returns>
 		;;; Returns <IF ALPHA>a string</IF ALPHA><IF DECIMAL><IF PRECISION>a decimal<ELSE><IF CUSTOM_HARMONY_AS_STRING>a string<ELSE>an int</IF CUSTOM_HARMONY_AS_STRING></IF PRECISION></IF DECIMAL><IF DATE>a DateTime</IF DATE><IF TIME>a DateTime</IF TIME><IF INTEGER>an int</IF INTEGER> containing the value of the requested property.
 		;;;</returns>
 		public method Get<FieldSqlName>, @IActionResult
-            <SEGMENT_LOOP>
+    <SEGMENT_LOOP>
+		<IF SINGLE_SEGMENT>
+			{FromODataUri}
+            required in key, <SEGMENT_SNTYPE>
+		<ELSE>
 			{FromODataUri}
             required in a<SegmentName>, <SEGMENT_SNTYPE>
-            </SEGMENT_LOOP>
+		</IF SINGLE_SEGMENT>
+	</SEGMENT_LOOP>
 		proc
-			data result = DBContext.<StructurePlural>.Find(<SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP>)
+			data result = DBContext.<StructurePlural>.Find(<IF SINGLE_SEGMENT>key<ELSE><SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP></IF SINGLE_SEGMENT>)
 			if (result==^null)
 				mreturn NotFound()
 			mreturn OK(result.<FieldSqlName>)
