@@ -7,7 +7,7 @@ rem Configure optional Harmony Core capabilities
 rem Comment or uncomment the following lines to enable or disable optional capabilities as required:
 
 rem set DO_AUTHENTICATION=-define AUTHENTICATION
-rem set DO_PROPERTY_ENDPOINTS=-define PROPERTY_ENDPOINTS
+set DO_PROPERTY_ENDPOINTS=-define PROPERTY_ENDPOINTS
 rem set DO_CASE_SENSITIVE_URL=-define CASE_SENSITIVE_URL
 set DO_CREATE_TEST_FILES=-define CREATE_TEST_FILES
 rem set DO_ENABLE_CORS=-define ENABLE_CORS
