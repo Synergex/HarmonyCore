@@ -1,7 +1,7 @@
 <CODEGEN_FILENAME><StructurePlural>Controller.dbl</CODEGEN_FILENAME>
-<REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
-<REQUIRES_USERTOKEN>DBCONTEXT_NAMESPACE</REQUIRES_USERTOKEN>
 <REQUIRES_CODEGEN_VERSION>5.3.5</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
+<REQUIRES_USERTOKEN>SERVICES_NAMESPACE</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
 ;// Title:       ODataController.tpl
@@ -99,14 +99,14 @@ namespace <NAMESPACE>
 	;;; </summary>
 	public class <StructurePlural>Controller extends ODataController
 	
-		public readwrite property DBContext, @<DBCONTEXT_NAMESPACE>.DBContext
+		public readwrite property DBContext, @<SERVICES_NAMESPACE>.DBContext
 
 		;;; <summary>
 		;;; Constructs a new instance of <StructurePlural>Controller
 		;;; </summary>
 		;;; <param name="dbContext">Database context</param>
 		public method <StructurePlural>Controller
-			dbContext, @<DBCONTEXT_NAMESPACE>.DBContext
+			dbContext, @<SERVICES_NAMESPACE>.DBContext
 		proc
 			this.DBContext = dbContext
 		endmethod

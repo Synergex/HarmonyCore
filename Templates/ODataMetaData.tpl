@@ -1,5 +1,4 @@
 <CODEGEN_FILENAME><StructureNoplural>MetaData.dbl</CODEGEN_FILENAME>
-<OPTIONAL_USERTOKEN>RPSDATAFILES= </OPTIONAL_USERTOKEN>
 <REQUIRES_CODEGEN_VERSION>5.3.5</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
@@ -84,7 +83,7 @@ import Harmony.Core.Converters
 
 namespace <NAMESPACE>
 
-	.include "<STRUCTURE_NOALIAS>" repository <RPSDATAFILES>, public structure="str<StructureNoplural>", end
+	.include "<STRUCTURE_NOALIAS>" repository, public structure="str<StructureNoplural>", end
 
 	;;; <summary>
 	;;; Exposes metadata relating to the <StructureNoplural> model class.

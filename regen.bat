@@ -10,41 +10,43 @@ rem set DO_AUTHENTICATION=-define AUTHENTICATION
 rem ================================================================================================================================
 rem Generate a Web API / OData CRUD environment
 
+set NOREPLACEOPTS=-e -lf -u UserDefinedTokens.tkn
+set STDOPTS=%NOREPLACEOPTS% -r
 set PROJECT=SampleServices
 set STRUCTURES=CUSTOMERS ORDERS ORDER_ITEMS PLANTS VENDORS
 
 rem Generate model classes
-codegen -s %STRUCTURES%     -t ODataModel -n %PROJECT%.Models -o %PROJECT%\Models -e -r -lf
+codegen -s %STRUCTURES%     -t ODataModel -n %PROJECT%.Models -o %PROJECT%\Models %STDOPTS%
 if ERRORLEVEL 1 goto error
 
 rem Generate controller classes
-codegen -s %STRUCTURES%     -t ODataController -n %PROJECT%.Controllers -o %PROJECT%\Controllers -ut MODELS_NAMESPACE=%PROJECT%.Models DBCONTEXT_NAMESPACE=%PROJECT% %DO_AUTHENTICATION% -e -r -lf
+codegen -s %STRUCTURES%     -t ODataController -n %PROJECT%.Controllers -o %PROJECT%\Controllers %DO_AUTHENTICATION% %STDOPTS%
 if ERRORLEVEL 1 goto error
 
 rem Generate the DbContext, EdmBuilder and Startup classes
-codegen -s %STRUCTURES% -ms -t ODataDbContext ODataEdmBuilder ODataStartup -n %PROJECT% -o %PROJECT% -ut MODELS_NAMESPACE=%PROJECT%.Models %DO_AUTHENTICATION% -e -r -lf
+codegen -s %STRUCTURES% -ms -t ODataDbContext ODataEdmBuilder ODataStartup -n %PROJECT% -o %PROJECT% %DO_AUTHENTICATION% %STDOPTS%
 if ERRORLEVEL 1 goto error
 
 rem Generate unit tests
-codegen -s %STRUCTURES%     -t ODataUnitTests   -n %PROJECT%.Test -o %PROJECT%.Test -ut SERVICES_NAMESPACE=%PROJECT% %DO_AUTHENTICATION% -e -r -lf
+codegen -s %STRUCTURES%     -t ODataUnitTests   -n %PROJECT%.Test -o %PROJECT%.Test %DO_AUTHENTICATION% %STDOPTS%
 if ERRORLEVEL 1 goto error
-codegen -s %STRUCTURES% -ms -t ODataTestContext -n %PROJECT%.Test -o %PROJECT%.Test -e -r -lf
+codegen -s %STRUCTURES% -ms -t ODataTestContext -n %PROJECT%.Test -o %PROJECT%.Test %STDOPTS%
 if ERRORLEVEL 1 goto error
 
 rem One time, not replaced!
-codegen -s %STRUCTURES% -ms -t ODataTestData    -n %PROJECT%.Test -o %PROJECT%.Test -e -lf
+codegen -s %STRUCTURES% -ms -t ODataTestData    -n %PROJECT%.Test -o %PROJECT%.Test %NOREPLACEOPTS%
 if ERRORLEVEL 1 goto error
 
 rem Generate OData model classes for client side use
-codegen -s %STRUCTURES%     -t ODataClientModel -n %PROJECT%.Test.Models -o %PROJECT%.Test\Models -e -r -lf
+codegen -s %STRUCTURES%     -t ODataClientModel -n %PROJECT%.Test.Models -o %PROJECT%.Test\Models %STDOPTS%
 if ERRORLEVEL 1 goto error
 
 rem Generate Postman Tests
-codegen -s %STRUCTURES% -ms -t ODataPostManTests -o .\ -ut TITLE="Harmony Core Sample Tests" -e -r -lf
+codegen -s %STRUCTURES% -ms -t ODataPostManTests -o .\ %STDOPTS%
 if ERRORLEVEL 1 goto error
 
 rem Generate a Swagger file
-codegen -s %STRUCTURES% -ms -t ODataSwaggerJson -o %PROJECT%\wwwroot -e -r -lf
+codegen -s %STRUCTURES% -ms -t ODataSwaggerJson -o %PROJECT%\wwwroot %STDOPTS%
 if ERRORLEVEL 1 goto error
 
 rem ================================================================================================================================
@@ -56,14 +58,14 @@ set FILE_STRUCTURES=CUSTOMERS ORDERS ORDER_ITEMS PLANTS
 if ERRORLEVEL 1 goto error
 
 rem Generate the test environment and unit test environment classes
-codegen -s %FILE_STRUCTURES% -ms -t ODataTestEnvironment ODataUnitTestEnvironment -n %PROJECT%.Test -o %PROJECT%.Test -ut SERVICES_NAMESPACE=%PROJECT% MODELS_NAMESPACE=%PROJECT%.Models DATA_FOLDER_NAME=SampleData %DO_AUTHENTICATION% -define CREATE_FILES IIS_SUPPORT -e -r -lf
+codegen -s %FILE_STRUCTURES% -ms -t ODataTestEnvironment ODataUnitTestEnvironment -n %PROJECT%.Test -o %PROJECT%.Test %DO_AUTHENTICATION% -define CREATE_FILES IIS_SUPPORT %STDOPTS%
 if ERRORLEVEL 1 goto error
 
 rem Generate the data loader and generatror classes
-codegen -s %FILE_STRUCTURES% -t ODataTestDataLoader    -n %PROJECT%.Test -o %PROJECT%.Test\DataGenerators -ut MODELS_NAMESPACE=%PROJECT%.Models -e -r -lf
+codegen -s %FILE_STRUCTURES% -t ODataTestDataLoader    -n %PROJECT%.Test -o %PROJECT%.Test\DataGenerators %STDOPTS%
 if ERRORLEVEL 1 goto error
 rem One time, not replaced!
-codegen -s %FILE_STRUCTURES% -t ODataTestDataGenerator -n %PROJECT%.Test -o %PROJECT%.Test\DataGenerators -ut MODELS_NAMESPACE=%PROJECT%.Models -e -lf
+codegen -s %FILE_STRUCTURES% -t ODataTestDataGenerator -n %PROJECT%.Test -o %PROJECT%.Test\DataGenerators %NOREPLACEOPTS%
 if ERRORLEVEL 1 goto error
 
 rem ================================================================================================================================

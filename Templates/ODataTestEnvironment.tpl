@@ -1,7 +1,7 @@
 <CODEGEN_FILENAME>TestEnvironment.dbl</CODEGEN_FILENAME>
-<REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
-<OPTIONAL_USERTOKEN>DATA_FOLDER_NAME=SampleData</OPTIONAL_USERTOKEN>
 <REQUIRES_CODEGEN_VERSION>5.3.5</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_USERTOKEN>DATA_FOLDER</REQUIRES_USERTOKEN>
+<REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
 ;// Title:       ODataTestEnvironment.tpl
@@ -110,7 +110,7 @@ namespace <NAMESPACE>
 
 		private static method setLogicals, void
 		proc
-			data sampleDataFolder = findRelativeFolderForAssembly("<DATA_FOLDER_NAME>")
+			data sampleDataFolder = findRelativeFolderForAssembly("<DATA_FOLDER>")
 			data logicals = new List<string>()
 			data logical = String.Empty
 			data fileSpec = String.Empty
