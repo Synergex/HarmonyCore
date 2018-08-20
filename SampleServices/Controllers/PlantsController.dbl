@@ -90,17 +90,11 @@ namespace SampleServices.Controllers
 		;;; </summary>
 		;;; <param name="aInItemid">Item ID</param>
 		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-		public method Get, @IActionResult
+		public method Get, @SingleResult<Plant>
 			{FromODataUri}
             required in aInItemid, int
 		proc
-			data result = DBContext.Plants.Find(aInItemid)
-
-			if (result == ^null)
-				mreturn NotFound()
-
-			mreturn Ok(result)
-
+			mreturn new SingleResult<Plant>(DBContext.Plants.FindQuery<Plant>(aInItemid))
 		endmethod
 		
 		{ODataRoute("Plants(InSource={aInSource})")}
@@ -114,7 +108,7 @@ namespace SampleServices.Controllers
 			{FromODataUri}
 			required in aInSource, int
 		proc
-			data result = DBContext.Plants.FindAlternates("InSource",aInSource)
+			data result = DBContext.Plants.FindAlternate("InSource",aInSource)
 
 			if (result == ^null)
 				mreturn NotFound()
@@ -134,7 +128,7 @@ namespace SampleServices.Controllers
 			{FromODataUri}
 			required in aInColor, String
 		proc
-			data result = DBContext.Plants.FindAlternates("InColor",aInColor)
+			data result = DBContext.Plants.FindAlternate("InColor",aInColor)
 
 			if (result == ^null)
 				mreturn NotFound()
@@ -154,7 +148,7 @@ namespace SampleServices.Controllers
 			{FromODataUri}
 			required in aInSize, int
 		proc
-			data result = DBContext.Plants.FindAlternates("InSize",aInSize)
+			data result = DBContext.Plants.FindAlternate("InSize",aInSize)
 
 			if (result == ^null)
 				mreturn NotFound()
@@ -174,7 +168,7 @@ namespace SampleServices.Controllers
 			{FromODataUri}
 			required in aInName, String
 		proc
-			data result = DBContext.Plants.FindAlternates("InName",aInName)
+			data result = DBContext.Plants.FindAlternate("InName",aInName)
 
 			if (result == ^null)
 				mreturn NotFound()

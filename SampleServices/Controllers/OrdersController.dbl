@@ -90,17 +90,11 @@ namespace SampleServices.Controllers
 		;;; </summary>
 		;;; <param name="aOrNumber">Order number</param>
 		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-		public method Get, @IActionResult
+		public method Get, @SingleResult<Order>
 			{FromODataUri}
             required in aOrNumber, int
 		proc
-			data result = DBContext.Orders.Find(aOrNumber)
-
-			if (result == ^null)
-				mreturn NotFound()
-
-			mreturn Ok(result)
-
+			mreturn new SingleResult<Order>(DBContext.Orders.FindQuery<Order>(aOrNumber))
 		endmethod
 		
 		{ODataRoute("Orders(OrCustomer={aOrCustomer})")}
@@ -114,7 +108,7 @@ namespace SampleServices.Controllers
 			{FromODataUri}
 			required in aOrCustomer, int
 		proc
-			data result = DBContext.Orders.FindAlternates("OrCustomer",aOrCustomer)
+			data result = DBContext.Orders.FindAlternate("OrCustomer",aOrCustomer)
 
 			if (result == ^null)
 				mreturn NotFound()
@@ -134,7 +128,7 @@ namespace SampleServices.Controllers
 			{FromODataUri}
 			required in aOrOrdered, DateTime
 		proc
-			data result = DBContext.Orders.FindAlternates("OrOrdered",aOrOrdered)
+			data result = DBContext.Orders.FindAlternate("OrOrdered",aOrOrdered)
 
 			if (result == ^null)
 				mreturn NotFound()
@@ -154,7 +148,7 @@ namespace SampleServices.Controllers
 			{FromODataUri}
 			required in aOrCompleted, DateTime
 		proc
-			data result = DBContext.Orders.FindAlternates("OrCompleted",aOrCompleted)
+			data result = DBContext.Orders.FindAlternate("OrCompleted",aOrCompleted)
 
 			if (result == ^null)
 				mreturn NotFound()

@@ -90,17 +90,11 @@ namespace SampleServices.Controllers
 		;;; </summary>
 		;;; <param name="aVendKey">Vendor ID</param>
 		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-		public method Get, @IActionResult
+		public method Get, @SingleResult<Vendor>
 			{FromODataUri}
             required in aVendKey, int
 		proc
-			data result = DBContext.Vendors.Find(aVendKey)
-
-			if (result == ^null)
-				mreturn NotFound()
-
-			mreturn Ok(result)
-
+			mreturn new SingleResult<Vendor>(DBContext.Vendors.FindQuery<Vendor>(aVendKey))
 		endmethod
 		
 		{ODataRoute("Vendors(VendRtype={aVendRtype},VendKey={aVendKey})")}
@@ -111,19 +105,13 @@ namespace SampleServices.Controllers
 		;;; <param name="aVendRtype">Record Type</param>
 		;;; <param name="aVendKey">Vendor ID</param>
 		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-		public method GetByKeyTagVendor, @IActionResult
+		public method GetByKeyTagVendor, @SingleResult<Vendor>
 			{FromODataUri}
 			required in aVendRtype, int
 			{FromODataUri}
 			required in aVendKey, int
 		proc
-			data result = DBContext.Vendors.FindAlternate("VendRtype",aVendRtype,"VendKey",aVendKey)
-
-			if (result == ^null)
-				mreturn NotFound()
-
-			mreturn Ok(result)
-
+			mreturn new SingleResult<Vendor>(DBContext.Vendors.FindAlternate("VendRtype",aVendRtype,"VendKey",aVendKey))
 		endmethod
 
 .endregion

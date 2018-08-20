@@ -137,23 +137,19 @@ namespace <NAMESPACE>
 		;;; <param name="a<SegmentName>"><FIELD_DESC></param>
         </SEGMENT_LOOP>
 		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-		public method Get, @IActionResult
+		public method Get, @SingleResult<<StructureNoplural>>
             <SEGMENT_LOOP>
 			{FromODataUri}
             required in a<SegmentName>, <SEGMENT_SNTYPE>
             </SEGMENT_LOOP>
 		proc
-			data result = DBContext.<StructurePlural>.Find(<SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP>)
-
-			if (result == ^null)
-				mreturn NotFound()
-
-			mreturn Ok(result)
-
+;//Shouldn't really need the generic type arg on FindQuery. Compiler issue?
+			mreturn new SingleResult<<StructureNoplural>>(DBContext.<StructurePlural>.FindQuery<<StructureNoplural>>(<SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP>))
 		endmethod
 		</PRIMARY_KEY>
 		
 		<ALTERNATE_KEY_LOOP>
+<IF DUPLICATES>
 		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
 ;//		{ProducesResponseType(^typeof(<StructureNoplural>), 200)}
 		{EnableQuery}
@@ -170,7 +166,7 @@ namespace <NAMESPACE>
 			required in a<SegmentName>, <SEGMENT_SNTYPE>
 			</SEGMENT_LOOP>
 		proc
-			data result = DBContext.<StructurePlural>.FindAlternate<IF DUPLICATES>s</IF DUPLICATES>(<SEGMENT_LOOP>"<SegmentName>",a<SegmentName><,></SEGMENT_LOOP>)
+			data result = DBContext.<StructurePlural>.FindAlternate(<SEGMENT_LOOP>"<SegmentName>",a<SegmentName><,></SEGMENT_LOOP>)
 
 			if (result == ^null)
 				mreturn NotFound()
@@ -178,6 +174,26 @@ namespace <NAMESPACE>
 			mreturn Ok(result)
 
 		endmethod
+<ELSE>
+		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
+;//		{ProducesResponseType(^typeof(<StructureNoplural>), 200)}
+		{EnableQuery}
+		;;; <summary>
+		;;; Get a single <StructureNoplural> by key <KeyName>.
+		;;; </summary>
+		<SEGMENT_LOOP>
+		;;; <param name="a<SegmentName>"><FIELD_DESC></param>
+		</SEGMENT_LOOP>
+		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+		public method GetByKey<KeyName>, @SingleResult<<StructureNoplural>>
+			<SEGMENT_LOOP>
+			{FromODataUri}
+			required in a<SegmentName>, <SEGMENT_SNTYPE>
+			</SEGMENT_LOOP>
+		proc
+			mreturn new SingleResult<<StructureNoplural>>(DBContext.<StructurePlural>.FindAlternate(<SEGMENT_LOOP>"<SegmentName>",a<SegmentName><,></SEGMENT_LOOP>))
+		endmethod
+</IF DUPLICATES>
 
 		</ALTERNATE_KEY_LOOP>
 .endregion
