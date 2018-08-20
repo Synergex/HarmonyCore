@@ -90,16 +90,11 @@ namespace SampleServices.Controllers
 		;;; </summary>
 		;;; <param name="aCustKey">Customer id</param>
 		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-		public method Get, @IActionResult
+		public method Get, @SingleResult<Customer>
 			{FromODataUri}
             required in aCustKey, int
 		proc
-			data result = DBContext.Customers.Find(aCustKey)
-
-			if (result == ^null)
-				mreturn NotFound()
-
-			mreturn Ok(result)
+			mreturn new SingleResult<Customer>(DBContext.Customers.FindQuery(aCustKey))
 
 		endmethod
 		
@@ -111,19 +106,13 @@ namespace SampleServices.Controllers
 		;;; <param name="aCustRtype">Record Tag Field</param>
 		;;; <param name="aCustKey">Customer id</param>
 		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-		public method GetByKeyTagCustomer, @IActionResult
+		public method GetByKeyTagCustomer, @SingleResult<Customer>
 			{FromODataUri}
 			required in aCustRtype, int
 			{FromODataUri}
 			required in aCustKey, int
 		proc
-			data result = DBContext.Customers.FindAlternate("CustRtype",aCustRtype,"CustKey",aCustKey)
-
-			if (result == ^null)
-				mreturn NotFound()
-
-			mreturn Ok(result)
-
+			mreturn new SingleResult<Customer>(DBContext.Customers.FindAlternate("CustRtype",aCustRtype,"CustKey",aCustKey))
 		endmethod
 
 .endregion
