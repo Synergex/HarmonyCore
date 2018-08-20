@@ -89,7 +89,7 @@ namespace SampleServices.Controllers
 		;;; Get a single Customer by primary key.
 		;;; </summary>
 		;;; <param name="aCustKey">Customer id</param>
-		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+		;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Get, @SingleResult<Customer>
 			{FromODataUri}
             required in aCustKey, int
@@ -104,7 +104,7 @@ namespace SampleServices.Controllers
 		;;; </summary>
 		;;; <param name="aCustRtype">Record Tag Field</param>
 		;;; <param name="aCustKey">Customer id</param>
-		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+		;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method GetByKeyTagCustomer, @SingleResult<Customer>
 			{FromODataUri}
 			required in aCustRtype, int
@@ -112,6 +112,262 @@ namespace SampleServices.Controllers
 			required in aCustKey, int
 		proc
 			mreturn new SingleResult<Customer>(DBContext.Customers.FindAlternate("CustRtype",aCustRtype,"CustKey",aCustKey))
+		endmethod
+
+.endregion
+
+.region "READ Individual Properties"
+
+		{ODataRoute("Customers(CustKey={aCustKey})/CustKey")}
+		;;; <summary>
+		;;; Get the CustKey property of a single Customer, by primary key.
+		;;; </summary>
+		;;; <param name="aCustKey">Customer id</param>
+		;;; <returns>
+		;;; Returns an int containing the value of the requested property.
+		;;;</returns>
+		public method GetCustKey, @IActionResult
+			{FromODataUri}
+            required in aCustKey, int
+		proc
+			data result = DBContext.Customers.Find(aCustKey)
+			if (result==^null)
+				mreturn NotFound()
+			mreturn OK(result.CustKey)
+		endmethod
+
+		{ODataRoute("Customers(CustKey={aCustKey})/CustRtype")}
+		;;; <summary>
+		;;; Get the CustRtype property of a single Customer, by primary key.
+		;;; </summary>
+		;;; <param name="aCustKey">Record Tag Field</param>
+		;;; <returns>
+		;;; Returns an int containing the value of the requested property.
+		;;;</returns>
+		public method GetCustRtype, @IActionResult
+			{FromODataUri}
+            required in aCustKey, int
+		proc
+			data result = DBContext.Customers.Find(aCustKey)
+			if (result==^null)
+				mreturn NotFound()
+			mreturn OK(result.CustRtype)
+		endmethod
+
+		{ODataRoute("Customers(CustKey={aCustKey})/CustName")}
+		;;; <summary>
+		;;; Get the CustName property of a single Customer, by primary key.
+		;;; </summary>
+		;;; <param name="aCustKey">Customer Name</param>
+		;;; <returns>
+		;;; Returns a string containing the value of the requested property.
+		;;;</returns>
+		public method GetCustName, @IActionResult
+			{FromODataUri}
+            required in aCustKey, int
+		proc
+			data result = DBContext.Customers.Find(aCustKey)
+			if (result==^null)
+				mreturn NotFound()
+			mreturn OK(result.CustName)
+		endmethod
+
+		{ODataRoute("Customers(CustKey={aCustKey})/CustStreet")}
+		;;; <summary>
+		;;; Get the CustStreet property of a single Customer, by primary key.
+		;;; </summary>
+		;;; <param name="aCustKey">Street Address</param>
+		;;; <returns>
+		;;; Returns a string containing the value of the requested property.
+		;;;</returns>
+		public method GetCustStreet, @IActionResult
+			{FromODataUri}
+            required in aCustKey, int
+		proc
+			data result = DBContext.Customers.Find(aCustKey)
+			if (result==^null)
+				mreturn NotFound()
+			mreturn OK(result.CustStreet)
+		endmethod
+
+		{ODataRoute("Customers(CustKey={aCustKey})/CustCity")}
+		;;; <summary>
+		;;; Get the CustCity property of a single Customer, by primary key.
+		;;; </summary>
+		;;; <param name="aCustKey">City</param>
+		;;; <returns>
+		;;; Returns a string containing the value of the requested property.
+		;;;</returns>
+		public method GetCustCity, @IActionResult
+			{FromODataUri}
+            required in aCustKey, int
+		proc
+			data result = DBContext.Customers.Find(aCustKey)
+			if (result==^null)
+				mreturn NotFound()
+			mreturn OK(result.CustCity)
+		endmethod
+
+		{ODataRoute("Customers(CustKey={aCustKey})/CustState")}
+		;;; <summary>
+		;;; Get the CustState property of a single Customer, by primary key.
+		;;; </summary>
+		;;; <param name="aCustKey">State</param>
+		;;; <returns>
+		;;; Returns a string containing the value of the requested property.
+		;;;</returns>
+		public method GetCustState, @IActionResult
+			{FromODataUri}
+            required in aCustKey, int
+		proc
+			data result = DBContext.Customers.Find(aCustKey)
+			if (result==^null)
+				mreturn NotFound()
+			mreturn OK(result.CustState)
+		endmethod
+
+		{ODataRoute("Customers(CustKey={aCustKey})/CustZip")}
+		;;; <summary>
+		;;; Get the CustZip property of a single Customer, by primary key.
+		;;; </summary>
+		;;; <param name="aCustKey">Zip code</param>
+		;;; <returns>
+		;;; Returns an int containing the value of the requested property.
+		;;;</returns>
+		public method GetCustZip, @IActionResult
+			{FromODataUri}
+            required in aCustKey, int
+		proc
+			data result = DBContext.Customers.Find(aCustKey)
+			if (result==^null)
+				mreturn NotFound()
+			mreturn OK(result.CustZip)
+		endmethod
+
+		{ODataRoute("Customers(CustKey={aCustKey})/CustContact")}
+		;;; <summary>
+		;;; Get the CustContact property of a single Customer, by primary key.
+		;;; </summary>
+		;;; <param name="aCustKey">Contact</param>
+		;;; <returns>
+		;;; Returns a string containing the value of the requested property.
+		;;;</returns>
+		public method GetCustContact, @IActionResult
+			{FromODataUri}
+            required in aCustKey, int
+		proc
+			data result = DBContext.Customers.Find(aCustKey)
+			if (result==^null)
+				mreturn NotFound()
+			mreturn OK(result.CustContact)
+		endmethod
+
+		{ODataRoute("Customers(CustKey={aCustKey})/CustPhone")}
+		;;; <summary>
+		;;; Get the CustPhone property of a single Customer, by primary key.
+		;;; </summary>
+		;;; <param name="aCustKey">Phone number</param>
+		;;; <returns>
+		;;; Returns a string containing the value of the requested property.
+		;;;</returns>
+		public method GetCustPhone, @IActionResult
+			{FromODataUri}
+            required in aCustKey, int
+		proc
+			data result = DBContext.Customers.Find(aCustKey)
+			if (result==^null)
+				mreturn NotFound()
+			mreturn OK(result.CustPhone)
+		endmethod
+
+		{ODataRoute("Customers(CustKey={aCustKey})/CustFax")}
+		;;; <summary>
+		;;; Get the CustFax property of a single Customer, by primary key.
+		;;; </summary>
+		;;; <param name="aCustKey">FAX number</param>
+		;;; <returns>
+		;;; Returns a string containing the value of the requested property.
+		;;;</returns>
+		public method GetCustFax, @IActionResult
+			{FromODataUri}
+            required in aCustKey, int
+		proc
+			data result = DBContext.Customers.Find(aCustKey)
+			if (result==^null)
+				mreturn NotFound()
+			mreturn OK(result.CustFax)
+		endmethod
+
+		{ODataRoute("Customers(CustKey={aCustKey})/CustGift")}
+		;;; <summary>
+		;;; Get the CustGift property of a single Customer, by primary key.
+		;;; </summary>
+		;;; <param name="aCustKey">Customer Premium Gift</param>
+		;;; <returns>
+		;;; Returns an int containing the value of the requested property.
+		;;;</returns>
+		public method GetCustGift, @IActionResult
+			{FromODataUri}
+            required in aCustKey, int
+		proc
+			data result = DBContext.Customers.Find(aCustKey)
+			if (result==^null)
+				mreturn NotFound()
+			mreturn OK(result.CustGift)
+		endmethod
+
+		{ODataRoute("Customers(CustKey={aCustKey})/CustTcode")}
+		;;; <summary>
+		;;; Get the CustTcode property of a single Customer, by primary key.
+		;;; </summary>
+		;;; <param name="aCustKey">Terms code</param>
+		;;; <returns>
+		;;; Returns a string containing the value of the requested property.
+		;;;</returns>
+		public method GetCustTcode, @IActionResult
+			{FromODataUri}
+            required in aCustKey, int
+		proc
+			data result = DBContext.Customers.Find(aCustKey)
+			if (result==^null)
+				mreturn NotFound()
+			mreturn OK(result.CustTcode)
+		endmethod
+
+		{ODataRoute("Customers(CustKey={aCustKey})/CustTaxno")}
+		;;; <summary>
+		;;; Get the CustTaxno property of a single Customer, by primary key.
+		;;; </summary>
+		;;; <param name="aCustKey">Customer Tax Number</param>
+		;;; <returns>
+		;;; Returns an int containing the value of the requested property.
+		;;;</returns>
+		public method GetCustTaxno, @IActionResult
+			{FromODataUri}
+            required in aCustKey, int
+		proc
+			data result = DBContext.Customers.Find(aCustKey)
+			if (result==^null)
+				mreturn NotFound()
+			mreturn OK(result.CustTaxno)
+		endmethod
+
+		{ODataRoute("Customers(CustKey={aCustKey})/CustLimit")}
+		;;; <summary>
+		;;; Get the CustLimit property of a single Customer, by primary key.
+		;;; </summary>
+		;;; <param name="aCustKey">Credit limit</param>
+		;;; <returns>
+		;;; Returns a decimal containing the value of the requested property.
+		;;;</returns>
+		public method GetCustLimit, @IActionResult
+			{FromODataUri}
+            required in aCustKey, int
+		proc
+			data result = DBContext.Customers.Find(aCustKey)
+			if (result==^null)
+				mreturn NotFound()
+			mreturn OK(result.CustLimit)
 		endmethod
 
 .endregion

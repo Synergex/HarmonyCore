@@ -1,44 +1,71 @@
 @echo off
 pushd %~dp0
 setlocal
+rem ================================================================================================================================
+rem Configure optional Harmony Core capabilities
 
-set CODEGEN_TPLDIR=Templates
+rem Comment or uncomment the following lines to enable or disable optional capabilities as required:
 
-rem Rem the following line in or out to enable or disable authentication code
 rem set DO_AUTHENTICATION=-define AUTHENTICATION
+set DO_PROPERTY_ENDPOINTS=-define PROPERTY_ENDPOINTS
+rem set DO_CASE_SENSITIVE_URL=-define CASE_SENSITIVE_URL
+set DO_CREATE_TEST_FILES=-define CREATE_TEST_FILES
+rem set DO_ENABLE_CORS=-define ENABLE_CORS
+rem set DO_IIS_SUPPORT=-define IIS_SUPPORT
+
+rem ================================================================================================================================
+rem Configure standard command line options and the VodeGen environment
+
+set NOREPLACEOPTS=-e -lf -u UserDefinedTokens.tkn %DO_AUTHENTICATION% %DO_PROPERTY_ENDPOINTS% %DO_CASE_SENSITIVE_URL% %DO_CREATE_TEST_FILES% %DO_ENABLE_CORS% %DO_IIS_SUPPORT%
+set STDOPTS=%NOREPLACEOPTS% -r
+set CODEGEN_TPLDIR=Templates
 
 rem ================================================================================================================================
 rem Generate a Web API / OData CRUD environment
 
-set NOREPLACEOPTS=-e -lf -u UserDefinedTokens.tkn
-set STDOPTS=%NOREPLACEOPTS% -r
 set PROJECT=SampleServices
 set STRUCTURES=CUSTOMERS ORDERS ORDER_ITEMS PLANTS VENDORS
 
 rem Generate model classes
-codegen -s %STRUCTURES%     -t ODataModel -n %PROJECT%.Models -o %PROJECT%\Models %STDOPTS%
+codegen -s %STRUCTURES% -t ODataModel -n %PROJECT%.Models -o %PROJECT%\Models %STDOPTS%
 if ERRORLEVEL 1 goto error
 
 rem Generate controller classes
-codegen -s %STRUCTURES%     -t ODataController -n %PROJECT%.Controllers -o %PROJECT%\Controllers %DO_AUTHENTICATION% %STDOPTS%
+rem
+rem Optional features for ODataController
+rem   -define AUTHENTICATION
+rem   -define PROPERTY_ENDPOINTS
+rem 
+codegen -s %STRUCTURES% -t ODataController -n %PROJECT%.Controllers -o %PROJECT%\Controllers %STDOPTS%
 if ERRORLEVEL 1 goto error
 
 rem Generate the DbContext, EdmBuilder and Startup classes
-codegen -s %STRUCTURES% -ms -t ODataDbContext ODataEdmBuilder ODataStartup -n %PROJECT% -o %PROJECT% %DO_AUTHENTICATION% %STDOPTS%
+rem
+rem Optional features for ODataStartup
+rem   -define AUTHENTICATION
+rem   -define CASE_SENSITIVE_URL
+rem   -define ENABLE_CORS
+rem   -define IIS_SUPPORT
+rem 
+codegen -s %STRUCTURES% -ms -t ODataDbContext ODataEdmBuilder ODataStartup -n %PROJECT% -o %PROJECT% %STDOPTS%
 if ERRORLEVEL 1 goto error
 
 rem Generate unit tests
-codegen -s %STRUCTURES%     -t ODataUnitTests   -n %PROJECT%.Test -o %PROJECT%.Test %DO_AUTHENTICATION% %STDOPTS%
+rem 
+rem Optional features for ODataUnitTests
+rem   -define AUTHENTICATION
+rem
+codegen -s %STRUCTURES% -t ODataUnitTests -n %PROJECT%.Test -o %PROJECT%.Test %STDOPTS%
 if ERRORLEVEL 1 goto error
 codegen -s %STRUCTURES% -ms -t ODataTestContext -n %PROJECT%.Test -o %PROJECT%.Test %STDOPTS%
 if ERRORLEVEL 1 goto error
 
 rem One time, not replaced!
-codegen -s %STRUCTURES% -ms -t ODataTestData    -n %PROJECT%.Test -o %PROJECT%.Test %NOREPLACEOPTS%
+codegen -s %STRUCTURES% -ms -t ODataTestData -n %PROJECT%.Test -o %PROJECT%.Test %NOREPLACEOPTS%
 if ERRORLEVEL 1 goto error
 
 rem Generate OData model classes for client side use
-codegen -s %STRUCTURES%     -t ODataClientModel -n %PROJECT%.Test.Models -o %PROJECT%.Test\Models %STDOPTS%
+codegen -s %STRUCTURES% -t ODataClientModel -n %PROJECT%.Test.Models -o %PROJECT%.Test\Models %STDOPTS%
 if ERRORLEVEL 1 goto error
 
 rem Generate Postman Tests
@@ -58,7 +85,15 @@ set FILE_STRUCTURES=CUSTOMERS ORDERS ORDER_ITEMS PLANTS
 if ERRORLEVEL 1 goto error
 
 rem Generate the test environment and unit test environment classes
-codegen -s %FILE_STRUCTURES% -ms -t ODataTestEnvironment ODataUnitTestEnvironment -n %PROJECT%.Test -o %PROJECT%.Test %DO_AUTHENTICATION% -define CREATE_FILES IIS_SUPPORT %STDOPTS%
+rem
+rem Optional features for ODataTestEnvironment
+rem   -define CREATE_TEST_FILES
+rem 
+rem Optional features for ODataUnitTestEnvironment
+rem   -define AUTHENTICATION
+rem   -define IIS_SUPPORT
+rem 
+codegen -s %FILE_STRUCTURES% -ms -t ODataTestEnvironment ODataUnitTestEnvironment -n %PROJECT%.Test -o %PROJECT%.Test %STDOPTS%
 if ERRORLEVEL 1 goto error
 
 rem Generate the data loader and generatror classes
@@ -81,7 +116,7 @@ rem codegen -s %STRUCTURES% -t ODataModel -n %PROJECT%.Models -o %PROJECT%\Model
 rem if ERRORLEVEL 1 goto error
 
 rem Generate method dispatcher classes
-rem codegen -smc SampleXfplEnvironment\smc.xml -interface %SMC_INTERFACE% -t InterfaceDispatcher        -n %PROJECT% -o %PROJECT% -ut MODELS_NAMESPACE=%PROJECT%.Models -e -r -lf
+rem codegen -smc SampleXfplEnvironment\smc.xml -interface %SMC_INTERFACE% -t InterfaceDispatcher -n %PROJECT% -o %PROJECT% -ut MODELS_NAMESPACE=%PROJECT%.Models -e -r -lf
 rem if ERRORLEVEL 1 goto error
 rem codegen -smc SampleXfplEnvironment\smc.xml -interface %SMC_INTERFACE% -t InterfaceMethodDispatchers -n %PROJECT% -o %PROJECT% -ut MODELS_NAMESPACE=%PROJECT%.Models -e -r -lf
 rem if ERRORLEVEL 1 goto error

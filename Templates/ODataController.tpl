@@ -136,7 +136,7 @@ namespace <NAMESPACE>
         <SEGMENT_LOOP>
 		;;; <param name="a<SegmentName>"><FIELD_DESC></param>
         </SEGMENT_LOOP>
-		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+		;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Get, @SingleResult<<StructureNoplural>>
             <SEGMENT_LOOP>
 			{FromODataUri}
@@ -184,7 +184,7 @@ namespace <NAMESPACE>
 		<SEGMENT_LOOP>
 		;;; <param name="a<SegmentName>"><FIELD_DESC></param>
 		</SEGMENT_LOOP>
-		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+		;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method GetByKey<KeyName>, @SingleResult<<StructureNoplural>>
 			<SEGMENT_LOOP>
 			{FromODataUri}
@@ -197,7 +197,46 @@ namespace <NAMESPACE>
 
 		</ALTERNATE_KEY_LOOP>
 .endregion
+;//
+;//--------------------------------------------------------------------------------------------------------
+;//
+<IF DEFINED_PROPERTY_ENDPOINTS>
 
+.region "READ Individual Properties"
+
+<FIELD_LOOP>
+<PRIMARY_KEY>
+		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)/<FieldSqlName>")}
+;//		{ProducesResponseType(^typeof(<StructureNoplural>), 200)}
+		;;; <summary>
+		;;; Get the <FieldSqlName> property of a single <StructureNoplural>, by primary key.
+		;;; </summary>
+        <SEGMENT_LOOP>
+		;;; <param name="a<SegmentName>"><FIELD_DESC></param>
+        </SEGMENT_LOOP>
+		;;; <returns>
+		;;; Returns <IF ALPHA>a string</IF ALPHA><IF DECIMAL><IF PRECISION>a decimal<ELSE><IF CUSTOM_HARMONY_AS_STRING>a string<ELSE>an int</IF CUSTOM_HARMONY_AS_STRING></IF PRECISION></IF DECIMAL><IF DATE>a DateTime</IF DATE><IF TIME>a DateTime</IF TIME><IF INTEGER>an int</IF INTEGER> containing the value of the requested property.
+		;;;</returns>
+		public method Get<FieldSqlName>, @IActionResult
+            <SEGMENT_LOOP>
+			{FromODataUri}
+            required in a<SegmentName>, <SEGMENT_SNTYPE>
+            </SEGMENT_LOOP>
+		proc
+			data result = DBContext.<StructurePlural>.Find(<SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP>)
+			if (result==^null)
+				mreturn NotFound()
+			mreturn OK(result.<FieldSqlName>)
+		endmethod
+
+</PRIMARY_KEY>
+</FIELD_LOOP>
+.endregion
+
+</IF DEFINED_PROPERTY_ENDPOINTS>
+;//
+;//--------------------------------------------------------------------------------------------------------
+;//
 .region "CREATE"
 
 ;//		{ODataRoute("<StructurePlural>")}

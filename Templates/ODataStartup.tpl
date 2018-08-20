@@ -145,7 +145,7 @@ namespace <NAMESPACE>
 			lambda AddAltKeySupport(serviceProvider)
 			begin
 				data model = EdmBuilder.GetEdmModel(serviceProvider)
-				mreturn new AlternateKeysODataUriResolver(model) <IF NOT_DEFINED_NOCASE_URL>{ EnableCaseInsensitive = true }</IF NOT_DEFINED_NOCASE_URL>
+				mreturn new AlternateKeysODataUriResolver(model) <IF NOT_DEFINED_CASE_SENSITIVE_URL>{ EnableCaseInsensitive = true }</IF NOT_DEFINED_CASE_SENSITIVE_URL>
 			end
 
 			services.AddSingleton<ODataUriResolver>(AddAltKeySupport)
