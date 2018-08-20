@@ -135,6 +135,15 @@ namespace Harmony.Core.EF.Query.Internal
 
             Type resultTypeParameter = queryModel.ResultTypeOverride.ForceSequenceType();
 
+            //check if we're returning some kind of aggregate rather than a sequence
+            var valueFromSequenceOperators = queryModel.ResultOperators.OfType<Remotion.Linq.Clauses.ResultOperators.ValueFromSequenceResultOperatorBase>().ToArray();
+            if (valueFromSequenceOperators.Length > 0)
+            {
+                resultTypeParameter = this.CurrentParameter.Type;
+            }
+            
+
+
             if (!(from ro in queryModel.ResultOperators
                   select ro.GetType()).Any(delegate (Type t)
                   {
