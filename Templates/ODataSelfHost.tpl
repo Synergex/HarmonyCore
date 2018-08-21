@@ -103,6 +103,10 @@ proc
 	;;Start self-hosting (Kestrel)
 	data wwwroot = Path.Combine(AppContext.BaseDirectory, "wwwroot")
 
+	;;Make sure the wwwroot folder is present
+	if (!Directory.Exists(wwwroot))
+		Directory.CreateDirectory(wwwroot)
+
 	WebHost.CreateDefaultBuilder(new string[0])
 	&	.UseContentRoot(wwwroot)
 	&	.UseWebRoot(wwwroot)

@@ -80,11 +80,11 @@ codegen -s %FILE_STRUCTURES% -ms -t ODataTestEnvironment ODataUnitTestEnvironmen
 if ERRORLEVEL 1 goto error
 
 rem Generate the data loader classes
-codegen -s %FILE_STRUCTURES% -t ODataTestDataLoader -n %PROJECT%.Test -o %PROJECT%.Test\DataGenerators %STDOPTS%
+codegen -s %FILE_STRUCTURES% -t ODataTestDataLoader -n %PROJECT%.Test.DataGenerators -o %PROJECT%.Test\DataGenerators %STDOPTS%
 if ERRORLEVEL 1 goto error
 
 rem Generate the data loader classes - one time, not replaced!
-codegen -s %FILE_STRUCTURES% -t ODataTestDataGenerator -n %PROJECT%.Test -o %PROJECT%.Test\DataGenerators %NOREPLACEOPTS%
+codegen -s %FILE_STRUCTURES% -t ODataTestDataGenerator -n %PROJECT%.Test.DataGenerators -o %PROJECT%.Test\DataGenerators %NOREPLACEOPTS%
 if ERRORLEVEL 1 goto error
 
 rem ================================================================================================================================
