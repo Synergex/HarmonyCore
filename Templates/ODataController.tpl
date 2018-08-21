@@ -154,7 +154,7 @@ namespace <NAMESPACE>
 ;//		{ProducesResponseType(^typeof(<StructureNoplural>), 200)}
 		{EnableQuery}
 		;;; <summary>
-		;;; Get a single <StructureNoplural> by key <KeyName>.
+		;;; Get matching <structurePlural> by alternate key key <KeyName>.
 		;;; </summary>
 		<SEGMENT_LOOP>
 		;;; <param name="a<SegmentName>"><FIELD_DESC></param>
