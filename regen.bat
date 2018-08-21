@@ -42,18 +42,22 @@ rem Generate the Startup class
 codegen -s %STRUCTURES% -ms -t ODataStartup -n %PROJECT% -o %PROJECT% %STDOPTS%
 if ERRORLEVEL 1 goto error
 
-rem Generate unit tests
-codegen -s %STRUCTURES% -t ODataUnitTests -n %PROJECT%.Test.UnitTests -o %PROJECT%.Test\UnitTests %STDOPTS%
-if ERRORLEVEL 1 goto error
-codegen -s %STRUCTURES% -ms -t ODataTestContext -n %PROJECT%.Test -o %PROJECT%.Test %STDOPTS%
-if ERRORLEVEL 1 goto error
-
-rem One time, not replaced!
-codegen -s %STRUCTURES% -ms -t ODataTestData -n %PROJECT%.Test -o %PROJECT%.Test %NOREPLACEOPTS%
-if ERRORLEVEL 1 goto error
+rem ================================================================================================================================
+rem Generate the test environment
 
 rem Generate OData model classes for client side use
 codegen -s %STRUCTURES% -t ODataClientModel -n %PROJECT%.Test.Models -o %PROJECT%.Test\Models %STDOPTS%
+if ERRORLEVEL 1 goto error
+
+rem Generate unit tests
+codegen -s %STRUCTURES% -t ODataUnitTests -n %PROJECT%.Test.UnitTests -o %PROJECT%.Test\UnitTests %STDOPTS%
+if ERRORLEVEL 1 goto error
+
+rem Generate test context data
+codegen -s %STRUCTURES% -ms -t ODataTestConstantsProperties -n %PROJECT%.Test -o %PROJECT%.Test %STDOPTS%
+if ERRORLEVEL 1 goto error
+rem One time, not replaced!
+codegen -s %STRUCTURES% -ms -t ODataTestConstantsValues -n %PROJECT%.Test -o %PROJECT%.Test %NOREPLACEOPTS%
 if ERRORLEVEL 1 goto error
 
 rem Generate Postman Tests
@@ -75,10 +79,11 @@ rem Generate the test environment and unit test environment classes
 codegen -s %FILE_STRUCTURES% -ms -t ODataTestEnvironment ODataUnitTestEnvironment ODataSelfHost -n %PROJECT%.Test -o %PROJECT%.Test %STDOPTS%
 if ERRORLEVEL 1 goto error
 
-rem Generate the data loader and generatror classes
-codegen -s %FILE_STRUCTURES% -t ODataTestDataLoader    -n %PROJECT%.Test -o %PROJECT%.Test\DataGenerators %STDOPTS%
+rem Generate the data loader classes
+codegen -s %FILE_STRUCTURES% -t ODataTestDataLoader -n %PROJECT%.Test -o %PROJECT%.Test\DataGenerators %STDOPTS%
 if ERRORLEVEL 1 goto error
-rem One time, not replaced!
+
+rem Generate the data loader classes - one time, not replaced!
 codegen -s %FILE_STRUCTURES% -t ODataTestDataGenerator -n %PROJECT%.Test -o %PROJECT%.Test\DataGenerators %NOREPLACEOPTS%
 if ERRORLEVEL 1 goto error
 

@@ -1,8 +1,8 @@
-<CODEGEN_FILENAME>TestContext.dbl</CODEGEN_FILENAME>
+<CODEGEN_FILENAME>TestConstants.Values.dbl</CODEGEN_FILENAME>
 <REQUIRES_CODEGEN_VERSION>5.3.5</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
-;// Title:       ODataTestContext.tpl
+;// Title:       ODataTestConstantsValues.tpl
 ;//
 ;// Type:        CodeGen Template
 ;//
@@ -35,18 +35,12 @@
 ;//
 ;;*****************************************************************************
 ;;
-;; Title:       TestContext.dbl
+;; Title:       TestConstants.Values.dbl
 ;;
 ;; Type:        Class
 ;;
 ;; Description: Test context class with static values that can be used to feed
 ;;              data into unit tests.
-;;
-;;*****************************************************************************
-;; WARNING
-;;
-;; This file was code generated. Avoid editing this file, as any changes that
-;; you make will be lost of the file is re-generated.
 ;;
 ;;*****************************************************************************
 ;;
@@ -84,15 +78,18 @@ import System.Net.Http
 
 namespace <NAMESPACE>
 
-	public static partial class TestContext
+	public static partial class TestConstants
+
+		static method TestConstants
+		proc
 <STRUCTURE_LOOP>
 
-		;;------------------------------------------------------------
-		;;Test data for <StructureNoplural>
+			;;------------------------------------------------------------
+			;;Test data for <StructureNoplural>
 
 	<PRIMARY_KEY>
 		<SEGMENT_LOOP>
-		public static readwrite property Get<StructureNoplural>_<SegmentName>, <SEGMENT_CSTYPE>
+			Get<StructureNoplural>_<SegmentName> = <FIELD_CSDEFAULT>
 		</SEGMENT_LOOP>
 	</PRIMARY_KEY>
 ;//
@@ -103,7 +100,7 @@ namespace <NAMESPACE>
 
 		<PRIMARY_KEY>
 		<SEGMENT_LOOP>
-		public static readwrite property Get<StructureNoplural>_Expand_<IF MANY_TO_ONE_TO_MANY>REL_<RelationFromkey></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationFromkey></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY>_<SegmentName>, <SEGMENT_CSTYPE>
+			Get<StructureNoplural>_Expand_<IF MANY_TO_ONE_TO_MANY>REL_<RelationFromkey></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationFromkey></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY>_<SegmentName> = <FIELD_CSDEFAULT>
 		</SEGMENT_LOOP>
 		</PRIMARY_KEY>
 	</RELATION_LOOP>
@@ -114,7 +111,7 @@ namespace <NAMESPACE>
 		<PRIMARY_KEY>
 
 		<SEGMENT_LOOP>
-		public static readwrite property Get<StructureNoplural>_Expand_All_<SegmentName>, <SEGMENT_CSTYPE>
+			Get<StructureNoplural>_Expand_All_<SegmentName> = <FIELD_CSDEFAULT>
 		</SEGMENT_LOOP>
 		</PRIMARY_KEY>
 ;//
@@ -123,7 +120,7 @@ namespace <NAMESPACE>
 	<ALTERNATE_KEY_LOOP>
 	
 		<SEGMENT_LOOP>
-		public static readwrite property Get<StructureNoplural>_ByAltKey_<KeyName>_<SegmentName>, <SEGMENT_CSTYPE>
+			Get<StructureNoplural>_ByAltKey_<KeyName>_<SegmentName> = <FIELD_CSDEFAULT>
 		</SEGMENT_LOOP>
 	</ALTERNATE_KEY_LOOP>
 ;//
@@ -131,12 +128,12 @@ namespace <NAMESPACE>
 ;//
 	<PRIMARY_KEY>
 		<SEGMENT_LOOP>
-		public static readwrite property Update<StructureNoplural>_<SegmentName>, <SEGMENT_CSTYPE>
+			Update<StructureNoplural>_<SegmentName> = <FIELD_CSDEFAULT>
 		</SEGMENT_LOOP>
 	</PRIMARY_KEY>
-
 </STRUCTURE_LOOP>
 
+		endmethod
 
 	endclass
 

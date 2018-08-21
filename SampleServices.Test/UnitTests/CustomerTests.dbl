@@ -118,7 +118,7 @@ namespace SampleServices.Test.UnitTests
 		public method GetCustomer, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Customers(CustKey={1})","",TestContext.GetCustomer_CustKey)
+			data request = String.Format("/odata/Customers(CustKey={1})","",TestConstants.GetCustomer_CustKey)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
@@ -133,7 +133,7 @@ namespace SampleServices.Test.UnitTests
 		public method GetCustomer_Expand_REL_Orders, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Customers(CustKey={1})?$expand=REL_Orders","",TestContext.GetCustomer_Expand_REL_Orders_CustKey)
+			data request = String.Format("/odata/Customers(CustKey={1})?$expand=REL_Orders","",TestConstants.GetCustomer_Expand_REL_Orders_CustKey)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
@@ -148,7 +148,7 @@ namespace SampleServices.Test.UnitTests
 		public method GetCustomer_Expand_REL_Item, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Customers(CustKey={1})?$expand=REL_Item","",TestContext.GetCustomer_Expand_REL_Item_CustKey)
+			data request = String.Format("/odata/Customers(CustKey={1})?$expand=REL_Item","",TestConstants.GetCustomer_Expand_REL_Item_CustKey)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
@@ -163,7 +163,7 @@ namespace SampleServices.Test.UnitTests
 		public method GetCustomer_Expand_All, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Customers(CustKey={1})?$expand=REL_Orders,REL_Item","",TestContext.GetCustomer_Expand_All_CustKey)
+			data request = String.Format("/odata/Customers(CustKey={1})?$expand=REL_Orders,REL_Item","",TestConstants.GetCustomer_Expand_All_CustKey)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
@@ -178,11 +178,11 @@ namespace SampleServices.Test.UnitTests
 		public method GetCustomer_ByAltKey_TagCustomer, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Customers(CustRtype={1},CustKey={2})", "", TestContext.GetCustomer_ByAltKey_TagCustomer_CustRtype,TestContext.GetCustomer_ByAltKey_TagCustomer_CustKey)
+			data request = String.Format("/odata/Customers(CustRtype={1},CustKey={2})", "", TestConstants.GetCustomer_ByAltKey_TagCustomer_CustRtype,TestConstants.GetCustomer_ByAltKey_TagCustomer_CustKey)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
-			data customer, @ODataCustomer, JsonConvert.DeserializeObject<ODataCustomer>(result)
+			data customer, @ODataCustomer,JsonConvert.DeserializeObject<ODataCustomer>(result)
 		endmethod
 
 		;;------------------------------------------------------------
@@ -195,7 +195,7 @@ namespace SampleServices.Test.UnitTests
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
 
 			;;Get one customer from the file
-			data getRequest = String.Format("/odata/Customers(CustKey={1})","",TestContext.GetCustomer_CustKey)
+			data getRequest = String.Format("/odata/Customers(CustKey={1})","",TestConstants.GetCustomer_CustKey)
 			data getResponse = client.GetAsync(getRequest).Result
 			data getResult = getResponse.Content.ReadAsStringAsync().Result
 
@@ -205,13 +205,13 @@ namespace SampleServices.Test.UnitTests
 			;;Deserialize the JSON into a Customer object
 			data doCustomer, @Customer, JsonConvert.DeserializeObject<Customer>(getResult)
 
-			doCustomer.CustKey = TestContext.UpdateCustomer_CustKey
+			doCustomer.CustKey = TestConstants.UpdateCustomer_CustKey
 
 			;TODO: Also need to ensure any nodups alternate keys get unique values
 
 			;;Update it
 			disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doCustomer),System.Text.Encoding.UTF8, "application/json")
-			data request = String.Format("/odata/Customers(CustKey={1})","",TestContext.UpdateCustomer_CustKey)
+			data request = String.Format("/odata/Customers(CustKey={1})","",TestConstants.UpdateCustomer_CustKey)
 			disposable data response = client.PutAsync(request, requestBody).Result
 
 			;;Check that we got a successful response from the web service
@@ -227,7 +227,7 @@ namespace SampleServices.Test.UnitTests
 			;;Deserialize the JSON into a Customer object
 			doCustomer = JsonConvert.DeserializeObject<Customer>(getResult)
 
-			Assert.AreEqual(doCustomer.CustKey, TestContext.UpdateCustomer_CustKey)
+			Assert.AreEqual(doCustomer.CustKey, TestConstants.UpdateCustomer_CustKey)
 
 			;;Update one property in the customer
 			data patchDoc = new JsonPatchDocument()

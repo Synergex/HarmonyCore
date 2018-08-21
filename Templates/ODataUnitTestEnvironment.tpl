@@ -131,6 +131,9 @@ namespace <NAMESPACE>
 				Server = new TestServer(new WebHostBuilder().UseContentRoot(wwwroot).UseWebRoot(wwwroot).UseStartup<Startup>())
 			end
 
+			;;Fake out HTTPS
+			Server.BaseAddress = new Uri("https://localhost")
+
 <IF DEFINED_AUTHENTICATION>
 			;;Get the access token from the OAuth Server
 			data disco = DiscoveryClient.GetAsync("<OAUTH_SERVER>").GetAwaiter().GetResult()

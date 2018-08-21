@@ -118,7 +118,7 @@ namespace SampleServices.Test.UnitTests
 		public method GetPlant, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Plants(InItemid={1})","",TestContext.GetPlant_InItemid)
+			data request = String.Format("/odata/Plants(InItemid={1})","",TestConstants.GetPlant_InItemid)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
@@ -133,7 +133,7 @@ namespace SampleServices.Test.UnitTests
 		public method GetPlant_Expand_REL_Vendor, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Plants(InItemid={1})?$expand=REL_Vendor","",TestContext.GetPlant_Expand_REL_Vendor_InItemid)
+			data request = String.Format("/odata/Plants(InItemid={1})?$expand=REL_Vendor","",TestConstants.GetPlant_Expand_REL_Vendor_InItemid)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
@@ -148,7 +148,7 @@ namespace SampleServices.Test.UnitTests
 		public method GetPlant_Expand_REL_OrderItems, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Plants(InItemid={1})?$expand=REL_OrderItems","",TestContext.GetPlant_Expand_REL_OrderItems_InItemid)
+			data request = String.Format("/odata/Plants(InItemid={1})?$expand=REL_OrderItems","",TestConstants.GetPlant_Expand_REL_OrderItems_InItemid)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
@@ -163,7 +163,7 @@ namespace SampleServices.Test.UnitTests
 		public method GetPlant_Expand_All, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Plants(InItemid={1})?$expand=REL_Vendor,REL_OrderItems","",TestContext.GetPlant_Expand_All_InItemid)
+			data request = String.Format("/odata/Plants(InItemid={1})?$expand=REL_Vendor,REL_OrderItems","",TestConstants.GetPlant_Expand_All_InItemid)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
@@ -178,11 +178,11 @@ namespace SampleServices.Test.UnitTests
 		public method GetPlant_ByAltKey_Vendor, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Plants(InSource={1})", "", TestContext.GetPlant_ByAltKey_Vendor_InSource)
+			data request = String.Format("/odata/Plants(InSource={1})", "", TestConstants.GetPlant_ByAltKey_Vendor_InSource)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
-			data plant, @ODataPlant, JsonConvert.DeserializeObject<ODataPlant>(result)
+			data plants, @ODataPlants,JsonConvert.DeserializeObject<ODataPlants>(result)
 		endmethod
 
 		;;------------------------------------------------------------
@@ -193,11 +193,11 @@ namespace SampleServices.Test.UnitTests
 		public method GetPlant_ByAltKey_Color, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Plants(InColor='{1}')", "", TestContext.GetPlant_ByAltKey_Color_InColor)
+			data request = String.Format("/odata/Plants(InColor='{1}')", "", TestConstants.GetPlant_ByAltKey_Color_InColor)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
-			data plant, @ODataPlant, JsonConvert.DeserializeObject<ODataPlant>(result)
+			data plants, @ODataPlants,JsonConvert.DeserializeObject<ODataPlants>(result)
 		endmethod
 
 		;;------------------------------------------------------------
@@ -208,11 +208,11 @@ namespace SampleServices.Test.UnitTests
 		public method GetPlant_ByAltKey_Size, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Plants(InSize={1})", "", TestContext.GetPlant_ByAltKey_Size_InSize)
+			data request = String.Format("/odata/Plants(InSize={1})", "", TestConstants.GetPlant_ByAltKey_Size_InSize)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
-			data plant, @ODataPlant, JsonConvert.DeserializeObject<ODataPlant>(result)
+			data plants, @ODataPlants,JsonConvert.DeserializeObject<ODataPlants>(result)
 		endmethod
 
 		;;------------------------------------------------------------
@@ -223,11 +223,11 @@ namespace SampleServices.Test.UnitTests
 		public method GetPlant_ByAltKey_Name, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Plants(InName='{1}')", "", TestContext.GetPlant_ByAltKey_Name_InName)
+			data request = String.Format("/odata/Plants(InName='{1}')", "", TestConstants.GetPlant_ByAltKey_Name_InName)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
-			data plant, @ODataPlant, JsonConvert.DeserializeObject<ODataPlant>(result)
+			data plants, @ODataPlants,JsonConvert.DeserializeObject<ODataPlants>(result)
 		endmethod
 
 		;;------------------------------------------------------------
@@ -240,7 +240,7 @@ namespace SampleServices.Test.UnitTests
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
 
 			;;Get one plant from the file
-			data getRequest = String.Format("/odata/Plants(InItemid={1})","",TestContext.GetPlant_InItemid)
+			data getRequest = String.Format("/odata/Plants(InItemid={1})","",TestConstants.GetPlant_InItemid)
 			data getResponse = client.GetAsync(getRequest).Result
 			data getResult = getResponse.Content.ReadAsStringAsync().Result
 
@@ -250,13 +250,13 @@ namespace SampleServices.Test.UnitTests
 			;;Deserialize the JSON into a Plant object
 			data doPlant, @Plant, JsonConvert.DeserializeObject<Plant>(getResult)
 
-			doPlant.InItemid = TestContext.UpdatePlant_InItemid
+			doPlant.InItemid = TestConstants.UpdatePlant_InItemid
 
 			;TODO: Also need to ensure any nodups alternate keys get unique values
 
 			;;Update it
 			disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doPlant),System.Text.Encoding.UTF8, "application/json")
-			data request = String.Format("/odata/Plants(InItemid={1})","",TestContext.UpdatePlant_InItemid)
+			data request = String.Format("/odata/Plants(InItemid={1})","",TestConstants.UpdatePlant_InItemid)
 			disposable data response = client.PutAsync(request, requestBody).Result
 
 			;;Check that we got a successful response from the web service
@@ -272,7 +272,7 @@ namespace SampleServices.Test.UnitTests
 			;;Deserialize the JSON into a Plant object
 			doPlant = JsonConvert.DeserializeObject<Plant>(getResult)
 
-			Assert.AreEqual(doPlant.InItemid, TestContext.UpdatePlant_InItemid)
+			Assert.AreEqual(doPlant.InItemid, TestConstants.UpdatePlant_InItemid)
 
 			;;Update one property in the plant
 			data patchDoc = new JsonPatchDocument()
