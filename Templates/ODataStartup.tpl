@@ -177,9 +177,8 @@ namespace <NAMESPACE>
 				options.ApiName = "<OAUTH_API>"
 			end
 
-			services.AddAuthentication("Bearer")
-			&	.AddIdentityServerAuthentication(authenticationOptions)
-			&	.AddAuthorization()
+			services.AddAuthentication("Bearer").AddIdentityServerAuthentication(authenticationOptions)
+			services.AddAuthorization()
 
 </IF DEFINED_AUTHENTICATION>
 			;;-------------------------------------------------------

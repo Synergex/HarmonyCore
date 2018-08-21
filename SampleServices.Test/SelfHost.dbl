@@ -1,11 +1,10 @@
 ;;*****************************************************************************
 ;;
-;; Title:       UnitTestEnvironment.dbl
+;; Title:       SelfHost.dbl
 ;;
 ;; Type:        Class
 ;;
-;; Description: Configures an environment in which unit tests can operate
-;;              with a known initial data state.
+;; Description: A program to self-host Harmony Core services
 ;;
 ;;*****************************************************************************
 ;; WARNING
@@ -45,57 +44,37 @@
 import Microsoft.AspNetCore
 import Microsoft.AspNetCore.Hosting
 import Microsoft.AspNetCore.TestHost
-import Microsoft.VisualStudio.TestTools.UnitTesting
 import System.IO
 import SampleServices
-import SampleServices.Models
+import SampleServices.Test
 
-namespace SampleServices.Test
+main SelfHost
 
-	{TestClass}
-	public class UnitTestEnvironment
+proc
+	;;Configure the environment
+	UnitTestEnvironment.AssemblyInitialize(^null)
 
-		public static Server, @TestServer
+	;Leave this here for Jeff 
+	;data tester = new OrderTests()  
+	;tester.GetOrders_Expand_REL_TagCustomer() 
+	;tester.GetOrders_Expand_REL_TagVendor()
+	;tester.GetOrders_Expand_All()
+	;tester.GetCustomer()      
 
-		{AssemblyInitialize}
-		public static method AssemblyInitialize, void
-			required in context, @TestContext
-		proc
-			;;Allows select to join when the keys in the file are not the same type as the keys in the code
-			data status, int
-			xcall setlog("SYNSEL_NUMALPHA_KEYS", 1, status) 
+	Console.WriteLine("API documentation is available at /api-docs")
 
-			;;Configure the test environment (set logicals, create files in a known state, etc.)
-			TestEnvironment.Configure()
+	;;Start self-hosting (Kestrel)
+	data wwwroot = Path.Combine(AppContext.BaseDirectory, "wwwroot")
 
-			;;Define the content root and web root folders (so we can pick up the Swagger file for API documentation)
-			data wwwroot = Path.Combine(AppContext.BaseDirectory, "wwwroot")
+	WebHost.CreateDefaultBuilder(new string[0])
+	&	.UseContentRoot(wwwroot)
+	&	.UseWebRoot(wwwroot)
+	&	.UseStartup<Startup>()
+	&	.UseUrls("http://localhost:8085", "https://localhost:8086")
+	&	.Build()
+	&	.Run()
 
-			if(string.IsNullOrEmpty(wwwroot)) then
-			begin
-				;;Create a TestServer to host the Web API services
-				Server = new TestServer(new WebHostBuilder().UseStartup<Startup>())
-			end
-			else
-			begin
-				;;Create a TestServer to host the Web API services
-				Server = new TestServer(new WebHostBuilder().UseContentRoot(wwwroot).UseWebRoot(wwwroot).UseStartup<Startup>())
-			end
+	;;Cleanup the environment
+	UnitTestEnvironment.AssemblyCleanup()
 
-		endmethod
-
-		{AssemblyCleanup}
-		public static method AssemblyCleanup, void
-		proc
-			;;Clean up the test host
-			Server.Dispose()
-			Server = ^null
-
-			;;Delete the data files
-			TestEnvironment.Cleanup()
-
-		endmethod
-
-	endclass
-
-endnamespace
+endmain
