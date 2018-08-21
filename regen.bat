@@ -43,7 +43,7 @@ codegen -s %STRUCTURES% -ms -t ODataStartup -n %PROJECT% -o %PROJECT% %STDOPTS%
 if ERRORLEVEL 1 goto error
 
 rem Generate unit tests
-codegen -s %STRUCTURES% -t ODataUnitTests -n %PROJECT%.Test -o %PROJECT%.Test %STDOPTS%
+codegen -s %STRUCTURES% -t ODataUnitTests -n %PROJECT%.Test.UnitTests -o %PROJECT%.Test\UnitTests %STDOPTS%
 if ERRORLEVEL 1 goto error
 codegen -s %STRUCTURES% -ms -t ODataTestContext -n %PROJECT%.Test -o %PROJECT%.Test %STDOPTS%
 if ERRORLEVEL 1 goto error
@@ -72,7 +72,7 @@ rem structures associated with each file.
 set FILE_STRUCTURES=CUSTOMERS ORDERS ORDER_ITEMS PLANTS
 
 rem Generate the test environment and unit test environment classes
-codegen -s %FILE_STRUCTURES% -ms -t ODataTestEnvironment ODataUnitTestEnvironment -n %PROJECT%.Test -o %PROJECT%.Test %STDOPTS%
+codegen -s %FILE_STRUCTURES% -ms -t ODataTestEnvironment ODataUnitTestEnvironment ODataSelfHost -n %PROJECT%.Test -o %PROJECT%.Test %STDOPTS%
 if ERRORLEVEL 1 goto error
 
 rem Generate the data loader and generatror classes

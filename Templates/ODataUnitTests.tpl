@@ -1,5 +1,6 @@
 <CODEGEN_FILENAME><StructureNoplural>Tests.dbl</CODEGEN_FILENAME>
 <REQUIRES_CODEGEN_VERSION>5.3.5</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_USERTOKEN>CLIENT_MODELS_NAMESPACE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVICES_NAMESPACE</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
@@ -83,7 +84,7 @@ import Newtonsoft.Json
 import System.Collections.Generic
 import System.Net.Http
 import <SERVICES_NAMESPACE>
-import <NAMESPACE>.Models
+import <CLIENT_MODELS_NAMESPACE>
 
 namespace <NAMESPACE>
 

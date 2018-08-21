@@ -1,21 +1,15 @@
-<CODEGEN_FILENAME>UnitTestEnvironment.dbl</CODEGEN_FILENAME>
+<CODEGEN_FILENAME>SelfHost.dbl</CODEGEN_FILENAME>
 <REQUIRES_CODEGEN_VERSION>5.3.5</REQUIRES_CODEGEN_VERSION>
-<REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVICES_NAMESPACE</REQUIRES_USERTOKEN>
-<REQUIRES_USERTOKEN>OAUTH_API</REQUIRES_USERTOKEN>
-<REQUIRES_USERTOKEN>OAUTH_CLIENT</REQUIRES_USERTOKEN>
-<REQUIRES_USERTOKEN>OAUTH_SECRET</REQUIRES_USERTOKEN>
-<REQUIRES_USERTOKEN>OAUTH_SERVER</REQUIRES_USERTOKEN>
-<REQUIRES_USERTOKEN>OAUTH_TEST_USER</REQUIRES_USERTOKEN>
-<REQUIRES_USERTOKEN>OAUTH_TEST_PASSWORD</REQUIRES_USERTOKEN>
+<REQUIRES_USERTOKEN>SERVER_HTTP_PORT</REQUIRES_USERTOKEN>
+<REQUIRES_USERTOKEN>SERVER_HTTPS_PORT</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
-;// Title:       ODataUnitTestEnvironment.tpl
+;// Title:       ODataSelfHost.tpl
 ;//
 ;// Type:        CodeGen Template
 ;//
-;// Description: Generates a class that configures an environment in which unit
-;//              tests can operate with a known initial data state.
+;// Description: Generates a program to self-host Harmony Core services
 ;//
 ;// Copyright (c) 2018, Synergex International, Inc. All rights reserved.
 ;//
@@ -43,12 +37,11 @@
 ;//
 ;;*****************************************************************************
 ;;
-;; Title:       UnitTestEnvironment.dbl
+;; Title:       SelfHost.dbl
 ;;
 ;; Type:        Class
 ;;
-;; Description: Configures an environment in which unit tests can operate
-;;              with a known initial data state.
+;; Description: A program to self-host Harmony Core services
 ;;
 ;;*****************************************************************************
 ;; WARNING
@@ -85,92 +78,43 @@
 ;;
 ;;*****************************************************************************
 
-<IF DEFINED_AUTHENTICATION>
-import IdentityModel.Client
-</IF DEFINED_AUTHENTICATION>
 import Microsoft.AspNetCore
 import Microsoft.AspNetCore.Hosting
 import Microsoft.AspNetCore.TestHost
-import Microsoft.VisualStudio.TestTools.UnitTesting
 import System.IO
 import <SERVICES_NAMESPACE>
-import <MODELS_NAMESPACE>
+import <NAMESPACE>
 
-namespace <NAMESPACE>
+main SelfHost
 
-	{TestClass}
-	public class UnitTestEnvironment
+proc
+	;;Configure the environment
+	UnitTestEnvironment.AssemblyInitialize(^null)
 
-		public static Server, @TestServer
-<IF DEFINED_AUTHENTICATION>
-		public static AccessToken, string
-</IF DEFINED_AUTHENTICATION>
+	;Leave this here for Jeff 
+	;data tester = new OrderTests()  
+	;tester.GetOrders_Expand_REL_TagCustomer() 
+	;tester.GetOrders_Expand_REL_TagVendor()
+	;tester.GetOrders_Expand_All()
+	;tester.GetCustomer()      
 
-		{AssemblyInitialize}
-		public static method AssemblyInitialize, void
-			required in context, @TestContext
-		proc
-			;;Allows select to join when the keys in the file are not the same type as the keys in the code
-			data status, int
-			xcall setlog("SYNSEL_NUMALPHA_KEYS", 1, status) 
+	Console.WriteLine("API documentation is available at /api-docs")
 
-			;;Configure the test environment (set logicals, create files in a known state, etc.)
-			TestEnvironment.Configure()
+	;;Start self-hosting (Kestrel)
+	data wwwroot = Path.Combine(AppContext.BaseDirectory, "wwwroot")
 
-			;;Define the content root and web root folders (so we can pick up the Swagger file for API documentation)
-			data wwwroot = Path.Combine(AppContext.BaseDirectory, "wwwroot")
+	WebHost.CreateDefaultBuilder(new string[0])
+	&	.UseContentRoot(wwwroot)
+	&	.UseWebRoot(wwwroot)
+<IF DEFINED_IIS_SUPPORT>
+	&	.UseIISIntegration()
+</IF DEFINED_IIS_SUPPORT>
+	&	.UseStartup<Startup>()
+	&	.UseUrls("http://localhost:<SERVER_HTTP_PORT>", "https://localhost:<SERVER_HTTPS_PORT>")
+	&	.Build()
+	&	.Run()
 
-			if(string.IsNullOrEmpty(wwwroot)) then
-			begin
-				;;Create a TestServer to host the Web API services
-				Server = new TestServer(new WebHostBuilder().UseStartup<Startup>())
-			end
-			else
-			begin
-				;;Create a TestServer to host the Web API services
-				Server = new TestServer(new WebHostBuilder().UseContentRoot(wwwroot).UseWebRoot(wwwroot).UseStartup<Startup>())
-			end
+	;;Cleanup the environment
+	UnitTestEnvironment.AssemblyCleanup()
 
-<IF DEFINED_AUTHENTICATION>
-			;;Get the access token from the OAuth Server
-			data disco = DiscoveryClient.GetAsync("<OAUTH_SERVER>").GetAwaiter().GetResult()
-
-			if (disco.IsError) then
-			begin
-				throw new Exception("OAuth endpoint discovery failed. Error was: " + disco.Error)
-			end
-			else
-			begin
-                data tokenClient = new TokenClient(disco.TokenEndpoint, "<OAUTH_CLIENT>", "<OAUTH_SECRET>");
-                data tokenResponse = tokenClient.RequestResourceOwnerPasswordAsync("<OAUTH_TEST_USER>","<OAUTH_TEST_PASSWORD>","<OAUTH_API>").GetAwaiter().GetResult()
-
-                if (tokenResponse.IsError) then
-                begin
-                    ;;Failed to get an access token from the OAuth server
-                    throw new Exception(tokenResponse.Error);
-                end
-                else
-                begin
-                    ;;Now we have an access token that we can use to call our protected API
-					AccessToken = tokenResponse.AccessToken
-                end
-			end
-
-</IF DEFINED_AUTHENTICATION>
-		endmethod
-
-		{AssemblyCleanup}
-		public static method AssemblyCleanup, void
-		proc
-			;;Clean up the test host
-			Server.Dispose()
-			Server = ^null
-
-			;;Delete the data files
-			TestEnvironment.Cleanup()
-
-		endmethod
-
-	endclass
-
-endnamespace
+endmain
