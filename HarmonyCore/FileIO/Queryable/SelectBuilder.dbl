@@ -867,14 +867,14 @@ namespace Harmony.Core.FileIO.Queryable
 				mreturn fieldWhereClause(^m(tmpStructure(1:leftBuffer.Metadata.StructureSize), leftBuffer.MemoryHandle.Value), 
 				&	leftField.FieldDef, 
 				&	expr.Op,
-				&	ProcessValue(expr.Right), "")
+				&	ProcessValue(expr.Right, leftField.FieldDef), "")
 			end
 			else if(rightField != ^null)
 			begin
 				mreturn fieldWhereClause(^m(tmpStructure(1:rightBuffer.Metadata.StructureSize), rightBuffer.MemoryHandle.Value), 
 				&	rightField.FieldDef, 
 				&	expr.Op,
-				&	ProcessValue(expr.Left), "")
+				&	ProcessValue(expr.Left, rightField.FieldDef), "")
 			end
 			
 			throw new InvalidOperationException("Invalid Where Expression Tree")
@@ -976,178 +976,45 @@ namespace Harmony.Core.FileIO.Queryable
 				mreturn fieldOnClause(^m(tmpStructure(1:leftBuffer.Metadata.StructureSize), leftBuffer.MemoryHandle.Value), 
 				&	leftField.FieldDef, 
 				&	expr.Op,
-				&	ProcessValue(expr.Right), "")
+				&	ProcessValue(expr.Right, leftField.FieldDef), "")
 			end
 			else if(rightField != ^null)
 			begin
 				mreturn fieldOnClause(^m(tmpStructure(1:rightBuffer.Metadata.StructureSize), rightBuffer.MemoryHandle.Value), 
 				&	rightField.FieldDef, 
 				&	expr.Op,
-				&	ProcessValue(expr.Left), "")
+				&	ProcessValue(expr.Left, rightField.FieldDef), "")
 			end
 			throw new InvalidOperationException("Invalid Where Expression Tree")
 		endmethod
 
-		private method ProcessValue, @string
-			expr, @object
+		private method FormatValue, @string
+			inputString, @string
+			targetField, @FieldDataDefinition
 		proc
-			if(expr .is. @ParameterReference) then
-				mreturn mQueryBuffer.Parameters[((@ParameterReference)expr).Name].ToString()
-			else if(expr .is. @FieldReference) then
-				mreturn ((@FieldReference)expr).FieldDef.TagValue
+			if(targetField.LiteralFormatter != ^null) then
+				mreturn targetField.LiteralFormatter.FormatLiteral(inputString)
 			else
-				mreturn expr.ToString()
+				mreturn inputString
 		endmethod
 
-
-;		private method ProcessWhereClause, void
-;			left, @Expression
-;			right, @Expression
-;			op, WhereClauseOperator
-;			structure tmpStructure
-;				fld,a1
-;			endstructure
-;		proc
-;			data skipClause, boolean, false
-;			;;TODO this doesnt deal with 'between'
-;			data leftTarget = FindTargetField(left, right)
-;			data rightTarget = FindTargetField(right, left)
-;			if(skipClause)
-;				mreturn
-;
-;			if(leftTarget != ^null && rightTarget != ^null) then
-;			begin
-;				data dataObject1 = mDataObjects[leftTarget.Item2]
-;				data dataObject2 = mDataObjects[rightTarget.Item2]
-;				data recordArea1 = mRecordAreas[leftTarget.Item2]
-;				data recordArea2 = mRecordAreas[rightTarget.Item2]
-;				if(dataObject1 == dataObject2) then
-;				begin
-;					mWhereStack.Push(fieldWhereClause(^m(tmpStructure(1:dataObject1.StructureSize), recordArea1), 
-;					&	^m(tmpStructure(1:dataObject2.StructureSize), recordArea2), 
-;					&	leftTarget.Item1, 
-;					&	rightTarget.Item1,
-;					&	op))
-;				end
-;				else
-;				begin
-;					mOnStack.Push(fieldOnClause(^m(tmpStructure(1:dataObject1.StructureSize), recordArea1), 
-;					&	^m(tmpStructure(1:dataObject2.StructureSize), recordArea2), 
-;					&	leftTarget.Item1, 
-;					&	rightTarget.Item1,
-;					&	op))
-;				end
-;			end
-;			else if(leftTarget != ^null) then
-;			begin
-;				data dataObject1 = mDataObjects[leftTarget.Item2]
-;				data recordArea1 = mRecordAreas[leftTarget.Item2]
-;				mWhereStack.Push(fieldWhereClause(^m(tmpStructure(1:dataObject1.StructureSize), recordArea1), 
-;				&	leftTarget.Item1, 
-;				&	op,
-;				&	FindConstantValue(right), ""))
-;			end
-;			else if(rightTarget != ^null) then
-;			begin
-;				data dataObject1 = mDataObjects[rightTarget.Item2]
-;				data recordArea1 = mRecordAreas[rightTarget.Item2]
-;				mWhereStack.Push(fieldWhereClause(^m(tmpStructure(1:dataObject1.StructureSize), recordArea1), 
-;				&	rightTarget.Item1, 
-;				&	op,
-;				&	FindConstantValue(left), ""))
-;			end
-;			else
-;				throw new NotImplementedException("where expression must contain at least one field or property expression")
-;		endmethod
-;
-;
-;		protected override method VisitBinary, @Expression
-;			node, @BinaryExpression
-;		proc
-;			data op, WhereClauseOperator?, ^null
-;			data glue, WhereClauseConnector?, ^null
-;			OpKindFromExpression(node, op, glue)
-;			if(op != ^null) then
-;			begin
-;				;;this should be a composite key match them up by order
-;				if(node.Left .is. NewExpression && node.Right .is. NewExpression) then
-;				begin
-;					data newLeft = (@NewExpression)node.Left
-;					data newRight = (@NewExpression)node.Right
-;					data leftArgument = (@NewArrayExpression)newLeft.Arguments.First()
-;					data rightArgument = (@NewArrayExpression)newRight.Arguments.First()
-;					data i, int, 0
-;					for i from 0 thru leftArgument.Expressions.Count - 1 by 1
-;					begin
-;						ProcessWhereClause(leftArgument.Expressions[i], rightArgument.Expressions[i], op.Value)
-;					end
-;
-;					
-;				end
-;				else
-;					ProcessWhereClause(node.Left, node.Right, op.Value)
-;			end
-;			else
-;			begin
-;				if(mOnStack.Count > 0) then
-;				begin
-;					Visit(node.Left)
-;					data leftOn = mOnStack.Pop()
-;					Visit(node.Right)
-;					if(mOnStack.Count > 0) then
-;					begin
-;						data rightOn = mOnStack.Pop()
-;
-;						if(glue.Value == WhereClauseConnector.AndOperator) then
-;						begin
-;							mOnStack.Push(leftOn .and. rightOn)
-;						end
-;						else if(glue.Value == WhereClauseConnector.OrOperator) then
-;						begin
-;							mOnStack.Push(leftOn .or. rightOn)
-;						end
-;						else
-;							throw new NotImplementedException()
-;
-;					end
-;					else
-;					begin
-;						data rightWhere = mWhereStack.Pop()
-;						if(glue.Value == WhereClauseConnector.AndOperator) then
-;						begin
-;							mWhereStack.Push(leftOn .and. rightWhere)
-;						end
-;						else if(glue.Value == WhereClauseConnector.OrOperator) then
-;						begin
-;							mWhereStack.Push(leftOn .or. rightWhere)
-;						end
-;						else
-;							throw new NotImplementedException()
-;					end
-;				end
-;				else
-;				begin
-;					Visit(node.Left)
-;					data leftWhere = mWhereStack.Pop()
-;					Visit(node.Right)
-;					data rightWhere = mWhereStack.Pop()
-;
-;					if(glue.Value == WhereClauseConnector.AndOperator) then
-;					begin
-;						mWhereStack.Push(leftWhere .and. rightWhere)
-;					end
-;					else if(glue.Value == WhereClauseConnector.OrOperator) then
-;					begin
-;						mWhereStack.Push(leftWhere .or. rightWhere)
-;					end
-;					else
-;						throw new NotImplementedException()
-;				end
-;
-;			end
-;
-;			mreturn node
-;		endmethod
+		private method ProcessValue, @string
+			expr, @object
+			targetField, @FieldDataDefinition
+		proc
+			if(expr .is. @ParameterReference) then
+			begin
+				mreturn FormatValue(mQueryBuffer.Parameters[((@ParameterReference)expr).Name].ToString(), targetField)
+			end
+			else if(expr .is. @FieldReference) then
+			begin
+				mreturn ((@FieldReference)expr).FieldDef.TagValue
+			end
+			else
+			begin
+				mreturn FormatValue(expr.ToString(), targetField)
+			end
+		endmethod
 	endclass
 
 endnamespace

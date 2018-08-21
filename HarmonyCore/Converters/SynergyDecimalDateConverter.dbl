@@ -50,6 +50,27 @@ namespace Harmony.Core.Converters
 	;;; </summary>
 	public static class SynergyDecimalDateConverter
 		
+		public class LiteralFormatter implements ILiteralFormatter
+
+			public FormatParameter, @string
+
+			public method LiteralFormatter
+				formatParameter, @string
+			proc
+				this.FormatParameter = formatParameter
+			endmethod
+
+			public virtual method FormatLiteral, @string
+				inputLiteral, @string 
+				endparams
+			proc
+				mreturn SynergyDecimalDateConverter.ConvertBack(DateTime.Parse(inputLiteral), ^null, FormatParameter, ^null).ToString()
+			endmethod
+
+		endclass
+
+
+
 		;;; <summary>
 		;;;	Convertion from a Synergy Decimal type to a <a href="https://docs.microsoft.com/en-us/dotnet/standard/clr" target="_blank">Command Language Runtime</a> DateTime type.
 		;;; </summary>
