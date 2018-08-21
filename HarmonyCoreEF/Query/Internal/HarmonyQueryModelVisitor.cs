@@ -295,7 +295,13 @@ namespace Harmony.Core.EF.Query.Internal
             //this is a really basic ranking that may eventually need to examine the actual properties in question to determine quality
             private int WhereAsJoinClauseQuality(WhereClause clause)
             {
-                var binaryExpression = clause.Predicate as BinaryExpression;
+                return WhereAsJoinClauseExpressionQuality(clause.Predicate);
+            }
+
+            private static int WhereAsJoinClauseExpressionQuality(Expression expression)
+            {
+                var binaryExpression = expression as BinaryExpression;
+                var nullSafeExpression = expression as NullSafeEqualExpression;
                 if (binaryExpression != null)
                 {
                     if (binaryExpression.Left is ParameterExpression || binaryExpression.Left is ConstantExpression ||
@@ -303,6 +309,10 @@ namespace Harmony.Core.EF.Query.Internal
                         return 1;
                     else
                         return -1;
+                }
+                else if (nullSafeExpression != null)
+                {
+                    return WhereAsJoinClauseExpressionQuality(nullSafeExpression.EqualExpression);
                 }
                 else
                 {
