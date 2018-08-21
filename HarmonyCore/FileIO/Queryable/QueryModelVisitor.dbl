@@ -6,6 +6,7 @@ import Remotion.Linq
 import Remotion.Linq.Clauses
 import System.Linq.Expressions
 import System.Linq
+import Harmony.Core.Enumerations
 
 namespace Harmony.Core.FileIO.Queryable
 
@@ -51,16 +52,43 @@ namespace Harmony.Core.FileIO.Queryable
 				VisitJoinClause(groupJoinClause.JoinClause, queryModel, groupJoinClause)
 			end
 
+			data querySourceVisitor = new QuerySourceVisitor()
 			data mergedWhereClause, @Expression, ^null
 			data whereClause, @WhereClause
 			foreach whereClause in whereClauses
 			begin
+				;;determine if this clause should be attached to a join
+				;;this is more complicated if both parts belong to a join
+				querySourceVisitor.QuerySources.Clear()
+				querySourceVisitor.Visit(whereClause.Predicate)
+
+				data querySources = querySourceVisitor.QuerySources.OrderByDescending(lambda(qSource) { mQuerySourceMapping[qSource] })
+				data topQuerySource = querySources.FirstOrDefault()
+				if(topQuerySource != ^null)
+				begin
+					data typeBufferIndex = mQuerySourceMapping[topQuerySource]
+					if(typeBufferIndex != 0)
+					begin
+						data typeBuffer = mTypeBuffers[typeBufferIndex]
+						data whereParts = new List<object>()
+						data onParts = new List<object>()
+						mWhereBuilder.VisitForWhere(whereClause.Predicate, whereParts, onParts)
+						if(whereParts.Count == 1) then
+							typeBuffer.JoinOn = new ConnectorPart() { Left = typeBuffer.JoinOn, Right = whereParts.First(), Op = WhereClauseConnector.AndOperator }
+						else if(onParts.Count == 1) then
+							typeBuffer.JoinOn = new ConnectorPart() { Left = typeBuffer.JoinOn, Right = onParts.First(), Op = WhereClauseConnector.AndOperator }
+						else
+							throw new NotImplementedException()
+						nextloop
+					end
+				end
+
 				if(mergedWhereClause == ^null) then
 					mergedWhereClause = whereClause.Predicate
 				else
 					mergedWhereClause = Expression.AndAlso(mergedWhereClause, whereClause.Predicate)
 			end
-
+			
 			if(mergedWhereClause != ^null)
 				VisitWhereClause(new WhereClause(mergedWhereClause), queryModel, 0)
 
@@ -288,7 +316,7 @@ namespace Harmony.Core.FileIO.Queryable
 			queryModel, @QueryModel
 			index, int
 		proc
-			VisitJoinClauseInternal(joinClause, joinClause.OuterKeySelector, joinClause.InnerKeySelector, queryModel, true)
+			VisitJoinClauseInternal(joinClause, joinClause.OuterKeySelector, joinClause.InnerKeySelector, queryModel, false)
 		endmethod
 		
 		public override method VisitWhereClause, void

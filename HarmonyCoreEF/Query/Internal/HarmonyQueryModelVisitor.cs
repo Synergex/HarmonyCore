@@ -264,6 +264,52 @@ namespace Harmony.Core.EF.Query.Internal
                 return result;
             }
 
+            private void LiftClausesFromSubQueryExpression(QuerySourceReferenceExpression liftTarget, QueryModel targetModel, SubQueryExpression expression)
+            {
+                if (expression != null)
+                {
+                    //TODO: this isnt dealing with select operators
+                    foreach (var bodyClause in expression.QueryModel.BodyClauses)
+                    {
+                        //TODO: this isnt dealing with joins and additional froms
+                        if (bodyClause is WhereClause)
+                        {
+                            var whereClause = bodyClause as WhereClause;
+                            var rewrite = new SelectorRewriter()
+                            {
+                                Replacements = new Dictionary<Expression, Expression>
+                                {
+                                    { new QuerySourceReferenceExpression(expression.QueryModel.MainFromClause), liftTarget }
+                                }
+                            };
+                            whereClause.Predicate = rewrite.Visit(whereClause.Predicate) as Expression;
+                            targetModel.BodyClauses.Add(whereClause);
+                        }
+                        else
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+                }
+            }
+            //this is a really basic ranking that may eventually need to examine the actual properties in question to determine quality
+            private int WhereAsJoinClauseQuality(WhereClause clause)
+            {
+                var binaryExpression = clause.Predicate as BinaryExpression;
+                if (binaryExpression != null)
+                {
+                    if (binaryExpression.Left is ParameterExpression || binaryExpression.Left is ConstantExpression ||
+                       binaryExpression.Right is ParameterExpression || binaryExpression.Right is ConstantExpression)
+                        return 1;
+                    else
+                        return -1;
+                }
+                else
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
             protected override MemberAssignment VisitMemberAssignment(MemberAssignment node)
             {
                 //this is for things like SelectAllAndExpand from OData
@@ -288,6 +334,8 @@ namespace Harmony.Core.EF.Query.Internal
                     Expression resultExpression = (propValue.Type.GetGenericTypeDefinition() == typeof(ICollection<>)) ?
                         Expression.Condition(Expression.Equal(propValue, Expression.Constant(null)), Expression.Convert(Expression.New(typeof(List<>).MakeGenericType(new Type[] { resultExpressionElementType })), propValue.Type), propValue) :
                         (Expression)propValue;
+
+                    LiftClausesFromSubQueryExpression(new QuerySourceReferenceExpression(queryModel.MainFromClause), queryModel, queryModel.MainFromClause?.FromExpression as SubQueryExpression);
 
                     //some of the query sources are pointless SQLism around their inability to return collections outside of grouping
                     //we need to replace those sources with the materialized properties to allow Selectors to operate on a consistant model
@@ -318,9 +366,13 @@ namespace Harmony.Core.EF.Query.Internal
                     {
                         QuerySourceMapping.AddMapping(queryModel.MainFromClause, currentParameter);
 
-                        var whereClause = queryModel.BodyClauses.OfType<WhereClause>().FirstOrDefault();
-                        if (whereClause != null)
-                        {
+                        //we only attach one predicate to a join clause, the rest need to be lifted into a regular where clause
+                        //this may need additional work to pick the best join field
+                        var orderedWhereClauses = queryModel.BodyClauses.OfType<WhereClause>().OrderBy(WhereAsJoinClauseQuality).ToList();
+                        var whereClause = orderedWhereClauses.FirstOrDefault();
+                        SelectorRewriter rewrite = null;
+                        if(whereClause != null)
+                        { 
                             var joinOnLambda = whereClause.Predicate;
                             var navPropInfo = Source.Type.GetProperty(SubQueryTargetName);
                             var madeJoin = new JoinClause(Source.ReferencedQuerySource.ItemName + "." + SubQueryTargetName,
@@ -328,12 +380,12 @@ namespace Harmony.Core.EF.Query.Internal
 
                             var madeGroupJoin = new GroupJoinClause(Source.ReferencedQuerySource.ItemName + "." + SubQueryTargetName, typeof(IEnumerable<>).MakeGenericType(madeJoin.ItemType), madeJoin);
                             var newQuerySource = new QuerySourceReferenceExpression(madeGroupJoin);
-                            var rewrite = new SelectorRewriter()
+                            rewrite = new SelectorRewriter()
                             {
                                 Replacements = new Dictionary<Expression, Expression>
-                            {
-                                { new QuerySourceReferenceExpression(queryModel.MainFromClause), newQuerySource }
-                            }
+                                {
+                                    { new QuerySourceReferenceExpression(queryModel.MainFromClause), newQuerySource }
+                                }
                             };
                             var rewrittenJoinLambda = rewrite.Visit(joinOnLambda) as Expression;
                             var simpleJoinCondition = rewrittenJoinLambda as BinaryExpression ?? (rewrittenJoinLambda as NullSafeEqualExpression)?.EqualExpression;
@@ -341,6 +393,15 @@ namespace Harmony.Core.EF.Query.Internal
                             madeJoin.InnerKeySelector = simpleJoinCondition.Right;
                             madeJoin.OuterKeySelector = simpleJoinCondition.Left;
                             QueryModel.BodyClauses.Add(madeGroupJoin);
+                        }
+
+                        if (rewrite != null)
+                        {
+                            foreach (var additionalWhereClause in orderedWhereClauses.Skip(1))
+                            {
+                                additionalWhereClause.Predicate = rewrite.Visit(additionalWhereClause.Predicate);
+                                QueryModel.BodyClauses.Add(additionalWhereClause);
+                            }
                         }
                     }
 

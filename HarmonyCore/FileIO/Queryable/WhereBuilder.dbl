@@ -130,9 +130,10 @@ namespace Harmony.Core.FileIO.Queryable
 		proc
 			if(node .is. MemberExpression) then
 			begin
-				;;TODO this assumes we're only dealing with our target data object
-				data dObj = mDataObjects.First()
-				mreturn new FieldReference() { FieldDef = dObj.Value.GetFieldByName(((@MemberExpression)node).Member.Name), QuerySourceKey =0 }
+				data memberExpression = (@MemberExpression)node
+				data querySource = ^as(memberExpression.Expression, @Remotion.Linq.Clauses.Expressions.QuerySourceReferenceExpression) 
+				data dObj = querySource != ^null ? mDataObjects[querySource.ReferencedQuerySource] : mDataObjects.First().Value
+				mreturn new FieldReference() { FieldDef = dObj.GetFieldByName(memberExpression.Member.Name), QuerySourceKey = querySource != ^null ? mQuerySources.IndexOf(querySource.ReferencedQuerySource) : 0 }
 			end
 			else if(node .is. MethodCallExpression) then
 			begin
