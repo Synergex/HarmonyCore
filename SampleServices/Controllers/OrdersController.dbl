@@ -100,7 +100,7 @@ namespace SampleServices.Controllers
 		{ODataRoute("Orders(OrCustomer={aOrCustomer})")}
 		{EnableQuery}
 		;;; <summary>
-		;;; Get a single Order by key OrCustomer.
+		;;; Get orders by alternate key key OrCustomer.
 		;;; </summary>
 		;;; <param name="aOrCustomer">Customer ID</param>
 		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
@@ -109,18 +109,15 @@ namespace SampleServices.Controllers
 			required in aOrCustomer, int
 		proc
 			data result = DBContext.Orders.FindAlternate("OrCustomer",aOrCustomer)
-
 			if (result == ^null)
 				mreturn NotFound()
-
 			mreturn Ok(result)
-
 		endmethod
 
 		{ODataRoute("Orders(OrOrdered={aOrOrdered})")}
 		{EnableQuery}
 		;;; <summary>
-		;;; Get a single Order by key OrOrdered.
+		;;; Get orders by alternate key key OrOrdered.
 		;;; </summary>
 		;;; <param name="aOrOrdered">Date ordered</param>
 		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
@@ -129,18 +126,15 @@ namespace SampleServices.Controllers
 			required in aOrOrdered, DateTime
 		proc
 			data result = DBContext.Orders.FindAlternate("OrOrdered",aOrOrdered)
-
 			if (result == ^null)
 				mreturn NotFound()
-
 			mreturn Ok(result)
-
 		endmethod
 
 		{ODataRoute("Orders(OrCompleted={aOrCompleted})")}
 		{EnableQuery}
 		;;; <summary>
-		;;; Get a single Order by key OrCompleted.
+		;;; Get orders by alternate key key OrCompleted.
 		;;; </summary>
 		;;; <param name="aOrCompleted">Date order completed</param>
 		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
@@ -149,12 +143,9 @@ namespace SampleServices.Controllers
 			required in aOrCompleted, DateTime
 		proc
 			data result = DBContext.Orders.FindAlternate("OrCompleted",aOrCompleted)
-
 			if (result == ^null)
 				mreturn NotFound()
-
 			mreturn Ok(result)
-
 		endmethod
 
 .endregion

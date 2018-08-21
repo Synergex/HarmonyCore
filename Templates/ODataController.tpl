@@ -154,7 +154,7 @@ namespace <NAMESPACE>
 ;//		{ProducesResponseType(^typeof(<StructureNoplural>), 200)}
 		{EnableQuery}
 		;;; <summary>
-		;;; Get matching <structurePlural> by alternate key key <KeyName>.
+		;;; Get <structurePlural> by alternate key key <KeyName>.
 		;;; </summary>
 		<SEGMENT_LOOP>
 		;;; <param name="a<SegmentName>"><FIELD_DESC></param>
@@ -167,19 +167,16 @@ namespace <NAMESPACE>
 			</SEGMENT_LOOP>
 		proc
 			data result = DBContext.<StructurePlural>.FindAlternate(<SEGMENT_LOOP>"<SegmentName>",a<SegmentName><,></SEGMENT_LOOP>)
-
 			if (result == ^null)
 				mreturn NotFound()
-
 			mreturn Ok(result)
-
 		endmethod
 <ELSE>
 		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
 ;//		{ProducesResponseType(^typeof(<StructureNoplural>), 200)}
 		{EnableQuery}
 		;;; <summary>
-		;;; Get a single <StructureNoplural> by key <KeyName>.
+		;;; Get <structureNoplural> by alternate key <KeyName>.
 		;;; </summary>
 		<SEGMENT_LOOP>
 		;;; <param name="a<SegmentName>"><FIELD_DESC></param>

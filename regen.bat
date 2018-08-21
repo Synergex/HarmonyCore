@@ -38,7 +38,7 @@ rem Generate controller classes
 codegen -s %STRUCTURES% -t ODataController -n %PROJECT%.Controllers -o %PROJECT%\Controllers %STDOPTS%
 if ERRORLEVEL 1 goto error
 
-rem Generate the DbContext and EdmBuilder classes
+rem Generate the Startup class
 codegen -s %STRUCTURES% -ms -t ODataStartup -n %PROJECT% -o %PROJECT% %STDOPTS%
 if ERRORLEVEL 1 goto error
 
