@@ -6,7 +6,7 @@ import Harmony.Core
 import Harmony.Core.Utility
 import Harmony.Core.Enumerations
 import System.Linq.Expressions
-
+import System.Linq
 namespace Harmony.Core.FileIO.Queryable
 
 	public class SelectBuilder
@@ -155,8 +155,7 @@ namespace Harmony.Core.FileIO.Queryable
 			in req dataBuffer			,a
 			in req fieldDetails			,@FieldDataDefinition
 			in req theOperator			,whereClauseOperator
-			in req theValue				,a
-			in req theValue2			,a
+			in req theValues			,[#]string
 			endparams
 			
 			structure tmpStructure
@@ -171,7 +170,7 @@ namespace Harmony.Core.FileIO.Queryable
 			endrecord
 		proc
 			memPnt = %mem_proc(DM_ALLOC, fieldDetails.ElementSize)
-			^m(tmpStructure(1:fieldDetails.ElementSize), memPnt) = theValue
+			^m(tmpStructure(1:fieldDetails.ElementSize), memPnt) = theValues[1]
 			
 			using theOperator select
 			(whereClauseOperator.EqualTo),
@@ -463,21 +462,21 @@ namespace Harmony.Core.FileIO.Queryable
 					
 					if (mCaseSensitive == true) then
 					begin
-						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: IsBetween Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2} and {3}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize), %atrim(theValue2))
-						mreturn Where.Between(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), (^m(tmpStructure(1:length), memPnt)), %atrim(theValue2))
+						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: IsBetween Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2} and {3}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize), theValues[2])
+						mreturn Where.Between(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), (^m(tmpStructure(1:length), memPnt)), theValues[2])
 					end
 					else
 					begin
-						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: IsBetween Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2} and {3}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize), %atrim(theValue2))
-						mreturn NoCaseWhere.Between(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), (^m(tmpStructure(1:length), memPnt)), %atrim(theValue2))
+						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: IsBetween Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2} and {3}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize), theValues[2])
+						mreturn NoCaseWhere.Between(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), (^m(tmpStructure(1:length), memPnt)), theValues[2])
 					end
 				end
 				(FieldDataType.IntegerField),
-					mreturn Where.Between(^i(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize)), %integer(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt), fieldDetails.ElementSize), %integer(theValue2, fieldDetails.ElementSize))
+					mreturn Where.Between(^i(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize)), %integer(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt), fieldDetails.ElementSize), %integer(theValues[2], fieldDetails.ElementSize))
 				(FieldDataType.ImpliedDecimal),
-					mreturn Where.Between(^d(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), fieldDetails.DecimalPrecision), %implied(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)), %implied(theValue2))
+					mreturn Where.Between(^d(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), fieldDetails.DecimalPrecision), %implied(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)), %implied(theValues[2]))
 				(FieldDataType.DecimalField),
-					mreturn Where.Between(^d(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize)), %implied(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)), %implied(theValue2))
+					mreturn Where.Between(^d(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize)), %implied(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)), %implied(theValues[2]))
 				endusing
 			end
 			(whereClauseOperator.IsIn),
@@ -491,20 +490,33 @@ namespace Harmony.Core.FileIO.Queryable
 					if (mCaseSensitive == true) then
 					begin
 						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: IsIn Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
-						mreturn Where.In(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), (^m(tmpStructure(1:length), memPnt)), %atrim(theValue2))
+						
+						if(theValues.Length > 2) then
+						begin
+							data varargArray = theValues.Skip(1).Select<string, VariantDesc>(lambda(str) { (@Synergex.SynergyDE.AlphaDesc)(a)str }).ToArray()
+							mreturn Where.In(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), theValues[1], ^varargarray(varargArray))
+						end
+						else if(theValues.Length == 1) then
+						begin
+							throw new InvalidOperationException("Not enough arguments to build a Where.In operation")
+						end
+						else
+						begin
+							mreturn Where.In(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), theValues[1], theValues[2])
+						end
 					end
 					else
 					begin
 						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: IsIn Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
-						mreturn NoCaseWhere.Between(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), (^m(tmpStructure(1:length), memPnt)), %atrim(theValue2))
+						mreturn NoCaseWhere.Between(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), (^m(tmpStructure(1:length), memPnt)), theValues[2])
 					end
 				end
 				(FieldDataType.IntegerField),
-					mreturn Where.Between(^i(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize)), %integer(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt), fieldDetails.ElementSize), %integer(theValue2, fieldDetails.ElementSize))
+					mreturn Where.Between(^i(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize)), %integer(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt), fieldDetails.ElementSize), %integer(theValues[2], fieldDetails.ElementSize))
 				(FieldDataType.ImpliedDecimal),
-					mreturn Where.Between(^d(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), fieldDetails.DecimalPrecision), %implied(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)), %implied(theValue2))
+					mreturn Where.Between(^d(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), fieldDetails.DecimalPrecision), %implied(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)), %implied(theValues[2]))
 				(FieldDataType.DecimalField),
-					mreturn Where.Between(^d(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize)), %implied(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)), %implied(theValue2))
+					mreturn Where.Between(^d(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize)), %implied(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)), %implied(theValues[2]))
 				endusing
 			end
 			endusing
@@ -514,8 +526,7 @@ namespace Harmony.Core.FileIO.Queryable
 			in req dataBuffer			,a
 			in req fieldDetails			,@FieldDataDefinition
 			in req theOperator			,whereClauseOperator
-			in req theValue				,a
-			in req theValue2			,a
+			in req theValue				,[#]string
 			endparams
 			
 			structure tmpStructure
@@ -530,7 +541,7 @@ namespace Harmony.Core.FileIO.Queryable
 			endrecord
 		proc
 			memPnt = %mem_proc(DM_ALLOC, fieldDetails.ElementSize)
-			^m(tmpStructure(1:fieldDetails.ElementSize), memPnt) = theValue
+			^m(tmpStructure(1:fieldDetails.ElementSize), memPnt) = theValue[1]
 			
 			using theOperator select
 			(whereClauseOperator.EqualTo),
@@ -867,14 +878,14 @@ namespace Harmony.Core.FileIO.Queryable
 				mreturn fieldWhereClause(^m(tmpStructure(1:leftBuffer.Metadata.StructureSize), leftBuffer.MemoryHandle.Value), 
 				&	leftField.FieldDef, 
 				&	expr.Op,
-				&	ProcessValue(expr.Right, leftField.FieldDef), "")
+				&	ProcessValue(expr.Right, leftField.FieldDef))
 			end
 			else if(rightField != ^null)
 			begin
 				mreturn fieldWhereClause(^m(tmpStructure(1:rightBuffer.Metadata.StructureSize), rightBuffer.MemoryHandle.Value), 
 				&	rightField.FieldDef, 
 				&	expr.Op,
-				&	ProcessValue(expr.Left, rightField.FieldDef), "")
+				&	ProcessValue(expr.Left, rightField.FieldDef))
 			end
 			
 			throw new InvalidOperationException("Invalid Where Expression Tree")
@@ -976,14 +987,14 @@ namespace Harmony.Core.FileIO.Queryable
 				mreturn fieldOnClause(^m(tmpStructure(1:leftBuffer.Metadata.StructureSize), leftBuffer.MemoryHandle.Value), 
 				&	leftField.FieldDef, 
 				&	expr.Op,
-				&	ProcessValue(expr.Right, leftField.FieldDef), "")
+				&	ProcessValue(expr.Right, leftField.FieldDef))
 			end
 			else if(rightField != ^null)
 			begin
 				mreturn fieldOnClause(^m(tmpStructure(1:rightBuffer.Metadata.StructureSize), rightBuffer.MemoryHandle.Value), 
 				&	rightField.FieldDef, 
 				&	expr.Op,
-				&	ProcessValue(expr.Left, rightField.FieldDef), "")
+				&	ProcessValue(expr.Left, rightField.FieldDef))
 			end
 			throw new InvalidOperationException("Invalid Where Expression Tree")
 		endmethod
@@ -998,21 +1009,26 @@ namespace Harmony.Core.FileIO.Queryable
 				mreturn inputString
 		endmethod
 
-		private method ProcessValue, @string
+		private method ProcessValue, [#]string
 			expr, @object
 			targetField, @FieldDataDefinition
 		proc
 			if(expr .is. @ParameterReference) then
 			begin
-				mreturn FormatValue(mQueryBuffer.Parameters[((@ParameterReference)expr).Name].ToString(), targetField)
+				mreturn new string[#] { FormatValue(mQueryBuffer.Parameters[((@ParameterReference)expr).Name].ToString(), targetField) }
 			end
 			else if(expr .is. @FieldReference) then
 			begin
-				mreturn ((@FieldReference)expr).FieldDef.TagValue
+				mreturn new string[#] { ((@FieldReference)expr).FieldDef.TagValue }
+			end
+			else if(expr .is. @IEnumerable<string>) then
+			begin
+				data collection = ^as(expr, @IEnumerable<string>)
+				mreturn collection.Select<string, string>(lambda(str) { FormatValue(str, targetField) }).ToArray()
 			end
 			else
 			begin
-				mreturn FormatValue(expr.ToString(), targetField)
+				mreturn new string[#] { FormatValue(expr.ToString(), targetField) }
 			end
 		endmethod
 	endclass

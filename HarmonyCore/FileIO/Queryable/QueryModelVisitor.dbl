@@ -7,6 +7,7 @@ import Remotion.Linq.Clauses
 import System.Linq.Expressions
 import System.Linq
 import Harmony.Core.Enumerations
+import Harmony.Core.FileIO.Queryable.Expressions
 
 namespace Harmony.Core.FileIO.Queryable
 
@@ -371,6 +372,18 @@ namespace Harmony.Core.FileIO.Queryable
 					begin
 						QuerySources.Add(memberTargetParameter.ReferencedQuerySource)
 					end
+				end
+				mreturn node
+			endmethod
+
+			protected override method VisitExtension, @Expression
+				node, @System.Linq.Expressions.Expression 
+				endparams
+			proc
+				if(node .is. InExpression)
+				begin
+					data inExpr = (@InExpression)node
+					Visit(inExpr.Predicate)
 				end
 				mreturn node
 			endmethod

@@ -8,6 +8,7 @@ import Harmony.Core.Utility
 import Remotion.Linq.Clauses
 import System.Linq
 import System.Reflection
+import Harmony.Core.FileIO.Queryable.Expressions
 
 namespace Harmony.Core.FileIO.Queryable
 
@@ -205,11 +206,17 @@ namespace Harmony.Core.FileIO.Queryable
 			node, @System.Linq.Expressions.Expression 
 			endparams
 		proc
-			if(node.GetType().Name == "NullSafeEqualExpression")
+			if(node.GetType().Name == "NullSafeEqualExpression") then
 			begin
 				data equalExpr = node.GetType().GetProperty("EqualExpression").GetValue(node)
 				Visit((@BinaryExpression)equalExpr)
 			end
+			else if(node .is. InExpression)
+			begin
+				data inExpr = (@InExpression)node
+				mWhereStack.Push(MakePart(inExpr.Collection, FindTargetField(inExpr.Predicate, ^null), WhereClauseOperator.IsIn, ^null))
+			end
+
 			mreturn node
 		endmethod
 

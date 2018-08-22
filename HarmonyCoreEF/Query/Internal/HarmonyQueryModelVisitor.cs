@@ -9,6 +9,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Harmony.Core.EF.Extensions.Internal;
 using Harmony.Core.FileIO.Queryable;
+using Harmony.Core.FileIO.Queryable.Expressions;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
@@ -118,6 +119,7 @@ namespace Harmony.Core.EF.Query.Internal
             foreach (var bodyClause in queryModel.BodyClauses)
             {
                 var groupJoin = bodyClause as GroupJoinClause;
+                var whereClause = bodyClause as WhereClause;
                 var additionalFrom = bodyClause as AdditionalFromClause;
                 if (groupJoin != null && groupJoin.ItemName != groupJoin.JoinClause.ItemName)
                 {
@@ -130,6 +132,32 @@ namespace Harmony.Core.EF.Query.Internal
                     var flatGroupJoin = additionalFrom.TryGetFlattenedGroupJoinClause();
                     if (flatGroupJoin != null && aliasMapping.ContainsKey(flatGroupJoin))
                         aliasMapping.Add(additionalFrom, flatGroupJoin.JoinClause);
+                }
+
+                //hopefully this is supposed to be an "IN" operation is just needs to be transformated a little bit to make things work better later on in the process
+                if (whereClause != null && whereClause.Predicate is SubQueryExpression)
+                {
+                    var subQuery = whereClause.Predicate as SubQueryExpression;
+                    if (subQuery.QueryModel.MainFromClause.FromExpression is ConstantExpression)
+                    {
+                        var constant = subQuery.QueryModel.MainFromClause.FromExpression as ConstantExpression;
+                        if (constant.Value is System.Collections.IEnumerable)
+                        {
+                            var resultOperator = subQuery.QueryModel.ResultOperators.OfType<ContainsResultOperator>().FirstOrDefault();
+                            if (resultOperator != null)
+                            {
+                                var collection = (constant.Value as System.Collections.IEnumerable).OfType<object>().Select(obj => obj.ToString()).ToList();
+                                whereClause.Predicate = new InExpression { Collection = collection, Predicate = resultOperator.Item }; 
+                            }
+                            else
+                                throw new NotImplementedException();
+                            //
+                        }
+                        else
+                            throw new NotImplementedException();
+                    }
+                    else
+                        throw new NotImplementedException();
                 }
             }
 
