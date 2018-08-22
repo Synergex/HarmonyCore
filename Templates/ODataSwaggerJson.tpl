@@ -192,18 +192,6 @@
             "in": "query",
             "description": "List of properties to be returned.",
             "type": "string"
-          },
-          {
-            "name": "$filter",
-            "in": "query",
-            "description": "Filter expression to restrict returned rows.",
-            "type": "string"
-          },
-          {
-            "name": "$orderby",
-            "in": "query",
-            "description": "Order by some property",
-            "type": "string"
           }
         ],
         "responses": {
@@ -385,12 +373,6 @@
             "type": "string"
           },
           {
-            "name": "$filter",
-            "in": "query",
-            "description": "Filter expression to restrict returned rows.",
-            "type": "string"
-          },
-          {
             "name": "$select",
             "in": "query",
             "description": "List of properties to be returned.",
@@ -401,6 +383,12 @@
             "name": "$orderby",
             "in": "query",
             "description": "Order by some property",
+            "type": "string"
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "Filter expression to restrict returned rows.",
             "type": "string"
           },
           {
