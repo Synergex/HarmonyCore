@@ -69,8 +69,12 @@
 ;// Get all records
 ;//
     "/<StructurePlural>": {
+      "summary": "Get <structurePlural>",
       "get": {
-        "description": "Get all <structurePlural>",
+        "summary": "Get <structurePlural>",
+        "description": "Get all or a filtered collection of <structurePlural>.",
+        "operationId": "Get<StructurePlural>",
+        "deprecated": false,
         "tags": [
           "<StructureNoplural>",
           "Read"
@@ -79,13 +83,19 @@
           {
             "name": "$expand",
             "in": "query",
-            "description": "Expand navigation property",
+            "description": "Expand one or more navigation properties.",
             "type": "string"
           },
           {
             "name": "$select",
             "in": "query",
-            "description": "Select structural property",
+            "description": "List of properties to be returned.",
+            "type": "string"
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "Filter expression to restrict returned rows.",
             "type": "string"
           },
           {
@@ -97,20 +107,14 @@
           {
             "name": "$top",
             "in": "query",
-            "description": "Top elements",
+            "description": "Maximum number of rows to return.",
             "type": "integer"
           },
           {
             "name": "$skip",
             "in": "query",
-            "description": "Skip elements",
+            "description": "Rows to skip before starting to return data.",
             "type": "integer"
-          },
-          {
-            "name": "$count",
-            "in": "path",
-            "description": "Inlcude count in response",
-            "type": "boolean"
           }
         ],
         "responses": {
@@ -127,13 +131,24 @@
       }
     },
     "/<StructurePlural>/$count": {
+      "summary": "Count <structurePlural>",
       "get": {
-        "description": "Get count of <structurePlural>",
+        "summary": "Count <structurePlural>",
+        "description": "Count all or a filtered collection of <structurePlural>.",
+        "operationId": "Count<StructurePlural>",
+        "deprecated": false,
         "tags": [
           "<StructureNoplural>",
           "Read"
         ],
-        "parameters": [ ],
+        "parameters": [ 
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "Filter expression to restrict returned rows.",
+            "type": "string"
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -148,12 +163,15 @@
 ;//
 <PRIMARY_KEY>
     "/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{a<SegmentName>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)": {
+      "summary": "<StructureNoplural> via primary key",
 ;//   ----------------------------------------------------------------------------
-;//   Get by primary key
+;//   Get via primary key
 ;//
       "get": {
-        "description": "Get a <StructureNoplural> by primary key.",
-        "operationId": "Get a <StructureNoplural> by primary key.",
+        "summary": "Get <structureNoplural>",
+        "description": "Get a <structureNoplural> via a complete primary key.",
+        "operationId": "Get<StructureNoplural>",
+        "deprecated": false,
         "tags": [
           "<StructureNoplural>",
           "Read"
@@ -177,38 +195,14 @@
           {
             "name": "$expand",
             "in": "query",
-            "description": "Expand navigation property",
+            "description": "Expand one or more navigation properties.",
             "type": "string"
           },
           {
             "name": "$select",
             "in": "query",
-            "description": "Select structural property",
+            "description": "List of properties to be returned.",
             "type": "string"
-          },
-          {
-            "name": "$orderby",
-            "in": "query",
-            "description": "Order by some property",
-            "type": "string"
-          },
-          {
-            "name": "$top",
-            "in": "query",
-            "description": "Top elements",
-            "type": "integer"
-          },
-;//          {
-;//            "name": "$skip",
-;//            "in": "query",
-;//            "description": "Skip elements",
-;//            "type": "integer"
-;//          },
-          {
-            "name": "$count",
-            "in": "path",
-            "description": "Inlcude count in response",
-            "type": "boolean"
           }
         ],
         "responses": {
@@ -222,11 +216,13 @@
         }
       },
 ;//   ----------------------------------------------------------------------------
-;//   Delete by primary key
+;//   Delete via primary key
 ;//
       "delete": {
-        "description": "Delete a <StructureNoplural> by primary key.",
-        "operationId": "Delete a <StructureNoplural> by primary key.",
+        "summary": "Delete <structureNoplural>",
+        "description": "Delete a <structureNoplural> via a complete primary key.",
+        "operationId": "Delete<StructureNoplural>",
+        "deprecated": false,
         "tags": [
           "<StructureNoplural>",
           "Delete"
@@ -255,11 +251,13 @@
         }
       },
 ;//   ----------------------------------------------------------------------------
-;//   Create or update by primary key
+;//   Create or update via primary key
 ;//
       "put": {
-        "description": "Create or update a <StructureNoplural> by primary key.",
-        "operationId": "Create or update a <StructureNoplural> by primary key.",
+        "summary": "Create or update <structureNoplural>",
+        "description": "Create or update a <structureNoplural> via a complete primary key.",
+        "operationId": "CreateOrUpdate<StructureNoplural>",
+        "deprecated": false,
         "tags": [
           "<StructureNoplural>",
           "Create",
@@ -299,11 +297,13 @@
         }
       },
 ;//   ----------------------------------------------------------------------------
-;//   Patch by primary key
+;//   Patch via primary key
 ;//
       "patch": {
-        "description": "Patch a <StructureNoplural> by primary key.",
-        "operationId": "Patch a <StructureNoplural> by primary key.",
+        "summary": "Patch <structureNoplural>",
+        "description": "Patch a <structureNoplural> via complete primary key.",
+        "operationId": "Patch<StructureNoplural>",
+        "deprecated": false,
         "tags": [
           "<StructureNoplural>",
           "Update"
@@ -352,17 +352,21 @@
 ;//
 <ALTERNATE_KEY_LOOP>
     "/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{a<SegmentName>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)": {
+      "summary": "<IF DUPLICATES><StructurePlural><ELSE>Single <structureNolural></IF DUPLICATES> via alternate key <KeyName>",
 ;//   ----------------------------------------------------------------------------
-;//   Get by alternate key
+;//   Get via alternate key
 ;//
       "get": {
   <IF DUPLICATES>
-        "description": "Get <structurePlural> via alternate key <KEY_NAME>.",
-        "operationId": "Get <structurePlural> via alternate key <KEY_NAME>.",
+        "summary": "Get <structurePlural>",
+        "description": "Get <structurePlural> via complete alternate key <KeyName>.",
+        "operationId": "Get<StructurePlural>ByKey<KeyName>",
   <ELSE>
-        "description": "Get a <structureNoplural> via alternate key <KEY_NAME>.",
-        "operationId": "Get a <structureNoplural> via alternate key <KEY_NAME>.",
+        "summary": "Get <structureNoplural>",
+        "description": "Get a <structureNoplural> via complete alternate key <KeyName>.",
+        "operationId": "Get<StructureNoplural>ByKey<KeyName>",
   </IF DUPLICATES>
+        "deprecated": false,
         "tags": [
           "<StructureNoplural>",
 		  "Read"
@@ -386,13 +390,13 @@
           {
             "name": "$expand",
             "in": "query",
-            "description": "Expand navigation property",
+            "description": "Expand one or more navigation properties.",
             "type": "string"
           },
           {
             "name": "$select",
             "in": "query",
-            "description": "Select structural property",
+            "description": "List of properties to be returned.",
             "type": "string"
           }<IF DUPLICATES>,</IF DUPLICATES>
   <IF DUPLICATES>
@@ -403,22 +407,22 @@
             "type": "string"
           },
           {
+            "name": "$filter",
+            "in": "query",
+            "description": "Filter expression to restrict returned rows.",
+            "type": "string"
+          },
+          {
             "name": "$top",
             "in": "query",
-            "description": "Top elements",
+            "description": "Maximum number of rows to return.",
             "type": "integer"
           },
           {
             "name": "$skip",
             "in": "query",
-            "description": "Skip elements",
+            "description": "Rows to skip before starting to return data.",
             "type": "integer"
-          },
-          {
-            "name": "$count",
-            "in": "path",
-            "description": "Inlcude count in response",
-            "type": "boolean"
           }
   </IF DUPLICATES>
         ],
@@ -439,7 +443,57 @@
 ;//   ----------------------------------------------------------------------------
 ;//   End of final alternate key operation
 ;//   ----------------------------------------------------------------------------
-  }<,>
+    }<IF DUPLICATES>,<ELSE><,></IF DUPLICATES>
+  <IF DUPLICATES>
+    "/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{a<SegmentName>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)/$count": {
+    "summary": "Count <structurePlural> via alternate key <KeyName>",
+;//   ----------------------------------------------------------------------------
+;//   Get count via alternate key
+;//
+      "get": {
+        "summary": "Count <structurePlural>",
+        "description": "Count <structurePlural> via complete alternate key <KeyName>.",
+        "operationId": "Count<StructurePlural>ByKey<KeyName>",
+        "deprecated": false,
+        "tags": [
+          "<StructureNoplural>",
+		  "Read"
+        ],
+        "parameters": [ 
+<SEGMENT_LOOP>
+          {
+            "name": "a<SegmentName>",
+            "in": "path",
+            "description": "<SEGMENT_DESC>",
+            "required": true,
+            "type": "<IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>",
+<IF DATE>
+            "format": "date-time"
+</IF DATE>
+<IF TIME>
+            "format": "date-time"
+</IF TIME>
+          },
+</SEGMENT_LOOP>
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "Filter expression to restrict returned rows.",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "type": "integer"
+          }
+        }
+      }
+;//   ----------------------------------------------------------------------------
+;//   End of final alternate key operation
+;//   ----------------------------------------------------------------------------
+    }<,>
+  </IF DUPLICATES>
 </ALTERNATE_KEY_LOOP>
 <,>
 </STRUCTURE_LOOP>
