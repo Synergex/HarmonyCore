@@ -435,19 +435,6 @@ namespace SampleServices.Test.UnitTests
 		endmethod
 
 		;;------------------------------------------------------------
-		;;Customer 8 with orders, expand OrderItems and Plants
-
-		{TestMethod}
-		public method GetCustomer8WithOrdersExpand, void
-		proc
-			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync("/odata/Customers(8)?$expand=REL_Orders($expand=REL_OrderItems($expand=REL_OiItemOrdered))").Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
-		endmethod
-
-		;;------------------------------------------------------------
 		;;All OrderItems
 
 		{TestMethod}
