@@ -208,9 +208,9 @@ namespace <NAMESPACE>
 		<IF DECIMAL>
 			<IF CUSTOM_HARMONY_AS_STRING>
 				<IF PRECISION>
-				mSynergyData.<Field_name> = SynergyImpliedDecimalConverter.UnformatString(value,"<FIELD_FORMATSTRING>")
+				mSynergyData.<Field_name> = SynergyImpliedDecimalConverter.ConvertBack(value,"<FIELD_FORMATSTRING>")
 				<ELSE>
-				mSynergyData.<Field_name> = SynergyDecimalConverter.UnformatString(value,"<FIELD_FORMATSTRING>")
+				mSynergyData.<Field_name> = SynergyDecimalConverter.ConvertBack(value,"<FIELD_FORMATSTRING>")
 				</IF PRECISION>
 			<ELSE>
 				mSynergyData.<Field_name> = value

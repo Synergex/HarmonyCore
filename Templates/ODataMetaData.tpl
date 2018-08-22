@@ -102,9 +102,17 @@ namespace <NAMESPACE>
 ;//
 
 <FIELD_LOOP>
-	<IF CUSTOM_NOT_HARMONY_EXCLUDE>
+    <IF CUSTOM_NOT_HARMONY_EXCLUDE>
+      <IF CUSTOM_HARMONY_AS_STRING>
+            AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false, new SynergyDecimalConverter.LiteralFormatter("<FIELD_FORMATSTRING>"))
+      <ELSE>
+        <IF DATE>
+            AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false, new SynergyDecimalDateConverter.LiteralFormatter("FORMAT:YYYYMMDD"))
+        <ELSE>
 			AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false)
-	</IF CUSTOM_NOT_HARMONY_EXCLUDE>
+        </IF DATE>
+      </IF CUSTOM_HARMONY_AS_STRING>
+    </IF CUSTOM_NOT_HARMONY_EXCLUDE>
 </FIELD_LOOP>
 ;//
 ;//

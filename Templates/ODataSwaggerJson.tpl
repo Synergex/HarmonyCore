@@ -11,6 +11,10 @@
 <REQUIRES_USERTOKEN>SERVER_HTTPS_PORT</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVER_NAME</REQUIRES_USERTOKEN>
 {
+;//----------------------------------------------------------------------------
+;//
+;// Document header
+;//
   "swagger": "2.0",
   "info": {
     "description": "<API_DESCRIPTION>",
@@ -25,6 +29,11 @@
   "schemes": [ "https" ],
   "consumes": [ "application/json" ],
   "produces": [ "application/json" ],
+;//
+;//----------------------------------------------------------------------------
+;//
+;// Tags that can be applied to operations to categorize them
+;//
   "tags": [
 <STRUCTURE_LOOP>
     {
@@ -34,29 +43,34 @@
 </STRUCTURE_LOOP>
     {
       "name": "Create",
-      "description": "All create operations",
+      "description": "Create operations",
     },
     {
       "name": "Read",
-      "description": "All read operations",
+      "description": "Read operations",
     },
     {
       "name": "Update",
-      "description": "All update operations",
+      "description": "Update operations",
     },
     {
       "name": "Delete",
-      "description": "All delete operations",
+      "description": "Delete operations",
     }
   ],
+;//----------------------------------------------------------------------------
+;//
+;// Operation paths
+;//
   "paths": {
 <STRUCTURE_LOOP>
+;//----------------------------------------------------------------------------
 ;//
-;// Get all
+;// Get all records
 ;//
     "/<StructurePlural>": {
       "get": {
-        "description": "Get all <StructurePlural>",
+        "description": "Get all <structurePlural>",
         "tags": [
           "<StructureNoplural>",
           "Read"
@@ -86,15 +100,15 @@
             "description": "Top elements",
             "type": "integer"
           },
-;//          {
-;//            "name": "$skip",
-;//            "in": "query",
-;//            "description": "Skip elements",
-;//            "type": "integer"
-;//          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "Skip elements",
+            "type": "integer"
+          },
           {
             "name": "$count",
-            "in": "query",
+            "in": "path",
             "description": "Inlcude count in response",
             "type": "boolean"
           }
@@ -112,11 +126,31 @@
         }
       }
     },
+    "/<StructurePlural>/$count": {
+      "get": {
+        "description": "Get count of <structurePlural>",
+        "tags": [
+          "<StructureNoplural>",
+          "Read"
+        ],
+        "parameters": [ ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "type": "integer"
+          }
+        }
+      }
+    },
+;//----------------------------------------------------------------------------
 ;//
-;// Get single by primary key
+;// Primary key operations
 ;//
 <PRIMARY_KEY>
     "/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{a<SegmentName>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)": {
+;//   ----------------------------------------------------------------------------
+;//   Get by primary key
+;//
       "get": {
         "description": "Get a <StructureNoplural> by primary key.",
         "operationId": "Get a <StructureNoplural> by primary key.",
@@ -172,7 +206,7 @@
 ;//          },
           {
             "name": "$count",
-            "in": "query",
+            "in": "path",
             "description": "Inlcude count in response",
             "type": "boolean"
           }
@@ -187,6 +221,9 @@
           }
         }
       },
+;//   ----------------------------------------------------------------------------
+;//   Delete by primary key
+;//
       "delete": {
         "description": "Delete a <StructureNoplural> by primary key.",
         "operationId": "Delete a <StructureNoplural> by primary key.",
@@ -217,6 +254,9 @@
           }
         }
       },
+;//   ----------------------------------------------------------------------------
+;//   Create or update by primary key
+;//
       "put": {
         "description": "Create or update a <StructureNoplural> by primary key.",
         "operationId": "Create or update a <StructureNoplural> by primary key.",
@@ -258,6 +298,9 @@
           }
         }
       },
+;//   ----------------------------------------------------------------------------
+;//   Patch by primary key
+;//
       "patch": {
         "description": "Patch a <StructureNoplural> by primary key.",
         "operationId": "Patch a <StructureNoplural> by primary key.",
@@ -298,13 +341,28 @@
           }
         }
       }
+;//   ----------------------------------------------------------------------------
+;//   End of final primary key operation
+;//   ----------------------------------------------------------------------------
     },
 </PRIMARY_KEY>
+;//----------------------------------------------------------------------------
+;//
+;// Full alternate key operations
+;//
 <ALTERNATE_KEY_LOOP>
     "/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{a<SegmentName>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)": {
+;//   ----------------------------------------------------------------------------
+;//   Get by alternate key
+;//
       "get": {
-        "description": "Get a <StructureNoplural> by alternate key <KEY_NAME>.",
-        "operationId": "Get a <StructureNoplural> by alternate key <KEY_NAME>.",
+  <IF DUPLICATES>
+        "description": "Get <structurePlural> via alternate key <KEY_NAME>.",
+        "operationId": "Get <structurePlural> via alternate key <KEY_NAME>.",
+  <ELSE>
+        "description": "Get a <structureNoplural> via alternate key <KEY_NAME>.",
+        "operationId": "Get a <structureNoplural> via alternate key <KEY_NAME>.",
+  </IF DUPLICATES>
         "tags": [
           "<StructureNoplural>",
 		  "Read"
@@ -336,7 +394,8 @@
             "in": "query",
             "description": "Select structural property",
             "type": "string"
-          },
+          }<IF DUPLICATES>,</IF DUPLICATES>
+  <IF DUPLICATES>
           {
             "name": "$orderby",
             "in": "query",
@@ -349,34 +408,45 @@
             "description": "Top elements",
             "type": "integer"
           },
-;//          {
-;//            "name": "$skip",
-;//            "in": "query",
-;//            "description": "Skip elements",
-;//            "type": "integer"
-;//          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "Skip elements",
+            "type": "integer"
+          },
           {
             "name": "$count",
-            "in": "query",
+            "in": "path",
             "description": "Inlcude count in response",
             "type": "boolean"
           }
+  </IF DUPLICATES>
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
+  <IF DUPLICATES>
+              "type": "array",
+  <ELSE>
               "type": "object",
+  </IF DUPLICATES>
               "$ref": "#/definitions/<StructureNoplural>"
             }
           }
         }
       }
+;//   ----------------------------------------------------------------------------
+;//   End of final alternate key operation
+;//   ----------------------------------------------------------------------------
   }<,>
 </ALTERNATE_KEY_LOOP>
 <,>
 </STRUCTURE_LOOP>
   },
+;//----------------------------------------------------------------------------
+;// Configure an authentication server (Needs more work before implementation)
+;//
 ;//  "securityDefinitions": {
 ;//    "oauth2schema": {
 ;//      "type": "oauth2",
@@ -387,6 +457,9 @@
 ;//      }
 ;//    }
 ;//  },
+;//----------------------------------------------------------------------------
+;// Definitions of data models
+;//
   "definitions": {
 <STRUCTURE_LOOP>
     "<StructureNoplural>": {
@@ -470,6 +543,9 @@
       }
     },
 </STRUCTURE_LOOP>
+;//----------------------------------------------------------------------------
+;// Deta model definitions for PATCH requests
+;//
     "PatchRequest": {
       "type": "array",
       "items": {
@@ -510,4 +586,5 @@
       }
     }
   }
+;//----------------------------------------------------------------------------
 }
