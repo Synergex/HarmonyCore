@@ -79,13 +79,19 @@
           {
             "name": "$expand",
             "in": "query",
-            "description": "Expand navigation property",
+            "description": "Expand one or more navigation properties.",
             "type": "string"
           },
           {
             "name": "$select",
             "in": "query",
-            "description": "Select structural property",
+            "description": "List of properties to be returned.",
+            "type": "string"
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "Filter expression to restrict returned rows.",
             "type": "string"
           },
           {
@@ -97,20 +103,14 @@
           {
             "name": "$top",
             "in": "query",
-            "description": "Top elements",
+            "description": "Maximum number of rows to return.",
             "type": "integer"
           },
           {
             "name": "$skip",
             "in": "query",
-            "description": "Skip elements",
+            "description": "Rows to skip before starting to return data.",
             "type": "integer"
-          },
-          {
-            "name": "$count",
-            "in": "path",
-            "description": "Inlcude count in response",
-            "type": "boolean"
           }
         ],
         "responses": {
@@ -133,7 +133,14 @@
           "<StructureNoplural>",
           "Read"
         ],
-        "parameters": [ ],
+        "parameters": [ 
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "Filter expression to restrict returned rows.",
+            "type": "string"
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -177,13 +184,19 @@
           {
             "name": "$expand",
             "in": "query",
-            "description": "Expand navigation property",
+            "description": "Expand one or more navigation properties.",
             "type": "string"
           },
           {
             "name": "$select",
             "in": "query",
-            "description": "Select structural property",
+            "description": "List of properties to be returned.",
+            "type": "string"
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "Filter expression to restrict returned rows.",
             "type": "string"
           },
           {
@@ -191,24 +204,6 @@
             "in": "query",
             "description": "Order by some property",
             "type": "string"
-          },
-          {
-            "name": "$top",
-            "in": "query",
-            "description": "Top elements",
-            "type": "integer"
-          },
-;//          {
-;//            "name": "$skip",
-;//            "in": "query",
-;//            "description": "Skip elements",
-;//            "type": "integer"
-;//          },
-          {
-            "name": "$count",
-            "in": "path",
-            "description": "Inlcude count in response",
-            "type": "boolean"
           }
         ],
         "responses": {
@@ -386,13 +381,19 @@
           {
             "name": "$expand",
             "in": "query",
-            "description": "Expand navigation property",
+            "description": "Expand one or more navigation properties.",
+            "type": "string"
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "Filter expression to restrict returned rows.",
             "type": "string"
           },
           {
             "name": "$select",
             "in": "query",
-            "description": "Select structural property",
+            "description": "List of properties to be returned.",
             "type": "string"
           }<IF DUPLICATES>,</IF DUPLICATES>
   <IF DUPLICATES>
@@ -405,20 +406,14 @@
           {
             "name": "$top",
             "in": "query",
-            "description": "Top elements",
+            "description": "Maximum number of rows to return.",
             "type": "integer"
           },
           {
             "name": "$skip",
             "in": "query",
-            "description": "Skip elements",
+            "description": "Rows to skip before starting to return data.",
             "type": "integer"
-          },
-          {
-            "name": "$count",
-            "in": "path",
-            "description": "Inlcude count in response",
-            "type": "boolean"
           }
   </IF DUPLICATES>
         ],
@@ -439,7 +434,54 @@
 ;//   ----------------------------------------------------------------------------
 ;//   End of final alternate key operation
 ;//   ----------------------------------------------------------------------------
-  }<,>
+    }<IF DUPLICATES>,<ELSE><,></IF DUPLICATES>
+  <IF DUPLICATES>
+    "/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{a<SegmentName>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)/$count": {
+;//   ----------------------------------------------------------------------------
+;//   Get count by alternate key
+;//
+      "get": {
+        "description": "Get count of <structurePlural> via alternate key <KEY_NAME>.",
+        "operationId": "Get count of <structurePlural> via alternate key <KEY_NAME>.",
+        "tags": [
+          "<StructureNoplural>",
+		  "Read"
+        ],
+        "parameters": [ 
+<SEGMENT_LOOP>
+          {
+            "name": "a<SegmentName>",
+            "in": "path",
+            "description": "<SEGMENT_DESC>",
+            "required": true,
+            "type": "<IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>",
+<IF DATE>
+            "format": "date-time"
+</IF DATE>
+<IF TIME>
+            "format": "date-time"
+</IF TIME>
+          },
+</SEGMENT_LOOP>
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "Filter expression to restrict returned rows.",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "type": "integer"
+          }
+        }
+      }
+;//   ----------------------------------------------------------------------------
+;//   End of final alternate key operation
+;//   ----------------------------------------------------------------------------
+    }<,>
+  </IF DUPLICATES>
 </ALTERNATE_KEY_LOOP>
 <,>
 </STRUCTURE_LOOP>
