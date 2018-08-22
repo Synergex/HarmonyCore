@@ -209,7 +209,7 @@ namespace SampleServices.Test.UnitTests
 
 			;TODO: Also need to ensure any nodups alternate keys get unique values
 
-			;;Update it
+			;;Create new item
 			disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doCustomer),System.Text.Encoding.UTF8, "application/json")
 			data request = String.Format("/odata/Customers(CustKey={1})","",TestConstants.UpdateCustomer_CustKey)
 			disposable data response = client.PutAsync(request, requestBody).Result
@@ -227,7 +227,28 @@ namespace SampleServices.Test.UnitTests
 			;;Deserialize the JSON into a Customer object
 			doCustomer = JsonConvert.DeserializeObject<Customer>(getResult)
 
-			Assert.AreEqual(doCustomer.CustKey, TestConstants.UpdateCustomer_CustKey)
+			;;Change the first non key field to test full update
+			doCustomer.CustName = "Y"
+
+			;;Update full item
+			requestBody = new StringContent(JsonConvert.SerializeObject(doCustomer),System.Text.Encoding.UTF8, "application/json")
+			request = String.Format("/odata/Customers(CustKey={1})","",TestConstants.UpdateCustomer_CustKey)
+			response = client.PutAsync(request, requestBody).Result
+
+			;;Check that we got a successful response from the web service
+			response.EnsureSuccessStatusCode()
+
+			;;Get the inserted record
+			getResponse = client.GetAsync(request).Result
+			getResult = getResponse.Content.ReadAsStringAsync().Result
+
+			;;Check that we got a successful response from the web service
+			getResponse.EnsureSuccessStatusCode()
+
+			;;Deserialize the JSON into a Customer object
+			doCustomer = JsonConvert.DeserializeObject<Customer>(getResult)
+
+			Assert.AreEqual(doCustomer.CustName, "Y")
 
 			;;Update one property in the customer
 			data patchDoc = new JsonPatchDocument()

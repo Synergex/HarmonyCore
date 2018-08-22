@@ -294,7 +294,7 @@ namespace <NAMESPACE>
 
 			;TODO: Also need to ensure any nodups alternate keys get unique values
 
-			;;Update it
+			;;Create new item
 			disposable data requestBody = new StringContent(JsonConvert.SerializeObject(do<StructureNoplural>),System.Text.Encoding.UTF8, "application/json")
 			data request = String.Format("/odata/<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)","",<SEGMENT_LOOP>TestConstants.Update<StructureNoplural>_<SegmentName><,></SEGMENT_LOOP></PRIMARY_KEY>)
 			disposable data response = client.PutAsync(request, requestBody).Result
@@ -312,11 +312,52 @@ namespace <NAMESPACE>
 			;;Deserialize the JSON into a <StructureNoplural> object
 			do<StructureNoplural> = JsonConvert.DeserializeObject<<StructureNoplural>>(getResult)
 
-			<PRIMARY_KEY>
-			<SEGMENT_LOOP>
-			Assert.AreEqual(do<StructureNoplural>.<FieldSqlName>, TestConstants.Update<StructureNoplural>_<SegmentName>)
-			</SEGMENT_LOOP>
-			</PRIMARY_KEY>
+			;;Change the first non key field to test full update
+			<COUNTER_1_RESET>
+			<FIELD_LOOP>
+			<IF NOTKEYSEGMENT>
+			<COUNTER_1_INCREMENT>
+			<IF COUNTER_1_EQ_1>
+			<IF ALPHA>
+			do<StructureNoplural>.<FieldSqlName> = "Y"
+			<ELSE>
+			do<StructureNoplural>.<FieldSqlName> = 8
+			</IF ALPHA>
+			</IF COUNTER_1_EQ_1>
+			</IF NOTKEYSEGMENT>
+			</FIELD_LOOP>
+
+			;;Update full item
+			requestBody = new StringContent(JsonConvert.SerializeObject(do<StructureNoplural>),System.Text.Encoding.UTF8, "application/json")
+			request = String.Format("/odata/<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)","",<SEGMENT_LOOP>TestConstants.Update<StructureNoplural>_<SegmentName><,></SEGMENT_LOOP></PRIMARY_KEY>)
+			response = client.PutAsync(request, requestBody).Result
+
+			;;Check that we got a successful response from the web service
+			response.EnsureSuccessStatusCode()
+
+			;;Get the inserted record
+			getResponse = client.GetAsync(request).Result
+			getResult = getResponse.Content.ReadAsStringAsync().Result
+
+			;;Check that we got a successful response from the web service
+			getResponse.EnsureSuccessStatusCode()
+
+			;;Deserialize the JSON into a <StructureNoplural> object
+			do<StructureNoplural> = JsonConvert.DeserializeObject<<StructureNoplural>>(getResult)
+
+			<COUNTER_1_RESET>
+			<FIELD_LOOP>
+			<IF NOTKEYSEGMENT>
+			<COUNTER_1_INCREMENT>
+			<IF COUNTER_1_EQ_1>
+			<IF ALPHA>
+			Assert.AreEqual(do<StructureNoplural>.<FieldSqlName>, "Y")
+			<ELSE>
+			Assert.AreEqual(do<StructureNoplural>.<FieldSqlName>, 8)
+			</IF ALPHA>
+			</IF COUNTER_1_EQ_1>
+			</IF NOTKEYSEGMENT>
+			</FIELD_LOOP>
 
 			;;Update one property in the <structureNoplural>
 			data patchDoc = new JsonPatchDocument()

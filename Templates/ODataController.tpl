@@ -115,8 +115,7 @@ namespace <NAMESPACE>
 
 		{ODataRoute("<StructurePlural>")}
 ;//		{ProducesResponseType(^typeof(IEnumerable<<StructureNoplural>>), 200)}
-		{EnableQuery}
-		;{EnableQuery(MaxExpansionDepth=3, MaxSkip=10, MaxTop=5, PageSize=4)}
+		{EnableQuery<API_ENABLE_QUERY_PARAMS>}
 		;;; <summary>
 		;;; Get all <StructurePlural>
 		;;; </summary>
@@ -129,7 +128,7 @@ namespace <NAMESPACE>
 		<PRIMARY_KEY>
 		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
 ;//		{ProducesResponseType(^typeof(<StructureNoplural>), 200)}
-		{EnableQuery}
+		{EnableQuery<API_ENABLE_QUERY_PARAMS>}
 		;;; <summary>
 		;;; Get a single <StructureNoplural> by primary key.
 		;;; </summary>
@@ -152,7 +151,7 @@ namespace <NAMESPACE>
 <IF DUPLICATES>
 		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
 ;//		{ProducesResponseType(^typeof(<StructureNoplural>), 200)}
-		{EnableQuery}
+		{EnableQuery<API_ENABLE_QUERY_PARAMS>}
 		;;; <summary>
 		;;; Get <structurePlural> by alternate key key <KeyName>.
 		;;; </summary>
@@ -174,7 +173,7 @@ namespace <NAMESPACE>
 <ELSE>
 		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
 ;//		{ProducesResponseType(^typeof(<StructureNoplural>), 200)}
-		{EnableQuery}
+		{EnableQuery<API_ENABLE_QUERY_PARAMS>}
 		;;; <summary>
 		;;; Get <structureNoplural> by alternate key <KeyName>.
 		;;; </summary>

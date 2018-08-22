@@ -240,7 +240,7 @@ namespace SampleServices.Test.UnitTests
 
 			;TODO: Also need to ensure any nodups alternate keys get unique values
 
-			;;Update it
+			;;Create new item
 			disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doOrderItem),System.Text.Encoding.UTF8, "application/json")
 			data request = String.Format("/odata/OrderItems(OiNumber={1},OiLineItem={2})","",TestConstants.UpdateOrderItem_OiNumber,TestConstants.UpdateOrderItem_OiLineItem)
 			disposable data response = client.PutAsync(request, requestBody).Result
@@ -258,8 +258,28 @@ namespace SampleServices.Test.UnitTests
 			;;Deserialize the JSON into a OrderItem object
 			doOrderItem = JsonConvert.DeserializeObject<OrderItem>(getResult)
 
-			Assert.AreEqual(doOrderItem.OiNumber, TestConstants.UpdateOrderItem_OiNumber)
-			Assert.AreEqual(doOrderItem.OiLineItem, TestConstants.UpdateOrderItem_OiLineItem)
+			;;Change the first non key field to test full update
+			doOrderItem.OiQty = 8
+
+			;;Update full item
+			requestBody = new StringContent(JsonConvert.SerializeObject(doOrderItem),System.Text.Encoding.UTF8, "application/json")
+			request = String.Format("/odata/OrderItems(OiNumber={1},OiLineItem={2})","",TestConstants.UpdateOrderItem_OiNumber,TestConstants.UpdateOrderItem_OiLineItem)
+			response = client.PutAsync(request, requestBody).Result
+
+			;;Check that we got a successful response from the web service
+			response.EnsureSuccessStatusCode()
+
+			;;Get the inserted record
+			getResponse = client.GetAsync(request).Result
+			getResult = getResponse.Content.ReadAsStringAsync().Result
+
+			;;Check that we got a successful response from the web service
+			getResponse.EnsureSuccessStatusCode()
+
+			;;Deserialize the JSON into a OrderItem object
+			doOrderItem = JsonConvert.DeserializeObject<OrderItem>(getResult)
+
+			Assert.AreEqual(doOrderItem.OiQty, 8)
 
 			;;Update one property in the orderItem
 			data patchDoc = new JsonPatchDocument()
