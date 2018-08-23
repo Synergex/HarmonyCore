@@ -69,8 +69,6 @@ namespace SampleServices.Controllers
 			this.DBContext = dbContext
 		endmethod
 
-.region "READ"
-
 		{ODataRoute("Orders")}
 		{EnableQuery(MaxExpansionDepth=3)}
 		;;; <summary>
@@ -91,11 +89,11 @@ namespace SampleServices.Controllers
 		;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Get, @SingleResult<Order>
 			{FromODataUri}
-            required in aOrNumber, int
+			required in aOrNumber, int
 		proc
 			mreturn new SingleResult<Order>(DBContext.Orders.FindQuery<Order>(aOrNumber))
 		endmethod
-		
+
 		{ODataRoute("Orders(OrCustomer={aOrCustomer})")}
 		{EnableQuery(MaxExpansionDepth=3)}
 		;;; <summary>
@@ -147,9 +145,6 @@ namespace SampleServices.Controllers
 			mreturn Ok(result)
 		endmethod
 
-.endregion
-
-.region "READ Individual Properties"
 		{ODataRoute("Orders({key})/OrNumber")}
 		;;; <summary>
 		;;; Get the OrNumber property of a single Order, by primary key.
@@ -160,7 +155,7 @@ namespace SampleServices.Controllers
 		;;;</returns>
 		public method GetOrNumber, @IActionResult
 			{FromODataUri}
-            required in key, int
+			required in key, int
 		proc
 			data result = DBContext.Orders.Find(key)
 			if (result==^null)
@@ -178,7 +173,7 @@ namespace SampleServices.Controllers
 		;;;</returns>
 		public method GetOrCustomer, @IActionResult
 			{FromODataUri}
-            required in key, int
+			required in key, int
 		proc
 			data result = DBContext.Orders.Find(key)
 			if (result==^null)
@@ -196,7 +191,7 @@ namespace SampleServices.Controllers
 		;;;</returns>
 		public method GetOrPlacedBy, @IActionResult
 			{FromODataUri}
-            required in key, int
+			required in key, int
 		proc
 			data result = DBContext.Orders.Find(key)
 			if (result==^null)
@@ -214,7 +209,7 @@ namespace SampleServices.Controllers
 		;;;</returns>
 		public method GetOrCustomerRef, @IActionResult
 			{FromODataUri}
-            required in key, int
+			required in key, int
 		proc
 			data result = DBContext.Orders.Find(key)
 			if (result==^null)
@@ -232,7 +227,7 @@ namespace SampleServices.Controllers
 		;;;</returns>
 		public method GetOrTerms, @IActionResult
 			{FromODataUri}
-            required in key, int
+			required in key, int
 		proc
 			data result = DBContext.Orders.Find(key)
 			if (result==^null)
@@ -250,7 +245,7 @@ namespace SampleServices.Controllers
 		;;;</returns>
 		public method GetOrOrdered, @IActionResult
 			{FromODataUri}
-            required in key, int
+			required in key, int
 		proc
 			data result = DBContext.Orders.Find(key)
 			if (result==^null)
@@ -268,7 +263,7 @@ namespace SampleServices.Controllers
 		;;;</returns>
 		public method GetOrCompleted, @IActionResult
 			{FromODataUri}
-            required in key, int
+			required in key, int
 		proc
 			data result = DBContext.Orders.Find(key)
 			if (result==^null)
@@ -286,17 +281,13 @@ namespace SampleServices.Controllers
 		;;;</returns>
 		public method GetNoname001, @IActionResult
 			{FromODataUri}
-            required in key, int
+			required in key, int
 		proc
 			data result = DBContext.Orders.Find(key)
 			if (result==^null)
 				mreturn NotFound()
 			mreturn OK(result.Noname001)
 		endmethod
-
-.endregion
-
-.region "CREATE"
 
 		{ODataRoute("Orders(OrNumber={aOrNumber})")}
 		;;; <summary>
@@ -306,7 +297,7 @@ namespace SampleServices.Controllers
 		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Put, @IActionResult
 			{FromODataUri}
-            required in aOrNumber, int
+			required in aOrNumber, int
 			{FromBody}
 			required in aOrder, @Order
 		proc
@@ -315,7 +306,7 @@ namespace SampleServices.Controllers
 				mreturn BadRequest(ModelState)
 
 			;;Ensure that the key values in the URI win over any data that may be in the model object
-            aOrder.OrNumber = aOrNumber
+			aOrder.OrNumber = aOrNumber
 
 			try
 			begin
@@ -341,10 +332,6 @@ namespace SampleServices.Controllers
 
 		endmethod
 
-.endregion
-
-.region "UPDATE"
-
 		{ODataRoute("Orders(OrNumber={aOrNumber})")}
 		;;; <summary>
 		;;; Patch  (partial update) a order.
@@ -353,7 +340,7 @@ namespace SampleServices.Controllers
 		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Patch, @IActionResult
 			{FromODataUri}
-            required in aOrNumber, int
+			required in aOrNumber, int
 			{FromBody}
 			required in aOrder, @JsonPatchDocument<Order>
 		proc
@@ -388,10 +375,6 @@ namespace SampleServices.Controllers
 
 		endmethod
 
-.endregion
-
-.region "DELETE"
-
 		{ODataRoute("Orders(OrNumber={aOrNumber})")}
 		;;; <summary>
 		;;; Delete a order.
@@ -400,7 +383,7 @@ namespace SampleServices.Controllers
 		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Delete, @IActionResult
 			{FromODataUri}
-            required in aOrNumber, int
+			required in aOrNumber, int
 		proc
 			;;Get the order to be deleted
 			data orderToRemove = DBContext.Orders.Find(aOrNumber)
@@ -416,8 +399,6 @@ namespace SampleServices.Controllers
 			mreturn NoContent()
 
 		endmethod
-
-.endregion
 
 	endclass
 

@@ -69,8 +69,6 @@ namespace SampleServices.Controllers
 			this.DBContext = dbContext
 		endmethod
 
-.region "READ"
-
 		{ODataRoute("OrderItems")}
 		{EnableQuery(MaxExpansionDepth=3)}
 		;;; <summary>
@@ -92,13 +90,13 @@ namespace SampleServices.Controllers
 		;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Get, @SingleResult<OrderItem>
 			{FromODataUri}
-            required in aOiNumber, int
+			required in aOiNumber, int
 			{FromODataUri}
-            required in aOiLineItem, int
+			required in aOiLineItem, int
 		proc
 			mreturn new SingleResult<OrderItem>(DBContext.OrderItems.FindQuery<OrderItem>(aOiNumber,aOiLineItem))
 		endmethod
-		
+
 		{ODataRoute("OrderItems(OiItemOrdered={aOiItemOrdered})")}
 		{EnableQuery(MaxExpansionDepth=3)}
 		;;; <summary>
@@ -150,9 +148,6 @@ namespace SampleServices.Controllers
 			mreturn Ok(result)
 		endmethod
 
-.endregion
-
-.region "READ Individual Properties"
 		{ODataRoute("OrderItems(OiNumber={aOiNumber},OiLineItem={aOiLineItem})/OiNumber")}
 		;;; <summary>
 		;;; Get the OiNumber property of a single OrderItem, by primary key.
@@ -164,9 +159,9 @@ namespace SampleServices.Controllers
 		;;;</returns>
 		public method GetOiNumber, @IActionResult
 			{FromODataUri}
-            required in aOiNumber, int
+			required in aOiNumber, int
 			{FromODataUri}
-            required in aOiLineItem, int
+			required in aOiLineItem, int
 		proc
 			data result = DBContext.OrderItems.Find(aOiNumber,aOiLineItem)
 			if (result==^null)
@@ -185,9 +180,9 @@ namespace SampleServices.Controllers
 		;;;</returns>
 		public method GetOiLineItem, @IActionResult
 			{FromODataUri}
-            required in aOiNumber, int
+			required in aOiNumber, int
 			{FromODataUri}
-            required in aOiLineItem, int
+			required in aOiLineItem, int
 		proc
 			data result = DBContext.OrderItems.Find(aOiNumber,aOiLineItem)
 			if (result==^null)
@@ -206,9 +201,9 @@ namespace SampleServices.Controllers
 		;;;</returns>
 		public method GetOiItemOrdered, @IActionResult
 			{FromODataUri}
-            required in aOiNumber, int
+			required in aOiNumber, int
 			{FromODataUri}
-            required in aOiLineItem, int
+			required in aOiLineItem, int
 		proc
 			data result = DBContext.OrderItems.Find(aOiNumber,aOiLineItem)
 			if (result==^null)
@@ -227,9 +222,9 @@ namespace SampleServices.Controllers
 		;;;</returns>
 		public method GetOiQty, @IActionResult
 			{FromODataUri}
-            required in aOiNumber, int
+			required in aOiNumber, int
 			{FromODataUri}
-            required in aOiLineItem, int
+			required in aOiLineItem, int
 		proc
 			data result = DBContext.OrderItems.Find(aOiNumber,aOiLineItem)
 			if (result==^null)
@@ -248,9 +243,9 @@ namespace SampleServices.Controllers
 		;;;</returns>
 		public method GetOiUnitPrice, @IActionResult
 			{FromODataUri}
-            required in aOiNumber, int
+			required in aOiNumber, int
 			{FromODataUri}
-            required in aOiLineItem, int
+			required in aOiLineItem, int
 		proc
 			data result = DBContext.OrderItems.Find(aOiNumber,aOiLineItem)
 			if (result==^null)
@@ -269,9 +264,9 @@ namespace SampleServices.Controllers
 		;;;</returns>
 		public method GetOiShipped, @IActionResult
 			{FromODataUri}
-            required in aOiNumber, int
+			required in aOiNumber, int
 			{FromODataUri}
-            required in aOiLineItem, int
+			required in aOiLineItem, int
 		proc
 			data result = DBContext.OrderItems.Find(aOiNumber,aOiLineItem)
 			if (result==^null)
@@ -290,19 +285,15 @@ namespace SampleServices.Controllers
 		;;;</returns>
 		public method GetOiInvoice, @IActionResult
 			{FromODataUri}
-            required in aOiNumber, int
+			required in aOiNumber, int
 			{FromODataUri}
-            required in aOiLineItem, int
+			required in aOiLineItem, int
 		proc
 			data result = DBContext.OrderItems.Find(aOiNumber,aOiLineItem)
 			if (result==^null)
 				mreturn NotFound()
 			mreturn OK(result.OiInvoice)
 		endmethod
-
-.endregion
-
-.region "CREATE"
 
 		{ODataRoute("OrderItems(OiNumber={aOiNumber},OiLineItem={aOiLineItem})")}
 		;;; <summary>
@@ -313,9 +304,9 @@ namespace SampleServices.Controllers
 		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Put, @IActionResult
 			{FromODataUri}
-            required in aOiNumber, int
+			required in aOiNumber, int
 			{FromODataUri}
-            required in aOiLineItem, int
+			required in aOiLineItem, int
 			{FromBody}
 			required in aOrderItem, @OrderItem
 		proc
@@ -324,8 +315,8 @@ namespace SampleServices.Controllers
 				mreturn BadRequest(ModelState)
 
 			;;Ensure that the key values in the URI win over any data that may be in the model object
-            aOrderItem.OiNumber = aOiNumber
-            aOrderItem.OiLineItem = aOiLineItem
+			aOrderItem.OiNumber = aOiNumber
+			aOrderItem.OiLineItem = aOiLineItem
 
 			try
 			begin
@@ -351,10 +342,6 @@ namespace SampleServices.Controllers
 
 		endmethod
 
-.endregion
-
-.region "UPDATE"
-
 		{ODataRoute("OrderItems(OiNumber={aOiNumber},OiLineItem={aOiLineItem})")}
 		;;; <summary>
 		;;; Patch  (partial update) a orderItem.
@@ -364,9 +351,9 @@ namespace SampleServices.Controllers
 		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Patch, @IActionResult
 			{FromODataUri}
-            required in aOiNumber, int
+			required in aOiNumber, int
 			{FromODataUri}
-            required in aOiLineItem, int
+			required in aOiLineItem, int
 			{FromBody}
 			required in aOrderItem, @JsonPatchDocument<OrderItem>
 		proc
@@ -401,10 +388,6 @@ namespace SampleServices.Controllers
 
 		endmethod
 
-.endregion
-
-.region "DELETE"
-
 		{ODataRoute("OrderItems(OiNumber={aOiNumber},OiLineItem={aOiLineItem})")}
 		;;; <summary>
 		;;; Delete a orderItem.
@@ -414,9 +397,9 @@ namespace SampleServices.Controllers
 		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Delete, @IActionResult
 			{FromODataUri}
-            required in aOiNumber, int
+			required in aOiNumber, int
 			{FromODataUri}
-            required in aOiLineItem, int
+			required in aOiLineItem, int
 		proc
 			;;Get the orderItem to be deleted
 			data orderItemToRemove = DBContext.OrderItems.Find(aOiNumber,aOiLineItem)
@@ -432,8 +415,6 @@ namespace SampleServices.Controllers
 			mreturn NoContent()
 
 		endmethod
-
-.endregion
 
 	endclass
 
