@@ -254,7 +254,7 @@ namespace SampleServices.Test.UnitTests
 
 			;TODO: Also need to ensure any nodups alternate keys get unique values
 
-			;;Update it
+			;;Create new item
 			disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doPlant),System.Text.Encoding.UTF8, "application/json")
 			data request = String.Format("/odata/Plants(InItemid={1})","",TestConstants.UpdatePlant_InItemid)
 			disposable data response = client.PutAsync(request, requestBody).Result
@@ -272,7 +272,28 @@ namespace SampleServices.Test.UnitTests
 			;;Deserialize the JSON into a Plant object
 			doPlant = JsonConvert.DeserializeObject<Plant>(getResult)
 
-			Assert.AreEqual(doPlant.InItemid, TestConstants.UpdatePlant_InItemid)
+			;;Change the first non key field to test full update
+			doPlant.InLatin = "Y"
+
+			;;Update full item
+			requestBody = new StringContent(JsonConvert.SerializeObject(doPlant),System.Text.Encoding.UTF8, "application/json")
+			request = String.Format("/odata/Plants(InItemid={1})","",TestConstants.UpdatePlant_InItemid)
+			response = client.PutAsync(request, requestBody).Result
+
+			;;Check that we got a successful response from the web service
+			response.EnsureSuccessStatusCode()
+
+			;;Get the inserted record
+			getResponse = client.GetAsync(request).Result
+			getResult = getResponse.Content.ReadAsStringAsync().Result
+
+			;;Check that we got a successful response from the web service
+			getResponse.EnsureSuccessStatusCode()
+
+			;;Deserialize the JSON into a Plant object
+			doPlant = JsonConvert.DeserializeObject<Plant>(getResult)
+
+			Assert.AreEqual(doPlant.InLatin, "Y")
 
 			;;Update one property in the plant
 			data patchDoc = new JsonPatchDocument()

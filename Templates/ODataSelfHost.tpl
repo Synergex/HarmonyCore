@@ -3,6 +3,7 @@
 <REQUIRES_USERTOKEN>SERVICES_NAMESPACE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVER_HTTP_PORT</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVER_HTTPS_PORT</REQUIRES_USERTOKEN>
+<REQUIRES_USERTOKEN>UNIT_TESTS_NAMESPACE</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
 ;// Title:       ODataSelfHost.tpl
@@ -83,6 +84,7 @@ import Microsoft.AspNetCore.Hosting
 import Microsoft.AspNetCore.TestHost
 import System.IO
 import <SERVICES_NAMESPACE>
+import <UNIT_TESTS_NAMESPACE>
 import <NAMESPACE>
 
 main SelfHost
