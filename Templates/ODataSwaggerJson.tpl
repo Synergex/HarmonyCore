@@ -40,10 +40,12 @@
       "name": "<StructureNoplural>",
       "description": "Operations related to <STRUCTURE_DESC>",
     },
+<IF DEFINED_PROPERTY_ENDPOINTS>
     {
       "name": "<StructureNoplural>Properties",
       "description": "Operations related to individual properties of <STRUCTURE_DESC>",
     },
+</IF DEFINED_PROPERTY_ENDPOINTS>
 </STRUCTURE_LOOP>
     {
       "name": "Create",
@@ -498,7 +500,7 @@
 ;//   ----------------------------------------------------------------------------
 ;//   End of final alternate key operation
 ;//   ----------------------------------------------------------------------------
-    },
+    }<IF DEFINED_PROPERTY_ENDPOINTS>,<ELSE><,></IF DEFINED_PROPERTY_ENDPOINTS>
   </IF DUPLICATES>
 </ALTERNATE_KEY_LOOP>
 ;//
@@ -532,7 +534,7 @@
             "format": "date-time",
 </IF TIME>
             "type": "<IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>"
-          }
+          }<,>
 </SEGMENT_LOOP>
         ],
         "responses": {
