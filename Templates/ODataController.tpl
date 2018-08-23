@@ -315,7 +315,7 @@ namespace <NAMESPACE>
 				data existing = DBContext.<StructurePlural>.Find(<SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP>)
 				if(existing != ^null) then
 				begin
-					DBContext.<StructurePlural>.Update(a<StructureNoplural>)
+					a<StructureNoplural>.CopyTo(existing)
 				end
 				else
 				begin
