@@ -69,8 +69,6 @@ namespace SampleServices.Controllers
 			this.DBContext = dbContext
 		endmethod
 
-.region "READ"
-
 		{ODataRoute("Vendors")}
 		{EnableQuery(MaxExpansionDepth=3)}
 		;;; <summary>
@@ -91,11 +89,11 @@ namespace SampleServices.Controllers
 		;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Get, @SingleResult<Vendor>
 			{FromODataUri}
-            required in aVendKey, int
+			required in aVendKey, int
 		proc
 			mreturn new SingleResult<Vendor>(DBContext.Vendors.FindQuery<Vendor>(aVendKey))
 		endmethod
-		
+
 		{ODataRoute("Vendors(VendRtype={aVendRtype},VendKey={aVendKey})")}
 		{EnableQuery(MaxExpansionDepth=3)}
 		;;; <summary>
@@ -113,9 +111,6 @@ namespace SampleServices.Controllers
 			mreturn new SingleResult<Vendor>(DBContext.Vendors.FindAlternate("VendRtype",aVendRtype,"VendKey",aVendKey))
 		endmethod
 
-.endregion
-
-.region "READ Individual Properties"
 		{ODataRoute("Vendors({key})/VendKey")}
 		;;; <summary>
 		;;; Get the VendKey property of a single Vendor, by primary key.
@@ -126,7 +121,7 @@ namespace SampleServices.Controllers
 		;;;</returns>
 		public method GetVendKey, @IActionResult
 			{FromODataUri}
-            required in key, int
+			required in key, int
 		proc
 			data result = DBContext.Vendors.Find(key)
 			if (result==^null)
@@ -144,7 +139,7 @@ namespace SampleServices.Controllers
 		;;;</returns>
 		public method GetVendRtype, @IActionResult
 			{FromODataUri}
-            required in key, int
+			required in key, int
 		proc
 			data result = DBContext.Vendors.Find(key)
 			if (result==^null)
@@ -162,7 +157,7 @@ namespace SampleServices.Controllers
 		;;;</returns>
 		public method GetVendName, @IActionResult
 			{FromODataUri}
-            required in key, int
+			required in key, int
 		proc
 			data result = DBContext.Vendors.Find(key)
 			if (result==^null)
@@ -180,7 +175,7 @@ namespace SampleServices.Controllers
 		;;;</returns>
 		public method GetVendStreet, @IActionResult
 			{FromODataUri}
-            required in key, int
+			required in key, int
 		proc
 			data result = DBContext.Vendors.Find(key)
 			if (result==^null)
@@ -198,7 +193,7 @@ namespace SampleServices.Controllers
 		;;;</returns>
 		public method GetVendCity, @IActionResult
 			{FromODataUri}
-            required in key, int
+			required in key, int
 		proc
 			data result = DBContext.Vendors.Find(key)
 			if (result==^null)
@@ -216,7 +211,7 @@ namespace SampleServices.Controllers
 		;;;</returns>
 		public method GetVendState, @IActionResult
 			{FromODataUri}
-            required in key, int
+			required in key, int
 		proc
 			data result = DBContext.Vendors.Find(key)
 			if (result==^null)
@@ -234,7 +229,7 @@ namespace SampleServices.Controllers
 		;;;</returns>
 		public method GetVendZip, @IActionResult
 			{FromODataUri}
-            required in key, int
+			required in key, int
 		proc
 			data result = DBContext.Vendors.Find(key)
 			if (result==^null)
@@ -252,7 +247,7 @@ namespace SampleServices.Controllers
 		;;;</returns>
 		public method GetVendContact, @IActionResult
 			{FromODataUri}
-            required in key, int
+			required in key, int
 		proc
 			data result = DBContext.Vendors.Find(key)
 			if (result==^null)
@@ -270,7 +265,7 @@ namespace SampleServices.Controllers
 		;;;</returns>
 		public method GetVendTelephone, @IActionResult
 			{FromODataUri}
-            required in key, int
+			required in key, int
 		proc
 			data result = DBContext.Vendors.Find(key)
 			if (result==^null)
@@ -288,7 +283,7 @@ namespace SampleServices.Controllers
 		;;;</returns>
 		public method GetVendFax, @IActionResult
 			{FromODataUri}
-            required in key, int
+			required in key, int
 		proc
 			data result = DBContext.Vendors.Find(key)
 			if (result==^null)
@@ -306,17 +301,13 @@ namespace SampleServices.Controllers
 		;;;</returns>
 		public method GetVendTerms, @IActionResult
 			{FromODataUri}
-            required in key, int
+			required in key, int
 		proc
 			data result = DBContext.Vendors.Find(key)
 			if (result==^null)
 				mreturn NotFound()
 			mreturn OK(result.VendTerms)
 		endmethod
-
-.endregion
-
-.region "CREATE"
 
 		{ODataRoute("Vendors(VendKey={aVendKey})")}
 		;;; <summary>
@@ -326,7 +317,7 @@ namespace SampleServices.Controllers
 		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Put, @IActionResult
 			{FromODataUri}
-            required in aVendKey, int
+			required in aVendKey, int
 			{FromBody}
 			required in aVendor, @Vendor
 		proc
@@ -335,7 +326,7 @@ namespace SampleServices.Controllers
 				mreturn BadRequest(ModelState)
 
 			;;Ensure that the key values in the URI win over any data that may be in the model object
-            aVendor.VendKey = aVendKey
+			aVendor.VendKey = aVendKey
 
 			try
 			begin
@@ -361,10 +352,6 @@ namespace SampleServices.Controllers
 
 		endmethod
 
-.endregion
-
-.region "UPDATE"
-
 		{ODataRoute("Vendors(VendKey={aVendKey})")}
 		;;; <summary>
 		;;; Patch  (partial update) a vendor.
@@ -373,7 +360,7 @@ namespace SampleServices.Controllers
 		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Patch, @IActionResult
 			{FromODataUri}
-            required in aVendKey, int
+			required in aVendKey, int
 			{FromBody}
 			required in aVendor, @JsonPatchDocument<Vendor>
 		proc
@@ -408,10 +395,6 @@ namespace SampleServices.Controllers
 
 		endmethod
 
-.endregion
-
-.region "DELETE"
-
 		{ODataRoute("Vendors(VendKey={aVendKey})")}
 		;;; <summary>
 		;;; Delete a vendor.
@@ -420,7 +403,7 @@ namespace SampleServices.Controllers
 		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Delete, @IActionResult
 			{FromODataUri}
-            required in aVendKey, int
+			required in aVendKey, int
 		proc
 			;;Get the vendor to be deleted
 			data vendorToRemove = DBContext.Vendors.Find(aVendKey)
@@ -436,8 +419,6 @@ namespace SampleServices.Controllers
 			mreturn NoContent()
 
 		endmethod
-
-.endregion
 
 	endclass
 

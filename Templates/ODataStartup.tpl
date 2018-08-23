@@ -104,6 +104,7 @@ import Harmony.AspNetCore.Context
 import Microsoft.AspNetCore.Builder
 import Microsoft.AspNetCore.Hosting
 import Microsoft.AspNetCore.Http
+import Microsoft.AspNetCore.StaticFiles
 import Microsoft.AspNet.OData
 import Microsoft.AspNet.OData.Extensions
 import Microsoft.AspNet.OData.Builder
@@ -282,6 +283,9 @@ namespace <NAMESPACE>
 				builder.MapODataServiceRoute("odata", "odata", model)
 			end
 
+			;;-------------------------------------------------------
+			;;Enable MVC
+
 			app.UseMvc(mvcBuilder)
 
 <IF DEFINED_ENABLE_CORS>
@@ -299,17 +303,30 @@ namespace <NAMESPACE>
 
 </IF DEFINED_ENABLE_CORS>
 			;;-------------------------------------------------------
+			;;Configure the web server environment
+
+			;;Support default files (index.html, etc.)
+			app.UseDefaultFiles()
+
+			;;Add a media type for YAML files
+			data provider = new FileExtensionContentTypeProvider()
+			provider.Mappings[".yaml"] = "text/yaml"
+			data sfoptions = new StaticFileOptions()
+			sfoptions.ContentTypeProvider = provider
+
+			;;Support serving static files
+			app.UseStaticFiles(sfoptions)
+
+			;;-------------------------------------------------------
 			;;Configure and enable SwaggerUI
 
 			lambda configureSwaggerUi(config)
 			begin
-				config.SwaggerEndpoint("/SwaggerFile.json", "<API_TITLE>")
-				config.RoutePrefix = "<API_DOCS_PATH>"
-				config.DocumentTitle = "<API_TITLE>"
+				config.SwaggerEndpoint("/SwaggerFile.json", "Harmony Core Sample API")
+				config.RoutePrefix = "api-docs"
+				config.DocumentTitle = "Harmony Core Sample API"
 			end
 
-			app.UseDefaultFiles()
-			app.UseStaticFiles()
 			app.UseSwagger()
 			app.UseSwaggerUI(configureSwaggerUi)
 

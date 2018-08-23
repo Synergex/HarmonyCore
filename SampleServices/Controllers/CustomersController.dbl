@@ -69,8 +69,6 @@ namespace SampleServices.Controllers
 			this.DBContext = dbContext
 		endmethod
 
-.region "READ"
-
 		{ODataRoute("Customers")}
 		{EnableQuery(MaxExpansionDepth=3)}
 		;;; <summary>
@@ -91,11 +89,11 @@ namespace SampleServices.Controllers
 		;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Get, @SingleResult<Customer>
 			{FromODataUri}
-            required in aCustKey, int
+			required in aCustKey, int
 		proc
 			mreturn new SingleResult<Customer>(DBContext.Customers.FindQuery<Customer>(aCustKey))
 		endmethod
-		
+
 		{ODataRoute("Customers(CustRtype={aCustRtype},CustKey={aCustKey})")}
 		{EnableQuery(MaxExpansionDepth=3)}
 		;;; <summary>
@@ -113,9 +111,6 @@ namespace SampleServices.Controllers
 			mreturn new SingleResult<Customer>(DBContext.Customers.FindAlternate("CustRtype",aCustRtype,"CustKey",aCustKey))
 		endmethod
 
-.endregion
-
-.region "READ Individual Properties"
 		{ODataRoute("Customers({key})/CustKey")}
 		;;; <summary>
 		;;; Get the CustKey property of a single Customer, by primary key.
@@ -126,7 +121,7 @@ namespace SampleServices.Controllers
 		;;;</returns>
 		public method GetCustKey, @IActionResult
 			{FromODataUri}
-            required in key, int
+			required in key, int
 		proc
 			data result = DBContext.Customers.Find(key)
 			if (result==^null)
@@ -144,7 +139,7 @@ namespace SampleServices.Controllers
 		;;;</returns>
 		public method GetCustRtype, @IActionResult
 			{FromODataUri}
-            required in key, int
+			required in key, int
 		proc
 			data result = DBContext.Customers.Find(key)
 			if (result==^null)
@@ -162,7 +157,7 @@ namespace SampleServices.Controllers
 		;;;</returns>
 		public method GetCustName, @IActionResult
 			{FromODataUri}
-            required in key, int
+			required in key, int
 		proc
 			data result = DBContext.Customers.Find(key)
 			if (result==^null)
@@ -180,7 +175,7 @@ namespace SampleServices.Controllers
 		;;;</returns>
 		public method GetCustStreet, @IActionResult
 			{FromODataUri}
-            required in key, int
+			required in key, int
 		proc
 			data result = DBContext.Customers.Find(key)
 			if (result==^null)
@@ -198,7 +193,7 @@ namespace SampleServices.Controllers
 		;;;</returns>
 		public method GetCustCity, @IActionResult
 			{FromODataUri}
-            required in key, int
+			required in key, int
 		proc
 			data result = DBContext.Customers.Find(key)
 			if (result==^null)
@@ -216,7 +211,7 @@ namespace SampleServices.Controllers
 		;;;</returns>
 		public method GetCustState, @IActionResult
 			{FromODataUri}
-            required in key, int
+			required in key, int
 		proc
 			data result = DBContext.Customers.Find(key)
 			if (result==^null)
@@ -234,7 +229,7 @@ namespace SampleServices.Controllers
 		;;;</returns>
 		public method GetCustZip, @IActionResult
 			{FromODataUri}
-            required in key, int
+			required in key, int
 		proc
 			data result = DBContext.Customers.Find(key)
 			if (result==^null)
@@ -252,7 +247,7 @@ namespace SampleServices.Controllers
 		;;;</returns>
 		public method GetCustContact, @IActionResult
 			{FromODataUri}
-            required in key, int
+			required in key, int
 		proc
 			data result = DBContext.Customers.Find(key)
 			if (result==^null)
@@ -270,7 +265,7 @@ namespace SampleServices.Controllers
 		;;;</returns>
 		public method GetCustPhone, @IActionResult
 			{FromODataUri}
-            required in key, int
+			required in key, int
 		proc
 			data result = DBContext.Customers.Find(key)
 			if (result==^null)
@@ -288,7 +283,7 @@ namespace SampleServices.Controllers
 		;;;</returns>
 		public method GetCustFax, @IActionResult
 			{FromODataUri}
-            required in key, int
+			required in key, int
 		proc
 			data result = DBContext.Customers.Find(key)
 			if (result==^null)
@@ -306,7 +301,7 @@ namespace SampleServices.Controllers
 		;;;</returns>
 		public method GetCustGift, @IActionResult
 			{FromODataUri}
-            required in key, int
+			required in key, int
 		proc
 			data result = DBContext.Customers.Find(key)
 			if (result==^null)
@@ -324,7 +319,7 @@ namespace SampleServices.Controllers
 		;;;</returns>
 		public method GetCustTcode, @IActionResult
 			{FromODataUri}
-            required in key, int
+			required in key, int
 		proc
 			data result = DBContext.Customers.Find(key)
 			if (result==^null)
@@ -342,7 +337,7 @@ namespace SampleServices.Controllers
 		;;;</returns>
 		public method GetCustTaxno, @IActionResult
 			{FromODataUri}
-            required in key, int
+			required in key, int
 		proc
 			data result = DBContext.Customers.Find(key)
 			if (result==^null)
@@ -360,17 +355,13 @@ namespace SampleServices.Controllers
 		;;;</returns>
 		public method GetCustLimit, @IActionResult
 			{FromODataUri}
-            required in key, int
+			required in key, int
 		proc
 			data result = DBContext.Customers.Find(key)
 			if (result==^null)
 				mreturn NotFound()
 			mreturn OK(result.CustLimit)
 		endmethod
-
-.endregion
-
-.region "CREATE"
 
 		{ODataRoute("Customers(CustKey={aCustKey})")}
 		;;; <summary>
@@ -380,7 +371,7 @@ namespace SampleServices.Controllers
 		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Put, @IActionResult
 			{FromODataUri}
-            required in aCustKey, int
+			required in aCustKey, int
 			{FromBody}
 			required in aCustomer, @Customer
 		proc
@@ -389,7 +380,7 @@ namespace SampleServices.Controllers
 				mreturn BadRequest(ModelState)
 
 			;;Ensure that the key values in the URI win over any data that may be in the model object
-            aCustomer.CustKey = aCustKey
+			aCustomer.CustKey = aCustKey
 
 			try
 			begin
@@ -415,10 +406,6 @@ namespace SampleServices.Controllers
 
 		endmethod
 
-.endregion
-
-.region "UPDATE"
-
 		{ODataRoute("Customers(CustKey={aCustKey})")}
 		;;; <summary>
 		;;; Patch  (partial update) a customer.
@@ -427,7 +414,7 @@ namespace SampleServices.Controllers
 		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Patch, @IActionResult
 			{FromODataUri}
-            required in aCustKey, int
+			required in aCustKey, int
 			{FromBody}
 			required in aCustomer, @JsonPatchDocument<Customer>
 		proc
@@ -462,10 +449,6 @@ namespace SampleServices.Controllers
 
 		endmethod
 
-.endregion
-
-.region "DELETE"
-
 		{ODataRoute("Customers(CustKey={aCustKey})")}
 		;;; <summary>
 		;;; Delete a customer.
@@ -474,7 +457,7 @@ namespace SampleServices.Controllers
 		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Delete, @IActionResult
 			{FromODataUri}
-            required in aCustKey, int
+			required in aCustKey, int
 		proc
 			;;Get the customer to be deleted
 			data customerToRemove = DBContext.Customers.Find(aCustKey)
@@ -490,8 +473,6 @@ namespace SampleServices.Controllers
 			mreturn NoContent()
 
 		endmethod
-
-.endregion
 
 	endclass
 

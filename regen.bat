@@ -6,17 +6,21 @@ rem Configure optional Harmony Core capabilities
 
 rem Comment or uncomment the following lines to enable or disable optional capabilities as required:
 
-rem set DO_AUTHENTICATION=-define AUTHENTICATION
-set DO_PROPERTY_ENDPOINTS=-define PROPERTY_ENDPOINTS
-rem set DO_CASE_SENSITIVE_URL=-define CASE_SENSITIVE_URL
 set DO_CREATE_TEST_FILES=-define CREATE_TEST_FILES
+rem set DO_AUTHENTICATION=-define AUTHENTICATION
+rem set DO_CASE_SENSITIVE_URL=-define CASE_SENSITIVE_URL
 rem set DO_ENABLE_CORS=-define ENABLE_CORS
 rem set DO_IIS_SUPPORT=-define IIS_SUPPORT
+set DO_ALLOW_ALTERNATE_KEYS=-define ALLOW_ALTERNATE_KEYS
+set DO_PROPERTY_ENDPOINTS=-define PROPERTY_ENDPOINTS
+set DO_ALLOW_PUT=-define ALLOW_PUT
+set DO_ALLOW_PATCH=-define ALLOW_PATCH
+set DO_ALLOW_DELETE=-define ALLOW_DELETE
 
 rem ================================================================================================================================
 rem Configure standard command line options and the VodeGen environment
 
-set NOREPLACEOPTS=-e -lf -u UserDefinedTokens.tkn %DO_AUTHENTICATION% %DO_PROPERTY_ENDPOINTS% %DO_CASE_SENSITIVE_URL% %DO_CREATE_TEST_FILES% %DO_ENABLE_CORS% %DO_IIS_SUPPORT%
+set NOREPLACEOPTS=-e -lf -u UserDefinedTokens.tkn %DO_AUTHENTICATION% %DO_PROPERTY_ENDPOINTS% %DO_CASE_SENSITIVE_URL% %DO_CREATE_TEST_FILES% %DO_ENABLE_CORS% %DO_IIS_SUPPORT% %DO_ALLOW_DELETE% %DO_ALLOW_PUT% %DO_ALLOW_PATCH% %DO_ALLOW_ALTERNATE_KEYS%
 set STDOPTS=%NOREPLACEOPTS% -r
 set CODEGEN_TPLDIR=Templates
 
