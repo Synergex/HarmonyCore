@@ -183,7 +183,7 @@ namespace Harmony.Core.EF.Query.Internal
                   }))
             {
                 
-                var subQueryVisitor = new SubQueryRewriter { QueryModel = queryModel, Parent = this, QuerySourceMapping = QueryCompilationContext.QuerySourceMapping, QuerySourceAliases = aliasMapping };
+                var subQueryVisitor = new SubQueryRewriter { QueryModel = queryModel, TopQueryModel = queryModel, Parent = this, QuerySourceMapping = QueryCompilationContext.QuerySourceMapping, QuerySourceAliases = aliasMapping };
                 //Expression expression = selectorRewriter.Visit(queryModel.SelectClause.Selector);
                 var selector = subQueryVisitor.Visit(queryModel.SelectClause.Selector);
                 QueryPlan = QueryModelVisitor.PrepareQuery(queryModel, ProcessWeirdJoin, out var querySourceBuffer);
@@ -201,8 +201,13 @@ namespace Harmony.Core.EF.Query.Internal
                     {
                         if (!string.IsNullOrWhiteSpace(buffers[kvp.Value].ParentFieldName))
                         {
-                            var propertyNode = Expression.Property(this.CurrentParameter, MainQueryType.GetProperty(buffers[kvp.Value].ParentFieldName));
-                            QueryCompilationContext.QuerySourceMapping.AddMapping(kvp.Key, propertyNode);
+                            //this might lead to some trouble later on if we get two sources with the same ParentFieldName at different levels and a different actual parent
+                            var foundProperty = MainQueryType.GetProperty(buffers[kvp.Value].ParentFieldName);
+                            if (foundProperty != null)
+                            {
+                                var propertyNode = Expression.Property(this.CurrentParameter, foundProperty);
+                                QueryCompilationContext.QuerySourceMapping.AddMapping(kvp.Key, propertyNode);
+                            }
                         }
                         else
                         {
@@ -252,7 +257,10 @@ namespace Harmony.Core.EF.Query.Internal
             public QuerySourceMapping QuerySourceMapping;
             public HarmonyQueryModelVisitor Parent;
             public QueryModel QueryModel;
+            public QueryModel TopQueryModel;
             private Stack<QuerySourceReferenceExpression> SourceStack= new Stack<QuerySourceReferenceExpression>();
+            private Stack<Expression> ParameterStack = new Stack<Expression>();
+            public Dictionary<Expression, Expression> SelectorRewriterLookup = new Dictionary<Expression, Expression>();
             private string SubQueryTargetName;
             private SubQueryExpression SubQuery;
             private ReadOnlyCollection<ParameterExpression> CurrentParameters;
@@ -262,6 +270,14 @@ namespace Harmony.Core.EF.Query.Internal
                 get
                 {
                     return SourceStack.Count > 0  ? SourceStack.Peek() : null;
+                }
+            }
+
+            private Expression CurrentParameter
+            {
+                get
+                {
+                    return ParameterStack.Count > 0 ? ParameterStack.Peek() : Parent.CurrentParameter;
                 }
             }
 
@@ -285,9 +301,13 @@ namespace Harmony.Core.EF.Query.Internal
             protected override Expression VisitMemberInit(MemberInitExpression node)
             {
                 var sourceStackCount = SourceStack.Count;
+                var parameterStackCount = ParameterStack.Count;
                 var result = base.VisitMemberInit(node);
                 if (SourceStack.Count > sourceStackCount)
                     SourceStack.Pop();
+
+                if (ParameterStack.Count > parameterStackCount)
+                    ParameterStack.Pop();
 
                 return result;
             }
@@ -348,6 +368,18 @@ namespace Harmony.Core.EF.Query.Internal
                 }
             }
 
+            private void AddOrUpdateSelector(Expression key, Expression value)
+            {
+                if (SelectorRewriterLookup.ContainsKey(key))
+                {
+                    SelectorRewriterLookup[key] = value;
+                }
+                else
+                {
+                    SelectorRewriterLookup.Add(key, value);
+                }
+            }
+
             protected override MemberAssignment VisitMemberAssignment(MemberAssignment node)
             {
                 //this is for things like SelectAllAndExpand from OData
@@ -367,7 +399,7 @@ namespace Harmony.Core.EF.Query.Internal
                 {
                     SubQuery = node.Expression as SubQueryExpression;
                     var queryModel = SubQuery.QueryModel;
-                    var propValue = Expression.PropertyOrField(Parent.CurrentParameter, SubQueryTargetName);
+                    var propValue = Expression.PropertyOrField(CurrentParameter, SubQueryTargetName);
                     var resultExpressionElementType = propValue.Type.IsGenericType ? propValue.Type.GenericTypeArguments.First() : propValue.Type;
                     Expression resultExpression = (propValue.Type.GetGenericTypeDefinition() == typeof(ICollection<>)) ?
                         Expression.Condition(Expression.Equal(propValue, Expression.Constant(null)), Expression.Convert(Expression.New(typeof(List<>).MakeGenericType(new Type[] { resultExpressionElementType })), propValue.Type), propValue) :
@@ -397,8 +429,10 @@ namespace Harmony.Core.EF.Query.Internal
 
                     Type resultTypeParameter = queryModel.ResultTypeOverride.ForceSequenceType();
                     var currentParameter = Expression.Parameter(resultExpressionElementType);
-                    if (Source != null && Source.ReferencedQuerySource.ItemType == Parent.CurrentParameter.Type && !QuerySourceMapping.ContainsMapping(Source.ReferencedQuerySource))
-                        QuerySourceMapping.AddMapping(Source.ReferencedQuerySource, Parent.CurrentParameter);
+                    if (Source != null && Source.ReferencedQuerySource.ItemType == CurrentParameter.Type && !QuerySourceMapping.ContainsMapping(Source.ReferencedQuerySource))
+                        QuerySourceMapping.AddMapping(Source.ReferencedQuerySource, CurrentParameter);
+
+                    ParameterStack.Push(currentParameter);
 
                     if (!QuerySourceMapping.ContainsMapping(queryModel.MainFromClause) && queryModel.MainFromClause.ItemType == currentParameter.Type)
                     {
@@ -418,19 +452,17 @@ namespace Harmony.Core.EF.Query.Internal
 
                             var madeGroupJoin = new GroupJoinClause(Source.ReferencedQuerySource.ItemName + "." + SubQueryTargetName, typeof(IEnumerable<>).MakeGenericType(madeJoin.ItemType), madeJoin);
                             var newQuerySource = new QuerySourceReferenceExpression(madeGroupJoin);
+                            AddOrUpdateSelector(new QuerySourceReferenceExpression(queryModel.MainFromClause), newQuerySource);
                             rewrite = new SelectorRewriter()
                             {
-                                Replacements = new Dictionary<Expression, Expression>
-                                {
-                                    { new QuerySourceReferenceExpression(queryModel.MainFromClause), newQuerySource }
-                                }
+                                Replacements = SelectorRewriterLookup
                             };
                             var rewrittenJoinLambda = rewrite.Visit(joinOnLambda) as Expression;
                             var simpleJoinCondition = rewrittenJoinLambda as BinaryExpression ?? (rewrittenJoinLambda as NullSafeEqualExpression)?.EqualExpression;
 
                             madeJoin.InnerKeySelector = simpleJoinCondition.Right;
                             madeJoin.OuterKeySelector = simpleJoinCondition.Left;
-                            QueryModel.BodyClauses.Add(madeGroupJoin);
+                            TopQueryModel.BodyClauses.Add(madeGroupJoin);
                         }
 
                         if (rewrite != null)
@@ -438,7 +470,7 @@ namespace Harmony.Core.EF.Query.Internal
                             foreach (var additionalWhereClause in orderedWhereClauses.Skip(1))
                             {
                                 additionalWhereClause.Predicate = rewrite.Visit(additionalWhereClause.Predicate);
-                                QueryModel.BodyClauses.Add(additionalWhereClause);
+                                TopQueryModel.BodyClauses.Add(additionalWhereClause);
                             }
                         }
                     }
@@ -454,7 +486,7 @@ namespace Harmony.Core.EF.Query.Internal
                           }))
                     {
 
-                        var subQueryVisitor = new SubQueryRewriter { QueryModel = queryModel, Parent = Parent, QuerySourceMapping = QuerySourceMapping, QuerySourceAliases = QuerySourceAliases };
+                        var subQueryVisitor = new SubQueryRewriter { QueryModel = queryModel, TopQueryModel = TopQueryModel, Parent = Parent, QuerySourceMapping = QuerySourceMapping, QuerySourceAliases = QuerySourceAliases, ParameterStack = ParameterStack, SelectorRewriterLookup = SelectorRewriterLookup };
                         //Expression expression = selectorRewriter.Visit(queryModel.SelectClause.Selector);
                         var selector = subQueryVisitor.Visit(queryModel.SelectClause.Selector);
                         var memberAccessVisitor = new MemberAccessBindingExpressionVisitor(QuerySourceMapping, Parent, false);
@@ -488,7 +520,6 @@ namespace Harmony.Core.EF.Query.Internal
                             Expression.Call(Parent.LinqOperatorProvider.Select.MakeGenericMethod(resultExpressionElementType, resultTypeParameter), resultExpression, Expression.Lambda(expression, currentParameter)) :
                             Expression.Call(EntityQueryModelVisitor.SelectAsyncMethod.MakeGenericMethod(resultExpressionElementType, resultTypeParameter), resultExpression, Expression.Lambda(expression2, currentParameter, taskLiftingExpressionVisitor.CancellationTokenParameter)));
                     }
-
                     return node.Update(resultExpression);
                 }
                 return base.VisitMemberAssignment(node);
@@ -534,7 +565,7 @@ namespace Harmony.Core.EF.Query.Internal
 
                     madeJoin.InnerKeySelector = simpleJoinCondition.Right;
                     madeJoin.OuterKeySelector = simpleJoinCondition.Left;
-                    QueryModel.BodyClauses.Add(madeGroupJoin);
+                    TopQueryModel.BodyClauses.Add(madeGroupJoin);
                 }
 
                 return node;
