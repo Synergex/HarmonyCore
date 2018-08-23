@@ -64,6 +64,7 @@ import Harmony.AspNetCore.Context
 import Microsoft.AspNetCore.Builder
 import Microsoft.AspNetCore.Hosting
 import Microsoft.AspNetCore.Http
+import Microsoft.AspNetCore.StaticFiles
 import Microsoft.AspNet.OData
 import Microsoft.AspNet.OData.Extensions
 import Microsoft.AspNet.OData.Builder
@@ -203,7 +204,25 @@ namespace SampleServices
 				builder.MapODataServiceRoute("odata", "odata", model)
 			end
 
+			;;-------------------------------------------------------
+			;;Enable MVC
+
 			app.UseMvc(mvcBuilder)
+
+			;;-------------------------------------------------------
+			;;Configure the web server environment
+
+			;;Support default files (index.html, etc.)
+			app.UseDefaultFiles()
+
+			;;Add a media type for YAML files
+			data provider = new FileExtensionContentTypeProvider()
+			provider.Mappings[".yaml"] = "text/yaml"
+			data sfoptions = new StaticFileOptions()
+			sfoptions.ContentTypeProvider = provider
+
+			;;Support serving static files
+			app.UseStaticFiles(sfoptions)
 
 			;;-------------------------------------------------------
 			;;Configure and enable SwaggerUI
@@ -215,8 +234,6 @@ namespace SampleServices
 				config.DocumentTitle = "Harmony Core Sample API"
 			end
 
-			app.UseDefaultFiles()
-			app.UseStaticFiles()
 			app.UseSwagger()
 			app.UseSwaggerUI(configureSwaggerUi)
 

@@ -73,7 +73,6 @@
 ;// Get all records
 ;//
     "/<StructurePlural>": {
-      "summary": "Get <structurePlural>",
       "get": {
         "summary": "Get <structurePlural>",
         "description": "Get all or a filtered collection of <structurePlural>.",
@@ -135,7 +134,6 @@
       }
     },
     "/<StructurePlural>/$count": {
-      "summary": "Count <structurePlural>",
       "get": {
         "summary": "Count <structurePlural>",
         "description": "Count all or a filtered collection of <structurePlural>.",
@@ -156,7 +154,9 @@
         "responses": {
           "200": {
             "description": "OK",
-            "type": "integer"
+            "schema": {
+              "type": "integer"
+              }
           }
         }
       }
@@ -167,7 +167,6 @@
 ;//
 <PRIMARY_KEY>
     "/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{a<SegmentName>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)": {
-      "summary": "<StructureNoplural> via primary key",
 ;//   ----------------------------------------------------------------------------
 ;//   Get via primary key
 ;//
@@ -356,7 +355,6 @@
 ;//
 <ALTERNATE_KEY_LOOP>
     "/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{a<SegmentName>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)": {
-      "summary": "<IF DUPLICATES><StructurePlural><ELSE>Single <structureNolural></IF DUPLICATES> via alternate key <KeyName>",
 ;//   ----------------------------------------------------------------------------
 ;//   Get via alternate key
 ;//
@@ -436,10 +434,13 @@
             "schema": {
   <IF DUPLICATES>
               "type": "array",
+              "items": {
+                "$ref": "#/definitions/<StructureNoplural>"
+              }
   <ELSE>
               "type": "object",
-  </IF DUPLICATES>
               "$ref": "#/definitions/<StructureNoplural>"
+  </IF DUPLICATES>
             }
           }
         }
@@ -450,7 +451,6 @@
     }<IF DUPLICATES>,<ELSE><IF DEFINED_PROPERTY_ENDPOINTS>,<ELSE><,></IF DEFINED_PROPERTY_ENDPOINTS></IF DUPLICATES>
   <IF DUPLICATES>
     "/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{a<SegmentName>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)/$count": {
-    "summary": "Count <structurePlural> via alternate key <KeyName>",
 ;//   ----------------------------------------------------------------------------
 ;//   Get count via alternate key
 ;//
@@ -489,7 +489,9 @@
         "responses": {
           "200": {
             "description": "OK",
-            "type": "integer"
+            "schema": {
+              "type": "integer"
+              }
           }
         }
       }
@@ -506,18 +508,20 @@
 <FIELD_LOOP>
 <PRIMARY_KEY>
     "/<StructurePlural>(<IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{a<SegmentName>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP></IF SINGLE_SEGMENT>)/<FieldSqlName>": {
-      "summary": "<StructureNoplural> property <FieldSqlName> via primary key",
       "get": {
         "summary": "Get <structureNoplural> <FieldSqlName>",
         "description": "Get a <structureNoplural> via a complete primary key.",
-        "operationId": "Get<StructureNoplural>",
+        "operationId": "Get<StructureNoplural><FieldSqlName>",
         "deprecated": false,
         "tags": [ "<StructureNoplural>Properties", "Read" ],
         "parameters": [ 
 <SEGMENT_LOOP>
-<IF SINGLE_SEGMENT>
           {
+<IF SINGLE_SEGMENT>
             "name": "key",
+<ELSE>
+            "name": "a<SegmentName>",
+</IF SINGLE_SEGMENT>
             "in": "path",
             "description": "<SEGMENT_DESC>",
             "required": true,
@@ -529,27 +533,14 @@
 </IF TIME>
             "type": "<IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>"
           }
-<ELSE>
-          {
-            "name": "a<SegmentName>",
-            "in": "path",
-            "description": "<SEGMENT_DESC>",
-            "required": true,
-<IF DATE>
-            "format": "date-time",
-</IF DATE>
-<IF TIME>
-            "format": "date-time",
-</IF TIME>
-            "type": "<IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>"
-          }<,>
-</IF SINGLE_SEGMENT>
 </SEGMENT_LOOP>
         ],
         "responses": {
           "200": {
             "description": "OK",
-             "type": "<IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>"
+            "schema": {
+              "type": "<IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>"
+            }
           }
         }
       }
