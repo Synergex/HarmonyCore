@@ -40,6 +40,10 @@
       "name": "<StructureNoplural>",
       "description": "Operations related to <STRUCTURE_DESC>",
     },
+    {
+      "name": "<StructureNoplural>Properties",
+      "description": "Operations related to individual properties of <STRUCTURE_DESC>",
+    },
 </STRUCTURE_LOOP>
     {
       "name": "Create",
@@ -443,7 +447,7 @@
 ;//   ----------------------------------------------------------------------------
 ;//   End of final alternate key operation
 ;//   ----------------------------------------------------------------------------
-    }<IF DUPLICATES>,<ELSE><,></IF DUPLICATES>
+    }<IF DUPLICATES>,<ELSE><IF DEFINED_PROPERTY_ENDPOINTS>,<ELSE><,></IF DEFINED_PROPERTY_ENDPOINTS></IF DUPLICATES>
   <IF DUPLICATES>
     "/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{a<SegmentName>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)/$count": {
     "summary": "Count <structurePlural> via alternate key <KeyName>",
@@ -492,9 +496,74 @@
 ;//   ----------------------------------------------------------------------------
 ;//   End of final alternate key operation
 ;//   ----------------------------------------------------------------------------
-    }<,>
+    },
   </IF DUPLICATES>
 </ALTERNATE_KEY_LOOP>
+;//
+;//
+;//
+<IF DEFINED_PROPERTY_ENDPOINTS>
+<FIELD_LOOP>
+<PRIMARY_KEY>
+    "/<StructurePlural>(<IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{a<SegmentName>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP></IF SINGLE_SEGMENT>)/<FieldSqlName>": {
+      "summary": "<StructureNoplural> property <FieldSqlName> via primary key",
+      "get": {
+        "summary": "Get <structureNoplural> <FieldSqlName>",
+        "description": "Get a <structureNoplural> via a complete primary key.",
+        "operationId": "Get<StructureNoplural>",
+        "deprecated": false,
+        "tags": [ "<StructureNoplural>Properties", "Read" ],
+        "parameters": [ 
+<SEGMENT_LOOP>
+<IF SINGLE_SEGMENT>
+          {
+            "name": "key",
+            "in": "path",
+            "description": "<SEGMENT_DESC>",
+            "required": true,
+<IF DATE>
+            "format": "date-time",
+</IF DATE>
+<IF TIME>
+            "format": "date-time",
+</IF TIME>
+            "type": "<IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>"
+          }
+<ELSE>
+          {
+            "name": "a<SegmentName>",
+            "in": "path",
+            "description": "<SEGMENT_DESC>",
+            "required": true,
+<IF DATE>
+            "format": "date-time",
+</IF DATE>
+<IF TIME>
+            "format": "date-time",
+</IF TIME>
+            "type": "<IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>"
+          }<,>
+</IF SINGLE_SEGMENT>
+</SEGMENT_LOOP>
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+             "type": "<IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>"
+          }
+        }
+      }
+;//   ----------------------------------------------------------------------------
+;//   End of get
+;//   ----------------------------------------------------------------------------
+    }
+</PRIMARY_KEY>
+<,>
+</FIELD_LOOP>
+</IF DEFINED_PROPERTY_ENDPOINTS>
+;//
+;//
+;//
 <,>
 </STRUCTURE_LOOP>
   },
