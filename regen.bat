@@ -69,7 +69,7 @@ codegen -s %STRUCTURES% -ms -t ODataPostManTests -o .\ %STDOPTS%
 if ERRORLEVEL 1 goto error
 
 rem Generate a Swagger file
-codegen -s %STRUCTURES% -ms -t ODataSwaggerJson -o %PROJECT%\wwwroot %STDOPTS%
+codegen -s %STRUCTURES% -ms -t ODataSwaggerJson ODataSwaggerYaml -o %PROJECT%\wwwroot %STDOPTS%
 if ERRORLEVEL 1 goto error
 
 rem ================================================================================================================================

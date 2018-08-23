@@ -132,7 +132,7 @@ paths:
 ;// Primary key operations
 ;//
 <PRIMARY_KEY>
-  '/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{a<SegmentName>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)':
+  '/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF ALPHA>''</IF ALPHA>{a<SegmentName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP>)':
 ;//
 ;// ----------------------------------------------------------------------------
 ;// Get via primary key
@@ -186,19 +186,19 @@ paths:
         - <StructureNoplural>
         - Delete
       parameters:
-<SEGMENT_LOOP>
+        <SEGMENT_LOOP>
         - name: a<SegmentName>
           in: path
           description: <SEGMENT_DESC>
           required: true
           type: <IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>
-<IF DATE>
+          <IF DATE>
           format: date-time
-</IF DATE>
-<IF TIME>
+          </IF DATE>
+          <IF TIME>
           format: date-time
-</IF TIME>
-</SEGMENT_LOOP>
+          </IF TIME>
+        </SEGMENT_LOOP>
       responses:
         '204':
           description: OK
@@ -282,7 +282,7 @@ paths:
 ;// Alternate key operations
 ;//
 <ALTERNATE_KEY_LOOP>
-  '/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{a<SegmentName>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)':
+  '/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF ALPHA>''</IF ALPHA>{a<SegmentName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP>)':
 ;//
 ;// ----------------------------------------------------------------------------
 ;// Get via alternate key
@@ -308,13 +308,13 @@ paths:
           description: <SEGMENT_DESC>
           required: true
           type: <IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>
-<<IF DATE>
+<IF DATE>
           format: date-time
 </IF DATE>
 <IF TIME>
           format: date-time
 </IF TIME>
-/SEGMENT_LOOP>
+</SEGMENT_LOOP>
         - name: $expand
           in: query
           description: Expand one or more navigation properties.
@@ -358,7 +358,7 @@ paths:
 ;// Get count via alternate key
 ;//
   <IF DUPLICATES>
-  '/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{a<SegmentName>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)/$count':
+  '/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF ALPHA>''</IF ALPHA>{a<SegmentName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP>)/$count':
     get:
       summary: Count <structurePlural>
       description: Count <structurePlural> via complete alternate key <KeyName>.
@@ -383,7 +383,7 @@ paths:
 </SEGMENT_LOOP>
         - name: $filter
           in: query
-          description: "Filter expression to restrict returned rows.
+          description: Filter expression to restrict returned rows.
           type: string
       responses:
         '200':
@@ -400,7 +400,7 @@ paths:
 <FIELD_LOOP>
 <PRIMARY_KEY>
 
-  '/<StructurePlural>(<IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{a<SegmentName>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP></IF SINGLE_SEGMENT>)/<FieldSqlName>':
+  '/<StructurePlural>(<IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><SegmentName>=<IF ALPHA>''</IF ALPHA>{a<SegmentName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></IF SINGLE_SEGMENT>)/<FieldSqlName>':
     get:
       summary: Get <structureNoplural> property <FieldSqlName>
       description: Get <structureNoplural> property <FieldSqlName> via complete primary key.
@@ -511,7 +511,7 @@ definitions:
     example:
 <FIELD_LOOP>
 <IF CUSTOM_NOT_HARMONY_EXCLUDE>
-      <FieldSqlname>: <FIELD_SAMPLE_DATA><,>
+      <FieldSqlname>: <FIELD_SAMPLE_DATA>
 </IF CUSTOM_NOT_HARMONY_EXCLUDE>
 </FIELD_LOOP>
 </STRUCTURE_LOOP>
