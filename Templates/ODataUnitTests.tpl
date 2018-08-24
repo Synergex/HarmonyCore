@@ -222,6 +222,7 @@ namespace <NAMESPACE>
 		endmethod
 
 </IF STRUCTURE_RELATIONS>
+<IF DEFINED_ALLOW_ALTERNATE_KEYS>
 <ALTERNATE_KEY_LOOP>
 		;;------------------------------------------------------------
 		;;Get a single <StructureNoplural> by alternate key <KEY_NUMBER> (<KeyName>)
@@ -246,6 +247,7 @@ namespace <NAMESPACE>
 		endmethod
 
 </ALTERNATE_KEY_LOOP>
+</IF DEFINED_ALLOW_ALTERNATE_KEYS>
 ;//		;;------------------------------------------------------------
 ;//		;;Create a new <StructureNoplural> (auto assign key)
 ;//
@@ -263,6 +265,9 @@ namespace <NAMESPACE>
 ;//			response.EnsureSuccessStatusCode()
 ;//		endmethod
 ;//
+<IF DEFINED_ALLOW_PUT>
+<IF DEFINED_ALLOW_PATCH>
+<IF DEFINED_ALLOW_DELETE>
 		;;------------------------------------------------------------
 		;;Create new <StructureNoplural> (client specified key)
 
@@ -424,6 +429,9 @@ namespace <NAMESPACE>
 
 		endmethod
 
+</IF DEFINED_ALLOW_DELETE>
+</IF DEFINED_ALLOW_PATCH>
+</IF DEFINED_ALLOW_PUT>
 ;//<PRIMARY_KEY>
 ;//<IF MULTIPLE_SEGMENTS>
 ;//		;;------------------------------------------------------------

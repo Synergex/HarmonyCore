@@ -115,13 +115,12 @@ rem if ERRORLEVEL 1 goto error
 rem ================================================================================================================================
 rem Generate OData action return data models
 
-rem set CODEGEN_TPLDIR=Templates
-rem set CODEGEN_OUTDIR=SampleServices\Models
+rem set CODEGEN_TPLDIR=Templates\TraditionalBridge
 rem set PROJECT=SampleServices.Models
 rem set SMC_INTERFACE=SampleXfplEnv
 rem set XFPL_SMCPATH=
 
-rem codegen -smc SampleXfplEnvironment\smc.xml -interface %SMC_INTERFACE% -t ODataActionModels -n %PROJECT% -e -r -lf
+rem codegen -smc SampleXfplEnvironment\smc.xml -interface %SMC_INTERFACE% -t ODataActionModels -o SampleServices\Models -n %PROJECT% -e -r -lf
 rem if ERRORLEVEL 1 goto error
 
 echo.
