@@ -177,6 +177,7 @@ paths:
 ;// ----------------------------------------------------------------------------
 ;// Delete via primary key
 ;//
+<IF DEFINED_ENABLE_DELETE>
     delete:
       summary: Delete <structureNoplural>
       description: Delete a <structureNoplural> via a complete primary key.
@@ -202,10 +203,12 @@ paths:
       responses:
         '204':
           description: OK
+</IF DEFINED_ENABLE_DELETE>
 ;//
 ;// ----------------------------------------------------------------------------
 ;// Create or update via primary key
 ;//
+<IF DEFINED_ENABLE_PUT>
     put:
       summary: Create or update <structureNoplural>
       description: Create or update a <structureNoplural> via a complete primary key.
@@ -239,10 +242,12 @@ paths:
       responses:
         '204':
           description: OK
+</IF DEFINED_ENABLE_PUT>
 ;//
 ;// ----------------------------------------------------------------------------
 ;// Patch via primary key
 ;//
+<IF DEFINED_ENABLE_PATCH>
     patch:
       summary: Patch <structureNoplural>
       description: Patch a <structureNoplural> via complete primary key.
@@ -275,12 +280,14 @@ paths:
       responses:
         '204':
           description: OK
+</IF DEFINED_ENABLE_PUT>
 </PRIMARY_KEY>
 ;//
 ;//----------------------------------------------------------------------------
 ;//
 ;// Alternate key operations
 ;//
+<IF DEFINED_ENABLE_ALTERNATE_KEYS>
 <ALTERNATE_KEY_LOOP>
   '/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF ALPHA>''</IF ALPHA>{a<SegmentName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP>)':
 ;//
@@ -392,6 +399,7 @@ paths:
             type: integer
 </IF DUPLICATES>
 </ALTERNATE_KEY_LOOP>
+</IF DEFINED_ENABLE_ALTERNATE_KEYS>
 <IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
 ;//
 ;// ----------------------------------------------------------------------------
@@ -439,8 +447,9 @@ paths:
 ;//
 ;//----------------------------------------------------------------------------
 ;//
-;// Configure an authentication server (Needs more work before implementation)Alternate key operations
+;// Configure an authentication server (Needs more work before implementation)
 ;//
+;//<IF DEFINED_ENABLE_AUTHENTICATION>
 ;//securityDefinitions": {
 ;//  oauth2schema:
 ;//    type: oauth2
@@ -448,7 +457,7 @@ paths:
 ;//    flow: application
 ;//    scopes:
 ;//      global: global
-;//
+;//</IF DEFINED_ENABLE_AUTHENTICATION>
 ;//----------------------------------------------------------------------------
 ;//
 ;// Definitions of data models 
@@ -464,60 +473,60 @@ definitions:
 </PRIMARY_KEY>
     properties:
 <FIELD_LOOP>
-<IF CUSTOM_NOT_HARMONY_EXCLUDE>
+    <IF CUSTOM_NOT_HARMONY_EXCLUDE>
       <FieldSqlname>:
- <IF ALPHA>
+        <IF ALPHA>
         type: string
         example: <FIELD_SAMPLE_DATA>
         description: <FIELD_DESC>
-</IF ALPHA>
-<IF DECIMAL>
-<IF PRECISION>
+        </IF ALPHA>
+        <IF DECIMAL>
+        <IF PRECISION>
         type: number
         format: float
         example: <FIELD_SAMPLE_DATA>
         description: <FIELD_DESC>
-<ELSE>
-<IF CUSTOM_HARMONY_AS_STRING>
+        <ELSE>
+        <IF CUSTOM_HARMONY_AS_STRING>
         type: string
         example: <FIELD_SAMPLE_DATA>
-<ELSE>
+        <ELSE>
         type: integer
         example: <FIELD_SAMPLE_DATA>
-</IF CUSTOM_HARMONY_AS_STRING>
+        </IF CUSTOM_HARMONY_AS_STRING>
         description: <FIELD_DESC>
-</IF PRECISION>
-</IF DECIMAL>
-<IF DATE>
+        </IF PRECISION>
+        </IF DECIMAL>
+        <IF DATE>
         type: string
         format: date-time
         example: <FIELD_SAMPLE_DATA>
         description: <FIELD_DESC>
-</IF DATE>
-<IF TIME>
+        </IF DATE>
+        <IF TIME>
         type: string
         format: date-time
         example: <FIELD_SAMPLE_DATA>
         description: <FIELD_DESC>
-</IF TIME>
-<IF INTEGER>
+        </IF TIME>
+        <IF INTEGER>
         type: number
         format: <IF I124>int32<ELSE>int64</IF I124>
         example: <FIELD_SAMPLE_DATA>
         description: <FIELD_DESC>
-</IF INTEGER>
-</IF CUSTOM_NOT_HARMONY_EXCLUDE>
+        </IF INTEGER>
+    </IF CUSTOM_NOT_HARMONY_EXCLUDE>
 </FIELD_LOOP>
     example:
 <FIELD_LOOP>
-<IF CUSTOM_NOT_HARMONY_EXCLUDE>
+    <IF CUSTOM_NOT_HARMONY_EXCLUDE>
       <FieldSqlname>: <FIELD_SAMPLE_DATA>
-</IF CUSTOM_NOT_HARMONY_EXCLUDE>
+    </IF CUSTOM_NOT_HARMONY_EXCLUDE>
 </FIELD_LOOP>
 </STRUCTURE_LOOP>
 ;//
 ;//----------------------------------------------------------------------------
-;// Deta model definitions for PATCH requests
+;// Data model definitions for PATCH requests
 ;//
   PatchRequest:
     type: array
