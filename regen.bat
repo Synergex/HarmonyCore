@@ -69,7 +69,7 @@ if ERRORLEVEL 1 goto error
 
 rem Generate a Swagger file
 if DEFINED ENABLE_SWAGGER_DOCS (
-  codegen -s %STRUCTURES% -ms -t ODataSwaggerJson ODataSwaggerYaml -o %PROJECT%\wwwroot %STDOPTS%
+  codegen -s %STRUCTURES% -ms -t ODataSwaggerYaml -o %PROJECT%\wwwroot %STDOPTS%
   if ERRORLEVEL 1 goto error
 )
 

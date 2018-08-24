@@ -38,14 +38,16 @@ tags:
     description: Operations related to Vendor record
   - name: VendorProperties
     description: Operations related to individual properties of Vendor record
+  - name: Count
+    description: All count operations
   - name: Create
-    description: Create operations
+    description: All create operations
   - name: Read
-    description: Read operations
+    description: All read operations
   - name: Update
-    description: Update operations
+    description: All update operations
   - name: Delete
-    description: Delete operations
+    description: All delete operations
 paths:
   /Customers:
     get:
@@ -96,7 +98,7 @@ paths:
       deprecated: false
       tags:
         - Customer
-        - Read
+        - Count
       parameters:
         - name: $filter
           in: query
@@ -121,7 +123,8 @@ paths:
           in: path
           description: Customer number
           required: true
-          type: integer        - name: $expand
+          type: integer
+        - name: $expand
           in: query
           description: Expand one or more navigation properties.
           type: string
@@ -133,7 +136,6 @@ paths:
         '200':
           description: OK
           schema:
-            type: object
             $ref: '#/definitions/Customer'
     delete:
       summary: Delete customer
@@ -148,7 +150,8 @@ paths:
           in: path
           description: Customer number
           required: true
-          type: integer      responses:
+          type: integer
+      responses:
         '204':
           description: OK
     put:
@@ -165,12 +168,12 @@ paths:
           in: path
           description: Customer number
           required: true
-          type: integer        - name: aCustomer
+          type: integer
+        - name: aCustomer
           in: body
           description: Data for customer to create or update.
           required: true
           schema:
-            type: object
             $ref: '#/definitions/Customer'
       responses:
         '204':
@@ -188,12 +191,12 @@ paths:
           in: path
           description: Customer number
           required: true
-          type: integer        - name: aCustomer
+          type: integer
+        - name: aCustomer
           in: body
           description: Data for customer to create or update.
           required: true
           schema:
-            type: object
             $ref: '#/definitions/Customer'
       responses:
         '204':
@@ -208,15 +211,17 @@ paths:
         - Customer
         - Read
       parameters:
-        - name: RecordType
+        - name: aRecordType
           in: path
           description: Record type (0)
           required: true
-          type: integer        - name: CustomerNumber
+          type: integer
+        - name: aCustomerNumber
           in: path
           description: Customer number
           required: true
-          type: integer        - name: $expand
+          type: integer
+        - name: $expand
           in: query
           description: Expand one or more navigation properties.
           type: string
@@ -228,9 +233,7 @@ paths:
         '200':
           description: OK
           schema:
-            type: object
             $ref: '#/definitions/Customer'
-
   '/Customers({key})/CustomerNumber':
     get:
       summary: Get customer property CustomerNumber
@@ -245,7 +248,28 @@ paths:
           in: path
           description: Customer number
           required: true
-          type: integer      responses:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: integer
+  '/Customers({key})/CustomerNumber/$value':
+    get:
+      summary: Get customer property CustomerNumber
+      description: Get customer property CustomerNumber via complete primary key, returning the raw value.
+      operationId: CustomerCustomerNumbervalue
+      deprecated: false
+      tags:
+        - CustomerProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Customer number
+          required: true
+          type: integer
+      responses:
         '200':
           description: OK
           schema:
@@ -264,7 +288,28 @@ paths:
           in: path
           description: Customer number
           required: true
-          type: integer      responses:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: integer
+  '/Customers({key})/RecordType/$value':
+    get:
+      summary: Get customer property RecordType
+      description: Get customer property RecordType via complete primary key, returning the raw value.
+      operationId: CustomerRecordTypevalue
+      deprecated: false
+      tags:
+        - CustomerProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Customer number
+          required: true
+          type: integer
+      responses:
         '200':
           description: OK
           schema:
@@ -283,7 +328,28 @@ paths:
           in: path
           description: Customer number
           required: true
-          type: string      responses:
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+  '/Customers({key})/Name/$value':
+    get:
+      summary: Get customer property Name
+      description: Get customer property Name via complete primary key, returning the raw value.
+      operationId: CustomerNamevalue
+      deprecated: false
+      tags:
+        - CustomerProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Customer number
+          required: true
+          type: string
+      responses:
         '200':
           description: OK
           schema:
@@ -302,7 +368,28 @@ paths:
           in: path
           description: Customer number
           required: true
-          type: string      responses:
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+  '/Customers({key})/Street/$value':
+    get:
+      summary: Get customer property Street
+      description: Get customer property Street via complete primary key, returning the raw value.
+      operationId: CustomerStreetvalue
+      deprecated: false
+      tags:
+        - CustomerProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Customer number
+          required: true
+          type: string
+      responses:
         '200':
           description: OK
           schema:
@@ -321,7 +408,28 @@ paths:
           in: path
           description: Customer number
           required: true
-          type: string      responses:
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+  '/Customers({key})/City/$value':
+    get:
+      summary: Get customer property City
+      description: Get customer property City via complete primary key, returning the raw value.
+      operationId: CustomerCityvalue
+      deprecated: false
+      tags:
+        - CustomerProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Customer number
+          required: true
+          type: string
+      responses:
         '200':
           description: OK
           schema:
@@ -340,7 +448,28 @@ paths:
           in: path
           description: Customer number
           required: true
-          type: string      responses:
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+  '/Customers({key})/State/$value':
+    get:
+      summary: Get customer property State
+      description: Get customer property State via complete primary key, returning the raw value.
+      operationId: CustomerStatevalue
+      deprecated: false
+      tags:
+        - CustomerProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Customer number
+          required: true
+          type: string
+      responses:
         '200':
           description: OK
           schema:
@@ -359,7 +488,28 @@ paths:
           in: path
           description: Customer number
           required: true
-          type: integer      responses:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: integer
+  '/Customers({key})/ZipCode/$value':
+    get:
+      summary: Get customer property ZipCode
+      description: Get customer property ZipCode via complete primary key, returning the raw value.
+      operationId: CustomerZipCodevalue
+      deprecated: false
+      tags:
+        - CustomerProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Customer number
+          required: true
+          type: integer
+      responses:
         '200':
           description: OK
           schema:
@@ -378,7 +528,28 @@ paths:
           in: path
           description: Customer number
           required: true
-          type: string      responses:
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+  '/Customers({key})/Contact/$value':
+    get:
+      summary: Get customer property Contact
+      description: Get customer property Contact via complete primary key, returning the raw value.
+      operationId: CustomerContactvalue
+      deprecated: false
+      tags:
+        - CustomerProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Customer number
+          required: true
+          type: string
+      responses:
         '200':
           description: OK
           schema:
@@ -397,7 +568,28 @@ paths:
           in: path
           description: Customer number
           required: true
-          type: integer      responses:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: integer
+  '/Customers({key})/Phone/$value':
+    get:
+      summary: Get customer property Phone
+      description: Get customer property Phone via complete primary key, returning the raw value.
+      operationId: CustomerPhonevalue
+      deprecated: false
+      tags:
+        - CustomerProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Customer number
+          required: true
+          type: integer
+      responses:
         '200':
           description: OK
           schema:
@@ -416,7 +608,28 @@ paths:
           in: path
           description: Customer number
           required: true
-          type: integer      responses:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: integer
+  '/Customers({key})/Fax/$value':
+    get:
+      summary: Get customer property Fax
+      description: Get customer property Fax via complete primary key, returning the raw value.
+      operationId: CustomerFaxvalue
+      deprecated: false
+      tags:
+        - CustomerProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Customer number
+          required: true
+          type: integer
+      responses:
         '200':
           description: OK
           schema:
@@ -435,7 +648,28 @@ paths:
           in: path
           description: Customer number
           required: true
-          type: integer      responses:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: integer
+  '/Customers({key})/FavoriteItem/$value':
+    get:
+      summary: Get customer property FavoriteItem
+      description: Get customer property FavoriteItem via complete primary key, returning the raw value.
+      operationId: CustomerFavoriteItemvalue
+      deprecated: false
+      tags:
+        - CustomerProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Customer number
+          required: true
+          type: integer
+      responses:
         '200':
           description: OK
           schema:
@@ -454,7 +688,28 @@ paths:
           in: path
           description: Customer number
           required: true
-          type: string      responses:
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+  '/Customers({key})/PaymentTermsCode/$value':
+    get:
+      summary: Get customer property PaymentTermsCode
+      description: Get customer property PaymentTermsCode via complete primary key, returning the raw value.
+      operationId: CustomerPaymentTermsCodevalue
+      deprecated: false
+      tags:
+        - CustomerProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Customer number
+          required: true
+          type: string
+      responses:
         '200':
           description: OK
           schema:
@@ -473,7 +728,28 @@ paths:
           in: path
           description: Customer number
           required: true
-          type: integer      responses:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: integer
+  '/Customers({key})/TaxId/$value':
+    get:
+      summary: Get customer property TaxId
+      description: Get customer property TaxId via complete primary key, returning the raw value.
+      operationId: CustomerTaxIdvalue
+      deprecated: false
+      tags:
+        - CustomerProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Customer number
+          required: true
+          type: integer
+      responses:
         '200':
           description: OK
           schema:
@@ -492,11 +768,33 @@ paths:
           in: path
           description: Customer number
           required: true
-          type: number      responses:
+          type: number
+      responses:
         '200':
           description: OK
           schema:
-            type: number  /Items:
+            type: number
+  '/Customers({key})/CreditLimit/$value':
+    get:
+      summary: Get customer property CreditLimit
+      description: Get customer property CreditLimit via complete primary key, returning the raw value.
+      operationId: CustomerCreditLimitvalue
+      deprecated: false
+      tags:
+        - CustomerProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Customer number
+          required: true
+          type: number
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: number
+  /Items:
     get:
       summary: Get items
       description: Get all or a filtered collection of items.
@@ -545,7 +843,7 @@ paths:
       deprecated: false
       tags:
         - Item
-        - Read
+        - Count
       parameters:
         - name: $filter
           in: query
@@ -570,7 +868,8 @@ paths:
           in: path
           description: Item number
           required: true
-          type: integer        - name: $expand
+          type: integer
+        - name: $expand
           in: query
           description: Expand one or more navigation properties.
           type: string
@@ -582,7 +881,6 @@ paths:
         '200':
           description: OK
           schema:
-            type: object
             $ref: '#/definitions/Item'
     delete:
       summary: Delete item
@@ -597,7 +895,8 @@ paths:
           in: path
           description: Item number
           required: true
-          type: integer      responses:
+          type: integer
+      responses:
         '204':
           description: OK
     put:
@@ -614,12 +913,12 @@ paths:
           in: path
           description: Item number
           required: true
-          type: integer        - name: aItem
+          type: integer
+        - name: aItem
           in: body
           description: Data for item to create or update.
           required: true
           schema:
-            type: object
             $ref: '#/definitions/Item'
       responses:
         '204':
@@ -637,12 +936,12 @@ paths:
           in: path
           description: Item number
           required: true
-          type: integer        - name: aItem
+          type: integer
+        - name: aItem
           in: body
           description: Data for item to create or update.
           required: true
           schema:
-            type: object
             $ref: '#/definitions/Item'
       responses:
         '204':
@@ -657,11 +956,12 @@ paths:
         - Item
         - Read
       parameters:
-        - name: VendorNumber
+        - name: aVendorNumber
           in: path
           description: Vendor number
           required: true
-          type: integer        - name: $expand
+          type: integer
+        - name: $expand
           in: query
           description: Expand one or more navigation properties.
           type: string
@@ -700,13 +1000,14 @@ paths:
       deprecated: false
       tags:
         - Item
-        - Read
+        - Count
       parameters:
         - name: aVendorNumber
           in: path
           description: Vendor number
           required: true
-          type: integer        - name: $filter
+          type: integer
+        - name: $filter
           in: query
           description: Filter expression to restrict returned rows.
           type: string
@@ -725,11 +1026,12 @@ paths:
         - Item
         - Read
       parameters:
-        - name: FlowerColor
+        - name: aFlowerColor
           in: path
           description: Flower color
           required: true
-          type: string        - name: $expand
+          type: string
+        - name: $expand
           in: query
           description: Expand one or more navigation properties.
           type: string
@@ -768,13 +1070,14 @@ paths:
       deprecated: false
       tags:
         - Item
-        - Read
+        - Count
       parameters:
         - name: aFlowerColor
           in: path
           description: Flower color
           required: true
-          type: string        - name: $filter
+          type: string
+        - name: $filter
           in: query
           description: Filter expression to restrict returned rows.
           type: string
@@ -793,11 +1096,12 @@ paths:
         - Item
         - Read
       parameters:
-        - name: Size
+        - name: aSize
           in: path
           description: Size in gallons
           required: true
-          type: integer        - name: $expand
+          type: integer
+        - name: $expand
           in: query
           description: Expand one or more navigation properties.
           type: string
@@ -836,13 +1140,14 @@ paths:
       deprecated: false
       tags:
         - Item
-        - Read
+        - Count
       parameters:
         - name: aSize
           in: path
           description: Size in gallons
           required: true
-          type: integer        - name: $filter
+          type: integer
+        - name: $filter
           in: query
           description: Filter expression to restrict returned rows.
           type: string
@@ -861,11 +1166,12 @@ paths:
         - Item
         - Read
       parameters:
-        - name: CommonName
+        - name: aCommonName
           in: path
           description: Common name
           required: true
-          type: string        - name: $expand
+          type: string
+        - name: $expand
           in: query
           description: Expand one or more navigation properties.
           type: string
@@ -904,13 +1210,14 @@ paths:
       deprecated: false
       tags:
         - Item
-        - Read
+        - Count
       parameters:
         - name: aCommonName
           in: path
           description: Common name
           required: true
-          type: string        - name: $filter
+          type: string
+        - name: $filter
           in: query
           description: Filter expression to restrict returned rows.
           type: string
@@ -919,7 +1226,6 @@ paths:
           description: OK
           schema:
             type: integer
-
   '/Items({key})/ItemNumber':
     get:
       summary: Get item property ItemNumber
@@ -934,7 +1240,28 @@ paths:
           in: path
           description: Item number
           required: true
-          type: integer      responses:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: integer
+  '/Items({key})/ItemNumber/$value':
+    get:
+      summary: Get item property ItemNumber
+      description: Get item property ItemNumber via complete primary key, returning the raw value.
+      operationId: ItemItemNumbervalue
+      deprecated: false
+      tags:
+        - ItemProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Item number
+          required: true
+          type: integer
+      responses:
         '200':
           description: OK
           schema:
@@ -953,7 +1280,28 @@ paths:
           in: path
           description: Item number
           required: true
-          type: integer      responses:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: integer
+  '/Items({key})/VendorNumber/$value':
+    get:
+      summary: Get item property VendorNumber
+      description: Get item property VendorNumber via complete primary key, returning the raw value.
+      operationId: ItemVendorNumbervalue
+      deprecated: false
+      tags:
+        - ItemProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Item number
+          required: true
+          type: integer
+      responses:
         '200':
           description: OK
           schema:
@@ -972,7 +1320,28 @@ paths:
           in: path
           description: Item number
           required: true
-          type: integer      responses:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: integer
+  '/Items({key})/Size/$value':
+    get:
+      summary: Get item property Size
+      description: Get item property Size via complete primary key, returning the raw value.
+      operationId: ItemSizevalue
+      deprecated: false
+      tags:
+        - ItemProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Item number
+          required: true
+          type: integer
+      responses:
         '200':
           description: OK
           schema:
@@ -991,7 +1360,28 @@ paths:
           in: path
           description: Item number
           required: true
-          type: string      responses:
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+  '/Items({key})/CommonName/$value':
+    get:
+      summary: Get item property CommonName
+      description: Get item property CommonName via complete primary key, returning the raw value.
+      operationId: ItemCommonNamevalue
+      deprecated: false
+      tags:
+        - ItemProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Item number
+          required: true
+          type: string
+      responses:
         '200':
           description: OK
           schema:
@@ -1010,7 +1400,28 @@ paths:
           in: path
           description: Item number
           required: true
-          type: string      responses:
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+  '/Items({key})/LatinName/$value':
+    get:
+      summary: Get item property LatinName
+      description: Get item property LatinName via complete primary key, returning the raw value.
+      operationId: ItemLatinNamevalue
+      deprecated: false
+      tags:
+        - ItemProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Item number
+          required: true
+          type: string
+      responses:
         '200':
           description: OK
           schema:
@@ -1029,7 +1440,28 @@ paths:
           in: path
           description: Item number
           required: true
-          type: integer      responses:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: integer
+  '/Items({key})/ZoneCode/$value':
+    get:
+      summary: Get item property ZoneCode
+      description: Get item property ZoneCode via complete primary key, returning the raw value.
+      operationId: ItemZoneCodevalue
+      deprecated: false
+      tags:
+        - ItemProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Item number
+          required: true
+          type: integer
+      responses:
         '200':
           description: OK
           schema:
@@ -1048,7 +1480,28 @@ paths:
           in: path
           description: Item number
           required: true
-          type: integer      responses:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: integer
+  '/Items({key})/Type/$value':
+    get:
+      summary: Get item property Type
+      description: Get item property Type via complete primary key, returning the raw value.
+      operationId: ItemTypevalue
+      deprecated: false
+      tags:
+        - ItemProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Item number
+          required: true
+          type: integer
+      responses:
         '200':
           description: OK
           schema:
@@ -1067,7 +1520,28 @@ paths:
           in: path
           description: Item number
           required: true
-          type: string      responses:
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+  '/Items({key})/Flowering/$value':
+    get:
+      summary: Get item property Flowering
+      description: Get item property Flowering via complete primary key, returning the raw value.
+      operationId: ItemFloweringvalue
+      deprecated: false
+      tags:
+        - ItemProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Item number
+          required: true
+          type: string
+      responses:
         '200':
           description: OK
           schema:
@@ -1086,7 +1560,28 @@ paths:
           in: path
           description: Item number
           required: true
-          type: string      responses:
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+  '/Items({key})/FlowerColor/$value':
+    get:
+      summary: Get item property FlowerColor
+      description: Get item property FlowerColor via complete primary key, returning the raw value.
+      operationId: ItemFlowerColorvalue
+      deprecated: false
+      tags:
+        - ItemProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Item number
+          required: true
+          type: string
+      responses:
         '200':
           description: OK
           schema:
@@ -1105,7 +1600,28 @@ paths:
           in: path
           description: Item number
           required: true
-          type: string      responses:
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+  '/Items({key})/Shape/$value':
+    get:
+      summary: Get item property Shape
+      description: Get item property Shape via complete primary key, returning the raw value.
+      operationId: ItemShapevalue
+      deprecated: false
+      tags:
+        - ItemProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Item number
+          required: true
+          type: string
+      responses:
         '200':
           description: OK
           schema:
@@ -1124,7 +1640,28 @@ paths:
           in: path
           description: Item number
           required: true
-          type: integer      responses:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: integer
+  '/Items({key})/MaxHeight/$value':
+    get:
+      summary: Get item property MaxHeight
+      description: Get item property MaxHeight via complete primary key, returning the raw value.
+      operationId: ItemMaxHeightvalue
+      deprecated: false
+      tags:
+        - ItemProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Item number
+          required: true
+          type: integer
+      responses:
         '200':
           description: OK
           schema:
@@ -1143,7 +1680,28 @@ paths:
           in: path
           description: Item number
           required: true
-          type: integer      responses:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: integer
+  '/Items({key})/MaxWidth/$value':
+    get:
+      summary: Get item property MaxWidth
+      description: Get item property MaxWidth via complete primary key, returning the raw value.
+      operationId: ItemMaxWidthvalue
+      deprecated: false
+      tags:
+        - ItemProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Item number
+          required: true
+          type: integer
+      responses:
         '200':
           description: OK
           schema:
@@ -1162,7 +1720,28 @@ paths:
           in: path
           description: Item number
           required: true
-          type: string      responses:
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+  '/Items({key})/WaterRequirement/$value':
+    get:
+      summary: Get item property WaterRequirement
+      description: Get item property WaterRequirement via complete primary key, returning the raw value.
+      operationId: ItemWaterRequirementvalue
+      deprecated: false
+      tags:
+        - ItemProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Item number
+          required: true
+          type: string
+      responses:
         '200':
           description: OK
           schema:
@@ -1181,7 +1760,28 @@ paths:
           in: path
           description: Item number
           required: true
-          type: string      responses:
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+  '/Items({key})/SunRequirement/$value':
+    get:
+      summary: Get item property SunRequirement
+      description: Get item property SunRequirement via complete primary key, returning the raw value.
+      operationId: ItemSunRequirementvalue
+      deprecated: false
+      tags:
+        - ItemProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Item number
+          required: true
+          type: string
+      responses:
         '200':
           description: OK
           schema:
@@ -1200,7 +1800,28 @@ paths:
           in: path
           description: Item number
           required: true
-          type: string      responses:
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+  '/Items({key})/BinLocation/$value':
+    get:
+      summary: Get item property BinLocation
+      description: Get item property BinLocation via complete primary key, returning the raw value.
+      operationId: ItemBinLocationvalue
+      deprecated: false
+      tags:
+        - ItemProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Item number
+          required: true
+          type: string
+      responses:
         '200':
           description: OK
           schema:
@@ -1219,7 +1840,28 @@ paths:
           in: path
           description: Item number
           required: true
-          type: integer      responses:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: integer
+  '/Items({key})/QtyOnHand/$value':
+    get:
+      summary: Get item property QtyOnHand
+      description: Get item property QtyOnHand via complete primary key, returning the raw value.
+      operationId: ItemQtyOnHandvalue
+      deprecated: false
+      tags:
+        - ItemProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Item number
+          required: true
+          type: integer
+      responses:
         '200':
           description: OK
           schema:
@@ -1238,7 +1880,28 @@ paths:
           in: path
           description: Item number
           required: true
-          type: integer      responses:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: integer
+  '/Items({key})/QtyAllocated/$value':
+    get:
+      summary: Get item property QtyAllocated
+      description: Get item property QtyAllocated via complete primary key, returning the raw value.
+      operationId: ItemQtyAllocatedvalue
+      deprecated: false
+      tags:
+        - ItemProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Item number
+          required: true
+          type: integer
+      responses:
         '200':
           description: OK
           schema:
@@ -1257,7 +1920,28 @@ paths:
           in: path
           description: Item number
           required: true
-          type: integer      responses:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: integer
+  '/Items({key})/QtyOnOrder/$value':
+    get:
+      summary: Get item property QtyOnOrder
+      description: Get item property QtyOnOrder via complete primary key, returning the raw value.
+      operationId: ItemQtyOnOrdervalue
+      deprecated: false
+      tags:
+        - ItemProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Item number
+          required: true
+          type: integer
+      responses:
         '200':
           description: OK
           schema:
@@ -1276,7 +1960,28 @@ paths:
           in: path
           description: Item number
           required: true
-          type: integer      responses:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: integer
+  '/Items({key})/ReorderLevel/$value':
+    get:
+      summary: Get item property ReorderLevel
+      description: Get item property ReorderLevel via complete primary key, returning the raw value.
+      operationId: ItemReorderLevelvalue
+      deprecated: false
+      tags:
+        - ItemProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Item number
+          required: true
+          type: integer
+      responses:
         '200':
           description: OK
           schema:
@@ -1295,7 +2000,28 @@ paths:
           in: path
           description: Item number
           required: true
-          type: number      responses:
+          type: number
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: number
+  '/Items({key})/UnitPrice/$value':
+    get:
+      summary: Get item property UnitPrice
+      description: Get item property UnitPrice via complete primary key, returning the raw value.
+      operationId: ItemUnitPricevalue
+      deprecated: false
+      tags:
+        - ItemProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Item number
+          required: true
+          type: number
+      responses:
         '200':
           description: OK
           schema:
@@ -1314,11 +2040,33 @@ paths:
           in: path
           description: Item number
           required: true
-          type: number      responses:
+          type: number
+      responses:
         '200':
           description: OK
           schema:
-            type: number  /Orders:
+            type: number
+  '/Items({key})/CostPrice/$value':
+    get:
+      summary: Get item property CostPrice
+      description: Get item property CostPrice via complete primary key, returning the raw value.
+      operationId: ItemCostPricevalue
+      deprecated: false
+      tags:
+        - ItemProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Item number
+          required: true
+          type: number
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: number
+  /Orders:
     get:
       summary: Get orders
       description: Get all or a filtered collection of orders.
@@ -1367,7 +2115,7 @@ paths:
       deprecated: false
       tags:
         - Order
-        - Read
+        - Count
       parameters:
         - name: $filter
           in: query
@@ -1392,7 +2140,8 @@ paths:
           in: path
           description: Order number
           required: true
-          type: integer        - name: $expand
+          type: integer
+        - name: $expand
           in: query
           description: Expand one or more navigation properties.
           type: string
@@ -1404,7 +2153,6 @@ paths:
         '200':
           description: OK
           schema:
-            type: object
             $ref: '#/definitions/Order'
     delete:
       summary: Delete order
@@ -1419,7 +2167,8 @@ paths:
           in: path
           description: Order number
           required: true
-          type: integer      responses:
+          type: integer
+      responses:
         '204':
           description: OK
     put:
@@ -1436,12 +2185,12 @@ paths:
           in: path
           description: Order number
           required: true
-          type: integer        - name: aOrder
+          type: integer
+        - name: aOrder
           in: body
           description: Data for order to create or update.
           required: true
           schema:
-            type: object
             $ref: '#/definitions/Order'
       responses:
         '204':
@@ -1459,12 +2208,12 @@ paths:
           in: path
           description: Order number
           required: true
-          type: integer        - name: aOrder
+          type: integer
+        - name: aOrder
           in: body
           description: Data for order to create or update.
           required: true
           schema:
-            type: object
             $ref: '#/definitions/Order'
       responses:
         '204':
@@ -1479,11 +2228,12 @@ paths:
         - Order
         - Read
       parameters:
-        - name: CustomerNumber
+        - name: aCustomerNumber
           in: path
           description: Customer number
           required: true
-          type: integer        - name: $expand
+          type: integer
+        - name: $expand
           in: query
           description: Expand one or more navigation properties.
           type: string
@@ -1522,13 +2272,14 @@ paths:
       deprecated: false
       tags:
         - Order
-        - Read
+        - Count
       parameters:
         - name: aCustomerNumber
           in: path
           description: Customer number
           required: true
-          type: integer        - name: $filter
+          type: integer
+        - name: $filter
           in: query
           description: Filter expression to restrict returned rows.
           type: string
@@ -1547,11 +2298,12 @@ paths:
         - Order
         - Read
       parameters:
-        - name: DateOrdered
+        - name: aDateOrdered
           in: path
           description: Date ordered
           required: true
-          type: string          format: date-time
+          type: string
+          format: date-time
         - name: $expand
           in: query
           description: Expand one or more navigation properties.
@@ -1591,13 +2343,14 @@ paths:
       deprecated: false
       tags:
         - Order
-        - Read
+        - Count
       parameters:
         - name: aDateOrdered
           in: path
           description: Date ordered
           required: true
-          type: string          format: date-time
+          type: string
+          format: date-time
         - name: $filter
           in: query
           description: Filter expression to restrict returned rows.
@@ -1617,11 +2370,12 @@ paths:
         - Order
         - Read
       parameters:
-        - name: DateCompleted
+        - name: aDateCompleted
           in: path
           description: Date order completed
           required: true
-          type: string          format: date-time
+          type: string
+          format: date-time
         - name: $expand
           in: query
           description: Expand one or more navigation properties.
@@ -1661,13 +2415,14 @@ paths:
       deprecated: false
       tags:
         - Order
-        - Read
+        - Count
       parameters:
         - name: aDateCompleted
           in: path
           description: Date order completed
           required: true
-          type: string          format: date-time
+          type: string
+          format: date-time
         - name: $filter
           in: query
           description: Filter expression to restrict returned rows.
@@ -1677,7 +2432,6 @@ paths:
           description: OK
           schema:
             type: integer
-
   '/Orders({key})/OrderNumber':
     get:
       summary: Get order property OrderNumber
@@ -1692,7 +2446,28 @@ paths:
           in: path
           description: Order number
           required: true
-          type: integer      responses:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: integer
+  '/Orders({key})/OrderNumber/$value':
+    get:
+      summary: Get order property OrderNumber
+      description: Get order property OrderNumber via complete primary key, returning the raw value.
+      operationId: OrderOrderNumbervalue
+      deprecated: false
+      tags:
+        - OrderProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Order number
+          required: true
+          type: integer
+      responses:
         '200':
           description: OK
           schema:
@@ -1711,7 +2486,28 @@ paths:
           in: path
           description: Order number
           required: true
-          type: integer      responses:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: integer
+  '/Orders({key})/CustomerNumber/$value':
+    get:
+      summary: Get order property CustomerNumber
+      description: Get order property CustomerNumber via complete primary key, returning the raw value.
+      operationId: OrderCustomerNumbervalue
+      deprecated: false
+      tags:
+        - OrderProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Order number
+          required: true
+          type: integer
+      responses:
         '200':
           description: OK
           schema:
@@ -1730,7 +2526,28 @@ paths:
           in: path
           description: Order number
           required: true
-          type: string      responses:
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+  '/Orders({key})/PlacedBy/$value':
+    get:
+      summary: Get order property PlacedBy
+      description: Get order property PlacedBy via complete primary key, returning the raw value.
+      operationId: OrderPlacedByvalue
+      deprecated: false
+      tags:
+        - OrderProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Order number
+          required: true
+          type: string
+      responses:
         '200':
           description: OK
           schema:
@@ -1749,7 +2566,28 @@ paths:
           in: path
           description: Order number
           required: true
-          type: string      responses:
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+  '/Orders({key})/CustomerReference/$value':
+    get:
+      summary: Get order property CustomerReference
+      description: Get order property CustomerReference via complete primary key, returning the raw value.
+      operationId: OrderCustomerReferencevalue
+      deprecated: false
+      tags:
+        - OrderProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Order number
+          required: true
+          type: string
+      responses:
         '200':
           description: OK
           schema:
@@ -1768,7 +2606,28 @@ paths:
           in: path
           description: Order number
           required: true
-          type: string      responses:
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+  '/Orders({key})/PaymentTermsCode/$value':
+    get:
+      summary: Get order property PaymentTermsCode
+      description: Get order property PaymentTermsCode via complete primary key, returning the raw value.
+      operationId: OrderPaymentTermsCodevalue
+      deprecated: false
+      tags:
+        - OrderProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Order number
+          required: true
+          type: string
+      responses:
         '200':
           description: OK
           schema:
@@ -1787,7 +2646,29 @@ paths:
           in: path
           description: Order number
           required: true
-          type: string          format: date-time
+          type: string
+          format: date-time
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+  '/Orders({key})/DateOrdered/$value':
+    get:
+      summary: Get order property DateOrdered
+      description: Get order property DateOrdered via complete primary key, returning the raw value.
+      operationId: OrderDateOrderedvalue
+      deprecated: false
+      tags:
+        - OrderProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Order number
+          required: true
+          type: string
+          format: date-time
       responses:
         '200':
           description: OK
@@ -1807,7 +2688,29 @@ paths:
           in: path
           description: Order number
           required: true
-          type: string          format: date-time
+          type: string
+          format: date-time
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+  '/Orders({key})/DateCompleted/$value':
+    get:
+      summary: Get order property DateCompleted
+      description: Get order property DateCompleted via complete primary key, returning the raw value.
+      operationId: OrderDateCompletedvalue
+      deprecated: false
+      tags:
+        - OrderProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Order number
+          required: true
+          type: string
+          format: date-time
       responses:
         '200':
           description: OK
@@ -1827,11 +2730,33 @@ paths:
           in: path
           description: Order number
           required: true
-          type: string      responses:
+          type: string
+      responses:
         '200':
           description: OK
           schema:
-            type: string  /OrderItems:
+            type: string
+  '/Orders({key})/Noname001/$value':
+    get:
+      summary: Get order property Noname001
+      description: Get order property Noname001 via complete primary key, returning the raw value.
+      operationId: OrderNoname001value
+      deprecated: false
+      tags:
+        - OrderProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Order number
+          required: true
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+  /OrderItems:
     get:
       summary: Get orderItems
       description: Get all or a filtered collection of orderItems.
@@ -1880,7 +2805,7 @@ paths:
       deprecated: false
       tags:
         - OrderItem
-        - Read
+        - Count
       parameters:
         - name: $filter
           in: query
@@ -1905,11 +2830,13 @@ paths:
           in: path
           description: Order number
           required: true
-          type: integer        - name: aItemNumber
+          type: integer
+        - name: aItemNumber
           in: path
           description: Line item number
           required: true
-          type: integer        - name: $expand
+          type: integer
+        - name: $expand
           in: query
           description: Expand one or more navigation properties.
           type: string
@@ -1921,7 +2848,6 @@ paths:
         '200':
           description: OK
           schema:
-            type: object
             $ref: '#/definitions/OrderItem'
     delete:
       summary: Delete orderItem
@@ -1936,11 +2862,13 @@ paths:
           in: path
           description: Order number
           required: true
-          type: integer        - name: aItemNumber
+          type: integer
+        - name: aItemNumber
           in: path
           description: Line item number
           required: true
-          type: integer      responses:
+          type: integer
+      responses:
         '204':
           description: OK
     put:
@@ -1957,16 +2885,17 @@ paths:
           in: path
           description: Order number
           required: true
-          type: integer        - name: aItemNumber
+          type: integer
+        - name: aItemNumber
           in: path
           description: Line item number
           required: true
-          type: integer        - name: aOrderItem
+          type: integer
+        - name: aOrderItem
           in: body
           description: Data for orderItem to create or update.
           required: true
           schema:
-            type: object
             $ref: '#/definitions/OrderItem'
       responses:
         '204':
@@ -1984,16 +2913,17 @@ paths:
           in: path
           description: Order number
           required: true
-          type: integer        - name: aItemNumber
+          type: integer
+        - name: aItemNumber
           in: path
           description: Line item number
           required: true
-          type: integer        - name: aOrderItem
+          type: integer
+        - name: aOrderItem
           in: body
           description: Data for orderItem to create or update.
           required: true
           schema:
-            type: object
             $ref: '#/definitions/OrderItem'
       responses:
         '204':
@@ -2008,11 +2938,12 @@ paths:
         - OrderItem
         - Read
       parameters:
-        - name: ItemOrdered
+        - name: aItemOrdered
           in: path
           description: Item ordered
           required: true
-          type: integer        - name: $expand
+          type: integer
+        - name: $expand
           in: query
           description: Expand one or more navigation properties.
           type: string
@@ -2051,13 +2982,14 @@ paths:
       deprecated: false
       tags:
         - OrderItem
-        - Read
+        - Count
       parameters:
         - name: aItemOrdered
           in: path
           description: Item ordered
           required: true
-          type: integer        - name: $filter
+          type: integer
+        - name: $filter
           in: query
           description: Filter expression to restrict returned rows.
           type: string
@@ -2076,11 +3008,12 @@ paths:
         - OrderItem
         - Read
       parameters:
-        - name: DateShipped
+        - name: aDateShipped
           in: path
           description: Date shipped
           required: true
-          type: string          format: date-time
+          type: string
+          format: date-time
         - name: $expand
           in: query
           description: Expand one or more navigation properties.
@@ -2120,13 +3053,14 @@ paths:
       deprecated: false
       tags:
         - OrderItem
-        - Read
+        - Count
       parameters:
         - name: aDateShipped
           in: path
           description: Date shipped
           required: true
-          type: string          format: date-time
+          type: string
+          format: date-time
         - name: $filter
           in: query
           description: Filter expression to restrict returned rows.
@@ -2146,11 +3080,12 @@ paths:
         - OrderItem
         - Read
       parameters:
-        - name: InvoiceNumber
+        - name: aInvoiceNumber
           in: path
           description: Invoice number
           required: true
-          type: integer        - name: $expand
+          type: integer
+        - name: $expand
           in: query
           description: Expand one or more navigation properties.
           type: string
@@ -2189,13 +3124,14 @@ paths:
       deprecated: false
       tags:
         - OrderItem
-        - Read
+        - Count
       parameters:
         - name: aInvoiceNumber
           in: path
           description: Invoice number
           required: true
-          type: integer        - name: $filter
+          type: integer
+        - name: $filter
           in: query
           description: Filter expression to restrict returned rows.
           type: string
@@ -2204,7 +3140,6 @@ paths:
           description: OK
           schema:
             type: integer
-
   '/OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})/OrderNumber':
     get:
       summary: Get orderItem property OrderNumber
@@ -2219,11 +3154,38 @@ paths:
           in: path
           description: Order number
           required: true
-          type: integer        - name: aItemNumber
+          type: integer
+        - name: aItemNumber
           in: path
           description: Line item number
           required: true
-          type: integer      responses:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: integer
+  '/OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})/OrderNumber/$value':
+    get:
+      summary: Get orderItem property OrderNumber
+      description: Get orderItem property OrderNumber via complete primary key, returning the raw value.
+      operationId: OrderItemOrderNumbervalue
+      deprecated: false
+      tags:
+        - OrderItemProperties
+        - Read
+      parameters:
+        - name: aOrderNumber
+          in: path
+          description: Order number
+          required: true
+          type: integer
+        - name: aItemNumber
+          in: path
+          description: Line item number
+          required: true
+          type: integer
+      responses:
         '200':
           description: OK
           schema:
@@ -2242,11 +3204,38 @@ paths:
           in: path
           description: Order number
           required: true
-          type: integer        - name: aItemNumber
+          type: integer
+        - name: aItemNumber
           in: path
           description: Line item number
           required: true
-          type: integer      responses:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: integer
+  '/OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})/ItemNumber/$value':
+    get:
+      summary: Get orderItem property ItemNumber
+      description: Get orderItem property ItemNumber via complete primary key, returning the raw value.
+      operationId: OrderItemItemNumbervalue
+      deprecated: false
+      tags:
+        - OrderItemProperties
+        - Read
+      parameters:
+        - name: aOrderNumber
+          in: path
+          description: Order number
+          required: true
+          type: integer
+        - name: aItemNumber
+          in: path
+          description: Line item number
+          required: true
+          type: integer
+      responses:
         '200':
           description: OK
           schema:
@@ -2265,11 +3254,38 @@ paths:
           in: path
           description: Order number
           required: true
-          type: integer        - name: aItemNumber
+          type: integer
+        - name: aItemNumber
           in: path
           description: Line item number
           required: true
-          type: integer      responses:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: integer
+  '/OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})/ItemOrdered/$value':
+    get:
+      summary: Get orderItem property ItemOrdered
+      description: Get orderItem property ItemOrdered via complete primary key, returning the raw value.
+      operationId: OrderItemItemOrderedvalue
+      deprecated: false
+      tags:
+        - OrderItemProperties
+        - Read
+      parameters:
+        - name: aOrderNumber
+          in: path
+          description: Order number
+          required: true
+          type: integer
+        - name: aItemNumber
+          in: path
+          description: Line item number
+          required: true
+          type: integer
+      responses:
         '200':
           description: OK
           schema:
@@ -2288,11 +3304,38 @@ paths:
           in: path
           description: Order number
           required: true
-          type: integer        - name: aItemNumber
+          type: integer
+        - name: aItemNumber
           in: path
           description: Line item number
           required: true
-          type: integer      responses:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: integer
+  '/OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})/QuantityOrdered/$value':
+    get:
+      summary: Get orderItem property QuantityOrdered
+      description: Get orderItem property QuantityOrdered via complete primary key, returning the raw value.
+      operationId: OrderItemQuantityOrderedvalue
+      deprecated: false
+      tags:
+        - OrderItemProperties
+        - Read
+      parameters:
+        - name: aOrderNumber
+          in: path
+          description: Order number
+          required: true
+          type: integer
+        - name: aItemNumber
+          in: path
+          description: Line item number
+          required: true
+          type: integer
+      responses:
         '200':
           description: OK
           schema:
@@ -2311,11 +3354,38 @@ paths:
           in: path
           description: Order number
           required: true
-          type: number        - name: aItemNumber
+          type: number
+        - name: aItemNumber
           in: path
           description: Line item number
           required: true
-          type: number      responses:
+          type: number
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: number
+  '/OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})/UnitPrice/$value':
+    get:
+      summary: Get orderItem property UnitPrice
+      description: Get orderItem property UnitPrice via complete primary key, returning the raw value.
+      operationId: OrderItemUnitPricevalue
+      deprecated: false
+      tags:
+        - OrderItemProperties
+        - Read
+      parameters:
+        - name: aOrderNumber
+          in: path
+          description: Order number
+          required: true
+          type: number
+        - name: aItemNumber
+          in: path
+          description: Line item number
+          required: true
+          type: number
+      responses:
         '200':
           description: OK
           schema:
@@ -2334,12 +3404,41 @@ paths:
           in: path
           description: Order number
           required: true
-          type: string          format: date-time
+          type: string
+          format: date-time
         - name: aItemNumber
           in: path
           description: Line item number
           required: true
-          type: string          format: date-time
+          type: string
+          format: date-time
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+  '/OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})/DateShipped/$value':
+    get:
+      summary: Get orderItem property DateShipped
+      description: Get orderItem property DateShipped via complete primary key, returning the raw value.
+      operationId: OrderItemDateShippedvalue
+      deprecated: false
+      tags:
+        - OrderItemProperties
+        - Read
+      parameters:
+        - name: aOrderNumber
+          in: path
+          description: Order number
+          required: true
+          type: string
+          format: date-time
+        - name: aItemNumber
+          in: path
+          description: Line item number
+          required: true
+          type: string
+          format: date-time
       responses:
         '200':
           description: OK
@@ -2359,15 +3458,43 @@ paths:
           in: path
           description: Order number
           required: true
-          type: integer        - name: aItemNumber
+          type: integer
+        - name: aItemNumber
           in: path
           description: Line item number
           required: true
-          type: integer      responses:
+          type: integer
+      responses:
         '200':
           description: OK
           schema:
-            type: integer  /Vendors:
+            type: integer
+  '/OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})/InvoiceNumber/$value':
+    get:
+      summary: Get orderItem property InvoiceNumber
+      description: Get orderItem property InvoiceNumber via complete primary key, returning the raw value.
+      operationId: OrderItemInvoiceNumbervalue
+      deprecated: false
+      tags:
+        - OrderItemProperties
+        - Read
+      parameters:
+        - name: aOrderNumber
+          in: path
+          description: Order number
+          required: true
+          type: integer
+        - name: aItemNumber
+          in: path
+          description: Line item number
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: integer
+  /Vendors:
     get:
       summary: Get vendors
       description: Get all or a filtered collection of vendors.
@@ -2416,7 +3543,7 @@ paths:
       deprecated: false
       tags:
         - Vendor
-        - Read
+        - Count
       parameters:
         - name: $filter
           in: query
@@ -2441,7 +3568,8 @@ paths:
           in: path
           description: Vendor number
           required: true
-          type: integer        - name: $expand
+          type: integer
+        - name: $expand
           in: query
           description: Expand one or more navigation properties.
           type: string
@@ -2453,7 +3581,6 @@ paths:
         '200':
           description: OK
           schema:
-            type: object
             $ref: '#/definitions/Vendor'
     delete:
       summary: Delete vendor
@@ -2468,7 +3595,8 @@ paths:
           in: path
           description: Vendor number
           required: true
-          type: integer      responses:
+          type: integer
+      responses:
         '204':
           description: OK
     put:
@@ -2485,12 +3613,12 @@ paths:
           in: path
           description: Vendor number
           required: true
-          type: integer        - name: aVendor
+          type: integer
+        - name: aVendor
           in: body
           description: Data for vendor to create or update.
           required: true
           schema:
-            type: object
             $ref: '#/definitions/Vendor'
       responses:
         '204':
@@ -2508,12 +3636,12 @@ paths:
           in: path
           description: Vendor number
           required: true
-          type: integer        - name: aVendor
+          type: integer
+        - name: aVendor
           in: body
           description: Data for vendor to create or update.
           required: true
           schema:
-            type: object
             $ref: '#/definitions/Vendor'
       responses:
         '204':
@@ -2528,15 +3656,17 @@ paths:
         - Vendor
         - Read
       parameters:
-        - name: RecordType
+        - name: aRecordType
           in: path
           description: Record type (1)
           required: true
-          type: integer        - name: VendorNumber
+          type: integer
+        - name: aVendorNumber
           in: path
           description: Vendor number
           required: true
-          type: integer        - name: $expand
+          type: integer
+        - name: $expand
           in: query
           description: Expand one or more navigation properties.
           type: string
@@ -2548,9 +3678,7 @@ paths:
         '200':
           description: OK
           schema:
-            type: object
             $ref: '#/definitions/Vendor'
-
   '/Vendors({key})/VendorNumber':
     get:
       summary: Get vendor property VendorNumber
@@ -2565,7 +3693,28 @@ paths:
           in: path
           description: Vendor number
           required: true
-          type: integer      responses:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: integer
+  '/Vendors({key})/VendorNumber/$value':
+    get:
+      summary: Get vendor property VendorNumber
+      description: Get vendor property VendorNumber via complete primary key, returning the raw value.
+      operationId: VendorVendorNumbervalue
+      deprecated: false
+      tags:
+        - VendorProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Vendor number
+          required: true
+          type: integer
+      responses:
         '200':
           description: OK
           schema:
@@ -2584,7 +3733,28 @@ paths:
           in: path
           description: Vendor number
           required: true
-          type: integer      responses:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: integer
+  '/Vendors({key})/RecordType/$value':
+    get:
+      summary: Get vendor property RecordType
+      description: Get vendor property RecordType via complete primary key, returning the raw value.
+      operationId: VendorRecordTypevalue
+      deprecated: false
+      tags:
+        - VendorProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Vendor number
+          required: true
+          type: integer
+      responses:
         '200':
           description: OK
           schema:
@@ -2603,7 +3773,28 @@ paths:
           in: path
           description: Vendor number
           required: true
-          type: string      responses:
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+  '/Vendors({key})/Name/$value':
+    get:
+      summary: Get vendor property Name
+      description: Get vendor property Name via complete primary key, returning the raw value.
+      operationId: VendorNamevalue
+      deprecated: false
+      tags:
+        - VendorProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Vendor number
+          required: true
+          type: string
+      responses:
         '200':
           description: OK
           schema:
@@ -2622,7 +3813,28 @@ paths:
           in: path
           description: Vendor number
           required: true
-          type: string      responses:
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+  '/Vendors({key})/Street/$value':
+    get:
+      summary: Get vendor property Street
+      description: Get vendor property Street via complete primary key, returning the raw value.
+      operationId: VendorStreetvalue
+      deprecated: false
+      tags:
+        - VendorProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Vendor number
+          required: true
+          type: string
+      responses:
         '200':
           description: OK
           schema:
@@ -2641,7 +3853,28 @@ paths:
           in: path
           description: Vendor number
           required: true
-          type: string      responses:
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+  '/Vendors({key})/City/$value':
+    get:
+      summary: Get vendor property City
+      description: Get vendor property City via complete primary key, returning the raw value.
+      operationId: VendorCityvalue
+      deprecated: false
+      tags:
+        - VendorProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Vendor number
+          required: true
+          type: string
+      responses:
         '200':
           description: OK
           schema:
@@ -2660,7 +3893,28 @@ paths:
           in: path
           description: Vendor number
           required: true
-          type: string      responses:
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+  '/Vendors({key})/State/$value':
+    get:
+      summary: Get vendor property State
+      description: Get vendor property State via complete primary key, returning the raw value.
+      operationId: VendorStatevalue
+      deprecated: false
+      tags:
+        - VendorProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Vendor number
+          required: true
+          type: string
+      responses:
         '200':
           description: OK
           schema:
@@ -2679,7 +3933,28 @@ paths:
           in: path
           description: Vendor number
           required: true
-          type: integer      responses:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: integer
+  '/Vendors({key})/ZipCode/$value':
+    get:
+      summary: Get vendor property ZipCode
+      description: Get vendor property ZipCode via complete primary key, returning the raw value.
+      operationId: VendorZipCodevalue
+      deprecated: false
+      tags:
+        - VendorProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Vendor number
+          required: true
+          type: integer
+      responses:
         '200':
           description: OK
           schema:
@@ -2698,7 +3973,28 @@ paths:
           in: path
           description: Vendor number
           required: true
-          type: string      responses:
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+  '/Vendors({key})/Contact/$value':
+    get:
+      summary: Get vendor property Contact
+      description: Get vendor property Contact via complete primary key, returning the raw value.
+      operationId: VendorContactvalue
+      deprecated: false
+      tags:
+        - VendorProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Vendor number
+          required: true
+          type: string
+      responses:
         '200':
           description: OK
           schema:
@@ -2717,7 +4013,28 @@ paths:
           in: path
           description: Vendor number
           required: true
-          type: integer      responses:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: integer
+  '/Vendors({key})/Phone/$value':
+    get:
+      summary: Get vendor property Phone
+      description: Get vendor property Phone via complete primary key, returning the raw value.
+      operationId: VendorPhonevalue
+      deprecated: false
+      tags:
+        - VendorProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Vendor number
+          required: true
+          type: integer
+      responses:
         '200':
           description: OK
           schema:
@@ -2736,7 +4053,28 @@ paths:
           in: path
           description: Vendor number
           required: true
-          type: integer      responses:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: integer
+  '/Vendors({key})/Fax/$value':
+    get:
+      summary: Get vendor property Fax
+      description: Get vendor property Fax via complete primary key, returning the raw value.
+      operationId: VendorFaxvalue
+      deprecated: false
+      tags:
+        - VendorProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Vendor number
+          required: true
+          type: integer
+      responses:
         '200':
           description: OK
           schema:
@@ -2755,11 +4093,33 @@ paths:
           in: path
           description: Vendor number
           required: true
-          type: string      responses:
+          type: string
+      responses:
         '200':
           description: OK
           schema:
-            type: stringdefinitions:
+            type: string
+  '/Vendors({key})/PaymentTermsCode/$value':
+    get:
+      summary: Get vendor property PaymentTermsCode
+      description: Get vendor property PaymentTermsCode via complete primary key, returning the raw value.
+      operationId: VendorPaymentTermsCodevalue
+      deprecated: false
+      tags:
+        - VendorProperties
+        - Read
+      parameters:
+        - name: key
+          in: path
+          description: Vendor number
+          required: true
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+definitions:
   Customer:
     required:
       - CustomerNumber
@@ -2879,7 +4239,7 @@ paths:
       Shape:
         type: string
         example: "1"
-        description: Plant shape
+        description: Shape
       MaxHeight:
         type: integer
         example: 24

@@ -46,14 +46,16 @@ tags:
   - name: <StructureNoplural>Properties
     description: Operations related to individual properties of <STRUCTURE_DESC>
 </STRUCTURE_LOOP>
+  - name: Count
+    description: All count operations
   - name: Create
-    description: Create operations
+    description: All create operations
   - name: Read
-    description: Read operations
+    description: All read operations
   - name: Update
-    description: Update operations
+    description: All update operations
   - name: Delete
-    description: Delete operations
+    description: All delete operations
 ;//
 ;//----------------------------------------------------------------------------
 ;//
@@ -115,7 +117,7 @@ paths:
       deprecated: false
       tags:
         - <StructureNoplural>
-        - Read
+        - Count
       parameters:
         - name: $filter
           in: query
@@ -171,7 +173,6 @@ paths:
         '200':
           description: OK
           schema:
-            type: object
             $ref: '#/definitions/<StructureNoplural>'
 ;//
 ;// ----------------------------------------------------------------------------
@@ -237,7 +238,6 @@ paths:
           description: Data for <structureNoplural> to create or update.
           required: true
           schema:
-            type: object
             $ref: '#/definitions/<StructureNoplural>'
       responses:
         '204':
@@ -275,7 +275,6 @@ paths:
           description: Data for <structureNoplural> to create or update.
           required: true
           schema:
-            type: object
             $ref: '#/definitions/<StructureNoplural>'
       responses:
         '204':
@@ -310,7 +309,7 @@ paths:
         - Read
       parameters:
 <SEGMENT_LOOP>
-        - name: <SegmentName>
+        - name: a<SegmentName>
           in: path
           description: <SEGMENT_DESC>
           required: true
@@ -357,7 +356,6 @@ paths:
             items:
               $ref: '#/definitions/<StructureNoplural>'
   <ELSE>
-            type: object
             $ref: '#/definitions/<StructureNoplural>'
   </IF DUPLICATES>
 ;//
@@ -373,7 +371,7 @@ paths:
       deprecated: false
       tags:
         - <StructureNoplural>
-        - Read
+        - Count
       parameters:
 <SEGMENT_LOOP>
         - name: a<SegmentName>
@@ -407,7 +405,9 @@ paths:
 ;//
 <FIELD_LOOP>
 <PRIMARY_KEY>
-
+;//
+;// Invividual property
+;//
   '/<StructurePlural>(<IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><SegmentName>=<IF ALPHA>''</IF ALPHA>{a<SegmentName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></IF SINGLE_SEGMENT>)/<FieldSqlName>':
     get:
       summary: Get <structureNoplural> property <FieldSqlName>
@@ -418,23 +418,58 @@ paths:
         - <StructureNoplural>Properties
         - Read
       parameters:
-<SEGMENT_LOOP>
-<IF SINGLE_SEGMENT>
+        <SEGMENT_LOOP>
+        <IF SINGLE_SEGMENT>
         - name: key
-<ELSE>
+        <ELSE>
         - name: a<SegmentName>
-</IF SINGLE_SEGMENT>
+        </IF SINGLE_SEGMENT>
           in: path
           description: <SEGMENT_DESC>
           required: true
           type: <IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>
-<IF DATE>
+          <IF DATE>
           format: date-time
-</IF DATE>
-<IF TIME>
+          </IF DATE>
+          <IF TIME>
           format: date-time
-</IF TIME>
-</SEGMENT_LOOP>
+          </IF TIME>
+          </SEGMENT_LOOP>
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: <IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>
+;//
+;// Invividual property - value only
+;//
+  '/<StructurePlural>(<IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><SegmentName>=<IF ALPHA>''</IF ALPHA>{a<SegmentName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></IF SINGLE_SEGMENT>)/<FieldSqlName>/$value':
+    get:
+      summary: Get <structureNoplural> property <FieldSqlName>
+      description: Get <structureNoplural> property <FieldSqlName> via complete primary key, returning the raw value.
+      operationId: <StructureNoplural><FieldSqlName>value
+      deprecated: false
+      tags:
+        - <StructureNoplural>Properties
+        - Read
+      parameters:
+        <SEGMENT_LOOP>
+        <IF SINGLE_SEGMENT>
+        - name: key
+        <ELSE>
+        - name: a<SegmentName>
+        </IF SINGLE_SEGMENT>
+          in: path
+          description: <SEGMENT_DESC>
+          required: true
+          type: <IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>
+          <IF DATE>
+          format: date-time
+          </IF DATE>
+          <IF TIME>
+          format: date-time
+          </IF TIME>
+          </SEGMENT_LOOP>
       responses:
         '200':
           description: OK

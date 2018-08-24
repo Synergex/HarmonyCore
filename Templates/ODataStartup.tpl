@@ -327,7 +327,7 @@ namespace <NAMESPACE>
 
 			lambda configureSwaggerUi(config)
 			begin
-				config.SwaggerEndpoint("/SwaggerFile.json", "Harmony Core Sample API")
+				config.SwaggerEndpoint("/SwaggerFile.yaml", "Harmony Core Sample API")
 				config.RoutePrefix = "api-docs"
 				config.DocumentTitle = "Harmony Core Sample API"
 			end
