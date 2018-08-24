@@ -5,16 +5,16 @@ rem ============================================================================
 rem Comment or uncomment the following lines to enable or disable optional features:
 
 set ENABLE_CREATE_TEST_FILES=-define ENABLE_CREATE_TEST_FILES
-rem set ENABLE_AUTHENTICATION=-define ENABLE_AUTHENTICATION
-rem set ENABLE_CASE_SENSITIVE_URL=-define ENABLE_CASE_SENSITIVE_URL
-rem set ENABLE_CORS=-define ENABLE_CORS
-rem set ENABLE_IIS_SUPPORT=-define ENABLE_IIS_SUPPORT
+set ENABLE_SWAGGER_DOCS=-define ENABLE_SWAGGER_DOCS
 set ENABLE_ALTERNATE_KEYS=-define ENABLE_ALTERNATE_KEYS
 set ENABLE_PROPERTY_ENDPOINTS=-define ENABLE_PROPERTY_ENDPOINTS
 set ENABLE_PUT=-define ENABLE_PUT
 set ENABLE_PATCH=-define ENABLE_PATCH
 set ENABLE_DELETE=-define ENABLE_DELETE
-set ENABLE_SWAGGER_DOCS=-define ENABLE_SWAGGER_DOCS
+rem set ENABLE_AUTHENTICATION=-define ENABLE_AUTHENTICATION
+rem set ENABLE_CASE_SENSITIVE_URL=-define ENABLE_CASE_SENSITIVE_URL
+rem set ENABLE_CORS=-define ENABLE_CORS
+rem set ENABLE_IIS_SUPPORT=-define ENABLE_IIS_SUPPORT
 
 rem ================================================================================================================================
 rem Configure standard command line options and the CodeGen environment
@@ -95,35 +95,35 @@ if ERRORLEVEL 1 goto error
 rem ================================================================================================================================
 rem Generate code for the TraditionalBridge sample environment
 
-set CODEGEN_TPLDIR=Templates\TraditionalBridge
-set PROJECT=TraditionalBridge.Test
-set SMC_INTERFACE=SampleXfplEnv
-set XFPL_SMCPATH=
+rem set CODEGEN_TPLDIR=Templates\TraditionalBridge
+rem set PROJECT=TraditionalBridge.Test
+rem set SMC_INTERFACE=SampleXfplEnv
+rem set XFPL_SMCPATH=
 
-Generate model classes
-codegen -s %STRUCTURES% -t ODataModel -n %PROJECT%.Models -o %PROJECT%\Models -e -r -lf
-if ERRORLEVEL 1 goto error
+rem Generate model classes
+rem codegen -s %STRUCTURES% -t ODataModel -n %PROJECT%.Models -o %PROJECT%\Models -e -r -lf
+rem if ERRORLEVEL 1 goto error
 
-Generate method dispatcher classes
-codegen -smc SampleXfplEnvironment\smc.xml -interface %SMC_INTERFACE% -t InterfaceDispatcher -n %PROJECT% -o %PROJECT% -ut MODELS_NAMESPACE=%PROJECT%.Models -e -r -lf
-if ERRORLEVEL 1 goto error
-codegen -smc SampleXfplEnvironment\smc.xml -interface %SMC_INTERFACE% -t InterfaceMethodDispatchers -n %PROJECT% -o %PROJECT% -ut MODELS_NAMESPACE=%PROJECT%.Models -e -r -lf
-if ERRORLEVEL 1 goto error
+rem Generate method dispatcher classes
+rem codegen -smc SampleXfplEnvironment\smc.xml -interface %SMC_INTERFACE% -t InterfaceDispatcher -n %PROJECT% -o %PROJECT% -ut MODELS_NAMESPACE=%PROJECT%.Models -e -r -lf
+rem if ERRORLEVEL 1 goto error
+rem codegen -smc SampleXfplEnvironment\smc.xml -interface %SMC_INTERFACE% -t InterfaceMethodDispatchers -n %PROJECT% -o %PROJECT% -ut MODELS_NAMESPACE=%PROJECT%.Models -e -r -lf
+rem if ERRORLEVEL 1 goto error
 
-codegen -s %STRUCTURES% -ms -t InterfaceDispatcherData -n %PROJECT% -o %PROJECT% -ut SMC_INTERFACE=%SMC_INTERFACE% -e -r -lf
-if ERRORLEVEL 1 goto error
+rem codegen -s %STRUCTURES% -ms -t InterfaceDispatcherData -n %PROJECT% -o %PROJECT% -ut SMC_INTERFACE=%SMC_INTERFACE% -e -r -lf
+rem if ERRORLEVEL 1 goto error
 
 rem ================================================================================================================================
 rem Generate OData action return data models
-
-set CODEGEN_TPLDIR=Templates\TraditionalBridge
-set PROJECT=SampleServices.Models
-set SMC_INTERFACE=SampleXfplEnv
-set XFPL_SMCPATH=
-
-codegen -smc SampleXfplEnvironment\smc.xml -interface %SMC_INTERFACE% -t ODataActionModels -o SampleServices\Models -n %PROJECT% -e -r -lf
-if ERRORLEVEL 1 goto error
-
+rem 
+rem set CODEGEN_TPLDIR=Templates\TraditionalBridge
+rem set PROJECT=SampleServices.Models
+rem set SMC_INTERFACE=SampleXfplEnv
+rem set XFPL_SMCPATH=
+rem 
+rem codegen -smc SampleXfplEnvironment\smc.xml -interface %SMC_INTERFACE% -t ODataActionModels -o SampleServices\Models -n %PROJECT% -e -r -lf
+rem if ERRORLEVEL 1 goto error
+rem 
 echo.
 echo DONE!
 echo.
