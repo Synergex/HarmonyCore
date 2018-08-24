@@ -1,10 +1,10 @@
 ;;*****************************************************************************
 ;;
-;; Title:       PlantsController.dbl
+;; Title:       ItemsController.dbl
 ;;
 ;; Type:        Class
 ;;
-;; Description: OData controller for the PLANTS structure.
+;; Description: OData controller for the ITEMS structure.
 ;;
 ;;*****************************************************************************
 ;; WARNING
@@ -53,523 +53,523 @@ import SampleServices.Models
 namespace SampleServices.Controllers
 
 	;;; <summary>
-	;;; OData controller for Plants
+	;;; OData controller for Items
 	;;; </summary>
-	public class PlantsController extends ODataController
+	public class ItemsController extends ODataController
 	
 		public readwrite property DBContext, @SampleServices.DBContext
 
 		;;; <summary>
-		;;; Constructs a new instance of PlantsController
+		;;; Constructs a new instance of ItemsController
 		;;; </summary>
 		;;; <param name="dbContext">Database context</param>
-		public method PlantsController
+		public method ItemsController
 			dbContext, @SampleServices.DBContext
 		proc
 			this.DBContext = dbContext
 		endmethod
 
-		{ODataRoute("Plants")}
+		{ODataRoute("Items")}
 		{EnableQuery(MaxExpansionDepth=3)}
 		;;; <summary>
-		;;; Get all Plants
+		;;; Get all Items
 		;;; </summary>
 		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Get, @IActionResult
 		proc
-			mreturn Ok(DBContext.Plants)
+			mreturn Ok(DBContext.Items)
 		endmethod
 
-		{ODataRoute("Plants(InItemid={aInItemid})")}
+		{ODataRoute("Items(ItemNumber={aItemNumber})")}
 		{EnableQuery(MaxExpansionDepth=3)}
 		;;; <summary>
-		;;; Get a single Plant by primary key.
+		;;; Get a single Item by primary key.
 		;;; </summary>
-		;;; <param name="aInItemid">Item ID</param>
+		;;; <param name="aItemNumber">Item number</param>
 		;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
-		public method Get, @SingleResult<Plant>
+		public method Get, @SingleResult<Item>
 			{FromODataUri}
-			required in aInItemid, int
+			required in aItemNumber, int
 		proc
-			mreturn new SingleResult<Plant>(DBContext.Plants.FindQuery<Plant>(aInItemid))
+			mreturn new SingleResult<Item>(DBContext.Items.FindQuery<Item>(aItemNumber))
 		endmethod
 
-		{ODataRoute("Plants(InSource={aInSource})")}
+		{ODataRoute("Items(VendorNumber={aVendorNumber})")}
 		{EnableQuery(MaxExpansionDepth=3)}
 		;;; <summary>
-		;;; Get plants by alternate key key Vendor.
+		;;; Get items by alternate key key VendorNumber.
 		;;; </summary>
-		;;; <param name="aInSource">Vending Source Code</param>
+		;;; <param name="aVendorNumber">Vendor number</param>
 		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-		public method GetByKeyVendor, @IActionResult
+		public method GetByKeyVendorNumber, @IActionResult
 			{FromODataUri}
-			required in aInSource, int
+			required in aVendorNumber, int
 		proc
-			data result = DBContext.Plants.FindAlternate("InSource",aInSource)
+			data result = DBContext.Items.FindAlternate("VendorNumber",aVendorNumber)
 			if (result == ^null)
 				mreturn NotFound()
 			mreturn Ok(result)
 		endmethod
 
-		{ODataRoute("Plants(InColor={aInColor})")}
+		{ODataRoute("Items(FlowerColor={aFlowerColor})")}
 		{EnableQuery(MaxExpansionDepth=3)}
 		;;; <summary>
-		;;; Get plants by alternate key key Color.
+		;;; Get items by alternate key key Color.
 		;;; </summary>
-		;;; <param name="aInColor">Flower color</param>
+		;;; <param name="aFlowerColor">Flower color</param>
 		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method GetByKeyColor, @IActionResult
 			{FromODataUri}
-			required in aInColor, String
+			required in aFlowerColor, String
 		proc
-			data result = DBContext.Plants.FindAlternate("InColor",aInColor)
+			data result = DBContext.Items.FindAlternate("FlowerColor",aFlowerColor)
 			if (result == ^null)
 				mreturn NotFound()
 			mreturn Ok(result)
 		endmethod
 
-		{ODataRoute("Plants(InSize={aInSize})")}
+		{ODataRoute("Items(Size={aSize})")}
 		{EnableQuery(MaxExpansionDepth=3)}
 		;;; <summary>
-		;;; Get plants by alternate key key Size.
+		;;; Get items by alternate key key Size.
 		;;; </summary>
-		;;; <param name="aInSize">Size in gallons</param>
+		;;; <param name="aSize">Size in gallons</param>
 		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method GetByKeySize, @IActionResult
 			{FromODataUri}
-			required in aInSize, int
+			required in aSize, int
 		proc
-			data result = DBContext.Plants.FindAlternate("InSize",aInSize)
+			data result = DBContext.Items.FindAlternate("Size",aSize)
 			if (result == ^null)
 				mreturn NotFound()
 			mreturn Ok(result)
 		endmethod
 
-		{ODataRoute("Plants(InName={aInName})")}
+		{ODataRoute("Items(CommonName={aCommonName})")}
 		{EnableQuery(MaxExpansionDepth=3)}
 		;;; <summary>
-		;;; Get plants by alternate key key Name.
+		;;; Get items by alternate key key Name.
 		;;; </summary>
-		;;; <param name="aInName">Common name</param>
+		;;; <param name="aCommonName">Common name</param>
 		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method GetByKeyName, @IActionResult
 			{FromODataUri}
-			required in aInName, String
+			required in aCommonName, String
 		proc
-			data result = DBContext.Plants.FindAlternate("InName",aInName)
+			data result = DBContext.Items.FindAlternate("CommonName",aCommonName)
 			if (result == ^null)
 				mreturn NotFound()
 			mreturn Ok(result)
 		endmethod
 
-		{ODataRoute("Plants({key})/InItemid")}
+		{ODataRoute("Items({key})/ItemNumber")}
 		;;; <summary>
-		;;; Get the InItemid property of a single Plant, by primary key.
+		;;; Get the ItemNumber property of a single Item, by primary key.
 		;;; </summary>
-		;;; <param name="key">Item ID</param>
+		;;; <param name="key">Item number</param>
 		;;; <returns>
 		;;; Returns an int containing the value of the requested property.
 		;;;</returns>
-		public method GetInItemid, @IActionResult
+		public method GetItemNumber, @IActionResult
 			{FromODataUri}
 			required in key, int
 		proc
-			data result = DBContext.Plants.Find(key)
+			data result = DBContext.Items.Find(key)
 			if (result==^null)
 				mreturn NotFound()
-			mreturn OK(result.InItemid)
+			mreturn OK(result.ItemNumber)
 		endmethod
 
-		{ODataRoute("Plants({key})/InSource")}
+		{ODataRoute("Items({key})/VendorNumber")}
 		;;; <summary>
-		;;; Get the InSource property of a single Plant, by primary key.
+		;;; Get the VendorNumber property of a single Item, by primary key.
 		;;; </summary>
-		;;; <param name="key">Vending Source Code</param>
+		;;; <param name="key">Vendor number</param>
 		;;; <returns>
 		;;; Returns an int containing the value of the requested property.
 		;;;</returns>
-		public method GetInSource, @IActionResult
+		public method GetVendorNumber, @IActionResult
 			{FromODataUri}
 			required in key, int
 		proc
-			data result = DBContext.Plants.Find(key)
+			data result = DBContext.Items.Find(key)
 			if (result==^null)
 				mreturn NotFound()
-			mreturn OK(result.InSource)
+			mreturn OK(result.VendorNumber)
 		endmethod
 
-		{ODataRoute("Plants({key})/InSize")}
+		{ODataRoute("Items({key})/Size")}
 		;;; <summary>
-		;;; Get the InSize property of a single Plant, by primary key.
+		;;; Get the Size property of a single Item, by primary key.
 		;;; </summary>
 		;;; <param name="key">Size in gallons</param>
 		;;; <returns>
 		;;; Returns an int containing the value of the requested property.
 		;;;</returns>
-		public method GetInSize, @IActionResult
+		public method GetSize, @IActionResult
 			{FromODataUri}
 			required in key, int
 		proc
-			data result = DBContext.Plants.Find(key)
+			data result = DBContext.Items.Find(key)
 			if (result==^null)
 				mreturn NotFound()
-			mreturn OK(result.InSize)
+			mreturn OK(result.Size)
 		endmethod
 
-		{ODataRoute("Plants({key})/InName")}
+		{ODataRoute("Items({key})/CommonName")}
 		;;; <summary>
-		;;; Get the InName property of a single Plant, by primary key.
+		;;; Get the CommonName property of a single Item, by primary key.
 		;;; </summary>
 		;;; <param name="key">Common name</param>
 		;;; <returns>
 		;;; Returns a string containing the value of the requested property.
 		;;;</returns>
-		public method GetInName, @IActionResult
+		public method GetCommonName, @IActionResult
 			{FromODataUri}
 			required in key, int
 		proc
-			data result = DBContext.Plants.Find(key)
+			data result = DBContext.Items.Find(key)
 			if (result==^null)
 				mreturn NotFound()
-			mreturn OK(result.InName)
+			mreturn OK(result.CommonName)
 		endmethod
 
-		{ODataRoute("Plants({key})/InLatin")}
+		{ODataRoute("Items({key})/LatinName")}
 		;;; <summary>
-		;;; Get the InLatin property of a single Plant, by primary key.
+		;;; Get the LatinName property of a single Item, by primary key.
 		;;; </summary>
 		;;; <param name="key">Latin name</param>
 		;;; <returns>
 		;;; Returns a string containing the value of the requested property.
 		;;;</returns>
-		public method GetInLatin, @IActionResult
+		public method GetLatinName, @IActionResult
 			{FromODataUri}
 			required in key, int
 		proc
-			data result = DBContext.Plants.Find(key)
+			data result = DBContext.Items.Find(key)
 			if (result==^null)
 				mreturn NotFound()
-			mreturn OK(result.InLatin)
+			mreturn OK(result.LatinName)
 		endmethod
 
-		{ODataRoute("Plants({key})/InZone")}
+		{ODataRoute("Items({key})/ZoneCode")}
 		;;; <summary>
-		;;; Get the InZone property of a single Plant, by primary key.
+		;;; Get the ZoneCode property of a single Item, by primary key.
 		;;; </summary>
-		;;; <param name="key">Zone</param>
+		;;; <param name="key">Hardiness zone code</param>
 		;;; <returns>
 		;;; Returns an int containing the value of the requested property.
 		;;;</returns>
-		public method GetInZone, @IActionResult
+		public method GetZoneCode, @IActionResult
 			{FromODataUri}
 			required in key, int
 		proc
-			data result = DBContext.Plants.Find(key)
+			data result = DBContext.Items.Find(key)
 			if (result==^null)
 				mreturn NotFound()
-			mreturn OK(result.InZone)
+			mreturn OK(result.ZoneCode)
 		endmethod
 
-		{ODataRoute("Plants({key})/InType")}
+		{ODataRoute("Items({key})/Type")}
 		;;; <summary>
-		;;; Get the InType property of a single Plant, by primary key.
+		;;; Get the Type property of a single Item, by primary key.
 		;;; </summary>
 		;;; <param name="key">Type code</param>
 		;;; <returns>
 		;;; Returns an int containing the value of the requested property.
 		;;;</returns>
-		public method GetInType, @IActionResult
+		public method GetType, @IActionResult
 			{FromODataUri}
 			required in key, int
 		proc
-			data result = DBContext.Plants.Find(key)
+			data result = DBContext.Items.Find(key)
 			if (result==^null)
 				mreturn NotFound()
-			mreturn OK(result.InType)
+			mreturn OK(result.Type)
 		endmethod
 
-		{ODataRoute("Plants({key})/InFlower")}
+		{ODataRoute("Items({key})/Flowering")}
 		;;; <summary>
-		;;; Get the InFlower property of a single Plant, by primary key.
+		;;; Get the Flowering property of a single Item, by primary key.
 		;;; </summary>
 		;;; <param name="key">Flowering?</param>
 		;;; <returns>
 		;;; Returns a string containing the value of the requested property.
 		;;;</returns>
-		public method GetInFlower, @IActionResult
+		public method GetFlowering, @IActionResult
 			{FromODataUri}
 			required in key, int
 		proc
-			data result = DBContext.Plants.Find(key)
+			data result = DBContext.Items.Find(key)
 			if (result==^null)
 				mreturn NotFound()
-			mreturn OK(result.InFlower)
+			mreturn OK(result.Flowering)
 		endmethod
 
-		{ODataRoute("Plants({key})/InColor")}
+		{ODataRoute("Items({key})/FlowerColor")}
 		;;; <summary>
-		;;; Get the InColor property of a single Plant, by primary key.
+		;;; Get the FlowerColor property of a single Item, by primary key.
 		;;; </summary>
 		;;; <param name="key">Flower color</param>
 		;;; <returns>
 		;;; Returns a string containing the value of the requested property.
 		;;;</returns>
-		public method GetInColor, @IActionResult
+		public method GetFlowerColor, @IActionResult
 			{FromODataUri}
 			required in key, int
 		proc
-			data result = DBContext.Plants.Find(key)
+			data result = DBContext.Items.Find(key)
 			if (result==^null)
 				mreturn NotFound()
-			mreturn OK(result.InColor)
+			mreturn OK(result.FlowerColor)
 		endmethod
 
-		{ODataRoute("Plants({key})/InShape")}
+		{ODataRoute("Items({key})/Shape")}
 		;;; <summary>
-		;;; Get the InShape property of a single Plant, by primary key.
+		;;; Get the Shape property of a single Item, by primary key.
 		;;; </summary>
 		;;; <param name="key">Plant shape</param>
 		;;; <returns>
 		;;; Returns a string containing the value of the requested property.
 		;;;</returns>
-		public method GetInShape, @IActionResult
+		public method GetShape, @IActionResult
 			{FromODataUri}
 			required in key, int
 		proc
-			data result = DBContext.Plants.Find(key)
+			data result = DBContext.Items.Find(key)
 			if (result==^null)
 				mreturn NotFound()
-			mreturn OK(result.InShape)
+			mreturn OK(result.Shape)
 		endmethod
 
-		{ODataRoute("Plants({key})/InMaxhigh")}
+		{ODataRoute("Items({key})/MaxHeight")}
 		;;; <summary>
-		;;; Get the InMaxhigh property of a single Plant, by primary key.
+		;;; Get the MaxHeight property of a single Item, by primary key.
 		;;; </summary>
 		;;; <param name="key">Maximum height (in inches)</param>
 		;;; <returns>
 		;;; Returns an int containing the value of the requested property.
 		;;;</returns>
-		public method GetInMaxhigh, @IActionResult
+		public method GetMaxHeight, @IActionResult
 			{FromODataUri}
 			required in key, int
 		proc
-			data result = DBContext.Plants.Find(key)
+			data result = DBContext.Items.Find(key)
 			if (result==^null)
 				mreturn NotFound()
-			mreturn OK(result.InMaxhigh)
+			mreturn OK(result.MaxHeight)
 		endmethod
 
-		{ODataRoute("Plants({key})/InMaxwide")}
+		{ODataRoute("Items({key})/MaxWidth")}
 		;;; <summary>
-		;;; Get the InMaxwide property of a single Plant, by primary key.
+		;;; Get the MaxWidth property of a single Item, by primary key.
 		;;; </summary>
 		;;; <param name="key">Maximum width (in inches)</param>
 		;;; <returns>
 		;;; Returns an int containing the value of the requested property.
 		;;;</returns>
-		public method GetInMaxwide, @IActionResult
+		public method GetMaxWidth, @IActionResult
 			{FromODataUri}
 			required in key, int
 		proc
-			data result = DBContext.Plants.Find(key)
+			data result = DBContext.Items.Find(key)
 			if (result==^null)
 				mreturn NotFound()
-			mreturn OK(result.InMaxwide)
+			mreturn OK(result.MaxWidth)
 		endmethod
 
-		{ODataRoute("Plants({key})/InWater")}
+		{ODataRoute("Items({key})/WaterRequirement")}
 		;;; <summary>
-		;;; Get the InWater property of a single Plant, by primary key.
+		;;; Get the WaterRequirement property of a single Item, by primary key.
 		;;; </summary>
 		;;; <param name="key">Water requirements</param>
 		;;; <returns>
 		;;; Returns a string containing the value of the requested property.
 		;;;</returns>
-		public method GetInWater, @IActionResult
+		public method GetWaterRequirement, @IActionResult
 			{FromODataUri}
 			required in key, int
 		proc
-			data result = DBContext.Plants.Find(key)
+			data result = DBContext.Items.Find(key)
 			if (result==^null)
 				mreturn NotFound()
-			mreturn OK(result.InWater)
+			mreturn OK(result.WaterRequirement)
 		endmethod
 
-		{ODataRoute("Plants({key})/InSun")}
+		{ODataRoute("Items({key})/SunRequirement")}
 		;;; <summary>
-		;;; Get the InSun property of a single Plant, by primary key.
+		;;; Get the SunRequirement property of a single Item, by primary key.
 		;;; </summary>
 		;;; <param name="key">Sun requirements</param>
 		;;; <returns>
 		;;; Returns a string containing the value of the requested property.
 		;;;</returns>
-		public method GetInSun, @IActionResult
+		public method GetSunRequirement, @IActionResult
 			{FromODataUri}
 			required in key, int
 		proc
-			data result = DBContext.Plants.Find(key)
+			data result = DBContext.Items.Find(key)
 			if (result==^null)
 				mreturn NotFound()
-			mreturn OK(result.InSun)
+			mreturn OK(result.SunRequirement)
 		endmethod
 
-		{ODataRoute("Plants({key})/InLocation")}
+		{ODataRoute("Items({key})/BinLocation")}
 		;;; <summary>
-		;;; Get the InLocation property of a single Plant, by primary key.
+		;;; Get the BinLocation property of a single Item, by primary key.
 		;;; </summary>
 		;;; <param name="key">Bin/aisle</param>
 		;;; <returns>
 		;;; Returns a string containing the value of the requested property.
 		;;;</returns>
-		public method GetInLocation, @IActionResult
+		public method GetBinLocation, @IActionResult
 			{FromODataUri}
 			required in key, int
 		proc
-			data result = DBContext.Plants.Find(key)
+			data result = DBContext.Items.Find(key)
 			if (result==^null)
 				mreturn NotFound()
-			mreturn OK(result.InLocation)
+			mreturn OK(result.BinLocation)
 		endmethod
 
-		{ODataRoute("Plants({key})/InOnhand")}
+		{ODataRoute("Items({key})/QtyOnHand")}
 		;;; <summary>
-		;;; Get the InOnhand property of a single Plant, by primary key.
+		;;; Get the QtyOnHand property of a single Item, by primary key.
 		;;; </summary>
 		;;; <param name="key">Qty on hand</param>
 		;;; <returns>
 		;;; Returns an int containing the value of the requested property.
 		;;;</returns>
-		public method GetInOnhand, @IActionResult
+		public method GetQtyOnHand, @IActionResult
 			{FromODataUri}
 			required in key, int
 		proc
-			data result = DBContext.Plants.Find(key)
+			data result = DBContext.Items.Find(key)
 			if (result==^null)
 				mreturn NotFound()
-			mreturn OK(result.InOnhand)
+			mreturn OK(result.QtyOnHand)
 		endmethod
 
-		{ODataRoute("Plants({key})/InAllocated")}
+		{ODataRoute("Items({key})/QtyAllocated")}
 		;;; <summary>
-		;;; Get the InAllocated property of a single Plant, by primary key.
+		;;; Get the QtyAllocated property of a single Item, by primary key.
 		;;; </summary>
 		;;; <param name="key">Qty allocated</param>
 		;;; <returns>
 		;;; Returns an int containing the value of the requested property.
 		;;;</returns>
-		public method GetInAllocated, @IActionResult
+		public method GetQtyAllocated, @IActionResult
 			{FromODataUri}
 			required in key, int
 		proc
-			data result = DBContext.Plants.Find(key)
+			data result = DBContext.Items.Find(key)
 			if (result==^null)
 				mreturn NotFound()
-			mreturn OK(result.InAllocated)
+			mreturn OK(result.QtyAllocated)
 		endmethod
 
-		{ODataRoute("Plants({key})/InOnorder")}
+		{ODataRoute("Items({key})/QtyOnOrder")}
 		;;; <summary>
-		;;; Get the InOnorder property of a single Plant, by primary key.
+		;;; Get the QtyOnOrder property of a single Item, by primary key.
 		;;; </summary>
 		;;; <param name="key">Qty on order</param>
 		;;; <returns>
 		;;; Returns an int containing the value of the requested property.
 		;;;</returns>
-		public method GetInOnorder, @IActionResult
+		public method GetQtyOnOrder, @IActionResult
 			{FromODataUri}
 			required in key, int
 		proc
-			data result = DBContext.Plants.Find(key)
+			data result = DBContext.Items.Find(key)
 			if (result==^null)
 				mreturn NotFound()
-			mreturn OK(result.InOnorder)
+			mreturn OK(result.QtyOnOrder)
 		endmethod
 
-		{ODataRoute("Plants({key})/InMinimum")}
+		{ODataRoute("Items({key})/ReorderLevel")}
 		;;; <summary>
-		;;; Get the InMinimum property of a single Plant, by primary key.
+		;;; Get the ReorderLevel property of a single Item, by primary key.
 		;;; </summary>
 		;;; <param name="key">Reorder point</param>
 		;;; <returns>
 		;;; Returns an int containing the value of the requested property.
 		;;;</returns>
-		public method GetInMinimum, @IActionResult
+		public method GetReorderLevel, @IActionResult
 			{FromODataUri}
 			required in key, int
 		proc
-			data result = DBContext.Plants.Find(key)
+			data result = DBContext.Items.Find(key)
 			if (result==^null)
 				mreturn NotFound()
-			mreturn OK(result.InMinimum)
+			mreturn OK(result.ReorderLevel)
 		endmethod
 
-		{ODataRoute("Plants({key})/InPrice")}
+		{ODataRoute("Items({key})/UnitPrice")}
 		;;; <summary>
-		;;; Get the InPrice property of a single Plant, by primary key.
+		;;; Get the UnitPrice property of a single Item, by primary key.
 		;;; </summary>
-		;;; <param name="key">Unit Price</param>
+		;;; <param name="key">Unit price</param>
 		;;; <returns>
 		;;; Returns a decimal containing the value of the requested property.
 		;;;</returns>
-		public method GetInPrice, @IActionResult
+		public method GetUnitPrice, @IActionResult
 			{FromODataUri}
 			required in key, int
 		proc
-			data result = DBContext.Plants.Find(key)
+			data result = DBContext.Items.Find(key)
 			if (result==^null)
 				mreturn NotFound()
-			mreturn OK(result.InPrice)
+			mreturn OK(result.UnitPrice)
 		endmethod
 
-		{ODataRoute("Plants({key})/InCost")}
+		{ODataRoute("Items({key})/CostPrice")}
 		;;; <summary>
-		;;; Get the InCost property of a single Plant, by primary key.
+		;;; Get the CostPrice property of a single Item, by primary key.
 		;;; </summary>
-		;;; <param name="key">Item Cost</param>
+		;;; <param name="key">Item cost</param>
 		;;; <returns>
 		;;; Returns a decimal containing the value of the requested property.
 		;;;</returns>
-		public method GetInCost, @IActionResult
+		public method GetCostPrice, @IActionResult
 			{FromODataUri}
 			required in key, int
 		proc
-			data result = DBContext.Plants.Find(key)
+			data result = DBContext.Items.Find(key)
 			if (result==^null)
 				mreturn NotFound()
-			mreturn OK(result.InCost)
+			mreturn OK(result.CostPrice)
 		endmethod
 
-		{ODataRoute("Plants(InItemid={aInItemid})")}
+		{ODataRoute("Items(ItemNumber={aItemNumber})")}
 		;;; <summary>
-		;;; Create (with a client-supplied primary key) or replace a plant.
+		;;; Create (with a client-supplied primary key) or replace a item.
 		;;; </summary>
-		;;; <param name="aInItemid">Item ID</param>
+		;;; <param name="aItemNumber">Item number</param>
 		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Put, @IActionResult
 			{FromODataUri}
-			required in aInItemid, int
+			required in aItemNumber, int
 			{FromBody}
-			required in aPlant, @Plant
+			required in aItem, @Item
 		proc
 			;; Validate inbound data
 			if (!ModelState.IsValid)
 				mreturn BadRequest(ModelState)
 
 			;;Ensure that the key values in the URI win over any data that may be in the model object
-			aPlant.InItemid = aInItemid
+			aItem.ItemNumber = aItemNumber
 
 			try
 			begin
 				;;Add and commit
-				data existing = DBContext.Plants.Find(aInItemid)
+				data existing = DBContext.Items.Find(aItemNumber)
 				if(existing != ^null) then
 				begin
-					aPlant.CopyTo(existing)
+					aItem.CopyTo(existing)
 				end
 				else
 				begin
-					DBContext.Plants.Add(aPlant)
+					DBContext.Items.Add(aItem)
 				end
 				DBContext.SaveChanges()
 			end
@@ -583,37 +583,37 @@ namespace SampleServices.Controllers
 
 		endmethod
 
-		{ODataRoute("Plants(InItemid={aInItemid})")}
+		{ODataRoute("Items(ItemNumber={aItemNumber})")}
 		;;; <summary>
-		;;; Patch  (partial update) a plant.
+		;;; Patch  (partial update) a item.
 		;;; </summary>
-		;;; <param name="aInItemid">Item ID</param>
+		;;; <param name="aItemNumber">Item number</param>
 		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Patch, @IActionResult
 			{FromODataUri}
-			required in aInItemid, int
+			required in aItemNumber, int
 			{FromBody}
-			required in aPlant, @JsonPatchDocument<Plant>
+			required in aItem, @JsonPatchDocument<Item>
 		proc
 			;; Validate inbound data
 			if (!ModelState.IsValid)
 				mreturn BadRequest(ModelState)
 
-			;;Patch the existing plant
+			;;Patch the existing item
 			try
 			begin
-				;;Get the plant to be updated
-				data plantToUpdate = DBContext.Plants.Find(aInItemid)
+				;;Get the item to be updated
+				data itemToUpdate = DBContext.Items.Find(aItemNumber)
 
 				;;Did we find it?
-				if(plantToUpdate == ^null)
+				if(itemToUpdate == ^null)
 					mreturn NotFound()
 
-				;;Apply the changes to the plant we read
-				aPlant.ApplyTo(plantToUpdate)
+				;;Apply the changes to the item we read
+				aItem.ApplyTo(itemToUpdate)
 
 				;;Update and commit
-				DBContext.Plants.Update(plantToUpdate)
+				DBContext.Items.Update(itemToUpdate)
 				DBContext.SaveChanges()
 			end
 			catch (e, @InvalidOperationException)
@@ -626,25 +626,25 @@ namespace SampleServices.Controllers
 
 		endmethod
 
-		{ODataRoute("Plants(InItemid={aInItemid})")}
+		{ODataRoute("Items(ItemNumber={aItemNumber})")}
 		;;; <summary>
-		;;; Delete a plant.
+		;;; Delete a item.
 		;;; </summary>
-		;;; <param name="aInItemid">Item ID</param>
+		;;; <param name="aItemNumber">Item number</param>
 		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Delete, @IActionResult
 			{FromODataUri}
-			required in aInItemid, int
+			required in aItemNumber, int
 		proc
-			;;Get the plant to be deleted
-			data plantToRemove = DBContext.Plants.Find(aInItemid)
+			;;Get the item to be deleted
+			data itemToRemove = DBContext.Items.Find(aItemNumber)
 
 			;;Did we find it?
-			if (plantToRemove == ^null)
+			if (itemToRemove == ^null)
 				mreturn NotFound()
 
 			;;Delete and commit
-			DBContext.Plants.Remove(plantToRemove)
+			DBContext.Items.Remove(itemToRemove)
 			DBContext.SaveChanges()
 
 			mreturn NoContent()

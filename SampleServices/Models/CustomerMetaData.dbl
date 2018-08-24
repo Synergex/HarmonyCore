@@ -64,32 +64,32 @@ namespace SampleServices.Models
 			RPSStructureName = "CUSTOMERS"
 			RPSStructureSize = ^size(strCustomer)
 
-			AddFieldInfo("CustKey", "DECIMAL", 6, 1, 0, false)
-			AddFieldInfo("CustRtype", "DECIMAL", 1, 7, 0, false)
-			AddFieldInfo("CustName", "ALPHA", 30, 8, 0, false)
-			AddFieldInfo("CustStreet", "ALPHA", 25, 38, 0, false)
-			AddFieldInfo("CustCity", "ALPHA", 20, 63, 0, false)
-			AddFieldInfo("CustState", "ALPHA", 2, 83, 0, false)
-			AddFieldInfo("CustZip", "DECIMAL", 9, 85, 0, false)
-			AddFieldInfo("CustContact", "ALPHA", 25, 94, 0, false)
-            AddFieldInfo("CustPhone", "DECIMAL", 10, 119, 0, false, new SynergyDecimalConverter.LiteralFormatter("(XXX) XXX-XXXX"))
-            AddFieldInfo("CustFax", "DECIMAL", 10, 129, 0, false, new SynergyDecimalConverter.LiteralFormatter("(XXX) XXX-XXXX"))
-			AddFieldInfo("CustGift", "DECIMAL", 6, 139, 0, false)
-			AddFieldInfo("CustTcode", "ALPHA", 2, 145, 0, false)
-			AddFieldInfo("CustTaxno", "DECIMAL", 9, 147, 0, false)
-			AddFieldInfo("CustLimit", "IMPLIED", 7, 156, 02, false)
+			AddFieldInfo("CustomerNumber", "DECIMAL", 6, 1, 0, false)
+			AddFieldInfo("RecordType", "DECIMAL", 1, 7, 0, false)
+			AddFieldInfo("Name", "ALPHA", 30, 8, 0, false)
+			AddFieldInfo("Street", "ALPHA", 25, 38, 0, false)
+			AddFieldInfo("City", "ALPHA", 20, 63, 0, false)
+			AddFieldInfo("State", "ALPHA", 2, 83, 0, false)
+			AddFieldInfo("ZipCode", "DECIMAL", 9, 85, 0, false)
+			AddFieldInfo("Contact", "ALPHA", 25, 94, 0, false)
+            AddFieldInfo("Phone", "DECIMAL", 10, 119, 0, false, new SynergyDecimalConverter.LiteralFormatter("(XXX) XXX-XXXX"))
+            AddFieldInfo("Fax", "DECIMAL", 10, 129, 0, false, new SynergyDecimalConverter.LiteralFormatter("(XXX) XXX-XXXX"))
+			AddFieldInfo("FavoriteItem", "DECIMAL", 6, 139, 0, false)
+			AddFieldInfo("PaymentTermsCode", "ALPHA", 2, 145, 0, false)
+			AddFieldInfo("TaxId", "DECIMAL", 9, 147, 0, false)
+			AddFieldInfo("CreditLimit", "IMPLIED", 7, 156, 02, false)
 			AddFieldInfo("REL_Orders", "COLLECTION", 0, 0, 0, false)
-			AddFieldInfo("REL_Item", "DATAOBJECT", 0, 0, 0, false)
+			AddFieldInfo("REL_FavoriteItem", "DATAOBJECT", 0, 0, 0, false)
 
-			AddKeyInfo(0, "CustKey")
-			AddKeyInfo(1, "CustRtype")
-			AddKeyInfo(1, "CustKey")
+			AddKeyInfo(0, "CustomerNumber")
+			AddKeyInfo(1, "RecordType")
+			AddKeyInfo(1, "CustomerNumber")
 
 		endmethod
 	
 		;;; <summary>
 		;;; Returns a new Customer object containing data from a record and a GRFA.
-		;;; The related data properties (REL_Orders and REL_Item) will not be populated.
+		;;; The related data properties (REL_Orders and REL_FavoriteItem) will not be populated.
 		;;; </summary>
 		;;; <param name="dataArea">The record containing the data for the new Customer object.</param>
 		;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
@@ -103,11 +103,11 @@ namespace SampleServices.Models
 
 		;;; <summary>
 		;;; Returns a new Customer object containing data from a record and a GRFA.
-		;;; The related data properties (REL_Orders and REL_Item) will be populated.
+		;;; The related data properties (REL_Orders and REL_FavoriteItem) will be populated.
 		;;; </summary>
 		;;; <param name="dataArea">The record containing the data for the new Customer object.</param>
 		;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
-		;;; <param name="joinedObjects">Data to allow the related data properties (REL_Orders and REL_Item) to be populated.</param>
+		;;; <param name="joinedObjects">Data to allow the related data properties (REL_Orders and REL_FavoriteItem) to be populated.</param>
 		;;; <returns></returns>
 		public override method MakeNew, @DataObjectBase
 			required in dataArea, a
@@ -121,8 +121,8 @@ namespace SampleServices.Models
 				using joinedObject.Key select
 				("REL_Orders"), 
 					newCustomer.REL_Orders = (@ICollection<Order>)joinedObject.Value
-				("REL_Item"),
-					newCustomer.REL_Item = (@Plant)joinedObject.Value
+				("REL_FavoriteItem"),
+					newCustomer.REL_FavoriteItem = (@Item)joinedObject.Value
 				endusing
 			end
 
@@ -141,11 +141,11 @@ namespace SampleServices.Models
 			required in parts, @Dictionary<String, Object>
 			endparams
 			stack record key0
-				CustKey, D6
+				CustomerNumber, D6
 			endrecord
 			stack record key1
-				CustRtype, D1
-				CustKey, D6
+				RecordType, D1
+				CustomerNumber, D6
 			endrecord
 		proc
 			data startPos = 0
@@ -153,16 +153,16 @@ namespace SampleServices.Models
 			using keyNumber select
 			(0),
 			begin
-				if((segValueLength=KeyValueHelper(key0.CustKey, "CustKey", parts))<6)
+				if((segValueLength=KeyValueHelper(key0.CustomerNumber, "CustomerNumber", parts))<6)
 					mreturn key0(1:startPos+segValueLength)
 				mreturn key0
 			end
 			(1),
 			begin
-				if((segValueLength=KeyValueHelper(key1.CustRtype, "CustRtype", parts))<1)
+				if((segValueLength=KeyValueHelper(key1.RecordType, "RecordType", parts))<1)
 					mreturn key1(1:startPos+segValueLength)
 				startPos += 1
-				if((segValueLength=KeyValueHelper(key1.CustKey, "CustKey", parts))<6)
+				if((segValueLength=KeyValueHelper(key1.CustomerNumber, "CustomerNumber", parts))<6)
 					mreturn key1(1:startPos+segValueLength)
 				mreturn key1
 			end

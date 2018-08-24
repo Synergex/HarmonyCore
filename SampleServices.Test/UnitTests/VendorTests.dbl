@@ -69,13 +69,13 @@ namespace SampleServices.Test.UnitTests
 		endmethod
 
 		;;------------------------------------------------------------
-		;;Get all Vendors and expand relation REL_Vendor
+		;;Get all Vendors and expand relation REL_VendorNumber
 
 		{TestMethod}
 		{TestCategory("Vendor Tests - Read All")}
-		public method GetVendors_Expand_REL_Plants, void
+		public method GetVendors_Expand_REL_Items, void
 		proc
-			data uri = "/odata/Vendors?$expand=REL_Plants"
+			data uri = "/odata/Vendors?$expand=REL_Items"
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
 			disposable data response = client.GetAsync(uri).Result
 			data result = response.Content.ReadAsStringAsync().Result
@@ -89,7 +89,7 @@ namespace SampleServices.Test.UnitTests
 		{TestCategory("Vendor Tests - Read All")}
 		public method GetVendors_Expand_All, void
 		proc
-			data uri = "/odata/Vendors?$expand=REL_Plants"
+			data uri = "/odata/Vendors?$expand=REL_Items"
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
 			disposable data response = client.GetAsync(uri).Result
 			data result = response.Content.ReadAsStringAsync().Result
@@ -104,7 +104,7 @@ namespace SampleServices.Test.UnitTests
 		public method GetVendor, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Vendors(VendKey={1})","",TestConstants.GetVendor_VendKey)
+			data request = String.Format("/odata/Vendors(VendorNumber={1})","",TestConstants.GetVendor_VendorNumber)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
@@ -112,14 +112,14 @@ namespace SampleServices.Test.UnitTests
 		endmethod
 
 		;;------------------------------------------------------------
-		;;Get a single Vendor by primary key and expand relation REL_Plants
+		;;Get a single Vendor by primary key and expand relation REL_Items
 
 		{TestMethod}
 		{TestCategory("Vendor Tests - Read by Primary Key")}
-		public method GetVendor_Expand_REL_Plants, void
+		public method GetVendor_Expand_REL_Items, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Vendors(VendKey={1})?$expand=REL_Plants","",TestConstants.GetVendor_Expand_REL_Plants_VendKey)
+			data request = String.Format("/odata/Vendors(VendorNumber={1})?$expand=REL_Items","",TestConstants.GetVendor_Expand_REL_Items_VendorNumber)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
@@ -134,7 +134,7 @@ namespace SampleServices.Test.UnitTests
 		public method GetVendor_Expand_All, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Vendors(VendKey={1})?$expand=REL_Plants","",TestConstants.GetVendor_Expand_All_VendKey)
+			data request = String.Format("/odata/Vendors(VendorNumber={1})?$expand=REL_Items","",TestConstants.GetVendor_Expand_All_VendorNumber)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
@@ -149,7 +149,7 @@ namespace SampleServices.Test.UnitTests
 		public method GetVendor_ByAltKey_TagVendor, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Vendors(VendRtype={1},VendKey={2})", "", TestConstants.GetVendor_ByAltKey_TagVendor_VendRtype,TestConstants.GetVendor_ByAltKey_TagVendor_VendKey)
+			data request = String.Format("/odata/Vendors(RecordType={1},VendorNumber={2})", "", TestConstants.GetVendor_ByAltKey_TagVendor_RecordType,TestConstants.GetVendor_ByAltKey_TagVendor_VendorNumber)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
@@ -166,7 +166,7 @@ namespace SampleServices.Test.UnitTests
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
 
 			;;Get one vendor from the file
-			data getRequest = String.Format("/odata/Vendors(VendKey={1})","",TestConstants.GetVendor_VendKey)
+			data getRequest = String.Format("/odata/Vendors(VendorNumber={1})","",TestConstants.GetVendor_VendorNumber)
 			data getResponse = client.GetAsync(getRequest).Result
 			data getResult = getResponse.Content.ReadAsStringAsync().Result
 
@@ -176,13 +176,13 @@ namespace SampleServices.Test.UnitTests
 			;;Deserialize the JSON into a Vendor object
 			data doVendor, @Vendor, JsonConvert.DeserializeObject<Vendor>(getResult)
 
-			doVendor.VendKey = TestConstants.UpdateVendor_VendKey
+			doVendor.VendorNumber = TestConstants.UpdateVendor_VendorNumber
 
 			;TODO: Also need to ensure any nodups alternate keys get unique values
 
 			;;Create new item
 			disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doVendor),System.Text.Encoding.UTF8, "application/json")
-			data request = String.Format("/odata/Vendors(VendKey={1})","",TestConstants.UpdateVendor_VendKey)
+			data request = String.Format("/odata/Vendors(VendorNumber={1})","",TestConstants.UpdateVendor_VendorNumber)
 			disposable data response = client.PutAsync(request, requestBody).Result
 
 			;;Check that we got a successful response from the web service
@@ -199,11 +199,11 @@ namespace SampleServices.Test.UnitTests
 			doVendor = JsonConvert.DeserializeObject<Vendor>(getResult)
 
 			;;Change the first non key field to test full update
-			doVendor.VendName = "Y"
+			doVendor.Name = "Y"
 
 			;;Update full item
 			requestBody = new StringContent(JsonConvert.SerializeObject(doVendor),System.Text.Encoding.UTF8, "application/json")
-			request = String.Format("/odata/Vendors(VendKey={1})","",TestConstants.UpdateVendor_VendKey)
+			request = String.Format("/odata/Vendors(VendorNumber={1})","",TestConstants.UpdateVendor_VendorNumber)
 			response = client.PutAsync(request, requestBody).Result
 
 			;;Check that we got a successful response from the web service
@@ -219,11 +219,11 @@ namespace SampleServices.Test.UnitTests
 			;;Deserialize the JSON into a Vendor object
 			doVendor = JsonConvert.DeserializeObject<Vendor>(getResult)
 
-			Assert.AreEqual(doVendor.VendName, "Y")
+			Assert.AreEqual(doVendor.Name, "Y")
 
 			;;Update one property in the vendor
 			data patchDoc = new JsonPatchDocument()
-			patchDoc.Replace("VendName", "Z")
+			patchDoc.Replace("Name", "Z")
 
 			;;Serialize the patch to JSON
 			data serializedPatch = JsonConvert.SerializeObject(patchDoc)
@@ -246,7 +246,7 @@ namespace SampleServices.Test.UnitTests
 			doVendor = JsonConvert.DeserializeObject<Vendor>(getResult)
 
 			;;Verify that the property was changed
-			Assert.AreEqual(doVendor.VendName, "Z")
+			Assert.AreEqual(doVendor.Name, "Z")
 
 			;;Delete It
 			disposable data deleteResponse = client.DeleteAsync(request).Result

@@ -94,14 +94,14 @@ namespace SampleServices.Models
 		;;; Order number
 		;;; </summary>
 		{Required(ErrorMessage="Order number is required. ")}
-		public property OiNumber, int
+		public property OrderNumber, int
 			method get
 			proc
-				mreturn (int)mSynergyData.Oi_number
+				mreturn (int)mSynergyData.Order_number
             endmethod
 			method set
 			proc
-				mSynergyData.Oi_number = value
+				mSynergyData.Order_number = value
 			endmethod
 		endproperty
 
@@ -109,14 +109,14 @@ namespace SampleServices.Models
 		;;; Line item number
 		;;; </summary>
 		{Required(ErrorMessage="Line item number is required. ")}
-		public property OiLineItem, int
+		public property ItemNumber, int
 			method get
 			proc
-				mreturn (int)mSynergyData.Oi_line_item
+				mreturn (int)mSynergyData.Item_number
             endmethod
 			method set
 			proc
-				mSynergyData.Oi_line_item = value
+				mSynergyData.Item_number = value
 			endmethod
 		endproperty
 
@@ -124,14 +124,14 @@ namespace SampleServices.Models
 		;;; Item ordered
 		;;; </summary>
 		{Required(ErrorMessage="Item ordered is required. ")}
-		public property OiItemOrdered, int
+		public property ItemOrdered, int
 			method get
 			proc
-				mreturn (int)mSynergyData.Oi_item_ordered
+				mreturn (int)mSynergyData.Item_ordered
             endmethod
 			method set
 			proc
-				mSynergyData.Oi_item_ordered = value
+				mSynergyData.Item_ordered = value
 			endmethod
 		endproperty
 
@@ -139,14 +139,14 @@ namespace SampleServices.Models
 		;;; Quantity ordered
 		;;; </summary>
 		{Required(ErrorMessage="Quantity ordered is required. ")}
-		public property OiQty, int
+		public property QuantityOrdered, int
 			method get
 			proc
-				mreturn (int)mSynergyData.Oi_qty
+				mreturn (int)mSynergyData.Quantity_ordered
             endmethod
 			method set
 			proc
-				mSynergyData.Oi_qty = value
+				mSynergyData.Quantity_ordered = value
 			endmethod
 		endproperty
 
@@ -154,42 +154,42 @@ namespace SampleServices.Models
 		;;; Unit price
 		;;; </summary>
 		{Required(ErrorMessage="Unit price is required. ")}
-		public property OiUnitPrice, decimal
+		public property UnitPrice, decimal
 			method get
 			proc
-				mreturn (decimal)SynergyImpliedDecimalConverter.Convert(mSynergyData.Oi_unit_price, ^null, "DECIMALPLACES#2", ^null)
+				mreturn (decimal)SynergyImpliedDecimalConverter.Convert(mSynergyData.Unit_price, ^null, "DECIMALPLACES#2", ^null)
             endmethod
 			method set
 			proc
-				mSynergyData.Oi_unit_price = value
+				mSynergyData.Unit_price = value
 			endmethod
 		endproperty
 
 		;;; <summary>
 		;;; Date shipped
 		;;; </summary>
-		public property OiShipped, DateTime
+		public property DateShipped, DateTime
 			method get
 			proc
-				mreturn (DateTime)SynergyDecimalDateConverter.Convert(mSynergyData.Oi_shipped, ^null, ^null, ^null)
+				mreturn (DateTime)SynergyDecimalDateConverter.Convert(mSynergyData.Date_shipped, ^null, ^null, ^null)
             endmethod
 			method set
 			proc
-				mSynergyData.Oi_shipped = (D)SynergyDecimalDateConverter.ConvertBack(value, ^null, ^null, ^null)
+				mSynergyData.Date_shipped = (D)SynergyDecimalDateConverter.ConvertBack(value, ^null, ^null, ^null)
 			endmethod
 		endproperty
 
 		;;; <summary>
 		;;; Invoice number
 		;;; </summary>
-		public property OiInvoice, int
+		public property InvoiceNumber, int
 			method get
 			proc
-				mreturn (int)mSynergyData.Oi_invoice
+				mreturn (int)mSynergyData.Invoice_number
             endmethod
 			method set
 			proc
-				mSynergyData.Oi_invoice = value
+				mSynergyData.Invoice_number = value
 			endmethod
 		endproperty
 
@@ -199,15 +199,15 @@ namespace SampleServices.Models
 
 		;;; <summary>
 		;;; Relationship (Type A)
-		;;; ORDER_ITEM.OI_NUMBER_LINE_ITEM (one) --> (one) --> (many) ORDER.OR_NUMBER
+		;;; ORDER_ITEM.ORDER_NUMBER_AND_LINE_ITEM (one) --> (one) --> (many) ORDER.ORDER_NUMBER
 		;;; </summary>
-		public readwrite property REL_OiNumberLineItem, @Order
+		public readwrite property REL_OrderNumberAndLineItem, @Order
 
 		;;; <summary>
 		;;; Relationship (Type A)
-		;;; ORDER_ITEM.OI_ITEM_ORDERED (one) --> (one) --> (many) PLANT.ITEM
+		;;; ORDER_ITEM.ITEM_ORDERED (one) --> (one) --> (many) ITEM.ITEM_NUMBER
 		;;; </summary>
-		public readwrite property REL_OiItemOrdered, @Plant
+		public readwrite property REL_ItemOrdered, @Item
 
 .endregion
 

@@ -198,16 +198,16 @@ namespace SampleServices.Test.UnitTests
 		endmethod
 
 		;;------------------------------------------------------------
-		;;All plants latin name not end with 'costata'
+		;;All items latin name not end with 'costata'
 
 		{TestMethod}
 		public method GetCustomersLatinNotEndWith, void
 		proc
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync("/odata/Plants?$filter=not endswith(InLatin,'costata')").Result
+			disposable data response = client.GetAsync("/odata/Items?$filter=not endswith(LatinName,'costata')").Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
-			data customers, @ODataPlants, JsonConvert.DeserializeObject<ODataPlants>(result)
+			data customers, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
 		endmethod
 
 		;;------------------------------------------------------------
@@ -289,55 +289,55 @@ namespace SampleServices.Test.UnitTests
 		endmethod
 
 		;;------------------------------------------------------------
-		;;Plants from vendor 42
+		;;Items from vendor 42
 
 		{TestMethod}
-		public method GetPlantsVendor42, void
+		public method GetItemsVendor42, void
 		proc
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync("/odata/Plants(InSource=42)").Result
+			disposable data response = client.GetAsync("/odata/Items(VendorNumber=42)").Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
-			data customer, @ODataPlants, JsonConvert.DeserializeObject<ODataPlants>(result)
+			data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
 		endmethod
 
 		;;------------------------------------------------------------
-		;;How many plants from vendor 42
+		;;How many items from vendor 42
 
 		{TestMethod}
-		public method GetPlantsVendor42Count, void
+		public method GetItemsVendor42Count, void
 		proc
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync("/odata/Plants(InSource=42)/$count").Result
+			disposable data response = client.GetAsync("/odata/Items(VendorNumber=42)/$count").Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 			Assert.IsFalse(string.IsNullOrWhitespace(result))
 		endmethod
 
 		;;------------------------------------------------------------
-		;;White plants
+		;;White flowers
 
 		{TestMethod}
-		public method GetWhitePlants, void
+		public method GetWhiteItems, void
 		proc
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync("/odata/Plants(InColor='white')").Result
+			disposable data response = client.GetAsync("/odata/Items(FlowerColor='white')").Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
-			data customer, @ODataPlants, JsonConvert.DeserializeObject<ODataPlants>(result)
+			data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
 		endmethod
 
 		;;------------------------------------------------------------
-		;;Size 3 plants
+		;;Size 3 items
 
 		{TestMethod}
-		public method GetSize3Plants, void
+		public method GetSize3Items, void
 		proc
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync("/odata/Plants(InSize=3)").Result
+			disposable data response = client.GetAsync("/odata/Items(Size=3)").Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
-			data customer, @ODataPlants, JsonConvert.DeserializeObject<ODataPlants>(result)
+			data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
 		endmethod
 
 		;;------------------------------------------------------------
@@ -347,36 +347,36 @@ namespace SampleServices.Test.UnitTests
 		public method GetSize3PurpleBushes, void
 		proc
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync("/odata/Plants(InSize=3)?$filter=InShape eq 'bush' and InColor eq 'purple'").Result
+			disposable data response = client.GetAsync("/odata/Items(InSize=3)?$filter=Shape eq 'bush' and FlowerColor eq 'purple'").Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
-			data customer, @ODataPlants, JsonConvert.DeserializeObject<ODataPlants>(result)
+			data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
 		endmethod
 
 		;;------------------------------------------------------------
-		;;Size 3 purple bushes, InItemId and InName only
+		;;Size 3 purple bushes, ItemNumber and Name only
 
 		{TestMethod}
 		public method GetSize3PurpleBushesPartial, void
 		proc
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync("/odata/Plants(InSize=3)?$filter=InShape eq 'bush' and InColor eq 'purple'&$select=InItemId,InName").Result
+			disposable data response = client.GetAsync("/odata/Items(Size=3)?$filter=Shape eq 'bush' and FlowerColor eq 'purple'&$select=ItemNumber,CommonName").Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
-			data customer, @ODataPlants, JsonConvert.DeserializeObject<ODataPlants>(result)
+			data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
 		endmethod
 
 		;;------------------------------------------------------------
-		;;Plants named 'Hedge Maple'
+		;;Items with common name 'Hedge Maple'
 
 		{TestMethod}
 		public method GetHedgeMaple, void
 		proc
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync("/odata/Plants(InName='Hedge Maple')").Result
+			disposable data response = client.GetAsync("/odata/Items(CommonName='Hedge Maple')").Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
-			data customer, @ODataPlants, JsonConvert.DeserializeObject<ODataPlants>(result)
+			data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
 		endmethod
 
 		;;------------------------------------------------------------
@@ -422,7 +422,7 @@ namespace SampleServices.Test.UnitTests
 		endmethod
 
 		;;------------------------------------------------------------
-		;;Customer 8 with orders, expand OrderItems and Plants
+		;;Customer 8 with orders, expand OrderItems and Items
 
 		{TestMethod}
 		public method GetCustomer8WithOrdersExpand, void

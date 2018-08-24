@@ -81,6 +81,14 @@ namespace SampleServices.Test
 					logicals.Add(logical)
 			end
 
+			fileSpec = "ICSTUT:ITEMS.ism"
+			if (fileSpec.Contains(":"))
+			begin
+				logical = fileSpec.Split(":")[0].ToUpper()
+				if (!logicals.Contains(logical))
+					logicals.Add(logical)
+			end
+
 			fileSpec = "ICSTUT:orders.ism"
 			if (fileSpec.Contains(":"))
 			begin
@@ -90,14 +98,6 @@ namespace SampleServices.Test
 			end
 
 			fileSpec = "ICSTUT:order_items.ism"
-			if (fileSpec.Contains(":"))
-			begin
-				logical = fileSpec.Split(":")[0].ToUpper()
-				if (!logicals.Contains(logical))
-					logicals.Add(logical)
-			end
-
-			fileSpec = "ICSTUT:plants.ism"
 			if (fileSpec.Contains(":"))
 			begin
 				logical = fileSpec.Split(":")[0].ToUpper()
@@ -120,9 +120,9 @@ namespace SampleServices.Test
 			data xdlFile, string
 
 			data customers = CustomerLoader.LoadFromFile()
+			data items = ItemLoader.LoadFromFile()
 			data orders = OrderLoader.LoadFromFile()
 			data orderItems = OrderItemLoader.LoadFromFile()
-			data plants = PlantLoader.LoadFromFile()
 
 			;;Create and load the customers file
 
@@ -133,6 +133,17 @@ namespace SampleServices.Test
 			open(chout=0,o:i,dataFile,FDL:xdlFile)
 			foreach customer in customers
 				store(chout,customer.SynergyRecord)
+			close chout
+
+			;;Create and load the items file
+
+			dataFile = "ICSTUT:ITEMS.ism"
+			xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+
+			data item, @Item
+			open(chout=0,o:i,dataFile,FDL:xdlFile)
+			foreach item in items
+				store(chout,item.SynergyRecord)
 			close chout
 
 			;;Create and load the orders file
@@ -157,17 +168,6 @@ namespace SampleServices.Test
 				store(chout,orderItem.SynergyRecord)
 			close chout
 
-			;;Create and load the plants file
-
-			dataFile = "ICSTUT:plants.ism"
-			xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
-
-			data plant, @Plant
-			open(chout=0,o:i,dataFile,FDL:xdlFile)
-			foreach plant in plants
-				store(chout,plant.SynergyRecord)
-			close chout
-
 		endmethod
 
 		private static method deleteFiles, void
@@ -176,6 +176,17 @@ namespace SampleServices.Test
 			try
 			begin
 				xcall delet("ICSTUT:customer.ism")
+			end
+			catch (e, @NoFileFoundException)
+			begin
+				nop
+			end
+			endtry
+
+			;;Delete the items file
+			try
+			begin
+				xcall delet("ICSTUT:ITEMS.ism")
 			end
 			catch (e, @NoFileFoundException)
 			begin
@@ -198,17 +209,6 @@ namespace SampleServices.Test
 			try
 			begin
 				xcall delet("ICSTUT:order_items.ism")
-			end
-			catch (e, @NoFileFoundException)
-			begin
-				nop
-			end
-			endtry
-
-			;;Delete the plants file
-			try
-			begin
-				xcall delet("ICSTUT:plants.ism")
 			end
 			catch (e, @NoFileFoundException)
 			begin

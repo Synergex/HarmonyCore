@@ -1,11 +1,11 @@
 ;;*****************************************************************************
 ;;
-;; Title:       Plant.dbl
+;; Title:       Item.dbl
 ;;
 ;; Type:        Class
 ;;
 ;; Description: Data model representing data defined by the repository
-;;              structure PLANTS and from the data file ICSTUT:plants.ism.
+;;              structure ITEMS and from the data file ICSTUT:ITEMS.ism.
 ;;
 ;;*****************************************************************************
 ;; WARNING
@@ -51,26 +51,26 @@ import Harmony.Core.Converters
 
 namespace SampleServices.Models
 
-    public partial class Plant extends DataObjectBase
+    public partial class Item extends DataObjectBase
 
         ;;make the record available and a copy
-        private mSynergyData, strPlant 
-		private mOriginalSynergyData, strPlant 
+        private mSynergyData, strItem 
+		private mOriginalSynergyData, strItem 
 		
-		private static sMetadata, @PlantMetadata
+		private static sMetadata, @ItemMetadata
 
 .region "Constructors"
 
-		static method Plant
+		static method Item
 		proc
-			sMetadata = new PlantMetadata()
-			DataObjectMetadataBase.MetadataLookup.TryAdd(^typeof(Plant), sMetadata)
+			sMetadata = new ItemMetadata()
+			DataObjectMetadataBase.MetadataLookup.TryAdd(^typeof(Item), sMetadata)
 		endmethod
 		
         ;;; <summary>
         ;;;  Constructor, initialise the base fields
         ;;; </summary>
-        public method Plant
+        public method Item
             parent()
         proc
 			init mSynergyData, mOriginalSynergyData
@@ -79,8 +79,8 @@ namespace SampleServices.Models
 		;;; <summary>
 		;;;  Alternate Constructor, accepts the structured data
 		;;; </summary>
-		public method Plant
-			required in inData, strPlant
+		public method Item
+			required in inData, strItem
 			parent()
 		proc
 			mSynergyData = mOriginalSynergyData = inData
@@ -91,32 +91,32 @@ namespace SampleServices.Models
 .region "Attributes of this entity"
 
 		;;; <summary>
-		;;; Item ID
+		;;; Item number
 		;;; </summary>
 		{Key}
-		{Required(ErrorMessage="Item ID is required. ")}
-		public property InItemid, int
+		{Required(ErrorMessage="Item number is required. ")}
+		public property ItemNumber, int
 			method get
 			proc
-				mreturn (int)mSynergyData.In_itemid
+				mreturn (int)mSynergyData.Item_number
             endmethod
 			method set
 			proc
-				mSynergyData.In_itemid = value
+				mSynergyData.Item_number = value
 			endmethod
 		endproperty
 
 		;;; <summary>
-		;;; Vending Source Code
+		;;; Vendor number
 		;;; </summary>
-		public property InSource, int
+		public property VendorNumber, int
 			method get
 			proc
-				mreturn (int)mSynergyData.In_source
+				mreturn (int)mSynergyData.Vendor_number
             endmethod
 			method set
 			proc
-				mSynergyData.In_source = value
+				mSynergyData.Vendor_number = value
 			endmethod
 		endproperty
 
@@ -124,14 +124,14 @@ namespace SampleServices.Models
 		;;; Size in gallons
 		;;; </summary>
 		{Required(ErrorMessage="Size in gallons is required. ")}
-		public property InSize, int
+		public property Size, int
 			method get
 			proc
-				mreturn (int)mSynergyData.In_size
+				mreturn (int)mSynergyData.Size
             endmethod
 			method set
 			proc
-				mSynergyData.In_size = value
+				mSynergyData.Size = value
 			endmethod
 		endproperty
 
@@ -139,14 +139,14 @@ namespace SampleServices.Models
 		;;; Common name
 		;;; </summary>
 		{StringLength(30, ErrorMessage="Common name cannot exceed 30 characters. ")}
-		public property InName, string
+		public property CommonName, string
 			method get
 			proc
-				mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.In_name, ^null, ^null, ^null)
+				mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.Common_name, ^null, ^null, ^null)
             endmethod
 			method set
 			proc
-				mSynergyData.In_name = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
+				mSynergyData.Common_name = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
 			endmethod
 		endproperty
 
@@ -154,42 +154,42 @@ namespace SampleServices.Models
 		;;; Latin name
 		;;; </summary>
 		{StringLength(30, ErrorMessage="Latin name cannot exceed 30 characters. ")}
-		public property InLatin, string
+		public property LatinName, string
 			method get
 			proc
-				mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.In_latin, ^null, ^null, ^null)
+				mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.Latin_name, ^null, ^null, ^null)
             endmethod
 			method set
 			proc
-				mSynergyData.In_latin = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
+				mSynergyData.Latin_name = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
 			endmethod
 		endproperty
 
 		;;; <summary>
-		;;; Zone
+		;;; Hardiness zone code
 		;;; </summary>
-		public property InZone, int
+		public property ZoneCode, int
 			method get
 			proc
-				mreturn (int)mSynergyData.In_zone
+				mreturn (int)mSynergyData.Zone_code
             endmethod
 			method set
 			proc
-				mSynergyData.In_zone = value
+				mSynergyData.Zone_code = value
 			endmethod
 		endproperty
 
 		;;; <summary>
 		;;; Type code
 		;;; </summary>
-		public property InType, int
+		public property Type, int
 			method get
 			proc
-				mreturn (int)mSynergyData.In_type
+				mreturn (int)mSynergyData.Type
             endmethod
 			method set
 			proc
-				mSynergyData.In_type = value
+				mSynergyData.Type = value
 			endmethod
 		endproperty
 
@@ -197,14 +197,14 @@ namespace SampleServices.Models
 		;;; Flowering?
 		;;; </summary>
 		{StringLength(1, ErrorMessage="Flowering? cannot exceed 1 characters. ")}
-		public property InFlower, string
+		public property Flowering, string
 			method get
 			proc
-				mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.In_flower, ^null, ^null, ^null)
+				mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.Flowering, ^null, ^null, ^null)
             endmethod
 			method set
 			proc
-				mSynergyData.In_flower = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
+				mSynergyData.Flowering = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
 			endmethod
 		endproperty
 
@@ -212,14 +212,14 @@ namespace SampleServices.Models
 		;;; Flower color
 		;;; </summary>
 		{StringLength(6, ErrorMessage="Flower color cannot exceed 6 characters. ")}
-		public property InColor, string
+		public property FlowerColor, string
 			method get
 			proc
-				mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.In_color, ^null, ^null, ^null)
+				mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.Flower_color, ^null, ^null, ^null)
             endmethod
 			method set
 			proc
-				mSynergyData.In_color = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
+				mSynergyData.Flower_color = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
 			endmethod
 		endproperty
 
@@ -227,42 +227,42 @@ namespace SampleServices.Models
 		;;; Plant shape
 		;;; </summary>
 		{StringLength(10, ErrorMessage="Plant shape cannot exceed 10 characters. ")}
-		public property InShape, string
+		public property Shape, string
 			method get
 			proc
-				mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.In_shape, ^null, ^null, ^null)
+				mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.Shape, ^null, ^null, ^null)
             endmethod
 			method set
 			proc
-				mSynergyData.In_shape = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
+				mSynergyData.Shape = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
 			endmethod
 		endproperty
 
 		;;; <summary>
 		;;; Maximum height (in inches)
 		;;; </summary>
-		public property InMaxhigh, int
+		public property MaxHeight, int
 			method get
 			proc
-				mreturn (int)mSynergyData.In_maxhigh
+				mreturn (int)mSynergyData.Max_height
             endmethod
 			method set
 			proc
-				mSynergyData.In_maxhigh = value
+				mSynergyData.Max_height = value
 			endmethod
 		endproperty
 
 		;;; <summary>
 		;;; Maximum width (in inches)
 		;;; </summary>
-		public property InMaxwide, int
+		public property MaxWidth, int
 			method get
 			proc
-				mreturn (int)mSynergyData.In_maxwide
+				mreturn (int)mSynergyData.Max_width
             endmethod
 			method set
 			proc
-				mSynergyData.In_maxwide = value
+				mSynergyData.Max_width = value
 			endmethod
 		endproperty
 
@@ -270,14 +270,14 @@ namespace SampleServices.Models
 		;;; Water requirements
 		;;; </summary>
 		{StringLength(4, ErrorMessage="Water requirements cannot exceed 4 characters. ")}
-		public property InWater, string
+		public property WaterRequirement, string
 			method get
 			proc
-				mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.In_water, ^null, ^null, ^null)
+				mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.Water_requirement, ^null, ^null, ^null)
             endmethod
 			method set
 			proc
-				mSynergyData.In_water = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
+				mSynergyData.Water_requirement = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
 			endmethod
 		endproperty
 
@@ -285,14 +285,14 @@ namespace SampleServices.Models
 		;;; Sun requirements
 		;;; </summary>
 		{StringLength(6, ErrorMessage="Sun requirements cannot exceed 6 characters. ")}
-		public property InSun, string
+		public property SunRequirement, string
 			method get
 			proc
-				mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.In_sun, ^null, ^null, ^null)
+				mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.Sun_requirement, ^null, ^null, ^null)
             endmethod
 			method set
 			proc
-				mSynergyData.In_sun = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
+				mSynergyData.Sun_requirement = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
 			endmethod
 		endproperty
 
@@ -300,98 +300,98 @@ namespace SampleServices.Models
 		;;; Bin/aisle
 		;;; </summary>
 		{StringLength(3, ErrorMessage="Bin/aisle cannot exceed 3 characters. ")}
-		public property InLocation, string
+		public property BinLocation, string
 			method get
 			proc
-				mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.In_location, ^null, ^null, ^null)
+				mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.Bin_location, ^null, ^null, ^null)
             endmethod
 			method set
 			proc
-				mSynergyData.In_location = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
+				mSynergyData.Bin_location = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
 			endmethod
 		endproperty
 
 		;;; <summary>
 		;;; Qty on hand
 		;;; </summary>
-		public property InOnhand, int
+		public property QtyOnHand, int
 			method get
 			proc
-				mreturn (int)mSynergyData.In_onhand
+				mreturn (int)mSynergyData.Qty_on_hand
             endmethod
 			method set
 			proc
-				mSynergyData.In_onhand = value
+				mSynergyData.Qty_on_hand = value
 			endmethod
 		endproperty
 
 		;;; <summary>
 		;;; Qty allocated
 		;;; </summary>
-		public property InAllocated, int
+		public property QtyAllocated, int
 			method get
 			proc
-				mreturn (int)mSynergyData.In_allocated
+				mreturn (int)mSynergyData.Qty_allocated
             endmethod
 			method set
 			proc
-				mSynergyData.In_allocated = value
+				mSynergyData.Qty_allocated = value
 			endmethod
 		endproperty
 
 		;;; <summary>
 		;;; Qty on order
 		;;; </summary>
-		public property InOnorder, int
+		public property QtyOnOrder, int
 			method get
 			proc
-				mreturn (int)mSynergyData.In_onorder
+				mreturn (int)mSynergyData.Qty_on_order
             endmethod
 			method set
 			proc
-				mSynergyData.In_onorder = value
+				mSynergyData.Qty_on_order = value
 			endmethod
 		endproperty
 
 		;;; <summary>
 		;;; Reorder point
 		;;; </summary>
-		public property InMinimum, int
+		public property ReorderLevel, int
 			method get
 			proc
-				mreturn (int)mSynergyData.In_minimum
+				mreturn (int)mSynergyData.Reorder_level
             endmethod
 			method set
 			proc
-				mSynergyData.In_minimum = value
+				mSynergyData.Reorder_level = value
 			endmethod
 		endproperty
 
 		;;; <summary>
-		;;; Unit Price
+		;;; Unit price
 		;;; </summary>
-		public property InPrice, decimal
+		public property UnitPrice, decimal
 			method get
 			proc
-				mreturn (decimal)SynergyImpliedDecimalConverter.Convert(mSynergyData.In_price, ^null, "DECIMALPLACES#2", ^null)
+				mreturn (decimal)SynergyImpliedDecimalConverter.Convert(mSynergyData.Unit_price, ^null, "DECIMALPLACES#2", ^null)
             endmethod
 			method set
 			proc
-				mSynergyData.In_price = value
+				mSynergyData.Unit_price = value
 			endmethod
 		endproperty
 
 		;;; <summary>
-		;;; Item Cost
+		;;; Item cost
 		;;; </summary>
-		public property InCost, decimal
+		public property CostPrice, decimal
 			method get
 			proc
-				mreturn (decimal)SynergyImpliedDecimalConverter.Convert(mSynergyData.In_cost, ^null, "DECIMALPLACES#2", ^null)
+				mreturn (decimal)SynergyImpliedDecimalConverter.Convert(mSynergyData.Cost_price, ^null, "DECIMALPLACES#2", ^null)
             endmethod
 			method set
 			proc
-				mSynergyData.In_cost = value
+				mSynergyData.Cost_price = value
 			endmethod
 		endproperty
 
@@ -401,13 +401,13 @@ namespace SampleServices.Models
 
 		;;; <summary>
 		;;; Relationship (Type A)
-		;;; PLANT.VENDOR (one) --> (one) --> (many) VENDOR.VENDOR
+		;;; ITEM.VENDOR_NUMBER (one) --> (one) --> (many) VENDOR.VENDOR_NUMBER
 		;;; </summary>
-		public readwrite property REL_Vendor, @Vendor
+		public readwrite property REL_VendorNumber, @Vendor
 
 		;;; <summary>
 		;;; Relationship (Type D)
-		;;; PLANT.ITEM (one) <-> (many) ORDER_ITEM.OI_ITEM_ORDERED
+		;;; ITEM.ITEM_NUMBER (one) <-> (many) ORDER_ITEM.ITEM_ORDERED
 		;;; </summary>
 		public readwrite property REL_OrderItems, @ICollection<OrderItem>
 

@@ -17,7 +17,7 @@ set ENABLE_DELETE=-define ENABLE_DELETE
 set ENABLE_SWAGGER_DOCS=-define ENABLE_SWAGGER_DOCS
 
 rem ================================================================================================================================
-rem Configure standard command line options and the VodeGen environment
+rem Configure standard command line options and the CodeGen environment
 
 set NOREPLACEOPTS=-e -lf -u UserDefinedTokens.tkn %ENABLE_AUTHENTICATION% %ENABLE_PROPERTY_ENDPOINTS% %ENABLE_CASE_SENSITIVE_URL% %ENABLE_CREATE_TEST_FILES% %ENABLE_CORS% %ENABLE_IIS_SUPPORT% %ENABLE_DELETE% %ENABLE_PUT% %ENABLE_PATCH% %ENABLE_ALTERNATE_KEYS% %ENABLE_SWAGGER_DOCS%
 set STDOPTS=%NOREPLACEOPTS% -r
@@ -27,7 +27,7 @@ rem ============================================================================
 rem Generate a Web API / OData CRUD environment
 
 set PROJECT=SampleServices
-set STRUCTURES=CUSTOMERS ORDERS ORDER_ITEMS PLANTS VENDORS
+set STRUCTURES=CUSTOMERS ITEMS ORDERS ORDER_ITEMS VENDORS
 
 rem Generate model and metadata classes
 codegen -s %STRUCTURES% -t ODataModel -n %PROJECT%.Models -o %PROJECT%\Models %STDOPTS%
@@ -78,7 +78,7 @@ rem The test environment has slightly different requirements, because we need to
 rem are used to indicate that multiple structures are associated with a single ISAM file, we only need to generate from one of The
 rem structures associated with each file.
 
-set FILE_STRUCTURES=CUSTOMERS ORDERS ORDER_ITEMS PLANTS
+set FILE_STRUCTURES=CUSTOMERS ITEMS ORDERS ORDER_ITEMS
 
 rem Generate the test environment and unit test environment classes
 codegen -s %FILE_STRUCTURES% -ms -t ODataTestEnvironment ODataUnitTestEnvironment ODataSelfHost -n %PROJECT%.Test -o %PROJECT%.Test %STDOPTS%
@@ -95,34 +95,34 @@ if ERRORLEVEL 1 goto error
 rem ================================================================================================================================
 rem Generate code for the TraditionalBridge sample environment
 
-rem set CODEGEN_TPLDIR=Templates\TraditionalBridge
-rem set PROJECT=TraditionalBridge.Test
-rem set SMC_INTERFACE=SampleXfplEnv
-rem set XFPL_SMCPATH=
+set CODEGEN_TPLDIR=Templates\TraditionalBridge
+set PROJECT=TraditionalBridge.Test
+set SMC_INTERFACE=SampleXfplEnv
+set XFPL_SMCPATH=
 
-rem Generate model classes
-rem codegen -s %STRUCTURES% -t ODataModel -n %PROJECT%.Models -o %PROJECT%\Models -e -r -lf
-rem if ERRORLEVEL 1 goto error
+Generate model classes
+codegen -s %STRUCTURES% -t ODataModel -n %PROJECT%.Models -o %PROJECT%\Models -e -r -lf
+if ERRORLEVEL 1 goto error
 
-rem Generate method dispatcher classes
-rem codegen -smc SampleXfplEnvironment\smc.xml -interface %SMC_INTERFACE% -t InterfaceDispatcher -n %PROJECT% -o %PROJECT% -ut MODELS_NAMESPACE=%PROJECT%.Models -e -r -lf
-rem if ERRORLEVEL 1 goto error
-rem codegen -smc SampleXfplEnvironment\smc.xml -interface %SMC_INTERFACE% -t InterfaceMethodDispatchers -n %PROJECT% -o %PROJECT% -ut MODELS_NAMESPACE=%PROJECT%.Models -e -r -lf
-rem if ERRORLEVEL 1 goto error
+Generate method dispatcher classes
+codegen -smc SampleXfplEnvironment\smc.xml -interface %SMC_INTERFACE% -t InterfaceDispatcher -n %PROJECT% -o %PROJECT% -ut MODELS_NAMESPACE=%PROJECT%.Models -e -r -lf
+if ERRORLEVEL 1 goto error
+codegen -smc SampleXfplEnvironment\smc.xml -interface %SMC_INTERFACE% -t InterfaceMethodDispatchers -n %PROJECT% -o %PROJECT% -ut MODELS_NAMESPACE=%PROJECT%.Models -e -r -lf
+if ERRORLEVEL 1 goto error
 
-rem codegen -s %STRUCTURES% -ms -t InterfaceDispatcherData -n %PROJECT% -o %PROJECT% -ut SMC_INTERFACE=%SMC_INTERFACE% -e -r -lf
-rem if ERRORLEVEL 1 goto error
+codegen -s %STRUCTURES% -ms -t InterfaceDispatcherData -n %PROJECT% -o %PROJECT% -ut SMC_INTERFACE=%SMC_INTERFACE% -e -r -lf
+if ERRORLEVEL 1 goto error
 
 rem ================================================================================================================================
 rem Generate OData action return data models
 
-rem set CODEGEN_TPLDIR=Templates\TraditionalBridge
-rem set PROJECT=SampleServices.Models
-rem set SMC_INTERFACE=SampleXfplEnv
-rem set XFPL_SMCPATH=
+set CODEGEN_TPLDIR=Templates\TraditionalBridge
+set PROJECT=SampleServices.Models
+set SMC_INTERFACE=SampleXfplEnv
+set XFPL_SMCPATH=
 
-rem codegen -smc SampleXfplEnvironment\smc.xml -interface %SMC_INTERFACE% -t ODataActionModels -o SampleServices\Models -n %PROJECT% -e -r -lf
-rem if ERRORLEVEL 1 goto error
+codegen -smc SampleXfplEnvironment\smc.xml -interface %SMC_INTERFACE% -t ODataActionModels -o SampleServices\Models -n %PROJECT% -e -r -lf
+if ERRORLEVEL 1 goto error
 
 echo.
 echo DONE!

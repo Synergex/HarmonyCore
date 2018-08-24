@@ -95,29 +95,29 @@ namespace SampleServices.Models
 		;;; </summary>
 		{Key}
 		{Required(ErrorMessage="Order number is required. ")}
-		public property OrNumber, int
+		public property OrderNumber, int
 			method get
 			proc
-				mreturn (int)mSynergyData.Or_number
+				mreturn (int)mSynergyData.Order_number
             endmethod
 			method set
 			proc
-				mSynergyData.Or_number = value
+				mSynergyData.Order_number = value
 			endmethod
 		endproperty
 
 		;;; <summary>
-		;;; Customer ID
+		;;; Customer number
 		;;; </summary>
-		{Required(ErrorMessage="Customer ID is required. ")}
-		public property OrCustomer, int
+		{Required(ErrorMessage="Customer number is required. ")}
+		public property CustomerNumber, int
 			method get
 			proc
-				mreturn (int)mSynergyData.Or_customer
+				mreturn (int)mSynergyData.Customer_number
             endmethod
 			method set
 			proc
-				mSynergyData.Or_customer = value
+				mSynergyData.Customer_number = value
 			endmethod
 		endproperty
 
@@ -126,14 +126,14 @@ namespace SampleServices.Models
 		;;; </summary>
 		{Required(ErrorMessage="Order placed by is required. ")}
 		{StringLength(25, ErrorMessage="Order placed by cannot exceed 25 characters. ")}
-		public property OrPlacedBy, string
+		public property PlacedBy, string
 			method get
 			proc
-				mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.Or_placed_by, ^null, ^null, ^null)
+				mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.Placed_by, ^null, ^null, ^null)
             endmethod
 			method set
 			proc
-				mSynergyData.Or_placed_by = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
+				mSynergyData.Placed_by = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
 			endmethod
 		endproperty
 
@@ -141,14 +141,14 @@ namespace SampleServices.Models
 		;;; Customer order reference
 		;;; </summary>
 		{StringLength(25, ErrorMessage="Customer order reference cannot exceed 25 characters. ")}
-		public property OrCustomerRef, string
+		public property CustomerReference, string
 			method get
 			proc
-				mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.Or_customer_ref, ^null, ^null, ^null)
+				mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.Customer_reference, ^null, ^null, ^null)
             endmethod
 			method set
 			proc
-				mSynergyData.Or_customer_ref = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
+				mSynergyData.Customer_reference = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
 			endmethod
 		endproperty
 
@@ -156,14 +156,14 @@ namespace SampleServices.Models
 		;;; Payment terms code
 		;;; </summary>
 		{StringLength(2, ErrorMessage="Payment terms code cannot exceed 2 characters. ")}
-		public property OrTerms, string
+		public property PaymentTermsCode, string
 			method get
 			proc
-				mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.Or_terms, ^null, ^null, ^null)
+				mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.Payment_terms_code, ^null, ^null, ^null)
             endmethod
 			method set
 			proc
-				mSynergyData.Or_terms = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
+				mSynergyData.Payment_terms_code = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
 			endmethod
 		endproperty
 
@@ -171,28 +171,28 @@ namespace SampleServices.Models
 		;;; Date ordered
 		;;; </summary>
 		{Required(ErrorMessage="Date ordered is required. ")}
-		public property OrOrdered, DateTime
+		public property DateOrdered, DateTime
 			method get
 			proc
-				mreturn (DateTime)SynergyDecimalDateConverter.Convert(mSynergyData.Or_ordered, ^null, ^null, ^null)
+				mreturn (DateTime)SynergyDecimalDateConverter.Convert(mSynergyData.Date_ordered, ^null, ^null, ^null)
             endmethod
 			method set
 			proc
-				mSynergyData.Or_ordered = (D)SynergyDecimalDateConverter.ConvertBack(value, ^null, ^null, ^null)
+				mSynergyData.Date_ordered = (D)SynergyDecimalDateConverter.ConvertBack(value, ^null, ^null, ^null)
 			endmethod
 		endproperty
 
 		;;; <summary>
 		;;; Date order completed
 		;;; </summary>
-		public property OrCompleted, DateTime
+		public property DateCompleted, DateTime
 			method get
 			proc
-				mreturn (DateTime)SynergyDecimalDateConverter.Convert(mSynergyData.Or_completed, ^null, ^null, ^null)
+				mreturn (DateTime)SynergyDecimalDateConverter.Convert(mSynergyData.Date_completed, ^null, ^null, ^null)
             endmethod
 			method set
 			proc
-				mSynergyData.Or_completed = (D)SynergyDecimalDateConverter.ConvertBack(value, ^null, ^null, ^null)
+				mSynergyData.Date_completed = (D)SynergyDecimalDateConverter.ConvertBack(value, ^null, ^null, ^null)
 			endmethod
 		endproperty
 
@@ -217,15 +217,15 @@ namespace SampleServices.Models
 
 		;;; <summary>
 		;;; Relationship (Type D)
-		;;; ORDER.OR_NUMBER (one) <-> (many) ORDER_ITEM.OI_NUMBER_LINE_ITEM
+		;;; ORDER.ORDER_NUMBER (one) <-> (many) ORDER_ITEM.ORDER_NUMBER_AND_LINE_ITEM
 		;;; </summary>
 		public readwrite property REL_OrderItems, @ICollection<OrderItem>
 
 		;;; <summary>
 		;;; Relationship (Type A)
-		;;; ORDER.OR_CUSTOMER (one) --> (one) --> (many) CUSTOMER.CUSTOMER
+		;;; ORDER.CUSTOMER_NUMBER (one) --> (one) --> (many) CUSTOMER.CUSTOMER_NUMBER
 		;;; </summary>
-		public readwrite property REL_OrCustomer, @Customer
+		public readwrite property REL_CustomerNumber, @Customer
 
 .endregion
 

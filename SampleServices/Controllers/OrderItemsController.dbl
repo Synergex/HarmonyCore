@@ -80,233 +80,233 @@ namespace SampleServices.Controllers
 			mreturn Ok(DBContext.OrderItems)
 		endmethod
 
-		{ODataRoute("OrderItems(OiNumber={aOiNumber},OiLineItem={aOiLineItem})")}
+		{ODataRoute("OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})")}
 		{EnableQuery(MaxExpansionDepth=3)}
 		;;; <summary>
 		;;; Get a single OrderItem by primary key.
 		;;; </summary>
-		;;; <param name="aOiNumber">Order number</param>
-		;;; <param name="aOiLineItem">Line item number</param>
+		;;; <param name="aOrderNumber">Order number</param>
+		;;; <param name="aItemNumber">Line item number</param>
 		;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Get, @SingleResult<OrderItem>
 			{FromODataUri}
-			required in aOiNumber, int
+			required in aOrderNumber, int
 			{FromODataUri}
-			required in aOiLineItem, int
+			required in aItemNumber, int
 		proc
-			mreturn new SingleResult<OrderItem>(DBContext.OrderItems.FindQuery<OrderItem>(aOiNumber,aOiLineItem))
+			mreturn new SingleResult<OrderItem>(DBContext.OrderItems.FindQuery<OrderItem>(aOrderNumber,aItemNumber))
 		endmethod
 
-		{ODataRoute("OrderItems(OiItemOrdered={aOiItemOrdered})")}
+		{ODataRoute("OrderItems(ItemOrdered={aItemOrdered})")}
 		{EnableQuery(MaxExpansionDepth=3)}
 		;;; <summary>
-		;;; Get orderItems by alternate key key OiItemOrdered.
+		;;; Get orderItems by alternate key key ItemOrdered.
 		;;; </summary>
-		;;; <param name="aOiItemOrdered">Item ordered</param>
+		;;; <param name="aItemOrdered">Item ordered</param>
 		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-		public method GetByKeyOiItemOrdered, @IActionResult
+		public method GetByKeyItemOrdered, @IActionResult
 			{FromODataUri}
-			required in aOiItemOrdered, int
+			required in aItemOrdered, int
 		proc
-			data result = DBContext.OrderItems.FindAlternate("OiItemOrdered",aOiItemOrdered)
+			data result = DBContext.OrderItems.FindAlternate("ItemOrdered",aItemOrdered)
 			if (result == ^null)
 				mreturn NotFound()
 			mreturn Ok(result)
 		endmethod
 
-		{ODataRoute("OrderItems(OiShipped={aOiShipped})")}
+		{ODataRoute("OrderItems(DateShipped={aDateShipped})")}
 		{EnableQuery(MaxExpansionDepth=3)}
 		;;; <summary>
-		;;; Get orderItems by alternate key key OiShipped.
+		;;; Get orderItems by alternate key key DateShipped.
 		;;; </summary>
-		;;; <param name="aOiShipped">Date shipped</param>
+		;;; <param name="aDateShipped">Date shipped</param>
 		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-		public method GetByKeyOiShipped, @IActionResult
+		public method GetByKeyDateShipped, @IActionResult
 			{FromODataUri}
-			required in aOiShipped, DateTime
+			required in aDateShipped, DateTime
 		proc
-			data result = DBContext.OrderItems.FindAlternate("OiShipped",aOiShipped)
+			data result = DBContext.OrderItems.FindAlternate("DateShipped",aDateShipped)
 			if (result == ^null)
 				mreturn NotFound()
 			mreturn Ok(result)
 		endmethod
 
-		{ODataRoute("OrderItems(OiInvoice={aOiInvoice})")}
+		{ODataRoute("OrderItems(InvoiceNumber={aInvoiceNumber})")}
 		{EnableQuery(MaxExpansionDepth=3)}
 		;;; <summary>
-		;;; Get orderItems by alternate key key OiInvoice.
+		;;; Get orderItems by alternate key key InvoiceNumber.
 		;;; </summary>
-		;;; <param name="aOiInvoice">Invoice number</param>
+		;;; <param name="aInvoiceNumber">Invoice number</param>
 		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-		public method GetByKeyOiInvoice, @IActionResult
+		public method GetByKeyInvoiceNumber, @IActionResult
 			{FromODataUri}
-			required in aOiInvoice, int
+			required in aInvoiceNumber, int
 		proc
-			data result = DBContext.OrderItems.FindAlternate("OiInvoice",aOiInvoice)
+			data result = DBContext.OrderItems.FindAlternate("InvoiceNumber",aInvoiceNumber)
 			if (result == ^null)
 				mreturn NotFound()
 			mreturn Ok(result)
 		endmethod
 
-		{ODataRoute("OrderItems(OiNumber={aOiNumber},OiLineItem={aOiLineItem})/OiNumber")}
+		{ODataRoute("OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})/OrderNumber")}
 		;;; <summary>
-		;;; Get the OiNumber property of a single OrderItem, by primary key.
+		;;; Get the OrderNumber property of a single OrderItem, by primary key.
 		;;; </summary>
-		;;; <param name="aOiNumber">Order number</param>
-		;;; <param name="aOiLineItem">Order number</param>
+		;;; <param name="aOrderNumber">Order number</param>
+		;;; <param name="aItemNumber">Order number</param>
 		;;; <returns>
 		;;; Returns an int containing the value of the requested property.
 		;;;</returns>
-		public method GetOiNumber, @IActionResult
+		public method GetOrderNumber, @IActionResult
 			{FromODataUri}
-			required in aOiNumber, int
+			required in aOrderNumber, int
 			{FromODataUri}
-			required in aOiLineItem, int
+			required in aItemNumber, int
 		proc
-			data result = DBContext.OrderItems.Find(aOiNumber,aOiLineItem)
+			data result = DBContext.OrderItems.Find(aOrderNumber,aItemNumber)
 			if (result==^null)
 				mreturn NotFound()
-			mreturn OK(result.OiNumber)
+			mreturn OK(result.OrderNumber)
 		endmethod
 
-		{ODataRoute("OrderItems(OiNumber={aOiNumber},OiLineItem={aOiLineItem})/OiLineItem")}
+		{ODataRoute("OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})/ItemNumber")}
 		;;; <summary>
-		;;; Get the OiLineItem property of a single OrderItem, by primary key.
+		;;; Get the ItemNumber property of a single OrderItem, by primary key.
 		;;; </summary>
-		;;; <param name="aOiNumber">Line item number</param>
-		;;; <param name="aOiLineItem">Line item number</param>
+		;;; <param name="aOrderNumber">Line item number</param>
+		;;; <param name="aItemNumber">Line item number</param>
 		;;; <returns>
 		;;; Returns an int containing the value of the requested property.
 		;;;</returns>
-		public method GetOiLineItem, @IActionResult
+		public method GetItemNumber, @IActionResult
 			{FromODataUri}
-			required in aOiNumber, int
+			required in aOrderNumber, int
 			{FromODataUri}
-			required in aOiLineItem, int
+			required in aItemNumber, int
 		proc
-			data result = DBContext.OrderItems.Find(aOiNumber,aOiLineItem)
+			data result = DBContext.OrderItems.Find(aOrderNumber,aItemNumber)
 			if (result==^null)
 				mreturn NotFound()
-			mreturn OK(result.OiLineItem)
+			mreturn OK(result.ItemNumber)
 		endmethod
 
-		{ODataRoute("OrderItems(OiNumber={aOiNumber},OiLineItem={aOiLineItem})/OiItemOrdered")}
+		{ODataRoute("OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})/ItemOrdered")}
 		;;; <summary>
-		;;; Get the OiItemOrdered property of a single OrderItem, by primary key.
+		;;; Get the ItemOrdered property of a single OrderItem, by primary key.
 		;;; </summary>
-		;;; <param name="aOiNumber">Item ordered</param>
-		;;; <param name="aOiLineItem">Item ordered</param>
+		;;; <param name="aOrderNumber">Item ordered</param>
+		;;; <param name="aItemNumber">Item ordered</param>
 		;;; <returns>
 		;;; Returns an int containing the value of the requested property.
 		;;;</returns>
-		public method GetOiItemOrdered, @IActionResult
+		public method GetItemOrdered, @IActionResult
 			{FromODataUri}
-			required in aOiNumber, int
+			required in aOrderNumber, int
 			{FromODataUri}
-			required in aOiLineItem, int
+			required in aItemNumber, int
 		proc
-			data result = DBContext.OrderItems.Find(aOiNumber,aOiLineItem)
+			data result = DBContext.OrderItems.Find(aOrderNumber,aItemNumber)
 			if (result==^null)
 				mreturn NotFound()
-			mreturn OK(result.OiItemOrdered)
+			mreturn OK(result.ItemOrdered)
 		endmethod
 
-		{ODataRoute("OrderItems(OiNumber={aOiNumber},OiLineItem={aOiLineItem})/OiQty")}
+		{ODataRoute("OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})/QuantityOrdered")}
 		;;; <summary>
-		;;; Get the OiQty property of a single OrderItem, by primary key.
+		;;; Get the QuantityOrdered property of a single OrderItem, by primary key.
 		;;; </summary>
-		;;; <param name="aOiNumber">Quantity ordered</param>
-		;;; <param name="aOiLineItem">Quantity ordered</param>
+		;;; <param name="aOrderNumber">Quantity ordered</param>
+		;;; <param name="aItemNumber">Quantity ordered</param>
 		;;; <returns>
 		;;; Returns an int containing the value of the requested property.
 		;;;</returns>
-		public method GetOiQty, @IActionResult
+		public method GetQuantityOrdered, @IActionResult
 			{FromODataUri}
-			required in aOiNumber, int
+			required in aOrderNumber, int
 			{FromODataUri}
-			required in aOiLineItem, int
+			required in aItemNumber, int
 		proc
-			data result = DBContext.OrderItems.Find(aOiNumber,aOiLineItem)
+			data result = DBContext.OrderItems.Find(aOrderNumber,aItemNumber)
 			if (result==^null)
 				mreturn NotFound()
-			mreturn OK(result.OiQty)
+			mreturn OK(result.QuantityOrdered)
 		endmethod
 
-		{ODataRoute("OrderItems(OiNumber={aOiNumber},OiLineItem={aOiLineItem})/OiUnitPrice")}
+		{ODataRoute("OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})/UnitPrice")}
 		;;; <summary>
-		;;; Get the OiUnitPrice property of a single OrderItem, by primary key.
+		;;; Get the UnitPrice property of a single OrderItem, by primary key.
 		;;; </summary>
-		;;; <param name="aOiNumber">Unit price</param>
-		;;; <param name="aOiLineItem">Unit price</param>
+		;;; <param name="aOrderNumber">Unit price</param>
+		;;; <param name="aItemNumber">Unit price</param>
 		;;; <returns>
 		;;; Returns a decimal containing the value of the requested property.
 		;;;</returns>
-		public method GetOiUnitPrice, @IActionResult
+		public method GetUnitPrice, @IActionResult
 			{FromODataUri}
-			required in aOiNumber, int
+			required in aOrderNumber, int
 			{FromODataUri}
-			required in aOiLineItem, int
+			required in aItemNumber, int
 		proc
-			data result = DBContext.OrderItems.Find(aOiNumber,aOiLineItem)
+			data result = DBContext.OrderItems.Find(aOrderNumber,aItemNumber)
 			if (result==^null)
 				mreturn NotFound()
-			mreturn OK(result.OiUnitPrice)
+			mreturn OK(result.UnitPrice)
 		endmethod
 
-		{ODataRoute("OrderItems(OiNumber={aOiNumber},OiLineItem={aOiLineItem})/OiShipped")}
+		{ODataRoute("OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})/DateShipped")}
 		;;; <summary>
-		;;; Get the OiShipped property of a single OrderItem, by primary key.
+		;;; Get the DateShipped property of a single OrderItem, by primary key.
 		;;; </summary>
-		;;; <param name="aOiNumber">Date shipped</param>
-		;;; <param name="aOiLineItem">Date shipped</param>
+		;;; <param name="aOrderNumber">Date shipped</param>
+		;;; <param name="aItemNumber">Date shipped</param>
 		;;; <returns>
 		;;; Returns a DateTime containing the value of the requested property.
 		;;;</returns>
-		public method GetOiShipped, @IActionResult
+		public method GetDateShipped, @IActionResult
 			{FromODataUri}
-			required in aOiNumber, int
+			required in aOrderNumber, int
 			{FromODataUri}
-			required in aOiLineItem, int
+			required in aItemNumber, int
 		proc
-			data result = DBContext.OrderItems.Find(aOiNumber,aOiLineItem)
+			data result = DBContext.OrderItems.Find(aOrderNumber,aItemNumber)
 			if (result==^null)
 				mreturn NotFound()
-			mreturn OK(result.OiShipped)
+			mreturn OK(result.DateShipped)
 		endmethod
 
-		{ODataRoute("OrderItems(OiNumber={aOiNumber},OiLineItem={aOiLineItem})/OiInvoice")}
+		{ODataRoute("OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})/InvoiceNumber")}
 		;;; <summary>
-		;;; Get the OiInvoice property of a single OrderItem, by primary key.
+		;;; Get the InvoiceNumber property of a single OrderItem, by primary key.
 		;;; </summary>
-		;;; <param name="aOiNumber">Invoice number</param>
-		;;; <param name="aOiLineItem">Invoice number</param>
+		;;; <param name="aOrderNumber">Invoice number</param>
+		;;; <param name="aItemNumber">Invoice number</param>
 		;;; <returns>
 		;;; Returns an int containing the value of the requested property.
 		;;;</returns>
-		public method GetOiInvoice, @IActionResult
+		public method GetInvoiceNumber, @IActionResult
 			{FromODataUri}
-			required in aOiNumber, int
+			required in aOrderNumber, int
 			{FromODataUri}
-			required in aOiLineItem, int
+			required in aItemNumber, int
 		proc
-			data result = DBContext.OrderItems.Find(aOiNumber,aOiLineItem)
+			data result = DBContext.OrderItems.Find(aOrderNumber,aItemNumber)
 			if (result==^null)
 				mreturn NotFound()
-			mreturn OK(result.OiInvoice)
+			mreturn OK(result.InvoiceNumber)
 		endmethod
 
-		{ODataRoute("OrderItems(OiNumber={aOiNumber},OiLineItem={aOiLineItem})")}
+		{ODataRoute("OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})")}
 		;;; <summary>
 		;;; Create (with a client-supplied primary key) or replace a orderItem.
 		;;; </summary>
-		;;; <param name="aOiNumber">Order number</param>
-		;;; <param name="aOiLineItem">Line item number</param>
+		;;; <param name="aOrderNumber">Order number</param>
+		;;; <param name="aItemNumber">Line item number</param>
 		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Put, @IActionResult
 			{FromODataUri}
-			required in aOiNumber, int
+			required in aOrderNumber, int
 			{FromODataUri}
-			required in aOiLineItem, int
+			required in aItemNumber, int
 			{FromBody}
 			required in aOrderItem, @OrderItem
 		proc
@@ -315,13 +315,13 @@ namespace SampleServices.Controllers
 				mreturn BadRequest(ModelState)
 
 			;;Ensure that the key values in the URI win over any data that may be in the model object
-			aOrderItem.OiNumber = aOiNumber
-			aOrderItem.OiLineItem = aOiLineItem
+			aOrderItem.OrderNumber = aOrderNumber
+			aOrderItem.ItemNumber = aItemNumber
 
 			try
 			begin
 				;;Add and commit
-				data existing = DBContext.OrderItems.Find(aOiNumber,aOiLineItem)
+				data existing = DBContext.OrderItems.Find(aOrderNumber,aItemNumber)
 				if(existing != ^null) then
 				begin
 					aOrderItem.CopyTo(existing)
@@ -342,18 +342,18 @@ namespace SampleServices.Controllers
 
 		endmethod
 
-		{ODataRoute("OrderItems(OiNumber={aOiNumber},OiLineItem={aOiLineItem})")}
+		{ODataRoute("OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})")}
 		;;; <summary>
 		;;; Patch  (partial update) a orderItem.
 		;;; </summary>
-		;;; <param name="aOiNumber">Order number</param>
-		;;; <param name="aOiLineItem">Line item number</param>
+		;;; <param name="aOrderNumber">Order number</param>
+		;;; <param name="aItemNumber">Line item number</param>
 		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Patch, @IActionResult
 			{FromODataUri}
-			required in aOiNumber, int
+			required in aOrderNumber, int
 			{FromODataUri}
-			required in aOiLineItem, int
+			required in aItemNumber, int
 			{FromBody}
 			required in aOrderItem, @JsonPatchDocument<OrderItem>
 		proc
@@ -365,7 +365,7 @@ namespace SampleServices.Controllers
 			try
 			begin
 				;;Get the orderItem to be updated
-				data orderItemToUpdate = DBContext.OrderItems.Find(aOiNumber,aOiLineItem)
+				data orderItemToUpdate = DBContext.OrderItems.Find(aOrderNumber,aItemNumber)
 
 				;;Did we find it?
 				if(orderItemToUpdate == ^null)
@@ -388,21 +388,21 @@ namespace SampleServices.Controllers
 
 		endmethod
 
-		{ODataRoute("OrderItems(OiNumber={aOiNumber},OiLineItem={aOiLineItem})")}
+		{ODataRoute("OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})")}
 		;;; <summary>
 		;;; Delete a orderItem.
 		;;; </summary>
-		;;; <param name="aOiNumber">Order number</param>
-		;;; <param name="aOiLineItem">Line item number</param>
+		;;; <param name="aOrderNumber">Order number</param>
+		;;; <param name="aItemNumber">Line item number</param>
 		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Delete, @IActionResult
 			{FromODataUri}
-			required in aOiNumber, int
+			required in aOrderNumber, int
 			{FromODataUri}
-			required in aOiLineItem, int
+			required in aItemNumber, int
 		proc
 			;;Get the orderItem to be deleted
-			data orderItemToRemove = DBContext.OrderItems.Find(aOiNumber,aOiLineItem)
+			data orderItemToRemove = DBContext.OrderItems.Find(aOrderNumber,aItemNumber)
 
 			;;Did we find it?
 			if (orderItemToRemove == ^null)

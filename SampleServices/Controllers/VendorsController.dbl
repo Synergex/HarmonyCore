@@ -80,244 +80,244 @@ namespace SampleServices.Controllers
 			mreturn Ok(DBContext.Vendors)
 		endmethod
 
-		{ODataRoute("Vendors(VendKey={aVendKey})")}
+		{ODataRoute("Vendors(VendorNumber={aVendorNumber})")}
 		{EnableQuery(MaxExpansionDepth=3)}
 		;;; <summary>
 		;;; Get a single Vendor by primary key.
 		;;; </summary>
-		;;; <param name="aVendKey">Vendor ID</param>
+		;;; <param name="aVendorNumber">Vendor number</param>
 		;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Get, @SingleResult<Vendor>
 			{FromODataUri}
-			required in aVendKey, int
+			required in aVendorNumber, int
 		proc
-			mreturn new SingleResult<Vendor>(DBContext.Vendors.FindQuery<Vendor>(aVendKey))
+			mreturn new SingleResult<Vendor>(DBContext.Vendors.FindQuery<Vendor>(aVendorNumber))
 		endmethod
 
-		{ODataRoute("Vendors(VendRtype={aVendRtype},VendKey={aVendKey})")}
+		{ODataRoute("Vendors(RecordType={aRecordType},VendorNumber={aVendorNumber})")}
 		{EnableQuery(MaxExpansionDepth=3)}
 		;;; <summary>
 		;;; Get vendor by alternate key TagVendor.
 		;;; </summary>
-		;;; <param name="aVendRtype">Record Type</param>
-		;;; <param name="aVendKey">Vendor ID</param>
+		;;; <param name="aRecordType">Record type (1)</param>
+		;;; <param name="aVendorNumber">Vendor number</param>
 		;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method GetByKeyTagVendor, @SingleResult<Vendor>
 			{FromODataUri}
-			required in aVendRtype, int
+			required in aRecordType, int
 			{FromODataUri}
-			required in aVendKey, int
+			required in aVendorNumber, int
 		proc
-			mreturn new SingleResult<Vendor>(DBContext.Vendors.FindAlternate("VendRtype",aVendRtype,"VendKey",aVendKey))
+			mreturn new SingleResult<Vendor>(DBContext.Vendors.FindAlternate("RecordType",aRecordType,"VendorNumber",aVendorNumber))
 		endmethod
 
-		{ODataRoute("Vendors({key})/VendKey")}
+		{ODataRoute("Vendors({key})/VendorNumber")}
 		;;; <summary>
-		;;; Get the VendKey property of a single Vendor, by primary key.
+		;;; Get the VendorNumber property of a single Vendor, by primary key.
 		;;; </summary>
-		;;; <param name="key">Vendor ID</param>
+		;;; <param name="key">Vendor number</param>
 		;;; <returns>
 		;;; Returns an int containing the value of the requested property.
 		;;;</returns>
-		public method GetVendKey, @IActionResult
+		public method GetVendorNumber, @IActionResult
 			{FromODataUri}
 			required in key, int
 		proc
 			data result = DBContext.Vendors.Find(key)
 			if (result==^null)
 				mreturn NotFound()
-			mreturn OK(result.VendKey)
+			mreturn OK(result.VendorNumber)
 		endmethod
 
-		{ODataRoute("Vendors({key})/VendRtype")}
+		{ODataRoute("Vendors({key})/RecordType")}
 		;;; <summary>
-		;;; Get the VendRtype property of a single Vendor, by primary key.
+		;;; Get the RecordType property of a single Vendor, by primary key.
 		;;; </summary>
-		;;; <param name="key">Record Type</param>
+		;;; <param name="key">Record type (1)</param>
 		;;; <returns>
 		;;; Returns an int containing the value of the requested property.
 		;;;</returns>
-		public method GetVendRtype, @IActionResult
+		public method GetRecordType, @IActionResult
 			{FromODataUri}
 			required in key, int
 		proc
 			data result = DBContext.Vendors.Find(key)
 			if (result==^null)
 				mreturn NotFound()
-			mreturn OK(result.VendRtype)
+			mreturn OK(result.RecordType)
 		endmethod
 
-		{ODataRoute("Vendors({key})/VendName")}
+		{ODataRoute("Vendors({key})/Name")}
 		;;; <summary>
-		;;; Get the VendName property of a single Vendor, by primary key.
+		;;; Get the Name property of a single Vendor, by primary key.
 		;;; </summary>
-		;;; <param name="key">Vendor Name</param>
+		;;; <param name="key">Vendor name</param>
 		;;; <returns>
 		;;; Returns a string containing the value of the requested property.
 		;;;</returns>
-		public method GetVendName, @IActionResult
+		public method GetName, @IActionResult
 			{FromODataUri}
 			required in key, int
 		proc
 			data result = DBContext.Vendors.Find(key)
 			if (result==^null)
 				mreturn NotFound()
-			mreturn OK(result.VendName)
+			mreturn OK(result.Name)
 		endmethod
 
-		{ODataRoute("Vendors({key})/VendStreet")}
+		{ODataRoute("Vendors({key})/Street")}
 		;;; <summary>
-		;;; Get the VendStreet property of a single Vendor, by primary key.
+		;;; Get the Street property of a single Vendor, by primary key.
 		;;; </summary>
-		;;; <param name="key">Street Address</param>
+		;;; <param name="key">Street address</param>
 		;;; <returns>
 		;;; Returns a string containing the value of the requested property.
 		;;;</returns>
-		public method GetVendStreet, @IActionResult
+		public method GetStreet, @IActionResult
 			{FromODataUri}
 			required in key, int
 		proc
 			data result = DBContext.Vendors.Find(key)
 			if (result==^null)
 				mreturn NotFound()
-			mreturn OK(result.VendStreet)
+			mreturn OK(result.Street)
 		endmethod
 
-		{ODataRoute("Vendors({key})/VendCity")}
+		{ODataRoute("Vendors({key})/City")}
 		;;; <summary>
-		;;; Get the VendCity property of a single Vendor, by primary key.
+		;;; Get the City property of a single Vendor, by primary key.
 		;;; </summary>
 		;;; <param name="key">City</param>
 		;;; <returns>
 		;;; Returns a string containing the value of the requested property.
 		;;;</returns>
-		public method GetVendCity, @IActionResult
+		public method GetCity, @IActionResult
 			{FromODataUri}
 			required in key, int
 		proc
 			data result = DBContext.Vendors.Find(key)
 			if (result==^null)
 				mreturn NotFound()
-			mreturn OK(result.VendCity)
+			mreturn OK(result.City)
 		endmethod
 
-		{ODataRoute("Vendors({key})/VendState")}
+		{ODataRoute("Vendors({key})/State")}
 		;;; <summary>
-		;;; Get the VendState property of a single Vendor, by primary key.
+		;;; Get the State property of a single Vendor, by primary key.
 		;;; </summary>
 		;;; <param name="key">State</param>
 		;;; <returns>
 		;;; Returns a string containing the value of the requested property.
 		;;;</returns>
-		public method GetVendState, @IActionResult
+		public method GetState, @IActionResult
 			{FromODataUri}
 			required in key, int
 		proc
 			data result = DBContext.Vendors.Find(key)
 			if (result==^null)
 				mreturn NotFound()
-			mreturn OK(result.VendState)
+			mreturn OK(result.State)
 		endmethod
 
-		{ODataRoute("Vendors({key})/VendZip")}
+		{ODataRoute("Vendors({key})/ZipCode")}
 		;;; <summary>
-		;;; Get the VendZip property of a single Vendor, by primary key.
+		;;; Get the ZipCode property of a single Vendor, by primary key.
 		;;; </summary>
 		;;; <param name="key">Zip Code</param>
 		;;; <returns>
 		;;; Returns an int containing the value of the requested property.
 		;;;</returns>
-		public method GetVendZip, @IActionResult
+		public method GetZipCode, @IActionResult
 			{FromODataUri}
 			required in key, int
 		proc
 			data result = DBContext.Vendors.Find(key)
 			if (result==^null)
 				mreturn NotFound()
-			mreturn OK(result.VendZip)
+			mreturn OK(result.ZipCode)
 		endmethod
 
-		{ODataRoute("Vendors({key})/VendContact")}
+		{ODataRoute("Vendors({key})/Contact")}
 		;;; <summary>
-		;;; Get the VendContact property of a single Vendor, by primary key.
+		;;; Get the Contact property of a single Vendor, by primary key.
 		;;; </summary>
-		;;; <param name="key">Contact Person</param>
+		;;; <param name="key">Contact name</param>
 		;;; <returns>
 		;;; Returns a string containing the value of the requested property.
 		;;;</returns>
-		public method GetVendContact, @IActionResult
+		public method GetContact, @IActionResult
 			{FromODataUri}
 			required in key, int
 		proc
 			data result = DBContext.Vendors.Find(key)
 			if (result==^null)
 				mreturn NotFound()
-			mreturn OK(result.VendContact)
+			mreturn OK(result.Contact)
 		endmethod
 
-		{ODataRoute("Vendors({key})/VendTelephone")}
+		{ODataRoute("Vendors({key})/Phone")}
 		;;; <summary>
-		;;; Get the VendTelephone property of a single Vendor, by primary key.
+		;;; Get the Phone property of a single Vendor, by primary key.
 		;;; </summary>
 		;;; <param name="key">Phone number</param>
 		;;; <returns>
 		;;; Returns a string containing the value of the requested property.
 		;;;</returns>
-		public method GetVendTelephone, @IActionResult
+		public method GetPhone, @IActionResult
 			{FromODataUri}
 			required in key, int
 		proc
 			data result = DBContext.Vendors.Find(key)
 			if (result==^null)
 				mreturn NotFound()
-			mreturn OK(result.VendTelephone)
+			mreturn OK(result.Phone)
 		endmethod
 
-		{ODataRoute("Vendors({key})/VendFax")}
+		{ODataRoute("Vendors({key})/Fax")}
 		;;; <summary>
-		;;; Get the VendFax property of a single Vendor, by primary key.
+		;;; Get the Fax property of a single Vendor, by primary key.
 		;;; </summary>
-		;;; <param name="key">Fax Number</param>
+		;;; <param name="key">Fax number</param>
 		;;; <returns>
 		;;; Returns a string containing the value of the requested property.
 		;;;</returns>
-		public method GetVendFax, @IActionResult
+		public method GetFax, @IActionResult
 			{FromODataUri}
 			required in key, int
 		proc
 			data result = DBContext.Vendors.Find(key)
 			if (result==^null)
 				mreturn NotFound()
-			mreturn OK(result.VendFax)
+			mreturn OK(result.Fax)
 		endmethod
 
-		{ODataRoute("Vendors({key})/VendTerms")}
+		{ODataRoute("Vendors({key})/PaymentTermsCode")}
 		;;; <summary>
-		;;; Get the VendTerms property of a single Vendor, by primary key.
+		;;; Get the PaymentTermsCode property of a single Vendor, by primary key.
 		;;; </summary>
-		;;; <param name="key">Terms & Conditions</param>
+		;;; <param name="key">Payment terms code</param>
 		;;; <returns>
 		;;; Returns a string containing the value of the requested property.
 		;;;</returns>
-		public method GetVendTerms, @IActionResult
+		public method GetPaymentTermsCode, @IActionResult
 			{FromODataUri}
 			required in key, int
 		proc
 			data result = DBContext.Vendors.Find(key)
 			if (result==^null)
 				mreturn NotFound()
-			mreturn OK(result.VendTerms)
+			mreturn OK(result.PaymentTermsCode)
 		endmethod
 
-		{ODataRoute("Vendors(VendKey={aVendKey})")}
+		{ODataRoute("Vendors(VendorNumber={aVendorNumber})")}
 		;;; <summary>
 		;;; Create (with a client-supplied primary key) or replace a vendor.
 		;;; </summary>
-		;;; <param name="aVendKey">Vendor ID</param>
+		;;; <param name="aVendorNumber">Vendor number</param>
 		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Put, @IActionResult
 			{FromODataUri}
-			required in aVendKey, int
+			required in aVendorNumber, int
 			{FromBody}
 			required in aVendor, @Vendor
 		proc
@@ -326,12 +326,12 @@ namespace SampleServices.Controllers
 				mreturn BadRequest(ModelState)
 
 			;;Ensure that the key values in the URI win over any data that may be in the model object
-			aVendor.VendKey = aVendKey
+			aVendor.VendorNumber = aVendorNumber
 
 			try
 			begin
 				;;Add and commit
-				data existing = DBContext.Vendors.Find(aVendKey)
+				data existing = DBContext.Vendors.Find(aVendorNumber)
 				if(existing != ^null) then
 				begin
 					aVendor.CopyTo(existing)
@@ -352,15 +352,15 @@ namespace SampleServices.Controllers
 
 		endmethod
 
-		{ODataRoute("Vendors(VendKey={aVendKey})")}
+		{ODataRoute("Vendors(VendorNumber={aVendorNumber})")}
 		;;; <summary>
 		;;; Patch  (partial update) a vendor.
 		;;; </summary>
-		;;; <param name="aVendKey">Vendor ID</param>
+		;;; <param name="aVendorNumber">Vendor number</param>
 		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Patch, @IActionResult
 			{FromODataUri}
-			required in aVendKey, int
+			required in aVendorNumber, int
 			{FromBody}
 			required in aVendor, @JsonPatchDocument<Vendor>
 		proc
@@ -372,7 +372,7 @@ namespace SampleServices.Controllers
 			try
 			begin
 				;;Get the vendor to be updated
-				data vendorToUpdate = DBContext.Vendors.Find(aVendKey)
+				data vendorToUpdate = DBContext.Vendors.Find(aVendorNumber)
 
 				;;Did we find it?
 				if(vendorToUpdate == ^null)
@@ -395,18 +395,18 @@ namespace SampleServices.Controllers
 
 		endmethod
 
-		{ODataRoute("Vendors(VendKey={aVendKey})")}
+		{ODataRoute("Vendors(VendorNumber={aVendorNumber})")}
 		;;; <summary>
 		;;; Delete a vendor.
 		;;; </summary>
-		;;; <param name="aVendKey">Vendor ID</param>
+		;;; <param name="aVendorNumber">Vendor number</param>
 		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
 		public method Delete, @IActionResult
 			{FromODataUri}
-			required in aVendKey, int
+			required in aVendorNumber, int
 		proc
 			;;Get the vendor to be deleted
-			data vendorToRemove = DBContext.Vendors.Find(aVendKey)
+			data vendorToRemove = DBContext.Vendors.Find(aVendorNumber)
 
 			;;Did we find it?
 			if (vendorToRemove == ^null)

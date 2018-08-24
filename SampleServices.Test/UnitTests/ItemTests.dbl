@@ -1,10 +1,10 @@
 ;;*****************************************************************************
 ;;
-;; Title:       PlantTests.dbl
+;; Title:       ItemTests.dbl
 ;;
 ;; Type:        Class
 ;;
-;; Description: Unit tests for the operations defined in PlantsController.
+;; Description: Unit tests for the operations defined in ItemsController.
 ;;
 ;;*****************************************************************************
 ;; WARNING
@@ -52,44 +52,30 @@ import SampleServices.Test.Models
 namespace SampleServices.Test.UnitTests
 
 	{TestClass}
-	public partial class PlantTests
+	public partial class ItemTests
 
 		;;------------------------------------------------------------
-		;;Get all Plants
+		;;Get all Items
 
 		{TestMethod}
-		{TestCategory("Plant Tests - Read All")}
-		public method GetPlants, void
+		{TestCategory("Item Tests - Read All")}
+		public method GetItems, void
 		proc
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync("/odata/Plants").Result
+			disposable data response = client.GetAsync("/odata/Items").Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
-			data plants, @ODataPlants, JsonConvert.DeserializeObject<ODataPlants>(result)
+			data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
 		endmethod
 
 		;;------------------------------------------------------------
-		;;Get all Plants and expand relation REL_Vendor
+		;;Get all Items and expand relation REL_VendorNumber
 
 		{TestMethod}
-		{TestCategory("Plant Tests - Read All")}
-		public method GetPlants_Expand_REL_Vendor, void
+		{TestCategory("Item Tests - Read All")}
+		public method GetItems_Expand_REL_VendorNumber, void
 		proc
-			data uri = "/odata/Plants?$expand=REL_Vendor"
-			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync(uri).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-		endmethod
-
-		;;------------------------------------------------------------
-		;;Get all Plants and expand relation REL_Item
-
-		{TestMethod}
-		{TestCategory("Plant Tests - Read All")}
-		public method GetPlants_Expand_REL_OrderItems, void
-		proc
-			data uri = "/odata/Plants?$expand=REL_OrderItems"
+			data uri = "/odata/Items?$expand=REL_VendorNumber"
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
 			disposable data response = client.GetAsync(uri).Result
 			data result = response.Content.ReadAsStringAsync().Result
@@ -97,13 +83,27 @@ namespace SampleServices.Test.UnitTests
 		endmethod
 
 		;;------------------------------------------------------------
-		;;Get all Plants and expand all relations
+		;;Get all Items and expand relation REL_ItemNumber
 
 		{TestMethod}
-		{TestCategory("Plant Tests - Read All")}
-		public method GetPlants_Expand_All, void
+		{TestCategory("Item Tests - Read All")}
+		public method GetItems_Expand_REL_OrderItems, void
 		proc
-			data uri = "/odata/Plants?$expand=REL_Vendor,REL_OrderItems"
+			data uri = "/odata/Items?$expand=REL_OrderItems"
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync(uri).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+		endmethod
+
+		;;------------------------------------------------------------
+		;;Get all Items and expand all relations
+
+		{TestMethod}
+		{TestCategory("Item Tests - Read All")}
+		public method GetItems_Expand_All, void
+		proc
+			data uri = "/odata/Items?$expand=REL_VendorNumber,REL_OrderItems"
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
 			disposable data response = client.GetAsync(uri).Result
 			data result = response.Content.ReadAsStringAsync().Result
@@ -111,152 +111,152 @@ namespace SampleServices.Test.UnitTests
 		endmethod
 		
 		;;------------------------------------------------------------
-		;;Get a single Plant by primary key
+		;;Get a single Item by primary key
 
 		{TestMethod}
-		{TestCategory("Plant Tests - Read by Primary Key")}
-		public method GetPlant, void
+		{TestCategory("Item Tests - Read by Primary Key")}
+		public method GetItem, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Plants(InItemid={1})","",TestConstants.GetPlant_InItemid)
+			data request = String.Format("/odata/Items(ItemNumber={1})","",TestConstants.GetItem_ItemNumber)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
-			data plant, @ODataPlant, JsonConvert.DeserializeObject<ODataPlant>(result)
+			data item, @ODataItem, JsonConvert.DeserializeObject<ODataItem>(result)
 		endmethod
 
 		;;------------------------------------------------------------
-		;;Get a single Plant by primary key and expand relation REL_Vendor
+		;;Get a single Item by primary key and expand relation REL_VendorNumber
 
 		{TestMethod}
-		{TestCategory("Plant Tests - Read by Primary Key")}
-		public method GetPlant_Expand_REL_Vendor, void
+		{TestCategory("Item Tests - Read by Primary Key")}
+		public method GetItem_Expand_REL_VendorNumber, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Plants(InItemid={1})?$expand=REL_Vendor","",TestConstants.GetPlant_Expand_REL_Vendor_InItemid)
+			data request = String.Format("/odata/Items(ItemNumber={1})?$expand=REL_VendorNumber","",TestConstants.GetItem_Expand_REL_VendorNumber_ItemNumber)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
-			data plant, @ODataPlant, JsonConvert.DeserializeObject<ODataPlant>(result)
+			data item, @ODataItem, JsonConvert.DeserializeObject<ODataItem>(result)
 		endmethod
 
 		;;------------------------------------------------------------
-		;;Get a single Plant by primary key and expand relation REL_OrderItems
+		;;Get a single Item by primary key and expand relation REL_OrderItems
 
 		{TestMethod}
-		{TestCategory("Plant Tests - Read by Primary Key")}
-		public method GetPlant_Expand_REL_OrderItems, void
+		{TestCategory("Item Tests - Read by Primary Key")}
+		public method GetItem_Expand_REL_OrderItems, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Plants(InItemid={1})?$expand=REL_OrderItems","",TestConstants.GetPlant_Expand_REL_OrderItems_InItemid)
+			data request = String.Format("/odata/Items(ItemNumber={1})?$expand=REL_OrderItems","",TestConstants.GetItem_Expand_REL_OrderItems_ItemNumber)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
-			data plant, @ODataPlant, JsonConvert.DeserializeObject<ODataPlant>(result)
+			data item, @ODataItem, JsonConvert.DeserializeObject<ODataItem>(result)
 		endmethod
 
 		;;------------------------------------------------------------
-		;;Get a single Plant by primary key and expand all relations
+		;;Get a single Item by primary key and expand all relations
 
 		{TestMethod}
-		{TestCategory("Plant Tests - Read by Primary Key")}
-		public method GetPlant_Expand_All, void
+		{TestCategory("Item Tests - Read by Primary Key")}
+		public method GetItem_Expand_All, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Plants(InItemid={1})?$expand=REL_Vendor,REL_OrderItems","",TestConstants.GetPlant_Expand_All_InItemid)
+			data request = String.Format("/odata/Items(ItemNumber={1})?$expand=REL_VendorNumber,REL_OrderItems","",TestConstants.GetItem_Expand_All_ItemNumber)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
-			data plant, @ODataPlant, JsonConvert.DeserializeObject<ODataPlant>(result)
+			data item, @ODataItem, JsonConvert.DeserializeObject<ODataItem>(result)
 		endmethod
 
 		;;------------------------------------------------------------
-		;;Get a single Plant by alternate key 1 (Vendor)
+		;;Get a single Item by alternate key 1 (VendorNumber)
 
 		{TestMethod}
-		{TestCategory("Plant Tests - Read by Alternate Key")}
-		public method GetPlant_ByAltKey_Vendor, void
+		{TestCategory("Item Tests - Read by Alternate Key")}
+		public method GetItem_ByAltKey_VendorNumber, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Plants(InSource={1})", "", TestConstants.GetPlant_ByAltKey_Vendor_InSource)
+			data request = String.Format("/odata/Items(VendorNumber={1})", "", TestConstants.GetItem_ByAltKey_VendorNumber_VendorNumber)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
-			data plants, @ODataPlants,JsonConvert.DeserializeObject<ODataPlants>(result)
+			data items, @ODataItems,JsonConvert.DeserializeObject<ODataItems>(result)
 		endmethod
 
 		;;------------------------------------------------------------
-		;;Get a single Plant by alternate key 2 (Color)
+		;;Get a single Item by alternate key 2 (Color)
 
 		{TestMethod}
-		{TestCategory("Plant Tests - Read by Alternate Key")}
-		public method GetPlant_ByAltKey_Color, void
+		{TestCategory("Item Tests - Read by Alternate Key")}
+		public method GetItem_ByAltKey_Color, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Plants(InColor='{1}')", "", TestConstants.GetPlant_ByAltKey_Color_InColor)
+			data request = String.Format("/odata/Items(FlowerColor='{1}')", "", TestConstants.GetItem_ByAltKey_Color_FlowerColor)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
-			data plants, @ODataPlants,JsonConvert.DeserializeObject<ODataPlants>(result)
+			data items, @ODataItems,JsonConvert.DeserializeObject<ODataItems>(result)
 		endmethod
 
 		;;------------------------------------------------------------
-		;;Get a single Plant by alternate key 3 (Size)
+		;;Get a single Item by alternate key 3 (Size)
 
 		{TestMethod}
-		{TestCategory("Plant Tests - Read by Alternate Key")}
-		public method GetPlant_ByAltKey_Size, void
+		{TestCategory("Item Tests - Read by Alternate Key")}
+		public method GetItem_ByAltKey_Size, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Plants(InSize={1})", "", TestConstants.GetPlant_ByAltKey_Size_InSize)
+			data request = String.Format("/odata/Items(Size={1})", "", TestConstants.GetItem_ByAltKey_Size_Size)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
-			data plants, @ODataPlants,JsonConvert.DeserializeObject<ODataPlants>(result)
+			data items, @ODataItems,JsonConvert.DeserializeObject<ODataItems>(result)
 		endmethod
 
 		;;------------------------------------------------------------
-		;;Get a single Plant by alternate key 4 (Name)
+		;;Get a single Item by alternate key 4 (Name)
 
 		{TestMethod}
-		{TestCategory("Plant Tests - Read by Alternate Key")}
-		public method GetPlant_ByAltKey_Name, void
+		{TestCategory("Item Tests - Read by Alternate Key")}
+		public method GetItem_ByAltKey_Name, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Plants(InName='{1}')", "", TestConstants.GetPlant_ByAltKey_Name_InName)
+			data request = String.Format("/odata/Items(CommonName='{1}')", "", TestConstants.GetItem_ByAltKey_Name_CommonName)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
-			data plants, @ODataPlants,JsonConvert.DeserializeObject<ODataPlants>(result)
+			data items, @ODataItems,JsonConvert.DeserializeObject<ODataItems>(result)
 		endmethod
 
 		;;------------------------------------------------------------
-		;;Create new Plant (client specified key)
+		;;Create new Item (client specified key)
 
 		{TestMethod}
-		{TestCategory("Plant Tests - Create, Update & Delete")}
-		public method UpdatePlant, void
+		{TestCategory("Item Tests - Create, Update & Delete")}
+		public method UpdateItem, void
 		proc
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
 
-			;;Get one plant from the file
-			data getRequest = String.Format("/odata/Plants(InItemid={1})","",TestConstants.GetPlant_InItemid)
+			;;Get one item from the file
+			data getRequest = String.Format("/odata/Items(ItemNumber={1})","",TestConstants.GetItem_ItemNumber)
 			data getResponse = client.GetAsync(getRequest).Result
 			data getResult = getResponse.Content.ReadAsStringAsync().Result
 
 			;;Check that we got a successful response from the web service
 			getResponse.EnsureSuccessStatusCode()
 
-			;;Deserialize the JSON into a Plant object
-			data doPlant, @Plant, JsonConvert.DeserializeObject<Plant>(getResult)
+			;;Deserialize the JSON into a Item object
+			data doItem, @Item, JsonConvert.DeserializeObject<Item>(getResult)
 
-			doPlant.InItemid = TestConstants.UpdatePlant_InItemid
+			doItem.ItemNumber = TestConstants.UpdateItem_ItemNumber
 
 			;TODO: Also need to ensure any nodups alternate keys get unique values
 
 			;;Create new item
-			disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doPlant),System.Text.Encoding.UTF8, "application/json")
-			data request = String.Format("/odata/Plants(InItemid={1})","",TestConstants.UpdatePlant_InItemid)
+			disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doItem),System.Text.Encoding.UTF8, "application/json")
+			data request = String.Format("/odata/Items(ItemNumber={1})","",TestConstants.UpdateItem_ItemNumber)
 			disposable data response = client.PutAsync(request, requestBody).Result
 
 			;;Check that we got a successful response from the web service
@@ -269,15 +269,15 @@ namespace SampleServices.Test.UnitTests
 			;;Check that we got a successful response from the web service
 			getResponse.EnsureSuccessStatusCode()
 
-			;;Deserialize the JSON into a Plant object
-			doPlant = JsonConvert.DeserializeObject<Plant>(getResult)
+			;;Deserialize the JSON into a Item object
+			doItem = JsonConvert.DeserializeObject<Item>(getResult)
 
 			;;Change the first non key field to test full update
-			doPlant.InLatin = "Y"
+			doItem.LatinName = "Y"
 
 			;;Update full item
-			requestBody = new StringContent(JsonConvert.SerializeObject(doPlant),System.Text.Encoding.UTF8, "application/json")
-			request = String.Format("/odata/Plants(InItemid={1})","",TestConstants.UpdatePlant_InItemid)
+			requestBody = new StringContent(JsonConvert.SerializeObject(doItem),System.Text.Encoding.UTF8, "application/json")
+			request = String.Format("/odata/Items(ItemNumber={1})","",TestConstants.UpdateItem_ItemNumber)
 			response = client.PutAsync(request, requestBody).Result
 
 			;;Check that we got a successful response from the web service
@@ -290,14 +290,14 @@ namespace SampleServices.Test.UnitTests
 			;;Check that we got a successful response from the web service
 			getResponse.EnsureSuccessStatusCode()
 
-			;;Deserialize the JSON into a Plant object
-			doPlant = JsonConvert.DeserializeObject<Plant>(getResult)
+			;;Deserialize the JSON into a Item object
+			doItem = JsonConvert.DeserializeObject<Item>(getResult)
 
-			Assert.AreEqual(doPlant.InLatin, "Y")
+			Assert.AreEqual(doItem.LatinName, "Y")
 
-			;;Update one property in the plant
+			;;Update one property in the item
 			data patchDoc = new JsonPatchDocument()
-			patchDoc.Replace("InLatin", "Z")
+			patchDoc.Replace("LatinName", "Z")
 
 			;;Serialize the patch to JSON
 			data serializedPatch = JsonConvert.SerializeObject(patchDoc)
@@ -309,18 +309,18 @@ namespace SampleServices.Test.UnitTests
 			;;Check that we got a successful response from the web service
 			patchResponse.EnsureSuccessStatusCode()
 
-			;;Get the updated plant record
+			;;Get the updated item record
 			getResponse = client.GetAsync(request).Result
 			getResult = getResponse.Content.ReadAsStringAsync().Result
 
 			;;Check that we got a successful response from the web service
 			getResponse.EnsureSuccessStatusCode()
 
-			;;Deserialize the JSON into a Plant object
-			doPlant = JsonConvert.DeserializeObject<Plant>(getResult)
+			;;Deserialize the JSON into a Item object
+			doItem = JsonConvert.DeserializeObject<Item>(getResult)
 
 			;;Verify that the property was changed
-			Assert.AreEqual(doPlant.InLatin, "Z")
+			Assert.AreEqual(doItem.LatinName, "Z")
 
 			;;Delete It
 			disposable data deleteResponse = client.DeleteAsync(request).Result

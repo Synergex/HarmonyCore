@@ -71,41 +71,41 @@ namespace SampleServices
 
 				;;Declare entities
 				builder.EntitySet<Customer>("Customers")
+				builder.EntitySet<Item>("Items")
 				builder.EntitySet<Order>("Orders")
 				builder.EntitySet<OrderItem>("OrderItems")
-				builder.EntitySet<Plant>("Plants")
 				builder.EntitySet<Vendor>("Vendors")
 
 				;;Entities with a single primary key segment have the key declared to EF via a
 				;;{Key} attribute on the appropriate property in the data model, but only one {key}
 				;;attribute can be used in a class, so keys with multiple segments are defined
 				;;using the "Fluent API" here.
-				builder.EntityType<OrderItem>().HasKey<OrderItem,int>("OiNumber")
-				builder.EntityType<OrderItem>().HasKey<OrderItem,int>("OiLineItem")
+				builder.EntityType<OrderItem>().HasKey<OrderItem,int>("OrderNumber")
+				builder.EntityType<OrderItem>().HasKey<OrderItem,int>("ItemNumber")
 
 				data tempModel = (@EdmModel)builder.GetEdmModel()
 
 				data customerType = (@EdmEntityType)tempModel.FindDeclaredType("SampleServices.Models.Customer")
-				tempModel.AddAlternateKeyAnnotation(customerType, new Dictionary<string, IEdmProperty>() {{"CustRtype",customerType.FindProperty("CustRtype")},{"CustKey",customerType.FindProperty("CustKey")}})
+				tempModel.AddAlternateKeyAnnotation(customerType, new Dictionary<string, IEdmProperty>() {{"RecordType",customerType.FindProperty("RecordType")},{"CustomerNumber",customerType.FindProperty("CustomerNumber")}})
+
+				data itemType = (@EdmEntityType)tempModel.FindDeclaredType("SampleServices.Models.Item")
+				tempModel.AddAlternateKeyAnnotation(itemType, new Dictionary<string, IEdmProperty>() {{"VendorNumber",itemType.FindProperty("VendorNumber")}})
+				tempModel.AddAlternateKeyAnnotation(itemType, new Dictionary<string, IEdmProperty>() {{"FlowerColor",itemType.FindProperty("FlowerColor")}})
+				tempModel.AddAlternateKeyAnnotation(itemType, new Dictionary<string, IEdmProperty>() {{"Size",itemType.FindProperty("Size")}})
+				tempModel.AddAlternateKeyAnnotation(itemType, new Dictionary<string, IEdmProperty>() {{"CommonName",itemType.FindProperty("CommonName")}})
 
 				data orderType = (@EdmEntityType)tempModel.FindDeclaredType("SampleServices.Models.Order")
-				tempModel.AddAlternateKeyAnnotation(orderType, new Dictionary<string, IEdmProperty>() {{"OrCustomer",orderType.FindProperty("OrCustomer")}})
-				tempModel.AddAlternateKeyAnnotation(orderType, new Dictionary<string, IEdmProperty>() {{"OrOrdered",orderType.FindProperty("OrOrdered")}})
-				tempModel.AddAlternateKeyAnnotation(orderType, new Dictionary<string, IEdmProperty>() {{"OrCompleted",orderType.FindProperty("OrCompleted")}})
+				tempModel.AddAlternateKeyAnnotation(orderType, new Dictionary<string, IEdmProperty>() {{"CustomerNumber",orderType.FindProperty("CustomerNumber")}})
+				tempModel.AddAlternateKeyAnnotation(orderType, new Dictionary<string, IEdmProperty>() {{"DateOrdered",orderType.FindProperty("DateOrdered")}})
+				tempModel.AddAlternateKeyAnnotation(orderType, new Dictionary<string, IEdmProperty>() {{"DateCompleted",orderType.FindProperty("DateCompleted")}})
 
 				data orderItemType = (@EdmEntityType)tempModel.FindDeclaredType("SampleServices.Models.OrderItem")
-				tempModel.AddAlternateKeyAnnotation(orderItemType, new Dictionary<string, IEdmProperty>() {{"OiItemOrdered",orderItemType.FindProperty("OiItemOrdered")}})
-				tempModel.AddAlternateKeyAnnotation(orderItemType, new Dictionary<string, IEdmProperty>() {{"OiShipped",orderItemType.FindProperty("OiShipped")}})
-				tempModel.AddAlternateKeyAnnotation(orderItemType, new Dictionary<string, IEdmProperty>() {{"OiInvoice",orderItemType.FindProperty("OiInvoice")}})
-
-				data plantType = (@EdmEntityType)tempModel.FindDeclaredType("SampleServices.Models.Plant")
-				tempModel.AddAlternateKeyAnnotation(plantType, new Dictionary<string, IEdmProperty>() {{"InSource",plantType.FindProperty("InSource")}})
-				tempModel.AddAlternateKeyAnnotation(plantType, new Dictionary<string, IEdmProperty>() {{"InColor",plantType.FindProperty("InColor")}})
-				tempModel.AddAlternateKeyAnnotation(plantType, new Dictionary<string, IEdmProperty>() {{"InSize",plantType.FindProperty("InSize")}})
-				tempModel.AddAlternateKeyAnnotation(plantType, new Dictionary<string, IEdmProperty>() {{"InName",plantType.FindProperty("InName")}})
+				tempModel.AddAlternateKeyAnnotation(orderItemType, new Dictionary<string, IEdmProperty>() {{"ItemOrdered",orderItemType.FindProperty("ItemOrdered")}})
+				tempModel.AddAlternateKeyAnnotation(orderItemType, new Dictionary<string, IEdmProperty>() {{"DateShipped",orderItemType.FindProperty("DateShipped")}})
+				tempModel.AddAlternateKeyAnnotation(orderItemType, new Dictionary<string, IEdmProperty>() {{"InvoiceNumber",orderItemType.FindProperty("InvoiceNumber")}})
 
 				data vendorType = (@EdmEntityType)tempModel.FindDeclaredType("SampleServices.Models.Vendor")
-				tempModel.AddAlternateKeyAnnotation(vendorType, new Dictionary<string, IEdmProperty>() {{"VendRtype",vendorType.FindProperty("VendRtype")},{"VendKey",vendorType.FindProperty("VendKey")}})
+				tempModel.AddAlternateKeyAnnotation(vendorType, new Dictionary<string, IEdmProperty>() {{"RecordType",vendorType.FindProperty("RecordType")},{"VendorNumber",vendorType.FindProperty("VendorNumber")}})
 
 				mEdmModel = tempModel
 			end
