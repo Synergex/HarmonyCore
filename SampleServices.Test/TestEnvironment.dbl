@@ -51,189 +51,189 @@ import SampleServices.Test.DataGenerators
 
 namespace SampleServices.Test
 
-	public static class TestEnvironment
+    public static class TestEnvironment
 
-		public static method Configure, void
-		proc
-			Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)
-			setLogicals()
-			deleteFiles()
-			createFiles()
-		endmethod
+        public static method Configure, void
+        proc
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)
+            setLogicals()
+            deleteFiles()
+            createFiles()
+        endmethod
 
-		public static method Cleanup, void
-		proc
-			deleteFiles()
-		endmethod
+        public static method Cleanup, void
+        proc
+            deleteFiles()
+        endmethod
 
-		private static method setLogicals, void
-		proc
-			data sampleDataFolder = findRelativeFolderForAssembly("SampleData")
-			data logicals = new List<string>()
-			data logical = String.Empty
-			data fileSpec = String.Empty
+        private static method setLogicals, void
+        proc
+            data sampleDataFolder = findRelativeFolderForAssembly("SampleData")
+            data logicals = new List<string>()
+            data logical = String.Empty
+            data fileSpec = String.Empty
 
-			fileSpec = "ICSTUT:customer.ism"
-			if (fileSpec.Contains(":"))
-			begin
-				logical = fileSpec.Split(":")[0].ToUpper()
-				if (!logicals.Contains(logical))
-					logicals.Add(logical)
-			end
+            fileSpec = "ICSTUT:customer.ism"
+            if (fileSpec.Contains(":"))
+            begin
+                logical = fileSpec.Split(":")[0].ToUpper()
+                if (!logicals.Contains(logical))
+                    logicals.Add(logical)
+            end
 
-			fileSpec = "ICSTUT:ITEMS.ism"
-			if (fileSpec.Contains(":"))
-			begin
-				logical = fileSpec.Split(":")[0].ToUpper()
-				if (!logicals.Contains(logical))
-					logicals.Add(logical)
-			end
+            fileSpec = "ICSTUT:ITEMS.ism"
+            if (fileSpec.Contains(":"))
+            begin
+                logical = fileSpec.Split(":")[0].ToUpper()
+                if (!logicals.Contains(logical))
+                    logicals.Add(logical)
+            end
 
-			fileSpec = "ICSTUT:orders.ism"
-			if (fileSpec.Contains(":"))
-			begin
-				logical = fileSpec.Split(":")[0].ToUpper()
-				if (!logicals.Contains(logical))
-					logicals.Add(logical)
-			end
+            fileSpec = "ICSTUT:orders.ism"
+            if (fileSpec.Contains(":"))
+            begin
+                logical = fileSpec.Split(":")[0].ToUpper()
+                if (!logicals.Contains(logical))
+                    logicals.Add(logical)
+            end
 
-			fileSpec = "ICSTUT:order_items.ism"
-			if (fileSpec.Contains(":"))
-			begin
-				logical = fileSpec.Split(":")[0].ToUpper()
-				if (!logicals.Contains(logical))
-					logicals.Add(logical)
-			end
+            fileSpec = "ICSTUT:order_items.ism"
+            if (fileSpec.Contains(":"))
+            begin
+                logical = fileSpec.Split(":")[0].ToUpper()
+                if (!logicals.Contains(logical))
+                    logicals.Add(logical)
+            end
 
-			foreach logical in logicals
-			begin
-				data sts, int
-				xcall setlog(logical,sampleDataFolder,sts)
-			end
+            foreach logical in logicals
+            begin
+                data sts, int
+                xcall setlog(logical,sampleDataFolder,sts)
+            end
 
-		endmethod
+        endmethod
 
-		private static method createFiles, void
-		proc
-			data chout, int
-			data dataFile, string
-			data xdlFile, string
+        private static method createFiles, void
+        proc
+            data chout, int
+            data dataFile, string
+            data xdlFile, string
 
-			data customers = CustomerLoader.LoadFromFile()
-			data items = ItemLoader.LoadFromFile()
-			data orders = OrderLoader.LoadFromFile()
-			data orderItems = OrderItemLoader.LoadFromFile()
+            data customers = CustomerLoader.LoadFromFile()
+            data items = ItemLoader.LoadFromFile()
+            data orders = OrderLoader.LoadFromFile()
+            data orderItems = OrderItemLoader.LoadFromFile()
 
-			;;Create and load the customers file
+            ;;Create and load the customers file
 
-			dataFile = "ICSTUT:customer.ism"
-			xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+            dataFile = "ICSTUT:customer.ism"
+            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
 
-			data customer, @Customer
-			open(chout=0,o:i,dataFile,FDL:xdlFile)
-			foreach customer in customers
-				store(chout,customer.SynergyRecord)
-			close chout
+            data customer, @Customer
+            open(chout=0,o:i,dataFile,FDL:xdlFile)
+            foreach customer in customers
+                store(chout,customer.SynergyRecord)
+            close chout
 
-			;;Create and load the items file
+            ;;Create and load the items file
 
-			dataFile = "ICSTUT:ITEMS.ism"
-			xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+            dataFile = "ICSTUT:ITEMS.ism"
+            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
 
-			data item, @Item
-			open(chout=0,o:i,dataFile,FDL:xdlFile)
-			foreach item in items
-				store(chout,item.SynergyRecord)
-			close chout
+            data item, @Item
+            open(chout=0,o:i,dataFile,FDL:xdlFile)
+            foreach item in items
+                store(chout,item.SynergyRecord)
+            close chout
 
-			;;Create and load the orders file
+            ;;Create and load the orders file
 
-			dataFile = "ICSTUT:orders.ism"
-			xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+            dataFile = "ICSTUT:orders.ism"
+            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
 
-			data order, @Order
-			open(chout=0,o:i,dataFile,FDL:xdlFile)
-			foreach order in orders
-				store(chout,order.SynergyRecord)
-			close chout
+            data order, @Order
+            open(chout=0,o:i,dataFile,FDL:xdlFile)
+            foreach order in orders
+                store(chout,order.SynergyRecord)
+            close chout
 
-			;;Create and load the orderItems file
+            ;;Create and load the orderItems file
 
-			dataFile = "ICSTUT:order_items.ism"
-			xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+            dataFile = "ICSTUT:order_items.ism"
+            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
 
-			data orderItem, @OrderItem
-			open(chout=0,o:i,dataFile,FDL:xdlFile)
-			foreach orderItem in orderItems
-				store(chout,orderItem.SynergyRecord)
-			close chout
+            data orderItem, @OrderItem
+            open(chout=0,o:i,dataFile,FDL:xdlFile)
+            foreach orderItem in orderItems
+                store(chout,orderItem.SynergyRecord)
+            close chout
 
-		endmethod
+        endmethod
 
-		private static method deleteFiles, void
-		proc
-			;;Delete the customers file
-			try
-			begin
-				xcall delet("ICSTUT:customer.ism")
-			end
-			catch (e, @NoFileFoundException)
-			begin
-				nop
-			end
-			endtry
+        private static method deleteFiles, void
+        proc
+            ;;Delete the customers file
+            try
+            begin
+                xcall delet("ICSTUT:customer.ism")
+            end
+            catch (e, @NoFileFoundException)
+            begin
+                nop
+            end
+            endtry
 
-			;;Delete the items file
-			try
-			begin
-				xcall delet("ICSTUT:ITEMS.ism")
-			end
-			catch (e, @NoFileFoundException)
-			begin
-				nop
-			end
-			endtry
+            ;;Delete the items file
+            try
+            begin
+                xcall delet("ICSTUT:ITEMS.ism")
+            end
+            catch (e, @NoFileFoundException)
+            begin
+                nop
+            end
+            endtry
 
-			;;Delete the orders file
-			try
-			begin
-				xcall delet("ICSTUT:orders.ism")
-			end
-			catch (e, @NoFileFoundException)
-			begin
-				nop
-			end
-			endtry
+            ;;Delete the orders file
+            try
+            begin
+                xcall delet("ICSTUT:orders.ism")
+            end
+            catch (e, @NoFileFoundException)
+            begin
+                nop
+            end
+            endtry
 
-			;;Delete the orderItems file
-			try
-			begin
-				xcall delet("ICSTUT:order_items.ism")
-			end
-			catch (e, @NoFileFoundException)
-			begin
-				nop
-			end
-			endtry
+            ;;Delete the orderItems file
+            try
+            begin
+                xcall delet("ICSTUT:order_items.ism")
+            end
+            catch (e, @NoFileFoundException)
+            begin
+                nop
+            end
+            endtry
 
-		endmethod
+        endmethod
 
-		private static method findRelativeFolderForAssembly, string
-			folderName, string
-		proc
-			data assemblyLocation = ^typeof(TestEnvironment).Assembly.Location
-			data currentFolder = Path.GetDirectoryName(assemblyLocation)
-			data rootPath = Path.GetPathRoot(currentFolder)
-			while(currentFolder != rootPath)
-			begin
-				if(Directory.Exists(Path.Combine(currentFolder, folderName))) then
-					mreturn Path.Combine(currentFolder, folderName)
-				else
-					currentFolder = Path.GetFullPath(currentFolder + "..\")
-			end
-			mreturn ^null
-		endmethod
+        private static method findRelativeFolderForAssembly, string
+            folderName, string
+        proc
+            data assemblyLocation = ^typeof(TestEnvironment).Assembly.Location
+            data currentFolder = Path.GetDirectoryName(assemblyLocation)
+            data rootPath = Path.GetPathRoot(currentFolder)
+            while(currentFolder != rootPath)
+            begin
+                if(Directory.Exists(Path.Combine(currentFolder, folderName))) then
+                    mreturn Path.Combine(currentFolder, folderName)
+                else
+                    currentFolder = Path.GetFullPath(currentFolder + "..\")
+            end
+            mreturn ^null
+        endmethod
 
-	endclass
+    endclass
 
 endnamespace

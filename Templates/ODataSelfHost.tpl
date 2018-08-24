@@ -90,41 +90,41 @@ import <NAMESPACE>
 main SelfHost
 
 proc
-	;;Configure the environment
-	UnitTestEnvironment.AssemblyInitialize(^null)
+    ;;Configure the environment
+    UnitTestEnvironment.AssemblyInitialize(^null)
 
-	;Leave this here for Jeff 
-	;data tester = new OrderTests()  
-	;tester.GetOrders_Expand_REL_TagCustomer() 
-	;tester.GetOrders_Expand_REL_TagVendor()
-	;tester.GetOrders_Expand_All()
-	;tester.GetCustomer()      
+    ;Leave this here for Jeff 
+    ;data tester = new OrderTests()  
+    ;tester.GetOrders_Expand_REL_TagCustomer() 
+    ;tester.GetOrders_Expand_REL_TagVendor()
+    ;tester.GetOrders_Expand_All()
+    ;tester.GetCustomer()      
 
 <IF DEFINED_ENABLE_SWAGGER_DOCS>
-	Console.WriteLine("API documentation is available at /api-docs")
+    Console.WriteLine("API documentation is available at /api-docs")
 
-	data wwwroot = Path.Combine(AppContext.BaseDirectory, "wwwroot")
+    data wwwroot = Path.Combine(AppContext.BaseDirectory, "wwwroot")
 
-	;;Make sure the wwwroot folder is present
-	if (!Directory.Exists(wwwroot))
-		Directory.CreateDirectory(wwwroot)
+    ;;Make sure the wwwroot folder is present
+    if (!Directory.Exists(wwwroot))
+        Directory.CreateDirectory(wwwroot)
 
 </IF DEFINED_ENABLE_SWAGGER_DOCS>
-	;;Start self-hosting (Kestrel)
-	WebHost.CreateDefaultBuilder(new string[0])
+    ;;Start self-hosting (Kestrel)
+    WebHost.CreateDefaultBuilder(new string[0])
 <IF DEFINED_ENABLE_SWAGGER_DOCS>
-	&	.UseContentRoot(wwwroot)
-	&	.UseWebRoot(wwwroot)
+    &    .UseContentRoot(wwwroot)
+    &    .UseWebRoot(wwwroot)
 </IF DEFINED_ENABLE_SWAGGER_DOCS>
 <IF DEFINED_ENABLE_IIS_SUPPORT>
-	&	.UseIISIntegration()
+    &    .UseIISIntegration()
 </IF DEFINED_ENABLE_IIS_SUPPORT>
-	&	.UseStartup<Startup>()
-	&	.UseUrls("http://localhost:<SERVER_HTTP_PORT>", "https://localhost:<SERVER_HTTPS_PORT>")
-	&	.Build()
-	&	.Run()
+    &    .UseStartup<Startup>()
+    &    .UseUrls("http://localhost:<SERVER_HTTP_PORT>", "https://localhost:<SERVER_HTTPS_PORT>")
+    &    .Build()
+    &    .Run()
 
-	;;Cleanup the environment
-	UnitTestEnvironment.AssemblyCleanup()
+    ;;Cleanup the environment
+    UnitTestEnvironment.AssemblyCleanup()
 
 endmain

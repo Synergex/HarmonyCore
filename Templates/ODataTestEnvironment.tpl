@@ -89,110 +89,110 @@ import <NAMESPACE>.DataGenerators
 
 namespace <NAMESPACE>
 
-	public static class TestEnvironment
+    public static class TestEnvironment
 
-		public static method Configure, void
-		proc
-			Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)
-			setLogicals()
+        public static method Configure, void
+        proc
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)
+            setLogicals()
 <IF DEFINED_ENABLE_CREATE_TEST_FILES>
-			deleteFiles()
-			createFiles()
+            deleteFiles()
+            createFiles()
 </IF DEFINED_ENABLE_CREATE_TEST_FILES>
-		endmethod
+        endmethod
 
-		public static method Cleanup, void
-		proc
+        public static method Cleanup, void
+        proc
 <IF DEFINED_ENABLE_CREATE_TEST_FILES>
-			deleteFiles()
+            deleteFiles()
 </IF DEFINED_ENABLE_CREATE_TEST_FILES>
-		endmethod
+        endmethod
 
-		private static method setLogicals, void
-		proc
-			data sampleDataFolder = findRelativeFolderForAssembly("<DATA_FOLDER>")
-			data logicals = new List<string>()
-			data logical = String.Empty
-			data fileSpec = String.Empty
-			<STRUCTURE_LOOP>
+        private static method setLogicals, void
+        proc
+            data sampleDataFolder = findRelativeFolderForAssembly("<DATA_FOLDER>")
+            data logicals = new List<string>()
+            data logical = String.Empty
+            data fileSpec = String.Empty
+            <STRUCTURE_LOOP>
 
-			fileSpec = "<FILE_NAME>"
-			if (fileSpec.Contains(":"))
-			begin
-				logical = fileSpec.Split(":")[0].ToUpper()
-				if (!logicals.Contains(logical))
-					logicals.Add(logical)
-			end
-			</STRUCTURE_LOOP>
+            fileSpec = "<FILE_NAME>"
+            if (fileSpec.Contains(":"))
+            begin
+                logical = fileSpec.Split(":")[0].ToUpper()
+                if (!logicals.Contains(logical))
+                    logicals.Add(logical)
+            end
+            </STRUCTURE_LOOP>
 
-			foreach logical in logicals
-			begin
-				data sts, int
-				xcall setlog(logical,sampleDataFolder,sts)
-			end
+            foreach logical in logicals
+            begin
+                data sts, int
+                xcall setlog(logical,sampleDataFolder,sts)
+            end
 
-		endmethod
+        endmethod
 
 <IF DEFINED_ENABLE_CREATE_TEST_FILES>
-		private static method createFiles, void
-		proc
-			data chout, int
-			data dataFile, string
-			data xdlFile, string
+        private static method createFiles, void
+        proc
+            data chout, int
+            data dataFile, string
+            data xdlFile, string
 
-			<STRUCTURE_LOOP>
-			data <structurePlural> = <StructureNoplural>Loader.LoadFromFile()
-			</STRUCTURE_LOOP>
+            <STRUCTURE_LOOP>
+            data <structurePlural> = <StructureNoplural>Loader.LoadFromFile()
+            </STRUCTURE_LOOP>
 
-			<STRUCTURE_LOOP>
-			;;Create and load the <structurePlural> file
+            <STRUCTURE_LOOP>
+            ;;Create and load the <structurePlural> file
 
-			dataFile = "<FILE_NAME>"
-			xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+            dataFile = "<FILE_NAME>"
+            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
 
-			data <structureNoplural>, @<StructureNoplural>
-			open(chout=0,o:i,dataFile,FDL:xdlFile)
-			foreach <structureNoplural> in <structurePlural>
-				store(chout,<structureNoplural>.SynergyRecord)
-			close chout
+            data <structureNoplural>, @<StructureNoplural>
+            open(chout=0,o:i,dataFile,FDL:xdlFile)
+            foreach <structureNoplural> in <structurePlural>
+                store(chout,<structureNoplural>.SynergyRecord)
+            close chout
 
-			</STRUCTURE_LOOP>
-		endmethod
+            </STRUCTURE_LOOP>
+        endmethod
 
-		private static method deleteFiles, void
-		proc
-			<STRUCTURE_LOOP>
-			;;Delete the <structurePlural> file
-			try
-			begin
-				xcall delet("<FILE_NAME>")
-			end
-			catch (e, @NoFileFoundException)
-			begin
-				nop
-			end
-			endtry
+        private static method deleteFiles, void
+        proc
+            <STRUCTURE_LOOP>
+            ;;Delete the <structurePlural> file
+            try
+            begin
+                xcall delet("<FILE_NAME>")
+            end
+            catch (e, @NoFileFoundException)
+            begin
+                nop
+            end
+            endtry
 
-			</STRUCTURE_LOOP>
-		endmethod
+            </STRUCTURE_LOOP>
+        endmethod
 
 </IF DEFINED_ENABLE_CREATE_TEST_FILES>
-		private static method findRelativeFolderForAssembly, string
-			folderName, string
-		proc
-			data assemblyLocation = ^typeof(TestEnvironment).Assembly.Location
-			data currentFolder = Path.GetDirectoryName(assemblyLocation)
-			data rootPath = Path.GetPathRoot(currentFolder)
-			while(currentFolder != rootPath)
-			begin
-				if(Directory.Exists(Path.Combine(currentFolder, folderName))) then
-					mreturn Path.Combine(currentFolder, folderName)
-				else
-					currentFolder = Path.GetFullPath(currentFolder + "..\")
-			end
-			mreturn ^null
-		endmethod
+        private static method findRelativeFolderForAssembly, string
+            folderName, string
+        proc
+            data assemblyLocation = ^typeof(TestEnvironment).Assembly.Location
+            data currentFolder = Path.GetDirectoryName(assemblyLocation)
+            data rootPath = Path.GetPathRoot(currentFolder)
+            while(currentFolder != rootPath)
+            begin
+                if(Directory.Exists(Path.Combine(currentFolder, folderName))) then
+                    mreturn Path.Combine(currentFolder, folderName)
+                else
+                    currentFolder = Path.GetFullPath(currentFolder + "..\")
+            end
+            mreturn ^null
+        endmethod
 
-	endclass
+    endclass
 
 endnamespace

@@ -78,63 +78,63 @@ import System.Net.Http
 
 namespace <NAMESPACE>
 
-	public static partial class TestConstants
+    public static partial class TestConstants
 
-		static method TestConstants
-		proc
+        static method TestConstants
+        proc
 <STRUCTURE_LOOP>
 
-			;;------------------------------------------------------------
-			;;Test data for <StructureNoplural>
+            ;;------------------------------------------------------------
+            ;;Test data for <StructureNoplural>
 
-	<PRIMARY_KEY>
-		<SEGMENT_LOOP>
-			Get<StructureNoplural>_<SegmentName> = <FIELD_CSDEFAULT>
-		</SEGMENT_LOOP>
-	</PRIMARY_KEY>
+    <PRIMARY_KEY>
+        <SEGMENT_LOOP>
+            Get<StructureNoplural>_<SegmentName> = <FIELD_CSDEFAULT>
+        </SEGMENT_LOOP>
+    </PRIMARY_KEY>
 ;//
 ;//
 ;//
 <IF STRUCTURE_RELATIONS>
-	<RELATION_LOOP>
+    <RELATION_LOOP>
 
-		<PRIMARY_KEY>
-		<SEGMENT_LOOP>
-			Get<StructureNoplural>_Expand_<IF MANY_TO_ONE_TO_MANY>REL_<RelationFromkey></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationFromkey></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY>_<SegmentName> = <FIELD_CSDEFAULT>
-		</SEGMENT_LOOP>
-		</PRIMARY_KEY>
-	</RELATION_LOOP>
+        <PRIMARY_KEY>
+        <SEGMENT_LOOP>
+            Get<StructureNoplural>_Expand_<IF MANY_TO_ONE_TO_MANY>REL_<RelationFromkey></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationFromkey></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY>_<SegmentName> = <FIELD_CSDEFAULT>
+        </SEGMENT_LOOP>
+        </PRIMARY_KEY>
+    </RELATION_LOOP>
 </IF STRUCTURE_RELATIONS>
 ;//
 ;//
 ;//
-		<PRIMARY_KEY>
+        <PRIMARY_KEY>
 
-		<SEGMENT_LOOP>
-			Get<StructureNoplural>_Expand_All_<SegmentName> = <FIELD_CSDEFAULT>
-		</SEGMENT_LOOP>
-		</PRIMARY_KEY>
+        <SEGMENT_LOOP>
+            Get<StructureNoplural>_Expand_All_<SegmentName> = <FIELD_CSDEFAULT>
+        </SEGMENT_LOOP>
+        </PRIMARY_KEY>
 ;//
 ;//
 ;//
-	<ALTERNATE_KEY_LOOP>
-	
-		<SEGMENT_LOOP>
-			Get<StructureNoplural>_ByAltKey_<KeyName>_<SegmentName> = <FIELD_CSDEFAULT>
-		</SEGMENT_LOOP>
-	</ALTERNATE_KEY_LOOP>
+    <ALTERNATE_KEY_LOOP>
+    
+        <SEGMENT_LOOP>
+            Get<StructureNoplural>_ByAltKey_<KeyName>_<SegmentName> = <FIELD_CSDEFAULT>
+        </SEGMENT_LOOP>
+    </ALTERNATE_KEY_LOOP>
 ;//
 ;//
 ;//
-	<PRIMARY_KEY>
-		<SEGMENT_LOOP>
-			Update<StructureNoplural>_<SegmentName> = <FIELD_CSDEFAULT>
-		</SEGMENT_LOOP>
-	</PRIMARY_KEY>
+    <PRIMARY_KEY>
+        <SEGMENT_LOOP>
+            Update<StructureNoplural>_<SegmentName> = <FIELD_CSDEFAULT>
+        </SEGMENT_LOOP>
+    </PRIMARY_KEY>
 </STRUCTURE_LOOP>
 
-		endmethod
+        endmethod
 
-	endclass
+    endclass
 
 endnamespace

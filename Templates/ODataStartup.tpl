@@ -83,17 +83,17 @@
 ;; 
 ;; This environment requires the following NuGet packages:
 ;;
-;;	Microsoft.AspNetCore.HttpsPolicy
-;;	Microsoft.AspNetCore.Mvc.Core
-;;	Microsoft.AspNetCore.OData
-;;	Microsoft.AspNetCore.StaticFiles
-;;	Microsoft.EntityFrameworkCore
-;;	Microsoft.EntityFrameworkCore.Relational
-;;	Microsoft.OData.Core
-;;	Microsoft.OData.Edm
-;;	Microsoft.Spatial
-;;	Swashbuckle.AspNetCore
-;;	system.text.encoding.codepages
+;;    Microsoft.AspNetCore.HttpsPolicy
+;;    Microsoft.AspNetCore.Mvc.Core
+;;    Microsoft.AspNetCore.OData
+;;    Microsoft.AspNetCore.StaticFiles
+;;    Microsoft.EntityFrameworkCore
+;;    Microsoft.EntityFrameworkCore.Relational
+;;    Microsoft.OData.Core
+;;    Microsoft.OData.Edm
+;;    Microsoft.Spatial
+;;    Swashbuckle.AspNetCore
+;;    system.text.encoding.codepages
 ;;
 
 import Harmony.Core.Context
@@ -120,224 +120,224 @@ import <MODELS_NAMESPACE>
 
 namespace <NAMESPACE>
 
-	public class Startup
+    public class Startup
 
-		public method ConfigureServices, void
-			services, @IServiceCollection 
-		proc
+        public method ConfigureServices, void
+            services, @IServiceCollection 
+        proc
 
-			;;-------------------------------------------------------
-			;;Load Harmony Core
+            ;;-------------------------------------------------------
+            ;;Load Harmony Core
 
-			lambda AddDataObjectMappings(serviceProvider)
-			begin
-				data objectProvider = new DataObjectProvider(serviceProvider.GetService<IFileChannelManager>())
-				<STRUCTURE_LOOP>
-				objectProvider.AddDataObjectMapping<<StructureNoplural>>("<FILE_NAME>", <IF STRUCTURE_ISAM>FileOpenMode.UpdateIndexed</IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>FileOpenMode.UpdateRelative</IF STRUCTURE_RELATIVE>)
-				</STRUCTURE_LOOP>
-				mreturn objectProvider
-			end
+            lambda AddDataObjectMappings(serviceProvider)
+            begin
+                data objectProvider = new DataObjectProvider(serviceProvider.GetService<IFileChannelManager>())
+                <STRUCTURE_LOOP>
+                objectProvider.AddDataObjectMapping<<StructureNoplural>>("<FILE_NAME>", <IF STRUCTURE_ISAM>FileOpenMode.UpdateIndexed</IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>FileOpenMode.UpdateRelative</IF STRUCTURE_RELATIVE>)
+                </STRUCTURE_LOOP>
+                mreturn objectProvider
+            end
 
-			services.AddSingleton<IFileChannelManager, FileChannelManager>()
-			services.AddSingleton<IDataObjectProvider>(AddDataObjectMappings)
-			services.AddDbContextPool<DBContext>(ConfigureDBContext)
+            services.AddSingleton<IFileChannelManager, FileChannelManager>()
+            services.AddSingleton<IDataObjectProvider>(AddDataObjectMappings)
+            services.AddDbContextPool<DBContext>(ConfigureDBContext)
 
-			;;-------------------------------------------------------
-			;;Load OData and ASP.NET
+            ;;-------------------------------------------------------
+            ;;Load OData and ASP.NET
 
-			lambda AddAltKeySupport(serviceProvider)
-			begin
-				data model = EdmBuilder.GetEdmModel(serviceProvider)
-				mreturn new AlternateKeysODataUriResolver(model) <IF NOT_DEFINED_ENABLE_CASE_SENSITIVE_URL>{ EnableCaseInsensitive = true }</IF NOT_DEFINED_ENABLE_CASE_SENSITIVE_URL>
-			end
+            lambda AddAltKeySupport(serviceProvider)
+            begin
+                data model = EdmBuilder.GetEdmModel(serviceProvider)
+                mreturn new AlternateKeysODataUriResolver(model) <IF NOT_DEFINED_ENABLE_CASE_SENSITIVE_URL>{ EnableCaseInsensitive = true }</IF NOT_DEFINED_ENABLE_CASE_SENSITIVE_URL>
+            end
 
-			services.AddSingleton<ODataUriResolver>(AddAltKeySupport)
+            services.AddSingleton<ODataUriResolver>(AddAltKeySupport)
 
-			services.AddOData()
+            services.AddOData()
 
-			;;-------------------------------------------------------
-			;;Load our workaround for the fact that OData alternate key support is messed up right now!
+            ;;-------------------------------------------------------
+            ;;Load our workaround for the fact that OData alternate key support is messed up right now!
 
-			services.AddSingleton<IPerRouteContainer, HarmonyPerRouteContainer>()
+            services.AddSingleton<IPerRouteContainer, HarmonyPerRouteContainer>()
 
 <IF DEFINED_ENABLE_SWAGGER_DOCS>
-			services.AddSwaggerGen()
+            services.AddSwaggerGen()
 
-			services.AddMvcCore()
-			&	.AddJsonFormatters()	;;For PATCH
-			&	.AddApiExplorer()		;;Swagger UI
+            services.AddMvcCore()
+            &    .AddJsonFormatters()    ;;For PATCH
+            &    .AddApiExplorer()        ;;Swagger UI
 <ELSE>
-			services.AddMvcCore()
-			&	.AddJsonFormatters()	;;For PATCH
+            services.AddMvcCore()
+            &    .AddJsonFormatters()    ;;For PATCH
 </IF DEFINED_ENABLE_SWAGGER_DOCS>
 
 <IF DEFINED_ENABLE_AUTHENTICATION>
-			;;-------------------------------------------------------
-			;;Enable authentication and authorization
+            ;;-------------------------------------------------------
+            ;;Enable authentication and authorization
 
-			lambda authenticationOptions(options)
-			begin
-				options.Authority = "<OAUTH_SERVER>"
-				options.RequireHttpsMetadata = false
-				options.ApiName = "<OAUTH_API>"
-			end
+            lambda authenticationOptions(options)
+            begin
+                options.Authority = "<OAUTH_SERVER>"
+                options.RequireHttpsMetadata = false
+                options.ApiName = "<OAUTH_API>"
+            end
 
-			services.AddAuthentication("Bearer").AddIdentityServerAuthentication(authenticationOptions)
-			services.AddAuthorization()
+            services.AddAuthentication("Bearer").AddIdentityServerAuthentication(authenticationOptions)
+            services.AddAuthorization()
 
 </IF DEFINED_ENABLE_AUTHENTICATION>
-			;;-------------------------------------------------------
-			;;Enable HTTP redirection to HTTPS
+            ;;-------------------------------------------------------
+            ;;Enable HTTP redirection to HTTPS
 
-			lambda httpsConfig(options)
-			begin
-				options.RedirectStatusCode = StatusCodes.Status307TemporaryRedirect
-				options.HttpsPort = <SERVER_HTTPS_PORT>
-			end
+            lambda httpsConfig(options)
+            begin
+                options.RedirectStatusCode = StatusCodes.Status307TemporaryRedirect
+                options.HttpsPort = <SERVER_HTTPS_PORT>
+            end
 
-			services.AddHttpsRedirection(httpsConfig)
+            services.AddHttpsRedirection(httpsConfig)
 
 <IF DEFINED_ENABLE_IIS_SUPPORT>
-			;;-------------------------------------------------------
-			;;Enable support for hosting in IIS
+            ;;-------------------------------------------------------
+            ;;Enable support for hosting in IIS
 
-			lambda iisOptions(options)
-			begin
-				options.ForwardClientCertificate = false
-			end
+            lambda iisOptions(options)
+            begin
+                options.ForwardClientCertificate = false
+            end
 
-			services.Configure<IISOptions>(iisOptions)
-			
+            services.Configure<IISOptions>(iisOptions)
+            
 </IF DEFINED_ENABLE_IIS_SUPPORT>
 <IF DEFINED_ENABLE_CORS>
-			;;-------------------------------------------------------
-			;;Add "Cross Origin Resource Sharing" (CORS) support
+            ;;-------------------------------------------------------
+            ;;Add "Cross Origin Resource Sharing" (CORS) support
 
-			services.AddCors()
+            services.AddCors()
 
 </IF DEFINED_ENABLE_CORS>
-		endmethod
+        endmethod
 
-		private method ConfigureDBContext, void
-			required in sp, @IServiceProvider
-			required in opts, @DbContextOptionsBuilder
-		proc
-			HarmonyDbContextOptionsExtensions.UseHarmonyDatabase(opts, sp.GetService<IDataObjectProvider>())
-		endmethod
+        private method ConfigureDBContext, void
+            required in sp, @IServiceProvider
+            required in opts, @DbContextOptionsBuilder
+        proc
+            HarmonyDbContextOptionsExtensions.UseHarmonyDatabase(opts, sp.GetService<IDataObjectProvider>())
+        endmethod
 
-		public method Configure, void
-			required in app, @IApplicationBuilder
-			required in env, @IHostingEnvironment
-		proc
-			;;-------------------------------------------------------
-			;;Configure development and production specific components
+        public method Configure, void
+            required in app, @IApplicationBuilder
+            required in env, @IHostingEnvironment
+        proc
+            ;;-------------------------------------------------------
+            ;;Configure development and production specific components
 
-			if (env.IsDevelopment()) then
-			begin
-				app.UseDeveloperExceptionPage()
-				app.UseLogging(DebugLogSession.Logging)
-			end
-			else
-			begin
-				;;Enable HTTP Strict Transport Security Protocol (HSTS)
-				;
-				;You need to research this and know what you are doing with this. Here's a starting point:
-				;https://docs.microsoft.com/en-us/aspnet/core/security/enforcing-ssl?view=aspnetcore-2.1&tabs=visual-studio
-				;
-				;app.UseHsts()
-			end
+            if (env.IsDevelopment()) then
+            begin
+                app.UseDeveloperExceptionPage()
+                app.UseLogging(DebugLogSession.Logging)
+            end
+            else
+            begin
+                ;;Enable HTTP Strict Transport Security Protocol (HSTS)
+                ;
+                ;You need to research this and know what you are doing with this. Here's a starting point:
+                ;https://docs.microsoft.com/en-us/aspnet/core/security/enforcing-ssl?view=aspnetcore-2.1&tabs=visual-studio
+                ;
+                ;app.UseHsts()
+            end
 
-			;;-------------------------------------------------------
-			;;Enable HTTP redirection to HTTPS
+            ;;-------------------------------------------------------
+            ;;Enable HTTP redirection to HTTPS
 
-			app.UseHttpsRedirection()
+            app.UseHttpsRedirection()
 
 <IF DEFINED_ENABLE_AUTHENTICATION>
-			;;-------------------------------------------------------
-			;;Enable the authentication middleware
+            ;;-------------------------------------------------------
+            ;;Enable the authentication middleware
 
-			app.UseAuthentication()
+            app.UseAuthentication()
 
 </IF DEFINED_ENABLE_AUTHENTICATION>
-			;;-------------------------------------------------------
-			;;Configure the MVC & OData environments
+            ;;-------------------------------------------------------
+            ;;Configure the MVC & OData environments
 
-			lambda mvcBuilder(builder)
-			begin
-				data model = EdmBuilder.GetEdmModel(app.ApplicationServices)
+            lambda mvcBuilder(builder)
+            begin
+                data model = EdmBuilder.GetEdmModel(app.ApplicationServices)
 
-				lambda UriResolver(s)
-				begin
-					data result = app.ApplicationServices.GetRequiredService<ODataUriResolver>()
-					mreturn result
-				end
+                lambda UriResolver(s)
+                begin
+                    data result = app.ApplicationServices.GetRequiredService<ODataUriResolver>()
+                    mreturn result
+                end
 
-				lambda EnableDI(containerBuilder)
-				begin
-					containerBuilder.AddService<Microsoft.OData.UriParser.ODataUriResolver>( Microsoft.OData.ServiceLifetime.Singleton, UriResolver)
-					nop
-				end
+                lambda EnableDI(containerBuilder)
+                begin
+                    containerBuilder.AddService<Microsoft.OData.UriParser.ODataUriResolver>( Microsoft.OData.ServiceLifetime.Singleton, UriResolver)
+                    nop
+                end
 
-				builder.EnableDependencyInjection(EnableDI)
+                builder.EnableDependencyInjection(EnableDI)
 
-				;;Enable optional OData features
-				builder.Select().Expand().Filter().OrderBy().MaxTop(100).Count()
+                ;;Enable optional OData features
+                builder.Select().Expand().Filter().OrderBy().MaxTop(100).Count()
 
-				;;Configure the default OData route
-				builder.MapODataServiceRoute("odata", "odata", model)
-			end
+                ;;Configure the default OData route
+                builder.MapODataServiceRoute("odata", "odata", model)
+            end
 
-			;;-------------------------------------------------------
-			;;Enable MVC
+            ;;-------------------------------------------------------
+            ;;Enable MVC
 
-			app.UseMvc(mvcBuilder)
+            app.UseMvc(mvcBuilder)
 
 <IF DEFINED_ENABLE_CORS>
-			;;-------------------------------------------------------
-			;;Add "Cross Origin Resource Sharing" (CORS) support
+            ;;-------------------------------------------------------
+            ;;Add "Cross Origin Resource Sharing" (CORS) support
 
-			lambda corsOptions(builder)
-			begin
-				builder.AllowAnyOrigin()
-				&	.AllowAnyMethod()
-				&	.AllowAnyHeader()
-			end
+            lambda corsOptions(builder)
+            begin
+                builder.AllowAnyOrigin()
+                &    .AllowAnyMethod()
+                &    .AllowAnyHeader()
+            end
 
-			app.UseCors(corsOptions)
+            app.UseCors(corsOptions)
 
 </IF DEFINED_ENABLE_CORS>
 <IF DEFINED_ENABLE_SWAGGER_DOCS>
-			;;-------------------------------------------------------
-			;;Configure the web server environment
+            ;;-------------------------------------------------------
+            ;;Configure the web server environment
 
-			;;Support default files (index.html, etc.)
-			app.UseDefaultFiles()
+            ;;Support default files (index.html, etc.)
+            app.UseDefaultFiles()
 
-			;;Add a media type for YAML files
-			data provider = new FileExtensionContentTypeProvider()
-			provider.Mappings[".yaml"] = "text/yaml"
-			data sfoptions = new StaticFileOptions()
-			sfoptions.ContentTypeProvider = provider
+            ;;Add a media type for YAML files
+            data provider = new FileExtensionContentTypeProvider()
+            provider.Mappings[".yaml"] = "text/yaml"
+            data sfoptions = new StaticFileOptions()
+            sfoptions.ContentTypeProvider = provider
 
-			;;Support serving static files
-			app.UseStaticFiles(sfoptions)
+            ;;Support serving static files
+            app.UseStaticFiles(sfoptions)
 
-			;;-------------------------------------------------------
-			;;Configure and enable SwaggerUI
+            ;;-------------------------------------------------------
+            ;;Configure and enable SwaggerUI
 
-			lambda configureSwaggerUi(config)
-			begin
-				config.SwaggerEndpoint("/SwaggerFile.yaml", "Harmony Core Sample API")
-				config.RoutePrefix = "api-docs"
-				config.DocumentTitle = "Harmony Core Sample API"
-			end
+            lambda configureSwaggerUi(config)
+            begin
+                config.SwaggerEndpoint("/SwaggerFile.yaml", "Harmony Core Sample API")
+                config.RoutePrefix = "api-docs"
+                config.DocumentTitle = "Harmony Core Sample API"
+            end
 
-			app.UseSwagger()
-			app.UseSwaggerUI(configureSwaggerUi)
+            app.UseSwagger()
+            app.UseSwaggerUI(configureSwaggerUi)
 
 </IF DEFINED_ENABLE_SWAGGER_DOCS>
-		endmethod
+        endmethod
 
-	endclass
+    endclass
 
 endnamespace

@@ -49,129 +49,129 @@ import Harmony.Core.Converters
 
 namespace SampleServices.Models
 
-	.include "CUSTOMERS" repository, public structure="strCustomer", end
+    .include "CUSTOMERS" repository, public structure="strCustomer", end
 
-	;;; <summary>
-	;;; Exposes metadata relating to the Customer model class.
-	;;; </summary>
-	public partial class CustomerMetadata extends DataObjectMetadataBase
-		
-		;;; <summary>
-		;;; Constructs an new CustomerMetadata object.
-		;;; </summary>
-		public method CustomerMetadata
-		proc
-			RPSStructureName = "CUSTOMERS"
-			RPSStructureSize = ^size(strCustomer)
+    ;;; <summary>
+    ;;; Exposes metadata relating to the Customer model class.
+    ;;; </summary>
+    public partial class CustomerMetadata extends DataObjectMetadataBase
+        
+        ;;; <summary>
+        ;;; Constructs an new CustomerMetadata object.
+        ;;; </summary>
+        public method CustomerMetadata
+        proc
+            RPSStructureName = "CUSTOMERS"
+            RPSStructureSize = ^size(strCustomer)
 
-			AddFieldInfo("CustomerNumber", "DECIMAL", 6, 1, 0, false)
-			AddFieldInfo("RecordType", "DECIMAL", 1, 7, 0, false)
-			AddFieldInfo("Name", "ALPHA", 30, 8, 0, false)
-			AddFieldInfo("Street", "ALPHA", 25, 38, 0, false)
-			AddFieldInfo("City", "ALPHA", 20, 63, 0, false)
-			AddFieldInfo("State", "ALPHA", 2, 83, 0, false)
-			AddFieldInfo("ZipCode", "DECIMAL", 9, 85, 0, false)
-			AddFieldInfo("Contact", "ALPHA", 25, 94, 0, false)
+            AddFieldInfo("CustomerNumber", "DECIMAL", 6, 1, 0, false)
+            AddFieldInfo("RecordType", "DECIMAL", 1, 7, 0, false)
+            AddFieldInfo("Name", "ALPHA", 30, 8, 0, false)
+            AddFieldInfo("Street", "ALPHA", 25, 38, 0, false)
+            AddFieldInfo("City", "ALPHA", 20, 63, 0, false)
+            AddFieldInfo("State", "ALPHA", 2, 83, 0, false)
+            AddFieldInfo("ZipCode", "DECIMAL", 9, 85, 0, false)
+            AddFieldInfo("Contact", "ALPHA", 25, 94, 0, false)
             AddFieldInfo("Phone", "DECIMAL", 10, 119, 0, false, new SynergyDecimalConverter.LiteralFormatter("(XXX) XXX-XXXX"))
             AddFieldInfo("Fax", "DECIMAL", 10, 129, 0, false, new SynergyDecimalConverter.LiteralFormatter("(XXX) XXX-XXXX"))
-			AddFieldInfo("FavoriteItem", "DECIMAL", 6, 139, 0, false)
-			AddFieldInfo("PaymentTermsCode", "ALPHA", 2, 145, 0, false)
-			AddFieldInfo("TaxId", "DECIMAL", 9, 147, 0, false)
-			AddFieldInfo("CreditLimit", "IMPLIED", 7, 156, 02, false)
-			AddFieldInfo("REL_Orders", "COLLECTION", 0, 0, 0, false)
-			AddFieldInfo("REL_FavoriteItem", "DATAOBJECT", 0, 0, 0, false)
+            AddFieldInfo("FavoriteItem", "DECIMAL", 6, 139, 0, false)
+            AddFieldInfo("PaymentTermsCode", "ALPHA", 2, 145, 0, false)
+            AddFieldInfo("TaxId", "DECIMAL", 9, 147, 0, false)
+            AddFieldInfo("CreditLimit", "IMPLIED", 7, 156, 02, false)
+            AddFieldInfo("REL_Orders", "COLLECTION", 0, 0, 0, false)
+            AddFieldInfo("REL_FavoriteItem", "DATAOBJECT", 0, 0, 0, false)
 
-			AddKeyInfo(0, "CustomerNumber")
-			AddKeyInfo(1, "RecordType")
-			AddKeyInfo(1, "CustomerNumber")
+            AddKeyInfo(0, "CustomerNumber")
+            AddKeyInfo(1, "RecordType")
+            AddKeyInfo(1, "CustomerNumber")
 
-		endmethod
-	
-		;;; <summary>
-		;;; Returns a new Customer object containing data from a record and a GRFA.
-		;;; The related data properties (REL_Orders and REL_FavoriteItem) will not be populated.
-		;;; </summary>
-		;;; <param name="dataArea">The record containing the data for the new Customer object.</param>
-		;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
-		;;; <returns></returns>
-		public override method MakeNew, @DataObjectBase
-			required in dataArea, a
-			required in grfa, a
-		proc
-			mreturn new Customer((strCustomer)dataArea) { GlobalRFA = grfa }
-		endmethod
+        endmethod
+    
+        ;;; <summary>
+        ;;; Returns a new Customer object containing data from a record and a GRFA.
+        ;;; The related data properties (REL_Orders and REL_FavoriteItem) will not be populated.
+        ;;; </summary>
+        ;;; <param name="dataArea">The record containing the data for the new Customer object.</param>
+        ;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
+        ;;; <returns></returns>
+        public override method MakeNew, @DataObjectBase
+            required in dataArea, a
+            required in grfa, a
+        proc
+            mreturn new Customer((strCustomer)dataArea) { GlobalRFA = grfa }
+        endmethod
 
-		;;; <summary>
-		;;; Returns a new Customer object containing data from a record and a GRFA.
-		;;; The related data properties (REL_Orders and REL_FavoriteItem) will be populated.
-		;;; </summary>
-		;;; <param name="dataArea">The record containing the data for the new Customer object.</param>
-		;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
-		;;; <param name="joinedObjects">Data to allow the related data properties (REL_Orders and REL_FavoriteItem) to be populated.</param>
-		;;; <returns></returns>
-		public override method MakeNew, @DataObjectBase
-			required in dataArea, a
-			required in grfa, a
-			required in joinedObjects, [#]KeyValuePair<String, Object>
-		proc
-			data newCustomer = new Customer((strCustomer)dataArea) { GlobalRFA = grfa }
-			data joinedObject, KeyValuePair<String, Object>
-			foreach joinedObject in joinedObjects
-			begin
-				using joinedObject.Key select
-				("REL_Orders"), 
-					newCustomer.REL_Orders = (@ICollection<Order>)joinedObject.Value
-				("REL_FavoriteItem"),
-					newCustomer.REL_FavoriteItem = (@Item)joinedObject.Value
-				endusing
-			end
+        ;;; <summary>
+        ;;; Returns a new Customer object containing data from a record and a GRFA.
+        ;;; The related data properties (REL_Orders and REL_FavoriteItem) will be populated.
+        ;;; </summary>
+        ;;; <param name="dataArea">The record containing the data for the new Customer object.</param>
+        ;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
+        ;;; <param name="joinedObjects">Data to allow the related data properties (REL_Orders and REL_FavoriteItem) to be populated.</param>
+        ;;; <returns></returns>
+        public override method MakeNew, @DataObjectBase
+            required in dataArea, a
+            required in grfa, a
+            required in joinedObjects, [#]KeyValuePair<String, Object>
+        proc
+            data newCustomer = new Customer((strCustomer)dataArea) { GlobalRFA = grfa }
+            data joinedObject, KeyValuePair<String, Object>
+            foreach joinedObject in joinedObjects
+            begin
+                using joinedObject.Key select
+                ("REL_Orders"), 
+                    newCustomer.REL_Orders = (@ICollection<Order>)joinedObject.Value
+                ("REL_FavoriteItem"),
+                    newCustomer.REL_FavoriteItem = (@Item)joinedObject.Value
+                endusing
+            end
 
-			mreturn newCustomer
+            mreturn newCustomer
 
-		endmethod
+        endmethod
 
-		;;; <summary>
-		;;; Formats a literal value for a key lookup.
-		;;; </summary>
-		;;; <param name="keyNumber">Key number.</param>
-		;;; <param name="parts">Dictionary containing key segment names and values.</param>
-		;;; <returns></returns>
-		public override method FormatKeyLiteral, a
-			required in keyNumber, int
-			required in parts, @Dictionary<String, Object>
-			endparams
-			stack record key0
-				CustomerNumber, D6
-			endrecord
-			stack record key1
-				RecordType, D1
-				CustomerNumber, D6
-			endrecord
-		proc
-			data startPos = 0
-			data segValueLength, int
-			using keyNumber select
-			(0),
-			begin
-				if((segValueLength=KeyValueHelper(key0.CustomerNumber, "CustomerNumber", parts))<6)
-					mreturn key0(1:startPos+segValueLength)
-				mreturn key0
-			end
-			(1),
-			begin
-				if((segValueLength=KeyValueHelper(key1.RecordType, "RecordType", parts))<1)
-					mreturn key1(1:startPos+segValueLength)
-				startPos += 1
-				if((segValueLength=KeyValueHelper(key1.CustomerNumber, "CustomerNumber", parts))<6)
-					mreturn key1(1:startPos+segValueLength)
-				mreturn key1
-			end
-			endusing
+        ;;; <summary>
+        ;;; Formats a literal value for a key lookup.
+        ;;; </summary>
+        ;;; <param name="keyNumber">Key number.</param>
+        ;;; <param name="parts">Dictionary containing key segment names and values.</param>
+        ;;; <returns></returns>
+        public override method FormatKeyLiteral, a
+            required in keyNumber, int
+            required in parts, @Dictionary<String, Object>
+            endparams
+            stack record key0
+                CustomerNumber, D6
+            endrecord
+            stack record key1
+                RecordType, D1
+                CustomerNumber, D6
+            endrecord
+        proc
+            data startPos = 0
+            data segValueLength, int
+            using keyNumber select
+            (0),
+            begin
+                if((segValueLength=KeyValueHelper(key0.CustomerNumber, "CustomerNumber", parts))<6)
+                    mreturn key0(1:startPos+segValueLength)
+                mreturn key0
+            end
+            (1),
+            begin
+                if((segValueLength=KeyValueHelper(key1.RecordType, "RecordType", parts))<1)
+                    mreturn key1(1:startPos+segValueLength)
+                startPos += 1
+                if((segValueLength=KeyValueHelper(key1.CustomerNumber, "CustomerNumber", parts))<6)
+                    mreturn key1(1:startPos+segValueLength)
+                mreturn key1
+            end
+            endusing
 
-			throw new ApplicationException(String.Format("Invalid key number {0} encountered in CustomerMetadata.FormatKeyLiteral",keyNumber))
+            throw new ApplicationException(String.Format("Invalid key number {0} encountered in CustomerMetadata.FormatKeyLiteral",keyNumber))
 
-		endmethod
+        endmethod
 
-	endclass
+    endclass
 
 endnamespace

@@ -7,14 +7,14 @@ import <MODELS_NAMESPACE>
 
 namespace <NAMESPACE>
 
-	public static partial class <StructureNoplural>Loader
-	
-		public static method Generate, @List<<StructureNoplural>>
-		proc
-			throw new NotImplementedException()
-			mreturn new List<<StructureNoplural>>()
-		endmethod
+    public static partial class <StructureNoplural>Loader
+    
+        public static method Generate, @List<<StructureNoplural>>
+        proc
+            throw new NotImplementedException()
+            mreturn new List<<StructureNoplural>>()
+        endmethod
 
-	endclass
+    endclass
 
 endnamespace

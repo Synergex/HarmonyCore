@@ -88,372 +88,372 @@ import <CLIENT_MODELS_NAMESPACE>
 
 namespace <NAMESPACE>
 
-	{TestClass}
-	public partial class <StructureNoplural>Tests
+    {TestClass}
+    public partial class <StructureNoplural>Tests
 
-		;;------------------------------------------------------------
-		;;Get all <StructurePlural>
+        ;;------------------------------------------------------------
+        ;;Get all <StructurePlural>
 
-		{TestMethod}
-		{TestCategory("<StructureNoplural> Tests - Read All")}
-		public method Get<StructurePlural>, void
-		proc
-			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			<IF DEFINED_ENABLE_AUTHENTICATION>
-			client.SetBearerToken(UnitTestEnvironment.AccessToken)
-			</IF DEFINED_ENABLE_AUTHENTICATION>
-			disposable data response = client.GetAsync("/odata/<StructurePlural>").Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data <structurePlural>, @OData<StructurePlural>, JsonConvert.DeserializeObject<OData<StructurePlural>>(result)
-		endmethod
+        {TestMethod}
+        {TestCategory("<StructureNoplural> Tests - Read All")}
+        public method Get<StructurePlural>, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            <IF DEFINED_ENABLE_AUTHENTICATION>
+            client.SetBearerToken(UnitTestEnvironment.AccessToken)
+            </IF DEFINED_ENABLE_AUTHENTICATION>
+            disposable data response = client.GetAsync("/odata/<StructurePlural>").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data <structurePlural>, @OData<StructurePlural>, JsonConvert.DeserializeObject<OData<StructurePlural>>(result)
+        endmethod
 
 <IF STRUCTURE_RELATIONS>
-	<RELATION_LOOP>
-		;;------------------------------------------------------------
-		;;Get all <StructurePlural> and expand relation REL_<RelationFromkey>
+    <RELATION_LOOP>
+        ;;------------------------------------------------------------
+        ;;Get all <StructurePlural> and expand relation REL_<RelationFromkey>
 
-		{TestMethod}
-		{TestCategory("<StructureNoplural> Tests - Read All")}
-		<IF MANY_TO_ONE_TO_MANY>
-		public method Get<StructurePlural>_Expand_REL_<RelationFromkey>, void
-		proc
-			data uri = "/odata/<StructurePlural>?$expand=REL_<RelationFromkey>"
-		</IF MANY_TO_ONE_TO_MANY>
-		<IF ONE_TO_ONE>
-		public method Get<StructurePlural>_Expand_REL_<RelationFromkey>, void
-		proc
-			data uri = "/odata/<StructurePlural>?$expand=REL_<RelationFromkey>"
-		</IF ONE_TO_ONE>
-		<IF ONE_TO_MANY_TO_ONE>
-		public method Get<StructurePlural>_Expand_REL_<RelationTostructurePlural>, void
-		proc
-			data uri = "/odata/<StructurePlural>?$expand=REL_<RelationTostructurePlural>"
-		</IF ONE_TO_MANY_TO_ONE>
-		<IF ONE_TO_MANY>
-		public method Get<StructurePlural>_Expand_REL_<RelationTostructurePlural>, void
-		proc
-			data uri = "/odata/<StructurePlural>?$expand=REL_<RelationTostructurePlural>"
-		</IF ONE_TO_MANY>
-			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			<IF DEFINED_ENABLE_AUTHENTICATION>
-			client.SetBearerToken(UnitTestEnvironment.AccessToken)
-			</IF DEFINED_ENABLE_AUTHENTICATION>
-			disposable data response = client.GetAsync(uri).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-		endmethod
+        {TestMethod}
+        {TestCategory("<StructureNoplural> Tests - Read All")}
+        <IF MANY_TO_ONE_TO_MANY>
+        public method Get<StructurePlural>_Expand_REL_<RelationFromkey>, void
+        proc
+            data uri = "/odata/<StructurePlural>?$expand=REL_<RelationFromkey>"
+        </IF MANY_TO_ONE_TO_MANY>
+        <IF ONE_TO_ONE>
+        public method Get<StructurePlural>_Expand_REL_<RelationFromkey>, void
+        proc
+            data uri = "/odata/<StructurePlural>?$expand=REL_<RelationFromkey>"
+        </IF ONE_TO_ONE>
+        <IF ONE_TO_MANY_TO_ONE>
+        public method Get<StructurePlural>_Expand_REL_<RelationTostructurePlural>, void
+        proc
+            data uri = "/odata/<StructurePlural>?$expand=REL_<RelationTostructurePlural>"
+        </IF ONE_TO_MANY_TO_ONE>
+        <IF ONE_TO_MANY>
+        public method Get<StructurePlural>_Expand_REL_<RelationTostructurePlural>, void
+        proc
+            data uri = "/odata/<StructurePlural>?$expand=REL_<RelationTostructurePlural>"
+        </IF ONE_TO_MANY>
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            <IF DEFINED_ENABLE_AUTHENTICATION>
+            client.SetBearerToken(UnitTestEnvironment.AccessToken)
+            </IF DEFINED_ENABLE_AUTHENTICATION>
+            disposable data response = client.GetAsync(uri).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+        endmethod
 
-	</RELATION_LOOP>
-		;;------------------------------------------------------------
-		;;Get all <StructurePlural> and expand all relations
+    </RELATION_LOOP>
+        ;;------------------------------------------------------------
+        ;;Get all <StructurePlural> and expand all relations
 
-		{TestMethod}
-		{TestCategory("<StructureNoplural> Tests - Read All")}
-		public method Get<StructurePlural>_Expand_All, void
-		proc
-			data uri = "/odata/<StructurePlural>?$expand=<RELATION_LOOP><IF MANY_TO_ONE_TO_MANY>REL_<RelationFromkey></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationFromkey></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY><,></RELATION_LOOP>"
-			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			<IF DEFINED_ENABLE_AUTHENTICATION>
-			client.SetBearerToken(UnitTestEnvironment.AccessToken)
-			</IF DEFINED_ENABLE_AUTHENTICATION>
-			disposable data response = client.GetAsync(uri).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-		endmethod
-		
+        {TestMethod}
+        {TestCategory("<StructureNoplural> Tests - Read All")}
+        public method Get<StructurePlural>_Expand_All, void
+        proc
+            data uri = "/odata/<StructurePlural>?$expand=<RELATION_LOOP><IF MANY_TO_ONE_TO_MANY>REL_<RelationFromkey></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationFromkey></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY><,></RELATION_LOOP>"
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            <IF DEFINED_ENABLE_AUTHENTICATION>
+            client.SetBearerToken(UnitTestEnvironment.AccessToken)
+            </IF DEFINED_ENABLE_AUTHENTICATION>
+            disposable data response = client.GetAsync(uri).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+        endmethod
+        
 </IF STRUCTURE_RELATIONS>
-		;;------------------------------------------------------------
-		;;Get a single <StructureNoplural> by primary key
+        ;;------------------------------------------------------------
+        ;;Get a single <StructureNoplural> by primary key
 
-		{TestMethod}
-		{TestCategory("<StructureNoplural> Tests - Read by Primary Key")}
-		public method Get<StructureNoplural>, void
-		proc
-			data client = UnitTestEnvironment.Server.CreateClient()
-			<IF DEFINED_ENABLE_AUTHENTICATION>
-			client.SetBearerToken(UnitTestEnvironment.AccessToken)
-			</IF DEFINED_ENABLE_AUTHENTICATION>
-			data request = String.Format("/odata/<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)","",<SEGMENT_LOOP>TestConstants.Get<StructureNoplural>_<SegmentName><,></SEGMENT_LOOP></PRIMARY_KEY>)
-			data response = client.GetAsync(request).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data <structureNoplural>, @OData<StructureNoplural>, JsonConvert.DeserializeObject<OData<StructureNoplural>>(result)
-		endmethod
+        {TestMethod}
+        {TestCategory("<StructureNoplural> Tests - Read by Primary Key")}
+        public method Get<StructureNoplural>, void
+        proc
+            data client = UnitTestEnvironment.Server.CreateClient()
+            <IF DEFINED_ENABLE_AUTHENTICATION>
+            client.SetBearerToken(UnitTestEnvironment.AccessToken)
+            </IF DEFINED_ENABLE_AUTHENTICATION>
+            data request = String.Format("/odata/<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)","",<SEGMENT_LOOP>TestConstants.Get<StructureNoplural>_<SegmentName><,></SEGMENT_LOOP></PRIMARY_KEY>)
+            data response = client.GetAsync(request).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data <structureNoplural>, @OData<StructureNoplural>, JsonConvert.DeserializeObject<OData<StructureNoplural>>(result)
+        endmethod
 
 <IF STRUCTURE_RELATIONS>
-	<RELATION_LOOP>
-		;;------------------------------------------------------------
-		;;Get a single <StructureNoplural> by primary key and expand relation <IF MANY_TO_ONE_TO_MANY>REL_<RelationFromkey></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationFromkey></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY>
+    <RELATION_LOOP>
+        ;;------------------------------------------------------------
+        ;;Get a single <StructureNoplural> by primary key and expand relation <IF MANY_TO_ONE_TO_MANY>REL_<RelationFromkey></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationFromkey></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY>
 
 
-		{TestMethod}
-		{TestCategory("<StructureNoplural> Tests - Read by Primary Key")}
-		public method Get<StructureNoplural>_Expand_<IF MANY_TO_ONE_TO_MANY>REL_<RelationFromkey></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationFromkey></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY>, void
-		proc
-			data client = UnitTestEnvironment.Server.CreateClient()
-			<IF DEFINED_ENABLE_AUTHENTICATION>
-			client.SetBearerToken(UnitTestEnvironment.AccessToken)
-			</IF DEFINED_ENABLE_AUTHENTICATION>
-			data request = String.Format("/odata/<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY>)?$expand=<IF MANY_TO_ONE_TO_MANY>REL_<RelationFromkey></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationFromkey></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY>","",<PRIMARY_KEY><SEGMENT_LOOP>TestConstants.Get<StructureNoplural>_Expand_<IF MANY_TO_ONE_TO_MANY>REL_<RelationFromkey></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationFromkey></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY>_<SegmentName><,></SEGMENT_LOOP></PRIMARY_KEY>)
-			data response = client.GetAsync(request).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data <structureNoplural>, @OData<StructureNoplural>, JsonConvert.DeserializeObject<OData<StructureNoplural>>(result)
-		endmethod
+        {TestMethod}
+        {TestCategory("<StructureNoplural> Tests - Read by Primary Key")}
+        public method Get<StructureNoplural>_Expand_<IF MANY_TO_ONE_TO_MANY>REL_<RelationFromkey></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationFromkey></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY>, void
+        proc
+            data client = UnitTestEnvironment.Server.CreateClient()
+            <IF DEFINED_ENABLE_AUTHENTICATION>
+            client.SetBearerToken(UnitTestEnvironment.AccessToken)
+            </IF DEFINED_ENABLE_AUTHENTICATION>
+            data request = String.Format("/odata/<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY>)?$expand=<IF MANY_TO_ONE_TO_MANY>REL_<RelationFromkey></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationFromkey></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY>","",<PRIMARY_KEY><SEGMENT_LOOP>TestConstants.Get<StructureNoplural>_Expand_<IF MANY_TO_ONE_TO_MANY>REL_<RelationFromkey></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationFromkey></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY>_<SegmentName><,></SEGMENT_LOOP></PRIMARY_KEY>)
+            data response = client.GetAsync(request).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data <structureNoplural>, @OData<StructureNoplural>, JsonConvert.DeserializeObject<OData<StructureNoplural>>(result)
+        endmethod
 
-	</RELATION_LOOP>
-		;;------------------------------------------------------------
-		;;Get a single <StructureNoplural> by primary key and expand all relations
+    </RELATION_LOOP>
+        ;;------------------------------------------------------------
+        ;;Get a single <StructureNoplural> by primary key and expand all relations
 
-		{TestMethod}
-		{TestCategory("<StructureNoplural> Tests - Read by Primary Key")}
-		public method Get<StructureNoplural>_Expand_All, void
-		proc
-			data client = UnitTestEnvironment.Server.CreateClient()
-			<IF DEFINED_ENABLE_AUTHENTICATION>
-			client.SetBearerToken(UnitTestEnvironment.AccessToken)
-			</IF DEFINED_ENABLE_AUTHENTICATION>
-			data request = String.Format("/odata/<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY>)?$expand=<RELATION_LOOP><IF MANY_TO_ONE_TO_MANY>REL_<RelationFromkey></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationFromkey></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY><,></RELATION_LOOP>","",<PRIMARY_KEY><SEGMENT_LOOP>TestConstants.Get<StructureNoplural>_Expand_All_<SegmentName><,></SEGMENT_LOOP></PRIMARY_KEY>)
-			data response = client.GetAsync(request).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data <structureNoplural>, @OData<StructureNoplural>, JsonConvert.DeserializeObject<OData<StructureNoplural>>(result)
-		endmethod
+        {TestMethod}
+        {TestCategory("<StructureNoplural> Tests - Read by Primary Key")}
+        public method Get<StructureNoplural>_Expand_All, void
+        proc
+            data client = UnitTestEnvironment.Server.CreateClient()
+            <IF DEFINED_ENABLE_AUTHENTICATION>
+            client.SetBearerToken(UnitTestEnvironment.AccessToken)
+            </IF DEFINED_ENABLE_AUTHENTICATION>
+            data request = String.Format("/odata/<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY>)?$expand=<RELATION_LOOP><IF MANY_TO_ONE_TO_MANY>REL_<RelationFromkey></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationFromkey></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY><,></RELATION_LOOP>","",<PRIMARY_KEY><SEGMENT_LOOP>TestConstants.Get<StructureNoplural>_Expand_All_<SegmentName><,></SEGMENT_LOOP></PRIMARY_KEY>)
+            data response = client.GetAsync(request).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data <structureNoplural>, @OData<StructureNoplural>, JsonConvert.DeserializeObject<OData<StructureNoplural>>(result)
+        endmethod
 
 </IF STRUCTURE_RELATIONS>
 <IF DEFINED_ENABLE_ALTERNATE_KEYS>
 <ALTERNATE_KEY_LOOP>
-		;;------------------------------------------------------------
-		;;Get a single <StructureNoplural> by alternate key <KEY_NUMBER> (<KeyName>)
+        ;;------------------------------------------------------------
+        ;;Get a single <StructureNoplural> by alternate key <KEY_NUMBER> (<KeyName>)
 
-		{TestMethod}
-		{TestCategory("<StructureNoplural> Tests - Read by Alternate Key")}
-		public method Get<StructureNoplural>_ByAltKey_<KeyName>, void
-		proc
-			data client = UnitTestEnvironment.Server.CreateClient()
-			<IF DEFINED_ENABLE_AUTHENTICATION>
-			client.SetBearerToken(UnitTestEnvironment.AccessToken)
-			</IF DEFINED_ENABLE_AUTHENTICATION>
-			data request = String.Format("/odata/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)", "", <SEGMENT_LOOP>TestConstants.Get<StructureNoplural>_ByAltKey_<KeyName>_<SegmentName><,></SEGMENT_LOOP>)
-			data response = client.GetAsync(request).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
+        {TestMethod}
+        {TestCategory("<StructureNoplural> Tests - Read by Alternate Key")}
+        public method Get<StructureNoplural>_ByAltKey_<KeyName>, void
+        proc
+            data client = UnitTestEnvironment.Server.CreateClient()
+            <IF DEFINED_ENABLE_AUTHENTICATION>
+            client.SetBearerToken(UnitTestEnvironment.AccessToken)
+            </IF DEFINED_ENABLE_AUTHENTICATION>
+            data request = String.Format("/odata/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)", "", <SEGMENT_LOOP>TestConstants.Get<StructureNoplural>_ByAltKey_<KeyName>_<SegmentName><,></SEGMENT_LOOP>)
+            data response = client.GetAsync(request).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
 <IF DUPLICATES>
-			data <structurePlural>, @OData<StructurePlural>,JsonConvert.DeserializeObject<OData<StructurePlural>>(result)
+            data <structurePlural>, @OData<StructurePlural>,JsonConvert.DeserializeObject<OData<StructurePlural>>(result)
 <ELSE>
-			data <structureNoplural>, @OData<StructureNoplural>,JsonConvert.DeserializeObject<OData<StructureNoplural>>(result)
+            data <structureNoplural>, @OData<StructureNoplural>,JsonConvert.DeserializeObject<OData<StructureNoplural>>(result)
 </IF DUPLICATES>
-		endmethod
+        endmethod
 
 </ALTERNATE_KEY_LOOP>
 </IF DEFINED_ENABLE_ALTERNATE_KEYS>
-;//		;;------------------------------------------------------------
-;//		;;Create a new <StructureNoplural> (auto assign key)
+;//        ;;------------------------------------------------------------
+;//        ;;Create a new <StructureNoplural> (auto assign key)
 ;//
-;//		{TestMethod}
-;//		{TestCategory("<StructureNoplural> Tests - Create, Update & Delete")}
-;//		public method Create<StructureNoplural>, void
-;//		proc
-;//			disposable data client = UnitTestEnvironment.Server.CreateClient()
-;//			<IF DEFINED_ENABLE_AUTHENTICATION>
-;//			client.SetBearerToken(UnitTestEnvironment.AccessToken)
-;//			</IF DEFINED_ENABLE_AUTHENTICATION>
-;//			disposable data requestBody = new StringContent("")
-;//			disposable data response = client.PostAsync("/odata/<StructurePlural>", requestBody).Result
-;//			data result = response.Content.ReadAsStringAsync().Result
-;//			response.EnsureSuccessStatusCode()
-;//		endmethod
+;//        {TestMethod}
+;//        {TestCategory("<StructureNoplural> Tests - Create, Update & Delete")}
+;//        public method Create<StructureNoplural>, void
+;//        proc
+;//            disposable data client = UnitTestEnvironment.Server.CreateClient()
+;//            <IF DEFINED_ENABLE_AUTHENTICATION>
+;//            client.SetBearerToken(UnitTestEnvironment.AccessToken)
+;//            </IF DEFINED_ENABLE_AUTHENTICATION>
+;//            disposable data requestBody = new StringContent("")
+;//            disposable data response = client.PostAsync("/odata/<StructurePlural>", requestBody).Result
+;//            data result = response.Content.ReadAsStringAsync().Result
+;//            response.EnsureSuccessStatusCode()
+;//        endmethod
 ;//
 <IF DEFINED_ENABLE_PUT>
 <IF DEFINED_ENABLE_PATCH>
 <IF DEFINED_ENABLE_DELETE>
-		;;------------------------------------------------------------
-		;;Create new <StructureNoplural> (client specified key)
+        ;;------------------------------------------------------------
+        ;;Create new <StructureNoplural> (client specified key)
 
-		{TestMethod}
-		{TestCategory("<StructureNoplural> Tests - Create, Update & Delete")}
-		public method Update<StructureNoplural>, void
-		proc
-			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			<IF DEFINED_ENABLE_AUTHENTICATION>
-			client.SetBearerToken(UnitTestEnvironment.AccessToken)
-			</IF DEFINED_ENABLE_AUTHENTICATION>
+        {TestMethod}
+        {TestCategory("<StructureNoplural> Tests - Create, Update & Delete")}
+        public method Update<StructureNoplural>, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            <IF DEFINED_ENABLE_AUTHENTICATION>
+            client.SetBearerToken(UnitTestEnvironment.AccessToken)
+            </IF DEFINED_ENABLE_AUTHENTICATION>
 
-			;;Get one <structureNoplural> from the file
-			data getRequest = String.Format("/odata/<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)","",<SEGMENT_LOOP>TestConstants.Get<StructureNoplural>_<SegmentName><,></SEGMENT_LOOP></PRIMARY_KEY>)
-			data getResponse = client.GetAsync(getRequest).Result
-			data getResult = getResponse.Content.ReadAsStringAsync().Result
+            ;;Get one <structureNoplural> from the file
+            data getRequest = String.Format("/odata/<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)","",<SEGMENT_LOOP>TestConstants.Get<StructureNoplural>_<SegmentName><,></SEGMENT_LOOP></PRIMARY_KEY>)
+            data getResponse = client.GetAsync(getRequest).Result
+            data getResult = getResponse.Content.ReadAsStringAsync().Result
 
-			;;Check that we got a successful response from the web service
-			getResponse.EnsureSuccessStatusCode()
+            ;;Check that we got a successful response from the web service
+            getResponse.EnsureSuccessStatusCode()
 
-			;;Deserialize the JSON into a <StructureNoplural> object
-			data do<StructureNoplural>, @<StructureNoplural>, JsonConvert.DeserializeObject<<StructureNoplural>>(getResult)
+            ;;Deserialize the JSON into a <StructureNoplural> object
+            data do<StructureNoplural>, @<StructureNoplural>, JsonConvert.DeserializeObject<<StructureNoplural>>(getResult)
 
-			<PRIMARY_KEY>
-			<SEGMENT_LOOP>
-			do<StructureNoplural>.<FieldSqlName> = TestConstants.Update<StructureNoplural>_<SegmentName>
-			</SEGMENT_LOOP>
-			</PRIMARY_KEY>
+            <PRIMARY_KEY>
+            <SEGMENT_LOOP>
+            do<StructureNoplural>.<FieldSqlName> = TestConstants.Update<StructureNoplural>_<SegmentName>
+            </SEGMENT_LOOP>
+            </PRIMARY_KEY>
 
-			;TODO: Also need to ensure any nodups alternate keys get unique values
+            ;TODO: Also need to ensure any nodups alternate keys get unique values
 
-			;;Create new item
-			disposable data requestBody = new StringContent(JsonConvert.SerializeObject(do<StructureNoplural>),System.Text.Encoding.UTF8, "application/json")
-			data request = String.Format("/odata/<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)","",<SEGMENT_LOOP>TestConstants.Update<StructureNoplural>_<SegmentName><,></SEGMENT_LOOP></PRIMARY_KEY>)
-			disposable data response = client.PutAsync(request, requestBody).Result
+            ;;Create new item
+            disposable data requestBody = new StringContent(JsonConvert.SerializeObject(do<StructureNoplural>),System.Text.Encoding.UTF8, "application/json")
+            data request = String.Format("/odata/<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)","",<SEGMENT_LOOP>TestConstants.Update<StructureNoplural>_<SegmentName><,></SEGMENT_LOOP></PRIMARY_KEY>)
+            disposable data response = client.PutAsync(request, requestBody).Result
 
-			;;Check that we got a successful response from the web service
-			response.EnsureSuccessStatusCode()
+            ;;Check that we got a successful response from the web service
+            response.EnsureSuccessStatusCode()
 
-			;;Get the inserted record
-			getResponse = client.GetAsync(request).Result
-			getResult = getResponse.Content.ReadAsStringAsync().Result
+            ;;Get the inserted record
+            getResponse = client.GetAsync(request).Result
+            getResult = getResponse.Content.ReadAsStringAsync().Result
 
-			;;Check that we got a successful response from the web service
-			getResponse.EnsureSuccessStatusCode()
+            ;;Check that we got a successful response from the web service
+            getResponse.EnsureSuccessStatusCode()
 
-			;;Deserialize the JSON into a <StructureNoplural> object
-			do<StructureNoplural> = JsonConvert.DeserializeObject<<StructureNoplural>>(getResult)
+            ;;Deserialize the JSON into a <StructureNoplural> object
+            do<StructureNoplural> = JsonConvert.DeserializeObject<<StructureNoplural>>(getResult)
 
-			;;Change the first non key field to test full update
-			<COUNTER_1_RESET>
-			<FIELD_LOOP>
-			<IF NOTKEYSEGMENT>
-			<COUNTER_1_INCREMENT>
-			<IF COUNTER_1_EQ_1>
-			<IF ALPHA>
-			do<StructureNoplural>.<FieldSqlName> = "Y"
-			<ELSE>
-			do<StructureNoplural>.<FieldSqlName> = 8
-			</IF ALPHA>
-			</IF COUNTER_1_EQ_1>
-			</IF NOTKEYSEGMENT>
-			</FIELD_LOOP>
+            ;;Change the first non key field to test full update
+            <COUNTER_1_RESET>
+            <FIELD_LOOP>
+            <IF NOTKEYSEGMENT>
+            <COUNTER_1_INCREMENT>
+            <IF COUNTER_1_EQ_1>
+            <IF ALPHA>
+            do<StructureNoplural>.<FieldSqlName> = "Y"
+            <ELSE>
+            do<StructureNoplural>.<FieldSqlName> = 8
+            </IF ALPHA>
+            </IF COUNTER_1_EQ_1>
+            </IF NOTKEYSEGMENT>
+            </FIELD_LOOP>
 
-			;;Update full item
-			requestBody = new StringContent(JsonConvert.SerializeObject(do<StructureNoplural>),System.Text.Encoding.UTF8, "application/json")
-			request = String.Format("/odata/<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)","",<SEGMENT_LOOP>TestConstants.Update<StructureNoplural>_<SegmentName><,></SEGMENT_LOOP></PRIMARY_KEY>)
-			response = client.PutAsync(request, requestBody).Result
+            ;;Update full item
+            requestBody = new StringContent(JsonConvert.SerializeObject(do<StructureNoplural>),System.Text.Encoding.UTF8, "application/json")
+            request = String.Format("/odata/<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)","",<SEGMENT_LOOP>TestConstants.Update<StructureNoplural>_<SegmentName><,></SEGMENT_LOOP></PRIMARY_KEY>)
+            response = client.PutAsync(request, requestBody).Result
 
-			;;Check that we got a successful response from the web service
-			response.EnsureSuccessStatusCode()
+            ;;Check that we got a successful response from the web service
+            response.EnsureSuccessStatusCode()
 
-			;;Get the inserted record
-			getResponse = client.GetAsync(request).Result
-			getResult = getResponse.Content.ReadAsStringAsync().Result
+            ;;Get the inserted record
+            getResponse = client.GetAsync(request).Result
+            getResult = getResponse.Content.ReadAsStringAsync().Result
 
-			;;Check that we got a successful response from the web service
-			getResponse.EnsureSuccessStatusCode()
+            ;;Check that we got a successful response from the web service
+            getResponse.EnsureSuccessStatusCode()
 
-			;;Deserialize the JSON into a <StructureNoplural> object
-			do<StructureNoplural> = JsonConvert.DeserializeObject<<StructureNoplural>>(getResult)
+            ;;Deserialize the JSON into a <StructureNoplural> object
+            do<StructureNoplural> = JsonConvert.DeserializeObject<<StructureNoplural>>(getResult)
 
-			<COUNTER_1_RESET>
-			<FIELD_LOOP>
-			<IF NOTKEYSEGMENT>
-			<COUNTER_1_INCREMENT>
-			<IF COUNTER_1_EQ_1>
-			<IF ALPHA>
-			Assert.AreEqual(do<StructureNoplural>.<FieldSqlName>, "Y")
-			<ELSE>
-			Assert.AreEqual(do<StructureNoplural>.<FieldSqlName>, 8)
-			</IF ALPHA>
-			</IF COUNTER_1_EQ_1>
-			</IF NOTKEYSEGMENT>
-			</FIELD_LOOP>
+            <COUNTER_1_RESET>
+            <FIELD_LOOP>
+            <IF NOTKEYSEGMENT>
+            <COUNTER_1_INCREMENT>
+            <IF COUNTER_1_EQ_1>
+            <IF ALPHA>
+            Assert.AreEqual(do<StructureNoplural>.<FieldSqlName>, "Y")
+            <ELSE>
+            Assert.AreEqual(do<StructureNoplural>.<FieldSqlName>, 8)
+            </IF ALPHA>
+            </IF COUNTER_1_EQ_1>
+            </IF NOTKEYSEGMENT>
+            </FIELD_LOOP>
 
-			;;Update one property in the <structureNoplural>
-			data patchDoc = new JsonPatchDocument()
-			<COUNTER_1_RESET>
-			<FIELD_LOOP>
-			<IF NOTKEYSEGMENT>
-			<COUNTER_1_INCREMENT>
-			<IF COUNTER_1_EQ_1>
-			<IF ALPHA>
-			patchDoc.Replace("<FieldSqlName>", "Z")
-			<ELSE>
-			patchDoc.Replace("<FieldSqlName>", "9")
-			</IF ALPHA>
-			</IF COUNTER_1_EQ_1>
-			</IF NOTKEYSEGMENT>
-			</FIELD_LOOP>
+            ;;Update one property in the <structureNoplural>
+            data patchDoc = new JsonPatchDocument()
+            <COUNTER_1_RESET>
+            <FIELD_LOOP>
+            <IF NOTKEYSEGMENT>
+            <COUNTER_1_INCREMENT>
+            <IF COUNTER_1_EQ_1>
+            <IF ALPHA>
+            patchDoc.Replace("<FieldSqlName>", "Z")
+            <ELSE>
+            patchDoc.Replace("<FieldSqlName>", "9")
+            </IF ALPHA>
+            </IF COUNTER_1_EQ_1>
+            </IF NOTKEYSEGMENT>
+            </FIELD_LOOP>
 
-			;;Serialize the patch to JSON
-			data serializedPatch = JsonConvert.SerializeObject(patchDoc)
+            ;;Serialize the patch to JSON
+            data serializedPatch = JsonConvert.SerializeObject(patchDoc)
 
-			;;Apply the patch
-			disposable data patchRequestBody = new StringContent(serializedPatch,System.Text.Encoding.UTF8, "application/json-patch+json")
-			disposable data patchResponse = client.PatchAsync(request, patchRequestBody).Result
+            ;;Apply the patch
+            disposable data patchRequestBody = new StringContent(serializedPatch,System.Text.Encoding.UTF8, "application/json-patch+json")
+            disposable data patchResponse = client.PatchAsync(request, patchRequestBody).Result
 
-			;;Check that we got a successful response from the web service
-			patchResponse.EnsureSuccessStatusCode()
+            ;;Check that we got a successful response from the web service
+            patchResponse.EnsureSuccessStatusCode()
 
-			;;Get the updated <structureNoplural> record
-			getResponse = client.GetAsync(request).Result
-			getResult = getResponse.Content.ReadAsStringAsync().Result
+            ;;Get the updated <structureNoplural> record
+            getResponse = client.GetAsync(request).Result
+            getResult = getResponse.Content.ReadAsStringAsync().Result
 
-			;;Check that we got a successful response from the web service
-			getResponse.EnsureSuccessStatusCode()
+            ;;Check that we got a successful response from the web service
+            getResponse.EnsureSuccessStatusCode()
 
-			;;Deserialize the JSON into a <StructureNoplural> object
-			do<StructureNoplural> = JsonConvert.DeserializeObject<<StructureNoplural>>(getResult)
+            ;;Deserialize the JSON into a <StructureNoplural> object
+            do<StructureNoplural> = JsonConvert.DeserializeObject<<StructureNoplural>>(getResult)
 
-			;;Verify that the property was changed
-			<COUNTER_1_RESET>
-			<FIELD_LOOP>
-			<IF NOTKEYSEGMENT>
-			<COUNTER_1_INCREMENT>
-			<IF COUNTER_1_EQ_1>
-			<IF ALPHA>
-			Assert.AreEqual(do<StructureNoplural>.<FieldSqlName>, "Z")
-			<ELSE>
-			Assert.AreEqual(do<StructureNoplural>.<FieldSqlName>, 9)
-			</IF ALPHA>
-			</IF COUNTER_1_EQ_1>
-			</IF NOTKEYSEGMENT>
-			</FIELD_LOOP>
+            ;;Verify that the property was changed
+            <COUNTER_1_RESET>
+            <FIELD_LOOP>
+            <IF NOTKEYSEGMENT>
+            <COUNTER_1_INCREMENT>
+            <IF COUNTER_1_EQ_1>
+            <IF ALPHA>
+            Assert.AreEqual(do<StructureNoplural>.<FieldSqlName>, "Z")
+            <ELSE>
+            Assert.AreEqual(do<StructureNoplural>.<FieldSqlName>, 9)
+            </IF ALPHA>
+            </IF COUNTER_1_EQ_1>
+            </IF NOTKEYSEGMENT>
+            </FIELD_LOOP>
 
-			;;Delete It
-			disposable data deleteResponse = client.DeleteAsync(request).Result
+            ;;Delete It
+            disposable data deleteResponse = client.DeleteAsync(request).Result
 
-			;;Check that we got a successful response from the web service
-			getResponse.EnsureSuccessStatusCode()
+            ;;Check that we got a successful response from the web service
+            getResponse.EnsureSuccessStatusCode()
 
-			;;Attempt to get the deleted record
-			getResponse = client.GetAsync(request).Result
+            ;;Attempt to get the deleted record
+            getResponse = client.GetAsync(request).Result
 
-			;;Check we got a fail state from the web service
-			Assert.AreEqual(getResponse.IsSuccessStatusCode, false)
+            ;;Check we got a fail state from the web service
+            Assert.AreEqual(getResponse.IsSuccessStatusCode, false)
 
-		endmethod
+        endmethod
 
 </IF DEFINED_ENABLE_DELETE>
 </IF DEFINED_ENABLE_PATCH>
 </IF DEFINED_ENABLE_PUT>
 ;//<PRIMARY_KEY>
 ;//<IF MULTIPLE_SEGMENTS>
-;//		;;------------------------------------------------------------
-;//		;;Get multiple <StructureNoplural> by partial primary key
+;//        ;;------------------------------------------------------------
+;//        ;;Get multiple <StructureNoplural> by partial primary key
 ;//
-;//		{TestMethod}
-;//		{TestCategory("<StructureNoplural> Tests - Read by Primary Key")}
-;//		public method Get<StructureNoplural>_ByPartialPrimaryKey, void
-;//		proc
-;//			data client = UnitTestEnvironment.Server.CreateClient()
-;//			<IF DEFINED_ENABLE_AUTHENTICATION>
-;//			client.SetBearerToken(UnitTestEnvironment.AccessToken)
-;//			</IF DEFINED_ENABLE_AUTHENTICATION>
-;//			data request = String.Format("/odata/<StructurePlural>(<SEGMENT_LOOP_FILTER><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP_FILTER>)","",<SEGMENT_LOOP_FILTER>TestConstants.Get<StructureNoplural>_ByPartialPrimaryKey_<SegmentName><,></SEGMENT_LOOPFILTER>)
-;//			data response = client.GetAsync(request).Result
-;//			data result = response.Content.ReadAsStringAsync().Result
-;//			response.EnsureSuccessStatusCode()
-;//			data <structureNoplural>, @OData<StructureNoplural>, JsonConvert.DeserializeObject<OData<StructureNoplural>>(result)
-;//		endmethod
+;//        {TestMethod}
+;//        {TestCategory("<StructureNoplural> Tests - Read by Primary Key")}
+;//        public method Get<StructureNoplural>_ByPartialPrimaryKey, void
+;//        proc
+;//            data client = UnitTestEnvironment.Server.CreateClient()
+;//            <IF DEFINED_ENABLE_AUTHENTICATION>
+;//            client.SetBearerToken(UnitTestEnvironment.AccessToken)
+;//            </IF DEFINED_ENABLE_AUTHENTICATION>
+;//            data request = String.Format("/odata/<StructurePlural>(<SEGMENT_LOOP_FILTER><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP_FILTER>)","",<SEGMENT_LOOP_FILTER>TestConstants.Get<StructureNoplural>_ByPartialPrimaryKey_<SegmentName><,></SEGMENT_LOOPFILTER>)
+;//            data response = client.GetAsync(request).Result
+;//            data result = response.Content.ReadAsStringAsync().Result
+;//            response.EnsureSuccessStatusCode()
+;//            data <structureNoplural>, @OData<StructureNoplural>, JsonConvert.DeserializeObject<OData<StructureNoplural>>(result)
+;//        endmethod
 ;//
 ;//</IF MULTIPLE_SEGMENTS>
 ;//</PRIMARY_KEY>
-	endclass
+    endclass
 
 endnamespace
