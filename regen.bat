@@ -2,25 +2,24 @@
 pushd %~dp0
 setlocal
 rem ================================================================================================================================
-rem Configure optional Harmony Core capabilities
+rem Comment or uncomment the following lines to enable or disable optional features:
 
-rem Comment or uncomment the following lines to enable or disable optional capabilities as required:
-
-set DO_CREATE_TEST_FILES=-define CREATE_TEST_FILES
-rem set DO_AUTHENTICATION=-define AUTHENTICATION
-rem set DO_CASE_SENSITIVE_URL=-define CASE_SENSITIVE_URL
-rem set DO_ENABLE_CORS=-define ENABLE_CORS
-rem set DO_IIS_SUPPORT=-define IIS_SUPPORT
-set DO_ALLOW_ALTERNATE_KEYS=-define ALLOW_ALTERNATE_KEYS
-set DO_PROPERTY_ENDPOINTS=-define PROPERTY_ENDPOINTS
-set DO_ALLOW_PUT=-define ALLOW_PUT
-set DO_ALLOW_PATCH=-define ALLOW_PATCH
-set DO_ALLOW_DELETE=-define ALLOW_DELETE
+set ENABLE_CREATE_TEST_FILES=-define ENABLE_CREATE_TEST_FILES
+rem set ENABLE_AUTHENTICATION=-define ENABLE_AUTHENTICATION
+rem set ENABLE_CASE_SENSITIVE_URL=-define ENABLE_CASE_SENSITIVE_URL
+rem set ENABLE_CORS=-define ENABLE_CORS
+rem set ENABLE_IIS_SUPPORT=-define ENABLE_IIS_SUPPORT
+set ENABLE_ALTERNATE_KEYS=-define ENABLE_ALTERNATE_KEYS
+set ENABLE_PROPERTY_ENDPOINTS=-define ENABLE_PROPERTY_ENDPOINTS
+set ENABLE_PUT=-define ENABLE_PUT
+set ENABLE_PATCH=-define ENABLE_PATCH
+set ENABLE_DELETE=-define ENABLE_DELETE
+set ENABLE_SWAGGER_DOCS=-define ENABLE_SWAGGER_DOCS
 
 rem ================================================================================================================================
 rem Configure standard command line options and the VodeGen environment
 
-set NOREPLACEOPTS=-e -lf -u UserDefinedTokens.tkn %DO_AUTHENTICATION% %DO_PROPERTY_ENDPOINTS% %DO_CASE_SENSITIVE_URL% %DO_CREATE_TEST_FILES% %DO_ENABLE_CORS% %DO_IIS_SUPPORT% %DO_ALLOW_DELETE% %DO_ALLOW_PUT% %DO_ALLOW_PATCH% %DO_ALLOW_ALTERNATE_KEYS%
+set NOREPLACEOPTS=-e -lf -u UserDefinedTokens.tkn %ENABLE_AUTHENTICATION% %ENABLE_PROPERTY_ENDPOINTS% %ENABLE_CASE_SENSITIVE_URL% %ENABLE_CREATE_TEST_FILES% %ENABLE_CORS% %ENABLE_IIS_SUPPORT% %ENABLE_DELETE% %ENABLE_PUT% %ENABLE_PATCH% %ENABLE_ALTERNATE_KEYS% %ENABLE_SWAGGER_DOCS%
 set STDOPTS=%NOREPLACEOPTS% -r
 set CODEGEN_TPLDIR=Templates
 
@@ -69,8 +68,10 @@ codegen -s %STRUCTURES% -ms -t ODataPostManTests -o .\ %STDOPTS%
 if ERRORLEVEL 1 goto error
 
 rem Generate a Swagger file
-codegen -s %STRUCTURES% -ms -t ODataSwaggerJson ODataSwaggerYaml -o %PROJECT%\wwwroot %STDOPTS%
-if ERRORLEVEL 1 goto error
+if DEFINED ENABLE_SWAGGER_DOCS (
+  codegen -s %STRUCTURES% -ms -t ODataSwaggerJson ODataSwaggerYaml -o %PROJECT%\wwwroot %STDOPTS%
+  if ERRORLEVEL 1 goto error
+)
 
 rem ================================================================================================================================
 rem The test environment has slightly different requirements, because we need to generate code based on structures, but when tags

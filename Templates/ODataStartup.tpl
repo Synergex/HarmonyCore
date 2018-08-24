@@ -104,7 +104,6 @@ import Harmony.AspNetCore.Context
 import Microsoft.AspNetCore.Builder
 import Microsoft.AspNetCore.Hosting
 import Microsoft.AspNetCore.Http
-import Microsoft.AspNetCore.StaticFiles
 import Microsoft.AspNet.OData
 import Microsoft.AspNet.OData.Extensions
 import Microsoft.AspNet.OData.Builder
@@ -113,7 +112,10 @@ import Microsoft.EntityFrameworkCore
 import Microsoft.Extensions.DependencyInjection
 import Microsoft.OData
 import Microsoft.OData.UriParser
+<IF DEFINED_ENABLE_SWAGGER_DOCS>
 import Swashbuckle.AspNetCore.Swagger
+import Microsoft.AspNetCore.StaticFiles
+</IF DEFINED_ENABLE_SWAGGER_DOCS>
 import <MODELS_NAMESPACE>
 
 namespace <NAMESPACE>
@@ -146,7 +148,7 @@ namespace <NAMESPACE>
 			lambda AddAltKeySupport(serviceProvider)
 			begin
 				data model = EdmBuilder.GetEdmModel(serviceProvider)
-				mreturn new AlternateKeysODataUriResolver(model) <IF NOT_DEFINED_CASE_SENSITIVE_URL>{ EnableCaseInsensitive = true }</IF NOT_DEFINED_CASE_SENSITIVE_URL>
+				mreturn new AlternateKeysODataUriResolver(model) <IF NOT_DEFINED_ENABLE_CASE_SENSITIVE_URL>{ EnableCaseInsensitive = true }</IF NOT_DEFINED_ENABLE_CASE_SENSITIVE_URL>
 			end
 
 			services.AddSingleton<ODataUriResolver>(AddAltKeySupport)
@@ -158,16 +160,18 @@ namespace <NAMESPACE>
 
 			services.AddSingleton<IPerRouteContainer, HarmonyPerRouteContainer>()
 
-			;;-------------------------------------------------------
-			;;Load Swagger API documentation services
-
+<IF DEFINED_ENABLE_SWAGGER_DOCS>
 			services.AddSwaggerGen()
 
 			services.AddMvcCore()
 			&	.AddJsonFormatters()	;;For PATCH
 			&	.AddApiExplorer()		;;Swagger UI
+<ELSE>
+			services.AddMvcCore()
+			&	.AddJsonFormatters()	;;For PATCH
+</IF DEFINED_ENABLE_SWAGGER_DOCS>
 
-<IF DEFINED_AUTHENTICATION>
+<IF DEFINED_ENABLE_AUTHENTICATION>
 			;;-------------------------------------------------------
 			;;Enable authentication and authorization
 
@@ -181,7 +185,7 @@ namespace <NAMESPACE>
 			services.AddAuthentication("Bearer").AddIdentityServerAuthentication(authenticationOptions)
 			services.AddAuthorization()
 
-</IF DEFINED_AUTHENTICATION>
+</IF DEFINED_ENABLE_AUTHENTICATION>
 			;;-------------------------------------------------------
 			;;Enable HTTP redirection to HTTPS
 
@@ -193,7 +197,7 @@ namespace <NAMESPACE>
 
 			services.AddHttpsRedirection(httpsConfig)
 
-<IF DEFINED_IIS_SUPPORT>
+<IF DEFINED_ENABLE_IIS_SUPPORT>
 			;;-------------------------------------------------------
 			;;Enable support for hosting in IIS
 
@@ -204,7 +208,7 @@ namespace <NAMESPACE>
 
 			services.Configure<IISOptions>(iisOptions)
 			
-</IF DEFINED_IIS_SUPPORT>
+</IF DEFINED_ENABLE_IIS_SUPPORT>
 <IF DEFINED_ENABLE_CORS>
 			;;-------------------------------------------------------
 			;;Add "Cross Origin Resource Sharing" (CORS) support
@@ -248,13 +252,13 @@ namespace <NAMESPACE>
 
 			app.UseHttpsRedirection()
 
-<IF DEFINED_AUTHENTICATION>
+<IF DEFINED_ENABLE_AUTHENTICATION>
 			;;-------------------------------------------------------
 			;;Enable the authentication middleware
 
 			app.UseAuthentication()
 
-</IF DEFINED_AUTHENTICATION>
+</IF DEFINED_ENABLE_AUTHENTICATION>
 			;;-------------------------------------------------------
 			;;Configure the MVC & OData environments
 
@@ -302,6 +306,7 @@ namespace <NAMESPACE>
 			app.UseCors(corsOptions)
 
 </IF DEFINED_ENABLE_CORS>
+<IF DEFINED_ENABLE_SWAGGER_DOCS>
 			;;-------------------------------------------------------
 			;;Configure the web server environment
 
@@ -330,6 +335,7 @@ namespace <NAMESPACE>
 			app.UseSwagger()
 			app.UseSwaggerUI(configureSwaggerUi)
 
+</IF DEFINED_ENABLE_SWAGGER_DOCS>
 		endmethod
 
 	endclass

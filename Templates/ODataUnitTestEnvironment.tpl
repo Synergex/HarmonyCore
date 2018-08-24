@@ -85,9 +85,9 @@
 ;;
 ;;*****************************************************************************
 
-<IF DEFINED_AUTHENTICATION>
+<IF DEFINED_ENABLE_AUTHENTICATION>
 import IdentityModel.Client
-</IF DEFINED_AUTHENTICATION>
+</IF DEFINED_ENABLE_AUTHENTICATION>
 import Microsoft.AspNetCore
 import Microsoft.AspNetCore.Hosting
 import Microsoft.AspNetCore.TestHost
@@ -102,9 +102,9 @@ namespace <NAMESPACE>
 	public class UnitTestEnvironment
 
 		public static Server, @TestServer
-<IF DEFINED_AUTHENTICATION>
+<IF DEFINED_ENABLE_AUTHENTICATION>
 		public static AccessToken, string
-</IF DEFINED_AUTHENTICATION>
+</IF DEFINED_ENABLE_AUTHENTICATION>
 
 		{AssemblyInitialize}
 		public static method AssemblyInitialize, void
@@ -134,7 +134,7 @@ namespace <NAMESPACE>
 			;;Fake out HTTPS
 			Server.BaseAddress = new Uri("https://localhost")
 
-<IF DEFINED_AUTHENTICATION>
+<IF DEFINED_ENABLE_AUTHENTICATION>
 			;;Get the access token from the OAuth Server
 			data disco = DiscoveryClient.GetAsync("<OAUTH_SERVER>").GetAwaiter().GetResult()
 
@@ -159,7 +159,7 @@ namespace <NAMESPACE>
                 end
 			end
 
-</IF DEFINED_AUTHENTICATION>
+</IF DEFINED_ENABLE_AUTHENTICATION>
 		endmethod
 
 		{AssemblyCleanup}

@@ -99,9 +99,9 @@ namespace <NAMESPACE>
 		public method Get<StructurePlural>, void
 		proc
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			<IF DEFINED_AUTHENTICATION>
+			<IF DEFINED_ENABLE_AUTHENTICATION>
 			client.SetBearerToken(UnitTestEnvironment.AccessToken)
-			</IF DEFINED_AUTHENTICATION>
+			</IF DEFINED_ENABLE_AUTHENTICATION>
 			disposable data response = client.GetAsync("/odata/<StructurePlural>").Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
@@ -136,9 +136,9 @@ namespace <NAMESPACE>
 			data uri = "/odata/<StructurePlural>?$expand=REL_<RelationTostructurePlural>"
 		</IF ONE_TO_MANY>
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			<IF DEFINED_AUTHENTICATION>
+			<IF DEFINED_ENABLE_AUTHENTICATION>
 			client.SetBearerToken(UnitTestEnvironment.AccessToken)
-			</IF DEFINED_AUTHENTICATION>
+			</IF DEFINED_ENABLE_AUTHENTICATION>
 			disposable data response = client.GetAsync(uri).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
@@ -154,9 +154,9 @@ namespace <NAMESPACE>
 		proc
 			data uri = "/odata/<StructurePlural>?$expand=<RELATION_LOOP><IF MANY_TO_ONE_TO_MANY>REL_<RelationFromkey></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationFromkey></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY><,></RELATION_LOOP>"
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			<IF DEFINED_AUTHENTICATION>
+			<IF DEFINED_ENABLE_AUTHENTICATION>
 			client.SetBearerToken(UnitTestEnvironment.AccessToken)
-			</IF DEFINED_AUTHENTICATION>
+			</IF DEFINED_ENABLE_AUTHENTICATION>
 			disposable data response = client.GetAsync(uri).Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
@@ -171,9 +171,9 @@ namespace <NAMESPACE>
 		public method Get<StructureNoplural>, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			<IF DEFINED_AUTHENTICATION>
+			<IF DEFINED_ENABLE_AUTHENTICATION>
 			client.SetBearerToken(UnitTestEnvironment.AccessToken)
-			</IF DEFINED_AUTHENTICATION>
+			</IF DEFINED_ENABLE_AUTHENTICATION>
 			data request = String.Format("/odata/<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)","",<SEGMENT_LOOP>TestConstants.Get<StructureNoplural>_<SegmentName><,></SEGMENT_LOOP></PRIMARY_KEY>)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
@@ -192,9 +192,9 @@ namespace <NAMESPACE>
 		public method Get<StructureNoplural>_Expand_<IF MANY_TO_ONE_TO_MANY>REL_<RelationFromkey></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationFromkey></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY>, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			<IF DEFINED_AUTHENTICATION>
+			<IF DEFINED_ENABLE_AUTHENTICATION>
 			client.SetBearerToken(UnitTestEnvironment.AccessToken)
-			</IF DEFINED_AUTHENTICATION>
+			</IF DEFINED_ENABLE_AUTHENTICATION>
 			data request = String.Format("/odata/<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY>)?$expand=<IF MANY_TO_ONE_TO_MANY>REL_<RelationFromkey></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationFromkey></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY>","",<PRIMARY_KEY><SEGMENT_LOOP>TestConstants.Get<StructureNoplural>_Expand_<IF MANY_TO_ONE_TO_MANY>REL_<RelationFromkey></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationFromkey></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY>_<SegmentName><,></SEGMENT_LOOP></PRIMARY_KEY>)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
@@ -211,9 +211,9 @@ namespace <NAMESPACE>
 		public method Get<StructureNoplural>_Expand_All, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			<IF DEFINED_AUTHENTICATION>
+			<IF DEFINED_ENABLE_AUTHENTICATION>
 			client.SetBearerToken(UnitTestEnvironment.AccessToken)
-			</IF DEFINED_AUTHENTICATION>
+			</IF DEFINED_ENABLE_AUTHENTICATION>
 			data request = String.Format("/odata/<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY>)?$expand=<RELATION_LOOP><IF MANY_TO_ONE_TO_MANY>REL_<RelationFromkey></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationFromkey></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY><,></RELATION_LOOP>","",<PRIMARY_KEY><SEGMENT_LOOP>TestConstants.Get<StructureNoplural>_Expand_All_<SegmentName><,></SEGMENT_LOOP></PRIMARY_KEY>)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
@@ -222,7 +222,7 @@ namespace <NAMESPACE>
 		endmethod
 
 </IF STRUCTURE_RELATIONS>
-<IF DEFINED_ALLOW_ALTERNATE_KEYS>
+<IF DEFINED_ENABLE_ALTERNATE_KEYS>
 <ALTERNATE_KEY_LOOP>
 		;;------------------------------------------------------------
 		;;Get a single <StructureNoplural> by alternate key <KEY_NUMBER> (<KeyName>)
@@ -232,9 +232,9 @@ namespace <NAMESPACE>
 		public method Get<StructureNoplural>_ByAltKey_<KeyName>, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			<IF DEFINED_AUTHENTICATION>
+			<IF DEFINED_ENABLE_AUTHENTICATION>
 			client.SetBearerToken(UnitTestEnvironment.AccessToken)
-			</IF DEFINED_AUTHENTICATION>
+			</IF DEFINED_ENABLE_AUTHENTICATION>
 			data request = String.Format("/odata/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)", "", <SEGMENT_LOOP>TestConstants.Get<StructureNoplural>_ByAltKey_<KeyName>_<SegmentName><,></SEGMENT_LOOP>)
 			data response = client.GetAsync(request).Result
 			data result = response.Content.ReadAsStringAsync().Result
@@ -247,7 +247,7 @@ namespace <NAMESPACE>
 		endmethod
 
 </ALTERNATE_KEY_LOOP>
-</IF DEFINED_ALLOW_ALTERNATE_KEYS>
+</IF DEFINED_ENABLE_ALTERNATE_KEYS>
 ;//		;;------------------------------------------------------------
 ;//		;;Create a new <StructureNoplural> (auto assign key)
 ;//
@@ -256,18 +256,18 @@ namespace <NAMESPACE>
 ;//		public method Create<StructureNoplural>, void
 ;//		proc
 ;//			disposable data client = UnitTestEnvironment.Server.CreateClient()
-;//			<IF DEFINED_AUTHENTICATION>
+;//			<IF DEFINED_ENABLE_AUTHENTICATION>
 ;//			client.SetBearerToken(UnitTestEnvironment.AccessToken)
-;//			</IF DEFINED_AUTHENTICATION>
+;//			</IF DEFINED_ENABLE_AUTHENTICATION>
 ;//			disposable data requestBody = new StringContent("")
 ;//			disposable data response = client.PostAsync("/odata/<StructurePlural>", requestBody).Result
 ;//			data result = response.Content.ReadAsStringAsync().Result
 ;//			response.EnsureSuccessStatusCode()
 ;//		endmethod
 ;//
-<IF DEFINED_ALLOW_PUT>
-<IF DEFINED_ALLOW_PATCH>
-<IF DEFINED_ALLOW_DELETE>
+<IF DEFINED_ENABLE_PUT>
+<IF DEFINED_ENABLE_PATCH>
+<IF DEFINED_ENABLE_DELETE>
 		;;------------------------------------------------------------
 		;;Create new <StructureNoplural> (client specified key)
 
@@ -276,9 +276,9 @@ namespace <NAMESPACE>
 		public method Update<StructureNoplural>, void
 		proc
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			<IF DEFINED_AUTHENTICATION>
+			<IF DEFINED_ENABLE_AUTHENTICATION>
 			client.SetBearerToken(UnitTestEnvironment.AccessToken)
-			</IF DEFINED_AUTHENTICATION>
+			</IF DEFINED_ENABLE_AUTHENTICATION>
 
 			;;Get one <structureNoplural> from the file
 			data getRequest = String.Format("/odata/<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)","",<SEGMENT_LOOP>TestConstants.Get<StructureNoplural>_<SegmentName><,></SEGMENT_LOOP></PRIMARY_KEY>)
@@ -429,9 +429,9 @@ namespace <NAMESPACE>
 
 		endmethod
 
-</IF DEFINED_ALLOW_DELETE>
-</IF DEFINED_ALLOW_PATCH>
-</IF DEFINED_ALLOW_PUT>
+</IF DEFINED_ENABLE_DELETE>
+</IF DEFINED_ENABLE_PATCH>
+</IF DEFINED_ENABLE_PUT>
 ;//<PRIMARY_KEY>
 ;//<IF MULTIPLE_SEGMENTS>
 ;//		;;------------------------------------------------------------
@@ -442,9 +442,9 @@ namespace <NAMESPACE>
 ;//		public method Get<StructureNoplural>_ByPartialPrimaryKey, void
 ;//		proc
 ;//			data client = UnitTestEnvironment.Server.CreateClient()
-;//			<IF DEFINED_AUTHENTICATION>
+;//			<IF DEFINED_ENABLE_AUTHENTICATION>
 ;//			client.SetBearerToken(UnitTestEnvironment.AccessToken)
-;//			</IF DEFINED_AUTHENTICATION>
+;//			</IF DEFINED_ENABLE_AUTHENTICATION>
 ;//			data request = String.Format("/odata/<StructurePlural>(<SEGMENT_LOOP_FILTER><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP_FILTER>)","",<SEGMENT_LOOP_FILTER>TestConstants.Get<StructureNoplural>_ByPartialPrimaryKey_<SegmentName><,></SEGMENT_LOOPFILTER>)
 ;//			data response = client.GetAsync(request).Result
 ;//			data result = response.Content.ReadAsStringAsync().Result

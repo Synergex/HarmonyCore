@@ -40,12 +40,12 @@
       "name": "<StructureNoplural>",
       "description": "Operations related to <STRUCTURE_DESC>",
     },
-<IF DEFINED_PROPERTY_ENDPOINTS>
+<IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
     {
       "name": "<StructureNoplural>Properties",
       "description": "Operations related to individual properties of <STRUCTURE_DESC>",
     },
-</IF DEFINED_PROPERTY_ENDPOINTS>
+</IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
 </STRUCTURE_LOOP>
     {
       "name": "Create",
@@ -450,7 +450,7 @@
 ;//   ----------------------------------------------------------------------------
 ;//   End of final alternate key operation
 ;//   ----------------------------------------------------------------------------
-    }<IF DUPLICATES>,<ELSE><IF DEFINED_PROPERTY_ENDPOINTS>,<ELSE><,></IF DEFINED_PROPERTY_ENDPOINTS></IF DUPLICATES>
+    }<IF DUPLICATES>,<ELSE><IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>,<ELSE><,></IF DEFINED_ENABLE_PROPERTY_ENDPOINTS></IF DUPLICATES>
   <IF DUPLICATES>
     "/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{a<SegmentName>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)/$count": {
 ;//   ----------------------------------------------------------------------------
@@ -500,13 +500,13 @@
 ;//   ----------------------------------------------------------------------------
 ;//   End of final alternate key operation
 ;//   ----------------------------------------------------------------------------
-    }<IF DEFINED_PROPERTY_ENDPOINTS>,<ELSE><,></IF DEFINED_PROPERTY_ENDPOINTS>
+    }<IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>,<ELSE><,></IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
   </IF DUPLICATES>
 </ALTERNATE_KEY_LOOP>
 ;//
 ;//
 ;//
-<IF DEFINED_PROPERTY_ENDPOINTS>
+<IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
 <FIELD_LOOP>
 <PRIMARY_KEY>
     "/<StructurePlural>(<IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{a<SegmentName>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP></IF SINGLE_SEGMENT>)/<FieldSqlName>": {
@@ -553,7 +553,7 @@
 </PRIMARY_KEY>
 <,>
 </FIELD_LOOP>
-</IF DEFINED_PROPERTY_ENDPOINTS>
+</IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
 ;//
 ;//
 ;//

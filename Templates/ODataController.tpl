@@ -85,16 +85,16 @@ import Microsoft.AspNet.OData.Routing
 import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Infrastructure
 import Harmony.Core.EF.Extensions
-<IF DEFINED_AUTHENTICATION>
+<IF DEFINED_ENABLE_AUTHENTICATION>
 import Microsoft.AspNetCore.Authorization
-</IF DEFINED_AUTHENTICATION>
+</IF DEFINED_ENABLE_AUTHENTICATION>
 import <MODELS_NAMESPACE>
 
 namespace <NAMESPACE>
 
-<IF DEFINED_AUTHENTICATION>
+<IF DEFINED_ENABLE_AUTHENTICATION>
 	{Authorize}
-</IF DEFINED_AUTHENTICATION>
+</IF DEFINED_ENABLE_AUTHENTICATION>
 	;;; <summary>
 	;;; OData controller for <StructurePlural>
 	;;; </summary>
@@ -155,7 +155,7 @@ namespace <NAMESPACE>
 ;//
 ;// GET BY ALTERNATE KEY ------------------------------------------------------
 ;//
-<IF DEFINED_ALLOW_ALTERNATE_KEYS>
+<IF DEFINED_ENABLE_ALTERNATE_KEYS>
 <ALTERNATE_KEY_LOOP>
 	<IF DUPLICATES>
 		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
@@ -201,11 +201,11 @@ namespace <NAMESPACE>
 	</IF DUPLICATES>
 
 </ALTERNATE_KEY_LOOP>
-</IF DEFINED_ALLOW_ALTERNATE_KEYS>
+</IF DEFINED_ENABLE_ALTERNATE_KEYS>
 ;//
 ;// GET INDIVIDUAL PROPERTIES -------------------------------------------------
 ;//
-<IF DEFINED_PROPERTY_ENDPOINTS>
+<IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
 ;//
 ;// In order for the $value function to work in conjunction with these properties,
 ;// the name of a single key segment MUST be "key"!!! Likely doesn't work with segmented keys.
@@ -246,7 +246,7 @@ namespace <NAMESPACE>
 
 		</PRIMARY_KEY>
 	</FIELD_LOOP>
-</IF DEFINED_PROPERTY_ENDPOINTS>
+</IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
 ;//
 ;// POST ----------------------------------------------------------------------
 ;//
@@ -281,7 +281,7 @@ namespace <NAMESPACE>
 ;//
 ;// PUT -----------------------------------------------------------------------
 ;//
-<IF DEFINED_ALLOW_PUT>
+<IF DEFINED_ENABLE_PUT>
 	<PRIMARY_KEY>
 		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
 ;//		{ProducesResponseType(^typeof(void), 204)}
@@ -334,11 +334,11 @@ namespace <NAMESPACE>
 		endmethod
 
 	</PRIMARY_KEY>
-</IF DEFINED_ALLOW_PUT>
+</IF DEFINED_ENABLE_PUT>
 ;//
 ;// PATCH ---------------------------------------------------------------------
 ;//
-<IF DEFINED_ALLOW_PATCH>
+<IF DEFINED_ENABLE_PATCH>
 		<PRIMARY_KEY>
 		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
 ;//		{ProducesResponseType(^typeof(void), 204)}
@@ -389,11 +389,11 @@ namespace <NAMESPACE>
 		endmethod
 
 	</PRIMARY_KEY>
-</IF DEFINED_ALLOW_PATCH>
+</IF DEFINED_ENABLE_PATCH>
 ;//
 ;// DELETE --------------------------------------------------------------------
 ;//
-<IF DEFINED_ALLOW_DELETE>
+<IF DEFINED_ENABLE_DELETE>
 	<PRIMARY_KEY>
 		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
 ;//		{ProducesResponseType(^typeof(void), 204)}
@@ -426,7 +426,7 @@ namespace <NAMESPACE>
 		endmethod
 
 	</PRIMARY_KEY>
-</IF DEFINED_ALLOW_DELETE>
+</IF DEFINED_ENABLE_DELETE>
 	endclass
 
 endnamespace

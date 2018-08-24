@@ -81,9 +81,9 @@ import System.Collections.Generic
 import System.IO
 import System.Text
 import <MODELS_NAMESPACE>
-<IF DEFINED_CREATE_TEST_FILES>
+<IF DEFINED_ENABLE_CREATE_TEST_FILES>
 import <NAMESPACE>.DataGenerators
-</IF DEFINED_CREATE_TEST_FILES>
+</IF DEFINED_ENABLE_CREATE_TEST_FILES>
 
 .array 0
 
@@ -95,17 +95,17 @@ namespace <NAMESPACE>
 		proc
 			Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)
 			setLogicals()
-<IF DEFINED_CREATE_TEST_FILES>
+<IF DEFINED_ENABLE_CREATE_TEST_FILES>
 			deleteFiles()
 			createFiles()
-</IF DEFINED_CREATE_TEST_FILES>
+</IF DEFINED_ENABLE_CREATE_TEST_FILES>
 		endmethod
 
 		public static method Cleanup, void
 		proc
-<IF DEFINED_CREATE_TEST_FILES>
+<IF DEFINED_ENABLE_CREATE_TEST_FILES>
 			deleteFiles()
-</IF DEFINED_CREATE_TEST_FILES>
+</IF DEFINED_ENABLE_CREATE_TEST_FILES>
 		endmethod
 
 		private static method setLogicals, void
@@ -133,7 +133,7 @@ namespace <NAMESPACE>
 
 		endmethod
 
-<IF DEFINED_CREATE_TEST_FILES>
+<IF DEFINED_ENABLE_CREATE_TEST_FILES>
 		private static method createFiles, void
 		proc
 			data chout, int
@@ -176,7 +176,7 @@ namespace <NAMESPACE>
 			</STRUCTURE_LOOP>
 		endmethod
 
-</IF DEFINED_CREATE_TEST_FILES>
+</IF DEFINED_ENABLE_CREATE_TEST_FILES>
 		private static method findRelativeFolderForAssembly, string
 			folderName, string
 		proc

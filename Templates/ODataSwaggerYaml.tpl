@@ -392,7 +392,7 @@ paths:
             type: integer
 </IF DUPLICATES>
 </ALTERNATE_KEY_LOOP>
-<IF DEFINED_PROPERTY_ENDPOINTS>
+<IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
 ;//
 ;// ----------------------------------------------------------------------------
 ;// Single property operations
@@ -434,7 +434,7 @@ paths:
             type: <IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>
 </PRIMARY_KEY>
 </FIELD_LOOP>
-</IF DEFINED_PROPERTY_ENDPOINTS>
+</IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
 </STRUCTURE_LOOP>
 ;//
 ;//----------------------------------------------------------------------------
