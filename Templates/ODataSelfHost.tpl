@@ -1,9 +1,12 @@
 <CODEGEN_FILENAME>SelfHost.dbl</CODEGEN_FILENAME>
 <REQUIRES_CODEGEN_VERSION>5.3.5</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>SERVICES_NAMESPACE</REQUIRES_USERTOKEN>
+<REQUIRES_USERTOKEN>SERVER_PROTOCOL</REQUIRES_USERTOKEN>
+<REQUIRES_USERTOKEN>SERVER_NAME</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVER_HTTP_PORT</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVER_HTTPS_PORT</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>UNIT_TESTS_NAMESPACE</REQUIRES_USERTOKEN>
+<REQUIRES_USERTOKEN>API_DOCS_PATH</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
 ;// Title:       ODataSelfHost.tpl
@@ -40,7 +43,7 @@
 ;;
 ;; Title:       SelfHost.dbl
 ;;
-;; Type:        Class
+;; Type:        Program
 ;;
 ;; Description: A program to self-host Harmony Core services
 ;;
@@ -90,37 +93,41 @@ import <NAMESPACE>
 main SelfHost
 
 proc
-	;;Configure the environment
-	UnitTestEnvironment.AssemblyInitialize(^null)
+    ;;Configure the environment
+    UnitTestEnvironment.AssemblyInitialize(^null)
 
-	;Leave this here for Jeff 
-	;data tester = new OrderTests()  
-	;tester.GetOrders_Expand_REL_TagCustomer() 
-	;tester.GetOrders_Expand_REL_TagVendor()
-	;tester.GetOrders_Expand_All()
-	;tester.GetCustomer()      
+    ;Leave this here for Jeff 
+    ;data tester = new OrderTests()  
+    ;tester.GetOrders_Expand_REL_TagCustomer() 
+    ;tester.GetOrders_Expand_REL_TagVendor()
+    ;tester.GetOrders_Expand_All()
+    ;tester.GetCustomer()      
 
-	Console.WriteLine("API documentation is available at /api-docs")
+<IF DEFINED_ENABLE_SWAGGER_DOCS>
+    Console.WriteLine("API documentation is available at <SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<API_DOCS_PATH>")
 
-	;;Start self-hosting (Kestrel)
-	data wwwroot = Path.Combine(AppContext.BaseDirectory, "wwwroot")
+    data wwwroot = Path.Combine(AppContext.BaseDirectory, "wwwroot")
 
-	;;Make sure the wwwroot folder is present
-	if (!Directory.Exists(wwwroot))
-		Directory.CreateDirectory(wwwroot)
+    ;;Make sure the wwwroot folder is present
+    if (!Directory.Exists(wwwroot))
+        Directory.CreateDirectory(wwwroot)
 
-	WebHost.CreateDefaultBuilder(new string[0])
-	&	.UseContentRoot(wwwroot)
-	&	.UseWebRoot(wwwroot)
-<IF DEFINED_IIS_SUPPORT>
-	&	.UseIISIntegration()
-</IF DEFINED_IIS_SUPPORT>
-	&	.UseStartup<Startup>()
-	&	.UseUrls("http://localhost:<SERVER_HTTP_PORT>", "https://localhost:<SERVER_HTTPS_PORT>")
-	&	.Build()
-	&	.Run()
+</IF DEFINED_ENABLE_SWAGGER_DOCS>
+    ;;Start self-hosting (Kestrel)
+    WebHost.CreateDefaultBuilder(new string[0])
+<IF DEFINED_ENABLE_SWAGGER_DOCS>
+    &    .UseContentRoot(wwwroot)
+    &    .UseWebRoot(wwwroot)
+</IF DEFINED_ENABLE_SWAGGER_DOCS>
+<IF DEFINED_ENABLE_IIS_SUPPORT>
+    &    .UseIISIntegration()
+</IF DEFINED_ENABLE_IIS_SUPPORT>
+    &    .UseStartup<Startup>()
+    &    .UseUrls("http://<SERVER_NAME>:<SERVER_HTTP_PORT>", "https://<SERVER_NAME>:<SERVER_HTTPS_PORT>")
+    &    .Build()
+    &    .Run()
 
-	;;Cleanup the environment
-	UnitTestEnvironment.AssemblyCleanup()
+    ;;Cleanup the environment
+    UnitTestEnvironment.AssemblyCleanup()
 
 endmain

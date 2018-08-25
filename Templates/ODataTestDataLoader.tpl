@@ -7,26 +7,26 @@ import <MODELS_NAMESPACE>
 
 namespace <NAMESPACE>
 
-	public static partial class <StructureNoplural>Loader
-	
-		public static method LoadFromFile, @List<<StructureNoplural>>
-		proc
-			data dataFile = "<FILE_NAME>"
-			data textFile = dataFile.ToLower().Replace(".ism",".txt")
-			data <structureNoplural>Ch, int, 0
-			data <structureNoplural>Rec, str<StructureNoplural>
-			data <structurePlural> = new List<<StructureNoplural>>()
-			open(<structureNoplural>Ch,i:s,textFile)
-			repeat
-			begin
-				reads(<structureNoplural>Ch,<structureNoplural>Rec,eof)
-				<structurePlural>.Add(new <StructureNoplural>(<structureNoplural>Rec))
-			end
-		eof,
-			close <structureNoplural>Ch
-			mreturn <structurePlural>
-		endmethod
+    public static partial class <StructureNoplural>Loader
+    
+        public static method LoadFromFile, @List<<StructureNoplural>>
+        proc
+            data dataFile = "<FILE_NAME>"
+            data textFile = dataFile.ToLower().Replace(".ism",".txt")
+            data <structureNoplural>Ch, int, 0
+            data <structureNoplural>Rec, str<StructureNoplural>
+            data <structurePlural> = new List<<StructureNoplural>>()
+            open(<structureNoplural>Ch,i:s,textFile)
+            repeat
+            begin
+                reads(<structureNoplural>Ch,<structureNoplural>Rec,eof)
+                <structurePlural>.Add(new <StructureNoplural>(<structureNoplural>Rec))
+            end
+        eof,
+            close <structureNoplural>Ch
+            mreturn <structurePlural>
+        endmethod
 
-	endclass
+    endclass
 
 endnamespace

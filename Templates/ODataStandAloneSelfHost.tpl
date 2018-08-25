@@ -1,14 +1,20 @@
-<CODEGEN_FILENAME>TestEnvironment.dbl</CODEGEN_FILENAME>
+<CODEGEN_FILENAME>SelfHost.dbl</CODEGEN_FILENAME>
 <REQUIRES_CODEGEN_VERSION>5.3.5</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>DATA_FOLDER</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
+<REQUIRES_USERTOKEN>API_DOCS_PATH</REQUIRES_USERTOKEN>
+<REQUIRES_USERTOKEN>SERVICES_NAMESPACE</REQUIRES_USERTOKEN>
+<REQUIRES_USERTOKEN>SERVER_PROTOCOL</REQUIRES_USERTOKEN>
+<REQUIRES_USERTOKEN>SERVER_NAME</REQUIRES_USERTOKEN>
+<REQUIRES_USERTOKEN>SERVER_HTTP_PORT</REQUIRES_USERTOKEN>
+<REQUIRES_USERTOKEN>SERVER_HTTPS_PORT</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
-;// Title:       ODataTestEnvironment.tpl
+;// Title:       ODataStandaloneSelfHost.tpl
 ;//
 ;// Type:        CodeGen Template
 ;//
-;// Description: Generates utilities for configuting a hosting environment.
+;// Description: Generates a program to self-host Harmony Core services
 ;//
 ;// Copyright (c) 2018, Synergex International, Inc. All rights reserved.
 ;//
@@ -36,11 +42,11 @@
 ;//
 ;;*****************************************************************************
 ;;
-;; Title:       TestEnvironment.dbl
+;; Title:       SelfHost.dbl
 ;;
-;; Type:        Class
+;; Type:        Program
 ;;
-;; Description: Utilities for configuting a hosting environment.
+;; Description: A program to self-host Harmony Core services
 ;;
 ;;*****************************************************************************
 ;; WARNING
@@ -77,34 +83,132 @@
 ;;
 ;;*****************************************************************************
 
+import Microsoft.AspNetCore
+import Microsoft.AspNetCore.Hosting
+import Microsoft.AspNetCore.TestHost
 import System.Collections.Generic
 import System.IO
 import System.Text
+import <SERVICES_NAMESPACE>
 import <MODELS_NAMESPACE>
-<IF DEFINED_ENABLE_CREATE_TEST_FILES>
-import <NAMESPACE>.DataGenerators
-</IF DEFINED_ENABLE_CREATE_TEST_FILES>
 
-.array 0
+main SelfHost
+
+proc
+    ;;Configure the environment
+    SelfHostEnvironment.Initialize()
+
+<IF DEFINED_ENABLE_SWAGGER_DOCS>
+    Console.WriteLine("API documentation is available at <SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<API_DOCS_PATH>")
+
+    data wwwroot = Path.Combine(AppContext.BaseDirectory, "wwwroot")
+
+    ;;Make sure the wwwroot folder is present
+    if (!Directory.Exists(wwwroot))
+        Directory.CreateDirectory(wwwroot)
+
+</IF DEFINED_ENABLE_SWAGGER_DOCS>
+    ;;Start self-hosting (Kestrel)
+    WebHost.CreateDefaultBuilder(new string[0])
+<IF DEFINED_ENABLE_SWAGGER_DOCS>
+    &    .UseContentRoot(wwwroot)
+    &    .UseWebRoot(wwwroot)
+</IF DEFINED_ENABLE_SWAGGER_DOCS>
+<IF DEFINED_ENABLE_IIS_SUPPORT>
+    &    .UseIISIntegration()
+</IF DEFINED_ENABLE_IIS_SUPPORT>
+    &    .UseStartup<Startup>()
+    &    .UseUrls("http://<SERVER_NAME>:<SERVER_HTTP_PORT>", "https://<SERVER_NAME>:<SERVER_HTTPS_PORT>")
+    &    .Build()
+    &    .Run()
+
+    ;;Cleanup the environment
+    SelfHostEnvironment.Cleanup()
+
+endmain
+
+.Array 0
 
 namespace <NAMESPACE>
 
-    public static class TestEnvironment
+    public static class SelfHostEnvironment
 
-        public static method Configure, void
+        public static Server, @TestServer
+<IF DEFINED_ENABLE_AUTHENTICATION>
+        public static AccessToken, string
+</IF DEFINED_ENABLE_AUTHENTICATION>
+
+        public static method Initialize, void
+
         proc
+            ;;Allows select to join when the keys in the file are not the same type as the keys in the code
+            data status, int
+            xcall setlog("SYNSEL_NUMALPHA_KEYS", 1, status) 
+
+            ;;Configure the test environment (set logicals, create files in a known state, etc.)
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)
             setLogicals()
 <IF DEFINED_ENABLE_CREATE_TEST_FILES>
             deleteFiles()
             createFiles()
 </IF DEFINED_ENABLE_CREATE_TEST_FILES>
+
+            ;;Define the content root and web root folders (so we can pick up the Swagger file for API documentation)
+            data wwwroot = Path.Combine(AppContext.BaseDirectory, "wwwroot")
+
+            if(string.IsNullOrEmpty(wwwroot) && Directory.Exists(wwwroot)) then
+            begin
+                ;;Create a TestServer to host the Web API services
+                Server = new TestServer(new WebHostBuilder().UseStartup<Startup>())
+            end
+            else
+            begin
+                ;;Create a TestServer to host the Web API services
+                Server = new TestServer(new WebHostBuilder().UseContentRoot(wwwroot).UseWebRoot(wwwroot).UseStartup<Startup>())
+            end
+
+            ;;Fake out HTTPS
+            Server.BaseAddress = new Uri("<SERVER_PROTOCOL>://<SERVER_NAME>")
+
+<IF DEFINED_ENABLE_AUTHENTICATION>
+            ;;Get the access token from the OAuth Server
+            data disco = DiscoveryClient.GetAsync("<OAUTH_SERVER>").GetAwaiter().GetResult()
+
+            if (disco.IsError) then
+            begin
+                throw new Exception("OAuth endpoint discovery failed. Error was: " + disco.Error)
+            end
+            else
+            begin
+                data tokenClient = new TokenClient(disco.TokenEndpoint, "<OAUTH_CLIENT>", "<OAUTH_SECRET>");
+                data tokenResponse = tokenClient.RequestResourceOwnerPasswordAsync("<OAUTH_TEST_USER>","<OAUTH_TEST_PASSWORD>","<OAUTH_API>").GetAwaiter().GetResult()
+
+                if (tokenResponse.IsError) then
+                begin
+                    ;;Failed to get an access token from the OAuth server
+                    throw new Exception(tokenResponse.Error);
+                end
+                else
+                begin
+                    ;;Now we have an access token that we can use to call our protected API
+                    AccessToken = tokenResponse.AccessToken
+                end
+            end
+
+</IF DEFINED_ENABLE_AUTHENTICATION>
         endmethod
 
         public static method Cleanup, void
+
         proc
+            ;;Clean up the test host
+            Server.Dispose()
+            Server = ^null
+
 <IF DEFINED_ENABLE_CREATE_TEST_FILES>
+            ;;Delete the data files
             deleteFiles()
+
 </IF DEFINED_ENABLE_CREATE_TEST_FILES>
         endmethod
 
@@ -141,7 +245,7 @@ namespace <NAMESPACE>
             data xdlFile, string
 
             <STRUCTURE_LOOP>
-            data <structurePlural> = <StructureNoplural>Loader.LoadFromFile()
+            data <structurePlural> = load<StructurePlural>()
             </STRUCTURE_LOOP>
 
             <STRUCTURE_LOOP>
@@ -176,11 +280,31 @@ namespace <NAMESPACE>
             </STRUCTURE_LOOP>
         endmethod
 
+        <STRUCTURE_LOOP>
+        public static method load<StructurePlural>, @List<<StructureNoplural>>
+        proc
+            data dataFile = "<FILE_NAME>"
+            data textFile = dataFile.ToLower().Replace(".ism",".txt")
+            data <structureNoplural>Ch, int, 0
+            data <structureNoplural>Rec, str<StructureNoplural>
+            data <structurePlural> = new List<<StructureNoplural>>()
+            open(<structureNoplural>Ch,i:s,textFile)
+            repeat
+            begin
+                reads(<structureNoplural>Ch,<structureNoplural>Rec,eof)
+                <structurePlural>.Add(new <StructureNoplural>(<structureNoplural>Rec))
+            end
+        eof,
+            close <structureNoplural>Ch
+            mreturn <structurePlural>
+        endmethod
+
+        </STRUCTURE_LOOP>
 </IF DEFINED_ENABLE_CREATE_TEST_FILES>
         private static method findRelativeFolderForAssembly, string
             folderName, string
         proc
-            data assemblyLocation = ^typeof(TestEnvironment).Assembly.Location
+            data assemblyLocation = ^typeof(SelfHostEnvironment).Assembly.Location
             data currentFolder = Path.GetDirectoryName(assemblyLocation)
             data rootPath = Path.GetPathRoot(currentFolder)
             while(currentFolder != rootPath)

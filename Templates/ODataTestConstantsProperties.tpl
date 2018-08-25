@@ -84,60 +84,60 @@ import System.Net.Http
 
 namespace <NAMESPACE>
 
-	public static partial class TestConstants
+    public static partial class TestConstants
 <STRUCTURE_LOOP>
 
-		;;------------------------------------------------------------
-		;;Test data for <StructureNoplural>
+        ;;------------------------------------------------------------
+        ;;Test data for <StructureNoplural>
 
-	<PRIMARY_KEY>
-		<SEGMENT_LOOP>
-		public static readwrite property Get<StructureNoplural>_<SegmentName>, <SEGMENT_CSTYPE>
-		</SEGMENT_LOOP>
-	</PRIMARY_KEY>
+    <PRIMARY_KEY>
+        <SEGMENT_LOOP>
+        public static readwrite property Get<StructureNoplural>_<SegmentName>, <SEGMENT_CSTYPE>
+        </SEGMENT_LOOP>
+    </PRIMARY_KEY>
 ;//
 ;//
 ;//
 <IF STRUCTURE_RELATIONS>
-	<RELATION_LOOP>
+    <RELATION_LOOP>
 
-		<PRIMARY_KEY>
-		<SEGMENT_LOOP>
-		public static readwrite property Get<StructureNoplural>_Expand_<IF MANY_TO_ONE_TO_MANY>REL_<RelationFromkey></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationFromkey></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY>_<SegmentName>, <SEGMENT_CSTYPE>
-		</SEGMENT_LOOP>
-		</PRIMARY_KEY>
-	</RELATION_LOOP>
+        <PRIMARY_KEY>
+        <SEGMENT_LOOP>
+        public static readwrite property Get<StructureNoplural>_Expand_<IF MANY_TO_ONE_TO_MANY>REL_<RelationFromkey></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationFromkey></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY>_<SegmentName>, <SEGMENT_CSTYPE>
+        </SEGMENT_LOOP>
+        </PRIMARY_KEY>
+    </RELATION_LOOP>
 </IF STRUCTURE_RELATIONS>
 ;//
 ;//
 ;//
-		<PRIMARY_KEY>
+        <PRIMARY_KEY>
 
-		<SEGMENT_LOOP>
-		public static readwrite property Get<StructureNoplural>_Expand_All_<SegmentName>, <SEGMENT_CSTYPE>
-		</SEGMENT_LOOP>
-		</PRIMARY_KEY>
+        <SEGMENT_LOOP>
+        public static readwrite property Get<StructureNoplural>_Expand_All_<SegmentName>, <SEGMENT_CSTYPE>
+        </SEGMENT_LOOP>
+        </PRIMARY_KEY>
 ;//
 ;//
 ;//
-	<ALTERNATE_KEY_LOOP>
-	
-		<SEGMENT_LOOP>
-		public static readwrite property Get<StructureNoplural>_ByAltKey_<KeyName>_<SegmentName>, <SEGMENT_CSTYPE>
-		</SEGMENT_LOOP>
-	</ALTERNATE_KEY_LOOP>
+    <ALTERNATE_KEY_LOOP>
+    
+        <SEGMENT_LOOP>
+        public static readwrite property Get<StructureNoplural>_ByAltKey_<KeyName>_<SegmentName>, <SEGMENT_CSTYPE>
+        </SEGMENT_LOOP>
+    </ALTERNATE_KEY_LOOP>
 ;//
 ;//
 ;//
-	<PRIMARY_KEY>
-		<SEGMENT_LOOP>
-		public static readwrite property Update<StructureNoplural>_<SegmentName>, <SEGMENT_CSTYPE>
-		</SEGMENT_LOOP>
-	</PRIMARY_KEY>
+    <PRIMARY_KEY>
+        <SEGMENT_LOOP>
+        public static readwrite property Update<StructureNoplural>_<SegmentName>, <SEGMENT_CSTYPE>
+        </SEGMENT_LOOP>
+    </PRIMARY_KEY>
 
 </STRUCTURE_LOOP>
 
 
-	endclass
+    endclass
 
 endnamespace

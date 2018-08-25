@@ -2,26 +2,26 @@
 import System.Collections
 import Synergex.SynergyDE.Select
 
-{xfMethod(name="GetAllPlants", interface="SampleXfplEnv", elb="sample_xfpl_env")}
-function get_all_plants, METHOD_STATUS
-	{xfParameter(name="Plants",collectionType=xfCollectType.STRUCTURE, structure="strPlant")}
-	required out aPlants, @ArrayList
+{xfMethod(name="GetAllItems", interface="SampleXfplEnv", elb="sample_xfpl_env")}
+function get_all_items, METHOD_STATUS
+	{xfParameter(name="Items",collectionType=xfCollectType.STRUCTURE, structure="strItem")}
+	required out aItems, @ArrayList
 	{xfParameter(name="ErrorMessage")}
 	required out aErrorMessage, a80
 	endparams
 
 	stack record
 		status, METHOD_STATUS
-		plant, strPlant
+		item, strItem
 	endrecord
 proc
 
-	aPlants = new ArrayList()
+	aItems = new ArrayList()
 
 	try
 	begin
-		foreach plant in new Select(new From("ICSTUT:plants.ism",plant))
-			aPlants.Add((@strPlant)plant)
+		foreach item in new Select(new From("ICSTUT:items.ism",item))
+			aItems.Add((@strItem)item)
 		status = METHOD_STATUS.SUCCESS
 		aErrorMessage = ""
 	end

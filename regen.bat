@@ -2,25 +2,24 @@
 pushd %~dp0
 setlocal
 rem ================================================================================================================================
-rem Configure optional Harmony Core capabilities
+rem Comment or uncomment the following lines to enable or disable optional features:
 
-rem Comment or uncomment the following lines to enable or disable optional capabilities as required:
-
-set DO_CREATE_TEST_FILES=-define CREATE_TEST_FILES
-rem set DO_AUTHENTICATION=-define AUTHENTICATION
-rem set DO_CASE_SENSITIVE_URL=-define CASE_SENSITIVE_URL
-rem set DO_ENABLE_CORS=-define ENABLE_CORS
-rem set DO_IIS_SUPPORT=-define IIS_SUPPORT
-set DO_ALLOW_ALTERNATE_KEYS=-define ALLOW_ALTERNATE_KEYS
-set DO_PROPERTY_ENDPOINTS=-define PROPERTY_ENDPOINTS
-set DO_ALLOW_PUT=-define ALLOW_PUT
-set DO_ALLOW_PATCH=-define ALLOW_PATCH
-set DO_ALLOW_DELETE=-define ALLOW_DELETE
+set ENABLE_CREATE_TEST_FILES=-define ENABLE_CREATE_TEST_FILES
+set ENABLE_SWAGGER_DOCS=-define ENABLE_SWAGGER_DOCS
+set ENABLE_ALTERNATE_KEYS=-define ENABLE_ALTERNATE_KEYS
+set ENABLE_PROPERTY_ENDPOINTS=-define ENABLE_PROPERTY_ENDPOINTS
+set ENABLE_PUT=-define ENABLE_PUT
+set ENABLE_PATCH=-define ENABLE_PATCH
+set ENABLE_DELETE=-define ENABLE_DELETE
+rem set ENABLE_AUTHENTICATION=-define ENABLE_AUTHENTICATION
+rem set ENABLE_CASE_SENSITIVE_URL=-define ENABLE_CASE_SENSITIVE_URL
+rem set ENABLE_CORS=-define ENABLE_CORS
+rem set ENABLE_IIS_SUPPORT=-define ENABLE_IIS_SUPPORT
 
 rem ================================================================================================================================
-rem Configure standard command line options and the VodeGen environment
+rem Configure standard command line options and the CodeGen environment
 
-set NOREPLACEOPTS=-e -lf -u UserDefinedTokens.tkn %DO_AUTHENTICATION% %DO_PROPERTY_ENDPOINTS% %DO_CASE_SENSITIVE_URL% %DO_CREATE_TEST_FILES% %DO_ENABLE_CORS% %DO_IIS_SUPPORT% %DO_ALLOW_DELETE% %DO_ALLOW_PUT% %DO_ALLOW_PATCH% %DO_ALLOW_ALTERNATE_KEYS%
+set NOREPLACEOPTS=-e -lf -u UserDefinedTokens.tkn %ENABLE_AUTHENTICATION% %ENABLE_PROPERTY_ENDPOINTS% %ENABLE_CASE_SENSITIVE_URL% %ENABLE_CREATE_TEST_FILES% %ENABLE_CORS% %ENABLE_IIS_SUPPORT% %ENABLE_DELETE% %ENABLE_PUT% %ENABLE_PATCH% %ENABLE_ALTERNATE_KEYS% %ENABLE_SWAGGER_DOCS%
 set STDOPTS=%NOREPLACEOPTS% -r
 set CODEGEN_TPLDIR=Templates
 
@@ -28,7 +27,7 @@ rem ============================================================================
 rem Generate a Web API / OData CRUD environment
 
 set PROJECT=SampleServices
-set STRUCTURES=CUSTOMERS ORDERS ORDER_ITEMS PLANTS VENDORS
+set STRUCTURES=CUSTOMERS ITEMS ORDERS ORDER_ITEMS VENDORS
 
 rem Generate model and metadata classes
 codegen -s %STRUCTURES% -t ODataModel -n %PROJECT%.Models -o %PROJECT%\Models %STDOPTS%
@@ -64,20 +63,25 @@ rem One time, not replaced!
 codegen -s %STRUCTURES% -ms -t ODataTestConstantsValues -n %PROJECT%.Test -o %PROJECT%.Test %NOREPLACEOPTS%
 if ERRORLEVEL 1 goto error
 
+rem ================================================================================================================================
+rem Generate documentation and external test environments
+
 rem Generate Postman Tests
 codegen -s %STRUCTURES% -ms -t ODataPostManTests -o .\ %STDOPTS%
 if ERRORLEVEL 1 goto error
 
 rem Generate a Swagger file
-codegen -s %STRUCTURES% -ms -t ODataSwaggerJson -o %PROJECT%\wwwroot %STDOPTS%
-if ERRORLEVEL 1 goto error
+if DEFINED ENABLE_SWAGGER_DOCS (
+  codegen -s %STRUCTURES% -ms -t ODataSwaggerYaml -o %PROJECT%\wwwroot %STDOPTS%
+  if ERRORLEVEL 1 goto error
+)
 
 rem ================================================================================================================================
 rem The test environment has slightly different requirements, because we need to generate code based on structures, but when tags
 rem are used to indicate that multiple structures are associated with a single ISAM file, we only need to generate from one of The
 rem structures associated with each file.
 
-set FILE_STRUCTURES=CUSTOMERS ORDERS ORDER_ITEMS PLANTS
+set FILE_STRUCTURES=CUSTOMERS ITEMS ORDERS ORDER_ITEMS
 
 rem Generate the test environment and unit test environment classes
 codegen -s %FILE_STRUCTURES% -ms -t ODataTestEnvironment ODataUnitTestEnvironment ODataSelfHost -n %PROJECT%.Test -o %PROJECT%.Test %STDOPTS%
@@ -90,6 +94,11 @@ if ERRORLEVEL 1 goto error
 rem Generate the data loader classes - one time, not replaced!
 codegen -s %FILE_STRUCTURES% -t ODataTestDataGenerator -n %PROJECT%.Test.DataGenerators -o %PROJECT%.Test\DataGenerators %NOREPLACEOPTS%
 if ERRORLEVEL 1 goto error
+
+rem ================================================================================================================================
+rem Generate code for a standalong self-hosting environment
+
+codegen -s %FILE_STRUCTURES% -ms -t ODataStandAloneSelfHost -n %PROJECT%.Host -o %PROJECT%.Host %STDOPTS%
 
 rem ================================================================================================================================
 rem Generate code for the TraditionalBridge sample environment
@@ -114,16 +123,15 @@ rem if ERRORLEVEL 1 goto error
 
 rem ================================================================================================================================
 rem Generate OData action return data models
-
-rem set CODEGEN_TPLDIR=Templates
-rem set CODEGEN_OUTDIR=SampleServices\Models
+rem 
+rem set CODEGEN_TPLDIR=Templates\TraditionalBridge
 rem set PROJECT=SampleServices.Models
 rem set SMC_INTERFACE=SampleXfplEnv
 rem set XFPL_SMCPATH=
-
-rem codegen -smc SampleXfplEnvironment\smc.xml -interface %SMC_INTERFACE% -t ODataActionModels -n %PROJECT% -e -r -lf
+rem 
+rem codegen -smc SampleXfplEnvironment\smc.xml -interface %SMC_INTERFACE% -t ODataActionModels -o SampleServices\Models -n %PROJECT% -e -r -lf
 rem if ERRORLEVEL 1 goto error
-
+rem 
 echo.
 echo DONE!
 echo.

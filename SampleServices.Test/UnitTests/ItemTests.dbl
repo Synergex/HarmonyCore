@@ -1,10 +1,10 @@
 ;;*****************************************************************************
 ;;
-;; Title:       CustomerTests.dbl
+;; Title:       ItemTests.dbl
 ;;
 ;; Type:        Class
 ;;
-;; Description: Unit tests for the operations defined in CustomersController.
+;; Description: Unit tests for the operations defined in ItemsController.
 ;;
 ;;*****************************************************************************
 ;; WARNING
@@ -52,44 +52,30 @@ import SampleServices.Test.Models
 namespace SampleServices.Test.UnitTests
 
     {TestClass}
-    public partial class CustomerTests
+    public partial class ItemTests
 
         ;;------------------------------------------------------------
-        ;;Get all Customers
+        ;;Get all Items
 
         {TestMethod}
-        {TestCategory("Customer Tests - Read All")}
-        public method GetCustomers, void
+        {TestCategory("Item Tests - Read All")}
+        public method GetItems, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/Customers").Result
+            disposable data response = client.GetAsync("/odata/Items").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get all Customers and expand relation REL_CustomerNumber
+        ;;Get all Items and expand relation REL_VendorNumber
 
         {TestMethod}
-        {TestCategory("Customer Tests - Read All")}
-        public method GetCustomers_Expand_REL_Orders, void
+        {TestCategory("Item Tests - Read All")}
+        public method GetItems_Expand_REL_VendorNumber, void
         proc
-            data uri = "/odata/Customers?$expand=REL_Orders"
-            disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync(uri).Result
-            data result = response.Content.ReadAsStringAsync().Result
-            response.EnsureSuccessStatusCode()
-        endmethod
-
-        ;;------------------------------------------------------------
-        ;;Get all Customers and expand relation REL_FavoriteItem
-
-        {TestMethod}
-        {TestCategory("Customer Tests - Read All")}
-        public method GetCustomers_Expand_REL_FavoriteItem, void
-        proc
-            data uri = "/odata/Customers?$expand=REL_FavoriteItem"
+            data uri = "/odata/Items?$expand=REL_VendorNumber"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync(uri).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -97,13 +83,27 @@ namespace SampleServices.Test.UnitTests
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get all Customers and expand all relations
+        ;;Get all Items and expand relation REL_ItemNumber
 
         {TestMethod}
-        {TestCategory("Customer Tests - Read All")}
-        public method GetCustomers_Expand_All, void
+        {TestCategory("Item Tests - Read All")}
+        public method GetItems_Expand_REL_OrderItems, void
         proc
-            data uri = "/odata/Customers?$expand=REL_Orders,REL_FavoriteItem"
+            data uri = "/odata/Items?$expand=REL_OrderItems"
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync(uri).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+        endmethod
+
+        ;;------------------------------------------------------------
+        ;;Get all Items and expand all relations
+
+        {TestMethod}
+        {TestCategory("Item Tests - Read All")}
+        public method GetItems_Expand_All, void
+        proc
+            data uri = "/odata/Items?$expand=REL_VendorNumber,REL_OrderItems"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync(uri).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -111,109 +111,154 @@ namespace SampleServices.Test.UnitTests
         endmethod
         
         ;;------------------------------------------------------------
-        ;;Get a single Customer by primary key
+        ;;Get a single Item by primary key
 
         {TestMethod}
-        {TestCategory("Customer Tests - Read by Primary Key")}
-        public method GetCustomer, void
+        {TestCategory("Item Tests - Read by Primary Key")}
+        public method GetItem, void
         proc
             data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/Customers(CustomerNumber={1})","",TestConstants.GetCustomer_CustomerNumber)
+            data request = String.Format("/odata/Items(ItemNumber={1})","",TestConstants.GetItem_ItemNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customer, @ODataCustomer, JsonConvert.DeserializeObject<ODataCustomer>(result)
+            data item, @ODataItem, JsonConvert.DeserializeObject<ODataItem>(result)
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get a single Customer by primary key and expand relation REL_Orders
+        ;;Get a single Item by primary key and expand relation REL_VendorNumber
 
 
         {TestMethod}
-        {TestCategory("Customer Tests - Read by Primary Key")}
-        public method GetCustomer_Expand_REL_Orders, void
+        {TestCategory("Item Tests - Read by Primary Key")}
+        public method GetItem_Expand_REL_VendorNumber, void
         proc
             data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/Customers(CustomerNumber={1})?$expand=REL_Orders","",TestConstants.GetCustomer_Expand_REL_Orders_CustomerNumber)
+            data request = String.Format("/odata/Items(ItemNumber={1})?$expand=REL_VendorNumber","",TestConstants.GetItem_Expand_REL_VendorNumber_ItemNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customer, @ODataCustomer, JsonConvert.DeserializeObject<ODataCustomer>(result)
+            data item, @ODataItem, JsonConvert.DeserializeObject<ODataItem>(result)
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get a single Customer by primary key and expand relation REL_FavoriteItem
+        ;;Get a single Item by primary key and expand relation REL_OrderItems
 
 
         {TestMethod}
-        {TestCategory("Customer Tests - Read by Primary Key")}
-        public method GetCustomer_Expand_REL_FavoriteItem, void
+        {TestCategory("Item Tests - Read by Primary Key")}
+        public method GetItem_Expand_REL_OrderItems, void
         proc
             data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/Customers(CustomerNumber={1})?$expand=REL_FavoriteItem","",TestConstants.GetCustomer_Expand_REL_FavoriteItem_CustomerNumber)
+            data request = String.Format("/odata/Items(ItemNumber={1})?$expand=REL_OrderItems","",TestConstants.GetItem_Expand_REL_OrderItems_ItemNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customer, @ODataCustomer, JsonConvert.DeserializeObject<ODataCustomer>(result)
+            data item, @ODataItem, JsonConvert.DeserializeObject<ODataItem>(result)
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get a single Customer by primary key and expand all relations
+        ;;Get a single Item by primary key and expand all relations
 
         {TestMethod}
-        {TestCategory("Customer Tests - Read by Primary Key")}
-        public method GetCustomer_Expand_All, void
+        {TestCategory("Item Tests - Read by Primary Key")}
+        public method GetItem_Expand_All, void
         proc
             data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/Customers(CustomerNumber={1})?$expand=REL_Orders,REL_FavoriteItem","",TestConstants.GetCustomer_Expand_All_CustomerNumber)
+            data request = String.Format("/odata/Items(ItemNumber={1})?$expand=REL_VendorNumber,REL_OrderItems","",TestConstants.GetItem_Expand_All_ItemNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customer, @ODataCustomer, JsonConvert.DeserializeObject<ODataCustomer>(result)
+            data item, @ODataItem, JsonConvert.DeserializeObject<ODataItem>(result)
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get a single Customer by alternate key 1 (TagCustomer)
+        ;;Get a single Item by alternate key 1 (VendorNumber)
 
         {TestMethod}
-        {TestCategory("Customer Tests - Read by Alternate Key")}
-        public method GetCustomer_ByAltKey_TagCustomer, void
+        {TestCategory("Item Tests - Read by Alternate Key")}
+        public method GetItem_ByAltKey_VendorNumber, void
         proc
             data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/Customers(RecordType={1},CustomerNumber={2})", "", TestConstants.GetCustomer_ByAltKey_TagCustomer_RecordType,TestConstants.GetCustomer_ByAltKey_TagCustomer_CustomerNumber)
+            data request = String.Format("/odata/Items(VendorNumber={1})", "", TestConstants.GetItem_ByAltKey_VendorNumber_VendorNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customer, @ODataCustomer,JsonConvert.DeserializeObject<ODataCustomer>(result)
+            data items, @ODataItems,JsonConvert.DeserializeObject<ODataItems>(result)
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Create new Customer (client specified key)
+        ;;Get a single Item by alternate key 2 (Color)
 
         {TestMethod}
-        {TestCategory("Customer Tests - Create, Update & Delete")}
-        public method UpdateCustomer, void
+        {TestCategory("Item Tests - Read by Alternate Key")}
+        public method GetItem_ByAltKey_Color, void
+        proc
+            data client = UnitTestEnvironment.Server.CreateClient()
+            data request = String.Format("/odata/Items(FlowerColor='{1}')", "", TestConstants.GetItem_ByAltKey_Color_FlowerColor)
+            data response = client.GetAsync(request).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data items, @ODataItems,JsonConvert.DeserializeObject<ODataItems>(result)
+        endmethod
+
+        ;;------------------------------------------------------------
+        ;;Get a single Item by alternate key 3 (Size)
+
+        {TestMethod}
+        {TestCategory("Item Tests - Read by Alternate Key")}
+        public method GetItem_ByAltKey_Size, void
+        proc
+            data client = UnitTestEnvironment.Server.CreateClient()
+            data request = String.Format("/odata/Items(Size={1})", "", TestConstants.GetItem_ByAltKey_Size_Size)
+            data response = client.GetAsync(request).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data items, @ODataItems,JsonConvert.DeserializeObject<ODataItems>(result)
+        endmethod
+
+        ;;------------------------------------------------------------
+        ;;Get a single Item by alternate key 4 (Name)
+
+        {TestMethod}
+        {TestCategory("Item Tests - Read by Alternate Key")}
+        public method GetItem_ByAltKey_Name, void
+        proc
+            data client = UnitTestEnvironment.Server.CreateClient()
+            data request = String.Format("/odata/Items(CommonName='{1}')", "", TestConstants.GetItem_ByAltKey_Name_CommonName)
+            data response = client.GetAsync(request).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data items, @ODataItems,JsonConvert.DeserializeObject<ODataItems>(result)
+        endmethod
+
+        ;;------------------------------------------------------------
+        ;;Create new Item (client specified key)
+
+        {TestMethod}
+        {TestCategory("Item Tests - Create, Update & Delete")}
+        public method UpdateItem, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
 
-            ;;Get one customer from the file
-            data getRequest = String.Format("/odata/Customers(CustomerNumber={1})","",TestConstants.GetCustomer_CustomerNumber)
+            ;;Get one item from the file
+            data getRequest = String.Format("/odata/Items(ItemNumber={1})","",TestConstants.GetItem_ItemNumber)
             data getResponse = client.GetAsync(getRequest).Result
             data getResult = getResponse.Content.ReadAsStringAsync().Result
 
             ;;Check that we got a successful response from the web service
             getResponse.EnsureSuccessStatusCode()
 
-            ;;Deserialize the JSON into a Customer object
-            data doCustomer, @Customer, JsonConvert.DeserializeObject<Customer>(getResult)
+            ;;Deserialize the JSON into a Item object
+            data doItem, @Item, JsonConvert.DeserializeObject<Item>(getResult)
 
-            doCustomer.CustomerNumber = TestConstants.UpdateCustomer_CustomerNumber
+            doItem.ItemNumber = TestConstants.UpdateItem_ItemNumber
 
             ;TODO: Also need to ensure any nodups alternate keys get unique values
 
             ;;Create new item
-            disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doCustomer),System.Text.Encoding.UTF8, "application/json")
-            data request = String.Format("/odata/Customers(CustomerNumber={1})","",TestConstants.UpdateCustomer_CustomerNumber)
+            disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doItem),System.Text.Encoding.UTF8, "application/json")
+            data request = String.Format("/odata/Items(ItemNumber={1})","",TestConstants.UpdateItem_ItemNumber)
             disposable data response = client.PutAsync(request, requestBody).Result
 
             ;;Check that we got a successful response from the web service
@@ -226,15 +271,15 @@ namespace SampleServices.Test.UnitTests
             ;;Check that we got a successful response from the web service
             getResponse.EnsureSuccessStatusCode()
 
-            ;;Deserialize the JSON into a Customer object
-            doCustomer = JsonConvert.DeserializeObject<Customer>(getResult)
+            ;;Deserialize the JSON into a Item object
+            doItem = JsonConvert.DeserializeObject<Item>(getResult)
 
             ;;Change the first non key field to test full update
-            doCustomer.Name = "Y"
+            doItem.LatinName = "Y"
 
             ;;Update full item
-            requestBody = new StringContent(JsonConvert.SerializeObject(doCustomer),System.Text.Encoding.UTF8, "application/json")
-            request = String.Format("/odata/Customers(CustomerNumber={1})","",TestConstants.UpdateCustomer_CustomerNumber)
+            requestBody = new StringContent(JsonConvert.SerializeObject(doItem),System.Text.Encoding.UTF8, "application/json")
+            request = String.Format("/odata/Items(ItemNumber={1})","",TestConstants.UpdateItem_ItemNumber)
             response = client.PutAsync(request, requestBody).Result
 
             ;;Check that we got a successful response from the web service
@@ -247,14 +292,14 @@ namespace SampleServices.Test.UnitTests
             ;;Check that we got a successful response from the web service
             getResponse.EnsureSuccessStatusCode()
 
-            ;;Deserialize the JSON into a Customer object
-            doCustomer = JsonConvert.DeserializeObject<Customer>(getResult)
+            ;;Deserialize the JSON into a Item object
+            doItem = JsonConvert.DeserializeObject<Item>(getResult)
 
-            Assert.AreEqual(doCustomer.Name, "Y")
+            Assert.AreEqual(doItem.LatinName, "Y")
 
-            ;;Update one property in the customer
+            ;;Update one property in the item
             data patchDoc = new JsonPatchDocument()
-            patchDoc.Replace("Name", "Z")
+            patchDoc.Replace("LatinName", "Z")
 
             ;;Serialize the patch to JSON
             data serializedPatch = JsonConvert.SerializeObject(patchDoc)
@@ -266,18 +311,18 @@ namespace SampleServices.Test.UnitTests
             ;;Check that we got a successful response from the web service
             patchResponse.EnsureSuccessStatusCode()
 
-            ;;Get the updated customer record
+            ;;Get the updated item record
             getResponse = client.GetAsync(request).Result
             getResult = getResponse.Content.ReadAsStringAsync().Result
 
             ;;Check that we got a successful response from the web service
             getResponse.EnsureSuccessStatusCode()
 
-            ;;Deserialize the JSON into a Customer object
-            doCustomer = JsonConvert.DeserializeObject<Customer>(getResult)
+            ;;Deserialize the JSON into a Item object
+            doItem = JsonConvert.DeserializeObject<Item>(getResult)
 
             ;;Verify that the property was changed
-            Assert.AreEqual(doCustomer.Name, "Z")
+            Assert.AreEqual(doItem.LatinName, "Z")
 
             ;;Delete It
             disposable data deleteResponse = client.DeleteAsync(request).Result

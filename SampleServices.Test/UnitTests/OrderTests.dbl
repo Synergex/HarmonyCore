@@ -51,276 +51,278 @@ import SampleServices.Test.Models
 
 namespace SampleServices.Test.UnitTests
 
-	{TestClass}
-	public partial class OrderTests
+    {TestClass}
+    public partial class OrderTests
 
-		;;------------------------------------------------------------
-		;;Get all Orders
+        ;;------------------------------------------------------------
+        ;;Get all Orders
 
-		{TestMethod}
-		{TestCategory("Order Tests - Read All")}
-		public method GetOrders, void
-		proc
-			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync("/odata/Orders").Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data orders, @ODataOrders, JsonConvert.DeserializeObject<ODataOrders>(result)
-		endmethod
+        {TestMethod}
+        {TestCategory("Order Tests - Read All")}
+        public method GetOrders, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/Orders").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data orders, @ODataOrders, JsonConvert.DeserializeObject<ODataOrders>(result)
+        endmethod
 
-		;;------------------------------------------------------------
-		;;Get all Orders and expand relation REL_OrNumber
+        ;;------------------------------------------------------------
+        ;;Get all Orders and expand relation REL_OrderNumber
 
-		{TestMethod}
-		{TestCategory("Order Tests - Read All")}
-		public method GetOrders_Expand_REL_OrderItems, void
-		proc
-			data uri = "/odata/Orders?$expand=REL_OrderItems"
-			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync(uri).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-		endmethod
+        {TestMethod}
+        {TestCategory("Order Tests - Read All")}
+        public method GetOrders_Expand_REL_OrderItems, void
+        proc
+            data uri = "/odata/Orders?$expand=REL_OrderItems"
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync(uri).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+        endmethod
 
-		;;------------------------------------------------------------
-		;;Get all Orders and expand relation REL_OrCustomer
+        ;;------------------------------------------------------------
+        ;;Get all Orders and expand relation REL_CustomerNumber
 
-		{TestMethod}
-		{TestCategory("Order Tests - Read All")}
-		public method GetOrders_Expand_REL_OrCustomer, void
-		proc
-			data uri = "/odata/Orders?$expand=REL_OrCustomer"
-			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync(uri).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-		endmethod
+        {TestMethod}
+        {TestCategory("Order Tests - Read All")}
+        public method GetOrders_Expand_REL_CustomerNumber, void
+        proc
+            data uri = "/odata/Orders?$expand=REL_CustomerNumber"
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync(uri).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+        endmethod
 
-		;;------------------------------------------------------------
-		;;Get all Orders and expand all relations
+        ;;------------------------------------------------------------
+        ;;Get all Orders and expand all relations
 
-		{TestMethod}
-		{TestCategory("Order Tests - Read All")}
-		public method GetOrders_Expand_All, void
-		proc
-			data uri = "/odata/Orders?$expand=REL_OrderItems,REL_OrCustomer"
-			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync(uri).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-		endmethod
-		
-		;;------------------------------------------------------------
-		;;Get a single Order by primary key
+        {TestMethod}
+        {TestCategory("Order Tests - Read All")}
+        public method GetOrders_Expand_All, void
+        proc
+            data uri = "/odata/Orders?$expand=REL_OrderItems,REL_CustomerNumber"
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync(uri).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+        endmethod
+        
+        ;;------------------------------------------------------------
+        ;;Get a single Order by primary key
 
-		{TestMethod}
-		{TestCategory("Order Tests - Read by Primary Key")}
-		public method GetOrder, void
-		proc
-			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Orders(OrNumber={1})","",TestConstants.GetOrder_OrNumber)
-			data response = client.GetAsync(request).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data order, @ODataOrder, JsonConvert.DeserializeObject<ODataOrder>(result)
-		endmethod
+        {TestMethod}
+        {TestCategory("Order Tests - Read by Primary Key")}
+        public method GetOrder, void
+        proc
+            data client = UnitTestEnvironment.Server.CreateClient()
+            data request = String.Format("/odata/Orders(OrderNumber={1})","",TestConstants.GetOrder_OrderNumber)
+            data response = client.GetAsync(request).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data order, @ODataOrder, JsonConvert.DeserializeObject<ODataOrder>(result)
+        endmethod
 
-		;;------------------------------------------------------------
-		;;Get a single Order by primary key and expand relation REL_OrderItems
+        ;;------------------------------------------------------------
+        ;;Get a single Order by primary key and expand relation REL_OrderItems
 
-		{TestMethod}
-		{TestCategory("Order Tests - Read by Primary Key")}
-		public method GetOrder_Expand_REL_OrderItems, void
-		proc
-			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Orders(OrNumber={1})?$expand=REL_OrderItems","",TestConstants.GetOrder_Expand_REL_OrderItems_OrNumber)
-			data response = client.GetAsync(request).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data order, @ODataOrder, JsonConvert.DeserializeObject<ODataOrder>(result)
-		endmethod
 
-		;;------------------------------------------------------------
-		;;Get a single Order by primary key and expand relation REL_OrCustomer
+        {TestMethod}
+        {TestCategory("Order Tests - Read by Primary Key")}
+        public method GetOrder_Expand_REL_OrderItems, void
+        proc
+            data client = UnitTestEnvironment.Server.CreateClient()
+            data request = String.Format("/odata/Orders(OrderNumber={1})?$expand=REL_OrderItems","",TestConstants.GetOrder_Expand_REL_OrderItems_OrderNumber)
+            data response = client.GetAsync(request).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data order, @ODataOrder, JsonConvert.DeserializeObject<ODataOrder>(result)
+        endmethod
 
-		{TestMethod}
-		{TestCategory("Order Tests - Read by Primary Key")}
-		public method GetOrder_Expand_REL_OrCustomer, void
-		proc
-			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Orders(OrNumber={1})?$expand=REL_OrCustomer","",TestConstants.GetOrder_Expand_REL_OrCustomer_OrNumber)
-			data response = client.GetAsync(request).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data order, @ODataOrder, JsonConvert.DeserializeObject<ODataOrder>(result)
-		endmethod
+        ;;------------------------------------------------------------
+        ;;Get a single Order by primary key and expand relation REL_CustomerNumber
 
-		;;------------------------------------------------------------
-		;;Get a single Order by primary key and expand all relations
 
-		{TestMethod}
-		{TestCategory("Order Tests - Read by Primary Key")}
-		public method GetOrder_Expand_All, void
-		proc
-			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Orders(OrNumber={1})?$expand=REL_OrderItems,REL_OrCustomer","",TestConstants.GetOrder_Expand_All_OrNumber)
-			data response = client.GetAsync(request).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data order, @ODataOrder, JsonConvert.DeserializeObject<ODataOrder>(result)
-		endmethod
+        {TestMethod}
+        {TestCategory("Order Tests - Read by Primary Key")}
+        public method GetOrder_Expand_REL_CustomerNumber, void
+        proc
+            data client = UnitTestEnvironment.Server.CreateClient()
+            data request = String.Format("/odata/Orders(OrderNumber={1})?$expand=REL_CustomerNumber","",TestConstants.GetOrder_Expand_REL_CustomerNumber_OrderNumber)
+            data response = client.GetAsync(request).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data order, @ODataOrder, JsonConvert.DeserializeObject<ODataOrder>(result)
+        endmethod
 
-		;;------------------------------------------------------------
-		;;Get a single Order by alternate key 1 (OrCustomer)
+        ;;------------------------------------------------------------
+        ;;Get a single Order by primary key and expand all relations
 
-		{TestMethod}
-		{TestCategory("Order Tests - Read by Alternate Key")}
-		public method GetOrder_ByAltKey_OrCustomer, void
-		proc
-			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Orders(OrCustomer={1})", "", TestConstants.GetOrder_ByAltKey_OrCustomer_OrCustomer)
-			data response = client.GetAsync(request).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data orders, @ODataOrders,JsonConvert.DeserializeObject<ODataOrders>(result)
-		endmethod
+        {TestMethod}
+        {TestCategory("Order Tests - Read by Primary Key")}
+        public method GetOrder_Expand_All, void
+        proc
+            data client = UnitTestEnvironment.Server.CreateClient()
+            data request = String.Format("/odata/Orders(OrderNumber={1})?$expand=REL_OrderItems,REL_CustomerNumber","",TestConstants.GetOrder_Expand_All_OrderNumber)
+            data response = client.GetAsync(request).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data order, @ODataOrder, JsonConvert.DeserializeObject<ODataOrder>(result)
+        endmethod
 
-		;;------------------------------------------------------------
-		;;Get a single Order by alternate key 2 (OrOrdered)
+        ;;------------------------------------------------------------
+        ;;Get a single Order by alternate key 1 (CustomerNumber)
 
-		{TestMethod}
-		{TestCategory("Order Tests - Read by Alternate Key")}
-		public method GetOrder_ByAltKey_OrOrdered, void
-		proc
-			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Orders(OrOrdered={1})", "", TestConstants.GetOrder_ByAltKey_OrOrdered_OrOrdered)
-			data response = client.GetAsync(request).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data orders, @ODataOrders,JsonConvert.DeserializeObject<ODataOrders>(result)
-		endmethod
+        {TestMethod}
+        {TestCategory("Order Tests - Read by Alternate Key")}
+        public method GetOrder_ByAltKey_CustomerNumber, void
+        proc
+            data client = UnitTestEnvironment.Server.CreateClient()
+            data request = String.Format("/odata/Orders(CustomerNumber={1})", "", TestConstants.GetOrder_ByAltKey_CustomerNumber_CustomerNumber)
+            data response = client.GetAsync(request).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data orders, @ODataOrders,JsonConvert.DeserializeObject<ODataOrders>(result)
+        endmethod
 
-		;;------------------------------------------------------------
-		;;Get a single Order by alternate key 3 (OrCompleted)
+        ;;------------------------------------------------------------
+        ;;Get a single Order by alternate key 2 (DateOrdered)
 
-		{TestMethod}
-		{TestCategory("Order Tests - Read by Alternate Key")}
-		public method GetOrder_ByAltKey_OrCompleted, void
-		proc
-			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Orders(OrCompleted={1})", "", TestConstants.GetOrder_ByAltKey_OrCompleted_OrCompleted)
-			data response = client.GetAsync(request).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data orders, @ODataOrders,JsonConvert.DeserializeObject<ODataOrders>(result)
-		endmethod
+        {TestMethod}
+        {TestCategory("Order Tests - Read by Alternate Key")}
+        public method GetOrder_ByAltKey_DateOrdered, void
+        proc
+            data client = UnitTestEnvironment.Server.CreateClient()
+            data request = String.Format("/odata/Orders(DateOrdered={1})", "", TestConstants.GetOrder_ByAltKey_DateOrdered_DateOrdered)
+            data response = client.GetAsync(request).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data orders, @ODataOrders,JsonConvert.DeserializeObject<ODataOrders>(result)
+        endmethod
 
-		;;------------------------------------------------------------
-		;;Create new Order (client specified key)
+        ;;------------------------------------------------------------
+        ;;Get a single Order by alternate key 3 (DateCompleted)
 
-		{TestMethod}
-		{TestCategory("Order Tests - Create, Update & Delete")}
-		public method UpdateOrder, void
-		proc
-			disposable data client = UnitTestEnvironment.Server.CreateClient()
+        {TestMethod}
+        {TestCategory("Order Tests - Read by Alternate Key")}
+        public method GetOrder_ByAltKey_DateCompleted, void
+        proc
+            data client = UnitTestEnvironment.Server.CreateClient()
+            data request = String.Format("/odata/Orders(DateCompleted={1})", "", TestConstants.GetOrder_ByAltKey_DateCompleted_DateCompleted)
+            data response = client.GetAsync(request).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data orders, @ODataOrders,JsonConvert.DeserializeObject<ODataOrders>(result)
+        endmethod
 
-			;;Get one order from the file
-			data getRequest = String.Format("/odata/Orders(OrNumber={1})","",TestConstants.GetOrder_OrNumber)
-			data getResponse = client.GetAsync(getRequest).Result
-			data getResult = getResponse.Content.ReadAsStringAsync().Result
+        ;;------------------------------------------------------------
+        ;;Create new Order (client specified key)
 
-			;;Check that we got a successful response from the web service
-			getResponse.EnsureSuccessStatusCode()
+        {TestMethod}
+        {TestCategory("Order Tests - Create, Update & Delete")}
+        public method UpdateOrder, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
 
-			;;Deserialize the JSON into a Order object
-			data doOrder, @Order, JsonConvert.DeserializeObject<Order>(getResult)
+            ;;Get one order from the file
+            data getRequest = String.Format("/odata/Orders(OrderNumber={1})","",TestConstants.GetOrder_OrderNumber)
+            data getResponse = client.GetAsync(getRequest).Result
+            data getResult = getResponse.Content.ReadAsStringAsync().Result
 
-			doOrder.OrNumber = TestConstants.UpdateOrder_OrNumber
+            ;;Check that we got a successful response from the web service
+            getResponse.EnsureSuccessStatusCode()
 
-			;TODO: Also need to ensure any nodups alternate keys get unique values
+            ;;Deserialize the JSON into a Order object
+            data doOrder, @Order, JsonConvert.DeserializeObject<Order>(getResult)
 
-			;;Create new item
-			disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doOrder),System.Text.Encoding.UTF8, "application/json")
-			data request = String.Format("/odata/Orders(OrNumber={1})","",TestConstants.UpdateOrder_OrNumber)
-			disposable data response = client.PutAsync(request, requestBody).Result
+            doOrder.OrderNumber = TestConstants.UpdateOrder_OrderNumber
 
-			;;Check that we got a successful response from the web service
-			response.EnsureSuccessStatusCode()
+            ;TODO: Also need to ensure any nodups alternate keys get unique values
 
-			;;Get the inserted record
-			getResponse = client.GetAsync(request).Result
-			getResult = getResponse.Content.ReadAsStringAsync().Result
+            ;;Create new item
+            disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doOrder),System.Text.Encoding.UTF8, "application/json")
+            data request = String.Format("/odata/Orders(OrderNumber={1})","",TestConstants.UpdateOrder_OrderNumber)
+            disposable data response = client.PutAsync(request, requestBody).Result
 
-			;;Check that we got a successful response from the web service
-			getResponse.EnsureSuccessStatusCode()
+            ;;Check that we got a successful response from the web service
+            response.EnsureSuccessStatusCode()
 
-			;;Deserialize the JSON into a Order object
-			doOrder = JsonConvert.DeserializeObject<Order>(getResult)
+            ;;Get the inserted record
+            getResponse = client.GetAsync(request).Result
+            getResult = getResponse.Content.ReadAsStringAsync().Result
 
-			;;Change the first non key field to test full update
-			doOrder.OrPlacedBy = "Y"
+            ;;Check that we got a successful response from the web service
+            getResponse.EnsureSuccessStatusCode()
 
-			;;Update full item
-			requestBody = new StringContent(JsonConvert.SerializeObject(doOrder),System.Text.Encoding.UTF8, "application/json")
-			request = String.Format("/odata/Orders(OrNumber={1})","",TestConstants.UpdateOrder_OrNumber)
-			response = client.PutAsync(request, requestBody).Result
+            ;;Deserialize the JSON into a Order object
+            doOrder = JsonConvert.DeserializeObject<Order>(getResult)
 
-			;;Check that we got a successful response from the web service
-			response.EnsureSuccessStatusCode()
+            ;;Change the first non key field to test full update
+            doOrder.PlacedBy = "Y"
 
-			;;Get the inserted record
-			getResponse = client.GetAsync(request).Result
-			getResult = getResponse.Content.ReadAsStringAsync().Result
+            ;;Update full item
+            requestBody = new StringContent(JsonConvert.SerializeObject(doOrder),System.Text.Encoding.UTF8, "application/json")
+            request = String.Format("/odata/Orders(OrderNumber={1})","",TestConstants.UpdateOrder_OrderNumber)
+            response = client.PutAsync(request, requestBody).Result
 
-			;;Check that we got a successful response from the web service
-			getResponse.EnsureSuccessStatusCode()
+            ;;Check that we got a successful response from the web service
+            response.EnsureSuccessStatusCode()
 
-			;;Deserialize the JSON into a Order object
-			doOrder = JsonConvert.DeserializeObject<Order>(getResult)
+            ;;Get the inserted record
+            getResponse = client.GetAsync(request).Result
+            getResult = getResponse.Content.ReadAsStringAsync().Result
 
-			Assert.AreEqual(doOrder.OrPlacedBy, "Y")
+            ;;Check that we got a successful response from the web service
+            getResponse.EnsureSuccessStatusCode()
 
-			;;Update one property in the order
-			data patchDoc = new JsonPatchDocument()
-			patchDoc.Replace("OrPlacedBy", "Z")
+            ;;Deserialize the JSON into a Order object
+            doOrder = JsonConvert.DeserializeObject<Order>(getResult)
 
-			;;Serialize the patch to JSON
-			data serializedPatch = JsonConvert.SerializeObject(patchDoc)
+            Assert.AreEqual(doOrder.PlacedBy, "Y")
 
-			;;Apply the patch
-			disposable data patchRequestBody = new StringContent(serializedPatch,System.Text.Encoding.UTF8, "application/json-patch+json")
-			disposable data patchResponse = client.PatchAsync(request, patchRequestBody).Result
+            ;;Update one property in the order
+            data patchDoc = new JsonPatchDocument()
+            patchDoc.Replace("PlacedBy", "Z")
 
-			;;Check that we got a successful response from the web service
-			patchResponse.EnsureSuccessStatusCode()
+            ;;Serialize the patch to JSON
+            data serializedPatch = JsonConvert.SerializeObject(patchDoc)
 
-			;;Get the updated order record
-			getResponse = client.GetAsync(request).Result
-			getResult = getResponse.Content.ReadAsStringAsync().Result
+            ;;Apply the patch
+            disposable data patchRequestBody = new StringContent(serializedPatch,System.Text.Encoding.UTF8, "application/json-patch+json")
+            disposable data patchResponse = client.PatchAsync(request, patchRequestBody).Result
 
-			;;Check that we got a successful response from the web service
-			getResponse.EnsureSuccessStatusCode()
+            ;;Check that we got a successful response from the web service
+            patchResponse.EnsureSuccessStatusCode()
 
-			;;Deserialize the JSON into a Order object
-			doOrder = JsonConvert.DeserializeObject<Order>(getResult)
+            ;;Get the updated order record
+            getResponse = client.GetAsync(request).Result
+            getResult = getResponse.Content.ReadAsStringAsync().Result
 
-			;;Verify that the property was changed
-			Assert.AreEqual(doOrder.OrPlacedBy, "Z")
+            ;;Check that we got a successful response from the web service
+            getResponse.EnsureSuccessStatusCode()
 
-			;;Delete It
-			disposable data deleteResponse = client.DeleteAsync(request).Result
+            ;;Deserialize the JSON into a Order object
+            doOrder = JsonConvert.DeserializeObject<Order>(getResult)
 
-			;;Check that we got a successful response from the web service
-			getResponse.EnsureSuccessStatusCode()
+            ;;Verify that the property was changed
+            Assert.AreEqual(doOrder.PlacedBy, "Z")
 
-			;;Attempt to get the deleted record
-			getResponse = client.GetAsync(request).Result
+            ;;Delete It
+            disposable data deleteResponse = client.DeleteAsync(request).Result
 
-			;;Check we got a fail state from the web service
-			Assert.AreEqual(getResponse.IsSuccessStatusCode, false)
+            ;;Check that we got a successful response from the web service
+            getResponse.EnsureSuccessStatusCode()
 
-		endmethod
+            ;;Attempt to get the deleted record
+            getResponse = client.GetAsync(request).Result
 
-	endclass
+            ;;Check we got a fail state from the web service
+            Assert.AreEqual(getResponse.IsSuccessStatusCode, false)
+
+        endmethod
+
+    endclass
 
 endnamespace

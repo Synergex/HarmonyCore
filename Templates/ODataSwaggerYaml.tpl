@@ -46,14 +46,16 @@ tags:
   - name: <StructureNoplural>Properties
     description: Operations related to individual properties of <STRUCTURE_DESC>
 </STRUCTURE_LOOP>
+  - name: Count
+    description: All count operations
   - name: Create
-    description: Create operations
+    description: All create operations
   - name: Read
-    description: Read operations
+    description: All read operations
   - name: Update
-    description: Update operations
+    description: All update operations
   - name: Delete
-    description: Delete operations
+    description: All delete operations
 ;//
 ;//----------------------------------------------------------------------------
 ;//
@@ -115,7 +117,7 @@ paths:
       deprecated: false
       tags:
         - <StructureNoplural>
-        - Read
+        - Count
       parameters:
         - name: $filter
           in: query
@@ -132,7 +134,7 @@ paths:
 ;// Primary key operations
 ;//
 <PRIMARY_KEY>
-  '/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{a<SegmentName>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)':
+  '/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF ALPHA>''</IF ALPHA>{a<SegmentName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP>)':
 ;//
 ;// ----------------------------------------------------------------------------
 ;// Get via primary key
@@ -171,12 +173,12 @@ paths:
         '200':
           description: OK
           schema:
-            type: object
             $ref: '#/definitions/<StructureNoplural>'
 ;//
 ;// ----------------------------------------------------------------------------
 ;// Delete via primary key
 ;//
+<IF DEFINED_ENABLE_DELETE>
     delete:
       summary: Delete <structureNoplural>
       description: Delete a <structureNoplural> via a complete primary key.
@@ -186,26 +188,28 @@ paths:
         - <StructureNoplural>
         - Delete
       parameters:
-<SEGMENT_LOOP>
+        <SEGMENT_LOOP>
         - name: a<SegmentName>
           in: path
           description: <SEGMENT_DESC>
           required: true
           type: <IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>
-<IF DATE>
+          <IF DATE>
           format: date-time
-</IF DATE>
-<IF TIME>
+          </IF DATE>
+          <IF TIME>
           format: date-time
-</IF TIME>
-</SEGMENT_LOOP>
+          </IF TIME>
+        </SEGMENT_LOOP>
       responses:
         '204':
           description: OK
+</IF DEFINED_ENABLE_DELETE>
 ;//
 ;// ----------------------------------------------------------------------------
 ;// Create or update via primary key
 ;//
+<IF DEFINED_ENABLE_PUT>
     put:
       summary: Create or update <structureNoplural>
       description: Create or update a <structureNoplural> via a complete primary key.
@@ -234,15 +238,16 @@ paths:
           description: Data for <structureNoplural> to create or update.
           required: true
           schema:
-            type: object
             $ref: '#/definitions/<StructureNoplural>'
       responses:
         '204':
           description: OK
+</IF DEFINED_ENABLE_PUT>
 ;//
 ;// ----------------------------------------------------------------------------
 ;// Patch via primary key
 ;//
+<IF DEFINED_ENABLE_PATCH>
     patch:
       summary: Patch <structureNoplural>
       description: Patch a <structureNoplural> via complete primary key.
@@ -270,19 +275,20 @@ paths:
           description: Data for <structureNoplural> to create or update.
           required: true
           schema:
-            type: object
             $ref: '#/definitions/<StructureNoplural>'
       responses:
         '204':
           description: OK
+</IF DEFINED_ENABLE_PUT>
 </PRIMARY_KEY>
 ;//
 ;//----------------------------------------------------------------------------
 ;//
 ;// Alternate key operations
 ;//
+<IF DEFINED_ENABLE_ALTERNATE_KEYS>
 <ALTERNATE_KEY_LOOP>
-  '/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{a<SegmentName>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)':
+  '/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF ALPHA>''</IF ALPHA>{a<SegmentName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP>)':
 ;//
 ;// ----------------------------------------------------------------------------
 ;// Get via alternate key
@@ -303,18 +309,18 @@ paths:
         - Read
       parameters:
 <SEGMENT_LOOP>
-        - name: <SegmentName>
+        - name: a<SegmentName>
           in: path
           description: <SEGMENT_DESC>
           required: true
           type: <IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>
-<<IF DATE>
+<IF DATE>
           format: date-time
 </IF DATE>
 <IF TIME>
           format: date-time
 </IF TIME>
-/SEGMENT_LOOP>
+</SEGMENT_LOOP>
         - name: $expand
           in: query
           description: Expand one or more navigation properties.
@@ -350,7 +356,6 @@ paths:
             items:
               $ref: '#/definitions/<StructureNoplural>'
   <ELSE>
-            type: object
             $ref: '#/definitions/<StructureNoplural>'
   </IF DUPLICATES>
 ;//
@@ -358,7 +363,7 @@ paths:
 ;// Get count via alternate key
 ;//
   <IF DUPLICATES>
-  '/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{a<SegmentName>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)/$count':
+  '/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF ALPHA>''</IF ALPHA>{a<SegmentName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP>)/$count':
     get:
       summary: Count <structurePlural>
       description: Count <structurePlural> via complete alternate key <KeyName>.
@@ -366,7 +371,7 @@ paths:
       deprecated: false
       tags:
         - <StructureNoplural>
-        - Read
+        - Count
       parameters:
 <SEGMENT_LOOP>
         - name: a<SegmentName>
@@ -383,7 +388,7 @@ paths:
 </SEGMENT_LOOP>
         - name: $filter
           in: query
-          description: "Filter expression to restrict returned rows.
+          description: Filter expression to restrict returned rows.
           type: string
       responses:
         '200':
@@ -392,15 +397,19 @@ paths:
             type: integer
 </IF DUPLICATES>
 </ALTERNATE_KEY_LOOP>
-<IF DEFINED_PROPERTY_ENDPOINTS>
+</IF DEFINED_ENABLE_ALTERNATE_KEYS>
+<IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
 ;//
 ;// ----------------------------------------------------------------------------
 ;// Single property operations
 ;//
 <FIELD_LOOP>
+<IF NOTPKSEGMENT>
 <PRIMARY_KEY>
-
-  '/<StructurePlural>(<IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{a<SegmentName>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP></IF SINGLE_SEGMENT>)/<FieldSqlName>':
+;//
+;// Invividual property
+;//
+  '/<StructurePlural>(<IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><SegmentName>=<IF ALPHA>''</IF ALPHA>{a<SegmentName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></IF SINGLE_SEGMENT>)/<FieldSqlName>':
     get:
       summary: Get <structureNoplural> property <FieldSqlName>
       description: Get <structureNoplural> property <FieldSqlName> via complete primary key.
@@ -410,37 +419,74 @@ paths:
         - <StructureNoplural>Properties
         - Read
       parameters:
-<SEGMENT_LOOP>
-<IF SINGLE_SEGMENT>
+        <SEGMENT_LOOP>
+        <IF SINGLE_SEGMENT>
         - name: key
-<ELSE>
+        <ELSE>
         - name: a<SegmentName>
-</IF SINGLE_SEGMENT>
+        </IF SINGLE_SEGMENT>
           in: path
           description: <SEGMENT_DESC>
           required: true
           type: <IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>
-<IF DATE>
+          <IF DATE>
           format: date-time
-</IF DATE>
-<IF TIME>
+          </IF DATE>
+          <IF TIME>
           format: date-time
-</IF TIME>
-</SEGMENT_LOOP>
+          </IF TIME>
+          </SEGMENT_LOOP>
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: <IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>
+;//
+;// Invividual property - value only
+;//
+  '/<StructurePlural>(<IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><SegmentName>=<IF ALPHA>''</IF ALPHA>{a<SegmentName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></IF SINGLE_SEGMENT>)/<FieldSqlName>/$value':
+    get:
+      summary: Get <structureNoplural> property <FieldSqlName>
+      description: Get <structureNoplural> property <FieldSqlName> via complete primary key, returning the raw value.
+      operationId: <StructureNoplural><FieldSqlName>value
+      deprecated: false
+      tags:
+        - <StructureNoplural>Properties
+        - Read
+      parameters:
+        <SEGMENT_LOOP>
+        <IF SINGLE_SEGMENT>
+        - name: key
+        <ELSE>
+        - name: a<SegmentName>
+        </IF SINGLE_SEGMENT>
+          in: path
+          description: <SEGMENT_DESC>
+          required: true
+          type: <IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>
+          <IF DATE>
+          format: date-time
+          </IF DATE>
+          <IF TIME>
+          format: date-time
+          </IF TIME>
+          </SEGMENT_LOOP>
       responses:
         '200':
           description: OK
           schema:
             type: <IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>
 </PRIMARY_KEY>
+</IF NOTPKSEGMENT>
 </FIELD_LOOP>
-</IF DEFINED_PROPERTY_ENDPOINTS>
+</IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
 </STRUCTURE_LOOP>
 ;//
 ;//----------------------------------------------------------------------------
 ;//
-;// Configure an authentication server (Needs more work before implementation)Alternate key operations
+;// Configure an authentication server (Needs more work before implementation)
 ;//
+;//<IF DEFINED_ENABLE_AUTHENTICATION>
 ;//securityDefinitions": {
 ;//  oauth2schema:
 ;//    type: oauth2
@@ -448,7 +494,7 @@ paths:
 ;//    flow: application
 ;//    scopes:
 ;//      global: global
-;//
+;//</IF DEFINED_ENABLE_AUTHENTICATION>
 ;//----------------------------------------------------------------------------
 ;//
 ;// Definitions of data models 
@@ -464,60 +510,60 @@ definitions:
 </PRIMARY_KEY>
     properties:
 <FIELD_LOOP>
-<IF CUSTOM_NOT_HARMONY_EXCLUDE>
+    <IF CUSTOM_NOT_HARMONY_EXCLUDE>
       <FieldSqlname>:
- <IF ALPHA>
+        <IF ALPHA>
         type: string
         example: <FIELD_SAMPLE_DATA>
         description: <FIELD_DESC>
-</IF ALPHA>
-<IF DECIMAL>
-<IF PRECISION>
+        </IF ALPHA>
+        <IF DECIMAL>
+        <IF PRECISION>
         type: number
         format: float
         example: <FIELD_SAMPLE_DATA>
         description: <FIELD_DESC>
-<ELSE>
-<IF CUSTOM_HARMONY_AS_STRING>
+        <ELSE>
+        <IF CUSTOM_HARMONY_AS_STRING>
         type: string
         example: <FIELD_SAMPLE_DATA>
-<ELSE>
+        <ELSE>
         type: integer
         example: <FIELD_SAMPLE_DATA>
-</IF CUSTOM_HARMONY_AS_STRING>
+        </IF CUSTOM_HARMONY_AS_STRING>
         description: <FIELD_DESC>
-</IF PRECISION>
-</IF DECIMAL>
-<IF DATE>
+        </IF PRECISION>
+        </IF DECIMAL>
+        <IF DATE>
         type: string
         format: date-time
         example: <FIELD_SAMPLE_DATA>
         description: <FIELD_DESC>
-</IF DATE>
-<IF TIME>
+        </IF DATE>
+        <IF TIME>
         type: string
         format: date-time
         example: <FIELD_SAMPLE_DATA>
         description: <FIELD_DESC>
-</IF TIME>
-<IF INTEGER>
+        </IF TIME>
+        <IF INTEGER>
         type: number
         format: <IF I124>int32<ELSE>int64</IF I124>
         example: <FIELD_SAMPLE_DATA>
         description: <FIELD_DESC>
-</IF INTEGER>
-</IF CUSTOM_NOT_HARMONY_EXCLUDE>
+        </IF INTEGER>
+    </IF CUSTOM_NOT_HARMONY_EXCLUDE>
 </FIELD_LOOP>
     example:
 <FIELD_LOOP>
-<IF CUSTOM_NOT_HARMONY_EXCLUDE>
-      <FieldSqlname>: <FIELD_SAMPLE_DATA><,>
-</IF CUSTOM_NOT_HARMONY_EXCLUDE>
+    <IF CUSTOM_NOT_HARMONY_EXCLUDE>
+      <FieldSqlname>: <FIELD_SAMPLE_DATA>
+    </IF CUSTOM_NOT_HARMONY_EXCLUDE>
 </FIELD_LOOP>
 </STRUCTURE_LOOP>
 ;//
 ;//----------------------------------------------------------------------------
-;// Deta model definitions for PATCH requests
+;// Data model definitions for PATCH requests
 ;//
   PatchRequest:
     type: array

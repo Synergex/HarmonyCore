@@ -90,36 +90,36 @@ namespace <NAMESPACE>
 
         ;;make the record available and a copy
         private mSynergyData, str<StructureNoplural> 
-		private mOriginalSynergyData, str<StructureNoplural> 
-		
-		private static sMetadata, @<StructureNoplural>Metadata
+        private mOriginalSynergyData, str<StructureNoplural> 
+        
+        private static sMetadata, @<StructureNoplural>Metadata
 
 .region "Constructors"
 
-		static method <StructureNoplural>
-		proc
-			sMetadata = new <StructureNoplural>Metadata()
-			DataObjectMetadataBase.MetadataLookup.TryAdd(^typeof(<StructureNoplural>), sMetadata)
-		endmethod
-		
+        static method <StructureNoplural>
+        proc
+            sMetadata = new <StructureNoplural>Metadata()
+            DataObjectMetadataBase.MetadataLookup.TryAdd(^typeof(<StructureNoplural>), sMetadata)
+        endmethod
+        
         ;;; <summary>
         ;;;  Constructor, initialise the base fields
         ;;; </summary>
         public method <StructureNoplural>
             parent()
         proc
-			init mSynergyData, mOriginalSynergyData
+            init mSynergyData, mOriginalSynergyData
         endmethod
 
-		;;; <summary>
-		;;;  Alternate Constructor, accepts the structured data
-		;;; </summary>
-		public method <StructureNoplural>
-			required in inData, str<StructureNoplural>
-			parent()
-		proc
-			mSynergyData = mOriginalSynergyData = inData
-		endmethod
+        ;;; <summary>
+        ;;;  Alternate Constructor, accepts the structured data
+        ;;; </summary>
+        public method <StructureNoplural>
+            required in inData, str<StructureNoplural>
+            parent()
+        proc
+            mSynergyData = mOriginalSynergyData = inData
+        endmethod
 
 .endregion
 
@@ -127,105 +127,105 @@ namespace <NAMESPACE>
 
 <COUNTER_1_RESET>
 <FIELD_LOOP>
-	<IF CUSTOM_NOT_HARMONY_EXCLUDE>
-		;;; <summary>
-		;;; <FIELD_DESC>
-		;;; </summary>
+    <IF CUSTOM_NOT_HARMONY_EXCLUDE>
+        ;;; <summary>
+        ;;; <FIELD_DESC>
+        ;;; </summary>
 ;//
 ;// Field property attributes
 ;//
-		<IF ONLY_PKSEGMENT>
-		{Key}
-		</IF ONLY_PKSEGMENT>
-		<IF REQUIRED>
-		{Required(ErrorMessage="<FIELD_DESC> is required. ")}
-		</IF REQUIRED>
-		<IF ALPHA>
-		{StringLength(<FIELD_SIZE>, ErrorMessage="<FIELD_DESC> cannot exceed <FIELD_SIZE> characters. ")}
-		</IF ALPHA>
+        <IF ONLY_PKSEGMENT>
+        {Key}
+        </IF ONLY_PKSEGMENT>
+        <IF REQUIRED>
+        {Required(ErrorMessage="<FIELD_DESC> is required. ")}
+        </IF REQUIRED>
+        <IF ALPHA>
+        {StringLength(<FIELD_SIZE>, ErrorMessage="<FIELD_DESC> cannot exceed <FIELD_SIZE> characters. ")}
+        </IF ALPHA>
 ;//
 ;// Field property
 ;//
-		<COUNTER_1_INCREMENT>
-		<IF CUSTOM_HARMONY_AS_STRING>
-		public property <FieldSqlname>, String
-		<ELSE>
-		public property <FieldSqlname>, <FIELD_CSTYPE>
-		</IF CUSTOM_HARMONY_AS_STRING>
+        <COUNTER_1_INCREMENT>
+        <IF CUSTOM_HARMONY_AS_STRING>
+        public property <FieldSqlname>, String
+        <ELSE>
+        public property <FieldSqlname>, <FIELD_CSTYPE>
+        </IF CUSTOM_HARMONY_AS_STRING>
 ;//
 ;// Field property get method
 ;//
-			method get
-			proc
-		<IF ALPHA>
-				mreturn (<FIELD_CSTYPE>)SynergyAlphaConverter.Convert(mSynergyData.<Field_name>, ^null, ^null, ^null)
-		</IF ALPHA>
-		<IF DATE>
-				mreturn (<FIELD_CSTYPE>)SynergyDecimalDateConverter.Convert(mSynergyData.<Field_name>, ^null, ^null, ^null)
-		</IF DATE>
-		<IF TIME_HHMM>
-				mreturn Convert.ToDateTime(%string(mSynergyData.<Field_name>,"XX:XX"))
-		</IF TIME_HHMM>
-		<IF TIME_HHMMSS>
-				mreturn Convert.ToDateTime(%string(mSynergyData.<Field_name>,"XX:XX:XX"))
-		</IF TIME_HHMMSS>
-		<IF DECIMAL>
-			<IF CUSTOM_HARMONY_AS_STRING>
-				<IF PRECISION>
-				mreturn %string(SynergyImpliedDecimalConverter.Convert(mSynergyData.<Field_name>, ^null, "DECIMALPLACES#<FIELD_PRECISION>", ^null),"<FIELD_FORMATSTRING>")
-				<ELSE>
-				mreturn %string(mSynergyData.<Field_name>,"<FIELD_FORMATSTRING>")
-				</IF PRECISION>
-			<ELSE>
-				<IF PRECISION>
-				mreturn (<FIELD_CSTYPE>)SynergyImpliedDecimalConverter.Convert(mSynergyData.<Field_name>, ^null, "DECIMALPLACES#<FIELD_PRECISION>", ^null)
-				<ELSE>
-				mreturn (<FIELD_CSTYPE>)mSynergyData.<Field_name>
-				</IF PRECISION>
-			</IF CUSTOM_HARMONY_AS_STRING>
-		</IF DECIMAL>
-		<IF INTEGER>
-				mreturn (<FIELD_CSTYPE>)mSynergyData.<Field_name>
-		</IF INTEGER>
+            method get
+            proc
+        <IF ALPHA>
+                mreturn (<FIELD_CSTYPE>)SynergyAlphaConverter.Convert(mSynergyData.<Field_name>, ^null, ^null, ^null)
+        </IF ALPHA>
+        <IF DATE>
+                mreturn (<FIELD_CSTYPE>)SynergyDecimalDateConverter.Convert(mSynergyData.<Field_name>, ^null, ^null, ^null)
+        </IF DATE>
+        <IF TIME_HHMM>
+                mreturn Convert.ToDateTime(%string(mSynergyData.<Field_name>,"XX:XX"))
+        </IF TIME_HHMM>
+        <IF TIME_HHMMSS>
+                mreturn Convert.ToDateTime(%string(mSynergyData.<Field_name>,"XX:XX:XX"))
+        </IF TIME_HHMMSS>
+        <IF DECIMAL>
+            <IF CUSTOM_HARMONY_AS_STRING>
+                <IF PRECISION>
+                mreturn %string(SynergyImpliedDecimalConverter.Convert(mSynergyData.<Field_name>, ^null, "DECIMALPLACES#<FIELD_PRECISION>", ^null),"<FIELD_FORMATSTRING>")
+                <ELSE>
+                mreturn %string(mSynergyData.<Field_name>,"<FIELD_FORMATSTRING>")
+                </IF PRECISION>
+            <ELSE>
+                <IF PRECISION>
+                mreturn (<FIELD_CSTYPE>)SynergyImpliedDecimalConverter.Convert(mSynergyData.<Field_name>, ^null, "DECIMALPLACES#<FIELD_PRECISION>", ^null)
+                <ELSE>
+                mreturn (<FIELD_CSTYPE>)mSynergyData.<Field_name>
+                </IF PRECISION>
+            </IF CUSTOM_HARMONY_AS_STRING>
+        </IF DECIMAL>
+        <IF INTEGER>
+                mreturn (<FIELD_CSTYPE>)mSynergyData.<Field_name>
+        </IF INTEGER>
             endmethod
 ;//
 ;// Field property set method
 ;//
-			method set
-			proc
-		<IF ALPHA>
-				mSynergyData.<Field_name> = (<FIELD_TYPE>)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
-		</IF ALPHA>
-		<IF DATE>
-				mSynergyData.<Field_name> = (<FIELD_TYPE>)SynergyDecimalDateConverter.ConvertBack(value, ^null, ^null, ^null)
-		</IF DATE>
-		<IF TIME_HHMM>
-				mSynergyData.<Field_name> = (value.Hour * 100) + value.Minute
-		</IF TIME_HHMM>
-		<IF TIME_HHMMSS>
-				mSynergyData.<Field_name> = (value.Hour * 10000) + (value.Minute * 100) + value.Second
-		</IF TIME_HHMMSS>
-		<IF DECIMAL>
-			<IF CUSTOM_HARMONY_AS_STRING>
-				<IF PRECISION>
-				mSynergyData.<Field_name> = SynergyImpliedDecimalConverter.ConvertBack(value,"<FIELD_FORMATSTRING>")
-				<ELSE>
-				mSynergyData.<Field_name> = SynergyDecimalConverter.ConvertBack(value,"<FIELD_FORMATSTRING>")
-				</IF PRECISION>
-			<ELSE>
-				mSynergyData.<Field_name> = value
-			</IF CUSTOM_HARMONY_AS_STRING>
-		</IF DECIMAL>
-		<IF INTEGER>
-				mSynergyData.<Field_name> = value
-		</IF INTEGER>
-			endmethod
+            method set
+            proc
+        <IF ALPHA>
+                mSynergyData.<Field_name> = (<FIELD_TYPE>)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
+        </IF ALPHA>
+        <IF DATE>
+                mSynergyData.<Field_name> = (<FIELD_TYPE>)SynergyDecimalDateConverter.ConvertBack(value, ^null, ^null, ^null)
+        </IF DATE>
+        <IF TIME_HHMM>
+                mSynergyData.<Field_name> = (value.Hour * 100) + value.Minute
+        </IF TIME_HHMM>
+        <IF TIME_HHMMSS>
+                mSynergyData.<Field_name> = (value.Hour * 10000) + (value.Minute * 100) + value.Second
+        </IF TIME_HHMMSS>
+        <IF DECIMAL>
+            <IF CUSTOM_HARMONY_AS_STRING>
+                <IF PRECISION>
+                mSynergyData.<Field_name> = SynergyImpliedDecimalConverter.ConvertBack(value,"<FIELD_FORMATSTRING>")
+                <ELSE>
+                mSynergyData.<Field_name> = SynergyDecimalConverter.ConvertBack(value,"<FIELD_FORMATSTRING>")
+                </IF PRECISION>
+            <ELSE>
+                mSynergyData.<Field_name> = value
+            </IF CUSTOM_HARMONY_AS_STRING>
+        </IF DECIMAL>
+        <IF INTEGER>
+                mSynergyData.<Field_name> = value
+        </IF INTEGER>
+            endmethod
 ;//
 ;// End of field property
 ;//
-		endproperty
+        endproperty
 
-	</IF CUSTOM_NOT_HARMONY_EXCLUDE>
+    </IF CUSTOM_NOT_HARMONY_EXCLUDE>
 </FIELD_LOOP>
 .endregion
 ;//
@@ -235,90 +235,90 @@ namespace <NAMESPACE>
 
 .region "Relationships to other entities"
 
-	<RELATION_LOOP>
-		<COUNTER_1_INCREMENT>
+    <RELATION_LOOP>
+        <COUNTER_1_INCREMENT>
 ;//
 ;//
 ;//
-		<IF MANY_TO_ONE_TO_MANY>
-		;;; <summary>
-		;;; Relationship (Type A)
-		;;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) --> (one) --> (many) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
-		;;; </summary>
-		public readwrite property REL_<RelationFromkey>, @<RelationTostructureNoplural>
-		</IF MANY_TO_ONE_TO_MANY>
+        <IF MANY_TO_ONE_TO_MANY>
+        ;;; <summary>
+        ;;; Relationship (Type A)
+        ;;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) --> (one) --> (many) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
+        ;;; </summary>
+        public readwrite property REL_<RelationFromkey>, @<RelationTostructureNoplural>
+        </IF MANY_TO_ONE_TO_MANY>
 ;//
 ;//
 ;//
-		<IF ONE_TO_ONE_TO_ONE>
-		;;; <summary>
-		;;; Relationship (Type B)
-		;;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) --> (one) --> (one) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
-		;;; </summary>
-		public readwrite property REL_<RelationFromkey>, @<RelationTostructureNoplural>
-		</IF ONE_TO_ONE_TO_ONE>
+        <IF ONE_TO_ONE_TO_ONE>
+        ;;; <summary>
+        ;;; Relationship (Type B)
+        ;;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) --> (one) --> (one) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
+        ;;; </summary>
+        public readwrite property REL_<RelationFromkey>, @<RelationTostructureNoplural>
+        </IF ONE_TO_ONE_TO_ONE>
 ;//
 ;//
 ;//
-		<IF ONE_TO_ONE>
-		;;; <summary>
-		;;; Relationship (Type C)
-		;;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) --> (one) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
-		;;; </summary>
-		public readwrite property REL_<RelationFromkey>, @<RelationTostructureNoplural>
-		</IF ONE_TO_ONE>
+        <IF ONE_TO_ONE>
+        ;;; <summary>
+        ;;; Relationship (Type C)
+        ;;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) --> (one) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
+        ;;; </summary>
+        public readwrite property REL_<RelationFromkey>, @<RelationTostructureNoplural>
+        </IF ONE_TO_ONE>
 ;//
 ;//
 ;//
-		<IF ONE_TO_MANY_TO_ONE>
-		;;; <summary>
-		;;; Relationship (Type D)
-		;;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) <-> (many) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
-		;;; </summary>
-		public readwrite property REL_<RelationTostructurePlural>, @ICollection<<RelationTostructureNoplural>>
-		</IF ONE_TO_MANY_TO_ONE>
+        <IF ONE_TO_MANY_TO_ONE>
+        ;;; <summary>
+        ;;; Relationship (Type D)
+        ;;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) <-> (many) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
+        ;;; </summary>
+        public readwrite property REL_<RelationTostructurePlural>, @ICollection<<RelationTostructureNoplural>>
+        </IF ONE_TO_MANY_TO_ONE>
 ;//
 ;//
 ;//
-		<IF ONE_TO_MANY>
-		;;; <summary>
-		;;; Relationship (Type E)
-		;;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) --> (many) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
-		;;; </summary>
-		public readwrite property REL_<RelationTostructurePlural>, @ICollection<<RelationTostructureNoplural>>
-		</IF ONE_TO_MANY>
+        <IF ONE_TO_MANY>
+        ;;; <summary>
+        ;;; Relationship (Type E)
+        ;;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) --> (many) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
+        ;;; </summary>
+        public readwrite property REL_<RelationTostructurePlural>, @ICollection<<RelationTostructureNoplural>>
+        </IF ONE_TO_MANY>
 
-	</RELATION_LOOP>
+    </RELATION_LOOP>
 .endregion
 </IF STRUCTURE_RELATIONS>
 ;//
 ;//
 ;//
 <IF STRUCTURE_RELATIONS>
-	<COUNTER_2_RESET>
-	<RELATION_LOOP>
-		<COUNTER_1_RESET>
-		<FROM_KEY_SEGMENT_LOOP>
-			<IF SEG_TYPE_LITERAL>
-				<COUNTER_2_INCREMENT>
-				<IF COUNTER_2_EQ_1>
+    <COUNTER_2_RESET>
+    <RELATION_LOOP>
+        <COUNTER_1_RESET>
+        <FROM_KEY_SEGMENT_LOOP>
+            <IF SEG_TYPE_LITERAL>
+                <COUNTER_2_INCREMENT>
+                <IF COUNTER_2_EQ_1>
 
 .region "Properties to represent literal key segments"
 
-				</IF COUNTER_2_EQ_1>
-		;;; <summary>
-		;;; 
-		;;; </summary>
-		public readwrite property <RelationFromkey>Literal<COUNTER_1_INCREMENT><COUNTER_1_VALUE>, <LITERAL_SEGMENT_CSTYPE>, <LITERAL_SEGMENT_VALUE>
+                </IF COUNTER_2_EQ_1>
+        ;;; <summary>
+        ;;; 
+        ;;; </summary>
+        public readwrite property <RelationFromkey>Literal<COUNTER_1_INCREMENT><COUNTER_1_VALUE>, <LITERAL_SEGMENT_CSTYPE>, <LITERAL_SEGMENT_VALUE>
 
-			</IF SEG_TYPE_LITERAL>
-		</FROM_KEY_SEGMENT_LOOP>
-	</RELATION_LOOP>
-	<IF COUNTER_2_GT_0>
+            </IF SEG_TYPE_LITERAL>
+        </FROM_KEY_SEGMENT_LOOP>
+    </RELATION_LOOP>
+    <IF COUNTER_2_GT_0>
 
 .endregion
 
-	</IF COUNTER_2_GT_0>
+    </IF COUNTER_2_GT_0>
 </IF STRUCTURE_RELATIONS>
 ;//
 ;//
@@ -329,64 +329,64 @@ namespace <NAMESPACE>
         ;;; <summary>
         ;;; Expose the complete synergy record
         ;;; </summary>
-		public override property SynergyRecord, a
+        public override property SynergyRecord, a
             method get
             proc
                 mreturn mSynergyData
             endmethod
         endproperty
-		
-		;;; <summary>
+        
+        ;;; <summary>
         ;;; Expose the complete original synergy record
         ;;; </summary>
-		public override property OriginalSynergyRecord, a
+        public override property OriginalSynergyRecord, a
             method get
             proc
                 mreturn mOriginalSynergyData
             endmethod
         endproperty
 
-		;;; <summary>
+        ;;; <summary>
         ;;; Metadata describing the public field properties
         ;;; </summary>
-		public override property Metadata, @DataObjectMetadataBase
-			method get
-			proc
-				mreturn sMetadata
-			endmethod
-		endproperty
+        public override property Metadata, @DataObjectMetadataBase
+            method get
+            proc
+                mreturn sMetadata
+            endmethod
+        endproperty
 
 .endregion
 
 .region "Public methods"
 
-		;;; <summary>
-		;;; 
-		;;; </summary>
-		public override method InternalSynergyRecord, void
-			targetMethod, @AlphaAction
-		proc
-			targetMethod(mSynergyData, mGlobalRFA)
-		endmethod
-		
-		;;; <summary>
-		;;; Allow the host to validate all fields. Each field will fire the validation method.
-		;;; </summary>
-		public override method InitialValidateData, void
-		proc
-		endmethod
-		
-		;;; <summary>
-		;;; 
-		;;; </summary>
-		public override method InternalGetValues, [#]@object
-		proc
-			;;TODO: This should be returning boxed values for each of our fields
-			mreturn new Object[<COUNTER_1_VALUE>]
-		endmethod
+        ;;; <summary>
+        ;;; 
+        ;;; </summary>
+        public override method InternalSynergyRecord, void
+            targetMethod, @AlphaAction
+        proc
+            targetMethod(mSynergyData, mGlobalRFA)
+        endmethod
+        
+        ;;; <summary>
+        ;;; Allow the host to validate all fields. Each field will fire the validation method.
+        ;;; </summary>
+        public override method InitialValidateData, void
+        proc
+        endmethod
+        
+        ;;; <summary>
+        ;;; 
+        ;;; </summary>
+        public override method InternalGetValues, [#]@object
+        proc
+            ;;TODO: This should be returning boxed values for each of our fields
+            mreturn new Object[<COUNTER_1_VALUE>]
+        endmethod
 
 .endregion
 
-	endclass
-	
+    endclass
+    
 endnamespace

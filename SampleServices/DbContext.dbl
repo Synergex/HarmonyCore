@@ -49,122 +49,122 @@ import SampleServices.Models
 
 namespace SampleServices
 
-	;;; <summary>
-	;;; 
-	;;; </summary>
-	public class DbContext extends Microsoft.EntityFrameworkCore.DbContext
+    ;;; <summary>
+    ;;; 
+    ;;; </summary>
+    public class DbContext extends Microsoft.EntityFrameworkCore.DbContext
 
-		;;; <summary>
-		;;; Construct a new DbContext.
-		;;; </summary>
-		public method DbContext
-			options, @DbContextOptions<DbContext>
-			endparams
-			parent(options)
-		proc
+        ;;; <summary>
+        ;;; Construct a new DbContext.
+        ;;; </summary>
+        public method DbContext
+            options, @DbContextOptions<DbContext>
+            endparams
+            parent(options)
+        proc
 
-		endmethod
+        endmethod
 
-		;;; <summary>
-		;;; Exposes Customer data.
-		;;; </summary>
-		public readwrite property Customers, @DbSet<Customer>
+        ;;; <summary>
+        ;;; Exposes Customer data.
+        ;;; </summary>
+        public readwrite property Customers, @DbSet<Customer>
 
-		;;; <summary>
-		;;; Exposes Order data.
-		;;; </summary>
-		public readwrite property Orders, @DbSet<Order>
+        ;;; <summary>
+        ;;; Exposes Item data.
+        ;;; </summary>
+        public readwrite property Items, @DbSet<Item>
 
-		;;; <summary>
-		;;; Exposes OrderItem data.
-		;;; </summary>
-		public readwrite property OrderItems, @DbSet<OrderItem>
+        ;;; <summary>
+        ;;; Exposes Order data.
+        ;;; </summary>
+        public readwrite property Orders, @DbSet<Order>
 
-		;;; <summary>
-		;;; Exposes Plant data.
-		;;; </summary>
-		public readwrite property Plants, @DbSet<Plant>
+        ;;; <summary>
+        ;;; Exposes OrderItem data.
+        ;;; </summary>
+        public readwrite property OrderItems, @DbSet<OrderItem>
 
-		;;; <summary>
-		;;; Exposes Vendor data.
-		;;; </summary>
-		public readwrite property Vendors, @DbSet<Vendor>
+        ;;; <summary>
+        ;;; Exposes Vendor data.
+        ;;; </summary>
+        public readwrite property Vendors, @DbSet<Vendor>
 
-		;;; <summary>
-		;;; 
-		;;; </summary>
-		protected override method OnModelCreating, void
-			parm, @ModelBuilder
-		proc
-			parm.Ignore(^typeof(AlphaDesc))
-			parm.Ignore(^typeof(DataObjectMetadataBase))
+        ;;; <summary>
+        ;;; 
+        ;;; </summary>
+        protected override method OnModelCreating, void
+            parm, @ModelBuilder
+        proc
+            parm.Ignore(^typeof(AlphaDesc))
+            parm.Ignore(^typeof(DataObjectMetadataBase))
 
 .region "Composite key definitions"
 
-			;;Entities with a single primary key segment have the key declared to EF via a
-			;;{Key} attribute on the appropriate property in the data model, but only one {key}
-			;;attribute can be used in a class, so keys with multiple segments are defined
-			;;using the "Fluent API" here.
+            ;;Entities with a single primary key segment have the key declared to EF via a
+            ;;{Key} attribute on the appropriate property in the data model, but only one {key}
+            ;;attribute can be used in a class, so keys with multiple segments are defined
+            ;;using the "Fluent API" here.
 
-			parm.Entity<OrderItem>().HasKey("OiNumber","OiLineItem")
+            parm.Entity<OrderItem>().HasKey("OrderNumber","ItemNumber")
 
 .endregion
 
 .region "Tag filtering"
 
-			;;This will currently only work for single field==value tags.
+            ;;This will currently only work for single field==value tags.
 
-			data customerParam = Expression.Parameter(^typeof(customer))
+            data customerParam = Expression.Parameter(^typeof(customer))
 
-			parm.Entity(^typeof(customer))
-			&	.HasQueryFilter
-			&	(
-			&		Expression.Lambda
-			&		(
-			&			Expression.Block
-			&			(
-			&				Expression.Equal
-			&				(
-			&					Expression.Call
-			&					(
-			&						^typeof(EF),
-			&						"Property",
-			&						new Type[#] { ^typeof(int) },
-			&						customerParam,
-			&						Expression.Constant("CustRtype")
-			&					),
-			&					Expression.Constant(0)
-			&				)
-			&			),
-			&			new ParameterExpression[#] { customerParam }
-			&		)
-			&	)
+            parm.Entity(^typeof(customer))
+            &    .HasQueryFilter
+            &    (
+            &        Expression.Lambda
+            &        (
+            &            Expression.Block
+            &            (
+            &                Expression.Equal
+            &                (
+            &                    Expression.Call
+            &                    (
+            &                        ^typeof(EF),
+            &                        "Property",
+            &                        new Type[#] { ^typeof(int) },
+            &                        customerParam,
+            &                        Expression.Constant("RecordType")
+            &                    ),
+            &                    Expression.Constant(0)
+            &                )
+            &            ),
+            &            new ParameterExpression[#] { customerParam }
+            &        )
+            &    )
 
-			data vendorParam = Expression.Parameter(^typeof(vendor))
+            data vendorParam = Expression.Parameter(^typeof(vendor))
 
-			parm.Entity(^typeof(vendor))
-			&	.HasQueryFilter
-			&	(
-			&		Expression.Lambda
-			&		(
-			&			Expression.Block
-			&			(
-			&				Expression.Equal
-			&				(
-			&					Expression.Call
-			&					(
-			&						^typeof(EF),
-			&						"Property",
-			&						new Type[#] { ^typeof(int) },
-			&						vendorParam,
-			&						Expression.Constant("VendRtype")
-			&					),
-			&					Expression.Constant(1)
-			&				)
-			&			),
-			&			new ParameterExpression[#] { vendorParam }
-			&		)
-			&	)
+            parm.Entity(^typeof(vendor))
+            &    .HasQueryFilter
+            &    (
+            &        Expression.Lambda
+            &        (
+            &            Expression.Block
+            &            (
+            &                Expression.Equal
+            &                (
+            &                    Expression.Call
+            &                    (
+            &                        ^typeof(EF),
+            &                        "Property",
+            &                        new Type[#] { ^typeof(int) },
+            &                        vendorParam,
+            &                        Expression.Constant("RecordType")
+            &                    ),
+            &                    Expression.Constant(1)
+            &                )
+            &            ),
+            &            new ParameterExpression[#] { vendorParam }
+            &        )
+            &    )
 
 .endregion
 
@@ -172,126 +172,126 @@ namespace SampleServices
 .ifdef INCLUDE_RELATIONS
 .region "Entity Relationships"
 
-			;;--------------------------------------
-			;; Relationships from CUSTOMER
+            ;;--------------------------------------
+            ;; Relationships from CUSTOMER
 
-	        ;; CUSTOMER.CUSTOMER (one) --> (many) --> (one) ORDER.OR_CUSTOMER
-			;;    Type          : D
-			;;    From segments : CUST_KEY(D6) 
-			;;    To segments   : OR_CUSTOMER(D6) 
+            ;; CUSTOMER.CUSTOMER_NUMBER (one) --> (many) --> (one) ORDER.CUSTOMER_NUMBER
+            ;;    Type          : D
+            ;;    From segments : CUSTOMER_NUMBER(D6) 
+            ;;    To segments   : CUSTOMER_NUMBER(D6) 
 
-			parm.Entity(^typeof(Customer))
-			&	.HasMany(^typeof(Order),"REL_Orders")
-			&	.WithOne("REL_OrCustomer")
-			&	.HasForeignKey("OrCustomer")
-			&	.HasPrincipalKey("CustKey")
+            parm.Entity(^typeof(Customer))
+            &    .HasMany(^typeof(Order),"REL_Orders")
+            &    .WithOne("REL_CustomerNumber")
+            &    .HasForeignKey("CustomerNumber")
+            &    .HasPrincipalKey("CustomerNumber")
 
-	        ;; CUSTOMER.ITEM (one) --> (one) PLANT.ITEM
-			;;    Type          : C
-			;;    From segments : CUST_GIFT(D6) 
-			;;    To segments   : IN_ITEMID(D6) 
+            ;; CUSTOMER.FAVORITE_ITEM (one) --> (one) ITEM.ITEM_NUMBER
+            ;;    Type          : C
+            ;;    From segments : FAVORITE_ITEM(D6) 
+            ;;    To segments   : ITEM_NUMBER(D6) 
 
-			parm.Entity(^typeof(Customer))
-			&	.HasOne(^typeof(Plant),"REL_Item")
-			&	.WithOne(^null)
-			&	.HasForeignKey(^typeof(Customer),"CustGift")
-			&	.HasPrincipalKey(^typeof(Plant), "InItemid")
+            parm.Entity(^typeof(Customer))
+            &    .HasOne(^typeof(Item),"REL_FavoriteItem")
+            &    .WithOne(^null)
+            &    .HasForeignKey(^typeof(Customer),"FavoriteItem")
+            &    .HasPrincipalKey(^typeof(Item), "ItemNumber")
 
-			;;--------------------------------------
-			;; Relationships from ORDER
+            ;;--------------------------------------
+            ;; Relationships from ITEM
 
-	        ;; ORDER.OR_NUMBER (one) --> (many) --> (one) ORDER_ITEM.OI_NUMBER_LINE_ITEM
-			;;    Type          : D
-			;;    From segments : OR_NUMBER(D6) 
-			;;    To segments   : OI_NUMBER(D6) 
+            ;; ITEM.VENDOR_NUMBER (one) --> (one) --> (many) VENDOR.VENDOR_NUMBER
+            ;;    Type          : A
+            ;;    From segments : VENDOR_NUMBER(D6) 
+            ;;    To segments   : VENDOR_NUMBER(D6) 
 
-			parm.Entity(^typeof(Order))
-			&	.HasMany(^typeof(OrderItem),"REL_OrderItems")
-			&	.WithOne("REL_OiNumberLineItem")
-			&	.HasForeignKey("OiNumber")
-			&	.HasPrincipalKey("OrNumber")
+            parm.Entity(^typeof(Item))
+            &    .HasOne(^typeof(Vendor),"REL_VendorNumber")
+            &    .WithMany("REL_Items")
+            &    .HasForeignKey("VendorNumber")
+            &    .HasPrincipalKey("VendorNumber")
 
-	        ;; ORDER.OR_CUSTOMER (one) --> (one) --> (many) CUSTOMER.CUSTOMER
-			;;    Type          : A
-			;;    From segments : OR_CUSTOMER(D6) 
-			;;    To segments   : CUST_KEY(D6) 
+            ;; ITEM.ITEM_NUMBER (one) --> (many) --> (one) ORDER_ITEM.ITEM_ORDERED
+            ;;    Type          : D
+            ;;    From segments : ITEM_NUMBER(D6) 
+            ;;    To segments   : ITEM_ORDERED(D6) 
 
-			parm.Entity(^typeof(Order))
-			&	.HasOne(^typeof(Customer),"REL_OrCustomer")
-			&	.WithMany("REL_Orders")
-			&	.HasForeignKey("OrCustomer")
-			&	.HasPrincipalKey("CustKey")
+            parm.Entity(^typeof(Item))
+            &    .HasMany(^typeof(OrderItem),"REL_OrderItems")
+            &    .WithOne("REL_ItemOrdered")
+            &    .HasForeignKey("ItemOrdered")
+            &    .HasPrincipalKey("ItemNumber")
 
-			;;--------------------------------------
-			;; Relationships from ORDER_ITEM
+            ;;--------------------------------------
+            ;; Relationships from ORDER
 
-	        ;; ORDER_ITEM.OI_NUMBER_LINE_ITEM (one) --> (one) --> (many) ORDER.OR_NUMBER
-			;;    Type          : A
-			;;    From segments : OI_NUMBER(D6) 
-			;;    To segments   : OR_NUMBER(D6) 
+            ;; ORDER.ORDER_NUMBER (one) --> (many) --> (one) ORDER_ITEM.ORDER_NUMBER_AND_LINE_ITEM
+            ;;    Type          : D
+            ;;    From segments : ORDER_NUMBER(D6) 
+            ;;    To segments   : ORDER_NUMBER(D6) 
 
-			parm.Entity(^typeof(OrderItem))
-			&	.HasOne(^typeof(Order),"REL_OiNumberLineItem")
-			&	.WithMany("REL_OrderItems")
-			&	.HasForeignKey("OiNumber")
-			&	.HasPrincipalKey("OrNumber")
+            parm.Entity(^typeof(Order))
+            &    .HasMany(^typeof(OrderItem),"REL_OrderItems")
+            &    .WithOne("REL_OrderNumberAndLineItem")
+            &    .HasForeignKey("OrderNumber")
+            &    .HasPrincipalKey("OrderNumber")
 
-	        ;; ORDER_ITEM.OI_ITEM_ORDERED (one) --> (one) --> (many) PLANT.ITEM
-			;;    Type          : A
-			;;    From segments : OI_ITEM_ORDERED(D6) 
-			;;    To segments   : IN_ITEMID(D6) 
+            ;; ORDER.CUSTOMER_NUMBER (one) --> (one) --> (many) CUSTOMER.CUSTOMER_NUMBER
+            ;;    Type          : A
+            ;;    From segments : CUSTOMER_NUMBER(D6) 
+            ;;    To segments   : CUSTOMER_NUMBER(D6) 
 
-			parm.Entity(^typeof(OrderItem))
-			&	.HasOne(^typeof(Plant),"REL_OiItemOrdered")
-			&	.WithMany("REL_OrderItems")
-			&	.HasForeignKey("OiItemOrdered")
-			&	.HasPrincipalKey("InItemid")
+            parm.Entity(^typeof(Order))
+            &    .HasOne(^typeof(Customer),"REL_CustomerNumber")
+            &    .WithMany("REL_Orders")
+            &    .HasForeignKey("CustomerNumber")
+            &    .HasPrincipalKey("CustomerNumber")
 
-			;;--------------------------------------
-			;; Relationships from PLANT
+            ;;--------------------------------------
+            ;; Relationships from ORDER_ITEM
 
-	        ;; PLANT.VENDOR (one) --> (one) --> (many) VENDOR.VENDOR
-			;;    Type          : A
-			;;    From segments : IN_SOURCE(D6) 
-			;;    To segments   : VEND_KEY(D6) 
+            ;; ORDER_ITEM.ORDER_NUMBER_AND_LINE_ITEM (one) --> (one) --> (many) ORDER.ORDER_NUMBER
+            ;;    Type          : A
+            ;;    From segments : ORDER_NUMBER(D6) 
+            ;;    To segments   : ORDER_NUMBER(D6) 
 
-			parm.Entity(^typeof(Plant))
-			&	.HasOne(^typeof(Vendor),"REL_Vendor")
-			&	.WithMany("REL_Plants")
-			&	.HasForeignKey("InSource")
-			&	.HasPrincipalKey("VendKey")
+            parm.Entity(^typeof(OrderItem))
+            &    .HasOne(^typeof(Order),"REL_OrderNumberAndLineItem")
+            &    .WithMany("REL_OrderItems")
+            &    .HasForeignKey("OrderNumber")
+            &    .HasPrincipalKey("OrderNumber")
 
-	        ;; PLANT.ITEM (one) --> (many) --> (one) ORDER_ITEM.OI_ITEM_ORDERED
-			;;    Type          : D
-			;;    From segments : IN_ITEMID(D6) 
-			;;    To segments   : OI_ITEM_ORDERED(D6) 
+            ;; ORDER_ITEM.ITEM_ORDERED (one) --> (one) --> (many) ITEM.ITEM_NUMBER
+            ;;    Type          : A
+            ;;    From segments : ITEM_ORDERED(D6) 
+            ;;    To segments   : ITEM_NUMBER(D6) 
 
-			parm.Entity(^typeof(Plant))
-			&	.HasMany(^typeof(OrderItem),"REL_OrderItems")
-			&	.WithOne("REL_OiItemOrdered")
-			&	.HasForeignKey("OiItemOrdered")
-			&	.HasPrincipalKey("InItemid")
+            parm.Entity(^typeof(OrderItem))
+            &    .HasOne(^typeof(Item),"REL_ItemOrdered")
+            &    .WithMany("REL_OrderItems")
+            &    .HasForeignKey("ItemOrdered")
+            &    .HasPrincipalKey("ItemNumber")
 
-			;;--------------------------------------
-			;; Relationships from VENDOR
+            ;;--------------------------------------
+            ;; Relationships from VENDOR
 
-	        ;; VENDOR.VENDOR (one) --> (many) --> (one) PLANT.VENDOR
-			;;    Type          : D
-			;;    From segments : VEND_KEY(D6) 
-			;;    To segments   : IN_SOURCE(D6) 
+            ;; VENDOR.VENDOR_NUMBER (one) --> (many) --> (one) ITEM.VENDOR_NUMBER
+            ;;    Type          : D
+            ;;    From segments : VENDOR_NUMBER(D6) 
+            ;;    To segments   : VENDOR_NUMBER(D6) 
 
-			parm.Entity(^typeof(Vendor))
-			&	.HasMany(^typeof(Plant),"REL_Plants")
-			&	.WithOne("REL_Vendor")
-			&	.HasForeignKey("InSource")
-			&	.HasPrincipalKey("VendKey")
+            parm.Entity(^typeof(Vendor))
+            &    .HasMany(^typeof(Item),"REL_Items")
+            &    .WithOne("REL_VendorNumber")
+            &    .HasForeignKey("VendorNumber")
+            &    .HasPrincipalKey("VendorNumber")
 
 .endregion
 .endc
-			parent.OnModelCreating(parm)
+            parent.OnModelCreating(parm)
 
-		endmethod
+        endmethod
 
-	endclass
+    endclass
 
 endnamespace

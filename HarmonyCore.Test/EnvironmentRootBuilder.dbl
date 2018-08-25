@@ -43,7 +43,7 @@ namespace HarmonyCore.Test
 					logicals.Add(logical)
 			end
 
-			fileSpec = "ICSTUT:plants.ism"
+			fileSpec = "ICSTUT:items.ism"
 			if (fileSpec.Contains(":"))
 			begin
 				logical = fileSpec.Split(":")[1].ToUpper()
@@ -62,7 +62,7 @@ namespace HarmonyCore.Test
 		private static method createFiles, void
 			.include "CUSTOMERS" repository, stack record="customer", nofields, end
 			.include "ORDERS" repository, stack record="order", nofields, end
-			.include "PLANTS" repository, stack record="plant", nofields, end
+			.include "ITEMS" repository, stack record="item", nofields, end
 		proc
 			data chout, int
 			data chin, int
@@ -116,9 +116,9 @@ namespace HarmonyCore.Test
 			end
 			endtry
 
-			;;Create and load the plants file
+			;;Create and load the items file
 
-			dataFile = "ICSTUT:plants.ism"
+			dataFile = "ICSTUT:items.ism"
 			xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
 			textFile = dataFile.ToLower().Replace(".ism",".txt")
 
@@ -128,8 +128,8 @@ namespace HarmonyCore.Test
 				open(chin,i,textFile)
 				repeat
 				begin
-					reads(chin,plant)
-					store(chout,plant)
+					reads(chin,item)
+					store(chout,item)
 				end
 			end
 			catch (ex, @EndOfFileException)
@@ -165,10 +165,10 @@ namespace HarmonyCore.Test
 			end
 			endtry
 
-			;;Delete the plants file
+			;;Delete the items file
 			try
 			begin
-				xcall delet("ICSTUT:plants.ism")
+				xcall delet("ICSTUT:items.ism")
 			end
 			catch (e, @NoFileFoundException)
 			begin

@@ -85,348 +85,350 @@ import Microsoft.AspNet.OData.Routing
 import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Infrastructure
 import Harmony.Core.EF.Extensions
-<IF DEFINED_AUTHENTICATION>
+<IF DEFINED_ENABLE_AUTHENTICATION>
 import Microsoft.AspNetCore.Authorization
-</IF DEFINED_AUTHENTICATION>
+</IF DEFINED_ENABLE_AUTHENTICATION>
 import <MODELS_NAMESPACE>
 
 namespace <NAMESPACE>
 
-<IF DEFINED_AUTHENTICATION>
-	{Authorize}
-</IF DEFINED_AUTHENTICATION>
-	;;; <summary>
-	;;; OData controller for <StructurePlural>
-	;;; </summary>
-	public class <StructurePlural>Controller extends ODataController
-	
-		public readwrite property DBContext, @<SERVICES_NAMESPACE>.DBContext
+<IF DEFINED_ENABLE_AUTHENTICATION>
+    {Authorize}
+</IF DEFINED_ENABLE_AUTHENTICATION>
+    ;;; <summary>
+    ;;; OData controller for <StructurePlural>
+    ;;; </summary>
+    public class <StructurePlural>Controller extends ODataController
+    
+        public readwrite property DBContext, @<SERVICES_NAMESPACE>.DBContext
 
-		;;; <summary>
-		;;; Constructs a new instance of <StructurePlural>Controller
-		;;; </summary>
-		;;; <param name="dbContext">Database context</param>
-		public method <StructurePlural>Controller
-			dbContext, @<SERVICES_NAMESPACE>.DBContext
-		proc
-			this.DBContext = dbContext
-		endmethod
+        ;;; <summary>
+        ;;; Constructs a new instance of <StructurePlural>Controller
+        ;;; </summary>
+        ;;; <param name="dbContext">Database context</param>
+        public method <StructurePlural>Controller
+            dbContext, @<SERVICES_NAMESPACE>.DBContext
+        proc
+            this.DBContext = dbContext
+        endmethod
 
 ;//
 ;// GET ALL -------------------------------------------------------------------
 ;//
-		{ODataRoute("<StructurePlural>")}
-;//		{ProducesResponseType(^typeof(IEnumerable<<StructureNoplural>>), 200)}
-		{EnableQuery<API_ENABLE_QUERY_PARAMS>}
-		;;; <summary>
-		;;; Get all <StructurePlural>
-		;;; </summary>
-		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-		public method Get, @IActionResult
-		proc
-			mreturn Ok(DBContext.<StructurePlural>)
-		endmethod
+        {ODataRoute("<StructurePlural>")}
+;//        {ProducesResponseType(^typeof(IEnumerable<<StructureNoplural>>), 200)}
+        {EnableQuery<API_ENABLE_QUERY_PARAMS>}
+        ;;; <summary>
+        ;;; Get all <StructurePlural>
+        ;;; </summary>
+        ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        public method Get, @IActionResult
+        proc
+            mreturn Ok(DBContext.<StructurePlural>)
+        endmethod
 
 ;//
 ;// GET ONE -------------------------------------------------------------------
 ;//
 <PRIMARY_KEY>
-		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
-;//		{ProducesResponseType(^typeof(<StructureNoplural>), 200)}
-		{EnableQuery<API_ENABLE_QUERY_PARAMS>}
-		;;; <summary>
-		;;; Get a single <StructureNoplural> by primary key.
-		;;; </summary>
-	<SEGMENT_LOOP>
-		;;; <param name="a<SegmentName>"><FIELD_DESC></param>
-	</SEGMENT_LOOP>
-		;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
-		public method Get, @SingleResult<<StructureNoplural>>
-	<SEGMENT_LOOP>
-			{FromODataUri}
-			required in a<SegmentName>, <SEGMENT_SNTYPE>
-	</SEGMENT_LOOP>
-		proc
+        {ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
+;//        {ProducesResponseType(^typeof(<StructureNoplural>), 200)}
+        {EnableQuery<API_ENABLE_QUERY_PARAMS>}
+        ;;; <summary>
+        ;;; Get a single <StructureNoplural> by primary key.
+        ;;; </summary>
+    <SEGMENT_LOOP>
+        ;;; <param name="a<SegmentName>"><FIELD_DESC></param>
+    </SEGMENT_LOOP>
+        ;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
+        public method Get, @SingleResult<<StructureNoplural>>
+    <SEGMENT_LOOP>
+            {FromODataUri}
+            required in a<SegmentName>, <SEGMENT_SNTYPE>
+    </SEGMENT_LOOP>
+        proc
 ;//Shouldn't really need the generic type arg on FindQuery. Compiler issue?
-			mreturn new SingleResult<<StructureNoplural>>(DBContext.<StructurePlural>.FindQuery<<StructureNoplural>>(<SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP>))
-		endmethod
+            mreturn new SingleResult<<StructureNoplural>>(DBContext.<StructurePlural>.FindQuery<<StructureNoplural>>(<SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP>))
+        endmethod
 </PRIMARY_KEY>
 
 ;//
 ;// GET BY ALTERNATE KEY ------------------------------------------------------
 ;//
-<IF DEFINED_ALLOW_ALTERNATE_KEYS>
+<IF DEFINED_ENABLE_ALTERNATE_KEYS>
 <ALTERNATE_KEY_LOOP>
-	<IF DUPLICATES>
-		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
-;//		{ProducesResponseType(^typeof(<StructureNoplural>), 200)}
-		{EnableQuery<API_ENABLE_QUERY_PARAMS>}
-		;;; <summary>
-		;;; Get <structurePlural> by alternate key key <KeyName>.
-		;;; </summary>
-		<SEGMENT_LOOP>
-		;;; <param name="a<SegmentName>"><FIELD_DESC></param>
-		</SEGMENT_LOOP>
-		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-		public method GetByKey<KeyName>, @IActionResult
-			<SEGMENT_LOOP>
-			{FromODataUri}
-			required in a<SegmentName>, <SEGMENT_SNTYPE>
-			</SEGMENT_LOOP>
-		proc
-			data result = DBContext.<StructurePlural>.FindAlternate(<SEGMENT_LOOP>"<SegmentName>",a<SegmentName><,></SEGMENT_LOOP>)
-			if (result == ^null)
-				mreturn NotFound()
-			mreturn Ok(result)
-		endmethod
-	<ELSE>
-		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
-;//		{ProducesResponseType(^typeof(<StructureNoplural>), 200)}
-		{EnableQuery<API_ENABLE_QUERY_PARAMS>}
-		;;; <summary>
-		;;; Get <structureNoplural> by alternate key <KeyName>.
-		;;; </summary>
-		<SEGMENT_LOOP>
-		;;; <param name="a<SegmentName>"><FIELD_DESC></param>
-		</SEGMENT_LOOP>
-		;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
-		public method GetByKey<KeyName>, @SingleResult<<StructureNoplural>>
-			<SEGMENT_LOOP>
-			{FromODataUri}
-			required in a<SegmentName>, <SEGMENT_SNTYPE>
-			</SEGMENT_LOOP>
-		proc
-			mreturn new SingleResult<<StructureNoplural>>(DBContext.<StructurePlural>.FindAlternate(<SEGMENT_LOOP>"<SegmentName>",a<SegmentName><,></SEGMENT_LOOP>))
-		endmethod
-	</IF DUPLICATES>
+    <IF DUPLICATES>
+        {ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
+;//        {ProducesResponseType(^typeof(<StructureNoplural>), 200)}
+        {EnableQuery<API_ENABLE_QUERY_PARAMS>}
+        ;;; <summary>
+        ;;; Get <structurePlural> by alternate key key <KeyName>.
+        ;;; </summary>
+        <SEGMENT_LOOP>
+        ;;; <param name="a<SegmentName>"><FIELD_DESC></param>
+        </SEGMENT_LOOP>
+        ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        public method GetByKey<KeyName>, @IActionResult
+            <SEGMENT_LOOP>
+            {FromODataUri}
+            required in a<SegmentName>, <SEGMENT_SNTYPE>
+            </SEGMENT_LOOP>
+        proc
+            data result = DBContext.<StructurePlural>.FindAlternate(<SEGMENT_LOOP>"<SegmentName>",a<SegmentName><,></SEGMENT_LOOP>)
+            if (result == ^null)
+                mreturn NotFound()
+            mreturn Ok(result)
+        endmethod
+    <ELSE>
+        {ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
+;//        {ProducesResponseType(^typeof(<StructureNoplural>), 200)}
+        {EnableQuery<API_ENABLE_QUERY_PARAMS>}
+        ;;; <summary>
+        ;;; Get <structureNoplural> by alternate key <KeyName>.
+        ;;; </summary>
+        <SEGMENT_LOOP>
+        ;;; <param name="a<SegmentName>"><FIELD_DESC></param>
+        </SEGMENT_LOOP>
+        ;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
+        public method GetByKey<KeyName>, @SingleResult<<StructureNoplural>>
+            <SEGMENT_LOOP>
+            {FromODataUri}
+            required in a<SegmentName>, <SEGMENT_SNTYPE>
+            </SEGMENT_LOOP>
+        proc
+            mreturn new SingleResult<<StructureNoplural>>(DBContext.<StructurePlural>.FindAlternate(<SEGMENT_LOOP>"<SegmentName>",a<SegmentName><,></SEGMENT_LOOP>))
+        endmethod
+    </IF DUPLICATES>
 
 </ALTERNATE_KEY_LOOP>
-</IF DEFINED_ALLOW_ALTERNATE_KEYS>
+</IF DEFINED_ENABLE_ALTERNATE_KEYS>
 ;//
 ;// GET INDIVIDUAL PROPERTIES -------------------------------------------------
 ;//
-<IF DEFINED_PROPERTY_ENDPOINTS>
+<IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
 ;//
 ;// In order for the $value function to work in conjunction with these properties,
 ;// the name of a single key segment MUST be "key"!!! Likely doesn't work with segmented keys.
 ;//
-	<FIELD_LOOP>
-		<PRIMARY_KEY>
-		{ODataRoute("<StructurePlural>(<IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP></IF SINGLE_SEGMENT>)/<FieldSqlName>")}
-;//		{ProducesResponseType(^typeof(<StructureNoplural>), 200)}
-		;;; <summary>
-		;;; Get the <FieldSqlName> property of a single <StructureNoplural>, by primary key.
-		;;; </summary>
-		<IF SINGLE_SEGMENT>
-		;;; <param name="key"><FIELD_DESC></param>
-		<ELSE>
-		<SEGMENT_LOOP>
-		;;; <param name="a<SegmentName>"><FIELD_DESC></param>
-		</SEGMENT_LOOP>
-		</IF SINGLE_SEGMENT>
-		;;; <returns>
-		;;; Returns <IF ALPHA>a string</IF ALPHA><IF DECIMAL><IF PRECISION>a decimal<ELSE><IF CUSTOM_HARMONY_AS_STRING>a string<ELSE>an int</IF CUSTOM_HARMONY_AS_STRING></IF PRECISION></IF DECIMAL><IF DATE>a DateTime</IF DATE><IF TIME>a DateTime</IF TIME><IF INTEGER>an int</IF INTEGER> containing the value of the requested property.
-		;;;</returns>
-		public method Get<FieldSqlName>, @IActionResult
-		<SEGMENT_LOOP>
-			<IF SINGLE_SEGMENT>
-			{FromODataUri}
-			required in key, <SEGMENT_SNTYPE>
-			<ELSE>
-			{FromODataUri}
-			required in a<SegmentName>, <SEGMENT_SNTYPE>
-			</IF SINGLE_SEGMENT>
-		</SEGMENT_LOOP>
-		proc
-			data result = DBContext.<StructurePlural>.Find(<IF SINGLE_SEGMENT>key<ELSE><SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP></IF SINGLE_SEGMENT>)
-			if (result==^null)
-				mreturn NotFound()
-			mreturn OK(result.<FieldSqlName>)
-		endmethod
+    <FIELD_LOOP>
+      <IF NOTPKSEGMENT>
+        <PRIMARY_KEY>
+        {ODataRoute("<StructurePlural>(<IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP></IF SINGLE_SEGMENT>)/<FieldSqlName>")}
+;//        {ProducesResponseType(^typeof(<StructureNoplural>), 200)}
+        ;;; <summary>
+        ;;; Get the <FieldSqlName> property of a single <StructureNoplural>, by primary key.
+        ;;; </summary>
+        <IF SINGLE_SEGMENT>
+        ;;; <param name="key"><FIELD_DESC></param>
+        <ELSE>
+        <SEGMENT_LOOP>
+        ;;; <param name="a<SegmentName>"><FIELD_DESC></param>
+        </SEGMENT_LOOP>
+        </IF SINGLE_SEGMENT>
+        ;;; <returns>
+        ;;; Returns <IF ALPHA>a string</IF ALPHA><IF DECIMAL><IF PRECISION>a decimal<ELSE><IF CUSTOM_HARMONY_AS_STRING>a string<ELSE>an int</IF CUSTOM_HARMONY_AS_STRING></IF PRECISION></IF DECIMAL><IF DATE>a DateTime</IF DATE><IF TIME>a DateTime</IF TIME><IF INTEGER>an int</IF INTEGER> containing the value of the requested property.
+        ;;;</returns>
+        public method Get<FieldSqlName>, @IActionResult
+        <SEGMENT_LOOP>
+            <IF SINGLE_SEGMENT>
+            {FromODataUri}
+            required in key, <SEGMENT_SNTYPE>
+            <ELSE>
+            {FromODataUri}
+            required in a<SegmentName>, <SEGMENT_SNTYPE>
+            </IF SINGLE_SEGMENT>
+        </SEGMENT_LOOP>
+        proc
+            data result = DBContext.<StructurePlural>.Find(<IF SINGLE_SEGMENT>key<ELSE><SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP></IF SINGLE_SEGMENT>)
+            if (result==^null)
+                mreturn NotFound()
+            mreturn OK(result.<FieldSqlName>)
+        endmethod
 
-		</PRIMARY_KEY>
-	</FIELD_LOOP>
-</IF DEFINED_PROPERTY_ENDPOINTS>
+        </PRIMARY_KEY>
+      </IF NOTPKSEGMENT>
+    </FIELD_LOOP>
+</IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
 ;//
 ;// POST ----------------------------------------------------------------------
 ;//
-;//		{ODataRoute("<StructurePlural>")}
-;//		{ProducesResponseType(^typeof(void), 200)}
-;//		;;; <summary>
-;//		;;; Create a new <structureNoplural> (automatically assigned primary key).
-;//		;;; </summary>
-;//		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-;//		public method Post, @IActionResult
-;//			{FromBody}
-;//			required in a<StructureNoplural>, @<StructureNoplural>
-;//		proc
-;//			;; Validate inbound data
-;//			if (!ModelState.IsValid)
-;//				mreturn BadRequest(ModelState)
+;//        {ODataRoute("<StructurePlural>")}
+;//        {ProducesResponseType(^typeof(void), 200)}
+;//        ;;; <summary>
+;//        ;;; Create a new <structureNoplural> (automatically assigned primary key).
+;//        ;;; </summary>
+;//        ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+;//        public method Post, @IActionResult
+;//            {FromBody}
+;//            required in a<StructureNoplural>, @<StructureNoplural>
+;//        proc
+;//            ;; Validate inbound data
+;//            if (!ModelState.IsValid)
+;//                mreturn BadRequest(ModelState)
 ;//
-;//			;TODO: How do we support the auto-generation of primary key in this scenario?
-;//			DBContext.<StructurePlural>.Add(a<StructureNoplural>)
+;//            ;TODO: How do we support the auto-generation of primary key in this scenario?
+;//            DBContext.<StructurePlural>.Add(a<StructureNoplural>)
 ;//
-;//			;TODO: Need to add a Location header
+;//            ;TODO: Need to add a Location header
 ;//
-;//			;;Commit the change
-;//			DBContext.SaveChanges()
+;//            ;;Commit the change
+;//            DBContext.SaveChanges()
 ;//
-;//			mreturn Ok()
+;//            mreturn Ok()
 ;//
-;//		endmethod
+;//        endmethod
 ;//
 ;// PUT
 ;//
 ;//
 ;// PUT -----------------------------------------------------------------------
 ;//
-<IF DEFINED_ALLOW_PUT>
-	<PRIMARY_KEY>
-		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
-;//		{ProducesResponseType(^typeof(void), 204)}
-		;;; <summary>
-		;;; Create (with a client-supplied primary key) or replace a <structureNoplural>.
-		;;; </summary>
-		<SEGMENT_LOOP>
-		;;; <param name="a<SegmentName>"><FIELD_DESC></param>
-		</SEGMENT_LOOP>
-		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-		public method Put, @IActionResult
-			<SEGMENT_LOOP>
-			{FromODataUri}
-			required in a<SegmentName>, <SEGMENT_SNTYPE>
-			</SEGMENT_LOOP>
-			{FromBody}
-			required in a<StructureNoplural>, @<StructureNoplural>
-		proc
-			;; Validate inbound data
-			if (!ModelState.IsValid)
-				mreturn BadRequest(ModelState)
+<IF DEFINED_ENABLE_PUT>
+    <PRIMARY_KEY>
+        {ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
+;//        {ProducesResponseType(^typeof(void), 204)}
+        ;;; <summary>
+        ;;; Create (with a client-supplied primary key) or replace a <structureNoplural>.
+        ;;; </summary>
+        <SEGMENT_LOOP>
+        ;;; <param name="a<SegmentName>"><FIELD_DESC></param>
+        </SEGMENT_LOOP>
+        ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        public method Put, @IActionResult
+            <SEGMENT_LOOP>
+            {FromODataUri}
+            required in a<SegmentName>, <SEGMENT_SNTYPE>
+            </SEGMENT_LOOP>
+            {FromBody}
+            required in a<StructureNoplural>, @<StructureNoplural>
+        proc
+            ;; Validate inbound data
+            if (!ModelState.IsValid)
+                mreturn BadRequest(ModelState)
 
-			;;Ensure that the key values in the URI win over any data that may be in the model object
-			<SEGMENT_LOOP>
-			a<StructureNoplural>.<FieldSqlname> = a<SegmentName>
-			</SEGMENT_LOOP>
+            ;;Ensure that the key values in the URI win over any data that may be in the model object
+            <SEGMENT_LOOP>
+            a<StructureNoplural>.<FieldSqlname> = a<SegmentName>
+            </SEGMENT_LOOP>
 
-			try
-			begin
-				;;Add and commit
-				data existing = DBContext.<StructurePlural>.Find(<SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP>)
-				if(existing != ^null) then
-				begin
-					a<StructureNoplural>.CopyTo(existing)
-				end
-				else
-				begin
-					DBContext.<StructurePlural>.Add(a<StructureNoplural>)
-				end
-				DBContext.SaveChanges()
-			end
-			catch (e, @InvalidOperationException)
-			begin
-				mreturn BadRequest(e)
-			end
-			endtry
+            try
+            begin
+                ;;Add and commit
+                data existing = DBContext.<StructurePlural>.Find(<SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP>)
+                if(existing != ^null) then
+                begin
+                    a<StructureNoplural>.CopyTo(existing)
+                end
+                else
+                begin
+                    DBContext.<StructurePlural>.Add(a<StructureNoplural>)
+                end
+                DBContext.SaveChanges()
+            end
+            catch (e, @InvalidOperationException)
+            begin
+                mreturn BadRequest(e)
+            end
+            endtry
 
-			mreturn NoContent()
+            mreturn NoContent()
 
-		endmethod
+        endmethod
 
-	</PRIMARY_KEY>
-</IF DEFINED_ALLOW_PUT>
+    </PRIMARY_KEY>
+</IF DEFINED_ENABLE_PUT>
 ;//
 ;// PATCH ---------------------------------------------------------------------
 ;//
-<IF DEFINED_ALLOW_PATCH>
-		<PRIMARY_KEY>
-		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
-;//		{ProducesResponseType(^typeof(void), 204)}
-		;;; <summary>
-		;;; Patch  (partial update) a <structureNoplural>.
-		;;; </summary>
-		<SEGMENT_LOOP>
-		;;; <param name="a<SegmentName>"><FIELD_DESC></param>
-		</SEGMENT_LOOP>
-		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-		public method Patch, @IActionResult
-		<SEGMENT_LOOP>
-			{FromODataUri}
-			required in a<SegmentName>, <SEGMENT_SNTYPE>
-		</SEGMENT_LOOP>
-			{FromBody}
-			required in a<StructureNoplural>, @JsonPatchDocument<<StructureNoplural>>
-		proc
-			;; Validate inbound data
-			if (!ModelState.IsValid)
-				mreturn BadRequest(ModelState)
+<IF DEFINED_ENABLE_PATCH>
+        <PRIMARY_KEY>
+        {ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
+;//        {ProducesResponseType(^typeof(void), 204)}
+        ;;; <summary>
+        ;;; Patch  (partial update) a <structureNoplural>.
+        ;;; </summary>
+        <SEGMENT_LOOP>
+        ;;; <param name="a<SegmentName>"><FIELD_DESC></param>
+        </SEGMENT_LOOP>
+        ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        public method Patch, @IActionResult
+        <SEGMENT_LOOP>
+            {FromODataUri}
+            required in a<SegmentName>, <SEGMENT_SNTYPE>
+        </SEGMENT_LOOP>
+            {FromBody}
+            required in a<StructureNoplural>, @JsonPatchDocument<<StructureNoplural>>
+        proc
+            ;; Validate inbound data
+            if (!ModelState.IsValid)
+                mreturn BadRequest(ModelState)
 
-			;;Patch the existing <structureNoplural>
-			try
-			begin
-				;;Get the <structureNoplural> to be updated
-				data <structureNoplural>ToUpdate = DBContext.<StructurePlural>.Find(<SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP>)
+            ;;Patch the existing <structureNoplural>
+            try
+            begin
+                ;;Get the <structureNoplural> to be updated
+                data <structureNoplural>ToUpdate = DBContext.<StructurePlural>.Find(<SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP>)
 
-				;;Did we find it?
-				if(<structureNoplural>ToUpdate == ^null)
-					mreturn NotFound()
+                ;;Did we find it?
+                if(<structureNoplural>ToUpdate == ^null)
+                    mreturn NotFound()
 
-				;;Apply the changes to the <structureNoplural> we read
-				a<StructureNoplural>.ApplyTo(<structureNoplural>ToUpdate)
+                ;;Apply the changes to the <structureNoplural> we read
+                a<StructureNoplural>.ApplyTo(<structureNoplural>ToUpdate)
 
-				;;Update and commit
-				DBContext.<StructurePlural>.Update(<structureNoplural>ToUpdate)
-				DBContext.SaveChanges()
-			end
-			catch (e, @InvalidOperationException)
-			begin
-				mreturn BadRequest(e)
-			end
-			endtry
+                ;;Update and commit
+                DBContext.<StructurePlural>.Update(<structureNoplural>ToUpdate)
+                DBContext.SaveChanges()
+            end
+            catch (e, @InvalidOperationException)
+            begin
+                mreturn BadRequest(e)
+            end
+            endtry
 
-			mreturn NoContent()
+            mreturn NoContent()
 
-		endmethod
+        endmethod
 
-	</PRIMARY_KEY>
-</IF DEFINED_ALLOW_PATCH>
+    </PRIMARY_KEY>
+</IF DEFINED_ENABLE_PATCH>
 ;//
 ;// DELETE --------------------------------------------------------------------
 ;//
-<IF DEFINED_ALLOW_DELETE>
-	<PRIMARY_KEY>
-		{ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
-;//		{ProducesResponseType(^typeof(void), 204)}
-		;;; <summary>
-		;;; Delete a <structureNoplural>.
-		;;; </summary>
-		<SEGMENT_LOOP>
-		;;; <param name="a<SegmentName>"><FIELD_DESC></param>
-		</SEGMENT_LOOP>
-		;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-		public method Delete, @IActionResult
-		<SEGMENT_LOOP>
-			{FromODataUri}
-			required in a<SegmentName>, <SEGMENT_SNTYPE>
-		</SEGMENT_LOOP>
-		proc
-			;;Get the <structureNoplural> to be deleted
-			data <structureNoplural>ToRemove = DBContext.<StructurePlural>.Find(<SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP>)
+<IF DEFINED_ENABLE_DELETE>
+    <PRIMARY_KEY>
+        {ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
+;//        {ProducesResponseType(^typeof(void), 204)}
+        ;;; <summary>
+        ;;; Delete a <structureNoplural>.
+        ;;; </summary>
+        <SEGMENT_LOOP>
+        ;;; <param name="a<SegmentName>"><FIELD_DESC></param>
+        </SEGMENT_LOOP>
+        ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        public method Delete, @IActionResult
+        <SEGMENT_LOOP>
+            {FromODataUri}
+            required in a<SegmentName>, <SEGMENT_SNTYPE>
+        </SEGMENT_LOOP>
+        proc
+            ;;Get the <structureNoplural> to be deleted
+            data <structureNoplural>ToRemove = DBContext.<StructurePlural>.Find(<SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP>)
 
-			;;Did we find it?
-			if (<structureNoplural>ToRemove == ^null)
-				mreturn NotFound()
+            ;;Did we find it?
+            if (<structureNoplural>ToRemove == ^null)
+                mreturn NotFound()
 
-			;;Delete and commit
-			DBContext.<StructurePlural>.Remove(<structureNoplural>ToRemove)
-			DBContext.SaveChanges()
+            ;;Delete and commit
+            DBContext.<StructurePlural>.Remove(<structureNoplural>ToRemove)
+            DBContext.SaveChanges()
 
-			mreturn NoContent()
+            mreturn NoContent()
 
-		endmethod
+        endmethod
 
-	</PRIMARY_KEY>
-</IF DEFINED_ALLOW_DELETE>
-	endclass
+    </PRIMARY_KEY>
+</IF DEFINED_ENABLE_DELETE>
+    endclass
 
 endnamespace

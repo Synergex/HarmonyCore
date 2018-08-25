@@ -12,59 +12,59 @@ Entity Sets
 ==================================================================
 https://localhost:8086/odata/Customers
 
-https://localhost:8086/odata/Customers?$select=CustKey,CustName
+https://localhost:8086/odata/Customers?$select=CustomerNumber,Name
 
 https://localhost:8086/odata/Customers/$count
 
-https://localhost:8086/odata/Customers?$filter=CustState eq 'CA'
+https://localhost:8086/odata/Customers?$filter=State eq 'CA'
 
-https://localhost:8086/odata/Customers?$filter=not CustState eq 'CA'
+https://localhost:8086/odata/Customers?$filter=not State eq 'CA'
 	FAILS - returns exception to browser
 
-https://localhost:8086/odata/Customers?$filter= CustLimit gt 5000
+https://localhost:8086/odata/Customers?$filter= CreditLimit gt 5000
 
-https://localhost:8086/odata/Customers?$filter=CustState eq 'CA' and CustLimit gt 5000
+https://localhost:8086/odata/Customers?$filter=State eq 'CA' and CreditLimit gt 5000
 
-https://localhost:8086/odata/Customers?$filter=CustState eq 'NV'&$select=CustKey,CustName
+https://localhost:8086/odata/Customers?$filter=State eq 'NV'&$select=CustomerNumber,Name
 
-https://localhost:8086/odata/Customers/$count?$filter=CustState eq 'NV'
+https://localhost:8086/odata/Customers/$count?$filter=State eq 'NV'
 
-https://localhost:8086/odata/Customers?$filter=CustState in ('OR', 'WA')
+https://localhost:8086/odata/Customers?$filter=State in ('OR', 'WA')
 
 https://localhost:8086/odata/Customers?$top=5
 
 https://localhost:8086/odata/Customers?$top=5&$skip=5
 
-https://localhost:8086/odata/Plants?$filter=not endswith(InLatin,'costata')
+https://localhost:8086/odata/Items?$filter=not endswith(LatinName,'costata')
 	FAILS - returns full collection
 
 Individual Entities By Primary Key
 ==================================================================
 https://localhost:8086/odata/Customers(1)
 
-https://localhost:8086/odata/Customers(1)/CustName
+https://localhost:8086/odata/Customers(1)/Name
 
-https://localhost:8086/odata/Customers(1)/CustName/$value
+https://localhost:8086/odata/Customers(1)/Name/$value
 
 https://localhost:8086/odata/Customers/1
 
-https://localhost:8086/odata/Customers/1/CustName
+https://localhost:8086/odata/Customers/1/Name
 
-https://localhost:8086/odata/Customers/1/CustName/$value
+https://localhost:8086/odata/Customers/1/Name/$value
 
 Individual Entities By Alternate key
 ==================================================================
-https://localhost:8086/odata/Plants(InSource=42)
+https://localhost:8086/odata/Items(VendorNumber=42)
 
-https://localhost:8086/odata/Plants(InSource=42)/$count
+https://localhost:8086/odata/Items(VendorNumber=42)/$count
 	FAILS - 404
-https://localhost:8086/odata/Plants(InColor='white')
+https://localhost:8086/odata/Items(FlowerColor='white')
 
-https://localhost:8086/odata/Plants(InSize=3)
+https://localhost:8086/odata/Items(Size=3)
 
-https://localhost:8086/odata/Plants(InSize=3)?$filter=InShape eq 'bush' and InColor eq 'purple'&$select=InItemId,InName
+https://localhost:8086/odata/Items(Size=3)?$filter=Shape eq 'bush' and FlowerColor eq 'purple'&$select=ItemNumber,CommonName
 
-https://localhost:8086/odata/Plants(InName='Hedge Maple')
+https://localhost:8086/odata/Items(CommonName='Hedge Maple')
 
 Relations
 ==================================================================
@@ -82,20 +82,20 @@ https://localhost:8086/odata/Customers(8)/REL_Orders
 https://localhost:8086/odata/Customers(8)?$expand=REL_Orders($expand=REL_OrderItems($expand=REL_OiItemOrdered))
 	FAILS with "The request includes a $expand path which is too deep"
 
-https://localhost:8086/odata/Customers(8)?$expand=REL_Orders($filter=OrNumber eq 7)
+https://localhost:8086/odata/Customers(8)?$expand=REL_Orders($filter=OrderNumber eq 7)
 
-https://localhost:8086/odata/Customers(8)?$expand=REL_Orders&$filter=REL_Orders/OrNumber eq 7
+https://localhost:8086/odata/Customers(8)?$expand=REL_Orders&$filter=REL_Orders/OrderNumber eq 7
 	FAILS - correct syntax ?
-	The parent value for a property access of a property 'OrNumber' is not a single value.
+	The parent value for a property access of a property 'OrderNumber' is not a single value.
 	Property access can only be applied to a single value.
 
 Collections with Multiple Key Segments
 ==================================================================
 https://localhost:8086/odata/OrderItems
 
-https://localhost:8086/odata/OrderItems?$filter=OiNumber eq 3
+https://localhost:8086/odata/OrderItems?$filter=OrderNumber eq 3
 
-https://localhost:8086/odata/OrderItems(OiNumber=3,OiLineItem=1)
+https://localhost:8086/odata/OrderItems(OrderNumber=3,ItemNumber=1)
 
 https://localhost:8086/odata/OrderItems/3/1
 	FAILS - 404

@@ -289,6 +289,126 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 
 	;;-------------------------------------------------------------------------
 	;;; <summary>
+	;;; Dispatcher for method SampleXfplEnv.GetAllItems
+	;;; </summary>
+	public class GetAllItems_Dispatch extends RoutineStub
+
+		private mItemMetadata, @DataObjectMetadataBase
+
+		public method GetAllItems_Dispatch
+		proc
+			;;Initialize the meta data for any data objects that are used by parameters to the method
+			mItemMetadata = DataObjectMetadataBase.LookupType("Item")
+		endmethod
+
+		public override method Dispatch, void
+			required in name,       string
+			required in callFrame,  @JsonObject
+			required in serializer, @ChannelSerializer
+			required in dispatcher, @RoutineDispatcher
+			record
+				arguments,			@JsonArray
+				argumentDefinition, @ArgumentDataDefinition
+				;;Argument 1 (REQUIRED OUT Items ArrayList collection of structure @Item)
+				arg1,				@ArrayList
+				;;Argument 2 (REQUIRED OUT ErrorMessage A80)
+				arg2,				a80
+				returnValue,		METHOD_STATUS
+			endrecord
+		proc
+
+			;;------------------------------------------------------------
+			;;Process inbound arguments
+
+			;;There are no inbound arguments to process
+
+			;;------------------------------------------------------------
+			;; Call the underlying routine
+
+			returnValue = %get_all_items(arg1,arg2)
+
+			;;------------------------------------------------------------
+			;;Build the JSON response
+
+			serializer.MapOpen()
+			serializer.String("IsError")
+			serializer.Bool(false)
+			serializer.String("Result")
+			serializer.MapOpen()
+			serializer.String("ReturnParameters")
+			serializer.ArrayOpen()
+
+			;;Function return value
+
+			serializer.MapOpen()
+			serializer.String("Position")
+			serializer.Integer(0)
+			serializer.String("Value")
+			serializer.MapOpen()
+			serializer.String("DataType")
+			;TODO: Needs to handle all the valid function return types
+			serializer.Integer(FieldDataType.EnumField)
+			serializer.String("PassedValue")
+			serializer.Integer(returnValue)
+			serializer.MapClose()
+			serializer.MapClose()
+
+			;;--------------------------------------------------------------------------------
+			;;Argument 1 (REQUIRED OUT Items ArrayList collection of structure @Item)
+
+			serializer.MapOpen()
+			serializer.String("Position")
+			serializer.Integer(1)
+			serializer.String("Value")
+			serializer.MapOpen()
+			serializer.String("DataType")
+			serializer.Integer(FieldDataType.DataObjectCollectionField)
+			serializer.String("PassedValue")
+			serializer.ArrayOpen()
+			begin
+				data thisItem, @strItem
+				foreach thisItem in arg1
+					new Item((strItem)thisItem).Serialize(serializer)
+			end
+			serializer.ArrayClose()
+			serializer.MapClose()
+			serializer.MapClose()
+
+			;;--------------------------------------------------------------------------------
+			;;Argument 2 (REQUIRED OUT ErrorMessage A80)
+
+			serializer.MapOpen()
+			serializer.String("Position")
+			serializer.Integer(2)
+			serializer.String("Value")
+			serializer.MapOpen()
+			serializer.String("DataType")
+			serializer.Integer(FieldDataType.AlphaField)
+			serializer.String("PassedValue")
+			serializer.String(%atrim(arg2))
+			serializer.MapClose()
+			serializer.MapClose()
+
+			;;Terminate the "ReturnParameters" array
+			serializer.ArrayClose()
+
+			;;Terminate the "Result" object
+			serializer.MapClose()
+
+			;;Terminate the response object
+			begin
+				;;Structured this way to assist with debugging
+				data protocolMessage, string
+				serializer.MapClose(protocolMessage)
+				nop
+			end
+
+		endmethod
+
+	endclass
+
+	;;-------------------------------------------------------------------------
+	;;; <summary>
 	;;; Dispatcher for method SampleXfplEnv.GetAllOrders
 	;;; </summary>
 	public class GetAllOrders_Dispatch extends RoutineStub
@@ -369,126 +489,6 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 				data thisOrder, @strOrder
 				foreach thisOrder in arg1
 					new Order((strOrder)thisOrder).Serialize(serializer)
-			end
-			serializer.ArrayClose()
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;--------------------------------------------------------------------------------
-			;;Argument 2 (REQUIRED OUT ErrorMessage A80)
-
-			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(2)
-			serializer.String("Value")
-			serializer.MapOpen()
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.AlphaField)
-			serializer.String("PassedValue")
-			serializer.String(%atrim(arg2))
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-			;;Terminate the "Result" object
-			serializer.MapClose()
-
-			;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
-		endmethod
-
-	endclass
-
-	;;-------------------------------------------------------------------------
-	;;; <summary>
-	;;; Dispatcher for method SampleXfplEnv.GetAllPlants
-	;;; </summary>
-	public class GetAllPlants_Dispatch extends RoutineStub
-
-		private mPlantMetadata, @DataObjectMetadataBase
-
-		public method GetAllPlants_Dispatch
-		proc
-			;;Initialize the meta data for any data objects that are used by parameters to the method
-			mPlantMetadata = DataObjectMetadataBase.LookupType("Plant")
-		endmethod
-
-		public override method Dispatch, void
-			required in name,       string
-			required in callFrame,  @JsonObject
-			required in serializer, @ChannelSerializer
-			required in dispatcher, @RoutineDispatcher
-			record
-				arguments,			@JsonArray
-				argumentDefinition, @ArgumentDataDefinition
-				;;Argument 1 (REQUIRED OUT Plants ArrayList collection of structure @Plant)
-				arg1,				@ArrayList
-				;;Argument 2 (REQUIRED OUT ErrorMessage A80)
-				arg2,				a80
-				returnValue,		METHOD_STATUS
-			endrecord
-		proc
-
-			;;------------------------------------------------------------
-			;;Process inbound arguments
-
-			;;There are no inbound arguments to process
-
-			;;------------------------------------------------------------
-			;; Call the underlying routine
-
-			returnValue = %get_all_plants(arg1,arg2)
-
-			;;------------------------------------------------------------
-			;;Build the JSON response
-
-			serializer.MapOpen()
-			serializer.String("IsError")
-			serializer.Bool(false)
-			serializer.String("Result")
-			serializer.MapOpen()
-			serializer.String("ReturnParameters")
-			serializer.ArrayOpen()
-
-			;;Function return value
-
-			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(0)
-			serializer.String("Value")
-			serializer.MapOpen()
-			serializer.String("DataType")
-			;TODO: Needs to handle all the valid function return types
-			serializer.Integer(FieldDataType.EnumField)
-			serializer.String("PassedValue")
-			serializer.Integer(returnValue)
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;--------------------------------------------------------------------------------
-			;;Argument 1 (REQUIRED OUT Plants ArrayList collection of structure @Plant)
-
-			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(1)
-			serializer.String("Value")
-			serializer.MapOpen()
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.DataObjectCollectionField)
-			serializer.String("PassedValue")
-			serializer.ArrayOpen()
-			begin
-				data thisPlant, @strPlant
-				foreach thisPlant in arg1
-					new Plant((strPlant)thisPlant).Serialize(serializer)
 			end
 			serializer.ArrayClose()
 			serializer.MapClose()

@@ -51,217 +51,218 @@ import SampleServices.Test.Models
 
 namespace SampleServices.Test.UnitTests
 
-	{TestClass}
-	public partial class VendorTests
+    {TestClass}
+    public partial class VendorTests
 
-		;;------------------------------------------------------------
-		;;Get all Vendors
+        ;;------------------------------------------------------------
+        ;;Get all Vendors
 
-		{TestMethod}
-		{TestCategory("Vendor Tests - Read All")}
-		public method GetVendors, void
-		proc
-			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync("/odata/Vendors").Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data vendors, @ODataVendors, JsonConvert.DeserializeObject<ODataVendors>(result)
-		endmethod
+        {TestMethod}
+        {TestCategory("Vendor Tests - Read All")}
+        public method GetVendors, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/Vendors").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data vendors, @ODataVendors, JsonConvert.DeserializeObject<ODataVendors>(result)
+        endmethod
 
-		;;------------------------------------------------------------
-		;;Get all Vendors and expand relation REL_Vendor
+        ;;------------------------------------------------------------
+        ;;Get all Vendors and expand relation REL_VendorNumber
 
-		{TestMethod}
-		{TestCategory("Vendor Tests - Read All")}
-		public method GetVendors_Expand_REL_Plants, void
-		proc
-			data uri = "/odata/Vendors?$expand=REL_Plants"
-			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync(uri).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-		endmethod
+        {TestMethod}
+        {TestCategory("Vendor Tests - Read All")}
+        public method GetVendors_Expand_REL_Items, void
+        proc
+            data uri = "/odata/Vendors?$expand=REL_Items"
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync(uri).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+        endmethod
 
-		;;------------------------------------------------------------
-		;;Get all Vendors and expand all relations
+        ;;------------------------------------------------------------
+        ;;Get all Vendors and expand all relations
 
-		{TestMethod}
-		{TestCategory("Vendor Tests - Read All")}
-		public method GetVendors_Expand_All, void
-		proc
-			data uri = "/odata/Vendors?$expand=REL_Plants"
-			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync(uri).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-		endmethod
-		
-		;;------------------------------------------------------------
-		;;Get a single Vendor by primary key
+        {TestMethod}
+        {TestCategory("Vendor Tests - Read All")}
+        public method GetVendors_Expand_All, void
+        proc
+            data uri = "/odata/Vendors?$expand=REL_Items"
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync(uri).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+        endmethod
+        
+        ;;------------------------------------------------------------
+        ;;Get a single Vendor by primary key
 
-		{TestMethod}
-		{TestCategory("Vendor Tests - Read by Primary Key")}
-		public method GetVendor, void
-		proc
-			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Vendors(VendKey={1})","",TestConstants.GetVendor_VendKey)
-			data response = client.GetAsync(request).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data vendor, @ODataVendor, JsonConvert.DeserializeObject<ODataVendor>(result)
-		endmethod
+        {TestMethod}
+        {TestCategory("Vendor Tests - Read by Primary Key")}
+        public method GetVendor, void
+        proc
+            data client = UnitTestEnvironment.Server.CreateClient()
+            data request = String.Format("/odata/Vendors(VendorNumber={1})","",TestConstants.GetVendor_VendorNumber)
+            data response = client.GetAsync(request).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data vendor, @ODataVendor, JsonConvert.DeserializeObject<ODataVendor>(result)
+        endmethod
 
-		;;------------------------------------------------------------
-		;;Get a single Vendor by primary key and expand relation REL_Plants
+        ;;------------------------------------------------------------
+        ;;Get a single Vendor by primary key and expand relation REL_Items
 
-		{TestMethod}
-		{TestCategory("Vendor Tests - Read by Primary Key")}
-		public method GetVendor_Expand_REL_Plants, void
-		proc
-			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Vendors(VendKey={1})?$expand=REL_Plants","",TestConstants.GetVendor_Expand_REL_Plants_VendKey)
-			data response = client.GetAsync(request).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data vendor, @ODataVendor, JsonConvert.DeserializeObject<ODataVendor>(result)
-		endmethod
 
-		;;------------------------------------------------------------
-		;;Get a single Vendor by primary key and expand all relations
+        {TestMethod}
+        {TestCategory("Vendor Tests - Read by Primary Key")}
+        public method GetVendor_Expand_REL_Items, void
+        proc
+            data client = UnitTestEnvironment.Server.CreateClient()
+            data request = String.Format("/odata/Vendors(VendorNumber={1})?$expand=REL_Items","",TestConstants.GetVendor_Expand_REL_Items_VendorNumber)
+            data response = client.GetAsync(request).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data vendor, @ODataVendor, JsonConvert.DeserializeObject<ODataVendor>(result)
+        endmethod
 
-		{TestMethod}
-		{TestCategory("Vendor Tests - Read by Primary Key")}
-		public method GetVendor_Expand_All, void
-		proc
-			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Vendors(VendKey={1})?$expand=REL_Plants","",TestConstants.GetVendor_Expand_All_VendKey)
-			data response = client.GetAsync(request).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data vendor, @ODataVendor, JsonConvert.DeserializeObject<ODataVendor>(result)
-		endmethod
+        ;;------------------------------------------------------------
+        ;;Get a single Vendor by primary key and expand all relations
 
-		;;------------------------------------------------------------
-		;;Get a single Vendor by alternate key 1 (TagVendor)
+        {TestMethod}
+        {TestCategory("Vendor Tests - Read by Primary Key")}
+        public method GetVendor_Expand_All, void
+        proc
+            data client = UnitTestEnvironment.Server.CreateClient()
+            data request = String.Format("/odata/Vendors(VendorNumber={1})?$expand=REL_Items","",TestConstants.GetVendor_Expand_All_VendorNumber)
+            data response = client.GetAsync(request).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data vendor, @ODataVendor, JsonConvert.DeserializeObject<ODataVendor>(result)
+        endmethod
 
-		{TestMethod}
-		{TestCategory("Vendor Tests - Read by Alternate Key")}
-		public method GetVendor_ByAltKey_TagVendor, void
-		proc
-			data client = UnitTestEnvironment.Server.CreateClient()
-			data request = String.Format("/odata/Vendors(VendRtype={1},VendKey={2})", "", TestConstants.GetVendor_ByAltKey_TagVendor_VendRtype,TestConstants.GetVendor_ByAltKey_TagVendor_VendKey)
-			data response = client.GetAsync(request).Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data vendor, @ODataVendor,JsonConvert.DeserializeObject<ODataVendor>(result)
-		endmethod
+        ;;------------------------------------------------------------
+        ;;Get a single Vendor by alternate key 1 (TagVendor)
 
-		;;------------------------------------------------------------
-		;;Create new Vendor (client specified key)
+        {TestMethod}
+        {TestCategory("Vendor Tests - Read by Alternate Key")}
+        public method GetVendor_ByAltKey_TagVendor, void
+        proc
+            data client = UnitTestEnvironment.Server.CreateClient()
+            data request = String.Format("/odata/Vendors(RecordType={1},VendorNumber={2})", "", TestConstants.GetVendor_ByAltKey_TagVendor_RecordType,TestConstants.GetVendor_ByAltKey_TagVendor_VendorNumber)
+            data response = client.GetAsync(request).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data vendor, @ODataVendor,JsonConvert.DeserializeObject<ODataVendor>(result)
+        endmethod
 
-		{TestMethod}
-		{TestCategory("Vendor Tests - Create, Update & Delete")}
-		public method UpdateVendor, void
-		proc
-			disposable data client = UnitTestEnvironment.Server.CreateClient()
+        ;;------------------------------------------------------------
+        ;;Create new Vendor (client specified key)
 
-			;;Get one vendor from the file
-			data getRequest = String.Format("/odata/Vendors(VendKey={1})","",TestConstants.GetVendor_VendKey)
-			data getResponse = client.GetAsync(getRequest).Result
-			data getResult = getResponse.Content.ReadAsStringAsync().Result
+        {TestMethod}
+        {TestCategory("Vendor Tests - Create, Update & Delete")}
+        public method UpdateVendor, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
 
-			;;Check that we got a successful response from the web service
-			getResponse.EnsureSuccessStatusCode()
+            ;;Get one vendor from the file
+            data getRequest = String.Format("/odata/Vendors(VendorNumber={1})","",TestConstants.GetVendor_VendorNumber)
+            data getResponse = client.GetAsync(getRequest).Result
+            data getResult = getResponse.Content.ReadAsStringAsync().Result
 
-			;;Deserialize the JSON into a Vendor object
-			data doVendor, @Vendor, JsonConvert.DeserializeObject<Vendor>(getResult)
+            ;;Check that we got a successful response from the web service
+            getResponse.EnsureSuccessStatusCode()
 
-			doVendor.VendKey = TestConstants.UpdateVendor_VendKey
+            ;;Deserialize the JSON into a Vendor object
+            data doVendor, @Vendor, JsonConvert.DeserializeObject<Vendor>(getResult)
 
-			;TODO: Also need to ensure any nodups alternate keys get unique values
+            doVendor.VendorNumber = TestConstants.UpdateVendor_VendorNumber
 
-			;;Create new item
-			disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doVendor),System.Text.Encoding.UTF8, "application/json")
-			data request = String.Format("/odata/Vendors(VendKey={1})","",TestConstants.UpdateVendor_VendKey)
-			disposable data response = client.PutAsync(request, requestBody).Result
+            ;TODO: Also need to ensure any nodups alternate keys get unique values
 
-			;;Check that we got a successful response from the web service
-			response.EnsureSuccessStatusCode()
+            ;;Create new item
+            disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doVendor),System.Text.Encoding.UTF8, "application/json")
+            data request = String.Format("/odata/Vendors(VendorNumber={1})","",TestConstants.UpdateVendor_VendorNumber)
+            disposable data response = client.PutAsync(request, requestBody).Result
 
-			;;Get the inserted record
-			getResponse = client.GetAsync(request).Result
-			getResult = getResponse.Content.ReadAsStringAsync().Result
+            ;;Check that we got a successful response from the web service
+            response.EnsureSuccessStatusCode()
 
-			;;Check that we got a successful response from the web service
-			getResponse.EnsureSuccessStatusCode()
+            ;;Get the inserted record
+            getResponse = client.GetAsync(request).Result
+            getResult = getResponse.Content.ReadAsStringAsync().Result
 
-			;;Deserialize the JSON into a Vendor object
-			doVendor = JsonConvert.DeserializeObject<Vendor>(getResult)
+            ;;Check that we got a successful response from the web service
+            getResponse.EnsureSuccessStatusCode()
 
-			;;Change the first non key field to test full update
-			doVendor.VendName = "Y"
+            ;;Deserialize the JSON into a Vendor object
+            doVendor = JsonConvert.DeserializeObject<Vendor>(getResult)
 
-			;;Update full item
-			requestBody = new StringContent(JsonConvert.SerializeObject(doVendor),System.Text.Encoding.UTF8, "application/json")
-			request = String.Format("/odata/Vendors(VendKey={1})","",TestConstants.UpdateVendor_VendKey)
-			response = client.PutAsync(request, requestBody).Result
+            ;;Change the first non key field to test full update
+            doVendor.Name = "Y"
 
-			;;Check that we got a successful response from the web service
-			response.EnsureSuccessStatusCode()
+            ;;Update full item
+            requestBody = new StringContent(JsonConvert.SerializeObject(doVendor),System.Text.Encoding.UTF8, "application/json")
+            request = String.Format("/odata/Vendors(VendorNumber={1})","",TestConstants.UpdateVendor_VendorNumber)
+            response = client.PutAsync(request, requestBody).Result
 
-			;;Get the inserted record
-			getResponse = client.GetAsync(request).Result
-			getResult = getResponse.Content.ReadAsStringAsync().Result
+            ;;Check that we got a successful response from the web service
+            response.EnsureSuccessStatusCode()
 
-			;;Check that we got a successful response from the web service
-			getResponse.EnsureSuccessStatusCode()
+            ;;Get the inserted record
+            getResponse = client.GetAsync(request).Result
+            getResult = getResponse.Content.ReadAsStringAsync().Result
 
-			;;Deserialize the JSON into a Vendor object
-			doVendor = JsonConvert.DeserializeObject<Vendor>(getResult)
+            ;;Check that we got a successful response from the web service
+            getResponse.EnsureSuccessStatusCode()
 
-			Assert.AreEqual(doVendor.VendName, "Y")
+            ;;Deserialize the JSON into a Vendor object
+            doVendor = JsonConvert.DeserializeObject<Vendor>(getResult)
 
-			;;Update one property in the vendor
-			data patchDoc = new JsonPatchDocument()
-			patchDoc.Replace("VendName", "Z")
+            Assert.AreEqual(doVendor.Name, "Y")
 
-			;;Serialize the patch to JSON
-			data serializedPatch = JsonConvert.SerializeObject(patchDoc)
+            ;;Update one property in the vendor
+            data patchDoc = new JsonPatchDocument()
+            patchDoc.Replace("Name", "Z")
 
-			;;Apply the patch
-			disposable data patchRequestBody = new StringContent(serializedPatch,System.Text.Encoding.UTF8, "application/json-patch+json")
-			disposable data patchResponse = client.PatchAsync(request, patchRequestBody).Result
+            ;;Serialize the patch to JSON
+            data serializedPatch = JsonConvert.SerializeObject(patchDoc)
 
-			;;Check that we got a successful response from the web service
-			patchResponse.EnsureSuccessStatusCode()
+            ;;Apply the patch
+            disposable data patchRequestBody = new StringContent(serializedPatch,System.Text.Encoding.UTF8, "application/json-patch+json")
+            disposable data patchResponse = client.PatchAsync(request, patchRequestBody).Result
 
-			;;Get the updated vendor record
-			getResponse = client.GetAsync(request).Result
-			getResult = getResponse.Content.ReadAsStringAsync().Result
+            ;;Check that we got a successful response from the web service
+            patchResponse.EnsureSuccessStatusCode()
 
-			;;Check that we got a successful response from the web service
-			getResponse.EnsureSuccessStatusCode()
+            ;;Get the updated vendor record
+            getResponse = client.GetAsync(request).Result
+            getResult = getResponse.Content.ReadAsStringAsync().Result
 
-			;;Deserialize the JSON into a Vendor object
-			doVendor = JsonConvert.DeserializeObject<Vendor>(getResult)
+            ;;Check that we got a successful response from the web service
+            getResponse.EnsureSuccessStatusCode()
 
-			;;Verify that the property was changed
-			Assert.AreEqual(doVendor.VendName, "Z")
+            ;;Deserialize the JSON into a Vendor object
+            doVendor = JsonConvert.DeserializeObject<Vendor>(getResult)
 
-			;;Delete It
-			disposable data deleteResponse = client.DeleteAsync(request).Result
+            ;;Verify that the property was changed
+            Assert.AreEqual(doVendor.Name, "Z")
 
-			;;Check that we got a successful response from the web service
-			getResponse.EnsureSuccessStatusCode()
+            ;;Delete It
+            disposable data deleteResponse = client.DeleteAsync(request).Result
 
-			;;Attempt to get the deleted record
-			getResponse = client.GetAsync(request).Result
+            ;;Check that we got a successful response from the web service
+            getResponse.EnsureSuccessStatusCode()
 
-			;;Check we got a fail state from the web service
-			Assert.AreEqual(getResponse.IsSuccessStatusCode, false)
+            ;;Attempt to get the deleted record
+            getResponse = client.GetAsync(request).Result
 
-		endmethod
+            ;;Check we got a fail state from the web service
+            Assert.AreEqual(getResponse.IsSuccessStatusCode, false)
 
-	endclass
+        endmethod
+
+    endclass
 
 endnamespace
