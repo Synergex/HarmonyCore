@@ -63,6 +63,9 @@ rem One time, not replaced!
 codegen -s %STRUCTURES% -ms -t ODataTestConstantsValues -n %PROJECT%.Test -o %PROJECT%.Test %NOREPLACEOPTS%
 if ERRORLEVEL 1 goto error
 
+rem ================================================================================================================================
+rem Generate documentation and external test environments
+
 rem Generate Postman Tests
 codegen -s %STRUCTURES% -ms -t ODataPostManTests -o .\ %STDOPTS%
 if ERRORLEVEL 1 goto error
@@ -91,6 +94,11 @@ if ERRORLEVEL 1 goto error
 rem Generate the data loader classes - one time, not replaced!
 codegen -s %FILE_STRUCTURES% -t ODataTestDataGenerator -n %PROJECT%.Test.DataGenerators -o %PROJECT%.Test\DataGenerators %NOREPLACEOPTS%
 if ERRORLEVEL 1 goto error
+
+rem ================================================================================================================================
+rem Generate code for a standalong self-hosting environment
+
+codegen -s %FILE_STRUCTURES% -ms -t ODataStandAloneSelfHost -n %PROJECT%.Host -o %PROJECT%.Host %STDOPTS%
 
 rem ================================================================================================================================
 rem Generate code for the TraditionalBridge sample environment

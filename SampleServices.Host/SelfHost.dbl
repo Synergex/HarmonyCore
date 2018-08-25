@@ -1,0 +1,375 @@
+;;*****************************************************************************
+;;
+;; Title:       SelfHost.dbl
+;;
+;; Type:        Program
+;;
+;; Description: A program to self-host Harmony Core services
+;;
+;;*****************************************************************************
+;; WARNING
+;;
+;; This file was code generated. Avoid editing this file, as any changes that
+;; you make will be lost of the file is re-generated.
+;;
+;;*****************************************************************************
+;;
+;; Copyright (c) 2018, Synergex International, Inc.
+;; All rights reserved.
+;;
+;; Redistribution and use in source and binary forms, with or without
+;; modification, are permitted provided that the following conditions are met:
+;;
+;; * Redistributions of source code must retain the above copyright notice,
+;;   this list of conditions and the following disclaimer.
+;;
+;; * Redistributions in binary form must reproduce the above copyright notice,
+;;   this list of conditions and the following disclaimer in the documentation
+;;   and/or other materials provided with the distribution.
+;;
+;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;; ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+;; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+;; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+;; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+;; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+;; POSSIBILITY OF SUCH DAMAGE.
+;;
+;;*****************************************************************************
+
+import Microsoft.AspNetCore
+import Microsoft.AspNetCore.Hosting
+import Microsoft.AspNetCore.TestHost
+import System.Collections.Generic
+import System.IO
+import System.Text
+import SampleServices
+import SampleServices.Models
+
+main SelfHost
+
+proc
+    ;;Configure the environment
+    SelfHostEnvironment.Initialize()
+
+    Console.WriteLine("API documentation is available at https://localhost:8086/api-docs")
+
+    data wwwroot = Path.Combine(AppContext.BaseDirectory, "wwwroot")
+
+    ;;Make sure the wwwroot folder is present
+    if (!Directory.Exists(wwwroot))
+        Directory.CreateDirectory(wwwroot)
+
+    ;;Start self-hosting (Kestrel)
+    WebHost.CreateDefaultBuilder(new string[0])
+    &    .UseContentRoot(wwwroot)
+    &    .UseWebRoot(wwwroot)
+    &    .UseStartup<Startup>()
+    &    .UseUrls("http://localhost:8085", "https://localhost:8086")
+    &    .Build()
+    &    .Run()
+
+    ;;Cleanup the environment
+    SelfHostEnvironment.Cleanup()
+
+endmain
+
+.Array 0
+
+namespace SampleServices.Host
+
+    public static class SelfHostEnvironment
+
+        public static Server, @TestServer
+
+        public static method Initialize, void
+
+        proc
+            ;;Allows select to join when the keys in the file are not the same type as the keys in the code
+            data status, int
+            xcall setlog("SYNSEL_NUMALPHA_KEYS", 1, status) 
+
+            ;;Configure the test environment (set logicals, create files in a known state, etc.)
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)
+            setLogicals()
+            deleteFiles()
+            createFiles()
+
+            ;;Define the content root and web root folders (so we can pick up the Swagger file for API documentation)
+            data wwwroot = Path.Combine(AppContext.BaseDirectory, "wwwroot")
+
+            if(string.IsNullOrEmpty(wwwroot) && Directory.Exists(wwwroot)) then
+            begin
+                ;;Create a TestServer to host the Web API services
+                Server = new TestServer(new WebHostBuilder().UseStartup<Startup>())
+            end
+            else
+            begin
+                ;;Create a TestServer to host the Web API services
+                Server = new TestServer(new WebHostBuilder().UseContentRoot(wwwroot).UseWebRoot(wwwroot).UseStartup<Startup>())
+            end
+
+            ;;Fake out HTTPS
+            Server.BaseAddress = new Uri("https://localhost")
+
+        endmethod
+
+        public static method Cleanup, void
+
+        proc
+            ;;Clean up the test host
+            Server.Dispose()
+            Server = ^null
+
+            ;;Delete the data files
+            deleteFiles()
+
+        endmethod
+
+        private static method setLogicals, void
+        proc
+            data sampleDataFolder = findRelativeFolderForAssembly("SampleData")
+            data logicals = new List<string>()
+            data logical = String.Empty
+            data fileSpec = String.Empty
+
+            fileSpec = "ICSTUT:customer.ism"
+            if (fileSpec.Contains(":"))
+            begin
+                logical = fileSpec.Split(":")[0].ToUpper()
+                if (!logicals.Contains(logical))
+                    logicals.Add(logical)
+            end
+
+            fileSpec = "ICSTUT:ITEMS.ism"
+            if (fileSpec.Contains(":"))
+            begin
+                logical = fileSpec.Split(":")[0].ToUpper()
+                if (!logicals.Contains(logical))
+                    logicals.Add(logical)
+            end
+
+            fileSpec = "ICSTUT:orders.ism"
+            if (fileSpec.Contains(":"))
+            begin
+                logical = fileSpec.Split(":")[0].ToUpper()
+                if (!logicals.Contains(logical))
+                    logicals.Add(logical)
+            end
+
+            fileSpec = "ICSTUT:order_items.ism"
+            if (fileSpec.Contains(":"))
+            begin
+                logical = fileSpec.Split(":")[0].ToUpper()
+                if (!logicals.Contains(logical))
+                    logicals.Add(logical)
+            end
+
+            foreach logical in logicals
+            begin
+                data sts, int
+                xcall setlog(logical,sampleDataFolder,sts)
+            end
+
+        endmethod
+
+        private static method createFiles, void
+        proc
+            data chout, int
+            data dataFile, string
+            data xdlFile, string
+
+            data customers = loadCustomers()
+            data items = loadItems()
+            data orders = loadOrders()
+            data orderItems = loadOrderItems()
+
+            ;;Create and load the customers file
+
+            dataFile = "ICSTUT:customer.ism"
+            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+
+            data customer, @Customer
+            open(chout=0,o:i,dataFile,FDL:xdlFile)
+            foreach customer in customers
+                store(chout,customer.SynergyRecord)
+            close chout
+
+            ;;Create and load the items file
+
+            dataFile = "ICSTUT:ITEMS.ism"
+            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+
+            data item, @Item
+            open(chout=0,o:i,dataFile,FDL:xdlFile)
+            foreach item in items
+                store(chout,item.SynergyRecord)
+            close chout
+
+            ;;Create and load the orders file
+
+            dataFile = "ICSTUT:orders.ism"
+            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+
+            data order, @Order
+            open(chout=0,o:i,dataFile,FDL:xdlFile)
+            foreach order in orders
+                store(chout,order.SynergyRecord)
+            close chout
+
+            ;;Create and load the orderItems file
+
+            dataFile = "ICSTUT:order_items.ism"
+            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+
+            data orderItem, @OrderItem
+            open(chout=0,o:i,dataFile,FDL:xdlFile)
+            foreach orderItem in orderItems
+                store(chout,orderItem.SynergyRecord)
+            close chout
+
+        endmethod
+
+        private static method deleteFiles, void
+        proc
+            ;;Delete the customers file
+            try
+            begin
+                xcall delet("ICSTUT:customer.ism")
+            end
+            catch (e, @NoFileFoundException)
+            begin
+                nop
+            end
+            endtry
+
+            ;;Delete the items file
+            try
+            begin
+                xcall delet("ICSTUT:ITEMS.ism")
+            end
+            catch (e, @NoFileFoundException)
+            begin
+                nop
+            end
+            endtry
+
+            ;;Delete the orders file
+            try
+            begin
+                xcall delet("ICSTUT:orders.ism")
+            end
+            catch (e, @NoFileFoundException)
+            begin
+                nop
+            end
+            endtry
+
+            ;;Delete the orderItems file
+            try
+            begin
+                xcall delet("ICSTUT:order_items.ism")
+            end
+            catch (e, @NoFileFoundException)
+            begin
+                nop
+            end
+            endtry
+
+        endmethod
+
+        public static method loadCustomers, @List<Customer>
+        proc
+            data dataFile = "ICSTUT:customer.ism"
+            data textFile = dataFile.ToLower().Replace(".ism",".txt")
+            data customerCh, int, 0
+            data customerRec, strCustomer
+            data customers = new List<Customer>()
+            open(customerCh,i:s,textFile)
+            repeat
+            begin
+                reads(customerCh,customerRec,eof)
+                customers.Add(new Customer(customerRec))
+            end
+        eof,
+            close customerCh
+            mreturn customers
+        endmethod
+
+        public static method loadItems, @List<Item>
+        proc
+            data dataFile = "ICSTUT:ITEMS.ism"
+            data textFile = dataFile.ToLower().Replace(".ism",".txt")
+            data itemCh, int, 0
+            data itemRec, strItem
+            data items = new List<Item>()
+            open(itemCh,i:s,textFile)
+            repeat
+            begin
+                reads(itemCh,itemRec,eof)
+                items.Add(new Item(itemRec))
+            end
+        eof,
+            close itemCh
+            mreturn items
+        endmethod
+
+        public static method loadOrders, @List<Order>
+        proc
+            data dataFile = "ICSTUT:orders.ism"
+            data textFile = dataFile.ToLower().Replace(".ism",".txt")
+            data orderCh, int, 0
+            data orderRec, strOrder
+            data orders = new List<Order>()
+            open(orderCh,i:s,textFile)
+            repeat
+            begin
+                reads(orderCh,orderRec,eof)
+                orders.Add(new Order(orderRec))
+            end
+        eof,
+            close orderCh
+            mreturn orders
+        endmethod
+
+        public static method loadOrderItems, @List<OrderItem>
+        proc
+            data dataFile = "ICSTUT:order_items.ism"
+            data textFile = dataFile.ToLower().Replace(".ism",".txt")
+            data orderItemCh, int, 0
+            data orderItemRec, strOrderItem
+            data orderItems = new List<OrderItem>()
+            open(orderItemCh,i:s,textFile)
+            repeat
+            begin
+                reads(orderItemCh,orderItemRec,eof)
+                orderItems.Add(new OrderItem(orderItemRec))
+            end
+        eof,
+            close orderItemCh
+            mreturn orderItems
+        endmethod
+
+        private static method findRelativeFolderForAssembly, string
+            folderName, string
+        proc
+            data assemblyLocation = ^typeof(SelfHostEnvironment).Assembly.Location
+            data currentFolder = Path.GetDirectoryName(assemblyLocation)
+            data rootPath = Path.GetPathRoot(currentFolder)
+            while(currentFolder != rootPath)
+            begin
+                if(Directory.Exists(Path.Combine(currentFolder, folderName))) then
+                    mreturn Path.Combine(currentFolder, folderName)
+                else
+                    currentFolder = Path.GetFullPath(currentFolder + "..\")
+            end
+            mreturn ^null
+        endmethod
+
+    endclass
+
+endnamespace
