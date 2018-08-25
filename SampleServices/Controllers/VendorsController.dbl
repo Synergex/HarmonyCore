@@ -111,24 +111,6 @@ namespace SampleServices.Controllers
             mreturn new SingleResult<Vendor>(DBContext.Vendors.FindAlternate("RecordType",aRecordType,"VendorNumber",aVendorNumber))
         endmethod
 
-        {ODataRoute("Vendors({key})/VendorNumber")}
-        ;;; <summary>
-        ;;; Get the VendorNumber property of a single Vendor, by primary key.
-        ;;; </summary>
-        ;;; <param name="key">Vendor number</param>
-        ;;; <returns>
-        ;;; Returns an int containing the value of the requested property.
-        ;;;</returns>
-        public method GetVendorNumber, @IActionResult
-            {FromODataUri}
-            required in key, int
-        proc
-            data result = DBContext.Vendors.Find(key)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.VendorNumber)
-        endmethod
-
         {ODataRoute("Vendors({key})/RecordType")}
         ;;; <summary>
         ;;; Get the RecordType property of a single Vendor, by primary key.

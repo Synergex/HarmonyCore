@@ -148,48 +148,6 @@ namespace SampleServices.Controllers
             mreturn Ok(result)
         endmethod
 
-        {ODataRoute("OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})/OrderNumber")}
-        ;;; <summary>
-        ;;; Get the OrderNumber property of a single OrderItem, by primary key.
-        ;;; </summary>
-        ;;; <param name="aOrderNumber">Order number</param>
-        ;;; <param name="aItemNumber">Order number</param>
-        ;;; <returns>
-        ;;; Returns an int containing the value of the requested property.
-        ;;;</returns>
-        public method GetOrderNumber, @IActionResult
-            {FromODataUri}
-            required in aOrderNumber, int
-            {FromODataUri}
-            required in aItemNumber, int
-        proc
-            data result = DBContext.OrderItems.Find(aOrderNumber,aItemNumber)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.OrderNumber)
-        endmethod
-
-        {ODataRoute("OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})/ItemNumber")}
-        ;;; <summary>
-        ;;; Get the ItemNumber property of a single OrderItem, by primary key.
-        ;;; </summary>
-        ;;; <param name="aOrderNumber">Line item number</param>
-        ;;; <param name="aItemNumber">Line item number</param>
-        ;;; <returns>
-        ;;; Returns an int containing the value of the requested property.
-        ;;;</returns>
-        public method GetItemNumber, @IActionResult
-            {FromODataUri}
-            required in aOrderNumber, int
-            {FromODataUri}
-            required in aItemNumber, int
-        proc
-            data result = DBContext.OrderItems.Find(aOrderNumber,aItemNumber)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.ItemNumber)
-        endmethod
-
         {ODataRoute("OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})/ItemOrdered")}
         ;;; <summary>
         ;;; Get the ItemOrdered property of a single OrderItem, by primary key.

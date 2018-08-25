@@ -404,6 +404,7 @@ paths:
 ;// Single property operations
 ;//
 <FIELD_LOOP>
+<IF NOTPKSEGMENT>
 <PRIMARY_KEY>
 ;//
 ;// Invividual property
@@ -476,6 +477,7 @@ paths:
           schema:
             type: <IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>
 </PRIMARY_KEY>
+</IF NOTPKSEGMENT>
 </FIELD_LOOP>
 </IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
 </STRUCTURE_LOOP>

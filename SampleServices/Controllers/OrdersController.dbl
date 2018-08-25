@@ -145,24 +145,6 @@ namespace SampleServices.Controllers
             mreturn Ok(result)
         endmethod
 
-        {ODataRoute("Orders({key})/OrderNumber")}
-        ;;; <summary>
-        ;;; Get the OrderNumber property of a single Order, by primary key.
-        ;;; </summary>
-        ;;; <param name="key">Order number</param>
-        ;;; <returns>
-        ;;; Returns an int containing the value of the requested property.
-        ;;;</returns>
-        public method GetOrderNumber, @IActionResult
-            {FromODataUri}
-            required in key, int
-        proc
-            data result = DBContext.Orders.Find(key)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.OrderNumber)
-        endmethod
-
         {ODataRoute("Orders({key})/CustomerNumber")}
         ;;; <summary>
         ;;; Get the CustomerNumber property of a single Order, by primary key.

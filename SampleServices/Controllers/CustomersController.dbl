@@ -111,24 +111,6 @@ namespace SampleServices.Controllers
             mreturn new SingleResult<Customer>(DBContext.Customers.FindAlternate("RecordType",aRecordType,"CustomerNumber",aCustomerNumber))
         endmethod
 
-        {ODataRoute("Customers({key})/CustomerNumber")}
-        ;;; <summary>
-        ;;; Get the CustomerNumber property of a single Customer, by primary key.
-        ;;; </summary>
-        ;;; <param name="key">Customer number</param>
-        ;;; <returns>
-        ;;; Returns an int containing the value of the requested property.
-        ;;;</returns>
-        public method GetCustomerNumber, @IActionResult
-            {FromODataUri}
-            required in key, int
-        proc
-            data result = DBContext.Customers.Find(key)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.CustomerNumber)
-        endmethod
-
         {ODataRoute("Customers({key})/RecordType")}
         ;;; <summary>
         ;;; Get the RecordType property of a single Customer, by primary key.

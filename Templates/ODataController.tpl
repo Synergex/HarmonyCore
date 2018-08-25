@@ -211,6 +211,7 @@ namespace <NAMESPACE>
 ;// the name of a single key segment MUST be "key"!!! Likely doesn't work with segmented keys.
 ;//
     <FIELD_LOOP>
+      <IF NOTPKSEGMENT>
         <PRIMARY_KEY>
         {ODataRoute("<StructurePlural>(<IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP></IF SINGLE_SEGMENT>)/<FieldSqlName>")}
 ;//        {ProducesResponseType(^typeof(<StructureNoplural>), 200)}
@@ -245,6 +246,7 @@ namespace <NAMESPACE>
         endmethod
 
         </PRIMARY_KEY>
+      </IF NOTPKSEGMENT>
     </FIELD_LOOP>
 </IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
 ;//
