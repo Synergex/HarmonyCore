@@ -226,6 +226,11 @@ namespace Harmony.Core.FileIO.Queryable
 			;;finsh up the leftover materialization process here
 			foreach matState in materializerQueue
 			begin
+				if(matState.parentState != ^null && matState.parentState.changed && matState.parentState.filled)
+				begin
+					if(matState.madeItems != ^null)
+						matState.InitItems()
+				end
 				matState.MaybeBubbleMake(tracker, false)
 			end
 			mreturn resultState.madeItems
