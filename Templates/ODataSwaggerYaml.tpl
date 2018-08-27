@@ -214,9 +214,11 @@ paths:
           type: string
       responses:
         '200':
-          description: OK
+          description: OK (the requested <structureNoplural> was found and returned)
           schema:
             $ref: '#/definitions/<StructureNoplural>'
+        '404':
+          description: Not found (the requested <structureNoplural> was not found)
 ;//
 ;// ----------------------------------------------------------------------------
 ;// Delete via primary key
@@ -246,7 +248,9 @@ paths:
         </SEGMENT_LOOP>
       responses:
         '204':
-          description: OK
+          description: No content (the specified <structureNoplural> was deleted)
+        '404':
+          description: Not found content (the specified <structureNoplural> was not found)
 </IF DEFINED_ENABLE_DELETE>
 ;//
 ;// ----------------------------------------------------------------------------
@@ -283,8 +287,12 @@ paths:
           schema:
             $ref: '#/definitions/<StructureNoplural>'
       responses:
+        '201':
+          description: Created (the <structureNoplural> was created)
         '204':
-          description: OK
+          description: No Content (the <structureNoplural> was updated)
+        '400':
+          description: Bad request
 </IF DEFINED_ENABLE_PUT>
 ;//
 ;// ----------------------------------------------------------------------------
@@ -321,7 +329,11 @@ paths:
             $ref: '#/definitions/PatchRequest'
       responses:
         '204':
-          description: OK
+          description: No content (the specified <structureNoplural> was patched)
+        '400':
+          description: Bad request
+        '404':
+          description: Not found content (the specified <structureNoplural> was not found)
 </IF DEFINED_ENABLE_PUT>
 </PRIMARY_KEY>
 ;//
@@ -483,9 +495,11 @@ paths:
           </SEGMENT_LOOP>
       responses:
         '200':
-          description: OK
+          description: OK (the selected <structureNoplural> was founn and the requested property was returned)
           schema:
             type: <IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>
+        '404':
+          description: Not found (the specified <structureNoplural> was not found)
 ;//
 ;// Invividual property - value only
 ;//
@@ -518,9 +532,11 @@ paths:
           </SEGMENT_LOOP>
       responses:
         '200':
-          description: OK
+          description: OK (the selected <structureNoplural> was founn and the requested property was returned)
           schema:
             type: <IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>
+        '404':
+          description: Not found (the specified <structureNoplural> was not found)
 </PRIMARY_KEY>
 </IF NOTPKSEGMENT>
 </FIELD_LOOP>

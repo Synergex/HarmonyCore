@@ -249,23 +249,24 @@ namespace SampleServices.Controllers
             begin
                 ;;Add and commit
                 data existing = DBContext.OrderItems.Find(aOrderNumber,aItemNumber)
-                if(existing != ^null) then
+                if(existing == ^null) then
                 begin
-                    aOrderItem.CopyTo(existing)
+                    DBContext.OrderItems.Add(aOrderItem)
+                    DBContext.SaveChanges()
+                    mreturn Created(aOrderItem)
                 end
                 else
                 begin
-                    DBContext.OrderItems.Add(aOrderItem)
+                    aOrderItem.CopyTo(existing)
+                    DBContext.SaveChanges()
+                    mreturn NoContent()
                 end
-                DBContext.SaveChanges()
             end
             catch (e, @InvalidOperationException)
             begin
                 mreturn BadRequest(e)
             end
             endtry
-
-            mreturn NoContent()
 
         endmethod
 

@@ -337,23 +337,24 @@ namespace SampleServices.Controllers
             begin
                 ;;Add and commit
                 data existing = DBContext.Customers.Find(aCustomerNumber)
-                if(existing != ^null) then
+                if(existing == ^null) then
                 begin
-                    aCustomer.CopyTo(existing)
+                    DBContext.Customers.Add(aCustomer)
+                    DBContext.SaveChanges()
+                    mreturn Created(aCustomer)
                 end
                 else
                 begin
-                    DBContext.Customers.Add(aCustomer)
+                    aCustomer.CopyTo(existing)
+                    DBContext.SaveChanges()
+                    mreturn NoContent()
                 end
-                DBContext.SaveChanges()
             end
             catch (e, @InvalidOperationException)
             begin
                 mreturn BadRequest(e)
             end
             endtry
-
-            mreturn NoContent()
 
         endmethod
 

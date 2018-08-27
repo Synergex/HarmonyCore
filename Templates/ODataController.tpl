@@ -284,23 +284,24 @@ namespace <NAMESPACE>
             begin
                 ;;Add and commit
                 data existing = DBContext.<StructurePlural>.Find(<SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP>)
-                if(existing != ^null) then
+                if(existing == ^null) then
                 begin
-                    a<StructureNoplural>.CopyTo(existing)
+                    DBContext.<StructurePlural>.Add(a<StructureNoplural>)
+                    DBContext.SaveChanges()
+                    mreturn Created(a<StructureNoplural>)
                 end
                 else
                 begin
-                    DBContext.<StructurePlural>.Add(a<StructureNoplural>)
+                    a<StructureNoplural>.CopyTo(existing)
+                    DBContext.SaveChanges()
+                    mreturn NoContent()
                 end
-                DBContext.SaveChanges()
             end
             catch (e, @InvalidOperationException)
             begin
                 mreturn BadRequest(e)
             end
             endtry
-
-            mreturn NoContent()
 
         endmethod
 
