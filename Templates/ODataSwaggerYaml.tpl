@@ -117,10 +117,12 @@ paths:
         - <StructureNoplural>
         - Read
       parameters:
+<IF DEFINED_ENABLE_RELATIONS>
         - name: $expand
           in: query
           description: Expand one or more navigation properties.
           type: string
+</IF DEFINED_ENABLE_RELATIONS>
         - name: $select
           in: query
           description: List of properties to be returned.
@@ -200,10 +202,12 @@ paths:
           format: date-time
 </IF TIME>
 </SEGMENT_LOOP>
+<IF DEFINED_ENABLE_RELATIONS>
         - name: $expand
           in: query
           description: Expand one or more navigation properties.
           type: string
+</IF DEFINED_ENABLE_RELATIONS>
         - name: $select
           in: query
           description: List of properties to be returned.
@@ -360,10 +364,12 @@ paths:
           format: date-time
 </IF TIME>
 </SEGMENT_LOOP>
+<IF DEFINED_ENABLE_RELATIONS>
         - name: $expand
           in: query
           description: Expand one or more navigation properties.
           type: string
+</IF DEFINED_ENABLE_RELATIONS>
         - name: $select
           in: query
           description: List of properties to be returned.
