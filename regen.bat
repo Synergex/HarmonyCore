@@ -92,7 +92,7 @@ rem Generate the data loader classes
 codegen -s %FILE_STRUCTURES% -t ODataTestDataLoader -o %PROJECT%.Test\DataGenerators -n %PROJECT%.Test.DataGenerators %STDOPTS%
 if ERRORLEVEL 1 goto error
 
-rem Generate the data loader classes - one time, not replaced!
+rem Generate the data generator classes - one time, not replaced!
 codegen -s %FILE_STRUCTURES% -t ODataTestDataGenerator -o %PROJECT%.Test\DataGenerators -n %PROJECT%.Test.DataGenerators %NOREPLACEOPTS%
 if ERRORLEVEL 1 goto error
 
@@ -124,15 +124,15 @@ rem if ERRORLEVEL 1 goto error
 
 rem ================================================================================================================================
 rem Generate OData action return data models
-rem 
+
 rem set CODEGEN_TPLDIR=Templates\TraditionalBridge
 rem set PROJECT=SampleServices.Models
 rem set SMC_INTERFACE=SampleXfplEnv
 rem set XFPL_SMCPATH=
-rem 
+
 rem codegen -smc SampleXfplEnvironment\smc.xml -interface %SMC_INTERFACE% -t ODataActionModels -o SampleServices\Models -n %PROJECT% -e -r -lf
 rem if ERRORLEVEL 1 goto error
-rem 
+
 echo.
 echo DONE!
 echo.
