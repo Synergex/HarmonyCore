@@ -80,12 +80,7 @@ if DEFINED ENABLE_SWAGGER_DOCS (
   if ERRORLEVEL 1 goto error
 )
 
-rem ================================================================================================================================
-rem The test environment has slightly different requirements, because we need to generate code based on structures, but when tags
-rem are used to indicate that multiple structures are associated with a single ISAM file, we only need to generate from one of The
-rem structures associated with each file.
-
-rem Generate the test environment and unit test environment classes
+rem Generate the test environment and unit test environment classes, and the self-hosting program
 codegen -s %FILE_STRUCTURES% -ms -t ODataTestEnvironment ODataUnitTestEnvironment ODataSelfHost -o %SolutionDir%%PROJECT%.Test -n %PROJECT%.Test %STDOPTS%
 if ERRORLEVEL 1 goto error
 
