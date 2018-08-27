@@ -95,9 +95,10 @@ codegen -s %FileStructures% -t ODataTestDataGenerator -o %SolutionDir%%UnitTestP
 if ERRORLEVEL 1 goto error
 
 rem ================================================================================================================================
-rem Generate code for a standalong self-hosting environment
+rem Generate code for a standalone self-hosting environment
 
 codegen -s %FileStructures% -ms -t ODataStandAloneSelfHost -o %SolutionDir%%SelfHostProject% -n %SelfHostProject% %StdOpts%
+if ERRORLEVEL 1 goto error
 
 rem ================================================================================================================================
 rem Generate code for the TraditionalBridge sample environment

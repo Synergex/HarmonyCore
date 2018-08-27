@@ -71,16 +71,11 @@ namespace SampleServices.Host
             ;;Define the content root and web root folders (so we can pick up the Swagger file for API documentation)
             data wwwroot = Path.Combine(AppContext.BaseDirectory, "wwwroot")
 
-            if(string.IsNullOrEmpty(wwwroot) && Directory.Exists(wwwroot)) then
-            begin
-                ;;Create a TestServer to host the Web API services
-                Server = new TestServer(new WebHostBuilder().UseStartup<Startup>())
-            end
-            else
-            begin
-                ;;Create a TestServer to host the Web API services
+            ;;Create a TestServer to host the Web API services
+            if (!String.IsNullOrEmpty(wwwroot) && Directory.Exists(wwwroot)) then
                 Server = new TestServer(new WebHostBuilder().UseContentRoot(wwwroot).UseWebRoot(wwwroot).UseStartup<Startup>())
-            end
+            else
+                Server = new TestServer(new WebHostBuilder().UseStartup<Startup>())
 
             ;;Fake out HTTPS
             Server.BaseAddress = new Uri("https://localhost")
