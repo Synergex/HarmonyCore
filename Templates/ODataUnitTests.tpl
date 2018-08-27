@@ -77,7 +77,8 @@ namespace <NAMESPACE>
             data <structurePlural>, @OData<StructurePlural>, JsonConvert.DeserializeObject<OData<StructurePlural>>(result)
         endmethod
 
-<IF STRUCTURE_RELATIONS>
+<IF DEFINED_ENABLE_RELATIONS>
+  <IF STRUCTURE_RELATIONS>
     <RELATION_LOOP>
         ;;------------------------------------------------------------
         ;;Get all <StructurePlural> and expand relation REL_<RelationFromkey>
@@ -131,7 +132,8 @@ namespace <NAMESPACE>
             response.EnsureSuccessStatusCode()
         endmethod
         
-</IF STRUCTURE_RELATIONS>
+  </IF STRUCTURE_RELATIONS>
+</IF DEFINED_ENABLE_RELATIONS>
         ;;------------------------------------------------------------
         ;;Get a single <StructureNoplural> by primary key
 
@@ -150,11 +152,11 @@ namespace <NAMESPACE>
             data <structureNoplural>, @OData<StructureNoplural>, JsonConvert.DeserializeObject<OData<StructureNoplural>>(result)
         endmethod
 
-<IF STRUCTURE_RELATIONS>
+<IF DEFINED_ENABLE_RELATIONS>
+  <IF STRUCTURE_RELATIONS>
     <RELATION_LOOP>
         ;;------------------------------------------------------------
         ;;Get a single <StructureNoplural> by primary key and expand relation <IF MANY_TO_ONE_TO_MANY>REL_<RelationFromkey></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationFromkey></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY>
-
 
         {TestMethod}
         {TestCategory("<StructureNoplural> Tests - Read by Primary Key")}
@@ -190,7 +192,8 @@ namespace <NAMESPACE>
             data <structureNoplural>, @OData<StructureNoplural>, JsonConvert.DeserializeObject<OData<StructureNoplural>>(result)
         endmethod
 
-</IF STRUCTURE_RELATIONS>
+  </IF STRUCTURE_RELATIONS>
+</IF DEFINED_ENABLE_RELATIONS>
 <IF DEFINED_ENABLE_ALTERNATE_KEYS>
 <ALTERNATE_KEY_LOOP>
         ;;------------------------------------------------------------

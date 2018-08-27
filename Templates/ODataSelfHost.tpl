@@ -67,9 +67,11 @@ proc
 
     ;Leave this here for Jeff 
     ;data tester = new OrderTests()  
+<IF DEFINED_ENABLE_RELATIONS>
     ;tester.GetOrders_Expand_REL_TagCustomer() 
     ;tester.GetOrders_Expand_REL_TagVendor()
     ;tester.GetOrders_Expand_All()
+</IF DEFINED_ENABLE_RELATIONS>
     ;tester.GetCustomer()      
 
 <IF DEFINED_ENABLE_SWAGGER_DOCS>

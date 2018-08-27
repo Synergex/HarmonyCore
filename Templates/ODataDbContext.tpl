@@ -140,8 +140,7 @@ namespace <NAMESPACE>
             </STRUCTURE_LOOP>
 .endregion
 
-.define INCLUDE_RELATIONS
-.ifdef INCLUDE_RELATIONS
+<IF DEFINED_ENABLE_RELATIONS>
 .region "Entity Relationships"
 
             <STRUCTURE_LOOP>
@@ -220,7 +219,8 @@ namespace <NAMESPACE>
             </IF STRUCTURE_RELATIONS>
             </STRUCTURE_LOOP>
 .endregion
-.endc
+</IF DEFINED_ENABLE_RELATIONS>
+
             parent.OnModelCreating(parm)
 
         endmethod

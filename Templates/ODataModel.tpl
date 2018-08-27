@@ -200,7 +200,8 @@ namespace <NAMESPACE>
 ;//
 ;// Relations
 ;//
-<IF STRUCTURE_RELATIONS>
+<IF DEFINED_ENABLE_RELATIONS>
+  <IF STRUCTURE_RELATIONS>
 
 .region "Relationships to other entities"
 
@@ -259,11 +260,9 @@ namespace <NAMESPACE>
 
     </RELATION_LOOP>
 .endregion
-</IF STRUCTURE_RELATIONS>
 ;//
 ;//
 ;//
-<IF STRUCTURE_RELATIONS>
     <COUNTER_2_RESET>
     <RELATION_LOOP>
         <COUNTER_1_RESET>
@@ -288,7 +287,8 @@ namespace <NAMESPACE>
 .endregion
 
     </IF COUNTER_2_GT_0>
-</IF STRUCTURE_RELATIONS>
+  </IF STRUCTURE_RELATIONS>
+</IF DEFINED_ENABLE_RELATIONS>
 ;//
 ;//
 ;//
