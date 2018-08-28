@@ -1,8 +1,8 @@
 ;;*****************************************************************************
 ;;
-;; Title:       OrderLoader.dbl
+;; Title:       VendorLoader.dbl
 ;;
-;; Description: Loads sample order data from a sequential file.
+;; Description: Loads sample vendor data from a sequential file.
 ;;
 ;;*****************************************************************************
 ;; WARNING: GENERATED CODE!
@@ -15,24 +15,24 @@ import SampleServices.Models
 
 namespace SampleServices.Test.DataGenerators
 
-    public static partial class OrderLoader
+    public static partial class VendorLoader
     
-        public static method LoadFromFile, @List<Order>
+        public static method LoadFromFile, @List<Vendor>
         proc
-            data dataFile = "ICSTUT:orders.ism"
+            data dataFile = "ICSTUT:customer.ism"
             data textFile = dataFile.ToLower().Replace(".ism",".txt")
-            data orderCh, int, 0
-            data orderRec, strOrder
-            data orders = new List<Order>()
-            open(orderCh,i:s,textFile)
+            data vendorCh, int, 0
+            data vendorRec, strVendor
+            data vendors = new List<Vendor>()
+            open(vendorCh,i:s,textFile)
             repeat
             begin
-                reads(orderCh,orderRec,eof)
-                orders.Add(new Order(orderRec))
+                reads(vendorCh,vendorRec,eof)
+                vendors.Add(new Vendor(vendorRec))
             end
         eof,
-            close orderCh
-            mreturn orders
+            close vendorCh
+            mreturn vendors
         endmethod
 
     endclass

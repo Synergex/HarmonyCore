@@ -19,7 +19,7 @@
             "item": [
                 {
                     "_postman_id": "<guid_nobrace>",
-                    "name": "Get all <structurePlural>",
+                    "name": "Read all <structurePlural>",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -49,7 +49,7 @@
                 },
                 {
                     "_postman_id": "<guid_nobrace>",
-                    "name": "Get single <structureNoplural>",
+                    "name": "Read <structureNoplural> by primary key",
                     "request": {
                     "method": "GET",
                     "header": [
@@ -62,9 +62,8 @@
                         "mode": "raw",
                         "raw": ""
                     },
-<PRIMARY_KEY>
                     "url": {
-                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT><SERVER_BASE_PATH>/<StructurePlural>(<SEGMENT_LOOP><SegmentName><,></SEGMENT_LOOP>)",
+                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT><SERVER_BASE_PATH>/<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP><IF SEG_ALPHA>'</IF SEG_ALPHA>Insert<SegmentName><IF SEG_ALPHA>'</IF SEG_ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY>)",
                         "protocol": "<SERVER_PROTOCOL>",
                         "host": [
                             "<SERVER_NAME>"
@@ -72,25 +71,35 @@
                         "port": "<SERVER_HTTPS_PORT>",
                         "path": [
                             "odata",
-                            "<StructurePlural>(<SEGMENT_LOOP><SegmentName><,></SEGMENT_LOOP>)"
+                            "<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP><IF SEG_ALPHA>'</IF SEG_ALPHA>Insert<SegmentName><IF SEG_ALPHA>'</IF SEG_ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY>)"
                         ]
                     }
-</PRIMARY_KEY>
                     },
                     "response": []
                 },
+<IF DEFINED_ENABLE_ALTERNATE_KEYS>
+    <ALTERNATE_KEY_LOOP>
                 {
                     "_postman_id": "<guid_nobrace>",
-                    "name": "Create new <structureNoplural> (auto assign key)",
+        <IF DUPLICATES>
+                    "name": "Read <structurePlural> by alternate key <KeyName>",
+        <ELSE>
+                    "name": "Read <structureNoplural> by alternate key <KeyName>",
+        </IF DUPLICATES>
                     "request": {
-                    "method": "POST",
-                    "header": [],
+                    "method": "GET",
+                    "header": [
+                        {
+                        "key": "Accept",
+                        "value": "application/json"
+                        }
+                    ],
                     "body": {
                         "mode": "raw",
-                        "raw": "Put new <structureNoplural> json here. Do not include the primary key fields."
+                        "raw": ""
                     },
                     "url": {
-                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT><SERVER_BASE_PATH>/<StructurePlural>",
+                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT><SERVER_BASE_PATH>/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF SEG_ALPHA>'</IF SEG_ALPHA>Insert<SegmentName><IF SEG_ALPHA>'</IF SEG_ALPHA><,></SEGMENT_LOOP>)",
                         "protocol": "<SERVER_PROTOCOL>",
                         "host": [
                             "<SERVER_NAME>"
@@ -98,7 +107,43 @@
                         "port": "<SERVER_HTTPS_PORT>",
                         "path": [
                             "odata",
-                            "<StructurePlural>"
+                            "<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF SEG_ALPHA>'</IF SEG_ALPHA>Insert<SegmentName><IF SEG_ALPHA>'</IF SEG_ALPHA><,></SEGMENT_LOOP>)"
+                        ]
+                    }
+                    },
+                    "response": []
+                },
+    </ALTERNATE_KEY_LOOP>
+</IF DEFINED_ENABLE_ALTERNATE_KEYS>
+<IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
+    <FIELD_LOOP>
+      <IF NOTPKSEGMENT>
+        <PRIMARY_KEY>
+                {
+                    "_postman_id": "<guid_nobrace>",
+                    "name": "Read <structureNoplural> <FieldSqlName> by primary key",
+                    "request": {
+                    "method": "GET",
+                    "header": [
+                        {
+                        "key": "Accept",
+                        "value": "application/json"
+                        }
+                    ],
+                    "body": {
+                        "mode": "raw",
+                        "raw": ""
+                    },
+                    "url": {
+                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT><SERVER_BASE_PATH>/<StructurePlural>(<SEGMENT_LOOP><IF SEG_ALPHA>'</IF SEG_ALPHA>Insert<SegmentName><IF SEG_ALPHA>'</IF SEG_ALPHA><,></SEGMENT_LOOP>)/<FieldSqlName>",
+                        "protocol": "<SERVER_PROTOCOL>",
+                        "host": [
+                            "<SERVER_NAME>"
+                        ],
+                        "port": "<SERVER_HTTPS_PORT>",
+                        "path": [
+                            "odata",
+                            "<StructurePlural>(<SEGMENT_LOOP><IF SEG_ALPHA>'</IF SEG_ALPHA>Insert<SegmentName><IF SEG_ALPHA>'</IF SEG_ALPHA><,></SEGMENT_LOOP>)/<FieldSqlName>"
                         ]
                     }
                     },
@@ -106,7 +151,66 @@
                 },
                 {
                     "_postman_id": "<guid_nobrace>",
-                    "name": "Create new <structureNoplural>",
+                    "name": "Read <structureNoplural> <FieldSqlName> by primary key (raw value)",
+                    "request": {
+                    "method": "GET",
+                    "header": [
+                        {
+                        "key": "Accept",
+                        "value": "application/json"
+                        }
+                    ],
+                    "body": {
+                        "mode": "raw",
+                        "raw": ""
+                    },
+                    "url": {
+                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT><SERVER_BASE_PATH>/<StructurePlural>(<SEGMENT_LOOP><IF SEG_ALPHA>'</IF SEG_ALPHA>Insert<SegmentName><IF SEG_ALPHA>'</IF SEG_ALPHA><,></SEGMENT_LOOP>)/<FieldSqlName>/$value",
+                        "protocol": "<SERVER_PROTOCOL>",
+                        "host": [
+                            "<SERVER_NAME>"
+                        ],
+                        "port": "<SERVER_HTTPS_PORT>",
+                        "path": [
+                            "odata",
+                            "<StructurePlural>(<SEGMENT_LOOP><IF SEG_ALPHA>'</IF SEG_ALPHA>Insert<SegmentName><IF SEG_ALPHA>'</IF SEG_ALPHA><,></SEGMENT_LOOP>)/<FieldSqlName>/$value"
+                        ]
+                    }
+                    },
+                    "response": []
+                },
+        </PRIMARY_KEY>
+      </IF NOTPKSEGMENT>
+    </FIELD_LOOP>
+</IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
+;//                {
+;//                    "_postman_id": "<guid_nobrace>",
+;//                    "name": "Create <structureNoplural> (auto assigned key)",
+;//                    "request": {
+;//                    "method": "POST",
+;//                    "header": [],
+;//                    "body": {
+;//                        "mode": "raw",
+;//                        "raw": "Put new <structureNoplural> json here. Do not include the primary key fields."
+;//                    },
+;//                    "url": {
+;//                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT><SERVER_BASE_PATH>/<StructurePlural>",
+;//                        "protocol": "<SERVER_PROTOCOL>",
+;//                        "host": [
+;//                            "<SERVER_NAME>"
+;//                        ],
+;//                        "port": "<SERVER_HTTPS_PORT>",
+;//                        "path": [
+;//                            "odata",
+;//                            "<StructurePlural>"
+;//                        ]
+;//                    }
+;//                    },
+;//                    "response": []
+;//                },
+                {
+                    "_postman_id": "<guid_nobrace>",
+                    "name": "Create or update <structureNoplural>",
                     "request": {
                     "method": "PUT",
                     "header": [
@@ -117,10 +221,10 @@
                     ],
                     "body": {
                         "mode": "raw",
-                        "raw": "Put new <structureNoplural> json here. Include primary key fields."
+                         "raw": "{\n<FIELD_LOOP><IF CUSTOM_NOT_HARMONY_EXCLUDE>    \"<FieldSqlName>\": <IF ALPHA>\"</IF ALPHA><IF CUSTOM_HARMONY_AS_STRING>\"</IF CUSTOM_HARMONY_AS_STRING><FIELD_SAMPLE_DATA_NOQUOTES><IF CUSTOM_HARMONY_AS_STRING>\"</IF CUSTOM_HARMONY_AS_STRING><IF ALPHA>\"</IF ALPHA><,>\n</IF CUSTOM_NOT_HARMONY_EXCLUDE></FIELD_LOOP>}"
                     },
                     "url": {
-                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT><SERVER_BASE_PATH>/<StructurePlural>(New<StructureNoplural>ID)",
+                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT><SERVER_BASE_PATH>/<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP><IF SEG_ALPHA>'</IF SEG_ALPHA>Insert<SegmentName><IF SEG_ALPHA>'</IF SEG_ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY>)",
                         "protocol": "<SERVER_PROTOCOL>",
                         "host": [
                             "<SERVER_NAME>"
@@ -128,29 +232,28 @@
                         "port": "<SERVER_HTTPS_PORT>",
                         "path": [
                             "odata",
-                            "<StructurePlural>(New<StructureNoplural>ID)"
+                            "<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP><IF SEG_ALPHA>'</IF SEG_ALPHA>Insert<SegmentName><IF SEG_ALPHA>'</IF SEG_ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY>)"
                         ]
                     }
                     },
                     "response": []
                 },
                 {
-                    "_postman_id": "<guid_nobrace>",
-                    "name": "Get created <structureNoplural>",
+                    "name": "Patch <structureNoplural>",
                     "request": {
-                    "method": "GET",
-                    "header": [
-                        {
-                        "key": "Accept",
-                        "value": "application/json"
-                        }
-                    ],
-                    "body": {
-                        "mode": "raw",
-                        "raw": ""
-                    },
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[\r\n  {\r\n    \"op\": \"replace\",\r\n    \"path\": \"PropertyName\",\r\n    \"value\": \"PropertyValue\"\r\n  }\r\n]"
+                        },
                     "url": {
-                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT><SERVER_BASE_PATH>/<StructurePlural>(New<StructureNoplural>ID)",
+                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT><SERVER_BASE_PATH>/<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP><IF SEG_ALPHA>'</IF SEG_ALPHA>Insert<SegmentName><IF SEG_ALPHA>'</IF SEG_ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY>)",
                         "protocol": "<SERVER_PROTOCOL>",
                         "host": [
                             "<SERVER_NAME>"
@@ -158,7 +261,7 @@
                         "port": "<SERVER_HTTPS_PORT>",
                         "path": [
                             "odata",
-                            "<StructurePlural>(New<StructureNoplural>ID)"
+                            "<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP><IF SEG_ALPHA>'</IF SEG_ALPHA>Insert<SegmentName><IF SEG_ALPHA>'</IF SEG_ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY>)"
                         ]
                     }
                     },
@@ -166,7 +269,7 @@
                 },
                 {
                     "_postman_id": "<guid_nobrace>",
-                    "name": "Delete created <structureNoplural>",
+                    "name": "Delete <structureNoplural> by primary key",
                     "request": {
                     "method": "DELETE",
                     "header": [
@@ -180,7 +283,7 @@
                         "raw": ""
                     },
                     "url": {
-                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT><SERVER_BASE_PATH>/<StructurePlural>(<StructureNoplural>IdToDelete)",
+                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT><SERVER_BASE_PATH>/<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP><IF SEG_ALPHA>'</IF SEG_ALPHA>Insert<SegmentName><IF SEG_ALPHA>'</IF SEG_ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY>)",
                         "protocol": "<SERVER_PROTOCOL>",
                         "host": [
                             "<SERVER_NAME>"
@@ -188,7 +291,7 @@
                         "port": "<SERVER_HTTPS_PORT>",
                         "path": [
                             "odata",
-                            "<StructurePlural>(<StructureNoplural>IdToDelete)"
+                            "<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP><IF SEG_ALPHA>'</IF SEG_ALPHA>Insert<SegmentName><IF SEG_ALPHA>'</IF SEG_ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY>)"
                         ]
                     }
                     },
