@@ -1,6 +1,7 @@
 <CODEGEN_FILENAME><StructureNoplural>.dbl</CODEGEN_FILENAME>
 <REQUIRES_CODEGEN_VERSION>5.3.5</REQUIRES_CODEGEN_VERSION>
-<PROCESS_TEMPLATE>ODataMetaData</PROCESS_TEMPLATE>
+<REQUIRES_OPTION>TF</REQUIRES_OPTION>
+<CODEGEN_FOLDER>Models</CODEGEN_FOLDER>
 ;//****************************************************************************
 ;//
 ;// Title:       ODataModel.tpl

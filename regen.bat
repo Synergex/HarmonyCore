@@ -5,9 +5,7 @@ set SolutionDir=%~dp0
 rem ================================================================================================================================
 rem Enable or disable optional features:
 
-set ENABLE_CREATE_TEST_FILES=-define ENABLE_CREATE_TEST_FILES
 set ENABLE_SWAGGER_DOCS=-define ENABLE_SWAGGER_DOCS
-set ENABLE_POSTMAN_TESTS=YES
 set ENABLE_ALTERNATE_KEYS=-define ENABLE_ALTERNATE_KEYS
 set ENABLE_COUNT=-define ENABLE_COUNT
 set ENABLE_PROPERTY_ENDPOINTS=-define ENABLE_PROPERTY_ENDPOINTS
@@ -24,6 +22,11 @@ rem set ENABLE_AUTHENTICATION=-define ENABLE_AUTHENTICATION
 rem set ENABLE_CASE_SENSITIVE_URL=-define ENABLE_CASE_SENSITIVE_URL
 rem set ENABLE_CORS=-define ENABLE_CORS
 rem set ENABLE_IIS_SUPPORT=-define ENABLE_IIS_SUPPORT
+set ENABLE_CREATE_TEST_FILES=-define ENABLE_CREATE_TEST_FILES
+
+set ENABLE_POSTMAN_TESTS=YES
+set ENABLE_SELF_HOST_GENERATION=YES
+set ENABLE_UNIT_TEST_GENERATION=YES
 
 if not "NONE%ENABLE_SELECT%%ENABLE_FILTER%%ENABLE_ORDERBY%%ENABLE_TOP%%ENABLE_SKIP%%ENABLE_RELATIONS%"=="NONE" (
   set PARAM_OPTIONS_PRESENT=-define PARAM_OPTIONS_PRESENT
@@ -34,12 +37,12 @@ rem Specify which repository structures we are going to be processing and which 
 rem DataStructures is used when processing all of the individual data structures
 rem FileStructures may be different if data for multiple structures is stored in a single file. In this case only one of those structures needs to be processed.
 
+set ServicesProject=SampleServices
+set HostProject=SampleServices.Host
+set TestProject=SampleServices.Test
+
 set DataStructures=CUSTOMERS ITEMS ORDERS ORDER_ITEMS VENDORS
 set FileStructures=CUSTOMERS ITEMS ORDERS ORDER_ITEMS
-
-set ServicesProject=SampleServices
-set UnitTestProject=SampleServices.Test
-set SelfHostProject=SampleServices.Host
 
 rem ================================================================================================================================
 rem Configure standard command line options and the CodeGen environment
@@ -50,44 +53,24 @@ set StdOpts=%NoReplaceOpts% -r
 rem ================================================================================================================================
 rem Generate a Web API / OData CRUD environment
 
-rem Generate model and metadata classes
-codegen -s %DataStructures% -t ODataModel -o %SolutionDir%%ServicesProject%\Models -n %ServicesProject%.Models %StdOpts%
-if ERRORLEVEL 1 goto error
-
-rem Generate controller classes
-codegen -s %DataStructures% -t ODataController -o %SolutionDir%%ServicesProject%\Controllers -n %ServicesProject%.Controllers %StdOpts%
+rem Generate model, metadata and controller classes
+codegen -s %DataStructures% -t ODataModel ODataMetaData ODataController -tf -o %SolutionDir%%ServicesProject% -n %ServicesProject% %StdOpts%
 if ERRORLEVEL 1 goto error
 
 rem Generate the DbContext and EdmBuilder and Startup classes
 codegen -s %DataStructures% -ms -t ODataDbContext ODataEdmBuilder ODataStartup -o %SolutionDir%%ServicesProject% -n %ServicesProject% %StdOpts%
 if ERRORLEVEL 1 goto error
 
-rem ================================================================================================================================
-rem Generate the test environment
+rem ================================================================================
+rem Self hosting
 
-rem Generate OData model classes for client side use
-codegen -s %DataStructures% -t ODataClientModel -o %SolutionDir%%UnitTestProject%\Models -n %UnitTestProject%.Models %StdOpts%
-if ERRORLEVEL 1 goto error
-
-rem Generate unit tests
-codegen -s %DataStructures% -t ODataUnitTests -o %SolutionDir%%UnitTestProject%\UnitTests -n %UnitTestProject%.UnitTests %StdOpts%
-if ERRORLEVEL 1 goto error
-
-rem Generate test context data
-codegen -s %DataStructures% -ms -t ODataTestConstantsProperties -o %SolutionDir%%UnitTestProject% -n %UnitTestProject% %StdOpts%
-if ERRORLEVEL 1 goto error
-rem One time, not replaced!
-codegen -s %DataStructures% -ms -t ODataTestConstantsValues -o %SolutionDir%%UnitTestProject% -n %UnitTestProject% %NoReplaceOpts%
-if ERRORLEVEL 1 goto error
-
-rem ================================================================================================================================
-rem Generate documentation and external test environments
-
-rem Generate Postman Tests
-if DEFINED ENABLE_POSTMAN_TESTS (
-  codegen -s %DataStructures% -ms -t ODataPostManTests -o %SolutionDir% %StdOpts%
+if DEFINED SELF_HOST_GENERATION (
+  codegen -s %FileStructures% -ms -t ODataStandAloneSelfHost -o %SolutionDir%%HostProject% -n %HostProject% %StdOpts%
   if ERRORLEVEL 1 goto error
 )
+
+rem ================================================================================
+rem Swagger documentation and Postman tests
 
 rem Generate a Swagger file
 if DEFINED ENABLE_SWAGGER_DOCS (
@@ -95,23 +78,34 @@ if DEFINED ENABLE_SWAGGER_DOCS (
   if ERRORLEVEL 1 goto error
 )
 
-rem Generate the test environment and unit test environment classes, and the self-hosting program
-codegen -s %FileStructures% -ms -t ODataTestEnvironment ODataUnitTestEnvironment ODataSelfHost -o %SolutionDir%%UnitTestProject% -n %UnitTestProject% %StdOpts%
-if ERRORLEVEL 1 goto error
-
-rem Generate the data loader classes
-codegen -s %FileStructures% -t ODataTestDataLoader -o %SolutionDir%%UnitTestProject%\DataGenerators -n %UnitTestProject%.DataGenerators %StdOpts%
-if ERRORLEVEL 1 goto error
-
-rem Generate the data generator classes - one time, not replaced!
-codegen -s %FileStructures% -t ODataTestDataGenerator -o %SolutionDir%%UnitTestProject%\DataGenerators -n %UnitTestProject%.DataGenerators %NoReplaceOpts%
-if ERRORLEVEL 1 goto error
+rem Generate Postman Tests
+if DEFINED ENABLE_POSTMAN_TESTS (
+  codegen -s %DataStructures% -ms -t ODataPostManTests -o %SolutionDir% %StdOpts%
+  if ERRORLEVEL 1 goto error
+)
 
 rem ================================================================================================================================
-rem Generate code for a standalone self-hosting environment
+rem Unit testing project
 
-codegen -s %FileStructures% -ms -t ODataStandAloneSelfHost -o %SolutionDir%%SelfHostProject% -n %SelfHostProject% %StdOpts%
-if ERRORLEVEL 1 goto error
+if DEFINED ENABLE_UNIT_TEST_GENERATION (
+
+  rem Generate OData client model, data loader and unit test classes
+  codegen -s %DataStructures% -t ODataClientModel ODataTestDataLoader ODataTestDataGenerator ODataUnitTests -tf -o %SolutionDir%%TestProject% -n %TestProject% %StdOpts%
+  if ERRORLEVEL 1 goto error
+
+  rem Generate data generator classes; one time, not replaced
+  codegen -s %DataStructures% -t ODataClientModel ODataTestDataLoader ODataTestDataGenerator ODataUnitTests -tf -o %SolutionDir%%TestProject% -n %TestProject% %NoReplaceOpts%
+  if ERRORLEVEL 1 goto error
+
+  rem Generate the test environment, unit test environment and unit test constants properties classes, and the self-hosting program
+  codegen -s %FileStructures% -ms -t ODataTestEnvironment ODataUnitTestEnvironment ODataTestConstantsProperties ODataSelfHost -o %SolutionDir%%TestProject% -n %TestProject% %StdOpts%
+  if ERRORLEVEL 1 goto error
+
+  rem Generate unit test constants values class; one time, not replaced
+  codegen -s %DataStructures% -ms -t ODataTestConstantsValues -o %SolutionDir%%TestProject% -n %TestProject% %NoReplaceOpts%
+  if ERRORLEVEL 1 goto error
+
+)
 
 rem ================================================================================================================================
 rem Generate code for the TraditionalBridge sample environment
