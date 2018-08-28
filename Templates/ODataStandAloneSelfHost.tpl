@@ -102,7 +102,6 @@ namespace <NAMESPACE>
 
     public static class SelfHostEnvironment
 
-        public static Server, @TestServer
 <IF DEFINED_ENABLE_AUTHENTICATION>
         public static AccessToken, string
 </IF DEFINED_ENABLE_AUTHENTICATION>
@@ -121,18 +120,6 @@ namespace <NAMESPACE>
             deleteFiles()
             createFiles()
 </IF DEFINED_ENABLE_CREATE_TEST_FILES>
-
-            ;;Define the content root and web root folders (so we can pick up the Swagger file for API documentation)
-            data wwwroot = Path.Combine(AppContext.BaseDirectory, "wwwroot")
-
-            ;;Create a TestServer to host the Web API services
-            if (!String.IsNullOrEmpty(wwwroot) && Directory.Exists(wwwroot)) then
-                Server = new TestServer(new WebHostBuilder().UseContentRoot(wwwroot).UseWebRoot(wwwroot).UseStartup<Startup>())
-            else
-                Server = new TestServer(new WebHostBuilder().UseStartup<Startup>())
-
-            ;;Fake out HTTPS
-            Server.BaseAddress = new Uri("<SERVER_PROTOCOL>://<SERVER_NAME>")
 
 <IF DEFINED_ENABLE_AUTHENTICATION>
             ;;Get the access token from the OAuth Server
@@ -165,10 +152,6 @@ namespace <NAMESPACE>
         public static method Cleanup, void
 
         proc
-            ;;Clean up the test host
-            Server.Dispose()
-            Server = ^null
-
 <IF DEFINED_ENABLE_CREATE_TEST_FILES>
             ;;Delete the data files
             deleteFiles()
