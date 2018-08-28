@@ -1,0 +1,108 @@
+import System
+import System.Collections.Generic
+import System.Text
+import System.Linq.Expressions
+import Harmony.Core.Interface
+import System.Collections.Concurrent
+
+namespace Harmony.Core.FileIO
+
+	public abstract class RecordPrimaryKeyFactory implements IPrimaryKeyFactory
+
+		private static KeySetterLookup, @ConcurrentDictionary<Type, Action<DataObjectBase, VariantDesc>>, new ConcurrentDictionary<Type, Action<DataObjectBase, VariantDesc>>()
+		private commited, boolean
+		private started, boolean
+
+		private method IncrementKey, @a
+			metadataInstance, @DataObjectMetadataBase
+		proc
+			started = true
+			mreturn IncrementKeyImplementation(metadataInstance)
+		endmethod
+
+		protected abstract method IncrementKeyImplementation, @a
+			methoddataInstance, @DataObjectMetadataBase
+		proc
+		endmethod
+
+
+		protected abstract method CommitImplementation, void
+		proc
+		endmethod
+
+		public method Commit, void
+		proc
+			CommitImplementation()
+			commited = true
+		endmethod
+
+
+		protected abstract method Abort, void
+		proc
+		endmethod
+
+
+		protected static method MakeStoreExpression, @Expression<Action<DataObjectBase, VariantDesc>>
+			targetStart, int
+			targetLength, int
+		proc
+			data targetObject = Expression.Parameter(^typeof(DataObjectBase), "targetObject")
+			data sourceDesc = Expression.Parameter(^typeof(VariantDesc), "sourceDesc")
+
+			data recData = Expression.Parameter(^typeof(AlphaDesc), "recData")
+			data grfa = Expression.Parameter(^typeof(AlphaDesc), "grfa")
+
+			data variantDescType = ^typeof(VariantDesc)
+			data absRange = variantDescType.GetMethod("AbsRange")
+			data store = variantDescType.GetMethod("Store")
+			data dataObjectType = ^typeof(DataObjectBase)
+			data internalSynergyRecord = dataObjectType.GetMethod("InternalSynergyRecord")
+
+			data convertedRecData, @Expression, Expression.Convert(recData, ^typeof(VariantDesc))
+			data targetDesc, @Expression, Expression.Call(convertedRecData, absRange, new Expression[#] { Expression.Constant(targetStart), Expression.Constant(targetLength) })
+			data storeOp, @Expression, Expression.Call(targetDesc, store, sourceDesc)
+			data takeSynergyRecord, @Expression, Expression.Lambda(storeOp ,recData, grfa)
+			data internalSynergyRecordCall, @Expression, Expression.Call(targetObject, internalSynergyRecord, takeSynergyRecord)
+			mreturn Expression.Lambda<Action<DataObjectBase, VariantDesc>>(internalSynergyRecordCall, new ParameterExpression[#] { targetObject, sourceDesc })
+		endmethod
+
+
+		private method InvokeKeySetter, void
+			targetObject, @DataObjectBase
+		proc
+			data setter = KeySetterLookup.GetOrAdd(targetObject.GetType(), lambda(keyVal) { BuildKeySetter(targetObject.Metadata) })
+			setter(targetObject, (@VariantDesc)IncrementKey(targetObject.Metadata))
+		endmethod
+
+		private method BuildKeySetter, @Action<DataObjectBase, VariantDesc>
+			metadataInstance, @DataObjectMetadataBase
+		proc
+			;;if the source field is the combined size of the destination key fields, we will need to composite it inside the setter
+			data primaryKeyFields = metadataInstance.GetKeyFields(0, KeyType.KeyFactorySupplied)
+			if(primaryKeyFields.Count > 1) then
+			begin
+				data keyField = metadataInstance.GetFieldByName(primaryKeyFields[0])
+				mreturn MakeStoreExpression(keyField.StructurePosition, keyField.ElementSize).Compile()
+			end
+			else
+				throw new NotImplementedException()
+			;;call MakeStoreExpression for each segment we're storing into, but first we need to split the supplied VariantDesc using AbsRange 
+		endmethod
+
+
+		public virtual method AssignPrimaryKey, void
+			dataObject, @DataObjectBase 
+			endparams
+		proc
+			InvokeKeySetter(dataObject)
+		endmethod
+
+		public virtual method Dispose, void
+		proc
+			if(!commited)
+				Abort()
+		endmethod
+	
+	endclass
+
+endnamespace

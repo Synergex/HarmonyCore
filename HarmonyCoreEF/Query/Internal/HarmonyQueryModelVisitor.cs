@@ -107,6 +107,23 @@ namespace Harmony.Core.EF.Query.Internal
             }
         }
 
+        private static MethodInfo StringToLower = typeof(string).GetMethod("ToLower", new Type[0]);
+        private static MethodInfo StringToUpper = typeof(string).GetMethod("ToUpper", new Type[0]);
+
+
+        public InExpression MakeInExpression(List<string> values, Expression predicate)
+        {
+            if (predicate is MethodCallExpression)
+            {
+                var methodNode = predicate as MethodCallExpression;
+                if (methodNode.Method == StringToLower || methodNode.Method == StringToLower)
+                {
+                    return new InExpression { CaseInsensitive = true, Collection = values, Predicate = methodNode.Object };
+                }
+            }
+            return new InExpression { CaseInsensitive = false, Collection = values, Predicate = predicate };
+        }
+
         public override void VisitQueryModel(QueryModel queryModel)
         {
             MainQueryType = queryModel.MainFromClause.ItemType;
@@ -147,7 +164,7 @@ namespace Harmony.Core.EF.Query.Internal
                             if (resultOperator != null)
                             {
                                 var collection = (constant.Value as System.Collections.IEnumerable).OfType<object>().Select(obj => obj.ToString()).ToList();
-                                whereClause.Predicate = new InExpression { Collection = collection, Predicate = resultOperator.Item }; 
+                                whereClause.Predicate = MakeInExpression(collection, resultOperator.Item); 
                             }
                             else
                                 throw new NotImplementedException();

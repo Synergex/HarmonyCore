@@ -139,7 +139,7 @@ namespace Harmony.Core.FileIO.Queryable
 			else if(node .is. MethodCallExpression) then
 			begin
 				data callNode = (@MethodCallExpression)node
-				if(callNode.Method.Name == "Property")
+				if(callNode.Method.Name == "Property") then
 				begin
 					;;this is where we can do a metadata object lookup for join
 					data memberTargetParameter = (@Remotion.Linq.Clauses.Expressions.QuerySourceReferenceExpression)callNode.Arguments[0]
@@ -154,6 +154,10 @@ namespace Harmony.Core.FileIO.Queryable
 					end
 					else
 						mreturn new FieldReference() { FieldDef = targetField, QuerySourceKey = mQuerySources.IndexOf(memberTargetParameter.ReferencedQuerySource) }
+				end
+				else if(callNode.Method == StringToLower || callNode.Method == StringToUpper)
+				begin
+					mreturn FindTargetField(callNode.Object, node2)
 				end
 			end
 			else if(node .is. UnaryExpression && node.NodeType == ExpressionType.Convert)
@@ -214,10 +218,32 @@ namespace Harmony.Core.FileIO.Queryable
 			else if(node .is. InExpression)
 			begin
 				data inExpr = (@InExpression)node
-				mWhereStack.Push(MakePart(inExpr.Collection, FindTargetField(inExpr.Predicate, ^null), WhereClauseOperator.IsIn, ^null))
+				mWhereStack.Push(MakePart(inExpr.Collection, FindTargetField(inExpr.Predicate, ^null), inExpr.CaseInsensitive ? WhereClauseOperator.IsInNoCase : WhereClauseOperator.IsIn, ^null))
 			end
 
 			mreturn node
+		endmethod
+
+		private method IsCaseInsensitive, boolean
+			expr, @Expression
+		proc
+			if(expr .is. MethodCallExpression)
+			begin
+				data methodCallNode = (@MethodCallExpression)expr
+				if(methodCallNode.Method == StringToLower || methodCallNode.Method == StringToUpper)
+				begin
+					mreturn true
+				end
+			end
+			mreturn false
+		endmethod
+
+
+		private method IsCaseInsensitive, boolean
+			left, @Expression
+			right, @Expression
+		proc
+			mreturn IsCaseInsensitive(left) || IsCaseInsensitive(right)
 		endmethod
 
 		private method ProcessWhereClause, void
@@ -231,33 +257,43 @@ namespace Harmony.Core.FileIO.Queryable
 			;;TODO this doesnt deal with 'between'
 			data leftTarget = FindTargetField(left, right)
 			data rightTarget = FindTargetField(right, left)
+			data casedOp = op
+			if((casedOp == WhereClauseOperator.IsLike || 
+			&	casedOp == WhereClauseOperator.EqualTo ||
+			&	casedOp == WhereClauseOperator.NotEqualTo) && IsCaseInsensitive(left, right))
+			begin
+				;;the case insensitive variants follow in the enum declaration so this is switching to IsLikeNoCase | NodeCaseEqualTo | NoCaseNotEqualTo
+				casedOp = (WhereClauseOperator)((int)casedOp + 1)
+			end
 
 			if(leftTarget != ^null && rightTarget != ^null) then
 			begin
 				if(leftTarget == rightTarget) then
 				begin
-					mWhereStack.Push(MakePart(leftTarget, rightTarget,op, ^null))
+					mWhereStack.Push(MakePart(leftTarget, rightTarget,casedOp, ^null))
 				end
 				else
 				begin
 					;;this is a surprise join
-					mOnStack.Push(MakePart(leftTarget, rightTarget,op, ^null))
+					mOnStack.Push(MakePart(leftTarget, rightTarget,casedOp, ^null))
 				end
 			end
 			else if(leftTarget != ^null) then
 			begin
 
-				mWhereStack.Push(MakePart(leftTarget, FindConstantValue(right), op, ^null))
+				mWhereStack.Push(MakePart(leftTarget, FindConstantValue(right), casedOp, ^null))
 			end
 			else if(rightTarget != ^null) then
 			begin
-				mWhereStack.Push(MakePart(FindConstantValue(left), rightTarget, op, ^null))
+				mWhereStack.Push(MakePart(FindConstantValue(left), rightTarget, casedOp, ^null))
 			end
 			else
 				throw new NotImplementedException("where expression must contain at least one field or property expression")
 		endmethod
 
 		private static StringContains, @MethodInfo, ^typeof(string).GetMethod("Contains", new Type[#] { ^typeof(String) })
+		private static StringToLower, @MethodInfo, ^typeof(string).GetMethod("ToLower", new Type[0])
+		private static StringToUpper, @MethodInfo, ^typeof(string).GetMethod("ToUpper", new Type[0])
 
 		protected override method VisitMethodCall, @Expression
 			node, @System.Linq.Expressions.MethodCallExpression  
