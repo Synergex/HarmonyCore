@@ -85,7 +85,6 @@ namespace <NAMESPACE>
 ;// GET ALL -------------------------------------------------------------------
 ;//
         {ODataRoute("<StructurePlural>")}
-;//        {ProducesResponseType(^typeof(IEnumerable<<StructureNoplural>>), 200)}
         {EnableQuery<API_ENABLE_QUERY_PARAMS>}
         ;;; <summary>
         ;;; Get all <StructurePlural>
@@ -101,7 +100,6 @@ namespace <NAMESPACE>
 ;//
 <PRIMARY_KEY>
         {ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
-;//        {ProducesResponseType(^typeof(<StructureNoplural>), 200)}
         {EnableQuery<API_ENABLE_QUERY_PARAMS>}
         ;;; <summary>
         ;;; Get a single <StructureNoplural> by primary key.
@@ -128,7 +126,6 @@ namespace <NAMESPACE>
 <ALTERNATE_KEY_LOOP>
     <IF DUPLICATES>
         {ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
-;//        {ProducesResponseType(^typeof(<StructureNoplural>), 200)}
         {EnableQuery<API_ENABLE_QUERY_PARAMS>}
         ;;; <summary>
         ;;; Get <structurePlural> by alternate key key <KeyName>.
@@ -150,7 +147,6 @@ namespace <NAMESPACE>
         endmethod
     <ELSE>
         {ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
-;//        {ProducesResponseType(^typeof(<StructureNoplural>), 200)}
         {EnableQuery<API_ENABLE_QUERY_PARAMS>}
         ;;; <summary>
         ;;; Get <structureNoplural> by alternate key <KeyName>.
@@ -181,9 +177,9 @@ namespace <NAMESPACE>
 ;//
     <FIELD_LOOP>
       <IF NOTPKSEGMENT>
+        <IF CUSTOM_NOT_HARMONY_EXCLUDE>
         <PRIMARY_KEY>
         {ODataRoute("<StructurePlural>(<IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP></IF SINGLE_SEGMENT>)/<FieldSqlName>")}
-;//        {ProducesResponseType(^typeof(<StructureNoplural>), 200)}
         ;;; <summary>
         ;;; Get the <FieldSqlName> property of a single <StructureNoplural>, by primary key.
         ;;; </summary>
@@ -215,6 +211,7 @@ namespace <NAMESPACE>
         endmethod
 
         </PRIMARY_KEY>
+        </IF CUSTOM_NOT_HARMONY_EXCLUDE>
       </IF NOTPKSEGMENT>
     </FIELD_LOOP>
 </IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
@@ -222,7 +219,6 @@ namespace <NAMESPACE>
 ;// POST ----------------------------------------------------------------------
 ;//
 ;//        {ODataRoute("<StructurePlural>")}
-;//        {ProducesResponseType(^typeof(void), 200)}
 ;//        ;;; <summary>
 ;//        ;;; Create a new <structureNoplural> (automatically assigned primary key).
 ;//        ;;; </summary>
@@ -255,7 +251,6 @@ namespace <NAMESPACE>
 <IF DEFINED_ENABLE_PUT>
     <PRIMARY_KEY>
         {ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
-;//        {ProducesResponseType(^typeof(void), 204)}
         ;;; <summary>
         ;;; Create (with a client-supplied primary key) or replace a <structureNoplural>.
         ;;; </summary>
@@ -313,7 +308,6 @@ namespace <NAMESPACE>
 <IF DEFINED_ENABLE_PATCH>
         <PRIMARY_KEY>
         {ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
-;//        {ProducesResponseType(^typeof(void), 204)}
         ;;; <summary>
         ;;; Patch  (partial update) a <structureNoplural>.
         ;;; </summary>
@@ -368,7 +362,6 @@ namespace <NAMESPACE>
 <IF DEFINED_ENABLE_DELETE>
     <PRIMARY_KEY>
         {ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
-;//        {ProducesResponseType(^typeof(void), 204)}
         ;;; <summary>
         ;;; Delete a <structureNoplural>.
         ;;; </summary>

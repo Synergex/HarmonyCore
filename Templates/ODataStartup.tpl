@@ -247,10 +247,37 @@ namespace <NAMESPACE>
                     nop
                 end
 
+                ;;Enable support for dependency injection into controllers
                 builder.EnableDependencyInjection(EnableDI)
 
                 ;;Enable optional OData features
-                builder.Select().Expand().Filter().OrderBy().MaxTop(100).Count()
+                <IF DEFINED_ENABLE_SELECT>
+                ;;Enable $select expressions to select properties returned
+                builder.Select()
+
+                </IF DEFINED_ENABLE_SELECT>
+                <IF DEFINED_ENABLE_FILTER>
+                ;;Enable $filter expressions to filter rows returned
+                builder.Filter()
+
+                </IF DEFINED_ENABLE_FILTER>
+                <IF DEFINED_ENABLE_ORDERBY>
+                ;;Enable $orderby expressions to custom sort results
+                builder.OrderBy()
+
+                </IF DEFINED_ENABLE_ORDERBY>
+                <IF DEFINED_ENABLE_COUNT>
+                ;;Enable /$count endpoints
+                builder.Count()
+
+                </IF DEFINED_ENABLE_COUNT>
+                <IF DEFINED_ENABLE_RELATIONS>
+                ;;Enable $expand expressions to expand relations
+                builder.Expand()
+
+                </IF DEFINED_ENABLE_RELATIONS>
+                ;;Specify the maximum rows that may be returned by $top expressions
+                builder.MaxTop(100)
 
                 ;;Configure the default OData route
                 builder.MapODataServiceRoute("odata", "odata", model)

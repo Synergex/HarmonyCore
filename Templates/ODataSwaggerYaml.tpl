@@ -82,19 +82,25 @@ tags:
 <STRUCTURE_LOOP>
   - name: <StructureNoplural>
     description: Operations related to <STRUCTURE_DESC>
+<IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
   - name: <StructureNoplural>Properties
     description: Operations related to individual properties of <STRUCTURE_DESC>
+</IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
 </STRUCTURE_LOOP>
+<IF DEFINED_ENABLE_COUNT>
   - name: Count
     description: All count operations
+</IF DEFINED_ENABLE_COUNT>
   - name: Create
     description: All create operations
   - name: Read
     description: All read operations
   - name: Update
     description: All update operations
+<IF DEFINED_ENABLE_DELETE>
   - name: Delete
     description: All delete operations
+</IF DEFINED_ENABLE_DELETE>
 ;//
 ;//----------------------------------------------------------------------------
 ;//
@@ -116,33 +122,45 @@ paths:
       tags:
         - <StructureNoplural>
         - Read
+<IF DEFINED_PARAM_OPTIONS_PRESENT>
       parameters:
+</IF DEFINED_PARAM_OPTIONS_PRESENT>
 <IF DEFINED_ENABLE_RELATIONS>
         - name: $expand
           in: query
           description: Expand one or more navigation properties.
           type: string
 </IF DEFINED_ENABLE_RELATIONS>
+<IF DEFINED_ENABLE_SELECT>
         - name: $select
           in: query
           description: List of properties to be returned.
           type: string
+</IF DEFINED_ENABLE_SELECT>
+<IF DEFINED_ENABLE_FILTER>
         - name: $filter
           in: query
           description: Filter expression to restrict returned rows.
           type: string
+</IF DEFINED_ENABLE_FILTER>
+<IF DEFINED_ENABLE_ORDERBY>
         - name: $orderby
           in: query
           description: Order by some property
           type: string
+</IF DEFINED_ENABLE_ORDERBY>
+<IF DEFINED_ENABLE_TOP>
         - name: $top
           in: query
           description: Maximum number of rows to return.
           type: integer
+</IF DEFINED_ENABLE_TOP>
+<IF DEFINED_ENABLE_SKIP>
         - name: $skip
           in: query
           description: Rows to skip before starting to return data.
           type: integer
+</IF DEFINED_ENABLE_SKIP>
       responses:
         '200':
           description: OK
@@ -150,6 +168,7 @@ paths:
             type: array
             items:
               $ref: '#/definitions/<StructureNoplural>'
+<IF DEFINED_ENABLE_COUNT>
   /<StructurePlural>/$count:
     get:
       summary: Count <structurePlural>
@@ -160,15 +179,18 @@ paths:
         - <StructureNoplural>
         - Count
       parameters:
+<IF DEFINED_ENABLE_FILTER>
         - name: $filter
           in: query
           description: Filter expression to restrict returned rows.
           type: string
+</IF DEFINED_ENABLE_FILTER>
       responses:
         '200':
           description: OK
           schema:
             type: integer
+</IF DEFINED_ENABLE_COUNT>
 ;//
 ;//----------------------------------------------------------------------------
 ;//
@@ -208,10 +230,12 @@ paths:
           description: Expand one or more navigation properties.
           type: string
 </IF DEFINED_ENABLE_RELATIONS>
+<IF DEFINED_ENABLE_SELECT>
         - name: $select
           in: query
           description: List of properties to be returned.
           type: string
+</IF DEFINED_ENABLE_SELECT>
       responses:
         '200':
           description: OK (the requested <structureNoplural> was found and returned)
@@ -382,27 +406,37 @@ paths:
           description: Expand one or more navigation properties.
           type: string
 </IF DEFINED_ENABLE_RELATIONS>
+<IF DEFINED_ENABLE_SELECT>
         - name: $select
           in: query
           description: List of properties to be returned.
           type: string
+</IF DEFINED_ENABLE_SELECT>
   <IF DUPLICATES>
+<IF DEFINED_ENABLE_ORDERBY>
         - name: $orderby
           in: query
           description: Order by some property
           type: string
+</IF DEFINED_ENABLE_ORDERBY>
+<IF DEFINED_ENABLE_FILTER>
         - name: $filter
           in: query
           description: Filter expression to restrict returned rows.
           type: string
+</IF DEFINED_ENABLE_FILTER>
+<IF DEFINED_ENABLE_TOP>
         - name: $top
           in: query
           description: Maximum number of rows to return.
           type: integer
+</IF DEFINED_ENABLE_TOP>
+<IF DEFINED_ENABLE_SKIP>
         - name: $skip
           in: query
           description: Rows to skip before starting to return data.
           type: integer
+</IF DEFINED_ENABLE_SKIP>
 </IF DUPLICATES>
       responses:
         '200':
@@ -419,7 +453,8 @@ paths:
 ;// ----------------------------------------------------------------------------
 ;// Get count via alternate key
 ;//
-  <IF DUPLICATES>
+<IF DEFINED_ENABLE_COUNT>
+<IF DUPLICATES>
   '/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF ALPHA>''</IF ALPHA>{a<SegmentName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP>)/$count':
     get:
       summary: Count <structurePlural>
@@ -443,16 +478,19 @@ paths:
           format: date-time
 </IF TIME>
 </SEGMENT_LOOP>
+<IF DEFINED_ENABLE_FILTER>
         - name: $filter
           in: query
           description: Filter expression to restrict returned rows.
           type: string
+</IF DEFINED_ENABLE_FILTER>
       responses:
         '200':
           description: OK
           schema:
             type: integer
 </IF DUPLICATES>
+</IF DEFINED_ENABLE_COUNT>
 </ALTERNATE_KEY_LOOP>
 </IF DEFINED_ENABLE_ALTERNATE_KEYS>
 <IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
@@ -462,6 +500,7 @@ paths:
 ;//
 <FIELD_LOOP>
 <IF NOTPKSEGMENT>
+<IF CUSTOM_NOT_HARMONY_EXCLUDE>
 <PRIMARY_KEY>
 ;//
 ;// Invividual property
@@ -538,6 +577,7 @@ paths:
         '404':
           description: Not found (the specified <structureNoplural> was not found)
 </PRIMARY_KEY>
+</IF CUSTOM_NOT_HARMONY_EXCLUDE>
 </IF NOTPKSEGMENT>
 </FIELD_LOOP>
 </IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>

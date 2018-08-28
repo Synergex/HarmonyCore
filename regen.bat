@@ -7,9 +7,16 @@ rem Enable or disable optional features:
 
 set ENABLE_CREATE_TEST_FILES=-define ENABLE_CREATE_TEST_FILES
 set ENABLE_SWAGGER_DOCS=-define ENABLE_SWAGGER_DOCS
+set ENABLE_POSTMAN_TESTS=YES
 set ENABLE_ALTERNATE_KEYS=-define ENABLE_ALTERNATE_KEYS
-set ENABLE_RELATIONS=-define ENABLE_RELATIONS
+set ENABLE_COUNT=-define ENABLE_COUNT
 set ENABLE_PROPERTY_ENDPOINTS=-define ENABLE_PROPERTY_ENDPOINTS
+set ENABLE_SELECT=-define ENABLE_SELECT
+set ENABLE_FILTER=-define ENABLE_FILTER
+set ENABLE_ORDERBY=-define ENABLE_ORDERBY
+set ENABLE_TOP=-define ENABLE_TOP
+set ENABLE_SKIP=-define ENABLE_SKIP
+set ENABLE_RELATIONS=-define ENABLE_RELATIONS
 set ENABLE_PUT=-define ENABLE_PUT
 set ENABLE_PATCH=-define ENABLE_PATCH
 set ENABLE_DELETE=-define ENABLE_DELETE
@@ -17,6 +24,10 @@ rem set ENABLE_AUTHENTICATION=-define ENABLE_AUTHENTICATION
 rem set ENABLE_CASE_SENSITIVE_URL=-define ENABLE_CASE_SENSITIVE_URL
 rem set ENABLE_CORS=-define ENABLE_CORS
 rem set ENABLE_IIS_SUPPORT=-define ENABLE_IIS_SUPPORT
+
+if not "NONE%ENABLE_SELECT%%ENABLE_FILTER%%ENABLE_ORDERBY%%ENABLE_TOP%%ENABLE_SKIP%%ENABLE_RELATIONS%"=="NONE" (
+  set PARAM_OPTIONS_PRESENT=-define PARAM_OPTIONS_PRESENT
+)
 
 rem ================================================================================================================================
 rem Specify which repository structures we are going to be processing and which projects we're generating into
@@ -33,7 +44,7 @@ set SelfHostProject=SampleServices.Host
 rem ================================================================================================================================
 rem Configure standard command line options and the CodeGen environment
 
-set NoReplaceOpts=-e -lf -u UserDefinedTokens.tkn %ENABLE_AUTHENTICATION% %ENABLE_PROPERTY_ENDPOINTS% %ENABLE_CASE_SENSITIVE_URL% %ENABLE_CREATE_TEST_FILES% %ENABLE_CORS% %ENABLE_IIS_SUPPORT% %ENABLE_DELETE% %ENABLE_PUT% %ENABLE_PATCH% %ENABLE_ALTERNATE_KEYS% %ENABLE_SWAGGER_DOCS% %ENABLE_RELATIONS% -i %SolutionDir%Templates -rps %RPSMFIL% %RPSTFIL%
+set NoReplaceOpts=-e -lf -u UserDefinedTokens.tkn %ENABLE_AUTHENTICATION% %ENABLE_PROPERTY_ENDPOINTS% %ENABLE_CASE_SENSITIVE_URL% %ENABLE_CREATE_TEST_FILES% %ENABLE_CORS% %ENABLE_IIS_SUPPORT% %ENABLE_DELETE% %ENABLE_PUT% %ENABLE_PATCH% %ENABLE_ALTERNATE_KEYS% %ENABLE_SWAGGER_DOCS% %ENABLE_RELATIONS% %ENABLE_SELECT% %ENABLE_FILTER% %ENABLE_ORDERBY% %ENABLE_COUNT% %ENABLE_TOP% %ENABLE_SKIP% %PARAM_OPTIONS_PRESENT% -i %SolutionDir%Templates -rps %RPSMFIL% %RPSTFIL%
 set StdOpts=%NoReplaceOpts% -r
 
 rem ================================================================================================================================
@@ -73,8 +84,10 @@ rem ============================================================================
 rem Generate documentation and external test environments
 
 rem Generate Postman Tests
-codegen -s %DataStructures% -ms -t ODataPostManTests -o %SolutionDir% %StdOpts%
-if ERRORLEVEL 1 goto error
+if DEFINED ENABLE_POSTMAN_TESTS (
+  codegen -s %DataStructures% -ms -t ODataPostManTests -o %SolutionDir% %StdOpts%
+  if ERRORLEVEL 1 goto error
+)
 
 rem Generate a Swagger file
 if DEFINED ENABLE_SWAGGER_DOCS (
