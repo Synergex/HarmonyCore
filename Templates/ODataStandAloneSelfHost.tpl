@@ -52,6 +52,9 @@
 ;; Any changes you make will be lost of the file is re-generated.
 ;;*****************************************************************************
 
+<IF DEFINED_ENABLE_AUTHENTICATION>
+import IdentityModel.Client
+</IF DEFINED_ENABLE_AUTHENTICATION>
 import Microsoft.AspNetCore
 import Microsoft.AspNetCore.Hosting
 import Microsoft.AspNetCore.TestHost
@@ -65,7 +68,18 @@ main SelfHost
 
 proc
     ;;Configure the environment
-    SelfHostEnvironment.Initialize()
+    try
+    begin
+        SelfHostEnvironment.Initialize()
+    end
+    catch (ex, @Exception)
+    begin
+        Console.WriteLine(ex.Message)
+        Console.Write("Press a key to terminate: ")
+        Console.ReadKey()
+        stop
+    end
+    endtry
 
 <IF DEFINED_ENABLE_SWAGGER_DOCS>
     Console.WriteLine("API documentation is available at <SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<API_DOCS_PATH>")
