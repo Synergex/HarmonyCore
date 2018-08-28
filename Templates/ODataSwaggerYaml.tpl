@@ -82,25 +82,7 @@ tags:
 <STRUCTURE_LOOP>
   - name: <StructureNoplural>
     description: Operations related to <STRUCTURE_DESC>
-<IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
-  - name: <StructureNoplural>Properties
-    description: Operations related to individual properties of <STRUCTURE_DESC>
-</IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
 </STRUCTURE_LOOP>
-<IF DEFINED_ENABLE_COUNT>
-  - name: Count
-    description: All count operations
-</IF DEFINED_ENABLE_COUNT>
-  - name: Create
-    description: All create operations
-  - name: Read
-    description: All read operations
-  - name: Update
-    description: All update operations
-<IF DEFINED_ENABLE_DELETE>
-  - name: Delete
-    description: All delete operations
-</IF DEFINED_ENABLE_DELETE>
 ;//
 ;//----------------------------------------------------------------------------
 ;//
@@ -121,7 +103,6 @@ paths:
       deprecated: false
       tags:
         - <StructureNoplural>
-        - Read
 <IF DEFINED_PARAM_OPTIONS_PRESENT>
       parameters:
 </IF DEFINED_PARAM_OPTIONS_PRESENT>
@@ -177,7 +158,6 @@ paths:
       deprecated: false
       tags:
         - <StructureNoplural>
-        - Count
       parameters:
 <IF DEFINED_ENABLE_FILTER>
         - name: $filter
@@ -209,7 +189,6 @@ paths:
       deprecated: false
       tags:
         - <StructureNoplural>
-        - Read
       parameters:
 <SEGMENT_LOOP>
         - name: a<SegmentName>
@@ -255,7 +234,6 @@ paths:
       deprecated: false
       tags:
         - <StructureNoplural>
-        - Delete
       parameters:
         <SEGMENT_LOOP>
         - name: a<SegmentName>
@@ -288,8 +266,6 @@ paths:
       deprecated: false
       tags:
         - <StructureNoplural>
-        - Create
-        - Update
       parameters:
 <SEGMENT_LOOP>
         - name: a<SegmentName>
@@ -330,7 +306,6 @@ paths:
       deprecated: false
       tags:
         - <StructureNoplural>
-        - Update
       parameters:
 <SEGMENT_LOOP>
         - name: a<SegmentName>
@@ -385,7 +360,6 @@ paths:
       deprecated: false
       tags:
         - <StructureNoplural>
-        - Read
       parameters:
 <SEGMENT_LOOP>
         - name: a<SegmentName>
@@ -463,7 +437,6 @@ paths:
       deprecated: false
       tags:
         - <StructureNoplural>
-        - Count
       parameters:
 <SEGMENT_LOOP>
         - name: a<SegmentName>
@@ -512,8 +485,7 @@ paths:
       operationId: <StructureNoplural><FieldSqlName>
       deprecated: false
       tags:
-        - <StructureNoplural>Properties
-        - Read
+        - <StructureNoplural>
       parameters:
         <SEGMENT_LOOP>
         <IF SINGLE_SEGMENT>
@@ -549,8 +521,7 @@ paths:
       operationId: <StructureNoplural><FieldSqlName>value
       deprecated: false
       tags:
-        - <StructureNoplural>Properties
-        - Read
+        - <StructureNoplural>
       parameters:
         <SEGMENT_LOOP>
         <IF SINGLE_SEGMENT>

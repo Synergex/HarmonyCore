@@ -64,7 +64,7 @@ if ERRORLEVEL 1 goto error
 rem ================================================================================
 rem Self hosting
 
-if DEFINED SELF_HOST_GENERATION (
+if DEFINED ENABLE_SELF_HOST_GENERATION (
   codegen -s %FileStructures% -ms -t ODataStandAloneSelfHost -o %SolutionDir%%HostProject% -n %HostProject% %StdOpts%
   if ERRORLEVEL 1 goto error
 )
