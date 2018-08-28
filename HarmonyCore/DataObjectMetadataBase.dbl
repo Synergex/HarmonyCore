@@ -188,12 +188,22 @@ namespace Harmony.Core
 		
 		protected mfieldDictionary	,@Dictionary<string, int>, new Dictionary<string, int>()
 		protected mFieldsInKeys, @Dictionary<string, List<int>>, new Dictionary<string, List<int>>()
-		protected mKeyDictionary, @Dictionary<int, List<string>>, new Dictionary<int, List<string>>()
+		protected mKeyDictionary, @Dictionary<int, List<Tuple<string, KeyType>>>, new Dictionary<int, List<Tuple<string, KeyType>>>()
+
+		public method GetKeyFields, @List<string>
+			keyNumber, int
+			targetKeyType, KeyType
+		proc
+			mreturn mKeyDictionary[keyNumber].Where(lambda(kvp) { ((int)(kvp.Item2 .band. targetKeyType)) != 0 }).Select(lambda(kvp) { kvp.Item1 }).ToList()
+		endmethod
+
+
 		;;this can be called multiple times with the same key number to create a composite key
 		protected method AddKeyInfo, void
 			keyNumber, int
 			fieldName, @string
 		proc
+			data keyInfo = keyNumber == 0 ? KeyType.KeyFactorySupplied : KeyType.UserSupplied
 			data memberOfKeys, @List<int>
 			if(!mFieldsInKeys.TryGetValue(fieldName, memberOfKeys))
 			begin
@@ -202,13 +212,13 @@ namespace Harmony.Core
 			end
 			memberOfKeys.Add(keyNumber)
 
-			data keyParts, @List<string>
+			data keyParts, @List<Tuple<string, KeyType>>
 			if(!mKeyDictionary.TryGetValue(keyNumber, keyParts))
 			begin
-				keyParts = new List<string>()
-				mKeyDictionary.Add(keyNumber, keyParts)
+				keyParts = new List<Tuple<string, KeyType>>()
+				mKeyDictionary.Add(keyNumber,keyParts)
 			end
-			keyParts.Add(fieldName)
+			keyParts.Add( Tuple.Create(fieldName, keyInfo))
 		endmethod
 
 

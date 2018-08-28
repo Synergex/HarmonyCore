@@ -11,7 +11,6 @@ namespace Harmony.Core.FileIO.Queryable
 
 	public class SelectBuilder
 		private mQueryBuffer, @QueryBuffer
-		private mCaseSensitive, boolean, true
 
 		public method SelectBuilder
 			queryBuffer, @QueryBuffer
@@ -31,13 +30,18 @@ namespace Harmony.Core.FileIO.Queryable
 			if(fieldDetails1.DataType != fieldDetails2.DataType)
 				throw new NotImplementedException("field to field comparisons must be of the same type")
 
+			data caseInsensitive = theOperator == WhereClauseOperator.NoCaseEqualTo || 
+			&	theOperator == WhereClauseOperator.NoCaseNotEqualTo ||
+			&	theOperator == WhereClauseOperator.IsLikeNoCase ||
+			&	theOperator == WhereClauseOperator.IsInNoCase
+
 			using theOperator select
 			(whereClauseOperator.EqualTo),
 			begin
 				using fieldDetails1.DataType select
 				(FieldDataType.AlphaField),
 				begin
-					if(mCaseSensitive) then
+					if(!caseInsensitive) then
 						mreturn (On)(dataBuffer1(fieldDetails1.StructurePosition:fieldDetails1.ElementSize) .eqs. dataBuffer2(fieldDetails2.StructurePosition:fieldDetails2.ElementSize))
 					else
 						throw new NotImplementedException()
@@ -96,13 +100,18 @@ namespace Harmony.Core.FileIO.Queryable
 			if(fieldDetails1.DataType != fieldDetails2.DataType)
 				throw new NotImplementedException("field to field comparisons must be of the same type")
 
+			data caseInsensitive = theOperator == WhereClauseOperator.NoCaseEqualTo || 
+			&	theOperator == WhereClauseOperator.NoCaseNotEqualTo ||
+			&	theOperator == WhereClauseOperator.IsLikeNoCase ||
+			&	theOperator == WhereClauseOperator.IsInNoCase
+
 			using theOperator select
 			(whereClauseOperator.EqualTo),
 			begin
 				using fieldDetails1.DataType select
 				(FieldDataType.AlphaField),
 				begin
-					if(mCaseSensitive) then
+					if(!caseInsensitive) then
 						mreturn (Where)(dataBuffer1(fieldDetails1.StructurePosition:fieldDetails1.ElementSize) .eqs. dataBuffer2(fieldDetails2.StructurePosition:fieldDetails2.ElementSize))
 					else
 						mreturn (NoCaseWhere)(dataBuffer1(fieldDetails1.StructurePosition:fieldDetails1.ElementSize) .eqs. dataBuffer2(fieldDetails2.StructurePosition:fieldDetails2.ElementSize))
@@ -172,8 +181,13 @@ namespace Harmony.Core.FileIO.Queryable
 			memPnt = %mem_proc(DM_ALLOC, fieldDetails.ElementSize)
 			^m(tmpStructure(1:fieldDetails.ElementSize), memPnt) = theValues[1]
 			
+			data caseInsensitive = theOperator == WhereClauseOperator.NoCaseEqualTo || 
+			&	theOperator == WhereClauseOperator.NoCaseNotEqualTo ||
+			&	theOperator == WhereClauseOperator.IsLikeNoCase ||
+			&	theOperator == WhereClauseOperator.IsInNoCase
+
 			using theOperator select
-			(whereClauseOperator.EqualTo),
+			(whereClauseOperator.EqualTo, WhereClauseOperator.NoCaseEqualTo),
 			begin
 				using fieldDetails.DataType select
 				(FieldDataType.AlphaField),
@@ -185,7 +199,7 @@ namespace Harmony.Core.FileIO.Queryable
 					if (length > 1 && %atrim(^m(tmpStructure(length:1), memPnt)) == "%") then
 					begin
 						decr length
-						if (mCaseSensitive == true) then
+						if (!caseInsensitive) then
 						begin
 							DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: StartsWith Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, length, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
 							mreturn (Where)(dataBuffer(fieldDetails.StructurePosition:length) .eqs. (^m(tmpStructure(1:length), memPnt)))
@@ -198,7 +212,7 @@ namespace Harmony.Core.FileIO.Queryable
 					end
 					else
 					begin
-						if (mCaseSensitive == true) then
+						if (!caseInsensitive) then
 						begin
 							DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: EqualTo Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
 							mreturn (Where)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .eqs. (^m(tmpStructure(1:length), memPnt)))
@@ -232,14 +246,14 @@ namespace Harmony.Core.FileIO.Queryable
 				end
 				endusing
 			end
-			(whereClauseOperator.NotEqualTo),
+			(whereClauseOperator.NotEqualTo, WhereClauseOperator.NoCaseNotEqualTo),
 			begin
 				using fieldDetails.DataType select
 				(FieldDataType.AlphaField),
 				begin
 					data length	,i4	,%trim(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt))
 					if (!length) length = fieldDetails.ElementSize
-					if (mCaseSensitive == true) then
+					if (!caseInsensitive) then
 					begin
 						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: NotEqualTo Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
 						mreturn (Where)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .nes. (^m(tmpStructure(1:length), memPnt)))
@@ -280,7 +294,7 @@ namespace Harmony.Core.FileIO.Queryable
 					data length	,i4	,%trim(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt))
 					if (!length) length = fieldDetails.ElementSize
 
-					if (mCaseSensitive == true) then
+					if (!caseInsensitive) then
 					begin
 						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: GreaterThan Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
 						mreturn (Where)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .gts. (^m(tmpStructure(1:length), memPnt)))
@@ -321,7 +335,7 @@ namespace Harmony.Core.FileIO.Queryable
 					data length	,i4	,%trim(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt))
 					if (!length) length = fieldDetails.ElementSize
 
-					if (mCaseSensitive == true) then
+					if (!caseInsensitive) then
 					begin
 						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: GreaterThanOrEqualTo Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
 						mreturn (Where)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .ges. (^m(tmpStructure(1:length), memPnt)))
@@ -362,7 +376,7 @@ namespace Harmony.Core.FileIO.Queryable
 					data length	,i4	,%trim(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt))
 					if (!length) length = fieldDetails.ElementSize
 					
-					if (mCaseSensitive == true) then
+					if (!caseInsensitive) then
 					begin
 						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: LessThan Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
 						mreturn (Where)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .lts. (^m(tmpStructure(1:length), memPnt)))
@@ -403,7 +417,7 @@ namespace Harmony.Core.FileIO.Queryable
 					data length	,i4	,%trim(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt))
 					if (!length) length = fieldDetails.ElementSize
 
-					if (mCaseSensitive == true) then
+					if (!caseInsensitive) then
 					begin
 						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: LessThanOrEqualTo Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
 						mreturn (Where)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .les. (^m(tmpStructure(1:length), memPnt)))
@@ -431,7 +445,7 @@ namespace Harmony.Core.FileIO.Queryable
 				end
 				endusing
 			end
-			(whereClauseOperator.IsLike),
+			(whereClauseOperator.IsLike, whereClauseOperator.IsLikeNoCase),
 			begin
 				using fieldDetails.DataType select
 				(FieldDataType.AlphaField),
@@ -439,7 +453,7 @@ namespace Harmony.Core.FileIO.Queryable
 					data length	,i4	,%trim(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt))
 					if (!length) length = fieldDetails.ElementSize
 
-					if (mCaseSensitive == true) then
+					if (!caseInsensitive) then
 					begin
 						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: IsLike Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
 						mreturn Where.Contains(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), ((^m(tmpStructure(1:length), memPnt) - "%") - "%"))
@@ -460,7 +474,7 @@ namespace Harmony.Core.FileIO.Queryable
 					data length	,i4	,%trim(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt))
 					if (!length) length = fieldDetails.ElementSize
 					
-					if (mCaseSensitive == true) then
+					if (!caseInsensitive) then
 					begin
 						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: IsBetween Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2} and {3}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize), theValues[2])
 						mreturn Where.Between(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), (^m(tmpStructure(1:length), memPnt)), theValues[2])
@@ -479,7 +493,7 @@ namespace Harmony.Core.FileIO.Queryable
 					mreturn Where.Between(^d(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize)), %implied(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)), %implied(theValues[2]))
 				endusing
 			end
-			(whereClauseOperator.IsIn),
+			(whereClauseOperator.IsIn, WhereClauseOperator.IsInNoCase),
 			begin
 				using fieldDetails.DataType select
 				(FieldDataType.AlphaField),
@@ -487,7 +501,7 @@ namespace Harmony.Core.FileIO.Queryable
 					data length	,i4	,%trim(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt))
 					if (!length) length = fieldDetails.ElementSize
 					
-					if (mCaseSensitive == true) then
+					if (!caseInsensitive) then
 					begin
 						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: IsIn Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
 						
@@ -543,6 +557,11 @@ namespace Harmony.Core.FileIO.Queryable
 			memPnt = %mem_proc(DM_ALLOC, fieldDetails.ElementSize)
 			^m(tmpStructure(1:fieldDetails.ElementSize), memPnt) = theValue[1]
 			
+			data caseInsensitive = theOperator == WhereClauseOperator.NoCaseEqualTo || 
+			&	theOperator == WhereClauseOperator.NoCaseNotEqualTo ||
+			&	theOperator == WhereClauseOperator.IsLikeNoCase ||
+			&	theOperator == WhereClauseOperator.IsInNoCase
+
 			using theOperator select
 			(whereClauseOperator.EqualTo),
 			begin
@@ -556,7 +575,7 @@ namespace Harmony.Core.FileIO.Queryable
 					if (length > 1 && %atrim(^m(tmpStructure(length:1), memPnt)) == "%") then
 					begin
 						decr length
-						if (mCaseSensitive == true) then
+						if (!caseInsensitive) then
 						begin
 							DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: StartsWith Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, length, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
 							mreturn (On)(dataBuffer(fieldDetails.StructurePosition:length) .eqs. (^m(tmpStructure(1:length), memPnt)))
@@ -570,7 +589,7 @@ namespace Harmony.Core.FileIO.Queryable
 					end
 					else
 					begin
-						if (mCaseSensitive == true) then
+						if (!caseInsensitive) then
 						begin
 							DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: EqualTo Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
 							mreturn (On)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .eqs. (^m(tmpStructure(1:length), memPnt)))
@@ -612,7 +631,7 @@ namespace Harmony.Core.FileIO.Queryable
 				begin
 					data length	,i4	,%trim(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt))
 					if (!length) length = fieldDetails.ElementSize
-					if (mCaseSensitive == true) then
+					if (!caseInsensitive) then
 					begin
 						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: NotEqualTo Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
 						mreturn (On)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .nes. (^m(tmpStructure(1:length), memPnt)))
@@ -654,7 +673,7 @@ namespace Harmony.Core.FileIO.Queryable
 					data length	,i4	,%trim(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt))
 					if (!length) length = fieldDetails.ElementSize
 
-					if (mCaseSensitive == true) then
+					if (!caseInsensitive) then
 					begin
 						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: GreaterThan Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
 						mreturn (On)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .gts. (^m(tmpStructure(1:length), memPnt)))
@@ -696,7 +715,7 @@ namespace Harmony.Core.FileIO.Queryable
 					data length	,i4	,%trim(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt))
 					if (!length) length = fieldDetails.ElementSize
 
-					if (mCaseSensitive == true) then
+					if (!caseInsensitive) then
 					begin
 						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: GreaterThanOrEqualTo Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
 						mreturn (On)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .ges. (^m(tmpStructure(1:length), memPnt)))
@@ -737,7 +756,7 @@ namespace Harmony.Core.FileIO.Queryable
 					data length	,i4	,%trim(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt))
 					if (!length) length = fieldDetails.ElementSize
 					
-					if (mCaseSensitive == true) then
+					if (!caseInsensitive) then
 					begin
 						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: LessThan Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
 						mreturn (On)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .lts. (^m(tmpStructure(1:length), memPnt)))
@@ -779,7 +798,7 @@ namespace Harmony.Core.FileIO.Queryable
 					data length	,i4	,%trim(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt))
 					if (!length) length = fieldDetails.ElementSize
 
-					if (mCaseSensitive == true) then
+					if (!caseInsensitive) then
 					begin
 						DebugLogSession.Logging.LogDiagnostic("HARMONY-commandParser::fieldWhereClause: LessThanOrEqualTo Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
 						mreturn (On)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .les. (^m(tmpStructure(1:length), memPnt)))
