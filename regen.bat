@@ -97,8 +97,12 @@ if DEFINED ENABLE_UNIT_TEST_GENERATION (
   codegen -s %DataStructures% -t ODataClientModel ODataTestDataLoader ODataTestDataGenerator ODataUnitTests -tf -o %SolutionDir%%TestProject% -n %TestProject% %NoReplaceOpts%
   if ERRORLEVEL 1 goto error
 
-  rem Generate the test environment, unit test environment and unit test constants properties classes, and the self-hosting program
-  codegen -s %FileStructures% -ms -t ODataTestEnvironment ODataUnitTestEnvironment ODataTestConstantsProperties ODataSelfHost -o %SolutionDir%%TestProject% -n %TestProject% %StdOpts%
+  rem Generate the test environment and unit test environment classes, and the self-hosting program
+  codegen -s %FileStructures% -ms -t ODataTestEnvironment ODataUnitTestEnvironment ODataSelfHost -o %SolutionDir%%TestProject% -n %TestProject% %StdOpts%
+  if ERRORLEVEL 1 goto error
+
+  rem Generate the unit test constants properties classes
+  codegen -s %DataStructures% -ms -t ODataTestConstantsProperties -o %SolutionDir%%TestProject% -n %TestProject% %StdOpts%
   if ERRORLEVEL 1 goto error
 
   rem Generate unit test constants values class; one time, not replaced
