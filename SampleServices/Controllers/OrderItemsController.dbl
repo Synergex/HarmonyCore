@@ -222,6 +222,33 @@ namespace SampleServices.Controllers
             mreturn OK(result.InvoiceNumber)
         endmethod
 
+
+ ;POST ----------------------------------------------------------------------
+
+        {ODataRoute("OrderItems")}
+        ;;; <summary>
+        ;;; Create a new orderItem (automatically assigned primary key).
+        ;;; </summary>
+        ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        public method Post, @IActionResult
+            {FromBody}
+            required in aOrderItem, @OrderItem
+        proc
+            ;; Validate inbound data
+            if (!ModelState.IsValid)
+                mreturn BadRequest(ModelState)
+
+            ;TODO: How do we support the auto-generation of primary key in this scenario?
+            DBContext.OrderItems.Add(aOrderItem)
+
+            ;TODO: Need to add a Location header
+
+            ;;Commit the change
+            DBContext.SaveChanges()
+
+            mreturn Ok()
+
+        endmethod
         {ODataRoute("OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})")}
         ;;; <summary>
         ;;; Create (with a client-supplied primary key) or replace a orderItem.

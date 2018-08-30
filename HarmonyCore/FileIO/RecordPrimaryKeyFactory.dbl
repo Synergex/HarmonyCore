@@ -54,14 +54,14 @@ namespace Harmony.Core.FileIO
 
 			data variantDescType = ^typeof(VariantDesc)
 			data absRange = variantDescType.GetMethod("AbsRange")
-			data store = variantDescType.GetMethod("Store")
+			data store = variantDescType.GetMethod("Store", new Type[#] { ^typeof(VariantDesc) })
 			data dataObjectType = ^typeof(DataObjectBase)
 			data internalSynergyRecord = dataObjectType.GetMethod("InternalSynergyRecord")
 
 			data convertedRecData, @Expression, Expression.Convert(recData, ^typeof(VariantDesc))
 			data targetDesc, @Expression, Expression.Call(convertedRecData, absRange, new Expression[#] { Expression.Constant(targetStart), Expression.Constant(targetLength) })
 			data storeOp, @Expression, Expression.Call(targetDesc, store, sourceDesc)
-			data takeSynergyRecord, @Expression, Expression.Lambda(storeOp ,recData, grfa)
+			data takeSynergyRecord, @Expression, Expression.Lambda<AlphaAction>(storeOp ,recData, grfa)
 			data internalSynergyRecordCall, @Expression, Expression.Call(targetObject, internalSynergyRecord, takeSynergyRecord)
 			mreturn Expression.Lambda<Action<DataObjectBase, VariantDesc>>(internalSynergyRecordCall, new ParameterExpression[#] { targetObject, sourceDesc })
 		endmethod
@@ -79,7 +79,7 @@ namespace Harmony.Core.FileIO
 		proc
 			;;if the source field is the combined size of the destination key fields, we will need to composite it inside the setter
 			data primaryKeyFields = metadataInstance.GetKeyFields(0, KeyType.KeyFactorySupplied)
-			if(primaryKeyFields.Count > 1) then
+			if(primaryKeyFields.Count == 1) then
 			begin
 				data keyField = metadataInstance.GetFieldByName(primaryKeyFields[0])
 				mreturn MakeStoreExpression(keyField.StructurePosition, keyField.ElementSize).Compile()

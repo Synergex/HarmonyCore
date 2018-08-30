@@ -72,6 +72,7 @@ namespace <NAMESPACE>
     public class <StructurePlural>Controller extends ODataController
     
         public readwrite property DBContext, @<SERVICES_NAMESPACE>.DBContext
+        public readwrite property KeyFactory, @IPrimaryKeyFactory
 
         ;;; <summary>
         ;;; Constructs a new instance of <StructurePlural>Controller
@@ -79,8 +80,10 @@ namespace <NAMESPACE>
         ;;; <param name="dbContext">Database context</param>
         public method <StructurePlural>Controller
             dbContext, @<SERVICES_NAMESPACE>.DBContext
+            keyFactory, @IPrimaryKeyFactory
         proc
             this.DBContext = dbContext
+            this.KeyFactory = keyFactory
         endmethod
 
 ;//
@@ -220,30 +223,30 @@ namespace <NAMESPACE>
 ;//
 ;// POST ----------------------------------------------------------------------
 ;//
-;//        {ODataRoute("<StructurePlural>")}
-;//        ;;; <summary>
-;//        ;;; Create a new <structureNoplural> (automatically assigned primary key).
-;//        ;;; </summary>
-;//        ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-;//        public method Post, @IActionResult
-;//            {FromBody}
-;//            required in a<StructureNoplural>, @<StructureNoplural>
-;//        proc
-;//            ;; Validate inbound data
-;//            if (!ModelState.IsValid)
-;//                mreturn BadRequest(ModelState)
-;//
-;//            ;TODO: How do we support the auto-generation of primary key in this scenario?
-;//            DBContext.<StructurePlural>.Add(a<StructureNoplural>)
-;//
-;//            ;TODO: Need to add a Location header
-;//
-;//            ;;Commit the change
-;//            DBContext.SaveChanges()
-;//
-;//            mreturn Ok()
-;//
-;//        endmethod
+        {ODataRoute("<StructurePlural>")}
+        ;;; <summary>
+        ;;; Create a new <structureNoplural> (automatically assigned primary key).
+        ;;; </summary>
+        ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        public method Post, @IActionResult
+            {FromBody}
+            required in a<StructureNoplural>, @<StructureNoplural>
+        proc
+            ;; Validate inbound data
+            if (!ModelState.IsValid)
+                mreturn BadRequest(ModelState)
+
+            KeyFactory.AssignPrimaryKey(<StructureNoplural>)
+            DBContext.<StructurePlural>.Add(a<StructureNoplural>)
+
+            ;TODO: Need to add a Location header
+
+            ;;Commit the change
+            DBContext.SaveChanges()
+
+            mreturn Ok()
+
+        endmethod
 ;//
 ;// PUT
 ;//

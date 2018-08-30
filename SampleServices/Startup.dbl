@@ -47,7 +47,7 @@ import SampleServices.Models
 
 namespace SampleServices
 
-    public class Startup
+    public partial class Startup
 
         public method ConfigureServices, void
             services, @IServiceCollection 
@@ -105,6 +105,8 @@ namespace SampleServices
             end
 
             services.AddHttpsRedirection(httpsConfig)
+
+            ConfigureServicesCustom(services)
 
         endmethod
 
@@ -220,6 +222,17 @@ namespace SampleServices
             app.UseSwagger()
             app.UseSwaggerUI(configureSwaggerUi)
 
+            ConfigureCustom(app,env)
+
+        endmethod
+
+        partial method ConfigureServicesCustom, void
+            services, @IServiceCollection 
+        endmethod
+
+        partial method ConfigureCustom, void
+            required in app, @IApplicationBuilder
+            required in env, @IHostingEnvironment
         endmethod
 
     endclass

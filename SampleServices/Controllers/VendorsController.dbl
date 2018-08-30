@@ -276,6 +276,33 @@ namespace SampleServices.Controllers
             mreturn OK(result.PaymentTermsCode)
         endmethod
 
+
+ ;POST ----------------------------------------------------------------------
+
+        {ODataRoute("Vendors")}
+        ;;; <summary>
+        ;;; Create a new vendor (automatically assigned primary key).
+        ;;; </summary>
+        ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        public method Post, @IActionResult
+            {FromBody}
+            required in aVendor, @Vendor
+        proc
+            ;; Validate inbound data
+            if (!ModelState.IsValid)
+                mreturn BadRequest(ModelState)
+
+            ;TODO: How do we support the auto-generation of primary key in this scenario?
+            DBContext.Vendors.Add(aVendor)
+
+            ;TODO: Need to add a Location header
+
+            ;;Commit the change
+            DBContext.SaveChanges()
+
+            mreturn Ok()
+
+        endmethod
         {ODataRoute("Vendors(VendorNumber={aVendorNumber})")}
         ;;; <summary>
         ;;; Create (with a client-supplied primary key) or replace a vendor.

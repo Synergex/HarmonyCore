@@ -18,6 +18,7 @@ import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Infrastructure
 import Harmony.Core.EF.Extensions
 import SampleServices.Models
+import Harmony.Core.Interface
 
 namespace SampleServices.Controllers
 
@@ -27,15 +28,17 @@ namespace SampleServices.Controllers
     public class CustomersController extends ODataController
     
         public readwrite property DBContext, @SampleServices.DBContext
-
+        public readwrite property KeyFactory, @IPrimaryKeyFactory
         ;;; <summary>
         ;;; Constructs a new instance of CustomersController
         ;;; </summary>
         ;;; <param name="dbContext">Database context</param>
         public method CustomersController
             dbContext, @SampleServices.DBContext
+            keyFactory, @IPrimaryKeyFactory
         proc
             this.DBContext = dbContext
+            this.KeyFactory = keyFactory
         endmethod
 
         {ODataRoute("Customers")}
@@ -330,6 +333,32 @@ namespace SampleServices.Controllers
             mreturn OK(result.CreditLimit)
         endmethod
 
+
+        {ODataRoute("Customers")}
+        ;;; <summary>
+        ;;; Create a new customer (automatically assigned primary key).
+        ;;; </summary>
+        ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        public method Post, @IActionResult
+            {FromBody}
+            required in aCustomer, @Customer
+        proc
+            ;; Validate inbound data
+            if (!ModelState.IsValid)
+                mreturn BadRequest(ModelState)
+
+            KeyFactory.AssignPrimaryKey(aCustomer)
+            ;TODO: How do we support the auto-generation of primary key in this scenario?
+            DBContext.Customers.Add(aCustomer)
+            KeyFactory.Commit()
+            ;TODO: Need to add a Location header
+
+            ;;Commit the change
+            DBContext.SaveChanges()
+
+            mreturn Ok()
+
+        endmethod
         {ODataRoute("Customers(CustomerNumber={aCustomerNumber})")}
         ;;; <summary>
         ;;; Create (with a client-supplied primary key) or replace a customer.

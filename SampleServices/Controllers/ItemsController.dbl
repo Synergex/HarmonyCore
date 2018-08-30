@@ -491,6 +491,33 @@ namespace SampleServices.Controllers
             mreturn OK(result.CostPrice)
         endmethod
 
+
+ ;POST ----------------------------------------------------------------------
+
+        {ODataRoute("Items")}
+        ;;; <summary>
+        ;;; Create a new item (automatically assigned primary key).
+        ;;; </summary>
+        ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        public method Post, @IActionResult
+            {FromBody}
+            required in aItem, @Item
+        proc
+            ;; Validate inbound data
+            if (!ModelState.IsValid)
+                mreturn BadRequest(ModelState)
+
+            ;TODO: How do we support the auto-generation of primary key in this scenario?
+            DBContext.Items.Add(aItem)
+
+            ;TODO: Need to add a Location header
+
+            ;;Commit the change
+            DBContext.SaveChanges()
+
+            mreturn Ok()
+
+        endmethod
         {ODataRoute("Items(ItemNumber={aItemNumber})")}
         ;;; <summary>
         ;;; Create (with a client-supplied primary key) or replace a item.

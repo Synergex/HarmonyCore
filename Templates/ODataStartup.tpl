@@ -89,7 +89,7 @@ import <MODELS_NAMESPACE>
 
 namespace <NAMESPACE>
 
-    public class Startup
+    public partial class Startup
 
         public method ConfigureServices, void
             services, @IServiceCollection 
@@ -185,6 +185,8 @@ namespace <NAMESPACE>
             services.AddCors()
 
 </IF DEFINED_ENABLE_CORS>
+            ConfigureServicesCustom(services)
+
         endmethod
 
         private method ConfigureDBContext, void
@@ -331,7 +333,18 @@ namespace <NAMESPACE>
             app.UseSwagger()
             app.UseSwaggerUI(configureSwaggerUi)
 
+            ConfigureCustom(app,env)
+
 </IF DEFINED_ENABLE_SWAGGER_DOCS>
+        endmethod
+
+        partial method ConfigureServicesCustom, void
+            services, @IServiceCollection 
+        endmethod
+
+        partial method ConfigureCustom, void
+            required in app, @IApplicationBuilder
+            required in env, @IHostingEnvironment
         endmethod
 
     endclass

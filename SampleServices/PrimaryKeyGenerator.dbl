@@ -1,0 +1,96 @@
+
+import System
+import System.Collections.Generic
+import System.Text
+import Harmony.Core
+import Harmony.Core.FileIO
+
+namespace SampleServices
+
+    public class PrimaryKeyGenerator extends RecordPrimaryKeyFactory
+
+        mFileChannelManager, @IFileChannelManager
+        mChannel, int
+
+        mNextCustomerKey, d6
+        mNextItemKey, d6
+        mNextOrderKey, d6
+        mNextVendorKey, d6
+
+        public method PrimaryKeyGenerator
+            required in aFileChannelManager, @IFileChannelManager
+        proc
+            mFileChannelManager = aFileChannelManager
+            mChannel = mFileChannelManager.GetChannel("DAT:sysparams.ddf",FileOpenMode.UpdateRelative)
+        endmethod
+
+        protected override method IncrementKeyImplementation, @a
+            metaDatainstance, @DataObjectMetadataBase
+        proc
+            using metaDatainstance.RPSStructureName select
+            ("CUSTOMERS"),
+            begin
+                if (!mNextCustomerKey)
+                    read(mChannel,^a(mNextCustomerKey),1,LOCK:Q_MANUAL_LOCK)
+                mNextCustomerKey += 1
+                mreturn (@a)%string(mNextCustomerKey-1)
+            end
+            ("ITEMS"),
+            begin
+                if (!mNextItemKey)
+                    read(mChannel,^a(mNextItemKey),4,LOCK:Q_MANUAL_LOCK)
+                mNextItemKey += 1
+                mreturn (@a)%string(mNextItemKey-1)
+            end
+            ("ORDERS"),
+            begin
+                if (!mNextOrderKey)
+                    read(mChannel,^a(mNextOrderKey),3,LOCK:Q_MANUAL_LOCK)
+                mNextOrderKey += 1
+                mreturn (@a)%string(mNextOrderKey-1)
+            end
+            ("ORDER_ITEMS"),
+            begin
+                throw new NotImplementedException()
+            end
+            ("VENDORS"),
+            begin
+                if (!mNextVendorKey)
+                    read(mChannel,^a(mNextVendorKey),2,LOCK:Q_MANUAL_LOCK)
+                mNextVendorKey += 1
+                mreturn (@a)%string(mNextVendorKey-1)
+            end
+            endusing
+        endmethod
+
+        protected override method CommitImplementation, void
+        proc
+            if (mNextCustomerKey)
+            begin
+                write(mChannel,^a(mNextCustomerKey),1)
+            end
+            if (mNextItemKey)
+            begin
+                write(mChannel,^a(mNextItemKey),4)
+            end
+            if (mNextOrderKey)
+            begin
+                write(mChannel,^a(mNextOrderKey),3)
+            end
+            if (mNextVendorKey)
+            begin
+                write(mChannel,^a(mNextVendorKey),2)
+            end
+            mFileChannelManager.ReturnChannel(mChannel)
+            mChannel = 0
+        endmethod
+
+        protected override method Abort, void
+        proc
+            mFileChannelManager.ReturnChannel(mChannel)
+            mChannel = 0
+        endmethod
+
+    endclass
+
+endnamespace
