@@ -347,17 +347,17 @@ namespace SampleServices.Controllers
             if (!ModelState.IsValid)
                 mreturn BadRequest(ModelState)
 
+            ;;Get the next available primary key value
             KeyFactory.AssignPrimaryKey(aCustomer)
+
+            ;;Add the new customer
             DBContext.Customers.Add(aCustomer)
-
-            ;TODO: Need to add a Location header
-
-            ;;Commit the change
             DBContext.SaveChanges()
 
-            mreturn Ok()
+            mreturn Created(aCustomer)
 
         endmethod
+
         {ODataRoute("Customers(CustomerNumber={aCustomerNumber})")}
         ;;; <summary>
         ;;; Create (with a client-supplied primary key) or replace a customer.

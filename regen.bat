@@ -16,6 +16,7 @@ set ENABLE_TOP=-define ENABLE_TOP
 set ENABLE_SKIP=-define ENABLE_SKIP
 set ENABLE_RELATIONS=-define ENABLE_RELATIONS
 set ENABLE_PUT=-define ENABLE_PUT
+set ENABLE_POST=-define ENABLE_POST
 set ENABLE_PATCH=-define ENABLE_PATCH
 set ENABLE_DELETE=-define ENABLE_DELETE
 rem set ENABLE_AUTHENTICATION=-define ENABLE_AUTHENTICATION
@@ -47,7 +48,7 @@ set FileStructures=CUSTOMERS ITEMS ORDERS ORDER_ITEMS VENDORS
 rem ================================================================================================================================
 rem Configure standard command line options and the CodeGen environment
 
-set NoReplaceOpts=-e -lf -u %SolutionDir%UserDefinedTokens.tkn %ENABLE_AUTHENTICATION% %ENABLE_PROPERTY_ENDPOINTS% %ENABLE_CASE_SENSITIVE_URL% %ENABLE_CREATE_TEST_FILES% %ENABLE_CORS% %ENABLE_IIS_SUPPORT% %ENABLE_DELETE% %ENABLE_PUT% %ENABLE_PATCH% %ENABLE_ALTERNATE_KEYS% %ENABLE_SWAGGER_DOCS% %ENABLE_RELATIONS% %ENABLE_SELECT% %ENABLE_FILTER% %ENABLE_ORDERBY% %ENABLE_COUNT% %ENABLE_TOP% %ENABLE_SKIP% %PARAM_OPTIONS_PRESENT% -i %SolutionDir%Templates -rps %RPSMFIL% %RPSTFIL%
+set NoReplaceOpts=-e -lf -u %SolutionDir%UserDefinedTokens.tkn %ENABLE_AUTHENTICATION% %ENABLE_PROPERTY_ENDPOINTS% %ENABLE_CASE_SENSITIVE_URL% %ENABLE_CREATE_TEST_FILES% %ENABLE_CORS% %ENABLE_IIS_SUPPORT% %ENABLE_DELETE% %ENABLE_POST% %ENABLE_PUT% %ENABLE_PATCH% %ENABLE_ALTERNATE_KEYS% %ENABLE_SWAGGER_DOCS% %ENABLE_RELATIONS% %ENABLE_SELECT% %ENABLE_FILTER% %ENABLE_ORDERBY% %ENABLE_COUNT% %ENABLE_TOP% %ENABLE_SKIP% %PARAM_OPTIONS_PRESENT% -i %SolutionDir%Templates -rps %RPSMFIL% %RPSTFIL%
 set StdOpts=%NoReplaceOpts% -r
 
 rem ================================================================================================================================
