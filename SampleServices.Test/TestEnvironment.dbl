@@ -42,7 +42,7 @@ namespace SampleServices.Test
             data logical = String.Empty
             data fileSpec = String.Empty
 
-            fileSpec = "ICSTUT:customer.ism"
+            fileSpec = "DAT:customers.ism"
             if (fileSpec.Contains(":"))
             begin
                 logical = fileSpec.Split(":")[0].ToUpper()
@@ -50,7 +50,7 @@ namespace SampleServices.Test
                     logicals.Add(logical)
             end
 
-            fileSpec = "ICSTUT:ITEMS.ism"
+            fileSpec = "DAT:items.ism"
             if (fileSpec.Contains(":"))
             begin
                 logical = fileSpec.Split(":")[0].ToUpper()
@@ -58,7 +58,7 @@ namespace SampleServices.Test
                     logicals.Add(logical)
             end
 
-            fileSpec = "ICSTUT:orders.ism"
+            fileSpec = "DAT:orders.ism"
             if (fileSpec.Contains(":"))
             begin
                 logical = fileSpec.Split(":")[0].ToUpper()
@@ -66,7 +66,15 @@ namespace SampleServices.Test
                     logicals.Add(logical)
             end
 
-            fileSpec = "ICSTUT:order_items.ism"
+            fileSpec = "DAT:order_items.ism"
+            if (fileSpec.Contains(":"))
+            begin
+                logical = fileSpec.Split(":")[0].ToUpper()
+                if (!logicals.Contains(logical))
+                    logicals.Add(logical)
+            end
+
+            fileSpec = "DAT:vendors.ism"
             if (fileSpec.Contains(":"))
             begin
                 logical = fileSpec.Split(":")[0].ToUpper()
@@ -92,10 +100,11 @@ namespace SampleServices.Test
             data items = ItemLoader.LoadFromFile()
             data orders = OrderLoader.LoadFromFile()
             data orderItems = OrderItemLoader.LoadFromFile()
+            data vendors = VendorLoader.LoadFromFile()
 
             ;;Create and load the customers file
 
-            dataFile = "ICSTUT:customer.ism"
+            dataFile = "DAT:customers.ism"
             xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
 
             data customer, @Customer
@@ -106,7 +115,7 @@ namespace SampleServices.Test
 
             ;;Create and load the items file
 
-            dataFile = "ICSTUT:ITEMS.ism"
+            dataFile = "DAT:items.ism"
             xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
 
             data item, @Item
@@ -117,7 +126,7 @@ namespace SampleServices.Test
 
             ;;Create and load the orders file
 
-            dataFile = "ICSTUT:orders.ism"
+            dataFile = "DAT:orders.ism"
             xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
 
             data order, @Order
@@ -128,13 +137,24 @@ namespace SampleServices.Test
 
             ;;Create and load the orderItems file
 
-            dataFile = "ICSTUT:order_items.ism"
+            dataFile = "DAT:order_items.ism"
             xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
 
             data orderItem, @OrderItem
             open(chout=0,o:i,dataFile,FDL:xdlFile)
             foreach orderItem in orderItems
                 store(chout,orderItem.SynergyRecord)
+            close chout
+
+            ;;Create and load the vendors file
+
+            dataFile = "DAT:vendors.ism"
+            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+
+            data vendor, @Vendor
+            open(chout=0,o:i,dataFile,FDL:xdlFile)
+            foreach vendor in vendors
+                store(chout,vendor.SynergyRecord)
             close chout
 
         endmethod
@@ -144,7 +164,7 @@ namespace SampleServices.Test
             ;;Delete the customers file
             try
             begin
-                xcall delet("ICSTUT:customer.ism")
+                xcall delet("DAT:customers.ism")
             end
             catch (e, @NoFileFoundException)
             begin
@@ -155,7 +175,7 @@ namespace SampleServices.Test
             ;;Delete the items file
             try
             begin
-                xcall delet("ICSTUT:ITEMS.ism")
+                xcall delet("DAT:items.ism")
             end
             catch (e, @NoFileFoundException)
             begin
@@ -166,7 +186,7 @@ namespace SampleServices.Test
             ;;Delete the orders file
             try
             begin
-                xcall delet("ICSTUT:orders.ism")
+                xcall delet("DAT:orders.ism")
             end
             catch (e, @NoFileFoundException)
             begin
@@ -177,7 +197,18 @@ namespace SampleServices.Test
             ;;Delete the orderItems file
             try
             begin
-                xcall delet("ICSTUT:order_items.ism")
+                xcall delet("DAT:order_items.ism")
+            end
+            catch (e, @NoFileFoundException)
+            begin
+                nop
+            end
+            endtry
+
+            ;;Delete the vendors file
+            try
+            begin
+                xcall delet("DAT:vendors.ism")
             end
             catch (e, @NoFileFoundException)
             begin

@@ -83,58 +83,6 @@ namespace SampleServices
 
             ;;This will currently only work for single field==value tags.
 
-            data customerParam = Expression.Parameter(^typeof(customer))
-
-            parm.Entity(^typeof(customer))
-            &    .HasQueryFilter
-            &    (
-            &        Expression.Lambda
-            &        (
-            &            Expression.Block
-            &            (
-            &                Expression.Equal
-            &                (
-            &                    Expression.Call
-            &                    (
-            &                        ^typeof(EF),
-            &                        "Property",
-            &                        new Type[#] { ^typeof(int) },
-            &                        customerParam,
-            &                        Expression.Constant("RecordType")
-            &                    ),
-            &                    Expression.Constant(0)
-            &                )
-            &            ),
-            &            new ParameterExpression[#] { customerParam }
-            &        )
-            &    )
-
-            data vendorParam = Expression.Parameter(^typeof(vendor))
-
-            parm.Entity(^typeof(vendor))
-            &    .HasQueryFilter
-            &    (
-            &        Expression.Lambda
-            &        (
-            &            Expression.Block
-            &            (
-            &                Expression.Equal
-            &                (
-            &                    Expression.Call
-            &                    (
-            &                        ^typeof(EF),
-            &                        "Property",
-            &                        new Type[#] { ^typeof(int) },
-            &                        vendorParam,
-            &                        Expression.Constant("RecordType")
-            &                    ),
-            &                    Expression.Constant(1)
-            &                )
-            &            ),
-            &            new ParameterExpression[#] { vendorParam }
-            &        )
-            &    )
-
 .endregion
 
 .region "Entity Relationships"

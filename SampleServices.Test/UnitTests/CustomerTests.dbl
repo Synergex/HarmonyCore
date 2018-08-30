@@ -140,18 +140,48 @@ namespace SampleServices.Test.UnitTests
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get a single Customer by alternate key 1 (TagCustomer)
+        ;;Get a single Customer by alternate key 1 (State)
 
         {TestMethod}
         {TestCategory("Customer Tests - Read by Alternate Key")}
-        public method GetCustomer_ByAltKey_TagCustomer, void
+        public method GetCustomer_ByAltKey_State, void
         proc
             data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/Customers(RecordType={1},CustomerNumber={2})", "", TestConstants.GetCustomer_ByAltKey_TagCustomer_RecordType,TestConstants.GetCustomer_ByAltKey_TagCustomer_CustomerNumber)
+            data request = String.Format("/odata/Customers(State='{1}')", "", TestConstants.GetCustomer_ByAltKey_State_State)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customer, @ODataCustomer,JsonConvert.DeserializeObject<ODataCustomer>(result)
+            data customers, @ODataCustomers,JsonConvert.DeserializeObject<ODataCustomers>(result)
+        endmethod
+
+        ;;------------------------------------------------------------
+        ;;Get a single Customer by alternate key 2 (Zip)
+
+        {TestMethod}
+        {TestCategory("Customer Tests - Read by Alternate Key")}
+        public method GetCustomer_ByAltKey_Zip, void
+        proc
+            data client = UnitTestEnvironment.Server.CreateClient()
+            data request = String.Format("/odata/Customers(ZipCode={1})", "", TestConstants.GetCustomer_ByAltKey_Zip_ZipCode)
+            data response = client.GetAsync(request).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customers, @ODataCustomers,JsonConvert.DeserializeObject<ODataCustomers>(result)
+        endmethod
+
+        ;;------------------------------------------------------------
+        ;;Get a single Customer by alternate key 3 (PaymentTerms)
+
+        {TestMethod}
+        {TestCategory("Customer Tests - Read by Alternate Key")}
+        public method GetCustomer_ByAltKey_PaymentTerms, void
+        proc
+            data client = UnitTestEnvironment.Server.CreateClient()
+            data request = String.Format("/odata/Customers(PaymentTermsCode='{1}')", "", TestConstants.GetCustomer_ByAltKey_PaymentTerms_PaymentTermsCode)
+            data response = client.GetAsync(request).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customers, @ODataCustomers,JsonConvert.DeserializeObject<ODataCustomers>(result)
         endmethod
 
         ;;------------------------------------------------------------

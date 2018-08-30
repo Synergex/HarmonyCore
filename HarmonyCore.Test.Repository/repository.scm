@@ -1,11 +1,11 @@
  
 ;  SYNERGY DATA LANGUAGE OUTPUT
 ;
-;  REPOSITORY     : D:\HarmonyCore\HarmonyCore.Test.Repository\bin\Debug\rpsmain
-;                 : D:\HarmonyCore\HarmonyCore.Test.Repository\bin\Debug\rpstext
-;                 : Version 11.0.1
+;  REPOSITORY     : D:\SYNERGEX\HarmonyCore\HarmonyCore.Test.Repository\bin\Debu
+;                 : D:\SYNERGEX\HarmonyCore\HarmonyCore.Test.Repository\bin\Debu
+;                 : Version 10.3.3e
 ;
-;  GENERATED      : 17-AUG-2018, 22:19:15
+;  GENERATED      : 30-AUG-2018, 13:50:21
 ;                 : Version 10.3.3e
 ;  EXPORT OPTIONS : [ALL] 
  
@@ -28,18 +28,11 @@ Template PHONE   Type DECIMAL   Size 10
 Structure CUSTOMERS   DBL ISAM
    Description "Customer record"
  
-Tag FIELD   RECORD_TYPE EQ "0"
- 
 Field CUSTOMER_NUMBER   Type DECIMAL   Size 6
    Description "Customer number"
    Long Description
       "<SAMPLE_DATA>355232</SAMPLE_DATA>"
    Report Just LEFT   Input Just LEFT
- 
-Field RECORD_TYPE   Type DECIMAL   Size 1
-   Description "Record type (0)"
-   Long Description
-      "<SAMPLE_DATA>0</SAMPLE_DATA>"
  
 Field NAME   Type ALPHA   Size 30
    Description "Customer name"
@@ -92,6 +85,7 @@ Field PAYMENT_TERMS_CODE   Type ALPHA   Size 2
    Description "Payment terms code"
    Long Description
       "<SAMPLE_DATA>30</SAMPLE_DATA>"
+   Selection List 0 0 0  Entries "CA", "30", "60", "90"
  
 Field TAX_ID   Type DECIMAL   Size 9
    Description "Customers tax ID number"
@@ -106,10 +100,20 @@ Field CREDIT_LIMIT   Type DECIMAL   Size 7   Precision 2
 Key CUSTOMER_NUMBER   ACCESS   Order ASCENDING   Dups NO
    Segment FIELD   CUSTOMER_NUMBER  SegType DECIMAL
  
-Key TAG_CUSTOMER   ACCESS   Order ASCENDING   Dups NO
-   Description "Record type (0) and customer number"
-   Segment FIELD   RECORD_TYPE  SegType DECIMAL
-   Segment FIELD   CUSTOMER_NUMBER  SegType DECIMAL
+Key STATE   ACCESS   Order ASCENDING   Dups YES   Insert END   Modifiable YES
+   Krf 001
+   Description "State"
+   Segment FIELD   STATE  SegType ALPHA  SegOrder ASCENDING
+ 
+Key ZIP   ACCESS   Order ASCENDING   Dups YES   Insert END   Modifiable YES
+   Krf 002
+   Description "Zip code"
+   Segment FIELD   ZIP_CODE  SegType ALPHA  SegOrder ASCENDING
+ 
+Key PAYMENT_TERMS   ACCESS   Order ASCENDING   Dups YES   Insert END
+   Modifiable YES   Krf 003
+   Description "Payment terms code"
+   Segment FIELD   PAYMENT_TERMS_CODE  SegType ALPHA  SegOrder ASCENDING
  
 Key FAVORITE_ITEM   FOREIGN
    Segment FIELD   FAVORITE_ITEM
@@ -117,146 +121,6 @@ Key FAVORITE_ITEM   FOREIGN
 Relation  2   CUSTOMERS CUSTOMER_NUMBER   ORDERS CUSTOMER_NUMBER
  
 Relation  3   CUSTOMERS FAVORITE_ITEM   ITEMS ITEM_NUMBER
- 
-Structure ORDERS   DBL ISAM
-   Description "Orders"
- 
-Field ORDER_NUMBER   Type DECIMAL   Size 6
-   Description "Order number"
-   Long Description
-      "<SAMPLE_DATA>162512</SAMPLE_DATA>"
-   Required
- 
-Field CUSTOMER_NUMBER   Type DECIMAL   Size 6
-   Description "Customer number"
-   Long Description
-      "<SAMPLE_DATA>622822</SAMPLE_DATA>"
-   Required
- 
-Field PLACED_BY   Type ALPHA   Size 25
-   Description "Order placed by"
-   Long Description
-      "<SAMPLE_DATA>John Doe</SAMPLE_DATA>"
-   Required
- 
-Field CUSTOMER_REFERENCE   Type ALPHA   Size 25
-   Description "Customer order reference"
-   Long Description
-      "<SAMPLE_DATA>PO12345</SAMPLE_DATA>"
- 
-Field PAYMENT_TERMS_CODE   Type ALPHA   Size 2
-   Description "Payment terms code"
-   Long Description
-      "<SAMPLE_DATA>30</SAMPLE_DATA>"
- 
-Field DATE_ORDERED   Type DATE   Size 8   Stored YYYYMMDD
-   Description "Date ordered"
-   Long Description
-      "<SAMPLE_DATA>2018-03-01T00:00:00-08:00</SAMPLE_DATA>"
-   Required
- 
-Field DATE_COMPLETED   Type DATE   Size 8   Stored YYYYMMDD
-   Description "Date order completed"
-   Long Description
-      "<SAMPLE_DATA>2018-03-12T00:00:00-08:00</SAMPLE_DATA>"
- 
-Field NONAME_001   Type ALPHA   Size 20
-   Report Noview   Nonamelink
-   Description "Spare space"
- 
-Key ORDER_NUMBER   ACCESS   Order ASCENDING   Dups NO
-   Description "Order number"
-   Segment FIELD   ORDER_NUMBER  SegType DECIMAL  SegOrder ASCENDING
- 
-Key CUSTOMER_NUMBER   ACCESS   Order ASCENDING   Dups YES   Insert END
-   Modifiable YES   Krf 001
-   Description "Customer number"
-   Segment FIELD   CUSTOMER_NUMBER  SegType DECIMAL  SegOrder ASCENDING
- 
-Key DATE_ORDERED   ACCESS   Order ASCENDING   Dups YES   Insert END
-   Modifiable YES   Krf 002
-   Description "Date ordered"
-   Segment FIELD   DATE_ORDERED  SegType DECIMAL  SegOrder ASCENDING
- 
-Key DATE_COMPLETED   ACCESS   Order ASCENDING   Dups YES   Insert END
-   Modifiable YES   Krf 003
-   Description "Date order completed"
-   Segment FIELD   DATE_COMPLETED  SegType DECIMAL  SegOrder ASCENDING
- 
-Relation  1   ORDERS ORDER_NUMBER   ORDER_ITEMS ORDER_NUMBER_AND_LINE_ITEM
- 
-Relation  2   ORDERS CUSTOMER_NUMBER   CUSTOMERS CUSTOMER_NUMBER
- 
-Structure ORDER_ITEMS   DBL ISAM
-   Description "Order items"
- 
-Field ORDER_NUMBER   Type DECIMAL   Size 6
-   Description "Order number"
-   Long Description
-      "<SAMPLE_DATA>5238</SAMPLE_DATA>"
-   Required
- 
-Field ITEM_NUMBER   Type DECIMAL   Size 2
-   Description "Line item number"
-   Long Description
-      "<SAMPLE_DATA>1</SAMPLE_DATA>"
-   Required
- 
-Field ITEM_ORDERED   Type DECIMAL   Size 6
-   Description "Item ordered"
-   Long Description
-      "<SAMPLE_DATA>21</SAMPLE_DATA>"
-   Required
- 
-Field QUANTITY_ORDERED   Type DECIMAL   Size 6
-   Description "Quantity ordered"
-   Long Description
-      "<SAMPLE_DATA>3</SAMPLE_DATA>"
-   Required
- 
-Field UNIT_PRICE   Type DECIMAL   Size 7   Precision 2
-   Description "Unit price"
-   Long Description
-      "<SAMPLE_DATA>15.99</SAMPLE_DATA>"
-   Required
- 
-Field DATE_SHIPPED   Type DATE   Size 8   Stored YYYYMMDD
-   Description "Date shipped"
-   Long Description
-      "<SAMPLE_DATA>2018-03-17T00:00:00-08:00</SAMPLE_DATA>"
- 
-Field INVOICE_NUMBER   Type DECIMAL   Size 7
-   Description "Invoice number"
-   Long Description
-      "<SAMPLE_DATA>166825</SAMPLE_DATA>"
- 
-Field NONAME_001   Type ALPHA   Size 58   Language Noview   Script Noview
-   Report Noview   Nonamelink
-   Description "Spare space"
- 
-Key ORDER_NUMBER_AND_LINE_ITEM   ACCESS   Order ASCENDING   Dups NO
-   Description "Order number and line number"
-   Segment FIELD   ORDER_NUMBER  SegType DECIMAL  SegOrder ASCENDING
-   Segment FIELD   ITEM_NUMBER  SegType DECIMAL  SegOrder ASCENDING
- 
-Key ITEM_ORDERED   ACCESS   Order ASCENDING   Dups YES   Insert END
-   Modifiable YES   Krf 001
-   Description "Item ordered"
-   Segment FIELD   ITEM_ORDERED  SegType DECIMAL  SegOrder ASCENDING
- 
-Key DATE_SHIPPED   ACCESS   Order ASCENDING   Dups YES   Insert END
-   Modifiable YES   Krf 002
-   Description "Date item shipped"
-   Segment FIELD   DATE_SHIPPED  SegType DECIMAL  SegOrder DESCENDING
- 
-Key INVOICE_NUMBER   ACCESS   Order ASCENDING   Dups YES   Insert END
-   Modifiable YES   Krf 003
-   Description "Invoice number billed on"
-   Segment FIELD   INVOICE_NUMBER  SegType DECIMAL  SegOrder ASCENDING
- 
-Relation  1   ORDER_ITEMS ORDER_NUMBER_AND_LINE_ITEM   ORDERS ORDER_NUMBER
- 
-Relation  2   ORDER_ITEMS ITEM_ORDERED   ITEMS ITEM_NUMBER
  
 Structure ITEMS   DBL ISAM
    Description "Item master record"
@@ -382,7 +246,8 @@ Field COST_PRICE   Type DECIMAL   Size 7   Precision 2
 Key ITEM_NUMBER   ACCESS   Order ASCENDING   Dups NO
    Segment FIELD   ITEM_NUMBER  SegType DECIMAL
  
-Key VENDOR_NUMBER   ACCESS   Order ASCENDING   Dups YES   Insert END   Modifiable YES
+Key VENDOR_NUMBER   ACCESS   Order ASCENDING   Dups YES   Insert END
+   Modifiable YES
    Segment FIELD   VENDOR_NUMBER  SegType DECIMAL
  
 Key COLOR   ACCESS   Order DESCENDING   Dups YES   Insert END   Modifiable YES
@@ -401,21 +266,152 @@ Relation  1   ITEMS VENDOR_NUMBER   VENDORS VENDOR_NUMBER
  
 Relation  2   ITEMS ITEM_NUMBER   ORDER_ITEMS ITEM_ORDERED
  
+Structure ORDERS   DBL ISAM
+   Description "Orders"
+ 
+Field ORDER_NUMBER   Type DECIMAL   Size 6
+   Description "Order number"
+   Long Description
+      "<SAMPLE_DATA>162512</SAMPLE_DATA>"
+   Required
+ 
+Field CUSTOMER_NUMBER   Type DECIMAL   Size 6
+   Description "Customer number"
+   Long Description
+      "<SAMPLE_DATA>622822</SAMPLE_DATA>"
+   Required
+ 
+Field PLACED_BY   Type ALPHA   Size 25
+   Description "Order placed by"
+   Long Description
+      "<SAMPLE_DATA>John Doe</SAMPLE_DATA>"
+   Required
+ 
+Field CUSTOMER_REFERENCE   Type ALPHA   Size 25
+   Description "Customer order reference"
+   Long Description
+      "<SAMPLE_DATA>PO12345</SAMPLE_DATA>"
+ 
+Field PAYMENT_TERMS_CODE   Type ALPHA   Size 2
+   Description "Payment terms code"
+   Long Description
+      "<SAMPLE_DATA>30</SAMPLE_DATA>"
+ 
+Field DATE_ORDERED   Type DATE   Size 8   Stored YYYYMMDD
+   Description "Date ordered"
+   Long Description
+      "<SAMPLE_DATA>2018-03-01T00:00:00-08:00</SAMPLE_DATA>"
+   Required
+ 
+Field DATE_COMPLETED   Type DATE   Size 8   Stored YYYYMMDD
+   Description "Date order completed"
+   Long Description
+      "<SAMPLE_DATA>2018-03-12T00:00:00-08:00</SAMPLE_DATA>"
+ 
+Field NONAME_001   Type ALPHA   Size 20   Report Noview   Nonamelink
+   Description "Spare space"
+ 
+Key ORDER_NUMBER   ACCESS   Order ASCENDING   Dups NO
+   Description "Order number"
+   Segment FIELD   ORDER_NUMBER  SegType DECIMAL  SegOrder ASCENDING
+ 
+Key CUSTOMER_NUMBER   ACCESS   Order ASCENDING   Dups YES   Insert END
+   Modifiable YES   Krf 001
+   Description "Customer number"
+   Segment FIELD   CUSTOMER_NUMBER  SegType DECIMAL  SegOrder ASCENDING
+ 
+Key DATE_ORDERED   ACCESS   Order ASCENDING   Dups YES   Insert END
+   Modifiable YES   Krf 002
+   Description "Date ordered"
+   Segment FIELD   DATE_ORDERED  SegType DECIMAL  SegOrder ASCENDING
+ 
+Key DATE_COMPLETED   ACCESS   Order ASCENDING   Dups YES   Insert END
+   Modifiable YES   Krf 003
+   Description "Date order completed"
+   Segment FIELD   DATE_COMPLETED  SegType DECIMAL  SegOrder ASCENDING
+ 
+Relation  1   ORDERS ORDER_NUMBER   ORDER_ITEMS ORDER_NUMBER_AND_LINE_ITEM
+ 
+Relation  2   ORDERS CUSTOMER_NUMBER   CUSTOMERS CUSTOMER_NUMBER
+ 
+Structure ORDER_ITEMS   DBL ISAM
+   Description "Order items"
+ 
+Field ORDER_NUMBER   Type DECIMAL   Size 6
+   Description "Order number"
+   Long Description
+      "<SAMPLE_DATA>5238</SAMPLE_DATA>"
+   Required
+ 
+Field ITEM_NUMBER   Type DECIMAL   Size 2
+   Description "Line item number"
+   Long Description
+      "<SAMPLE_DATA>1</SAMPLE_DATA>"
+   Required
+ 
+Field ITEM_ORDERED   Type DECIMAL   Size 6
+   Description "Item ordered"
+   Long Description
+      "<SAMPLE_DATA>21</SAMPLE_DATA>"
+   Required
+ 
+Field QUANTITY_ORDERED   Type DECIMAL   Size 6
+   Description "Quantity ordered"
+   Long Description
+      "<SAMPLE_DATA>3</SAMPLE_DATA>"
+   Required
+ 
+Field UNIT_PRICE   Type DECIMAL   Size 7   Precision 2
+   Description "Unit price"
+   Long Description
+      "<SAMPLE_DATA>15.99</SAMPLE_DATA>"
+   Required
+ 
+Field DATE_SHIPPED   Type DATE   Size 8   Stored YYYYMMDD
+   Description "Date shipped"
+   Long Description
+      "<SAMPLE_DATA>2018-03-17T00:00:00-08:00</SAMPLE_DATA>"
+ 
+Field INVOICE_NUMBER   Type DECIMAL   Size 7
+   Description "Invoice number"
+   Long Description
+      "<SAMPLE_DATA>166825</SAMPLE_DATA>"
+ 
+Field NONAME_001   Type ALPHA   Size 58   Language Noview   Script Noview
+   Report Noview   Nonamelink
+   Description "Spare space"
+ 
+Key ORDER_NUMBER_AND_LINE_ITEM   ACCESS   Order ASCENDING   Dups NO
+   Description "Order number and line number"
+   Segment FIELD   ORDER_NUMBER  SegType DECIMAL  SegOrder ASCENDING
+   Segment FIELD   ITEM_NUMBER  SegType DECIMAL  SegOrder ASCENDING
+ 
+Key ITEM_ORDERED   ACCESS   Order ASCENDING   Dups YES   Insert END
+   Modifiable YES   Krf 001
+   Description "Item ordered"
+   Segment FIELD   ITEM_ORDERED  SegType DECIMAL  SegOrder ASCENDING
+ 
+Key DATE_SHIPPED   ACCESS   Order ASCENDING   Dups YES   Insert END
+   Modifiable YES   Krf 002
+   Description "Date item shipped"
+   Segment FIELD   DATE_SHIPPED  SegType DECIMAL  SegOrder DESCENDING
+ 
+Key INVOICE_NUMBER   ACCESS   Order ASCENDING   Dups YES   Insert END
+   Modifiable YES   Krf 003
+   Description "Invoice number billed on"
+   Segment FIELD   INVOICE_NUMBER  SegType DECIMAL  SegOrder ASCENDING
+ 
+Relation  1   ORDER_ITEMS ORDER_NUMBER_AND_LINE_ITEM   ORDERS ORDER_NUMBER
+ 
+Relation  2   ORDER_ITEMS ITEM_ORDERED   ITEMS ITEM_NUMBER
+ 
 Structure VENDORS   DBL ISAM
    Description "Vendor record"
- 
-Tag FIELD   RECORD_TYPE EQ "1"
  
 Field VENDOR_NUMBER   Type DECIMAL   Size 6
    Description "Vendor number"
    Long Description
       "<SAMPLE_DATA>39</SAMPLE_DATA>"
-   Report Just LEFT   Input Just LEFT
- 
-Field RECORD_TYPE   Type DECIMAL   Size 1
-   Description "Record type (1)"
-   Long Description
-      "<SAMPLE_DATA>1</SAMPLE_DATA>"
    Report Just LEFT   Input Just LEFT
  
 Field NAME   Type ALPHA   Size 30
@@ -438,7 +434,7 @@ Field STATE   Type ALPHA   Size 2
    Long Description
       "<SAMPLE_DATA>NH</SAMPLE_DATA>"
  
-Field ZIP_CODE   Type DECIMAL   Size 9
+Field ZIP_CODE   Type DECIMAL   Size 5
    Description "Zip Code"
    Long Description
       "<SAMPLE_DATA>03214</SAMPLE_DATA>"
@@ -459,34 +455,49 @@ Field FAX   Template PHONE
    Long Description
       "<SAMPLE_DATA>(555) 627-6382</SAMPLE_DATA>"
  
-Field PAYMENT_TERMS_CODE   Type ALPHA   Size 24
+Field PAYMENT_TERMS_CODE   Type ALPHA   Size 2
    Description "Payment terms code"
    Long Description
       "<SAMPLE_DATA>60</SAMPLE_DATA>"
+   Selection List 0 0 0  Entries "CA", "30", "60", "90"
  
 Key VENDOR_NUMBER   ACCESS   Order ASCENDING   Dups NO
    Segment FIELD   VENDOR_NUMBER  SegType DECIMAL
  
-Key TAG_VENDOR   ACCESS   Order ASCENDING   Dups NO   Modifiable YES
-   Description "Record type (1) and vendor number"
-   Segment FIELD   RECORD_TYPE  SegType DECIMAL
-   Segment FIELD   VENDOR_NUMBER  SegType DECIMAL
+Key CITY   ACCESS   Order ASCENDING   Dups YES   Insert END   Modifiable YES
+   Krf 001
+   Description "City"
+   Segment FIELD   CITY  SegType ALPHA  SegOrder ASCENDING
+ 
+Key STATE   ACCESS   Order ASCENDING   Dups YES   Insert END   Modifiable YES
+   Krf 002
+   Description "State"
+   Segment FIELD   STATE  SegType ALPHA  SegOrder ASCENDING
+ 
+Key PAYMENT_TERMS   ACCESS   Order ASCENDING   Dups YES   Insert END
+   Modifiable YES
+   Description "Payment terms code"
+   Segment FIELD   PAYMENT_TERMS_CODE  SegType ALPHA  SegOrder ASCENDING
  
 Relation  1   VENDORS VENDOR_NUMBER   ITEMS VENDOR_NUMBER
  
-File CUSTOMER   DBL ISAM   "ICSTUT:customer.ism"
-   Description "Customers and vendors file"
-   Assign CUSTOMERS, VENDORS
+File CUSTOMERS   DBL ISAM   "DAT:customers.ism"
+   Description "Customer master file"
+   Assign CUSTOMERS
  
-File ORDERS   DBL ISAM   "ICSTUT:orders.ism"
-   Description "Order file"
+File ITEMS   DBL ISAM   "DAT:items.ism"
+   Description "Inventory master file"
+   Assign ITEMS
+ 
+File ORDERS   DBL ISAM   "DAT:orders.ism"
+   Description "Order header file"
    Assign ORDERS
  
-File ORDER_ITEMS   DBL ISAM   "ICSTUT:order_items.ism"
+File ORDER_ITEMS   DBL ISAM   "DAT:order_items.ism"
    Description "Order items file"
    Assign ORDER_ITEMS
  
-File ITEMS   DBL ISAM   "ICSTUT:ITEMS.ism"
-   Description "Inventory File"
-   Assign ITEMS
+File VENDORS   DBL ISAM   "DAT:vendors.ism"
+   Description "Vendors file"
+   Assign VENDORS
  

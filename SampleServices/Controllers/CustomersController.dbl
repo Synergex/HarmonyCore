@@ -59,43 +59,59 @@ namespace SampleServices.Controllers
         public method Get, @SingleResult<Customer>
             {FromODataUri}
             required in aCustomerNumber, int
-		proc
+        proc
             mreturn new SingleResult<Customer>(DBContext.Customers.FindQuery<Customer>(aCustomerNumber))
         endmethod
 
-        {ODataRoute("Customers(RecordType={aRecordType},CustomerNumber={aCustomerNumber})")}
+        {ODataRoute("Customers(State={aState})")}
         {EnableQuery(MaxExpansionDepth=3)}
         ;;; <summary>
-        ;;; Get customer by alternate key TagCustomer.
+        ;;; Get customers by alternate key key State.
         ;;; </summary>
-        ;;; <param name="aRecordType">Record type (0)</param>
-        ;;; <param name="aCustomerNumber">Customer number</param>
-        ;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetByKeyTagCustomer, @SingleResult<Customer>
+        ;;; <param name="aState">State</param>
+        ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        public method GetByKeyState, @IActionResult
             {FromODataUri}
-            required in aRecordType, int
-            {FromODataUri}
-            required in aCustomerNumber, int
+            required in aState, String
         proc
-            mreturn new SingleResult<Customer>(DBContext.Customers.FindAlternate("RecordType",aRecordType,"CustomerNumber",aCustomerNumber))
+            data result = DBContext.Customers.FindAlternate("State",aState)
+            if (result == ^null)
+                mreturn NotFound()
+            mreturn Ok(result)
         endmethod
 
-        {ODataRoute("Customers({key})/RecordType")}
+        {ODataRoute("Customers(ZipCode={aZipCode})")}
+        {EnableQuery(MaxExpansionDepth=3)}
         ;;; <summary>
-        ;;; Get the RecordType property of a single Customer, by primary key.
+        ;;; Get customers by alternate key key Zip.
         ;;; </summary>
-        ;;; <param name="key">Record type (0)</param>
-        ;;; <returns>
-        ;;; Returns an int containing the value of the requested property.
-        ;;;</returns>
-        public method GetRecordType, @IActionResult
+        ;;; <param name="aZipCode">Zip code</param>
+        ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        public method GetByKeyZip, @IActionResult
             {FromODataUri}
-            required in key, int
+            required in aZipCode, int
         proc
-            data result = DBContext.Customers.Find(key)
-            if (result==^null)
+            data result = DBContext.Customers.FindAlternate("ZipCode",aZipCode)
+            if (result == ^null)
                 mreturn NotFound()
-            mreturn OK(result.RecordType)
+            mreturn Ok(result)
+        endmethod
+
+        {ODataRoute("Customers(PaymentTermsCode={aPaymentTermsCode})")}
+        {EnableQuery(MaxExpansionDepth=3)}
+        ;;; <summary>
+        ;;; Get customers by alternate key key PaymentTerms.
+        ;;; </summary>
+        ;;; <param name="aPaymentTermsCode">Payment terms code</param>
+        ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        public method GetByKeyPaymentTerms, @IActionResult
+            {FromODataUri}
+            required in aPaymentTermsCode, String
+        proc
+            data result = DBContext.Customers.FindAlternate("PaymentTermsCode",aPaymentTermsCode)
+            if (result == ^null)
+                mreturn NotFound()
+            mreturn Ok(result)
         endmethod
 
         {ODataRoute("Customers({key})/Name")}

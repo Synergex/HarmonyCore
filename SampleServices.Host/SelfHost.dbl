@@ -23,7 +23,18 @@ main SelfHost
 
 proc
     ;;Configure the environment
-    SelfHostEnvironment.Initialize()
+    try
+    begin
+        SelfHostEnvironment.Initialize()
+    end
+    catch (ex, @Exception)
+    begin
+        Console.WriteLine(ex.Message)
+        Console.Write("Press a key to terminate: ")
+        Console.ReadKey()
+        stop
+    end
+    endtry
 
     Console.WriteLine("API documentation is available at https://localhost:8086/api-docs")
 
@@ -53,7 +64,6 @@ namespace SampleServices.Host
 
     public static class SelfHostEnvironment
 
-        public static Server, @TestServer
 
         public static method Initialize, void
 
@@ -68,27 +78,11 @@ namespace SampleServices.Host
             deleteFiles()
             createFiles()
 
-            ;;Define the content root and web root folders (so we can pick up the Swagger file for API documentation)
-            data wwwroot = Path.Combine(AppContext.BaseDirectory, "wwwroot")
-
-            ;;Create a TestServer to host the Web API services
-            if (!String.IsNullOrEmpty(wwwroot) && Directory.Exists(wwwroot)) then
-                Server = new TestServer(new WebHostBuilder().UseContentRoot(wwwroot).UseWebRoot(wwwroot).UseStartup<Startup>())
-            else
-                Server = new TestServer(new WebHostBuilder().UseStartup<Startup>())
-
-            ;;Fake out HTTPS
-            Server.BaseAddress = new Uri("https://localhost")
-
         endmethod
 
         public static method Cleanup, void
 
         proc
-            ;;Clean up the test host
-            Server.Dispose()
-            Server = ^null
-
             ;;Delete the data files
             deleteFiles()
 
@@ -101,7 +95,7 @@ namespace SampleServices.Host
             data logical = String.Empty
             data fileSpec = String.Empty
 
-            fileSpec = "ICSTUT:customer.ism"
+            fileSpec = "DAT:customers.ism"
             if (fileSpec.Contains(":"))
             begin
                 logical = fileSpec.Split(":")[0].ToUpper()
@@ -109,7 +103,7 @@ namespace SampleServices.Host
                     logicals.Add(logical)
             end
 
-            fileSpec = "ICSTUT:ITEMS.ism"
+            fileSpec = "DAT:items.ism"
             if (fileSpec.Contains(":"))
             begin
                 logical = fileSpec.Split(":")[0].ToUpper()
@@ -117,7 +111,7 @@ namespace SampleServices.Host
                     logicals.Add(logical)
             end
 
-            fileSpec = "ICSTUT:orders.ism"
+            fileSpec = "DAT:orders.ism"
             if (fileSpec.Contains(":"))
             begin
                 logical = fileSpec.Split(":")[0].ToUpper()
@@ -125,7 +119,15 @@ namespace SampleServices.Host
                     logicals.Add(logical)
             end
 
-            fileSpec = "ICSTUT:order_items.ism"
+            fileSpec = "DAT:order_items.ism"
+            if (fileSpec.Contains(":"))
+            begin
+                logical = fileSpec.Split(":")[0].ToUpper()
+                if (!logicals.Contains(logical))
+                    logicals.Add(logical)
+            end
+
+            fileSpec = "DAT:vendors.ism"
             if (fileSpec.Contains(":"))
             begin
                 logical = fileSpec.Split(":")[0].ToUpper()
@@ -151,10 +153,11 @@ namespace SampleServices.Host
             data items = loadItems()
             data orders = loadOrders()
             data orderItems = loadOrderItems()
+            data vendors = loadVendors()
 
             ;;Create and load the customers file
 
-            dataFile = "ICSTUT:customer.ism"
+            dataFile = "DAT:customers.ism"
             xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
 
             data customer, @Customer
@@ -165,7 +168,7 @@ namespace SampleServices.Host
 
             ;;Create and load the items file
 
-            dataFile = "ICSTUT:ITEMS.ism"
+            dataFile = "DAT:items.ism"
             xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
 
             data item, @Item
@@ -176,7 +179,7 @@ namespace SampleServices.Host
 
             ;;Create and load the orders file
 
-            dataFile = "ICSTUT:orders.ism"
+            dataFile = "DAT:orders.ism"
             xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
 
             data order, @Order
@@ -187,13 +190,24 @@ namespace SampleServices.Host
 
             ;;Create and load the orderItems file
 
-            dataFile = "ICSTUT:order_items.ism"
+            dataFile = "DAT:order_items.ism"
             xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
 
             data orderItem, @OrderItem
             open(chout=0,o:i,dataFile,FDL:xdlFile)
             foreach orderItem in orderItems
                 store(chout,orderItem.SynergyRecord)
+            close chout
+
+            ;;Create and load the vendors file
+
+            dataFile = "DAT:vendors.ism"
+            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+
+            data vendor, @Vendor
+            open(chout=0,o:i,dataFile,FDL:xdlFile)
+            foreach vendor in vendors
+                store(chout,vendor.SynergyRecord)
             close chout
 
         endmethod
@@ -203,7 +217,7 @@ namespace SampleServices.Host
             ;;Delete the customers file
             try
             begin
-                xcall delet("ICSTUT:customer.ism")
+                xcall delet("DAT:customers.ism")
             end
             catch (e, @NoFileFoundException)
             begin
@@ -214,7 +228,7 @@ namespace SampleServices.Host
             ;;Delete the items file
             try
             begin
-                xcall delet("ICSTUT:ITEMS.ism")
+                xcall delet("DAT:items.ism")
             end
             catch (e, @NoFileFoundException)
             begin
@@ -225,7 +239,7 @@ namespace SampleServices.Host
             ;;Delete the orders file
             try
             begin
-                xcall delet("ICSTUT:orders.ism")
+                xcall delet("DAT:orders.ism")
             end
             catch (e, @NoFileFoundException)
             begin
@@ -236,7 +250,18 @@ namespace SampleServices.Host
             ;;Delete the orderItems file
             try
             begin
-                xcall delet("ICSTUT:order_items.ism")
+                xcall delet("DAT:order_items.ism")
+            end
+            catch (e, @NoFileFoundException)
+            begin
+                nop
+            end
+            endtry
+
+            ;;Delete the vendors file
+            try
+            begin
+                xcall delet("DAT:vendors.ism")
             end
             catch (e, @NoFileFoundException)
             begin
@@ -248,7 +273,7 @@ namespace SampleServices.Host
 
         public static method loadCustomers, @List<Customer>
         proc
-            data dataFile = "ICSTUT:customer.ism"
+            data dataFile = "DAT:customers.ism"
             data textFile = dataFile.ToLower().Replace(".ism",".txt")
             data customerCh, int, 0
             data customerRec, strCustomer
@@ -266,7 +291,7 @@ namespace SampleServices.Host
 
         public static method loadItems, @List<Item>
         proc
-            data dataFile = "ICSTUT:ITEMS.ism"
+            data dataFile = "DAT:items.ism"
             data textFile = dataFile.ToLower().Replace(".ism",".txt")
             data itemCh, int, 0
             data itemRec, strItem
@@ -284,7 +309,7 @@ namespace SampleServices.Host
 
         public static method loadOrders, @List<Order>
         proc
-            data dataFile = "ICSTUT:orders.ism"
+            data dataFile = "DAT:orders.ism"
             data textFile = dataFile.ToLower().Replace(".ism",".txt")
             data orderCh, int, 0
             data orderRec, strOrder
@@ -302,7 +327,7 @@ namespace SampleServices.Host
 
         public static method loadOrderItems, @List<OrderItem>
         proc
-            data dataFile = "ICSTUT:order_items.ism"
+            data dataFile = "DAT:order_items.ism"
             data textFile = dataFile.ToLower().Replace(".ism",".txt")
             data orderItemCh, int, 0
             data orderItemRec, strOrderItem
@@ -316,6 +341,24 @@ namespace SampleServices.Host
         eof,
             close orderItemCh
             mreturn orderItems
+        endmethod
+
+        public static method loadVendors, @List<Vendor>
+        proc
+            data dataFile = "DAT:vendors.ism"
+            data textFile = dataFile.ToLower().Replace(".ism",".txt")
+            data vendorCh, int, 0
+            data vendorRec, strVendor
+            data vendors = new List<Vendor>()
+            open(vendorCh,i:s,textFile)
+            repeat
+            begin
+                reads(vendorCh,vendorRec,eof)
+                vendors.Add(new Vendor(vendorRec))
+            end
+        eof,
+            close vendorCh
+            mreturn vendors
         endmethod
 
         private static method findRelativeFolderForAssembly, string

@@ -198,23 +198,86 @@ paths:
           description: Bad request
         '404':
           description: Not found content (the specified customer was not found)
-  '/Customers(RecordType={aRecordType},CustomerNumber={aCustomerNumber})':
+  '/Customers(State=''{aState}'')':
     get:
-      summary: Get customer
-      description: Get a customer via complete alternate key TagCustomer.
-      operationId: CustomerByKeyTagCustomer
+      summary: Get customers
+      description: Get a customers via complete alternate key State.
+      operationId: GetCustomersByKeyState
       deprecated: false
       tags:
         - Customer
       parameters:
-        - name: aRecordType
+        - name: aState
           in: path
-          description: Record type (0)
+          description: State
           required: true
+          type: string
+        - name: $expand
+          in: query
+          description: Expand one or more navigation properties.
+          type: string
+        - name: $select
+          in: query
+          description: List of properties to be returned.
+          type: string
+        - name: $orderby
+          in: query
+          description: Order by some property
+          type: string
+        - name: $filter
+          in: query
+          description: Filter expression to restrict returned rows.
+          type: string
+        - name: $top
+          in: query
+          description: Maximum number of rows to return.
           type: integer
-        - name: aCustomerNumber
+        - name: $skip
+          in: query
+          description: Rows to skip before starting to return data.
+          type: integer
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Customer'
+  '/Customers(State=''{aState}'')/$count':
+    get:
+      summary: Count customers
+      description: Count customers via complete alternate key State.
+      operationId: CountCustomersByKeyState
+      deprecated: false
+      tags:
+        - Customer
+      parameters:
+        - name: aState
           in: path
-          description: Customer number
+          description: State
+          required: true
+          type: string
+        - name: $filter
+          in: query
+          description: Filter expression to restrict returned rows.
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: integer
+  '/Customers(ZipCode={aZipCode})':
+    get:
+      summary: Get customers
+      description: Get a customers via complete alternate key Zip.
+      operationId: GetCustomersByKeyZip
+      deprecated: false
+      tags:
+        - Customer
+      parameters:
+        - name: aZipCode
+          in: path
+          description: Zip code
           required: true
           type: integer
         - name: $expand
@@ -225,53 +288,120 @@ paths:
           in: query
           description: List of properties to be returned.
           type: string
+        - name: $orderby
+          in: query
+          description: Order by some property
+          type: string
+        - name: $filter
+          in: query
+          description: Filter expression to restrict returned rows.
+          type: string
+        - name: $top
+          in: query
+          description: Maximum number of rows to return.
+          type: integer
+        - name: $skip
+          in: query
+          description: Rows to skip before starting to return data.
+          type: integer
       responses:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Customer'
-  '/Customers({key})/RecordType':
+            type: array
+            items:
+              $ref: '#/definitions/Customer'
+  '/Customers(ZipCode={aZipCode})/$count':
     get:
-      summary: Get customer property RecordType
-      description: Get customer property RecordType via complete primary key.
-      operationId: CustomerRecordType
+      summary: Count customers
+      description: Count customers via complete alternate key Zip.
+      operationId: CountCustomersByKeyZip
       deprecated: false
       tags:
         - Customer
       parameters:
-        - name: key
+        - name: aZipCode
           in: path
-          description: Customer number
+          description: Zip code
           required: true
           type: integer
+        - name: $filter
+          in: query
+          description: Filter expression to restrict returned rows.
+          type: string
       responses:
         '200':
-          description: OK (the selected customer was founn and the requested property was returned)
+          description: OK
           schema:
             type: integer
-        '404':
-          description: Not found (the specified customer was not found)
-  '/Customers({key})/RecordType/$value':
+  '/Customers(PaymentTermsCode=''{aPaymentTermsCode}'')':
     get:
-      summary: Get customer property RecordType
-      description: Get customer property RecordType via complete primary key, returning the raw value.
-      operationId: CustomerRecordTypevalue
+      summary: Get customers
+      description: Get a customers via complete alternate key PaymentTerms.
+      operationId: GetCustomersByKeyPaymentTerms
       deprecated: false
       tags:
         - Customer
       parameters:
-        - name: key
+        - name: aPaymentTermsCode
           in: path
-          description: Customer number
+          description: Payment terms code
           required: true
+          type: string
+        - name: $expand
+          in: query
+          description: Expand one or more navigation properties.
+          type: string
+        - name: $select
+          in: query
+          description: List of properties to be returned.
+          type: string
+        - name: $orderby
+          in: query
+          description: Order by some property
+          type: string
+        - name: $filter
+          in: query
+          description: Filter expression to restrict returned rows.
+          type: string
+        - name: $top
+          in: query
+          description: Maximum number of rows to return.
+          type: integer
+        - name: $skip
+          in: query
+          description: Rows to skip before starting to return data.
           type: integer
       responses:
         '200':
-          description: OK (the selected customer was founn and the requested property was returned)
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Customer'
+  '/Customers(PaymentTermsCode=''{aPaymentTermsCode}'')/$count':
+    get:
+      summary: Count customers
+      description: Count customers via complete alternate key PaymentTerms.
+      operationId: CountCustomersByKeyPaymentTerms
+      deprecated: false
+      tags:
+        - Customer
+      parameters:
+        - name: aPaymentTermsCode
+          in: path
+          description: Payment terms code
+          required: true
+          type: string
+        - name: $filter
+          in: query
+          description: Filter expression to restrict returned rows.
+          type: string
+      responses:
+        '200':
+          description: OK
           schema:
             type: integer
-        '404':
-          description: Not found (the specified customer was not found)
   '/Customers({key})/Name':
     get:
       summary: Get customer property Name
@@ -3512,25 +3642,20 @@ paths:
           description: Bad request
         '404':
           description: Not found content (the specified vendor was not found)
-  '/Vendors(RecordType={aRecordType},VendorNumber={aVendorNumber})':
+  '/Vendors(City=''{aCity}'')':
     get:
-      summary: Get vendor
-      description: Get a vendor via complete alternate key TagVendor.
-      operationId: VendorByKeyTagVendor
+      summary: Get vendors
+      description: Get a vendors via complete alternate key City.
+      operationId: GetVendorsByKeyCity
       deprecated: false
       tags:
         - Vendor
       parameters:
-        - name: aRecordType
+        - name: aCity
           in: path
-          description: Record type (1)
+          description: City
           required: true
-          type: integer
-        - name: aVendorNumber
-          in: path
-          description: Vendor number
-          required: true
-          type: integer
+          type: string
         - name: $expand
           in: query
           description: Expand one or more navigation properties.
@@ -3539,53 +3664,188 @@ paths:
           in: query
           description: List of properties to be returned.
           type: string
+        - name: $orderby
+          in: query
+          description: Order by some property
+          type: string
+        - name: $filter
+          in: query
+          description: Filter expression to restrict returned rows.
+          type: string
+        - name: $top
+          in: query
+          description: Maximum number of rows to return.
+          type: integer
+        - name: $skip
+          in: query
+          description: Rows to skip before starting to return data.
+          type: integer
       responses:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Vendor'
-  '/Vendors({key})/RecordType':
+            type: array
+            items:
+              $ref: '#/definitions/Vendor'
+  '/Vendors(City=''{aCity}'')/$count':
     get:
-      summary: Get vendor property RecordType
-      description: Get vendor property RecordType via complete primary key.
-      operationId: VendorRecordType
+      summary: Count vendors
+      description: Count vendors via complete alternate key City.
+      operationId: CountVendorsByKeyCity
       deprecated: false
       tags:
         - Vendor
       parameters:
-        - name: key
+        - name: aCity
           in: path
-          description: Vendor number
+          description: City
           required: true
-          type: integer
+          type: string
+        - name: $filter
+          in: query
+          description: Filter expression to restrict returned rows.
+          type: string
       responses:
         '200':
-          description: OK (the selected vendor was founn and the requested property was returned)
+          description: OK
           schema:
             type: integer
-        '404':
-          description: Not found (the specified vendor was not found)
-  '/Vendors({key})/RecordType/$value':
+  '/Vendors(State=''{aState}'')':
     get:
-      summary: Get vendor property RecordType
-      description: Get vendor property RecordType via complete primary key, returning the raw value.
-      operationId: VendorRecordTypevalue
+      summary: Get vendors
+      description: Get a vendors via complete alternate key State.
+      operationId: GetVendorsByKeyState
       deprecated: false
       tags:
         - Vendor
       parameters:
-        - name: key
+        - name: aState
           in: path
-          description: Vendor number
+          description: State
           required: true
+          type: string
+        - name: $expand
+          in: query
+          description: Expand one or more navigation properties.
+          type: string
+        - name: $select
+          in: query
+          description: List of properties to be returned.
+          type: string
+        - name: $orderby
+          in: query
+          description: Order by some property
+          type: string
+        - name: $filter
+          in: query
+          description: Filter expression to restrict returned rows.
+          type: string
+        - name: $top
+          in: query
+          description: Maximum number of rows to return.
+          type: integer
+        - name: $skip
+          in: query
+          description: Rows to skip before starting to return data.
           type: integer
       responses:
         '200':
-          description: OK (the selected vendor was founn and the requested property was returned)
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Vendor'
+  '/Vendors(State=''{aState}'')/$count':
+    get:
+      summary: Count vendors
+      description: Count vendors via complete alternate key State.
+      operationId: CountVendorsByKeyState
+      deprecated: false
+      tags:
+        - Vendor
+      parameters:
+        - name: aState
+          in: path
+          description: State
+          required: true
+          type: string
+        - name: $filter
+          in: query
+          description: Filter expression to restrict returned rows.
+          type: string
+      responses:
+        '200':
+          description: OK
           schema:
             type: integer
-        '404':
-          description: Not found (the specified vendor was not found)
+  '/Vendors(PaymentTermsCode=''{aPaymentTermsCode}'')':
+    get:
+      summary: Get vendors
+      description: Get a vendors via complete alternate key PaymentTerms.
+      operationId: GetVendorsByKeyPaymentTerms
+      deprecated: false
+      tags:
+        - Vendor
+      parameters:
+        - name: aPaymentTermsCode
+          in: path
+          description: Payment terms code
+          required: true
+          type: string
+        - name: $expand
+          in: query
+          description: Expand one or more navigation properties.
+          type: string
+        - name: $select
+          in: query
+          description: List of properties to be returned.
+          type: string
+        - name: $orderby
+          in: query
+          description: Order by some property
+          type: string
+        - name: $filter
+          in: query
+          description: Filter expression to restrict returned rows.
+          type: string
+        - name: $top
+          in: query
+          description: Maximum number of rows to return.
+          type: integer
+        - name: $skip
+          in: query
+          description: Rows to skip before starting to return data.
+          type: integer
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Vendor'
+  '/Vendors(PaymentTermsCode=''{aPaymentTermsCode}'')/$count':
+    get:
+      summary: Count vendors
+      description: Count vendors via complete alternate key PaymentTerms.
+      operationId: CountVendorsByKeyPaymentTerms
+      deprecated: false
+      tags:
+        - Vendor
+      parameters:
+        - name: aPaymentTermsCode
+          in: path
+          description: Payment terms code
+          required: true
+          type: string
+        - name: $filter
+          in: query
+          description: Filter expression to restrict returned rows.
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: integer
   '/Vendors({key})/Name':
     get:
       summary: Get vendor property Name
@@ -3973,10 +4233,6 @@ definitions:
         type: integer
         example: 355232
         description: Customer number
-      RecordType:
-        type: integer
-        example: 0
-        description: Record type (0)
       Name:
         type: string
         example: "Abe's Nursery"
@@ -4028,7 +4284,6 @@ definitions:
         description: Credit limit
     example:
       CustomerNumber: 355232
-      RecordType: 0
       Name: "Abe's Nursery"
       Street: "1032 Main Street"
       City: "Springfield"
@@ -4251,10 +4506,6 @@ definitions:
         type: integer
         example: 39
         description: Vendor number
-      RecordType:
-        type: integer
-        example: 1
-        description: Record type (1)
       Name:
         type: string
         example: "Gardens R Us"
@@ -4293,7 +4544,6 @@ definitions:
         description: Payment terms code
     example:
       VendorNumber: 39
-      RecordType: 1
       Name: "Gardens R Us"
       Street: "97 Main St"
       City: "Concord"

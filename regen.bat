@@ -42,7 +42,7 @@ set HostProject=SampleServices.Host
 set TestProject=SampleServices.Test
 
 set DataStructures=CUSTOMERS ITEMS ORDERS ORDER_ITEMS VENDORS
-set FileStructures=CUSTOMERS ITEMS ORDERS ORDER_ITEMS
+set FileStructures=CUSTOMERS ITEMS ORDERS ORDER_ITEMS VENDORS
 
 rem ================================================================================================================================
 rem Configure standard command line options and the CodeGen environment

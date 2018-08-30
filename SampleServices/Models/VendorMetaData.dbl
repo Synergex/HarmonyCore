@@ -34,21 +34,21 @@ namespace SampleServices.Models
             RPSStructureSize = ^size(strVendor)
 
             AddFieldInfo("VendorNumber", "DECIMAL", 6, 1, 0, false)
-            AddFieldInfo("RecordType", "DECIMAL", 1, 7, 0, false)
-            AddFieldInfo("Name", "ALPHA", 30, 8, 0, false)
-            AddFieldInfo("Street", "ALPHA", 25, 38, 0, false)
-            AddFieldInfo("City", "ALPHA", 20, 63, 0, false)
-            AddFieldInfo("State", "ALPHA", 2, 83, 0, false)
-            AddFieldInfo("ZipCode", "DECIMAL", 9, 85, 0, false)
-            AddFieldInfo("Contact", "ALPHA", 25, 94, 0, false)
-            AddFieldInfo("Phone", "DECIMAL", 10, 119, 0, false, new SynergyDecimalConverter.LiteralFormatter("(XXX) XXX-XXXX"))
-            AddFieldInfo("Fax", "DECIMAL", 10, 129, 0, false, new SynergyDecimalConverter.LiteralFormatter("(XXX) XXX-XXXX"))
-            AddFieldInfo("PaymentTermsCode", "ALPHA", 24, 139, 0, false)
+            AddFieldInfo("Name", "ALPHA", 30, 7, 0, false)
+            AddFieldInfo("Street", "ALPHA", 25, 37, 0, false)
+            AddFieldInfo("City", "ALPHA", 20, 62, 0, false)
+            AddFieldInfo("State", "ALPHA", 2, 82, 0, false)
+            AddFieldInfo("ZipCode", "DECIMAL", 5, 84, 0, false)
+            AddFieldInfo("Contact", "ALPHA", 25, 89, 0, false)
+            AddFieldInfo("Phone", "DECIMAL", 10, 114, 0, false, new SynergyDecimalConverter.LiteralFormatter("(XXX) XXX-XXXX"))
+            AddFieldInfo("Fax", "DECIMAL", 10, 124, 0, false, new SynergyDecimalConverter.LiteralFormatter("(XXX) XXX-XXXX"))
+            AddFieldInfo("PaymentTermsCode", "ALPHA", 2, 134, 0, false)
             AddFieldInfo("REL_Items", "COLLECTION", 0, 0, 0, false)
 
             AddKeyInfo(0, "VendorNumber")
-            AddKeyInfo(1, "RecordType")
-            AddKeyInfo(1, "VendorNumber")
+            AddKeyInfo(1, "City")
+            AddKeyInfo(2, "State")
+            AddKeyInfo(3, "PaymentTermsCode")
 
         endmethod
     
@@ -107,8 +107,13 @@ namespace SampleServices.Models
                 VendorNumber, D6
             endrecord
             stack record key1
-                RecordType, D1
-                VendorNumber, D6
+                City, A20
+            endrecord
+            stack record key2
+                State, A2
+            endrecord
+            stack record key3
+                PaymentTermsCode, A2
             endrecord
         proc
             data startPos = 0
@@ -122,12 +127,21 @@ namespace SampleServices.Models
             end
             (1),
             begin
-                if((segValueLength=KeyValueHelper(key1.RecordType, "RecordType", parts))<1)
-                    mreturn key1(1:startPos+segValueLength)
-                startPos += 1
-                if((segValueLength=KeyValueHelper(key1.VendorNumber, "VendorNumber", parts))<6)
+                if((segValueLength=KeyValueHelper(key1.City, "City", parts))<20)
                     mreturn key1(1:startPos+segValueLength)
                 mreturn key1
+            end
+            (2),
+            begin
+                if((segValueLength=KeyValueHelper(key2.State, "State", parts))<2)
+                    mreturn key2(1:startPos+segValueLength)
+                mreturn key2
+            end
+            (3),
+            begin
+                if((segValueLength=KeyValueHelper(key3.PaymentTermsCode, "PaymentTermsCode", parts))<2)
+                    mreturn key3(1:startPos+segValueLength)
+                mreturn key3
             end
             endusing
 

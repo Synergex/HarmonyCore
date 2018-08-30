@@ -63,39 +63,55 @@ namespace SampleServices.Controllers
             mreturn new SingleResult<Vendor>(DBContext.Vendors.FindQuery<Vendor>(aVendorNumber))
         endmethod
 
-        {ODataRoute("Vendors(RecordType={aRecordType},VendorNumber={aVendorNumber})")}
+        {ODataRoute("Vendors(City={aCity})")}
         {EnableQuery(MaxExpansionDepth=3)}
         ;;; <summary>
-        ;;; Get vendor by alternate key TagVendor.
+        ;;; Get vendors by alternate key key City.
         ;;; </summary>
-        ;;; <param name="aRecordType">Record type (1)</param>
-        ;;; <param name="aVendorNumber">Vendor number</param>
-        ;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetByKeyTagVendor, @SingleResult<Vendor>
+        ;;; <param name="aCity">City</param>
+        ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        public method GetByKeyCity, @IActionResult
             {FromODataUri}
-            required in aRecordType, int
-            {FromODataUri}
-            required in aVendorNumber, int
+            required in aCity, String
         proc
-            mreturn new SingleResult<Vendor>(DBContext.Vendors.FindAlternate("RecordType",aRecordType,"VendorNumber",aVendorNumber))
+            data result = DBContext.Vendors.FindAlternate("City",aCity)
+            if (result == ^null)
+                mreturn NotFound()
+            mreturn Ok(result)
         endmethod
 
-        {ODataRoute("Vendors({key})/RecordType")}
+        {ODataRoute("Vendors(State={aState})")}
+        {EnableQuery(MaxExpansionDepth=3)}
         ;;; <summary>
-        ;;; Get the RecordType property of a single Vendor, by primary key.
+        ;;; Get vendors by alternate key key State.
         ;;; </summary>
-        ;;; <param name="key">Record type (1)</param>
-        ;;; <returns>
-        ;;; Returns an int containing the value of the requested property.
-        ;;;</returns>
-        public method GetRecordType, @IActionResult
+        ;;; <param name="aState">State</param>
+        ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        public method GetByKeyState, @IActionResult
             {FromODataUri}
-            required in key, int
+            required in aState, String
         proc
-            data result = DBContext.Vendors.Find(key)
-            if (result==^null)
+            data result = DBContext.Vendors.FindAlternate("State",aState)
+            if (result == ^null)
                 mreturn NotFound()
-            mreturn OK(result.RecordType)
+            mreturn Ok(result)
+        endmethod
+
+        {ODataRoute("Vendors(PaymentTermsCode={aPaymentTermsCode})")}
+        {EnableQuery(MaxExpansionDepth=3)}
+        ;;; <summary>
+        ;;; Get vendors by alternate key key PaymentTerms.
+        ;;; </summary>
+        ;;; <param name="aPaymentTermsCode">Payment terms code</param>
+        ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        public method GetByKeyPaymentTerms, @IActionResult
+            {FromODataUri}
+            required in aPaymentTermsCode, String
+        proc
+            data result = DBContext.Vendors.FindAlternate("PaymentTermsCode",aPaymentTermsCode)
+            if (result == ^null)
+                mreturn NotFound()
+            mreturn Ok(result)
         endmethod
 
         {ODataRoute("Vendors({key})/Name")}
