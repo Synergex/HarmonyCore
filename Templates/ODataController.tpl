@@ -60,6 +60,7 @@ import Harmony.Core.EF.Extensions
 import Microsoft.AspNetCore.Authorization
 </IF DEFINED_ENABLE_AUTHENTICATION>
 import <MODELS_NAMESPACE>
+import Harmony.Core.Interface
 
 namespace <NAMESPACE>
 
@@ -236,7 +237,7 @@ namespace <NAMESPACE>
             if (!ModelState.IsValid)
                 mreturn BadRequest(ModelState)
 
-            KeyFactory.AssignPrimaryKey(<StructureNoplural>)
+            KeyFactory.AssignPrimaryKey(a<StructureNoplural>)
             DBContext.<StructurePlural>.Add(a<StructureNoplural>)
 
             ;TODO: Need to add a Location header

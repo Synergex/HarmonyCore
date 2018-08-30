@@ -46,8 +46,8 @@ namespace SampleServices.Models
             AddFieldInfo("REL_Items", "COLLECTION", 0, 0, 0, false)
 
             AddKeyInfo(0, "VendorNumber")
-            AddKeyInfo(1, "City")
-            AddKeyInfo(2, "State")
+            AddKeyInfo(1, "State")
+            AddKeyInfo(2, "ZipCode")
             AddKeyInfo(3, "PaymentTermsCode")
 
         endmethod
@@ -107,10 +107,10 @@ namespace SampleServices.Models
                 VendorNumber, D6
             endrecord
             stack record key1
-                City, A20
+                State, A2
             endrecord
             stack record key2
-                State, A2
+                ZipCode, D5
             endrecord
             stack record key3
                 PaymentTermsCode, A2
@@ -127,13 +127,13 @@ namespace SampleServices.Models
             end
             (1),
             begin
-                if((segValueLength=KeyValueHelper(key1.City, "City", parts))<20)
+                if((segValueLength=KeyValueHelper(key1.State, "State", parts))<2)
                     mreturn key1(1:startPos+segValueLength)
                 mreturn key1
             end
             (2),
             begin
-                if((segValueLength=KeyValueHelper(key2.State, "State", parts))<2)
+                if((segValueLength=KeyValueHelper(key2.ZipCode, "ZipCode", parts))<5)
                     mreturn key2(1:startPos+segValueLength)
                 mreturn key2
             end

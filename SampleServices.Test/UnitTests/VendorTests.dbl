@@ -111,22 +111,7 @@ namespace SampleServices.Test.UnitTests
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get a single Vendor by alternate key 1 (City)
-
-        {TestMethod}
-        {TestCategory("Vendor Tests - Read by Alternate Key")}
-        public method GetVendor_ByAltKey_City, void
-        proc
-            data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/Vendors(City='{1}')", "", TestConstants.GetVendor_ByAltKey_City_City)
-            data response = client.GetAsync(request).Result
-            data result = response.Content.ReadAsStringAsync().Result
-            response.EnsureSuccessStatusCode()
-            data vendors, @ODataVendors,JsonConvert.DeserializeObject<ODataVendors>(result)
-        endmethod
-
-        ;;------------------------------------------------------------
-        ;;Get a single Vendor by alternate key 2 (State)
+        ;;Get a single Vendor by alternate key 1 (State)
 
         {TestMethod}
         {TestCategory("Vendor Tests - Read by Alternate Key")}
@@ -134,6 +119,21 @@ namespace SampleServices.Test.UnitTests
         proc
             data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/Vendors(State='{1}')", "", TestConstants.GetVendor_ByAltKey_State_State)
+            data response = client.GetAsync(request).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data vendors, @ODataVendors,JsonConvert.DeserializeObject<ODataVendors>(result)
+        endmethod
+
+        ;;------------------------------------------------------------
+        ;;Get a single Vendor by alternate key 2 (Zip)
+
+        {TestMethod}
+        {TestCategory("Vendor Tests - Read by Alternate Key")}
+        public method GetVendor_ByAltKey_Zip, void
+        proc
+            data client = UnitTestEnvironment.Server.CreateClient()
+            data request = String.Format("/odata/Vendors(ZipCode={1})", "", TestConstants.GetVendor_ByAltKey_Zip_ZipCode)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()

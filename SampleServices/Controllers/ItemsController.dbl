@@ -18,6 +18,7 @@ import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Infrastructure
 import Harmony.Core.EF.Extensions
 import SampleServices.Models
+import Harmony.Core.Interface
 
 namespace SampleServices.Controllers
 
@@ -27,6 +28,7 @@ namespace SampleServices.Controllers
     public class ItemsController extends ODataController
     
         public readwrite property DBContext, @SampleServices.DBContext
+        public readwrite property KeyFactory, @IPrimaryKeyFactory
 
         ;;; <summary>
         ;;; Constructs a new instance of ItemsController
@@ -34,8 +36,10 @@ namespace SampleServices.Controllers
         ;;; <param name="dbContext">Database context</param>
         public method ItemsController
             dbContext, @SampleServices.DBContext
+            keyFactory, @IPrimaryKeyFactory
         proc
             this.DBContext = dbContext
+            this.KeyFactory = keyFactory
         endmethod
 
         {ODataRoute("Items")}
@@ -491,9 +495,6 @@ namespace SampleServices.Controllers
             mreturn OK(result.CostPrice)
         endmethod
 
-
- ;POST ----------------------------------------------------------------------
-
         {ODataRoute("Items")}
         ;;; <summary>
         ;;; Create a new item (automatically assigned primary key).
@@ -507,7 +508,7 @@ namespace SampleServices.Controllers
             if (!ModelState.IsValid)
                 mreturn BadRequest(ModelState)
 
-            ;TODO: How do we support the auto-generation of primary key in this scenario?
+            KeyFactory.AssignPrimaryKey(aItem)
             DBContext.Items.Add(aItem)
 
             ;TODO: Need to add a Location header

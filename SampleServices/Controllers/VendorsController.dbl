@@ -18,6 +18,7 @@ import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Infrastructure
 import Harmony.Core.EF.Extensions
 import SampleServices.Models
+import Harmony.Core.Interface
 
 namespace SampleServices.Controllers
 
@@ -27,6 +28,7 @@ namespace SampleServices.Controllers
     public class VendorsController extends ODataController
     
         public readwrite property DBContext, @SampleServices.DBContext
+        public readwrite property KeyFactory, @IPrimaryKeyFactory
 
         ;;; <summary>
         ;;; Constructs a new instance of VendorsController
@@ -34,8 +36,10 @@ namespace SampleServices.Controllers
         ;;; <param name="dbContext">Database context</param>
         public method VendorsController
             dbContext, @SampleServices.DBContext
+            keyFactory, @IPrimaryKeyFactory
         proc
             this.DBContext = dbContext
+            this.KeyFactory = keyFactory
         endmethod
 
         {ODataRoute("Vendors")}
@@ -63,23 +67,6 @@ namespace SampleServices.Controllers
             mreturn new SingleResult<Vendor>(DBContext.Vendors.FindQuery<Vendor>(aVendorNumber))
         endmethod
 
-        {ODataRoute("Vendors(City={aCity})")}
-        {EnableQuery(MaxExpansionDepth=3)}
-        ;;; <summary>
-        ;;; Get vendors by alternate key key City.
-        ;;; </summary>
-        ;;; <param name="aCity">City</param>
-        ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetByKeyCity, @IActionResult
-            {FromODataUri}
-            required in aCity, String
-        proc
-            data result = DBContext.Vendors.FindAlternate("City",aCity)
-            if (result == ^null)
-                mreturn NotFound()
-            mreturn Ok(result)
-        endmethod
-
         {ODataRoute("Vendors(State={aState})")}
         {EnableQuery(MaxExpansionDepth=3)}
         ;;; <summary>
@@ -92,6 +79,23 @@ namespace SampleServices.Controllers
             required in aState, String
         proc
             data result = DBContext.Vendors.FindAlternate("State",aState)
+            if (result == ^null)
+                mreturn NotFound()
+            mreturn Ok(result)
+        endmethod
+
+        {ODataRoute("Vendors(ZipCode={aZipCode})")}
+        {EnableQuery(MaxExpansionDepth=3)}
+        ;;; <summary>
+        ;;; Get vendors by alternate key key Zip.
+        ;;; </summary>
+        ;;; <param name="aZipCode">Zip Code</param>
+        ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        public method GetByKeyZip, @IActionResult
+            {FromODataUri}
+            required in aZipCode, int
+        proc
+            data result = DBContext.Vendors.FindAlternate("ZipCode",aZipCode)
             if (result == ^null)
                 mreturn NotFound()
             mreturn Ok(result)
@@ -276,9 +280,6 @@ namespace SampleServices.Controllers
             mreturn OK(result.PaymentTermsCode)
         endmethod
 
-
- ;POST ----------------------------------------------------------------------
-
         {ODataRoute("Vendors")}
         ;;; <summary>
         ;;; Create a new vendor (automatically assigned primary key).
@@ -292,7 +293,7 @@ namespace SampleServices.Controllers
             if (!ModelState.IsValid)
                 mreturn BadRequest(ModelState)
 
-            ;TODO: How do we support the auto-generation of primary key in this scenario?
+            KeyFactory.AssignPrimaryKey(aVendor)
             DBContext.Vendors.Add(aVendor)
 
             ;TODO: Need to add a Location header

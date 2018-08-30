@@ -5,7 +5,7 @@
 ;                 : D:\SYNERGEX\HarmonyCore\HarmonyCore.Test.Repository\bin\Debu
 ;                 : Version 10.3.3e
 ;
-;  GENERATED      : 30-AUG-2018, 13:50:21
+;  GENERATED      : 30-AUG-2018, 15:28:08
 ;                 : Version 10.3.3e
 ;  EXPORT OPTIONS : [ALL] 
  
@@ -108,7 +108,7 @@ Key STATE   ACCESS   Order ASCENDING   Dups YES   Insert END   Modifiable YES
 Key ZIP   ACCESS   Order ASCENDING   Dups YES   Insert END   Modifiable YES
    Krf 002
    Description "Zip code"
-   Segment FIELD   ZIP_CODE  SegType ALPHA  SegOrder ASCENDING
+   Segment FIELD   ZIP_CODE  SegType DECIMAL  SegOrder ASCENDING
  
 Key PAYMENT_TERMS   ACCESS   Order ASCENDING   Dups YES   Insert END
    Modifiable YES   Krf 003
@@ -464,15 +464,14 @@ Field PAYMENT_TERMS_CODE   Type ALPHA   Size 2
 Key VENDOR_NUMBER   ACCESS   Order ASCENDING   Dups NO
    Segment FIELD   VENDOR_NUMBER  SegType DECIMAL
  
-Key CITY   ACCESS   Order ASCENDING   Dups YES   Insert END   Modifiable YES
-   Krf 001
-   Description "City"
-   Segment FIELD   CITY  SegType ALPHA  SegOrder ASCENDING
- 
 Key STATE   ACCESS   Order ASCENDING   Dups YES   Insert END   Modifiable YES
    Krf 002
    Description "State"
    Segment FIELD   STATE  SegType ALPHA  SegOrder ASCENDING
+ 
+Key ZIP   ACCESS   Order ASCENDING   Dups YES   Insert END   Modifiable YES
+   Description "zip"
+   Segment FIELD   ZIP_CODE  SegType DECIMAL  SegOrder ASCENDING
  
 Key PAYMENT_TERMS   ACCESS   Order ASCENDING   Dups YES   Insert END
    Modifiable YES

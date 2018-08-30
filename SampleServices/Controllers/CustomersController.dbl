@@ -29,6 +29,7 @@ namespace SampleServices.Controllers
     
         public readwrite property DBContext, @SampleServices.DBContext
         public readwrite property KeyFactory, @IPrimaryKeyFactory
+
         ;;; <summary>
         ;;; Constructs a new instance of CustomersController
         ;;; </summary>
@@ -333,7 +334,6 @@ namespace SampleServices.Controllers
             mreturn OK(result.CreditLimit)
         endmethod
 
-
         {ODataRoute("Customers")}
         ;;; <summary>
         ;;; Create a new customer (automatically assigned primary key).
@@ -348,9 +348,8 @@ namespace SampleServices.Controllers
                 mreturn BadRequest(ModelState)
 
             KeyFactory.AssignPrimaryKey(aCustomer)
-            ;TODO: How do we support the auto-generation of primary key in this scenario?
             DBContext.Customers.Add(aCustomer)
-            KeyFactory.Commit()
+
             ;TODO: Need to add a Location header
 
             ;;Commit the change
