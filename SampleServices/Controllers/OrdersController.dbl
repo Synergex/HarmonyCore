@@ -257,17 +257,17 @@ namespace SampleServices.Controllers
             if (!ModelState.IsValid)
                 mreturn BadRequest(ModelState)
 
+            ;;Get the next available primary key value
             KeyFactory.AssignPrimaryKey(aOrder)
+
+            ;;Add the new order
             DBContext.Orders.Add(aOrder)
-
-            ;TODO: Need to add a Location header
-
-            ;;Commit the change
             DBContext.SaveChanges()
 
-            mreturn Ok()
+            mreturn Created(aOrder)
 
         endmethod
+
         {ODataRoute("Orders(OrderNumber={aOrderNumber})")}
         ;;; <summary>
         ;;; Create (with a client-supplied primary key) or replace a order.

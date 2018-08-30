@@ -293,17 +293,17 @@ namespace SampleServices.Controllers
             if (!ModelState.IsValid)
                 mreturn BadRequest(ModelState)
 
+            ;;Get the next available primary key value
             KeyFactory.AssignPrimaryKey(aVendor)
+
+            ;;Add the new vendor
             DBContext.Vendors.Add(aVendor)
-
-            ;TODO: Need to add a Location header
-
-            ;;Commit the change
             DBContext.SaveChanges()
 
-            mreturn Ok()
+            mreturn Created(aVendor)
 
         endmethod
+
         {ODataRoute("Vendors(VendorNumber={aVendorNumber})")}
         ;;; <summary>
         ;;; Create (with a client-supplied primary key) or replace a vendor.

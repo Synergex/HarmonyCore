@@ -508,17 +508,17 @@ namespace SampleServices.Controllers
             if (!ModelState.IsValid)
                 mreturn BadRequest(ModelState)
 
+            ;;Get the next available primary key value
             KeyFactory.AssignPrimaryKey(aItem)
+
+            ;;Add the new item
             DBContext.Items.Add(aItem)
-
-            ;TODO: Need to add a Location header
-
-            ;;Commit the change
             DBContext.SaveChanges()
 
-            mreturn Ok()
+            mreturn Created(aItem)
 
         endmethod
+
         {ODataRoute("Items(ItemNumber={aItemNumber})")}
         ;;; <summary>
         ;;; Create (with a client-supplied primary key) or replace a item.

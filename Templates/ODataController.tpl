@@ -224,6 +224,7 @@ namespace <NAMESPACE>
 ;//
 ;// POST ----------------------------------------------------------------------
 ;//
+<IF DEFINED_ENABLE_POST>
         {ODataRoute("<StructurePlural>")}
         ;;; <summary>
         ;;; Create a new <structureNoplural> (automatically assigned primary key).
@@ -237,20 +238,18 @@ namespace <NAMESPACE>
             if (!ModelState.IsValid)
                 mreturn BadRequest(ModelState)
 
+            ;;Get the next available primary key value
             KeyFactory.AssignPrimaryKey(a<StructureNoplural>)
+
+            ;;Add the new <structureNoplural>
             DBContext.<StructurePlural>.Add(a<StructureNoplural>)
-
-            ;TODO: Need to add a Location header
-
-            ;;Commit the change
             DBContext.SaveChanges()
 
-            mreturn Ok()
+            mreturn Created(a<StructureNoplural>)
 
         endmethod
-;//
-;// PUT
-;//
+
+</IF DEFINED_ENABLE_POST>
 ;//
 ;// PUT -----------------------------------------------------------------------
 ;//
