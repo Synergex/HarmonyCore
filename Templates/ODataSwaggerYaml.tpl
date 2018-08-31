@@ -155,7 +155,7 @@ paths:
 <IF DEFINED_ENABLE_POST>
     post:
       summary: Create a <structureNoplural>
-      description: Create a new <structureNoplural>. When using a POST operation the primary key value will be assigned automatically. The primary key properties must be present in the data in the request body, otherwise a "Bad Request" response will be generated, but any values assigned to those properties will be replaced by automatically generated values.
+      description: Create a new <structureNoplural>. When using a POST operation the primary key value will be assigned automatically. The primary key properties can be ommitted from the data in the request body, but if present will be ignored and replaced by automatically generated values.
       operationId: Post<StructureNoplural>
       deprecated: false
       tags:
@@ -163,10 +163,10 @@ paths:
       parameters:
         - name: a<StructureNoplural>
           in: body
-          description: Data for <structureNoplural> to create. The primary key properties must be included, but will be overwritten with automatically generated values.
+          description: Data for <structureNoplural> to create.
           required: true
           schema:
-            $ref: '#/definitions/<StructureNoplural>'
+            $ref: '#/definitions/<StructureNoplural>Post'
       responses:
         '201':
           description: The <structureNoplural> was created. The data for the new <structureNoplural> will be included in the response body, including the auotmatically assigned primary key values, and the response will include a "Location" header indicating the URL that can be used to retrieve the newly created <structureNoplural>.
@@ -604,6 +604,9 @@ paths:
 ;//
 definitions:
 <STRUCTURE_LOOP>
+;//
+;// Full type
+;//
   <StructureNoplural>:
     required:
 <PRIMARY_KEY>
@@ -662,6 +665,66 @@ definitions:
     <IF CUSTOM_NOT_HARMONY_EXCLUDE>
       <FieldSqlname>: <FIELD_SAMPLE_DATA>
     </IF CUSTOM_NOT_HARMONY_EXCLUDE>
+</FIELD_LOOP>
+;//
+;// Type without primary key properties
+;//
+  <StructureNoplural>Post:
+    properties:
+<FIELD_LOOP>
+  <IF NOTPKSEGMENT>
+    <IF CUSTOM_NOT_HARMONY_EXCLUDE>
+      <FieldSqlname>:
+        <IF ALPHA>
+        type: string
+        example: <FIELD_SAMPLE_DATA>
+        description: <FIELD_DESC>
+        </IF ALPHA>
+        <IF DECIMAL>
+        <IF PRECISION>
+        type: number
+        format: float
+        example: <FIELD_SAMPLE_DATA>
+        description: <FIELD_DESC>
+        <ELSE>
+        <IF CUSTOM_HARMONY_AS_STRING>
+        type: string
+        example: <FIELD_SAMPLE_DATA>
+        <ELSE>
+        type: integer
+        example: <FIELD_SAMPLE_DATA>
+        </IF CUSTOM_HARMONY_AS_STRING>
+        description: <FIELD_DESC>
+        </IF PRECISION>
+        </IF DECIMAL>
+        <IF DATE>
+        type: string
+        format: date-time
+        example: <FIELD_SAMPLE_DATA>
+        description: <FIELD_DESC>
+        </IF DATE>
+        <IF TIME>
+        type: string
+        format: date-time
+        example: <FIELD_SAMPLE_DATA>
+        description: <FIELD_DESC>
+        </IF TIME>
+        <IF INTEGER>
+        type: number
+        format: <IF I124>int32<ELSE>int64</IF I124>
+        example: <FIELD_SAMPLE_DATA>
+        description: <FIELD_DESC>
+        </IF INTEGER>
+    </IF CUSTOM_NOT_HARMONY_EXCLUDE>
+  </IF NOTPKSEGMENT>
+</FIELD_LOOP>
+    example:
+<FIELD_LOOP>
+  <IF NOTPKSEGMENT>
+    <IF CUSTOM_NOT_HARMONY_EXCLUDE>
+      <FieldSqlname>: <FIELD_SAMPLE_DATA>
+    </IF CUSTOM_NOT_HARMONY_EXCLUDE>
+  </IF NOTPKSEGMENT>
 </FIELD_LOOP>
 </STRUCTURE_LOOP>
 ;//

@@ -253,6 +253,9 @@ namespace SampleServices.Controllers
             {FromBody}
             required in aOrder, @Order
         proc
+            ;;Remove the primary key fields from ModelState
+            ModelState.Remove("OrderNumber")
+
             ;; Validate inbound data
             if (!ModelState.IsValid)
                 mreturn BadRequest(ModelState)

@@ -234,6 +234,13 @@ namespace <NAMESPACE>
             {FromBody}
             required in a<StructureNoplural>, @<StructureNoplural>
         proc
+            ;;Remove the primary key fields from ModelState
+<PRIMARY_KEY>
+<SEGMENT_LOOP>
+            ModelState.Remove("<FieldSqlName>")
+</SEGMENT_LOOP>
+</PRIMARY_KEY>
+
             ;; Validate inbound data
             if (!ModelState.IsValid)
                 mreturn BadRequest(ModelState)

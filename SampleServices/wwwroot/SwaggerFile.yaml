@@ -83,7 +83,7 @@ paths:
               $ref: '#/definitions/Customer'
     post:
       summary: Create a customer
-      description: Create a new customer. When using a POST operation the primary key value will be assigned automatically. The primary key properties must be present in the data in the request body, otherwise a "Bad Request" response will be generated, but any values assigned to those properties will be replaced by automatically generated values.
+      description: Create a new customer. When using a POST operation the primary key value will be assigned automatically. The primary key properties can be ommitted from the data in the request body, but if present will be ignored and replaced by automatically generated values.
       operationId: PostCustomer
       deprecated: false
       tags:
@@ -91,10 +91,10 @@ paths:
       parameters:
         - name: aCustomer
           in: body
-          description: Data for customer to create. The primary key properties must be included, but will be overwritten with automatically generated values.
+          description: Data for customer to create.
           required: true
           schema:
-            $ref: '#/definitions/Customer'
+            $ref: '#/definitions/CustomerPost'
       responses:
         '201':
           description: The customer was created. The data for the new customer will be included in the response body, including the auotmatically assigned primary key values, and the response will include a "Location" header indicating the URL that can be used to retrieve the newly created customer.
@@ -971,7 +971,7 @@ paths:
               $ref: '#/definitions/Item'
     post:
       summary: Create a item
-      description: Create a new item. When using a POST operation the primary key value will be assigned automatically. The primary key properties must be present in the data in the request body, otherwise a "Bad Request" response will be generated, but any values assigned to those properties will be replaced by automatically generated values.
+      description: Create a new item. When using a POST operation the primary key value will be assigned automatically. The primary key properties can be ommitted from the data in the request body, but if present will be ignored and replaced by automatically generated values.
       operationId: PostItem
       deprecated: false
       tags:
@@ -979,10 +979,10 @@ paths:
       parameters:
         - name: aItem
           in: body
-          description: Data for item to create. The primary key properties must be included, but will be overwritten with automatically generated values.
+          description: Data for item to create.
           required: true
           schema:
-            $ref: '#/definitions/Item'
+            $ref: '#/definitions/ItemPost'
       responses:
         '201':
           description: The item was created. The data for the new item will be included in the response body, including the auotmatically assigned primary key values, and the response will include a "Location" header indicating the URL that can be used to retrieve the newly created item.
@@ -2263,7 +2263,7 @@ paths:
               $ref: '#/definitions/Order'
     post:
       summary: Create a order
-      description: Create a new order. When using a POST operation the primary key value will be assigned automatically. The primary key properties must be present in the data in the request body, otherwise a "Bad Request" response will be generated, but any values assigned to those properties will be replaced by automatically generated values.
+      description: Create a new order. When using a POST operation the primary key value will be assigned automatically. The primary key properties can be ommitted from the data in the request body, but if present will be ignored and replaced by automatically generated values.
       operationId: PostOrder
       deprecated: false
       tags:
@@ -2271,10 +2271,10 @@ paths:
       parameters:
         - name: aOrder
           in: body
-          description: Data for order to create. The primary key properties must be included, but will be overwritten with automatically generated values.
+          description: Data for order to create.
           required: true
           schema:
-            $ref: '#/definitions/Order'
+            $ref: '#/definitions/OrderPost'
       responses:
         '201':
           description: The order was created. The data for the new order will be included in the response body, including the auotmatically assigned primary key values, and the response will include a "Location" header indicating the URL that can be used to retrieve the newly created order.
@@ -2949,7 +2949,7 @@ paths:
               $ref: '#/definitions/OrderItem'
     post:
       summary: Create a orderItem
-      description: Create a new orderItem. When using a POST operation the primary key value will be assigned automatically. The primary key properties must be present in the data in the request body, otherwise a "Bad Request" response will be generated, but any values assigned to those properties will be replaced by automatically generated values.
+      description: Create a new orderItem. When using a POST operation the primary key value will be assigned automatically. The primary key properties can be ommitted from the data in the request body, but if present will be ignored and replaced by automatically generated values.
       operationId: PostOrderItem
       deprecated: false
       tags:
@@ -2957,10 +2957,10 @@ paths:
       parameters:
         - name: aOrderItem
           in: body
-          description: Data for orderItem to create. The primary key properties must be included, but will be overwritten with automatically generated values.
+          description: Data for orderItem to create.
           required: true
           schema:
-            $ref: '#/definitions/OrderItem'
+            $ref: '#/definitions/OrderItemPost'
       responses:
         '201':
           description: The orderItem was created. The data for the new orderItem will be included in the response body, including the auotmatically assigned primary key values, and the response will include a "Location" header indicating the URL that can be used to retrieve the newly created orderItem.
@@ -3619,7 +3619,7 @@ paths:
               $ref: '#/definitions/Vendor'
     post:
       summary: Create a vendor
-      description: Create a new vendor. When using a POST operation the primary key value will be assigned automatically. The primary key properties must be present in the data in the request body, otherwise a "Bad Request" response will be generated, but any values assigned to those properties will be replaced by automatically generated values.
+      description: Create a new vendor. When using a POST operation the primary key value will be assigned automatically. The primary key properties can be ommitted from the data in the request body, but if present will be ignored and replaced by automatically generated values.
       operationId: PostVendor
       deprecated: false
       tags:
@@ -3627,10 +3627,10 @@ paths:
       parameters:
         - name: aVendor
           in: body
-          description: Data for vendor to create. The primary key properties must be included, but will be overwritten with automatically generated values.
+          description: Data for vendor to create.
           required: true
           schema:
-            $ref: '#/definitions/Vendor'
+            $ref: '#/definitions/VendorPost'
       responses:
         '201':
           description: The vendor was created. The data for the new vendor will be included in the response body, including the auotmatically assigned primary key values, and the response will include a "Location" header indicating the URL that can be used to retrieve the newly created vendor.
@@ -4411,6 +4411,70 @@ definitions:
       PaymentTermsCode: "30"
       TaxId: 546874521
       CreditLimit: 5000
+  CustomerPost:
+    properties:
+      Name:
+        type: string
+        example: "Abe's Nursery"
+        description: Customer name
+      Street:
+        type: string
+        example: "1032 Main Street"
+        description: Street address
+      City:
+        type: string
+        example: "Springfield"
+        description: City
+      State:
+        type: string
+        example: "MO"
+        description: State
+      ZipCode:
+        type: integer
+        example: 64127
+        description: Zip code
+      Contact:
+        type: string
+        example: "Abe Albright"
+        description: Contact name
+      Phone:
+        type: string
+        example: (555) 123-4567
+        description: Phone number
+      Fax:
+        type: string
+        example: (555) 987-6543
+        description: Fax number
+      FavoriteItem:
+        type: integer
+        example: 7
+        description: Customers favorite item
+      PaymentTermsCode:
+        type: string
+        example: "30"
+        description: Payment terms code
+      TaxId:
+        type: integer
+        example: 546874521
+        description: Customers tax ID number
+      CreditLimit:
+        type: number
+        format: float
+        example: 5000
+        description: Credit limit
+    example:
+      Name: "Abe's Nursery"
+      Street: "1032 Main Street"
+      City: "Springfield"
+      State: "MO"
+      ZipCode: 64127
+      Contact: "Abe Albright"
+      Phone: (555) 123-4567
+      Fax: (555) 987-6543
+      FavoriteItem: 7
+      PaymentTermsCode: "30"
+      TaxId: 546874521
+      CreditLimit: 5000
   Item:
     required:
       - ItemNumber
@@ -4523,6 +4587,111 @@ definitions:
       ReorderLevel: 20
       UnitPrice: 15.99
       CostPrice: 9.99
+  ItemPost:
+    properties:
+      VendorNumber:
+        type: integer
+        example: 41
+        description: Vendor number
+      Size:
+        type: integer
+        example: 5
+        description: Size in gallons
+      CommonName:
+        type: string
+        example: "European Hackberry"
+        description: Common name
+      LatinName:
+        type: string
+        example: "Celtis australis"
+        description: Latin name
+      ZoneCode:
+        type: integer
+        example: 2
+        description: Hardiness zone code
+      Type:
+        type: integer
+        example: 1
+        description: Type code
+      Flowering:
+        type: string
+        example: "Y"
+        description: Flowering?
+      FlowerColor:
+        type: string
+        example: "Red"
+        description: Flower color
+      Shape:
+        type: string
+        example: "1"
+        description: Shape
+      MaxHeight:
+        type: integer
+        example: 24
+        description: Maximum height (in inches)
+      MaxWidth:
+        type: integer
+        example: 30
+        description: Maximum width (in inches)
+      WaterRequirement:
+        type: string
+        example: "Low"
+        description: Water requirements
+      SunRequirement:
+        type: string
+        example: "Part"
+        description: Sun requirements
+      BinLocation:
+        type: string
+        example: "B06"
+        description: Bin/aisle
+      QtyOnHand:
+        type: integer
+        example: 17
+        description: Qty on hand
+      QtyAllocated:
+        type: integer
+        example: 2
+        description: Qty allocated
+      QtyOnOrder:
+        type: integer
+        example: 10
+        description: Qty on order
+      ReorderLevel:
+        type: integer
+        example: 20
+        description: Reorder point
+      UnitPrice:
+        type: number
+        format: float
+        example: 15.99
+        description: Unit price
+      CostPrice:
+        type: number
+        format: float
+        example: 9.99
+        description: Item cost
+    example:
+      VendorNumber: 41
+      Size: 5
+      CommonName: "European Hackberry"
+      LatinName: "Celtis australis"
+      ZoneCode: 2
+      Type: 1
+      Flowering: "Y"
+      FlowerColor: "Red"
+      Shape: "1"
+      MaxHeight: 24
+      MaxWidth: 30
+      WaterRequirement: "Low"
+      SunRequirement: "Part"
+      BinLocation: "B06"
+      QtyOnHand: 17
+      QtyAllocated: 2
+      QtyOnOrder: 10
+      ReorderLevel: 20
+      UnitPrice: 15.99
+      CostPrice: 9.99
   Order:
     required:
       - OrderNumber
@@ -4570,6 +4739,46 @@ definitions:
       DateOrdered: 2018-03-01T00:00:00-08:00
       DateCompleted: 2018-03-12T00:00:00-08:00
       Noname001: "ABC"
+  OrderPost:
+    properties:
+      CustomerNumber:
+        type: integer
+        example: 622822
+        description: Customer number
+      PlacedBy:
+        type: string
+        example: "John Doe"
+        description: Order placed by
+      CustomerReference:
+        type: string
+        example: "PO12345"
+        description: Customer order reference
+      PaymentTermsCode:
+        type: string
+        example: "30"
+        description: Payment terms code
+      DateOrdered:
+        type: string
+        format: date-time
+        example: 2018-03-01T00:00:00-08:00
+        description: Date ordered
+      DateCompleted:
+        type: string
+        format: date-time
+        example: 2018-03-12T00:00:00-08:00
+        description: Date order completed
+      Noname001:
+        type: string
+        example: "ABC"
+        description: Spare space
+    example:
+      CustomerNumber: 622822
+      PlacedBy: "John Doe"
+      CustomerReference: "PO12345"
+      PaymentTermsCode: "30"
+      DateOrdered: 2018-03-01T00:00:00-08:00
+      DateCompleted: 2018-03-12T00:00:00-08:00
+      Noname001: "ABC"
   OrderItem:
     required:
       - OrderNumber
@@ -4608,6 +4817,36 @@ definitions:
     example:
       OrderNumber: 5238
       ItemNumber: 1
+      ItemOrdered: 21
+      QuantityOrdered: 3
+      UnitPrice: 15.99
+      DateShipped: 2018-03-17T00:00:00-08:00
+      InvoiceNumber: 166825
+  OrderItemPost:
+    properties:
+      ItemOrdered:
+        type: integer
+        example: 21
+        description: Item ordered
+      QuantityOrdered:
+        type: integer
+        example: 3
+        description: Quantity ordered
+      UnitPrice:
+        type: number
+        format: float
+        example: 15.99
+        description: Unit price
+      DateShipped:
+        type: string
+        format: date-time
+        example: 2018-03-17T00:00:00-08:00
+        description: Date shipped
+      InvoiceNumber:
+        type: integer
+        example: 166825
+        description: Invoice number
+    example:
       ItemOrdered: 21
       QuantityOrdered: 3
       UnitPrice: 15.99
@@ -4659,6 +4898,54 @@ definitions:
         description: Payment terms code
     example:
       VendorNumber: 39
+      Name: "Gardens R Us"
+      Street: "97 Main St"
+      City: "Concord"
+      State: "NH"
+      ZipCode: 03214
+      Contact: "Jeremiah Johnson"
+      Phone: (555) 627-2663
+      Fax: (555) 627-6382
+      PaymentTermsCode: "60"
+  VendorPost:
+    properties:
+      Name:
+        type: string
+        example: "Gardens R Us"
+        description: Vendor name
+      Street:
+        type: string
+        example: "97 Main St"
+        description: Street address
+      City:
+        type: string
+        example: "Concord"
+        description: City
+      State:
+        type: string
+        example: "NH"
+        description: State
+      ZipCode:
+        type: integer
+        example: 03214
+        description: Zip Code
+      Contact:
+        type: string
+        example: "Jeremiah Johnson"
+        description: Contact name
+      Phone:
+        type: string
+        example: (555) 627-2663
+        description: Phone number
+      Fax:
+        type: string
+        example: (555) 627-6382
+        description: Fax number
+      PaymentTermsCode:
+        type: string
+        example: "60"
+        description: Payment terms code
+    example:
       Name: "Gardens R Us"
       Street: "97 Main St"
       City: "Concord"
