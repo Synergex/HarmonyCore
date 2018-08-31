@@ -149,6 +149,35 @@ paths:
             type: array
             items:
               $ref: '#/definitions/<StructureNoplural>'
+;//
+;// POST
+;//
+<IF DEFINED_ENABLE_POST>
+    post:
+      summary: Create a <structureNoplural>
+      description: Create a new <structureNoplural>. When using a POST operation the primary key value will be assigned automatically. The primary key properties must be present in the data in the request body, otherwise a "Bad Request" response will be generated, but any values assigned to those properties will be replaced by automatically generated values.
+      operationId: Post<StructureNoplural>
+      deprecated: false
+      tags:
+        - <StructureNoplural>
+      parameters:
+        - name: a<StructureNoplural>
+          in: body
+          description: Data for <structureNoplural> to create. The primary key properties must be included, but will be overwritten with automatically generated values.
+          required: true
+          schema:
+            $ref: '#/definitions/<StructureNoplural>'
+      responses:
+        '201':
+          description: The <structureNoplural> was created. The data for the new <structureNoplural> will be included in the response body, including the auotmatically assigned primary key values, and the response will include a "Location" header indicating the URL that can be used to retrieve the newly created <structureNoplural>.
+          schema:
+            $ref: '#/definitions/<StructureNoplural>'
+        '400':
+          description: Bad request
+</IF DEFINED_ENABLE_POST>
+;//
+;// GET Count
+;//
 <IF DEFINED_ENABLE_COUNT>
   /<StructurePlural>/$count:
     get:
@@ -289,6 +318,8 @@ paths:
       responses:
         '201':
           description: Created (the <structureNoplural> was created)
+          schema:
+            $ref: '#/definitions/<StructureNoplural>'
         '204':
           description: No Content (the <structureNoplural> was updated)
         '400':
