@@ -4,12 +4,31 @@ import System.Text
 import System.Linq.Expressions
 import Harmony.Core.Interface
 import System.Collections.Concurrent
+import System.Reflection
 
 namespace Harmony.Core.FileIO
 
 	public abstract class RecordPrimaryKeyFactory implements IPrimaryKeyFactory
 
 		private static KeySetterLookup, @ConcurrentDictionary<Type, Action<DataObjectBase, VariantDesc>>, new ConcurrentDictionary<Type, Action<DataObjectBase, VariantDesc>>()
+		private static VariantStore, @MethodInfo
+		private static DecimalCtor, @ConstructorInfo
+		private static ImpliedDecimalCtor, @ConstructorInfo
+		private static IntegerCtor, @ConstructorInfo
+		static method RecordPrimaryKeyFactory
+		proc
+			data variantDescType = ^typeof(VariantDesc)
+			data decimalDescType = ^typeof(DecimalDesc)
+			data impliedDecimalDescType = ^typeof(ImpliedDecimalDesc)
+			data integerDescType = ^typeof(IntegerDesc)
+			VariantStore = variantDescType.GetMethod("Store", new Type[#] { ^typeof(VariantDesc) })
+			DecimalCtor = decimalDescType.GetConstructor(new Type[#] { ^typeof(VariantDesc), ^typeof(int), ^typeof(int) })
+			ImpliedDecimalCtor = impliedDecimalDescType.GetConstructor(new Type[#] { ^typeof(VariantDesc), ^typeof(int), ^typeof(int), ^typeof(int) })
+			IntegerCtor = integerDescType.GetConstructor(new Type[#] { ^typeof(VariantDesc), ^typeof(int), ^typeof(int) })
+
+		endmethod
+
+		
 		private commited, boolean
 		private started, boolean
 
@@ -41,10 +60,30 @@ namespace Harmony.Core.FileIO
 		proc
 		endmethod
 
+		protected static method ConvertDescriptorToType, @Expression
+			fieldInfo, @FieldDataDefinition
+			targetDesc, @Expression
+		proc
+			if(fieldInfo.DataType == FieldDataType.DecimalField) then
+			begin
+				mreturn Expression.New(DecimalCtor, new Expression[#] { targetDesc, Expression.Constant(0), Expression.Constant(fieldInfo.ElementSize) })
+			end
+			else if(fieldInfo.DataType == FieldDataType.IntegerField) then
+			begin
+				mreturn Expression.New(IntegerCtor, new Expression[#] { targetDesc, Expression.Constant(0), Expression.Constant(fieldInfo.ElementSize) })
+			end
+			else if(fieldInfo.DataType == FieldDataType.ImpliedDecimal) then
+			begin
+				mreturn Expression.New(ImpliedDecimalCtor, new Expression[#] { targetDesc, Expression.Constant(0), Expression.Constant(fieldInfo.ElementSize), Expression.Constant(fieldInfo.DecimalPrecision) })
+			end
+			else
+			begin
+				mreturn targetDesc
+			end
+		endmethod
 
 		protected static method MakeStoreExpression, @Expression<Action<DataObjectBase, VariantDesc>>
-			targetStart, int
-			targetLength, int
+			fieldInfo, @FieldDataDefinition
 		proc
 			data targetObject = Expression.Parameter(^typeof(DataObjectBase), "targetObject")
 			data sourceDesc = Expression.Parameter(^typeof(VariantDesc), "sourceDesc")
@@ -54,14 +93,16 @@ namespace Harmony.Core.FileIO
 
 			data variantDescType = ^typeof(VariantDesc)
 			data absRange = variantDescType.GetMethod("AbsRange")
-			data store = variantDescType.GetMethod("Store", new Type[#] { ^typeof(VariantDesc) })
 			data dataObjectType = ^typeof(DataObjectBase)
 			data internalSynergyRecord = dataObjectType.GetMethod("InternalSynergyRecord")
 
 			data convertedRecData, @Expression, Expression.Convert(recData, ^typeof(VariantDesc))
-			data targetDesc, @Expression, Expression.Call(convertedRecData, absRange, new Expression[#] { Expression.Constant(targetStart), Expression.Constant(targetLength) })
-			data storeOp, @Expression, Expression.Call(targetDesc, store, sourceDesc)
-			data takeSynergyRecord, @Expression, Expression.Lambda<AlphaAction>(storeOp ,recData, grfa)
+			data targetDesc, @Expression, Expression.Call(convertedRecData, absRange, new Expression[#] { Expression.Constant(fieldInfo.StructurePosition), Expression.Constant(fieldInfo.ElementSize) })
+			;;if the data type is numeric we need to do a numeric store instead of an alpha store
+			data storeOpResult = Expression.Call(ConvertDescriptorToType(fieldInfo, targetDesc), VariantStore, sourceDesc)
+
+
+			data takeSynergyRecord, @Expression, Expression.Lambda<AlphaAction>(storeOpResult ,recData, grfa)
 			data internalSynergyRecordCall, @Expression, Expression.Call(targetObject, internalSynergyRecord, takeSynergyRecord)
 			mreturn Expression.Lambda<Action<DataObjectBase, VariantDesc>>(internalSynergyRecordCall, new ParameterExpression[#] { targetObject, sourceDesc })
 		endmethod
@@ -82,7 +123,7 @@ namespace Harmony.Core.FileIO
 			if(primaryKeyFields.Count == 1) then
 			begin
 				data keyField = metadataInstance.GetFieldByName(primaryKeyFields[0])
-				mreturn MakeStoreExpression(keyField.StructurePosition, keyField.ElementSize).Compile()
+				mreturn MakeStoreExpression(keyField).Compile()
 			end
 			else
 				throw new NotImplementedException()
