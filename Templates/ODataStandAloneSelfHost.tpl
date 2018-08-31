@@ -206,13 +206,16 @@ namespace <NAMESPACE>
             data xdlFile, string
 
             <STRUCTURE_LOOP>
+            <IF STRUCTURE_ISAM>
             data <structurePlural> = load<StructurePlural>()
+            </IF STRUCTURE_ISAM>
             </STRUCTURE_LOOP>
 
             <STRUCTURE_LOOP>
             ;;Create and load the <structurePlural> file
 
             dataFile = "<FILE_NAME>"
+<IF STRUCTURE_ISAM>
             xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
 
             data <structureNoplural>, @<StructureNoplural>
@@ -221,6 +224,12 @@ namespace <NAMESPACE>
                 store(chout,<structureNoplural>.SynergyRecord)
             close chout
 
+</IF STRUCTURE_ISAM>
+<IF STRUCTURE_RELATIVE>
+            data sourceFile = dataFile.ToLower().Replace(".ddf",".txt")
+            xcall copy(sourceFile,dataFile,1)
+
+</IF STRUCTURE_RELATIVE>
             </STRUCTURE_LOOP>
         endmethod
 
@@ -242,6 +251,7 @@ namespace <NAMESPACE>
         endmethod
 
         <STRUCTURE_LOOP>
+        <IF STRUCTURE_ISAM>
         public static method load<StructurePlural>, @List<<StructureNoplural>>
         proc
             data dataFile = "<FILE_NAME>"
@@ -260,6 +270,7 @@ namespace <NAMESPACE>
             mreturn <structurePlural>
         endmethod
 
+        </IF STRUCTURE_ISAM>
         </STRUCTURE_LOOP>
 </IF DEFINED_ENABLE_CREATE_TEST_FILES>
         private static method findRelativeFolderForAssembly, string

@@ -109,14 +109,17 @@ namespace <NAMESPACE>
             data dataFile, string
             data xdlFile, string
 
-            <STRUCTURE_LOOP>
+<STRUCTURE_LOOP>
+  <IF STRUCTURE_ISAM>
             data <structurePlural> = <StructureNoplural>Loader.LoadFromFile()
-            </STRUCTURE_LOOP>
+  </IF STRUCTURE_ISAM>
+</STRUCTURE_LOOP>
 
-            <STRUCTURE_LOOP>
+<STRUCTURE_LOOP>
             ;;Create and load the <structurePlural> file
 
             dataFile = "<FILE_NAME>"
+  <IF STRUCTURE_ISAM>
             xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
 
             data <structureNoplural>, @<StructureNoplural>
@@ -125,7 +128,13 @@ namespace <NAMESPACE>
                 store(chout,<structureNoplural>.SynergyRecord)
             close chout
 
-            </STRUCTURE_LOOP>
+  </IF STRUCTURE_ISAM>
+  <IF STRUCTURE_RELATIVE>
+            data sourceFile = dataFile.ToLower().Replace(".ddf",".txt")
+            xcall copy(sourceFile,dataFile,1)
+
+  </IF STRUCTURE_RELATIVE>
+</STRUCTURE_LOOP>
         endmethod
 
         private static method deleteFiles, void

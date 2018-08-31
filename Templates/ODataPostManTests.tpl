@@ -19,7 +19,7 @@
             "item": [
                 {
                     "_postman_id": "<guid_nobrace>",
-                    "name": "Read all <structurePlural>",
+                    "name": "Read <structurePlural>",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -47,9 +47,42 @@
                     },
                     "response": []
                 },
+      <IF DEFINED_ENABLE_COUNT>
                 {
                     "_postman_id": "<guid_nobrace>",
-                    "name": "Read <structureNoplural> by primary key",
+                    "name": "Count <structurePlural>",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": ""
+                        },
+                        "url": {
+                            "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT><SERVER_BASE_PATH>/<StructurePlural>/$count",
+                            "protocol": "<SERVER_PROTOCOL>",
+                            "host": [
+                                "<SERVER_NAME>"
+                            ],
+                            "port": "<SERVER_HTTPS_PORT>",
+                            "path": [
+                                "odata",
+                                "<StructurePlural>",
+                                "$count"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+      </IF DEFINED_ENABLE_COUNT>
+                {
+                    "_postman_id": "<guid_nobrace>",
+                    "name": "Read <structureNoplural>",
                     "request": {
                     "method": "GET",
                     "header": [
@@ -82,9 +115,9 @@
                 {
                     "_postman_id": "<guid_nobrace>",
         <IF DUPLICATES>
-                    "name": "Read <structurePlural> by alternate key <KeyName>",
+                    "name": "Read <structurePlural> by <KeyName>",
         <ELSE>
-                    "name": "Read <structureNoplural> by alternate key <KeyName>",
+                    "name": "Read <structureNoplural> by <KeyName>",
         </IF DUPLICATES>
                     "request": {
                     "method": "GET",
@@ -113,6 +146,41 @@
                     },
                     "response": []
                 },
+      <IF DEFINED_ENABLE_COUNT>
+        <IF DUPLICATES>
+                {
+                    "_postman_id": "<guid_nobrace>",
+                    "name": "Count <structurePlural> by <KeyName>",
+                    "request": {
+                    "method": "GET",
+                    "header": [
+                        {
+                        "key": "Accept",
+                        "value": "application/json"
+                        }
+                    ],
+                    "body": {
+                        "mode": "raw",
+                        "raw": ""
+                    },
+                    "url": {
+                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT><SERVER_BASE_PATH>/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF SEG_ALPHA>'</IF SEG_ALPHA>Insert<SegmentName><IF SEG_ALPHA>'</IF SEG_ALPHA><,></SEGMENT_LOOP>)/$count",
+                        "protocol": "<SERVER_PROTOCOL>",
+                        "host": [
+                            "<SERVER_NAME>"
+                        ],
+                        "port": "<SERVER_HTTPS_PORT>",
+                        "path": [
+                            "odata",
+                            "<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF SEG_ALPHA>'</IF SEG_ALPHA>Insert<SegmentName><IF SEG_ALPHA>'</IF SEG_ALPHA><,></SEGMENT_LOOP>)",
+                            "$count"
+                        ]
+                    }
+                    },
+                    "response": []
+                },
+        </IF DUPLICATES>
+      </IF DEFINED_ENABLE_COUNT>
     </ALTERNATE_KEY_LOOP>
 </IF DEFINED_ENABLE_ALTERNATE_KEYS>
 <IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
@@ -121,7 +189,7 @@
         <PRIMARY_KEY>
                 {
                     "_postman_id": "<guid_nobrace>",
-                    "name": "Read <structureNoplural> <FieldSqlName> by primary key",
+                    "name": "Read <structureNoplural> <fieldSqlName>",
                     "request": {
                     "method": "GET",
                     "header": [
@@ -151,7 +219,7 @@
                 },
                 {
                     "_postman_id": "<guid_nobrace>",
-                    "name": "Read <structureNoplural> <FieldSqlName> by primary key (raw value)",
+                    "name": "Read <structureNoplural> <fieldSqlName> raw value",
                     "request": {
                     "method": "GET",
                     "header": [
@@ -274,7 +342,7 @@
                 },
                 {
                     "_postman_id": "<guid_nobrace>",
-                    "name": "Delete <structureNoplural> by primary key",
+                    "name": "Delete <structureNoplural>",
                     "request": {
                     "method": "DELETE",
                     "header": [

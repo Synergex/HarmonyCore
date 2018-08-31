@@ -35,15 +35,15 @@ if not "NONE%ENABLE_SELECT%%ENABLE_FILTER%%ENABLE_ORDERBY%%ENABLE_TOP%%ENABLE_SK
 
 rem ================================================================================================================================
 rem Specify which repository structures we are going to be processing and which projects we're generating into
-rem DataStructures is used when processing all of the individual data structures
-rem FileStructures may be different if data for multiple structures is stored in a single file. In this case only one of those structures needs to be processed.
+rem STRUCTURES is used when processing all of the individual data structures
+rem STRUCTURES may be different if data for multiple structures is stored in a single file. In this case only one of those structures needs to be processed.
 
 set ServicesProject=SampleServices
 set HostProject=SampleServices.Host
 set TestProject=SampleServices.Test
 
-set DataStructures=CUSTOMERS ITEMS ORDERS ORDER_ITEMS VENDORS
-set FileStructures=CUSTOMERS ITEMS ORDERS ORDER_ITEMS VENDORS
+set STRUCTURES=CUSTOMERS ITEMS ORDERS ORDER_ITEMS VENDORS
+set PARAMSTR=SYSPARAMS
 
 rem ================================================================================================================================
 rem Configure standard command line options and the CodeGen environment
@@ -55,18 +55,18 @@ rem ============================================================================
 rem Generate a Web API / OData CRUD environment
 
 rem Generate model, metadata and controller classes
-codegen -s %DataStructures% -t ODataModel ODataMetaData ODataController -tf -o %SolutionDir%%ServicesProject% -n %ServicesProject% %StdOpts%
+codegen -s %STRUCTURES% -t ODataModel ODataMetaData ODataController -tf -o %SolutionDir%%ServicesProject% -n %ServicesProject% %StdOpts%
 if ERRORLEVEL 1 goto error
 
 rem Generate the DbContext and EdmBuilder and Startup classes
-codegen -s %DataStructures% -ms -t ODataDbContext ODataEdmBuilder ODataStartup -o %SolutionDir%%ServicesProject% -n %ServicesProject% %StdOpts%
+codegen -s %STRUCTURES% -ms -t ODataDbContext ODataEdmBuilder ODataStartup -o %SolutionDir%%ServicesProject% -n %ServicesProject% %StdOpts%
 if ERRORLEVEL 1 goto error
 
 rem ================================================================================
 rem Self hosting
 
 if DEFINED ENABLE_SELF_HOST_GENERATION (
-  codegen -s %FileStructures% -ms -t ODataStandAloneSelfHost -o %SolutionDir%%HostProject% -n %HostProject% %StdOpts%
+  codegen -s %STRUCTURES% %PARAMSTR% -ms -t ODataStandAloneSelfHost -o %SolutionDir%%HostProject% -n %HostProject% %StdOpts%
   if ERRORLEVEL 1 goto error
 )
 
@@ -75,13 +75,13 @@ rem Swagger documentation and Postman tests
 
 rem Generate a Swagger file
 if DEFINED ENABLE_SWAGGER_DOCS (
-  codegen -s %DataStructures% -ms -t ODataSwaggerYaml -o %SolutionDir%%ServicesProject%\wwwroot %StdOpts%
+  codegen -s %STRUCTURES% -ms -t ODataSwaggerYaml -o %SolutionDir%%ServicesProject%\wwwroot %StdOpts%
   if ERRORLEVEL 1 goto error
 )
 
 rem Generate Postman Tests
 if DEFINED ENABLE_POSTMAN_TESTS (
-  codegen -s %DataStructures% -ms -t ODataPostManTests -o %SolutionDir% %StdOpts%
+  codegen -s %STRUCTURES% -ms -t ODataPostManTests -o %SolutionDir% %StdOpts%
   if ERRORLEVEL 1 goto error
 )
 
@@ -91,23 +91,27 @@ rem Unit testing project
 if DEFINED ENABLE_UNIT_TEST_GENERATION (
 
   rem Generate OData client model, data loader and unit test classes
-  codegen -s %DataStructures% -t ODataClientModel ODataTestDataLoader ODataTestDataGenerator ODataUnitTests -tf -o %SolutionDir%%TestProject% -n %TestProject% %StdOpts%
+  codegen -s %STRUCTURES% -t ODataClientModel ODataTestDataLoader ODataTestDataGenerator ODataUnitTests -tf -o %SolutionDir%%TestProject% -n %TestProject% %StdOpts%
   if ERRORLEVEL 1 goto error
 
   rem Generate data generator classes; one time, not replaced
-  codegen -s %DataStructures% -t ODataClientModel ODataTestDataLoader ODataTestDataGenerator ODataUnitTests -tf -o %SolutionDir%%TestProject% -n %TestProject% %NoReplaceOpts%
+  codegen -s %STRUCTURES% -t ODataClientModel ODataTestDataLoader ODataTestDataGenerator ODataUnitTests -tf -o %SolutionDir%%TestProject% -n %TestProject% %NoReplaceOpts%
   if ERRORLEVEL 1 goto error
 
-  rem Generate the test environment and unit test environment classes, and the self-hosting program
-  codegen -s %FileStructures% -ms -t ODataTestEnvironment ODataUnitTestEnvironment ODataSelfHost -o %SolutionDir%%TestProject% -n %TestProject% %StdOpts%
+  rem Generate the test environment
+  codegen -s %STRUCTURES% %PARAMSTR% -ms -t ODataTestEnvironment -o %SolutionDir%%TestProject% -n %TestProject% %StdOpts%
+  if ERRORLEVEL 1 goto error
+
+  rem Generate the unit test environment class, and the self-hosting program
+  codegen -s %STRUCTURES% -ms -t ODataUnitTestEnvironment ODataSelfHost -o %SolutionDir%%TestProject% -n %TestProject% %StdOpts%
   if ERRORLEVEL 1 goto error
 
   rem Generate the unit test constants properties classes
-  codegen -s %DataStructures% -ms -t ODataTestConstantsProperties -o %SolutionDir%%TestProject% -n %TestProject% %StdOpts%
+  codegen -s %STRUCTURES% -ms -t ODataTestConstantsProperties -o %SolutionDir%%TestProject% -n %TestProject% %StdOpts%
   if ERRORLEVEL 1 goto error
 
   rem Generate unit test constants values class; one time, not replaced
-  codegen -s %DataStructures% -ms -t ODataTestConstantsValues -o %SolutionDir%%TestProject% -n %TestProject% %NoReplaceOpts%
+  codegen -s %STRUCTURES% -ms -t ODataTestConstantsValues -o %SolutionDir%%TestProject% -n %TestProject% %NoReplaceOpts%
   if ERRORLEVEL 1 goto error
 
 )
@@ -121,7 +125,7 @@ rem set SMC_INTERFACE=SampleXfplEnv
 rem set XFPL_SMCPATH=
 
 rem Generate model classes
-rem codegen -s %DataStructures% -t ODataModel -o %SolutionDir%%PROJECT%\Models -n %PROJECT%.Models -e -r -lf
+rem codegen -s %STRUCTURES% -t ODataModel -o %SolutionDir%%PROJECT%\Models -n %PROJECT%.Models -e -r -lf
 rem if ERRORLEVEL 1 goto error
 
 rem Generate method dispatcher classes
@@ -130,7 +134,7 @@ rem if ERRORLEVEL 1 goto error
 rem codegen -smc SampleXfplEnvironment\smc.xml -interface %SMC_INTERFACE% -t InterfaceMethodDispatchers -o %SolutionDir%%PROJECT% -n %PROJECT% -ut MODELS_NAMESPACE=%PROJECT%.Models -e -r -lf
 rem if ERRORLEVEL 1 goto error
 
-rem codegen -s %DataStructures% -ms -t InterfaceDispatcherData -o %SolutionDir%%PROJECT% -n %PROJECT% -ut SMC_INTERFACE=%SMC_INTERFACE% -e -r -lf
+rem codegen -s %STRUCTURES% -ms -t InterfaceDispatcherData -o %SolutionDir%%PROJECT% -n %PROJECT% -ut SMC_INTERFACE=%SMC_INTERFACE% -e -r -lf
 rem if ERRORLEVEL 1 goto error
 
 rem ================================================================================================================================

@@ -73,18 +73,24 @@ namespace <NAMESPACE>
     public class <StructurePlural>Controller extends ODataController
     
         public readwrite property DBContext, @<SERVICES_NAMESPACE>.DBContext
-        public readwrite property KeyFactory, @IPrimaryKeyFactory
-
+<IF DEFINED_ENABLE_POST>
+         public readwrite property KeyFactory, @IPrimaryKeyFactory
+</IF DEFINED_ENABLE_POST>
+ 
         ;;; <summary>
         ;;; Constructs a new instance of <StructurePlural>Controller
         ;;; </summary>
         ;;; <param name="dbContext">Database context</param>
         public method <StructurePlural>Controller
             dbContext, @<SERVICES_NAMESPACE>.DBContext
-            keyFactory, @IPrimaryKeyFactory
-        proc
+<IF DEFINED_ENABLE_POST>
+             keyFactory, @IPrimaryKeyFactory
+</IF DEFINED_ENABLE_POST>
+         proc
             this.DBContext = dbContext
+<IF DEFINED_ENABLE_POST>
             this.KeyFactory = keyFactory
+</IF DEFINED_ENABLE_POST>
         endmethod
 
 ;//

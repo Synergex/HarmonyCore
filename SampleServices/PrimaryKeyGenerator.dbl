@@ -1,3 +1,12 @@
+;;*****************************************************************************
+;;
+;; Title:       PrimaryKeyGenerator.dbl
+;;
+;; Description: Provides primary key values for create (POST) operations.
+;;
+;;*****************************************************************************
+;; THIS CODE WAS HAND CRAFTED
+;;*****************************************************************************
 
 import System
 import System.Collections.Generic
@@ -7,21 +16,27 @@ import Harmony.Core.FileIO
 
 namespace SampleServices
 
+    .include "SYSPARAMS" repository, structure="strSysParams", end
+
     public class PrimaryKeyGenerator extends RecordPrimaryKeyFactory
 
         mFileChannelManager, @IFileChannelManager
         mChannel, int
 
-        mNextCustomerKey, d6
-        mNextItemKey, d6
-        mNextOrderKey, d6
-        mNextVendorKey, d6
+        mNextCustomerParam, strSysParams
+        mNextItemParam, strSysParams
+        mNextOrderParam, strSysParams
+        mNextVendorParam, strSysParams
 
         public method PrimaryKeyGenerator
             required in aFileChannelManager, @IFileChannelManager
         proc
             mFileChannelManager = aFileChannelManager
             mChannel = mFileChannelManager.GetChannel("DAT:sysparams.ddf",FileOpenMode.UpdateRelative)
+            init mNextCustomerParam
+            init mNextItemParam
+            init mNextOrderParam
+            init mNextVendorParam
         endmethod
 
         protected override method IncrementKeyImplementation, @a
@@ -30,24 +45,24 @@ namespace SampleServices
             using metaDatainstance.RPSStructureName select
             ("CUSTOMERS"),
             begin
-                if (!mNextCustomerKey)
-                    read(mChannel,^a(mNextCustomerKey),1,LOCK:Q_MANUAL_LOCK)
-                mNextCustomerKey += 1
-                mreturn (@a)%string(mNextCustomerKey-1)
+                if (!mNextCustomerParam.param_value)
+                    read(mChannel,mNextCustomerParam,1,LOCK:Q_MANUAL_LOCK)
+                mNextCustomerParam.param_value += 1
+                mreturn (@a)%string(mNextCustomerParam.param_value-1)
             end
             ("ITEMS"),
             begin
-                if (!mNextItemKey)
-                    read(mChannel,^a(mNextItemKey),4,LOCK:Q_MANUAL_LOCK)
-                mNextItemKey += 1
-                mreturn (@a)%string(mNextItemKey-1)
+                if (!mNextItemParam.param_value)
+                    read(mChannel,mNextItemParam,4,LOCK:Q_MANUAL_LOCK)
+                mNextItemParam.param_value += 1
+                mreturn (@a)%string(mNextItemParam.param_value-1)
             end
             ("ORDERS"),
             begin
-                if (!mNextOrderKey)
-                    read(mChannel,^a(mNextOrderKey),3,LOCK:Q_MANUAL_LOCK)
-                mNextOrderKey += 1
-                mreturn (@a)%string(mNextOrderKey-1)
+                if (!mNextOrderParam.param_value)
+                    read(mChannel,mNextOrderParam,3,LOCK:Q_MANUAL_LOCK)
+                mNextOrderParam.param_value += 1
+                mreturn (@a)%string(mNextOrderParam.param_value-1)
             end
             ("ORDER_ITEMS"),
             begin
@@ -55,31 +70,31 @@ namespace SampleServices
             end
             ("VENDORS"),
             begin
-                if (!mNextVendorKey)
-                    read(mChannel,^a(mNextVendorKey),2,LOCK:Q_MANUAL_LOCK)
-                mNextVendorKey += 1
-                mreturn (@a)%string(mNextVendorKey-1)
+                if (!mNextVendorParam.param_value)
+                    read(mChannel,mNextVendorParam,2,LOCK:Q_MANUAL_LOCK)
+                mNextVendorParam.param_value += 1
+                mreturn (@a)%string(mNextVendorParam.param_value-1)
             end
             endusing
         endmethod
 
         protected override method CommitImplementation, void
         proc
-            if (mNextCustomerKey)
+            if (mNextCustomerParam.param_value)
             begin
-                write(mChannel,^a(mNextCustomerKey),1)
+                write(mChannel,mNextCustomerParam,1)
             end
-            if (mNextItemKey)
+            if (mNextItemParam.param_value)
             begin
-                write(mChannel,^a(mNextItemKey),4)
+                write(mChannel,mNextItemParam,4)
             end
-            if (mNextOrderKey)
+            if (mNextOrderParam.param_value)
             begin
-                write(mChannel,^a(mNextOrderKey),3)
+                write(mChannel,mNextOrderParam,3)
             end
-            if (mNextVendorKey)
+            if (mNextVendorParam.param_value)
             begin
-                write(mChannel,^a(mNextVendorKey),2)
+                write(mChannel,mNextVendorParam,2)
             end
             mFileChannelManager.ReturnChannel(mChannel)
             mChannel = 0
