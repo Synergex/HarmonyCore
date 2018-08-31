@@ -73,7 +73,7 @@ namespace <NAMESPACE>
     public class <StructurePlural>Controller extends ODataController
     
         public readwrite property DBContext, @<SERVICES_NAMESPACE>.DBContext
-        public readwrite property KeyFactory, @IPrimaryKeyFactory
+        public readwrite property ServiceProvider, @IServiceProvider
 
         ;;; <summary>
         ;;; Constructs a new instance of <StructurePlural>Controller
@@ -81,10 +81,10 @@ namespace <NAMESPACE>
         ;;; <param name="dbContext">Database context</param>
         public method <StructurePlural>Controller
             dbContext, @<SERVICES_NAMESPACE>.DBContext
-            keyFactory, @IPrimaryKeyFactory
+            serviceProvider, @IServiceProvider
         proc
             this.DBContext = dbContext
-            this.KeyFactory = keyFactory
+            this.ServiceProvider = serviceProvider
         endmethod
 
 ;//
@@ -244,7 +244,7 @@ namespace <NAMESPACE>
             ;; Validate inbound data
             if (!ModelState.IsValid)
                 mreturn BadRequest(ModelState)
-
+            disposable data keyFactory = (@IPrimaryKeyFactory)ServiceProvider.GetService(^typeof(IPrimaryKeyFactory))
             ;;Get the next available primary key value
             KeyFactory.AssignPrimaryKey(a<StructureNoplural>)
 
