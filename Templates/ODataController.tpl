@@ -73,7 +73,9 @@ namespace <NAMESPACE>
     public class <StructurePlural>Controller extends ODataController
     
         public readwrite property DBContext, @<SERVICES_NAMESPACE>.DBContext
+<IF DEFINED_ENABLE_POST>
         public readwrite property ServiceProvider, @IServiceProvider
+</IF DEFINED_ENABLE_POST>
 
         ;;; <summary>
         ;;; Constructs a new instance of <StructurePlural>Controller
@@ -81,10 +83,14 @@ namespace <NAMESPACE>
         ;;; <param name="dbContext">Database context</param>
         public method <StructurePlural>Controller
             dbContext, @<SERVICES_NAMESPACE>.DBContext
-            serviceProvider, @IServiceProvider
+ <IF DEFINED_ENABLE_POST>
+           serviceProvider, @IServiceProvider
+</IF DEFINED_ENABLE_POST>
         proc
             this.DBContext = dbContext
+<IF DEFINED_ENABLE_POST>
             this.ServiceProvider = serviceProvider
+</IF DEFINED_ENABLE_POST>
         endmethod
 
 ;//

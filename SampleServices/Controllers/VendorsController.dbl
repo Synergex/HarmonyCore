@@ -28,7 +28,7 @@ namespace SampleServices.Controllers
     public class VendorsController extends ODataController
     
         public readwrite property DBContext, @SampleServices.DBContext
-        public readwrite property KeyFactory, @IPrimaryKeyFactory
+        public readwrite property ServiceProvider, @IServiceProvider
 
         ;;; <summary>
         ;;; Constructs a new instance of VendorsController
@@ -36,10 +36,10 @@ namespace SampleServices.Controllers
         ;;; <param name="dbContext">Database context</param>
         public method VendorsController
             dbContext, @SampleServices.DBContext
-            keyFactory, @IPrimaryKeyFactory
+           serviceProvider, @IServiceProvider
         proc
             this.DBContext = dbContext
-            this.KeyFactory = keyFactory
+            this.ServiceProvider = serviceProvider
         endmethod
 
         {ODataRoute("Vendors")}
@@ -295,7 +295,7 @@ namespace SampleServices.Controllers
             ;; Validate inbound data
             if (!ModelState.IsValid)
                 mreturn BadRequest(ModelState)
-
+            disposable data keyFactory = (@IPrimaryKeyFactory)ServiceProvider.GetService(^typeof(IPrimaryKeyFactory))
             ;;Get the next available primary key value
             KeyFactory.AssignPrimaryKey(aVendor)
 
