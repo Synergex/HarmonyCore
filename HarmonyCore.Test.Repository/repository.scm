@@ -310,6 +310,8 @@ Field DATE_COMPLETED   Type DATE   Size 8   Stored YYYYMMDD
  
 Field NONAME_001   Type ALPHA   Size 20   Report Noview   Nonamelink
    Description "Spare space"
+   Long Description
+      "HARMONY_EXCLUDE"
  
 Key ORDER_NUMBER   ACCESS   Order ASCENDING   Dups NO
    Description "Order number"
