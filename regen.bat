@@ -13,11 +13,12 @@ set TestProject=SampleServices.Test
 rem ================================================================================================================================
 rem Specify the names of the repository structures to generate code from:
 
-set STRUCTURES=CUSTOMERS ITEMS ORDERS ORDER_ITEMS VENDORS
+set DATA_STRUCTURES=CUSTOMERS ITEMS ORDERS ORDER_ITEMS VENDORS
+set FILE_STRUCTURES=%DATA_STRUCTURES%
 set PARAMSTR=SYSPARAMS
 
-rem STRUCTURES is used when processing all of the individual data structures
-rem STRUCTURES may be different if data for multiple structures is stored in a single file.
+rem DATA_STRUCTURES is used when processing all of the individual data structures
+rem FILE_STRUCTURES may be different if data for multiple structures is stored in a single file.
 rem In this case only one of those structures needs to be processed.
 
 rem ================================================================================================================================
@@ -60,7 +61,7 @@ rem ============================================================================
 rem Generate a Web API / OData CRUD environment
 
 rem Generate model, metadata and controller classes
-codegen -s %STRUCTURES% ^
+codegen -s %DATA_STRUCTURES% ^
         -t ODataModel ODataMetaData ODataController ^
         -o %SolutionDir%%ServicesProject% -tf ^
         -n %ServicesProject% ^
@@ -68,7 +69,7 @@ codegen -s %STRUCTURES% ^
 if ERRORLEVEL 1 goto error
 
 rem Generate the DbContext and EdmBuilder and Startup classes
-codegen -s %STRUCTURES% -ms ^
+codegen -s %DATA_STRUCTURES% -ms ^
         -t ODataDbContext ODataEdmBuilder ODataStartup ^
         -o %SolutionDir%%ServicesProject% ^
         -n %ServicesProject% ^
@@ -79,7 +80,7 @@ rem ============================================================================
 rem Self hosting
 
 if DEFINED ENABLE_SELF_HOST_GENERATION (
-  codegen -s %STRUCTURES% %PARAMSTR% -ms ^
+  codegen -s %FILE_STRUCTURES% %PARAMSTR% -ms ^
           -t ODataStandAloneSelfHost ^
           -o %SolutionDir%%HostProject% ^
           -n %HostProject% ^
@@ -92,7 +93,7 @@ rem Swagger documentation and Postman tests
 
 rem Generate a Swagger file
 if DEFINED ENABLE_SWAGGER_DOCS (
-  codegen -s %STRUCTURES% -ms ^
+  codegen -s %DATA_STRUCTURES% -ms ^
           -t ODataSwaggerYaml ^
           -o %SolutionDir%%ServicesProject%\wwwroot ^
              %STDOPTS%
@@ -101,7 +102,7 @@ if DEFINED ENABLE_SWAGGER_DOCS (
 
 rem Generate Postman Tests
 if DEFINED ENABLE_POSTMAN_TESTS (
-  codegen -s %STRUCTURES% -ms ^
+  codegen -s %DATA_STRUCTURES% -ms ^
           -t ODataPostManTests ^
           -o %SolutionDir% ^
              %STDOPTS%
@@ -114,22 +115,22 @@ rem Unit testing project
 if DEFINED ENABLE_UNIT_TEST_GENERATION (
 
   rem Generate OData client model, data loader and unit test classes
-  codegen -s %STRUCTURES% ^
-          -t ODataClientModel ODataTestDataLoader ODataTestDataGenerator ODataUnitTests ^
+  codegen -s %DATA_STRUCTURES% ^
+          -t ODataClientModel ODataTestDataLoader ODataUnitTests ^
           -o %SolutionDir%%TestProject% -tf ^
           -n %TestProject% ^
              %STDOPTS%
   if ERRORLEVEL 1 goto error
 
   rem Generate data generator classes; one time, not replaced
-  codegen -s %STRUCTURES% ^
-          -t ODataClientModel ODataTestDataLoader ODataTestDataGenerator ODataUnitTests ^
+  codegen -s %DATA_STRUCTURES% ^
+          -t ODataTestDataGenerator ^
           -o %SolutionDir%%TestProject% -tf ^
           -n %TestProject% %NOREPLACEOPTS%
   if ERRORLEVEL 1 goto error
 
   rem Generate the test environment
-  codegen -s %STRUCTURES% %PARAMSTR% -ms ^
+  codegen -s %FILE_STRUCTURES% %PARAMSTR% -ms ^
           -t ODataTestEnvironment ^
           -o %SolutionDir%%TestProject% ^
           -n %TestProject% ^
@@ -137,7 +138,7 @@ if DEFINED ENABLE_UNIT_TEST_GENERATION (
   if ERRORLEVEL 1 goto error
 
   rem Generate the unit test environment class, and the self-hosting program
-  codegen -s %STRUCTURES% -ms ^
+  codegen -s %FILE_STRUCTURES% -ms ^
           -t ODataUnitTestEnvironment ODataSelfHost ^
           -o %SolutionDir%%TestProject% ^
           -n %TestProject% ^
@@ -145,7 +146,7 @@ if DEFINED ENABLE_UNIT_TEST_GENERATION (
   if ERRORLEVEL 1 goto error
 
   rem Generate the unit test constants properties classes
-  codegen -s %STRUCTURES% -ms ^
+  codegen -s %DATA_STRUCTURES% -ms ^
           -t ODataTestConstantsProperties ^
           -o %SolutionDir%%TestProject% ^
           -n %TestProject% ^
@@ -153,7 +154,7 @@ if DEFINED ENABLE_UNIT_TEST_GENERATION (
   if ERRORLEVEL 1 goto error
 
   rem Generate unit test constants values class; one time, not replaced
-  codegen -s %STRUCTURES% -ms ^
+  codegen -s %DATA_STRUCTURES% -ms ^
           -t ODataTestConstantsValues ^
           -o %SolutionDir%%TestProject% ^
           -n %TestProject% ^
@@ -170,7 +171,7 @@ rem set SMC_INTERFACE=SampleXfplEnv
 rem set XFPL_SMCPATH=
 
 rem Generate model classes
-rem codegen -s %STRUCTURES% ^
+rem codegen -s %DATA_STRUCTURES% ^
 rem         -t ODataModel ^
 rem         -o %SolutionDir%%PROJECT%\Models ^
 rem         -n %PROJECT%.Models ^
@@ -196,7 +197,7 @@ rem         -ut MODELS_NAMESPACE=%PROJECT%.Models ^
 rem         -e -r -lf
 rem if ERRORLEVEL 1 goto error
 
-rem codegen -s %STRUCTURES% -ms ^
+rem codegen -s %DATA_STRUCTURES% -ms ^
 rem         -t InterfaceDispatcherData ^
 rem         -o %SolutionDir%%PROJECT% ^
 rem         -n %PROJECT% ^
