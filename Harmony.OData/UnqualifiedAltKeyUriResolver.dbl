@@ -1,0 +1,81 @@
+import System
+import System.Collections.Generic
+import System.Text
+import Microsoft.OData.UriParser
+import Microsoft.OData.Edm
+
+
+namespace Harmony.OData
+
+    public class UnqualifiedAltKeyUriResolver extends ODataUriResolver
+
+        private _unqualified, @UnqualifiedODataUriResolver
+        private _altKeys, @AlternateKeysODataUriResolver
+	
+;        public method Fred, @System.Collections.Generic.IDictionary<IEdmOperationParameter, string>
+;        proc
+;            ;mreturn ^null
+;        endmethod
+
+        public method UnqualifiedAltKeyUriResolver
+            model, @IEdmModel
+        proc
+            _altKeys = new AlternateKeysODataUriResolver(model)
+            _unqualified = new UnqualifiedODataUriResolver()
+        endmethod
+
+
+        public override property EnableCaseInsensitive, boolean
+            method get
+            proc
+                mreturn _altKeys.EnableCaseInsensitive
+            endmethod
+            method set
+            proc
+                _altKeys.EnableCaseInsensitive = value
+                _unqualified.EnableCaseInsensitive = value
+            endmethod
+        endproperty
+
+;        public method fred, void;@IDictionary<IEdmOperationParameter, SingleValueNode>
+;            operation, @IEdmOperation
+;            inputParam, @IDictionary<string, SingleValueNode>
+;        proc
+;            mreturn ^null
+;        endmethod
+
+        public override method ResolveUnboundOperations, @IEnumerable<IEdmOperation>
+            model, @IEdmModel
+            identifier, string
+        proc
+            mreturn _unqualified.ResolveUnboundOperations(model, identifier)
+        endmethod
+
+        public override method ResolveBoundOperations, @IEnumerable<IEdmOperation>
+            model, @IEdmModel
+            identifier, string
+            bindingType, @IEdmType
+        proc
+            data result = _unqualified.ResolveBoundOperations(model, identifier, bindingType)
+            mreturn result
+        endmethod
+
+        public override method ResolveKeys, @IEnumerable<KeyValuePair<string, object>>
+            type, @IEdmEntityType
+            namedValues, @IDictionary<string, string>
+            convertFunc, @Func<IEdmTypeReference, string, object>
+        proc
+            mreturn _altKeys.ResolveKeys(type, namedValues, convertFunc)
+        endmethod
+
+        public override method ResolveKeys, @IEnumerable<KeyValuePair<string, object>>
+            type, @IEdmEntityType
+            positionalValues, @IList<string>
+            convertFunc, @Func<IEdmTypeReference, string, object>
+        proc
+            mreturn _altKeys.ResolveKeys(type, positionalValues, convertFunc)
+        endmethod
+
+	endclass
+
+endnamespace

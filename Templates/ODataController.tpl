@@ -250,7 +250,7 @@ namespace <NAMESPACE>
 
             ;;Add the new <structureNoplural>
             DBContext.<StructurePlural>.Add(a<StructureNoplural>)
-            DBContext.SaveChanges()
+            DBContext.SaveChanges(keyFactory)
 
             mreturn Created(a<StructureNoplural>)
 

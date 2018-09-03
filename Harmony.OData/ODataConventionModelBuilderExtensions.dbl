@@ -1,0 +1,228 @@
+import System
+import System.Collections.Generic
+import System.Text
+import Microsoft.AspNet.OData.Builder
+import System.Reflection
+import System.Linq
+
+namespace Harmony.OData
+
+    public static class ODataConventionModelBuilderExtensions
+        
+        static method ODataConventionModelBuilderExtensions
+        proc
+            data functionType = ^typeof(FunctionConfiguration)
+            data actionType = ^typeof(ActionConfiguration)
+            FunctionReturnsCollectionMethod = functionType.GetMethod("ReturnsCollection", new Type[0])
+            FunctionReturnsMethod = functionType.GetMethod("Returns", new Type[0])
+            FunctionReturnsFromEntitySetMethod = functionType.GetMethod("ReturnsFromEntitySet", new Type[#] { ^typeof(String) })
+            FunctionReturnsCollectionFromEntitySetMethod = functionType.GetMethod("ReturnsCollectionFromEntitySet", new Type[#] { ^typeof(String) })
+            FunctionParameterMethod = functionType.GetMethod("Parameter", new Type[#] { ^typeof(String) })
+
+            ActionReturnsCollectionMethod = actionType.GetMethod("ReturnsCollection", new Type[0])
+            ActionReturnsMethod = actionType.GetMethod("Returns", new Type[0])
+            ActionReturnsFromEntitySetMethod = actionType.GetMethod("ReturnsFromEntitySet", new Type[#] { ^typeof(String) })
+            ActionReturnsCollectionFromEntitySetMethod = actionType.GetMethod("ReturnsCollectionFromEntitySet", new Type[#] { ^typeof(String) })
+            ActionParameterMethod = actionType.GetMethod("Parameter", new Type[#] { ^typeof(String) })
+        endmethod
+
+
+        public class EntityTypeWrapper<T(class)>
+            {System.ComponentModel.DataAnnotations.Key}
+            public readwrite property ID, int, 0
+        endclass
+
+        ;;Use reflection on the provided generic type, find all of the public methods
+        ;;make functions/actions depending on the return type and the presance of Harmony.OData.PureFunctionAttribute
+        public static extension method AddMethods<T(class)>, void
+            builder, @ODataConventionModelBuilder
+            namespaceName, @string
+        proc
+            data singletonConfig, @SingletonConfiguration<EntityTypeWrapper<T>>, String.IsNullOrWhiteSpace(namespaceName) ? ^null : builder.Singleton<EntityTypeWrapper<T>>(namespaceName)
+            data entityConfig, @EntityTypeConfiguration<EntityTypeWrapper<T>>, builder.EntityType<EntityTypeWrapper<T>>()
+            data targetType = ^typeof(T)
+            data targetMethod, @MethodInfo
+
+            HarmonySprocRoutingConvention.AddSprocDispatcher<T>(namespaceName)
+
+            foreach targetMethod in targetType.GetMethods()
+            begin
+                if(targetMethod.DeclaringType != targetType)
+                    nextloop
+
+                data securityAttribute = Attribute.GetCustomAttribute(targetMethod, ^typeof(MethodSecurityAttribute))
+                if(securityAttribute != ^null && !((@MethodSecurityAttribute)securityAttribute).AllowAccess)
+                begin
+                    nextloop
+                end
+
+                data callableMethodConfig, @CallableMethodConfigurationAttribute
+                callableMethodConfig = ^as(Attribute.GetCustomAttribute(targetMethod, ^typeof(CallableMethodConfigurationAttribute)), @CallableMethodConfigurationAttribute)
+                if(callableMethodConfig == ^null)
+                    callableMethodConfig = new CallableMethodConfigurationAttribute()
+
+                data paramFunction, @MethodInfo
+                data resultObject, @Object
+                ;;need to also check for TransformRefOutParametersAttribute to determine the real return type of the routine
+                if(callableMethodConfig.IsFunction) then
+                begin
+                    data addedFunction, @FunctionConfiguration
+                    if(singletonConfig != ^null) then
+                    begin
+                        ;;TODO isolate compiler bug here
+                        ;addedFunction = singletonConfig.EntityType.Function(targetMethod.Name)
+                        addedFunction = entityConfig.Function(targetMethod.Name)
+                    end
+                    else
+                        builder.Function(targetMethod.Name)
+                    MakeReturnType(targetMethod, callableMethodConfig, addedFunction)
+                    resultObject = addedFunction
+                    paramFunction = FunctionParameterMethod
+                end
+                else
+                begin
+                    data addedAction, @ActionConfiguration
+                    if(singletonConfig != ^null) then
+                        addedAction = entityConfig.Action(targetMethod.Name) 
+                    else
+                        addedAction = builder.Action(targetMethod.Name)
+
+                    MakeReturnType(targetMethod, callableMethodConfig, addedAction)
+                    resultObject = addedAction
+                    paramFunction = ActionParameterMethod
+                end
+
+                data paramInfo, @ParameterInfo
+                foreach paramInfo in targetMethod.GetParameters()
+                begin
+                    paramFunction.MakeGenericMethod(new Type[#] { paramInfo.ParameterType }).Invoke(resultObject, new Object[#] { paramInfo.Name })
+                end
+
+            end
+
+            builder.Namespace = String.Empty
+        endmethod
+
+        private static method GetSequenceType, @Type
+            type, @Type
+        proc
+        if(type.IsGenericType && type.GetGenericTypeDefinition() == ^typeof(IEnumerable<>))
+            mreturn type.GenericTypeArguments.First()
+
+
+        data implementsIEnumerable = type.GetInterfaces().FirstOrDefault(lambda(inter) { inter.IsGenericType && inter.GetGenericTypeDefinition() == ^typeof(IEnumerable<>) } )
+        if (implementsIEnumerable != ^null) then
+            mreturn implementsIEnumerable.GenericTypeArguments.First()
+        else
+            mreturn ^null
+        endmethod
+
+        private static FunctionReturnsCollectionMethod, @MethodInfo
+        private static FunctionReturnsMethod, @MethodInfo
+        private static FunctionReturnsFromEntitySetMethod, @MethodInfo
+        private static FunctionReturnsCollectionFromEntitySetMethod, @MethodInfo
+        private static FunctionParameterMethod, @MethodInfo
+
+        private static ActionReturnsCollectionMethod, @MethodInfo
+        private static ActionReturnsMethod, @MethodInfo
+        private static ActionReturnsFromEntitySetMethod, @MethodInfo
+        private static ActionReturnsCollectionFromEntitySetMethod, @MethodInfo
+        private static ActionParameterMethod, @MethodInfo
+
+
+        private static method MakeReturnType, void
+            methInfo, @MethodInfo
+            callableConfig, @CallableMethodConfigurationAttribute
+            funcConfig, @FunctionConfiguration
+        proc
+            data returnType, @Type
+            data returnTypeIsCollection, boolean, false
+            data returnTypeIsFromEntitySet, boolean, false
+            data returnTypeIsCollectionFromEntitySet, boolean, false
+            if(methInfo.ReturnType.IsGenericType)
+            begin
+                data sequenceType = GetSequenceType(methInfo.ReturnType)
+                if(sequenceType != ^null)
+                begin
+                    returnTypeIsCollection = true
+                    returnType = sequenceType
+                end
+            end
+
+            if(callableConfig.ReturnsFromEntitySet)
+            begin
+                if(returnTypeIsCollection) then
+                    returnTypeIsCollectionFromEntitySet = true
+                else
+                    returnTypeIsFromEntitySet = true
+            end
+
+
+            if(returnTypeIsFromEntitySet) then
+            begin
+                FunctionReturnsFromEntitySetMethod.MakeGenericMethod(new Type[#] { returnType }).Invoke(funcConfig, new Object[0]) 
+            end
+            else if(returnTypeIsCollectionFromEntitySet) then
+            begin
+                FunctionReturnsCollectionFromEntitySetMethod.MakeGenericMethod(new Type[#] { returnType }).Invoke(funcConfig, new Object[0])
+            end
+            else if(returnTypeIsCollection) then
+            begin
+                FunctionReturnsCollectionMethod.MakeGenericMethod(new Type[#] { returnType }).Invoke(funcConfig, new Object[0])
+            end
+            else
+            begin
+                FunctionReturnsMethod.MakeGenericMethod(new Type[#] { returnType }).Invoke(funcConfig, new Object[0])
+            end
+            
+        endmethod
+
+        private static method MakeReturnType, void
+            methInfo, @MethodInfo
+            callableConfig, @CallableMethodConfigurationAttribute
+            actionConfig, @ActionConfiguration
+        proc
+            data returnType, @Type, methInfo.ReturnType
+            data returnTypeIsCollection, boolean, false
+            data returnTypeIsFromEntitySet, boolean, false
+            data returnTypeIsCollectionFromEntitySet, boolean, false
+            if(methInfo.ReturnType.IsGenericType)
+            begin
+                data sequenceType = GetSequenceType(methInfo.ReturnType)
+                if(sequenceType != ^null)
+                begin
+                    returnTypeIsCollection = true
+                    returnType = sequenceType
+                end
+            end
+
+            if(callableConfig.ReturnsFromEntitySet)
+            begin
+                if(returnTypeIsCollection) then
+                    returnTypeIsCollectionFromEntitySet = true
+                else
+                    returnTypeIsFromEntitySet = true
+            end
+
+
+            if(returnTypeIsFromEntitySet) then
+            begin
+                ActionReturnsFromEntitySetMethod.MakeGenericMethod(new Type[#] { returnType }).Invoke(actionConfig, new Object[0]) 
+            end
+            else if(returnTypeIsCollectionFromEntitySet) then
+            begin
+                ActionReturnsCollectionFromEntitySetMethod.MakeGenericMethod(new Type[#] { returnType }).Invoke(actionConfig, new Object[0])
+            end
+            else if(returnTypeIsCollection) then
+            begin
+                ActionReturnsCollectionMethod.MakeGenericMethod(new Type[#] { returnType }).Invoke(actionConfig, new Object[0])
+            end
+            else
+            begin
+                ActionReturnsMethod.MakeGenericMethod(new Type[#] { returnType }).Invoke(actionConfig, new Object[0])
+            end
+            
+        endmethod
+    endclass
+
+endnamespace

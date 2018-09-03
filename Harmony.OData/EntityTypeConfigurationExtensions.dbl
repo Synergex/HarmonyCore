@@ -14,8 +14,10 @@ namespace Harmony.OData
 			keyName, @string
 		proc
 			data lambdaParam = Expression.Parameter(^typeof(T))
-			data expr = Expression.PropertyOrField(lambdaParam, keyName)
-			data lambdaExpr = Expression.Lambda<Func<T, KeyType>>(expr, new ParameterExpression[#] { lambdaParam })
+            data expr = Expression.PropertyOrField(lambdaParam, keyName)
+            ;;todo investigate compiler bug here
+            ;;data lambdaExpr = Expression.Lambda<Func<T, KeyType>>(expr, new ParameterExpression[#] { lambdaParam })
+            data lambdaExpr, @Expression<Func<T, KeyType>>, Expression.Lambda<Func<T, KeyType>>(expr, new ParameterExpression[#] { lambdaParam })
 			mreturn config.HasKey(lambdaExpr)
 		endmethod
 

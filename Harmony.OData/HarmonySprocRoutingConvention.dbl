@@ -1,0 +1,73 @@
+import System
+import System.Collections.Generic
+import System.Text
+import Microsoft.AspNet.OData.Routing.Conventions
+import Microsoft.AspNet.OData.Routing
+import Microsoft.AspNetCore.Routing
+import Microsoft.AspNetCore.Mvc.Controllers
+import Microsoft.AspNet.OData.Extensions
+import Microsoft.OData.UriParser
+import System.Linq
+import System.Collections.Concurrent
+import System.Reflection
+import Microsoft.AspNetCore.Mvc.ModelBinding
+
+namespace Harmony.OData
+
+    public class HarmonySprocRoutingConvention implements IODataRoutingConvention
+        private static SprocDispatcherLookup, @ConcurrentDictionary<string, Type>, new ConcurrentDictionary<String, Type>()
+
+        public static method AddSprocDispatcher<T>, void
+            singletonType, @string
+        proc
+            SprocDispatcherLookup[singletonType] = ^typeof(HarmonySprocDispatcher<T>)
+        endmethod
+
+
+        public virtual method SelectAction, @IEnumerable<ControllerActionDescriptor> 
+            routeContext, @RouteContext 
+            endparams
+        proc
+            if (routeContext == ^null)
+                mreturn ^null
+
+            data odataPath = routeContext.HttpContext.ODataFeature().Path
+
+            if (odataPath.PathTemplate == "~/unboundfunction" ||
+            &    odataPath.PathTemplate == "~/unboundaction") then
+            &    
+            begin
+                data segment, @OperationImportSegment, ^as(odataPath.Segments[odataPath.Segments.Count - 1], OperationImportSegment)
+
+                if (segment != ^null)
+                begin
+                    ;segment
+                end
+            end
+            else if(odataPath.PathTemplate == "~/singleton/action"||
+            &    odataPath.PathTemplate == "~/singleton/function")
+            begin
+                data opSeg, @OperationSegment, ^as(odataPath.Segments[1], OperationSegment)
+                data singletonSeg, @SingletonSegment, ^as(odataPath.Segments[0], SingletonSegment)
+                if (opSeg != ^null && singletonSeg != ^null)
+                begin
+                    data dispatcherType, @Type
+                    if(SprocDispatcherLookup.TryGetValue(singletonSeg.Identifier, dispatcherType))
+                    begin
+                        data actionName = odataPath.PathTemplate == "~/singleton/action" ? "Post" : "Get"
+                        data targetMethod = dispatcherType.GetMethod(actionName)
+                        data targetParameters, @IList<Microsoft.AspNetCore.Mvc.Abstractions.ParameterDescriptor>, new List<Microsoft.AspNetCore.Mvc.Abstractions.ParameterDescriptor>()
+                        data boundProperties, @IList<Microsoft.AspNetCore.Mvc.Abstractions.ParameterDescriptor>,  new List<Microsoft.AspNetCore.Mvc.Abstractions.ParameterDescriptor>()
+                        data actionDescriptor = new ControllerActionDescriptor() { ControllerName = dispatcherType.FullName, ControllerTypeInfo = dispatcherType.GetTypeInfo(), ActionName = actionName, MethodInfo = targetMethod, Parameters = targetParameters, BoundProperties = boundProperties} 
+                        actionDescriptor.FilterDescriptors = (@IList<Microsoft.AspNetCore.Mvc.Filters.FilterDescriptor>)new List<Microsoft.AspNetCore.Mvc.Filters.FilterDescriptor>()
+                        actionDescriptor.RouteValues.Add("methodName", opSeg.Identifier)
+                        mreturn new List<ControllerActionDescriptor>() { actionDescriptor }
+                    end
+                end
+            end
+
+            mreturn Enumerable.Empty<ControllerActionDescriptor>()
+        endmethod
+    endclass
+
+endnamespace
