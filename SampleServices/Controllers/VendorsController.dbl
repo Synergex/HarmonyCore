@@ -43,24 +43,24 @@ namespace SampleServices.Controllers
         endmethod
 
         {ODataRoute("Vendors")}
-        {EnableQuery(MaxExpansionDepth=3)}
+        {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get all Vendors
         ;;; </summary>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method Get, @IActionResult
+        public method GetAllVendors, @IActionResult
         proc
             mreturn Ok(DBContext.Vendors)
         endmethod
 
         {ODataRoute("Vendors(VendorNumber={aVendorNumber})")}
-        {EnableQuery(MaxExpansionDepth=3)}
+        {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get a single Vendor by primary key.
         ;;; </summary>
         ;;; <param name="aVendorNumber">Vendor number</param>
         ;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method Get, @SingleResult<Vendor>
+        public method GetVendor, @SingleResult<Vendor>
             {FromODataUri}
             required in aVendorNumber, int
         proc
@@ -68,13 +68,13 @@ namespace SampleServices.Controllers
         endmethod
 
         {ODataRoute("Vendors(State={aState})")}
-        {EnableQuery(MaxExpansionDepth=3)}
+        {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get vendors by alternate key key State.
         ;;; </summary>
         ;;; <param name="aState">State</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetByKeyState, @IActionResult
+        public method GetVendorsByState, @IActionResult
             {FromODataUri}
             required in aState, String
         proc
@@ -85,13 +85,13 @@ namespace SampleServices.Controllers
         endmethod
 
         {ODataRoute("Vendors(ZipCode={aZipCode})")}
-        {EnableQuery(MaxExpansionDepth=3)}
+        {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get vendors by alternate key key Zip.
         ;;; </summary>
         ;;; <param name="aZipCode">Zip Code</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetByKeyZip, @IActionResult
+        public method GetVendorsByZip, @IActionResult
             {FromODataUri}
             required in aZipCode, int
         proc
@@ -102,13 +102,13 @@ namespace SampleServices.Controllers
         endmethod
 
         {ODataRoute("Vendors(PaymentTermsCode={aPaymentTermsCode})")}
-        {EnableQuery(MaxExpansionDepth=3)}
+        {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get vendors by alternate key key PaymentTerms.
         ;;; </summary>
         ;;; <param name="aPaymentTermsCode">Payment terms code</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetByKeyPaymentTerms, @IActionResult
+        public method GetVendorsByPaymentTerms, @IActionResult
             {FromODataUri}
             required in aPaymentTermsCode, String
         proc
@@ -118,6 +118,7 @@ namespace SampleServices.Controllers
             mreturn Ok(result)
         endmethod
 
+
         {ODataRoute("Vendors({key})/Name")}
         ;;; <summary>
         ;;; Get the Name property of a single Vendor, by primary key.
@@ -126,7 +127,7 @@ namespace SampleServices.Controllers
         ;;; <returns>
         ;;; Returns a string containing the value of the requested property.
         ;;;</returns>
-        public method GetName, @IActionResult
+        public method GetVendorName, @IActionResult
             {FromODataUri}
             required in key, int
         proc
@@ -144,7 +145,7 @@ namespace SampleServices.Controllers
         ;;; <returns>
         ;;; Returns a string containing the value of the requested property.
         ;;;</returns>
-        public method GetStreet, @IActionResult
+        public method GetVendorStreet, @IActionResult
             {FromODataUri}
             required in key, int
         proc
@@ -162,7 +163,7 @@ namespace SampleServices.Controllers
         ;;; <returns>
         ;;; Returns a string containing the value of the requested property.
         ;;;</returns>
-        public method GetCity, @IActionResult
+        public method GetVendorCity, @IActionResult
             {FromODataUri}
             required in key, int
         proc
@@ -180,7 +181,7 @@ namespace SampleServices.Controllers
         ;;; <returns>
         ;;; Returns a string containing the value of the requested property.
         ;;;</returns>
-        public method GetState, @IActionResult
+        public method GetVendorState, @IActionResult
             {FromODataUri}
             required in key, int
         proc
@@ -198,7 +199,7 @@ namespace SampleServices.Controllers
         ;;; <returns>
         ;;; Returns an int containing the value of the requested property.
         ;;;</returns>
-        public method GetZipCode, @IActionResult
+        public method GetVendorZipCode, @IActionResult
             {FromODataUri}
             required in key, int
         proc
@@ -216,7 +217,7 @@ namespace SampleServices.Controllers
         ;;; <returns>
         ;;; Returns a string containing the value of the requested property.
         ;;;</returns>
-        public method GetContact, @IActionResult
+        public method GetVendorContact, @IActionResult
             {FromODataUri}
             required in key, int
         proc
@@ -234,7 +235,7 @@ namespace SampleServices.Controllers
         ;;; <returns>
         ;;; Returns a string containing the value of the requested property.
         ;;;</returns>
-        public method GetPhone, @IActionResult
+        public method GetVendorPhone, @IActionResult
             {FromODataUri}
             required in key, int
         proc
@@ -252,7 +253,7 @@ namespace SampleServices.Controllers
         ;;; <returns>
         ;;; Returns a string containing the value of the requested property.
         ;;;</returns>
-        public method GetFax, @IActionResult
+        public method GetVendorFax, @IActionResult
             {FromODataUri}
             required in key, int
         proc
@@ -270,7 +271,7 @@ namespace SampleServices.Controllers
         ;;; <returns>
         ;;; Returns a string containing the value of the requested property.
         ;;;</returns>
-        public method GetPaymentTermsCode, @IActionResult
+        public method GetVendorPaymentTermsCode, @IActionResult
             {FromODataUri}
             required in key, int
         proc
@@ -285,7 +286,7 @@ namespace SampleServices.Controllers
         ;;; Create a new vendor (automatically assigned primary key).
         ;;; </summary>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method Post, @IActionResult
+        public method PostVendor, @IActionResult
             {FromBody}
             required in aVendor, @Vendor
         proc
@@ -313,7 +314,7 @@ namespace SampleServices.Controllers
         ;;; </summary>
         ;;; <param name="aVendorNumber">Vendor number</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method Put, @IActionResult
+        public method PutVendor, @IActionResult
             {FromODataUri}
             required in aVendorNumber, int
             {FromBody}
@@ -357,7 +358,7 @@ namespace SampleServices.Controllers
         ;;; </summary>
         ;;; <param name="aVendorNumber">Vendor number</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method Patch, @IActionResult
+        public method PatchVendor, @IActionResult
             {FromODataUri}
             required in aVendorNumber, int
             {FromBody}
@@ -400,7 +401,7 @@ namespace SampleServices.Controllers
         ;;; </summary>
         ;;; <param name="aVendorNumber">Vendor number</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method Delete, @IActionResult
+        public method DeleteVendor, @IActionResult
             {FromODataUri}
             required in aVendorNumber, int
         proc

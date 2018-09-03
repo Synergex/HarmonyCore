@@ -73,6 +73,9 @@ namespace <NAMESPACE>
 ;//
 
 <FIELD_LOOP>
+<IF STRUCTURE_RELATIVE>
+            AddFieldInfo("RecordNumber", "INTEGER", 4, 0, 0, false)
+</IF STRUCTURE_RELATIVE>
     <IF CUSTOM_NOT_HARMONY_EXCLUDE>
       <IF CUSTOM_HARMONY_AS_STRING>
             AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false, new SynergyDecimalConverter.LiteralFormatter("<FIELD_FORMATSTRING>"))
@@ -130,11 +133,16 @@ namespace <NAMESPACE>
 ;//    Declare all of the fields associated with key segments
 ;//
 
-<KEY_LOOP>
+<IF STRUCTURE_ISAM>
+  <KEY_LOOP>
     <SEGMENT_LOOP>
             AddKeyInfo(<KEY_NUMBER>, "<FieldSqlname>")
     </SEGMENT_LOOP>
-</KEY_LOOP>
+  </KEY_LOOP>
+</IF STRUCTURE_ISAM>
+<IF STRUCTURE_RELATIVE>
+            AddKeyInfo(0, "recordNumber")
+</IF STRUCTURE_RELATIVE>
 
         endmethod
     
@@ -212,6 +220,7 @@ namespace <NAMESPACE>
 
         endmethod
 
+<IF STRUCTURE_ISAM>
         ;;; <summary>
         ;;; Formats a literal value for a key lookup.
         ;;; </summary>
@@ -222,18 +231,18 @@ namespace <NAMESPACE>
             required in keyNumber, int
             required in parts, @Dictionary<String, Object>
             endparams
-<KEY_LOOP>
+  <KEY_LOOP>
             stack record key<KEY_NUMBER>
     <SEGMENT_LOOP>
                 <FieldSqlName>, <SEGMENT_SPEC>
     </SEGMENT_LOOP>
             endrecord
-</KEY_LOOP>
+  </KEY_LOOP>
         proc
             data startPos = 0
             data segValueLength, int
             using keyNumber select
-<KEY_LOOP>
+  <KEY_LOOP>
             (<KEY_NUMBER>),
             begin
     <SEGMENT_LOOP>
@@ -245,13 +254,14 @@ namespace <NAMESPACE>
     </SEGMENT_LOOP>
                 mreturn key<KEY_NUMBER>
             end
-</KEY_LOOP>
+  </KEY_LOOP>
             endusing
 
             throw new ApplicationException(String.Format("Invalid key number {0} encountered in <StructureNoplural>Metadata.FormatKeyLiteral",keyNumber))
 
         endmethod
 
+</IF STRUCTURE_ISAM>
     endclass
 
 endnamespace

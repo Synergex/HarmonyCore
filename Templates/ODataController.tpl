@@ -102,7 +102,7 @@ namespace <NAMESPACE>
         ;;; Get all <StructurePlural>
         ;;; </summary>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method Get, @IActionResult
+        public method GetAll<StructurePlural>, @IActionResult
         proc
             mreturn Ok(DBContext.<StructurePlural>)
         endmethod
@@ -110,33 +110,47 @@ namespace <NAMESPACE>
 ;//
 ;// GET ONE -------------------------------------------------------------------
 ;//
-<PRIMARY_KEY>
-        {ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
+        {ODataRoute("<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>)")}
         {EnableQuery<API_ENABLE_QUERY_PARAMS>}
         ;;; <summary>
         ;;; Get a single <StructureNoplural> by primary key.
         ;;; </summary>
+<IF STRUCTURE_ISAM>
+  <PRIMARY_KEY>
     <SEGMENT_LOOP>
         ;;; <param name="a<SegmentName>"><FIELD_DESC></param>
     </SEGMENT_LOOP>
+  </PRIMARY_KEY>
+</IF STRUCTURE_ISAM>
+<IF STRUCTURE_RELATIVE>
+        ;;; <param name="aRecordNumber">Record number</param>
+</IF STRUCTURE_RELATIVE>
         ;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method Get, @SingleResult<<StructureNoplural>>
+        public method Get<StructureNoplural>, @SingleResult<<StructureNoplural>>
+<IF STRUCTURE_ISAM>
+  <PRIMARY_KEY>
     <SEGMENT_LOOP>
             {FromODataUri}
             required in a<SegmentName>, <SEGMENT_SNTYPE>
     </SEGMENT_LOOP>
+  </PRIMARY_KEY>
+</IF STRUCTURE_ISAM>
+<IF STRUCTURE_RELATIVE>
+            {FromODataUri}
+            required in aRecordNumber, int
+</IF STRUCTURE_RELATIVE>
         proc
 ;//Shouldn't really need the generic type arg on FindQuery. Compiler issue?
-            mreturn new SingleResult<<StructureNoplural>>(DBContext.<StructurePlural>.FindQuery<<StructureNoplural>>(<SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP>))
+            mreturn new SingleResult<<StructureNoplural>>(DBContext.<StructurePlural>.FindQuery<<StructureNoplural>>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>))
         endmethod
-</PRIMARY_KEY>
 
 ;//
 ;// GET BY ALTERNATE KEY ------------------------------------------------------
 ;//
-<IF DEFINED_ENABLE_ALTERNATE_KEYS>
-<ALTERNATE_KEY_LOOP>
-    <IF DUPLICATES>
+<IF STRUCTURE_ISAM>
+  <IF DEFINED_ENABLE_ALTERNATE_KEYS>
+    <ALTERNATE_KEY_LOOP>
+      <IF DUPLICATES>
         {ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
         {EnableQuery<API_ENABLE_QUERY_PARAMS>}
         ;;; <summary>
@@ -146,7 +160,7 @@ namespace <NAMESPACE>
         ;;; <param name="a<SegmentName>"><FIELD_DESC></param>
         </SEGMENT_LOOP>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetByKey<KeyName>, @IActionResult
+        public method Get<StructurePlural>By<KeyName>, @IActionResult
             <SEGMENT_LOOP>
             {FromODataUri}
             required in a<SegmentName>, <SEGMENT_SNTYPE>
@@ -157,7 +171,7 @@ namespace <NAMESPACE>
                 mreturn NotFound()
             mreturn Ok(result)
         endmethod
-    <ELSE>
+      <ELSE>
         {ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
         {EnableQuery<API_ENABLE_QUERY_PARAMS>}
         ;;; <summary>
@@ -167,7 +181,7 @@ namespace <NAMESPACE>
         ;;; <param name="a<SegmentName>"><FIELD_DESC></param>
         </SEGMENT_LOOP>
         ;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetByKey<KeyName>, @SingleResult<<StructureNoplural>>
+        public method Get<StructureNoplural>By<KeyName>, @SingleResult<<StructureNoplural>>
             <SEGMENT_LOOP>
             {FromODataUri}
             required in a<SegmentName>, <SEGMENT_SNTYPE>
@@ -175,10 +189,11 @@ namespace <NAMESPACE>
         proc
             mreturn new SingleResult<<StructureNoplural>>(DBContext.<StructurePlural>.FindAlternate(<SEGMENT_LOOP>"<SegmentName>",a<SegmentName><,></SEGMENT_LOOP>))
         endmethod
-    </IF DUPLICATES>
+      </IF DUPLICATES>
 
-</ALTERNATE_KEY_LOOP>
-</IF DEFINED_ENABLE_ALTERNATE_KEYS>
+    </ALTERNATE_KEY_LOOP>
+  </IF DEFINED_ENABLE_ALTERNATE_KEYS>
+</IF STRUCTURE_ISAM>
 ;//
 ;// GET INDIVIDUAL PROPERTIES -------------------------------------------------
 ;//
@@ -187,9 +202,10 @@ namespace <NAMESPACE>
 ;// In order for the $value function to work in conjunction with these properties,
 ;// the name of a single key segment MUST be "key"!!! Likely doesn't work with segmented keys.
 ;//
-    <FIELD_LOOP>
-      <IF NOTPKSEGMENT>
-        <IF CUSTOM_NOT_HARMONY_EXCLUDE>
+  <FIELD_LOOP>
+    <IF CUSTOM_NOT_HARMONY_EXCLUDE>
+      <IF STRUCTURE_ISAM>
+        <IF NOTPKSEGMENT>
         <PRIMARY_KEY>
         {ODataRoute("<StructurePlural>(<IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP></IF SINGLE_SEGMENT>)/<FieldSqlName>")}
         ;;; <summary>
@@ -205,7 +221,7 @@ namespace <NAMESPACE>
         ;;; <returns>
         ;;; Returns <IF ALPHA>a string</IF ALPHA><IF DECIMAL><IF PRECISION>a decimal<ELSE><IF CUSTOM_HARMONY_AS_STRING>a string<ELSE>an int</IF CUSTOM_HARMONY_AS_STRING></IF PRECISION></IF DECIMAL><IF DATE>a DateTime</IF DATE><IF TIME>a DateTime</IF TIME><IF INTEGER>an int</IF INTEGER> containing the value of the requested property.
         ;;;</returns>
-        public method Get<FieldSqlName>, @IActionResult
+        public method Get<StructureNoplural><FieldSqlName>, @IActionResult
         <SEGMENT_LOOP>
             <IF SINGLE_SEGMENT>
             {FromODataUri}
@@ -221,11 +237,31 @@ namespace <NAMESPACE>
                 mreturn NotFound()
             mreturn OK(result.<FieldSqlName>)
         endmethod
-
         </PRIMARY_KEY>
-        </IF CUSTOM_NOT_HARMONY_EXCLUDE>
-      </IF NOTPKSEGMENT>
-    </FIELD_LOOP>
+        </IF NOTPKSEGMENT>
+      </IF STRUCTURE_ISAM>
+      <IF STRUCTURE_RELATIVE>
+        {ODataRoute("<StructurePlural>({key})}
+        ;;; <summary>
+        ;;; Get the <FieldSqlName> property of a single <StructureNoplural>, by record number.
+        ;;; </summary>
+        ;;; <param name="key">Record number</param>
+        ;;; <returns>
+        ;;; Returns <IF ALPHA>a string</IF ALPHA><IF DECIMAL><IF PRECISION>a decimal<ELSE><IF CUSTOM_HARMONY_AS_STRING>a string<ELSE>an int</IF CUSTOM_HARMONY_AS_STRING></IF PRECISION></IF DECIMAL><IF DATE>a DateTime</IF DATE><IF TIME>a DateTime</IF TIME><IF INTEGER>an int</IF INTEGER> containing the value of the requested property.
+        ;;;</returns>
+        public method Get<StructureNoplural><FieldSqlName>, @IActionResult
+            {FromODataUri}
+            required in key, int
+        proc
+            data result = DBContext.<StructurePlural>.Find(key)
+            if (result==^null)
+                mreturn NotFound()
+            mreturn OK(result.<FieldSqlName>)
+        endmethod
+      </IF STRUCTURE_RELATIVE>
+
+    </IF CUSTOM_NOT_HARMONY_EXCLUDE>
+  </FIELD_LOOP>
 </IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
 ;//
 ;// POST ----------------------------------------------------------------------
@@ -236,16 +272,21 @@ namespace <NAMESPACE>
         ;;; Create a new <structureNoplural> (automatically assigned primary key).
         ;;; </summary>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method Post, @IActionResult
+        public method Post<StructureNoplural>, @IActionResult
             {FromBody}
             required in a<StructureNoplural>, @<StructureNoplural>
         proc
             ;;Remove the primary key fields from ModelState
-<PRIMARY_KEY>
-<SEGMENT_LOOP>
+  <IF STRUCTURE_ISAM>
+    <PRIMARY_KEY>
+      <SEGMENT_LOOP>
             ModelState.Remove("<FieldSqlName>")
-</SEGMENT_LOOP>
-</PRIMARY_KEY>
+      </SEGMENT_LOOP>
+    </PRIMARY_KEY>
+  </IF STRUCTURE_ISAM>
+  <IF STRUCTURE_RELATIVE>
+            ModelState.Remove("RecordNumber")
+  </IF STRUCTURE_RELATIVE>
 
             ;; Validate inbound data
             if (!ModelState.IsValid)
@@ -267,20 +308,34 @@ namespace <NAMESPACE>
 ;// PUT -----------------------------------------------------------------------
 ;//
 <IF DEFINED_ENABLE_PUT>
-    <PRIMARY_KEY>
-        {ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
+        {ODataRoute("<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>)")}
         ;;; <summary>
         ;;; Create (with a client-supplied primary key) or replace a <structureNoplural>.
         ;;; </summary>
-        <SEGMENT_LOOP>
+  <IF STRUCTURE_ISAM>
+    <PRIMARY_KEY>
+      <SEGMENT_LOOP>
         ;;; <param name="a<SegmentName>"><FIELD_DESC></param>
-        </SEGMENT_LOOP>
+      </SEGMENT_LOOP>
+    </PRIMARY_KEY>
+  </IF STRUCTURE_ISAM>
+  <IF STRUCTURE_RELATIVE>
+        ;;; <param name="aRecordNumber">Record number</param>
+  </IF STRUCTURE_RELATIVE>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method Put, @IActionResult
-            <SEGMENT_LOOP>
+        public method Put<StructureNoplural>, @IActionResult
+  <IF STRUCTURE_ISAM>
+    <PRIMARY_KEY>
+      <SEGMENT_LOOP>
             {FromODataUri}
             required in a<SegmentName>, <SEGMENT_SNTYPE>
-            </SEGMENT_LOOP>
+      </SEGMENT_LOOP>
+    </PRIMARY_KEY>
+  </IF STRUCTURE_ISAM>
+  <IF STRUCTURE_RELATIVE>
+            {FromODataUri}
+            required in aRecordNumber, int
+  </IF STRUCTURE_RELATIVE>
             {FromBody}
             required in a<StructureNoplural>, @<StructureNoplural>
         proc
@@ -289,14 +344,21 @@ namespace <NAMESPACE>
                 mreturn BadRequest(ModelState)
 
             ;;Ensure that the key values in the URI win over any data that may be in the model object
-            <SEGMENT_LOOP>
+  <IF STRUCTURE_ISAM>
+    <PRIMARY_KEY>
+      <SEGMENT_LOOP>
             a<StructureNoplural>.<FieldSqlname> = a<SegmentName>
-            </SEGMENT_LOOP>
+      </SEGMENT_LOOP>
+    </PRIMARY_KEY>
+  </IF STRUCTURE_ISAM>
+  <IF STRUCTURE_RELATIVE>
+            a<StructureNoplural>.RecordNumber = aRecordNumber
+  </IF STRUCTURE_RELATIVE>
 
             try
             begin
                 ;;Add and commit
-                data existing = DBContext.<StructurePlural>.Find(<SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP>)
+                data existing = DBContext.<StructurePlural>.Find(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>)
                 if(existing == ^null) then
                 begin
                     DBContext.<StructurePlural>.Add(a<StructureNoplural>)
@@ -318,26 +380,39 @@ namespace <NAMESPACE>
 
         endmethod
 
-    </PRIMARY_KEY>
 </IF DEFINED_ENABLE_PUT>
 ;//
 ;// PATCH ---------------------------------------------------------------------
 ;//
 <IF DEFINED_ENABLE_PATCH>
-        <PRIMARY_KEY>
-        {ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
+        {ODataRoute("<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>RecordNumber={aRecordNumber}</IF STRUCTURE_RELATIVE>)")}
         ;;; <summary>
         ;;; Patch  (partial update) a <structureNoplural>.
         ;;; </summary>
-        <SEGMENT_LOOP>
+  <IF STRUCTURE_ISAM>
+    <PRIMARY_KEY>
+      <SEGMENT_LOOP>
         ;;; <param name="a<SegmentName>"><FIELD_DESC></param>
-        </SEGMENT_LOOP>
+      </SEGMENT_LOOP>
+    </PRIMARY_KEY>
+  </IF STRUCTURE_ISAM>
+  <IF STRUCTURE_RELATIVE>
+        ;;; <param name="aRecordNumber">Record number</param>
+  </IF STRUCTURE_RELATIVE>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method Patch, @IActionResult
-        <SEGMENT_LOOP>
+        public method Patch<StructureNoplural>, @IActionResult
+  <IF STRUCTURE_ISAM>
+    <PRIMARY_KEY>
+      <SEGMENT_LOOP>
             {FromODataUri}
             required in a<SegmentName>, <SEGMENT_SNTYPE>
-        </SEGMENT_LOOP>
+      </SEGMENT_LOOP>
+    </PRIMARY_KEY>
+  </IF STRUCTURE_ISAM>
+  <IF STRUCTURE_RELATIVE>
+            {FromODataUri}
+            required in aRecordNumber, int
+  </IF STRUCTURE_RELATIVE>
             {FromBody}
             required in a<StructureNoplural>, @JsonPatchDocument<<StructureNoplural>>
         proc
@@ -349,7 +424,7 @@ namespace <NAMESPACE>
             try
             begin
                 ;;Get the <structureNoplural> to be updated
-                data <structureNoplural>ToUpdate = DBContext.<StructurePlural>.Find(<SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP>)
+                data <structureNoplural>ToUpdate = DBContext.<StructurePlural>.Find(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>)
 
                 ;;Did we find it?
                 if(<structureNoplural>ToUpdate == ^null)
@@ -372,29 +447,42 @@ namespace <NAMESPACE>
 
         endmethod
 
-    </PRIMARY_KEY>
 </IF DEFINED_ENABLE_PATCH>
 ;//
 ;// DELETE --------------------------------------------------------------------
 ;//
 <IF DEFINED_ENABLE_DELETE>
-    <PRIMARY_KEY>
-        {ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
+        {ODataRoute("<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>RecordNumber={aRecordNumber}</IF STRUCTURE_RELATIVE>)")}
         ;;; <summary>
         ;;; Delete a <structureNoplural>.
         ;;; </summary>
-        <SEGMENT_LOOP>
+  <IF STRUCTURE_ISAM>
+    <PRIMARY_KEY>
+      <SEGMENT_LOOP>
         ;;; <param name="a<SegmentName>"><FIELD_DESC></param>
-        </SEGMENT_LOOP>
+      </SEGMENT_LOOP>
+    </PRIMARY_KEY>
+  </IF STRUCTURE_ISAM>
+  <IF STRUCTURE_RELATIVE>
+        ;;; <param name="aRecordNumber">Record number</param>
+  </IF STRUCTURE_RELATIVE>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method Delete, @IActionResult
-        <SEGMENT_LOOP>
+        public method Delete<StructureNoplural>, @IActionResult
+  <IF STRUCTURE_ISAM>
+    <PRIMARY_KEY>
+      <SEGMENT_LOOP>
             {FromODataUri}
             required in a<SegmentName>, <SEGMENT_SNTYPE>
-        </SEGMENT_LOOP>
+      </SEGMENT_LOOP>
+    </PRIMARY_KEY>
+  </IF STRUCTURE_ISAM>
+  <IF STRUCTURE_RELATIVE>
+            {FromODataUri}
+            required in arecordNumber, int
+  </IF STRUCTURE_RELATIVE>
         proc
             ;;Get the <structureNoplural> to be deleted
-            data <structureNoplural>ToRemove = DBContext.<StructurePlural>.Find(<SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP>)
+            data <structureNoplural>ToRemove = DBContext.<StructurePlural>.Find(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>)
 
             ;;Did we find it?
             if (<structureNoplural>ToRemove == ^null)
@@ -408,7 +496,6 @@ namespace <NAMESPACE>
 
         endmethod
 
-    </PRIMARY_KEY>
 </IF DEFINED_ENABLE_DELETE>
     endclass
 

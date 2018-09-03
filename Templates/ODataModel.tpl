@@ -95,6 +95,13 @@ namespace <NAMESPACE>
 
 .region "Attributes of this entity"
 
+<IF STRUCTURE_RELATIVE>
+        ;;; <summary>
+        ;;; Record number
+        ;;; </summary>
+        public readwrite property RecordNumber, int
+
+</IF STRUCTURE_RELATIVE>
 <COUNTER_1_RESET>
 <FIELD_LOOP>
     <IF CUSTOM_NOT_HARMONY_EXCLUDE>

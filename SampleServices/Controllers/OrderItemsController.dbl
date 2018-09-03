@@ -43,25 +43,25 @@ namespace SampleServices.Controllers
         endmethod
 
         {ODataRoute("OrderItems")}
-        {EnableQuery(MaxExpansionDepth=3)}
+        {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get all OrderItems
         ;;; </summary>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method Get, @IActionResult
+        public method GetAllOrderItems, @IActionResult
         proc
             mreturn Ok(DBContext.OrderItems)
         endmethod
 
         {ODataRoute("OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})")}
-        {EnableQuery(MaxExpansionDepth=3)}
+        {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get a single OrderItem by primary key.
         ;;; </summary>
         ;;; <param name="aOrderNumber">Order number</param>
         ;;; <param name="aItemNumber">Line item number</param>
         ;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method Get, @SingleResult<OrderItem>
+        public method GetOrderItem, @SingleResult<OrderItem>
             {FromODataUri}
             required in aOrderNumber, int
             {FromODataUri}
@@ -71,13 +71,13 @@ namespace SampleServices.Controllers
         endmethod
 
         {ODataRoute("OrderItems(ItemOrdered={aItemOrdered})")}
-        {EnableQuery(MaxExpansionDepth=3)}
+        {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get orderItems by alternate key key ItemOrdered.
         ;;; </summary>
         ;;; <param name="aItemOrdered">Item ordered</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetByKeyItemOrdered, @IActionResult
+        public method GetOrderItemsByItemOrdered, @IActionResult
             {FromODataUri}
             required in aItemOrdered, int
         proc
@@ -88,13 +88,13 @@ namespace SampleServices.Controllers
         endmethod
 
         {ODataRoute("OrderItems(DateShipped={aDateShipped})")}
-        {EnableQuery(MaxExpansionDepth=3)}
+        {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get orderItems by alternate key key DateShipped.
         ;;; </summary>
         ;;; <param name="aDateShipped">Date shipped</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetByKeyDateShipped, @IActionResult
+        public method GetOrderItemsByDateShipped, @IActionResult
             {FromODataUri}
             required in aDateShipped, DateTime
         proc
@@ -105,13 +105,13 @@ namespace SampleServices.Controllers
         endmethod
 
         {ODataRoute("OrderItems(InvoiceNumber={aInvoiceNumber})")}
-        {EnableQuery(MaxExpansionDepth=3)}
+        {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get orderItems by alternate key key InvoiceNumber.
         ;;; </summary>
         ;;; <param name="aInvoiceNumber">Invoice number</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetByKeyInvoiceNumber, @IActionResult
+        public method GetOrderItemsByInvoiceNumber, @IActionResult
             {FromODataUri}
             required in aInvoiceNumber, int
         proc
@@ -120,6 +120,8 @@ namespace SampleServices.Controllers
                 mreturn NotFound()
             mreturn Ok(result)
         endmethod
+
+
 
         {ODataRoute("OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})/ItemOrdered")}
         ;;; <summary>
@@ -130,7 +132,7 @@ namespace SampleServices.Controllers
         ;;; <returns>
         ;;; Returns an int containing the value of the requested property.
         ;;;</returns>
-        public method GetItemOrdered, @IActionResult
+        public method GetOrderItemItemOrdered, @IActionResult
             {FromODataUri}
             required in aOrderNumber, int
             {FromODataUri}
@@ -151,7 +153,7 @@ namespace SampleServices.Controllers
         ;;; <returns>
         ;;; Returns an int containing the value of the requested property.
         ;;;</returns>
-        public method GetQuantityOrdered, @IActionResult
+        public method GetOrderItemQuantityOrdered, @IActionResult
             {FromODataUri}
             required in aOrderNumber, int
             {FromODataUri}
@@ -172,7 +174,7 @@ namespace SampleServices.Controllers
         ;;; <returns>
         ;;; Returns a decimal containing the value of the requested property.
         ;;;</returns>
-        public method GetUnitPrice, @IActionResult
+        public method GetOrderItemUnitPrice, @IActionResult
             {FromODataUri}
             required in aOrderNumber, int
             {FromODataUri}
@@ -193,7 +195,7 @@ namespace SampleServices.Controllers
         ;;; <returns>
         ;;; Returns a DateTime containing the value of the requested property.
         ;;;</returns>
-        public method GetDateShipped, @IActionResult
+        public method GetOrderItemDateShipped, @IActionResult
             {FromODataUri}
             required in aOrderNumber, int
             {FromODataUri}
@@ -214,7 +216,7 @@ namespace SampleServices.Controllers
         ;;; <returns>
         ;;; Returns an int containing the value of the requested property.
         ;;;</returns>
-        public method GetInvoiceNumber, @IActionResult
+        public method GetOrderItemInvoiceNumber, @IActionResult
             {FromODataUri}
             required in aOrderNumber, int
             {FromODataUri}
@@ -231,7 +233,7 @@ namespace SampleServices.Controllers
         ;;; Create a new orderItem (automatically assigned primary key).
         ;;; </summary>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method Post, @IActionResult
+        public method PostOrderItem, @IActionResult
             {FromBody}
             required in aOrderItem, @OrderItem
         proc
@@ -261,7 +263,7 @@ namespace SampleServices.Controllers
         ;;; <param name="aOrderNumber">Order number</param>
         ;;; <param name="aItemNumber">Line item number</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method Put, @IActionResult
+        public method PutOrderItem, @IActionResult
             {FromODataUri}
             required in aOrderNumber, int
             {FromODataUri}
@@ -309,7 +311,7 @@ namespace SampleServices.Controllers
         ;;; <param name="aOrderNumber">Order number</param>
         ;;; <param name="aItemNumber">Line item number</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method Patch, @IActionResult
+        public method PatchOrderItem, @IActionResult
             {FromODataUri}
             required in aOrderNumber, int
             {FromODataUri}
@@ -355,7 +357,7 @@ namespace SampleServices.Controllers
         ;;; <param name="aOrderNumber">Order number</param>
         ;;; <param name="aItemNumber">Line item number</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method Delete, @IActionResult
+        public method DeleteOrderItem, @IActionResult
             {FromODataUri}
             required in aOrderNumber, int
             {FromODataUri}
