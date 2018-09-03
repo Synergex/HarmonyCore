@@ -106,6 +106,7 @@ namespace SampleServices
 
             services.AddHttpsRedirection(httpsConfig)
 
+            ;;If there is a ConfigureServicesCustom method, call it
             ConfigureServicesCustom(services)
 
         endmethod
@@ -222,14 +223,19 @@ namespace SampleServices
             app.UseSwagger()
             app.UseSwaggerUI(configureSwaggerUi)
 
+            ;;If there is a ConfigureCustom method, call it
             ConfigureCustom(app,env)
 
         endmethod
 
+        ;;Declare the ConfigueServicesCustom partial method
+        ;;This method can be implemented in a partial class to provide custom services configuration code
         partial method ConfigureServicesCustom, void
             services, @IServiceCollection 
         endmethod
 
+        ;;Declare the ConfigueCustom partial method
+        ;;This method can be implemented in a partial class to provide custom configuration code
         partial method ConfigureCustom, void
             required in app, @IApplicationBuilder
             required in env, @IHostingEnvironment

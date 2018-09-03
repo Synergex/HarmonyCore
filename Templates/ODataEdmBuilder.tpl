@@ -83,6 +83,7 @@ namespace <NAMESPACE>
                 ;;attribute can be used in a class, so keys with multiple segments are defined
                 ;;using the "Fluent API" here.
 <STRUCTURE_LOOP>
+  <IF STRUCTURE_ISAM>
     <PRIMARY_KEY>
         <IF MULTIPLE_SEGMENTS>
             <SEGMENT_LOOP>
@@ -90,15 +91,21 @@ namespace <NAMESPACE>
             </SEGMENT_LOOP>
         </IF MULTIPLE_SEGMENTS>
     </PRIMARY_KEY>
+  </IF STRUCTURE_ISAM>
+  <IF STRUCTURE_RELATIVE>
+                builder.EntityType<<StructureNoplural>>().HasKey<<StructureNoplural>,int>("RecordNumber")
+  </IF STRUCTURE_RELATIVE>
 </STRUCTURE_LOOP>
 
                 data tempModel = (@EdmModel)builder.GetEdmModel()
                 <STRUCTURE_LOOP>
 
                 data <structureNoplural>Type = (@EdmEntityType)tempModel.FindDeclaredType("<MODELS_NAMESPACE>.<StructureNoplural>")
+                <IF STRUCTURE_ISAM>
                 <ALTERNATE_KEY_LOOP>
                 tempModel.AddAlternateKeyAnnotation(<structureNoplural>Type, new Dictionary<string, IEdmProperty>() {<SEGMENT_LOOP>{"<SegmentName>",<structureNoplural>Type.FindProperty("<SegmentName>")}<,></SEGMENT_LOOP>})
                 </ALTERNATE_KEY_LOOP>
+                </IF STRUCTURE_ISAM>
                 </STRUCTURE_LOOP>
 
                 mEdmModel = tempModel

@@ -185,6 +185,7 @@ namespace <NAMESPACE>
             services.AddCors()
 
 </IF DEFINED_ENABLE_CORS>
+            ;;If there is a ConfigureServicesCustom method, call it
             ConfigureServicesCustom(services)
 
         endmethod
@@ -333,15 +334,20 @@ namespace <NAMESPACE>
             app.UseSwagger()
             app.UseSwaggerUI(configureSwaggerUi)
 
+</IF DEFINED_ENABLE_SWAGGER_DOCS>
+            ;;If there is a ConfigureCustom method, call it
             ConfigureCustom(app,env)
 
-</IF DEFINED_ENABLE_SWAGGER_DOCS>
         endmethod
 
+        ;;Declare the ConfigueServicesCustom partial method
+        ;;This method can be implemented in a partial class to provide custom services configuration code
         partial method ConfigureServicesCustom, void
             services, @IServiceCollection 
         endmethod
 
+        ;;Declare the ConfigueCustom partial method
+        ;;This method can be implemented in a partial class to provide custom configuration code
         partial method ConfigureCustom, void
             required in app, @IApplicationBuilder
             required in env, @IHostingEnvironment

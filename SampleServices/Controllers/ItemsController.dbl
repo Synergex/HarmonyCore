@@ -28,7 +28,7 @@ namespace SampleServices.Controllers
     public class ItemsController extends ODataController
     
         public readwrite property DBContext, @SampleServices.DBContext
-        public readwrite property KeyFactory, @IPrimaryKeyFactory
+        public readwrite property ServiceProvider, @IServiceProvider
 
         ;;; <summary>
         ;;; Constructs a new instance of ItemsController
@@ -36,31 +36,31 @@ namespace SampleServices.Controllers
         ;;; <param name="dbContext">Database context</param>
         public method ItemsController
             dbContext, @SampleServices.DBContext
-            keyFactory, @IPrimaryKeyFactory
+           serviceProvider, @IServiceProvider
         proc
             this.DBContext = dbContext
-            this.KeyFactory = keyFactory
+            this.ServiceProvider = serviceProvider
         endmethod
 
         {ODataRoute("Items")}
-        {EnableQuery(MaxExpansionDepth=3)}
+        {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get all Items
         ;;; </summary>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method Get, @IActionResult
+        public method GetAllItems, @IActionResult
         proc
             mreturn Ok(DBContext.Items)
         endmethod
 
         {ODataRoute("Items(ItemNumber={aItemNumber})")}
-        {EnableQuery(MaxExpansionDepth=3)}
+        {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get a single Item by primary key.
         ;;; </summary>
         ;;; <param name="aItemNumber">Item number</param>
         ;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method Get, @SingleResult<Item>
+        public method GetItem, @SingleResult<Item>
             {FromODataUri}
             required in aItemNumber, int
         proc
@@ -68,13 +68,13 @@ namespace SampleServices.Controllers
         endmethod
 
         {ODataRoute("Items(VendorNumber={aVendorNumber})")}
-        {EnableQuery(MaxExpansionDepth=3)}
+        {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get items by alternate key key VendorNumber.
         ;;; </summary>
         ;;; <param name="aVendorNumber">Vendor number</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetByKeyVendorNumber, @IActionResult
+        public method GetItemsByVendorNumber, @IActionResult
             {FromODataUri}
             required in aVendorNumber, int
         proc
@@ -85,13 +85,13 @@ namespace SampleServices.Controllers
         endmethod
 
         {ODataRoute("Items(FlowerColor={aFlowerColor})")}
-        {EnableQuery(MaxExpansionDepth=3)}
+        {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get items by alternate key key Color.
         ;;; </summary>
         ;;; <param name="aFlowerColor">Flower color</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetByKeyColor, @IActionResult
+        public method GetItemsByColor, @IActionResult
             {FromODataUri}
             required in aFlowerColor, String
         proc
@@ -102,13 +102,13 @@ namespace SampleServices.Controllers
         endmethod
 
         {ODataRoute("Items(Size={aSize})")}
-        {EnableQuery(MaxExpansionDepth=3)}
+        {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get items by alternate key key Size.
         ;;; </summary>
         ;;; <param name="aSize">Size in gallons</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetByKeySize, @IActionResult
+        public method GetItemsBySize, @IActionResult
             {FromODataUri}
             required in aSize, int
         proc
@@ -119,13 +119,13 @@ namespace SampleServices.Controllers
         endmethod
 
         {ODataRoute("Items(CommonName={aCommonName})")}
-        {EnableQuery(MaxExpansionDepth=3)}
+        {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get items by alternate key key Name.
         ;;; </summary>
         ;;; <param name="aCommonName">Common name</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetByKeyName, @IActionResult
+        public method GetItemsByName, @IActionResult
             {FromODataUri}
             required in aCommonName, String
         proc
@@ -135,6 +135,7 @@ namespace SampleServices.Controllers
             mreturn Ok(result)
         endmethod
 
+
         {ODataRoute("Items({key})/VendorNumber")}
         ;;; <summary>
         ;;; Get the VendorNumber property of a single Item, by primary key.
@@ -143,7 +144,7 @@ namespace SampleServices.Controllers
         ;;; <returns>
         ;;; Returns an int containing the value of the requested property.
         ;;;</returns>
-        public method GetVendorNumber, @IActionResult
+        public method GetItemVendorNumber, @IActionResult
             {FromODataUri}
             required in key, int
         proc
@@ -161,7 +162,7 @@ namespace SampleServices.Controllers
         ;;; <returns>
         ;;; Returns an int containing the value of the requested property.
         ;;;</returns>
-        public method GetSize, @IActionResult
+        public method GetItemSize, @IActionResult
             {FromODataUri}
             required in key, int
         proc
@@ -179,7 +180,7 @@ namespace SampleServices.Controllers
         ;;; <returns>
         ;;; Returns a string containing the value of the requested property.
         ;;;</returns>
-        public method GetCommonName, @IActionResult
+        public method GetItemCommonName, @IActionResult
             {FromODataUri}
             required in key, int
         proc
@@ -197,7 +198,7 @@ namespace SampleServices.Controllers
         ;;; <returns>
         ;;; Returns a string containing the value of the requested property.
         ;;;</returns>
-        public method GetLatinName, @IActionResult
+        public method GetItemLatinName, @IActionResult
             {FromODataUri}
             required in key, int
         proc
@@ -215,7 +216,7 @@ namespace SampleServices.Controllers
         ;;; <returns>
         ;;; Returns an int containing the value of the requested property.
         ;;;</returns>
-        public method GetZoneCode, @IActionResult
+        public method GetItemZoneCode, @IActionResult
             {FromODataUri}
             required in key, int
         proc
@@ -233,7 +234,7 @@ namespace SampleServices.Controllers
         ;;; <returns>
         ;;; Returns an int containing the value of the requested property.
         ;;;</returns>
-        public method GetType, @IActionResult
+        public method GetItemType, @IActionResult
             {FromODataUri}
             required in key, int
         proc
@@ -251,7 +252,7 @@ namespace SampleServices.Controllers
         ;;; <returns>
         ;;; Returns a string containing the value of the requested property.
         ;;;</returns>
-        public method GetFlowering, @IActionResult
+        public method GetItemFlowering, @IActionResult
             {FromODataUri}
             required in key, int
         proc
@@ -269,7 +270,7 @@ namespace SampleServices.Controllers
         ;;; <returns>
         ;;; Returns a string containing the value of the requested property.
         ;;;</returns>
-        public method GetFlowerColor, @IActionResult
+        public method GetItemFlowerColor, @IActionResult
             {FromODataUri}
             required in key, int
         proc
@@ -287,7 +288,7 @@ namespace SampleServices.Controllers
         ;;; <returns>
         ;;; Returns a string containing the value of the requested property.
         ;;;</returns>
-        public method GetShape, @IActionResult
+        public method GetItemShape, @IActionResult
             {FromODataUri}
             required in key, int
         proc
@@ -305,7 +306,7 @@ namespace SampleServices.Controllers
         ;;; <returns>
         ;;; Returns an int containing the value of the requested property.
         ;;;</returns>
-        public method GetMaxHeight, @IActionResult
+        public method GetItemMaxHeight, @IActionResult
             {FromODataUri}
             required in key, int
         proc
@@ -323,7 +324,7 @@ namespace SampleServices.Controllers
         ;;; <returns>
         ;;; Returns an int containing the value of the requested property.
         ;;;</returns>
-        public method GetMaxWidth, @IActionResult
+        public method GetItemMaxWidth, @IActionResult
             {FromODataUri}
             required in key, int
         proc
@@ -341,7 +342,7 @@ namespace SampleServices.Controllers
         ;;; <returns>
         ;;; Returns a string containing the value of the requested property.
         ;;;</returns>
-        public method GetWaterRequirement, @IActionResult
+        public method GetItemWaterRequirement, @IActionResult
             {FromODataUri}
             required in key, int
         proc
@@ -359,7 +360,7 @@ namespace SampleServices.Controllers
         ;;; <returns>
         ;;; Returns a string containing the value of the requested property.
         ;;;</returns>
-        public method GetSunRequirement, @IActionResult
+        public method GetItemSunRequirement, @IActionResult
             {FromODataUri}
             required in key, int
         proc
@@ -377,7 +378,7 @@ namespace SampleServices.Controllers
         ;;; <returns>
         ;;; Returns a string containing the value of the requested property.
         ;;;</returns>
-        public method GetBinLocation, @IActionResult
+        public method GetItemBinLocation, @IActionResult
             {FromODataUri}
             required in key, int
         proc
@@ -395,7 +396,7 @@ namespace SampleServices.Controllers
         ;;; <returns>
         ;;; Returns an int containing the value of the requested property.
         ;;;</returns>
-        public method GetQtyOnHand, @IActionResult
+        public method GetItemQtyOnHand, @IActionResult
             {FromODataUri}
             required in key, int
         proc
@@ -413,7 +414,7 @@ namespace SampleServices.Controllers
         ;;; <returns>
         ;;; Returns an int containing the value of the requested property.
         ;;;</returns>
-        public method GetQtyAllocated, @IActionResult
+        public method GetItemQtyAllocated, @IActionResult
             {FromODataUri}
             required in key, int
         proc
@@ -431,7 +432,7 @@ namespace SampleServices.Controllers
         ;;; <returns>
         ;;; Returns an int containing the value of the requested property.
         ;;;</returns>
-        public method GetQtyOnOrder, @IActionResult
+        public method GetItemQtyOnOrder, @IActionResult
             {FromODataUri}
             required in key, int
         proc
@@ -449,7 +450,7 @@ namespace SampleServices.Controllers
         ;;; <returns>
         ;;; Returns an int containing the value of the requested property.
         ;;;</returns>
-        public method GetReorderLevel, @IActionResult
+        public method GetItemReorderLevel, @IActionResult
             {FromODataUri}
             required in key, int
         proc
@@ -467,7 +468,7 @@ namespace SampleServices.Controllers
         ;;; <returns>
         ;;; Returns a decimal containing the value of the requested property.
         ;;;</returns>
-        public method GetUnitPrice, @IActionResult
+        public method GetItemUnitPrice, @IActionResult
             {FromODataUri}
             required in key, int
         proc
@@ -485,7 +486,7 @@ namespace SampleServices.Controllers
         ;;; <returns>
         ;;; Returns a decimal containing the value of the requested property.
         ;;;</returns>
-        public method GetCostPrice, @IActionResult
+        public method GetItemCostPrice, @IActionResult
             {FromODataUri}
             required in key, int
         proc
@@ -500,7 +501,7 @@ namespace SampleServices.Controllers
         ;;; Create a new item (automatically assigned primary key).
         ;;; </summary>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method Post, @IActionResult
+        public method PostItem, @IActionResult
             {FromBody}
             required in aItem, @Item
         proc
@@ -510,7 +511,7 @@ namespace SampleServices.Controllers
             ;; Validate inbound data
             if (!ModelState.IsValid)
                 mreturn BadRequest(ModelState)
-
+            disposable data keyFactory = (@IPrimaryKeyFactory)ServiceProvider.GetService(^typeof(IPrimaryKeyFactory))
             ;;Get the next available primary key value
             KeyFactory.AssignPrimaryKey(aItem)
 
@@ -528,7 +529,7 @@ namespace SampleServices.Controllers
         ;;; </summary>
         ;;; <param name="aItemNumber">Item number</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method Put, @IActionResult
+        public method PutItem, @IActionResult
             {FromODataUri}
             required in aItemNumber, int
             {FromBody}
@@ -572,7 +573,7 @@ namespace SampleServices.Controllers
         ;;; </summary>
         ;;; <param name="aItemNumber">Item number</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method Patch, @IActionResult
+        public method PatchItem, @IActionResult
             {FromODataUri}
             required in aItemNumber, int
             {FromBody}
@@ -615,7 +616,7 @@ namespace SampleServices.Controllers
         ;;; </summary>
         ;;; <param name="aItemNumber">Item number</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method Delete, @IActionResult
+        public method DeleteItem, @IActionResult
             {FromODataUri}
             required in aItemNumber, int
         proc

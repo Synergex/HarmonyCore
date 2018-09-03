@@ -93,11 +93,16 @@ namespace <NAMESPACE>
             ;;using the "Fluent API" here.
 
             <STRUCTURE_LOOP>
+            <IF STRUCTURE_ISAM>
             <PRIMARY_KEY>
             <IF MULTIPLE_SEGMENTS>
             parm.Entity<<StructureNoplural>>().HasKey(<SEGMENT_LOOP>"<FieldSqlname>"<,></SEGMENT_LOOP>)
             </IF MULTIPLE_SEGMENTS>
             </PRIMARY_KEY>
+            </IF STRUCTURE_ISAM>
+            <IF STRUCTURE_RELATIVE>
+            parm.Entity<<StructureNoplural>>().HasKey(RecordNumber)
+            </IF STRUCTURE_RELATIVE>
             </STRUCTURE_LOOP>
 
 .endregion

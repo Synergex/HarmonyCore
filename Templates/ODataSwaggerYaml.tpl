@@ -205,8 +205,7 @@ paths:
 ;//
 ;// Primary key operations
 ;//
-<PRIMARY_KEY>
-  '/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF ALPHA>''</IF ALPHA>{a<SegmentName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP>)':
+  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><SegmentName>=<IF ALPHA>''</IF ALPHA>{a<SegmentName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>RecordNumber=a{RecordNumber}</IF STRUCTURE_RELATIVE>)':
 ;//
 ;// ----------------------------------------------------------------------------
 ;// Get via primary key
@@ -219,6 +218,8 @@ paths:
       tags:
         - <StructureNoplural>
       parameters:
+<IF STRUCTURE_ISAM>
+<PRIMARY_KEY>
 <SEGMENT_LOOP>
         - name: a<SegmentName>
           in: path
@@ -232,6 +233,15 @@ paths:
           format: date-time
 </IF TIME>
 </SEGMENT_LOOP>
+</PRIMARY_KEY>
+</IF STRUCTURE_ISAM>
+<IF STRUCTURE_RELATIVE>
+        - name: aRecordNumber
+          in: path
+          description: Record number
+          required: true
+          type: integer
+</IF STRUCTURE_RELATIVE>
 <IF DEFINED_ENABLE_RELATIONS>
         - name: $expand
           in: query
@@ -264,19 +274,30 @@ paths:
       tags:
         - <StructureNoplural>
       parameters:
-        <SEGMENT_LOOP>
+<IF STRUCTURE_ISAM>
+  <PRIMARY_KEY>
+    <SEGMENT_LOOP>
         - name: a<SegmentName>
           in: path
           description: <SEGMENT_DESC>
           required: true
           type: <IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>
-          <IF DATE>
+      <IF DATE>
           format: date-time
-          </IF DATE>
-          <IF TIME>
+      </IF DATE>
+      <IF TIME>
           format: date-time
-          </IF TIME>
-        </SEGMENT_LOOP>
+      </IF TIME>
+    </SEGMENT_LOOP>
+  </PRIMARY_KEY>
+</IF STRUCTURE_ISAM>
+<IF STRUCTURE_RELATIVE>
+        - name: aRecordNumber
+          in: path
+          description: Record number
+          required: true
+          type: integer
+</IF STRUCTURE_RELATIVE>
       responses:
         '204':
           description: No content (the specified <structureNoplural> was deleted)
@@ -296,19 +317,30 @@ paths:
       tags:
         - <StructureNoplural>
       parameters:
-<SEGMENT_LOOP>
+<IF STRUCTURE_ISAM>
+  <PRIMARY_KEY>
+    <SEGMENT_LOOP>
         - name: a<SegmentName>
           in: path
           description: <SEGMENT_DESC>
           required: true
           type: <IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>
-<IF DATE>
+      <IF DATE>
           format: date-time
-</IF DATE>
-<IF TIME>
+      </IF DATE>
+      <IF TIME>
           format: date-time
-</IF TIME>
-</SEGMENT_LOOP>
+      </IF TIME>
+    </SEGMENT_LOOP>
+  </PRIMARY_KEY>
+</IF STRUCTURE_ISAM>
+<IF STRUCTURE_RELATIVE>
+        - name: aRecordNumber
+          in: path
+          description: Record number
+          required: true
+          type: integer
+</IF STRUCTURE_RELATIVE>
         - name: a<StructureNoplural>
           in: body
           description: Data for <structureNoplural> to create or update.
@@ -338,19 +370,30 @@ paths:
       tags:
         - <StructureNoplural>
       parameters:
-<SEGMENT_LOOP>
+<IF STRUCTURE_ISAM>
+  <PRIMARY_KEY>
+    <SEGMENT_LOOP>
         - name: a<SegmentName>
           in: path
           description: <SEGMENT_DESC>
           required: true
           type: <IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>
-<IF DATE>
+      <IF DATE>
           format: date-time
-</IF DATE>
-<IF TIME>
+      </IF DATE>
+      <IF TIME>
           format: date-time
-</IF TIME>
-</SEGMENT_LOOP>
+      </IF TIME>
+    </SEGMENT_LOOP>
+  </PRIMARY_KEY>
+</IF STRUCTURE_ISAM>
+<IF STRUCTURE_RELATIVE>
+        - name: aRecordNumber
+          in: path
+          description: Record number
+          required: true
+          type: integer
+</IF STRUCTURE_RELATIVE>
         - name: aPatchDocument
           in: body
           description: JSON patch document describing the changes to make to the <structureNoplural>.
@@ -365,12 +408,12 @@ paths:
         '404':
           description: Not found content (the specified <structureNoplural> was not found)
 </IF DEFINED_ENABLE_PUT>
-</PRIMARY_KEY>
 ;//
 ;//----------------------------------------------------------------------------
 ;//
 ;// Alternate key operations
 ;//
+<IF STRUCTURE_ISAM>
 <IF DEFINED_ENABLE_ALTERNATE_KEYS>
 <ALTERNATE_KEY_LOOP>
   '/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF ALPHA>''</IF ALPHA>{a<SegmentName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP>)':
@@ -379,70 +422,70 @@ paths:
 ;// Get via alternate key
 ;//
     get:
-<IF DUPLICATES>
+  <IF DUPLICATES>
       summary: Get <structurePlural>
       description: Get a <structurePlural> via complete alternate key <KeyName>.
       operationId: Get<StructurePlural>ByKey<KeyName>
-<ELSE>
+  <ELSE>
       summary: Get <structureNoplural>
       description: Get a <structureNoplural> via complete alternate key <KeyName>.
       operationId: <StructureNoplural>ByKey<KeyName>
-</IF DUPLICATES>
+  </IF DUPLICATES>
       deprecated: false
       tags:
         - <StructureNoplural>
       parameters:
-<SEGMENT_LOOP>
+  <SEGMENT_LOOP>
         - name: a<SegmentName>
           in: path
           description: <SEGMENT_DESC>
           required: true
           type: <IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>
-<IF DATE>
+    <IF DATE>
           format: date-time
-</IF DATE>
-<IF TIME>
+    </IF DATE>
+    <IF TIME>
           format: date-time
-</IF TIME>
-</SEGMENT_LOOP>
-<IF DEFINED_ENABLE_RELATIONS>
+    </IF TIME>
+  </SEGMENT_LOOP>
+  <IF DEFINED_ENABLE_RELATIONS>
         - name: $expand
           in: query
           description: Expand one or more navigation properties.
           type: string
-</IF DEFINED_ENABLE_RELATIONS>
-<IF DEFINED_ENABLE_SELECT>
+  </IF DEFINED_ENABLE_RELATIONS>
+  <IF DEFINED_ENABLE_SELECT>
         - name: $select
           in: query
           description: List of properties to be returned.
           type: string
-</IF DEFINED_ENABLE_SELECT>
+  </IF DEFINED_ENABLE_SELECT>
   <IF DUPLICATES>
-<IF DEFINED_ENABLE_ORDERBY>
+    <IF DEFINED_ENABLE_ORDERBY>
         - name: $orderby
           in: query
           description: Order by some property
           type: string
-</IF DEFINED_ENABLE_ORDERBY>
-<IF DEFINED_ENABLE_FILTER>
+    </IF DEFINED_ENABLE_ORDERBY>
+    <IF DEFINED_ENABLE_FILTER>
         - name: $filter
           in: query
           description: Filter expression to restrict returned rows.
           type: string
-</IF DEFINED_ENABLE_FILTER>
-<IF DEFINED_ENABLE_TOP>
+    </IF DEFINED_ENABLE_FILTER>
+    <IF DEFINED_ENABLE_TOP>
         - name: $top
           in: query
           description: Maximum number of rows to return.
           type: integer
-</IF DEFINED_ENABLE_TOP>
-<IF DEFINED_ENABLE_SKIP>
+    </IF DEFINED_ENABLE_TOP>
+    <IF DEFINED_ENABLE_SKIP>
         - name: $skip
           in: query
           description: Rows to skip before starting to return data.
           type: integer
-</IF DEFINED_ENABLE_SKIP>
-</IF DUPLICATES>
+    </IF DEFINED_ENABLE_SKIP>
+  </IF DUPLICATES>
       responses:
         '200':
           description: OK
@@ -458,8 +501,8 @@ paths:
 ;// ----------------------------------------------------------------------------
 ;// Get count via alternate key
 ;//
-<IF DEFINED_ENABLE_COUNT>
-<IF DUPLICATES>
+  <IF DEFINED_ENABLE_COUNT>
+    <IF DUPLICATES>
   '/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF ALPHA>''</IF ALPHA>{a<SegmentName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP>)/$count':
     get:
       summary: Count <structurePlural>
@@ -469,34 +512,35 @@ paths:
       tags:
         - <StructureNoplural>
       parameters:
-<SEGMENT_LOOP>
+      <SEGMENT_LOOP>
         - name: a<SegmentName>
           in: path
           description: <SEGMENT_DESC>
           required: true
           type: <IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>
-<IF DATE>
+        <IF DATE>
           format: date-time
-</IF DATE>
-<IF TIME>
+        </IF DATE>
+        <IF TIME>
           format: date-time
-</IF TIME>
-</SEGMENT_LOOP>
-<IF DEFINED_ENABLE_FILTER>
+        </IF TIME>
+      </SEGMENT_LOOP>
+      <IF DEFINED_ENABLE_FILTER>
         - name: $filter
           in: query
           description: Filter expression to restrict returned rows.
           type: string
-</IF DEFINED_ENABLE_FILTER>
+      </IF DEFINED_ENABLE_FILTER>
       responses:
         '200':
           description: OK
           schema:
             type: integer
-</IF DUPLICATES>
-</IF DEFINED_ENABLE_COUNT>
+    </IF DUPLICATES>
+  </IF DEFINED_ENABLE_COUNT>
 </ALTERNATE_KEY_LOOP>
 </IF DEFINED_ENABLE_ALTERNATE_KEYS>
+</IF STRUCTURE_ISAM>
 <IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
 ;//
 ;// ----------------------------------------------------------------------------
@@ -505,11 +549,10 @@ paths:
 <FIELD_LOOP>
 <IF NOTPKSEGMENT>
 <IF CUSTOM_NOT_HARMONY_EXCLUDE>
-<PRIMARY_KEY>
 ;//
 ;// Invividual property
 ;//
-  '/<StructurePlural>(<IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><SegmentName>=<IF ALPHA>''</IF ALPHA>{a<SegmentName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></IF SINGLE_SEGMENT>)/<FieldSqlName>':
+  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><SegmentName>=<IF ALPHA>''</IF ALPHA>{a<SegmentName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></IF SINGLE_SEGMENT></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>{RecordNumber}</IF STRUCTURE_RELATIVE>)/<FieldSqlName>':
     get:
       summary: Get <structureNoplural> property <FieldSqlName>
       description: Get <structureNoplural> property <FieldSqlName> via complete primary key.
@@ -518,6 +561,8 @@ paths:
       tags:
         - <StructureNoplural>
       parameters:
+    <IF STRUCTURE_ISAM>
+      <PRIMARY_KEY>
         <SEGMENT_LOOP>
         <IF SINGLE_SEGMENT>
         - name: key
@@ -535,6 +580,15 @@ paths:
           format: date-time
           </IF TIME>
           </SEGMENT_LOOP>
+      </PRIMARY_KEY>
+    </IF STRUCTURE_ISAM>
+    <IF STRUCTURE_RELATIVE>
+        - name: RecordNumber
+          in: path
+          description: Record number
+          required: true
+          type: integer
+    </IF STRUCTURE_RELATIVE>
       responses:
         '200':
           description: OK (the selected <structureNoplural> was founn and the requested property was returned)
@@ -545,7 +599,7 @@ paths:
 ;//
 ;// Invividual property - value only
 ;//
-  '/<StructurePlural>(<IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><SegmentName>=<IF ALPHA>''</IF ALPHA>{a<SegmentName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></IF SINGLE_SEGMENT>)/<FieldSqlName>/$value':
+  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><SegmentName>=<IF ALPHA>''</IF ALPHA>{a<SegmentName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></IF SINGLE_SEGMENT></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>{RecordNumber}</IF STRUCTURE_RELATIVE>)/<FieldSqlName>/$value':
     get:
       summary: Get <structureNoplural> property <FieldSqlName>
       description: Get <structureNoplural> property <FieldSqlName> via complete primary key, returning the raw value.
@@ -554,6 +608,8 @@ paths:
       tags:
         - <StructureNoplural>
       parameters:
+    <IF STRUCTURE_ISAM>
+      <PRIMARY_KEY>
         <SEGMENT_LOOP>
         <IF SINGLE_SEGMENT>
         - name: key
@@ -570,7 +626,16 @@ paths:
           <IF TIME>
           format: date-time
           </IF TIME>
-          </SEGMENT_LOOP>
+        </SEGMENT_LOOP>
+      </PRIMARY_KEY>
+    </IF STRUCTURE_ISAM>
+    <IF STRUCTURE_RELATIVE>
+        - name: RecordNumber
+          in: path
+          description: Record number
+          required: true
+          type: integer
+    </IF STRUCTURE_RELATIVE>
       responses:
         '200':
           description: OK (the selected <structureNoplural> was founn and the requested property was returned)
@@ -578,7 +643,6 @@ paths:
             type: <IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>
         '404':
           description: Not found (the specified <structureNoplural> was not found)
-</PRIMARY_KEY>
 </IF CUSTOM_NOT_HARMONY_EXCLUDE>
 </IF NOTPKSEGMENT>
 </FIELD_LOOP>
@@ -609,11 +673,16 @@ definitions:
 ;//
   <StructureNoplural>:
     required:
-<PRIMARY_KEY>
-<SEGMENT_LOOP>
+<IF STRUCTURE_ISAM>
+  <PRIMARY_KEY>
+    <SEGMENT_LOOP>
       - <FieldSqlname>
-</SEGMENT_LOOP>
-</PRIMARY_KEY>
+    </SEGMENT_LOOP>
+  </PRIMARY_KEY>
+</IF STRUCTURE_ISAM>
+<IF STRUCTURE_RELATIVE>
+      - RecordNumber
+</IF STRUCTURE_RELATIVE>
     properties:
 <FIELD_LOOP>
     <IF CUSTOM_NOT_HARMONY_EXCLUDE>

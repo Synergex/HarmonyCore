@@ -5,7 +5,7 @@
 ;                 : D:\SYNERGEX\HarmonyCore\HarmonyCore.Test.Repository\bin\Debu
 ;                 : Version 10.3.3e
 ;
-;  GENERATED      : 30-AUG-2018, 15:28:08
+;  GENERATED      : 31-AUG-2018, 15:45:39
 ;                 : Version 10.3.3e
 ;  EXPORT OPTIONS : [ALL] 
  
@@ -310,6 +310,8 @@ Field DATE_COMPLETED   Type DATE   Size 8   Stored YYYYMMDD
  
 Field NONAME_001   Type ALPHA   Size 20   Report Noview   Nonamelink
    Description "Spare space"
+   Long Description
+      "HARMONY_EXCLUDE"
  
 Key ORDER_NUMBER   ACCESS   Order ASCENDING   Dups NO
    Description "Order number"
@@ -405,6 +407,18 @@ Relation  1   ORDER_ITEMS ORDER_NUMBER_AND_LINE_ITEM   ORDERS ORDER_NUMBER
  
 Relation  2   ORDER_ITEMS ITEM_ORDERED   ITEMS ITEM_NUMBER
  
+Structure SYSPARAMS   RELATIVE
+   Description "System parameter file"
+ 
+Field PARAM_NAME   Type ALPHA   Size 30
+   Description "Parameter name"
+ 
+Field PARAM_VALUE   Type DECIMAL   Size 6
+   Description "Parameter value"
+ 
+Key RECORD_NUMBER   ACCESS   Order ASCENDING   Dups NO
+   Segment RECORD NUMBER
+ 
 Structure VENDORS   DBL ISAM
    Description "Vendor record"
  
@@ -495,6 +509,10 @@ File ORDERS   DBL ISAM   "DAT:orders.ism"
 File ORDER_ITEMS   DBL ISAM   "DAT:order_items.ism"
    Description "Order items file"
    Assign ORDER_ITEMS
+ 
+File SYSPARAMS   RELATIVE   "DAT:sysparams.ddf"
+   Description "System parameter file"
+   Assign SYSPARAMS
  
 File VENDORS   DBL ISAM   "DAT:vendors.ism"
    Description "Vendors file"
