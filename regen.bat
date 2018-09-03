@@ -15,11 +15,27 @@ rem Specify the names of the repository structures to generate code from:
 
 set DATA_STRUCTURES=CUSTOMERS ITEMS ORDERS ORDER_ITEMS VENDORS
 set FILE_STRUCTURES=%DATA_STRUCTURES%
+
+rem DATA_STRUCTURES Is a list all of structures that you wish to generate models and
+rem                 controllers for. In other words it declares all of the "entities"
+rem                 that are being represented and exposed by the environment.
+rem
+rem FILE_STRUCTURES If you don't have multi-record format files then this should be the
+rem                 same as DATA_STRUCTURES. But if you do then FILE_STRUCTURES should
+rem                 only list ONE of the structures assigned to each file, so this list
+rem                 will be a subset of DATA_STRUCTURES.
+
+rem ================================================================================================================================
+rem Specify optional "system parameter file" structure
+
 set PARAMSTR=SYSPARAMS
 
-rem DATA_STRUCTURES is used when processing all of the individual data structures
-rem FILE_STRUCTURES may be different if data for multiple structures is stored in a single file.
-rem In this case only one of those structures needs to be processed.
+rem In the sammple environment the system parameter file is a relative file that contains
+rem "next available record number" data for use in conjunction with POST (create with automated
+rem primary key assignment) operaitons. Naming the structure associated with that file here
+rem ensures that a copy of that file will be made available in the sample self-host environment
+rem along with other data files in the sample data folder. This mechanism will require customization
+rem for use in other environments.
 
 rem ================================================================================================================================
 rem Comment or uncomment the following lines to enable or disable optional features:
