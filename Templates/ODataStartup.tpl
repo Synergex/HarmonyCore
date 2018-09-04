@@ -70,8 +70,10 @@ import Harmony.Core.FileIO
 import Harmony.Core.Utility
 import Harmony.OData
 import Harmony.AspNetCore.Context
+<IF DEFINED_ENABLE_AUTHENTICATION>
 import Microsoft.AspNetCore.Authorization
 import Microsoft.AspNetCore.Authentication.JwtBearer
+</IF DEFINED_ENABLE_AUTHENTICATION>
 import Microsoft.AspNetCore.Builder
 import Microsoft.AspNetCore.Hosting
 import Microsoft.AspNetCore.Http
