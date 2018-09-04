@@ -653,15 +653,17 @@ paths:
 ;//
 ;// Configure an authentication server (Needs more work before implementation)
 ;//
-;//<IF DEFINED_ENABLE_AUTHENTICATION>
-;//securityDefinitions": {
-;//  oauth2schema:
-;//    type: oauth2
-;//    tokenUrl: http://localhost:5000/connect/token
-;//    flow: application
-;//    scopes:
-;//      global: global
-;//</IF DEFINED_ENABLE_AUTHENTICATION>
+<IF DEFINED_ENABLE_AUTHENTICATION>
+securityDefinitions:
+  OauthSecurity:
+    type: oauth2
+    flow: password
+    tokenUrl: <OAUTH_SERVER>/connect/token
+    scopes:
+      api1: Access to API1
+security:
+  - OauthSecurity: []
+</IF DEFINED_ENABLE_AUTHENTICATION>
 ;//----------------------------------------------------------------------------
 ;//
 ;// Definitions of data models 

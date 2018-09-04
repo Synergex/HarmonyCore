@@ -302,7 +302,7 @@ namespace SampleServices.Controllers
 
             ;;Add the new vendor
             DBContext.Vendors.Add(aVendor)
-            DBContext.SaveChanges()
+            DBContext.SaveChanges(keyFactory)
 
             mreturn Created(aVendor)
 
@@ -395,6 +395,7 @@ namespace SampleServices.Controllers
 
         endmethod
 
+        {Authorize(Roles="Manager")}
         {ODataRoute("Vendors(VendorNumber={aVendorNumber})")}
         ;;; <summary>
         ;;; Delete a vendor.

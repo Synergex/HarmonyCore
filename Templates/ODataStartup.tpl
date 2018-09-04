@@ -70,6 +70,8 @@ import Harmony.Core.FileIO
 import Harmony.Core.Utility
 import Harmony.OData
 import Harmony.AspNetCore.Context
+import Microsoft.AspNetCore.Authorization
+import Microsoft.AspNetCore.Authentication.JwtBearer
 import Microsoft.AspNetCore.Builder
 import Microsoft.AspNetCore.Hosting
 import Microsoft.AspNetCore.Http
@@ -132,11 +134,11 @@ namespace <NAMESPACE>
 <IF DEFINED_ENABLE_SWAGGER_DOCS>
             services.AddSwaggerGen()
 
-            services.AddMvcCore()
+            data mvcBuilder = services.AddMvcCore()
             &    .AddJsonFormatters()    ;;For PATCH
             &    .AddApiExplorer()        ;;Swagger UI
 <ELSE>
-            services.AddMvcCore()
+            data mvcBuilder = services.AddMvcCore()
             &    .AddJsonFormatters()    ;;For PATCH
 </IF DEFINED_ENABLE_SWAGGER_DOCS>
 
@@ -144,15 +146,26 @@ namespace <NAMESPACE>
             ;;-------------------------------------------------------
             ;;Enable authentication and authorization
 
-            lambda authenticationOptions(options)
+            lambda identityServerOptions(options)
             begin
                 options.Authority = "<OAUTH_SERVER>"
                 options.RequireHttpsMetadata = false
                 options.ApiName = "<OAUTH_API>"
             end
 
-            services.AddAuthentication("Bearer").AddIdentityServerAuthentication(authenticationOptions)
-            services.AddAuthorization()
+            lambda authenticationOptions(options)
+            begin
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme
+            end
+
+            lambda authorizationOptions(options)
+            begin
+				options.DefaultPolicy = new AuthorizationPolicyBuilder(JwtBearerDefaults.AuthenticationScheme).RequireAuthenticatedUser().Build()
+            end
+
+            services.AddAuthentication(authenticationOptions).AddIdentityServerAuthentication(identityServerOptions)
+            mvcBuilder.AddAuthorization(authorizationOptions)
 
 </IF DEFINED_ENABLE_AUTHENTICATION>
             ;;-------------------------------------------------------

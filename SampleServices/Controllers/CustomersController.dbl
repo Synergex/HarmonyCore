@@ -356,7 +356,7 @@ namespace SampleServices.Controllers
 
             ;;Add the new customer
             DBContext.Customers.Add(aCustomer)
-            DBContext.SaveChanges()
+            DBContext.SaveChanges(keyFactory)
 
             mreturn Created(aCustomer)
 
@@ -449,6 +449,7 @@ namespace SampleServices.Controllers
 
         endmethod
 
+        {Authorize(Roles="Manager")}
         {ODataRoute("Customers(CustomerNumber={aCustomerNumber})")}
         ;;; <summary>
         ;;; Delete a customer.

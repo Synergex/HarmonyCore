@@ -517,7 +517,7 @@ namespace SampleServices.Controllers
 
             ;;Add the new item
             DBContext.Items.Add(aItem)
-            DBContext.SaveChanges()
+            DBContext.SaveChanges(keyFactory)
 
             mreturn Created(aItem)
 
@@ -610,6 +610,7 @@ namespace SampleServices.Controllers
 
         endmethod
 
+        {Authorize(Roles="Manager")}
         {ODataRoute("Items(ItemNumber={aItemNumber})")}
         ;;; <summary>
         ;;; Delete a item.

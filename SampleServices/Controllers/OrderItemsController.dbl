@@ -250,7 +250,7 @@ namespace SampleServices.Controllers
 
             ;;Add the new orderItem
             DBContext.OrderItems.Add(aOrderItem)
-            DBContext.SaveChanges()
+            DBContext.SaveChanges(keyFactory)
 
             mreturn Created(aOrderItem)
 
@@ -350,6 +350,7 @@ namespace SampleServices.Controllers
 
         endmethod
 
+        {Authorize(Roles="Manager")}
         {ODataRoute("OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})")}
         ;;; <summary>
         ;;; Delete a orderItem.
