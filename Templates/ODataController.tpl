@@ -97,6 +97,11 @@ namespace <NAMESPACE>
 ;// GET ALL -------------------------------------------------------------------
 ;//
         {ODataRoute("<StructurePlural>")}
+  <IF DEFINED_ENABLE_AUTHENTICATION>
+    <IF USERTOKEN_ROLES_GET>
+        {Authorize(Roles="<ROLES_GET>")}
+    </IF USERTOKEN_ROLES_GET>
+  </IF DEFINED_ENABLE_AUTHENTICATION>
         {EnableQuery<API_ENABLE_QUERY_PARAMS>}
         ;;; <summary>
         ;;; Get all <StructurePlural>
@@ -111,6 +116,11 @@ namespace <NAMESPACE>
 ;// GET ONE -------------------------------------------------------------------
 ;//
         {ODataRoute("<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>)")}
+  <IF DEFINED_ENABLE_AUTHENTICATION>
+    <IF USERTOKEN_ROLES_GET>
+        {Authorize(Roles="<ROLES_GET>")}
+    </IF USERTOKEN_ROLES_GET>
+  </IF DEFINED_ENABLE_AUTHENTICATION>
         {EnableQuery<API_ENABLE_QUERY_PARAMS>}
         ;;; <summary>
         ;;; Get a single <StructureNoplural> by primary key.
@@ -152,6 +162,11 @@ namespace <NAMESPACE>
     <ALTERNATE_KEY_LOOP>
       <IF DUPLICATES>
         {ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
+        <IF DEFINED_ENABLE_AUTHENTICATION>
+          <IF USERTOKEN_ROLES_GET>
+        {Authorize(Roles="<ROLES_GET>")}
+          </IF USERTOKEN_ROLES_GET>
+        </IF DEFINED_ENABLE_AUTHENTICATION>
         {EnableQuery<API_ENABLE_QUERY_PARAMS>}
         ;;; <summary>
         ;;; Get <structurePlural> by alternate key key <KeyName>.
@@ -173,6 +188,11 @@ namespace <NAMESPACE>
         endmethod
       <ELSE>
         {ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
+        <IF DEFINED_ENABLE_AUTHENTICATION>
+          <IF USERTOKEN_ROLES_GET>
+        {Authorize(Roles="<ROLES_GET>")}
+          </IF USERTOKEN_ROLES_GET>
+        </IF DEFINED_ENABLE_AUTHENTICATION>
         {EnableQuery<API_ENABLE_QUERY_PARAMS>}
         ;;; <summary>
         ;;; Get <structureNoplural> by alternate key <KeyName>.
@@ -208,6 +228,11 @@ namespace <NAMESPACE>
         <IF NOTPKSEGMENT>
         <PRIMARY_KEY>
         {ODataRoute("<StructurePlural>(<IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP></IF SINGLE_SEGMENT>)/<FieldSqlName>")}
+        <IF DEFINED_ENABLE_AUTHENTICATION>
+          <IF USERTOKEN_ROLES_GET>
+        {Authorize(Roles="<ROLES_GET>")}
+          </IF USERTOKEN_ROLES_GET>
+        </IF DEFINED_ENABLE_AUTHENTICATION>
         ;;; <summary>
         ;;; Get the <FieldSqlName> property of a single <StructureNoplural>, by primary key.
         ;;; </summary>
@@ -242,6 +267,11 @@ namespace <NAMESPACE>
       </IF STRUCTURE_ISAM>
       <IF STRUCTURE_RELATIVE>
         {ODataRoute("<StructurePlural>({key})}
+        <IF DEFINED_ENABLE_AUTHENTICATION>
+          <IF USERTOKEN_ROLES_GET>
+        {Authorize(Roles="<ROLES_GET>")}
+          </IF USERTOKEN_ROLES_GET>
+        </IF DEFINED_ENABLE_AUTHENTICATION>
         ;;; <summary>
         ;;; Get the <FieldSqlName> property of a single <StructureNoplural>, by record number.
         ;;; </summary>
@@ -267,6 +297,11 @@ namespace <NAMESPACE>
 ;// POST ----------------------------------------------------------------------
 ;//
 <IF DEFINED_ENABLE_POST>
+  <IF DEFINED_ENABLE_AUTHENTICATION>
+    <IF USERTOKEN_ROLES_POST>
+        {Authorize(Roles="<ROLES_POST>")}
+    </IF USERTOKEN_ROLES_POST>
+  </IF DEFINED_ENABLE_AUTHENTICATION>
         {ODataRoute("<StructurePlural>")}
         ;;; <summary>
         ;;; Create a new <structureNoplural> (automatically assigned primary key).
@@ -308,6 +343,11 @@ namespace <NAMESPACE>
 ;// PUT -----------------------------------------------------------------------
 ;//
 <IF DEFINED_ENABLE_PUT>
+  <IF DEFINED_ENABLE_AUTHENTICATION>
+    <IF USERTOKEN_ROLES_PUT>
+        {Authorize(Roles="<ROLES_PUT>")}
+    </IF USERTOKEN_ROLES_PUT>
+  </IF DEFINED_ENABLE_AUTHENTICATION>
         {ODataRoute("<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>)")}
         ;;; <summary>
         ;;; Create (with a client-supplied primary key) or replace a <structureNoplural>.
@@ -385,6 +425,11 @@ namespace <NAMESPACE>
 ;// PATCH ---------------------------------------------------------------------
 ;//
 <IF DEFINED_ENABLE_PATCH>
+  <IF DEFINED_ENABLE_AUTHENTICATION>
+    <IF USERTOKEN_ROLES_PATCH>
+        {Authorize(Roles="<ROLES_PATCH>")}
+    </IF USERTOKEN_ROLES_PATCH>
+  </IF DEFINED_ENABLE_AUTHENTICATION>
         {ODataRoute("<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>RecordNumber={aRecordNumber}</IF STRUCTURE_RELATIVE>)")}
         ;;; <summary>
         ;;; Patch  (partial update) a <structureNoplural>.
@@ -452,6 +497,11 @@ namespace <NAMESPACE>
 ;// DELETE --------------------------------------------------------------------
 ;//
 <IF DEFINED_ENABLE_DELETE>
+  <IF DEFINED_ENABLE_AUTHENTICATION>
+    <IF USERTOKEN_ROLES_DELETE>
+        {Authorize(Roles="<ROLES_DELETE>")}
+    </IF USERTOKEN_ROLES_DELETE>
+  </IF DEFINED_ENABLE_AUTHENTICATION>
         {ODataRoute("<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>RecordNumber={aRecordNumber}</IF STRUCTURE_RELATIVE>)")}
         ;;; <summary>
         ;;; Delete a <structureNoplural>.
