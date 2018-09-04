@@ -486,6 +486,26 @@ namespace SampleServices.Test.UnitTests
 			data customers, @OrderItem, JsonConvert.DeserializeObject<OrderItem>(result)
 		endmethod
 
-	endclass
+        {TestMethod}
+        public method ExpandAndSelect1, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/Customers(8)?$expand=REL_Orders($expand=REL_OrderItems($expand=REL_ItemOrdered))&$select=CustomerNumber,Name").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
+        endmethod
+
+        {TestMethod}
+        public method ExpandAndSelect2, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/Customers(8)?$expand=REL_Orders($select=PlacedBy;$expand=REL_OrderItems($expand=REL_ItemOrdered))").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
+        endmethod
+
+    endclass
 
 endnamespace
