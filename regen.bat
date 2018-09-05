@@ -6,9 +6,9 @@ set SolutionDir=%~dp0
 rem ================================================================================================================================
 rem Specify the names of the projects to generate code into:
 
-set ServicesProject=SampleServices
-set HostProject=SampleServices.Host
-set TestProject=SampleServices.Test
+set ServicesProject=Services
+set HostProject=Services.Host
+set TestProject=Services.Test
 
 rem ================================================================================================================================
 rem Specify the names of the repository structures to generate code from:
@@ -195,7 +195,7 @@ rem         -e -r -lf
 rem if ERRORLEVEL 1 goto error
 
 rem Generate method dispatcher classes
-rem codegen -smc SampleXfplEnvironment\smc.xml ^
+rem codegen -smc XfplEnvironment\smc.xml ^
 rem         -interface %SMC_INTERFACE% ^
 rem         -t InterfaceDispatcher ^
 rem         -o %SolutionDir%%PROJECT% ^
@@ -204,7 +204,7 @@ rem         -ut MODELS_NAMESPACE=%PROJECT%.Models ^
 rem         -e -r -lf
 rem if ERRORLEVEL 1 goto error
 
-rem codegen -smc SampleXfplEnvironment\smc.xml ^
+rem codegen -smc XfplEnvironment\smc.xml ^
 rem         -interface %SMC_INTERFACE% ^
 rem         -t InterfaceMethodDispatchers ^
 rem         -o %SolutionDir%%PROJECT% ^
@@ -225,11 +225,11 @@ rem ============================================================================
 rem Generate OData action return data models
 
 rem set CODEGEN_TPLDIR=Templates\TraditionalBridge
-rem set PROJECT=SampleServices.Models
+rem set PROJECT=Services.Models
 rem set SMC_INTERFACE=SampleXfplEnv
 rem set XFPL_SMCPATH=
 
-rem codegen -smc SampleXfplEnvironment\smc.xml ^
+rem codegen -smc XfplEnvironment\smc.xml ^
 rem         -interface %SMC_INTERFACE% ^
 rem         -t ODataActionModels ^
 rem         -o %SolutionDir%%PROJECT% ^
