@@ -3,16 +3,18 @@
 
 
 using IdentityServer4;
+using IdentityServer.Data;
 using IdentityServer.Models;
+using IdentityServer4.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Reflection;
-using IdentityServer.Data;
 
 namespace IdentityServer
 {
@@ -29,6 +31,15 @@ namespace IdentityServer
 
         public void ConfigureServices(IServiceCollection services)
         {
+            //++Jeff and Steve added this in an attempt to get CORS enabled
+            var _loggerFactory = new Microsoft.Extensions.Logging.LoggerFactory();
+            var cors = new DefaultCorsPolicyService(_loggerFactory.CreateLogger<DefaultCorsPolicyService>())
+            {
+                AllowAll = true
+            };
+            services.AddSingleton<ICorsPolicyService>(cors);
+            //--Jeff and Steve added this in an attempt to get CORS enabled
+
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlite(Configuration.GetConnectionString("Users")));
 
