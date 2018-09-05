@@ -24,7 +24,7 @@ namespace Services
     ;;; <summary>
     ;;; Builds an entity framework entity data model.
     ;;; </summary>
-    public class EdmBuilder
+    public partial class EdmBuilder
 
         private static mEdmModel, @IEdmModel
 
@@ -51,6 +51,9 @@ namespace Services
                 ;;using the "Fluent API" here.
                 builder.EntityType<OrderItem>().HasKey<OrderItem,int>("OrderNumber")
                 builder.EntityType<OrderItem>().HasKey<OrderItem,int>("ItemNumber")
+ 
+                ;;If we have a GetEdmModelCustom method, call it 
+                GetEdmModelCustom(serviceProvider, builder)
 
                 data tempModel = (@EdmModel)builder.GetEdmModel()
 
@@ -85,6 +88,13 @@ namespace Services
 
             mreturn mEdmModel
 
+        endmethod
+
+        ;;Declare the GetEdmModelCustom partial method
+        ;;This method can be implemented in a partial class to provide custom EDM configuration code
+        partial method GetEdmModelCustom, void
+            required in serviceProvider, @IServiceProvider
+            required in builder, @ODataConventionModelBuilder
         endmethod
 
     endclass
