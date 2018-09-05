@@ -57,7 +57,6 @@
 ;;    Microsoft.AspNetCore.OData
 ;;    Microsoft.AspNetCore.StaticFiles
 ;;    Microsoft.EntityFrameworkCore
-;;    Microsoft.EntityFrameworkCore.Relational
 ;;    Microsoft.OData.Core
 ;;    Microsoft.OData.Edm
 ;;    Microsoft.Spatial
@@ -301,11 +300,6 @@ namespace <NAMESPACE>
                 builder.MapODataServiceRoute("odata", "odata", model)
             end
 
-            ;;-------------------------------------------------------
-            ;;Enable MVC
-
-            app.UseMvc(mvcBuilder)
-
 <IF DEFINED_ENABLE_CORS>
             ;;-------------------------------------------------------
             ;;Add "Cross Origin Resource Sharing" (CORS) support
@@ -320,6 +314,11 @@ namespace <NAMESPACE>
             app.UseCors(corsOptions)
 
 </IF DEFINED_ENABLE_CORS>
+            ;;-------------------------------------------------------
+            ;;Enable MVC
+
+            app.UseMvc(mvcBuilder)
+
 <IF DEFINED_ENABLE_SWAGGER_DOCS>
             ;;-------------------------------------------------------
             ;;Configure the web server environment
