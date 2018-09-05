@@ -149,6 +149,10 @@ paths:
             type: array
             items:
               $ref: '#/definitions/<StructureNoplural>'
+        <IF DEFINED_ENABLE_AUTHENTICATION>
+        '401':
+          description: Unauthorized
+        </IF DEFINED_ENABLE_AUTHENTICATION>
 ;//
 ;// POST
 ;//
@@ -174,6 +178,10 @@ paths:
             $ref: '#/definitions/<StructureNoplural>'
         '400':
           description: Bad request
+        <IF DEFINED_ENABLE_AUTHENTICATION>
+        '401':
+          description: Unauthorized
+        </IF DEFINED_ENABLE_AUTHENTICATION>
 </IF DEFINED_ENABLE_POST>
 ;//
 ;// GET Count
@@ -199,6 +207,10 @@ paths:
           description: OK
           schema:
             type: integer
+        <IF DEFINED_ENABLE_AUTHENTICATION>
+        '401':
+          description: Unauthorized
+        </IF DEFINED_ENABLE_AUTHENTICATION>
 </IF DEFINED_ENABLE_COUNT>
 ;//
 ;//----------------------------------------------------------------------------
@@ -259,6 +271,10 @@ paths:
           description: OK (the requested <structureNoplural> was found and returned)
           schema:
             $ref: '#/definitions/<StructureNoplural>'
+        <IF DEFINED_ENABLE_AUTHENTICATION>
+        '401':
+          description: Unauthorized
+        </IF DEFINED_ENABLE_AUTHENTICATION>
         '404':
           description: Not found (the requested <structureNoplural> was not found)
 ;//
@@ -301,6 +317,10 @@ paths:
       responses:
         '204':
           description: No content (the specified <structureNoplural> was deleted)
+        <IF DEFINED_ENABLE_AUTHENTICATION>
+        '401':
+          description: Unauthorized
+        </IF DEFINED_ENABLE_AUTHENTICATION>
         '404':
           description: Not found content (the specified <structureNoplural> was not found)
 </IF DEFINED_ENABLE_DELETE>
@@ -356,6 +376,10 @@ paths:
           description: No Content (the <structureNoplural> was updated)
         '400':
           description: Bad request
+        <IF DEFINED_ENABLE_AUTHENTICATION>
+        '401':
+          description: Unauthorized
+        </IF DEFINED_ENABLE_AUTHENTICATION>
 </IF DEFINED_ENABLE_PUT>
 ;//
 ;// ----------------------------------------------------------------------------
@@ -405,8 +429,12 @@ paths:
           description: No content (the specified <structureNoplural> was patched)
         '400':
           description: Bad request
+        <IF DEFINED_ENABLE_AUTHENTICATION>
+        '401':
+          description: Unauthorized
+        </IF DEFINED_ENABLE_AUTHENTICATION>
         '404':
-          description: Not found content (the specified <structureNoplural> was not found)
+          description: Not found (the specified <structureNoplural> was not found)
 </IF DEFINED_ENABLE_PUT>
 ;//
 ;//----------------------------------------------------------------------------
@@ -490,6 +518,10 @@ paths:
         '200':
           description: OK
           schema:
+        <IF DEFINED_ENABLE_AUTHENTICATION>
+        '401':
+          description: Unauthorized
+        </IF DEFINED_ENABLE_AUTHENTICATION>
   <IF DUPLICATES>
             type: array
             items:
@@ -536,6 +568,10 @@ paths:
           description: OK
           schema:
             type: integer
+        <IF DEFINED_ENABLE_AUTHENTICATION>
+        '401':
+          description: Unauthorized
+        </IF DEFINED_ENABLE_AUTHENTICATION>
     </IF DUPLICATES>
   </IF DEFINED_ENABLE_COUNT>
 </ALTERNATE_KEY_LOOP>
@@ -594,6 +630,10 @@ paths:
           description: OK (the selected <structureNoplural> was founn and the requested property was returned)
           schema:
             type: <IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>
+        <IF DEFINED_ENABLE_AUTHENTICATION>
+        '401':
+          description: Unauthorized
+        </IF DEFINED_ENABLE_AUTHENTICATION>
         '404':
           description: Not found (the specified <structureNoplural> was not found)
 ;//
@@ -641,6 +681,10 @@ paths:
           description: OK (the selected <structureNoplural> was founn and the requested property was returned)
           schema:
             type: <IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>
+        <IF DEFINED_ENABLE_AUTHENTICATION>
+        '401':
+          description: Unauthorized
+        </IF DEFINED_ENABLE_AUTHENTICATION>
         '404':
           description: Not found (the specified <structureNoplural> was not found)
 </IF CUSTOM_NOT_HARMONY_EXCLUDE>
