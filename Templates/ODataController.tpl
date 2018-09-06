@@ -70,7 +70,7 @@ namespace <NAMESPACE>
     ;;; <summary>
     ;;; OData controller for <StructurePlural>
     ;;; </summary>
-    public class <StructurePlural>Controller extends ODataController
+    public partial class <StructurePlural>Controller extends ODataController
     
         public readwrite property DBContext, @<SERVICES_NAMESPACE>.DBContext
 <IF DEFINED_ENABLE_POST>
