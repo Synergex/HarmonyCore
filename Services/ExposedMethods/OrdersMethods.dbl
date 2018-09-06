@@ -1,0 +1,68 @@
+import System
+import System.Collections.Generic
+import System.Text
+import Services
+import Services.Models
+import Harmony.Core.Interface
+
+namespace Services.ExposedMethods
+
+	public class OrdersMethods
+
+        private readwrite property mDbContext, @Services.DBContext
+        private readwrite property mServiceProvider, @IServiceProvider
+
+        ;;; <summary>
+        ;;; Constructor
+        ;;; </summary>
+        ;;; <param name="aDbContext">DBContext supplied by dependency injection.</param>
+        ;;; <param name="aServicesProvider">Services provider supplied by dependency injection.</param>
+        public method OrdersMethods
+            required in aDbContext, @Services.DbContext
+            required in aServiceProvider, @IServiceProvider
+        proc
+            mDbContext = aDbContext
+            mServiceProvider = aServiceProvider
+        endmethod
+
+        public method CreateNewOrder, int
+            required in aOrder, @Order
+            required in aOrderItems, @ICollection<OrderItem>
+        proc
+            ;;Validate inbound data (we're not a controller so we can't use ModelState!)
+
+            if (aOrderItems.Count<1)
+                throw new ApplicationException("No items were provided!")
+
+            ;TODO: Need more data validation
+            ;;Customer ID needs to be valid
+            ;;Item ID's need to be valid
+            ;;And more
+
+            ;;Allocate the next available order number to the new order
+            disposable data keyFactory = (@IPrimaryKeyFactory)mServiceProvider.GetService(^typeof(IPrimaryKeyFactory))
+            keyFactory.AssignPrimaryKey(aOrder)
+
+            ;;Propagate the new order number to the order items, and polulate line item numbers
+            data item, @OrderItem
+            data itemNumber = 0
+            foreach item in aOrderItems
+            begin
+                item.OrderNumber = aOrder.OrderNumber
+                item.ItemNumber = (itemNumber+=1)
+            end
+
+            ;;Save the new order
+            mDbContext.Orders.Add(aOrder)
+            mDbContext.OrderItems.AddRange(aOrderItems)
+            mDbContext.SaveChanges(keyFactory)
+
+            ;TODO: What happens if something fails?
+
+            mreturn aOrder.OrderNumber
+
+        endmethod
+
+    endclass
+
+endnamespace
