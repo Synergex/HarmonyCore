@@ -6,51 +6,113 @@ import System.Linq
 
 namespace Harmony.Core.Context
 
-	public static class IDataObjectProviderExtensions
-		public static extension method ExecuteTransaction, void
-			provider, @IDataObjectProvider
-			created, @IEnumerable<DataObjectBase>
-			updated, @IEnumerable<DataObjectBase>
-			deleted, @IEnumerable<DataObjectBase>
-		proc
-			data ioObjectLookup = new Dictionary<DataObjectMetadataBase, IDataObjectIO>()
+    public static class IDataObjectProviderExtensions
+        public static extension method ExecuteTransaction, void
+            provider, @IDataObjectProvider
+            created, @IEnumerable<DataObjectBase>
+            updated, @IEnumerable<DataObjectBase>
+            deleted, @IEnumerable<DataObjectBase>
+        proc
+            data ioObjectLookup = new Dictionary<DataObjectMetadataBase, IDataObjectIO>()
 
-			lambda GetOrCreate(dataObject)
-			begin
-				data ioObject, @IDataObjectIO
-				if(!ioObjectLookup.TryGetValue(dataObject.Metadata, ioObject))
-				begin
-					ioObject = provider.GetFileIO(dataObject.GetType())
-					ioObjectLookup.Add(dataObject.Metadata, ioObject)
-				end
-				mreturn ioObject
-			end
-			;;there's no error control in here
-			;;additionally we should lock all of the deleted and updated records prior to actually executing the operation
-			;;it would be nice to create a two phase commit for creating new records that would allow us to have pretty complete transaction support
-			data ioHelper, @Func<DataObjectBase, IDataObjectIO>, GetOrCreate
-			data dataObject, @DataObjectBase
-			foreach dataObject in deleted
-			begin
-				data ioObject = ioHelper(dataObject)
-				ioObject.DeleteRecordUsingGRFA(dataObject)
-			end
+            lambda GetOrCreate(dataObject)
+            begin
+                data ioObject, @IDataObjectIO
+                if(!ioObjectLookup.TryGetValue(dataObject.Metadata, ioObject))
+                begin
+                    ioObject = provider.GetFileIO(dataObject.GetType())
+                    ioObjectLookup.Add(dataObject.Metadata, ioObject)
+                end
+                mreturn ioObject
+            end
+            ;;we lock all of the deleted and updated records prior to actually executing the operation
+            ;;all locks are manual, and must be maintained until we make it to the finally block
+            data ioHelper, @Func<DataObjectBase, IDataObjectIO>, GetOrCreate
+            data dataObject, @DataObjectBase
+            data maybeRollbackStored = new List<DataObjectBase>()
+            data maybeRollbackUpdated = new List<DataObjectBase>()
+            try
+            begin
+                ;;LOCK PHASE
+                ;;grab manual locks on all deleted records
+                ;;grab manual locks on all updated records
+                foreach dataObject in deleted
+                begin
+                    data ioObject = ioHelper(dataObject)
+                    FileIOErrorHelper.EnsureSuccess(ioObject.ManualLockUsingGRFA(dataObject))
+                end
 
-			foreach dataObject in updated
-			begin
-				data ioObject = ioHelper(dataObject)
-				ioObject.UpdateRecordUsingGRFA(dataObject)
-			end
+                foreach dataObject in updated
+                begin
+                    data ioObject = ioHelper(dataObject)
+                    FileIOErrorHelper.EnsureSuccess(ioObject.ManualLockUsingGRFA(dataObject))
+                end
 
-			foreach dataObject in created
-			begin
-				data ioObject = ioHelper(dataObject)
-				ioObject.CreateRecord(dataObject)
-			end
+                ;;WRITE PHASE
+                ;;keep a list of stored/updated records for rollback
+                ;;store created records, keep manual lock
+                ;;write updated records, keep manual lock
+                ;;delete records
+                foreach dataObject in created
+                begin
+                    data ioObject = ioHelper(dataObject)
+                    FileIOErrorHelper.EnsureSuccess(ioObject.CreateRecord(dataObject, true))
+                    maybeRollbackStored.Add(dataObject)
+                end
 
+                foreach dataObject in updated
+                begin
+                    data ioObject = ioHelper(dataObject)
+                    FileIOErrorHelper.EnsureSuccess(ioObject.UpdateRecordUsingGRFA(dataObject))
+                    maybeRollbackUpdated.Add(dataObject)
+                end
 
-		endmethod
+                ;;TODO: it would be nice to stage this somehow in case we loose a network link or something
+                ;;this would also be needed to be able to plug all the way into an external transaction system that works with multiple providers
+                foreach dataObject in deleted
+                begin
+                    data ioObject = ioHelper(dataObject)
+                    FileIOErrorHelper.EnsureSuccess(ioObject.DeleteRecordUsingGRFA(dataObject, true))
+                end
+            end
+            catch(ex, @Exception)
+            begin
+                ;;ROLLBACK PHASE
+                ;;delete created records
+                ;;write original record values for all actually written update records
+                ;;delete records cant fail, no need to rollback anything from this phase
 
-	endclass
+                foreach dataObject in maybeRollbackStored
+                begin
+                    data ioObject = ioHelper(dataObject)
+                    ;;GRFA has been updated by the prior store
+                    FileIOErrorHelper.EnsureSuccess(ioObject.DeleteRecordUsingGRFA(dataObject, true))
+                end
+
+                foreach dataObject in maybeRollbackUpdated
+                begin
+                    data ioObject = ioHelper(dataObject)
+                    dataObject.RestoreOriginalData() ;;this wont actually change the GRFA just the record data
+                    FileIOErrorHelper.EnsureSuccess(ioObject.UpdateRecordUsingGRFA(dataObject))
+                end
+                ;;rethrow to continue the abort processing up the chain
+                throw
+            end
+            finally
+            begin
+                ;;COMMIT/FINISH PHASE
+                ;;unlock all records by disposing IDataObjectIO's
+                data dataIOkvp, KeyValuePair<DataObjectMetadataBase, IDataObjectIO>
+                foreach dataIOkvp in ioObjectLookup
+                begin
+                    if(dataIOkvp.Value .is. IDisposable)
+                        ((@IDisposable)dataIOkvp.Value).Dispose()
+                end
+            end
+            endtry
+
+        endmethod
+
+    endclass
 
 endnamespace

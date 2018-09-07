@@ -5,713 +5,716 @@ import System.Text
 
 namespace Harmony.Core.FileIO
 
-	public class IsamDataObjectIO<T(DataObjectBase)> extends DataObjectIOBase<T> implements IDisposable
-		;;file acces modes 	
-		private enum fileAccessMode
-			FindFirstRecord
-			FindRecord
-			FindLastRecord
-			ReadFirstRecord
-			ReadRecord
-			ReadRecordWithGRFA
-			ReadNextRecord
-			ReadPreviousRecord
-			ReadLastRecord
-			CreateRecord
-			UpdateRecord
-			DeleteRecord
-			WritesRecord
-		endenum
+    public class IsamDataObjectIO<T(DataObjectBase)> extends DataObjectIOBase<T> implements IDisposable
+        ;;file acces modes 	
+        private enum fileAccessMode
+            FindFirstRecord
+            FindRecord
+            FindLastRecord
+            ReadFirstRecord
+            ReadRecord
+            ReadRecordWithGRFA
+            ReadNextRecord
+            ReadPreviousRecord
+            ReadLastRecord
+            CreateRecord
+            UpdateRecord
+            DeleteRecord
+            WritesRecord
+        endenum
 
 
-		mChannelManager, @IFileChannelManager
-		mChannel, int
-		mOpenMode, FileOpenMode
-		mFileName, @string
-		public method IsamDataObjectIO
-			req in channelManager, @IFileChannelManager
-			req in fileName, @string
-			req in openMode, FileOpenMode
-		proc
-			mChannelManager = channelManager
-			mOpenMode = openMode
-			mFileName = fileName
-			mChannel = mChannelManager.GetChannel(mFileName, mOpenMode)
-		endmethod
+        mChannelManager, @IFileChannelManager
+        mChannel, int
+        mOpenMode, FileOpenMode
+        mFileName, @string
+        public method IsamDataObjectIO
+            req in channelManager, @IFileChannelManager
+            req in fileName, @string
+            req in openMode, FileOpenMode
+        proc
+            mChannelManager = channelManager
+            mOpenMode = openMode
+            mFileName = fileName
+            mChannel = mChannelManager.GetChannel(mFileName, mOpenMode)
+        endmethod
 
-		method ~IsamDataObjectIO
-		proc
-			Dispose(true)
-		endmethod
+        method ~IsamDataObjectIO
+        proc
+            Dispose(true)
+        endmethod
 
-		protected override method Dispose, void
-			isFinalizer, boolean
-		proc
-			parent.Dispose(isFinalizer)
-			if(mChannel > 0)
-				mChannelManager.ReturnChannel(mChannel)
-			mChannel = 0
-		endmethod
+        protected override method Dispose, void
+            isFinalizer, boolean
+        proc
+            parent.Dispose(isFinalizer)
+            if(mChannel > 0)
+                mChannelManager.ReturnChannel(mChannel)
+            mChannel = 0
+        endmethod
 
-		protected override method Find, FileAccessResults
-			in req keyOfReference, int
-			in req keyValue, a
-			in req operation, FindOperation
-			in req lockRecord, boolean
-		proc
-			data lockValue, int, lockRecord ? Q_AUTO_LOCK : Q_NO_LOCK
-			try
-			begin
-				do forever
-				begin
-					if(operation == FindOperation.FromBeginingOfFile && %size(keyValue) == 0) then
-					begin
-						using mOpenMode select
-						(FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
-						begin
-							;;TODO why is this only 6 bytes?
-							find(mChannel,, ^FIRST, LOCK:lockValue)
-							&	[$ERR_EOF = end_of_file,
-							&	$ERR_LOCKED = record_locked,
-							&	$ERR_KEYNOT = key_not_found]
-							mreturn FileAccessResults.Success
-						end
-						(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
-						begin
-							find(mChannel,, ^FIRST, KEYNUM:keyOfReference, LOCK:lockValue)
-							&	[$ERR_EOF = end_of_file,
-							&	$ERR_LOCKED = record_locked,
-							&	$ERR_KEYNOT = key_not_found]
-							mreturn FileAccessResults.Success
-						end
-						(FileOpenMode.InputSequential,FileOpenMode.OutputSequential),
-						begin
-							find(mChannel,, ^FIRST, LOCK:lockValue)
-							&	[$ERR_EOF = end_of_file]
-							mreturn FileAccessResults.Success
-						end
-						endusing
-					end
-					else if(operation == FindOperation.ToEndOfFile && %size(keyValue) == 0) then
-					begin
-						using mOpenMode select
-						(FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
-						begin
-							find(mChannel,, ^LAST, LOCK:lockValue)
-							&	[$ERR_EOF = end_of_file,
-							&	$ERR_LOCKED = record_locked,
-							&	$ERR_KEYNOT = key_not_found]
-							mreturn FileAccessResults.Success
-						end
-						(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
-						begin
-							find(mChannel,, ^LAST, KEYNUM:keyOfReference, LOCK:lockValue)
-							&	[$ERR_EOF = end_of_file,
-							&	$ERR_LOCKED = record_locked,
-							&	$ERR_KEYNOT = key_not_found]
-							mreturn FileAccessResults.Success
-						end
-						(FileOpenMode.InputSequential,FileOpenMode.OutputSequential),
-						begin
-							find(mChannel,, ^LAST, LOCK:lockValue)
-							&	[$ERR_EOF = end_of_file]
-							mreturn FileAccessResults.Success
-						end
-						endusing
-					end
-					else if(keyOfReference > -1) then
-					begin
-						using mOpenMode select
-						(FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
-						begin
-							find(mChannel,, keyValue, LOCK:lockValue)
-							&	[$ERR_EOF = end_of_file,
-							&	$ERR_LOCKED = record_locked,
-							&	$ERR_KEYNOT = key_not_found]
-							mreturn FileAccessResults.Success
-						end
-						(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
-						begin
-							find(mChannel,, keyValue, KEYNUM:keyOfReference, LOCK:lockValue)
-							&	[$ERR_EOF = end_of_file,
-							&	$ERR_LOCKED = record_locked,
-							&	$ERR_KEYNOT = key_not_found]
-							mreturn FileAccessResults.Success
-						end
-						endusing
-					end
-					else if(keyOfReference == -1)
-					begin
-						using mOpenMode select
-						(FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
-						begin
-							find(mChannel, RFA:keyValue, LOCK:lockValue)
-							&	[$ERR_EOF = end_of_file,
-							&	$ERR_LOCKED = record_locked,
-							&	$ERR_KEYNOT = key_not_found]
-							mreturn FileAccessResults.Success
-						end
-						(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
-						begin
-							find(mChannel, RFA:keyValue, LOCK:lockValue)
-							&	[$ERR_EOF = end_of_file,
-							&	$ERR_LOCKED = record_locked,
-							&	$ERR_KEYNOT = key_not_found]
-							mreturn FileAccessResults.Success
-						end
-						endusing
-					end
-					throw new NotImplementedException("FileOpenMode/Operation mismatch")
+        protected override method Find, FileAccessResults
+            in req keyOfReference, int
+            in req keyValue, a
+            in req operation, FindOperation
+            in req lockRecord, int
+        proc
+            data lockValue, int, lockRecord
+            try
+            begin
+                do forever
+                begin
+                    if(operation == FindOperation.FromBeginingOfFile && %size(keyValue) == 0) then
+                    begin
+                        using mOpenMode select
+                        (FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
+                        begin
+                            ;;TODO why is this only 6 bytes?
+                            find(mChannel,, ^FIRST, LOCK:lockValue)
+                            &    [$ERR_EOF = end_of_file,
+                            &    $ERR_LOCKED = record_locked,
+                            &    $ERR_KEYNOT = key_not_found]
+                            mreturn FileAccessResults.Success
+                        end
+                        (FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
+                        begin
+                            find(mChannel,, ^FIRST, KEYNUM:keyOfReference, LOCK:lockValue)
+                            &    [$ERR_EOF = end_of_file,
+                            &    $ERR_LOCKED = record_locked,
+                            &    $ERR_KEYNOT = key_not_found]
+                            mreturn FileAccessResults.Success
+                        end
+                        (FileOpenMode.InputSequential,FileOpenMode.OutputSequential),
+                        begin
+                            find(mChannel,, ^FIRST, LOCK:lockValue)
+                            &    [$ERR_EOF = end_of_file]
+                            mreturn FileAccessResults.Success
+                        end
+                        endusing
+                    end
+                    else if(operation == FindOperation.ToEndOfFile && %size(keyValue) == 0) then
+                    begin
+                        using mOpenMode select
+                        (FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
+                        begin
+                            find(mChannel,, ^LAST, LOCK:lockValue)
+                            &    [$ERR_EOF = end_of_file,
+                            &    $ERR_LOCKED = record_locked,
+                            &    $ERR_KEYNOT = key_not_found]
+                            mreturn FileAccessResults.Success
+                        end
+                        (FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
+                        begin
+                            find(mChannel,, ^LAST, KEYNUM:keyOfReference, LOCK:lockValue)
+                            &    [$ERR_EOF = end_of_file,
+                            &    $ERR_LOCKED = record_locked,
+                            &    $ERR_KEYNOT = key_not_found]
+                            mreturn FileAccessResults.Success
+                        end
+                        (FileOpenMode.InputSequential,FileOpenMode.OutputSequential),
+                        begin
+                            find(mChannel,, ^LAST, LOCK:lockValue)
+                            &    [$ERR_EOF = end_of_file]
+                            mreturn FileAccessResults.Success
+                        end
+                        endusing
+                    end
+                    else if(keyOfReference > -1) then
+                    begin
+                        using mOpenMode select
+                        (FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
+                        begin
+                            find(mChannel,, keyValue, LOCK:lockValue)
+                            &    [$ERR_EOF = end_of_file,
+                            &    $ERR_LOCKED = record_locked,
+                            &    $ERR_KEYNOT = key_not_found]
+                            mreturn FileAccessResults.Success
+                        end
+                        (FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
+                        begin
+                            find(mChannel,, keyValue, KEYNUM:keyOfReference, LOCK:lockValue)
+                            &    [$ERR_EOF = end_of_file,
+                            &    $ERR_LOCKED = record_locked,
+                            &    $ERR_KEYNOT = key_not_found]
+                            mreturn FileAccessResults.Success
+                        end
+                        endusing
+                    end
+                    else if(keyOfReference == -1)
+                    begin
+                        using mOpenMode select
+                        (FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
+                        begin
+                            find(mChannel, RFA:keyValue, LOCK:lockValue)
+                            &    [$ERR_EOF = end_of_file,
+                            &    $ERR_LOCKED = record_locked,
+                            &    $ERR_KEYNOT = key_not_found]
+                            mreturn FileAccessResults.Success
+                        end
+                        (FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
+                        begin
+                            find(mChannel, RFA:keyValue, LOCK:lockValue)
+                            &    [$ERR_EOF = end_of_file,
+                            &    $ERR_LOCKED = record_locked,
+                            &    $ERR_KEYNOT = key_not_found]
+                            mreturn FileAccessResults.Success
+                        end
+                        endusing
+                    end
+                    throw new NotImplementedException("FileOpenMode/Operation mismatch")
 
-		end_of_file,
-					mreturn OnEOF(false, lockRecord, keyValue, keyOfReference, "Find")
-		record_locked,
-					if(!OnRecordLocked()) then
-						mreturn FileAccessResults.RecordIsLocked
-					else
-						nextloop
-		key_not_found,
-					mreturn OnKeyNotFound(lockRecord)
-				end
-			end
-			catch(ex, @FileIOException)
-				mreturn OnFileIOException(lockRecord, "", "Find", ex)
-			catch(ex, @Exception)
-				mreturn OnException(lockRecord, "", "Find", ex)
-			endtry
+                end_of_file,
+                    mreturn OnEOF(false, lockRecord, keyValue, keyOfReference, "Find")
+                record_locked,
+                    if(!OnRecordLocked()) then
+                        mreturn FileAccessResults.RecordIsLocked
+                    else
+                        nextloop
+                key_not_found,
+                    mreturn OnKeyNotFound(lockRecord)
+                end
+            end
+            catch(ex, @FileIOException)
+                mreturn OnFileIOException(lockRecord, "", "Find", ex)
+            catch(ex, @Exception)
+                mreturn OnException(lockRecord, "", "Find", ex)
+            endtry
 
-		endmethod
+        endmethod
 
-		protected override method Read, FileAccessResults
-			inout req recordBuffer, a
-			inout req grfaBuffer, a
-			in req keyOfReference, int
-			in req keyValue, a
-			in req operation, FindOperation
-			in req withLock, boolean
-		proc
-			data lockFlag, i4, withLock ? Q_AUTO_LOCK : Q_NO_LOCK
-			try
-			begin
-				do forever
-				begin
-					if(operation == FindOperation.FromBeginingOfFile && %size(keyValue) == 0) then
-					begin
-						using mOpenMode select
-						(FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
-						begin
-							read(mChannel, recordBuffer, ^FIRST, LOCK:lockFlag, GETRFA:grfaBuffer)
-							&	[$ERR_EOF = end_of_file,
-							&	$ERR_LOCKED = record_locked,
-							&	$ERR_KEYNOT = key_not_found]
-							mreturn FileAccessResults.Success
-						end
-						(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
-						begin
-							read(mChannel, recordBuffer, ^FIRST, KEYNUM:keyOfReference, LOCK:lockFlag, GETRFA:grfaBuffer)
-							&	[$ERR_EOF = end_of_file,
-							&	$ERR_LOCKED = record_locked,
-							&	$ERR_KEYNOT = key_not_found]
-							mreturn FileAccessResults.Success
-						end
-						(FileOpenMode.InputSequential,FileOpenMode.OutputSequential),
-						begin
-							find(mChannel,, ^FIRST)
-							&	[$ERR_EOF = end_of_file]
-							mreturn FileAccessResults.Success
-						end
-						endusing
-					end
-					else if(operation == FindOperation.AtCurrent && %size(keyValue) == 0) then
-					begin
-						using mOpenMode select
-						(FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
-						begin
-							reads(mChannel, recordBuffer,LOCK:lockFlag, GETRFA:grfaBuffer)
-							&	[$ERR_EOF = end_of_file,
-							&	$ERR_LOCKED = record_locked,
-							&	$ERR_KEYNOT = key_not_found]
-							mreturn FileAccessResults.Success
-						end
-						(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
-						begin
-							reads(mChannel, recordBuffer, LOCK:lockFlag, GETRFA:grfaBuffer)
-							&	[$ERR_EOF = end_of_file,
-							&	$ERR_LOCKED = record_locked,
-							&	$ERR_KEYNOT = key_not_found]
-							mreturn FileAccessResults.Success
-						end
-						endusing
-					end
-					else if(operation == FindOperation.AtCurrent) then
-					begin
-						using mOpenMode select
-						(FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
-						begin
-							read(mChannel, recordBuffer, ^d(keyValue), LOCK:lockFlag, GETRFA:grfaBuffer)
-							&	[$ERR_EOF = end_of_file,
-							&	$ERR_LOCKED = record_locked,
-							&	$ERR_KEYNOT = key_not_found]
-							mreturn FileAccessResults.Success
-						end
-						(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
-						begin
-							read(mChannel, recordBuffer, keyValue, KEYNUM:keyOfReference, LOCK:lockFlag, GETRFA:grfaBuffer)
-							&	[$ERR_EOF = end_of_file,
-							&	$ERR_LOCKED = record_locked,
-							&	$ERR_KEYNOT = key_not_found]
-							mreturn FileAccessResults.Success
-						end
-						endusing
-					end
-					else if(keyOfReference == -1 && %size(keyValue) > 0) then
-					begin
-						read(mChannel, recordBuffer, LOCK:lockFlag, RFA:grfaBuffer)
-						&	[$ERR_EOF = end_of_file,
-						&	$ERR_LOCKED = record_locked,
-						&	$ERR_KEYNOT = key_not_found]
-						mreturn FileAccessResults.Success
-					end
-					else if(operation == FindOperation.ToEndOfFile && %size(keyValue) == 0) then
-					begin
-						using mOpenMode select
-						(FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
-						begin
-							read(mChannel, recordBuffer, ^LAST, LOCK:lockFlag, GETRFA:grfaBuffer)
-							&	[$ERR_EOF = end_of_file,
-							&	$ERR_LOCKED = record_locked,
-							&	$ERR_KEYNOT = key_not_found]
-							mreturn FileAccessResults.Success
-						end
-						(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
-						begin
-							read(mChannel, recordBuffer, ^LAST, KEYNUM:keyOfReference, LOCK:lockFlag, GETRFA:grfaBuffer)
-							&	[$ERR_EOF = end_of_file,
-							&	$ERR_LOCKED = record_locked,
-							&	$ERR_KEYNOT = key_not_found]
-							mreturn FileAccessResults.Success
-						end
-						(FileOpenMode.InputSequential,FileOpenMode.OutputSequential),
-						begin
-							find(mChannel,, ^LAST)
-							&	[$ERR_EOF = end_of_file]
-							mreturn FileAccessResults.Success
-						end
-						endusing
-					end
-					else if(operation == FindOperation.FromCurrentReverse && %size(keyValue) == 0) then
-					begin
-						using mOpenMode select
-						(FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
-						begin
-							reads(mChannel, recordBuffer,, REVERSE, LOCK:lockFlag, GETRFA:grfaBuffer)
-							&	[$ERR_EOF = end_of_file]
-							mreturn FileAccessResults.Success
-						end
-						(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
-						begin
-							reads(mChannel, recordBuffer,, REVERSE, LOCK:lockFlag, GETRFA:grfaBuffer)
-							&	[$ERR_EOF = end_of_file,
-							&	$ERR_LOCKED = record_locked,
-							&	$ERR_KEYNOT = key_not_found]
-							mreturn FileAccessResults.Success
-						end
-						endusing
-					end
-					else if(operation == FindOperation.FromCurrent && %size(keyValue) == 0) then
-					begin
-						using mOpenMode select
-						(FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
-						begin
-							reads(mChannel, recordBuffer, GETRFA:grfaBuffer)
-							&	[$ERR_EOF = end_of_file]
-							mreturn FileAccessResults.Success
-						end
-						(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
-						begin
-							reads(mChannel, recordBuffer, LOCK:lockFlag, GETRFA:grfaBuffer)
-							&	[$ERR_EOF = end_of_file,
-							&	$ERR_LOCKED = record_locked,
-							&	$ERR_KEYNOT = key_not_found]
-							mreturn FileAccessResults.Success
-						end
-						(FileOpenMode.InputSequential,FileOpenMode.OutputSequential),
-						begin
-							reads(mChannel, recordBuffer)
-							&	[$ERR_EOF = end_of_file]
-							mreturn FileAccessResults.Success
-						end
-						endusing
-					end
-					else
-						throw new NotImplementedException("FileOpenMode/Operation mismatch")
+        protected override method Read, FileAccessResults
+            inout req recordBuffer, a
+            inout req grfaBuffer, a
+            in req keyOfReference, int
+            in req keyValue, a
+            in req operation, FindOperation
+            in req withLock, int
+        proc
+            data lockFlag, i4, withLock
+            try
+            begin
+                do forever
+                begin
+                    if(operation == FindOperation.FromBeginingOfFile && %size(keyValue) == 0) then
+                    begin
+                        using mOpenMode select
+                        (FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
+                        begin
+                            read(mChannel, recordBuffer, ^FIRST, LOCK:lockFlag, GETRFA:grfaBuffer)
+                            &    [$ERR_EOF = end_of_file,
+                            &    $ERR_LOCKED = record_locked,
+                            &    $ERR_KEYNOT = key_not_found]
+                            mreturn FileAccessResults.Success
+                        end
+                        (FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
+                        begin
+                            read(mChannel, recordBuffer, ^FIRST, KEYNUM:keyOfReference, LOCK:lockFlag, GETRFA:grfaBuffer)
+                            &    [$ERR_EOF = end_of_file,
+                            &    $ERR_LOCKED = record_locked,
+                            &    $ERR_KEYNOT = key_not_found]
+                            mreturn FileAccessResults.Success
+                        end
+                        (FileOpenMode.InputSequential,FileOpenMode.OutputSequential),
+                        begin
+                            find(mChannel,, ^FIRST)
+                            &    [$ERR_EOF = end_of_file]
+                            mreturn FileAccessResults.Success
+                        end
+                        endusing
+                    end
+                    else if(operation == FindOperation.AtCurrent && %size(keyValue) == 0) then
+                    begin
+                        using mOpenMode select
+                        (FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
+                        begin
+                            reads(mChannel, recordBuffer,LOCK:lockFlag, GETRFA:grfaBuffer)
+                            &    [$ERR_EOF = end_of_file,
+                            &    $ERR_LOCKED = record_locked,
+                            &    $ERR_KEYNOT = key_not_found]
+                            mreturn FileAccessResults.Success
+                        end
+                        (FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
+                        begin
+                            reads(mChannel, recordBuffer, LOCK:lockFlag, GETRFA:grfaBuffer)
+                            &    [$ERR_EOF = end_of_file,
+                            &    $ERR_LOCKED = record_locked,
+                            &    $ERR_KEYNOT = key_not_found]
+                            mreturn FileAccessResults.Success
+                        end
+                        endusing
+                    end
+                    else if(operation == FindOperation.AtCurrent) then
+                    begin
+                        using mOpenMode select
+                        (FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
+                        begin
+                            read(mChannel, recordBuffer, ^d(keyValue), LOCK:lockFlag, GETRFA:grfaBuffer)
+                            &    [$ERR_EOF = end_of_file,
+                            &    $ERR_LOCKED = record_locked,
+                            &    $ERR_KEYNOT = key_not_found]
+                            mreturn FileAccessResults.Success
+                        end
+                        (FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
+                        begin
+                            read(mChannel, recordBuffer, keyValue, KEYNUM:keyOfReference, LOCK:lockFlag, GETRFA:grfaBuffer)
+                            &    [$ERR_EOF = end_of_file,
+                            &    $ERR_LOCKED = record_locked,
+                            &    $ERR_KEYNOT = key_not_found]
+                            mreturn FileAccessResults.Success
+                        end
+                        endusing
+                    end
+                    else if(keyOfReference == -1 && %size(keyValue) > 0) then
+                    begin
+                        read(mChannel, recordBuffer, LOCK:lockFlag, RFA:grfaBuffer)
+                        &    [$ERR_EOF = end_of_file,
+                        &    $ERR_LOCKED = record_locked,
+                        &    $ERR_KEYNOT = key_not_found]
+                        mreturn FileAccessResults.Success
+                    end
+                    else if(operation == FindOperation.ToEndOfFile && %size(keyValue) == 0) then
+                    begin
+                        using mOpenMode select
+                        (FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
+                        begin
+                            read(mChannel, recordBuffer, ^LAST, LOCK:lockFlag, GETRFA:grfaBuffer)
+                            &    [$ERR_EOF = end_of_file,
+                            &    $ERR_LOCKED = record_locked,
+                            &    $ERR_KEYNOT = key_not_found]
+                            mreturn FileAccessResults.Success
+                        end
+                        (FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
+                        begin
+                            read(mChannel, recordBuffer, ^LAST, KEYNUM:keyOfReference, LOCK:lockFlag, GETRFA:grfaBuffer)
+                            &    [$ERR_EOF = end_of_file,
+                            &    $ERR_LOCKED = record_locked,
+                            &    $ERR_KEYNOT = key_not_found]
+                            mreturn FileAccessResults.Success
+                        end
+                        (FileOpenMode.InputSequential,FileOpenMode.OutputSequential),
+                        begin
+                            find(mChannel,, ^LAST)
+                            &    [$ERR_EOF = end_of_file]
+                            mreturn FileAccessResults.Success
+                        end
+                        endusing
+                    end
+                    else if(operation == FindOperation.FromCurrentReverse && %size(keyValue) == 0) then
+                    begin
+                        using mOpenMode select
+                        (FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
+                        begin
+                            reads(mChannel, recordBuffer,, REVERSE, LOCK:lockFlag, GETRFA:grfaBuffer)
+                            &    [$ERR_EOF = end_of_file]
+                            mreturn FileAccessResults.Success
+                        end
+                        (FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
+                        begin
+                            reads(mChannel, recordBuffer,, REVERSE, LOCK:lockFlag, GETRFA:grfaBuffer)
+                            &    [$ERR_EOF = end_of_file,
+                            &    $ERR_LOCKED = record_locked,
+                            &    $ERR_KEYNOT = key_not_found]
+                            mreturn FileAccessResults.Success
+                        end
+                        endusing
+                    end
+                    else if(operation == FindOperation.FromCurrent && %size(keyValue) == 0) then
+                    begin
+                        using mOpenMode select
+                        (FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
+                        begin
+                            reads(mChannel, recordBuffer, GETRFA:grfaBuffer)
+                            &    [$ERR_EOF = end_of_file]
+                            mreturn FileAccessResults.Success
+                        end
+                        (FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
+                        begin
+                            reads(mChannel, recordBuffer, LOCK:lockFlag, GETRFA:grfaBuffer)
+                            &    [$ERR_EOF = end_of_file,
+                            &    $ERR_LOCKED = record_locked,
+                            &    $ERR_KEYNOT = key_not_found]
+                            mreturn FileAccessResults.Success
+                        end
+                        (FileOpenMode.InputSequential,FileOpenMode.OutputSequential),
+                        begin
+                            reads(mChannel, recordBuffer)
+                            &    [$ERR_EOF = end_of_file]
+                            mreturn FileAccessResults.Success
+                        end
+                        endusing
+                    end
+                    else
+                        throw new NotImplementedException("FileOpenMode/Operation mismatch")
 
-		end_of_file,
-					mreturn OnEOF(false, withLock, keyValue, keyOfReference, "Read")
-		record_locked,
-					if(!OnRecordLocked()) then
-						mreturn FileAccessResults.RecordIsLocked
-					else
-						nextloop
-		key_not_found,
-					mreturn OnKeyNotFound(withLock)
-				end
-			end
-			catch(ex, @FileIOException)
-				mreturn OnFileIOException(withLock, "", "Read", ex)
-			catch(ex, @Exception)
-				mreturn OnException(withLock, "", "Read", ex)
-			endtry
+                end_of_file,
+                    mreturn OnEOF(false, withLock, keyValue, keyOfReference, "Read")
+                record_locked,
+                    if(!OnRecordLocked()) then
+                        mreturn FileAccessResults.RecordIsLocked
+                    else
+                        nextloop
+                key_not_found,
+                    mreturn OnKeyNotFound(withLock)
+                end
+            end
+            catch(ex, @FileIOException)
+                mreturn OnFileIOException(withLock, "", "Read", ex)
+            catch(ex, @Exception)
+                mreturn OnException(withLock, "", "Read", ex)
+            endtry
 
-		endmethod
+        endmethod
 
-		protected override method Write, FileAccessResults
-			inout req recordBuffer, a
-			in req current, boolean
-			in req useGrfa, boolean
-			inout req grfa, a
-		proc
-			try
-			begin
-				if(current) then
-				begin
-					if(%size(grfa) > 0) then
-					begin
-						using mOpenMode select
-						(FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
-						begin
-							;;TODO why do we need to supply the record number if we're writing the current record
-							;;write(mChannel, recordBuffer, mRecordNumber, GETRFA:grfa)
-							write(mChannel, recordBuffer, GETRFA:grfa)
-							&	[$ERR_NOCURR = no_current_record]
-							mreturn FileAccessResults.Success
-						end
-						(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
-						begin
-							write(mChannel, recordBuffer, GETRFA:grfa)
-							&	[$ERR_NOCURR = no_current_record, $ERR_RECNOT=record_not_same]
-							mreturn FileAccessResults.Success
-						end
-						endusing
-					end
-					else
-					begin
-						using mOpenMode select
-						(FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
-						begin
-							;;TODO why do we need to supply the record number if we're writing the current record
-							;;write(mChannel, recordBuffer, mRecordNumber)
-							write(mChannel, recordBuffer)
-							&	[$ERR_NOCURR = no_current_record]
-							mreturn FileAccessResults.Success
-						end
-						(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
-						begin
-							write(mChannel, recordBuffer)
-							&	[$ERR_NOCURR = no_current_record, $ERR_RECNOT=record_not_same]
-							mreturn FileAccessResults.Success
-						end
-						endusing
-					end
+        protected override method Write, FileAccessResults
+            inout req recordBuffer, a
+            in req current, boolean
+            in req useGrfa, boolean
+            in req withLock, int
+            inout req grfa, a
+        proc
+            try
+            begin
+                if(current) then
+                begin
+                    if(%size(grfa) > 0) then
+                    begin
+                        using mOpenMode select
+                        (FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
+                        begin
+                            ;;TODO why do we need to supply the record number if we're writing the current record
+                            ;;write(mChannel, recordBuffer, mRecordNumber, GETRFA:grfa)
+                            write(mChannel, recordBuffer, GETRFA:grfa)
+                            &    [$ERR_NOCURR = no_current_record]
+                            mreturn FileAccessResults.Success
+                        end
+                        (FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
+                        begin
+                            write(mChannel, recordBuffer, GETRFA:grfa)
+                            &    [$ERR_NOCURR = no_current_record, $ERR_RECNOT=record_not_same]
+                            mreturn FileAccessResults.Success
+                        end
+                        endusing
+                    end
+                    else
+                    begin
+                        using mOpenMode select
+                        (FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
+                        begin
+                            ;;TODO why do we need to supply the record number if we're writing the current record
+                            ;;write(mChannel, recordBuffer, mRecordNumber)
+                            write(mChannel, recordBuffer)
+                            &    [$ERR_NOCURR = no_current_record]
+                            mreturn FileAccessResults.Success
+                        end
+                        (FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
+                        begin
+                            write(mChannel, recordBuffer)
+                            &    [$ERR_NOCURR = no_current_record, $ERR_RECNOT=record_not_same]
+                            mreturn FileAccessResults.Success
+                        end
+                        endusing
+                    end
 
-				end
-				else if(useGrfa && %size(grfa) == 10) then
-				begin
-					using mOpenMode select
-					(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.Input,FileOpenMode.InputIndexed,FileOpenMode.UpdateRelative, FileOpenMode.InputRelative),
-					begin
-						;;we first need to read & lock the record
-						data findResult = this.Find(-1, grfa, FindOperation.FromCurrent, true)
-						if (findResult == FileAccessResults.Success) then
-						begin
-							;;this will update the record buffer with any auto generated keys, as well as update the grfa to reflect the changes on disk
-							mreturn this.Write(recordBuffer, true, false, grfa)
-						end
-						else
-							mreturn findResult
-					end
-					(FileOpenMode.InputSequential),
-						mreturn FileAccessResults.IncompatibleCallForOpenMode
-					endusing
-				end
-				else if(%size(grfa) == 10) then
-				begin
-					store(mChannel, recordBuffer, GETRFA:grfa)
-					&	[$ERR_NODUPS = duplicate_key]
-					mreturn FileAccessResults.Success
-				end
-				else
-				begin
-					store(mChannel, recordBuffer)
-					&	[$ERR_NODUPS = duplicate_key]
-					mreturn FileAccessResults.Success
-				end
-		no_current_record,
-				mreturn OnNoCurrentRecord(true)
-		duplicate_key,
-				mreturn OnDuplicateKey(true)
-		record_not_same,
-				mreturn OnRecordNotSame(true)
-			end
-			catch(ex, @FileIOException)
-				mreturn OnFileIOException(true, recordBuffer, "Write", ex)
-			catch(ex, @Exception)
-				mreturn OnException(true, recordBuffer, "Write", ex)
-			endtry
-		endmethod
+                end
+                else if(useGrfa && %size(grfa) == 10) then
+                begin
+                    using mOpenMode select
+                    (FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.Input,FileOpenMode.InputIndexed,FileOpenMode.UpdateRelative, FileOpenMode.InputRelative),
+                    begin
+                        ;;we first need to read & lock the record, if we're doing manual locking this has already been locked, just position
+                        data findResult = this.Find(-1, grfa, FindOperation.FromCurrent, withLock == Q_MANUAL_LOCK ? Q_NO_LOCK : Q_AUTO_LOCK)
+                        if (findResult == FileAccessResults.Success) then
+                        begin
+                            ;;this will update the record buffer with any auto generated keys, as well as update the grfa to reflect the changes on disk
+                            mreturn this.Write(recordBuffer, true, false, Q_NO_LOCK, grfa)
+                        end
+                        else
+                            mreturn findResult
+                    end
+                    (FileOpenMode.InputSequential),
+                        mreturn FileAccessResults.IncompatibleCallForOpenMode
+                    endusing
+                end
+                else if(%size(grfa) == 10) then
+                begin
+                    store(mChannel, recordBuffer, GETRFA:grfa, LOCK: withLock)
+                    &    [$ERR_NODUPS = duplicate_key]
+                    mreturn FileAccessResults.Success
+                end
+                else
+                begin
+                    store(mChannel, recordBuffer, LOCK: withLock)
+                    &    [$ERR_NODUPS = duplicate_key]
+                    mreturn FileAccessResults.Success
+                end
+            no_current_record,
+                mreturn OnNoCurrentRecord(true)
+            duplicate_key,
+                mreturn OnDuplicateKey(true)
+            record_not_same,
+                mreturn OnRecordNotSame(true)
+            end
+            catch(ex, @FileIOException)
+                mreturn OnFileIOException(true, recordBuffer, "Write", ex)
+            catch(ex, @Exception)
+                mreturn OnException(true, recordBuffer, "Write", ex)
+            endtry
+        endmethod
 
-		protected override method Delete, FileAccessResults
-			in req keyOfReference, int
-			in req keyValue, a
-			in req operation, FindOperation
-		proc
-			try
-			begin
-				if(operation == FindOperation.AtCurrent) then
-				begin
-					delete (mChannel)
-					&	[$ERR_NOCURR = no_current_record]
-					mreturn FileAccessResults.Success
-				end
-				else
-				begin
-					data findResult = this.Find(keyOfReference, keyValue, operation, true) 
-					if(findResult == FileAccessResults.Success) then
-					begin
-						delete (mChannel)
-						&	[$ERR_NOCURR = no_current_record]
-						mreturn FileAccessResults.Success
-					end
-					else
-						mreturn findResult
-				end
-		no_current_record,
-				mreturn OnNoCurrentRecord(true)
-			end
-			catch(ex, @FileIOException)
-				mreturn OnFileIOException(true, "", "Delete", ex)
-			catch(ex, @Exception)
-				mreturn OnException(true, "", "Delete", ex)
-			endtry
-		endmethod
+        protected override method Delete, FileAccessResults
+            in req keyOfReference, int
+            in req keyValue, a
+            in req operation, FindOperation
+            in req manualLocking, boolean
+        proc
+            try
+            begin
+                if(operation == FindOperation.AtCurrent) then
+                begin
+                    delete (mChannel)
+                    &    [$ERR_NOCURR = no_current_record]
+                    mreturn FileAccessResults.Success
+                end
+                else
+                begin
+                    ;;this record is already locked if we're in manual locking mode
+                    data findResult = this.Find(keyOfReference, keyValue, operation, manualLocking ? Q_AUTO_LOCK : Q_NO_LOCK) 
+                    if(findResult == FileAccessResults.Success) then
+                    begin
+                        delete (mChannel)
+                        &    [$ERR_NOCURR = no_current_record]
+                        mreturn FileAccessResults.Success
+                    end
+                    else
+                        mreturn findResult
+                end
+            no_current_record,
+                mreturn OnNoCurrentRecord(true)
+            end
+            catch(ex, @FileIOException)
+                mreturn OnFileIOException(true, "", "Delete", ex)
+            catch(ex, @Exception)
+                mreturn OnException(true, "", "Delete", ex)
+            endtry
+        endmethod
 
-		protected override method ISInfoCall, int
-			in req request, @string
-			in req keyNumber, int
-			in req keySegment, int 
-		proc
-			;;let's check we are going to do a valid call
-			data result	,int	,0
-			using request select
-			("NUMRECS", "SIZE"),
-			begin
-				result = %isinfo(mChannel, request)
-			end
-			("NUMKEYS"),
-			begin
-				result = %isinfo(mChannel, request, keyNumber)
-			end
-			("KPOSITION", "KEYLENGTH"),
-			begin
-				if (keyNumber < %isinfo(mChannel, "NUMKEYS"))
-					result = %isinfo(mChannel, request, keyNumber, keySegment)
-			end
-			endusing
+        protected override method ISInfoCall, int
+            in req request, @string
+            in req keyNumber, int
+            in req keySegment, int 
+        proc
+            ;;let's check we are going to do a valid call
+            data result	,int	,0
+            using request select
+            ("NUMRECS", "SIZE"),
+            begin
+                result = %isinfo(mChannel, request)
+            end
+            ("NUMKEYS"),
+            begin
+                result = %isinfo(mChannel, request, keyNumber)
+            end
+            ("KPOSITION", "KEYLENGTH"),
+            begin
+                if (keyNumber < %isinfo(mChannel, "NUMKEYS"))
+                    result = %isinfo(mChannel, request, keyNumber, keySegment)
+            end
+            endusing
 			
-			mreturn result
-		endmethod
+            mreturn result
+        endmethod
 
-		protected override method GetAlphaFileInfo, a
-			in req request, @string
-			in req recordArea, a
-			in req keyOfReference, int
-		proc
-			using request select
-			("KEYVAL"),
-			begin
-				if (keyofReference < %isinfo(mChannel, "NUMKEYS")) then
-					mreturn (string)%keyval(mChannel, recordArea, keyOfReference)
-				else
-					mreturn ""
-			end
-			("FILENAME"),
-				mreturn mFileName
-			(),
-				mreturn (string)%isinfoa(mChannel, request)
-			endusing
-		endmethod
+        protected override method GetAlphaFileInfo, a
+            in req request, @string
+            in req recordArea, a
+            in req keyOfReference, int
+        proc
+            using request select
+            ("KEYVAL"),
+            begin
+                if (keyofReference < %isinfo(mChannel, "NUMKEYS")) then
+                    mreturn (string)%keyval(mChannel, recordArea, keyOfReference)
+                else
+                    mreturn ""
+            end
+            ("FILENAME"),
+                mreturn mFileName
+            (),
+                mreturn (string)%isinfoa(mChannel, request)
+            endusing
+        endmethod
 
-		;;; <summary>
-		;;;  Unlock the record within the file
-		;;; </summary>
-		public override method UnlockChannel, FileAccessResults
-		proc
-			try
-				unlock mChannel
-			catch(ex, @FileIOException)
-				mreturn OnFileIOException(false, "", "Unlock", ex)
-			catch(ex, @Exception)
-				mreturn OnException(false, "", "Unlock", ex)
-			endtry
-		endmethod
+        ;;; <summary>
+        ;;;  Unlock the record within the file
+        ;;; </summary>
+        public override method UnlockChannel, FileAccessResults
+        proc
+            try
+                unlock mChannel
+            catch(ex, @FileIOException)
+                mreturn OnFileIOException(false, "", "Unlock", ex)
+            catch(ex, @Exception)
+                mreturn OnException(false, "", "Unlock", ex)
+            endtry
+        endmethod
 
 
-		protected virtual method OnEOF, FileAccessResults
-			req in isReadOperation, boolean
-			req in lockingOperation, boolean
-			req in keyValue, a
-			req in keyOfReference, int
-			req in opType, @string
-		proc
-			LastSynergyError = %ernum
-			;Harmony.Core.DebugView.Write("FileIO : End of file encountered.")
-			if (mOpenMode == FileOpenMode.Update && lockingOperation == true)
-				unlock mChannel		
+        protected virtual method OnEOF, FileAccessResults
+            req in isReadOperation, boolean
+            req in lockingOperation, boolean
+            req in keyValue, a
+            req in keyOfReference, int
+            req in opType, @string
+        proc
+            LastSynergyError = %ernum
+            ;Harmony.Core.DebugView.Write("FileIO : End of file encountered.")
+            if (mOpenMode == FileOpenMode.Update && lockingOperation == true)
+                unlock mChannel		
 					
-			if (isReadOperation)
-			begin
-				data hasHook = mChannelManager.ChannelHasHook(mChannel)
-				data xoutputBuffer	,[#]String
-				xoutputBuffer = new String[9]
-				data fnam,a255
-				xoutputBuffer[1] = "Error number is " + %string(%ernum)
-				xoutputBuffer[2] = "Channel number is " + %string(mChannel)
-				xoutputBuffer[3] = "Filename " + %isinfoa(mChannel, "FILENAME")
-				xoutputBuffer[4] = "Accessmode " + opType
-				xoutputBuffer[5] = "key value length " + %string(%size(keyValue))
-				if (%size(keyValue) > 0) then
-					xoutputBuffer[6] = "key value used " + keyValue
-				else
-					xoutputBuffer[6] = "key value NOT used" 
-				xoutputBuffer[7] = "key number " + %string(keyOfReference)
-				xoutputBuffer[8] = "IO Hook class applied " + %string(hasHook)
-				if (hasHook == true)
-					xoutputBuffer[9] = "Hook type = " + mChannelManager.ChannelHookType(mChannel).ToString()
-				;Harmony.Core.DebugView.WriteToEventLog(xoutputBuffer)
-			end
+            if (isReadOperation)
+            begin
+                data hasHook = mChannelManager.ChannelHasHook(mChannel)
+                data xoutputBuffer	,[#]String
+                xoutputBuffer = new String[9]
+                data fnam,a255
+                xoutputBuffer[1] = "Error number is " + %string(%ernum)
+                xoutputBuffer[2] = "Channel number is " + %string(mChannel)
+                xoutputBuffer[3] = "Filename " + %isinfoa(mChannel, "FILENAME")
+                xoutputBuffer[4] = "Accessmode " + opType
+                xoutputBuffer[5] = "key value length " + %string(%size(keyValue))
+                if (%size(keyValue) > 0) then
+                    xoutputBuffer[6] = "key value used " + keyValue
+                else
+                    xoutputBuffer[6] = "key value NOT used" 
+                xoutputBuffer[7] = "key number " + %string(keyOfReference)
+                xoutputBuffer[8] = "IO Hook class applied " + %string(hasHook)
+                if (hasHook == true)
+                    xoutputBuffer[9] = "Hook type = " + mChannelManager.ChannelHookType(mChannel).ToString()
+                ;Harmony.Core.DebugView.WriteToEventLog(xoutputBuffer)
+            end
 
-			mreturn FileAccessResults.EndOFDataFile
-		endmethod
+            mreturn FileAccessResults.EndOFDataFile
+        endmethod
 
-		protected virtual method OnRecordLocked, boolean
-		proc
-			LastSynergyError = %ernum
-			;Harmony.Core.DebugView.Write("FileIO : Record Locked.")
-			mreturn true
-		endmethod
+        protected virtual method OnRecordLocked, boolean
+        proc
+            LastSynergyError = %ernum
+            ;Harmony.Core.DebugView.Write("FileIO : Record Locked.")
+            mreturn true
+        endmethod
 
-		protected virtual method OnKeyNotFound, FileAccessResults
-			req in lockingOperation, boolean
-		proc
-			LastSynergyError = %ernum
-			;Harmony.Core.DebugView.Write("FileIO : Key not found.")
-			if (mOpenMode == FileOpenMode.Update && lockingOperation == true)
-				unlock mChannel
+        protected virtual method OnKeyNotFound, FileAccessResults
+            req in lockingOperation, boolean
+        proc
+            LastSynergyError = %ernum
+            ;Harmony.Core.DebugView.Write("FileIO : Key not found.")
+            if (mOpenMode == FileOpenMode.Update && lockingOperation == true)
+                unlock mChannel
 			
-			mreturn FileAccessResults.RecordNotFound
-		endmethod
+            mreturn FileAccessResults.RecordNotFound
+        endmethod
 
-		protected virtual method OnDuplicateKey, FileAccessResults
-			req in lockingOperation, boolean
-		proc
-			LastSynergyError = %ernum
-			if (mOpenMode == FileOpenMode.Update && lockingOperation == true)
-				unlock mChannel
-			mreturn FileAccessResults.DuplicateKeyEncountered
-		endmethod
+        protected virtual method OnDuplicateKey, FileAccessResults
+            req in lockingOperation, boolean
+        proc
+            LastSynergyError = %ernum
+            if (mOpenMode == FileOpenMode.Update && lockingOperation == true)
+                unlock mChannel
+            mreturn FileAccessResults.DuplicateKeyEncountered
+        endmethod
 
-		protected virtual method OnNoCurrentRecord, FileAccessResults
-			req in lockingOperation, boolean
-		proc
-			LastSynergyError = %ernum
-			if (mOpenMode == FileOpenMode.Update && lockingOperation == true)
-				unlock mChannel
-			mreturn FileAccessResults.NoCurrentRecordLocked
-		endmethod
+        protected virtual method OnNoCurrentRecord, FileAccessResults
+            req in lockingOperation, boolean
+        proc
+            LastSynergyError = %ernum
+            if (mOpenMode == FileOpenMode.Update && lockingOperation == true)
+                unlock mChannel
+            mreturn FileAccessResults.NoCurrentRecordLocked
+        endmethod
 
-		protected virtual method OnRecordNotSame, FileAccessResults
-			req in lockingOperation, boolean
-		proc
-			LastSynergyError = %ernum
-			if (mOpenMode == FileOpenMode.Update && lockingOperation == true)
-				unlock mChannel
-			mreturn FileAccessResults.RecordDataNotSame
-		endmethod
+        protected virtual method OnRecordNotSame, FileAccessResults
+            req in lockingOperation, boolean
+        proc
+            LastSynergyError = %ernum
+            if (mOpenMode == FileOpenMode.Update && lockingOperation == true)
+                unlock mChannel
+            mreturn FileAccessResults.RecordDataNotSame
+        endmethod
 
-		protected virtual method OnFileIOException, FileAccessResults
-			req in lockingOperation, boolean
-			req in recordArea, a
-			req in opType, a
-			req in e, @FileIOException
-		proc
-			if (mOpenMode == FileOpenMode.Update && lockingOperation == true)
-				unlock mChannel
-			;Harmony.Core.DebugView.WriteException(e)
-			LastSynergyError = %ernum
-			data outputBuffer	,[#]String
-			outputBuffer = new String[4]
-			outputBuffer[1] = "Channel number is " + %string(mChannel)
+        protected virtual method OnFileIOException, FileAccessResults
+            req in lockingOperation, boolean
+            req in recordArea, a
+            req in opType, a
+            req in e, @FileIOException
+        proc
+            if (mOpenMode == FileOpenMode.Update && lockingOperation == true)
+                unlock mChannel
+            ;Harmony.Core.DebugView.WriteException(e)
+            LastSynergyError = %ernum
+            data outputBuffer	,[#]String
+            outputBuffer = new String[4]
+            outputBuffer[1] = "Channel number is " + %string(mChannel)
 					
-			data fnam,a255	
-			using mOpenMode select
-			(FileOpenMode.UpdateRelative, FileOpenMode.InputRelative),
-			begin
-				filnm(mChannel, fnam)
-				outputBuffer[2] = fnam
-			end
-			(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.Input,FileOpenMode.InputIndexed),
-				outputBuffer[2] = %isinfoa(mChannel, "FILENAME")
-			(FileOpenMode.InputSequential, FileOpenMode.OutputSequential, FileOpenMode.AppendSequential),
-			begin
-				filnm(mChannel, fnam)
-				outputBuffer[2] = fnam
-			end
-			endusing
+            data fnam,a255	
+            using mOpenMode select
+            (FileOpenMode.UpdateRelative, FileOpenMode.InputRelative),
+            begin
+                filnm(mChannel, fnam)
+                outputBuffer[2] = fnam
+            end
+            (FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.Input,FileOpenMode.InputIndexed),
+                outputBuffer[2] = %isinfoa(mChannel, "FILENAME")
+            (FileOpenMode.InputSequential, FileOpenMode.OutputSequential, FileOpenMode.AppendSequential),
+            begin
+                filnm(mChannel, fnam)
+                outputBuffer[2] = fnam
+            end
+            endusing
 					
-			outputBuffer[3] = recordArea
-			outputBuffer[4] = opType + ". error number = " + %string(LastSynergyError)
-			;Harmony.Core.DebugView.WriteToEventLog(outputBuffer)
-			mreturn FileAccessResults.UnknownError
-		endmethod
+            outputBuffer[3] = recordArea
+            outputBuffer[4] = opType + ". error number = " + %string(LastSynergyError)
+            ;Harmony.Core.DebugView.WriteToEventLog(outputBuffer)
+            mreturn FileAccessResults.UnknownError
+        endmethod
 
-		protected virtual method OnException, FileAccessResults
-			req in lockingOperation, boolean
-			req in recordArea, a
-			req in opType, a
-			req in e, @Exception
-		proc
-			if (mOpenMode == FileOpenMode.Update && lockingOperation == true)
-				unlock mChannel
+        protected virtual method OnException, FileAccessResults
+            req in lockingOperation, boolean
+            req in recordArea, a
+            req in opType, a
+            req in e, @Exception
+        proc
+            if (mOpenMode == FileOpenMode.Update && lockingOperation == true)
+                unlock mChannel
 
-			;Harmony.Core.DebugView.WriteException(e)
-			LastSynergyError = %ernum
-			data outputBuffer	,[#]String
-			outputBuffer = new String[4]
-			outputBuffer[1] = "Channel number is " + %string(mChannel)
+            ;Harmony.Core.DebugView.WriteException(e)
+            LastSynergyError = %ernum
+            data outputBuffer	,[#]String
+            outputBuffer = new String[4]
+            outputBuffer[1] = "Channel number is " + %string(mChannel)
 					
-			data fnam,a255
+            data fnam,a255
 					
-			using mOpenMode select
-			(FileOpenMode.UpdateRelative, FileOpenMode.InputRelative),
-			begin
-				filnm(mChannel, fnam)
-				outputBuffer[2] = fnam
-			end
-			(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.Input,FileOpenMode.InputIndexed),
-				outputBuffer[2] = %isinfoa(mChannel, "FILENAME")
-			(FileOpenMode.InputSequential, FileOpenMode.OutputSequential, FileOpenMode.AppendSequential),
-			begin
-				filnm(mChannel, fnam)
-				outputBuffer[2] = fnam
-			end
-			endusing
+            using mOpenMode select
+            (FileOpenMode.UpdateRelative, FileOpenMode.InputRelative),
+            begin
+                filnm(mChannel, fnam)
+                outputBuffer[2] = fnam
+            end
+            (FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.Input,FileOpenMode.InputIndexed),
+                outputBuffer[2] = %isinfoa(mChannel, "FILENAME")
+            (FileOpenMode.InputSequential, FileOpenMode.OutputSequential, FileOpenMode.AppendSequential),
+            begin
+                filnm(mChannel, fnam)
+                outputBuffer[2] = fnam
+            end
+            endusing
 					
-			outputBuffer[3] = recordArea
-			outputBuffer[4] = opType + ". error number = " + %string(LastSynergyError)
-			;Harmony.Core.DebugView.WriteToEventLog(outputBuffer)
-			mreturn FileAccessResults.UnknownError
-		endmethod
+            outputBuffer[3] = recordArea
+            outputBuffer[4] = opType + ". error number = " + %string(LastSynergyError)
+            ;Harmony.Core.DebugView.WriteToEventLog(outputBuffer)
+            mreturn FileAccessResults.UnknownError
+        endmethod
 
-	endclass
+    endclass
 
 endnamespace

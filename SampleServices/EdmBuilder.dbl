@@ -51,7 +51,7 @@ namespace SampleServices
                 ;;using the "Fluent API" here.
                 builder.EntityType<OrderItem>().HasKey<OrderItem,int>("OrderNumber")
                 builder.EntityType<OrderItem>().HasKey<OrderItem,int>("ItemNumber")
-
+                builder.AddMethods<Sproc>("SomeNamespace")
                 data tempModel = (@EdmModel)builder.GetEdmModel()
 
                 data customerType = (@EdmEntityType)tempModel.FindDeclaredType("SampleServices.Models.Customer")
@@ -79,7 +79,7 @@ namespace SampleServices
                 tempModel.AddAlternateKeyAnnotation(vendorType, new Dictionary<string, IEdmProperty>() {{"State",vendorType.FindProperty("State")}})
                 tempModel.AddAlternateKeyAnnotation(vendorType, new Dictionary<string, IEdmProperty>() {{"ZipCode",vendorType.FindProperty("ZipCode")}})
                 tempModel.AddAlternateKeyAnnotation(vendorType, new Dictionary<string, IEdmProperty>() {{"PaymentTermsCode",vendorType.FindProperty("PaymentTermsCode")}})
-
+                
                 mEdmModel = tempModel
             end
 

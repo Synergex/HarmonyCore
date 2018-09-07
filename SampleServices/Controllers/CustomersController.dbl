@@ -36,10 +36,17 @@ namespace SampleServices.Controllers
         ;;; <param name="dbContext">Database context</param>
         public method CustomersController
             dbContext, @SampleServices.DBContext
+<<<<<<< Updated upstream
            serviceProvider, @IServiceProvider
         proc
             this.DBContext = dbContext
             this.ServiceProvider = serviceProvider
+=======
+			serviceProvider, @IServiceProvider
+        proc
+            this.DBContext = dbContext
+			this.ServiceProvider = serviceProvider
+>>>>>>> Stashed changes
         endmethod
 
         {ODataRoute("Customers")}
@@ -350,13 +357,18 @@ namespace SampleServices.Controllers
             ;; Validate inbound data
             if (!ModelState.IsValid)
                 mreturn BadRequest(ModelState)
+<<<<<<< Updated upstream
             disposable data keyFactory = (@IPrimaryKeyFactory)ServiceProvider.GetService(^typeof(IPrimaryKeyFactory))
+=======
+
+			disposable data keyFactory = (@IPrimaryKeyFactory)ServiceProvider.GetService(^typeof(IPrimaryKeyFactory))
+>>>>>>> Stashed changes
             ;;Get the next available primary key value
             KeyFactory.AssignPrimaryKey(aCustomer)
 
             ;;Add the new customer
             DBContext.Customers.Add(aCustomer)
-            DBContext.SaveChanges()
+			DBContext.SaveChanges(keyFactory)
 
             mreturn Created(aCustomer)
 
