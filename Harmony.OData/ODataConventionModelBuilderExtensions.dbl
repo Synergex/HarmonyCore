@@ -44,10 +44,11 @@ namespace Harmony.OData
             data targetMethod, @MethodInfo
 
             HarmonySprocRoutingConvention.AddSprocDispatcher<T>(namespaceName)
+            data entitySetLookup = builder.EntitySets.ToDictionary(lambda(eSet) { eSet.ClrType })
 
             foreach targetMethod in targetType.GetMethods()
             begin
-                if(targetMethod.DeclaringType != targetType)
+                if(targetMethod.DeclaringType != targetType || targetMethod.IsSpecialName)
                     nextloop
 
                 data securityAttribute = Attribute.GetCustomAttribute(targetMethod, ^typeof(MethodSecurityAttribute))
@@ -59,7 +60,12 @@ namespace Harmony.OData
                 data callableMethodConfig, @CallableMethodConfigurationAttribute
                 callableMethodConfig = ^as(Attribute.GetCustomAttribute(targetMethod, ^typeof(CallableMethodConfigurationAttribute)), @CallableMethodConfigurationAttribute)
                 if(callableMethodConfig == ^null)
+                begin
                     callableMethodConfig = new CallableMethodConfigurationAttribute()
+                    if(entitySetLookup.ContainsKey(targetMethod.ReturnType))
+                        callableMethodConfig.ReturnsFromEntitySet = true
+                end
+
 
                 data paramFunction, @MethodInfo
                 data resultObject, @Object
@@ -207,11 +213,11 @@ namespace Harmony.OData
 
             if(returnTypeIsFromEntitySet) then
             begin
-                ActionReturnsFromEntitySetMethod.MakeGenericMethod(new Type[#] { returnType }).Invoke(actionConfig, new Object[0]) 
+                ActionReturnsFromEntitySetMethod.MakeGenericMethod(new Type[#] { returnType }).Invoke(actionConfig, new Object[#] { returnType.Name }) 
             end
             else if(returnTypeIsCollectionFromEntitySet) then
             begin
-                ActionReturnsCollectionFromEntitySetMethod.MakeGenericMethod(new Type[#] { returnType }).Invoke(actionConfig, new Object[0])
+                ActionReturnsCollectionFromEntitySetMethod.MakeGenericMethod(new Type[#] { returnType }).Invoke(actionConfig, new Object[#] { returnType.Name })
             end
             else if(returnTypeIsCollection) then
             begin

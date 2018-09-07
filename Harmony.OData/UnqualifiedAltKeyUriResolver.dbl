@@ -3,6 +3,7 @@ import System.Collections.Generic
 import System.Text
 import Microsoft.OData.UriParser
 import Microsoft.OData.Edm
+import System.Linq
 
 
 namespace Harmony.OData
@@ -37,12 +38,12 @@ namespace Harmony.OData
             endmethod
         endproperty
 
-;        public method fred, void;@IDictionary<IEdmOperationParameter, SingleValueNode>
-;            operation, @IEdmOperation
-;            inputParam, @IDictionary<string, SingleValueNode>
-;        proc
-;            mreturn ^null
-;        endmethod
+        public override method ResolveOperationImports, @IEnumerable<IEdmOperationImport>
+            model, @IEdmModel 
+            identifier, @string 
+        proc
+            mreturn _unqualified.ResolveOperationImports(model, identifier)
+        endmethod
 
         public override method ResolveUnboundOperations, @IEnumerable<IEdmOperation>
             model, @IEdmModel

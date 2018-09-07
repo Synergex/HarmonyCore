@@ -11,6 +11,8 @@ import System.Linq
 import System.Collections.Concurrent
 import System.Reflection
 import Microsoft.AspNetCore.Mvc.ModelBinding
+import Microsoft.AspNetCore.Mvc.ApplicationModels
+import Microsoft.AspNetCore.Mvc.Infrastructure
 
 namespace Harmony.OData
 
@@ -35,10 +37,10 @@ namespace Harmony.OData
 
             if (odataPath.PathTemplate == "~/unboundfunction" ||
             &    odataPath.PathTemplate == "~/unboundaction") then
-            &    
+                &    
             begin
                 data segment, @OperationImportSegment, ^as(odataPath.Segments[odataPath.Segments.Count - 1], OperationImportSegment)
-
+                
                 if (segment != ^null)
                 begin
                     ;segment
@@ -54,14 +56,32 @@ namespace Harmony.OData
                     data dispatcherType, @Type
                     if(SprocDispatcherLookup.TryGetValue(singletonSeg.Identifier, dispatcherType))
                     begin
-                        data actionName = odataPath.PathTemplate == "~/singleton/action" ? "Post" : "Get"
-                        data targetMethod = dispatcherType.GetMethod(actionName)
-                        data targetParameters, @IList<Microsoft.AspNetCore.Mvc.Abstractions.ParameterDescriptor>, new List<Microsoft.AspNetCore.Mvc.Abstractions.ParameterDescriptor>()
-                        data boundProperties, @IList<Microsoft.AspNetCore.Mvc.Abstractions.ParameterDescriptor>,  new List<Microsoft.AspNetCore.Mvc.Abstractions.ParameterDescriptor>()
-                        data actionDescriptor = new ControllerActionDescriptor() { ControllerName = dispatcherType.FullName, ControllerTypeInfo = dispatcherType.GetTypeInfo(), ActionName = actionName, MethodInfo = targetMethod, Parameters = targetParameters, BoundProperties = boundProperties} 
-                        actionDescriptor.FilterDescriptors = (@IList<Microsoft.AspNetCore.Mvc.Filters.FilterDescriptor>)new List<Microsoft.AspNetCore.Mvc.Filters.FilterDescriptor>()
-                        actionDescriptor.RouteValues.Add("methodName", opSeg.Identifier)
-                        mreturn new List<ControllerActionDescriptor>() { actionDescriptor }
+                        data realControllerType = dispatcherType.GenericTypeArguments[1] 
+                        data controllerTypeInfo = realControllerType.GetTypeInfo()
+                        data actionCollectionProvider = (@IActionDescriptorCollectionProvider)routeContext.HttpContext.RequestServices.GetService(^typeof(IActionDescriptorCollectionProvider))
+                        
+
+;                        data cmodel = new ControllerModel(realControllerType.GetTypeInfo(), realControllerType.GetCustomAttributes(false).ToList().AsReadOnly())
+;                        data targetAction = realControllerType.GetMethod(opSeg.Identifier)
+;                        data amodel = new ActionModel(targetAction, targetAction.GetCustomAttributes(false).ToList().AsReadOnly())
+;                        data actionName = odataPath.PathTemplate == "~/singleton/action" ? "Post" : "Get"
+;                        data targetMethod = dispatcherType.GetMethod(actionName)
+;                        data targetParameters, @IList<Microsoft.AspNetCore.Mvc.Abstractions.ParameterDescriptor>, new List<Microsoft.AspNetCore.Mvc.Abstractions.ParameterDescriptor>()
+;                        data boundProperties, @IList<Microsoft.AspNetCore.Mvc.Abstractions.ParameterDescriptor>,  new List<Microsoft.AspNetCore.Mvc.Abstractions.ParameterDescriptor>()
+;                        data actionDescriptor = new ControllerActionDescriptor() { ControllerName = dispatcherType.FullName, ControllerTypeInfo = dispatcherType.GetTypeInfo(), ActionName = actionName, MethodInfo = targetMethod, Parameters = targetParameters, BoundProperties = boundProperties} 
+;                        actionDescriptor.FilterDescriptors = (@IList<Microsoft.AspNetCore.Mvc.Filters.FilterDescriptor>)new List<Microsoft.AspNetCore.Mvc.Filters.FilterDescriptor>()
+                        data opName = opSeg.Identifier
+                        if(String.IsNullOrEmpty(opName) && opSeg.Operations != ^null)
+                            opName = opSeg.Operations.First().Name
+
+                        data actionDescriptor = actionCollectionProvider.ActionDescriptors.Items.OfType<ControllerActionDescriptor>().FirstOrDefault(lambda(aDesc) { aDesc.ControllerTypeInfo == controllerTypeInfo && string.Compare(aDesc.ActionName, opName, true) == 0 }) 
+                        if(actionDescriptor != ^null)
+                        begin
+                            ;data resultDescriptor = new ControllerActionDescriptor(actionDescriptor)
+                            actionDescriptor.RouteValues["HarmonySprocRouteSentinel"] = ""
+                            mreturn new List<ControllerActionDescriptor>() { actionDescriptor }
+                        end
+
                     end
                 end
             end
