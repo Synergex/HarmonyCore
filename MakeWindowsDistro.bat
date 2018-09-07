@@ -9,7 +9,7 @@ pushd %SolutionDir%
 if not exist distribution\windows\debug\.   mkdir distribution\windows\debug
 rem if not exist distribution\windows\release\. mkdir distribution\windows\release
 
-pushd SampleServices.Test
+pushd Services.Test
 echo Building debug distribution
 dotnet publish -c Debug   -r win7-x64 -o ..\distribution\windows\debug
 rem echo Building release distribution

@@ -52,12 +52,8 @@
 ;; Any changes you make will be lost of the file is re-generated.
 ;;*****************************************************************************
 
-<IF DEFINED_ENABLE_AUTHENTICATION>
-import IdentityModel.Client
-</IF DEFINED_ENABLE_AUTHENTICATION>
 import Microsoft.AspNetCore
 import Microsoft.AspNetCore.Hosting
-import Microsoft.AspNetCore.TestHost
 import System.Collections.Generic
 import System.IO
 import System.Text
@@ -116,10 +112,6 @@ namespace <NAMESPACE>
 
     public static class SelfHostEnvironment
 
-<IF DEFINED_ENABLE_AUTHENTICATION>
-        public static AccessToken, string
-</IF DEFINED_ENABLE_AUTHENTICATION>
-
         public static method Initialize, void
 
         proc
@@ -135,32 +127,6 @@ namespace <NAMESPACE>
             createFiles()
 </IF DEFINED_ENABLE_CREATE_TEST_FILES>
 
-<IF DEFINED_ENABLE_AUTHENTICATION>
-            ;;Get the access token from the OAuth Server
-            data disco = DiscoveryClient.GetAsync("<OAUTH_SERVER>").GetAwaiter().GetResult()
-
-            if (disco.IsError) then
-            begin
-                throw new Exception("OAuth endpoint discovery failed. Error was: " + disco.Error)
-            end
-            else
-            begin
-                data tokenClient = new TokenClient(disco.TokenEndpoint, "<OAUTH_CLIENT>", "<OAUTH_SECRET>");
-                data tokenResponse = tokenClient.RequestResourceOwnerPasswordAsync("<OAUTH_TEST_USER>","<OAUTH_TEST_PASSWORD>","<OAUTH_API>").GetAwaiter().GetResult()
-
-                if (tokenResponse.IsError) then
-                begin
-                    ;;Failed to get an access token from the OAuth server
-                    throw new Exception(tokenResponse.Error);
-                end
-                else
-                begin
-                    ;;Now we have an access token that we can use to call our protected API
-                    AccessToken = tokenResponse.AccessToken
-                end
-            end
-
-</IF DEFINED_ENABLE_AUTHENTICATION>
         endmethod
 
         public static method Cleanup, void

@@ -59,7 +59,7 @@ namespace <NAMESPACE>
     ;;; <summary>
     ;;; Builds an entity framework entity data model.
     ;;; </summary>
-    public class EdmBuilder
+    public partial class EdmBuilder
 
         private static mEdmModel, @IEdmModel
 
@@ -96,6 +96,9 @@ namespace <NAMESPACE>
                 builder.EntityType<<StructureNoplural>>().HasKey<<StructureNoplural>,int>("RecordNumber")
   </IF STRUCTURE_RELATIVE>
 </STRUCTURE_LOOP>
+ 
+                ;;If we have a GetEdmModelCustom method, call it 
+                GetEdmModelCustom(serviceProvider, builder)
 
                 data tempModel = (@EdmModel)builder.GetEdmModel()
                 <STRUCTURE_LOOP>
@@ -113,6 +116,13 @@ namespace <NAMESPACE>
 
             mreturn mEdmModel
 
+        endmethod
+
+        ;;Declare the GetEdmModelCustom partial method
+        ;;This method can be implemented in a partial class to provide custom EDM configuration code
+        partial static method GetEdmModelCustom, void
+            required in serviceProvider, @IServiceProvider
+            required in builder, @ODataConventionModelBuilder
         endmethod
 
     endclass

@@ -209,7 +209,7 @@ namespace <NAMESPACE>
             <IF DEFINED_ENABLE_AUTHENTICATION>
             client.SetBearerToken(UnitTestEnvironment.AccessToken)
             </IF DEFINED_ENABLE_AUTHENTICATION>
-            data request = String.Format("/odata/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)", "", <SEGMENT_LOOP>TestConstants.Get<StructureNoplural>_ByAltKey_<KeyName>_<SegmentName><,></SEGMENT_LOOP>)
+            data request = String.Format("/odata/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)", "", <SEGMENT_LOOP>TestConstants.Get<StructureNoplural>_ByAltKey_<KeyName>_<SegmentName><IF DATE>.ToString("yyyy-MM-dd")</IF DATE><,></SEGMENT_LOOP>)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
