@@ -22,12 +22,15 @@ import Microsoft.AspNet.OData.Builder
 import Microsoft.AspNet.OData.Routing
 import Microsoft.EntityFrameworkCore
 import Microsoft.Extensions.DependencyInjection
+import Microsoft.Extensions.DependencyInjection.Extensions
 import Microsoft.OData
 import Microsoft.OData.UriParser
 import Swashbuckle.AspNetCore.Swagger
 import Microsoft.AspNetCore.StaticFiles
+import Microsoft.AspNetCore.Mvc.Abstractions
 import Services.Models
 import Harmony.Core.Interface
+import Harmony.OData
 
 namespace Services
 
@@ -37,6 +40,7 @@ namespace Services
             services, @IServiceCollection 
         proc
             services.AddScoped<IPrimaryKeyFactory,PrimaryKeyGenerator>()
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<IActionInvokerProvider, HarmonySprocActionInvokerProvider>())
         endmethod
 
         partial method ConfigureCustom, void
