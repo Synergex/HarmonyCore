@@ -82,17 +82,18 @@ namespace Harmony.Core.Context
                 ;;write original record values for all actually written update records
                 ;;delete records cant fail, no need to rollback anything from this phase
 
-                foreach dataObject in maybeRollbackStored
+                foreach dataObject in Enumerable.Reverse<DataObjectBase>(maybeRollbackStored)
                 begin
                     data ioObject = ioHelper(dataObject)
                     ;;GRFA has been updated by the prior store
                     FileIOErrorHelper.EnsureSuccess(ioObject.DeleteRecordUsingGRFA(dataObject, true))
                 end
 
-                foreach dataObject in maybeRollbackUpdated
+                foreach dataObject in Enumerable.Reverse<DataObjectBase>(maybeRollbackUpdated)
                 begin
                     data ioObject = ioHelper(dataObject)
                     dataObject.RestoreOriginalData() ;;this wont actually change the GRFA just the record data
+                    ;;this needs to be logged and we have to continue if possible - could get out of disk space, could get duplicate secondary key if someone stole it out from under us
                     FileIOErrorHelper.EnsureSuccess(ioObject.UpdateRecordUsingGRFA(dataObject))
                 end
                 ;;rethrow to continue the abort processing up the chain
