@@ -210,7 +210,7 @@ namespace Harmony.Core.EF.Query.Internal
                         Expression.Constant(QueryPlan),
                         Expression.Constant(QueryCompilationContext.IsTrackingQuery));
 
-                var memberAccessVisitor = new MemberAccessBindingExpressionVisitor(QueryCompilationContext.QuerySourceMapping, this, false);
+                var memberAccessVisitor = new HarmonyMemberAccessBindingExpressionVisitor(QueryCompilationContext.QuerySourceMapping, this, false);
                 var buffers = QueryPlan.GetQueryBuffer().TypeBuffers;
                 foreach (var kvp in querySourceBuffer)
                 {
@@ -289,7 +289,7 @@ namespace Harmony.Core.EF.Query.Internal
             {
                 get
                 {
-                    return SourceStack.Count > 0  ? SourceStack.Peek() : null;
+                    return SourceStack.Count > 0  ? SourceStack.Peek() : new QuerySourceReferenceExpression(QueryModel.MainFromClause);
                 }
             }
 
@@ -497,7 +497,14 @@ namespace Harmony.Core.EF.Query.Internal
                             foreach (var joinClause in queryModel.BodyClauses.OfType<JoinClause>())
                             {
                                 //grab each item join and make a query source replacement that points to the actual property instead of a query source
-                                QuerySourceMapping.AddMapping(joinClause, Expression.Property(currentParameter, joinClause.ItemName.Split(DotArray, StringSplitOptions.RemoveEmptyEntries).Last()));
+                                var joinItemNameParts = joinClause.ItemName.Split(DotArray, StringSplitOptions.RemoveEmptyEntries).Skip(1);
+                                Expression targetExpr = currentParameter;
+                                foreach (var item in joinItemNameParts)
+                                {
+                                    targetExpr = Expression.Property(targetExpr, item);
+                                }
+
+                                QuerySourceMapping.AddMapping(joinClause, targetExpr);
                                 joinClause.InnerKeySelector = rewrite.Visit(joinClause.InnerKeySelector);
                                 joinClause.OuterKeySelector = rewrite.Visit(joinClause.OuterKeySelector);
                                 TopQueryModel.BodyClauses.Add(joinClause);
@@ -518,7 +525,7 @@ namespace Harmony.Core.EF.Query.Internal
                             var subQueryVisitor = new SubQueryRewriter { QueryModel = queryModel, TopQueryModel = TopQueryModel, Parent = Parent, QuerySourceMapping = QuerySourceMapping, QuerySourceAliases = QuerySourceAliases, ParameterStack = ParameterStack, SelectorRewriterLookup = SelectorRewriterLookup };
                             //Expression expression = selectorRewriter.Visit(queryModel.SelectClause.Selector);
                             var selector = subQueryVisitor.Visit(queryModel.SelectClause.Selector);
-                            var memberAccessVisitor = new MemberAccessBindingExpressionVisitor(QuerySourceMapping, Parent, false);
+                            var memberAccessVisitor = new HarmonyMemberAccessBindingExpressionVisitor(QuerySourceMapping, Parent, false);
                             // querySourceMapping.AddMapping(kvp.Key, propertyNode);
 
                             foreach (var queryAlias in QuerySourceAliases)
@@ -702,6 +709,29 @@ namespace Harmony.Core.EF.Query.Internal
             //        return Expression.And(expr, Expression.Call(typeof(Microsoft.EntityFrameworkCore.EF), "Property", new Type[] { targetKey.PrincipalKey.Properties.First().ClrType }, Expression.Constant(outerQuery), Expression.Constant(targetKey.PrincipalKey.Properties.First().Name)));
             //    }, queryModel, (obj) => { queryContext.QueryBuffer.StartTracking(obj, entityType); return obj; }, queryContext.ParameterValues, (((HarmonyQueryContext)queryContext).Store)).OfType<DataObjectBase>()
             //        .Select(t => new ValueBuffer(t.InternalGetValues()));
+        }
+
+        internal class HarmonyMemberAccessBindingExpressionVisitor : MemberAccessBindingExpressionVisitor
+        {
+            private static readonly MethodInfo _getValueMethodInfo = typeof(MemberAccessBindingExpressionVisitor).GetMethod("GetValue", BindingFlags.Static | BindingFlags.NonPublic);
+            public HarmonyMemberAccessBindingExpressionVisitor(QuerySourceMapping querySourceMapping, EntityQueryModelVisitor queryModelVisitor, bool inProjection) : base(querySourceMapping, queryModelVisitor, inProjection)
+            {
+            }
+
+            protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
+            {
+                var result = base.VisitMethodCall(methodCallExpression);
+                if ((result as MethodCallExpression)?.Method?.GetGenericMethodDefinition() == _getValueMethodInfo)
+                {
+                    var callExpr = result as MethodCallExpression;
+                    var propConst = callExpr.Arguments[2] as ConstantExpression;
+                    var propValue = propConst?.Value as IProperty;
+                    var baseExpr = callExpr.Arguments[1];
+                    if(propValue != null)
+                        return Expression.Convert(Expression.Property(baseExpr, propValue.Name), callExpr.Method.ReturnType);
+                }
+                return result;
+            }
         }
     }
 }
