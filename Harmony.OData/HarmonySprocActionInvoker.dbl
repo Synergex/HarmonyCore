@@ -436,14 +436,14 @@ StateActionEnd,
             begin
                 instanceValue = Expression.Convert(instanceArg, targetType)
             end
-
+            data JTokenItemInfo = ^typeof(JToken).GetProperty("Item")
             data parsedJson = new Lazy<Expression>(lambda() { GenerateJsonConvertExpression(bodyString) })
             data paramInfo, @ParameterInfo
             foreach paramInfo in targetParameters
             begin
                 ;;extract parmeters from the passed in dictionary, possibly from the post body
                 data parameterNameConst = Expression.Constant(paramInfo.Name)
-                data tokenInstance, @Expression, Expression.Call(parsedJson.Value, "SelectToken", new Type[0], new Expression[#] { parameterNameConst })
+                data tokenInstance, @Expression, Expression.Call(parsedJson.Value, JTokenItemInfo.GetMethod, new Expression[#] { Expression.Constant(paramInfo.Name, ^typeof(Object)) })
                 data itemResult = Expression.Condition(Expression.Call(uriArguments, "ContainsKey", new Type[0], parameterNameConst),
                 &    Expression.Convert(Expression.Property(uriArguments, "Item", parameterNameConst), paramInfo.ParameterType),
                 &    GenerateJTokenValue(paramInfo.ParameterType, tokenInstance))

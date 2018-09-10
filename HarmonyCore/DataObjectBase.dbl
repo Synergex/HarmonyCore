@@ -58,7 +58,7 @@ namespace Harmony.Core
 	;;; <remarks>
 	;;; This base class defines the core elemnts of the code-generated data objects.
 	;;; </remarks>
-	{JsonObject(MemberSerialization.OptIn)}
+	{JsonObject(MemberSerialization.OptOut)}
 	public abstract class DataObjectBase
 		private mIsNew, boolean
 		
@@ -125,8 +125,10 @@ namespace Harmony.Core
 		;;; $$Symphony Data Object$$.  This property will always contain the current record data and can be used by your program
 		;;; to update all the fields within the $$Symphony Data Object$$.  when setting, the data is extracted into the individual internal
 		;;; fields and the _PROPRTYCHANGED_ event is raised.
-		;;; </remarks>
-		public abstract readonly property SynergyRecord, a
+        ;;; </remarks>
+        {JsonIgnore}
+        public abstract readonly property SynergyRecord, a
+        {JsonIgnore}
 		public abstract readonly property OriginalSynergyRecord, a
 
 		private mIsDataModified, boolean
@@ -258,8 +260,9 @@ namespace Harmony.Core
 			proc
 				mGlobalRFA = value
 			endmethod
-		endproperty
-		
+        endproperty
+
+        {JsonIgnore}
 		public abstract property Metadata, @DataObjectMetadataBase
 			method get
 			proc
