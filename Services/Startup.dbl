@@ -69,6 +69,7 @@ namespace Services
                 mreturn objectProvider
             end
 
+            services.AddSingleton<IEdmBuilder, EdmBuilder>()
             services.AddSingleton<IFileChannelManager, FileChannelManager>()
             services.AddSingleton<IDataObjectProvider>(AddDataObjectMappings)
             services.AddDbContextPool<DBContext>(ConfigureDBContext)
@@ -168,16 +169,20 @@ namespace Services
                     mreturn routeList
                 end
 
+                lambda EnableWritableEdmModel(sp)
+                begin
+                    mreturn new RefEdmModel() { RealModel = EdmBuilder.GetEdmModel(sp) } 
+                end
+
                 lambda EnableDI(containerBuilder)
                 begin
                     containerBuilder.AddService<Microsoft.OData.UriParser.ODataUriResolver>( Microsoft.OData.ServiceLifetime.Singleton, UriResolver)
                     
-                    nop
                 end
 
                 lambda ConfigureRoute(containerBuilder)
                 begin
-                    containerBuilder.AddService<IEdmModel>(Microsoft.OData.ServiceLifetime.Singleton, lambda(sp) { model })
+                    containerBuilder.AddService<IEdmModel>(Microsoft.OData.ServiceLifetime.Scoped, EnableWritableEdmModel)
                     containerBuilder.AddService<IEnumerable<IODataRoutingConvention>>(Microsoft.OData.ServiceLifetime.Singleton, EnableRouting)
                 end
 

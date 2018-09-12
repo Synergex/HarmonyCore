@@ -1,0 +1,34 @@
+import System
+import System.Collections.Generic
+import System.Text
+
+
+namespace Harmony.OData
+
+    public class AuthorizeFieldAttribute extends Attribute
+        static method AuthorizeFieldAttribute
+        proc
+            CommaArray = new char[1]
+            CommaArray[1] = ','
+        endmethod
+
+        private static CommaArray, [#]char
+        public readwrite property Roles, [#]String
+        public method AuthorizeFieldAttribute
+            default roles, @String, ^null
+        proc
+            ;;TODO investigate compiler bug here
+            ;;if(roles != ^null)
+            ;;   Roles = roles.Split(CommaArray, StringSplitOptions.RemoveEmptyEntries)
+
+            if(roles != ^null)
+            begin
+                data splitRoles = roles.Split(CommaArray, StringSplitOptions.RemoveEmptyEntries)
+                this.Roles = splitRoles
+            end
+
+        endmethod
+
+	endclass
+
+endnamespace

@@ -4,6 +4,7 @@ import System.Text
 import Microsoft.OData.UriParser
 import Microsoft.OData.Edm
 import System.Linq
+import Microsoft.OData.Edm.Vocabularies
 
 
 namespace Harmony.OData
@@ -75,6 +76,13 @@ namespace Harmony.OData
             convertFunc, @Func<IEdmTypeReference, string, object>
         proc
             mreturn _altKeys.ResolveKeys(type, positionalValues, convertFunc)
+        endmethod
+
+        public override method ResolveTerm, @IEdmTerm
+        model, @IEdmModel
+        termName, @string 
+        proc
+            mreturn parent.ResolveTerm(model, termName)
         endmethod
 
 	endclass
