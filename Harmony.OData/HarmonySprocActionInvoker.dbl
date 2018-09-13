@@ -16,11 +16,13 @@ import Microsoft.Extensions.DependencyInjection
 import System.IO
 import Newtonsoft.Json
 import Newtonsoft.Json.Linq
+import Harmony.Core.Context
 
 namespace Harmony.OData
 
     public class HarmonySprocActionInvoker extends ResourceInvoker implements IActionInvoker
         private static ExpressionLookup, @ConcurrentDictionary<string, Func<IDictionary<object, object>, string, object, IActionResult>>, new ConcurrentDictionary<string, Func<IDictionary<object, object>, string, object, IActionResult>>()
+        private static ConstructionLookup, @ConcurrentDictionary<Type, Func<IServiceProvider, string, Task<object>>>, new ConcurrentDictionary<Type, Func<IServiceProvider, string, Task<Object>>>()
         private readonly _controllerContext, @ControllerContext
         private _arguments, @Dictionary<string, object>
         private _actionExecutingContext, @ActionExecutingContext
@@ -64,10 +66,8 @@ namespace Harmony.OData
                 begin
                     data controllerContext = _controllerContext
                     _cursor.Reset()
-                    
-                    _instance = CreateInstance(_serviceProvider, _controllerContext.ActionDescriptor.ControllerTypeInfo)
                     _arguments = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
-                    data local_task = BindArgumentsAsync()
+                    data local_task = CreateInstance(_serviceProvider, _controllerContext.ActionDescriptor.ControllerTypeInfo)
                     if (local_task.Status != TaskStatus.RanToCompletion)
                     begin
                         next = State.ActionNext
@@ -78,7 +78,7 @@ namespace Harmony.OData
             end
             (State.ActionNext),
             begin
-StateActionNext,
+            StateActionNext,
                 begin
                     data current = _cursor.GetNextFilter<IActionFilter, IAsyncActionFilter>()
                     if (current.FilterAsync != ^null) then
@@ -106,7 +106,7 @@ StateActionNext,
                 end
             end
             (State.ActionAsyncBegin),
-StateActionAsyncBegin,
+            StateActionAsyncBegin,
             begin
                 begin
                     Debug.Assert(state != ^null)
@@ -125,7 +125,7 @@ StateActionAsyncBegin,
                 end
             end
             (State.ActionAsyncEnd),
-StateActionAsyncEnd,
+            StateActionAsyncEnd,
             begin
                 begin
                     Debug.Assert(state != ^null)
@@ -143,7 +143,7 @@ StateActionAsyncEnd,
                 end
             end
             (State.ActionSyncBegin),
-StateActionSyncBegin,
+            StateActionSyncBegin,
             begin
                 begin
                     Debug.Assert(state != ^null)
@@ -172,7 +172,7 @@ StateActionSyncBegin,
                 end
             end
             (State.ActionSyncEnd),
-StateActionSyncEnd,
+            StateActionSyncEnd,
             begin
                 begin
                     Debug.Assert(state != ^null)
@@ -189,7 +189,7 @@ StateActionSyncEnd,
                 end
             end
             (State.ActionInside),
-StateActionInside,
+            StateActionInside,
             begin
                 begin
                     data local_task = InvokeActionMethodAsync()
@@ -202,7 +202,7 @@ StateActionInside,
                 end
             end
             (State.ActionEnd),
-StateActionEnd,
+            StateActionEnd,
             begin
                 begin
                     if (scope == Scope.Action)
@@ -346,20 +346,6 @@ StateActionEnd,
             end
         endmethod
         
-        private method BindArgumentsAsync, @Task
-            endparams
-        proc
-            ;;  Perf: Avoid allocating async state machines where possible. We only need the state
-            ;;  machine if you need to bind properties or arguments.
-            ;;data actionDescriptor = _controllerContext.ActionDescriptor
-            ;;if ((actionDescriptor.BoundProperties.Count == 0) && (actionDescriptor.Parameters.Count == 0))
-            ;;begin
-                mreturn Task.CompletedTask
-            ;;end
-            ;;Debug.Assert(_cacheEntry.ControllerBinderDelegate != ^null)
-            ;;mreturn _cacheEntry.ControllerBinderDelegate(_controllerContext, _instance, _arguments)
-        endmethod
-
         private enum Scope
             Invoker
             Action
@@ -391,11 +377,57 @@ StateActionEnd,
             endtry
         endmethod
 
-        public static method CreateInstance, @object
+        public static method ConvertTask<T>, @System.Threading.Tasks.Task<object> 
+            tsk, @System.Threading.Tasks.Task<T>
+        proc
+            data res = new TaskCompletionSource<object>();
+            lambda ConvertWith(t) 
+            begin
+                if (t.IsCanceled) then
+                    res.TrySetCanceled()
+                else if (t.IsFaulted) then
+                    res.TrySetException(t.Exception)
+                else
+                    res.TrySetResult(t.Result)
+            end
+            tsk.ContinueWith(ConvertWith, TaskContinuationOptions.ExecuteSynchronously)
+            mreturn res.Task
+        endmethod
+
+        private static method MakeConstructionExpression, @Func<IServiceProvider, String, Task<Object>>
+            targetType, @Type
+        proc
+            data spParam = Expression.Parameter(^typeof(IServiceProvider), "serviceProvider")
+            data sessionParam = Expression.Parameter(^typeof(string), "session")
+            data contextFactoryType, @Type, ^typeof(IContextFactory<>).MakeGenericType(new Type[#] { targetType })
+            data serviceResult, @Expression, Expression.Call(^typeof(IServiceProvider), "GetService", new Type[0], Expression.Constant(contextFactoryType))
+            data contextFactory, @Expression, Expression.Convert(serviceResult, contextFactoryType)
+            data useContextFactory, @Expression, Expression.Call(contextFactory, "MakeContextAsync", new Type[0], new Expression[#] { spParam, sessionParam })
+            data useContextFactoryTask, @Expression, Expression.Call(^typeof(HarmonySprocActionInvoker), "ConvertTask", new Type[#] { targetType }, new Expression[#] { useContextFactory })
+            data useActivatorUtilities, @Expression, Expression.Call(^typeof(ActivatorUtilities), "CreateInstance", new Type[0], new Expression[#] { spParam, Expression.Constant(targetType) })
+            data useActivatorUtilitiesTask, @Expression, Expression.Call(^typeof(Task), "FromResult", new Type[#] { ^typeof(Object) }, new Expression[#] { useActivatorUtilities })
+            ;;check if there is a pool for this type
+            data constructorBody, @Expression, Expression.IfThenElse(Expression.Equal(contextFactory, Expression.Constant(^null, contextFactoryType)), 
+            &   useActivatorUtilitiesTask,
+            &   useContextFactoryTask)
+
+            data expr, @Expression<Func<IServiceProvider, String, Task<Object>>>, Expression.Lambda<Func<IServiceProvider, String, Task<Object>>>(constructorBody, new ParameterExpression[#] { spParam, sessionParam })
+            data resultFunc, @Func<IServiceProvider, String, Task<Object>>, expr.Compile()
+            mreturn resultFunc
+        endmethod
+
+
+        public async method CreateInstance, @Task
             serviceProvider, @IServiceProvider
             targetType, @Type
         proc
-            mreturn ActivatorUtilities.CreateInstance(serviceProvider, targetType)
+            data constructor = ConstructionLookup.GetOrAdd(targetType, MakeConstructionExpression)
+            data sessionId = String.Empty
+            if(_controllerContext.HttpContext.Session != ^null && _controllerContext.HttpContext.Session.IsAvailable && !String.IsNullOrWhiteSpace(_controllerContext.HttpContext.Session.Id))
+            begin
+                sessionId = _controllerContext.HttpContext.Session.Id
+            end
+            _instance = await constructor(serviceProvider, sessionId)
         endmethod
 
         public static method DeserializeObject, @Object
