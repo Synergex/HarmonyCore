@@ -5,7 +5,7 @@
 ;                 : D:\SYNERGEX\HarmonyCore\HarmonyCore.Test.Repository\bin\Debu
 ;                 : Version 10.3.3e
 ;
-;  GENERATED      : 31-AUG-2018, 15:45:39
+;  GENERATED      : 13-SEP-2018, 14:10:23
 ;                 : Version 10.3.3e
 ;  EXPORT OPTIONS : [ALL] 
  
@@ -91,6 +91,7 @@ Field TAX_ID   Type DECIMAL   Size 9
    Description "Customers tax ID number"
    Long Description
       "<SAMPLE_DATA>546874521</SAMPLE_DATA>"
+      "<HARMONY_ROLES>Manager</HARMONY_ROLES>"
  
 Field CREDIT_LIMIT   Type DECIMAL   Size 7   Precision 2
    Description "Credit limit"

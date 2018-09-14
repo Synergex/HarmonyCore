@@ -53,6 +53,9 @@ import System.ComponentModel.DataAnnotations
 import System.Text
 import Harmony.Core
 import Harmony.Core.Converters
+<IF DEFINED_ENABLE_FIELD_SECURITY>
+import Harmony.OData
+</IF DEFINED_ENABLE_FIELD_SECURITY>
 
 namespace <NAMESPACE>
 
@@ -123,6 +126,14 @@ namespace <NAMESPACE>
 ;//
 ;// Field property
 ;//
+        <IF DEFINED_ENABLE_FIELD_SECURITY>
+        <IF CUSTOM_HARMONY_AUTHENTICATE>
+        {AuthorizeField}
+        </IF CUSTOM_HARMONY_AUTHENTICATE>
+        <IF HARMONY_ROLES>
+        {AuthorizeField("<HARMONY_ROLES>")}
+        </IF HARMONY_ROLES>
+        </IF DEFINED_ENABLE_FIELD_SECURITY>
         <COUNTER_1_INCREMENT>
         <IF CUSTOM_HARMONY_AS_STRING>
         public property <FieldSqlname>, String

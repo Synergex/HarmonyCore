@@ -26,13 +26,11 @@ namespace Services
     ;;; </summary>
     public partial class EdmBuilder implements IEdmBuilder
 
-
         public method EdmBuilder
             serviceProvider, @IServiceProvider
         proc
             mServiceProvider = serviceProvider
         endmethod
-
 
         public virtual method BuildModel, @IEdmModel
             modelBuilder, @ODataModelBuilder 
@@ -40,7 +38,6 @@ namespace Services
         proc
             mreturn GetEdmModel(modelBuilder, mServiceProvider)
         endmethod
-
 
         private mServiceProvider, @IServiceProvider
         private static mEdmModel, @IEdmModel
@@ -50,10 +47,8 @@ namespace Services
         proc
             if(mEdmModel == ^null)
                 mEdmModel = GetEdmModel(new ODataConventionModelBuilder(serviceProvider), serviceProvider)
-
             mreturn mEdmModel
         endmethod
-
 
         ;;; <summary>
         ;;; Gets the entity data model.
@@ -75,7 +70,7 @@ namespace Services
             ;;using the "Fluent API" here.
             builder.EntityType<OrderItem>().HasKey<OrderItem,int>("OrderNumber")
             builder.EntityType<OrderItem>().HasKey<OrderItem,int>("ItemNumber")
-
+ 
             ;;If we have a GetEdmModelCustom method, call it 
             GetEdmModelCustom(serviceProvider, builder)
 
@@ -106,7 +101,7 @@ namespace Services
             tempModel.AddAlternateKeyAnnotation(vendorType, new Dictionary<string, IEdmProperty>() {{"State",vendorType.FindProperty("State")}})
             tempModel.AddAlternateKeyAnnotation(vendorType, new Dictionary<string, IEdmProperty>() {{"ZipCode",vendorType.FindProperty("ZipCode")}})
             tempModel.AddAlternateKeyAnnotation(vendorType, new Dictionary<string, IEdmProperty>() {{"PaymentTermsCode",vendorType.FindProperty("PaymentTermsCode")}})
-                
+
             mreturn tempModel
 
         endmethod

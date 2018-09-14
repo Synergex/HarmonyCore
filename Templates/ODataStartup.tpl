@@ -64,6 +64,7 @@
 ;;    system.text.encoding.codepages
 ;;
 
+import System.Collections.Generic
 import Harmony.Core.Context
 import Harmony.Core.FileIO
 import Harmony.Core.Utility
@@ -80,9 +81,11 @@ import Microsoft.AspNet.OData
 import Microsoft.AspNet.OData.Extensions
 import Microsoft.AspNet.OData.Builder
 import Microsoft.AspNet.OData.Routing
+import Microsoft.AspNet.OData.Routing.Conventions
 import Microsoft.EntityFrameworkCore
 import Microsoft.Extensions.DependencyInjection
 import Microsoft.OData
+import Microsoft.OData.Edm
 import Microsoft.OData.UriParser
 <IF DEFINED_ENABLE_SWAGGER_DOCS>
 import Swashbuckle.AspNetCore.Swagger
@@ -110,6 +113,7 @@ namespace <NAMESPACE>
                 mreturn objectProvider
             end
 
+            services.AddSingleton<IEdmBuilder, EdmBuilder>()
             services.AddSingleton<IFileChannelManager, FileChannelManager>()
             services.AddSingleton<IDataObjectProvider>(AddDataObjectMappings)
             services.AddDbContextPool<DBContext>(ConfigureDBContext)
@@ -120,7 +124,7 @@ namespace <NAMESPACE>
             lambda AddAltKeySupport(serviceProvider)
             begin
                 data model = EdmBuilder.GetEdmModel(serviceProvider)
-                mreturn new AlternateKeysODataUriResolver(model) <IF NOT_DEFINED_ENABLE_CASE_SENSITIVE_URL>{ EnableCaseInsensitive = true }</IF NOT_DEFINED_ENABLE_CASE_SENSITIVE_URL>
+                mreturn new UnqualifiedAltKeyUriResolver(model) <IF NOT_DEFINED_ENABLE_CASE_SENSITIVE_URL>{ EnableCaseInsensitive = true }</IF NOT_DEFINED_ENABLE_CASE_SENSITIVE_URL>
             end
 
             services.AddSingleton<ODataUriResolver>(AddAltKeySupport)
@@ -258,10 +262,30 @@ namespace <NAMESPACE>
                     mreturn result
                 end
 
+                lambda EnableRouting(sp)
+                begin
+                    data routeList = ODataRoutingConventions.CreateDefaultWithAttributeRouting("<SERVER_BASE_PATH>", builder)
+                    <IF DEFINED_ENABLE_SPROC>
+                    routeList.Insert(0, new HarmonySprocRoutingConvention())
+                    </IF DEFINED_ENABLE_SPROC>
+                    mreturn routeList
+                end
+
+                lambda EnableWritableEdmModel(sp)
+                begin
+                    mreturn new RefEdmModel() { RealModel = EdmBuilder.GetEdmModel(sp) } 
+                end
+
                 lambda EnableDI(containerBuilder)
                 begin
                     containerBuilder.AddService<Microsoft.OData.UriParser.ODataUriResolver>( Microsoft.OData.ServiceLifetime.Singleton, UriResolver)
                     nop
+                end
+
+                lambda ConfigureRoute(containerBuilder)
+                begin
+                    containerBuilder.AddService<IEdmModel>(Microsoft.OData.ServiceLifetime.Scoped, EnableWritableEdmModel)
+                    containerBuilder.AddService<IEnumerable<IODataRoutingConvention>>(Microsoft.OData.ServiceLifetime.Singleton, EnableRouting)
                 end
 
                 ;;Enable support for dependency injection into controllers
@@ -297,7 +321,7 @@ namespace <NAMESPACE>
                 builder.MaxTop(100)
 
                 ;;Configure the default OData route
-                builder.MapODataServiceRoute("odata", "odata", model)
+                builder.MapODataServiceRoute("<SERVER_BASE_PATH>", "<SERVER_BASE_PATH>", ConfigureRoute)
             end
 
 <IF DEFINED_ENABLE_CORS>

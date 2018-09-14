@@ -66,7 +66,7 @@ info:
     name: <API_LICENSE_NAME>
     url: '<API_LICENSE_URL>'
 host: '<SERVER_NAME>:<SERVER_HTTPS_PORT>'
-basePath: <SERVER_BASE_PATH>
+basePath: /<SERVER_BASE_PATH>
 schemes:
   - https
 consumes:
