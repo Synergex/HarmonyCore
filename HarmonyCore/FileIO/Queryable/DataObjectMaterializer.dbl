@@ -6,270 +6,320 @@ import System.Diagnostics
 
 namespace Harmony.Core.FileIO.Queryable
 
-	public class DataObjectMaterializer
-		private abstract class MaterializerState
-			public parentState, @DataObjectMaterializer.MaterializerState
-			public childrenState, @List<DataObjectMaterializer.MaterializerState>
-			public typeBuf, @QueryBuffer.TypeBuffer
-			public grfa, a10
-			public madeItems, @IEnumerable<DataObjectBase>
-			public lastMadeItem, @DataObjectBase
-			public dependentItems, @Dictionary<string, Object>
-			public changed, boolean
-			public filled, boolean
+    public class DataObjectMaterializer
+        private abstract class MaterializerState
+            public parentState, @DataObjectMaterializer.MaterializerState
+            public childrenState, @List<DataObjectMaterializer.MaterializerState>
+            public typeBuf, @QueryBuffer.TypeBuffer
+            public grfa, a10
+            public madeItems, @IEnumerable<DataObjectBase>
+            public lastMadeItem, @DataObjectBase
+            public dependentItems, @Dictionary<string, Object>
+            public changed, boolean
+            public filled, boolean
 
-			public method MaybeBubbleMake, void
-				tracker, @Func<DataObjectBase, DataObjectBase>
-				alwaysBubble, boolean
-				structure memMapper
-					fld,a1
-				endstructure
-			proc
-				if(filled)
-				begin
-					data doBubble = lastMadeItem == ^null || alwaysBubble
-					if(lastMadeItem == ^null)
-					begin
-						data childState, @DataObjectMaterializer.MaterializerState
-						foreach childState in childrenState
-						begin
-							childState.MaybeBubbleMake(tracker, alwaysBubble)
-						end
-						data structureSize, i4, typeBuf.Metadata.StructureSize
-						data memPnt, i4, typeBuf.MemoryHandle.Value
-						;;construct the object
-						lastMadeItem = dependentItems != ^null ? 
-						&	typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa, dependentItems.ToArray()) : 
-						&	typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa)
+            public method MaybeBubbleMake, void
+                tracker, @Func<DataObjectBase, DataObjectBase>
+                alwaysBubble, boolean
+                structure memMapper
+                    fld,a1
+                endstructure
+            proc
+                if(filled)
+                begin
+                    data doBubble = lastMadeItem == ^null || alwaysBubble
+                    if(lastMadeItem == ^null)
+                    begin
+                        data childState, @DataObjectMaterializer.MaterializerState
+                        foreach childState in childrenState
+                        begin
+                            childState.MaybeBubbleMake(tracker, alwaysBubble)
+                        end
+                        data structureSize, i4, typeBuf.Metadata.StructureSize
+                        data memPnt, i4, typeBuf.MemoryHandle.Value
+                        ;;construct the object
+                        lastMadeItem = dependentItems != ^null ? 
+                        &    typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa, dependentItems.ToArray()) : 
+                        &    typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa)
 
-						;;cleanup the materializer state for this step
-						if(dependentItems != ^null)
-							dependentItems.Clear()
-					end
+                        ;;cleanup the materializer state for this step
+                        if(dependentItems != ^null)
+                            dependentItems.Clear()
+                    end
 
-					if(doBubble)
-						Bubble(lastMadeItem, parentState == ^null, tracker)
-				end
-			endmethod
+                    if(doBubble)
+                        Bubble(lastMadeItem, parentState == ^null, tracker)
+                end
+            endmethod
 
-			public method Bubble, void
-				madeObject, @DataObjectBase
-				isRoot, boolean
-				tracker, @Func<DataObjectBase, DataObjectBase>
-			proc
-				;;we only need to track top level objects
-				if(isRoot)
-					tracker(madeObject)
+            public method Bubble, void
+                madeObject, @DataObjectBase
+                isRoot, boolean
+                tracker, @Func<DataObjectBase, DataObjectBase>
+            proc
+                ;;we only need to track top level objects
+                if(isRoot)
+                    tracker(madeObject)
 
-				;;if there is a parent state and we're a collection
-				;;and if madeItems is empty, add ourselves to it and then add our madeItems
-				;;to our parent states, dependentItems, using typeBuf.ParentFieldName as the key
-				if(madeItems == ^null && parentState != ^null) then
-				begin
-					;;we must be constructing singles, just push our madeObject into the parent
-					if(LastMadeItem == ^null && parentState.dependentItems.ContainsKey(typeBuf.ParentFieldName))
-					begin
-						;;this leg should have only had one result, throw
-						throw new InvalidOperationException(string.Format("Unexpected record during enumeration, additional item encountered was {0} joined to a {1} at {2}", 
-						&	typeBuf.DataObjectType.FullName, parentState.typeBuf.DataObjectType, typeBuf.ParentFieldName))
-					end
-					parentState.dependentItems.Add(typeBuf.ParentFieldName, madeObject)
-				end
-				else if(madeItems != ^null) then
-				begin
-					AddItem(madeObject)
-				end
-				else
-					throw new InvalidOperationException("Invalid materializer state")
+                ;;if there is a parent state and we're a collection
+                ;;and if madeItems is empty, add ourselves to it and then add our madeItems
+                ;;to our parent states, dependentItems, using typeBuf.ParentFieldName as the key
+                if(madeItems == ^null && parentState != ^null) then
+                begin
+                    ;;we must be constructing singles, just push our madeObject into the parent
+                    if(LastMadeItem == ^null && parentState.dependentItems.ContainsKey(typeBuf.ParentFieldName))
+                    begin
+                        ;;this leg should have only had one result, throw
+                        throw new InvalidOperationException(string.Format("Unexpected record during enumeration, additional item encountered was {0} joined to a {1} at {2}", 
+                        &    typeBuf.DataObjectType.FullName, parentState.typeBuf.DataObjectType, typeBuf.ParentFieldName))
+                    end
+                    parentState.dependentItems.Add(typeBuf.ParentFieldName, madeObject)
+                end
+                else if(madeItems != ^null) then
+                begin
+                    AddItem(madeObject)
+                end
+                else
+                    throw new InvalidOperationException("Invalid materializer state")
 					
-				if(parentState != ^null)
-				begin
-					if(madeItems != ^null && HasOneItem())
-					begin
-						parentState.dependentItems.Add(typeBuf.ParentFieldName, madeItems)
-					end
-				end
-			endmethod
+                if(parentState != ^null)
+                begin
+                    if(madeItems != ^null && HasOneItem())
+                    begin
+                        parentState.dependentItems.Add(typeBuf.ParentFieldName, madeItems)
+                    end
+                end
+            endmethod
 
 
-			public abstract method AddItem, void
-				obj, @DataObjectBase
-			proc
-			endmethod
+            public abstract method AddItem, void
+                obj, @DataObjectBase
+            proc
+            endmethod
 
-			public abstract method InitItems, void
-			proc
-			endmethod
+            public abstract method InitItems, void
+            proc
+            endmethod
 
-			public abstract method HasOneItem, boolean
-			proc
-			endmethod
+            public abstract method HasOneItem, boolean
+            proc
+            endmethod
 
-			public abstract method IsEmpty, boolean
-			proc
-			endmethod
+            public abstract method IsEmpty, boolean
+            proc
+            endmethod
 
-			public static method MakeState, @MaterializerState
-				buf, @QueryBuffer.TypeBuffer
-				parentState, @DataObjectMaterializer.MaterializerState
-			proc
-				data madeState = (@MaterializerState)Activator.CreateInstance(^typeof(MaterializerState<>).MakeGenericType(new Type[#] { buf.DataObjectType }))
-				if(parentState == ^null)
-					madeState.InitItems()
+            public static method MakeState, @MaterializerState
+                buf, @QueryBuffer.TypeBuffer
+                parentState, @DataObjectMaterializer.MaterializerState
+            proc
+                data madeState = (@MaterializerState)Activator.CreateInstance(^typeof(MaterializerState<>).MakeGenericType(new Type[#] { buf.DataObjectType }))
+                if(parentState == ^null)
+                    madeState.InitItems()
 
-				madeState.childrenState = new List<DataObjectMaterializer.MaterializerState>()
-				madeState.typeBuf = buf
-				madeState.parentState = parentState
-				madeState.changed = false
-				madeState.filled = false
-				mreturn madeState
-			endmethod
+                madeState.childrenState = new List<DataObjectMaterializer.MaterializerState>()
+                madeState.typeBuf = buf
+                madeState.parentState = parentState
+                madeState.changed = false
+                madeState.filled = false
+                mreturn madeState
+            endmethod
 
-		endclass
-		private class MaterializerState<T(DataObjectBase)> extends MaterializerState
-			public override method AddItem, void
-				obj, @DataObjectBase
-			proc
-				((@List<T>)madeItems).Add((T)obj)
-			endmethod
+        endclass
 
-			public override method InitItems, void
-			proc
-				madeItems = (@IEnumerable<DataObjectBase>)new List<T>()
-			endmethod
+        public class ComparisonComparer<T> implements IComparer<T>
+            private readonly cmp, @Comparison<T> 
 
-			public override method HasOneItem, boolean
-			proc
-				mreturn ((@List<T>)madeItems).Count == 1
-			endmethod
+            public method ComparisonComparer
+                cmp, @Comparison<T> 
+            proc
+                if (cmp == ^null)
+                    throw new ArgumentNullException("comparison")
+                this.cmp = cmp;
+            endmethod
 
-			public override method IsEmpty, boolean
-			proc
-				mreturn ((@List<T>)madeItems).Count == 0
-			endmethod
-		endclass
+            public method Compare, int
+                x, T
+                y, T
+            proc
+                mreturn cmp(x, y)
+            endmethod
+        endclass
+
+        private class MaterializerState<T(DataObjectBase)> extends MaterializerState
+            private readwrite property CmpObj, @ComparisonComparer<T>
+            public override method AddItem, void
+                obj, @DataObjectBase
+            proc
+                data typedItems = ((@List<T>)madeItems)
+                data item, T, (T)obj
+                if(typeBuf.OrderBy != ^null) then
+                begin
+                    if(CmpObj == ^null)
+                        CmpObj = new ComparisonComparer<T>((@Comparison<T>)typeBuf.OrderBy)
+
+                    if (typedItems.Count == 0)
+                    begin
+                        typedItems.Add(item)
+                        mreturn
+                    end
+                    if (CmpObj.Compare(typedItems[typedItems.Count-1], item) <= 0)
+                    begin
+                        typedItems.Add(item)
+                        mreturn
+                    end
+                    if (CmpObj.Compare(typedItems[0], item) >= 0)
+                    begin
+                        typedItems.Insert(0, item)
+                        mreturn
+                    end
+                    data index = typedItems.BinarySearch(item, CmpObj)
+                    if (index < 0) 
+                        index = ~index
+
+                    typedItems.Insert(index, item)
+                end
+                else
+                    typedItems.Add(item)
+            endmethod
+
+            public override method InitItems, void
+            proc
+                madeItems = (@IEnumerable<DataObjectBase>)new List<T>()
+            endmethod
+
+            public override method HasOneItem, boolean
+            proc
+                mreturn ((@List<T>)madeItems).Count == 1
+            endmethod
+
+            public override method IsEmpty, boolean
+            proc
+                mreturn ((@List<T>)madeItems).Count == 0
+            endmethod
+        endclass
 
 
-		public static method MaterializeObject, @IEnumerable<DataObjectBase>
-			typeBuf, @QueryBuffer.TypeBuffer
-			rowEnumerator, @Synergex.SynergyDE.Select.RowEnumerator
-			tracker, @Func<DataObjectBase, DataObjectBase>
-			structure memMapper
-				fld,a1
-			endstructure
-		proc
-			data materializerQueue = MakeIterationQueue(typeBuf)
-			data resultState = materializerQueue.First()
-			materializerQueue.Reverse()
-			data matState, @DataObjectMaterializer.MaterializerState
-			while(rowEnumerator.MoveNext())
-			begin
-				;;start at the limbs for actual object construction
-				foreach matState in materializerQueue
-				begin
-					data memPnt, i4, matState.typeBuf.MemoryHandle.Value
-					data structureSize, i4, matState.typeBuf.Metadata.StructureSize
-					data rowExists = rowEnumerator.Current.RowInfo(^m(memMapper.fld(1:structureSize), memPnt), , ,matState.changed)
-					;;if our parent was constructed last time around we need to clean up our made items
-					if(matState.parentState != ^null && matState.parentState.changed && matState.parentState.filled)
-					begin
-						if(matState.madeItems != ^null)
-							matState.InitItems()
-					end
+        public static method MaterializeObject, @IEnumerable<DataObjectBase>
+            typeBuf, @QueryBuffer.TypeBuffer
+            rowEnumerator, @Synergex.SynergyDE.Select.RowEnumerator
+            tracker, @Func<DataObjectBase, DataObjectBase>
+            structure memMapper
+                fld,a1
+            endstructure
+        proc
+            data materializerQueue = MakeIterationQueue(typeBuf)
+            data resultState = materializerQueue.First()
+            materializerQueue.Reverse()
+            data matState, @DataObjectMaterializer.MaterializerState
+            while(rowEnumerator.MoveNext())
+            begin
+                ;;start at the limbs for actual object construction
+                foreach matState in materializerQueue
+                begin
+                    data memPnt, i4, matState.typeBuf.MemoryHandle.Value
+                    data structureSize, i4, matState.typeBuf.Metadata.StructureSize
+                    data rowExists = rowEnumerator.Current.RowInfo(^m(memMapper.fld(1:structureSize), memPnt), , ,matState.changed)
+                    ;;if our parent was constructed last time around we need to clean up our made items
+                    if(matState.parentState != ^null && matState.parentState.changed && matState.parentState.filled)
+                    begin
+                        if(matState.madeItems != ^null)
+                            matState.InitItems()
+                    end
 
-					if(!matState.changed && matState.filled) then
-					begin
-						;;if the leg hasnt changed we still need to check if we've push up to our current parent
-						if(matState.parentState != ^null && matState.parentState.changed && matState.parentState.filled)
-						begin
-							if(matState.parentState.dependentItems != ^null && !matState.parentState.dependentItems.ContainsKey(matState.typeBuf.ParentFieldName))
-							begin
-								matState.MaybeBubbleMake(tracker, true)
-							end
-						end
-					end
-					else if(matState.changed && matState.filled)
-					begin
-						;;if the object was initialized on demand we dont need to make another one here
-						;;its already been bubbled up to the parent state
-						if(matState.LastMadeItem == ^null)
-						begin
-							;;construct the object
-							data madeObject = matState.dependentItems != ^null ? 
-							&	matState.typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), matState.grfa, matState.dependentItems.ToArray()) : 
-							&	matState.typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), matState.grfa)
+                    if(!matState.changed && matState.filled) then
+                    begin
+                        ;;if the leg hasnt changed we still need to check if we've push up to our current parent
+                        if(matState.parentState != ^null && matState.parentState.changed && matState.parentState.filled)
+                        begin
+                            if(matState.parentState.dependentItems != ^null && !matState.parentState.dependentItems.ContainsKey(matState.typeBuf.ParentFieldName))
+                            begin
+                                matState.MaybeBubbleMake(tracker, true)
+                            end
+                        end
+                    end
+                    else if(matState.changed && matState.filled)
+                    begin
+                        ;;if the object was initialized on demand we dont need to make another one here
+                        ;;its already been bubbled up to the parent state
+                        if(matState.LastMadeItem == ^null)
+                        begin
+                            ;;construct the object
+                            data madeObject = matState.dependentItems != ^null ? 
+                            &    matState.typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), matState.grfa, matState.dependentItems.ToArray()) : 
+                            &    matState.typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), matState.grfa)
 
-							matState.Bubble(madeObject, matState.typeBuf == typeBuf, tracker)
+                            matState.Bubble(madeObject, matState.typeBuf == typeBuf, tracker)
 						
-							;;cleanup the materializer state for this step
-							if(matState.dependentItems != ^null)
-								matState.dependentItems.Clear()
+                            ;;cleanup the materializer state for this step
+                            if(matState.dependentItems != ^null)
+                                matState.dependentItems.Clear()
 
-						end
+                        end
 
-						matState.LastMadeItem = ^null
-					end
+                        matState.LastMadeItem = ^null
+                    end
 
-					if(matState.changed)
-					begin
-						;;fill the row
-						rowEnumerator.Current.RowInfo(^m(memMapper.fld(1:structureSize), memPnt), matState.grfa)
-						matState.filled = rowEnumerator.Current.Fill(^m(memMapper.fld(1:structureSize), memPnt))
-					end
-				end
-				;;we only want one object if we dont have a collection result
-				if(!typeBuf.IsCollection && resultState.HasOneItem())
-					mreturn resultState.madeItems
-			end
+                    if(matState.changed)
+                    begin
+                        ;;fill the row
+                        rowEnumerator.Current.RowInfo(^m(memMapper.fld(1:structureSize), memPnt), matState.grfa)
+                        matState.filled = rowEnumerator.Current.Fill(^m(memMapper.fld(1:structureSize), memPnt))
+                    end
+                end
+                ;;we only want one object if we dont have a collection result
+                if(!typeBuf.IsCollection && resultState.HasOneItem())
+                    mreturn resultState.madeItems
+            end
 
 
-			;;finsh up the leftover materialization process here
-			foreach matState in materializerQueue
-			begin
-				if(matState.parentState != ^null && matState.parentState.changed && matState.parentState.filled)
-				begin
-					if(matState.madeItems != ^null)
-						matState.InitItems()
-				end
-				matState.MaybeBubbleMake(tracker, false)
-			end
-			mreturn resultState.madeItems
-		endmethod
+            ;;finsh up the leftover materialization process here
+            foreach matState in materializerQueue
+            begin
+                if(matState.parentState != ^null && matState.parentState.changed && matState.parentState.filled)
+                begin
+                    if(matState.madeItems != ^null)
+                        matState.InitItems()
+                end
+                matState.MaybeBubbleMake(tracker, false)
+            end
+            mreturn resultState.madeItems
+        endmethod
 
-		private static method MakeIterationQueue, @List<DataObjectMaterializer.MaterializerState>
-			source, @QueryBuffer.TypeBuffer
-		proc
-			data result = new List<DataObjectMaterializer.MaterializerState>()
-			data q = new @Queue<DataObjectMaterializer.MaterializerState>()
+        private static method MakeIterationQueue, @List<DataObjectMaterializer.MaterializerState>
+            source, @QueryBuffer.TypeBuffer
+        proc
+            data result = new List<DataObjectMaterializer.MaterializerState>()
+            data q = new @Queue<DataObjectMaterializer.MaterializerState>()
 
-			data rootState = MaterializerState.MakeState(source, ^null)
-			if(source.JoinedBuffers != ^null && source.JoinedBuffers.Count > 0)
-				rootState.dependentItems = new Dictionary<string, Object>()
+            data rootState = MaterializerState.MakeState(source, ^null)
+            if(source.JoinedBuffers != ^null && source.JoinedBuffers.Count > 0)
+                rootState.dependentItems = new Dictionary<string, Object>()
 
-			q.Enqueue(rootState) 
-			result.Add(rootState)
-			;;this is constructing a bredth first traversal list
-			while(q.Count > 0)
-			begin
-				data current = q.Dequeue()
-				data joined, @QueryBuffer.TypeBuffer
-				foreach joined in current.typeBuf.JoinedBuffers
-				begin
-					data newMatState = MaterializerState.MakeState(joined, current)
-					if(joined.IsCollection)
-						newMatState.InitItems()
+            q.Enqueue(rootState) 
+            result.Add(rootState)
+            ;;this is constructing a bredth first traversal list
+            while(q.Count > 0)
+            begin
+                data current = q.Dequeue()
+                data joined, @QueryBuffer.TypeBuffer
+                foreach joined in current.typeBuf.JoinedBuffers
+                begin
+                    data newMatState = MaterializerState.MakeState(joined, current)
+                    if(joined.IsCollection)
+                        newMatState.InitItems()
 
-					if(joined.JoinedBuffers != ^null && joined.JoinedBuffers.Count > 0)
-						newMatState.dependentItems = new Dictionary<string, Object>()
+                    if(joined.JoinedBuffers != ^null && joined.JoinedBuffers.Count > 0)
+                        newMatState.dependentItems = new Dictionary<string, Object>()
 
-					q.Enqueue(newMatState) 
-					result.Add(newMatState)
-					current.childrenState.Add(newMatState)
-				end
-			end
-			mreturn result
-		endmethod
+                    q.Enqueue(newMatState) 
+                    result.Add(newMatState)
+                    current.childrenState.Add(newMatState)
+                end
+            end
+            mreturn result
+        endmethod
 
-	endclass
+    endclass
 
 endnamespace
