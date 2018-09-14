@@ -91,7 +91,7 @@ Field TAX_ID   Type DECIMAL   Size 9
    Description "Customers tax ID number"
    Long Description
       "<SAMPLE_DATA>546874521</SAMPLE_DATA>"
-      "<HARMONY_ROLES>Manager</HARMONY_ROLES>"
+      "HARMONY_ROLES=Manager;"
  
 Field CREDIT_LIMIT   Type DECIMAL   Size 7   Precision 2
    Description "Credit limit"
