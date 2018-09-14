@@ -509,6 +509,21 @@ namespace Harmony.Core.EF.Query.Internal
                                 joinClause.OuterKeySelector = rewrite.Visit(joinClause.OuterKeySelector);
                                 TopQueryModel.BodyClauses.Add(joinClause);
                             }
+
+                            foreach (var orderByClause in queryModel.BodyClauses.OfType<OrderByClause>())
+                            {
+                                var targetOrderByResult = TopQueryModel.BodyClauses.OfType<OrderByClause>().FirstOrDefault();
+                                if (targetOrderByResult == null)
+                                {
+                                    targetOrderByResult = new OrderByClause();
+                                    TopQueryModel.BodyClauses.Add(targetOrderByResult);
+                                }
+                                foreach (var ordering in orderByClause.Orderings)
+                                {
+                                    ordering.Expression = rewrite.Visit(ordering.Expression);
+                                    targetOrderByResult.Orderings.Add(ordering);
+                                }
+                            }
                         }
 
                         if (!(from ro in queryModel.ResultOperators
