@@ -17,6 +17,8 @@ import System.IO
 import Newtonsoft.Json
 import Newtonsoft.Json.Linq
 import Harmony.Core.Context
+import System.Linq
+import Microsoft.AspNetCore.Http.Features
 
 namespace Harmony.OData
 
@@ -399,17 +401,26 @@ namespace Harmony.OData
         proc
             data spParam = Expression.Parameter(^typeof(IServiceProvider), "serviceProvider")
             data sessionParam = Expression.Parameter(^typeof(string), "session")
-            data contextFactoryType, @Type, ^typeof(IContextFactory<>).MakeGenericType(new Type[#] { targetType })
-            data serviceResult, @Expression, Expression.Call(^typeof(IServiceProvider), "GetService", new Type[0], Expression.Constant(contextFactoryType))
-            data contextFactory, @Expression, Expression.Convert(serviceResult, contextFactoryType)
-            data useContextFactory, @Expression, Expression.Call(contextFactory, "MakeContextAsync", new Type[0], new Expression[#] { spParam, sessionParam })
-            data useContextFactoryTask, @Expression, Expression.Call(^typeof(HarmonySprocActionInvoker), "ConvertTask", new Type[#] { targetType }, new Expression[#] { useContextFactory })
-            data useActivatorUtilities, @Expression, Expression.Call(^typeof(ActivatorUtilities), "CreateInstance", new Type[0], new Expression[#] { spParam, Expression.Constant(targetType) })
+            data useActivatorUtilities, @Expression, Expression.Call(^typeof(ActivatorUtilities), "CreateInstance", new Type[0], new Expression[#] { spParam, Expression.Constant(targetType), Expression.Constant(new Object[0]) })
             data useActivatorUtilitiesTask, @Expression, Expression.Call(^typeof(Task), "FromResult", new Type[#] { ^typeof(Object) }, new Expression[#] { useActivatorUtilities })
-            ;;check if there is a pool for this type
-            data constructorBody, @Expression, Expression.IfThenElse(Expression.Equal(contextFactory, Expression.Constant(^null, contextFactoryType)), 
-            &   useActivatorUtilitiesTask,
-            &   useContextFactoryTask)
+            data constructorBody, @Expression
+            if(targetType.GetInterfaces().Contains(^typeof(IContextBase))) then
+            begin
+                data contextFactoryType, @Type, ^typeof(IContextFactory<>).MakeGenericType(new Type[#] { targetType })
+                data serviceResult, @Expression, Expression.Call(^typeof(IServiceProvider), "GetService", new Type[0], Expression.Constant(contextFactoryType))
+                data contextFactory, @Expression, Expression.Convert(serviceResult, contextFactoryType)
+                data useContextFactory, @Expression, Expression.Call(contextFactory, "MakeContextAsync", new Type[0], new Expression[#] { spParam, sessionParam })
+                data useContextFactoryTask, @Expression, Expression.Call(^typeof(HarmonySprocActionInvoker), "ConvertTask", new Type[#] { targetType }, new Expression[#] { useContextFactory })
+                
+                ;;check if there is a pool for this type
+                constructorBody = Expression.IfThenElse(Expression.Equal(contextFactory, Expression.Constant(^null, contextFactoryType)), 
+                &   useActivatorUtilitiesTask,
+                &   useContextFactoryTask)
+            end
+            else
+            begin
+                constructorBody = useActivatorUtilitiesTask
+            end
 
             data expr, @Expression<Func<IServiceProvider, String, Task<Object>>>, Expression.Lambda<Func<IServiceProvider, String, Task<Object>>>(constructorBody, new ParameterExpression[#] { spParam, sessionParam })
             data resultFunc, @Func<IServiceProvider, String, Task<Object>>, expr.Compile()
@@ -423,7 +434,8 @@ namespace Harmony.OData
         proc
             data constructor = ConstructionLookup.GetOrAdd(targetType, MakeConstructionExpression)
             data sessionId = String.Empty
-            if(_controllerContext.HttpContext.Session != ^null && _controllerContext.HttpContext.Session.IsAvailable && !String.IsNullOrWhiteSpace(_controllerContext.HttpContext.Session.Id))
+            data sessionFeature = _controllerContext.HttpContext.Features.Get<ISessionFeature>()
+            if(sessionFeature != ^null)
             begin
                 sessionId = _controllerContext.HttpContext.Session.Id
             end
