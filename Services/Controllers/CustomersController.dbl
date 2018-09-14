@@ -16,10 +16,10 @@ import Microsoft.AspNet.OData
 import Microsoft.AspNet.OData.Routing
 import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Infrastructure
+import Harmony.OData
 import Harmony.Core.EF.Extensions
 import Services.Models
 import Harmony.Core.Interface
-import Harmony.OData
 
 namespace Services.Controllers
 
@@ -36,7 +36,7 @@ namespace Services.Controllers
         ;;; </summary>
         ;;; <param name="dbContext">Database context</param>
         public method CustomersController
-           dbContext, @Services.DBContext
+            dbContext, @Services.DBContext
            serviceProvider, @IServiceProvider
         proc
             this.DBContext = dbContext
@@ -44,7 +44,7 @@ namespace Services.Controllers
         endmethod
 
         {ODataRoute("Customers")}
-        {HarmonyFieldSecurityAttribute(MaxExpansionDepth=4)}
+        {HarmonyFieldSecurity(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get all Customers
         ;;; </summary>
@@ -55,7 +55,7 @@ namespace Services.Controllers
         endmethod
 
         {ODataRoute("Customers(CustomerNumber={aCustomerNumber})")}
-        {HarmonyFieldSecurityAttribute(MaxExpansionDepth=4)}
+        {HarmonyFieldSecurity(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get a single Customer by primary key.
         ;;; </summary>
@@ -69,7 +69,7 @@ namespace Services.Controllers
         endmethod
 
         {ODataRoute("Customers(State={aState})")}
-        {HarmonyFieldSecurityAttribute(MaxExpansionDepth=4)}
+        {HarmonyFieldSecurity(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get customers by alternate key key State.
         ;;; </summary>
@@ -86,7 +86,7 @@ namespace Services.Controllers
         endmethod
 
         {ODataRoute("Customers(ZipCode={aZipCode})")}
-        {HarmonyFieldSecurityAttribute(MaxExpansionDepth=4)}
+        {HarmonyFieldSecurity(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get customers by alternate key key Zip.
         ;;; </summary>
@@ -103,7 +103,7 @@ namespace Services.Controllers
         endmethod
 
         {ODataRoute("Customers(PaymentTermsCode={aPaymentTermsCode})")}
-        {HarmonyFieldSecurityAttribute(MaxExpansionDepth=4)}
+        {HarmonyFieldSecurity(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get customers by alternate key key PaymentTerms.
         ;;; </summary>
@@ -351,8 +351,7 @@ namespace Services.Controllers
             ;; Validate inbound data
             if (!ModelState.IsValid)
                 mreturn BadRequest(ModelState)
-
-			disposable data keyFactory = (@IPrimaryKeyFactory)ServiceProvider.GetService(^typeof(IPrimaryKeyFactory))
+            disposable data keyFactory = (@IPrimaryKeyFactory)ServiceProvider.GetService(^typeof(IPrimaryKeyFactory))
             ;;Get the next available primary key value
             KeyFactory.AssignPrimaryKey(aCustomer)
 

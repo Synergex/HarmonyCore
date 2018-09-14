@@ -59,62 +59,78 @@ namespace <NAMESPACE>
     ;;; <summary>
     ;;; Builds an entity framework entity data model.
     ;;; </summary>
-    public partial class EdmBuilder
+    public partial class EdmBuilder implements IEdmBuilder
 
+        public method EdmBuilder
+            serviceProvider, @IServiceProvider
+        proc
+            mServiceProvider = serviceProvider
+        endmethod
+
+        public virtual method BuildModel, @IEdmModel
+            modelBuilder, @ODataModelBuilder 
+            endparams
+        proc
+            mreturn GetEdmModel(modelBuilder, mServiceProvider)
+        endmethod
+
+        private mServiceProvider, @IServiceProvider
         private static mEdmModel, @IEdmModel
 
-        ;;; <summary>
-        ;;; Gets the entity data model.
-        ;;; </summary>
         public static method GetEdmModel, @IEdmModel
             required in serviceProvider, @IServiceProvider
         proc
             if(mEdmModel == ^null)
-            begin
-                data builder = new ODataConventionModelBuilder(serviceProvider)
+                mEdmModel = GetEdmModel(new ODataConventionModelBuilder(serviceProvider), serviceProvider)
+            mreturn mEdmModel
+        endmethod
 
-                ;;Declare entities
+        ;;; <summary>
+        ;;; Gets the entity data model.
+        ;;; </summary>
+        private static method GetEdmModel, @IEdmModel
+            required in builder, @ODataModelBuilder
+            required in serviceProvider, @IServiceProvider
+        proc
+            ;;Declare entities
 <STRUCTURE_LOOP>
-                builder.EntitySet<<StructureNoplural>>("<StructurePlural>")
+            builder.EntitySet<<StructureNoplural>>("<StructurePlural>")
 </STRUCTURE_LOOP>
 
-                ;;Entities with a single primary key segment have the key declared to EF via a
-                ;;{Key} attribute on the appropriate property in the data model, but only one {key}
-                ;;attribute can be used in a class, so keys with multiple segments are defined
-                ;;using the "Fluent API" here.
+            ;;Entities with a single primary key segment have the key declared to EF via a
+            ;;{Key} attribute on the appropriate property in the data model, but only one {key}
+            ;;attribute can be used in a class, so keys with multiple segments are defined
+            ;;using the "Fluent API" here.
 <STRUCTURE_LOOP>
   <IF STRUCTURE_ISAM>
     <PRIMARY_KEY>
         <IF MULTIPLE_SEGMENTS>
             <SEGMENT_LOOP>
-                builder.EntityType<<StructureNoplural>>().HasKey<<StructureNoplural>,<FIELD_CSTYPE>>("<FieldSqlname>")
+            builder.EntityType<<StructureNoplural>>().HasKey<<StructureNoplural>,<FIELD_CSTYPE>>("<FieldSqlname>")
             </SEGMENT_LOOP>
         </IF MULTIPLE_SEGMENTS>
     </PRIMARY_KEY>
   </IF STRUCTURE_ISAM>
   <IF STRUCTURE_RELATIVE>
-                builder.EntityType<<StructureNoplural>>().HasKey<<StructureNoplural>,int>("RecordNumber")
+            builder.EntityType<<StructureNoplural>>().HasKey<<StructureNoplural>,int>("RecordNumber")
   </IF STRUCTURE_RELATIVE>
 </STRUCTURE_LOOP>
  
-                ;;If we have a GetEdmModelCustom method, call it 
-                GetEdmModelCustom(serviceProvider, builder)
+            ;;If we have a GetEdmModelCustom method, call it 
+            GetEdmModelCustom(serviceProvider, builder)
 
-                data tempModel = (@EdmModel)builder.GetEdmModel()
-                <STRUCTURE_LOOP>
+            data tempModel = (@EdmModel)builder.GetEdmModel()
+            <STRUCTURE_LOOP>
 
-                data <structureNoplural>Type = (@EdmEntityType)tempModel.FindDeclaredType("<MODELS_NAMESPACE>.<StructureNoplural>")
-                <IF STRUCTURE_ISAM>
-                <ALTERNATE_KEY_LOOP>
-                tempModel.AddAlternateKeyAnnotation(<structureNoplural>Type, new Dictionary<string, IEdmProperty>() {<SEGMENT_LOOP>{"<SegmentName>",<structureNoplural>Type.FindProperty("<SegmentName>")}<,></SEGMENT_LOOP>})
-                </ALTERNATE_KEY_LOOP>
-                </IF STRUCTURE_ISAM>
-                </STRUCTURE_LOOP>
+            data <structureNoplural>Type = (@EdmEntityType)tempModel.FindDeclaredType("<MODELS_NAMESPACE>.<StructureNoplural>")
+            <IF STRUCTURE_ISAM>
+            <ALTERNATE_KEY_LOOP>
+            tempModel.AddAlternateKeyAnnotation(<structureNoplural>Type, new Dictionary<string, IEdmProperty>() {<SEGMENT_LOOP>{"<SegmentName>",<structureNoplural>Type.FindProperty("<SegmentName>")}<,></SEGMENT_LOOP>})
+            </ALTERNATE_KEY_LOOP>
+            </IF STRUCTURE_ISAM>
+            </STRUCTURE_LOOP>
 
-                mEdmModel = tempModel
-            end
-
-            mreturn mEdmModel
+            mreturn tempModel
 
         endmethod
 
@@ -122,7 +138,7 @@ namespace <NAMESPACE>
         ;;This method can be implemented in a partial class to provide custom EDM configuration code
         partial static method GetEdmModelCustom, void
             required in serviceProvider, @IServiceProvider
-            required in builder, @ODataConventionModelBuilder
+            required in builder, @ODataModelBuilder
         endmethod
 
     endclass

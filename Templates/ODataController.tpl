@@ -55,6 +55,9 @@ import Microsoft.AspNet.OData
 import Microsoft.AspNet.OData.Routing
 import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Infrastructure
+<IF DEFINED_ENABLE_FIELD_SECURITY>
+import Harmony.OData
+</IF DEFINED_ENABLE_FIELD_SECURITY>
 import Harmony.Core.EF.Extensions
 <IF DEFINED_ENABLE_AUTHENTICATION>
 import Microsoft.AspNetCore.Authorization
@@ -102,7 +105,11 @@ namespace <NAMESPACE>
         {Authorize(Roles="<ROLES_GET>")}
     </IF USERTOKEN_ROLES_GET>
   </IF DEFINED_ENABLE_AUTHENTICATION>
+  <IF DEFINED_ENABLE_FIELD_SECURITY>
+        {HarmonyFieldSecurity<API_ENABLE_QUERY_PARAMS>}
+  <ELSE>
         {EnableQuery<API_ENABLE_QUERY_PARAMS>}
+  </IF DEFINED_ENABLE_FIELD_SECURITY>
         ;;; <summary>
         ;;; Get all <StructurePlural>
         ;;; </summary>
@@ -121,7 +128,11 @@ namespace <NAMESPACE>
         {Authorize(Roles="<ROLES_GET>")}
     </IF USERTOKEN_ROLES_GET>
   </IF DEFINED_ENABLE_AUTHENTICATION>
+  <IF DEFINED_ENABLE_FIELD_SECURITY>
+        {HarmonyFieldSecurity<API_ENABLE_QUERY_PARAMS>}
+  <ELSE>
         {EnableQuery<API_ENABLE_QUERY_PARAMS>}
+  </IF DEFINED_ENABLE_FIELD_SECURITY>
         ;;; <summary>
         ;;; Get a single <StructureNoplural> by primary key.
         ;;; </summary>
@@ -167,7 +178,11 @@ namespace <NAMESPACE>
         {Authorize(Roles="<ROLES_GET>")}
           </IF USERTOKEN_ROLES_GET>
         </IF DEFINED_ENABLE_AUTHENTICATION>
+        <IF DEFINED_ENABLE_FIELD_SECURITY>
+        {HarmonyFieldSecurity<API_ENABLE_QUERY_PARAMS>}
+        <ELSE>
         {EnableQuery<API_ENABLE_QUERY_PARAMS>}
+        </IF DEFINED_ENABLE_FIELD_SECURITY>
         ;;; <summary>
         ;;; Get <structurePlural> by alternate key key <KeyName>.
         ;;; </summary>
@@ -193,7 +208,11 @@ namespace <NAMESPACE>
         {Authorize(Roles="<ROLES_GET>")}
           </IF USERTOKEN_ROLES_GET>
         </IF DEFINED_ENABLE_AUTHENTICATION>
+        <IF DEFINED_ENABLE_FIELD_SECURITY>
+        {HarmonyFieldSecurity<API_ENABLE_QUERY_PARAMS>}
+        <ELSE>
         {EnableQuery<API_ENABLE_QUERY_PARAMS>}
+        </IF DEFINED_ENABLE_FIELD_SECURITY>
         ;;; <summary>
         ;;; Get <structureNoplural> by alternate key <KeyName>.
         ;;; </summary>
