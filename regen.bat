@@ -140,13 +140,6 @@ if DEFINED ENABLE_UNIT_TEST_GENERATION (
              %STDOPTS%
   if ERRORLEVEL 1 goto error
 
-  rem Generate data generator classes; one time, not replaced
-  codegen -s %DATA_STRUCTURES% ^
-          -t ODataTestDataGenerator ^
-          -o %SolutionDir%%TestProject% -tf ^
-          -n %TestProject% %NOREPLACEOPTS%
-  if ERRORLEVEL 1 goto error
-
   rem Generate the test environment
   codegen -s %FILE_STRUCTURES% %PARAMSTR% -ms ^
           -t ODataTestEnvironment ^
