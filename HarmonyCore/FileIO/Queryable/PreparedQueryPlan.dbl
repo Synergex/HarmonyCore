@@ -69,34 +69,37 @@ namespace Harmony.Core.FileIO.Queryable
 
             ;;Find any Orderby that isnt on the driving table a push it into the appropriate type buffer
             ;;this only works if the target type buffer is a collection so we should error if it isnt
-            data orderByTpl, @Tuple<FieldReference, boolean>
-            foreach orderByTpl in orderBy
+            if(orderBy != ^null)
             begin
-                if(orderByTpl.Item1.QuerySourceKey != 0)
+                data orderByTpl, @Tuple<FieldReference, boolean>
+                foreach orderByTpl in orderBy
                 begin
-                    data typeBuffer = queryBufferPrototype.TypeBuffers[orderByTpl.Item1.QuerySourceKey]
-                    data item1Parm = Expression.Parameter(typeBuffer.DataObjectType, "item1")
-                    data item2Parm = Expression.Parameter(typeBuffer.DataObjectType, "item2")
-
-                    data item1Target = Expression.Property(item1Parm, orderByTpl.Item1.FieldDef.LanguageName)
-                    data item2Target = Expression.Property(item2Parm, orderByTpl.Item1.FieldDef.LanguageName)
-                    data ifGtExp, @Expression
-
-                    if(orderByTpl.Item2) then
+                    if(orderByTpl.Item1.QuerySourceKey != 0)
                     begin
-                        ifGtExp = Expression.Condition(Expression.GreaterThan(item1Target, item2Target), Expression.Constant(1, ^typeof(Int32)), Expression.Constant(-1, ^typeof(Int32)), ^typeof(Int32))
-                    end
-                    else
-                    begin
-                        ifGtExp = Expression.Condition(Expression.LessThan(item1Target, item2Target), Expression.Constant(1, ^typeof(Int32)), Expression.Constant(-1, ^typeof(Int32)), ^typeof(Int32))
-                    end
+                        data typeBuffer = queryBufferPrototype.TypeBuffers[orderByTpl.Item1.QuerySourceKey]
+                        data item1Parm = Expression.Parameter(typeBuffer.DataObjectType, "item1")
+                        data item2Parm = Expression.Parameter(typeBuffer.DataObjectType, "item2")
 
-                    data orderByBody = Expression.Condition(Expression.Equal(item1Target, item2Target), Expression.Constant(0, ^typeof(Int32)), ifGtExp, ^typeof(Int32))
-                    data targetDelegateType = ^typeof(Comparison<>).MakeGenericType(new Type[#] { typeBuffer.DataObjectType })
-                    typeBuffer.OrderBy = Expression.Lambda(targetDelegateType, orderByBody, new ParameterExpression[#] { item1Parm, item2Parm }).Compile()
+                        data item1Target = Expression.Property(item1Parm, orderByTpl.Item1.FieldDef.LanguageName)
+                        data item2Target = Expression.Property(item2Parm, orderByTpl.Item1.FieldDef.LanguageName)
+                        data ifGtExp, @Expression
+
+                        if(orderByTpl.Item2) then
+                        begin
+                            ifGtExp = Expression.Condition(Expression.GreaterThan(item1Target, item2Target), Expression.Constant(1, ^typeof(Int32)), Expression.Constant(-1, ^typeof(Int32)), ^typeof(Int32))
+                        end
+                        else
+                        begin
+                            ifGtExp = Expression.Condition(Expression.LessThan(item1Target, item2Target), Expression.Constant(1, ^typeof(Int32)), Expression.Constant(-1, ^typeof(Int32)), ^typeof(Int32))
+                        end
+
+                        data orderByBody = Expression.Condition(Expression.Equal(item1Target, item2Target), Expression.Constant(0, ^typeof(Int32)), ifGtExp, ^typeof(Int32))
+                        data targetDelegateType = ^typeof(Comparison<>).MakeGenericType(new Type[#] { typeBuffer.DataObjectType })
+                        typeBuffer.OrderBy = Expression.Lambda(targetDelegateType, orderByBody, new ParameterExpression[#] { item1Parm, item2Parm }).Compile()
+                    end
                 end
-
             end
+
         endmethod
 
         public method GetQueryBuffer, @QueryBuffer
@@ -293,7 +296,7 @@ namespace Harmony.Core.FileIO.Queryable
                         if(orderByResult == ^null) then
                             orderByResult = madeOrderBy
                         else
-                                orderByResult = orderByResult .and. madeOrderBy
+                            orderByResult = orderByResult .and. madeOrderBy
                     end
 
                 end
