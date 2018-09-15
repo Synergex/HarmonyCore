@@ -454,124 +454,131 @@ namespace Harmony.Core.EF.Query.Internal
                         if (Source != null && Source.ReferencedQuerySource.ItemType == CurrentParameter.Type && !QuerySourceMapping.ContainsMapping(Source.ReferencedQuerySource))
                             QuerySourceMapping.AddMapping(Source.ReferencedQuerySource, CurrentParameter);
 
-                        ParameterStack.Push(currentParameter);
-
-                        if (!QuerySourceMapping.ContainsMapping(queryModel.MainFromClause) && queryModel.MainFromClause.ItemType == currentParameter.Type)
+                        try
                         {
-                            QuerySourceMapping.AddMapping(queryModel.MainFromClause, currentParameter);
+                            ParameterStack.Push(currentParameter);
 
-                            //we only attach one predicate to a join clause, the rest need to be lifted into a regular where clause
-                            //this may need additional work to pick the best join field
-                            var orderedWhereClauses = queryModel.BodyClauses.OfType<WhereClause>().OrderBy(WhereAsJoinClauseQuality).ToList();
-                            var whereClause = orderedWhereClauses.FirstOrDefault();
-                            var rewrite = new SelectorRewriter()
+                            if (!QuerySourceMapping.ContainsMapping(queryModel.MainFromClause) && queryModel.MainFromClause.ItemType == currentParameter.Type)
                             {
-                                Replacements = SelectorRewriterLookup
-                            };
+                                QuerySourceMapping.AddMapping(queryModel.MainFromClause, currentParameter);
 
-                            if (whereClause != null)
-                            {
-                                var joinOnLambda = whereClause.Predicate;
-                                var navPropInfo = Source.Type.GetProperty(SubQueryTargetName);
-                                var madeJoin = new JoinClause(Source.ReferencedQuerySource.ItemName + "." + SubQueryTargetName,
-                                    navPropInfo.PropertyType.GenericTypeArguments[0], Source, Expression.Constant(true), Expression.Constant(true));
-
-                                var madeGroupJoin = new GroupJoinClause(Source.ReferencedQuerySource.ItemName + "." + SubQueryTargetName, typeof(IEnumerable<>).MakeGenericType(madeJoin.ItemType), madeJoin);
-                                var newQuerySource = new QuerySourceReferenceExpression(madeGroupJoin);
-                                AddOrUpdateSelector(new QuerySourceReferenceExpression(queryModel.MainFromClause), newQuerySource);
-                                var rewrittenJoinLambda = rewrite.Visit(joinOnLambda) as Expression;
-                                var simpleJoinCondition = rewrittenJoinLambda as BinaryExpression ?? (rewrittenJoinLambda as NullSafeEqualExpression)?.EqualExpression;
-
-                                madeJoin.InnerKeySelector = simpleJoinCondition.Right;
-                                madeJoin.OuterKeySelector = simpleJoinCondition.Left;
-                                TopQueryModel.BodyClauses.Add(madeGroupJoin);
-                            }
-
-                            foreach (var additionalWhereClause in orderedWhereClauses.Skip(1))
-                            {
-                                additionalWhereClause.Predicate = rewrite.Visit(additionalWhereClause.Predicate);
-                                TopQueryModel.BodyClauses.Add(additionalWhereClause);
-                            }
-
-                            //we shouldnt see any group joins here those are supposed to be represented in the selector further down
-                            foreach (var joinClause in queryModel.BodyClauses.OfType<JoinClause>())
-                            {
-                                //grab each item join and make a query source replacement that points to the actual property instead of a query source
-                                var joinItemNameParts = joinClause.ItemName.Split(DotArray, StringSplitOptions.RemoveEmptyEntries).Skip(1);
-                                Expression targetExpr = currentParameter;
-                                foreach (var item in joinItemNameParts)
+                                //we only attach one predicate to a join clause, the rest need to be lifted into a regular where clause
+                                //this may need additional work to pick the best join field
+                                var orderedWhereClauses = queryModel.BodyClauses.OfType<WhereClause>().OrderBy(WhereAsJoinClauseQuality).ToList();
+                                var whereClause = orderedWhereClauses.FirstOrDefault();
+                                var rewrite = new SelectorRewriter()
                                 {
-                                    targetExpr = Expression.Property(targetExpr, item);
+                                    Replacements = SelectorRewriterLookup
+                                };
+
+                                if (whereClause != null)
+                                {
+                                    var joinOnLambda = whereClause.Predicate;
+                                    var navPropInfo = Source.Type.GetProperty(SubQueryTargetName);
+                                    var madeJoin = new JoinClause(Source.ReferencedQuerySource.ItemName + "." + SubQueryTargetName,
+                                        navPropInfo.PropertyType.GenericTypeArguments[0], Source, Expression.Constant(true), Expression.Constant(true));
+
+                                    var madeGroupJoin = new GroupJoinClause(Source.ReferencedQuerySource.ItemName + "." + SubQueryTargetName, typeof(IEnumerable<>).MakeGenericType(madeJoin.ItemType), madeJoin);
+                                    var newQuerySource = new QuerySourceReferenceExpression(madeGroupJoin);
+                                    AddOrUpdateSelector(new QuerySourceReferenceExpression(queryModel.MainFromClause), newQuerySource);
+                                    var rewrittenJoinLambda = rewrite.Visit(joinOnLambda) as Expression;
+                                    var simpleJoinCondition = rewrittenJoinLambda as BinaryExpression ?? (rewrittenJoinLambda as NullSafeEqualExpression)?.EqualExpression;
+
+                                    madeJoin.InnerKeySelector = simpleJoinCondition.Right;
+                                    madeJoin.OuterKeySelector = simpleJoinCondition.Left;
+                                    TopQueryModel.BodyClauses.Add(madeGroupJoin);
                                 }
 
-                                QuerySourceMapping.AddMapping(joinClause, targetExpr);
-                                joinClause.InnerKeySelector = rewrite.Visit(joinClause.InnerKeySelector);
-                                joinClause.OuterKeySelector = rewrite.Visit(joinClause.OuterKeySelector);
-                                TopQueryModel.BodyClauses.Add(joinClause);
+                                foreach (var additionalWhereClause in orderedWhereClauses.Skip(1))
+                                {
+                                    additionalWhereClause.Predicate = rewrite.Visit(additionalWhereClause.Predicate);
+                                    TopQueryModel.BodyClauses.Add(additionalWhereClause);
+                                }
+
+                                //we shouldnt see any group joins here those are supposed to be represented in the selector further down
+                                foreach (var joinClause in queryModel.BodyClauses.OfType<JoinClause>())
+                                {
+                                    //grab each item join and make a query source replacement that points to the actual property instead of a query source
+                                    var joinItemNameParts = joinClause.ItemName.Split(DotArray, StringSplitOptions.RemoveEmptyEntries).Skip(1);
+                                    Expression targetExpr = currentParameter;
+                                    foreach (var item in joinItemNameParts)
+                                    {
+                                        targetExpr = Expression.Property(targetExpr, item);
+                                    }
+
+                                    QuerySourceMapping.AddMapping(joinClause, targetExpr);
+                                    joinClause.InnerKeySelector = rewrite.Visit(joinClause.InnerKeySelector);
+                                    joinClause.OuterKeySelector = rewrite.Visit(joinClause.OuterKeySelector);
+                                    TopQueryModel.BodyClauses.Add(joinClause);
+                                }
+
+                                foreach (var orderByClause in queryModel.BodyClauses.OfType<OrderByClause>())
+                                {
+                                    var targetOrderByResult = TopQueryModel.BodyClauses.OfType<OrderByClause>().FirstOrDefault();
+                                    if (targetOrderByResult == null)
+                                    {
+                                        targetOrderByResult = new OrderByClause();
+                                        TopQueryModel.BodyClauses.Add(targetOrderByResult);
+                                    }
+                                    foreach (var ordering in orderByClause.Orderings)
+                                    {
+                                        ordering.Expression = rewrite.Visit(ordering.Expression);
+                                        targetOrderByResult.Orderings.Add(ordering);
+                                    }
+                                }
                             }
 
-                            foreach (var orderByClause in queryModel.BodyClauses.OfType<OrderByClause>())
-                            {
-                                var targetOrderByResult = TopQueryModel.BodyClauses.OfType<OrderByClause>().FirstOrDefault();
-                                if (targetOrderByResult == null)
-                                {
-                                    targetOrderByResult = new OrderByClause();
-                                    TopQueryModel.BodyClauses.Add(targetOrderByResult);
-                                }
-                                foreach (var ordering in orderByClause.Orderings)
-                                {
-                                    ordering.Expression = rewrite.Visit(ordering.Expression);
-                                    targetOrderByResult.Orderings.Add(ordering);
-                                }
-                            }
-                        }
-
-                        if (!(from ro in queryModel.ResultOperators
-                              select ro.GetType()).Any(delegate (Type t)
-                              {
-                                  if (!(t == typeof(GroupResultOperator)))
+                            if (!(from ro in queryModel.ResultOperators
+                                  select ro.GetType()).Any(delegate (Type t)
                                   {
-                                      return t == typeof(AllResultOperator);
-                                  }
-                                  return true;
-                              }))
-                        {
-
-                            var subQueryVisitor = new SubQueryRewriter { QueryModel = queryModel, TopQueryModel = TopQueryModel, Parent = Parent, QuerySourceMapping = QuerySourceMapping, QuerySourceAliases = QuerySourceAliases, ParameterStack = ParameterStack, SelectorRewriterLookup = SelectorRewriterLookup };
-                            //Expression expression = selectorRewriter.Visit(queryModel.SelectClause.Selector);
-                            var selector = subQueryVisitor.Visit(queryModel.SelectClause.Selector);
-                            var memberAccessVisitor = new HarmonyMemberAccessBindingExpressionVisitor(QuerySourceMapping, Parent, false);
-                            // querySourceMapping.AddMapping(kvp.Key, propertyNode);
-
-                            foreach (var queryAlias in QuerySourceAliases)
+                                      if (!(t == typeof(GroupResultOperator)))
+                                      {
+                                          return t == typeof(AllResultOperator);
+                                      }
+                                      return true;
+                                  }))
                             {
-                                if (QuerySourceMapping.ContainsMapping(queryAlias.Value))
+
+                                var subQueryVisitor = new SubQueryRewriter { QueryModel = queryModel, TopQueryModel = TopQueryModel, Parent = Parent, QuerySourceMapping = QuerySourceMapping, QuerySourceAliases = QuerySourceAliases, ParameterStack = ParameterStack, SelectorRewriterLookup = SelectorRewriterLookup };
+                                //Expression expression = selectorRewriter.Visit(queryModel.SelectClause.Selector);
+                                var selector = subQueryVisitor.Visit(queryModel.SelectClause.Selector);
+                                var memberAccessVisitor = new HarmonyMemberAccessBindingExpressionVisitor(QuerySourceMapping, Parent, false);
+                                // querySourceMapping.AddMapping(kvp.Key, propertyNode);
+
+                                foreach (var queryAlias in QuerySourceAliases)
                                 {
-                                    if (!QuerySourceMapping.ContainsMapping(queryAlias.Key))
+                                    if (QuerySourceMapping.ContainsMapping(queryAlias.Value))
                                     {
-                                        QuerySourceMapping.AddMapping(queryAlias.Key, QuerySourceMapping.GetExpression(queryAlias.Value));
-                                    }
-                                    else
-                                    {
-                                        QuerySourceMapping.ReplaceMapping(queryAlias.Key, QuerySourceMapping.GetExpression(queryAlias.Value));
+                                        if (!QuerySourceMapping.ContainsMapping(queryAlias.Key))
+                                        {
+                                            QuerySourceMapping.AddMapping(queryAlias.Key, QuerySourceMapping.GetExpression(queryAlias.Value));
+                                        }
+                                        else
+                                        {
+                                            QuerySourceMapping.ReplaceMapping(queryAlias.Key, QuerySourceMapping.GetExpression(queryAlias.Value));
+                                        }
                                     }
                                 }
+
+
+                                var expression = memberAccessVisitor.Visit(selector);
+                                Expression expression2 = expression;
+                                TaskLiftingExpressionVisitor taskLiftingExpressionVisitor = new TaskLiftingExpressionVisitor();
+                                if (resultExpression.Type.TryGetElementType(typeof(IAsyncEnumerable<>)) != (Type)null)
+                                {
+                                    expression2 = taskLiftingExpressionVisitor.LiftTasks(expression);
+                                }
+
+                                resultExpression = ((expression2 == expression) ?
+                                    Expression.Call(Parent.LinqOperatorProvider.Select.MakeGenericMethod(resultExpressionElementType, resultTypeParameter), resultExpression, Expression.Lambda(expression, currentParameter)) :
+                                    Expression.Call(EntityQueryModelVisitor.SelectAsyncMethod.MakeGenericMethod(resultExpressionElementType, resultTypeParameter), resultExpression, Expression.Lambda(expression2, currentParameter, taskLiftingExpressionVisitor.CancellationTokenParameter)));
                             }
-
-
-                            var expression = memberAccessVisitor.Visit(selector);
-                            Expression expression2 = expression;
-                            TaskLiftingExpressionVisitor taskLiftingExpressionVisitor = new TaskLiftingExpressionVisitor();
-                            if (resultExpression.Type.TryGetElementType(typeof(IAsyncEnumerable<>)) != (Type)null)
-                            {
-                                expression2 = taskLiftingExpressionVisitor.LiftTasks(expression);
-                            }
-
-                            resultExpression = ((expression2 == expression) ?
-                                Expression.Call(Parent.LinqOperatorProvider.Select.MakeGenericMethod(resultExpressionElementType, resultTypeParameter), resultExpression, Expression.Lambda(expression, currentParameter)) :
-                                Expression.Call(EntityQueryModelVisitor.SelectAsyncMethod.MakeGenericMethod(resultExpressionElementType, resultTypeParameter), resultExpression, Expression.Lambda(expression2, currentParameter, taskLiftingExpressionVisitor.CancellationTokenParameter)));
+                            return node.Update(resultExpression);
                         }
-                        return node.Update(resultExpression);
+                        finally
+                        {
+                            ParameterStack.Pop();
+                        }
                     }
                     else
                     {
