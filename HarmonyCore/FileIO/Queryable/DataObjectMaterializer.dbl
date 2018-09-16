@@ -244,13 +244,22 @@ namespace Harmony.Core.FileIO.Queryable
                         ;;its already been bubbled up to the parent state
                         if(matState.LastMadeItem == ^null)
                         begin
+                            data childState, @DataObjectMaterializer.MaterializerState
+                            foreach childState in matState.childrenState
+                            begin
+                                if(childState.filled && !matState.dependentItems.ContainsKey(childState.typeBuf.ParentFieldName))
+                                begin
+                                    childState.MaybeBubbleMake(tracker, true)
+                                end
+                            end
+
                             ;;construct the object
                             data madeObject = matState.dependentItems != ^null ? 
                             &    matState.typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), matState.grfa, matState.dependentItems.ToArray()) : 
                             &    matState.typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), matState.grfa)
 
                             matState.Bubble(madeObject, matState.typeBuf == typeBuf, tracker)
-						
+
                             ;;cleanup the materializer state for this step
                             if(matState.dependentItems != ^null)
                                 matState.dependentItems.Clear()
