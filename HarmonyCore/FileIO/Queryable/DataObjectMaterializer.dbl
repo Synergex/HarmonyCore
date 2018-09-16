@@ -29,8 +29,8 @@ namespace Harmony.Core.FileIO.Queryable
             proc
                 if(filled)
                 begin
-                    data doBubble = lastMadeItem == ^null || alwaysBubble
-                    if(lastMadeItem == ^null)
+                    data doBubble = lastMadeItem == ^null || alwaysBubble || changed
+                    if(lastMadeItem == ^null || changed)
                     begin
                         data childState, @DataObjectMaterializer.MaterializerState
                         foreach childState in childrenState
@@ -235,25 +235,9 @@ namespace Harmony.Core.FileIO.Queryable
                             matState.InitItems()
                     end
 
-                    if(!matState.changed && matState.filled) then
+                    if(matState.changed && matState.filled)
                     begin
-                        ;;if the leg hasnt changed we still need to check if we've push up to our current parent
-                        if(matState.parentState != ^null && matState.parentState.changed && matState.parentState.filled)
-                        begin
-                            if(matState.parentState.dependentItems != ^null && matState.parentState.createdItemCount != matState.lastBubbleTarget)
-                            begin
-                                matState.MaybeBubbleMake(tracker, true)
-                            end
-                        end
-                    end
-                    else if(matState.changed && matState.filled)
-                    begin
-                        ;;if the object was initialized on demand we dont need to make another one here
-                        ;;its already been bubbled up to the parent state
-                        if(matState.LastMadeItem == ^null)
-                        begin
-                            matState.MaybeBubbleMake(tracker, true)
-                        end
+                        matState.MaybeBubbleMake(tracker, false)
                     end
 
                     if(matState.changed)
