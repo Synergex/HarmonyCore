@@ -11,7 +11,7 @@ namespace Harmony.Core.Utility
 			debugLog, @IDebugLogging
 			message, @string
 		proc
-			if((int)debugLog.Level >= (int)LogLevel.Info)
+            if((int)debugLog.Level <= (int)LogLevel.Info)
 				debugLog.LogMessage(LogLevel.Info, LogType.File | LogType.DebugView | LogType.Console, message)
 		endmethod
 
@@ -21,26 +21,44 @@ namespace Harmony.Core.Utility
 			{ParamArray}
 			arguments, [#]@object
 		proc
-			if((int)debugLog.Level >= (int)LogLevel.Info)
+			if((int)debugLog.Level <= (int)LogLevel.Info)
 				debugLog.LogMessage(LogLevel.Info, LogType.File | LogType.DebugView | LogType.Console, formatString, arguments)
 		endmethod
 
-		public static extension method LogDiagnostic, void
+		public static extension method LogTrace, void
 			debugLog, @IDebugLogging
 			formatString, @string
 			{ParamArray}
 			arguments, [#]@object
 		proc
-			if((int)debugLog.Level >= (int)LogLevel.Diagnostic)
-				debugLog.LogMessage(LogLevel.Diagnostic, LogType.File | LogType.DebugView | LogType.Console, formatString, arguments)
-		endmethod
+            if((int)debugLog.Level <= (int)LogLevel.Trace)
+                debugLog.LogMessage(LogLevel.Trace, LogType.File | LogType.DebugView | LogType.Console, formatString, arguments)
+        endmethod
+
+        public static extension method LogTrace, void
+            debugLog, @IDebugLogging
+            message, @string
+        proc
+            if((int)debugLog.Level <= (int)LogLevel.Trace)
+            debugLog.LogMessage(LogLevel.Trace, LogType.File | LogType.DebugView | LogType.Console, message)
+        endmethod
+
+        public static extension method LogDebug, void
+            debugLog, @IDebugLogging
+            formatString, @string
+            {ParamArray}
+            arguments, [#]@object
+        proc
+            if((int)debugLog.Level <= (int)LogLevel.Debug)
+                debugLog.LogMessage(LogLevel.Debug, LogType.File | LogType.DebugView | LogType.Console, formatString, arguments)
+        endmethod
 
 		public static extension method LogException, void
 			debugLog, @IDebugLogging
 			ex, @Exception
 			logLocation, @string
 		proc
-			if((int)debugLog.Level >= (int)LogLevel.Error)
+            if((int)debugLog.Level <= (int)LogLevel.Error)
 				debugLog.LogMessage(LogLevel.Error, LogType.File | LogType.DebugView | LogType.Console | LogType.EventLog, string.Format("Logged Exception while passing through {0}, the exception was {1}", logLocation, ex))
 		endmethod
 

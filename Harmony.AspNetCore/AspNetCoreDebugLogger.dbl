@@ -1,0 +1,61 @@
+import System
+import System.Collections.Generic
+import System.Text
+import Harmony.Core.Interface
+import Microsoft.Extensions.Logging
+
+namespace Harmony.AspNetCore
+
+    public class AspNetCoreDebugLogger implements IDebugLogging
+        mLogger, @ILogger
+        
+        public method AspNetCoreDebugLogger
+            logger, @ILogger
+        proc
+            mLogger = logger 
+        endmethod
+
+
+        public readwrite property Level, Harmony.Core.Interface.LogLevel
+        ;;; <summary>
+        ;;;  Process the inbound string value.
+        ;;; </summary>
+        ;;; <remarks>
+        ;;; Log the passed string to your custom logging environment.
+        ;;; </remarks>
+        public method LogMessage	,void
+            in req level, Harmony.Core.Interface.LogLevel
+            in req logKind, LogType
+            in req message	,String
+            endparams
+        proc
+
+            if((int)Level <= (int)level)
+            begin
+                data extLogLevel = (int)level
+                mLogger.Log((Microsoft.Extensions.Logging.LogLevel)extLogLevel, message, new object[0])
+            end
+        endmethod
+
+        ;;; <summary>
+        ;;;  Process the inbound string value as a format string
+        ;;; </summary>
+        ;;; <remarks>
+        ;;; Log the passed string to your custom logging environment.
+        ;;; </remarks>
+        public method LogMessage	,void
+            in req level, Harmony.Core.Interface.LogLevel
+            in req logKind, LogType
+            in req formatString	,String
+            {ParamArray}
+            in req args, [#]@Object
+            endparams
+        proc
+            if((int)Level <= (int)level)
+            begin
+                mLogger.Log((Microsoft.Extensions.Logging.LogLevel)(int)level, formatString, args)
+            end
+        endmethod
+	endclass
+
+endnamespace

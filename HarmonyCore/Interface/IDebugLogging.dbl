@@ -5,56 +5,57 @@ import System.Text
 
 namespace Harmony.Core.Interface
 
-	;;; <summary>
-	;;; This interface gives the ability to provide custom debug logging to the Symphony Framework.
-	;;; </summary>
-	public interface IDebugLogging
+    ;;; <summary>
+    ;;; This interface gives the ability to provide custom debug logging to the Symphony Framework.
+    ;;; </summary>
+    public interface IDebugLogging
 		
-		readonly property Level, LogLevel
-		;;; <summary>
-		;;;  Process the inbound string value.
-		;;; </summary>
-		;;; <remarks>
-		;;; Log the passed string to your custom logging environment.
-		;;; </remarks>
-		method LogMessage	,void
-			in req level, LogLevel
-			in req logKind, LogType
-			in req message	,String
-			endparams
-		endmethod
+        readonly property Level, LogLevel
+        ;;; <summary>
+        ;;;  Process the inbound string value.
+        ;;; </summary>
+        ;;; <remarks>
+        ;;; Log the passed string to your custom logging environment.
+        ;;; </remarks>
+        method LogMessage	,void
+            in req level, LogLevel
+            in req logKind, LogType
+            in req message	,String
+            endparams
+        endmethod
 
-		;;; <summary>
-		;;;  Process the inbound string value as a format string
-		;;; </summary>
-		;;; <remarks>
-		;;; Log the passed string to your custom logging environment.
-		;;; </remarks>
-		method LogMessage	,void
-			in req level, LogLevel
-			in req logKind, LogType
-			in req formatString	,String
-			{ParamArray}
-			in req args, [#]@Object
-			endparams
-		endmethod
-	endinterface
+        ;;; <summary>
+        ;;;  Process the inbound string value as a format string
+        ;;; </summary>
+        ;;; <remarks>
+        ;;; Log the passed string to your custom logging environment.
+        ;;; </remarks>
+        method LogMessage	,void
+            in req level, LogLevel
+            in req logKind, LogType
+            in req formatString	,String
+            {ParamArray}
+            in req args, [#]@Object
+            endparams
+        endmethod
+    endinterface
 	
-	public enum LogLevel
-		FatalError,
-		Error,
-		Warning,
-		Info,
-		Diagnostic
-	endenum
+    public enum LogLevel
+        Critical, 5
+        Error, 4
+        Warning, 3
+        Info, 2
+        Debug, 1
+        Trace, 0
+    endenum
 
-	{Flags}
-	public enum LogType
-		File, 0
-		Console, 1
-		EventLog, 2
-		DebugView, 4
-		External, 8
-	endenum
+    {Flags}
+    public enum LogType
+        File, 0
+        Console, 1
+        EventLog, 2
+        DebugView, 4
+        External, 8
+    endenum
 
 endnamespace

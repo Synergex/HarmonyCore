@@ -10,6 +10,7 @@ using System.Reflection;
 using Harmony.Core.EF.Extensions.Internal;
 using Harmony.Core.FileIO.Queryable;
 using Harmony.Core.FileIO.Queryable.Expressions;
+using Harmony.Core.Utility;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
@@ -126,6 +127,8 @@ namespace Harmony.Core.EF.Query.Internal
 
         public override void VisitQueryModel(QueryModel queryModel)
         {
+            DebugLogSession.Logging.LogDebug("HarmonyCoreEF: VisitQueryModel -> {0}", queryModel);
+
             MainQueryType = queryModel.MainFromClause.ItemType;
             this.TryOptimizeCorrelatedCollections(queryModel);
             this.CurrentParameter = Expression.Parameter(MainQueryType, queryModel.MainFromClause.ItemName);
@@ -265,6 +268,8 @@ namespace Harmony.Core.EF.Query.Internal
             }
 
             VisitResultOperators(queryModel.ResultOperators, queryModel);
+
+            DebugLogSession.Logging.LogDebug("HarmonyCoreEF: VisitedQueryModel -> {0}", Expression);
         }
         protected override Func<QueryContext, TResults> CreateExecutorLambda<TResults>()
         {
@@ -415,11 +420,22 @@ namespace Harmony.Core.EF.Query.Internal
                 else if (node.Member.Name.StartsWith("Next") && node.Expression is MemberInitExpression)
                 {
                 }
-                else if (node.Member.Name == "Value" )
+                else if (node.Member.Name == "IsNull")
+                {
+                    var propCall = (node.Expression as BinaryExpression)?.Left as MethodCallExpression;
+                    if (propCall != null && propCall.Method.Name == "Property")
+                    {
+                        node.Update(Expression.Equal(Expression.Call(propCall.Method, propCall.Arguments[0], Expression.Constant(SubQueryTargetName)), ((BinaryExpression)node.Expression).Right));
+                    }
+                }
+                else if (node.Member.Name == "Value")
                 {
                     if (node.Expression is SubQueryExpression)
                     {
                         SubQuery = node.Expression as SubQueryExpression;
+
+                        DebugLogSession.Logging.LogDebug("HarmonyCoreEF: Rewriting SubQueryExpression -> {0}", SubQuery.QueryModel);
+
                         var queryModel = SubQuery.QueryModel;
                         var propValue = Expression.PropertyOrField(CurrentParameter, SubQueryTargetName);
                         var resultExpressionElementType = propValue.Type.IsGenericType ? propValue.Type.GenericTypeArguments.First() : propValue.Type;
