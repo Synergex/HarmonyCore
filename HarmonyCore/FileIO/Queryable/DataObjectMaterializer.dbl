@@ -36,7 +36,7 @@ namespace Harmony.Core.FileIO.Queryable
                         foreach childState in childrenState
                         begin
                             if(childState.filled && createdItemCount != childState.lastBubbleTarget)
-                                childState.MaybeBubbleMake(tracker, alwaysBubble)
+                                childState.MaybeBubbleMake(tracker, true)
                         end
                         data structureSize, i4, typeBuf.Metadata.StructureSize
                         data memPnt, i4, typeBuf.MemoryHandle.Value
@@ -52,8 +52,10 @@ namespace Harmony.Core.FileIO.Queryable
                             dependentItems.Clear()
                     end
 
-                    if(doBubble)
+                    if(doBubble || (parentState != ^null && lastBubbleTarget != parentState.createdItemCount))
                         Bubble(lastMadeItem, parentState == ^null, tracker)
+
+                    lastMadeItem = ^null
                 end
             endmethod
 
@@ -71,13 +73,6 @@ namespace Harmony.Core.FileIO.Queryable
                 ;;to our parent states, dependentItems, using typeBuf.ParentFieldName as the key
                 if(madeItems == ^null && parentState != ^null) then
                 begin
-                    ;;we must be constructing singles, just push our madeObject into the parent
-                    if(LastMadeItem == ^null && parentState.dependentItems.ContainsKey(typeBuf.ParentFieldName))
-                    begin
-                        ;;this leg should have only had one result, throw
-                        throw new InvalidOperationException(string.Format("Unexpected record during enumeration, additional item encountered was {0} joined to a {1} at {2}", 
-                        &    typeBuf.DataObjectType.FullName, parentState.typeBuf.DataObjectType, typeBuf.ParentFieldName))
-                    end
                     if(lastBubbleTarget != parentState.createdItemCount)
                         parentState.dependentItems.Add(typeBuf.ParentFieldName, madeObject)
                 end
