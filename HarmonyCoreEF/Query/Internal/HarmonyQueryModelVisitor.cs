@@ -425,7 +425,7 @@ namespace Harmony.Core.EF.Query.Internal
                     var propCall = (node.Expression as BinaryExpression)?.Left as MethodCallExpression;
                     if (propCall != null && propCall.Method.Name == "Property")
                     {
-                        node.Update(Expression.Equal(Expression.Call(propCall.Method, propCall.Arguments[0], Expression.Constant(SubQueryTargetName)), ((BinaryExpression)node.Expression).Right));
+                        return node.Update(Expression.Equal(Expression.Property(CurrentParameter, SubQueryTargetName), ((BinaryExpression)node.Expression).Right));
                     }
                 }
                 else if (node.Member.Name == "Value")
