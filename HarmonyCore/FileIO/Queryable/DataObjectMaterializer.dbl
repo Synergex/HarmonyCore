@@ -33,7 +33,8 @@ namespace Harmony.Core.FileIO.Queryable
                         data childState, @DataObjectMaterializer.MaterializerState
                         foreach childState in childrenState
                         begin
-                            childState.MaybeBubbleMake(tracker, alwaysBubble)
+                            if(childState.filled && !dependentItems.ContainsKey(childState.typeBuf.ParentFieldName))
+                                childState.MaybeBubbleMake(tracker, alwaysBubble)
                         end
                         data structureSize, i4, typeBuf.Metadata.StructureSize
                         data memPnt, i4, typeBuf.MemoryHandle.Value
@@ -290,6 +291,16 @@ namespace Harmony.Core.FileIO.Queryable
                     if(matState.madeItems != ^null)
                         matState.InitItems()
                 end
+
+                data childState, @DataObjectMaterializer.MaterializerState
+                foreach childState in matState.childrenState
+                begin
+                    if(childState.filled && !matState.dependentItems.ContainsKey(childState.typeBuf.ParentFieldName))
+                    begin
+                        childState.MaybeBubbleMake(tracker, true)
+                    end
+                end
+
                 matState.MaybeBubbleMake(tracker, false)
             end
             mreturn resultState.madeItems

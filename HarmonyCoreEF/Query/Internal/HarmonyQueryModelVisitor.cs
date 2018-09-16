@@ -286,9 +286,17 @@ namespace Harmony.Core.EF.Query.Internal
             private Stack<QuerySourceReferenceExpression> SourceStack= new Stack<QuerySourceReferenceExpression>();
             private Stack<Expression> ParameterStack = new Stack<Expression>();
             public Dictionary<Expression, Expression> SelectorRewriterLookup = new Dictionary<Expression, Expression>();
-            private string SubQueryTargetName;
+            private Stack<string> SubQueryTargetNames = new Stack<string>();
             private SubQueryExpression SubQuery;
             private ReadOnlyCollection<ParameterExpression> CurrentParameters;
+
+            private string SubQueryTargetName
+            {
+                get
+                {
+                    return SubQueryTargetNames.Count > 0 ? SubQueryTargetNames.Peek() : null;
+                }
+            }
 
             private QuerySourceReferenceExpression Source
             {
@@ -327,9 +335,13 @@ namespace Harmony.Core.EF.Query.Internal
             {
                 var sourceStackCount = SourceStack.Count;
                 var parameterStackCount = ParameterStack.Count;
+                var nameStackCount = SubQueryTargetNames.Count;
                 var result = base.VisitMemberInit(node);
                 if (SourceStack.Count > sourceStackCount)
                     SourceStack.Pop();
+
+                if (SubQueryTargetNames.Count > nameStackCount)
+                    SubQueryTargetNames.Pop();
 
                 if (ParameterStack.Count > parameterStackCount)
                     ParameterStack.Pop();
@@ -415,7 +427,7 @@ namespace Harmony.Core.EF.Query.Internal
                 }
                 else if (node.Member.Name == "Name")
                 {
-                    SubQueryTargetName = ((ConstantExpression)node.Expression).Value as string;
+                    SubQueryTargetNames.Push(((ConstantExpression)node.Expression).Value as string);
                 }
                 else if (node.Member.Name.StartsWith("Next") && node.Expression is MemberInitExpression)
                 {
@@ -423,9 +435,11 @@ namespace Harmony.Core.EF.Query.Internal
                 else if (node.Member.Name == "IsNull")
                 {
                     var propCall = (node.Expression as BinaryExpression)?.Left as MethodCallExpression;
-                    if (propCall != null && propCall.Method.Name == "Property")
+                    if (propCall != null && propCall.Method.Name == "Property" && (propCall.Arguments[0] is QuerySourceReferenceExpression))
                     {
-                        return node.Update(Expression.Equal(Expression.Property(CurrentParameter, SubQueryTargetName), ((BinaryExpression)node.Expression).Right));
+                        var targetQuerySource = (propCall.Arguments[0] as QuerySourceReferenceExpression).ReferencedQuerySource;
+                        Expression targetProperty = QuerySourceMapping.ContainsMapping(targetQuerySource) ? QuerySourceMapping.GetExpression(targetQuerySource) : Expression.Property(CurrentParameter, SubQueryTargetName);
+                        return node.Update(Expression.Equal(targetProperty, Expression.Default(targetProperty.Type)));
                     }
                 }
                 else if (node.Member.Name == "Value")
