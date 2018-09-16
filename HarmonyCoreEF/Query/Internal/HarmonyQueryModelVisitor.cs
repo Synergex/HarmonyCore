@@ -438,7 +438,8 @@ namespace Harmony.Core.EF.Query.Internal
                     if (propCall != null && propCall.Method.Name == "Property" && (propCall.Arguments[0] is QuerySourceReferenceExpression))
                     {
                         var targetQuerySource = (propCall.Arguments[0] as QuerySourceReferenceExpression).ReferencedQuerySource;
-                        Expression targetProperty = QuerySourceMapping.ContainsMapping(targetQuerySource) ? QuerySourceMapping.GetExpression(targetQuerySource) : Expression.Property(CurrentParameter, SubQueryTargetName);
+                        var targetParameter = QuerySourceMapping.ContainsMapping(targetQuerySource) ? QuerySourceMapping.GetExpression(targetQuerySource) : CurrentParameter;
+                        Expression targetProperty = Expression.Property(targetParameter, SubQueryTargetName);
                         return node.Update(Expression.Equal(targetProperty, Expression.Default(targetProperty.Type)));
                     }
                 }

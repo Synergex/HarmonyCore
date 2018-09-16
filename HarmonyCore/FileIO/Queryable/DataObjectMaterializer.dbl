@@ -14,6 +14,8 @@ namespace Harmony.Core.FileIO.Queryable
             public grfa, a10
             public madeItems, @IEnumerable<DataObjectBase>
             public lastMadeItem, @DataObjectBase
+            public createdItemCount, int, 0
+            public lastBubbleTarget, int, -1
             public dependentItems, @Dictionary<string, Object>
             public changed, boolean
             public filled, boolean
@@ -33,7 +35,7 @@ namespace Harmony.Core.FileIO.Queryable
                         data childState, @DataObjectMaterializer.MaterializerState
                         foreach childState in childrenState
                         begin
-                            if(childState.filled && !dependentItems.ContainsKey(childState.typeBuf.ParentFieldName))
+                            if(childState.filled && createdItemCount != childState.lastBubbleTarget)
                                 childState.MaybeBubbleMake(tracker, alwaysBubble)
                         end
                         data structureSize, i4, typeBuf.Metadata.StructureSize
@@ -42,6 +44,8 @@ namespace Harmony.Core.FileIO.Queryable
                         lastMadeItem = dependentItems != ^null ? 
                         &    typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa, dependentItems.ToArray()) : 
                         &    typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa)
+
+                        createdItemCount += 1
 
                         ;;cleanup the materializer state for this step
                         if(dependentItems != ^null)
@@ -74,7 +78,8 @@ namespace Harmony.Core.FileIO.Queryable
                         throw new InvalidOperationException(string.Format("Unexpected record during enumeration, additional item encountered was {0} joined to a {1} at {2}", 
                         &    typeBuf.DataObjectType.FullName, parentState.typeBuf.DataObjectType, typeBuf.ParentFieldName))
                     end
-                    parentState.dependentItems.Add(typeBuf.ParentFieldName, madeObject)
+                    if(lastBubbleTarget != parentState.createdItemCount)
+                        parentState.dependentItems.Add(typeBuf.ParentFieldName, madeObject)
                 end
                 else if(madeItems != ^null) then
                 begin
@@ -85,10 +90,12 @@ namespace Harmony.Core.FileIO.Queryable
 					
                 if(parentState != ^null)
                 begin
-                    if(madeItems != ^null && HasOneItem())
+                    
+                    if(madeItems != ^null && HasOneItem() && lastBubbleTarget != parentState.createdItemCount)
                     begin
                         parentState.dependentItems.Add(typeBuf.ParentFieldName, madeItems)
                     end
+                    lastBubbleTarget = parentState.createdItemCount
                 end
             endmethod
 
@@ -233,7 +240,7 @@ namespace Harmony.Core.FileIO.Queryable
                         ;;if the leg hasnt changed we still need to check if we've push up to our current parent
                         if(matState.parentState != ^null && matState.parentState.changed && matState.parentState.filled)
                         begin
-                            if(matState.parentState.dependentItems != ^null && !matState.parentState.dependentItems.ContainsKey(matState.typeBuf.ParentFieldName))
+                            if(matState.parentState.dependentItems != ^null && matState.parentState.createdItemCount != matState.lastBubbleTarget)
                             begin
                                 matState.MaybeBubbleMake(tracker, true)
                             end
@@ -245,29 +252,8 @@ namespace Harmony.Core.FileIO.Queryable
                         ;;its already been bubbled up to the parent state
                         if(matState.LastMadeItem == ^null)
                         begin
-                            data childState, @DataObjectMaterializer.MaterializerState
-                            foreach childState in matState.childrenState
-                            begin
-                                if(childState.filled && !matState.dependentItems.ContainsKey(childState.typeBuf.ParentFieldName))
-                                begin
-                                    childState.MaybeBubbleMake(tracker, true)
-                                end
-                            end
-
-                            ;;construct the object
-                            data madeObject = matState.dependentItems != ^null ? 
-                            &    matState.typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), matState.grfa, matState.dependentItems.ToArray()) : 
-                            &    matState.typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), matState.grfa)
-
-                            matState.Bubble(madeObject, matState.typeBuf == typeBuf, tracker)
-
-                            ;;cleanup the materializer state for this step
-                            if(matState.dependentItems != ^null)
-                                matState.dependentItems.Clear()
-
+                            matState.MaybeBubbleMake(tracker, true)
                         end
-
-                        matState.LastMadeItem = ^null
                     end
 
                     if(matState.changed)
@@ -275,6 +261,7 @@ namespace Harmony.Core.FileIO.Queryable
                         ;;fill the row
                         rowEnumerator.Current.RowInfo(^m(memMapper.fld(1:structureSize), memPnt), matState.grfa)
                         matState.filled = rowEnumerator.Current.Fill(^m(memMapper.fld(1:structureSize), memPnt))
+                        ;DebugLogSession.Logging.LogDebug("Materializer: filled record of type {0} with value {1}"
                     end
                 end
                 ;;we only want one object if we dont have a collection result
@@ -295,7 +282,7 @@ namespace Harmony.Core.FileIO.Queryable
                 data childState, @DataObjectMaterializer.MaterializerState
                 foreach childState in matState.childrenState
                 begin
-                    if(childState.filled && !matState.dependentItems.ContainsKey(childState.typeBuf.ParentFieldName))
+                    if(childState.filled && matState.createdItemCount != childState.lastBubbleTarget)
                     begin
                         childState.MaybeBubbleMake(tracker, true)
                     end
