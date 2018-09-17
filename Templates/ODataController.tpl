@@ -114,7 +114,7 @@ namespace <NAMESPACE>
         ;;; Get all <StructurePlural>
         ;;; </summary>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetAll<StructurePlural>, @IActionResult
+        public method Get<StructurePlural>, @IActionResult
         proc
             mreturn Ok(DBContext.<StructurePlural>)
         endmethod
