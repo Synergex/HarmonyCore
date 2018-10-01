@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME><StructureNoplural>.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.3.6</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.3.5</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_OPTION>TF</REQUIRES_OPTION>
 <CODEGEN_FOLDER>Models</CODEGEN_FOLDER>
 ;//****************************************************************************
@@ -217,6 +217,72 @@ namespace <NAMESPACE>
 </FIELD_LOOP>
 .endregion
 ;//
+;//
+;//
+
+.region "Other attributes"
+
+        ;;; <summary>
+        ;;; Expose the complete synergy record
+        ;;; </summary>
+        public override property SynergyRecord, a
+            method get
+            proc
+                mreturn mSynergyData
+            endmethod
+        endproperty
+        
+        ;;; <summary>
+        ;;; Expose the complete original synergy record
+        ;;; </summary>
+        public override property OriginalSynergyRecord, a
+            method get
+            proc
+                mreturn mOriginalSynergyData
+            endmethod
+        endproperty
+
+        ;;; <summary>
+        ;;; Metadata describing the public field properties
+        ;;; </summary>
+        public override property Metadata, @DataObjectMetadataBase
+            method get
+            proc
+                mreturn sMetadata
+            endmethod
+        endproperty
+
+.endregion
+
+.region "Public methods"
+
+        ;;; <summary>
+        ;;; 
+        ;;; </summary>
+        public override method InternalSynergyRecord, void
+            targetMethod, @AlphaAction
+        proc
+            targetMethod(mSynergyData, mGlobalRFA)
+        endmethod
+        
+        ;;; <summary>
+        ;;; Allow the host to validate all fields. Each field will fire the validation method.
+        ;;; </summary>
+        public override method InitialValidateData, void
+        proc
+        endmethod
+        
+        ;;; <summary>
+        ;;; 
+        ;;; </summary>
+        public override method InternalGetValues, [#]@object
+        proc
+            ;;TODO: This should be returning boxed values for each of our fields
+            mreturn new Object[<COUNTER_1_VALUE>]
+        endmethod
+
+.endregion
+;//
 ;// Relations
 ;//
 <IF DEFINED_ENABLE_RELATIONS>
@@ -308,72 +374,6 @@ namespace <NAMESPACE>
     </IF COUNTER_2_GT_0>
   </IF STRUCTURE_RELATIONS>
 </IF DEFINED_ENABLE_RELATIONS>
-;//
-;//
-;//
-
-.region "Other attributes"
-
-        ;;; <summary>
-        ;;; Expose the complete synergy record
-        ;;; </summary>
-        public override property SynergyRecord, a
-            method get
-            proc
-                mreturn mSynergyData
-            endmethod
-        endproperty
-        
-        ;;; <summary>
-        ;;; Expose the complete original synergy record
-        ;;; </summary>
-        public override property OriginalSynergyRecord, a
-            method get
-            proc
-                mreturn mOriginalSynergyData
-            endmethod
-        endproperty
-
-        ;;; <summary>
-        ;;; Metadata describing the public field properties
-        ;;; </summary>
-        public override property Metadata, @DataObjectMetadataBase
-            method get
-            proc
-                mreturn sMetadata
-            endmethod
-        endproperty
-
-.endregion
-
-.region "Public methods"
-
-        ;;; <summary>
-        ;;; 
-        ;;; </summary>
-        public override method InternalSynergyRecord, void
-            targetMethod, @AlphaAction
-        proc
-            targetMethod(mSynergyData, mGlobalRFA)
-        endmethod
-        
-        ;;; <summary>
-        ;;; Allow the host to validate all fields. Each field will fire the validation method.
-        ;;; </summary>
-        public override method InitialValidateData, void
-        proc
-        endmethod
-        
-        ;;; <summary>
-        ;;; 
-        ;;; </summary>
-        public override method InternalGetValues, [#]@object
-        proc
-            ;;TODO: This should be returning boxed values for each of our fields
-            mreturn new Object[<COUNTER_1_VALUE>]
-        endmethod
-
-.endregion
 
     endclass
     
