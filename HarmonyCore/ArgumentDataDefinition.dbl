@@ -40,6 +40,7 @@ import System.Text
 import Newtonsoft.Json
 import Harmony.Core.Enumerations
 import Harmony.Core.Converters
+import Newtonsoft.Json.Linq
 
 namespace Harmony.Core
 
@@ -53,7 +54,102 @@ namespace Harmony.Core
 
 	public class ReturnParameterDefintion
 		public Position, int
-		public Value, @Object
+		{JsonConverter(^typeof(ReturnValueConverter))}
+		public Value, @ArgumentDataDefinition
+	endclass
+
+	public class ReturnValueConverter extends JsonConverter
+
+		public override method CanConvert, boolean
+		    type, @Type
+		proc
+            mreturn true
+		endmethod
+
+
+		public override property CanRead, boolean
+			method get
+			proc
+			    mreturn true
+            endmethod
+		endproperty
+
+		public override method WriteJson, void 
+			writer, @JsonWriter
+			value, @object
+			serializer, @JsonSerializer
+		proc
+		
+		    throw new NotImplementedException()
+        endmethod
+
+		public override method ReadJson, @object 
+			reader, @JsonReader 
+			objectType, @Type 
+			existingValue, @object 
+			serializer, @JsonSerializer 
+		proc
+			data result = new ArgumentDataDefinition()
+            data jObj = JObject.Load(reader)
+            data dataTypeField = jObj["DataType"]
+            if(dataTypeField != ^null)
+            begin
+				result.DataType = (FieldDataType)dataTypeField.Value<long>()
+                result.ReturnedValue = true
+                if(result.DataType == FieldDataType.DataObjectField) then
+                begin
+                    data dataObjectValue = jObj["PassedValue"]
+                    if(dataObjectValue == ^null)
+                        throw new InvalidCastException()
+
+                    data metadataType = DataObjectMetadataBase.LookupType((string)dataObjectValue["Type"])
+
+                    data grfa = (string)dataObjectValue["GRFA"]
+					data realValue = dataObjectValue.Value<string>((Object)"Value")
+					if(realValue == ^null) then
+					begin
+						result.PassedValue = metadataType.MakeNew((a)Convert.FromBase64String(dataObjectValue.Value<string>((Object)"Base64Value")), grfa)
+					end
+					else
+					begin
+						result.PassedValue = metadataType.MakeNew(realValue, grfa)
+					end
+                end
+                else if(result.DataType == FieldDataType.DataObjectCollectionField) then
+                begin
+                    data metadataType, @DataObjectMetadataBase
+                    data tempResult = new List<DataObjectBase>()
+
+					data dataObjectValues = (@JArray)jObj["PassedValue"]
+					data dataObjectValue, @JObject
+					foreach dataObjectValue in dataObjectValues
+                    begin
+						if(metadataType == ^null)
+							metadataType = DataObjectMetadataBase.LookupType((string)dataObjectValue["Type"])
+
+						data grfa = (string)dataObjectValue["GRFA"]
+						data realValue = dataObjectValue.Value<string>((Object)"Value")
+						if(realValue == ^null) then
+						begin
+							tempResult.Add(metadataType.MakeNew((a)Convert.FromBase64String(dataObjectValue.Value<string>((Object)"Base64Value")), grfa))
+						end
+						else
+						begin
+							tempResult.Add(metadataType.MakeNew(realValue, grfa))
+						end
+					end
+
+					result.PassedValue = tempResult
+                end
+                else
+				begin
+					result.PassedValue = jObj["PassedValue"]
+                end
+            end
+
+            mreturn result
+		endmethod
+
 	endclass
 
 endnamespace

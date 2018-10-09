@@ -37,8 +37,8 @@ namespace Harmony.Core.Context
 				data expectedMessageLength = Convert.ToInt32(Encoding.ASCII.GetString(lengthBuffer))
 				data messageBuffer = new byte[expectedMessageLength]
 				offset = 0
-				while(offset < 10)
-					offset = mTargetShell.Read(messageBuffer, offset, expectedMessageLength - offset)
+                while(offset < expectedMessageLength)
+					offset += mTargetShell.Read(messageBuffer, offset, expectedMessageLength - offset)
 				mreturn Encoding.ASCII.GetString(messageBuffer)
 			end
 			catch(ex, @Exception)
@@ -70,13 +70,20 @@ namespace Harmony.Core.Context
 		proc
 			data handshakeString = '{"ProtocolVersion":"1.0"}'
 			mTargetConnection.Connect()
-			mTargetShell = mTargetConnection.CreateShellStream("vt220", 0, 0,0,0, 65535)
+			mTargetShell = mTargetConnection.CreateShellStream("vt220", 0, 0,0,0, 65535 * 16)
 			data guidString = Guid.NewGuid().ToString()
-			mTargetShell.WriteLine("echo " + guidString)
-			data readLine, @string
-			while((readLine = mTargetShell.ReadLine()) != guidString)
+			data readLine = mTargetShell.Read()
+			mTargetShell.WriteLine('WRITE SYS$OUTPUT "' + guidString +  '"')
+			while((readLine = mTargetShell.ReadLine().Trim()) != guidString)
 			begin
-				Debug.Write(".")
+				if(readLine.EndsWith(">"))
+				begin
+					guidString = Guid.NewGuid().ToString()
+					mTargetShell.WriteLine('WRITE SYS$OUTPUT "' + guidString +  '"')
+				end
+
+                Debug.Write(readLine)
+				Debug.WriteLine(".")
 			end
 			mTargetShell.WriteLine(mLaunchCommand)
 			
@@ -90,13 +97,13 @@ namespace Harmony.Core.Context
 			data lengthBuffer = new byte[10]
 			data offset, int, 0
 			while(offset < 10)
-				offset = mTargetShell.Read(lengthBuffer, offset, 10 - offset)
+				offset += mTargetShell.Read(lengthBuffer, offset, 10 - offset)
 			data expectedMessageLengthString = Encoding.ASCII.GetString(lengthBuffer)
 			data expectedMessageLength = Convert.ToInt32(expectedMessageLengthString)
 			data messageBuffer = new byte[expectedMessageLength]
 			offset = 0
-			while(offset < 10)
-				offset = mTargetShell.Read(messageBuffer, offset, expectedMessageLength - offset)
+            while(offset < expectedMessageLength)
+				offset += mTargetShell.Read(messageBuffer, offset, expectedMessageLength - offset)
 			data messageString = Encoding.ASCII.GetString(messageBuffer)
 			data deserializedMessage = JsonConvert.DeserializeObject<ProtocolMessage>(messageString)
 			if(!deserializedMessage.ProtocolSupported)

@@ -34,7 +34,12 @@ namespace Harmony.Core.Context
 			provider, @IServiceProvider
 			endparams
 		proc
-			mreturn mContextPool.Allocate(provider)
+            data result = mContextPool.Allocate(provider)
+            if(result .is. IPooledContextBase)
+            begin
+                ((@IPooledContextBase)result).InitServices(provider)
+            end
+            mreturn result
 		endmethod
 
 		protected virtual method SlowMakeContext, T

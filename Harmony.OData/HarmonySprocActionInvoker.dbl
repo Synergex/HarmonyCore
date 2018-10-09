@@ -406,16 +406,17 @@ namespace Harmony.OData
             data constructorBody, @Expression
             if(targetType.GetInterfaces().Contains(^typeof(IContextBase))) then
             begin
-                data contextFactoryType, @Type, ^typeof(IContextFactory<>).MakeGenericType(new Type[#] { targetType })
-                data serviceResult, @Expression, Expression.Call(^typeof(IServiceProvider), "GetService", new Type[0], Expression.Constant(contextFactoryType))
-                data contextFactory, @Expression, Expression.Convert(serviceResult, contextFactoryType)
-                data useContextFactory, @Expression, Expression.Call(contextFactory, "MakeContextAsync", new Type[0], new Expression[#] { spParam, sessionParam })
-                data useContextFactoryTask, @Expression, Expression.Call(^typeof(HarmonySprocActionInvoker), "ConvertTask", new Type[#] { targetType }, new Expression[#] { useContextFactory })
-                
+                ;data contextFactoryType, @Type, ^typeof(IContextFactory<>).MakeGenericType(new Type[#] { targetType })
+                data serviceResult, @Expression, Expression.Call(spParam, ^typeof(IServiceProvider).GetMethod("GetService"), Expression.Constant(targetType))
+                data contextInstance, @Expression, Expression.Convert(serviceResult, targetType)
+                ;data useContextFactory, @Expression, Expression.Call(contextFactory, "MakeContextAsync", new Type[0], new Expression[#] { sessionParam, spParam })
+                ;data useContextFactoryTask, @Expression, Expression.Call(^typeof(HarmonySprocActionInvoker), "ConvertTask", new Type[#] { targetType }, new Expression[#] { useContextFactory })
+                data useServiceProviderTask, @Expression, Expression.Call(^typeof(Task), "FromResult", new Type[#] { ^typeof(Object) }, new Expression[#] { contextInstance })
+            
                 ;;check if there is a pool for this type
-                constructorBody = Expression.IfThenElse(Expression.Equal(contextFactory, Expression.Constant(^null, contextFactoryType)), 
+                constructorBody = Expression.Condition(Expression.Equal(contextInstance, Expression.Constant(^null, targetType)), 
                 &   useActivatorUtilitiesTask,
-                &   useContextFactoryTask)
+                &    useServiceProviderTask)
             end
             else
             begin
