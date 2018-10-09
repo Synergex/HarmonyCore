@@ -7,6 +7,10 @@ import Harmony.Core.Interface
 import Harmony.Core.EF.Extensions
 import Microsoft.AspNetCore.Mvc
 import Microsoft.AspNetCore.Authorization
+import Harmony.Core.Context
+import Harmony.OData
+import Harmony.Core
+import System.Linq
 
 namespace Services.ExposedMethods
 
@@ -71,4 +75,24 @@ namespace Services.ExposedMethods
 
     endclass
 
+	{Controller}
+	{Authorize}
+	public class ExternalCallContext extends DynamicCallProvider
+		public method ExternalCallContext
+			connection, @IDynamicCallConnection
+			endparams
+			parent(connection)
+		proc
+
+		endmethod
+		{CallableMethodConfigurationAttribute(IsFunction=true, ReturnsFromEntitySet=true)}
+		public method GetAllCustomers, @List<Customer>
+		proc
+			data returnedArguments, [#]@object
+			;;force metadata to be loaded if its not
+            DataObjectMetadataBase.LookupType(^typeof(Customer))
+			CallMethod<int>("GetAllCustomers", returnedArguments, new List<Customer>(), string.Empty)
+			mreturn ((@IEnumerable<Customer>)returnedArguments[1]).ToList<Customer>()
+		endmethod
+	endclass
 endnamespace

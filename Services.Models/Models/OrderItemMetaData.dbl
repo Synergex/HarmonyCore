@@ -84,9 +84,18 @@ namespace Services.Models
             begin
                 using joinedObject.Key select
                 ("REL_OrderNumberAndLineItem"), 
+                begin
                     newOrderItem.REL_OrderNumberAndLineItem = (@Order)joinedObject.Value
+                    if(newOrderItem.REL_OrderNumberAndLineItem.OrderNumber != newOrderItem.OrderNumber)
+                        throw new Exception("invalid Join")
+                end
+
                 ("REL_ItemOrdered"), 
+                begin
                     newOrderItem.REL_ItemOrdered = (@Item)joinedObject.Value
+                    if(newOrderItem.REL_ItemOrdered.ItemNumber != newOrderItem.ItemOrdered)
+                        throw new Exception("invalid Join")
+                end
                 endusing
             end
 

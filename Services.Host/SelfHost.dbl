@@ -17,6 +17,8 @@ import System.IO
 import System.Text
 import Services
 import Services.Models
+import Microsoft.Extensions.DependencyInjection
+import Microsoft.AspNetCore.Builder
 
 main SelfHost
 
@@ -60,6 +62,27 @@ endmain
 .Array 0
 
 namespace Services.Host
+
+    public class HostStartup
+        innerStartup, @Startup
+
+        public method Configure, void
+            required in app, @IApplicationBuilder
+            required in env, @IHostingEnvironment
+        proc
+            innerStartup.Configure(app, env)
+        endmethod
+
+        public method ConfigureServices, void
+            services, @IServiceCollection 
+        proc
+            innerStartup.ConfigureServices(services)
+
+        endmethod
+
+    endclass
+
+
 
     public static class SelfHostEnvironment
 

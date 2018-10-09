@@ -119,7 +119,42 @@ namespace Harmony.AspNetCore.Context
 			data hoist = new ContextFactoryHoist<T>() { IsEager = true, IsSticky = factory.IsSessionSticky, Factory = factory}
 			builder.Use(hoist.InvokeMiddlware)
 			mreturn builder
-		endmethod
-	endclass
+        endmethod
 
+        
+
+        public static extension method AddContextPool<T(IContextBase, class)>, @IServiceCollection 
+            services, @IServiceCollection 
+        proc
+            services.AddScoped<PoolLease<T>, PoolLease<T>>()
+            services.AddScoped<T>(RouteServiceLease<T>)
+            mreturn services
+        endmethod
+
+        private static method RouteServiceLease<T(IContextBase, class)>, T
+            sp, @IServiceProvider
+        proc
+            data poolLease = sp.GetService<PoolLease<T>>()
+            mreturn poolLease.Instance
+        endmethod
+
+
+	endclass
+    class PoolLease<T(IContextBase, class)> implements IDisposable
+        public Instance, T
+        public Factory, @IContextFactory<T>
+        public method PoolLease
+            factory, @IContextFactory<T>
+            sp, @IServiceProvider
+        proc
+            this.Factory = factory
+            this.Instance = factory.MakeContext(sp)
+        endmethod
+            
+        public virtual method Dispose, void
+            endparams
+        proc
+            Factory.ReturnContext(Instance)
+        endmethod
+    endclass
 endnamespace
