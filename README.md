@@ -1,4 +1,4 @@
-![Harmony Core Logo](images/logo.png)
+![Harmony Core Logo](wiki/images/logo.png)
 
 # Harmony Core
 Harmony Core is a framework that consists of libraries, [CodeGen](https://github.com/SteveIves/CodeGen) templates, and conventions that enable you to expose Synergy logic and data as a RESTful web service using [OData](http://www.odata.org/) and [ASP.NET Core](https://docs.microsoft.com/en-us/aspnet/core/).
