@@ -7,6 +7,8 @@ rem ============================================================================
 rem Specify the names of the projects to generate code into:
 
 set ServicesProject=Services
+set ModelsProject=Services.Models
+set ControllersProject=Services.Controllers
 set HostProject=Services.Host
 set TestProject=Services.Test
 
@@ -60,7 +62,7 @@ set ENABLE_DELETE=-define ENABLE_DELETE
 set ENABLE_SPROC=-define ENABLE_SPROC
 set ENABLE_UNIT_TEST_GENERATION=YES
 rem set ENABLE_AUTHENTICATION=-define ENABLE_AUTHENTICATION
-set ENABLE_FIELD_SECURITY=-define ENABLE_FIELD_SECURITY
+rem set ENABLE_FIELD_SECURITY=-define ENABLE_FIELD_SECURITY
 rem set ENABLE_CASE_SENSITIVE_URL=-define ENABLE_CASE_SENSITIVE_URL
 rem set ENABLE_CORS=-define ENABLE_CORS
 rem set ENABLE_IIS_SUPPORT=-define ENABLE_IIS_SUPPORT
@@ -78,17 +80,33 @@ set STDOPTS=%NOREPLACEOPTS% -r
 rem ================================================================================================================================
 rem Generate a Web API / OData CRUD environment
 
-rem Generate model, metadata and controller classes
+rem Generate model and metadata classes
 codegen -s %DATA_STRUCTURES% ^
-        -t ODataModel ODataMetaData ODataController ^
-        -o %SolutionDir%%ServicesProject% -tf ^
-        -n %ServicesProject% ^
+        -t ODataModel ODataMetaData ^
+        -o %SolutionDir%%ModelsProject% ^
+        -n %ModelsProject% ^
            %STDOPTS%
 if ERRORLEVEL 1 goto error
 
-rem Generate the DbContext and EdmBuilder and Startup classes
+rem Generate controller classes
+codegen -s %DATA_STRUCTURES% ^
+        -t ODataController ^
+        -o %SolutionDir%%ControllersProject% ^
+        -n %ControllersProject% ^
+           %STDOPTS%
+if ERRORLEVEL 1 goto error
+
+rem Generate the DbContext class
 codegen -s %DATA_STRUCTURES% -ms ^
-        -t ODataDbContext ODataEdmBuilder ODataStartup ^
+        -t ODataDbContext ^
+        -o %SolutionDir%%ModelsProject% ^
+        -n %ModelsProject% ^
+           %STDOPTS%
+if ERRORLEVEL 1 goto error
+
+rem Generate the EdmBuilder and Startup classes
+codegen -s %DATA_STRUCTURES% -ms ^
+        -t ODataEdmBuilder ODataStartup ^
         -o %SolutionDir%%ServicesProject% ^
         -n %ServicesProject% ^
            %STDOPTS%

@@ -17,7 +17,6 @@ import System.ComponentModel.DataAnnotations
 import System.Text
 import Harmony.Core
 import Harmony.Core.Converters
-import Harmony.OData
 
 namespace Services.Models
 
@@ -224,7 +223,6 @@ namespace Services.Models
         ;;; <summary>
         ;;; Customers tax ID number
         ;;; </summary>
-        {AuthorizeField("Manager")}
         public property TaxId, int
             method get
             proc
@@ -249,22 +247,6 @@ namespace Services.Models
                 mSynergyData.Credit_limit = value
             endmethod
         endproperty
-
-.endregion
-
-.region "Relationships to other entities"
-
-        ;;; <summary>
-        ;;; Relationship (Type D)
-        ;;; CUSTOMER.CUSTOMER_NUMBER (one) <-> (many) ORDER.CUSTOMER_NUMBER
-        ;;; </summary>
-        public readwrite property REL_Orders, @ICollection<Order>
-
-        ;;; <summary>
-        ;;; Relationship (Type C)
-        ;;; CUSTOMER.FAVORITE_ITEM (one) --> (one) ITEM.ITEM_NUMBER
-        ;;; </summary>
-        public readwrite property REL_FavoriteItem, @Item
 
 .endregion
 
@@ -326,8 +308,24 @@ namespace Services.Models
         public override method InternalGetValues, [#]@object
         proc
             ;;TODO: This should be returning boxed values for each of our fields
-            mreturn new Object[0]
+            mreturn new Object[13]
         endmethod
+
+.endregion
+
+.region "Relationships to other entities"
+
+        ;;; <summary>
+        ;;; Relationship (Type D)
+        ;;; CUSTOMER.CUSTOMER_NUMBER (one) <-> (many) ORDER.CUSTOMER_NUMBER
+        ;;; </summary>
+        public readwrite property REL_Orders, @ICollection<Order>
+
+        ;;; <summary>
+        ;;; Relationship (Type C)
+        ;;; CUSTOMER.FAVORITE_ITEM (one) --> (one) ITEM.ITEM_NUMBER
+        ;;; </summary>
+        public readwrite property REL_FavoriteItem, @Item
 
 .endregion
 

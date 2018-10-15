@@ -1,7 +1,5 @@
 <CODEGEN_FILENAME><StructurePlural>Controller.dbl</CODEGEN_FILENAME>
 <REQUIRES_CODEGEN_VERSION>5.3.6</REQUIRES_CODEGEN_VERSION>
-<REQUIRES_OPTION>TF</REQUIRES_OPTION>
-<CODEGEN_FOLDER>Controllers</CODEGEN_FOLDER>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVICES_NAMESPACE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>API_ENABLE_QUERY_PARAMS</REQUIRES_USERTOKEN>
@@ -75,7 +73,7 @@ namespace <NAMESPACE>
     ;;; </summary>
     public partial class <StructurePlural>Controller extends ODataController
     
-        public readwrite property DBContext, @<SERVICES_NAMESPACE>.DBContext
+        public readwrite property DBContext, @<MODELS_NAMESPACE>.DBContext
 <IF DEFINED_ENABLE_POST>
         public readwrite property ServiceProvider, @IServiceProvider
 </IF DEFINED_ENABLE_POST>
@@ -85,7 +83,7 @@ namespace <NAMESPACE>
         ;;; </summary>
         ;;; <param name="dbContext">Database context</param>
         public method <StructurePlural>Controller
-            dbContext, @<SERVICES_NAMESPACE>.DBContext
+            dbContext, @<MODELS_NAMESPACE>.DBContext
  <IF DEFINED_ENABLE_POST>
            serviceProvider, @IServiceProvider
 </IF DEFINED_ENABLE_POST>

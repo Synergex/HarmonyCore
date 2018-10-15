@@ -116,7 +116,7 @@ namespace <NAMESPACE>
             services.AddSingleton<IEdmBuilder, EdmBuilder>()
             services.AddSingleton<IFileChannelManager, FileChannelManager>()
             services.AddSingleton<IDataObjectProvider>(AddDataObjectMappings)
-            services.AddDbContextPool<DBContext>(ConfigureDBContext)
+            services.AddDbContextPool<<MODELS_NAMESPACE>.DBContext>(ConfigureDBContext)
 
             ;;-------------------------------------------------------
             ;;Load OData and ASP.NET

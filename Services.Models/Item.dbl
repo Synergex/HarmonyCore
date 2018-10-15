@@ -17,7 +17,6 @@ import System.ComponentModel.DataAnnotations
 import System.Text
 import Harmony.Core
 import Harmony.Core.Converters
-import Harmony.OData
 
 namespace Services.Models
 
@@ -367,22 +366,6 @@ namespace Services.Models
 
 .endregion
 
-.region "Relationships to other entities"
-
-        ;;; <summary>
-        ;;; Relationship (Type A)
-        ;;; ITEM.VENDOR_NUMBER (one) --> (one) --> (many) VENDOR.VENDOR_NUMBER
-        ;;; </summary>
-        public readwrite property REL_VendorNumber, @Vendor
-
-        ;;; <summary>
-        ;;; Relationship (Type D)
-        ;;; ITEM.ITEM_NUMBER (one) <-> (many) ORDER_ITEM.ITEM_ORDERED
-        ;;; </summary>
-        public readwrite property REL_OrderItems, @ICollection<OrderItem>
-
-.endregion
-
 .region "Other attributes"
 
         ;;; <summary>
@@ -441,8 +424,24 @@ namespace Services.Models
         public override method InternalGetValues, [#]@object
         proc
             ;;TODO: This should be returning boxed values for each of our fields
-            mreturn new Object[0]
+            mreturn new Object[21]
         endmethod
+
+.endregion
+
+.region "Relationships to other entities"
+
+        ;;; <summary>
+        ;;; Relationship (Type A)
+        ;;; ITEM.VENDOR_NUMBER (one) --> (one) --> (many) VENDOR.VENDOR_NUMBER
+        ;;; </summary>
+        public readwrite property REL_VendorNumber, @Vendor
+
+        ;;; <summary>
+        ;;; Relationship (Type D)
+        ;;; ITEM.ITEM_NUMBER (one) <-> (many) ORDER_ITEM.ITEM_ORDERED
+        ;;; </summary>
+        public readwrite property REL_OrderItems, @ICollection<OrderItem>
 
 .endregion
 

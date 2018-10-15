@@ -16,7 +16,6 @@ import Microsoft.AspNet.OData
 import Microsoft.AspNet.OData.Routing
 import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Infrastructure
-import Harmony.OData
 import Harmony.Core.EF.Extensions
 import Services.Models
 import Harmony.Core.Interface
@@ -28,7 +27,7 @@ namespace Services.Controllers
     ;;; </summary>
     public partial class OrderItemsController extends ODataController
     
-        public readwrite property DBContext, @Services.DBContext
+        public readwrite property DBContext, @Services.Models.DBContext
         public readwrite property ServiceProvider, @IServiceProvider
 
         ;;; <summary>
@@ -36,7 +35,7 @@ namespace Services.Controllers
         ;;; </summary>
         ;;; <param name="dbContext">Database context</param>
         public method OrderItemsController
-            dbContext, @Services.DBContext
+            dbContext, @Services.Models.DBContext
            serviceProvider, @IServiceProvider
         proc
             this.DBContext = dbContext
@@ -44,7 +43,7 @@ namespace Services.Controllers
         endmethod
 
         {ODataRoute("OrderItems")}
-        {HarmonyFieldSecurity(MaxExpansionDepth=4)}
+        {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get all OrderItems
         ;;; </summary>
@@ -55,7 +54,7 @@ namespace Services.Controllers
         endmethod
 
         {ODataRoute("OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})")}
-        {HarmonyFieldSecurity(MaxExpansionDepth=4)}
+        {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get a single OrderItem by primary key.
         ;;; </summary>
@@ -72,7 +71,7 @@ namespace Services.Controllers
         endmethod
 
         {ODataRoute("OrderItems(ItemOrdered={aItemOrdered})")}
-        {HarmonyFieldSecurity(MaxExpansionDepth=4)}
+        {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get orderItems by alternate key key ItemOrdered.
         ;;; </summary>
@@ -89,7 +88,7 @@ namespace Services.Controllers
         endmethod
 
         {ODataRoute("OrderItems(DateShipped={aDateShipped})")}
-        {HarmonyFieldSecurity(MaxExpansionDepth=4)}
+        {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get orderItems by alternate key key DateShipped.
         ;;; </summary>
@@ -106,7 +105,7 @@ namespace Services.Controllers
         endmethod
 
         {ODataRoute("OrderItems(InvoiceNumber={aInvoiceNumber})")}
-        {HarmonyFieldSecurity(MaxExpansionDepth=4)}
+        {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get orderItems by alternate key key InvoiceNumber.
         ;;; </summary>
