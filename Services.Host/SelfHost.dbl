@@ -12,8 +12,6 @@
 
 import Microsoft.AspNetCore
 import Microsoft.AspNetCore.Hosting
-import Microsoft.AspNetCore.Builder
-import Microsoft.Extensions.DependencyInjection
 import System.Collections.Generic
 import System.IO
 import System.Text
@@ -62,25 +60,6 @@ endmain
 .Array 0
 
 namespace Services.Host
-
-    public class HostStartup
-
-        innerStartup, @Startup
-
-        public method Configure, void
-            required in app, @IApplicationBuilder
-            required in env, @IHostingEnvironment
-        proc
-            innerStartup.Configure(app, env)
-        endmethod
-
-        public method ConfigureServices, void
-            services, @IServiceCollection 
-        proc
-            innerStartup.ConfigureServices(services)
-        endmethod
-
-    endclass
 
     public static class SelfHostEnvironment
 
@@ -154,6 +133,14 @@ namespace Services.Host
                     logicals.Add(logical)
             end
 
+            fileSpec = "DAT:order_items_overlay.ism"
+            if (fileSpec.Contains(":"))
+            begin
+                logical = fileSpec.Split(":")[0].ToUpper()
+                if (!logicals.Contains(logical))
+                    logicals.Add(logical)
+            end
+
             fileSpec = "DAT:sysparams.ddf"
             if (fileSpec.Contains(":"))
             begin
@@ -181,6 +168,7 @@ namespace Services.Host
             data orders = loadOrders()
             data orderItems = loadOrderItems()
             data vendors = loadVendors()
+            data orderItemsOverlays = loadOrderItemsOverlays()
 
             ;;Create and load the customers file
 
@@ -235,6 +223,17 @@ namespace Services.Host
             open(chout=0,o:i,dataFile,FDL:xdlFile)
             foreach vendor in vendors
                 store(chout,vendor.SynergyRecord)
+            close chout
+
+            ;;Create and load the orderItemsOverlays file
+
+            dataFile = "DAT:order_items_overlay.ism"
+            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+
+            data orderItemsOverlay, @OrderItemsOverlay
+            open(chout=0,o:i,dataFile,FDL:xdlFile)
+            foreach orderItemsOverlay in orderItemsOverlays
+                store(chout,orderItemsOverlay.SynergyRecord)
             close chout
 
             ;;Create and load the sysparams file
@@ -295,6 +294,17 @@ namespace Services.Host
             try
             begin
                 xcall delet("DAT:vendors.ism")
+            end
+            catch (e, @NoFileFoundException)
+            begin
+                nop
+            end
+            endtry
+
+            ;;Delete the orderItemsOverlays file
+            try
+            begin
+                xcall delet("DAT:order_items_overlay.ism")
             end
             catch (e, @NoFileFoundException)
             begin
@@ -403,6 +413,24 @@ namespace Services.Host
         eof,
             close vendorCh
             mreturn vendors
+        endmethod
+
+        public static method loadOrderItemsOverlays, @List<OrderItemsOverlay>
+        proc
+            data dataFile = "DAT:order_items_overlay.ism"
+            data textFile = dataFile.ToLower().Replace(".ism",".txt")
+            data orderItemsOverlayCh, int, 0
+            data orderItemsOverlayRec, strOrderItemsOverlay
+            data orderItemsOverlays = new List<OrderItemsOverlay>()
+            open(orderItemsOverlayCh,i:s,textFile)
+            repeat
+            begin
+                reads(orderItemsOverlayCh,orderItemsOverlayRec,eof)
+                orderItemsOverlays.Add(new OrderItemsOverlay(orderItemsOverlayRec))
+            end
+        eof,
+            close orderItemsOverlayCh
+            mreturn orderItemsOverlays
         endmethod
 
         private static method findRelativeFolderForAssembly, string

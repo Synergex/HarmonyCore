@@ -1,9 +1,9 @@
 ;;*****************************************************************************
 ;;
-;; Title:       Order.dbl
+;; Title:       OrderItemsOverlay.dbl
 ;;
 ;; Description: Data model representing data defined by the repository
-;;              structure ORDERS and from the data file DAT:orders.ism.
+;;              structure ORDER_ITEMS_OVERLAY and from the data file DAT:order_items_overlay.ism.
 ;;
 ;;*****************************************************************************
 ;; WARNING: GENERATED CODE!
@@ -20,26 +20,26 @@ import Harmony.Core.Converters
 
 namespace Services.Models
 
-    public partial class Order extends DataObjectBase
+    public partial class OrderItemsOverlay extends DataObjectBase
 
         ;;make the record available and a copy
-        private mSynergyData, strOrder 
-        private mOriginalSynergyData, strOrder 
+        private mSynergyData, strOrderItemsOverlay 
+        private mOriginalSynergyData, strOrderItemsOverlay 
         
-        private static sMetadata, @OrderMetadata
+        private static sMetadata, @OrderItemsOverlayMetadata
 
 .region "Constructors"
 
-        static method Order
+        static method OrderItemsOverlay
         proc
-            sMetadata = new OrderMetadata()
-            DataObjectMetadataBase.MetadataLookup.TryAdd(^typeof(Order), sMetadata)
+            sMetadata = new OrderItemsOverlayMetadata()
+            DataObjectMetadataBase.MetadataLookup.TryAdd(^typeof(OrderItemsOverlay), sMetadata)
         endmethod
         
         ;;; <summary>
         ;;;  Constructor, initialise the base fields
         ;;; </summary>
-        public method Order
+        public method OrderItemsOverlay
             parent()
         proc
             init mSynergyData, mOriginalSynergyData
@@ -48,8 +48,8 @@ namespace Services.Models
         ;;; <summary>
         ;;;  Alternate Constructor, accepts the structured data
         ;;; </summary>
-        public method Order
-            required in inData, strOrder
+        public method OrderItemsOverlay
+            required in inData, strOrderItemsOverlay
             parent()
         proc
             mSynergyData = mOriginalSynergyData = inData
@@ -62,7 +62,6 @@ namespace Services.Models
         ;;; <summary>
         ;;; Order number
         ;;; </summary>
-        {Key}
         {Required(ErrorMessage="Order number is required. ")}
         public property OrderNumber, int
             method get
@@ -76,92 +75,105 @@ namespace Services.Models
         endproperty
 
         ;;; <summary>
-        ;;; Customer number
+        ;;; Line item number
         ;;; </summary>
-        {Required(ErrorMessage="Customer number is required. ")}
-        public property CustomerNumber, int
+        {Required(ErrorMessage="Line item number is required. ")}
+        public property ItemNumber, int
             method get
             proc
-                mreturn (int)mSynergyData.Customer_number
+                mreturn (int)mSynergyData.Item_number
             endmethod
             method set
             proc
-                mSynergyData.Customer_number = value
+                mSynergyData.Item_number = value
             endmethod
         endproperty
 
         ;;; <summary>
-        ;;; Order placed by
+        ;;; Order number and item number
         ;;; </summary>
-        {Required(ErrorMessage="Order placed by is required. ")}
-        {StringLength(25, ErrorMessage="Order placed by cannot exceed 25 characters. ")}
-        public property PlacedBy, string
+        {Key}
+        public property OrderItemKey, int
             method get
             proc
-                mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.Placed_by, ^null, ^null, ^null)
+                mreturn (int)mSynergyData.Order_item_key
             endmethod
             method set
             proc
-                mSynergyData.Placed_by = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
+                mSynergyData.Order_item_key = value
             endmethod
         endproperty
 
         ;;; <summary>
-        ;;; Customer order reference
+        ;;; Item ordered
         ;;; </summary>
-        {StringLength(25, ErrorMessage="Customer order reference cannot exceed 25 characters. ")}
-        public property CustomerReference, string
+        {Required(ErrorMessage="Item ordered is required. ")}
+        public property ItemOrdered, int
             method get
             proc
-                mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.Customer_reference, ^null, ^null, ^null)
+                mreturn (int)mSynergyData.Item_ordered
             endmethod
             method set
             proc
-                mSynergyData.Customer_reference = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
+                mSynergyData.Item_ordered = value
             endmethod
         endproperty
 
         ;;; <summary>
-        ;;; Payment terms code
+        ;;; Quantity ordered
         ;;; </summary>
-        {StringLength(2, ErrorMessage="Payment terms code cannot exceed 2 characters. ")}
-        public property PaymentTermsCode, string
+        {Required(ErrorMessage="Quantity ordered is required. ")}
+        public property QuantityOrdered, int
             method get
             proc
-                mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.Payment_terms_code, ^null, ^null, ^null)
+                mreturn (int)mSynergyData.Quantity_ordered
             endmethod
             method set
             proc
-                mSynergyData.Payment_terms_code = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
+                mSynergyData.Quantity_ordered = value
             endmethod
         endproperty
 
         ;;; <summary>
-        ;;; Date ordered
+        ;;; Unit price
         ;;; </summary>
-        {Required(ErrorMessage="Date ordered is required. ")}
-        public property DateOrdered, DateTime
+        {Required(ErrorMessage="Unit price is required. ")}
+        public property UnitPrice, decimal
             method get
             proc
-                mreturn (DateTime)SynergyDecimalDateConverter.Convert(mSynergyData.Date_ordered, ^null, ^null, ^null)
+                mreturn (decimal)SynergyImpliedDecimalConverter.Convert(mSynergyData.Unit_price, ^null, "DECIMALPLACES#2", ^null)
             endmethod
             method set
             proc
-                mSynergyData.Date_ordered = (D)SynergyDecimalDateConverter.ConvertBack(value, ^null, ^null, ^null)
+                mSynergyData.Unit_price = value
             endmethod
         endproperty
 
         ;;; <summary>
-        ;;; Date order completed
+        ;;; Date shipped
         ;;; </summary>
-        public property DateCompleted, DateTime
+        public property DateShipped, DateTime
             method get
             proc
-                mreturn (DateTime)SynergyDecimalDateConverter.Convert(mSynergyData.Date_completed, ^null, ^null, ^null)
+                mreturn (DateTime)SynergyDecimalDateConverter.Convert(mSynergyData.Date_shipped, ^null, ^null, ^null)
             endmethod
             method set
             proc
-                mSynergyData.Date_completed = (D)SynergyDecimalDateConverter.ConvertBack(value, ^null, ^null, ^null)
+                mSynergyData.Date_shipped = (D)SynergyDecimalDateConverter.ConvertBack(value, ^null, ^null, ^null)
+            endmethod
+        endproperty
+
+        ;;; <summary>
+        ;;; Invoice number
+        ;;; </summary>
+        public property InvoiceNumber, int
+            method get
+            proc
+                mreturn (int)mSynergyData.Invoice_number
+            endmethod
+            method set
+            proc
+                mSynergyData.Invoice_number = value
             endmethod
         endproperty
 
@@ -225,7 +237,7 @@ namespace Services.Models
         public override method InternalGetValues, [#]@object
         proc
             ;;TODO: This should be returning boxed values for each of our fields
-            mreturn new Object[7]
+            mreturn new Object[8]
         endmethod
 
 .endregion
@@ -233,22 +245,16 @@ namespace Services.Models
 .region "Relationships to other entities"
 
         ;;; <summary>
-        ;;; Relationship (Type D)
-        ;;; ORDER.ORDER_NUMBER (one) <-> (many) ORDER_ITEM.ORDER_NUMBER_AND_LINE_ITEM
+        ;;; Relationship (Type A)
+        ;;; ORDER_ITEMS_OVERLAY.ORDER_ITEM_KEY (one) --> (one) --> (many) ORDER.ORDER_NUMBER
         ;;; </summary>
-        public readwrite property REL_OrderItems, @ICollection<OrderItem>
+        public readwrite property REL_OrderItemKey, @Order
 
         ;;; <summary>
         ;;; Relationship (Type A)
-        ;;; ORDER.CUSTOMER_NUMBER (one) --> (one) --> (many) CUSTOMER.CUSTOMER_NUMBER
+        ;;; ORDER_ITEMS_OVERLAY.ITEM_ORDERED (one) --> (one) --> (many) ITEM.ITEM_NUMBER
         ;;; </summary>
-        public readwrite property REL_CustomerNumber, @Customer
-
-        ;;; <summary>
-        ;;; Relationship (Type D)
-        ;;; ORDER.ORDER_NUMBER (one) <-> (many) ORDER_ITEMS_OVERLAY.ORDER_ITEM_KEY
-        ;;; </summary>
-        public readwrite property REL_OrderItemsOverlays, @ICollection<OrderItemsOverlay>
+        public readwrite property REL_ItemOrdered, @Item
 
 .endregion
 

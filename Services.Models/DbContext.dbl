@@ -60,6 +60,11 @@ namespace Services.Models
         public readwrite property Vendors, @DbSet<Vendor>
 
         ;;; <summary>
+        ;;; Exposes OrderItemsOverlay data.
+        ;;; </summary>
+        public readwrite property OrderItemsOverlays, @DbSet<OrderItemsOverlay>
+
+        ;;; <summary>
         ;;; 
         ;;; </summary>
         protected override method OnModelCreating, void
@@ -137,6 +142,17 @@ namespace Services.Models
             &    .HasForeignKey("ItemOrdered")
             &    .HasPrincipalKey("ItemNumber")
 
+            ;; ITEM.ITEM_NUMBER (one) --> (many) --> (one) ORDER_ITEMS_OVERLAY.ITEM_ORDERED
+            ;;    Type          : D
+            ;;    From segments : ITEM_NUMBER(D6) 
+            ;;    To segments   : ITEM_ORDERED(D6) 
+
+            parm.Entity(^typeof(Item))
+            &    .HasMany(^typeof(OrderItemsOverlay),"REL_OrderItemsOverlays")
+            &    .WithOne("REL_ItemOrdered")
+            &    .HasForeignKey("ItemOrdered")
+            &    .HasPrincipalKey("ItemNumber")
+
             ;;--------------------------------------
             ;; Relationships from ORDER
 
@@ -161,6 +177,17 @@ namespace Services.Models
             &    .WithMany("REL_Orders")
             &    .HasForeignKey("CustomerNumber")
             &    .HasPrincipalKey("CustomerNumber")
+
+            ;; ORDER.ORDER_NUMBER (one) --> (many) --> (one) ORDER_ITEMS_OVERLAY.ORDER_ITEM_KEY
+            ;;    Type          : D
+            ;;    From segments : ORDER_NUMBER(D6) 
+            ;;    To segments   : ORDER_ITEM_KEY(D8) 
+
+            parm.Entity(^typeof(Order))
+            &    .HasMany(^typeof(OrderItemsOverlay),"REL_OrderItemsOverlays")
+            &    .WithOne("REL_OrderItemKey")
+            &    .HasForeignKey("OrderItemKey")
+            &    .HasPrincipalKey("OrderNumber")
 
             ;;--------------------------------------
             ;; Relationships from ORDER_ITEM
@@ -200,6 +227,31 @@ namespace Services.Models
             &    .WithOne("REL_VendorNumber")
             &    .HasForeignKey("VendorNumber")
             &    .HasPrincipalKey("VendorNumber")
+
+            ;;--------------------------------------
+            ;; Relationships from ORDER_ITEMS_OVERLAY
+
+            ;; ORDER_ITEMS_OVERLAY.ORDER_ITEM_KEY (one) --> (one) --> (many) ORDER.ORDER_NUMBER
+            ;;    Type          : A
+            ;;    From segments : ORDER_ITEM_KEY(D8) 
+            ;;    To segments   : ORDER_NUMBER(D6) 
+
+            parm.Entity(^typeof(OrderItemsOverlay))
+            &    .HasOne(^typeof(Order),"REL_OrderItemKey")
+            &    .WithMany("REL_OrderItemsOverlays")
+            &    .HasForeignKey("OrderItemKey")
+            &    .HasPrincipalKey("OrderNumber")
+
+            ;; ORDER_ITEMS_OVERLAY.ITEM_ORDERED (one) --> (one) --> (many) ITEM.ITEM_NUMBER
+            ;;    Type          : A
+            ;;    From segments : ITEM_ORDERED(D6) 
+            ;;    To segments   : ITEM_NUMBER(D6) 
+
+            parm.Entity(^typeof(OrderItemsOverlay))
+            &    .HasOne(^typeof(Item),"REL_ItemOrdered")
+            &    .WithMany("REL_OrderItemsOverlays")
+            &    .HasForeignKey("ItemOrdered")
+            &    .HasPrincipalKey("ItemNumber")
 
 .endregion
 
