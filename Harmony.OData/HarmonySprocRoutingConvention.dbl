@@ -59,17 +59,6 @@ namespace Harmony.OData
                         data realControllerType = dispatcherType.GenericTypeArguments[1] 
                         data controllerTypeInfo = realControllerType.GetTypeInfo()
                         data actionCollectionProvider = (@IActionDescriptorCollectionProvider)routeContext.HttpContext.RequestServices.GetService(^typeof(IActionDescriptorCollectionProvider))
-                        
-
-;                        data cmodel = new ControllerModel(realControllerType.GetTypeInfo(), realControllerType.GetCustomAttributes(false).ToList().AsReadOnly())
-;                        data targetAction = realControllerType.GetMethod(opSeg.Identifier)
-;                        data amodel = new ActionModel(targetAction, targetAction.GetCustomAttributes(false).ToList().AsReadOnly())
-;                        data actionName = odataPath.PathTemplate == "~/singleton/action" ? "Post" : "Get"
-;                        data targetMethod = dispatcherType.GetMethod(actionName)
-;                        data targetParameters, @IList<Microsoft.AspNetCore.Mvc.Abstractions.ParameterDescriptor>, new List<Microsoft.AspNetCore.Mvc.Abstractions.ParameterDescriptor>()
-;                        data boundProperties, @IList<Microsoft.AspNetCore.Mvc.Abstractions.ParameterDescriptor>,  new List<Microsoft.AspNetCore.Mvc.Abstractions.ParameterDescriptor>()
-;                        data actionDescriptor = new ControllerActionDescriptor() { ControllerName = dispatcherType.FullName, ControllerTypeInfo = dispatcherType.GetTypeInfo(), ActionName = actionName, MethodInfo = targetMethod, Parameters = targetParameters, BoundProperties = boundProperties} 
-;                        actionDescriptor.FilterDescriptors = (@IList<Microsoft.AspNetCore.Mvc.Filters.FilterDescriptor>)new List<Microsoft.AspNetCore.Mvc.Filters.FilterDescriptor>()
                         data opName = opSeg.Identifier
                         if(String.IsNullOrEmpty(opName) && opSeg.Operations != ^null)
                             opName = opSeg.Operations.First().Name
@@ -77,7 +66,6 @@ namespace Harmony.OData
                         data actionDescriptor = actionCollectionProvider.ActionDescriptors.Items.OfType<ControllerActionDescriptor>().FirstOrDefault(lambda(aDesc) { aDesc.ControllerTypeInfo == controllerTypeInfo && string.Compare(aDesc.ActionName, opName, true) == 0 }) 
                         if(actionDescriptor != ^null)
                         begin
-                            ;data resultDescriptor = new ControllerActionDescriptor(actionDescriptor)
                             actionDescriptor.RouteValues["HarmonySprocRouteSentinel"] = ""
                             mreturn new List<ControllerActionDescriptor>() { actionDescriptor }
                         end

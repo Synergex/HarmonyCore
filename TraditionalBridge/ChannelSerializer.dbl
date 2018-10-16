@@ -28,7 +28,9 @@ namespace Json
 	public class ChannelSerializer
 
 		private channel, i4
-		private buffer, @string
+        private buffer, @string
+        private alphaBuf, a65535
+        private alphaPosition, i4
 		;;TODO: make a real stack out of a dynamic array or something like that
 		private serializerStack, @ArrayList
 		;;TODO: buffer writes into an a65535 instead of calling write directly
@@ -46,6 +48,8 @@ namespace Json
 		public method ChannelSerializer
 			required in chan, i
 		proc
+			alphaPosition = 0
+            clear alphaBuf
 			buffer = ""
 			channel = chan
 			serializerStack = new System.Collections.ArrayList()
@@ -62,6 +66,30 @@ namespace Json
 		proc
 			serializerStack.Add((@SerializerStackType)type)
 		endmethod
+
+        private method AppendOutput, void
+            input, a
+        proc
+            if(^size(input) > 65535) then
+            begin
+                if(alphaPosition > 0)
+                begin
+                    buffer += alphaBuf(1:alphaPosition)
+                    clear alphaBuf
+                end
+                buffer += input
+                mreturn
+            end
+            else if(^size(input) + alphaPosition > 65535)
+            begin
+                buffer += alphaBuf(1:alphaPosition)
+                clear alphaBuf
+            end
+
+            alphaBuf(alphaPosition + 1:^size(input)) = input
+            alphaPosition += ^size(input)
+        endmethod
+
 
 		;;; <summary>
 		;;; Removes the top serializer state from the stack. The stack indicates
@@ -86,11 +114,8 @@ namespace Json
 				inArray, boolean
 		proc
 			inArray = STACK_STATE_ARRAY
-			if(!first && inArray)
-				buffer += ","
+			AppendOutput(",null")
 			first = false
-
-			buffer += "null"
 
 			if(!inArray)
 				expectingName = true
@@ -107,13 +132,17 @@ namespace Json
 		;;; </summary>
 		;;; <returns>Always returns SerializerStatus.Ok</returns>
 		public method MapOpen, SerializerStatus
+			record
+                input, @string
 		proc
+            input = ""
 			if(!first && STACK_STATE_ARRAY)
-				buffer += ","
+				input += ","
 			expectingName = true
 			first = true
 			Push(SerializerStackType.Object)
-			buffer += "{"
+			input += "{"
+            AppendOutput(input)
 			mreturn SerializerStatus.Ok
 		endmethod
 
@@ -135,15 +164,19 @@ namespace Json
 			first = false
 			Pop()
 			expectingName = !STACK_STATE_ARRAY
-			buffer += "}"
+			AppendOutput("}")
 
-			if (serializerStack.Count == 1) then
-				message = sendMessage()
-			else
-				message = buffer
+            message = buffer
+			if (serializerStack.Count == 1)
+				sendMessage()
 
-			if (^passed(sentMessage))
-				sentMessage = message
+            if (^passed(sentMessage))
+            begin
+                if(serializerStack.Count != 1)
+                    throw new Exception("map was not closed properly")
+                sentMessage = message
+            end
+
 
 			mreturn SerializerStatus.Ok
 
@@ -154,14 +187,18 @@ namespace Json
 		;;; </summary>
 		;;; <returns>Always returns SerializerStatus.Ok</returns>
 		public method ArrayOpen, SerializerStatus
+			record
+                input, @string
 		proc
+            input = ""
 			if(!first && STACK_STATE_ARRAY)
-				buffer += ","
+				input += ","
 
 			first = true
 			expectingName = false
 			Push(SerializerStackType.Array)
-			buffer += "["
+			input += "["
+            AppendOutput(input)
 			mreturn SerializerStatus.Ok
 		endmethod
 
@@ -181,12 +218,10 @@ namespace Json
 			first = false
 			Pop()
 			expectingName = !STACK_STATE_ARRAY
-			buffer += "]"
-
-			if (serializerStack.Count == 1) then
-				message = sendMessage()
-			else
-				message = buffer
+			AppendOutput("]")
+            message = buffer
+			if (serializerStack.Count == 1)
+				sendMessage()
 
 			if (^passed(sentMessage))
 				sentMessage = message
@@ -204,16 +239,20 @@ namespace Json
 			req in value, n
 			record
 				inArray, boolean
+                input, @string
 		proc
+            input = ""
 			inArray = STACK_STATE_ARRAY
 			if(!first && inArray)
-				buffer += ","
+				input += ","
 			first = false
 
-			buffer += %string(value)
+			input += %string(value)
 
 			if(!inArray)
 				expectingName = true
+
+			AppendOutput(input)
 
 			mreturn SerializerStatus.Ok
 		endmethod
@@ -227,16 +266,20 @@ namespace Json
 			req in value, id
 			record
 				inArray, boolean
+                input, @string
 		proc
+			input = ""
 			inArray = STACK_STATE_ARRAY
 			if(!first && inArray)
-				buffer += ","
+				input += ","
 			first = false
 
-			buffer += %string(value)
+			input += %string(value)
 
 			if(!inArray)
 				expectingName = true
+
+            AppendOutput(input)
 
 			mreturn SerializerStatus.Ok
 		endmethod
@@ -250,19 +293,23 @@ namespace Json
 			req in value, boolean
 			record
 				inArray, boolean
+                input, string
 		proc
+			input = ""
 			inArray = STACK_STATE_ARRAY
 			if(!first && inArray)
-				buffer += ","
+				input += ","
 
 			if(value) then
-				buffer += "true"
+				input += "true"
 			else
-				buffer += "false"
+				input += "false"
 			first = false
 
 			if(!inArray)
 				expectingName = true
+
+			AppendOutput(input)
 
 			mreturn SerializerStatus.Ok
 		endmethod
@@ -276,22 +323,26 @@ namespace Json
 			req in value, @string
 			record
 				inArray, boolean
+                input, @string
 		proc
+			input = ""
 			inArray = STACK_STATE_ARRAY
 			if(!first && (expectingName || inArray))
-				buffer += ","
+				input += ","
 			
 			first = false
 
 			;;TODO this string might need to be encoded, it probably shouldnt have binary data in it
-			buffer += '"' + value + '"'
+			input += '"' + value + '"'
 			if(expectingName)
 			begin
-				buffer += ":"
+				input += ":"
 			end
 			
 			if(!inArray)
 				expectingName = !expectingName
+
+			AppendOutput(input)
 
 			mreturn SerializerStatus.Ok
 		endmethod
@@ -316,15 +367,25 @@ namespace Json
 		;;; After sending the message the JSON buffer is cleared.
 		;;; </summary>
 		;;; <returns>The complete protocol message that was sent.</returns>
-		private method sendMessage, string
+		private method sendMessage, void
 			stack record
 				message, string
 			endrecord
 		proc
-			message = %string(buffer.Length,"XXXXXXXXXX") + buffer
-			puts(channel, message)
+			puts(channel, %string(buffer.Length + alphaPosition,"XXXXXXXXXX"))
+            if(buffer.Length > 0) then
+            begin
+                buffer += alphaBuf(1:alphaPosition)
+                puts(channel, buffer)
+            end
+            else
+            begin
+                puts(channel, alphaBuf(1:alphaPosition))
+            end
+
+            
+            clear alphaBuf
 			buffer = ""
-			mreturn message
 		endmethod
 
 .endregion

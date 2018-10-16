@@ -1,0 +1,55 @@
+
+import System
+import System.Collections.Generic
+import System.Text
+import Microsoft.OData.Edm
+import Microsoft.AspNet.OData.Builder
+import System.Reflection
+
+namespace Harmony.OData
+
+    public class HarmonyODataModelBuilder extends ODataConventionModelBuilder
+        public readwrite property HasRoles, HashSet<String>
+        public readwrite property HasAuth, boolean
+
+
+        public override method AddEntityType, @EntityTypeConfiguration
+            type, @Type
+        proc
+            data result = parent.AddEntityType(type)
+
+            data properties = type.GetProperties()
+            data propInfo, @PropertyInfo
+            foreach propInfo in properties
+            begin
+                data authFieldAttr = propInfo.GetCustomAttribute<AuthorizeFieldAttribute>()
+                if(authFieldAttr != ^null)
+                begin
+                    if(!HasAuth)
+                    begin
+                        result.RemoveProperty(propInfo)
+                        nextloop
+                    end
+
+                    if(authFieldAttr.Roles != ^null)
+                    begin
+                        if(!HasRoles.Overlaps(authFieldAttr.Roles))
+                        begin
+                            result.RemoveProperty(propInfo)
+                            nextloop
+                        end
+                    end
+                end
+            end
+
+
+            mreturn result
+        endmethod
+    endclass
+	
+    public interface IEdmBuilder
+        method BuildModel, @IEdmModel
+            modelBuilder, @ODataModelBuilder
+        endmethod
+    endinterface
+endnamespace

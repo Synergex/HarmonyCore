@@ -21,7 +21,7 @@ namespace Harmony.Core.EF.Extensions
         static ConcurrentDictionary<Type, ConcurrentDictionary<string, object>> _compiledWhereLookup = new ConcurrentDictionary<Type, ConcurrentDictionary<string, object>>();
         static ConcurrentDictionary<Type, ConcurrentDictionary<string, object>> _compiledWhereIncludeLookup = new ConcurrentDictionary<Type, ConcurrentDictionary<string, object>>();
         static ParsingConfig DefaultParseConfig = new ParsingConfig();
-        public static T FindCompiled<K, T>(this DbSet<T> thisp, K keyValue) 
+        public static T FindCompiled<K, T>(this DbSet<T> thisp, K keyValue)
             where T : class
         {
             var currentContext = ((IInfrastructure<IServiceProvider>)thisp).Instance.GetService(typeof(ICurrentDbContext)) as ICurrentDbContext;
@@ -97,7 +97,7 @@ namespace Harmony.Core.EF.Extensions
                     linqParameters[0] = contextParameter;
                     for (int i = 1; i < linqParameters.Length; i++)
                     {
-                        exprLinqParameters[i - 1] = Expression.Convert(linqParameters[i] = Expression.Parameter(typeof(object)), parameters[i -1].GetType());
+                        exprLinqParameters[i - 1] = Expression.Convert(linqParameters[i] = Expression.Parameter(typeof(object)), parameters[i - 1].GetType());
                     }
 
                     var querySet = Expression.Call(contextParameter, typeof(DbContext).GetMethod("Set").MakeGenericMethod(new Type[] { typeof(T) }));
@@ -159,7 +159,7 @@ namespace Harmony.Core.EF.Extensions
             var primaryKey = entityType.FindPrimaryKey();
             var entityParameter = Expression.Parameter(typeof(T), "entity");
             Expression whereClause = null;
-            for(int i = 0; i < primaryKey.Properties.Count && i < parameters.Length; i++)
+            for (int i = 0; i < primaryKey.Properties.Count && i < parameters.Length; i++)
             {
                 var property = primaryKey.Properties[i];
                 var newWhereClause = Expression.Equal(
@@ -510,5 +510,12 @@ namespace Harmony.Core.EF.Extensions
             // Otherwise execute the query against the database.
             return thisp.Where(lambdaExpression);
         }
+
+
+
+        //public static IQueryable<T> WhereIncluding<T>(this DbSet<T> thisp, HarmonyFilteredInclude including, string expression, params object[] parameters)
+        //    where T : class
+        //{
+        //}
     }
 }

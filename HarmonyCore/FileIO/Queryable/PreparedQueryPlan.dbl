@@ -291,12 +291,27 @@ namespace Harmony.Core.FileIO.Queryable
                     begin
                         data typeBuffer = queryBuf.TypeBuffers[tpl.Item1.QuerySourceKey]
                         data handle = typeBuffer.MemoryHandle.Value
-                        madeOrderBy = MapField(^m(handle), tpl.Item1.FieldDef, tpl.Item2)
-
-                        if(orderByResult == ^null) then
-                            orderByResult = madeOrderBy
+                        ;;TODO: this isnt handling composite keys in a join
+                        if(IsJoin) then
+                        begin
+                            data targetKey = typeBuffer.Metadata.GetKeyNumberByFieldNames(new string[#] { tpl.Item1.FieldDef.LanguageName })
+                            if(targetKey != ^null)
+                            begin
+                                if(tpl.Item2) then
+                                    orderByResult = Synergex.SynergyDE.Select.OrderBy.AscendingKey(targetKey.Value)
+                                else
+                                    orderByResult = Synergex.SynergyDE.Select.OrderBy.DescendingKey(targetKey.Value)
+                            end
+                        end
                         else
-                            orderByResult = orderByResult .and. madeOrderBy
+                        begin
+                            madeOrderBy = MapField(^m(handle), tpl.Item1.FieldDef, tpl.Item2)
+                            if(orderByResult == ^null) then
+                                orderByResult = madeOrderBy
+                            else
+                                orderByResult = orderByResult .and. madeOrderBy
+                        end
+
                     end
 
                 end

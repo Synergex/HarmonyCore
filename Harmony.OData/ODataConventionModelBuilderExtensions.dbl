@@ -4,6 +4,7 @@ import System.Text
 import Microsoft.AspNet.OData.Builder
 import System.Reflection
 import System.Linq
+import System.Threading.Tasks
 
 namespace Harmony.OData
 
@@ -56,11 +57,17 @@ namespace Harmony.OData
             data targetMethod, @MethodInfo
 
             HarmonySprocRoutingConvention.AddSprocDispatcher<T>(namespaceName)
-            data entitySetLookup = builder.EntitySets.ToDictionary(lambda(eSet) { eSet.ClrType })
+			data entitySetLookup = new Dictionary<Type, EntitySetConfiguration>()
+            data eSet, @EntitySetConfiguration
+			foreach eSet in builder.EntitySets
+			begin
+				if(!entitySetLookup.ContainsKey(eSet.ClrType))
+                    entitySetLookup.Add(eSet.ClrType, eSet)
+			end
 
             foreach targetMethod in targetType.GetMethods()
             begin
-                if(targetMethod.DeclaringType != targetType || targetMethod.IsSpecialName)
+                if(targetMethod.DeclaringType != targetType || targetMethod.IsSpecialName || targetMethod.Name.Contains("$"))
                     nextloop
 
                 data securityAttribute = Attribute.GetCustomAttribute(targetMethod, ^typeof(MethodSecurityAttribute))
@@ -144,9 +151,15 @@ namespace Harmony.OData
             data returnTypeIsCollection, boolean, false
             data returnTypeIsFromEntitySet, boolean, false
             data returnTypeIsCollectionFromEntitySet, boolean, false
-            if(methInfo.ReturnType.IsGenericType)
+            data taskClean = methInfo.ReturnType
+            if(taskClean.IsGenericType && taskClean.GetGenericTypeDefinition() == ^typeof(Task<>))
             begin
-                data sequenceType = GetSequenceType(methInfo.ReturnType)
+                taskClean = taskClean.GetGenericArguments()[1]
+            end
+
+            if(taskClean.IsGenericType)
+            begin
+                data sequenceType = GetSequenceType(taskClean)
                 if(sequenceType != ^null)
                 begin
                     returnTypeIsCollection = true
@@ -169,7 +182,7 @@ namespace Harmony.OData
             end
             else if(returnTypeIsCollectionFromEntitySet) then
             begin
-                FunctionReturnsCollectionFromEntitySetMethod.MakeGenericMethod(new Type[#] { returnType }).Invoke(funcConfig, new Object[0])
+                FunctionReturnsCollectionFromEntitySetMethod.MakeGenericMethod(new Type[#] { returnType }).Invoke(funcConfig, new Object[#] { returnType.Name })
             end
             else if(returnTypeIsCollection) then
             begin
@@ -200,6 +213,9 @@ namespace Harmony.OData
                     returnType = sequenceType
                 end
             end
+
+            if(returnType == ^typeof(void))
+                mreturn
 
             if(callableConfig.ReturnsFromEntitySet)
             begin

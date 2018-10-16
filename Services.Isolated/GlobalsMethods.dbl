@@ -1,0 +1,38 @@
+import System
+import System.Collections.Generic
+import System.Text
+import Harmony.Core.Context
+import Microsoft.AspNetCore.Mvc
+import Services.Models
+import System.Diagnostics
+
+namespace Services.ExposedMethods
+    
+    {Controller}
+    public class GlobalsMethods extends IGlobalsMethods
+        public override readwrite property IsolationLevel, ContextIsolationLevel, ContextIsolationLevel.Isolated
+
+        private readwrite property mDbContext, @Microsoft.EntityFrameworkCore.DbContext
+
+        public override method InitServices, void
+            required in aServices, @IServiceProvider
+        proc
+            Trace.WriteLine("InitServices called")
+            mDbContext = (@Microsoft.EntityFrameworkCore.DbContext)aServices.GetService(^typeof(Microsoft.EntityFrameworkCore.DbContext))
+        endmethod
+
+        public override method IsolatedCall, @Customer
+            global common fred
+                group named
+                    fld, i4
+                endgroup
+            endcommon
+        proc
+            Trace.WriteLine("IsolatedCall called")
+            fld += 1
+            mreturn (@Customer)mDbContext.Find(^typeof(Customer), (int)fld)
+        endmethod
+
+	endclass
+
+endnamespace

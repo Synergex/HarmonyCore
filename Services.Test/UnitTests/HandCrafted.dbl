@@ -48,7 +48,9 @@ import System.Collections.Generic
 import System.Net.Http
 import Services
 import Services.Test.Models
-
+import Microsoft.Extensions.DependencyInjection
+import Harmony.Core.EF.Extensions
+import Services.Models
 namespace Services.Test.UnitTests
 
 	{TestClass}
@@ -548,6 +550,90 @@ namespace Services.Test.UnitTests
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
             data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
+        endmethod
+
+        {TestMethod}
+        public method EF_FirstOrDefaultIncluding, void
+        proc
+            data startupClass = new Startup()
+            data startupServices = new ServiceCollection()
+            startupClass.ConfigureServices(startupServices)
+            disposable data sp = startupServices.BuildServiceProvider()
+            disposable data context, @DbContext, sp.GetService<DbContext>()
+            data customerData = context.Customers.FirstOrDefaultIncluding("REL_FavoriteItem", "CustomerNumber == @0", 8)
+            Assert.IsFalse(customerData == ^null)
+            Assert.IsFalse(customerData.REL_FavoriteItem == ^null)
+            Assert.AreEqual(customerData.CustomerNumber, 8)
+            Assert.AreEqual(customerData.REL_FavoriteItem.ItemNumber, customerData.FavoriteItem)
+        endmethod
+
+        {TestMethod}
+        public method EF_FirstOrDefault, void
+        proc
+            data startupClass = new Startup()
+            data startupServices = new ServiceCollection()
+            startupClass.ConfigureServices(startupServices)
+            disposable data sp = startupServices.BuildServiceProvider()
+            disposable data context, @DbContext, sp.GetService<DbContext>()
+            data customerData = context.Customers.FirstOrDefault("CustomerNumber == @0", 8)
+            Assert.IsFalse(customerData == ^null)
+            Assert.AreEqual(customerData.CustomerNumber, 8)
+        endmethod
+
+        {TestMethod}
+        public method EF_Where, void
+        proc
+            data startupClass = new Startup()
+            data startupServices = new ServiceCollection()
+            startupClass.ConfigureServices(startupServices)
+            disposable data sp = startupServices.BuildServiceProvider()
+            disposable data context, @DbContext, sp.GetService<DbContext>()
+            data customerCollection, @IEnumerable<Services.Models.Customer>, context.Customers.Where("CustomerNumber >= @0", new object[#] { 8 })
+            data customerData, @Services.Models.Customer
+            foreach customerData in customerCollection
+            begin
+                Assert.IsTrue(customerData.CustomerNumber >= 8)
+            end
+
+        endmethod
+
+        {TestMethod}
+        public method EF_WhereIncluding, void
+        proc
+            data startupClass = new Startup()
+            data startupServices = new ServiceCollection()
+            startupClass.ConfigureServices(startupServices)
+            disposable data sp = startupServices.BuildServiceProvider()
+            disposable data context, @DbContext, sp.GetService<DbContext>()
+            data customerCollection, @IEnumerable<Services.Models.Customer>, context.Customers.WhereIncluding("REL_FavoriteItem", "CustomerNumber >= @0", new object[#] { 8 })
+            data customerData, @Services.Models.Customer
+            foreach customerData in customerCollection
+            begin
+                Assert.IsTrue(customerData.CustomerNumber >= 8)
+                Assert.IsFalse(customerData.REL_FavoriteItem == ^null)
+                Assert.AreEqual(customerData.REL_FavoriteItem.ItemNumber, customerData.FavoriteItem)
+            end
+
+        endmethod
+
+
+        {TestMethod}
+        public method EF_WhereIncluding2, void
+        proc
+            data startupClass = new Startup()
+            data startupServices = new ServiceCollection()
+            startupClass.ConfigureServices(startupServices)
+            disposable data sp = startupServices.BuildServiceProvider()
+            disposable data context, @DbContext, sp.GetService<DbContext>()
+            data customerCollection, @IEnumerable<Services.Models.Customer>, context.Customers.WhereIncluding("REL_FavoriteItem,REL_Orders", "CustomerNumber >= @0", new object[#] { 8 })
+            data customerData, @Services.Models.Customer
+            foreach customerData in customerCollection
+            begin
+                Assert.IsTrue(customerData.CustomerNumber >= 8)
+                Assert.IsFalse(customerData.REL_FavoriteItem == ^null)
+                Assert.AreEqual(customerData.REL_FavoriteItem.ItemNumber, customerData.FavoriteItem)
+            end
+
         endmethod
 
     endclass
