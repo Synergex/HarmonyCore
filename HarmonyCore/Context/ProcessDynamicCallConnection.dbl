@@ -4,6 +4,7 @@ import System.Text
 import System.Diagnostics
 import Newtonsoft.Json
 import Newtonsoft.Json.Linq
+import System.Threading.Tasks
 
 
 namespace Harmony.Core.Context
@@ -11,19 +12,20 @@ namespace Harmony.Core.Context
 	public class ProcessDynamicCallConnection implements IDynamicCallConnection
 		private static NewLineBytes, [#]Byte, new byte[#] { 10, 13 }
 		private mTargetProcess, @Process
-
+        private mMakeReadyTask, @Lazy<Task>
 		public method ProcessDynamicCallConnection
 			startInfo, @ProcessStartInfo
 		proc
 			mTargetProcess = new Process()
 			mTargetProcess.StartInfo = startInfo
-			
+            mMakeReadyTask = new Lazy<Task>(MakeReadyInternal)
 		endmethod
 
-		public virtual method ReadRaw, @string
+		public async virtual method ReadRaw, @Task<string>
 			terminator, Char 
 			endparams
-		proc
+        proc
+            await mMakeReadyTask.Value
 			if(terminator != %char(13))
 				throw new NotImplementedException("the only acceptable terminator for this connection type is newline")
 
@@ -32,8 +34,9 @@ namespace Harmony.Core.Context
 			try
 			begin
 				data expectedMessageLength = Convert.ToInt32(new string(lengthBuffer))
-				data messageBuffer = new char[expectedMessageLength]
-				mTargetProcess.StandardOutput.ReadBlock(messageBuffer, 0, expectedMessageLength)
+                data messageBuffer = new char[expectedMessageLength]
+                ;;TODO error control around this returned length
+				await mTargetProcess.StandardOutput.ReadBlockAsync(messageBuffer, 0, expectedMessageLength)
 				mreturn new string(messageBuffer)
 			end
 			catch(ex, @Exception)
@@ -43,7 +46,7 @@ namespace Harmony.Core.Context
 			endtry
 		endmethod
 		
-		public virtual method Recycle, void
+		public virtual method Recycle, @Task
 			endparams
 		proc
 			
@@ -60,7 +63,7 @@ namespace Harmony.Core.Context
 		endclass
 
 
-		public virtual method Connect, void
+		private async method MakeReadyInternal, @Task
 			endparams
 		proc
 			data handshakeString = '{"ProtocolVersion":"1.0"}'
@@ -90,21 +93,28 @@ namespace Harmony.Core.Context
 				throw new Exception("Protocol not supported")
 		endmethod
 		
-		public virtual method WriteRaw, void
+		public async virtual method WriteRaw, @Task
 			rawData, [#]byte
 			endparams
-		proc
+        proc
+            await mMakeReadyTask.Value
 			data paddedLengthString = rawData.Length.ToString().PadLeft(10, '0')
 			data tempBytes = ASCIIEncoding.ASCII.GetBytes(paddedLengthString + %char(10) + %char(13))
-			mTargetProcess.StandardInput.BaseStream.Write(tempBytes, 0, tempBytes.Length)
-			mTargetProcess.StandardInput.BaseStream.Flush()
-			data response = mTargetProcess.StandardOutput.ReadLine()
-			mTargetProcess.StandardInput.BaseStream.Write(rawData, 0, rawData.Length)
-			mTargetProcess.StandardInput.BaseStream.Write(NewLineBytes, 0, NewLineBytes.Length)
-			mTargetProcess.StandardInput.BaseStream.Flush()
+			await mTargetProcess.StandardInput.BaseStream.WriteAsync(tempBytes, 0, tempBytes.Length)
+			await mTargetProcess.StandardInput.BaseStream.FlushAsync()
+			data response = await mTargetProcess.StandardOutput.ReadLineAsync()
+			await mTargetProcess.StandardInput.BaseStream.WriteAsync(rawData, 0, rawData.Length)
+			await mTargetProcess.StandardInput.BaseStream.WriteAsync(NewLineBytes, 0, NewLineBytes.Length)
+			await mTargetProcess.StandardInput.BaseStream.FlushAsync()
 			
 		endmethod
 	
+        public virtual method MakeReady, @Task
+        proc
+            mreturn mMakeReadyTask.Value
+        endmethod
+
+
 	endclass
 
 endnamespace
