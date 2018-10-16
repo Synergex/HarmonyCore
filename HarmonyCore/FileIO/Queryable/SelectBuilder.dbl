@@ -35,6 +35,9 @@ namespace Harmony.Core.FileIO.Queryable
 			&	theOperator == WhereClauseOperator.IsLikeNoCase ||
 			&	theOperator == WhereClauseOperator.IsInNoCase
 
+            data leftLength = Math.Min(fieldDetails1.ElementSize, fieldDetails2.ElementSize)
+            data rightLength = Math.Min(fieldDetails2.ElementSize, fieldDetails1.ElementSize)
+
 			using theOperator select
 			(whereClauseOperator.EqualTo),
 			begin
@@ -42,20 +45,21 @@ namespace Harmony.Core.FileIO.Queryable
 				(FieldDataType.AlphaField),
 				begin
 					if(!caseInsensitive) then
-						mreturn (On)(dataBuffer1(fieldDetails1.StructurePosition:fieldDetails1.ElementSize) .eqs. dataBuffer2(fieldDetails2.StructurePosition:fieldDetails2.ElementSize))
+                        mreturn (On)(dataBuffer1(fieldDetails1.StructurePosition:leftLength) .eqs. dataBuffer2(fieldDetails2.StructurePosition:rightLength))
 					else
 						throw new NotImplementedException()
 				end
 				(FieldDataType.IntegerField),
 				begin
-					mreturn (On)(^i(dataBuffer1(fieldDetails1.StructurePosition:fieldDetails1.ElementSize)) .eqs. ^i(dataBuffer2(fieldDetails2.StructurePosition:fieldDetails2.ElementSize)))
+                    mreturn (On)(^i(dataBuffer1(fieldDetails1.StructurePosition:leftLength)) .eqs. ^i(dataBuffer2(fieldDetails2.StructurePosition:rightLength)))
 				end
 				(FieldDataType.DecimalField),
 				begin
-					mreturn (On)(^d(dataBuffer1(fieldDetails1.StructurePosition:fieldDetails1.ElementSize)) .eqs. ^d(dataBuffer2(fieldDetails2.StructurePosition:fieldDetails2.ElementSize)))
+                    mreturn (On)(^d(dataBuffer1(fieldDetails1.StructurePosition:leftLength)) .eqs. ^d(dataBuffer2(fieldDetails2.StructurePosition:rightLength)))
 				end
 				(FieldDataType.ImpliedDecimal),
-				begin
+                begin
+                    ;;TODO not sure what to do if this doesnt match the field sizes
 					mreturn (On)(^d(dataBuffer1(fieldDetails1.StructurePosition:fieldDetails1.ElementSize), fieldDetails1.DecimalPrecision) .eqs. ^d(dataBuffer2(fieldDetails2.StructurePosition:fieldDetails2.ElementSize), fieldDetails2.DecimalPrecision))
 				end
 				endusing
@@ -196,7 +200,7 @@ namespace Harmony.Core.FileIO.Queryable
 					data length	,i4	,%trim(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt))
 					if (!length) length = fieldDetails.ElementSize
 
-					if (length > 1 && %atrim(^m(tmpStructure(length:1), memPnt)) == "%") then
+                    if (fieldDetails.ElementSize != length) then
 					begin
 						decr length
 						if (!caseInsensitive) then
