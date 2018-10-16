@@ -105,7 +105,7 @@ namespace <NAMESPACE>
             ;;-------------------------------------------------------
             ;;Enable logging
 
-            services.AddLogging(lambda(builder) { builder.SetMinimumLevel(LogLevel.Debug) })
+            services.AddLogging(lambda(builder) { builder.SetMinimumLevel(LogLevel.Error) })
 
             ;;-------------------------------------------------------
             ;;Load Harmony Core

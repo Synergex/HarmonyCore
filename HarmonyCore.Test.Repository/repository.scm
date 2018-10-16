@@ -3,10 +3,10 @@
 ;
 ;  REPOSITORY     : D:\SYNERGEX\HarmonyCore\HarmonyCore.Test.Repository\bin\Debu
 ;                 : D:\SYNERGEX\HarmonyCore\HarmonyCore.Test.Repository\bin\Debu
-;                 : Version 10.3.3e
+;                 : Version 10.3.3f
 ;
-;  GENERATED      : 13-SEP-2018, 14:10:23
-;                 : Version 10.3.3e
+;  GENERATED      : 16-OCT-2018, 14:39:59
+;                 : Version 10.3.3f
 ;  EXPORT OPTIONS : [ALL] 
  
  
@@ -99,22 +99,22 @@ Field CREDIT_LIMIT   Type DECIMAL   Size 7   Precision 2
       "SAMPLE_DATA=5000;"
  
 Key CUSTOMER_NUMBER   ACCESS   Order ASCENDING   Dups NO
-   Segment FIELD   CUSTOMER_NUMBER  SegType DECIMAL
+   Segment FIELD   CUSTOMER_NUMBER
  
 Key STATE   ACCESS   Order ASCENDING   Dups YES   Insert END   Modifiable YES
    Krf 001
    Description "State"
-   Segment FIELD   STATE  SegType ALPHA  SegOrder ASCENDING
+   Segment FIELD   STATE
  
 Key ZIP   ACCESS   Order ASCENDING   Dups YES   Insert END   Modifiable YES
    Krf 002
    Description "Zip code"
-   Segment FIELD   ZIP_CODE  SegType DECIMAL  SegOrder ASCENDING
+   Segment FIELD   ZIP_CODE
  
 Key PAYMENT_TERMS   ACCESS   Order ASCENDING   Dups YES   Insert END
    Modifiable YES   Krf 003
    Description "Payment terms code"
-   Segment FIELD   PAYMENT_TERMS_CODE  SegType ALPHA  SegOrder ASCENDING
+   Segment FIELD   PAYMENT_TERMS_CODE
  
 Key FAVORITE_ITEM   FOREIGN
    Segment FIELD   FAVORITE_ITEM
@@ -245,11 +245,11 @@ Field COST_PRICE   Type DECIMAL   Size 7   Precision 2
       "SAMPLE_DATA=9.99;"
  
 Key ITEM_NUMBER   ACCESS   Order ASCENDING   Dups NO
-   Segment FIELD   ITEM_NUMBER  SegType DECIMAL
+   Segment FIELD   ITEM_NUMBER
  
 Key VENDOR_NUMBER   ACCESS   Order ASCENDING   Dups YES   Insert END
    Modifiable YES
-   Segment FIELD   VENDOR_NUMBER  SegType DECIMAL
+   Segment FIELD   VENDOR_NUMBER
  
 Key COLOR   ACCESS   Order DESCENDING   Dups YES   Insert END   Modifiable YES
    Description "descending a6 key"
@@ -257,7 +257,7 @@ Key COLOR   ACCESS   Order DESCENDING   Dups YES   Insert END   Modifiable YES
  
 Key SIZE   ACCESS   Order DESCENDING   Dups YES   Insert END   Modifiable YES
    Description "descending decimal key"
-   Segment FIELD   SIZE  SegType DECIMAL
+   Segment FIELD   SIZE
  
 Key NAME   ACCESS   Order ASCENDING   Dups YES   Insert END   Modifiable YES
    Description "alpha30 ascending key"
@@ -316,22 +316,22 @@ Field NONAME_001   Type ALPHA   Size 20   Report Noview   Nonamelink
  
 Key ORDER_NUMBER   ACCESS   Order ASCENDING   Dups NO
    Description "Order number"
-   Segment FIELD   ORDER_NUMBER  SegType DECIMAL  SegOrder ASCENDING
+   Segment FIELD   ORDER_NUMBER
  
 Key CUSTOMER_NUMBER   ACCESS   Order ASCENDING   Dups YES   Insert END
    Modifiable YES   Krf 001
    Description "Customer number"
-   Segment FIELD   CUSTOMER_NUMBER  SegType DECIMAL  SegOrder ASCENDING
+   Segment FIELD   CUSTOMER_NUMBER
  
 Key DATE_ORDERED   ACCESS   Order ASCENDING   Dups YES   Insert END
    Modifiable YES   Krf 002
    Description "Date ordered"
-   Segment FIELD   DATE_ORDERED  SegType DECIMAL  SegOrder ASCENDING
+   Segment FIELD   DATE_ORDERED
  
 Key DATE_COMPLETED   ACCESS   Order ASCENDING   Dups YES   Insert END
    Modifiable YES   Krf 003
    Description "Date order completed"
-   Segment FIELD   DATE_COMPLETED  SegType DECIMAL  SegOrder ASCENDING
+   Segment FIELD   DATE_COMPLETED
  
 Relation  1   ORDERS ORDER_NUMBER   ORDER_ITEMS ORDER_NUMBER_AND_LINE_ITEM
  
@@ -386,23 +386,23 @@ Field NONAME_001   Type ALPHA   Size 58   Language Noview   Script Noview
  
 Key ORDER_NUMBER_AND_LINE_ITEM   ACCESS   Order ASCENDING   Dups NO
    Description "Order number and line number"
-   Segment FIELD   ORDER_NUMBER  SegType DECIMAL  SegOrder ASCENDING
-   Segment FIELD   ITEM_NUMBER  SegType DECIMAL  SegOrder ASCENDING
+   Segment FIELD   ORDER_NUMBER
+   Segment FIELD   ITEM_NUMBER
  
 Key ITEM_ORDERED   ACCESS   Order ASCENDING   Dups YES   Insert END
    Modifiable YES   Krf 001
    Description "Item ordered"
-   Segment FIELD   ITEM_ORDERED  SegType DECIMAL  SegOrder ASCENDING
+   Segment FIELD   ITEM_ORDERED
  
 Key DATE_SHIPPED   ACCESS   Order ASCENDING   Dups YES   Insert END
    Modifiable YES   Krf 002
    Description "Date item shipped"
-   Segment FIELD   DATE_SHIPPED  SegType DECIMAL  SegOrder DESCENDING
+   Segment FIELD   DATE_SHIPPED
  
 Key INVOICE_NUMBER   ACCESS   Order ASCENDING   Dups YES   Insert END
    Modifiable YES   Krf 003
    Description "Invoice number billed on"
-   Segment FIELD   INVOICE_NUMBER  SegType DECIMAL  SegOrder ASCENDING
+   Segment FIELD   INVOICE_NUMBER
  
 Relation  1   ORDER_ITEMS ORDER_NUMBER_AND_LINE_ITEM   ORDERS ORDER_NUMBER
  
@@ -477,21 +477,21 @@ Field PAYMENT_TERMS_CODE   Type ALPHA   Size 2
    Selection List 0 0 0  Entries "CA", "30", "60", "90"
  
 Key VENDOR_NUMBER   ACCESS   Order ASCENDING   Dups NO
-   Segment FIELD   VENDOR_NUMBER  SegType DECIMAL
+   Segment FIELD   VENDOR_NUMBER
  
 Key STATE   ACCESS   Order ASCENDING   Dups YES   Insert END   Modifiable YES
    Krf 002
    Description "State"
-   Segment FIELD   STATE  SegType ALPHA  SegOrder ASCENDING
+   Segment FIELD   STATE
  
 Key ZIP   ACCESS   Order ASCENDING   Dups YES   Insert END   Modifiable YES
    Description "zip"
-   Segment FIELD   ZIP_CODE  SegType DECIMAL  SegOrder ASCENDING
+   Segment FIELD   ZIP_CODE
  
 Key PAYMENT_TERMS   ACCESS   Order ASCENDING   Dups YES   Insert END
    Modifiable YES
    Description "Payment terms code"
-   Segment FIELD   PAYMENT_TERMS_CODE  SegType ALPHA  SegOrder ASCENDING
+   Segment FIELD   PAYMENT_TERMS_CODE
  
 Relation  1   VENDORS VENDOR_NUMBER   ITEMS VENDOR_NUMBER
  
