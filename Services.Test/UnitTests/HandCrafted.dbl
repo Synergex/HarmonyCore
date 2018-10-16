@@ -50,6 +50,7 @@ import Services
 import Services.Test.Models
 import Microsoft.Extensions.DependencyInjection
 import Harmony.Core.EF.Extensions
+import Services.Models
 namespace Services.Test.UnitTests
 
 	{TestClass}
@@ -544,7 +545,7 @@ namespace Services.Test.UnitTests
         {TestMethod}
         public method ExpandAndSelect6, void
         proc
-            disposab le data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync("/odata/Customers?$filter=State in ('CA','WA')&$expand=REL_Orders($select=OrderNumber,DateOrdered;$expand=REL_OrderItems($select=ItemNumber,QuantityOrdered;$expand=REL_ItemOrdered))&$select=CustomerNumber,Name").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()

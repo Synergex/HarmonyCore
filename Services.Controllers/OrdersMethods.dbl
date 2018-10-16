@@ -1,3 +1,4 @@
+import System.Threading.Tasks
 import System
 import System.Collections.Generic
 import System.Text
@@ -86,13 +87,12 @@ namespace Services.Controllers
 
 		endmethod
 		{CallableMethodConfigurationAttribute(IsFunction=true, ReturnsFromEntitySet=true)}
-		public method GetAllCustomers, @List<Customer>
+		public async method GetAllCustomers, @Task<List<Customer>>
 		proc
-			data returnedArguments, [#]@object
 			;;force metadata to be loaded if its not
             DataObjectMetadataBase.LookupType(^typeof(Customer))
-			CallMethod<int>("GetAllCustomers", returnedArguments, new List<Customer>(), string.Empty)
-			mreturn ((@IEnumerable<Customer>)returnedArguments[1]).ToList<Customer>()
+			data resultTpl = await CallMethod<int>("GetAllCustomers", new List<Customer>(), string.Empty)
+			mreturn ((@IEnumerable<Customer>)resultTpl.Item2[1]).ToList<Customer>()
 		endmethod
 	endclass
 endnamespace

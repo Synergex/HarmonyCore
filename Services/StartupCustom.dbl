@@ -1,3 +1,4 @@
+import Services.Isolated
 ;;*****************************************************************************
 ;;
 ;; Title:       StartupCustom.dbl
@@ -33,7 +34,7 @@ import Harmony.Core.Interface
 import Harmony.Core
 import Harmony.OData
 import Harmony.AspNetCore.Context
-import Services.ExposedMethods
+import Services.Controllers
 import System.IO
 
 namespace Services
@@ -45,15 +46,11 @@ namespace Services
         proc
             services.AddScoped<IPrimaryKeyFactory,PrimaryKeyGenerator>()
             services.TryAddEnumerable(ServiceDescriptor.Singleton<IActionInvokerProvider, HarmonySprocActionInvokerProvider>())
-            services.AddSingleton<IContextFactory<Services.ExposedMethods.IGlobalsMethods>>(new AssemblyLoadContextPool<Services.ExposedMethods.IGlobalsMethods, Services.ExposedMethods.GlobalsMethods>(2))
+			services.AddSingleton<IContextFactory<IsolatedMethodsBase>>(new AssemblyLoadContextPool<IsolatedMethodsBase, IsolatedMethods>(2))
 			services.AddScoped<Microsoft.EntityFrameworkCore.DbContext>(MakeGenericDbContext)
-
-			Environment.SetEnvironmentVariable("HARMONY_TEST_MACHINE", "vmsit")
-			Environment.SetEnvironmentVariable("HARMONY_TEST_USER", "jeff1")
-			Environment.SetEnvironmentVariable("HARMONY_TEST_PASSWORD", "jeff1")
-			data contextPool, @RemoteExternalContextPool<ExternalCallContext>, new RemoteExternalContextPool<ExternalCallContext>(Environment.GetEnvironmentVariable("HARMONY_TEST_MACHINE"), Environment.GetEnvironmentVariable("HARMONY_TEST_USER"), new Renci.SshNet.PasswordAuthenticationMethod(Environment.GetEnvironmentVariable("HARMONY_TEST_USER"), Environment.GetEnvironmentVariable("HARMONY_TEST_PASSWORD")), "RUN PROGRAM.EXE" , 4) 
-            ;data currentDirectory = Path.GetDirectoryName(^typeof(Startup).Assembly.Location)
-            ;data contextPool = new ExternalContextPool<ExternalCallContext>(Environment.GetEnvironmentVariable("SYNERGYDE32") + "dbl\bin\dbs.exe", 'TraditionalBridge.Test.dbr', Path.GetFullPath(Path.Combine(currentDirectory, "..\..\..\..\Debug\x86")), ^null, 4) 
+			;data contextPool, @RemoteExternalContextPool<ExternalCallContext>, new RemoteExternalContextPool<ExternalCallContext>(Environment.GetEnvironmentVariable("HARMONY_TEST_MACHINE"), Environment.GetEnvironmentVariable("HARMONY_TEST_USER"), new Renci.SshNet.PasswordAuthenticationMethod(Environment.GetEnvironmentVariable("HARMONY_TEST_USER"), Environment.GetEnvironmentVariable("HARMONY_TEST_PASSWORD")), "RUN PROGRAM.EXE" , 4) 
+            data currentDirectory = Path.GetDirectoryName(^typeof(Startup).Assembly.Location)
+            data contextPool = new ExternalContextPool<ExternalCallContext>(Environment.GetEnvironmentVariable("SYNERGYDE32") + "dbl\bin\dbs.exe", 'TraditionalBridge.Test.dbr', Path.GetFullPath(Path.Combine(currentDirectory, "..\..\..\..\Debug\x86")), ^null, 4) 
             services.AddSingleton<IContextFactory<ExternalCallContext>>(contextPool)
             services.AddContextPool<ExternalCallContext>()
         endmethod
@@ -61,7 +58,7 @@ namespace Services
         private method MakeGenericDbContext, @Microsoft.EntityFrameworkCore.DbContext
             sp, @IServiceProvider
         proc
-            mreturn sp.GetService<Services.DbContext>()
+            mreturn sp.GetService<Services.Models.DbContext>()
         endmethod
 
         partial method ConfigureCustom, void
