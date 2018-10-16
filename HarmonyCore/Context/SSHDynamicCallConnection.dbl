@@ -55,7 +55,7 @@ namespace Harmony.Core.Context
 		public virtual method Recycle, @Task
 			endparams
 		proc
-			
+			mreturn Task.FromResult(true)
 		endmethod
 				
 		public virtual method Disconnect, void
@@ -69,7 +69,7 @@ namespace Harmony.Core.Context
 		endclass
 
 
-		public async virtual method MakeReadyInteral, @Task
+        public async virtual method MakeReadyInternal, @Task
 			endparams
 		proc
 			data handshakeString = '{"ProtocolVersion":"1.0"}'
@@ -116,7 +116,7 @@ namespace Harmony.Core.Context
 
 		endmethod
 		
-		public virtual method WriteRaw, void
+		public virtual method WriteRaw, @Task
 			rawData, [#]byte
 			endparams
 		proc
@@ -126,7 +126,7 @@ namespace Harmony.Core.Context
 			mTargetShell.Write(rawData, 0, rawData.Length)
 			mTargetShell.WriteLine("")
 			mTargetShell.Flush()
-			
+			mreturn Task.FromResult(true)
 		endmethod
 	
         public virtual method MakeReady, @Task

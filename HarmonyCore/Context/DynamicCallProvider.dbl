@@ -6,6 +6,7 @@ import Harmony.Core
 import Newtonsoft.Json.Linq
 import System.Linq
 import System.Reflection
+import System.Threading.Tasks
 
 namespace Harmony.Core.Context
 
@@ -43,9 +44,8 @@ namespace Harmony.Core.Context
 			this.connection = connection
 		endmethod
 
-		public virtual method CallMethod<T>, T
+		public async virtual method CallMethod<T>, @Task<Tuple<T, [#]@Object>>
 			name, @string
-			out returned, [#]@object
 			{ParamArray}
 			args, [#]@object 
 			endparams
@@ -69,7 +69,7 @@ namespace Harmony.Core.Context
 			else
 				arguments[1].DataType = FieldDataType.DataObjectField
 
-			CallMethodImplementation(name, arguments)
+			arguments = await CallMethodImplementation(name, arguments)
 
 			for i from 1 thru args.Length
 			begin
@@ -103,21 +103,19 @@ namespace Harmony.Core.Context
 				end
 			end
 
-			returned = argsTemp
 			if(arguments[1].PassedValue .is. JToken) then
 			begin
 				data retValue = ((@JToken)arguments[1].PassedValue)
-				mreturn retValue.Value<T>()
+				mreturn Tuple.Create(retValue.Value<T>(), argsTemp)
 			end
 			else
 			begin
-				mreturn (T)Convert.ChangeType(arguments[1].PassedValue,^typeof(T))
+				mreturn Tuple.Create((T)Convert.ChangeType(arguments[1].PassedValue,^typeof(T)), argsTemp)
 			end
 		endmethod
 		
-		public virtual method CallMethodV, void
+        public async virtual method CallMethodV, @Task<[#]@object>
 			name, @string
-			out returned, [#]@object
 			{ParamArray}
 			args, [#]@object 
 			endparams
@@ -132,7 +130,7 @@ namespace Harmony.Core.Context
 			end
 
 			;;TODO check identities of objects to potentially write back
-			CallMethodImplementation(name, arguments)
+			arguments = await CallMethodImplementation(name, arguments)
 
 			for i from 1 thru args.Length
 			begin
@@ -140,7 +138,7 @@ namespace Harmony.Core.Context
 				    argsTemp[i] = arguments[i].PassedValue
 			end
 
-			returned = argsTemp
+			mreturn argsTemp
 		endmethod
 
 		private method PreSerializeIEnumerable, @object
@@ -226,9 +224,9 @@ namespace Harmony.Core.Context
 		endmethod
 
 		protected static SerializerSettings, @JsonSerializerSettings, new JsonSerializerSettings() { NullValueHandling=NullValueHandling.Ignore }
-		protected method CallMethodImplementation, void
+		protected async method CallMethodImplementation, @Task<[#]@ArgumentDataDefinition>
 			name, @string
-			inout args, [#]@ArgumentDataDefinition
+			args, [#]@ArgumentDataDefinition
 		proc
 			;;build message with method name and serialized parameters
 			;;sent frame size followed by message body
@@ -239,20 +237,23 @@ namespace Harmony.Core.Context
 			;;write into args array if the argument values are present in the payload
 			data serializedData = JsonConvert.SerializeObject(new CallFrame() { Arguments = args, Name = name }, SerializerSettings)
 			data serializedBytes = Encoding.ASCII.GetBytes(serializedData)
-			connection.WriteRaw(serializedBytes)
-			data responseBytes = connection.ReadRaw(%char(13))
+			await connection.WriteRaw(serializedBytes)
+			data responseBytes = await connection.ReadRaw(%char(13))
 			data responseObject = JsonConvert.DeserializeObject<MethodCallResponse>(responseBytes)
-			if(responseObject.IsError) then
+			data writableArgs = args
+            if(responseObject.IsError) then
 				throw new Exception(responseObject.Exception)
 			else if(responseObject.Result.ReturnParameters != ^null)
 			begin
 				data retArg, @ReturnParameterDefintion
 				foreach retArg in responseObject.Result.ReturnParameters
 				begin
-					args[retArg.Position + 1].ReturnedValue = true
-					args[retArg.Position + 1].PassedValue = retArg.Value.PassedValue
+					writableArgs[retArg.Position + 1].ReturnedValue = true
+					writableArgs[retArg.Position + 1].PassedValue = retArg.Value.PassedValue
 				end
 			end
+			mreturn writableArgs
+
 		endmethod
 	endclass
 

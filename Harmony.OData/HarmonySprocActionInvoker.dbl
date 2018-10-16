@@ -290,7 +290,7 @@ namespace Harmony.OData
                 disposable data requestBody = new StreamReader(_controllerContext.HttpContext.Request.Body)
                 data body = requestBody.ReadToEnd()
                 ;;TODO: maybe this should return a task by default to support async methods
-                result = callableDelegate(_controllerContext.ActionDescriptor.Properties, body, controller)
+                result = await callableDelegate(_controllerContext.ActionDescriptor.Properties, body, controller)
 
 ;                data actionResultValueTask = actionMethodExecutor.Execute(_mapper, objectMethodExecutor, controller, orderedArguments)
 ;                if (actionResultValueTask.IsCompletedSuccessfully) then
@@ -528,7 +528,7 @@ namespace Harmony.OData
             begin
                 ;;wrap the non async result into a task
                 data okObjectConstructor = okObjectResultType.GetConstructor(new Type[#] { ^typeof(Object) })
-                data innerResult = Expression.New(okObjectConstructor, new Expression[#] { Expression.Convert(conversionBodyResult, ^typeof(Object)) })
+				data innerResult = Expression.New(okObjectConstructor, new Expression[#] { Expression.Convert(conversionBody, ^typeof(Object)) })
                 resultExpression = Expression.Call(^typeof(Task), "FromResult", new Type[#] { ^typeof(IActionResult) }, new Expression[#] { innerResult })
             end
 
