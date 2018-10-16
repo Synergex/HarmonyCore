@@ -56,7 +56,11 @@ namespace Services
         public method ConfigureServices, void
             services, @IServiceCollection 
         proc
+            ;;-------------------------------------------------------
+            ;;Enable logging
+
             services.AddLogging(lambda(builder) { builder.SetMinimumLevel(LogLevel.Debug) })
+
             ;;-------------------------------------------------------
             ;;Load Harmony Core
 
@@ -136,7 +140,6 @@ namespace Services
                 app.UseDeveloperExceptionPage()
                 DebugLogSession.Logging = new AspNetCoreDebugLogger(loggerFactory.CreateLogger("HarmonyCore")) { Level = Harmony.Core.Interface.LogLevel.Debug }
                 app.UseLogging(DebugLogSession.Logging)
-                
             end
             else
             begin
@@ -169,6 +172,7 @@ namespace Services
                 lambda EnableRouting(sp)
                 begin
                     ;;Enable optional OData features
+
                     ;;Enable $select expressions to select properties returned
                     builder.Select()
 
@@ -211,7 +215,7 @@ namespace Services
 
                 ;;Enable support for dependency injection into controllers
                 builder.EnableDependencyInjection(EnableDI)
-
+                
                 ;;Configure the default OData route
                 builder.MapODataServiceRoute("odata", "odata", ConfigureRoute)
             end

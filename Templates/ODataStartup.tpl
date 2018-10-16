@@ -69,6 +69,7 @@ import Harmony.Core.Context
 import Harmony.Core.FileIO
 import Harmony.Core.Utility
 import Harmony.OData
+import Harmony.AspNetCore
 import Harmony.AspNetCore.Context
 <IF DEFINED_ENABLE_AUTHENTICATION>
 import Microsoft.AspNetCore.Authorization
@@ -84,6 +85,7 @@ import Microsoft.AspNet.OData.Routing
 import Microsoft.AspNet.OData.Routing.Conventions
 import Microsoft.EntityFrameworkCore
 import Microsoft.Extensions.DependencyInjection
+import Microsoft.Extensions.Logging
 import Microsoft.OData
 import Microsoft.OData.Edm
 import Microsoft.OData.UriParser
@@ -100,6 +102,10 @@ namespace <NAMESPACE>
         public method ConfigureServices, void
             services, @IServiceCollection 
         proc
+            ;;-------------------------------------------------------
+            ;;Enable logging
+
+            services.AddLogging(lambda(builder) { builder.SetMinimumLevel(LogLevel.Debug) })
 
             ;;-------------------------------------------------------
             ;;Load Harmony Core
@@ -224,7 +230,9 @@ namespace <NAMESPACE>
 
             if (env.IsDevelopment()) then
             begin
+                data loggerFactory = app.ApplicationServices.GetRequiredService<ILoggerFactory>()
                 app.UseDeveloperExceptionPage()
+                DebugLogSession.Logging = new AspNetCoreDebugLogger(loggerFactory.CreateLogger("HarmonyCore")) { Level = Harmony.Core.Interface.LogLevel.Debug }
                 app.UseLogging(DebugLogSession.Logging)
             end
             else
@@ -264,6 +272,36 @@ namespace <NAMESPACE>
 
                 lambda EnableRouting(sp)
                 begin
+                    ;;Enable optional OData features
+
+                    <IF DEFINED_ENABLE_SELECT>
+                    ;;Enable $select expressions to select properties returned
+                    builder.Select()
+
+                    </IF DEFINED_ENABLE_SELECT>
+                    <IF DEFINED_ENABLE_FILTER>
+                    ;;Enable $filter expressions to filter rows returned
+                    builder.Filter()
+
+                    </IF DEFINED_ENABLE_FILTER>
+                    <IF DEFINED_ENABLE_ORDERBY>
+                    ;;Enable $orderby expressions to custom sort results
+                    builder.OrderBy()
+
+                    </IF DEFINED_ENABLE_ORDERBY>
+                    <IF DEFINED_ENABLE_COUNT>
+                    ;;Enable /$count endpoints
+                    builder.Count()
+
+                    </IF DEFINED_ENABLE_COUNT>
+                    <IF DEFINED_ENABLE_RELATIONS>
+                    ;;Enable $expand expressions to expand relations
+                    builder.Expand()
+
+                    </IF DEFINED_ENABLE_RELATIONS>
+                    ;;Specify the maximum rows that may be returned by $top expressions
+                    builder.MaxTop(100)
+
                     data routeList = ODataRoutingConventions.CreateDefaultWithAttributeRouting("<SERVER_BASE_PATH>", builder)
                     <IF DEFINED_ENABLE_SPROC>
                     routeList.Insert(0, new HarmonySprocRoutingConvention())
@@ -290,36 +328,7 @@ namespace <NAMESPACE>
 
                 ;;Enable support for dependency injection into controllers
                 builder.EnableDependencyInjection(EnableDI)
-
-                ;;Enable optional OData features
-                <IF DEFINED_ENABLE_SELECT>
-                ;;Enable $select expressions to select properties returned
-                builder.Select()
-
-                </IF DEFINED_ENABLE_SELECT>
-                <IF DEFINED_ENABLE_FILTER>
-                ;;Enable $filter expressions to filter rows returned
-                builder.Filter()
-
-                </IF DEFINED_ENABLE_FILTER>
-                <IF DEFINED_ENABLE_ORDERBY>
-                ;;Enable $orderby expressions to custom sort results
-                builder.OrderBy()
-
-                </IF DEFINED_ENABLE_ORDERBY>
-                <IF DEFINED_ENABLE_COUNT>
-                ;;Enable /$count endpoints
-                builder.Count()
-
-                </IF DEFINED_ENABLE_COUNT>
-                <IF DEFINED_ENABLE_RELATIONS>
-                ;;Enable $expand expressions to expand relations
-                builder.Expand()
-
-                </IF DEFINED_ENABLE_RELATIONS>
-                ;;Specify the maximum rows that may be returned by $top expressions
-                builder.MaxTop(100)
-
+                
                 ;;Configure the default OData route
                 builder.MapODataServiceRoute("<SERVER_BASE_PATH>", "<SERVER_BASE_PATH>", ConfigureRoute)
             end

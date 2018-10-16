@@ -54,6 +54,8 @@
 
 import Microsoft.AspNetCore
 import Microsoft.AspNetCore.Hosting
+import Microsoft.AspNetCore.Builder
+import Microsoft.Extensions.DependencyInjection
 import System.Collections.Generic
 import System.IO
 import System.Text
@@ -109,6 +111,25 @@ endmain
 .Array 0
 
 namespace <NAMESPACE>
+
+    public class HostStartup
+
+        innerStartup, @Startup
+
+        public method Configure, void
+            required in app, @IApplicationBuilder
+            required in env, @IHostingEnvironment
+        proc
+            innerStartup.Configure(app, env)
+        endmethod
+
+        public method ConfigureServices, void
+            services, @IServiceCollection 
+        proc
+            innerStartup.ConfigureServices(services)
+        endmethod
+
+    endclass
 
     public static class SelfHostEnvironment
 
