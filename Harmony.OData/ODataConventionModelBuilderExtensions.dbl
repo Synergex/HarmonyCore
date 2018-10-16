@@ -4,6 +4,7 @@ import System.Text
 import Microsoft.AspNet.OData.Builder
 import System.Reflection
 import System.Linq
+import System.Threading.Tasks
 
 namespace Harmony.OData
 
@@ -150,9 +151,15 @@ namespace Harmony.OData
             data returnTypeIsCollection, boolean, false
             data returnTypeIsFromEntitySet, boolean, false
             data returnTypeIsCollectionFromEntitySet, boolean, false
-            if(methInfo.ReturnType.IsGenericType)
+            data taskClean = methInfo.ReturnType
+            if(taskClean.IsGenericType && taskClean.GetGenericTypeDefinition() == ^typeof(Task<>))
             begin
-                data sequenceType = GetSequenceType(methInfo.ReturnType)
+                taskClean = taskClean.GetGenericArguments()[1]
+            end
+
+            if(taskClean.IsGenericType)
+            begin
+                data sequenceType = GetSequenceType(taskClean)
                 if(sequenceType != ^null)
                 begin
                     returnTypeIsCollection = true
