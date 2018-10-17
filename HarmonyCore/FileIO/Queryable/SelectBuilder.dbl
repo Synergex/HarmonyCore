@@ -35,8 +35,7 @@ namespace Harmony.Core.FileIO.Queryable
 			&	theOperator == WhereClauseOperator.IsLikeNoCase ||
 			&	theOperator == WhereClauseOperator.IsInNoCase
 
-            data leftLength = Math.Min(fieldDetails1.ElementSize, fieldDetails2.ElementSize)
-            data rightLength = Math.Min(fieldDetails2.ElementSize, fieldDetails1.ElementSize)
+			data leftMinSize = Math.Min(fieldDetails2.ElementSize, fieldDetails1.ElementSize)
 
 			using theOperator select
 			(whereClauseOperator.EqualTo),
@@ -45,22 +44,21 @@ namespace Harmony.Core.FileIO.Queryable
 				(FieldDataType.AlphaField),
 				begin
 					if(!caseInsensitive) then
-                        mreturn (On)(dataBuffer1(fieldDetails1.StructurePosition:leftLength) .eqs. dataBuffer2(fieldDetails2.StructurePosition:rightLength))
+						mreturn (On)(dataBuffer1(fieldDetails1.StructurePosition:fieldDetails1.ElementSize) .eq. dataBuffer2(fieldDetails2.StructurePosition:fieldDetails2.ElementSize))
 					else
 						throw new NotImplementedException()
 				end
 				(FieldDataType.IntegerField),
 				begin
-                    mreturn (On)(^i(dataBuffer1(fieldDetails1.StructurePosition:leftLength)) .eqs. ^i(dataBuffer2(fieldDetails2.StructurePosition:rightLength)))
+					mreturn (On)(^i(dataBuffer1(fieldDetails1.StructurePosition:leftMinSize)) .eq. ^i(dataBuffer2(fieldDetails2.StructurePosition:fieldDetails2.ElementSize)))
 				end
 				(FieldDataType.DecimalField),
 				begin
-                    mreturn (On)(^d(dataBuffer1(fieldDetails1.StructurePosition:leftLength)) .eqs. ^d(dataBuffer2(fieldDetails2.StructurePosition:rightLength)))
+					mreturn (On)(^d(dataBuffer1(fieldDetails1.StructurePosition:leftMinSize)) .eq. ^d(dataBuffer2(fieldDetails2.StructurePosition:fieldDetails2.ElementSize)))
 				end
 				(FieldDataType.ImpliedDecimal),
-                begin
-                    ;;TODO not sure what to do if this doesnt match the field sizes
-					mreturn (On)(^d(dataBuffer1(fieldDetails1.StructurePosition:fieldDetails1.ElementSize), fieldDetails1.DecimalPrecision) .eqs. ^d(dataBuffer2(fieldDetails2.StructurePosition:fieldDetails2.ElementSize), fieldDetails2.DecimalPrecision))
+				begin
+					mreturn (On)(^d(dataBuffer1(fieldDetails1.StructurePosition:fieldDetails1.ElementSize), fieldDetails1.DecimalPrecision) .eq. ^d(dataBuffer2(fieldDetails2.StructurePosition:fieldDetails2.ElementSize), fieldDetails2.DecimalPrecision))
 				end
 				endusing
 
@@ -202,16 +200,15 @@ namespace Harmony.Core.FileIO.Queryable
 
                     if (fieldDetails.ElementSize != length) then
 					begin
-						decr length
 						if (!caseInsensitive) then
 						begin
 							DebugLogSession.Logging.LogTrace("HARMONY-commandParser::fieldWhereClause: StartsWith Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, length, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
-							mreturn (Where)(dataBuffer(fieldDetails.StructurePosition:length) .eqs. (^m(tmpStructure(1:length), memPnt)))
+							mreturn (Where)(dataBuffer(fieldDetails.StructurePosition:length) .eq. (^m(tmpStructure(1:length), memPnt)))
 						end
 						else
 						begin
 							DebugLogSession.Logging.LogTrace("HARMONY-commandParser::fieldWhereClause: StartsWith NoCaseWhere (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, length, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
-							mreturn (NoCaseWhere)(dataBuffer(fieldDetails.StructurePosition:length) .eqs. (^m(tmpStructure(1:length), memPnt)))
+							mreturn (NoCaseWhere)(dataBuffer(fieldDetails.StructurePosition:length) .eq. (^m(tmpStructure(1:length), memPnt)))
 						end
 					end
 					else
