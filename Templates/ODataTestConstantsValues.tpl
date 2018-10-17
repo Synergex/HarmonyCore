@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME>TestConstants.Values.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.3.6</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.3.7</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
 ;// Title:       ODataTestConstantsValues.tpl
