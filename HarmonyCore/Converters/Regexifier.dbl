@@ -1,0 +1,172 @@
+import System
+import System.Collections.Generic
+import System.Linq
+import System.Text
+import System.Text.RegularExpressions
+import System.Threading.Tasks
+import System.Collections.Concurrent
+
+
+namespace Harmony.Core.Converters
+
+	public class RegexificationFactory
+        
+		private static FormatCache, @ConcurrentDictionary<string, RegexifiedExpression>, new ConcurrentDictionary<string, RegexifiedExpression>()
+
+		private static method RegexifyMe, @RegexifiedExpression
+			input, string 
+			matchLiteral, string 
+			endparams
+		proc
+			if(matchLiteral == "XZ") then
+			begin
+				mreturn FormatCache.GetOrAdd(input, lambda(str) { new RegexifiedExpression(input, RegexOptions.Compiled, matchLiteral.ToCharArray())}) 
+			end
+			else
+				mreturn new RegexifiedExpression(input, RegexOptions.None, matchLiteral.ToCharArray())
+		endmethod
+        
+		public static method RegexifyMe, @RegexifiedExpression
+			input, string 
+			endparams
+		proc
+			mreturn RegexifyMe(input, "XZ")
+		endmethod
+	endclass
+    
+	public class RegexifiedExpression implements IRegexifiedExpression
+
+		public virtual method GetData, String
+			input, String 
+			endparams
+		proc
+			;;TODO deal with leading and trailing negative in the format string and input string
+			data output = new StringBuilder()
+			data matchResult = InstantiatedRegex.Match(input)
+
+			if (!matchResult.Success)
+				mreturn string.Empty
+
+			data regexGroup, @Group
+			data i, int
+			for i from 1 thru matchResult.Groups.Count - 1
+			begin
+				regexGroup = matchResult.Groups[i]
+				if(input[regexGroup.Index] == 'Z') then
+				begin
+					output.Append(regexGroup.Value.Replace(" ", "0"))
+				end
+				else
+				begin
+					output.Append(regexGroup.Value)
+				end
+
+			end
+
+			mreturn output.ToString()
+		endmethod
+
+		private method ConstructMatchGroup, @StringBuilder
+			wipExpression, @StringBuilder 
+			length, int 
+			endparams
+		proc
+			wipExpression.Append(".{")
+			wipExpression.Append(length)
+			wipExpression.Append("}")
+			wipExpression.Append(')')
+			mreturn wipExpression
+		endmethod
+
+		private method ConstructRegex, string
+			input, string 
+			matchCharacter, @List<char> 
+			endparams
+		proc
+			data expression, @StringBuilder, new StringBuilder()
+			data escapedInput = Regex.Escape(input)
+			data groupStart, int, -1
+			data groupNumber, int, 0
+			data i, int
+			for i from 0 thru escapedInput.Length - 1
+			begin
+				data matchChar, boolean, matchCharacter.Contains(escapedInput[i])
+				if (matchChar && (groupStart == -1)) then
+				begin
+					expression.Append('(')
+					groupStart = i
+				end
+				else if (matchChar) then
+				begin
+                
+				end
+				else if (groupStart != -1) then
+				begin
+					expression = ConstructMatchGroup(expression, i - groupStart)
+					expression.Append(escapedInput[i])
+					groupStart = -1
+					^incr(groupNumber, true)
+				end
+				else
+				begin
+					expression.Append(escapedInput[i])
+				end
+			end
+			if (groupStart > -1)
+			begin
+				expression = ConstructMatchGroup(expression, i - groupStart)
+			end
+			mreturn expression.ToString()
+		endmethod
+
+		private _instantiatedRegex, @Lazy<Regex>
+        
+		public method RegexifiedExpression
+			inputExpression, string 
+			regexOpts, RegexOptions
+			matchLiteral, [#]char
+			endparams
+		proc
+			this.MatchLiteral = matchLiteral
+			this.InputExpression = inputExpression
+			_instantiatedRegex = new Lazy<Regex>(lambda() { new Regex(ConstructedRegex, regexOpts) })
+			ConstructedRegex = ConstructRegex(InputExpression, new List<char>(matchLiteral))
+		endmethod
+        
+		public readwrite property MatchLiteral, [#]char
+		public readwrite property InputExpression, string
+		public readwrite property ConstructedRegex, string
+		public property InstantiatedRegex, @Regex
+			method get
+			proc
+				mreturn _instantiatedRegex.Value
+			endmethod
+		endproperty
+
+
+	endclass
+
+	public interface IRegexifiedExpression
+    
+		property InputExpression, string
+			method get
+			endmethod
+		endproperty
+    
+		property ConstructedRegex, string
+			method get
+			endmethod
+		endproperty
+    
+		property InstantiatedRegex, @Regex
+			method get
+			endmethod
+		endproperty
+    
+		method GetData, string
+			input, string 
+			endparams
+		endmethod
+	endinterface
+
+endnamespace

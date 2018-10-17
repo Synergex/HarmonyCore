@@ -113,3 +113,280 @@
 	
 	xreturn
 .end
+
+
+function DateTimeToDec ,d
+    in req dt		,System.DateTime
+    in req fmt		,a20
+    endparams
+    record
+        rtn		,d20
+    endrecord
+proc
+    data val,string
+    data mysize,int, %size(%atrim(fmt))
+    rtn = 0
+    if ((fmt == "YYYYMMDDHHMISSUUUUUU") .and. (mysize == 20))
+    begin
+        val = dt.ToString("yyyyMMddHHmmss")
+        if (val.Equals("00010101000000")) then
+        begin
+            val = "00000000000000000000"
+        end
+        else
+        begin
+            data milsec, int, dt.Millisecond;
+            data milSeconds, String, milsec.ToString();
+            while (milSeconds.Length < 6)
+            begin
+                milSeconds = "0" + milSeconds;
+            end
+            val = val + milSeconds;
+        end
+    end
+    if ((fmt == "YYYYMMDDHHMISS") .and. (mysize == 14))
+    begin
+        val = dt.ToString("yyyyMMddHHmmss")
+        if (val.Equals("00010101000000"))
+            val = "00000000000000"
+    end
+    if ((fmt .eq. "YYYYMMDDHHMMSS") .and. (mysize == 14))
+    begin
+        val = dt.ToString("yyyyMMddHHmmss")
+        if (val.Equals("00010101000000"))
+            val = "00000000000000"
+    end
+    if ((fmt .eq. "YYYYMMDD") .and. (mysize == 8))
+    begin
+        val = dt.ToString("yyyyMMdd")
+        if (val.Equals("00010101"))
+            val = "00000000"
+    end
+    if ((fmt .eq. "YYMMDD") .and. (mysize == 6))
+    begin
+        val = dt.ToString("yyMMdd")
+        if (val.Equals("010101"))
+            val = "000000"
+    end
+    if ((fmt .eq. "YYYYJJJ") .and. (mysize == 7))
+    begin
+        val = dt.ToString("yyyyMMdd")
+        val = val.Substring(0, 4)
+        if (dt.DayOfYear < 10) then
+            val = val + "00" + dt.DayOfYear.ToString()
+        else
+        begin
+            if (dt.DayOfYear < 100) then
+                val = val + "0" + dt.DayOfYear.ToString()
+            else
+                val = val + dt.DayOfYear.ToString()
+        end
+        if (val.Equals("0001001"))
+            val = "0000000"
+    end
+    if ((fmt .eq. "YYJJJ") .and. (mysize == 5))
+    begin
+        val = dt.ToString("yyMMdd")
+        val = val.Substring(0, 2)
+        if (dt.DayOfYear < 10) then
+            val = val + "00" + dt.DayOfYear.ToString()
+        else
+        begin
+            if (dt.DayOfYear < 100) then
+                val = val + "0" + dt.DayOfYear.ToString()
+            else
+                val = val + dt.DayOfYear.ToString()
+        end
+        if (val.Equals("01001"))
+            val = "00000"
+    end
+    if (fmt .eq. "HHMM")
+    begin
+        if (mysize .eq. 6) then
+            val = dt.ToString("HHmmss")
+        else
+            val = dt.ToString("HHmm")
+    end
+    rtn = val
+    freturn rtn
+end
+
+function DecToDateTime ,long
+    in req sdt		,d
+    in req fmt		,a14
+    endparams
+    record
+        rtn		,d14
+		
+        ticks	,long
+        yy		,int
+        mt		,int
+        dd		,int
+        jday	,double
+        hh		,int
+        mm		,int
+        ss		,int
+        ml		,int
+    endrecord
+proc
+    data val		,string
+    data valstr	,string
+    data dt		,System.Datetime
+    data format	,@System.IFormatProvider
+    data mysize,int, %size(%atrim(fmt))
+	
+    try
+    begin	
+        dt = new System.DateTime(1999, 4,12)
+        format = new System.Globalization.CultureInfo("en-US", true)
+        if ((fmt == "YYYYMMDDHHMISSUUUUUU") .and. (mysize == 20))
+        begin
+            valstr = %string(sdt,"XXXXXXXXXXXXXXXXXXXX")
+            yy = int.Parse(valstr.Substring(0,4))
+            mt = int.Parse(valstr.Substring(4,2))
+            dd = int.Parse(valstr.Substring(6,2))
+            hh = int.Parse(valstr.Substring(8,2))
+            mm = int.Parse(valstr.Substring(10,2))
+            ss = int.Parse(valstr.Substring(12,2))
+            ml = int.Parse(valstr.Substring(14,6))
+            ml = ml / 1000
+            dt = new System.DateTime(yy,mt,dd,hh,mm,ss,ml)
+        end
+        if ((fmt == "YYYYMMDDHHMISS") .and. (mysize == 14))
+        begin
+            valstr = %string(sdt,"XXXXXXXXXXXXXX")
+            yy = int.Parse(valstr.Substring(0,4))
+            mt = int.Parse(valstr.Substring(4,2))
+            dd = int.Parse(valstr.Substring(6,2))
+            hh = int.Parse(valstr.Substring(8,2))
+            mm = int.Parse(valstr.Substring(10,2))
+            ss = int.Parse(valstr.Substring(12,2))
+            dt = new System.DateTime(yy,mt,dd,hh,mm,ss)
+        end
+        if ((fmt .eq. "YYYYMMDDHHMMSS") .and. (mysize == 14))
+        begin
+            valstr = %string(sdt,"XXXXXXXXXXXXXX")
+            yy = int.Parse(valstr.Substring(0,4))
+            mt = int.Parse(valstr.Substring(4,2))
+            dd = int.Parse(valstr.Substring(6,2))
+            hh = int.Parse(valstr.Substring(8,2))
+            mm = int.Parse(valstr.Substring(10,2))
+            ss = int.Parse(valstr.Substring(12,2))
+            dt = new System.DateTime(yy,mt,dd,hh,mm,ss)
+        end
+        if ((fmt .eq. "YYYYMMDD") .and. (mysize== 8))
+        begin
+            valstr = %string(sdt,"XXXXXXXX")
+            if (valstr.Equals("00000000")) then
+            begin
+                dt = new System.DateTime()
+            end
+            else
+            begin
+                dt = System.DateTime.ParseExact(valstr,"yyyyMMdd",format)
+            end
+        end
+        if ((fmt .eq. "YYMMDD") .and. (mysize == 6))
+        begin
+            valstr = %string(sdt,"XXXXXX")
+            if (valstr.Equals("000000")) then
+            begin
+                dt = new System.DateTime()
+            end
+            else
+            begin
+                if (valstr.Length == 5)
+                    valstr = "0" + valstr
+                dt = System.DateTime.ParseExact(valstr,"yyMMdd",format)
+            end
+        end
+        if ((fmt .eq. "YYYYJJJ") .and. (mysize== 7))
+        begin
+            valstr = %string(sdt,"XXXXXXX")
+            if (valstr.Equals("0000000")) then
+            begin
+                dt = new System.DateTime()
+            end
+            else
+            begin
+                yy = int.Parse(valstr.Substring(0,4))
+                jday = double.Parse(valstr.Substring(4,3))
+                dt = new System.DateTime(yy,1,1)
+                dt = dt.AddDays(jday-1)
+            end
+        end
+        if ((fmt .eq. "YYJJJ") .and. (mysize == 5))
+        begin
+            valstr = %string(sdt,"XXXXX")
+            yy = int.Parse(valstr.Substring(0,2))
+            if (yy <= 50) then
+                yy = yy + 2000
+            else
+                yy = yy + 1900
+            jday = double.Parse(valstr.Substring(2,3))
+            dt = new System.DateTime(yy,1,1)
+            dt = dt.AddDays(jday-1)
+        end
+        if (fmt .eq. "HHMM")
+        begin
+            if (mysize .eq. 6) then
+            begin
+                valstr = %string(sdt,"XXXXXX")
+                dt = new System.DateTime()
+                hh = int.Parse(valstr.Substring(0,2))
+                mm = int.Parse(valstr.Substring(2,2))
+                ss = int.Parse(valstr.Substring(4,2))
+                dt = dt.AddHours(hh)
+                dt = dt.AddMinutes(mm)
+                dt = dt.AddSeconds(ss)
+            end
+            else
+            begin
+                valstr = %string(sdt,"XXXX")
+                dt = new System.DateTime()
+                hh = int.Parse(valstr.Substring(0,2))
+                mm = int.Parse(valstr.Substring(2,2))
+                dt = dt.AddHours(hh)
+                dt = dt.AddMinutes(mm)
+            end
+        end
+    end
+    catch(e)
+        nop
+    endtry
+	
+    ticks = dt.Ticks
+    freturn ticks
+end
+
+function i8ToDateTime ,long
+    in req sdt	,i8
+    in opt fmt	,a14
+    endparams
+	
+proc
+    data dt		,System.Datetime
+    data ticks	,long
+
+    dt = new System.DateTime((sdt * 10), DateTimeKind.Utc)
+    dt = dt.AddYears(1969)
+    dt = TimeZone.CurrentTimeZone.ToLocalTime(dt); 
+    ticks = dt.Ticks
+    freturn ticks
+end
+
+function DateTimeToI8 ,long
+    in req dt	,System.DateTime
+    in opt fmt	,a14
+    endparams
+proc
+    data ticks	,i8
+    data basedt	,System.Datetime
+    data dtmp	,System.Datetime
+
+    basedt = new System.DateTime()
+    basedt = basedt.AddYears(1969)
+    dtmp = TimeZone.CurrentTimeZone.ToUniversalTime(dt);
+    ticks = dtmp.Subtract(basedt).Ticks / 10
+    freturn ticks
+end
