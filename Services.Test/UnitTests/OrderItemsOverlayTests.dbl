@@ -1,8 +1,8 @@
 ;;*****************************************************************************
 ;;
-;; Title:       ItemTests.dbl
+;; Title:       OrderItemsOverlayTests.dbl
 ;;
-;; Description: Unit tests for the operations defined in ItemsController.
+;; Description: Unit tests for the operations defined in OrderItemsOverlaysController.
 ;;
 ;;*****************************************************************************
 ;; WARNING: GENERATED CODE!
@@ -21,44 +21,30 @@ import Services.Test.Models
 namespace Services.Test.UnitTests
 
     {TestClass}
-    public partial class ItemTests
+    public partial class OrderItemsOverlayTests
 
         ;;------------------------------------------------------------
-        ;;Get all Items
+        ;;Get all OrderItemsOverlays
 
         {TestMethod}
-        {TestCategory("Item Tests - Read All")}
-        public method GetItems, void
+        {TestCategory("OrderItemsOverlay Tests - Read All")}
+        public method GetOrderItemsOverlays, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/Items").Result
+            disposable data response = client.GetAsync("/odata/OrderItemsOverlays").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
+            data orderItemsOverlays, @ODataOrderItemsOverlays, JsonConvert.DeserializeObject<ODataOrderItemsOverlays>(result)
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get all Items and expand relation REL_VendorNumber
+        ;;Get all OrderItemsOverlays and expand relation REL_OrderItemKey
 
         {TestMethod}
-        {TestCategory("Item Tests - Read All")}
-        public method GetItems_Expand_REL_VendorNumber, void
+        {TestCategory("OrderItemsOverlay Tests - Read All")}
+        public method GetOrderItemsOverlays_Expand_REL_OrderItemKey, void
         proc
-            data uri = "/odata/Items?$expand=REL_VendorNumber"
-            disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync(uri).Result
-            data result = response.Content.ReadAsStringAsync().Result
-            response.EnsureSuccessStatusCode()
-        endmethod
-
-        ;;------------------------------------------------------------
-        ;;Get all Items and expand relation REL_ItemNumber
-
-        {TestMethod}
-        {TestCategory("Item Tests - Read All")}
-        public method GetItems_Expand_REL_OrderItems, void
-        proc
-            data uri = "/odata/Items?$expand=REL_OrderItems"
+            data uri = "/odata/OrderItemsOverlays?$expand=REL_OrderItemKey"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync(uri).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -66,13 +52,13 @@ namespace Services.Test.UnitTests
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get all Items and expand relation REL_ItemNumber
+        ;;Get all OrderItemsOverlays and expand relation REL_ItemOrdered
 
         {TestMethod}
-        {TestCategory("Item Tests - Read All")}
-        public method GetItems_Expand_REL_OrderItemsOverlays, void
+        {TestCategory("OrderItemsOverlay Tests - Read All")}
+        public method GetOrderItemsOverlays_Expand_REL_ItemOrdered, void
         proc
-            data uri = "/odata/Items?$expand=REL_OrderItemsOverlays"
+            data uri = "/odata/OrderItemsOverlays?$expand=REL_ItemOrdered"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync(uri).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -80,13 +66,13 @@ namespace Services.Test.UnitTests
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get all Items and expand all relations
+        ;;Get all OrderItemsOverlays and expand all relations
 
         {TestMethod}
-        {TestCategory("Item Tests - Read All")}
-        public method GetItems_Expand_All, void
+        {TestCategory("OrderItemsOverlay Tests - Read All")}
+        public method GetOrderItemsOverlays_Expand_All, void
         proc
-            data uri = "/odata/Items?$expand=REL_VendorNumber,REL_OrderItems,REL_OrderItemsOverlays"
+            data uri = "/odata/OrderItemsOverlays?$expand=REL_OrderItemKey,REL_ItemOrdered"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync(uri).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -94,167 +80,137 @@ namespace Services.Test.UnitTests
         endmethod
         
         ;;------------------------------------------------------------
-        ;;Get a single Item by primary key
+        ;;Get a single OrderItemsOverlay by primary key
 
         {TestMethod}
-        {TestCategory("Item Tests - Read by Primary Key")}
-        public method GetItem, void
+        {TestCategory("OrderItemsOverlay Tests - Read by Primary Key")}
+        public method GetOrderItemsOverlay, void
         proc
             data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/Items(ItemNumber={1})","",TestConstants.GetItem_ItemNumber)
+            data request = String.Format("/odata/OrderItemsOverlays(OrderItemKey={1})","",TestConstants.GetOrderItemsOverlay_OrderItemKey)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data item, @ODataItem, JsonConvert.DeserializeObject<ODataItem>(result)
+            data orderItemsOverlay, @ODataOrderItemsOverlay, JsonConvert.DeserializeObject<ODataOrderItemsOverlay>(result)
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get a single Item by primary key and expand relation REL_VendorNumber
+        ;;Get a single OrderItemsOverlay by primary key and expand relation REL_OrderItemKey
 
         {TestMethod}
-        {TestCategory("Item Tests - Read by Primary Key")}
-        public method GetItem_Expand_REL_VendorNumber, void
+        {TestCategory("OrderItemsOverlay Tests - Read by Primary Key")}
+        public method GetOrderItemsOverlay_Expand_REL_OrderItemKey, void
         proc
             data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/Items(ItemNumber={1})?$expand=REL_VendorNumber","",TestConstants.GetItem_Expand_REL_VendorNumber_ItemNumber)
+            data request = String.Format("/odata/OrderItemsOverlays(OrderItemKey={1})?$expand=REL_OrderItemKey","",TestConstants.GetOrderItemsOverlay_Expand_REL_OrderItemKey_OrderItemKey)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data item, @ODataItem, JsonConvert.DeserializeObject<ODataItem>(result)
+            data orderItemsOverlay, @ODataOrderItemsOverlay, JsonConvert.DeserializeObject<ODataOrderItemsOverlay>(result)
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get a single Item by primary key and expand relation REL_OrderItems
+        ;;Get a single OrderItemsOverlay by primary key and expand relation REL_ItemOrdered
 
         {TestMethod}
-        {TestCategory("Item Tests - Read by Primary Key")}
-        public method GetItem_Expand_REL_OrderItems, void
+        {TestCategory("OrderItemsOverlay Tests - Read by Primary Key")}
+        public method GetOrderItemsOverlay_Expand_REL_ItemOrdered, void
         proc
             data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/Items(ItemNumber={1})?$expand=REL_OrderItems","",TestConstants.GetItem_Expand_REL_OrderItems_ItemNumber)
+            data request = String.Format("/odata/OrderItemsOverlays(OrderItemKey={1})?$expand=REL_ItemOrdered","",TestConstants.GetOrderItemsOverlay_Expand_REL_ItemOrdered_OrderItemKey)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data item, @ODataItem, JsonConvert.DeserializeObject<ODataItem>(result)
+            data orderItemsOverlay, @ODataOrderItemsOverlay, JsonConvert.DeserializeObject<ODataOrderItemsOverlay>(result)
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get a single Item by primary key and expand relation REL_OrderItemsOverlays
+        ;;Get a single OrderItemsOverlay by primary key and expand all relations
 
         {TestMethod}
-        {TestCategory("Item Tests - Read by Primary Key")}
-        public method GetItem_Expand_REL_OrderItemsOverlays, void
+        {TestCategory("OrderItemsOverlay Tests - Read by Primary Key")}
+        public method GetOrderItemsOverlay_Expand_All, void
         proc
             data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/Items(ItemNumber={1})?$expand=REL_OrderItemsOverlays","",TestConstants.GetItem_Expand_REL_OrderItemsOverlays_ItemNumber)
+            data request = String.Format("/odata/OrderItemsOverlays(OrderItemKey={1})?$expand=REL_OrderItemKey,REL_ItemOrdered","",TestConstants.GetOrderItemsOverlay_Expand_All_OrderItemKey)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data item, @ODataItem, JsonConvert.DeserializeObject<ODataItem>(result)
+            data orderItemsOverlay, @ODataOrderItemsOverlay, JsonConvert.DeserializeObject<ODataOrderItemsOverlay>(result)
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get a single Item by primary key and expand all relations
+        ;;Get a single OrderItemsOverlay by alternate key 1 (ItemOrdered)
 
         {TestMethod}
-        {TestCategory("Item Tests - Read by Primary Key")}
-        public method GetItem_Expand_All, void
+        {TestCategory("OrderItemsOverlay Tests - Read by Alternate Key")}
+        public method GetOrderItemsOverlay_ByAltKey_ItemOrdered, void
         proc
             data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/Items(ItemNumber={1})?$expand=REL_VendorNumber,REL_OrderItems,REL_OrderItemsOverlays","",TestConstants.GetItem_Expand_All_ItemNumber)
+            data request = String.Format("/odata/OrderItemsOverlays(ItemOrdered={1})", "", TestConstants.GetOrderItemsOverlay_ByAltKey_ItemOrdered_ItemOrdered)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data item, @ODataItem, JsonConvert.DeserializeObject<ODataItem>(result)
+            data orderItemsOverlays, @ODataOrderItemsOverlays,JsonConvert.DeserializeObject<ODataOrderItemsOverlays>(result)
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get a single Item by alternate key 1 (VendorNumber)
+        ;;Get a single OrderItemsOverlay by alternate key 2 (DateShipped)
 
         {TestMethod}
-        {TestCategory("Item Tests - Read by Alternate Key")}
-        public method GetItem_ByAltKey_VendorNumber, void
+        {TestCategory("OrderItemsOverlay Tests - Read by Alternate Key")}
+        public method GetOrderItemsOverlay_ByAltKey_DateShipped, void
         proc
             data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/Items(VendorNumber={1})", "", TestConstants.GetItem_ByAltKey_VendorNumber_VendorNumber)
+            data request = String.Format("/odata/OrderItemsOverlays(DateShipped={1})", "", TestConstants.GetOrderItemsOverlay_ByAltKey_DateShipped_DateShipped.ToString("yyyy-MM-dd"))
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data items, @ODataItems,JsonConvert.DeserializeObject<ODataItems>(result)
+            data orderItemsOverlays, @ODataOrderItemsOverlays,JsonConvert.DeserializeObject<ODataOrderItemsOverlays>(result)
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get a single Item by alternate key 2 (Color)
+        ;;Get a single OrderItemsOverlay by alternate key 3 (InvoiceNumber)
 
         {TestMethod}
-        {TestCategory("Item Tests - Read by Alternate Key")}
-        public method GetItem_ByAltKey_Color, void
+        {TestCategory("OrderItemsOverlay Tests - Read by Alternate Key")}
+        public method GetOrderItemsOverlay_ByAltKey_InvoiceNumber, void
         proc
             data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/Items(FlowerColor='{1}')", "", TestConstants.GetItem_ByAltKey_Color_FlowerColor)
+            data request = String.Format("/odata/OrderItemsOverlays(InvoiceNumber={1})", "", TestConstants.GetOrderItemsOverlay_ByAltKey_InvoiceNumber_InvoiceNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data items, @ODataItems,JsonConvert.DeserializeObject<ODataItems>(result)
+            data orderItemsOverlays, @ODataOrderItemsOverlays,JsonConvert.DeserializeObject<ODataOrderItemsOverlays>(result)
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get a single Item by alternate key 3 (Size)
+        ;;Create new OrderItemsOverlay (client specified key)
 
         {TestMethod}
-        {TestCategory("Item Tests - Read by Alternate Key")}
-        public method GetItem_ByAltKey_Size, void
-        proc
-            data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/Items(Size={1})", "", TestConstants.GetItem_ByAltKey_Size_Size)
-            data response = client.GetAsync(request).Result
-            data result = response.Content.ReadAsStringAsync().Result
-            response.EnsureSuccessStatusCode()
-            data items, @ODataItems,JsonConvert.DeserializeObject<ODataItems>(result)
-        endmethod
-
-        ;;------------------------------------------------------------
-        ;;Get a single Item by alternate key 4 (Name)
-
-        {TestMethod}
-        {TestCategory("Item Tests - Read by Alternate Key")}
-        public method GetItem_ByAltKey_Name, void
-        proc
-            data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/Items(CommonName='{1}')", "", TestConstants.GetItem_ByAltKey_Name_CommonName)
-            data response = client.GetAsync(request).Result
-            data result = response.Content.ReadAsStringAsync().Result
-            response.EnsureSuccessStatusCode()
-            data items, @ODataItems,JsonConvert.DeserializeObject<ODataItems>(result)
-        endmethod
-
-        ;;------------------------------------------------------------
-        ;;Create new Item (client specified key)
-
-        {TestMethod}
-        {TestCategory("Item Tests - Create, Update & Delete")}
-        public method UpdateItem, void
+        {TestCategory("OrderItemsOverlay Tests - Create, Update & Delete")}
+        public method UpdateOrderItemsOverlay, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
 
-            ;;Get one item from the file
-            data getRequest = String.Format("/odata/Items(ItemNumber={1})","",TestConstants.GetItem_ItemNumber)
+            ;;Get one orderItemsOverlay from the file
+            data getRequest = String.Format("/odata/OrderItemsOverlays(OrderItemKey={1})","",TestConstants.GetOrderItemsOverlay_OrderItemKey)
             data getResponse = client.GetAsync(getRequest).Result
             data getResult = getResponse.Content.ReadAsStringAsync().Result
 
             ;;Check that we got a successful response from the web service
             getResponse.EnsureSuccessStatusCode()
 
-            ;;Deserialize the JSON into a Item object
-            data doItem, @Item, JsonConvert.DeserializeObject<Item>(getResult)
+            ;;Deserialize the JSON into a OrderItemsOverlay object
+            data doOrderItemsOverlay, @OrderItemsOverlay, JsonConvert.DeserializeObject<OrderItemsOverlay>(getResult)
 
-            doItem.ItemNumber = TestConstants.UpdateItem_ItemNumber
+            doOrderItemsOverlay.OrderItemKey = TestConstants.UpdateOrderItemsOverlay_OrderItemKey
 
             ;TODO: Also need to ensure any nodups alternate keys get unique values
 
             ;;Create new item
-            disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doItem),System.Text.Encoding.UTF8, "application/json")
-            data request = String.Format("/odata/Items(ItemNumber={1})","",TestConstants.UpdateItem_ItemNumber)
+            disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doOrderItemsOverlay),System.Text.Encoding.UTF8, "application/json")
+            data request = String.Format("/odata/OrderItemsOverlays(OrderItemKey={1})","",TestConstants.UpdateOrderItemsOverlay_OrderItemKey)
             disposable data response = client.PutAsync(request, requestBody).Result
 
             ;;Check that we got a successful response from the web service
@@ -267,15 +223,15 @@ namespace Services.Test.UnitTests
             ;;Check that we got a successful response from the web service
             getResponse.EnsureSuccessStatusCode()
 
-            ;;Deserialize the JSON into a Item object
-            doItem = JsonConvert.DeserializeObject<Item>(getResult)
+            ;;Deserialize the JSON into a OrderItemsOverlay object
+            doOrderItemsOverlay = JsonConvert.DeserializeObject<OrderItemsOverlay>(getResult)
 
             ;;Change the first non key field to test full update
-            doItem.LatinName = "Y"
+            doOrderItemsOverlay.OrderNumber = 8
 
             ;;Update full item
-            requestBody = new StringContent(JsonConvert.SerializeObject(doItem),System.Text.Encoding.UTF8, "application/json")
-            request = String.Format("/odata/Items(ItemNumber={1})","",TestConstants.UpdateItem_ItemNumber)
+            requestBody = new StringContent(JsonConvert.SerializeObject(doOrderItemsOverlay),System.Text.Encoding.UTF8, "application/json")
+            request = String.Format("/odata/OrderItemsOverlays(OrderItemKey={1})","",TestConstants.UpdateOrderItemsOverlay_OrderItemKey)
             response = client.PutAsync(request, requestBody).Result
 
             ;;Check that we got a successful response from the web service
@@ -288,14 +244,14 @@ namespace Services.Test.UnitTests
             ;;Check that we got a successful response from the web service
             getResponse.EnsureSuccessStatusCode()
 
-            ;;Deserialize the JSON into a Item object
-            doItem = JsonConvert.DeserializeObject<Item>(getResult)
+            ;;Deserialize the JSON into a OrderItemsOverlay object
+            doOrderItemsOverlay = JsonConvert.DeserializeObject<OrderItemsOverlay>(getResult)
 
-            Assert.AreEqual(doItem.LatinName, "Y")
+            Assert.AreEqual(doOrderItemsOverlay.OrderNumber, 8)
 
-            ;;Update one property in the item
+            ;;Update one property in the orderItemsOverlay
             data patchDoc = new JsonPatchDocument()
-            patchDoc.Replace("LatinName", "Z")
+            patchDoc.Replace("OrderNumber", "9")
 
             ;;Serialize the patch to JSON
             data serializedPatch = JsonConvert.SerializeObject(patchDoc)
@@ -307,18 +263,18 @@ namespace Services.Test.UnitTests
             ;;Check that we got a successful response from the web service
             patchResponse.EnsureSuccessStatusCode()
 
-            ;;Get the updated item record
+            ;;Get the updated orderItemsOverlay record
             getResponse = client.GetAsync(request).Result
             getResult = getResponse.Content.ReadAsStringAsync().Result
 
             ;;Check that we got a successful response from the web service
             getResponse.EnsureSuccessStatusCode()
 
-            ;;Deserialize the JSON into a Item object
-            doItem = JsonConvert.DeserializeObject<Item>(getResult)
+            ;;Deserialize the JSON into a OrderItemsOverlay object
+            doOrderItemsOverlay = JsonConvert.DeserializeObject<OrderItemsOverlay>(getResult)
 
             ;;Verify that the property was changed
-            Assert.AreEqual(doItem.LatinName, "Z")
+            Assert.AreEqual(doOrderItemsOverlay.OrderNumber, 9)
 
             ;;Delete It
             disposable data deleteResponse = client.DeleteAsync(request).Result

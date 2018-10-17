@@ -40,6 +40,8 @@ tags:
     description: Operations related to Order items
   - name: Vendor
     description: Operations related to Vendor record
+  - name: OrderItemsOverlay
+    description: Operations related to Order items with overlay key
 paths:
   /Customers:
     get:
@@ -4289,6 +4291,688 @@ paths:
             type: string
         '404':
           description: Not found (the specified vendor was not found)
+  /OrderItemsOverlays:
+    get:
+      summary: Get orderItemsOverlays
+      description: Get all or a filtered collection of orderItemsOverlays.
+      operationId: GetOrderItemsOverlays
+      deprecated: false
+      tags:
+        - OrderItemsOverlay
+      parameters:
+        - name: $expand
+          in: query
+          description: Expand one or more navigation properties.
+          type: string
+        - name: $select
+          in: query
+          description: List of properties to be returned.
+          type: string
+        - name: $filter
+          in: query
+          description: Filter expression to restrict returned rows.
+          type: string
+        - name: $orderby
+          in: query
+          description: Order by some property
+          type: string
+        - name: $top
+          in: query
+          description: Maximum number of rows to return.
+          type: integer
+        - name: $skip
+          in: query
+          description: Rows to skip before starting to return data.
+          type: integer
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/OrderItemsOverlay'
+    post:
+      summary: Create a orderItemsOverlay
+      description: Create a new orderItemsOverlay. When using a POST operation the primary key value will be assigned automatically. The primary key properties can be ommitted from the data in the request body, but if present will be ignored and replaced by automatically generated values.
+      operationId: PostOrderItemsOverlay
+      deprecated: false
+      tags:
+        - OrderItemsOverlay
+      parameters:
+        - name: aOrderItemsOverlay
+          in: body
+          description: Data for orderItemsOverlay to create.
+          required: true
+          schema:
+            $ref: '#/definitions/OrderItemsOverlayPost'
+      responses:
+        '201':
+          description: The orderItemsOverlay was created. The data for the new orderItemsOverlay will be included in the response body, including the auotmatically assigned primary key values, and the response will include a "Location" header indicating the URL that can be used to retrieve the newly created orderItemsOverlay.
+          schema:
+            $ref: '#/definitions/OrderItemsOverlay'
+        '400':
+          description: Bad request
+  /OrderItemsOverlays/$count:
+    get:
+      summary: Count orderItemsOverlays
+      description: Count all or a filtered collection of orderItemsOverlays.
+      operationId: CountOrderItemsOverlays
+      deprecated: false
+      tags:
+        - OrderItemsOverlay
+      parameters:
+        - name: $filter
+          in: query
+          description: Filter expression to restrict returned rows.
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: integer
+  '/OrderItemsOverlays(OrderItemKey={aOrderItemKey})':
+    get:
+      summary: Get orderItemsOverlay
+      description: Get a orderItemsOverlay via a complete primary key.
+      operationId: GetOrderItemsOverlay
+      deprecated: false
+      tags:
+        - OrderItemsOverlay
+      parameters:
+        - name: aOrderItemKey
+          in: path
+          description: Order number and item number
+          required: true
+          type: integer
+        - name: $expand
+          in: query
+          description: Expand one or more navigation properties.
+          type: string
+        - name: $select
+          in: query
+          description: List of properties to be returned.
+          type: string
+      responses:
+        '200':
+          description: OK (the requested orderItemsOverlay was found and returned)
+          schema:
+            $ref: '#/definitions/OrderItemsOverlay'
+        '404':
+          description: Not found (the requested orderItemsOverlay was not found)
+    delete:
+      summary: Delete orderItemsOverlay
+      description: Delete a orderItemsOverlay via a complete primary key.
+      operationId: DeleteOrderItemsOverlay
+      deprecated: false
+      tags:
+        - OrderItemsOverlay
+      parameters:
+        - name: aOrderItemKey
+          in: path
+          description: Order number and item number
+          required: true
+          type: integer
+      responses:
+        '204':
+          description: No content (the specified orderItemsOverlay was deleted)
+        '404':
+          description: Not found content (the specified orderItemsOverlay was not found)
+    put:
+      summary: Create or update orderItemsOverlay
+      description: Create or update a orderItemsOverlay via a complete primary key.
+      operationId: CreateOrUpdateOrderItemsOverlay
+      deprecated: false
+      tags:
+        - OrderItemsOverlay
+      parameters:
+        - name: aOrderItemKey
+          in: path
+          description: Order number and item number
+          required: true
+          type: integer
+        - name: aOrderItemsOverlay
+          in: body
+          description: Data for orderItemsOverlay to create or update.
+          required: true
+          schema:
+            $ref: '#/definitions/OrderItemsOverlay'
+      responses:
+        '201':
+          description: Created (the orderItemsOverlay was created)
+          schema:
+            $ref: '#/definitions/OrderItemsOverlay'
+        '204':
+          description: No Content (the orderItemsOverlay was updated)
+        '400':
+          description: Bad request
+    patch:
+      summary: Patch orderItemsOverlay
+      description: Patch a orderItemsOverlay via complete primary key.
+      operationId: PatchOrderItemsOverlay
+      deprecated: false
+      tags:
+        - OrderItemsOverlay
+      parameters:
+        - name: aOrderItemKey
+          in: path
+          description: Order number and item number
+          required: true
+          type: integer
+        - name: aPatchDocument
+          in: body
+          description: JSON patch document describing the changes to make to the orderItemsOverlay.
+          required: true
+          schema:
+            $ref: '#/definitions/PatchRequest'
+      responses:
+        '204':
+          description: No content (the specified orderItemsOverlay was patched)
+        '400':
+          description: Bad request
+        '404':
+          description: Not found (the specified orderItemsOverlay was not found)
+  '/OrderItemsOverlays(ItemOrdered={aItemOrdered})':
+    get:
+      summary: Get orderItemsOverlays
+      description: Get a orderItemsOverlays via complete alternate key ItemOrdered.
+      operationId: GetOrderItemsOverlaysByKeyItemOrdered
+      deprecated: false
+      tags:
+        - OrderItemsOverlay
+      parameters:
+        - name: aItemOrdered
+          in: path
+          description: Item ordered
+          required: true
+          type: integer
+        - name: $expand
+          in: query
+          description: Expand one or more navigation properties.
+          type: string
+        - name: $select
+          in: query
+          description: List of properties to be returned.
+          type: string
+        - name: $orderby
+          in: query
+          description: Order by some property
+          type: string
+        - name: $filter
+          in: query
+          description: Filter expression to restrict returned rows.
+          type: string
+        - name: $top
+          in: query
+          description: Maximum number of rows to return.
+          type: integer
+        - name: $skip
+          in: query
+          description: Rows to skip before starting to return data.
+          type: integer
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/OrderItemsOverlay'
+  '/OrderItemsOverlays(ItemOrdered={aItemOrdered})/$count':
+    get:
+      summary: Count orderItemsOverlays
+      description: Count orderItemsOverlays via complete alternate key ItemOrdered.
+      operationId: CountOrderItemsOverlaysByKeyItemOrdered
+      deprecated: false
+      tags:
+        - OrderItemsOverlay
+      parameters:
+        - name: aItemOrdered
+          in: path
+          description: Item ordered
+          required: true
+          type: integer
+        - name: $filter
+          in: query
+          description: Filter expression to restrict returned rows.
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: integer
+  '/OrderItemsOverlays(DateShipped={aDateShipped})':
+    get:
+      summary: Get orderItemsOverlays
+      description: Get a orderItemsOverlays via complete alternate key DateShipped.
+      operationId: GetOrderItemsOverlaysByKeyDateShipped
+      deprecated: false
+      tags:
+        - OrderItemsOverlay
+      parameters:
+        - name: aDateShipped
+          in: path
+          description: Date shipped
+          required: true
+          type: string
+          format: date-time
+        - name: $expand
+          in: query
+          description: Expand one or more navigation properties.
+          type: string
+        - name: $select
+          in: query
+          description: List of properties to be returned.
+          type: string
+        - name: $orderby
+          in: query
+          description: Order by some property
+          type: string
+        - name: $filter
+          in: query
+          description: Filter expression to restrict returned rows.
+          type: string
+        - name: $top
+          in: query
+          description: Maximum number of rows to return.
+          type: integer
+        - name: $skip
+          in: query
+          description: Rows to skip before starting to return data.
+          type: integer
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/OrderItemsOverlay'
+  '/OrderItemsOverlays(DateShipped={aDateShipped})/$count':
+    get:
+      summary: Count orderItemsOverlays
+      description: Count orderItemsOverlays via complete alternate key DateShipped.
+      operationId: CountOrderItemsOverlaysByKeyDateShipped
+      deprecated: false
+      tags:
+        - OrderItemsOverlay
+      parameters:
+        - name: aDateShipped
+          in: path
+          description: Date shipped
+          required: true
+          type: string
+          format: date-time
+        - name: $filter
+          in: query
+          description: Filter expression to restrict returned rows.
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: integer
+  '/OrderItemsOverlays(InvoiceNumber={aInvoiceNumber})':
+    get:
+      summary: Get orderItemsOverlays
+      description: Get a orderItemsOverlays via complete alternate key InvoiceNumber.
+      operationId: GetOrderItemsOverlaysByKeyInvoiceNumber
+      deprecated: false
+      tags:
+        - OrderItemsOverlay
+      parameters:
+        - name: aInvoiceNumber
+          in: path
+          description: Invoice number
+          required: true
+          type: integer
+        - name: $expand
+          in: query
+          description: Expand one or more navigation properties.
+          type: string
+        - name: $select
+          in: query
+          description: List of properties to be returned.
+          type: string
+        - name: $orderby
+          in: query
+          description: Order by some property
+          type: string
+        - name: $filter
+          in: query
+          description: Filter expression to restrict returned rows.
+          type: string
+        - name: $top
+          in: query
+          description: Maximum number of rows to return.
+          type: integer
+        - name: $skip
+          in: query
+          description: Rows to skip before starting to return data.
+          type: integer
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/OrderItemsOverlay'
+  '/OrderItemsOverlays(InvoiceNumber={aInvoiceNumber})/$count':
+    get:
+      summary: Count orderItemsOverlays
+      description: Count orderItemsOverlays via complete alternate key InvoiceNumber.
+      operationId: CountOrderItemsOverlaysByKeyInvoiceNumber
+      deprecated: false
+      tags:
+        - OrderItemsOverlay
+      parameters:
+        - name: aInvoiceNumber
+          in: path
+          description: Invoice number
+          required: true
+          type: integer
+        - name: $filter
+          in: query
+          description: Filter expression to restrict returned rows.
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: integer
+  '/OrderItemsOverlays({key})/OrderNumber':
+    get:
+      summary: Get orderItemsOverlay property OrderNumber
+      description: Get orderItemsOverlay property OrderNumber via complete primary key.
+      operationId: OrderItemsOverlayOrderNumber
+      deprecated: false
+      tags:
+        - OrderItemsOverlay
+      parameters:
+        - name: key
+          in: path
+          description: Order number and item number
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: OK (the selected orderItemsOverlay was founn and the requested property was returned)
+          schema:
+            type: integer
+        '404':
+          description: Not found (the specified orderItemsOverlay was not found)
+  '/OrderItemsOverlays({key})/OrderNumber/$value':
+    get:
+      summary: Get orderItemsOverlay property OrderNumber
+      description: Get orderItemsOverlay property OrderNumber via complete primary key, returning the raw value.
+      operationId: OrderItemsOverlayOrderNumbervalue
+      deprecated: false
+      tags:
+        - OrderItemsOverlay
+      parameters:
+        - name: key
+          in: path
+          description: Order number and item number
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: OK (the selected orderItemsOverlay was founn and the requested property was returned)
+          schema:
+            type: integer
+        '404':
+          description: Not found (the specified orderItemsOverlay was not found)
+  '/OrderItemsOverlays({key})/ItemNumber':
+    get:
+      summary: Get orderItemsOverlay property ItemNumber
+      description: Get orderItemsOverlay property ItemNumber via complete primary key.
+      operationId: OrderItemsOverlayItemNumber
+      deprecated: false
+      tags:
+        - OrderItemsOverlay
+      parameters:
+        - name: key
+          in: path
+          description: Order number and item number
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: OK (the selected orderItemsOverlay was founn and the requested property was returned)
+          schema:
+            type: integer
+        '404':
+          description: Not found (the specified orderItemsOverlay was not found)
+  '/OrderItemsOverlays({key})/ItemNumber/$value':
+    get:
+      summary: Get orderItemsOverlay property ItemNumber
+      description: Get orderItemsOverlay property ItemNumber via complete primary key, returning the raw value.
+      operationId: OrderItemsOverlayItemNumbervalue
+      deprecated: false
+      tags:
+        - OrderItemsOverlay
+      parameters:
+        - name: key
+          in: path
+          description: Order number and item number
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: OK (the selected orderItemsOverlay was founn and the requested property was returned)
+          schema:
+            type: integer
+        '404':
+          description: Not found (the specified orderItemsOverlay was not found)
+  '/OrderItemsOverlays({key})/ItemOrdered':
+    get:
+      summary: Get orderItemsOverlay property ItemOrdered
+      description: Get orderItemsOverlay property ItemOrdered via complete primary key.
+      operationId: OrderItemsOverlayItemOrdered
+      deprecated: false
+      tags:
+        - OrderItemsOverlay
+      parameters:
+        - name: key
+          in: path
+          description: Order number and item number
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: OK (the selected orderItemsOverlay was founn and the requested property was returned)
+          schema:
+            type: integer
+        '404':
+          description: Not found (the specified orderItemsOverlay was not found)
+  '/OrderItemsOverlays({key})/ItemOrdered/$value':
+    get:
+      summary: Get orderItemsOverlay property ItemOrdered
+      description: Get orderItemsOverlay property ItemOrdered via complete primary key, returning the raw value.
+      operationId: OrderItemsOverlayItemOrderedvalue
+      deprecated: false
+      tags:
+        - OrderItemsOverlay
+      parameters:
+        - name: key
+          in: path
+          description: Order number and item number
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: OK (the selected orderItemsOverlay was founn and the requested property was returned)
+          schema:
+            type: integer
+        '404':
+          description: Not found (the specified orderItemsOverlay was not found)
+  '/OrderItemsOverlays({key})/QuantityOrdered':
+    get:
+      summary: Get orderItemsOverlay property QuantityOrdered
+      description: Get orderItemsOverlay property QuantityOrdered via complete primary key.
+      operationId: OrderItemsOverlayQuantityOrdered
+      deprecated: false
+      tags:
+        - OrderItemsOverlay
+      parameters:
+        - name: key
+          in: path
+          description: Order number and item number
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: OK (the selected orderItemsOverlay was founn and the requested property was returned)
+          schema:
+            type: integer
+        '404':
+          description: Not found (the specified orderItemsOverlay was not found)
+  '/OrderItemsOverlays({key})/QuantityOrdered/$value':
+    get:
+      summary: Get orderItemsOverlay property QuantityOrdered
+      description: Get orderItemsOverlay property QuantityOrdered via complete primary key, returning the raw value.
+      operationId: OrderItemsOverlayQuantityOrderedvalue
+      deprecated: false
+      tags:
+        - OrderItemsOverlay
+      parameters:
+        - name: key
+          in: path
+          description: Order number and item number
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: OK (the selected orderItemsOverlay was founn and the requested property was returned)
+          schema:
+            type: integer
+        '404':
+          description: Not found (the specified orderItemsOverlay was not found)
+  '/OrderItemsOverlays({key})/UnitPrice':
+    get:
+      summary: Get orderItemsOverlay property UnitPrice
+      description: Get orderItemsOverlay property UnitPrice via complete primary key.
+      operationId: OrderItemsOverlayUnitPrice
+      deprecated: false
+      tags:
+        - OrderItemsOverlay
+      parameters:
+        - name: key
+          in: path
+          description: Order number and item number
+          required: true
+          type: number
+      responses:
+        '200':
+          description: OK (the selected orderItemsOverlay was founn and the requested property was returned)
+          schema:
+            type: number
+        '404':
+          description: Not found (the specified orderItemsOverlay was not found)
+  '/OrderItemsOverlays({key})/UnitPrice/$value':
+    get:
+      summary: Get orderItemsOverlay property UnitPrice
+      description: Get orderItemsOverlay property UnitPrice via complete primary key, returning the raw value.
+      operationId: OrderItemsOverlayUnitPricevalue
+      deprecated: false
+      tags:
+        - OrderItemsOverlay
+      parameters:
+        - name: key
+          in: path
+          description: Order number and item number
+          required: true
+          type: number
+      responses:
+        '200':
+          description: OK (the selected orderItemsOverlay was founn and the requested property was returned)
+          schema:
+            type: number
+        '404':
+          description: Not found (the specified orderItemsOverlay was not found)
+  '/OrderItemsOverlays({key})/DateShipped':
+    get:
+      summary: Get orderItemsOverlay property DateShipped
+      description: Get orderItemsOverlay property DateShipped via complete primary key.
+      operationId: OrderItemsOverlayDateShipped
+      deprecated: false
+      tags:
+        - OrderItemsOverlay
+      parameters:
+        - name: key
+          in: path
+          description: Order number and item number
+          required: true
+          type: string
+          format: date-time
+      responses:
+        '200':
+          description: OK (the selected orderItemsOverlay was founn and the requested property was returned)
+          schema:
+            type: string
+        '404':
+          description: Not found (the specified orderItemsOverlay was not found)
+  '/OrderItemsOverlays({key})/DateShipped/$value':
+    get:
+      summary: Get orderItemsOverlay property DateShipped
+      description: Get orderItemsOverlay property DateShipped via complete primary key, returning the raw value.
+      operationId: OrderItemsOverlayDateShippedvalue
+      deprecated: false
+      tags:
+        - OrderItemsOverlay
+      parameters:
+        - name: key
+          in: path
+          description: Order number and item number
+          required: true
+          type: string
+          format: date-time
+      responses:
+        '200':
+          description: OK (the selected orderItemsOverlay was founn and the requested property was returned)
+          schema:
+            type: string
+        '404':
+          description: Not found (the specified orderItemsOverlay was not found)
+  '/OrderItemsOverlays({key})/InvoiceNumber':
+    get:
+      summary: Get orderItemsOverlay property InvoiceNumber
+      description: Get orderItemsOverlay property InvoiceNumber via complete primary key.
+      operationId: OrderItemsOverlayInvoiceNumber
+      deprecated: false
+      tags:
+        - OrderItemsOverlay
+      parameters:
+        - name: key
+          in: path
+          description: Order number and item number
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: OK (the selected orderItemsOverlay was founn and the requested property was returned)
+          schema:
+            type: integer
+        '404':
+          description: Not found (the specified orderItemsOverlay was not found)
+  '/OrderItemsOverlays({key})/InvoiceNumber/$value':
+    get:
+      summary: Get orderItemsOverlay property InvoiceNumber
+      description: Get orderItemsOverlay property InvoiceNumber via complete primary key, returning the raw value.
+      operationId: OrderItemsOverlayInvoiceNumbervalue
+      deprecated: false
+      tags:
+        - OrderItemsOverlay
+      parameters:
+        - name: key
+          in: path
+          description: Order number and item number
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: OK (the selected orderItemsOverlay was founn and the requested property was returned)
+          schema:
+            type: integer
+        '404':
+          description: Not found (the specified orderItemsOverlay was not found)
 definitions:
   Customer:
     required:
@@ -4930,6 +5614,93 @@ definitions:
       Phone: (555) 627-2663
       Fax: (555) 627-6382
       PaymentTermsCode: "60"
+  OrderItemsOverlay:
+    required:
+      - OrderItemKey
+    properties:
+      OrderNumber:
+        type: integer
+        example: 5238
+        description: Order number
+      ItemNumber:
+        type: integer
+        example: 1
+        description: Line item number
+      OrderItemKey:
+        type: integer
+        example: 523801
+        description: Order number and item number
+      ItemOrdered:
+        type: integer
+        example: 21
+        description: Item ordered
+      QuantityOrdered:
+        type: integer
+        example: 3
+        description: Quantity ordered
+      UnitPrice:
+        type: number
+        format: float
+        example: 15.99
+        description: Unit price
+      DateShipped:
+        type: string
+        format: date-time
+        example: 2018-03-17T00:00:00-08:00
+        description: Date shipped
+      InvoiceNumber:
+        type: integer
+        example: 166825
+        description: Invoice number
+    example:
+      OrderNumber: 5238
+      ItemNumber: 1
+      OrderItemKey: 523801
+      ItemOrdered: 21
+      QuantityOrdered: 3
+      UnitPrice: 15.99
+      DateShipped: 2018-03-17T00:00:00-08:00
+      InvoiceNumber: 166825
+  OrderItemsOverlayPost:
+    properties:
+      OrderNumber:
+        type: integer
+        example: 5238
+        description: Order number
+      ItemNumber:
+        type: integer
+        example: 1
+        description: Line item number
+      ItemOrdered:
+        type: integer
+        example: 21
+        description: Item ordered
+      QuantityOrdered:
+        type: integer
+        example: 3
+        description: Quantity ordered
+      UnitPrice:
+        type: number
+        format: float
+        example: 15.99
+        description: Unit price
+      DateShipped:
+        type: string
+        format: date-time
+        example: 2018-03-17T00:00:00-08:00
+        description: Date shipped
+      InvoiceNumber:
+        type: integer
+        example: 166825
+        description: Invoice number
+    example:
+      OrderNumber: 5238
+      ItemNumber: 1
+      ItemOrdered: 21
+      QuantityOrdered: 3
+      UnitPrice: 15.99
+      DateShipped: 2018-03-17T00:00:00-08:00
+      InvoiceNumber: 166825
   PatchRequest:
     type: array
     items:
