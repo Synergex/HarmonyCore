@@ -91,6 +91,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 			record
 				arguments,			@JsonArray
 				argumentDefinition, @ArgumentDataDefinition
+
 <COUNTER_1_RESET>
 <PARAMETER_LOOP>
 	<COUNTER_1_INCREMENT>
@@ -250,13 +251,15 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 
 			;;------------------------------------------------------------
 			;;Build the JSON response
+			serializer.MapOpen()
+			serializer.Pair("jsonrpc", "2.0")
 
-			serializer.MapOpen()
-			serializer.String("IsError")
-			serializer.Bool(false)
-			serializer.String("Result")
-			serializer.MapOpen()
-			serializer.String("ReturnParameters")
+			if(requestId > -1) then
+				serializer.Pair("id", requestId)
+			else
+				serializer.PairNull("id")
+
+			serializer.String("result")
 			serializer.ArrayOpen()
 <IF FUNCTION>
 
@@ -287,23 +290,21 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 			;;Argument <COUNTER_1_VALUE> (<PARAMETER_REQUIRED> <PARAMETER_DIRECTION> <PARAMETER_NAME> <IF COLLECTION_ARRAY>[*]</IF COLLECTION_ARRAY><IF COLLECTION_HANDLE>memory handle collection of </IF COLLECTION_HANDLE><IF COLLECTION_ARRAYLIST>ArrayList collection of </IF COLLECTION_ARRAYLIST><IF STRUCTURE>structure </IF STRUCTURE><IF ENUM>enum </IF ENUM><IF STRUCTURE>@<ParameterStructureNoplural><ELSE><PARAMETER_DEFINITION></IF STRUCTURE><IF DATE> <PARAMETER_DATE_FORMAT> date</IF DATE><IF TIME> <PARAMETER_DATE_FORMAT> time</IF TIME><IF REFERENCE> passed by REFERENCE</IF REFERENCE><IF VALUE> passed by VALUE</IF VALUE><IF DATATABLE> returned as DataTable</IF DATATABLE>)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(<COUNTER_1_VALUE>)
+			serializer.Pair("Position", <COUNTER_1_VALUE>)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
+			
 ;//
 	<IF ALPHA>
 		<IF COLLECTION>
-			serializer.Integer(FieldDataType.AlphaArrayField)
+			serializer.Pair("DataType", (i)FieldDataType.AlphaArrayField)
 			serializer.String("PassedValue")
 			serializer.ArrayOpen()
 
 			serializer.ArrayClose()
 		<ELSE>
-			serializer.Integer(FieldDataType.AlphaField)
-			serializer.String("PassedValue")
-			serializer.String(%atrim(arg<COUNTER_1_VALUE>))
+			serializer.Pair("DataType", (i)FieldDataType.AlphaField)
+			serializer.Pair("PassedValue", %atrim(arg<COUNTER_1_VALUE>))
 		</IF COLLECTION>
 	</IF ALPHA>
 ;//
@@ -311,9 +312,8 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 		<IF COLLECTION>
 			;TODO: Need to add support for collection of decimal
 		<ELSE>
-			serializer.Integer(FieldDataType.DecimalField)
-			serializer.String("PassedValue")
-			serializer.Integer(arg<COUNTER_1_VALUE>)
+			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
+			serializer.Pair("PassedValue", arg<COUNTER_1_VALUE>)
 		</IF COLLECTION>
 	</IF DECIMAL>
 ;//
@@ -321,9 +321,8 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 		<IF COLLECTION>
 			;TODO: Need to add support for collection of implied decimal
 		<ELSE>
-			serializer.Integer(FieldDataType.ImpliedDecimal)
-			serializer.String("PassedValue")
-			serializer.Double(arg<COUNTER_1_VALUE>)
+			serializer.Pair("DataType", (i)FieldDataType.ImpliedDecimal)
+			serializer.Pair("PassedValue", arg<COUNTER_1_VALUE>)
 		</IF COLLECTION>
 	</IF IMPLIED>
 ;//
@@ -331,17 +330,15 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 		<IF COLLECTION>
 			;TODO: Need to add support for collection of integer
 		<ELSE>
-			serializer.Integer(FieldDataType.IntegerField)
-			serializer.String("PassedValue")
-			serializer.Integer(arg<COUNTER_1_VALUE>)
+			serializer.Pair("DataType", (i)FieldDataType.IntegerField)
+			serializer.Pair("PassedValue", arg<COUNTER_1_VALUE>)
 		</IF COLLECTION>
 	</IF INTEGER>
 ;//
 	<IF ENUM>
 			;TODO: Do we need custom processing for enum fields beyond the integer value?
-			serializer.Integer(FieldDataType.IntegerField)
-			serializer.String("PassedValue")
-			serializer.Integer(arg<COUNTER_1_VALUE>)
+			serializer.Pair("DataType", (i)FieldDataType.IntegerField)
+			serializer.Pair("PassedValue", arg<COUNTER_1_VALUE>)
 	</IF ENUM>
 ;//
 	<IF DATE>
@@ -349,9 +346,8 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 			;TODO: Need to add support for collection of date
 		<ELSE>
 			;TODO: Do we need custom processing for date fields beyond the decimal value?
-			serializer.Integer(FieldDataType.DecimalField)
-			serializer.String("PassedValue")
-			serializer.Integer(arg<COUNTER_1_VALUE>)
+			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
+			serializer.Pair("PassedValue", arg<COUNTER_1_VALUE>)
 		</IF COLLECTION>
 	</IF DATE>
 ;//
@@ -360,26 +356,25 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 			;TODO: Need to add support for collection of time
 		<ELSE>
 			;TODO: Do we need custom processing for time fields beyond the decimal value?
-			serializer.Integer(FieldDataType.DecimalField)
-			serializer.String("PassedValue")
-			serializer.Integer(arg<COUNTER_1_VALUE>)
+			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
+			serializer.Pair("PassedValue", arg<COUNTER_1_VALUE>)
 		</IF COLLECTION>
 	</IF TIME>
 ;//
 	<IF HANDLE>
-			serializer.Integer(FieldDataType.HandleField)
+			serializer.Pair("DataType", (i)FieldDataType.HandleField)
 			serializer.String("PassedValue")
 			;TODO: Handle support is incomplete and will FAIL!!!
 	</IF HANDLE>
 ;//
 	<IF BINARY_HANDLE>
-			serializer.Integer(FieldDataType.BinaryHandleField)
+			serializer.Pair("DataType", (i)FieldDataType.BinaryHandleField)
 			serializer.String("PassedValue")
 			;TODO: Binary Handle support is incomplete and will FAIL!!!
 	</IF BINARY_HANDLE>
 ;//
 	<IF STRING>
-			serializer.Integer(FieldDataType.StringField)
+			serializer.Pair("DataType", (i)FieldDataType.StringField)
 			serializer.String("PassedValue")
 		<IF COLLECTION>
 			;TODO: Need to add support for collection of string
@@ -395,7 +390,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 ;//
 ;//Structure collection processing
 ;//
-			serializer.Integer(FieldDataType.DataObjectCollectionField)
+			serializer.Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
 			serializer.String("PassedValue")
 			serializer.ArrayOpen()
 ;//
@@ -417,7 +412,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 			begin
 				data this<ParameterStructureNoplural>, @str<ParameterStructureNoplural>
 				foreach this<ParameterStructureNoplural> in arg<COUNTER_1_VALUE>
-					new <ParameterStructureNoplural>((str<ParameterStructureNoplural>)this<ParameterStructureNoplural>).Serialize(serializer)
+					DataObjectBase.Serialize(serializer, this<ParameterStructureNoplural>, "<STRUCTURE_NOALIAS>", "", false)
 			end
 		</IF COLLECTION_ARRAYLIST>
 ;//
@@ -429,7 +424,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 ;//Single structure processing
 ;//
 			;;Argument <COUNTER_1_VALUE>: Single <ParameterStructureNoplural> record
-			serializer.Integer(FieldDataType.DataObjectField)
+			serializer.Pair("DataType", (i)FieldDataType.DataObjectField)
 			serializer.String("PassedValue")
 			;TODO: Support for single structure is incomplete
 		</IF COLLECTION>

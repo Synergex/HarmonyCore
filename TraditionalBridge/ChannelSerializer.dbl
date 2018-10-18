@@ -347,6 +347,122 @@ namespace Json
 			mreturn SerializerStatus.Ok
 		endmethod
 
+		public method Pair, SerializerStatus
+			req in key, @string
+			req in value, @string
+			record
+				inArray, boolean
+				input, @string
+		proc
+			if(!expectingName)
+				throw new InvalidOperationException("received name + value pair when name was unexpected")
+
+			input = ""
+			inArray = STACK_STATE_ARRAY
+			if(!first && inArray)
+				input += ","
+			
+			first = false
+
+			input += '"' + key + '":"' + value + '"'
+
+			AppendOutput(input)
+
+			mreturn SerializerStatus.Ok
+		endmethod
+
+		public method Pair, SerializerStatus
+			req in key, @string
+			req in value, boolean
+			record
+				inArray, boolean
+				input, @string
+		proc
+			if(!expectingName)
+				throw new InvalidOperationException("received name + value pair when name was unexpected")
+
+			input = ""
+			inArray = STACK_STATE_ARRAY
+			if(!first && inArray)
+				input += ","
+			
+			first = false
+
+			input += '"' + key + '":'
+
+			if(value) then
+				input += "true"
+			else
+				input += "false"
+
+			AppendOutput(input)
+
+			mreturn SerializerStatus.Ok
+		endmethod
+
+		public method Pair, SerializerStatus
+			req in key, @string
+			req in value, n.
+			record
+				inArray, boolean
+				input, @string
+		proc
+			if(!expectingName)
+				throw new InvalidOperationException("received name + value pair when name was unexpected")
+
+			input = ""
+			inArray = STACK_STATE_ARRAY
+			if(!first && inArray)
+				input += ","
+			
+			first = false
+
+			input += '"' + key + '":' + %string(value)
+
+			AppendOutput(input)
+
+			mreturn SerializerStatus.Ok
+		endmethod
+
+		public method PairNull, SerializerStatus
+			req in key, @string
+			record
+				inArray, boolean
+				input, @string
+		proc
+			if(!expectingName)
+				throw new InvalidOperationException("received name + value pair when name was unexpected")
+
+			input = ""
+			inArray = STACK_STATE_ARRAY
+			if(!first && inArray)
+				input += ","
+			
+			first = false
+
+			input += '"' + key + '":null'
+
+			AppendOutput(input)
+
+			mreturn SerializerStatus.Ok
+		endmethod
+
+		public method OutputScopeOpen, void
+		proc
+
+		endmethod
+
+		;;abort the current output scope, rolling back any output in the buffer back to the last OutputScopeOpen call
+		public method OutputScopeAbort, void
+		proc
+		
+		endmethod
+
+
+		public method OutputScopeClose, void
+		proc
+		endmethod
+
 .endregion
 
 .region "Other public members"

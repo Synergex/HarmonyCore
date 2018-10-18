@@ -257,21 +257,27 @@ namespace Harmony.TraditionalBridge
 			serializer, @Json.ChannelSerializer
 			;;TODO maybe add serializer options here?
 		proc
+			DataObjectBase.Serialize(serializer, SynergyRecord, Metadata.RPSStructureName, mGlobalRFA, Metadata.RPSStructureHasBinaryData)
+		endmethod
+
+		public static method Serialize, void
+			serializer, @Json.ChannelSerializer
+			dataValue, a
+			dataType, a
+			grfa, a
+			dataNeedsEncoding, boolean
+		proc
 			serializer.MapOpen()
-			serializer.String("Type")
-			serializer.String(Metadata.RPSStructureName)
-			if(!Metadata.RPSStructureHasBinaryData) then
+			serializer.Pair("Type", dataType)
+			if(!dataNeedsEncoding) then
 			begin
-				serializer.String("Value")
-				serializer.String(SynergyRecord)
+				serializer.Pair("Value", dataValue)
 			end
 			else
 			begin
-				serializer.String("Base64Value")
-				serializer.String(Convert.ToBase64String(SynergyRecord))
+				serializer.Pair("Base64Value", Convert.ToBase64String(dataValue))
 			end
-			serializer.String("GRFA")
-			serializer.String(mGlobalRFA)
+			serializer.Pair("GRFA", grfa)
 			serializer.MapClose()
 		endmethod
 
