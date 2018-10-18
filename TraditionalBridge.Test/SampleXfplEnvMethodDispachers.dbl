@@ -43,6 +43,7 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			record
 				arguments,			@JsonArray
 				argumentDefinition, @ArgumentDataDefinition
+
 				;;Argument 1 (REQUIRED OUT Customers ArrayList collection of structure @Customer)
 				arg1,				@ArrayList
 				;;Argument 2 (REQUIRED OUT ErrorMessage A80)
@@ -63,13 +64,15 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 
 			;;------------------------------------------------------------
 			;;Build the JSON response
+			serializer.MapOpen()
+			serializer.Pair("jsonrpc", "2.0")
 
-			serializer.MapOpen()
-			serializer.String("IsError")
-			serializer.Bool(false)
-			serializer.String("Result")
-			serializer.MapOpen()
-			serializer.String("ReturnParameters")
+			if(requestId > -1) then
+				serializer.Pair("id", requestId)
+			else
+				serializer.PairNull("id")
+
+			serializer.String("result")
 			serializer.ArrayOpen()
 
 			;;Function return value
@@ -91,18 +94,17 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 1 (REQUIRED OUT Customers ArrayList collection of structure @Customer)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(1)
+			serializer.Pair("Position", 1)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.DataObjectCollectionField)
+			
+			serializer.Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
 			serializer.String("PassedValue")
 			serializer.ArrayOpen()
 			begin
 				data thisCustomer, @strCustomer
 				foreach thisCustomer in arg1
-					new Customer((strCustomer)thisCustomer).Serialize(serializer)
+					DataObjectBase.Serialize(serializer, thisCustomer, "CUSTOMERS", "", false)
 			end
 			serializer.ArrayClose()
 			serializer.MapClose()
@@ -112,14 +114,12 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 2 (REQUIRED OUT ErrorMessage A80)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(2)
+			serializer.Pair("Position", 2)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.AlphaField)
-			serializer.String("PassedValue")
-			serializer.String(%atrim(arg2))
+			
+			serializer.Pair("DataType", (i)FieldDataType.AlphaField)
+			serializer.Pair("PassedValue", %atrim(arg2))
 			serializer.MapClose()
 			serializer.MapClose()
 
@@ -161,6 +161,7 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			record
 				arguments,			@JsonArray
 				argumentDefinition, @ArgumentDataDefinition
+
 				;;Argument 1 (REQUIRED OUT Customers [*]A162)
 				arg1Handle,			D_HANDLE
 				arg1HandlePos,		int
@@ -182,13 +183,15 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 
 			;;------------------------------------------------------------
 			;;Build the JSON response
+			serializer.MapOpen()
+			serializer.Pair("jsonrpc", "2.0")
 
-			serializer.MapOpen()
-			serializer.String("IsError")
-			serializer.Bool(false)
-			serializer.String("Result")
-			serializer.MapOpen()
-			serializer.String("ReturnParameters")
+			if(requestId > -1) then
+				serializer.Pair("id", requestId)
+			else
+				serializer.PairNull("id")
+
+			serializer.String("result")
 			serializer.ArrayOpen()
 
 			;;Function return value
@@ -210,12 +213,11 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 1 (REQUIRED OUT Customers [*]A162)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(1)
+			serializer.Pair("Position", 1)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.AlphaArrayField)
+			
+			serializer.Pair("DataType", (i)FieldDataType.AlphaArrayField)
 			serializer.String("PassedValue")
 			serializer.ArrayOpen()
 
@@ -227,14 +229,12 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 2 (REQUIRED OUT ErrorMessage A80)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(2)
+			serializer.Pair("Position", 2)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.AlphaField)
-			serializer.String("PassedValue")
-			serializer.String(%atrim(arg2))
+			
+			serializer.Pair("DataType", (i)FieldDataType.AlphaField)
+			serializer.Pair("PassedValue", %atrim(arg2))
 			serializer.MapClose()
 			serializer.MapClose()
 
@@ -278,6 +278,7 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			record
 				arguments,			@JsonArray
 				argumentDefinition, @ArgumentDataDefinition
+
 				;;Argument 1 (REQUIRED OUT Items ArrayList collection of structure @Item)
 				arg1,				@ArrayList
 				;;Argument 2 (REQUIRED OUT ErrorMessage A80)
@@ -298,13 +299,15 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 
 			;;------------------------------------------------------------
 			;;Build the JSON response
+			serializer.MapOpen()
+			serializer.Pair("jsonrpc", "2.0")
 
-			serializer.MapOpen()
-			serializer.String("IsError")
-			serializer.Bool(false)
-			serializer.String("Result")
-			serializer.MapOpen()
-			serializer.String("ReturnParameters")
+			if(requestId > -1) then
+				serializer.Pair("id", requestId)
+			else
+				serializer.PairNull("id")
+
+			serializer.String("result")
 			serializer.ArrayOpen()
 
 			;;Function return value
@@ -326,18 +329,17 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 1 (REQUIRED OUT Items ArrayList collection of structure @Item)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(1)
+			serializer.Pair("Position", 1)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.DataObjectCollectionField)
+			
+			serializer.Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
 			serializer.String("PassedValue")
 			serializer.ArrayOpen()
 			begin
 				data thisItem, @strItem
 				foreach thisItem in arg1
-					new Item((strItem)thisItem).Serialize(serializer)
+					DataObjectBase.Serialize(serializer, thisItem, "ITEMS", "", false)
 			end
 			serializer.ArrayClose()
 			serializer.MapClose()
@@ -347,14 +349,12 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 2 (REQUIRED OUT ErrorMessage A80)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(2)
+			serializer.Pair("Position", 2)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.AlphaField)
-			serializer.String("PassedValue")
-			serializer.String(%atrim(arg2))
+			
+			serializer.Pair("DataType", (i)FieldDataType.AlphaField)
+			serializer.Pair("PassedValue", %atrim(arg2))
 			serializer.MapClose()
 			serializer.MapClose()
 
@@ -398,6 +398,7 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			record
 				arguments,			@JsonArray
 				argumentDefinition, @ArgumentDataDefinition
+
 				;;Argument 1 (REQUIRED OUT Orders ArrayList collection of structure @Order)
 				arg1,				@ArrayList
 				;;Argument 2 (REQUIRED OUT ErrorMessage A80)
@@ -418,13 +419,15 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 
 			;;------------------------------------------------------------
 			;;Build the JSON response
+			serializer.MapOpen()
+			serializer.Pair("jsonrpc", "2.0")
 
-			serializer.MapOpen()
-			serializer.String("IsError")
-			serializer.Bool(false)
-			serializer.String("Result")
-			serializer.MapOpen()
-			serializer.String("ReturnParameters")
+			if(requestId > -1) then
+				serializer.Pair("id", requestId)
+			else
+				serializer.PairNull("id")
+
+			serializer.String("result")
 			serializer.ArrayOpen()
 
 			;;Function return value
@@ -446,18 +449,17 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 1 (REQUIRED OUT Orders ArrayList collection of structure @Order)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(1)
+			serializer.Pair("Position", 1)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.DataObjectCollectionField)
+			
+			serializer.Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
 			serializer.String("PassedValue")
 			serializer.ArrayOpen()
 			begin
 				data thisOrder, @strOrder
 				foreach thisOrder in arg1
-					new Order((strOrder)thisOrder).Serialize(serializer)
+					DataObjectBase.Serialize(serializer, thisOrder, "ORDERS", "", false)
 			end
 			serializer.ArrayClose()
 			serializer.MapClose()
@@ -467,14 +469,12 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 2 (REQUIRED OUT ErrorMessage A80)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(2)
+			serializer.Pair("Position", 2)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.AlphaField)
-			serializer.String("PassedValue")
-			serializer.String(%atrim(arg2))
+			
+			serializer.Pair("DataType", (i)FieldDataType.AlphaField)
+			serializer.Pair("PassedValue", %atrim(arg2))
 			serializer.MapClose()
 			serializer.MapClose()
 
@@ -518,6 +518,7 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			record
 				arguments,			@JsonArray
 				argumentDefinition, @ArgumentDataDefinition
+
 				;;Argument 1 (REQUIRED OUT Vendors ArrayList collection of structure @Vendor)
 				arg1,				@ArrayList
 				;;Argument 2 (REQUIRED OUT ErrorMessage A80)
@@ -538,13 +539,15 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 
 			;;------------------------------------------------------------
 			;;Build the JSON response
+			serializer.MapOpen()
+			serializer.Pair("jsonrpc", "2.0")
 
-			serializer.MapOpen()
-			serializer.String("IsError")
-			serializer.Bool(false)
-			serializer.String("Result")
-			serializer.MapOpen()
-			serializer.String("ReturnParameters")
+			if(requestId > -1) then
+				serializer.Pair("id", requestId)
+			else
+				serializer.PairNull("id")
+
+			serializer.String("result")
 			serializer.ArrayOpen()
 
 			;;Function return value
@@ -566,18 +569,17 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 1 (REQUIRED OUT Vendors ArrayList collection of structure @Vendor)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(1)
+			serializer.Pair("Position", 1)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.DataObjectCollectionField)
+			
+			serializer.Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
 			serializer.String("PassedValue")
 			serializer.ArrayOpen()
 			begin
 				data thisVendor, @strVendor
 				foreach thisVendor in arg1
-					new Vendor((strVendor)thisVendor).Serialize(serializer)
+					DataObjectBase.Serialize(serializer, thisVendor, "VENDORS", "", false)
 			end
 			serializer.ArrayClose()
 			serializer.MapClose()
@@ -587,14 +589,12 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 2 (REQUIRED OUT ErrorMessage A80)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(2)
+			serializer.Pair("Position", 2)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.AlphaField)
-			serializer.String("PassedValue")
-			serializer.String(%atrim(arg2))
+			
+			serializer.Pair("DataType", (i)FieldDataType.AlphaField)
+			serializer.Pair("PassedValue", %atrim(arg2))
 			serializer.MapClose()
 			serializer.MapClose()
 
@@ -638,6 +638,7 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			record
 				arguments,			@JsonArray
 				argumentDefinition, @ArgumentDataDefinition
+
 				;;Argument 1 (REQUIRED IN p1 A1)
 				arg1,				a1
 				;;Argument 2 (REQUIRED OUT p2 A1)
@@ -904,27 +905,27 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 
 			;;------------------------------------------------------------
 			;;Build the JSON response
+			serializer.MapOpen()
+			serializer.Pair("jsonrpc", "2.0")
 
-			serializer.MapOpen()
-			serializer.String("IsError")
-			serializer.Bool(false)
-			serializer.String("Result")
-			serializer.MapOpen()
-			serializer.String("ReturnParameters")
+			if(requestId > -1) then
+				serializer.Pair("id", requestId)
+			else
+				serializer.PairNull("id")
+
+			serializer.String("result")
 			serializer.ArrayOpen()
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 2 (REQUIRED OUT p2 A1)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(2)
+			serializer.Pair("Position", 2)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.AlphaField)
-			serializer.String("PassedValue")
-			serializer.String(%atrim(arg2))
+			
+			serializer.Pair("DataType", (i)FieldDataType.AlphaField)
+			serializer.Pair("PassedValue", %atrim(arg2))
 			serializer.MapClose()
 			serializer.MapClose()
 
@@ -932,14 +933,12 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 3 (REQUIRED INOUT p3 A1)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(3)
+			serializer.Pair("Position", 3)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.AlphaField)
-			serializer.String("PassedValue")
-			serializer.String(%atrim(arg3))
+			
+			serializer.Pair("DataType", (i)FieldDataType.AlphaField)
+			serializer.Pair("PassedValue", %atrim(arg3))
 			serializer.MapClose()
 			serializer.MapClose()
 
@@ -947,14 +946,12 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 5 (REQUIRED OUT p5 D6)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(5)
+			serializer.Pair("Position", 5)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.DecimalField)
-			serializer.String("PassedValue")
-			serializer.Integer(arg5)
+			
+			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
+			serializer.Pair("PassedValue", arg5)
 			serializer.MapClose()
 			serializer.MapClose()
 
@@ -962,14 +959,12 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 6 (REQUIRED INOUT p6 D6)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(6)
+			serializer.Pair("Position", 6)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.DecimalField)
-			serializer.String("PassedValue")
-			serializer.Integer(arg6)
+			
+			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
+			serializer.Pair("PassedValue", arg6)
 			serializer.MapClose()
 			serializer.MapClose()
 
@@ -977,14 +972,12 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 8 (REQUIRED OUT p8 D12)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(8)
+			serializer.Pair("Position", 8)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.DecimalField)
-			serializer.String("PassedValue")
-			serializer.Integer(arg8)
+			
+			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
+			serializer.Pair("PassedValue", arg8)
 			serializer.MapClose()
 			serializer.MapClose()
 
@@ -992,14 +985,12 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 9 (REQUIRED INOUT p9 D12)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(9)
+			serializer.Pair("Position", 9)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.DecimalField)
-			serializer.String("PassedValue")
-			serializer.Integer(arg9)
+			
+			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
+			serializer.Pair("PassedValue", arg9)
 			serializer.MapClose()
 			serializer.MapClose()
 
@@ -1007,14 +998,12 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 11 (REQUIRED OUT p11 D6.2)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(11)
+			serializer.Pair("Position", 11)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.ImpliedDecimal)
-			serializer.String("PassedValue")
-			serializer.Double(arg11)
+			
+			serializer.Pair("DataType", (i)FieldDataType.ImpliedDecimal)
+			serializer.Pair("PassedValue", arg11)
 			serializer.MapClose()
 			serializer.MapClose()
 
@@ -1022,14 +1011,12 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 12 (REQUIRED INOUT p12 D6.2)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(12)
+			serializer.Pair("Position", 12)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.ImpliedDecimal)
-			serializer.String("PassedValue")
-			serializer.Double(arg12)
+			
+			serializer.Pair("DataType", (i)FieldDataType.ImpliedDecimal)
+			serializer.Pair("PassedValue", arg12)
 			serializer.MapClose()
 			serializer.MapClose()
 
@@ -1037,14 +1024,12 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 14 (REQUIRED OUT p14 I1)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(14)
+			serializer.Pair("Position", 14)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.IntegerField)
-			serializer.String("PassedValue")
-			serializer.Integer(arg14)
+			
+			serializer.Pair("DataType", (i)FieldDataType.IntegerField)
+			serializer.Pair("PassedValue", arg14)
 			serializer.MapClose()
 			serializer.MapClose()
 
@@ -1052,14 +1037,12 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 15 (REQUIRED INOUT p15 I1)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(15)
+			serializer.Pair("Position", 15)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.IntegerField)
-			serializer.String("PassedValue")
-			serializer.Integer(arg15)
+			
+			serializer.Pair("DataType", (i)FieldDataType.IntegerField)
+			serializer.Pair("PassedValue", arg15)
 			serializer.MapClose()
 			serializer.MapClose()
 
@@ -1067,14 +1050,12 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 17 (REQUIRED OUT p17 I2)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(17)
+			serializer.Pair("Position", 17)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.IntegerField)
-			serializer.String("PassedValue")
-			serializer.Integer(arg17)
+			
+			serializer.Pair("DataType", (i)FieldDataType.IntegerField)
+			serializer.Pair("PassedValue", arg17)
 			serializer.MapClose()
 			serializer.MapClose()
 
@@ -1082,14 +1063,12 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 18 (REQUIRED INOUT p18 I2)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(18)
+			serializer.Pair("Position", 18)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.IntegerField)
-			serializer.String("PassedValue")
-			serializer.Integer(arg18)
+			
+			serializer.Pair("DataType", (i)FieldDataType.IntegerField)
+			serializer.Pair("PassedValue", arg18)
 			serializer.MapClose()
 			serializer.MapClose()
 
@@ -1097,14 +1076,12 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 20 (REQUIRED OUT p20 I4)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(20)
+			serializer.Pair("Position", 20)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.IntegerField)
-			serializer.String("PassedValue")
-			serializer.Integer(arg20)
+			
+			serializer.Pair("DataType", (i)FieldDataType.IntegerField)
+			serializer.Pair("PassedValue", arg20)
 			serializer.MapClose()
 			serializer.MapClose()
 
@@ -1112,14 +1089,12 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 21 (REQUIRED INOUT p21 I4)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(21)
+			serializer.Pair("Position", 21)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.IntegerField)
-			serializer.String("PassedValue")
-			serializer.Integer(arg21)
+			
+			serializer.Pair("DataType", (i)FieldDataType.IntegerField)
+			serializer.Pair("PassedValue", arg21)
 			serializer.MapClose()
 			serializer.MapClose()
 
@@ -1127,14 +1102,12 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 23 (REQUIRED OUT p23 I8)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(23)
+			serializer.Pair("Position", 23)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.IntegerField)
-			serializer.String("PassedValue")
-			serializer.Integer(arg23)
+			
+			serializer.Pair("DataType", (i)FieldDataType.IntegerField)
+			serializer.Pair("PassedValue", arg23)
 			serializer.MapClose()
 			serializer.MapClose()
 
@@ -1142,14 +1115,12 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 24 (REQUIRED INOUT p24 I8)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(24)
+			serializer.Pair("Position", 24)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.IntegerField)
-			serializer.String("PassedValue")
-			serializer.Integer(arg24)
+			
+			serializer.Pair("DataType", (i)FieldDataType.IntegerField)
+			serializer.Pair("PassedValue", arg24)
 			serializer.MapClose()
 			serializer.MapClose()
 
@@ -1157,13 +1128,12 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 26 (REQUIRED OUT p26 structure @Customer)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(26)
+			serializer.Pair("Position", 26)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
+			
 			;;Argument 26: Single Customer record
-			serializer.Integer(FieldDataType.DataObjectField)
+			serializer.Pair("DataType", (i)FieldDataType.DataObjectField)
 			serializer.String("PassedValue")
 			;TODO: Support for single structure is incomplete
 			serializer.MapClose()
@@ -1173,13 +1143,12 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 27 (REQUIRED INOUT p27 structure @Customer)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(27)
+			serializer.Pair("Position", 27)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
+			
 			;;Argument 27: Single Customer record
-			serializer.Integer(FieldDataType.DataObjectField)
+			serializer.Pair("DataType", (i)FieldDataType.DataObjectField)
 			serializer.String("PassedValue")
 			;TODO: Support for single structure is incomplete
 			serializer.MapClose()
@@ -1189,15 +1158,13 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 29 (REQUIRED OUT p29 D8 YYYYMMDD date)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(29)
+			serializer.Pair("Position", 29)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
+			
 			;TODO: Do we need custom processing for date fields beyond the decimal value?
-			serializer.Integer(FieldDataType.DecimalField)
-			serializer.String("PassedValue")
-			serializer.Integer(arg29)
+			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
+			serializer.Pair("PassedValue", arg29)
 			serializer.MapClose()
 			serializer.MapClose()
 
@@ -1205,15 +1172,13 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 30 (REQUIRED INOUT p30 D8 YYYYMMDD date)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(30)
+			serializer.Pair("Position", 30)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
+			
 			;TODO: Do we need custom processing for date fields beyond the decimal value?
-			serializer.Integer(FieldDataType.DecimalField)
-			serializer.String("PassedValue")
-			serializer.Integer(arg30)
+			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
+			serializer.Pair("PassedValue", arg30)
 			serializer.MapClose()
 			serializer.MapClose()
 
@@ -1221,15 +1186,13 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 32 (REQUIRED OUT p32 D6 YYMMDD date)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(32)
+			serializer.Pair("Position", 32)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
+			
 			;TODO: Do we need custom processing for date fields beyond the decimal value?
-			serializer.Integer(FieldDataType.DecimalField)
-			serializer.String("PassedValue")
-			serializer.Integer(arg32)
+			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
+			serializer.Pair("PassedValue", arg32)
 			serializer.MapClose()
 			serializer.MapClose()
 
@@ -1237,15 +1200,13 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 33 (REQUIRED INOUT p33 D6 YYMMDD date)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(33)
+			serializer.Pair("Position", 33)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
+			
 			;TODO: Do we need custom processing for date fields beyond the decimal value?
-			serializer.Integer(FieldDataType.DecimalField)
-			serializer.String("PassedValue")
-			serializer.Integer(arg33)
+			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
+			serializer.Pair("PassedValue", arg33)
 			serializer.MapClose()
 			serializer.MapClose()
 
@@ -1253,15 +1214,13 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 35 (REQUIRED OUT p35 D7 YYYYJJJ date)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(35)
+			serializer.Pair("Position", 35)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
+			
 			;TODO: Do we need custom processing for date fields beyond the decimal value?
-			serializer.Integer(FieldDataType.DecimalField)
-			serializer.String("PassedValue")
-			serializer.Integer(arg35)
+			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
+			serializer.Pair("PassedValue", arg35)
 			serializer.MapClose()
 			serializer.MapClose()
 
@@ -1269,15 +1228,13 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 36 (REQUIRED INOUT p36 D7 YYYYJJJ date)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(36)
+			serializer.Pair("Position", 36)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
+			
 			;TODO: Do we need custom processing for date fields beyond the decimal value?
-			serializer.Integer(FieldDataType.DecimalField)
-			serializer.String("PassedValue")
-			serializer.Integer(arg36)
+			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
+			serializer.Pair("PassedValue", arg36)
 			serializer.MapClose()
 			serializer.MapClose()
 
@@ -1285,15 +1242,13 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 38 (REQUIRED OUT p38 D5 YYJJJ date)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(38)
+			serializer.Pair("Position", 38)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
+			
 			;TODO: Do we need custom processing for date fields beyond the decimal value?
-			serializer.Integer(FieldDataType.DecimalField)
-			serializer.String("PassedValue")
-			serializer.Integer(arg38)
+			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
+			serializer.Pair("PassedValue", arg38)
 			serializer.MapClose()
 			serializer.MapClose()
 
@@ -1301,15 +1256,13 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 39 (REQUIRED INOUT p39 D5 YYJJJ date)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(39)
+			serializer.Pair("Position", 39)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
+			
 			;TODO: Do we need custom processing for date fields beyond the decimal value?
-			serializer.Integer(FieldDataType.DecimalField)
-			serializer.String("PassedValue")
-			serializer.Integer(arg39)
+			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
+			serializer.Pair("PassedValue", arg39)
 			serializer.MapClose()
 			serializer.MapClose()
 
@@ -1317,15 +1270,13 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 41 (REQUIRED OUT p41 D6 HHMM time)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(41)
+			serializer.Pair("Position", 41)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
+			
 			;TODO: Do we need custom processing for time fields beyond the decimal value?
-			serializer.Integer(FieldDataType.DecimalField)
-			serializer.String("PassedValue")
-			serializer.Integer(arg41)
+			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
+			serializer.Pair("PassedValue", arg41)
 			serializer.MapClose()
 			serializer.MapClose()
 
@@ -1333,15 +1284,13 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 42 (REQUIRED INOUT p42 D6 HHMM time)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(42)
+			serializer.Pair("Position", 42)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
+			
 			;TODO: Do we need custom processing for time fields beyond the decimal value?
-			serializer.Integer(FieldDataType.DecimalField)
-			serializer.String("PassedValue")
-			serializer.Integer(arg42)
+			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
+			serializer.Pair("PassedValue", arg42)
 			serializer.MapClose()
 			serializer.MapClose()
 
@@ -1349,15 +1298,13 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 44 (REQUIRED OUT p44 D4 HHMM time)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(44)
+			serializer.Pair("Position", 44)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
+			
 			;TODO: Do we need custom processing for time fields beyond the decimal value?
-			serializer.Integer(FieldDataType.DecimalField)
-			serializer.String("PassedValue")
-			serializer.Integer(arg44)
+			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
+			serializer.Pair("PassedValue", arg44)
 			serializer.MapClose()
 			serializer.MapClose()
 
@@ -1365,15 +1312,13 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 45 (REQUIRED INOUT p45 D4 HHMM time)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(45)
+			serializer.Pair("Position", 45)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
+			
 			;TODO: Do we need custom processing for time fields beyond the decimal value?
-			serializer.Integer(FieldDataType.DecimalField)
-			serializer.String("PassedValue")
-			serializer.Integer(arg45)
+			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
+			serializer.Pair("PassedValue", arg45)
 			serializer.MapClose()
 			serializer.MapClose()
 
@@ -1381,15 +1326,13 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 47 (REQUIRED OUT p47 D14 HHMM time)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(47)
+			serializer.Pair("Position", 47)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
+			
 			;TODO: Do we need custom processing for time fields beyond the decimal value?
-			serializer.Integer(FieldDataType.DecimalField)
-			serializer.String("PassedValue")
-			serializer.Integer(arg47)
+			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
+			serializer.Pair("PassedValue", arg47)
 			serializer.MapClose()
 			serializer.MapClose()
 
@@ -1397,15 +1340,13 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 48 (REQUIRED INOUT p48 D14 HHMM time)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(48)
+			serializer.Pair("Position", 48)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
+			
 			;TODO: Do we need custom processing for time fields beyond the decimal value?
-			serializer.Integer(FieldDataType.DecimalField)
-			serializer.String("PassedValue")
-			serializer.Integer(arg48)
+			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
+			serializer.Pair("PassedValue", arg48)
 			serializer.MapClose()
 			serializer.MapClose()
 
@@ -1413,15 +1354,13 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 50 (REQUIRED OUT p50 D20 YYYYMMDD date)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(50)
+			serializer.Pair("Position", 50)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
+			
 			;TODO: Do we need custom processing for date fields beyond the decimal value?
-			serializer.Integer(FieldDataType.DecimalField)
-			serializer.String("PassedValue")
-			serializer.Integer(arg50)
+			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
+			serializer.Pair("PassedValue", arg50)
 			serializer.MapClose()
 			serializer.MapClose()
 
@@ -1429,15 +1368,13 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 51 (REQUIRED INOUT p51 D20 YYYYMMDD date)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(51)
+			serializer.Pair("Position", 51)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
+			
 			;TODO: Do we need custom processing for date fields beyond the decimal value?
-			serializer.Integer(FieldDataType.DecimalField)
-			serializer.String("PassedValue")
-			serializer.Integer(arg51)
+			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
+			serializer.Pair("PassedValue", arg51)
 			serializer.MapClose()
 			serializer.MapClose()
 
@@ -1445,15 +1382,13 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 53 (REQUIRED OUT p53 enum METHOD_STATUS)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(53)
+			serializer.Pair("Position", 53)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
+			
 			;TODO: Do we need custom processing for enum fields beyond the integer value?
-			serializer.Integer(FieldDataType.IntegerField)
-			serializer.String("PassedValue")
-			serializer.Integer(arg53)
+			serializer.Pair("DataType", (i)FieldDataType.IntegerField)
+			serializer.Pair("PassedValue", arg53)
 			serializer.MapClose()
 			serializer.MapClose()
 
@@ -1461,15 +1396,13 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 54 (REQUIRED INOUT p54 enum METHOD_STATUS)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(54)
+			serializer.Pair("Position", 54)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
+			
 			;TODO: Do we need custom processing for enum fields beyond the integer value?
-			serializer.Integer(FieldDataType.IntegerField)
-			serializer.String("PassedValue")
-			serializer.Integer(arg54)
+			serializer.Pair("DataType", (i)FieldDataType.IntegerField)
+			serializer.Pair("PassedValue", arg54)
 			serializer.MapClose()
 			serializer.MapClose()
 
@@ -1477,12 +1410,11 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 56 (REQUIRED OUT p56 D_HANDLE)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(56)
+			serializer.Pair("Position", 56)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.HandleField)
+			
+			serializer.Pair("DataType", (i)FieldDataType.HandleField)
 			serializer.String("PassedValue")
 			;TODO: Handle support is incomplete and will FAIL!!!
 			serializer.MapClose()
@@ -1492,12 +1424,11 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 57 (REQUIRED INOUT p57 D_HANDLE)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(57)
+			serializer.Pair("Position", 57)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.HandleField)
+			
+			serializer.Pair("DataType", (i)FieldDataType.HandleField)
 			serializer.String("PassedValue")
 			;TODO: Handle support is incomplete and will FAIL!!!
 			serializer.MapClose()
@@ -1507,12 +1438,11 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 59 (REQUIRED OUT p59 D_HANDLE)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(59)
+			serializer.Pair("Position", 59)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.BinaryHandleField)
+			
+			serializer.Pair("DataType", (i)FieldDataType.BinaryHandleField)
 			serializer.String("PassedValue")
 			;TODO: Binary Handle support is incomplete and will FAIL!!!
 			serializer.MapClose()
@@ -1522,12 +1452,11 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 60 (REQUIRED INOUT p60 D_HANDLE)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(60)
+			serializer.Pair("Position", 60)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.BinaryHandleField)
+			
+			serializer.Pair("DataType", (i)FieldDataType.BinaryHandleField)
 			serializer.String("PassedValue")
 			;TODO: Binary Handle support is incomplete and will FAIL!!!
 			serializer.MapClose()
@@ -1573,6 +1502,7 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			record
 				arguments,			@JsonArray
 				argumentDefinition, @ArgumentDataDefinition
+
 				;;Argument 1 (REQUIRED IN p1 [*]A1)
 				arg1Array,			@JsonArray
 				arg1Handle,			D_HANDLE
@@ -1638,25 +1568,26 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 
 			;;------------------------------------------------------------
 			;;Build the JSON response
+			serializer.MapOpen()
+			serializer.Pair("jsonrpc", "2.0")
 
-			serializer.MapOpen()
-			serializer.String("IsError")
-			serializer.Bool(false)
-			serializer.String("Result")
-			serializer.MapOpen()
-			serializer.String("ReturnParameters")
+			if(requestId > -1) then
+				serializer.Pair("id", requestId)
+			else
+				serializer.PairNull("id")
+
+			serializer.String("result")
 			serializer.ArrayOpen()
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 2 (REQUIRED OUT p2 [*]A1)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(2)
+			serializer.Pair("Position", 2)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.AlphaArrayField)
+			
+			serializer.Pair("DataType", (i)FieldDataType.AlphaArrayField)
 			serializer.String("PassedValue")
 			serializer.ArrayOpen()
 
@@ -1668,12 +1599,11 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 3 (REQUIRED INOUT p3 [*]A1)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(3)
+			serializer.Pair("Position", 3)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.AlphaArrayField)
+			
+			serializer.Pair("DataType", (i)FieldDataType.AlphaArrayField)
 			serializer.String("PassedValue")
 			serializer.ArrayOpen()
 
@@ -1685,12 +1615,11 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 5 (REQUIRED OUT p26 [*]structure @Customer)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(5)
+			serializer.Pair("Position", 5)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.DataObjectCollectionField)
+			
+			serializer.Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
 			serializer.String("PassedValue")
 			serializer.ArrayOpen()
 			;TODO: Need to add support for array of structure
@@ -1702,12 +1631,11 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 6 (REQUIRED INOUT p27 [*]structure @Customer)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(6)
+			serializer.Pair("Position", 6)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.DataObjectCollectionField)
+			
+			serializer.Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
 			serializer.String("PassedValue")
 			serializer.ArrayOpen()
 			;TODO: Need to add support for array of structure
@@ -1755,6 +1683,7 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			record
 				arguments,			@JsonArray
 				argumentDefinition, @ArgumentDataDefinition
+
 				;;Argument 1 (REQUIRED IN p1 ArrayList collection of A1)
 				arg1Array,			@JsonArray
 				arg1,				@ArrayList
@@ -1957,25 +1886,26 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 
 			;;------------------------------------------------------------
 			;;Build the JSON response
+			serializer.MapOpen()
+			serializer.Pair("jsonrpc", "2.0")
 
-			serializer.MapOpen()
-			serializer.String("IsError")
-			serializer.Bool(false)
-			serializer.String("Result")
-			serializer.MapOpen()
-			serializer.String("ReturnParameters")
+			if(requestId > -1) then
+				serializer.Pair("id", requestId)
+			else
+				serializer.PairNull("id")
+
+			serializer.String("result")
 			serializer.ArrayOpen()
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 2 (REQUIRED OUT p2 ArrayList collection of A1)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(2)
+			serializer.Pair("Position", 2)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.AlphaArrayField)
+			
+			serializer.Pair("DataType", (i)FieldDataType.AlphaArrayField)
 			serializer.String("PassedValue")
 			serializer.ArrayOpen()
 
@@ -1987,11 +1917,10 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 4 (REQUIRED OUT p5 ArrayList collection of D6)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(4)
+			serializer.Pair("Position", 4)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
+			
 			;TODO: Need to add support for collection of decimal
 			serializer.MapClose()
 			serializer.MapClose()
@@ -2000,11 +1929,10 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 6 (REQUIRED OUT p8 ArrayList collection of D12)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(6)
+			serializer.Pair("Position", 6)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
+			
 			;TODO: Need to add support for collection of decimal
 			serializer.MapClose()
 			serializer.MapClose()
@@ -2013,11 +1941,10 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 8 (REQUIRED OUT p11 ArrayList collection of D6.2)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(8)
+			serializer.Pair("Position", 8)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
+			
 			;TODO: Need to add support for collection of implied decimal
 			serializer.MapClose()
 			serializer.MapClose()
@@ -2026,11 +1953,10 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 10 (REQUIRED OUT p14 ArrayList collection of I1)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(10)
+			serializer.Pair("Position", 10)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
+			
 			;TODO: Need to add support for collection of integer
 			serializer.MapClose()
 			serializer.MapClose()
@@ -2039,11 +1965,10 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 12 (REQUIRED OUT p17 ArrayList collection of I2)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(12)
+			serializer.Pair("Position", 12)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
+			
 			;TODO: Need to add support for collection of integer
 			serializer.MapClose()
 			serializer.MapClose()
@@ -2052,11 +1977,10 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 14 (REQUIRED OUT p20 ArrayList collection of I4)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(14)
+			serializer.Pair("Position", 14)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
+			
 			;TODO: Need to add support for collection of integer
 			serializer.MapClose()
 			serializer.MapClose()
@@ -2065,11 +1989,10 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 16 (REQUIRED OUT p23 ArrayList collection of I8)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(16)
+			serializer.Pair("Position", 16)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
+			
 			;TODO: Need to add support for collection of integer
 			serializer.MapClose()
 			serializer.MapClose()
@@ -2078,18 +2001,17 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 18 (REQUIRED OUT p26 ArrayList collection of structure @Customer)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(18)
+			serializer.Pair("Position", 18)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.DataObjectCollectionField)
+			
+			serializer.Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
 			serializer.String("PassedValue")
 			serializer.ArrayOpen()
 			begin
 				data thisCustomer, @strCustomer
 				foreach thisCustomer in arg18
-					new Customer((strCustomer)thisCustomer).Serialize(serializer)
+					DataObjectBase.Serialize(serializer, thisCustomer, "CUSTOMERS", "", false)
 			end
 			serializer.ArrayClose()
 			serializer.MapClose()
@@ -2099,11 +2021,10 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 20 (REQUIRED OUT p29 ArrayList collection of D8 YYYYMMDD date)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(20)
+			serializer.Pair("Position", 20)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
+			
 			;TODO: Need to add support for collection of date
 			serializer.MapClose()
 			serializer.MapClose()
@@ -2112,11 +2033,10 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 22 (REQUIRED OUT p32 ArrayList collection of D6 YYMMDD date)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(22)
+			serializer.Pair("Position", 22)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
+			
 			;TODO: Need to add support for collection of date
 			serializer.MapClose()
 			serializer.MapClose()
@@ -2125,11 +2045,10 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 24 (REQUIRED OUT p35 ArrayList collection of D7 YYYYJJJ date)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(24)
+			serializer.Pair("Position", 24)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
+			
 			;TODO: Need to add support for collection of date
 			serializer.MapClose()
 			serializer.MapClose()
@@ -2138,11 +2057,10 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 26 (REQUIRED OUT p38 ArrayList collection of D5 YYJJJ date)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(26)
+			serializer.Pair("Position", 26)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
+			
 			;TODO: Need to add support for collection of date
 			serializer.MapClose()
 			serializer.MapClose()
@@ -2151,11 +2069,10 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 28 (REQUIRED OUT p41 ArrayList collection of D6 HHMM time)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(28)
+			serializer.Pair("Position", 28)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
+			
 			;TODO: Need to add support for collection of time
 			serializer.MapClose()
 			serializer.MapClose()
@@ -2164,11 +2081,10 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 30 (REQUIRED OUT p44 ArrayList collection of D4 HHMM time)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(30)
+			serializer.Pair("Position", 30)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
+			
 			;TODO: Need to add support for collection of time
 			serializer.MapClose()
 			serializer.MapClose()
@@ -2177,11 +2093,10 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 32 (REQUIRED OUT p47 ArrayList collection of D14 YYYYMMDD date)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(32)
+			serializer.Pair("Position", 32)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
+			
 			;TODO: Need to add support for collection of date
 			serializer.MapClose()
 			serializer.MapClose()
@@ -2190,11 +2105,10 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Argument 34 (REQUIRED OUT p50 ArrayList collection of D20 YYYYMMDD date)
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(34)
+			serializer.Pair("Position", 34)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
+			
 			;TODO: Need to add support for collection of date
 			serializer.MapClose()
 			serializer.MapClose()

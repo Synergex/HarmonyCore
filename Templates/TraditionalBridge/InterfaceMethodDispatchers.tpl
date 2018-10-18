@@ -412,7 +412,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 			begin
 				data this<ParameterStructureNoplural>, @str<ParameterStructureNoplural>
 				foreach this<ParameterStructureNoplural> in arg<COUNTER_1_VALUE>
-					DataObjectBase.Serialize(serializer, this<ParameterStructureNoplural>, "<STRUCTURE_NOALIAS>", "", false)
+					DataObjectBase.Serialize(serializer, this<ParameterStructureNoplural>, "<PARAMETER_STRUCTURE>", "", false)
 			end
 		</IF COLLECTION_ARRAYLIST>
 ;//
