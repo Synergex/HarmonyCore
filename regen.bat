@@ -63,9 +63,9 @@ set ENABLE_POST=-define ENABLE_POST
 set ENABLE_PATCH=-define ENABLE_PATCH
 set ENABLE_DELETE=-define ENABLE_DELETE
 set ENABLE_SPROC=-define ENABLE_SPROC
-set ENABLE_UNIT_TEST_GENERATION=YES
 rem set ENABLE_AUTHENTICATION=-define ENABLE_AUTHENTICATION
 rem set ENABLE_FIELD_SECURITY=-define ENABLE_FIELD_SECURITY
+set ENABLE_UNIT_TEST_GENERATION=YES
 rem set ENABLE_CASE_SENSITIVE_URL=-define ENABLE_CASE_SENSITIVE_URL
 rem set ENABLE_CORS=-define ENABLE_CORS
 rem set ENABLE_IIS_SUPPORT=-define ENABLE_IIS_SUPPORT
@@ -149,7 +149,7 @@ if DEFINED ENABLE_POSTMAN_TESTS (
   if ERRORLEVEL 1 goto error
 )
 
-rem ================================================================================================================================
+rem ================================================================================
 rem Unit testing project
 
 if DEFINED ENABLE_UNIT_TEST_GENERATION (
@@ -195,7 +195,7 @@ if DEFINED ENABLE_UNIT_TEST_GENERATION (
   if ERRORLEVEL 1 goto error
 )
 
-rem ================================================================================================================================
+rem ================================================================================
 rem Generate code for the TraditionalBridge sample environment
 
 rem set CODEGEN_TPLDIR=Templates\TraditionalBridge
@@ -238,7 +238,7 @@ rem         -ut SMC_INTERFACE=%SMC_INTERFACE% ^
 rem         -e -r -lf
 rem if ERRORLEVEL 1 goto error
 
-rem ================================================================================================================================
+rem ================================================================================
 rem Generate OData action return data models
 
 rem set CODEGEN_TPLDIR=Templates\TraditionalBridge
