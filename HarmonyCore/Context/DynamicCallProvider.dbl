@@ -228,32 +228,18 @@ namespace Harmony.Core.Context
 			name, @string
 			args, [#]@ArgumentDataDefinition
 		proc
-			;;build message with method name and serialized parameters
-			;;sent frame size followed by message body
-			;;check for errors in the response
-			;;translate errors locally
-			;;deserialize contents
-			;;assign return value if there is one
-			;;write into args array if the argument values are present in the payload
-			data serializedData = JsonConvert.SerializeObject(new CallFrame() { Arguments = args, Name = name }, SerializerSettings)
-			data serializedBytes = Encoding.ASCII.GetBytes(serializedData)
-			await connection.WriteRaw(serializedBytes)
-			data responseBytes = await connection.ReadRaw(%char(13))
-			data responseObject = JsonConvert.DeserializeObject<MethodCallResponse>(responseBytes)
+			data result, [#]@ReturnParameterDefintion, await this.connection.Call(name, args)
 			data writableArgs = args
-            if(responseObject.IsError) then
-				throw new Exception(responseObject.Exception)
-			else if(responseObject.Result.ReturnParameters != ^null)
+			if(result != ^null)
 			begin
 				data retArg, @ReturnParameterDefintion
-				foreach retArg in responseObject.Result.ReturnParameters
+				foreach retArg in result
 				begin
 					writableArgs[retArg.Position + 1].ReturnedValue = true
 					writableArgs[retArg.Position + 1].PassedValue = retArg.Value.PassedValue
 				end
 			end
 			mreturn writableArgs
-
 		endmethod
 	endclass
 

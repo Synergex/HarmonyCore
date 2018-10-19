@@ -5,6 +5,7 @@ import System.Diagnostics
 import Newtonsoft.Json
 import Newtonsoft.Json.Linq
 import System.Threading.Tasks
+import StreamJsonRpc
 
 
 namespace Harmony.Core.Context
@@ -12,40 +13,15 @@ namespace Harmony.Core.Context
 	public class ProcessDynamicCallConnection implements IDynamicCallConnection
 		private static NewLineBytes, [#]Byte, new byte[#] { 10, 13 }
 		private mTargetProcess, @Process
-        private mMakeReadyTask, @Lazy<Task>
+		private mMakeReadyTask, @Lazy<Task<JsonRpc>>
 		public method ProcessDynamicCallConnection
 			startInfo, @ProcessStartInfo
 		proc
 			mTargetProcess = new Process()
 			mTargetProcess.StartInfo = startInfo
-            mMakeReadyTask = new Lazy<Task>(MakeReadyInternal)
+            mMakeReadyTask = new Lazy<Task<JsonRpc>>(MakeReadyInternal)
 		endmethod
 
-		public async virtual method ReadRaw, @Task<string>
-			terminator, Char 
-			endparams
-        proc
-            await mMakeReadyTask.Value
-			if(terminator != %char(13))
-				throw new NotImplementedException("the only acceptable terminator for this connection type is newline")
-
-			data lengthBuffer = new char[10]
-			mTargetProcess.StandardOutput.ReadBlock(lengthBuffer, 0, 10)
-			try
-			begin
-				data expectedMessageLength = Convert.ToInt32(new string(lengthBuffer))
-                data messageBuffer = new char[expectedMessageLength]
-                ;;TODO error control around this returned length
-				await mTargetProcess.StandardOutput.ReadBlockAsync(messageBuffer, 0, expectedMessageLength)
-				mreturn new string(messageBuffer)
-			end
-			catch(ex, @Exception)
-			begin
-				mreturn new string(lengthBuffer) + mTargetProcess.StandardOutput.ReadLine()
-			end
-			endtry
-		endmethod
-		
 		public virtual method Recycle, @Task
 			endparams
 		proc
@@ -62,11 +38,17 @@ namespace Harmony.Core.Context
 			public readwrite property ProtocolSupported, boolean
 		endclass
 
+		public virtual async method Call, @Task<[#]@ReturnParameterDefintion>
+			name, @string
+			args, [#]@ArgumentDataDefinition
+		proc
+			data jsonRpcConnection = await mMakeReadyTask.Value
+			mreturn await jsonRpcConnection.InvokeAsync<[#]@ReturnParameterDefintion>(name, args)
+		endmethod
 
-		private async method MakeReadyInternal, @Task
+		private async method MakeReadyInternal, @Task<JsonRpc>
 			endparams
 		proc
-			data handshakeString = '{"ProtocolVersion":"1.0"}'
 			data readLine, @string
 			mTargetProcess.Start()
 			mTargetProcess.StartInfo.StandardOutputEncoding = ASCIIEncoding.ASCII
@@ -74,39 +56,8 @@ namespace Harmony.Core.Context
 			begin
 				Debug.WriteLine("Not Ready")
 			end
-			data paddedLengthString = handshakeString.Length.ToString().PadLeft(10, '0')
-			data tempBytes = ASCIIEncoding.ASCII.GetBytes(paddedLengthString + %char(10) + %char(13))
-			mTargetProcess.StandardInput.BaseStream.Write(tempBytes, 0, tempBytes.Length)
-			mTargetProcess.StandardInput.BaseStream.Flush()
-			data response = mTargetProcess.StandardOutput.ReadLine()
-			tempBytes = ASCIIEncoding.ASCII.GetBytes(handshakeString + %char(10) + %char(13))
-			mTargetProcess.StandardInput.BaseStream.Write(tempBytes, 0, tempBytes.Length)
-			mTargetProcess.StandardInput.BaseStream.Flush()
-			data lengthBuffer = new char[10]
-			mTargetProcess.StandardOutput.ReadBlock(lengthBuffer, 0, 10)
-			data expectedMessageLength = Convert.ToInt32(new string(lengthBuffer))
-			data messageBuffer = new char[expectedMessageLength]
-			mTargetProcess.StandardOutput.ReadBlock(messageBuffer, 0, expectedMessageLength)
-			;;TODO real json here
-			data deserializedMessage = JsonConvert.DeserializeObject<ProtocolMessage>(new string(messageBuffer))
-			if(!deserializedMessage.ProtocolSupported)
-				throw new Exception("Protocol not supported")
-		endmethod
-		
-		public async virtual method WriteRaw, @Task
-			rawData, [#]byte
-			endparams
-        proc
-            await mMakeReadyTask.Value
-			data paddedLengthString = rawData.Length.ToString().PadLeft(10, '0')
-			data tempBytes = ASCIIEncoding.ASCII.GetBytes(paddedLengthString + %char(10) + %char(13))
-			await mTargetProcess.StandardInput.BaseStream.WriteAsync(tempBytes, 0, tempBytes.Length)
-			await mTargetProcess.StandardInput.BaseStream.FlushAsync()
-			data response = await mTargetProcess.StandardOutput.ReadLineAsync()
-			await mTargetProcess.StandardInput.BaseStream.WriteAsync(rawData, 0, rawData.Length)
-			await mTargetProcess.StandardInput.BaseStream.WriteAsync(NewLineBytes, 0, NewLineBytes.Length)
-			await mTargetProcess.StandardInput.BaseStream.FlushAsync()
 			
+			mreturn JsonRpc.Attach(mTargetProcess.StandardInput.BaseStream, mTargetProcess.StandardOutput.BaseStream, ^null) 
 		endmethod
 	
         public virtual method MakeReady, @Task

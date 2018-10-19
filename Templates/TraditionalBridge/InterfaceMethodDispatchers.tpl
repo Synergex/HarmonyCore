@@ -89,6 +89,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 			required in serializer, @ChannelSerializer
 			required in dispatcher, @RoutineDispatcher
 			record
+				requestId,			int
 				arguments,			@JsonArray
 				argumentDefinition, @ArgumentDataDefinition
 
@@ -254,7 +255,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 			serializer.MapOpen()
 			serializer.Pair("jsonrpc", "2.0")
 
-			if(requestId > -1) then
+			if(callFrame.TryGetProperty("id", requestId)) then
 				serializer.Pair("id", requestId)
 			else
 				serializer.PairNull("id")
@@ -266,15 +267,12 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 			;;Function return value
 
 			serializer.MapOpen()
-			serializer.String("Position")
-			serializer.Integer(0)
+			serializer.Pair("Position", 0)
 			serializer.String("Value")
 			serializer.MapOpen()
-			serializer.String("DataType")
 			;TODO: Needs to handle all the valid function return types
-			serializer.Integer(FieldDataType.EnumField)
-			serializer.String("PassedValue")
-			serializer.Integer(returnValue)
+			serializer.Pair("DataType", (i)FieldDataType.EnumField)
+			serializer.Pair("PassedValue", returnValue)
 			serializer.MapClose()
 			serializer.MapClose()
 </IF FUNCTION>
