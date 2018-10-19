@@ -97,6 +97,7 @@ namespace <NAMESPACE>
 ;//
 ;// GET ALL -------------------------------------------------------------------
 ;//
+<IF DEFINED_ENABLE_GET_ALL>
         {ODataRoute("<StructurePlural>")}
   <IF DEFINED_ENABLE_AUTHENTICATION>
     <IF USERTOKEN_ROLES_GET>
@@ -117,9 +118,11 @@ namespace <NAMESPACE>
             mreturn Ok(DBContext.<StructurePlural>)
         endmethod
 
+</IF DEFINED_ENABLE_GET_ALL>
 ;//
 ;// GET ONE -------------------------------------------------------------------
 ;//
+<IF DEFINED_ENABLE_GET_ONE>
         {ODataRoute("<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>)")}
   <IF DEFINED_ENABLE_AUTHENTICATION>
     <IF USERTOKEN_ROLES_GET>
@@ -163,6 +166,7 @@ namespace <NAMESPACE>
             mreturn new SingleResult<<StructureNoplural>>(DBContext.<StructurePlural>.FindQuery<<StructureNoplural>>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>))
         endmethod
 
+</IF DEFINED_ENABLE_GET_ONE>
 ;//
 ;// GET BY ALTERNATE KEY ------------------------------------------------------
 ;//
@@ -263,7 +267,7 @@ namespace <NAMESPACE>
         ;;; <returns>
         ;;; Returns <IF ALPHA>a string</IF ALPHA><IF DECIMAL><IF PRECISION>a decimal<ELSE><IF CUSTOM_HARMONY_AS_STRING>a string<ELSE>an int</IF CUSTOM_HARMONY_AS_STRING></IF PRECISION></IF DECIMAL><IF DATE>a DateTime</IF DATE><IF TIME>a DateTime</IF TIME><IF INTEGER>an int</IF INTEGER> containing the value of the requested property.
         ;;;</returns>
-        public method Get<StructureNoplural><FieldSqlName>, @IActionResult
+        public method Get<FieldSqlName>, @IActionResult
         <SEGMENT_LOOP>
             <IF SINGLE_SEGMENT>
             {FromODataUri}
@@ -296,7 +300,7 @@ namespace <NAMESPACE>
         ;;; <returns>
         ;;; Returns <IF ALPHA>a string</IF ALPHA><IF DECIMAL><IF PRECISION>a decimal<ELSE><IF CUSTOM_HARMONY_AS_STRING>a string<ELSE>an int</IF CUSTOM_HARMONY_AS_STRING></IF PRECISION></IF DECIMAL><IF DATE>a DateTime</IF DATE><IF TIME>a DateTime</IF TIME><IF INTEGER>an int</IF INTEGER> containing the value of the requested property.
         ;;;</returns>
-        public method Get<StructureNoplural><FieldSqlName>, @IActionResult
+        public method Get<FieldSqlName>, @IActionResult
             {FromODataUri}
             required in key, int
         proc

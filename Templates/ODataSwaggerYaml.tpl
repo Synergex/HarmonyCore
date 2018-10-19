@@ -80,7 +80,7 @@ produces:
 ;//
 tags:
 <STRUCTURE_LOOP>
-  - name: <StructureNoplural>
+  - name: <StructurePlural>
     description: Operations related to <STRUCTURE_DESC>
 </STRUCTURE_LOOP>
 ;//
@@ -95,14 +95,17 @@ paths:
 ;//
 ;// Get all records
 ;//
+<IF DEFINED_ENABLE_GET_ALL>
+<COUNTER_1_RESET>
+<COUNTER_1_INCREMENT>
   /<StructurePlural>:
     get:
-      summary: Get <structurePlural>
+      summary: Get all <structurePlural>
       description: Get all or a filtered collection of <structurePlural>.
       operationId: Get<StructurePlural>
       deprecated: false
       tags:
-        - <StructureNoplural>
+        - <StructurePlural>
 <IF DEFINED_PARAM_OPTIONS_PRESENT>
       parameters:
 </IF DEFINED_PARAM_OPTIONS_PRESENT>
@@ -153,17 +156,21 @@ paths:
         '401':
           description: Unauthorized
         </IF DEFINED_ENABLE_AUTHENTICATION>
+</IF DEFINED_ENABLE_GET_ALL>
 ;//
 ;// POST
 ;//
 <IF DEFINED_ENABLE_POST>
+<IF COUNTER_1_EQ_0>
+  /<StructurePlural>:
+</IF COUNTER_1_EQ_0>
     post:
       summary: Create a <structureNoplural>
       description: Create a new <structureNoplural>. When using a POST operation the primary key value will be assigned automatically. The primary key properties can be ommitted from the data in the request body, but if present will be ignored and replaced by automatically generated values.
       operationId: Post<StructureNoplural>
       deprecated: false
       tags:
-        - <StructureNoplural>
+        - <StructurePlural>
       parameters:
         - name: a<StructureNoplural>
           in: body
@@ -194,7 +201,7 @@ paths:
       operationId: Count<StructurePlural>
       deprecated: false
       tags:
-        - <StructureNoplural>
+        - <StructurePlural>
       parameters:
 <IF DEFINED_ENABLE_FILTER>
         - name: $filter
@@ -217,18 +224,21 @@ paths:
 ;//
 ;// Primary key operations
 ;//
-  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><SegmentName>=<IF ALPHA>''</IF ALPHA>{a<SegmentName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>RecordNumber=a{RecordNumber}</IF STRUCTURE_RELATIVE>)':
 ;//
 ;// ----------------------------------------------------------------------------
 ;// Get via primary key
 ;//
+<IF DEFINED_ENABLE_GET_ONE>
+<COUNTER_1_RESET>
+  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF ALPHA>''</IF ALPHA>{a<SegmentName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>a{RecordNumber}</IF STRUCTURE_RELATIVE>)':
+<COUNTER_1_INCREMENT>
     get:
-      summary: Get <structureNoplural>
+      summary: Get a single <structureNoplural>
       description: Get a <structureNoplural> via a complete primary key.
       operationId: Get<StructureNoplural>
       deprecated: false
       tags:
-        - <StructureNoplural>
+        - <StructurePlural>
       parameters:
 <IF STRUCTURE_ISAM>
 <PRIMARY_KEY>
@@ -277,18 +287,23 @@ paths:
         </IF DEFINED_ENABLE_AUTHENTICATION>
         '404':
           description: Not found (the requested <structureNoplural> was not found)
+</IF DEFINED_ENABLE_GET_ONE>
 ;//
 ;// ----------------------------------------------------------------------------
 ;// Delete via primary key
 ;//
 <IF DEFINED_ENABLE_DELETE>
+<IF COUNTER_1_EQ_0>
+  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF ALPHA>''</IF ALPHA>{a<SegmentName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>a{RecordNumber}</IF STRUCTURE_RELATIVE>)':
+</IF COUNTER_1_EQ_0>
+<COUNTER_1_INCREMENT>
     delete:
       summary: Delete <structureNoplural>
       description: Delete a <structureNoplural> via a complete primary key.
       operationId: Delete<StructureNoplural>
       deprecated: false
       tags:
-        - <StructureNoplural>
+        - <StructurePlural>
       parameters:
 <IF STRUCTURE_ISAM>
   <PRIMARY_KEY>
@@ -329,13 +344,17 @@ paths:
 ;// Create or update via primary key
 ;//
 <IF DEFINED_ENABLE_PUT>
+<IF COUNTER_1_EQ_0>
+  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF ALPHA>''</IF ALPHA>{a<SegmentName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>a{RecordNumber}</IF STRUCTURE_RELATIVE>)':
+</IF COUNTER_1_EQ_0>
+<COUNTER_1_INCREMENT>
     put:
       summary: Create or update <structureNoplural>
       description: Create or update a <structureNoplural> via a complete primary key.
       operationId: CreateOrUpdate<StructureNoplural>
       deprecated: false
       tags:
-        - <StructureNoplural>
+        - <StructurePlural>
       parameters:
 <IF STRUCTURE_ISAM>
   <PRIMARY_KEY>
@@ -386,13 +405,17 @@ paths:
 ;// Patch via primary key
 ;//
 <IF DEFINED_ENABLE_PATCH>
+<IF COUNTER_1_EQ_0>
+  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF ALPHA>''</IF ALPHA>{a<SegmentName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>a{RecordNumber}</IF STRUCTURE_RELATIVE>)':
+</IF COUNTER_1_EQ_0>
+<COUNTER_1_INCREMENT>
     patch:
       summary: Patch <structureNoplural>
       description: Patch a <structureNoplural> via complete primary key.
       operationId: Patch<StructureNoplural>
       deprecated: false
       tags:
-        - <StructureNoplural>
+        - <StructurePlural>
       parameters:
 <IF STRUCTURE_ISAM>
   <PRIMARY_KEY>
@@ -435,7 +458,7 @@ paths:
         </IF DEFINED_ENABLE_AUTHENTICATION>
         '404':
           description: Not found (the specified <structureNoplural> was not found)
-</IF DEFINED_ENABLE_PUT>
+</IF DEFINED_ENABLE_PATCH>
 ;//
 ;//----------------------------------------------------------------------------
 ;//
@@ -461,7 +484,7 @@ paths:
   </IF DUPLICATES>
       deprecated: false
       tags:
-        - <StructureNoplural>
+        - <StructurePlural>
       parameters:
   <SEGMENT_LOOP>
         - name: a<SegmentName>
@@ -542,7 +565,7 @@ paths:
       operationId: Count<StructurePlural>ByKey<KeyName>
       deprecated: false
       tags:
-        - <StructureNoplural>
+        - <StructurePlural>
       parameters:
       <SEGMENT_LOOP>
         - name: a<SegmentName>
@@ -595,7 +618,7 @@ paths:
       operationId: <StructureNoplural><FieldSqlName>
       deprecated: false
       tags:
-        - <StructureNoplural>
+        - <StructurePlural>
       parameters:
     <IF STRUCTURE_ISAM>
       <PRIMARY_KEY>
@@ -639,6 +662,7 @@ paths:
 ;//
 ;// Invividual property - value only
 ;//
+<IF DEFINED_ENABLE_PROPERTY_VALUE_DOCS>
   '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><SegmentName>=<IF ALPHA>''</IF ALPHA>{a<SegmentName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></IF SINGLE_SEGMENT></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>{RecordNumber}</IF STRUCTURE_RELATIVE>)/<FieldSqlName>/$value':
     get:
       summary: Get <structureNoplural> property <FieldSqlName>
@@ -646,7 +670,7 @@ paths:
       operationId: <StructureNoplural><FieldSqlName>value
       deprecated: false
       tags:
-        - <StructureNoplural>
+        - <StructurePlural>
       parameters:
     <IF STRUCTURE_ISAM>
       <PRIMARY_KEY>
@@ -687,6 +711,7 @@ paths:
         </IF DEFINED_ENABLE_AUTHENTICATION>
         '404':
           description: Not found (the specified <structureNoplural> was not found)
+</IF DEFINED_ENABLE_PROPERTY_VALUE_DOCS>
 </IF CUSTOM_NOT_HARMONY_EXCLUDE>
 </IF NOTPKSEGMENT>
 </FIELD_LOOP>

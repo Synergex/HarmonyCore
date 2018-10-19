@@ -12,6 +12,7 @@
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
     "item": [
+<IF DEFINED_ENABLE_AUTHENTICATION>
 		{
 			"name": "Get Access Token (Jodah)",
 			"request": {
@@ -76,11 +77,14 @@
 			},
 			"response": []
 		},
+</IF DEFINED_ENABLE_AUTHENTICATION>
 		<STRUCTURE_LOOP>
         {
+            <COUNTER_1_RESET>
             "_postman_id": "<guid_nobrace>",
             "name": "<StructureNoplural> Tests",
             "item": [
+<IF DEFINED_ENABLE_GET_ALL>
                 {
                     "_postman_id": "<guid_nobrace>",
                     "name": "Read <structurePlural>",
@@ -110,8 +114,11 @@
                         }
                     },
                     "response": []
-                },
-      <IF DEFINED_ENABLE_COUNT>
+                    <COUNTER_1_INCREMENT>
+                }
+</IF DEFINED_ENABLE_GET_ALL>
+<IF DEFINED_ENABLE_COUNT>
+                <IF COUNTER_1>,</IF COUNTER_1>
                 {
                     "_postman_id": "<guid_nobrace>",
                     "name": "Count <structurePlural>",
@@ -142,8 +149,11 @@
                         }
                     },
                     "response": []
-                },
-      </IF DEFINED_ENABLE_COUNT>
+                    <COUNTER_1_INCREMENT>
+                }
+</IF DEFINED_ENABLE_COUNT>
+<IF DEFINED_ENABLE_GET_ONE>
+                <IF COUNTER_1>,</IF COUNTER_1>
                 {
                     "_postman_id": "<guid_nobrace>",
                     "name": "Read <structureNoplural>",
@@ -173,17 +183,20 @@
                     }
                     },
                     "response": []
-                },
+                    <COUNTER_1_INCREMENT>
+                }
+</IF DEFINED_ENABLE_GET_ONE>
 <IF STRUCTURE_ISAM>
-  <IF DEFINED_ENABLE_ALTERNATE_KEYS>
-    <ALTERNATE_KEY_LOOP>
+<IF DEFINED_ENABLE_ALTERNATE_KEYS>
+                <ALTERNATE_KEY_LOOP>
+                <IF COUNTER_1>,</IF COUNTER_1>
                 {
                     "_postman_id": "<guid_nobrace>",
-        <IF DUPLICATES>
+                    <IF DUPLICATES>
                     "name": "Read <structurePlural> by <KeyName>",
-        <ELSE>
+                    <ELSE>
                     "name": "Read <structureNoplural> by <KeyName>",
-        </IF DUPLICATES>
+                    </IF DUPLICATES>
                     "request": {
                     "method": "GET",
                     "header": [
@@ -210,9 +223,11 @@
                     }
                     },
                     "response": []
-                },
-      <IF DEFINED_ENABLE_COUNT>
-        <IF DUPLICATES>
+                    <COUNTER_1_INCREMENT>
+                }
+                <IF DEFINED_ENABLE_COUNT>
+                <IF DUPLICATES>
+                <IF COUNTER_1>,</IF COUNTER_1>
                 {
                     "_postman_id": "<guid_nobrace>",
                     "name": "Count <structurePlural> by <KeyName>",
@@ -243,16 +258,18 @@
                     }
                     },
                     "response": []
-                },
-        </IF DUPLICATES>
-      </IF DEFINED_ENABLE_COUNT>
-    </ALTERNATE_KEY_LOOP>
-  </IF DEFINED_ENABLE_ALTERNATE_KEYS>
+                    <COUNTER_1_INCREMENT>
+                }
+                </IF DUPLICATES>
+                </IF DEFINED_ENABLE_COUNT>
+                </ALTERNATE_KEY_LOOP>
+</IF DEFINED_ENABLE_ALTERNATE_KEYS>
 </IF STRUCTURE_ISAM>
 <IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
-  <FIELD_LOOP>
-    <IF NOTPKSEGMENT>
-      <IF CUSTOM_NOT_HARMONY_EXCLUDE>
+                <FIELD_LOOP>
+                <IF NOTPKSEGMENT>
+                <IF CUSTOM_NOT_HARMONY_EXCLUDE>
+                <IF COUNTER_1>,</IF COUNTER_1>
                 {
                     "_postman_id": "<guid_nobrace>",
                     "name": "Read <structureNoplural> <fieldSqlName>",
@@ -282,7 +299,10 @@
                     }
                     },
                     "response": []
-                },
+                    <COUNTER_1_INCREMENT>
+                }
+<IF DEFINED_ENABLE_PROPERTY_VALUE_DOCS>
+                <IF COUNTER_1>,</IF COUNTER_1>
                 {
                     "_postman_id": "<guid_nobrace>",
                     "name": "Read <structureNoplural> <fieldSqlName> raw value",
@@ -312,11 +332,15 @@
                     }
                     },
                     "response": []
-                },
-      </IF CUSTOM_NOT_HARMONY_EXCLUDE>
-    </IF NOTPKSEGMENT>
-  </FIELD_LOOP>
+                    <COUNTER_1_INCREMENT>
+                }
+</IF DEFINED_ENABLE_PROPERTY_VALUE_DOCS>
+                </IF CUSTOM_NOT_HARMONY_EXCLUDE>
+                </IF NOTPKSEGMENT>
+                </FIELD_LOOP>
 </IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
+<IF DEFINED_ENABLE_POST>
+                <IF COUNTER_1>,</IF COUNTER_1>
                 {
                     "_postman_id": "<guid_nobrace>",
                     "name": "Create <structureNoplural> (auto assign key)",
@@ -346,7 +370,11 @@
                     }
                     },
                     "response": []
-                },
+                    <COUNTER_1_INCREMENT>
+                }
+</IF DEFINED_ENABLE_POST>
+<IF DEFINED_ENABLE_PUT>
+                <IF COUNTER_1>,</IF COUNTER_1>
                 {
                     "_postman_id": "<guid_nobrace>",
                     "name": "Create or update <structureNoplural>",
@@ -376,7 +404,11 @@
                     }
                     },
                     "response": []
-                },
+                    <COUNTER_1_INCREMENT>
+                }
+</IF DEFINED_ENABLE_PUT>
+<IF DEFINED_ENABLE_PATCH>
+                <IF COUNTER_1>,</IF COUNTER_1>
                 {
                     "name": "Patch <structureNoplural>",
                     "request": {
@@ -405,7 +437,11 @@
                     }
                     },
                     "response": []
-                },
+                    <COUNTER_1_INCREMENT>
+                }
+</IF DEFINED_ENABLE_PATCH>
+<IF DEFINED_ENABLE_DELETE>
+                <IF COUNTER_1>,</IF COUNTER_1>
                 {
                     "_postman_id": "<guid_nobrace>",
                     "name": "Delete <structureNoplural>",
@@ -435,10 +471,12 @@
                     }
                     },
                     "response": []
+                    <COUNTER_1_INCREMENT>
                 }
+</IF DEFINED_ENABLE_DELETE>
             ]
         }<,>
-</STRUCTURE_LOOP>
+        </STRUCTURE_LOOP>
     ],
     "event": [
         {
