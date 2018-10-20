@@ -179,6 +179,11 @@ namespace <NAMESPACE>
 ;//
             method set
             proc
+        <IF DEFINED_ENABLE_READ_ONLY_PROPERTIES>
+        <IF READONLY>
+                throw new ApplicationException("Property <Field_name> is read only!")
+        </IF READONLY>
+        </IF DEFINED_ENABLE_READ_ONLY_PROPERTIES>
         <IF ALPHA>
                 mSynergyData.<Field_name> = (<FIELD_TYPE>)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
         </IF ALPHA>
