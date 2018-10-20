@@ -3,9 +3,9 @@
 ;
 ;  REPOSITORY     : D:\SYNERGEX\HarmonyCore\HarmonyCore.Test.Repository\bin\Debu
 ;                 : D:\SYNERGEX\HarmonyCore\HarmonyCore.Test.Repository\bin\Debu
-;                 : Version 10.3.3e
+;                 : Version 10.3.3f
 ;
-;  GENERATED      : 16-OCT-2018, 11:34:35
+;  GENERATED      : 20-OCT-2018, 11:59:24
 ;                 : Version 10.3.3f
 ;  EXPORT OPTIONS : [ALL] 
  
@@ -33,11 +33,13 @@ Field CUSTOMER_NUMBER   Type DECIMAL   Size 6
    Long Description
       "SAMPLE_DATA=355232;"
    Report Just LEFT   Input Just LEFT
+   Required
  
 Field NAME   Type ALPHA   Size 30
    Description "Customer name"
    Long Description
       "SAMPLE_DATA=Abe's Nursery;"
+   Required
  
 Field STREET   Type ALPHA   Size 25
    Description "Street address"
@@ -92,6 +94,7 @@ Field TAX_ID   Type DECIMAL   Size 9
    Long Description
       "SAMPLE_DATA=546874521;"
       "HARMONY_ROLES=Manager;"
+   Required
  
 Field CREDIT_LIMIT   Type DECIMAL   Size 7   Precision 2
    Description "Credit limit"
