@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME><StructurePlural>Controller.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.3.7</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.3.8</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVICES_NAMESPACE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>API_ENABLE_QUERY_PARAMS</REQUIRES_USERTOKEN>
@@ -98,6 +98,7 @@ namespace <NAMESPACE>
 ;// GET ALL -------------------------------------------------------------------
 ;//
 <IF DEFINED_ENABLE_GET_ALL>
+<IF GET_ALL_ENDPOINT>
         {ODataRoute("<StructurePlural>")}
   <IF DEFINED_ENABLE_AUTHENTICATION>
     <IF USERTOKEN_ROLES_GET>
@@ -118,11 +119,13 @@ namespace <NAMESPACE>
             mreturn Ok(DBContext.<StructurePlural>)
         endmethod
 
+</IF GET_ALL_ENDPOINT>
 </IF DEFINED_ENABLE_GET_ALL>
 ;//
 ;// GET ONE -------------------------------------------------------------------
 ;//
 <IF DEFINED_ENABLE_GET_ONE>
+<IF GET_ENDPOINT>
         {ODataRoute("<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP>{a<SegmentName>}<,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>)")}
   <IF DEFINED_ENABLE_AUTHENTICATION>
     <IF USERTOKEN_ROLES_GET>
@@ -166,12 +169,14 @@ namespace <NAMESPACE>
             mreturn new SingleResult<<StructureNoplural>>(DBContext.<StructurePlural>.FindQuery<<StructureNoplural>>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP>a<SegmentName><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>))
         endmethod
 
+</IF GET_ENDPOINT>
 </IF DEFINED_ENABLE_GET_ONE>
 ;//
 ;// GET BY ALTERNATE KEY ------------------------------------------------------
 ;//
 <IF STRUCTURE_ISAM>
   <IF DEFINED_ENABLE_ALTERNATE_KEYS>
+  <IF ALTERNATE_KEY_ENDPOINTS>
     <ALTERNATE_KEY_LOOP>
       <IF DUPLICATES>
         {ODataRoute("<StructurePlural>(<SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP>)")}
@@ -233,12 +238,14 @@ namespace <NAMESPACE>
       </IF DUPLICATES>
 
     </ALTERNATE_KEY_LOOP>
+  </IF ALTERNATE_KEY_ENDPOINTS>
   </IF DEFINED_ENABLE_ALTERNATE_KEYS>
 </IF STRUCTURE_ISAM>
 ;//
 ;// GET INDIVIDUAL PROPERTIES -------------------------------------------------
 ;//
 <IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
+<IF PROPERTY_ENDPOINTS>
 ;//
 ;// In order for the $value function to work in conjunction with these properties,
 ;// the name of a single key segment MUST be "key"!!! Likely doesn't work with segmented keys.
@@ -313,11 +320,13 @@ namespace <NAMESPACE>
 
     </IF CUSTOM_NOT_HARMONY_EXCLUDE>
   </FIELD_LOOP>
+</IF PROPERTY_ENDPOINTS>
 </IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
 ;//
 ;// POST ----------------------------------------------------------------------
 ;//
 <IF DEFINED_ENABLE_POST>
+<IF POST_ENDPOINT>
   <IF DEFINED_ENABLE_AUTHENTICATION>
     <IF USERTOKEN_ROLES_POST>
         {Authorize(Roles="<ROLES_POST>")}
@@ -359,11 +368,13 @@ namespace <NAMESPACE>
 
         endmethod
 
+</IF POST_ENDPOINT>
 </IF DEFINED_ENABLE_POST>
 ;//
 ;// PUT -----------------------------------------------------------------------
 ;//
 <IF DEFINED_ENABLE_PUT>
+<IF PUT_ENDPOINT>
   <IF DEFINED_ENABLE_AUTHENTICATION>
     <IF USERTOKEN_ROLES_PUT>
         {Authorize(Roles="<ROLES_PUT>")}
@@ -441,11 +452,13 @@ namespace <NAMESPACE>
 
         endmethod
 
+</IF PUT_ENDPOINT>
 </IF DEFINED_ENABLE_PUT>
 ;//
 ;// PATCH ---------------------------------------------------------------------
 ;//
 <IF DEFINED_ENABLE_PATCH>
+<IF PATCH_ENDPOINT>
   <IF DEFINED_ENABLE_AUTHENTICATION>
     <IF USERTOKEN_ROLES_PATCH>
         {Authorize(Roles="<ROLES_PATCH>")}
@@ -513,11 +526,13 @@ namespace <NAMESPACE>
 
         endmethod
 
+</IF PATCH_ENDPOINT>
 </IF DEFINED_ENABLE_PATCH>
 ;//
 ;// DELETE --------------------------------------------------------------------
 ;//
 <IF DEFINED_ENABLE_DELETE>
+<IF DELETE_ENDPOINT>
   <IF DEFINED_ENABLE_AUTHENTICATION>
     <IF USERTOKEN_ROLES_DELETE>
         {Authorize(Roles="<ROLES_DELETE>")}
@@ -567,6 +582,7 @@ namespace <NAMESPACE>
 
         endmethod
 
+</IF DELETE_ENDPOINT>
 </IF DEFINED_ENABLE_DELETE>
     endclass
 
