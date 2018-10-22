@@ -5,7 +5,7 @@
 ;                 : D:\SYNERGEX\HarmonyCore\HarmonyCore.Test.Repository\bin\Debu
 ;                 : Version 10.3.3f
 ;
-;  GENERATED      : 20-OCT-2018, 11:59:24
+;  GENERATED      : 22-OCT-2018, 14:47:26
 ;                 : Version 10.3.3f
 ;  EXPORT OPTIONS : [ALL] 
  
@@ -153,6 +153,7 @@ Field COMMON_NAME   Type ALPHA   Size 30
    Description "Common name"
    Long Description
       "SAMPLE_DATA=European Hackberry;"
+   Required
  
 Field LATIN_NAME   Type ALPHA   Size 30
    Description "Latin name"
@@ -510,11 +511,13 @@ Field VENDOR_NUMBER   Type DECIMAL   Size 6
    Long Description
       "SAMPLE_DATA=39;"
    Report Just LEFT   Input Just LEFT
+   Required
  
 Field NAME   Type ALPHA   Size 30
    Description "Vendor name"
    Long Description
       "SAMPLE_DATA=Gardens R Us;"
+   Required
  
 Field STREET   Type ALPHA   Size 25
    Description "Street address"
