@@ -122,7 +122,7 @@ rem Self hosting
 
 if DEFINED ENABLE_SELF_HOST_GENERATION (
   codegen -s %FILE_STRUCTURES% %PARAMSTR% -ms ^
-          -t ODataSelfHost ^
+          -t ODataStandAloneSelfHost ^
           -o %SolutionDir%%HostProject% ^
           -n %HostProject% ^
              %STDOPTS%

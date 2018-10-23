@@ -10,7 +10,7 @@
 <REQUIRES_USERTOKEN>SERVER_HTTPS_PORT</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
-;// Title:       ODataSelfHost.tpl
+;// Title:       ODataStandaloneSelfHost.tpl
 ;//
 ;// Type:        CodeGen Template
 ;//
