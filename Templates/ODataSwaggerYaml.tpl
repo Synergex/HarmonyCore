@@ -12,11 +12,11 @@
 <REQUIRES_USERTOKEN>SERVER_NAME</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
-;// Title:       ODataSelfHost.tpl
+;// Title:       ODataSwaggerYaml.tpl
 ;//
 ;// Type:        CodeGen Template
 ;//
-;// Description: Generates a program to self-host Harmony Core services
+;// Description: Generates YAML Swagger File documenting a Harmony Core API
 ;//
 ;// Copyright (c) 2018, Synergex International, Inc. All rights reserved.
 ;//
