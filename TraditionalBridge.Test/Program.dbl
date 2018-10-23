@@ -1,6 +1,7 @@
 
 import Harmony.TraditionalBridge
 import TraditionalBridge.Test
+import TraditionalBridge
 
 main
 	record
@@ -8,15 +9,23 @@ main
 		ttChan, i4
 	endrecord
 proc
-	xcall flags(0907050020)
-	open(ttChan=0, O, "TT:")
+	try
+	begin
+		xcall flags(1907050020)
+		open(ttChan=0, O, "TT:")
+		TraditionalBridge.Logger.Instance = new TraditionalBridge.Logger("traditional_bridge.log", 0, false)
+		puts(ttChan, "READY" + %char(13)+ %char(10))
 
-	puts(ttChan, "READY" + %char(13)+ %char(10))
+		disp = new SampleXfplEnvDispatcher()
 
-	disp = new SampleXfplEnvDispatcher()
-
-	disp.Dispatch(ttChan)
-
-	puts(ttChan, "DISPATCHER EXITED" + %char(13)+ %char(10))
+		disp.Dispatch(ttChan)
+	end
+	
+	catch(e, @Exception)
+	begin
+		TraditionalBridge.Logger.Instance.Log("DISPATCHER EXITED with exception" + e.ToString())
+	end
+	endtry
+	;;TraditionalBridge.Logger.Instance.Log("DISPATCHER EXITED")
 
 endmain

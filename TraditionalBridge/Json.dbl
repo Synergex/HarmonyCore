@@ -44,7 +44,7 @@ namespace Json
 				ch, a1
 		proc
 			tempPos = currentPos
-			while(tempPos < inputValue.Length)
+			while(tempPos <= inputValue.Length)
 			begin
 				ch = STRING_AT(inputValue, tempPos)
 				if(!IsNumber(ch))
@@ -52,6 +52,7 @@ namespace Json
 
 				incr(tempPos)
 			end
+			
 			mreturn 0
 		endmethod
         
@@ -256,7 +257,13 @@ namespace Json
 					mreturn result
 				end
 				else if(jsonType == JSON_TYPE.NULL) then
-					mreturn ^null
+				begin
+					data result, @JsonNull
+					result = new JsonNull()
+					result.JsonType = jsonType 
+					; result.value = ^null ; { Value = value == "" ? true : false, JsonType = jsonType }
+					mreturn result
+				end
 				else
 					throw new Exception("Not Implemented")
 			end   
@@ -308,6 +315,7 @@ namespace Json
 				startPos, int
 				value, @string
 				ch, a1
+				numberPos, i4
 		proc
 			startPos = currentPos
 			ch = STRING_AT(inputValue, currentPos)
@@ -321,10 +329,12 @@ namespace Json
 				ReportFailure(inputValue, currentPos, "Not a number")
 			if(ch != '0') then
 			begin
-				currentPos = FindNumber(currentPos)
-				ch = STRING_AT(inputValue, currentPos)
-				if(!currentPos)
+				numberPos = FindNumber(currentPos)
+				if(!numberPos)
 					ReportFailure(inputValue, currentPos, "A Number")
+
+				currentPos = numberPos
+				ch = STRING_AT(inputValue, currentPos)
 			end
 			else
 			begin
@@ -340,20 +350,23 @@ namespace Json
 			if(ch == '.')
 			begin
 				incr currentPos
-				currentPos = FractionValue(currentPos)
-				ch = STRING_AT(inputValue, currentPos)
-				if(!currentPos)
+				numberPos = FractionValue(currentPos)
+				
+				if(!numberPos)
 					ReportFailure(inputValue, currentPos, "Fraction Value")
+				currentPos = numberPos
+				ch = STRING_AT(inputValue, currentPos)
 				jsonType = JSON_TYPE.NUMBER
 			end
 
 			if(ch == 'e' || ch == 'E')
 			begin
 				incr currentPos
-				currentPos = ExponentValue(currentPos)
-				ch = STRING_AT(inputValue, currentPos)
-				if(!currentPos)
+				numberPos = ExponentValue(currentPos)
+				if(!numberPos)
 					ReportFailure(inputValue, currentPos, "Exponent Value")
+				currentPos = numberPos
+				ch = STRING_AT(inputValue, currentPos)
 				jsonType = JSON_TYPE.NUMBER
 			end
 
@@ -470,34 +483,51 @@ namespace Json
 					casevar = ^i((a)STRING_AT(inputValue, currentPos))
 					case (casevar) of
 					begincase
-					58:
+					58: ; colon
 						nop
-					44:
+					44: ; comma
 						nop
-					123:
+					123: ; {
 					begin
 						data currentValueTemp = currentValue
 						jsonType = JSON_TYPE.OBJ
 						currentValue = MaybeAdd(currentProperty, currentValueTemp, MaybePushResult(currentValue, parentValues, resultValue, new JsonObject()))
 					end
-					91:
+					124:
+					begin
+						 
+					end
+					125: ; }
+					begin
+						jsonType = JSON_TYPE.ARRAY_VAL 
+					end
+					91: ; [
 					begin
 						data currentValueTemp = currentValue
 						jsonType = JSON_TYPE.ARRAY_VAL
 						currentValue = MaybeAdd(currentProperty, currentValueTemp, MaybePushResult(currentValue, parentValues, resultValue, new JsonArray()))
 					end
-					34: 
+					93: ; ]
+					begin
+						jsonType = JSON_TYPE.ARRAY_VAL
+					end
+					34: ; "
 						MaybeAdd(currentProperty, currentValue, TextValue(currentPos))
-					84:
+					84: ; T
 						MaybeAdd(currentProperty, currentValue, PrimitiveValue(currentPos, "true", JSON_TYPE.BOOL))
-					116:  
+					116:;   t
 						MaybeAdd(currentProperty, currentValue, PrimitiveValue(currentPos, "true", JSON_TYPE.BOOL))
-					70:
+					70: ; F
 						MaybeAdd(currentProperty, currentValue, PrimitiveValue(currentPos, "false", JSON_TYPE.BOOL))
-					102:  
+					102:; f
 						MaybeAdd(currentProperty, currentValue, PrimitiveValue(currentPos, "false", JSON_TYPE.BOOL))
-					110:  
-						MaybeAdd(currentProperty, currentValue, PrimitiveValue(currentPos, "null", JSON_TYPE.OBJ))
+					110:; n
+					begin
+						MaybeAdd(currentProperty, currentValue, PrimitiveValue(currentPos, "null", JSON_TYPE.NULL))
+						nextloop
+					end
+					78: ; N
+						MaybeAdd(currentProperty, currentValue, PrimitiveValue(currentPos, "Null", JSON_TYPE.NULL))
 					endcase
 					else
 					begin
@@ -738,6 +768,10 @@ namespace Json
 
 	class JsonValue
 		public JsonType, JSON_TYPE
+	endclass
+
+	class jsonNull extends JsonValue 
+		public value, @Object
 	endclass
 
 	class JsonText extends JsonValue

@@ -2,6 +2,8 @@
 import Json
 import System.Collections
 import TraditionalBridge
+;if((priority) <= Logger.LogLevel) 
+.define MaybeLog(priority, msg) Logger.Instance.Log(msg)
 
 namespace Harmony.TraditionalBridge
 
@@ -29,6 +31,7 @@ namespace Harmony.TraditionalBridge
 			mDispatchStubs = new StringDictionary()
 			mReadBufferSize = 0
 			mReadBuffer = 0
+			MaybeLog(5, "Creating RoutineDispatcher")
 		endmethod
 
 		method ~RoutineDispatcher
@@ -37,6 +40,7 @@ namespace Harmony.TraditionalBridge
 				mReadBuffer = %mem_proc(DM_FREE, mReadBuffer)
 
 			mReadBufferSize = 0
+			MaybeLog(5, "Destroying RoutineDispatcher")
 		endmethod
 
 		;;; <summary>
@@ -454,6 +458,8 @@ namespace Harmony.TraditionalBridge
 				parsedJson, @JsonValue
 				serializer, @ChannelSerializer
 				result, boolean
+				readerPosition, int
+				remainingRead, int
 			endrecord
 		proc
 			jsonReader = new Json()
@@ -463,19 +469,35 @@ namespace Harmony.TraditionalBridge
 			begin
 				if(mReadBuffer != 0) then
 				begin
+					MaybeLog(6, "Dispatcher: reallocating buffer was " + %string(mReadBufferSize) + " -> " + %string(frameHeader) )
 					mReadBuffer = %mem_proc(DM_RESIZ, frameHeader, mReadBuffer)
+					mReadBufferSize = frameHeader
 				end
 				else
 				begin
+					MaybeLog(6, "Dispatcher: allocating buffer with length" + %string(frameHeader))
 					mReadBuffer = %mem_proc(DM_ALLOC | DM_STATIC, frameHeader)
+					mReadBufferSize = frameHeader
 				end
 			end
 
-		again,
-			do gets(ttChannel, GetBuffer, wait:100) [$ERR_TIMOUT=again]
-			until %rdlen(ttChannel) == frameHeader
+			MaybeLog(6, "Dispatcher: Reading " + %string(frameHeader) + " total bytes of Content from input" )
+			readerPosition = 1
+			remainingRead = frameHeader
+			do 
+			begin
+				MaybeLog(6, "Dispatcher: Reading " + %string(remainingRead) + " bytes from input")
+				gets(ttChannel, ^m(MemStruct(readerPosition:remainingRead), mReadBuffer), wait:100, MASK:mActivationMask) [$ERR_TIMOUT=again]
+			again,	
+				MaybeLog(6, "Dispatcher: Reading Content from input" + ^m(MemStruct(readerPosition:remainingRead), mReadBuffer) + ": got " + %string(%rdlen(ttChannel)) + " bytes, was expecting " + %string(remainingRead) + " bytes")
+				readerPosition += %rdlen(ttChannel)
+				remainingRead = frameHeader - readerPosition
+				
+			end
+			until remainingRead <= 0
 
-			parsedJson = jsonReader.ParseJson(GetBuffer)
+			MaybeLog(6, "Dispatcher: Parsing buffer " + ^m(MemStruct(1:frameHeader), mReadBuffer))
+			parsedJson = jsonReader.ParseJson(^m(MemStruct(1:frameHeader), mReadBuffer))
 
 			if (!(parsedJson .is. @JsonObject) && !(parsedJson .is. @JsonArray))
 			begin
@@ -483,9 +505,12 @@ namespace Harmony.TraditionalBridge
 				mreturn true
 			end
 
+			MaybeLog(5, "Dispatcher: Finished Json Parsing")
+
 			result = true
 			if(parsedJson .is. JsonObject) then
 			begin
+				MaybeLog(5, "Dispatcher: Single Call")
 				result = ProcessCallBlock((@JsonObject)parsedJson, serializer)
 			end
 			else if(parsedJson .is. JsonArray)
@@ -493,6 +518,9 @@ namespace Harmony.TraditionalBridge
 				data parsedArray, @JsonArray
 				data jsonVal, @JsonValue
 				parsedArray = (@JsonArray)parsedJson
+
+				MaybeLog(5, "Dispatcher: Batch Call")
+
 				serializer.ArrayOpen()
 				foreach jsonVal in parsedArray.arrayValues
 				begin
@@ -523,6 +551,7 @@ namespace Harmony.TraditionalBridge
 			record
 				scopeLog, @string
 		proc
+			serializer.OutputScopeAbort()
 			serializer.MapOpen()
 			serializer.Pair("jsonrpc", "2.0")
 			serializer.String("error")
@@ -543,6 +572,8 @@ namespace Harmony.TraditionalBridge
 				serializer.PairNull("id")
 
 			serializer.MapClose()
+
+			MaybeLog(1, "ReportError: " + errorText + " messageId" + %string(messageId))
 		endmethod
 
 		public method ReportResult, void
@@ -560,6 +591,8 @@ namespace Harmony.TraditionalBridge
 				serializer.PairNull("id")
 
 			serializer.MapClose()
+
+			MaybeLog(5, "ReportResult: " + result + " messageId" + %string(requestId))
 		endmethod
 
 		public method ReportResult, void
@@ -577,6 +610,7 @@ namespace Harmony.TraditionalBridge
 				serializer.PairNull("id")
 
 			serializer.MapClose()
+			MaybeLog(5, "ReportResult: " + %string(result) + " messageId" + %string(requestId))
 		endmethod
 
 		public method ReportResult, void
@@ -614,6 +648,7 @@ namespace Harmony.TraditionalBridge
 				serializer.PairNull("id")
 
 			serializer.MapClose()
+			MaybeLog(5, "ReportResult: array(" + %string(result.Length) + ") messageId" + %string(requestId))
 		endmethod
 
 		;;; <summary>
@@ -647,15 +682,23 @@ namespace Harmony.TraditionalBridge
 				running = true
 				while(running)
 				begin
-		again,		do gets(ttChannel, PacketLength, wait:100, MASK:mActivationMask)  [$ERR_TIMOUT=again]
+					do 
+					begin
+						gets(ttChannel, PacketLength, wait:100)  [$ERR_TIMOUT=again]
+			again,		
+						MaybeLog(6, "Dispatcher: Reading ContentLength from input" + %atrim(PacketLength) + ":" + %string(%rdlen(ttChannel)))
+					end
 					until %rdlen(ttChannel) > 18
 
 					frameHeader = ^d(%atrim(lengthValue))
 
-		againContent,do gets(ttChannel, ContentType, wait:100, MASK:mActivationMask)  [$ERR_TIMOUT=againContent]
-					until %rdlen(ttChannel) >= 2
+				againContent,	
+					gets(ttChannel, ContentType, wait:100)  [$ERR_TIMOUT=againContent]
+					MaybeLog(6, "Dispatcher: Reading ContentType from input" + %atrim(ContentType) + ":" + %string(%rdlen(ttChannel)))
 
-					running = ReadCallBlock(ttChannel, (int)frameHeader)
+					MaybeLog(5, "Dispatcher: starting callblock processing with ContentLength " + %atrim(lengthValue) + " ContentType " + %atrim(ContentType))
+
+					running = ReadCallBlock(ttChannel, (int)frameHeader + 1)
 				end
 				writes(ttChannel, "Shutting down due to running == false")
 			end
@@ -691,6 +734,8 @@ namespace Harmony.TraditionalBridge
 			begin
 				ReportError("method name missing", -32600, requestId, serializer)
 			end
+
+			MaybeLog(5, "Dispatcher: method target was " + name)
 
 			serializer.OutputScopeOpen()
 
@@ -732,7 +777,9 @@ namespace Harmony.TraditionalBridge
 				begin
 					if(mDispatchStubs.TryGet(name, dispatchStub)) then
 					begin
+						MaybeLog(5, "Dispatcher: dispatching compiled stub for " + name)
 						dispatchStub.Dispatch(name, jsonData, serializer, this)
+						MaybeLog(5, "Dispatcher: finished dispatching compiled stub for " + name)
 					end
 					else
 					begin
@@ -742,7 +789,7 @@ namespace Harmony.TraditionalBridge
 						data rcbid, i4
 						data ii, i4, 0
 						data responseSet, [#]boolean
-
+						MaybeLog(5, "Dispatcher: dispatching dynamically for " + name)
 						if(jsonData.HasProperty("params"))
 						begin
 							data arg, @JsonObject
@@ -778,6 +825,7 @@ namespace Harmony.TraditionalBridge
 						end
 						xcall rcb_call(rcbid) 
 						ReportResult(requestId, argValueArray, responseSet, serializer)
+						MaybeLog(5, "Dispatcher: finished dispatching dynamically for " + name)
 					end
 				end
 				serializer.OutputScopeClose()

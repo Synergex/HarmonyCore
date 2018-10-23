@@ -436,9 +436,6 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 			;;Terminate the "ReturnParameters" array
 			serializer.ArrayClose()
 
-			;;Terminate the "Result" object
-			serializer.MapClose()
-
 			;;Terminate the response object
 			begin
 				;;Structured this way to assist with debugging

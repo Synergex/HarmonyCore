@@ -52,12 +52,20 @@ namespace Harmony.Core.Context
 			data readLine, @string
 			mTargetProcess.Start()
 			mTargetProcess.StartInfo.StandardOutputEncoding = ASCIIEncoding.ASCII
-			while((readLine = mTargetProcess.StandardOutput.ReadLine()) != "READY")
+			readLine = await mTargetProcess.StandardOutput.ReadLineAsync()
+			Trace.WriteLine(readLine)
+			while(!mTargetProcess.HasExited && readLine != "READY")
 			begin
-				Debug.WriteLine("Not Ready")
+				readLine = await mTargetProcess.StandardOutput.ReadLineAsync()
+				Trace.WriteLine(readLine)
 			end
+
+			if(mTargetProcess.HasExited)
+				throw new Exception("process exited during initialization")
 			
-			mreturn JsonRpc.Attach(mTargetProcess.StandardInput.BaseStream, mTargetProcess.StandardOutput.BaseStream, ^null) 
+			data result = JsonRpc.Attach(mTargetProcess.StandardInput.BaseStream, mTargetProcess.StandardOutput.BaseStream, ^null) 
+			result.TraceSource = new TraceSource("Client", SourceLevels.All)
+			mreturn result
 		endmethod
 	
         public virtual method MakeReady, @Task
