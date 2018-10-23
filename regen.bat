@@ -171,9 +171,9 @@ if DEFINED ENABLE_UNIT_TEST_GENERATION (
              %STDOPTS%
   if ERRORLEVEL 1 goto error
 
-  rem Generate the unit test environment class, and the self-hosting program
+  rem Generate the unit test environment class, and the unit test hosting program
   codegen -s %FILE_STRUCTURES% -ms ^
-          -t ODataUnitTestEnvironment ODataSelfHost ^
+          -t ODataUnitTestEnvironment ODataUnitTestHost ^
           -o %SolutionDir%%TestProject% ^
           -n %TestProject% ^
              %STDOPTS%

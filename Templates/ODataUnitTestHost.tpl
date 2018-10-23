@@ -9,11 +9,11 @@
 <REQUIRES_USERTOKEN>API_DOCS_PATH</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
-;// Title:       ODataSelfHost.tpl
+;// Title:       ODataUnitTestHost.tpl
 ;//
 ;// Type:        CodeGen Template
 ;//
-;// Description: Generates a program to self-host Harmony Core services
+;// Description: Generates a program to self-host Harmony Core unit tests
 ;//
 ;// Copyright (c) 2018, Synergex International, Inc. All rights reserved.
 ;//
@@ -43,7 +43,7 @@
 ;;
 ;; Title:       SelfHost.dbl
 ;;
-;; Description: A program to self-host Harmony Core services
+;; Description: A program to self-host Harmony Core unit tests
 ;;
 ;;*****************************************************************************
 ;; WARNING: GENERATED CODE!
