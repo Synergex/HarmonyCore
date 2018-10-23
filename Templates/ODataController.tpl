@@ -53,15 +53,13 @@ import Microsoft.AspNet.OData
 import Microsoft.AspNet.OData.Routing
 import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Infrastructure
-<IF DEFINED_ENABLE_FIELD_SECURITY>
-import Harmony.OData
-</IF DEFINED_ENABLE_FIELD_SECURITY>
+import Harmony.Core.Interface
 import Harmony.Core.EF.Extensions
+import Harmony.OData
 <IF DEFINED_ENABLE_AUTHENTICATION>
 import Microsoft.AspNetCore.Authorization
 </IF DEFINED_ENABLE_AUTHENTICATION>
 import <MODELS_NAMESPACE>
-import Harmony.Core.Interface
 
 namespace <NAMESPACE>
 
@@ -333,6 +331,7 @@ namespace <NAMESPACE>
     </IF USERTOKEN_ROLES_POST>
   </IF DEFINED_ENABLE_AUTHENTICATION>
         {ODataRoute("<StructurePlural>")}
+        {ValidateModelState}
         ;;; <summary>
         ;;; Create a new <structureNoplural> (automatically assigned primary key).
         ;;; </summary>
@@ -381,6 +380,7 @@ namespace <NAMESPACE>
     </IF USERTOKEN_ROLES_PUT>
   </IF DEFINED_ENABLE_AUTHENTICATION>
         {ODataRoute("<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>)")}
+        {ValidateModelState}
         ;;; <summary>
         ;;; Create (with a client-supplied primary key) or replace a <structureNoplural>.
         ;;; </summary>
@@ -465,6 +465,7 @@ namespace <NAMESPACE>
     </IF USERTOKEN_ROLES_PATCH>
   </IF DEFINED_ENABLE_AUTHENTICATION>
         {ODataRoute("<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><SegmentName>={a<SegmentName>}<,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>RecordNumber={aRecordNumber}</IF STRUCTURE_RELATIVE>)")}
+        {ValidateModelState}
         ;;; <summary>
         ;;; Patch  (partial update) a <structureNoplural>.
         ;;; </summary>
