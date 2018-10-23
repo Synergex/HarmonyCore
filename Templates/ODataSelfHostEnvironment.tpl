@@ -1,20 +1,14 @@
-<CODEGEN_FILENAME>SelfHost.dbl</CODEGEN_FILENAME>
+<CODEGEN_FILENAME>SelfHostEnvironment.dbl</CODEGEN_FILENAME>
 <REQUIRES_CODEGEN_VERSION>5.3.7</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>DATA_FOLDER</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
-<REQUIRES_USERTOKEN>API_DOCS_PATH</REQUIRES_USERTOKEN>
-<REQUIRES_USERTOKEN>SERVICES_NAMESPACE</REQUIRES_USERTOKEN>
-<REQUIRES_USERTOKEN>SERVER_PROTOCOL</REQUIRES_USERTOKEN>
-<REQUIRES_USERTOKEN>SERVER_NAME</REQUIRES_USERTOKEN>
-<REQUIRES_USERTOKEN>SERVER_HTTP_PORT</REQUIRES_USERTOKEN>
-<REQUIRES_USERTOKEN>SERVER_HTTPS_PORT</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
-;// Title:       ODataStandaloneSelfHost.tpl
+;// Title:       ODataSelfHostEnvironment.tpl
 ;//
 ;// Type:        CodeGen Template
 ;//
-;// Description: Generates a program to self-host Harmony Core services
+;// Description: Generates an environment setup class for a self host program
 ;//
 ;// Copyright (c) 2018, Synergex International, Inc. All rights reserved.
 ;//
@@ -42,9 +36,9 @@
 ;//
 ;;*****************************************************************************
 ;;
-;; Title:       SelfHost.dbl
+;; Title:       SelfHostEnvironment.dbl
 ;;
-;; Description: A program to self-host Harmony Core services
+;; Description: Environment setup class for a Harmony Core self host program
 ;;
 ;;*****************************************************************************
 ;; WARNING: GENERATED CODE!
@@ -57,60 +51,19 @@ import Microsoft.AspNetCore.Hosting
 import System.Collections.Generic
 import System.IO
 import System.Text
-import <SERVICES_NAMESPACE>
 import <MODELS_NAMESPACE>
-
-main SelfHost
-
-proc
-    ;;Configure the environment
-    try
-    begin
-        SelfHostEnvironment.Initialize()
-    end
-    catch (ex, @Exception)
-    begin
-        Console.WriteLine(ex.Message)
-        Console.Write("Press a key to terminate: ")
-        Console.ReadKey()
-        stop
-    end
-    endtry
-
-<IF DEFINED_ENABLE_SWAGGER_DOCS>
-    Console.WriteLine("API documentation is available at <SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<API_DOCS_PATH>")
-
-    data wwwroot = Path.Combine(AppContext.BaseDirectory, "wwwroot")
-
-    ;;Make sure the wwwroot folder is present
-    if (!Directory.Exists(wwwroot))
-        Directory.CreateDirectory(wwwroot)
-
-</IF DEFINED_ENABLE_SWAGGER_DOCS>
-    ;;Start self-hosting (Kestrel)
-    WebHost.CreateDefaultBuilder(new string[0])
-<IF DEFINED_ENABLE_SWAGGER_DOCS>
-    &    .UseContentRoot(wwwroot)
-    &    .UseWebRoot(wwwroot)
-</IF DEFINED_ENABLE_SWAGGER_DOCS>
-<IF DEFINED_ENABLE_IIS_SUPPORT>
-    &    .UseIISIntegration()
-</IF DEFINED_ENABLE_IIS_SUPPORT>
-    &    .UseStartup<Startup>()
-    &    .UseUrls("http://<SERVER_NAME>:<SERVER_HTTP_PORT>", "https://<SERVER_NAME>:<SERVER_HTTPS_PORT>")
-    &    .Build()
-    &    .Run()
-
-    ;;Cleanup the environment
-    SelfHostEnvironment.Cleanup()
-
-endmain
 
 .Array 0
 
 namespace <NAMESPACE>
 
-    public static class SelfHostEnvironment
+    public partial static class SelfHostEnvironment
+
+        ;;Declare the InitializeCustom partial method
+        ;;This method can be implemented in a partial class to provide custom code to initialize the self hosting environment
+        partial static method InitializeCustom, void
+
+        endmethod
 
         public static method Initialize, void
 
@@ -125,7 +78,16 @@ namespace <NAMESPACE>
 <IF DEFINED_ENABLE_CREATE_TEST_FILES>
             deleteFiles()
             createFiles()
+
 </IF DEFINED_ENABLE_CREATE_TEST_FILES>
+            ;;If we have an InitializeCustom method, call it
+            InitializeCustom()
+
+        endmethod
+
+        ;;Declare the CleanupCustom partial method
+        ;;This method can be implemented in a partial class to provide custom code to cleanup the self hosting environment before close
+        partial static method CleanupCustom, void
 
         endmethod
 
@@ -137,6 +99,15 @@ namespace <NAMESPACE>
             deleteFiles()
 
 </IF DEFINED_ENABLE_CREATE_TEST_FILES>
+            ;;If we have a CleanupCustom method, call it
+            CleanupCustom()
+
+        endmethod
+
+        ;;Declare the SetLogicalsCustom partial method
+        ;;This method can be implemented in a partial class to provide custom code to define logical names
+        partial static method SetLogicalsCustom, void
+            required in logicals, @List<string>
         endmethod
 
         private static method setLogicals, void
@@ -156,10 +127,23 @@ namespace <NAMESPACE>
             end
             </STRUCTURE_LOOP>
 
+            ;;If we have a SetLogicalsCustom method, call it
+            SetLogicalsCustom(logicals)
+
+            ;;Now we'll check each logical. If it already has a value we'll do nothing, otherwise
+            ;;we'll set the logical to point to the local folder whose name is identified by the
+            ;;user-defined token DATA_FOLDER
             foreach logical in logicals
             begin
                 data sts, int
-                xcall setlog(logical,sampleDataFolder,sts)
+                data translation, a80
+                ;;Is it set?
+                xcall getlog(logical,translation,sts)
+                if (!sts)
+                begin
+                    ;;No, we'll set it to <DATA_FOLDER>
+                    xcall setlog(logical,sampleDataFolder,sts)
+                end
             end
 
         endmethod

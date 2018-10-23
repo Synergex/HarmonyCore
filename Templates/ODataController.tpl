@@ -47,21 +47,19 @@
 ;; Any changes you make will be lost of the file is re-generated.
 ;;*****************************************************************************
 
+<IF DEFINED_ENABLE_AUTHENTICATION>
+import Microsoft.AspNetCore.Authorization
+</IF DEFINED_ENABLE_AUTHENTICATION>
 import Microsoft.AspNetCore.JsonPatch
 import Microsoft.AspNetCore.Mvc
 import Microsoft.AspNet.OData
 import Microsoft.AspNet.OData.Routing
 import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Infrastructure
-<IF DEFINED_ENABLE_FIELD_SECURITY>
-import Harmony.OData
-</IF DEFINED_ENABLE_FIELD_SECURITY>
 import Harmony.Core.EF.Extensions
-<IF DEFINED_ENABLE_AUTHENTICATION>
-import Microsoft.AspNetCore.Authorization
-</IF DEFINED_ENABLE_AUTHENTICATION>
-import <MODELS_NAMESPACE>
 import Harmony.Core.Interface
+import Harmony.OData
+import <MODELS_NAMESPACE>
 
 namespace <NAMESPACE>
 
