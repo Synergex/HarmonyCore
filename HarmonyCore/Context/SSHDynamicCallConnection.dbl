@@ -15,7 +15,7 @@ namespace Harmony.Core.Context
 		private static NewLineBytes, [#]Byte, new byte[#] { 10, 13 }
 		private mTargetConnection, @SshClient
 		private mTargetShell, @ShellStream
-        private mLaunchCommand, @string
+		private mLaunchCommand, @string
 		private mMakeReadyTask, @Lazy<Task<JsonRpc>>
 		private mTargetOS, RemoteTargetOS
 		public method SSHDynamicCallConnection
@@ -25,8 +25,8 @@ namespace Harmony.Core.Context
 		proc
 			mTargetOS = targetOS
 			mLaunchCommand = command
-            mTargetConnection = new SshClient(startInfo)
-            mMakeReadyTask = new Lazy<Task<JsonRpc>>(MakeReadyInternal)
+			mTargetConnection = new SshClient(startInfo)
+			mMakeReadyTask = new Lazy<Task<JsonRpc>>(MakeReadyInternal)
 		endmethod
 		
 		public virtual method Recycle, @Task
@@ -56,40 +56,87 @@ namespace Harmony.Core.Context
 			mTargetShell = mTargetConnection.CreateShellStream("vt220", 0, 0,0,0, 1024 * 64)
 			data reader = new StreamReader(mTargetShell) 
 			data writer = new StreamWriter(mTargetShell)
-			data guidString = Guid.NewGuid().ToString()
-			
-			if(mTargetOS == RemoteTargetOS.VMS) then
+			data guidString, @string, Guid.NewGuid().ToString()
+			data guidStrings = new HashSet<string>()
+			data readLine, @string
+			data foundMatch, boolean, false
+			guidStrings.Add(guidString)
+
+			while(String.IsNullOrWhiteSpace(readLine) || readLine != guidString)
 			begin
-				await reader.ReadLineAsync()
-				await writer.WriteAsync('WRITE SYS$OUTPUT "' + guidString +  '"' + %char(13) + %char(10))
-			end
-			else
-			begin
-				await reader.ReadLineAsync()
-				await writer.WriteAsync('echo "' + guidString +  '"' + %char(13) + %char(10))
+				if(readLine == ^null || !foundMatch)
+				begin
+					if(mTargetOS == RemoteTargetOS.VMS) then
+					begin
+						await writer.WriteAsync('WRITE SYS$OUTPUT "' + guidString +  '"' + %char(13) + %char(10))
+					end
+					else
+					begin
+						await writer.WriteAsync('echo "' + guidString +  '"' + %char(13) + %char(10))
+					end
+
+					await writer.FlushAsync()
+				end
+
+				readLine = TrimControlChars(await reader.ReadLineAsync())
+				while(String.IsNullOrWhiteSpace(readLine))
+				begin
+					readLine = TrimControlChars(await reader.ReadLineAsync())
+				end
+
+				data checkString, @string
+				foundMatch = false
+				foreach checkString in guidStrings
+				begin
+					if(readLine.Contains(checkString)) 
+					begin
+						foundMatch = true
+						exitloop
+					end
+				end
+
+				if(!foundMatch)
+				begin
+					guidString = Guid.NewGuid().ToString()
+					guidStrings.Add(guidString)
+				end
 			end
 
-			data readLine = await reader.ReadLineAsync()
-			while(readLine != ^null && !readLine.Contains(guidString))
-			begin
-				readLine = await reader.ReadLineAsync()
-			end
 			
-			await writer.WriteLineAsync(mLaunchCommand)
-			
-			while(readLine != ^null && readLine.Trim() != "READY")
+			await writer.WriteAsync(mLaunchCommand + %char(13) + %char(10))
+			await writer.FlushAsync()
+
+			do
 			begin
-				readLine = await reader.ReadLineAsync()
+				readLine = TrimControlChars(await reader.ReadLineAsync())
 			end
+			until(readLine == "READY")
 			
 			mreturn JsonRpc.Attach(mTargetShell, ^null) 
 		endmethod
 	
-	
-        public virtual method MakeReady, @Task
-        proc
-            mreturn mMakeReadyTask.Value
-        endmethod
+		public method TrimControlChars, @string
+			arg, @string
+		proc
+			if(arg == ^null)
+				mreturn ^null
+
+			data arrForm = arg.ToCharArray()
+			data buffer = new StringBuilder(arg.Length)
+			data ch, char
+			foreach ch in arrForm
+				if (!Char.IsControl(ch) && !Char.IsWhiteSpace(ch)) 
+					buffer.Append(ch)
+ 
+			mreturn buffer.ToString()
+		endmethod
+
+
+
+		public virtual method MakeReady, @Task
+		proc
+			mreturn mMakeReadyTask.Value
+		endmethod
 
 	endclass
 
