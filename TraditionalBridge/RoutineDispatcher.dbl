@@ -686,7 +686,7 @@ namespace Harmony.TraditionalBridge
 					do 
 					begin
 						gets(ttChannel, PacketLength, wait:100)  [$ERR_TIMOUT=again]
-			again,		
+					again,		
 						MaybeLog(6, "Dispatcher: Reading ContentLength from input" + %atrim(PacketLength) + ":" + %string(%rdlen(ttChannel)))
 					end
 					until %rdlen(ttChannel) > 18
@@ -695,7 +695,7 @@ namespace Harmony.TraditionalBridge
 					contentTypePos = 1
 					while(contentTypePos < 255)
 					begin
-			againContent,	
+					againContent,	
 						gets(ttChannel, ContentType(contentTypePos:1), wait:100, MASK:mActivationMask)  [$ERR_TIMOUT=againContent]
 						if(contentTypePos > 2 && ContentType(contentTypePos:1) == %char(10))
 							exitloop
@@ -731,7 +731,7 @@ namespace Harmony.TraditionalBridge
 			record
 				requestId, int
 				name, @string
-				argArray, @JsonArray
+				argArrayList, @ArrayList
 				dispatchStub, @RoutineStub
 			endrecord
 		proc
@@ -769,12 +769,22 @@ namespace Harmony.TraditionalBridge
 					end
 					else if(name == "rpc.set_log_level") then
 					begin
-						ReportResult(requestId, 0, serializer)
+						data logArg, @JsonInt
+						argArrayList = ((@JsonArray)jsonData.GetProperty("params")).arrayValues
+
+						if(argArrayList.Count != 1 || !(argArrayList[0] .is. JsonInt)) then
+							ReportError("invalid parameters for rpc.set_log_level", -32602, requestId, serializer)
+						else
+						begin
+							Logger.LogLevel = ((JsonInt)argArrayList[0]).Value
+							ReportResult(requestId, 0, serializer)
+						end
+
 					end
 					else if(name == "rpc.chain") then
 					begin
 						;;TODO: flush everything out and stop chain to ourselves
-						throw new Exception("rpc.chain Not yet implemented")
+						ReportError("rpc.chain not yet implemented", -32603, requestId, serializer)
 					end
 					else
 					begin
@@ -793,23 +803,23 @@ namespace Harmony.TraditionalBridge
 					else
 					begin
 						data arg, @JsonObject
-						data argArray, @ArrayList, new ArrayList()
 						data argValueArray, [#]@Object
 						data rcbid, i4
 						data ii, i4, 0
 						data responseSet, [#]boolean
+						argArrayList = new ArrayList()
 						MaybeLog(5, "Dispatcher: dispatching dynamically for " + name)
 						if(jsonData.HasProperty("params"))
 						begin
 							data arg, @JsonObject
 							data ii = 0
-							argArray = ((@JsonArray)jsonData.GetProperty("params")).arrayValues
+							argArrayList = ((@JsonArray)jsonData.GetProperty("params")).arrayValues
 						end
-						argValueArray = new object[argArray.Count]
-						responseSet = new boolean[argArray.Count]
-						rcbid = %rcb_create(argArray.Count) 
+						argValueArray = new object[argArrayList.Count]
+						responseSet = new boolean[argArrayList.Count]
+						rcbid = %rcb_create(argArrayList.Count) 
 						xcall rcb_setfnc(rcbid, name)
-						foreach arg in argArray as @JsonObject
+						foreach arg in argArrayList as @JsonObject
 						begin
 							data argType, FieldDataType
 							data argLength, i4, 0
