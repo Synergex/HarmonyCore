@@ -668,6 +668,7 @@ namespace Harmony.TraditionalBridge
 			record
 				running, boolean
 				frameHeader, d10
+				contentTypePos, int
 			endrecord
 		proc
 			;;read 10 bytes of data from input when its available
@@ -691,10 +692,18 @@ namespace Harmony.TraditionalBridge
 					until %rdlen(ttChannel) > 18
 
 					frameHeader = ^d(%atrim(lengthValue))
+					contentTypePos = 1
+					while(contentTypePos < 255)
+					begin
+			againContent,	
+						gets(ttChannel, ContentType(contentTypePos:1), wait:100, MASK:mActivationMask)  [$ERR_TIMOUT=againContent]
+						if(contentTypePos > 2 && ContentType(contentTypePos:1) == %char(10))
+							exitloop
 
-				againContent,	
-					gets(ttChannel, ContentType, wait:100)  [$ERR_TIMOUT=againContent]
-					MaybeLog(6, "Dispatcher: Reading ContentType from input" + %atrim(ContentType) + ":" + %string(%rdlen(ttChannel)))
+						contentTypePos += 1
+					end
+
+					MaybeLog(6, "Dispatcher: Reading ContentType from input" + %atrim(ContentType) + ":" + %string(contentTypePos))
 
 					MaybeLog(5, "Dispatcher: starting callblock processing with ContentLength " + %atrim(lengthValue) + " ContentType " + %atrim(ContentType))
 

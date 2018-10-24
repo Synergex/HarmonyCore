@@ -8,6 +8,7 @@ import Newtonsoft.Json
 import System.Diagnostics
 import System.Threading.Tasks
 import StreamJsonRpc
+import System.Threading
 
 namespace Harmony.Core.Context
 
@@ -15,6 +16,8 @@ namespace Harmony.Core.Context
 		private static NewLineBytes, [#]Byte, new byte[#] { 10, 13 }
 		private mTargetConnection, @SshClient
 		private mTargetShell, @ShellStream
+		private mReader, @StreamReader
+		private mWriter, @StreamWriter
 		private mLaunchCommand, @string
 		private mMakeReadyTask, @Lazy<Task<JsonRpc>>
 		private mTargetOS, RemoteTargetOS
@@ -54,8 +57,9 @@ namespace Harmony.Core.Context
 		proc
 			mTargetConnection.Connect()
 			mTargetShell = mTargetConnection.CreateShellStream("vt220", 0, 0,0,0, 1024 * 64)
-			data reader = new StreamReader(mTargetShell) 
-			data writer = new StreamWriter(mTargetShell)
+			data streamWrapper = new ShellStreamWrapper(mTargetShell, mTargetConnection)
+			mReader = new StreamReader(streamWrapper) 
+			mWriter = new StreamWriter(streamWrapper) 
 			data guidString, @string, Guid.NewGuid().ToString()
 			data guidStrings = new HashSet<string>()
 			data readLine, @string
@@ -68,22 +72,22 @@ namespace Harmony.Core.Context
 				begin
 					if(mTargetOS == RemoteTargetOS.VMS) then
 					begin
-						await writer.WriteAsync('WRITE SYS$OUTPUT "' + guidString +  '"' + %char(13) + %char(10))
+						await mWriter.WriteAsync('WRITE SYS$OUTPUT "' + guidString +  '"' + %char(13) + %char(10))
 					end
 					else
 					begin
-						await writer.WriteAsync('echo "' + guidString +  '"' + %char(13) + %char(10))
+						await mWriter.WriteAsync('echo "' + guidString +  '"' + %char(13) + %char(10))
 					end
 
-					await writer.FlushAsync()
+					await mWriter.FlushAsync()
 				end
 
-				readLine = TrimControlChars(await reader.ReadLineAsync())
+				readLine = TrimControlChars(await mReader.ReadLineAsync())
 				while(String.IsNullOrWhiteSpace(readLine))
 				begin
-					readLine = TrimControlChars(await reader.ReadLineAsync())
+					readLine = TrimControlChars(await mReader.ReadLineAsync())
 				end
-
+				
 				data checkString, @string
 				foundMatch = false
 				foreach checkString in guidStrings
@@ -103,16 +107,19 @@ namespace Harmony.Core.Context
 			end
 
 			
-			await writer.WriteAsync(mLaunchCommand + %char(13) + %char(10))
-			await writer.FlushAsync()
+			await mWriter.WriteAsync(mLaunchCommand + %char(13) + %char(10))
+			await mWriter.FlushAsync()
 
 			do
 			begin
-				readLine = TrimControlChars(await reader.ReadLineAsync())
+				readLine = TrimControlChars(await mReader.ReadLineAsync())
 			end
 			until(readLine == "READY")
 			
-			mreturn JsonRpc.Attach(mTargetShell, ^null) 
+			
+			data result = JsonRpc.Attach(streamWrapper, streamWrapper) 
+			result.TraceSource = new TraceSource("Client", SourceLevels.All)
+			mreturn result
 		endmethod
 	
 		public method TrimControlChars, @string
@@ -137,6 +144,151 @@ namespace Harmony.Core.Context
 		proc
 			mreturn mMakeReadyTask.Value
 		endmethod
+
+		private class ShellStreamWrapper extends Stream
+
+			public override method Read, int
+				buffer, [#]byte 
+				offset, int 
+				count, int 
+				endparams
+			proc
+				mreturn mStream.Read(buffer, offset, count)
+			endmethod
+
+
+			private mStream, @ShellStream
+			private mConnection, @SshClient
+			;private mEvent, @AutoResetEvent
+			public method ShellStreamWrapper
+				stream, @ShellStream
+				connection, @SshClient
+			proc
+				mStream = stream
+				mConnection = connection
+				;mEvent = new AutoResetEvent(false)
+			endmethod
+
+
+			public override property CanRead, Boolean
+				method get
+				proc
+					mreturn mStream.CanRead
+				endmethod
+			endproperty
+
+
+
+			public override method Flush, void
+				endparams
+			proc
+				mStream.Flush()
+			endmethod
+
+			public override method ReadAsync, @Task<int> 
+				buffer, [#]byte 
+				offset, int 
+				count, int 
+				token, CancellationToken
+				endparams
+			proc
+				
+				if(mStream.DataAvailable) then
+					mreturn Task.FromResult(mStream.Read(buffer, offset, count))
+				else
+				begin
+					data tcs = new TaskCompletionSource<int>()
+					data handlerInstance, @EventHandler<ShellDataEventArgs>
+					lambda DataReceivedHandler(sender, args)
+					begin
+						mStream.DataReceived -= handlerInstance
+						tcs.TrySetResult(mStream.Read(buffer, offset, count))
+					end
+					handlerInstance = DataReceivedHandler
+					mStream.DataReceived += handlerInstance
+					mreturn tcs.Task
+				end
+			endmethod
+
+			public override property CanTimeout, boolean
+				method get
+				proc
+					mreturn true
+				endmethod
+			endproperty
+
+
+			public override property CanSeek, Boolean
+				method get
+				proc
+					mreturn mStream.CanSeek
+				endmethod
+			endproperty
+
+
+
+			public override property Position, long
+				method get
+				proc
+					mreturn mStream.Position
+				endmethod
+				method set
+				proc
+					mStream.Position = value
+				endmethod
+			endproperty
+
+
+
+			public override property Length, long
+				method get
+				proc
+					mreturn mStream.Length
+				endmethod
+			endproperty
+
+
+
+			public override method Seek, long
+				offset, long 
+				origin, SeekOrigin 
+				endparams
+			proc
+				mreturn mStream.Seek(offset, origin)
+			endmethod
+
+
+
+			public override property CanWrite, Boolean
+				method get
+				proc
+					mreturn mStream.CanWrite
+				endmethod
+			endproperty
+
+
+
+			public override method Write, void
+				buffer, [#]byte 
+				offset, int 
+				count, int 
+				endparams
+			proc
+				mStream.Write(buffer, offset, count)
+				mStream.Flush()
+			endmethod
+
+
+
+			public override method SetLength, void
+				value, long 
+				endparams
+			proc
+				mStream.SetLength(value)
+			endmethod
+
+
+		endclass
 
 	endclass
 
