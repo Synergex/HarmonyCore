@@ -204,8 +204,17 @@ namespace Harmony.Core.Context
 						mStream.DataReceived -= handlerInstance
 						tcs.TrySetResult(mStream.Read(buffer, offset, count))
 					end
+
+					data errorHandlerInstance, @EventHandler<ExceptionEventArgs>
+					lambda ErrorHandler(sender, args)
+					begin
+						mStream.ErrorOccurred -= errorHandlerInstance
+						tcs.TrySetException(args.Exception)
+					end
 					handlerInstance = DataReceivedHandler
+					errorHandlerInstance = ErrorHandler
 					mStream.DataReceived += handlerInstance
+					mConnection.ErrorOccurred += errorHandlerInstance
 					mreturn tcs.Task
 				end
 			endmethod
