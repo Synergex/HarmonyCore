@@ -1,6 +1,9 @@
 
 import Json
 import System.Collections
+import TraditionalBridge
+;if((priority) <= Logger.LogLevel) 
+.define MaybeLog(priority, msg) Logger.Instance.Log(msg)
 
 namespace Harmony.TraditionalBridge
 
@@ -9,8 +12,16 @@ namespace Harmony.TraditionalBridge
 	;;; </summary>
 	public abstract class RoutineDispatcher
 
-		protected loggingChannel, i4
+		;;dummy structure for ^m operations on the mReadBuffer
+		private structure MemStruct
+			fld, a1
+		endstructure
+
+		protected mReadBuffer, D_HANDLE
+		protected mReadBufferSize, int
 		protected mDispatchStubs, @StringDictionary
+		protected mActivationMask, [32]i1
+.define GetBuffer ^m(MemStruct(1:mReadBufferSize), mReadBuffer)
 
 		;;; <summary>
 		;;; Constructor
@@ -18,7 +29,18 @@ namespace Harmony.TraditionalBridge
 		public method RoutineDispatcher
 		proc
 			mDispatchStubs = new StringDictionary()
-			open(loggingChannel=0, O, "dispatcher.log")
+			mReadBufferSize = 0
+			mReadBuffer = 0
+			MaybeLog(5, "Creating RoutineDispatcher")
+		endmethod
+
+		method ~RoutineDispatcher
+		proc
+			if(mReadBuffer != 0)
+				mReadBuffer = %mem_proc(DM_FREE, mReadBuffer)
+
+			mReadBufferSize = 0
+			MaybeLog(5, "Destroying RoutineDispatcher")
 		endmethod
 
 		;;; <summary>
@@ -432,46 +454,201 @@ namespace Harmony.TraditionalBridge
 			required in ttChannel, i
 			required in frameHeader, i4
 			record
-				frameDataHandle, D_HANDLE
 				jsonReader, @Json
 				parsedJson, @JsonValue
 				serializer, @ChannelSerializer
+				result, boolean
+				readerPosition, int
+				remainingRead, int
 			endrecord
 		proc
-			writes(loggingChannel, "reading callblock: ")
-			writes(loggingChannel, %string(frameHeader) + " callblock bytes expected")
-
 			jsonReader = new Json()
-			frameDataHandle = %mem_proc(DM_ALLOC, frameHeader)
-
-;TODO: the wait:100 is in the wrong argument position and should be wait:q_wait, but when fixed still doesn't work.
-;Roger says this will never work and needs to be done in C!
-
-		again,
-			do gets(ttChannel, ^m(frameDataHandle), wait:100) [$ERR_TIMOUT=again]
-			until %rdlen(ttChannel) == frameHeader
-
-			writes(loggingChannel, %string(%rdlen(ttChannel)) + ":" + %string(%rdtrm(ttChannel)))
-			writes(loggingChannel, ^m(frameDataHandle) + "data read")
-
-			parsedJson = jsonReader.ParseJson(^m(frameDataHandle))
-			frameDataHandle = %mem_proc(DM_FREE, frameDataHandle)
-
-			if !(parsedJson .is. @JsonObject)
+			serializer = new ChannelSerializer(ttChannel)
+			;;reuse the same buffer if possible
+			if(mReadBufferSize < frameHeader)
 			begin
-				writes(loggingChannel, "failed to read json request")
-				serializer = new ChannelSerializer(ttChannel)
-				serializer.MapOpen()
-				serializer.String("IsError")
-				serializer.Bool(true)
-				serializer.String("Exception")
-				serializer.String("failed to parse json request")
-				serializer.MapClose()
+				if(mReadBuffer != 0) then
+				begin
+					MaybeLog(6, "Dispatcher: reallocating buffer was " + %string(mReadBufferSize) + " -> " + %string(frameHeader) )
+					mReadBuffer = %mem_proc(DM_RESIZ, frameHeader, mReadBuffer)
+					mReadBufferSize = frameHeader
+				end
+				else
+				begin
+					MaybeLog(6, "Dispatcher: allocating buffer with length" + %string(frameHeader))
+					mReadBuffer = %mem_proc(DM_ALLOC | DM_STATIC, frameHeader)
+					mReadBufferSize = frameHeader
+				end
+			end
+
+			MaybeLog(6, "Dispatcher: Reading " + %string(frameHeader) + " total bytes of Content from input" )
+			readerPosition = 1
+			remainingRead = frameHeader
+			do 
+			begin
+				MaybeLog(6, "Dispatcher: Reading " + %string(remainingRead) + " bytes from input")
+				gets(ttChannel, ^m(MemStruct(readerPosition:remainingRead), mReadBuffer), wait:100, MASK:mActivationMask) [$ERR_TIMOUT=again]
+			again,	
+				MaybeLog(6, "Dispatcher: Reading Content from input" + ^m(MemStruct(readerPosition:remainingRead), mReadBuffer) + ": got " + %string(%rdlen(ttChannel)) + " bytes, was expecting " + %string(remainingRead) + " bytes")
+				readerPosition += %rdlen(ttChannel)
+				remainingRead = frameHeader - readerPosition
+				
+			end
+			until remainingRead <= 0
+
+			MaybeLog(6, "Dispatcher: Parsing buffer " + ^m(MemStruct(1:frameHeader), mReadBuffer))
+			parsedJson = jsonReader.ParseJson(^m(MemStruct(1:frameHeader), mReadBuffer))
+
+			if (!(parsedJson .is. @JsonObject) && !(parsedJson .is. @JsonArray))
+			begin
+				ReportError("failed to parse json request", -32700, -1, serializer)
 				mreturn true
 			end
 
-			mreturn ProcessCallBlock((@JsonObject)parsedJson, ttChannel)
+			MaybeLog(5, "Dispatcher: Finished Json Parsing")
 
+			result = true
+			if(parsedJson .is. JsonObject) then
+			begin
+				MaybeLog(5, "Dispatcher: Single Call")
+				result = ProcessCallBlock((@JsonObject)parsedJson, serializer)
+			end
+			else if(parsedJson .is. JsonArray)
+			begin
+				data parsedArray, @JsonArray
+				data jsonVal, @JsonValue
+				parsedArray = (@JsonArray)parsedJson
+
+				MaybeLog(5, "Dispatcher: Batch Call")
+
+				serializer.ArrayOpen()
+				foreach jsonVal in parsedArray.arrayValues
+				begin
+					if(jsonVal .is. JsonObject) then
+					begin
+						result = ProcessCallBlock((@JsonObject)parsedJson, serializer)
+						if(!result)
+							exitloop
+					end
+					else
+					begin
+						ReportError("failed to parse json request", -32700, -1, serializer)
+					end
+				end
+				serializer.ArrayClose()
+			end
+
+			flush(ttChannel)
+			mreturn result
+
+		endmethod
+
+		public method ReportError, void
+			errorText, @string
+			errorCode, int
+			messageId, int
+			serializer, @ChannelSerializer
+			record
+				scopeLog, @string
+		proc
+			serializer.OutputScopeAbort()
+			serializer.MapOpen()
+			serializer.Pair("jsonrpc", "2.0")
+			serializer.String("error")
+			serializer.MapOpen()
+			serializer.Pair("code", errorCode)
+			serializer.Pair("message", errorText)
+
+			;;if scope logging is active return everything that was logged as part of this request scope
+			scopeLog = Logger.Instance.CurrentScopeLog()
+			if(scopeLog != ^null && scopeLog.Length > 0)
+				serializer.Pair("data", scopeLog)
+
+			serializer.MapClose()
+
+			if(messageId > -1) then
+				serializer.Pair("id", messageId)
+			else
+				serializer.PairNull("id")
+
+			serializer.MapClose()
+
+			MaybeLog(1, "ReportError: " + errorText + " messageId" + %string(messageId))
+		endmethod
+
+		public method ReportResult, void
+			requestId, int
+			result, @string
+			serializer, @ChannelSerializer
+		proc
+			serializer.MapOpen()
+			serializer.Pair("jsonrpc", "2.0")
+			serializer.Pair("result", result)
+			
+			if(requestId > -1) then
+				serializer.Pair("id", requestId)
+			else
+				serializer.PairNull("id")
+
+			serializer.MapClose()
+
+			MaybeLog(5, "ReportResult: " + result + " messageId" + %string(requestId))
+		endmethod
+
+		public method ReportResult, void
+			requestId, int
+			result, n
+			serializer, @ChannelSerializer
+		proc
+			serializer.MapOpen()
+			serializer.Pair("jsonrpc", "2.0")
+			serializer.Pair("result", result)
+			
+			if(requestId > -1) then
+				serializer.Pair("id", requestId)
+			else
+				serializer.PairNull("id")
+
+			serializer.MapClose()
+			MaybeLog(5, "ReportResult: " + %string(result) + " messageId" + %string(requestId))
+		endmethod
+
+		public method ReportResult, void
+			requestId, int
+			result, [#]@object
+			inputSet, [#]boolean
+			serializer, @ChannelSerializer
+			record
+				arg, @object
+				ii, int
+		proc
+			serializer.MapOpen()
+			serializer.Pair("jsonrpc", "2.0")
+			
+			serializer.ArrayOpen()
+			ii = 0
+			foreach arg in result
+			begin
+				incr ii
+				if(inputSet[ii])
+				begin
+					serializer.MapOpen()
+					serializer.Pair("Position", ii)
+					serializer.String("Value")
+					SerializeObject(arg, serializer)
+					serializer.MapClose()
+				end
+			end
+
+			serializer.ArrayClose()
+			
+			if(requestId > -1) then
+				serializer.Pair("id", requestId)
+			else
+				serializer.PairNull("id")
+
+			serializer.MapClose()
+			MaybeLog(5, "ReportResult: array(" + %string(result.Length) + ") messageId" + %string(requestId))
 		endmethod
 
 		;;; <summary>
@@ -481,10 +658,17 @@ namespace Harmony.TraditionalBridge
 		public method Dispatch, void
 			ttChannel, i
 			record PacketLength
-				frameHeader, d10
+				contentLengthPart, a16
+				lengthValue, a10
+				padding, a2
+			endrecord
+			record ContentType
+				contentTypeBuffer, a255
 			endrecord
 			record
 				running, boolean
+				frameHeader, d10
+				contentTypePos, int
 			endrecord
 		proc
 			;;read 10 bytes of data from input when its available
@@ -499,25 +683,38 @@ namespace Harmony.TraditionalBridge
 				running = true
 				while(running)
 				begin
-;TODO: the wait:100 is in the wrong argument position and should be wait:q_wait, but when fixed still doesn't work.
-;Roger says this will never work and needs to be done in C!
-		again,		do gets(ttChannel, PacketLength, wait:100)  [$ERR_TIMOUT=again]
-					until %rdlen(ttChannel) == 10
-					puts(ttChannel, PacketLength + %char(13) + %char(10))
-					running = ReadCallBlock(ttChannel, (int)frameHeader)
+					do 
+					begin
+						gets(ttChannel, PacketLength, wait:100)  [$ERR_TIMOUT=again]
+			again,		
+						MaybeLog(6, "Dispatcher: Reading ContentLength from input" + %atrim(PacketLength) + ":" + %string(%rdlen(ttChannel)))
+					end
+					until %rdlen(ttChannel) > 18
+
+					frameHeader = ^d(%atrim(lengthValue))
+					contentTypePos = 1
+					while(contentTypePos < 255)
+					begin
+			againContent,	
+						gets(ttChannel, ContentType(contentTypePos:1), wait:100, MASK:mActivationMask)  [$ERR_TIMOUT=againContent]
+						if(contentTypePos > 2 && ContentType(contentTypePos:1) == %char(10))
+							exitloop
+
+						contentTypePos += 1
+					end
+
+					MaybeLog(6, "Dispatcher: Reading ContentType from input" + %atrim(ContentType) + ":" + %string(contentTypePos))
+
+					MaybeLog(5, "Dispatcher: starting callblock processing with ContentLength " + %atrim(lengthValue) + " ContentType " + %atrim(ContentType))
+
+					running = ReadCallBlock(ttChannel, (int)frameHeader + 1)
 				end
 				writes(ttChannel, "Shutting down due to running == false")
 			end
 			catch(ex, @Exception)
 			begin
 				data serializer = new ChannelSerializer(ttChannel)
-				writes(loggingChannel, "FATAL ERROR in dispatcher + " + ex.ToString())
-				serializer.MapOpen()
-				serializer.String("IsError")
-				serializer.Bool(true)
-				serializer.String("Result")
-				serializer.String(ex.ToString())
-				serializer.MapClose()
+				ReportError(ex.ToString(), -32603, -1, serializer)
 			end
 			endtry
 		endmethod
@@ -530,133 +727,132 @@ namespace Harmony.TraditionalBridge
 		;;; <returns></returns>
 		public method ProcessCallBlock, boolean
 			jsonData, @JsonObject
-			responseChannel, i4
+			serializer, @ChannelSerializer
 			record
+				requestId, int
 				name, @string
 				argArray, @JsonArray
-				serializer, @ChannelSerializer
 				dispatchStub, @RoutineStub
 			endrecord
 		proc
-			;;we've been asked to shutdown so return false and let the outer loop take care of it
-			if(jsonData.HasProperty("IsShutdownRequest") && ((@JsonBoolean)jsonData.GetProperty("IsShutdownRequest")).Value)
+			
+			if(!jsonData.TryGetProperty("id", requestId))
+				requestId = -1
+
+			if(!jsonData.TryGetProperty("method", name))
 			begin
-				writes(responseChannel, "Shutting down due to request")
-				mreturn false
+				ReportError("method name missing", -32600, requestId, serializer)
 			end
 
-			serializer = new ChannelSerializer(responseChannel)
+			MaybeLog(5, "Dispatcher: method target was " + name)
+
+			serializer.OutputScopeOpen()
 
 			try
 			begin
-				;;we've been asked if we're alive
-				if(jsonData.HasProperty("IsPingRequest") && ((@JsonBoolean)jsonData.GetProperty("IsPingRequest")).Value) then
+				if(name.StartsWith("rpc.")) then
 				begin
-					serializer.MapOpen()
-					serializer.String("IsAlive")
-					serializer.Bool(true)
-					serializer.MapClose()
-					mreturn true
-				end
-				else if(jsonData.HasProperty("ProtocolVersion") && ((@JsonText)jsonData.GetProperty("ProtocolVersion")).Value =="1.0")
-				begin
-					serializer.MapOpen()
-					serializer.String("ProtocolSupported")
-					serializer.Bool(true)
-					serializer.MapClose()
-					mreturn true
-				end
-
-				name = ((@JsonText)jsonData.GetProperty("Name")).Value
-
-				if(mDispatchStubs.TryGet(name, dispatchStub)) then
-				begin
-					dispatchStub.Dispatch(name, jsonData, serializer, this)
-					mreturn true
+					if(name == "rpc.shutdown") then
+					begin
+						;;we've been asked to shutdown so return false and let the outer loop take care of it
+						ReportResult(requestId, 0, serializer)
+						serializer.OutputScopeClose()
+						mreturn false
+					end
+					else if(name == "rpc.ping") then
+					begin
+						ReportResult(requestId, 0, serializer)
+					end
+					else if(name == "rpc.serializer_protocol") then
+					begin
+						ReportResult(requestId, "1.0", serializer)
+					end
+					else if(name == "rpc.set_log_level") then
+					begin
+						ReportResult(requestId, 0, serializer)
+					end
+					else if(name == "rpc.chain") then
+					begin
+						;;TODO: flush everything out and stop chain to ourselves
+						throw new Exception("rpc.chain Not yet implemented")
+					end
+					else
+					begin
+						;;extension method was called but isnt supported
+						ReportError("unknown extension method", -32601, requestId, serializer)
+					end
 				end
 				else
 				begin
-					data arg, @JsonObject
-					data argArray, @ArrayList, new ArrayList()
-					data argValueArray, [#]@Object
-					data rcbid, i4
-					data ii, i4, 0
-					if(jsonData.HasProperty("Arguments"))
+					if(mDispatchStubs.TryGet(name, dispatchStub)) then
+					begin
+						MaybeLog(5, "Dispatcher: dispatching compiled stub for " + name)
+						dispatchStub.Dispatch(name, jsonData, serializer, this)
+						MaybeLog(5, "Dispatcher: finished dispatching compiled stub for " + name)
+					end
+					else
 					begin
 						data arg, @JsonObject
-						data ii = 0
-						argArray = ((@JsonArray)jsonData.GetProperty("Arguments")).arrayValues
-					end
-					argValueArray = new object[argArray.Count]
-					rcbid = %rcb_create(argArray.Count) 
-					xcall rcb_setfnc(rcbid, name)
-					foreach arg in argArray as @JsonObject
-					begin
-						data argType, FieldDataType
-						data argLength, i4, 0
-						data argPrecision, i4, 0
-						incr ii
-						;;the arguments need somewhere to live while we're building up the call so put them into this array
-						argValueArray[ii] = DeserializeObject(arg, argType)
-						if(argType != FieldDataType.DataObjectField && argType != FieldDataType.DataObjectCollectionField) then
+						data argArray, @ArrayList, new ArrayList()
+						data argValueArray, [#]@Object
+						data rcbid, i4
+						data ii, i4, 0
+						data responseSet, [#]boolean
+						MaybeLog(5, "Dispatcher: dispatching dynamically for " + name)
+						if(jsonData.HasProperty("params"))
 						begin
-							if(jsonData.HasProperty("DecimalPrecision"))
-								argPrecision = ((@JsonInt)jsonData.GetProperty("DecimalPrecision")).Value
-
-							argLength = ((@JsonInt)jsonData.GetProperty("ElementSize")).Value
-
-							xcall rcb_setarg(rcbid, (n)argValueArray[ii], ii, (i)argType, argLength, argPrecision)
+							data arg, @JsonObject
+							data ii = 0
+							argArray = ((@JsonArray)jsonData.GetProperty("params")).arrayValues
 						end
-						else
-							xcall rcb_setarg(rcbid, argValueArray[ii], ii)
-					end
-					xcall rcb_call(rcbid) 
-					ii = 0
-
-					serializer.MapOpen()
-					serializer.String("IsError")
-					serializer.Bool(false)
-					serializer.String("Result")
-					serializer.MapOpen()
-					serializer.String("ReturnParameters")
-					serializer.ArrayOpen()
-
-					foreach arg in argArray as @JsonObject
-					begin
-						incr ii
-						if(arg.HasProperty("ReturnParameter") && ((@JsonBoolean)arg.GetProperty("ReturnParameter")).Value)
+						argValueArray = new object[argArray.Count]
+						responseSet = new boolean[argArray.Count]
+						rcbid = %rcb_create(argArray.Count) 
+						xcall rcb_setfnc(rcbid, name)
+						foreach arg in argArray as @JsonObject
 						begin
-							serializer.MapOpen()
-							serializer.String("Position")
-							serializer.Integer(ii)
-							serializer.String("Value")
-							SerializeObject(argValueArray[ii], serializer)
-							serializer.MapClose()
-						end
+							data argType, FieldDataType
+							data argLength, i4, 0
+							data argPrecision, i4, 0
+							incr ii
+							;;the arguments need somewhere to live while we're building up the call so put them into this array
+							argValueArray[ii] = DeserializeObject(arg, argType)
+							if(!jsonData.TryGetBoolProperty("ReturnedValue", responseSet[ii]))
+								responseSet[ii] = false
+							
+							if(argType != FieldDataType.DataObjectField && argType != FieldDataType.DataObjectCollectionField) then
+							begin
+								if(jsonData.HasProperty("DecimalPrecision"))
+									argPrecision = ((@JsonInt)jsonData.GetProperty("DecimalPrecision")).Value
 
+								argLength = ((@JsonInt)jsonData.GetProperty("ElementSize")).Value
+
+								xcall rcb_setarg(rcbid, (n)argValueArray[ii], ii, (i)argType, argLength, argPrecision)
+							end
+							else
+								xcall rcb_setarg(rcbid, argValueArray[ii], ii)
+						end
+						xcall rcb_call(rcbid) 
+						ReportResult(requestId, argValueArray, responseSet, serializer)
+						MaybeLog(5, "Dispatcher: finished dispatching dynamically for " + name)
 					end
-					serializer.ArrayClose()
-					serializer.MapClose()
-					serializer.MapClose()
 				end
+				serializer.OutputScopeClose()
+			end
+			catch(rtnNotFound, @RoutineNotFound)
+			begin
+				serializer.OutputScopeAbort()
+				ReportError(rtnNotFound.ToString(), -32601, requestId, serializer)
 			end
 			catch(ex, @Exception)
 			begin
+				serializer.OutputScopeAbort()
 				;;TODO maybe this should be a specific type, we might need to do additional processing for certain exception types here
-				serializer.MapOpen()
-				serializer.String("IsError")
-				serializer.Bool(true)
-				serializer.String("Exception")
-				serializer.String(ex.ToString())
-				serializer.MapClose()
-				mreturn false
+				ReportError(ex.ToString(), -32000, requestId, serializer)
 			end
 			endtry
 
-			writes(responseChannel, "unhandled message")
-
-			mreturn false
-
+			mreturn true
 		endmethod
 
 	endclass

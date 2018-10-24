@@ -1,6 +1,9 @@
 
 import System.Collections
 
+;if((priority) <= Logger.LogLevel) 
+.define MaybeLog(priority, msg) TraditionalBridge.Logger.Instance.Log(msg)
+
 namespace Json
 
 	;;; <summary>
@@ -39,7 +42,7 @@ namespace Json
 		private first, boolean, true
 
 .define STACK_STATE, ((SerializerStackType)serializerStack[serializerStack.Count - 1])
-.define STACK_STATE_ARRAY, (STACK_STATE == SerializerStackType.Array)
+.define STACK_STATE_ARRAY, (serializerStack.Count > 0 && STACK_STATE == SerializerStackType.Array)
 
 		;;; <summary>
 		;;; Constructs a new serializer associated with an open channel.
@@ -69,7 +72,10 @@ namespace Json
 
         private method AppendOutput, void
             input, a
-        proc
+		proc
+			if(buffer == ^null)
+				buffer = ""
+
             if(^size(input) > 65535) then
             begin
                 if(alphaPosition > 0)
@@ -347,6 +353,124 @@ namespace Json
 			mreturn SerializerStatus.Ok
 		endmethod
 
+		public method Pair, SerializerStatus
+			req in key, @string
+			req in value, @string
+			record
+				inArray, boolean
+				input, @string
+		proc
+			if(!expectingName)
+				throw new InvalidOperationException("received name + value pair when name was unexpected")
+
+			input = ""
+			inArray = STACK_STATE_ARRAY
+			if(!first)
+				input += ","
+			
+			first = false
+
+			input += '"' + key + '":"' + value + '"'
+
+			AppendOutput(input)
+
+			mreturn SerializerStatus.Ok
+		endmethod
+
+		public method PairBool, SerializerStatus
+			req in key, @string
+			req in value, boolean
+			record
+				inArray, boolean
+				input, @string
+		proc
+			if(!expectingName)
+				throw new InvalidOperationException("received name + value pair when name was unexpected")
+
+			input = ""
+			inArray = STACK_STATE_ARRAY
+			if(!first)
+				input += ","
+			
+			first = false
+
+			input += '"' + key + '":'
+
+			if(value) then
+				input += "true"
+			else
+				input += "false"
+
+			AppendOutput(input)
+
+			mreturn SerializerStatus.Ok
+		endmethod
+
+		public method Pair, SerializerStatus
+			req in key, @string
+			req in value, n.
+			record
+				inArray, boolean
+				input, @string
+		proc
+			if(!expectingName)
+				throw new InvalidOperationException("received name + value pair when name was unexpected")
+
+			input = ""
+			inArray = STACK_STATE_ARRAY
+			if(!first)
+				input += ","
+			
+			first = false
+
+			input += '"' + key + '":' + %string(value)
+
+			AppendOutput(input)
+
+			mreturn SerializerStatus.Ok
+		endmethod
+
+		public method PairNull, SerializerStatus
+			req in key, @string
+			record
+				inArray, boolean
+				input, @string
+		proc
+			if(!expectingName)
+				throw new InvalidOperationException("received name + value pair when name was unexpected")
+
+			input = ""
+			inArray = STACK_STATE_ARRAY
+			if(!first)
+				input += ","
+			
+			first = false
+
+			input += '"' + key + '":null'
+
+			AppendOutput(input)
+
+			mreturn SerializerStatus.Ok
+		endmethod
+
+		public method OutputScopeOpen, void
+		proc
+
+		endmethod
+
+		;;abort the current output scope, rolling back any output in the buffer back to the last OutputScopeOpen call
+		public method OutputScopeAbort, void
+		proc
+			buffer = ""
+			clear alphaBuf
+			clear alphaPosition
+		endmethod
+
+
+		public method OutputScopeClose, void
+		proc
+		endmethod
+
 .endregion
 
 .region "Other public members"
@@ -370,16 +494,27 @@ namespace Json
 		private method sendMessage, void
 			stack record
 				message, string
+				lengthHeader, string
+				bufferLength, i4
 			endrecord
 		proc
-			puts(channel, %string(buffer.Length + alphaPosition,"XXXXXXXXXX"))
-            if(buffer.Length > 0) then
+			if(buffer != ^null) then
+				bufferLength = buffer.Length
+			else
+				bufferLength = 0
+
+			lengthHeader = "Content-Length:" + %string(bufferLength + alphaPosition) + %char(13) + %char(10) + %char(13) + %char(10)
+			MaybeLog(6, "Serializer: " + lengthHeader)
+			puts(channel, lengthHeader)
+			if(bufferLength > 0) then
             begin
-                buffer += alphaBuf(1:alphaPosition)
+				buffer += alphaBuf(1:alphaPosition)
+				MaybeLog(6, "Serializer: " + buffer)
                 puts(channel, buffer)
             end
             else
-            begin
+			begin
+				MaybeLog(6, "Serializer: " + alphaBuf(1:alphaPosition))
                 puts(channel, alphaBuf(1:alphaPosition))
             end
 

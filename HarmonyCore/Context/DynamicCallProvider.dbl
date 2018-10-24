@@ -28,7 +28,7 @@ namespace Harmony.Core.Context
 			public readwrite property Result, @MethodCallResponseValue
 		endclass
 
-		private static CastMethodInfo, @MethodInfo
+		internal static CastMethodInfo, @MethodInfo
 
 		static method DynamicCallProvider
 		proc
@@ -44,74 +44,77 @@ namespace Harmony.Core.Context
 			this.connection = connection
 		endmethod
 
-		public async virtual method CallMethod<T>, @Task<Tuple<T, [#]@Object>>
+		public virtual method CallMethod, @Task<Tuple<Object, [#]@Object>>
 			name, @string
 			{ParamArray}
 			args, [#]@object 
 			endparams
-        proc
-            data argsTemp, [#]@Object, args
-			data arguments, [#]@ArgumentDataDefinition, new ArgumentDataDefinition[args.Length + 1]
-			data i, int, 0
-			for i from 1 thru args.Length
-			begin
-				data arg, @ArgumentDataDefinition, PreSerializeArgument(args[i])
-				arguments[i + 1] = arg
-			end
+		proc
+			data hoist = new CallHoist<Object>() { CallProvider = this }
+			mreturn hoist.CallMethod(name, args)
 
-			arguments[1] = new ArgumentDataDefinition() { PassedValue = ^null, ReturnedValue = true }
-
-			data returnType = ^typeof(T)
-            if(returnType.IsPrimitive) then
-				arguments[1].DataType = FieldDataType.IntegerField
-			else if(returnType == ^typeof(string)) then
-				arguments[1].DataType = FieldDataType.AlphaField
-			else
-				arguments[1].DataType = FieldDataType.DataObjectField
-
-			arguments = await CallMethodImplementation(name, arguments)
-
-			for i from 1 thru args.Length
-			begin
-				if(arguments[i + 1].ReturnedValue != ^null && arguments[i + 1].ReturnedValue.Value)
-				begin
-					data argValue = arguments[i + 1]
-					if(argValue.PassedValue .is. JToken) then
-                    begin
-						data targetToken = ((@JToken)argValue.PassedValue)
-						argsTemp[i] = targetToken.ToObject(argsTemp[i].GetType())
-					end
-					else
-					begin
-						if(argValue.DataType == FieldDataType.DataObjectField) then
-						begin
-							argsTemp[i] = argValue.PassedValue
-						end
-						else if(argValue.DataType == FieldDataType.DataObjectCollectionField) then
-						begin
-							data tempCollection = (@IEnumerable<DataObjectBase>)argValue.PassedValue
-                            ;;TODO replace this with a generic element getter
-							data argType = args[i].GetType().GetGenericArguments()[1]
-							argsTemp[i] = CastMethodInfo.MakeGenericMethod(new Type[#] { argType }).Invoke(^null, new object[#] { tempCollection })
-						end
-						else
-						begin
-							argsTemp[i] = Convert.ChangeType(argValue.PassedValue, argsTemp[i].GetType())
-						end
-
-					end
-				end
-			end
-
-			if(arguments[1].PassedValue .is. JToken) then
-			begin
-				data retValue = ((@JToken)arguments[1].PassedValue)
-				mreturn Tuple.Create(retValue.Value<T>(), argsTemp)
-			end
-			else
-			begin
-				mreturn Tuple.Create((T)Convert.ChangeType(arguments[1].PassedValue,^typeof(T)), argsTemp)
-			end
+;            data argsTemp, [#]@Object, args
+;			data arguments, [#]@ArgumentDataDefinition, new ArgumentDataDefinition[args.Length + 1]
+;			data i, int, 0
+;			for i from 1 thru args.Length
+;			begin
+;				data arg, @ArgumentDataDefinition, PreSerializeArgument(args[i])
+;				arguments[i + 1] = arg
+;			end
+;
+;			arguments[1] = new ArgumentDataDefinition() { PassedValue = ^null, ReturnedValue = true }
+;
+;			data returnType = ^typeof(T)
+;            if(returnType.IsPrimitive) then
+;				arguments[1].DataType = FieldDataType.IntegerField
+;			else if(returnType == ^typeof(string)) then
+;				arguments[1].DataType = FieldDataType.AlphaField
+;			else
+;				arguments[1].DataType = FieldDataType.DataObjectField
+;
+;			arguments = await CallMethodImplementation(name, arguments)
+;
+;			for i from 1 thru args.Length
+;			begin
+;				if(arguments[i + 1].ReturnedValue != ^null && arguments[i + 1].ReturnedValue.Value)
+;				begin
+;					data argValue = arguments[i + 1]
+;					if(argValue.PassedValue .is. JToken) then
+;                    begin
+;						data targetToken = ((@JToken)argValue.PassedValue)
+;						argsTemp[i] = targetToken.ToObject(argsTemp[i].GetType())
+;					end
+;					else
+;					begin
+;						if(argValue.DataType == FieldDataType.DataObjectField) then
+;						begin
+;							argsTemp[i] = argValue.PassedValue
+;						end
+;						else if(argValue.DataType == FieldDataType.DataObjectCollectionField) then
+;						begin
+;							data tempCollection = (@IEnumerable<DataObjectBase>)argValue.PassedValue
+;                            ;;TODO replace this with a generic element getter
+;							data argType = args[i].GetType().GetGenericArguments()[1]
+;							argsTemp[i] = CastMethodInfo.MakeGenericMethod(new Type[#] { argType }).Invoke(^null, new object[#] { tempCollection })
+;						end
+;						else
+;						begin
+;							argsTemp[i] = Convert.ChangeType(argValue.PassedValue, argsTemp[i].GetType())
+;						end
+;
+;					end
+;				end
+;			end
+;
+;			if(arguments[1].PassedValue .is. JToken) then
+;			begin
+;				data retValue = ((@JToken)arguments[1].PassedValue)
+;				mreturn Tuple.Create(retValue.Value<T>(), argsTemp)
+;			end
+;			else
+;			begin
+;				mreturn Tuple.Create((T)Convert.ChangeType(arguments[1].PassedValue,^typeof(T)), argsTemp)
+;			end
 		endmethod
 		
         public async virtual method CallMethodV, @Task<[#]@object>
@@ -151,6 +154,13 @@ namespace Harmony.Core.Context
 				result.Add(PreSerializeArgument(objValue).PassedValue)
 			end
 			mreturn result
+		endmethod
+
+		;;remove this overload after the async peverify issue is taken care of
+		internal virtual method PreSerializeArgumentsInternal, @ArgumentDataDefinition
+			argValue, @Object
+		proc
+			mreturn PreSerializeArgument(argValue)
 		endmethod
 
 
@@ -228,33 +238,101 @@ namespace Harmony.Core.Context
 			name, @string
 			args, [#]@ArgumentDataDefinition
 		proc
-			;;build message with method name and serialized parameters
-			;;sent frame size followed by message body
-			;;check for errors in the response
-			;;translate errors locally
-			;;deserialize contents
-			;;assign return value if there is one
-			;;write into args array if the argument values are present in the payload
-			data serializedData = JsonConvert.SerializeObject(new CallFrame() { Arguments = args, Name = name }, SerializerSettings)
-			data serializedBytes = Encoding.ASCII.GetBytes(serializedData)
-			await connection.WriteRaw(serializedBytes)
-			data responseBytes = await connection.ReadRaw(%char(13))
-			data responseObject = JsonConvert.DeserializeObject<MethodCallResponse>(responseBytes)
+			data result, [#]@ReturnParameterDefintion, await this.connection.Call(name, args)
 			data writableArgs = args
-            if(responseObject.IsError) then
-				throw new Exception(responseObject.Exception)
-			else if(responseObject.Result.ReturnParameters != ^null)
+			if(result != ^null)
 			begin
 				data retArg, @ReturnParameterDefintion
-				foreach retArg in responseObject.Result.ReturnParameters
+				foreach retArg in result
 				begin
 					writableArgs[retArg.Position + 1].ReturnedValue = true
 					writableArgs[retArg.Position + 1].PassedValue = retArg.Value.PassedValue
 				end
 			end
 			mreturn writableArgs
-
 		endmethod
+		;;remove this overload after the async peverify issue is taken care of
+		internal method CallMethodImplementationInternal, @Task<[#]@ArgumentDataDefinition>
+			name, @string
+			args, [#]@ArgumentDataDefinition
+		proc
+			mreturn CallMethodImplementation(name, args)
+		endmethod
+
+	endclass
+
+	;;TODO: this should go back to the method version once the peverify issue is taken care of in the compiler
+	internal class CallHoist<T>
+		public readwrite property CallProvider, @DynamicCallProvider
+
+		public async method CallMethod, @Task<Tuple<T, [#]@Object>>
+			name, @string
+			args, [#]@object 
+		proc
+			data argsTemp, [#]@Object, args
+			data arguments, [#]@ArgumentDataDefinition, new ArgumentDataDefinition[args.Length + 1]
+			data i, int, 0
+			for i from 1 thru args.Length
+			begin
+				data arg, @ArgumentDataDefinition, CallProvider.PreSerializeArgumentsInternal(args[i])
+				arguments[i + 1] = arg
+			end
+
+			arguments[1] = new ArgumentDataDefinition() { PassedValue = ^null, ReturnedValue = true }
+
+			data returnType = ^typeof(T)
+			if(returnType.IsPrimitive) then
+				arguments[1].DataType = FieldDataType.IntegerField
+			else if(returnType == ^typeof(string)) then
+				arguments[1].DataType = FieldDataType.AlphaField
+			else
+				arguments[1].DataType = FieldDataType.DataObjectField
+
+			arguments = await CallProvider.CallMethodImplementationInternal(name, arguments)
+
+			for i from 1 thru args.Length
+			begin
+				if(arguments[i + 1].ReturnedValue != ^null && arguments[i + 1].ReturnedValue.Value)
+				begin
+					data argValue = arguments[i + 1]
+					if(argValue.PassedValue .is. JToken) then
+					begin
+						data targetToken = ((@JToken)argValue.PassedValue)
+						argsTemp[i] = targetToken.ToObject(argsTemp[i].GetType())
+					end
+					else
+					begin
+						if(argValue.DataType == FieldDataType.DataObjectField) then
+						begin
+							argsTemp[i] = argValue.PassedValue
+						end
+						else if(argValue.DataType == FieldDataType.DataObjectCollectionField) then
+						begin
+							data tempCollection = (@IEnumerable<DataObjectBase>)argValue.PassedValue
+							;;TODO replace this with a generic element getter
+							data argType = args[i].GetType().GetGenericArguments()[1]
+							argsTemp[i] = DynamicCallProvider.CastMethodInfo.MakeGenericMethod(new Type[#] { argType }).Invoke(^null, new object[#] { tempCollection })
+						end
+						else
+						begin
+							argsTemp[i] = Convert.ChangeType(argValue.PassedValue, argsTemp[i].GetType())
+						end
+
+					end
+				end
+			end
+
+			if(arguments[1].PassedValue .is. JToken) then
+			begin
+				data retValue = ((@JToken)arguments[1].PassedValue)
+				mreturn Tuple.Create(retValue.Value<T>(), argsTemp)
+			end
+			else
+			begin
+				mreturn Tuple.Create((T)Convert.ChangeType(arguments[1].PassedValue,^typeof(T)), argsTemp)
+			end
+		endmethod
+
 	endclass
 
 endnamespace

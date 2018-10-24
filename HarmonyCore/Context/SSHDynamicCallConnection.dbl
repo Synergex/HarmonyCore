@@ -7,6 +7,8 @@ import System.IO
 import Newtonsoft.Json
 import System.Diagnostics
 import System.Threading.Tasks
+import StreamJsonRpc
+import System.Threading
 
 namespace Harmony.Core.Context
 
@@ -14,42 +16,20 @@ namespace Harmony.Core.Context
 		private static NewLineBytes, [#]Byte, new byte[#] { 10, 13 }
 		private mTargetConnection, @SshClient
 		private mTargetShell, @ShellStream
-		private mProtocolInfo, @ProtocolMessage
-        private mLaunchCommand, @string
-        private mMakeReadyTask, @Lazy<Task>
+		private mReader, @StreamReader
+		private mWriter, @StreamWriter
+		private mLaunchCommand, @string
+		private mMakeReadyTask, @Lazy<Task<JsonRpc>>
+		private mTargetOS, RemoteTargetOS
 		public method SSHDynamicCallConnection
+			targetOS, RemoteTargetOS
 			startInfo, @ConnectionInfo
 			command, @string
 		proc
+			mTargetOS = targetOS
 			mLaunchCommand = command
-            mTargetConnection = new SshClient(startInfo)
-            mMakeReadyTask = new Lazy<Task>(MakeReadyInternal)
-		endmethod
-
-		public async virtual method ReadRaw, @Task<string>
-			terminator, Char 
-			endparams
-        proc
-            await mMakeReadyTask.Value
-			data lengthBuffer = new byte[10]
-			
-			data offset, int, 0
-			while(offset < 10)
-				offset = mTargetShell.Read(lengthBuffer, offset, 10 - offset)
-			try
-			begin
-				data expectedMessageLength = Convert.ToInt32(Encoding.ASCII.GetString(lengthBuffer))
-				data messageBuffer = new byte[expectedMessageLength]
-				offset = 0
-                while(offset < expectedMessageLength)
-					offset += mTargetShell.Read(messageBuffer, offset, expectedMessageLength - offset)
-				mreturn Encoding.ASCII.GetString(messageBuffer)
-			end
-			catch(ex, @Exception)
-			begin
-				mreturn Encoding.ASCII.GetString(lengthBuffer) + mTargetShell.ReadLine()
-			end
-			endtry
+			mTargetConnection = new SshClient(startInfo)
+			mMakeReadyTask = new Lazy<Task<JsonRpc>>(MakeReadyInternal)
 		endmethod
 		
 		public virtual method Recycle, @Task
@@ -63,76 +43,252 @@ namespace Harmony.Core.Context
 		proc
 			mTargetConnection.Disconnect()
 		endmethod
-		
-		class ProtocolMessage
-			public readwrite property ProtocolSupported, boolean
-		endclass
 
+		public virtual async method Call, @Task<[#]@ReturnParameterDefintion>
+			name, @string
+			args, [#]@ArgumentDataDefinition
+		proc
+			data jsonRpcConnection = await mMakeReadyTask.Value
+			mreturn await jsonRpcConnection.InvokeAsync<[#]@ReturnParameterDefintion>(name, args)
+		endmethod
 
-        public async virtual method MakeReadyInternal, @Task
+		public async virtual method MakeReadyInternal, @Task<JsonRpc>
 			endparams
 		proc
-			data handshakeString = '{"ProtocolVersion":"1.0"}'
 			mTargetConnection.Connect()
 			mTargetShell = mTargetConnection.CreateShellStream("vt220", 0, 0,0,0, 1024 * 64)
-			data guidString = Guid.NewGuid().ToString()
-			data readLine = mTargetShell.Read()
-			mTargetShell.WriteLine('WRITE SYS$OUTPUT "' + guidString +  '"')
-			while((readLine = mTargetShell.ReadLine().Trim()) != guidString)
+			data streamWrapper = new ShellStreamWrapper(mTargetShell, mTargetConnection)
+			mReader = new StreamReader(streamWrapper) 
+			mWriter = new StreamWriter(streamWrapper) 
+			data guidString, @string, Guid.NewGuid().ToString()
+			data guidStrings = new HashSet<string>()
+			data readLine, @string
+			data foundMatch, boolean, false
+			guidStrings.Add(guidString)
+
+			while(String.IsNullOrWhiteSpace(readLine) || readLine != guidString)
 			begin
-				if(readLine.EndsWith(">"))
+				if(readLine == ^null || !foundMatch)
 				begin
-					guidString = Guid.NewGuid().ToString()
-					mTargetShell.WriteLine('WRITE SYS$OUTPUT "' + guidString +  '"')
+					if(mTargetOS == RemoteTargetOS.VMS) then
+					begin
+						await mWriter.WriteAsync('WRITE SYS$OUTPUT "' + guidString +  '"' + %char(13) + %char(10))
+					end
+					else
+					begin
+						await mWriter.WriteAsync('echo "' + guidString +  '"' + %char(13) + %char(10))
+					end
+
+					await mWriter.FlushAsync()
 				end
 
-                Debug.Write(readLine)
-				Debug.WriteLine(".")
-			end
-			mTargetShell.WriteLine(mLaunchCommand)
-			
-			while((readLine = mTargetShell.ReadLine().Trim()) != "READY")
-			begin
-				Debug.WriteLine(readLine)
-			end
-			mTargetShell.WriteLine(handshakeString.Length.ToString().PadLeft(10, '0'))
-			data lengthStringEcho = mTargetShell.ReadLine()
-			mTargetShell.WriteLine(handshakeString)
-			data lengthBuffer = new byte[10]
-			data offset, int, 0
-			while(offset < 10)
-				offset += mTargetShell.Read(lengthBuffer, offset, 10 - offset)
-			data expectedMessageLengthString = Encoding.ASCII.GetString(lengthBuffer)
-			data expectedMessageLength = Convert.ToInt32(expectedMessageLengthString)
-			data messageBuffer = new byte[expectedMessageLength]
-            offset = 0
-            
-            while(offset < expectedMessageLength)
-				offset += mTargetShell.Read(messageBuffer, offset, expectedMessageLength - offset)
-			data messageString = Encoding.ASCII.GetString(messageBuffer)
-			data deserializedMessage = JsonConvert.DeserializeObject<ProtocolMessage>(messageString)
-			if(!deserializedMessage.ProtocolSupported)
-				throw new Exception("Protocol not supported")
+				readLine = TrimControlChars(await mReader.ReadLineAsync())
+				while(String.IsNullOrWhiteSpace(readLine))
+				begin
+					readLine = TrimControlChars(await mReader.ReadLineAsync())
+				end
+				
+				data checkString, @string
+				foundMatch = false
+				foreach checkString in guidStrings
+				begin
+					if(readLine.Contains(checkString)) 
+					begin
+						foundMatch = true
+						exitloop
+					end
+				end
 
-		endmethod
-		
-		public virtual method WriteRaw, @Task
-			rawData, [#]byte
-			endparams
-		proc
-			data paddedLengthString = rawData.Length.ToString().PadLeft(10, '0')
-			mTargetShell.WriteLine(paddedLengthString)
-			data response = mTargetShell.ReadLine()
-			mTargetShell.Write(rawData, 0, rawData.Length)
-			mTargetShell.WriteLine("")
-			mTargetShell.Flush()
-			mreturn Task.FromResult(true)
+				if(!foundMatch)
+				begin
+					guidString = Guid.NewGuid().ToString()
+					guidStrings.Add(guidString)
+				end
+			end
+
+			
+			await mWriter.WriteAsync(mLaunchCommand + %char(13) + %char(10))
+			await mWriter.FlushAsync()
+
+			do
+			begin
+				readLine = TrimControlChars(await mReader.ReadLineAsync())
+			end
+			until(readLine == "READY")
+			
+			
+			data result = JsonRpc.Attach(streamWrapper, streamWrapper) 
+			result.TraceSource = new TraceSource("Client", SourceLevels.All)
+			mreturn result
 		endmethod
 	
-        public virtual method MakeReady, @Task
-        proc
-            mreturn mMakeReadyTask.Value
-        endmethod
+		public method TrimControlChars, @string
+			arg, @string
+		proc
+			if(arg == ^null)
+				mreturn ^null
+
+			data arrForm = arg.ToCharArray()
+			data buffer = new StringBuilder(arg.Length)
+			data ch, char
+			foreach ch in arrForm
+				if (!Char.IsControl(ch) && !Char.IsWhiteSpace(ch)) 
+					buffer.Append(ch)
+ 
+			mreturn buffer.ToString()
+		endmethod
+
+
+
+		public virtual method MakeReady, @Task
+		proc
+			mreturn mMakeReadyTask.Value
+		endmethod
+
+		private class ShellStreamWrapper extends Stream
+
+			public override method Read, int
+				buffer, [#]byte 
+				offset, int 
+				count, int 
+				endparams
+			proc
+				mreturn mStream.Read(buffer, offset, count)
+			endmethod
+
+
+			private mStream, @ShellStream
+			private mConnection, @SshClient
+			;private mEvent, @AutoResetEvent
+			public method ShellStreamWrapper
+				stream, @ShellStream
+				connection, @SshClient
+			proc
+				mStream = stream
+				mConnection = connection
+				;mEvent = new AutoResetEvent(false)
+			endmethod
+
+
+			public override property CanRead, Boolean
+				method get
+				proc
+					mreturn mStream.CanRead
+				endmethod
+			endproperty
+
+
+
+			public override method Flush, void
+				endparams
+			proc
+				mStream.Flush()
+			endmethod
+
+			public override method ReadAsync, @Task<int> 
+				buffer, [#]byte 
+				offset, int 
+				count, int 
+				token, CancellationToken
+				endparams
+			proc
+				
+				if(mStream.DataAvailable) then
+					mreturn Task.FromResult(mStream.Read(buffer, offset, count))
+				else
+				begin
+					data tcs = new TaskCompletionSource<int>()
+					data handlerInstance, @EventHandler<ShellDataEventArgs>
+					lambda DataReceivedHandler(sender, args)
+					begin
+						mStream.DataReceived -= handlerInstance
+						tcs.TrySetResult(mStream.Read(buffer, offset, count))
+					end
+					handlerInstance = DataReceivedHandler
+					mStream.DataReceived += handlerInstance
+					mreturn tcs.Task
+				end
+			endmethod
+
+			public override property CanTimeout, boolean
+				method get
+				proc
+					mreturn true
+				endmethod
+			endproperty
+
+
+			public override property CanSeek, Boolean
+				method get
+				proc
+					mreturn mStream.CanSeek
+				endmethod
+			endproperty
+
+
+
+			public override property Position, long
+				method get
+				proc
+					mreturn mStream.Position
+				endmethod
+				method set
+				proc
+					mStream.Position = value
+				endmethod
+			endproperty
+
+
+
+			public override property Length, long
+				method get
+				proc
+					mreturn mStream.Length
+				endmethod
+			endproperty
+
+
+
+			public override method Seek, long
+				offset, long 
+				origin, SeekOrigin 
+				endparams
+			proc
+				mreturn mStream.Seek(offset, origin)
+			endmethod
+
+
+
+			public override property CanWrite, Boolean
+				method get
+				proc
+					mreturn mStream.CanWrite
+				endmethod
+			endproperty
+
+
+
+			public override method Write, void
+				buffer, [#]byte 
+				offset, int 
+				count, int 
+				endparams
+			proc
+				mStream.Write(buffer, offset, count)
+				mStream.Flush()
+			endmethod
+
+
+
+			public override method SetLength, void
+				value, long 
+				endparams
+			proc
+				mStream.SetLength(value)
+			endmethod
+
+
+		endclass
 
 	endclass
 

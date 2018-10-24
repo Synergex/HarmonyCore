@@ -199,45 +199,45 @@ if DEFINED ENABLE_UNIT_TEST_GENERATION (
 rem ================================================================================
 rem Generate code for the TraditionalBridge sample environment
 
-rem set CODEGEN_TPLDIR=Templates\TraditionalBridge
-rem set PROJECT=TraditionalBridge.Test
-rem set SMC_INTERFACE=SampleXfplEnv
-rem set XFPL_SMCPATH=
+set CODEGEN_TPLDIR=Templates\TraditionalBridge
+set PROJECT=TraditionalBridge.Test
+set SMC_INTERFACE=SampleXfplEnv
+set XFPL_SMCPATH=
 
 rem Generate model classes
-rem codegen -s %DATA_STRUCTURES% ^
-rem         -t ODataModel ^
-rem         -o %SolutionDir%%PROJECT%\Models ^
-rem         -n %PROJECT%.Models ^
-rem         -e -r -lf
-rem if ERRORLEVEL 1 goto error
+codegen -s %DATA_STRUCTURES% ^
+        -t ODataModel ^
+        -o %SolutionDir%%PROJECT%\Models ^
+        -n %PROJECT%.Models ^
+        -e -r -lf
+if ERRORLEVEL 1 goto error
 
 rem Generate method dispatcher classes
-rem codegen -smc XfplEnvironment\smc.xml ^
-rem         -interface %SMC_INTERFACE% ^
-rem         -t InterfaceDispatcher ^
-rem         -o %SolutionDir%%PROJECT% ^
-rem         -n %PROJECT% ^
-rem         -ut MODELS_NAMESPACE=%PROJECT%.Models ^
-rem         -e -r -lf
-rem if ERRORLEVEL 1 goto error
+codegen -smc XfplEnvironment\smc.xml ^
+        -interface %SMC_INTERFACE% ^
+        -t InterfaceDispatcher ^
+        -o %SolutionDir%%PROJECT% ^
+        -n %PROJECT% ^
+        -ut MODELS_NAMESPACE=%PROJECT%.Models ^
+        -e -r -lf
+if ERRORLEVEL 1 goto error
 
-rem codegen -smc XfplEnvironment\smc.xml ^
-rem         -interface %SMC_INTERFACE% ^
-rem         -t InterfaceMethodDispatchers ^
-rem         -o %SolutionDir%%PROJECT% ^
-rem         -n %PROJECT% ^
-rem         -ut MODELS_NAMESPACE=%PROJECT%.Models ^
-rem         -e -r -lf
-rem if ERRORLEVEL 1 goto error
+codegen -smc XfplEnvironment\smc.xml ^
+        -interface %SMC_INTERFACE% ^
+        -t InterfaceMethodDispatchers ^
+        -o %SolutionDir%%PROJECT% ^
+        -n %PROJECT% ^
+        -ut MODELS_NAMESPACE=%PROJECT%.Models ^
+        -e -r -lf
+if ERRORLEVEL 1 goto error
 
-rem codegen -s %DATA_STRUCTURES% -ms ^
-rem         -t InterfaceDispatcherData ^
-rem         -o %SolutionDir%%PROJECT% ^
-rem         -n %PROJECT% ^
-rem         -ut SMC_INTERFACE=%SMC_INTERFACE% ^
-rem         -e -r -lf
-rem if ERRORLEVEL 1 goto error
+codegen -s %DATA_STRUCTURES% -ms ^
+        -t InterfaceDispatcherData ^
+        -o %SolutionDir%%PROJECT% ^
+        -n %PROJECT% ^
+        -ut SMC_INTERFACE=%SMC_INTERFACE% ^
+        -e -r -lf
+if ERRORLEVEL 1 goto error
 
 rem ================================================================================
 rem Generate OData action return data models
