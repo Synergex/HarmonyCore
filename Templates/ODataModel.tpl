@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME><StructureNoplural>.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.3.7</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.3.8</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
 ;// Title:       ODataModel.tpl
@@ -294,6 +294,7 @@ namespace <NAMESPACE>
 .region "Relationships to other entities"
 
     <RELATION_LOOP>
+      <IF TO_STRUCTURE_INCLUDED>
         <COUNTER_1_INCREMENT>
 ;//
 ;//
@@ -346,6 +347,7 @@ namespace <NAMESPACE>
         public readwrite property REL_<RelationTostructurePlural>, @ICollection<<RelationTostructureNoplural>>
         </IF ONE_TO_MANY>
 
+      </IF TO_STRUCTURE_INCLUDED>
     </RELATION_LOOP>
 .endregion
 ;//

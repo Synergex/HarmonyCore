@@ -1,5 +1,5 @@
 ﻿<CODEGEN_FILENAME>DbContext.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.3.7</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.3.8</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
@@ -171,6 +171,7 @@ namespace <NAMESPACE>
             ;; Relationships from <STRUCTURE_NOPLURAL>
 
             <RELATION_LOOP>
+            <IF TO_STRUCTURE_INCLUDED>
 ;// A
             <IF MANY_TO_ONE_TO_MANY>
             ;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) --> (one) --> (many) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
@@ -237,6 +238,7 @@ namespace <NAMESPACE>
             &    .HasPrincipalKey(^typeof(<RelationTostructureNoplural>), <TO_KEY_SEGMENT_LOOP><IF SEG_TYPE_FIELD>"<FieldSqlname>"</IF SEG_TYPE_FIELD><,></TO_KEY_SEGMENT_LOOP>)
             </IF ONE_TO_MANY>
 
+            </IF TO_STRUCTURE_INCLUDED>
             </RELATION_LOOP>
             </IF STRUCTURE_RELATIONS>
             </STRUCTURE_LOOP>

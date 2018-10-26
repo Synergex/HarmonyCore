@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME>TestConstants.Values.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.3.7</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.3.8</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
 ;// Title:       ODataTestConstantsValues.tpl
@@ -75,12 +75,14 @@ namespace <NAMESPACE>
 <IF DEFINED_ENABLE_RELATIONS>
   <IF STRUCTURE_RELATIONS>
     <RELATION_LOOP>
+      <IF TO_STRUCTURE_INCLUDED>
 
         <PRIMARY_KEY>
         <SEGMENT_LOOP>
             Get<StructureNoplural>_Expand_<IF MANY_TO_ONE_TO_MANY>REL_<RelationFromkey></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationFromkey></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY>_<SegmentName> = <FIELD_CSDEFAULT>
         </SEGMENT_LOOP>
         </PRIMARY_KEY>
+      <IF TO_STRUCTURE_INCLUDED>
     </RELATION_LOOP>
   </IF STRUCTURE_RELATIONS>
 </IF DEFINED_ENABLE_RELATIONS>

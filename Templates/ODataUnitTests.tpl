@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME><StructureNoplural>Tests.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.3.7</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.3.8</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_OPTION>TF</REQUIRES_OPTION>
 <CODEGEN_FOLDER>UnitTests</CODEGEN_FOLDER>
 <REQUIRES_USERTOKEN>CLIENT_MODELS_NAMESPACE</REQUIRES_USERTOKEN>
@@ -82,6 +82,7 @@ namespace <NAMESPACE>
 <IF DEFINED_ENABLE_RELATIONS>
   <IF STRUCTURE_RELATIONS>
     <RELATION_LOOP>
+      <IF TO_STRUCTURE_INCLUDED>
         ;;------------------------------------------------------------
         ;;Get all <StructurePlural> and expand relation REL_<RelationFromkey>
 
@@ -116,6 +117,7 @@ namespace <NAMESPACE>
             response.EnsureSuccessStatusCode()
         endmethod
 
+      </IF TO_STRUCTURE_INCLUDED>
     </RELATION_LOOP>
         ;;------------------------------------------------------------
         ;;Get all <StructurePlural> and expand all relations
@@ -124,7 +126,7 @@ namespace <NAMESPACE>
         {TestCategory("<StructureNoplural> Tests - Read All")}
         public method Get<StructurePlural>_Expand_All, void
         proc
-            data uri = "/odata/<StructurePlural>?$expand=<RELATION_LOOP><IF MANY_TO_ONE_TO_MANY>REL_<RelationFromkey></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationFromkey></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY><,></RELATION_LOOP>"
+            data uri = "/odata/<StructurePlural>?$expand=<RELATION_LOOP><IF TO_STRUCTURE_INCLUDED><IF MANY_TO_ONE_TO_MANY>REL_<RelationFromkey></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationFromkey></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY><,></IF TO_STRUCTURE_INCLUDED></RELATION_LOOP>"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             <IF DEFINED_ENABLE_AUTHENTICATION>
             client.SetBearerToken(UnitTestEnvironment.AccessToken)
@@ -157,6 +159,7 @@ namespace <NAMESPACE>
 <IF DEFINED_ENABLE_RELATIONS>
   <IF STRUCTURE_RELATIONS>
     <RELATION_LOOP>
+      <IF TO_STRUCTURE_INCLUDED>
         ;;------------------------------------------------------------
         ;;Get a single <StructureNoplural> by primary key and expand relation <IF MANY_TO_ONE_TO_MANY>REL_<RelationFromkey></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationFromkey></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY>
 
@@ -175,6 +178,7 @@ namespace <NAMESPACE>
             data <structureNoplural>, @OData<StructureNoplural>, JsonConvert.DeserializeObject<OData<StructureNoplural>>(result)
         endmethod
 
+      </IF TO_STRUCTURE_INCLUDED>
     </RELATION_LOOP>
         ;;------------------------------------------------------------
         ;;Get a single <StructureNoplural> by primary key and expand all relations
@@ -187,7 +191,7 @@ namespace <NAMESPACE>
             <IF DEFINED_ENABLE_AUTHENTICATION>
             client.SetBearerToken(UnitTestEnvironment.AccessToken)
             </IF DEFINED_ENABLE_AUTHENTICATION>
-            data request = String.Format("/odata/<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY>)?$expand=<RELATION_LOOP><IF MANY_TO_ONE_TO_MANY>REL_<RelationFromkey></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationFromkey></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY><,></RELATION_LOOP>","",<PRIMARY_KEY><SEGMENT_LOOP>TestConstants.Get<StructureNoplural>_Expand_All_<SegmentName><,></SEGMENT_LOOP></PRIMARY_KEY>)
+            data request = String.Format("/odata/<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY>)?$expand=<RELATION_LOOP><IF TO_STRUCTURE_INCLUDED><IF MANY_TO_ONE_TO_MANY>REL_<RelationFromkey></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationFromkey></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY><,></IF TO_STRUCTURE_INCLUDED></RELATION_LOOP>","",<PRIMARY_KEY><SEGMENT_LOOP>TestConstants.Get<StructureNoplural>_Expand_All_<SegmentName><,></SEGMENT_LOOP></PRIMARY_KEY>)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
