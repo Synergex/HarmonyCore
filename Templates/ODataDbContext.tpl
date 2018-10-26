@@ -123,7 +123,24 @@ namespace <NAMESPACE>
             &        (
             &            Expression.Block
             &            (
+<IF COMPARISON_EQ>
             &                Expression.Equal
+</IF COMPARISON_EQ>
+<IF COMPARISON_GE>
+            &                Expression.GreaterThanOrEqual
+</IF COMPARISON_GE>
+<IF COMPARISON_GT>
+            &                Expression.GreaterThan
+</IF COMPARISON_GT>
+<IF COMPARISON_LE>
+            &                Expression.LessThanOrEqual
+</IF COMPARISON_LE>
+<IF COMPARISON_LT>
+            &                Expression.LessThan
+</IF COMPARISON_LT>
+<IF COMPARISON_NE>
+            &                Expression.NotEqual
+</IF COMPARISON_NE>
             &                (
             &                    Expression.Call
             &                    (
