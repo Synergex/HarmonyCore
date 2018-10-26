@@ -1,0 +1,209 @@
+
+import System
+import System.IO
+import System.Collections.Generic
+import System.Collections
+
+
+.array 1
+
+main
+    .include "CUSTOMERS" repository, structure="strCustomer", end
+    .include "ITEMS" repository, structure="strItem", end
+    .include "ORDERS" repository, structure="strOrder", end
+    .include "ORDER_ITEMS" repository, structure="strOrderItem", end
+    .include "VENDORS" repository, structure="strVendor", end
+proc
+
+    ;;Determine the data folder
+    data folder = Tools.FindRelativeFolderForAssembly("SampleData")
+    Console.WriteLine("Data folder is {0}",folder)
+
+    ;;Start date will be January 1st last year
+    data startDate = new DateTime(DateTime.Now.Year-1,1,1)
+    data endDate, DateTime
+
+    ;;End date will be the last weekday up to and including today
+    using DateTime.Now.DayOfWeek select
+    (DayOfWeek.Monday,DayOfWeek.Tuesday,DayOfWeek.Wednesday,DayOfWeek.Thursday,DayOfWeek.Friday),
+        endDate = DateTime.Now
+    (DayOfWeek.Saturday),
+        endDate = DateTime.Now.AddDays(-1)
+    (DayOfWeek.Sunday),
+        endDate = DateTime.Now.AddDays(-2)
+    endusing
+
+    ;;Last shipped order day is the business day before the end date
+    data lastShippedOrderDate, DateTime
+    if (endDate.DayOfWeek == DayOfWeek.Monday) then
+        lastShippedOrderDate = endDate.AddDays(-3)
+    else
+        lastShippedOrderDate = endDate.AddDays(-1)
+
+    data currentDate = startDate.AddDays(-1)
+    Console.WriteLine("Start date for orders is {0}",startDate.ToShortDateString())
+
+    ;;Load customer data
+    data firstCustomerNumber = 1
+    data lastCustomerNumber = 38
+    data currentCustomerNumber = 0
+    data customer, strCustomer
+    data customers = new strCustomer[lastCustomerNumber]
+    data ch = 0
+    data file = Path.Combine(folder,"customers.txt")
+    open(ch,i:s,file)
+    repeat
+    begin
+        reads(ch,customer,eof1)
+        customers[currentCustomerNumber+=1] = customer
+    end
+eof1,
+    close ch
+
+    ;;Load item data
+    data firstItemNumber = 1
+    data lastItemNumber = 121
+    data currentItemNumber = 0
+    data item, strItem
+    data items = new strItem[lastItemNumber]
+    file = Path.Combine(folder,"items.txt")
+    open(ch=0,i:s,file)
+    repeat
+    begin
+        reads(ch,item,eof2)
+        items[currentItemNumber+=1] = item
+    end
+eof2,
+    close ch
+
+    ;;Payment terms codes
+    data paymentTermsCode = new string[#] { "CA","30","60","90" }
+
+    ;;Generated data
+    data order, strOrder
+    data orders = new ArrayList()
+    data orderItem, strOrderItem
+    data orderItems = new ArrayList()
+
+    ;;Counters and random stuff
+    data rnd = new Random()
+    data nextOrderNumber = 0
+    data nextInvoiceNumber = rnd.Next(1432,1632)
+    data dailyOrderCount = 0
+    data dailyOrderNumber = 0
+    data orderItemCount = 0
+    data currentOrderItemNumber = 0
+
+    repeat
+    begin
+        ;;Go to the next day, skipping weekends
+        currentDate = currentDate.AddDays(1)
+        if (currentDate.DayOfWeek == DayOfWeek.Saturday || currentDate.DayOfWeek == DayOfWeek.Sunday)
+            nextloop
+
+        ;;Are we done?
+        if (DateTime.Compare(currentDate,endDate) > 0)
+            exitloop
+
+        ;;How many orders for today
+        dailyOrderCount = rnd.Next(5,16)
+        Console.WriteLine("Generating {0} orders for {1}",dailyOrderCount,currentDate.ToShortDateString())
+
+        for dailyOrderNumber from 1 thru dailyOrderCount
+        begin
+            init order
+            order.order_number = nextOrderNumber += 1
+            order.customer_number = rnd.Next(firstCustomerNumber,lastCustomerNumber+1)
+            order.placed_by = customers[order.customer_number].contact
+            order.customer_reference = %char(rnd.Next(65,91)) + %char(rnd.Next(65,91)) + %char(rnd.Next(65,91)) + %string(rnd.Next(1232,9999))
+            order.payment_terms_code = paymentTermsCode[rnd.Next(1,5)]
+            order.date_ordered = currentDate.ToString("yyyyMMdd")
+            if (DateTime.Compare(currentDate,lastShippedOrderDate) < 0)
+            begin
+                data completedDate = currentDate
+                repeat
+                begin
+                    completedDate = completedDate.AddDays(1)
+                    if (completedDate.DayOfWeek != DayOfWeek.Saturday && completedDate.DayOfWeek != DayOfWeek.Sunday)
+                        exitloop
+                end
+                order.date_completed = completedDate.ToString("yyyyMMdd")
+            end
+
+            orders.Add((@a)order)
+
+            ;;Now items for the orders
+
+            orderItemCount = rnd.Next(1,6)
+            nextInvoiceNumber += 1
+
+            for currentOrderItemNumber from 1 thru orderItemCount
+            begin
+                init orderItem
+                orderItem.order_number = order.order_number
+                orderItem.item_number = currentOrderItemNumber
+                orderItem.item_ordered = rnd.Next(firstItemNumber,lastItemNumber+1)
+                orderItem.quantity_ordered = rnd.Next(1,11)
+                orderItem.unit_price = items[orderItem.item_ordered].unit_price
+                if (order.date_completed)
+                begin
+                    orderItem.date_shipped = order.date_completed
+                    orderItem.invoice_number = nextInvoiceNumber
+                end
+
+                orderItems.Add((@a)orderItem)
+
+            end
+
+        end
+        
+    end
+
+    ;;Write the orders file
+    file = Path.Combine(folder,"orders.txt")
+    open(ch,o:s,file)
+    data boxedAlpha, @a
+    foreach boxedAlpha in orders
+    begin
+        writes(ch,(a)boxedAlpha)
+    end
+    close ch
+
+    ;;Write the order items file
+    file = Path.Combine(folder,"order_items.txt")
+    open(ch,o:s,file)
+    foreach boxedAlpha in orderItems
+    begin
+        writes(ch,(a)boxedAlpha)
+    end
+    close ch
+
+    Console.Write("Press a key: ")
+    Console.ReadKey()
+
+endmain
+
+
+namespace DataGenerator
+
+    public static class Tools
+
+        public static method FindRelativeFolderForAssembly, string
+            folderName, string
+        proc
+            data assemblyLocation = ^typeof(Tools).Assembly.Location
+            data currentFolder = Path.GetDirectoryName(assemblyLocation)
+            data rootPath = Path.GetPathRoot(currentFolder)
+            while(currentFolder != rootPath)
+            begin
+                if(Directory.Exists(Path.Combine(currentFolder, folderName))) then
+                    mreturn Path.Combine(currentFolder, folderName)
+                else
+                    currentFolder = Path.GetFullPath(currentFolder + "..\")
+            end
+            mreturn ^null
+        endmethod
+
+    endclass
+
+endnamespace
