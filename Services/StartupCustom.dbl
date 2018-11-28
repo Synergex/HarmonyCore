@@ -1,3 +1,4 @@
+import Harmony.OData.Adapter
 import Services.Isolated
 ;;*****************************************************************************
 ;;
@@ -45,7 +46,8 @@ namespace Services
             services, @IServiceCollection 
         proc
             services.AddScoped<IPrimaryKeyFactory,PrimaryKeyGenerator>()
-            services.TryAddEnumerable(ServiceDescriptor.Singleton<IActionInvokerProvider, HarmonySprocActionInvokerProvider>())
+			services.TryAddEnumerable(ServiceDescriptor.Singleton<IActionInvokerProvider, HarmonySprocActionInvokerProvider>())
+			services.TryAddEnumerable(ServiceDescriptor.Singleton<IActionInvokerProvider, AdapterActionInvokerProvider>())
 			services.AddSingleton<IContextFactory<IsolatedMethodsBase>>(new AssemblyLoadContextPool<IsolatedMethodsBase, IsolatedMethods>(2))
 			services.AddScoped<Microsoft.EntityFrameworkCore.DbContext>(MakeGenericDbContext)
 			data contextPool, @RemoteExternalContextPool<ExternalCallContext>, new RemoteExternalContextPool<ExternalCallContext>(RemoteTargetOS.VMS, "vmsit", "jeff1", new Renci.SshNet.PasswordAuthenticationMethod("jeff1", "jeff1"), "RUN PROGRAM.EXE" , 4) 

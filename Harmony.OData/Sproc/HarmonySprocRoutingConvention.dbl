@@ -37,11 +37,6 @@ namespace Harmony.OData
                 mreturn ^null
 			data feature = routeContext.HttpContext.ODataFeature()
 			data odataPath = feature.Path
-			data svc = feature.RequestContainer.GetService(^typeof(IEdmModel))
-			data model = ^as(svc, @IEdmModel)
-			data elementType = odataPath.EdmType .is. IEdmCollectionType ? ((@IEdmCollectionType)odataPath.EdmType).ElementType.Definition : odataPath.EdmType
-			data odataQuery = new ODataQueryOptions(new ODataQueryContext(model, elementType, odataPath), routeContext.HttpContext.Request)
-            data filterClause = odataQuery.Filter.FilterClause
             if (odataPath.PathTemplate == "~/unboundfunction" ||
             &    odataPath.PathTemplate == "~/unboundaction") then
                 &    

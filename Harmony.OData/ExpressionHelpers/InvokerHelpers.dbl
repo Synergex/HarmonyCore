@@ -71,7 +71,7 @@ namespace Harmony.OData.ExpressionHelpers
 			data paramInfo, @ParameterInfo
 			foreach paramInfo in targetParameters
 			begin
-				parameterValues.Add(itemResult)
+				parameterValues.Add(argumentBuilder(paramInfo.Name))
 			end
 
 			data conversionBody = Expression.Call(instanceValue, targetMethodInfo, parameterValues)
@@ -117,6 +117,21 @@ namespace Harmony.OData.ExpressionHelpers
 			data responseWrapper = Expression.Call(wrapResponseMethod, conversionRoutine)
 			mreturn responseWrapper
 
+		endmethod
+
+		public static async method WrapResponseForExceptions, @Task<IActionResult>
+			callBody, @Func<Task<IActionResult>>
+		proc
+			;;TODO add request/error logging here
+			try
+			begin
+				mreturn await callBody()
+			end
+			catch(ex, @Exception)
+			begin
+				mreturn new BadRequestResult()
+			end
+			endtry
 		endmethod
 	endclass
 

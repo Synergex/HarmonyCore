@@ -61,7 +61,20 @@ namespace Harmony.OData.Adapter
 		private method BuildDescriptorMap, @Dictionary<string, ControllerActionDescriptor>
 			actionDescriptors, @ActionDescriptorCollection
 		proc
-			mreturn actionDescriptors.Items.OfType<ControllerActionDescriptor>().Where(IsAdapterMethod).ToDictionary<string, ControllerActionDescriptor>(lambda(item) { item.ActionName })
+			data descriptors = actionDescriptors.Items.OfType<ControllerActionDescriptor>().Where(IsAdapterMethod)
+			data descriptor, @ControllerActionDescriptor
+			data result = new Dictionary<string, ControllerActionDescriptor>()
+			foreach descriptor in descriptors
+			begin
+				if(!result.ContainsKey(descriptor.ActionName))
+				begin
+					result.Add(descriptor.ActionName, descriptor)
+				end
+
+				result.Add(descriptor.ControllerName + "." + descriptor.ActionName, descriptor)
+			end
+
+			mreturn result
 		endmethod
 
 		public virtual method SelectAction, @IEnumerable<ControllerActionDescriptor> 
@@ -85,6 +98,20 @@ namespace Harmony.OData.Adapter
 				begin
 					data opName = segment.Identifier
 					mreturn FindMatchingAction(actionCollectionProvider.ActionDescriptors, opName)
+				end
+			end
+			else if(odataPath.PathTemplate == "~/singleton/action"||
+			&	odataPath.PathTemplate == "~/singleton/function") then
+			begin
+				data opSeg, @OperationSegment, ^as(odataPath.Segments[1], OperationSegment)
+				data singletonSeg, @SingletonSegment, ^as(odataPath.Segments[0], SingletonSegment)
+				if (opSeg != ^null && singletonSeg != ^null)
+				begin
+					data opName = opSeg.Identifier
+					if(String.IsNullOrEmpty(opName) && opSeg.Operations != ^null)
+						opName = opSeg.Operations.First().Name
+
+					mreturn FindMatchingAction(actionCollectionProvider.ActionDescriptors, singletonSeg.Identifier + "." + opName)
 				end
 			end
 			else if (odataPath.PathTemplate == "~/entityset")

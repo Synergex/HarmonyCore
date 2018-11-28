@@ -1,3 +1,4 @@
+import System.ComponentModel
 import System
 import System.Collections.Generic
 import System.Diagnostics
@@ -27,6 +28,7 @@ import Microsoft.AspNet.OData.Routing.Conventions
 import Microsoft.AspNet.OData.Routing
 import Microsoft.AspNet.OData.Extensions
 import Harmony.OData.ExpressionHelpers
+import System.ComponentModel
 
 namespace Harmony.OData.Adapter
 
@@ -135,9 +137,9 @@ namespace Harmony.OData.Adapter
 			data model = ^as(svc, @IEdmModel)
 			data elementType = odataPath.EdmType .is. IEdmCollectionType ? ((@IEdmCollectionType)odataPath.EdmType).ElementType.Definition : odataPath.EdmType
 			data odataQuery = new ODataQueryOptions(new ODataQueryContext(model, elementType, odataPath), _controllerContext.HttpContext.Request)
-			data filterClause = odataQuery.Filter.FilterClause
+			data filterClause = odataQuery.Filter?.FilterClause
 			data filterLookup = new Dictionary<string, List<AdapterOp>>()
-			ExtractAdapterOp(filterClause.Expression, filterLookup, ^null)
+			ExtractAdapterOp(filterClause?.Expression, filterLookup, ^null)
 			;;get filter stucture
 			;;build lookups for the result fields based on the target edm name
 			;;
@@ -146,7 +148,7 @@ namespace Harmony.OData.Adapter
 				throw new InvalidOperationException("Adapter invocation only works for methods with a single parameter defined")
 
 
-			data uriParameters = Expression.Parameter(^typeof(Dictionary<object, object>))
+			data uriParameters = Expression.Parameter(^typeof(IDictionary<object, object>))
 			data bodyString = Expression.Parameter(^typeof(string))
 			data instance = Expression.Parameter(^typeof(object))
 			data targetParameterType = targetMethodParameters.First().ParameterType
@@ -156,24 +158,51 @@ namespace Harmony.OData.Adapter
 			lambda expressionBuilder(methodName)
 			begin
 				data wrapResponseMethod = ^typeof(AdapterActionInvoker).GetMethod("WrapResponseForExceptions")
-				data callExpression = InvokerHelpers.GenerateCallExpression(_controllerContext.ActionDescriptor.MethodInfo, _controllerContext.ActionDescriptor.ControllerTypeInfo, BakeFieldValueGetter(targetParameterType, filterLookupParam, uriParameters), instance, wrapResponseMethod)
-				data innerAdapter = Expression.Lambda<Func<IDictionary<object, object>, string, object, Task<IActionResult>>>(callExpression, "innerAdapter", new ParameterExpression[#] { uriParameters, bodyString, instance })
-				data result = Expression.Lambda<Func<ODataQueryOptions, Dictionary<string, List<AdapterOp>>, Func<IDictionary<object, object>, string, object, Task<IActionResult>>>>(
+				data unpackOdataParameters = ^typeof(AdapterActionInvoker).GetMethod("AppendODataParameters")
+				data callExpression = InvokerHelpers.GenerateCallExpression(_controllerContext.ActionDescriptor.MethodInfo, _controllerContext.ActionDescriptor.ControllerTypeInfo, BakeFieldValueGetter(targetParameterType, filterLookupParam, Expression.Call(unpackOdataParameters, uriParameters, odataQueryParameter)), instance, wrapResponseMethod)
+				data innerAdapter, @LambdaExpression
+				innerAdapter = Expression.Lambda<Func<IDictionary<object, object>, string, object, Task<IActionResult>>>(callExpression, "innerAdapter", new ParameterExpression[#] { uriParameters, bodyString, instance })
+				data result, @Expression<Func<ODataQueryOptions, Dictionary<string, List<AdapterOp>>, Func<IDictionary<object, object>, string, object, Task<IActionResult>>>>
+				result = Expression.Lambda<Func<ODataQueryOptions, Dictionary<string, List<AdapterOp>>, Func<IDictionary<object, object>, string, object, Task<IActionResult>>>>(
 				&	innerAdapter, "outerAdapter", new ParameterExpression[#] { odataQueryParameter, filterLookupParam })
 				mreturn result.Compile()
 			end
+
 			data paramBaker = ExpressionLookup.GetOrAdd(_controllerContext.ActionDescriptor.DisplayName, expressionBuilder)
 			mreturn paramBaker(odataQuery, filterLookup)
 		endmethod
 
-		private static method GetValueForDestinationField, @object
+		public static method AppendODataParameters, @IDictionary<object, object>
+			original, @IDictionary<object, object>
+			odataOptions, @ODataQueryOptions
+		proc
+			data result = new Dictionary<object, object>(original)
+			data opSeg = ^as(odataOptions.Context.Path.Segments.Last(), @OperationSegment)
+			data param, @OperationSegmentParameter
+			foreach param in opSeg.Parameters
+			begin
+				if(!result.ContainsKey(param.Name))
+				begin
+					if(param.Value .is. ConstantNode)
+					begin
+						data constNode = ^as(param.Value, @ConstantNode)
+						result.Add(param.Name, constNode.Value)
+					end
+				end
+			end
+			mreturn result
+
+		endmethod
+
+
+		public static method GetValueForDestinationField, @object
 			adapterType, @Type
 			destinationFieldName, @string
 			opLookup, @Dictionary<string, List<AdapterOp>>
-			uriParameters, @Dictionary<object, object>
+			uriParameters, @IDictionary<object, object>
 		proc
-			data targetField = adapterType.GetField(destinationFieldName)
-			data customAttributes = targetField.GetCustomAttributes(false)
+			data targetProp = adapterType.GetProperty(destinationFieldName)
+			data customAttributes = targetProp.GetCustomAttributes(false)
 			data attr, @object
 			foreach attr in customAttributes
 			begin
@@ -232,19 +261,41 @@ namespace Harmony.OData.Adapter
 				end
 			end
 
-			mreturn ^null
+			mreturn GetDefaultValueForProperty(targetProp)
 		endmethod
 
+		public static method GetDefaultValueForProperty, @object
+			prop, @PropertyInfo 
+		proc
+			data defaultAttr = ^as(prop.GetCustomAttribute(^typeof(DefaultValueAttribute)), @DefaultValueAttribute)
+			if (defaultAttr != ^null)
+				mreturn defaultAttr.Value
+
+			data propertyType = prop.PropertyType;
+			mreturn propertyType.IsValueType ? Activator.CreateInstance(propertyType) : ^null
+		endmethod
 
 		private static method BakeFieldValueGetter, @Func<string, Expression>
 			adapterType, @Type
 			filterLookup, @ParameterExpression
-			uriParameters, @ParameterExpression
+			uriParameters, @Expression
 		proc
+			;;performance of this could be improved by generating the expression monolithically 
+			;;at expression compile time rather than one field at a time at runtime
 			lambda fieldValueGetter(name)
 			begin
 				data callMethod = ^typeof(AdapterActionInvoker).GetMethod("GetValueForDestinationField")
-				mreturn Expression.Call(callMethod, Expression.Constant(adapterType), Expression.Constant(name), filterLookup, uriParameters)
+				data memberBindings = new List<MemberBinding>()
+
+				data targetProp, @PropertyInfo
+				foreach targetProp in adapterType.GetProperties()
+				begin
+					data getter = targetProp.GetMethod
+					if(getter.IsPublic && !getter.IsStatic)
+						memberBindings.Add(Expression.Bind(targetProp, Expression.Convert(Expression.Call(callMethod, Expression.Constant(adapterType), Expression.Constant(targetProp.Name), filterLookup, uriParameters), targetProp.PropertyType)))
+				end
+
+				mreturn Expression.MemberInit(Expression.New(adapterType), memberBindings)
 			end
 			mreturn fieldValueGetter
 		endmethod
@@ -272,12 +323,7 @@ namespace Harmony.OData.Adapter
 					data controllerContext = _controllerContext
 					_cursor.Reset()
 					_arguments = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
-					data local_task = CreateInstance(_serviceProvider, _controllerContext.ActionDescriptor.ControllerTypeInfo)
-					if (local_task.Status != TaskStatus.RanToCompletion)
-					begin
-						next = State.ActionNext
-						mreturn local_task
-					end
+					_instance = ActivatorUtilities.CreateInstance(_serviceProvider, _controllerContext.ActionDescriptor.ControllerTypeInfo, new Object[0])
 					goto StateActionNext
 				end
 			end
