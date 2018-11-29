@@ -13,6 +13,9 @@ import System.Reflection
 import Microsoft.AspNetCore.Mvc.ModelBinding
 import Microsoft.AspNetCore.Mvc.ApplicationModels
 import Microsoft.AspNetCore.Mvc.Infrastructure
+import Microsoft.AspNet.OData.Query
+import Microsoft.AspNet.OData
+import Microsoft.OData.Edm
 
 namespace Harmony.OData
 
@@ -32,9 +35,8 @@ namespace Harmony.OData
         proc
             if (routeContext == ^null)
                 mreturn ^null
-
-            data odataPath = routeContext.HttpContext.ODataFeature().Path
-
+			data feature = routeContext.HttpContext.ODataFeature()
+			data odataPath = feature.Path
             if (odataPath.PathTemplate == "~/unboundfunction" ||
             &    odataPath.PathTemplate == "~/unboundaction") then
                 &    
@@ -49,7 +51,7 @@ namespace Harmony.OData
             else if(odataPath.PathTemplate == "~/singleton/action"||
             &    odataPath.PathTemplate == "~/singleton/function")
             begin
-                data opSeg, @OperationSegment, ^as(odataPath.Segments[1], OperationSegment)
+			data opSeg, @OperationSegment, ^as(odataPath.Segments[1], OperationSegment)
                 data singletonSeg, @SingletonSegment, ^as(odataPath.Segments[0], SingletonSegment)
                 if (opSeg != ^null && singletonSeg != ^null)
                 begin
@@ -66,7 +68,7 @@ namespace Harmony.OData
                         data actionDescriptor = actionCollectionProvider.ActionDescriptors.Items.OfType<ControllerActionDescriptor>().FirstOrDefault(lambda(aDesc) { aDesc.ControllerTypeInfo == controllerTypeInfo && string.Compare(aDesc.ActionName, opName, true) == 0 }) 
                         if(actionDescriptor != ^null)
                         begin
-                            actionDescriptor.RouteValues["HarmonySprocRouteSentinel"] = ""
+							actionDescriptor.RouteValues["HarmonySprocRouteSentinel"] = ""
                             mreturn new List<ControllerActionDescriptor>() { actionDescriptor }
                         end
 

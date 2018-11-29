@@ -5,6 +5,7 @@ import Microsoft.AspNet.OData.Builder
 import System.Reflection
 import System.Linq
 import System.Threading.Tasks
+import Harmony.OData.Adapter
 
 namespace Harmony.OData
 
@@ -70,14 +71,14 @@ namespace Harmony.OData
                 if(targetMethod.DeclaringType != targetType || targetMethod.IsSpecialName || targetMethod.Name.Contains("$"))
                     nextloop
 
-                data securityAttribute = Attribute.GetCustomAttribute(targetMethod, ^typeof(MethodSecurityAttribute))
+				data securityAttribute = targetMethod.GetCustomAttribute<MethodSecurityAttribute>(false)
                 if(securityAttribute != ^null && !((@MethodSecurityAttribute)securityAttribute).AllowAccess)
                 begin
                     nextloop
                 end
 
                 data callableMethodConfig, @CallableMethodConfigurationAttribute
-                callableMethodConfig = ^as(Attribute.GetCustomAttribute(targetMethod, ^typeof(CallableMethodConfigurationAttribute)), @CallableMethodConfigurationAttribute)
+				callableMethodConfig = targetMethod.GetCustomAttribute<CallableMethodConfigurationAttribute>(false)
                 if(callableMethodConfig == ^null)
                 begin
                     callableMethodConfig = new CallableMethodConfigurationAttribute()
@@ -119,8 +120,29 @@ namespace Harmony.OData
 
                 data paramInfo, @ParameterInfo
                 foreach paramInfo in targetMethod.GetParameters()
-                begin
-                    paramFunction.MakeGenericMethod(new Type[#] { paramInfo.ParameterType }).Invoke(resultObject, new Object[#] { paramInfo.Name })
+				begin
+					data adapterAttribute = paramInfo.GetCustomAttribute<AdapterParameterAttribute>(false)
+					if(adapterAttribute != ^null) then
+					begin
+						;;if its an adapter parameter we need to translate any fields/properties marked as parameters into the appropriate edm info
+						data prop, @PropertyInfo
+						foreach prop in paramInfo.ParameterType.GetProperties()
+						begin
+							data getter = prop.GetMethod
+							if(getter != ^null && getter.IsPublic && !getter.IsStatic)
+							begin
+								data paramAttr = prop.GetCustomAttribute<ParameterFieldAdapterAttribute>(false)
+								if(paramAttr != ^null)
+								begin
+									data paramConfig = ^as(paramFunction.MakeGenericMethod(new Type[#] { prop.PropertyType }).Invoke(resultObject, new Object[#] { paramAttr.EdmName }), @ParameterConfiguration)
+									if(paramAttr.IsOptional)
+										paramConfig.Optional()
+								end
+							end
+						end
+					end
+					else
+						paramFunction.MakeGenericMethod(new Type[#] { paramInfo.ParameterType }).Invoke(resultObject, new Object[#] { paramInfo.Name })
                 end
 
             end

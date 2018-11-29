@@ -16,7 +16,14 @@ namespace Harmony.Core.Context
     public interface IPooledContextBase
         method InitServices, void
             sp, @IServiceProvider
-        endmethod
+		endmethod
+
+		method EnsureReady, @Task
+		endmethod
+
+		method Recycle, @Task
+		endmethod
+
     endinterface
 
 
@@ -40,6 +47,31 @@ namespace Harmony.Core.Context
 		proc
 			if(AsyncContext.Current != mDispatcher.BackgroundThread.Context)
 				throw new AccessViolationException("Access from an incorrect thread")
+		endmethod
+	endclass
+
+	public abstract class PooledContextBase implements IContextBase, IPooledContextBase, IDisposable
+
+		public virtual method Dispose, void
+			endparams
+		proc
+		endmethod
+
+		public setprotected property IsolationLevel, ContextIsolationLevel	
+
+		public virtual method InitServices, void
+			sp, @IServiceProvider
+		proc
+		endmethod
+
+		public virtual method EnsureReady, @Task
+		proc
+			mreturn Task.FromResult(true)
+		endmethod
+
+		public virtual method Recycle, @Task
+		proc
+			mreturn Task.FromResult(true)
 		endmethod
 	endclass
 

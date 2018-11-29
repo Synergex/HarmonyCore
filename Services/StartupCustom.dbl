@@ -1,3 +1,4 @@
+import Harmony.OData.Adapter
 import Services.Isolated
 ;;*****************************************************************************
 ;;
@@ -45,12 +46,13 @@ namespace Services
             services, @IServiceCollection 
         proc
             services.AddScoped<IPrimaryKeyFactory,PrimaryKeyGenerator>()
-            services.TryAddEnumerable(ServiceDescriptor.Singleton<IActionInvokerProvider, HarmonySprocActionInvokerProvider>())
+			services.TryAddEnumerable(ServiceDescriptor.Singleton<IActionInvokerProvider, HarmonySprocActionInvokerProvider>())
+			services.TryAddEnumerable(ServiceDescriptor.Singleton<IActionInvokerProvider, AdapterActionInvokerProvider>())
 			services.AddSingleton<IContextFactory<IsolatedMethodsBase>>(new AssemblyLoadContextPool<IsolatedMethodsBase, IsolatedMethods>(2))
 			services.AddScoped<Microsoft.EntityFrameworkCore.DbContext>(MakeGenericDbContext)
-			;data contextPool, @RemoteExternalContextPool<ExternalCallContext>, new RemoteExternalContextPool<ExternalCallContext>(Environment.GetEnvironmentVariable("HARMONY_TEST_MACHINE"), Environment.GetEnvironmentVariable("HARMONY_TEST_USER"), new Renci.SshNet.PasswordAuthenticationMethod(Environment.GetEnvironmentVariable("HARMONY_TEST_USER"), Environment.GetEnvironmentVariable("HARMONY_TEST_PASSWORD")), "RUN PROGRAM.EXE" , 4) 
-            data currentDirectory = Path.GetDirectoryName(^typeof(Startup).Assembly.Location)
-            data contextPool = new ExternalContextPool<ExternalCallContext>(Environment.GetEnvironmentVariable("SYNERGYDE32") + "dbl\bin\dbs.exe", 'TraditionalBridge.Test.dbr', Path.GetFullPath(Path.Combine(currentDirectory, "..\..\..\..\Debug\x86")), ^null, 4) 
+			data contextPool, @RemoteExternalContextPool<ExternalCallContext>, new RemoteExternalContextPool<ExternalCallContext>(RemoteTargetOS.VMS, Environment.GetEnvironmentVariable("HARMONY_TEST_MACHINE"), Environment.GetEnvironmentVariable("HARMONY_TEST_USER"), new Renci.SshNet.PasswordAuthenticationMethod(Environment.GetEnvironmentVariable("HARMONY_TEST_USER"), Environment.GetEnvironmentVariable("HARMONY_TEST_PASSWORD")), "RUN PROGRAM.EXE" , 4) 
+            ;data currentDirectory = Path.GetDirectoryName(^typeof(Startup).Assembly.Location)
+            ;data contextPool = new ExternalContextPool<ExternalCallContext>(Environment.GetEnvironmentVariable("SYNERGYDE32") + "dbl\bin\dbs.exe", 'TraditionalBridge.Test.dbr', Path.GetFullPath(Path.Combine(currentDirectory, "..\..\..\..\Debug\x86")), ^null, 4) 
             services.AddSingleton<IContextFactory<ExternalCallContext>>(contextPool)
             services.AddContextPool<ExternalCallContext>()
         endmethod

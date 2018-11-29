@@ -10,7 +10,7 @@ import System.Threading.Tasks
 
 namespace Harmony.Core.Context
 
-	public abstract class DynamicCallProvider implements IDynamicCallProvider
+	public abstract class DynamicCallProvider extends PooledContextBase implements IDynamicCallProvider
 		
 		class CallFrame
 			public readwrite property Name, @string
@@ -42,6 +42,21 @@ namespace Harmony.Core.Context
 			connection, @IDynamicCallConnection
 		proc
 			this.connection = connection
+		endmethod
+
+		public override method EnsureReady, @Task
+		proc
+			mreturn connection.MakeReady()
+		endmethod
+
+		public override method Dispose, void
+		proc
+			connection.Disconnect();
+		endmethod
+
+		public override method Recycle, @Task
+		proc
+			mreturn connection.Recycle()
 		endmethod
 
 		public virtual method CallMethod, @Task<Tuple<Object, [#]@Object>>

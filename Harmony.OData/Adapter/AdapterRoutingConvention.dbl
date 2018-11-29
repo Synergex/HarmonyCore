@@ -1,0 +1,139 @@
+import System
+import System.Collections.Generic
+import System.Text
+import Microsoft.AspNet.OData.Routing.Conventions
+import Microsoft.AspNet.OData.Routing
+import Microsoft.AspNetCore.Routing
+import Microsoft.AspNetCore.Mvc.Controllers
+import Microsoft.AspNet.OData.Extensions
+import Microsoft.OData.UriParser
+import System.Linq
+import System.Collections.Concurrent
+import System.Reflection
+import Microsoft.AspNetCore.Mvc.ModelBinding
+import Microsoft.AspNetCore.Mvc.ApplicationModels
+import Microsoft.AspNetCore.Mvc.Infrastructure
+import Microsoft.AspNet.OData.Query
+import Microsoft.AspNet.OData
+import Microsoft.OData.Edm
+
+namespace Harmony.OData.Adapter
+
+	public class AdapterRoutingConvention implements IODataRoutingConvention
+
+		private descriptorCache, @ConcurrentDictionary<int, Lazy<Dictionary<string, ControllerActionDescriptor>>>, new ConcurrentDictionary<int, Lazy<Dictionary<string, ControllerActionDescriptor>>>()
+		private method FindMatchingAction, @IEnumerable<ControllerActionDescriptor>
+			actionDescriptors, @ActionDescriptorCollection
+			{ParamArray}
+			names, [#]@string
+		proc
+			data descriptorLookup, @Lazy<Dictionary<string, ControllerActionDescriptor>>
+			data result, @ControllerActionDescriptor
+			data name, @string
+			descriptorLookup = descriptorCache.GetOrAdd(actionDescriptors.Version, lambda(unused) { new Lazy<Dictionary<string, ControllerActionDescriptor>>(lambda () { BuildDescriptorMap(actionDescriptors) }) })
+			
+			foreach name in names
+			begin
+				if(descriptorLookup.Value.TryGetValue(name, result))
+				begin
+					result.RouteValues["AdapterRouteSentinel"] = ""
+					mreturn new List<ControllerActionDescriptor>() { result }
+				end
+
+			end
+
+			mreturn Enumerable.Empty<ControllerActionDescriptor>()
+		endmethod
+
+		private static method IsAdapterMethod, boolean
+			descriptor, @ControllerActionDescriptor
+		proc
+			data desciptorParameters = descriptor.MethodInfo.GetParameters()
+			mreturn desciptorParameters.Any(IsAdapterParameter)
+		endmethod
+
+		private static method IsAdapterParameter, boolean
+			parm, @ParameterInfo
+		proc
+			mreturn parm.IsDefined(^typeof(AdapterParameterAttribute), false)
+		endmethod
+
+		private method BuildDescriptorMap, @Dictionary<string, ControllerActionDescriptor>
+			actionDescriptors, @ActionDescriptorCollection
+		proc
+			data descriptors = actionDescriptors.Items.OfType<ControllerActionDescriptor>().Where(IsAdapterMethod)
+			data descriptor, @ControllerActionDescriptor
+			data result = new Dictionary<string, ControllerActionDescriptor>()
+			foreach descriptor in descriptors
+			begin
+				if(!result.ContainsKey(descriptor.ActionName))
+				begin
+					result.Add(descriptor.ActionName, descriptor)
+				end
+
+				result.Add(descriptor.ControllerName + "." + descriptor.ActionName, descriptor)
+			end
+
+			mreturn result
+		endmethod
+
+		public virtual method SelectAction, @IEnumerable<ControllerActionDescriptor> 
+			routeContext, @RouteContext 
+			endparams
+		proc
+			if (routeContext == ^null)
+				mreturn ^null
+
+			data actionCollectionProvider = (@IActionDescriptorCollectionProvider)routeContext.HttpContext.RequestServices.GetService(^typeof(IActionDescriptorCollectionProvider))
+
+			data feature = routeContext.HttpContext.ODataFeature()
+			data odataPath = feature.Path
+			if (odataPath.PathTemplate == "~/unboundfunction" ||
+			&	odataPath.PathTemplate == "~/unboundaction") then
+				&	
+			begin
+				data segment, @OperationImportSegment, ^as(odataPath.Segments[odataPath.Segments.Count - 1], OperationImportSegment)
+                
+				if (segment != ^null)
+				begin
+					data opName = segment.Identifier
+					mreturn FindMatchingAction(actionCollectionProvider.ActionDescriptors, opName)
+				end
+			end
+			else if(odataPath.PathTemplate == "~/singleton/action"||
+			&	odataPath.PathTemplate == "~/singleton/function") then
+			begin
+				data opSeg, @OperationSegment, ^as(odataPath.Segments[1], OperationSegment)
+				data singletonSeg, @SingletonSegment, ^as(odataPath.Segments[0], SingletonSegment)
+				if (opSeg != ^null && singletonSeg != ^null)
+				begin
+					data opName = opSeg.Identifier
+					if(String.IsNullOrEmpty(opName) && opSeg.Operations != ^null)
+						opName = opSeg.Operations.First().Name
+
+					mreturn FindMatchingAction(actionCollectionProvider.ActionDescriptors, singletonSeg.Identifier + "." + opName)
+				end
+			end
+			else if (odataPath.PathTemplate == "~/entityset")
+			begin
+				data entitySetSegment = (EntitySetSegment)odataPath.Segments[0]
+				data entitySet = entitySetSegment.EntitySet
+				
+				if (string.Compare(routeContext.HttpContext.Request.Method, "get", true) == 0) then
+				begin
+					;; e.g. Try GetCustomers first, then fall back to Get action name
+					mreturn FindMatchingAction(actionCollectionProvider.ActionDescriptors, "Get" + entitySet.Name, "Get")
+				end
+				else if (string.Compare(routeContext.HttpContext.Request.Method, "post", true) == 0)
+				begin
+					;; e.g. Try PostCustomer first, then fall back to Post action name
+					mreturn FindMatchingAction(actionCollectionProvider.ActionDescriptors, "Post" + entitySet.EntityType().Name, "Post")
+				end
+			end
+			
+
+			mreturn Enumerable.Empty<ControllerActionDescriptor>()
+		endmethod
+	endclass
+
+endnamespace
