@@ -149,6 +149,16 @@ namespace Harmony.Core.EF.Extensions
             }
         }
 
+        //public static IQueryable<T> First<T>(IQueryable<T> query)
+        //{
+
+        //}
+
+        //public static SingleResult<T> SingleResult<T>(this IQueryable<T> query)
+        //{
+
+        //}
+
         public static IQueryable<T> FindQuery<T>(this DbSet<T> thisp, params object[] parameters)
             where T : class
         {
@@ -511,6 +521,159 @@ namespace Harmony.Core.EF.Extensions
             return thisp.Where(lambdaExpression);
         }
 
+        public static IQueryable<T> FindAlternate<T>(this DbSet<T> thisp, string keyName, object keyValue, string keyName2, object keyValue2, string keyName3, object keyValue3, string keyName4, object keyValue4, string keyName5, object keyValue5) where T : class
+        {
+            // Find DbContext, entity type, and primary key.
+            var currentContext = ((IInfrastructure<IServiceProvider>)thisp).Instance.GetService(typeof(ICurrentDbContext)) as ICurrentDbContext;
+            var context = currentContext.Context;
+            var entityType = context.Model.FindEntityType(typeof(T));
+            // Build the lambda expression for the query: (TEntity entity) => AND( entity.keyProperty[i] == keyValues[i])
+            var entityParameter = Expression.Parameter(typeof(T), "entity");
+            Expression whereClause = Expression.AndAlso(
+                Expression.AndAlso(
+                    Expression.Equal(
+                        Expression.Property(entityParameter, keyName),
+                        Expression.Constant(keyValue)),
+                    Expression.Equal(
+                        Expression.Property(entityParameter, keyName2),
+                        Expression.Constant(keyValue2))),
+                Expression.AndAlso(
+                    Expression.Equal(
+                        Expression.Property(entityParameter, keyName3),
+                        Expression.Constant(keyValue3)),
+                    Expression.AndAlso(
+                        Expression.Equal(
+                            Expression.Property(entityParameter, keyName4),
+                            Expression.Constant(keyValue4)),
+                        Expression.Equal(Expression.Property(entityParameter, keyName5),
+                            Expression.Constant(keyValue5)))));
+
+            var lambdaExpression = (Expression<Func<T, bool>>)Expression.Lambda(whereClause, entityParameter);
+            // Otherwise execute the query against the database.
+            return thisp.Where(lambdaExpression);
+        }
+
+        public static IQueryable<T> FindAlternate<T>(this DbSet<T> thisp, string keyName, object keyValue, string keyName2, object keyValue2, string keyName3, object keyValue3, string keyName4, object keyValue4, string keyName5, object keyValue5, string keyName6, object keyValue6) where T : class
+        {
+            // Find DbContext, entity type, and primary key.
+            var currentContext = ((IInfrastructure<IServiceProvider>)thisp).Instance.GetService(typeof(ICurrentDbContext)) as ICurrentDbContext;
+            var context = currentContext.Context;
+            var entityType = context.Model.FindEntityType(typeof(T));
+            // Build the lambda expression for the query: (TEntity entity) => AND( entity.keyProperty[i] == keyValues[i])
+            var entityParameter = Expression.Parameter(typeof(T), "entity");
+            Expression whereClause = Expression.AndAlso(
+                Expression.AndAlso(
+                    Expression.Equal(
+                        Expression.Property(entityParameter, keyName),
+                        Expression.Constant(keyValue)),
+                    Expression.Equal(
+                        Expression.Property(entityParameter, keyName2),
+                        Expression.Constant(keyValue2))),
+                Expression.AndAlso(
+                    Expression.AndAlso(
+                        Expression.Equal(
+                            Expression.Property(entityParameter, keyName3),
+                            Expression.Constant(keyValue3)),
+                        Expression.Equal(
+                            Expression.Property(entityParameter, keyName4),
+                            Expression.Constant(keyValue4))),
+                    Expression.AndAlso(Expression.Equal(
+                            Expression.Property(entityParameter, keyName5),
+                            Expression.Constant(keyValue5)),
+                        Expression.Equal(
+                            Expression.Property(entityParameter, keyName6),
+                            Expression.Constant(keyValue6)))));
+            
+
+            var lambdaExpression = (Expression<Func<T, bool>>)Expression.Lambda(whereClause, entityParameter);
+            // Otherwise execute the query against the database.
+            return thisp.Where(lambdaExpression);
+        }
+
+        public static IQueryable<T> FindAlternate<T>(this DbSet<T> thisp, string keyName, object keyValue, string keyName2, object keyValue2, string keyName3, object keyValue3, string keyName4, object keyValue4, 
+            string keyName5, object keyValue5, string keyName6, object keyValue6, string keyName7, object keyValue7) where T : class
+        {
+            // Find DbContext, entity type, and primary key.
+            var currentContext = ((IInfrastructure<IServiceProvider>)thisp).Instance.GetService(typeof(ICurrentDbContext)) as ICurrentDbContext;
+            var context = currentContext.Context;
+            var entityType = context.Model.FindEntityType(typeof(T));
+            // Build the lambda expression for the query: (TEntity entity) => AND( entity.keyProperty[i] == keyValues[i])
+            var entityParameter = Expression.Parameter(typeof(T), "entity");
+            Expression whereClause = Expression.AndAlso(
+                Expression.AndAlso(
+                    Expression.AndAlso(
+                        Expression.Equal(
+                            Expression.Property(entityParameter, keyName),
+                            Expression.Constant(keyValue)),
+                        Expression.Equal(
+                            Expression.Property(entityParameter, keyName2),
+                            Expression.Constant(keyValue2))),
+                    Expression.AndAlso(Expression.Equal(
+                            Expression.Property(entityParameter, keyName3),
+                            Expression.Constant(keyValue3)),
+                        Expression.Equal(
+                            Expression.Property(entityParameter, keyName4),
+                            Expression.Constant(keyValue4)))),
+                Expression.AndAlso(
+                    Expression.AndAlso(
+                        Expression.Equal(
+                            Expression.Property(entityParameter, keyName5),
+                            Expression.Constant(keyValue5)),
+                        Expression.Equal(
+                            Expression.Property(entityParameter, keyName6),
+                            Expression.Constant(keyValue6))),
+                    Expression.Equal(
+                            Expression.Property(entityParameter, keyName7),
+                            Expression.Constant(keyValue7))));
+
+            var lambdaExpression = (Expression<Func<T, bool>>)Expression.Lambda(whereClause, entityParameter);
+            // Otherwise execute the query against the database.
+            return thisp.Where(lambdaExpression);
+        }
+
+        public static IQueryable<T> FindAlternate<T>(this DbSet<T> thisp, string keyName, object keyValue, string keyName2, object keyValue2, string keyName3, object keyValue3, string keyName4, object keyValue4,
+            string keyName5, object keyValue5, string keyName6, object keyValue6, string keyName7, object keyValue7, string keyName8, object keyValue8) where T : class
+        {
+            // Find DbContext, entity type, and primary key.
+            var currentContext = ((IInfrastructure<IServiceProvider>)thisp).Instance.GetService(typeof(ICurrentDbContext)) as ICurrentDbContext;
+            var context = currentContext.Context;
+            var entityType = context.Model.FindEntityType(typeof(T));
+            // Build the lambda expression for the query: (TEntity entity) => AND( entity.keyProperty[i] == keyValues[i])
+            var entityParameter = Expression.Parameter(typeof(T), "entity");
+            Expression whereClause = Expression.AndAlso(
+                Expression.AndAlso(
+                    Expression.AndAlso(
+                        Expression.Equal(
+                            Expression.Property(entityParameter, keyName),
+                            Expression.Constant(keyValue)),
+                        Expression.Equal(
+                            Expression.Property(entityParameter, keyName2),
+                            Expression.Constant(keyValue2))),
+                    Expression.AndAlso(Expression.Equal(
+                            Expression.Property(entityParameter, keyName3),
+                            Expression.Constant(keyValue3)),
+                        Expression.Equal(
+                            Expression.Property(entityParameter, keyName4),
+                            Expression.Constant(keyValue4)))),
+                Expression.AndAlso(
+                    Expression.AndAlso(
+                        Expression.Equal(
+                            Expression.Property(entityParameter, keyName5),
+                            Expression.Constant(keyValue5)),
+                        Expression.Equal(
+                            Expression.Property(entityParameter, keyName6),
+                            Expression.Constant(keyValue6))),
+                    Expression.AndAlso(Expression.Equal(
+                            Expression.Property(entityParameter, keyName7),
+                            Expression.Constant(keyValue7)),
+                        Expression.Equal(
+                            Expression.Property(entityParameter, keyName8),
+                            Expression.Constant(keyValue8)))));
+
+            var lambdaExpression = (Expression<Func<T, bool>>)Expression.Lambda(whereClause, entityParameter);
+            // Otherwise execute the query against the database.
+            return thisp.Where(lambdaExpression);
+        }
 
 
         //public static IQueryable<T> WhereIncluding<T>(this DbSet<T> thisp, HarmonyFilteredInclude including, string expression, params object[] parameters)
