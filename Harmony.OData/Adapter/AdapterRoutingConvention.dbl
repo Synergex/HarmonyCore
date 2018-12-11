@@ -114,7 +114,7 @@ namespace Harmony.OData.Adapter
 					mreturn FindMatchingAction(actionCollectionProvider.ActionDescriptors, singletonSeg.Identifier + "." + opName)
 				end
 			end
-			else if (odataPath.PathTemplate == "~/entityset")
+			else if (odataPath.PathTemplate == "~/entityset") then
 			begin
 				data entitySetSegment = (EntitySetSegment)odataPath.Segments[0]
 				data entitySet = entitySetSegment.EntitySet
@@ -128,6 +128,19 @@ namespace Harmony.OData.Adapter
 				begin
 					;; e.g. Try PostCustomer first, then fall back to Post action name
 					mreturn FindMatchingAction(actionCollectionProvider.ActionDescriptors, "Post" + entitySet.EntityType().Name, "Post")
+				end
+			end
+			else if (odataPath.PathTemplate == "~/entityset/function" || odataPath.PathTemplate == "~/entityset/action")
+			begin
+				data opSeg, @OperationSegment, ^as(odataPath.Segments[1], OperationSegment)
+				data entitySet, @EntitySetSegment, ^as(odataPath.Segments[0], EntitySetSegment)
+				if (opSeg != ^null && entitySet != ^null)
+				begin
+					data opName = opSeg.Identifier
+					if(String.IsNullOrEmpty(opName) && opSeg.Operations != ^null)
+						opName = opSeg.Operations.First().Name
+
+					mreturn FindMatchingAction(actionCollectionProvider.ActionDescriptors, entitySet.Identifier + "." + opName)
 				end
 			end
 			

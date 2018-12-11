@@ -8,6 +8,7 @@ import Services.Models
 import Harmony.Core.Interface
 import Harmony.Core.EF.Extensions
 import Microsoft.AspNetCore.Mvc
+import Microsoft.AspNet.OData
 import Microsoft.AspNetCore.Authorization
 import Harmony.Core.Context
 import Harmony.OData
@@ -76,11 +77,12 @@ namespace Services.Controllers
         endmethod
 
 		{CallableMethodConfigurationAttribute(IsFunction=true, ReturnsFromEntitySet=true)}
+		{EnableQuery()}
 		public method FindAvailability, @List<Availability>
 			{AdapterParameterAttribute}
 			filter, @AvailabiltyFilter
 		proc
-			mreturn new List<Availability>()
+			mreturn new List<Availability>() { new Availability() { PointsCost = 9999 } }
 		endmethod
 
 
@@ -104,5 +106,20 @@ namespace Services.Controllers
 			data resultTpl = await CallMethod("GetAllCustomers", new List<Customer>(), string.Empty)
 			mreturn ((@IEnumerable<Customer>)resultTpl.Item2[1]).ToList<Customer>()
 		endmethod
-	endclass
+    endclass
+
+
+    public class AvailabilityController extends ODataController
+    
+        {CallableMethodConfigurationAttribute(IsFunction=true, ReturnsFromEntitySet=true)}
+        {EnableQuery()}
+        public method FindAvailability, @List<Availability>
+            {AdapterParameterAttribute}
+            filter, @AvailabiltyFilter
+        proc
+            mreturn new List<Availability>() { new Availability() { PointsCost = 9999 } }
+        endmethod
+
+    endclass
+
 endnamespace
