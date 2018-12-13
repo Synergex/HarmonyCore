@@ -11,6 +11,7 @@ import Microsoft.Extensions.Logging
 import Microsoft.Extensions.Options
 import Microsoft.AspNetCore.Mvc.Internal
 import Microsoft.AspNetCore.Mvc.Filters
+import System.Collections.Concurrent
 
 namespace Harmony.OData.Adapter
 
@@ -29,12 +30,15 @@ namespace Harmony.OData.Adapter
 		private readonly _diagnosticSource, @DiagnosticSource
 		private readonly _mapper, @Microsoft.AspNetCore.Mvc.Infrastructure.IActionResultTypeMapper
 		private readonly _serviceProvider, @IServiceProvider
-        
+		private readonly _controllerFactories, @ConcurrentDictionary<ControllerActionDescriptor, Func<ControllerContext, object>>
+		private readonly _controllerReleasers, @ConcurrentDictionary<ControllerActionDescriptor, Action<ControllerContext, object>>
+		private readonly _controllerFactoryProvider, @IControllerFactoryProvider
 		public method AdapterActionInvokerProvider
 			optionsAccessor, @IOptions<MvcOptions> 
 			loggerFactory, @ILoggerFactory 
 			diagnosticSource, @DiagnosticSource 
 			mapper, @IActionResultTypeMapper 
+			controllerFactoryProvider, @IControllerFactoryProvider
 			serviceProvider, @IServiceProvider
 			endparams
 		proc
@@ -44,6 +48,9 @@ namespace Harmony.OData.Adapter
 			_diagnosticSource = diagnosticSource
 			_mapper = mapper
 			_serviceProvider = serviceProvider
+			_controllerFactoryProvider = controllerFactoryProvider
+			_controllerFactories = new ConcurrentDictionary<ControllerActionDescriptor, Func<ControllerContext, object>>()
+			_controllerReleasers = new ConcurrentDictionary<ControllerActionDescriptor, Action<ControllerContext, object>>()
 		endmethod
         
 		public method OnProvidersExecuting, void
@@ -57,11 +64,15 @@ namespace Harmony.OData.Adapter
 			if (context.ActionContext.ActionDescriptor .is. ControllerActionDescriptor && context.ActionContext.ActionDescriptor.RouteValues.ContainsKey("AdapterRouteSentinel"))
 			begin
 				data controllerContext = new ControllerContext(context.ActionContext)
+				data actionDescriptor = ^as(context.ActionContext.ActionDescriptor, @ControllerActionDescriptor)
+				data controllerFactory = _controllerFactories.GetOrAdd(actionDescriptor, lambda(descr) { _controllerFactoryProvider.CreateControllerFactory(actionDescriptor) })
+				data controllerReleaser = _controllerReleasers.GetOrAdd(actionDescriptor, lambda(descr) { _controllerFactoryProvider.CreateControllerReleaser(actionDescriptor) })
+
 				;;  PERF: These are rarely going to be changed, so let's go copy-on-write.
 				controllerContext.ValueProviderFactories = new CopyOnWriteList<IValueProviderFactory>(_valueProviderFactories)
 				controllerContext.ModelState.MaxAllowedErrors = _maxModelValidationErrors
 				;;TODO compiler bug this shouldnt compile, but it produces invalid il
-				data invoker = new AdapterActionInvoker(_logger, _diagnosticSource, _mapper, controllerContext, context.ActionContext.ActionDescriptor.FilterDescriptors.Select(lambda(desc) { desc.Filter }).ToArray(), context.ActionContext.HttpContext.RequestServices)
+				data invoker = new AdapterActionInvoker(controllerFactory, controllerReleaser, _logger, _diagnosticSource, _mapper, controllerContext, context.ActionContext.ActionDescriptor.FilterDescriptors.Select(lambda(desc) { desc.Filter }).ToArray(), context.ActionContext.HttpContext.RequestServices)
 				context.Result = invoker
 			end
 		endmethod

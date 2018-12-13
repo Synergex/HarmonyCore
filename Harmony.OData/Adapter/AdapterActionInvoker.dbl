@@ -39,7 +39,11 @@ namespace Harmony.OData.Adapter
 		private _actionExecutingContext, @ActionExecutingContext
 		private _actionExecutedContext, @ActionExecutedContext
 		private _serviceProvider, @IServiceProvider
+		private _controllerFactory, @Func<ControllerContext, object>
+		private _controllerReleaser, @Action<ControllerContext, object>
 		internal method AdapterActionInvoker
+			controllerFactory, @Func<ControllerContext, object>
+			controllerReleaser, @Action<ControllerContext, object>
 			logger, @ILogger 
 			diagnosticSource, @DiagnosticSource 
 			mapper, @IActionResultTypeMapper 
@@ -51,7 +55,8 @@ namespace Harmony.OData.Adapter
 		proc
 			_controllerContext = controllerContext
 			_serviceProvider = serviceProvider
-
+			_controllerFactory = controllerFactory
+			_controllerReleaser = controllerReleaser
 			
 		endmethod
 
@@ -303,10 +308,8 @@ namespace Harmony.OData.Adapter
 		protected override method ReleaseResources, void
 			endparams
 		proc
-			if (_instance .is. IDisposable)
-			begin
-				((@IDisposable)_instance).Dispose()
-			end
+			if(_instance != ^null && _controllerReleaser != ^null)
+				_controllerReleaser(_controllerContext, _instance)
 		endmethod
         
 		private method Next, @Task
@@ -323,7 +326,7 @@ namespace Harmony.OData.Adapter
 					data controllerContext = _controllerContext
 					_cursor.Reset()
 					_arguments = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
-					_instance = ActivatorUtilities.CreateInstance(_serviceProvider, _controllerContext.ActionDescriptor.ControllerTypeInfo, new Object[0])
+					_instance = _controllerFactory(_controllerContext)
 					goto StateActionNext
 				end
 			end
