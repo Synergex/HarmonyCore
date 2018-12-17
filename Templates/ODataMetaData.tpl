@@ -124,7 +124,7 @@ namespace <NAMESPACE>
       <COUNTER_1_RESET>
       <FROM_KEY_SEGMENT_LOOP>
         <IF SEG_TYPE_LITERAL>
-            AddFieldInfo("<RelationFromkey>Literal<COUNTER_1_INCREMENT><COUNTER_1_VALUE>", "TAG_LITERAL", 0, 0, 0, false,"<SEGMENT_LITVAL>")
+            AddFieldInfo("<RelationFromkey>Literal<COUNTER_1_INCREMENT><COUNTER_1_VALUE>", "TAG_LITERAL", 0, 0, 0, false,^null,"<SEGMENT_LITVAL>")
         </IF SEG_TYPE_LITERAL>
       </FROM_KEY_SEGMENT_LOOP>
     </RELATION_LOOP>
