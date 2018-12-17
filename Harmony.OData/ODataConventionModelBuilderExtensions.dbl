@@ -5,12 +5,13 @@ import Microsoft.AspNet.OData.Builder
 import System.Reflection
 import System.Linq
 import System.Threading.Tasks
+import Harmony.OData.Adapter
 
 namespace Harmony.OData
 
     public static class ODataConventionModelBuilderExtensions
         
-	private static FunctionReturnsCollectionMethod, @MethodInfo
+        private static FunctionReturnsCollectionMethod, @MethodInfo
         private static FunctionReturnsMethod, @MethodInfo
         private static FunctionReturnsFromEntitySetMethod, @MethodInfo
         private static FunctionReturnsCollectionFromEntitySetMethod, @MethodInfo
@@ -45,6 +46,134 @@ namespace Harmony.OData
             public readwrite property ID, int, 0
         endclass
 
+        public static extension method AddMethod<T(class), EntityType(class)>, void
+            builder, @ODataModelBuilder
+            methodName, @string
+            namespaceName, @string
+            entityConfig, @object
+            entitySetLookup, @Dictionary<Type, EntitySetConfiguration>
+        proc
+            data targetMethod = ^typeof(T).GetMethod(methodName)
+            if(targetMethod == ^null)
+                throw new MissingMethodException(^typeof(T).FullName, methodName)
+
+            AddMethod<EntityType>(builder, targetMethod, namespaceName, entityConfig, entitySetLookup)
+        endmethod
+
+        private static method CreateFunctionConfig<EntityType(class)>, @FunctionConfiguration
+            typeConfig, @object
+            memberName, @string
+        proc
+            if(typeConfig .is. EntityTypeConfiguration<EntityType>) then
+            begin
+                data esetConfig = ((@EntityTypeConfiguration<EntityType>)typeConfig)
+                mreturn esetConfig.Function(memberName)
+            end
+            else if(typeConfig .is. EntityCollectionConfiguration<EntityType>) then
+            begin
+                mreturn ((@EntityCollectionConfiguration<EntityType>)typeConfig).Function(memberName)
+            end
+            else
+                throw new InvalidOperationException("Type config needs to be an EntityTypeConfiguration<EntityType> or EntityCollectionConfiguration<EntityType>")
+            
+        endmethod
+
+        private static method CreateActionConfig<EntityType(class)>, @ActionConfiguration
+            typeConfig, @object
+            memberName, @string
+        proc
+            if(typeConfig .is. EntityTypeConfiguration<EntityType>) then
+            begin
+                mreturn ((@EntityTypeConfiguration<EntityType>)typeConfig).Action(memberName)
+            end
+            else if(typeConfig .is. EntityCollectionConfiguration<EntityType>) then
+            begin
+                mreturn ((@EntityCollectionConfiguration<EntityType>)typeConfig).Action(memberName)
+            end
+            else
+                throw new InvalidOperationException("Type config needs to be an EntitySetConfiguration<EntityType> or EntityCollectionConfiguration<EntityType>")
+            
+        endmethod
+
+
+        public static extension method AddMethod<EntityType(class)>, void
+            builder, @ODataModelBuilder
+            targetMethod, @MethodInfo
+            namespaceName, @string
+            typeConfig, @object
+            entitySetLookup, @Dictionary<Type, EntitySetConfiguration>
+        proc
+            data callableMethodConfig, @CallableMethodConfigurationAttribute
+            callableMethodConfig = targetMethod.GetCustomAttribute<CallableMethodConfigurationAttribute>(false)
+            if(callableMethodConfig == ^null)
+            begin
+                callableMethodConfig = new CallableMethodConfigurationAttribute()
+                if(entitySetLookup.ContainsKey(targetMethod.ReturnType))
+                    callableMethodConfig.ReturnsFromEntitySet = true
+            end
+
+
+            data paramFunction, @MethodInfo
+            data resultObject, @Object
+            ;;need to also check for TransformRefOutParametersAttribute to determine the real return type of the routine
+            if(callableMethodConfig.IsFunction) then
+            begin
+                data addedFunction, @FunctionConfiguration
+                if(typeConfig != ^null) then
+                begin
+                    ;;TODO isolate compiler bug here
+                    ;addedFunction = singletonConfig.EntityType.Function(targetMethod.Name)
+                    addedFunction = CreateFunctionConfig<EntityType>(typeConfig, targetMethod.Name)
+                end
+                else
+                    builder.Function(targetMethod.Name)
+                MakeReturnType(targetMethod, callableMethodConfig, addedFunction)
+                resultObject = addedFunction
+                paramFunction = FunctionParameterMethod
+            end
+            else
+            begin
+                data addedAction, @ActionConfiguration
+                if(typeConfig != ^null) then
+                    addedAction = CreateActionConfig<EntityType>(typeConfig, targetMethod.Name)
+                else
+                    addedAction = builder.Action(targetMethod.Name)
+
+                MakeReturnType(targetMethod, callableMethodConfig, addedAction)
+                resultObject = addedAction
+                paramFunction = ActionParameterMethod
+            end
+
+            data paramInfo, @ParameterInfo
+            foreach paramInfo in targetMethod.GetParameters()
+            begin
+                data adapterAttribute = paramInfo.GetCustomAttribute<AdapterParameterAttribute>(false)
+                if(adapterAttribute != ^null) then
+                begin
+                    ;;if its an adapter parameter we need to translate any fields/properties marked as parameters into the appropriate edm info
+                    data prop, @PropertyInfo
+                    foreach prop in paramInfo.ParameterType.GetProperties()
+                    begin
+                        data getter = prop.GetMethod
+                        if(getter != ^null && getter.IsPublic && !getter.IsStatic)
+                        begin
+                            data paramAttr = prop.GetCustomAttribute<ParameterFieldAdapterAttribute>(false)
+                            if(paramAttr != ^null)
+                            begin
+                                data paramConfig = ^as(paramFunction.MakeGenericMethod(new Type[#] { prop.PropertyType }).Invoke(resultObject, new Object[#] { paramAttr.EdmName }), @ParameterConfiguration)
+                                if(paramAttr.IsOptional)
+                                    paramConfig.Optional()
+                            end
+                        end
+                    end
+                end
+                else
+                    paramFunction.MakeGenericMethod(new Type[#] { paramInfo.ParameterType }).Invoke(resultObject, new Object[#] { paramInfo.Name })
+            end
+
+        endmethod
+
+
         ;;Use reflection on the provided generic type, find all of the public methods
         ;;make functions/actions depending on the return type and the presance of Harmony.OData.PureFunctionAttribute
         public static extension method AddMethods<T(class)>, void
@@ -55,73 +184,27 @@ namespace Harmony.OData
             data entityConfig, @EntityTypeConfiguration<EntityTypeWrapper<T>>, builder.EntityType<EntityTypeWrapper<T>>()
             data targetType = ^typeof(T)
             data targetMethod, @MethodInfo
-
             HarmonySprocRoutingConvention.AddSprocDispatcher<T>(namespaceName)
-			data entitySetLookup = new Dictionary<Type, EntitySetConfiguration>()
+            data entitySetLookup = new Dictionary<Type, EntitySetConfiguration>()
             data eSet, @EntitySetConfiguration
-			foreach eSet in builder.EntitySets
-			begin
-				if(!entitySetLookup.ContainsKey(eSet.ClrType))
+            foreach eSet in builder.EntitySets
+            begin
+                if(!entitySetLookup.ContainsKey(eSet.ClrType))
                     entitySetLookup.Add(eSet.ClrType, eSet)
-			end
+            end
 
             foreach targetMethod in targetType.GetMethods()
             begin
                 if(targetMethod.DeclaringType != targetType || targetMethod.IsSpecialName || targetMethod.Name.Contains("$"))
                     nextloop
 
-                data securityAttribute = Attribute.GetCustomAttribute(targetMethod, ^typeof(MethodSecurityAttribute))
+                data securityAttribute = targetMethod.GetCustomAttribute<MethodSecurityAttribute>(false)
                 if(securityAttribute != ^null && !((@MethodSecurityAttribute)securityAttribute).AllowAccess)
                 begin
                     nextloop
                 end
 
-                data callableMethodConfig, @CallableMethodConfigurationAttribute
-                callableMethodConfig = ^as(Attribute.GetCustomAttribute(targetMethod, ^typeof(CallableMethodConfigurationAttribute)), @CallableMethodConfigurationAttribute)
-                if(callableMethodConfig == ^null)
-                begin
-                    callableMethodConfig = new CallableMethodConfigurationAttribute()
-                    if(entitySetLookup.ContainsKey(targetMethod.ReturnType))
-                        callableMethodConfig.ReturnsFromEntitySet = true
-                end
-
-
-                data paramFunction, @MethodInfo
-                data resultObject, @Object
-                ;;need to also check for TransformRefOutParametersAttribute to determine the real return type of the routine
-                if(callableMethodConfig.IsFunction) then
-                begin
-                    data addedFunction, @FunctionConfiguration
-                    if(singletonConfig != ^null) then
-                    begin
-                        ;;TODO isolate compiler bug here
-                        ;addedFunction = singletonConfig.EntityType.Function(targetMethod.Name)
-                        addedFunction = entityConfig.Function(targetMethod.Name)
-                    end
-                    else
-                        builder.Function(targetMethod.Name)
-                    MakeReturnType(targetMethod, callableMethodConfig, addedFunction)
-                    resultObject = addedFunction
-                    paramFunction = FunctionParameterMethod
-                end
-                else
-                begin
-                    data addedAction, @ActionConfiguration
-                    if(singletonConfig != ^null) then
-                        addedAction = entityConfig.Action(targetMethod.Name) 
-                    else
-                        addedAction = builder.Action(targetMethod.Name)
-
-                    MakeReturnType(targetMethod, callableMethodConfig, addedAction)
-                    resultObject = addedAction
-                    paramFunction = ActionParameterMethod
-                end
-
-                data paramInfo, @ParameterInfo
-                foreach paramInfo in targetMethod.GetParameters()
-                begin
-                    paramFunction.MakeGenericMethod(new Type[#] { paramInfo.ParameterType }).Invoke(resultObject, new Object[#] { paramInfo.Name })
-                end
+                AddMethod<EntityTypeWrapper<T>>(builder, targetMethod, namespaceName, entityConfig, entitySetLookup)
 
             end
 
@@ -131,15 +214,15 @@ namespace Harmony.OData
         private static method GetSequenceType, @Type
             type, @Type
         proc
-        if(type.IsGenericType && type.GetGenericTypeDefinition() == ^typeof(IEnumerable<>))
-            mreturn type.GenericTypeArguments.First()
+            if(type.IsGenericType && type.GetGenericTypeDefinition() == ^typeof(IEnumerable<>))
+                mreturn type.GenericTypeArguments.First()
 
 
-        data implementsIEnumerable = type.GetInterfaces().FirstOrDefault(lambda(inter) { inter.IsGenericType && inter.GetGenericTypeDefinition() == ^typeof(IEnumerable<>) } )
-        if (implementsIEnumerable != ^null) then
-            mreturn implementsIEnumerable.GenericTypeArguments.First()
-        else
-            mreturn ^null
+            data implementsIEnumerable = type.GetInterfaces().FirstOrDefault(lambda(inter) { inter.IsGenericType && inter.GetGenericTypeDefinition() == ^typeof(IEnumerable<>) } )
+            if (implementsIEnumerable != ^null) then
+                mreturn implementsIEnumerable.GenericTypeArguments.First()
+            else
+                mreturn ^null
         endmethod
 
         private static method MakeReturnType, void

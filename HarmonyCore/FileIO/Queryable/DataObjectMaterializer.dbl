@@ -3,6 +3,7 @@ import System.Collections.Generic
 import System.Text
 import System.Linq
 import System.Diagnostics
+import Harmony.Core.Utility
 
 namespace Harmony.Core.FileIO.Queryable
 
@@ -35,7 +36,8 @@ namespace Harmony.Core.FileIO.Queryable
                         data childState, @DataObjectMaterializer.MaterializerState
                         foreach childState in childrenState
                         begin
-                            if(childState.filled && createdItemCount != childState.lastBubbleTarget)
+                            ;;If the child has changed but not been materialized dont bubble it up it belongs to the next iteration
+                            if(!childState.changed && childState.filled && createdItemCount != childState.lastBubbleTarget)
                                 childState.MaybeBubbleMake(tracker, true)
                         end
                         data structureSize, i4, typeBuf.Metadata.StructureSize
@@ -82,10 +84,9 @@ namespace Harmony.Core.FileIO.Queryable
                 end
                 else
                     throw new InvalidOperationException("Invalid materializer state")
-					
+
                 if(parentState != ^null)
                 begin
-                    
                     if(madeItems != ^null && HasOneItem() && lastBubbleTarget != parentState.createdItemCount)
                     begin
                         parentState.dependentItems.Add(typeBuf.ParentFieldName, madeItems)
@@ -240,7 +241,7 @@ namespace Harmony.Core.FileIO.Queryable
                         ;;fill the row
                         rowEnumerator.Current.RowInfo(^m(memMapper.fld(1:structureSize), memPnt), matState.grfa)
                         matState.filled = rowEnumerator.Current.Fill(^m(memMapper.fld(1:structureSize), memPnt))
-                        ;DebugLogSession.Logging.LogDebug("Materializer: filled record of type {0} with value {1}"
+                        DebugLogSession.Logging.LogDebug("Materializer: filled record of type {0} with value {1}", matState.typeBuf.DataObjectType, %atrimtostring(^m(memMapper.fld(1:structureSize), memPnt)))
                     end
                 end
                 ;;we only want one object if we dont have a collection result

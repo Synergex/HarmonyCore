@@ -1,0 +1,138 @@
+import System.Threading.Tasks
+import Newtonsoft.Json.Linq
+import Microsoft.AspNetCore.Mvc
+import System.Reflection
+import System.Linq.Expressions
+import Newtonsoft.Json
+import System
+import System.Collections.Generic
+import System.Text
+
+
+namespace Harmony.OData.ExpressionHelpers
+
+	public static class InvokerHelpers
+		public static method ConvertTask<T>, @System.Threading.Tasks.Task<object> 
+			tsk, @System.Threading.Tasks.Task<T>
+		proc
+			data res = new TaskCompletionSource<object>();
+			lambda ConvertWith(t) 
+			begin
+				if (t.IsCanceled) then
+					res.TrySetCanceled()
+				else if (t.IsFaulted) then
+					res.TrySetException(t.Exception)
+				else
+					res.TrySetResult(t.Result)
+			end
+			tsk.ContinueWith(ConvertWith, TaskContinuationOptions.ExecuteSynchronously)
+			mreturn res.Task
+		endmethod
+
+		public static method DeserializeObject, @Object
+			body, @string
+		proc
+			mreturn JsonConvert.DeserializeObject(body)
+		endmethod
+
+		private static method GenerateJsonConvertExpression, @Expression
+			bodyString, @Expression
+		proc
+			data deserializeMethod = ^typeof(InvokerHelpers).GetMethod("DeserializeObject")
+			mreturn Expression.Convert(Expression.Call(deserializeMethod, bodyString), ^typeof(Newtonsoft.Json.Linq.JObject)) 
+		endmethod
+
+		private static method GenerateJTokenValue, @Expression
+			targetType, @Type
+			sourceExpression, @Expression
+		proc
+			;;TODO this might need to deal explicitly with IEnumerable and array-of
+			mreturn Expression.Call(sourceExpression, "ToObject", new Type[#] { targetType }, new Expression[0])
+		endmethod
+
+		public static method GenerateCallExpression, @Expression
+			targetMethodInfo, @MethodInfo
+			targetType, @Type
+			argumentBuilder, @Func<string, Expression>
+			instanceArg, @Expression
+			resultWrapper, @MethodInfo
+		proc
+			data targetParameters = targetMethodInfo.GetParameters()
+			data returnType = targetMethodInfo.ReturnType
+			;;TODO: if the routine has out/ref parameters, we need to translate those into a return type 
+
+			data parameterValues = new List<Expression>()
+			data instanceValue, @Expression, ^null
+			if(!targetMethodInfo.IsStatic)
+			begin
+				instanceValue = Expression.Convert(instanceArg, targetType)
+			end
+			
+			data paramInfo, @ParameterInfo
+			foreach paramInfo in targetParameters
+			begin
+				parameterValues.Add(argumentBuilder(paramInfo.Name))
+			end
+
+			data conversionBody = Expression.Call(instanceValue, targetMethodInfo, parameterValues)
+			data okResultType = ^typeof(OkResult)
+			data okObjectResultType = ^typeof(OkObjectResult)
+			data resultExpression, @Expression
+			if(returnType == ^typeof(Task)) then
+			begin
+				;;continuewith
+				data conversionBodyParameter = Expression.Parameter(returnType)
+				data innerResult = Expression.New(okResultType)
+				data continueWithLambda = Expression.Lambda(innerResult, new ParameterExpression[#] { conversionBodyParameter })
+				resultExpression = Expression.Call(conversionBody, "ContinueWith", new Type[#] { ^typeof(IActionResult) }, continueWithLambda)
+			end
+			else if(returnType.IsGenericType && returnType.GetGenericTypeDefinition() == ^typeof(Task<>)) then
+			begin
+				;;continuewith
+				data conversionBodyParameter = Expression.Parameter(returnType)
+				data conversionBodyResult = Expression.PropertyOrField(conversionBodyParameter, "Result")
+				data okObjectConstructor = okObjectResultType.GetConstructor(new Type[#] { ^typeof(Object) })
+				data innerResult = Expression.New(okObjectConstructor, new Expression[#] { Expression.Convert(conversionBodyResult, ^typeof(Object)) })
+				data continueWithLambda = Expression.Lambda(innerResult, new ParameterExpression[#] { conversionBodyParameter })
+				resultExpression = Expression.Call(conversionBody, "ContinueWith", new Type[#] { ^typeof(IActionResult) }, continueWithLambda)
+			end
+			else if(returnType == ^typeof(Void)) then
+			begin
+				;;wrap the non async result into a task
+				data innerResult = Expression.Block(new Expression[#] { conversionBody, Expression.New(okResultType) })
+				resultExpression = Expression.Call(^typeof(Task), "FromResult", new Type[#] { ^typeof(IActionResult) }, new Expression[#] { innerResult })
+			end
+			else
+			begin
+				;;wrap the non async result into a task
+				data okObjectConstructor = okObjectResultType.GetConstructor(new Type[#] { ^typeof(Object) })
+				data innerResult = Expression.New(okObjectConstructor, new Expression[#] { Expression.Convert(conversionBody, ^typeof(Object)) })
+				resultExpression = Expression.Call(^typeof(Task), "FromResult", new Type[#] { ^typeof(IActionResult) }, new Expression[#] { innerResult })
+			end
+
+			data conversionRoutine = Expression.Lambda<Func<Task<IActionResult>>>(resultExpression, new ParameterExpression[0])
+			;;TODO investigate compiler bug here, fails at runtime, something wrong with the type info
+			;;data wrapResponseMethod = thisType.GetMethod("WrapResponseForExceptions")
+			data wrapResponseMethod = ^typeof(InvokerHelpers).GetMethod("WrapResponseForExceptions")
+			data responseWrapper = Expression.Call(wrapResponseMethod, conversionRoutine)
+			mreturn responseWrapper
+
+		endmethod
+
+		public static async method WrapResponseForExceptions, @Task<IActionResult>
+			callBody, @Func<Task<IActionResult>>
+		proc
+			;;TODO add request/error logging here
+			try
+			begin
+				mreturn await callBody()
+			end
+			catch(ex, @Exception)
+			begin
+				mreturn new BadRequestResult()
+			end
+			endtry
+		endmethod
+	endclass
+
+endnamespace

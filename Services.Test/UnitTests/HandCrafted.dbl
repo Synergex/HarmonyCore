@@ -656,6 +656,78 @@ namespace Services.Test.UnitTests
 			Assert.AreEqual(resultValue, expected)
 		endmethod
 
+		{TestMethod}
+		public method AdapterTestBasic, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync("/odata/OrdersMethods/FindAvailability(Adults=5)").Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data customers, @ODataAvailabilitys, JsonConvert.DeserializeObject<ODataAvailabilitys>(result)
+		endmethod
+
+
+		{TestMethod}
+		public method AdapterTestOptionalParameters, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync("/odata/OrdersMethods/FindAvailability(Adults=5, Children=1, Region='Uruguay')").Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data customers, @ODataAvailabilitys, JsonConvert.DeserializeObject<ODataAvailabilitys>(result)
+        endmethod
+
+        {TestMethod}
+        public method AdapterTestOptionalParametersController, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/Availability/FindAvailability(Adults=5, Children=1, Region='Uruguay')").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customers, @ODataAvailabilitys, JsonConvert.DeserializeObject<ODataAvailabilitys>(result)
+        endmethod
+
+		{TestMethod}
+		public method AdapterTestOrFilter, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync("/odata/OrdersMethods/FindAvailability(Adults=5)?$filter=(Segment eq 'fred' or Segment eq 'jim' or Segment eq 'bob') and PointsCost gt 10 and PointsCost lt 100").Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data customers, @ODataAvailabilitys, JsonConvert.DeserializeObject<ODataAvailabilitys>(result)
+		endmethod
+
+		{TestMethod}
+		public method AdapterTestOrderBy, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync("/odata/OrdersMethods/FindAvailability(Adults=5)?$orderby=PointsCost,MoneyCost&$filter=Nights eq 5").Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data customers, @ODataAvailabilitys, JsonConvert.DeserializeObject<ODataAvailabilitys>(result)
+		endmethod
+
+		{TestMethod}
+		{TestCategory("Customer Tests - Read All")}
+		public method GetCustomers_Expand_REL_Orders_Validating, void
+		proc
+			data uri = "/odata/Customers?$expand=REL_Orders"
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync(uri).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+			data customer, @Customer
+			foreach customer in customers.Value
+			begin
+				data order, @Order
+				foreach order in customer.REL_Orders
+				begin
+					Assert.AreEqual(order.CustomerNumber, customer.CustomerNumber)
+				end
+
+			end
+		endmethod
 
     endclass
 

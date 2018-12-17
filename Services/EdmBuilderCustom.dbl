@@ -33,7 +33,13 @@ namespace Services
         proc
             builder.AddMethods<OrdersMethods>("OrdersMethods")
 			builder.AddMethods<IsolatedMethodsBase>("IsolatedMethods")
-			builder.AddMethods<ExternalCallContext>("VMS")
+            builder.AddMethods<ExternalCallContext>("VMS")
+
+            
+            data availabilityConfig, @EntityTypeConfiguration<Availability>, builder.EntityType<Availability>()
+            data availabilitySet, @EntitySetConfiguration<Availability>, builder.EntitySet<Availability>("Availability")
+            data entityLookup, @Dictionary<Type, EntitySetConfiguration>, new Dictionary<Type, EntitySetConfiguration>() { { ^typeof(Availability), ^as(availabilitySet, @EntitySetConfiguration) } }
+            builder.AddMethod<AvailabilityController, Availability>("FindAvailability", "TestNS", availabilityConfig.Collection, entityLookup)
         endmethod
 
     endclass

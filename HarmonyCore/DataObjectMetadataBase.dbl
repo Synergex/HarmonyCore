@@ -239,8 +239,7 @@ namespace Harmony.Core
 			keyParts.Add( Tuple.Create(fieldName, keyInfo))
 		endmethod
 
-
-		protected method AddFieldInfo, void
+		protected method AddFieldInfo, @FieldDataDefinition
 			languageName, String
 			dataType, string
 			elementSize, int
@@ -249,9 +248,10 @@ namespace Harmony.Core
 			clearField, boolean
 			default formatter, @Harmony.Core.Converters.ILiteralFormatter, ^null
 			default tagValue, @string, ^null
+			default compositeParts, @IEnumerable<FieldDataDefinition>, ^null
 			endparams
 		proc
-			data fieldInfo = new FieldDataDefinition() { LanguageName = languageName, ElementSize = elementSize, StructurePosition = structurePosition, DecimalPrecision = decimalPrecision, ClearField = clearField, TagValue = tagValue, LiteralFormatter = formatter }
+			data fieldInfo = new FieldDataDefinition() { LanguageName = languageName, ElementSize = elementSize, StructurePosition = structurePosition, DecimalPrecision = decimalPrecision, ClearField = clearField, TagValue = tagValue, LiteralFormatter = formatter, CompositeParts = compositeParts }
 
 			using dataType select
 			("ALPHA"),
@@ -310,10 +310,18 @@ namespace Harmony.Core
 			begin
 				fieldInfo.DataType = FieldDataType.DataObjectCollectionField
 			end
+			("COMPOSITE"),
+			begin
+				fieldInfo.DataType = FieldDataType.DataObjectCollectionField
+				if(fieldInfo.CompositeParts == ^null)
+					throw new InvalidOperationException("Composite fields must be composed of parts")
+			end
+
 			endusing
 
 			mFields.Add(fieldInfo)
 			mfieldDictionary.Add(languageName, mFields.Count - 1)
+			mreturn fieldInfo
 		endmethod
 
 		;;; <summary>
