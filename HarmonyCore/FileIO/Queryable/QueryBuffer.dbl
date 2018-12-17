@@ -9,7 +9,8 @@ namespace Harmony.Core.FileIO.Queryable
     public class QueryBuffer implements IDisposable
         public class TypeBuffer
             public MemoryHandle, int?
-            public IOChannel, int?
+			public IOChannel, int?
+			public RemoteIO, boolean?
             public Metadata, @DataObjectMetadataBase
             public IsCollection, boolean
             public ParentFieldName, @string
@@ -57,7 +58,10 @@ namespace Harmony.Core.FileIO.Queryable
 
                 newTypeBuf.MemoryHandle = buf.Metadata.GetBuffer()
                 data fileInfo = dataObjectProvider.GetFileInfo(buf.DataObjectType)
-                newTypeBuf.IOChannel = dataObjectProvider.ChannelManager.GetChannel(fileInfo.Item1, fileInfo.Item2)
+				newTypeBuf.IOChannel = dataObjectProvider.ChannelManager.GetChannel(fileInfo.Item1, fileInfo.Item2)
+				data remoteBuf, d1
+				xcall getfa(newTypeBuf.IOChannel, "RMT", remoteBuf)
+				newTypeBuf.RemoteIO = remoteBuf == 1
                 bufferMap.Add(buf, newTypeBuf)
                 mreturn newTypeBuf
             end
