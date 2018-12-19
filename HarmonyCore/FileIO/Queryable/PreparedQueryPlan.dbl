@@ -33,6 +33,7 @@ namespace Harmony.Core.FileIO.Queryable
 			fld,a1
 		endstructure
 		private mWhereParts, @List<object>
+		private mSparseParts, @Dictionary<int, List<FieldDataDefinition>>
 		private mOnParts, @List<object>
 		private mOrderBy, @List<Tuple<FieldReference, Boolean>>
 		private mQuerySourceTypes, @List<Type>
@@ -45,10 +46,12 @@ namespace Harmony.Core.FileIO.Queryable
 		public method PreparedQueryPlan
 			isCollection, boolean
 			whereParts, @IEnumerable<object>
+			sparseParts, @Dictionary<int, List<FieldDataDefinition>>
 			onParts, @IEnumerable<object>
 			orderBy, @List<Tuple<FieldReference, Boolean>>
 			queryBufferPrototype, @QueryBuffer
 		proc
+			mSparseParts = sparseParts
 			mWhereParts = whereParts.ToList()
 			mOnParts = onParts.ToList()
 			mOrderBy = orderBy
@@ -150,7 +153,7 @@ namespace Harmony.Core.FileIO.Queryable
 			if(!IsJoin) then
 			begin
 				
-				disposable data selectObject, @Synergex.SynergyDE.Select.Select, SelectObject(queryBuffer, fromObj, WhereObject(queryBuffer), OrderByObject(queryBuffer))
+				disposable data selectObject, @Synergex.SynergyDE.Select.Select, SelectObject(queryBuffer, fromObj, WhereObject(queryBuffer), OrderByObject(queryBuffer), SparseObject(queryBuffer))
 				data memPnt, int, queryBuffer.TypeBuffers[0].MemoryHandle.Value
 				data metadataObject = queryBuffer.TypeBuffers[0].Metadata
 				data structureSize = metadataObject.StructureSize
@@ -176,7 +179,7 @@ namespace Harmony.Core.FileIO.Queryable
 			else
 			begin 
 				disposable data rows, @Synergex.SynergyDE.Select.RowEnumerator
-				disposable data selectObject, @Synergex.SynergyDE.Select.JoinSelect, JoinObject(queryBuffer, fromObj, WhereObject(queryBuffer), OrderByObject(queryBuffer))
+				disposable data selectObject, @Synergex.SynergyDE.Select.JoinSelect, JoinObject(queryBuffer, fromObj, WhereObject(queryBuffer), OrderByObject(queryBuffer), SparseObject(queryBuffer))
 				data hasMoreRows = true
 				rows = selectObject.GetEnumerator()
 
@@ -347,24 +350,24 @@ namespace Harmony.Core.FileIO.Queryable
 
 		private method SparseObject, @Synergex.SynergyDE.Select.Sparse
 			queryBuf, @QueryBuffer
-			sparseFields, @Dictionary<int, List<FieldDataDefinition>>
 			structure tmpStructure
 				fld	,a1
 			endstructure
 		proc
 			;;only build a real sparse object if the channels involved are remote to xfServer
 			;;there is a local only perf hit because of the additional setup
-			if(sparseFields.Count > 0 && queryBuf.TypeBuffers.Any(lambda(buf) { buf.RemoteIO })) then
+			if(mSparseParts.Count > 0 && queryBuf.TypeBuffers.Any(lambda(buf) { buf.RemoteIO.Value }))
 			begin
 				data result, @Synergex.SynergyDE.Select.Sparse
 				data typeBufKvp, @KeyValuePair<int, @List<FieldDataDefinition>>
-				foreach typeBufKvp in sparseFields
+				foreach typeBufKvp in mSparseParts
 				begin
 					data fieldDetails, @FieldDataDefinition
 					foreach fieldDetails in typeBufKvp.Value
 					begin
 						data sparseItem, @Synergex.SynergyDE.Select.Sparse
-						data memPtr, int, queryBuf.TypeBuffers[typeBufKvp.Key].MemoryHandle
+						data typeBuffer = queryBuf.TypeBuffers[typeBufKvp.Key]
+						data memPtr, int, typeBuffer.MemoryHandle.Value
 						sparseItem = new Synergex.SynergyDE.Select.Sparse(^m(tmpStructure(1:fieldDetails.ElementSize), memPtr))
 
 						if(result == ^null) then
@@ -375,10 +378,7 @@ namespace Harmony.Core.FileIO.Queryable
 				end
 				mreturn result
 			end
-			else
-			begin
-				return new Synergex.SynergyDE.Select.Sparse("*")
-			end
+			mreturn new Synergex.SynergyDE.Select.Sparse("*")
 
 		endmethod
 
