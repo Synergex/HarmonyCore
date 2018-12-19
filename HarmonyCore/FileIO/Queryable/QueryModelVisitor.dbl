@@ -13,6 +13,7 @@ namespace Harmony.Core.FileIO.Queryable
 
 	public class QueryModelVisitor extends QueryModelVisitorBase
 		private mWhereParts, @List<object>, new List<Object>()
+		private mSparseParts, @Dictionary<int, List<FieldDataDefinition>>, new Dictionary<int, List<FieldDataDefinition>>()
 		private mOnParts, @List<object>, new List<Object>()
 		private mOrderBy, @List<Tuple<FieldReference, Boolean>>, ^null
 		private mQuerySourceTypes, @List<Type>, new List<Type>()
@@ -58,6 +59,16 @@ namespace Harmony.Core.FileIO.Queryable
 			data whereClause, @WhereClause
 			foreach whereClause in whereClauses
 			begin
+				if(whereClause.Predicate .is. ISparseExpression)
+				begin
+					data sparseExpr = (@ISparseExpression)whereClause.Predicate
+					data memberExpr, @System.Linq.Expressions.MemberExpression
+					;sparseExpr.SparseParts
+					;;actually get the sparse parts out of the member expressions here
+					;;decide which type buffer the field/prop belongs to then populate
+					nextloop
+				end
+				
 				;;determine if this clause should be attached to a join
 				;;this is more complicated if both parts belong to a join
 				querySourceVisitor.QuerySources.Clear()
@@ -353,7 +364,7 @@ namespace Harmony.Core.FileIO.Queryable
 			querySourceBufferMap = modelVisitor.mQuerySourceMapping
 			data isCollection = !model.ResultOperators.Any(lambda (op) { op.GetType() == ^typeof(Remotion.Linq.Clauses.ResultOperators.FirstResultOperator) })
 
-			mreturn new PreparedQueryPlan(isCollection, modelVisitor.mWhereParts, modelVisitor.mOnParts, modelVisitor.mOrderBy, new QueryBuffer(modelVisitor.mTypeBuffers))
+			mreturn new PreparedQueryPlan(isCollection, modelVisitor.mWhereParts, modelVisitor.mSparseParts, modelVisitor.mOnParts, modelVisitor.mOrderBy, new QueryBuffer(modelVisitor.mTypeBuffers))
 		endmethod
 
 		class QuerySourceVisitor extends ExpressionVisitor
@@ -385,6 +396,7 @@ namespace Harmony.Core.FileIO.Queryable
 					data inExpr = (@InExpression)node
 					Visit(inExpr.Predicate)
 				end
+
 				mreturn node
 			endmethod
 
