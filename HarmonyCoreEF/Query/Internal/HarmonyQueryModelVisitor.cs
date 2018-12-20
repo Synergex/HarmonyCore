@@ -187,6 +187,7 @@ namespace Harmony.Core.EF.Query.Internal
                 var subQueryVisitor = new SubQueryRewriter { QueryModel = queryModel, TopQueryModel = queryModel, Parent = this, QuerySourceMapping = QueryCompilationContext.QuerySourceMapping, QuerySourceAliases = aliasMapping };
                 //Expression expression = selectorRewriter.Visit(queryModel.SelectClause.Selector);
                 var selector = subQueryVisitor.Visit(queryModel.SelectClause.Selector);
+
                 QueryPlan = QueryModelVisitor.PrepareQuery(queryModel, ProcessWeirdJoin, out var querySourceBuffer);
                 Expression = Expression.Call(
                         HarmonyQueryModelVisitor.EntityQueryMethodInfo.MakeGenericMethod(MainQueryType),
@@ -234,6 +235,7 @@ namespace Harmony.Core.EF.Query.Internal
                         }
                     }
                 }
+
                 var expression = memberAccessVisitor.Visit(selector);
                 Expression expression2 = expression;
                 TaskLiftingExpressionVisitor taskLiftingExpressionVisitor = new TaskLiftingExpressionVisitor();
@@ -301,6 +303,8 @@ namespace Harmony.Core.EF.Query.Internal
         {
             return base.CreateExecutorLambda<TResults>();
         }
+
+        
 
         public class SubQueryRewriter : System.Linq.Expressions.ExpressionVisitor
         {

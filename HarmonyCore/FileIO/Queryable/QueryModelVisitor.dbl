@@ -8,12 +8,12 @@ import System.Linq.Expressions
 import System.Linq
 import Harmony.Core.Enumerations
 import Harmony.Core.FileIO.Queryable.Expressions
+import Remotion.Linq.Clauses.Expressions
 
 namespace Harmony.Core.FileIO.Queryable
 
 	public class QueryModelVisitor extends QueryModelVisitorBase
 		private mWhereParts, @List<object>, new List<Object>()
-		private mSparseParts, @Dictionary<int, List<FieldDataDefinition>>, new Dictionary<int, List<FieldDataDefinition>>()
 		private mOnParts, @List<object>, new List<Object>()
 		private mOrderBy, @List<Tuple<FieldReference, Boolean>>, ^null
 		private mQuerySourceTypes, @List<Type>, new List<Type>()
@@ -26,6 +26,23 @@ namespace Harmony.Core.FileIO.Queryable
 		proc
 			mMakeJoinExpression = makeJoinExpression
 		endmethod
+
+		private method TypeBufferForExpression, int
+			expr, @Expression
+			visitor, @QuerySourceVisitor
+		proc
+			visitor.QuerySources.Clear()
+			visitor.Visit(expr)
+			data querySources = visitor.QuerySources.OrderByDescending(lambda(qSource) { mQuerySourceMapping[qSource] })
+			data topQuerySource = querySources.FirstOrDefault()
+			if(topQuerySource != ^null)
+			begin
+				mreturn mQuerySourceMapping[topQuerySource]
+			end
+			mreturn 0
+		endmethod
+
+
 
 		protected override method VisitBodyClauses, void
 			bodyClauses, @ObservableCollection<IBodyClause>
@@ -59,40 +76,23 @@ namespace Harmony.Core.FileIO.Queryable
 			data whereClause, @WhereClause
 			foreach whereClause in whereClauses
 			begin
-				if(whereClause.Predicate .is. ISparseExpression)
-				begin
-					data sparseExpr = (@ISparseExpression)whereClause.Predicate
-					data memberExpr, @System.Linq.Expressions.MemberExpression
-					;sparseExpr.SparseParts
-					;;actually get the sparse parts out of the member expressions here
-					;;decide which type buffer the field/prop belongs to then populate
-					nextloop
-				end
 				
 				;;determine if this clause should be attached to a join
 				;;this is more complicated if both parts belong to a join
-				querySourceVisitor.QuerySources.Clear()
-				querySourceVisitor.Visit(whereClause.Predicate)
-
-				data querySources = querySourceVisitor.QuerySources.OrderByDescending(lambda(qSource) { mQuerySourceMapping[qSource] })
-				data topQuerySource = querySources.FirstOrDefault()
-				if(topQuerySource != ^null)
+				data typeBufferIndex = TypeBufferForExpression(whereClause.Predicate, querySourceVisitor)
+				if(typeBufferIndex != 0)
 				begin
-					data typeBufferIndex = mQuerySourceMapping[topQuerySource]
-					if(typeBufferIndex != 0)
-					begin
-						data typeBuffer = mTypeBuffers[typeBufferIndex]
-						data whereParts = new List<object>()
-						data onParts = new List<object>()
-						mWhereBuilder.VisitForWhere(whereClause.Predicate, whereParts, onParts)
-						if(whereParts.Count == 1) then
-							typeBuffer.JoinOn = new ConnectorPart() { Left = typeBuffer.JoinOn, Right = whereParts.First(), Op = WhereClauseConnector.AndOperator }
-						else if(onParts.Count == 1) then
-							typeBuffer.JoinOn = new ConnectorPart() { Left = typeBuffer.JoinOn, Right = onParts.First(), Op = WhereClauseConnector.AndOperator }
-						else
-							throw new NotImplementedException()
-						nextloop
-					end
+					data typeBuffer = mTypeBuffers[typeBufferIndex]
+					data whereParts = new List<object>()
+					data onParts = new List<object>()
+					mWhereBuilder.VisitForWhere(whereClause.Predicate, whereParts, onParts)
+					if(whereParts.Count == 1) then
+						typeBuffer.JoinOn = new ConnectorPart() { Left = typeBuffer.JoinOn, Right = whereParts.First(), Op = WhereClauseConnector.AndOperator }
+					else if(onParts.Count == 1) then
+						typeBuffer.JoinOn = new ConnectorPart() { Left = typeBuffer.JoinOn, Right = onParts.First(), Op = WhereClauseConnector.AndOperator }
+					else
+						throw new NotImplementedException()
+					nextloop
 				end
 
 				if(mergedWhereClause == ^null) then
@@ -176,7 +176,7 @@ namespace Harmony.Core.FileIO.Queryable
 			foreach querySource in querySourceFinder.QuerySources
 			begin
 				if(^typeof(DataObjectBase).IsAssignableFrom(querySource.ItemType) ||
-				&	(querySource.ItemType.IsGenericType && ^typeof(DataObjectBase).IsAssignableFrom(querySource.ItemType.GenericTypeArguments.First())))
+					&	(querySource.ItemType.IsGenericType && ^typeof(DataObjectBase).IsAssignableFrom(querySource.ItemType.GenericTypeArguments.First())))
 				begin
 					if(mQuerySourceMapping.ContainsKey(querySource))
 						nextloop
@@ -362,10 +362,45 @@ namespace Harmony.Core.FileIO.Queryable
 			data modelVisitor = new QueryModelVisitor(makeJoinExpression)
 			model.Accept(modelVisitor)
 			querySourceBufferMap = modelVisitor.mQuerySourceMapping
+
+			data accessedMemberVisitor = new AccessedMemberSearch()
+			accessedMemberVisitor.Visit(model.SelectClause.Selector)
+			data sparseParts = modelVisitor.ConvertSparseParts(accessedMemberVisitor.SelectedFields, accessedMemberVisitor.SelectedQuerySources)
+
 			data isCollection = !model.ResultOperators.Any(lambda (op) { op.GetType() == ^typeof(Remotion.Linq.Clauses.ResultOperators.FirstResultOperator) })
 
-			mreturn new PreparedQueryPlan(isCollection, modelVisitor.mWhereParts, modelVisitor.mSparseParts, modelVisitor.mOnParts, modelVisitor.mOrderBy, new QueryBuffer(modelVisitor.mTypeBuffers))
+			mreturn new PreparedQueryPlan(isCollection, modelVisitor.mWhereParts, sparseParts, modelVisitor.mOnParts, modelVisitor.mOrderBy, new QueryBuffer(modelVisitor.mTypeBuffers))
 		endmethod
+
+		private method ConvertSparseParts, @Dictionary<int, List<FieldDataDefinition>>
+			memberExpressions, @List<MemberExpression>
+			querySources, @IEnumerable<IQuerySource>
+		proc
+			data result = new Dictionary<int, List<FieldDataDefinition>>()
+			data memberExpr, @System.Linq.Expressions.MemberExpression
+			data querySourceVisitor = new QuerySourceVisitor()
+			;;actually get the sparse parts out of the member expressions here
+			;;decide which type buffer the field/prop belongs to then populate
+			foreach memberExpr in memberExpressions
+			begin
+				data targetFieldExpr = ^as(mWhereBuilder.FindTargetField(memberExpr, ^null), @FieldReference)
+				if(targetFieldExpr != ^null)
+				begin
+					data typeBufferIndex = TypeBufferForExpression(memberExpr, querySourceVisitor)
+					data sparseFields, @List<FieldDataDefinition>
+					if(!result.TryGetValue(typeBufferIndex, sparseFields))
+					begin
+						sparseFields = new List<FieldDataDefinition>()
+						result.Add(typeBufferIndex, sparseFields)
+					end
+
+					sparseFields.Add(targetFieldExpr.FieldDef)
+				end
+			end
+			mreturn result
+		endmethod
+
+
 
 		class QuerySourceVisitor extends ExpressionVisitor
 			public QuerySources, @List<IQuerySource>, new List<IQuerySource>()
@@ -414,6 +449,89 @@ namespace Harmony.Core.FileIO.Queryable
 
 		endclass
 
-	endclass
+		public class AccessedMemberSearch extends System.Linq.Expressions.ExpressionVisitor
+			
+			public SelectedFields, @List<MemberExpression>, new List<MemberExpression>()
+			public SelectedQuerySources, @HashSet<IQuerySource>, new HashSet<IQuerySource>()
 
+			protected override method VisitMethodCall, @Expression
+				node, @System.Linq.Expressions.MethodCallExpression  
+				endparams
+			proc
+				if(node.Method.Name == "Property")
+				begin
+					;;this is where we can do a metadata object lookup for join
+					data memberTargetParameter = (@Remotion.Linq.Clauses.Expressions.QuerySourceReferenceExpression)node.Arguments[0]
+					data memberNameConstant = (@ConstantExpression)node.Arguments[1]
+					data propInfo = memberTargetParameter.Type.GetProperty((@string)memberNameConstant.Value)
+					SelectedFields.Add(Expression.MakeMemberAccess(memberTargetParameter, propInfo))
+				end
+				mreturn node
+			endmethod
+
+			protected override method VisitExtension, @Expression
+				node, @Expression 
+			proc
+				if (node .is. QuerySourceReferenceExpression)
+				begin
+					data querySource = ((QuerySourceReferenceExpression)node).ReferencedQuerySource
+					if (!SelectedQuerySources.Contains(querySource))
+					begin
+						SelectedQuerySources.Add(querySource)
+					end
+				end
+				mreturn node
+			endmethod
+
+			private method HasQuerySourceRoot, boolean
+				expression, @Expression
+			proc
+				if (expression .is. QuerySourceReferenceExpression) then
+				begin
+					mreturn true
+				end
+				else if (expression .is. MemberExpression) then
+				begin
+					data memberExpr = ^as(expression, @MemberExpression)
+					mreturn HasQuerySourceRoot(memberExpr.Expression)
+				end
+				else
+				begin
+					mreturn false
+				end
+			endmethod
+
+			protected override method VisitMember, @Expression
+				node, @MemberExpression
+			proc
+			
+				if (HasQuerySourceRoot(node.Expression)) then
+				begin
+					if(node.Member.Name != "GlobalRFA")
+						SelectedFields.Add(node)
+
+					mreturn node
+				end
+				else
+				begin
+					mreturn parent.VisitMember(node)
+				end
+			endmethod
+
+			protected override method VisitMemberAssignment, @MemberAssignment
+				node, @MemberAssignment
+			proc
+				if (node.Expression .is. SubQueryExpression) then
+				begin
+					data subQuery = ^as(node.Expression, @SubQueryExpression)
+					Visit(subQuery.QueryModel.SelectClause.Selector)
+					mreturn node
+				end
+				else
+				begin
+					mreturn parent.VisitMemberAssignment(node)
+				end
+			endmethod
+		endclass
+	endclass
 endnamespace
