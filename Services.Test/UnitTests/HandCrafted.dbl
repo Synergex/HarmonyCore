@@ -52,6 +52,7 @@ import Microsoft.Extensions.DependencyInjection
 import Harmony.Core.EF.Extensions
 import Harmony.Core.Converters
 import Services.Models
+
 namespace Services.Test.UnitTests
 
 	{TestClass}
@@ -717,15 +718,14 @@ namespace Services.Test.UnitTests
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
-			data customer, @Customer
-			foreach customer in customers.Value
+			data c, @Customer
+            foreach c in customers.Value
 			begin
-				data order, @Order
-				foreach order in customer.REL_Orders
+				data o, @Order
+                foreach o in c.REL_Orders
 				begin
-					Assert.AreEqual(order.CustomerNumber, customer.CustomerNumber)
+                    Assert.AreEqual(o.CustomerNumber, c.CustomerNumber)
 				end
-
 			end
 		endmethod
 

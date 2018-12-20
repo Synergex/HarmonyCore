@@ -67,6 +67,67 @@ namespace <NAMESPACE>
 
     </IF CUSTOM_NOT_HARMONY_EXCLUDE>
 </FIELD_LOOP>
+
+.region "Relationships to other entities"
+
+    <RELATION_LOOP>
+      <IF TO_STRUCTURE_INCLUDED>
+        <COUNTER_1_INCREMENT>
+;//
+;//
+;//
+        <IF MANY_TO_ONE_TO_MANY>
+        ;;; <summary>
+        ;;; Relationship (Type A)
+        ;;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) --> (one) --> (many) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
+        ;;; </summary>
+        public readwrite property REL_<RelationFromkey>, @<RelationTostructureNoplural>
+        </IF MANY_TO_ONE_TO_MANY>
+;//
+;//
+;//
+        <IF ONE_TO_ONE_TO_ONE>
+        ;;; <summary>
+        ;;; Relationship (Type B)
+        ;;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) --> (one) --> (one) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
+        ;;; </summary>
+        public readwrite property REL_<RelationFromkey>, @<RelationTostructureNoplural>
+        </IF ONE_TO_ONE_TO_ONE>
+;//
+;//
+;//
+        <IF ONE_TO_ONE>
+        ;;; <summary>
+        ;;; Relationship (Type C)
+        ;;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) --> (one) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
+        ;;; </summary>
+        public readwrite property REL_<RelationFromkey>, @<RelationTostructureNoplural>
+        </IF ONE_TO_ONE>
+;//
+;//
+;//
+        <IF ONE_TO_MANY_TO_ONE>
+        ;;; <summary>
+        ;;; Relationship (Type D)
+        ;;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) <-> (many) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
+        ;;; </summary>
+        public readwrite property REL_<RelationTostructurePlural>, @ICollection<<RelationTostructureNoplural>>
+        </IF ONE_TO_MANY_TO_ONE>
+;//
+;//
+;//
+        <IF ONE_TO_MANY>
+        ;;; <summary>
+        ;;; Relationship (Type E)
+        ;;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) --> (many) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
+        ;;; </summary>
+        public readwrite property REL_<RelationTostructurePlural>, @ICollection<<RelationTostructureNoplural>>
+        </IF ONE_TO_MANY>
+
+      </IF TO_STRUCTURE_INCLUDED>
+    </RELATION_LOOP>
+.endregion
+
     endclass
 
     public class OData<StructureNoplural>

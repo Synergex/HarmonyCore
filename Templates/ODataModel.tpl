@@ -185,7 +185,7 @@ namespace <NAMESPACE>
         </IF READONLY>
         </IF DEFINED_ENABLE_READ_ONLY_PROPERTIES>
         <IF ALPHA>
-                mSynergyData.<field_original_name_modified> = (<FIELD_TYPE>)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
+                mSynergyData.<field_original_name_modified> = (<FIELD_TYPE>)SynergyAlphaConverter.ConvertBack(value<IF UPPERCASE>.ToUpper()</IF UPPERCASE>, ^null, ^null, ^null)
         </IF ALPHA>
         <IF DATE>
                 mSynergyData.<field_original_name_modified> = (<FIELD_TYPE>)SynergyDecimalDateConverter.ConvertBack(value, ^null, ^null, ^null)
