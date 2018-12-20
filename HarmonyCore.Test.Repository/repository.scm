@@ -5,7 +5,7 @@
 ;                 : D:\HarmonyCore\HarmonyCore.Test.Repository\bin\Debug\rpstext
 ;                 : Version 10.3.3f
 ;
-;  GENERATED      : 19-DEC-2018, 16:35:48
+;  GENERATED      : 19-DEC-2018, 17:37:19
 ;                 : Version 10.3.3f
 ;  EXPORT OPTIONS : [ALL] 
  
@@ -55,6 +55,7 @@ Field STATE   Type ALPHA   Size 2
    Description "State"
    Long Description
       "SAMPLE_DATA=MO;"
+   Uppercase
  
 Field ZIP_CODE   Type DECIMAL   Size 9
    Description "Zip code"
@@ -122,11 +123,9 @@ Key PAYMENT_TERMS   ACCESS   Order ASCENDING   Dups YES   Insert END
 Key FAVORITE_ITEM   FOREIGN
    Segment FIELD   FAVORITE_ITEM
  
-Relation  2   CUSTOMERS CUSTOMER_NUMBER   ORDERS CUSTOMER_NUMBER
+Relation  1   CUSTOMERS CUSTOMER_NUMBER   ORDERS CUSTOMER_NUMBER
  
-Relation  4   CUSTOMERS CUSTOMER_NUMBER   ORDERS CUSTOMER_NUMBER
- 
-Relation  3   CUSTOMERS FAVORITE_ITEM   ITEMS ITEM_NUMBER
+Relation  2   CUSTOMERS FAVORITE_ITEM   ITEMS ITEM_NUMBER
  
 Structure ITEMS   DBL ISAM
    Description "Item master record"
@@ -456,6 +455,7 @@ Field STATE   Type ALPHA   Size 2
    Description "State"
    Long Description
       "SAMPLE_DATA=NH;"
+   Uppercase
  
 Field ZIP_CODE   Type DECIMAL   Size 5
    Description "Zip Code"
