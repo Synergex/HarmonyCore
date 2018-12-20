@@ -205,6 +205,9 @@ if DEFINED ENABLE_UNIT_TEST_GENERATION (
   if ERRORLEVEL 1 goto error
 
   rem Generate unit test constants values class; one time, not replaced
+
+  echo codegen -s %DATA_STRUCTURES% -ms -a %DATA_ALIASES% -t ODataTestConstantsValues -o %SolutionDir%%TestProject% -n %TestProject% %NOREPLACEOPTS%
+
   codegen -s %DATA_STRUCTURES% -ms ^
           -a %DATA_ALIASES% ^
           -t ODataTestConstantsValues ^
