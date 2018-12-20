@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME>EdmBuilder.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.3.9</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.3.10</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
@@ -125,7 +125,7 @@ namespace <NAMESPACE>
             data <structureNoplural>Type = (@EdmEntityType)tempModel.FindDeclaredType("<MODELS_NAMESPACE>.<StructureNoplural>")
             <IF STRUCTURE_ISAM>
             <ALTERNATE_KEY_LOOP>
-            tempModel.AddAlternateKeyAnnotation(<structureNoplural>Type, new Dictionary<string, IEdmProperty>() {<SEGMENT_LOOP>{"<SegmentName>",<structureNoplural>Type.FindProperty("<SegmentName>")}<,></SEGMENT_LOOP>})
+            tempModel.AddAlternateKeyAnnotation(<structureNoplural>Type, new Dictionary<string, IEdmProperty>() {<SEGMENT_LOOP>{"<FieldSqlName>",<structureNoplural>Type.FindProperty("<FieldSqlName>")}<,></SEGMENT_LOOP>})
             </ALTERNATE_KEY_LOOP>
             </IF STRUCTURE_ISAM>
             </STRUCTURE_LOOP>

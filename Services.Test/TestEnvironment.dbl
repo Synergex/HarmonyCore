@@ -82,14 +82,6 @@ namespace Services.Test
                     logicals.Add(logical)
             end
 
-            fileSpec = "DAT:order_items_overlay.ism"
-            if (fileSpec.Contains(":"))
-            begin
-                logical = fileSpec.Split(":")[0].ToUpper()
-                if (!logicals.Contains(logical))
-                    logicals.Add(logical)
-            end
-
             fileSpec = "DAT:sysparams.ddf"
             if (fileSpec.Contains(":"))
             begin
@@ -117,7 +109,6 @@ namespace Services.Test
             data orders = OrderLoader.LoadFromFile()
             data orderItems = OrderItemLoader.LoadFromFile()
             data vendors = VendorLoader.LoadFromFile()
-            data orderItemsOverlays = OrderItemsOverlayLoader.LoadFromFile()
 
             ;;Create and load the customers file
 
@@ -172,17 +163,6 @@ namespace Services.Test
             open(chout=0,o:i,dataFile,FDL:xdlFile)
             foreach vendor in vendors
                 store(chout,vendor.SynergyRecord)
-            close chout
-
-            ;;Create and load the orderItemsOverlays file
-
-            dataFile = "DAT:order_items_overlay.ism"
-            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
-
-            data orderItemsOverlay, @OrderItemsOverlay
-            open(chout=0,o:i,dataFile,FDL:xdlFile)
-            foreach orderItemsOverlay in orderItemsOverlays
-                store(chout,orderItemsOverlay.SynergyRecord)
             close chout
 
             ;;Create and load the sysparams file
@@ -243,17 +223,6 @@ namespace Services.Test
             try
             begin
                 xcall delet("DAT:vendors.ism")
-            end
-            catch (e, @NoFileFoundException)
-            begin
-                nop
-            end
-            endtry
-
-            ;;Delete the orderItemsOverlays file
-            try
-            begin
-                xcall delet("DAT:order_items_overlay.ism")
             end
             catch (e, @NoFileFoundException)
             begin

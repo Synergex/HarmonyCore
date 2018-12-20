@@ -19,7 +19,7 @@ import Services.Models
 namespace Services.Models
 
     ;;; <summary>
-    ;;; 
+    ;;;
     ;;; </summary>
     public class DbContext extends Microsoft.EntityFrameworkCore.DbContext
 
@@ -60,12 +60,7 @@ namespace Services.Models
         public readwrite property Vendors, @DbSet<Vendor>
 
         ;;; <summary>
-        ;;; Exposes OrderItemsOverlay data.
-        ;;; </summary>
-        public readwrite property OrderItemsOverlays, @DbSet<OrderItemsOverlay>
-
-        ;;; <summary>
-        ;;; 
+        ;;;
         ;;; </summary>
         protected override method OnModelCreating, void
             parm, @ModelBuilder
@@ -117,6 +112,17 @@ namespace Services.Models
             &    .HasForeignKey(^typeof(Customer),"FavoriteItem")
             &    .HasPrincipalKey(^typeof(Item), "ItemNumber")
 
+            ;; CUSTOMER.CUSTOMER_NUMBER (one) --> (many) --> (one) ORDER.CUSTOMER_NUMBER
+            ;;    Type          : D
+            ;;    From segments : CUSTOMER_NUMBER(D6) 
+            ;;    To segments   : CUSTOMER_NUMBER(D6) 
+
+            parm.Entity(^typeof(Customer))
+            &    .HasMany(^typeof(Order),"REL_Orders")
+            &    .WithOne("REL_CustomerNumber")
+            &    .HasForeignKey("CustomerNumber")
+            &    .HasPrincipalKey("CustomerNumber")
+
             ;;--------------------------------------
             ;; Relationships from ITEM
 
@@ -138,17 +144,6 @@ namespace Services.Models
 
             parm.Entity(^typeof(Item))
             &    .HasMany(^typeof(OrderItem),"REL_OrderItems")
-            &    .WithOne("REL_ItemOrdered")
-            &    .HasForeignKey("ItemOrdered")
-            &    .HasPrincipalKey("ItemNumber")
-
-            ;; ITEM.ITEM_NUMBER (one) --> (many) --> (one) ORDER_ITEMS_OVERLAY.ITEM_ORDERED
-            ;;    Type          : D
-            ;;    From segments : ITEM_NUMBER(D6) 
-            ;;    To segments   : ITEM_ORDERED(D6) 
-
-            parm.Entity(^typeof(Item))
-            &    .HasMany(^typeof(OrderItemsOverlay),"REL_OrderItemsOverlays")
             &    .WithOne("REL_ItemOrdered")
             &    .HasForeignKey("ItemOrdered")
             &    .HasPrincipalKey("ItemNumber")
@@ -177,17 +172,6 @@ namespace Services.Models
             &    .WithMany("REL_Orders")
             &    .HasForeignKey("CustomerNumber")
             &    .HasPrincipalKey("CustomerNumber")
-
-            ;; ORDER.ORDER_NUMBER (one) --> (many) --> (one) ORDER_ITEMS_OVERLAY.ORDER_ITEM_KEY
-            ;;    Type          : D
-            ;;    From segments : ORDER_NUMBER(D6) 
-            ;;    To segments   : ORDER_ITEM_KEY(D8) 
-
-            parm.Entity(^typeof(Order))
-            &    .HasMany(^typeof(OrderItemsOverlay),"REL_OrderItemsOverlays")
-            &    .WithOne("REL_OrderItemKey")
-            &    .HasForeignKey("OrderItemKey")
-            &    .HasPrincipalKey("OrderNumber")
 
             ;;--------------------------------------
             ;; Relationships from ORDER_ITEM
@@ -227,31 +211,6 @@ namespace Services.Models
             &    .WithOne("REL_VendorNumber")
             &    .HasForeignKey("VendorNumber")
             &    .HasPrincipalKey("VendorNumber")
-
-            ;;--------------------------------------
-            ;; Relationships from ORDER_ITEMS_OVERLAY
-
-            ;; ORDER_ITEMS_OVERLAY.ORDER_ITEM_KEY (one) --> (one) --> (many) ORDER.ORDER_NUMBER
-            ;;    Type          : A
-            ;;    From segments : ORDER_ITEM_KEY(D8) 
-            ;;    To segments   : ORDER_NUMBER(D6) 
-
-            parm.Entity(^typeof(OrderItemsOverlay))
-            &    .HasOne(^typeof(Order),"REL_OrderItemKey")
-            &    .WithMany("REL_OrderItemsOverlays")
-            &    .HasForeignKey("OrderItemKey")
-            &    .HasPrincipalKey("OrderNumber")
-
-            ;; ORDER_ITEMS_OVERLAY.ITEM_ORDERED (one) --> (one) --> (many) ITEM.ITEM_NUMBER
-            ;;    Type          : A
-            ;;    From segments : ITEM_ORDERED(D6) 
-            ;;    To segments   : ITEM_NUMBER(D6) 
-
-            parm.Entity(^typeof(OrderItemsOverlay))
-            &    .HasOne(^typeof(Item),"REL_ItemOrdered")
-            &    .WithMany("REL_OrderItemsOverlays")
-            &    .HasForeignKey("ItemOrdered")
-            &    .HasPrincipalKey("ItemNumber")
 
 .endregion
 

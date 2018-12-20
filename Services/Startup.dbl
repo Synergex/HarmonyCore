@@ -1,5 +1,3 @@
-import Harmony.OData.Adapter
-import Services.Controllers
 ;;*****************************************************************************
 ;;
 ;; Title:       Startup.dbl
@@ -31,6 +29,7 @@ import Harmony.Core.Context
 import Harmony.Core.FileIO
 import Harmony.Core.Utility
 import Harmony.OData
+import Harmony.OData.Adapter
 import Harmony.AspNetCore
 import Harmony.AspNetCore.Context
 import Microsoft.AspNetCore.Builder
@@ -49,6 +48,7 @@ import Microsoft.OData.Edm
 import Microsoft.OData.UriParser
 import Swashbuckle.AspNetCore.Swagger
 import Microsoft.AspNetCore.StaticFiles
+import Services.Controllers
 import Services.Models
 
 namespace Services
@@ -61,7 +61,7 @@ namespace Services
             ;;-------------------------------------------------------
             ;;Enable logging
 
-            services.AddLogging(lambda(builder) { builder.SetMinimumLevel(LogLevel.Trace) })
+            services.AddLogging(lambda(builder) { builder.SetMinimumLevel(LogLevel.Error) })
 
             ;;-------------------------------------------------------
             ;;Load Harmony Core
@@ -74,7 +74,6 @@ namespace Services
                 objectProvider.AddDataObjectMapping<Order>("DAT:orders.ism", FileOpenMode.UpdateIndexed)
                 objectProvider.AddDataObjectMapping<OrderItem>("DAT:order_items.ism", FileOpenMode.UpdateIndexed)
                 objectProvider.AddDataObjectMapping<Vendor>("DAT:vendors.ism", FileOpenMode.UpdateIndexed)
-                objectProvider.AddDataObjectMapping<OrderItemsOverlay>("DAT:order_items_overlay.ism", FileOpenMode.UpdateIndexed)
                 mreturn objectProvider
             end
 
@@ -106,8 +105,8 @@ namespace Services
             data mvcBuilder = services.AddMvcCore()
             &    .AddDataAnnotations()      ;;Enable data annotations
             &    .AddJsonFormatters()       ;;For PATCH
-			&	.AddApiExplorer()          ;;Swagger UI
-			&	.AddApplicationPart(^typeof(IsolatedMethodsBase).Assembly)
+            &    .AddApiExplorer()          ;;Swagger UI
+            &    .AddApplicationPart(^typeof(IsolatedMethodsBase).Assembly)
 
             ;;-------------------------------------------------------
             ;;Enable HTTP redirection to HTTPS
@@ -197,8 +196,8 @@ namespace Services
                     builder.MaxTop(100)
 
                     data routeList = ODataRoutingConventions.CreateDefaultWithAttributeRouting("odata", builder)
-					routeList.Insert(0, new HarmonySprocRoutingConvention())
-					routeList.Insert(0, new AdapterRoutingConvention())
+                    routeList.Insert(0, new HarmonySprocRoutingConvention())
+                    routeList.Insert(0, new AdapterRoutingConvention())
                     mreturn routeList
                 end
 

@@ -1,8 +1,9 @@
 <CODEGEN_FILENAME>Startup.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.3.9</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.3.10</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>API_DOCS_PATH</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>API_TITLE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
+<REQUIRES_USERTOKEN>CONTROLLERS_NAMESPACE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>OAUTH_API</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>OAUTH_SERVER</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVER_HTTPS_PORT</REQUIRES_USERTOKEN>
@@ -69,6 +70,7 @@ import Harmony.Core.Context
 import Harmony.Core.FileIO
 import Harmony.Core.Utility
 import Harmony.OData
+import Harmony.OData.Adapter
 import Harmony.AspNetCore
 import Harmony.AspNetCore.Context
 <IF DEFINED_ENABLE_AUTHENTICATION>
@@ -93,6 +95,7 @@ import Microsoft.OData.UriParser
 import Swashbuckle.AspNetCore.Swagger
 import Microsoft.AspNetCore.StaticFiles
 </IF DEFINED_ENABLE_SWAGGER_DOCS>
+import <CONTROLLERS_NAMESPACE>
 import <MODELS_NAMESPACE>
 
 namespace <NAMESPACE>
@@ -144,15 +147,15 @@ namespace <NAMESPACE>
 
 <IF DEFINED_ENABLE_SWAGGER_DOCS>
             services.AddSwaggerGen()
+</IF DEFINED_ENABLE_SWAGGER_DOCS>
 
             data mvcBuilder = services.AddMvcCore()
             &    .AddDataAnnotations()      ;;Enable data annotations
             &    .AddJsonFormatters()       ;;For PATCH
+<IF DEFINED_ENABLE_SWAGGER_DOCS>
             &    .AddApiExplorer()          ;;Swagger UI
-<ELSE>
-            data mvcBuilder = services.AddMvcCore()
-            &    .AddJsonFormatters()    ;;For PATCH
 </IF DEFINED_ENABLE_SWAGGER_DOCS>
+            &    .AddApplicationPart(^typeof(IsolatedMethodsBase).Assembly)
 
 <IF DEFINED_ENABLE_AUTHENTICATION>
             ;;-------------------------------------------------------
@@ -307,6 +310,9 @@ namespace <NAMESPACE>
                     <IF DEFINED_ENABLE_SPROC>
                     routeList.Insert(0, new HarmonySprocRoutingConvention())
                     </IF DEFINED_ENABLE_SPROC>
+                    <IF DEFINED_ENABLE_ADAPTER_ROUTING>
+                    routeList.Insert(0, new AdapterRoutingConvention())
+                    </IF DEFINED_ENABLE_ADAPTER_ROUTING>
                     mreturn routeList
                 end
 

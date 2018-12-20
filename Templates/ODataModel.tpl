@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME><StructureNoplural>.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.3.9</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.3.10</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
 ;// Title:       ODataModel.tpl
@@ -144,34 +144,34 @@ namespace <NAMESPACE>
             method get
             proc
         <IF ALPHA>
-                mreturn (<FIELD_CSTYPE>)SynergyAlphaConverter.Convert(mSynergyData.<Field_name>, ^null, ^null, ^null)
+                mreturn (<FIELD_CSTYPE>)SynergyAlphaConverter.Convert(mSynergyData.<field_original_name_modified>, ^null, ^null, ^null)
         </IF ALPHA>
         <IF DATE>
-                mreturn (<FIELD_CSTYPE>)SynergyDecimalDateConverter.Convert(mSynergyData.<Field_name>, ^null, ^null, ^null)
+                mreturn (<FIELD_CSTYPE>)SynergyDecimalDateConverter.Convert(mSynergyData.<field_original_name_modified>, ^null, ^null, ^null)
         </IF DATE>
         <IF TIME_HHMM>
-                mreturn Convert.ToDateTime(%string(mSynergyData.<Field_name>,"XX:XX"))
+                mreturn Convert.ToDateTime(%string(mSynergyData.<field_original_name_modified>,"XX:XX"))
         </IF TIME_HHMM>
         <IF TIME_HHMMSS>
-                mreturn Convert.ToDateTime(%string(mSynergyData.<Field_name>,"XX:XX:XX"))
+                mreturn Convert.ToDateTime(%string(mSynergyData.<field_original_name_modified>,"XX:XX:XX"))
         </IF TIME_HHMMSS>
         <IF DECIMAL>
             <IF CUSTOM_HARMONY_AS_STRING>
                 <IF PRECISION>
-                mreturn %string(SynergyImpliedDecimalConverter.Convert(mSynergyData.<Field_name>, ^null, "DECIMALPLACES#<FIELD_PRECISION>", ^null),"<FIELD_FORMATSTRING>")
+                mreturn %string(SynergyImpliedDecimalConverter.Convert(mSynergyData.<field_original_name_modified>, ^null, "DECIMALPLACES#<FIELD_PRECISION>", ^null),"<FIELD_FORMATSTRING>")
                 <ELSE>
-                mreturn %string(mSynergyData.<Field_name>,"<FIELD_FORMATSTRING>")
+                mreturn %string(mSynergyData.<field_original_name_modified>,"<FIELD_FORMATSTRING>")
                 </IF PRECISION>
             <ELSE>
                 <IF PRECISION>
-                mreturn (<FIELD_CSTYPE>)SynergyImpliedDecimalConverter.Convert(mSynergyData.<Field_name>, ^null, "DECIMALPLACES#<FIELD_PRECISION>", ^null)
+                mreturn (<FIELD_CSTYPE>)SynergyImpliedDecimalConverter.Convert(mSynergyData.<field_original_name_modified>, ^null, "DECIMALPLACES#<FIELD_PRECISION>", ^null)
                 <ELSE>
-                mreturn (<FIELD_CSTYPE>)mSynergyData.<Field_name>
+                mreturn (<FIELD_CSTYPE>)mSynergyData.<field_original_name_modified>
                 </IF PRECISION>
             </IF CUSTOM_HARMONY_AS_STRING>
         </IF DECIMAL>
         <IF INTEGER>
-                mreturn (<FIELD_CSTYPE>)mSynergyData.<Field_name>
+                mreturn (<FIELD_CSTYPE>)mSynergyData.<field_original_name_modified>
         </IF INTEGER>
             endmethod
 ;//
@@ -181,34 +181,34 @@ namespace <NAMESPACE>
             proc
         <IF DEFINED_ENABLE_READ_ONLY_PROPERTIES>
         <IF READONLY>
-                throw new ApplicationException("Property <Field_name> is read only!")
+                throw new ApplicationException("Property <FieldSqlname> is read only!")
         </IF READONLY>
         </IF DEFINED_ENABLE_READ_ONLY_PROPERTIES>
         <IF ALPHA>
-                mSynergyData.<Field_name> = (<FIELD_TYPE>)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
+                mSynergyData.<field_original_name_modified> = (<FIELD_TYPE>)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
         </IF ALPHA>
         <IF DATE>
-                mSynergyData.<Field_name> = (<FIELD_TYPE>)SynergyDecimalDateConverter.ConvertBack(value, ^null, ^null, ^null)
+                mSynergyData.<field_original_name_modified> = (<FIELD_TYPE>)SynergyDecimalDateConverter.ConvertBack(value, ^null, ^null, ^null)
         </IF DATE>
         <IF TIME_HHMM>
-                mSynergyData.<Field_name> = (value.Hour * 100) + value.Minute
+                mSynergyData.<field_original_name_modified> = (value.Hour * 100) + value.Minute
         </IF TIME_HHMM>
         <IF TIME_HHMMSS>
-                mSynergyData.<Field_name> = (value.Hour * 10000) + (value.Minute * 100) + value.Second
+                mSynergyData.<field_original_name_modified> = (value.Hour * 10000) + (value.Minute * 100) + value.Second
         </IF TIME_HHMMSS>
         <IF DECIMAL>
             <IF CUSTOM_HARMONY_AS_STRING>
                 <IF PRECISION>
-                mSynergyData.<Field_name> = SynergyImpliedDecimalConverter.ConvertBack(value,"<FIELD_FORMATSTRING>")
+                mSynergyData.<field_original_name_modified> = SynergyImpliedDecimalConverter.ConvertBack(value,"<FIELD_FORMATSTRING>")
                 <ELSE>
-                mSynergyData.<Field_name> = SynergyDecimalConverter.ConvertBack(value,"<FIELD_FORMATSTRING>")
+                mSynergyData.<field_original_name_modified> = SynergyDecimalConverter.ConvertBack(value,"<FIELD_FORMATSTRING>")
                 </IF PRECISION>
             <ELSE>
-                mSynergyData.<Field_name> = value
+                mSynergyData.<field_original_name_modified> = value
             </IF CUSTOM_HARMONY_AS_STRING>
         </IF DECIMAL>
         <IF INTEGER>
-                mSynergyData.<Field_name> = value
+                mSynergyData.<field_original_name_modified> = value
         </IF INTEGER>
             endmethod
 ;//

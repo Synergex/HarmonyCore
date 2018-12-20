@@ -1,5 +1,5 @@
 ﻿<CODEGEN_FILENAME>DbContext.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.3.9</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.3.10</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
@@ -54,7 +54,7 @@ import <MODELS_NAMESPACE>
 namespace <NAMESPACE>
 
     ;;; <summary>
-    ;;; 
+    ;;;
     ;;; </summary>
     public class DbContext extends Microsoft.EntityFrameworkCore.DbContext
 
@@ -77,7 +77,7 @@ namespace <NAMESPACE>
 
         </STRUCTURE_LOOP>
         ;;; <summary>
-        ;;; 
+        ;;;
         ;;; </summary>
         protected override method OnModelCreating, void
             parm, @ModelBuilder

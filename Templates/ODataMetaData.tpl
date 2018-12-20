@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME><StructureNoplural>MetaData.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.3.9</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.3.10</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
 ;// Title:       ODataMetaData.tpl
@@ -58,7 +58,7 @@ namespace <NAMESPACE>
     ;;; Exposes metadata relating to the <StructureNoplural> model class.
     ;;; </summary>
     public partial class <StructureNoplural>Metadata extends DataObjectMetadataBase
-        
+
         ;;; <summary>
         ;;; Constructs an new <StructureNoplural>Metadata object.
         ;;; </summary>
@@ -146,7 +146,7 @@ namespace <NAMESPACE>
 </IF STRUCTURE_RELATIVE>
 
         endmethod
-    
+
         ;;; <summary>
         ;;; Returns a new <StructureNoplural> object containing data from a record and a GRFA.
 <IF DEFINED_ENABLE_RELATIONS>
@@ -193,7 +193,7 @@ namespace <NAMESPACE>
       <IF TO_STRUCTURE_INCLUDED>
 ;//
         <IF MANY_TO_ONE_TO_MANY>
-                ("REL_<RelationFromkey>"), 
+                ("REL_<RelationFromkey>"),
                     new<StructureNoplural>.REL_<RelationFromkey> = (@<RelationTostructureNoplural>)joinedObject.Value
         </IF MANY_TO_ONE_TO_MANY>
 ;//
@@ -203,7 +203,7 @@ namespace <NAMESPACE>
         </IF ONE_TO_ONE>
 ;//
         <IF ONE_TO_MANY_TO_ONE>
-                ("REL_<RelationTostructurePlural>"), 
+                ("REL_<RelationTostructurePlural>"),
                     new<StructureNoplural>.REL_<RelationTostructurePlural> = (@ICollection<<RelationTostructureNoplural>>)joinedObject.Value
         </IF ONE_TO_MANY_TO_ONE>
 ;//

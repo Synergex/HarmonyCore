@@ -267,12 +267,15 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 			;;Function return value
 
 			serializer.MapOpen()
-			serializer.Pair("Position", 0)
+			serializer.String("Position")
+            serializer.Integer(0)
 			serializer.String("Value")
 			serializer.MapOpen()
 			;TODO: Needs to handle all the valid function return types
-			serializer.Pair("DataType", (i)FieldDataType.EnumField)
-			serializer.Pair("PassedValue", returnValue)
+			serializer.String("DataType")
+			serializer.Integer(FieldDataType.EnumField)
+            serializer.String("PassedValue")
+			serializer.Integer(returnValue)
 			serializer.MapClose()
 			serializer.MapClose()
 </IF FUNCTION>
@@ -436,7 +439,10 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 			;;Terminate the "ReturnParameters" array
 			serializer.ArrayClose()
 
-			;;Terminate the response object
+            ;;Terminate the "Result" object
+			serializer.MapClose()
+            
+            ;;Terminate the response object
 			begin
 				;;Structured this way to assist with debugging
 				data protocolMessage, string

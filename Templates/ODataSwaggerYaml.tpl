@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME>SwaggerFile.yaml</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.3.9</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.3.10</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>API_CONTACT_EMAIL</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>API_DESCRIPTION</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>API_LICENSE_NAME</REQUIRES_USERTOKEN>
@@ -230,7 +230,7 @@ paths:
 ;//
 <IF DEFINED_ENABLE_GET_ONE>
 <COUNTER_1_RESET>
-  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF ALPHA>''</IF ALPHA>{a<SegmentName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>a{RecordNumber}</IF STRUCTURE_RELATIVE>)':
+  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF ALPHA>''</IF ALPHA>{a<FieldSqlName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>a{RecordNumber}</IF STRUCTURE_RELATIVE>)':
 <COUNTER_1_INCREMENT>
     get:
       summary: Get a single <structureNoplural>
@@ -243,7 +243,7 @@ paths:
 <IF STRUCTURE_ISAM>
 <PRIMARY_KEY>
 <SEGMENT_LOOP>
-        - name: a<SegmentName>
+        - name: a<FieldSqlName>
           in: path
           description: <SEGMENT_DESC>
           required: true
@@ -294,7 +294,7 @@ paths:
 ;//
 <IF DEFINED_ENABLE_DELETE>
 <IF COUNTER_1_EQ_0>
-  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF ALPHA>''</IF ALPHA>{a<SegmentName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>a{RecordNumber}</IF STRUCTURE_RELATIVE>)':
+  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF ALPHA>''</IF ALPHA>{a<FieldSqlName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>a{RecordNumber}</IF STRUCTURE_RELATIVE>)':
 </IF COUNTER_1_EQ_0>
 <COUNTER_1_INCREMENT>
     delete:
@@ -308,7 +308,7 @@ paths:
 <IF STRUCTURE_ISAM>
   <PRIMARY_KEY>
     <SEGMENT_LOOP>
-        - name: a<SegmentName>
+        - name: a<FieldSqlName>
           in: path
           description: <SEGMENT_DESC>
           required: true
@@ -345,7 +345,7 @@ paths:
 ;//
 <IF DEFINED_ENABLE_PUT>
 <IF COUNTER_1_EQ_0>
-  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF ALPHA>''</IF ALPHA>{a<SegmentName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>a{RecordNumber}</IF STRUCTURE_RELATIVE>)':
+  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF ALPHA>''</IF ALPHA>{a<FieldSqlName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>a{RecordNumber}</IF STRUCTURE_RELATIVE>)':
 </IF COUNTER_1_EQ_0>
 <COUNTER_1_INCREMENT>
     put:
@@ -359,7 +359,7 @@ paths:
 <IF STRUCTURE_ISAM>
   <PRIMARY_KEY>
     <SEGMENT_LOOP>
-        - name: a<SegmentName>
+        - name: a<FieldSqlName>
           in: path
           description: <SEGMENT_DESC>
           required: true
@@ -406,7 +406,7 @@ paths:
 ;//
 <IF DEFINED_ENABLE_PATCH>
 <IF COUNTER_1_EQ_0>
-  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF ALPHA>''</IF ALPHA>{a<SegmentName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>a{RecordNumber}</IF STRUCTURE_RELATIVE>)':
+  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF ALPHA>''</IF ALPHA>{a<FieldSqlName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>a{RecordNumber}</IF STRUCTURE_RELATIVE>)':
 </IF COUNTER_1_EQ_0>
 <COUNTER_1_INCREMENT>
     patch:
@@ -420,7 +420,7 @@ paths:
 <IF STRUCTURE_ISAM>
   <PRIMARY_KEY>
     <SEGMENT_LOOP>
-        - name: a<SegmentName>
+        - name: a<FieldSqlName>
           in: path
           description: <SEGMENT_DESC>
           required: true
@@ -467,7 +467,7 @@ paths:
 <IF STRUCTURE_ISAM>
 <IF DEFINED_ENABLE_ALTERNATE_KEYS>
 <ALTERNATE_KEY_LOOP>
-  '/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF ALPHA>''</IF ALPHA>{a<SegmentName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP>)':
+  '/<StructurePlural>(<SEGMENT_LOOP><FieldSqlName>=<IF ALPHA>''</IF ALPHA>{a<FieldSqlName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP>)':
 ;//
 ;// ----------------------------------------------------------------------------
 ;// Get via alternate key
@@ -487,7 +487,7 @@ paths:
         - <StructurePlural>
       parameters:
   <SEGMENT_LOOP>
-        - name: a<SegmentName>
+        - name: a<FieldSqlName>
           in: path
           description: <SEGMENT_DESC>
           required: true
@@ -558,7 +558,7 @@ paths:
 ;//
   <IF DEFINED_ENABLE_COUNT>
     <IF DUPLICATES>
-  '/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF ALPHA>''</IF ALPHA>{a<SegmentName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP>)/$count':
+  '/<StructurePlural>(<SEGMENT_LOOP><FieldSqlName>=<IF ALPHA>''</IF ALPHA>{a<FieldSqlName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP>)/$count':
     get:
       summary: Count <structurePlural>
       description: Count <structurePlural> via complete alternate key <KeyName>.
@@ -568,7 +568,7 @@ paths:
         - <StructurePlural>
       parameters:
       <SEGMENT_LOOP>
-        - name: a<SegmentName>
+        - name: a<FieldSqlName>
           in: path
           description: <SEGMENT_DESC>
           required: true
@@ -611,7 +611,7 @@ paths:
 ;//
 ;// Invividual property
 ;//
-  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><SegmentName>=<IF ALPHA>''</IF ALPHA>{a<SegmentName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></IF SINGLE_SEGMENT></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>{RecordNumber}</IF STRUCTURE_RELATIVE>)/<FieldSqlName>':
+  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><FieldSqlName>=<IF ALPHA>''</IF ALPHA>{a<FieldSqlName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></IF SINGLE_SEGMENT></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>{RecordNumber}</IF STRUCTURE_RELATIVE>)/<FieldSqlName>':
     get:
       summary: Get <structureNoplural> property <FieldSqlName>
       description: Get <structureNoplural> property <FieldSqlName> via complete primary key.
@@ -626,7 +626,7 @@ paths:
         <IF SINGLE_SEGMENT>
         - name: key
         <ELSE>
-        - name: a<SegmentName>
+        - name: a<FieldSqlName>
         </IF SINGLE_SEGMENT>
           in: path
           description: <SEGMENT_DESC>
@@ -663,7 +663,7 @@ paths:
 ;// Invividual property - value only
 ;//
 <IF DEFINED_ENABLE_PROPERTY_VALUE_DOCS>
-  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><SegmentName>=<IF ALPHA>''</IF ALPHA>{a<SegmentName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></IF SINGLE_SEGMENT></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>{RecordNumber}</IF STRUCTURE_RELATIVE>)/<FieldSqlName>/$value':
+  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><FieldSqlName>=<IF ALPHA>''</IF ALPHA>{a<FieldSqlName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></IF SINGLE_SEGMENT></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>{RecordNumber}</IF STRUCTURE_RELATIVE>)/<FieldSqlName>/$value':
     get:
       summary: Get <structureNoplural> property <FieldSqlName>
       description: Get <structureNoplural> property <FieldSqlName> via complete primary key, returning the raw value.
@@ -678,7 +678,7 @@ paths:
         <IF SINGLE_SEGMENT>
         - name: key
         <ELSE>
-        - name: a<SegmentName>
+        - name: a<FieldSqlName>
         </IF SINGLE_SEGMENT>
           in: path
           description: <SEGMENT_DESC>

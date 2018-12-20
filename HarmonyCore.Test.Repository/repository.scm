@@ -1,11 +1,11 @@
  
 ;  SYNERGY DATA LANGUAGE OUTPUT
 ;
-;  REPOSITORY     : D:\SYNERGEX\HarmonyCore\HarmonyCore.Test.Repository\bin\Debu
-;                 : D:\SYNERGEX\HarmonyCore\HarmonyCore.Test.Repository\bin\Debu
+;  REPOSITORY     : D:\HarmonyCore\HarmonyCore.Test.Repository\bin\Debug\rpsmain
+;                 : D:\HarmonyCore\HarmonyCore.Test.Repository\bin\Debug\rpstext
 ;                 : Version 10.3.3f
 ;
-;  GENERATED      : 22-OCT-2018, 14:47:26
+;  GENERATED      : 19-DEC-2018, 16:35:48
 ;                 : Version 10.3.3f
 ;  EXPORT OPTIONS : [ALL] 
  
@@ -123,6 +123,8 @@ Key FAVORITE_ITEM   FOREIGN
    Segment FIELD   FAVORITE_ITEM
  
 Relation  2   CUSTOMERS CUSTOMER_NUMBER   ORDERS CUSTOMER_NUMBER
+ 
+Relation  4   CUSTOMERS CUSTOMER_NUMBER   ORDERS CUSTOMER_NUMBER
  
 Relation  3   CUSTOMERS FAVORITE_ITEM   ITEMS ITEM_NUMBER
  
@@ -271,8 +273,6 @@ Relation  1   ITEMS VENDOR_NUMBER   VENDORS VENDOR_NUMBER
  
 Relation  2   ITEMS ITEM_NUMBER   ORDER_ITEMS ITEM_ORDERED
  
-Relation  3   ITEMS ITEM_NUMBER   ORDER_ITEMS_OVERLAY ITEM_ORDERED
- 
 Structure ORDERS   DBL ISAM
    Description "Orders"
  
@@ -342,8 +342,6 @@ Key DATE_COMPLETED   ACCESS   Order ASCENDING   Dups YES   Insert END
 Relation  1   ORDERS ORDER_NUMBER   ORDER_ITEMS ORDER_NUMBER_AND_LINE_ITEM
  
 Relation  2   ORDERS CUSTOMER_NUMBER   CUSTOMERS CUSTOMER_NUMBER
- 
-Relation  3   ORDERS ORDER_NUMBER   ORDER_ITEMS_OVERLAY ORDER_ITEM_KEY
  
 Structure ORDER_ITEMS   DBL ISAM
    Description "Order items"
@@ -415,81 +413,6 @@ Key INVOICE_NUMBER   ACCESS   Order ASCENDING   Dups YES   Insert END
 Relation  1   ORDER_ITEMS ORDER_NUMBER_AND_LINE_ITEM   ORDERS ORDER_NUMBER
  
 Relation  2   ORDER_ITEMS ITEM_ORDERED   ITEMS ITEM_NUMBER
- 
-Structure ORDER_ITEMS_OVERLAY   DBL ISAM
-   Description "Order items with overlay key"
- 
-Field ORDER_NUMBER   Type DECIMAL   Size 6
-   Description "Order number"
-   Long Description
-      "SAMPLE_DATA=5238;"
-   Required
- 
-Field ITEM_NUMBER   Type DECIMAL   Size 2
-   Description "Line item number"
-   Long Description
-      "SAMPLE_DATA=1;"
-   Required
- 
-Field ORDER_ITEM_KEY   Type DECIMAL   Size 8   Overlay ORDER_NUMBER:0
-   Description "Order number and item number"
-   Long Description
-      "SAMPLE_DATA=523801;"
- 
-Field ITEM_ORDERED   Type DECIMAL   Size 6
-   Description "Item ordered"
-   Long Description
-      "SAMPLE_DATA=21;"
-   Required
- 
-Field QUANTITY_ORDERED   Type DECIMAL   Size 6
-   Description "Quantity ordered"
-   Long Description
-      "SAMPLE_DATA=3;"
-   Required
- 
-Field UNIT_PRICE   Type DECIMAL   Size 7   Precision 2
-   Description "Unit price"
-   Long Description
-      "SAMPLE_DATA=15.99;"
-   Required
- 
-Field DATE_SHIPPED   Type DATE   Size 8   Stored YYYYMMDD
-   Description "Date shipped"
-   Long Description
-      "SAMPLE_DATA=2018-03-17T00:00:00-08:00;"
- 
-Field INVOICE_NUMBER   Type DECIMAL   Size 7
-   Description "Invoice number"
-   Long Description
-      "SAMPLE_DATA=166825;"
- 
-Field NONAME_001   Type ALPHA   Size 58   Language Noview   Script Noview
-   Report Noview   Nonamelink
-   Description "Spare space"
- 
-Key ORDER_ITEM_KEY   ACCESS   Order ASCENDING   Dups NO
-   Description "Order number and line number"
-   Segment FIELD   ORDER_ITEM_KEY  SegType DECIMAL  SegOrder ASCENDING
- 
-Key ITEM_ORDERED   ACCESS   Order ASCENDING   Dups YES   Insert END
-   Modifiable YES   Krf 001
-   Description "Item ordered"
-   Segment FIELD   ITEM_ORDERED  SegType DECIMAL  SegOrder ASCENDING
- 
-Key DATE_SHIPPED   ACCESS   Order ASCENDING   Dups YES   Insert END
-   Modifiable YES   Krf 002
-   Description "Date item shipped"
-   Segment FIELD   DATE_SHIPPED  SegType DECIMAL  SegOrder DESCENDING
- 
-Key INVOICE_NUMBER   ACCESS   Order ASCENDING   Dups YES   Insert END
-   Modifiable YES   Krf 003
-   Description "Invoice number billed on"
-   Segment FIELD   INVOICE_NUMBER  SegType DECIMAL  SegOrder ASCENDING
- 
-Relation  1   ORDER_ITEMS_OVERLAY ORDER_ITEM_KEY   ORDERS ORDER_NUMBER
- 
-Relation  2   ORDER_ITEMS_OVERLAY ITEM_ORDERED   ITEMS ITEM_NUMBER
  
 Structure SYSPARAMS   RELATIVE
    Description "System parameter file"
@@ -595,10 +518,6 @@ File ORDERS   DBL ISAM   "DAT:orders.ism"
 File ORDER_ITEMS   DBL ISAM   "DAT:order_items.ism"
    Description "Order items file"
    Assign ORDER_ITEMS
- 
-File ORDER_ITEMS_OVERLAY   DBL ISAM   "DAT:order_items_overlay.ism"
-   Description "Order items file"
-   Assign ORDER_ITEMS_OVERLAY
  
 File SYSPARAMS   RELATIVE   "DAT:sysparams.ddf"
    Description "System parameter file"

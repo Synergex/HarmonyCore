@@ -66,13 +66,27 @@ namespace Services.Test.UnitTests
         endmethod
 
         ;;------------------------------------------------------------
+        ;;Get all Customers and expand relation REL_CustomerNumber
+
+        {TestMethod}
+        {TestCategory("Customer Tests - Read All")}
+        public method GetCustomers_Expand_REL_Orders, void
+        proc
+            data uri = "/odata/Customers?$expand=REL_Orders"
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync(uri).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+        endmethod
+
+        ;;------------------------------------------------------------
         ;;Get all Customers and expand all relations
 
         {TestMethod}
         {TestCategory("Customer Tests - Read All")}
         public method GetCustomers_Expand_All, void
         proc
-            data uri = "/odata/Customers?$expand=REL_Orders,REL_FavoriteItem"
+            data uri = "/odata/Customers?$expand=REL_Orders,REL_FavoriteItem,REL_Orders"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync(uri).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -125,6 +139,21 @@ namespace Services.Test.UnitTests
         endmethod
 
         ;;------------------------------------------------------------
+        ;;Get a single Customer by primary key and expand relation REL_Orders
+
+        {TestMethod}
+        {TestCategory("Customer Tests - Read by Primary Key")}
+        public method GetCustomer_Expand_REL_Orders, void
+        proc
+            data client = UnitTestEnvironment.Server.CreateClient()
+            data request = String.Format("/odata/Customers(CustomerNumber={1})?$expand=REL_Orders","",TestConstants.GetCustomer_Expand_REL_Orders_CustomerNumber)
+            data response = client.GetAsync(request).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customer, @ODataCustomer, JsonConvert.DeserializeObject<ODataCustomer>(result)
+        endmethod
+
+        ;;------------------------------------------------------------
         ;;Get a single Customer by primary key and expand all relations
 
         {TestMethod}
@@ -132,7 +161,7 @@ namespace Services.Test.UnitTests
         public method GetCustomer_Expand_All, void
         proc
             data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/Customers(CustomerNumber={1})?$expand=REL_Orders,REL_FavoriteItem","",TestConstants.GetCustomer_Expand_All_CustomerNumber)
+            data request = String.Format("/odata/Customers(CustomerNumber={1})?$expand=REL_Orders,REL_FavoriteItem,REL_Orders","",TestConstants.GetCustomer_Expand_All_CustomerNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()

@@ -66,27 +66,13 @@ namespace Services.Test.UnitTests
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get all Items and expand relation REL_ItemNumber
-
-        {TestMethod}
-        {TestCategory("Item Tests - Read All")}
-        public method GetItems_Expand_REL_OrderItemsOverlays, void
-        proc
-            data uri = "/odata/Items?$expand=REL_OrderItemsOverlays"
-            disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync(uri).Result
-            data result = response.Content.ReadAsStringAsync().Result
-            response.EnsureSuccessStatusCode()
-        endmethod
-
-        ;;------------------------------------------------------------
         ;;Get all Items and expand all relations
 
         {TestMethod}
         {TestCategory("Item Tests - Read All")}
         public method GetItems_Expand_All, void
         proc
-            data uri = "/odata/Items?$expand=REL_VendorNumber,REL_OrderItems,REL_OrderItemsOverlays"
+            data uri = "/odata/Items?$expand=REL_VendorNumber,REL_OrderItems"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync(uri).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -139,21 +125,6 @@ namespace Services.Test.UnitTests
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get a single Item by primary key and expand relation REL_OrderItemsOverlays
-
-        {TestMethod}
-        {TestCategory("Item Tests - Read by Primary Key")}
-        public method GetItem_Expand_REL_OrderItemsOverlays, void
-        proc
-            data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/Items(ItemNumber={1})?$expand=REL_OrderItemsOverlays","",TestConstants.GetItem_Expand_REL_OrderItemsOverlays_ItemNumber)
-            data response = client.GetAsync(request).Result
-            data result = response.Content.ReadAsStringAsync().Result
-            response.EnsureSuccessStatusCode()
-            data item, @ODataItem, JsonConvert.DeserializeObject<ODataItem>(result)
-        endmethod
-
-        ;;------------------------------------------------------------
         ;;Get a single Item by primary key and expand all relations
 
         {TestMethod}
@@ -161,7 +132,7 @@ namespace Services.Test.UnitTests
         public method GetItem_Expand_All, void
         proc
             data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/Items(ItemNumber={1})?$expand=REL_VendorNumber,REL_OrderItems,REL_OrderItemsOverlays","",TestConstants.GetItem_Expand_All_ItemNumber)
+            data request = String.Format("/odata/Items(ItemNumber={1})?$expand=REL_VendorNumber,REL_OrderItems","",TestConstants.GetItem_Expand_All_ItemNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()

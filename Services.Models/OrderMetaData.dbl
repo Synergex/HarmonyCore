@@ -24,7 +24,7 @@ namespace Services.Models
     ;;; Exposes metadata relating to the Order model class.
     ;;; </summary>
     public partial class OrderMetadata extends DataObjectMetadataBase
-        
+
         ;;; <summary>
         ;;; Constructs an new OrderMetadata object.
         ;;; </summary>
@@ -42,7 +42,6 @@ namespace Services.Models
             AddFieldInfo("DateCompleted", "DATE", 8, 73, 0, false, new SynergyDecimalDateConverter.LiteralFormatter("FORMAT:YYYYMMDD"))
             AddFieldInfo("REL_OrderItems", "COLLECTION", 0, 0, 0, false)
             AddFieldInfo("REL_CustomerNumber", "DATAOBJECT", 0, 0, 0, false)
-            AddFieldInfo("REL_OrderItemsOverlays", "COLLECTION", 0, 0, 0, false)
 
             AddKeyInfo(0, "OrderNumber")
             AddKeyInfo(1, "CustomerNumber")
@@ -50,10 +49,10 @@ namespace Services.Models
             AddKeyInfo(3, "DateCompleted")
 
         endmethod
-    
+
         ;;; <summary>
         ;;; Returns a new Order object containing data from a record and a GRFA.
-        ;;; The related data properties (REL_OrderItems, REL_CustomerNumber and REL_OrderItemsOverlays) will not be populated.
+        ;;; The related data properties (REL_OrderItems and REL_CustomerNumber) will not be populated.
         ;;; </summary>
         ;;; <param name="dataArea">The record containing the data for the new Order object.</param>
         ;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
@@ -67,11 +66,11 @@ namespace Services.Models
 
         ;;; <summary>
         ;;; Returns a new Order object containing data from a record and a GRFA.
-        ;;; The related data properties (REL_OrderItems, REL_CustomerNumber and REL_OrderItemsOverlays) will be populated.
+        ;;; The related data properties (REL_OrderItems and REL_CustomerNumber) will be populated.
         ;;; </summary>
         ;;; <param name="dataArea">The record containing the data for the new Order object.</param>
         ;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
-        ;;; <param name="joinedObjects">Data to allow the related data properties (REL_OrderItems, REL_CustomerNumber and REL_OrderItemsOverlays) to be populated.</param>
+        ;;; <param name="joinedObjects">Data to allow the related data properties (REL_OrderItems and REL_CustomerNumber) to be populated.</param>
         ;;; <returns></returns>
         public override method MakeNew, @DataObjectBase
             required in dataArea, a
@@ -83,12 +82,10 @@ namespace Services.Models
             foreach joinedObject in joinedObjects
             begin
                 using joinedObject.Key select
-                ("REL_OrderItems"), 
+                ("REL_OrderItems"),
                     newOrder.REL_OrderItems = (@ICollection<OrderItem>)joinedObject.Value
-                ("REL_CustomerNumber"), 
+                ("REL_CustomerNumber"),
                     newOrder.REL_CustomerNumber = (@Customer)joinedObject.Value
-                ("REL_OrderItemsOverlays"), 
-                    newOrder.REL_OrderItemsOverlays = (@ICollection<OrderItemsOverlay>)joinedObject.Value
                 endusing
             end
 

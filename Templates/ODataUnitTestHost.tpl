@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME>SelfHost.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.3.9</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.3.10</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>SERVICES_NAMESPACE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVER_PROTOCOL</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVER_NAME</REQUIRES_USERTOKEN>
@@ -67,6 +67,10 @@ proc
 
     ;Leave this here for Jeff 
     ;data tester = new OrderTests()  
+    ;tester.AdapterTestBasic()
+    ;tester.AdapterTestOptionalParameters()
+    ;tester.AdapterTestOrFilter()
+    ;tester.AdapterTestOrderBy()
 <IF DEFINED_ENABLE_RELATIONS>
     ;tester.GetOrders_Expand_REL_TagCustomer() 
     ;tester.GetOrders_Expand_REL_TagVendor()
