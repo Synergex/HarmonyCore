@@ -71,7 +71,21 @@ namespace Harmony.Core
 		public method GetFieldByName, @FieldDataDefinition
 			in required fldName,	string
 		proc
-			mreturn mFields[mfieldDictionary[fldName]]
+			data result = NullableGetFieldByName(fldName)
+			if(result == ^null) then
+				throw new InvalidOperationException(string.Format("Failed to find field {0} in structure {1}", fldName, RPSStructureName))
+			else
+				mreturn result
+		endmethod
+
+		public method NullableGetFieldByName, @FieldDataDefinition
+			in required fldName,	string
+		proc
+			data fldIndex, int
+			if(mfieldDictionary.TryGetValue(fldName, fldIndex)) then
+				mreturn mFields[fldIndex]
+			else
+				mreturn ^null
 		endmethod
 		
 		public abstract method FormatKeyLiteral, a
@@ -251,7 +265,7 @@ namespace Harmony.Core
 			default compositeParts, @IEnumerable<FieldDataDefinition>, ^null
 			endparams
 		proc
-			data fieldInfo = new FieldDataDefinition() { LanguageName = languageName, ElementSize = elementSize, StructurePosition = structurePosition, DecimalPrecision = decimalPrecision, ClearField = clearField, TagValue = tagValue, LiteralFormatter = formatter, CompositeParts = compositeParts }
+			data fieldInfo = new FieldDataDefinition() { LanguageName = languageName, ElementSize = elementSize, StructurePosition = structurePosition, DecimalPrecision = decimalPrecision, ClearField = clearField, TagValue = tagValue, LiteralFormatter = formatter }
 
 			using dataType select
 			("ALPHA"),
@@ -313,8 +327,10 @@ namespace Harmony.Core
 			("COMPOSITE"),
 			begin
 				fieldInfo.DataType = FieldDataType.DataObjectCollectionField
-				if(fieldInfo.CompositeParts == ^null)
+				if(compositeParts == ^null) then
 					throw new InvalidOperationException("Composite fields must be composed of parts")
+				else
+					fieldInfo.CompositeParts = compositeParts.ToArray()
 			end
 
 			endusing

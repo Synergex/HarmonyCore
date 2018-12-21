@@ -125,15 +125,32 @@ namespace Harmony.Core.FileIO.Queryable
 				throw new NotImplementedException()
 		endmethod
 
+		private method MapQuerySource, @IQuerySource
+			source, @IQuerySource
+			querySourceMap, @Dictionary<IQuerySource, IQuerySource>
+		proc
+			if(querySourceMap != ^null)
+			begin
+				data result, @IQuerySource
+				if(querySourceMap.TryGetValue(source, result))
+				begin
+					mreturn result
+				end
+			end
+			mreturn source
+		endmethod
+
+
 		public method FindTargetField, @object
 			node, @Expression
 			node2, @Expression
+			default querySourceMap, @Dictionary<IQuerySource, IQuerySource>, ^null
 		proc
 			if(node .is. MemberExpression) then
 			begin
 				data memberExpression = (@MemberExpression)node
 				data querySource = ^as(memberExpression.Expression, @Remotion.Linq.Clauses.Expressions.QuerySourceReferenceExpression) 
-				data dObj = querySource != ^null ? mDataObjects[querySource.ReferencedQuerySource] : mDataObjects.First().Value
+				data dObj = querySource != ^null ? mDataObjects[MapQuerySource(querySource.ReferencedQuerySource, querySourceMap)] : mDataObjects.First().Value
 				mreturn new FieldReference() { FieldDef = dObj.GetFieldByName(memberExpression.Member.Name), QuerySourceKey = querySource != ^null ? mQuerySources.IndexOf(querySource.ReferencedQuerySource) : 0 }
 			end
 			else if(node .is. MethodCallExpression) then
@@ -144,7 +161,7 @@ namespace Harmony.Core.FileIO.Queryable
 					;;this is where we can do a metadata object lookup for join
 					data memberTargetParameter = (@Remotion.Linq.Clauses.Expressions.QuerySourceReferenceExpression)callNode.Arguments[0]
 					data memberNameConstant = (@ConstantExpression)callNode.Arguments[1]
-					data memberTargetType, @DataObjectMetadataBase, mDataObjects[memberTargetParameter.ReferencedQuerySource]
+					data memberTargetType, @DataObjectMetadataBase, mDataObjects[MapQuerySource(memberTargetParameter.ReferencedQuerySource, querySourceMap)]
 
 					;;if we're looking at a tag literal (fake) field just drop out here
 					data targetField = memberTargetType.GetFieldByName(memberNameConstant.Value.ToString())
@@ -153,7 +170,7 @@ namespace Harmony.Core.FileIO.Queryable
 						mreturn targetField.TagValue
 					end
 					else
-						mreturn new FieldReference() { FieldDef = targetField, QuerySourceKey = mQuerySources.IndexOf(memberTargetParameter.ReferencedQuerySource) }
+						mreturn new FieldReference() { FieldDef = targetField, QuerySourceKey = mQuerySources.IndexOf(MapQuerySource(memberTargetParameter.ReferencedQuerySource, querySourceMap)) }
 				end
 				else if(callNode.Method == StringToLower || callNode.Method == StringToUpper)
 				begin
@@ -171,6 +188,7 @@ namespace Harmony.Core.FileIO.Queryable
 
 		private method FindConstantValue, @object
 			node, @Expression
+			default querySourceMap, @Dictionary<IQuerySource, IQuerySource>, ^null
 		proc
 			if(node .is. ConstantExpression) then
 			begin
@@ -190,7 +208,7 @@ namespace Harmony.Core.FileIO.Queryable
 					;;this is where we can do a metadata object lookup for join
 					data memberTargetParameter = (@Remotion.Linq.Clauses.Expressions.QuerySourceReferenceExpression)callNode.Arguments[0]
 					data memberNameConstant, @ConstantExpression, (@ConstantExpression)callNode.Arguments[1]
-					data memberTargetType, @DataObjectMetadataBase, mDataObjects[memberTargetParameter.ReferencedQuerySource]
+					data memberTargetType, @DataObjectMetadataBase, mDataObjects[MapQuerySource(memberTargetParameter.ReferencedQuerySource, querySourceMap)]
 					data targetField = memberTargetType.GetFieldByName(memberNameConstant.Value.ToString())
 					if(((int)targetField.DataType & (int)FieldDataType.TagLiteral) != 0)
 					begin

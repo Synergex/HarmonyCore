@@ -357,6 +357,7 @@ namespace Harmony.Core.FileIO.Queryable
 		public static method PrepareQuery, @PreparedQueryPlan
 			model, @QueryModel
 			makeJoinExpression, @Func<Expression, Expression, QueryModel, Expression>
+			querySourceMap, @Dictionary<IQuerySource, IQuerySource>
 			out querySourceBufferMap, @Dictionary<IQuerySource, int>
 		proc
 			data modelVisitor = new QueryModelVisitor(makeJoinExpression)
@@ -365,7 +366,7 @@ namespace Harmony.Core.FileIO.Queryable
 
 			data accessedMemberVisitor = new AccessedMemberSearch()
 			accessedMemberVisitor.Visit(model.SelectClause.Selector)
-			data sparseParts = modelVisitor.ConvertSparseParts(accessedMemberVisitor.SelectedFields, accessedMemberVisitor.SelectedQuerySources)
+			data sparseParts = modelVisitor.ConvertSparseParts(accessedMemberVisitor.SelectedFields, accessedMemberVisitor.SelectedQuerySources, querySourceMap)
 
 			data isCollection = !model.ResultOperators.Any(lambda (op) { op.GetType() == ^typeof(Remotion.Linq.Clauses.ResultOperators.FirstResultOperator) })
 
@@ -375,15 +376,20 @@ namespace Harmony.Core.FileIO.Queryable
 		private method ConvertSparseParts, @Dictionary<int, List<FieldDataDefinition>>
 			memberExpressions, @List<MemberExpression>
 			querySources, @IEnumerable<IQuerySource>
+			querySourceMap, @Dictionary<IQuerySource, IQuerySource>
 		proc
 			data result = new Dictionary<int, List<FieldDataDefinition>>()
+
+			if(querySources.Count() != 0)
+				mreturn result
+
 			data memberExpr, @System.Linq.Expressions.MemberExpression
 			data querySourceVisitor = new QuerySourceVisitor()
 			;;actually get the sparse parts out of the member expressions here
 			;;decide which type buffer the field/prop belongs to then populate
 			foreach memberExpr in memberExpressions
 			begin
-				data targetFieldExpr = ^as(mWhereBuilder.FindTargetField(memberExpr, ^null), @FieldReference)
+				data targetFieldExpr = ^as(mWhereBuilder.FindTargetField(memberExpr, ^null, querySourceMap), @FieldReference)
 				if(targetFieldExpr != ^null)
 				begin
 					data typeBufferIndex = TypeBufferForExpression(memberExpr, querySourceVisitor)

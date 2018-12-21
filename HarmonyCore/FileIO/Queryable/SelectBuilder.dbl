@@ -60,6 +60,65 @@ namespace Harmony.Core.FileIO.Queryable
 				begin
 					mreturn (On)(^d(dataBuffer1(fieldDetails1.StructurePosition:fieldDetails1.ElementSize), fieldDetails1.DecimalPrecision) .eq. ^d(dataBuffer2(fieldDetails2.StructurePosition:fieldDetails2.ElementSize), fieldDetails2.DecimalPrecision))
 				end
+				(FieldDataType.CompositeField),
+				begin
+					data fieldOneConsumed = 0 
+					data fieldTwoConsumed = 0
+					data fieldOnePos = 1
+					data fieldTwoPos = 1
+					data resultOn, @On
+					while(fieldOnePos < fieldDetails1.CompositeParts.Length && fieldTwoPos < fieldDetails2.CompositeParts.Length)
+					begin
+						data fieldOnePart = fieldDetails1.CompositeParts[fieldOnePos]
+						data fieldTwoPart = fieldDetails2.CompositeParts[fieldTwoPos]
+						data fieldOneStart = fieldDetails1.StructurePosition + fieldOneConsumed
+						data fieldTwoStart = fieldDetails2.StructurePosition + fieldTwoConsumed
+						data compSize = Math.Min(fieldOnePart.ElementSize - fieldOneConsumed, fieldTwoPart.ElementSize - fieldTwoConsumed)
+						data madeOn, @On
+						using fieldDetails1.DataType select
+						(FieldDataType.AlphaField),
+						begin
+							if(!caseInsensitive) then
+								madeOn = (On)(dataBuffer1(fieldOneStart:compSize) .eq. dataBuffer2(fieldTwoStart:compSize))
+							else
+								throw new NotImplementedException()
+						end
+						(FieldDataType.IntegerField),
+						begin
+							madeOn = (On)(^i(dataBuffer1(fieldOneStart:compSize)) .eq. ^i(dataBuffer2(fieldTwoStart:compSize)))
+						end
+						(FieldDataType.DecimalField),
+						begin
+							madeOn = (On)(^d(dataBuffer1(fieldOneStart:compSize)) .eq. ^d(dataBuffer2(fieldTwoStart:compSize)))
+						end
+						endusing
+
+						if(madeOn == ^null)
+							throw new NotImplementedException(string.Format("Invalid field type comparison for join operation, field1 = {0}, field2 = {1}", fieldDetails1.DataType, fieldDetails2.DataType))
+						
+						if(resultOn == ^null) then
+							resultOn = madeOn
+						else
+							resultOn = resultOn .and. madeOn
+
+						if(fieldOneConsumed > fieldOnePart.ElementSize)
+						begin
+							^incr(fieldOnePos)
+							fieldOneConsumed = 0
+						end
+
+						if(fieldTwoConsumed > fieldTwoPart.ElementSize)
+						begin
+							^incr(fieldTwoPos)
+							fieldTwoConsumed = 0
+						end
+					end
+
+					if(resultOn == ^null)
+						throw new InvalidOperationException()
+
+					mreturn resultOn
+				end
 				endusing
 
 			end

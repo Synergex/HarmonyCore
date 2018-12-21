@@ -188,7 +188,7 @@ namespace Harmony.Core.EF.Query.Internal
                 //Expression expression = selectorRewriter.Visit(queryModel.SelectClause.Selector);
                 var selector = subQueryVisitor.Visit(queryModel.SelectClause.Selector);
 
-                QueryPlan = QueryModelVisitor.PrepareQuery(queryModel, ProcessWeirdJoin, out var querySourceBuffer);
+                QueryPlan = QueryModelVisitor.PrepareQuery(queryModel, ProcessWeirdJoin, aliasMapping, out var querySourceBuffer);
                 Expression = Expression.Call(
                         HarmonyQueryModelVisitor.EntityQueryMethodInfo.MakeGenericMethod(MainQueryType),
                         EntityQueryModelVisitor.QueryContextParameter,
@@ -571,6 +571,7 @@ namespace Harmony.Core.EF.Query.Internal
 
                             var madeGroupJoin = new GroupJoinClause(Source.ReferencedQuerySource.ItemName + "." + SubQueryTargetName, typeof(IEnumerable<>).MakeGenericType(madeJoin.ItemType), madeJoin);
                             var newQuerySource = new QuerySourceReferenceExpression(madeGroupJoin);
+                            QuerySourceAliases.Add(queryModel.MainFromClause, madeGroupJoin);
                             AddOrUpdateSelector(new QuerySourceReferenceExpression(queryModel.MainFromClause), newQuerySource);
                             var rewrittenJoinLambda = rewrite.Visit(joinOnLambda) as Expression;
                             var simpleJoinCondition = rewrittenJoinLambda as BinaryExpression ?? (rewrittenJoinLambda as NullSafeEqualExpression)?.EqualExpression;

@@ -541,7 +541,18 @@ namespace Services.Test.UnitTests
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
             data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
-        endmethod
+		endmethod
+
+		;3 levels of expansion with select at each level, with a filter at the top level
+		{TestMethod}
+		public method ExpandAndSelect7, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync("/odata/Customers?$filter=State eq 'CA'&$expand=REL_Orders($select=OrderNumber,DateOrdered;$expand=REL_OrderItems($select=ItemNumber,QuantityOrdered;$expand=REL_ItemOrdered($select=CommonName)))&$select=CustomerNumber,Name").Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
+		endmethod
 
         ;3 levels of expansion with select at each level, with a filter at the top level
         {TestMethod}
