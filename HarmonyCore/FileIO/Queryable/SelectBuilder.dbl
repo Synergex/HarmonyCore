@@ -67,15 +67,15 @@ namespace Harmony.Core.FileIO.Queryable
 					data fieldOnePos = 1
 					data fieldTwoPos = 1
 					data resultOn, @On
-					while(fieldOnePos < fieldDetails1.CompositeParts.Length && fieldTwoPos < fieldDetails2.CompositeParts.Length)
+					while(fieldOnePos <= fieldDetails1.CompositeParts.Length && fieldTwoPos <= fieldDetails2.CompositeParts.Length)
 					begin
 						data fieldOnePart = fieldDetails1.CompositeParts[fieldOnePos]
 						data fieldTwoPart = fieldDetails2.CompositeParts[fieldTwoPos]
-						data fieldOneStart = fieldDetails1.StructurePosition + fieldOneConsumed
-						data fieldTwoStart = fieldDetails2.StructurePosition + fieldTwoConsumed
+						data fieldOneStart = fieldOnePart.StructurePosition + fieldOneConsumed
+						data fieldTwoStart = fieldTwoPart.StructurePosition + fieldTwoConsumed
 						data compSize = Math.Min(fieldOnePart.ElementSize - fieldOneConsumed, fieldTwoPart.ElementSize - fieldTwoConsumed)
 						data madeOn, @On
-						using fieldDetails1.DataType select
+						using fieldOnePart.DataType select
 						(FieldDataType.AlphaField),
 						begin
 							if(!caseInsensitive) then
@@ -101,13 +101,16 @@ namespace Harmony.Core.FileIO.Queryable
 						else
 							resultOn = resultOn .and. madeOn
 
-						if(fieldOneConsumed > fieldOnePart.ElementSize)
+						fieldOneConsumed += compSize
+						fieldTwoConsumed += compSize
+
+						if(fieldOneConsumed >= fieldOnePart.ElementSize)
 						begin
 							^incr(fieldOnePos)
 							fieldOneConsumed = 0
 						end
 
-						if(fieldTwoConsumed > fieldTwoPart.ElementSize)
+						if(fieldTwoConsumed >= fieldTwoPart.ElementSize)
 						begin
 							^incr(fieldTwoPos)
 							fieldTwoConsumed = 0

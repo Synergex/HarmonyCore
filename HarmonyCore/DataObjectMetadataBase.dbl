@@ -326,11 +326,13 @@ namespace Harmony.Core
 			end
 			("COMPOSITE"),
 			begin
-				fieldInfo.DataType = FieldDataType.DataObjectCollectionField
+				fieldInfo.DataType = FieldDataType.CompositeField
 				if(compositeParts == ^null) then
 					throw new InvalidOperationException("Composite fields must be composed of parts")
 				else
 					fieldInfo.CompositeParts = compositeParts.ToArray()
+
+				fieldInfo.ElementSize = fieldInfo.CompositeParts.Sum(lambda(part) { part.ElementSize })
 			end
 
 			endusing
