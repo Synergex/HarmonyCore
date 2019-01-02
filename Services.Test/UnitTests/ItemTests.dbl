@@ -38,13 +38,13 @@ namespace Services.Test.UnitTests
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get all Items and expand relation REL_VendorNumber
+        ;;Get all Items and expand relation REL_Vendor
 
         {TestMethod}
         {TestCategory("Item Tests - Read All")}
-        public method GetItems_Expand_REL_VendorNumber, void
+        public method GetItems_Expand_REL_Vendor, void
         proc
-            data uri = "/odata/Items?$expand=REL_VendorNumber"
+            data uri = "/odata/Items?$expand=REL_Vendor"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync(uri).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -52,7 +52,7 @@ namespace Services.Test.UnitTests
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get all Items and expand relation REL_ItemNumber
+        ;;Get all Items and expand relation REL_OrderItem
 
         {TestMethod}
         {TestCategory("Item Tests - Read All")}
@@ -72,7 +72,7 @@ namespace Services.Test.UnitTests
         {TestCategory("Item Tests - Read All")}
         public method GetItems_Expand_All, void
         proc
-            data uri = "/odata/Items?$expand=REL_VendorNumber,REL_OrderItems"
+            data uri = "/odata/Items?$expand=REL_Vendor,REL_OrderItems"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync(uri).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -95,14 +95,14 @@ namespace Services.Test.UnitTests
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get a single Item by primary key and expand relation REL_VendorNumber
+        ;;Get a single Item by primary key and expand relation REL_Vendor
 
         {TestMethod}
         {TestCategory("Item Tests - Read by Primary Key")}
-        public method GetItem_Expand_REL_VendorNumber, void
+        public method GetItem_Expand_REL_Vendor, void
         proc
             data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/Items(ItemNumber={1})?$expand=REL_VendorNumber","",TestConstants.GetItem_Expand_REL_VendorNumber_ItemNumber)
+            data request = String.Format("/odata/Items(ItemNumber={1})?$expand=REL_Vendor","",TestConstants.GetItem_Expand_REL_Vendor_ItemNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
@@ -132,7 +132,7 @@ namespace Services.Test.UnitTests
         public method GetItem_Expand_All, void
         proc
             data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/Items(ItemNumber={1})?$expand=REL_VendorNumber,REL_OrderItems","",TestConstants.GetItem_Expand_All_ItemNumber)
+            data request = String.Format("/odata/Items(ItemNumber={1})?$expand=REL_Vendor,REL_OrderItems","",TestConstants.GetItem_Expand_All_ItemNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()

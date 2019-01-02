@@ -809,19 +809,19 @@ definitions:
   <IF TO_STRUCTURE_INCLUDED>
 ;//
    <IF MANY_TO_ONE_TO_MANY>
-      REL_<RelationFromkey>:
+      REL_<RelationTostructureNoplural>:
         $ref: '#/definitions/<RelationTostructureNoplural>'
         description: Related <RelationTostructureNoplural>
    </IF MANY_TO_ONE_TO_MANY>
 ;//
    <IF ONE_TO_ONE_TO_ONE>
-      REL_<RelationFromkey>:
+      REL_<RelationTostructureNoplural>:
         $ref: '#/definitions/<RelationTostructureNoplural>'
         description: Related <RelationTostructureNoplural>
    </IF ONE_TO_ONE_TO_ONE>
 ;//
    <IF ONE_TO_ONE>
-      REL_<RelationFromkey>:
+      REL_<RelationTostructureNoplural>:
         $ref: '#/definitions/<RelationTostructureNoplural>'
         description: Related <RelationTostructureNoplural>
    </IF ONE_TO_ONE>

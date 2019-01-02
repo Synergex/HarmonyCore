@@ -38,7 +38,7 @@ namespace Services.Test.UnitTests
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get all Orders and expand relation REL_OrderNumber
+        ;;Get all Orders and expand relation REL_OrderItem
 
         {TestMethod}
         {TestCategory("Order Tests - Read All")}
@@ -52,13 +52,13 @@ namespace Services.Test.UnitTests
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get all Orders and expand relation REL_CustomerNumber
+        ;;Get all Orders and expand relation REL_Customer
 
         {TestMethod}
         {TestCategory("Order Tests - Read All")}
-        public method GetOrders_Expand_REL_CustomerNumber, void
+        public method GetOrders_Expand_REL_Customer, void
         proc
-            data uri = "/odata/Orders?$expand=REL_CustomerNumber"
+            data uri = "/odata/Orders?$expand=REL_Customer"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync(uri).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -72,7 +72,7 @@ namespace Services.Test.UnitTests
         {TestCategory("Order Tests - Read All")}
         public method GetOrders_Expand_All, void
         proc
-            data uri = "/odata/Orders?$expand=REL_OrderItems,REL_CustomerNumber"
+            data uri = "/odata/Orders?$expand=REL_OrderItems,REL_Customer"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync(uri).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -110,14 +110,14 @@ namespace Services.Test.UnitTests
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get a single Order by primary key and expand relation REL_CustomerNumber
+        ;;Get a single Order by primary key and expand relation REL_Customer
 
         {TestMethod}
         {TestCategory("Order Tests - Read by Primary Key")}
-        public method GetOrder_Expand_REL_CustomerNumber, void
+        public method GetOrder_Expand_REL_Customer, void
         proc
             data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/Orders(OrderNumber={1})?$expand=REL_CustomerNumber","",TestConstants.GetOrder_Expand_REL_CustomerNumber_OrderNumber)
+            data request = String.Format("/odata/Orders(OrderNumber={1})?$expand=REL_Customer","",TestConstants.GetOrder_Expand_REL_Customer_OrderNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
@@ -132,7 +132,7 @@ namespace Services.Test.UnitTests
         public method GetOrder_Expand_All, void
         proc
             data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/Orders(OrderNumber={1})?$expand=REL_OrderItems,REL_CustomerNumber","",TestConstants.GetOrder_Expand_All_OrderNumber)
+            data request = String.Format("/odata/Orders(OrderNumber={1})?$expand=REL_OrderItems,REL_Customer","",TestConstants.GetOrder_Expand_All_OrderNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
