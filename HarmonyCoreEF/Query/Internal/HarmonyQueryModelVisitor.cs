@@ -711,7 +711,24 @@ namespace Harmony.Core.EF.Query.Internal
                         }
                     };
                     var rewrittenJoinLambda = rewrite.Visit(joinOnLambda) as LambdaExpression;
-                    var simpleJoinCondition = rewrittenJoinLambda.Body as BinaryExpression;
+                    BinaryExpression simpleJoinCondition = null;
+                    if (rewrittenJoinLambda.Body is BinaryExpression)
+                        simpleJoinCondition = rewrittenJoinLambda.Body as BinaryExpression;
+                    else if (rewrittenJoinLambda.Body is ConditionalExpression)
+                    {
+                        var condExpr = rewrittenJoinLambda.Body as ConditionalExpression;
+                        if (condExpr.IfFalse is BinaryExpression)
+                            simpleJoinCondition = condExpr.IfFalse as BinaryExpression;
+                        else if(condExpr.IfTrue is BinaryExpression)
+                            simpleJoinCondition = condExpr.IfTrue as BinaryExpression;
+                        else
+                            throw new NotImplementedException(string.Format("Failed to translate conditional expression {0}\r\ninto join condition", condExpr));
+                    }
+                    else
+                    {
+                        throw new NotImplementedException(string.Format("Failed to translate expression {0}\r\ninto join condition", rewrittenJoinLambda.Body));
+                    }
+
 
                     madeJoin.InnerKeySelector = simpleJoinCondition.Right;
                     madeJoin.OuterKeySelector = simpleJoinCondition.Left;

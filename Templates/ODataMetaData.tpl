@@ -158,6 +158,19 @@ namespace <NAMESPACE>
             AddFieldInfo("KEY_<KEY_NAME>", "COMPOSITE", 0, 0, 0, false, ^null, ^null, <KeyName>_KeyParts)
 
   </KEY_LOOP>
+
+  <FOREIGN_KEY_LOOP>
+            data <KeyName>_KeyParts = new FieldDataDefinition[<KEY_SEGMENTS>]
+    <SEGMENT_LOOP>
+      <IF SEG_TYPE_LITERAL>
+            <KeyName>_KeyParts[<SEGMENT_NUMBER>] = AddFieldInfo("<KEY_NAME>Literal<SEGMENT_NUMBER>", "TAG_LITERAL", <SEGMENT_LENGTH>, 0, 0, false,^null,"<SEGMENT_LITVAL>")
+      <ELSE>
+            <KeyName>_KeyParts[<SEGMENT_NUMBER>] = GetFieldByName("<FieldSqlname>")
+      </IF SEG_TYPE_LITERAL>
+    </SEGMENT_LOOP>
+            AddFieldInfo("KEY_<KEY_NAME>", "COMPOSITE", 0, 0, 0, false, ^null, ^null, <KeyName>_KeyParts)
+
+  </FOREIGN_KEY_LOOP>
 </IF STRUCTURE_ISAM>
         endmethod
 
