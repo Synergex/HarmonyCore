@@ -87,119 +87,220 @@ namespace Services.Models
 
 .region "Entity Relationships"
 
+            data existingRelations = new System.Collections.Generic.HashSet<string>()
+
             ;;--------------------------------------
             ;; Relationships from CUSTOMER
 
-            ;; CUSTOMER.CUSTOMER_NUMBER (one) --> (many) --> (one) ORDER.CUSTOMER_NUMBER
-            ;;    Type          : D
-            ;;    From segments : CUSTOMER_NUMBER(D6) 
-            ;;    To segments   : CUSTOMER_NUMBER(D6) 
+            if(!(existingRelations.Contains("Customer.REL_Order") || existingRelations.Contains("Order.REL_Customer")))
+            begin
+                ;; CUSTOMER.CUSTOMER_NUMBER (one) --> (many) --> (one) ORDER.CUSTOMER_NUMBER
+                ;;    Type          : D
+                ;;    From segments : CUSTOMER_NUMBER(D6) 
+                ;;    To segments   : CUSTOMER_NUMBER(D6) 
 
-            parm.Entity(^typeof(Customer))
-            &    .HasMany(^typeof(Order),"REL_Orders")
-            &    .WithOne("REL_CustomerNumber")
-            &    .HasForeignKey("CustomerNumber")
-            &    .HasPrincipalKey("CustomerNumber")
+                parm.Entity(^typeof(Customer))
+                &    .HasMany(^typeof(Order),"REL_Orders")
+                &    .WithOne("REL_Customer")
+                &    .HasForeignKey("KEY_CUSTOMER_NUMBER")
+                &    .HasPrincipalKey("KEY_CUSTOMER_NUMBER")
 
-            ;; CUSTOMER.FAVORITE_ITEM (one) --> (one) ITEM.ITEM_NUMBER
-            ;;    Type          : C
-            ;;    From segments : FAVORITE_ITEM(D6) 
-            ;;    To segments   : ITEM_NUMBER(D6) 
+                ;;Declare the outbound relationship
+                if(!existingRelations.Contains("Customer.REL_Order"))
+                    existingRelations.Add("Customer.REL_Order")
 
-            parm.Entity(^typeof(Customer))
-            &    .HasOne(^typeof(Item),"REL_FavoriteItem")
-            &    .WithOne(^null)
-            &    .HasForeignKey(^typeof(Customer),"FavoriteItem")
-            &    .HasPrincipalKey(^typeof(Item), "ItemNumber")
+                ;;Declare the reciprocal inbound relationship
+                if(!existingRelations.Contains("Order.REL_Customer"))
+                    existingRelations.Add("Order.REL_Customer")
+            end
+
+            if(!(existingRelations.Contains("Customer.REL_Item") || existingRelations.Contains("Item.REL_Customer")))
+            begin
+                ;; CUSTOMER.FAVORITE_ITEM (one) --> (one) ITEM.ITEM_NUMBER
+                ;;    Type          : C
+                ;;    From segments : FAVORITE_ITEM(D6) 
+                ;;    To segments   : ITEM_NUMBER(D6) 
+
+                parm.Entity(^typeof(Customer))
+                &    .HasOne(^typeof(Item),"REL_Item")
+                &    .WithOne(^null)
+                &    .HasForeignKey(^typeof(Customer),"KEY_FAVORITE_ITEM")
+                &    .HasPrincipalKey(^typeof(Item),"KEY_ITEM_NUMBER")
+
+                ;;Declare the outbound relationship
+                if(!existingRelations.Contains("Customer.REL_Item"))
+                    existingRelations.Add("Customer.REL_Item")
+
+                ;;Declare the reciprocal inbound relationship
+                if(!existingRelations.Contains("Item.REL_Customer"))
+                    existingRelations.Add("Item.REL_Customer")
+            end
 
             ;;--------------------------------------
             ;; Relationships from ITEM
 
-            ;; ITEM.VENDOR_NUMBER (one) --> (one) --> (many) VENDOR.VENDOR_NUMBER
-            ;;    Type          : A
-            ;;    From segments : VENDOR_NUMBER(D6) 
-            ;;    To segments   : VENDOR_NUMBER(D6) 
+            if(!(existingRelations.Contains("Item.REL_Vendor") || existingRelations.Contains("Vendor.REL_Item")))
+            begin
+                ;; ITEM.VENDOR_NUMBER (one) --> (one) --> (many) VENDOR.VENDOR_NUMBER
+                ;;    Type          : A
+                ;;    From segments : VENDOR_NUMBER(D6) 
+                ;;    To segments   : VENDOR_NUMBER(D6) 
 
-            parm.Entity(^typeof(Item))
-            &    .HasOne(^typeof(Vendor),"REL_VendorNumber")
-            &    .WithMany("REL_Items")
-            &    .HasForeignKey("VendorNumber")
-            &    .HasPrincipalKey("VendorNumber")
+                parm.Entity(^typeof(Item))
+                &    .HasOne(^typeof(Vendor),"REL_Vendor")
+                &    .WithMany("REL_Items")
+                &    .HasForeignKey("KEY_VENDOR_NUMBER")
+                &    .HasPrincipalKey("KEY_VENDOR_NUMBER")
 
-            ;; ITEM.ITEM_NUMBER (one) --> (many) --> (one) ORDER_ITEM.ITEM_ORDERED
-            ;;    Type          : D
-            ;;    From segments : ITEM_NUMBER(D6) 
-            ;;    To segments   : ITEM_ORDERED(D6) 
+                ;;Declare the outbound relationship
+                if(!existingRelations.Contains("Item.REL_Vendor"))
+                    existingRelations.Add("Item.REL_Vendor")
 
-            parm.Entity(^typeof(Item))
-            &    .HasMany(^typeof(OrderItem),"REL_OrderItems")
-            &    .WithOne("REL_ItemOrdered")
-            &    .HasForeignKey("ItemOrdered")
-            &    .HasPrincipalKey("ItemNumber")
+                ;;Declare the reciprocal inbound relationship
+                if(!existingRelations.Contains("Vendor.REL_Item"))
+                    existingRelations.Add("Vendor.REL_Item")
+            end
+
+            if(!(existingRelations.Contains("Item.REL_OrderItem") || existingRelations.Contains("OrderItem.REL_Item")))
+            begin
+                ;; ITEM.ITEM_NUMBER (one) --> (many) --> (one) ORDER_ITEM.ITEM_ORDERED
+                ;;    Type          : D
+                ;;    From segments : ITEM_NUMBER(D6) 
+                ;;    To segments   : ITEM_ORDERED(D6) 
+
+                parm.Entity(^typeof(Item))
+                &    .HasMany(^typeof(OrderItem),"REL_OrderItems")
+                &    .WithOne("REL_Item")
+                &    .HasForeignKey("KEY_ITEM_ORDERED")
+                &    .HasPrincipalKey("KEY_ITEM_NUMBER")
+
+                ;;Declare the outbound relationship
+                if(!existingRelations.Contains("Item.REL_OrderItem"))
+                    existingRelations.Add("Item.REL_OrderItem")
+
+                ;;Declare the reciprocal inbound relationship
+                if(!existingRelations.Contains("OrderItem.REL_Item"))
+                    existingRelations.Add("OrderItem.REL_Item")
+            end
 
             ;;--------------------------------------
             ;; Relationships from ORDER
 
-            ;; ORDER.ORDER_NUMBER (one) --> (many) --> (one) ORDER_ITEM.ORDER_NUMBER_AND_LINE_ITEM
-            ;;    Type          : D
-            ;;    From segments : ORDER_NUMBER(D6) 
-            ;;    To segments   : ORDER_NUMBER(D6) 
+            if(!(existingRelations.Contains("Order.REL_OrderItem") || existingRelations.Contains("OrderItem.REL_Order")))
+            begin
+                ;; ORDER.ORDER_NUMBER (one) --> (many) --> (one) ORDER_ITEM.ORDER_NUMBER_AND_LINE_ITEM
+                ;;    Type          : D
+                ;;    From segments : ORDER_NUMBER(D6) 
+                ;;    To segments   : ORDER_NUMBER(D6) 
 
-            parm.Entity(^typeof(Order))
-            &    .HasMany(^typeof(OrderItem),"REL_OrderItems")
-            &    .WithOne("REL_OrderNumberAndLineItem")
-            &    .HasForeignKey("OrderNumber")
-            &    .HasPrincipalKey("OrderNumber")
+                parm.Entity(^typeof(Order))
+                &    .HasMany(^typeof(OrderItem),"REL_OrderItems")
+                &    .WithOne("REL_Order")
+                &    .HasForeignKey("KEY_ORDER_NUMBER_AND_LINE_ITEM")
+                &    .HasPrincipalKey("KEY_ORDER_NUMBER")
 
-            ;; ORDER.CUSTOMER_NUMBER (one) --> (one) --> (many) CUSTOMER.CUSTOMER_NUMBER
-            ;;    Type          : A
-            ;;    From segments : CUSTOMER_NUMBER(D6) 
-            ;;    To segments   : CUSTOMER_NUMBER(D6) 
+                ;;Declare the outbound relationship
+                if(!existingRelations.Contains("Order.REL_OrderItem"))
+                    existingRelations.Add("Order.REL_OrderItem")
 
-            parm.Entity(^typeof(Order))
-            &    .HasOne(^typeof(Customer),"REL_CustomerNumber")
-            &    .WithMany("REL_Orders")
-            &    .HasForeignKey("CustomerNumber")
-            &    .HasPrincipalKey("CustomerNumber")
+                ;;Declare the reciprocal inbound relationship
+                if(!existingRelations.Contains("OrderItem.REL_Order"))
+                    existingRelations.Add("OrderItem.REL_Order")
+            end
+
+            if(!(existingRelations.Contains("Order.REL_Customer") || existingRelations.Contains("Customer.REL_Order")))
+            begin
+                ;; ORDER.CUSTOMER_NUMBER (one) --> (one) --> (many) CUSTOMER.CUSTOMER_NUMBER
+                ;;    Type          : A
+                ;;    From segments : CUSTOMER_NUMBER(D6) 
+                ;;    To segments   : CUSTOMER_NUMBER(D6) 
+
+                parm.Entity(^typeof(Order))
+                &    .HasOne(^typeof(Customer),"REL_Customer")
+                &    .WithMany("REL_Orders")
+                &    .HasForeignKey("KEY_CUSTOMER_NUMBER")
+                &    .HasPrincipalKey("KEY_CUSTOMER_NUMBER")
+
+                ;;Declare the outbound relationship
+                if(!existingRelations.Contains("Order.REL_Customer"))
+                    existingRelations.Add("Order.REL_Customer")
+
+                ;;Declare the reciprocal inbound relationship
+                if(!existingRelations.Contains("Customer.REL_Order"))
+                    existingRelations.Add("Customer.REL_Order")
+            end
 
             ;;--------------------------------------
             ;; Relationships from ORDER_ITEM
 
-            ;; ORDER_ITEM.ORDER_NUMBER_AND_LINE_ITEM (one) --> (one) --> (many) ORDER.ORDER_NUMBER
-            ;;    Type          : A
-            ;;    From segments : ORDER_NUMBER(D6) 
-            ;;    To segments   : ORDER_NUMBER(D6) 
+            if(!(existingRelations.Contains("OrderItem.REL_Order") || existingRelations.Contains("Order.REL_OrderItem")))
+            begin
+                ;; ORDER_ITEM.ORDER_NUMBER_AND_LINE_ITEM (one) --> (one) --> (many) ORDER.ORDER_NUMBER
+                ;;    Type          : A
+                ;;    From segments : ORDER_NUMBER(D6) 
+                ;;    To segments   : ORDER_NUMBER(D6) 
 
-            parm.Entity(^typeof(OrderItem))
-            &    .HasOne(^typeof(Order),"REL_OrderNumberAndLineItem")
-            &    .WithMany("REL_OrderItems")
-            &    .HasForeignKey("OrderNumber")
-            &    .HasPrincipalKey("OrderNumber")
+                parm.Entity(^typeof(OrderItem))
+                &    .HasOne(^typeof(Order),"REL_Order")
+                &    .WithMany("REL_OrderItems")
+                &    .HasForeignKey("KEY_ORDER_NUMBER_AND_LINE_ITEM")
+                &    .HasPrincipalKey("KEY_ORDER_NUMBER")
 
-            ;; ORDER_ITEM.ITEM_ORDERED (one) --> (one) --> (many) ITEM.ITEM_NUMBER
-            ;;    Type          : A
-            ;;    From segments : ITEM_ORDERED(D6) 
-            ;;    To segments   : ITEM_NUMBER(D6) 
+                ;;Declare the outbound relationship
+                if(!existingRelations.Contains("OrderItem.REL_Order"))
+                    existingRelations.Add("OrderItem.REL_Order")
 
-            parm.Entity(^typeof(OrderItem))
-            &    .HasOne(^typeof(Item),"REL_ItemOrdered")
-            &    .WithMany("REL_OrderItems")
-            &    .HasForeignKey("ItemOrdered")
-            &    .HasPrincipalKey("ItemNumber")
+                ;;Declare the reciprocal inbound relationship
+                if(!existingRelations.Contains("Order.REL_OrderItem"))
+                    existingRelations.Add("Order.REL_OrderItem")
+            end
+
+            if(!(existingRelations.Contains("OrderItem.REL_Item") || existingRelations.Contains("Item.REL_OrderItem")))
+            begin
+                ;; ORDER_ITEM.ITEM_ORDERED (one) --> (one) --> (many) ITEM.ITEM_NUMBER
+                ;;    Type          : A
+                ;;    From segments : ITEM_ORDERED(D6) 
+                ;;    To segments   : ITEM_NUMBER(D6) 
+
+                parm.Entity(^typeof(OrderItem))
+                &    .HasOne(^typeof(Item),"REL_Item")
+                &    .WithMany("REL_OrderItems")
+                &    .HasForeignKey("KEY_ITEM_ORDERED")
+                &    .HasPrincipalKey("KEY_ITEM_NUMBER")
+
+                ;;Declare the outbound relationship
+                if(!existingRelations.Contains("OrderItem.REL_Item"))
+                    existingRelations.Add("OrderItem.REL_Item")
+
+                ;;Declare the reciprocal inbound relationship
+                if(!existingRelations.Contains("Item.REL_OrderItem"))
+                    existingRelations.Add("Item.REL_OrderItem")
+            end
 
             ;;--------------------------------------
             ;; Relationships from VENDOR
 
-            ;; VENDOR.VENDOR_NUMBER (one) --> (many) --> (one) ITEM.VENDOR_NUMBER
-            ;;    Type          : D
-            ;;    From segments : VENDOR_NUMBER(D6) 
-            ;;    To segments   : VENDOR_NUMBER(D6) 
+            if(!(existingRelations.Contains("Vendor.REL_Item") || existingRelations.Contains("Item.REL_Vendor")))
+            begin
+                ;; VENDOR.VENDOR_NUMBER (one) --> (many) --> (one) ITEM.VENDOR_NUMBER
+                ;;    Type          : D
+                ;;    From segments : VENDOR_NUMBER(D6) 
+                ;;    To segments   : VENDOR_NUMBER(D6) 
 
-            parm.Entity(^typeof(Vendor))
-            &    .HasMany(^typeof(Item),"REL_Items")
-            &    .WithOne("REL_VendorNumber")
-            &    .HasForeignKey("VendorNumber")
-            &    .HasPrincipalKey("VendorNumber")
+                parm.Entity(^typeof(Vendor))
+                &    .HasMany(^typeof(Item),"REL_Items")
+                &    .WithOne("REL_Vendor")
+                &    .HasForeignKey("KEY_VENDOR_NUMBER")
+                &    .HasPrincipalKey("KEY_VENDOR_NUMBER")
+
+                ;;Declare the outbound relationship
+                if(!existingRelations.Contains("Vendor.REL_Item"))
+                    existingRelations.Add("Vendor.REL_Item")
+
+                ;;Declare the reciprocal inbound relationship
+                if(!existingRelations.Contains("Item.REL_Vendor"))
+                    existingRelations.Add("Item.REL_Vendor")
+            end
 
 .endregion
 

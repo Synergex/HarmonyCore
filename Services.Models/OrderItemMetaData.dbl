@@ -40,14 +40,31 @@ namespace Services.Models
             AddFieldInfo("UnitPrice", "IMPLIED", 7, 21, 02, false)
             AddFieldInfo("DateShipped", "DATE", 8, 28, 0, false, new SynergyDecimalDateConverter.LiteralFormatter("FORMAT:YYYYMMDD"))
             AddFieldInfo("InvoiceNumber", "DECIMAL", 7, 36, 0, false)
-            AddFieldInfo("REL_OrderNumberAndLineItem", "DATAOBJECT", 0, 0, 0, false)
-            AddFieldInfo("REL_ItemOrdered", "DATAOBJECT", 0, 0, 0, false)
+            AddFieldInfo("REL_Order", "DATAOBJECT", 0, 0, 0, false)
+            AddFieldInfo("REL_Item", "DATAOBJECT", 0, 0, 0, false)
 
             AddKeyInfo(0, "OrderNumber")
             AddKeyInfo(0, "ItemNumber")
             AddKeyInfo(1, "ItemOrdered")
             AddKeyInfo(2, "DateShipped")
             AddKeyInfo(3, "InvoiceNumber")
+
+            data OrderNumberAndLineItem_KeyParts = new FieldDataDefinition[2]
+            OrderNumberAndLineItem_KeyParts[1] = GetFieldByName("OrderNumber")
+            OrderNumberAndLineItem_KeyParts[2] = GetFieldByName("ItemNumber")
+            AddFieldInfo("KEY_ORDER_NUMBER_AND_LINE_ITEM", "COMPOSITE", 0, 0, 0, false, ^null, ^null, OrderNumberAndLineItem_KeyParts)
+
+            data ItemOrdered_KeyParts = new FieldDataDefinition[1]
+            ItemOrdered_KeyParts[1] = GetFieldByName("ItemOrdered")
+            AddFieldInfo("KEY_ITEM_ORDERED", "COMPOSITE", 0, 0, 0, false, ^null, ^null, ItemOrdered_KeyParts)
+
+            data DateShipped_KeyParts = new FieldDataDefinition[1]
+            DateShipped_KeyParts[1] = GetFieldByName("DateShipped")
+            AddFieldInfo("KEY_DATE_SHIPPED", "COMPOSITE", 0, 0, 0, false, ^null, ^null, DateShipped_KeyParts)
+
+            data InvoiceNumber_KeyParts = new FieldDataDefinition[1]
+            InvoiceNumber_KeyParts[1] = GetFieldByName("InvoiceNumber")
+            AddFieldInfo("KEY_INVOICE_NUMBER", "COMPOSITE", 0, 0, 0, false, ^null, ^null, InvoiceNumber_KeyParts)
 
         endmethod
 
@@ -83,10 +100,10 @@ namespace Services.Models
             foreach joinedObject in joinedObjects
             begin
                 using joinedObject.Key select
-                ("REL_OrderNumberAndLineItem"),
-                    newOrderItem.REL_OrderNumberAndLineItem = (@Order)joinedObject.Value
-                ("REL_ItemOrdered"),
-                    newOrderItem.REL_ItemOrdered = (@Item)joinedObject.Value
+                ("REL_Order"),
+                    newOrderItem.REL_Order = (@Order)joinedObject.Value
+                ("REL_Item"),
+                    newOrderItem.REL_Item = (@Item)joinedObject.Value
                 endusing
             end
 

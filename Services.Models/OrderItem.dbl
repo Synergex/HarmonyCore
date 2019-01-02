@@ -23,9 +23,9 @@ namespace Services.Models
     public partial class OrderItem extends DataObjectBase
 
         ;;make the record available and a copy
-        private mSynergyData, strOrderItem 
-        private mOriginalSynergyData, strOrderItem 
-        
+        private mSynergyData, strOrderItem
+        private mOriginalSynergyData, strOrderItem
+
         private static sMetadata, @OrderItemMetadata
 
 .region "Constructors"
@@ -35,7 +35,7 @@ namespace Services.Models
             sMetadata = new OrderItemMetadata()
             DataObjectMetadataBase.MetadataLookup.TryAdd(^typeof(OrderItem), sMetadata)
         endmethod
-        
+
         ;;; <summary>
         ;;;  Constructor, initialise the base fields
         ;;; </summary>
@@ -175,7 +175,7 @@ namespace Services.Models
                 mreturn mSynergyData
             endmethod
         endproperty
-        
+
         ;;; <summary>
         ;;; Expose the complete original synergy record
         ;;; </summary>
@@ -201,23 +201,23 @@ namespace Services.Models
 .region "Public methods"
 
         ;;; <summary>
-        ;;; 
+        ;;;
         ;;; </summary>
         public override method InternalSynergyRecord, void
             targetMethod, @AlphaAction
         proc
             targetMethod(mSynergyData, mGlobalRFA)
         endmethod
-        
+
         ;;; <summary>
         ;;; Allow the host to validate all fields. Each field will fire the validation method.
         ;;; </summary>
         public override method InitialValidateData, void
         proc
         endmethod
-        
+
         ;;; <summary>
-        ;;; 
+        ;;;
         ;;; </summary>
         public override method InternalGetValues, [#]@object
         proc
@@ -233,16 +233,35 @@ namespace Services.Models
         ;;; Relationship (Type A)
         ;;; ORDER_ITEM.ORDER_NUMBER_AND_LINE_ITEM (one) --> (one) --> (many) ORDER.ORDER_NUMBER
         ;;; </summary>
-        public readwrite property REL_OrderNumberAndLineItem, @Order
+        public readwrite property REL_Order, @Order
 
         ;;; <summary>
         ;;; Relationship (Type A)
         ;;; ORDER_ITEM.ITEM_ORDERED (one) --> (one) --> (many) ITEM.ITEM_NUMBER
         ;;; </summary>
-        public readwrite property REL_ItemOrdered, @Item
+        public readwrite property REL_Item, @Item
+
+.endregion
+
+.region "Properties to represent keys"
+
+        ;;Access keys
+
+        private _KEY_ORDER_NUMBER_AND_LINE_ITEM, string, ""
+        public readonly property KEY_ORDER_NUMBER_AND_LINE_ITEM, string, ""
+
+        private _KEY_ITEM_ORDERED, string, ""
+        public readonly property KEY_ITEM_ORDERED, string, ""
+
+        private _KEY_DATE_SHIPPED, string, ""
+        public readonly property KEY_DATE_SHIPPED, string, ""
+
+        private _KEY_INVOICE_NUMBER, string, ""
+        public readonly property KEY_INVOICE_NUMBER, string, ""
+
 
 .endregion
 
     endclass
-    
+
 endnamespace

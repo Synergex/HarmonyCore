@@ -41,12 +41,28 @@ namespace Services.Models
             AddFieldInfo("DateOrdered", "DATE", 8, 65, 0, false, new SynergyDecimalDateConverter.LiteralFormatter("FORMAT:YYYYMMDD"))
             AddFieldInfo("DateCompleted", "DATE", 8, 73, 0, false, new SynergyDecimalDateConverter.LiteralFormatter("FORMAT:YYYYMMDD"))
             AddFieldInfo("REL_OrderItems", "COLLECTION", 0, 0, 0, false)
-            AddFieldInfo("REL_CustomerNumber", "DATAOBJECT", 0, 0, 0, false)
+            AddFieldInfo("REL_Customer", "DATAOBJECT", 0, 0, 0, false)
 
             AddKeyInfo(0, "OrderNumber")
             AddKeyInfo(1, "CustomerNumber")
             AddKeyInfo(2, "DateOrdered")
             AddKeyInfo(3, "DateCompleted")
+
+            data OrderNumber_KeyParts = new FieldDataDefinition[1]
+            OrderNumber_KeyParts[1] = GetFieldByName("OrderNumber")
+            AddFieldInfo("KEY_ORDER_NUMBER", "COMPOSITE", 0, 0, 0, false, ^null, ^null, OrderNumber_KeyParts)
+
+            data CustomerNumber_KeyParts = new FieldDataDefinition[1]
+            CustomerNumber_KeyParts[1] = GetFieldByName("CustomerNumber")
+            AddFieldInfo("KEY_CUSTOMER_NUMBER", "COMPOSITE", 0, 0, 0, false, ^null, ^null, CustomerNumber_KeyParts)
+
+            data DateOrdered_KeyParts = new FieldDataDefinition[1]
+            DateOrdered_KeyParts[1] = GetFieldByName("DateOrdered")
+            AddFieldInfo("KEY_DATE_ORDERED", "COMPOSITE", 0, 0, 0, false, ^null, ^null, DateOrdered_KeyParts)
+
+            data DateCompleted_KeyParts = new FieldDataDefinition[1]
+            DateCompleted_KeyParts[1] = GetFieldByName("DateCompleted")
+            AddFieldInfo("KEY_DATE_COMPLETED", "COMPOSITE", 0, 0, 0, false, ^null, ^null, DateCompleted_KeyParts)
 
         endmethod
 
@@ -84,8 +100,8 @@ namespace Services.Models
                 using joinedObject.Key select
                 ("REL_OrderItems"),
                     newOrder.REL_OrderItems = (@ICollection<OrderItem>)joinedObject.Value
-                ("REL_CustomerNumber"),
-                    newOrder.REL_CustomerNumber = (@Customer)joinedObject.Value
+                ("REL_Customer"),
+                    newOrder.REL_Customer = (@Customer)joinedObject.Value
                 endusing
             end
 

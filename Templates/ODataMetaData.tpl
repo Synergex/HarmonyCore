@@ -96,15 +96,15 @@ namespace <NAMESPACE>
       <IF TO_STRUCTURE_INCLUDED>
 ;//
         <IF MANY_TO_ONE_TO_MANY>
-            AddFieldInfo("REL_<RelationFromkey>", "DATAOBJECT", 0, 0, 0, false)
+            AddFieldInfo("REL_<RelationTostructureNoplural>", "DATAOBJECT", 0, 0, 0, false)
         </IF MANY_TO_ONE_TO_MANY>
 ;//
         <IF ONE_TO_ONE_TO_ONE>
-            AddFieldInfo("REL_<RelationFromkey>", "DATAOBJECT", 0, 0, 0, false)
+            AddFieldInfo("REL_<RelationTostructureNoplural>", "DATAOBJECT", 0, 0, 0, false)
         </IF ONE_TO_ONE_TO_ONE>
 ;//
         <IF ONE_TO_ONE>
-            AddFieldInfo("REL_<RelationFromkey>", "DATAOBJECT", 0, 0, 0, false)
+            AddFieldInfo("REL_<RelationTostructureNoplural>", "DATAOBJECT", 0, 0, 0, false)
         </IF ONE_TO_ONE>
 ;//
         <IF ONE_TO_MANY_TO_ONE>
@@ -145,6 +145,20 @@ namespace <NAMESPACE>
             AddKeyInfo(0, "recordNumber")
 </IF STRUCTURE_RELATIVE>
 
+<IF STRUCTURE_ISAM>
+  <KEY_LOOP>
+            data <KeyName>_KeyParts = new FieldDataDefinition[<KEY_SEGMENTS>]
+    <SEGMENT_LOOP>
+      <IF SEG_TYPE_LITERAL>
+            <KeyName>_KeyParts[<SEGMENT_NUMBER>] = AddFieldInfo("<KEY_NAME>Literal<SEGMENT_NUMBER>", "TAG_LITERAL", <SEGMENT_LENGTH>, 0, 0, false,^null,"<SEGMENT_LITVAL>")
+      <ELSE>
+            <KeyName>_KeyParts[<SEGMENT_NUMBER>] = GetFieldByName("<FieldSqlname>")
+      </IF SEG_TYPE_LITERAL>
+    </SEGMENT_LOOP>
+            AddFieldInfo("KEY_<KEY_NAME>", "COMPOSITE", 0, 0, 0, false, ^null, ^null, <KeyName>_KeyParts)
+
+  </KEY_LOOP>
+</IF STRUCTURE_ISAM>
         endmethod
 
         ;;; <summary>
@@ -193,13 +207,13 @@ namespace <NAMESPACE>
       <IF TO_STRUCTURE_INCLUDED>
 ;//
         <IF MANY_TO_ONE_TO_MANY>
-                ("REL_<RelationFromkey>"),
-                    new<StructureNoplural>.REL_<RelationFromkey> = (@<RelationTostructureNoplural>)joinedObject.Value
+                ("REL_<RelationTostructureNoplural>"),
+                    new<StructureNoplural>.REL_<RelationTostructureNoplural> = (@<RelationTostructureNoplural>)joinedObject.Value
         </IF MANY_TO_ONE_TO_MANY>
 ;//
         <IF ONE_TO_ONE>
-                ("REL_<RelationFromkey>"),
-                    new<StructureNoplural>.REL_<RelationFromkey> = (@<RelationTostructureNoplural>)joinedObject.Value
+                ("REL_<RelationTostructureNoplural>"),
+                    new<StructureNoplural>.REL_<RelationTostructureNoplural> = (@<RelationTostructureNoplural>)joinedObject.Value
         </IF ONE_TO_ONE>
 ;//
         <IF ONE_TO_MANY_TO_ONE>

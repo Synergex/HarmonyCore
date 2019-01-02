@@ -23,9 +23,9 @@ namespace Services.Models
     public partial class Item extends DataObjectBase
 
         ;;make the record available and a copy
-        private mSynergyData, strItem 
-        private mOriginalSynergyData, strItem 
-        
+        private mSynergyData, strItem
+        private mOriginalSynergyData, strItem
+
         private static sMetadata, @ItemMetadata
 
 .region "Constructors"
@@ -35,7 +35,7 @@ namespace Services.Models
             sMetadata = new ItemMetadata()
             DataObjectMetadataBase.MetadataLookup.TryAdd(^typeof(Item), sMetadata)
         endmethod
-        
+
         ;;; <summary>
         ;;;  Constructor, initialise the base fields
         ;;; </summary>
@@ -378,7 +378,7 @@ namespace Services.Models
                 mreturn mSynergyData
             endmethod
         endproperty
-        
+
         ;;; <summary>
         ;;; Expose the complete original synergy record
         ;;; </summary>
@@ -404,23 +404,23 @@ namespace Services.Models
 .region "Public methods"
 
         ;;; <summary>
-        ;;; 
+        ;;;
         ;;; </summary>
         public override method InternalSynergyRecord, void
             targetMethod, @AlphaAction
         proc
             targetMethod(mSynergyData, mGlobalRFA)
         endmethod
-        
+
         ;;; <summary>
         ;;; Allow the host to validate all fields. Each field will fire the validation method.
         ;;; </summary>
         public override method InitialValidateData, void
         proc
         endmethod
-        
+
         ;;; <summary>
-        ;;; 
+        ;;;
         ;;; </summary>
         public override method InternalGetValues, [#]@object
         proc
@@ -436,7 +436,7 @@ namespace Services.Models
         ;;; Relationship (Type A)
         ;;; ITEM.VENDOR_NUMBER (one) --> (one) --> (many) VENDOR.VENDOR_NUMBER
         ;;; </summary>
-        public readwrite property REL_VendorNumber, @Vendor
+        public readwrite property REL_Vendor, @Vendor
 
         ;;; <summary>
         ;;; Relationship (Type D)
@@ -446,6 +446,28 @@ namespace Services.Models
 
 .endregion
 
+.region "Properties to represent keys"
+
+        ;;Access keys
+
+        private _KEY_ITEM_NUMBER, string, ""
+        public readonly property KEY_ITEM_NUMBER, string, ""
+
+        private _KEY_VENDOR_NUMBER, string, ""
+        public readonly property KEY_VENDOR_NUMBER, string, ""
+
+        private _KEY_COLOR, string, ""
+        public readonly property KEY_COLOR, string, ""
+
+        private _KEY_SIZE, string, ""
+        public readonly property KEY_SIZE, string, ""
+
+        private _KEY_NAME, string, ""
+        public readonly property KEY_NAME, string, ""
+
+
+.endregion
+
     endclass
-    
+
 endnamespace

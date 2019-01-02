@@ -165,6 +165,8 @@ namespace <NAMESPACE>
 <IF DEFINED_ENABLE_RELATIONS>
 .region "Entity Relationships"
 
+            data existingRelations = new System.Collections.Generic.HashSet<string>()
+
             <STRUCTURE_LOOP>
             <IF STRUCTURE_RELATIONS>
             ;;--------------------------------------
@@ -172,71 +174,82 @@ namespace <NAMESPACE>
 
             <RELATION_LOOP>
             <IF TO_STRUCTURE_INCLUDED>
+            if(!(existingRelations.Contains("<StructureNoplural>.REL_<RelationTostructureNoplural>") || existingRelations.Contains("<RelationTostructureNoplural>.REL_<StructureNoplural>")))
+            begin
 ;// A
             <IF MANY_TO_ONE_TO_MANY>
-            ;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) --> (one) --> (many) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
-            ;;    Type          : A
-            ;;    From segments : <FROM_KEY_SEGMENT_LOOP_RESTRICTED><IF SEG_TYPE_FIELD><SEGMENT_NAME>(<FIELD_SPEC>)</IF SEG_TYPE_FIELD><IF SEG_TYPE_LITERAL>Literal(<SEGMENT_LITVAL>)</IF SEG_TYPE_LITERAL><,> </FROM_KEY_SEGMENT_LOOP_RESTRICTED>
-            ;;    To segments   : <TO_KEY_SEGMENT_LOOP><IF SEG_TYPE_FIELD><SEGMENT_NAME>(<FIELD_SPEC>)</IF SEG_TYPE_FIELD><IF SEG_TYPE_LITERAL>Literal(<SEGMENT_LITVAL>)</IF SEG_TYPE_LITERAL><,> </TO_KEY_SEGMENT_LOOP>
+                ;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) --> (one) --> (many) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
+                ;;    Type          : A
+                ;;    From segments : <FROM_KEY_SEGMENT_LOOP_RESTRICTED><IF SEG_TYPE_FIELD><SEGMENT_NAME>(<FIELD_SPEC>)</IF SEG_TYPE_FIELD><IF SEG_TYPE_LITERAL>Literal(<SEGMENT_LITVAL>)</IF SEG_TYPE_LITERAL><,> </FROM_KEY_SEGMENT_LOOP_RESTRICTED>
+                ;;    To segments   : <TO_KEY_SEGMENT_LOOP><IF SEG_TYPE_FIELD><SEGMENT_NAME>(<FIELD_SPEC>)</IF SEG_TYPE_FIELD><IF SEG_TYPE_LITERAL>Literal(<SEGMENT_LITVAL>)</IF SEG_TYPE_LITERAL><,> </TO_KEY_SEGMENT_LOOP>
 
-            parm.Entity(^typeof(<StructureNoplural>))
-            &    .HasOne(^typeof(<RelationTostructureNoplural>),"REL_<RelationFromkey>")
-            &    .WithMany("REL_<StructurePlural>")
-            &    .HasForeignKey(<FROM_KEY_SEGMENT_LOOP_RESTRICTED><COUNTER_1_RESET>"<IF SEG_TYPE_FIELD><FieldSqlname></IF SEG_TYPE_FIELD><IF SEG_TYPE_LITERAL><COUNTER_1_INCREMENT><RelationFromkey>Literal<COUNTER_1_VALUE></IF SEG_TYPE_LITERAL>"<,></FROM_KEY_SEGMENT_LOOP_RESTRICTED>)
-            &    .HasPrincipalKey(<TO_KEY_SEGMENT_LOOP><IF SEG_TYPE_FIELD>"<FieldSqlname>"</IF SEG_TYPE_FIELD><,></TO_KEY_SEGMENT_LOOP>)
+                parm.Entity(^typeof(<StructureNoplural>))
+                &    .HasOne(^typeof(<RelationTostructureNoplural>),"REL_<RelationTostructureNoplural>")
+                &    .WithMany("REL_<StructurePlural>")
+                &    .HasForeignKey("KEY_<RELATION_FROMKEY>")
+                &    .HasPrincipalKey("KEY_<RELATION_TOKEY>")
             </IF MANY_TO_ONE_TO_MANY>
 ;// B
             <IF ONE_TO_ONE_TO_ONE>
-            ;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) --> (one) --> (one) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
-            ;;    Type          : B
-            ;;    From segments : <FROM_KEY_SEGMENT_LOOP><IF SEG_TYPE_FIELD><SEGMENT_NAME>(<FIELD_SPEC>)</IF SEG_TYPE_FIELD><IF SEG_TYPE_LITERAL>Literal(<SEGMENT_LITVAL>)</IF SEG_TYPE_LITERAL><,> </FROM_KEY_SEGMENT_LOOP>
-            ;;    To segments   : <TO_KEY_SEGMENT_LOOP><IF SEG_TYPE_FIELD><SEGMENT_NAME>(<FIELD_SPEC>)</IF SEG_TYPE_FIELD><IF SEG_TYPE_LITERAL>Literal(<SEGMENT_LITVAL>)</IF SEG_TYPE_LITERAL><,> </TO_KEY_SEGMENT_LOOP>
+                ;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) --> (one) --> (one) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
+                ;;    Type          : B
+                ;;    From segments : <FROM_KEY_SEGMENT_LOOP><IF SEG_TYPE_FIELD><SEGMENT_NAME>(<FIELD_SPEC>)</IF SEG_TYPE_FIELD><IF SEG_TYPE_LITERAL>Literal(<SEGMENT_LITVAL>)</IF SEG_TYPE_LITERAL><,> </FROM_KEY_SEGMENT_LOOP>
+                ;;    To segments   : <TO_KEY_SEGMENT_LOOP><IF SEG_TYPE_FIELD><SEGMENT_NAME>(<FIELD_SPEC>)</IF SEG_TYPE_FIELD><IF SEG_TYPE_LITERAL>Literal(<SEGMENT_LITVAL>)</IF SEG_TYPE_LITERAL><,> </TO_KEY_SEGMENT_LOOP>
 
-            parm.Entity(^typeof(<StructureNoplural>))
-            &    .HasOne(^typeof(<RelationTostructureNoplural>),"REL_<RelationFromkey>")
-            &    .WithOne("REL_<StructurePlural>")
-            &    .HasForeignKey(<FROM_KEY_SEGMENT_LOOP><COUNTER_1_RESET>"<IF SEG_TYPE_FIELD><FieldSqlname></IF SEG_TYPE_FIELD><IF SEG_TYPE_LITERAL><COUNTER_1_INCREMENT><RelationFromkey>Literal<COUNTER_1_VALUE></IF SEG_TYPE_LITERAL>"<,></FROM_KEY_SEGMENT_LOOP>)
-            &    .HasPrincipalKey(<TO_KEY_SEGMENT_LOOP><IF SEG_TYPE_FIELD>"<FieldSqlname>"</IF SEG_TYPE_FIELD><,></TO_KEY_SEGMENT_LOOP>)
+                parm.Entity(^typeof(<StructureNoplural>))
+                &    .HasOne(^typeof(<RelationTostructureNoplural>),"REL_<RelationTostructureNoplural>")
+                &    .WithOne("REL_<StructurePlural>")
+                &    .HasForeignKey("KEY_<RELATION_FROMKEY>")
+                &    .HasPrincipalKey("KEY_<RELATION_TOKEY>")
             </IF ONE_TO_ONE_TO_ONE>
 ;// C
             <IF ONE_TO_ONE>
-            ;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) --> (one) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
-            ;;    Type          : C
-            ;;    From segments : <FROM_KEY_SEGMENT_LOOP_RESTRICTED><IF SEG_TYPE_FIELD><SEGMENT_NAME>(<FIELD_SPEC>)</IF SEG_TYPE_FIELD><IF SEG_TYPE_LITERAL>Literal(<SEGMENT_LITVAL>)</IF SEG_TYPE_LITERAL><,> </FROM_KEY_SEGMENT_LOOP_RESTRICTED>
-            ;;    To segments   : <TO_KEY_SEGMENT_LOOP><IF SEG_TYPE_FIELD><SEGMENT_NAME>(<FIELD_SPEC>)</IF SEG_TYPE_FIELD><IF SEG_TYPE_LITERAL>Literal(<SEGMENT_LITVAL>)</IF SEG_TYPE_LITERAL><,> </TO_KEY_SEGMENT_LOOP>
+                ;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) --> (one) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
+                ;;    Type          : C
+                ;;    From segments : <FROM_KEY_SEGMENT_LOOP_RESTRICTED><IF SEG_TYPE_FIELD><SEGMENT_NAME>(<FIELD_SPEC>)</IF SEG_TYPE_FIELD><IF SEG_TYPE_LITERAL>Literal(<SEGMENT_LITVAL>)</IF SEG_TYPE_LITERAL><,> </FROM_KEY_SEGMENT_LOOP_RESTRICTED>
+                ;;    To segments   : <TO_KEY_SEGMENT_LOOP><IF SEG_TYPE_FIELD><SEGMENT_NAME>(<FIELD_SPEC>)</IF SEG_TYPE_FIELD><IF SEG_TYPE_LITERAL>Literal(<SEGMENT_LITVAL>)</IF SEG_TYPE_LITERAL><,> </TO_KEY_SEGMENT_LOOP>
 
-            parm.Entity(^typeof(<StructureNoplural>))
-            &    .HasOne(^typeof(<RelationTostructureNoplural>),"REL_<RelationFromkey>")
-            &    .WithOne(^null)
-            &    .HasForeignKey(^typeof(<StructureNoplural>),<FROM_KEY_SEGMENT_LOOP_RESTRICTED><COUNTER_1_RESET>"<IF SEG_TYPE_FIELD><FieldSqlname></IF SEG_TYPE_FIELD><IF SEG_TYPE_LITERAL><COUNTER_1_INCREMENT><RelationFromkey>Literal<COUNTER_1_VALUE></IF SEG_TYPE_LITERAL>"<,></FROM_KEY_SEGMENT_LOOP_RESTRICTED>)
-            &    .HasPrincipalKey(^typeof(<RelationTostructureNoplural>), <TO_KEY_SEGMENT_LOOP><IF SEG_TYPE_FIELD>"<FieldSqlname>"</IF SEG_TYPE_FIELD><,></TO_KEY_SEGMENT_LOOP>)
+                parm.Entity(^typeof(<StructureNoplural>))
+                &    .HasOne(^typeof(<RelationTostructureNoplural>),"REL_<RelationTostructureNoplural>")
+                &    .WithOne(^null)
+                &    .HasForeignKey(^typeof(<StructureNoplural>),"KEY_<RELATION_FROMKEY>")
+                &    .HasPrincipalKey(^typeof(<RelationTostructureNoplural>),"KEY_<RELATION_TOKEY>")
             </IF ONE_TO_ONE>
 ;// D
             <IF ONE_TO_MANY_TO_ONE>
-            ;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) --> (many) --> (one) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
-            ;;    Type          : D
-            ;;    From segments : <FROM_KEY_SEGMENT_LOOP><IF SEG_TYPE_FIELD><SEGMENT_NAME>(<FIELD_SPEC>)</IF SEG_TYPE_FIELD><IF SEG_TYPE_LITERAL>Literal(<SEGMENT_LITVAL>)</IF SEG_TYPE_LITERAL><,> </FROM_KEY_SEGMENT_LOOP>
-            ;;    To segments   : <TO_KEY_SEGMENT_LOOP_RESTRICTED><IF SEG_TYPE_FIELD><SEGMENT_NAME>(<FIELD_SPEC>)</IF SEG_TYPE_FIELD><IF SEG_TYPE_LITERAL>Literal(<SEGMENT_LITVAL>)</IF SEG_TYPE_LITERAL><,> </TO_KEY_SEGMENT_LOOP_RESTRICTED>
+                ;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) --> (many) --> (one) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
+                ;;    Type          : D
+                ;;    From segments : <FROM_KEY_SEGMENT_LOOP><IF SEG_TYPE_FIELD><SEGMENT_NAME>(<FIELD_SPEC>)</IF SEG_TYPE_FIELD><IF SEG_TYPE_LITERAL>Literal(<SEGMENT_LITVAL>)</IF SEG_TYPE_LITERAL><,> </FROM_KEY_SEGMENT_LOOP>
+                ;;    To segments   : <TO_KEY_SEGMENT_LOOP_RESTRICTED><IF SEG_TYPE_FIELD><SEGMENT_NAME>(<FIELD_SPEC>)</IF SEG_TYPE_FIELD><IF SEG_TYPE_LITERAL>Literal(<SEGMENT_LITVAL>)</IF SEG_TYPE_LITERAL><,> </TO_KEY_SEGMENT_LOOP_RESTRICTED>
 
-            parm.Entity(^typeof(<StructureNoplural>))
-            &    .HasMany(^typeof(<RelationTostructureNoplural>),"REL_<RelationTostructurePlural>")
-            &    .WithOne("REL_<RelationTokey>")
-            &    .HasForeignKey(<TO_KEY_SEGMENT_LOOP_RESTRICTED><IF SEG_TYPE_FIELD>"<FieldSqlname>"</IF SEG_TYPE_FIELD><,></TO_KEY_SEGMENT_LOOP_RESTRICTED>)
-            &    .HasPrincipalKey(<FROM_KEY_SEGMENT_LOOP><COUNTER_1_RESET>"<IF SEG_TYPE_FIELD><FieldSqlname></IF SEG_TYPE_FIELD><IF SEG_TYPE_LITERAL><COUNTER_1_INCREMENT><RelationFromkey>Literal<COUNTER_1_VALUE></IF SEG_TYPE_LITERAL>"<,></FROM_KEY_SEGMENT_LOOP>)
+                parm.Entity(^typeof(<StructureNoplural>))
+                &    .HasMany(^typeof(<RelationTostructureNoplural>),"REL_<RelationTostructurePlural>")
+                &    .WithOne("REL_<StructureNoplural>")
+                &    .HasForeignKey("KEY_<RELATION_TOKEY>")
+                &    .HasPrincipalKey("KEY_<RELATION_FROMKEY>")
             </IF ONE_TO_MANY_TO_ONE>
 ;// E
             <IF ONE_TO_MANY>
-            ;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) --> (many) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
-            ;;    Type          : E
-            ;;    From segments : <FROM_KEY_SEGMENT_LOOP><IF SEG_TYPE_FIELD><SEGMENT_NAME>(<FIELD_SPEC>)</IF SEG_TYPE_FIELD><IF SEG_TYPE_LITERAL>Literal(<SEGMENT_LITVAL>)</IF SEG_TYPE_LITERAL><,> </FROM_KEY_SEGMENT_LOOP>
-            ;;    To segments   : <TO_KEY_SEGMENT_LOOP><IF SEG_TYPE_FIELD><SEGMENT_NAME>(<FIELD_SPEC>)</IF SEG_TYPE_FIELD><IF SEG_TYPE_LITERAL>Literal(<SEGMENT_LITVAL>)</IF SEG_TYPE_LITERAL><,> </TO_KEY_SEGMENT_LOOP>
+                ;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) --> (many) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
+                ;;    Type          : E
+                ;;    From segments : <FROM_KEY_SEGMENT_LOOP><IF SEG_TYPE_FIELD><SEGMENT_NAME>(<FIELD_SPEC>)</IF SEG_TYPE_FIELD><IF SEG_TYPE_LITERAL>Literal(<SEGMENT_LITVAL>)</IF SEG_TYPE_LITERAL><,> </FROM_KEY_SEGMENT_LOOP>
+                ;;    To segments   : <TO_KEY_SEGMENT_LOOP><IF SEG_TYPE_FIELD><SEGMENT_NAME>(<FIELD_SPEC>)</IF SEG_TYPE_FIELD><IF SEG_TYPE_LITERAL>Literal(<SEGMENT_LITVAL>)</IF SEG_TYPE_LITERAL><,> </TO_KEY_SEGMENT_LOOP>
 
-            parm.Entity(^typeof(<StructureNoplural>))
-            &    .HasMany(^typeof(<RelationTostructureNoplural>),"REL_<RelationTostructurePlural>")
-            &    .WithOne(^null)
-            &    .HasForeignKey(^typeof(<StructureNoplural>),<FROM_KEY_SEGMENT_LOOP><COUNTER_1_RESET>"<IF SEG_TYPE_FIELD><FieldSqlname></IF SEG_TYPE_FIELD><IF SEG_TYPE_LITERAL><COUNTER_1_INCREMENT><RelationFromkey>Literal<COUNTER_1_VALUE></IF SEG_TYPE_LITERAL>"<,></FROM_KEY_SEGMENT_LOOP>)
-            &    .HasPrincipalKey(^typeof(<RelationTostructureNoplural>), <TO_KEY_SEGMENT_LOOP><IF SEG_TYPE_FIELD>"<FieldSqlname>"</IF SEG_TYPE_FIELD><,></TO_KEY_SEGMENT_LOOP>)
+                parm.Entity(^typeof(<StructureNoplural>))
+                &    .HasMany(^typeof(<RelationTostructureNoplural>),"REL_<RelationTostructurePlural>")
+                &    .WithOne(^null)
+                &    .HasForeignKey(^typeof(<StructureNoplural>),"KEY_<RELATION_FROMKEY>")
+                &    .HasPrincipalKey(^typeof(<RelationTostructureNoplural>), "KEY_<RELATION_TOKEY>")
             </IF ONE_TO_MANY>
+
+                ;;Declare the outbound relationship
+                if(!existingRelations.Contains("<StructureNoplural>.REL_<RelationTostructureNoplural>"))
+                    existingRelations.Add("<StructureNoplural>.REL_<RelationTostructureNoplural>")
+
+                ;;Declare the reciprocal inbound relationship
+                if(!existingRelations.Contains("<RelationTostructureNoplural>.REL_<StructureNoplural>"))
+                    existingRelations.Add("<RelationTostructureNoplural>.REL_<StructureNoplural>")
+            end
 
             </IF TO_STRUCTURE_INCLUDED>
             </RELATION_LOOP>

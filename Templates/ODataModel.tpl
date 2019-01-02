@@ -60,9 +60,9 @@ namespace <NAMESPACE>
     public partial class <StructureNoplural> extends DataObjectBase
 
         ;;make the record available and a copy
-        private mSynergyData, str<StructureNoplural> 
-        private mOriginalSynergyData, str<StructureNoplural> 
-        
+        private mSynergyData, str<StructureNoplural>
+        private mOriginalSynergyData, str<StructureNoplural>
+
         private static sMetadata, @<StructureNoplural>Metadata
 
 .region "Constructors"
@@ -72,7 +72,7 @@ namespace <NAMESPACE>
             sMetadata = new <StructureNoplural>Metadata()
             DataObjectMetadataBase.MetadataLookup.TryAdd(^typeof(<StructureNoplural>), sMetadata)
         endmethod
-        
+
         ;;; <summary>
         ;;;  Constructor, initialise the base fields
         ;;; </summary>
@@ -234,7 +234,7 @@ namespace <NAMESPACE>
                 mreturn mSynergyData
             endmethod
         endproperty
-        
+
         ;;; <summary>
         ;;; Expose the complete original synergy record
         ;;; </summary>
@@ -260,23 +260,23 @@ namespace <NAMESPACE>
 .region "Public methods"
 
         ;;; <summary>
-        ;;; 
+        ;;;
         ;;; </summary>
         public override method InternalSynergyRecord, void
             targetMethod, @AlphaAction
         proc
             targetMethod(mSynergyData, mGlobalRFA)
         endmethod
-        
+
         ;;; <summary>
         ;;; Allow the host to validate all fields. Each field will fire the validation method.
         ;;; </summary>
         public override method InitialValidateData, void
         proc
         endmethod
-        
+
         ;;; <summary>
-        ;;; 
+        ;;;
         ;;; </summary>
         public override method InternalGetValues, [#]@object
         proc
@@ -304,7 +304,7 @@ namespace <NAMESPACE>
         ;;; Relationship (Type A)
         ;;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) --> (one) --> (many) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
         ;;; </summary>
-        public readwrite property REL_<RelationFromkey>, @<RelationTostructureNoplural>
+        public readwrite property REL_<RelationTostructureNoplural>, @<RelationTostructureNoplural>
         </IF MANY_TO_ONE_TO_MANY>
 ;//
 ;//
@@ -314,7 +314,7 @@ namespace <NAMESPACE>
         ;;; Relationship (Type B)
         ;;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) --> (one) --> (one) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
         ;;; </summary>
-        public readwrite property REL_<RelationFromkey>, @<RelationTostructureNoplural>
+        public readwrite property REL_<RelationTostructureNoplural>, @<RelationTostructureNoplural>
         </IF ONE_TO_ONE_TO_ONE>
 ;//
 ;//
@@ -324,7 +324,7 @@ namespace <NAMESPACE>
         ;;; Relationship (Type C)
         ;;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) --> (one) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
         ;;; </summary>
-        public readwrite property REL_<RelationFromkey>, @<RelationTostructureNoplural>
+        public readwrite property REL_<RelationTostructureNoplural>, @<RelationTostructureNoplural>
         </IF ONE_TO_ONE>
 ;//
 ;//
@@ -365,7 +365,7 @@ namespace <NAMESPACE>
 
                 </IF COUNTER_2_EQ_1>
         ;;; <summary>
-        ;;; 
+        ;;;
         ;;; </summary>
         public readwrite property <RelationFromkey>Literal<COUNTER_1_INCREMENT><COUNTER_1_VALUE>, <LITERAL_SEGMENT_CSTYPE>, <LITERAL_SEGMENT_VALUE>
 
@@ -380,6 +380,29 @@ namespace <NAMESPACE>
   </IF STRUCTURE_RELATIONS>
 </IF DEFINED_ENABLE_RELATIONS>
 
+.region "Properties to represent keys"
+
+    <KEY_LOOP>
+      <IF FIRST>
+        ;;Access keys
+
+      </IF FIRST>
+        private _KEY_<KEY_NAME>, string, ""
+        public readonly property KEY_<KEY_NAME>, string, ""
+
+    </KEY_LOOP>
+    <FOREIGN_KEY_LOOP>
+      <IF FIRST>
+        ;;Foreign keys
+
+      </IF FIRST>
+        private _KEY_<KEY_NAME>, string, ""
+        public readonly property KEY_<KEY_NAME>, string, ""
+
+    </FOREIGN_KEY_LOOP>
+
+.endregion
+
     endclass
-    
+
 endnamespace

@@ -47,12 +47,28 @@ namespace Services.Models
             AddFieldInfo("TaxId", "DECIMAL", 9, 146, 0, false)
             AddFieldInfo("CreditLimit", "IMPLIED", 7, 155, 02, false)
             AddFieldInfo("REL_Orders", "COLLECTION", 0, 0, 0, false)
-            AddFieldInfo("REL_FavoriteItem", "DATAOBJECT", 0, 0, 0, false)
+            AddFieldInfo("REL_Item", "DATAOBJECT", 0, 0, 0, false)
 
             AddKeyInfo(0, "CustomerNumber")
             AddKeyInfo(1, "State")
             AddKeyInfo(2, "ZipCode")
             AddKeyInfo(3, "PaymentTermsCode")
+
+            data CustomerNumber_KeyParts = new FieldDataDefinition[1]
+            CustomerNumber_KeyParts[1] = GetFieldByName("CustomerNumber")
+            AddFieldInfo("KEY_CUSTOMER_NUMBER", "COMPOSITE", 0, 0, 0, false, ^null, ^null, CustomerNumber_KeyParts)
+
+            data State_KeyParts = new FieldDataDefinition[1]
+            State_KeyParts[1] = GetFieldByName("State")
+            AddFieldInfo("KEY_STATE", "COMPOSITE", 0, 0, 0, false, ^null, ^null, State_KeyParts)
+
+            data Zip_KeyParts = new FieldDataDefinition[1]
+            Zip_KeyParts[1] = GetFieldByName("ZipCode")
+            AddFieldInfo("KEY_ZIP", "COMPOSITE", 0, 0, 0, false, ^null, ^null, Zip_KeyParts)
+
+            data PaymentTerms_KeyParts = new FieldDataDefinition[1]
+            PaymentTerms_KeyParts[1] = GetFieldByName("PaymentTermsCode")
+            AddFieldInfo("KEY_PAYMENT_TERMS", "COMPOSITE", 0, 0, 0, false, ^null, ^null, PaymentTerms_KeyParts)
 
         endmethod
 
@@ -90,8 +106,8 @@ namespace Services.Models
                 using joinedObject.Key select
                 ("REL_Orders"),
                     newCustomer.REL_Orders = (@ICollection<Order>)joinedObject.Value
-                ("REL_FavoriteItem"),
-                    newCustomer.REL_FavoriteItem = (@Item)joinedObject.Value
+                ("REL_Item"),
+                    newCustomer.REL_Item = (@Item)joinedObject.Value
                 endusing
             end
 
