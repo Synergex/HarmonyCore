@@ -351,6 +351,21 @@ namespace Harmony.Core.EF.Query.Internal
             private QuerySourceReferenceExpression _currentIncludeSource;
             protected override Expression VisitExtension(Expression node)
             {
+                if (node is NullConditionalExpression)
+                {
+                    var caller = ((NullConditionalExpression)node).Caller;
+                    var access = ((NullConditionalExpression)node).AccessOperation;
+                    if (caller is QuerySourceReferenceExpression)
+                    {
+                        var refExpr = caller as QuerySourceReferenceExpression;
+                        var fromClause = refExpr.ReferencedQuerySource as FromClauseBase;
+                        if (!QuerySourceMapping.ContainsMapping(refExpr.ReferencedQuerySource))
+                        {
+                            QuerySourceMapping.AddMapping(refExpr.ReferencedQuerySource, MakeItemNameProperty(ParameterStack.Peek(), refExpr.ReferencedQuerySource.ItemName));
+                            LiftClausesFromSubQueryExpression(refExpr, TopQueryModel, fromClause?.FromExpression as SubQueryExpression);
+                        }
+                    }
+                }
                 return node;
             }
 
@@ -367,7 +382,23 @@ namespace Harmony.Core.EF.Query.Internal
                 var nameStackCount = SubQueryTargetNames.Count;
                 var result = base.VisitMemberInit(node);
                 if (SourceStack.Count > sourceStackCount)
+                {
+                    var peeked = SourceStack.Peek();
+                    //if we didnt process the querysource
+                    if (SubQueryTargetNames.Count == nameStackCount && peeked.ReferencedQuerySource is AdditionalFromClause && ParameterStack.Count > 0)
+                    {
+                        var additionalFromClause = (peeked.ReferencedQuerySource as AdditionalFromClause).FromExpression as SubQueryExpression;
+                        if (additionalFromClause != null)
+                        {
+                            if (!QuerySourceMapping.ContainsMapping(peeked.ReferencedQuerySource))
+                            {
+                                QuerySourceMapping.AddMapping(peeked.ReferencedQuerySource, MakeItemNameProperty(ParameterStack.Peek(), peeked.ReferencedQuerySource.ItemName));
+                                LiftClausesFromSubQueryExpression(peeked, TopQueryModel, additionalFromClause);
+                            }
+                        }
+                    }
                     SourceStack.Pop();
+                }
 
                 if (SubQueryTargetNames.Count > nameStackCount)
                     SubQueryTargetNames.Pop();
@@ -514,7 +545,7 @@ namespace Harmony.Core.EF.Query.Internal
                 var queryModel = node.QueryModel;
                 var propValue = Expression.PropertyOrField(CurrentParameter, SubQueryTargetName);
                 var resultExpressionElementType = propValue.Type.IsGenericType ? propValue.Type.GenericTypeArguments.First() : propValue.Type;
-                Expression resultExpression = (propValue.Type.GetGenericTypeDefinition() == typeof(ICollection<>)) ?
+                Expression resultExpression = (propValue.Type.IsGenericType && propValue.Type.GetGenericTypeDefinition() == typeof(ICollection<>)) ?
                     Expression.Condition(Expression.Equal(propValue, Expression.Constant(null)), Expression.Convert(Expression.New(typeof(List<>).MakeGenericType(new Type[] { resultExpressionElementType })), propValue.Type), propValue) :
                     (Expression)propValue;
 
@@ -540,7 +571,7 @@ namespace Harmony.Core.EF.Query.Internal
                     }
                 }
 
-                Type resultTypeParameter = queryModel.ResultTypeOverride.ForceSequenceType();
+                Type resultTypeParameter = queryModel.ResultTypeOverride?.ForceSequenceType() ?? queryModel.SelectClause?.Selector?.Type;
                 var currentParameter = Expression.Parameter(resultExpressionElementType);
                 if (Source != null && Source.ReferencedQuerySource.ItemType == CurrentParameter.Type && !QuerySourceMapping.ContainsMapping(Source.ReferencedQuerySource))
                     QuerySourceMapping.AddMapping(Source.ReferencedQuerySource, CurrentParameter);
@@ -590,13 +621,7 @@ namespace Harmony.Core.EF.Query.Internal
                         //we shouldnt see any group joins here those are supposed to be represented in the selector further down
                         foreach (var joinClause in queryModel.BodyClauses.OfType<JoinClause>())
                         {
-                            //grab each item join and make a query source replacement that points to the actual property instead of a query source
-                            var joinItemNameParts = joinClause.ItemName.Split(DotArray, StringSplitOptions.RemoveEmptyEntries).Skip(1);
-                            Expression targetExpr = currentParameter;
-                            foreach (var item in joinItemNameParts)
-                            {
-                                targetExpr = Expression.Property(targetExpr, item);
-                            }
+                            Expression targetExpr = MakeItemNameProperty(currentParameter, joinClause.ItemName);
 
                             QuerySourceMapping.AddMapping(joinClause, targetExpr);
                             joinClause.InnerKeySelector = rewrite.Visit(joinClause.InnerKeySelector);
@@ -663,9 +688,16 @@ namespace Harmony.Core.EF.Query.Internal
                             expression2 = taskLiftingExpressionVisitor.LiftTasks(expression);
                         }
 
-                        resultExpression = ((expression2 == expression) ?
-                            Expression.Call(Parent.LinqOperatorProvider.Select.MakeGenericMethod(resultExpressionElementType, resultTypeParameter), resultExpression, Expression.Lambda(expression, currentParameter)) :
-                            Expression.Call(AsyncLinqOperatorProvider.SelectAsyncMethod.MakeGenericMethod(resultExpressionElementType, resultTypeParameter), resultExpression, Expression.Lambda(expression2, currentParameter, taskLiftingExpressionVisitor.CancellationTokenParameter)));
+                        if (resultExpressionElementType != resultTypeParameter)
+                        {
+                            resultExpression = ((expression2 == expression) ?
+                                Expression.Call(Parent.LinqOperatorProvider.Select.MakeGenericMethod(resultExpressionElementType, resultTypeParameter), resultExpression, Expression.Lambda(expression, currentParameter)) :
+                                Expression.Call(AsyncLinqOperatorProvider.SelectAsyncMethod.MakeGenericMethod(resultExpressionElementType, resultTypeParameter), resultExpression, Expression.Lambda(expression2, currentParameter, taskLiftingExpressionVisitor.CancellationTokenParameter)));
+                        }
+                        else
+                        {
+                            resultExpression = expression;
+                        }
                     }
                     return resultExpression;
                 }
@@ -673,6 +705,20 @@ namespace Harmony.Core.EF.Query.Internal
                 {
                     ParameterStack.Pop();
                 }
+            }
+
+            private static Expression MakeItemNameProperty(Expression currentParameter, string itemName)
+            {
+                //grab each item join and make a query source replacement that points to the actual property instead of a query source
+                var joinItemNameParts = itemName.Split(DotArray, StringSplitOptions.RemoveEmptyEntries).Skip(1);
+                Expression targetExpr = currentParameter;
+                foreach (var item in joinItemNameParts)
+                {
+                    var targetProperty = Expression.Property(targetExpr, item);
+                    targetExpr = Expression.Condition(Expression.Equal(targetExpr, Expression.Constant(null, targetExpr.Type)), Expression.Constant(null, targetProperty.Type), targetProperty);
+                }
+
+                return targetExpr;
             }
 
             protected override Expression VisitMethodCall(MethodCallExpression node)
