@@ -52,6 +52,7 @@ import System.Collections.Generic
 
 namespace <NAMESPACE>
 
+    {JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)}
     public partial class <StructureNoplural>
 
 <FIELD_LOOP>

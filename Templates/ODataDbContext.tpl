@@ -238,8 +238,8 @@ namespace <NAMESPACE>
                 parm.Entity(^typeof(<StructureNoplural>))
                 &    .HasMany(^typeof(<RelationTostructureNoplural>),"REL_<RelationTostructurePlural>")
                 &    .WithOne(^null)
-                &    .HasForeignKey(^typeof(<StructureNoplural>),"KEY_<RELATION_FROMKEY>")
-                &    .HasPrincipalKey(^typeof(<RelationTostructureNoplural>), "KEY_<RELATION_TOKEY>")
+                &    .HasForeignKey("KEY_<RELATION_TOKEY>")
+                &    .HasPrincipalKey("KEY_<RELATION_FROMKEY>")
             </IF ONE_TO_MANY>
 
                 ;;Declare the outbound relationship
