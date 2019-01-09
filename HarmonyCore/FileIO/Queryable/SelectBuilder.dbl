@@ -79,22 +79,54 @@ namespace Harmony.Core.FileIO.Queryable
 						(FieldDataType.AlphaField),
 						begin
 							if(!caseInsensitive) then
-								madeOn = (On)(dataBuffer1(fieldOneStart:compSize) .eq. dataBuffer2(fieldTwoStart:compSize))
+							begin
+								if(fieldTwoPart.DataType == FieldDataType.TagLiteral) then
+									madeOn = (On)(dataBuffer1(fieldOneStart:compSize) .eq. (a)fieldTwoPart.TagValue)
+								else
+									madeOn = (On)(dataBuffer1(fieldOneStart:compSize) .eq. dataBuffer2(fieldTwoStart:compSize))
+							end
 							else
 								throw new NotImplementedException()
 						end
 						(FieldDataType.IntegerField),
 						begin
-							madeOn = (On)(^i(dataBuffer1(fieldOneStart:compSize)) .eq. ^i(dataBuffer2(fieldTwoStart:compSize)))
+							if(fieldTwoPart.DataType == FieldDataType.TagLiteral) then
+								madeOn = (On)(^i(dataBuffer1(fieldOneStart:compSize)) .eq. %integer(fieldTwoPart.TagValue))
+							else
+								madeOn = (On)(^i(dataBuffer1(fieldOneStart:compSize)) .eq. ^i(dataBuffer2(fieldTwoStart:compSize)))
 						end
 						(FieldDataType.DecimalField),
 						begin
-							madeOn = (On)(^d(dataBuffer1(fieldOneStart:compSize)) .eq. ^d(dataBuffer2(fieldTwoStart:compSize)))
+							if(fieldTwoPart.DataType == FieldDataType.TagLiteral) then
+								madeOn = (On)(^d(dataBuffer1(fieldOneStart:compSize)) .eq. %implied(fieldTwoPart.TagValue))
+							else
+								madeOn = (On)(^d(dataBuffer1(fieldOneStart:compSize)) .eq. ^d(dataBuffer2(fieldTwoStart:compSize)))
 						end
+						(FieldDataType.TagLiteral),
+						begin
+							using fieldOnePart.DataType select
+							(FieldDataType.AlphaField),
+							begin
+								if(!caseInsensitive) then
+									madeOn = (On)(fieldOnePart.TagValue .eq. dataBuffer2(fieldTwoStart:compSize))
+								else
+									throw new NotImplementedException()
+							end
+							(FieldDataType.IntegerField),
+							begin
+								madeOn = (On)(%integer(fieldOnePart.TagValue) .eq. ^i(dataBuffer2(fieldTwoStart:compSize)))
+							end
+							(FieldDataType.DecimalField),
+							begin
+								madeOn = (On)(%implied(fieldOnePart.TagValue) .eq. ^d(dataBuffer2(fieldTwoStart:compSize)))
+							end
+							endusing
+						end
+
 						endusing
 
 						if(madeOn == ^null)
-							throw new NotImplementedException(string.Format("Invalid field type comparison for join operation, field1 = {0}, field2 = {1}", fieldDetails1.DataType, fieldDetails2.DataType))
+							throw new NotImplementedException(string.Format("Invalid field type comparison for join operation, field1 = {0}, field2 = {1}", fieldOnePart.DataType, fieldTwoPart.DataType))
 						
 						if(resultOn == ^null) then
 							resultOn = madeOn
