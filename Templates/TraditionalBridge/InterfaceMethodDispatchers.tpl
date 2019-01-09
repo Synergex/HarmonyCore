@@ -1,6 +1,6 @@
 <CODEGEN_FILENAME><INTERFACE_NAME>MethodDispachers.dbl</CODEGEN_FILENAME>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
-<REQUIRES_CODEGEN_VERSION>5.3.9</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.3.12</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
 ;// Title:       MethodDispachers.tpl

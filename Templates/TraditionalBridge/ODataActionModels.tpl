@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME><INTERFACE_NAME>ActionModels.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.3.9</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.3.12</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
 ;// Title:       ODataActionModels.tpl
