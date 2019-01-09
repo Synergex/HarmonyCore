@@ -450,6 +450,7 @@ namespace Harmony.Core.EF.Query.Internal
             {
                 var binaryExpression = expression as BinaryExpression;
                 var nullSafeExpression = expression as NullSafeEqualExpression;
+                var blockExpression = expression as BlockExpression;
                 if (binaryExpression != null)
                 {
                     if (binaryExpression.Left is ParameterExpression || binaryExpression.Left is ConstantExpression ||
@@ -461,6 +462,10 @@ namespace Harmony.Core.EF.Query.Internal
                 else if (nullSafeExpression != null)
                 {
                     return WhereAsJoinClauseExpressionQuality(nullSafeExpression.EqualExpression);
+                }
+                else if (blockExpression != null && blockExpression.Expressions.Count == 1)
+                {
+                    return WhereAsJoinClauseExpressionQuality(blockExpression.Expressions.First());
                 }
                 else
                 {
@@ -605,7 +610,11 @@ namespace Harmony.Core.EF.Query.Internal
                             QuerySourceAliases.Add(queryModel.MainFromClause, madeGroupJoin);
                             AddOrUpdateSelector(new QuerySourceReferenceExpression(queryModel.MainFromClause), newQuerySource);
                             var rewrittenJoinLambda = rewrite.Visit(joinOnLambda) as Expression;
-                            var simpleJoinCondition = rewrittenJoinLambda as BinaryExpression ?? (rewrittenJoinLambda as NullSafeEqualExpression)?.EqualExpression;
+                            BinaryExpression simpleJoinCondition = rewrittenJoinLambda as BinaryExpression;
+                            if(simpleJoinCondition == null)
+                                simpleJoinCondition = (rewrittenJoinLambda as NullSafeEqualExpression)?.EqualExpression;
+                            if (simpleJoinCondition == null)
+                                simpleJoinCondition = (rewrittenJoinLambda as BlockExpression)?.Expressions.LastOrDefault() as BinaryExpression;
 
                             madeJoin.InnerKeySelector = simpleJoinCondition.Right;
                             madeJoin.OuterKeySelector = simpleJoinCondition.Left;
