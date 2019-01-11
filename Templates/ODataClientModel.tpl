@@ -71,6 +71,7 @@ namespace <NAMESPACE>
 
 .region "Relationships to other entities"
 
+  <IF STRUCTURE_RELATIONS>
     <RELATION_LOOP>
       <IF TO_STRUCTURE_INCLUDED>
         <COUNTER_1_INCREMENT>
@@ -127,6 +128,7 @@ namespace <NAMESPACE>
 
       </IF TO_STRUCTURE_INCLUDED>
     </RELATION_LOOP>
+  </IF STRUCTURE_RELATIONS>
 .endregion
 
     endclass
