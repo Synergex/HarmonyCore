@@ -253,7 +253,7 @@ namespace <NAMESPACE>
       <IF STRUCTURE_ISAM>
         <IF NOTPKSEGMENT>
         <PRIMARY_KEY>
-        {ODataRoute("<StructurePlural>(<IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><FieldSqlName>={a<FieldSqlName>}<,></SEGMENT_LOOP></IF SINGLE_SEGMENT>)/<FieldSqlName>")}
+        {ODataRoute("<StructurePlural>(<IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP>{a<FieldSqlName>}<,></SEGMENT_LOOP></IF SINGLE_SEGMENT>)/<FieldSqlName>")}
         <IF DEFINED_ENABLE_AUTHENTICATION>
           <IF USERTOKEN_ROLES_GET>
         {Authorize(Roles="<ROLES_GET>")}
@@ -378,7 +378,7 @@ namespace <NAMESPACE>
         {Authorize(Roles="<ROLES_PUT>")}
     </IF USERTOKEN_ROLES_PUT>
   </IF DEFINED_ENABLE_AUTHENTICATION>
-        {ODataRoute("<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><FieldSqlName>={a<FieldSqlName>}<,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>)")}
+        {ODataRoute("<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP>{a<FieldSqlName>}<,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>)")}
         ;;; <summary>
         ;;; Create (with a client-supplied primary key) or replace a <structureNoplural>.
         ;;; </summary>
@@ -462,7 +462,7 @@ namespace <NAMESPACE>
         {Authorize(Roles="<ROLES_PATCH>")}
     </IF USERTOKEN_ROLES_PATCH>
   </IF DEFINED_ENABLE_AUTHENTICATION>
-        {ODataRoute("<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><FieldSqlName>={a<FieldSqlName>}<,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>RecordNumber={aRecordNumber}</IF STRUCTURE_RELATIVE>)")}
+        {ODataRoute("<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP>{a<FieldSqlName>}<,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>RecordNumber={aRecordNumber}</IF STRUCTURE_RELATIVE>)")}
         ;;; <summary>
         ;;; Patch  (partial update) a <structureNoplural>.
         ;;; </summary>
@@ -536,7 +536,7 @@ namespace <NAMESPACE>
         {Authorize(Roles="<ROLES_DELETE>")}
     </IF USERTOKEN_ROLES_DELETE>
   </IF DEFINED_ENABLE_AUTHENTICATION>
-        {ODataRoute("<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><FieldSqlName>={a<FieldSqlName>}<,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>RecordNumber={aRecordNumber}</IF STRUCTURE_RELATIVE>)")}
+        {ODataRoute("<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP>{a<FieldSqlName>}<,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>RecordNumber={aRecordNumber}</IF STRUCTURE_RELATIVE>)")}
         ;;; <summary>
         ;;; Delete a <structureNoplural>.
         ;;; </summary>
