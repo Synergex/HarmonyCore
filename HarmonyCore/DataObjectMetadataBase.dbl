@@ -165,29 +165,67 @@ namespace Harmony.Core
 		public method GetKeyNumberByFieldNames, short?
 			in required fldNames, [#]string
 		proc
+			data fieldDefinitions = new List<FieldDataDefinition>()
 			data inKeys, @List<int>, ^null 
 			data fieldName, @string
+			data fieldDef, @FieldDataDefinition
+			data suppliedKeySize = 0
 			foreach fieldName in fldNames
 			begin
-				data fieldInKeys, @List<int>
-				if(!mFieldsInKeys.TryGetValue(fieldName, fieldInKeys))
-					mreturn ^null
 
-				if(inKeys == ^null) then
-					inKeys = new List<int>(fieldInKeys)
+				fieldDef = GetFieldByName(fieldName)
+				if(fieldDef.DataType == FieldDataType.CompositeField) then
+				begin
+					fieldDefinitions.AddRange(fieldDef.CompositeParts)
+				end
+				else
+					fieldDefinitions.Add(fieldDef)
+			end
+
+			foreach fieldDef in fieldDefinitions
+			begin
+				data fieldInKeys, @List<int>
+
+				if(fieldDef.DataType == FieldDataType.TagLiteral) then
+				begin
+					suppliedKeySize += fieldDef.TagValue.Length
+				end
 				else
 				begin
-					inKeys.RemoveAll(lambda(keyNum) { !fieldInKeys.Contains(keyNum) })
+					suppliedKeySize += fieldDef.ElementSize
+
+					if(!mFieldsInKeys.TryGetValue(fieldName, fieldInKeys))
+						mreturn ^null
+
+					if(inKeys == ^null) then
+						inKeys = new List<int>(fieldInKeys)
+					else
+					begin
+						inKeys.RemoveAll(lambda(keyNum) { !fieldInKeys.Contains(keyNum) })
+					end
+
+					if(inKeys.Count < 0)
+						mreturn ^null
 				end
 
-				if(inKeys.Count < 0)
-					mreturn ^null
 			end
 
 			if(inKeys == ^null || inKeys.Count < 0) then
 				mreturn ^null
 			else
-				mreturn (short)inKeys.First()
+			begin
+				if(inKeys.Count == 1) then
+					mreturn (short)inKeys.First()
+				else
+				begin
+					;;get the keysize for all candidate krf's, orderby it, select the closest matching krf
+					mreturn (short)inKeys
+					&	.Select(lambda (keyRef) { Tuple.Create(keyRef, GetKeySize(keyRef)) })
+					&	.OrderBy(lambda(tpl) { tpl.Item2 })
+					&	.Select(lambda(tpl) { tpl.Item1 })
+					&	.FirstOrDefault()
+				end
+			end
 
 		endmethod
 
@@ -227,6 +265,12 @@ namespace Harmony.Core
 			targetKeyType, KeyType
 		proc
 			mreturn mKeyDictionary[keyNumber].Where(lambda(kvp) { ((int)(kvp.Item2 .band. targetKeyType)) != 0 }).Select(lambda(kvp) { kvp.Item1 }).ToList()
+		endmethod
+
+		public method GetKeySize, int
+			keyNumber, int
+		proc
+			mreturn mKeyDictionary[keyNumber].Sum(lambda(kvp) { GetFieldByName(kvp.Item1).ElementSize })
 		endmethod
 
 
