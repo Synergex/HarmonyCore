@@ -69,7 +69,16 @@ namespace Harmony.Core.Context
 			args, [#]@object 
 			endparams
 		proc
-			data hoist = new CallHoist<Object>() { CallProvider = this }
+			mreturn CallMethod<Object>(name, args)
+		endmethod
+
+		public virtual method CallMethod<T>, @Task<Tuple<T, [#]@Object>>
+			name, @string
+			{ParamArray}
+			args, [#]@object 
+			endparams
+		proc
+			data hoist = new CallHoist<T>() { CallProvider = this }
 			mreturn hoist.CallMethod(name, args)
 
 ;            data argsTemp, [#]@Object, args
