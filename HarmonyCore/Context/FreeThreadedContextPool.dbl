@@ -10,7 +10,13 @@ import Harmony.Core.Utility
 
 namespace Harmony.Core.Context
 
-	public class FreeThreadedContextPool<T(IContextBase, class)> extends ContextFactory<T> implements IContextPool<T>
+	public class FreeThreadedContextPool<T(IContextBase, class)> extends ContextFactory<T> implements IContextPool<T>, IDisposable
+
+		public virtual method Dispose, void
+			endparams
+		proc
+			TrimPool(0).Wait()
+		endmethod
 
 		public virtual async method RealizeMinimumPoolSize, @Task
 			provider, @IServiceProvider
@@ -38,8 +44,12 @@ namespace Harmony.Core.Context
 				begin
 					;;this shouldnt actually perform an allocation
 					data context = mContextPool.Allocate(^null)
-					if(context .is. IDisposable)
+					if(context .is. IDisposable) then
 						((@IDisposable)context).Dispose()
+					else if(context .is. IPooledContextBase)
+					begin
+						((@IPooledContextBase)context).Destroy()
+					end
 				end
 				catch (ex, @Exception)
 				begin
