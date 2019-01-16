@@ -1,5 +1,6 @@
 import System
 import System.Collections.Generic
+import System.collections
 import System.Text
 import Newtonsoft.Json
 import Harmony.Core
@@ -7,6 +8,9 @@ import Newtonsoft.Json.Linq
 import System.Linq
 import System.Reflection
 import System.Threading.Tasks
+import StreamJsonRpc
+import System.Buffers
+import StreamJsonRpc.Protocol
 
 namespace Harmony.Core.Context
 
@@ -274,6 +278,30 @@ namespace Harmony.Core.Context
 			mreturn CallMethodImplementation(name, args)
 		endmethod
 
+		internal class HarmonyJsonMessageFormatter extends JsonMessageFormatter
+			public method HarmonyJsonMessageFormatter
+				targetEncoding, @Encoding
+				parent(targetEncoding)
+			proc
+			endmethod
+
+			public method IJsonRpcMessageTextFormatter.Serialize, void
+				contentBuffer, @IBufferWriter<byte> 
+				message, @JsonRpcMessage
+			proc
+				if(message .is. JsonRpcRequest)
+				begin
+					data request = (@JsonRpcRequest)message
+					data enumerableArguments = ^as(request.Arguments, @IEnumerable)
+					if(enumerableArguments != ^null)
+						request.ArgumentsArray = enumerableArguments.OfType<Object>().ToArray()
+
+				end
+
+				parent.Serialize(contentBuffer, message)
+			endmethod
+		endclass
+
 	endclass
 
 	;;TODO: this should go back to the method version once the peverify issue is taken care of in the compiler
@@ -347,7 +375,6 @@ namespace Harmony.Core.Context
 				mreturn Tuple.Create((T)Convert.ChangeType(arguments[1].PassedValue,^typeof(T)), argsTemp)
 			end
 		endmethod
-
 	endclass
 
 endnamespace

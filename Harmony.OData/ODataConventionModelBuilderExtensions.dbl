@@ -213,7 +213,10 @@ namespace Harmony.OData
 
         private static method GetSequenceType, @Type
             type, @Type
-        proc
+		proc
+			if(type == ^typeof(String))
+				mreturn ^null
+
             if(type.IsGenericType && type.GetGenericTypeDefinition() == ^typeof(IEnumerable<>))
                 mreturn type.GenericTypeArguments.First()
 
@@ -229,7 +232,8 @@ namespace Harmony.OData
             methInfo, @MethodInfo
             callableConfig, @CallableMethodConfigurationAttribute
             funcConfig, @FunctionConfiguration
-        proc
+		proc
+			data sequenceType, @Type
             data returnType, @Type
             data returnTypeIsCollection, boolean, false
             data returnTypeIsFromEntitySet, boolean, false
@@ -240,15 +244,16 @@ namespace Harmony.OData
                 taskClean = taskClean.GetGenericArguments()[1]
             end
 
-            if(taskClean.IsGenericType)
+            sequenceType = GetSequenceType(taskClean)
+            if(sequenceType != ^null) then
             begin
-                data sequenceType = GetSequenceType(taskClean)
-                if(sequenceType != ^null)
-                begin
-                    returnTypeIsCollection = true
-                    returnType = sequenceType
-                end
-            end
+                returnTypeIsCollection = true
+                returnType = sequenceType
+			end
+			else
+			begin
+				returnType = taskClean
+			end
 
             if(callableConfig.ReturnsFromEntitySet)
             begin

@@ -31,9 +31,24 @@ proc
 		aErrorMessage = e.Message
 	end
 	endtry
-
+	throw new Exception()
 	freturn status
 
+endfunction
+
+function get_customer, METHOD_STATUS
+	required in aCustomer, @string
+	required out aErrorMessage, a80
+	endparams
+
+	stack record
+		status, METHOD_STATUS
+		customer, strCustomer
+	endrecord
+proc
+
+	aErrorMessage = aCustomer + " Not Found"
+	freturn status
 endfunction
 
 {xfMethod(name="GetCustomerArray", interface="SampleXfplEnv", elb="sample_xfpl_env")}

@@ -91,10 +91,22 @@ namespace Harmony.Core.Context
 			mreturn ActivatorUtilities.CreateInstance<T>(provider)
 		endmethod
 
-		public override method ReturnContext, void
+		public override async method ReturnContext, void
 			context, T
 		proc
-			mContextPool.Free(context)
+			data pooledContext = ^as(context, @IPooledContextBase)
+			try
+			begin
+				if(pooledContext != ^null)
+					await pooledContext.Recycle()
+
+				mContextPool.Free(context)
+			end
+			catch(ex, @Exception)
+			begin
+				DebugLogSession.Logging.LogException(ex, this.GetType().Name + "ReturnContext")
+			end
+			endtry
 		endmethod
 	endclass
 

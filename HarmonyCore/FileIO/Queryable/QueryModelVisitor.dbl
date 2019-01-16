@@ -400,7 +400,10 @@ namespace Harmony.Core.FileIO.Queryable
 						result.Add(typeBufferIndex, sparseFields)
 					end
 
-					sparseFields.Add(targetFieldExpr.FieldDef)
+					if(targetFieldExpr.FieldDef.DataType == FieldDataType.CompositeField) then
+						sparseFields.AddRange(targetFieldExpr.FieldDef.CompositeParts)
+					else
+						sparseFields.Add(targetFieldExpr.FieldDef)
 				end
 			end
 			mreturn result

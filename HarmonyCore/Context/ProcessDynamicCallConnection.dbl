@@ -6,6 +6,8 @@ import Newtonsoft.Json
 import Newtonsoft.Json.Linq
 import System.Threading.Tasks
 import StreamJsonRpc
+import System.IO
+import System.Threading
 
 
 namespace Harmony.Core.Context
@@ -63,7 +65,7 @@ namespace Harmony.Core.Context
 			if(mTargetProcess.HasExited)
 				throw new Exception("process exited during initialization")
 			
-			data result = JsonRpc.Attach(mTargetProcess.StandardInput.BaseStream, mTargetProcess.StandardOutput.BaseStream, ^null) 
+			data result = JsonRpc.Attach(new StreamWrapper(mTargetProcess.StandardOutput, mTargetProcess.StandardInput), ^null) 
 			result.TraceSource = new TraceSource("Client", SourceLevels.All)
 			mreturn result
 		endmethod
@@ -73,7 +75,133 @@ namespace Harmony.Core.Context
             mreturn mMakeReadyTask.Value
         endmethod
 
+		private class StreamWrapper extends Stream
 
+			public override method Read, int
+				buffer, [#]byte 
+				offset, int 
+				count, int 
+				endparams
+			proc
+				mreturn mReader.BaseStream.Read(buffer, offset, count)
+			endmethod
+
+
+			private mReader, @StreamReader
+			private mWriter, @StreamWriter
+			;private mEvent, @AutoResetEvent
+			public method StreamWrapper
+				reader, @StreamReader
+				writer, @StreamWriter
+			proc
+				mReader = reader
+				mWriter = writer
+				;mEvent = new AutoResetEvent(false)
+			endmethod
+
+
+			public override property CanRead, Boolean
+				method get
+				proc
+					mreturn mReader.BaseStream.CanRead
+				endmethod
+			endproperty
+
+
+
+			public override method Flush, void
+				endparams
+			proc
+				mWriter.BaseStream.Flush()
+			endmethod
+
+			public override method ReadAsync, @Task<int> 
+				buffer, [#]byte 
+				offset, int 
+				count, int 
+				token, CancellationToken
+				endparams
+			proc
+				mreturn mReader.BaseStream.ReadAsync(buffer, offset, count, token)
+			endmethod
+
+			public override property CanTimeout, boolean
+				method get
+				proc
+					mreturn true
+				endmethod
+			endproperty
+
+
+			public override property CanSeek, Boolean
+				method get
+				proc
+					mreturn false
+				endmethod
+			endproperty
+
+
+
+			public override property Position, long
+				method get
+				proc
+					mreturn mReader.BaseStream.Position
+				endmethod
+				method set
+				proc
+					mReader.BaseStream.Position = value
+				endmethod
+			endproperty
+
+
+
+			public override property Length, long
+				method get
+				proc
+					mreturn mReader.BaseStream.Length
+				endmethod
+			endproperty
+
+
+
+			public override method Seek, long
+				offset, long 
+				origin, SeekOrigin 
+				endparams
+			proc
+				throw new NotImplementedException()
+			endmethod
+
+
+
+			public override property CanWrite, Boolean
+				method get
+				proc
+					mreturn true
+				endmethod
+			endproperty
+
+
+
+			public override method Write, void
+				buffer, [#]byte 
+				offset, int 
+				count, int 
+				endparams
+			proc
+				mWriter.BaseStream.Write(buffer, offset, count)
+				mWriter.BaseStream.Flush()
+			endmethod
+
+
+
+			public override method SetLength, void
+				value, long 
+				endparams
+			proc
+				throw new NotImplementedException()
+			endmethod
+		endclass
 	endclass
 
 endnamespace

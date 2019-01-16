@@ -802,6 +802,7 @@ namespace Harmony.TraditionalBridge
 					end
 					else
 					begin
+						data argValue, @JsonValue
 						data arg, @JsonObject
 						data argValueArray, [#]@Object
 						data rcbid, i4
@@ -819,12 +820,18 @@ namespace Harmony.TraditionalBridge
 						responseSet = new boolean[argArrayList.Count]
 						rcbid = %rcb_create(argArrayList.Count) 
 						xcall rcb_setfnc(rcbid, name)
-						foreach arg in argArrayList as @JsonObject
+						foreach argValue in argArrayList as @JsonValue
 						begin
 							data argType, FieldDataType
 							data argLength, i4, 0
 							data argPrecision, i4, 0
 							incr ii
+
+							if(argValue .is. @JsonObject) then
+								arg = (@JsonObject)argValue
+							else
+								throw new Exception("Invalid protocol, input parameter type was not a JSON object")
+
 							;;the arguments need somewhere to live while we're building up the call so put them into this array
 							argValueArray[ii] = DeserializeObject(arg, argType)
 							if(!jsonData.TryGetBoolProperty("ReturnedValue", responseSet[ii]))

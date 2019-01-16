@@ -12,6 +12,8 @@ namespace Harmony.Core.Context
 		private mAuthentication, @AuthenticationMethod
 		private mTargetCommand, @string
 		private mTargetOS, RemoteTargetOS
+		private mCallTimeout, int
+		private mConnectTimeout, int
 		public method RemoteExternalContextPool
 			targetOS, RemoteTargetOS
 			targetMachine, @string
@@ -19,6 +21,8 @@ namespace Harmony.Core.Context
 			authentication, @AuthenticationMethod
 			targetCommand, @string
 			min, int
+			callTimeout, int
+			connectTimeout, int
 			endparams
 			parent(min)
 		proc
@@ -27,12 +31,14 @@ namespace Harmony.Core.Context
 			mUsername = username
 			mAuthentication = authentication
 			mTargetCommand = targetCommand
+			mCallTimeout = callTimeout
+			mConnectTimeout = connectTimeout
 		endmethod
 		
 		protected override method SlowMakeContext, T
 			provider, @IServiceProvider
 		proc
-			data callConnection = new SSHDynamicCallConnection(mTargetOS, new ConnectionInfo(mTargetMachine, mUsername, mAuthentication), mTargetCommand)
+			data callConnection = new SSHDynamicCallConnection(mTargetOS, new ConnectionInfo(mTargetMachine, mUsername, mAuthentication), mTargetCommand, mCallTimeout, mConnectTimeout)
 			mreturn ActivatorUtilities.CreateInstance<T>(provider, callConnection)
 		endmethod
 
