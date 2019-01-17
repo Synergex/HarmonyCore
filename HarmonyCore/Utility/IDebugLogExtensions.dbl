@@ -2,6 +2,7 @@ import System
 import System.Collections.Generic
 import System.Text
 import Harmony.Core.Interface
+import Renci.SshNet
 
 
 namespace Harmony.Core.Utility
@@ -136,6 +137,45 @@ namespace Harmony.Core.Utility
 			mreturn %string(%integer(^m(tmpAlpha(1:TargetLength), TargetHandle)))
 		endmethod
 
+	endclass
+
+	public class ASCIIArrayDebugLogHelper
+		public Segment, @ArraySegment<byte>
+
+		public method ASCIIArrayDebugLogHelper
+			segment, @ArraySegment<byte>
+		proc
+			this.Segment = segment
+		endmethod
+
+		public method ASCIIArrayDebugLogHelper
+			segment, [#]byte
+			index, int
+			count, int
+		proc
+			this.Segment = new ArraySegment<byte>(segment, index, count)
+		endmethod
+
+		public override method ToString, @string
+		proc
+			mreturn Encoding.ASCII.GetString(Segment.Array, Segment.Offset, Segment.Count)
+		endmethod
+	endclass
+
+	public class SSHConnectionDebugLogHelper
+		public ConnectInfo, @ConnectionInfo
+
+		public method SSHConnectionDebugLogHelper
+			connectInfo, @ConnectionInfo
+		proc
+			this.ConnectInfo = connectInfo
+		endmethod
+
+		public override method ToString, @string
+		proc
+			mreturn string.Format("Renci.SSH.ConnectionInfo Host: {0} Port: {1} Username: {2} KeyEx: {3} Server Encryption: {4} Compression: {5} Server Version: {6}", 
+			&	ConnectInfo.Host, ConnectInfo.Port, ConnectInfo.Username, ConnectInfo.CurrentKeyExchangeAlgorithm, ConnectInfo.CurrentServerEncryption, ConnectInfo.CurrentServerCompressionAlgorithm, ConnectInfo.ServerVersion)
+		endmethod
 	endclass
 
 endnamespace

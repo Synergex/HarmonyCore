@@ -9,6 +9,7 @@ import System.Diagnostics
 import System.Threading.Tasks
 import StreamJsonRpc
 import System.Threading
+import Harmony.Core.Utility
 
 namespace Harmony.Core.Context
 
@@ -70,7 +71,12 @@ namespace Harmony.Core.Context
 			endparams
 		proc
 			if(mTargetConnection.IsConnected)
+			begin
+				mReader.Close()
 				mTargetConnection.Disconnect()
+			end
+
+
 		endmethod
 
 		public virtual async method Call, @Task<[#]@ReturnParameterDefintion>
@@ -201,10 +207,13 @@ namespace Harmony.Core.Context
 				count, int 
 				endparams
 			proc
-				mreturn mStream.Read(buffer, offset, count)
+				data readBytes = mStream.Read(buffer, offset, count)
+				DebugLogSession.Logging.LogTrace("SSHDynamicCallConnection id:{0} read ascii string: {1}", mConnectionId, new ASCIIArrayDebugLogHelper(buffer, offset, readBytes))
+				mreturn readBytes
+
 			endmethod
 
-
+			private static mConnectionId, int, 0
 			private mStream, @ShellStream
 			private mConnection, @SshClient
 			;private mEvent, @AutoResetEvent
@@ -214,6 +223,8 @@ namespace Harmony.Core.Context
 			proc
 				mStream = stream
 				mConnection = connection
+				Interlocked.Increment(mConnectionId)
+				DebugLogSession.Logging.LogTrace("Created SSHDynamicCallConnection id:{0} : {1}", mConnectionId, new SSHConnectionDebugLogHelper(mConnection.ConnectionInfo))
 				;mEvent = new AutoResetEvent(false)
 			endmethod
 
@@ -225,7 +236,10 @@ namespace Harmony.Core.Context
 				endmethod
 			endproperty
 
-
+			public override method Close, void
+			proc
+				DebugLogSession.Logging.LogTrace("SSHDynamicCallConnection id:{0} closed", mConnectionId)
+			endmethod
 
 			public override method Flush, void
 				endparams
@@ -242,7 +256,11 @@ namespace Harmony.Core.Context
 			proc
 				
 				if(mStream.DataAvailable) then
-					mreturn Task.FromResult(mStream.Read(buffer, offset, count))
+				begin
+					data readBytes = mStream.Read(buffer, offset, count)
+					DebugLogSession.Logging.LogTrace("SSHDynamicCallConnection id:{0} read ascii string: {1}", mConnectionId, new ASCIIArrayDebugLogHelper(buffer, offset, readBytes))
+					mreturn Task.FromResult(readBytes)
+				end
 				else
 				begin
 					data tcs = new TaskCompletionSource<int>()
@@ -250,7 +268,9 @@ namespace Harmony.Core.Context
 					lambda DataReceivedHandler(sender, args)
 					begin
 						mStream.DataReceived -= handlerInstance
-						tcs.TrySetResult(mStream.Read(buffer, offset, count))
+						data readBytes = mStream.Read(buffer, offset, count)
+						DebugLogSession.Logging.LogTrace("SSHDynamicCallConnection id:{0} read ascii string: {1}", mConnectionId, new ASCIIArrayDebugLogHelper(buffer, offset, readBytes))
+						tcs.TrySetResult(readBytes)
 					end
 
 					data errorHandlerInstance, @EventHandler<ExceptionEventArgs>
@@ -331,6 +351,7 @@ namespace Harmony.Core.Context
 				count, int 
 				endparams
 			proc
+				DebugLogSession.Logging.LogTrace("SSHDynamicCallConnection id:{0} write ascii string: {1}", mConnectionId, new ASCIIArrayDebugLogHelper(buffer, offset, count))
 				mStream.Write(buffer, offset, count)
 				mStream.Flush()
 			endmethod
