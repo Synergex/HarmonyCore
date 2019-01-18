@@ -53,7 +53,7 @@ namespace Harmony.Core.Context
 			mreturn connection.MakeReady()
 		endmethod
 
-		public override method Dispose, void
+		public override method Destroy, void
 		proc
 			connection.Disconnect();
 		endmethod
@@ -334,7 +334,11 @@ namespace Harmony.Core.Context
 
 			data returnType = ^typeof(T)
 			if(returnType.IsPrimitive) then
+			begin
 				arguments[1].DataType = FieldDataType.IntegerField
+				;;specialize this
+				arguments[1].ElementSize = 4
+			end
 			else if(returnType == ^typeof(string)) then
 				arguments[1].DataType = FieldDataType.AlphaField
 			else
