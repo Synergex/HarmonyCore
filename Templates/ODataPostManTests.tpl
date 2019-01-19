@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME>PostManTests.postman_collection.json</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.3.12</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.3.13</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>API_TITLE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVER_BASE_PATH</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVER_HTTPS_PORT</REQUIRES_USERTOKEN>
@@ -85,6 +85,7 @@
             "name": "<StructureNoplural> Tests",
             "item": [
 <IF DEFINED_ENABLE_GET_ALL>
+<IF GET_ALL_ENDPOINT>
                 {
                     "_postman_id": "<guid_nobrace>",
                     "name": "Read <structurePlural>",
@@ -116,8 +117,10 @@
                     "response": []
                     <COUNTER_1_INCREMENT>
                 }
+</IF GET_ALL_ENDPOINT>
 </IF DEFINED_ENABLE_GET_ALL>
 <IF DEFINED_ENABLE_COUNT>
+<IF GET_ALL_ENDPOINT>
                 <IF COUNTER_1>,</IF COUNTER_1>
                 {
                     "_postman_id": "<guid_nobrace>",
@@ -151,8 +154,10 @@
                     "response": []
                     <COUNTER_1_INCREMENT>
                 }
+</IF GET_ALL_ENDPOINT>
 </IF DEFINED_ENABLE_COUNT>
 <IF DEFINED_ENABLE_GET_ONE>
+<IF GET_ENDPOINT>
                 <IF COUNTER_1>,</IF COUNTER_1>
                 {
                     "_postman_id": "<guid_nobrace>",
@@ -170,7 +175,7 @@
                         "raw": ""
                     },
                     "url": {
-                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<SERVER_BASE_PATH>/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF ALPHA>'</IF ALPHA>Insert<FieldSqlName><IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)",
+                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<SERVER_BASE_PATH>/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)",
                         "protocol": "<SERVER_PROTOCOL>",
                         "host": [
                             "<SERVER_NAME>"
@@ -178,17 +183,19 @@
                         "port": "<SERVER_HTTPS_PORT>",
                         "path": [
                             "<SERVER_BASE_PATH>",
-                            "<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF ALPHA>'</IF ALPHA>Insert<FieldSqlName><IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)"
+                            "<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)"
                         ]
                     }
                     },
                     "response": []
                     <COUNTER_1_INCREMENT>
                 }
+</IF GET_ENDPOINT>
 </IF DEFINED_ENABLE_GET_ONE>
 <IF STRUCTURE_ISAM>
 <IF DEFINED_ENABLE_ALTERNATE_KEYS>
-                <ALTERNATE_KEY_LOOP>
+<IF ALTERNATE_KEY_ENDPOINTS>
+              <ALTERNATE_KEY_LOOP>
                 <IF COUNTER_1>,</IF COUNTER_1>
                 {
                     "_postman_id": "<guid_nobrace>",
@@ -210,7 +217,7 @@
                         "raw": ""
                     },
                     "url": {
-                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<SERVER_BASE_PATH>/<StructurePlural>(<SEGMENT_LOOP><FieldSqlName>=<IF ALPHA>'</IF ALPHA>Insert<FieldSqlName><IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)",
+                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<SERVER_BASE_PATH>/<StructurePlural>(<SEGMENT_LOOP><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></SEGMENT_LOOP>)",
                         "protocol": "<SERVER_PROTOCOL>",
                         "host": [
                             "<SERVER_NAME>"
@@ -218,7 +225,7 @@
                         "port": "<SERVER_HTTPS_PORT>",
                         "path": [
                             "<SERVER_BASE_PATH>",
-                            "<StructurePlural>(<SEGMENT_LOOP><FieldSqlName>=<IF ALPHA>'</IF ALPHA>Insert<FieldSqlName><IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)"
+                            "<StructurePlural>(<SEGMENT_LOOP><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></SEGMENT_LOOP>)"
                         ]
                     }
                     },
@@ -244,7 +251,7 @@
                         "raw": ""
                     },
                     "url": {
-                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<SERVER_BASE_PATH>/<StructurePlural>(<SEGMENT_LOOP><FieldSqlName>=<IF ALPHA>'</IF ALPHA>Insert<FieldSqlName><IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)/$count",
+                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<SERVER_BASE_PATH>/<StructurePlural>(<SEGMENT_LOOP><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></SEGMENT_LOOP>)/$count",
                         "protocol": "<SERVER_PROTOCOL>",
                         "host": [
                             "<SERVER_NAME>"
@@ -252,7 +259,7 @@
                         "port": "<SERVER_HTTPS_PORT>",
                         "path": [
                             "<SERVER_BASE_PATH>",
-                            "<StructurePlural>(<SEGMENT_LOOP><FieldSqlName>=<IF ALPHA>'</IF ALPHA>Insert<FieldSqlName><IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)",
+                            "<StructurePlural>(<SEGMENT_LOOP><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></SEGMENT_LOOP>)",
                             "$count"
                         ]
                     }
@@ -263,9 +270,11 @@
                 </IF DUPLICATES>
                 </IF DEFINED_ENABLE_COUNT>
                 </ALTERNATE_KEY_LOOP>
+</IF ALTERNATE_KEY_ENDPOINTS>
 </IF DEFINED_ENABLE_ALTERNATE_KEYS>
 </IF STRUCTURE_ISAM>
 <IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
+<IF PROPERTY_ENDPOINTS>
                 <FIELD_LOOP>
                 <IF NOTPKSEGMENT>
                 <IF CUSTOM_NOT_HARMONY_EXCLUDE>
@@ -286,7 +295,7 @@
                         "raw": ""
                     },
                     "url": {
-                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<SERVER_BASE_PATH>/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF ALPHA>'</IF ALPHA>Insert<FieldSqlName><IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)/<FieldSqlName>",
+                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<SERVER_BASE_PATH>/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)/<FieldSqlName>",
                         "protocol": "<SERVER_PROTOCOL>",
                         "host": [
                             "<SERVER_NAME>"
@@ -294,7 +303,7 @@
                         "port": "<SERVER_HTTPS_PORT>",
                         "path": [
                             "<SERVER_BASE_PATH>",
-                            "<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF ALPHA>'</IF ALPHA>Insert<FieldSqlName><IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)/<FieldSqlName>"
+                            "<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></SEGMENT_LOOP><FieldSqlName>=</PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)/<FieldSqlName>"
                         ]
                     }
                     },
@@ -319,7 +328,7 @@
                         "raw": ""
                     },
                     "url": {
-                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<SERVER_BASE_PATH>/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF ALPHA>'</IF ALPHA>Insert<FieldSqlName><IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)/<FieldSqlName>/$value",
+                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<SERVER_BASE_PATH>/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)/<FieldSqlName>/$value",
                         "protocol": "<SERVER_PROTOCOL>",
                         "host": [
                             "<SERVER_NAME>"
@@ -327,7 +336,7 @@
                         "port": "<SERVER_HTTPS_PORT>",
                         "path": [
                             "<SERVER_BASE_PATH>",
-                            "<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF ALPHA>'</IF ALPHA>Insert<FieldSqlName><IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)/<FieldSqlName>/$value"
+                            "<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><FieldSqlName>=<SEGMENT_LOOP><IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)/<FieldSqlName>/$value"
                         ]
                     }
                     },
@@ -338,8 +347,10 @@
                 </IF CUSTOM_NOT_HARMONY_EXCLUDE>
                 </IF NOTPKSEGMENT>
                 </FIELD_LOOP>
+</IF PROPERTY_ENDPOINTS>
 </IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
 <IF DEFINED_ENABLE_POST>
+<IF POST_ENDPOINT>
                 <IF COUNTER_1>,</IF COUNTER_1>
                 {
                     "_postman_id": "<guid_nobrace>",
@@ -372,8 +383,10 @@
                     "response": []
                     <COUNTER_1_INCREMENT>
                 }
+</IF POST_ENDPOINT>
 </IF DEFINED_ENABLE_POST>
 <IF DEFINED_ENABLE_PUT>
+<IF PUT_ENDPOINT>
                 <IF COUNTER_1>,</IF COUNTER_1>
                 {
                     "_postman_id": "<guid_nobrace>",
@@ -391,7 +404,7 @@
                          "raw": "{\n<FIELD_LOOP><IF CUSTOM_NOT_HARMONY_EXCLUDE>    \"<FieldSqlName>\": <IF ALPHA>\"</IF ALPHA><IF CUSTOM_HARMONY_AS_STRING>\"</IF CUSTOM_HARMONY_AS_STRING><FIELD_SAMPLE_DATA_NOQUOTES><IF CUSTOM_HARMONY_AS_STRING>\"</IF CUSTOM_HARMONY_AS_STRING><IF ALPHA>\"</IF ALPHA><,>\n</IF CUSTOM_NOT_HARMONY_EXCLUDE></FIELD_LOOP>}"
                     },
                     "url": {
-                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<SERVER_BASE_PATH>/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF ALPHA>'</IF ALPHA>Insert<FieldSqlName><IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)",
+                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<SERVER_BASE_PATH>/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)",
                         "protocol": "<SERVER_PROTOCOL>",
                         "host": [
                             "<SERVER_NAME>"
@@ -399,16 +412,18 @@
                         "port": "<SERVER_HTTPS_PORT>",
                         "path": [
                             "<SERVER_BASE_PATH>",
-                            "<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF ALPHA>'</IF ALPHA>Insert<FieldSqlName><IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)"
+                            "<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)"
                         ]
                     }
                     },
                     "response": []
                     <COUNTER_1_INCREMENT>
                 }
+</IF PUT_ENDPOINT>
 </IF DEFINED_ENABLE_PUT>
 <IF DEFINED_ENABLE_PATCH>
-                <IF COUNTER_1>,</IF COUNTER_1>
+<IF PATCH_ENDPOINT>
+              <IF COUNTER_1>,</IF COUNTER_1>
                 {
                     "name": "Patch <structureNoplural>",
                     "request": {
@@ -424,7 +439,7 @@
                             "raw": "[\r\n  {\r\n    \"op\": \"replace\",\r\n    \"path\": \"PropertyName\",\r\n    \"value\": \"PropertyValue\"\r\n  }\r\n]"
                         },
                     "url": {
-                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<SERVER_BASE_PATH>/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF ALPHA>'</IF ALPHA>Insert<FieldSqlName><IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)",
+                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<SERVER_BASE_PATH>/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)",
                         "protocol": "<SERVER_PROTOCOL>",
                         "host": [
                             "<SERVER_NAME>"
@@ -432,15 +447,17 @@
                         "port": "<SERVER_HTTPS_PORT>",
                         "path": [
                             "<SERVER_BASE_PATH>",
-                            "<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF ALPHA>'</IF ALPHA>Insert<FieldSqlName><IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)"
+                            "<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)"
                         ]
                     }
                     },
                     "response": []
                     <COUNTER_1_INCREMENT>
                 }
+</IF PATCH_ENDPOINT>
 </IF DEFINED_ENABLE_PATCH>
 <IF DEFINED_ENABLE_DELETE>
+<IF DELETE_ENDPOINT>
                 <IF COUNTER_1>,</IF COUNTER_1>
                 {
                     "_postman_id": "<guid_nobrace>",
@@ -458,7 +475,7 @@
                         "raw": ""
                     },
                     "url": {
-                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<SERVER_BASE_PATH>/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF ALPHA>'</IF ALPHA>Insert<FieldSqlName><IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)",
+                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<SERVER_BASE_PATH>/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)",
                         "protocol": "<SERVER_PROTOCOL>",
                         "host": [
                             "<SERVER_NAME>"
@@ -466,13 +483,14 @@
                         "port": "<SERVER_HTTPS_PORT>",
                         "path": [
                             "<SERVER_BASE_PATH>",
-                            "<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF ALPHA>'</IF ALPHA>Insert<FieldSqlName><IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)"
+                            "<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)"
                         ]
                     }
                     },
                     "response": []
                     <COUNTER_1_INCREMENT>
                 }
+</IF DELETE_ENDPOINT>
 </IF DEFINED_ENABLE_DELETE>
             ]
         }<,>

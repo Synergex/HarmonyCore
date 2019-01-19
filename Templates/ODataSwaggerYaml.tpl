@@ -1,12 +1,12 @@
 <CODEGEN_FILENAME>SwaggerFile.yaml</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.3.12</REQUIRES_CODEGEN_VERSION>
-<REQUIRES_USERTOKEN>API_CONTACT_EMAIL</REQUIRES_USERTOKEN>
-<REQUIRES_USERTOKEN>API_DESCRIPTION</REQUIRES_USERTOKEN>
-<REQUIRES_USERTOKEN>API_LICENSE_NAME</REQUIRES_USERTOKEN>
-<REQUIRES_USERTOKEN>API_LICENSE_URL</REQUIRES_USERTOKEN>
-<REQUIRES_USERTOKEN>API_TERMS_URL</REQUIRES_USERTOKEN>
+<REQUIRES_CODEGEN_VERSION>5.3.13</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>API_TITLE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>API_VERSION</REQUIRES_USERTOKEN>
+<REQUIRES_USERTOKEN>API_DESCRIPTION</REQUIRES_USERTOKEN>
+;//<REQUIRES_USERTOKEN>API_TERMS_URL</REQUIRES_USERTOKEN>
+;//<REQUIRES_USERTOKEN>API_CONTACT_EMAIL</REQUIRES_USERTOKEN>
+;//<REQUIRES_USERTOKEN>API_LICENSE_NAME</REQUIRES_USERTOKEN>
+;//<REQUIRES_USERTOKEN>API_LICENSE_URL</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVER_BASE_PATH</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVER_HTTPS_PORT</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVER_NAME</REQUIRES_USERTOKEN>
@@ -59,12 +59,12 @@ info:
   description: <API_DESCRIPTION>
   version: <API_VERSION>
   title: <API_TITLE>
-  termsOfService: <API_TERMS_URL>
-  contact:
-    email: <API_CONTACT_EMAIL>
-  license:
-    name: <API_LICENSE_NAME>
-    url: '<API_LICENSE_URL>'
+;//  termsOfService: <API_TERMS_URL>
+;//  contact:
+;//    email: <API_CONTACT_EMAIL>
+;//  license:
+;//    name: <API_LICENSE_NAME>
+;//    url: '<API_LICENSE_URL>'
 host: '<SERVER_NAME>:<SERVER_HTTPS_PORT>'
 basePath: /<SERVER_BASE_PATH>
 schemes:
@@ -96,6 +96,7 @@ paths:
 ;// Get all records
 ;//
 <IF DEFINED_ENABLE_GET_ALL>
+<IF GET_ALL_ENDPOINT>
 <COUNTER_1_RESET>
 <COUNTER_1_INCREMENT>
   /<StructurePlural>:
@@ -156,11 +157,13 @@ paths:
         '401':
           description: Unauthorized
         </IF DEFINED_ENABLE_AUTHENTICATION>
+</IF GET_ALL_ENDPOINT>
 </IF DEFINED_ENABLE_GET_ALL>
 ;//
 ;// POST
 ;//
 <IF DEFINED_ENABLE_POST>
+<IF POST_ENDPOINT>
 <IF COUNTER_1_EQ_0>
   /<StructurePlural>:
 </IF COUNTER_1_EQ_0>
@@ -189,11 +192,13 @@ paths:
         '401':
           description: Unauthorized
         </IF DEFINED_ENABLE_AUTHENTICATION>
+</IF POST_ENDPOINT>
 </IF DEFINED_ENABLE_POST>
 ;//
 ;// GET Count
 ;//
 <IF DEFINED_ENABLE_COUNT>
+<IF GET_ENDPOINT>
   /<StructurePlural>/$count:
     get:
       summary: Count <structurePlural>
@@ -218,6 +223,7 @@ paths:
         '401':
           description: Unauthorized
         </IF DEFINED_ENABLE_AUTHENTICATION>
+</IF GET_ENDPOINT>
 </IF DEFINED_ENABLE_COUNT>
 ;//
 ;//----------------------------------------------------------------------------
@@ -229,8 +235,9 @@ paths:
 ;// Get via primary key
 ;//
 <IF DEFINED_ENABLE_GET_ONE>
+<IF GET_ENDPOINT>
 <COUNTER_1_RESET>
-  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF ALPHA>''</IF ALPHA>{a<FieldSqlName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>a{RecordNumber}</IF STRUCTURE_RELATIVE>)':
+  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><FieldSqlName>=<IF ALPHA>''</IF ALPHA>{a<FieldSqlName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>a{RecordNumber}</IF STRUCTURE_RELATIVE>)':
 <COUNTER_1_INCREMENT>
     get:
       summary: Get a single <structureNoplural>
@@ -287,14 +294,16 @@ paths:
         </IF DEFINED_ENABLE_AUTHENTICATION>
         '404':
           description: Not found (the requested <structureNoplural> was not found)
+</IF GET_ENDPOINT>
 </IF DEFINED_ENABLE_GET_ONE>
 ;//
 ;// ----------------------------------------------------------------------------
 ;// Delete via primary key
 ;//
 <IF DEFINED_ENABLE_DELETE>
+<IF DELETE_ENDPOINT>
 <IF COUNTER_1_EQ_0>
-  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF ALPHA>''</IF ALPHA>{a<FieldSqlName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>a{RecordNumber}</IF STRUCTURE_RELATIVE>)':
+  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><FieldSqlName>=<IF ALPHA>''</IF ALPHA>{a<FieldSqlName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>a{RecordNumber}</IF STRUCTURE_RELATIVE>)':
 </IF COUNTER_1_EQ_0>
 <COUNTER_1_INCREMENT>
     delete:
@@ -338,14 +347,16 @@ paths:
         </IF DEFINED_ENABLE_AUTHENTICATION>
         '404':
           description: Not found content (the specified <structureNoplural> was not found)
+</IF DELETE_ENDPOINT>
 </IF DEFINED_ENABLE_DELETE>
 ;//
 ;// ----------------------------------------------------------------------------
 ;// Create or update via primary key
 ;//
 <IF DEFINED_ENABLE_PUT>
+<IF PUT_ENDPOINT>
 <IF COUNTER_1_EQ_0>
-  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF ALPHA>''</IF ALPHA>{a<FieldSqlName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>a{RecordNumber}</IF STRUCTURE_RELATIVE>)':
+  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><FieldSqlName>=<IF ALPHA>''</IF ALPHA>{a<FieldSqlName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>a{RecordNumber}</IF STRUCTURE_RELATIVE>)':
 </IF COUNTER_1_EQ_0>
 <COUNTER_1_INCREMENT>
     put:
@@ -399,14 +410,16 @@ paths:
         '401':
           description: Unauthorized
         </IF DEFINED_ENABLE_AUTHENTICATION>
+</IF PUT_ENDPOINT>
 </IF DEFINED_ENABLE_PUT>
 ;//
 ;// ----------------------------------------------------------------------------
 ;// Patch via primary key
 ;//
 <IF DEFINED_ENABLE_PATCH>
+<IF PATCH_ENDPOINT>
 <IF COUNTER_1_EQ_0>
-  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF ALPHA>''</IF ALPHA>{a<FieldSqlName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>a{RecordNumber}</IF STRUCTURE_RELATIVE>)':
+  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><FieldSqlName>=<IF ALPHA>''</IF ALPHA>{a<FieldSqlName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>a{RecordNumber}</IF STRUCTURE_RELATIVE>)':
 </IF COUNTER_1_EQ_0>
 <COUNTER_1_INCREMENT>
     patch:
@@ -458,6 +471,7 @@ paths:
         </IF DEFINED_ENABLE_AUTHENTICATION>
         '404':
           description: Not found (the specified <structureNoplural> was not found)
+</IF PATCH_ENDPOINT>
 </IF DEFINED_ENABLE_PATCH>
 ;//
 ;//----------------------------------------------------------------------------
@@ -466,6 +480,7 @@ paths:
 ;//
 <IF STRUCTURE_ISAM>
 <IF DEFINED_ENABLE_ALTERNATE_KEYS>
+<IF ALTERNATE_KEY_ENDPOINTS>
 <ALTERNATE_KEY_LOOP>
   '/<StructurePlural>(<SEGMENT_LOOP><FieldSqlName>=<IF ALPHA>''</IF ALPHA>{a<FieldSqlName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP>)':
 ;//
@@ -598,9 +613,11 @@ paths:
     </IF DUPLICATES>
   </IF DEFINED_ENABLE_COUNT>
 </ALTERNATE_KEY_LOOP>
+</IF ALTERNATE_KEY_ENDPOINTS>
 </IF DEFINED_ENABLE_ALTERNATE_KEYS>
 </IF STRUCTURE_ISAM>
 <IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
+<IF PROPERTY_ENDPOINTS>
 ;//
 ;// ----------------------------------------------------------------------------
 ;// Single property operations
@@ -611,7 +628,7 @@ paths:
 ;//
 ;// Invividual property
 ;//
-  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><IF ALPHA>''</IF ALPHA>{a<FieldSqlName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></IF SINGLE_SEGMENT></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>{RecordNumber}</IF STRUCTURE_RELATIVE>)/<FieldSqlName>':
+  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><FieldSqlName>=<IF ALPHA>''</IF ALPHA>{a<FieldSqlName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></IF SINGLE_SEGMENT></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>{RecordNumber}</IF STRUCTURE_RELATIVE>)/<FieldSqlName>':
     get:
       summary: Get <structureNoplural> property <FieldSqlName>
       description: Get <structureNoplural> property <FieldSqlName> via complete primary key.
@@ -663,7 +680,7 @@ paths:
 ;// Invividual property - value only
 ;//
 <IF DEFINED_ENABLE_PROPERTY_VALUE_DOCS>
-  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><IF ALPHA>''</IF ALPHA>{a<FieldSqlName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></IF SINGLE_SEGMENT></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>{RecordNumber}</IF STRUCTURE_RELATIVE>)/<FieldSqlName>/$value':
+  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><FieldSqlName>=<IF ALPHA>''</IF ALPHA>{a<FieldSqlName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></IF SINGLE_SEGMENT></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>{RecordNumber}</IF STRUCTURE_RELATIVE>)/<FieldSqlName>/$value':
     get:
       summary: Get <structureNoplural> property <FieldSqlName>
       description: Get <structureNoplural> property <FieldSqlName> via complete primary key, returning the raw value.
@@ -715,6 +732,7 @@ paths:
 </IF CUSTOM_NOT_HARMONY_EXCLUDE>
 </IF NOTPKSEGMENT>
 </FIELD_LOOP>
+</IF PROPERTY_ENDPOINTS>
 </IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
 </STRUCTURE_LOOP>
 ;//
@@ -855,6 +873,8 @@ definitions:
       <FieldSqlname>: <FIELD_SAMPLE_DATA>
     </IF CUSTOM_NOT_HARMONY_EXCLUDE>
 </FIELD_LOOP>
+<IF DEFINED_ENABLE_POST>
+<IF POST_ENDPOINT>
 ;//
 ;// Type without primary key properties
 ;//
@@ -915,6 +935,8 @@ definitions:
     </IF CUSTOM_NOT_HARMONY_EXCLUDE>
   </IF NOTPKSEGMENT>
 </FIELD_LOOP>
+</IF DEFINED_ENABLE_POST>
+</IF POST_ENDPOINT>
 </STRUCTURE_LOOP>
 ;//
 ;//----------------------------------------------------------------------------

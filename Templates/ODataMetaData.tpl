@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME><StructureNoplural>MetaData.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.3.12</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.3.13</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
 ;// Title:       ODataMetaData.tpl
@@ -75,15 +75,40 @@ namespace <NAMESPACE>
             AddFieldInfo("RecordNumber", "INTEGER", 4, 0, 0, false)
 </IF STRUCTURE_RELATIVE>
     <IF CUSTOM_NOT_HARMONY_EXCLUDE>
-      <IF CUSTOM_HARMONY_AS_STRING>
-            AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false, new SynergyDecimalConverter.LiteralFormatter("<FIELD_FORMATSTRING>"))
-      <ELSE>
-        <IF DATE>
+        <IF DATEORTIME>
+          <IF DATE_YYMMDD>
+            <IF CUSTOM_HARMONY_AS_STRING>
+            AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false, new SynergyDecimalConverter.LiteralFormatter("XX-XX-XX"))
+            <ELSE>
+            AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false, new SynergyDecimalDateConverter.LiteralFormatter("FORMAT:YYMMDD"))
+            </IF CUSTOM_HARMONY_AS_STRING>
+          </IF DATE_YYMMDD>
+          <IF DATE_YYYYMMDD>
+            <IF CUSTOM_HARMONY_AS_STRING>
+            AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false, new SynergyDecimalConverter.LiteralFormatter("XXXX-XX-XX"))
+            <ELSE>
             AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false, new SynergyDecimalDateConverter.LiteralFormatter("FORMAT:YYYYMMDD"))
+            </IF CUSTOM_HARMONY_AS_STRING>
+          </IF DATE_YYYYMMDD>
+          <IF TIME>
+            <IF CUSTOM_HARMONY_AS_STRING>
+            <IF TIME_HHMM>
+            AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false, new SynergyDecimalConverter.LiteralFormatter("XX:XX"))
+            </IF TIME_HHMM>
+            <IF TIME_HHMMSS>
+            AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false, new SynergyDecimalConverter.LiteralFormatter("XX:XX:XX"))
+            </IF TIME_HHMMSS>
+            <ELSE>
+            AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false, new SynergyDecimalDateConverter.LiteralFormatter("FORMAT:HHMM"))
+            </IF CUSTOM_HARMONY_AS_STRING>
+          </IF TIME>
         <ELSE>
+            <IF CUSTOM_HARMONY_AS_STRING>
+            AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false, new SynergyDecimalConverter.LiteralFormatter("<FIELD_FORMATSTRING>"))
+            <ELSE>
             AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false)
-        </IF DATE>
-      </IF CUSTOM_HARMONY_AS_STRING>
+            </IF CUSTOM_HARMONY_AS_STRING>
+        </IF DATEORTIME>
     </IF CUSTOM_NOT_HARMONY_EXCLUDE>
 </FIELD_LOOP>
 ;//

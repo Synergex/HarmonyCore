@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME>EdmBuilder.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.3.12</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.3.13</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
@@ -104,11 +104,15 @@ namespace <NAMESPACE>
 <STRUCTURE_LOOP>
   <IF STRUCTURE_ISAM>
     <PRIMARY_KEY>
-        <IF MULTIPLE_SEGMENTS>
-            <SEGMENT_LOOP>
+      <IF MULTIPLE_SEGMENTS>
+        <SEGMENT_LOOP>
+          <IF CUSTOM_HARMONY_AS_STRING>
+            builder.EntityType<<StructureNoplural>>().HasKey<<StructureNoplural>,string>("<FieldSqlname>")
+          <ELSE>
             builder.EntityType<<StructureNoplural>>().HasKey<<StructureNoplural>,<FIELD_CSTYPE>>("<FieldSqlname>")
-            </SEGMENT_LOOP>
-        </IF MULTIPLE_SEGMENTS>
+          </IF CUSTOM_HARMONY_AS_STRING>
+        </SEGMENT_LOOP>
+      </IF MULTIPLE_SEGMENTS>
     </PRIMARY_KEY>
   </IF STRUCTURE_ISAM>
   <IF STRUCTURE_RELATIVE>
@@ -130,6 +134,9 @@ namespace <NAMESPACE>
             </IF STRUCTURE_ISAM>
             </STRUCTURE_LOOP>
 
+            ;;If we have a GetEdmModelCustom method, call it 
+            PostEdmModelCustom(serviceProvider, tempModel)
+
             mreturn tempModel
 
         endmethod
@@ -139,6 +146,13 @@ namespace <NAMESPACE>
         partial static method GetEdmModelCustom, void
             required in serviceProvider, @IServiceProvider
             required in builder, @ODataModelBuilder
+        endmethod
+
+        ;;Declare the PostEdmModelCustom partial method
+        ;;This method can be implemented in a partial class to provide custom EDM configuration code
+        partial static method PostEdmModelCustom, void
+            required in serviceProvider, @IServiceProvider
+            required in model, @EdmModel
         endmethod
 
     endclass
