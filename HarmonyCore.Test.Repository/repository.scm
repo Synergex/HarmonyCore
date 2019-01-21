@@ -5,7 +5,7 @@
 ;                 : D:\HarmonyCore\HarmonyCore.Test.Repository\bin\Debug\rpstext
 ;                 : Version 10.3.3f
 ;
-;  GENERATED      : 19-DEC-2018, 17:37:19
+;  GENERATED      : 19-JAN-2019, 13:11:38
 ;                 : Version 10.3.3f
 ;  EXPORT OPTIONS : [ALL] 
  
@@ -425,6 +425,23 @@ Field PARAM_VALUE   Type DECIMAL   Size 6
 Key RECORD_NUMBER   ACCESS   Order ASCENDING   Dups NO
    Segment RECORD NUMBER
  
+Structure TEST   DBL ISAM
+   Description "Test structure"
+ 
+Field ID   Type AUTOSEQ   Size 8
+   Description "ID"
+   Readonly
+   Nonull
+ 
+Field YES_NO   Type ALPHA   Size 1
+   Description "Alpha Y/N field (boolean)"
+   Checkbox
+   Required
+ 
+Key ID   ACCESS   Order ASCENDING   Dups NO
+   Description "ID"
+   Segment FIELD   ID  SegType SEQUENCE
+ 
 Structure VENDORS   DBL ISAM
    Description "Vendor record"
  
@@ -522,6 +539,10 @@ File ORDER_ITEMS   DBL ISAM   "DAT:order_items.ism"
 File SYSPARAMS   RELATIVE   "DAT:sysparams.ddf"
    Description "System parameter file"
    Assign SYSPARAMS
+ 
+File TEST   DBL ISAM   "DAT:test.ism"
+   Description "Test file"
+   Assign TEST
  
 File VENDORS   DBL ISAM   "DAT:vendors.ism"
    Description "Vendors file"

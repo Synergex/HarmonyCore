@@ -63,6 +63,7 @@ namespace Services
             builder.EntitySet<Order>("Orders")
             builder.EntitySet<OrderItem>("OrderItems")
             builder.EntitySet<Vendor>("Vendors")
+            builder.EntitySet<Test>("Tests")
 
             ;;Entities with a single primary key segment have the key declared to EF via a
             ;;{Key} attribute on the appropriate property in the data model, but only one {key}
@@ -102,6 +103,11 @@ namespace Services
             tempModel.AddAlternateKeyAnnotation(vendorType, new Dictionary<string, IEdmProperty>() {{"ZipCode",vendorType.FindProperty("ZipCode")}})
             tempModel.AddAlternateKeyAnnotation(vendorType, new Dictionary<string, IEdmProperty>() {{"PaymentTermsCode",vendorType.FindProperty("PaymentTermsCode")}})
 
+            data testType = (@EdmEntityType)tempModel.FindDeclaredType("Services.Models.Test")
+
+            ;;If we have a GetEdmModelCustom method, call it 
+            PostEdmModelCustom(serviceProvider, tempModel)
+
             mreturn tempModel
 
         endmethod
@@ -111,6 +117,13 @@ namespace Services
         partial static method GetEdmModelCustom, void
             required in serviceProvider, @IServiceProvider
             required in builder, @ODataModelBuilder
+        endmethod
+
+        ;;Declare the PostEdmModelCustom partial method
+        ;;This method can be implemented in a partial class to provide custom EDM configuration code
+        partial static method PostEdmModelCustom, void
+            required in serviceProvider, @IServiceProvider
+            required in model, @EdmModel
         endmethod
 
     endclass

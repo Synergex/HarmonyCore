@@ -133,11 +133,11 @@ namespace <NAMESPACE>
         </IF HARMONY_ROLES>
         </IF DEFINED_ENABLE_FIELD_SECURITY>
         <COUNTER_1_INCREMENT>
-        <IF CUSTOM_HARMONY_AS_STRING>
+<IF CUSTOM_HARMONY_AS_STRING>
         public property <FieldSqlname>, String
-        <ELSE>
+<ELSE>
         public property <FieldSqlname>, <FIELD_CSTYPE>
-        </IF CUSTOM_HARMONY_AS_STRING>
+</IF CUSTOM_HARMONY_AS_STRING>
 ;//
 ;// Field property get method
 ;//
@@ -185,6 +185,12 @@ namespace <NAMESPACE>
         <IF INTEGER>
                 mreturn (<FIELD_CSTYPE>)mSynergyData.<field_original_name_modified>
         </IF INTEGER>
+        <IF AUTO_SEQUENCE>
+                mreturn (<FIELD_CSTYPE>)mSynergyData.<field_original_name_modified>
+        </IF AUTO_SEQUENCE>
+        <IF AUTO_TIMESTAMP>
+                mreturn (<FIELD_CSTYPE>)mSynergyData.<field_original_name_modified>
+        </IF AUTO_TIMESTAMP>
             endmethod
 ;//
 ;// Field property set method
@@ -234,6 +240,12 @@ namespace <NAMESPACE>
         <IF INTEGER>
                 mSynergyData.<field_original_name_modified> = value
         </IF INTEGER>
+        <IF AUTO_SEQUENCE>
+                mSynergyData.<field_original_name_modified> = value
+        </IF AUTO_SEQUENCE>
+        <IF AUTO_TIMESTAMP>
+                mSynergyData.<field_original_name_modified> = value
+        </IF AUTO_TIMESTAMP>
             endmethod
 ;//
 ;// End of field property

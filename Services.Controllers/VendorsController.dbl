@@ -34,13 +34,14 @@ namespace Services.Controllers
         ;;; <summary>
         ;;; Constructs a new instance of VendorsController
         ;;; </summary>
-        ;;; <param name="dbContext">Database context</param>
+        ;;; <param name="aDbContext">Database context instance (DI)</param>
+        ;;; <param name="aServiceProvider">Service provider instance (DI)</param>
         public method VendorsController
-            dbContext, @Services.Models.DBContext
-           serviceProvider, @IServiceProvider
+            aDbContext, @Services.Models.DBContext
+            aServiceProvider, @IServiceProvider
         proc
-            this.DBContext = dbContext
-            this.ServiceProvider = serviceProvider
+            this.DBContext = aDbContext
+            this.ServiceProvider = aServiceProvider
         endmethod
 
         {ODataRoute("Vendors")}
@@ -54,7 +55,7 @@ namespace Services.Controllers
             mreturn Ok(DBContext.Vendors)
         endmethod
 
-        {ODataRoute("Vendors({aVendorNumber})")}
+        {ODataRoute("Vendors(VendorNumber={aVendorNumber})")}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get a single Vendor by primary key.
@@ -309,7 +310,7 @@ namespace Services.Controllers
 
         endmethod
 
-        {ODataRoute("Vendors({aVendorNumber})")}
+        {ODataRoute("Vendors(VendorNumber={aVendorNumber})")}
         ;;; <summary>
         ;;; Create (with a client-supplied primary key) or replace a vendor.
         ;;; </summary>
@@ -353,7 +354,7 @@ namespace Services.Controllers
 
         endmethod
 
-        {ODataRoute("Vendors({aVendorNumber})")}
+        {ODataRoute("Vendors(VendorNumber={aVendorNumber})")}
         ;;; <summary>
         ;;; Patch  (partial update) a vendor.
         ;;; </summary>
@@ -396,7 +397,7 @@ namespace Services.Controllers
 
         endmethod
 
-        {ODataRoute("Vendors({aVendorNumber})")}
+        {ODataRoute("Vendors(VendorNumber={aVendorNumber})")}
         ;;; <summary>
         ;;; Delete a vendor.
         ;;; </summary>

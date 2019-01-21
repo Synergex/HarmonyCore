@@ -15,7 +15,7 @@ set TestProject=Services.Test
 rem ================================================================================================================================
 rem Specify the names of the repository structures to generate code from:
 
-set DATA_STRUCTURES=CUSTOMERS ITEMS ORDERS ORDER_ITEMS VENDORS
+set DATA_STRUCTURES=CUSTOMERS ITEMS ORDERS ORDER_ITEMS VENDORS TEST
 set DATA_ALIASES=%DATA_STRUCTURES%
 
 set FILE_STRUCTURES=%DATA_STRUCTURES%
@@ -151,11 +151,18 @@ if DEFINED ENABLE_SELF_HOST_GENERATION (
 rem ================================================================================
 rem Swagger documentation and Postman tests
 
-rem Generate a Swagger file
+rem Generate a Swagger files
 if DEFINED ENABLE_SWAGGER_DOCS (
   codegen -s %DATA_STRUCTURES% -ms ^
           -a %DATA_ALIASES% ^
           -t ODataSwaggerYaml ^
+          -o %SolutionDir%%ServicesProject%\wwwroot ^
+             %STDOPTS%
+  if ERRORLEVEL 1 goto error
+
+  codegen -s %DATA_STRUCTURES% ^
+          -a %DATA_ALIASES% ^
+          -t ODataSwaggerType ^
           -o %SolutionDir%%ServicesProject%\wwwroot ^
              %STDOPTS%
   if ERRORLEVEL 1 goto error

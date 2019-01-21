@@ -34,13 +34,14 @@ namespace Services.Controllers
         ;;; <summary>
         ;;; Constructs a new instance of OrdersController
         ;;; </summary>
-        ;;; <param name="dbContext">Database context</param>
+        ;;; <param name="aDbContext">Database context instance (DI)</param>
+        ;;; <param name="aServiceProvider">Service provider instance (DI)</param>
         public method OrdersController
-            dbContext, @Services.Models.DBContext
-           serviceProvider, @IServiceProvider
+            aDbContext, @Services.Models.DBContext
+            aServiceProvider, @IServiceProvider
         proc
-            this.DBContext = dbContext
-            this.ServiceProvider = serviceProvider
+            this.DBContext = aDbContext
+            this.ServiceProvider = aServiceProvider
         endmethod
 
         {ODataRoute("Orders")}
@@ -54,7 +55,7 @@ namespace Services.Controllers
             mreturn Ok(DBContext.Orders)
         endmethod
 
-        {ODataRoute("Orders({aOrderNumber})")}
+        {ODataRoute("Orders(OrderNumber={aOrderNumber})")}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get a single Order by primary key.
@@ -255,7 +256,7 @@ namespace Services.Controllers
 
         endmethod
 
-        {ODataRoute("Orders({aOrderNumber})")}
+        {ODataRoute("Orders(OrderNumber={aOrderNumber})")}
         ;;; <summary>
         ;;; Create (with a client-supplied primary key) or replace a order.
         ;;; </summary>
@@ -299,7 +300,7 @@ namespace Services.Controllers
 
         endmethod
 
-        {ODataRoute("Orders({aOrderNumber})")}
+        {ODataRoute("Orders(OrderNumber={aOrderNumber})")}
         ;;; <summary>
         ;;; Patch  (partial update) a order.
         ;;; </summary>
@@ -342,7 +343,7 @@ namespace Services.Controllers
 
         endmethod
 
-        {ODataRoute("Orders({aOrderNumber})")}
+        {ODataRoute("Orders(OrderNumber={aOrderNumber})")}
         ;;; <summary>
         ;;; Delete a order.
         ;;; </summary>

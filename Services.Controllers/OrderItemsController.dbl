@@ -34,13 +34,14 @@ namespace Services.Controllers
         ;;; <summary>
         ;;; Constructs a new instance of OrderItemsController
         ;;; </summary>
-        ;;; <param name="dbContext">Database context</param>
+        ;;; <param name="aDbContext">Database context instance (DI)</param>
+        ;;; <param name="aServiceProvider">Service provider instance (DI)</param>
         public method OrderItemsController
-            dbContext, @Services.Models.DBContext
-           serviceProvider, @IServiceProvider
+            aDbContext, @Services.Models.DBContext
+            aServiceProvider, @IServiceProvider
         proc
-            this.DBContext = dbContext
-            this.ServiceProvider = serviceProvider
+            this.DBContext = aDbContext
+            this.ServiceProvider = aServiceProvider
         endmethod
 
         {ODataRoute("OrderItems")}
@@ -54,7 +55,7 @@ namespace Services.Controllers
             mreturn Ok(DBContext.OrderItems)
         endmethod
 
-        {ODataRoute("OrderItems({aOrderNumber},{aItemNumber})")}
+        {ODataRoute("OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})")}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get a single OrderItem by primary key.
@@ -124,7 +125,7 @@ namespace Services.Controllers
 
 
 
-        {ODataRoute("OrderItems({aOrderNumber},{aItemNumber})/ItemOrdered")}
+        {ODataRoute("OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})/ItemOrdered")}
         ;;; <summary>
         ;;; Get the ItemOrdered property of a single OrderItem, by primary key.
         ;;; </summary>
@@ -145,7 +146,7 @@ namespace Services.Controllers
             mreturn OK(result.ItemOrdered)
         endmethod
 
-        {ODataRoute("OrderItems({aOrderNumber},{aItemNumber})/QuantityOrdered")}
+        {ODataRoute("OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})/QuantityOrdered")}
         ;;; <summary>
         ;;; Get the QuantityOrdered property of a single OrderItem, by primary key.
         ;;; </summary>
@@ -166,7 +167,7 @@ namespace Services.Controllers
             mreturn OK(result.QuantityOrdered)
         endmethod
 
-        {ODataRoute("OrderItems({aOrderNumber},{aItemNumber})/UnitPrice")}
+        {ODataRoute("OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})/UnitPrice")}
         ;;; <summary>
         ;;; Get the UnitPrice property of a single OrderItem, by primary key.
         ;;; </summary>
@@ -187,7 +188,7 @@ namespace Services.Controllers
             mreturn OK(result.UnitPrice)
         endmethod
 
-        {ODataRoute("OrderItems({aOrderNumber},{aItemNumber})/DateShipped")}
+        {ODataRoute("OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})/DateShipped")}
         ;;; <summary>
         ;;; Get the DateShipped property of a single OrderItem, by primary key.
         ;;; </summary>
@@ -208,7 +209,7 @@ namespace Services.Controllers
             mreturn OK(result.DateShipped)
         endmethod
 
-        {ODataRoute("OrderItems({aOrderNumber},{aItemNumber})/InvoiceNumber")}
+        {ODataRoute("OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})/InvoiceNumber")}
         ;;; <summary>
         ;;; Get the InvoiceNumber property of a single OrderItem, by primary key.
         ;;; </summary>
@@ -257,7 +258,7 @@ namespace Services.Controllers
 
         endmethod
 
-        {ODataRoute("OrderItems({aOrderNumber},{aItemNumber})")}
+        {ODataRoute("OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})")}
         ;;; <summary>
         ;;; Create (with a client-supplied primary key) or replace a orderItem.
         ;;; </summary>
@@ -305,7 +306,7 @@ namespace Services.Controllers
 
         endmethod
 
-        {ODataRoute("OrderItems({aOrderNumber},{aItemNumber})")}
+        {ODataRoute("OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})")}
         ;;; <summary>
         ;;; Patch  (partial update) a orderItem.
         ;;; </summary>
@@ -351,7 +352,7 @@ namespace Services.Controllers
 
         endmethod
 
-        {ODataRoute("OrderItems({aOrderNumber},{aItemNumber})")}
+        {ODataRoute("OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})")}
         ;;; <summary>
         ;;; Delete a orderItem.
         ;;; </summary>

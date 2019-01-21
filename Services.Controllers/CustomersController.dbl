@@ -34,13 +34,14 @@ namespace Services.Controllers
         ;;; <summary>
         ;;; Constructs a new instance of CustomersController
         ;;; </summary>
-        ;;; <param name="dbContext">Database context</param>
+        ;;; <param name="aDbContext">Database context instance (DI)</param>
+        ;;; <param name="aServiceProvider">Service provider instance (DI)</param>
         public method CustomersController
-            dbContext, @Services.Models.DBContext
-           serviceProvider, @IServiceProvider
+            aDbContext, @Services.Models.DBContext
+            aServiceProvider, @IServiceProvider
         proc
-            this.DBContext = dbContext
-            this.ServiceProvider = serviceProvider
+            this.DBContext = aDbContext
+            this.ServiceProvider = aServiceProvider
         endmethod
 
         {ODataRoute("Customers")}
@@ -54,7 +55,7 @@ namespace Services.Controllers
             mreturn Ok(DBContext.Customers)
         endmethod
 
-        {ODataRoute("Customers({aCustomerNumber})")}
+        {ODataRoute("Customers(CustomerNumber={aCustomerNumber})")}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get a single Customer by primary key.
@@ -363,7 +364,7 @@ namespace Services.Controllers
 
         endmethod
 
-        {ODataRoute("Customers({aCustomerNumber})")}
+        {ODataRoute("Customers(CustomerNumber={aCustomerNumber})")}
         ;;; <summary>
         ;;; Create (with a client-supplied primary key) or replace a customer.
         ;;; </summary>
@@ -407,7 +408,7 @@ namespace Services.Controllers
 
         endmethod
 
-        {ODataRoute("Customers({aCustomerNumber})")}
+        {ODataRoute("Customers(CustomerNumber={aCustomerNumber})")}
         ;;; <summary>
         ;;; Patch  (partial update) a customer.
         ;;; </summary>
@@ -450,7 +451,7 @@ namespace Services.Controllers
 
         endmethod
 
-        {ODataRoute("Customers({aCustomerNumber})")}
+        {ODataRoute("Customers(CustomerNumber={aCustomerNumber})")}
         ;;; <summary>
         ;;; Delete a customer.
         ;;; </summary>
