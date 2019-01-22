@@ -115,7 +115,7 @@ namespace <NAMESPACE>
 </IF GET_ALL_ENDPOINT>
 </IF DEFINED_ENABLE_GET_ALL>
 ;//
-;// GET ONE -------------------------------------------------------------------
+;// GET ONE (PRIMARY KEY READ) ------------------------------------------------
 ;//
 <IF DEFINED_ENABLE_GET_ONE>
 <IF GET_ENDPOINT>
@@ -149,7 +149,11 @@ namespace <NAMESPACE>
   <PRIMARY_KEY>
     <SEGMENT_LOOP>
             {FromODataUri}
+            <IF CUSTOM_HARMONY_AS_STRING>
+            required in a<FieldSqlName>, string
+            <ELSE>
             required in a<FieldSqlName>, <SEGMENT_SNTYPE>
+            </IF CUSTOM_HARMONY_AS_STRING>
     </SEGMENT_LOOP>
   </PRIMARY_KEY>
 </IF STRUCTURE_ISAM>
@@ -193,7 +197,11 @@ namespace <NAMESPACE>
         public method Get<StructurePlural>By<KeyName>, @IActionResult
             <SEGMENT_LOOP>
             {FromODataUri}
+            <IF CUSTOM_HARMONY_AS_STRING>
+            required in a<FieldSqlName>, string
+            <ELSE>
             required in a<FieldSqlName>, <SEGMENT_SNTYPE>
+            </IF CUSTOM_HARMONY_AS_STRING>
             </SEGMENT_LOOP>
         proc
             data result = DBContext.<StructurePlural>.FindAlternate(<SEGMENT_LOOP>"<FieldSqlName>",a<FieldSqlName><,></SEGMENT_LOOP>)
@@ -223,7 +231,11 @@ namespace <NAMESPACE>
         public method Get<StructureNoplural>By<KeyName>, @SingleResult<<StructureNoplural>>
             <SEGMENT_LOOP>
             {FromODataUri}
+            <IF CUSTOM_HARMONY_AS_STRING>
+            required in a<FieldSqlName>, string
+            <ELSE>
             required in a<FieldSqlName>, <SEGMENT_SNTYPE>
+            </IF CUSTOM_HARMONY_AS_STRING>
             </SEGMENT_LOOP>
         proc
             mreturn new SingleResult<<StructureNoplural>>(DBContext.<StructurePlural>.FindAlternate(<SEGMENT_LOOP>"<FieldSqlName>",a<FieldSqlName><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA><,></SEGMENT_LOOP>))
@@ -271,10 +283,18 @@ namespace <NAMESPACE>
         <SEGMENT_LOOP>
             <IF SINGLE_SEGMENT>
             {FromODataUri}
+            <IF CUSTOM_HARMONY_AS_STRING>
+            required in key, string
+            <ELSE>
             required in key, <SEGMENT_SNTYPE>
+            </IF CUSTOM_HARMONY_AS_STRING>
             <ELSE>
             {FromODataUri}
+            <IF CUSTOM_HARMONY_AS_STRING>
+            required in a<FieldSqlName>, string
+            <ELSE>
             required in a<FieldSqlName>, <SEGMENT_SNTYPE>
+            </IF CUSTOM_HARMONY_AS_STRING>
             </IF SINGLE_SEGMENT>
         </SEGMENT_LOOP>
         proc
@@ -481,7 +501,11 @@ namespace <NAMESPACE>
     <PRIMARY_KEY>
       <SEGMENT_LOOP>
             {FromODataUri}
+        <IF CUSTOM_HARMONY_AS_STRING>
+            required in a<FieldSqlName>, string
+        <ELSE>
             required in a<FieldSqlName>, <SEGMENT_SNTYPE>
+        </IF CUSTOM_HARMONY_AS_STRING>
       </SEGMENT_LOOP>
     </PRIMARY_KEY>
   </IF STRUCTURE_ISAM>
@@ -555,7 +579,11 @@ namespace <NAMESPACE>
     <PRIMARY_KEY>
       <SEGMENT_LOOP>
             {FromODataUri}
+        <IF CUSTOM_HARMONY_AS_STRING>
+            required in a<FieldSqlName>, string
+        <ELSE>
             required in a<FieldSqlName>, <SEGMENT_SNTYPE>
+        </IF CUSTOM_HARMONY_AS_STRING>
       </SEGMENT_LOOP>
     </PRIMARY_KEY>
   </IF STRUCTURE_ISAM>
