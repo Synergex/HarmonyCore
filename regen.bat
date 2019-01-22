@@ -15,7 +15,7 @@ set TestProject=Services.Test
 rem ================================================================================================================================
 rem Specify the names of the repository structures to generate code from:
 
-set DATA_STRUCTURES=CUSTOMERS ITEMS ORDERS ORDER_ITEMS VENDORS TEST
+set DATA_STRUCTURES=CUSTOMERS ITEMS ORDERS ORDER_ITEMS VENDORS
 set DATA_ALIASES=%DATA_STRUCTURES%
 
 set FILE_STRUCTURES=%DATA_STRUCTURES%

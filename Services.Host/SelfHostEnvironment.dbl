@@ -117,14 +117,6 @@ namespace Services.Host
                     logicals.Add(logical)
             end
 
-            fileSpec = "DAT:test.ism"
-            if (fileSpec.Contains(":"))
-            begin
-                logical = fileSpec.Split(":")[0].ToUpper()
-                if (!logicals.Contains(logical))
-                    logicals.Add(logical)
-            end
-
             fileSpec = "DAT:sysparams.ddf"
             if (fileSpec.Contains(":"))
             begin
@@ -165,7 +157,6 @@ namespace Services.Host
             data orders = loadOrders()
             data orderItems = loadOrderItems()
             data vendors = loadVendors()
-            data tests = loadTests()
 
             ;;Create and load the customers file
 
@@ -220,17 +211,6 @@ namespace Services.Host
             open(chout=0,o:i,dataFile,FDL:xdlFile)
             foreach vendor in vendors
                 store(chout,vendor.SynergyRecord)
-            close chout
-
-            ;;Create and load the tests file
-
-            dataFile = "DAT:test.ism"
-            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
-
-            data test, @Test
-            open(chout=0,o:i,dataFile,FDL:xdlFile)
-            foreach test in tests
-                store(chout,test.SynergyRecord)
             close chout
 
             ;;Create and load the sysparams file
@@ -291,17 +271,6 @@ namespace Services.Host
             try
             begin
                 xcall delet("DAT:vendors.ism")
-            end
-            catch (e, @NoFileFoundException)
-            begin
-                nop
-            end
-            endtry
-
-            ;;Delete the tests file
-            try
-            begin
-                xcall delet("DAT:test.ism")
             end
             catch (e, @NoFileFoundException)
             begin
@@ -410,24 +379,6 @@ namespace Services.Host
         eof,
             close vendorCh
             mreturn vendors
-        endmethod
-
-        public static method loadTests, @List<Test>
-        proc
-            data dataFile = "DAT:test.ism"
-            data textFile = dataFile.ToLower().Replace(".ism",".txt")
-            data testCh, int, 0
-            data testRec, strTest
-            data tests = new List<Test>()
-            open(testCh,i:s,textFile)
-            repeat
-            begin
-                reads(testCh,testRec,eof)
-                tests.Add(new Test(testRec))
-            end
-        eof,
-            close testCh
-            mreturn tests
         endmethod
 
         private static method findRelativeFolderForAssembly, string
