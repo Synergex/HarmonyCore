@@ -67,6 +67,7 @@ namespace Harmony.Core.FileIO.Queryable
 					data fieldOnePos = 1
 					data fieldTwoPos = 1
 					data resultOn, @On
+					data onHasLiteral = true
 					while(fieldOnePos <= fieldDetails1.CompositeParts.Length && fieldTwoPos <= fieldDetails2.CompositeParts.Length)
 					begin
 						data fieldOnePart = fieldDetails1.CompositeParts[fieldOnePos]
@@ -75,6 +76,7 @@ namespace Harmony.Core.FileIO.Queryable
 						data fieldTwoStart = fieldTwoPart.StructurePosition + fieldTwoConsumed
 						data compSize = Math.Min(fieldOnePart.ElementSize - fieldOneConsumed, fieldTwoPart.ElementSize - fieldTwoConsumed)
 						data madeOn, @On
+						data madeLiteral = false
 						using fieldOnePart.DataType select
 						(FieldDataType.AlphaField),
 						begin
@@ -83,7 +85,10 @@ namespace Harmony.Core.FileIO.Queryable
 								if(fieldTwoPart.DataType == FieldDataType.TagLiteral) then
 									madeOn = (On)(dataBuffer1(fieldOneStart:compSize) .eq. (a)fieldTwoPart.TagValue)
 								else
+								begin
+									madeLiteral = true
 									madeOn = (On)(dataBuffer1(fieldOneStart:compSize) .eq. dataBuffer2(fieldTwoStart:compSize))
+								end
 							end
 							else
 								throw new NotImplementedException()
@@ -93,17 +98,25 @@ namespace Harmony.Core.FileIO.Queryable
 							if(fieldTwoPart.DataType == FieldDataType.TagLiteral) then
 								madeOn = (On)(^i(dataBuffer1(fieldOneStart:compSize)) .eq. %integer(fieldTwoPart.TagValue))
 							else
+							begin
+								madeLiteral = true
 								madeOn = (On)(^i(dataBuffer1(fieldOneStart:compSize)) .eq. ^i(dataBuffer2(fieldTwoStart:compSize)))
+							end
 						end
 						(FieldDataType.DecimalField),
 						begin
 							if(fieldTwoPart.DataType == FieldDataType.TagLiteral) then
 								madeOn = (On)(^d(dataBuffer1(fieldOneStart:compSize)) .eq. %implied(fieldTwoPart.TagValue))
 							else
+							begin
 								madeOn = (On)(^d(dataBuffer1(fieldOneStart:compSize)) .eq. ^d(dataBuffer2(fieldTwoStart:compSize)))
+							end
+
 						end
 						(FieldDataType.TagLiteral),
 						begin
+							madeLiteral = true
+
 							using fieldTwoPart.DataType select
 							(FieldDataType.AlphaField),
 							begin
@@ -130,8 +143,12 @@ namespace Harmony.Core.FileIO.Queryable
 						
 						if(resultOn == ^null) then
 							resultOn = madeOn
+						else if(onHasLiteral) then
+							resultOn = madeOn .and. resultOn
 						else
 							resultOn = resultOn .and. madeOn
+
+						onHasLiteral = onHasLiteral && madeLiteral
 
 						fieldOneConsumed += compSize
 						fieldTwoConsumed += compSize
