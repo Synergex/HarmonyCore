@@ -76,7 +76,7 @@ namespace <NAMESPACE>
             <IF CUSTOM_HARMONY_AS_STRING>
         private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalConverter.LiteralFormatter("XXXX-XX-XX")
             <ELSE>
-        private <FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("FORMAT:YYYYMMDD")
+        private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("FORMAT:YYYYMMDD")
             </IF CUSTOM_HARMONY_AS_STRING>
           </IF DATE_YYYYMMDD>
           <IF TIME>
@@ -88,7 +88,7 @@ namespace <NAMESPACE>
         private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalConverter.LiteralFormatter("XX:XX:XX")
             </IF TIME_HHMMSS>
             <ELSE>
-        private <FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("FORMAT:HHMM")
+        private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("FORMAT:HHMM")
             </IF CUSTOM_HARMONY_AS_STRING>
           </IF TIME>
         <ELSE>
