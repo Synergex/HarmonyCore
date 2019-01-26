@@ -109,7 +109,7 @@ namespace <NAMESPACE>
 
 .region "Tag filtering"
 
-            ;;This will currently only work for single field==value tags.
+            ;;This will currently only work for single field .operator. value tags.
 
             <STRUCTURE_LOOP>
             <IF STRUCTURE_TAGS>
@@ -148,7 +148,7 @@ namespace <NAMESPACE>
             &                        "Property",
             &                        new Type[#] { ^typeof(<TAGLOOP_FIELD_CSTYPE>) },
             &                        <structureNoplural>Param,
-            &                        Expression.Constant("<TagloopFieldName>")
+            &                        Expression.Constant("<TagloopFieldSqlname>")
             &                    ),
             &                    Expression.Constant(<TAGLOOP_TAG_VALUE>)
             &                )
