@@ -44,57 +44,57 @@ import Newtonsoft.Json.Linq
 
 namespace Harmony.Core
 
-	public class ArgumentDataDefinition
-		public PassedValue			,@Object
-		public ReturnedValue		,boolean?
-		public DataType				,FieldDataType
-		public ElementSize			,int?
-		public DecimalPrecision		,int?
-	endclass
+    public class ArgumentDataDefinition
+        public PassedValue			,@Object
+        public ReturnedValue		,boolean?
+        public DataType				,FieldDataType
+        public ElementSize			,int?
+        public DecimalPrecision		,int?
+    endclass
 
-	public class ReturnParameterDefintion
-		public Position, int
-		{JsonConverter(^typeof(ReturnValueConverter))}
-		public Value, @ArgumentDataDefinition
-	endclass
+    public class ReturnParameterDefintion
+        public Position, int
+        {JsonConverter(^typeof(ReturnValueConverter))}
+        public Value, @ArgumentDataDefinition
+    endclass
 
-	public class ReturnValueConverter extends JsonConverter
+    public class ReturnValueConverter extends JsonConverter
 
-		public override method CanConvert, boolean
-		    type, @Type
-		proc
+        public override method CanConvert, boolean
+            type, @Type
+        proc
             mreturn true
-		endmethod
-
-
-		public override property CanRead, boolean
-			method get
-			proc
-			    mreturn true
-            endmethod
-		endproperty
-
-		public override method WriteJson, void 
-			writer, @JsonWriter
-			value, @object
-			serializer, @JsonSerializer
-		proc
-		
-		    throw new NotImplementedException()
         endmethod
 
-		public override method ReadJson, @object 
-			reader, @JsonReader 
-			objectType, @Type 
-			existingValue, @object 
-			serializer, @JsonSerializer 
-		proc
-			data result = new ArgumentDataDefinition()
+
+        public override property CanRead, boolean
+            method get
+            proc
+                mreturn true
+            endmethod
+        endproperty
+
+        public override method WriteJson, void 
+            writer, @JsonWriter
+            value, @object
+            serializer, @JsonSerializer
+        proc
+		
+            throw new NotImplementedException()
+        endmethod
+
+        public override method ReadJson, @object 
+            reader, @JsonReader 
+            objectType, @Type 
+            existingValue, @object 
+            serializer, @JsonSerializer 
+        proc
+            data result = new ArgumentDataDefinition()
             data jObj = JObject.Load(reader)
             data dataTypeField = jObj["DataType"]
             if(dataTypeField != ^null)
             begin
-				result.DataType = (FieldDataType)dataTypeField.Value<long>()
+                result.DataType = (FieldDataType)dataTypeField.Value<long>()
                 result.ReturnedValue = true
                 if(result.DataType == FieldDataType.DataObjectField) then
                 begin
@@ -105,51 +105,72 @@ namespace Harmony.Core
                     data metadataType = DataObjectMetadataBase.LookupType((string)dataObjectValue["Type"])
 
                     data grfa = (string)dataObjectValue["GRFA"]
-					data realValue = dataObjectValue.Value<string>((Object)"Value")
-					if(realValue == ^null) then
-					begin
-						result.PassedValue = metadataType.MakeNew((a)Convert.FromBase64String(dataObjectValue.Value<string>((Object)"Base64Value")), grfa)
-					end
-					else
-					begin
-						result.PassedValue = metadataType.MakeNew(realValue, grfa)
-					end
+                    data realValue = dataObjectValue.Value<string>((Object)"Value")
+                    if(realValue == ^null) then
+                    begin
+                        result.PassedValue = metadataType.MakeNew((a)Convert.FromBase64String(dataObjectValue.Value<string>((Object)"Base64Value")), grfa)
+                    end
+                    else
+                    begin
+                        result.PassedValue = metadataType.MakeNew(realValue, grfa)
+                    end
                 end
                 else if(result.DataType == FieldDataType.DataObjectCollectionField) then
                 begin
                     data metadataType, @DataObjectMetadataBase
-                    data tempResult = new List<DataObjectBase>()
-
-					data dataObjectValues = (@JArray)jObj["PassedValue"]
-					data dataObjectValue, @JObject
-					foreach dataObjectValue in dataObjectValues
+                    data tempResultDO = new List<DataObjectBase>()
+                    data tempResultObject = new List<Object>()
+                    data dataObjectValues = (@JArray)jObj["PassedValue"]
+                    data dataObjectToken, @JToken
+                    data dataObjectValue, @JObject
+                    foreach dataObjectToken in dataObjectValues
                     begin
-						if(metadataType == ^null)
-							metadataType = DataObjectMetadataBase.LookupType((string)dataObjectValue["Type"])
+                        if(dataObjectToken .is. JObject) then
+                        begin
+                            if(metadataType == ^null)
+                                metadataType = DataObjectMetadataBase.LookupType((string)dataObjectValue["Type"])
 
-						data grfa = (string)dataObjectValue["GRFA"]
-						data realValue = dataObjectValue.Value<string>((Object)"Value")
-						if(realValue == ^null) then
-						begin
-							tempResult.Add(metadataType.MakeNew((a)Convert.FromBase64String(dataObjectValue.Value<string>((Object)"Base64Value")), grfa))
-						end
-						else
-						begin
-							tempResult.Add(metadataType.MakeNew(realValue, grfa))
-						end
-					end
+                            data grfa = (string)dataObjectValue["GRFA"]
+                            data realValue = dataObjectValue.Value<string>((Object)"Value")
+                            if(realValue == ^null) then
+                            begin
+                                tempResultDO.Add(metadataType.MakeNew((a)Convert.FromBase64String(dataObjectValue.Value<string>((Object)"Base64Value")), grfa))
+                            end
+                            else
+                            begin
+                                tempResultDO.Add(metadataType.MakeNew(realValue, grfa))
+                            end
+                        end
+                        else
+                        begin
+                            using dataObjectToken.Type select
+                            (JTokenType.Null),
+                                tempResultObject.Add(^null)
+                            (JTokenType.Integer),
+                                tempResultObject.Add((@object)dataObjectToken.ToObject<int>())
+                            (JTokenType.Float),
+                                tempResultObject.Add((@object)dataObjectToken.ToObject<float>())
+                            (JTokenType.Bytes),
+                                tempResultObject.Add((@object)dataObjectToken.ToObject<[#]byte>())
+                            (JTokenType.Boolean),
+                                tempResultObject.Add((@object)dataObjectToken.ToObject<boolean>())
+                            (JTokenType.String),
+                                tempResultObject.Add((@object)dataObjectToken.ToObject<string>())
+                            endusing
+                        end
+                    end
 
-					result.PassedValue = tempResult
+                    result.PassedValue = tempResultDO.Count > 0 ? tempResultDO : tempResultObject
                 end
                 else
-				begin
-					result.PassedValue = jObj["PassedValue"]
+                begin
+                    result.PassedValue = jObj["PassedValue"]
                 end
             end
 
             mreturn result
-		endmethod
+        endmethod
 
-	endclass
+    endclass
 
 endnamespace
