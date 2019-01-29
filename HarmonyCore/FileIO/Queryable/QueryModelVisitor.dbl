@@ -30,10 +30,14 @@ namespace Harmony.Core.FileIO.Queryable
 		private method TypeBufferForExpression, int
 			expr, @Expression
 			visitor, @QuerySourceVisitor
+			querySourceMap, @Dictionary<IQuerySource, IQuerySource>
 		proc
 			visitor.QuerySources.Clear()
 			visitor.Visit(expr)
-			data querySources = visitor.QuerySources.OrderByDescending(lambda(qSource) { mQuerySourceMapping[qSource] })
+
+			data querySources = visitor.QuerySources
+			&	.Select(lambda(qSource) { querySourceMap != ^null && querySourceMap.ContainsKey(qSource) ? querySourceMap[qSource] : qSource })
+            &   .OrderByDescending(lambda(qSource) { mQuerySourceMapping[qSource] })
 			data topQuerySource = querySources.FirstOrDefault()
 			if(topQuerySource != ^null)
 			begin
@@ -79,7 +83,7 @@ namespace Harmony.Core.FileIO.Queryable
 				
 				;;determine if this clause should be attached to a join
 				;;this is more complicated if both parts belong to a join
-				data typeBufferIndex = TypeBufferForExpression(whereClause.Predicate, querySourceVisitor)
+				data typeBufferIndex = TypeBufferForExpression(whereClause.Predicate, querySourceVisitor, ^null)
 				if(typeBufferIndex != 0)
 				begin
 					data typeBuffer = mTypeBuffers[typeBufferIndex]
@@ -392,7 +396,7 @@ namespace Harmony.Core.FileIO.Queryable
 				data targetFieldExpr = ^as(mWhereBuilder.FindTargetField(memberExpr, ^null, querySourceMap), @FieldReference)
 				if(targetFieldExpr != ^null)
 				begin
-					data typeBufferIndex = TypeBufferForExpression(memberExpr, querySourceVisitor)
+					data typeBufferIndex = TypeBufferForExpression(memberExpr, querySourceVisitor, querySourceMap)
 					data sparseFields, @List<FieldDataDefinition>
 					if(!result.TryGetValue(typeBufferIndex, sparseFields))
 					begin
@@ -435,10 +439,18 @@ namespace Harmony.Core.FileIO.Queryable
 				node, @System.Linq.Expressions.Expression 
 				endparams
 			proc
-				if(node .is. InExpression)
+				if(node .is. InExpression) then
 				begin
 					data inExpr = (@InExpression)node
 					Visit(inExpr.Predicate)
+				end
+				else if(node .is. QuerySourceReferenceExpression)
+				begin
+                    data querySource = (@QuerySourceReferenceExpression)node
+					if(!QuerySources.Contains(querySource.ReferencedQuerySource))
+					begin
+						QuerySources.Add(querySource.ReferencedQuerySource)
+					end
 				end
 
 				mreturn node
@@ -453,7 +465,8 @@ namespace Harmony.Core.FileIO.Queryable
 			protected override method VisitMember, @Expression
 				node, @MemberExpression
 			proc
-				mreturn node
+				Visit(node.Expression)
+                mreturn node
 			endmethod
 
 		endclass
