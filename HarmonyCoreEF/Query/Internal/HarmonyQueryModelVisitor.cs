@@ -361,7 +361,7 @@ namespace Harmony.Core.EF.Query.Internal
                         var fromClause = refExpr.ReferencedQuerySource as FromClauseBase;
                         if (!QuerySourceMapping.ContainsMapping(refExpr.ReferencedQuerySource))
                         {
-                            QuerySourceMapping.AddMapping(refExpr.ReferencedQuerySource, MakeItemNameProperty(ParameterStack.Peek(), refExpr.ReferencedQuerySource.ItemName));
+                            QuerySourceMapping.AddMapping(refExpr.ReferencedQuerySource, MakeItemNameProperty(CurrentParameter, refExpr.ReferencedQuerySource.ItemName));
                             LiftClausesFromSubQueryExpression(refExpr, TopQueryModel, fromClause?.FromExpression as SubQueryExpression);
                         }
                     }
@@ -392,7 +392,7 @@ namespace Harmony.Core.EF.Query.Internal
                         {
                             if (!QuerySourceMapping.ContainsMapping(peeked.ReferencedQuerySource))
                             {
-                                QuerySourceMapping.AddMapping(peeked.ReferencedQuerySource, MakeItemNameProperty(ParameterStack.Peek(), peeked.ReferencedQuerySource.ItemName));
+                                QuerySourceMapping.AddMapping(peeked.ReferencedQuerySource, MakeItemNameProperty(CurrentParameter, peeked.ReferencedQuerySource.ItemName));
                                 LiftClausesFromSubQueryExpression(peeked, TopQueryModel, additionalFromClause);
                             }
                         }
