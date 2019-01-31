@@ -361,8 +361,15 @@ namespace Harmony.Core.EF.Query.Internal
                         var fromClause = refExpr.ReferencedQuerySource as FromClauseBase;
                         if (!QuerySourceMapping.ContainsMapping(refExpr.ReferencedQuerySource))
                         {
-                            QuerySourceMapping.AddMapping(refExpr.ReferencedQuerySource, MakeItemNameProperty(CurrentParameter, refExpr.ReferencedQuerySource.ItemName));
-                            LiftClausesFromSubQueryExpression(refExpr, TopQueryModel, fromClause?.FromExpression as SubQueryExpression);
+                            QuerySourceMapping.AddMapping(refExpr.ReferencedQuerySource, MakeItemNameProperty(CurrentParameter, refExpr.ReferencedQuerySource.ItemName, true));
+							if (ParameterStack.Count > 0 && fromClause?.FromExpression is SubQueryExpression)
+							{
+								SubQueryTargetNames.Push(refExpr.ReferencedQuerySource.ItemName.Substring(refExpr.ReferencedQuerySource.ItemName.IndexOf('.') + 1));
+								LiftSubQueryExpression(fromClause?.FromExpression as SubQueryExpression);
+								SubQueryTargetNames.Pop();
+							}
+							else
+								LiftClausesFromSubQueryExpression(refExpr, TopQueryModel, fromClause?.FromExpression as SubQueryExpression);
                         }
                     }
                 }
@@ -392,8 +399,15 @@ namespace Harmony.Core.EF.Query.Internal
                         {
                             if (!QuerySourceMapping.ContainsMapping(peeked.ReferencedQuerySource))
                             {
-                                QuerySourceMapping.AddMapping(peeked.ReferencedQuerySource, MakeItemNameProperty(CurrentParameter, peeked.ReferencedQuerySource.ItemName));
-                                LiftClausesFromSubQueryExpression(peeked, TopQueryModel, additionalFromClause);
+                                QuerySourceMapping.AddMapping(peeked.ReferencedQuerySource, MakeItemNameProperty(CurrentParameter, peeked.ReferencedQuerySource.ItemName, true));
+								if (ParameterStack.Count > 0)
+								{
+									SubQueryTargetNames.Push(peeked.ReferencedQuerySource.ItemName.Substring(peeked.ReferencedQuerySource.ItemName.IndexOf('.') + 1));
+									LiftSubQueryExpression(additionalFromClause);
+									SubQueryTargetNames.Pop();
+								}
+								else
+									LiftClausesFromSubQueryExpression(peeked, TopQueryModel, additionalFromClause);
                             }
                         }
                     }
@@ -548,7 +562,7 @@ namespace Harmony.Core.EF.Query.Internal
                 DebugLogSession.Logging.LogDebug("HarmonyCoreEF: Rewriting SubQueryExpression -> {0}", node.QueryModel);
 
                 var queryModel = node.QueryModel;
-                var propValue = Expression.PropertyOrField(CurrentParameter, SubQueryTargetName);
+                var propValue = MakeItemNameProperty(CurrentParameter, SubQueryTargetName, false);
                 var resultExpressionElementType = propValue.Type.IsGenericType ? propValue.Type.GenericTypeArguments.First() : propValue.Type;
                 Expression resultExpression = (propValue.Type.IsGenericType && propValue.Type.GetGenericTypeDefinition() == typeof(ICollection<>)) ?
                     Expression.Condition(Expression.Equal(propValue, Expression.Constant(null)), Expression.Convert(Expression.New(typeof(List<>).MakeGenericType(new Type[] { resultExpressionElementType })), propValue.Type), propValue) :
@@ -630,7 +644,7 @@ namespace Harmony.Core.EF.Query.Internal
                         //we shouldnt see any group joins here those are supposed to be represented in the selector further down
                         foreach (var joinClause in queryModel.BodyClauses.OfType<JoinClause>())
                         {
-                            Expression targetExpr = MakeItemNameProperty(currentParameter, joinClause.ItemName);
+                            Expression targetExpr = MakeItemNameProperty(currentParameter, joinClause.ItemName, true);
 
                             QuerySourceMapping.AddMapping(joinClause, targetExpr);
                             joinClause.InnerKeySelector = rewrite.Visit(joinClause.InnerKeySelector);
@@ -716,10 +730,13 @@ namespace Harmony.Core.EF.Query.Internal
                 }
             }
 
-            private static Expression MakeItemNameProperty(Expression currentParameter, string itemName)
+            private static Expression MakeItemNameProperty(Expression currentParameter, string itemName, bool skipOne)
             {
-                //grab each item join and make a query source replacement that points to the actual property instead of a query source
-                var joinItemNameParts = itemName.Split(DotArray, StringSplitOptions.RemoveEmptyEntries).Skip(1);
+				//grab each item join and make a query source replacement that points to the actual property instead of a query source
+				var joinItemNameParts = (IEnumerable<string>)itemName.Split(DotArray, StringSplitOptions.RemoveEmptyEntries);
+				if(skipOne)
+					joinItemNameParts = joinItemNameParts.Skip(1);
+
                 Expression targetExpr = currentParameter;
                 foreach (var item in joinItemNameParts)
                 {
