@@ -165,31 +165,37 @@ namespace Harmony.Core.EF.Extensions
             // Find DbContext, entity type, and primary key.
             var currentContext = ((IInfrastructure<IServiceProvider>)thisp).Instance.GetService(typeof(ICurrentDbContext)) as ICurrentDbContext;
             var context = currentContext.Context;
-            var entityType = context.Model.FindEntityType(typeof(T));
-            var primaryKey = entityType.FindPrimaryKey();
-            var entityParameter = Expression.Parameter(typeof(T), "entity");
-            Expression whereClause = null;
-            for (int i = 0; i < primaryKey.Properties.Count && i < parameters.Length; i++)
-            {
-                var property = primaryKey.Properties[i];
-                var newWhereClause = Expression.Equal(
-                    Expression.Property(entityParameter, property.Name),
-                    Expression.Constant(parameters[i]));
-                if (whereClause != null)
-                {
-                    whereClause = Expression.AndAlso(whereClause, newWhereClause);
-                }
-                else
-                {
-                    whereClause = newWhereClause;
-                }
-            }
-
-            var lambdaExpression = (Expression<Func<T, bool>>)Expression.Lambda(whereClause, entityParameter);
-            return thisp.Where(lambdaExpression);
+			return FindQuery<T>((IQueryable<T>)thisp, context, parameters);
         }
 
-        public static T FirstOrDefaultIncluding<T>(this DbSet<T> thisp, string including, string expression, params object[] parameters)
+		public static IQueryable<T> FindQuery<T>(this IQueryable<T> thisp, DbContext context, params object[] parameters)
+			where T : class
+		{
+			var entityType = context.Model.FindEntityType(typeof(T));
+			var primaryKey = entityType.FindPrimaryKey();
+			var entityParameter = Expression.Parameter(typeof(T), "entity");
+			Expression whereClause = null;
+			for (int i = 0; i < primaryKey.Properties.Count && i < parameters.Length; i++)
+			{
+				var property = primaryKey.Properties[i];
+				var newWhereClause = Expression.Equal(
+					Expression.Property(entityParameter, property.Name),
+					Expression.Constant(parameters[i]));
+				if (whereClause != null)
+				{
+					whereClause = Expression.AndAlso(whereClause, newWhereClause);
+				}
+				else
+				{
+					whereClause = newWhereClause;
+				}
+			}
+
+			var lambdaExpression = (Expression<Func<T, bool>>)Expression.Lambda(whereClause, entityParameter);
+			return thisp.Where(lambdaExpression);
+		}
+
+		public static T FirstOrDefaultIncluding<T>(this DbSet<T> thisp, string including, string expression, params object[] parameters)
             where T : class
         {
             if (parameters.Length > 5)
@@ -429,12 +435,8 @@ namespace Harmony.Core.EF.Extensions
             }
         }
 
-        public static IQueryable<T> FindAlternate<T>(this DbSet<T> thisp, string keyName, object keyValue) where T : class
+        public static IQueryable<T> FindAlternate<T>(this IQueryable<T> thisp, string keyName, object keyValue) where T : class
         {
-            // Find DbContext, entity type, and primary key.
-            var currentContext = ((IInfrastructure<IServiceProvider>)thisp).Instance.GetService(typeof(ICurrentDbContext)) as ICurrentDbContext;
-            var context = currentContext.Context;
-            var entityType = context.Model.FindEntityType(typeof(T));
             // Build the lambda expression for the query: (TEntity entity) => AND( entity.keyProperty[i] == keyValues[i])
             var entityParameter = Expression.Parameter(typeof(T), "entity");
             Expression whereClause = Expression.Equal(
@@ -446,12 +448,8 @@ namespace Harmony.Core.EF.Extensions
             return thisp.Where(lambdaExpression);
         }
 
-        public static IQueryable<T> FindAlternate<T>(this DbSet<T> thisp, string keyName, object keyValue, string keyName2, object keyValue2) where T : class
+        public static IQueryable<T> FindAlternate<T>(this IQueryable<T> thisp, string keyName, object keyValue, string keyName2, object keyValue2) where T : class
         {
-            // Find DbContext, entity type, and primary key.
-            var currentContext = ((IInfrastructure<IServiceProvider>)thisp).Instance.GetService(typeof(ICurrentDbContext)) as ICurrentDbContext;
-            var context = currentContext.Context;
-            var entityType = context.Model.FindEntityType(typeof(T));
             // Build the lambda expression for the query: (TEntity entity) => AND( entity.keyProperty[i] == keyValues[i])
             var entityParameter = Expression.Parameter(typeof(T), "entity");
             Expression whereClause = Expression.AndAlso(
@@ -467,12 +465,8 @@ namespace Harmony.Core.EF.Extensions
             return thisp.Where(lambdaExpression);
         }
 
-        public static IQueryable<T> FindAlternate<T>(this DbSet<T> thisp, string keyName, object keyValue, string keyName2, object keyValue2, string keyName3, object keyValue3) where T : class
+        public static IQueryable<T> FindAlternate<T>(this IQueryable<T> thisp, string keyName, object keyValue, string keyName2, object keyValue2, string keyName3, object keyValue3) where T : class
         {
-            // Find DbContext, entity type, and primary key.
-            var currentContext = ((IInfrastructure<IServiceProvider>)thisp).Instance.GetService(typeof(ICurrentDbContext)) as ICurrentDbContext;
-            var context = currentContext.Context;
-            var entityType = context.Model.FindEntityType(typeof(T));
             // Build the lambda expression for the query: (TEntity entity) => AND( entity.keyProperty[i] == keyValues[i])
             var entityParameter = Expression.Parameter(typeof(T), "entity");
             Expression whereClause = Expression.AndAlso(
@@ -492,12 +486,8 @@ namespace Harmony.Core.EF.Extensions
             return thisp.Where(lambdaExpression);
         }
 
-        public static IQueryable<T> FindAlternate<T>(this DbSet<T> thisp, string keyName, object keyValue, string keyName2, object keyValue2, string keyName3, object keyValue3, string keyName4, object keyValue4) where T : class
+        public static IQueryable<T> FindAlternate<T>(this IQueryable<T> thisp, string keyName, object keyValue, string keyName2, object keyValue2, string keyName3, object keyValue3, string keyName4, object keyValue4) where T : class
         {
-            // Find DbContext, entity type, and primary key.
-            var currentContext = ((IInfrastructure<IServiceProvider>)thisp).Instance.GetService(typeof(ICurrentDbContext)) as ICurrentDbContext;
-            var context = currentContext.Context;
-            var entityType = context.Model.FindEntityType(typeof(T));
             // Build the lambda expression for the query: (TEntity entity) => AND( entity.keyProperty[i] == keyValues[i])
             var entityParameter = Expression.Parameter(typeof(T), "entity");
             Expression whereClause = Expression.AndAlso(
@@ -521,12 +511,8 @@ namespace Harmony.Core.EF.Extensions
             return thisp.Where(lambdaExpression);
         }
 
-        public static IQueryable<T> FindAlternate<T>(this DbSet<T> thisp, string keyName, object keyValue, string keyName2, object keyValue2, string keyName3, object keyValue3, string keyName4, object keyValue4, string keyName5, object keyValue5) where T : class
+        public static IQueryable<T> FindAlternate<T>(this IQueryable<T> thisp, string keyName, object keyValue, string keyName2, object keyValue2, string keyName3, object keyValue3, string keyName4, object keyValue4, string keyName5, object keyValue5) where T : class
         {
-            // Find DbContext, entity type, and primary key.
-            var currentContext = ((IInfrastructure<IServiceProvider>)thisp).Instance.GetService(typeof(ICurrentDbContext)) as ICurrentDbContext;
-            var context = currentContext.Context;
-            var entityType = context.Model.FindEntityType(typeof(T));
             // Build the lambda expression for the query: (TEntity entity) => AND( entity.keyProperty[i] == keyValues[i])
             var entityParameter = Expression.Parameter(typeof(T), "entity");
             Expression whereClause = Expression.AndAlso(
@@ -553,12 +539,8 @@ namespace Harmony.Core.EF.Extensions
             return thisp.Where(lambdaExpression);
         }
 
-        public static IQueryable<T> FindAlternate<T>(this DbSet<T> thisp, string keyName, object keyValue, string keyName2, object keyValue2, string keyName3, object keyValue3, string keyName4, object keyValue4, string keyName5, object keyValue5, string keyName6, object keyValue6) where T : class
+        public static IQueryable<T> FindAlternate<T>(this IQueryable<T> thisp, string keyName, object keyValue, string keyName2, object keyValue2, string keyName3, object keyValue3, string keyName4, object keyValue4, string keyName5, object keyValue5, string keyName6, object keyValue6) where T : class
         {
-            // Find DbContext, entity type, and primary key.
-            var currentContext = ((IInfrastructure<IServiceProvider>)thisp).Instance.GetService(typeof(ICurrentDbContext)) as ICurrentDbContext;
-            var context = currentContext.Context;
-            var entityType = context.Model.FindEntityType(typeof(T));
             // Build the lambda expression for the query: (TEntity entity) => AND( entity.keyProperty[i] == keyValues[i])
             var entityParameter = Expression.Parameter(typeof(T), "entity");
             Expression whereClause = Expression.AndAlso(
@@ -590,13 +572,9 @@ namespace Harmony.Core.EF.Extensions
             return thisp.Where(lambdaExpression);
         }
 
-        public static IQueryable<T> FindAlternate<T>(this DbSet<T> thisp, string keyName, object keyValue, string keyName2, object keyValue2, string keyName3, object keyValue3, string keyName4, object keyValue4, 
+        public static IQueryable<T> FindAlternate<T>(this IQueryable<T> thisp, string keyName, object keyValue, string keyName2, object keyValue2, string keyName3, object keyValue3, string keyName4, object keyValue4, 
             string keyName5, object keyValue5, string keyName6, object keyValue6, string keyName7, object keyValue7) where T : class
         {
-            // Find DbContext, entity type, and primary key.
-            var currentContext = ((IInfrastructure<IServiceProvider>)thisp).Instance.GetService(typeof(ICurrentDbContext)) as ICurrentDbContext;
-            var context = currentContext.Context;
-            var entityType = context.Model.FindEntityType(typeof(T));
             // Build the lambda expression for the query: (TEntity entity) => AND( entity.keyProperty[i] == keyValues[i])
             var entityParameter = Expression.Parameter(typeof(T), "entity");
             Expression whereClause = Expression.AndAlso(
@@ -631,13 +609,9 @@ namespace Harmony.Core.EF.Extensions
             return thisp.Where(lambdaExpression);
         }
 
-        public static IQueryable<T> FindAlternate<T>(this DbSet<T> thisp, string keyName, object keyValue, string keyName2, object keyValue2, string keyName3, object keyValue3, string keyName4, object keyValue4,
+        public static IQueryable<T> FindAlternate<T>(this IQueryable<T> thisp, string keyName, object keyValue, string keyName2, object keyValue2, string keyName3, object keyValue3, string keyName4, object keyValue4,
             string keyName5, object keyValue5, string keyName6, object keyValue6, string keyName7, object keyValue7, string keyName8, object keyValue8) where T : class
         {
-            // Find DbContext, entity type, and primary key.
-            var currentContext = ((IInfrastructure<IServiceProvider>)thisp).Instance.GetService(typeof(ICurrentDbContext)) as ICurrentDbContext;
-            var context = currentContext.Context;
-            var entityType = context.Model.FindEntityType(typeof(T));
             // Build the lambda expression for the query: (TEntity entity) => AND( entity.keyProperty[i] == keyValues[i])
             var entityParameter = Expression.Parameter(typeof(T), "entity");
             Expression whereClause = Expression.AndAlso(
