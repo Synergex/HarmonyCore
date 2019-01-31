@@ -101,12 +101,31 @@ namespace Harmony.Core.EF.Query.Internal
                         {
                             orderByClause.Orderings.Add(parentOrdering);
                         }
-                        queryModel.BodyClauses.Add(orderByClause);
+						AddClauseIfUnique(queryModel.BodyClauses, orderByClause);
                         this.VisitOrderByClause(orderByClause, queryModel, queryModel.BodyClauses.IndexOf(orderByClause));
                     }
                 }
             }
         }
+
+		private static void AddClauseIfUnique(IList<IBodyClause> clauses, IBodyClause adding)
+		{
+			if (!clauses.Any(body => MatchingClause(body, adding)))
+				clauses.Add(adding);
+		}
+
+		private static bool MatchingClause(IBodyClause clause1, IBodyClause clause2)
+		{
+			if (clause1 is GroupJoinClause || clause2 is GroupJoinClause || clause1 is JoinClause || clause2 is JoinClause)
+			{
+				var join1 = (clause1 as GroupJoinClause)?.JoinClause ?? clause1 as JoinClause;
+				var join2 = (clause2 as GroupJoinClause)?.JoinClause ?? clause2 as JoinClause;
+				if (join1 != null && join2 != null)
+					return join1.ItemName == join2.ItemName && join1.ItemType == join2.ItemType;
+			}
+			
+			return false;
+		}
 
         private static MethodInfo StringToLower = typeof(string).GetMethod("ToLower", new Type[0]);
         private static MethodInfo StringToUpper = typeof(string).GetMethod("ToUpper", new Type[0]);
@@ -441,7 +460,7 @@ namespace Harmony.Core.EF.Query.Internal
                                 Replacements = SelectorRewriterLookup
                             };
                             whereClause.Predicate = rewrite.Visit(whereClause.Predicate) as Expression;
-                            targetModel.BodyClauses.Add(whereClause);
+							AddClauseIfUnique(targetModel.BodyClauses, whereClause);
                         }
                         else if (bodyClause is OrderByClause)
                         {
@@ -632,33 +651,44 @@ namespace Harmony.Core.EF.Query.Internal
 
                             madeJoin.InnerKeySelector = simpleJoinCondition.Right;
                             madeJoin.OuterKeySelector = simpleJoinCondition.Left;
-                            TopQueryModel.BodyClauses.Add(madeGroupJoin);
+							AddClauseIfUnique(TopQueryModel.BodyClauses, madeGroupJoin);
                         }
 
                         foreach (var additionalWhereClause in orderedWhereClauses.Skip(1))
                         {
                             additionalWhereClause.Predicate = rewrite.Visit(additionalWhereClause.Predicate);
-                            TopQueryModel.BodyClauses.Add(additionalWhereClause);
+							AddClauseIfUnique(TopQueryModel.BodyClauses, additionalWhereClause);
                         }
 
-                        //we shouldnt see any group joins here those are supposed to be represented in the selector further down
                         foreach (var joinClause in queryModel.BodyClauses.OfType<JoinClause>())
                         {
                             Expression targetExpr = MakeItemNameProperty(currentParameter, joinClause.ItemName, true);
 
                             QuerySourceMapping.AddMapping(joinClause, targetExpr);
-                            joinClause.InnerKeySelector = rewrite.Visit(joinClause.InnerKeySelector);
-                            joinClause.OuterKeySelector = rewrite.Visit(joinClause.OuterKeySelector);
-                            TopQueryModel.BodyClauses.Add(joinClause);
+
+							joinClause.InnerKeySelector = CleanKeySelector(joinClause.InnerKeySelector, rewrite);
+                            joinClause.OuterKeySelector = CleanKeySelector(joinClause.OuterKeySelector, rewrite);
+							AddClauseIfUnique(TopQueryModel.BodyClauses, joinClause);
                         }
 
-                        foreach (var orderByClause in queryModel.BodyClauses.OfType<OrderByClause>())
+						foreach (var groupJoinClause in queryModel.BodyClauses.OfType<GroupJoinClause>())
+						{
+							Expression targetExpr = MakeItemNameProperty(currentParameter, groupJoinClause.JoinClause.ItemName, true);
+
+							QuerySourceMapping.AddMapping(groupJoinClause, targetExpr);
+
+							groupJoinClause.JoinClause.InnerKeySelector = CleanKeySelector(groupJoinClause.JoinClause.InnerKeySelector, rewrite);
+							groupJoinClause.JoinClause.OuterKeySelector = CleanKeySelector(groupJoinClause.JoinClause.OuterKeySelector, rewrite);
+							AddClauseIfUnique(TopQueryModel.BodyClauses, groupJoinClause);
+						}
+
+						foreach (var orderByClause in queryModel.BodyClauses.OfType<OrderByClause>())
                         {
                             var targetOrderByResult = TopQueryModel.BodyClauses.OfType<OrderByClause>().FirstOrDefault();
                             if (targetOrderByResult == null)
                             {
                                 targetOrderByResult = new OrderByClause();
-                                TopQueryModel.BodyClauses.Add(targetOrderByResult);
+								AddClauseIfUnique(TopQueryModel.BodyClauses, targetOrderByResult);
                             }
 
                             LiftOrderByOperator(orderByClause);
@@ -729,6 +759,18 @@ namespace Harmony.Core.EF.Query.Internal
                     ParameterStack.Pop();
                 }
             }
+
+			private static Expression CleanKeySelector(Expression selector, SelectorRewriter rewriter)
+			{
+				if (selector is NullConditionalExpression)
+				{
+					return selector.RemoveNullConditional();
+				}
+				else
+				{
+					return selector;
+				}
+			}
 
             private static Expression MakeItemNameProperty(Expression currentParameter, string itemName, bool skipOne)
             {
@@ -804,7 +846,7 @@ namespace Harmony.Core.EF.Query.Internal
 
                     madeJoin.InnerKeySelector = simpleJoinCondition.Right;
                     madeJoin.OuterKeySelector = simpleJoinCondition.Left;
-                    TopQueryModel.BodyClauses.Add(madeGroupJoin);
+					AddClauseIfUnique(TopQueryModel.BodyClauses, madeGroupJoin);
                 }
 
                 return node;

@@ -19,10 +19,13 @@ namespace Harmony.Core.FileIO.Queryable
 		private mDataObjects, @Dictionary<IQuerySource, DataObjectMetadataBase>
 		private mCaseSensitive, boolean
 		private mQuerySources, @List<IQuerySource>
+		private mQuerySourceMap, @Dictionary<IQuerySource, IQuerySource>
 		public method WhereExpressionBuilder
 			caseSensitive, boolean
 			querySources, @List<IQuerySource>
+            querySourceMap, @Dictionary<IQuerySource, IQuerySource>
 		proc
+			mQuerySourceMap = querySourceMap
 			mDataObjects = new Dictionary<IQuerySource, DataObjectMetadataBase>()
 			mWhereStack = new Stack<object>()
 			mOnStack = new Stack<object>()
@@ -75,7 +78,7 @@ namespace Harmony.Core.FileIO.Queryable
 		public method VisitForOrderBy, @FieldReference
 			expr, @Expression
 		proc
-			data targetField = ^as(FindTargetField(expr, ^null), @FieldReference)
+			data targetField = ^as(FindTargetField(expr, ^null, mQuerySourceMap), @FieldReference)
 			if(targetField != ^null) then
 				mreturn targetField
 			else
@@ -174,13 +177,13 @@ namespace Harmony.Core.FileIO.Queryable
 				end
 				else if(callNode.Method == StringToLower || callNode.Method == StringToUpper)
 				begin
-					mreturn FindTargetField(callNode.Object, node2)
+					mreturn FindTargetField(callNode.Object, node2, querySourceMap)
 				end
 			end
 			else if(node .is. UnaryExpression && node.NodeType == ExpressionType.Convert)
 			begin
 				data convertNode = (@UnaryExpression)node
-				mreturn FindTargetField(convertNode.Operand, node2)
+				mreturn FindTargetField(convertNode.Operand, node2, querySourceMap)
 			end
 
 			mreturn ^null
@@ -236,7 +239,7 @@ namespace Harmony.Core.FileIO.Queryable
 			else if(node .is. InExpression)
 			begin
 				data inExpr = (@InExpression)node
-				mWhereStack.Push(MakePart(inExpr.Collection, FindTargetField(inExpr.Predicate, ^null), inExpr.CaseInsensitive ? WhereClauseOperator.IsInNoCase : WhereClauseOperator.IsIn, ^null))
+				mWhereStack.Push(MakePart(inExpr.Collection, FindTargetField(inExpr.Predicate, ^null, mQuerySourceMap), inExpr.CaseInsensitive ? WhereClauseOperator.IsInNoCase : WhereClauseOperator.IsIn, ^null))
 			end
 
 			mreturn node
@@ -273,8 +276,8 @@ namespace Harmony.Core.FileIO.Queryable
 			endstructure
 		proc
 			;;TODO this doesnt deal with 'between'
-			data leftTarget = FindTargetField(left, right)
-			data rightTarget = FindTargetField(right, left)
+			data leftTarget = FindTargetField(left, right, mQuerySourceMap)
+			data rightTarget = FindTargetField(right, left, mQuerySourceMap)
 			data casedOp = op
 			if((casedOp == WhereClauseOperator.IsLike || 
 			&	casedOp == WhereClauseOperator.EqualTo ||

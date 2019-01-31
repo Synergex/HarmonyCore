@@ -19,12 +19,15 @@ namespace Harmony.Core.FileIO.Queryable
 		private mQuerySourceTypes, @List<Type>, new List<Type>()
 		private mTypeBuffers, @List<QueryBuffer.TypeBuffer>, new List<QueryBuffer.TypeBuffer>()
 		private mQuerySourceMapping, @Dictionary<IQuerySource, int>, new Dictionary<IQuerySource, int>()
+		private mQuerySourceAliases, @Dictionary<IQuerySource, IQuerySource>, new Dictionary<IQuerySource, IQuerySource>()
 		private mMakeJoinExpression, @Func<Expression, Expression, QueryModel, Expression>
 		private mWhereBuilder, @WhereExpressionBuilder
 		private method QueryModelVisitor
 			makeJoinExpression, @Func<Expression, Expression, QueryModel, Expression>
+			querySourceAliases, @Dictionary<IQuerySource, IQuerySource>
 		proc
 			mMakeJoinExpression = makeJoinExpression
+            mQuerySourceAliases = querySourceAliases
 		endmethod
 
 		private method TypeBufferForExpression, int
@@ -182,18 +185,22 @@ namespace Harmony.Core.FileIO.Queryable
 				if(^typeof(DataObjectBase).IsAssignableFrom(querySource.ItemType) ||
 					&	(querySource.ItemType.IsGenericType && ^typeof(DataObjectBase).IsAssignableFrom(querySource.ItemType.GenericTypeArguments.First())))
 				begin
-					if(mQuerySourceMapping.ContainsKey(querySource))
+					data cleanQuerySource = mQuerySourceAliases.ContainsKey(querySource) ? mQuerySourceAliases[querySource] : querySource
+					if(mQuerySourceMapping.ContainsKey(cleanQuerySource))
 						nextloop
 
-					data itemType = querySource.ItemType.IsGenericType ? querySource.ItemType.GenericTypeArguments.First() : querySource.ItemType
-					data typeBuffer = MakeTypeBuffer(querySource, itemType)
-					mQuerySourceMapping.Add(querySource, mTypeBuffers.Count)
+					data itemType = cleanQuerySource.ItemType.IsGenericType ? cleanQuerySource.ItemType.GenericTypeArguments.First() : cleanQuerySource.ItemType
+					data typeBuffer = MakeTypeBuffer(cleanQuerySource, itemType)
+					mQuerySourceMapping.Add(cleanQuerySource, mTypeBuffers.Count)
+					if(!mQuerySourceMapping.ContainsKey(querySource))
+						mQuerySourceMapping.Add(querySource, mTypeBuffers.Count)
+
 					mTypeBuffers.Add(typeBuffer)
 					mQuerySourceTypes.Add(itemType)
 				end
 			end
 
-			mWhereBuilder = new WhereExpressionBuilder(true, mQuerySourceMapping.Keys.ToList())
+			mWhereBuilder = new WhereExpressionBuilder(true, mQuerySourceMapping.Keys.ToList(), mQuerySourceAliases)
 		endmethod
 		
 		public override method VisitAdditionalFromClause, void 
@@ -364,7 +371,7 @@ namespace Harmony.Core.FileIO.Queryable
 			querySourceMap, @Dictionary<IQuerySource, IQuerySource>
 			out querySourceBufferMap, @Dictionary<IQuerySource, int>
 		proc
-			data modelVisitor = new QueryModelVisitor(makeJoinExpression)
+			data modelVisitor = new QueryModelVisitor(makeJoinExpression, querySourceMap)
 			model.Accept(modelVisitor)
 			querySourceBufferMap = modelVisitor.mQuerySourceMapping
 
@@ -415,7 +422,7 @@ namespace Harmony.Core.FileIO.Queryable
 
 
 
-		class QuerySourceVisitor extends ExpressionVisitor
+		class QuerySourceVisitor extends ExpressionVisitor 
 			public QuerySources, @List<IQuerySource>, new List<IQuerySource>()
 			protected override method VisitMethodCall, @Expression
 				node, @System.Linq.Expressions.MethodCallExpression  
