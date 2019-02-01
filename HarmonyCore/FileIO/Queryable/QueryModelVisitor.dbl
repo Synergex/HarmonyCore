@@ -86,7 +86,7 @@ namespace Harmony.Core.FileIO.Queryable
 				
 				;;determine if this clause should be attached to a join
 				;;this is more complicated if both parts belong to a join
-				data typeBufferIndex = TypeBufferForExpression(whereClause.Predicate, querySourceVisitor, ^null)
+				data typeBufferIndex = TypeBufferForExpression(whereClause.Predicate, querySourceVisitor, mQuerySourceAliases)
 				if(typeBufferIndex != 0)
 				begin
 					data typeBuffer = mTypeBuffers[typeBufferIndex]
@@ -501,14 +501,18 @@ namespace Harmony.Core.FileIO.Queryable
 			protected override method VisitExtension, @Expression
 				node, @Expression 
 			proc
-				if (node .is. QuerySourceReferenceExpression)
+				if (node .is. QuerySourceReferenceExpression) then
 				begin
 					data querySource = ((QuerySourceReferenceExpression)node).ReferencedQuerySource
 					if (!SelectedQuerySources.Contains(querySource))
 					begin
 						SelectedQuerySources.Add(querySource)
 					end
-				end
+                end
+                else if(node.CanReduce)
+                begin
+                    mreturn parent.VisitExtension(node)
+                end
 				mreturn node
 			endmethod
 
