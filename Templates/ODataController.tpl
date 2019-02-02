@@ -109,7 +109,7 @@ namespace <NAMESPACE>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
         public method Get<StructurePlural>, @IActionResult
         proc
-            mreturn Ok(DBContext.<StructurePlural>)
+            mreturn Ok(DBContext.<StructurePlural>.AsNoTracking())
         endmethod
 
 </IF GET_ALL_ENDPOINT>
@@ -163,7 +163,7 @@ namespace <NAMESPACE>
 </IF STRUCTURE_RELATIVE>
         proc
 ;//Shouldn't really need the generic type arg on FindQuery. Compiler issue?
-            mreturn new SingleResult<<StructureNoplural>>(DBContext.<StructurePlural>.FindQuery<<StructureNoplural>>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP>a<FieldSqlName><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>))
+            mreturn new SingleResult<<StructureNoplural>>(DBContext.<StructurePlural>.AsNoTracking().FindQuery<<StructureNoplural>>(DBContext, <IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP>a<FieldSqlName><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>))
         endmethod
 
 </IF GET_ENDPOINT>
@@ -204,7 +204,7 @@ namespace <NAMESPACE>
             </IF CUSTOM_HARMONY_AS_STRING>
             </SEGMENT_LOOP>
         proc
-            data result = DBContext.<StructurePlural>.FindAlternate(<SEGMENT_LOOP>"<FieldSqlName>",a<FieldSqlName><,></SEGMENT_LOOP>)
+            data result = DBContext.<StructurePlural>.AsNoTracking().FindAlternate(<SEGMENT_LOOP>"<FieldSqlName>",a<FieldSqlName><,></SEGMENT_LOOP>)
             if (result == ^null)
                 mreturn NotFound()
             mreturn Ok(result)
@@ -238,7 +238,7 @@ namespace <NAMESPACE>
             </IF CUSTOM_HARMONY_AS_STRING>
             </SEGMENT_LOOP>
         proc
-            mreturn new SingleResult<<StructureNoplural>>(DBContext.<StructurePlural>.FindAlternate(<SEGMENT_LOOP>"<FieldSqlName>",a<FieldSqlName><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA><,></SEGMENT_LOOP>))
+            mreturn new SingleResult<<StructureNoplural>>(DBContext.<StructurePlural>.AsNoTracking().FindAlternate(<SEGMENT_LOOP>"<FieldSqlName>",a<FieldSqlName><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA><,></SEGMENT_LOOP>))
         endmethod
       </IF DUPLICATES>
 
@@ -298,7 +298,7 @@ namespace <NAMESPACE>
             </IF SINGLE_SEGMENT>
         </SEGMENT_LOOP>
         proc
-            data result = DBContext.<StructurePlural>.Find(<IF SINGLE_SEGMENT>key<ELSE><SEGMENT_LOOP>a<FieldSqlName><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA><,></SEGMENT_LOOP></IF SINGLE_SEGMENT>)
+            data result = DBContext.<StructurePlural>.AsNoTracking().Find(<IF SINGLE_SEGMENT>key<ELSE><SEGMENT_LOOP>a<FieldSqlName><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA><,></SEGMENT_LOOP></IF SINGLE_SEGMENT>)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.<FieldSqlName>)
@@ -324,7 +324,7 @@ namespace <NAMESPACE>
             {FromODataUri}
             required in key, int
         proc
-            data result = DBContext.<StructurePlural>.Find(key)
+            data result = DBContext.<StructurePlural>.AsNoTracking().Find(key)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.<FieldSqlName>)
