@@ -9,434 +9,434 @@ import Harmony.Core.Converters
 
 namespace Harmony.Core
 
-    public abstract class DataObjectMetadataBase
+	public abstract class DataObjectMetadataBase
 
-        public static MetadataLookup, @ConcurrentDictionary<Type, DataObjectMetadataBase>, new ConcurrentDictionary<Type, DataObjectMetadataBase>()
-        public static MetadataNameLookup, @ConcurrentDictionary<string, DataObjectMetadataBase>, new ConcurrentDictionary<string, DataObjectMetadataBase>()
-        public static method LookupType, @DataObjectMetadataBase
-            targetType, @Type
-        proc
-            data result, @DataObjectMetadataBase
-            if(!MetadataLookup.TryGetValue(targetType, result))
-            begin
-                ;;the metadata type wasnt registered
-                ;;ensure the static constructor for the DataObject has been run
-                RuntimeHelpers.RunClassConstructor(targetType.TypeHandle)
-                if(!MetadataLookup.TryGetValue(targetType, result))
-                    throw new NotImplementedException("static constructor for data object type didnt register metadatatype")
-            end
-            mreturn result
-        endmethod
+		public static MetadataLookup, @ConcurrentDictionary<Type, DataObjectMetadataBase>, new ConcurrentDictionary<Type, DataObjectMetadataBase>()
+		public static MetadataNameLookup, @ConcurrentDictionary<string, DataObjectMetadataBase>, new ConcurrentDictionary<string, DataObjectMetadataBase>()
+		public static method LookupType, @DataObjectMetadataBase
+			targetType, @Type
+		proc
+			data result, @DataObjectMetadataBase
+			if(!MetadataLookup.TryGetValue(targetType, result))
+			begin
+				;;the metadata type wasnt registered
+				;;ensure the static constructor for the DataObject has been run
+				RuntimeHelpers.RunClassConstructor(targetType.TypeHandle)
+				if(!MetadataLookup.TryGetValue(targetType, result))
+					throw new NotImplementedException("static constructor for data object type didnt register metadatatype")
+			end
+			mreturn result
+		endmethod
 
-        public static method LookupType, @DataObjectMetadataBase
-            targetType, @string
-        proc
-            data result, @DataObjectMetadataBase
-            if(!MetadataNameLookup.TryGetValue(targetType, result))
-            begin
-                data metadataItem, @DataObjectMetadataBase
-                foreach metadataItem in MetadataLookup.Values
-                begin
-                    MetadataNameLookup.TryAdd(metadataItem.RPSStructureName, metadataItem)
-                end
+		public static method LookupType, @DataObjectMetadataBase
+			targetType, @string
+		proc
+			data result, @DataObjectMetadataBase
+			if(!MetadataNameLookup.TryGetValue(targetType, result))
+			begin
+				data metadataItem, @DataObjectMetadataBase
+				foreach metadataItem in MetadataLookup.Values
+				begin
+					MetadataNameLookup.TryAdd(metadataItem.RPSStructureName, metadataItem)
+				end
 
-                if(!MetadataNameLookup.TryGetValue(targetType, result))
-                    throw new NotImplementedException("static constructor for data object type didnt register metadatatype")
-            end
-            mreturn result
-        endmethod
+				if(!MetadataNameLookup.TryGetValue(targetType, result))
+					throw new NotImplementedException("static constructor for data object type didnt register metadatatype")
+			end
+			mreturn result
+		endmethod
 
-        private RecordBuffers, @ConcurrentBag<int>, new ConcurrentBag<int>()
-        public RPSStructureName	,String
-        public RPSStructureSize	,Int32
+		private RecordBuffers, @ConcurrentBag<int>, new ConcurrentBag<int>()
+		public RPSStructureName	,String
+		public RPSStructureSize	,Int32
 
-        public method GetBuffer, int
-        proc
-            data result, int
-            if(!RecordBuffers.TryTake(result))
-                result = mem_proc(DM_ALLOC | DM_STATIC, RPSStructureSize)
+		public method GetBuffer, int
+		proc
+			data result, int
+			if(!RecordBuffers.TryTake(result))
+				result = mem_proc(DM_ALLOC | DM_STATIC, RPSStructureSize)
 
-            mreturn result
-        endmethod
+			mreturn result
+		endmethod
 
-        public method ReturnBuffer, void
-            handle, int
-        proc
-            RecordBuffers.Add(handle)
-        endmethod
+		public method ReturnBuffer, void
+			handle, int
+		proc
+			RecordBuffers.Add(handle)
+		endmethod
 
-        ;;backing field to store the objects field names
-        protected mFieldNames	,@List<String>, new List<String>()
-        protected mFields, @List<FieldDataDefinition>, new List<FieldDataDefinition>()
+		;;backing field to store the objects field names
+		protected mFieldNames	,@List<String>, new List<String>()
+		protected mFields, @List<FieldDataDefinition>, new List<FieldDataDefinition>()
 		
-        public method GetFieldByName, @FieldDataDefinition
-            in required fldName,	string
-        proc
-            data result = NullableGetFieldByName(fldName)
-            if(result == ^null) then
-                throw new InvalidOperationException(string.Format("Failed to find field {0} in structure {1}", fldName, RPSStructureName))
-            else
-                mreturn result
-        endmethod
+		public method GetFieldByName, @FieldDataDefinition
+			in required fldName,	string
+		proc
+			data result = NullableGetFieldByName(fldName)
+			if(result == ^null) then
+				throw new InvalidOperationException(string.Format("Failed to find field {0} in structure {1}", fldName, RPSStructureName))
+			else
+				mreturn result
+		endmethod
 
-        public method NullableGetFieldByName, @FieldDataDefinition
-            in required fldName,	string
-        proc
-            data fldIndex, int
-            if(mfieldDictionary.TryGetValue(fldName, fldIndex)) then
-                mreturn mFields[fldIndex]
-            else
-                mreturn ^null
-        endmethod
+		public method NullableGetFieldByName, @FieldDataDefinition
+			in required fldName,	string
+		proc
+			data fldIndex, int
+			if(mfieldDictionary.TryGetValue(fldName, fldIndex)) then
+				mreturn mFields[fldIndex]
+			else
+				mreturn ^null
+		endmethod
 		
-        public abstract method FormatKeyLiteral, a
-            keyNumber, int
-            parts, @Dictionary<string, Object>
-        proc
-        endmethod
+		public abstract method FormatKeyLiteral, a
+			keyNumber, int
+			parts, @Dictionary<string, Object>
+		proc
+		endmethod
 
-        protected method KeyValueHelper, int
-            inout destination, a
-            partName, @string
-            parts, @Dictionary<string, Object>
-            default unformatter, @ILiteralFormatter, ^null
-        proc
-            data valueObject, @object
-            if(parts.TryGetValue(partName, valueObject)) then
-            begin
-                data valueObjectString = unformatter != ^null ? unformatter.FormatLiteral(valueObject.ToString()) : valueObject.ToString()
-                destination = valueObjectString
-                mreturn valueObjectString.Length
-            end
-            else
-                mreturn 0
-        endmethod
+		protected method KeyValueHelper, int
+			inout destination, a
+			partName, @string
+			parts, @Dictionary<string, Object>
+			default unformatter, @ILiteralFormatter, ^null
+		proc
+			data valueObject, @object
+			if(parts.TryGetValue(partName, valueObject)) then
+			begin
+				data valueObjectString = unformatter != ^null ? unformatter.FormatLiteral(valueObject.ToString()) : valueObject.ToString()
+				destination = valueObjectString
+				mreturn valueObjectString.Length
+			end
+			else
+				mreturn 0
+		endmethod
 
-        protected method KeyValueHelper, int
-            inout destination, d
-            partName, @string
-            parts, @Dictionary<string, Object>
-            default unformatter, @ILiteralFormatter, ^null
-        proc
-            data valueObject, @object
-            if(parts.TryGetValue(partName, valueObject)) then
-            begin
-                if(unformatter != ^null) then
-                    destination = %implied(unformatter.FormatLiteral(valueObject.ToString()))
-                else
-                    destination = %implied(valueObject.ToString())
-                mreturn ^size(destination)
-            end
-            else
-                mreturn 0
-        endmethod
-
-
-        protected method KeyValueHelper, int
-            inout destination, i
-            partName, @string
-            parts, @Dictionary<string, Object>
-            default unformatter, @ILiteralFormatter, ^null
-        proc
-            data valueObject, @object
-            if(parts.TryGetValue(partName, valueObject)) then
-            begin
-                if(valueObject .is. @i) then
-                    destination = (@i)valueObject
-                else if(valueObject .is. int) then
-                    destination = (int)valueObject
-                else if(unformatter != ^null) then
-                    destination = %integer(unformatter.FormatLiteral(valueObject.ToString()))
-                else
-                    destination = %integer(valueObject.ToString())
-                mreturn ^size(destination)
-            end
-            else
-                mreturn 0
-        endmethod
-
-        protected method KeyValueHelper, int
-            inout destination, id
-            partName, @string
-            parts, @Dictionary<string, Object>
-            default unformatter, @ILiteralFormatter, ^null
-        proc
-            data valueObject, @object
-            if(parts.TryGetValue(partName, valueObject)) then
-            begin
-                if(unformatter != ^null) then
-                    destination = %implied(unformatter.FormatLiteral(valueObject.ToString()))
-                else
-                    destination = %implied(valueObject.ToString())
-                mreturn ^size(destination)
-            end
-            else
-                mreturn 0
-        endmethod
-
-        ;;this returns null if there is no key, fully satsified by the supplied set of key names
-        public method GetKeyNumberByFieldNames, short?
-            in required fldNames, [#]string
-        proc
-            data fieldDefinitions = new List<FieldDataDefinition>()
-            data inKeys, @List<int>, ^null 
-            data fieldName, @string
-            data fieldDef, @FieldDataDefinition
-            data suppliedKeySize = 0
-            foreach fieldName in fldNames
-            begin
-
-                fieldDef = GetFieldByName(fieldName)
-                if(fieldDef.DataType == FieldDataType.CompositeField) then
-                begin
-                    fieldDefinitions.AddRange(fieldDef.CompositeParts)
-                end
-                else
-                    fieldDefinitions.Add(fieldDef)
-            end
-
-            foreach fieldDef in fieldDefinitions
-            begin
-                data fieldInKeys, @List<int>
-
-                if(fieldDef.DataType == FieldDataType.TagLiteral) then
-                begin
-                    suppliedKeySize += fieldDef.TagValue.Length
-                end
-                else
-                begin
-                    suppliedKeySize += fieldDef.ElementSize
-
-                    if(!mFieldsInKeys.TryGetValue(fieldName, fieldInKeys))
-                        mreturn ^null
-
-                    if(inKeys == ^null) then
-                        inKeys = new List<int>(fieldInKeys)
-                    else
-                    begin
-                        inKeys.RemoveAll(lambda(keyNum) { !fieldInKeys.Contains(keyNum) })
-                    end
-
-                    if(inKeys.Count < 0)
-                        mreturn ^null
-                end
-
-            end
-
-            if(inKeys == ^null || inKeys.Count < 0) then
-                mreturn ^null
-            else
-            begin
-                if(inKeys.Count == 1) then
-                    mreturn (short)inKeys.First()
-                else
-                begin
-                    ;;get the keysize for all candidate krf's, orderby it, select the closest matching krf
-                    mreturn (short)inKeys
-                    &    .Select(lambda (keyRef) { Tuple.Create(keyRef, GetKeySize(keyRef)) })
-                    &    .OrderByDescending(lambda(tpl) { tpl.Item2 })
-                    &    .Select(lambda(tpl) { tpl.Item1 })
-                    &    .FirstOrDefault()
-                end
-            end
-
-        endmethod
+		protected method KeyValueHelper, int
+			inout destination, d
+			partName, @string
+			parts, @Dictionary<string, Object>
+			default unformatter, @ILiteralFormatter, ^null
+		proc
+			data valueObject, @object
+			if(parts.TryGetValue(partName, valueObject)) then
+			begin
+				if(unformatter != ^null) then
+					destination = %implied(unformatter.FormatLiteral(valueObject.ToString()))
+				else
+					destination = %implied(valueObject.ToString())
+				mreturn ^size(destination)
+			end
+			else
+				mreturn 0
+		endmethod
 
 
-        ;;; <summary>
-        ;;;  Readonly property that returns the names of the fields defined within the $$Symphony Data Object$$.
-        ;;; </summary>
-        public property FieldNames, @List<String>
-            method get
-            proc
-                mreturn mFieldNames
-            endmethod
-        endproperty
+		protected method KeyValueHelper, int
+			inout destination, i
+			partName, @string
+			parts, @Dictionary<string, Object>
+			default unformatter, @ILiteralFormatter, ^null
+		proc
+			data valueObject, @object
+			if(parts.TryGetValue(partName, valueObject)) then
+			begin
+				if(valueObject .is. @i) then
+					destination = (@i)valueObject
+				else if(valueObject .is. int) then
+					destination = (int)valueObject
+				else if(unformatter != ^null) then
+					destination = %integer(unformatter.FormatLiteral(valueObject.ToString()))
+				else
+					destination = %integer(valueObject.ToString())
+				mreturn ^size(destination)
+			end
+			else
+				mreturn 0
+		endmethod
+
+		protected method KeyValueHelper, int
+			inout destination, id
+			partName, @string
+			parts, @Dictionary<string, Object>
+			default unformatter, @ILiteralFormatter, ^null
+		proc
+			data valueObject, @object
+			if(parts.TryGetValue(partName, valueObject)) then
+			begin
+				if(unformatter != ^null) then
+					destination = %implied(unformatter.FormatLiteral(valueObject.ToString()))
+				else
+					destination = %implied(valueObject.ToString())
+				mreturn ^size(destination)
+			end
+			else
+				mreturn 0
+		endmethod
+
+		;;this returns null if there is no key, fully satsified by the supplied set of key names
+		public method GetKeyNumberByFieldNames, short?
+			in required fldNames, [#]string
+		proc
+			data fieldDefinitions = new List<FieldDataDefinition>()
+			data inKeys, @List<int>, ^null 
+			data fieldName, @string
+			data fieldDef, @FieldDataDefinition
+			data suppliedKeySize = 0
+			foreach fieldName in fldNames
+			begin
+
+				fieldDef = GetFieldByName(fieldName)
+				if(fieldDef.DataType == FieldDataType.CompositeField) then
+				begin
+					fieldDefinitions.AddRange(fieldDef.CompositeParts)
+				end
+				else
+					fieldDefinitions.Add(fieldDef)
+			end
+
+			foreach fieldDef in fieldDefinitions
+			begin
+				data fieldInKeys, @List<int>
+
+				if(fieldDef.DataType == FieldDataType.TagLiteral) then
+				begin
+					suppliedKeySize += fieldDef.TagValue.Length
+				end
+				else
+				begin
+					suppliedKeySize += fieldDef.ElementSize
+
+					if(!mFieldsInKeys.TryGetValue(fieldName, fieldInKeys))
+						mreturn ^null
+
+					if(inKeys == ^null) then
+						inKeys = new List<int>(fieldInKeys)
+					else
+					begin
+						inKeys.RemoveAll(lambda(keyNum) { !fieldInKeys.Contains(keyNum) })
+					end
+
+					if(inKeys.Count < 0)
+						mreturn ^null
+				end
+
+			end
+
+			if(inKeys == ^null || inKeys.Count < 0) then
+				mreturn ^null
+			else
+			begin
+				if(inKeys.Count == 1) then
+					mreturn (short)inKeys.First()
+				else
+				begin
+					;;get the keysize for all candidate krf's, orderby it, select the closest matching krf
+					mreturn (short)inKeys
+					&	.Select(lambda (keyRef) { Tuple.Create(keyRef, GetKeySize(keyRef)) })
+					&	.OrderByDescending(lambda(tpl) { tpl.Item2 })
+					&	.Select(lambda(tpl) { tpl.Item1 })
+					&	.FirstOrDefault()
+				end
+			end
+
+		endmethod
+
+
+		;;; <summary>
+		;;;  Readonly property that returns the names of the fields defined within the $$Symphony Data Object$$.
+		;;; </summary>
+		public property FieldNames, @List<String>
+			method get
+			proc
+				mreturn mFieldNames
+			endmethod
+		endproperty
 		
-        ;;backing field to store the objects field headings for report/excel export, etc
-        protected mFieldHeadings	,@List<String>, new List<String>()
+		;;backing field to store the objects field headings for report/excel export, etc
+		protected mFieldHeadings	,@List<String>, new List<String>()
 		
-        ;;; <summary>
-        ;;;  Readonly property that returns the report headings of the fields defined within the $$Symphony Data Object$$.
-        ;;; </summary>
-        public property FieldHeadings, @List<String>
-            method get
-            proc
-                mreturn mFieldHeadings
-            endmethod
-        endproperty
+		;;; <summary>
+		;;;  Readonly property that returns the report headings of the fields defined within the $$Symphony Data Object$$.
+		;;; </summary>
+		public property FieldHeadings, @List<String>
+			method get
+			proc
+				mreturn mFieldHeadings
+			endmethod
+		endproperty
 		
-        ;;this logic allows a generated data oject to store off a copy of the field details
-        ;;and prevent itself from re-creating them
+		;;this logic allows a generated data oject to store off a copy of the field details
+		;;and prevent itself from re-creating them
 		
-        protected mfieldDictionary	,@Dictionary<string, int>, new Dictionary<string, int>()
-        protected mFieldsInKeys, @Dictionary<string, List<int>>, new Dictionary<string, List<int>>()
-        protected mKeyDictionary, @Dictionary<int, List<Tuple<string, KeyType>>>, new Dictionary<int, List<Tuple<string, KeyType>>>()
+		protected mfieldDictionary	,@Dictionary<string, int>, new Dictionary<string, int>()
+		protected mFieldsInKeys, @Dictionary<string, List<int>>, new Dictionary<string, List<int>>()
+		protected mKeyDictionary, @Dictionary<int, List<Tuple<string, KeyType>>>, new Dictionary<int, List<Tuple<string, KeyType>>>()
 
-        public method GetKeyFields, @List<string>
-            keyNumber, int
-            targetKeyType, KeyType
-        proc
-            mreturn mKeyDictionary[keyNumber].Where(lambda(kvp) { ((int)(kvp.Item2 .band. targetKeyType)) != 0 }).Select(lambda(kvp) { kvp.Item1 }).ToList()
-        endmethod
+		public method GetKeyFields, @List<string>
+			keyNumber, int
+			targetKeyType, KeyType
+		proc
+			mreturn mKeyDictionary[keyNumber].Where(lambda(kvp) { ((int)(kvp.Item2 .band. targetKeyType)) != 0 }).Select(lambda(kvp) { kvp.Item1 }).ToList()
+		endmethod
 
-        public method GetKeySize, int
-            keyNumber, int
-        proc
-            mreturn mKeyDictionary[keyNumber].Sum(lambda(kvp) { GetFieldByName(kvp.Item1).ElementSize })
-        endmethod
+		public method GetKeySize, int
+			keyNumber, int
+		proc
+			mreturn mKeyDictionary[keyNumber].Sum(lambda(kvp) { GetFieldByName(kvp.Item1).ElementSize })
+		endmethod
 
 
-        ;;this can be called multiple times with the same key number to create a composite key
-        protected method AddKeyInfo, void
-            keyNumber, int
-            fieldName, @string
-        proc
-            data keyInfo = keyNumber == 0 ? KeyType.KeyFactorySupplied : KeyType.UserSupplied
-            data memberOfKeys, @List<int>
-            if(!mFieldsInKeys.TryGetValue(fieldName, memberOfKeys))
-            begin
-                memberOfKeys = new List<int>()
-                mFieldsInKeys.Add(fieldName, memberOfKeys)
-            end
-            memberOfKeys.Add(keyNumber)
+		;;this can be called multiple times with the same key number to create a composite key
+		protected method AddKeyInfo, void
+			keyNumber, int
+			fieldName, @string
+		proc
+			data keyInfo = keyNumber == 0 ? KeyType.KeyFactorySupplied : KeyType.UserSupplied
+			data memberOfKeys, @List<int>
+			if(!mFieldsInKeys.TryGetValue(fieldName, memberOfKeys))
+			begin
+				memberOfKeys = new List<int>()
+				mFieldsInKeys.Add(fieldName, memberOfKeys)
+			end
+			memberOfKeys.Add(keyNumber)
 
-            data keyParts, @List<Tuple<string, KeyType>>
-            if(!mKeyDictionary.TryGetValue(keyNumber, keyParts))
-            begin
-                keyParts = new List<Tuple<string, KeyType>>()
-                mKeyDictionary.Add(keyNumber,keyParts)
-            end
-            keyParts.Add( Tuple.Create(fieldName, keyInfo))
-        endmethod
+			data keyParts, @List<Tuple<string, KeyType>>
+			if(!mKeyDictionary.TryGetValue(keyNumber, keyParts))
+			begin
+				keyParts = new List<Tuple<string, KeyType>>()
+				mKeyDictionary.Add(keyNumber,keyParts)
+			end
+			keyParts.Add( Tuple.Create(fieldName, keyInfo))
+		endmethod
 
-        protected method AddFieldInfo, @FieldDataDefinition
-            languageName, String
-            dataType, string
-            elementSize, int
-            structurePosition, int
-            decimalPrecision ,int
-            clearField, boolean
-            default formatter, @Harmony.Core.Converters.ILiteralFormatter, ^null
-            default tagValue, @string, ^null
-            default compositeParts, @IEnumerable<FieldDataDefinition>, ^null
-            endparams
-        proc
-            data fieldInfo = new FieldDataDefinition() { LanguageName = languageName, ElementSize = elementSize, StructurePosition = structurePosition, DecimalPrecision = decimalPrecision, ClearField = clearField, TagValue = tagValue, LiteralFormatter = formatter }
+		protected method AddFieldInfo, @FieldDataDefinition
+			languageName, String
+			dataType, string
+			elementSize, int
+			structurePosition, int
+			decimalPrecision ,int
+			clearField, boolean
+			default formatter, @Harmony.Core.Converters.ILiteralFormatter, ^null
+			default tagValue, @string, ^null
+			default compositeParts, @IEnumerable<FieldDataDefinition>, ^null
+			endparams
+		proc
+			data fieldInfo = new FieldDataDefinition() { LanguageName = languageName, ElementSize = elementSize, StructurePosition = structurePosition, DecimalPrecision = decimalPrecision, ClearField = clearField, TagValue = tagValue, LiteralFormatter = formatter }
 
-            using dataType select
-            ("ALPHA"),
-            begin
-                fieldInfo.DataType = FieldDataType.AlphaField
-            end
-            ("BINARY"),
-            begin
-                fieldInfo.DataType = FieldDataType.AlphaField
-            end
-            ("DATE"),
-            begin
-                fieldInfo.DataType = FieldDataType.DecimalField
-            end
-            ("DECIMAL"),
-            begin
-                fieldInfo.DataType = FieldDataType.DecimalField
-            end
-            ("IMPLIED"),
-            begin
-                fieldInfo.DataType = FieldDataType.ImpliedDecimal
-            end
-            ("INTEGER"),
-            begin
-                fieldInfo.DataType = FieldDataType.IntegerField
-            end
-            ("JULIAN"),
-            begin
-                fieldInfo.DataType = FieldDataType.DecimalField
-            end
-            ("TIME"),
-            begin
-                fieldInfo.DataType = FieldDataType.DecimalField
-            end
-            ("USER ALPHA"),
-            begin
-                fieldInfo.DataType = FieldDataType.AlphaField
-            end
-            ("USER DATE"),
-            begin
-                fieldInfo.DataType = FieldDataType.AlphaField
-            end
-            ("USER NUMERIC"),
-            begin
-                fieldInfo.DataType = FieldDataType.AlphaField
-            end
-            ("TAG_LITERAL"),
-            begin
-                fieldInfo.DataType = FieldDataType.TagLiteral
-            end
-            ("DATAOBJECT"),
-            begin
-                fieldInfo.DataType = FieldDataType.DataObjectField
-            end
-            ("COLLECTION"),
-            begin
-                fieldInfo.DataType = FieldDataType.DataObjectCollectionField
-            end
-            ("COMPOSITE"),
-            begin
-                fieldInfo.DataType = FieldDataType.CompositeField
-                if(compositeParts == ^null) then
-                    throw new InvalidOperationException("Composite fields must be composed of parts")
-                else
-                    fieldInfo.CompositeParts = compositeParts.ToArray()
+			using dataType select
+			("ALPHA"),
+			begin
+				fieldInfo.DataType = FieldDataType.AlphaField
+			end
+			("BINARY"),
+			begin
+				fieldInfo.DataType = FieldDataType.AlphaField
+			end
+			("DATE"),
+			begin
+				fieldInfo.DataType = FieldDataType.DecimalField
+			end
+			("DECIMAL"),
+			begin
+				fieldInfo.DataType = FieldDataType.DecimalField
+			end
+			("IMPLIED"),
+			begin
+				fieldInfo.DataType = FieldDataType.ImpliedDecimal
+			end
+			("INTEGER"),
+			begin
+				fieldInfo.DataType = FieldDataType.IntegerField
+			end
+			("JULIAN"),
+			begin
+				fieldInfo.DataType = FieldDataType.DecimalField
+			end
+			("TIME"),
+			begin
+				fieldInfo.DataType = FieldDataType.DecimalField
+			end
+			("USER ALPHA"),
+			begin
+				fieldInfo.DataType = FieldDataType.AlphaField
+			end
+			("USER DATE"),
+			begin
+				fieldInfo.DataType = FieldDataType.AlphaField
+			end
+			("USER NUMERIC"),
+			begin
+				fieldInfo.DataType = FieldDataType.AlphaField
+			end
+			("TAG_LITERAL"),
+			begin
+				fieldInfo.DataType = FieldDataType.TagLiteral
+			end
+			("DATAOBJECT"),
+			begin
+				fieldInfo.DataType = FieldDataType.DataObjectField
+			end
+			("COLLECTION"),
+			begin
+				fieldInfo.DataType = FieldDataType.DataObjectCollectionField
+			end
+			("COMPOSITE"),
+			begin
+				fieldInfo.DataType = FieldDataType.CompositeField
+				if(compositeParts == ^null) then
+					throw new InvalidOperationException("Composite fields must be composed of parts")
+				else
+					fieldInfo.CompositeParts = compositeParts.ToArray()
 
-                fieldInfo.ElementSize = fieldInfo.CompositeParts.Sum(lambda(part) { part.ElementSize })
-            end
+				fieldInfo.ElementSize = fieldInfo.CompositeParts.Sum(lambda(part) { part.ElementSize })
+			end
 
-            endusing
+			endusing
 
-            mFields.Add(fieldInfo)
-            mfieldDictionary.Add(languageName, mFields.Count - 1)
-            mreturn fieldInfo
-        endmethod
+			mFields.Add(fieldInfo)
+			mfieldDictionary.Add(languageName, mFields.Count - 1)
+			mreturn fieldInfo
+		endmethod
 
-        ;;; <summary>
-        ;;;  Return the field index based on the passed field name.
-        ;;; </summary>
-        ;;; <param name="fldName">Name of the field.</param>
-        public method GetFieldFromStringIndex, int
-            in required fldName			,String
-            endparams
-        proc
-            mreturn mfieldDictionary[fldName]
-        endmethod
+		;;; <summary>
+		;;;  Return the field index based on the passed field name.
+		;;; </summary>
+		;;; <param name="fldName">Name of the field.</param>
+		public method GetFieldFromStringIndex, int
+			in required fldName			,String
+			endparams
+		proc
+			mreturn mfieldDictionary[fldName]
+		endmethod
 		
-        ;;; <summary>
-        ;;; Expose the underlying structure size.
-        ;;; </summary>
-        public virtual property StructureSize, Int32
-            method get
-            proc
-                mreturn RPSStructureSize
-            endmethod
-        endproperty
+		;;; <summary>
+		;;; Expose the underlying structure size.
+		;;; </summary>
+		public virtual property StructureSize, Int32
+			method get
+			proc
+				mreturn RPSStructureSize
+			endmethod
+		endproperty
 
-        ;;generated metadata type can just call new and create the data object base
-        public abstract method MakeNew, @DataObjectBase
-            dataArea, a
-            grfa, a
-        proc
-        endmethod
+		;;generated metadata type can just call new and create the data object base
+		public abstract method MakeNew, @DataObjectBase
+			dataArea, a
+			grfa, a
+		proc
+		endmethod
 
-        ;;generated metadata type can just call new and create the data object base
-        public abstract method MakeNew, @DataObjectBase
-            dataArea, a
-            grfa, a
-            joinedObjects, [#]KeyValuePair<string, object>
-        proc
-        endmethod
+		;;generated metadata type can just call new and create the data object base
+		public abstract method MakeNew, @DataObjectBase
+			dataArea, a
+			grfa, a
+			joinedObjects, [#]KeyValuePair<string, object>
+		proc
+		endmethod
 
-        public SynergyMemberInfo, @List<System.Reflection.MemberInfo>
+		public SynergyMemberInfo, @List<System.Reflection.MemberInfo>
 
-    endclass
+	endclass
 
 endnamespace

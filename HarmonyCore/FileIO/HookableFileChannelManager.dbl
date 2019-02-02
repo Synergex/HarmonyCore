@@ -8,39 +8,39 @@ namespace Harmony.Core.FileIO
 
 	public abstract class HookableFileChannelManager extends FileChannelManager
         
-        private HookTypeLookup, @ConcurrentDictionary<int, Synergex.SynergyDE.IOExtensions.IOHooks>, new ConcurrentDictionary<int, Synergex.SynergyDE.IOExtensions.IOHooks>()
+		private HookTypeLookup, @ConcurrentDictionary<int, Synergex.SynergyDE.IOExtensions.IOHooks>, new ConcurrentDictionary<int, Synergex.SynergyDE.IOExtensions.IOHooks>()
 
-        protected abstract method HookChannel, @Synergex.SynergyDE.IOExtensions.IOHooks
-            channel, int
-            fileName, @string
-            openMode, FileOpenMode
-        proc
-        endmethod
+		protected abstract method HookChannel, @Synergex.SynergyDE.IOExtensions.IOHooks
+			channel, int
+			fileName, @string
+			openMode, FileOpenMode
+		proc
+		endmethod
 
-        protected override method OpenChannel, int
-            fileName, @string
-            openMode, FileOpenMode
-        proc
-            data openedChannel = parent.OpenChannel(fileName, openMode)
-            HookTypeLookup.TryAdd(openedChannel, HookChannel(openedChannel, fileName, openMode))
-            mreturn openedChannel
-        endmethod
+		protected override method OpenChannel, int
+			fileName, @string
+			openMode, FileOpenMode
+		proc
+			data openedChannel = parent.OpenChannel(fileName, openMode)
+			HookTypeLookup.TryAdd(openedChannel, HookChannel(openedChannel, fileName, openMode))
+			mreturn openedChannel
+		endmethod
 
-        public override method ChannelHasHook, boolean
-            channelId, int
-        proc
-            mreturn HookTypeLookup.ContainsKey(channelId)
-        endmethod
+		public override method ChannelHasHook, boolean
+			channelId, int
+		proc
+			mreturn HookTypeLookup.ContainsKey(channelId)
+		endmethod
 
-        public override method ChannelHookType, @Type
-            channelId, int
-        proc
-            data resultType, @Synergex.SynergyDE.IOExtensions.IOHooks, ^null
-            if(HookTypeLookup.TryGetValue(channelId, resultType)) then
-                mreturn resultType.GetType()
-            else
-                mreturn ^null
-        endmethod
+		public override method ChannelHookType, @Type
+			channelId, int
+		proc
+			data resultType, @Synergex.SynergyDE.IOExtensions.IOHooks, ^null
+			if(HookTypeLookup.TryGetValue(channelId, resultType)) then
+				mreturn resultType.GetType()
+			else
+				mreturn ^null
+		endmethod
 
 	endclass
 

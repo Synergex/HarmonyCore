@@ -6,119 +6,119 @@ import Harmony.Core.Context
 
 namespace Harmony.Core.FileIO.Queryable
 
-    public class QueryBuffer implements IDisposable
-        public class TypeBuffer
-            public MemoryHandle, int?
+	public class QueryBuffer implements IDisposable
+		public class TypeBuffer
+			public MemoryHandle, int?
 			public IOChannel, int?
 			public RemoteIO, boolean?
-            public Metadata, @DataObjectMetadataBase
-            public IsCollection, boolean
-            public ParentFieldName, @string
-            public DataObjectType, @Type
-            public JoinOn, @object
-            public JoinedBuffers, @List<TypeBuffer>
-            public IsInnerJoin, boolean
-            public OrderBy, @Delegate
-        endclass
+			public Metadata, @DataObjectMetadataBase
+			public IsCollection, boolean
+			public ParentFieldName, @string
+			public DataObjectType, @Type
+			public JoinOn, @object
+			public JoinedBuffers, @List<TypeBuffer>
+			public IsInnerJoin, boolean
+			public OrderBy, @Delegate
+		endclass
 		
-        public readwrite property TypeBuffers, @List<QueryBuffer.TypeBuffer>
-        public readwrite property Parameters, @IReadOnlyDictionary<string, Object>
-        private DataObjectProvider, @IDataObjectProvider
-        ;;these buffers should not have their memory handles set, this is used as a prototype for the real buffers
-        public method QueryBuffer
-            buffers, @IEnumerable<QueryBuffer.TypeBuffer>
-        proc
-            if(buffers.Any(lambda (buf) { buf.MemoryHandle != ^null || buf.IOChannel != ^null }))
-                throw new InvalidOperationException("TypeBuffer should not have its MemoryHandle member set during QueryBuffer construction")
+		public readwrite property TypeBuffers, @List<QueryBuffer.TypeBuffer>
+		public readwrite property Parameters, @IReadOnlyDictionary<string, Object>
+		private DataObjectProvider, @IDataObjectProvider
+		;;these buffers should not have their memory handles set, this is used as a prototype for the real buffers
+		public method QueryBuffer
+			buffers, @IEnumerable<QueryBuffer.TypeBuffer>
+		proc
+			if(buffers.Any(lambda (buf) { buf.MemoryHandle != ^null || buf.IOChannel != ^null }))
+				throw new InvalidOperationException("TypeBuffer should not have its MemoryHandle member set during QueryBuffer construction")
 				
-            TypeBuffers = buffers.ToList()
-        endmethod
+			TypeBuffers = buffers.ToList()
+		endmethod
 		
-        private static method MakeTypeBuffer, @QueryBuffer.TypeBuffer
-            buf, @QueryBuffer.TypeBuffer
-            dataObjectProvider, @IDataObjectProvider
-            bufferMap, @Dictionary<QueryBuffer.TypeBuffer, QueryBuffer.TypeBuffer>
-        proc
-            data madeBuffer, @QueryBuffer.TypeBuffer
-            if(bufferMap.TryGetValue(buf,madeBuffer)) then
-                mreturn madeBuffer
-            else
-            begin
-                data newTypeBuf = new QueryBuffer.TypeBuffer() 
-                &    { 
-                &    Metadata = buf.Metadata,
-                &    IsCollection = buf.IsCollection,
-                &    ParentFieldName = buf.ParentFieldName,
-                &    DataObjectType = buf.DataObjectType,
-                &    JoinOn = buf.JoinOn,
-                &    JoinedBuffers = buf.JoinedBuffers.Select(lambda(jBuf) { MakeTypeBuffer(jBuf, dataObjectProvider, bufferMap) }).ToList(),
-                &    IsInnerJoin = buf.IsInnerJoin,
-                &    OrderBy = buf.OrderBy
-                &    }
+		private static method MakeTypeBuffer, @QueryBuffer.TypeBuffer
+			buf, @QueryBuffer.TypeBuffer
+			dataObjectProvider, @IDataObjectProvider
+			bufferMap, @Dictionary<QueryBuffer.TypeBuffer, QueryBuffer.TypeBuffer>
+		proc
+			data madeBuffer, @QueryBuffer.TypeBuffer
+			if(bufferMap.TryGetValue(buf,madeBuffer)) then
+				mreturn madeBuffer
+			else
+			begin
+				data newTypeBuf = new QueryBuffer.TypeBuffer() 
+				&	{ 
+				&	Metadata = buf.Metadata,
+				&	IsCollection = buf.IsCollection,
+				&	ParentFieldName = buf.ParentFieldName,
+				&	DataObjectType = buf.DataObjectType,
+				&	JoinOn = buf.JoinOn,
+				&	JoinedBuffers = buf.JoinedBuffers.Select(lambda(jBuf) { MakeTypeBuffer(jBuf, dataObjectProvider, bufferMap) }).ToList(),
+				&	IsInnerJoin = buf.IsInnerJoin,
+				&	OrderBy = buf.OrderBy
+				&	}
 
-                newTypeBuf.MemoryHandle = buf.Metadata.GetBuffer()
-                data fileInfo = dataObjectProvider.GetFileInfo(buf.DataObjectType)
+				newTypeBuf.MemoryHandle = buf.Metadata.GetBuffer()
+				data fileInfo = dataObjectProvider.GetFileInfo(buf.DataObjectType)
 				newTypeBuf.IOChannel = dataObjectProvider.ChannelManager.GetChannel(fileInfo.Item1, fileInfo.Item2)
 				data remoteBuf, d1
 				xcall getfa(newTypeBuf.IOChannel.Value, "RMT", remoteBuf)
 				newTypeBuf.RemoteIO = remoteBuf == 1
-                bufferMap.Add(buf, newTypeBuf)
-                mreturn newTypeBuf
-            end
+				bufferMap.Add(buf, newTypeBuf)
+				mreturn newTypeBuf
+			end
 
-        endmethod
+		endmethod
 
 
-        public method QueryBuffer
-            bufferProtoType, @QueryBuffer
-            dataObjectProvider, @IDataObjectProvider
-            params, @IReadOnlyDictionary<string, Object>
-        proc
-            Parameters = params
-            this.DataObjectProvider = dataObjectProvider
-            TypeBuffers = new List<QueryBuffer.TypeBuffer>()
-            data protoBufferMap = new Dictionary<QueryBuffer.TypeBuffer, QueryBuffer.TypeBuffer>()
-            data buf, @QueryBuffer.TypeBuffer
-            foreach buf in bufferProtoType.TypeBuffers
-            begin
-                if(buf.MemoryHandle != ^null || buf.IOChannel != ^null )
-                    throw new InvalidOperationException("TypeBuffer should not have its MemoryHandle member set during QueryBuffer construction")
+		public method QueryBuffer
+			bufferProtoType, @QueryBuffer
+			dataObjectProvider, @IDataObjectProvider
+			params, @IReadOnlyDictionary<string, Object>
+		proc
+			Parameters = params
+			this.DataObjectProvider = dataObjectProvider
+			TypeBuffers = new List<QueryBuffer.TypeBuffer>()
+			data protoBufferMap = new Dictionary<QueryBuffer.TypeBuffer, QueryBuffer.TypeBuffer>()
+			data buf, @QueryBuffer.TypeBuffer
+			foreach buf in bufferProtoType.TypeBuffers
+			begin
+				if(buf.MemoryHandle != ^null || buf.IOChannel != ^null )
+					throw new InvalidOperationException("TypeBuffer should not have its MemoryHandle member set during QueryBuffer construction")
 				
-                TypeBuffers.Add(MakeTypeBuffer(buf, dataObjectProvider, protoBufferMap))
-            end
-        endmethod
+				TypeBuffers.Add(MakeTypeBuffer(buf, dataObjectProvider, protoBufferMap))
+			end
+		endmethod
 		
-        method ~QueryBuffer
-        proc
-            Dispose(true)
-        endmethod
+		method ~QueryBuffer
+		proc
+			Dispose(true)
+		endmethod
 
-        public virtual method Dispose, void
-            endparams
-        proc
-            Dispose(false)
-        endmethod
+		public virtual method Dispose, void
+			endparams
+		proc
+			Dispose(false)
+		endmethod
 		
-        protected virtual method Dispose, void
-            isFinalizer, boolean
-            endparams
-        proc
-            data buf, @QueryBuffer.TypeBuffer
-            foreach buf in TypeBuffers
-            begin
-                if(buf.MemoryHandle != ^null)
-                    buf.Metadata.ReturnBuffer(buf.MemoryHandle.Value)
-                buf.MemoryHandle = ^null
-                if(DataObjectProvider != ^null && buf.IOChannel != ^null)
-                begin
-                    DataObjectProvider.ChannelManager.ReturnChannel(buf.IOChannel.Value)
-                    buf.IOChannel = ^null
-                end
-            end
-            TypeBuffers.Clear()
-            DataObjectProvider = ^null
-        endmethod
+		protected virtual method Dispose, void
+			isFinalizer, boolean
+			endparams
+		proc
+			data buf, @QueryBuffer.TypeBuffer
+			foreach buf in TypeBuffers
+			begin
+				if(buf.MemoryHandle != ^null)
+					buf.Metadata.ReturnBuffer(buf.MemoryHandle.Value)
+				buf.MemoryHandle = ^null
+				if(DataObjectProvider != ^null && buf.IOChannel != ^null)
+				begin
+					DataObjectProvider.ChannelManager.ReturnChannel(buf.IOChannel.Value)
+					buf.IOChannel = ^null
+				end
+			end
+			TypeBuffers.Clear()
+			DataObjectProvider = ^null
+		endmethod
 
-    endclass
+	endclass
 
 endnamespace

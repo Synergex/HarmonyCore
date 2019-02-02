@@ -27,7 +27,7 @@ namespace Harmony.Core.FileIO.Queryable
 			querySourceAliases, @Dictionary<IQuerySource, IQuerySource>
 		proc
 			mMakeJoinExpression = makeJoinExpression
-            mQuerySourceAliases = querySourceAliases
+			mQuerySourceAliases = querySourceAliases
 		endmethod
 
 		private method TypeBufferForExpression, int
@@ -40,7 +40,7 @@ namespace Harmony.Core.FileIO.Queryable
 
 			data querySources = visitor.QuerySources
 			&	.Select(lambda(qSource) { querySourceMap != ^null && querySourceMap.ContainsKey(qSource) ? querySourceMap[qSource] : qSource })
-            &   .OrderByDescending(lambda(qSource) { mQuerySourceMapping[qSource] })
+			&	.OrderByDescending(lambda(qSource) { mQuerySourceMapping[qSource] })
 			data topQuerySource = querySources.FirstOrDefault()
 			if(topQuerySource != ^null)
 			begin
@@ -453,7 +453,7 @@ namespace Harmony.Core.FileIO.Queryable
 				end
 				else if(node .is. QuerySourceReferenceExpression)
 				begin
-                    data querySource = (@QuerySourceReferenceExpression)node
+					data querySource = (@QuerySourceReferenceExpression)node
 					if(!QuerySources.Contains(querySource.ReferencedQuerySource))
 					begin
 						QuerySources.Add(querySource.ReferencedQuerySource)
@@ -473,7 +473,7 @@ namespace Harmony.Core.FileIO.Queryable
 				node, @MemberExpression
 			proc
 				Visit(node.Expression)
-                mreturn node
+				mreturn node
 			endmethod
 
 		endclass
@@ -508,11 +508,11 @@ namespace Harmony.Core.FileIO.Queryable
 					begin
 						SelectedQuerySources.Add(querySource)
 					end
-                end
-                else if(node.CanReduce)
-                begin
-                    mreturn parent.VisitExtension(node)
-                end
+				end
+				else if(node.CanReduce)
+				begin
+					mreturn parent.VisitExtension(node)
+				end
 				mreturn node
 			endmethod
 

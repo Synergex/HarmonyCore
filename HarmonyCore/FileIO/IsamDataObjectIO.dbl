@@ -6,790 +6,790 @@ import Harmony.Core.Utility
 
 namespace Harmony.Core.FileIO
 
-    public class IsamDataObjectIO<T(DataObjectBase)> extends DataObjectIOBase<T> implements IDisposable
-        ;;file acces modes 	
-        private enum fileAccessMode
-            FindFirstRecord
-            FindRecord
-            FindLastRecord
-            ReadFirstRecord
-            ReadRecord
-            ReadRecordWithGRFA
-            ReadNextRecord
-            ReadPreviousRecord
-            ReadLastRecord
-            CreateRecord
-            UpdateRecord
-            DeleteRecord
-            WritesRecord
-        endenum
+	public class IsamDataObjectIO<T(DataObjectBase)> extends DataObjectIOBase<T> implements IDisposable
+		;;file acces modes 	
+		private enum fileAccessMode
+			FindFirstRecord
+			FindRecord
+			FindLastRecord
+			ReadFirstRecord
+			ReadRecord
+			ReadRecordWithGRFA
+			ReadNextRecord
+			ReadPreviousRecord
+			ReadLastRecord
+			CreateRecord
+			UpdateRecord
+			DeleteRecord
+			WritesRecord
+		endenum
 
 
-        mChannelManager, @IFileChannelManager
-        mChannel, int
-        mOpenMode, FileOpenMode
-        mFileName, @string
-        public method IsamDataObjectIO
-            req in channelManager, @IFileChannelManager
-            req in fileName, @string
-            req in openMode, FileOpenMode
-        proc
-            mChannelManager = channelManager
-            mOpenMode = openMode
-            mFileName = fileName
-            mChannel = mChannelManager.GetChannel(mFileName, mOpenMode)
-        endmethod
+		mChannelManager, @IFileChannelManager
+		mChannel, int
+		mOpenMode, FileOpenMode
+		mFileName, @string
+		public method IsamDataObjectIO
+			req in channelManager, @IFileChannelManager
+			req in fileName, @string
+			req in openMode, FileOpenMode
+		proc
+			mChannelManager = channelManager
+			mOpenMode = openMode
+			mFileName = fileName
+			mChannel = mChannelManager.GetChannel(mFileName, mOpenMode)
+		endmethod
 
-        method ~IsamDataObjectIO
-        proc
-            Dispose(true)
-        endmethod
+		method ~IsamDataObjectIO
+		proc
+			Dispose(true)
+		endmethod
 
-        protected override method Dispose, void
-            isFinalizer, boolean
-        proc
-            parent.Dispose(isFinalizer)
-            if(mChannel > 0)
-                mChannelManager.ReturnChannel(mChannel)
-            mChannel = 0
-        endmethod
+		protected override method Dispose, void
+			isFinalizer, boolean
+		proc
+			parent.Dispose(isFinalizer)
+			if(mChannel > 0)
+				mChannelManager.ReturnChannel(mChannel)
+			mChannel = 0
+		endmethod
 
-        protected override method Find, FileAccessResults
-            in req keyOfReference, int
-            in req keyValue, a
-            in req operation, FindOperation
-            in req lockRecord, int
-        proc
-            data lockValue, int, lockRecord
-            try
-            begin
-                do forever
-                begin
-                    if(operation == FindOperation.FromBeginingOfFile && %size(keyValue) == 0) then
-                    begin
-                        using mOpenMode select
-                        (FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
-                        begin
-                            ;;TODO why is this only 6 bytes?
-                            find(mChannel,, ^FIRST, WAIT:1, LOCK:lockValue)
-                            &    [$ERR_EOF = end_of_file,
-                            &    $ERR_LOCKED = record_locked,
-                            &    $ERR_KEYNOT = key_not_same,
-                            &    $ERR_RNF = rec_not_found]
-                            mreturn FileAccessResults.Success
-                        end
-                        (FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
-                        begin
-                            find(mChannel,, ^FIRST, KEYNUM:keyOfReference, WAIT:1, LOCK:lockValue)
-                            &    [$ERR_EOF = end_of_file,
-                            &    $ERR_LOCKED = record_locked,
-                            &    $ERR_KEYNOT = key_not_same,
-                            &    $ERR_RNF = rec_not_found]
-                            mreturn FileAccessResults.Success
-                        end
-                        (FileOpenMode.InputSequential,FileOpenMode.OutputSequential),
-                        begin
-                            find(mChannel,, ^FIRST, LOCK:lockValue)
-                            &    [$ERR_EOF = end_of_file]
-                            mreturn FileAccessResults.Success
-                        end
-                        endusing
-                    end
-                    else if(operation == FindOperation.ToEndOfFile && %size(keyValue) == 0) then
-                    begin
-                        using mOpenMode select
-                        (FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
-                        begin
-                            find(mChannel,, ^LAST, WAIT:1, LOCK:lockValue)
-                            &    [$ERR_EOF = end_of_file,
-                            &    $ERR_LOCKED = record_locked,
-                            &    $ERR_KEYNOT = key_not_same,
-                            &    $ERR_RNF = rec_not_found]
-                            mreturn FileAccessResults.Success
-                        end
-                        (FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
-                        begin
-                            find(mChannel,, ^LAST, KEYNUM:keyOfReference, WAIT:1, LOCK:lockValue)
-                            &    [$ERR_EOF = end_of_file,
-                            &    $ERR_LOCKED = record_locked,
-                            &    $ERR_KEYNOT = key_not_same,
-                            &    $ERR_RNF = rec_not_found]
-                            mreturn FileAccessResults.Success
-                        end
-                        (FileOpenMode.InputSequential,FileOpenMode.OutputSequential),
-                        begin
-                            find(mChannel,, ^LAST, WAIT:1, LOCK:lockValue)
-                            &    [$ERR_EOF = end_of_file]
-                            mreturn FileAccessResults.Success
-                        end
-                        endusing
-                    end
-                    else if(keyOfReference > -1) then
-                    begin
-                        using mOpenMode select
-                        (FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
-                        begin
-                            find(mChannel,, keyValue, WAIT:1, LOCK:lockValue)
-                            &    [$ERR_EOF = end_of_file,
-                            &    $ERR_LOCKED = record_locked,
-                            &    $ERR_KEYNOT = key_not_same,
-                            &    $ERR_RNF = rec_not_found]
-                            mreturn FileAccessResults.Success
-                        end
-                        (FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
-                        begin
-                            find(mChannel,, keyValue, KEYNUM:keyOfReference, WAIT:1, LOCK:lockValue)
-                            &    [$ERR_EOF = end_of_file,
-                            &    $ERR_LOCKED = record_locked,
-                            &    $ERR_KEYNOT = key_not_same,
-                            &    $ERR_RNF = rec_not_found]
-                            mreturn FileAccessResults.Success
-                        end
-                        endusing
-                    end
-                    else if(keyOfReference == -1)
-                    begin
-                        using mOpenMode select
-                        (FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
-                        begin
-                            find(mChannel, RFA:keyValue, WAIT:1, LOCK:lockValue)
-                            &    [$ERR_EOF = end_of_file,
-                            &    $ERR_LOCKED = record_locked,
-                            &    $ERR_KEYNOT = key_not_same,
-                            &    $ERR_RNF = rec_not_found]
-                            mreturn FileAccessResults.Success
-                        end
-                        (FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
-                        begin
-                            find(mChannel, RFA:keyValue, WAIT:1, LOCK:lockValue)
-                            &    [$ERR_EOF = end_of_file,
-                            &    $ERR_LOCKED = record_locked,
-                            &    $ERR_KEYNOT = key_not_same,
-                            &    $ERR_RNF = rec_not_found]
-                            mreturn FileAccessResults.Success
-                        end
-                        endusing
-                    end
-                    throw new NotImplementedException("FileOpenMode/Operation mismatch")
+		protected override method Find, FileAccessResults
+			in req keyOfReference, int
+			in req keyValue, a
+			in req operation, FindOperation
+			in req lockRecord, int
+		proc
+			data lockValue, int, lockRecord
+			try
+			begin
+				do forever
+				begin
+					if(operation == FindOperation.FromBeginingOfFile && %size(keyValue) == 0) then
+					begin
+						using mOpenMode select
+						(FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
+						begin
+							;;TODO why is this only 6 bytes?
+							find(mChannel,, ^FIRST, WAIT:1, LOCK:lockValue)
+							&	[$ERR_EOF = end_of_file,
+							&	$ERR_LOCKED = record_locked,
+							&	$ERR_KEYNOT = key_not_same,
+							&	$ERR_RNF = rec_not_found]
+							mreturn FileAccessResults.Success
+						end
+						(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
+						begin
+							find(mChannel,, ^FIRST, KEYNUM:keyOfReference, WAIT:1, LOCK:lockValue)
+							&	[$ERR_EOF = end_of_file,
+							&	$ERR_LOCKED = record_locked,
+							&	$ERR_KEYNOT = key_not_same,
+							&	$ERR_RNF = rec_not_found]
+							mreturn FileAccessResults.Success
+						end
+						(FileOpenMode.InputSequential,FileOpenMode.OutputSequential),
+						begin
+							find(mChannel,, ^FIRST, LOCK:lockValue)
+							&	[$ERR_EOF = end_of_file]
+							mreturn FileAccessResults.Success
+						end
+						endusing
+					end
+					else if(operation == FindOperation.ToEndOfFile && %size(keyValue) == 0) then
+					begin
+						using mOpenMode select
+						(FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
+						begin
+							find(mChannel,, ^LAST, WAIT:1, LOCK:lockValue)
+							&	[$ERR_EOF = end_of_file,
+							&	$ERR_LOCKED = record_locked,
+							&	$ERR_KEYNOT = key_not_same,
+							&	$ERR_RNF = rec_not_found]
+							mreturn FileAccessResults.Success
+						end
+						(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
+						begin
+							find(mChannel,, ^LAST, KEYNUM:keyOfReference, WAIT:1, LOCK:lockValue)
+							&	[$ERR_EOF = end_of_file,
+							&	$ERR_LOCKED = record_locked,
+							&	$ERR_KEYNOT = key_not_same,
+							&	$ERR_RNF = rec_not_found]
+							mreturn FileAccessResults.Success
+						end
+						(FileOpenMode.InputSequential,FileOpenMode.OutputSequential),
+						begin
+							find(mChannel,, ^LAST, WAIT:1, LOCK:lockValue)
+							&	[$ERR_EOF = end_of_file]
+							mreturn FileAccessResults.Success
+						end
+						endusing
+					end
+					else if(keyOfReference > -1) then
+					begin
+						using mOpenMode select
+						(FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
+						begin
+							find(mChannel,, keyValue, WAIT:1, LOCK:lockValue)
+							&	[$ERR_EOF = end_of_file,
+							&	$ERR_LOCKED = record_locked,
+							&	$ERR_KEYNOT = key_not_same,
+							&	$ERR_RNF = rec_not_found]
+							mreturn FileAccessResults.Success
+						end
+						(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
+						begin
+							find(mChannel,, keyValue, KEYNUM:keyOfReference, WAIT:1, LOCK:lockValue)
+							&	[$ERR_EOF = end_of_file,
+							&	$ERR_LOCKED = record_locked,
+							&	$ERR_KEYNOT = key_not_same,
+							&	$ERR_RNF = rec_not_found]
+							mreturn FileAccessResults.Success
+						end
+						endusing
+					end
+					else if(keyOfReference == -1)
+					begin
+						using mOpenMode select
+						(FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
+						begin
+							find(mChannel, RFA:keyValue, WAIT:1, LOCK:lockValue)
+							&	[$ERR_EOF = end_of_file,
+							&	$ERR_LOCKED = record_locked,
+							&	$ERR_KEYNOT = key_not_same,
+							&	$ERR_RNF = rec_not_found]
+							mreturn FileAccessResults.Success
+						end
+						(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
+						begin
+							find(mChannel, RFA:keyValue, WAIT:1, LOCK:lockValue)
+							&	[$ERR_EOF = end_of_file,
+							&	$ERR_LOCKED = record_locked,
+							&	$ERR_KEYNOT = key_not_same,
+							&	$ERR_RNF = rec_not_found]
+							mreturn FileAccessResults.Success
+						end
+						endusing
+					end
+					throw new NotImplementedException("FileOpenMode/Operation mismatch")
 
-                end_of_file,
-                    mreturn OnEOF(false, lockRecord, keyValue, keyOfReference, "Find")
-                record_locked,
-                    if(!OnRecordLocked()) then
-                        mreturn FileAccessResults.RecordIsLocked
-                    else
-                        nextloop
-                key_not_same,
-                    mreturn OnKeyNotSame(lockRecord, keyValue, "")
-                rec_not_found,
-                    mreturn OnRecordNotFound()
-                end
-            end
-            catch(ex, @FileIOException)
-                mreturn OnFileIOException(lockRecord, "", "Find", ex)
-            catch(ex, @Exception)
-                mreturn OnException(lockRecord, "", "Find", ex)
-            endtry
+				end_of_file,
+					mreturn OnEOF(false, lockRecord, keyValue, keyOfReference, "Find")
+				record_locked,
+					if(!OnRecordLocked()) then
+						mreturn FileAccessResults.RecordIsLocked
+					else
+						nextloop
+				key_not_same,
+					mreturn OnKeyNotSame(lockRecord, keyValue, "")
+				rec_not_found,
+					mreturn OnRecordNotFound()
+				end
+			end
+			catch(ex, @FileIOException)
+				mreturn OnFileIOException(lockRecord, "", "Find", ex)
+			catch(ex, @Exception)
+				mreturn OnException(lockRecord, "", "Find", ex)
+			endtry
 
-        endmethod
+		endmethod
 
-        protected override method Read, FileAccessResults
-            inout req recordBuffer, a
-            inout req grfaBuffer, a
-            in req keyOfReference, int
-            in req keyValue, a
-            in req operation, FindOperation
-            in req withLock, int
-        proc
-            data lockFlag, i4, withLock
-            try
-            begin
-                do forever
-                begin
-                    if(operation == FindOperation.FromBeginingOfFile && %size(keyValue) == 0) then
-                    begin
-                        using mOpenMode select
-                        (FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
-                        begin
-                            read(mChannel, recordBuffer, ^FIRST, LOCK:lockFlag, WAIT:1, GETRFA:grfaBuffer)
-                            &    [$ERR_EOF = end_of_file,
-                            &    $ERR_LOCKED = record_locked,
-                            &    $ERR_KEYNOT = key_not_same,
-                            &    $ERR_RNF = rec_not_found]
-                            ;;its costly to gather the arguments for this log operation, make sure its needed first
-                            if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
-                                DebugLogSession.Logging.LogTrace("Reading from channel: {0} on file '{1}' with open mode {2} operation: {3} krf: {4} grfa: {5} record: {6} ", mChannel, mFileName, mOpenMode, operation, -1, grfaBuffer, recordBuffer)
+		protected override method Read, FileAccessResults
+			inout req recordBuffer, a
+			inout req grfaBuffer, a
+			in req keyOfReference, int
+			in req keyValue, a
+			in req operation, FindOperation
+			in req withLock, int
+		proc
+			data lockFlag, i4, withLock
+			try
+			begin
+				do forever
+				begin
+					if(operation == FindOperation.FromBeginingOfFile && %size(keyValue) == 0) then
+					begin
+						using mOpenMode select
+						(FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
+						begin
+							read(mChannel, recordBuffer, ^FIRST, LOCK:lockFlag, WAIT:1, GETRFA:grfaBuffer)
+							&	[$ERR_EOF = end_of_file,
+							&	$ERR_LOCKED = record_locked,
+							&	$ERR_KEYNOT = key_not_same,
+							&	$ERR_RNF = rec_not_found]
+							;;its costly to gather the arguments for this log operation, make sure its needed first
+							if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+								DebugLogSession.Logging.LogTrace("Reading from channel: {0} on file '{1}' with open mode {2} operation: {3} krf: {4} grfa: {5} record: {6} ", mChannel, mFileName, mOpenMode, operation, -1, grfaBuffer, recordBuffer)
 
-                            mreturn FileAccessResults.Success
-                        end
-                        (FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
-                        begin
-                            read(mChannel, recordBuffer, ^FIRST, KEYNUM:keyOfReference, LOCK:lockFlag, WAIT:1, GETRFA:grfaBuffer)
-                            &    [$ERR_EOF = end_of_file,
-                            &    $ERR_LOCKED = record_locked,
-                            &    $ERR_KEYNOT = key_not_same,
-                            &    $ERR_RNF = rec_not_found]
-                            ;;its costly to gather the arguments for this log operation, make sure its needed first
-                            if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
-                                DebugLogSession.Logging.LogTrace("Reading from channel: {0} on file '{1}' with open mode {2} operation: {3} krf: {4} grfa: {5} record: {6} ", mChannel, mFileName, mOpenMode, operation, keyOfReference, grfaBuffer, recordBuffer)
+							mreturn FileAccessResults.Success
+						end
+						(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
+						begin
+							read(mChannel, recordBuffer, ^FIRST, KEYNUM:keyOfReference, LOCK:lockFlag, WAIT:1, GETRFA:grfaBuffer)
+							&	[$ERR_EOF = end_of_file,
+							&	$ERR_LOCKED = record_locked,
+							&	$ERR_KEYNOT = key_not_same,
+							&	$ERR_RNF = rec_not_found]
+							;;its costly to gather the arguments for this log operation, make sure its needed first
+							if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+								DebugLogSession.Logging.LogTrace("Reading from channel: {0} on file '{1}' with open mode {2} operation: {3} krf: {4} grfa: {5} record: {6} ", mChannel, mFileName, mOpenMode, operation, keyOfReference, grfaBuffer, recordBuffer)
 
 
-                            mreturn FileAccessResults.Success
-                        end
-                        (FileOpenMode.InputSequential,FileOpenMode.OutputSequential),
-                        begin
-                            find(mChannel,, ^FIRST)
-                            &    [$ERR_EOF = end_of_file]
-                            ;;its costly to gather the arguments for this log operation, make sure its needed first
-                            if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
-                                DebugLogSession.Logging.LogTrace("Reading from channel: {0} on file '{1}' with open mode {2} operation: {3} krf: {4} grfa: {5} record: {6} ", mChannel, mFileName, mOpenMode, operation, -1, grfaBuffer, recordBuffer)
-                            mreturn FileAccessResults.Success
-                        end
-                        endusing
-                    end
-                    else if(operation == FindOperation.AtCurrent && %size(keyValue) == 0) then
-                    begin
-                        using mOpenMode select
-                        (FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
-                        begin
-                            reads(mChannel, recordBuffer,LOCK:lockFlag, WAIT:1, GETRFA:grfaBuffer)
-                            &    [$ERR_EOF = end_of_file,
-                            &    $ERR_LOCKED = record_locked,
-                            &    $ERR_KEYNOT = key_not_same,
-                            &    $ERR_RNF = rec_not_found]
-                            ;;its costly to gather the arguments for this log operation, make sure its needed first
-                            if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
-                                DebugLogSession.Logging.LogTrace("Reading from channel: {0} on file '{1}' with open mode {2} operation: {3} krf: {4} grfa: {5} record: {6} ", mChannel, mFileName, mOpenMode, operation, 0, grfaBuffer, recordBuffer)
-                            mreturn FileAccessResults.Success
-                        end
-                        (FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
-                        begin
-                            reads(mChannel, recordBuffer, LOCK:lockFlag, WAIT:1, GETRFA:grfaBuffer)
-                            &    [$ERR_EOF = end_of_file,
-                            &    $ERR_LOCKED = record_locked,
-                            &    $ERR_KEYNOT = key_not_same,
-                            &    $ERR_RNF = rec_not_found]
-                            if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
-                                DebugLogSession.Logging.LogTrace("Reading from channel: {0} on file '{1}' with open mode {2} operation: {3} krf: {4} grfa: {5} record: {6} ", mChannel, mFileName, mOpenMode, operation, -1, grfaBuffer, recordBuffer)
-                            mreturn FileAccessResults.Success
-                        end
-                        endusing
-                    end
-                    else if(operation == FindOperation.AtCurrent) then
-                    begin
-                        using mOpenMode select
-                        (FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
-                        begin
-                            read(mChannel, recordBuffer, ^d(keyValue), LOCK:lockFlag, WAIT:1, GETRFA:grfaBuffer)
-                            &    [$ERR_EOF = end_of_file,
-                            &    $ERR_LOCKED = record_locked,
-                            &    $ERR_KEYNOT = key_not_same,
-                            &    $ERR_RNF = rec_not_found]
-                            if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
-                                DebugLogSession.Logging.LogTrace("Reading from channel: {0} on file '{1}' with open mode {2} operation: {3} krf: {4} grfa: {5} record: {6} ", mChannel, mFileName, mOpenMode, operation, -1, grfaBuffer, recordBuffer)
-                            mreturn FileAccessResults.Success
-                        end
-                        (FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
-                        begin
-                            read(mChannel, recordBuffer, keyValue, KEYNUM:keyOfReference, LOCK:lockFlag, WAIT:1, GETRFA:grfaBuffer, MATCH:Q_EQ)
-                            &    [$ERR_EOF = end_of_file,
-                            &    $ERR_LOCKED = record_locked,
-                            &    $ERR_KEYNOT = key_not_same,
-                            &    $ERR_RNF = rec_not_found]
-                            if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
-                                DebugLogSession.Logging.LogTrace("Reading from channel: {0} on file '{1}' with open mode {2} operation: {3} krf: {4} grfa: {5} record: {6} ", mChannel, mFileName, mOpenMode, operation, keyOfReference, grfaBuffer, recordBuffer)
-                            mreturn FileAccessResults.Success
-                        end
-                        endusing
-                    end
-                    else if(keyOfReference == -1 && %size(keyValue) > 0) then
-                    begin
-                        read(mChannel, recordBuffer, LOCK:lockFlag, RFA:grfaBuffer, WAIT:1)
-                        &    [$ERR_EOF = end_of_file,
-                        &    $ERR_LOCKED = record_locked,
-                        &    $ERR_KEYNOT = key_not_same,
-                        &    $ERR_RNF = rec_not_found]
-                        if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
-                            DebugLogSession.Logging.LogTrace("Reading from channel: {0} on file '{1}' with open mode {2} operation: {3} krf: {4} grfa: {5} record: {6} ", mChannel, mFileName, mOpenMode, operation, keyOfReference, grfaBuffer, recordBuffer)
-                        mreturn FileAccessResults.Success
-                    end
-                    else if(operation == FindOperation.ToEndOfFile && %size(keyValue) == 0) then
-                    begin
-                        using mOpenMode select
-                        (FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
-                        begin
-                            read(mChannel, recordBuffer, ^LAST, LOCK:lockFlag, WAIT:1, GETRFA:grfaBuffer)
-                            &    [$ERR_EOF = end_of_file,
-                            &    $ERR_LOCKED = record_locked,
-                            &    $ERR_KEYNOT = key_not_same,
-                            &    $ERR_RNF = rec_not_found]
-                            if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
-                                DebugLogSession.Logging.LogTrace("Reading from channel: {0} on file '{1}' with open mode {2} operation: {3} krf: {4} grfa: {5} record: {6} ", mChannel, mFileName, mOpenMode, operation, -1, grfaBuffer, recordBuffer)
-                            mreturn FileAccessResults.Success
-                        end
-                        (FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
-                        begin
-                            read(mChannel, recordBuffer, ^LAST, KEYNUM:keyOfReference, LOCK:lockFlag, WAIT:1, GETRFA:grfaBuffer)
-                            &    [$ERR_EOF = end_of_file,
-                            &    $ERR_LOCKED = record_locked,
-                            &    $ERR_KEYNOT = key_not_same,
-                            &    $ERR_RNF = rec_not_found]
-                            if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
-                                DebugLogSession.Logging.LogTrace("Reading from channel: {0} on file '{1}' with open mode {2} operation: {3} krf: {4} grfa: {5} record: {6} ", mChannel, mFileName, mOpenMode, operation, keyOfReference, grfaBuffer, recordBuffer)
-                            mreturn FileAccessResults.Success
-                        end
-                        (FileOpenMode.InputSequential,FileOpenMode.OutputSequential),
-                        begin
-                            find(mChannel,, ^LAST)
-                            &    [$ERR_EOF = end_of_file]
-                            if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
-                                DebugLogSession.Logging.LogTrace("Reading from channel: {0} on file '{1}' with open mode {2} operation: {3} krf: {4} grfa: {5} record: {6} ", mChannel, mFileName, mOpenMode, operation, -1, grfaBuffer, recordBuffer)
-                            mreturn FileAccessResults.Success
-                        end
-                        endusing
-                    end
-                    else if(operation == FindOperation.FromCurrentReverse && %size(keyValue) == 0) then
-                    begin
-                        using mOpenMode select
-                        (FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
-                        begin
-                            reads(mChannel, recordBuffer,, REVERSE, LOCK:lockFlag, WAIT:1, GETRFA:grfaBuffer)
-                            &    [$ERR_EOF = end_of_file]
-                            if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
-                                DebugLogSession.Logging.LogTrace("Reading from channel: {0} on file '{1}' with open mode {2} operation: {3} krf: {4} grfa: {5} record: {6} ", mChannel, mFileName, mOpenMode, operation, -1, grfaBuffer, recordBuffer)
+							mreturn FileAccessResults.Success
+						end
+						(FileOpenMode.InputSequential,FileOpenMode.OutputSequential),
+						begin
+							find(mChannel,, ^FIRST)
+							&	[$ERR_EOF = end_of_file]
+							;;its costly to gather the arguments for this log operation, make sure its needed first
+							if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+								DebugLogSession.Logging.LogTrace("Reading from channel: {0} on file '{1}' with open mode {2} operation: {3} krf: {4} grfa: {5} record: {6} ", mChannel, mFileName, mOpenMode, operation, -1, grfaBuffer, recordBuffer)
+							mreturn FileAccessResults.Success
+						end
+						endusing
+					end
+					else if(operation == FindOperation.AtCurrent && %size(keyValue) == 0) then
+					begin
+						using mOpenMode select
+						(FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
+						begin
+							reads(mChannel, recordBuffer,LOCK:lockFlag, WAIT:1, GETRFA:grfaBuffer)
+							&	[$ERR_EOF = end_of_file,
+							&	$ERR_LOCKED = record_locked,
+							&	$ERR_KEYNOT = key_not_same,
+							&	$ERR_RNF = rec_not_found]
+							;;its costly to gather the arguments for this log operation, make sure its needed first
+							if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+								DebugLogSession.Logging.LogTrace("Reading from channel: {0} on file '{1}' with open mode {2} operation: {3} krf: {4} grfa: {5} record: {6} ", mChannel, mFileName, mOpenMode, operation, 0, grfaBuffer, recordBuffer)
+							mreturn FileAccessResults.Success
+						end
+						(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
+						begin
+							reads(mChannel, recordBuffer, LOCK:lockFlag, WAIT:1, GETRFA:grfaBuffer)
+							&	[$ERR_EOF = end_of_file,
+							&	$ERR_LOCKED = record_locked,
+							&	$ERR_KEYNOT = key_not_same,
+							&	$ERR_RNF = rec_not_found]
+							if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+								DebugLogSession.Logging.LogTrace("Reading from channel: {0} on file '{1}' with open mode {2} operation: {3} krf: {4} grfa: {5} record: {6} ", mChannel, mFileName, mOpenMode, operation, -1, grfaBuffer, recordBuffer)
+							mreturn FileAccessResults.Success
+						end
+						endusing
+					end
+					else if(operation == FindOperation.AtCurrent) then
+					begin
+						using mOpenMode select
+						(FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
+						begin
+							read(mChannel, recordBuffer, ^d(keyValue), LOCK:lockFlag, WAIT:1, GETRFA:grfaBuffer)
+							&	[$ERR_EOF = end_of_file,
+							&	$ERR_LOCKED = record_locked,
+							&	$ERR_KEYNOT = key_not_same,
+							&	$ERR_RNF = rec_not_found]
+							if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+								DebugLogSession.Logging.LogTrace("Reading from channel: {0} on file '{1}' with open mode {2} operation: {3} krf: {4} grfa: {5} record: {6} ", mChannel, mFileName, mOpenMode, operation, -1, grfaBuffer, recordBuffer)
+							mreturn FileAccessResults.Success
+						end
+						(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
+						begin
+							read(mChannel, recordBuffer, keyValue, KEYNUM:keyOfReference, LOCK:lockFlag, WAIT:1, GETRFA:grfaBuffer, MATCH:Q_EQ)
+							&	[$ERR_EOF = end_of_file,
+							&	$ERR_LOCKED = record_locked,
+							&	$ERR_KEYNOT = key_not_same,
+							&	$ERR_RNF = rec_not_found]
+							if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+								DebugLogSession.Logging.LogTrace("Reading from channel: {0} on file '{1}' with open mode {2} operation: {3} krf: {4} grfa: {5} record: {6} ", mChannel, mFileName, mOpenMode, operation, keyOfReference, grfaBuffer, recordBuffer)
+							mreturn FileAccessResults.Success
+						end
+						endusing
+					end
+					else if(keyOfReference == -1 && %size(keyValue) > 0) then
+					begin
+						read(mChannel, recordBuffer, LOCK:lockFlag, RFA:grfaBuffer, WAIT:1)
+						&	[$ERR_EOF = end_of_file,
+						&	$ERR_LOCKED = record_locked,
+						&	$ERR_KEYNOT = key_not_same,
+						&	$ERR_RNF = rec_not_found]
+						if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+							DebugLogSession.Logging.LogTrace("Reading from channel: {0} on file '{1}' with open mode {2} operation: {3} krf: {4} grfa: {5} record: {6} ", mChannel, mFileName, mOpenMode, operation, keyOfReference, grfaBuffer, recordBuffer)
+						mreturn FileAccessResults.Success
+					end
+					else if(operation == FindOperation.ToEndOfFile && %size(keyValue) == 0) then
+					begin
+						using mOpenMode select
+						(FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
+						begin
+							read(mChannel, recordBuffer, ^LAST, LOCK:lockFlag, WAIT:1, GETRFA:grfaBuffer)
+							&	[$ERR_EOF = end_of_file,
+							&	$ERR_LOCKED = record_locked,
+							&	$ERR_KEYNOT = key_not_same,
+							&	$ERR_RNF = rec_not_found]
+							if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+								DebugLogSession.Logging.LogTrace("Reading from channel: {0} on file '{1}' with open mode {2} operation: {3} krf: {4} grfa: {5} record: {6} ", mChannel, mFileName, mOpenMode, operation, -1, grfaBuffer, recordBuffer)
+							mreturn FileAccessResults.Success
+						end
+						(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
+						begin
+							read(mChannel, recordBuffer, ^LAST, KEYNUM:keyOfReference, LOCK:lockFlag, WAIT:1, GETRFA:grfaBuffer)
+							&	[$ERR_EOF = end_of_file,
+							&	$ERR_LOCKED = record_locked,
+							&	$ERR_KEYNOT = key_not_same,
+							&	$ERR_RNF = rec_not_found]
+							if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+								DebugLogSession.Logging.LogTrace("Reading from channel: {0} on file '{1}' with open mode {2} operation: {3} krf: {4} grfa: {5} record: {6} ", mChannel, mFileName, mOpenMode, operation, keyOfReference, grfaBuffer, recordBuffer)
+							mreturn FileAccessResults.Success
+						end
+						(FileOpenMode.InputSequential,FileOpenMode.OutputSequential),
+						begin
+							find(mChannel,, ^LAST)
+							&	[$ERR_EOF = end_of_file]
+							if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+								DebugLogSession.Logging.LogTrace("Reading from channel: {0} on file '{1}' with open mode {2} operation: {3} krf: {4} grfa: {5} record: {6} ", mChannel, mFileName, mOpenMode, operation, -1, grfaBuffer, recordBuffer)
+							mreturn FileAccessResults.Success
+						end
+						endusing
+					end
+					else if(operation == FindOperation.FromCurrentReverse && %size(keyValue) == 0) then
+					begin
+						using mOpenMode select
+						(FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
+						begin
+							reads(mChannel, recordBuffer,, REVERSE, LOCK:lockFlag, WAIT:1, GETRFA:grfaBuffer)
+							&	[$ERR_EOF = end_of_file]
+							if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+								DebugLogSession.Logging.LogTrace("Reading from channel: {0} on file '{1}' with open mode {2} operation: {3} krf: {4} grfa: {5} record: {6} ", mChannel, mFileName, mOpenMode, operation, -1, grfaBuffer, recordBuffer)
                             
-                            mreturn FileAccessResults.Success
-                        end
-                        (FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
-                        begin
-                            reads(mChannel, recordBuffer,, REVERSE, LOCK:lockFlag, WAIT:1, GETRFA:grfaBuffer)
-                            &    [$ERR_EOF = end_of_file,
-                            &    $ERR_LOCKED = record_locked,
-                            &    $ERR_KEYNOT = key_not_same,
-                            &    $ERR_RNF = rec_not_found]
-                            if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
-                                DebugLogSession.Logging.LogTrace("Reading from channel: {0} on file '{1}' with open mode {2} operation: {3} krf: {4} grfa: {5} record: {6} ", mChannel, mFileName, mOpenMode, operation, -1, grfaBuffer, recordBuffer)
-                            mreturn FileAccessResults.Success
-                        end
-                        endusing
-                    end
-                    else if(operation == FindOperation.FromCurrent && %size(keyValue) == 0) then
-                    begin
-                        using mOpenMode select
-                        (FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
-                        begin
-                            reads(mChannel, recordBuffer, GETRFA:grfaBuffer)
-                            &    [$ERR_EOF = end_of_file]
-                            if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
-                                DebugLogSession.Logging.LogTrace("Reading from channel: {0} on file '{1}' with open mode {2} operation: {3} krf: {4} grfa: {5} record: {6} ", mChannel, mFileName, mOpenMode, operation, -1, grfaBuffer, recordBuffer)
-                            mreturn FileAccessResults.Success
-                        end
-                        (FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
-                        begin
-                            reads(mChannel, recordBuffer, LOCK:lockFlag, WAIT:1, GETRFA:grfaBuffer)
-                            &    [$ERR_EOF = end_of_file,
-                            &    $ERR_LOCKED = record_locked,
-                            &    $ERR_KEYNOT = key_not_same,
-                            &    $ERR_RNF = rec_not_found]
-                            if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
-                                DebugLogSession.Logging.LogTrace("Reading from channel: {0} on file '{1}' with open mode {2} operation: {3} krf: {4} grfa: {5} record: {6} ", mChannel, mFileName, mOpenMode, operation, -1, grfaBuffer, recordBuffer)
-                            mreturn FileAccessResults.Success
-                        end
-                        (FileOpenMode.InputSequential,FileOpenMode.OutputSequential),
-                        begin
-                            reads(mChannel, recordBuffer)
-                            &    [$ERR_EOF = end_of_file,
-                            &    $ERR_RNF = rec_not_found]
-                            if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
-                                DebugLogSession.Logging.LogTrace("Reading from channel: {0} on file '{1}' with open mode {2} operation: {3} krf: {4} grfa: {5} record: {6} ", mChannel, mFileName, mOpenMode, operation, -1, grfaBuffer, recordBuffer)
-                            mreturn FileAccessResults.Success
-                        end
-                        endusing
-                    end
-                    else
-                        throw new NotImplementedException("FileOpenMode/Operation mismatch")
+							mreturn FileAccessResults.Success
+						end
+						(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
+						begin
+							reads(mChannel, recordBuffer,, REVERSE, LOCK:lockFlag, WAIT:1, GETRFA:grfaBuffer)
+							&	[$ERR_EOF = end_of_file,
+							&	$ERR_LOCKED = record_locked,
+							&	$ERR_KEYNOT = key_not_same,
+							&	$ERR_RNF = rec_not_found]
+							if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+								DebugLogSession.Logging.LogTrace("Reading from channel: {0} on file '{1}' with open mode {2} operation: {3} krf: {4} grfa: {5} record: {6} ", mChannel, mFileName, mOpenMode, operation, -1, grfaBuffer, recordBuffer)
+							mreturn FileAccessResults.Success
+						end
+						endusing
+					end
+					else if(operation == FindOperation.FromCurrent && %size(keyValue) == 0) then
+					begin
+						using mOpenMode select
+						(FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
+						begin
+							reads(mChannel, recordBuffer, GETRFA:grfaBuffer)
+							&	[$ERR_EOF = end_of_file]
+							if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+								DebugLogSession.Logging.LogTrace("Reading from channel: {0} on file '{1}' with open mode {2} operation: {3} krf: {4} grfa: {5} record: {6} ", mChannel, mFileName, mOpenMode, operation, -1, grfaBuffer, recordBuffer)
+							mreturn FileAccessResults.Success
+						end
+						(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
+						begin
+							reads(mChannel, recordBuffer, LOCK:lockFlag, WAIT:1, GETRFA:grfaBuffer)
+							&	[$ERR_EOF = end_of_file,
+							&	$ERR_LOCKED = record_locked,
+							&	$ERR_KEYNOT = key_not_same,
+							&	$ERR_RNF = rec_not_found]
+							if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+								DebugLogSession.Logging.LogTrace("Reading from channel: {0} on file '{1}' with open mode {2} operation: {3} krf: {4} grfa: {5} record: {6} ", mChannel, mFileName, mOpenMode, operation, -1, grfaBuffer, recordBuffer)
+							mreturn FileAccessResults.Success
+						end
+						(FileOpenMode.InputSequential,FileOpenMode.OutputSequential),
+						begin
+							reads(mChannel, recordBuffer)
+							&	[$ERR_EOF = end_of_file,
+							&	$ERR_RNF = rec_not_found]
+							if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+								DebugLogSession.Logging.LogTrace("Reading from channel: {0} on file '{1}' with open mode {2} operation: {3} krf: {4} grfa: {5} record: {6} ", mChannel, mFileName, mOpenMode, operation, -1, grfaBuffer, recordBuffer)
+							mreturn FileAccessResults.Success
+						end
+						endusing
+					end
+					else
+						throw new NotImplementedException("FileOpenMode/Operation mismatch")
 
-                end_of_file,
-                    mreturn OnEOF(false, withLock, keyValue, keyOfReference, "Read")
-                record_locked,
-                    if(!OnRecordLocked()) then
-                        mreturn FileAccessResults.RecordIsLocked
-                    else
-                        nextloop
-                key_not_same,
-                    mreturn OnKeyNotSame(withLock, keyValue, recordBuffer)
-                rec_not_found,
-                    mreturn OnRecordNotFound()
-                end
-            end
-            catch(ex, @FileIOException)
-                mreturn OnFileIOException(withLock, "", "Read", ex)
-            catch(ex, @Exception)
-                mreturn OnException(withLock, "", "Read", ex)
-            endtry
+				end_of_file,
+					mreturn OnEOF(false, withLock, keyValue, keyOfReference, "Read")
+				record_locked,
+					if(!OnRecordLocked()) then
+						mreturn FileAccessResults.RecordIsLocked
+					else
+						nextloop
+				key_not_same,
+					mreturn OnKeyNotSame(withLock, keyValue, recordBuffer)
+				rec_not_found,
+					mreturn OnRecordNotFound()
+				end
+			end
+			catch(ex, @FileIOException)
+				mreturn OnFileIOException(withLock, "", "Read", ex)
+			catch(ex, @Exception)
+				mreturn OnException(withLock, "", "Read", ex)
+			endtry
 
-        endmethod
+		endmethod
 
-        protected override method Write, FileAccessResults
-            inout req recordBuffer, a
-            in req current, boolean
-            in req useGrfa, boolean
-            in req withLock, int
-            inout req grfa, a
-        proc
-            try
-            begin
-                ;;its costly to gather the arguments for this log operation, make sure its needed first
-                if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
-                    DebugLogSession.Logging.LogTrace("Writing to channel: {0} on file '{1}' with open mode {2} useGRFA: {3} grfa: {4} with record {5}", mChannel, mFileName, mOpenMode, useGrfa, grfa, recordBuffer)
+		protected override method Write, FileAccessResults
+			inout req recordBuffer, a
+			in req current, boolean
+			in req useGrfa, boolean
+			in req withLock, int
+			inout req grfa, a
+		proc
+			try
+			begin
+				;;its costly to gather the arguments for this log operation, make sure its needed first
+				if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+					DebugLogSession.Logging.LogTrace("Writing to channel: {0} on file '{1}' with open mode {2} useGRFA: {3} grfa: {4} with record {5}", mChannel, mFileName, mOpenMode, useGrfa, grfa, recordBuffer)
 
-                if(current) then
-                begin
-                    if(%size(grfa) > 0) then
-                    begin
-                        using mOpenMode select
-                        (FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
-                        begin
-                            ;;TODO why do we need to supply the record number if we're writing the current record
-                            ;;write(mChannel, recordBuffer, mRecordNumber, GETRFA:grfa)
-                            write(mChannel, recordBuffer, GETRFA:grfa)
-                            &    [$ERR_NOCURR = no_current_record, $ERR_KEYNOT = key_not_same]
-                            mreturn FileAccessResults.Success
-                        end
-                        (FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
-                        begin
-                            write(mChannel, recordBuffer, GETRFA:grfa)
-                            &    [$ERR_NOCURR = no_current_record, $ERR_RECNOT=record_not_same, $ERR_KEYNOT = key_not_same]
-                            mreturn FileAccessResults.Success
-                        end
-                        endusing
-                    end
-                    else
-                    begin
-                        using mOpenMode select
-                        (FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
-                        begin
-                            ;;TODO why do we need to supply the record number if we're writing the current record
-                            ;;write(mChannel, recordBuffer, mRecordNumber)
-                            write(mChannel, recordBuffer)
-                            &    [$ERR_NOCURR = no_current_record, $ERR_KEYNOT = key_not_same]
-                            mreturn FileAccessResults.Success
-                        end
-                        (FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
-                        begin
-                            write(mChannel, recordBuffer)
-                            &    [$ERR_NOCURR = no_current_record, $ERR_RECNOT=record_not_same, $ERR_KEYNOT = key_not_same]
-                            mreturn FileAccessResults.Success
-                        end
-                        endusing
-                    end
+				if(current) then
+				begin
+					if(%size(grfa) > 0) then
+					begin
+						using mOpenMode select
+						(FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
+						begin
+							;;TODO why do we need to supply the record number if we're writing the current record
+							;;write(mChannel, recordBuffer, mRecordNumber, GETRFA:grfa)
+							write(mChannel, recordBuffer, GETRFA:grfa)
+							&	[$ERR_NOCURR = no_current_record, $ERR_KEYNOT = key_not_same]
+							mreturn FileAccessResults.Success
+						end
+						(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
+						begin
+							write(mChannel, recordBuffer, GETRFA:grfa)
+							&	[$ERR_NOCURR = no_current_record, $ERR_RECNOT=record_not_same, $ERR_KEYNOT = key_not_same]
+							mreturn FileAccessResults.Success
+						end
+						endusing
+					end
+					else
+					begin
+						using mOpenMode select
+						(FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
+						begin
+							;;TODO why do we need to supply the record number if we're writing the current record
+							;;write(mChannel, recordBuffer, mRecordNumber)
+							write(mChannel, recordBuffer)
+							&	[$ERR_NOCURR = no_current_record, $ERR_KEYNOT = key_not_same]
+							mreturn FileAccessResults.Success
+						end
+						(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
+						begin
+							write(mChannel, recordBuffer)
+							&	[$ERR_NOCURR = no_current_record, $ERR_RECNOT=record_not_same, $ERR_KEYNOT = key_not_same]
+							mreturn FileAccessResults.Success
+						end
+						endusing
+					end
 
-                end
-                else if(useGrfa && %size(grfa) == 10) then
-                begin
-                    using mOpenMode select
-                    (FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.Input,FileOpenMode.InputIndexed,FileOpenMode.UpdateRelative, FileOpenMode.InputRelative),
-                    begin
-                        ;;we first need to read & lock the record, if we're doing manual locking this has already been locked, just position
-                        data findResult = this.Find(-1, grfa, FindOperation.FromCurrent, withLock == Q_MANUAL_LOCK ? Q_NO_LOCK : Q_AUTO_LOCK)
-                        if (findResult == FileAccessResults.Success) then
-                        begin
-                            ;;this will update the record buffer with any auto generated keys, as well as update the grfa to reflect the changes on disk
-                            mreturn this.Write(recordBuffer, true, false, Q_NO_LOCK, grfa)
-                        end
-                        else
-                            mreturn findResult
-                    end
-                    (FileOpenMode.InputSequential),
-                        mreturn FileAccessResults.IncompatibleCallForOpenMode
-                    endusing
-                end
-                else if(%size(grfa) == 10) then
-                begin
-                    store(mChannel, recordBuffer, GETRFA:grfa, LOCK: withLock)
-                    &    [$ERR_NODUPS = duplicate_key]
-                    mreturn FileAccessResults.Success
-                end
-                else
-                begin
-                    store(mChannel, recordBuffer, LOCK: withLock)
-                    &    [$ERR_NODUPS = duplicate_key]
-                    mreturn FileAccessResults.Success
-                end
-            no_current_record,
-                mreturn OnNoCurrentRecord(true)
-            duplicate_key,
-                mreturn OnDuplicateKey(true)
-            record_not_same,
-                mreturn OnRecordNotSame(true)
-            key_not_same,
-                mreturn OnKeyNotSame(withLock, "", recordBuffer)
-            end
-            catch(ex, @FileIOException)
-                mreturn OnFileIOException(true, recordBuffer, "Write", ex)
-            catch(ex, @Exception)
-                mreturn OnException(true, recordBuffer, "Write", ex)
-            endtry
-        endmethod
+				end
+				else if(useGrfa && %size(grfa) == 10) then
+				begin
+					using mOpenMode select
+					(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.Input,FileOpenMode.InputIndexed,FileOpenMode.UpdateRelative, FileOpenMode.InputRelative),
+					begin
+						;;we first need to read & lock the record, if we're doing manual locking this has already been locked, just position
+						data findResult = this.Find(-1, grfa, FindOperation.FromCurrent, withLock == Q_MANUAL_LOCK ? Q_NO_LOCK : Q_AUTO_LOCK)
+						if (findResult == FileAccessResults.Success) then
+						begin
+							;;this will update the record buffer with any auto generated keys, as well as update the grfa to reflect the changes on disk
+							mreturn this.Write(recordBuffer, true, false, Q_NO_LOCK, grfa)
+						end
+						else
+							mreturn findResult
+					end
+					(FileOpenMode.InputSequential),
+						mreturn FileAccessResults.IncompatibleCallForOpenMode
+					endusing
+				end
+				else if(%size(grfa) == 10) then
+				begin
+					store(mChannel, recordBuffer, GETRFA:grfa, LOCK: withLock)
+					&	[$ERR_NODUPS = duplicate_key]
+					mreturn FileAccessResults.Success
+				end
+				else
+				begin
+					store(mChannel, recordBuffer, LOCK: withLock)
+					&	[$ERR_NODUPS = duplicate_key]
+					mreturn FileAccessResults.Success
+				end
+			no_current_record,
+				mreturn OnNoCurrentRecord(true)
+			duplicate_key,
+				mreturn OnDuplicateKey(true)
+			record_not_same,
+				mreturn OnRecordNotSame(true)
+			key_not_same,
+				mreturn OnKeyNotSame(withLock, "", recordBuffer)
+			end
+			catch(ex, @FileIOException)
+				mreturn OnFileIOException(true, recordBuffer, "Write", ex)
+			catch(ex, @Exception)
+				mreturn OnException(true, recordBuffer, "Write", ex)
+			endtry
+		endmethod
 
-        protected override method Delete, FileAccessResults
-            in req keyOfReference, int
-            in req keyValue, a
-            in req operation, FindOperation
-            in req manualLocking, boolean
-        proc
-            try
-            begin
-                if(operation == FindOperation.AtCurrent) then
-                begin
-                    delete (mChannel)
-                    &    [$ERR_NOCURR = no_current_record]
-                    mreturn FileAccessResults.Success
-                end
-                else
-                begin
-                    ;;this record is already locked if we're in manual locking mode
-                    data findResult = this.Find(keyOfReference, keyValue, operation, manualLocking ? Q_AUTO_LOCK : Q_NO_LOCK) 
-                    if(findResult == FileAccessResults.Success) then
-                    begin
-                        delete (mChannel)
-                        &    [$ERR_NOCURR = no_current_record]
-                        mreturn FileAccessResults.Success
-                    end
-                    else
-                        mreturn findResult
-                end
-            no_current_record,
-                mreturn OnNoCurrentRecord(true)
-            end
-            catch(ex, @FileIOException)
-                mreturn OnFileIOException(true, "", "Delete", ex)
-            catch(ex, @Exception)
-                mreturn OnException(true, "", "Delete", ex)
-            endtry
-        endmethod
+		protected override method Delete, FileAccessResults
+			in req keyOfReference, int
+			in req keyValue, a
+			in req operation, FindOperation
+			in req manualLocking, boolean
+		proc
+			try
+			begin
+				if(operation == FindOperation.AtCurrent) then
+				begin
+					delete (mChannel)
+					&	[$ERR_NOCURR = no_current_record]
+					mreturn FileAccessResults.Success
+				end
+				else
+				begin
+					;;this record is already locked if we're in manual locking mode
+					data findResult = this.Find(keyOfReference, keyValue, operation, manualLocking ? Q_AUTO_LOCK : Q_NO_LOCK) 
+					if(findResult == FileAccessResults.Success) then
+					begin
+						delete (mChannel)
+						&	[$ERR_NOCURR = no_current_record]
+						mreturn FileAccessResults.Success
+					end
+					else
+						mreturn findResult
+				end
+			no_current_record,
+				mreturn OnNoCurrentRecord(true)
+			end
+			catch(ex, @FileIOException)
+				mreturn OnFileIOException(true, "", "Delete", ex)
+			catch(ex, @Exception)
+				mreturn OnException(true, "", "Delete", ex)
+			endtry
+		endmethod
 
-        protected override method ISInfoCall, int
-            in req request, @string
-            in req keyNumber, int
-            in req keySegment, int 
-        proc
-            ;;let's check we are going to do a valid call
-            data result	,int	,0
-            using request select
-            ("NUMRECS", "SIZE"),
-            begin
-                result = %isinfo(mChannel, request)
-            end
-            ("NUMKEYS"),
-            begin
-                result = %isinfo(mChannel, request, keyNumber)
-            end
-            ("KPOSITION", "KEYLENGTH"),
-            begin
-                if (keyNumber < %isinfo(mChannel, "NUMKEYS"))
-                    result = %isinfo(mChannel, request, keyNumber, keySegment)
-            end
-            endusing
+		protected override method ISInfoCall, int
+			in req request, @string
+			in req keyNumber, int
+			in req keySegment, int 
+		proc
+			;;let's check we are going to do a valid call
+			data result	,int	,0
+			using request select
+			("NUMRECS", "SIZE"),
+			begin
+				result = %isinfo(mChannel, request)
+			end
+			("NUMKEYS"),
+			begin
+				result = %isinfo(mChannel, request, keyNumber)
+			end
+			("KPOSITION", "KEYLENGTH"),
+			begin
+				if (keyNumber < %isinfo(mChannel, "NUMKEYS"))
+					result = %isinfo(mChannel, request, keyNumber, keySegment)
+			end
+			endusing
 
-            mreturn result
-        endmethod
+			mreturn result
+		endmethod
 
-        protected override method GetAlphaFileInfo, a
-            in req request, @string
-            in req recordArea, a
-            in req keyOfReference, int
-        proc
-            using request select
-            ("KEYVAL"),
-            begin
-                if (keyofReference < %isinfo(mChannel, "NUMKEYS")) then
-                    mreturn (string)%keyval(mChannel, recordArea, keyOfReference)
-                else
-                    mreturn ""
-            end
-            ("FILENAME"),
-                mreturn mFileName
-            (),
-                mreturn (string)%isinfoa(mChannel, request)
-            endusing
-        endmethod
+		protected override method GetAlphaFileInfo, a
+			in req request, @string
+			in req recordArea, a
+			in req keyOfReference, int
+		proc
+			using request select
+			("KEYVAL"),
+			begin
+				if (keyofReference < %isinfo(mChannel, "NUMKEYS")) then
+					mreturn (string)%keyval(mChannel, recordArea, keyOfReference)
+				else
+					mreturn ""
+			end
+			("FILENAME"),
+				mreturn mFileName
+			(),
+				mreturn (string)%isinfoa(mChannel, request)
+			endusing
+		endmethod
 
-        ;;; <summary>
-        ;;;  Unlock the record within the file
-        ;;; </summary>
-        public override method UnlockChannel, FileAccessResults
-        proc
-            try
-                unlock mChannel
-            catch(ex, @FileIOException)
-                mreturn OnFileIOException(false, "", "Unlock", ex)
-            catch(ex, @Exception)
-                mreturn OnException(false, "", "Unlock", ex)
-            endtry
-        endmethod
+		;;; <summary>
+		;;;  Unlock the record within the file
+		;;; </summary>
+		public override method UnlockChannel, FileAccessResults
+		proc
+			try
+				unlock mChannel
+			catch(ex, @FileIOException)
+				mreturn OnFileIOException(false, "", "Unlock", ex)
+			catch(ex, @Exception)
+				mreturn OnException(false, "", "Unlock", ex)
+			endtry
+		endmethod
 
 
-        protected virtual method OnEOF, FileAccessResults
-            req in isReadOperation, boolean
-            req in lockingOperation, boolean
-            req in keyValue, a
-            req in keyOfReference, int
-            req in opType, @string
-        proc
-            LastSynergyError = %ernum
-            ;Harmony.Core.DebugView.Write("FileIO : End of file encountered.")
-            if (mOpenMode == FileOpenMode.Update && lockingOperation == true)
-                unlock mChannel		
+		protected virtual method OnEOF, FileAccessResults
+			req in isReadOperation, boolean
+			req in lockingOperation, boolean
+			req in keyValue, a
+			req in keyOfReference, int
+			req in opType, @string
+		proc
+			LastSynergyError = %ernum
+			;Harmony.Core.DebugView.Write("FileIO : End of file encountered.")
+			if (mOpenMode == FileOpenMode.Update && lockingOperation == true)
+				unlock mChannel		
 
-            if (isReadOperation)
-            begin
-                data hasHook = mChannelManager.ChannelHasHook(mChannel)
-                if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
-                    DebugLogSession.Logging.LogTrace("OnEOF error number: {0} channel number: {1} filename: {2} accessmode: {3} keyValue: '{4}' keyNumber: {5} IO Hook class {6}", mChannel, mFileName, mOpenMode, keyValue, keyOfReference, hasHook ? mChannelManager.ChannelHookType(mChannel).ToString() : "None")
-            end
+			if (isReadOperation)
+			begin
+				data hasHook = mChannelManager.ChannelHasHook(mChannel)
+				if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+					DebugLogSession.Logging.LogTrace("OnEOF error number: {0} channel number: {1} filename: {2} accessmode: {3} keyValue: '{4}' keyNumber: {5} IO Hook class {6}", mChannel, mFileName, mOpenMode, keyValue, keyOfReference, hasHook ? mChannelManager.ChannelHookType(mChannel).ToString() : "None")
+			end
 
-            mreturn FileAccessResults.EndOFDataFile
-        endmethod
+			mreturn FileAccessResults.EndOFDataFile
+		endmethod
 
-        protected virtual method OnRecordLocked, boolean
-        proc
-            data syserr, int
-            data systv, int
-            LastSynergyError = %IO_ERROR(mChannel, syserr, systv)
-            data hasHook = mChannelManager.ChannelHasHook(mChannel)
-            if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
-            begin
-                DebugLogSession.Logging.LogTrace("OnRecordLocked error number: {0} channel number: {1} filename: {2} accessmode: {3} IO Hook class {4}", LastSynergyError, mChannel, mFileName, mOpenMode, hasHook ? mChannelManager.ChannelHookType(mChannel).ToString() : "None")
-            end
+		protected virtual method OnRecordLocked, boolean
+		proc
+			data syserr, int
+			data systv, int
+			LastSynergyError = %IO_ERROR(mChannel, syserr, systv)
+			data hasHook = mChannelManager.ChannelHasHook(mChannel)
+			if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+			begin
+				DebugLogSession.Logging.LogTrace("OnRecordLocked error number: {0} channel number: {1} filename: {2} accessmode: {3} IO Hook class {4}", LastSynergyError, mChannel, mFileName, mOpenMode, hasHook ? mChannelManager.ChannelHookType(mChannel).ToString() : "None")
+			end
 
-            mreturn true
-        endmethod
+			mreturn true
+		endmethod
 
-        protected virtual method OnKeyNotSame, FileAccessResults
-            req in lockingOperation, boolean
-            req in keyValue, a
-            req in recordArea, a
-        proc
-            data syserr, int
-            data systv, int
-            LastSynergyError = %IO_ERROR(mChannel, syserr, systv)
-            data hasHook = mChannelManager.ChannelHasHook(mChannel)
-            if (mOpenMode == FileOpenMode.Update && lockingOperation == true)
-                unlock mChannel
+		protected virtual method OnKeyNotSame, FileAccessResults
+			req in lockingOperation, boolean
+			req in keyValue, a
+			req in recordArea, a
+		proc
+			data syserr, int
+			data systv, int
+			LastSynergyError = %IO_ERROR(mChannel, syserr, systv)
+			data hasHook = mChannelManager.ChannelHasHook(mChannel)
+			if (mOpenMode == FileOpenMode.Update && lockingOperation == true)
+				unlock mChannel
 
-            if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
-            begin
-                DebugLogSession.Logging.LogTrace("OnKeyNotSame error number: {0} channel number: {1} filename: {2} accessmode: {3} keyValue: '{4}' record: '{5}' IO Hook class {6}", LastSynergyError, mChannel, mFileName, mOpenMode, keyValue, recordArea, hasHook ? mChannelManager.ChannelHookType(mChannel).ToString() : "None")
-            end
+			if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+			begin
+				DebugLogSession.Logging.LogTrace("OnKeyNotSame error number: {0} channel number: {1} filename: {2} accessmode: {3} keyValue: '{4}' record: '{5}' IO Hook class {6}", LastSynergyError, mChannel, mFileName, mOpenMode, keyValue, recordArea, hasHook ? mChannelManager.ChannelHookType(mChannel).ToString() : "None")
+			end
 
-            mreturn FileAccessResults.KeyNotSame
-        endmethod
+			mreturn FileAccessResults.KeyNotSame
+		endmethod
 
-        protected virtual method OnRecordNotFound, FileAccessResults
-        proc
-            data syserr, int
-            data systv, int
-            LastSynergyError = %IO_ERROR(mChannel, syserr, systv)
-            data hasHook = mChannelManager.ChannelHasHook(mChannel)
-            if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
-            begin
-                DebugLogSession.Logging.LogTrace("OnRecordNotFound error number: {0} channel number: {1} filename: {2} accessmode: {3} IO Hook class {4}", LastSynergyError, mChannel, mFileName, mOpenMode, hasHook ? mChannelManager.ChannelHookType(mChannel).ToString() : "None")
-            end
-            mreturn FileAccessResults.RecordNotFound
-        endmethod
+		protected virtual method OnRecordNotFound, FileAccessResults
+		proc
+			data syserr, int
+			data systv, int
+			LastSynergyError = %IO_ERROR(mChannel, syserr, systv)
+			data hasHook = mChannelManager.ChannelHasHook(mChannel)
+			if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+			begin
+				DebugLogSession.Logging.LogTrace("OnRecordNotFound error number: {0} channel number: {1} filename: {2} accessmode: {3} IO Hook class {4}", LastSynergyError, mChannel, mFileName, mOpenMode, hasHook ? mChannelManager.ChannelHookType(mChannel).ToString() : "None")
+			end
+			mreturn FileAccessResults.RecordNotFound
+		endmethod
 
-        protected virtual method OnDuplicateKey, FileAccessResults
-            req in lockingOperation, boolean
-        proc
-            data syserr, int
-            data systv, int
-            LastSynergyError = %IO_ERROR(mChannel, syserr, systv)
-            data hasHook = mChannelManager.ChannelHasHook(mChannel)
-            if (mOpenMode == FileOpenMode.Update && lockingOperation == true)
-                unlock mChannel
+		protected virtual method OnDuplicateKey, FileAccessResults
+			req in lockingOperation, boolean
+		proc
+			data syserr, int
+			data systv, int
+			LastSynergyError = %IO_ERROR(mChannel, syserr, systv)
+			data hasHook = mChannelManager.ChannelHasHook(mChannel)
+			if (mOpenMode == FileOpenMode.Update && lockingOperation == true)
+				unlock mChannel
 
-            if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
-            begin
-                DebugLogSession.Logging.LogTrace("OnDuplicateKey error number: {0} channel number: {1} filename: {2} accessmode: {3} IO Hook class {4}", LastSynergyError, mChannel, mFileName, mOpenMode, hasHook ? mChannelManager.ChannelHookType(mChannel).ToString() : "None")
-            end
-            mreturn FileAccessResults.DuplicateKeyEncountered
-        endmethod
+			if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+			begin
+				DebugLogSession.Logging.LogTrace("OnDuplicateKey error number: {0} channel number: {1} filename: {2} accessmode: {3} IO Hook class {4}", LastSynergyError, mChannel, mFileName, mOpenMode, hasHook ? mChannelManager.ChannelHookType(mChannel).ToString() : "None")
+			end
+			mreturn FileAccessResults.DuplicateKeyEncountered
+		endmethod
 
-        protected virtual method OnNoCurrentRecord, FileAccessResults
-            req in lockingOperation, boolean
-        proc
-            data syserr, int
-            data systv, int
-            LastSynergyError = %IO_ERROR(mChannel, syserr, systv)
-            data hasHook = mChannelManager.ChannelHasHook(mChannel)
-            if (mOpenMode == FileOpenMode.Update && lockingOperation == true)
-                unlock mChannel
+		protected virtual method OnNoCurrentRecord, FileAccessResults
+			req in lockingOperation, boolean
+		proc
+			data syserr, int
+			data systv, int
+			LastSynergyError = %IO_ERROR(mChannel, syserr, systv)
+			data hasHook = mChannelManager.ChannelHasHook(mChannel)
+			if (mOpenMode == FileOpenMode.Update && lockingOperation == true)
+				unlock mChannel
 
-            if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
-            begin
-                DebugLogSession.Logging.LogTrace("OnRecordNotFound error number: {0} channel number: {1} filename: {2} accessmode: {3} IO Hook class {4}", LastSynergyError, mChannel, mFileName, mOpenMode, hasHook ? mChannelManager.ChannelHookType(mChannel).ToString() : "None")
-            end
-            mreturn FileAccessResults.NoCurrentRecordLocked
-        endmethod
+			if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+			begin
+				DebugLogSession.Logging.LogTrace("OnRecordNotFound error number: {0} channel number: {1} filename: {2} accessmode: {3} IO Hook class {4}", LastSynergyError, mChannel, mFileName, mOpenMode, hasHook ? mChannelManager.ChannelHookType(mChannel).ToString() : "None")
+			end
+			mreturn FileAccessResults.NoCurrentRecordLocked
+		endmethod
 
-        protected virtual method OnRecordNotSame, FileAccessResults
-            req in lockingOperation, boolean
-        proc
-            data syserr, int
-            data systv, int
-            LastSynergyError = %IO_ERROR(mChannel, syserr, systv)
-            data hasHook = mChannelManager.ChannelHasHook(mChannel)
-            if (mOpenMode == FileOpenMode.Update && lockingOperation == true)
-                unlock mChannel
+		protected virtual method OnRecordNotSame, FileAccessResults
+			req in lockingOperation, boolean
+		proc
+			data syserr, int
+			data systv, int
+			LastSynergyError = %IO_ERROR(mChannel, syserr, systv)
+			data hasHook = mChannelManager.ChannelHasHook(mChannel)
+			if (mOpenMode == FileOpenMode.Update && lockingOperation == true)
+				unlock mChannel
 
-            if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
-            begin
-                DebugLogSession.Logging.LogTrace("OnRecordNotFound error number: {0} channel number: {1} filename: {2} accessmode: {3} IO Hook class {4}", LastSynergyError, mChannel, mFileName, mOpenMode, hasHook ? mChannelManager.ChannelHookType(mChannel).ToString() : "None")
-            end
-            mreturn FileAccessResults.RecordDataNotSame
-        endmethod
+			if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+			begin
+				DebugLogSession.Logging.LogTrace("OnRecordNotFound error number: {0} channel number: {1} filename: {2} accessmode: {3} IO Hook class {4}", LastSynergyError, mChannel, mFileName, mOpenMode, hasHook ? mChannelManager.ChannelHookType(mChannel).ToString() : "None")
+			end
+			mreturn FileAccessResults.RecordDataNotSame
+		endmethod
 
-        protected virtual method OnFileIOException, FileAccessResults
-            req in lockingOperation, boolean
-            req in recordArea, a
-            req in opType, a
-            req in e, @FileIOException
-        proc
-            data syserr, int
-            data systv, int
-            LastSynergyError = %IO_ERROR(mChannel, syserr, systv)
-            data hasHook = mChannelManager.ChannelHasHook(mChannel)
-            if (mOpenMode == FileOpenMode.Update && lockingOperation == true)
-                unlock mChannel
+		protected virtual method OnFileIOException, FileAccessResults
+			req in lockingOperation, boolean
+			req in recordArea, a
+			req in opType, a
+			req in e, @FileIOException
+		proc
+			data syserr, int
+			data systv, int
+			LastSynergyError = %IO_ERROR(mChannel, syserr, systv)
+			data hasHook = mChannelManager.ChannelHasHook(mChannel)
+			if (mOpenMode == FileOpenMode.Update && lockingOperation == true)
+				unlock mChannel
 
-            if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
-            begin
-                DebugLogSession.Logging.LogTrace("error number: {0} channel number: {1} filename: {2} accessmode: {3} record: '{4}' IO Hook class {5} exception: '{6}'", LastSynergyError, mChannel, mFileName, mOpenMode, recordArea, opType, hasHook ? mChannelManager.ChannelHookType(mChannel).ToString() : "None", e)
-            end
-            mreturn FileAccessResults.UnknownError
-        endmethod
+			if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+			begin
+				DebugLogSession.Logging.LogTrace("error number: {0} channel number: {1} filename: {2} accessmode: {3} record: '{4}' IO Hook class {5} exception: '{6}'", LastSynergyError, mChannel, mFileName, mOpenMode, recordArea, opType, hasHook ? mChannelManager.ChannelHookType(mChannel).ToString() : "None", e)
+			end
+			mreturn FileAccessResults.UnknownError
+		endmethod
 
-        protected virtual method OnException, FileAccessResults
-            req in lockingOperation, boolean
-            req in recordArea, a
-            req in opType, a
-            req in e, @Exception
-        proc
-            data syserr, int
-            data systv, int
-            LastSynergyError = %IO_ERROR(mChannel, syserr, systv)
-            data hasHook = mChannelManager.ChannelHasHook(mChannel)
-            if (mOpenMode == FileOpenMode.Update && lockingOperation == true)
-                unlock mChannel
+		protected virtual method OnException, FileAccessResults
+			req in lockingOperation, boolean
+			req in recordArea, a
+			req in opType, a
+			req in e, @Exception
+		proc
+			data syserr, int
+			data systv, int
+			LastSynergyError = %IO_ERROR(mChannel, syserr, systv)
+			data hasHook = mChannelManager.ChannelHasHook(mChannel)
+			if (mOpenMode == FileOpenMode.Update && lockingOperation == true)
+				unlock mChannel
 
-            if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
-            begin
-                DebugLogSession.Logging.LogTrace("error number: {0} channel number: {1} filename: {2} accessmode: {3} record: '{4}' IO Hook class {5} exception: '{6}'", LastSynergyError, mChannel, mFileName, mOpenMode, recordArea, opType, hasHook ? mChannelManager.ChannelHookType(mChannel).ToString() : "None", e)
-            end
-            mreturn FileAccessResults.UnknownError
-        endmethod
+			if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+			begin
+				DebugLogSession.Logging.LogTrace("error number: {0} channel number: {1} filename: {2} accessmode: {3} record: '{4}' IO Hook class {5} exception: '{6}'", LastSynergyError, mChannel, mFileName, mOpenMode, recordArea, opType, hasHook ? mChannelManager.ChannelHookType(mChannel).ToString() : "None", e)
+			end
+			mreturn FileAccessResults.UnknownError
+		endmethod
 
-    endclass
+	endclass
 
 endnamespace
