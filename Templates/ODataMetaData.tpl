@@ -238,6 +238,8 @@ namespace <NAMESPACE>
 
   </FOREIGN_KEY_LOOP>
 </IF STRUCTURE_ISAM>
+
+        InitializeCustomFields()
         endmethod
 
         ;;; <summary>
@@ -368,6 +370,10 @@ namespace <NAMESPACE>
         endmethod
 
 </IF STRUCTURE_ISAM>
+
+    private partial method InitializeCustomFields, void
+    proc
+    endmethod
     endclass
 
 endnamespace
