@@ -4,6 +4,7 @@ import System.Text
 import System.Linq
 import Harmony.Core.Enumerations
 import System.Linq.Expressions
+import Harmony.Core.FileIO
 
 namespace Harmony.Core.FileIO.Queryable
 
@@ -39,6 +40,7 @@ namespace Harmony.Core.FileIO.Queryable
 		private mQuerySourceTypes, @List<Type>
 		private mQueryBufferPrototype, @QueryBuffer
 		private mSimpleKeyNumber, short
+		private mTraceIdentifier, @string
 		public readwrite property IsJoin, boolean
 		public readwrite property IsCollection, boolean
 		public readwrite property IsKeyedRead, boolean
@@ -51,7 +53,9 @@ namespace Harmony.Core.FileIO.Queryable
 			onParts, @IEnumerable<object>
 			orderBy, @List<Tuple<FieldReference, Boolean>>
 			queryBufferPrototype, @QueryBuffer
+			traceIdentifier, @string
 		proc
+			mTraceIdentifier = traceIdentifier
 			mSparseParts = sparseParts
 			mWhereParts = whereParts.ToList()
 			mOnParts = onParts.ToList()
@@ -116,16 +120,25 @@ namespace Harmony.Core.FileIO.Queryable
 			parameters, @IReadOnlyDictionary<string, Object>
 			dataObjectProvider, @Harmony.Core.Context.IDataObjectProvider
 		proc
-			if(!IsCollection) then
+			HarmonyFileIOMetricsEventSource.Log.MaterializationStart(mTraceIdentifier)
+			try
 			begin
-				data result = ExecutePlan<T>(tracker, parameters, dataObjectProvider)
-				if(result == ^null) then
-					mreturn Enumerable.Empty<T>()
+				if(!IsCollection) then
+				begin
+					data result = ExecutePlan<T>(tracker, parameters, dataObjectProvider)
+					if(result == ^null) then
+						mreturn Enumerable.Empty<T>()
+					else
+						mreturn new T[#] { result }
+				end
 				else
-					mreturn new T[#] { result }
+					mreturn ExecuteSelectCollectionPlan<T>(tracker, parameters, dataObjectProvider)
 			end
-			else
-				mreturn ExecuteSelectCollectionPlan<T>(tracker, parameters, dataObjectProvider)
+			finally
+			begin
+				HarmonyFileIOMetricsEventSource.Log.MaterializationEnd()
+			end
+			endtry
 		endmethod
 
 		public method ExecutePlan<T(DataObjectBase)>, T
@@ -133,10 +146,20 @@ namespace Harmony.Core.FileIO.Queryable
 			parameters, @IReadOnlyDictionary<string, Object>
 			dataObjectProvider, @Harmony.Core.Context.IDataObjectProvider
 		proc
-			if(IsKeyedRead && !IsJoin) then
-				mreturn ExecuteKeyedPlan<T>(tracker, parameters, dataObjectProvider)
-			else
-				mreturn ExecuteSelectPlan<T>(tracker, parameters, dataObjectProvider)
+			HarmonyFileIOMetricsEventSource.Log.MaterializationStart(mTraceIdentifier)
+			try
+			begin
+				if(IsKeyedRead && !IsJoin) then
+					mreturn ExecuteKeyedPlan<T>(tracker, parameters, dataObjectProvider)
+				else
+					mreturn ExecuteSelectPlan<T>(tracker, parameters, dataObjectProvider)
+			end
+			finally
+			begin
+				HarmonyFileIOMetricsEventSource.Log.MaterializationEnd()
+			end
+			endtry
+
 		endmethod
 
 		public method ExecuteSelectCollectionPlan<T(DataObjectBase)>, @IEnumerable<T>
@@ -185,7 +208,6 @@ namespace Harmony.Core.FileIO.Queryable
 				rows = selectObject.GetEnumerator()
 
 				result.AddRange(DataObjectMaterializer.MaterializeObject(queryBuffer.TypeBuffers[0], rows, tracker).OfType<T>())
-
 				;while(hasMoreRows)
 				;begin
 ;					incr currentCount
