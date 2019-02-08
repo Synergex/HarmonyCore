@@ -1,8 +1,8 @@
 
 import System.Collections
 
-;if((priority) <= Logger.LogLevel) 
-.define MaybeLog(priority, msg) TraditionalBridge.Logger.Instance.Log(msg)
+
+.define MaybeLog(priority, msg) if((priority) <= TraditionalBridge.Logger.LogLevel) TraditionalBridge.Logger.Instance.Log(msg)
 
 namespace Json
 
@@ -31,9 +31,9 @@ namespace Json
 	public class ChannelSerializer
 
 		private channel, i4
-        private buffer, @string
-        private alphaBuf, a65535
-        private alphaPosition, i4
+		private buffer, @string
+		private alphaBuf, a65535
+		private alphaPosition, i4
 		;;TODO: make a real stack out of a dynamic array or something like that
 		private serializerStack, @ArrayList
 		;;TODO: buffer writes into an a65535 instead of calling write directly
@@ -52,7 +52,7 @@ namespace Json
 			required in chan, i
 		proc
 			alphaPosition = 0
-            clear alphaBuf
+;			clear alphaBuf
 			buffer = ""
 			channel = chan
 			serializerStack = new System.Collections.ArrayList()
@@ -70,32 +70,59 @@ namespace Json
 			serializerStack.Add((@SerializerStackType)type)
 		endmethod
 
-        private method AppendOutput, void
-            input, a
+		private method AppendOutput, void
+			input, a
 		proc
-			if(buffer == ^null)
-				buffer = ""
 
-            if(^size(input) > 65535) then
-            begin
-                if(alphaPosition > 0)
-                begin
-                    buffer += alphaBuf(1:alphaPosition)
-                    clear alphaBuf
-                end
-                buffer += input
-                mreturn
-            end
-            else if(^size(input) + alphaPosition > 65535)
-            begin
-                buffer += alphaBuf(1:alphaPosition)
-                clear alphaBuf
-            end
+.if D_ADDRSIZE == 8
+			if(^size(input) > 65535) then
+			begin
+				if(alphaPosition > 0)
+				begin
+					buffer += alphaBuf(1:alphaPosition)
+					clear alphaposition
+				end
+				buffer += input
+				mreturn
+			end
+			else
+.endc
+			if(^size(input) + alphaPosition > 65535)
+			begin
+				buffer += alphaBuf(1:alphaPosition)
+				clear alphaposition
+			end
 
-            alphaBuf(alphaPosition + 1:^size(input)) = input
-            alphaPosition += ^size(input)
-        endmethod
-
+			alphaBuf(alphaPosition + 1:^size(input)) = input
+			alphaPosition += ^size(input)
+		endmethod
+		private method AppendOutput, void
+			input, string
+			record
+				inputlen,int
+		proc
+			inputlen = input.length
+			if(inputlen > 65535) then
+			begin
+				if(alphaPosition > 0)
+				begin
+					buffer += alphaBuf(1:alphaPosition)
+					clear alphaposition
+				end
+				buffer += input
+			end
+			else if(inputlen + alphaPosition > 65535) then
+			begin
+				buffer += alphaBuf(1:alphaPosition)
+				clear alphaposition
+				buffer += input
+			end
+			else
+			begin
+				alphaBuf(alphaPosition + 1:inputlen) = input
+				alphaPosition += ^size(input)
+			end
+		endmethod
 
 		;;; <summary>
 		;;; Removes the top serializer state from the stack. The stack indicates
@@ -139,16 +166,16 @@ namespace Json
 		;;; <returns>Always returns SerializerStatus.Ok</returns>
 		public method MapOpen, SerializerStatus
 			record
-                input, @string
+				input, string
 		proc
-            input = ""
-			if(!first && STACK_STATE_ARRAY)
-				input += ","
+			if(!first && STACK_STATE_ARRAY) then
+				input = ",{"
+			else	input = "{"
 			expectingName = true
 			first = true
 			Push(SerializerStackType.Object)
-			input += "{"
-            AppendOutput(input)
+			;rma note: can we just move this above expecting name ? and pass in literals removing input ?
+			AppendOutput(input)
 			mreturn SerializerStatus.Ok
 		endmethod
 
@@ -171,17 +198,17 @@ namespace Json
 			Pop()
 			expectingName = !STACK_STATE_ARRAY
 			AppendOutput("}")
-
-            message = buffer
+			; why do we need the new string message ( a potentially big duplicate)
+			message = buffer
 			if (serializerStack.Count == 1)
 				sendMessage()
 
-            if (^passed(sentMessage))
-            begin
-                if(serializerStack.Count != 1)
-                    throw new Exception("map was not closed properly")
-                sentMessage = message
-            end
+			if (^passed(sentMessage))
+			begin
+				if(serializerStack.Count != 1)
+					throw new Exception("map was not closed properly")
+				sentMessage = message
+			end
 
 
 			mreturn SerializerStatus.Ok
@@ -194,17 +221,18 @@ namespace Json
 		;;; <returns>Always returns SerializerStatus.Ok</returns>
 		public method ArrayOpen, SerializerStatus
 			record
-                input, @string
+				input, @string
 		proc
-            input = ""
-			if(!first && STACK_STATE_ARRAY)
-				input += ","
+			if(!first && STACK_STATE_ARRAY)then 
+				input += ",["
+			else
+				input = "["
 
 			first = true
 			expectingName = false
 			Push(SerializerStackType.Array)
-			input += "["
-            AppendOutput(input)
+			;rma can this append output be above in the if then else ?
+			AppendOutput(input)
 			mreturn SerializerStatus.Ok
 		endmethod
 
@@ -225,7 +253,7 @@ namespace Json
 			Pop()
 			expectingName = !STACK_STATE_ARRAY
 			AppendOutput("]")
-            message = buffer
+			message = buffer
 			if (serializerStack.Count == 1)
 				sendMessage()
 
@@ -245,21 +273,16 @@ namespace Json
 			req in value, n
 			record
 				inArray, boolean
-                input, @string
 		proc
-            input = ""
+			;rma if ^size(value > 18) throw exception cannot fit in long integer
 			inArray = STACK_STATE_ARRAY
-			if(!first && inArray)
-				input += ","
+			if(!first && inArray) then
+				AppendOutput(","+%string(value))
+			else
+				AppendOutput(%string(value))
 			first = false
-
-			input += %string(value)
-
 			if(!inArray)
 				expectingName = true
-
-			AppendOutput(input)
-
 			mreturn SerializerStatus.Ok
 		endmethod
 
@@ -272,20 +295,18 @@ namespace Json
 			req in value, id
 			record
 				inArray, boolean
-                input, @string
+
 		proc
-			input = ""
+			;rma if ^size(value) > 15 throw exception (double cant exceed 15 digits(
+
 			inArray = STACK_STATE_ARRAY
-			if(!first && inArray)
-				input += ","
+			if(!first && inArray) then
+				AppendOutput(","+%string(value))
+			else
+				AppendOutput(%string(value))
 			first = false
-
-			input += %string(value)
-
 			if(!inArray)
 				expectingName = true
-
-            AppendOutput(input)
 
 			mreturn SerializerStatus.Ok
 		endmethod
@@ -299,24 +320,27 @@ namespace Json
 			req in value, boolean
 			record
 				inArray, boolean
-                input, string
 		proc
-			input = ""
 			inArray = STACK_STATE_ARRAY
-			if(!first && inArray)
-				input += ","
-
-			if(value) then
-				input += "true"
+			if(!first && inArray)then
+			begin
+				if (value) then
+					AppendOutput(",true")
+				else
+					AppendOutput(",false")
+			end
 			else
-				input += "false"
+			begin
+				if (value) then
+					AppendOutput("true")
+				else
+					AppendOutput("false")
+			end
+
 			first = false
 
 			if(!inArray)
 				expectingName = true
-
-			AppendOutput(input)
-
 			mreturn SerializerStatus.Ok
 		endmethod
 
@@ -328,22 +352,23 @@ namespace Json
 		public method String, SerializerStatus
 			req in value, @string
 			record
+				input, @string
 				inArray, boolean
-                input, @string
 		proc
-			input = ""
 			inArray = STACK_STATE_ARRAY
-			if(!first && (expectingName || inArray))
-				input += ","
-			
+			if(!first && (expectingName || inArray)) then
+				input = ',"'
+			else
+				input = '"'
 			first = false
 
-			;;TODO this string might need to be encoded, it probably shouldnt have binary data in it
-			input += '"' + value + '"'
-			if(expectingName)
+			;;TODO this string "value" might need to be encoded, it probably shouldnt have binary data in it
+			if(expectingName) then
 			begin
-				input += ":"
+				input += value + '":'
 			end
+			else
+				input += value + '"'
 			
 			if(!inArray)
 				expectingName = !expectingName
@@ -354,102 +379,62 @@ namespace Json
 		endmethod
 
 		public method Pair, SerializerStatus
-			req in key, @string
-			req in value, @string
-			record
-				inArray, boolean
-				input, @string
+			req in key, a
+			req in value, a
+
 		proc
 			if(!expectingName)
 				throw new InvalidOperationException("received name + value pair when name was unexpected")
-
-			input = ""
-			inArray = STACK_STATE_ARRAY
-			if(!first)
-				input += ","
-			
+			if(!first) then
+				AppendOutput(',"'+ key +'":"' + value + '"')
+			else
+				AppendOutput('"'+ key +'":"' + value + '"')
 			first = false
-
-			input += '"' + key + '":"' + value + '"'
-
-			AppendOutput(input)
 
 			mreturn SerializerStatus.Ok
 		endmethod
 
 		public method PairBool, SerializerStatus
-			req in key, @string
+			req in key, a
 			req in value, boolean
-			record
-				inArray, boolean
-				input, @string
 		proc
 			if(!expectingName)
 				throw new InvalidOperationException("received name + value pair when name was unexpected")
-
-			input = ""
-			inArray = STACK_STATE_ARRAY
-			if(!first)
-				input += ","
-			
-			first = false
-
-			input += '"' + key + '":'
-
-			if(value) then
-				input += "true"
+			;rma fix for version 11 to one append output
+			if(!first) then
+				AppendOutput(',"'+key+'":'); + value ? "true" : "false"))
 			else
-				input += "false"
-
-			AppendOutput(input)
-
+				AppendOutput('"'+key+'":');+ value ? "true" : "false")
+			first = false
+			AppendOutput(value ? "true" : "false")
 			mreturn SerializerStatus.Ok
 		endmethod
 
 		public method Pair, SerializerStatus
-			req in key, @string
+			req in key, a
 			req in value, n.
-			record
-				inArray, boolean
-				input, @string
+
 		proc
 			if(!expectingName)
 				throw new InvalidOperationException("received name + value pair when name was unexpected")
-
-			input = ""
-			inArray = STACK_STATE_ARRAY
-			if(!first)
-				input += ","
-			
+			if(!first) then
+				AppendOutput(',"'+key+'":' + %string(value))
+			else
+				AppendOutput('"'+key+'":' + %string(value))
 			first = false
-
-			input += '"' + key + '":' + %string(value)
-
-			AppendOutput(input)
-
 			mreturn SerializerStatus.Ok
 		endmethod
 
 		public method PairNull, SerializerStatus
-			req in key, @string
-			record
-				inArray, boolean
-				input, @string
+			req in key, a
 		proc
 			if(!expectingName)
 				throw new InvalidOperationException("received name + value pair when name was unexpected")
-
-			input = ""
-			inArray = STACK_STATE_ARRAY
-			if(!first)
-				input += ","
-			
+			if(!first) then
+				AppendOutput(',"'+key+'":null')
+			else
+				AppendOutput('"'+key+'":null')
 			first = false
-
-			input += '"' + key + '":null'
-
-			AppendOutput(input)
-
 			mreturn SerializerStatus.Ok
 		endmethod
 
@@ -462,7 +447,7 @@ namespace Json
 		public method OutputScopeAbort, void
 		proc
 			buffer = ""
-			clear alphaBuf
+;			clear alphaBuf
 			clear alphaPosition
 		endmethod
 
@@ -493,33 +478,33 @@ namespace Json
 		;;; <returns>The complete protocol message that was sent.</returns>
 		private method sendMessage, void
 			stack record
+				bufferLength, int
 				message, string
-				lengthHeader, string
-				bufferLength, i4
 			endrecord
 		proc
-			if(buffer != ^null) then
-				bufferLength = buffer.Length
-			else
-				bufferLength = 0
-
-			lengthHeader = "Content-Length:" + %string(bufferLength + alphaPosition) + %char(13) + %char(10) + %char(13) + %char(10)
-			MaybeLog(6, "Serializer: " + lengthHeader)
-			puts(channel, lengthHeader)
+			bufferLength = buffer.length
+			if(6 <= TraditionalBridge.Logger.LogLevel) then
+			begin
+				data lengthheader, string
+				lengthHeader = "Content-Length:" + %string(bufferLength + alphaPosition) + %char(13) + %char(10) + %char(13) + %char(10)
+				MaybeLog(6, "Serializer: " + lengthHeader)
+				puts(channel, lengthHeader)
+			end
+			else puts(channel,"Content-Length:" + %string(bufferLength + alphaPosition) + %char(13) + %char(10) + %char(13) + %char(10))
 			if(bufferLength > 0) then
-            begin
-				buffer += alphaBuf(1:alphaPosition)
+			begin
+				if (alphaposition)
+					buffer += alphaBuf(1:alphaPosition)
 				MaybeLog(6, "Serializer: " + buffer)
-                puts(channel, buffer)
-            end
-            else
+				;RMA eeds to handle buffer length > 65535 for 32 bit
+				puts(channel, buffer)
+			end
+			else
 			begin
 				MaybeLog(6, "Serializer: " + alphaBuf(1:alphaPosition))
-                puts(channel, alphaBuf(1:alphaPosition))
-            end
-
-            
-            clear alphaBuf
+				puts(channel, alphaBuf(1:alphaPosition))
+			end
+			clear alphaposition
 			buffer = ""
 		endmethod
 
