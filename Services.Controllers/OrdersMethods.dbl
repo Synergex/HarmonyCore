@@ -106,6 +106,20 @@ namespace Services.Controllers
 			data resultTpl = await CallMethod("GetAllCustomers", new List<Customer>(), string.Empty)
 			mreturn ((@IEnumerable<Customer>)resultTpl.Item2[1]).ToList<Customer>()
 		endmethod
+
+		{CallableMethodConfigurationAttribute(IsFunction=true, ReturnsFromEntitySet=true)}
+		public async method Arbitrario_MethodWithParameters, @Task<ArbitrarioReturnType>
+		proc
+			data resultTpl = await CallMethod("Arbitrario.MethodWithParameters", 5, "hello", new string[#] { "this", "is", "strings" }, new int[#] {5, 4, 3, 2, 1 }, new string[0])
+			mreturn new ArbitrarioReturnType() { ReturnCode = (int)resultTpl.Item1, IntList = (@List<int>)resultTpl.Item2[1], StringList = (@List<string>)resultTpl.Item2[2] }
+		endmethod
+
+		public class ArbitrarioReturnType
+			public readwrite property ReturnCode, int
+			public readwrite property IntList, @List<int>
+			public readwrite property StringList, @List<string>
+		endclass
+
     endclass
 
 

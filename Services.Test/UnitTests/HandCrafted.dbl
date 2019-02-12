@@ -52,6 +52,7 @@ import Microsoft.Extensions.DependencyInjection
 import Harmony.Core.EF.Extensions
 import Harmony.Core.Converters
 import Services.Models
+import System.IO
 
 namespace Services.Test.UnitTests
 
@@ -565,15 +566,20 @@ namespace Services.Test.UnitTests
             data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
 		endmethod
 
-;		{TestMethod}
-;		public method TraditionalBridgeGetAllCustomers, void
-;		proc
-;			disposable data client = UnitTestEnvironment.Server.CreateClient()
-;			disposable data response = client.GetAsync("/odata/VMS/GetAllCustomers()").Result
-;			data result = response.Content.ReadAsStringAsync().Result
-;			response.EnsureSuccessStatusCode()
-;			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
-;		endmethod
+		{TestMethod}
+		public method TraditionalBridgeGetAllCustomers, void
+		proc
+			if(File.Exists(Path.GetFullPath(Path.Combine(Path.GetDirectoryName(^typeof(HandCrafted).Assembly.Location), "..\..\..\..\Debug\x86\TraditionalBridge.Test.dbr")))) then
+			begin
+				disposable data client = UnitTestEnvironment.Server.CreateClient()
+				disposable data response = client.GetAsync("/odata/VMS/GetAllCustomers()").Result
+				data result = response.Content.ReadAsStringAsync().Result
+				response.EnsureSuccessStatusCode()
+				data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+			end
+			else
+				Console.WriteLine("Skipping TraditionalBridgeGetAllCustomers")
+		endmethod
 
         {TestMethod}
         public method EF_FirstOrDefaultIncluding, void
@@ -667,6 +673,21 @@ namespace Services.Test.UnitTests
 			resultValue = (a)RegexificationFactory.RegexifyMe("(XXX) XXX-XXXX").GetData("(555) 555-5555")
 			Assert.AreEqual(resultValue, expected)
 		endmethod
+
+		{TestMethod}
+		public method DynamicCallProviderTestBasic, void
+		proc
+			if(File.Exists(Path.GetFullPath(Path.Combine(Path.GetDirectoryName(^typeof(HandCrafted).Assembly.Location), "..\..\..\..\Debug\x86\TraditionalBridge.Test.dbr")))) then
+			begin
+				disposable data client = UnitTestEnvironment.Server.CreateClient()
+				disposable data response = client.GetAsync("/odata/VMS/Arbitrario_MethodWithParameters()").Result
+				data result = response.Content.ReadAsStringAsync().Result
+				response.EnsureSuccessStatusCode()
+			end
+			else
+				Console.WriteLine("Skipping TraditionalBridgeGetAllCustomers")
+		endmethod
+
 
 		{TestMethod}
 		public method AdapterTestBasic, void
