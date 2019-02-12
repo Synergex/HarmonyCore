@@ -2,8 +2,8 @@
 import Json
 import System.Collections
 import TraditionalBridge
-;if((priority) <= Logger.LogLevel) 
-.define MaybeLog(priority, msg) Logger.Instance.Log(msg)
+
+.define MaybeLog(priority, msg) if((priority) <= Logger.LogLevel) Logger.Instance.Log(msg)
 
 namespace Harmony.TraditionalBridge
 
@@ -189,6 +189,16 @@ namespace Harmony.TraditionalBridge
 
 		;;TODO: This needs to take an expected type parameter of some kind so we can do basic conversions int -> decimal vs int -> int
 
+		public method UnwrapObjectCollection, @ArrayList
+			collection, @JsonArray
+			record
+				result, @ArrayList
+		proc
+			result = new ArrayList()
+			UnwrapObjectCollection(collection, result)
+			mreturn result
+		endmethod
+
 		;;; <summary>
 		;;; 
 		;;; </summary>
@@ -196,7 +206,6 @@ namespace Harmony.TraditionalBridge
 		;;; <param name="collection"></param>
 		;;; <param name="targetArrayList"></param>
 		public method UnwrapObjectCollection, void
-			elementInfo, @ArgumentDataDefinition
 			collection, @JsonArray
 			targetArrayList, @ArrayList
 			record
@@ -235,6 +244,95 @@ namespace Harmony.TraditionalBridge
 			end
 		endmethod
 
+		public method UnwrapStringArray, [#]@string
+			collection, @JsonArray
+			record
+				result, [#]@string
+				element, @JsonValue
+				i, int
+			endrecord
+		proc
+			i = 1
+			result = new String[collection.arrayValues.Count]
+			foreach element in collection.arrayValues
+			begin
+				if(element .is. JsonText) then
+				begin
+					result[i] = ((@JsonText)element).Value
+				end
+				else
+					throw new InvalidCastException()
+				incr i
+			end
+			mreturn result
+		endmethod
+
+		public method UnwrapIntArray, [#]int
+			collection, @JsonArray
+			record
+				result, [#]int
+				element, @JsonValue
+				i, int
+		proc
+			i = 1
+			result = new int[collection.arrayValues.Count]
+			foreach element in collection.arrayValues
+			begin
+				if(element .is. JsonInt) then
+				begin
+					result[i] = ((@JsonInt)element).Value
+				end
+				else
+					throw new InvalidCastException()
+				incr i
+			end
+			mreturn result
+		endmethod
+
+		public method UnwrapBoolArray, [#]boolean
+			collection, @JsonArray
+		record
+			result, [#]boolean
+			element, @JsonValue
+			i, int
+		proc
+			i = 1
+			result = new boolean[collection.arrayValues.Count]
+			foreach element in collection.arrayValues
+			begin
+				if(element .is. JsonBoolean) then
+				begin
+					result[i] = ((@JsonBoolean)element).Value
+				end
+				else
+					throw new InvalidCastException()
+				incr i
+			end
+			mreturn result
+		endmethod
+
+		public method UnwrapImpliedDecimalArray, [#]@id
+			collection, @JsonArray
+		record
+			result, [#]@id
+			element, @JsonValue
+			i,	int
+		proc
+			i = 1
+			result = new @id[collection.arrayValues.Count]
+			foreach element in collection.arrayValues
+			begin
+				if(element .is. JsonNumber) then
+				begin
+					result[i] = (@id)((@JsonNumber)element).Value
+				end
+				else
+					throw new InvalidCastException()
+				incr i
+			end
+			mreturn result
+		endmethod
+
 		;;; <summary>
 		;;; 
 		;;; </summary>
@@ -242,7 +340,7 @@ namespace Harmony.TraditionalBridge
 		;;; <param name="serializer"></param>
 		public virtual method SerializeObject, void
 			obj, @DataObjectBase
-			serializer, @ChannelSerializer
+			serializer, @DispatchSerializer
 		proc
 			obj.Serialize(serializer)
 		endmethod
@@ -259,7 +357,7 @@ namespace Harmony.TraditionalBridge
 		;;; <param name="serializer"></param>
 		public virtual method SerializeObjectCollection, void
 			obj, @ArrayList
-			serializer, @ChannelSerializer
+			serializer, @DispatchSerializer
 			record
 				doElement, @DataObjectBase
 				primativeElement, @object
@@ -316,6 +414,16 @@ namespace Harmony.TraditionalBridge
 		proc
 			valueInt = (@JsonInt)value.GetProperty("PassedValue")
 			mreturn valueInt.Value
+		endmethod
+
+		public method GetArray, @JsonArray
+			value, @JsonObject
+			record
+				valueArray, @JsonArray
+			endrecord
+		proc
+			valueArray = (@JsonArray)value.GetProperty("PassedValue")
+			mreturn valueArray
 		endmethod
 
 		;;; <summary>
@@ -387,7 +495,7 @@ namespace Harmony.TraditionalBridge
 		;;; <param name="serializer"></param>
 		public method SerializeObject, void
 			obj, @object
-			serializer, @ChannelSerializer
+			serializer, @DispatchSerializer
 		proc
 			if(obj .is. @DataObjectBase) then
 				SerializeObject((@DataObjectBase)obj, serializer)
@@ -456,14 +564,14 @@ namespace Harmony.TraditionalBridge
 			record
 				jsonReader, @Json
 				parsedJson, @JsonValue
-				serializer, @ChannelSerializer
+				serializer, @DispatchSerializer
 				result, boolean
 				readerPosition, int
 				remainingRead, int
 			endrecord
 		proc
 			jsonReader = new Json()
-			serializer = new ChannelSerializer(ttChannel)
+			serializer = new DispatchSerializer(new ChannelOutputStream(ttChannel))
 			;;reuse the same buffer if possible
 			if(mReadBufferSize < frameHeader)
 			begin
@@ -547,7 +655,7 @@ namespace Harmony.TraditionalBridge
 			errorText, @string
 			errorCode, int
 			messageId, int
-			serializer, @ChannelSerializer
+			serializer, @DispatchSerializer
 			record
 				scopeLog, @string
 		proc
@@ -579,7 +687,7 @@ namespace Harmony.TraditionalBridge
 		public method ReportResult, void
 			requestId, int
 			result, @string
-			serializer, @ChannelSerializer
+			serializer, @DispatchSerializer
 		proc
 			serializer.MapOpen()
 			serializer.Pair("jsonrpc", "2.0")
@@ -598,7 +706,7 @@ namespace Harmony.TraditionalBridge
 		public method ReportResult, void
 			requestId, int
 			result, n
-			serializer, @ChannelSerializer
+			serializer, @DispatchSerializer
 		proc
 			serializer.MapOpen()
 			serializer.Pair("jsonrpc", "2.0")
@@ -617,7 +725,7 @@ namespace Harmony.TraditionalBridge
 			requestId, int
 			result, [#]@object
 			inputSet, [#]boolean
-			serializer, @ChannelSerializer
+			serializer, @DispatchSerializer
 			record
 				arg, @object
 				ii, int
@@ -713,7 +821,7 @@ namespace Harmony.TraditionalBridge
 			end
 			catch(ex, @Exception)
 			begin
-				data serializer = new ChannelSerializer(ttChannel)
+				data serializer = new DispatchSerializer(new ChannelOutputStream(ttChannel))
 				ReportError(ex.ToString(), -32603, -1, serializer)
 			end
 			endtry
@@ -727,7 +835,7 @@ namespace Harmony.TraditionalBridge
 		;;; <returns></returns>
 		public method ProcessCallBlock, boolean
 			jsonData, @JsonObject
-			serializer, @ChannelSerializer
+			serializer, @DispatchSerializer
 			record
 				requestId, int
 				name, @string
@@ -886,15 +994,44 @@ namespace Harmony.TraditionalBridge
 		;;; <param name="callFrame"></param>
 		;;; <param name="serializer"></param>
 		;;; <param name="dispatcher"></param>
-		public abstract method Dispatch, void
+		protected abstract method DispatchInternal, void
 			name, @string
 			callFrame, @JsonObject
-			serializer, @ChannelSerializer
+			serializer, @DispatchSerializer
 			dispatcher, @RoutineDispatcher
 		proc
 
 		endmethod
 
+		public method Dispatch, void
+			name, @string
+			callFrame, @JsonObject
+			serializer, @DispatchSerializer
+			dispatcher, @RoutineDispatcher
+			record
+				requestId, int
+		proc
+			serializer.MapOpen()
+			serializer.Pair("jsonrpc", "2.0")
+
+			if(callFrame.TryGetProperty("id", requestId)) then
+				serializer.Pair("id", requestId)
+			else
+				serializer.PairNull("id")
+
+			serializer.String("result")
+			serializer.ArrayOpen()
+
+			Dispatch(name, callFrame, serializer, dispatcher)
+
+			;;Terminate the "ReturnParameters" array
+			serializer.ArrayClose()
+
+			;;Terminate the "Result" object
+			serializer.MapClose()
+			;;Terminate the response object
+			serializer.MapClose()
+		endmethod
 	endclass
 
 endnamespace

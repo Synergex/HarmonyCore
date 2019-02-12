@@ -1,5 +1,6 @@
 
 import System.Collections
+import Harmony.TraditionalBridge
 
 
 .define MaybeLog(priority, msg) if((priority) <= TraditionalBridge.Logger.LogLevel) TraditionalBridge.Logger.Instance.Log(msg)
@@ -25,17 +26,67 @@ namespace Json
 		Array
 	endenum
 
+	public abstract class OutputStream
+		public abstract method FlushData, void
+			dataToAppend, a
+		proc
+		endmethod
+
+		public abstract method FlushData, void
+			dataToAppend, @string
+		proc
+		endmethod
+	endclass
+
+	public class ChannelOutputStream extends OutputStream
+		public readwrite property Channel, int
+
+		public method ChannelOutputStream
+			chan, int
+		proc
+			Channel = chan
+		endmethod
+
+		public override method FlushData, void
+			dataToAppend, a
+		proc
+			puts(Channel, dataToAppend)
+		endmethod
+
+		public override method FlushData, void
+			dataToAppend, @string
+			record
+				i, int
+		proc
+			i = 0
+			while(i < dataToAppend.Length)
+			begin
+				data length = dataToAppend.Length
+				if(length > 65534) then
+				begin
+					length = 65534
+					puts(Channel, dataToAppend.Substring(i, length))
+				end
+				else
+					puts(Channel, dataToAppend)
+
+				i += length
+			end
+
+		endmethod
+	endclass
+
 	;;; <summary>
 	;;; Builds a Harmony Core TraditionalBridge JSON message and writes it to a channel.
 	;;; </summary>
-	public class ChannelSerializer
+	public class JsonSerializer
 
-		private channel, i4
+		protected outStream, @OutputStream
 		private buffer, @string
 		private alphaBuf, a65535
 		private alphaPosition, i4
 		;;TODO: make a real stack out of a dynamic array or something like that
-		private serializerStack, @ArrayList
+		protected serializerStack, @ArrayList
 		;;TODO: buffer writes into an a65535 instead of calling write directly
 		;;TODO: validation 
 		private expectingName, boolean, true
@@ -48,13 +99,13 @@ namespace Json
 		;;; Constructs a new serializer associated with an open channel.
 		;;; </summary>
 		;;; <param name="chan">Channel to write JSON data to.</param>
-		public method ChannelSerializer
-			required in chan, i
+		public method JsonSerializer
+			required in stream, @OutputStream
 		proc
 			alphaPosition = 0
 ;			clear alphaBuf
 			buffer = ""
-			channel = chan
+			outStream = stream
 			serializerStack = new System.Collections.ArrayList()
 			serializerStack.Add((@SerializerStackType)SerializerStackType.None)
 		endmethod
@@ -488,27 +539,220 @@ namespace Json
 				data lengthheader, string
 				lengthHeader = "Content-Length:" + %string(bufferLength + alphaPosition) + %char(13) + %char(10) + %char(13) + %char(10)
 				MaybeLog(6, "Serializer: " + lengthHeader)
-				puts(channel, lengthHeader)
+				outStream.FlushData(lengthHeader)
 			end
-			else puts(channel,"Content-Length:" + %string(bufferLength + alphaPosition) + %char(13) + %char(10) + %char(13) + %char(10))
+			else outStream.FlushData("Content-Length:" + %string(bufferLength + alphaPosition) + %char(13) + %char(10) + %char(13) + %char(10))
+			
 			if(bufferLength > 0) then
 			begin
 				if (alphaposition)
 					buffer += alphaBuf(1:alphaPosition)
 				MaybeLog(6, "Serializer: " + buffer)
 				;RMA eeds to handle buffer length > 65535 for 32 bit
-				puts(channel, buffer)
+				outStream.FlushData(buffer)
 			end
 			else
 			begin
 				MaybeLog(6, "Serializer: " + alphaBuf(1:alphaPosition))
-				puts(channel, alphaBuf(1:alphaPosition))
+				outStream.FlushData(alphaBuf(1:alphaPosition))
 			end
 			clear alphaposition
 			buffer = ""
 		endmethod
 
 .endregion
+
+	endclass
+
+	public class DispatchSerializer extends JsonSerializer
+		public method DispatchSerializer
+			stream, @OutputStream
+			parent(stream)
+		proc
+		endmethod
+
+		public method ArgumentData, void
+			argPos, int
+			value, a
+		proc
+			;;TODO inline these operations into a single buffer op
+			MapOpen()
+			Pair("Position", argPos)
+			String("Value")
+			MapOpen()
+			
+			Pair("DataType", (i)FieldDataType.AlphaField)
+			Pair("PassedValue", %atrim(value))
+			MapClose()
+			MapClose()
+		endmethod
+
+		public method ArgumentData, void
+			argPos, int
+			value, d
+		proc
+			;;TODO inline these operations into a single buffer op
+			MapOpen()
+			Pair("Position", argPos)
+			String("Value")
+			MapOpen()
+			
+			Pair("DataType", (i)FieldDataType.DecimalField)
+			Pair("PassedValue", value)
+			MapClose()
+			MapClose()
+		endmethod
+
+		public method ArgumentData, void
+			argPos, int
+			value, i
+		proc
+			;;TODO inline these operations into a single buffer op
+			MapOpen()
+			Pair("Position", argPos)
+			String("Value")
+			MapOpen()
+			
+			Pair("DataType", (i)FieldDataType.IntegerField)
+			Pair("PassedValue", value)
+			MapClose()
+			MapClose()
+		endmethod
+
+		public method ArgumentData, void
+			argPos, int
+			value, @ArrayList
+			record
+				item, @object
+				doElement, @DataObjectBase
+		proc
+			;;TODO inline these operations into a single buffer op
+			MapOpen()
+			Pair("Position", argPos)
+			String("Value")
+			MapOpen()
+
+			Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
+			String("PassedValue")
+			ArrayOpen()
+			foreach item in value
+			begin
+				if(item .is. @DataObjectBase) then
+				begin
+					doElement = (@DataObjectBase)item
+					doElement.Serialize(this)
+				end
+				else if(item .is. @string) then
+					String((@string)item)
+				else if(item .is. @i) then
+					Integer((@i)item)
+				else if(item .is. @d) then
+					Integer((@d)item)
+				else if(item .is. @id) then
+					Double((@id)item)
+				else if(item .is. @boolean)
+					Bool((@boolean)item)
+			end
+			ArrayClose()
+			MapClose()
+			MapClose()
+		endmethod
+
+		public method ArgumentData, void
+			argPos, int
+			value, [#]@string
+			record
+				item, @string
+		proc
+			;;TODO inline these operations into a single buffer op
+			MapOpen()
+			Pair("Position", argPos)
+			String("Value")
+			MapOpen()
+			
+			Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
+			String("PassedValue")
+			ArrayOpen()
+			foreach item in value
+			begin
+				String(item)
+			end
+			ArrayClose()
+			MapClose()
+			MapClose()
+		endmethod
+
+		public method ArgumentData, void
+			argPos, int
+			value, [#]int
+			record
+				item, int
+		proc
+			;;TODO inline these operations into a single buffer op
+			MapOpen()
+			Pair("Position", argPos)
+			String("Value")
+			MapOpen()
+			
+			Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
+			String("PassedValue")
+			ArrayOpen()
+			foreach item in value
+			begin
+				Integer(item)
+			end
+			ArrayClose()
+			MapClose()
+			MapClose()
+		endmethod
+
+		public method ArgumentData, void
+			argPos, int
+			value, [#]@a
+			record
+				item, @a
+		proc
+			;;TODO inline these operations into a single buffer op
+			MapOpen()
+			Pair("Position", argPos)
+			String("Value")
+			MapOpen()
+			
+			Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
+			String("PassedValue")
+			ArrayOpen()
+			foreach item in value
+			begin
+				String(%atrim(item))
+			end
+			ArrayClose()
+			MapClose()
+			MapClose()
+		endmethod
+
+		public method ArgumentData, void
+			argPos, int
+			value, [#]@id
+			record
+				item, @id
+		proc
+			;;TODO inline these operations into a single buffer op
+			MapOpen()
+			Pair("Position", argPos)
+			String("Value")
+			MapOpen()
+			
+			Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
+			String("PassedValue")
+			ArrayOpen()
+			foreach item in value
+			begin
+				Double(item)
+			end
+			ArrayClose()
+			MapClose()
+			MapClose()
+		endmethod
 
 	endclass
 endnamespace
