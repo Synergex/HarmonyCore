@@ -21,40 +21,43 @@ namespace Harmony.Core.FileIO
 			public const Diagnostic, EventKeywords, (EventKeywords)2
 			public const Perf, EventKeywords, (EventKeywords)4
 		endclass
+;
+;		public class Tasks
+;			public const Materialization, EventTask, (EventTask)2;
+;		endclass
 
-		public class Tasks
-			public const Materialization, EventTask, (EventTask)2;
-		endclass
-
-		public method HarmonyFileIOMetricsEventSource
+        public method HarmonyFileIOMetricsEventSource
+            parent("HarmonyCore-FileIO-Metrics", EventSourceSettings.EtwSelfDescribingEventFormat)
 		proc
 			ioopsCounter = new EventCounter("ioopsCounter", this)
 			recordsCounter = new EventCounter("recordsCounter", this)
 		endmethod
 
+        {NonEvent}
 		public method ReportIOOPS, void
 			ioops, int
 		proc
 			ioopsCounter.WriteMetric((float)ioops)
 		endmethod
 
+        {NonEvent}
 		public method ReportRecordsReturned, void
 			records, int
 		proc
 			recordsCounter.WriteMetric((float)records)
 		endmethod
 
-		{EventAttribute(1, Opcode = EventOpcode.Start, Task = HarmonyFileIOMetricsEventSource.Tasks.Materialization, Keywords = HarmonyFileIOMetricsEventSource.Keywords.DataBase, Level = EventLevel.Informational)}
+        {EventAttribute(5, Opcode = EventOpcode.Start, Task = (EventTask)2, Keywords = (EventKeywords)1, Level = EventLevel.Informational, ActivityOptions = EventActivityOptions.None)}
 		public method MaterializationStart, void
 			queryIdent, @string  
 		proc
-			WriteEvent(1, queryIdent) 
+			WriteEvent(5, queryIdent) 
 		endmethod
 
-		{EventAttribute(2, Opcode = EventOpcode.Stop, Task = HarmonyFileIOMetricsEventSource.Tasks.Materialization, Keywords = HarmonyFileIOMetricsEventSource.Keywords.DataBase, Level = EventLevel.Informational)}
+        {EventAttribute(6, Opcode = EventOpcode.Stop, Task = (EventTask)2, Keywords = (EventKeywords)1, Level = EventLevel.Informational, ActivityOptions = EventActivityOptions.None)}
 		public method MaterializationEnd,void
 		proc
-			WriteEvent(2)
+			WriteEvent(6)
 		endmethod
 
 	endclass
