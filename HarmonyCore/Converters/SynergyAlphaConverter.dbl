@@ -40,272 +40,250 @@ import Harmony.Core.Utility
 
 namespace Harmony.Core.Converters
 	
-	;;; <summary>
-	;;;  The SynergyAlphaConverter class is designed to convert a Synergy Alpha data type to a <a href="https://docs.microsoft.com/en-us/dotnet/standard/clr" target="_blank">Command Language Runtime</a> compliant
-	;;;  type.  The Synergy Alpha field is converted to a String type.  This class is used within the XAML Data Binding property
-	;;;  and allows the underlying $$Data Object$$ to expose Synergy Alpha data types.
-	;;;  The Data Bindings work two-way and the SynergyAlphaConverter class converts String types to Synergy Alpha types
-	;;;  when the XAML is setting the data bound value
-	;;; </summary>
+    ;;; <summary>
+    ;;;  The SynergyAlphaConverter class is designed to convert a Synergy Alpha data type to a <a href="https://docs.microsoft.com/en-us/dotnet/standard/clr" target="_blank">Command Language Runtime</a> compliant
+    ;;;  type.  The Synergy Alpha field is converted to a String type.  This class is used within the XAML Data Binding property
+    ;;;  and allows the underlying $$Data Object$$ to expose Synergy Alpha data types.
+    ;;;  The Data Bindings work two-way and the SynergyAlphaConverter class converts String types to Synergy Alpha types
+    ;;;  when the XAML is setting the data bound value
+    ;;; </summary>
 
-	;;Portable Class Library version
-	public class SynergyAlphaConverter	
-		;;; <summary>
-		;;;	Convertion from a Synergy Alpha type to a <a href="https://docs.microsoft.com/en-us/dotnet/standard/clr" target="_blank">Command Language Runtime</a> String type.
-		;;; </summary>
-		;;; <param name="value">The inbound value to convert.</param>
-		;;; <param name="targetType">The datatype type of the target.</param>
-		;;; <param name="parameter">Any addiotnal binding parameters passed in, as specified by the ConverterParameter property.</param>
-		;;; <param name="culture">An instance of the System.Globalization.CultureInfo class that identifies the culture of the client _UI_.</param>
-		;;; <remarks>
-		;;; The Convert method is utilised by the _WPF_ framework when conversion of a databound source is required.  The SynergyAlphaConverter
-		;;; Convert method marshals the data from a Synergy Alpha type to a native <a href="https://docs.microsoft.com/en-us/dotnet/standard/clr" target="_blank">Command Language Runtime</a> String type
-		;;;     PADWITHZERO Will cause the field to be padded with 0's.
-		;;;     DEFAULTVALUE(string) will set the alpha field to this value if the field is null
-		;;; </remarks>
-		public static method Convert, @Object
-			value,      @Object
-			targetType, @Type
-			parameter,  @Object
-			culture,    @System.Globalization.CultureInfo
-			endparams
+    ;;Portable Class Library version
+    public class SynergyAlphaConverter	
+        ;;; <summary>
+        ;;;	Convertion from a Synergy Alpha type to a <a href="https://docs.microsoft.com/en-us/dotnet/standard/clr" target="_blank">Command Language Runtime</a> String type.
+        ;;; </summary>
+        ;;; <param name="value">The inbound value to convert.</param>
+        ;;; <param name="targetType">The datatype type of the target.</param>
+        ;;; <param name="parameter">Any addiotnal binding parameters passed in, as specified by the ConverterParameter property.</param>
+        ;;; <param name="culture">An instance of the System.Globalization.CultureInfo class that identifies the culture of the client _UI_.</param>
+        ;;; <remarks>
+        ;;; The Convert method is utilised by the _WPF_ framework when conversion of a databound source is required.  The SynergyAlphaConverter
+        ;;; Convert method marshals the data from a Synergy Alpha type to a native <a href="https://docs.microsoft.com/en-us/dotnet/standard/clr" target="_blank">Command Language Runtime</a> String type
+        ;;;     PADWITHZERO Will cause the field to be padded with 0's.
+        ;;;     DEFAULTVALUE(string) will set the alpha field to this value if the field is null
+        ;;; </remarks>
+        public static method Convert, @Object
+            value,      @Object
+            targetType, @Type
+            parameter,  @Object
+            culture,    @System.Globalization.CultureInfo
+            endparams
 
-			structure memStr
-				fld,    a1
-			endstructure
-		proc
-			data returnObject,  @Object
-			data doUpcase,      boolean, false
-			data doEncoding,    boolean, false
-			data doYnBoolean,   boolean, false
+            structure memStr
+                fld,    a1
+            endstructure
+        proc
+            data returnObject,  @string
+            data doUpcase,      boolean, false
+            data doYnBoolean,   boolean, false
 
-			data stringEncoder = System.Text.Encoding.GetEncoding("Windows-1252")
+            if (value == ^null || value.toString().Length == 0) then
+            begin
+                DebugLogSession.Logging.LogTrace("Alpha Convert Value : value is NULL")
+                mreturn ""
+            end
+            else
+                DebugLogSession.Logging.LogTrace("Alpha Convert Value : {0}", value)
 
-			if (value == ^null || value.toString().Length == 0) then
-			begin
-				DebugLogSession.Logging.LogTrace("Alpha Convert Value : value is NULL")
-				mreturn ""
-			end
-			else
-				DebugLogSession.Logging.LogTrace("Alpha Convert Value : {0}", value)
+            if (parameter != ^null)
+                DebugLogSession.Logging.LogTrace("Alpha Convert Parameter : {0}", Parameter)
 
-			if (parameter != ^null)
-				DebugLogSession.Logging.LogTrace("Alpha Convert Parameter : {0}", Parameter)
+            ;;let's check to see if we have any "extra" characters.
+            if (parameter !=^null)
+            begin
+                data p, String, parameter.ToString()
+                if (p.StartsWith('UPCASE', StringComparison.CurrentCultureIgnoreCase))
+                begin
+                    doUpcase = true
+                end
+            end
 
-			;;let's check to see if we have any "extra" characters.
-			if (parameter !=^null)
-			begin
-				data p, String, parameter.ToString()
-				if (%instr(1, p.ToUpper(), 'UPCASE'))
-				begin
-					doUpcase = true
-				end
-				if (%instr(1, p.ToUpper(), 'CHECKENCODING'))
-				begin
-					doEncoding = true
-				end	
-			end
+            returnObject = %atrimtostring((a)value)
 
-			if (doEncoding)
-			begin
-				data memPnt, D_HANDLE
-				memPnt = %mem_proc(DM_ALLOC, value.ToString().Length)
-				^m(memStr(1:value.ToString().Length), memPnt) = (a)value
-				data tmpArray, [#]byte
-				tmpArray = ^m(memStr(1:value.ToString().Length), memPnt)
-				if (doUpcase) then
-					returnObject = (Object)stringEncoder.GetString(tmpArray, 0, tmpArray.Length)
-				else
-					returnObject = (Object)stringEncoder.GetString(tmpArray, 0, tmpArray.Length)
-			end	
+            if (doUpcase)
+            begin
+                returnObject = returnObject.ToUpper()
+            end
 
-			if (doUpcase) then
-			begin
-				returnObject = (Object)value.ToString().TrimEnd().ToUpper()
-			end
-			else
-			begin
-				returnObject = (Object)value.ToString().TrimEnd()
-			end
+            mreturn returnObject
 
-			mreturn returnObject
+        endmethod
 
-		endmethod
+        ;;; <summary>
+        ;;;	Convertion from a <a href="https://docs.microsoft.com/en-us/dotnet/standard/clr" target="_blank">Command Language Runtime</a> String type to a Synergy Alpha type.
+        ;;; </summary>
+        ;;; <param name="value">The inbound value to convert.</param>
+        ;;; <param name="targetType">The datatype type of the target.</param>
+        ;;; <param name="parameter">Any addiotnal binding parameters passed in, as specified by the ConverterParameter property.</param>
+        ;;; <param name="culture">An instance of the System.Globalization.CultureInfo class that identifies the culture of the client _UI_.</param>
+        ;;; <remarks>
+        ;;; The Convert method is utilised by the _WPF_ framework when conversion of a databound source is required.  The SynergyAlphaConverter
+        ;;; ConvertBack method marshals the data from a native <a href="https://docs.microsoft.com/en-us/dotnet/standard/clr" target="_blank">Command Language Runtime</a> String type to a Synergy Alpha type.
+        ;;; The ConvererParameter can contain the following:
+        ;;;    PADWITHZERO Will cause the field to be padded with 0's.
+        ;;;    DEFAULTVALUE(string) will set the alpha field to this value if the field is null
+        ;;; </remarks>
+        public static method ConvertBack, @Object
+            value,      @Object
+            targetType, @Type
+            parameter,  @Object
+            culture,    @System.Globalization.CultureInfo
+            endparams
 
-		;;; <summary>
-		;;;	Convertion from a <a href="https://docs.microsoft.com/en-us/dotnet/standard/clr" target="_blank">Command Language Runtime</a> String type to a Synergy Alpha type.
-		;;; </summary>
-		;;; <param name="value">The inbound value to convert.</param>
-		;;; <param name="targetType">The datatype type of the target.</param>
-		;;; <param name="parameter">Any addiotnal binding parameters passed in, as specified by the ConverterParameter property.</param>
-		;;; <param name="culture">An instance of the System.Globalization.CultureInfo class that identifies the culture of the client _UI_.</param>
-		;;; <remarks>
-		;;; The Convert method is utilised by the _WPF_ framework when conversion of a databound source is required.  The SynergyAlphaConverter
-		;;; ConvertBack method marshals the data from a native <a href="https://docs.microsoft.com/en-us/dotnet/standard/clr" target="_blank">Command Language Runtime</a> String type to a Synergy Alpha type.
-		;;; The ConvererParameter can contain the following:
-		;;;    PADWITHZERO Will cause the field to be padded with 0's.
-		;;;    DEFAULTVALUE(string) will set the alpha field to this value if the field is null
-		;;; </remarks>
-		public static method ConvertBack, @Object
-			value,      @Object
-			targetType, @Type
-			parameter,  @Object
-			culture,    @System.Globalization.CultureInfo
-			endparams
+            structure tmpAlpha
+                fld,    a1
+            endstructure
 
-			structure tmpAlpha
-				fld,    a1
-			endstructure
+        proc
 
-		proc
+            data stringEncoder = System.Text.Encoding.GetEncoding("Windows-1252")
 
-			data stringEncoder = System.Text.Encoding.GetEncoding("Windows-1252")
+            if (value == ^null) then
+                DebugLogSession.Logging.LogTrace("Alpha ConvertBack Value : value is NULL")
+            else
+                DebugLogSession.Logging.LogTrace("Alpha ConvertBack Value : {0}", value)
 
-			if (value == ^null) then
-				DebugLogSession.Logging.LogTrace("Alpha ConvertBack Value : value is NULL")
-			else
-				DebugLogSession.Logging.LogTrace("Alpha ConvertBack Value : {0}", value)
+            if (parameter != ^null)
+                DebugLogSession.Logging.LogTrace("Alpha ConvertBack Parameter : {0}", Parameter)
 
-			if (parameter != ^null)
-				DebugLogSession.Logging.LogTrace("Alpha ConvertBack Parameter : {0}", Parameter)
+            if (value == ^null)
+            begin
+                if (parameter !=^null) then
+                begin
+                    data p				,String	,parameter.ToString()
+                    data posStart		,i4	,0
+                    data targetLength	,i4	,0
+                    data stringLength	,i4	,p.Length
 
-			if (value == ^null)
-			begin
-				if (parameter !=^null) then
-				begin
-					data p				,String	,parameter.ToString()
-					data posStart		,i4	,0
-					data targetLength	,i4	,0
-					data stringLength	,i4	,p.Length
+                    if ( posStart = %instr(1, p.ToUpper(), 'DEFAULTVALUE')) then
+                    begin
+                        data i			,i4
+                        data numStart	,i4
+                        data numEnd		,i4
+                        data num		,i4
 
-					if ( posStart = %instr(1, p.ToUpper(), 'DEFAULTVALUE')) then
-					begin
-						data i			,i4
-						data numStart	,i4
-						data numEnd		,i4
-						data num		,i4
+                        for i from posStart thru stringLength by 1
+                        begin
+                            if (p(i:1) == "(") numStart = i + 1
+                            if (p(i:1) == ")") 
+                            begin
+                                numEnd = i - 1
+                                exitloop
+                            end
+                        end
+                        if (numStart && numEnd)
+                        begin
+                            mreturn p(numStart, numEnd)
+                        end
+                    end	
+                    else
+                        mreturn (Object)((a)"")
+                end
+                else
+                    mreturn (Object)((a)"")
+            end
 
-						for i from posStart thru stringLength by 1
-						begin
-							if (p(i:1) == "(") numStart = i + 1
-							if (p(i:1) == ")") 
-							begin
-								numEnd = i - 1
-								exitloop
-							end
-						end
-						if (numStart && numEnd)
-						begin
-							mreturn p(numStart, numEnd)
-						end
-					end	
-					else
-						mreturn (Object)((a)"")
-				end
-				else
-					mreturn (Object)((a)"")
-			end
+            data alphaVal	,String
+            data memPnt		,i4
+            data memLen		,i4
+            data tmpArray	,[#]byte
+            data doingEncoded	,boolean,false
 
-			data alphaVal	,String
-			data memPnt		,i4
-			data memLen		,i4
-			data tmpArray	,[#]byte
-			data doingEncoded	,boolean,false
+            memLen = Convert.ToString(value).Length
 
-			memLen = Convert.ToString(value).Length
+            if (!memLen) memLen = 1
+            memPnt = %mem_proc(DM_ALLOC, memLen)
 
-			if (!memLen) memLen = 1
-			memPnt = %mem_proc(DM_ALLOC, memLen)
+            if (parameter !=^null) then
+            begin
+                data p				,String		,parameter.ToString()
+                data padWithzero	,Boolean	,false
+                data posStart		,i4	,0
+                data targetLength	,i4	,0
+                data stringLength	,i4	,p.Length
 
-			if (parameter !=^null) then
-			begin
-				data p				,String		,parameter.ToString()
-				data padWithzero	,Boolean	,false
-				data posStart		,i4	,0
-				data targetLength	,i4	,0
-				data stringLength	,i4	,p.Length
+                if (%instr(1, p.ToUpper(), 'CHECKENCODING')) then
+                begin
+                    tmpArray = stringEncoder.GetBytes((string)value)
+                    doingEncoded = true
+                end
+                else
+                begin
+                    if (%instr(1, p.ToUpper(), 'UPCASE')) then
+                        alphaVal = Convert.ToString(value).ToUpper()	
+                    else
+                        alphaVal = Convert.ToString(value)	
+                end
+            end
+            else
+            begin
+                alphaVal = Convert.ToString(value)
+            end
 
-				if (%instr(1, p.ToUpper(), 'CHECKENCODING')) then
-				begin
-					tmpArray = stringEncoder.GetBytes((string)value)
-					doingEncoded = true
-				end
-				else
-				begin
-					if (%instr(1, p.ToUpper(), 'UPCASE')) then
-						alphaVal = Convert.ToString(value).ToUpper()	
-					else
-						alphaVal = Convert.ToString(value)	
-				end
-			end
-			else
-			begin
-				alphaVal = Convert.ToString(value)
-			end
+            if (memLen)
+            begin
+                try
+                begin
+                    if (doingEncoded) then
+                        ^m(tmpAlpha(1:memLen), memPnt) = tmpArray
+                    else
+                        ^m(tmpAlpha(1:memLen), memPnt) = alphaVal
+                end
+                catch (e, @Exception)
+                begin
+                    clear ^m(tmpAlpha(1:memLen), memPnt) 
+                end
+                endtry
+            end
 
-			if (memLen)
-			begin
-				try
-				begin
-					if (doingEncoded) then
-						^m(tmpAlpha(1:memLen), memPnt) = tmpArray
-					else
-						^m(tmpAlpha(1:memLen), memPnt) = alphaVal
-				end
-				catch (e, @Exception)
-				begin
-					clear ^m(tmpAlpha(1:memLen), memPnt) 
-				end
-				endtry
-			end
+            if (parameter !=^null)
+            begin
+                data p				,String		,parameter.ToString()
+                data padWithzero	,Boolean	,false
+                data posStart		,i4	,0
+                data targetLength	,i4	,0
+                data stringLength	,i4	,p.Length
 
-			if (parameter !=^null)
-			begin
-				data p				,String		,parameter.ToString()
-				data padWithzero	,Boolean	,false
-				data posStart		,i4	,0
-				data targetLength	,i4	,0
-				data stringLength	,i4	,p.Length
+                if (%instr(1, p.ToUpper(), 'PADWITHZERO'))
+                begin
+                    padWithzero = true
+                end
 
-				if (%instr(1, p.ToUpper(), 'PADWITHZERO'))
-				begin
-					padWithzero = true
-				end
+                if ( posStart = %instr(1, p.ToUpper(), 'TARGETLENGTH'))
+                begin
+                    data i			,i4
+                    data numStart	,i4
+                    data numEnd		,i4
+                    data num		,i4
 
-				if ( posStart = %instr(1, p.ToUpper(), 'TARGETLENGTH'))
-				begin
-					data i			,i4
-					data numStart	,i4
-					data numEnd		,i4
-					data num		,i4
+                    for i from posStart thru stringLength by 1
+                    begin
+                        if (p(i:1) == "(") numStart = i + 1
+                        if (p(i:1) == ")") 
+                        begin
+                            numEnd = i - 1
+                            exitloop
+                        end
+                    end
+                    if (numStart && numEnd)
+                    begin
+                        targetLength = Convert.ToInt16(p(numStart, numEnd))
+                    end
+                    for i from memLen thru targetLength - 1 by 1
+                    begin
+                        ^m(tmpAlpha(1:memLen), memPnt) = "0" + %atrim(^m(tmpAlpha(1:memLen), memPnt))
+                    end
+                end
 
-					for i from posStart thru stringLength by 1
-					begin
-						if (p(i:1) == "(") numStart = i + 1
-						if (p(i:1) == ")") 
-						begin
-							numEnd = i - 1
-							exitloop
-						end
-					end
-					if (numStart && numEnd)
-					begin
-						targetLength = Convert.ToInt16(p(numStart, numEnd))
-					end
-					for i from memLen thru targetLength - 1 by 1
-					begin
-						^m(tmpAlpha(1:memLen), memPnt) = "0" + %atrim(^m(tmpAlpha(1:memLen), memPnt))
-					end
-				end
+            end
 
-			end
+            DebugLogSession.Logging.LogTrace("Alpha ConvertBack Parameter : {0}", new MemoryHandleDebugLogHelper(memPnt, memLen))
 
-			DebugLogSession.Logging.LogTrace("Alpha ConvertBack Parameter : {0}", new MemoryHandleDebugLogHelper(memPnt, memLen))
+            mreturn (Object) %atrim(^m(tmpAlpha(1:memLen), memPnt))
 
-			mreturn (Object) %atrim(^m(tmpAlpha(1:memLen), memPnt))
+        endmethod
 
-		endmethod
-
-	endclass
+    endclass
 
 endnamespace

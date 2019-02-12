@@ -64,7 +64,7 @@ namespace Harmony.Core.Converters
 				inputLiteral, @string 
 				endparams
 			proc
-				mreturn SynergyDecimalDateConverter.ConvertBack(DateTime.Parse(inputLiteral), ^null, FormatParameter, ^null).ToString()
+				mreturn %string(SynergyDecimalDateConverter.ConvertBack(DateTime.Parse(inputLiteral), ^null, FormatParameter, ^null))
 			endmethod
 
 		endclass
@@ -92,16 +92,13 @@ namespace Harmony.Core.Converters
 		;;; _NEWLINE_
 		;;; Convertion parameters can be combined using the '|' character, for example JULIANDATE|NODEFAULTODAY
 		;;; </remarks>
-		public static method Convert	,@Object
-			value				,@Object
+		public static method Convert	,System.DateTime
+			value				,d
 			targetType			,@Type
 			parameter			,@Object
 			culture				,@System.Globalization.CultureInfo
 			endparams
 		proc
-			if (value == ^null)
-				mreturn ^null
-			
 			data formatString = "YYYYMMDD"
 			;;do we have a parameter??
 			if (parameter != ^null)
@@ -109,7 +106,7 @@ namespace Harmony.Core.Converters
 				formatString = parameter.ToString()
 			end
 
-			mreturn new DateTime(%DecToDateTime((d)value, formatString))
+			mreturn %DecToDateTime((d)value, formatString)
 		endmethod
 		
 		;;; <summary>
@@ -131,7 +128,7 @@ namespace Harmony.Core.Converters
 		;;;		MMDDYY - accepts and converts a DDMMYY date.
 		;;;		MMDDYYYY - accepts and converts a DDMMYYYY date.
 		;;; </remarks>
-		public static method ConvertBack	,@Object
+		public static method ConvertBack	,d
 			value				,@Object
 			targetType			,@Type
 			parameter			,@Object
@@ -141,7 +138,7 @@ namespace Harmony.Core.Converters
 			if (value == ^null)
 			begin
 				data dateLayout, d8, 0
-				mreturn (Object)dateLayout
+				mreturn dateLayout
 			end
 			
 			data formatString = "YYYYMMDD"
@@ -151,7 +148,7 @@ namespace Harmony.Core.Converters
 				formatString = parameter.ToString()
 			end
 
-			mreturn (@Object)%DateTimeToDec((DateTime)value, formatString)
+			mreturn %DateTimeToDec((DateTime)value, formatString)
 
 		endmethod
 	endclass
