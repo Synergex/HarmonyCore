@@ -8,7 +8,7 @@ import System.Threading.Tasks
 import StreamJsonRpc
 import System.IO
 import System.Threading
-
+import System.Linq
 
 namespace Harmony.Core.Context
 
@@ -45,7 +45,7 @@ namespace Harmony.Core.Context
 			args, [#]@ArgumentDataDefinition
 		proc
 			data jsonRpcConnection = await mMakeReadyTask.Value
-			mreturn await jsonRpcConnection.InvokeAsync<[#]@ReturnParameterDefintion>(name, args)
+			mreturn await jsonRpcConnection.InvokeAsync<[#]@ReturnParameterDefintion>(name, args.OfType<Object>().ToArray())
 		endmethod
 
 		private async method MakeReadyInternal, @Task<JsonRpc>

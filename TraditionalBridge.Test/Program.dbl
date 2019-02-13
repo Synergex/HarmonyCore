@@ -3,17 +3,38 @@ import Harmony.TraditionalBridge
 import TraditionalBridge.Test
 import TraditionalBridge
 
+.ifdef D_VMS
+.define LOG_EXTENSION ".log;1"
+.else
+.define LOG_EXTENSION ".log"
+.endc
+
 main
 	record
 		disp, @SampleXfplEnvDispatcher
-		ttChan, i4
+        ttChan, i4
+        processId, d10
+        processName, a256
+        logLevel, a1
+        logLevelLength, int
+        logLevelInt, int
 	endrecord
 proc
 	try
 	begin
 		xcall flags(1907050020)
-		open(ttChan=0, O, "TT:")
-		TraditionalBridge.Logger.Instance = new TraditionalBridge.Logger("traditional_bridge.log", 0, false)
+        open(ttChan=0, O, "TT:")
+
+        ;;get the process number to create a unique log file name with
+        xcall JBNO(processId)
+        xcall JBNAM(processName)
+        getlog("HARMONY_LOG_LEVEL", logLevel, logLevelLength)
+        if(logLevelLength > 0) then
+            logLevelInt = %integer(logLevel)
+        else
+            logLevelInt = 5 ;silence all but errors
+
+        TraditionalBridge.Logger.Instance = new TraditionalBridge.Logger(%atrim(processName) + "_" + %string(processId) + LOG_EXTENSION, logLevelInt, false)
 		puts(ttChan, "READY" + %char(13)+ %char(10))
 
 		disp = new SampleXfplEnvDispatcher()

@@ -2,61 +2,66 @@ import System.Collections
 
 namespace TraditionalBridge
 
-	public class Logger
-		public static Instance, @Logger
-		public static LogLevel, int
+    public class Logger
+        public static Instance, @Logger
+        public static LogLevel, int
 
-		private mLogScopes, @ArrayList
-		private mLoggingChannel, int
-		private mKeepLogScopes, boolean
-		public method Logger
-			logFileName, a
-			logLevel, n
-			keepLogScopes, boolean
-		proc
-			mLogScopes = new ArrayList()
-			mKeepLogScopes = mKeepLogScopes
-			Logger.LogLevel = logLevel
-			open(mLoggingChannel=0, O, logFileName)
-		endmethod
+        private mLogScopes, @ArrayList
+        private mLoggingChannel, int
+        private mKeepLogScopes, boolean
+        public method Logger
+            logFileName, a
+            logLevel, n
+            keepLogScopes, boolean
+        proc
+            mLogScopes = new ArrayList()
+            mKeepLogScopes = mKeepLogScopes
+            Logger.LogLevel = logLevel
+            if(logLevel >= 0)
+                open(mLoggingChannel=0, O, logFileName)
+        endmethod
 
-		public method LogHnd, void
-			handleValue, D_HANDLE
-		proc
-			writes(mLoggingChannel, ^m(handleValue))
-		endmethod
+        public method LogHnd, void
+            handleValue, D_HANDLE
+        proc
+            if(mLoggingChannel)
+                writes(mLoggingChannel, ^m(handleValue))
+        endmethod
 
-		public method Log, void
-			strValue, @string
-		proc
-			writes(mLoggingChannel, strValue)
-		endmethod
+        public method Log, void
+            strValue, @string
+        proc
+            if(mLoggingChannel)
+                writes(mLoggingChannel, strValue)
+        endmethod
 
-		public method Log, void
-			aValue, a
-		proc
-			writes(mLoggingChannel, aValue)
-		endmethod
+        public method Log, void
+            aValue, a
+        proc
+            if(mLoggingChannel)
+                writes(mLoggingChannel, aValue)
+        endmethod
 
-		public method OpenScope, void
-			identifier, @string
-		proc
-		endmethod
+        public method OpenScope, void
+            identifier, @string
+        proc
+        endmethod
 
-		public method CloseScope, void
-		proc
-		endmethod
+        public method CloseScope, void
+        proc
+        endmethod
 
-		public method CloseLog, void
-		proc
-			close(mLoggingChannel)
-			mLoggingChannel = 0
-		endmethod
+        public method CloseLog, void
+        proc
+            if(mLoggingChannel)
+                close(mLoggingChannel)
+            mLoggingChannel = 0
+        endmethod
 
-		public method CurrentScopeLog, @string
-		proc
-			mreturn ""
-		endmethod
-	endclass
+        public method CurrentScopeLog, @string
+        proc
+            mreturn ""
+        endmethod
+    endclass
 
 endnamespace

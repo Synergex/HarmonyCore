@@ -35,10 +35,10 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			mCustomerMetadata = DataObjectMetadataBase.LookupType("Customer")
 		endmethod
 
-		public override method Dispatch, void
+		protected override method DispatchInternal, void
 			required in name,       string
 			required in callFrame,  @JsonObject
-			required in serializer, @ChannelSerializer
+			required in serializer, @DispatchSerializer
 			required in dispatcher, @RoutineDispatcher
 			record
 				requestId,			int
@@ -62,20 +62,7 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;; Call the underlying routine
 
 			returnValue = %get_all_customers(arg1,arg2)
-
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
+			
 			;;Function return value
 
 			serializer.MapOpen()
@@ -124,20 +111,6 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			serializer.MapClose()
 			serializer.MapClose()
 
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
 		endmethod
 
 	endclass
@@ -154,10 +127,10 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;;Initialize the meta data for any data objects that are used by parameters to the method
 		endmethod
 
-		public override method Dispatch, void
+		protected override method DispatchInternal, void
 			required in name,       string
 			required in callFrame,  @JsonObject
-			required in serializer, @ChannelSerializer
+			required in serializer, @DispatchSerializer
 			required in dispatcher, @RoutineDispatcher
 			record
 				requestId,			int
@@ -182,19 +155,6 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;; Call the underlying routine
 
 			returnValue = %get_customers_array(^m(strFake(1:162),arg1Handle),arg2)
-
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
 
 			;;Function return value
 
@@ -240,19 +200,6 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			serializer.MapClose()
 			serializer.MapClose()
 
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
 
 		endmethod
 
@@ -272,10 +219,10 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			mItemMetadata = DataObjectMetadataBase.LookupType("Item")
 		endmethod
 
-		public override method Dispatch, void
+		protected override method DispatchInternal, void
 			required in name,       string
 			required in callFrame,  @JsonObject
-			required in serializer, @ChannelSerializer
+			required in serializer, @DispatchSerializer
 			required in dispatcher, @RoutineDispatcher
 			record
 				requestId,			int
@@ -299,19 +246,6 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;; Call the underlying routine
 
 			returnValue = %get_all_items(arg1,arg2)
-
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
 
 			;;Function return value
 
@@ -361,20 +295,6 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			serializer.MapClose()
 			serializer.MapClose()
 
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
 		endmethod
 
 	endclass
@@ -393,10 +313,10 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			mOrderMetadata = DataObjectMetadataBase.LookupType("Order")
 		endmethod
 
-		public override method Dispatch, void
+		protected override method DispatchInternal, void
 			required in name,       string
 			required in callFrame,  @JsonObject
-			required in serializer, @ChannelSerializer
+			required in serializer, @DispatchSerializer
 			required in dispatcher, @RoutineDispatcher
 			record
 				requestId,			int
@@ -420,19 +340,6 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;; Call the underlying routine
 
 			returnValue = %get_all_orders(arg1,arg2)
-
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
 
 			;;Function return value
 
@@ -482,23 +389,10 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			serializer.MapClose()
 			serializer.MapClose()
 
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
 		endmethod
 
 	endclass
+
 
 	;;-------------------------------------------------------------------------
 	;;; <summary>
@@ -514,10 +408,10 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			mVendorMetadata = DataObjectMetadataBase.LookupType("Vendor")
 		endmethod
 
-		public override method Dispatch, void
+		protected override method DispatchInternal, void
 			required in name,       string
 			required in callFrame,  @JsonObject
-			required in serializer, @ChannelSerializer
+			required in serializer, @DispatchSerializer
 			required in dispatcher, @RoutineDispatcher
 			record
 				requestId,			int
@@ -541,19 +435,6 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;; Call the underlying routine
 
 			returnValue = %get_all_vendors(arg1,arg2)
-
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
 
 			;;Function return value
 
@@ -603,20 +484,6 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			serializer.MapClose()
 			serializer.MapClose()
 
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
 		endmethod
 
 	endclass
@@ -635,10 +502,10 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			mCustomerMetadata = DataObjectMetadataBase.LookupType("Customer")
 		endmethod
 
-		public override method Dispatch, void
+		protected override method DispatchInternal, void
 			required in name,       string
 			required in callFrame,  @JsonObject
-			required in serializer, @ChannelSerializer
+			required in serializer, @DispatchSerializer
 			required in dispatcher, @RoutineDispatcher
 			record
 				requestId,			int
@@ -908,19 +775,6 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;; Call the underlying routine
 
 			xcall simple_parameters(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19,arg20,arg21,arg22,arg23,arg24,arg25,arg26,arg27,arg28,arg29,arg30,arg31,arg32,arg33,arg34,arg35,arg36,arg37,arg38,arg39,arg40,arg41,arg42,arg43,arg44,arg45,arg46,arg47,arg48,arg49,arg50,arg51,arg52,arg53,arg54,arg55,arg56,arg57,arg58,arg59,arg60)
-
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 2 (REQUIRED OUT p2 A1)
@@ -1468,20 +1322,6 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			serializer.MapClose()
 			serializer.MapClose()
 
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
 		endmethod
 
 	endclass
@@ -1500,10 +1340,10 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			mCustomerMetadata = DataObjectMetadataBase.LookupType("Customer")
 		endmethod
 
-		public override method Dispatch, void
+		protected override method DispatchInternal, void
 			required in name,       string
 			required in callFrame,  @JsonObject
-			required in serializer, @ChannelSerializer
+			required in serializer, @DispatchSerializer
 			required in dispatcher, @RoutineDispatcher
 			record
 				requestId,			int
@@ -1573,19 +1413,6 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 
 			xcall array_parameters(^m(strFake(1:1),arg1Handle),^m(strFake(1:1),arg2Handle),^m(strFake(1:1),arg3Handle),^m(strCustomer,arg4Handle),^m(strCustomer,arg5Handle),^m(strCustomer,arg6Handle))
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 2 (REQUIRED OUT p2 [*]A1)
 
@@ -1650,20 +1477,6 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			serializer.MapClose()
 			serializer.MapClose()
 
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
 		endmethod
 
 	endclass
@@ -1682,10 +1495,10 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			mCustomerMetadata = DataObjectMetadataBase.LookupType("Customer")
 		endmethod
 
-		public override method Dispatch, void
+		protected override method DispatchInternal, void
 			required in name,       string
 			required in callFrame,  @JsonObject
-			required in serializer, @ChannelSerializer
+			required in serializer, @DispatchSerializer
 			required in dispatcher, @RoutineDispatcher
 			record
 				requestId,			int
@@ -1786,124 +1599,77 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
 
 			;;Argument 1 (REQUIRED IN p1 ArrayList collection of A1)
-			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1])
 			arg1Array = (@JsonArray)((@JsonObject)arguments.arrayValues[1]).GetProperty("PassedValue")
-			arg1 = new ArrayList()
-			dispatcher.UnwrapObjectCollection(argumentDefinition,arg1Array,arg1)
+			arg1 = dispatcher.UnwrapObjectCollection(arg1Array)
 
 			;;Argument 1 (REQUIRED IN p4 ArrayList collection of D6)
-			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[3])
 			arg3Array = (@JsonArray)((@JsonObject)arguments.arrayValues[3]).GetProperty("PassedValue")
-			arg3 = new ArrayList()
-			dispatcher.UnwrapObjectCollection(argumentDefinition,arg3Array,arg3)
+			arg3 = dispatcher.UnwrapObjectCollection(arg3Array)
 
 			;;Argument 1 (REQUIRED IN p7 ArrayList collection of D12)
-			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[5])
 			arg5Array = (@JsonArray)((@JsonObject)arguments.arrayValues[5]).GetProperty("PassedValue")
-			arg5 = new ArrayList()
-			dispatcher.UnwrapObjectCollection(argumentDefinition,arg5Array,arg5)
+			arg5 = dispatcher.UnwrapObjectCollection(arg5Array)
 
 			;;Argument 1 (REQUIRED IN p10 ArrayList collection of D6.2)
-			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[7])
 			arg7Array = (@JsonArray)((@JsonObject)arguments.arrayValues[7]).GetProperty("PassedValue")
-			arg7 = new ArrayList()
-			dispatcher.UnwrapObjectCollection(argumentDefinition,arg7Array,arg7)
+			arg7 = dispatcher.UnwrapObjectCollection(arg7Array)
 
 			;;Argument 1 (REQUIRED IN p13 ArrayList collection of I1)
-			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[9])
 			arg9Array = (@JsonArray)((@JsonObject)arguments.arrayValues[9]).GetProperty("PassedValue")
-			arg9 = new ArrayList()
-			dispatcher.UnwrapObjectCollection(argumentDefinition,arg9Array,arg9)
+			arg9 = dispatcher.UnwrapObjectCollection(arg9Array)
 
 			;;Argument 1 (REQUIRED IN p16 ArrayList collection of I2)
-			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[11])
 			arg11Array = (@JsonArray)((@JsonObject)arguments.arrayValues[11]).GetProperty("PassedValue")
-			arg11 = new ArrayList()
-			dispatcher.UnwrapObjectCollection(argumentDefinition,arg11Array,arg11)
+			arg11 = dispatcher.UnwrapObjectCollection(arg11Array)
 
 			;;Argument 1 (REQUIRED IN p19 ArrayList collection of I4)
-			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[13])
 			arg13Array = (@JsonArray)((@JsonObject)arguments.arrayValues[13]).GetProperty("PassedValue")
-			arg13 = new ArrayList()
-			dispatcher.UnwrapObjectCollection(argumentDefinition,arg13Array,arg13)
+			arg13 = dispatcher.UnwrapObjectCollection(arg13Array)
 
 			;;Argument 1 (REQUIRED IN p22 ArrayList collection of I8)
-			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[15])
 			arg15Array = (@JsonArray)((@JsonObject)arguments.arrayValues[15]).GetProperty("PassedValue")
-			arg15 = new ArrayList()
-			dispatcher.UnwrapObjectCollection(argumentDefinition,arg15Array,arg15)
+			arg15 = dispatcher.UnwrapObjectCollection(arg15Array)
 
 			;;Argument 1 (REQUIRED IN p25 ArrayList collection of structure @Customer)
-			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[17])
 			arg17Array = (@JsonArray)((@JsonObject)arguments.arrayValues[17]).GetProperty("PassedValue")
-			arg17 = new ArrayList()
-			dispatcher.UnwrapObjectCollection(argumentDefinition,arg17Array,arg17)
+			arg17 = dispatcher.UnwrapObjectCollection(arg17Array)
 
 			;;Argument 1 (REQUIRED IN p28 ArrayList collection of D8 YYYYMMDD date)
-			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[19])
 			arg19Array = (@JsonArray)((@JsonObject)arguments.arrayValues[19]).GetProperty("PassedValue")
-			arg19 = new ArrayList()
-			dispatcher.UnwrapObjectCollection(argumentDefinition,arg19Array,arg19)
+			arg19 = dispatcher.UnwrapObjectCollection(arg19Array)
 
 			;;Argument 1 (REQUIRED IN p31 ArrayList collection of D6 YYMMDD date)
-			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[21])
 			arg21Array = (@JsonArray)((@JsonObject)arguments.arrayValues[21]).GetProperty("PassedValue")
-			arg21 = new ArrayList()
-			dispatcher.UnwrapObjectCollection(argumentDefinition,arg21Array,arg21)
+			arg21 = dispatcher.UnwrapObjectCollection(arg21Array)
 
 			;;Argument 1 (REQUIRED IN p34 ArrayList collection of D7 YYYYJJJ date)
-			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[23])
 			arg23Array = (@JsonArray)((@JsonObject)arguments.arrayValues[23]).GetProperty("PassedValue")
-			arg23 = new ArrayList()
-			dispatcher.UnwrapObjectCollection(argumentDefinition,arg23Array,arg23)
+			arg23 = dispatcher.UnwrapObjectCollection(arg23Array)
 
 			;;Argument 1 (REQUIRED IN p37 ArrayList collection of D5 YYJJJ date)
-			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[25])
 			arg25Array = (@JsonArray)((@JsonObject)arguments.arrayValues[25]).GetProperty("PassedValue")
-			arg25 = new ArrayList()
-			dispatcher.UnwrapObjectCollection(argumentDefinition,arg25Array,arg25)
+			arg25 = dispatcher.UnwrapObjectCollection(arg25Array)
 
 			;;Argument 1 (REQUIRED IN p40 ArrayList collection of D6 HHMM time)
-			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[27])
 			arg27Array = (@JsonArray)((@JsonObject)arguments.arrayValues[27]).GetProperty("PassedValue")
-			arg27 = new ArrayList()
-			dispatcher.UnwrapObjectCollection(argumentDefinition,arg27Array,arg27)
+			arg27 = dispatcher.UnwrapObjectCollection(arg27Array)
 
 			;;Argument 1 (REQUIRED IN p43 ArrayList collection of D4 HHMM time)
-			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[29])
 			arg29Array = (@JsonArray)((@JsonObject)arguments.arrayValues[29]).GetProperty("PassedValue")
-			arg29 = new ArrayList()
-			dispatcher.UnwrapObjectCollection(argumentDefinition,arg29Array,arg29)
+			arg29 = dispatcher.UnwrapObjectCollection(arg29Array)
 
 			;;Argument 1 (REQUIRED IN p46 ArrayList collection of D14 YYYYMMDD date)
-			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[31])
 			arg31Array = (@JsonArray)((@JsonObject)arguments.arrayValues[31]).GetProperty("PassedValue")
-			arg31 = new ArrayList()
-			dispatcher.UnwrapObjectCollection(argumentDefinition,arg31Array,arg31)
+			arg31 = dispatcher.UnwrapObjectCollection(arg31Array)
 
 			;;Argument 1 (REQUIRED IN p49 ArrayList collection of D20 YYYYMMDD date)
-			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[33])
 			arg33Array = (@JsonArray)((@JsonObject)arguments.arrayValues[33]).GetProperty("PassedValue")
-			arg33 = new ArrayList()
-			dispatcher.UnwrapObjectCollection(argumentDefinition,arg33Array,arg33)
+			arg33 = dispatcher.UnwrapObjectCollection(arg33Array)
 
 			;;------------------------------------------------------------
 			;; Call the underlying routine
 
 			xcall arraylist_parameters(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19,arg20,arg21,arg22,arg23,arg24,arg25,arg26,arg27,arg28,arg29,arg30,arg31,arg32,arg33,arg34)
-
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 2 (REQUIRED OUT p2 ArrayList collection of A1)
@@ -2120,20 +1886,6 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 			;TODO: Need to add support for collection of date
 			serializer.MapClose()
 			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
 
 		endmethod
 

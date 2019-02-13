@@ -211,7 +211,7 @@ proc
 	freturn rtn
 end
 
-function DecToDateTime ,long
+function DecToDateTime ,System.DateTime
 	in req sdt		,d
 	in req fmt		,a14
 	endparams
@@ -232,49 +232,34 @@ proc
 	data val		,string
 	data valstr	,string
 	data dt		,System.Datetime
-	data format	,@System.IFormatProvider
 	data mysize,int, %size(%atrim(fmt))
 	
 	try
 	begin	
 		dt = new System.DateTime(1999, 4,12)
-		format = new System.Globalization.CultureInfo("en-US", true)
-		if ((fmt == "YYYYMMDDHHMISSUUUUUU") .and. (mysize == 20))
+		if ((fmt == "YYYYMMDDHHMISSUUUUUU") .and. (mysize == 20)) then
 		begin
-			valstr = %string(sdt,"XXXXXXXXXXXXXXXXXXXX")
-			yy = int.Parse(valstr.Substring(0,4))
-			mt = int.Parse(valstr.Substring(4,2))
-			dd = int.Parse(valstr.Substring(6,2))
-			hh = int.Parse(valstr.Substring(8,2))
-			mm = int.Parse(valstr.Substring(10,2))
-			ss = int.Parse(valstr.Substring(12,2))
-			ml = int.Parse(valstr.Substring(14,6))
+			yy = sdt(1:4)
+			mt = sdt(5:2)
+			dd = sdt(7:2)
+			hh = sdt(9:2)
+			mm = sdt(11:2)
+			ss = sdt(13:2)
+			ml = sdt(15:6)
 			ml = ml / 1000
 			dt = new System.DateTime(yy,mt,dd,hh,mm,ss,ml)
 		end
-		if ((fmt == "YYYYMMDDHHMISS") .and. (mysize == 14))
+		else if (((fmt == "YYYYMMDDHHMISS") || (fmt .eq. "YYYYMMDDHHMMSS")) .and. (mysize == 14)) then
 		begin
-			valstr = %string(sdt,"XXXXXXXXXXXXXX")
-			yy = int.Parse(valstr.Substring(0,4))
-			mt = int.Parse(valstr.Substring(4,2))
-			dd = int.Parse(valstr.Substring(6,2))
-			hh = int.Parse(valstr.Substring(8,2))
-			mm = int.Parse(valstr.Substring(10,2))
-			ss = int.Parse(valstr.Substring(12,2))
+			yy = sdt(1:4)
+			mt = sdt(5:2)
+			dd = sdt(7:2)
+			hh = sdt(9:2)
+			mm = sdt(11:2)
+			ss = sdt(13:2)
 			dt = new System.DateTime(yy,mt,dd,hh,mm,ss)
 		end
-		if ((fmt .eq. "YYYYMMDDHHMMSS") .and. (mysize == 14))
-		begin
-			valstr = %string(sdt,"XXXXXXXXXXXXXX")
-			yy = int.Parse(valstr.Substring(0,4))
-			mt = int.Parse(valstr.Substring(4,2))
-			dd = int.Parse(valstr.Substring(6,2))
-			hh = int.Parse(valstr.Substring(8,2))
-			mm = int.Parse(valstr.Substring(10,2))
-			ss = int.Parse(valstr.Substring(12,2))
-			dt = new System.DateTime(yy,mt,dd,hh,mm,ss)
-		end
-		if ((fmt .eq. "YYYYMMDD") .and. (mysize== 8))
+		else if ((fmt .eq. "YYYYMMDD") .and. (mysize== 8)) then
 		begin
 			valstr = %string(sdt,"XXXXXXXX")
 			if (valstr.Equals("00000000")) then
@@ -283,10 +268,13 @@ proc
 			end
 			else
 			begin
-				dt = System.DateTime.ParseExact(valstr,"yyyyMMdd",format)
+				yy = sdt(1:4)
+				mt = sdt(5:2)
+				dd = sdt(7:2)
+				dt = new System.DateTime(yy,mt,dd)
 			end
 		end
-		if ((fmt .eq. "YYMMDD") .and. (mysize == 6))
+		else if ((fmt .eq. "YYMMDD") .and. (mysize == 6)) then
 		begin
 			valstr = %string(sdt,"XXXXXX")
 			if (valstr.Equals("000000")) then
@@ -295,12 +283,13 @@ proc
 			end
 			else
 			begin
-				if (valstr.Length == 5)
-					valstr = "0" + valstr
-				dt = System.DateTime.ParseExact(valstr,"yyMMdd",format)
+				yy = sdt(1:2)
+				mt = sdt(3:2)
+				dd = sdt(5:2)
+				dt = new System.DateTime(yy,mt,dd)
 			end
 		end
-		if ((fmt .eq. "YYYYJJJ") .and. (mysize== 7))
+		else if ((fmt .eq. "YYYYJJJ") .and. (mysize== 7)) then
 		begin
 			valstr = %string(sdt,"XXXXXXX")
 			if (valstr.Equals("0000000")) then
@@ -315,7 +304,7 @@ proc
 				dt = dt.AddDays(jday-1)
 			end
 		end
-		if ((fmt .eq. "YYJJJ") .and. (mysize == 5))
+		else if ((fmt .eq. "YYJJJ") .and. (mysize == 5)) then
 		begin
 			valstr = %string(sdt,"XXXXX")
 			yy = int.Parse(valstr.Substring(0,2))
@@ -327,7 +316,7 @@ proc
 			dt = new System.DateTime(yy,1,1)
 			dt = dt.AddDays(jday-1)
 		end
-		if (fmt .eq. "HHMM")
+		else if (fmt .eq. "HHMM")
 		begin
 			if (mysize .eq. 6) then
 			begin
@@ -355,8 +344,7 @@ proc
 		nop
 	endtry
 	
-	ticks = dt.Ticks
-	freturn ticks
+	freturn dt
 end
 
 function i8ToDateTime ,long

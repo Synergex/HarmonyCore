@@ -52,6 +52,7 @@ import Microsoft.Extensions.DependencyInjection
 import Harmony.Core.EF.Extensions
 import Harmony.Core.Converters
 import Services.Models
+import System.IO
 
 namespace Services.Test.UnitTests
 
@@ -143,7 +144,7 @@ namespace Services.Test.UnitTests
 		public method GetNevadaCustomersSelectedProperties, void
 		proc
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/Customers?$filter=State eq 'NV'&$select=CustomerNumber,Name").Result
+			disposable data response = client.GetAsync("/odata/Customers?$filter=State eq 'NV'&$select=CustomerNumber,Name").Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
@@ -312,7 +313,7 @@ namespace Services.Test.UnitTests
 		public method GetItemsVendor42Count, void
 		proc
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/Items(VendorNumber=42)?$count=true&$top=0").Result
+			disposable data response = client.GetAsync("/odata/Items(VendorNumber=42)?$count=true&$top=0").Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 			Assert.IsFalse(string.IsNullOrWhitespace(result))
@@ -490,57 +491,57 @@ namespace Services.Test.UnitTests
 ;			data customers, @OrderItem, JsonConvert.DeserializeObject<OrderItem>(result)
 ;		endmethod
 
-        {TestMethod}
-        public method ExpandAndSelect1, void
-        proc
-            disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/Customers(8)?$expand=REL_Orders($expand=REL_OrderItems($expand=REL_Item))&$select=CustomerNumber,Name").Result
-            data result = response.Content.ReadAsStringAsync().Result
-            response.EnsureSuccessStatusCode()
-            data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
-        endmethod
+		{TestMethod}
+		public method ExpandAndSelect1, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync("/odata/Customers(8)?$expand=REL_Orders($expand=REL_OrderItems($expand=REL_Item))&$select=CustomerNumber,Name").Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
+		endmethod
 
-        {TestMethod}
-        public method ExpandAndSelect2, void
-        proc
-            disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/Customers(8)?$expand=REL_Orders($select=PlacedBy;$expand=REL_OrderItems($expand=REL_Item))").Result
-            data result = response.Content.ReadAsStringAsync().Result
-            response.EnsureSuccessStatusCode()
-            data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
-        endmethod
+		{TestMethod}
+		public method ExpandAndSelect2, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync("/odata/Customers(8)?$expand=REL_Orders($select=PlacedBy;$expand=REL_OrderItems($expand=REL_Item))").Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
+		endmethod
 
-        ;3 levels of expansion with select at each level.
-        {TestMethod}
-        public method ExpandAndSelect3, void
-        proc
-            disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/Customers(8)?$expand=REL_Orders($select=OrderNumber,DateOrdered;$expand=REL_OrderItems($select=ItemNumber,QuantityOrdered;$expand=REL_Item))&$select=CustomerNumber,Name").Result
-            data result = response.Content.ReadAsStringAsync().Result
-            response.EnsureSuccessStatusCode()
-            data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
-        endmethod
+		;3 levels of expansion with select at each level.
+		{TestMethod}
+		public method ExpandAndSelect3, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync("/odata/Customers(8)?$expand=REL_Orders($select=OrderNumber,DateOrdered;$expand=REL_OrderItems($select=ItemNumber,QuantityOrdered;$expand=REL_Item))&$select=CustomerNumber,Name").Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
+		endmethod
 
-        ;;;4 levels of expansion
-        {TestMethod}
-        public method ExpandAndSelect4, void
-        proc
-            disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/Customers(8)?$expand=REL_Orders($expand=REL_OrderItems($expand=REL_Item($expand=REL_Vendor)))").Result
-            data result = response.Content.ReadAsStringAsync().Result
-            response.EnsureSuccessStatusCode()
-            data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
-        endmethod
+		;;;4 levels of expansion
+		{TestMethod}
+		public method ExpandAndSelect4, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync("/odata/Customers(8)?$expand=REL_Orders($expand=REL_OrderItems($expand=REL_Item($expand=REL_Vendor)))").Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
+		endmethod
 
-        ;3 levels of expansion with select at each level, with a filter at the top level
-        {TestMethod}
-        public method ExpandAndSelect5, void
-        proc
-            disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/Customers?$filter=State eq 'CA'&$expand=REL_Orders($select=OrderNumber,DateOrdered;$expand=REL_OrderItems($select=ItemNumber,QuantityOrdered;$expand=REL_Item))&$select=CustomerNumber,Name").Result
-            data result = response.Content.ReadAsStringAsync().Result
-            response.EnsureSuccessStatusCode()
-            data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
+		;3 levels of expansion with select at each level, with a filter at the top level
+		{TestMethod}
+		public method ExpandAndSelect5, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync("/odata/Customers?$filter=State eq 'CA'&$expand=REL_Orders($select=OrderNumber,DateOrdered;$expand=REL_OrderItems($select=ItemNumber,QuantityOrdered;$expand=REL_Item))&$select=CustomerNumber,Name").Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
 		endmethod
 
 		;3 levels of expansion with select at each level, with a filter at the top level
@@ -554,110 +555,115 @@ namespace Services.Test.UnitTests
 			data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
 		endmethod
 
-        ;3 levels of expansion with select at each level, with a filter at the top level
-        {TestMethod}
-        public method ExpandAndSelect6, void
-        proc
-            disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/Customers?$filter=State in ('CA','WA')&$expand=REL_Orders($select=OrderNumber,DateOrdered;$expand=REL_OrderItems($select=ItemNumber,QuantityOrdered;$expand=REL_Item))&$select=CustomerNumber,Name").Result
-            data result = response.Content.ReadAsStringAsync().Result
-            response.EnsureSuccessStatusCode()
-            data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
+		;3 levels of expansion with select at each level, with a filter at the top level
+		{TestMethod}
+		public method ExpandAndSelect6, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync("/odata/Customers?$filter=State in ('CA','WA')&$expand=REL_Orders($select=OrderNumber,DateOrdered;$expand=REL_OrderItems($select=ItemNumber,QuantityOrdered;$expand=REL_Item))&$select=CustomerNumber,Name").Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
 		endmethod
 
-;		{TestMethod}
-;		public method TraditionalBridgeGetAllCustomers, void
-;		proc
-;			disposable data client = UnitTestEnvironment.Server.CreateClient()
-;			disposable data response = client.GetAsync("/odata/VMS/GetAllCustomers()").Result
-;			data result = response.Content.ReadAsStringAsync().Result
-;			response.EnsureSuccessStatusCode()
-;			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
-;		endmethod
+		{TestMethod}
+		public method TraditionalBridgeGetAllCustomers, void
+		proc
+			if(File.Exists(Path.GetFullPath(Path.Combine(Path.GetDirectoryName(^typeof(HandCrafted).Assembly.Location), "..\..\..\..\Debug\x86\TraditionalBridge.Test.dbr")))) then
+			begin
+				disposable data client = UnitTestEnvironment.Server.CreateClient()
+				disposable data response = client.GetAsync("/odata/VMS/GetAllCustomers()").Result
+				data result = response.Content.ReadAsStringAsync().Result
+				response.EnsureSuccessStatusCode()
+				data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+			end
+			else
+				Console.WriteLine("Skipping TraditionalBridgeGetAllCustomers")
+		endmethod
 
-        {TestMethod}
-        public method EF_FirstOrDefaultIncluding, void
-        proc
-            data startupClass = new Startup()
-            data startupServices = new ServiceCollection()
-            startupClass.ConfigureServices(startupServices)
-            disposable data sp = startupServices.BuildServiceProvider()
-            disposable data context, @DbContext, sp.GetService<DbContext>()
-            data customerData = context.Customers.FirstOrDefaultIncluding("REL_Item", "CustomerNumber == @0", 8)
-            Assert.IsFalse(customerData == ^null)
-            Assert.IsFalse(customerData.Rel_Item == ^null)
-            Assert.AreEqual(customerData.CustomerNumber, 8)
-            Assert.AreEqual(customerData.REL_Item.ItemNumber, customerData.FavoriteItem)
-        endmethod
+		{TestMethod}
+		public method EF_FirstOrDefaultIncluding, void
+		proc
+			data startupClass = new Startup()
+			data startupServices = new ServiceCollection()
+			startupClass.ConfigureServices(startupServices)
+			disposable data sp = startupServices.BuildServiceProvider()
+			disposable data context, @DbContext, sp.GetService<DbContext>()
+			data customerData = context.Customers.FirstOrDefaultIncluding("REL_Item", "CustomerNumber == @0", 8)
+			Assert.IsFalse(customerData == ^null)
+			Assert.IsFalse(customerData.Rel_Item == ^null)
+			Assert.AreEqual(customerData.CustomerNumber, 8)
+			Assert.AreEqual(customerData.REL_Item.ItemNumber, customerData.FavoriteItem)
+		endmethod
 
-        {TestMethod}
-        public method EF_FirstOrDefault, void
-        proc
-            data startupClass = new Startup()
-            data startupServices = new ServiceCollection()
-            startupClass.ConfigureServices(startupServices)
-            disposable data sp = startupServices.BuildServiceProvider()
-            disposable data context, @DbContext, sp.GetService<DbContext>()
-            data customerData = context.Customers.FirstOrDefault("CustomerNumber == @0", 8)
-            Assert.IsFalse(customerData == ^null)
-            Assert.AreEqual(customerData.CustomerNumber, 8)
-        endmethod
+		{TestMethod}
+		public method EF_FirstOrDefault, void
+		proc
+			data startupClass = new Startup()
+			data startupServices = new ServiceCollection()
+			startupClass.ConfigureServices(startupServices)
+			disposable data sp = startupServices.BuildServiceProvider()
+			disposable data context, @DbContext, sp.GetService<DbContext>()
+			data customerData = context.Customers.FirstOrDefault("CustomerNumber == @0", 8)
+			Assert.IsFalse(customerData == ^null)
+			Assert.AreEqual(customerData.CustomerNumber, 8)
+		endmethod
 
-        {TestMethod}
-        public method EF_Where, void
-        proc
-            data startupClass = new Startup()
-            data startupServices = new ServiceCollection()
-            startupClass.ConfigureServices(startupServices)
-            disposable data sp = startupServices.BuildServiceProvider()
-            disposable data context, @DbContext, sp.GetService<DbContext>()
-            data customerCollection, @IEnumerable<Services.Models.Customer>, context.Customers.Where("CustomerNumber >= @0", new object[#] { 8 })
-            data customerData, @Services.Models.Customer
-            foreach customerData in customerCollection
-            begin
-                Assert.IsTrue(customerData.CustomerNumber >= 8)
-            end
+		{TestMethod}
+		public method EF_Where, void
+		proc
+			data startupClass = new Startup()
+			data startupServices = new ServiceCollection()
+			startupClass.ConfigureServices(startupServices)
+			disposable data sp = startupServices.BuildServiceProvider()
+			disposable data context, @DbContext, sp.GetService<DbContext>()
+			data customerCollection, @IEnumerable<Services.Models.Customer>, context.Customers.Where("CustomerNumber >= @0", new object[#] { 8 })
+			data customerData, @Services.Models.Customer
+			foreach customerData in customerCollection
+			begin
+				Assert.IsTrue(customerData.CustomerNumber >= 8)
+			end
 
-        endmethod
+		endmethod
 
-        {TestMethod}
-        public method EF_WhereIncluding, void
-        proc
-            data startupClass = new Startup()
-            data startupServices = new ServiceCollection()
-            startupClass.ConfigureServices(startupServices)
-            disposable data sp = startupServices.BuildServiceProvider()
-            disposable data context, @DbContext, sp.GetService<DbContext>()
-            data customerCollection, @IEnumerable<Services.Models.Customer>, context.Customers.WhereIncluding("REL_Item", "CustomerNumber >= @0", new object[#] { 8 })
-            data customerData, @Services.Models.Customer
-            foreach customerData in customerCollection
-            begin
-                Assert.IsTrue(customerData.CustomerNumber >= 8)
-                Assert.IsFalse(customerData.REL_Item == ^null)
-                Assert.AreEqual(customerData.REL_Item.ItemNumber, customerData.FavoriteItem)
-            end
+		{TestMethod}
+		public method EF_WhereIncluding, void
+		proc
+			data startupClass = new Startup()
+			data startupServices = new ServiceCollection()
+			startupClass.ConfigureServices(startupServices)
+			disposable data sp = startupServices.BuildServiceProvider()
+			disposable data context, @DbContext, sp.GetService<DbContext>()
+			data customerCollection, @IEnumerable<Services.Models.Customer>, context.Customers.WhereIncluding("REL_Item", "CustomerNumber >= @0", new object[#] { 8 })
+			data customerData, @Services.Models.Customer
+			foreach customerData in customerCollection
+			begin
+				Assert.IsTrue(customerData.CustomerNumber >= 8)
+				Assert.IsFalse(customerData.REL_Item == ^null)
+				Assert.AreEqual(customerData.REL_Item.ItemNumber, customerData.FavoriteItem)
+			end
 
-        endmethod
+		endmethod
 
 
-        {TestMethod}
-        public method EF_WhereIncluding2, void
-        proc
-            data startupClass = new Startup()
-            data startupServices = new ServiceCollection()
-            startupClass.ConfigureServices(startupServices)
-            disposable data sp = startupServices.BuildServiceProvider()
-            disposable data context, @DbContext, sp.GetService<DbContext>()
-            data customerCollection, @IEnumerable<Services.Models.Customer>, context.Customers.WhereIncluding("REL_Item,REL_Orders", "CustomerNumber >= @0", new object[#] { 8 })
-            data customerData, @Services.Models.Customer
-            foreach customerData in customerCollection
-            begin
-                Assert.IsTrue(customerData.CustomerNumber >= 8)
-                Assert.IsFalse(customerData.REL_Item == ^null)
-                Assert.AreEqual(customerData.REL_Item.ItemNumber, customerData.FavoriteItem)
-            end
+		{TestMethod}
+		public method EF_WhereIncluding2, void
+		proc
+			data startupClass = new Startup()
+			data startupServices = new ServiceCollection()
+			startupClass.ConfigureServices(startupServices)
+			disposable data sp = startupServices.BuildServiceProvider()
+			disposable data context, @DbContext, sp.GetService<DbContext>()
+			data customerCollection, @IEnumerable<Services.Models.Customer>, context.Customers.WhereIncluding("REL_Item,REL_Orders", "CustomerNumber >= @0", new object[#] { 8 })
+			data customerData, @Services.Models.Customer
+			foreach customerData in customerCollection
+			begin
+				Assert.IsTrue(customerData.CustomerNumber >= 8)
+				Assert.IsFalse(customerData.REL_Item == ^null)
+				Assert.AreEqual(customerData.REL_Item.ItemNumber, customerData.FavoriteItem)
+			end
 
-        endmethod
+		endmethod
 
 		{TestMethod}
 		public method Regexifier_Simple, void
@@ -667,6 +673,21 @@ namespace Services.Test.UnitTests
 			resultValue = (a)RegexificationFactory.RegexifyMe("(XXX) XXX-XXXX").GetData("(555) 555-5555")
 			Assert.AreEqual(resultValue, expected)
 		endmethod
+
+		{TestMethod}
+		public method DynamicCallProviderTestBasic, void
+		proc
+			if(File.Exists(Path.GetFullPath(Path.Combine(Path.GetDirectoryName(^typeof(HandCrafted).Assembly.Location), "..\..\..\..\Debug\x86\TraditionalBridge.Test.dbr")))) then
+			begin
+				disposable data client = UnitTestEnvironment.Server.CreateClient()
+				disposable data response = client.GetAsync("/odata/VMS/Arbitrario_MethodWithParameters()").Result
+				data result = response.Content.ReadAsStringAsync().Result
+				response.EnsureSuccessStatusCode()
+			end
+			else
+				Console.WriteLine("Skipping TraditionalBridgeGetAllCustomers")
+		endmethod
+
 
 		{TestMethod}
 		public method AdapterTestBasic, void
@@ -687,17 +708,17 @@ namespace Services.Test.UnitTests
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 			data customers, @ODataAvailabilitys, JsonConvert.DeserializeObject<ODataAvailabilitys>(result)
-        endmethod
+		endmethod
 
-        {TestMethod}
-        public method AdapterTestOptionalParametersController, void
-        proc
-            disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/Availability/FindAvailability(Adults=5, Children=1, Region='Uruguay')").Result
-            data result = response.Content.ReadAsStringAsync().Result
-            response.EnsureSuccessStatusCode()
-            data customers, @ODataAvailabilitys, JsonConvert.DeserializeObject<ODataAvailabilitys>(result)
-        endmethod
+		{TestMethod}
+		public method AdapterTestOptionalParametersController, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync("/odata/Availability/FindAvailability(Adults=5, Children=1, Region='Uruguay')").Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data customers, @ODataAvailabilitys, JsonConvert.DeserializeObject<ODataAvailabilitys>(result)
+		endmethod
 
 		{TestMethod}
 		public method AdapterTestOrFilter, void
@@ -730,16 +751,16 @@ namespace Services.Test.UnitTests
 			response.EnsureSuccessStatusCode()
 			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
 			data c, @Customer
-            foreach c in customers.Value
+			foreach c in customers.Value
 			begin
 				data o, @Order
-                foreach o in c.REL_Orders
+				foreach o in c.REL_Orders
 				begin
-                    Assert.AreEqual(o.CustomerNumber, c.CustomerNumber)
+					Assert.AreEqual(o.CustomerNumber, c.CustomerNumber)
 				end
 			end
 		endmethod
 
-    endclass
+	endclass
 
 endnamespace

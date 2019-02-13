@@ -1,0 +1,758 @@
+
+import System.Collections
+import Harmony.TraditionalBridge
+
+
+.define MaybeLog(priority, msg) if((priority) <= TraditionalBridge.Logger.LogLevel) TraditionalBridge.Logger.Instance.Log(msg)
+
+namespace Json
+
+	;;; <summary>
+	;;; Defines the return value states for various serializer methods.
+	;;; </summary>
+	public enum SerializerStatus
+		;;; <summary>
+		;;; Successful operation.
+		;;; </summary>
+		Ok
+	endenum
+
+	;;; <summary>
+	;;; Defines the various states that can be pushed to the stack.
+	;;; </summary>
+	public enum SerializerStackType
+		None,
+		Object,
+		Array
+	endenum
+
+	public abstract class OutputStream
+		public abstract method FlushData, void
+			dataToAppend, a
+		proc
+		endmethod
+
+		public abstract method FlushData, void
+			dataToAppend, @string
+		proc
+		endmethod
+	endclass
+
+	public class ChannelOutputStream extends OutputStream
+		public readwrite property Channel, int
+
+		public method ChannelOutputStream
+			chan, int
+		proc
+			Channel = chan
+		endmethod
+
+		public override method FlushData, void
+			dataToAppend, a
+		proc
+			puts(Channel, dataToAppend)
+		endmethod
+
+		public override method FlushData, void
+			dataToAppend, @string
+			record
+				i, int
+		proc
+			i = 0
+			while(i < dataToAppend.Length)
+			begin
+				data length = dataToAppend.Length
+				if(length > 65534) then
+				begin
+					length = 65534
+					puts(Channel, dataToAppend.Substring(i, length))
+				end
+				else
+					puts(Channel, dataToAppend)
+
+				i += length
+			end
+
+		endmethod
+	endclass
+
+	;;; <summary>
+	;;; Builds a Harmony Core TraditionalBridge JSON message and writes it to a channel.
+	;;; </summary>
+	public class JsonSerializer
+
+		protected outStream, @OutputStream
+		private buffer, @string
+		private alphaBuf, a65535
+		private alphaPosition, i4
+		;;TODO: make a real stack out of a dynamic array or something like that
+		protected serializerStack, @ArrayList
+		;;TODO: buffer writes into an a65535 instead of calling write directly
+		;;TODO: validation 
+		private expectingName, boolean, true
+		private first, boolean, true
+
+.define STACK_STATE, ((SerializerStackType)serializerStack[serializerStack.Count - 1])
+.define STACK_STATE_ARRAY, (serializerStack.Count > 0 && STACK_STATE == SerializerStackType.Array)
+
+		;;; <summary>
+		;;; Constructs a new serializer associated with an open channel.
+		;;; </summary>
+		;;; <param name="chan">Channel to write JSON data to.</param>
+		public method JsonSerializer
+			required in stream, @OutputStream
+		proc
+			alphaPosition = 0
+;			clear alphaBuf
+			buffer = ""
+			outStream = stream
+			serializerStack = new System.Collections.ArrayList()
+			serializerStack.Add((@SerializerStackType)SerializerStackType.None)
+		endmethod
+
+		;;; <summary>
+		;;; Adds a new serializer state to the top of the stack. The stack indicates
+		;;; whether the serializer is currently processing an onject or an array.
+		;;; </summary>
+		;;; <param name="type">SerializerStackType to push</param>
+		private method Push, void
+			req in type, SerializerStackType
+		proc
+			serializerStack.Add((@SerializerStackType)type)
+		endmethod
+
+		private method AppendOutput, void
+			input, a
+		proc
+
+.if D_ADDRSIZE == 8
+			if(^size(input) > 65535) then
+			begin
+				if(alphaPosition > 0)
+				begin
+					buffer += alphaBuf(1:alphaPosition)
+					clear alphaposition
+				end
+				buffer += input
+				mreturn
+			end
+			else
+.endc
+			if(^size(input) + alphaPosition > 65535)
+			begin
+				buffer += alphaBuf(1:alphaPosition)
+				clear alphaposition
+			end
+
+			alphaBuf(alphaPosition + 1:^size(input)) = input
+			alphaPosition += ^size(input)
+		endmethod
+		private method AppendOutput, void
+			input, string
+			record
+				inputlen,int
+		proc
+			inputlen = input.length
+			if(inputlen > 65535) then
+			begin
+				if(alphaPosition > 0)
+				begin
+					buffer += alphaBuf(1:alphaPosition)
+					clear alphaposition
+				end
+				buffer += input
+			end
+			else if(inputlen + alphaPosition > 65535) then
+			begin
+				buffer += alphaBuf(1:alphaPosition)
+				clear alphaposition
+				buffer += input
+			end
+			else
+			begin
+				alphaBuf(alphaPosition + 1:inputlen) = input
+				alphaPosition += ^size(input)
+			end
+		endmethod
+
+		;;; <summary>
+		;;; Removes the top serializer state from the stack. The stack indicates
+		;;; whether the serializer is currently processing an onject or an array.
+		;;; </summary>
+		;;; <returns>The SerializerStackType that was removed from the stack.</returns>
+		private method Pop, SerializerStackType
+			record
+				stackResult, SerializerStackType
+		proc
+			stackResult = STACK_STATE
+			serializerStack.RemoveAt(serializerStack.Count - 1)
+			mreturn stackResult
+		endmethod
+
+		;;; <summary>
+		;;; 
+		;;; </summary>
+		;;; <returns>Always returns SerializerStatus.Ok</returns>
+		public method Null, SerializerStatus
+			record
+				inArray, boolean
+		proc
+			inArray = STACK_STATE_ARRAY
+			AppendOutput(",null")
+			first = false
+
+			if(!inArray)
+				expectingName = true
+
+			mreturn SerializerStatus.Ok
+		endmethod
+
+.region "Serialization methods"
+
+		;TODO: Consider renaming this to ObjectOpen
+
+		;;; <summary>
+		;;; Begins the definition of a new JSON object by adding a { character to the buffer.
+		;;; </summary>
+		;;; <returns>Always returns SerializerStatus.Ok</returns>
+		public method MapOpen, SerializerStatus
+			record
+				input, string
+		proc
+			if(!first && STACK_STATE_ARRAY) then
+				input = ",{"
+			else	input = "{"
+			expectingName = true
+			first = true
+			Push(SerializerStackType.Object)
+			;rma note: can we just move this above expecting name ? and pass in literals removing input ?
+			AppendOutput(input)
+			mreturn SerializerStatus.Ok
+		endmethod
+
+		;TODO: Consider renaming this to ObjectClose
+
+		;;; <summary>
+		;;; Ends the definition of the current JSON object by adding a } character to the buffer.
+		;;; If the object being closed represents the entire JSON "packet" (because the } matches
+		;;; an { at the beginning of the buffer) then the buffer is written to the channel and cleared.
+		;;; </summary>
+		;;; <param name="sentMessage">(Optional) If the operation resulted in the sending of the json message to the channel then the message content can be returned.</param>
+		;;; <returns>Always returns SerializerStatus.Ok</returns>
+		public method MapClose, SerializerStatus
+			optional out sentMessage, string
+			stack record
+				message, string
+			endrecord
+		proc
+			first = false
+			Pop()
+			expectingName = !STACK_STATE_ARRAY
+			AppendOutput("}")
+			; why do we need the new string message ( a potentially big duplicate)
+			message = buffer
+			if (serializerStack.Count == 1)
+				sendMessage()
+
+			if (^passed(sentMessage))
+			begin
+				if(serializerStack.Count != 1)
+					throw new Exception("map was not closed properly")
+				sentMessage = message
+			end
+
+
+			mreturn SerializerStatus.Ok
+
+		endmethod
+
+		;;; <summary>
+		;;; Begins the definition of a new JSON array by adding a [ character to the buffer.
+		;;; </summary>
+		;;; <returns>Always returns SerializerStatus.Ok</returns>
+		public method ArrayOpen, SerializerStatus
+			record
+				input, @string
+		proc
+			if(!first && STACK_STATE_ARRAY)then 
+				input += ",["
+			else
+				input = "["
+
+			first = true
+			expectingName = false
+			Push(SerializerStackType.Array)
+			;rma can this append output be above in the if then else ?
+			AppendOutput(input)
+			mreturn SerializerStatus.Ok
+		endmethod
+
+		;;; <summary>
+		;;; Ends the definition of the current JSON array by adding a ] character to the buffer.
+		;;; If the array being closed represents the entire JSON "packet" (because the ] matches
+		;;; an [ at the beginning of the buffer) then the buffer is written to the channel and cleared.
+		;;; </summary>
+		;;; <param name="sentMessage">(Optional) If the operation resulted in the sending of the json message to the channel then the message content can be returned.</param>
+		;;; <returns>Always returns SerializerStatus.Ok</returns>
+		public method ArrayClose, SerializerStatus
+			optional out sentMessage, string
+			stack record
+				message, string
+			endrecord
+		proc
+			first = false
+			Pop()
+			expectingName = !STACK_STATE_ARRAY
+			AppendOutput("]")
+			message = buffer
+			if (serializerStack.Count == 1)
+				sendMessage()
+
+			if (^passed(sentMessage))
+				sentMessage = message
+
+			mreturn SerializerStatus.Ok
+
+		endmethod
+
+		;;; <summary>
+		;;; Adds an integer value to the JSON buffer.
+		;;; </summary>
+		;;; <param name="value">Value to add.</param>
+		;;; <returns>Always returns SerializerStatus.Ok</returns>
+		public method Integer, SerializerStatus
+			req in value, n
+			record
+				inArray, boolean
+		proc
+			;rma if ^size(value > 18) throw exception cannot fit in long integer
+			inArray = STACK_STATE_ARRAY
+			if(!first && inArray) then
+				AppendOutput(","+%string(value))
+			else
+				AppendOutput(%string(value))
+			first = false
+			if(!inArray)
+				expectingName = true
+			mreturn SerializerStatus.Ok
+		endmethod
+
+		;;; <summary>
+		;;; Adds a double value to the JSON buffer.
+		;;; </summary>
+		;;; <param name="value">Value to add.</param>
+		;;; <returns>Always returns SerializerStatus.Ok</returns>
+		public method Double, SerializerStatus
+			req in value, id
+			record
+				inArray, boolean
+
+		proc
+			;rma if ^size(value) > 15 throw exception (double cant exceed 15 digits(
+
+			inArray = STACK_STATE_ARRAY
+			if(!first && inArray) then
+				AppendOutput(","+%string(value))
+			else
+				AppendOutput(%string(value))
+			first = false
+			if(!inArray)
+				expectingName = true
+
+			mreturn SerializerStatus.Ok
+		endmethod
+
+		;;; <summary>
+		;;; Adds a boolean value to the JSON buffer.
+		;;; </summary>
+		;;; <param name="value">Value to add.</param>
+		;;; <returns>Always returns SerializerStatus.Ok</returns>
+		public method Bool, SerializerStatus
+			req in value, boolean
+			record
+				inArray, boolean
+		proc
+			inArray = STACK_STATE_ARRAY
+			if(!first && inArray)then
+			begin
+				if (value) then
+					AppendOutput(",true")
+				else
+					AppendOutput(",false")
+			end
+			else
+			begin
+				if (value) then
+					AppendOutput("true")
+				else
+					AppendOutput("false")
+			end
+
+			first = false
+
+			if(!inArray)
+				expectingName = true
+			mreturn SerializerStatus.Ok
+		endmethod
+
+		;;; <summary>
+		;;; Adds a string value to the JSON buffer.
+		;;; </summary>
+		;;; <param name="value">Value to add.</param>
+		;;; <returns>Always returns SerializerStatus.Ok</returns>
+		public method String, SerializerStatus
+			req in value, @string
+			record
+				input, @string
+				inArray, boolean
+		proc
+			inArray = STACK_STATE_ARRAY
+			if(!first && (expectingName || inArray)) then
+				input = ',"'
+			else
+				input = '"'
+			first = false
+
+			;;TODO this string "value" might need to be encoded, it probably shouldnt have binary data in it
+			if(expectingName) then
+			begin
+				input += value + '":'
+			end
+			else
+				input += value + '"'
+			
+			if(!inArray)
+				expectingName = !expectingName
+
+			AppendOutput(input)
+
+			mreturn SerializerStatus.Ok
+		endmethod
+
+		public method Pair, SerializerStatus
+			req in key, a
+			req in value, a
+
+		proc
+			if(!expectingName)
+				throw new InvalidOperationException("received name + value pair when name was unexpected")
+			if(!first) then
+				AppendOutput(',"'+ key +'":"' + value + '"')
+			else
+				AppendOutput('"'+ key +'":"' + value + '"')
+			first = false
+
+			mreturn SerializerStatus.Ok
+		endmethod
+
+		public method PairBool, SerializerStatus
+			req in key, a
+			req in value, boolean
+		proc
+			if(!expectingName)
+				throw new InvalidOperationException("received name + value pair when name was unexpected")
+			;rma fix for version 11 to one append output
+			if(!first) then
+				AppendOutput(',"'+key+'":'); + value ? "true" : "false"))
+			else
+				AppendOutput('"'+key+'":');+ value ? "true" : "false")
+			first = false
+			AppendOutput(value ? "true" : "false")
+			mreturn SerializerStatus.Ok
+		endmethod
+
+		public method Pair, SerializerStatus
+			req in key, a
+			req in value, n.
+
+		proc
+			if(!expectingName)
+				throw new InvalidOperationException("received name + value pair when name was unexpected")
+			if(!first) then
+				AppendOutput(',"'+key+'":' + %string(value))
+			else
+				AppendOutput('"'+key+'":' + %string(value))
+			first = false
+			mreturn SerializerStatus.Ok
+		endmethod
+
+		public method PairNull, SerializerStatus
+			req in key, a
+		proc
+			if(!expectingName)
+				throw new InvalidOperationException("received name + value pair when name was unexpected")
+			if(!first) then
+				AppendOutput(',"'+key+'":null')
+			else
+				AppendOutput('"'+key+'":null')
+			first = false
+			mreturn SerializerStatus.Ok
+		endmethod
+
+		public method OutputScopeOpen, void
+		proc
+
+		endmethod
+
+		;;abort the current output scope, rolling back any output in the buffer back to the last OutputScopeOpen call
+		public method OutputScopeAbort, void
+		proc
+			buffer = ""
+;			clear alphaBuf
+			clear alphaPosition
+		endmethod
+
+
+		public method OutputScopeClose, void
+		proc
+		endmethod
+
+.endregion
+
+.region "Other public members"
+
+		public property CurrentBuffer, string
+			method get
+			proc
+				mreturn buffer
+			endmethod
+		endproperty
+
+.endregion
+
+.region "Helper methods"
+
+		;;; <summary>
+		;;; Constructs the TraditionalBridge protocol message and sends it to the channel.
+		;;; After sending the message the JSON buffer is cleared.
+		;;; </summary>
+		;;; <returns>The complete protocol message that was sent.</returns>
+		private method sendMessage, void
+			stack record
+				bufferLength, int
+				message, string
+			endrecord
+		proc
+			bufferLength = buffer.length
+			if(6 <= TraditionalBridge.Logger.LogLevel) then
+			begin
+				data lengthheader, string
+				lengthHeader = "Content-Length:" + %string(bufferLength + alphaPosition) + %char(13) + %char(10) + %char(13) + %char(10)
+				MaybeLog(6, "Serializer: " + lengthHeader)
+				outStream.FlushData(lengthHeader)
+			end
+			else outStream.FlushData("Content-Length:" + %string(bufferLength + alphaPosition) + %char(13) + %char(10) + %char(13) + %char(10))
+			
+			if(bufferLength > 0) then
+			begin
+				if (alphaposition)
+					buffer += alphaBuf(1:alphaPosition)
+				MaybeLog(6, "Serializer: " + buffer)
+				;RMA eeds to handle buffer length > 65535 for 32 bit
+				outStream.FlushData(buffer)
+			end
+			else
+			begin
+				MaybeLog(6, "Serializer: " + alphaBuf(1:alphaPosition))
+				outStream.FlushData(alphaBuf(1:alphaPosition))
+			end
+			clear alphaposition
+			buffer = ""
+		endmethod
+
+.endregion
+
+	endclass
+
+	public class DispatchSerializer extends JsonSerializer
+		public method DispatchSerializer
+			stream, @OutputStream
+			parent(stream)
+		proc
+		endmethod
+
+		public method ArgumentData, void
+			argPos, int
+			value, a
+		proc
+			;;TODO inline these operations into a single buffer op
+			MapOpen()
+			Pair("Position", argPos)
+			String("Value")
+			MapOpen()
+			
+			Pair("DataType", (i)FieldDataType.AlphaField)
+			Pair("PassedValue", %atrim(value))
+			MapClose()
+			MapClose()
+		endmethod
+
+		public method ArgumentData, void
+			argPos, int
+			value, d
+		proc
+			;;TODO inline these operations into a single buffer op
+			MapOpen()
+			Pair("Position", argPos)
+			String("Value")
+			MapOpen()
+			
+			Pair("DataType", (i)FieldDataType.DecimalField)
+			Pair("PassedValue", value)
+			MapClose()
+			MapClose()
+		endmethod
+
+		public method ArgumentData, void
+			argPos, int
+			value, i
+		proc
+			;;TODO inline these operations into a single buffer op
+			MapOpen()
+			Pair("Position", argPos)
+			String("Value")
+			MapOpen()
+			
+			Pair("DataType", (i)FieldDataType.IntegerField)
+			Pair("PassedValue", value)
+			MapClose()
+			MapClose()
+		endmethod
+
+		public method ArgumentData, void
+			argPos, int
+			value, @ArrayList
+			record
+				item, @object
+				doElement, @DataObjectBase
+		proc
+			;;TODO inline these operations into a single buffer op
+			MapOpen()
+			Pair("Position", argPos)
+			String("Value")
+			MapOpen()
+
+			Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
+			String("PassedValue")
+			ArrayOpen()
+			foreach item in value
+			begin
+				if(item .is. @DataObjectBase) then
+				begin
+					doElement = (@DataObjectBase)item
+					doElement.Serialize(this)
+				end
+				else if(item .is. @string) then
+					String((@string)item)
+				else if(item .is. @i) then
+					Integer((@i)item)
+				else if(item .is. @d) then
+					Integer((@d)item)
+				else if(item .is. @id) then
+					Double((@id)item)
+				else if(item .is. @boolean)
+					Bool((@boolean)item)
+			end
+			ArrayClose()
+			MapClose()
+			MapClose()
+		endmethod
+
+		public method ArgumentData, void
+			argPos, int
+			value, [#]@string
+			record
+				item, @string
+		proc
+			;;TODO inline these operations into a single buffer op
+			MapOpen()
+			Pair("Position", argPos)
+			String("Value")
+			MapOpen()
+			
+			Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
+			String("PassedValue")
+			ArrayOpen()
+			foreach item in value
+			begin
+				String(item)
+			end
+			ArrayClose()
+			MapClose()
+			MapClose()
+		endmethod
+
+		public method ArgumentData, void
+			argPos, int
+			value, [#]int
+			record
+				item, int
+		proc
+			;;TODO inline these operations into a single buffer op
+			MapOpen()
+			Pair("Position", argPos)
+			String("Value")
+			MapOpen()
+			
+			Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
+			String("PassedValue")
+			ArrayOpen()
+			foreach item in value
+			begin
+				Integer(item)
+			end
+			ArrayClose()
+			MapClose()
+			MapClose()
+		endmethod
+
+		public method ArgumentData, void
+			argPos, int
+			value, [#]@a
+			record
+				item, @a
+		proc
+			;;TODO inline these operations into a single buffer op
+			MapOpen()
+			Pair("Position", argPos)
+			String("Value")
+			MapOpen()
+			
+			Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
+			String("PassedValue")
+			ArrayOpen()
+			foreach item in value
+			begin
+				String(%atrim(item))
+			end
+			ArrayClose()
+			MapClose()
+			MapClose()
+		endmethod
+
+		public method ArgumentData, void
+			argPos, int
+			value, [#]@id
+			record
+				item, @id
+		proc
+			;;TODO inline these operations into a single buffer op
+			MapOpen()
+			Pair("Position", argPos)
+			String("Value")
+			MapOpen()
+			
+			Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
+			String("PassedValue")
+			ArrayOpen()
+			foreach item in value
+			begin
+				Double(item)
+			end
+			ArrayClose()
+			MapClose()
+			MapClose()
+		endmethod
+
+	endclass
+endnamespace

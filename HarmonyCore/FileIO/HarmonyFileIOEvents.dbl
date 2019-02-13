@@ -1,0 +1,65 @@
+import System
+import System.Collections.Generic
+import System.Text
+import System.Diagnostics.Tracing
+
+
+namespace Harmony.Core.FileIO
+
+	{EventSource(Name = "HarmonyCore-FileIO-Metrics")}
+	public sealed class HarmonyFileIOMetricsEventSource extends EventSource
+        
+		private ioopsCounter, @EventCounter 
+		private recordsCounter, @EventCounter 
+		private dynamicCounters, @Dictionary<string, EventCounter>, new Dictionary<string, EventCounter>()
+
+		public static Log, @HarmonyFileIOMetricsEventSource, new HarmonyFileIOMetricsEventSource()
+
+
+		public class Keywords
+			public const DataBase, EventKeywords, (EventKeywords)1
+			public const Diagnostic, EventKeywords, (EventKeywords)2
+			public const Perf, EventKeywords, (EventKeywords)4
+		endclass
+;
+;		public class Tasks
+;			public const Materialization, EventTask, (EventTask)2;
+;		endclass
+
+        public method HarmonyFileIOMetricsEventSource
+            parent("HarmonyCore-FileIO-Metrics", EventSourceSettings.EtwSelfDescribingEventFormat)
+		proc
+			ioopsCounter = new EventCounter("ioopsCounter", this)
+			recordsCounter = new EventCounter("recordsCounter", this)
+		endmethod
+
+        {NonEvent}
+		public method ReportIOOPS, void
+			ioops, int
+		proc
+			ioopsCounter.WriteMetric((float)ioops)
+		endmethod
+
+        {NonEvent}
+		public method ReportRecordsReturned, void
+			records, int
+		proc
+			recordsCounter.WriteMetric((float)records)
+		endmethod
+
+        {EventAttribute(5, Opcode = EventOpcode.Start, Task = (EventTask)2, Keywords = (EventKeywords)1, Level = EventLevel.Informational, ActivityOptions = EventActivityOptions.None)}
+		public method MaterializationStart, void
+			queryIdent, @string  
+		proc
+			WriteEvent(5, queryIdent) 
+		endmethod
+
+        {EventAttribute(6, Opcode = EventOpcode.Stop, Task = (EventTask)2, Keywords = (EventKeywords)1, Level = EventLevel.Informational, ActivityOptions = EventActivityOptions.None)}
+		public method MaterializationEnd,void
+		proc
+			WriteEvent(6)
+		endmethod
+
+	endclass
+
+endnamespace
