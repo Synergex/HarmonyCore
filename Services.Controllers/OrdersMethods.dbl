@@ -14,6 +14,7 @@ import Harmony.Core.Context
 import Harmony.OData
 import Harmony.Core
 import System.Linq
+import Newtonsoft.Json.Linq
 
 namespace Services.Controllers
 
@@ -111,8 +112,9 @@ namespace Services.Controllers
 		public async method Arbitrario_MethodWithParameters, @Task<ArbitrarioReturnType>
 		proc
 			data intArray = new int[#] {5, 4, 3, 2, 1 }
-			data resultTpl = await CallMethod("Arbitrario.MethodWithParameters", 5, "hello", new string[#] { "this", "is", "strings" }, intArray, new string[0])
-			mreturn new ArbitrarioReturnType() { ReturnCode = (int)resultTpl.Item1, IntList = (@List<int>)resultTpl.Item2[1], StringList = (@List<string>)resultTpl.Item2[2] }
+			data resultTpl = await CallMethod("Arbitrario.MethodWithParameters", 5, "hello", new string[#] { "this", "is", "strings" }, (@object)intArray, new string[0])
+			data returnToken = ((@JToken)resultTpl.Item1)
+			mreturn new ArbitrarioReturnType() { ReturnCode = returnToken.ToObject<int>(), IntList = ((@IEnumerable<int>)resultTpl.Item2[4]).ToList(), StringList = ((@IEnumerable<string>)resultTpl.Item2[5]).ToList() }
 		endmethod
 
 		public class ArbitrarioReturnType

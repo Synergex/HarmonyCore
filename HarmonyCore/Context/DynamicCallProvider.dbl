@@ -366,14 +366,21 @@ namespace Harmony.Core.Context
 						else if(argValue.DataType == FieldDataType.DataObjectCollectionField) then
 						begin
 							;;TODO replace this with a generic element getter
-							data argType = args[i].GetType().GetGenericArguments()[1]
-							argsTemp[i] = DynamicCallProvider.CastMethodInfo.MakeGenericMethod(new Type[#] { argType }).Invoke(^null, new object[#] { argValue.PassedValue })
+							data argType = args[i].GetType()
+							data elementType = argType
+							if(argType.IsGenericType) then
+								elementType = argType.GetGenericArguments()[1]
+							else if(argType.HasElementType) then
+								elementType = argType.GetElementType()
+							else
+								throw new NotImplementedException()
+
+							argsTemp[i] = DynamicCallProvider.CastMethodInfo.MakeGenericMethod(new Type[#] { elementType }).Invoke(^null, new object[#] { argValue.PassedValue })
 						end
 						else
 						begin
 							if(argValue.PassedValue != ^null && argsTemp[i] != ^null)
 							begin
-								System.Diagnostics.Debug.WriteLine("converting {0} to {1} arg number {2}", argValue.PassedValue.GetType(), argsTemp[i].GetType(), i)
 								argsTemp[i] = Convert.ChangeType(argValue.PassedValue, argsTemp[i].GetType())
 							end
 
