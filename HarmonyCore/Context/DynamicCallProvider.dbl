@@ -351,6 +351,7 @@ namespace Harmony.Core.Context
 				if(arguments[i + 1].ReturnedValue != ^null && arguments[i + 1].ReturnedValue.Value)
 				begin
 					data argValue = arguments[i + 1]
+					
 					if(argValue.PassedValue .is. JToken) then
 					begin
 						data targetToken = ((@JToken)argValue.PassedValue)
@@ -370,7 +371,12 @@ namespace Harmony.Core.Context
 						end
 						else
 						begin
-							argsTemp[i] = Convert.ChangeType(argValue.PassedValue, argsTemp[i].GetType())
+							if(argValue.PassedValue != ^null && argsTemp[i] != ^null)
+							begin
+								System.Diagnostics.Debug.WriteLine("converting {0} to {1} arg number {2}", argValue.PassedValue.GetType(), argsTemp[i].GetType(), i)
+								argsTemp[i] = Convert.ChangeType(argValue.PassedValue, argsTemp[i].GetType())
+							end
+
 						end
 
 					end

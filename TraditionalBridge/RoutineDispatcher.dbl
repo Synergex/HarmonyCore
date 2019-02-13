@@ -589,6 +589,8 @@ namespace Harmony.TraditionalBridge
 		private method ReadCallBlock, boolean
 			required in ttChannel, i
 			required in frameHeader, i4
+			required in leftovers, a
+			required in leftoversLength, i
 			record
 				jsonReader, @Json
 				parsedJson, @JsonValue
@@ -618,8 +620,17 @@ namespace Harmony.TraditionalBridge
 			end
 
 			MaybeLog(6, "Dispatcher: Reading " + %string(frameHeader) + " total bytes of Content from input" )
-			readerPosition = 1
-			remainingRead = frameHeader
+			readerPosition = 1 + leftoversLength
+			remainingRead = frameHeader - leftoversLength
+
+			if(leftoversLength > 0)
+			begin
+				;;workaround for non conforming io on newlines
+				decr(remainingRead)
+				^m(MemStruct(1:leftoversLength), mReadBuffer) = leftovers(1:leftoversLength)
+			end
+
+
 			do 
 			begin
 				MaybeLog(6, "Dispatcher: Reading " + %string(remainingRead) + " bytes from input")
@@ -633,7 +644,7 @@ namespace Harmony.TraditionalBridge
 			until remainingRead <= 0
 
 			MaybeLog(6, "Dispatcher: Parsing buffer " + ^m(MemStruct(1:frameHeader), mReadBuffer))
-			parsedJson = jsonReader.ParseJson(^m(MemStruct(1:frameHeader), mReadBuffer))
+			parsedJson = jsonReader.ParseJson(^m(MemStruct(1:readerPosition - 1), mReadBuffer))
 
 			if (!(parsedJson .is. @JsonObject) && !(parsedJson .is. @JsonArray))
 			begin
@@ -802,6 +813,9 @@ namespace Harmony.TraditionalBridge
 				contentTypeBuffer, a255
 			endrecord
 			record
+				leftoverData, a1
+				leftoverLength, int
+			record
 				running, boolean
 				frameHeader, d10
 				contentTypePos, int
@@ -836,14 +850,21 @@ namespace Harmony.TraditionalBridge
 						if(contentTypePos > 2 && ContentType(contentTypePos:1) == %char(10))
 							exitloop
 
-						contentTypePos += 1
+						if(ContentType(contentTypePos:1) == '{')
+						begin
+							leftoverData = '{'
+							leftoverLength = 1
+							exitloop
+						end
+
+						contentTypePos += %rdlen(ttChannel)
 					end
 
 					MaybeLog(6, "Dispatcher: Reading ContentType from input" + %atrim(ContentType) + ":" + %string(contentTypePos))
 
 					MaybeLog(5, "Dispatcher: starting callblock processing with ContentLength " + %atrim(lengthValue) + " ContentType " + %atrim(ContentType))
 
-					running = ReadCallBlock(ttChannel, (int)frameHeader + 1)
+					running = ReadCallBlock(ttChannel, (int)frameHeader + 1, leftoverData, leftoverLength)
 				end
 				writes(ttChannel, "Shutting down due to running == false")
 			end
@@ -1054,7 +1075,7 @@ namespace Harmony.TraditionalBridge
 			serializer.String("result")
 			serializer.ArrayOpen()
 
-			Dispatch(name, callFrame, serializer, dispatcher)
+			DispatchInternal(name, callFrame, serializer, dispatcher)
 
 			;;Terminate the "ReturnParameters" array
 			serializer.ArrayClose()
