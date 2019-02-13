@@ -520,6 +520,7 @@ namespace Harmony.TraditionalBridge
 			out dataType, FieldDataType
 			record
 				dataTypeInt, @JsonInt
+				propValue, @JsonValue
 			endrecord
 		proc
 			dataTypeInt = ((@JsonInt)obj.GetProperty("DataType"))
@@ -532,24 +533,51 @@ namespace Harmony.TraditionalBridge
 			begin
 				mreturn DeserializeObjectCollection(obj)
 			end
-			else if(dataType == FieldDataType.AlphaField) then
+			else
 			begin
-				data textObject, @JsonText, ((@JsonText)obj.GetProperty("PassedValue"))
-				mreturn textObject.Value
+				obj.TryGetProperty("PassedValue", propValue)
+				if(dataType == FieldDataType.AlphaField) then
+				begin
+					if(propValue == ^null) then
+						mreturn (@object)""
+					else
+					begin
+						data textObject, @JsonText, ((@JsonText)propValue)
+						mreturn textObject.Value
+					end
+				end
+				else if(dataType == FieldDataType.DecimalField) then
+				begin
+					if(propValue == ^null) then
+					begin
+						mreturn (@object)"0"
+					end
+					else
+					begin
+						mreturn ((@JsonText)propValue).Value
+					end
+				end
+				else if(dataType == FieldDataType.ImpliedDecimal) then
+				begin
+					if(propValue == ^null) then
+					begin
+						mreturn (@object)"0"
+					end
+					else
+					begin
+						mreturn ((@JsonText)propValue).Value
+					end
+				end
+				else if(dataType == FieldDataType.IntegerField)
+				begin
+					data intValue, i4, 0
+					if(propValue != ^null)
+						intValue = ((@JsonInt)propValue).Value
+				
+					mreturn (@object)intValue
+				end
 			end
-			else if(dataType == FieldDataType.DecimalField) then
-			begin
-				mreturn ((@JsonText)obj.GetProperty("PassedValue")).Value
-			end
-			else if(dataType == FieldDataType.ImpliedDecimal) then
-			begin
-				mreturn ((@JsonText)obj.GetProperty("PassedValue")).Value
-			end
-			else if(dataType == FieldDataType.IntegerField)
-			begin
-				data intValue, i4, ((@JsonInt)obj.GetProperty("PassedValue")).Value
-				mreturn (@object)intValue
-			end
+
 		endmethod
 
 		;;; <summary>
@@ -947,10 +975,14 @@ namespace Harmony.TraditionalBridge
 							
 							if(argType != FieldDataType.DataObjectField && argType != FieldDataType.DataObjectCollectionField) then
 							begin
+								data elementSizeValue, @JsonValue
 								if(jsonData.HasProperty("DecimalPrecision"))
 									argPrecision = ((@JsonInt)jsonData.GetProperty("DecimalPrecision")).Value
 
-								argLength = ((@JsonInt)jsonData.GetProperty("ElementSize")).Value
+								if(jsonData.TryGetProperty("ElementSize", elementSizeValue)) then
+									argLength = ((@JsonInt)elementSizeValue).Value
+								else
+									argLength = ^size((n)argValueArray[ii])
 
 								xcall rcb_setarg(rcbid, (n)argValueArray[ii], ii, (i)argType, argLength, argPrecision)
 							end

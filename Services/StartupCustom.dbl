@@ -37,6 +37,7 @@ import Harmony.OData
 import Harmony.AspNetCore.Context
 import Services.Controllers
 import System.IO
+import System.Threading.Tasks
 
 namespace Services
 
@@ -50,10 +51,12 @@ namespace Services
 			services.TryAddEnumerable(ServiceDescriptor.Singleton<IActionInvokerProvider, AdapterActionInvokerProvider>())
 			services.AddSingleton<IContextFactory<IsolatedMethodsBase>>(new AssemblyLoadContextPool<IsolatedMethodsBase, IsolatedMethods>(2))
 			services.AddScoped<Microsoft.EntityFrameworkCore.DbContext>(MakeGenericDbContext)
-			;data contextPool, @RemoteExternalContextPool<ExternalCallContext>, new RemoteExternalContextPool<ExternalCallContext>(RemoteTargetOS.VMS, Environment.GetEnvironmentVariable("HARMONY_TEST_MACHINE"), Environment.GetEnvironmentVariable("HARMONY_TEST_USER"), new Renci.SshNet.PasswordAuthenticationMethod(Environment.GetEnvironmentVariable("HARMONY_TEST_USER"), Environment.GetEnvironmentVariable("HARMONY_TEST_PASSWORD")), "RUN PROGRAM.EXE" , 4) 
-            data currentDirectory = Path.GetDirectoryName(^typeof(Startup).Assembly.Location)
-            data contextPool = new ExternalContextPool<ExternalCallContext>(Environment.GetEnvironmentVariable("SYNERGYDE32") + "dbl\bin\dbs.exe", 'TraditionalBridge.Test.dbr', Path.GetFullPath(Path.Combine(currentDirectory, "..\..\..\..\Debug\x86")), ^null, 4) 
-            services.AddSingleton<IContextFactory<ExternalCallContext>>(contextPool)
+			data contextPool, @RemoteExternalContextPool<ExternalCallContext>, new RemoteExternalContextPool<ExternalCallContext>(RemoteTargetOS.VMS, "VMSIT", "STEVEI_RSAC", new Renci.SshNet.PasswordAuthenticationMethod("STEVEI_RSAC", "rsac"), "RUN PROGRAM.EXE" , 4, 10000, 10000) 
+            ;data currentDirectory = Path.GetDirectoryName(^typeof(Startup).Assembly.Location)
+			;data contextPool = new ExternalContextPool<ExternalCallContext>(Environment.GetEnvironmentVariable("SYNERGYDE32") + "dbl\bin\dbs.exe", 'TraditionalBridge.Test.dbr', Path.GetFullPath(Path.Combine(currentDirectory, "..\..\..\..\TraditionalBridge.Test\bin\x86\Debug")), ^null, 4) 
+			
+			
+			services.AddSingleton<IContextFactory<ExternalCallContext>>(contextPool)
             services.AddContextPool<ExternalCallContext>()
         endmethod
 
@@ -67,6 +70,10 @@ namespace Services
             required in app, @IApplicationBuilder
             required in env, @IHostingEnvironment
 		proc
+			;;TODO there is a compiler bug with extension methods here
+			;;		data contextPool = (@ExternalContextPool<ExternalCallContext>)app.ApplicationServices.GetService<IContextFactory<ExternalCallContext>>()
+			;data contextPool = (@ExternalContextPool<ExternalCallContext>)app.ApplicationServices.GetService(^typeof(IContextFactory<ExternalCallContext>))
+			;Task.WaitAll(contextPool.RealizeMinimumPoolSize(app.ApplicationServices))
 			;app.UseEagerContext<ExternalCallContext>(contextPool)
         endmethod
 

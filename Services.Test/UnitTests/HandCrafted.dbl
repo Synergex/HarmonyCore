@@ -581,6 +581,16 @@ namespace Services.Test.UnitTests
 				Console.WriteLine("Skipping TraditionalBridgeGetAllCustomers")
 		endmethod
 
+		{TestMethod}
+		public method TraditionalBridgeGetCustomer, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync("/odata/VMS/GetCustomer()").Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+		endmethod
+
         {TestMethod}
         public method EF_FirstOrDefaultIncluding, void
         proc
