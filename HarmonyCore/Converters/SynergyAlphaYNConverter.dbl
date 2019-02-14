@@ -1,0 +1,101 @@
+;;**********************************************************************
+;;
+;; Title:       SynergyAlphaYNConverter.dbc
+;;
+;; Type:        Class
+;;
+;; Description: Data Converter : convert between a synergy alpha containing Y or N and a boolean
+;;
+;; Author:      Richard C. Morris, Synergex Technology Evangelist
+;;
+;; Copyright (c) 2012, Synergex International, Inc. All rights reserved.
+;;
+;; Redistribution and use in source and binary forms, with or without
+;; modification, are permitted provided that the following conditions are met:
+;;
+;; * Redistributions of source code must retain the above copyright notice,
+;;   this list of conditions and the following disclaimer.
+;;
+;; * Redistributions in binary form must reproduce the above copyright notice,
+;;   this list of conditions and the following disclaimer in the documentation
+;;   and/or other materials provided with the distribution.
+;;
+;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;; ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+;; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+;; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+;; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+;; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+;; POSSIBILITY OF SUCH DAMAGE.
+;;
+;;*****************************************************************************
+
+import System
+import System.Collections.Generic
+import System.Text
+import Harmony.Core.Utility
+
+namespace Harmony.Core.Converters
+	
+    ;;; <summary>
+    ;;;  The SynergyAlphaYNConverter class is designed to convert a Synergy Alpha data type to a _CLR_ compliant boolean
+    ;;;  type.  The true/false value of the convertion is determined by the value of the data bound value.  a value of Y resolves to true, N to false.
+    ;;; </summary>
+    public class SynergyAlphaYNConverter
+    
+        ;;; <summary>
+        ;;; Convert from a synergy Alpha (a1) Y or N value to a _CLR_ Boolean value
+        ;;; </summary>		
+        ;;; <param name="value">The inbound value to convert.</param>
+        ;;; <param name="targetType">The datatype type of the target.</param>
+        ;;; <param name="parameter">Any addiotnal binding parameters passed in, as specified by the ConverterParameter property.</param>
+        ;;; <param name="culture">An instance of the System.Globalization.CultureInfo class that identifies the culture of the client _UI_.</param>
+        ;;; <remarks>
+        ;;; The Convert method will return true for a value of Y or false for a value of N.
+        ;;; </remarks>
+        public method Convert,  @Object
+            value,      @Object
+            targetType, @Type
+            parameter,  @Object
+            culture,    @System.Globalization.CultureInfo
+        proc
+            if (value == ^null)
+                mreturn ^null
+        
+        mreturn (Object)(Convert.ToString(Value).ToUpper() == "Y")
+    
+    endmethod
+		
+        ;;; <summary>
+        ;;;	Convert back from the data bound _CLR_ Boolean value to the source storage Synergy Alpha value.
+        ;;; </summary>
+        ;;; <param name="value">The inbound value to convert.</param>
+        ;;; <param name="targetType">The datatype type of the target.</param>
+        ;;; <param name="parameter">Any addiotnal binding parameters passed in, as specified by the ConverterParameter property.</param>
+        ;;; <param name="culture">An instance of the System.Globalization.CultureInfo class that identifies the culture of the client _UI_.</param>
+        ;;; <remarks>
+        ;;; The ConvertBack routine will set the target Synergy Alpha value to Y if the value is true, else N for false.
+        ;;; </remarks>
+        public method ConvertBack, @Object
+            value,      @Object
+            targetType, @Type
+            parameter,  @Object
+            culture,    @System.Globalization.CultureInfo
+            endparams
+        proc
+            if (value == ^null)
+                mreturn (Object)((a)"")
+
+            data aVal, a1, Convert.ToBoolean(Value) ? "Y" : "N"
+
+            mreturn (Object) aVal
+
+        endmethod
+
+    endclass
+	
+endnamespace
