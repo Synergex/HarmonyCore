@@ -261,8 +261,7 @@ proc
 		end
 		else if ((fmt .eq. "YYYYMMDD") .and. (mysize== 8)) then
 		begin
-			valstr = %string(sdt,"XXXXXXXX")
-			if (valstr.Equals("00000000")) then
+			if (sdt == 0) then
 			begin
 				dt = new System.DateTime()
 			end
@@ -276,8 +275,7 @@ proc
 		end
 		else if ((fmt .eq. "YYMMDD") .and. (mysize == 6)) then
 		begin
-			valstr = %string(sdt,"XXXXXX")
-			if (valstr.Equals("000000")) then
+			if (sdt == 0) then
 			begin
 				dt = new System.DateTime()
 			end
@@ -291,50 +289,44 @@ proc
 		end
 		else if ((fmt .eq. "YYYYJJJ") .and. (mysize== 7)) then
 		begin
-			valstr = %string(sdt,"XXXXXXX")
-			if (valstr.Equals("0000000")) then
+			if (sdt == 0) then
 			begin
 				dt = new System.DateTime()
 			end
 			else
 			begin
-				yy = int.Parse(valstr.Substring(0,4))
-				jday = double.Parse(valstr.Substring(4,3))
+				yy = sdt(1:4)
 				dt = new System.DateTime(yy,1,1)
-				dt = dt.AddDays(jday-1)
+				dt = dt.AddDays(sdt(5:3)-1)
 			end
 		end
 		else if ((fmt .eq. "YYJJJ") .and. (mysize == 5)) then
 		begin
-			valstr = %string(sdt,"XXXXX")
-			yy = int.Parse(valstr.Substring(0,2))
+			yy = sdt(1:2)
 			if (yy <= 50) then
 				yy = yy + 2000
 			else
 				yy = yy + 1900
-			jday = double.Parse(valstr.Substring(2,3))
 			dt = new System.DateTime(yy,1,1)
-			dt = dt.AddDays(jday-1)
+			dt = dt.AddDays(sdt(3:3)-1)
 		end
 		else if (fmt .eq. "HHMM")
 		begin
 			if (mysize .eq. 6) then
 			begin
-				valstr = %string(sdt,"XXXXXX")
 				dt = new System.DateTime()
-				hh = int.Parse(valstr.Substring(0,2))
-				mm = int.Parse(valstr.Substring(2,2))
-				ss = int.Parse(valstr.Substring(4,2))
+				hh = sdt(1:2)
+				mm = sdt(3:2)
+				ss = sdt(5:2)
 				dt = dt.AddHours(hh)
 				dt = dt.AddMinutes(mm)
 				dt = dt.AddSeconds(ss)
 			end
 			else
 			begin
-				valstr = %string(sdt,"XXXX")
 				dt = new System.DateTime()
-				hh = int.Parse(valstr.Substring(0,2))
-				mm = int.Parse(valstr.Substring(2,2))
+				hh = sdt(1:2)
+				mm = sdt(3:2)
 				dt = dt.AddHours(hh)
 				dt = dt.AddMinutes(mm)
 			end

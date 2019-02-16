@@ -83,10 +83,12 @@ namespace Harmony.Core.FileIO.Queryable
 							if(!caseInsensitive) then
 							begin
 								if(fieldTwoPart.DataType == FieldDataType.TagLiteral) then
-									madeOn = (On)(dataBuffer1(fieldOneStart:compSize) .eq. (a)fieldTwoPart.TagValue)
-								else
 								begin
 									madeLiteral = true
+									madeOn = (On)(dataBuffer1(fieldOneStart:compSize) .eq. (a)fieldTwoPart.TagValue)
+								end
+								else
+								begin
 									madeOn = (On)(dataBuffer1(fieldOneStart:compSize) .eq. dataBuffer2(fieldTwoStart:compSize))
 								end
 							end
@@ -96,17 +98,22 @@ namespace Harmony.Core.FileIO.Queryable
 						(FieldDataType.IntegerField),
 						begin
 							if(fieldTwoPart.DataType == FieldDataType.TagLiteral) then
-								madeOn = (On)(^i(dataBuffer1(fieldOneStart:compSize)) .eq. %integer(fieldTwoPart.TagValue))
-							else
 							begin
 								madeLiteral = true
+								madeOn = (On)(^i(dataBuffer1(fieldOneStart:compSize)) .eq. %integer(fieldTwoPart.TagValue))
+							end
+							else
+							begin
 								madeOn = (On)(^i(dataBuffer1(fieldOneStart:compSize)) .eq. ^i(dataBuffer2(fieldTwoStart:compSize)))
 							end
 						end
 						(FieldDataType.DecimalField),
 						begin
 							if(fieldTwoPart.DataType == FieldDataType.TagLiteral) then
+							begin
+								madeLiteral = true
 								madeOn = (On)(^d(dataBuffer1(fieldOneStart:compSize)) .eq. %implied(fieldTwoPart.TagValue))
+							end
 							else
 							begin
 								madeOn = (On)(^d(dataBuffer1(fieldOneStart:compSize)) .eq. ^d(dataBuffer2(fieldTwoStart:compSize)))
