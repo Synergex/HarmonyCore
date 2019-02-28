@@ -1,3 +1,4 @@
+import System.Globalization
 ;;**********************************************************************
 ;;
 ;; Title:       CustomDateRoutines.dbl
@@ -232,7 +233,7 @@ proc
 	data val		,string
 	data valstr	,string
 	data dt		,System.Datetime
-	data mysize,int, %size(%atrim(fmt))
+	data mysize,int, %size(sdt)
 	
 	try
 	begin	
@@ -259,7 +260,7 @@ proc
 			ss = sdt(13:2)
 			dt = new System.DateTime(yy,mt,dd,hh,mm,ss)
 		end
-		else if ((fmt .eq. "YYYYMMDD") .and. (mysize== 8)) then
+		else if ((fmt .eq. "YYYYMMDD") .and. (mysize >= 7)) then
 		begin
 			if (sdt == 0) then
 			begin
@@ -267,13 +268,13 @@ proc
 			end
 			else
 			begin
-				yy = sdt(1:4)
-				mt = sdt(5:2)
-				dd = sdt(7:2)
+				yy = (int)sdt(1:4)
+				mt = (int)sdt(5:2)
+				dd = (int)sdt(7:mysize - 6)
 				dt = new System.DateTime(yy,mt,dd)
 			end
 		end
-		else if ((fmt .eq. "YYMMDD") .and. (mysize == 6)) then
+		else if ((fmt .eq. "YYMMDD") .and. (mysize >= 5)) then
 		begin
 			if (sdt == 0) then
 			begin
@@ -281,13 +282,18 @@ proc
 			end
 			else
 			begin
-				yy = sdt(1:2)
-				mt = sdt(3:2)
-				dd = sdt(5:2)
-				dt = new System.DateTime(yy,mt,dd)
+				yy = (int)sdt(1:2)
+				mt = (int)sdt(3:2)
+				dd = (int)sdt(5:mysize - 4)
+
+				if((yy + 2000) > CultureInfo.CurrentCulture.Calendar.TwoDigitYearMax) then
+					yy += 1900
+				else
+					yy += 2000
+				dt = new System.DateTime(yy ,mt,dd)
 			end
 		end
-		else if ((fmt .eq. "YYYYJJJ") .and. (mysize== 7)) then
+		else if ((fmt .eq. "YYYYJJJ") .and. (mysize >= 5)) then
 		begin
 			if (sdt == 0) then
 			begin
@@ -297,20 +303,20 @@ proc
 			begin
 				yy = sdt(1:4)
 				dt = new System.DateTime(yy,1,1)
-				dt = dt.AddDays(sdt(5:3)-1)
+				dt = dt.AddDays(sdt(5:mysize - 4)-1)
 			end
 		end
-		else if ((fmt .eq. "YYJJJ") .and. (mysize == 5)) then
+		else if ((fmt .eq. "YYJJJ") .and. (mysize >= 3)) then
 		begin
 			yy = sdt(1:2)
-			if (yy <= 50) then
-				yy = yy + 2000
+			if((yy + 2000) > CultureInfo.CurrentCulture.Calendar.TwoDigitYearMax) then
+				yy += 1900
 			else
-				yy = yy + 1900
+				yy += 2000
 			dt = new System.DateTime(yy,1,1)
-			dt = dt.AddDays(sdt(3:3)-1)
+			dt = dt.AddDays(sdt(3:mysize - 2)-1)
 		end
-		else if (fmt .eq. "HHMM")
+		else if (fmt .eq. "HHMM") then
 		begin
 			if (mysize .eq. 6) then
 			begin
@@ -331,6 +337,8 @@ proc
 				dt = dt.AddMinutes(mm)
 			end
 		end
+		else
+			throw new ApplicationException(string.Format("Failed to format date time with format {0} and data {1}", fmt, sdt))
 	end
 	catch(e)
 		nop
