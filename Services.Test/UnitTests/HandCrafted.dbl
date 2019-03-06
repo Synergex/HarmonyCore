@@ -492,6 +492,46 @@ namespace Services.Test.UnitTests
 ;		endmethod
 
 		{TestMethod}
+		public method ExpandAndSelectAndFilter1, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync("/odata/Customers(8)?$expand=REL_Orders($filter=OrderNumber eq 10)").Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
+		endmethod
+
+		{TestMethod}
+		public method ExpandAndSelectAndFilter2, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync("/odata/Customers(8)?$expand=REL_Orders($filter=OrderNumber in(10, 12, 15))").Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
+		endmethod
+
+		{TestMethod}
+		public method ExpandAndSelectAndFilter3, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync("/odata/Customers(8)?$expand=REL_Orders($filter=OrderNumber in(10, 12, 15) and CustomerNumber gt 1)").Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
+		endmethod
+
+		{TestMethod}
+		public method ExpandAndSelectAndFilter4, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync("/odata/Customers(8)?$expand=REL_Orders($expand=REL_OrderItems($filter=ItemNumber in(12, 15, 25)))").Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
+		endmethod
+
+		{TestMethod}
 		public method ExpandAndSelect1, void
 		proc
 			disposable data client = UnitTestEnvironment.Server.CreateClient()

@@ -274,33 +274,45 @@ namespace Harmony.Core.EF.Query.Internal
             DebugLogSession.Logging.LogDebug("HarmonyCoreEF: VisitedQueryModel -> {0}", Expression);
         }
 
-        internal static void LiftInOperator(WhereClause whereClause)
+        internal static Expression LiftInOperator(Expression whereClause)
         {
-            //hopefully this is supposed to be an "IN" operation is just needs to be transformated a little bit to make things work better later on in the process
-            if (whereClause != null && whereClause.Predicate is SubQueryExpression)
+            if (whereClause is BinaryExpression)
             {
-                var subQuery = whereClause.Predicate as SubQueryExpression;
-                if (subQuery.QueryModel.MainFromClause.FromExpression is ConstantExpression)
+                var binaryOp = whereClause as BinaryExpression;
+                var liftedLeft = LiftInOperator(binaryOp.Left);
+                var liftedRight = LiftInOperator(binaryOp.Right);
+
+                return binaryOp.Update(liftedLeft, binaryOp.Conversion, liftedRight);
+            }
+
+            var subQuery = whereClause as SubQueryExpression;
+            //hopefully this is supposed to be an "IN" operation is just needs to be transformated a little bit to make things work better later on in the process
+            if (subQuery != null && subQuery.QueryModel.MainFromClause.FromExpression is ConstantExpression)
+            {
+                var constant = subQuery.QueryModel.MainFromClause.FromExpression as ConstantExpression;
+                if (constant.Value is System.Collections.IEnumerable)
                 {
-                    var constant = subQuery.QueryModel.MainFromClause.FromExpression as ConstantExpression;
-                    if (constant.Value is System.Collections.IEnumerable)
+                    var resultOperator = subQuery.QueryModel.ResultOperators.OfType<ContainsResultOperator>().FirstOrDefault();
+                    if (resultOperator != null)
                     {
-                        var resultOperator = subQuery.QueryModel.ResultOperators.OfType<ContainsResultOperator>().FirstOrDefault();
-                        if (resultOperator != null)
-                        {
-                            var collection = (constant.Value as System.Collections.IEnumerable).OfType<object>().Select(obj => obj.ToString()).ToList();
-                            whereClause.Predicate = MakeInExpression(collection, resultOperator.Item);
-                        }
-                        else
-                            throw new NotImplementedException();
-                        //
+                        var collection = (constant.Value as System.Collections.IEnumerable).OfType<object>().Select(obj => obj.ToString()).ToList();
+                        return MakeInExpression(collection, resultOperator.Item);
                     }
                     else
                         throw new NotImplementedException();
+                    //
                 }
                 else
                     throw new NotImplementedException();
             }
+            else
+                return whereClause;
+        }
+
+        internal static void LiftInOperator(WhereClause whereClause)
+        {
+            if(whereClause?.Predicate != null)
+                whereClause.Predicate = LiftInOperator(whereClause.Predicate);
         }
 
         internal static void LiftOrderByOperator(OrderByClause orderClause)
@@ -488,9 +500,19 @@ namespace Harmony.Core.EF.Query.Internal
                 {
                     if (binaryExpression.Left is ParameterExpression || binaryExpression.Left is ConstantExpression ||
                        binaryExpression.Right is ParameterExpression || binaryExpression.Right is ConstantExpression)
-                        return 1;
-                    else
+                    {
                         return -1;
+                    }
+                    else
+                    {
+                        if ((binaryExpression.Left is MethodCallExpression || binaryExpression.Left is MemberExpression) &&
+                            (binaryExpression.Right is MethodCallExpression || binaryExpression.Right is MemberExpression))
+                        {
+                            return 1;
+                        }
+                        else
+                            return WhereAsJoinClauseExpressionQuality(binaryExpression.Left);
+                    }
                 }
                 else if (nullSafeExpression != null)
                 {
@@ -499,6 +521,10 @@ namespace Harmony.Core.EF.Query.Internal
                 else if (blockExpression != null && blockExpression.Expressions.Count == 1)
                 {
                     return WhereAsJoinClauseExpressionQuality(blockExpression.Expressions.First());
+                }
+                else if (expression is InExpression)
+                {
+                    return -1;
                 }
                 else
                 {
@@ -587,11 +613,14 @@ namespace Harmony.Core.EF.Query.Internal
                     Expression.Condition(Expression.Equal(propValue, Expression.Constant(null)), Expression.Convert(Expression.New(typeof(List<>).MakeGenericType(new Type[] { resultExpressionElementType })), propValue.Type), propValue) :
                     (Expression)propValue;
 
-                LiftClausesFromSubQueryExpression(new QuerySourceReferenceExpression(queryModel.MainFromClause), TopQueryModel, queryModel.MainFromClause?.FromExpression as SubQueryExpression);
-
+                //LiftClausesFromSubQueryExpression(new QuerySourceReferenceExpression(queryModel.MainFromClause), TopQueryModel, queryModel.MainFromClause?.FromExpression as SubQueryExpression);
+                var fromSubQuery = queryModel.MainFromClause?.FromExpression as SubQueryExpression;
+                var allBodyClauses = fromSubQuery?.QueryModel?.BodyClauses != null ?
+                    queryModel.BodyClauses.Concat(fromSubQuery.QueryModel.BodyClauses).ToList() :
+                    queryModel.BodyClauses.ToList();
                 //some of the query sources are pointless SQLism around their inability to return collections outside of grouping
                 //we need to replace those sources with the materialized properties to allow Selectors to operate on a consistant model
-                foreach (var bodyClause in queryModel.BodyClauses)
+                foreach (var bodyClause in allBodyClauses)
                 {
                     var groupJoin = bodyClause as GroupJoinClause;
                     var additionalFrom = bodyClause as AdditionalFromClause;
@@ -606,6 +635,21 @@ namespace Harmony.Core.EF.Query.Internal
                         var flatGroupJoin = additionalFrom.TryGetFlattenedGroupJoinClause();
                         if (flatGroupJoin != null && QuerySourceAliases.ContainsKey(flatGroupJoin))
                             QuerySourceAliases.Add(additionalFrom, flatGroupJoin.JoinClause);
+                    }
+
+                    if (bodyClause is WhereClause)
+                    {
+                        var whereClause = bodyClause as WhereClause;
+                        LiftInOperator(whereClause);
+                        if (fromSubQuery?.QueryModel?.BodyClauses.Contains(bodyClause) ?? false)
+                        {
+                            AddOrUpdateSelector(new QuerySourceReferenceExpression(fromSubQuery.QueryModel.MainFromClause),
+                                new QuerySourceReferenceExpression(queryModel.MainFromClause));
+                        }
+                    }
+                    else if (bodyClause is OrderByClause)
+                    {
+                        LiftOrderByOperator(bodyClause as OrderByClause);
                     }
                 }
 
@@ -624,7 +668,7 @@ namespace Harmony.Core.EF.Query.Internal
 
                         //we only attach one predicate to a join clause, the rest need to be lifted into a regular where clause
                         //this may need additional work to pick the best join field
-                        var orderedWhereClauses = queryModel.BodyClauses.OfType<WhereClause>().OrderBy(WhereAsJoinClauseQuality).ToList();
+                        var orderedWhereClauses = allBodyClauses.OfType<WhereClause>().OrderByDescending(WhereAsJoinClauseQuality).ToList();
                         var whereClause = orderedWhereClauses.FirstOrDefault();
                         var rewrite = new SelectorRewriter()
                         {

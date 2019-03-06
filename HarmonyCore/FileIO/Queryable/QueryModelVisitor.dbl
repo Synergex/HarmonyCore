@@ -94,9 +94,21 @@ namespace Harmony.Core.FileIO.Queryable
 					data onParts = new List<object>()
 					mWhereBuilder.VisitForWhere(whereClause.Predicate, whereParts, onParts)
 					if(whereParts.Count == 1) then
-						typeBuffer.JoinOn = new ConnectorPart() { Left = typeBuffer.JoinOn, Right = whereParts.First(), Op = WhereClauseConnector.AndOperator }
+					begin
+						data joinDirection = CompareJoinQuality(typeBuffer.JoinOn, whereParts.First())
+						data leftLeg = joinDirection >= 0 ? typeBuffer.JoinOn : whereParts.First()
+						data rightLeg = joinDirection < 0 ? typeBuffer.JoinOn : whereParts.First()
+						typeBuffer.JoinOn = new ConnectorPart() { Left = leftLeg, Right = rightLeg, Op = WhereClauseConnector.AndOperator }
+					end
+
 					else if(onParts.Count == 1) then
-						typeBuffer.JoinOn = new ConnectorPart() { Left = typeBuffer.JoinOn, Right = onParts.First(), Op = WhereClauseConnector.AndOperator }
+					begin
+						data joinDirection = CompareJoinQuality(typeBuffer.JoinOn, onParts.First())
+						data leftLeg = joinDirection >= 0 ? typeBuffer.JoinOn : onParts.First()
+						data rightLeg = joinDirection < 0 ? typeBuffer.JoinOn : onParts.First()
+						typeBuffer.JoinOn = new ConnectorPart() { Left = leftLeg, Right = rightLeg, Op = WhereClauseConnector.AndOperator }
+					end
+
 					else
 						throw new NotImplementedException()
 					nextloop
@@ -118,6 +130,42 @@ namespace Harmony.Core.FileIO.Queryable
 			end
 
 		endmethod
+
+		private static method CompareJoinQuality, int
+			leftLeg, @object
+			rightLeg, @object
+		proc
+			mreturn CompareJoinQuality(GetLeadingExpr(leftLeg), GetLeadingExpr(rightLeg))
+		endmethod
+
+		private static method CompareJoinQuality, int
+			leftLeg, @ExprPart
+			rightLeg, @ExprPart
+		proc
+			if(leftLeg.Left .is. @FieldReference && leftLeg.Right .is. @FieldReference) then
+			begin
+				if(rightLeg.Left .is. @FieldReference && rightLeg.Right .is. @FieldReference) then
+					mreturn 0
+				else
+					mreturn 1
+			end
+			else
+				mreturn -1
+		endmethod
+
+		private static method GetLeadingExpr, @ExprPart
+			obj, @Object
+		proc
+			data leftConnectorPart = ^as(obj, @ConnectorPart)
+			data leftExprPart = ^as(obj, @ExprPart)
+			if(leftExprPart != ^null) then
+				mreturn leftExprPart
+			else if(leftConnectorPart != ^null) then
+				mreturn GetLeadingExpr(leftConnectorPart.Left) 
+			else
+				throw new NotImplementedException()
+		endmethod
+
 
 		private method MakeTypeBuffer, @QueryBuffer.TypeBuffer
 			querySource, @IQuerySource
