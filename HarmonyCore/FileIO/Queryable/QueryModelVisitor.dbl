@@ -286,7 +286,7 @@ namespace Harmony.Core.FileIO.Queryable
 			if(groupJoinClause.ItemName == groupJoinClause.JoinClause.ItemName) then
 				VisitJoinClauseInternal(groupJoinClause, joinClause.OuterKeySelector, joinClause.InnerKeySelector, queryModel, false)
 			else
-				VisitJoinClauseInternal(groupJoinClause.JoinClause, joinClause.OuterKeySelector, joinClause.InnerKeySelector, queryModel, false)
+				VisitJoinClauseInternal(groupJoinClause.JoinClause, joinClause.OuterKeySelector, joinClause.InnerKeySelector, queryModel, groupJoinClause.ItemName == "$$InnerJoin$$")
 		endmethod
 
 		private static DotArray, [#]char
@@ -428,8 +428,26 @@ namespace Harmony.Core.FileIO.Queryable
 			data sparseParts = modelVisitor.ConvertSparseParts(accessedMemberVisitor.SelectedFields, accessedMemberVisitor.SelectedQuerySources, querySourceMap)
 
 			data isCollection = !model.ResultOperators.Any(lambda (op) { op.GetType() == ^typeof(Remotion.Linq.Clauses.ResultOperators.FirstResultOperator) })
+			data topOp = model.ResultOperators.OfType<Remotion.Linq.Clauses.ResultOperators.TakeResultOperator>().FirstOrDefault()
+			data skipOp = model.ResultOperators.OfType<Remotion.Linq.Clauses.ResultOperators.SkipResultOperator>().FirstOrDefault()
 
-			mreturn new PreparedQueryPlan(isCollection, modelVisitor.mWhereParts, sparseParts, modelVisitor.mOnParts, modelVisitor.mOrderBy, new QueryBuffer(modelVisitor.mTypeBuffers), model.ToString())
+			data queryPlan = new PreparedQueryPlan(isCollection, modelVisitor.mWhereParts, sparseParts, modelVisitor.mOnParts, modelVisitor.mOrderBy, new QueryBuffer(modelVisitor.mTypeBuffers), model.ToString())
+			if(topOp != ^null)
+			begin
+				if(topOp.Count .is. ParameterExpression)
+				begin
+					queryPlan.TopParam = ((@ParameterExpression)topOp.Count).Name
+				end
+			end
+			if(skipOp != ^null)
+			begin
+				if(skipOp.Count .is. ParameterExpression)
+				begin
+					queryPlan.SkipParam = ((@ParameterExpression)skipOp.Count).Name
+				end
+			end
+
+			mreturn queryPlan
 		endmethod
 
 		private method ConvertSparseParts, @Dictionary<int, List<FieldDataDefinition>>

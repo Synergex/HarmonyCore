@@ -41,6 +41,9 @@ namespace Harmony.Core.FileIO.Queryable
 		private mQueryBufferPrototype, @QueryBuffer
 		private mSimpleKeyNumber, short
 		private mTraceIdentifier, @string
+		public readwrite property TopParam, string
+		public readwrite property SkipParam, string
+		public readwrite property SkipTokenParam, string
 		public readwrite property IsJoin, boolean
 		public readwrite property IsCollection, boolean
 		public readwrite property IsKeyedRead, boolean
@@ -162,67 +165,104 @@ namespace Harmony.Core.FileIO.Queryable
 
 		endmethod
 
+		private method UntypedExecuteJoinCollectionPlan, @IEnumerable<DataObjectBase>
+			tracker, @Func<DataObjectBase, DataObjectBase>
+			parameters, @IReadOnlyDictionary<string, Object>
+			dataObjectProvider, @Harmony.Core.Context.IDataObjectProvider
+			skip, int
+			top, int
+		proc
+			disposable data rows, @Synergex.SynergyDE.Select.RowEnumerator
+			disposable data joinSelectObject, @Synergex.SynergyDE.Select.JoinSelect
+			disposable data queryBuffer, @QueryBuffer, new QueryBuffer(mQueryBufferPrototype, dataObjectProvider, parameters)
+			disposable data fromObj = FromObject(queryBuffer)
+			data tObj, @DataObjectBase
+			data materializerResult, @IEnumerable<DataObjectBase>
+			data materializerEnumerator, @IEnumerator<DataObjectBase>
+			data stats = new DataObjectMaterializer.MaterializerStats()
+			data currentCount = 0 
+			data targetCount = top ? skip + top : 0
+
+			joinSelectObject = JoinObject(queryBuffer, fromObj, WhereObject(queryBuffer), OrderByObject(queryBuffer), SparseObject(queryBuffer))
+			rows = joinSelectObject.GetEnumerator()
+			materializerResult = DataObjectMaterializer.MaterializeObject(queryBuffer.TypeBuffers[0], rows, tracker, stats)
+			materializerEnumerator = materializerResult.GetEnumerator()
+			while(materializerEnumerator.MoveNext())
+			begin
+				tObj = materializerEnumerator.Current
+				incr currentCount
+				if(skip && skip > currentCount)
+					nextloop
+						
+				if (targetCount && currentCount > targetCount)
+					exitloop
+
+				yield mreturn tObj
+			end
+
+		endmethod
+
+		
+		private method UntypedExecuteSelectCollectionPlan, @IEnumerable<DataObjectBase>
+			tracker, @Func<DataObjectBase, DataObjectBase>
+			parameters, @IReadOnlyDictionary<string, Object>
+			dataObjectProvider, @Harmony.Core.Context.IDataObjectProvider
+			skip, int
+			top, int
+		proc
+			disposable data selectObject, @Synergex.SynergyDE.Select.Select
+			;;dont ever use mQueryBufferPrototype for operations directly
+			disposable data queryBuffer, @QueryBuffer, new QueryBuffer(mQueryBufferPrototype, dataObjectProvider, parameters)
+			disposable data fromObj = FromObject(queryBuffer)
+			data tObj, @DataObjectBase
+			data stats = new DataObjectMaterializer.MaterializerStats()
+			data currentCount = 0 
+			data targetCount = top ? skip + top : 0
+
+			selectObject = SelectObject(queryBuffer, fromObj, WhereObject(queryBuffer), OrderByObject(queryBuffer), SparseObject(queryBuffer))
+			data memPnt, int, queryBuffer.TypeBuffers[0].MemoryHandle.Value
+			data metadataObject = queryBuffer.TypeBuffers[0].Metadata
+			data structureSize = metadataObject.StructureSize
+			data enumerator, @Synergex.SynergyDE.Select.RestrictedAlphaEnumerator
+			foreach ^m(memMapper.fld(1:structureSize), memPnt) in selectObject
+			begin
+				data grfa	,a10
+				incr currentCount
+					
+				if(skip && skip > currentCount)
+					nextloop
+						
+				if (targetCount && currentCount > targetCount) 
+					yield exit
+				if(enumerator == ^null)
+					enumerator = selectObject.GetEnum()
+				enumerator.CurrentRFA(grfa)
+				stats.IOOPS = enumerator.TotalReadCount
+				incr stats.RecordsReturned
+				yield mreturn tracker(metadataObject.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa))
+			end
+				;;end
+			;;finally
+			;;begin
+				;;HarmonyFileIOMetricsEventSource.Log.ReportIOOPS(stats.IOOPS)
+				;;HarmonyFileIOMetricsEventSource.Log.ReportRecordsReturned(stats.RecordsReturned)
+			;;end
+			;;endtry
+		endmethod
+
+
 		public method ExecuteSelectCollectionPlan<T(DataObjectBase)>, @IEnumerable<T>
 			tracker, @Func<DataObjectBase, DataObjectBase>
 			parameters, @IReadOnlyDictionary<string, Object>
 			dataObjectProvider, @Harmony.Core.Context.IDataObjectProvider
 			
 		proc
-			data currentCount = 0 
-			;;data targetCount = top ? skip + top : 0
-			data result = new List<T>()
-			;;dont ever use mQueryBufferPrototype for operations directly
-			disposable data queryBuffer = new QueryBuffer(mQueryBufferPrototype, dataObjectProvider, parameters)
-			disposable data fromObj = FromObject(queryBuffer)
-			if(!IsJoin) then
-			begin
-				
-				disposable data selectObject, @Synergex.SynergyDE.Select.Select, SelectObject(queryBuffer, fromObj, WhereObject(queryBuffer), OrderByObject(queryBuffer), SparseObject(queryBuffer))
-				data memPnt, int, queryBuffer.TypeBuffers[0].MemoryHandle.Value
-				data metadataObject = queryBuffer.TypeBuffers[0].Metadata
-				data structureSize = metadataObject.StructureSize
-				data enumerator, @Synergex.SynergyDE.Select.RestrictedAlphaEnumerator
-				foreach ^m(memMapper.fld(1:structureSize), memPnt) in selectObject
-				begin
-					data grfa	,a10
-					incr currentCount
-					
-					;;if(skip && skip > currentCount)
-					;;	nextloop
-						
-					;;if (targetCount && currentCount > targetCount) 
-					;;	exitloop
-					
-					if(enumerator == ^null)
-						enumerator = Synergex.SynergyDE.Select.Select.GetEnum()
-
-					enumerator.CurrentRFA(grfa)
-					result.Add(tracker(metadataObject.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa)))
-				end
-			end
+			data skip, int, !String.IsNullOrWhiteSpace(SkipParam) ? (int)parameters[SkipParam] : 0
+			data top, int, !String.IsNullOrWhiteSpace(TopParam) ? (int)parameters[TopParam] : 0
+			if(IsJoin) then
+				mreturn UntypedExecuteJoinCollectionPlan(tracker, parameters, dataObjectProvider, skip, top).OfType<T>()
 			else
-			begin 
-				disposable data rows, @Synergex.SynergyDE.Select.RowEnumerator
-				disposable data selectObject, @Synergex.SynergyDE.Select.JoinSelect, JoinObject(queryBuffer, fromObj, WhereObject(queryBuffer), OrderByObject(queryBuffer), SparseObject(queryBuffer))
-				data hasMoreRows = true
-				rows = selectObject.GetEnumerator()
-
-				result.AddRange(DataObjectMaterializer.MaterializeObject(queryBuffer.TypeBuffers[0], rows, tracker).OfType<T>())
-				;while(hasMoreRows)
-				;begin
-;					incr currentCount
-;					
-;					;;if(skip && skip > currentCount)
-;					;;	nextloop
-;						
-;					;;if (targetCount && currentCount > targetCount)
-;					;;	exitloop
-;					result.Add()
-;					hasMoreRows = rows.MoveNext()
-				;end
-			end
-
-			mreturn result
+				mreturn UntypedExecuteSelectCollectionPlan(tracker, parameters, dataObjectProvider, skip, top).OfType<T>()
 		endmethod
 
 		;;this isnt right, dont use it for now

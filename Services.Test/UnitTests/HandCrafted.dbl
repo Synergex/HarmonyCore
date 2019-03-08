@@ -532,6 +532,58 @@ namespace Services.Test.UnitTests
 		endmethod
 
 		{TestMethod}
+		public method ExpandAndSelectAndFilter5, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync("/odata/Orders?$expand=REL_Customer($filter=Name eq 'fred' and $it ne null)").Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
+		endmethod
+
+		{TestMethod}
+		public method AggregateFunction1, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync("/odata/Items?$apply=aggregate(UnitPrice with sum as TotalPrice)").Result
+			data result = response.Content.ReadAsStringAsync().Result
+			;;response.EnsureSuccessStatusCode()
+			;;data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
+		endmethod
+
+		{TestMethod}
+		public method SkipToken1, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync("/odata/Items?$skiptoken=ABC123").Result
+			data result = response.Content.ReadAsStringAsync().Result
+			;;response.EnsureSuccessStatusCode()
+			;;data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
+		endmethod
+
+		{TestMethod}
+		public method Top1, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync("/odata/Items?$top=5").Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
+			Assert.AreEqual(items.Value.Count, 5)
+		endmethod
+
+		{TestMethod}
+		public method Skip1, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync("/odata/Items?$top=5&$skip=5").Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
+			Assert.AreEqual(items.Value.Count, 5)
+		endmethod
+
+		{TestMethod}
 		public method ExpandAndSelect1, void
 		proc
 			disposable data client = UnitTestEnvironment.Server.CreateClient()

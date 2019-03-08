@@ -144,6 +144,22 @@ namespace Harmony.Core.EF.Query.Internal
             return new InExpression { CaseInsensitive = false, Collection = values, Predicate = predicate };
         }
 
+        private static Expression StripNullConditional(Expression expr)
+        {
+            if (expr is NullConditionalExpression)
+            {
+                var nullExpr = expr as NullConditionalExpression;
+                return nullExpr.AccessOperation;
+            }
+            else if (expr is BinaryExpression)
+            {
+                var binaryExpr = expr as BinaryExpression;
+                return binaryExpr.Update(StripNullConditional(binaryExpr.Left), binaryExpr.Conversion, StripNullConditional(binaryExpr.Right));
+            }
+            else
+                return expr;
+        }
+
         public override void VisitQueryModel(QueryModel queryModel)
         {
             DebugLogSession.Logging.LogDebug("HarmonyCoreEF: VisitQueryModel -> {0}", queryModel);
@@ -170,11 +186,18 @@ namespace Harmony.Core.EF.Query.Internal
                 {
                     var flatGroupJoin = additionalFrom.TryGetFlattenedGroupJoinClause();
                     if (flatGroupJoin != null && aliasMapping.ContainsKey(flatGroupJoin))
+                    {
                         aliasMapping.Add(additionalFrom, flatGroupJoin.JoinClause);
+                    }
                 }
-
                 
                 LiftInOperator(whereClause);
+
+                if (whereClause?.Predicate is BinaryExpression)
+                {
+                    whereClause.Predicate = StripNullConditional(whereClause.Predicate);
+                }
+
                 if (bodyClause is OrderByClause)
                 {
                     LiftOrderByOperator(bodyClause as OrderByClause);
