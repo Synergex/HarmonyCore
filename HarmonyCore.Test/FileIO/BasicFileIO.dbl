@@ -8,8 +8,14 @@ import Harmony.Core.Test.FileIO.Models
 namespace Harmony.Core.Test.FileIO
 	{TestClass}
 	public class BasicFileIO
+		public method BasicFileIO
+		proc
+			TestEnvironment.Configure()
+		endmethod
+
+
 		{TestMethod}
-		public method ReadInputRelative, void
+		public method ReadInput, void
 		proc
 			data status, i4
 			disposable data channelManager = new FileChannelManager()
@@ -33,5 +39,23 @@ namespace Harmony.Core.Test.FileIO
 			Assert.IsTrue(firstOrder.Order_number < nextOrder.Order_number)
 			Assert.IsTrue(nextOrder.Order_number < lastOrder.Order_number)
 		endmethod
+
+;		{TestMethod}
+;		public async method WriteOrders, @Task
+;		proc
+;			data status, i4
+;			disposable data channelManager = new FileChannelManager()
+;			disposable data fileIO = new IsamDataObjectIO<Orders>(channelManager, "DAT:orders.ism", FileOpenMode.UpdateIndexed)
+;			data firstOrder, @Orders
+;			data lastOrder, @Orders
+;			
+;			Assert.AreEqual(Harmony.Core.FileIO.FileAccessResults.Success, fileIO.ReadFirstRecord(firstOrder))
+;			Assert.AreEqual(Harmony.Core.FileIO.FileAccessResults.Success, fileIO.ReadLastRecord(lastOrder))
+;
+;			data rnd = new Random()
+;			fileIO.
+;			firstOrder.Order_number
+;		endmethod
+
 	endclass
 endnamespace
