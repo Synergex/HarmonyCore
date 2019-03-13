@@ -239,7 +239,9 @@ namespace <NAMESPACE>
   </FOREIGN_KEY_LOOP>
 </IF STRUCTURE_ISAM>
 
-        InitializeCustomFields()
+			;;If we have an InitializeCustomFields method then call it.
+			InitializeCustomFields()
+
         endmethod
 
         ;;; <summary>
@@ -371,9 +373,13 @@ namespace <NAMESPACE>
 
 </IF STRUCTURE_ISAM>
 
-    private partial method InitializeCustomFields, void
-    proc
-    endmethod
+		;;;<summary>
+		;;; Provide a partial method to allow for initialization of custom fields.
+		;;;</summary>
+	    private partial method InitializeCustomFields, void
+	    proc
+	    endmethod
+
     endclass
 
 endnamespace
