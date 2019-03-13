@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME>TestConstants.Properties.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.3.13</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.3.15</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
 ;// Title:       ODataTestConstantsProperties.tpl
@@ -74,7 +74,7 @@ namespace <NAMESPACE>
 
         <PRIMARY_KEY>
         <SEGMENT_LOOP>
-        public static readwrite property Get<StructureNoplural>_Expand_<IF MANY_TO_ONE_TO_MANY>REL_<RelationTostructureNoplural></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationTostructureNoplural></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY>_<SegmentName>, <SEGMENT_CSTYPE>
+        public static readwrite property Get<StructureNoplural>_Expand_<IF MANY_TO_ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY>_<SegmentName>, <SEGMENT_CSTYPE>
         </SEGMENT_LOOP>
         </PRIMARY_KEY>
       </IF TO_STRUCTURE_INCLUDED>

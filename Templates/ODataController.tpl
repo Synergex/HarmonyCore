@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME><StructurePlural>Controller.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.3.13</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.3.15</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVICES_NAMESPACE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>API_ENABLE_QUERY_PARAMS</REQUIRES_USERTOKEN>
@@ -298,7 +298,7 @@ namespace <NAMESPACE>
             </IF SINGLE_SEGMENT>
         </SEGMENT_LOOP>
         proc
-            data result = DBContext.<StructurePlural>.AsNoTracking().Find(<IF SINGLE_SEGMENT>key<ELSE><SEGMENT_LOOP>a<FieldSqlName><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA><,></SEGMENT_LOOP></IF SINGLE_SEGMENT>)
+            data result = DBContext.<StructurePlural>.Find(<IF SINGLE_SEGMENT>key<ELSE><SEGMENT_LOOP>a<FieldSqlName><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA><,></SEGMENT_LOOP></IF SINGLE_SEGMENT>)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.<FieldSqlName>)
@@ -324,7 +324,7 @@ namespace <NAMESPACE>
             {FromODataUri}
             required in key, int
         proc
-            data result = DBContext.<StructurePlural>.AsNoTracking().Find(key)
+            data result = DBContext.<StructurePlural>.Find(key)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.<FieldSqlName>)

@@ -25,6 +25,8 @@ namespace Services.Models
     ;;; </summary>
     public partial class OrderItemMetadata extends DataObjectMetadataBase
 
+        private mDateShippedFormatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("FORMAT:YYYYMMDD")
+
         ;;; <summary>
         ;;; Constructs an new OrderItemMetadata object.
         ;;; </summary>
@@ -38,7 +40,7 @@ namespace Services.Models
             AddFieldInfo("ItemOrdered", "DECIMAL", 6, 9, 0, false)
             AddFieldInfo("QuantityOrdered", "DECIMAL", 6, 15, 0, false)
             AddFieldInfo("UnitPrice", "IMPLIED", 7, 21, 02, false)
-            AddFieldInfo("DateShipped", "DATE", 8, 28, 0, false, new SynergyDecimalDateConverter.LiteralFormatter("FORMAT:YYYYMMDD"))
+            AddFieldInfo("DateShipped", "DATE", 8, 28, 0, false, mDateShippedFormatter)
             AddFieldInfo("InvoiceNumber", "DECIMAL", 7, 36, 0, false)
             AddFieldInfo("REL_Order", "DATAOBJECT", 0, 0, 0, false)
             AddFieldInfo("REL_Item", "DATAOBJECT", 0, 0, 0, false)
@@ -66,6 +68,10 @@ namespace Services.Models
             InvoiceNumber_KeyParts[1] = GetFieldByName("InvoiceNumber")
             AddFieldInfo("KEY_INVOICE_NUMBER", "COMPOSITE", 0, 0, 0, false, ^null, ^null, InvoiceNumber_KeyParts)
 
+
+
+			;;If we have an InitializeCustomFields method then call it.
+			InitializeCustomFields()
 
         endmethod
 
@@ -156,7 +162,7 @@ namespace Services.Models
             end
             (2),
             begin
-                if((segValueLength=KeyValueHelper(key2.DateShipped, "DateShipped", parts))<8)
+                if((segValueLength=KeyValueHelper(key2.DateShipped, "DateShipped", parts, mDateShippedFormatter))<8)
                     mreturn key2(1:startPos+segValueLength)
                 mreturn key2
             end
@@ -171,6 +177,13 @@ namespace Services.Models
             throw new ApplicationException(String.Format("Invalid key number {0} encountered in OrderItemMetadata.FormatKeyLiteral",keyNumber))
 
         endmethod
+
+
+		;;;<summary>
+		;;; Provide a partial method to allow for initialization of custom fields.
+		;;;</summary>
+	    private partial method InitializeCustomFields, void
+	    endmethod
 
     endclass
 

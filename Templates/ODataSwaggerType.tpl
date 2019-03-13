@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME><StructureNoplural>Types.yaml</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.3.13</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.3.15</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>API_VERSION</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
@@ -122,25 +122,25 @@ info:
   <IF TO_STRUCTURE_INCLUDED>
 ;//
    <IF MANY_TO_ONE_TO_MANY>
-    REL_<RelationTostructureNoplural>:
+    <HARMONYCORE_RELATION_NAME>:
       $ref: '#/definitions/<RelationTostructureNoplural>'
       description: Related <RelationTostructureNoplural>
    </IF MANY_TO_ONE_TO_MANY>
 ;//
    <IF ONE_TO_ONE_TO_ONE>
-    REL_<RelationTostructureNoplural>:
+    <HARMONYCORE_RELATION_NAME>:
       $ref: '#/definitions/<RelationTostructureNoplural>'
       description: Related <RelationTostructureNoplural>
    </IF ONE_TO_ONE_TO_ONE>
 ;//
    <IF ONE_TO_ONE>
-    REL_<RelationTostructureNoplural>:
+    <HARMONYCORE_RELATION_NAME>:
       $ref: '#/definitions/<RelationTostructureNoplural>'
       description: Related <RelationTostructureNoplural>
    </IF ONE_TO_ONE>
 ;//
    <IF ONE_TO_MANY_TO_ONE>
-    REL_<RelationTostructurePlural>:
+    <HARMONYCORE_RELATION_NAME>:
       type: array
       items:
         $ref: '#/definitions/<RelationTostructureNoplural>'
@@ -148,7 +148,7 @@ info:
    </IF ONE_TO_MANY_TO_ONE>
 ;//
    <IF ONE_TO_MANY>
-    REL_<RelationTostructurePlural>:
+    <HARMONYCORE_RELATION_NAME>:
       type: array
       items:
         $ref: '#/definitions/<RelationTostructureNoplural>'

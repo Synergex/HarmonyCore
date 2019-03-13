@@ -52,7 +52,7 @@ namespace Services.Controllers
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
         public method GetOrders, @IActionResult
         proc
-            mreturn Ok(DBContext.Orders)
+            mreturn Ok(DBContext.Orders.AsNoTracking())
         endmethod
 
         {ODataRoute("Orders(OrderNumber={aOrderNumber})")}
@@ -66,7 +66,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in aOrderNumber, int
         proc
-            mreturn new SingleResult<Order>(DBContext.Orders.FindQuery<Order>(aOrderNumber))
+            mreturn new SingleResult<Order>(DBContext.Orders.AsNoTracking().FindQuery<Order>(DBContext, aOrderNumber))
         endmethod
 
         {ODataRoute("Orders(CustomerNumber={aCustomerNumber})")}
@@ -80,7 +80,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in aCustomerNumber, int
         proc
-            data result = DBContext.Orders.FindAlternate("CustomerNumber",aCustomerNumber)
+            data result = DBContext.Orders.AsNoTracking().FindAlternate("CustomerNumber",aCustomerNumber)
             if (result == ^null)
                 mreturn NotFound()
             mreturn Ok(result)
@@ -97,7 +97,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in aDateOrdered, DateTime
         proc
-            data result = DBContext.Orders.FindAlternate("DateOrdered",aDateOrdered)
+            data result = DBContext.Orders.AsNoTracking().FindAlternate("DateOrdered",aDateOrdered)
             if (result == ^null)
                 mreturn NotFound()
             mreturn Ok(result)
@@ -114,7 +114,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in aDateCompleted, DateTime
         proc
-            data result = DBContext.Orders.FindAlternate("DateCompleted",aDateCompleted)
+            data result = DBContext.Orders.AsNoTracking().FindAlternate("DateCompleted",aDateCompleted)
             if (result == ^null)
                 mreturn NotFound()
             mreturn Ok(result)

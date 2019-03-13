@@ -1,5 +1,5 @@
 ﻿<CODEGEN_FILENAME>DbContext.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.3.13</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.3.15</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
@@ -174,7 +174,7 @@ namespace <NAMESPACE>
 
             <RELATION_LOOP>
             <IF TO_STRUCTURE_INCLUDED>
-            if(!(existingRelations.Contains("<StructureNoplural>.REL_<RelationTostructureNoplural>") || existingRelations.Contains("<RelationTostructureNoplural>.REL_<StructureNoplural>")))
+            if(!(existingRelations.Contains("<StructureNoplural>.<HARMONYCORE_RELATION_NAME>") || existingRelations.Contains("<RelationTostructureNoplural>.<HARMONYCORE_FROM_RELATION_NAME>")))
             begin
 ;// A
             <IF MANY_TO_ONE_TO_MANY>
@@ -184,8 +184,8 @@ namespace <NAMESPACE>
                 ;;    To segments   : <TO_KEY_SEGMENT_LOOP><IF SEG_TYPE_FIELD><SEGMENT_NAME>(<FIELD_SPEC>)</IF SEG_TYPE_FIELD><IF SEG_TYPE_LITERAL>Literal(<SEGMENT_LITVAL>)</IF SEG_TYPE_LITERAL><,> </TO_KEY_SEGMENT_LOOP>
 
                 parm.Entity(^typeof(<StructureNoplural>))
-                &    .HasOne(^typeof(<RelationTostructureNoplural>),"REL_<RelationTostructureNoplural>")
-                &    .WithMany("REL_<StructurePlural>")
+                &    .HasOne(^typeof(<RelationTostructureNoplural>),"<HARMONYCORE_RELATION_NAME>")
+                &    .WithMany("<HARMONYCORE_FROM_RELATION_NAME>")
                 &    .HasForeignKey("KEY_<RELATION_FROMKEY>")
                 &    .HasPrincipalKey("KEY_<RELATION_TOKEY>")
             </IF MANY_TO_ONE_TO_MANY>
@@ -197,8 +197,8 @@ namespace <NAMESPACE>
                 ;;    To segments   : <TO_KEY_SEGMENT_LOOP><IF SEG_TYPE_FIELD><SEGMENT_NAME>(<FIELD_SPEC>)</IF SEG_TYPE_FIELD><IF SEG_TYPE_LITERAL>Literal(<SEGMENT_LITVAL>)</IF SEG_TYPE_LITERAL><,> </TO_KEY_SEGMENT_LOOP>
 
                 parm.Entity(^typeof(<StructureNoplural>))
-                &    .HasOne(^typeof(<RelationTostructureNoplural>),"REL_<RelationTostructureNoplural>")
-                &    .WithOne("REL_<StructurePlural>")
+                &    .HasOne(^typeof(<RelationTostructureNoplural>),"<HARMONYCORE_RELATION_NAME>")
+                &    .WithOne("<HARMONYCORE_FROM_RELATION_NAME>")
                 &    .HasForeignKey("KEY_<RELATION_FROMKEY>")
                 &    .HasPrincipalKey("KEY_<RELATION_TOKEY>")
             </IF ONE_TO_ONE_TO_ONE>
@@ -210,7 +210,7 @@ namespace <NAMESPACE>
                 ;;    To segments   : <TO_KEY_SEGMENT_LOOP><IF SEG_TYPE_FIELD><SEGMENT_NAME>(<FIELD_SPEC>)</IF SEG_TYPE_FIELD><IF SEG_TYPE_LITERAL>Literal(<SEGMENT_LITVAL>)</IF SEG_TYPE_LITERAL><,> </TO_KEY_SEGMENT_LOOP>
 
                 parm.Entity(^typeof(<StructureNoplural>))
-                &    .HasOne(^typeof(<RelationTostructureNoplural>),"REL_<RelationTostructureNoplural>")
+                &    .HasOne(^typeof(<RelationTostructureNoplural>),"<HARMONYCORE_RELATION_NAME>")
                 &    .WithOne(^null)
                 &    .HasForeignKey(^typeof(<StructureNoplural>),"KEY_<RELATION_FROMKEY>")
                 &    .HasPrincipalKey(^typeof(<RelationTostructureNoplural>),"KEY_<RELATION_TOKEY>")
@@ -223,8 +223,8 @@ namespace <NAMESPACE>
                 ;;    To segments   : <TO_KEY_SEGMENT_LOOP_RESTRICTED><IF SEG_TYPE_FIELD><SEGMENT_NAME>(<FIELD_SPEC>)</IF SEG_TYPE_FIELD><IF SEG_TYPE_LITERAL>Literal(<SEGMENT_LITVAL>)</IF SEG_TYPE_LITERAL><,> </TO_KEY_SEGMENT_LOOP_RESTRICTED>
 
                 parm.Entity(^typeof(<StructureNoplural>))
-                &    .HasMany(^typeof(<RelationTostructureNoplural>),"REL_<RelationTostructurePlural>")
-                &    .WithOne("REL_<StructureNoplural>")
+                &    .HasMany(^typeof(<RelationTostructureNoplural>),"<HARMONYCORE_RELATION_NAME>")
+                &    .WithOne("<HARMONYCORE_FROM_RELATION_NAME>")
                 &    .HasForeignKey("KEY_<RELATION_TOKEY>")
                 &    .HasPrincipalKey("KEY_<RELATION_FROMKEY>")
             </IF ONE_TO_MANY_TO_ONE>
@@ -236,19 +236,19 @@ namespace <NAMESPACE>
                 ;;    To segments   : <TO_KEY_SEGMENT_LOOP><IF SEG_TYPE_FIELD><SEGMENT_NAME>(<FIELD_SPEC>)</IF SEG_TYPE_FIELD><IF SEG_TYPE_LITERAL>Literal(<SEGMENT_LITVAL>)</IF SEG_TYPE_LITERAL><,> </TO_KEY_SEGMENT_LOOP>
 
                 parm.Entity(^typeof(<StructureNoplural>))
-                &    .HasMany(^typeof(<RelationTostructureNoplural>),"REL_<RelationTostructurePlural>")
+                &    .HasMany(^typeof(<RelationTostructureNoplural>),"<HARMONYCORE_RELATION_NAME>")
                 &    .WithOne(^null)
                 &    .HasForeignKey("KEY_<RELATION_TOKEY>")
                 &    .HasPrincipalKey("KEY_<RELATION_FROMKEY>")
             </IF ONE_TO_MANY>
 
                 ;;Declare the outbound relationship
-                if(!existingRelations.Contains("<StructureNoplural>.REL_<RelationTostructureNoplural>"))
-                    existingRelations.Add("<StructureNoplural>.REL_<RelationTostructureNoplural>")
+                if(!existingRelations.Contains("<StructureNoplural>.<HARMONYCORE_RELATION_NAME>"))
+                    existingRelations.Add("<StructureNoplural>.<HARMONYCORE_RELATION_NAME>")
 
                 ;;Declare the reciprocal inbound relationship
-                if(!existingRelations.Contains("<RelationTostructureNoplural>.REL_<StructureNoplural>"))
-                    existingRelations.Add("<RelationTostructureNoplural>.REL_<StructureNoplural>")
+                if(!existingRelations.Contains("<RelationTostructureNoplural>.<HARMONYCORE_FROM_RELATION_NAME>"))
+                    existingRelations.Add("<RelationTostructureNoplural>.<HARMONYCORE_FROM_RELATION_NAME>")
             end
 
             </IF TO_STRUCTURE_INCLUDED>

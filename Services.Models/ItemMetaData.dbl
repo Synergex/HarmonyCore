@@ -25,6 +25,7 @@ namespace Services.Models
     ;;; </summary>
     public partial class ItemMetadata extends DataObjectMetadataBase
 
+
         ;;; <summary>
         ;;; Constructs an new ItemMetadata object.
         ;;; </summary>
@@ -83,6 +84,10 @@ namespace Services.Models
             Name_KeyParts[1] = GetFieldByName("CommonName")
             AddFieldInfo("KEY_NAME", "COMPOSITE", 0, 0, 0, false, ^null, ^null, Name_KeyParts)
 
+
+
+			;;If we have an InitializeCustomFields method then call it.
+			InitializeCustomFields()
 
         endmethod
 
@@ -193,6 +198,13 @@ namespace Services.Models
             throw new ApplicationException(String.Format("Invalid key number {0} encountered in ItemMetadata.FormatKeyLiteral",keyNumber))
 
         endmethod
+
+
+		;;;<summary>
+		;;; Provide a partial method to allow for initialization of custom fields.
+		;;;</summary>
+	    private partial method InitializeCustomFields, void
+	    endmethod
 
     endclass
 

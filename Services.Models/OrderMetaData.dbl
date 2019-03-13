@@ -25,6 +25,9 @@ namespace Services.Models
     ;;; </summary>
     public partial class OrderMetadata extends DataObjectMetadataBase
 
+        private mDateOrderedFormatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("FORMAT:YYYYMMDD")
+        private mDateCompletedFormatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("FORMAT:YYYYMMDD")
+
         ;;; <summary>
         ;;; Constructs an new OrderMetadata object.
         ;;; </summary>
@@ -38,8 +41,8 @@ namespace Services.Models
             AddFieldInfo("PlacedBy", "ALPHA", 25, 13, 0, false)
             AddFieldInfo("CustomerReference", "ALPHA", 25, 38, 0, false)
             AddFieldInfo("PaymentTermsCode", "ALPHA", 2, 63, 0, false)
-            AddFieldInfo("DateOrdered", "DATE", 8, 65, 0, false, new SynergyDecimalDateConverter.LiteralFormatter("FORMAT:YYYYMMDD"))
-            AddFieldInfo("DateCompleted", "DATE", 8, 73, 0, false, new SynergyDecimalDateConverter.LiteralFormatter("FORMAT:YYYYMMDD"))
+            AddFieldInfo("DateOrdered", "DATE", 8, 65, 0, false, mDateOrderedFormatter)
+            AddFieldInfo("DateCompleted", "DATE", 8, 73, 0, false, mDateCompletedFormatter)
             AddFieldInfo("REL_OrderItems", "COLLECTION", 0, 0, 0, false)
             AddFieldInfo("REL_Customer", "DATAOBJECT", 0, 0, 0, false)
 
@@ -64,6 +67,10 @@ namespace Services.Models
             DateCompleted_KeyParts[1] = GetFieldByName("DateCompleted")
             AddFieldInfo("KEY_DATE_COMPLETED", "COMPOSITE", 0, 0, 0, false, ^null, ^null, DateCompleted_KeyParts)
 
+
+
+			;;If we have an InitializeCustomFields method then call it.
+			InitializeCustomFields()
 
         endmethod
 
@@ -150,13 +157,13 @@ namespace Services.Models
             end
             (2),
             begin
-                if((segValueLength=KeyValueHelper(key2.DateOrdered, "DateOrdered", parts))<8)
+                if((segValueLength=KeyValueHelper(key2.DateOrdered, "DateOrdered", parts, mDateOrderedFormatter))<8)
                     mreturn key2(1:startPos+segValueLength)
                 mreturn key2
             end
             (3),
             begin
-                if((segValueLength=KeyValueHelper(key3.DateCompleted, "DateCompleted", parts))<8)
+                if((segValueLength=KeyValueHelper(key3.DateCompleted, "DateCompleted", parts, mDateCompletedFormatter))<8)
                     mreturn key3(1:startPos+segValueLength)
                 mreturn key3
             end
@@ -165,6 +172,13 @@ namespace Services.Models
             throw new ApplicationException(String.Format("Invalid key number {0} encountered in OrderMetadata.FormatKeyLiteral",keyNumber))
 
         endmethod
+
+
+		;;;<summary>
+		;;; Provide a partial method to allow for initialization of custom fields.
+		;;;</summary>
+	    private partial method InitializeCustomFields, void
+	    endmethod
 
     endclass
 

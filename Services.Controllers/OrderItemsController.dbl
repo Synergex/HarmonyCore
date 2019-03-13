@@ -52,7 +52,7 @@ namespace Services.Controllers
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
         public method GetOrderItems, @IActionResult
         proc
-            mreturn Ok(DBContext.OrderItems)
+            mreturn Ok(DBContext.OrderItems.AsNoTracking())
         endmethod
 
         {ODataRoute("OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})")}
@@ -69,7 +69,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in aItemNumber, int
         proc
-            mreturn new SingleResult<OrderItem>(DBContext.OrderItems.FindQuery<OrderItem>(aOrderNumber,aItemNumber))
+            mreturn new SingleResult<OrderItem>(DBContext.OrderItems.AsNoTracking().FindQuery<OrderItem>(DBContext, aOrderNumber,aItemNumber))
         endmethod
 
         {ODataRoute("OrderItems(ItemOrdered={aItemOrdered})")}
@@ -83,7 +83,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in aItemOrdered, int
         proc
-            data result = DBContext.OrderItems.FindAlternate("ItemOrdered",aItemOrdered)
+            data result = DBContext.OrderItems.AsNoTracking().FindAlternate("ItemOrdered",aItemOrdered)
             if (result == ^null)
                 mreturn NotFound()
             mreturn Ok(result)
@@ -100,7 +100,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in aDateShipped, DateTime
         proc
-            data result = DBContext.OrderItems.FindAlternate("DateShipped",aDateShipped)
+            data result = DBContext.OrderItems.AsNoTracking().FindAlternate("DateShipped",aDateShipped)
             if (result == ^null)
                 mreturn NotFound()
             mreturn Ok(result)
@@ -117,7 +117,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in aInvoiceNumber, int
         proc
-            data result = DBContext.OrderItems.FindAlternate("InvoiceNumber",aInvoiceNumber)
+            data result = DBContext.OrderItems.AsNoTracking().FindAlternate("InvoiceNumber",aInvoiceNumber)
             if (result == ^null)
                 mreturn NotFound()
             mreturn Ok(result)

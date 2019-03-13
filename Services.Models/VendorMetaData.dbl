@@ -25,6 +25,9 @@ namespace Services.Models
     ;;; </summary>
     public partial class VendorMetadata extends DataObjectMetadataBase
 
+        private mPhoneFormatter, @ILiteralFormatter, new SynergyDecimalConverter.LiteralFormatter("(XXX) XXX-XXXX")
+        private mFaxFormatter, @ILiteralFormatter, new SynergyDecimalConverter.LiteralFormatter("(XXX) XXX-XXXX")
+
         ;;; <summary>
         ;;; Constructs an new VendorMetadata object.
         ;;; </summary>
@@ -40,8 +43,8 @@ namespace Services.Models
             AddFieldInfo("State", "ALPHA", 2, 82, 0, false)
             AddFieldInfo("ZipCode", "DECIMAL", 5, 84, 0, false)
             AddFieldInfo("Contact", "ALPHA", 25, 89, 0, false)
-            AddFieldInfo("Phone", "DECIMAL", 10, 114, 0, false, new SynergyDecimalConverter.LiteralFormatter("(XXX) XXX-XXXX"))
-            AddFieldInfo("Fax", "DECIMAL", 10, 124, 0, false, new SynergyDecimalConverter.LiteralFormatter("(XXX) XXX-XXXX"))
+            AddFieldInfo("Phone", "DECIMAL", 10, 114, 0, false, mPhoneFormatter)
+            AddFieldInfo("Fax", "DECIMAL", 10, 124, 0, false, mFaxFormatter)
             AddFieldInfo("PaymentTermsCode", "ALPHA", 2, 134, 0, false)
             AddFieldInfo("REL_Items", "COLLECTION", 0, 0, 0, false)
 
@@ -66,6 +69,10 @@ namespace Services.Models
             PaymentTerms_KeyParts[1] = GetFieldByName("PaymentTermsCode")
             AddFieldInfo("KEY_PAYMENT_TERMS", "COMPOSITE", 0, 0, 0, false, ^null, ^null, PaymentTerms_KeyParts)
 
+
+
+			;;If we have an InitializeCustomFields method then call it.
+			InitializeCustomFields()
 
         endmethod
 
@@ -165,6 +172,13 @@ namespace Services.Models
             throw new ApplicationException(String.Format("Invalid key number {0} encountered in VendorMetadata.FormatKeyLiteral",keyNumber))
 
         endmethod
+
+
+		;;;<summary>
+		;;; Provide a partial method to allow for initialization of custom fields.
+		;;;</summary>
+	    private partial method InitializeCustomFields, void
+	    endmethod
 
     endclass
 

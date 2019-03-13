@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME><StructureNoplural>MetaData.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.3.13</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.3.15</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
 ;// Title:       ODataMetaData.tpl
@@ -162,23 +162,23 @@ namespace <NAMESPACE>
       <IF TO_STRUCTURE_INCLUDED>
 ;//
         <IF MANY_TO_ONE_TO_MANY>
-            AddFieldInfo("REL_<RelationTostructureNoplural>", "DATAOBJECT", 0, 0, 0, false)
+            AddFieldInfo("<HARMONYCORE_RELATION_NAME>", "DATAOBJECT", 0, 0, 0, false)
         </IF MANY_TO_ONE_TO_MANY>
 ;//
         <IF ONE_TO_ONE_TO_ONE>
-            AddFieldInfo("REL_<RelationTostructureNoplural>", "DATAOBJECT", 0, 0, 0, false)
+            AddFieldInfo("<HARMONYCORE_RELATION_NAME>", "DATAOBJECT", 0, 0, 0, false)
         </IF ONE_TO_ONE_TO_ONE>
 ;//
         <IF ONE_TO_ONE>
-            AddFieldInfo("REL_<RelationTostructureNoplural>", "DATAOBJECT", 0, 0, 0, false)
+            AddFieldInfo("<HARMONYCORE_RELATION_NAME>", "DATAOBJECT", 0, 0, 0, false)
         </IF ONE_TO_ONE>
 ;//
         <IF ONE_TO_MANY_TO_ONE>
-            AddFieldInfo("REL_<RelationTostructurePlural>", "COLLECTION", 0, 0, 0, false)
+            AddFieldInfo("<HARMONYCORE_RELATION_NAME>", "COLLECTION", 0, 0, 0, false)
         </IF ONE_TO_MANY_TO_ONE>
 ;//
         <IF ONE_TO_MANY>
-            AddFieldInfo("REL_<RelationTostructurePlural>", "COLLECTION", 0, 0, 0, false)
+            AddFieldInfo("<HARMONYCORE_RELATION_NAME>", "COLLECTION", 0, 0, 0, false)
         </IF ONE_TO_MANY>
 ;//
       </IF TO_STRUCTURE_INCLUDED>
@@ -248,7 +248,7 @@ namespace <NAMESPACE>
         ;;; Returns a new <StructureNoplural> object containing data from a record and a GRFA.
 <IF DEFINED_ENABLE_RELATIONS>
 <IF STRUCTURE_RELATIONS>
-        ;;; The related data properties (<RELATION_LOOP><IF TO_STRUCTURE_INCLUDED><IF MANY_TO_ONE_TO_MANY>REL_<RelationTostructureNoplural></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationTostructureNoplural></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY><,and></IF TO_STRUCTURE_INCLUDED></RELATION_LOOP>) will not be populated.
+        ;;; The related data properties (<RELATION_LOOP><IF TO_STRUCTURE_INCLUDED><IF MANY_TO_ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY><,and></IF TO_STRUCTURE_INCLUDED></RELATION_LOOP>) will not be populated.
 </IF STRUCTURE_RELATIONS>
 </IF DEFINED_ENABLE_RELATIONS>
         ;;; </summary>
@@ -266,13 +266,13 @@ namespace <NAMESPACE>
         ;;; Returns a new <StructureNoplural> object containing data from a record and a GRFA.
 <IF DEFINED_ENABLE_RELATIONS>
   <IF STRUCTURE_RELATIONS>
-        ;;; The related data properties (<RELATION_LOOP><IF TO_STRUCTURE_INCLUDED><IF MANY_TO_ONE_TO_MANY>REL_<RelationTostructureNoplural></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationTostructureNoplural></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY><,and></IF TO_STRUCTURE_INCLUDED></RELATION_LOOP>) will be populated.
+        ;;; The related data properties (<RELATION_LOOP><IF TO_STRUCTURE_INCLUDED><IF MANY_TO_ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY><,and></IF TO_STRUCTURE_INCLUDED></RELATION_LOOP>) will be populated.
   </IF STRUCTURE_RELATIONS>
 </IF DEFINED_ENABLE_RELATIONS>
         ;;; </summary>
         ;;; <param name="dataArea">The record containing the data for the new <StructureNoplural> object.</param>
         ;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
-        ;;; <param name="joinedObjects">Data to allow the related data properties <IF DEFINED_ENABLE_RELATIONS><IF STRUCTURE_RELATIONS>(<RELATION_LOOP><IF TO_STRUCTURE_INCLUDED><IF MANY_TO_ONE_TO_MANY>REL_<RelationTostructureNoplural></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE>REL_<RelationTostructureNoplural></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE>REL_<RelationTostructurePlural></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY>REL_<RelationTostructurePlural></IF ONE_TO_MANY><,and></IF TO_STRUCTURE_INCLUDED></RELATION_LOOP>) </IF STRUCTURE_RELATIONS></IF DEFINED_ENABLE_RELATIONS>to be populated.</param>
+        ;;; <param name="joinedObjects">Data to allow the related data properties <IF DEFINED_ENABLE_RELATIONS><IF STRUCTURE_RELATIONS>(<RELATION_LOOP><IF TO_STRUCTURE_INCLUDED><IF MANY_TO_ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY><,and></IF TO_STRUCTURE_INCLUDED></RELATION_LOOP>) </IF STRUCTURE_RELATIONS></IF DEFINED_ENABLE_RELATIONS>to be populated.</param>
         ;;; <returns></returns>
         public override method MakeNew, @DataObjectBase
             required in dataArea, a
@@ -290,23 +290,23 @@ namespace <NAMESPACE>
       <IF TO_STRUCTURE_INCLUDED>
 ;//
         <IF MANY_TO_ONE_TO_MANY>
-                ("REL_<RelationTostructureNoplural>"),
-                    new<StructureNoplural>.REL_<RelationTostructureNoplural> = (@<RelationTostructureNoplural>)joinedObject.Value
+                ("<HARMONYCORE_RELATION_NAME>"),
+                    new<StructureNoplural>.<HARMONYCORE_RELATION_NAME> = (@<RelationTostructureNoplural>)joinedObject.Value
         </IF MANY_TO_ONE_TO_MANY>
 ;//
         <IF ONE_TO_ONE>
-                ("REL_<RelationTostructureNoplural>"),
-                    new<StructureNoplural>.REL_<RelationTostructureNoplural> = (@<RelationTostructureNoplural>)joinedObject.Value
+                ("<HARMONYCORE_RELATION_NAME>"),
+                    new<StructureNoplural>.<HARMONYCORE_RELATION_NAME> = (@<RelationTostructureNoplural>)joinedObject.Value
         </IF ONE_TO_ONE>
 ;//
         <IF ONE_TO_MANY_TO_ONE>
-                ("REL_<RelationTostructurePlural>"),
-                    new<StructureNoplural>.REL_<RelationTostructurePlural> = (@ICollection<<RelationTostructureNoplural>>)joinedObject.Value
+                ("<HARMONYCORE_RELATION_NAME>"),
+                    new<StructureNoplural>.<HARMONYCORE_RELATION_NAME> = (@ICollection<<RelationTostructureNoplural>>)joinedObject.Value
         </IF ONE_TO_MANY_TO_ONE>
 ;//
         <IF ONE_TO_MANY>
-                ("REL_<RelationTostructurePlural>"),
-                    new<StructureNoplural>.REL_<RelationTostructurePlural> = (@ICollection<<RelationTostructureNoplural>>)joinedObject.Value
+                ("<HARMONYCORE_RELATION_NAME>"),
+                    new<StructureNoplural>.<HARMONYCORE_RELATION_NAME> = (@ICollection<<RelationTostructureNoplural>>)joinedObject.Value
         </IF ONE_TO_MANY>
 ;//
       </IF TO_STRUCTURE_INCLUDED>
@@ -377,7 +377,6 @@ namespace <NAMESPACE>
 		;;; Provide a partial method to allow for initialization of custom fields.
 		;;;</summary>
 	    private partial method InitializeCustomFields, void
-	    proc
 	    endmethod
 
     endclass
