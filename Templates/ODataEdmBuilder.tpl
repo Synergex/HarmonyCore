@@ -106,11 +106,14 @@ namespace <NAMESPACE>
     <PRIMARY_KEY>
       <IF MULTIPLE_SEGMENTS>
         <SEGMENT_LOOP>
-          <IF CUSTOM_HARMONY_AS_STRING>
+		  <IF SEG_TAG_EQUAL>
+		  <ELSE>
+            <IF CUSTOM_HARMONY_AS_STRING>
             builder.EntityType<<StructureNoplural>>().HasKey<<StructureNoplural>,string>("<FieldSqlname>")
-          <ELSE>
+            <ELSE>
             builder.EntityType<<StructureNoplural>>().HasKey<<StructureNoplural>,<FIELD_CSTYPE>>("<FieldSqlname>")
-          </IF CUSTOM_HARMONY_AS_STRING>
+            </IF CUSTOM_HARMONY_AS_STRING>
+		  </IF SEG_TAG_EQUAL>
         </SEGMENT_LOOP>
       </IF MULTIPLE_SEGMENTS>
     </PRIMARY_KEY>
@@ -120,8 +123,12 @@ namespace <NAMESPACE>
   </IF STRUCTURE_RELATIVE>
 </STRUCTURE_LOOP>
  
+            ;;-----------------------------------------------
             ;;If we have a GetEdmModelCustom method, call it 
+
             GetEdmModelCustom(serviceProvider, builder)
+
+            ;;-----------------------------------------------
 
             data tempModel = (@EdmModel)builder.GetEdmModel()
             <STRUCTURE_LOOP>
@@ -129,13 +136,17 @@ namespace <NAMESPACE>
             data <structureNoplural>Type = (@EdmEntityType)tempModel.FindDeclaredType("<MODELS_NAMESPACE>.<StructureNoplural>")
             <IF STRUCTURE_ISAM>
             <ALTERNATE_KEY_LOOP>
-            tempModel.AddAlternateKeyAnnotation(<structureNoplural>Type, new Dictionary<string, IEdmProperty>() {<SEGMENT_LOOP>{"<FieldSqlName>",<structureNoplural>Type.FindProperty("<FieldSqlName>")}<,></SEGMENT_LOOP>})
+            tempModel.AddAlternateKeyAnnotation(<structureNoplural>Type, new Dictionary<string, IEdmProperty>() {<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE>{"<FieldSqlName>",<structureNoplural>Type.FindProperty("<FieldSqlName>")}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>})
             </ALTERNATE_KEY_LOOP>
             </IF STRUCTURE_ISAM>
             </STRUCTURE_LOOP>
 
-            ;;If we have a GetEdmModelCustom method, call it 
+            ;;-----------------------------------------------
+            ;;If we have a PostEdmModelCustom method, call it 
+
             PostEdmModelCustom(serviceProvider, tempModel)
+
+            ;;-----------------------------------------------
 
             mreturn tempModel
 
