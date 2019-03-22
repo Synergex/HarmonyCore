@@ -1,0 +1,575 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="http://localhost:4000/HarmonyCore/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/HarmonyCore/" rel="alternate" type="text/html" /><updated>2019-03-22T14:20:17-07:00</updated><id>http://localhost:4000/HarmonyCore/feed.xml</id><title type="html">Harmony Core</title><subtitle>See what is new with Harmony Core</subtitle><author><name>Jeff Greene</name></author><entry><title type="html">What’s Up with Harmony Core?</title><link href="http://localhost:4000/HarmonyCore/stateofunion/2019/03/22/Harmony-Core-blog.html" rel="alternate" type="text/html" title="What's Up with Harmony Core?" /><published>2019-03-22T13:07:00-07:00</published><updated>2019-03-22T13:07:00-07:00</updated><id>http://localhost:4000/HarmonyCore/stateofunion/2019/03/22/Harmony%20Core%20blog</id><content type="html" xml:base="http://localhost:4000/HarmonyCore/stateofunion/2019/03/22/Harmony-Core-blog.html">&lt;p&gt;by Jeff Greene, Harmony Core Product Manager&lt;/p&gt;
+
+&lt;p&gt;If you attended the Synergy 2018 DevPartner Conference in New Orleans,
+you probably remember hearing about Harmony Core. &lt;a href=&quot;https://github.com/Synergex/HarmonyCore&quot;&gt;Harmony
+Core&lt;/a&gt; is Synergex’s open-source
+solution for allowing access to the data and logic in your Synergy
+applications. We had roughly six conference sessions on this topic, so
+if you weren’t at the conference or need a refresher, you can check out
+the
+&lt;a href=&quot;https://www.youtube.com/playlist?list=PLP_Ryl6KlCA2-SDU7o3wgN2OO9fgaeHnD&quot;&gt;videos&lt;/a&gt;.
+Since then, Steve Ives and I have been working fast and furiously on our
+backlog, ideas that surfaced at the conference, and adjustments to
+Harmony Core based on early adopter experiences. In this post, I’ll
+attempt to shed light on some of our recent decisions, struggles, and
+successes. As the interim product manager for Harmony Core, I also want
+to share our plans for the near future so you know what to look forward
+to and what to expect from us.&lt;/p&gt;
+
+&lt;h2 id=&quot;from-the-backlog&quot;&gt;From the Backlog&lt;/h2&gt;
+
+&lt;p&gt;When we announced the release of Harmony Core at the conference, we
+discussed the backlog of tasks we wanted to complete. In the months
+since we shared the following slide, many of these items have been
+delivered.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/2019-03-22/image1.png&quot; alt=&quot;What's next&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Later in this blog post, I’ll discuss some of the enhancements we’ve
+implemented, but I’d like to start by mentioning one of the more
+important changes we’ve made for optimization: &lt;strong&gt;implementing sparse
+Select&lt;/strong&gt;. Without this, Harmony Core could never realize its performance
+potential because of the extra data sent over &lt;em&gt;xf&lt;/em&gt;Server connections.
+Fortunately, the implementation turned out to be fairly straightforward.
+Harmony Core simply detects whether a channel is remote by using
+%ISINFO. If the channel is remote, Harmony Core builds a sparse Select
+object by processing the supplied EF Core LINQ expression and searching
+for field and object references that are required to create the result.
+If the channel is local, Harmony Core won’t build a sparse Select object
+because the setup required for the object would incur a small
+performance cost.&lt;/p&gt;
+
+&lt;h2 id=&quot;conference-conversations&quot;&gt;Conference Conversations&lt;/h2&gt;
+
+&lt;p&gt;At the conference, we talked with many of you about how we could improve
+and extend Harmony Core. These conversations were invaluable in helping
+us prioritize items in the backlog, and they got us thinking about how
+we could better take advantage of open standards. One thing we started
+thinking about was &lt;strong&gt;our custom protocol for Traditional Bridge,&lt;/strong&gt; which
+is the Harmony Core component that exposes traditional Synergy logic.
+This custom protocol was well documented and made use of JSON, so it
+wasn’t difficult to understand. However, &lt;strong&gt;it certainly seemed odd to
+have something custom like this, given our focus on open standards.&lt;/strong&gt; We
+wanted to find an open solution, and as we looked around, JSON-RPC 2.0
+caught our attention due to its use as the base for Microsoft’s Language
+Server Protocol. Microsoft uses this protocol for remote procedure calls
+across standard in/out, which is very similar to our use case. And on
+further investigation, we found that there was an open-source project
+that implemented JSON-RPC 2.0 in .NET Core. It’s written by Andrew
+Arnott, a long time Microsoft employee with whom we’ve interacted
+extensively, making this an even more enticing choice.&lt;/p&gt;
+
+&lt;p&gt;Having a top-quality high-performance library available sealed the deal,
+and we set out to switch the protocol. After some limited changes to
+Harmony Core server code (written in traditional Synergy) we had a
+working JSON-RPC 2.0 server and were able to communicate with it using
+vs-streamjsonrpc. &lt;strong&gt;Using someone else’s client to talk to our
+traditional Synergy server gave me a great deal of confidence&lt;/strong&gt; in our
+adherence to the standard and ensured that we won’t have any weird
+behavior if you want your server to interface with some other
+non-Synergy system using the same mechanism. This is just one of the
+many steps we’ve taken to make Harmony Core open and accessible for all
+of you.&lt;/p&gt;
+
+&lt;h2 id=&quot;real-world-findings&quot;&gt;Real-World Findings&lt;/h2&gt;
+
+&lt;p&gt;Early on, a lot of our decision-making for Harmony Core was based on our
+experience developing and supporting &lt;em&gt;xf&lt;/em&gt;ServerPlus, &lt;em&gt;xf&lt;/em&gt;ODBC, and
+Symphony Harmony. Since the conference, we’ve been able to get Harmony
+Core into the hands of some early adopters, which has enabled us to make
+more targeted decisions based on real-world situations. We’ve learned a
+lot so far, and we’re looking forward to tackling any new scenarios that
+arise in the future. For now, we’ve got a solid list of improvements
+that should make the implementation process even smoother for future
+adopters.&lt;/p&gt;
+
+&lt;h3 id=&quot;exposing-synergy-code-as-a-web-service&quot;&gt;Exposing Synergy Code as a Web Service&lt;/h3&gt;
+
+&lt;p&gt;&lt;strong&gt;With our first early adopter, we exposed preexisting Synergy code as a
+web service.&lt;/strong&gt; We had expected this to be a use case, but hadn’t yet
+worked through all the implications for the project layout and how to
+bring together all the CodeGen templates. We ended up making quite a few
+changes to the project template layout and tweaks to the CodeGen batch
+file included with the project template.&lt;/p&gt;
+
+&lt;p&gt;Initially, we weren’t sure whether we wanted to use .NET Framework or
+.NET Core for this project. Did we need .NET Framework AppDomains for
+code isolation? Or could we get away with the much more performant
+AssemblyLoadContext available with .NET Core? After extensive
+discussions, we determined that &lt;strong&gt;we needed only global/common/static
+isolation, so .NET Core proved to be a perfect fit.&lt;/strong&gt; Since we were
+wrapping preexisting code that wouldn’t normally compile on .NET Core,
+we needed to make a .NET Standard version of the customer’s core
+libraries. This went pretty smoothly once we sprinkled a few .IFDEFs
+around to remove code related to WinForms and Windows services.&lt;/p&gt;
+
+&lt;p&gt;Once everything was running, we were greeted by a debugger that was
+behaving strangely. We looked at our isolated objects in the debugger,
+but the debugger wouldn’t display any values, and we weren’t able to
+expand any children. It turned out there was a bug in the .NET Core
+debugger that prevented evaluation of objects that existed in multiple
+AssemblyLoadContexts. This issue was reported to Microsoft and was fixed
+(in Visual Studio 2019). &lt;strong&gt;This marked our first of many successful
+Harmony Core implementations.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;querying-with-odata&quot;&gt;Querying with OData&lt;/h3&gt;
+
+&lt;p&gt;After tackling all the bugs and features for our first adopter, we
+started to consider how best to expose search functionality. To
+implement things like search, we generally recommend using the Harmony
+Core EF Provider, which eliminates the need for programmer intervention.
+In this case, however, we couldn’t use the Harmony Core EF Provider due
+to the nature of the project’s file/data layout. A comprehensive search
+function was already built into the application, &lt;strong&gt;but we wouldn’t
+really be implementing OData if we just exposed custom methods that
+didn’t offer any OData query options.&lt;/strong&gt; Thus, &lt;strong&gt;the idea for adapters
+was born!&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;The existing search had a particular set of operations, numeric ranges,
+field matches, “or field matches”, and arbitrary parameters. These sorts
+of operations can be expressed in a single flat data structure, so we
+created the dispatch machinery to convert OData queries into a single
+class instance and call the requested Synergy method, passing that
+instance to it. To maintain high performance when dispatching, we
+generated the dispatcher using low-level LINQ expressions to take
+advantage of their precompilation features. &lt;strong&gt;This means that Harmony
+Core does the complicated task of generating code to map an OData query
+to a Synergy data structure the first time the request is made.&lt;/strong&gt; After
+that, it just runs the compiled code at full speed. This was a bit of a
+challenge to implement, but we think it will make web services much more
+performant.&lt;/p&gt;
+
+&lt;h3 id=&quot;repository&quot;&gt;Repository&lt;/h3&gt;
+
+&lt;p&gt;After the conference, we picked up a few more early adopters, including
+several with repositories that hadn’t been used for &lt;em&gt;xf&lt;/em&gt;ODBC so they
+didn’t have any relations defined. As we worked with these repositories,
+we came to realize that &lt;strong&gt;Harmony Core could not describe a two-way
+relationship when a tag field was involved.&lt;/strong&gt; A tag field is a literal
+that indicates record type when multiple record types are stored in a
+single ISAM file. Only foreign keys can specify tag literals, but
+repositories can’t have foreign-to-foreign key relations, which would
+allow for two-way relationships. (Repositories can have only
+access-to-access key relations and foreign-to-access key relations.)
+After some back and forth on this, we came up with an answer: enhance
+CodeGen. CodeGen now looks across relations defined for structures and
+glues both foreign keys together in a
+foreign-to-access/access-to-foreign key relationship. To do this,
+CodeGen uses either the foreign key naming convention or description
+fields for the foreign keys.&lt;/p&gt;
+
+&lt;p&gt;In addition to fun with foreign keys, we ran into some interesting EF
+Core limitations when describing the fields in a join. Synergy allows
+keys to be comprised of up to eight segments that can total up to 256
+bytes. &lt;strong&gt;EF Core has a loosely similar concept, composite keys.&lt;/strong&gt; When
+using composite keys to describe a relationship, &lt;strong&gt;however, the parts of
+a composite key must have matching types.&lt;/strong&gt; This is not a restriction in
+Synergy, so we had to figure a way around this limitation. The solution
+we came up with was to &lt;strong&gt;add another type of field metadata: composite
+fields&lt;/strong&gt;. These fields in the generated DataObjectMetadataBase class
+allow us to keep track of the size, position, and type of each supplied
+key segment, while exposing only a single dummy field to the EF Core
+Navigation property.&lt;/p&gt;
+
+&lt;p&gt;The work we did to create composite fields in metadata opened up an
+additional opportunity. When we introduced Harmony Core at the
+conference, it was possible to create calculated fields simply by
+defining a property with a getter that returned the data in question
+along with a setter that either threw an exception or wrote to the
+actual underlying field, depending on your use case. But &lt;strong&gt;Harmony
+Core&lt;/strong&gt; &lt;strong&gt;didn’t yet understand which fields were required when selecting
+a calculated field while using sparse Select with &lt;em&gt;xf&lt;/em&gt;Server&lt;/strong&gt; for
+remote data access. Thanks to composite fields, this is now implemented.
+To take advantage of this enhancement, you’ll need to create a property
+in your DataObject’s partial class and implement a partial class for its corresponding
+DataObjectMetadataBase with a private void method called
+InitializeCustomFields. InitializeCustomFields just needs to call
+AddFieldInfo (which creates a composite field with the same name as the
+calculated field), passing references to the field metadata for each of
+the fields required to calculate the field.&lt;/p&gt;
+
+&lt;p&gt;Over the past few months, we’ve been polishing our templates, building
+out our documentation, and fixing bugs reported by our early adopters.
+With all these enhancements, Harmony Core should be a Synergy
+developer’s best bet for adding Synergy web services. Still not sure if
+this is the right choice for your applications? We’re working on so much
+more.&lt;/p&gt;
+
+&lt;h1 id=&quot;our-plan-going-forward&quot;&gt;Our Plan Going Forward&lt;/h1&gt;
+
+&lt;p&gt;Because Harmony Core is an open-source project, we want to share not
+only our technical roadmap, but also our goals for the project. We also
+want to set expectations up front so you can help keep us accountable
+and on track.&lt;/p&gt;
+
+&lt;p&gt;Technical Direction&lt;/p&gt;
+
+&lt;p&gt;There are so many things we can do to extend the Harmony Core framework,
+but we’ve chosen a few large items and a smattering of smaller ones to
+focus on over the next 12 months. We’ll continue to post blog updates as
+features are delivered and the direction evolves.&lt;/p&gt;
+
+&lt;h3 id=&quot;webhooks&quot;&gt;Webhooks&lt;/h3&gt;
+
+&lt;p&gt;Webhooks are user-defined HTTP callbacks that are usually triggered by
+some event, such as a status update for an order, or when the quantity
+of something drops below a certain level. &lt;strong&gt;Webhooks are very useful
+when you have to glue two complex systems together.&lt;/strong&gt; Imagine your
+company has grown by acquisition and you find yourself needing to merge
+the underlying data and business functions of two different IT systems.
+If you’re trying to build a unified RESTful view of both systems, your
+view is going to need to be notified when important events occur in the
+underlying system. Webhooks are the best way to do this. We think this
+sort of functionality will be crucial in many scenarios. If you have
+thoughts about how you would like to use this technology, please post on
+&lt;a href=&quot;https://github.com/Synergex/HarmonyCore/issues/61&quot;&gt;https://github.com/Synergex/HarmonyCore/issues/61&lt;/a&gt;. We aren’t certain
+what shape this support will take, but we will be actively pursuing
+this. Large (1-3 months)&lt;/p&gt;
+
+&lt;h3 id=&quot;adapters&quot;&gt;Adapters&lt;/h3&gt;
+
+&lt;p&gt;While we’ve already implemented adapters, there is so much more we can
+do to extend their uses. Currently, adaptors apply only to filters, but
+we can further blur the line between operations provided by EF Core and
+custom code. This would entail implementing additional attributes to
+indicate that a particular field or collection needs to be expanded. In
+general, our design philosophy is to flatten OData queries into the sort
+of data structures that customers currently use to implement custom
+solutions. &lt;strong&gt;Supporting custom Synergy code is a very important part of
+Harmony Core&lt;/strong&gt;; many of you have decades of very important business
+logic that you want to expose to the world. We would be doing you a
+disservice if the full OData query experience were not applicable to
+your important business logic. &lt;strong&gt;Adaptor enhancements will enable you to
+take full advantage of uniform OData query syntax&lt;/strong&gt;, whether you’ve
+implemented an endpoint with custom code or are using the Harmony Core
+EF Provider. See &lt;a href=&quot;https://github.com/Synergex/HarmonyCore/issues/85&quot;&gt;https://github.com/Synergex/HarmonyCore/issues/85&lt;/a&gt;.
+Large (1-2 months)&lt;/p&gt;
+
+&lt;h3 id=&quot;joins&quot;&gt;Joins&lt;/h3&gt;
+
+&lt;p&gt;Not all customer data is laid out the way we developers would like it to
+be. Sometimes this is for historical reasons, or it might be the result
+of business requirements. Whatever the reason, we want to make sure it’s
+possible to fully expose your data via OData and EF Core. &lt;strong&gt;This means
+we need to add at least some support for nested subqueries.&lt;/strong&gt; The main
+use case we’re thinking of is when data for different branch locations
+is stored in separate files. In order to join across all branches, we
+will have to split the query into several parts, storing some
+intermediate results in a hash lookup table. While this doesn’t amount
+to support for completely arbitrary subqueries, we think it will solve
+most customer needs. See
+&lt;a href=&quot;https://github.com/Synergex/HarmonyCore/issues/83&quot;&gt;https://github.com/Synergex/HarmonyCore/issues/83&lt;/a&gt;. Large (1-3 months)&lt;/p&gt;
+
+&lt;h3 id=&quot;a-migration-path-for-xfserverplus&quot;&gt;A Migration Path for &lt;em&gt;xf&lt;/em&gt;ServerPlus&lt;/h3&gt;
+
+&lt;p&gt;Prior to the conference, we added support for reading &lt;em&gt;xf&lt;/em&gt;ServerPlus
+method catalogs. We also added initial support for generating the
+required wrappers and glue to allow existing &lt;em&gt;xf&lt;/em&gt;ServerPlus methods to
+be called using the JSON-RPC 2.0 protocol and the Traditional Bridge
+portion of Harmony Core. &lt;strong&gt;This needs to be extended to support all the
+data types and coercion that exist in the wild.&lt;/strong&gt; See
+&lt;a href=&quot;https://github.com/Synergex/HarmonyCore/issues/84&quot;&gt;https://github.com/Synergex/HarmonyCore/issues/84&lt;/a&gt;. Large (1-3 months)&lt;/p&gt;
+
+&lt;h3 id=&quot;durable-transaction-log&quot;&gt;Durable Transaction Log&lt;/h3&gt;
+
+&lt;p&gt;At the conference we rhetorically asked, “Is this ACID?” Spoiler alert:
+we’re pretty close but not quite all the way there. &lt;strong&gt;The missing piece
+of the puzzle is a durable transaction log,&lt;/strong&gt; which is really just a
+fancy name for an on-disk data structure used as part of a two-phase
+commit. As transactions are being committed to the underlying ISAM
+files, Harmony Core would write a log of the operations that it’s
+performing with information on the state they are in should there be a
+hardware or software fault that interrupts ISAM operations. In addition
+to its verification duties, the transaction log would also enable us to
+undo any changes that were only partially committed. When combined with
+innovations at the operating system level (such as Storage Spaces Direct
+in Windows Server 2019) and ISAM resiliency in Synergy/DE 11, we think
+the transaction log will provide the foundation for highly available,
+fault-tolerant Synergy applications and web services. See
+&lt;a href=&quot;https://github.com/Synergex/HarmonyCore/issues/82&quot;&gt;https://github.com/Synergex/HarmonyCore/issues/82&lt;/a&gt;. Large (2-4 months)&lt;/p&gt;
+
+&lt;h3 id=&quot;tooling-improvements&quot;&gt;Tooling Improvements&lt;/h3&gt;
+
+&lt;p&gt;&lt;strong&gt;CodeGen integration with MSBuild&lt;/strong&gt; – We’ve wanted to improve the
+process of building projects that use CodeGen templates. The degree to
+which we rely on CodeGen templates for Harmony Core projects is
+staggering. Keeping generated code up to date should be a build system
+operation rather than something for humans to manage (i.e., forget).
+Small (1-2 weeks)&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;CodeGen integration with NuGet&lt;/strong&gt; – Delivering updates to CodeGen
+templates is tricky and manual. Those are a pair of attributes that
+should never be associated with tasks that must be performed frequently.
+Our answer to this problem is to ship template (.tpl) files using NuGet
+packages. This way, your build system can reference a specific version
+number for the templates you’re using. If updates are available, all you
+have to do is bump the requested version, and CodeGen will go download
+the requested package of templates. Small (1-2 weeks)&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;.NET CLI scaffolding tool&lt;/strong&gt; – The command line interface for .NET
+Core introduced a concept known as scaffolding. Rather than shipping
+complex logic in wizards, project templates, or item templates, the
+dotnet tool allows you to offer a scaffolding generator. Conceptually,
+it’s very similar to a wizard in Visual Studio, but it’s much easier to
+work with and can be used without Visual Studio. Because Harmony Core
+relies heavily on CodeGen templates and source conventions, it’s
+currently more difficult than it should be to add new functionality to
+an existing project. Once we have a scaffolding tool, it will be much
+easier to add new endpoints, new structures, custom code in partial
+classes, and wrappers around existing code. Small (1-2 weeks)&lt;/p&gt;
+
+&lt;h3 id=&quot;concurrency-improvements&quot;&gt;Concurrency Improvements&lt;/h3&gt;
+
+&lt;p&gt;&lt;strong&gt;Multiple &lt;em&gt;xf&lt;/em&gt;Server connections&lt;/strong&gt; – Currently the Harmony Core EF
+provider uses only a single &lt;em&gt;xf&lt;/em&gt;Server connection. We need to build
+additional infrastructure into the provider to maintain a pool of worker
+threads that each have an open &lt;em&gt;xf&lt;/em&gt;Server connection. And the
+FileChannelManager class will need some additional smarts to deal with
+request queuing and to use existing threads with requested channels. See
+&lt;a href=&quot;https://github.com/Synergex/HarmonyCore/issues/79&quot;&gt;https://github.com/Synergex/HarmonyCore/issues/79&lt;/a&gt;. Small (1-2 weeks)&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Additional configuration options for FileChannelManager and, more
+generally, the pooling mechanisms&lt;/strong&gt; – Currently we open file channels
+and never close them for the duration of a FileChannelManager object.
+This improves the performance of individual requests, but it’s wasteful
+in situations where there are hundreds of files, but few that are
+commonly accessed. The plan for this is to implement a
+least-recently-used (LRU) eviction strategy. Keeping track of the total
+list of all files that have ever been opened and the relative frequency
+of file opens should allow us to auto-tune the number of channels to
+keep in the LRU list. See
+&lt;a href=&quot;https://github.com/Synergex/HarmonyCore/issues/81&quot;&gt;https://github.com/Synergex/HarmonyCore/issues/81&lt;/a&gt;. Small (1-2 weeks)&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Traditional Bridge SSH connection multiplexing&lt;/strong&gt; – Currently, we open
+one SSH connection for each Traditional Bridge process on the remote
+server. For a very large number of processes, this is wasteful because
+connections are sitting idle most of the time. We can instead create up
+to 10 sessions per SSH connection (or more if the operating system is
+configured for it), which would enable us to have many more worker
+processes without the additional SSH overhead. This would be
+configurable for cases where SSH connection scaling isn’t the
+bottleneck. See &lt;a href=&quot;https://github.com/Synergex/HarmonyCore/issues/80&quot;&gt;https://github.com/Synergex/HarmonyCore/issues/80&lt;/a&gt;.
+Small (less than 1 week)&lt;/p&gt;
+
+&lt;h3 id=&quot;better-debugging&quot;&gt;Better Debugging&lt;/h3&gt;
+
+&lt;p&gt;Diagnosing issues in production is one of the most challenging tasks for
+a developer. We’re considering two features to make this less daunting:
+per-request logging levels and per-request Traditional Bridge debugging.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Per-request logging levels&lt;/strong&gt; – Harmony Core offers extensive logging
+along with a logging framework that works well with Synergy data types.
+This is great in development, but in production it can destroy
+performance or collect sensitive data that shouldn’t be logged. By
+providing a custom HTTP header with a request, the logging level could
+be set specifically for that request. This means you could get full fat
+logging from a production server while the enhanced logging is turned
+off for the rest of your requests. See
+&lt;a href=&quot;https://github.com/Synergex/HarmonyCore/issues/77&quot;&gt;https://github.com/Synergex/HarmonyCore/issues/77&lt;/a&gt;. Small (less than 1
+week)&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Per-request Traditional Bridge debugging&lt;/strong&gt; – Similar to per-request
+logging levels, we can use custom HTTP headers to cause the current
+request to launch a debuggable Traditional Bridge process. This would
+cause a separate .dbr and command line to be run on the remote system
+for this one request, enabling you to attach a debugger from Visual
+Studio to the running remote process, even in a production environment
+with thousands of normal requests being serviced concurrently. See
+&lt;a href=&quot;https://github.com/Synergex/HarmonyCore/issues/78&quot;&gt;https://github.com/Synergex/HarmonyCore/issues/78&lt;/a&gt;. Small (less than 1
+week)&lt;/p&gt;
+
+&lt;h2 id=&quot;harmony-core-goals&quot;&gt;Harmony Core Goals&lt;/h2&gt;
+
+&lt;p&gt;What will determine the success of this project? Ultimately, it will be
+you, the customer. So we want to make sure that implementing and
+interacting with the web services you build with Harmony Core is as
+painless as possible.&lt;/p&gt;
+
+&lt;p&gt;For 2019, our goal is to have at least four customers that have
+successfully deployed Harmony Core web services or are in the final
+stages of developing real-world solutions that make extensive use of
+Harmony Core. This is not as aggressive as it sounds; we already have
+four customers in various stages of development, and we aren’t just
+aiming to get four customers; we want those customers to be happy with
+the quality of Harmony Core and with the features it provides. To
+determine if these customers are happy, we’ll keep track of the net
+promotor score for all the different parts of Harmony Core. For example,
+if you have a complaint about the documentation or need more help than
+we expected in order to implement something, that’s a sign that we are
+missing documentation, examples, educational material, blog posts, or
+functionality. We’ll need to hear this from you to know how to do
+better. Once an issue is found, we’ll address it and follow up to
+determine if the solution actually worked. The number of adopters can’t
+and won’t be our only metric for success. Additionally, we anticipate
+that we’ll need to interact with non-technical decision makers and
+non-Synergy developers who in some cases will know best if Harmony Core
+is actually solving their business needs.&lt;/p&gt;
+
+&lt;h3 id=&quot;open-source-technology-the-new-frontier&quot;&gt;Open-Source Technology: The New Frontier&lt;/h3&gt;
+
+&lt;p&gt;We feel that open-source development is a two-way street; in order to be
+successful, we need non-Synergexian contributors to create pull requests
+and issues on GitHub. We’re hoping for at least four non-Synergexian
+contributors to submit pull requests or issues by the end of 2019. The
+contributions can be for documentation fixes, new samples, or even new
+core functionality. We will tag GitHub issues that we think are a good
+fit for external contributors. For a non-tagged issue, we would ask that
+you give us a heads-up on GitHub to make sure we aren’t currently
+working on a solution for the issue. In general, we’re looking to add
+features and functionality that will be applicable to the majority of
+users, so we won’t want to incorporate code that is specific to a
+company or line of business.&lt;/p&gt;
+
+&lt;h2 id=&quot;what-you-can-expect-from-synergex&quot;&gt;What You Can Expect from Synergex&lt;/h2&gt;
+
+&lt;p&gt;When it comes to open-source products, Synergex’s stance has generally
+been to provide the software as-is with no guarantees. For Harmony Core,
+however, you can expect Synergex to provide more robust support.
+Although the development path for Harmony Core is different than for our
+proprietary products, we want companies of all sizes to feel comfortable
+taking such a large dependency on Harmony Core. We think this can be
+accomplished using GitHub issues, but we’re looking to you, the Harmony
+Core community, to tell us what kind of service-level guarantees your
+management team will need.&lt;/p&gt;
+
+&lt;h3 id=&quot;support&quot;&gt;Support&lt;/h3&gt;
+
+&lt;p&gt;Our Developer Support team is already training up on Harmony Core, and
+we plan to train them to write and understand CodeGen templates. There
+are quite a few new areas inside CodeGen that have been added as a
+result of the Harmony Core project, and you can expect the support team
+to have up-to-date knowledge on those enhancements. We will also begin
+looping Support into our ongoing development and deployment efforts with
+customers. I believe there is no training substitute for extensive
+guidance while getting your hands dirty on the inner workings of a
+product, and I think the team will be very well equipped to tackle and
+triage Harmony Core support cases in the near future.&lt;/p&gt;
+
+&lt;p&gt;In addition to providing help though Developer Support, we’re planning
+on incorporating some educational events and materials to ensure that
+you can successfully implement and interact with Harmony Core web
+services. We will be hosting office hours monthly for anyone interested
+in a chance to hop on a GoToWebinar session and ask questions or work
+through implementation issues. Office hours are a common feature in
+open-source projects run by companies who want make sure complex,
+difficult-to-solve issues aren’t ignored or missed or otherwise languish
+without solutions. You can also expect regular blog posts recapping the
+development progress that has taken place, and we’re interested in
+posting project post mortems (with identifying information scrubbed, of
+course). We think letting the Harmony Core community see the good, the
+bad, and the difficult in project implementation will give developers
+and management confidence that they will also be successful.&lt;/p&gt;
+
+&lt;h3 id=&quot;documentation&quot;&gt;Documentation&lt;/h3&gt;
+
+&lt;p&gt;Open-source products are usually documented by their creators, and this
+will be true of Harmony Core. Our tech writing team will be involved
+(organizing, editing, and helping direct the documentation), but all
+documentation and samples will come from developers working on Harmony
+Core. This is a departure from how documentation has traditionally been
+developed at Synergex, but we think this will be the best way to
+document this project.&lt;/p&gt;
+
+&lt;h2 id=&quot;meet-the-harmony-core-team&quot;&gt;Meet the Harmony Core Team&lt;/h2&gt;
+
+&lt;h3 id=&quot;jeff-greene-harmony-core-product-manager&quot;&gt;Jeff Greene, Harmony Core Product Manager&lt;/h3&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/2019-03-22/image2.png&quot; alt=&quot;Jeff Greene&quot; style=&quot;float:left; padding:10px;&quot; /&gt;Jeff joined Synergex in 2006 and he
+brought his passion for open source and standards-based technologies
+with him.&lt;/p&gt;
+
+&lt;p&gt;His first contribution to our product suite was Synergy DBL Integration
+for Visual Studio, for which he architected and implemented items
+involving Intellisense, debugging, and migration tools. He championed
+the importance of running Synergy on .NET Core and was the lead
+developer of that project.&lt;/p&gt;
+
+&lt;p&gt;Jeff has been instrumental in Synergex’s embrace of Service Oriented
+Architecture (SOA) and standards-based technologies. When the need for a
+unified solution to creating web services for all Synergy/DE
+applications arose, Jeff and Steve Ives created the Harmony Core
+Framework with an emphasis on using standardized technologies such as
+OData, Swagger, Asp.NET Core, .NET Core and Entity Framework Core.&lt;/p&gt;
+
+&lt;p&gt;Jeff has worked with various departments within Microsoft over the
+years, and has made significant contributions to the open source
+Microsoft CoreRT project.&lt;/p&gt;
+
+&lt;h3 id=&quot;steve-ives-harmony-core-co-architect&quot;&gt;Steve Ives, Harmony Core Co-Architect&lt;/h3&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/2019-03-22/image3.png&quot; alt=&quot;Steve Ives&quot; style=&quot;float:left; padding:10px;&quot; /&gt;Following an initial background in
+operating systems, networking and systems administration early in his
+career, Steve realized that his real passion and talent was in the field
+of software development.&lt;/p&gt;
+
+&lt;p&gt;Having worked for one of the largest Synergy/DE developers in the United
+Kingdom, Synergex frequently contracted Steve to present on Synergex
+locally in Europe. These engagements consisted of presenting on the
+company and products during meetings, delivering training seminars on
+the use of the products, and consulting with other customers about how
+to address specific technology requirements.&lt;/p&gt;
+
+&lt;p&gt;Steve formally joined the Synergex Professional Services group in 1997.
+Having held the position of Senior Consultant for over 20 years, Steve
+has assisted many Synergy developers to architect, design and implement
+a wide variety of software projects. Each of these projects involves
+Synergy/DE in some way, and many involve a wide range of other
+development languages and technologies.&lt;/p&gt;
+
+&lt;p&gt;In recent years, Steve has been a major contributor to several
+Synergy-related open source development projects, including:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;The CodeGen code generator which can be used to automate the
+generation of Synergy DBL and other types of code in a wide variety
+of software scenarios&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;The SQL Replication reference implementation—this provides a
+working example and most of the code needed to replicate a Synergy
+application’s ISAM and Relative data to a SQL Server database, in
+near-real-time&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;A PDF API that allows Synergy developers to easily add PDF file
+creation to their applications&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;The Harmony Core framework which provides Synergy developers the
+ability to quickly and easily build RESTful Web Service APIs to
+expose their Synergy data and business logic to a wide variety of
+applications and environments&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Steve is passionate about assisting software developers to continue to
+leverage the investment that they have made in their Synergy code base
+over the years, and to continue to see a return on their ongoing
+investments in their code.&lt;/p&gt;
+
+&lt;h3 id=&quot;johnson-luong-harmony-core-developer&quot;&gt;Johnson Luong, Harmony Core developer&lt;/h3&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/2019-03-22/image4.png&quot; alt=&quot;Johnson Luong&quot; style=&quot;float:left; padding:10px;&quot; /&gt;Johnson joined Synergex in 2014 as a QA
+engineer. He got his start by testing Synergy releases and the Synergex
+Resource Center Community, as well as verifying trackers and automating
+the testing of those trackers. You can read about his adventures in test
+at Synergex
+&lt;a href=&quot;https://www.synergex.com/installation-authoring-and-testing-techniques/&quot;&gt;here&lt;/a&gt;
+and &lt;a href=&quot;https://www.synergex.com/testing-testing&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;In addition, after moving into a software development role, Johnson made
+many contributions to our Synergy DBL Integration for Visual Studio
+(SDI) product including migrating from WinForms to the WPF property
+pages and the product installers from InstallShield to a newer
+technology. He has since developed all of our Synergy product installers
+with the open-source language, WiX. He worked closely with Fire Giant,
+the custodian of WiX, to ensure the Synergy installers are using their
+most up-to-date technology.&lt;/p&gt;
+
+&lt;p&gt;Prior to joining Synergex, Johnson was an active member of the
+Association for Computing Machinery (ACM) at his alma mater. He even won
+their biannual International Collegiate Programming Contest. His
+background in test along with experience in Visual Studio development
+and solid foundational knowledge of algorithm design make Johnson the
+perfect addition to round out the Harmony Core team.&lt;/p&gt;</content><author><name>Jeff Greene</name></author><summary type="html">by Jeff Greene, Harmony Core Product Manager</summary></entry></feed>
