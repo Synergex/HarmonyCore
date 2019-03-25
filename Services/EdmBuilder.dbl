@@ -71,8 +71,12 @@ namespace Services
             builder.EntityType<OrderItem>().HasKey<OrderItem,int>("OrderNumber")
             builder.EntityType<OrderItem>().HasKey<OrderItem,int>("ItemNumber")
  
+            ;;-----------------------------------------------
             ;;If we have a GetEdmModelCustom method, call it 
+
             GetEdmModelCustom(serviceProvider, builder)
+
+            ;;-----------------------------------------------
 
             data tempModel = (@EdmModel)builder.GetEdmModel()
 
@@ -102,8 +106,12 @@ namespace Services
             tempModel.AddAlternateKeyAnnotation(vendorType, new Dictionary<string, IEdmProperty>() {{"ZipCode",vendorType.FindProperty("ZipCode")}})
             tempModel.AddAlternateKeyAnnotation(vendorType, new Dictionary<string, IEdmProperty>() {{"PaymentTermsCode",vendorType.FindProperty("PaymentTermsCode")}})
 
-            ;;If we have a GetEdmModelCustom method, call it 
+            ;;-----------------------------------------------
+            ;;If we have a PostEdmModelCustom method, call it 
+
             PostEdmModelCustom(serviceProvider, tempModel)
+
+            ;;-----------------------------------------------
 
             mreturn tempModel
 

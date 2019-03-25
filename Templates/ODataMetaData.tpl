@@ -52,6 +52,9 @@ import Harmony.Core.Converters
 
 namespace <NAMESPACE>
 
+    ;;; <summary>
+    ;;; Global structure representing a <StructureNoplural> record.
+    ;;; </summary>
     .include "<STRUCTURE_NOALIAS>" repository, public structure="str<StructureNoplural>", end
 
     ;;; <summary>
@@ -60,10 +63,15 @@ namespace <NAMESPACE>
     public partial class <StructureNoplural>Metadata extends DataObjectMetadataBase
 
 ;//
-;//    Instantiate any required convertert
+;//    Instantiate any required converters
 ;//
+<COUNTER_1_RESET>
 <FIELD_LOOP>
     <IF CUSTOM_NOT_HARMONY_EXCLUDE>
+      <COUNTER_1_INCREMENT>
+      <IF COUNTER_1_EQ_1>
+        ;; Define custom property formatters
+      </IF>
         <IF DATEORTIME>
           <IF DATE_YYMMDD>
             <IF CUSTOM_HARMONY_AS_STRING>
@@ -105,12 +113,14 @@ namespace <NAMESPACE>
         ;;; </summary>
         public method <StructureNoplural>Metadata
         proc
+            ;; Define structure name and size
             RPSStructureName = "<STRUCTURE_NOALIAS>"
             RPSStructureSize = ^size(str<StructureNoplural>)
 ;//
 ;//    Add definitions for the structures fields
 ;//
 
+            ;; Define fields
 <FIELD_LOOP>
 <IF STRUCTURE_RELATIVE>
             AddFieldInfo("RecordNumber", "INTEGER", 4, 0, 0, false)
@@ -158,8 +168,14 @@ namespace <NAMESPACE>
 ;//
 <IF DEFINED_ENABLE_RELATIONS>
   <IF STRUCTURE_RELATIONS>
+    <COUNTER_1_RESET>
     <RELATION_LOOP>
       <IF TO_STRUCTURE_INCLUDED>
+        <COUNTER_1_INCREMENT>
+	    <IF COUNTER_1_EQ_1>
+
+            ;; Define relations
+        </IF>
 ;//
         <IF MANY_TO_ONE_TO_MANY>
             AddFieldInfo("<HARMONYCORE_RELATION_NAME>", "DATAOBJECT", 0, 0, 0, false)
@@ -186,11 +202,16 @@ namespace <NAMESPACE>
 ;//
 ;//    Add definitions for the properties related to literal field segments
 ;//
+    <COUNTER_1_RESET>
     <RELATION_LOOP>
-      <COUNTER_1_RESET>
+      <COUNTER_2_RESET>
       <FROM_KEY_SEGMENT_LOOP>
         <IF SEG_TYPE_LITERAL>
-            AddFieldInfo("<RelationFromkey>Literal<COUNTER_1_INCREMENT><COUNTER_1_VALUE>", "TAG_LITERAL", 0, 0, 0, false,^null,"<SEGMENT_LITVAL>")
+         <COUNTER_1_INCREMENT>
+		 <IF COUNTER_1_EQ_1>
+		    ;; Define literal key segments in relation "from" keys
+		 </IF>
+            AddFieldInfo("<RelationFromkey>Literal<COUNTER_2_INCREMENT><COUNTER_2_VALUE>", "TAG_LITERAL", 0, 0, 0, false,^null,"<SEGMENT_LITVAL>")
         </IF SEG_TYPE_LITERAL>
       </FROM_KEY_SEGMENT_LOOP>
     </RELATION_LOOP>
@@ -201,15 +222,29 @@ namespace <NAMESPACE>
 ;//
 
 <IF STRUCTURE_ISAM>
+  <COUNTER_1_RESET>
   <KEY_LOOP>
     <SEGMENT_LOOP>
+      <COUNTER_1_INCREMENT>
+        <IF COUNTER_1_EQ_1>
+            ;; Define all fields that are associated wity key segments
+        </IF>
             AddKeyInfo(<KEY_NUMBER>, "<FieldSqlname>")
     </SEGMENT_LOOP>
   </KEY_LOOP>
 </IF STRUCTURE_ISAM>
 <IF STRUCTURE_RELATIVE>
+  <COUNTER_1_INCREMENT>
+    <IF COUNTER_1_EQ_1>
+            ;; Define all fields that are associated wity key segments
+    </IF>
             AddKeyInfo(0, "recordNumber")
 </IF STRUCTURE_RELATIVE>
+;//
+;//    Declare key composition
+;//
+
+            ;; Define the composition of access keys
 
 <IF STRUCTURE_ISAM>
   <KEY_LOOP>
@@ -224,8 +259,13 @@ namespace <NAMESPACE>
             AddFieldInfo("KEY_<KEY_NAME>", "COMPOSITE", 0, 0, 0, false, ^null, ^null, <KeyName>_KeyParts)
 
   </KEY_LOOP>
-
+  <COUNTER_1_RESET>
   <FOREIGN_KEY_LOOP>
+    <COUNTER_1_INCREMENT>
+      <IF COUNTER_1_EQ_1>
+            ;; Define the composition of foreign keys
+      </IF>
+
             data <KeyName>_KeyParts = new FieldDataDefinition[<KEY_SEGMENTS>]
     <SEGMENT_LOOP>
       <IF SEG_TYPE_LITERAL>
@@ -235,12 +275,11 @@ namespace <NAMESPACE>
       </IF SEG_TYPE_LITERAL>
     </SEGMENT_LOOP>
             AddFieldInfo("KEY_<KEY_NAME>", "COMPOSITE", 0, 0, 0, false, ^null, ^null, <KeyName>_KeyParts)
-
   </FOREIGN_KEY_LOOP>
 </IF STRUCTURE_ISAM>
 
-			;;If we have an InitializeCustomFields method then call it.
-			InitializeCustomFields()
+            ;;If we have an InitializeCustomFields method then call it.
+            InitializeCustomFields()
 
         endmethod
 
@@ -370,14 +409,14 @@ namespace <NAMESPACE>
             throw new ApplicationException(String.Format("Invalid key number {0} encountered in <StructureNoplural>Metadata.FormatKeyLiteral",keyNumber))
 
         endmethod
-
 </IF STRUCTURE_ISAM>
 
-		;;;<summary>
-		;;; Provide a partial method to allow for initialization of custom fields.
-		;;;</summary>
-	    private partial method InitializeCustomFields, void
-	    endmethod
+        ;;;<summary>
+        ;;; Provide a partial method to allow for initialization of custom fields.
+        ;;;</summary>
+        private partial method InitializeCustomFields, void
+
+        endmethod
 
     endclass
 

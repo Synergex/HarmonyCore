@@ -18,6 +18,9 @@ import Harmony.Core.Converters
 
 namespace Services.Models
 
+    ;;; <summary>
+    ;;; Global structure representing a Customer record.
+    ;;; </summary>
     .include "CUSTOMERS" repository, public structure="strCustomer", end
 
     ;;; <summary>
@@ -25,6 +28,7 @@ namespace Services.Models
     ;;; </summary>
     public partial class CustomerMetadata extends DataObjectMetadataBase
 
+        ;; Define custom property formatters
         private mPhoneFormatter, @ILiteralFormatter, new SynergyDecimalConverter.LiteralFormatter("(XXX) XXX-XXXX")
         private mFaxFormatter, @ILiteralFormatter, new SynergyDecimalConverter.LiteralFormatter("(XXX) XXX-XXXX")
 
@@ -33,9 +37,11 @@ namespace Services.Models
         ;;; </summary>
         public method CustomerMetadata
         proc
+            ;; Define structure name and size
             RPSStructureName = "CUSTOMERS"
             RPSStructureSize = ^size(strCustomer)
 
+            ;; Define fields
             AddFieldInfo("CustomerNumber", "DECIMAL", 6, 1, 0, false)
             AddFieldInfo("Name", "ALPHA", 30, 7, 0, false)
             AddFieldInfo("Street", "ALPHA", 25, 37, 0, false)
@@ -49,13 +55,18 @@ namespace Services.Models
             AddFieldInfo("PaymentTermsCode", "ALPHA", 2, 144, 0, false)
             AddFieldInfo("TaxId", "DECIMAL", 9, 146, 0, false)
             AddFieldInfo("CreditLimit", "IMPLIED", 7, 155, 02, false)
+
+            ;; Define relations
             AddFieldInfo("REL_CustomerOrders", "COLLECTION", 0, 0, 0, false)
             AddFieldInfo("REL_CustomerFavoriteItem", "DATAOBJECT", 0, 0, 0, false)
 
+            ;; Define all fields that are associated wity key segments
             AddKeyInfo(0, "CustomerNumber")
             AddKeyInfo(1, "State")
             AddKeyInfo(2, "ZipCode")
             AddKeyInfo(3, "PaymentTermsCode")
+
+            ;; Define the composition of access keys
 
             data CustomerNumber_KeyParts = new FieldDataDefinition[1]
             CustomerNumber_KeyParts[1] = GetFieldByName("CustomerNumber")
@@ -73,14 +84,14 @@ namespace Services.Models
             PaymentTerms_KeyParts[1] = GetFieldByName("PaymentTermsCode")
             AddFieldInfo("KEY_PAYMENT_TERMS", "COMPOSITE", 0, 0, 0, false, ^null, ^null, PaymentTerms_KeyParts)
 
+            ;; Define the composition of foreign keys
 
             data FavoriteItem_KeyParts = new FieldDataDefinition[1]
             FavoriteItem_KeyParts[1] = GetFieldByName("FavoriteItem")
             AddFieldInfo("KEY_FAVORITE_ITEM", "COMPOSITE", 0, 0, 0, false, ^null, ^null, FavoriteItem_KeyParts)
 
-
-			;;If we have an InitializeCustomFields method then call it.
-			InitializeCustomFields()
+            ;;If we have an InitializeCustomFields method then call it.
+            InitializeCustomFields()
 
         endmethod
 
@@ -183,12 +194,12 @@ namespace Services.Models
 
         endmethod
 
+        ;;;<summary>
+        ;;; Provide a partial method to allow for initialization of custom fields.
+        ;;;</summary>
+        private partial method InitializeCustomFields, void
 
-		;;;<summary>
-		;;; Provide a partial method to allow for initialization of custom fields.
-		;;;</summary>
-	    private partial method InitializeCustomFields, void
-	    endmethod
+        endmethod
 
     endclass
 
