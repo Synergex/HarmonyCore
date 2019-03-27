@@ -52,7 +52,7 @@ namespace Services.Controllers
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
         public method GetVendors, @IActionResult
         proc
-            mreturn Ok(DBContext.Vendors)
+            mreturn Ok(DBContext.Vendors.AsNoTracking())
         endmethod
 
         {ODataRoute("Vendors(VendorNumber={aVendorNumber})")}
@@ -66,7 +66,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in aVendorNumber, int
         proc
-            mreturn new SingleResult<Vendor>(DBContext.Vendors.FindQuery<Vendor>(aVendorNumber))
+            mreturn new SingleResult<Vendor>(DBContext.Vendors.AsNoTracking().FindQuery<Vendor>(DBContext, aVendorNumber))
         endmethod
 
         {ODataRoute("Vendors(State={aState})")}
@@ -80,7 +80,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in aState, String
         proc
-            data result = DBContext.Vendors.FindAlternate("State",aState)
+            data result = DBContext.Vendors.AsNoTracking().FindAlternate("State",aState)
             if (result == ^null)
                 mreturn NotFound()
             mreturn Ok(result)
@@ -97,7 +97,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in aZipCode, int
         proc
-            data result = DBContext.Vendors.FindAlternate("ZipCode",aZipCode)
+            data result = DBContext.Vendors.AsNoTracking().FindAlternate("ZipCode",aZipCode)
             if (result == ^null)
                 mreturn NotFound()
             mreturn Ok(result)
@@ -114,7 +114,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in aPaymentTermsCode, String
         proc
-            data result = DBContext.Vendors.FindAlternate("PaymentTermsCode",aPaymentTermsCode)
+            data result = DBContext.Vendors.AsNoTracking().FindAlternate("PaymentTermsCode",aPaymentTermsCode)
             if (result == ^null)
                 mreturn NotFound()
             mreturn Ok(result)

@@ -18,6 +18,9 @@ import Harmony.Core.Converters
 
 namespace Services.Models
 
+    ;;; <summary>
+    ;;; Global structure representing a Item record.
+    ;;; </summary>
     .include "ITEMS" repository, public structure="strItem", end
 
     ;;; <summary>
@@ -25,14 +28,18 @@ namespace Services.Models
     ;;; </summary>
     public partial class ItemMetadata extends DataObjectMetadataBase
 
+        ;; Define custom property formatters
+
         ;;; <summary>
         ;;; Constructs an new ItemMetadata object.
         ;;; </summary>
         public method ItemMetadata
         proc
+            ;; Define structure name and size
             RPSStructureName = "ITEMS"
             RPSStructureSize = ^size(strItem)
 
+            ;; Define fields
             AddFieldInfo("ItemNumber", "DECIMAL", 6, 1, 0, false)
             AddFieldInfo("VendorNumber", "DECIMAL", 6, 7, 0, false)
             AddFieldInfo("Size", "DECIMAL", 3, 13, 0, false)
@@ -54,14 +61,19 @@ namespace Services.Models
             AddFieldInfo("ReorderLevel", "DECIMAL", 6, 132, 0, false)
             AddFieldInfo("UnitPrice", "IMPLIED", 7, 138, 02, false)
             AddFieldInfo("CostPrice", "IMPLIED", 7, 145, 02, false)
+
+            ;; Define relations
             AddFieldInfo("REL_Vendor", "DATAOBJECT", 0, 0, 0, false)
             AddFieldInfo("REL_OrderItems", "COLLECTION", 0, 0, 0, false)
 
+            ;; Define all fields that are associated wity key segments
             AddKeyInfo(0, "ItemNumber")
             AddKeyInfo(1, "VendorNumber")
             AddKeyInfo(2, "FlowerColor")
             AddKeyInfo(3, "Size")
             AddKeyInfo(4, "CommonName")
+
+            ;; Define the composition of access keys
 
             data ItemNumber_KeyParts = new FieldDataDefinition[1]
             ItemNumber_KeyParts[1] = GetFieldByName("ItemNumber")
@@ -83,6 +95,9 @@ namespace Services.Models
             Name_KeyParts[1] = GetFieldByName("CommonName")
             AddFieldInfo("KEY_NAME", "COMPOSITE", 0, 0, 0, false, ^null, ^null, Name_KeyParts)
 
+
+            ;;If we have an InitializeCustomFields method then call it.
+            InitializeCustomFields()
 
         endmethod
 
@@ -191,6 +206,13 @@ namespace Services.Models
             endusing
 
             throw new ApplicationException(String.Format("Invalid key number {0} encountered in ItemMetadata.FormatKeyLiteral",keyNumber))
+
+        endmethod
+
+        ;;;<summary>
+        ;;; Provide a partial method to allow for initialization of custom fields.
+        ;;;</summary>
+        private partial method InitializeCustomFields, void
 
         endmethod
 

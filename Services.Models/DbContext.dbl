@@ -81,7 +81,7 @@ namespace Services.Models
 
 .region "Tag filtering"
 
-            ;;This will currently only work for single field==value tags.
+            ;;This will currently only work for single field .operator. value tags.
 
 .endregion
 
@@ -92,7 +92,7 @@ namespace Services.Models
             ;;--------------------------------------
             ;; Relationships from CUSTOMER
 
-            if(!(existingRelations.Contains("Customer.REL_Order") || existingRelations.Contains("Order.REL_Customer")))
+            if(!(existingRelations.Contains("Customer.REL_CustomerOrders") || existingRelations.Contains("Order.REL_Customer")))
             begin
                 ;; CUSTOMER.CUSTOMER_NUMBER (one) --> (many) --> (one) ORDER.CUSTOMER_NUMBER
                 ;;    Type          : D
@@ -100,21 +100,21 @@ namespace Services.Models
                 ;;    To segments   : CUSTOMER_NUMBER(D6) 
 
                 parm.Entity(^typeof(Customer))
-                &    .HasMany(^typeof(Order),"REL_Orders")
+                &    .HasMany(^typeof(Order),"REL_CustomerOrders")
                 &    .WithOne("REL_Customer")
                 &    .HasForeignKey("KEY_CUSTOMER_NUMBER")
                 &    .HasPrincipalKey("KEY_CUSTOMER_NUMBER")
 
                 ;;Declare the outbound relationship
-                if(!existingRelations.Contains("Customer.REL_Order"))
-                    existingRelations.Add("Customer.REL_Order")
+                if(!existingRelations.Contains("Customer.REL_CustomerOrders"))
+                    existingRelations.Add("Customer.REL_CustomerOrders")
 
                 ;;Declare the reciprocal inbound relationship
                 if(!existingRelations.Contains("Order.REL_Customer"))
                     existingRelations.Add("Order.REL_Customer")
             end
 
-            if(!(existingRelations.Contains("Customer.REL_Item") || existingRelations.Contains("Item.REL_Customer")))
+            if(!(existingRelations.Contains("Customer.REL_CustomerFavoriteItem") || existingRelations.Contains("Item.REL_Customer")))
             begin
                 ;; CUSTOMER.FAVORITE_ITEM (one) --> (one) ITEM.ITEM_NUMBER
                 ;;    Type          : C
@@ -122,14 +122,14 @@ namespace Services.Models
                 ;;    To segments   : ITEM_NUMBER(D6) 
 
                 parm.Entity(^typeof(Customer))
-                &    .HasOne(^typeof(Item),"REL_Item")
+                &    .HasOne(^typeof(Item),"REL_CustomerFavoriteItem")
                 &    .WithOne(^null)
                 &    .HasForeignKey(^typeof(Customer),"KEY_FAVORITE_ITEM")
                 &    .HasPrincipalKey(^typeof(Item),"KEY_ITEM_NUMBER")
 
                 ;;Declare the outbound relationship
-                if(!existingRelations.Contains("Customer.REL_Item"))
-                    existingRelations.Add("Customer.REL_Item")
+                if(!existingRelations.Contains("Customer.REL_CustomerFavoriteItem"))
+                    existingRelations.Add("Customer.REL_CustomerFavoriteItem")
 
                 ;;Declare the reciprocal inbound relationship
                 if(!existingRelations.Contains("Item.REL_Customer"))
@@ -139,7 +139,7 @@ namespace Services.Models
             ;;--------------------------------------
             ;; Relationships from ITEM
 
-            if(!(existingRelations.Contains("Item.REL_Vendor") || existingRelations.Contains("Vendor.REL_Item")))
+            if(!(existingRelations.Contains("Item.REL_Vendor") || existingRelations.Contains("Vendor.REL_Items")))
             begin
                 ;; ITEM.VENDOR_NUMBER (many) --> (one) --> (many) VENDOR.VENDOR_NUMBER
                 ;;    Type          : A
@@ -157,11 +157,11 @@ namespace Services.Models
                     existingRelations.Add("Item.REL_Vendor")
 
                 ;;Declare the reciprocal inbound relationship
-                if(!existingRelations.Contains("Vendor.REL_Item"))
-                    existingRelations.Add("Vendor.REL_Item")
+                if(!existingRelations.Contains("Vendor.REL_Items"))
+                    existingRelations.Add("Vendor.REL_Items")
             end
 
-            if(!(existingRelations.Contains("Item.REL_OrderItem") || existingRelations.Contains("OrderItem.REL_Item")))
+            if(!(existingRelations.Contains("Item.REL_OrderItems") || existingRelations.Contains("OrderItem.REL_Item")))
             begin
                 ;; ITEM.ITEM_NUMBER (one) --> (many) --> (one) ORDER_ITEM.ITEM_ORDERED
                 ;;    Type          : D
@@ -175,8 +175,8 @@ namespace Services.Models
                 &    .HasPrincipalKey("KEY_ITEM_NUMBER")
 
                 ;;Declare the outbound relationship
-                if(!existingRelations.Contains("Item.REL_OrderItem"))
-                    existingRelations.Add("Item.REL_OrderItem")
+                if(!existingRelations.Contains("Item.REL_OrderItems"))
+                    existingRelations.Add("Item.REL_OrderItems")
 
                 ;;Declare the reciprocal inbound relationship
                 if(!existingRelations.Contains("OrderItem.REL_Item"))
@@ -186,7 +186,7 @@ namespace Services.Models
             ;;--------------------------------------
             ;; Relationships from ORDER
 
-            if(!(existingRelations.Contains("Order.REL_OrderItem") || existingRelations.Contains("OrderItem.REL_Order")))
+            if(!(existingRelations.Contains("Order.REL_OrderItems") || existingRelations.Contains("OrderItem.REL_Order")))
             begin
                 ;; ORDER.ORDER_NUMBER (one) --> (many) --> (one) ORDER_ITEM.ORDER_NUMBER_AND_LINE_ITEM
                 ;;    Type          : D
@@ -200,15 +200,15 @@ namespace Services.Models
                 &    .HasPrincipalKey("KEY_ORDER_NUMBER")
 
                 ;;Declare the outbound relationship
-                if(!existingRelations.Contains("Order.REL_OrderItem"))
-                    existingRelations.Add("Order.REL_OrderItem")
+                if(!existingRelations.Contains("Order.REL_OrderItems"))
+                    existingRelations.Add("Order.REL_OrderItems")
 
                 ;;Declare the reciprocal inbound relationship
                 if(!existingRelations.Contains("OrderItem.REL_Order"))
                     existingRelations.Add("OrderItem.REL_Order")
             end
 
-            if(!(existingRelations.Contains("Order.REL_Customer") || existingRelations.Contains("Customer.REL_Order")))
+            if(!(existingRelations.Contains("Order.REL_Customer") || existingRelations.Contains("Customer.REL_CustomerOrders")))
             begin
                 ;; ORDER.CUSTOMER_NUMBER (many) --> (one) --> (many) CUSTOMER.CUSTOMER_NUMBER
                 ;;    Type          : A
@@ -217,7 +217,7 @@ namespace Services.Models
 
                 parm.Entity(^typeof(Order))
                 &    .HasOne(^typeof(Customer),"REL_Customer")
-                &    .WithMany("REL_Orders")
+                &    .WithMany("REL_CustomerOrders")
                 &    .HasForeignKey("KEY_CUSTOMER_NUMBER")
                 &    .HasPrincipalKey("KEY_CUSTOMER_NUMBER")
 
@@ -226,14 +226,14 @@ namespace Services.Models
                     existingRelations.Add("Order.REL_Customer")
 
                 ;;Declare the reciprocal inbound relationship
-                if(!existingRelations.Contains("Customer.REL_Order"))
-                    existingRelations.Add("Customer.REL_Order")
+                if(!existingRelations.Contains("Customer.REL_CustomerOrders"))
+                    existingRelations.Add("Customer.REL_CustomerOrders")
             end
 
             ;;--------------------------------------
             ;; Relationships from ORDER_ITEM
 
-            if(!(existingRelations.Contains("OrderItem.REL_Order") || existingRelations.Contains("Order.REL_OrderItem")))
+            if(!(existingRelations.Contains("OrderItem.REL_Order") || existingRelations.Contains("Order.REL_OrderItems")))
             begin
                 ;; ORDER_ITEM.ORDER_NUMBER_AND_LINE_ITEM (many) --> (one) --> (many) ORDER.ORDER_NUMBER
                 ;;    Type          : A
@@ -251,11 +251,11 @@ namespace Services.Models
                     existingRelations.Add("OrderItem.REL_Order")
 
                 ;;Declare the reciprocal inbound relationship
-                if(!existingRelations.Contains("Order.REL_OrderItem"))
-                    existingRelations.Add("Order.REL_OrderItem")
+                if(!existingRelations.Contains("Order.REL_OrderItems"))
+                    existingRelations.Add("Order.REL_OrderItems")
             end
 
-            if(!(existingRelations.Contains("OrderItem.REL_Item") || existingRelations.Contains("Item.REL_OrderItem")))
+            if(!(existingRelations.Contains("OrderItem.REL_Item") || existingRelations.Contains("Item.REL_OrderItems")))
             begin
                 ;; ORDER_ITEM.ITEM_ORDERED (many) --> (one) --> (many) ITEM.ITEM_NUMBER
                 ;;    Type          : A
@@ -273,14 +273,14 @@ namespace Services.Models
                     existingRelations.Add("OrderItem.REL_Item")
 
                 ;;Declare the reciprocal inbound relationship
-                if(!existingRelations.Contains("Item.REL_OrderItem"))
-                    existingRelations.Add("Item.REL_OrderItem")
+                if(!existingRelations.Contains("Item.REL_OrderItems"))
+                    existingRelations.Add("Item.REL_OrderItems")
             end
 
             ;;--------------------------------------
             ;; Relationships from VENDOR
 
-            if(!(existingRelations.Contains("Vendor.REL_Item") || existingRelations.Contains("Item.REL_Vendor")))
+            if(!(existingRelations.Contains("Vendor.REL_Items") || existingRelations.Contains("Item.REL_Vendor")))
             begin
                 ;; VENDOR.VENDOR_NUMBER (one) --> (many) --> (one) ITEM.VENDOR_NUMBER
                 ;;    Type          : D
@@ -294,8 +294,8 @@ namespace Services.Models
                 &    .HasPrincipalKey("KEY_VENDOR_NUMBER")
 
                 ;;Declare the outbound relationship
-                if(!existingRelations.Contains("Vendor.REL_Item"))
-                    existingRelations.Add("Vendor.REL_Item")
+                if(!existingRelations.Contains("Vendor.REL_Items"))
+                    existingRelations.Add("Vendor.REL_Items")
 
                 ;;Declare the reciprocal inbound relationship
                 if(!existingRelations.Contains("Item.REL_Vendor"))

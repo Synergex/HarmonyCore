@@ -18,6 +18,9 @@ import Harmony.Core.Converters
 
 namespace Services.Models
 
+    ;;; <summary>
+    ;;; Global structure representing a Customer record.
+    ;;; </summary>
     .include "CUSTOMERS" repository, public structure="strCustomer", end
 
     ;;; <summary>
@@ -25,14 +28,20 @@ namespace Services.Models
     ;;; </summary>
     public partial class CustomerMetadata extends DataObjectMetadataBase
 
+        ;; Define custom property formatters
+        private mPhoneFormatter, @ILiteralFormatter, new SynergyDecimalConverter.LiteralFormatter("(XXX) XXX-XXXX")
+        private mFaxFormatter, @ILiteralFormatter, new SynergyDecimalConverter.LiteralFormatter("(XXX) XXX-XXXX")
+
         ;;; <summary>
         ;;; Constructs an new CustomerMetadata object.
         ;;; </summary>
         public method CustomerMetadata
         proc
+            ;; Define structure name and size
             RPSStructureName = "CUSTOMERS"
             RPSStructureSize = ^size(strCustomer)
 
+            ;; Define fields
             AddFieldInfo("CustomerNumber", "DECIMAL", 6, 1, 0, false)
             AddFieldInfo("Name", "ALPHA", 30, 7, 0, false)
             AddFieldInfo("Street", "ALPHA", 25, 37, 0, false)
@@ -40,19 +49,24 @@ namespace Services.Models
             AddFieldInfo("State", "ALPHA", 2, 82, 0, false)
             AddFieldInfo("ZipCode", "DECIMAL", 9, 84, 0, false)
             AddFieldInfo("Contact", "ALPHA", 25, 93, 0, false)
-            AddFieldInfo("Phone", "DECIMAL", 10, 118, 0, false, new SynergyDecimalConverter.LiteralFormatter("(XXX) XXX-XXXX"))
-            AddFieldInfo("Fax", "DECIMAL", 10, 128, 0, false, new SynergyDecimalConverter.LiteralFormatter("(XXX) XXX-XXXX"))
+            AddFieldInfo("Phone", "DECIMAL", 10, 118, 0, false, mPhoneFormatter)
+            AddFieldInfo("Fax", "DECIMAL", 10, 128, 0, false, mFaxFormatter)
             AddFieldInfo("FavoriteItem", "DECIMAL", 6, 138, 0, false)
             AddFieldInfo("PaymentTermsCode", "ALPHA", 2, 144, 0, false)
             AddFieldInfo("TaxId", "DECIMAL", 9, 146, 0, false)
             AddFieldInfo("CreditLimit", "IMPLIED", 7, 155, 02, false)
-            AddFieldInfo("REL_Orders", "COLLECTION", 0, 0, 0, false)
-            AddFieldInfo("REL_Item", "DATAOBJECT", 0, 0, 0, false)
 
+            ;; Define relations
+            AddFieldInfo("REL_CustomerOrders", "COLLECTION", 0, 0, 0, false)
+            AddFieldInfo("REL_CustomerFavoriteItem", "DATAOBJECT", 0, 0, 0, false)
+
+            ;; Define all fields that are associated wity key segments
             AddKeyInfo(0, "CustomerNumber")
             AddKeyInfo(1, "State")
             AddKeyInfo(2, "ZipCode")
             AddKeyInfo(3, "PaymentTermsCode")
+
+            ;; Define the composition of access keys
 
             data CustomerNumber_KeyParts = new FieldDataDefinition[1]
             CustomerNumber_KeyParts[1] = GetFieldByName("CustomerNumber")
@@ -70,16 +84,20 @@ namespace Services.Models
             PaymentTerms_KeyParts[1] = GetFieldByName("PaymentTermsCode")
             AddFieldInfo("KEY_PAYMENT_TERMS", "COMPOSITE", 0, 0, 0, false, ^null, ^null, PaymentTerms_KeyParts)
 
+            ;; Define the composition of foreign keys
 
             data FavoriteItem_KeyParts = new FieldDataDefinition[1]
             FavoriteItem_KeyParts[1] = GetFieldByName("FavoriteItem")
             AddFieldInfo("KEY_FAVORITE_ITEM", "COMPOSITE", 0, 0, 0, false, ^null, ^null, FavoriteItem_KeyParts)
 
+            ;;If we have an InitializeCustomFields method then call it.
+            InitializeCustomFields()
+
         endmethod
 
         ;;; <summary>
         ;;; Returns a new Customer object containing data from a record and a GRFA.
-        ;;; The related data properties (REL_Orders and REL_Item) will not be populated.
+        ;;; The related data properties (REL_CustomerOrders and REL_CustomerFavoriteItem) will not be populated.
         ;;; </summary>
         ;;; <param name="dataArea">The record containing the data for the new Customer object.</param>
         ;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
@@ -93,11 +111,11 @@ namespace Services.Models
 
         ;;; <summary>
         ;;; Returns a new Customer object containing data from a record and a GRFA.
-        ;;; The related data properties (REL_Orders and REL_Item) will be populated.
+        ;;; The related data properties (REL_CustomerOrders and REL_CustomerFavoriteItem) will be populated.
         ;;; </summary>
         ;;; <param name="dataArea">The record containing the data for the new Customer object.</param>
         ;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
-        ;;; <param name="joinedObjects">Data to allow the related data properties (REL_Orders and REL_Item) to be populated.</param>
+        ;;; <param name="joinedObjects">Data to allow the related data properties (REL_CustomerOrders and REL_CustomerFavoriteItem) to be populated.</param>
         ;;; <returns></returns>
         public override method MakeNew, @DataObjectBase
             required in dataArea, a
@@ -109,10 +127,10 @@ namespace Services.Models
             foreach joinedObject in joinedObjects
             begin
                 using joinedObject.Key select
-                ("REL_Orders"),
-                    newCustomer.REL_Orders = (@ICollection<Order>)joinedObject.Value
-                ("REL_Item"),
-                    newCustomer.REL_Item = (@Item)joinedObject.Value
+                ("REL_CustomerOrders"),
+                    newCustomer.REL_CustomerOrders = (@ICollection<Order>)joinedObject.Value
+                ("REL_CustomerFavoriteItem"),
+                    newCustomer.REL_CustomerFavoriteItem = (@Item)joinedObject.Value
                 endusing
             end
 
@@ -173,6 +191,13 @@ namespace Services.Models
             endusing
 
             throw new ApplicationException(String.Format("Invalid key number {0} encountered in CustomerMetadata.FormatKeyLiteral",keyNumber))
+
+        endmethod
+
+        ;;;<summary>
+        ;;; Provide a partial method to allow for initialization of custom fields.
+        ;;;</summary>
+        private partial method InitializeCustomFields, void
 
         endmethod
 

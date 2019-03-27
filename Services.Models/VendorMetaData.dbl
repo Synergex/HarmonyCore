@@ -18,6 +18,9 @@ import Harmony.Core.Converters
 
 namespace Services.Models
 
+    ;;; <summary>
+    ;;; Global structure representing a Vendor record.
+    ;;; </summary>
     .include "VENDORS" repository, public structure="strVendor", end
 
     ;;; <summary>
@@ -25,14 +28,20 @@ namespace Services.Models
     ;;; </summary>
     public partial class VendorMetadata extends DataObjectMetadataBase
 
+        ;; Define custom property formatters
+        private mPhoneFormatter, @ILiteralFormatter, new SynergyDecimalConverter.LiteralFormatter("(XXX) XXX-XXXX")
+        private mFaxFormatter, @ILiteralFormatter, new SynergyDecimalConverter.LiteralFormatter("(XXX) XXX-XXXX")
+
         ;;; <summary>
         ;;; Constructs an new VendorMetadata object.
         ;;; </summary>
         public method VendorMetadata
         proc
+            ;; Define structure name and size
             RPSStructureName = "VENDORS"
             RPSStructureSize = ^size(strVendor)
 
+            ;; Define fields
             AddFieldInfo("VendorNumber", "DECIMAL", 6, 1, 0, false)
             AddFieldInfo("Name", "ALPHA", 30, 7, 0, false)
             AddFieldInfo("Street", "ALPHA", 25, 37, 0, false)
@@ -40,15 +49,20 @@ namespace Services.Models
             AddFieldInfo("State", "ALPHA", 2, 82, 0, false)
             AddFieldInfo("ZipCode", "DECIMAL", 5, 84, 0, false)
             AddFieldInfo("Contact", "ALPHA", 25, 89, 0, false)
-            AddFieldInfo("Phone", "DECIMAL", 10, 114, 0, false, new SynergyDecimalConverter.LiteralFormatter("(XXX) XXX-XXXX"))
-            AddFieldInfo("Fax", "DECIMAL", 10, 124, 0, false, new SynergyDecimalConverter.LiteralFormatter("(XXX) XXX-XXXX"))
+            AddFieldInfo("Phone", "DECIMAL", 10, 114, 0, false, mPhoneFormatter)
+            AddFieldInfo("Fax", "DECIMAL", 10, 124, 0, false, mFaxFormatter)
             AddFieldInfo("PaymentTermsCode", "ALPHA", 2, 134, 0, false)
+
+            ;; Define relations
             AddFieldInfo("REL_Items", "COLLECTION", 0, 0, 0, false)
 
+            ;; Define all fields that are associated wity key segments
             AddKeyInfo(0, "VendorNumber")
             AddKeyInfo(1, "State")
             AddKeyInfo(2, "ZipCode")
             AddKeyInfo(3, "PaymentTermsCode")
+
+            ;; Define the composition of access keys
 
             data VendorNumber_KeyParts = new FieldDataDefinition[1]
             VendorNumber_KeyParts[1] = GetFieldByName("VendorNumber")
@@ -66,6 +80,9 @@ namespace Services.Models
             PaymentTerms_KeyParts[1] = GetFieldByName("PaymentTermsCode")
             AddFieldInfo("KEY_PAYMENT_TERMS", "COMPOSITE", 0, 0, 0, false, ^null, ^null, PaymentTerms_KeyParts)
 
+
+            ;;If we have an InitializeCustomFields method then call it.
+            InitializeCustomFields()
 
         endmethod
 
@@ -163,6 +180,13 @@ namespace Services.Models
             endusing
 
             throw new ApplicationException(String.Format("Invalid key number {0} encountered in VendorMetadata.FormatKeyLiteral",keyNumber))
+
+        endmethod
+
+        ;;;<summary>
+        ;;; Provide a partial method to allow for initialization of custom fields.
+        ;;;</summary>
+        private partial method InitializeCustomFields, void
 
         endmethod
 

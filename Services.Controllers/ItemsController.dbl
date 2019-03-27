@@ -52,7 +52,7 @@ namespace Services.Controllers
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
         public method GetItems, @IActionResult
         proc
-            mreturn Ok(DBContext.Items)
+            mreturn Ok(DBContext.Items.AsNoTracking())
         endmethod
 
         {ODataRoute("Items(ItemNumber={aItemNumber})")}
@@ -66,7 +66,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in aItemNumber, int
         proc
-            mreturn new SingleResult<Item>(DBContext.Items.FindQuery<Item>(aItemNumber))
+            mreturn new SingleResult<Item>(DBContext.Items.AsNoTracking().FindQuery<Item>(DBContext, aItemNumber))
         endmethod
 
         {ODataRoute("Items(VendorNumber={aVendorNumber})")}
@@ -80,7 +80,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in aVendorNumber, int
         proc
-            data result = DBContext.Items.FindAlternate("VendorNumber",aVendorNumber)
+            data result = DBContext.Items.AsNoTracking().FindAlternate("VendorNumber",aVendorNumber)
             if (result == ^null)
                 mreturn NotFound()
             mreturn Ok(result)
@@ -97,7 +97,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in aFlowerColor, String
         proc
-            data result = DBContext.Items.FindAlternate("FlowerColor",aFlowerColor)
+            data result = DBContext.Items.AsNoTracking().FindAlternate("FlowerColor",aFlowerColor)
             if (result == ^null)
                 mreturn NotFound()
             mreturn Ok(result)
@@ -114,7 +114,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in aSize, int
         proc
-            data result = DBContext.Items.FindAlternate("Size",aSize)
+            data result = DBContext.Items.AsNoTracking().FindAlternate("Size",aSize)
             if (result == ^null)
                 mreturn NotFound()
             mreturn Ok(result)
@@ -131,7 +131,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in aCommonName, String
         proc
-            data result = DBContext.Items.FindAlternate("CommonName",aCommonName)
+            data result = DBContext.Items.AsNoTracking().FindAlternate("CommonName",aCommonName)
             if (result == ^null)
                 mreturn NotFound()
             mreturn Ok(result)

@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME><StructurePlural>Controller.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.3.13</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.3.15</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVICES_NAMESPACE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>API_ENABLE_QUERY_PARAMS</REQUIRES_USERTOKEN>
@@ -119,7 +119,7 @@ namespace <NAMESPACE>
 ;//
 <IF DEFINED_ENABLE_GET_ONE>
 <IF GET_ENDPOINT>
-        {ODataRoute("<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><FieldSqlName>={a<FieldSqlName>}<,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>)")}
+        {ODataRoute("<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>)")}
   <IF DEFINED_ENABLE_AUTHENTICATION>
     <IF USERTOKEN_ROLES_GET>
         {Authorize(Roles="<ROLES_GET>")}
@@ -136,7 +136,10 @@ namespace <NAMESPACE>
 <IF STRUCTURE_ISAM>
   <PRIMARY_KEY>
     <SEGMENT_LOOP>
+      <IF SEG_TAG_EQUAL>
+	  <ELSE>
         ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
+      </IF SEG_TAG_EQUAL>
     </SEGMENT_LOOP>
   </PRIMARY_KEY>
 </IF STRUCTURE_ISAM>
@@ -148,12 +151,15 @@ namespace <NAMESPACE>
 <IF STRUCTURE_ISAM>
   <PRIMARY_KEY>
     <SEGMENT_LOOP>
+      <IF SEG_TAG_EQUAL>
+	  <ELSE>
             {FromODataUri}
             <IF CUSTOM_HARMONY_AS_STRING>
             required in a<FieldSqlName>, string
             <ELSE>
             required in a<FieldSqlName>, <SEGMENT_SNTYPE>
             </IF CUSTOM_HARMONY_AS_STRING>
+      </IF SEG_TAG_EQUAL>
     </SEGMENT_LOOP>
   </PRIMARY_KEY>
 </IF STRUCTURE_ISAM>
@@ -163,7 +169,7 @@ namespace <NAMESPACE>
 </IF STRUCTURE_RELATIVE>
         proc
 ;//Shouldn't really need the generic type arg on FindQuery. Compiler issue?
-            mreturn new SingleResult<<StructureNoplural>>(DBContext.<StructurePlural>.AsNoTracking().FindQuery<<StructureNoplural>>(DBContext, <IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP>a<FieldSqlName><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>))
+            mreturn new SingleResult<<StructureNoplural>>(DBContext.<StructurePlural>.AsNoTracking().FindQuery<<StructureNoplural>>(DBContext, <IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>))
         endmethod
 
 </IF GET_ENDPOINT>
@@ -176,7 +182,7 @@ namespace <NAMESPACE>
   <IF ALTERNATE_KEY_ENDPOINTS>
     <ALTERNATE_KEY_LOOP>
       <IF DUPLICATES>
-        {ODataRoute("<StructurePlural>(<SEGMENT_LOOP><FieldSqlName>={a<FieldSqlName>}<,></SEGMENT_LOOP>)")}
+        {ODataRoute("<StructurePlural>(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>)")}
         <IF DEFINED_ENABLE_AUTHENTICATION>
           <IF USERTOKEN_ROLES_GET>
         {Authorize(Roles="<ROLES_GET>")}
@@ -191,26 +197,32 @@ namespace <NAMESPACE>
         ;;; Get <structurePlural> by alternate key key <KeyName>.
         ;;; </summary>
         <SEGMENT_LOOP>
+		<IF SEG_TAG_EQUAL>
+		<ELSE>
         ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
+		</IF SEG_TAG_EQUAL>
         </SEGMENT_LOOP>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
         public method Get<StructurePlural>By<KeyName>, @IActionResult
             <SEGMENT_LOOP>
+			<IF SEG_TAG_EQUAL>
+			<ELSE>
             {FromODataUri}
             <IF CUSTOM_HARMONY_AS_STRING>
             required in a<FieldSqlName>, string
             <ELSE>
             required in a<FieldSqlName>, <SEGMENT_SNTYPE>
             </IF CUSTOM_HARMONY_AS_STRING>
+			</IF SEG_TAG_EQUAL>
             </SEGMENT_LOOP>
         proc
-            data result = DBContext.<StructurePlural>.AsNoTracking().FindAlternate(<SEGMENT_LOOP>"<FieldSqlName>",a<FieldSqlName><,></SEGMENT_LOOP>)
+            data result = DBContext.<StructurePlural>.AsNoTracking().FindAlternate(<SEGMENT_LOOP>"<FieldSqlName>",<IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP>)
             if (result == ^null)
                 mreturn NotFound()
             mreturn Ok(result)
         endmethod
       <ELSE>
-        {ODataRoute("<StructurePlural>(<SEGMENT_LOOP><FieldSqlName>={a<FieldSqlName>}<,></SEGMENT_LOOP>)")}
+        {ODataRoute("<StructurePlural>(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>)")}
         <IF DEFINED_ENABLE_AUTHENTICATION>
           <IF USERTOKEN_ROLES_GET>
         {Authorize(Roles="<ROLES_GET>")}
@@ -225,20 +237,26 @@ namespace <NAMESPACE>
         ;;; Get <structureNoplural> by alternate key <KeyName>.
         ;;; </summary>
         <SEGMENT_LOOP>
+		<IF SEG_TAG_EQUAL>
+		<ELSE>
         ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
+		</IF SEG_TAG_EQUAL>
         </SEGMENT_LOOP>
         ;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
         public method Get<StructureNoplural>By<KeyName>, @SingleResult<<StructureNoplural>>
             <SEGMENT_LOOP>
+			<IF SEG_TAG_EQUAL>
+			<ELSE>
             {FromODataUri}
             <IF CUSTOM_HARMONY_AS_STRING>
             required in a<FieldSqlName>, string
             <ELSE>
             required in a<FieldSqlName>, <SEGMENT_SNTYPE>
             </IF CUSTOM_HARMONY_AS_STRING>
+			</IF SEG_TAG_EQUAL>
             </SEGMENT_LOOP>
         proc
-            mreturn new SingleResult<<StructureNoplural>>(DBContext.<StructurePlural>.AsNoTracking().FindAlternate(<SEGMENT_LOOP>"<FieldSqlName>",a<FieldSqlName><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA><,></SEGMENT_LOOP>))
+            mreturn new SingleResult<<StructureNoplural>>(DBContext.<StructurePlural>.AsNoTracking().FindAlternate(<SEGMENT_LOOP>"<FieldSqlName>",<IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP>))
         endmethod
       </IF DUPLICATES>
 
@@ -260,7 +278,7 @@ namespace <NAMESPACE>
       <IF STRUCTURE_ISAM>
         <IF NOTPKSEGMENT>
         <PRIMARY_KEY>
-        {ODataRoute("<StructurePlural>(<IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><FieldSqlName>={a<FieldSqlName>}<,></SEGMENT_LOOP></IF SINGLE_SEGMENT>)/<FieldSqlName>")}
+        {ODataRoute("<StructurePlural>(<IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></IF SINGLE_SEGMENT>)/<FieldSqlName>")}
         <IF DEFINED_ENABLE_AUTHENTICATION>
           <IF USERTOKEN_ROLES_GET>
         {Authorize(Roles="<ROLES_GET>")}
@@ -273,7 +291,10 @@ namespace <NAMESPACE>
         ;;; <param name="key"><FIELD_DESC></param>
         <ELSE>
         <SEGMENT_LOOP>
+		  <IF SEG_TAG_EQUAL>
+		  <ELSE>
         ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
+		  </IF SEG_TAG_EQUAL>
         </SEGMENT_LOOP>
         </IF SINGLE_SEGMENT>
         ;;; <returns>
@@ -289,16 +310,19 @@ namespace <NAMESPACE>
             required in key, <SEGMENT_SNTYPE>
             </IF CUSTOM_HARMONY_AS_STRING>
             <ELSE>
+              <IF SEG_TAG_EQUAL>
+		      <ELSE>
             {FromODataUri}
             <IF CUSTOM_HARMONY_AS_STRING>
             required in a<FieldSqlName>, string
             <ELSE>
             required in a<FieldSqlName>, <SEGMENT_SNTYPE>
             </IF CUSTOM_HARMONY_AS_STRING>
+              </IF SEG_TAG_EQUAL>
             </IF SINGLE_SEGMENT>
         </SEGMENT_LOOP>
         proc
-            data result = DBContext.<StructurePlural>.AsNoTracking().Find(<IF SINGLE_SEGMENT>key<ELSE><SEGMENT_LOOP>a<FieldSqlName><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA><,></SEGMENT_LOOP></IF SINGLE_SEGMENT>)
+            data result = DBContext.<StructurePlural>.Find(<IF SINGLE_SEGMENT>key<ELSE><SEGMENT_LOOP><IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP></IF SINGLE_SEGMENT>)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.<FieldSqlName>)
@@ -324,7 +348,7 @@ namespace <NAMESPACE>
             {FromODataUri}
             required in key, int
         proc
-            data result = DBContext.<StructurePlural>.AsNoTracking().Find(key)
+            data result = DBContext.<StructurePlural>.Find(key)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.<FieldSqlName>)
@@ -393,14 +417,17 @@ namespace <NAMESPACE>
         {Authorize(Roles="<ROLES_PUT>")}
     </IF USERTOKEN_ROLES_PUT>
   </IF DEFINED_ENABLE_AUTHENTICATION>
-        {ODataRoute("<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><FieldSqlName>={a<FieldSqlName>}<,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>)")}
+        {ODataRoute("<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>)")}
         ;;; <summary>
         ;;; Create (with a client-supplied primary key) or replace a <structureNoplural>.
         ;;; </summary>
   <IF STRUCTURE_ISAM>
     <PRIMARY_KEY>
       <SEGMENT_LOOP>
+	    <IF SEG_TAG_EQUAL>
+		<ELSE>
         ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
+	    </IF SEG_TAG_EQUAL>
       </SEGMENT_LOOP>
     </PRIMARY_KEY>
   </IF STRUCTURE_ISAM>
@@ -412,12 +439,15 @@ namespace <NAMESPACE>
   <IF STRUCTURE_ISAM>
     <PRIMARY_KEY>
       <SEGMENT_LOOP>
+	    <IF SEG_TAG_EQUAL>
+		<ELSE>
             {FromODataUri}
         <IF CUSTOM_HARMONY_AS_STRING>
             required in a<FieldSqlName>, string
         <ELSE>
             required in a<FieldSqlName>, <SEGMENT_SNTYPE>
         </IF CUSTOM_HARMONY_AS_STRING>
+	    </IF SEG_TAG_EQUAL>
       </SEGMENT_LOOP>
     </PRIMARY_KEY>
   </IF STRUCTURE_ISAM>
@@ -436,7 +466,11 @@ namespace <NAMESPACE>
   <IF STRUCTURE_ISAM>
     <PRIMARY_KEY>
       <SEGMENT_LOOP>
+	    <IF SEG_TAG_EQUAL>
+            a<StructureNoplural>.<FieldSqlname> = <SEGMENT_TAG_VALUE>
+		<ELSE>
             a<StructureNoplural>.<FieldSqlname> = a<FieldSqlName>
+	    </IF SEG_TAG_EQUAL>
       </SEGMENT_LOOP>
     </PRIMARY_KEY>
   </IF STRUCTURE_ISAM>
@@ -447,7 +481,7 @@ namespace <NAMESPACE>
             try
             begin
                 ;;Add and commit
-                data existing = DBContext.<StructurePlural>.Find(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP>a<FieldSqlName><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>)
+                data existing = DBContext.<StructurePlural>.Find(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>)
                 if(existing == ^null) then
                 begin
                     DBContext.<StructurePlural>.Add(a<StructureNoplural>)
@@ -481,14 +515,17 @@ namespace <NAMESPACE>
         {Authorize(Roles="<ROLES_PATCH>")}
     </IF USERTOKEN_ROLES_PATCH>
   </IF DEFINED_ENABLE_AUTHENTICATION>
-        {ODataRoute("<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><FieldSqlName>={a<FieldSqlName>}<,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>RecordNumber={aRecordNumber}</IF STRUCTURE_RELATIVE>)")}
+        {ODataRoute("<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>RecordNumber={aRecordNumber}</IF STRUCTURE_RELATIVE>)")}
         ;;; <summary>
         ;;; Patch  (partial update) a <structureNoplural>.
         ;;; </summary>
   <IF STRUCTURE_ISAM>
     <PRIMARY_KEY>
       <SEGMENT_LOOP>
+	    <IF SEG_TAG_EQUAL>
+		<ELSE>
         ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
+	    </IF SEG_TAG_EQUAL>
       </SEGMENT_LOOP>
     </PRIMARY_KEY>
   </IF STRUCTURE_ISAM>
@@ -500,12 +537,15 @@ namespace <NAMESPACE>
   <IF STRUCTURE_ISAM>
     <PRIMARY_KEY>
       <SEGMENT_LOOP>
+	    <IF SEG_TAG_EQUAL>
+		<ELSE>
             {FromODataUri}
-        <IF CUSTOM_HARMONY_AS_STRING>
+          <IF CUSTOM_HARMONY_AS_STRING>
             required in a<FieldSqlName>, string
-        <ELSE>
+          <ELSE>
             required in a<FieldSqlName>, <SEGMENT_SNTYPE>
-        </IF CUSTOM_HARMONY_AS_STRING>
+          </IF CUSTOM_HARMONY_AS_STRING>
+	    </IF SEG_TAG_EQUAL>
       </SEGMENT_LOOP>
     </PRIMARY_KEY>
   </IF STRUCTURE_ISAM>
@@ -524,7 +564,7 @@ namespace <NAMESPACE>
             try
             begin
                 ;;Get the <structureNoplural> to be updated
-                data <structureNoplural>ToUpdate = DBContext.<StructurePlural>.Find(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP>a<FieldSqlName><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>)
+                data <structureNoplural>ToUpdate = DBContext.<StructurePlural>.Find(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>)
 
                 ;;Did we find it?
                 if(<structureNoplural>ToUpdate == ^null)
@@ -559,14 +599,17 @@ namespace <NAMESPACE>
         {Authorize(Roles="<ROLES_DELETE>")}
     </IF USERTOKEN_ROLES_DELETE>
   </IF DEFINED_ENABLE_AUTHENTICATION>
-        {ODataRoute("<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><FieldSqlName>={a<FieldSqlName>}<,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>RecordNumber={aRecordNumber}</IF STRUCTURE_RELATIVE>)")}
+        {ODataRoute("<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>RecordNumber={aRecordNumber}</IF STRUCTURE_RELATIVE>)")}
         ;;; <summary>
         ;;; Delete a <structureNoplural>.
         ;;; </summary>
   <IF STRUCTURE_ISAM>
     <PRIMARY_KEY>
       <SEGMENT_LOOP>
+	    <IF SEG_TAG_EQUAL>
+		<ELSE>
         ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
+		</IF SEG_TAG_EQUAL>
       </SEGMENT_LOOP>
     </PRIMARY_KEY>
   </IF STRUCTURE_ISAM>
@@ -578,12 +621,15 @@ namespace <NAMESPACE>
   <IF STRUCTURE_ISAM>
     <PRIMARY_KEY>
       <SEGMENT_LOOP>
+	    <IF SEG_TAG_EQUAL>
+		<ELSE>
             {FromODataUri}
-        <IF CUSTOM_HARMONY_AS_STRING>
+          <IF CUSTOM_HARMONY_AS_STRING>
             required in a<FieldSqlName>, string
-        <ELSE>
+          <ELSE>
             required in a<FieldSqlName>, <SEGMENT_SNTYPE>
-        </IF CUSTOM_HARMONY_AS_STRING>
+          </IF CUSTOM_HARMONY_AS_STRING>
+	    </IF SEG_TAG_EQUAL>
       </SEGMENT_LOOP>
     </PRIMARY_KEY>
   </IF STRUCTURE_ISAM>
@@ -593,7 +639,7 @@ namespace <NAMESPACE>
   </IF STRUCTURE_RELATIVE>
         proc
             ;;Get the <structureNoplural> to be deleted
-            data <structureNoplural>ToRemove = DBContext.<StructurePlural>.Find(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP>a<FieldSqlName><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>)
+            data <structureNoplural>ToRemove = DBContext.<StructurePlural>.Find(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>)
 
             ;;Did we find it?
             if (<structureNoplural>ToRemove == ^null)

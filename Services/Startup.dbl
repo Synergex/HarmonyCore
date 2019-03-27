@@ -61,7 +61,7 @@ namespace Services
             ;;-------------------------------------------------------
             ;;Enable logging
 
-            services.AddLogging(lambda(builder) { builder.SetMinimumLevel(LogLevel.Trace) })
+            services.AddLogging(lambda(builder) { builder.SetMinimumLevel(LogLevel.Error) })
 
             ;;-------------------------------------------------------
             ;;Load Harmony Core
@@ -142,7 +142,7 @@ namespace Services
             begin
                 data loggerFactory = app.ApplicationServices.GetRequiredService<ILoggerFactory>()
                 app.UseDeveloperExceptionPage()
-                DebugLogSession.Logging = new AspNetCoreDebugLogger(loggerFactory.CreateLogger("HarmonyCore")) { Level = Harmony.Core.Interface.LogLevel.Trace }
+                DebugLogSession.Logging = new AspNetCoreDebugLogger(loggerFactory.CreateLogger("HarmonyCore")) { Level = Harmony.Core.Interface.LogLevel.Debug }
                 app.UseLogging(DebugLogSession.Logging)
             end
             else

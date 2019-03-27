@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME>SwaggerFile.yaml</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.3.13</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.3.15</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>API_TITLE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>API_VERSION</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>API_DESCRIPTION</REQUIRES_USERTOKEN>
@@ -251,7 +251,7 @@ paths:
 <IF GET_ENDPOINT>
 <COUNTER_1_RESET>
 
-  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><FieldSqlName>=<IF ALPHA>''</IF ALPHA>{a<FieldSqlName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>a{RecordNumber}</IF STRUCTURE_RELATIVE>)':
+  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF ALPHA>''</IF ALPHA>{a<FieldSqlName>}<IF ALPHA>''</IF ALPHA><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>a{RecordNumber}</IF STRUCTURE_RELATIVE>)':
 <COUNTER_1_INCREMENT>
 
     get:
@@ -265,6 +265,8 @@ paths:
 <IF STRUCTURE_ISAM>
 <PRIMARY_KEY>
 <SEGMENT_LOOP>
+<IF SEG_TAG_EQUAL>
+<ELSE>
         - name: a<FieldSqlName>
           in: path
           description: <SEGMENT_DESC>
@@ -276,6 +278,7 @@ paths:
 <IF TIME>
           format: date-time
 </IF TIME>
+</IF SEG_TAG_EQUAL>
 </SEGMENT_LOOP>
 </PRIMARY_KEY>
 </IF STRUCTURE_ISAM>
@@ -319,7 +322,7 @@ paths:
 <IF DELETE_ENDPOINT>
 <IF COUNTER_1_EQ_0>
 
-  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><FieldSqlName>=<IF ALPHA>''</IF ALPHA>{a<FieldSqlName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>a{RecordNumber}</IF STRUCTURE_RELATIVE>)':
+  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF ALPHA>''</IF ALPHA>{a<FieldSqlName>}<IF ALPHA>''</IF ALPHA><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>a{RecordNumber}</IF STRUCTURE_RELATIVE>)':
 </IF COUNTER_1_EQ_0>
 <COUNTER_1_INCREMENT>
 
@@ -334,6 +337,8 @@ paths:
 <IF STRUCTURE_ISAM>
   <PRIMARY_KEY>
     <SEGMENT_LOOP>
+	  <IF SEG_TAG_EQUAL>
+	  <ELSE>
         - name: a<FieldSqlName>
           in: path
           description: <SEGMENT_DESC>
@@ -345,6 +350,7 @@ paths:
       <IF TIME>
           format: date-time
       </IF TIME>
+	  </IF SEG_TAG_EQUAL>
     </SEGMENT_LOOP>
   </PRIMARY_KEY>
 </IF STRUCTURE_ISAM>
@@ -374,7 +380,7 @@ paths:
 <IF PUT_ENDPOINT>
 <IF COUNTER_1_EQ_0>
 
-  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><FieldSqlName>=<IF ALPHA>''</IF ALPHA>{a<FieldSqlName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>a{RecordNumber}</IF STRUCTURE_RELATIVE>)':
+  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF ALPHA>''</IF ALPHA>{a<FieldSqlName>}<IF ALPHA>''</IF ALPHA><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>a{RecordNumber}</IF STRUCTURE_RELATIVE>)':
 </IF COUNTER_1_EQ_0>
 <COUNTER_1_INCREMENT>
 
@@ -389,6 +395,8 @@ paths:
 <IF STRUCTURE_ISAM>
   <PRIMARY_KEY>
     <SEGMENT_LOOP>
+	  <IF SEG_TAG_EQUAL>
+	  <ELSE>
         - name: a<FieldSqlName>
           in: path
           description: <SEGMENT_DESC>
@@ -400,6 +408,7 @@ paths:
       <IF TIME>
           format: date-time
       </IF TIME>
+	  </IF SEG_TAG_EQUAL>
     </SEGMENT_LOOP>
   </PRIMARY_KEY>
 </IF STRUCTURE_ISAM>
@@ -439,7 +448,7 @@ paths:
 <IF PATCH_ENDPOINT>
 <IF COUNTER_1_EQ_0>
 
-  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><FieldSqlName>=<IF ALPHA>''</IF ALPHA>{a<FieldSqlName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>a{RecordNumber}</IF STRUCTURE_RELATIVE>)':
+  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF ALPHA>''</IF ALPHA>{a<FieldSqlName>}<IF ALPHA>''</IF ALPHA><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>a{RecordNumber}</IF STRUCTURE_RELATIVE>)':
 </IF COUNTER_1_EQ_0>
 <COUNTER_1_INCREMENT>
 
@@ -454,6 +463,8 @@ paths:
 <IF STRUCTURE_ISAM>
   <PRIMARY_KEY>
     <SEGMENT_LOOP>
+	  <IF SEG_TAG_EQUAL>
+	  <ELSE>
         - name: a<FieldSqlName>
           in: path
           description: <SEGMENT_DESC>
@@ -465,6 +476,7 @@ paths:
       <IF TIME>
           format: date-time
       </IF TIME>
+	  </IF SEG_TAG_EQUAL>
     </SEGMENT_LOOP>
   </PRIMARY_KEY>
 </IF STRUCTURE_ISAM>
@@ -504,7 +516,7 @@ paths:
 <IF ALTERNATE_KEY_ENDPOINTS>
 <ALTERNATE_KEY_LOOP>
 
-  '/<StructurePlural>(<SEGMENT_LOOP><FieldSqlName>=<IF ALPHA>''</IF ALPHA>{a<FieldSqlName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP>)':
+  '/<StructurePlural>(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF ALPHA>''</IF ALPHA>{a<FieldSqlName>}<IF ALPHA>''</IF ALPHA><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>)':
 ;//
 ;// ----------------------------------------------------------------------------
 ;// Get via alternate key
@@ -525,17 +537,20 @@ paths:
         - <StructurePlural>
       parameters:
   <SEGMENT_LOOP>
+    <IF SEG_TAG_EQUAL>
+	<ELSE>
         - name: a<FieldSqlName>
           in: path
           description: <SEGMENT_DESC>
           required: true
           type: <IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>
-    <IF DATE>
+      <IF DATE>
           format: date-time
-    </IF DATE>
-    <IF TIME>
+      </IF DATE>
+      <IF TIME>
           format: date-time
-    </IF TIME>
+      </IF TIME>
+	</IF SEG_TAG_EQUAL>
   </SEGMENT_LOOP>
   <IF DEFINED_ENABLE_RELATIONS>
         - name: $expand
@@ -597,7 +612,7 @@ paths:
   <IF DEFINED_ENABLE_COUNT>
     <IF DUPLICATES>
 
-  '/<StructurePlural>(<SEGMENT_LOOP><FieldSqlName>=<IF ALPHA>''</IF ALPHA>{a<FieldSqlName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP>)/$count':
+  '/<StructurePlural>(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF ALPHA>''</IF ALPHA>{a<FieldSqlName>}<IF ALPHA>''</IF ALPHA><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>)/$count':
 
     get:
       summary: Count <structurePlural>
@@ -608,17 +623,20 @@ paths:
         - <StructurePlural>
       parameters:
       <SEGMENT_LOOP>
+	    <IF SEG_TAG_EQUAL>
+		<ELSE>
         - name: a<FieldSqlName>
           in: path
           description: <SEGMENT_DESC>
           required: true
           type: <IF ALPHA>string</IF ALPHA><IF DECIMAL><IF PRECISION>number<ELSE>integer</IF PRECISION></IF DECIMAL><IF DATE>string</IF DATE><IF TIME>string</IF TIME><IF INTEGER>number</IF INTEGER>
-        <IF DATE>
+          <IF DATE>
           format: date-time
-        </IF DATE>
-        <IF TIME>
+          </IF DATE>
+          <IF TIME>
           format: date-time
-        </IF TIME>
+          </IF TIME>
+		</IF SEG_TAG_EQUAL>
       </SEGMENT_LOOP>
       <IF DEFINED_ENABLE_FILTER>
         - name: $filter
@@ -654,7 +672,7 @@ paths:
 ;// Invividual property
 ;//
 
-  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><FieldSqlName>=<IF ALPHA>''</IF ALPHA>{a<FieldSqlName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></IF SINGLE_SEGMENT></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>{RecordNumber}</IF STRUCTURE_RELATIVE>)/<FieldSqlName>':
+  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF ALPHA>''</IF ALPHA>{a<FieldSqlName>}<IF ALPHA>''</IF ALPHA><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></IF SINGLE_SEGMENT></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>{RecordNumber}</IF STRUCTURE_RELATIVE>)/<FieldSqlName>':
 
     get:
       summary: Get <structureNoplural> property <FieldSqlName>
@@ -667,6 +685,8 @@ paths:
     <IF STRUCTURE_ISAM>
       <PRIMARY_KEY>
         <SEGMENT_LOOP>
+        <IF SEG_TAG_EQUAL>
+		<ELSE>
         <IF SINGLE_SEGMENT>
         - name: key
         <ELSE>
@@ -682,6 +702,7 @@ paths:
           <IF TIME>
           format: date-time
           </IF TIME>
+		  </IF SEG_TAG_EQUAL>
           </SEGMENT_LOOP>
       </PRIMARY_KEY>
     </IF STRUCTURE_ISAM>
@@ -708,7 +729,7 @@ paths:
 ;//
 <IF DEFINED_ENABLE_PROPERTY_VALUE_DOCS>
 
-  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><FieldSqlName>=<IF ALPHA>''</IF ALPHA>{a<FieldSqlName>}<IF ALPHA>''</IF ALPHA><,></SEGMENT_LOOP></IF SINGLE_SEGMENT></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>{RecordNumber}</IF STRUCTURE_RELATIVE>)/<FieldSqlName>/$value':
+  '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF ALPHA>''</IF ALPHA>{a<FieldSqlName>}<IF ALPHA>''</IF ALPHA><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></IF SINGLE_SEGMENT></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>{RecordNumber}</IF STRUCTURE_RELATIVE>)/<FieldSqlName>/$value':
 
     get:
       summary: Get <structureNoplural> property <FieldSqlName>
@@ -721,6 +742,8 @@ paths:
     <IF STRUCTURE_ISAM>
       <PRIMARY_KEY>
         <SEGMENT_LOOP>
+		<IF SEG_TAG_EQUAL>
+		<ELSE>
         <IF SINGLE_SEGMENT>
         - name: key
         <ELSE>
@@ -736,6 +759,7 @@ paths:
           <IF TIME>
           format: date-time
           </IF TIME>
+		</IF SEG_TAG_EQUAL>
         </SEGMENT_LOOP>
       </PRIMARY_KEY>
     </IF STRUCTURE_ISAM>

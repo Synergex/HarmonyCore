@@ -18,6 +18,9 @@ import Harmony.Core.Converters
 
 namespace Services.Models
 
+    ;;; <summary>
+    ;;; Global structure representing a OrderItem record.
+    ;;; </summary>
     .include "ORDER_ITEMS" repository, public structure="strOrderItem", end
 
     ;;; <summary>
@@ -25,29 +28,39 @@ namespace Services.Models
     ;;; </summary>
     public partial class OrderItemMetadata extends DataObjectMetadataBase
 
+        ;; Define custom property formatters
+        private mDateShippedFormatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("FORMAT:YYYYMMDD")
+
         ;;; <summary>
         ;;; Constructs an new OrderItemMetadata object.
         ;;; </summary>
         public method OrderItemMetadata
         proc
+            ;; Define structure name and size
             RPSStructureName = "ORDER_ITEMS"
             RPSStructureSize = ^size(strOrderItem)
 
+            ;; Define fields
             AddFieldInfo("OrderNumber", "DECIMAL", 6, 1, 0, false)
             AddFieldInfo("ItemNumber", "DECIMAL", 2, 7, 0, false)
             AddFieldInfo("ItemOrdered", "DECIMAL", 6, 9, 0, false)
             AddFieldInfo("QuantityOrdered", "DECIMAL", 6, 15, 0, false)
             AddFieldInfo("UnitPrice", "IMPLIED", 7, 21, 02, false)
-            AddFieldInfo("DateShipped", "DATE", 8, 28, 0, false, new SynergyDecimalDateConverter.LiteralFormatter("FORMAT:YYYYMMDD"))
+            AddFieldInfo("DateShipped", "DATE", 8, 28, 0, false, mDateShippedFormatter)
             AddFieldInfo("InvoiceNumber", "DECIMAL", 7, 36, 0, false)
+
+            ;; Define relations
             AddFieldInfo("REL_Order", "DATAOBJECT", 0, 0, 0, false)
             AddFieldInfo("REL_Item", "DATAOBJECT", 0, 0, 0, false)
 
+            ;; Define all fields that are associated wity key segments
             AddKeyInfo(0, "OrderNumber")
             AddKeyInfo(0, "ItemNumber")
             AddKeyInfo(1, "ItemOrdered")
             AddKeyInfo(2, "DateShipped")
             AddKeyInfo(3, "InvoiceNumber")
+
+            ;; Define the composition of access keys
 
             data OrderNumberAndLineItem_KeyParts = new FieldDataDefinition[2]
             OrderNumberAndLineItem_KeyParts[1] = GetFieldByName("OrderNumber")
@@ -66,6 +79,9 @@ namespace Services.Models
             InvoiceNumber_KeyParts[1] = GetFieldByName("InvoiceNumber")
             AddFieldInfo("KEY_INVOICE_NUMBER", "COMPOSITE", 0, 0, 0, false, ^null, ^null, InvoiceNumber_KeyParts)
 
+
+            ;;If we have an InitializeCustomFields method then call it.
+            InitializeCustomFields()
 
         endmethod
 
@@ -156,7 +172,7 @@ namespace Services.Models
             end
             (2),
             begin
-                if((segValueLength=KeyValueHelper(key2.DateShipped, "DateShipped", parts))<8)
+                if((segValueLength=KeyValueHelper(key2.DateShipped, "DateShipped", parts, mDateShippedFormatter))<8)
                     mreturn key2(1:startPos+segValueLength)
                 mreturn key2
             end
@@ -169,6 +185,13 @@ namespace Services.Models
             endusing
 
             throw new ApplicationException(String.Format("Invalid key number {0} encountered in OrderItemMetadata.FormatKeyLiteral",keyNumber))
+
+        endmethod
+
+        ;;;<summary>
+        ;;; Provide a partial method to allow for initialization of custom fields.
+        ;;;</summary>
+        private partial method InitializeCustomFields, void
 
         endmethod
 
