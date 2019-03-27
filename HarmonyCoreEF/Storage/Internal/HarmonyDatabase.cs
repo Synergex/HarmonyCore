@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Harmony.Core.Context;
+using Harmony.Core.Interface;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
@@ -81,6 +82,26 @@ namespace Harmony.Core.EF.Storage.Internal
         {
             var syncQueryExecutor = CompileQuery<TResult>(queryModel);
             return qc => syncQueryExecutor(qc).ToAsyncEnumerable();
+        }
+
+        public void AddPrimaryKeygeneratorToTransaction(IPrimaryKeyFactory keyFactory)
+        {
+
+        }
+
+        public void AddConflictResolverToTransaction(IDataObjectConflictResolver conflictResolver)
+        {
+
+        }
+
+        public void Patch(DataObjectBase obj, Func<DataObjectBase, DataObjectBase> applyPatch)
+        {
+
+        }
+
+        public void Upsert(DataObjectBase obj)
+        {
+            
         }
 
         private int DispatchTransactionFromEntries(IReadOnlyList<IUpdateEntry> entries)
