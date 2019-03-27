@@ -40,6 +40,7 @@ import Harmony.Core
 import Newtonsoft.Json
 import System.ComponentModel.DataAnnotations
 import Harmony.Core.Utility
+import System.Threading
 
 .array 0
 
@@ -61,7 +62,7 @@ namespace Harmony.Core
 	{JsonObject(MemberSerialization.OptOut)}
 	public abstract class DataObjectBase
 		private mIsNew, boolean
-		
+		private mPropertyBag, @Dictionary<Object, Object>
 		;;; <summary>
 		;;;  Default constructor to create an instance of the Data Object.
 		;;; </summary>
@@ -75,6 +76,30 @@ namespace Harmony.Core
 			targetMethod, @AlphaAction
 		proc
 		endmethod
+
+		public method AddPropertyBagItem<T>, void
+			value, T
+		proc
+			if(mPropertyBag == ^null)
+				mPropertyBag = new Dictionary<Object, Object>()
+
+			mPropertyBag.Add(^typeof(T), value)
+			
+		endmethod
+
+		public method GetPropertyBagItem<T>, T
+			key, @Object
+		proc
+			data result, @object
+			data typeT, @Type, ^typeof(T)
+			if(mPropertyBag == ^null) then
+				mreturn ^null
+			else if(mPropertyBag.TryGetValue(typeT, result)) then
+				mreturn (T)result
+			else
+				mreturn ^null
+		endmethod
+
 
 		;;; <summary>
 		;;; A place holder routine that allows for additional constructor processing.  This method, 
