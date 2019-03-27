@@ -256,10 +256,8 @@ namespace Harmony.Core.FileIO.Queryable
 			begin
 				currentRow = rowEnumerator.Current
 				;;start at the limbs for actual object construction
-				data matEnumerator = materializerQueue.GetEnumerator()
-				while(matEnumerator.MoveNext())
+				foreach matState in materializerQueue
 				begin
-					matState = matEnumerator.Current
 					data memPnt, i4, matState.typeBuf.MemoryHandle.Value
 					data structureSize, i4, matState.typeBuf.Metadata.StructureSize
 					data rowExists = currentRow.RowInfo(^m(memMapper.fld(1:structureSize), memPnt), , ,matState.changed)
@@ -304,10 +302,8 @@ namespace Harmony.Core.FileIO.Queryable
 
 
 			;;finsh up the leftover materialization process here
-			data matEnumerator2 = materializerQueue.GetEnumerator()
-			while(matEnumerator2.MoveNext())
+			foreach matState in materializerQueue
 			begin
-				matState = matEnumerator2.Current
 				if(matState.parentState != ^null && matState.parentState.changed && matState.parentState.filled)
 				begin
 					if(matState.madeItems != ^null)
@@ -315,10 +311,8 @@ namespace Harmony.Core.FileIO.Queryable
 				end
 
 				data childState, @DataObjectMaterializer.MaterializerState
-				data childStateEnumerator = matState.childrenState.GetEnumerator()
-				while(childStateEnumerator.MoveNext())
+				foreach childState in matState.childrenState
 				begin
-					childState = childStateEnumerator.Current
 					if(childState.filled && matState.createdItemCount != childState.lastBubbleTarget)
 					begin
 						childState.MaybeBubbleMake(tracker, true)
@@ -328,10 +322,8 @@ namespace Harmony.Core.FileIO.Queryable
 				matState.MaybeBubbleMake(tracker, false)
 			end
 
-			data returnedItemEnumerator = resultState.madeItems.GetEnumerator()
-			while(returnedItemEnumerator.MoveNext())
+			foreach returnedItem in resultState.madeItems
 			begin
-				returnedItem = returnedItemEnumerator.Current
 				incr stats.RecordsReturned
 				stats.IOOPS = currentRow != ^null ? currentRow.TotalReadCount : 0
 				yield mreturn returnedItem
