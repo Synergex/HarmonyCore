@@ -132,11 +132,20 @@ namespace <NAMESPACE>
 
             data tempModel = (@EdmModel)builder.GetEdmModel()
             <STRUCTURE_LOOP>
-
+            <COUNTER_1_RESET>
+            <IF STRUCTURE_ISAM>
+            <ALTERNATE_KEY_LOOP>
+                <SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><COUNTER_1_INCREMENT></IF SEG_TAG_EQUAL></SEGMENT_LOOP>
+            </ALTERNATE_KEY_LOOP>
+            </IF STRUCTURE_ISAM>
+            
             data <structureNoplural>Type = (@EdmEntityType)tempModel.FindDeclaredType("<MODELS_NAMESPACE>.<StructureNoplural>")
             <IF STRUCTURE_ISAM>
             <ALTERNATE_KEY_LOOP>
+            <IF NOT_COUNTER_1>
+            <ELSE>
             tempModel.AddAlternateKeyAnnotation(<structureNoplural>Type, new Dictionary<string, IEdmProperty>() {<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE>{"<FieldSqlName>",<structureNoplural>Type.FindProperty("<FieldSqlName>")}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>})
+            </IF NOT_COUNTER_1>
             </ALTERNATE_KEY_LOOP>
             </IF STRUCTURE_ISAM>
             </STRUCTURE_LOOP>

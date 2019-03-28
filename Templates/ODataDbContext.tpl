@@ -47,6 +47,7 @@
 
 import Harmony.Core
 import Harmony.Core.Context
+import Harmony.Core.EF.Extensions
 import Microsoft.EntityFrameworkCore
 import System.Linq.Expressions
 import <MODELS_NAMESPACE>
@@ -113,16 +114,9 @@ namespace <NAMESPACE>
 
             <STRUCTURE_LOOP>
             <IF STRUCTURE_TAGS>
-            <TAG_LOOP>
             data <structureNoplural>Param = Expression.Parameter(^typeof(<structureNoplural>))
-
-            parm.Entity(^typeof(<structureNoplural>))
-            &    .HasQueryFilter
-            &    (
-            &        Expression.Lambda
-            &        (
-            &            Expression.Block
-            &            (
+            parm.AddGlobalTagFilter<<StructureNoplural>>(<structureNoplural>Param,
+            <TAG_LOOP>
 <IF COMPARISON_EQ>
             &                Expression.Equal
 </IF COMPARISON_EQ>
@@ -151,13 +145,9 @@ namespace <NAMESPACE>
             &                        Expression.Constant("<TagloopFieldSqlname>")
             &                    ),
             &                    Expression.Constant(<TAGLOOP_TAG_VALUE>)
-            &                )
-            &            ),
-            &            new ParameterExpression[#] { <structureNoplural>Param }
-            &        )
-            &    )
-
+            &                )<,>
             </TAG_LOOP>
+            & )
             </IF STRUCTURE_TAGS>
             </STRUCTURE_LOOP>
 .endregion
