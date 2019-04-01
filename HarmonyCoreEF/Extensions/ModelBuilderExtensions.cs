@@ -8,34 +8,58 @@ namespace Harmony.Core.EF.Extensions
 {
     public static class ModelBuilderExtensions
     {
-        public static void AddOneToOneRelation(this ModelBuilder builder)
+        public static void AddOneToOneToOneRelation<D, J>(this ModelBuilder builder, string drivingProperty, string drivingKey, string joinedProperty, string joinedKey)
         {
-
+            builder.Entity(typeof(D))
+               .HasOne(typeof(J), drivingProperty)
+               .WithOne(joinedProperty)
+               .HasForeignKey(typeof(J), joinedKey)
+               .HasPrincipalKey(typeof(D), drivingKey);
         }
 
-        public static void AddOneToOneToOneRelation(this ModelBuilder builder)
+        public static void AddOneToOneToManyRelation<D, J>(this ModelBuilder builder, string drivingProperty, string drivingKey, string joinedProperty, string joinedKey)
         {
-
+            builder.Entity(typeof(J))
+               .HasMany(typeof(D), joinedProperty)
+               .WithOne(drivingProperty)
+               .HasForeignKey(drivingKey)
+               .HasPrincipalKey(joinedKey);
         }
 
-        public static void AddOneToOneToManyRelation(this ModelBuilder builder)
+        public static void AddOneToManyToOneRelation<D, J>(this ModelBuilder builder, string drivingProperty, string drivingKey, string joinedProperty, string joinedKey)
         {
-
+            builder.Entity(typeof(D))
+               .HasMany(typeof(J), drivingProperty)
+               .WithOne(joinedProperty)
+               .HasPrincipalKey(drivingKey)
+               .HasForeignKey(joinedKey);
         }
 
-        public static void AddOneToManyToOneRelation(this ModelBuilder builder)
+        public static void AddOneToOneRelation<D, J>(this ModelBuilder builder, string drivingProperty, string drivingKey, string joinFK)
         {
-
+            builder.Entity(typeof(D))
+               .HasOne(typeof(J), drivingProperty)
+               .WithOne(null)
+               .HasForeignKey(typeof(J), joinFK)
+               .HasPrincipalKey(typeof(D), drivingKey);
         }
 
-        public static void AddOneToManyRelation(this ModelBuilder builder)
+        public static void AddOneToManyRelation<D, J>(this ModelBuilder builder, string drivingProperty, string drivingKey, string joinFK)
         {
-
+            builder.Entity(typeof(D))
+               .HasMany(typeof(J), drivingProperty)
+               .WithOne(null)
+               .HasForeignKey(joinFK)
+               .HasPrincipalKey(drivingKey);
         }
 
-        public static void AddManyToOneRelation(this ModelBuilder builder)
+        public static void AddManyToOneRelation<D, J>(this ModelBuilder builder, string drivingProperty, string drivingKey, string joinFK)
         {
-
+            builder.Entity(typeof(D))
+               .HasOne(typeof(J), drivingProperty)
+               .WithOne(null)
+               .HasForeignKey(typeof(J), joinFK)
+               .HasPrincipalKey(typeof(D), drivingKey);
         }
 
 
