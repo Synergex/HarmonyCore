@@ -15,6 +15,9 @@ namespace HarmonyCore.Test.Converters
 			Assert.AreEqual(DecToDateTime(2001035, "YYYYMMDD"), new DateTime(2001, 3, 5, 0, 0, 0, 0))
 			Assert.AreEqual(DecToDateTime(20010305, "YYYYMMDD"), new DateTime(2001, 3, 5, 0, 0, 0, 0))
 			Assert.AreEqual(DecToDateTime(19990315, "YYYYMMDD"), new DateTime(1999, 3, 15, 0, 0, 0, 0))
+
+			Assert.AreEqual(^d("20010305"), DateTimeToDec(new DateTime(2001, 3, 5, 0, 0, 0, 0), "YYYYMMDD"))
+			Assert.AreEqual(^d("19990315"), DateTimeToDec(new DateTime(1999, 3, 15, 0, 0, 0, 0), "YYYYMMDD"))
 		endmethod
 
 		{TestMethod}
@@ -23,6 +26,58 @@ namespace HarmonyCore.Test.Converters
 			Assert.AreEqual(DecToDateTime(99035, "YYMMDD"), new DateTime(1999, 3, 5, 0, 0, 0, 0))
 			Assert.AreEqual(DecToDateTime(^d("010305"), "YYMMDD"), new DateTime(2001, 3, 5, 0, 0, 0, 0))
 			Assert.AreEqual(DecToDateTime(^d("000315"), "YYMMDD"), new DateTime(2000, 3, 15, 0, 0, 0, 0))
+
+			Assert.AreEqual(^d("990305"), DateTimeToDec(new DateTime(1999, 3, 5, 0, 0, 0, 0), "YYMMDD"))
+			Assert.AreEqual(^d("010305"), DateTimeToDec(new DateTime(2001, 3, 5, 0, 0, 0, 0), "YYMMDD"))
+			Assert.AreEqual(^d("000315"), DateTimeToDec(new DateTime(2000, 3, 15, 0, 0, 0, 0), "YYMMDD"))
+		endmethod
+
+		{TestMethod}
+		public method YYJJJ, void
+		proc
+			Assert.AreEqual(DecToDateTime(99035, "YYJJJ"), new DateTime(1999, 2, 4, 0, 0, 0, 0))
+			Assert.AreEqual(DecToDateTime(^d("01305"), "YYJJJ"), new DateTime(2001, 11, 1, 0, 0, 0, 0))
+			Assert.AreEqual(DecToDateTime(^d("00315"), "YYJJJ"), new DateTime(2000, 11, 10, 0, 0, 0, 0))
+
+			Assert.AreEqual(^d("99035"), DateTimeToDec(new DateTime(1999, 2, 4, 0, 0, 0, 0), "YYJJJ"))
+			Assert.AreEqual(^d("01305"), DateTimeToDec(new DateTime(2001, 11, 1, 0, 0, 0, 0), "YYJJJ"))
+			Assert.AreEqual(^d("00315"), DateTimeToDec(new DateTime(2000, 11, 10, 0, 0, 0, 0), "YYJJJ"))
+		endmethod
+
+		{TestMethod}
+		public method YYYYJJJ, void
+		proc
+			Assert.AreEqual(DecToDateTime(1999035, "YYYYJJJ"), new DateTime(1999, 2, 4, 0, 0, 0, 0))
+			Assert.AreEqual(DecToDateTime(^d("2001305"), "YYYYJJJ"), new DateTime(2001, 11, 1, 0, 0, 0, 0))
+			Assert.AreEqual(DecToDateTime(^d("2000315"), "YYYYJJJ"), new DateTime(2000, 11, 10, 0, 0, 0, 0))
+
+			Assert.AreEqual(^d("1999035"), DateTimeToDec(new DateTime(1999, 2, 4, 0, 0, 0, 0), "YYYYJJJ"))
+			Assert.AreEqual(^d("2001305"), DateTimeToDec(new DateTime(2001, 11, 1, 0, 0, 0, 0), "YYYYJJJ"))
+			Assert.AreEqual(^d("2000315"), DateTimeToDec(new DateTime(2000, 11, 10, 0, 0, 0, 0), "YYYYJJJ"))
+		endmethod
+
+		{TestMethod}
+		public method MMDDYYYY, void
+		proc
+			Assert.AreEqual(DecToDateTime(^d("03051999"), "MMDDYYYY"), new DateTime(1999, 3, 5, 0, 0, 0, 0))
+			Assert.AreEqual(DecToDateTime(^d("03052001"), "MMDDYYYY"), new DateTime(2001, 3, 5, 0, 0, 0, 0))
+			Assert.AreEqual(DecToDateTime(^d("03152000"), "MMDDYYYY"), new DateTime(2000, 3, 15, 0, 0, 0, 0))
+
+			Assert.AreEqual(^d("03051999"), DateTimeToDec(new DateTime(1999, 3, 5, 0, 0, 0, 0), "MMDDYYYY"))
+			Assert.AreEqual(^d("03052001"), DateTimeToDec(new DateTime(2001, 3, 5, 0, 0, 0, 0), "MMDDYYYY"))
+			Assert.AreEqual(^d("03152000"), DateTimeToDec(new DateTime(2000, 3, 15, 0, 0, 0, 0), "MMDDYYYY"))
+		endmethod
+
+		{TestMethod}
+		public method MMDDYY, void
+		proc
+			Assert.AreEqual(DecToDateTime(^d("030599"), "MMDDYY"), new DateTime(1999, 3, 5, 0, 0, 0, 0))
+			Assert.AreEqual(DecToDateTime(^d("030501"), "MMDDYY"), new DateTime(2001, 3, 5, 0, 0, 0, 0))
+			Assert.AreEqual(DecToDateTime(^d("031500"), "MMDDYY"), new DateTime(2000, 3, 15, 0, 0, 0, 0))
+
+			Assert.AreEqual(^d("030599"), DateTimeToDec(new DateTime(1999, 3, 5, 0, 0, 0, 0), "MMDDYY"))
+			Assert.AreEqual(^d("030501"), DateTimeToDec(new DateTime(2001, 3, 5, 0, 0, 0, 0), "MMDDYY"))
+			Assert.AreEqual(^d("031500"), DateTimeToDec(new DateTime(2000, 3, 15, 0, 0, 0, 0), "MMDDYY"))
 		endmethod
 
 	endclass
