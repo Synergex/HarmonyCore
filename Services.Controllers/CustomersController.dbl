@@ -19,6 +19,7 @@ import Microsoft.EntityFrameworkCore.Infrastructure
 import Harmony.Core.EF.Extensions
 import Harmony.Core.Interface
 import Harmony.OData
+import Newtonsoft.Json
 import Services.Models
 
 namespace Services.Controllers
@@ -429,13 +430,16 @@ namespace Services.Controllers
             begin
                 ;;Get the customer to be updated
                 data customerToUpdate = DBContext.Customers.Find(aCustomerNumber)
-
+                data patchError, @JsonPatchError, ^null
                 ;;Did we find it?
                 if(customerToUpdate == ^null)
                     mreturn NotFound()
 
                 ;;Apply the changes to the customer we read
-                aCustomer.ApplyTo(customerToUpdate)
+                aCustomer.ApplyTo(customerToUpdate, lambda(error) { patchError = error })
+                ;;if the patchdoc was bad return the error info
+                if(patchError != ^null)
+                    mreturn BadRequest(string.Format("Error applying patch document: error message {0}, caused by {1}", patchError.ErrorMessage, JsonConvert.SerializeObject(patchError.Operation)))
 
                 ;;Update and commit
                 DBContext.Customers.Update(customerToUpdate)

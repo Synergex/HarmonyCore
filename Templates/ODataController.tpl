@@ -59,6 +59,7 @@ import Microsoft.EntityFrameworkCore.Infrastructure
 import Harmony.Core.EF.Extensions
 import Harmony.Core.Interface
 import Harmony.OData
+import Newtonsoft.Json
 import <MODELS_NAMESPACE>
 
 namespace <NAMESPACE>
@@ -565,13 +566,16 @@ namespace <NAMESPACE>
             begin
                 ;;Get the <structureNoplural> to be updated
                 data <structureNoplural>ToUpdate = DBContext.<StructurePlural>.Find(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>)
-
+                data patchError, @JsonPatchError, ^null
                 ;;Did we find it?
                 if(<structureNoplural>ToUpdate == ^null)
                     mreturn NotFound()
 
                 ;;Apply the changes to the <structureNoplural> we read
-                a<StructureNoplural>.ApplyTo(<structureNoplural>ToUpdate)
+                a<StructureNoplural>.ApplyTo(<structureNoplural>ToUpdate, lambda(error) { patchError = error })
+                ;;if the patchdoc was bad return the error info
+                if(patchError != ^null)
+                    mreturn BadRequest(string.Format("Error applying patch document: error message {0}, caused by {1}", patchError.ErrorMessage, JsonConvert.SerializeObject(patchError.Operation)))
 
                 ;;Update and commit
                 DBContext.<StructurePlural>.Update(<structureNoplural>ToUpdate)

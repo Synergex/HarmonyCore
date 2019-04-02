@@ -54,6 +54,7 @@ import Microsoft.VisualStudio.TestTools.UnitTesting
 import Newtonsoft.Json
 import System.Collections.Generic
 import System.Net.Http
+import System.Net
 import <SERVICES_NAMESPACE>
 import <CLIENT_MODELS_NAMESPACE>
 
@@ -341,6 +342,20 @@ namespace <NAMESPACE>
             </IF COUNTER_1_EQ_1>
             </IF NOTKEYSEGMENT>
             </FIELD_LOOP>
+
+
+            ;;Update one non-existant property in the customer
+            data badPatchDoc = new JsonPatchDocument()
+            badPatchDoc.Replace("xyzzy", "Z")
+
+            ;;Serialize the bad patch to JSON
+            data badSerializedPatch = JsonConvert.SerializeObject(badPatchDoc)
+
+            ;;Apply the bad patch
+            disposable data badPatchRequestBody = new StringContent(badSerializedPatch,System.Text.Encoding.UTF8, "application/json-patch+json")
+            disposable data badPatchResponse = client.PatchAsync(request, badPatchRequestBody).Result
+            ;;Check that we got a failure response from the web service
+            Assert.AreEqual(badPatchResponse.StatusCode, HttpStatusCode.BadRequest)
 
             ;;Update one property in the <structureNoplural>
             data patchDoc = new JsonPatchDocument()
