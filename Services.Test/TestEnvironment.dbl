@@ -21,252 +21,284 @@ import SSHTransfer
 
 namespace Services.Test
 
-    public static class TestEnvironment
-		public static folderName, string
+	public static class TestEnvironment
+		public static FolderName, string
+		public static RunRemoteTests, boolean
 
-        public static method Configure, void
-        proc
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)
-            setLogicals()
-            deleteFiles()
-            createFiles()
-        endmethod
+		public static method Configure, void
+		proc
+			Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)
+			setLogicals()
+			deleteFiles()
+			createFiles()
+			UploadFiles()
+		endmethod
 
-        public static method Cleanup, void
-        proc
-            deleteFiles()
-        endmethod
+		public static method Cleanup, void
+		proc
+			deleteFiles()
+		endmethod
 
-        private static method setLogicals, void
-        proc
-            data sampleDataFolder = findRelativeFolderForAssembly("SampleData")
-            data logicals = new List<string>()
-            data logical = String.Empty
-            data fileSpec = String.Empty
+		private static method setLogicals, void
+		proc
+			data sampleDataFolder = findRelativeFolderForAssembly("SampleData")
+			data logicals = new List<string>()
+			data logical = String.Empty
+			data fileSpec = String.Empty
 
-            fileSpec = "DAT:customers.ism"
-            if (fileSpec.Contains(":"))
-            begin
-                logical = fileSpec.Split(":")[0].ToUpper()
-                if (!logicals.Contains(logical))
-                    logicals.Add(logical)
-            end
+			fileSpec = "DAT:customers.ism"
+			if (fileSpec.Contains(":"))
+			begin
+				logical = fileSpec.Split(":")[0].ToUpper()
+				if (!logicals.Contains(logical))
+					logicals.Add(logical)
+			end
 
-            fileSpec = "DAT:items.ism"
-            if (fileSpec.Contains(":"))
-            begin
-                logical = fileSpec.Split(":")[0].ToUpper()
-                if (!logicals.Contains(logical))
-                    logicals.Add(logical)
-            end
+			fileSpec = "DAT:items.ism"
+			if (fileSpec.Contains(":"))
+			begin
+				logical = fileSpec.Split(":")[0].ToUpper()
+				if (!logicals.Contains(logical))
+					logicals.Add(logical)
+			end
 
-            fileSpec = "DAT:orders.ism"
-            if (fileSpec.Contains(":"))
-            begin
-                logical = fileSpec.Split(":")[0].ToUpper()
-                if (!logicals.Contains(logical))
-                    logicals.Add(logical)
-            end
+			fileSpec = "DAT:orders.ism"
+			if (fileSpec.Contains(":"))
+			begin
+				logical = fileSpec.Split(":")[0].ToUpper()
+				if (!logicals.Contains(logical))
+					logicals.Add(logical)
+			end
 
-            fileSpec = "DAT:order_items.ism"
-            if (fileSpec.Contains(":"))
-            begin
-                logical = fileSpec.Split(":")[0].ToUpper()
-                if (!logicals.Contains(logical))
-                    logicals.Add(logical)
-            end
+			fileSpec = "DAT:order_items.ism"
+			if (fileSpec.Contains(":"))
+			begin
+				logical = fileSpec.Split(":")[0].ToUpper()
+				if (!logicals.Contains(logical))
+					logicals.Add(logical)
+			end
 
-            fileSpec = "DAT:vendors.ism"
-            if (fileSpec.Contains(":"))
-            begin
-                logical = fileSpec.Split(":")[0].ToUpper()
-                if (!logicals.Contains(logical))
-                    logicals.Add(logical)
-            end
+			fileSpec = "DAT:vendors.ism"
+			if (fileSpec.Contains(":"))
+			begin
+				logical = fileSpec.Split(":")[0].ToUpper()
+				if (!logicals.Contains(logical))
+					logicals.Add(logical)
+			end
 
-            fileSpec = "DAT:sysparams.ddf"
-            if (fileSpec.Contains(":"))
-            begin
-                logical = fileSpec.Split(":")[0].ToUpper()
-                if (!logicals.Contains(logical))
-                    logicals.Add(logical)
-            end
+			fileSpec = "DAT:sysparams.ddf"
+			if (fileSpec.Contains(":"))
+			begin
+				logical = fileSpec.Split(":")[0].ToUpper()
+				if (!logicals.Contains(logical))
+					logicals.Add(logical)
+			end
 
-            foreach logical in logicals
-            begin
-                data sts, int
-                xcall setlog(logical,sampleDataFolder,sts)
-            end
+			foreach logical in logicals
+			begin
+				data sts, int
+				xcall setlog(logical,sampleDataFolder,sts)
+			end
 
-        endmethod
+		endmethod
 
-        private static method createFiles, void
-        proc
-            data chout, int
-            data dataFile, string
-            data xdlFile, string
+		private static method createFiles, void
+		proc
+			data chout, int
+			data dataFile, string
+			data xdlFile, string
 
-            data customers = CustomerLoader.LoadFromFile()
-            data items = ItemLoader.LoadFromFile()
-            data orders = OrderLoader.LoadFromFile()
-            data orderItems = OrderItemLoader.LoadFromFile()
-            data vendors = VendorLoader.LoadFromFile()
+			data customers = CustomerLoader.LoadFromFile()
+			data items = ItemLoader.LoadFromFile()
+			data orders = OrderLoader.LoadFromFile()
+			data orderItems = OrderItemLoader.LoadFromFile()
+			data vendors = VendorLoader.LoadFromFile()
 
-            ;;Create and load the customers file
+			;;Create and load the customers file
 
-            dataFile = "DAT:customers.ism"
-            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+			dataFile = "DAT:customers.ism"
+			xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
 
-            data customer, @Customer
-            open(chout=0,o:i,dataFile,FDL:xdlFile)
-            foreach customer in customers
-                store(chout,customer.SynergyRecord)
-            close chout
+			data customer, @Customer
+			open(chout=0,o:i,dataFile,FDL:xdlFile)
+			foreach customer in customers
+				store(chout,customer.SynergyRecord)
+			close chout
 
-            ;;Create and load the items file
+			;;Create and load the items file
 
-            dataFile = "DAT:items.ism"
-            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+			dataFile = "DAT:items.ism"
+			xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
 
-            data item, @Item
-            open(chout=0,o:i,dataFile,FDL:xdlFile)
-            foreach item in items
-                store(chout,item.SynergyRecord)
-            close chout
+			data item, @Item
+			open(chout=0,o:i,dataFile,FDL:xdlFile)
+			foreach item in items
+				store(chout,item.SynergyRecord)
+			close chout
 
-            ;;Create and load the orders file
+			;;Create and load the orders file
 
-            dataFile = "DAT:orders.ism"
-            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+			dataFile = "DAT:orders.ism"
+			xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
 
-            data order, @Order
-            open(chout=0,o:i,dataFile,FDL:xdlFile)
-            foreach order in orders
-                store(chout,order.SynergyRecord)
-            close chout
+			data order, @Order
+			open(chout=0,o:i,dataFile,FDL:xdlFile)
+			foreach order in orders
+				store(chout,order.SynergyRecord)
+			close chout
 
-            ;;Create and load the orderItems file
+			;;Create and load the orderItems file
 
-            dataFile = "DAT:order_items.ism"
-            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+			dataFile = "DAT:order_items.ism"
+			xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
 
-            data orderItem, @OrderItem
-            open(chout=0,o:i,dataFile,FDL:xdlFile)
-            foreach orderItem in orderItems
-                store(chout,orderItem.SynergyRecord)
-            close chout
+			data orderItem, @OrderItem
+			open(chout=0,o:i,dataFile,FDL:xdlFile)
+			foreach orderItem in orderItems
+				store(chout,orderItem.SynergyRecord)
+			close chout
 
-            ;;Create and load the vendors file
+			;;Create and load the vendors file
 
-            dataFile = "DAT:vendors.ism"
-            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+			dataFile = "DAT:vendors.ism"
+			xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
 
-            data vendor, @Vendor
-            open(chout=0,o:i,dataFile,FDL:xdlFile)
-            foreach vendor in vendors
-                store(chout,vendor.SynergyRecord)
-            close chout
+			data vendor, @Vendor
+			open(chout=0,o:i,dataFile,FDL:xdlFile)
+			foreach vendor in vendors
+				store(chout,vendor.SynergyRecord)
+			close chout
 
-            ;;Create and load the sysparams file
+			;;Create and load the sysparams file
 
-            dataFile = "DAT:sysparams.ddf"
-            data sourceFile = dataFile.ToLower().Replace(".ddf",".txt")
-            xcall copy(sourceFile,dataFile,1)
+			dataFile = "DAT:sysparams.ddf"
+			data sourceFile = dataFile.ToLower().Replace(".ddf",".txt")
+			xcall copy(sourceFile,dataFile,1)
 
-			;; Create files on server
-			folderName = SSHTransfer.CreateFiles(Environment.GetEnvironmentVariable("testServerName"), Environment.GetEnvironmentVariable("testUserName"), Environment.GetEnvironmentVariable("testPassword"))
+		endmethod
 
-        endmethod
+		private static method UploadFiles, void
+		proc
+			begin
+				data serverName = Environment.GetEnvironmentVariable("testServerName")
+				data userName = Environment.GetEnvironmentVariable("testUserName")
+				data password = Environment.GetEnvironmentVariable("testPassword")
 
-        private static method deleteFiles, void
-        proc
-            ;;Delete the customers file
-            try
-            begin
-                xcall delet("DAT:customers.ism")
-            end
-            catch (e, @NoFileFoundException)
-            begin
-                nop
-            end
-            endtry
+				if (String.IsNullOrWhiteSpace(serverName))
+				begin
+					RunRemoteTests = false
+					Console.WriteLine("Missing testServerName environment variable")
+				end
 
-            ;;Delete the items file
-            try
-            begin
-                xcall delet("DAT:items.ism")
-            end
-            catch (e, @NoFileFoundException)
-            begin
-                nop
-            end
-            endtry
+				if (String.IsNullOrWhiteSpace(userName))
+				begin
+					RunRemoteTests = false
+					Console.WriteLine("Missing testUserName environment variable")
+				end
 
-            ;;Delete the orders file
-            try
-            begin
-                xcall delet("DAT:orders.ism")
-            end
-            catch (e, @NoFileFoundException)
-            begin
-                nop
-            end
-            endtry
+				if (String.IsNullOrWhiteSpace(password))
+				begin
+					RunRemoteTests = false
+					Console.WriteLine("Missing testPassword environment variable")
+				end
 
-            ;;Delete the orderItems file
-            try
-            begin
-                xcall delet("DAT:order_items.ism")
-            end
-            catch (e, @NoFileFoundException)
-            begin
-                nop
-            end
-            endtry
+				if (RunRemoteTests) then
+					FolderName = SSHTransfer.CreateFiles(serverName, userName, password)
+				else
+					Console.WriteLine("Skipping upload. One or more environment variables are missing")
+			end
+		endmethod
 
-            ;;Delete the vendors file
-            try
-            begin
-                xcall delet("DAT:vendors.ism")
-            end
-            catch (e, @NoFileFoundException)
-            begin
-                nop
-            end
-            endtry
+		private static method deleteFiles, void
+		proc
+			;;Delete the customers file
+			try
+			begin
+				xcall delet("DAT:customers.ism")
+			end
+			catch (e, @NoFileFoundException)
+			begin
+				nop
+			end
+			endtry
 
-            ;;Delete the sysparams file
-            try
-            begin
-                xcall delet("DAT:sysparams.ddf")
-            end
-            catch (e, @NoFileFoundException)
-            begin
-                nop
-            end
-            endtry
+			;;Delete the items file
+			try
+			begin
+				xcall delet("DAT:items.ism")
+			end
+			catch (e, @NoFileFoundException)
+			begin
+				nop
+			end
+			endtry
+
+			;;Delete the orders file
+			try
+			begin
+				xcall delet("DAT:orders.ism")
+			end
+			catch (e, @NoFileFoundException)
+			begin
+				nop
+			end
+			endtry
+
+			;;Delete the orderItems file
+			try
+			begin
+				xcall delet("DAT:order_items.ism")
+			end
+			catch (e, @NoFileFoundException)
+			begin
+				nop
+			end
+			endtry
+
+			;;Delete the vendors file
+			try
+			begin
+				xcall delet("DAT:vendors.ism")
+			end
+			catch (e, @NoFileFoundException)
+			begin
+				nop
+			end
+			endtry
+
+			;;Delete the sysparams file
+			try
+			begin
+				xcall delet("DAT:sysparams.ddf")
+			end
+			catch (e, @NoFileFoundException)
+			begin
+				nop
+			end
+			endtry
 
 			;; Delete files on server
-			SSHTransfer.DeleteFiles(Environment.GetEnvironmentVariable("testServerName"), Environment.GetEnvironmentVariable("testUserName"), Environment.GetEnvironmentVariable("testPassword"), folderName)
+			if (RunRemoteTests)
+				SSHTransfer.DeleteFiles(Environment.GetEnvironmentVariable("testServerName"), Environment.GetEnvironmentVariable("testUserName"), Environment.GetEnvironmentVariable("testPassword"), FolderName)
 
-        endmethod
+		endmethod
 
-        private static method findRelativeFolderForAssembly, string
-            folderName, string
-        proc
-            data assemblyLocation = ^typeof(TestEnvironment).Assembly.Location
-            data currentFolder = Path.GetDirectoryName(assemblyLocation)
-            data rootPath = Path.GetPathRoot(currentFolder)
-            while(currentFolder != rootPath)
-            begin
-                if(Directory.Exists(Path.Combine(currentFolder, folderName))) then
-                    mreturn Path.Combine(currentFolder, folderName)
-                else
-                    currentFolder = Path.GetFullPath(currentFolder + "..\")
-            end
-            mreturn ^null
-        endmethod
+		private static method findRelativeFolderForAssembly, string
+			folderName, string
+		proc
+			data assemblyLocation = ^typeof(TestEnvironment).Assembly.Location
+			data currentFolder = Path.GetDirectoryName(assemblyLocation)
+			data rootPath = Path.GetPathRoot(currentFolder)
+			while(currentFolder != rootPath)
+			begin
+				if(Directory.Exists(Path.Combine(currentFolder, folderName))) then
+					mreturn Path.Combine(currentFolder, folderName)
+				else
+					currentFolder = Path.GetFullPath(currentFolder + "..\")
+			end
+			mreturn ^null
+		endmethod
 
-    endclass
+	endclass
 
 endnamespace
