@@ -9,13 +9,14 @@ namespace SSHTransfer
     public static class SSHTransfer
     {
         /// <summary>
-        /// Create a test folder on Moe64
+        /// Create a test folder on a server
         /// </summary>
+        /// <param name="serverName">The server to connect to</param>
         /// <param name="userName">The user to log into</param>
         /// <param name="password">The password of the user</param>
-        public static string CreateFiles(string userName, string password)
+        public static string CreateFiles(string serverName, string userName, string password)
         {
-            using (SftpClient client = new SftpClient("moe64", userName, password))
+            using (SftpClient client = new SftpClient(serverName, userName, password))
             {
                 client.Connect();
 
@@ -42,14 +43,15 @@ namespace SSHTransfer
         }
 
         /// <summary>
-        /// Delete a test folder on Moe64
+        /// Delete a test folder on a server
         /// </summary>
+        /// <param name="serverName">The server to connect to</param>
         /// <param name="userName">The user to log into</param>
         /// <param name="password">The password of the user</param>
         /// <param name="folderName">The name of the test folder to delete</param>
-        public static void DeleteFiles(string userName, string password, string folderName)
+        public static void DeleteFiles(string serverName, string userName, string password, string folderName)
         {
-            using (SftpClient client = new SftpClient("moe64", userName, password))
+            using (SftpClient client = new SftpClient("serverName", userName, password))
             {
                 client.Connect();
 
