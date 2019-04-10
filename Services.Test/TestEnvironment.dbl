@@ -15,12 +15,14 @@ import System.IO
 import System.Text
 import Services.Models
 import Services.Test.DataGenerators
+import SSHTransfer
 
 .array 0
 
 namespace Services.Test
 
     public static class TestEnvironment
+		public static folderName, string
 
         public static method Configure, void
         proc
@@ -171,6 +173,9 @@ namespace Services.Test
             data sourceFile = dataFile.ToLower().Replace(".ddf",".txt")
             xcall copy(sourceFile,dataFile,1)
 
+			;; Create files on Moe64
+			folderName = SSHTransfer.CreateFiles(Environment.GetEnvironmentVariable("testMoe64UserName"), Environment.GetEnvironmentVariable("testMoe64Password"))
+
         endmethod
 
         private static method deleteFiles, void
@@ -240,6 +245,9 @@ namespace Services.Test
                 nop
             end
             endtry
+
+			;; Delete files on Moe64
+			SSHTransfer.DeleteFiles(Environment.GetEnvironmentVariable("testMoe64UserName"), Environment.GetEnvironmentVariable("testMoe64Password"), folderName)
 
         endmethod
 
