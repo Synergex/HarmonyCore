@@ -76,6 +76,10 @@ import Harmony.AspNetCore.Context
 <IF DEFINED_ENABLE_AUTHENTICATION>
 import Microsoft.AspNetCore.Authorization
 import Microsoft.AspNetCore.Authentication.JwtBearer
+<IF DEFINED_ENABLE_CUSTOM_AUTHENTICATION>
+import Microsoft.IdentityModel.Tokens
+import System.Text
+</IF DEFINED_ENABLE_CUSTOM_AUTHENTICATION>
 </IF DEFINED_ENABLE_AUTHENTICATION>
 import Microsoft.AspNetCore.Builder
 import Microsoft.AspNetCore.Hosting
@@ -158,6 +162,37 @@ namespace <NAMESPACE>
             &    .AddApplicationPart(^typeof(IsolatedMethodsBase).Assembly)
 
 <IF DEFINED_ENABLE_AUTHENTICATION>
+<IF DEFINED_ENABLE_CUSTOM_AUTHENTICATION>
+            lambda configJwt(o)
+            begin
+                o.IncludeErrorDetails = true
+                o.ClaimsIssuer = "<OAUTH_ISSUER>"
+                o.Audience = "<OAUTH_API>"
+                o.TokenValidationParameters = new TokenValidationParameters()
+                & {
+                &       ValidateIssuer = true,
+                &       ValidIssuer = "<OAUTH_ISSUER>",
+                &       ValidateAudience = true,
+                &       ValidAudience = "<OAUTH_API>",
+                &       ValidateIssuerSigningKey = true,
+                &       IssuerSigningKey = new SymmetricSecurityKey(<OAUTH_KEY>)
+                & }
+            end
+
+            lambda authenticationOptions(options)
+            begin
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme
+            end
+
+            lambda authorizationOptions(options)
+            begin
+                 options.DefaultPolicy = new AuthorizationPolicyBuilder(JwtBearerDefaults.AuthenticationScheme).RequireAuthenticatedUser().Build()
+            end
+
+            services.AddAuthentication(authenticationOptions).AddJwtBearer("Bearer", configJwt)
+            mvcBuilder.AddAuthorization(authorizationOptions)
+<ELSE>
             ;;-------------------------------------------------------
             ;;Enable authentication and authorization
 
@@ -176,12 +211,12 @@ namespace <NAMESPACE>
 
             lambda authorizationOptions(options)
             begin
-				options.DefaultPolicy = new AuthorizationPolicyBuilder(JwtBearerDefaults.AuthenticationScheme).RequireAuthenticatedUser().Build()
+                options.DefaultPolicy = new AuthorizationPolicyBuilder(JwtBearerDefaults.AuthenticationScheme).RequireAuthenticatedUser().Build()
             end
 
             services.AddAuthentication(authenticationOptions).AddIdentityServerAuthentication(identityServerOptions)
             mvcBuilder.AddAuthorization(authorizationOptions)
-
+</IF DEFINED_ENABLE_CUSTOM_AUTHENTICATION>
 </IF DEFINED_ENABLE_AUTHENTICATION>
             ;;-------------------------------------------------------
             ;;Enable HTTP redirection to HTTPS

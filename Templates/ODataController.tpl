@@ -275,6 +275,8 @@ namespace <NAMESPACE>
 ;// the name of a single key segment MUST be "key"!!! Likely doesn't work with segmented keys.
 ;//
   <FIELD_LOOP>
+	<IF USER>
+	<ELSE>
     <IF CUSTOM_NOT_HARMONY_EXCLUDE>
       <IF STRUCTURE_ISAM>
         <IF NOTPKSEGMENT>
@@ -357,6 +359,7 @@ namespace <NAMESPACE>
       </IF STRUCTURE_RELATIVE>
 
     </IF CUSTOM_NOT_HARMONY_EXCLUDE>
+	</IF USER>
   </FIELD_LOOP>
 </IF PROPERTY_ENDPOINTS>
 </IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
