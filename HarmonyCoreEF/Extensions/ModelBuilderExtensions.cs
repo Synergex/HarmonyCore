@@ -19,18 +19,18 @@ namespace Harmony.Core.EF.Extensions
 
         public static void AddOneToOneToManyRelation<D, J>(this ModelBuilder builder, string drivingProperty, string drivingKey, string joinedProperty, string joinedKey)
         {
-            builder.Entity(typeof(J))
-               .HasMany(typeof(D), joinedProperty)
-               .WithOne(drivingProperty)
-               .HasForeignKey(drivingKey)
-               .HasPrincipalKey(joinedKey);
+            builder.Entity(typeof(D))
+               .HasOne(typeof(J), drivingProperty)
+               .WithMany(joinedProperty)
+               .HasPrincipalKey(joinedKey)
+               .HasForeignKey(drivingKey);
         }
 
         public static void AddOneToManyToOneRelation<D, J>(this ModelBuilder builder, string drivingProperty, string drivingKey, string joinedProperty, string joinedKey)
         {
-            builder.Entity(typeof(D))
-               .HasMany(typeof(J), drivingProperty)
-               .WithOne(joinedProperty)
+            builder.Entity(typeof(J))
+               .HasOne(typeof(D), joinedProperty)
+               .WithMany(drivingProperty)
                .HasPrincipalKey(drivingKey)
                .HasForeignKey(joinedKey);
         }
