@@ -87,6 +87,9 @@ namespace <NAMESPACE>
         private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("FORMAT:YYYYMMDD")
             </IF CUSTOM_HARMONY_AS_STRING>
           </IF DATE_YYYYMMDD>
+          <IF DATE_YYYYJJJ>
+        private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("FORMAT:YYYYJJJ")
+          </IF DATE_YYYYJJJ>
           <IF TIME>
             <IF CUSTOM_HARMONY_AS_STRING>
             <IF TIME_HHMM>
@@ -141,6 +144,13 @@ namespace <NAMESPACE>
             AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false, m<FieldSqlname>Formatter)
             </IF CUSTOM_HARMONY_AS_STRING>
           </IF DATE_YYYYMMDD>
+          <IF DATE_YYYYJJJ>
+            <IF CUSTOM_HARMONY_AS_STRING>
+            AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false, m<FieldSqlname>Formatter)
+            <ELSE>
+            AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false, m<FieldSqlname>Formatter)
+            </IF CUSTOM_HARMONY_AS_STRING>
+          </IF DATE_YYYYJJJ>
           <IF TIME>
             <IF CUSTOM_HARMONY_AS_STRING>
             <IF TIME_HHMM>

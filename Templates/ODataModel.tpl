@@ -105,6 +105,8 @@ namespace <NAMESPACE>
 </IF STRUCTURE_RELATIVE>
 <COUNTER_1_RESET>
 <FIELD_LOOP>
+<IF USER>
+<ELSE>
     <IF CUSTOM_NOT_HARMONY_EXCLUDE>
         ;;; <summary>
         ;;; <FIELD_DESC>
@@ -150,7 +152,14 @@ namespace <NAMESPACE>
             <IF CUSTOM_HARMONY_AS_STRING>
                 mreturn %string(mSynergyData.<field_original_name_modified>,"XXXX-XX-XX")
             <ELSE>
-                mreturn (<FIELD_CSTYPE>)SynergyDecimalDateConverter.Convert(mSynergyData.<field_original_name_modified>, ^null, ^null, ^null)
+                data formatString = "YYYYMMDD"
+                <IF DATE_YYMMDD>
+                formatString = "YYMMDD"
+                </IF DATE_YYMMDD>
+                <IF DATE_YYYYJJJ>
+                formatString = "YYYYJJJ"
+                </IF DATE_YYYYJJJ>
+                mreturn (<FIELD_CSTYPE>)SynergyDecimalDateConverter.Convert(mSynergyData.<field_original_name_modified>, ^null, formatString, ^null)
             </IF CUSTOM_HARMONY_AS_STRING>
         </IF DATE>
         <IF TIME_HHMM>
@@ -209,7 +218,14 @@ namespace <NAMESPACE>
             <IF CUSTOM_HARMONY_AS_STRING>
                 mSynergyData.<field_original_name_modified> = SynergyDecimalConverter.ConvertBack(value,"XXXX-XX-XX")
             <ELSE>
-                mSynergyData.<field_original_name_modified> = (<FIELD_TYPE>)SynergyDecimalDateConverter.ConvertBack(value, ^null, ^null, ^null)
+                data formatString = "YYYYMMDD"
+                <IF DATE_YYMMDD>
+                formatString = "YYMMDD"
+                </IF DATE_YYMMDD>
+                <IF DATE_YYYYJJJ>
+                formatString = "YYYYJJJ"
+                </IF DATE_YYYYJJJ>
+                mSynergyData.<field_original_name_modified> = (<FIELD_TYPE>)SynergyDecimalDateConverter.ConvertBack(value, ^null, formatString, ^null)
             </IF CUSTOM_HARMONY_AS_STRING>
         </IF DATE>
         <IF TIME_HHMM>
@@ -253,6 +269,7 @@ namespace <NAMESPACE>
         endproperty
 
     </IF CUSTOM_NOT_HARMONY_EXCLUDE>
+</IF USER>
 </FIELD_LOOP>
 .endregion
 ;//
@@ -403,8 +420,8 @@ namespace <NAMESPACE>
         ;;; <summary>
         ;;;
         ;;; </summary>
-        public readwrite property <RelationFromkey>Literal<COUNTER_1_INCREMENT><COUNTER_1_VALUE>, <LITERAL_SEGMENT_CSTYPE>, <LITERAL_SEGMENT_VALUE>
-
+        public readonly property <RelationFromkey>Literal<COUNTER_1_INCREMENT><COUNTER_1_VALUE>, <LITERAL_SEGMENT_CSTYPE>, <LITERAL_SEGMENT_VALUE>
+        private _<RelationFromkey>Literal<COUNTER_1_VALUE>, <LITERAL_SEGMENT_CSTYPE>, <LITERAL_SEGMENT_VALUE>
             </IF SEG_TYPE_LITERAL>
         </FROM_KEY_SEGMENT_LOOP>
     </RELATION_LOOP>
