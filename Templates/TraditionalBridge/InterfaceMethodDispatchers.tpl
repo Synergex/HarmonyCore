@@ -83,10 +83,10 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 			</PARAMETER_LOOP>
 		endmethod
 
-		public override method Dispatch, void
+		protected override method DispatchInternal, void
 			required in name,       string
 			required in callFrame,  @JsonObject
-			required in serializer, @ChannelSerializer
+			required in serializer, @DispatchSerializer
 			required in dispatcher, @RoutineDispatcher
 			record
 				requestId,			int
