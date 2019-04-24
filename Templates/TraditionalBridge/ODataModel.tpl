@@ -38,7 +38,7 @@
 ;; Title:       <StructureNoplural>.dbl
 ;;
 ;; Description: Model class representing data defined by the repository
-;;              structure <STRUCTURE_NOALIAS> and from the data file <FILE_NAME>.
+;;              structure <STRUCTURE_NOALIAS> and from the data file, if applicable.
 ;;
 ;;*****************************************************************************
 ;; WARNING: GENERATED CODE!
@@ -90,7 +90,7 @@ namespace <NAMESPACE>
 		public property <FieldSqlname>, <field_type>
 			method get
 			proc
-				mreturn m<StructureNoplural>.<field_name>				
+				mreturn m<StructureNoplural>.<field_name>
 			endmethod
 			method set
 			proc
