@@ -161,11 +161,35 @@ namespace Harmony.Core.FileIO
 						end
 						(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
 						begin
-							find(mChannel, RFA:keyValue, WAIT:1, LOCK:lockValue)
-							&	[$ERR_EOF = end_of_file,
-							&	$ERR_LOCKED = record_locked,
-							&	$ERR_KEYNOT = key_not_same,
-							&	$ERR_RNF = rec_not_found]
+							if(%size(keyValue) == 10) then
+							begin
+								data tempRecordBuffer = mDataObjectMetadata.GetBuffer()
+								try
+								begin
+									read(mChannel,^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), tempRecordBuffer), 
+									&	MATCH: Q_RFA, RFA:keyValue, WAIT:1, LOCK:lockValue)
+									&	[$ERR_EOF = end_of_file,
+									&	$ERR_LOCKED = record_locked,
+									&	$ERR_KEYNOT = key_not_same,
+									&	$ERR_RNF = rec_not_found]
+								end
+								finally
+								begin
+									mDataObjectMetadata.ReturnBuffer(tempRecordBuffer)
+								end
+								endtry
+							end
+							else
+							begin
+
+								find(mChannel, RFA:keyValue, WAIT:1, LOCK:lockValue)
+								&	[$ERR_EOF = end_of_file,
+								&	$ERR_LOCKED = record_locked,
+								&	$ERR_KEYNOT = key_not_same,
+								&	$ERR_RNF = rec_not_found]
+
+							end
+
 							mreturn FileAccessResults.Success
 						end
 						endusing
