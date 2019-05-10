@@ -323,6 +323,9 @@ namespace Harmony.Core.FileIO.Queryable
 				data extraWheres = subExpr?.QueryModel?.BodyClauses?.OfType<WhereClause>()?.ToList()
 				if((extraWheres?.Count ?? 0) > 0) then
 				begin
+					if(!mQuerySourceAliases.ContainsKey(subExpr.QueryModel.MainFromClause))
+						mQuerySourceAliases.Add(subExpr.QueryModel.MainFromClause, querySource)
+
 					data targetExpression = TypeSafeEqual(outerKeySelector, innerKeySelector)
 					data extraWhere, @WhereClause
 					foreach extraWhere in extraWheres
