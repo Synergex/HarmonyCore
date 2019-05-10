@@ -318,7 +318,8 @@ namespace Harmony.Core.FileIO.Queryable
 			end
 			else
 			begin
-				data subExpr = ^as(querySource, @SubQueryExpression)
+				data joinExpr = ^as(querySource, @JoinClause)
+				data subExpr = ^as(joinExpr?.InnerSequence, @SubQueryExpression)
 				data extraWheres = subExpr?.QueryModel?.BodyClauses?.OfType<WhereClause>()?.ToList()
 				if((extraWheres?.Count ?? 0) > 0) then
 				begin
