@@ -120,7 +120,14 @@ namespace Harmony.Core.EF.Storage.Internal
                     deleted.Add(entry.ToEntityEntry().Entity as DataObjectBase);
             }
 
-            _dataObjectProvider.ExecuteTransaction(created, updated, deleted);
+            try
+            {
+                _dataObjectProvider.ExecuteTransaction(created, updated, deleted);
+            }
+            catch (Synergex.SynergyDE.RecordNotSameException)
+            {
+                throw new DbUpdateConcurrencyException("", entries);
+            }
 
             return created.Count + updated.Count + deleted.Count;
         }

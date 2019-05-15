@@ -318,7 +318,28 @@ namespace Harmony.Core.FileIO.Queryable
 			end
 			else
 			begin
-				onPart = mWhereBuilder.VisitForOn(TypeSafeEqual(outerKeySelector, innerKeySelector))
+				data joinExpr = ^as(querySource, @JoinClause)
+				data subExpr = ^as(joinExpr?.InnerSequence, @SubQueryExpression)
+				data extraWheres = subExpr?.QueryModel?.BodyClauses?.OfType<WhereClause>()?.ToList()
+				if((extraWheres?.Count ?? 0) > 0) then
+				begin
+					if(!mQuerySourceAliases.ContainsKey(subExpr.QueryModel.MainFromClause))
+						mQuerySourceAliases.Add(subExpr.QueryModel.MainFromClause, querySource)
+
+					data targetExpression = TypeSafeEqual(outerKeySelector, innerKeySelector)
+					data extraWhere, @WhereClause
+					foreach extraWhere in extraWheres
+					begin
+						targetExpression = Expression.AndAlso(targetExpression, extraWhere.Predicate)
+					end
+
+					onPart = mWhereBuilder.VisitForOn(targetExpression)
+				end
+				else
+				begin
+					onPart = mWhereBuilder.VisitForOn(TypeSafeEqual(outerKeySelector, innerKeySelector))
+				end
+
 			end
 			data typeBuffer = mTypeBuffers[mQuerySourceMapping[querySource]]
 			typeBuffer.JoinOn = onPart
