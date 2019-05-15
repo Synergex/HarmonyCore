@@ -419,6 +419,14 @@ namespace <NAMESPACE>
             throw new ApplicationException(String.Format("Invalid key number {0} encountered in <StructureNoplural>Metadata.FormatKeyLiteral",keyNumber))
 
         endmethod
+<ELSE>
+        public override method FormatKeyLiteral, a
+            required in keyNumber, int
+            required in parts, @Dictionary<String, Object>
+        proc
+            mreturn ' '
+        endmethod
+
 </IF STRUCTURE_ISAM>
 
         ;;;<summary>
