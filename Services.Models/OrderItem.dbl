@@ -49,10 +49,12 @@ namespace Services.Models
         ;;;  Alternate Constructor, accepts the structured data
         ;;; </summary>
         public method OrderItem
-            required in inData, strOrderItem
+            required in inData, a
+			required in inGrfa, a
             parent()
         proc
             mSynergyData = mOriginalSynergyData = inData
+			mGlobalRFA = inGrfa
         endmethod
 
 .endregion
@@ -140,11 +142,13 @@ namespace Services.Models
         public property DateShipped, DateTime
             method get
             proc
-                mreturn (DateTime)SynergyDecimalDateConverter.Convert(mSynergyData.date_shipped, ^null, ^null, ^null)
+                data formatString = "YYYYMMDD"
+                mreturn (DateTime)SynergyDecimalDateConverter.Convert(mSynergyData.date_shipped, ^null, formatString, ^null)
             endmethod
             method set
             proc
-                mSynergyData.date_shipped = (D)SynergyDecimalDateConverter.ConvertBack(value, ^null, ^null, ^null)
+                data formatString = "YYYYMMDD"
+                mSynergyData.date_shipped = (D)SynergyDecimalDateConverter.ConvertBack(value, ^null, formatString, ^null)
             endmethod
         endproperty
 
