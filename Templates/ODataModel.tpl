@@ -37,7 +37,7 @@
 ;; Title:       <StructureNoplural>.dbl
 ;;
 ;; Description: Data model representing data defined by the repository
-;;              structure <STRUCTURE_NOALIAS> and from the data file <FILE_NAME>.
+;;              structure <STRUCTURE_NOALIAS><IF STRUCTURE_FILES> and from the data file <FILE_NAME></IF STRUCTURE_FILES>.
 ;;
 ;;*****************************************************************************
 ;; WARNING: GENERATED CODE!
@@ -435,6 +435,7 @@ namespace <NAMESPACE>
   </IF STRUCTURE_RELATIONS>
 </IF DEFINED_ENABLE_RELATIONS>
 
+<IF STRUCTURE_FILES>
 .region "Properties to represent keys"
 
     <KEY_LOOP>
@@ -458,6 +459,7 @@ namespace <NAMESPACE>
 
 .endregion
 
-    endclass
+</IF STRUCTURE_FILES>
+endclass
 
 endnamespace
