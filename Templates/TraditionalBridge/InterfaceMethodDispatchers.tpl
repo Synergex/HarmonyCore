@@ -130,11 +130,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 ;// Declare variable for function return value
 ;//
 <IF FUNCTION>
-	<IF HATVAL>
-				returnValue,		i4
-	<ELSE>
-				returnValue,		<METHOD_RETURN_TYPE>
-	</IF HATVAL>
+				returnValue,		<IF HATVAL>i4<ELSE><METHOD_RETURN_TYPE></IF_HATVAL>
 </IF FUNCTION>
 ;//=========================================================================================================================
 			endrecord

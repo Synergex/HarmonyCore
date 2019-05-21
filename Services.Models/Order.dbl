@@ -49,10 +49,12 @@ namespace Services.Models
         ;;;  Alternate Constructor, accepts the structured data
         ;;; </summary>
         public method Order
-            required in inData, strOrder
+            required in inData, a
+			required in inGrfa, a
             parent()
         proc
             mSynergyData = mOriginalSynergyData = inData
+			mGlobalRFA = inGrfa
         endmethod
 
 .endregion
@@ -143,11 +145,13 @@ namespace Services.Models
         public property DateOrdered, DateTime
             method get
             proc
-                mreturn (DateTime)SynergyDecimalDateConverter.Convert(mSynergyData.date_ordered, ^null, ^null, ^null)
+                data formatString = "YYYYMMDD"
+                mreturn (DateTime)SynergyDecimalDateConverter.Convert(mSynergyData.date_ordered, ^null, formatString, ^null)
             endmethod
             method set
             proc
-                mSynergyData.date_ordered = (D)SynergyDecimalDateConverter.ConvertBack(value, ^null, ^null, ^null)
+                data formatString = "YYYYMMDD"
+                mSynergyData.date_ordered = (D)SynergyDecimalDateConverter.ConvertBack(value, ^null, formatString, ^null)
             endmethod
         endproperty
 
@@ -157,11 +161,13 @@ namespace Services.Models
         public property DateCompleted, DateTime
             method get
             proc
-                mreturn (DateTime)SynergyDecimalDateConverter.Convert(mSynergyData.date_completed, ^null, ^null, ^null)
+                data formatString = "YYYYMMDD"
+                mreturn (DateTime)SynergyDecimalDateConverter.Convert(mSynergyData.date_completed, ^null, formatString, ^null)
             endmethod
             method set
             proc
-                mSynergyData.date_completed = (D)SynergyDecimalDateConverter.ConvertBack(value, ^null, ^null, ^null)
+                data formatString = "YYYYMMDD"
+                mSynergyData.date_completed = (D)SynergyDecimalDateConverter.ConvertBack(value, ^null, formatString, ^null)
             endmethod
         endproperty
 
@@ -265,6 +271,6 @@ namespace Services.Models
 
 .endregion
 
-    endclass
+endclass
 
 endnamespace

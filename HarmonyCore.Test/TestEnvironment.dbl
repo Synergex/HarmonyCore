@@ -2,6 +2,7 @@ import System
 import System.Collections.Generic
 import System.Text
 import System.IO
+import Harmony.Core.Test.FileIO.Models
 
 
 namespace HarmonyCore.Test
@@ -12,8 +13,36 @@ namespace HarmonyCore.Test
 			data sampleDataFolder = findRelativeFolderForAssembly("SampleData")
 			data sts, int
 			xcall setlog("DAT",sampleDataFolder,sts)
+
+			data dataFile = "DAT:orders.ism"
+			data xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+			data chout = 0
+			data order, @Orders
+			open(chout=0,o:i,dataFile,FDL:xdlFile)
+			foreach order in LoadFromFile()
+				store(chout,order.SynergyRecord)
+			close chout
+
+
 		endmethod
 
+		public static method LoadFromFile, @List<Orders>
+		proc
+			data dataFile = "DAT:orders.ism"
+			data textFile = dataFile.ToLower().Replace(".ism",".txt")
+			data orderCh, int, 0
+			data orderRec, strOrders
+			data ordersLst = new List<Orders>()
+			open(orderCh,i:s,textFile)
+			repeat
+			begin
+				reads(orderCh,orderRec,eof)
+				ordersLst.Add(new Orders(orderRec))
+			end
+		eof,
+			close orderCh
+			mreturn ordersLst
+		endmethod
 
 		private static method findRelativeFolderForAssembly, string
 			folderName, string
