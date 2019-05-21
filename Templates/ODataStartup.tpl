@@ -175,7 +175,7 @@ namespace <NAMESPACE>
                 &       ValidateAudience = true,
                 &       ValidAudience = "<OAUTH_API>",
                 &       ValidateIssuerSigningKey = true,
-                &       IssuerSigningKey = new SymmetricSecurityKey(<OAUTH_KEY>)
+                &       IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("<OAUTH_KEY>"))
                 & }
             end
 
