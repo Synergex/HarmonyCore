@@ -60,12 +60,13 @@ namespace <NAMESPACE>
             data textFile = dataFile.ToLower().Replace(".ism",".txt")
             data <structureNoplural>Ch, int, 0
             data <structureNoplural>Rec, str<StructureNoplural>
+			data grfa, a10
             data <structurePlural> = new List<<StructureNoplural>>()
             open(<structureNoplural>Ch,i:s,textFile)
             repeat
             begin
                 reads(<structureNoplural>Ch,<structureNoplural>Rec,eof)
-                <structurePlural>.Add(new <StructureNoplural>(<structureNoplural>Rec))
+                <structurePlural>.Add(new <StructureNoplural>(<structureNoplural>Rec, grfa))
             end
         eof,
             close <structureNoplural>Ch

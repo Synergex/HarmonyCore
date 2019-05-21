@@ -13,7 +13,9 @@ namespace Harmony.Core.FileIO
 		public static method EnsureSuccess, void
 			required in result, FileAccessResults
 		proc
-			if (result != FileAccessResults.Success)
+			if(result == FileAccessResults.RecordDataNotSame) then
+				throw new RecordNotSameException()
+			else if (result != FileAccessResults.Success)
 				throw new Exception(result.ToString())
 		endmethod
 
@@ -27,6 +29,8 @@ namespace Harmony.Core.FileIO
 		proc
 			if (result == FileAccessResults.EndOFDataFile || result == FileAccessResults.RecordNotFound) then
 				mreturn false
+			else if(result == FileAccessResults.RecordDataNotSame) then
+				throw new RecordNotSameException()
 			else if (result != FileAccessResults.Success)
 				throw new Exception(result.ToString())
 			mreturn true

@@ -161,11 +161,36 @@ namespace Harmony.Core.FileIO
 						end
 						(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
 						begin
-							find(mChannel, RFA:keyValue, WAIT:1, LOCK:lockValue)
-							&	[$ERR_EOF = end_of_file,
-							&	$ERR_LOCKED = record_locked,
-							&	$ERR_KEYNOT = key_not_same,
-							&	$ERR_RNF = rec_not_found]
+							if(%size(keyValue) == 10) then
+							begin
+								data tempRecordBuffer = mDataObjectMetadata.GetBuffer()
+								try
+								begin
+									read(mChannel,^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), tempRecordBuffer), 
+									&	MATCH: Q_RFA, RFA:keyValue, WAIT:1, LOCK:lockValue)
+									&	[$ERR_EOF = end_of_file,
+									&	$ERR_LOCKED = record_locked,
+									&	$ERR_KEYNOT = key_not_same,
+									&	$ERR_RNF = rec_not_found,
+									&	$ERR_RECNOT = rec_not_same]
+								end
+								finally
+								begin
+									mDataObjectMetadata.ReturnBuffer(tempRecordBuffer)
+								end
+								endtry
+							end
+							else
+							begin
+
+								find(mChannel, RFA:keyValue, WAIT:1, LOCK:lockValue)
+								&	[$ERR_EOF = end_of_file,
+								&	$ERR_LOCKED = record_locked,
+								&	$ERR_KEYNOT = key_not_same,
+								&	$ERR_RNF = rec_not_found]
+
+							end
+
 							mreturn FileAccessResults.Success
 						end
 						endusing
@@ -183,6 +208,8 @@ namespace Harmony.Core.FileIO
 					mreturn OnKeyNotSame(lockRecord, keyValue, "")
 				rec_not_found,
 					mreturn OnRecordNotFound()
+				rec_not_same,
+					mreturn OnRecordNotSame(lockRecord)
 				end
 			end
 			catch(ex, @FileIOException)
@@ -308,7 +335,8 @@ namespace Harmony.Core.FileIO
 						&	[$ERR_EOF = end_of_file,
 						&	$ERR_LOCKED = record_locked,
 						&	$ERR_KEYNOT = key_not_same,
-						&	$ERR_RNF = rec_not_found]
+						&	$ERR_RNF = rec_not_found,
+						&	$ERR_RECNOT = rec_not_same]
 						if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
 							DebugLogSession.Logging.LogTrace("Reading from channel: {0} on file '{1}' with open mode {2} operation: {3} krf: {4} grfa: {5} record: {6} ", mChannel, mFileName, mOpenMode, operation, keyOfReference, grfaBuffer, recordBuffer)
 						mreturn FileAccessResults.Success
@@ -420,6 +448,8 @@ namespace Harmony.Core.FileIO
 					mreturn OnKeyNotSame(withLock, keyValue, recordBuffer)
 				rec_not_found,
 					mreturn OnRecordNotFound()
+				rec_not_same,
+					mreturn OnRecordNotSame(withLock)
 				end
 			end
 			catch(ex, @FileIOException)

@@ -1,0 +1,39 @@
+import Harmony.Core.Interface
+import System.Threading.Tasks
+import System
+import System.Collections.Generic
+import System.Text
+import Microsoft.AspNetCore.Http
+import Microsoft.AspNetCore.Builder
+
+
+namespace Harmony.AspNetCore.Context
+
+	public static class IMultiTenantMiddleware
+		private static async method InvokeMiddleware, @Task
+			tenantIdentifier, @Func<HttpContext, string>
+			context, @HttpContext
+			next, @Func<Task>
+		proc
+			try
+			begin
+				MultiTenantProvider.TenantId = tenantIdentifier(context)
+				await next()
+			end
+			finally
+			begin
+				MultiTenantProvider.TenantId = ^null
+			end
+			endtry
+		endmethod
+		
+		public static extension method UseMultiTenancy, @IApplicationBuilder 
+			builder, @IApplicationBuilder
+			identifier, @Func<HttpContext, string>
+		proc
+			builder.Use(lambda(context, next) { InvokeMiddleware(identifier, context, next) })
+			mreturn builder
+		endmethod
+	endclass
+
+endnamespace

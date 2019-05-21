@@ -37,46 +37,62 @@ import Harmony.OData
 import Harmony.AspNetCore.Context
 import Services.Controllers
 import System.IO
+import System.Linq
 import System.Threading.Tasks
+import Microsoft.Extensions.Primitives
 
 namespace Services
 
-    public partial class Startup
+	public partial class Startup
 
-        partial method ConfigureServicesCustom, void
-            services, @IServiceCollection 
-        proc
-            services.AddScoped<IPrimaryKeyFactory,PrimaryKeyGenerator>()
+		partial method ConfigureServicesCustom, void
+			services, @IServiceCollection 
+		proc
+			services.AddScoped<IPrimaryKeyFactory,PrimaryKeyGenerator>()
 			services.TryAddEnumerable(ServiceDescriptor.Singleton<IActionInvokerProvider, HarmonySprocActionInvokerProvider>())
 			services.TryAddEnumerable(ServiceDescriptor.Singleton<IActionInvokerProvider, AdapterActionInvokerProvider>())
 			services.AddSingleton<IContextFactory<IsolatedMethodsBase>>(new AssemblyLoadContextPool<IsolatedMethodsBase, IsolatedMethods>(2))
 			services.AddScoped<Microsoft.EntityFrameworkCore.DbContext>(MakeGenericDbContext)
 			data contextPool, @RemoteExternalContextPool<ExternalCallContext>, new RemoteExternalContextPool<ExternalCallContext>(RemoteTargetOS.VMS, "VMSIT", "STEVEI_RSAC", new Renci.SshNet.PasswordAuthenticationMethod("STEVEI_RSAC", "rsac"), "RUN PROGRAM.EXE" , 4, 10000, 10000) 
-            ;data currentDirectory = Path.GetDirectoryName(^typeof(Startup).Assembly.Location)
+			;data currentDirectory = Path.GetDirectoryName(^typeof(Startup).Assembly.Location)
 			;data contextPool = new ExternalContextPool<ExternalCallContext>(Environment.GetEnvironmentVariable("SYNERGYDE32") + "dbl\bin\dbs.exe", 'TraditionalBridge.Test.dbr', Path.GetFullPath(Path.Combine(currentDirectory, "..\..\..\..\TraditionalBridge.Test\bin\x86\Debug")), ^null, 4) 
 			
 			
 			services.AddSingleton<IContextFactory<ExternalCallContext>>(contextPool)
-            services.AddContextPool<ExternalCallContext>()
-        endmethod
+			services.AddContextPool<ExternalCallContext>()
+		endmethod
 
-        private method MakeGenericDbContext, @Microsoft.EntityFrameworkCore.DbContext
-            sp, @IServiceProvider
-        proc
-            mreturn sp.GetService<Services.Models.DbContext>()
-        endmethod
+		private method MakeGenericDbContext, @Microsoft.EntityFrameworkCore.DbContext
+			sp, @IServiceProvider
+		proc
+			mreturn sp.GetService<Services.Models.DbContext>()
+		endmethod
 
-        partial method ConfigureCustom, void
-            required in app, @IApplicationBuilder
-            required in env, @IHostingEnvironment
+		partial method ConfigureCustom, void
+			required in app, @IApplicationBuilder
+			required in env, @IHostingEnvironment
 		proc
 			;;TODO there is a compiler bug with extension methods here
 			;;		data contextPool = (@ExternalContextPool<ExternalCallContext>)app.ApplicationServices.GetService<IContextFactory<ExternalCallContext>>()
 			;data contextPool = (@ExternalContextPool<ExternalCallContext>)app.ApplicationServices.GetService(^typeof(IContextFactory<ExternalCallContext>))
 			;Task.WaitAll(contextPool.RealizeMinimumPoolSize(app.ApplicationServices))
 			;app.UseEagerContext<ExternalCallContext>(contextPool)
-        endmethod
+			app.UseMultiTenancy(GetTenantId)
+		endmethod
 
-    endclass
+		private method GetTenantId, @string
+			httpCtx, @HttpContext
+		proc
+			data headers, StringValues
+			if(httpCtx.Request.Headers.TryGetValue("X-TENANT-ID", headers) && headers.Count == 1) then
+			begin
+				mreturn headers.ToArray().First()
+			end
+			else
+				mreturn String.Empty
+		endmethod
+
+
+	endclass
 
 endnamespace

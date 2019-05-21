@@ -308,7 +308,7 @@ namespace <NAMESPACE>
             required in dataArea, a
             required in grfa, a
         proc
-            mreturn new <StructureNoplural>((str<StructureNoplural>)dataArea) { GlobalRFA = grfa }
+            mreturn new <StructureNoplural>(dataArea, grfa)
         endmethod
 
         ;;; <summary>
@@ -328,7 +328,7 @@ namespace <NAMESPACE>
             required in grfa, a
             required in joinedObjects, [#]KeyValuePair<String, Object>
         proc
-            data new<StructureNoplural> = new <StructureNoplural>((str<StructureNoplural>)dataArea) { GlobalRFA = grfa }
+            data new<StructureNoplural> = new <StructureNoplural>(dataArea, grfa)
 <IF DEFINED_ENABLE_RELATIONS>
   <IF STRUCTURE_RELATIONS>
             data joinedObject, KeyValuePair<String, Object>
@@ -419,6 +419,14 @@ namespace <NAMESPACE>
             throw new ApplicationException(String.Format("Invalid key number {0} encountered in <StructureNoplural>Metadata.FormatKeyLiteral",keyNumber))
 
         endmethod
+<ELSE>
+        public override method FormatKeyLiteral, a
+            required in keyNumber, int
+            required in parts, @Dictionary<String, Object>
+        proc
+            mreturn ' '
+        endmethod
+
 </IF STRUCTURE_ISAM>
 
         ;;;<summary>
