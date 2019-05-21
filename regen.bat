@@ -21,14 +21,24 @@ set DATA_ALIASES=%DATA_STRUCTURES%
 set FILE_STRUCTURES=%DATA_STRUCTURES%
 set FILE_ALIASES=%DATA_ALIASES%
 
-rem DATA_STRUCTURES Is a list all of structures that you wish to generate models and
-rem                 controllers for. In other words it declares all of the "entities"
-rem                 that are being represented and exposed by the environment.
+set CUSTOM_STRUCTURES=
+set CUSTOM_ALIASES=%CUSTOM_STRUCTURES%
+
+rem DATA_STRUCTURES		Is a list all structures that you wish to generate models, metadata and
+rem						controllers for. In other words it declares all of the "entities"
+rem						that are being represented and exposed by the environment. The DbContext
+rem                     and EdmBuilder classes will be aware of the types associated with These
+rem                     structures.
 rem
-rem FILE_STRUCTURES If you don't have multi-record format files then this should be the
-rem                 same as DATA_STRUCTURES. But if you do then FILE_STRUCTURES should
-rem                 only list ONE of the structures assigned to each file, so this list
-rem                 will be a subset of DATA_STRUCTURES.
+rem FILE_STRUCTURES		If you don't have multi-record format files then this should be the
+rem						same as DATA_STRUCTURES. But if you do then FILE_STRUCTURES should
+rem						only list ONE of the structures assigned to each file, so this list
+rem						will be a subset of DATA_STRUCTURES.
+rem
+rem CUSTOM_STRUCTURES	Is a list of structures that you wish to generate models and metadata
+rem                     for, but which will NOT be exposed to the Entity Framework provider.
+rem                     These classes are intended for use only by custom code-based endpoints
+rem						and the DbContext and EdmBuilder classes will know nothing about them.
 
 rem ================================================================================================================================
 rem Specify optional "system parameter file" structure
@@ -68,6 +78,7 @@ set ENABLE_DELETE=-define ENABLE_DELETE
 set ENABLE_SPROC=-define ENABLE_SPROC
 set ENABLE_ADAPTER_ROUTING=-define ENABLE_ADAPTER_ROUTING
 rem set ENABLE_AUTHENTICATION=-define ENABLE_AUTHENTICATION
+rem set ENABLE_CUSTOM_AUTHENTICATION=-define ENABLE_CUSTOM_AUTHENTICATION
 rem set ENABLE_FIELD_SECURITY=-define ENABLE_FIELD_SECURITY
 set ENABLE_UNIT_TEST_GENERATION=YES
 rem set ENABLE_CASE_SENSITIVE_URL=-define ENABLE_CASE_SENSITIVE_URL
@@ -92,15 +103,15 @@ if "%COMPUTERNAME%"=="SIVES" (
 echo.
 echo User token file is %USERTOKENFILE%
 
-set NOREPLACEOPTS=-e -lf -u %SolutionDir%%USERTOKENFILE% %ENABLE_GET_ALL% %ENABLE_GET_ONE% %ENABLE_OVERLAYS% %ENABLE_ALTERNATE_FIELD_NAMES% %ENABLE_AUTHENTICATION% %ENABLE_FIELD_SECURITY% %ENABLE_PROPERTY_ENDPOINTS% %ENABLE_PROPERTY_VALUE_DOCS% %ENABLE_CASE_SENSITIVE_URL% %ENABLE_CREATE_TEST_FILES% %ENABLE_CORS% %ENABLE_IIS_SUPPORT% %ENABLE_DELETE% %ENABLE_PUT% %ENABLE_POST% %ENABLE_PATCH% %ENABLE_ALTERNATE_KEYS% %ENABLE_SWAGGER_DOCS% %ENABLE_RELATIONS% %ENABLE_SELECT% %ENABLE_FILTER% %ENABLE_ORDERBY% %ENABLE_COUNT% %ENABLE_TOP% %ENABLE_SKIP% %ENABLE_SPROC% %ENABLE_ADAPTER_ROUTING% %ENABLE_READ_ONLY_PROPERTIES% %PARAM_OPTIONS_PRESENT% -i %SolutionDir%Templates -rps %RPSMFIL% %RPSTFIL%
+set NOREPLACEOPTS=-e -lf -u %SolutionDir%%USERTOKENFILE% %ENABLE_GET_ALL% %ENABLE_GET_ONE% %ENABLE_OVERLAYS% %ENABLE_ALTERNATE_FIELD_NAMES% %ENABLE_AUTHENTICATION% %ENABLE_CUSTOM_AUTHENTICATION% %ENABLE_FIELD_SECURITY% %ENABLE_PROPERTY_ENDPOINTS% %ENABLE_PROPERTY_VALUE_DOCS% %ENABLE_CASE_SENSITIVE_URL% %ENABLE_CREATE_TEST_FILES% %ENABLE_CORS% %ENABLE_IIS_SUPPORT% %ENABLE_DELETE% %ENABLE_PUT% %ENABLE_POST% %ENABLE_PATCH% %ENABLE_ALTERNATE_KEYS% %ENABLE_SWAGGER_DOCS% %ENABLE_RELATIONS% %ENABLE_SELECT% %ENABLE_FILTER% %ENABLE_ORDERBY% %ENABLE_COUNT% %ENABLE_TOP% %ENABLE_SKIP% %ENABLE_SPROC% %ENABLE_ADAPTER_ROUTING% %ENABLE_READ_ONLY_PROPERTIES% %PARAM_OPTIONS_PRESENT% -i %SolutionDir%Templates -rps %RPSMFIL% %RPSTFIL%
 set STDOPTS=%NOREPLACEOPTS% -r
 
 rem ================================================================================================================================
 rem Generate a Web API / OData CRUD environment
 
 rem Generate model and metadata classes
-codegen -s %DATA_STRUCTURES% ^
-        -a %DATA_ALIASES% ^
+codegen -s %DATA_STRUCTURES% %CUSTOM_STRUCTURES% ^
+        -a %DATA_ALIASES% %CUSTOM_ALIASES% ^
         -t ODataModel ODataMetaData ^
         -o %SolutionDir%%ModelsProject% ^
         -n %ModelsProject% ^
