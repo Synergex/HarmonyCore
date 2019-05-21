@@ -86,10 +86,12 @@ namespace <NAMESPACE>
         ;;;  Alternate Constructor, accepts the structured data
         ;;; </summary>
         public method <StructureNoplural>
-            required in inData, str<StructureNoplural>
+            required in inData, a
+			required in inGrfa, a
             parent()
         proc
             mSynergyData = mOriginalSynergyData = inData
+			mGlobalRFA = inGrfa
         endmethod
 
 .endregion
