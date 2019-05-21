@@ -75,9 +75,9 @@ set ENABLE_IIS_SUPPORT=
 set ENABLE_OVERLAYS=-f o
 set ENABLE_ALTERNATE_FIELD_NAMES= 
 set ENABLE_READ_ONLY_PROPERTIES= 
-set RPSDAT=C:\Users\devadm\Desktop\test\xfpl\dat
-set RPSMFIL=C:\Users\devadm\Desktop\test\xfpl\dat\rpsmain.ism
-set RPSTFIL=C:\Users\devadm\Desktop\test\xfpl\dat\rpstext.ism
+set RPSDAT=xfplSMC
+set RPSMFIL=xfplSMC\rpsmain.ism
+set RPSTFIL=xfplSMC\rpstext.ism
 
 if not "NONE%ENABLE_SELECT%%ENABLE_FILTER%%ENABLE_ORDERBY%%ENABLE_TOP%%ENABLE_SKIP%%ENABLE_RELATIONS%"=="NONE" (
   set PARAM_OPTIONS_PRESENT=-define PARAM_OPTIONS_PRESENT
@@ -94,7 +94,7 @@ if "%COMPUTERNAME%"=="SIVES" (
 echo.
 echo User token file is %USERTOKENFILE%
 
-set NOREPLACEOPTS=-e -lf -u %USERTOKENFILE% %ENABLE_GET_ALL% %ENABLE_GET_ONE% %ENABLE_OVERLAYS% %ENABLE_ALTERNATE_FIELD_NAMES% %ENABLE_AUTHENTICATION% %ENABLE_FIELD_SECURITY% %ENABLE_PROPERTY_ENDPOINTS% %ENABLE_PROPERTY_VALUE_DOCS% %ENABLE_CASE_SENSITIVE_URL% %ENABLE_CREATE_TEST_FILES% %ENABLE_CORS% %ENABLE_IIS_SUPPORT% %ENABLE_DELETE% %ENABLE_PUT% %ENABLE_POST% %ENABLE_PATCH% %ENABLE_ALTERNATE_KEYS% %ENABLE_SWAGGER_DOCS% %ENABLE_RELATIONS% %ENABLE_SELECT% %ENABLE_FILTER% %ENABLE_ORDERBY% %ENABLE_COUNT% %ENABLE_TOP% %ENABLE_SKIP% %ENABLE_SPROC% %ENABLE_ADAPTER_ROUTING% %ENABLE_READ_ONLY_PROPERTIES% %PARAM_OPTIONS_PRESENT% -i C:\Users\devadm\Desktop\HarmonyCore\Templates -rps %RPSMFIL% %RPSTFIL%
+set NOREPLACEOPTS=-e -lf -u %USERTOKENFILE% %ENABLE_GET_ALL% %ENABLE_GET_ONE% %ENABLE_OVERLAYS% %ENABLE_ALTERNATE_FIELD_NAMES% %ENABLE_AUTHENTICATION% %ENABLE_FIELD_SECURITY% %ENABLE_PROPERTY_ENDPOINTS% %ENABLE_PROPERTY_VALUE_DOCS% %ENABLE_CASE_SENSITIVE_URL% %ENABLE_CREATE_TEST_FILES% %ENABLE_CORS% %ENABLE_IIS_SUPPORT% %ENABLE_DELETE% %ENABLE_PUT% %ENABLE_POST% %ENABLE_PATCH% %ENABLE_ALTERNATE_KEYS% %ENABLE_SWAGGER_DOCS% %ENABLE_RELATIONS% %ENABLE_SELECT% %ENABLE_FILTER% %ENABLE_ORDERBY% %ENABLE_COUNT% %ENABLE_TOP% %ENABLE_SKIP% %ENABLE_SPROC% %ENABLE_ADAPTER_ROUTING% %ENABLE_READ_ONLY_PROPERTIES% %PARAM_OPTIONS_PRESENT% -i Templates -rps %RPSMFIL% %RPSTFIL%
 set STDOPTS=%NOREPLACEOPTS% -r
 
 rem ===========================================================================
@@ -105,94 +105,123 @@ set PROJECT=TraditionalBridge.Test
 set NAMESPACE=TraditionalBridge.Test
 
 rem Models
-codegen -s %DATA_STRUCTURES% -t %SolutionDir%\%TEMPLATEROOT%\ODataModel %SolutionDir%\%TEMPLATEROOT%\ODataMetaData -o %SolutionDir%\%PROJECT%\Models -n %NAMESPACE%.Models -e -r -lf
+codegen -s %DATA_STRUCTURES% -t ODataModel ODataMetaData -i %TEMPLATEROOT% -o %PROJECT%\Models -n %NAMESPACE%.Models -e -r -lf
+if ERRORLEVEL 1 goto error
 
 rem smc
 set TESTNAME=smc
 set SMCNAME=%TESTNAME%.xml
-call %SolutionDir%\%SMCROOT%\gencode.bat
+call %SMCROOT%\gencode.bat
+if ERRORLEVEL 1 goto error
 
 rem AutoTime
 set TESTNAME=AutoTime
 set SMCNAME=%TESTNAME%.xml
-call %SolutionDir%\%SMCROOT%\gencode.bat
+call %SMCROOT%\gencode.bat
+if ERRORLEVEL 1 goto error
 
 rem BinaryTransfer
 set TESTNAME=BinaryTransfer
 set SMCNAME=%TESTNAME%.xml
-call %SolutionDir%\%SMCROOT%\gencode.bat
+call %SMCROOT%\gencode.bat
+if ERRORLEVEL 1 goto error
 
 rem data64k
 set TESTNAME=data64k
 set SMCNAME=%TESTNAME%.xml
 call %SolutionDir%\%SMCROOT%\gencode.bat
+if ERRORLEVEL 1 goto error
 
 rem Encrypt
 set TESTNAME=Encrypt
 set SMCNAME=%TESTNAME%.xml
-call %SolutionDir%\%SMCROOT%\gencode.bat
+call %SMCROOT%\gencode.bat
+if ERRORLEVEL 1 goto error
 
 rem IF913
 set TESTNAME=IF913
 set SMCNAME=%TESTNAME%.xml
-call %SolutionDir%\%SMCROOT%\gencode.bat
+call %SMCROOT%\gencode.bat
+if ERRORLEVEL 1 goto error
 
 rem LrgPkts
 set TESTNAME=LrgPkts
 set SMCNAME=%TESTNAME%.xml
-call %SolutionDir%\%SMCROOT%\gencode.bat
+call %SMCROOT%\gencode.bat
+if ERRORLEVEL 1 goto error
 
 rem NoParms
 set TESTNAME=NoParms
 set SMCNAME=%TESTNAME%.xml
-call %SolutionDir%\%SMCROOT%\gencode.bat
+call %SMCROOT%\gencode.bat
+if ERRORLEVEL 1 goto error
 
 rem pooltests
 set SMCNAME=pooltests.xml
 set TESTNAME=Pool1
-call %SolutionDir%\%SMCROOT%\gencode.bat
+call %SMCROOT%\gencode.bat
+if ERRORLEVEL 1 goto error
 set TESTNAME=Pool2
-call %SolutionDir%\%SMCROOT%\gencode.bat
+call %SMCROOT%\gencode.bat
+if ERRORLEVEL 1 goto error
 set TESTNAME=Pool3
-call %SolutionDir%\%SMCROOT%\gencode.bat
+call %SMCROOT%\gencode.bat
+if ERRORLEVEL 1 goto error
 set TESTNAME=Pool4
-call %SolutionDir%\%SMCROOT%\gencode.bat
+call %SMCROOT%\gencode.bat
+if ERRORLEVEL 1 goto error
 set TESTNAME=Pool5
-call %SolutionDir%\%SMCROOT%\gencode.bat
+call %SMCROOT%\gencode.bat
+if ERRORLEVEL 1 goto error
 set TESTNAME=Pool6
-call %SolutionDir%\%SMCROOT%\gencode.bat
+call %SMCROOT%\gencode.bat
+if ERRORLEVEL 1 goto error
 
 rem strtests
 set TESTNAME=strtests
 set SMCNAME=%TESTNAME%.xml
-call %SolutionDir%\%SMCROOT%\gencode.bat
+call %SMCROOT%\gencode.bat
+if ERRORLEVEL 1 goto error
 
 rem syntst
 set TESTNAME=syntst
 set SMCNAME=%TESTNAME%.xml
-call %SolutionDir%\%SMCROOT%\gencode.bat
+call %SMCROOT%\gencode.bat
+if ERRORLEVEL 1 goto error
 
 rem TestDate
 set TESTNAME=TestDate
 set SMCNAME=%TESTNAME%.xml
-call %SolutionDir%\%SMCROOT%\gencode.bat
+call %SMCROOT%\gencode.bat
+if ERRORLEVEL 1 goto error
 
 rem UserData
 set TESTNAME=UserData
 set SMCNAME=%TESTNAME%.xml
-call %SolutionDir%\%SMCROOT%\gencode.bat
+call %SMCROOT%\gencode.bat
+if ERRORLEVEL 1 goto error
 
 rem V93IF
 set TESTNAME=V93IF
 set SMCNAME=%TESTNAME%.xml
-call %SolutionDir%\%SMCROOT%\gencode.bat
+call %SMCROOT%\gencode.bat
+if ERRORLEVEL 1 goto error
 
 rem WCFields
 set TESTNAME=WCFields
 set SMCNAME=%TESTNAME%.xml
-call %SolutionDir%\%SMCROOT%\gencode.bat
+call %SMCROOT%\gencode.bat
+if ERRORLEVEL 1 goto error
 
 rem ZDateTime
 set TESTNAME=ZDateTime
 set SMCNAME=%TESTNAME%.xml
-call %SolutionDir%\%SMCROOT%\gencode.bat
+call %SMCROOT%\gencode.bat
+if ERRORLEVEL 1 goto error
+
+goto done
+
+:error
+echo *** CODE GENERATION INCOMPLETE ***
+
+:done
