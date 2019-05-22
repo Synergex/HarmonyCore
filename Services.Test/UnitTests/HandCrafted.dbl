@@ -853,6 +853,51 @@ namespace Services.Test.UnitTests
 			end
 		endmethod
 
+		{TestMethod}
+		public method TraditionalBridgeGetAllItems, void
+		proc
+			if(File.Exists(Path.GetFullPath(Path.Combine(Path.GetDirectoryName(^typeof(HandCrafted).Assembly.Location), "..\..\..\..\TestDir\TraditionalBridge.Test.dbr")))) then
+			begin
+				disposable data client = UnitTestEnvironment.Server.CreateClient()
+				disposable data response = client.GetAsync("/odata/VMS/GetAllItems()").Result
+				data result = response.Content.ReadAsStringAsync().Result
+				response.EnsureSuccessStatusCode()
+				data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
+			end
+			else
+				Console.WriteLine("Skipping TraditionalBridgeGetAllItems")
+		endmethod
+
+		{TestMethod}
+		public method TraditionalBridgeGetAllOrders, void
+		proc
+			if(File.Exists(Path.GetFullPath(Path.Combine(Path.GetDirectoryName(^typeof(HandCrafted).Assembly.Location), "..\..\..\..\TestDir\TraditionalBridge.Test.dbr")))) then
+			begin
+				disposable data client = UnitTestEnvironment.Server.CreateClient()
+				disposable data response = client.GetAsync("/odata/VMS/GetAllOrders()").Result
+				data result = response.Content.ReadAsStringAsync().Result
+				response.EnsureSuccessStatusCode()
+				data orders, @ODataOrders, JsonConvert.DeserializeObject<ODataOrders>(result)
+			end
+			else
+				Console.WriteLine("Skipping TraditionalBridgeGetAllOrders")
+		endmethod
+
+		{TestMethod}
+		public method TraditionalBridgeGetAllVendors, void
+		proc
+			if(File.Exists(Path.GetFullPath(Path.Combine(Path.GetDirectoryName(^typeof(HandCrafted).Assembly.Location), "..\..\..\..\TestDir\TraditionalBridge.Test.dbr")))) then
+			begin
+				disposable data client = UnitTestEnvironment.Server.CreateClient()
+				disposable data response = client.GetAsync("/odata/VMS/GetAllVendors()").Result
+				data result = response.Content.ReadAsStringAsync().Result
+				response.EnsureSuccessStatusCode()
+				data vendors, @ODataVendors, JsonConvert.DeserializeObject<ODataVendors>(result)
+			end
+			else
+				Console.WriteLine("Skipping TraditionalBridgeGetAllOrders")
+		endmethod
+
 	endclass
 
 endnamespace
