@@ -37,8 +37,8 @@
 ;;
 ;; Title:       <StructureNoplural>.dbl
 ;;
-;; Description: Model class representing data defined by the repository
-;;              structure <STRUCTURE_NOALIAS> and from the data file, if applicable.
+;; Description: Data model representing data defined by the repository
+;;              structure <STRUCTURE_NOALIAS><IF STRUCTURE_FILES> and from the data file <FILE_NAME></IF STRUCTURE_FILES>.
 ;;
 ;;*****************************************************************************
 ;; WARNING: GENERATED CODE!
