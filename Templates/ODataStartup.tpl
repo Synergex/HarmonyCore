@@ -66,6 +66,9 @@
 ;;
 
 import System.Collections.Generic
+<IF DEFINED_ENABLE_API_VERSIONING>
+import System.Linq
+</IF DEFINED_ENABLE_API_VERSIONING>
 import Harmony.Core.Context
 import Harmony.Core.FileIO
 import Harmony.Core.Utility
@@ -104,8 +107,19 @@ import <MODELS_NAMESPACE>
 
 namespace <NAMESPACE>
 
+    ;;; <summary>
+    ;;; 
+    ;;; </summary>
     public partial class Startup
 
+        ;;; <summary>
+        ;;; This methoid is used to make services available to the application.
+        ;;; These services are typically accessed via dependency injection in controller classes.
+        ;;; The primary purpose of the ConfigureServices method is as a place to register
+        ;;; implementations of types for services that are needed by the application.
+        ;;; It is also used to configure any options related to those services.
+        ;;; </summary>
+        ;;; <param name="services">Collection of available services.</param>
         public method ConfigureServices, void
             services, @IServiceCollection 
         proc
@@ -117,6 +131,7 @@ namespace <NAMESPACE>
             ;;-------------------------------------------------------
             ;;Load Harmony Core
 
+            ;;DataObjectProvider configuration
             lambda AddDataObjectMappings(serviceProvider)
             begin
                 data objectProvider = new DataObjectProvider(serviceProvider.GetService<IFileChannelManager>())
@@ -124,6 +139,12 @@ namespace <NAMESPACE>
                 objectProvider.AddDataObjectMapping<<StructureNoplural>>("<FILE_NAME>", <IF STRUCTURE_ISAM>FileOpenMode.UpdateIndexed</IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>FileOpenMode.UpdateRelative</IF STRUCTURE_RELATIVE>)
                 </STRUCTURE_LOOP>
                 mreturn objectProvider
+            end
+
+            ;;DBContext configuration
+            lambda ConfigureDBContext(sp,opts)
+            begin
+                HarmonyDbContextOptionsExtensions.UseHarmonyDatabase(opts, sp.GetService<IDataObjectProvider>())
             end
 
             services.AddSingleton<IEdmBuilder, EdmBuilder>()
@@ -134,6 +155,23 @@ namespace <NAMESPACE>
             ;;-------------------------------------------------------
             ;;Load OData and ASP.NET
 
+        <IF DEFINED_ENABLE_API_VERSIONING>
+            services.AddApiVersioning( lambda(vOptions) { vOptions.ReportApiVersions = true })
+            services.AddOData().EnableApiVersioning()
+
+            lambda oDataApiExplorer(vOptions)
+            begin
+                ;; add the versioned api explorer, which also adds IApiVersionDescriptionProvider service
+                ;; note: the specified format code will format the version as "'v'major[.minor][-status]"
+                vOptions.GroupNameFormat = "'v'VVV";
+
+                ;; note: this option is only necessary when versioning by url segment. the SubstitutionFormat
+                ;; can also be used to control the format of the API version in route templates
+                vOptions.SubstituteApiVersionInUrl = true;
+            end
+
+            services.AddODataApiExplorer(oDataApiExplorer)
+        <ELSE>
             lambda AddAltKeySupport(serviceProvider)
             begin
                 data model = EdmBuilder.GetEdmModel(serviceProvider)
@@ -143,26 +181,27 @@ namespace <NAMESPACE>
             services.AddSingleton<ODataUriResolver>(AddAltKeySupport)
 
             services.AddOData()
+        </IF DEFINED_ENABLE_API_VERSIONING>
 
             ;;-------------------------------------------------------
             ;;Load our workaround for the fact that OData alternate key support is messed up right now!
 
             services.AddSingleton<IPerRouteContainer, HarmonyPerRouteContainer>()
 
-<IF DEFINED_ENABLE_SWAGGER_DOCS>
+        <IF DEFINED_ENABLE_SWAGGER_DOCS>
             services.AddSwaggerGen()
-</IF DEFINED_ENABLE_SWAGGER_DOCS>
+        </IF DEFINED_ENABLE_SWAGGER_DOCS>
 
             data mvcBuilder = services.AddMvcCore()
             &    .AddDataAnnotations()      ;;Enable data annotations
             &    .AddJsonFormatters()       ;;For PATCH
-<IF DEFINED_ENABLE_SWAGGER_DOCS>
+        <IF DEFINED_ENABLE_SWAGGER_DOCS>
             &    .AddApiExplorer()          ;;Swagger UI
-</IF DEFINED_ENABLE_SWAGGER_DOCS>
+        </IF DEFINED_ENABLE_SWAGGER_DOCS>
             &    .AddApplicationPart(^typeof(IsolatedMethodsBase).Assembly)
 
-<IF DEFINED_ENABLE_AUTHENTICATION>
-<IF DEFINED_ENABLE_CUSTOM_AUTHENTICATION>
+        <IF DEFINED_ENABLE_AUTHENTICATION>
+        <IF DEFINED_ENABLE_CUSTOM_AUTHENTICATION>
             lambda configJwt(o)
             begin
                 o.IncludeErrorDetails = true
@@ -192,7 +231,7 @@ namespace <NAMESPACE>
 
             services.AddAuthentication(authenticationOptions).AddJwtBearer("Bearer", configJwt)
             mvcBuilder.AddAuthorization(authorizationOptions)
-<ELSE>
+        <ELSE>
             ;;-------------------------------------------------------
             ;;Enable authentication and authorization
 
@@ -216,8 +255,8 @@ namespace <NAMESPACE>
 
             services.AddAuthentication(authenticationOptions).AddIdentityServerAuthentication(identityServerOptions)
             mvcBuilder.AddAuthorization(authorizationOptions)
-</IF DEFINED_ENABLE_CUSTOM_AUTHENTICATION>
-</IF DEFINED_ENABLE_AUTHENTICATION>
+        </IF DEFINED_ENABLE_CUSTOM_AUTHENTICATION>
+        </IF DEFINED_ENABLE_AUTHENTICATION>
             ;;-------------------------------------------------------
             ;;Enable HTTP redirection to HTTPS
 
@@ -229,7 +268,7 @@ namespace <NAMESPACE>
 
             services.AddHttpsRedirection(httpsConfig)
 
-<IF DEFINED_ENABLE_IIS_SUPPORT>
+        <IF DEFINED_ENABLE_IIS_SUPPORT>
             ;;-------------------------------------------------------
             ;;Enable support for hosting in IIS
 
@@ -240,26 +279,24 @@ namespace <NAMESPACE>
 
             services.Configure<IISOptions>(iisOptions)
             
-</IF DEFINED_ENABLE_IIS_SUPPORT>
-<IF DEFINED_ENABLE_CORS>
+        </IF DEFINED_ENABLE_IIS_SUPPORT>
+        <IF DEFINED_ENABLE_CORS>
             ;;-------------------------------------------------------
             ;;Add "Cross Origin Resource Sharing" (CORS) support
 
             services.AddCors()
 
-</IF DEFINED_ENABLE_CORS>
+        </IF DEFINED_ENABLE_CORS>
             ;;If there is a ConfigureServicesCustom method, call it
             ConfigureServicesCustom(services)
 
         endmethod
 
-        private method ConfigureDBContext, void
-            required in sp, @IServiceProvider
-            required in opts, @DbContextOptionsBuilder
-        proc
-            HarmonyDbContextOptionsExtensions.UseHarmonyDatabase(opts, sp.GetService<IDataObjectProvider>())
-        endmethod
-
+        ;;; <summary>
+        ;;; This method is used to configure the ASP.NET WebApi request pipeline.
+        ;;; </summary>
+        ;;; <param name="app">IApplicationBuilder component that configures the request pipeline by having middleware added to it.</param>
+        ;;; <param name="env">IHostingEnvironment that exposes information about the environment that is hosting the application.</param>
         public method Configure, void
             required in app, @IApplicationBuilder
             required in env, @IHostingEnvironment
@@ -289,65 +326,42 @@ namespace <NAMESPACE>
 
             app.UseHttpsRedirection()
 
-<IF DEFINED_ENABLE_AUTHENTICATION>
+        <IF DEFINED_ENABLE_AUTHENTICATION>
             ;;-------------------------------------------------------
             ;;Enable the authentication middleware
 
             app.UseAuthentication()
 
-</IF DEFINED_ENABLE_AUTHENTICATION>
+        </IF DEFINED_ENABLE_AUTHENTICATION>
             ;;-------------------------------------------------------
             ;;Configure the MVC & OData environments
 
             lambda mvcBuilder(builder)
             begin
+            <IF NOT_DEFINED_ENABLE_API_VERSIONING>
                 data model = EdmBuilder.GetEdmModel(app.ApplicationServices)
 
+            </IF NOT_DEFINED_ENABLE_API_VERSIONING>
                 lambda UriResolver(s)
                 begin
                     data result = app.ApplicationServices.GetRequiredService<ODataUriResolver>()
                     mreturn result
                 end
 
-                lambda EnableRouting(sp)
+                lambda EnableRouting(<IF DEFINED_ENABLE_API_VERSIONING>configContext<ELSE>sp</IF DEFINED_ENABLE_API_VERSIONING>)
                 begin
-                    ;;Enable optional OData features
+                <IF DEFINED_ENABLE_API_VERSIONING>
+                    configContext.RoutingConventions.Insert(1, new HarmonySprocRoutingConvention())
+                    configContext.RoutingConventions.Insert(1, new AdapterRoutingConvention())
 
-                    <IF DEFINED_ENABLE_SELECT>
-                    ;;Enable $select expressions to select properties returned
-                    builder.Select()
-
-                    </IF DEFINED_ENABLE_SELECT>
-                    <IF DEFINED_ENABLE_FILTER>
-                    ;;Enable $filter expressions to filter rows returned
-                    builder.Filter()
-
-                    </IF DEFINED_ENABLE_FILTER>
-                    <IF DEFINED_ENABLE_ORDERBY>
-                    ;;Enable $orderby expressions to custom sort results
-                    builder.OrderBy()
-
-                    </IF DEFINED_ENABLE_ORDERBY>
-                    <IF DEFINED_ENABLE_COUNT>
-                    ;;Enable /$count endpoints
-                    builder.Count()
-
-                    </IF DEFINED_ENABLE_COUNT>
-                    <IF DEFINED_ENABLE_RELATIONS>
-                    ;;Enable $expand expressions to expand relations
-                    builder.Expand()
-
-                    </IF DEFINED_ENABLE_RELATIONS>
-                    ;;Specify the maximum rows that may be returned by $top expressions
-                    builder.MaxTop(100)
-
+                </IF DEFINED_ENABLE_API_VERSIONING>
                     data routeList = ODataRoutingConventions.CreateDefaultWithAttributeRouting("<SERVER_BASE_PATH>", builder)
-                    <IF DEFINED_ENABLE_SPROC>
+                <IF DEFINED_ENABLE_SPROC>
                     routeList.Insert(0, new HarmonySprocRoutingConvention())
-                    </IF DEFINED_ENABLE_SPROC>
-                    <IF DEFINED_ENABLE_ADAPTER_ROUTING>
+                </IF DEFINED_ENABLE_SPROC>
+                <IF DEFINED_ENABLE_ADAPTER_ROUTING>
                     routeList.Insert(0, new AdapterRoutingConvention())
-                    </IF DEFINED_ENABLE_ADAPTER_ROUTING>
+                </IF DEFINED_ENABLE_ADAPTER_ROUTING>
                     mreturn routeList
                 end
 
@@ -362,20 +376,74 @@ namespace <NAMESPACE>
                     nop
                 end
 
+            <IF DEFINED_ENABLE_API_VERSIONING>
+                lambda ConfigureRoute(containerBuilder)
+                begin
+                    data containerBuilderType, @Type, ((@Object)containerBuilder).GetType()
+                    data servicesField, @System.Reflection.FieldInfo, containerBuilderType.GetField("services", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                    data serviceDescriptors = ((@System.Collections.IEnumerable)servicesField.GetValue(containerBuilder)).OfType<ServiceDescriptor>()
+                    data versionedModelDescriptor = serviceDescriptors.Where(lambda(descriptor) { descriptor.ServiceType == ^typeof(IEdmModel) }).Last()
+                    data versionedModel = versionedModelDescriptor.ImplementationInstance
+                    if(versionedModel == ^null)
+                        versionedModel = versionedModelDescriptor.ImplementationFactory(app.ApplicationServices)
+                    containerBuilder.AddService<IEdmModel>(Microsoft.OData.ServiceLifetime.Scoped, lambda(sp) { new RefEdmModel() { RealModel = ^as(versionedModel, @IEdmModel) }  })
+                    containerBuilder.AddService<ODataUriResolver>(Microsoft.OData.ServiceLifetime.Singleton, lambda(sp) { new UnqualifiedAltKeyUriResolver(^as(versionedModel, @IEdmModel)) { EnableCaseInsensitive = true } })
+                end
+            <ELSE>
                 lambda ConfigureRoute(containerBuilder)
                 begin
                     containerBuilder.AddService<IEdmModel>(Microsoft.OData.ServiceLifetime.Scoped, EnableWritableEdmModel)
                     containerBuilder.AddService<IEnumerable<IODataRoutingConvention>>(Microsoft.OData.ServiceLifetime.Singleton, EnableRouting)
                 end
+            </IF DEFINED_ENABLE_API_VERSIONING>
 
                 ;;Enable support for dependency injection into controllers
                 builder.EnableDependencyInjection(EnableDI)
                 
                 ;;Configure the default OData route
+            <IF DEFINED_ENABLE_API_VERSIONING>
+                data versionedModels = EdmBuilder.EdmVersions.Select(lambda(versionNumber) { EdmBuilder.GetEdmModel(app.ApplicationServices, versionNumber) }).ToArray()
+                builder.MapVersionedODataRoutes("<SERVER_BASE_PATH>", "<SERVER_BASE_PATH>", versionedModels, ConfigureRoute, EnableRouting)
+            <ELSE>
                 builder.MapODataServiceRoute("<SERVER_BASE_PATH>", "<SERVER_BASE_PATH>", ConfigureRoute)
+            </IF DEFINED_ENABLE_API_VERSIONING>
+
+                ;;---------------------------------------------------
+                ;;Enable optional OData features
+
+            <IF DEFINED_ENABLE_SELECT>
+                ;;Enable $select expressions to select properties returned
+                builder.Select()
+
+            </IF DEFINED_ENABLE_SELECT>
+            <IF DEFINED_ENABLE_FILTER>
+                ;;Enable $filter expressions to filter rows returned
+                builder.Filter()
+
+            </IF DEFINED_ENABLE_FILTER>
+            <IF DEFINED_ENABLE_ORDERBY>
+                ;;Enable $orderby expressions to custom sort results
+                builder.OrderBy()
+
+            </IF DEFINED_ENABLE_ORDERBY>
+            <IF DEFINED_ENABLE_COUNT>
+                ;;Enable /$count endpoints
+                builder.Count()
+
+            </IF DEFINED_ENABLE_COUNT>
+            <IF DEFINED_ENABLE_RELATIONS>
+                ;;Enable $expand expressions to expand relations
+                builder.Expand()
+
+            </IF DEFINED_ENABLE_RELATIONS>
+            <IF DEFINED_ENABLE_TOP>
+                ;;Specify the maximum rows that may be returned by $top expressions
+                builder.MaxTop(100)
+
+            </IF DEFINED_ENABLE_TOP>
             end
 
-<IF DEFINED_ENABLE_CORS>
+        <IF DEFINED_ENABLE_CORS>
             ;;-------------------------------------------------------
             ;;Add "Cross Origin Resource Sharing" (CORS) support
 
@@ -388,13 +456,13 @@ namespace <NAMESPACE>
 
             app.UseCors(corsOptions)
 
-</IF DEFINED_ENABLE_CORS>
+        </IF DEFINED_ENABLE_CORS>
             ;;-------------------------------------------------------
             ;;Enable MVC
 
             app.UseMvc(mvcBuilder)
 
-<IF DEFINED_ENABLE_SWAGGER_DOCS>
+        <IF DEFINED_ENABLE_SWAGGER_DOCS>
             ;;-------------------------------------------------------
             ;;Configure the web server environment
 
@@ -423,24 +491,35 @@ namespace <NAMESPACE>
             app.UseSwagger()
             app.UseSwaggerUI(configureSwaggerUi)
 
-</IF DEFINED_ENABLE_SWAGGER_DOCS>
+        </IF DEFINED_ENABLE_SWAGGER_DOCS>
             ;;If there is a ConfigureCustom method, call it
             ConfigureCustom(app,env)
 
         endmethod
 
-        ;;Declare the ConfigueServicesCustom partial method
-        ;;This method can be implemented in a partial class to provide custom services configuration code
+        .region "Partial method extensibility points"
+
+        ;;; <summary>
+        ;;; Declare the ConfigueServicesCustom partial method.
+        ;;; Developers can implement this method in a partial class to provide custom services.
+        ;;; </summary>
+        ;;; <param name="services"></param>
         partial method ConfigureServicesCustom, void
             services, @IServiceCollection 
         endmethod
 
-        ;;Declare the ConfigueCustom partial method
-        ;;This method can be implemented in a partial class to provide custom configuration code
+        ;;; <summary>
+        ;;; Declare the ConfigueCustom partial method
+        ;;; Developers can implement this method in a partial class to provide custom configuration.
+        ;;; </summary>
+        ;;; <param name="app"></param>
+        ;;; <param name="env"></param>
         partial method ConfigureCustom, void
             required in app, @IApplicationBuilder
             required in env, @IHostingEnvironment
         endmethod
+
+        .endregion
 
     endclass
 
