@@ -24,21 +24,21 @@ set FILE_ALIASES=%DATA_ALIASES%
 set CUSTOM_STRUCTURES=
 set CUSTOM_ALIASES=%CUSTOM_STRUCTURES%
 
-rem DATA_STRUCTURES		Is a list all structures that you wish to generate models, metadata and
-rem						controllers for. In other words it declares all of the "entities"
-rem						that are being represented and exposed by the environment. The DbContext
+rem DATA_STRUCTURES     Is a list all structures that you wish to generate models, metadata and
+rem                     controllers for. In other words it declares all of the "entities"
+rem                     that are being represented and exposed by the environment. The DbContext
 rem                     and EdmBuilder classes will be aware of the types associated with These
 rem                     structures.
 rem
-rem FILE_STRUCTURES		If you don't have multi-record format files then this should be the
-rem						same as DATA_STRUCTURES. But if you do then FILE_STRUCTURES should
-rem						only list ONE of the structures assigned to each file, so this list
-rem						will be a subset of DATA_STRUCTURES.
+rem FILE_STRUCTURES     If you don't have multi-record format files then this should be the
+rem                     same as DATA_STRUCTURES. But if you do then FILE_STRUCTURES should
+rem                     only list ONE of the structures assigned to each file, so this list
+rem                     will be a subset of DATA_STRUCTURES.
 rem
 rem CUSTOM_STRUCTURES	Is a list of structures that you wish to generate models and metadata
 rem                     for, but which will NOT be exposed to the Entity Framework provider.
 rem                     These classes are intended for use only by custom code-based endpoints
-rem						and the DbContext and EdmBuilder classes will know nothing about them.
+rem                     and the DbContext and EdmBuilder classes will know nothing about them.
 
 rem ================================================================================================================================
 rem Specify optional "system parameter file" structure
