@@ -81,6 +81,11 @@ namespace Harmony.OData.Adapter
 					ExtractAdapterOp(binaryOp.Right, filterLookup, binaryOp.OperatorKind)
 				end
 			end
+			else if(targetNode .is. ConvertNode) then
+			begin
+				data convertNode = ^as(targetNode, @ConvertNode)
+				ExtractAdapterOp(convertNode.Source, filterLookup, parentOpKind)
+			end
 			else if(targetNode .is. UnaryOperatorNode)
 			begin
 				;;we dont support these currently
@@ -144,6 +149,7 @@ namespace Harmony.OData.Adapter
 			data odataQuery = new ODataQueryOptions(new ODataQueryContext(model, elementType, odataPath), _controllerContext.HttpContext.Request)
 			data filterClause = odataQuery.Filter?.FilterClause
 			data filterLookup = new Dictionary<string, List<AdapterOp>>()
+			DebugLogSession.Logging.LogTrace("AdapterActionInvoker: processing expression tree {0}, with lookup {1}", new UriExpressionLogHelper(filterClause?.Expression),  new JsonDebugLogHelper(filterLookup))
 			ExtractAdapterOp(filterClause?.Expression, filterLookup, ^null)
 			;;get filter stucture
 			;;build lookups for the result fields based on the target edm name
@@ -651,4 +657,64 @@ namespace Harmony.OData.Adapter
 		public readwrite property OpKind, AdapterOpKind
 		public readwrite property Value, @object
 	endclass
+
+	class UriExpressionLogHelper
+		public obj, @SingleValueNode
+		public method UriExpressionLogHelper
+			arg, @SingleValueNode
+			endparams
+		proc
+			obj = arg
+		endmethod
+
+		public override method ToString, @string
+		proc
+			try
+			begin
+				mreturn obj.Accept(new UriExpressionDebugHelper())
+			end
+			catch(ex, @Exception)
+			begin
+				mreturn obj.ToString()
+			end
+
+			endtry
+		endmethod
+	
+	endclass
+
+
+	class UriExpressionDebugHelper extends QueryNodeVisitor<string>
+		public override method Visit, string
+			nodeIn, @BinaryOperatorNode 
+		proc
+			mreturn String.Format("(Op {0}, {1}, {2})", nodeIn.OperatorKind, nodeIn.Left.Accept(this), nodeIn.Right.Accept(this))
+		endmethod
+
+		public override method Visit, string
+			nodeIn, @ConstantNode  
+		proc
+			mreturn String.Format("(Constant {0})", JsonConvert.SerializeObject(nodeIn.Value))
+		endmethod
+
+		public override method Visit, string
+			nodeIn, @ConvertNode  
+		proc
+			data sourceString = nodeIn.Source.Accept(this)
+			mreturn String.Format("(Convert {0} -> {1})", nodeIn.TypeReference.Definition.FullTypeName(), sourceString)
+		endmethod
+
+		public override method Visit, string
+			nodeIn, @SingleValuePropertyAccessNode  
+		proc
+			mreturn String.Format("(Property Access {0}.{1})", nodeIn.Source.Accept(this), nodeIn.Property.Name)
+		endmethod
+
+		public override method Visit, string
+			nodeIn, @ResourceRangeVariableReferenceNode  
+		proc
+			mreturn nodeIn.Name
+		endmethod
+	endclass
+
 endnamespace
