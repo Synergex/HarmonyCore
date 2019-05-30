@@ -29,6 +29,7 @@ import Microsoft.AspNet.OData.Routing
 import Microsoft.AspNet.OData.Extensions
 import Harmony.OData.ExpressionHelpers
 import System.ComponentModel
+import Harmony.Core.Utility
 
 namespace Harmony.OData.Adapter
 
@@ -149,7 +150,7 @@ namespace Harmony.OData.Adapter
 			data odataQuery = new ODataQueryOptions(new ODataQueryContext(model, elementType, odataPath), _controllerContext.HttpContext.Request)
 			data filterClause = odataQuery.Filter?.FilterClause
 			data filterLookup = new Dictionary<string, List<AdapterOp>>()
-			DebugLogSession.Logging.LogTrace("AdapterActionInvoker: processing expression tree {0}, with lookup {1}", new UriExpressionLogHelper(filterClause?.Expression),  new JsonDebugLogHelper(filterLookup))
+			DebugLogSession.Logging.LogTrace("AdapterActionInvoker: processing expression tree {0}, with lookup {1}", new UriExpressionLogHelper(filterClause?.Expression),  new JsonLogHelper(filterLookup))
 			ExtractAdapterOp(filterClause?.Expression, filterLookup, ^null)
 			;;get filter stucture
 			;;build lookups for the result fields based on the target edm name
