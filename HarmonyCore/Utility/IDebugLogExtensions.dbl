@@ -3,6 +3,7 @@ import System.Collections.Generic
 import System.Text
 import Harmony.Core.Interface
 import Renci.SshNet
+import Newtonsoft.Json
 
 
 namespace Harmony.Core.Utility
@@ -176,6 +177,22 @@ namespace Harmony.Core.Utility
 			mreturn string.Format("Renci.SSH.ConnectionInfo Host: {0} Port: {1} Username: {2} KeyEx: {3} Server Encryption: {4} Compression: {5} Server Version: {6}", 
 			&	ConnectInfo.Host, ConnectInfo.Port, ConnectInfo.Username, ConnectInfo.CurrentKeyExchangeAlgorithm, ConnectInfo.CurrentServerEncryption, ConnectInfo.CurrentServerCompressionAlgorithm, ConnectInfo.ServerVersion)
 		endmethod
+	endclass
+
+	class JsonLogHelper
+		public obj, @object
+		public method JsonLogHelper
+			arg, @object
+			endparams
+		proc
+			obj = arg
+		endmethod
+
+		public override method ToString, @string
+		proc
+			mreturn JsonConvert.SerializeObject(obj)
+		endmethod
+	
 	endclass
 
 endnamespace
