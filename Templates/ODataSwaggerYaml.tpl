@@ -815,14 +815,14 @@ definitions:
 ;// Full type
 ;//
   <StructureNoplural>:
-    $ref: "<StructureNoplural>Types.yaml#/<StructureNoplural>"
+    $ref: '<StructureNoplural>Types.yaml#/<StructureNoplural>'
 ;//
 ;// Type without primary key properties
 ;//
 <IF DEFINED_ENABLE_POST>
 <IF POST_ENDPOINT>
   <StructureNoplural>Post:
-    $ref: "<StructureNoplural>Types.yaml#/<StructureNoplural>Post"
+    $ref: '<StructureNoplural>Types.yaml#/<StructureNoplural>Post'
 </IF POST_ENDPOINT>
 </IF DEFINED_ENABLE_POST>
 </STRUCTURE_LOOP>

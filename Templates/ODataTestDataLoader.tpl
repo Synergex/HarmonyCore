@@ -60,7 +60,7 @@ namespace <NAMESPACE>
             data textFile = dataFile.ToLower().Replace(".ism",".txt")
             data <structureNoplural>Ch, int, 0
             data <structureNoplural>Rec, str<StructureNoplural>
-			data grfa, a10
+            data grfa, a10
             data <structurePlural> = new List<<StructureNoplural>>()
             open(<structureNoplural>Ch,i:s,textFile)
             repeat

@@ -123,19 +123,19 @@ info:
 ;//
    <IF MANY_TO_ONE_TO_MANY>
     <HARMONYCORE_RELATION_NAME>:
-      $ref: '#/definitions/<RelationTostructureNoplural>'
+      $ref: '<RelationTostructureNoplural>Types.yaml#/<RelationTostructureNoplural>'
       description: Related <RelationTostructureNoplural>
    </IF MANY_TO_ONE_TO_MANY>
 ;//
    <IF ONE_TO_ONE_TO_ONE>
     <HARMONYCORE_RELATION_NAME>:
-      $ref: '#/definitions/<RelationTostructureNoplural>'
+      $ref: '<RelationTostructureNoplural>Types.yaml#/<RelationTostructureNoplural>'
       description: Related <RelationTostructureNoplural>
    </IF ONE_TO_ONE_TO_ONE>
 ;//
    <IF ONE_TO_ONE>
     <HARMONYCORE_RELATION_NAME>:
-      $ref: '#/definitions/<RelationTostructureNoplural>'
+      $ref: '<RelationTostructureNoplural>Types.yaml#/<RelationTostructureNoplural>'
       description: Related <RelationTostructureNoplural>
    </IF ONE_TO_ONE>
 ;//
@@ -143,7 +143,7 @@ info:
     <HARMONYCORE_RELATION_NAME>:
       type: array
       items:
-        $ref: '#/definitions/<RelationTostructureNoplural>'
+        $ref: '<RelationTostructureNoplural>Types.yaml#/<RelationTostructureNoplural>'
       description: Related <RelationTostructurePlural>
    </IF ONE_TO_MANY_TO_ONE>
 ;//
@@ -151,7 +151,7 @@ info:
     <HARMONYCORE_RELATION_NAME>:
       type: array
       items:
-        $ref: '#/definitions/<RelationTostructureNoplural>'
+        $ref: '<RelationTostructureNoplural>Types.yaml#/<RelationTostructureNoplural>'
       description: Related <RelationTostructurePlural>
    </IF ONE_TO_MANY>
 ;//

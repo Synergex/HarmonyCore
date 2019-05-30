@@ -87,11 +87,11 @@ namespace <NAMESPACE>
         ;;; </summary>
         public method <StructureNoplural>
             required in inData, a
-			required in inGrfa, a
+            required in inGrfa, a
             parent()
         proc
             mSynergyData = mOriginalSynergyData = inData
-			mGlobalRFA = inGrfa
+            mGlobalRFA = inGrfa
         endmethod
 
 .endregion

@@ -209,7 +209,7 @@ namespace <NAMESPACE>
             data <structureNoplural>Ch, int, 0
             data <structureNoplural>Rec, str<StructureNoplural>
             data <structurePlural> = new List<<StructureNoplural>>()
-			data grfa, a10
+            data grfa, a10
             open(<structureNoplural>Ch,i:s,textFile)
             repeat
             begin
