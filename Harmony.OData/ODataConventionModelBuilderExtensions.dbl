@@ -108,8 +108,23 @@ namespace Harmony.OData
             if(callableMethodConfig == ^null)
             begin
                 callableMethodConfig = new CallableMethodConfigurationAttribute()
-                if(entitySetLookup.ContainsKey(targetMethod.ReturnType))
-                    callableMethodConfig.ReturnsFromEntitySet = true
+				if(entitySetLookup.ContainsKey(targetMethod.ReturnType))
+				begin
+					if(entitySetLookup[targetMethod.ReturnType] == ^null) ;;bad input from old versions
+					begin
+						data eSet, @EntitySetConfiguration
+						foreach eSet in builder.EntitySets
+						begin
+							if(!entitySetLookup.ContainsKey(eSet.ClrType)) then
+								entitySetLookup.Add(eSet.ClrType, eSet)
+							else
+								entitySetLookup[eSet.ClrType] = eSet
+						end
+					end
+
+					callableMethodConfig.ReturnsFromEntitySet = true
+				end
+
             end
 
 
@@ -127,7 +142,7 @@ namespace Harmony.OData
                 end
                 else
                     builder.Function(targetMethod.Name)
-                MakeReturnType(targetMethod, callableMethodConfig, addedFunction)
+                MakeReturnType(targetMethod, callableMethodConfig, addedFunction, entitySetLookup)
                 resultObject = addedFunction
                 paramFunction = FunctionParameterMethod
             end
@@ -139,7 +154,7 @@ namespace Harmony.OData
                 else
                     addedAction = builder.Action(targetMethod.Name)
 
-                MakeReturnType(targetMethod, callableMethodConfig, addedAction)
+                MakeReturnType(targetMethod, callableMethodConfig, addedAction, entitySetLookup)
                 resultObject = addedAction
                 paramFunction = ActionParameterMethod
             end
@@ -231,7 +246,8 @@ namespace Harmony.OData
         private static method MakeReturnType, void
             methInfo, @MethodInfo
             callableConfig, @CallableMethodConfigurationAttribute
-            funcConfig, @FunctionConfiguration
+			funcConfig, @FunctionConfiguration
+			entitySetLookup, @Dictionary<Type, EntitySetConfiguration>
 		proc
 			data sequenceType, @Type
             data returnType, @Type
@@ -266,11 +282,11 @@ namespace Harmony.OData
 
             if(returnTypeIsFromEntitySet) then
             begin
-                FunctionReturnsFromEntitySetMethod.MakeGenericMethod(new Type[#] { returnType }).Invoke(funcConfig, new Object[0]) 
+                FunctionReturnsFromEntitySetMethod.MakeGenericMethod(new Type[#] { returnType }).Invoke(funcConfig, new Object[#] { GetEntitySetName(returnType, entitySetLookup)}) 
             end
             else if(returnTypeIsCollectionFromEntitySet) then
             begin
-                FunctionReturnsCollectionFromEntitySetMethod.MakeGenericMethod(new Type[#] { returnType }).Invoke(funcConfig, new Object[#] { returnType.Name })
+                FunctionReturnsCollectionFromEntitySetMethod.MakeGenericMethod(new Type[#] { returnType }).Invoke(funcConfig, new Object[#] { GetEntitySetName(returnType, entitySetLookup) })
             end
             else if(returnTypeIsCollection) then
             begin
@@ -283,10 +299,23 @@ namespace Harmony.OData
             
         endmethod
 
+		private static method GetEntitySetName, @string
+			targetType, @Type
+			entitySetLookup, @Dictionary<Type, EntitySetConfiguration>
+		proc
+			data resultConfig, @EntitySetConfiguration
+			if(entitySetLookup.TryGetValue(targetType, resultConfig)) then
+				mreturn resultConfig.Name
+			else
+				mreturn targetType.Name
+		endmethod
+
+
         private static method MakeReturnType, void
             methInfo, @MethodInfo
             callableConfig, @CallableMethodConfigurationAttribute
-            actionConfig, @ActionConfiguration
+			actionConfig, @ActionConfiguration
+			entitySetLookup, @Dictionary<Type, EntitySetConfiguration>
         proc
             data returnType, @Type, methInfo.ReturnType
             data returnTypeIsCollection, boolean, false
@@ -316,11 +345,11 @@ namespace Harmony.OData
 
             if(returnTypeIsFromEntitySet) then
             begin
-                ActionReturnsFromEntitySetMethod.MakeGenericMethod(new Type[#] { returnType }).Invoke(actionConfig, new Object[#] { returnType.Name }) 
+                ActionReturnsFromEntitySetMethod.MakeGenericMethod(new Type[#] { returnType }).Invoke(actionConfig, new Object[#] { GetEntitySetName(returnType, entitySetLookup) }) 
             end
             else if(returnTypeIsCollectionFromEntitySet) then
             begin
-                ActionReturnsCollectionFromEntitySetMethod.MakeGenericMethod(new Type[#] { returnType }).Invoke(actionConfig, new Object[#] { returnType.Name })
+                ActionReturnsCollectionFromEntitySetMethod.MakeGenericMethod(new Type[#] { returnType }).Invoke(actionConfig, new Object[#] { GetEntitySetName(returnType, entitySetLookup) })
             end
             else if(returnTypeIsCollection) then
             begin
