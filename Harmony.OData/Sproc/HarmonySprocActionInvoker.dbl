@@ -19,6 +19,7 @@ import Newtonsoft.Json.Linq
 import Harmony.Core.Context
 import System.Linq
 import Microsoft.AspNetCore.Http.Features
+import Harmony.Core.Utility
 
 namespace Harmony.OData
 
@@ -373,7 +374,8 @@ namespace Harmony.OData
                 mreturn await callBody()
             end
             catch(ex, @Exception)
-            begin
+			begin
+				DebugLogSession.Logging.LogException(ex, "HarmonySprocActionInvoker")
                 mreturn new BadRequestResult()
             end
             endtry

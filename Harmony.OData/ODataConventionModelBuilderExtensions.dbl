@@ -110,23 +110,23 @@ namespace Harmony.OData
                 callableMethodConfig = new CallableMethodConfigurationAttribute()
 				if(entitySetLookup.ContainsKey(targetMethod.ReturnType))
 				begin
-					if(entitySetLookup[targetMethod.ReturnType] == ^null) ;;bad input from old versions
-					begin
-						data eSet, @EntitySetConfiguration
-						foreach eSet in builder.EntitySets
-						begin
-							if(!entitySetLookup.ContainsKey(eSet.ClrType)) then
-								entitySetLookup.Add(eSet.ClrType, eSet)
-							else
-								entitySetLookup[eSet.ClrType] = eSet
-						end
-					end
-
 					callableMethodConfig.ReturnsFromEntitySet = true
 				end
 
-            end
-
+			end
+			data returnIsCollection, boolean
+			data returnType = CleanReturnType(targetMethod, returnIsCollection)
+			data eSet, @EntitySetConfiguration
+			if(entitySetLookup.TryGetValue(returnType, eSet) && eSet == ^null) ;;bad input from old versions
+			begin
+				foreach eSet in builder.EntitySets
+				begin
+					if(!entitySetLookup.ContainsKey(eSet.ClrType)) then
+						entitySetLookup.Add(eSet.ClrType, eSet)
+					else
+						entitySetLookup[eSet.ClrType] = eSet
+				end
+			end
 
             data paramFunction, @MethodInfo
             data resultObject, @Object
@@ -243,34 +243,45 @@ namespace Harmony.OData
                 mreturn ^null
         endmethod
 
+		private static method CleanReturnType, @Type
+			methInfo, @MethodInfo
+			out isCollectionType, boolean
+		proc
+			data sequenceType, @Type
+			data returnType, @Type
+			data taskClean = methInfo.ReturnType
+			if(taskClean.IsGenericType && taskClean.GetGenericTypeDefinition() == ^typeof(Task<>))
+			begin
+				taskClean = taskClean.GetGenericArguments()[1]
+			end
+
+			sequenceType = GetSequenceType(taskClean)
+			if(sequenceType != ^null) then
+			begin
+				isCollectionType = true
+				returnType = sequenceType
+			end
+			else
+			begin
+				isCollectionType = false
+				returnType = taskClean
+			end
+		
+			mreturn returnType
+		endmethod
+
+
         private static method MakeReturnType, void
             methInfo, @MethodInfo
             callableConfig, @CallableMethodConfigurationAttribute
 			funcConfig, @FunctionConfiguration
 			entitySetLookup, @Dictionary<Type, EntitySetConfiguration>
 		proc
-			data sequenceType, @Type
-            data returnType, @Type
-            data returnTypeIsCollection, boolean, false
-            data returnTypeIsFromEntitySet, boolean, false
-            data returnTypeIsCollectionFromEntitySet, boolean, false
-            data taskClean = methInfo.ReturnType
-            if(taskClean.IsGenericType && taskClean.GetGenericTypeDefinition() == ^typeof(Task<>))
-            begin
-                taskClean = taskClean.GetGenericArguments()[1]
-            end
-
-            sequenceType = GetSequenceType(taskClean)
-            if(sequenceType != ^null) then
-            begin
-                returnTypeIsCollection = true
-                returnType = sequenceType
-			end
-			else
-			begin
-				returnType = taskClean
-			end
-
+			data returnTypeIsCollection, boolean, false
+			data returnTypeIsFromEntitySet, boolean, false
+			data returnTypeIsCollectionFromEntitySet, boolean, false
+			data returnType = CleanReturnType(methInfo, returnTypeIsCollection)
+			
             if(callableConfig.ReturnsFromEntitySet)
             begin
                 if(returnTypeIsCollection) then
@@ -317,19 +328,10 @@ namespace Harmony.OData
 			actionConfig, @ActionConfiguration
 			entitySetLookup, @Dictionary<Type, EntitySetConfiguration>
         proc
-            data returnType, @Type, methInfo.ReturnType
             data returnTypeIsCollection, boolean, false
-            data returnTypeIsFromEntitySet, boolean, false
-            data returnTypeIsCollectionFromEntitySet, boolean, false
-            if(methInfo.ReturnType.IsGenericType)
-            begin
-                data sequenceType = GetSequenceType(methInfo.ReturnType)
-                if(sequenceType != ^null)
-                begin
-                    returnTypeIsCollection = true
-                    returnType = sequenceType
-                end
-            end
+			data returnTypeIsFromEntitySet, boolean, false
+			data returnTypeIsCollectionFromEntitySet, boolean, false
+			data returnType = CleanReturnType(methInfo, returnTypeIsCollection)
 
             if(returnType == ^typeof(void))
                 mreturn

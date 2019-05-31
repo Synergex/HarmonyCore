@@ -645,6 +645,7 @@ namespace Harmony.OData.Adapter
 			end
 			catch(ex, @Exception)
 			begin
+				DebugLogSession.Logging.LogException(ex, "AdapterActionInvoker")
 				mreturn new BadRequestResult()
 			end
 			endtry
@@ -682,6 +683,9 @@ namespace Harmony.OData.Adapter
 
 		public override method ToString, @string
 		proc
+			if(obj == ^null)
+				mreturn "(null)"
+
 			try
 			begin
 				mreturn obj.Accept(new UriExpressionDebugHelper())
