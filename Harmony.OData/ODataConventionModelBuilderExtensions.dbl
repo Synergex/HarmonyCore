@@ -141,7 +141,8 @@ namespace Harmony.OData
                     addedFunction = CreateFunctionConfig<EntityType>(typeConfig, targetMethod.Name)
                 end
                 else
-                    builder.Function(targetMethod.Name)
+					addedFunction = builder.Function(targetMethod.Name)
+
                 MakeReturnType(targetMethod, callableMethodConfig, addedFunction, entitySetLookup)
                 resultObject = addedFunction
                 paramFunction = FunctionParameterMethod
@@ -159,7 +160,9 @@ namespace Harmony.OData
                 paramFunction = ActionParameterMethod
             end
 
-            data paramInfo, @ParameterInfo
+			data paramInfo, @ParameterInfo
+			data allParametersAreOptional = true
+			data hasParameters = false
             foreach paramInfo in targetMethod.GetParameters()
             begin
                 data adapterAttribute = paramInfo.GetCustomAttribute<AdapterParameterAttribute>(false)
@@ -174,17 +177,39 @@ namespace Harmony.OData
                         begin
                             data paramAttr = prop.GetCustomAttribute<ParameterFieldAdapterAttribute>(false)
                             if(paramAttr != ^null)
-                            begin
+							begin
+								hasParameters = true
                                 data paramConfig = ^as(paramFunction.MakeGenericMethod(new Type[#] { prop.PropertyType }).Invoke(resultObject, new Object[#] { paramAttr.EdmName }), @ParameterConfiguration)
-                                if(paramAttr.IsOptional)
-                                    paramConfig.Optional()
+                                if(paramAttr.IsOptional) then
+									paramConfig.Optional()
+								else
+									allParametersAreOptional = false
                             end
                         end
                     end
                 end
-                else
-                    paramFunction.MakeGenericMethod(new Type[#] { paramInfo.ParameterType }).Invoke(resultObject, new Object[#] { paramInfo.Name })
+				else
+				begin
+					hasParameters = true
+					allParametersAreOptional = false
+					paramFunction.MakeGenericMethod(new Type[#] { paramInfo.ParameterType }).Invoke(resultObject, new Object[#] { paramInfo.Name })
+				end
+
             end
+
+			if(hasParameters && allParametersAreOptional)
+			begin
+				if(callableMethodConfig.IsFunction) then
+				begin
+					MakeReturnType(targetMethod, callableMethodConfig, typeConfig != ^null ? CreateFunctionConfig<EntityType>(typeConfig, targetMethod.Name) : builder.Function(targetMethod.Name), entitySetLookup)
+				end
+				else
+				begin
+					MakeReturnType(targetMethod, callableMethodConfig, typeConfig != ^null ? CreateActionConfig<EntityType>(typeConfig, targetMethod.Name) : builder.Action(targetMethod.Name), entitySetLookup)
+				end
+			end
+
+
 
         endmethod
 
