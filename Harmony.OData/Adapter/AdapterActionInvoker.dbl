@@ -69,17 +69,19 @@ namespace Harmony.OData.Adapter
 			if(targetNode .is. BinaryOperatorNode) then
 			begin
 				data binaryOp = ^as(targetNode, @BinaryOperatorNode)
-				if(binaryOp.Left .is. SingleValuePropertyAccessNode) then
+				data left = GetRealNode(binaryOp.Left)
+				data right = GetRealNode(binaryOp.Right)
+				if(left .is. SingleValuePropertyAccessNode) then
 				begin
-					if(binaryOp.Right .is. ConstantNode)
+					if(right .is. ConstantNode)
 					begin
-						AddAdapterOp(ExtractPropertyOp(GetOpKind(binaryOp), (@SingleValuePropertyAccessNode)binaryOp.Left, (@ConstantNode)binaryOp.Right), filterLookup)
+						AddAdapterOp(ExtractPropertyOp(GetOpKind(binaryOp), (@SingleValuePropertyAccessNode)left, (@ConstantNode)right), filterLookup)
 					end
 				end
 				else if(((binaryOp.OperatorKind == BinaryOperatorKind.Or || binaryOp.OperatorKind == BinaryOperatorKind.And)))
 				begin
-					ExtractAdapterOp(binaryOp.Left, filterLookup, binaryOp.OperatorKind)
-					ExtractAdapterOp(binaryOp.Right, filterLookup, binaryOp.OperatorKind)
+					ExtractAdapterOp(left, filterLookup, binaryOp.OperatorKind)
+					ExtractAdapterOp(right, filterLookup, binaryOp.OperatorKind)
 				end
 			end
 			else if(targetNode .is. ConvertNode) then
@@ -93,6 +95,16 @@ namespace Harmony.OData.Adapter
 			end
 
 		endmethod
+
+		private method GetRealNode, @SingleValueNode
+			node, @SingleValueNode
+		proc
+			if(node .is. ConvertNode) then
+				mreturn ((@ConvertNode)node).Source
+			else
+				mreturn node
+		endmethod
+
 
 		private method ExtractPropertyOp, @AdapterOp
 			opKind, AdapterOpKind
