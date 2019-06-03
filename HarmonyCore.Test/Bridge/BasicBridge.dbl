@@ -1,0 +1,84 @@
+import System
+import System.Collections.Generic
+import System.Text
+import Harmony.Core.Context
+import System.IO
+import System.Linq
+import Microsoft.Extensions.DependencyInjection
+import Microsoft.VisualStudio.TestTools.UnitTesting
+import System.Threading.Tasks
+import Harmony.Core.Test
+import Harmony.Core
+import Newtonsoft.Json.Linq
+
+
+namespace HarmonyCore.Test.Bridge
+	{TestClass}
+	public class BasicBridge
+
+		public method BasicBridge
+		proc
+			TestEnvironment.Configure()
+		endmethod
+
+
+		{TestMethod}
+		public async method LocalTest, @Task
+		proc
+			data currentDirectory = Path.GetDirectoryName(^typeof(BasicBridge).Assembly.Location)
+			disposable data contextPool = new ExternalContextPool<BasicBridge.ExternalCallContext>(Environment.GetEnvironmentVariable("SYNERGYDE32") + "dbl\bin\dbs.exe", 'TraditionalBridge.Test.dbr', Path.GetFullPath(Path.Combine(currentDirectory, "..\..\..\..\TestDir")), ^null, 4) 
+			data sp = new ServiceCollection().BuildServiceProvider()
+			
+			data context = contextPool.MakeContext(sp)
+			
+			data customers = await context.GetAllCustomers()
+			data arbitrarioReturn = await context.Arbitrario_MethodWithParameters()
+
+			Assert.AreEqual(customers.Count, 38, "customer count was wrong")
+
+			Assert.AreEqual(arbitrarioReturn.IntList.Count, 1, "arbitrario int array count was wrong")
+			Assert.AreEqual(arbitrarioReturn.StringList.Count, 3, "arbitrario string array count was wrong")
+
+			contextPool.ReturnContext(context)
+
+
+		endmethod
+
+		public class ExternalCallContext extends DynamicCallProvider
+			public method ExternalCallContext
+				connection, @IDynamicCallConnection
+				endparams
+				parent(connection)
+			proc
+
+			endmethod
+
+			public async method GetAllCustomers, @Task<List<Customer>>
+			proc
+				;;force metadata to be loaded if its not
+				DataObjectMetadataBase.LookupType(^typeof(Customer))
+				data resultTpl = await CallMethod("GetAllCustomers", new List<Customer>(), string.Empty)
+				mreturn ((@IEnumerable<Customer>)resultTpl.Item2[1]).ToList<Customer>()
+			endmethod
+
+
+			public async method Arbitrario_MethodWithParameters, @Task<ArbitrarioReturnType>
+			proc
+				data intArray = new int[#] {5, 4, 3, 2, 1 }
+				data resultTpl = await CallMethod("Arbitrario.MethodWithParameters", 5, "hello", new string[#] { "this", "is", "strings" }, (@object)intArray, new string[0])
+				data returnToken = ((@JToken)resultTpl.Item1)
+				mreturn new ArbitrarioReturnType() { ReturnCode = returnToken.ToObject<int>(), IntList = ((@IEnumerable<int>)resultTpl.Item2[4]).ToList(), StringList = ((@IEnumerable<string>)resultTpl.Item2[5]).ToList() }
+			endmethod
+
+			public class ArbitrarioReturnType
+				public readwrite property ReturnCode, int
+				public readwrite property IntList, @List<int>
+				public readwrite property StringList, @List<string>
+			endclass
+
+		endclass
+
+
+	endclass
+
+endnamespace
