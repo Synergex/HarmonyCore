@@ -74,7 +74,7 @@ namespace Harmony.Core.Context
 			begin
 				if(mTargetConnection.IsConnected)
 				begin
-					await this.Call("rpc.shutdown", new ArgumentDataDefinition[0])
+					await this.Notify("rpc.shutdown", new ArgumentDataDefinition[0])
 					mReader.Close()
 					mTargetConnection.Disconnect()
 				end
@@ -98,6 +98,36 @@ namespace Harmony.Core.Context
 				data readOnlyArgs = ^as(args, @IReadOnlyList<ArgumentDataDefinition>)
 				data result = await jsonRpcConnection.InvokeWithCancellationAsync<[#]@ReturnParameterDefintion>(name, readOnlyArgs, cancelSource.Token)
 				mreturn result
+			end
+			catch(ex, @RemoteInvocationException)
+			begin
+				mNeedsRecycle = true
+				throw new RemoteInvocationException(Encoding.UTF8.GetString(Convert.FromBase64String(ex.Message)), ex.ErrorCode, ex.Data)
+			end
+			catch(ex, @Exception)
+			begin
+				mNeedsRecycle = true
+				throw
+			end
+			endtry
+
+		endmethod
+
+		public virtual async method Notify, @Task
+			name, @string
+			args, [#]@ArgumentDataDefinition
+		proc
+			data jsonRpcConnection = await mMakeReadyTask.Value
+			try
+			begin
+				data cancelSource = new CancellationTokenSource(mCallTimeout)
+				data readOnlyArgs = ^as(args, @IReadOnlyList<ArgumentDataDefinition>)
+				await jsonRpcConnection.NotifyAsync(name, readOnlyArgs)
+			end
+			catch(ex, @RemoteInvocationException)
+			begin
+				mNeedsRecycle = true
+				throw new RemoteInvocationException(Encoding.UTF8.GetString(Convert.FromBase64String(ex.Message)), ex.ErrorCode, ex.Data)
 			end
 			catch(ex, @Exception)
 			begin
