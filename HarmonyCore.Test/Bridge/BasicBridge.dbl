@@ -10,6 +10,7 @@ import System.Threading.Tasks
 import Harmony.Core.Test
 import Harmony.Core
 import Newtonsoft.Json.Linq
+import StreamJsonRpc
 
 
 namespace HarmonyCore.Test.Bridge
@@ -32,6 +33,22 @@ namespace HarmonyCore.Test.Bridge
 			data context = contextPool.MakeContext(sp)
 			
 			data customers = await context.GetAllCustomers()
+			
+			try
+			begin
+				data failureResult = await context.Arbitrario_Exception()
+				Assert.Fail("exception wasnt thrown")
+			end
+			catch(ex, @RemoteInvocationException)
+			begin
+
+			end
+			catch(ex, @Exception)
+			begin
+				throw
+			end
+
+			endtry
 			data arbitrarioReturn = await context.Arbitrario_MethodWithParameters()
 
 			Assert.AreEqual(customers.Count, 38, "customer count was wrong")
@@ -39,9 +56,12 @@ namespace HarmonyCore.Test.Bridge
 			Assert.AreEqual(arbitrarioReturn.IntList.Count, 1, "arbitrario int array count was wrong")
 			Assert.AreEqual(arbitrarioReturn.StringList.Count, 3, "arbitrario string array count was wrong")
 
+
+
+
 			contextPool.ReturnContext(context)
-
-
+			await contextPool.TrimPool(0)
+			Console.WriteLine("shutting down test")
 		endmethod
 
 		public class ExternalCallContext extends DynamicCallProvider
@@ -61,6 +81,13 @@ namespace HarmonyCore.Test.Bridge
 				mreturn ((@IEnumerable<Customer>)resultTpl.Item2[1]).ToList<Customer>()
 			endmethod
 
+			public async method Arbitrario_Exception, @Task<ArbitrarioReturnType>
+			proc
+				data intArray = new int[#] {5, 4, 3, 2, 1 }
+				data resultTpl = await CallMethod("Arbitrario.MethodWithParameters", -1, "hello", new string[#] { "this", "is", "strings" }, (@object)intArray, new string[0])
+				data returnToken = ((@JToken)resultTpl.Item1)
+				mreturn new ArbitrarioReturnType() { ReturnCode = returnToken.ToObject<int>(), IntList = ((@IEnumerable<int>)resultTpl.Item2[4]).ToList(), StringList = ((@IEnumerable<string>)resultTpl.Item2[5]).ToList() }
+			endmethod
 
 			public async method Arbitrario_MethodWithParameters, @Task<ArbitrarioReturnType>
 			proc

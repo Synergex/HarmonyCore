@@ -38,6 +38,7 @@ namespace Harmony.Core.Context
 			targetSize, int 
 			endparams
 		proc
+			data asyncDestroyedTasks = new List<Task>()
 			while(mContextPool.Count > targetSize)
 			begin
 				try
@@ -46,6 +47,10 @@ namespace Harmony.Core.Context
 					data context = mContextPool.Allocate(^null)
 					if(context .is. IDisposable) then
 						((@IDisposable)context).Dispose()
+					else if(context .is. IAsyncPooledContextBase) then
+					begin
+						asyncDestroyedTasks.Add(((@IAsyncPooledContextBase)context).DestroyAsync())
+					end
 					else if(context .is. IPooledContextBase)
 					begin
 						((@IPooledContextBase)context).Destroy()
@@ -58,7 +63,10 @@ namespace Harmony.Core.Context
 				endtry
 
 			end
-			mreturn Task.FromResult(true)
+			if(asyncDestroyedTasks.Count > 0) then
+				mreturn Task.WhenAll(asyncDestroyedTasks)
+			else
+				mreturn Task.FromResult(true)
 		endmethod
 
 		private mMinSize, int

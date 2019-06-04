@@ -14,7 +14,7 @@ import StreamJsonRpc.Protocol
 
 namespace Harmony.Core.Context
 
-	public abstract class DynamicCallProvider extends PooledContextBase implements IDynamicCallProvider
+	public abstract class DynamicCallProvider extends AsyncPooledContextBase implements IDynamicCallProvider
 		
 		class CallFrame
 			public readwrite property Name, @string
@@ -53,10 +53,16 @@ namespace Harmony.Core.Context
 			mreturn connection.MakeReady()
 		endmethod
 
+		public override method DestroyAsync, @Task
+		proc
+			mreturn connection.Disconnect();
+		endmethod
+
 		public override method Destroy, void
 		proc
-			connection.Disconnect();
+			connection.Disconnect().Wait(TimeSpan.FromSeconds(1))
 		endmethod
+
 
 		public override method Recycle, @Task
 		proc

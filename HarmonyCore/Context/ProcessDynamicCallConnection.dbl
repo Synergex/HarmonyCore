@@ -9,19 +9,23 @@ import StreamJsonRpc
 import System.IO
 import System.Threading
 import System.Linq
+import Harmony.Core.Utility
 
 namespace Harmony.Core.Context
 
 	public class ProcessDynamicCallConnection implements IDynamicCallConnection
 		private static NewLineBytes, [#]Byte, new byte[#] { 10, 13 }
 		private mTargetProcess, @Process
+		private mProcessStarted, boolean, false
 		private mMakeReadyTask, @Lazy<Task<JsonRpc>>
+		private mDisconnectToken, @CancellationTokenSource
 		public method ProcessDynamicCallConnection
 			startInfo, @ProcessStartInfo
 		proc
 			mTargetProcess = new Process()
 			mTargetProcess.StartInfo = startInfo
 			mMakeReadyTask = new Lazy<Task<JsonRpc>>(MakeReadyInternal)
+			mDisconnectToken = new CancellationTokenSource()
 		endmethod
 
 		public virtual method Recycle, @Task
@@ -30,10 +34,26 @@ namespace Harmony.Core.Context
 			mreturn Task.FromResult(true)
 		endmethod
 				
-		public virtual method Disconnect, void
+		public virtual async method Disconnect, @Task
 			endparams
 		proc
-			mTargetProcess.Kill()
+			try
+			begin
+				if(mProcessStarted && !mTargetProcess.HasExited)
+				begin
+					await this.Notify("rpc.shutdown", new ArgumentDataDefinition[0])
+					mDisconnectToken.Cancel()
+					await Task.Delay(100)
+					if(!mTargetProcess.HasExited)
+						mTargetProcess.Kill()
+				end
+
+			end
+			catch(ex, @Exception)
+			begin
+				DebugLogSession.Logging.LogException(ex, "ProcessDynamicCallConnection-Disconnect")
+			end
+			endtry
 		endmethod
 		
 		class ProtocolMessage
@@ -45,7 +65,23 @@ namespace Harmony.Core.Context
 			args, [#]@ArgumentDataDefinition
 		proc
 			data jsonRpcConnection = await mMakeReadyTask.Value
-			mreturn await jsonRpcConnection.InvokeAsync<[#]@ReturnParameterDefintion>(name, args.OfType<Object>().ToArray())
+			try
+			begin
+				mreturn await jsonRpcConnection.InvokeWithCancellationAsync<[#]@ReturnParameterDefintion>(name, args.OfType<Object>().ToList().AsReadOnly(), mDisconnectToken.Token)
+			end
+			catch(ex, @RemoteInvocationException)
+			begin
+				throw new RemoteInvocationException(Encoding.UTF8.GetString(Convert.FromBase64String(ex.Message)), ex.ErrorCode, ex.Data)
+			end
+			endtry
+		endmethod
+
+		public virtual async method Notify, @Task
+			name, @string
+			args, [#]@ArgumentDataDefinition
+		proc
+			data jsonRpcConnection = await mMakeReadyTask.Value
+			await jsonRpcConnection.NotifyAsync(name, args)
 		endmethod
 
 		private async method MakeReadyInternal, @Task<JsonRpc>
@@ -53,6 +89,7 @@ namespace Harmony.Core.Context
 		proc
 			data readLine, @string
 			mTargetProcess.Start()
+			mProcessStarted = true
 			mTargetProcess.StartInfo.StandardOutputEncoding = ASCIIEncoding.ASCII
 			readLine = await mTargetProcess.StandardOutput.ReadLineAsync()
 			Trace.WriteLine(readLine)
@@ -65,11 +102,21 @@ namespace Harmony.Core.Context
 			if(mTargetProcess.HasExited)
 				throw new Exception("process exited during initialization")
 			
+			mTargetProcess.Exited += ProcessExit
+
 			data result = JsonRpc.Attach(new StreamWrapper(mTargetProcess.StandardOutput, mTargetProcess.StandardInput), ^null) 
 			result.TraceSource = new TraceSource("Client", SourceLevels.All)
 			mreturn result
 		endmethod
 	
+		private method ProcessExit, void
+			sender, @Object
+			args, @EventArgs
+		proc
+			mDisconnectToken.Cancel()
+		endmethod
+
+
 		public virtual method MakeReady, @Task
 		proc
 			mreturn mMakeReadyTask.Value

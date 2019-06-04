@@ -376,7 +376,7 @@ namespace Json
 			value = Substring(startPos, currentPos, inputValue)
 			if(jsonType == JSON_TYPE.INT_VAL) then
 			begin
-				data numericValue, d28, ^d((a)value)
+				data numericValue, d28, %implied((a)value)
 				data negative, boolean, STRING_AT(inputValue, startPos) == '-'
 				data maxDigits, int;,  negative ? 20 : 19
 				data len, int, currentPos - startPos
@@ -400,7 +400,7 @@ namespace Json
 			begin
 				data resultNumber, @JsonNumber
 				data dvar, double
-				dvar = value
+				dvar = %implied((a)value)
 				resultNumber = new JsonNumber() { JsonType = jsonType, Value = dvar }
 				mreturn resultNumber
 			end

@@ -11,6 +11,7 @@
 import System
 import System.Diagnostics
 import System.Threading
+import System.Linq
 .ifdef DETECT_LEAKS
 ;; using System.Runtime.CompilerServices;
 .endc
@@ -108,10 +109,12 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 		public property Count, int
 			method get
 			proc
-				mreturn _items.Length
+				data basicCount, int, _items.Where(lambda(itm) { itm != ^null }).Count()
+				if(_firstItem != ^null)
+					basicCount += 1
+				mreturn basicCount
 			endmethod
 		endproperty
-
 
 		private method CreateInstance, T
 			serviceProvider, @IServiceProvider

@@ -67,15 +67,23 @@ namespace Harmony.Core.Context
 			end
 		endmethod
 				
-		public virtual method Disconnect, void
+		public virtual async method Disconnect, @Task
 			endparams
 		proc
-			if(mTargetConnection.IsConnected)
+			try
 			begin
-				mReader.Close()
-				mTargetConnection.Disconnect()
+				if(mTargetConnection.IsConnected)
+				begin
+					await this.Call("rpc.shutdown", new ArgumentDataDefinition[0])
+					mReader.Close()
+					mTargetConnection.Disconnect()
+				end
 			end
-
+			catch(ex, @Exception)
+			begin
+				DebugLogSession.Logging.LogException(ex, "SSHDynamicCallConnection-Disconnect")
+			end
+			endtry
 
 		endmethod
 

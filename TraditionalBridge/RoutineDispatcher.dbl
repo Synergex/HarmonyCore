@@ -4,6 +4,7 @@ import System.Collections
 import TraditionalBridge
 
 .define MaybeLog(priority, msg) if((priority) <= Logger.LogLevel) Logger.Instance.Log(msg)
+;.define MaybeLog(priority, msg) Logger.Instance.Log(msg)
 
 namespace Harmony.TraditionalBridge
 
@@ -712,12 +713,13 @@ namespace Harmony.TraditionalBridge
 			serializer.String("error")
 			serializer.MapOpen()
 			serializer.Pair("code", errorCode)
-			serializer.Pair("message", errorText)
+
+			serializer.Pair("message", Convert.ToBase64String(errorText).Replace(%char(10), "").Replace(%char(13), ""))
 
 			;;if scope logging is active return everything that was logged as part of this request scope
 			scopeLog = Logger.Instance.CurrentScopeLog()
 			if(scopeLog != ^null && scopeLog.Length > 0)
-				serializer.Pair("data", scopeLog)
+				serializer.Pair("data", Convert.ToBase64String(scopeLog).Replace(%char(10), "").Replace(%char(13), ""))
 
 			serializer.MapClose()
 
@@ -736,18 +738,26 @@ namespace Harmony.TraditionalBridge
 			result, @string
 			serializer, @DispatchSerializer
 		proc
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-			serializer.Pair("result", result)
+			if(requestId != -1) then
+			begin
+				serializer.MapOpen()
+				serializer.Pair("jsonrpc", "2.0")
+				serializer.Pair("result", result)
 			
-			if(requestId > -1) then
-				serializer.Pair("id", requestId)
+				if(requestId > -1) then
+					serializer.Pair("id", requestId)
+				else
+					serializer.PairNull("id")
+
+				serializer.MapClose()
+
+				MaybeLog(5, "ReportResult: " + result + " messageId" + %string(requestId))
+			end
 			else
-				serializer.PairNull("id")
+			begin
+				MaybeLog(5, "ReportResult: Notify")
+			end
 
-			serializer.MapClose()
-
-			MaybeLog(5, "ReportResult: " + result + " messageId" + %string(requestId))
 		endmethod
 
 		public method ReportResult, void
@@ -755,17 +765,24 @@ namespace Harmony.TraditionalBridge
 			result, n
 			serializer, @DispatchSerializer
 		proc
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-			serializer.Pair("result", result)
+			if(requestId != -1) then
+			begin
+				serializer.MapOpen()
+				serializer.Pair("jsonrpc", "2.0")
+				serializer.Pair("result", result)
 			
-			if(requestId > -1) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
+				if(requestId > -1) then
+					serializer.Pair("id", requestId)
+				else
+					serializer.PairNull("id")
 
-			serializer.MapClose()
-			MaybeLog(5, "ReportResult: " + %string(result) + " messageId" + %string(requestId))
+				serializer.MapClose()
+				MaybeLog(5, "ReportResult: " + %string(result) + " messageId" + %string(requestId))
+			end
+			else
+			begin
+				MaybeLog(5, "ReportResult: Notify")
+			end
 		endmethod
 
 		public method ReportResult, void
@@ -777,33 +794,40 @@ namespace Harmony.TraditionalBridge
 				arg, @object
 				ii, int
 		proc
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-			
-			serializer.ArrayOpen()
-			ii = 0
-			foreach arg in result
+			if(requestId != -1) then
 			begin
-				incr ii
-				if(inputSet[ii])
-				begin
-					serializer.MapOpen()
-					serializer.Pair("Position", ii)
-					serializer.String("Value")
-					SerializeObject(arg, serializer)
-					serializer.MapClose()
-				end
-			end
-
-			serializer.ArrayClose()
+				serializer.MapOpen()
+				serializer.Pair("jsonrpc", "2.0")
 			
-			if(requestId > -1) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
+				serializer.ArrayOpen()
+				ii = 0
+				foreach arg in result
+				begin
+					incr ii
+					if(inputSet[ii])
+					begin
+						serializer.MapOpen()
+						serializer.Pair("Position", ii)
+						serializer.String("Value")
+						SerializeObject(arg, serializer)
+						serializer.MapClose()
+					end
+				end
 
-			serializer.MapClose()
-			MaybeLog(5, "ReportResult: array(" + %string(result.Length) + ") messageId" + %string(requestId))
+				serializer.ArrayClose()
+			
+				if(requestId > -1) then
+					serializer.Pair("id", requestId)
+				else
+					serializer.PairNull("id")
+
+				serializer.MapClose()
+				MaybeLog(5, "ReportResult: array(" + %string(result.Length) + ") messageId" + %string(requestId))
+			end
+			else
+			begin
+				MaybeLog(5, "ReportResult: Notify")
+			end
 		endmethod
 
 		;;; <summary>
@@ -823,6 +847,7 @@ namespace Harmony.TraditionalBridge
 			record
 				leftoverData, a1
 				leftoverLength, int
+				lengthReadPos, int
 			record
 				running, boolean
 				frameHeader, d10
@@ -841,13 +866,17 @@ namespace Harmony.TraditionalBridge
 				running = true
 				while(running)
 				begin
+					clear ContentType
+					clear PacketLength
+					lengthReadPos = 1
 					do 
 					begin
-						gets(ttChannel, PacketLength, wait:100)  [$ERR_TIMOUT=again]
+						gets(ttChannel, PacketLength(lengthReadPos:^size(PacketLength) - lengthReadPos), wait:100)  [$ERR_TIMOUT=again]
+						lengthReadPos += %rdlen(ttChannel)
 					again,		
-						MaybeLog(6, "Dispatcher: Reading ContentLength from input" + %atrim(PacketLength) + ":" + %string(%rdlen(ttChannel)))
+						MaybeLog(6, "Dispatcher: Reading ContentLength from input" + %atrim(PacketLength) + ":" + %string(lengthReadPos))
 					end
-					until %rdlen(ttChannel) > 18
+					until lengthReadPos > 18
 
 					frameHeader = ^d(%atrim(lengthValue))
 					contentTypePos = 1
@@ -860,7 +889,6 @@ namespace Harmony.TraditionalBridge
 							leftoverLength = 0
 							exitloop
 						end
-
 
 						if(ContentType(contentTypePos:1) == '{')
 						begin
@@ -882,8 +910,17 @@ namespace Harmony.TraditionalBridge
 			end
 			catch(ex, @Exception)
 			begin
-				data serializer = new DispatchSerializer(new ChannelOutputStream(ttChannel))
-				ReportError(ex.ToString(), -32603, -1, serializer)
+				try
+				begin
+					data serializer = new DispatchSerializer(new ChannelOutputStream(ttChannel))
+					ReportError(ex.ToString(), -32603, -1, serializer)
+				end
+				catch(ex2, @Exception)
+				begin
+					MaybeLog(1, "failed while writing error " + ex2.ToString() + " original error was " + ex.ToString())
+					Logger.Instance.CloseLog()
+				end
+				endtry
 			end
 			endtry
 		endmethod

@@ -29,6 +29,13 @@ namespace Harmony.Core.Context
 
 	endinterface
 
+	public interface IAsyncPooledContextBase extends IPooledContextBase
+
+		method DestroyAsync, @Task
+		endmethod
+
+	endinterface
+
 
 	public class ThreadedContextBase implements IContextBase, IThreadStickyContext
 		protected mDispatcher, @BackgroundDispatcher
@@ -76,6 +83,17 @@ namespace Harmony.Core.Context
 		proc
 			mreturn Task.FromResult(true)
 		endmethod
+	endclass
+
+	public abstract class AsyncPooledContextBase extends PooledContextBase implements IContextBase, IAsyncPooledContextBase
+
+		public virtual method DestroyAsync, @Task
+			endparams
+		proc
+			mreturn Task.FromResult(true)
+		endmethod
+
+		
 	endclass
 
 

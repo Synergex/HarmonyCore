@@ -16,9 +16,13 @@ namespace TraditionalBridge
         proc
             mLogScopes = new ArrayList()
             mKeepLogScopes = mKeepLogScopes
-            Logger.LogLevel = logLevel
-            if(logLevel >= 0)
-                open(mLoggingChannel=0, O, logFileName)
+            Logger.LogLevel = 0
+			;if(logLevel >= 0)
+			;begin
+				open(mLoggingChannel=0, O, logFileName)
+				Log("Logging started")
+			;end
+
         endmethod
 
         public method LogHnd, void
@@ -31,15 +35,22 @@ namespace TraditionalBridge
         public method Log, void
             strValue, @string
         proc
-            if(mLoggingChannel)
-                writes(mLoggingChannel, strValue)
+			if(mLoggingChannel)
+			begin
+				flush(mLoggingChannel)
+				writes(mLoggingChannel, strValue)
+			end
+
         endmethod
 
         public method Log, void
             aValue, a
         proc
             if(mLoggingChannel)
-                writes(mLoggingChannel, aValue)
+			begin
+				flush(mLoggingChannel)
+				writes(mLoggingChannel, aValue)
+			end
         endmethod
 
         public method OpenScope, void
