@@ -82,6 +82,10 @@ namespace Harmony.TraditionalBridge
 				oneByte				,a1
 			endstructure
 		proc
+.ifdef DBLV11
+			mreturn Synergex.SynergyDE.DataEncoding.FromBase64(inEncodedString)
+.else
+
 			;; Set up the Base 64 character array, and initialize other values
 			init wrkVars
 			b64CharArray = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
@@ -159,6 +163,8 @@ namespace Harmony.TraditionalBridge
 			end
 
 			mreturn decodedString
+.endc
+
 		endmethod
 
 		;;;<summary>Converts the value of an array of 8-bit unsigned integers
@@ -312,6 +318,9 @@ namespace Harmony.TraditionalBridge
 				tmpByte         ,byte @tmpAlpha
 			endrecord
 		proc
+.ifdef DBLV11
+			mreturn Synergex.SynergyDE.DataEncoding.ToBase64(inAlpha)
+.else
 			if (inAlpha)
 			begin
 				m_alphaLength=%trim(inAlpha)
@@ -321,9 +330,10 @@ namespace Harmony.TraditionalBridge
 					tmpAlpha = inAlpha(m_count:1)
 					m_inBytes[m_count] = (@byte)(tmpByte)
 				end
-				mreturn ToBase64String(m_inBytes,Base64FormattingOptions.InsertLineBreaks)
+				mreturn ToBase64String(m_inBytes,Base64FormattingOptions.None)
 			end
 			mreturn " "
+.endc
 		endmethod
 
 		;;;<summary>Converts the value of an array of 8-bit unsigned integers
@@ -335,7 +345,7 @@ namespace Harmony.TraditionalBridge
 			in inArray, [#]@byte
 			endparams
 		proc
-			mreturn ToBase64String(inArray,Base64FormattingOptions.InsertLineBreaks)
+			mreturn ToBase64String(inArray,Base64FormattingOptions.None)
 		endmethod
 
 	endclass
