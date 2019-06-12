@@ -253,7 +253,12 @@ namespace Json
 				if(jsonType == JSON_TYPE.BOOL) then
 				begin
 					data result, @JsonBoolean
-					result = new JsonBoolean() { Value = value == "true" ? true : false, JsonType = jsonType }
+					data boolValue = false
+					if(value == "true")
+						boolValue = true
+
+					TraditionalBridge.Logger.Instance.Log("got bool primative value " + value)
+					result = new JsonBoolean() { Value = boolValue, JsonType = jsonType }
 					mreturn result
 				end
 				else if(jsonType == JSON_TYPE.NULL) then
@@ -470,7 +475,7 @@ namespace Json
 				begin
 					if(jsonType != JSON_TYPE.ARRAY_VAL && currentProperty == ^null)
 					begin
-						if(STRING_AT(inputValue, currentPos)  != '"')
+						if(STRING_AT(inputValue, currentPos) != '"')
 							ReportFailure(inputValue, currentPos, '"')
 
 						currentProperty = ReadPropertyName(currentPos)
@@ -514,20 +519,35 @@ namespace Json
 					34: ; "
 						MaybeAdd(currentProperty, currentValue, TextValue(currentPos))
 					84: ; T
+					begin
 						MaybeAdd(currentProperty, currentValue, PrimitiveValue(currentPos, "true", JSON_TYPE.BOOL))
+						nextloop
+					end
 					116:;   t
+					begin
 						MaybeAdd(currentProperty, currentValue, PrimitiveValue(currentPos, "true", JSON_TYPE.BOOL))
+						nextloop
+					end
 					70: ; F
+					begin
 						MaybeAdd(currentProperty, currentValue, PrimitiveValue(currentPos, "false", JSON_TYPE.BOOL))
+						nextloop
+					end
 					102:; f
+					begin
 						MaybeAdd(currentProperty, currentValue, PrimitiveValue(currentPos, "false", JSON_TYPE.BOOL))
+						nextloop
+					end
 					110:; n
 					begin
 						MaybeAdd(currentProperty, currentValue, PrimitiveValue(currentPos, "null", JSON_TYPE.NULL))
 						nextloop
 					end
 					78: ; N
+					begin
 						MaybeAdd(currentProperty, currentValue, PrimitiveValue(currentPos, "Null", JSON_TYPE.NULL))
+						nextloop
+					end
 					endcase
 					else
 					begin
@@ -626,8 +646,8 @@ namespace Json
 	endclass
 
 	class JsonObject extends JsonValue
-		private propertyNames, @ArrayList
-		private propertyValues, @ArrayList
+		public propertyNames, @ArrayList
+		public propertyValues, @ArrayList
 
 
 		public method JsonObject
@@ -680,13 +700,14 @@ namespace Json
 				foundNameIndex, int
 		proc
 			foundNameIndex = propertyNames.IndexOf(name)
-			if(foundNameIndex > 0) then
+			if(foundNameIndex >= 0) then
 			begin
 				value = (@JsonValue)propertyValues[foundNameIndex]
 				mreturn true
 			end
 			else
 			begin
+				TraditionalBridge.Logger.Instance.Log("failed to find prop: " + name)
 				mreturn false
 			end
 		endmethod
@@ -746,6 +767,7 @@ namespace Json
 			if(TryGetProperty(name, foundValue))
 			begin
 				value = ((@JsonBoolean)foundValue).Value
+				TraditionalBridge.Logger.Instance.Log("name -> " + %string(value))
 				mreturn true
 			end
 			mreturn false

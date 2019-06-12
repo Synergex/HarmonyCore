@@ -300,10 +300,10 @@ namespace Harmony.TraditionalBridge
 
 		public method UnwrapBoolArray, [#]boolean
 			collection, @JsonArray
-		record
-			result, [#]boolean
-			element, @JsonValue
-			i, int
+			record
+				result, [#]boolean
+				element, @JsonValue
+				i, int
 		proc
 			i = 1
 			result = new boolean[collection.arrayValues.Count]
@@ -322,10 +322,10 @@ namespace Harmony.TraditionalBridge
 
 		public method UnwrapImpliedDecimalArray, [#]@id
 			collection, @JsonArray
-		record
-			result, [#]@id
-			element, @JsonValue
-			i,	int
+			record
+				result, [#]@id
+				element, @JsonValue
+				i,	int
 		proc
 			i = 1
 			result = new @id[collection.arrayValues.Count]
@@ -705,32 +705,74 @@ namespace Harmony.TraditionalBridge
 			messageId, int
 			serializer, @DispatchSerializer
 			record
-				scopeLog, @string
+				scopeLog, @ArrayList
+				loggerSettings, @LoggerScopeSettings
 		proc
 			serializer.OutputScopeAbort()
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-			serializer.String("error")
-			serializer.MapOpen()
-			serializer.Pair("code", errorCode)
+			
+			if(messageId != -1) then
+			begin
+				serializer.MapOpen()
+				serializer.Pair("jsonrpc", "2.0")
+				serializer.String("error")
+				serializer.MapOpen()
+				serializer.Pair("code", errorCode)
 
-			serializer.Pair("message", Convert.ToBase64String(errorText))
+				serializer.Pair("message", Convert.ToBase64String(errorText))
 
-			;;if scope logging is active return everything that was logged as part of this request scope
-			scopeLog = Logger.Instance.CurrentScopeLog()
-			if(scopeLog != ^null && scopeLog.Length > 0)
-				serializer.Pair("data", Convert.ToBase64String(scopeLog))
+				;;if scope logging is active return everything that was logged as part of this request scope
+				if(Logger.Instance.ShouldAttachLogsToExceptions)
+				begin
+					scopeLog = Logger.Instance.CurrentScopeLog()
+					if(scopeLog != ^null && scopeLog.Count > 0)
+					begin
+						
+						data logEntry, @string
+						MaybeLog(2, "Dispatcher: attaching in memory logs to thrown exception")
 
-			serializer.MapClose()
+						serializer.MapOpen("data")
+						serializer.String("logs")
+						serializer.ArrayOpen()
 
-			if(messageId > -1) then
-				serializer.Pair("id", messageId)
+						foreach logEntry in scopeLog as @String
+						begin
+							serializer.String(Convert.ToBase64String(logEntry))
+						end
+
+						serializer.ArrayClose()
+
+						loggerSettings = Logger.Instance.CurrentLogSettings()
+
+						serializer.MapOpen("log_settings")
+						serializer.Pair("ScopeIdentifier", loggerSettings.ScopeIdentifier)
+						serializer.PairBool("LogToMemory", loggerSettings.LogToMemory)
+						serializer.PairBool("LogToDisk", loggerSettings.LogToDisk)
+						serializer.Pair("LogLocation", loggerSettings.LogLocation)
+						serializer.PairBool("FlushLog", loggerSettings.FlushLog)
+						serializer.Pair("OnDiskLogLevel", loggerSettings.OnDiskLogLevel)
+						serializer.Pair("InMemoryLogLevel", loggerSettings.InMemoryLogLevel)
+						serializer.PairBool("AttachLogsToExceptions", loggerSettings.AttachLogsToExceptions)
+						serializer.MapClose()
+
+						serializer.MapClose()
+					end
+				end
+
+				serializer.MapClose()
+
+				if(messageId > -1) then
+					serializer.Pair("id", messageId)
+				else
+					serializer.PairNull("id")
+
+				serializer.MapClose()
+
+				MaybeLog(1, "ReportError: " + errorText + " messageId" + %string(messageId))
+			end
 			else
-				serializer.PairNull("id")
-
-			serializer.MapClose()
-
-			MaybeLog(1, "ReportError: " + errorText + " messageId" + %string(messageId))
+			begin
+				MaybeLog(5, "ReportError: Notify -> " + errorText)
+			end
 		endmethod
 
 		public method ReportResult, void
@@ -978,11 +1020,29 @@ namespace Harmony.TraditionalBridge
 						data logArg, @JsonInt
 						argArrayList = ((@JsonArray)jsonData.GetProperty("params")).arrayValues
 
-						if(argArrayList.Count != 1 || !(argArrayList[0] .is. JsonInt)) then
+						if(argArrayList.Count != 1 || !(argArrayList[0] .is. JsonObject)) then
 							ReportError("invalid parameters for rpc.set_log_level", -32602, requestId, serializer)
 						else
 						begin
-							Logger.LogLevel = ((JsonInt)argArrayList[0]).Value
+							data settingsArgumentData = (@JsonObject)argArrayList[0] 
+							data passedValueProp = settingsArgumentData.GetProperty("PassedValue")
+							data passedValue = (@JsonObject)passedValueProp
+							data targetLogSettings = new LoggerScopeSettings()
+							if(passedValue == ^null)
+								ReportError("invalid parameters for rpc.set_log_level", -32602, requestId, serializer)
+
+							passedValue.TryGetProperty("ScopeIdentifier", targetLogSettings.ScopeIdentifier)
+							passedValue.TryGetProperty("LogLocation", targetLogSettings.LogLocation)
+							if(!(passedValue.TryGetBoolProperty("LogToMemory", targetLogSettings.LogToMemory) &&
+							&	passedValue.TryGetBoolProperty("LogToDisk", targetLogSettings.LogToDisk) &&
+							&	passedValue.TryGetBoolProperty("FlushLog", targetLogSettings.FlushLog) &&
+							&	passedValue.TryGetProperty("OnDiskLogLevel", targetLogSettings.OnDiskLogLevel) &&
+							&	passedValue.TryGetProperty("InMemoryLogLevel", targetLogSettings.InMemoryLogLevel) &&
+							&	passedValue.TryGetBoolProperty("AttachLogsToExceptions", targetLogSettings.AttachLogsToExceptions)))
+								Logger.Instance.Log("incomplete log settings object was passed")
+
+							Logger.Instance.SetRootScope(targetLogSettings)
+
 							ReportResult(requestId, 0, serializer)
 						end
 

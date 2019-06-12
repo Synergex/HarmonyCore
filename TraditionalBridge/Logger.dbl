@@ -6,24 +6,37 @@ namespace TraditionalBridge
         public static Instance, @Logger
         public static LogLevel, int
 
+		private mActiveSettings, @LoggerScopeSettings
+		private mActiveLogEntries, @ArrayList
         private mLogScopes, @ArrayList
         private mLoggingChannel, int
         private mKeepLogScopes, boolean
         public method Logger
             logFileName, a
             logLevel, n
-            keepLogScopes, boolean
+			keepLogScopes, boolean
+			this(new LoggerScopeSettings("root", false, true, logFileName, false, logLevel, 0, false))
         proc
-            mLogScopes = new ArrayList()
-            mKeepLogScopes = mKeepLogScopes
-            Logger.LogLevel = 0
-			;if(logLevel >= 0)
-			;begin
-				open(mLoggingChannel=0, O, logFileName)
-				Log("Logging started")
-			;end
-
         endmethod
+
+		public method Logger
+			settings, @LoggerScopeSettings
+		proc
+			mActiveSettings = settings
+			mLogScopes = new ArrayList()
+			mActiveLogEntries = new ArrayList()
+			mKeepLogScopes = mKeepLogScopes
+			if(mActiveSettings.OnDiskLogLevel > mActiveSettings.InMemoryLogLevel) then
+				Logger.LogLevel = mActiveSettings.OnDiskLogLevel
+			else
+				Logger.LogLevel = mActiveSettings.InMemoryLogLevel
+
+			if(logLevel >= 0)
+			begin
+				open(mLoggingChannel=0, O, settings.LogLocation)
+				Log("Logging started")
+			end
+		endmethod
 
         public method LogHnd, void
             handleValue, D_HANDLE
@@ -35,10 +48,16 @@ namespace TraditionalBridge
         public method Log, void
             strValue, @string
         proc
-			if(mLoggingChannel)
+			if(mActiveSettings.LogToDisk && mLoggingChannel)
 			begin
-				flush(mLoggingChannel)
 				writes(mLoggingChannel, strValue)
+				if(mActiveSettings.FlushLog)
+					flush(mLoggingChannel)
+			end
+
+			if(mActiveSettings.LogToMemory)
+			begin
+				mActiveLogEntries.Add(strValue)
 			end
 
         endmethod
@@ -46,20 +65,60 @@ namespace TraditionalBridge
         public method Log, void
             aValue, a
         proc
-            if(mLoggingChannel)
+            if(mActiveSettings.LogToDisk && mLoggingChannel)
 			begin
-				flush(mLoggingChannel)
 				writes(mLoggingChannel, aValue)
+				if(mActiveSettings.FlushLog)
+					flush(mLoggingChannel)
+			end
+
+			if(mActiveSettings.LogToMemory)
+			begin
+				mActiveLogEntries.Add((@string)aValue)
 			end
         endmethod
 
+		public method SetRootScope, void
+			settings, @LoggerScopeSettings
+		proc
+			;;the MaybeLog macros make use of Logger.LogLevel, make sure its set to the least restrictive
+			;;of the OnDisk and InMemory log levels
+			this.Log("log settings changed OnDisk=" + %string(settings.LogToDisk) + " InMemory=" + %string(settings.LogToMemory))
+			mActiveSettings = settings
+			if(mActiveSettings.OnDiskLogLevel > mActiveSettings.InMemoryLogLevel) then
+				Logger.LogLevel = mActiveSettings.OnDiskLogLevel
+			else
+				Logger.LogLevel = mActiveSettings.InMemoryLogLevel
+		endmethod
+
+
         public method OpenScope, void
-            identifier, @string
-        proc
+			settings, @LoggerScopeSettings
+		proc
+			if(mKeepLogScopes)
+			begin
+				data newScope = new LogScope() { LogEntries = mActiveLogEntries, Settings = mActiveSettings }
+				mLogScopes.Add(newScope)
+				mActiveLogEntries = new ArrayList()
+			end
+
+			SetRootScope(settings)
+
         endmethod
 
-        public method CloseScope, void
-        proc
+        public method CloseScope, @ArrayList
+			record
+				tempLogEntries, @ArrayList
+				tempLogScope, @LogScope
+		proc
+			tempLogEntries = mActiveLogEntries
+			tempLogScope = (@LogScope)mLogScopes[mLogScopes.Count - 1]
+			mLogScopes.RemoveAt(mLogScopes.Count - 1)
+			mActiveLogEntries = tempLogScope.LogEntries
+
+			SetRootScope(tempLogScope.Settings)
+
+			mreturn tempLogEntries
         endmethod
 
         public method CloseLog, void
@@ -69,10 +128,64 @@ namespace TraditionalBridge
             mLoggingChannel = 0
         endmethod
 
-        public method CurrentScopeLog, @string
+        public method CurrentScopeLog, @ArrayList
         proc
-            mreturn ""
-        endmethod
+            mreturn mActiveLogEntries
+		endmethod
+
+		public method CurrentLogSettings, @LoggerScopeSettings
+		proc
+			mreturn mActiveSettings
+		endmethod
+
+
+		public property ShouldAttachLogsToExceptions, boolean
+			method get
+			proc
+				mreturn mActiveSettings.AttachLogsToExceptions
+			endmethod
+		endproperty
+
     endclass
+
+	class LoggerScopeSettings
+		public method LoggerScopeSettings
+		proc
+		endmethod
+
+		public method LoggerScopeSettings
+			ScopeIdentifier, @string
+			LogToMemory, boolean
+			LogToDisk, boolean
+			LogLocation, @string
+			FlushLog, boolean
+			OnDiskLogLevel, int
+			InMemoryLogLevel, int
+			AttachLogsToExceptions, boolean
+		proc
+			this.ScopeIdentifier = ScopeIdentifier
+			this.LogToMemory = LogToMemory
+			this.LogToDisk = LogToDisk
+			this.LogLocation = LogLocation
+			this.FlushLog = FlushLog
+			this.OnDiskLogLevel = OnDiskLogLevel
+			this.InMemoryLogLevel = InMemoryLogLevel
+			this.AttachLogsToExceptions = AttachLogsToExceptions
+		endmethod
+
+		public ScopeIdentifier, @string
+		public LogToMemory, boolean
+		public LogToDisk, boolean
+		public LogLocation, @string
+		public FlushLog, boolean
+		public OnDiskLogLevel, int
+		public InMemoryLogLevel, int
+		public AttachLogsToExceptions, boolean
+	endclass
+
+	class LogScope
+		public Settings, @LoggerScopeSettings
+		public LogEntries, @ArrayList
+	endclass
 
 endnamespace

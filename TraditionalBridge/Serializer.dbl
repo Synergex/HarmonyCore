@@ -230,6 +230,22 @@ namespace Json
 			mreturn SerializerStatus.Ok
 		endmethod
 
+		public method MapOpen, SerializerStatus
+			mapName, a
+			record
+				input, string
+		proc
+			if(!first) then
+				input = ',"' + mapName + '":{'
+			else	input = '"' + mapName + '":{'
+			expectingName = true
+			first = true
+			Push(SerializerStackType.Object)
+			;rma note: can we just move this above expecting name ? and pass in literals removing input ?
+			AppendOutput(input)
+			mreturn SerializerStatus.Ok
+		endmethod
+
 		;TODO: Consider renaming this to ObjectClose
 
 		;;; <summary>

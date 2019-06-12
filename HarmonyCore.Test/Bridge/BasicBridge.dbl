@@ -11,6 +11,7 @@ import Harmony.Core.Test
 import Harmony.Core
 import Newtonsoft.Json.Linq
 import StreamJsonRpc
+import Harmony.Core.Utility
 
 
 namespace HarmonyCore.Test.Bridge
@@ -39,7 +40,7 @@ namespace HarmonyCore.Test.Bridge
 				data failureResult = await context.Arbitrario_Exception()
 				Assert.Fail("exception wasnt thrown")
 			end
-			catch(ex, @RemoteInvocationException)
+			catch(ex, @BridgeException)
 			begin
 
 			end
@@ -63,6 +64,38 @@ namespace HarmonyCore.Test.Bridge
 			await contextPool.TrimPool(0)
 			Console.WriteLine("shutting down test")
 		endmethod
+
+
+		{TestMethod}
+		public async method LocalLoggingTest, @Task
+		proc
+			data currentDirectory = Path.GetDirectoryName(^typeof(BasicBridge).Assembly.Location)
+			disposable data contextPool = new ExternalContextPool<BasicBridge.ExternalCallContext>(Environment.GetEnvironmentVariable("SYNERGYDE32") + "dbl\bin\dbs.exe", 'TraditionalBridge.Test.dbr', Path.GetFullPath(Path.Combine(currentDirectory, "..\..\..\..\TestDir")), ^null, 4) 
+			data sp = new ServiceCollection().BuildServiceProvider()
+			
+			data context = contextPool.MakeContext(sp)
+			await context.SetRemoteLogSettings(new RemoteLogSettings() { AttachLogsToExceptions = true, InMemoryLogLevel = 5, LogToMemory = true, LogToDisk = true, OnDiskLogLevel = 6, FlushLog = true }) 
+			try
+			begin
+				data failureResult = await context.Arbitrario_Exception()
+				Assert.Fail("exception wasnt thrown")
+			end
+			catch(ex, @BridgeException)
+			begin
+				Assert.IsTrue(ex.RemoteLogs.Length > 2, "there werent any remote logs")
+			end
+			catch(ex, @Exception)
+			begin
+				throw
+			end
+
+			endtry
+
+			contextPool.ReturnContext(context)
+			await contextPool.TrimPool(0)
+			Console.WriteLine("shutting down test")
+		endmethod
+
 
 		public class ExternalCallContext extends DynamicCallProvider
 			public method ExternalCallContext

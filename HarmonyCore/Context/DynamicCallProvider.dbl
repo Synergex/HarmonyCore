@@ -11,6 +11,7 @@ import System.Threading.Tasks
 import StreamJsonRpc
 import System.Buffers
 import StreamJsonRpc.Protocol
+import Harmony.Core.Utility
 
 namespace Harmony.Core.Context
 
@@ -68,6 +69,14 @@ namespace Harmony.Core.Context
 		proc
 			mreturn connection.Recycle()
 		endmethod
+
+		public method SetRemoteLogSettings, @Task
+			settings, @RemoteLogSettings
+		proc
+			data settingsDef = new ArgumentDataDefinition() { DataType = FieldDataType.DataObjectField, PassedValue = settings }
+			mreturn this.connection.Notify("rpc.set_log_level", new ArgumentDataDefinition[#] { settingsDef })
+		endmethod
+
 
 		public virtual method CallMethod, @Task<Tuple<Object, [#]@Object>>
 			name, @string

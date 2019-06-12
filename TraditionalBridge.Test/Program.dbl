@@ -1,5 +1,6 @@
 
 import Harmony.TraditionalBridge
+import Json
 import TraditionalBridge.Test
 import TraditionalBridge
 
@@ -22,6 +23,11 @@ main
 proc
 	try
 	begin
+		data jsn, @Json.Json, new Json.Json()
+		data jsnValue, @Json.JsonValue
+		data jsnObj, @Json.JsonObject
+		data jsnArray, @Json.JsonArray
+		data targetLogSettings, @LoggerScopeSettings, new LoggerScopeSettings()
 		nop
 		xcall flags(1907050020)
         open(ttChan=0, O, "TT:")
@@ -33,9 +39,10 @@ proc
         if(logLevelLength > 0) then
             logLevelInt = %integer(logLevel)
         else
-            logLevelInt = 5 ;log almost everything
+            logLevelInt = 6 ;log almost everything
 
         TraditionalBridge.Logger.Instance = new TraditionalBridge.Logger(%atrim(processName) + "_" + %string(processId) + LOG_EXTENSION, logLevelInt, false)
+		
 		puts(ttChan, "READY" + %char(13)+ %char(10))
 
 		disp = new SampleXfplEnvDispatcher()
@@ -45,10 +52,11 @@ proc
 	
 	catch(e, @Exception)
 	begin
-		TraditionalBridge.Logger.Instance.Log("DISPATCHER EXITED with exception" + e.ToString())
+		if(TraditionalBridge.Logger.Instance != ^null)
+			TraditionalBridge.Logger.Instance.Log("DISPATCHER EXITED with exception" + e.ToString())
 	end
 	endtry
-	TraditionalBridge.Logger.Instance.CloseLog()
-	;;TraditionalBridge.Logger.Instance.Log("DISPATCHER EXITED")
+	if(TraditionalBridge.Logger.Instance != ^null)
+		TraditionalBridge.Logger.Instance.CloseLog()
 
 endmain

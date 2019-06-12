@@ -71,7 +71,7 @@ namespace Harmony.Core.Context
 			end
 			catch(ex, @RemoteInvocationException)
 			begin
-				throw new RemoteInvocationException(Encoding.UTF8.GetString(Convert.FromBase64String(ex.Message)), ex.ErrorCode, ex.Data)
+				throw new BridgeException(ex)
 			end
 			endtry
 		endmethod
@@ -81,7 +81,7 @@ namespace Harmony.Core.Context
 			args, [#]@ArgumentDataDefinition
 		proc
 			data jsonRpcConnection = await mMakeReadyTask.Value
-			await jsonRpcConnection.NotifyAsync(name, args)
+			await jsonRpcConnection.NotifyAsync(name, args.OfType<Object>().ToArray())
 		endmethod
 
 		private async method MakeReadyInternal, @Task<JsonRpc>

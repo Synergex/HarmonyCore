@@ -1,0 +1,72 @@
+import System
+import System.Collections.Generic
+import System.Text
+import StreamJsonRpc
+import System.Diagnostics
+import Newtonsoft.Json.Linq
+import System.Linq
+
+namespace Harmony.Core.Utility
+
+	public class BridgeException extends ApplicationException
+
+		public readwrite property ErrorCode, int
+		public readwrite property RemoteExceptionType, @String
+		public readwrite property RemoteStackTrace, [#]@string
+		public readwrite property RemoteLogs, [#]string
+		public readwrite property RemoteLogSettings, @RemoteLogSettings
+		public method BridgeException
+			ex, @RemoteInvocationException 
+		proc
+			ErrorCode = ex.ErrorCode
+			data decodedMessage = Encoding.UTF8.GetString(Convert.FromBase64String(ex.Message))
+			data splitMessage = decodedMessage.Split(new string[#] {%char(10), %char(13) }, StringSplitOptions.RemoveEmptyEntries)
+			RemoteExceptionType = splitMessage[1]
+			RemoteStackTrace = Enumerable.ToArray(Enumerable.Skip(splitMessage, 1))
+
+			data additionalData = ^as(ex.ErrorData, @JToken)
+			if(additionalData .is. JObject) then
+			begin
+				data additionalDataObject = ^as(additionalData, @JObject)
+				data logsProperty = additionalDataObject.Property("logs")
+				data logSettingsProperty = additionalDataObject.Property("log_settings")
+				if(logsProperty != ^null && logsProperty.Value .is. JArray)
+				begin
+					data logArray = (@JArray)logsProperty.Value
+					this.RemoteLogs = System.Linq.Enumerable.Select(logArray, lambda(tok) { Encoding.UTF8.GetString(Convert.FromBase64String(tok.ToObject<string>())) }).ToArray()
+				end
+
+				if(logSettingsProperty != ^null)
+				begin
+					this.RemoteLogSettings = logSettingsProperty.Value.ToObject<RemoteLogSettings>()
+				end
+			end
+			else
+			begin
+				DebugLogSession.Logging.LogDebug("unexpected error data while translating exception {1}", additionalData, "BridgeException.ctor")
+			end
+
+		endmethod
+
+		public override property Message, @string
+			method get
+			proc
+				mreturn RemoteExceptionType
+			endmethod
+		endproperty
+
+	endclass
+
+	public class RemoteLogSettings
+		public ScopeIdentifier, @string
+		public LogToMemory, boolean
+		public LogToDisk, boolean
+		public LogLocation, @string
+		public FlushLog, boolean
+		public OnDiskLogLevel, int
+		public InMemoryLogLevel, int
+		public AttachLogsToExceptions, boolean
+	endclass
+
+
+endnamespace
