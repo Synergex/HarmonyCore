@@ -102,7 +102,7 @@ namespace Harmony.Core.Context
 			catch(ex, @RemoteInvocationException)
 			begin
 				mNeedsRecycle = true
-				throw new RemoteInvocationException(Encoding.UTF8.GetString(Convert.FromBase64String(ex.Message)), ex.ErrorCode, ex.Data)
+				throw new BridgeException(ex)
 			end
 			catch(ex, @Exception)
 			begin
@@ -153,7 +153,7 @@ namespace Harmony.Core.Context
 			data readLine, @string
 			data foundMatch, boolean, false
 			guidStrings.Add(guidString)
-
+			data connectionLog = new List<string>()
 			while(String.IsNullOrWhiteSpace(readLine) || readLine != guidString)
 			begin
 				cancelToken.ThrowIfCancellationRequested()
@@ -174,8 +174,12 @@ namespace Harmony.Core.Context
 				readLine = TrimControlChars(await mReader.ReadLineAsync())
 				while(String.IsNullOrWhiteSpace(readLine))
 				begin
-					cancelToken.ThrowIfCancellationRequested()
+					if(cancelToken.IsCancellationRequested)
+					begin
+						throw new BridgeConnectionException("Timeout", connectionLog)
+					end
 					readLine = TrimControlChars(await mReader.ReadLineAsync())
+					connectionLog.Add(readLine)
 				end
 				
 				data checkString, @string
@@ -199,11 +203,15 @@ namespace Harmony.Core.Context
 			
 			await mWriter.WriteAsync(mLaunchCommand + %char(13) + %char(10))
 			await mWriter.FlushAsync()
-
 			do
 			begin
-				cancelToken.ThrowIfCancellationRequested()
+				if(cancelToken.IsCancellationRequested)
+				begin
+					throw new BridgeConnectionException("Timeout", connectionLog)
+				end
+
 				readLine = TrimControlChars(await mReader.ReadLineAsync())
+				connectionLog.Add(readLine)
 			end
 			until(readLine == "READY")
 			
