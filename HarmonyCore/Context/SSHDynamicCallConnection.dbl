@@ -154,7 +154,7 @@ namespace Harmony.Core.Context
 			data foundMatch, boolean, false
 			guidStrings.Add(guidString)
 			data connectionLog = new List<string>()
-			while(String.IsNullOrWhiteSpace(readLine) || readLine != guidString)
+			while(String.IsNullOrWhiteSpace(readLine) || !readLine.Contains(guidString))
 			begin
 				cancelToken.ThrowIfCancellationRequested()
 				if(readLine == ^null || !foundMatch)
@@ -216,7 +216,7 @@ namespace Harmony.Core.Context
 			until(readLine == "READY")
 			
 			
-			data result = new JsonRPC(new HeaderDelimitedMessageHandler(streamWrapper, new JsonMessageFormatter(Encoding.ASCII)));;new DynamicCallProvider.HarmonyJsonMessageFormatter(Encoding.Ascii))) 
+			data result = new JsonRPC(new HeaderDelimitedMessageHandler(streamWrapper, new JsonMessageFormatter(Encoding.UTF8)));;new DynamicCallProvider.HarmonyJsonMessageFormatter(Encoding.Ascii))) 
 			result.TraceSource = new TraceSource("Client", SourceLevels.All)
 			result.StartListening()
 			mreturn result
