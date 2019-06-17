@@ -84,7 +84,7 @@ namespace <NAMESPACE>
 			required in dataArea, a
 			required in grfa, a
 			record
-				new<StructureNoplural>, @<StructureNoplural>
+				new<StructureNoplural>, @<NAMESPACE>.<StructureNoplural>
 		proc
 			new<StructureNoplural> = new <StructureNoplural>(dataArea) 
 			new<StructureNoplural>.GlobalRFA = grfa

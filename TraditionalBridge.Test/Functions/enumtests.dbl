@@ -1,0 +1,1170 @@
+.include "MYCOLOR" REPOSITORY ,public ENUM
+.include "DAYOFWEEK" REPOSITORY ,public ENUM
+.include "BINARYTEST" REPOSITORY ,structure="Binarytest" ,end
+.include "ENUMSTRUCTURE" REPOSITORY ,structure="Enumstructure" ,end
+.include "FUENTES" REPOSITORY ,structure="Fuentes" ,end
+;.include "STROPTSOUTTER" REPOSITORY ,structure="Stroptsoutter" ,end; 
+.include "V93REPOSOPTS" REPOSITORY ,structure="V93reposopts" ,end
+.include "TIMEKEY" REPOSITORY ,structure="Timekey" ,end
+
+public enum Color	; old #
+  red		,0   	; 1
+  blue		,1	; 2
+  green		,2	; 3
+  yellow	,3	; 4
+endenum
+
+public enum DaysOfTheWeek
+    Sunday	,1
+    Monday	,2
+    Tuesday	,3
+    Wednesday	,4
+    Thursday	,5
+    Friday	,6
+    Saturday	,7
+endenum
+
+; -----------------------------------------------------------------
+
+{xfMethod(interface="V93IF",name="EnumTest1",elb="TEST:V93ELB",id="EnumTest1")}
+subroutine EnumTest1S
+{xfParameter(name="AColor")}
+req inout   a_enum      ,Color
+endparams
+;.subroutine enumtest1
+;        a_enum          ,i
+
+.align
+record
+        chan    ,i4
+        ndx     ,i4
+        msg     ,a30
+	m_enum	,Color
+
+
+.proc
+        chan = 211
+        open(chan, o, "TEST:enum.log")
+        writes(chan, %string(a_enum))
+;	close (chan)
+        m_enum =  (Color)(%integer(a_enum))
+        writes(chan, %string(m_enum))
+	m_enum = Color.blue
+	a_enum = (Color)%integer(m_enum)
+        writes(chan, %string(m_enum))
+        close (chan)
+        xreturn
+.end
+
+; ---------------------------------------------------------------------------
+
+{xfMethod(interface="V93IF",name="EnumTest2",elb="TEST:V93ELB",id="EnumTest2")}
+function EnumTest2      ,Color
+endparams
+;.function enumtest2, Color
+
+.align
+record
+        chan    ,i4
+        ndx     ,i4
+        msg     ,a30
+	m_enum	,Color
+
+
+.proc
+        chan = 211
+        open(chan, a, "TEST:enum.log")
+        writes(chan, "In testenum2 function return an enum1")
+	m_enum = Color.red
+	
+        writes(chan, %string(m_enum))
+        close (chan)
+        freturn (Color)(%integer(m_enum))
+.end
+
+; ----------------------------------------------------------------------
+
+{xfMethod(interface="V93IF",name="EnumTest3",elb="TEST:V93ELB",id="EnumTest3")}
+function EnumTest3      ,Color
+{xfParameter(name="aColor")}
+req in      a_enum1      ,Color                  ;;
+{xfParameter(name="Alpha1")}
+req inout   a_alpha      ,a10                    ;;
+{xfParameter(name="bColor")}
+req out     a_enum2      ,Color                  ;;
+endparams
+;.function enumtest3, Color
+;	a_enum1         ,Color
+;	a_alpha		,a
+;	a_enum2         ,Color
+
+.align
+record
+        chan    ,i4
+        ndx     ,i4
+        msg     ,a30
+	m_enum	,Color
+	m_enum1 ,Color
+	m_enum2	,Color
+
+
+.proc
+        chan = 211
+        open(chan, a, "TEST:enum.log")
+        writes(chan, "In testenum3 function return an enum1")
+	m_enum = Color.red
+	m_enum1 = Color.blue
+	m_enum2 = Color.Green
+	a_alpha = "Mae"
+;	a_enum1 = m_enum1	; read only in param
+	a_enum2 = m_enum2
+        writes(chan, %string(m_enum))
+	writes(chan, %string(m_enum1))
+	writes(chan, %string(m_enum2))
+        close (chan)
+        freturn (Color)(%integer(m_enum))
+.end
+
+; -------------------------------------------------------------------------
+
+{xfMethod(interface="V93IF",name="EnumTest4",elb="TEST:V93ELB",id="EnumTest4")}
+subroutine EnumTest4
+{xfParameter(name="ENUMSTRUCTURE",structure="Enumstructure")}
+req inout   a_enumStr ,Enumstructure        ;;
+endparams
+;.subroutine enumtest4
+;        a_enumStr        ,a
+	
+.align
+record
+        chan    ,i4
+        ndx     ,i4
+        msg     ,a30
+		m_color	,Color
+		m_day	,DaysOfTheWeek
+
+record EnumTst                                              
+  ID     ,D6       ; (1,6) key                                                  
+  DESC   ,A30      ; (7,36)                                                     
+  ACOLOR ,COLOR    ; (37,40)                                                    
+  ADAY   ,DaysOfTheWeek  ; (41,44)        
+	
+.proc
+        chan = 211
+        open(chan, o, "TEST:enum.log")
+        writes(chan, a_enumStr)
+;	close (chan)
+	EnumTst = a_enumStr
+        m_color =  (Color)(%integer(EnumTst.ACOLOR))
+        writes(chan, %string(m_color))
+	m_day =  (DaysOfTheWeek)(%integer(EnumTst.ADAY))
+        writes(chan, %string(m_day))
+	writes(chan, EnumTst)
+	EnumTst.ACOLOR = Color.yellow
+	EnumTst.ADAY = DaysOFTheWeek.Friday
+	EnumTst.DESC = "yellow Friday"
+	a_enumStr = EnumTst
+	;a_enum = %integer(m_)
+        writes(chan, a_enumStr)
+        close (chan)
+        xreturn
+.end
+
+; ------------------------------------------------------------------------
+
+{xfMethod(interface="V93IF",name="EnumTest5",elb="TEST:V93ELB",id="EnumTest5")}
+subroutine EnumTest5
+{xfParameter(name="ENUMSTRUCTURE",structure="Enumstructure")}
+req inout   a_strary ,[*]Enumstructure     ;;
+endparams
+;.subroutine enumtest5
+;        a_strary        ,[*]a
+	
+.align
+record
+        chan    ,i4
+        ndx     ,i4
+        msg     ,a30
+	m_color	,Color
+	m_day	,DaysOfTheWeek
+
+record EnumTst                                              
+  ID     ,D6       ; (1,6) key                                                  
+  DESC   ,A30      ; (7,36)                                                     
+  ACOLOR ,COLOR    ; (37,40)                                                    
+  ADAY   ,DaysOfTheWeek  ; (41,44)        
+	
+.proc
+        chan = 211
+        open(chan, o, "TEST:enum.log") 
+	for ndx from 1 thru 3 by 1
+	  begin
+	    EnumTst = a_strary[ndx]
+	    writes(chan, EnumTst)
+	    m_color =  (Color)(%integer(EnumTst.ACOLOR))
+	    writes(chan, %string(m_color))
+	    m_day =  (DaysOfTheWeek)(%integer(EnumTst.ADAY))
+;	    writes(chan, %string(m_day))
+	    EnumTst.ACOLOR = Color.yellow
+	    EnumTst.ADAY = DaysOFTheWeek.Friday
+	    a_strary[ndx] = EnumTst
+	    writes(chan, EnumTst)
+	    writes(chan, " ")
+	  end
+        close (chan)
+        xreturn
+.end
+
+; -----------------------------------------------------------------------
+
+{xfMethod(interface="V93IF",name="EnumTest6",elb="TEST:V93ELB",id="EnumTest6")}
+subroutine EnumTest6
+{xfParameter(name="ENUMSTRUCTURE",structure="Enumstructure",collectionType=xfCollectType.structure)}
+req in      a_al ,@System.Collections.ArrayList ;;
+endparams
+;.subroutine enumtest6
+;        required a_al         ,@System.Collections.ArrayList;
+	
+.align
+record
+        chan    ,i4
+        ndx     ,i4
+		cnt	,i4
+        msg     ,a30
+		m_color	,Color
+		m_day	,DaysOfTheWeek
+		abox	,@a
+		arylst	,@System.Collections.ArrayList
+		aRec	,Enumstructure
+
+record EnumTst                                              
+  ID     ,D6       ; (1,6) key                                                  
+  DESC   ,A30      ; (7,36)                                                     
+  ACOLOR ,COLOR    ; (37,40)                                                    
+  ADAY   ,DaysOfTheWeek  ; (41,44)        
+	
+.proc
+        chan = 211
+	open(chan, o, "TEST:enum.log") 
+	arylst = a_al
+	cnt = 0;
+	cnt = arylst.Count;
+	writes(chan, "cnt = " + %string(cnt))
+	if (cnt .gt. 0)
+	  begin
+	    cnt = cnt -1
+	    if (cnt .lt. 0)
+		cnt = 0
+	    writes(chan, "cnt = " + %string(cnt))
+	    for ndx from 0 thru cnt by 1
+		begin
+	;	    abox = arylst[ndx]
+	;	    EnumTst = (a)abox
+			;;;		EnumTst = (Enumstructure)arylst[ndx]
+			aRec = (Enumstructure)arylst[ndx]
+			EnumTst = aRec
+		    writes(chan, EnumTst)
+		    m_color =  (Color)(%integer(EnumTst.ACOLOR))
+		    writes(chan, %string(m_color))
+		    m_day =  (DaysOfTheWeek)(%integer(EnumTst.ADAY))
+		    writes(chan, %string(m_day))
+		    writes(chan, "  ")
+	    end
+	  end
+        close (chan)
+        xreturn
+.end
+
+; ---------------------------------------------------------------------------
+
+{xfMethod(interface="V93IF",name="EnumTest7",elb="TEST:V93ELB",id="EnumTest7")}
+subroutine EnumTest7
+{xfParameter(name="ENUMSTRUCTURE",structure="Enumstructure",collectionType=xfCollectType.structure)}
+req out     a_al ,@System.Collections.ArrayList ;;
+endparams
+;.subroutine enumtest7
+;        required a_al         ,@System.Collections.ArrayList
+	
+.align
+record
+        chan    ,i4
+        ndx     ,i4
+        msg     ,a30
+		m_color	,Color
+		m_day	,DaysOfTheWeek
+		abox	,@a
+		aSt1	,Enumstructure
+		arylst	,@System.Collections.ArrayList
+
+record EnumTst                                              
+  ID     ,D6       ; (1,6) key                                                  
+  DESC   ,A30      ; (7,36)                                                     
+  ACOLOR ,COLOR    ; (37,40)                                                    
+  ADAY   ,DaysOfTheWeek  ; (41,44)        
+	
+.proc
+	chan = 211
+        open(chan, a, "TEST:enum.log")
+	arylst = new System.Collections.ArrayList()
+	for ndx from 0 thru 5
+	  begin
+		clear EnumTst
+		EnumTst.ID = ndx + 7
+		EnumTst.DESC = " Frans Doodle"
+		EnumTst.ACOLOR = Color.yellow
+		EnumTst.ADAY = DaysOFTheWeek.Friday
+		if (ndx .eq. 2)
+		  begin
+		    EnumTst.ACOLOR = Color.blue
+		    EnumTst.ADAY = DaysOFTheWeek.monday
+		  end
+		if (ndx .eq. 4)
+		  begin
+		    EnumTst.ACOLOR = Color.red
+		    EnumTst.ADAY = DaysOFTheWeek.tuesday
+		end
+
+		m_color =  (Color)(%integer(EnumTst.ACOLOR))
+		writes(chan, %string(m_color))
+		m_day =  (DaysOfTheWeek)(%integer(EnumTst.ADAY))
+		writes(chan, %string(m_day))
+.ifdef DBLNET
+		aSt1 = EnumTst
+		arylst.add(aSt1)
+.else
+		abox = (@a)EnumTst
+		arylst.add(abox)
+.endc
+        writes(chan, EnumTst)
+	  end
+	a_al = arylst
+        close (chan)
+        xreturn
+.end
+
+; ---------------------------------------------------------------------------------
+.ifndef DBLNET
+{xfMethod(interface="V93IF",name="StrOptTst1",elb="TEST:V93ELB",id="StrOptTest1")}
+subroutine StrOptTst1
+{xfParameter(name="STROPTSOUTTER",structure="StroptsoutterR", length=70)}
+	req inout   a_StrOpt ,a
+endparams
+;.subroutine StrOptTst1
+;        a_StrOpt        ,a
+	
+.align
+record
+        chan    ,i4
+        ndx     ,i4
+        msg     ,a30
+	m_color	,Color
+	m_day	,DaysOfTheWeek
+
+record stroptOutter
+  KEY_OUTTER  ,D6       ; (1,6)
+;  STR_INSTR   ,STROPTS  ; (7,45)
+	KEY_INNNER   ,D5    ; (1,5)
+	DESC_INNER   ,A25   ; (6,30)
+	AMOUNT_INNER ,D9.2  ; (31,39)
+  DESC_OUTTER ,A25      ; (46,70)
+
+;  record innerStr
+;  KEY_INNNER   ,D5    ; (1,5)
+;  DESC_INNER   ,A25   ; (6,30)
+;  AMOUNT_INNER ,D9.2  ; (31,39)
+	
+.proc
+        chan = 211
+        open(chan, o, "TEST:enum.log")
+        writes(chan, a_StrOpt)
+	stroptOutter = a_StrOpt
+	
+	stroptOutter.KEY_OUTTER = 1987
+	stroptOutter.KEY_INNNER = 127
+	stroptOutter.AMOUNT_INNER = 37.50
+	stroptOutter.DESC_INNER = "Inner Description"
+	stroptOutter.DESC_OUTTER = "Outter Description"
+	
+	a_StrOpt = stroptOutter
+        writes(chan, a_StrOpt)
+        close (chan)
+        xreturn
+.end
+.endc
+; -------------------------------------------------------------------
+
+{xfMethod(interface="V93IF",name="reposoptsv93",elb="TEST:V93ELB",id="ReposOptionsV93")}
+subroutine reposoptsv93
+{xfParameter(name="V93REPOSOPTS",structure="V93reposopts")}
+req inout   a_Str ,V93reposopts          ;;
+endparams
+;.subroutine reposoptsv93
+;        a_Str        ,a
+	
+.align
+record
+        chan    ,i4
+        ndx     ,i4
+        msg     ,a30
+	m_color	,Color
+	m_day	,DaysOfTheWeek
+
+record rsposopts
+  NEWBOOL  ,Boolean  ; (1,1)
+  D2NULL   ,D2       ; (2,3)
+  D7NULL   ,D7       ; (4,10)
+  D12NULL  ,D12      ; (11,22)
+  ID72NULL ,D7.2     ; (23,29)
+  ID90NULL ,D9       ; (30,38)
+	
+.proc
+        chan = 211
+        open(chan, o, "TEST:enum.log")
+        writes(chan, a_Str)
+	rsposopts = a_Str
+
+	rsposopts.NEWBOOL = 0
+	rsposopts.D7NULL = 1987
+	rsposopts.D12NULL = 12
+	rsposopts.ID72NULL = 21536.50
+	rsposopts.D2NULL = 0
+	rsposopts.ID90NULL = 87654
+	
+	a_Str = rsposopts
+        writes(chan, a_Str)
+        close (chan)
+        xreturn
+.end
+
+; -----------------------------------------------------------------------
+
+{xfMethod(interface="V93IF",name="alreposopts",elb="TEST:V93ELB",id="ALReposOpts")}
+subroutine alreposopts
+{xfParameter(name="V93REPOSOPTS",structure="V93reposopts",collectionType=xfCollectType.structure,dataTable=true)}
+req out     a_al ,@System.Collections.ArrayList ;;
+endparams
+;.subroutine alreposopts
+;        required a_al         ,@System.Collections.ArrayList
+	
+.align
+record
+        chan    ,i4
+        i       ,i4
+        msg     ,a30
+		m_color	,Color
+		m_day	,DaysOfTheWeek
+		abox	,@a
+		arylst	,@System.Collections.ArrayList
+		aRec	,@V93reposopts
+
+record rsposopts
+  NEWBOOL  ,Boolean  ; (1,1)
+  D2NULL   ,D2       ; (2,3)
+  D7NULL   ,D7       ; (4,10)
+  D12NULL  ,D12      ; (11,22)
+  ID72NULL ,D7.2     ; (23,29)
+  ID90NULL ,D9       ; (30,38)
+	
+.proc   
+        chan = 211
+        open(chan, o, "TEST:enum.log")
+	arylst = new System.Collections.ArrayList()
+	for i from 1 thru 3
+	  begin
+		clear rsposopts
+		rsposopts.NEWBOOL = 0
+		rsposopts.D7NULL = 1987
+		rsposopts.D12NULL = 12
+		rsposopts.ID72NULL = 21536.50
+		rsposopts.D2NULL = 0
+		rsposopts.ID90NULL = 87654
+.ifdef DBLNET
+		aRec = rsposopts
+		arylst.Add(aRec)
+.else
+		abox = (@a)rsposopts
+		arylst.add(abox)
+.endc
+        writes(chan, rsposopts)
+	  end
+	a_al = arylst
+        close (chan)
+        xreturn
+.end
+
+; ------------------------------------------------------------------------
+
+{xfMethod(interface="V93IF",name="alreposoptsin",elb="TEST:V93ELB",id="ALReposOptsIn")}
+subroutine alreposoptsin
+{xfParameter(name="V93REPOSOPTS",structure="V93reposopts",collectionType=xfCollectType.structure,dataTable=true)}
+req in      a_al ,@System.Collections.ArrayList ;;
+endparams
+;.subroutine alreposoptsin
+;        required a_al         ,@System.Collections.ArrayList
+	
+.align
+record
+        chan    ,i4
+        i       ,i4
+        msg     ,a30
+		m_color	,Color
+		m_day	,DaysOfTheWeek
+;		abox	,@a
+		arylst	,@System.Collections.ArrayList
+		aRec	,V93reposopts
+
+record Arsposopts
+  NEWBOOL  ,Boolean  ; (1,1)
+  D2NULL   ,D2       ; (2,3)
+  D7NULL   ,D7       ; (4,10)
+  D12NULL  ,D12      ; (11,22)
+  ID72NULL ,D7.2     ; (23,29)
+  ID90NULL ,D9       ; (30,38)
+	
+.proc   
+        chan = 211  
+        open(chan, o, "TEST:enum.log")
+	writes(chan, " In alrsposoptsIn")
+	arylst = a_al
+	for i from 0 thru 2
+	    begin
+;		abox = arylst[i]
+;		rsposopts = (a)abox
+		aRec = (V93reposopts)arylst[i]
+		Arsposopts = aRec
+		writes(chan, Arsposopts)
+		writes(chan, %string(Arsposopts.NEWBOOL))
+		writes(chan, %string(Arsposopts.ID72NULL))
+		writes(chan, %string(Arsposopts.D7Null))
+	    end
+        close (chan)
+        xreturn
+.end
+
+; -------------------------------------------------------------------------------
+
+{xfMethod(interface="V93IF",name="DeFuentes",elb="TEST:V93ELB",id="DoFuentes")}
+subroutine DeFuentes
+{xfParameter(name="FUENTES",structure="Fuentes", length=43)}
+req inout   a_fu     ,Fuentes                ;;
+endparams
+;.subroutine DeFuentes
+;       Arguments
+;        a_fu         ,a
+
+.align
+record
+        chan    ,i4
+        i	,i4
+        ast     ,a25
+	d2	,d2
+
+record LaFuentes
+  FIELDONE    ,A20  ; (1,20)
+
+  FIELD2      ,D12  ; (21,32)
+
+  BINARYFIELD ,A6   ; (33,38)
+
+  DEC         ,D5   ; (39,43)
+	
+
+.proc
+;	chan = 211
+;	open(chan, a, "TEST:fuentes.log")
+	LaFuentes = a_fu
+;	writes(chan, LaFuentes)
+	LaFuentes.FIELDONE = "Hello There Fuentes"
+	LaFuentes.FIELD2 = 445566778899
+	LaFuentes.BINARYFIELD = "abcdef"
+	LaFuentes.Dec = 41125
+	a_fu = LaFuentes
+;	writes(chan, LaFuentes)
+;	writes(chan, "    ")
+;	close (chan)
+        xreturn 
+.end
+; ---------------------------------------------------------------------------
+{xfMethod(interface="V93IF",name="DoFuentesALin",elb="TEST:V93ELB",id="DoFuentesALin")}
+
+subroutine DoFuentesALin
+
+{xfParameter(name="FUENTES",structure="Fuentes",collectionType=xfCollectType.structure)}
+req in      Alin     ,@System.Collections.ArrayList ;;
+
+endparams
+
+record
+        chan    ,i4
+        i	,i4
+        ast     ,a25
+	d2	,d2
+
+record LaFuentes
+  FIELDONE    ,A20  ; (1,20)
+
+  FIELD2      ,D12  ; (21,32)
+
+  BINARYFIELD ,A6   ; (33,38)
+
+  DEC         ,D5   ; (39,43)
+
+proc
+
+;	chan = 211
+;	open(chan, a, "TEST:fuentes.log")
+	LaFuentes = (Fuentes)Alin[1]
+;	writes(chan, LaFuentes)
+;	writes(chan, "    ")
+;	close (chan)
+
+    xreturn
+
+endsubroutine
+; ---------------------------------------------------------------------------
+
+{xfMethod(interface="V93IF",name="DoFuentesALout",elb="TEST:V93ELB",id="DoFuentesALout")}
+
+subroutine DoFuentesALout
+
+{xfParameter(name="FUENTES",structure="Fuentes",collectionType=xfCollectType.structure)}
+req out     Alout     ,@System.Collections.ArrayList ;;
+
+endparams
+
+record
+        chan    ,i4
+        i	,i4
+        ast     ,a25
+		d2	,d2
+		abox	,@a
+		recF	,@Fuentes
+		arylst	,@System.Collections.ArrayList
+	
+
+record LaFuentes
+  FIELDONE    ,A20  ; (1,20)
+
+  FIELD2      ,D12  ; (21,32)
+
+  BINARYFIELD ,A6   ; (33,38)
+
+  DEC         ,D5   ; (39,43)
+proc
+
+;	chan = 211
+;	open(chan, a, "TEST:fuentes.log")
+
+	arylst = new System.Collections.ArrayList()
+	for i from 1 thru 3
+	  begin
+		clear LaFuentes
+		LaFuentes.FIELDONE = "Hello There Fuentes"
+		LaFuentes.FIELD2 = 445566778899
+		LaFuentes.BINARYFIELD = "abcdef"
+		LaFuentes.Dec = 41125
+;		writes(chan, LaFuentes)
+;		writes(chan, "    ")
+.ifdef DBLNET
+		recF = LaFuentes
+		arylst.Add(recF)
+.else
+		abox = (@a)LaFuentes
+		arylst.add(abox)
+.endc
+	  end
+	Alout = arylst
+;	close (chan)
+
+    xreturn
+
+endsubroutine
+; ---------------------------------------------------------------------------
+
+{xfMethod(interface="V93IF",name="BinaryHdlOut",elb="TEST:V93ELB",id="BinaryHdlOut")}
+function BinaryHdlOut   ,i4
+{xfParameter(name="CustID")}
+req in      custid      ,i4                     ;;
+{xfParameter(name="AddressID")}
+req in      addrid   	,i4                     ;;
+{xfParameter(name="Structure")}
+req out     struct   	,a46                    ;;
+{xfParameter(name="GRFA",type=SynType.binaryhandle)}
+req out     grfa        ,D_HANDLE               ;;
+endparams
+;.function BinaryHdlOut		,i
+;  custid	,i4
+;  addrid	,i4
+;  struct	,a46
+;  grfa		,n
+
+structure Bbd
+	Bbdy,	a1
+
+.align
+record
+  idx,		i4
+  len, 		i4
+  topos,	i4
+  cur,		i4
+  rtn,		i4
+  psiz,		i4
+  chn,		i4
+  str, 		a20
+
+.proc
+  rtn = 1
+  chn = 207
+  open(chn,a,"TEST:binaryHdl.log")
+  writes(chn, "binary Handle Out ")
+  psiz = %mem_proc(DM_GETSIZE,grfa)
+  writes(chn,"in hdl size = " + %string(psiz))
+  len = 5
+  grfa = %mem_proc(DM_RESIZ,len,grfa)
+  for idx from 1 thru 5 by 1
+    begin
+	^m(Bbd.Bbdy(idx:1),grfa) = 'b'
+    end
+  writes(chn,"Out * " + ^m(Bbd.Bbdy(1:5),grfa))
+  close (chn)
+  struct = "hello there fuentes"
+  rtn = 0
+  freturn (rtn)
+.end
+
+; ---------------------------------------------------------------------------------
+
+{xfMethod(interface="V93IF",name="BinaryHdlIn",elb="TEST:V93ELB",id="BinaryHdlIn")}
+function BinaryHdlIn    ,i4
+{xfParameter(name="CustID")}
+req in      custid      ,i4                     ;;
+{xfParameter(name="AddressID")}
+req in      addrid   	,i4                     ;;
+{xfParameter(name="Structure")}
+req out     struct   	,a46                    ;;
+{xfParameter(name="GRFA",type=SynType.binaryhandle)}
+req in      grfa        ,D_HANDLE               ;;
+endparams
+;.function BinaryHdlIn		,i
+;  custid	,i4
+;  addrid	,i4
+;  struct	,a46
+;  grfa		,n
+
+structure Bbd
+	Bbdy,	a1
+
+.align
+record
+  idx,		i4
+  len, 		i4
+  topos,	i4
+  cur,		i4
+  rtn,		i4
+  psiz,		i4
+  chn,		i4
+  str, 		a20
+  chr,		a1
+
+.proc
+  rtn = 1
+  chn = 207
+  open(chn,a,"TEST:binaryHdl.log")
+  writes(chn, "binary Handle In ")
+  psiz = %mem_proc(DM_GETSIZE,grfa)
+  writes(chn,"in hdl size = " + %string(psiz))
+  for idx from 1 thru psiz by 1
+    begin
+	chr = ^m(Bbd.Bbdy(idx:1),grfa)
+        str = str + chr
+    end
+  writes(chn,"IN * " + ^m(Bbd.Bbdy(1:psiz),grfa))
+  writes(chn,"str = " + str)
+  close (chn)
+  struct = "hello there fuentes"
+  rtn = 0
+  freturn (rtn)
+.end
+
+; -------------------------------------------------------------------
+
+{xfMethod(interface="V93IF",name="BinaryHdlInOut",elb="TEST:V93ELB",id="BinaryHdlInOut")}
+function BinaryHdlInOut ,i4
+{xfParameter(name="CustID")}
+req in      custid      ,i4                     ;;
+{xfParameter(name="AddressID")}
+req in      addrid	,i4                     ;;
+{xfParameter(name="Structure")}
+req out     struct   	,a46                    ;;
+{xfParameter(name="GRFA",type=SynType.binaryhandle)}
+req inout   grfa        ,D_HANDLE               ;;
+endparams
+;.function BinaryHdlInOut	,i
+;  custid	,i4
+;  addrid	,i4
+;  struct	,a46
+;  grfa		,n
+
+structure Bbd
+	Bbdy,	a1
+
+.align
+record
+  idx,		i4
+  len, 		i4
+  topos,	i4
+  cur,		i4
+  rtn,		i4
+  psiz,		i4
+  chn,		i4
+  str, 		a20
+  chr,		a2
+
+.proc
+  rtn = 1
+  chn = 207
+  open(chn,a,"TEST:binaryHdl.log")
+  writes(chn, "binary Handle INOut ")
+  psiz = %mem_proc(DM_GETSIZE,grfa)
+  writes(chn,"in hdl size = " + %string(psiz))
+  for idx from 1 thru psiz by 1
+    begin
+	chr = ^m(Bbd.Bbdy(idx:1),grfa)
+        str = str + chr
+    end
+  writes(chn,"IN * " + ^m(Bbd.Bbdy(1:psiz),grfa))
+  writes(chn,"str = " + str)
+  len = 5
+  grfa = %mem_proc(DM_RESIZ,len,grfa)
+  for idx from 1 thru 5 by 1
+    begin
+	^m(Bbd.Bbdy(idx:1),grfa) = 'b'
+    end
+  writes(chn,"Out * " + ^m(Bbd.Bbdy(1:5),grfa))
+  close (chn)
+  struct = "hello there fuentes"
+  rtn = 0
+  freturn (rtn)
+.end
+
+; ----------------------------------------------------------------------------------
+
+{xfMethod(interface="AutoTime",name="AutoTimeInOut",elb="TEST:V93ELB",id="AutoTimeINOUT")}
+subroutine AutoTimeInOut
+{xfParameter(name="TIMEKEY",structure="strTimekey")}
+req inout   a_TimeKey     ,strTimekey
+endparams
+;.subroutine AutoTimeInOut   
+;	Arguments
+;	a_TimeKey		,a	
+
+record AutoTime
+  AUTO_TIMESTAMP_FIELD ,I8   ; (1,8) This is the key field
+  REMAINDER            ,A42  ; (9,50)
+
+.align
+record
+	chan	,i4
+	ndx	,i4
+	msg	,a30
+
+.proc
+	chan = 211
+	open(chan, o, "TEST:AutoTime.log")
+	AutoTime=  a_TimeKey
+	msg = %string(AUTO_TIMESTAMP_FIELD)
+	writes(chan, AutoTime)
+	writes(chan, %string(AUTO_TIMESTAMP_FIELD))
+	writes(chan, msg)
+	writes(chan, REMAINDER)
+;	AUTO_TIMESTAMP_FIELD = 1349198466074517
+; org	AUTO_TIMESTAMP_FIELD = 1349198466000017
+	AUTO_TIMESTAMP_FIELD = 1384973305189562 ; = 20131120104825189562 - 11/20/2013 10:48:25 AM 189562 microseconds
+	REMAINDER =  "Some data that follows the AutoTime field"
+
+	writes(chan, " ********************************")
+	msg = %string(AUTO_TIMESTAMP_FIELD)
+	writes(chan, AutoTime)
+	writes(chan, %string(AUTO_TIMESTAMP_FIELD))
+	writes(chan, msg)
+	writes(chan, REMAINDER)
+	a_TimeKey = AutoTime
+	close (chan)
+	xreturn
+.end
+
+; ----------------------------------------------------------------------------------
+
+{xfMethod(interface="AutoTime",name="AutoTimeIn",elb="TEST:V93ELB",id="AutoTimeIn")}
+subroutine AutoTimeIn
+{xfParameter(name="TIMEKEY",structure="strTimekey")}
+req in      a_TimeKey     ,strTimekey                ;;
+endparams
+;.subroutine AutoTimeIn   
+;	Arguments
+;	a_TimeKey		,a	
+
+record AutoTime
+  AUTO_TIMESTAMP_FIELD ,I8   ; (1,8) This is the key field
+  REMAINDER            ,A42  ; (9,50)
+
+.align
+record
+	chan	,i4
+	ndx	,i4
+	msg	,a30
+
+.proc
+	chan = 211
+	open(chan, o, "TEST:AutoTime.log")
+	AutoTime=  a_TimeKey
+	msg = %string(AUTO_TIMESTAMP_FIELD)
+	writes(chan, AutoTime)
+	writes(chan, %string(AUTO_TIMESTAMP_FIELD))
+	writes(chan, msg)
+	writes(chan, REMAINDER)
+	close (chan)
+	xreturn
+.end
+
+; ------------------------------------------------------------------------------------
+
+{xfMethod(interface="AutoTime",name="AutoTimeOut",elb="TEST:V93ELB",id="AutoTimeOut")}
+subroutine AutoTimeOut
+{xfParameter(name="TIMEKEY",structure="strTimekey")}
+req out     a_TimeKey     ,strTimekey                ;;
+endparams
+;.subroutine AutoTimeOut   
+;	Arguments
+;	a_TimeKey		,a	
+
+record AutoTime
+  AUTO_TIMESTAMP_FIELD ,I8   ; (1,8) This is the key field
+  REMAINDER            ,A42  ; (9,50)
+
+.align
+record
+	chan	,i4
+	ndx	,i4
+	msg	,a30
+
+.proc
+	chan = 211
+	clear AutoTime
+	open(chan, o, "TEST:AutoTime.log")
+	;AUTO_TIMESTAMP_FIELD= 1349198466000017
+	AUTO_TIMESTAMP_FIELD = 1384973305189562 ; = 20131120104825189562 - 11/20/2013 10:48:25 AM 189562 microseconds
+	REMAINDER =  "Some data that follows AutoTime field"
+	msg = %string(AUTO_TIMESTAMP_FIELD)
+	writes(chan, AutoTime)
+	writes(chan, %string(AUTO_TIMESTAMP_FIELD))
+	writes(chan, msg)
+	writes(chan, REMAINDER)
+	a_TimeKey = AutoTime
+	close (chan)
+	xreturn
+.end
+
+; -------------------------------------------------------------------------------------------------
+
+{xfMethod(interface="AutoTime",name="AutoTimeArray",elb="TEST:V93ELB",id="AutoTimeArray")}
+subroutine AutoTimeArray
+{xfParameter(name="TIMEKEY",structure="strTimekey")}
+req inout   a_strary     ,[*]strTimekey             ;;
+endparams
+;.subroutine AutoTimeArray
+;	Arguments
+;        a_strary        ,[*]a
+
+record AutoTime
+  AUTO_TIMESTAMP_FIELD ,I8   ; (1,8) This is the key field
+  REMAINDER            ,A42  ; (9,50)
+
+
+record str
+        ary             ,[3]a10
+.align
+record
+	chan	,i4
+	ndx	,i4
+
+.proc
+	chan = 211
+	open(chan, o, "TEST:AutoTime.log")
+	writes(chan, " ********************************   In")
+        for ndx from 1 thru 3 by 1
+	  begin
+	    AutoTime= a_strary[ndx]
+	    writes(chan, AutoTime)
+	    writes(chan, " ")
+      	    writes(chan, %string(ndx))
+	    writes(chan, " ")
+	    writes(chan, %string(AUTO_TIMESTAMP_FIELD))
+	    writes(chan, " ********************************")
+	  end
+	writes(chan, " ********************************   Out")
+        for ndx from 1 thru 3 by 1
+	  begin
+	    case ndx of
+	    begincase
+	    1 : begin
+	    ;	AUTO_TIMESTAMP_FIELD= 1349198466000017
+		AUTO_TIMESTAMP_FIELD = 1384973305189562 ; = 20131120104825189562 - 11/20/2013 10:48:25 AM 189562 microseconds
+		REMAINDER =  "Some data 1 follows AutoTime field"
+	          end
+	    2 : begin
+	    	AUTO_TIMESTAMP_FIELD= 1349198466000017
+		REMAINDER =  "Some data 2 follows AutoTime field"
+	          end
+	    3 : begin
+	    ;	AUTO_TIMESTAMP_FIELD= 1349198466000017
+		AUTO_TIMESTAMP_FIELD = 1384973305189562 ; = 20131120104825189562 - 11/20/2013 10:48:25 AM 189562 microseconds
+		REMAINDER =  "Some data 3 follows AutoTime field"
+	         end
+	    endcase
+	
+	    a_strary[ndx] = AutoTime
+	    writes(chan, AutoTime)
+	    writes(chan, " ")
+      	    writes(chan, %string(ndx))
+	    writes(chan, " ")
+	    writes(chan, %string(AUTO_TIMESTAMP_FIELD))
+	    writes(chan, " ********************************")
+	  end
+	writes(chan, " ********************************")
+	close (chan)
+	xreturn
+.end
+
+; ---------------------------------------------------------------------------------------
+
+{xfMethod(interface="AutoTime",name="AutoTimeALout",elb="TEST:V93ELB",id="AutoTimeALout")}
+subroutine AutoTimeALout
+{xfParameter(name="TIMEKEY",structure="strTimekey",collectionType=xfCollectType.structure)}
+req out     a_al     ,@System.Collections.ArrayList ;;
+endparams
+;.subroutine AutoTimeALout
+;       Arguments
+;        required a_al         ,@System.Collections.ArrayList
+
+record AutoTime
+  AUTO_TIMESTAMP_FIELD ,I8   ; (1,8) This is the key field
+  REMAINDER            ,A42  ; (9,50)
+
+	
+.align
+record
+        chan    ,i4
+        i	,i4
+        ast     ,a25
+		str	,@System.String
+		abox	,@a
+		arylst	,@System.Collections.ArrayList
+		aRec	,strTimekey
+
+.proc
+        chan = 211
+        open(chan, a, "TEST:AutoTime.log")
+        arylst = new System.Collections.ArrayList()
+		for i from 1 thru 5
+		  begin
+			clear AutoTime
+;			AutoTime.AUTO_TIMESTAMP_FIELD= 1349198466000017
+			AUTO_TIMESTAMP_FIELD = 1384973305189562 ; = 20131120104825189562 - 11/20/2013 10:48:25 AM 189562 microseconds
+			AutoTime.REMAINDER =  "Some data 1 follows AutoTime field"
+.ifdef DBLNET
+			aRec = AutoTime
+			arylst.add(aRec)
+.else
+			abox = (@a)AutoTime
+			arylst.add(abox)
+.endc
+			writes(chan, AutoTime)
+		  end
+        a_al = arylst
+        writes(chan, "    ")
+        close (chan)
+        xreturn 
+.end
+
+; --------------------------------------------------------------------------------------
+
+{xfMethod(interface="AutoTime",name="AutoTimeALin",elb="TEST:V93ELB",id="AutoTimeALin")}
+subroutine AutoTimeALin
+{xfParameter(name="TIMEKEY",structure="strTimekey",collectionType=xfCollectType.structure)}
+req in      a_al     ,@System.Collections.ArrayList ;;
+endparams
+;.subroutine AutoTimeALin
+;       Arguments
+;        required a_al         ,@System.Collections.ArrayList;
+;;	a_al	,[*]a
+
+record AutoTime
+  AUTO_TIMESTAMP_FIELD ,I8   ; (1,8) This is the key field
+  REMAINDER            ,A42  ; (9,50))
+	
+.align
+record
+        chan    ,i4
+        i	,i4
+	astr	,a25
+	abox	,@a
+	aSt1	,strTimekey
+	arylst	,@System.Collections.ArrayList
+.proc
+        chan = 211
+        open(chan, a, "TEST:AutoTime.log")
+	
+	arylst = a_al
+	for i from 0 thru 4
+	  begin
+	;	abox = arylst[i]
+	;	AutoTime = (a)abox
+		aSt1 = (strTimekey)arylst[i]
+		AutoTime = aSt1
+		writes(chan, AutoTime)
+		writes(chan, %string(AutoTime.AUTO_TIMESTAMP_FIELD))
+	  end
+      writes(chan, "    ")
+      close (chan)
+        xreturn 
+.end
+
+; ---------------------------------------------------------------------------------------
+
+{xfMethod(interface="V93IF",name="LargeDTOut",elb="TEST:V93ELB",id="LargeDTOut")}
+subroutine LargeDTOut
+{xfParameter(name="TIMEKEY",structure="strTimekey",collectionType=xfCollectType.structure,dataTable=true)}
+req out     a_al     ,@System.Collections.ArrayList ;;
+endparams
+
+record AutoTime
+  AUTO_TIMESTAMP_FIELD ,I8   ; (1,8) This is the key field
+  REMAINDER            ,A42  ; (9,50)
+	
+.align
+record
+        maxrecs ,i4	,1000000
+        i		,i4
+		abox	,@a
+		arylst	,@System.Collections.ArrayList
+		aRec	,strTimekey
+
+.proc
+        arylst = new System.Collections.ArrayList()
+		for i from 1 thru maxrecs
+		  begin
+			clear AutoTime
+			AUTO_TIMESTAMP_FIELD = 1384973305189561 + i ; = 20131120104825189562 - 11/20/2013 10:48:25 AM 189562 microseconds
+			AutoTime.REMAINDER =  "Data " + %string(i)
+.ifdef DBLNET
+			aRec = AutoTime
+			arylst.add(aRec)
+.else
+			abox = (@a)AutoTime
+			arylst.add(abox)
+.endc
+		  end
+        a_al = arylst
+        xreturn 
+.end
