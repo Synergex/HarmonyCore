@@ -1,0 +1,2102 @@
+.include "STRTEST1" REPOSITORY ,structure="Strtest1R" ,end
+.include "STRTEST12" REPOSITORY ,structure="Strtest12R" ,end
+.include "STRTEST14" REPOSITORY ,structure="Strtest14R" ,end
+.include "STRTEST16" REPOSITORY ,structure="Strtest16R" ,end
+.include "STRTEST18" REPOSITORY ,structure="Strtest18R" ,end
+.include "STRTEST19" REPOSITORY ,structure="Strtest19R" ,end
+.include "STRTEST2" REPOSITORY ,structure="Strtest2R" ,end
+.include "STRTEST23" REPOSITORY ,structure="Strtest23R" ,end
+.include "STRTEST24" REPOSITORY ,structure="Strtest24R" ,end
+.include "STRTEST25" REPOSITORY ,structure="Strtest25R" ,end
+.include "STRTEST27" REPOSITORY ,structure="Strtest27R" ,end
+.include "STRTEST3" REPOSITORY ,structure="Strtest3R" ,end
+.include "STRTEST30" REPOSITORY ,structure="Strtest30R" ,end
+.include "STRTEST31" REPOSITORY ,structure="Strtest31R" ,end
+.include "STRTEST4" REPOSITORY ,structure="Strtest4R" ,end
+.include "STRTEST7" REPOSITORY ,structure="Strtest7R" ,end
+.include "DBORDER" REPOSITORY ,structure="DborderR" ,end
+.include "DATASET" REPOSITORY ,structure="DatasetR" ,end
+
+{xfMethod(interface="strtests",name="teststr1",elb="TEST:strelb",id="teststr1")}
+subroutine teststr1
+{xfParameter(structure="strStrtest1")}
+req inout   a_str1    ,strStrtest1               ;;
+endparams
+
+.align
+record
+	chan	,i4
+	ndx	,i4
+	msg	,a30
+	strtest1a ,strStrtest1
+
+.proc
+	chan = 211
+;;	open(chan, o, "TEST:str1.log")
+	strtest1a =  a_str1
+;;	writes(chan, strtest1R)
+;;	writes(chan, %string(strtest1R.str1_de6))
+;;	writes(chan, strtest1R.str1_al10)
+;;	writes(chan, %string(strtest1R.str1_id62))
+;;	writes(chan, %string(strtest1R.str1_in4))
+;;	writes(chan, strtest1R.str1_al20)
+	strtest1a.str1_de6 = 145
+	strtest1a.str1_al10 = "Alice"
+	strtest1a.str1_id62 = 12.40 ;  -0.78  ;12.40
+	strtest1a.str1_in4 = 357
+	strtest1a.str1_al20 = "Is not home now"
+
+;; to test that an elb can now be linked on the dblink line so
+;; an openelb is not needed if it is included on the dblink line.
+;; 	xcall openelb("DBLDIR:xfpl_tst") 
+;;	xcall get_verno_tst(msg)
+;;	str1_al20 = msg
+
+;;	writes(chan, " ********************************")
+;;	writes(chan, strtest1a)
+;;	writes(chan, %string(strtest1a.str1_de6))
+;;	writes(chan, strtest1a.str1_al10)
+;;	writes(chan, %string(strtest1a.str1_id62))
+;;	writes(chan, %string(strtest1a.str1_in4))
+;;	writes(chan, strtest1R.str1_al20)
+	a_str1 = strtest1a
+;;	close (chan)
+	xreturn
+.end
+
+; -------------------------------------------------------------------------------
+
+{xfMethod(interface="strtests",name="teststr2",elb="TEST:strelb",id="teststr2")}
+subroutine teststr2
+{xfParameter(structure="strStrtest2")}
+req inout   a_str2    ,strStrtest2 
+endparams
+
+.align
+record
+	chan	,i4
+	ndx	,i4
+	str2	,strStrtest2
+
+.proc
+	chan = 211
+;;	open(chan, o, "TEST:str2.log")
+	str2 =  a_str2
+;;	writes(chan, a_str2)
+;;	writes(chan, %string(%size(str2)))
+;;	writes(chan, %string(str2.str2_de10))
+;;	writes(chan, %string(str2.str2_arde5[1]))
+;;	writes(chan, %string(str2.str2_arde5[2]))
+;;	writes(chan, %string(str2.str2_arde5[3]))
+;;	writes(chan, str2.str2_al20)
+;;	writes(chan, %string(str2.str2_date8))
+;;	writes(chan, %string(str2.str2_time6))
+;;	writes(chan, %string(str2.str2_id83))
+;;	writes(chan, %string(str2.str2_in4))
+	clear str2
+	str2.str2_de10 = 554319
+	str2.str2_arde5[1] = 18324
+	str2.str2_arde5[2] = 29
+	str2.str2_arde5[3] = 1782
+	str2.str2_al20 = "The people of Rome"
+	str2.str2_date8 = 19991027
+	str2.str2_time6 = 152319
+	str2.str2_id83 = 1212.432
+	str2.str2_in4 = 1037
+	
+;;	writes(chan, " ********************************")
+;;	writes(chan, str2)
+;;	writes(chan, %string(%size(str2)))
+;;	writes(chan, %string(str2.str2_de10))
+;;	writes(chan, %string(str2.str2_arde5[1]))
+;;	writes(chan, %string(str2.str2_arde5[2]))
+;;	writes(chan, %string(str2.str2_arde5[3]))
+;;	writes(chan, str2.str2_al20)
+;;	writes(chan, %string(str2.str2_date8))
+;;	writes(chan, %string(str2.str2_time6))
+;;	writes(chan, %string(str2.str2_id83))
+;;	writes(chan, %string(str2.str2_in4))
+	a_str2 = str2
+;;	close (chan)
+	xreturn
+.end
+
+; ----------------------------------------------------------------------
+
+{xfMethod(interface="strtests",name="teststr3",elb="TEST:strelb",id="teststr3")}
+subroutine teststr3
+{xfParameter(structure="strStrtest3")}
+req inout   a_str3    ,strStrtest3
+endparams
+
+.align
+record
+	chan	,i4
+	ndx	,i4
+	str3	,strStrtest3
+
+.proc
+	chan = 211
+;;	open(chan, o, "TEST:str3.log")
+	str3 =  a_str3
+;;	writes(chan, strt3)
+;;	writes(chan, str3.str3_al10)
+;;	writes(chan, str3.str3_gp1al6)
+;;	writes(chan, %string(str3.str3_gp1de5))
+;;	writes(chan, %string(str3.str3_gp1id52))
+;;	writes(chan, %string(str3.str3_de7))
+;;	writes(chan, str3.str3_al25)
+	str3.str3_al10 = "Curtis 12"
+	str3.str3_gp1al6 = "Rupert"
+	str3.str3_gp1de5 = 1242
+	str3.str3_gp1id52 = 18.41
+	str3.str3_de7 = 101357
+	str3.str3_al25 = "Some times when it rains!"
+;;	writes(chan, " ********************************")
+;;	writes(chan, str3)
+;;	writes(chan, str3.str3_al10)
+;;	writes(chan, str3.str3_gp1al6)
+;;	writes(chan, %string(str3.str3_gp1de5))
+;;	writes(chan, %string(str3.str3_gp1id52))
+;;	writes(chan, %string(str3.str3_de7))
+;;	writes(chan, str3.str3_al25)
+	a_str3 = str3
+;;	close (chan)
+	xreturn
+.end
+
+; -------------------------------------------------------------------
+
+{xfMethod(interface="strtests",name="teststr4",elb="TEST:strelb",id="teststr4")}
+subroutine teststr4
+{xfParameter(structure="strStrtest4")}
+req inout   a_str4    ,strStrtest4            
+endparams
+
+
+.align
+record
+	chan	,i4
+	ndx	,i4
+	str4	,strStrtest4
+
+.proc
+	chan = 211
+;;	open(chan, o, "TEST:str4.log")
+	str4 =  a_str4
+;;	writes(chan, str4)
+;;	writes(chan, %string(str4.str4_lv1fld1))
+;;	writes(chan, str4.str4_lv1fld2)
+;;	writes(chan, %string(str4.str4_lev2fld1))
+;;	writes(chan, %string(str4.str4_lv3fld1))
+;;	writes(chan, str4.str4_lv3fld2)
+;;	writes(chan, %string(str4.str4_lv3fld3))
+;;	writes(chan, str4.str4_lv2fld2)
+;;	writes(chan, str4.str4_lv1fld3)
+	str4.str4_lv1fld1 = 1013245
+	str4.str4_lv1fld2 = "If it is Tuesday"
+	str4.str4_lev2fld1 = 18
+	str4.str4_lv3fld1 = 19213.18
+	str4.str4_lv3fld2 = "Cassie"
+	str4.str4_lv3fld3 = 145
+	str4.str4_lv2fld2 = "juice cups 3"
+	str4.str4_lv1fld3 = "soup bowls"
+;;	writes(chan, " ********************************")
+;;	writes(chan, str4)
+;;	writes(chan, %string(str4.str4_lv1fld1))
+;;	writes(chan, str4.str4_lv1fld2)
+;;	writes(chan, %string(str4.str4_lev2fld1))
+;;	writes(chan, %string(str4.str4_lv3fld1))
+;;	writes(chan, str4.str4_lv3fld2)
+;;	writes(chan, %string(str4.str4_lv3fld3))
+;;	writes(chan, str4.str4_lv2fld2)
+;;	writes(chan, str4.str4_lv1fld3)
+	a_str4 = str4
+;;	close (chan)
+	xreturn
+.end
+
+; ---------------------------------------------------------------------------
+
+{xfMethod(interface="strtests",name="teststr5",elb="TEST:strelb",id="teststr5")}
+subroutine teststr5
+{xfParameter(structure="strStrtest1")}
+req inout   a_str1    ,strStrtest1 
+{xfParameter(structure="strStrtest3")}
+req inout   a_str3    ,strStrtest3 
+endparams
+
+.align
+record
+	chan	,i4
+	ndx	,i4
+	str1	,strStrtest1
+	str3	,strStrtest3
+
+.proc
+	chan = 211
+;;	open(chan, o, "TEST:str5.log")
+;;	writes(chan, " ********************************")
+	str1 =  a_str1
+;;	writes(chan, str1)
+	str1.str1_de6 = 145
+	str1.str1_al10 = "Alice"
+	str1.str1_id62 = 12.40
+	str1.str1_in4 = 357
+	str1.str1_al20 = "Is not home now"
+;;	writes(chan, " ********************************")
+;;	writes(chan, str1)
+	a_str1 = str1
+
+;;	writes(chan, " ********************************")
+;;	writes(chan, " ********************************")
+	str3 =  a_str3
+;;	writes(chan, str3)
+	str3.str3_al10 = "Curtis 12"
+	str3.str3_gp1al6 = "Rupert"
+	str3.str3_gp1de5 = 1242
+	str3.str3_gp1id52 = 18.41
+	str3.str3_de7 = 101357
+	str3.str3_al25 = "Some times when it rains!"
+;;	writes(chan, " ********************************")
+;;	writes(chan, str3)
+	a_str3 = str3
+;;	writes(chan, " ********************************")
+	
+;;	close (chan)
+	xreturn
+.end
+
+; --------------------------------------------------------------------------
+
+{xfMethod(interface="strtests",name="teststr5a",elb="TEST:strelb",id="teststr21")}
+subroutine teststr5a
+{xfParameter(structure="strStrtest1")}
+req in      a_str1    ,strStrtest1
+{xfParameter(structure="strStrtest3")}
+req inout   a_str3    ,strStrtest3
+endparams
+
+.align
+record
+	chan	,i4
+	ndx	,i4
+	str1	,strStrtest1
+	str3	,strStrtest3
+
+.proc
+	chan = 211
+;;	open(chan, o, "TEST:str5a.log")
+;;	writes(chan, " ********************************")
+	str1 =  a_str1
+;;	writes(chan, str1)
+	str1.str1_de6 = 145
+	str1.str1_al10 = "Alice"
+	str1.str1_id62 = 12.40
+	str1.str1_in4 = 357
+	str1.str1_al20 = "Is not home now"
+;;	writes(chan, " ********************************")
+;;	writes(chan, str1)
+;;	writes(chan, " ********************************")
+;;	writes(chan, " ********************************")
+	str3 =  a_str3
+;;	writes(chan, str3)
+	str3.str3_al10 = "Curtis 12"
+	str3.str3_gp1al6 = "Rupert"
+	str3.str3_gp1de5 = 1242
+	str3.str3_gp1id52 = 18.41
+	str3.str3_de7 = 101357
+	str3.str3_al25 = "Some times when it rains!"
+;;	writes(chan, " ********************************")
+;;	writes(chan, str3)
+	a_str3 = str3
+;;	writes(chan, " ********************************")
+	
+;;	close (chan)
+	xreturn
+.end
+
+; ----------------------------------------------------------------
+
+{xfMethod(interface="strtests",name="teststr5b",elb="TEST:strelb",id="teststr22")}
+subroutine teststr5b
+{xfParameter(structure="strStrtest1")}
+req inout   a_str1    ,strStrtest1
+{xfParameter(structure="strStrtest3")}
+req in      a_str3    ,strStrtest3
+endparams
+
+.align
+record
+	chan	,i4
+	ndx	,i4
+	str1	,strStrtest1
+	str3	,strStrtest3
+
+.proc
+	chan = 211
+;;	open(chan, o, "TEST:str5b.log")
+;;	writes(chan, " ********************************")
+	str1 =  a_str1
+;;	writes(chan, str1)
+	str1.str1_de6 = 145
+	str1.str1_al10 = "Alice"
+	str1.str1_id62 = 12.40
+	str1.str1_in4 = 357
+	str1.str1_al20 = "Is not home now"
+;;	writes(chan, " ********************************")
+;;	writes(chan, str1)
+	a_str1 = str1
+
+;;	writes(chan, " ********************************")
+;;	writes(chan, " ********************************")
+	str3 =  a_str3
+;;	writes(chan, str3)
+	str3.str3_al10 = "Curtis 12"
+	str3.str3_gp1al6 = "Rupert"
+	str3.str3_gp1de5 = 1242
+	str3.str3_gp1id52 = 18.41
+	str3.str3_de7 = 101357
+	str3.str3_al25 = "Some times when it rains!"
+;;	writes(chan, " ********************************")
+;;	writes(chan, str3)
+;;	writes(chan, " ********************************")
+	
+;;	close (chan)
+	xreturn
+.end
+
+; ----------------------------------------------------------------------------
+
+{xfMethod(interface="strtests",name="teststr6",elb="TEST:strelb",id="teststr6")}
+subroutine teststr6
+{xfParameter(name="p1")}
+req inout   a_fld1          ,a6   
+{xfParameter(structure="strStrtest1")}
+req inout   a_str1    ,strStrtest1
+{xfParameter(name="p3")}
+req inout   a_fld2          ,d5 
+{xfParameter(structure="strStrtest3")}
+req inout   a_str3    ,strStrtest3 
+{xfParameter(name="p5")}
+req inout   a_fld3          ,d5 
+endparams
+;.subroutine teststr6
+
+.align
+record
+	chan	,i4
+	ndx	,i4
+	fld1	,a6
+	fld2	,d5
+	fld3	,d5
+	str1	,strStrtest1
+	str3	,strStrtest3	
+
+.proc
+	chan = 211
+;;	open(chan, o, "TEST:str6.log")
+;;	writes(chan, " ********************************")
+	fld1 = a_fld1
+	fld2 = a_fld2
+	fld3 = a_fld3
+;;	writes(chan, fld1)
+;;	writes(chan, %string(fld2))
+;;	writes(chan, %string(fld3))
+;;	writes(chan, " ********************************")
+	a_fld1 = "vanuts"
+	a_fld2 = 12345
+	a_fld3 = 67890
+;;	writes(chan, fld1)
+;;	writes(chan, %string(fld2))
+;;	writes(chan, %string(fld3))
+;;	writes(chan, " ********************************")
+;;	writes(chan, " ********************************")
+	str1 =  a_str1
+;;	writes(chan, str1)
+	str1.str1_de6 = 145
+	str1.str1_al10 = "Alice"
+	str1.str1_id62 = 12.40
+	str1.str1_in4 = 357
+	str1.str1_al20 = "Is not home now"
+;;	writes(chan, " ********************************")
+;;	writes(chan, str1)
+	a_str1 = str1
+
+;;	writes(chan, " ********************************")
+;;	writes(chan, " ********************************")
+	str3 =  a_str3
+;;	writes(chan, str3)
+	str3.str3_al10 = "Curtis 12"
+	str3.str3_gp1al6 = "Rupert"
+	str3.str3_gp1de5 = 1242
+	str3.str3_gp1id52 = 18.41
+	str3.str3_de7 = 101357
+	str3.str3_al25 = "Some times when it rains!"
+;;	writes(chan, " ********************************")
+;;	writes(chan, str3)
+	a_str3 = str3
+;;	writes(chan, " ********************************")
+	
+;;	close (chan)
+	xreturn
+.end
+
+; ---------------------------------------------------------------
+
+{xfMethod(interface="strtests",name="teststr7",elb="TEST:strelb",id="teststr7")}
+subroutine teststr7
+{xfParameter(structure="Strtest7R")}
+req inout   a_strary     ,[*]Strtest7R            ;;
+endparams
+
+record str
+        ary             ,[3]a10
+.align
+record
+	chan	,i4
+	ndx	,i4
+	str7	,Strtest7R
+
+.proc
+	chan = 211
+;;	open(chan, o, "TEST:str7.log")
+;;	writes(chan, " ********************************")
+        for ndx from 1 thru 3 by 1
+	  begin
+	    str7 = a_strary[ndx]
+;;	    writes(chan, str7)
+;;	    writes(chan, " ")
+;;       	    writes(chan, %string(ndx))
+;;            writes(chan, str7.str7_al6)
+;;       	    writes(chan, %string(str7.str7_de4))
+;;	    writes(chan, " ********************************")
+	  end
+;;	writes(chan, " ********************************")
+        for ndx from 1 thru 3 by 1
+	  begin
+	    case ndx of
+	    begincase
+	    1 : begin
+	    	  str7.str7_al6 = "rupert"
+	    	  str7.str7_de4 = 1234
+		end
+	    2 : begin
+	    	  str7.str7_al6 = "james"
+	    	  str7.str7_de4 = 215
+		end
+	    3 : begin
+	    	  str7.str7_al6 = "cassie"
+	    	  str7.str7_de4 = 3875
+		end
+	    endcase
+;;	    writes(chan, str7)
+;;       	    writes(chan, %string(ndx))
+;;            writes(chan, str7.str7_al6)
+;;       	    writes(chan, %string(str7.str7_de4))
+;;	    writes(chan, " ********************************")
+	    a_strary[ndx] = str7
+	  end
+;;	writes(chan, " ********************************")
+;;	close (chan)
+	xreturn
+.end
+
+; -----------------------------------------------------------------------
+
+{xfMethod(interface="strtests",name="teststr8",elb="TEST:strelb",id="teststr8")}
+subroutine teststr8
+{xfParameter(structure="Strtest3R")}
+req inout   a_strary    ,[*]Strtest3R
+endparams
+
+record str
+        ary             ,[4]a58
+.align
+record
+	chan	,i4
+	ndx	,i4
+	STR3	,Strtest3R
+
+.proc
+	chan = 211
+;;	open(chan, o, "TEST:str8.log")
+;;	writes(chan, " ********************************")
+        for ndx from 1 thru 4 by 1
+	  begin
+	    str3 = a_strary[ndx]
+;;	    writes(chan, str3)
+;;	    writes(chan, " ")
+;;       	    writes(chan, %string(ndx))
+;;	    writes(chan, str3.str3_al10)
+;;	    writes(chan, str3.str3_gp1al6)
+;;	    writes(chan, %string(str3.str3_gp1de5))
+;;	    writes(chan, %string(str3.str3_gp1id52))
+;;	    writes(chan, %string(str3.str3_de7))
+;;	    writes(chan, str3.str3_al25)
+;;	    writes(chan, " ********************************")
+	  end
+;;	writes(chan, " ********************************")
+        for ndx from 1 thru 4 by 1
+	  begin
+	    case ndx of
+	    begincase
+	    1 : begin
+		  str3.str3_al10 = "Curtis 11"
+		  str3.str3_gp1al6 = "Rupert"
+		  str3.str3_gp1de5 = 3234
+		  str3.str3_gp1id52 = 31.75
+		  str3.str3_de7 = 101357
+		  str3.str3_al25 = "Some times when it rains!"
+		end
+	    2 : begin
+		  str3.str3_al10 = "Curtis 12"
+		  str3.str3_gp1al6 = "Rupert"
+		  str3.str3_gp1de5 = 2223
+		  str3.str3_gp1id52 = 56.88
+		  str3.str3_de7 = 101334
+		  str3.str3_al25 = "Some times when it rains!"
+		end
+	    3 : begin
+		  str3.str3_al10 = "Curtis 13"
+		  str3.str3_gp1al6 = "Rupert"
+		  str3.str3_gp1de5 = 3421
+		  str3.str3_gp1id52 = 34.61
+		  str3.str3_de7 = 101218
+		  str3.str3_al25 = "Some times when it rains!"
+		end
+	    4 : begin
+		  str3.str3_al10 = "Curtis 14"
+		  str3.str3_gp1al6 = "Rupert"
+		  str3.str3_gp1de5 = 1934
+		  str3.str3_gp1id52 = 18.41
+		  str3.str3_de7 = 101561
+		  str3.str3_al25 = "Some times when it rains!"
+		end
+	    endcase
+;;	    writes(chan, str3)
+;;       	    writes(chan, %string(ndx))
+;;	    writes(chan, str3.str3_al10)
+;;	    writes(chan, str3.str3_gp1al6)
+;;	    writes(chan, %string(str3.str3_gp1de5))
+;;	    writes(chan, %string(str3.str3_gp1id52))
+;;	    writes(chan, %string(str3.str3_de7))
+;;	    writes(chan, str3.str3_al25)
+;;	    writes(chan, " ********************************")
+	    a_strary[ndx] = str3
+	  end
+;;	writes(chan, " ********************************")
+;;	close (chan)
+	xreturn
+.end
+
+; -------------------------------------------------------------------
+
+{xfMethod(interface="strtests",name="teststr9",elb="TEST:strelb",id="teststr9")}
+subroutine teststr9
+{xfParameter(name="p1de7")}
+req inout   a_de7       ,d7                  
+{xfParameter(structure="Strtest3R")}
+req inout   a_strary    ,[*]Strtest3R
+{xfParameter(name="p3al10")}
+req inout   a_al10      ,a10                   
+endparams
+
+record str
+        ary             ,[4]a58
+.align
+record
+	chan	,i4
+	ndx	,i4
+	al10	,a10
+	de7	,d7
+	str3	,Strtest3R
+
+.proc
+	clear al10, de7
+	chan = 211
+;;	open(chan, o, "TEST:str9.log")
+;;	writes(chan, " ********************************")
+        for ndx from 1 thru 4 by 1
+	  begin
+	    str3 = a_strary[ndx]
+;;	    writes(chan, str3)
+;;	    writes(chan, " ")
+;;       	    writes(chan, %string(ndx))
+;;	    writes(chan, str3.str3_al10)
+;;	    writes(chan, str3.str3_gp1al6)
+;;	    writes(chan, %string(str3.str3_gp1de5))
+;;	    writes(chan, %string(str3.str3_gp1id52))
+;;	    writes(chan, %string(str3.str3_de7))
+;;	    writes(chan, str3.str3_al25)
+;;	    writes(chan, " ********************************")
+	  end
+;;	writes(chan, " ********************************")
+	al10 = a_al10
+	de7  = a_de7
+;;	writes(chan, al10)
+;;	writes(chan, %string(de7))
+;;	writes(chan, " ********************************")
+        for ndx from 1 thru 4 by 1
+	  begin
+	    case ndx of
+	    begincase
+	    1 : begin
+		  str3.str3_al10 = "Curtis 11"
+		  str3.str3_gp1al6 = "Rupert"
+		  str3.str3_gp1de5 = 3234
+		  str3.str3_gp1id52 = 31.75
+		  str3.str3_de7 = 101357
+		  str3.str3_al25 = "Some times when it rains!"
+		end
+	    2 : begin
+		  str3.str3_al10 = "Curtis 12"
+		  str3.str3_gp1al6 = "Rupert"
+		  str3.str3_gp1de5 = 2223
+		  str3.str3_gp1id52 = 56.88
+		  str3.str3_de7 = 101334
+		  str3.str3_al25 = "Some times when it rains!"
+		end
+	    3 : begin
+		  str3.str3_al10 = "Curtis 13"
+		  str3.str3_gp1al6 = "Rupert"
+		  str3.str3_gp1de5 = 3421
+		  str3.str3_gp1id52 = 34.61
+		  str3.str3_de7 = 101218
+		  str3.str3_al25 = "Some times when it rains!"
+		end
+	    4 : begin
+		  str3.str3_al10 = "Curtis 14"
+		  str3.str3_gp1al6 = "Rupert"
+		  str3.str3_gp1de5 = 1934
+		  str3.str3_gp1id52 = 18.41
+		  str3.str3_de7 = 101561
+		  str3.str3_al25 = "Some times when it rains!"
+		end
+	    endcase
+;;	    writes(chan, str3)
+;;       	    writes(chan, %string(ndx))
+;;	    writes(chan, str3.str3_al10)
+;;	    writes(chan, str3.str3_gp1al6)
+;;	    writes(chan, %string(str3.str3_gp1de5))
+;;	    writes(chan, %string(str3.str3_gp1id52))
+;;	    writes(chan, %string(str3.str3_de7))
+;;	    writes(chan, str3.str3_al25)
+;;	    writes(chan, " ********************************")
+	    a_strary[ndx] = str3
+	  end
+;;	writes(chan, " ********************************")
+	al10 = "jimmyjames"
+	de7  = 1234567
+	a_al10 = al10
+	a_de7  = de7
+;;	writes(chan, al10)
+;;;;	writes(chan, %string(de7))
+;;	writes(chan, " ********************************")
+;;	close (chan)
+	xreturn
+.end
+
+; -------------------------------------------------------------------------------------
+
+{xfMethod(interface="strtests",name="teststr10",elb="TEST:strelb",id="teststr10")}
+subroutine teststr10
+{xfParameter(structure="strStrtest4")}
+req inout   a_str4    ,strStrtest4               ;;
+{xfParameter(structure="Strtest3R")}
+req inout   a_strary    ,[*]Strtest3R            ;;
+endparams
+
+record str
+        ary             ,[4]a58
+	str3		,strtest3R
+	str4		,strStrtest4
+.align
+record
+	chan	,i4
+	ndx	,i4
+
+.proc
+	chan = 211
+;;	open(chan, o, "TEST:str10.log")
+;;	writes(chan, " ********************************")
+	str4 =  a_str4
+;;	writes(chan, str4)
+;;	writes(chan, %string(str4.str4_lv1fld1))
+;;	writes(chan, str4.str4_lv1fld2)
+;;	writes(chan, %string(str4.str4_lev2fld1))
+;;	writes(chan, %string(str4.str4_lv3fld1))
+;;	writes(chan, str4.str4_lv3fld2)
+;;	writes(chan, %string(str4.str4_lv3fld3))
+;;	writes(chan, str4.str4_lv2fld2)
+;;	writes(chan, str4.str4_lv1fld3)
+	str4.str4_lv1fld1 = 1013245
+	str4.str4_lv1fld2 = "If it is Tuesday"
+	str4.str4_lev2fld1 = 18
+	str4.str4_lv3fld1 = 19213.18
+	str4.str4_lv3fld2 = "Cassie"
+	str4.str4_lv3fld3 = 145
+	str4.str4_lv2fld2 = "juice cups 3"
+	str4.str4_lv1fld3 = "soup bowls"
+;;	writes(chan, " ********************************")
+;;	writes(chan, str4)
+;;	writes(chan, %string(str4.str4_lv1fld1))
+;;	writes(chan, str4.str4_lv1fld2)
+;;	writes(chan, %string(str4.str4_lev2fld1))
+;;	writes(chan, %string(str4.str4_lv3fld1))
+;;	writes(chan, str4.str4_lv3fld2)
+;;	writes(chan, %string(str4.str4_lv3fld3))
+;;	writes(chan, str4.str4_lv2fld2)
+;;	writes(chan, str4.str4_lv1fld3)
+	a_str4 = str4
+	
+;;	writes(chan, " ********************************")
+        for ndx from 1 thru 4 by 1
+	  begin
+	    str3 = a_strary[ndx]
+;;	    writes(chan, strt3)
+;;	    writes(chan, " ")
+;;       	    writes(chan, %string(ndx))
+;;	    writes(chan, str3.str3_al10)
+;;	    writes(chan, str3.str3_gp1al6)
+;;	    writes(chan, %string(str3.str3_gp1de5))
+;;	    writes(chan, %string(str3.str3_gp1id52))
+;;	    writes(chan, %string(str3.str3_de7))
+;;	    writes(chan, str3.str3_al25)
+;;	    writes(chan, " ********************************")
+	  end
+;;	writes(chan, " ********************************")
+        for ndx from 1 thru 4 by 1
+	  begin
+	    case ndx of
+	    begincase
+	    1 : begin
+		  str3.str3_al10 = "Curtis 11"
+		  str3.str3_gp1al6 = "Rupert"
+		  str3.str3_gp1de5 = 3234
+		  str3.str3_gp1id52 = 31.75
+		  str3.str3_de7 = 101357
+		  str3.str3_al25 = "Some times when it rains!"
+		end
+	    2 : begin
+		  str3.str3_al10 = "Curtis 12"
+		  str3.str3_gp1al6 = "Rupert"
+		  str3.str3_gp1de5 = 2223
+		  str3.str3_gp1id52 = 56.88
+		  str3.str3_de7 = 101334
+		  str3.str3_al25 = "Some times when it rains!"
+		end
+	    3 : begin
+		  str3.str3_al10 = "Curtis 13"
+		  str3.str3_gp1al6 = "Rupert"
+		  str3.str3_gp1de5 = 3421
+		  str3.str3_gp1id52 = 34.61
+		  str3.str3_de7 = 101218
+		  str3.str3_al25 = "Some times when it rains!"
+		end
+	    4 : begin
+		  str3.str3_al10 = "Curtis 14"
+		  str3.str3_gp1al6 = "Rupert"
+		  str3.str3_gp1de5 = 1934
+		  str3.str3_gp1id52 = 18.41
+		  str3.str3_de7 = 101561
+		  str3.str3_al25 = "Some times when it rains!"
+		end
+	    endcase
+;;	    writes(chan, str3)
+;;       	    writes(chan, %string(ndx))
+;;	    writes(chan, str3.str3_al10)
+;;	    writes(chan, str3.str3_gp1al6)
+;;	    writes(chan, %string(str3.str3_gp1de5))
+;;	    writes(chan, %string(str3.str3_gp1id52))
+;;	    writes(chan, %string(str3.str3_de7))
+;;	    writes(chan, str3.str3_al25)
+;;	    writes(chan, " ********************************")
+	    a_strary[ndx] = str3
+	  end
+;;	writes(chan, " ********************************")
+;;	close (chan)
+	xreturn
+.end
+
+; ------------------------------------------------------------------------------------
+
+{xfMethod(interface="strtests",name="teststr11",elb="TEST:strelb",id="teststr11")}
+subroutine teststr11
+{xfParameter(structure="Strtest3R")}
+req inout   a_strary     ,[*]Strtest3R 
+{xfParameter(name="STRTEST4",structure="strStrtest4")}
+req inout   a_str4    	 ,strStrtest4 
+endparams
+
+record str
+        ary             ,[4]a58
+.align
+record
+	chan	,i4
+	ndx	,i4
+	str3	,Strtest3R
+	str4	,strStrtest4
+
+.proc
+	chan = 211
+;;	open(chan, o, "TEST:str11.log")
+;;	writes(chan, " ********************************")
+	str4 =  a_str4
+;;	writes(chan, str4)
+;;	writes(chan, %string(str4.str4_lv1fld1))
+;;	writes(chan, str4.str4_lv1fld2)
+;;	writes(chan, %string(str4.str4_lev2fld1))
+;;	writes(chan, %string(str4.str4_lv3fld1))
+;;	writes(chan, str4.str4_lv3fld2)
+;;	writes(chan, %string(str4.str4_lv3fld3))
+;;	writes(chan, str4.str4_lv2fld2)
+;;	writes(chan, str4.str4_lv1fld3)
+	str4.str4_lv1fld1 = 1013245
+	str4.str4_lv1fld2 = "If it is Tuesday"
+	str4.str4_lev2fld1 = 18
+	str4.str4_lv3fld1 = 19213.18
+	str4.str4_lv3fld2 = "Cassie"
+	str4.str4_lv3fld3 = 145
+	str4.str4_lv2fld2 = "juice cups 3"
+	str4.str4_lv1fld3 = "soup bowls"
+;;	writes(chan, " ********************************")
+;;	writes(chan, str4)
+;;	writes(chan, %string(str4.str4_lv1fld1))
+;;	writes(chan, str4.str4_lv1fld2)
+;;	writes(chan, %string(str4.str4_lev2fld1))
+;;	writes(chan, %string(str4.str4_lv3fld1))
+;;	writes(chan, str4.str4_lv3fld2)
+;;	writes(chan, %string(str4.str4_lv3fld3))
+;;	writes(chan, str4.str4_lv2fld2)
+;;	writes(chan, str4.str4_lv1fld3)
+	a_str4 = str4
+	
+;;	writes(chan, " ********************************")
+        for ndx from 1 thru 4 by 1
+	  begin
+	    str3 = a_strary[ndx]
+;;	    writes(chan, str3)
+;;	    writes(chan, " ")
+;;       	    writes(chan, %string(ndx))
+;;	    writes(chan, str3.str3_al10)
+;;	    writes(chan, str3.str3_gp1al6)
+;;	    writes(chan, %string(str3.str3_gp1de5))
+;;	    writes(chan, %string(str3.str3_gp1id52))
+;;	    writes(chan, %string(str3.str3_de7))
+;;	    writes(chan, str3.str3_al25)
+;;	    writes(chan, " ********************************")
+	  end
+;;	writes(chan, " ********************************")
+        for ndx from 1 thru 4 by 1
+	  begin
+	    case ndx of
+	    begincase
+	    1 : begin
+		  str3.str3_al10 = "Curtis 11"
+		  str3.str3_gp1al6 = "Rupert"
+		  str3.str3_gp1de5 = 3234
+		  str3.str3_gp1id52 = 31.75
+		  str3.str3_de7 = 101357
+		  str3.str3_al25 = "Some times when it rains!"
+		end
+	    2 : begin
+		  str3.str3_al10 = "Curtis 12"
+		  str3.str3_gp1al6 = "Rupert"
+		  str3.str3_gp1de5 = 2223
+		  str3.str3_gp1id52 = 56.88
+		  str3.str3_de7 = 101334
+		  str3.str3_al25 = "Some times when it rains!"
+		end
+	    3 : begin
+		  str3.str3_al10 = "Curtis 13"
+		  str3.str3_gp1al6 = "Rupert"
+		  str3.str3_gp1de5 = 3421
+		  str3.str3_gp1id52 = 34.61
+		  str3.str3_de7 = 101218
+		  str3.str3_al25 = "Some times when it rains!"
+		end
+	    4 : begin
+		  str3.str3_al10 = "Curtis 14"
+		  str3.str3_gp1al6 = "Rupert"
+		  str3.str3_gp1de5 = 1934
+		  str3.str3_gp1id52 = 18.41
+		  str3.str3_de7 = 101561
+		  str3.str3_al25 = "Some times when it rains!"
+		end
+	    endcase
+;;	    writes(chan, str3)
+;;       	    writes(chan, %string(ndx))
+;;	    writes(chan, str3.str3_al10)
+;;	    writes(chan, str3.str3_gp1al6)
+;;	    writes(chan, %string(str3.str3_gp1de5))
+;;	    writes(chan, %string(str3.str3_gp1id52))
+;;	    writes(chan, %string(str3.str3_de7))
+;;	    writes(chan, str3.str3_al25)
+;;	    writes(chan, " ********************************")
+	    a_strary[ndx] = str3
+	  end
+;;	writes(chan, " ********************************")
+;;	close (chan)
+	xreturn
+.end
+
+; --------------------------------------------------------------------------
+
+{xfMethod(interface="strtests",name="teststr12",elb="TEST:strelb",id="teststr12")}
+subroutine teststr12
+{xfParameter(structure="strStrtest12")}
+req inout   a_str12    ,strStrtest12
+endparams
+
+record str
+        strary             ,[3]a13
+.align
+record
+	chan	,i4
+	ndx	,i4
+	str12	,strStrtest12
+
+.proc
+	chan = 211
+	str12 = a_str12
+;;	open(chan, o, "TEST:str12.log")
+;;	writes(chan, " ********************************")
+;;	writes(chan, str12)
+;;      writes(chan, str12.str12_al10)
+;;      writes(chan, %string(str12.str12_de7))
+;;	writes(chan, " ********************************")
+        for ndx from 1 thru 3 by 1
+	  begin
+	    str12.str12_gp1de5 = str12.str12_strary[ndx](1:5)
+	    str12.str12_gp1al8 = str12.str12_strary[ndx](6:8)
+;;       	    writes(chan, %string(ndx))
+;;            writes(chan, str12.str12_strary[ndx])
+;;       	    writes(chan, %string(str12.str12_gp1de5))
+;;            writes(chan, str12.str12_gp1al8)
+	  end
+;;	writes(chan, " ********************************")
+        for ndx from 1 thru 3 by 1
+	  begin
+;;       	    writes(chan, %string(ndx))
+	    case ndx of
+	    begincase
+	    1 : begin
+	    	  str12.str12_gp1de5 = 12343
+	    	  str12.str12_gp1al8 = "rupert12"
+		end
+	    2 : begin
+	    	  str12.str12_gp1de5 = 12346
+	    	  str12.str12_gp1al8 = "rupert13"
+		end
+	    3 : begin
+	    	  str12.str12_gp1de5 = 12349
+	    	  str12.str12_gp1al8 = "rupert14"
+		end
+	    endcase
+	    str12.str12_strary[ndx] = %string(str12.str12_gp1de5) + str12.str12_gp1al8
+;;            writes(chan, str12.str12_strary[ndx])
+;;       	    writes(chan, %string(str12.str12_gp1de5))
+;;            writes(chan, str12.str12_gp1al8)
+	  end
+;;	writes(chan, " ********************************")
+	str12.str12_al10 = "jimmyjames"
+	str12.str12_de7  = 1234567
+	a_str12 = str12
+;;        writes(chan, str12.str12_al10)
+;;       	writes(chan, %string(str12.str12_de7))
+;;	writes(chan, str12)
+;;	writes(chan, " ********************************")
+;;	writes(chan, " ********************************")
+;;	close (chan)
+	xreturn
+.end
+
+; -----------------------------------------------------------------------
+{xfMethod(interface="strtests",name="teststr13",elb="TEST:strelb",id="teststr13")}
+subroutine teststr13
+{xfParameter(structure="Strtest12R")}
+req inout   a_str12   ,[*]Strtest12R
+endparams
+
+record str
+        strary  	,[3]a13
+	str12		,Strtest12R
+.align
+record
+	chan	,i4
+	idx	,i4
+	ndx	,i4
+	str12a,	a56
+
+.proc
+	chan = 211
+;;	open(chan, o, "TEST:str13.log")
+	for idx from 1 thru 3 by 1
+	  begin
+;;	    writes(chan, " *******-----*************************")
+;; 	    writes(chan, " array pos = " + %string(idx))
+	    str12a = a_str12[idx]
+	    str12 = str12a
+;;	    writes(chan, str12)
+;;	    writes(chan, str12.str12_al10)
+;;	    writes(chan, %string(str12.str12_de7))
+;;	    writes(chan, " ********************************")
+	    for ndx from 1 thru 3 by 1
+	      begin
+		str12.str12_gp1de5 = str12.str12_strary[ndx](1:5)
+		str12.str12_gp1al8 = str12.str12_strary[ndx](6:8)
+;;		writes(chan, %string(ndx))
+;;		writes(chan, str12_strary[ndx])
+;;		writes(chan, %string(str12.str12_gp1de5))
+;;		writes(chan, str12.str12_gp1al8)
+	      end
+;;	    writes(chan, " ********************************")
+            for ndx from 1 thru 3 by 1
+	      begin
+;;       	       writes(chan, %string(ndx))
+	        case ndx of
+	        begincase
+	        1 : begin
+	    	      str12.str12_gp1de5 = 12343
+	    	      str12.str12_gp1al8 = "rupert12"
+		    end
+	        2 : begin
+	    	      str12.str12_gp1de5 = 12346
+	    	      str12.str12_gp1al8 = "rupert13"
+		    end
+	        3 : begin
+	    	      str12.str12_gp1de5 = 12349
+	    	      str12.str12_gp1al8 = "rupert14"
+		    end
+	        endcase
+	        str12.str12_strary[ndx] = %string(str12.str12_gp1de5) + str12.str12_gp1al8
+;;                writes(chan, str12_strary[ndx])
+;;       	        writes(chan, %string(str12.str12_gp1de5))
+;;                writes(chan, str12.str12_gp1al8)
+	      end
+;;	    writes(chan, " ********************************")
+	    str12.str12_al10 = "jimmyjames"
+	    str12.str12_de7  = 1234567
+	    a_str12[idx] = str12
+;;            writes(chan, str12.str12_al10)
+;;       	    writes(chan, %string(str12.str12_de7))
+;;	    writes(chan, str12)
+;;	    writes(chan, " *****----------***************************")
+	  end
+;;	close (chan)
+	xreturn
+.end
+
+; -------------------------------------------------------------------------------
+
+{xfMethod(interface="strtests",name="teststr14",elb="TEST:strelb",id="teststr14")}
+subroutine teststr14
+{xfParameter(structure="strStrtest14")}
+req inout   a_str14   ,strStrtest14              ;;
+endparams
+
+.align
+record
+	chan	,i4
+	ndx	,i4
+	str14	,strStrtest14
+
+.proc
+	chan = 211
+;;	open(chan, o, "TEST:str14.log")
+	str14 =  a_str14
+;;	writes(chan, str14)
+;;	writes(chan, %string(str14.company_code))
+;;	writes(chan, %string(str14.prod_id))
+;;	writes(chan, str14.prod_name)
+;;	writes(chan, %string(str14.cost))
+;;	writes(chan, %string(str14.whrs))
+;;	writes(chan, %string(str14.row))
+;;	writes(chan, %string(str14.shelf))
+;;	writes(chan, %string(str14.count))
+;;	writes(chan, str14.comment)
+	str14.company_code = 12
+	str14.prod_id = 10234
+	str14.prod_name = "edge plainer"
+	str14.cost = 329.37
+	str14.whrs = 7
+	str14.row = 23
+	str14.shelf = 6
+	str14.count = 127
+	str14.comment = "Not a large item."
+;;	writes(chan, " ********************************")
+;;	writes(chan, str14)
+;;	writes(chan, %string(str14.company_code))
+;;	writes(chan, %string(str14.prod_id))
+;;	writes(chan, str14.prod_name)
+;;	writes(chan, %string(str14.cost))
+;;	writes(chan, %string(str14.whrs))
+;;	writes(chan, %string(str14.row))
+;;	writes(chan, %string(str14.shelf))
+;;	writes(chan, %string(str14.count))
+;;	writes(chan, str14.comment)
+	a_str14 = str14
+;;	close (chan)
+	xreturn
+.end
+
+; --------------------------------------------------------------------------------
+
+{xfMethod(interface="strtests",name="teststr16",elb="TEST:strelb",id="teststr16")}
+subroutine teststr16
+{xfParameter(structure="strStrtest16")}
+req inout   a_str16   ,strStrtest16             
+endparams
+
+.align
+record
+	chan	,i4
+	ndx	,i4
+	str16 	,strStrtest16
+
+.proc
+	chan = 211
+;;	open(chan, o, "TEST:str16.log")
+;;	writes(chan, " ********************************")
+	str16 =  a_str16
+;;	writes(chan, str16)
+;;	writes(chan, %string(%size(a_str16)))
+;;	writes(chan, %string(%size(str16)))
+;;        for ndx from 1 thru 5 by 1
+;;	  begin
+;;	    writes(chan, %string(ndx))
+;;	    writes(chan, %string(decary[ndx]))
+;;	    writes(chan, alpary[ndx])
+;;	    writes(chan, %string(impary[ndx]))
+;;	    writes(chan, %string(intary[ndx]))
+;;	    writes(chan, "  ")
+;;	  end
+	clear str16  
+	str16.decary[1] = 1324
+	str16.decary[2] = 29
+	str16.decary[3] = 1782
+	str16.decary[4] = 194
+	str16.decary[5] = 3216
+	str16.alpary[1] = "rupert"
+	str16.alpary[2] = "computerZZ"
+	str16.alpary[3] = "james"
+	str16.alpary[4] = "sam"
+	str16.alpary[5] = "smithstean"
+	str16.impary[1] = 1324.12
+	str16.impary[2] = 29.45
+	str16.impary[3] = 1782.18
+	str16.impary[4] = 194.25
+	str16.impary[5] = 6.16
+	str16.intary[1] = 1324
+	str16.intary[2] = 29
+	str16.intary[3] = 1782
+	str16.intary[4] = 194
+	str16.intary[5] = 3216
+;;	writes(chan, " ********************************")
+;;        for ndx from 1 thru 5 by 1
+;;	  begin
+;;	    writes(chan, %string(ndx))
+;;	    writes(chan, %string(str16.decary[ndx]))
+;;	    writes(chan, alpary[ndx])
+;;	    writes(chan, %string(str16.impary[ndx]))
+;;	    writes(chan, %string(intary[ndx]))
+;;	    writes(chan, "  ")
+;;	  end
+;;	writes(chan, " ********************************")
+	a_str16 = str16
+;;	close (chan)
+	xreturn
+.end
+
+; ----------------------------------------------------------------------------
+
+{xfMethod(interface="strtests",name="teststr18",elb="TEST:strelb",id="teststr18")}
+
+subroutine teststr18
+{xfParameter(structure="strStrtest18")}
+req inout   a_str18	   ,strStrtest18 
+endparams
+
+.align
+record
+	chan	,i4
+	ndx	,i4
+	str18	,strStrtest18
+
+.proc
+	chan = 211
+;;	open(chan, o, "TEST:str18.log")
+;;	writes(chan, " ********************************")
+	str18 =  a_str18
+;;	writes(chan, strtest18)
+;;	writes(chan, %string(%size(a_str18)))
+;;	writes(chan, %string(%size(str18)))
+;;	writes(chan, "al10 = " + str18.str18_al10)
+;;        for ndx from 1 thru 5 by 1
+;;	  begin
+;;	    writes(chan, %string(ndx))
+;;	    writes(chan, %string(str18.str18_decary[ndx]))
+;;	    writes(chan, str18.str18_alpary[ndx])
+;;	    writes(chan, %string(str18.str18_impary[ndx]))
+;;	    writes(chan, %string(str18.str18_intary[ndx]))
+;;	    writes(chan, "  ")
+;;	  end
+;;	writes(chan, "de7 = " + %string(str18.str18_al10))
+	clear str18  
+	str18.str18_decary[1] = 1324
+	str18.str18_decary[2] = 29
+	str18.str18_decary[3] = 1782
+	str18.str18_decary[4] = 194
+	str18.str18_decary[5] = 3216
+	str18.str18_alpary[1] = "rupert"
+	str18.str18_alpary[2] = "computerZZ"
+	str18.str18_alpary[3] = "james"
+	str18.str18_alpary[4] = "sam"
+	str18.str18_alpary[5] = "smithstean"
+	str18.str18_impary[1] = 1324.12
+	str18.str18_impary[2] = 29.45
+	str18.str18_impary[3] = 1782.18
+	str18.str18_impary[4] = 194.25
+	str18.str18_impary[5] = 6.16
+	str18.str18_intary[1] = 1324
+	str18.str18_intary[2] = 29
+	str18.str18_intary[3] = 1782
+	str18.str18_intary[4] = 194
+	str18.str18_intary[5] = 3216
+	str18.str18_al10 = "JamesJones"
+	str18.str18_de7  = 654321
+;;	writes(chan, " ********************************")
+;;	writes(chan, "al10 = " + str18.str18_al10)
+;;        for ndx from 1 thru 5 by 1
+;;	  begin
+;;	    writes(chan, %string(ndx))
+;;	    writes(chan, %string(str18.str18_decary[ndx]))
+;;	    writes(chan, str18_alpary[ndx])
+;;	    writes(chan, %string(str18.str18_impary[ndx]))
+;;	    writes(chan, %string(str18.str18_intary[ndx]))
+;;	    writes(chan, "  ")
+;;	  end
+;;	writes(chan, "de7 = " + %string(str18.str18_al10))
+;;	writes(chan, " ********************************")
+	a_str18 = str18
+;;	close (chan)
+	xreturn
+.end
+
+; -----------------------------------------------------------------------
+
+{xfMethod(interface="strtests",name="teststr19",elb="TEST:strelb",id="teststr19")}
+subroutine teststr19
+{xfParameter(structure="strStrtest19")}
+req inout   a_str19   ,strStrtest19 
+endparams
+
+.align
+record
+	chan	,i4
+	ndx	,i4
+	str19	,strStrtest19
+
+.proc
+	chan = 211
+;;	open(chan, o, "TEST:str19.log")
+	str19 =  a_str19
+;;	writes(chan, str19)
+;;	writes(chan, str19.str19_al10)
+;;	writes(chan, %string(str19.str19_gp1de5))
+;;	writes(chan, str19.str19_gp1al6)
+;;	writes(chan, str19.str19_gp2al5)
+;;	writes(chan, %string(str19.str19_gp2de5))
+;;	writes(chan, %string(str19.str19_gp2id5))
+	str19.str19_al10   = "Mary Smith"
+	str19.str19_gp1de5 = 99
+	str19.str19_gp1al6 = "cassie"
+	str19.str19_gp2al5 = "S"
+	str19.str19_gp2de5 = 235
+	str19.str19_gp2id5 = 115.67
+;;	writes(chan, " ********************************")
+;;	writes(chan, str19)
+;;	writes(chan, str19.str19_al10)
+;;	writes(chan, %string(str19.str19_gp1de5))
+;;	writes(chan, str19.str19_gp1al6)
+;;	writes(chan, str19.str19_gp2al5)
+;;	writes(chan, %string(str19.str19_gp2de5))
+;;	writes(chan, %string(str19.str19_gp2id5))
+	a_str19 = str19
+;;	close (chan)
+	xreturn
+.end
+
+; ----------------------------------------------------------------------------
+
+{xfMethod(interface="strtests",name="teststr20",elb="TEST:strelb",id="teststr20")}
+function teststr20      ,d7
+{xfParameter(structure="strStrtest19")}
+req inout   a_str19   ,strStrtest19
+endparams
+
+.align
+record
+	chan	,i4
+	ndx	,i4
+	dec7	,d7
+	str19	,strStrtest19
+
+.proc
+	chan = 211
+;;	open(chan, o, "TEST:str20.log")
+	str19 =  a_str19
+;;	writes(chan, str19)
+;;	writes(chan, str19.str19_al10)
+;;	writes(chan, %string(str19.str19_gp1de5))
+;;	writes(chan, str19.str19_gp1al6)
+;;	writes(chan, str19.str19_gp2al5)
+;;	writes(chan, %string(str19.str19_gp2de5))
+;;	writes(chan, %string(str19.str19_gp2id5))
+	str19.str19_al10   = "Mary Smith"
+	str19.str19_gp1de5 = 99
+	str19.str19_gp1al6 = "cassie"
+	str19.str19_gp2al5 = "S"
+	str19.str19_gp2de5 = 235
+	str19.str19_gp2id5 = 115.67
+;;	writes(chan, " ********************************")
+;;	writes(chan, str19)
+;;	writes(chan, str19.str19_al10)
+;;	writes(chan, %string(str19.str19_gp1de5))
+;;	writes(chan, str19.str19_gp1al6)
+;;	writes(chan, str19.str19_gp2al5)
+;;	writes(chan, %string(str19.str19_gp2de5))
+;;	writes(chan, %string(str19.str19_gp2id5))
+	a_str19 = str19
+	dec7 = 2017
+;;	writes(chan, " ********************************")
+;;	writes(chan, %string(dec7))
+;;	close (chan)
+	freturn (dec7)
+.end
+
+; -------------------------------------------------------------------------------
+
+{xfMethod(interface="strtests",name="teststr23",elb="TEST:strelb",id="teststr23")}
+function teststr23      ,a7
+{xfParameter(structure="strStrtest23")}
+req inout   a_str23   ,strStrtest23
+endparams
+
+.align
+record
+	chan	,i4
+	ndx	,i4
+	alpha7	,a7
+	str23	,strStrtest23
+
+.proc
+	chan = 211
+;;	open(chan, o, "TEST:str23.log")
+	str23 =  a_str23
+;;	writes(chan, str23)
+;;	writes(chan, %string(str23.str23_de5))
+;;	writes(chan, str23.str23_alary[1])
+;;	writes(chan, str23.str23_alary[2])
+;;	writes(chan, str23.str23_alary[3])
+;;	writes(chan, %string(str23.str23_de6))
+;;	writes(chan, %string(str23.str23_id5))
+;;	writes(chan, str23.str23_al10)
+;;	writes(chan, %string(str23.str23_deary[1]))
+;;	writes(chan, %string(str23.str23_deary[2]))
+;;	writes(chan, %string(str23.str23_deary[3]))
+;;	writes(chan, %string(str23.str23_de7))
+;;	writes(chan, str23.str23_al20)
+	str23.str23_de5 = 356
+	str23.str23_alary[1] = "KC"
+	str23.str23_alary[2] = "ginny"
+	str23.str23_alary[3] = "kim"
+	str23.str23_de6 = 35201
+	str23.str23_id5 = 18.01
+	str23.str23_al10 = "concert"
+	str23.str23_deary[1] = 87
+	str23.str23_deary[2] = 21065
+	str23.str23_deary[3] = 118
+	str23.str23_de7 = 1001
+	str23.str23_al20 = "We own a tractor"
+;;	writes(chan, " ********************************")
+;;	writes(chan, str23)
+;;	writes(chan, %string(str23.str23_de5))
+;;	writes(chan, str23.str23_alary[1])
+;;	writes(chan, str23.str23_alary[2])
+;;	writes(chan, str23.str23_alary[3])
+;;	writes(chan, %string(str23.str23_de6))
+;;	writes(chan, %string(str23.str23_id5))
+;;	writes(chan, str23.str23_al10)
+;;	writes(chan, %string(str23.str23_deary[1]))
+;;	writes(chan, %string(str23.str23_deary[2]))
+;;	writes(chan, %string(str23.str23_deary[3]))
+;;	writes(chan, %string(str23.str23_de7))
+;;	writes(chan, str23.str23_al20)
+	a_str23 = str23
+	alpha7 = "Viola"
+;;	writes(chan, " ********************************")
+;;	writes(chan, alpha7)
+;;	close (chan)
+	freturn (alpha7)
+.end
+
+; ---------------------------------------------------------------------
+
+{xfMethod(interface="strtests",name="teststr24",elb="TEST:strelb",id="teststr24")}
+function teststr24      ,d5.2
+{xfParameter(structure="strStrtest24")}
+req inout   a_str24   ,strStrtest24
+endparams
+
+.align
+record
+	chan	,i4
+	ndx	,i4
+	id52	,d5.2
+	str24	,strStrtest24
+	
+.proc
+	chan = 211
+;;	open(chan, o, "TEST:str24.log")
+	str24 =  a_str24
+;;	writes(chan, str24)
+;;	writes(chan, %string(str24.str23_de5))
+;;	writes(chan, str24.str23_alary[1])
+;;	writes(chan, str24.str23_alary[2])
+;;	writes(chan, str24.str23_alary[3])
+;;	writes(chan, %string(str24.str23_de6))
+;;	writes(chan, %string(str24.str23_id5))
+;;	writes(chan, str24.str23_al10)
+;;	writes(chan, %string(str24.str23_deary[1]))
+;;	writes(chan, %string(str24.str23_deary[2]))
+;;	writes(chan, %string(str24.str23_deary[3]))
+;;	writes(chan, %string(str24.str24_de4))
+;;	writes(chan, %string(str24.str24_aryde[1]))
+;;	writes(chan, %string(str24.str24_aryde[2]))
+;;	writes(chan, %string(str24.str24_aryde[3]))
+;;	writes(chan, str24.str24_al4)
+;;	writes(chan, %string(str24.str23_de7))
+;;	writes(chan, str24.str23_al20)
+	str24.str23_de5 = 356
+	str24.str23_alary[1] = "KC"
+	str24.str23_alary[2] = "ginny"
+	str24.str23_alary[3] = "kim"
+	str24.str23_de6 = 35201
+	str24.str23_id5 = 18.01
+	str24.str23_al10 = "concert"
+	str24.str23_deary[1] = 87
+	str24.str23_deary[2] = 21065
+	str24.str23_deary[3] = 118
+	str24.str23_de7 = 1001
+	str24.str24_de4 = 351
+	str24.str24_aryde[1] = 333
+	str24.str24_aryde[2] = 7234
+	str24.str24_aryde[3] = 474
+	str24.str24_al4 = "ken"
+	str24.str23_al20 = "We own a tractor"
+;;	writes(chan, " ********************************")
+;;	writes(chan, str24)
+;;	writes(chan, %string(str24.str23_de5))
+;;	writes(chan, str24.str23_alary[1])
+;;	writes(chan, str24.str23_alary[2])
+;;	writes(chan, str24.str23_alary[3])
+;;	writes(chan, %string(str24.str23_de6))
+;;	writes(chan, %string(str24.str23_id5))
+;;	writes(chan, str24.str23_al10)
+;;	writes(chan, %string(str24.str23_deary[1]))
+;;	writes(chan, %string(str24.str23_deary[2]))
+;;	writes(chan, %string(str24.str23_deary[3]))
+;;	writes(chan, %string(str24.str24_de4))
+;;	writes(chan, %string(str24.str24_aryde[1]))
+;;	writes(chan, %string(str24.str24_aryde[2]))
+;;	writes(chan, %string(str24.str24_aryde[3]))
+;;	writes(chan, str24.str24_al4)
+;;	writes(chan, %string(str24.str23_de7))
+;;	writes(chan, str24.str23_al20)
+	a_str24 = str24
+	id52 = 117.23
+;;	writes(chan, " ********************************")
+;;	writes(chan, %string(id52))
+;;	close (chan)
+	freturn (id52)
+.end
+
+; ----------------------------------------------------------------------
+
+{xfMethod(interface="strtests",name="teststr25",elb="TEST:strelb",id="teststr25")}
+subroutine teststr25
+{xfParameter(structure="strStrtest25")}
+req inout   a_str25   ,strStrtest25              ;;
+endparams
+
+.align
+record
+	chan	,i4
+	ndx	,i4
+	STR25	,strStrtest25
+
+.proc
+	chan = 211
+;;	open(chan, o, "TEST:str25.log")
+	str25 =  a_str25
+;;	writes(chan, str25)
+;;	writes(chan, str25.str25_al10)
+;;	writes(chan, str25.str25_g1al10)
+;;	writes(chan, %string(str25.str25_g1de8))
+;;	writes(chan, %string(str25.str25_ip72))
+;;	writes(chan, %string(str25.str25_g1in4))
+;;	writes(chan, str25.str25_g2al10)
+;;	writes(chan, %string(str25.str25_g2de8))
+;;	writes(chan, %string(str25.str25_de10))
+	str25.str25_al10 = "1111111111"
+        str25.str25_g1al10 = "KLMNOPQRST"
+        str25.str25_g1de8 = str25.str25_g1de8 + 1
+        str25.str25_ip72 = str25.str25_ip72 + 1.00
+        str25.str25_g1in4 = str25.str25_g1in4 + 1
+        str25.str25_g2al10 = "2222222222"
+        str25.str25_g2de8 = 44444
+        str25.str25_de10 = 99999
+;;	writes(chan, " ********************************")
+;;	writes(chan, str25)
+;;	writes(chan, str25.str25_al10)
+;;	writes(chan, str25.str25_g1al10)
+;;	writes(chan, %string(str25.str25_g1de8))
+;;	writes(chan, %string(str25.str25_ip72))
+;;	writes(chan, %string(str25.str25_g1in4))
+;;	writes(chan, str25.str25_g2al10)
+;;	writes(chan, %string(str25.str25_g2de8))
+;;	writes(chan, %string(str25.str25_de10))
+	a_str25 = str25
+;;	close (chan)
+	xreturn
+.end
+
+; ------------------------------------------------------------------------------
+
+{xfMethod(interface="strtests",name="teststr27",elb="TEST:strelb",id="teststr27")}
+subroutine teststr27
+{xfParameter(structure="strStrtest27")}
+req inout   a_str27   ,strStrtest27
+endparams
+
+.align
+record
+	chan	,i4
+	ndx	,i4
+	STR27	,strStrtest27
+
+.proc
+	chan = 211
+;;	open(chan, o, "TEST:str27.log")
+	str27 =  a_str27
+;;	writes(chan, str27)
+;;	writes(chan, %string(str27.str27_i8))
+	str27.str27_i8 = 97
+;;	writes(chan, " ********************************")
+;;	writes(chan, str27)
+;;	writes(chan, %string(str27.str27_i8))
+	a_str27 = str27
+;;	close (chan)
+	xreturn
+.end
+
+;***************************************************************************
+; This function places the order.
+; It returns 0 if successful.
+
+{xfMethod(interface="strtests",name="teststr29",elb="TEST:strelb",id="teststr29")}
+function teststr29      ,d5
+{xfParameter(name="ordnum")}
+req in      prm_guest      ,a10           
+{xfParameter(structure="strDborder")}
+req inout   prm_ordstru     ,strDborder
+endparams
+
+record order_rec                                            
+  ORDERNO        ,D10   ; (1,10) Unique order number                            
+  CUST_NAME      ,A40   ; (11,50) Customer's name                               
+  group ADDRESSES,[2]A  ; (51,414) 1 - billing; 2 - shipping                    
+    group STREET ,[3]A  ;   (1,120)                                             
+      LINE       ,A40   ;     (1,40)                                            
+    endgroup            ;   end group STREET                                    
+    CITY         ,A30   ;   (121,150)                                           
+    STATE        ,A2    ;   (151,152)                                           
+    COUNTRY      ,A10   ;   (153,162)                                           
+    POSTAL_CODE  ,A20   ;   (163,182)                                           
+  endgroup              ; end group ADRESSES                                    
+
+
+
+.proc
+	order_rec = prm_ordstru
+        freturn 0
+.end
+
+; ---------------------------------------------------------------------
+
+{xfMethod(interface="strtests",name="teststr30",elb="TEST:strelb",id="teststr30")}
+subroutine teststr30
+{xfParameter(structure="Strtest30R")}
+req inout   a_strary   ,[*]Strtest30R
+endparams
+
+.align
+record
+	chan	,i4
+	ndx	,i4
+	str30	,Strtest30R
+
+.proc
+	chan = 211
+;;	open(chan, o, "TEST:str30.log")
+;;	writes(chan, " ********************************")
+        for ndx from 1 thru 10 by 1
+	  begin
+	    str30 = a_strary[ndx]
+;;	    writes(chan, str30)
+;;	    writes(chan, " ")
+;;	    writes(chan, %string(ndx))
+;;	    writes(chan, " ")
+;;            writes(chan, str30.name)
+;;            writes(chan, str30.line1)
+;;            writes(chan, str30.line2)
+;;            writes(chan, str30.city)
+;;            writes(chan, str30.state)
+;;            writes(chan, str30.zip)
+;;	    writes(chan, " ********************************")
+	  end
+;;	writes(chan, " ********************************")
+        for ndx from 1 thru 10 by 1
+	  begin
+	    case ndx of
+	    begincase
+	    1 : begin
+	    	  str30.name  = "Rupert"
+	    	  str30.line1 = "102 East 22nd st"
+	    	  str30.line2 = "suite 1234"
+		  str30.city  = "Atville"
+		  str30.state	= "CA"
+		  str30.zip   = "98434"
+		end
+	    2 : begin
+	    	  str30.name  = "Kevin"
+	    	  str30.line1 = "18702 East 27nd st"
+	    	  str30.line2 = "suite 1234"
+		  str30.city  = "New York"
+		  str30.state	= "NY"
+		  str30.zip   = "75845"
+		end
+	    3 : begin
+	    	  str30.name  = "Mark"
+	    	  str30.line1 = "122 West 23nd st"
+	    	  str30.line2 = "suite 1234"
+		  str30.city  = "Orange"
+		  str30.state	= "CA"
+		  str30.zip   = "89572"
+		end
+	    4 : begin
+	    	  str30.name  = "Chris"
+	    	  str30.line1 = "102 East 22nd st"
+	    	  str30.line2 = "suite 1234"
+		  str30.city  = "Atville"
+		  str30.state	= "CA"
+		  str30.zip   = "98434"
+		end
+	    5 : begin
+	    	  str30.name  = "Salie"
+	    	  str30.line1 = "18702 East 27nd st"
+	    	  str30.line2 = "suite 1234"
+		  str30.city  = "New York"
+		  str30.state	= "NY"
+		  str30.zip   = "75845"
+		end
+	    6 : begin
+	    	  str30.name  = "Paul"
+	    	  str30.line1 = "122 West 23nd st"
+	    	  str30.line2 = "suite 1234"
+		  str30.city  = "Orange"
+		  str30.state	= "CA"
+		  str30.zip   = "89572"
+		end
+	    7 : begin
+	    	  str30.name  = "Bruce"
+	    	  str30.line1 = "122 West 23nd st"
+	    	  str30.line2 = "suite 1234"
+		  str30.city  = "Orange"
+		  str30.state	= "CA"
+		  str30.zip   = "89572"
+		end
+	    8 : begin
+	    	  str30.name  = "Homer"
+	    	  str30.line1 = "102 East 22nd st"
+	    	  str30.line2 = "suite 1234"
+		  str30.city  = "Atville"
+		  str30.state	= "CA"
+		  str30.zip   = "98434"
+		end
+	    9 : begin
+	    	  str30.name  = "James"
+	    	  str30.line1 = "18702 East 27nd st"
+	    	  str30.line2 = "suite 1234"
+		  str30.city  = "New York"
+		  str30.state	= "NY"
+		  str30.zip   = "75845"
+		end
+	    10: begin
+	    	  str30.name  = "Rayn"
+	    	  str30.line1 = "122 West 23nd st"
+	    	  str30.line2 = "suite 1234"
+		  str30.city  = "Orange"
+		  str30.state	= "CA"
+		  str30.zip   = "89572"
+		end
+	    endcase
+;;	    writes(chan, " ")
+;;	    writes(chan, %string(ndx))
+;;	    writes(chan, " ")
+;;	    writes(chan, str30)
+;;            writes(chan, str30.name)
+;;            writes(chan, str30.line1)
+;;            writes(chan, str30.line2)
+;;            writes(chan, str30.city)
+;;            writes(chan, str30.state)
+;;            writes(chan, str30.zip)
+;;	    writes(chan, " ********************************")
+	    a_strary[ndx] = str30
+	  end
+;;	writes(chan, " ********************************")
+;;	close (chan)
+	xreturn
+.end
+
+; --------------------------------------------------------------------------
+
+{xfMethod(interface="strtests",name="teststr31",elb="TEST:strelb",id="teststr31")}
+subroutine teststr31
+{xfParameter(structure="Strtest31R")}
+req inout   a_strary   ,[*]Strtest31R
+endparams
+
+.align
+record
+	chan	,i4
+	ndx	,i4
+	str31	,Strtest31R
+
+.proc
+	chan = 211
+;;	open(chan, o, "TEST:str31.log")
+;;	writes(chan, " ********************************")
+        for ndx from 1 thru 3 by 1
+	  begin
+	    str31 = a_strary[ndx]
+;;	    writes(chan, str31)
+;;	    writes(chan, " ")
+;;       	    writes(chan, %string(ndx))
+;;       	    writes(chan, %string(str31.str31_f1))
+;;       	    writes(chan, %string(str31.str31_f2))
+;;       	    writes(chan, %string(str31.str31_f3))
+;;       	    writes(chan, %string(str31.str31_f4))
+;;	    writes(chan, " ********************************")
+	    str31.str31_f1 += 1
+	    str31.str31_f2 += 1
+	    str31.str31_f3 += 1
+	    str31.str31_f4 += 1
+;;	    writes(chan, str31)
+;;       	    writes(chan, %string(ndx))
+;;       	    writes(chan, %string(str31.str31_f1))
+;;       	    writes(chan, %string(str31.str31_f2))
+;;       	    writes(chan, %string(str31.str31_f3))
+;;       	    writes(chan, %string(str31.str31_f4))
+;;	    writes(chan, " ********************************")
+;;	    writes(chan, " ********************************")
+	    a_strary[ndx] = str31
+	  end
+;;	writes(chan, " ********************************")
+;;	close (chan)
+	xreturn
+.end
+
+; ---------------------------------------------------------------------------------------
+
+{xfMethod(interface="strtests",name="teststr32",elb="TEST:strelb",id="teststr32")}
+subroutine teststr32
+{xfParameter(structure="strDataset")}
+req inout   a_str     ,strDataset
+endparams
+
+.align
+record
+	chan	,i4
+	ndx	,i4
+	str32	,strDataset
+
+.proc
+	chan = 211
+;;	open(chan, o, "TEST:str32.log")
+;;	writes(chan, " ********************************")
+
+	str32 = a_str
+
+	str32.dkey = 999999
+	str32.idkey = 999999.9
+	str32.akey = "9999999999999999999999999999"
+	str32.d_1 = 9
+	str32.d_2 = 99
+	str32.d_3 = 999
+	str32.d_4 = 9999
+	str32.d_5 = 99999
+	str32.d_6 = 999999
+	str32.d_7 = 9999999
+	str32.d_8 = 99999999
+	str32.d_9 = 999999999
+	str32.d_10 = 9999999999
+	str32.d_11 = 99999999999
+	str32.d_12 = 999999999999
+	str32.d_13 = 9999999999999
+	str32.d_14 = 99999999999999
+	str32.d_15 = 999999999999999
+	str32.d_16 = 9999999999999999
+	str32.d_17 = 99999999999999999
+	str32.id_21 = 9.9
+	str32.id_32 = 9.99
+	str32.id_42 = 99.99
+	str32.id_52 = 999.99
+	str32.id_82 = 999999.99
+	str32.id_84 = 9999.9999
+	str32.id_104 = 999999.9999
+	str32.id_124 = 99999999.9999
+	str32.id_186 = 999999999999.999999
+	str32.id_206 = 99999999999999.999999
+	str32.id_237 = 99999.9999
+	str32.id_268 = 99999.9999
+	str32.i_1 = 99
+	str32.i_2 = 999
+	str32.i_4 = 999999
+	str32.i_8 = 99999999
+	str32.yymmdd = 991231
+;;	str32.yymmdd = 000000
+	str32.yyyymmdd = 19991231
+;;	str32.yyyymmdd = 00000000
+	str32.yyjjj = 99365
+;;	str32.yyjjj = 00000
+	str32.yyyyjjj = 1999365
+;;	str32.yyyyjjj = 0000000
+	str32.yypp = 9904
+	str32.yyyypp = 199904
+	str32.mmddyy = "123199"
+	str32.mmddyyyy = "12311999"
+	str32.ddmmyy = "311299"
+	str32.ddmmyyyy = "31121999"
+	str32.jjjjjj = "123456"
+	str32.jjjyy = "36599"
+	str32.jjjyyyy = "3651999"
+	str32.ppyy = "0499"
+	str32.ppyyyy = "041999"
+	str32.monddyy = "Dec3199"
+	str32.monddyyyy = "Dec311999"
+	str32.ddmonyy = "31Dec99"
+	str32.ddmonyyyy = "31Dec1999"
+	str32.yymondd = "99Dec31"
+	str32.yyyymondd = "1999Dec31"
+	str32.hhmmss = "235959"
+	str32.hhmm = "2359"
+	str32.binary10 = "9999999999"
+	str32.binary20 = "9999999999"
+	str32.binary40 = "9999999999"
+	str32.packed6 = 999999
+	str32.packed8 = 99999999
+	str32.a1 = "9"
+	str32.a10 = "9999999999"
+	str32.a100 = "9999999999"
+	str32.a255 = "9999999999"
+	str32.a512 = "9999999999"
+
+	a_str = str32
+
+;;	writes(chan, " ********************************")
+;;	close (chan)
+	xreturn
+.end
+
+; ----------------------------------------------------------------------------------------------------
+
+;; tests an array of structures that with the last field in the structure is an array of structures
+
+.include "TR_SYNINS_INP" REPOSITORY ,structure="Tr_synins_inpR" ,end
+.include "TR_SYNINS_RET" REPOSITORY ,structure="Tr_synins_retR" ,end
+
+{xfMethod(interface="strtests",name="syninsurance",elb="TEST:strelb",id="syninsurance")}
+function syninsurance   ,^val
+{xfParameter(structure="strTrSyninsInp")}
+req in      passed_inp ,strTrSyninsInp        ;;
+{xfParameter(structure="Tr_synins_retR")}
+opt out     passed_ret ,[*]Tr_synins_retR     ;;
+{xfParameter(name="elementcount")}
+req inout   element_count ,i4                 ;;
+endparams
+
+;.function syninsurance,^val
+;
+;        group passed_inp ,a
+; .include "tr_synins_ret.rec" 
+;		SOFTWARE_AREA      ,A255  ; (1,255) Software Area                             
+;		DATA_AREA          ,A255  ; (256,510) Data Area                               
+;		CDATA_AREA         ,A255  ; (511,765) Comtec Data Area                        
+;		WEBSITE_CODE       ,A3    ; (766,768) WebSite Agent code                      
+;		DESTINATION_CODE   ,A5    ; (769,773) Arrival Airport Code                    
+;		WEB_PRODUCT_CODE   ,A6    ; (774,779) Web Product code                        
+;		DURATION           ,D3    ; (780,782) duration                                
+;		INSURANCE_ADULTS   ,D3    ; (783,785) Number of Adult Passengers              
+;		INSURANCE_CHILDREN ,D3    ; (786,788) Number of Child Passengers              
+;		INSURANCE_SENIORS  ,D3    ; (789,791) Number of S.Citezen Passengers          
+;		INSURANCE_INFANTS  ,D3    ; (792,794) Number of Infant Passengers 
+;
+;        endgroup
+;
+;        group passed_ret ,[*]a
+; .include "tr_synins_ret.rec" 
+;		SOFTWARE_AREA      ,A255  ; (1,255) Software Area                             
+;		DATA_AREA          ,A255  ; (256,510) Data Area                               
+;		CDATA_AREA         ,A255  ; (511,765) Comtec Data Area                        
+;		WEBSITE_CODE       ,A3    ; (766,768) WebSite Agent code                      
+;		DESTINATION_CODE   ,A5    ; (769,773) Arrival Airport Code                    
+;		WEB_PRODUCT_CODE   ,A6    ; (774,779) Web Product code                        
+;		DURATION           ,D3    ; (780,782) duration                                
+;		INSURANCE_ADULTS   ,D3    ; (783,785) Number of Adult Passengers              
+;		INSURANCE_CHILDREN ,D3    ; (786,788) Number of Child Passengers              
+;		INSURANCE_SENIORS  ,D3    ; (789,791) Number of S.Citezen Passengers          
+;		INSURANCE_INFANTS  ,D3    ; (792,794) Number of Infant Passengers 
+;        endgroup
+;
+;    element_count,      n
+
+.proc
+;    XCALL fill (5,passed_inp)
+
+    element_count = 2
+
+    XCALL fill(9,passed_ret)
+
+    FRETURN %ernum
+.end
+
+; ------------------------------------------------------------------------------------------------
+
+;; tests multiple levels of arrays of structures within a structure
+
+.include "SALESMAN" REPOSITORY ,structure="SalesmanR" ,end
+
+{xfMethod(interface="strtests",name="arrayswitharrays",elb="TEST:strelb",id="arrayswitharrays")}
+subroutine arrayswitharrays
+{xfParameter(structure="strSalesman")}
+req out     aSlsMan    ,strSalesman     
+endparams
+
+;.subroutine arrayswitharrays
+; .include "salesman.rec" 
+;.include "salesman" repository, record="salesman", end
+; .include 'salesman' repository, group="tst"
+
+.proc
+
+        aSlsMan.sm_target_per_unit_new[1].sub_per_unit_new[1]=1.1
+        aSlsMan.sm_target_per_unit_new[1].sub_per_unit_new[2]=2.2
+        aSlsMan.sm_target_per_unit_new[1].sub_per_unit_new[3]=3.3
+        aSlsMan.sm_target_per_unit_new[1].sub_per_unit_new[4]=4.4
+
+        aSlsMan.sm_target_per_unit_new[2].sub_per_unit_new[1]=21.1
+        aSlsMan.sm_target_per_unit_new[2].sub_per_unit_new[2]=22.2
+        aSlsMan.sm_target_per_unit_new[2].sub_per_unit_new[3]=23.3
+        aSlsMan.sm_target_per_unit_new[2].sub_per_unit_new[4]=24.4
+        xreturn
+
+.end
+
+; ------------------------------------------------------------------------------------
+
+.include "SINGLEIMPLIEDDECIMAL" REPOSITORY ,structure="SingleimplieddecimalR" ,end
+
+{xfMethod(interface="strtests",name="testid66",elb="TEST:strelb",id="TestID66")}
+subroutine testid66
+{xfParameter(structure="strSingleimplieddecimal")}
+req inout   a_str1 ,strSingleimplieddecimal
+endparams
+;.subroutine testid66
+;	Arguments
+;	a_str1		,a
+	
+record singleID
+  ID6P6 ,D6.6  ; (1,6) ID 6.6
+
+.align
+record
+	chan	,i4
+	ndx	,i4
+	msg	,a30
+	tid66	,d6.6
+
+.proc
+	chan = 211
+	open(chan, o, "TEST:testid66.log")
+	singleID =  a_str1
+	writes(chan, singleID)
+	writes(chan, %string(ID6P6))
+	tid66 = ID6P6
+	writes(chan, %string(tid66))
+	tid66 = -0.50
+	writes(chan, %string(tid66))
+	ID6P6 = tid66
+	writes(chan, %string(ID6P6))
+	a_str1 = singleID
+	writes(chan, singleID)
+	close (chan)
+	xreturn
+.end
+
+; -----------------------------------------------------------------------------------------
+
+.include "IMPLIEDDECIMALTEST" REPOSITORY ,structure="ImplieddecimaltestR" ,end
+
+{xfMethod(interface="strtests",name="teststrid66",elb="TEST:strelb",id="TestStrID66")}
+subroutine teststrid66
+{xfParameter(structure="strImplieddecimaltest")}
+req inout   a_str1 ,strImplieddecimaltest
+endparams
+;.subroutine teststrid66
+;	Arguments
+;	a_str1		,a
+	
+record IDtest
+  NAME  ,A20   ; (1,20)
+  ID6P6 ,D6.6  ; (21,26)
+  DESC  ,A20   ; (27,46)
+
+.align
+record
+	chan	,i4
+	ndx	,i4
+	msg	,a30
+	tid66	,d6.6
+
+.proc
+	chan = 211
+	open(chan, o, "TEST:testid66.log")
+	IDtest =  a_str1
+	writes(chan, IDtest)
+	writes(chan, %string(ID6P6))
+	tid66 = ID6P6
+	writes(chan, %string(tid66))
+	tid66 = -0.50
+	writes(chan, %string(tid66))
+	ID6P6 = tid66
+	writes(chan, %string(ID6P6))
+	name = "********************"
+	DESC = "********************"
+	a_str1 = IDtest
+	writes(chan, IDtest)
+	close (chan)
+	xreturn
+.end
