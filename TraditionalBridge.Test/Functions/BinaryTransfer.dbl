@@ -1,0 +1,247 @@
+.ifndef integers ;MYDEF
+; .define MYDEF, 1
+.INCLUDE "integers" REPOSITORY, STRUCTURE, END
+.INCLUDE "TESTSTRUCT" REPOSITORY, STRUCTURE, END
+.endc
+
+	{xfMethod(interface="BinaryTransfer", elb="TEST:binarytransfer")}
+subroutine setbytea
+	; {xfParameter(cType=xfType.byte)}
+	req in amybyte,         [2]i1
+proc
+	xreturn
+end
+
+{xfMethod(interface="BinaryTransfer", elb="TEST:binarytransfer")}
+subroutine setushorta
+	; {xfParameter(cType=xfType.ushort)}
+	req in amyushort,         [2]i2
+proc
+	xreturn
+end
+
+
+{xfMethod(interface="BinaryTransfer", elb="TEST:binarytransfer")}
+subroutine getbyte	
+	req out mybyte,         byte
+proc
+	mybyte = 255
+	xreturn
+end
+
+{xfMethod(interface="BinaryTransfer", elb="TEST:binarytransfer")}
+subroutine getushort
+	{xfParameter(cType=xfType.ushort)}
+	req out myushort,         i2
+proc
+	myushort = 65535
+	xreturn
+end
+
+{xfMethod(interface="BinaryTransfer", elb="TEST:binarytransfer")}
+subroutine getuint
+	{xfParameter(cType=xfType.uint)}
+	req out myuint,         i4
+proc
+	myuint = 4294967295
+	xreturn
+end
+
+{xfMethod(interface="BinaryTransfer", elb="TEST:binarytransfer")}
+subroutine getbytea
+	{xfParameter(cType=xfType.byte)}
+	req out amybyte,         [2]i1
+proc
+	amybyte[1] = 255
+	xreturn
+end
+
+{xfMethod(interface="BinaryTransfer", elb="TEST:binarytransfer")}
+subroutine getushorta
+	{xfParameter(cType=xfType.ushort)}
+	req out amyushort,         [2]i2
+proc
+	amyushort[1] = 65535
+	xreturn
+end
+
+{xfMethod(interface="BinaryTransfer", elb="TEST:binarytransfer")}
+subroutine getuinta
+	{xfParameter(cType=xfType.uint)}
+	req out amyuint,         [2]i4
+proc
+	amyuint[1] = 4294967295
+	xreturn
+end
+
+{xfMethod(interface="BinaryTransfer", elb="TEST:binarytransfer")}
+subroutine getstruct
+	req out amyintegers,         strInteger
+proc
+	amyintegers.mybyte =	255
+	amyintegers.myushort =	65535
+	amyintegers.myuint =	4294967295
+	amyintegers.amybyte[1] =	255
+	amyintegers.amyushort[1] =	65535
+	amyintegers.amyuint[1] =	4294967295
+	xreturn
+end
+
+{xfMethod(interface="BinaryTransfer", elb="TEST:binarytransfer")}
+subroutine getstructa
+	req out amyintegers,	[2]strInteger
+	record
+		amydata,    strInteger		;temp
+proc
+	amydata.mybyte =	255
+	amydata.myushort =	65535
+	amydata.myuint =	4294967295
+	amydata.amybyte[1] =	255
+	amydata.amyushort[1] =	65535
+	amydata.amyuint[1] =	4294967295
+	
+	amyintegers[1] = amydata
+	
+	xreturn
+end
+
+{xfMethod(interface="BinaryTransfer", elb="TEST:binarytransfer")}
+subroutine getarraylist
+	{xfParameter(collectionType=xfCollectType.structure, structure="TESTSTRUCT")}
+	req out myarraylist,	@System.Collections.ArrayList
+	;req out mymemoryhandle,	i4
+	record
+		amydata,    		TESTSTRUCT		;temp
+proc
+
+	amydata.testbyte=1
+	; mymemoryhandle = %MEM_PROC(DM_RESIZ, ^SIZE(amydata), mymemoryhandle)
+	; ^M(mymemoryhandle) = amydata
+	myarraylist = new System.Collections.ArrayList()
+	myarraylist.add((object)amydata)
+
+	xreturn
+end
+
+
+.define GRFAFILENAME "TEST:grfafile.ism"
+
+{xfMethod(interface="BinaryTransfer",elb="TEST:binarytransfer")}
+subroutine CreateGRFAFile
+	.include "GRFAFileStruct" repository, record = "filedata", end
+	record
+		filechn,	i4
+		datastart,	d2, 0
+		datasource,	a52, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+proc
+	isamc(GRFAFILENAME,14,1,"START=1,LENGTH=4,TYPE=INTEGER")
+	open(filechn,U:I,GRFAFILENAME)
+	
+	for filedata.fld1 from 1 thru 999
+	begin
+		datastart += 1
+		if (datastart > 42) datastart = 1
+		filedata.fld2 = datasource(datastart:10)
+		store(filechn,filedata)
+	end
+	
+	close filechn
+	xreturn
+end
+
+{xfMethod(interface="BinaryTransfer",elb="TEST:binarytransfer")}
+subroutine DeleteGRFAFile
+proc
+	delet(GRFAFILENAME)
+	xreturn
+end
+
+import System.collections
+.include "grfatest" repository, structure, end
+
+
+	{xfMethod(interface="BinaryTransfer",elb="TEST:binarytransfer")}
+subroutine get0grfa
+	{xfParameter(structure="strGrfatest")}
+	req out grfat,		strGrfatest
+;, dataTable=true
+	.include "GRFAFileStruct" repository, record="filedata",end
+
+	record handles
+		arr,		10d3
+		chn,		D_NATINT
+		eof,		boolean, false
+		grfa0,		D_GRFA_TYPE
+		x,			d3
+		gt,			strGrfatest
+	endrecord
+
+proc
+;adapted from customer's test for Support Case #083882 / Tracker #35879
+	init arr
+	open(chn=0,i:i,GRFAFILENAME)
+	call read_next
+	while .not. eof
+	begin
+		for x from 1 thru 10
+		begin
+			; see what grfa is made of
+			xcall decml(grfa0(x,x),arr(x))
+		end
+		if arr(10).eq.0 ; found a grfa that ends with 0
+		begin
+			eof = true
+			gt.a_grfa = grfa0
+			gt.a_string = "some data"
+			grfat = gt
+			exitloop
+		end
+		call read_next
+	end
+	close chn
+	xreturn
+	;------
+read_next,
+	onerror at_eof
+	reads(chn,filedata,GETRFA:grfa0)
+	offerror
+	return
+at_eof,
+	offerror
+	eof=true
+	return
+end
+
+{xfMethod(interface="BinaryTransfer",elb="TEST:binarytransfer")}
+subroutine xfReadWithGrfa
+	{xfParameter(structure="strGrfatest")}
+	req in grfa,		strGrfatest
+;,collectionType=xfCollectType.structure , dataTable=true
+	.include "GRFAFileStruct" repository, record="filedata",end
+
+	record handles
+		arr,		10d3
+		chn,		D_NATINT
+		x,			d3
+		gt,			strGrfatest
+	endrecord
+
+proc
+	gt = grfa
+	for x from 1 thru 10
+	begin
+		xcall decml(gt.a_grfa(x,x),arr(x))
+	end
+
+	open(chn=0,i:i,GRFAFILENAME)
+
+	; In Synergy versions where Tracker #35879 isn't fixed,
+	; this should throw a recordnotsame exception
+	read(chn,filedata,RFA:gt.a_grfa)
+
+	close chn
+	xreturn
+end
+
+
+

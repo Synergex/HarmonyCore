@@ -6,491 +6,654 @@ import System.Collections
 .include "STRTEST23" repository  , structure="strStrtest23", end
 .include "STRTEST24" repository  , structure="strStrtest24", end
 .include "TR_SYNINS_INP" repository  , structure="strTrSyninsInp", end
-
-.region "data64kMethodDispatchers"
-function BinaryArrayTest , i4
-	required in p1, d5
-	required in p2, i4
-	required in p3, a10
-	required in p4, i4
-	required in p5, d5.2
-	required in p6, i4
-	required in p7, d5
-	endparams
-proc
-	freturn 0
-end
-.endregion
-
-.region "EncryptMethodDispatchers"
-function function_nine ,a9
-	required in p1, a5
-	required in p2, a5
-	endparams
-proc
-	freturn ""
-end
-
-function function_ten ,d9
-	required in p1, a5
-	required in p2, a5
-	endparams
-proc
-	freturn 0
-end
-.endregion
-
-.region "IF913MethodDispachers"
-function BoolToBool ,i4
-	required in p1, i4
-	endparams
-proc
-	freturn 0
-end
-
-function DateTime14 ,d14
-	required in p1, d14
-	endparams
-proc
-	freturn 0
-end
-
-function Dateyyjjj ,d5
-	required in p1, d5
-	endparams
-proc
-	freturn 0
-end
-
-function Dateyymmdd ,d6
-	required in p1, d6
-	endparams
-proc
-	freturn 0
-end
-
-function Dateyyyyjjj ,d7
-	required in p1, d7
-	endparams
-proc
-	freturn 0
-end
-
-function Dateyyyymmdd ,d8
-	required in p1, d8
-	endparams
-proc
-	freturn 0
-end
-
-function DecBool ,d1
-	required in p1, d1
-	endparams
-proc
-	freturn 0
-end
-
-function DecByte ,d1
-	required in p1, d1
-	endparams
-proc
-	freturn 0
-end
-
-function DecDec ,d12
-	required in p1, d16
-	endparams
-proc
-	freturn 0
-end
-
-function DecInt ,d4
-	required in p1, d4
-	endparams
-proc
-	freturn 0
-end
-
-function DecLong ,d18
-	required in p1, d18
-	endparams
-proc
-	freturn 0
-end
-
-function DecSbyte ,d1
-	required in p1, d1
-	endparams
-proc
-	freturn 0
-end
-
-function DecShort ,d2
-	required in p1, d2
-	endparams
-proc
-	freturn 0
-end
-
-function DecUint ,d4
-	required in p1, d4
-	endparams
-proc
-	freturn 0
-end
-
-function DecUlong ,d18
-	required in p1, d18
-	endparams
-proc
-	freturn 0
-end
-
-function DecUshort ,d2
-	required in p1, d2
-	endparams
-proc
-	freturn 0
-end
-
-function IDDecimal ,d6.2
-	required in p1, d6.2
-	endparams
-proc
-	freturn 0
-end
-
-function IDDouble ,d6.2
-	required in p1, d6.2
-	endparams
-proc
-	freturn 0
-end
-
-function IDFloat ,d6.2
-	required in p1, d6.2
-	endparams
-proc
-	freturn 0
-end
-
-function IntBool ,i1
-	required in p1, i1
-	endparams
-proc
-	freturn 0
-end
-
-function IntByte ,i1
-	required in p1, i1
-	endparams
-proc
-	freturn 0
-end
-
-function IntInt ,i4
-	required in p1, i4
-	endparams
-proc
-	freturn 0
-end
-
-function IntLong ,i8
-	required in p1, i8
-	endparams
-proc
-	freturn 0
-end
-
-function IntSbyte ,i1
-	required in p1, i1
-	endparams
-proc
-	freturn 0
-end
-
-function IntShort ,i2
-	required in p1, i2
-	endparams
-proc
-	freturn 0
-end
-
-function IntUint ,i4
-	required in p1, i4
-	endparams
-proc
-	freturn 0
-end
-
-function IntUlong ,i8
-	required in p1, i8
-	endparams
-proc
-	freturn 0
-end
-
-function IntUshort ,i2
-	required in p1, i2
-	endparams
-proc
-	freturn 0
-end
-
-function NullSSandAL ,i4
-	required in p1, d1
-	required in p2, d8
-	required in p3, string
-	required in p4, @ArrayList
-	endparams
-proc
-	freturn 0
-end
-
-function Time4 ,d4
-	required in p1, d4
-	endparams
-proc
-	freturn 0
-end
-
-function Time6 ,d6
-	required in p1, d6
-	endparams
-proc
-	freturn 0
-end
-
-function TrueString ,string
-	required in p1, string
-	endparams
-proc
-	freturn ""
-end
-.endregion
+.include "TR_SYNINS_RET" repository  , structure="strTrSyninsRet", end
 
 .region "NoParmsMethodDispachers"
-function NoParmsWithRtn ,d5
+{xfMethod(interface="NoParms",name="NoParmsWithRtn",elb="TEST:testelb",id="NoParmsWithRtn")}
+.function NoParmsWithRtn ,d5
 	endparams
-proc
-	freturn 0
-end
+
+	record
+		return_value,	d5
+
+.proc
+	open(3, a, "TEST:NoParms.log")
+
+
+	writes(3, "No Parms with a return of d5 ")
+	close 3
+	return_value = 12345
+	freturn(return_value)
+.end
 .endregion
 
 .region "Pool2MethodDispachers"
-function Initialize ,i4
+.subroutine writeit
+	filename, a
+	msg, a
+	record
+		chan,	i4
+		cntr,	i4
+		time,	d6
+		group datetime, a
+			adate,	a11
+			,		a1, " "
+			atime,	a8
+		endgroup
+.proc
+	xcall date(adate)
+	xcall time(time)
+	atime = time, "XX:XX:XX"
+;	do
+;	  begin
+;	    incr chan
+;	  end
+;	until (.not. %chopen(chan))
+	clear cntr
+doagain,
+;	onerror redo
+;	open(chan, a, filename)
+;	writes(chan, msg + " " + datetime)
+;	close chan
+	xreturn
+
+
+redo,
+	offerror
+	
+	xreturn
+
+;	sleep(1)
+;	cntr = cntr + 1
+;	if (cntr >= 6)
+;	    xreturn
+;	goto doagain
+.end
+
+{xfMethod(interface="Pool2",name="Initialize",elb="TEST:testelb",id="Pool2_Initialize")}
+{xfMethod(interface="Pool3",name="Initialize",elb="TEST:testelb",id="Pool3_Initialize")}
+function Initialize     ,i4
 	endparams
-proc
-	freturn 0
-end
+.align
+	record
+		chn1		,i4
+		rtnvlu		,i4
+.proc
+;	chn1 = 222
+;	open (chn1, I, "c:\\wrk\\syn64\\test\\xfpl\\src\\Zoup.txt") [ERR=nofile]
+;	close(chn1)
+;	xcall DELET("c:\\wrk\\syn64\\test\\xfpl\\src\\Zoup.txt")
+;	Sleep(45)
+;	goto end
+;
+;noFile,
+;	open (chn1, O, "c:\\wrk\\syn64\\test\\xfpl\\src\\Zoup.txt") [ERR=end]
+;	close(chn1)
+;
+;end,
+	rtnvlu = 0 	  
+	xcall writeit("TEST:pooltest.log","initialize called:")
+	freturn rtnvlu
+.end
 .endregion
 
 .region "Pool5MethodDispachers"
-function CanBePooled ,i4
+{xfMethod(interface="Pool5",name="CanBePooled",elb="TEST:testelb",id="Pool5_canbepooled")}
+function CanBePooled    ,i4
 	endparams
-proc
-	freturn 0
-end
+.align
+	record
+		rtnpool		,i4
+.proc
+	rtnpool = 1
+	xcall writeit("TEST:pooltest.log","canbepooled called: " + %string(rtnpool))
+	freturn(rtnpool)
+.end
 .endregion
 
 .region "strtestsMethodDispachers"
-function manage_funds ,i4
-	required in p1, strManageFund
+{xfMethod(interface="strtests",name="manage_funds",elb="TEST:testelb",id="manage_funds")}
+function manage_funds   ,^val
+	{xfParameter(name="MANAGE_FUNDS",structure="strManageFund")}
+	req inout   a_mystring ,strManageFund  
 	endparams
-proc
-	freturn 0
-end
+;.function manage_funds        ,^val
+;	a_mystring, a
 
-function syninsurance ,i4
-	required in p1, strTrSyninsInp
-	required in p2, [*]a1
-	required in p3, i4
-	endparams
-proc
-	freturn 0
-end
-
-function teststr20 ,d7
-	required in p1, strStrtest19
-	endparams
-proc
-	freturn 0
-end
-
-function teststr23 ,a7
-	required in p1, strStrtest23
-	endparams
-proc
-	freturn ""
-end
-
-function teststr24 ,d5.2
-	required in p1, strStrtest24
-	endparams
-proc
-	freturn 0
-end
-
-function teststr29 ,d5
-	required in p1, a10
-	required in p2, strDborder
-	endparams
-proc
-	freturn 0
-end
+.proc
+	a_mystring = "DKUAA  HKJ                                                                                                                                                                                                                                    "+
+	&	"                                                                                                                                                                                                                                                    "+
+	&	"                                                                                                                                                                                                                                                     "+
+	&	"                                                                                                                                                                                                                                                    "+
+	&	"                                                                                                                                                                                                                                                    "+
+	&	"                                                                                                                                                                                                                                                    "+
+	&	"                                                                                                                                                                                                                                                    "+
+	&	"                                                                                                                                                                                                                                                    "+
+	&	"                                                                R"
+	freturn 1
+.end
 .endregion
 
 .region "syntstMethodDispachers"
-function function_eleven ,i8
-	required in p1, a5
-	required in p2, a5
-	endparams
-proc
-	freturn 0
-end
+{xfMethod(interface="syntst",name="function_eleven",elb="TEST:testelb",id="compid0011", length=8)}
+function function_eleven ,i
 
-function function_twelve ,i4
-	required in p1, a5
-	required in p2, a5
-	endparams
-proc
-	freturn 0
-end
+	{xfParameter(name="param1")}
+	opt inout   a_alpha1      ,a5                     ;;
 
+	{xfParameter(name="param2")}
+	opt in      a_alpha2      ,a5                     ;;
+
+	endparams
+
+.define LF %char(10)
+
+.align
+	record
+		int,    i8
+
+.proc
+	open(3, a, "TEST:testfile.ddf")
+
+	int = 987654
+
+	writes(3, "function_eleven called with")
+	writes(3, " 1: " + a_alpha1)
+	writes(3, " 2: " + a_alpha2)
+
+	a_alpha1 = "back"
+	writes(3, "function_eleven returning " + %string(int) +
+	&       " as an freturn")
+	writes(3, "")
+	writes(3, " 1: " + a_alpha1)
+	writes(3, " 2: " + a_alpha2)
+
+	writes(3, "")
+	writes(3, "")
+	close 3
+	freturn(int)
+.end
+
+{xfMethod(interface="syntst",name="function_twelve",elb="TEST:testelb",id="compid0012")}
+function function_twelve ,^val
+
+	{xfParameter(name="p1")}
+	opt in      a_alpha1          ,a5                     ;;
+
+	{xfParameter(name="p2")}
+	opt inout   a_alpha2          ,a5                     ;;
+
+	endparams
+
+
+.define LF %char(10)
+
+.align
+	record
+		retint,	i4
+
+.proc
+	open(3, a, "TEST:testfile")
+
+	retint = 88
+
+	writes(3, "function_twelve called with")
+	writes(3, " 1: " + a_alpha1)
+	writes(3, " 2: " + a_alpha2)
+
+	a_alpha2 = "back"
+	writes(3, "fucntion_twelve returning " + %string(retint) +
+	&	" as an freturn")
+	writes(3, "")
+	writes(3, " 1: " + a_alpha1)
+	writes(3, " 2: " + a_alpha2)
+
+	writes(3, "")
+	writes(3, "")
+
+	close 3
+	freturn(retint)
+.end
+
+{xfMethod(interface="syntst",name="function_twentysix",elb="TEST:testelb",id="compid0026")}
 function function_twentysix ,i4
-	required in p1, a5
-	required in p2, a30
-	required in p3, a8
-	required in p4, a1
-	endparams
-proc
-	freturn 0
-end
 
-function function_seventyfive ,i4
-	required in p1, i4
-	endparams
-proc
-	freturn 0
-end
+	{xfParameter(length=5, name="param1")}
+	opt inout   a_dec1      ,a5                     ;;
 
-function function_seventysix ,i4
-	required in p1, i4
-	endparams
-proc
-	freturn 0
-end
+	{xfParameter(length=10, name="param2")}
+	opt inout   a_dec2      ,a30                    ;;
 
+	{xfParameter(length=8, name="param3")}
+	opt inout   a_dec3      ,a8                     ;;
+
+	{xfParameter(length=1, name="param4")}
+	opt in      a_dec4      ,a1                     ;;
+
+	endparams
+
+;.function function_twentysix
+;	Arguments
+;	a_dec1,		n
+;	a_dec2,		n
+;	a_dec3,		n
+;	a_dec4,		n
+
+	record
+		alpha1,		a5
+		alpha2,		a30
+		alpha3,		a8
+		alpha4,		a10
+		return,         i8
+
+.define LF %char(10)
+
+.proc
+	open(3, a, "TEST:testfile")
+
+	return = -12345
+	writes(3, "function_twentysix called with")
+	writes(3, " 1: " + ^a(a_dec1))
+	writes(3, " 2: " + ^a(a_dec2))
+	writes(3, " 3: " + ^a(a_dec3))
+	writes(3, " 4: " + ^a(a_dec4))
+	writes(3, " return: " + %string(return))
+	writes(3, "")
+	writes(3, "")
+
+	alpha1 = "55432"
+	alpha2 = "9988776"
+	alpha3 = "88776655"
+
+	a_dec1 = alpha1
+	a_dec2 = alpha2
+	a_dec3 = alpha3
+
+	writes(3, "function_twentysix returning with")
+	writes(3, " 1: " + ^a(a_dec1))
+	writes(3, " 2: " + ^a(a_dec2))
+	writes(3, " 3: " + ^a(a_dec3))
+	writes(3, " 4: " + ^a(a_dec4))
+	writes(3, " return: " + %string(return))  
+	writes(3, "")
+	writes(3, "")
+
+	close 3
+	freturn(return)	
+.end
+
+{xfMethod(interface="syntst",name="function_seventyfive",elb="TEST:testelb",id="compid0075")}
+function function_seventyfive ,^val
+	{xfParameter(name="param1")}
+	opt in      a_int      ,i4
+	endparams
+
+;function function_seventyfive, ^val
+;	Arguments
+;	a_int,  	n
+
+	record
+		return_value,	i4
+
+.proc
+	open(3, a, "TEST:testfile")
+
+
+	writes(3, "function_75 called with")
+	writes(3, " 1: " + %string(a_int))
+
+	return_value = a_int + 1
+	writes(3, "function_75 returning with")
+	writes(3, " 1: " + %string(a_int))
+	writes(3, "function_75 returning value: " + %string(return_value))
+
+	writes(3, "")
+	writes(3, "")
+	close 3
+	freturn(return_value)
+.end
+
+{xfMethod(interface="syntst",name="function_seventysix",elb="TEST:testelb",id="compid0076")}
+function function_seventysix ,^val
+	{xfParameter(name="param1")}
+	in		a_int	,i4
+	endparams
+
+;.function function_seventysix, ^val
+;	Arguments
+;	^val(a_int),  	i
+
+	record rec
+		return_value,	i4
+
+.proc
+	open(3, a, "TEST:testfile")
+
+
+	writes(3, "function_76 called with")
+	writes(3, " 1: " + %string(a_int))
+
+	return_value = a_int + 1
+	writes(3, "function_76 returning with")
+	writes(3, " 1: " + %string(return_value))
+
+	writes(3, "")
+	writes(3, "")
+	close 3
+	freturn(return_value)
+.end
+
+{xfMethod(interface="syntst",name="function_eightyfive",elb="TEST:testelb",id="compid0085")}
 function function_eightyfive ,i4
-	required in p1, i4
-	endparams
-proc
-	freturn 0
-end
 
+	{xfParameter(name="param1")}
+.ifdef DBLNET
+	a_int	,i4
+.else
+	opt in      ^REF(a_int) ,i4
+.endc
+	endparams
+
+;.function function_eightyfive 
+;	Arguments
+;.ifdef DBLNET
+;	a_int	,i4
+;.else
+;	^ref(a_int),i4   
+;.endc	
+
+	record
+		return_value,	i4
+
+.proc
+	open(3, a, "TEST:testfile")
+
+	writes(3, "function_85 called with")
+	writes(3, " 1: " + %string(a_int))
+	return_value = 24524 + 1
+	writes(3, "function_85 returning with")
+	writes(3, " 1: " + %string(a_int))
+	writes(3, "function_85 returning value: " + %string(return_value))
+
+	writes(3, "")
+	writes(3, "")
+	close 3
+	freturn(return_value)
+.end
+
+{xfMethod(interface="syntst",name="function_ninetythree",elb="TEST:testelb",id="compid0093")}
 function function_ninetythree ,d7.2
-	required in p1, i4
-	required in p2, d7.2
+.ifdef DBLNET
+	{xfParameter(name="p1")}
+	inout   a_int		,i4
+	{xfParameter(name="p2")}
+	inout   a_impdec	,d7
+.else
+	{xfParameter(name="p1")}
+	inout   ^REF(a_int)    ,i4            
+	{xfParameter(name="p2")}
+	inout   ^REF(a_impdec) ,d7.2  
+.endc
 	endparams
-proc
-	freturn 0
-end
 
-function function_onehundredandfive ,i8
-	required in p1, a5
-	required in p2, a30
-	required in p3, a8
-	required in p4, a1
+;.function function_ninetythree
+;	Arguments
+;.ifdef DBLNET
+;	a_int	,i4
+;	a_impdec	,d7
+;.else
+;	^ref(a_int),  	i4
+;	^ref(a_impdec),	d7
+;.endc
+
+	record
+		x,	i4
+		d7,	d7
+		id7,	d7.2 @ d7
+.proc
+
+	open(3, a, "TEST:testfile")
+
+	writes(3, "function_93 called with")
+	writes(3, " 1: " + %string(a_int))
+	writes(3, " 2: " + %string(a_impdec))
+
+	x = a_int * 2
+	writes(3, "returning x: " + %string(x))
+	a_int = x
+;---
+	d7 = a_impdec
+	id7 = id7 * 2
+	a_impdec = d7
+;---
+	^d(a_impdec, 2) = ^d(a_impdec, 2) * 2
+;---
+	writes(3, "function_93 returning with")
+	writes(3, " 1: " + %string(a_int))
+	writes(3, " 2: " + %string(a_impdec))
+
+	writes(3, "")
+	writes(3, "")
+	close 3
+	freturn(id7)
+.end
+
+{xfMethod(interface="syntst",name="function_onehundredandfive",elb="TEST:testelb",id="compid0105", length=8)}
+function function_onehundredandfive ,i
+
+	{xfParameter(length=5, name="param1")}
+	opt inout   a_dec1      ,a5                     ;;
+
+	{xfParameter(length=30, name="param2")}
+	opt inout   a_dec2      ,a30                    ;;
+
+	{xfParameter(length=8, name="param3")}
+	opt inout   a_dec3      ,a8                     ;;
+
+	{xfParameter(length=1, name="param4")}
+	opt in      a_dec4      ,a1                     ;;
+
 	endparams
-proc
-	freturn 0
-end
 
+;.function function_onehundredandfive
+;	Arguments
+;	a_dec1,		n
+;	a_dec2,		n
+;	a_dec3,		n
+;	a_dec4,		n
+
+	record
+		alpha1,		a5
+		alpha2,		a30
+		alpha3,		a8
+		alpha4,		a10
+		return,         i8
+
+.define LF %char(10)
+
+.proc
+	open(3, a, "TEST:testfile")
+
+	return = 12345678901234567
+	writes(3, "function_onehundredandfive called with")
+	writes(3, " 1: " + ^a(a_dec1))
+	writes(3, " 2: " + ^a(a_dec2))
+	writes(3, " 3: " + ^a(a_dec3))
+	writes(3, " 4: " + ^a(a_dec4))
+	writes(3, " return: " + %string(return))
+	writes(3, "")
+	writes(3, "")
+
+	alpha1 = "55432"
+	alpha2 = "9988776"
+	alpha3 = "88776655"
+
+	a_dec1 = alpha1
+	a_dec2 = alpha2
+	a_dec3 = alpha3
+
+	writes(3, "function_onehundredandfive returning with")
+	writes(3, " 1: " + ^a(a_dec1))
+	writes(3, " 2: " + ^a(a_dec2))
+	writes(3, " 3: " + ^a(a_dec3))
+	writes(3, " 4: " + ^a(a_dec4))
+	writes(3, " return: " + %string(return))  
+	writes(3, "")
+	writes(3, "")
+
+	close 3
+	freturn(return)	
+.end
+
+{xfMethod(interface="syntst",name="function_onehundredandseven",elb="TEST:testelb",id="compid0107")}
 function function_onehundredandseven ,a9
-	required in p1, a5
-	required in p2, a5
+	{xfParameter(length=5, name="param1")}
+	opt inout   a_alpha1      ,a
+	{xfParameter(length=5, name="param2")}
+	opt in      a_alpha2      ,a
 	endparams
-proc
-	freturn 0
-end
 
-function routinediff ,i4
+;.function function_onehundredandseven
+;Argument
+;	a_alpha1,	a
+;	a_alpha2,	a
+
+.define LF %char(10)
+
+.proc
+	open(3, a, "TEST:testfile")
+
+
+	writes(3, "function_onehundredandseven called with")
+	writes(3, " 1: " + a_alpha1)
+	writes(3, " 2: " + a_alpha2)
+
+	a_alpha1 = ""
+;	writes(3, "function_onehundredandseven returning " + 1 +
+;	&	" as an freturn")
+	writes(3, "")
+	writes(3, " 1: " + a_alpha1)
+	writes(3, " 2: " + a_alpha2)
+
+	writes(3, "")
+	writes(3, "")
+	close 3
+	freturn("")
+.end
+
+{xfMethod(interface="syntst",name="routinediff",elb="TEST:testelb",id="methdiff")}
+function routinediff    ,^val
 	endparams
-proc
-	freturn 0
-end
+;.function routinediff, ^VAL
+.proc
+	freturn 7
+.end
 
-function outi4 ,i4
-	required in p1, i4
+{xfMethod(interface="syntst",name="outi4",elb="TEST:testelb",id="outi4")}
+function outi4          ,^val
+	{xfParameter(name="p1")}
+	opt out      x         ,i4    
 	endparams
-proc
-	freturn 0
-end
 
-function outi8 ,i4
-	required in p1, i8
+.proc
+	x = 98765
+	freturn 99
+.end
+
+{xfMethod(interface="syntst",name="outi8",elb="TEST:testelb",id="outi8")}
+function outi8          ,^val
+	{xfParameter(name="outi8")}
+	req out     x       ,i8   
 	endparams
-proc
-	freturn 0
-end
+.align
+	record
+		rtnval,	  i8
+.proc
+	x = 1242134
+	rtnval = x 
+;  rtnval = 12345678901234567890
+	freturn rtnval
+.end
 
-function retAlpha5 ,a5
+{xfMethod(interface="syntst",name="retAlpha5",elb="TEST:testelb",id="retAlpha5")}
+function retAlpha5      ,a5
 	endparams
-proc
-	freturn ""
-end
+.align
+	record
+		retval, a5
+.proc
+	retval = "hello"
+	freturn retval
+.end
 
-function retDec3 ,d3
+{xfMethod(interface="syntst",name="retDec3",elb="TEST:testelb",id="retDec3")}
+function retDec3        ,d3
 	endparams
-proc
-	freturn 0
-end
+.align
+	record
+		retval, d3
+.proc
+	retval = 999
+	freturn retval
+.end
 
-function retI4 ,i4
+{xfMethod(interface="syntst",name="retI4",elb="TEST:testelb",id="retI4")}
+function retI4          ,i4
 	endparams
-proc
-	freturn 0
-end
+.align
+	record 
+		retval, i4
+.proc
+	retval = 99
+	freturn retval
+.end
 
-function retIdec31 ,d3.1
+{xfMethod(interface="syntst",name="retIdec31",elb="TEST:testelb",id="retIdec31")}
+function retIdec31      ,d3.1
 	endparams
-proc
-	freturn 0
-end
+.align
+	record
+		retval, d3.2
+.proc
+	retval = 9.9
+	freturn retval
+.end
 
-function retVal ,i4
+{xfMethod(interface="syntst",name="retVal",elb="TEST:testelb",id="retVal")}
+function retVal         ,^val
 	endparams
-proc
-	freturn 0
-end
+.align
+	record 
+		retval, i4
+.proc
+	retval = 99
+	freturn retval
+.end
 
-function rtnAlpha40k ,a40000
+{xfMethod(interface="syntst",name="rtnAlpha40k",elb="TEST:testelb",id="rtnAlpha40k", length=40000)}
+function rtnAlpha40k    ,a
 	endparams
-proc
-	freturn ""
-end
+.align
+	record
+		idx,	  i4
+		count,  i4
+		retval, a40000
 
+.proc
+	count = 4000
+	for idx from 1 thru count
+	begin
+		retval = %atrim(retval) + "AAAAAAAAAA"
+	end
+;;	open(211,o,"/usr2/synergy6/test/xfpl/src/msc.log")
+;;	writes(211,"In rtnAlpha40")
+;;	writes(211, retval)
+;;	close (211)
+	freturn retval
+.end
+
+{xfMethod(interface="syntst",name="rtnAlpha40k",elb="TEST:testelb",id="stoptest")}
 function stoptest ,i4
-	endparams
-proc
-	freturn 0
-end
-.endregion
-
-.region "ZDateTimeMethodDispachers"
-function DateTime20 ,d20
-	required in p1, d20
-	required in p2, d20
-	required in p3, d20
-	endparams
-proc
-	freturn 0
-end
-
-function DateTimeOther ,d8
-	required in p1, d8
-	required in p2, d6
-	required in p3, d14
 	endparams
 proc
 	freturn 0

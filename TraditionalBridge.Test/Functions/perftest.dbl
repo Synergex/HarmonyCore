@@ -1,0 +1,136 @@
+.define NUM_RECORDS 910
+
+;********************************
+
+{xfMethod(interface="strtests",name="getNumRecords",elb="TEST:testelb",id="perftest_getNumRecords")}
+subroutine getNumRecords
+{xfParameter(name="num")}
+req out     p         ,i4                     ;;
+endparams
+;.subroutine getNumRecords
+;	p, n
+.proc
+	p = NUM_RECORDS
+        xreturn
+.end
+;********************************
+{xfMethod(interface="strtests",name="setStructArray",elb="TEST:testelb",id="perftest_setStructArray")}
+subroutine setStructArray
+{xfParameter(name="PERFSTRUCT",structure="Perfstruct")}
+req in      p  ,[*]Perfstruct          ;;
+{xfParameter(name="cnt")}
+req in      cnt         ,i4                     ;;
+endparams
+;.subroutine setStructArray
+;  p, [*]a
+;  cnt, n
+global data section gbl, INIT
+record s1
+  count, i4                                             
+  ary ,[NUM_RECORDS]A72   
+endglobal
+
+.align
+record
+	ndx		,i4
+	
+.proc
+  count = 0
+  if (cnt .le. NUM_RECORDS)
+	count = cnt
+  for ndx from 1 thru count by 1
+    ary[ndx] = p[ndx]
+  xreturn
+.end
+;********************************
+
+{xfMethod(interface="strtests",name="getStructArray",elb="TEST:testelb",id="perftest_getStructArray")}
+subroutine getStructArray
+{xfParameter(name="PERFSTRUCT",structure="Perfstruct")}
+req out     p  ,[*]Perfstruct          ;;
+endparams
+;.subroutine getStructArray
+;  p, [*]a
+global data section gbl
+record s1                                             
+  count, i4                                             
+  ary ,[NUM_RECORDS]A72   
+endglobal
+
+.align
+record
+	ndx		,i4
+	
+.proc
+  for ndx from 1 thru count by 1
+    p[ndx] = ary[ndx]
+  xreturn
+.end
+
+
+; -- test the reference counts for xfnlcom
+
+.include "REFCOUNT" REPOSITORY ,structure="Refcount" ,end
+
+{xfMethod(interface="strtests",name="testrefcount",elb="TEST:testelb",id="testrefcount")}
+subroutine testrefcount
+{xfParameter(name="REFCOUNT",structure="strRefcount")}
+req inout   p1    ,strRefcount               ;;
+endparams
+;.subroutine testrefcount
+;  p1, a
+.proc
+  xreturn
+.end
+;********************************
+{xfMethod(interface="strtests",name="inStructArray",elb="TEST:testelb",id="perftest_inStructArray")}
+subroutine inStructArray
+{xfParameter(name="PERFSTRUCT",structure="Perfstruct")}
+req in      p  ,[*]Perfstruct          ;;
+{xfParameter(name="Count")}
+req in      cnt       ,i4                     ;;
+endparams
+;.subroutine inStructArray
+;  p, [*]a
+;  cnt, n
+;; test does nothing used to test the
+;; performance of xfServerPlus "c" code
+;; not the synergy routines.	
+.proc
+  xreturn
+.end
+;********************************
+{xfMethod(interface="strtests",name="outStructArray",elb="TEST:testelb",id="perftest_outStructArray")}
+subroutine outStructArray
+{xfParameter(name="PERFSTRUCT",structure="Perfstruct")}
+req out     p  ,[*]Perfstruct          ;;
+{xfParameter(name="Count")}
+req out     cnt       ,i4                     ;;
+endparams
+;.subroutine outStructArray
+;  p, [*]a
+;  cnt, n
+;; test does nothing used to test the
+;; performance of xfServerPlus "c" code
+;; not the synergy routines.	
+.proc
+  xreturn
+.end
+;********************************
+{xfMethod(interface="strtests",name="inoutStructArray",elb="TEST:testelb",id="perftest_inoutStructArray")}
+subroutine inoutStructArray
+{xfParameter(name="PERFSTRUCT",structure="Perfstruct")}
+req inout   p  ,[*]Perfstruct 
+{xfParameter(name="Count")}
+req inout   cnt       ,i4   
+endparams
+;.subroutine inoutStructArray
+;  p, [*]a
+;  cnt, n
+;; test does nothing used to test the
+;; performance of xfServerPlus "c" code
+;; not the synergy routines.	
+.proc
+  xreturn
+.end
+;********************************

@@ -52,9 +52,6 @@ import <MODELS_NAMESPACE>
 
 namespace <NAMESPACE>.<INTERFACE_NAME>
 
-	structure strFake
-		,a1
-	endstructure
 <METHOD_LOOP>
 
 	;;-------------------------------------------------------------------------
@@ -134,6 +131,19 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 </IF FUNCTION>
 ;//=========================================================================================================================
 			endrecord
+
+		<COUNTER_1_RESET>
+		<PARAMETER_LOOP>
+			<COUNTER_1_INCREMENT>
+			<IF COLLECTION_ARRAY>
+			;;Temp structure tempstr<COUNTER_1_VALUE>
+			structure tempstr<COUNTER_1_VALUE>
+				arry, <IF STRUCTURE>@<ParameterStructureNoplural><ELSE>[1]<PARAMETER_DEFINITION></IF STRUCTURE>
+			endstructure
+
+			</IF COLLECTION_ARRAY>
+		</PARAMETER_LOOP>
+
 		proc
 ;//
 ;//=========================================================================================================================
@@ -244,7 +254,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 			;;------------------------------------------------------------
 			;; Call the underlying routine
 
-			<IF SUBROUTINE>xcall <ELSE>returnValue = %</IF SUBROUTINE><METHOD_ROUTINE>(<COUNTER_1_RESET><PARAMETER_LOOP><COUNTER_1_INCREMENT><IF COLLECTION><IF COLLECTION_ARRAY>^m(<IF STRUCTURE>str<ParameterStructureNoplural><ELSE>strFake(1:<PARAMETER_SIZE>)</IF STRUCTURE>,arg<COUNTER_1_VALUE>Handle)<,></IF COLLECTION_ARRAY><IF COLLECTION_HANDLE>arg<COUNTER_1_VALUE>Handle<,></IF COLLECTION_HANDLE><IF COLLECTION_ARRAYLIST>arg<COUNTER_1_VALUE><,></IF COLLECTION_ARRAYLIST><ELSE>arg<COUNTER_1_VALUE><,></IF COLLECTION></PARAMETER_LOOP>)
+			<IF SUBROUTINE>xcall <ELSE>returnValue = %</IF SUBROUTINE><METHOD_ROUTINE>(<COUNTER_1_RESET><PARAMETER_LOOP><COUNTER_1_INCREMENT><IF COLLECTION><IF COLLECTION_ARRAY>^m(<IF STRUCTURE>str<ParameterStructureNoplural><ELSE>tempstr<COUNTER_1_VALUE>.arry</IF STRUCTURE>,arg<COUNTER_1_VALUE>Handle)<,></IF COLLECTION_ARRAY><IF COLLECTION_HANDLE>arg<COUNTER_1_VALUE>Handle<,></IF COLLECTION_HANDLE><IF COLLECTION_ARRAYLIST>arg<COUNTER_1_VALUE><,></IF COLLECTION_ARRAYLIST><ELSE>arg<COUNTER_1_VALUE><,></IF COLLECTION></PARAMETER_LOOP>)
 ;//
 ;//=========================================================================================================================
 ;// Build the JSON response

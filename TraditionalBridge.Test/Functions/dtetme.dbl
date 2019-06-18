@@ -1,0 +1,382 @@
+.ifndef DBLNET
+.include "DATETIMEARY" REPOSITORY ,structure="Datetimeary" ,end
+.include "DATETIMESTR" REPOSITORY ,structure="Datetimestr" ,end
+;.include "USERDATES" REPOSITORY ,structure="Userdates" ,end
+.endc
+
+{xfMethod(interface="ZDateTime",name="DateTimeS",elb="TEST:testelb",id="DateTime")}
+subroutine DateTimex
+{xfParameter(name="DATETIMESTR",structure="Datetimestr")}
+req inout   a_strary  ,[*]Datetimestr
+endparams
+;.subroutine datetime
+;	Arguments
+;        a_strary        ,[*]a
+; .include "DateTimeStr.rec"
+;.include "DateTimeStr" repository, record="DateTimeStr", end
+
+.align
+record
+	chan	,i4
+	ndx	,i4
+	dts	,Datetimestr
+
+.proc
+	chan = 211
+;;	open(chan, o, "TEST:DteTme.log")
+;;	writes(chan, " ********************************")
+        for ndx from 1 thru 3 by 1
+	  begin
+	    dts = a_strary[ndx]
+;;	    writes(chan, DateTimeStr)
+;;	    writes(chan, " ")
+;;          writes(chan, %string(ndx))
+;;          writes(chan, dts.dts_alpha)
+;;          writes(chan, %string(dts.dts_date8))
+;;          writes(chan, %string(dts.dts_date6))
+;;          writes(chan, %string(dts.dts_time6))
+;;          writes(chan, %string(dts.dts_time4))
+;;	    writes(chan, " ********************************")
+	  end
+;;	writes(chan, " ********************************")
+        for ndx from 1 thru 3 by 1
+	  begin
+	    case ndx of
+	    begincase
+	    1 : begin
+	    	  dts.dts_alpha = "rupert"
+	    	  dts.dts_date8 = 19990514
+;;;	    	  dts.dts_date8 = 0
+	    	  dts.dts_date6 = 990621
+	    	  dts.dts_time6 = 114523
+	    	  dts.dts_time4 = 915
+;;;		  clear dts
+		end
+	    2 : begin
+		    dts.dts_alpha = "james"
+		    dts.dts_date8 = 20000415
+		    dts.dts_date6 = 812
+		    dts.dts_time6 = 210189
+		    dts.dts_time4 = 1027
+		end
+	    3 : begin
+		    dts.dts_alpha = "cassie"
+		    dts.dts_date8 = 20010316
+		    dts.dts_date6 = 010320
+		    dts.dts_time6 = 083015
+		    dts.dts_time4 = 0945
+		end
+	    endcase
+;;	    writes(chan, dts)
+;;          writes(chan, %string(ndx))
+;;          writes(chan, dts.dts_alpha)
+;;          writes(chan, %string(dts.dts_date8))
+;;          writes(chan, %string(dts.dts_date6))
+;;          writes(chan, %string(dts.dts_time6))
+;;          writes(chan, %string(dts.dts_time4))
+;;	    writes(chan, " ********************************")
+	    a_strary[ndx] = dts
+	  end
+;;	writes(chan, " ********************************")
+;;	close (chan)
+	xreturn
+.end
+
+;; -----------------------------------------------------------------------
+
+{xfMethod(interface="ZDateTime",name="DteTmeAry",elb="TEST:testelb",id="DteTmeAry")}
+
+subroutine DteTmeAry
+{xfParameter(name="DATETIMEARY",structure="strDatetimeary")}
+req inout   a_dtetmeary ,strDatetimeary            ;;
+endparams
+;.subroutine DteTmeAry
+;	Arguments
+;	a_dtetmeary	,a	
+; .include "DateTimeAry.rec"
+;.include "DateTimeAry" repository, record="DateTimeAry", end
+
+.align
+record
+	chan	,i4
+	ndx	,i4
+	dta	,strDatetimeary
+
+.proc
+	chan = 211
+;;	open(chan, o, "TEST:dtetme.log")
+;;	writes(chan, " ********************************")
+	dta =  a_dtetmeary
+;;	writes(chan, DateTimeAry)
+;;	writes(chan, %string(%size(a_dtetmeary)))
+;;	writes(chan, %string(%size(DateTimeAry)))
+;;        for ndx from 1 thru 3 by 1
+;;	  begin
+;;	    writes(chan, %string(ndx))
+;;	    writes(chan, %string(dta.adts_dt8[ndx]))
+;;	    writes(chan, %string(dta.adts_dt6[ndx]))
+;;	    writes(chan, %string(dta.adts_dt7[ndx]))
+;;	    writes(chan, %string(dta.adts_dt5[ndx]))
+;;	    writes(chan, %string(dta.adts_tm6[ndx]))
+;;	    writes(chan, %string(dta.adts_tm4[ndx]))
+;;	    writes(chan, "  ")
+;;	  end
+	clear dta  
+	dta.adts_dt8[1] = 19991123
+	dta.adts_dt8[2] = 20000415
+	dta.adts_dt8[3] = 20010320
+	dta.adts_dt6[1] = 991123
+	dta.adts_dt6[2] = 000415
+	dta.adts_dt6[3] = 010320
+	dta.adts_dt7[1] = 1999360
+	dta.adts_dt7[2] = 2000365
+	dta.adts_dt7[3] = 2001097
+	dta.adts_dt5[1] = 99360
+	dta.adts_dt5[2] = 00197
+	dta.adts_dt5[3] = 01365
+	dta.adts_tm6[1] = 101545
+	dta.adts_tm6[2] = 083221
+	dta.adts_tm6[3] = 223418
+	dta.adts_tm4[1] = 1015
+	dta.adts_tm4[2] = 0832
+	dta.adts_tm4[3] = 2234
+;;	writes(chan, " ********************************")
+;;        for ndx from 1 thru 3 by 1
+;;	  begin
+;;	    writes(chan, %string(ndx))
+;;	    writes(chan, %string(dta.adts_dt8[ndx]))
+;;	    writes(chan, %string(dta.adts_dt6[ndx]))
+;;	    writes(chan, %string(dta.adts_dt7[ndx]))
+;;	    writes(chan, %string(dta.adts_dt5[ndx]))
+;;	    writes(chan, %string(dta.adts_tm6[ndx]))
+;;	    writes(chan, %string(dta.adts_tm4[ndx]))
+;;	    writes(chan, "  ")
+;;	  end
+;;	writes(chan, " ********************************")
+	a_dtetmeary = dta
+;;	close (chan)
+	xreturn
+.end
+
+; ---------------------------------------------------------------------------------------------------
+
+.include "dnetdatetime" REPOSITORY ,structure="dnetdatetimeR" ,end
+
+{xfMethod(interface="UserData",name="udnetdtetme",elb="TEST:testelb",id="udnetdtetme")}
+.subroutine udnetdtetme
+
+;	Arguments
+{xfParameter(name="a_dtetme",structure="strDnetdatetime")}
+	req inout          a_dtetme        ,strDnetdatetime	;a
+
+; .include "dnetdatetime.rec"
+;.include "dnetdatetime" repository, record="dnetdatetime", end
+
+.align
+record
+	chan	,i4
+		ndx		,i4
+		aStr1	,strDnetdatetime
+
+.proc
+	chan = 211
+;;	open(chan, o, "TEST:userdata.log")
+;;	writes(chan, " ********************************")
+;	dNetDateTime = a_dtetme
+	aStr1 = a_dtetme
+;;	writes(chan, aStr1)
+	aStr1.dtetme14 = "20020415124523"
+	aStr1.dtetme2 = "Apr152002"
+	aStr1.dtetme3 = "20020314231804"
+	aStr1.dtetme4 = "20020528080512"
+	a_dtetme = aStr1 ; dNetDateTime
+;;	writes(chan, aStr1)
+;;	writes(chan, " ********************************")
+;;	close (chan)
+	xreturn
+.end
+
+; ------------------------------------------------------------------------------------------
+
+{xfMethod(interface="TestDate",name="GetDate8",elb="TEST:testelb",id="GetDate8")}
+subroutine GetDate8
+{xfParameter(name="idx")}
+req in      idx         ,d2                     ;;
+{xfParameter(name="dstruct",structure="strDatetimestr")}
+req out     a_date     ,strDatetimestr            ;;
+endparams
+;.subroutine getDate8
+;	idx, n
+;	a_date, a
+
+record DateTimeStr                                          
+  DTS_ALPHA ,A10  ; (1,10)                                                      
+  DTS_DATE8 ,A8   ; (11,18)                                                     
+  DTS_DATE6 ,D6   ; (19,24)                                                     
+  DTS_TIME6 ,D6   ; (25,30)                                                     
+  DTS_TIME4 ,D4   ; (31,34)                                                     
+.proc
+	clear DateTimeStr
+	dts_alpha = "hey"
+	dts_date6 = 0
+	dts_time6 = 0
+	dts_time4 = 0
+
+	case idx of
+	begincase
+	0:	dts_date8 = "20050520"
+	1: 	dts_date8 = "00      "
+	2:      dts_date8 = "      00"
+	3: 	dts_date8 = "0 0 0 0 "
+	4: 	dts_date8 = "  000   "
+	endcase
+	a_date = DateTimeStr
+	xreturn
+.end
+
+;---------------------------------------------------------------------------------------------------------
+
+.include "USERDATES" REPOSITORY ,structure="UserdatesR" ,end
+
+;{xfMethod(interface="ZDateTime",name="Userdates",elb="TEST:testelb",id="Userdates")}
+{xfMethod(interface="TestDate",name="UserDates",elb="TEST:testelb",id="UserDates")}
+subroutine Userdates
+{xfParameter(name="USERDATES",structure="strUserdate")}
+req out     a_dteStr   ,strUserdate	;a  ; Userdates 
+endparams
+
+record uDates                                          
+  keyno		,d6 
+  userdate1	,d14		; YYYYMMDDHHMISS
+  userdate2	,d20            ; YYYYMMDDHHMISSUUUUUU    
+
+record uDates2                                          
+  keynoA	,a6 
+  userdate1A	,a14		; YYYYMMDDHHMISS
+  userdate2A	,a20            ; YYYYMMDDHHMISSUUUUUU     
+
+.align
+record
+	chan	,i4
+	ndx	,i4
+                                                                                      
+.proc
+	chan = 211
+	open(chan, o, "TEST:userdates.log")
+	writes(chan, " ********************************")
+	clear uDates
+	uDates2 = a_dteStr
+	Writes(chan, " keynoA = " + keynoA)
+	writes(chan, " date1A = " + userdate1A)
+	writes(chan, " date2A = " + userdate2A)
+	writes(chan, "  ")
+	uDates = a_dteStr
+	Writes(chan, "  keyno = " + %string(keyno))
+	writes(chan, "  date1 = " + %string(userdate1))
+	writes(chan, "  date2 = " + %string(userdate2))
+	writes(chan, "  ")
+	keyno = 34567
+	userdate1 = "20110315104518"
+	userdate2 = "20110317081509000123"
+	writes(chan, "  --- out --- ")
+	Writes(chan, "  keyno = " + %string(keyno))
+	writes(chan, "  date1 = " + %string(userdate1))
+	writes(chan, "  date2%string( = " + %string(userdate2))
+	close (chan)
+	a_dteStr = uDates
+	xreturn
+.end
+
+; -----------------------------------------------------------------------------------------
+
+{xfMethod(interface="ZDateTime",name="DateTimeOther",elb="TEST:testelb",id="DateTimeOther",cType=xfType.DateTime,format=xfFormat.yyyymmdd)}
+function DateTimeOther  ,d8
+{xfParameter(name="dt8",cType=xfType.DateTime,format=xfFormat.yyyymmdd)}
+req inout   a_dt8         ,d8                     ;;
+{xfParameter(name="dt6",cType=xfType.DateTime,format=xfFormat.yymmdd)}
+req inout   a_dt6         ,d6                     ;;
+{xfParameter(name="dt14",cType=xfType.DateTime,format=xfFormat.YYYYMMDDHHMISS)}
+req inout   a_dt14        ,d14                    ;;
+endparams
+
+.align
+record
+	chan	,i4
+	ndx	,i4
+	dt8	,d8
+	dt6	,d6
+	dt14	,d14
+	rdt8	,d8
+                                                                                      
+.proc
+	chan = 211
+	open(chan, o, "TEST:DteTmeOther.log")
+	writes(chan, " ********************************")
+	Writes(chan, " in dt8  = " + %string(a_dt8))
+	writes(chan, " in dt6  = " + %string(a_dt6))
+	writes(chan, " in dt14 = " + %string(a_dt14))
+	writes(chan, "  ")
+	dt8 = 20110131
+	dt6 = 110228
+	dt14 = 20110315111825
+	rdt8 = 20110515
+	Writes(chan, "  dt8  = " + %string(dt8))
+	writes(chan, "  dt6  = " + %string(dt6))
+	writes(chan, "  dt14 = " + %string(dt14))
+	writes(chan, "  rdt8 = " + %string(rdt8))
+	writes(chan, "  ")
+	close (chan)
+	a_dt8 = dt8
+	a_dt6 = dt6
+	a_dt14 = dt14
+	freturn rdt8
+.end
+
+; --------------------------------------------------------------------------------------
+
+{xfMethod(interface="ZDateTime",name="DateTime20",elb="TEST:testelb",id="DateTime20",cType=xfType.DateTime,format=xfFormat.YYYYMMDDHHMISSUUUUUU)}
+function DateTime20     ,d20
+{xfParameter(name="Dt20In",cType=xfType.DateTime,format=xfFormat.YYYYMMDDHHMISSUUUUUU)}
+req in      a_dt20a      ,d20   
+{xfParameter(name="Dt20Out",cType=xfType.DateTime,format=xfFormat.YYYYMMDDHHMISSUUUUUU)}
+req out     a_dt20b     ,d20     
+{xfParameter(name="Dt20InOut",cType=xfType.DateTime,format=xfFormat.YYYYMMDDHHMISSUUUUUU)}
+req inout   a_dt20c     ,d20   
+endparams
+;.function DateTime20	
+;	a_dt20a		,d20
+;	a_dt20b		,d20
+;	a_dt20c		,d20
+
+.align
+record
+	chan	,i4
+	ndx	,i4
+	dt20a	,d20
+	dt20b	,d20
+	dt20c	,d20
+	rdt20	,d20
+                                                                                      
+.proc
+	chan = 211
+	open(chan, o, "TEST:DteTme20.log")
+	writes(chan, " ********************************")
+	Writes(chan, " in dt20a = " + %string(a_dt20a))
+	writes(chan, " in dt20b = " + %string(a_dt20b))
+	writes(chan, " in dt20c = " + %string(a_dt20c))
+	writes(chan, "  ")
+	dt20a = 20110131074518000123
+	dt20b = 20110228101545000047
+	dt20c = 20110315111825000012
+	rdt20 = 20110515042015000147
+	Writes(chan, "  dt20a = " + %string(dt20a))
+	writes(chan, "  dt20b = " + %string(dt20b))
+	writes(chan, "  dt20c = " + %string(dt20c))
+	writes(chan, "  rdt20 = " + %string(rdt20))
+	writes(chan, "  ")
+	close (chan)
+;	a_dt20a = dt20a		; read only param
+	a_dt20b = dt20b
+	a_dt20c = dt20c
+	freturn rdt20
+.end

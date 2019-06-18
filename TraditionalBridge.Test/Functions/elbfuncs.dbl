@@ -1,0 +1,328 @@
+{XFMethod(interface="xfTest", elb="DBLDIR:xfpl_tst", id="xfpl_tst1")}
+.subroutine function_one
+;	Arguments
+	{XFParameter(length=50, name="p1")}
+	a_alpha,	a
+	{XFParameter(name="p2", length=5)}
+	a_dec,		n
+	{XFParameter(name="p3", length=10, precision=3)}
+	a_impdec,	n
+	{XFParameter(name="p4", length=4)}
+	a_int,		i
+
+	record
+		alpha	,a50
+		dec	,d5
+		impdec	,d10.3
+		integer	,i4
+
+.proc
+
+	alpha = a_alpha
+	dec = a_dec
+	impdec = a_impdec
+	integer = a_int
+
+	xreturn
+.end
+
+
+{XFMethod(interface="xfTest", elb="DBLDIR:xfpl_tst", id="xfpl_tst2")}
+.subroutine function_two
+;	Arguments
+	{XFParameter(name="p1", length=12, precision=2)}
+	inout a_idec1,	n
+	{XFParameter(name="p2", length=10, precision=5)}
+	inout a_idec2,	n
+	{XFParameter(name="p3", length=10, precision=5)}
+	a_idec3,	n
+	{XFParameter(name="p4", length=10, precision=2)}
+	a_idec4,	n
+	{XFParameter(name="p5", length=10)}
+	a_idec5,	n
+	{XFParameter(name="p6", length=7, precision=7)}
+	inout a_idec6,	n
+	{XFParameter(name="p7", length=5, precision=4)}
+	a_idec7,	n
+	{XFParameter(name="p8", length=8)}
+	inout a_idec8,	n
+	{XFParameter(name="p9", length=7, precision=1)}
+	inout a_idec9,	n
+	{XFParameter(name="p10", length=9)}
+	a_idec10,	n
+
+	record
+		idec1,		d12.2
+		idec2,		d10.5
+		idec3,		d10.5
+		idec4,		d10.2
+		idec5,		d10.0
+		idec6,		d7.7
+		idec7,		d5.4
+		idec8,		d8
+		idec9,		d7.1
+		idec10,		d9.0
+
+
+.proc
+
+	idec1 = a_idec1
+	idec2 = a_idec2
+	idec3 = a_idec3
+	idec4 = a_idec4
+	idec5 = a_idec5
+	idec6 = a_idec6
+	idec7 = a_idec7
+	idec8 = a_idec8
+	idec9 = a_idec9
+	idec10 = a_idec10
+
+
+	idec1 = -1234567891.12
+	idec2 = 333.334
+	idec6 = 0.9988332
+	idec8 = -88991010
+	idec9 = 654321	;7654321 it is a d7.1
+
+	a_idec1 = idec1
+	a_idec2 = idec2
+	a_idec6 = idec6
+	a_idec8 = idec8
+	a_idec9 = idec9
+
+	xreturn
+.end
+
+
+{XFMethod(interface="xfTest", elb="DBLDIR:xfpl_tst", id="xfpl_tst3")}
+.subroutine function_four
+;	Arguments
+	{XFParameter(length=30, name="p1")}
+	inout a_alpha1,	a
+	{XFParameter(length=30, name="p2")}
+	inout a_alpha2,	a
+	{XFParameter(length=10, name="p3")}
+	inout a_alpha3,	a
+	{XFParameter(length=50, name="p4")}
+	inout a_alpha4,	a
+
+.align
+	record
+		alpha1,		a30
+		alpha2,		a30
+		alpha3,		a10
+		alpha4,		a50
+
+
+.proc
+
+	alpha1 = a_alpha1
+	alpha2 = a_alpha2
+	alpha3 = a_alpha3
+	alpha4 = a_alpha4
+
+
+	alpha1 = "Coming back 1"
+	alpha2 = "Coming back 2"
+	alpha3 = "back 3"
+	alpha4 = "backi1234567890 1234567890 1234567"
+
+	a_alpha1 = alpha1
+	a_alpha2 = alpha2
+	a_alpha3 = alpha3
+	a_alpha4 = alpha4
+
+
+	xreturn
+.end
+
+
+{XFMethod(interface="xfTest", elb="DBLDIR:xfpl_tst", id="xfpl_tst4")}
+.subroutine function_eight
+; Argument
+	{XFParameter(name="p1", length=5)};
+	inout a_alpha1,	a
+	{XFParameter(name="p2", length=4)}
+	inout a_int1,		i
+	{XFParameter(name="p3", length=6)}
+	inout a_dec2,		n
+	{XFParameter(name="p4", length=5)}
+	a_alpha2,	a
+	{XFParameter(name="p5", length=6, precision=3)}
+	inout a_idec1,	n
+	{XFParameter(name="p6", length=5)}
+	inout a_decarray,	[*]n
+	{XFParameter(name="p7", length=20)}
+	inout a_alarray,	[*]a
+	{XFParameter(name="p8", length=10, precision=3)}
+	inout a_idarray,	[*]n
+	{XFParameter(name="p9", length=4)}
+	inout a_inarray,	[*]i
+
+	record dec
+		decarray,	[5]d5
+	record alpha
+		alarray,	[6]a20
+	record id
+		idarray,	[4]d10.3
+	record int
+		inarray,	[5]i4
+
+.align
+	record
+		alpha1,		a5
+		int1,		i4
+		dec2,		d6
+		alpha2,		a5
+		idec1,		d6.3
+		ndx,		d2
+
+
+.proc
+
+	int = a_inarray
+
+
+	alpha1 = "aaaaa"
+	int1 = 77777
+	dec2 = 66655
+	alpha2 = "bbbbb"
+	idec1 = 333.444
+
+	a_alpha1 = alpha1
+	a_int1 = int1
+	a_dec2 = dec2
+	a_alpha2 = alpha2
+	a_idec1 = idec1
+
+	alarray[1] = 'a'
+	alarray[2] = "bb"
+	alarray[3] = "ccc"
+	alarray[4] = "dddd"
+	alarray[5] = "eeeee"
+	alarray[6] = "fffff"
+
+	decarray[1] = 55555
+	decarray[2] = 4444
+	decarray[3] = 333
+	decarray[4] = 22
+	decarray[5] = 1
+
+	idarray[1] = 0.12
+	idarray[2] = 3333.44
+	idarray[3] = 555555.667
+	idarray[4] = 7777777.888
+
+	inarray[1] = 999999999
+	inarray[2] = 88888888
+	inarray[3] = 7777777
+	inarray[4] = 666666
+	inarray[5] = 55555
+
+	for ndx from 1 thru 5 by 1
+		a_decarray[ndx] = decarray[ndx]
+	for ndx from 1 thru 6 by 1
+		a_alarray[ndx] = alarray[ndx]
+	for ndx from 1 thru 4 by 1
+		a_idarray[ndx] = idarray[ndx]
+	for ndx from 1 thru 5 by 1
+		a_inarray[ndx] = inarray[ndx]
+
+	xreturn
+.end
+
+{XFMethod(interface="xfTest", elb="DBLDIR:xfpl_tst", id="xfpl_tst5", length=9)}
+.function function_nine
+;Argument
+	{XFParameter(name="p1", length=5)}
+	inout a_alpha1,	a
+	{XFParameter(name="p2", length=5)}
+	inout a_alpha2,	a
+
+
+	record
+		alpha,		a9 
+
+.proc
+
+	alpha = "Return"
+
+	a_alpha1 = "back1"
+	a_alpha2 = "back2"
+
+	freturn(alpha)
+.end
+
+
+{XFMethod(interface="xfTest", elb="DBLDIR:xfpl_tst", id="xfpl_tst6", length=9)}
+.function function_ten
+;Argument
+	{XFParameter(name="p1", length=5)}
+	a_alpha1,	a
+	{XFParameter(name="p2", length=5)}
+	inout a_alpha2,	a
+
+
+	record
+		dec	,d9
+
+.proc
+	dec = 123456789
+
+
+	a_alpha2 = "back"
+
+	freturn(dec)
+.end
+
+
+{XFMethod(interface="xfTest", elb="DBLDIR:xfpl_tst", id="xfpl_tst7")}
+.subroutine get_verno_tst
+;	Arguments
+	{XFParameter(name="verno", length=30)}
+	inout a_verno,	a
+
+
+	record
+		alpha	,a50
+
+.proc
+
+	clear alpha
+	alpha = %versn
+	a_verno = alpha
+	xreturn
+.end
+
+.subroutine structure_test
+;       Arguments
+	a_str1          ,a
+
+; Structure     : STRTEST1
+; File Type     : DBL ISAM
+; Creation Date : 11-FEB-00, 13:12:07
+; Description   : Str test 1 simple structure
+;      Record Size    : 46
+;      # of Files     : 0
+;      # of Fields    : 5
+;      # of Keys      : 0
+;      # of Relations : 0
+
+	record strtest1
+		STR1_DE6  ,D6    ; (1,6) str test 1 ID field
+		STR1_AL10 ,A10   ; (7,16) str t test name
+		STR1_ID62 ,D6.2  ; (17,22) str 1 test ImpDec 6.2
+		STR1_IN4  ,I4    ; (23,26) str test 1 interger 4
+		STR1_AL20 ,A20   ; (27,46) Str test 1 Alpha 20	
+
+.proc
+	strtest1 =  a_str1
+	str1_de6 = 145
+	str1_al10 = "Alice"
+	str1_id62 = 12.40
+	str1_in4 = 357
+	str1_al20 = "Is not home now"
+	a_str1 = strtest1
+	xreturn
+.end
+
