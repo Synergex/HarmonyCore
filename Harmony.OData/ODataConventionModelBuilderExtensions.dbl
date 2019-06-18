@@ -6,6 +6,7 @@ import System.Reflection
 import System.Linq
 import System.Threading.Tasks
 import Harmony.OData.Adapter
+import Microsoft.AspNetCore.Mvc
 
 namespace Harmony.OData
 
@@ -276,6 +277,11 @@ namespace Harmony.OData
 			data returnType, @Type
 			data taskClean = methInfo.ReturnType
 			if(taskClean.IsGenericType && taskClean.GetGenericTypeDefinition() == ^typeof(Task<>))
+			begin
+				taskClean = taskClean.GetGenericArguments()[1]
+			end
+
+			if(taskClean.IsGenericType && taskClean.GetGenericTypeDefinition() == ^typeof(ActionResult<>))
 			begin
 				taskClean = taskClean.GetGenericArguments()[1]
 			end

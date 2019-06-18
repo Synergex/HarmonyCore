@@ -7,6 +7,7 @@ import Newtonsoft.Json
 import System
 import System.Collections.Generic
 import System.Text
+import Microsoft.AspNetCore.Mvc.Infrastructure
 
 
 namespace Harmony.OData.ExpressionHelpers
@@ -89,10 +90,20 @@ namespace Harmony.OData.ExpressionHelpers
 			else if(returnType.IsGenericType && returnType.GetGenericTypeDefinition() == ^typeof(Task<>)) then
 			begin
 				;;continuewith
+				data innerReturnType = returnType.GetGenericArguments()[1]
 				data conversionBodyParameter = Expression.Parameter(returnType)
 				data conversionBodyResult = Expression.PropertyOrField(conversionBodyParameter, "Result")
-				data okObjectConstructor = okObjectResultType.GetConstructor(new Type[#] { ^typeof(Object) })
-				data innerResult = Expression.New(okObjectConstructor, new Expression[#] { Expression.Convert(conversionBodyResult, ^typeof(Object)) })
+				data innerResult, @Expression
+				if(innerReturnType.IsGenericType && innerReturnType.GetGenericTypeDefinition() == ^typeof(ActionResult<>)) then
+				begin
+					innerResult = Expression.Call(Expression.Convert(conversionBodyResult, ^typeof(IConvertToActionResult)), "Convert", new Type[0], new Expression[0])
+				end
+				else
+				begin
+					data okObjectConstructor = okObjectResultType.GetConstructor(new Type[#] { ^typeof(Object) })
+					innerResult = Expression.New(okObjectConstructor, new Expression[#] { Expression.Convert(conversionBodyResult, ^typeof(Object)) })
+				end
+
 				data continueWithLambda = Expression.Lambda(innerResult, new ParameterExpression[#] { conversionBodyParameter })
 				resultExpression = Expression.Call(conversionBody, "ContinueWith", new Type[#] { ^typeof(IActionResult) }, continueWithLambda)
 			end
@@ -105,8 +116,17 @@ namespace Harmony.OData.ExpressionHelpers
 			else
 			begin
 				;;wrap the non async result into a task
-				data okObjectConstructor = okObjectResultType.GetConstructor(new Type[#] { ^typeof(Object) })
-				data innerResult = Expression.New(okObjectConstructor, new Expression[#] { Expression.Convert(conversionBody, ^typeof(Object)) })
+				data innerResult, @Expression
+				if(returnType.IsGenericType && returnType.GetGenericTypeDefinition() == ^typeof(ActionResult<>)) then
+				begin
+					innerResult = Expression.Call(Expression.Convert(conversionBody, ^typeof(IConvertToActionResult)), "Convert", new Type[0], new Expression[0])
+				end
+				else
+				begin
+					data okObjectConstructor = okObjectResultType.GetConstructor(new Type[#] { ^typeof(Object) })
+					innerResult = Expression.New(okObjectConstructor, new Expression[#] { Expression.Convert(conversionBody, ^typeof(Object)) })
+				end
+
 				resultExpression = Expression.Call(^typeof(Task), "FromResult", new Type[#] { ^typeof(IActionResult) }, new Expression[#] { innerResult })
 			end
 
