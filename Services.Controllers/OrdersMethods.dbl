@@ -123,33 +123,6 @@ namespace Services.Controllers
 			public readwrite property StringList, @List<string>
 		endclass
 
-		{CallableMethodConfigurationAttribute(IsFunction=true, ReturnsFromEntitySet=true)}
-		public async method GetAllItems, @Task<List<Item>>
-		proc
-			;;force metadata to be loaded if its not
-			DataObjectMetadataBase.LookupType(^typeof(Item))
-			data resultTpl = await CallMethod("GetAllItems", new List<Item>(), string.Empty)
-			mreturn ((@IEnumerable<Item>)resultTpl.Item2[1]).ToList<Item>()
-		endmethod
-
-		{CallableMethodConfigurationAttribute(IsFunction=true, ReturnsFromEntitySet=true)}
-		public async method GetAllOrders, @Task<List<Order>>
-		proc
-			;;force metadata to be loaded if its not
-			DataObjectMetadataBase.LookupType(^typeof(Order))
-			data resultTpl = await CallMethod("GetAllOrders", new List<Order>(), string.Empty)
-			mreturn ((@IEnumerable<Order>)resultTpl.Item2[1]).ToList<Order>()
-		endmethod
-
-		{CallableMethodConfigurationAttribute(IsFunction=true, ReturnsFromEntitySet=true)}
-		public async method GetAllVendors, @Task<List<Vendor>>
-		proc
-			;;force metadata to be loaded if its not
-			DataObjectMetadataBase.LookupType(^typeof(Vendor))
-			data resultTpl = await CallMethod("GetAllVendors", new List<Vendor>(), string.Empty)
-			mreturn ((@IEnumerable<Vendor>)resultTpl.Item2[1]).ToList<Vendor>()
-		endmethod
-
     endclass
 
 
