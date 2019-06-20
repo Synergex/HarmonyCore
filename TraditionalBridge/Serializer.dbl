@@ -779,5 +779,47 @@ namespace Json
 			MapClose()
 		endmethod
 
+		public method ArgumentData, void
+			argPos, int
+			value, a
+			type, FieldDataType
+			structureSize, int
+			structureName, a
+			binaryData, boolean
+			record
+				item, @id
+				i, int
+				structureCount, int
+		proc
+			;;TODO inline these operations into a single buffer op
+			MapOpen()
+			Pair("Position", argPos)
+			String("Value")
+			MapOpen()
+			
+			Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
+			Pair("ElementType", structureName)
+			PairBool("ElementIsEncoded", binaryData)
+			String("PassedValue")
+			ArrayOpen()
+			
+			structureCount = ^size(value) / structureSize
+
+			for i from 0 thru structureCount by 1
+			begin
+				if(!binaryData) then
+				begin
+					String(value((i * structureSize) + 1 : structureSize))
+				end
+				else
+				begin
+					String(Convert.ToBase64String(value((i * structureSize) + 1 : structureSize)))
+				end
+			end
+			ArrayClose()
+			MapClose()
+			MapClose()
+		endmethod
+
 	endclass
 endnamespace

@@ -221,7 +221,11 @@ namespace Harmony.Core.Context
 				begin
 					data dict = new Dictionary<string, object>()
 					dict.Add("Type", doValue.Metadata.RPSStructureName)
-					dict.Add("Value", Convert.ToBase64String(([#]byte)alphaData))
+					if(doValue.Metadata.RPSStructureHasBinaryData) then
+						dict.Add("Base64Value", Convert.ToBase64String(([#]byte)alphaData))
+					else
+						dict.Add("Value", (@string)alphaData)
+
 					dict.Add("GRFA", Convert.ToBase64String(([#]byte)grfaData))
 					argDef.PassedValue = dict
 				end

@@ -12,7 +12,7 @@ import TraditionalBridge
 
 main
 	record
-		disp, @SampleXfplEnvDispatcher
+		disp, @SuperRoutineDispatcher
         ttChan, i4
         processId, d10
         processName, a256
@@ -45,7 +45,7 @@ proc
 		
 		puts(ttChan, "READY" + %char(13)+ %char(10))
 
-		disp = new SampleXfplEnvDispatcher()
+		disp = new SuperRoutineDispatcher(new RoutineDispatcher[#] { new SampleXfplEnvDispatcher(), new syntstDispatcher() })
 
 		disp.Dispatch(ttChan)
 	end

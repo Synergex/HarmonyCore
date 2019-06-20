@@ -161,7 +161,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 			;;Process inbound arguments
 
 <IF COUNTER_1>
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 <ELSE>
 			;;There are no inbound arguments to process
 </IF COUNTER_1>
@@ -259,35 +259,10 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 ;//=========================================================================================================================
 ;// Build the JSON response
 ;//
-
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
 <IF FUNCTION>
 
 			;;Function return value
-
-			serializer.MapOpen()
-			serializer.String("Position")
-            serializer.Integer(0)
-			serializer.String("Value")
-			serializer.MapOpen()
-			;TODO: Needs to handle all the valid function return types
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.EnumField)
-            serializer.String("PassedValue")
-			serializer.Integer(returnValue)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(0, returnValue)
 </IF FUNCTION>
 ;//
 ;//Argument processing
@@ -299,98 +274,74 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 
 			;;--------------------------------------------------------------------------------
 			;;Argument <COUNTER_1_VALUE> (<PARAMETER_REQUIRED> <PARAMETER_DIRECTION> <PARAMETER_NAME> <IF COLLECTION_ARRAY>[*]</IF COLLECTION_ARRAY><IF COLLECTION_HANDLE>memory handle collection of </IF COLLECTION_HANDLE><IF COLLECTION_ARRAYLIST>ArrayList collection of </IF COLLECTION_ARRAYLIST><IF STRUCTURE>structure </IF STRUCTURE><IF ENUM>enum </IF ENUM><IF STRUCTURE>@<ParameterStructureNoplural><ELSE><PARAMETER_DEFINITION></IF STRUCTURE><IF DATE> <PARAMETER_DATE_FORMAT> date</IF DATE><IF TIME> <PARAMETER_DATE_FORMAT> time</IF TIME><IF REFERENCE> passed by REFERENCE</IF REFERENCE><IF VALUE> passed by VALUE</IF VALUE><IF DATATABLE> returned as DataTable</IF DATATABLE>)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", <COUNTER_1_VALUE>)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
 ;//
 	<IF ALPHA>
 		<IF COLLECTION>
-			serializer.Pair("DataType", (i)FieldDataType.AlphaArrayField)
-			serializer.String("PassedValue")
-			serializer.ArrayOpen()
-
-			serializer.ArrayClose()
+			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.AlphaArrayField, <PARAMETER_SIZE>)
 		<ELSE>
-			serializer.Pair("DataType", (i)FieldDataType.AlphaField)
-			serializer.Pair("PassedValue", %atrim(arg<COUNTER_1_VALUE>))
+			serializer.ArgumentData(<COUNTER_1_VALUE>, %atrim(arg<COUNTER_1_VALUE>, FieldDataType.AlphaField))
 		</IF COLLECTION>
 	</IF ALPHA>
 ;//
 	<IF DECIMAL>
 		<IF COLLECTION>
-			;TODO: Need to add support for collection of decimal
+			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.DecimalArrayField, <PARAMETER_SIZE>)
 		<ELSE>
-			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
-			serializer.Pair("PassedValue", arg<COUNTER_1_VALUE>)
+			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.DecimalField)
 		</IF COLLECTION>
 	</IF DECIMAL>
 ;//
 	<IF IMPLIED>
 		<IF COLLECTION>
-			;TODO: Need to add support for collection of implied decimal
+			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.ImpliedDecimalArrayField, <PARAMETER_SIZE>, <PARAMETER_PRECISION>)
 		<ELSE>
-			serializer.Pair("DataType", (i)FieldDataType.ImpliedDecimal)
-			serializer.Pair("PassedValue", arg<COUNTER_1_VALUE>)
+			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.ImpliedDecimal, , <PARAMETER_SIZE>, <PARAMETER_PRECISION>)
 		</IF COLLECTION>
 	</IF IMPLIED>
 ;//
 	<IF INTEGER>
 		<IF COLLECTION>
-			;TODO: Need to add support for collection of integer
+			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.IntegerArrayField, <PARAMETER_SIZE>)
 		<ELSE>
-			serializer.Pair("DataType", (i)FieldDataType.IntegerField)
-			serializer.Pair("PassedValue", arg<COUNTER_1_VALUE>)
+			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.IntegerField)
 		</IF COLLECTION>
 	</IF INTEGER>
 ;//
 	<IF ENUM>
 			;TODO: Do we need custom processing for enum fields beyond the integer value?
-			serializer.Pair("DataType", (i)FieldDataType.IntegerField)
-			serializer.Pair("PassedValue", arg<COUNTER_1_VALUE>)
+			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.IntegerField)
 	</IF ENUM>
 ;//
 	<IF DATE>
 		<IF COLLECTION>
-			;TODO: Need to add support for collection of date
+			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.DecimalArrayField, <PARAMETER_SIZE>)
 		<ELSE>
-			;TODO: Do we need custom processing for date fields beyond the decimal value?
-			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
-			serializer.Pair("PassedValue", arg<COUNTER_1_VALUE>)
+			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.DecimalField)
 		</IF COLLECTION>
 	</IF DATE>
 ;//
 	<IF TIME>
 		<IF COLLECTION>
-			;TODO: Need to add support for collection of time
+			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.DecimalArrayField, <PARAMETER_SIZE>)
 		<ELSE>
-			;TODO: Do we need custom processing for time fields beyond the decimal value?
-			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
-			serializer.Pair("PassedValue", arg<COUNTER_1_VALUE>)
+			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.DecimalField)
 		</IF COLLECTION>
 	</IF TIME>
 ;//
 	<IF HANDLE>
-			serializer.Pair("DataType", (i)FieldDataType.HandleField)
-			serializer.String("PassedValue")
 			;TODO: Handle support is incomplete and will FAIL!!!
 	</IF HANDLE>
 ;//
 	<IF BINARY_HANDLE>
-			serializer.Pair("DataType", (i)FieldDataType.BinaryHandleField)
-			serializer.String("PassedValue")
 			;TODO: Binary Handle support is incomplete and will FAIL!!!
 	</IF BINARY_HANDLE>
 ;//
 	<IF STRING>
-			serializer.Pair("DataType", (i)FieldDataType.StringField)
-			serializer.String("PassedValue")
 		<IF COLLECTION>
-			;TODO: Need to add support for collection of string
+			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.StringArrayField)
 		<ELSE>
-			;TODO: Need to add support for string
+			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.StringField)
 		</IF COLLECTION>
 	</IF STRING>
 ;//
@@ -401,65 +352,38 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 ;//
 ;//Structure collection processing
 ;//
-			serializer.Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
-			serializer.String("PassedValue")
-			serializer.ArrayOpen()
 ;//
 ;//Structure array processing
 ;//
 		<IF COLLECTION_ARRAY>
-			;TODO: Need to add support for array of structure
+			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.DataObjectCollectionField, <PARAMETER_SIZE>, <PARAMETER_STRUCTURE>)
 		</IF COLLECTION_ARRAY>
 ;//
 ;//Structure memory handle collection processing
 ;//
 		<IF COLLECTION_HANDLE>
-			;TODO: Need to add support for memory handle collection of structure
+			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.DataObjectCollectionField, <PARAMETER_SIZE>, <PARAMETER_STRUCTURE>)
 		</IF COLLECTION_HANDLE>
 ;//
 ;//Structure ArrayList processing
 ;//
 		<IF COLLECTION_ARRAYLIST>
-			begin
-				data this<ParameterStructureNoplural>, @str<ParameterStructureNoplural>
-				foreach this<ParameterStructureNoplural> in arg<COUNTER_1_VALUE>
-					DataObjectBase.Serialize(serializer, this<ParameterStructureNoplural>, "<PARAMETER_STRUCTURE>", "", false)
-			end
+			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.DataObjectCollectionField, <PARAMETER_SIZE>, <PARAMETER_STRUCTURE>)
 		</IF COLLECTION_ARRAYLIST>
 ;//
 ;//End of structure collection processing
 ;//
-			serializer.ArrayClose()
 		<ELSE>
 ;//
 ;//Single structure processing
 ;//
 			;;Argument <COUNTER_1_VALUE>: Single <ParameterStructureNoplural> record
-			serializer.Pair("DataType", (i)FieldDataType.DataObjectField)
-			serializer.String("PassedValue")
-			;TODO: Support for single structure is incomplete
+			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.DataObjectField, <PARAMETER_SIZE>, <PARAMETER_STRUCTURE>)
 		</IF COLLECTION>
 ;//
 	</IF STRUCTURE>
-			serializer.MapClose()
-			serializer.MapClose()
 </IF OUT_OR_INOUT>
 </PARAMETER_LOOP>
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
 		endmethod
 
 	endclass

@@ -50,6 +50,8 @@ namespace Harmony.Core
 		public DataType				,FieldDataType
 		public ElementSize			,int?
 		public DecimalPrecision		,int?
+		public ElementIsEncoded		,boolean?
+		public ElementType			,@string
 	endclass
 
 	public class ReturnParameterDefintion
@@ -121,46 +123,181 @@ namespace Harmony.Core
 					data tempResultDO = new List<DataObjectBase>()
 					data tempResultObject = new List<Object>()
 					data dataObjectValues = (@JArray)jObj["PassedValue"]
+					
+					data briefEncoding = false
+					data briefEncodingHasBinaryData = false
+					data elementTypeObject, @JToken
+					if(jObj.TryGetValue("ElementType", elementTypeObject))
+					begin
+						metadataType = DataObjectMetadataBase.LookupType(elementTypeObject.ToObject<string>())
+						briefEncoding = true
+						data elementIsEncoded, @JToken
+						if(jObj.TryGetValue("ElementIsEncoded", elementIsEncoded))
+						begin
+							briefEncodingHasBinaryData = elementIsEncoded.ToObject<Boolean>()
+						end
+
+					end
+
 					data dataObjectToken, @JToken
 					foreach dataObjectToken in dataObjectValues
 					begin
-						if(dataObjectToken .is. JObject) then
+						if(briefEncoding) then
 						begin
-							data dataObjectValue = (@JObject)dataObjectToken
-							if(metadataType == ^null)
-								metadataType = DataObjectMetadataBase.LookupType((string)dataObjectValue["Type"])
+							if(dataObjectToken.Type != JTokenType.String)
+								throw new InvalidOperationException("brief encoding requires string data")
 
-							data grfa = (string)dataObjectValue["GRFA"]
-							data realValue = dataObjectValue.Value<string>((Object)"Value")
-							if(realValue == ^null) then
-							begin
-								tempResultDO.Add(metadataType.MakeNew((a)Convert.FromBase64String(dataObjectValue.Value<string>((Object)"Base64Value")), grfa))
-							end
+							if(briefEncodingHasBinaryData) then
+								tempResultDO.Add(metadataType.MakeNew((a)Convert.FromBase64String(dataObjectToken.ToObject<string>()), ""))
 							else
-							begin
-								tempResultDO.Add(metadataType.MakeNew(realValue, grfa))
-							end
+								tempResultDO.Add(metadataType.MakeNew(dataObjectToken.Value<string>(), ""))
 						end
 						else
 						begin
-							using dataObjectToken.Type select
-							(JTokenType.Null),
-								tempResultObject.Add(^null)
-							(JTokenType.Integer),
-								tempResultObject.Add((@object)dataObjectToken.ToObject<int>())
-							(JTokenType.Float),
-								tempResultObject.Add((@object)dataObjectToken.ToObject<float>())
-							(JTokenType.Bytes),
-								tempResultObject.Add((@object)dataObjectToken.ToObject<[#]byte>())
-							(JTokenType.Boolean),
-								tempResultObject.Add((@object)dataObjectToken.ToObject<boolean>())
-							(JTokenType.String),
-								tempResultObject.Add((@object)dataObjectToken.ToObject<string>())
-							endusing
+							if(dataObjectToken .is. JObject) then
+							begin
+								data dataObjectValue = (@JObject)dataObjectToken
+								if(metadataType == ^null)
+									metadataType = DataObjectMetadataBase.LookupType((string)dataObjectValue["Type"])
+
+								data grfa = (string)dataObjectValue["GRFA"]
+								data realValue = dataObjectValue.Value<string>((Object)"Value")
+								if(realValue == ^null) then
+								begin
+									tempResultDO.Add(metadataType.MakeNew((a)Convert.FromBase64String(dataObjectValue.Value<string>((Object)"Base64Value")), grfa))
+								end
+								else
+								begin
+									tempResultDO.Add(metadataType.MakeNew(realValue, grfa))
+								end
+							end
+							else
+							begin
+								using dataObjectToken.Type select
+								(JTokenType.Null),
+									tempResultObject.Add(^null)
+								(JTokenType.Integer),
+									tempResultObject.Add((@object)dataObjectToken.ToObject<int>())
+								(JTokenType.Float),
+									tempResultObject.Add((@object)dataObjectToken.ToObject<float>())
+								(JTokenType.Bytes),
+									tempResultObject.Add((@object)dataObjectToken.ToObject<[#]byte>())
+								(JTokenType.Boolean),
+									tempResultObject.Add((@object)dataObjectToken.ToObject<boolean>())
+								(JTokenType.String),
+									tempResultObject.Add((@object)dataObjectToken.ToObject<string>())
+								endusing
+							end
 						end
+
 					end
 
 					result.PassedValue = tempResultDO.Count > 0 ? tempResultDO : tempResultObject
+				end
+				else if(result.DataType == FieldDataType.AlphaArrayField) then
+				begin
+					data resultArray = new List<string>()
+					data dataObjectValues = (@JArray)jObj["PassedValue"]
+					data elementIsEncoded, @JToken
+					data hasBinaryData = false
+					if(jObj.TryGetValue("ElementIsEncoded", elementIsEncoded))
+					begin
+						hasBinaryData = elementIsEncoded.ToObject<Boolean>()
+					end
+
+					data dataObjectToken, @JToken
+					foreach dataObjectToken in dataObjectValues
+					begin
+						if(hasBinaryData) then
+						begin
+							throw new NotImplementedException("")
+							;resultArray.Add(Convert.FromBase64String(dataObjectToken.Value<string>()))
+						end
+						else
+						begin
+							resultArray.Add(dataObjectToken.Value<string>())
+						end
+					end
+					result.PassedValue = resultArray
+				end
+				else if(result.DataType == FieldDataType.DecimalArrayField) then
+				begin
+					data resultArray = new List<decimal>()
+					data dataObjectValues = (@JArray)jObj["PassedValue"]
+					data dataObjectToken, @JToken
+					foreach dataObjectToken in dataObjectValues
+					begin
+						resultArray.Add(dataObjectToken.Value<decimal>())
+					end
+					result.PassedValue = resultArray
+				end
+				else if(result.DataType == FieldDataType.ImpliedDecimalArrayField) then
+				begin
+					data resultArray = new List<decimal>()
+					data dataObjectValues = (@JArray)jObj["PassedValue"]
+					data dataObjectToken, @JToken
+					foreach dataObjectToken in dataObjectValues
+					begin
+						resultArray.Add(dataObjectToken.Value<decimal>())
+					end
+					result.PassedValue = resultArray
+				end
+				else if(result.DataType == FieldDataType.IntegerArrayField) then
+				begin
+					data dataObjectValues = (@JArray)jObj["PassedValue"]
+					data dataToken, @JToken
+					data intSize = 4
+					data elementSize, @JToken
+					if(jObj.TryGetValue("ElementSize", elementSize))
+					begin
+						intSize = elementSize.ToObject<int>()
+					end
+
+					if(intSize == 4) then
+					begin
+						data resultArray = new List<int>()
+						foreach dataToken in dataObjectValues
+							resultArray.Add(dataToken.ToObject<int>())
+
+						result.PassedValue = resultArray
+					end
+					else if(intSize == 8) then
+					begin
+						data resultArray = new List<long>()
+						foreach dataToken in dataObjectValues
+							resultArray.Add(dataToken.ToObject<long>())
+
+						result.PassedValue = resultArray
+					end
+					else if(intSize == 2) then
+					begin
+						data resultArray = new List<short>()
+						foreach dataToken in dataObjectValues
+							resultArray.Add(dataToken.ToObject<short>())
+
+						result.PassedValue = resultArray
+					end
+					else if(intSize == 1) then
+					begin
+						data resultArray = new List<sbyte>()
+						foreach dataToken in dataObjectValues
+							resultArray.Add(dataToken.ToObject<sbyte>())
+
+						result.PassedValue = resultArray
+					end
+					else
+						throw new NotImplementedException("int size must be 8/4/2/1")
+				end
+				else if(result.DataType == FieldDataType.StringArrayField) then
+				begin
+					data resultArray = new List<string>()
+					data dataObjectValues = (@JArray)jObj["PassedValue"]
+					data dataObjectToken, @JToken
+					foreach dataObjectToken in dataObjectValues
+					begin
+						resultArray.Add(dataObjectToken.Value<string>())
+					end
+					result.PassedValue = resultArray
 				end
 				else
 				begin
