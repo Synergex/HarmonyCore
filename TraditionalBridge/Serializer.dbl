@@ -597,8 +597,12 @@ namespace Json
 		endmethod
 
 		public method ArgumentData, void
-			argPos, int
-			value, a
+			required in argPos, int
+			required in value, a
+			optional in type, FieldDataType
+			optional in size, int
+			optional in precision, int
+			optional in hasBinaryData, boolean
 		proc
 			;;TODO inline these operations into a single buffer op
 			MapOpen()
@@ -613,8 +617,9 @@ namespace Json
 		endmethod
 
 		public method ArgumentData, void
-			argPos, int
-			value, d
+			required in argPos, int
+			required in value, d
+			optional in type, FieldDataType
 		proc
 			;;TODO inline these operations into a single buffer op
 			MapOpen()
@@ -629,8 +634,34 @@ namespace Json
 		endmethod
 
 		public method ArgumentData, void
-			argPos, int
-			value, i
+			required in argPos, int
+			required in value, id
+			required in type, FieldDataType
+			required in size, int
+			required in precision, int
+			required in hasBinaryData, boolean
+		proc
+			;;TODO inline these operations into a single buffer op
+			MapOpen()
+			Pair("Position", argPos)
+			String("Value")
+			MapOpen()
+			
+			Pair("DataType", (i)FieldDataType.ImpliedDecimal)
+			Pair("ElementSize", size)
+			Pair("DecimalPrecision", precision)
+			Pair("PassedValue", value)
+			MapClose()
+			MapClose()
+		endmethod
+
+		public method ArgumentData, void
+			required in argPos, int
+			required in value, i
+			optional in type, FieldDataType
+			optional in size, int
+			optional in precision, int
+			optional in hasBinaryData, boolean
 		proc
 			;;TODO inline these operations into a single buffer op
 			MapOpen()
@@ -677,6 +708,54 @@ namespace Json
 					Double((@id)item)
 				else if(item .is. @boolean)
 					Bool((@boolean)item)
+			end
+			ArrayClose()
+			MapClose()
+			MapClose()
+		endmethod
+
+		public method ArgumentData, void
+			argPos, int
+			value, @ArrayList
+			type, FieldDataType
+			elementSize, int
+			elementPrecision, int
+			hasBinaryData, boolean
+			record
+				item, @object
+				doElement, @DataObjectBase
+		proc
+			throw new Exception("Not Yet Implemented")
+		endmethod
+
+		public method ArgumentData, void
+			argPos, int
+			value, @ArrayList
+			type, FieldDataType
+			elementSize, int
+			elementType, a
+			hasBinaryData, boolean
+			record
+				item, @object
+				doElement, @DataObjectBase
+		proc
+			;;TODO inline these operations into a single buffer op
+			MapOpen()
+			Pair("Position", argPos)
+			String("Value")
+			MapOpen()
+
+			Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
+			Pair("ElementType", elementType)
+			PairBool("ElementIsEncoded", hasBinaryData)
+			String("PassedValue")
+			ArrayOpen()
+			foreach item in value
+			begin
+				if(hasBinaryData) then
+					String(Convert.FromBase64String((a)item))
+				else
+					String((a)item)
 			end
 			ArrayClose()
 			MapClose()
@@ -814,6 +893,94 @@ namespace Json
 				else
 				begin
 					String(Convert.ToBase64String(value((i * structureSize) + 1 : structureSize)))
+				end
+			end
+			ArrayClose()
+			MapClose()
+			MapClose()
+		endmethod
+
+		public method ArgumentHandleData, void
+			argPos, int
+			value, D_HANDLE
+			type, FieldDataType
+			structureSize, int
+			structureName, a
+			elementCount, int
+			binaryData, boolean
+			record
+				item, @id
+				i, int
+				structureCount, int
+			structure fake
+				fld1, a1
+			endstructure
+
+		proc
+			;;TODO inline these operations into a single buffer op
+			MapOpen()
+			Pair("Position", argPos)
+			String("Value")
+			MapOpen()
+			
+			Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
+			Pair("ElementType", structureName)
+			PairBool("ElementIsEncoded", binaryData)
+			String("PassedValue")
+			ArrayOpen()
+
+			for i from 0 thru elementCount by 1
+			begin
+				if(!binaryData) then
+				begin
+					String(^m(fake.fld1((i * structureSize) + 1 : structureSize), value))
+				end
+				else
+				begin
+					String(Convert.ToBase64String(^m(fake.fld1((i * structureSize) + 1 : structureSize), value)))
+				end
+			end
+			ArrayClose()
+			MapClose()
+			MapClose()
+		endmethod
+
+		public method ArgumentHandleData, void
+			argPos, int
+			value, D_HANDLE
+			type, FieldDataType
+			elementSize, int
+			precision, int
+			elementCount, int
+			binaryData, boolean
+			record
+				item, @id
+				i, int
+			structure fake
+				fld1, a1
+			endstructure
+
+		proc
+			;;TODO inline these operations into a single buffer op
+			MapOpen()
+			Pair("Position", argPos)
+			String("Value")
+			MapOpen()
+			
+			Pair("DataType", (i)type)
+			PairBool("ElementIsEncoded", binaryData)
+			String("PassedValue")
+			ArrayOpen()
+
+			for i from 0 thru elementCount by 1
+			begin
+				if(!binaryData) then
+				begin
+					String(^m(fake.fld1((i * elementSize) + 1 : elementSize), value))
+				end
+				else
+				begin
+					String(Convert.ToBase64String(^m(fake.fld1((i * elementSize) + 1 : elementSize), value)))
 				end
 			end
 			ArrayClose()

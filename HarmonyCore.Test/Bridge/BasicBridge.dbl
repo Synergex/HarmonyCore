@@ -51,7 +51,7 @@ namespace HarmonyCore.Test.Bridge
 
 			endtry
 			data arbitrarioReturn = await context.Arbitrario_MethodWithParameters()
-
+			data functionFourReturn = await context.function_four("hello", "some", "text", "here")
 			Assert.AreEqual(customers.Count, 38, "customer count was wrong")
 
 			Assert.AreEqual(arbitrarioReturn.IntList.Count, 1, "arbitrario int array count was wrong")
@@ -129,6 +129,23 @@ namespace HarmonyCore.Test.Bridge
 				data returnToken = ((@JToken)resultTpl.Item1)
 				mreturn new ArbitrarioReturnType() { ReturnCode = returnToken.ToObject<int>(), IntList = ((@IEnumerable<int>)resultTpl.Item2[4]).ToList(), StringList = ((@IEnumerable<string>)resultTpl.Item2[5]).ToList() }
 			endmethod
+
+			public async method function_four, @Task<FunctionFourReturnType>
+				p1, @string
+				p2, @string
+				p3, @string
+				p4, @string
+			proc
+				data resultTpl = await CallMethod("function_four", p1, p2, p3, p4)
+				mreturn new FunctionFourReturnType() { p1 = (@string)resultTpl.Item2[1], p2 = (@string)resultTpl.Item2[2], p3 = (@string)resultTpl.Item2[3], p4 = (@string)resultTpl.Item2[4] }
+			endmethod
+
+			public class FunctionFourReturnType
+				public readwrite property p1, @string
+				public readwrite property p2, @string
+				public readwrite property p3, @string
+				public readwrite property p4, @string
+			endclass
 
 			public class ArbitrarioReturnType
 				public readwrite property ReturnCode, int

@@ -59,7 +59,7 @@ namespace TraditionalBridge.Test.data64k
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT DATASET [*]structure @Dataset)
 			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1])
@@ -73,49 +73,10 @@ namespace TraditionalBridge.Test.data64k
 
 			xcall P1StrAryO64k(^m(strDataset,arg1Handle))
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT DATASET [*]structure @Dataset)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
-			serializer.String("PassedValue")
-			serializer.ArrayOpen()
-			;TODO: Need to add support for array of structure
-			serializer.ArrayClose()
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentHandleData(1, arg1Handle, FieldDataType.DataObjectCollectionField, 1493, "DATASET", arg1Array.arrayValues.Count, false)
 		endmethod
 
 	endclass
@@ -165,7 +126,7 @@ namespace TraditionalBridge.Test.data64k
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT decparm1 D5)
 			arg1 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[1])
@@ -192,128 +153,48 @@ namespace TraditionalBridge.Test.data64k
 
 			returnValue = %BinaryArrayTest(arg1,arg2,arg3,arg4,arg5,arg6,arg7)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;Function return value
-
-			serializer.MapOpen()
-			serializer.String("Position")
-            serializer.Integer(0)
-			serializer.String("Value")
-			serializer.MapOpen()
-			;TODO: Needs to handle all the valid function return types
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.EnumField)
-            serializer.String("PassedValue")
-			serializer.Integer(returnValue)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(0, returnValue)
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT decparm1 D5)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
-			serializer.Pair("PassedValue", arg1)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(1, arg1, FieldDataType.DecimalField, 5, 0, false)
+			
+			
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 3 (REQUIRED INOUT alparm A10)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 3)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.AlphaField)
-			serializer.Pair("PassedValue", %atrim(arg3))
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(3, %atrim(arg3), FieldDataType.AlphaField)
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 4 (REQUIRED OUT outba D_HANDLE)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 4)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.BinaryHandleField)
-			serializer.String("PassedValue")
-			;TODO: Binary Handle support is incomplete and will FAIL!!!
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(4, arg4, FieldDataType.BinaryHandleField, 0, 0, false)
+			
+			
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 5 (REQUIRED INOUT idparm D5.2)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 5)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.ImpliedDecimal)
-			serializer.Pair("PassedValue", arg5)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(5, arg5, FieldDataType.ImpliedDecimalField, 5, 02, false)
+			
+			
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 6 (REQUIRED INOUT inoutba D_HANDLE)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 6)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.BinaryHandleField)
-			serializer.String("PassedValue")
-			;TODO: Binary Handle support is incomplete and will FAIL!!!
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(6, arg6, FieldDataType.BinaryHandleField, 0, 0, false)
+			
+			
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 7 (REQUIRED INOUT decparm2 D5)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 7)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
-			serializer.Pair("PassedValue", arg7)
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(7, arg7, FieldDataType.DecimalField, 5, 0, false)
+			
+			
 		endmethod
 
 	endclass
@@ -350,7 +231,7 @@ namespace TraditionalBridge.Test.data64k
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED IN inBA D_HANDLE)
 			;TODO: Template needs code for BINARY HANDLE arguments!
@@ -360,34 +241,6 @@ namespace TraditionalBridge.Test.data64k
 			;; Call the underlying routine
 
 			xcall inBinaryArrayTest(arg1)
-
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
 		endmethod
 
 	endclass
@@ -424,7 +277,7 @@ namespace TraditionalBridge.Test.data64k
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED IN p1 D_HANDLE)
 			;TODO: Template needs code for HANDLE arguments!
@@ -434,34 +287,6 @@ namespace TraditionalBridge.Test.data64k
 			;; Call the underlying routine
 
 			xcall inHandle(arg1)
-
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
 		endmethod
 
 	endclass
@@ -498,7 +323,7 @@ namespace TraditionalBridge.Test.data64k
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT inoutba D_HANDLE)
 			;TODO: Template needs code for BINARY HANDLE arguments!
@@ -509,47 +334,12 @@ namespace TraditionalBridge.Test.data64k
 
 			xcall inOutBinaryArrayTest(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT inoutba D_HANDLE)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.BinaryHandleField)
-			serializer.String("PassedValue")
-			;TODO: Binary Handle support is incomplete and will FAIL!!!
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.BinaryHandleField, 0, 0, false)
+			
+			
 		endmethod
 
 	endclass
@@ -586,7 +376,7 @@ namespace TraditionalBridge.Test.data64k
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT p1 D_HANDLE)
 			;TODO: Template needs code for HANDLE arguments!
@@ -597,47 +387,12 @@ namespace TraditionalBridge.Test.data64k
 
 			xcall inoutHandle(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT p1 D_HANDLE)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.HandleField)
-			serializer.String("PassedValue")
-			;TODO: Handle support is incomplete and will FAIL!!!
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.HandleField, 0, 0, false)
+			
+			
 		endmethod
 
 	endclass
@@ -674,7 +429,7 @@ namespace TraditionalBridge.Test.data64k
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT p1 D_HANDLE)
 			;TODO: Template needs code for HANDLE arguments!
@@ -685,47 +440,12 @@ namespace TraditionalBridge.Test.data64k
 
 			xcall inoutHandle2(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT p1 D_HANDLE)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.HandleField)
-			serializer.String("PassedValue")
-			;TODO: Handle support is incomplete and will FAIL!!!
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.HandleField, 0, 0, false)
+			
+			
 		endmethod
 
 	endclass
@@ -769,47 +489,12 @@ namespace TraditionalBridge.Test.data64k
 
 			xcall outBinaryArrayTest(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED OUT outba D_HANDLE)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.BinaryHandleField)
-			serializer.String("PassedValue")
-			;TODO: Binary Handle support is incomplete and will FAIL!!!
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.BinaryHandleField, 0, 0, false)
+			
+			
 		endmethod
 
 	endclass
@@ -848,7 +533,7 @@ namespace TraditionalBridge.Test.data64k
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED IN filename A80)
 			arg1 = dispatcher.GetText((@JsonObject)arguments.arrayValues[1])
@@ -858,47 +543,12 @@ namespace TraditionalBridge.Test.data64k
 
 			xcall outFileBinaryArrayTest(arg1,arg2)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 2 (REQUIRED OUT outba D_HANDLE)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 2)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.BinaryHandleField)
-			serializer.String("PassedValue")
-			;TODO: Binary Handle support is incomplete and will FAIL!!!
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(2, arg2, FieldDataType.BinaryHandleField, 0, 0, false)
+			
+			
 		endmethod
 
 	endclass
@@ -942,47 +592,12 @@ namespace TraditionalBridge.Test.data64k
 
 			xcall outHandle(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED OUT p1 D_HANDLE)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.HandleField)
-			serializer.String("PassedValue")
-			;TODO: Handle support is incomplete and will FAIL!!!
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.HandleField, 0, 0, false)
+			
+			
 		endmethod
 
 	endclass
@@ -1021,7 +636,7 @@ namespace TraditionalBridge.Test.data64k
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT P1Handle D_HANDLE)
 			;TODO: Template needs code for HANDLE arguments!
@@ -1032,60 +647,17 @@ namespace TraditionalBridge.Test.data64k
 
 			xcall twoparmsrtn(arg1,arg2)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT P1Handle D_HANDLE)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.HandleField)
-			serializer.String("PassedValue")
-			;TODO: Handle support is incomplete and will FAIL!!!
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(1, arg1, FieldDataType.HandleField, 0, 0, false)
+			
+			
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 2 (REQUIRED OUT P2Alpha A20)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 2)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.AlphaField)
-			serializer.Pair("PassedValue", %atrim(arg2))
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(2, %atrim(arg2), FieldDataType.AlphaField)
 		endmethod
 
 	endclass
