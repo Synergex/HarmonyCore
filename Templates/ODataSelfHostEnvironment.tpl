@@ -104,36 +104,47 @@ namespace <NAMESPACE>
 
         endmethod
 
+        ;;; <summary>
+        ;;; Exposed as a public property so it can be used as the source of required logical names later,
+        ;;; for example in a custom FileSpecResolver class.
+        ;;; </summary>
+        public static readwrite property LogicalNames, @List<string>()
+
         ;;Declare the SetLogicalsCustom partial method
         ;;This method can be implemented in a partial class to provide custom code to define logical names
         partial static method SetLogicalsCustom, void
-            required in logicals, @List<string>
+
         endmethod
 
         private static method setLogicals, void
         proc
             data sampleDataFolder = findRelativeFolderForAssembly("<DATA_FOLDER>")
-            data logicals = new List<string>()
+            LogicalNames = new List<string>()
             data logical = String.Empty
             data fileSpec = String.Empty
             <STRUCTURE_LOOP>
 
             fileSpec = "<FILE_NAME>"
-            if (fileSpec.Contains(":"))
+            if (fileSpec.Contains(":")) then
             begin
                 logical = fileSpec.Split(":")[0].ToUpper()
-                if (!logicals.Contains(logical))
-                    logicals.Add(logical)
+                if (!LogicalNames.Contains(logical))
+                    LogicalNames.Add(logical)
+            end
+            else if (!fileSpec.Contains("."))
+            begin
+                if (!LogicalNames.Contains(fileSpec))
+                    LogicalNames.Add(fileSpec)
             end
             </STRUCTURE_LOOP>
 
             ;;If we have a SetLogicalsCustom method, call it
-            SetLogicalsCustom(logicals)
+            SetLogicalsCustom()
 
             ;;Now we'll check each logical. If it already has a value we'll do nothing, otherwise
             ;;we'll set the logical to point to the local folder whose name is identified by the
             ;;user-defined token DATA_FOLDER
-            foreach logical in logicals
+            foreach logical in LogicalNames
             begin
                 data sts, int
                 data translation, a80
