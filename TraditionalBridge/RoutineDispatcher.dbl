@@ -22,7 +22,7 @@ namespace Harmony.TraditionalBridge
         protected mReadBufferSize, int
         protected mDispatchStubs, @StringDictionary
         protected mActivationMask, [32]i1
-.define GetBuffer ^m(MemStruct(1:mReadBufferSize), mReadBuffer)
+        .define GetBuffer ^m(MemStruct(1:mReadBufferSize), mReadBuffer)
 
         ;;; <summary>
         ;;; Constructor
@@ -722,7 +722,7 @@ namespace Harmony.TraditionalBridge
 
             if (!(parsedJson .is. @JsonObject) && !(parsedJson .is. @JsonArray))
             begin
-                ReportError("failed to parse json request", -32700, -1, serializer)
+                ReportError("failed to parse json request", (int)-32700, (int)-1, serializer)
                 mreturn true
             end
 
@@ -753,7 +753,7 @@ namespace Harmony.TraditionalBridge
                     end
                     else
                     begin
-                        ReportError("failed to parse json request", -32700, -1, serializer)
+                        ReportError("failed to parse json request", (int)-32700, (int)-1, serializer)
                     end
                 end
                 serializer.ArrayClose()
@@ -1026,7 +1026,7 @@ namespace Harmony.TraditionalBridge
                 try
                 begin
                     data serializer = new DispatchSerializer(new ChannelOutputStream(ttChannel))
-                    ReportError(ex.ToString(), -32603, -1, serializer)
+                    ReportError(ex.ToString(), (int)-32603, (int)-1, serializer)
                 end
                 catch(ex2, @Exception)
                 begin
@@ -1060,7 +1060,7 @@ namespace Harmony.TraditionalBridge
 
             if(!jsonData.TryGetProperty("method", name))
             begin
-                ReportError("method name missing", -32600, requestId, serializer)
+                ReportError("method name missing", (int)-32600, requestId, serializer)
             end
 
             MaybeLog(5, "Dispatcher: method target was " + name)
@@ -1092,7 +1092,7 @@ namespace Harmony.TraditionalBridge
                         argArrayList = ((@JsonArray)jsonData.GetProperty("params")).arrayValues
 
                         if(argArrayList.Count != 1 || !(argArrayList[0] .is. JsonObject)) then
-                            ReportError("invalid parameters for rpc.set_log_level", -32602, requestId, serializer)
+                            ReportError("invalid parameters for rpc.set_log_level", (int)-32602, requestId, serializer)
                         else
                         begin
                             data settingsArgumentData = (@JsonObject)argArrayList[0] 
@@ -1100,7 +1100,7 @@ namespace Harmony.TraditionalBridge
                             data passedValue = (@JsonObject)passedValueProp
                             data targetLogSettings = new LoggerScopeSettings()
                             if(passedValue == ^null)
-                                ReportError("invalid parameters for rpc.set_log_level", -32602, requestId, serializer)
+                                ReportError("invalid parameters for rpc.set_log_level", (int)-32602, requestId, serializer)
 
                             passedValue.TryGetProperty("ScopeIdentifier", targetLogSettings.ScopeIdentifier)
                             passedValue.TryGetProperty("LogLocation", targetLogSettings.LogLocation)
@@ -1121,12 +1121,12 @@ namespace Harmony.TraditionalBridge
                     else if(name == "rpc.chain") then
                     begin
                         ;;TODO: flush everything out and stop chain to ourselves
-                        ReportError("rpc.chain not yet implemented", -32603, requestId, serializer)
+                        ReportError("rpc.chain not yet implemented", (int)-32603, requestId, serializer)
                     end
                     else
                     begin
                         ;;extension method was called but isnt supported
-                        ReportError("unknown extension method", -32601, requestId, serializer)
+                        ReportError("unknown extension method", (int)-32601, requestId, serializer)
                     end
                 end
                 else
@@ -1202,13 +1202,13 @@ namespace Harmony.TraditionalBridge
             catch(rtnNotFound, @RoutineNotFound)
             begin
                 serializer.OutputScopeAbort()
-                ReportError(rtnNotFound.ToString(), -32601, requestId, serializer)
+                ReportError(rtnNotFound.ToString(), (int)-32601, requestId, serializer)
             end
             catch(ex, @Exception)
             begin
                 serializer.OutputScopeAbort()
                 ;;TODO maybe this should be a specific type, we might need to do additional processing for certain exception types here
-                ReportError(ex.ToString(), -32000, requestId, serializer)
+                ReportError(ex.ToString(), (int)-32000, requestId, serializer)
             end
             endtry
 
