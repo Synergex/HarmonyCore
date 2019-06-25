@@ -1,6 +1,7 @@
 <CODEGEN_FILENAME>SelfHostEnvironment.dbl</CODEGEN_FILENAME>
 <REQUIRES_CODEGEN_VERSION>5.3.15</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>DATA_FOLDER</REQUIRES_USERTOKEN>
+<REQUIRES_USERTOKEN>SERVICES_NAMESPACE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
@@ -51,9 +52,8 @@ import Microsoft.AspNetCore.Hosting
 import System.Collections.Generic
 import System.IO
 import System.Text
+import <SERVICES_NAMESPACE>
 import <MODELS_NAMESPACE>
-
-.Array 0
 
 namespace <NAMESPACE>
 
@@ -104,12 +104,6 @@ namespace <NAMESPACE>
 
         endmethod
 
-        ;;; <summary>
-        ;;; Exposed as a public property so it can be used as the source of required logical names later,
-        ;;; for example in a custom FileSpecResolver class.
-        ;;; </summary>
-        public static readwrite property LogicalNames, @List<string>()
-
         ;;Declare the SetLogicalsCustom partial method
         ;;This method can be implemented in a partial class to provide custom code to define logical names
         partial static method SetLogicalsCustom, void
@@ -119,7 +113,7 @@ namespace <NAMESPACE>
         private static method setLogicals, void
         proc
             data sampleDataFolder = findRelativeFolderForAssembly("<DATA_FOLDER>")
-            LogicalNames = new List<string>()
+            Startup.LogicalNames = new List<string>()
             data logical = String.Empty
             data fileSpec = String.Empty
             <STRUCTURE_LOOP>
@@ -127,14 +121,14 @@ namespace <NAMESPACE>
             fileSpec = "<FILE_NAME>"
             if (fileSpec.Contains(":")) then
             begin
-                logical = fileSpec.Split(":")[0].ToUpper()
-                if (!LogicalNames.Contains(logical))
-                    LogicalNames.Add(logical)
+                logical = fileSpec.Split(":")[1].ToUpper()
+                if (!Startup.LogicalNames.Contains(logical))
+                    Startup.LogicalNames.Add(logical)
             end
             else if (!fileSpec.Contains("."))
             begin
-                if (!LogicalNames.Contains(fileSpec))
-                    LogicalNames.Add(fileSpec)
+                if (!Startup.LogicalNames.Contains(fileSpec))
+                    Startup.LogicalNames.Add(fileSpec)
             end
             </STRUCTURE_LOOP>
 

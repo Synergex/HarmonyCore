@@ -15,9 +15,8 @@ import Microsoft.AspNetCore.Hosting
 import System.Collections.Generic
 import System.IO
 import System.Text
+import Services
 import Services.Models
-
-.Array 0
 
 namespace Services.Host
 
@@ -64,12 +63,6 @@ namespace Services.Host
 
         endmethod
 
-        ;;; <summary>
-        ;;; Exposed as a public property so it can be used as the source of required logical names later,
-        ;;; for example in a custom FileSpecResolver class.
-        ;;; </summary>
-        public static readwrite property LogicalNames, @List<string>()
-
         ;;Declare the SetLogicalsCustom partial method
         ;;This method can be implemented in a partial class to provide custom code to define logical names
         partial static method SetLogicalsCustom, void
@@ -79,86 +72,86 @@ namespace Services.Host
         private static method setLogicals, void
         proc
             data sampleDataFolder = findRelativeFolderForAssembly("SampleData")
-            LogicalNames = new List<string>()
+            Startup.LogicalNames = new List<string>()
             data logical = String.Empty
             data fileSpec = String.Empty
 
             fileSpec = "DAT:customers.ism"
             if (fileSpec.Contains(":")) then
             begin
-                logical = fileSpec.Split(":")[0].ToUpper()
-                if (!LogicalNames.Contains(logical))
-                    LogicalNames.Add(logical)
+                logical = fileSpec.Split(":")[1].ToUpper()
+                if (!Startup.LogicalNames.Contains(logical))
+                    Startup.LogicalNames.Add(logical)
             end
             else if (!fileSpec.Contains("."))
             begin
-                if (!LogicalNames.Contains(fileSpec))
-                    LogicalNames.Add(fileSpec)
+                if (!Startup.LogicalNames.Contains(fileSpec))
+                    Startup.LogicalNames.Add(fileSpec)
             end
 
             fileSpec = "DAT:items.ism"
             if (fileSpec.Contains(":")) then
             begin
-                logical = fileSpec.Split(":")[0].ToUpper()
-                if (!LogicalNames.Contains(logical))
-                    LogicalNames.Add(logical)
+                logical = fileSpec.Split(":")[1].ToUpper()
+                if (!Startup.LogicalNames.Contains(logical))
+                    Startup.LogicalNames.Add(logical)
             end
             else if (!fileSpec.Contains("."))
             begin
-                if (!LogicalNames.Contains(fileSpec))
-                    LogicalNames.Add(fileSpec)
+                if (!Startup.LogicalNames.Contains(fileSpec))
+                    Startup.LogicalNames.Add(fileSpec)
             end
 
             fileSpec = "DAT:orders.ism"
             if (fileSpec.Contains(":")) then
             begin
-                logical = fileSpec.Split(":")[0].ToUpper()
-                if (!LogicalNames.Contains(logical))
-                    LogicalNames.Add(logical)
+                logical = fileSpec.Split(":")[1].ToUpper()
+                if (!Startup.LogicalNames.Contains(logical))
+                    Startup.LogicalNames.Add(logical)
             end
             else if (!fileSpec.Contains("."))
             begin
-                if (!LogicalNames.Contains(fileSpec))
-                    LogicalNames.Add(fileSpec)
+                if (!Startup.LogicalNames.Contains(fileSpec))
+                    Startup.LogicalNames.Add(fileSpec)
             end
 
             fileSpec = "DAT:order_items.ism"
             if (fileSpec.Contains(":")) then
             begin
-                logical = fileSpec.Split(":")[0].ToUpper()
-                if (!LogicalNames.Contains(logical))
-                    LogicalNames.Add(logical)
+                logical = fileSpec.Split(":")[1].ToUpper()
+                if (!Startup.LogicalNames.Contains(logical))
+                    Startup.LogicalNames.Add(logical)
             end
             else if (!fileSpec.Contains("."))
             begin
-                if (!LogicalNames.Contains(fileSpec))
-                    LogicalNames.Add(fileSpec)
+                if (!Startup.LogicalNames.Contains(fileSpec))
+                    Startup.LogicalNames.Add(fileSpec)
             end
 
             fileSpec = "DAT:vendors.ism"
             if (fileSpec.Contains(":")) then
             begin
-                logical = fileSpec.Split(":")[0].ToUpper()
-                if (!LogicalNames.Contains(logical))
-                    LogicalNames.Add(logical)
+                logical = fileSpec.Split(":")[1].ToUpper()
+                if (!Startup.LogicalNames.Contains(logical))
+                    Startup.LogicalNames.Add(logical)
             end
             else if (!fileSpec.Contains("."))
             begin
-                if (!LogicalNames.Contains(fileSpec))
-                    LogicalNames.Add(fileSpec)
+                if (!Startup.LogicalNames.Contains(fileSpec))
+                    Startup.LogicalNames.Add(fileSpec)
             end
 
             fileSpec = "DAT:sysparams.ddf"
             if (fileSpec.Contains(":")) then
             begin
-                logical = fileSpec.Split(":")[0].ToUpper()
-                if (!LogicalNames.Contains(logical))
-                    LogicalNames.Add(logical)
+                logical = fileSpec.Split(":")[1].ToUpper()
+                if (!Startup.LogicalNames.Contains(logical))
+                    Startup.LogicalNames.Add(logical)
             end
             else if (!fileSpec.Contains("."))
             begin
-                if (!LogicalNames.Contains(fileSpec))
-                    LogicalNames.Add(fileSpec)
+                if (!Startup.LogicalNames.Contains(fileSpec))
+                    Startup.LogicalNames.Add(fileSpec)
             end
 
             ;;If we have a SetLogicalsCustom method, call it
