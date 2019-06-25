@@ -138,7 +138,7 @@ namespace <NAMESPACE>
             ;;Now we'll check each logical. If it already has a value we'll do nothing, otherwise
             ;;we'll set the logical to point to the local folder whose name is identified by the
             ;;user-defined token DATA_FOLDER
-            foreach logical in LogicalNames
+            foreach logical in Startup.LogicalNames
             begin
                 data sts, int
                 data translation, a80
