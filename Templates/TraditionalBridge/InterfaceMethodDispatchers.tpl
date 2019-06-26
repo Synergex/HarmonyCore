@@ -280,7 +280,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 		<IF COLLECTION>
 			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.AlphaArrayField, <PARAMETER_SIZE>)
 		<ELSE>
-			serializer.ArgumentData(<COUNTER_1_VALUE>, %atrim(arg<COUNTER_1_VALUE>, FieldDataType.AlphaField))
+			serializer.ArgumentData(<COUNTER_1_VALUE>, %atrim(arg<COUNTER_1_VALUE>), FieldDataType.AlphaField)
 		</IF COLLECTION>
 	</IF ALPHA>
 ;//
