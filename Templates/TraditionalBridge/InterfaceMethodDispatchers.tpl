@@ -244,6 +244,8 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 		</IF STRUCTURE>
 ;//
 	</IF COLLECTION>
+	<ELSE>
+	
 	</IF IN_OR_INOUT>
 </PARAMETER_LOOP>
 ;//
@@ -262,7 +264,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 <IF FUNCTION>
 
 			;;Function return value
-			serializer.ArgumentData(0, returnValue)
+			serializer.ArgumentData(0, <IF ENUM>(int)</IF ENUM>returnValue)
 </IF FUNCTION>
 ;//
 ;//Argument processing
@@ -276,112 +278,54 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 			;;Argument <COUNTER_1_VALUE> (<PARAMETER_REQUIRED> <PARAMETER_DIRECTION> <PARAMETER_NAME> <IF COLLECTION_ARRAY>[*]</IF COLLECTION_ARRAY><IF COLLECTION_HANDLE>memory handle collection of </IF COLLECTION_HANDLE><IF COLLECTION_ARRAYLIST>ArrayList collection of </IF COLLECTION_ARRAYLIST><IF STRUCTURE>structure </IF STRUCTURE><IF ENUM>enum </IF ENUM><IF STRUCTURE>@<ParameterStructureNoplural><ELSE><PARAMETER_DEFINITION></IF STRUCTURE><IF DATE> <PARAMETER_DATE_FORMAT> date</IF DATE><IF TIME> <PARAMETER_DATE_FORMAT> time</IF TIME><IF REFERENCE> passed by REFERENCE</IF REFERENCE><IF VALUE> passed by VALUE</IF VALUE><IF DATATABLE> returned as DataTable</IF DATATABLE>)
 			
 ;//
-	<IF ALPHA>
-		<IF COLLECTION>
-			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.AlphaArrayField, <PARAMETER_SIZE>)
-		<ELSE>
-			serializer.ArgumentData(<COUNTER_1_VALUE>, %atrim(arg<COUNTER_1_VALUE>, FieldDataType.AlphaField))
-		</IF COLLECTION>
-	</IF ALPHA>
-;//
-	<IF DECIMAL>
-		<IF COLLECTION>
-			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.DecimalArrayField, <PARAMETER_SIZE>)
-		<ELSE>
-			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.DecimalField)
-		</IF COLLECTION>
-	</IF DECIMAL>
-;//
-	<IF IMPLIED>
-		<IF COLLECTION>
-			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.ImpliedDecimalArrayField, <PARAMETER_SIZE>, <PARAMETER_PRECISION>)
-		<ELSE>
-			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.ImpliedDecimal, , <PARAMETER_SIZE>, <PARAMETER_PRECISION>)
-		</IF COLLECTION>
-	</IF IMPLIED>
-;//
-	<IF INTEGER>
-		<IF COLLECTION>
-			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.IntegerArrayField, <PARAMETER_SIZE>)
-		<ELSE>
-			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.IntegerField)
-		</IF COLLECTION>
-	</IF INTEGER>
-;//
-	<IF ENUM>
-			;TODO: Do we need custom processing for enum fields beyond the integer value?
-			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.IntegerField)
-	</IF ENUM>
-;//
-	<IF DATE>
-		<IF COLLECTION>
-			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.DecimalArrayField, <PARAMETER_SIZE>)
-		<ELSE>
-			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.DecimalField)
-		</IF COLLECTION>
-	</IF DATE>
-;//
-	<IF TIME>
-		<IF COLLECTION>
-			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.DecimalArrayField, <PARAMETER_SIZE>)
-		<ELSE>
-			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.DecimalField)
-		</IF COLLECTION>
-	</IF TIME>
-;//
-	<IF HANDLE>
-			;TODO: Handle support is incomplete and will FAIL!!!
-	</IF HANDLE>
-;//
-	<IF BINARY_HANDLE>
-			;TODO: Binary Handle support is incomplete and will FAIL!!!
-	</IF BINARY_HANDLE>
-;//
-	<IF STRING>
-		<IF COLLECTION>
-			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.StringArrayField)
-		<ELSE>
-			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.StringField)
-		</IF COLLECTION>
-	</IF STRING>
-;//
-;//Start of structure parameter processing
-;//
-	<IF STRUCTURE>
-		<IF COLLECTION>
-;//
-;//Structure collection processing
-;//
-;//
-;//Structure array processing
-;//
-		<IF COLLECTION_ARRAY>
-			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.DataObjectCollectionField, <PARAMETER_SIZE>, <PARAMETER_STRUCTURE>)
-		</IF COLLECTION_ARRAY>
-;//
-;//Structure memory handle collection processing
-;//
-		<IF COLLECTION_HANDLE>
-			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.DataObjectCollectionField, <PARAMETER_SIZE>, <PARAMETER_STRUCTURE>)
-		</IF COLLECTION_HANDLE>
-;//
-;//Structure ArrayList processing
-;//
+	<IF COLLECTION>
 		<IF COLLECTION_ARRAYLIST>
-			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.DataObjectCollectionField, <PARAMETER_SIZE>, <PARAMETER_STRUCTURE>)
-		</IF COLLECTION_ARRAYLIST>
-;//
-;//End of structure collection processing
-;//
+			<IF STRUCTURE>
+			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.DataObjectCollectionField, <PARAMETER_SIZE>, "<PARAMETER_STRUCTURE>", false)
+			<ELSE>
+				<IF STRING>
+			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>)
+				<ELSE>
+					<IF DATEORTIME>
+			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.DecimalArrayField, <PARAMETER_SIZE>, 0, false)
+					<ELSE>
+						<IF ENUM>
+			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.IntegerArrayField, 4, 0, false)
+						<ELSE>
+			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.<PARAMETER_TYPE>ArrayField, <PARAMETER_SIZE>, 0<PARAMETER_PRECISION>, false)
+						</IF ENUM>
+			
+					</IF DATEORTIME>
+				</IF STRING>
+			</IF STRUCTURE>
 		<ELSE>
-;//
-;//Single structure processing
-;//
-			;;Argument <COUNTER_1_VALUE>: Single <ParameterStructureNoplural> record
-			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.DataObjectField, <PARAMETER_SIZE>, <PARAMETER_STRUCTURE>)
-		</IF COLLECTION>
-;//
-	</IF STRUCTURE>
+			<IF STRUCTURE>
+			serializer.ArgumentHandleData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>Handle, FieldDataType.DataObjectCollectionField, <PARAMETER_SIZE>, "<PARAMETER_STRUCTURE>", arg<COUNTER_1_VALUE>Array.arrayValues.Count, false)
+			<ELSE>
+			serializer.ArgumentHandleData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>Handle, FieldDataType.<PARAMETER_TYPE>ArrayField, <PARAMETER_SIZE>, 0<PARAMETER_PRECISION>, arg<COUNTER_1_VALUE>Array.arrayValues.Count, false)
+			</IF STRUCTURE>
+		</IF COLLECTION_ARRAYLIST>
+	<ELSE>
+		<IF ALPHA>
+			serializer.ArgumentData(<COUNTER_1_VALUE>, %atrim(arg<COUNTER_1_VALUE>), FieldDataType.AlphaField)
+		<ELSE>
+			<IF STRUCTURE>
+			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.DataObjectField, <PARAMETER_SIZE>, "<PARAMETER_STRUCTURE>", false)
+			<ELSE>
+				<IF DATEORTIME>
+			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.DecimalField)
+				<ELSE>
+					<IF ENUM>
+			serializer.ArgumentData(<COUNTER_1_VALUE>, (int)arg<COUNTER_1_VALUE>, FieldDataType.IntegerField)
+					<ELSE>
+			serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.<PARAMETER_TYPE>Field, <PARAMETER_SIZE>, 0<PARAMETER_PRECISION>, false)
+					</IF ENUM>
+				</IF DATEORTIME>
+			
+			</IF STRUCTURE>
+			
+		</IF ALPHA>
+	</IF COLLECTION>
 </IF OUT_OR_INOUT>
 </PARAMETER_LOOP>
 		endmethod

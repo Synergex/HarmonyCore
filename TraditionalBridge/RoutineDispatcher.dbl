@@ -876,16 +876,12 @@ namespace Harmony.TraditionalBridge
 			requestId, int
 			result, [#]@object
 			inputSet, [#]boolean
+			resultTypes, [#]FieldDataType
 			serializer, @DispatchSerializer
 			record
 				arg, @object
 				ii, int
 		proc
-			if(requestId != -1) then
-			begin
-				serializer.MapOpen()
-				serializer.Pair("jsonrpc", "2.0")
-                        
 				serializer.ArrayOpen()
 				ii = 0
 				foreach arg in result
@@ -893,28 +889,11 @@ namespace Harmony.TraditionalBridge
 					incr ii
 					if(inputSet[ii])
 					begin
-						serializer.MapOpen()
-						serializer.Pair("Position", ii)
-						serializer.String("Value")
-						SerializeObject(arg, serializer)
-						serializer.MapClose()
+						serializer.ArgumentData(ii, arg, 
 					end
 				end
-
-				serializer.ArrayClose()
-                        
-				if(requestId > -1) then
-					serializer.Pair("id", requestId)
-				else
-					serializer.PairNull("id")
-
-				serializer.MapClose()
 				MaybeLog(5, "ReportResult: array(" + %string(result.Length) + ") messageId" + %string(requestId))
-			end
-			else
-			begin
-				MaybeLog(5, "ReportResult: Notify")
-			end
+			
 		endmethod
 
 		;;; <summary>
@@ -1119,62 +1098,7 @@ namespace Harmony.TraditionalBridge
 					end
 					else
 					begin
-						
-						data argValue, @JsonValue
-						data arg, @JsonObject
-						data argValueArray, [#]@Object
-						data rcbid, i4
-						data ii, i4, 0
-						data responseSet, [#]boolean
 						throw new RoutineNotFound(name + " was not found")
-						argArrayList = new ArrayList()
-						MaybeLog(5, "Dispatcher: dispatching dynamically for " + name)
-						if(jsonData.HasProperty("params"))
-						begin
-							data arg, @JsonObject
-							data ii = 0
-							argArrayList = ((@JsonArray)jsonData.GetProperty("params")).arrayValues
-						end
-						argValueArray = new object[argArrayList.Count]
-						responseSet = new boolean[argArrayList.Count]
-						rcbid = %rcb_create(argArrayList.Count) 
-						xcall rcb_setfnc(rcbid, name)
-						foreach argValue in argArrayList as @JsonValue
-						begin
-							data argType, FieldDataType
-							data argLength, i4, 0
-							data argPrecision, i4, 0
-							incr ii
-
-							if(argValue .is. @JsonObject) then
-								arg = (@JsonObject)argValue
-							else
-								throw new Exception("Invalid protocol, input parameter type was not a JSON object")
-
-							;;the arguments need somewhere to live while we're building up the call so put them into this array
-							argValueArray[ii] = DeserializeObject(arg, argType)
-							if(!jsonData.TryGetBoolProperty("ReturnedValue", responseSet[ii]))
-								responseSet[ii] = false
-                                                        
-							if(argType != FieldDataType.DataObjectField && argType != FieldDataType.DataObjectCollectionField) then
-							begin
-								data elementSizeValue, @JsonValue
-								if(jsonData.HasProperty("DecimalPrecision"))
-									argPrecision = ((@JsonInt)jsonData.GetProperty("DecimalPrecision")).Value
-
-								if(jsonData.TryGetProperty("ElementSize", elementSizeValue)) then
-									argLength = ((@JsonInt)elementSizeValue).Value
-								else
-									argLength = ^size((n)argValueArray[ii])
-
-								xcall rcb_setarg(rcbid, (n)argValueArray[ii], ii, (i)argType, argLength, argPrecision)
-							end
-							else
-								xcall rcb_setarg(rcbid, argValueArray[ii], ii)
-						end
-						xcall rcb_call(rcbid) 
-						ReportResult(requestId, argValueArray, responseSet, serializer)
-						MaybeLog(5, "Dispatcher: finished dispatching dynamically for " + name)
 					end
 				end
 				serializer.OutputScopeClose()
@@ -1194,6 +1118,73 @@ namespace Harmony.TraditionalBridge
 
 			mreturn true
 		endmethod
+
+		public method RCBInit, void
+			required in targetMethod, a
+			required in argumentCount, int
+			required inout existingHandle, D_HANDLE
+		proc
+			MaybeLog(5, "Dispatcher: dispatching dynamically for " + targetMethod)
+			if(existingHandle) then
+				existingHandle = %rcb_create(argumentCount, DM_STATIC, existingHandle) 
+			else
+				existingHandle = %rcb_create(argumentCount, DM_STATIC)
+
+			xcall rcb_setfnc(rcbid, name)
+		endmethod
+
+		public method RCBArg, void
+			index, int
+			argObject, @JsonObject
+			argType, FieldDataType
+			argBuffer, a
+			record
+				argLength, i4
+				argPrecision, i4
+		proc
+			argLength = 0
+			argPrecision = 0
+
+			if(argType != FieldDataType.DataObjectField && argType != FieldDataType.DataObjectCollectionField) then
+			begin
+				data elementSizeValue, @JsonValue
+				if(jsonData.HasProperty("DecimalPrecision"))
+					argPrecision = ((@JsonInt)jsonData.GetProperty("DecimalPrecision")).Value
+
+				if(jsonData.TryGetProperty("ElementSize", elementSizeValue)) then
+					argLength = ((@JsonInt)elementSizeValue).Value
+				else
+					argLength = ^size((argBuffer)
+
+				xcall rcb_setarg(rcbid, (n)argBuffer, ii, (i)argType, argLength, argPrecision)
+			end
+			else
+				throw new Exception("Object parameters to RCB dispatch is not currently implemented")
+		endmethod
+
+		public 
+		
+		public method RCBSerializeArg, void
+			index, int
+			argType, FieldDataType
+			argBuffer, a
+			argLength, i4
+			argPrecision, i4
+			serializer, @DispatchSerializer
+		proc
+			case (argType) of
+			begincase
+			FieldDataType.AlphaField:
+				serializer.ArgumentData(index, argBuffer, argType, argLength, argPrecision, false)
+			FieldDataType.IntegerField:
+				serializer.ArgumentData(index, ^i(argBuffer), argType, argLength, argPrecision, false)
+			FieldDataType.ImpliedDecimalField:
+				serializer.ArgumentData(index, ^d(argBuffer, argPrecision), argType, argLength, argPrecision, false)
+			FieldDataType.DecimalField:
+				serializer.ArgumentData(index, ^d(argBuffer), argType, argLength, argPrecision, false)
+			endcase
+		endmethod
+
 
 	endclass
 
