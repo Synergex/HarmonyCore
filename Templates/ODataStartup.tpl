@@ -113,6 +113,14 @@ namespace <NAMESPACE>
     public partial class Startup
 
         ;;; <summary>
+        ;;; This property will be populated later by the default SelfHostEnvironment class.
+        ;;; It wil contain a list of all of the logical names used to locate data files in the repository.
+        ;;; This information can be useful if implementing a custom FileSpecResolver class, which is done
+        ;;; in the Services Assembly, which is why the collection is defined here.
+        ;;; </summary>
+        public static readwrite property LogicalNames, @List<string>
+
+        ;;; <summary>
         ;;; This methoid is used to make services available to the application.
         ;;; These services are typically accessed via dependency injection in controller classes.
         ;;; The primary purpose of the ConfigureServices method is as a place to register

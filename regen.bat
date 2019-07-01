@@ -158,6 +158,7 @@ if DEFINED ENABLE_SELF_HOST_GENERATION (
           -t ODataSelfHost ODataSelfHostEnvironment ^
           -o %SolutionDir%%HostProject% ^
           -n %HostProject% ^
+          -ut SERVICES_NAMESPACE=%ServicesProject% MODELS_NAMESPACE=%ModelsProject% ^
              %STDOPTS%
   if ERRORLEVEL 1 goto error
 )
