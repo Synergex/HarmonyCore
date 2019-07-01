@@ -909,7 +909,7 @@ namespace Harmony.TraditionalBridge
 					incr ii
 					if(inputSet[ii])
 					begin
-						serializer.ArgumentData(ii, arg, 
+						;;TODO input set
 					end
 				end
 				MaybeLog(5, "ReportResult: array(" + %string(result.Length) + ") messageId" + %string(requestId))
@@ -1150,7 +1150,7 @@ namespace Harmony.TraditionalBridge
 			else
 				existingHandle = %rcb_create(argumentCount, DM_STATIC)
 
-			xcall rcb_setfnc(rcbid, name)
+			xcall rcb_setfnc(existingHandle, targetMethod)
 		endmethod
 
 		public method RCBArg, void
@@ -1158,6 +1158,7 @@ namespace Harmony.TraditionalBridge
 			argObject, @JsonObject
 			argType, FieldDataType
 			argBuffer, a
+			rcbid, D_HANDLE
 			record
 				argLength, i4
 				argPrecision, i4
@@ -1168,21 +1169,19 @@ namespace Harmony.TraditionalBridge
 			if(argType != FieldDataType.DataObjectField && argType != FieldDataType.DataObjectCollectionField) then
 			begin
 				data elementSizeValue, @JsonValue
-				if(jsonData.HasProperty("DecimalPrecision"))
-					argPrecision = ((@JsonInt)jsonData.GetProperty("DecimalPrecision")).Value
+				if(argObject.HasProperty("DecimalPrecision"))
+					argPrecision = ((@JsonInt)argObject.GetProperty("DecimalPrecision")).Value
 
-				if(jsonData.TryGetProperty("ElementSize", elementSizeValue)) then
+				if(argObject.TryGetProperty("ElementSize", elementSizeValue)) then
 					argLength = ((@JsonInt)elementSizeValue).Value
 				else
-					argLength = ^size((argBuffer)
+					argLength = ^size(argBuffer)
 
-				xcall rcb_setarg(rcbid, (n)argBuffer, ii, (i)argType, argLength, argPrecision)
+				xcall rcb_setarg(rcbid, argBuffer, index, (i)argType, argLength, argPrecision)
 			end
 			else
 				throw new Exception("Object parameters to RCB dispatch is not currently implemented")
 		endmethod
-
-		public 
 		
 		public method RCBSerializeArg, void
 			index, int

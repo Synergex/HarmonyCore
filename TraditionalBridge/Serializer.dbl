@@ -603,7 +603,14 @@ namespace Json
 			optional in size, int
 			optional in precision, int
 			optional in hasBinaryData, boolean
+			record
+				encodeElement, boolean
 		proc
+			if(^passed(hasBinaryData)) then
+				encodeElement = hasBinaryData
+			else
+				encodeElement = false
+
 			;;TODO inline these operations into a single buffer op
 			MapOpen()
 			Pair("Position", argPos)
@@ -611,7 +618,10 @@ namespace Json
 			MapOpen()
 			
 			Pair("DataType", (i)FieldDataType.AlphaField)
-			Pair("PassedValue", %atrim(value))
+			if(encodeElement) then
+				Pair("Base64Value", Convert.FromBase64String(value))
+			else
+				Pair("PassedValue", %atrim(value))
 			MapClose()
 			MapClose()
 		endmethod
