@@ -45,4 +45,54 @@ namespace TraditionalBridge.Test.Dispatcher
 
 	endclass
 
+	public class ArbitrarioOptionalDispatcher extends RoutineStub
+
+		private mRcbid, int
+
+		protected override method DispatchInternal, void
+			required in name,       string
+			required in callFrame,  @JsonObject
+			required in serializer, @DispatchSerializer
+			required in dispatcher, @RoutineDispatcher
+			record
+				arguments,			@JsonArray
+				arg1, a4
+				arg2, a24
+				arg2Passed, boolean
+				arg3, a24
+				arg3Passed, boolean
+				arg4, a18
+				arg4Passed, boolean
+			endrecord
+		proc
+			;;------------------------------------------------------------
+			;;Process inbound arguments
+
+			arguments = (@JsonArray)callFrame.GetProperty("params")
+			;;------------------------------------------------------------
+			;; Call the underlying routine
+			
+			RCBInit("arbitrary_optional", 4, mRcbid)
+			try
+			begin
+			RCBArg(1, (@JsonObject)arguments.arrayValues[1], FieldDataType.IntegerField, arg1, mRcbid, 0)
+			RCBArg(2, (@JsonObject)arguments.arrayValues[2], FieldDataType.AlphaField, arg2, mRcbid, 0, arg2Passed)
+			RCBArg(3, (@JsonObject)arguments.arrayValues[3], FieldDataType.AlphaField, arg3, mRcbid, 0, arg3Passed)
+			RCBArg(4, (@JsonObject)arguments.arrayValues[4], FieldDataType.DecimalField, arg4, mRcbid, 0, arg4Passed)
+
+			rcb_call(mRcbid)
+
+			RCBSerializeArg(2, arg2Passed, FieldDataType.AlphaField, arg2, 24, 0, serializer)
+			RCBSerializeArg(3, arg3Passed, FieldDataType.AlphaField, arg3, 24, 0, serializer)
+			RCBSerializeArg(4, arg4Passed, FieldDataType.DecimalField, arg4, 18, 0, serializer)
+			end
+			finally
+			begin
+				mRcbid = %rcb_create(4, DM_STATIC, mRcbid)
+			end
+			endtry
+		endmethod
+
+	endclass
+
 endnamespace

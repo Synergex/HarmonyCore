@@ -67,6 +67,40 @@ namespace HarmonyCore.Test.Bridge
 
 
 		{TestMethod}
+		public async method LocalOptionalTest, @Task
+		proc
+			data currentDirectory = Path.GetDirectoryName(^typeof(BasicBridge).Assembly.Location)
+			disposable data contextPool = new ExternalContextPool<BasicBridge.ExternalCallContext>(Environment.GetEnvironmentVariable("SYNERGYDE32") + "dbl\bin\dbs.exe", 'TraditionalBridge.Test.dbr', Path.GetFullPath(Path.Combine(currentDirectory, "..\..\..\..\TestDir")), ^null, 4) 
+			data sp = new ServiceCollection().BuildServiceProvider()
+			
+			data context = contextPool.MakeContext(sp)
+			
+			await context.SetRemoteLogSettings(new RemoteLogSettings() { AttachLogsToExceptions = true, InMemoryLogLevel = 5, LogToMemory = true, LogToDisk = true, OnDiskLogLevel = 6, FlushLog = true }) 
+			
+
+			data ret1 = await context.Arbitrario_Optional(new ExternalCallContext.ArbitrarioOptionalParameter() { p1=9, p2="World", p3=String.Empty, p4=5 })
+			data ret2 = await context.Arbitrario_Optional(new ExternalCallContext.ArbitrarioOptionalParameter() { p1=9, p2="World", p3=String.Empty})
+			data ret3 = await context.Arbitrario_Optional(new ExternalCallContext.ArbitrarioOptionalParameter() { p1=9})
+			data ret4 = await context.Arbitrario_Optional(new ExternalCallContext.ArbitrarioOptionalParameter() { p1=9, p4=5 })
+
+			Assert.AreEqual(ret1.p3, "World")
+			Assert.AreEqual(ret1.p4, 45)
+
+			Assert.AreEqual(ret2.p3, "World")
+			Assert.IsNull(ret2.p4)
+
+			Assert.IsNull(ret3.p3)
+			Assert.IsNull(ret3.p4)
+
+			Assert.IsNull(ret4.p3)
+			Assert.AreEqual(ret4.p4, 45)
+
+			contextPool.ReturnContext(context)
+			await contextPool.TrimPool(0)
+			Console.WriteLine("shutting down test")
+		endmethod
+
+		{TestMethod}
 		public async method LocalLoggingTest, @Task
 		proc
 			data currentDirectory = Path.GetDirectoryName(^typeof(BasicBridge).Assembly.Location)
@@ -130,6 +164,17 @@ namespace HarmonyCore.Test.Bridge
 				mreturn new ArbitrarioReturnType() { ReturnCode = returnToken.ToObject<int>(), IntList = ((@IEnumerable<int>)resultTpl.Item2[4]).ToList(), StringList = ((@IEnumerable<string>)resultTpl.Item2[5]).ToList() }
 			endmethod
 
+			public async method Arbitrario_Optional, @Task<ArbitrarioOptionalReturnType>
+				parm, @ArbitrarioOptionalParameter
+			proc
+				data resultTpl = await CallMethod("arbitrario_optional", parm.p1, ArgumentHelper.MaybeOptional(parm.p2), ArgumentHelper.MaybeOptional(parm.p3), ArgumentHelper.MaybeOptional(parm.p4))
+				data resultArray = resultTpl.Item2.ToList()
+				data returnValue = new ArbitrarioOptionalReturnType()
+				returnValue.p3 = ^as(resultArray[2], @string)
+				returnValue.p4 = ^as(resultArray[3], Nullable<int>)
+				mreturn returnValue
+			endmethod
+
 			public async method function_four, @Task<FunctionFourReturnType>
 				p1, @string
 				p2, @string
@@ -153,6 +198,17 @@ namespace HarmonyCore.Test.Bridge
 				public readwrite property StringList, @List<string>
 			endclass
 
+			public class ArbitrarioOptionalParameter
+				public readwrite property p1, int
+				public readwrite property p2, @string
+				public readwrite property p3, @string
+				public readwrite property p4, int?
+			endclass
+
+			public class ArbitrarioOptionalReturnType
+				public readwrite property p3, @string
+				public readwrite property p4, int?
+			endclass
 		endclass
 
 

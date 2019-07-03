@@ -44,6 +44,7 @@ import Newtonsoft.Json.Linq
 
 namespace Harmony.Core
 
+	{JsonObject(ItemNullValueHandling=NullValueHandling.Ignore)}
 	public class ArgumentDataDefinition
 		public PassedValue			,@Object
 		public ReturnedValue		,boolean?
@@ -59,6 +60,108 @@ namespace Harmony.Core
 		{JsonConverter(^typeof(ReturnValueConverter))}
 		public Value, @ArgumentDataDefinition
 	endclass
+
+	public interface IArgumentPlaceholder
+		readonly property ArgumentType, @Type
+		readonly property Passed, boolean
+	endinterface
+
+	public class ArgumentPlaceholder<T> implements IArgumentPlaceholder
+
+		public readwrite property Passed, Boolean
+		public static Instance, @ArgumentPlaceholder<T>, new ArgumentPlaceholder<T>()
+		public virtual property ArgumentType, @Type
+			method get
+			proc
+				mreturn ^typeof(T)
+			endmethod
+		endproperty
+	endclass
+
+	public static class ArgumentHelper
+		public static method MaybeOptional<T(class)>, @object
+			arg, T
+		proc
+			if(arg == ^null) then
+				mreturn ArgumentPlaceholder<T>.Instance
+			else
+				mreturn arg
+		endmethod
+
+		public static method MaybeOptional, @object
+			arg, Nullable<int>
+		proc
+			if(arg == ^null) then
+				mreturn ArgumentPlaceholder<int>.Instance
+			else
+				mreturn arg
+		endmethod
+
+		public static method MaybeOptional, @object
+			arg, Nullable<long>
+		proc
+			if(arg == ^null) then
+				mreturn ArgumentPlaceholder<long>.Instance
+			else
+				mreturn arg
+		endmethod
+
+		public static method MaybeOptional, @object
+			arg, Nullable<short>
+		proc
+			if(arg == ^null) then
+				mreturn ArgumentPlaceholder<short>.Instance
+			else
+				mreturn arg
+		endmethod
+
+		public static method MaybeOptional, @object
+			arg, Nullable<byte>
+		proc
+			if(arg == ^null) then
+				mreturn ArgumentPlaceholder<byte>.Instance
+			else
+				mreturn arg
+		endmethod
+
+		public static method MaybeOptional, @object
+			arg, Nullable<float>
+		proc
+			if(arg == ^null) then
+				mreturn ArgumentPlaceholder<float>.Instance
+			else
+				mreturn arg
+		endmethod
+
+		public static method MaybeOptional, @object
+			arg, Nullable<double>
+		proc
+			if(arg == ^null) then
+				mreturn ArgumentPlaceholder<double>.Instance
+			else
+				mreturn arg
+		endmethod
+
+		public static method MaybeOptional, @object
+			arg, Nullable<decimal>
+		proc
+			if(arg == ^null) then
+				mreturn ArgumentPlaceholder<decimal>.Instance
+			else
+				mreturn arg
+		endmethod
+
+;		public static method MaybeOptional<R(structure)>, @object
+;			arg, Nullable<R>
+;		proc
+;			if(arg == ^null) then
+;				mreturn ArgumentPlaceholder<R>.Instance
+;			else
+;				mreturn arg
+;		endmethod
+
+	endclass
+
 
 	public class ReturnValueConverter extends JsonConverter
 

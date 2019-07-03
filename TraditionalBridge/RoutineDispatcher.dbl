@@ -710,7 +710,7 @@ namespace Harmony.TraditionalBridge
                 MaybeLog(6, "Dispatcher: Reading " + %string(remainingRead) + " bytes from input")
                 gets(ttChannel, ^m(MemStruct(readerPosition:remainingRead), mReadBuffer), wait:100, MASK:mActivationMask) [$ERR_TIMOUT=again]
             again,  
-                MaybeLog(6, "Dispatcher: Reading Content from input" + ^m(MemStruct(readerPosition:remainingRead), mReadBuffer) + ": got " + %string(%rdlen(ttChannel)) + " bytes, was expecting " + %string(remainingRead) + " bytes")
+                MaybeLog(7, "Dispatcher: Reading Content from input" + ^m(MemStruct(readerPosition:remainingRead), mReadBuffer) + ": got " + %string(%rdlen(ttChannel)) + " bytes, was expecting " + %string(remainingRead) + " bytes")
                 readerPosition += %rdlen(ttChannel)
                 remainingRead = frameHeader - readerPosition
                                 
@@ -966,9 +966,12 @@ namespace Harmony.TraditionalBridge
                                                                                                 
                         lengthReadPos += contentTypeLength
                     again,          
-                        MaybeLog(6, "Dispatcher: Reading ContentLength from input" + %atrim(PacketLength) + ":" + %string(lengthReadPos))
+                        
                     end
-                    until lengthReadPos > 16 && PacketLength(lengthReadPos - 1:1) == %char(10)
+					until lengthReadPos > 16 && PacketLength(lengthReadPos - 1:1) == %char(10)
+
+					MaybeLog(6, "Dispatcher: Reading ContentLength from input" + %atrim(PacketLength) + ":" + %string(lengthReadPos))
+
                     clear PacketLength(lengthReadPos - 2:2)
                     frameHeader = ^d(%atrim(lengthValue))
                     contentTypePos = 1
@@ -998,7 +1001,7 @@ namespace Harmony.TraditionalBridge
 
                     running = ReadCallBlock(ttChannel, (int)frameHeader + 1, leftoverData, leftoverLength)
                 end
-                writes(ttChannel, "Shutting down due to running == false")
+				MaybeLog(1, "Shutting down due to running == false")
             end
             catch(ex, @Exception)
             begin
@@ -1138,73 +1141,6 @@ namespace Harmony.TraditionalBridge
 
 			mreturn true
 		endmethod
-
-		public method RCBInit, void
-			required in targetMethod, a
-			required in argumentCount, int
-			required inout existingHandle, D_HANDLE
-		proc
-			MaybeLog(5, "Dispatcher: dispatching dynamically for " + targetMethod)
-			if(existingHandle) then
-				existingHandle = %rcb_create(argumentCount, DM_STATIC, existingHandle) 
-			else
-				existingHandle = %rcb_create(argumentCount, DM_STATIC)
-
-			xcall rcb_setfnc(existingHandle, targetMethod)
-		endmethod
-
-		public method RCBArg, void
-			index, int
-			argObject, @JsonObject
-			argType, FieldDataType
-			argBuffer, a
-			rcbid, D_HANDLE
-			record
-				argLength, i4
-				argPrecision, i4
-		proc
-			argLength = 0
-			argPrecision = 0
-
-			if(argType != FieldDataType.DataObjectField && argType != FieldDataType.DataObjectCollectionField) then
-			begin
-				data elementSizeValue, @JsonValue
-				if(argObject.HasProperty("DecimalPrecision"))
-					argPrecision = ((@JsonInt)argObject.GetProperty("DecimalPrecision")).Value
-
-				if(argObject.TryGetProperty("ElementSize", elementSizeValue)) then
-					argLength = ((@JsonInt)elementSizeValue).Value
-				else
-					argLength = ^size(argBuffer)
-
-				xcall rcb_setarg(rcbid, argBuffer, index, (i)argType, argLength, argPrecision)
-			end
-			else
-				throw new Exception("Object parameters to RCB dispatch is not currently implemented")
-		endmethod
-		
-		public method RCBSerializeArg, void
-			index, int
-			argType, FieldDataType
-			argBuffer, a
-			argLength, i4
-			argPrecision, i4
-			serializer, @DispatchSerializer
-		proc
-			case (argType) of
-			begincase
-			FieldDataType.AlphaField:
-				serializer.ArgumentData(index, argBuffer, argType, argLength, argPrecision, false)
-			FieldDataType.IntegerField:
-				serializer.ArgumentData(index, ^i(argBuffer), argType, argLength, argPrecision, false)
-			FieldDataType.ImpliedDecimalField:
-				serializer.ArgumentData(index, ^d(argBuffer, argPrecision), argType, argLength, argPrecision, false)
-			FieldDataType.DecimalField:
-				serializer.ArgumentData(index, ^d(argBuffer), argType, argLength, argPrecision, false)
-			endcase
-		endmethod
-
-
 	endclass
 
     ;;; <summary>
@@ -1256,7 +1192,130 @@ namespace Harmony.TraditionalBridge
             serializer.MapClose()
             ;;Terminate the response object
             serializer.MapClose()
-        endmethod
+		endmethod
+
+		public method RCBInit, void
+			required in targetMethod, a
+			required in argumentCount, int
+			required inout existingHandle, D_HANDLE
+		proc
+			MaybeLog(5, "Dispatcher: dispatching RCB for " + targetMethod)
+			if(existingHandle) then
+				nop
+			else
+				existingHandle = %rcb_create(argumentCount, DM_STATIC)
+
+			xcall rcb_setfnc(existingHandle, targetMethod)
+		endmethod
+
+		public method RCBArg, void
+			index, int
+			argObject, @JsonObject
+			argType, FieldDataType
+			inout argBuffer, a
+			rcbid, D_HANDLE
+			argBufferPrecision, int
+			optional out passed, boolean
+			record
+				argLength, i4
+				argPrecision, i4
+				argValue, @JsonValue
+				argIsEncoded, boolean
+		proc
+			argLength = ^size(argBuffer)
+			argPrecision = 0
+
+			if(argObject.TryGetProperty("PassedValue", argValue)) then
+			begin
+				if(^passed(passed))
+					passed = true
+
+				if(!argObject.TryGetBoolProperty("ElementIsEncoded", argIsEncoded))
+					argIsEncoded = false
+
+				if(argType != FieldDataType.DataObjectField && argType != FieldDataType.DataObjectCollectionField) then
+				begin
+					data elementSizeValue, @JsonValue
+					if(argObject.HasProperty("DecimalPrecision"))
+						argPrecision = ((@JsonInt)argObject.GetProperty("DecimalPrecision")).Value
+
+					if(argType == FieldDataType.AlphaField) then
+					begin
+						if(argIsEncoded) then
+							argBuffer = Convert.FromBase64String(((@JsonText)argValue).Value)
+						else
+							argBuffer = ((@JsonText)argValue).Value
+					end
+					else if(argType == FieldDataType.DecimalField) then
+					begin
+						if(argValue .is. JsonNumber) then
+						begin
+							MaybeLog(4, "argument " + %string(index) + " passed to rcb dispatcher with argType " + %string(argType) + " JsonNumber value " + %string(((@JsonNumber)argValue).Value))
+							^d(argBuffer) = ((@JsonNumber)argValue).Value
+						end
+						else if(argValue .is. JsonInt)
+						begin
+							MaybeLog(4, "argument " + %string(index) + " passed to rcb dispatcher with argType " + %string(argType) + " and arglength " + %string(argLength) + " JsonInt value " + %string(((@JsonInt)argValue).Value))
+							^d(argBuffer) = %implied(((@JsonInt)argValue).Value)
+						end
+					end
+					else if(argType == FieldDataType.ImpliedDecimalField) then
+					begin
+						if(argValue .is. JsonNumber) then
+							^d(argBuffer, argBufferPrecision) = ((@JsonNumber)argValue).Value
+						else if(argValue .is. JsonInt)
+							^d(argBuffer, argBufferPrecision) = %implied(((@JsonInt)argValue).Value)
+					end
+					else if(argType == FieldDataType.IntegerField) then
+					begin
+						MaybeLog(4, "argument " + %string(index) + " passed to rcb dispatcher with argType " + %string(argType)  + " and arglength " + %string(argLength) + " JsonInt value " + %string(((@JsonInt)argValue).Value))
+						^i(argBuffer) = ((@JsonInt)argValue).Value
+					end
+
+					else
+						throw new Exception("unexpected arg type during RCB dispatch " + %string(argType))
+
+					MaybeLog(4, "argument " + %string(index) + " passed to rcb dispatcher with argType " + %string(argType) + " argBuffer value " + argBuffer)
+					xcall rcb_setarg(rcbid, argBuffer, index, (i)argType, argLength, argPrecision)
+				end
+				else
+					throw new Exception("Object parameters to RCB dispatch is not currently implemented")
+			end
+			else
+			begin
+				if(^passed(passed))
+					passed = false
+				MaybeLog(4, "argument " + %string(index) + " was not passed to rcb dispatcher")
+			end
+
+		endmethod
+		
+		public method RCBSerializeArg, void
+			index, int
+			passed, boolean
+			argType, FieldDataType
+			argBuffer, a
+			argLength, i4
+			argPrecision, i4
+			serializer, @DispatchSerializer
+		proc
+			MaybeLog(4, "RCBSerializeArg: serializing argType " + %string(argType) + " marked as passed: " + %string(passed) + " with buffer " + argBuffer)
+
+			if(passed)
+			begin
+				case (argType) of
+				begincase
+				FieldDataType.AlphaField:
+					serializer.ArgumentData(index, argBuffer, argType, argLength, argPrecision, false)
+				FieldDataType.IntegerField:
+					serializer.ArgumentData(index, ^i(argBuffer), argType, argLength, argPrecision, false)
+				FieldDataType.ImpliedDecimalField:
+					serializer.ArgumentData(index, ^d(argBuffer, argPrecision), argType, argLength, argPrecision, false)
+				FieldDataType.DecimalField:
+					serializer.ArgumentData(index, ^d(argBuffer), argType, argLength, argPrecision, false)
+				endcase
+			end
+		endmethod
     endclass
 
 

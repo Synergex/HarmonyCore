@@ -7,7 +7,7 @@ import System.Collections
 .endc
 
 .define IsNumber(ch) (ch >= '0' && ch <= '9')
-
+.define MaybeLog(priority, msg) if((priority) <= Harmony.TraditionalBridge.Logger.LogLevel) Harmony.TraditionalBridge.Logger.Instance.Log(msg)
 namespace Json
 	enum JSON_TYPE
 		OBJ, 
@@ -257,7 +257,7 @@ namespace Json
 					if(value == "true")
 						boolValue = true
 
-					Harmony.TraditionalBridge.Logger.Instance.Log("got bool primative value " + value)
+					MaybeLog(6, "got bool primative value " + value)
 					result = new JsonBoolean() { Value = boolValue, JsonType = jsonType }
 					mreturn result
 				end
@@ -707,7 +707,7 @@ namespace Json
 			end
 			else
 			begin
-				Harmony.TraditionalBridge.Logger.Instance.Log("failed to find prop: " + name)
+				MaybeLog(6, "failed to find prop: " + name)
 				mreturn false
 			end
 		endmethod
@@ -767,7 +767,7 @@ namespace Json
 			if(TryGetProperty(name, foundValue))
 			begin
 				value = ((@JsonBoolean)foundValue).Value
-				Harmony.TraditionalBridge.Logger.Instance.Log("name -> " + %string(value))
+				MAybeLog(6, "name -> " + %string(value))
 				mreturn true
 			end
 			mreturn false
