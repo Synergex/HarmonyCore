@@ -116,12 +116,8 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 				arg<COUNTER_1_VALUE>,				@ArrayList
 		</IF COLLECTION_ARRAYLIST>
 	<ELSE>
-		<IF STRUCTURE>
-				arg<COUNTER_1_VALUE>DataObject, @DataObjectBase
-				arg<COUNTER_1_VALUE>, str<ParameterStructureNoplural>
-		<ELSE>
-				arg<COUNTER_1_VALUE>,				<parameter_definition>
-		</IF STRUCTURE>
+				arg<COUNTER_1_VALUE>,				a<PARAMETER_SIZE>
+				arg<COUNTER_1_VALUE>Passed,			boolean
 	</IF COLLECTION>
 </PARAMETER_LOOP>
 ;//
@@ -170,27 +166,35 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 ;//
 
 			RCBInit(name, <COUNTER_1>, mRcbid)
+			try
+			begin
 <COUNTER_1_RESET>
 
 <IF COUNTER_1>
 			<PARAMETER_LOOP>
 			<COUNTER_1_INCREMENT>
 			
-			RCBArg(<COUNTER_1_VALUE>, ^as(arguments[<COUNTER_1_VALUE>], @JsonObject), FieldDataType.<PARAMETER_TYPE>Field, arg<COUNTER_1_VALUE>, mRcbid)
+				RCBArg(<COUNTER_1_VALUE>, (@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>], FieldDataType.<PARAMETER_TYPE>Field, arg<COUNTER_1_VALUE>, mRcbid, 0<PARAMETER_PRECISION>, arg<COUNTER_1_VALUE>Passed)
 
 			</PARAMETER_LOOP>
 <ELSE>
-			;;There are no inbound arguments to process
+				;;There are no inbound arguments to process
 </IF COUNTER_1>
-			%rcb_call(rcbid)
+				rcb_call(mRcbid)
 
 			<PARAMETER_LOOP>
 			<COUNTER_1_INCREMENT>
 			<IF OUT_OR_INOUT>
-			RCBSerializeArg(<COUNTER_1_VALUE>, FieldDataType.<PARAMETER_TYPE>Field, arg<COUNTER_1_VALUE>, <PARAMETER_SIZE>, 0<PARAMETER_PRECISION>, serializer)
+				RCBSerializeArg(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>Passed, FieldDataType.<PARAMETER_TYPE>Field, arg<COUNTER_1_VALUE>, <PARAMETER_SIZE>, 0<PARAMETER_PRECISION>, serializer)
 			</IF OUT_OR_INOUT>
 			</PARAMETER_LOOP>
-
+			end
+			finally
+			begin
+				;;clear out the rcb handle to prevent a dangling pointer issue
+				mRcbid = %rcb_create(<COUNTER_1_VALUE>, DM_STATIC, mRcbid)
+			end
+			endtry
 		endmethod
 
 	endclass
