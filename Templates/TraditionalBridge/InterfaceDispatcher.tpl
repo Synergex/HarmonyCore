@@ -2,7 +2,7 @@
 <REQUIRES_CODEGEN_VERSION>5.3.15</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
-;// Title:       Dispatcher.tpl
+;// Title:       InterfaceDispatcher.tpl
 ;//
 ;// Type:        CodeGen Template
 ;//
@@ -49,20 +49,25 @@ import <NAMESPACE>.<INTERFACE_NAME>
 
 namespace <NAMESPACE>
 
-	public partial class <INTERFACE_NAME>Dispatcher extends RoutineDispatcher
+    public partial class <INTERFACE_NAME>Dispatcher extends RoutineDispatcher
 
-		public method <INTERFACE_NAME>Dispatcher
-		proc
-			;;All of the routine dispatchers to the string lookup for rapid dispatch when we have a large number of routines
-			<METHOD_LOOP>
-			mDispatchStubs.Add("<METHOD_NAME>", new <METHOD_NAME>_Dispatch())
-			</METHOD_LOOP>
+        public method <INTERFACE_NAME>Dispatcher
+        proc
+            ;;Harmony Core example methods
+            mDispatchStubs.Add("AddTwoNumbers",  new AddTwoNumbersDispatcher())
+            mDispatchStubs.Add("GetEnvironment", new GetEnvironmentDispatcher())
+            mDispatchStubs.Add("GetLogicalName", new GetLogicalNameDispatcher())
 
-			;;Initialize all data object metadata
-			this.initMetaData()
-		
-		endmethod
+            ;;Declare dispatcher classes for the '<INTERFACE_NAME>' interface methods
+            <METHOD_LOOP>
+            mDispatchStubs.Add("<METHOD_NAME>", new <METHOD_NAME>_Dispatcher())
+            </METHOD_LOOP>
 
-	endclass
+            ;;Initialize all data object metadata
+            ;this.initMetaData()
+        
+        endmethod
+
+    endclass
 
 endnamespace
