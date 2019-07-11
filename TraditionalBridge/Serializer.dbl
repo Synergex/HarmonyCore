@@ -927,6 +927,7 @@ namespace Json
 			endstructure
 
 		proc
+			MaybeLog(4, "serializing argument handle data, structureSize was " + %string(structureSize) + " element count was " + %string(elementCount) + " handle length was " + %string(^size(^m(value))))
 			;;TODO inline these operations into a single buffer op
 			MapOpen()
 			Pair("Position", argPos)
@@ -939,7 +940,7 @@ namespace Json
 			String("PassedValue")
 			ArrayOpen()
 
-			for i from 0 thru elementCount by 1
+			for i from 0 thru elementCount - 1 by 1
 			begin
 				if(!binaryData) then
 				begin
@@ -971,6 +972,8 @@ namespace Json
 			endstructure
 
 		proc
+			MaybeLog(4, "serializing argument handle data, elementSize was " + %string(elementSize) + " element count was " + %string(elementCount) + " handle length was " + %string(^size(^m(value))))
+			
 			;;TODO inline these operations into a single buffer op
 			MapOpen()
 			Pair("Position", argPos)
@@ -982,16 +985,33 @@ namespace Json
 			String("PassedValue")
 			ArrayOpen()
 
-			for i from 0 thru elementCount by 1
+			for i from 0 thru elementCount - 1 by 1
 			begin
-				if(!binaryData) then
+				if(type == FieldDataType.AlphaArrayField) then
 				begin
-					String(^m(fake.fld1((i * elementSize) + 1 : elementSize), value))
+					if(!binaryData) then
+					begin
+						String(^m(fake.fld1((i * elementSize) + 1 : elementSize), value))
+					end
+					else
+					begin
+						String(Convert.ToBase64String(^m(fake.fld1((i * elementSize) + 1 : elementSize), value)))
+					end
+				end
+				else if(type == FieldDataType.DecimalArrayField) then
+				begin
+					Integer(^d(^m(fake.fld1((i * elementSize) + 1 : elementSize), value)))
+				end
+				else if(type == FieldDataType.ImpliedDecimalArrayField) then
+				begin
+					Double(^d(^m(fake.fld1((i * elementSize) + 1 : elementSize), value), precision))
+				end
+				else if(type == FieldDataType.IntegerArrayField) then
+				begin
+					Integer(^i(^m(fake.fld1((i * elementSize) + 1 : elementSize), value)))
 				end
 				else
-				begin
-					String(Convert.ToBase64String(^m(fake.fld1((i * elementSize) + 1 : elementSize), value)))
-				end
+					throw new Exception("element type not implemented " + %string(type))
 			end
 			ArrayClose()
 			MapClose()

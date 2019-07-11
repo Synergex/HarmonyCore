@@ -206,14 +206,14 @@ namespace Harmony.TraditionalBridge
                 end
                 else if(element .is. JsonNumber) then
                 begin
-                    buffer(bufferPosition:elementInfo.ElementSize) = ((@JsonNumber)element).Value
+					^d(buffer(bufferPosition:elementInfo.ElementSize), elementInfo.DecimalPrecision) = ((@JsonNumber)element).Value
                 end
                 else if(element .is. JsonInt) then
                 begin
                     if(elementInfo.DataType == FieldDataType.IntegerField) then
-                        buffer(bufferPosition:elementInfo.ElementSize) = ((@JsonNumber)element).Value
+                        ^i(buffer(bufferPosition:elementInfo.ElementSize)) = ((@JsonInt)element).Value
                     else
-                        buffer(bufferPosition:elementInfo.ElementSize) = %string(((@JsonNumber)element).Value)
+                        ^d(buffer(bufferPosition:elementInfo.ElementSize), elementInfo.DecimalPrecision) = %string(((@JsonInt)element).Value)
                 end
                 else if(element .is. JsonBoolean) then
                 begin
@@ -234,12 +234,16 @@ namespace Harmony.TraditionalBridge
         ;;; <param name="argument"></param>
         ;;; <returns></returns>
         public method GetArgumentDataDefForCollection, @ArgumentDataDefinition
-            argument, @JsonObject
+			argument, @JsonObject
+			in optional elementSize, int
             record
                 result, @ArgumentDataDefinition
                 dataType, i4
             endrecord
-        proc
+		proc
+			result = new ArgumentDataDefinition()
+			result.ElementSize = elementSize
+
             argument.TryGetProperty("DecimalPrecision", result.DecimalPrecision)
             argument.TryGetProperty("ElementSize", result.ElementSize)
             if(argument.TryGetProperty("DataType", dataType))

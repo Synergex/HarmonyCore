@@ -12,6 +12,7 @@ import Harmony.Core
 import Newtonsoft.Json.Linq
 import StreamJsonRpc
 import Harmony.Core.Utility
+import HarmonyCore.Test.Bridge.Client
 
 
 namespace HarmonyCore.Test.Bridge
@@ -136,6 +137,40 @@ namespace HarmonyCore.Test.Bridge
 			Console.WriteLine("shutting down test")
 		endmethod
 
+		{TestMethod}
+		public async method LocalGenTest, @Task
+		proc
+			data currentDirectory = Path.GetDirectoryName(^typeof(BasicBridge).Assembly.Location)
+			disposable data contextPool = new ExternalContextPool<syntstService>(Environment.GetEnvironmentVariable("SYNERGYDE32") + "dbl\bin\dbs.exe", 'TraditionalBridge.Test.dbr', Path.GetFullPath(Path.Combine(currentDirectory, "..\..\..\..\TestDir")), ^null, 4) 
+			data sp = new ServiceCollection().BuildServiceProvider()
+			
+			data context = contextPool.MakeContext(sp)
+			await context.SetRemoteLogSettings(new RemoteLogSettings() { AttachLogsToExceptions = true, InMemoryLogLevel = 5, LogToMemory = true, LogToDisk = true, OnDiskLogLevel = 6, FlushLog = true }) 
+			
+			data array21Result = await context.array21(new array21_Request() { p1 = "Z", p2 = "Z", p3 = "Z", p4 = "Z", p5 = "Z", p6 = "Z", p7 = "Z", p8 = "Z", p9 = "Z", p10 = "Z", p11 = "Z", p12 = "Z", p13 = "Z", p14 = "Z", p15 = "Z", p16 = "Z", p17 = "Z", p18 = "Z", p19 = "Z", p20 = "Z", p21 = new string[#] { "Z", "Z", "Z" }, p22 = "Z" })
+
+			Assert.AreEqual("AAAAAAA", array21Result.p21[1])
+			Assert.AreEqual("BBBBBBB", array21Result.p21[2])
+			Assert.AreEqual("CCCCCCC", array21Result.p21[3])
+
+
+			data mscAryTstDecResult = await context.msc_arytst_dec(new msc_arytst_dec_Request() { p1 = new int[#] { 1, 2, 3, 4 }})
+
+			Assert.AreEqual(55555, mscAryTstDecResult.p1[1])
+			Assert.AreEqual(4444, mscAryTstDecResult.p1[2])
+			Assert.AreEqual(333, mscAryTstDecResult.p1[3])
+			Assert.AreEqual(22, mscAryTstDecResult.p1[4])
+			data mscAryTstImpResult = await context.msc_arytst_imp(new msc_arytst_imp_Request() { p1 = new decimal[#] { 1.5, 2.23, 3.333, 4.999 }})
+
+			Assert.AreEqual(0.12, mscAryTstImpResult.p1[1])
+			Assert.AreEqual(3333.44, mscAryTstImpResult.p1[2])
+			Assert.AreEqual(555555.667, mscAryTstImpResult.p1[3])
+			Assert.AreEqual(7777777.888, mscAryTstImpResult.p1[4])
+
+			contextPool.ReturnContext(context)
+			await contextPool.TrimPool(0)
+			Console.WriteLine("shutting down test")
+		endmethod
 
 		public class ExternalCallContext extends DynamicCallProvider
 			public method ExternalCallContext

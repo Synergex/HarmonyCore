@@ -12,6 +12,7 @@ import StreamJsonRpc
 import System.Buffers
 import StreamJsonRpc.Protocol
 import Harmony.Core.Utility
+import System.Globalization
 
 namespace Harmony.Core.Context
 
@@ -34,13 +35,32 @@ namespace Harmony.Core.Context
 		endclass
 
 		internal static CastMethodInfo, @MethodInfo
-
+		internal static SelectMethodInfo, @MethodInfo
+		internal static FormatProvider, @IFormatProvider
 		static method DynamicCallProvider
 		proc
+			FormatProvider = CultureInfo.CurrentCulture
 			CastMethodInfo = ^typeof(Enumerable).GetMethod("Cast")
+			SelectMethodInfo = ^typeof(Enumerable).GetMethods().Where(lambda(meth) { meth.Name == "Select" && meth.GetParameters().Length == 2}).First()
 		endmethod
 
-
+;		public static method ConvertCollection<C, T(IConvertable)>, @IEnumerable<T>
+;			inputSequence, @IEnumerable
+;		proc
+;			if(^typeof(C).IsArray) then
+;			begin
+;				inputSequence.Cast<IConvertable>().Select(lambda(itm) { (T)itm.ToType(^typeof(T))).ToArray()
+;			end
+;			else if(^typeof(C).IsGenericType && ^typeof(C).GetGenericTypeDefinition() == ^typeof(List<>)) then
+;			begin
+;				inputSequence.Cast<IConvertable>().Select(lambda(itm) { (T)itm.ToType(^typeof(T))).ToList()
+;			end
+;			else
+;			begin
+;				inputSequence.Cast<IConvertable>().Select(lambda(itm) { (T)itm.ToType(^typeof(T)))
+;			end
+;
+;		endmethod
 		protected connection, @IDynamicCallConnection
 		public readonly property IsolationLevel, ContextIsolationLevel
 		protected method DynamicCallProvider
@@ -396,8 +416,18 @@ namespace Harmony.Core.Context
 								elementType = argType.GetElementType()
 							else
 								throw new NotImplementedException()
+							if(argValue.PassedValue?.GetType() != argType)
+							begin
+								if(elementType.IsPrimitive) then
+								begin
+									argsTemp[i] = ^typeof(CollectionConverter<>).MakeGenericType(new Type[#] { elementType }).GetMethod("ConvertResultCollection").MakeGenericMethod(new Type[#] { argType }).Invoke(^null, new object[#] { argValue.PassedValue })
+								end
+								else
+								begin
+									argsTemp[i] = DynamicCallProvider.CastMethodInfo.MakeGenericMethod(new Type[#] { elementType }).Invoke(^null, new object[#] { argValue.PassedValue })
+								end
+							end
 
-							argsTemp[i] = DynamicCallProvider.CastMethodInfo.MakeGenericMethod(new Type[#] { elementType }).Invoke(^null, new object[#] { argValue.PassedValue })
 						end
 						else
 						begin
@@ -423,5 +453,40 @@ namespace Harmony.Core.Context
 			end
 		endmethod
 	endclass
+
+	class CollectionConverter<T>
+		public static method ConvertResultCollection<C>, @object
+			inputSequence, @IEnumerable
+		proc
+			data converter, @Func<IConvertible, T>, BakeConversion()
+;			if(^typeof(C).IsArray) then
+;			begin
+;				mreturn inputSequence.Cast<IConvertible>().Select(converter).ToArray()
+;			end
+;			else if(^typeof(C).IsGenericType && ^typeof(C).GetGenericTypeDefinition() == ^typeof(List<>)) then
+;			begin
+;				mreturn inputSequence.Cast<IConvertible>().Select(converter).ToList()
+;			end
+;			else
+;			begin
+				mreturn DynamicCallProvider.SelectMethodInfo.MakeGenericMethod(new Type[#] { ^typeof(IConvertible), ^typeof(T) }).Invoke(^null, new object[#] { inputSequence.Cast<IConvertible>(), converter })
+			;end
+			;throw new NotImplementedException()
+		endmethod
+
+		private static method BakeConversion, @Func<IConvertible, T>
+		proc
+			data result, @Func<IConvertible, T>, ConvertItem
+			mreturn result
+		endmethod
+
+
+		public static method ConvertItem, T
+			item, @IConvertible
+		proc
+			mreturn (T)item.ToType(^typeof(T), DynamicCallProvider.FormatProvider)
+		endmethod
+	endclass
+
 
 endnamespace
