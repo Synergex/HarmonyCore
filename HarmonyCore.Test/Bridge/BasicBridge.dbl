@@ -160,12 +160,24 @@ namespace HarmonyCore.Test.Bridge
 			Assert.AreEqual(4444, mscAryTstDecResult.p1[2])
 			Assert.AreEqual(333, mscAryTstDecResult.p1[3])
 			Assert.AreEqual(22, mscAryTstDecResult.p1[4])
-			data mscAryTstImpResult = await context.msc_arytst_imp(new msc_arytst_imp_Request() { p1 = new decimal[#] { 1.5, 2.23, 3.333, 4.999 }})
+			data mscAryTstImpResult = await context.msc_arytst_imp(new msc_arytst_imp_Request() { p1 = new decimal[#] { 1.5, Decimal.MinValue, 3.333, Decimal.MaxValue }})
 
 			Assert.AreEqual(0.12, mscAryTstImpResult.p1[1])
 			Assert.AreEqual(3333.44, mscAryTstImpResult.p1[2])
 			Assert.AreEqual(555555.667, mscAryTstImpResult.p1[3])
 			Assert.AreEqual(7777777.888, mscAryTstImpResult.p1[4])
+
+			data mscAryTstIntResult = await context.msc_arytst_int(new msc_arytst_int_Request() { p1 = new int[#] { 1, Int32.MaxValue, Int32.MinValue, 4 }})
+
+			Assert.AreEqual(999999999, mscAryTstIntResult.p1[1])
+			Assert.AreEqual(88888888, mscAryTstIntResult.p1[2])
+			Assert.AreEqual(7777777, mscAryTstIntResult.p1[3])
+			Assert.AreEqual(666666, mscAryTstIntResult.p1[4])
+
+			data passtringResult = await context.passstring(new passstring_Request() { p1 = new string('C', 65535), p3=new string('D', 65535) })
+
+			Assert.AreEqual(new string('C', 65535), passtringResult.p2)
+			Assert.AreEqual(new string('D', 65535), passtringResult.p3)
 
 			contextPool.ReturnContext(context)
 			await contextPool.TrimPool(0)

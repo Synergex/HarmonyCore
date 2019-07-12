@@ -61,12 +61,14 @@ namespace Json
 			i = 0
 			while(i < dataToAppend.Length)
 			begin
-				data length = dataToAppend.Length
+				data length = dataToAppend.Length - i
 				if(length > 65534) then
 				begin
 					length = 65534
-					puts(Channel, dataToAppend.Substring(i, length))
+					puts(Channel, dataToAppend(i + 1:length))
 				end
+				else if(dataToAppend.Length > 65534) then
+					puts(Channel, dataToAppend(i + 1:length))
 				else
 					puts(Channel, dataToAppend)
 
@@ -459,9 +461,31 @@ namespace Json
 			if(!expectingName)
 				throw new InvalidOperationException("received name + value pair when name was unexpected")
 			if(!first) then
-				AppendOutput(',"'+ key +'":"' + value + '"')
+			begin
+				if(^size(value) > 64000) then
+				begin
+					AppendOutput(',"'+ key +'":"')
+					AppendOutput(value)
+					AppendOutput('"')
+				end
+				else
+				begin
+					AppendOutput(',"'+ key +'":"' + value + '"')
+				end
+			end
 			else
-				AppendOutput('"'+ key +'":"' + value + '"')
+			begin
+				if(^size(value) > 64000) then
+				begin
+					AppendOutput('"'+ key +'":"')
+					AppendOutput(value)
+					AppendOutput('"')
+				end
+				else
+				begin
+					AppendOutput('"'+ key +'":"' + value + '"')
+				end
+			end
 			first = false
 
 			mreturn SerializerStatus.Ok

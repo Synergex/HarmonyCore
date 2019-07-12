@@ -50,7 +50,11 @@ namespace Harmony.TraditionalBridge
         proc
 			if(mActiveSettings.LogToDisk && mLoggingChannel)
 			begin
-				writes(mLoggingChannel, strValue)
+				if(strValue.Length > 65535) then
+					writes(mLoggingChannel, strValue(1:65535))
+				else
+					writes(mLoggingChannel, strValue)
+
 				if(mActiveSettings.FlushLog)
 					flush(mLoggingChannel)
 			end
