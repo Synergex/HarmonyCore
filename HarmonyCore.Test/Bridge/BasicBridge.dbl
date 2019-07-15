@@ -145,7 +145,7 @@ namespace HarmonyCore.Test.Bridge
 			data sp = new ServiceCollection().BuildServiceProvider()
 			
 			data context = contextPool.MakeContext(sp)
-			await context.SetRemoteLogSettings(new RemoteLogSettings() { AttachLogsToExceptions = true, InMemoryLogLevel = 5, LogToMemory = true, LogToDisk = true, OnDiskLogLevel = 6, FlushLog = true }) 
+			await context.SetRemoteLogSettings(new RemoteLogSettings() { AttachLogsToExceptions = true, InMemoryLogLevel = 1, LogToMemory = true, LogToDisk = true, OnDiskLogLevel = 4, FlushLog = true }) 
 			
 			data array21Result = await context.array21(new array21_Request() { p1 = "Z", p2 = "Z", p3 = "Z", p4 = "Z", p5 = "Z", p6 = "Z", p7 = "Z", p8 = "Z", p9 = "Z", p10 = "Z", p11 = "Z", p12 = "Z", p13 = "Z", p14 = "Z", p15 = "Z", p16 = "Z", p17 = "Z", p18 = "Z", p19 = "Z", p20 = "Z", p21 = new string[#] { "Z", "Z", "Z" }, p22 = "Z" })
 
@@ -174,11 +174,17 @@ namespace HarmonyCore.Test.Bridge
 			Assert.AreEqual(7777777, mscAryTstIntResult.p1[3])
 			Assert.AreEqual(666666, mscAryTstIntResult.p1[4])
 
-			data passtringResult = await context.passstring(new passstring_Request() { p1 = new string('C', 65535), p3=new string('D', 65535) })
+            data timeStart = DateTime.Now
+			data i = 0
+			for i from 1 thru 100 by 1
+			begin
+				data passtringResult = await context.passstring(new passstring_Request() { p1 = new string('C', 65535), p3=new string('D', 65535) })
 
-			Assert.AreEqual(new string('C', 65535), passtringResult.p2)
-			Assert.AreEqual(new string('D', 65535), passtringResult.p3)
-
+				Assert.AreEqual(new string('C', 65535), passtringResult.p2)
+				Assert.AreEqual(new string('D', 65535), passtringResult.p3)
+			end
+            data timeEnd = DateTime.Now
+            data timeTaken = timeEnd - timeStart
 			contextPool.ReturnContext(context)
 			await contextPool.TrimPool(0)
 			Console.WriteLine("shutting down test")

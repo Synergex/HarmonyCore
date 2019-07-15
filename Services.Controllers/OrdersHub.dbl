@@ -1,0 +1,64 @@
+import System
+import System.Collections.Generic
+import System.Text
+import Microsoft.AspNetCore.SignalR
+import System.Threading.Tasks
+import Harmony.Core.Context
+
+namespace Services.Controllers
+
+	public class OrdersHub extends Hub<IOrdersHubClient>
+	
+        private _contextFactory, @IContextFactory<ExternalCallContext>
+        private _serviceProvider, @IServiceProvider
+        public method OrdersHub
+            contextFactory, @IContextFactory<ExternalCallContext>
+            serviceProvider, @IServiceProvider
+        proc
+            _contextFactory = contextFactory
+            _serviceProvider = serviceProvider
+        endmethod
+
+        public override async method OnConnectedAsync, @Task
+        proc
+            await parent.OnConnectedAsync()
+            Context.Items.Add("RPCContext", await _contextFactory.MakeContextAsync(_serviceProvider))
+        endmethod
+
+        public override async method OnDisconnectedAsync, @Task
+            ex, @Exception
+        proc
+            parent.OnDisconnectedAsync(ex)
+            data contextObject, @Object
+            if(Context.Items.TryGetValue("RPCContext", contextObject))
+            begin
+                data callContext = ^as(contextObject, @ExternalCallContext)
+                if(callContext != ^null)
+                begin
+                    _contextFactory.ReturnContext(callContext)
+                end
+            end
+        endmethod
+
+        public async method Arbitrario_MethodWithParameters, @Task
+            aNumber, int
+            aString, @string
+            aStringArray, [#]string
+            aIntArray, [#]int
+        proc
+            data callContext = ^as(Context.Items["RPCContext"], @ExternalCallContext)
+            data result = await callContext.Arbitrario_MethodWithParameters2(aNumber, aString, aStringArray, aIntArray)
+            await Clients.Caller.Arbitrario_MethodWithParametersResult(result)
+        endmethod
+
+	endclass
+
+    public interface IOrdersHubClient
+        method Arbitrario_MethodWithParametersResult, @Task
+            param, @ExternalCallContext.ArbitrarioReturnType
+        endmethod
+
+    endinterface
+
+
+endnamespace
