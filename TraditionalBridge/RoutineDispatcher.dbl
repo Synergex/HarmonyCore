@@ -228,6 +228,64 @@ namespace Harmony.TraditionalBridge
 
         endmethod
 
+        public method UnwrapObjectCollection, void
+            handle, D_HANDLE
+            elementInfo, @ArgumentDataDefinition
+            inout bufferPosition, i
+            collection, @JsonArray
+            record
+                element, @JsonValue
+            endrecord
+            structure localStr
+                fld, a1
+            endstructure
+
+        proc
+            foreach element in collection.arrayValues
+            begin
+                if(element .is. JsonObject) then
+                begin
+                    data valueToken, @JsonValue
+                    data stringValue, @string
+                    if(((@JsonObject)element).TryGetProperty("Value", valueToken)) then
+                    begin
+                        stringValue = ((@JsonText)valueToken).Value
+                    end
+                    else
+                    begin
+                        stringValue = Convert.FromBase64String(((@JsonText)((@JsonObject)element).GetProperty("Base64Value")).Value)
+                    end
+                    MaybeLog(6, "filling handle bufferPosition: " + %string(bufferPosition) + " elementSize: " + %string(elementInfo.ElementSize))
+                    ^m(localStr.fld(bufferPosition:elementInfo.ElementSize), handle) = stringValue
+                end
+                else if(element .is. JsonText) then
+                begin
+                    ^m(localStr.fld(bufferPosition:elementInfo.ElementSize), handle) = ((@JsonText)element).Value
+                end
+                else if(element .is. JsonNumber) then
+                begin
+                    ^d(^m(localStr.fld(bufferPosition:elementInfo.ElementSize), handle), elementInfo.DecimalPrecision) = ((@JsonNumber)element).Value
+                end
+                else if(element .is. JsonInt) then
+                begin
+                    if(elementInfo.DataType == FieldDataType.IntegerField) then
+                        ^i(^m(localStr.fld(bufferPosition:elementInfo.ElementSize), handle)) = ((@JsonInt)element).Value
+                    else
+                        ^d(^m(localStr.fld(bufferPosition:elementInfo.ElementSize), handle), elementInfo.DecimalPrecision) = %string(((@JsonInt)element).Value)
+                end
+                else if(element .is. JsonBoolean) then
+                begin
+                                        
+                end
+                else if(element .is. JsonArray)
+                begin
+
+                end
+                bufferPosition += elementInfo.ElementSize
+            end
+
+        endmethod
+
         ;;; <summary>
         ;;; 
         ;;; </summary>
@@ -261,10 +319,109 @@ namespace Harmony.TraditionalBridge
             collection, @JsonArray
             record
                 result, @ArrayList
+                buffer, a65535
         proc
             result = new ArrayList()
-            UnwrapObjectCollection(collection, result)
+            UnwrapObjectCollection(collection, result, false, ^null, buffer)
             mreturn result
+        endmethod
+
+        private method UnwrapJsonValue, @object
+            element, @JsonValue
+            elementIsEncoded, boolean
+            elementType, @DataObjectMetadataBase
+            inout elementBuffer, a
+            optional desiredType, FieldDataType
+            optional desiredSize, int
+            optional desiredPrecision, int
+            optional grfa, a
+        proc
+            if(element .is. JsonText) then
+            begin
+                if(^passed(desiredSize)) then
+                begin
+                    if(!^passed(desiredType)) then
+                    begin
+                        elementBuffer(1: desiredSize) = ((@JsonText)element).Value
+                        mreturn (@*)elementBuffer(1: desiredSize)
+                    end
+                    else if(desiredType == FieldDataType.DataObjectField) then
+                    begin
+                        elementBuffer(1: desiredSize) = ((@JsonText)element).Value
+                        if(^passed(grfa)) then
+                            mreturn elementType.MakeNew(elementBuffer(1: desiredSize), grfa)
+                        else
+                            mreturn elementType.MakeNew(elementBuffer(1: desiredSize), "")
+                    end
+                    else if(desiredType == FieldDataType.StringField) then
+                    begin
+                        mreturn ((@JsonText)element).Value
+                    end
+                    else if(desiredType == FieldDataType.AlphaField)
+                    begin
+                        elementBuffer(1: desiredSize) = ((@JsonText)element).Value
+                        mreturn (@*)elementBuffer(1: desiredSize)
+                    end
+                end
+                else
+                begin
+                    mreturn (@a)(a)((@JsonText)element).Value
+                end
+            end
+            else if(element .is. JsonNumber) then
+            begin
+                if(!^passed(desiredType)) then
+                begin
+                    ^d(elementBuffer(1: 28), 10) = ((@JsonNumber)element).Value 
+                    mreturn (@*)^d(elementBuffer(1: 28), 10)
+                end
+                else if(desiredType == FieldDataType.IntegerField) then
+                begin
+                    ^i(elementBuffer(1: desiredSize)) = ((@JsonNumber)element).Value 
+                    mreturn (@*)^i(elementBuffer(1: desiredSize))
+                end
+                else if(desiredType == FieldDataType.DecimalField) then
+                begin
+                    ^d(elementBuffer(1: desiredSize)) = ((@JsonNumber)element).Value
+                    mreturn (@*)^d(elementBuffer(1: desiredSize))
+                end
+                else if(desiredType == FieldDataType.ImpliedDecimal) then
+                begin
+                    ^d(elementBuffer(1: desiredSize), desiredPrecision) = ((@JsonNumber)element).Value
+                    mreturn (@*)^d(elementBuffer(1: desiredSize), desiredPrecision)
+                end
+                else
+                    throw new Exception("invalid desired type " + %string(desiredType))
+            end
+            else if(element .is. JsonInt) then
+            begin
+                if(!^passed(desiredType)) then
+                begin
+                    ^i(elementBuffer(1: 8)) = ((@JsonInt)element).Value 
+                    mreturn (@*)^i(elementBuffer(1: 8))
+                end
+                else if(desiredType == FieldDataType.IntegerField) then
+                begin
+                    ^i(elementBuffer(1: desiredSize)) = ((@JsonInt)element).Value 
+                    mreturn (@*)^i(elementBuffer(1: desiredSize))
+                end
+                else if(desiredType == FieldDataType.DecimalField) then
+                begin
+                    ^d(elementBuffer(1: desiredSize)) = ((@JsonInt)element).Value
+                    mreturn (@*)^d(elementBuffer(1: desiredSize))
+                end
+                else if(desiredType == FieldDataType.ImpliedDecimal) then
+                begin
+                    ^d(elementBuffer(1: desiredSize), desiredPrecision) = ((@JsonInt)element).Value
+                    mreturn (@*)^d(elementBuffer(1: desiredSize), desiredPrecision)
+                end
+                else
+                    throw new Exception("invalid desired type " + %string(desiredType))
+            end
+            else if(element .is. JsonBoolean)
+            begin
+                mreturn (@boolean)((@JsonBoolean)element).Value
+            end
         endmethod
 
         ;;; <summary>
@@ -275,7 +432,61 @@ namespace Harmony.TraditionalBridge
         ;;; <param name="targetArrayList"></param>
         public method UnwrapObjectCollection, void
             collection, @JsonArray
-            targetArrayList, @ArrayList
+            ;;must be an arraylist or a typed dynamic array
+            targetCollection, @Array
+            elementIsEncoded, boolean
+            elementType, @DataObjectMetadataBase
+            inout elementBuffer, a
+            optional desiredType, FieldDataType
+            optional desiredSize, int
+            optional desiredPrecision, int
+            record
+                element, @JsonValue
+                index, int
+            endrecord
+        proc
+            if(targetCollection.Length != collection.arrayValues.Count)
+                throw new Exception("Dynamic array must be correctly sized before unwrapping object collection into it")
+            index = 1
+
+            foreach element in collection.arrayValues
+            begin
+                if(element .is. JsonObject) then
+                begin
+                    data valueToken, @JsonValue
+                    if(((@JsonObject)element).TryGetProperty("Value", valueToken)) then
+                    begin
+                        if(elementType != ^null && ^passed(desiredType) && desiredType == FieldDataType.AlphaField) then
+                            elementType.SetIntoArray((@a)UnwrapJsonValue(valueToken, false, elementType, elementBuffer, desiredType, desiredSize, desiredPrecision), targetCollection, index)
+                        else
+                            targetCollection.SetValue(UnwrapJsonValue(valueToken, false, elementType, elementBuffer, desiredType, desiredSize, desiredPrecision), index)
+                    end
+                    else
+                    begin
+                        targetCollection.SetValue(UnwrapJsonValue(((@JsonObject)element).GetProperty("Base64Value"), true, elementType, elementBuffer, desiredType, desiredSize, desiredPrecision), index)
+                    end
+                end
+                else
+                begin
+                    if(elementType != ^null && ^passed(desiredType) && desiredType == FieldDataType.AlphaField) then
+                        elementType.SetIntoArray((@a)UnwrapJsonValue(element, false, elementType, elementBuffer, desiredType, desiredSize, desiredPrecision), targetCollection, index)
+                    else
+                        targetCollection.SetValue(UnwrapJsonValue(element, false, elementType, elementBuffer, desiredType, desiredSize, desiredPrecision), index)
+                end
+                incr index
+            end
+        endmethod
+
+        public method UnwrapObjectCollection, void
+            collection, @JsonArray
+            ;;must be an arraylist or a typed dynamic array
+            targetCollection, @ArrayList
+            elementIsEncoded, boolean
+            elementType, @DataObjectMetadataBase
+            inout elementBuffer, a
+            optional desiredType, FieldDataType
+            optional desiredSize, int
+            optional desiredPrecision, int
             record
                 element, @JsonValue
             endrecord
@@ -285,39 +496,18 @@ namespace Harmony.TraditionalBridge
                 if(element .is. JsonObject) then
                 begin
                     data valueToken, @JsonValue
-                    data stringValue, @string
                     if(((@JsonObject)element).TryGetProperty("Value", valueToken)) then
                     begin
-                        stringValue = ((@JsonText)valueToken).Value
+                        targetCollection.Add(UnwrapJsonValue(valueToken, false, elementType, elementBuffer, desiredType, desiredSize, desiredPrecision))
                     end
                     else
                     begin
-                        stringValue = Convert.FromBase64String(((@JsonText)((@JsonObject)element).GetProperty("Base64Value")).Value)
+                        targetCollection.Add(UnwrapJsonValue(((@JsonObject)element).GetProperty("Base64Value"), true, elementType, elementBuffer, desiredType, desiredSize, desiredPrecision))
                     end
-
-                    targetArrayList.Add((@a)(a)stringValue)
                 end
-                else if(element .is. JsonText) then
+                else
                 begin
-                    ;;TODO this needs to handle the arg type, could be d, id, a
-                    targetArrayList.Add((@a)(a)((@JsonText)element).Value)
-                end
-                else if(element .is. JsonNumber) then
-                begin
-                    targetArrayList.Add((@id)((@JsonNumber)element).Value)
-                end
-                else if(element .is. JsonInt) then
-                begin
-                    ;;TODO this needs to handle the arg type, could be i, d, id
-                    targetArrayList.Add((@i)((@JsonInt)element).Value)
-                end
-                else if(element .is. JsonBoolean) then
-                begin
-                    targetArrayList.Add((@boolean)((@JsonBoolean)element).Value)
-                end
-                else if(element .is. JsonArray)
-                begin
-
+                    targetCollection.Add(UnwrapJsonValue(element, false, elementType, elementBuffer, desiredType, desiredSize, desiredPrecision))
                 end
             end
         endmethod

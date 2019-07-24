@@ -1,6 +1,7 @@
 
 import Harmony.TraditionalBridge
 import System.Collections
+import TraditionalBridge.Test.Models
 
 namespace TraditionalBridge.Test.Methods
 
@@ -27,7 +28,54 @@ namespace TraditionalBridge.Test.Methods
  
 
 			mreturn stringArrayList.Count + intValue
-		endmethod
+        endmethod
+
+        public method MethodWithStructures, int
+            required inout customerArray, [#]@Customer
+            required inout customerArrayList, @ArrayList
+            required inout customer1, @Customer
+            required in customer2, strCustomer
+            required in customerSynergyArray, [*]strCustomer
+            required in customerStrSynergyArray, [#]strCustomer
+            required in customerStrArrayList, @ArrayList
+            endparams
+            record
+                tempCustomer, @Customer
+                tempStrCustomer, strCustomer
+                i, int
+        proc
+            if(^argdim(%argnum(customerSynergyArray), 1) != customerStrSynergyArray.Length)
+                throw new Exception("real and dynamic array sizes differed " + %string(^argdim(%argnum(customerSynergyArray), 1)) + " and " + %string(customerStrSynergyArray.Length))
+
+            if(customerStrArrayList.Count != customerArrayList.Count)
+                throw new Exception("array list lengths differed " + %string(customerStrArrayList.Count) + " and " + %string(customerArrayList.Count))
+
+
+            for i from 1 thru customerArrayList.Count by 1
+            begin
+                tempStrCustomer = (strCustomer)customerStrArrayList[i - 1]
+                tempCustomer = (@Customer)customerArrayList[i - 1]
+                if(tempCustomer.Name != tempStrCustomer.name)
+                    throw new Exception("Object array list and structure array list failed to match")
+            end
+            
+            for i from 1 thru customerArray.Length by 1
+            begin
+                if(customerArray[i].Name != customerSynergyArray[i].name || customerArray[i].Name != customerStrSynergyArray[i].name)
+                    throw new Exception("Object array and structure array failed to match " + customerArray[i].Name + ", " + customerSynergyArray[i].name + ", " + customerStrSynergyArray[i].name)
+            end
+
+            for i from 1 thru customerArrayList.Count by 1
+            begin
+                tempCustomer = (@Customer)customerArrayList[i - 1]
+                customerArrayList[i - 1] = customerArray[i]
+                customerArrayList[i - 1] = tempCustomer
+            end
+
+            customer1 = new Customer(customer2)
+
+            mreturn customerArrayList.Count
+        endmethod
 
 	endclass
 

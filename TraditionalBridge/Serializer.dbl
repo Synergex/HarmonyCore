@@ -746,7 +746,50 @@ namespace Json
 			ArrayClose()
 			MapClose()
 			MapClose()
-		endmethod
+        endmethod
+
+        public method ArgumentData, void
+            argPos, int
+            value, [#]@DataObjectBase
+            record
+                doElement, @DataObjectBase
+        proc
+            ;;TODO inline these operations into a single buffer op
+            MapOpen()
+            Pair("Position", argPos)
+            String("Value")
+            MapOpen()
+
+            Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
+            String("PassedValue")
+            ArrayOpen()
+            foreach doElement in value
+            begin
+                doElement.Serialize(this)
+            end
+            ArrayClose()
+            MapClose()
+            MapClose()
+        endmethod
+
+        public method ArgumentData, void
+            argPos, int
+            value, @DataObjectBase
+            record
+                item, @object
+                doElement, @DataObjectBase
+        proc
+            ;;TODO inline these operations into a single buffer op
+            MapOpen()
+            Pair("Position", argPos)
+            String("Value")
+            MapOpen()
+            Pair("DataType", (i)FieldDataType.DataObjectField)
+            String("PassedValue")
+            value.Serialize(this)
+            MapClose()
+            MapClose()
+        endmethod
 
 		public method ArgumentData, void
 			argPos, int
