@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME>SelfHostEnvironment.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.3.15</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.4.1</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>DATA_FOLDER</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVICES_NAMESPACE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
@@ -135,6 +135,7 @@ namespace <NAMESPACE>
             ;;If we have a SetLogicalsCustom method, call it
             SetLogicalsCustom()
 
+<IF NOT_DEFINED_DO_NOT_SET_FILE_LOGICALS>
             ;;Now we'll check each logical. If it already has a value we'll do nothing, otherwise
             ;;we'll set the logical to point to the local folder whose name is identified by the
             ;;user-defined token DATA_FOLDER
@@ -151,6 +152,7 @@ namespace <NAMESPACE>
                 end
             end
 
+</IF NOT_DEFINED_DO_NOT_SET_FILE_LOGICALS>
         endmethod
 
 <IF DEFINED_ENABLE_CREATE_TEST_FILES>

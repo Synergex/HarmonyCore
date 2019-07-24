@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME><INTERFACE_NAME>Dispatcher.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.3.15</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.4.1</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
 ;// Title:       InterfaceDispatcher.tpl

@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME>Startup.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.3.15</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.4.1</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>API_DOCS_PATH</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>API_TITLE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
@@ -7,6 +7,7 @@
 <REQUIRES_USERTOKEN>OAUTH_API</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>OAUTH_SERVER</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVER_HTTPS_PORT</REQUIRES_USERTOKEN>
+<REQUIRES_USERTOKEN>SIGNALR_PATH</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
 ;// Title:       ODataEdmBuilder.tpl
@@ -51,57 +52,51 @@
 ;; Any changes you make will be lost of the file is re-generated.
 ;;*****************************************************************************
 ;; 
-;; This environment requires the following NuGet packages:
-;;
-;;    Microsoft.AspNetCore.HttpsPolicy
-;;    Microsoft.AspNetCore.Mvc.Core
-;;    Microsoft.AspNetCore.OData
-;;    Microsoft.AspNetCore.StaticFiles
-;;    Microsoft.EntityFrameworkCore
-;;    Microsoft.OData.Core
-;;    Microsoft.OData.Edm
-;;    Microsoft.Spatial
-;;    Swashbuckle.AspNetCore
-;;    system.text.encoding.codepages
-;;
 
-import System.Collections.Generic
-<IF DEFINED_ENABLE_API_VERSIONING>
-import System.Linq
-</IF DEFINED_ENABLE_API_VERSIONING>
+import Harmony.AspNetCore
+import Harmony.AspNetCore.Context
+import Harmony.Core
 import Harmony.Core.Context
 import Harmony.Core.FileIO
 import Harmony.Core.Utility
 import Harmony.OData
 import Harmony.OData.Adapter
-import Harmony.AspNetCore
-import Harmony.AspNetCore.Context
 <IF DEFINED_ENABLE_AUTHENTICATION>
 import Microsoft.AspNetCore.Authorization
 import Microsoft.AspNetCore.Authentication.JwtBearer
-<IF DEFINED_ENABLE_CUSTOM_AUTHENTICATION>
-import Microsoft.IdentityModel.Tokens
-import System.Text
-</IF DEFINED_ENABLE_CUSTOM_AUTHENTICATION>
 </IF DEFINED_ENABLE_AUTHENTICATION>
 import Microsoft.AspNetCore.Builder
 import Microsoft.AspNetCore.Hosting
 import Microsoft.AspNetCore.Http
+import Microsoft.AspNetCore.Mvc.Abstractions
+<IF DEFINED_ENABLE_SWAGGER_DOCS>
+import Microsoft.AspNetCore.StaticFiles
+</IF DEFINED_ENABLE_SWAGGER_DOCS>
 import Microsoft.AspNet.OData
 import Microsoft.AspNet.OData.Extensions
 import Microsoft.AspNet.OData.Builder
 import Microsoft.AspNet.OData.Routing
 import Microsoft.AspNet.OData.Routing.Conventions
 import Microsoft.EntityFrameworkCore
+import Microsoft.Extensions.Configuration
 import Microsoft.Extensions.DependencyInjection
+import Microsoft.Extensions.DependencyInjection.Extensions
 import Microsoft.Extensions.Logging
+import Microsoft.Extensions.Options
+import Microsoft.Extensions.Primitives
+<IF DEFINED_ENABLE_AUTHENTICATION>
+<IF DEFINED_ENABLE_CUSTOM_AUTHENTICATION>
+import Microsoft.IdentityModel.Tokens
+</IF DEFINED_ENABLE_CUSTOM_AUTHENTICATION>
+</IF DEFINED_ENABLE_AUTHENTICATION>
 import Microsoft.OData
 import Microsoft.OData.Edm
 import Microsoft.OData.UriParser
-<IF DEFINED_ENABLE_SWAGGER_DOCS>
-import Swashbuckle.AspNetCore.Swagger
-import Microsoft.AspNetCore.StaticFiles
-</IF DEFINED_ENABLE_SWAGGER_DOCS>
+import System.Collections.Generic
+import System.IO
+import System.Linq
+import System.Text
+import System.Threading.Tasks
 import <CONTROLLERS_NAMESPACE>
 import <MODELS_NAMESPACE>
 
@@ -120,6 +115,23 @@ namespace <NAMESPACE>
         ;;; </summary>
         public static readwrite property LogicalNames, @List<string>
 
+        ;; Items provided by dependency injection
+        public _env, @IHostingEnvironment
+        public _config, @IConfiguration
+
+        ;;; <summary>
+        ;;; Constructor
+        ;;; </summary>
+        ;;; <param name="env">HTTP hosting environment</param>
+        ;;; <param name="config">Configuration data</param>
+        public method Startup
+            env, @IHostingEnvironment
+            config, @IConfiguration
+        proc
+            _env = env
+            _config = config
+        endmethod
+
         ;;; <summary>
         ;;; This methoid is used to make services available to the application.
         ;;; These services are typically accessed via dependency injection in controller classes.
@@ -135,6 +147,20 @@ namespace <NAMESPACE>
             ;;Enable logging
 
             services.AddLogging(lambda(builder) { builder.SetMinimumLevel(LogLevel.Error) })
+
+            ;;-------------------------------------------------------
+            ;;Make AppSettings available as a service
+
+            lambda GetAppSettings(appSettingsInstance)
+            begin
+                appSettingsInstance.ProcessEnvironmentVariables()
+                mreturn true
+            end
+
+            ;;Add an AppSettings service.
+            ;;To get an instance from DI ask for an @IOptions<AppSettings>
+
+            services.AddOptions<AppSettings>().Validate(GetAppSettings).Bind(_config.GetSection("AppSettings"))
 
             ;;-------------------------------------------------------
             ;;Load Harmony Core
@@ -209,21 +235,43 @@ namespace <NAMESPACE>
             &    .AddApplicationPart(^typeof(IsolatedMethodsBase).Assembly)
 
         <IF DEFINED_ENABLE_AUTHENTICATION>
-        <IF DEFINED_ENABLE_CUSTOM_AUTHENTICATION>
+          <IF DEFINED_ENABLE_CUSTOM_AUTHENTICATION>
+		    <IF DEFINED_ENABLE_SIGNALR>
+			lambda jwtMessageHook(context)
+			begin
+				data accessToken = context.Request.Query["access_token"];
+
+				;; If the request is for our hub...
+				data path = context.HttpContext.Request.Path
+				if (!string.IsNullOrEmpty(accessToken) && (path.StartsWithSegments(new PathString("<SIGNALR_PATH>"))))
+				begin
+					;; Read the token out of the query string
+					context.Token = accessToken;
+				end
+				mreturn Task.CompletedTask
+			end
+
+		    </IF DEFINED_ENABLE_SIGNALR>
             lambda configJwt(o)
             begin
                 o.IncludeErrorDetails = true
-                o.ClaimsIssuer = "<OAUTH_ISSUER>"
-                o.Audience = "<OAUTH_API>"
+                o.ClaimsIssuer = "<CUSTOM_JWT_ISSUER>"
+                o.Audience = "<CUSTOM_JWT_AUDIENCE>"
                 o.TokenValidationParameters = new TokenValidationParameters()
-                & {
-                &       ValidateIssuer = true,
-                &       ValidIssuer = "<OAUTH_ISSUER>",
-                &       ValidateAudience = true,
-                &       ValidAudience = "<OAUTH_API>",
-                &       ValidateIssuerSigningKey = true,
-                &       IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("<OAUTH_KEY>"))
-                & }
+                &    {
+                &    ValidateIssuer = true,
+                &    ValidIssuer = "Radley",
+                &    ValidateAudience = true,
+                &    ValidAudience = "RADLEYAPI",
+                &    ValidateIssuerSigningKey = true,
+                &    IssuerSigningKey = new SymmetricSecurityKey(AuthTools.GetKey())
+                &    }
+		    <IF DEFINED_ENABLE_SIGNALR>
+
+				data jwtEvents = new JwtBearerEvents()
+				o.Events = jwtEvents
+				jwtEvents.OnMessageReceived=jwtMessageHook
+		    </IF DEFINED_ENABLE_SIGNALR>
             end
 
             lambda authenticationOptions(options)
@@ -239,7 +287,7 @@ namespace <NAMESPACE>
 
             services.AddAuthentication(authenticationOptions).AddJwtBearer("Bearer", configJwt)
             mvcBuilder.AddAuthorization(authorizationOptions)
-        <ELSE>
+          <ELSE>
             ;;-------------------------------------------------------
             ;;Enable authentication and authorization
 
@@ -263,8 +311,9 @@ namespace <NAMESPACE>
 
             services.AddAuthentication(authenticationOptions).AddIdentityServerAuthentication(identityServerOptions)
             mvcBuilder.AddAuthorization(authorizationOptions)
-        </IF DEFINED_ENABLE_CUSTOM_AUTHENTICATION>
+          </IF DEFINED_ENABLE_CUSTOM_AUTHENTICATION>
         </IF DEFINED_ENABLE_AUTHENTICATION>
+
             ;;-------------------------------------------------------
             ;;Enable HTTP redirection to HTTPS
 
@@ -300,6 +349,8 @@ namespace <NAMESPACE>
 
         endmethod
 
+        private AppSettingsMonitor, @IDisposable 
+
         ;;; <summary>
         ;;; This method is used to configure the ASP.NET WebApi request pipeline.
         ;;; </summary>
@@ -309,6 +360,13 @@ namespace <NAMESPACE>
             required in app, @IApplicationBuilder
             required in env, @IHostingEnvironment
         proc
+            ;;-------------------------------------------------------
+            ;;Configure the AppSettings environment
+
+            data optionsMonitorObj, @IOptionsMonitor<AppSettings>, ServiceProviderServiceExtensions.GetService<IOptionsMonitor<AppSettings>>(app.ApplicationServices)
+            AppSettingsMonitor = optionsMonitorObj.OnChange(lambda(opts, name) { opts.ProcessEnvironmentVariables() })
+            data settings, @AppSettings, ServiceProviderServiceExtensions.GetService<IOptions<AppSettings>>(app.ApplicationServices).Value
+
             ;;-------------------------------------------------------
             ;;Configure development and production specific components
 
@@ -468,6 +526,9 @@ namespace <NAMESPACE>
             ;;-------------------------------------------------------
             ;;Enable MVC
 
+			;;If there is a ConfigureCustomBeforeMvc method, call it
+			ConfigureCustomBeforeMvc(app,env)
+
             app.UseMvc(mvcBuilder)
 
         <IF DEFINED_ENABLE_SWAGGER_DOCS>
@@ -491,9 +552,9 @@ namespace <NAMESPACE>
 
             lambda configureSwaggerUi(config)
             begin
-                config.SwaggerEndpoint("/SwaggerFile.yaml", "Harmony Core Sample API")
-                config.RoutePrefix = "api-docs"
-                config.DocumentTitle = "Harmony Core Sample API"
+                config.SwaggerEndpoint("/SwaggerFile.yaml", "<API_TITLE>")
+                config.RoutePrefix = "<API_DOCS_PATH>"
+                config.DocumentTitle = "<API_TITLE>"
             end
 
             app.UseSwagger()
@@ -526,6 +587,17 @@ namespace <NAMESPACE>
             required in app, @IApplicationBuilder
             required in env, @IHostingEnvironment
         endmethod
+
+		;;; <summary>
+		;;; Declare the ConfigueCustom partial method called immediately before AddMvc
+		;;; Developers can implement this method in a partial class to provide custom configuration.
+		;;; </summary>
+		;;; <param name="app"></param>
+		;;; <param name="env"></param>
+		partial method ConfigureCustomBeforeMvc, void
+			required in app, @IApplicationBuilder
+			required in env, @IHostingEnvironment
+		endmethod
 
         .endregion
 

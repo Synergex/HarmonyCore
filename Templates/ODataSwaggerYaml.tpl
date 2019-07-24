@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME>SwaggerFile.yaml</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.3.15</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.4.1</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>API_TITLE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>API_VERSION</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>API_DESCRIPTION</REQUIRES_USERTOKEN>
@@ -191,7 +191,7 @@ paths:
           description: Data for <structureNoplural> to create.
           required: true
           schema:
-            '<StructureNoplural>Types.yaml#/<StructureNoplural>Post'
+            $ref: '<StructureNoplural>Types.yaml#/<StructureNoplural>Post'
       responses:
         '201':
           description: The <structureNoplural> was created. The data for the new <structureNoplural> will be included in the response body, including the auotmatically assigned primary key values, and the response will include a "Location" header indicating the URL that can be used to retrieve the newly created <structureNoplural>.
@@ -594,10 +594,6 @@ paths:
         '200':
           description: OK
           schema:
-        <IF DEFINED_ENABLE_AUTHENTICATION>
-        '401':
-          description: Unauthorized
-        </IF DEFINED_ENABLE_AUTHENTICATION>
   <IF DUPLICATES>
             type: array
             items:
@@ -605,6 +601,10 @@ paths:
   <ELSE>
             $ref: '<StructureNoplural>Types.yaml#/<StructureNoplural>'
   </IF DUPLICATES>
+        <IF DEFINED_ENABLE_AUTHENTICATION>
+        '401':
+          description: Unauthorized
+        </IF DEFINED_ENABLE_AUTHENTICATION>
 ;//
 ;// ----------------------------------------------------------------------------
 ;// Get count via alternate key
@@ -810,22 +810,6 @@ security:
 ;// The definitions for each type are included from a separate YAML file.
 ;//
 definitions:
-<STRUCTURE_LOOP>
-;//
-;// Full type
-;//
-  <StructureNoplural>:
-    $ref: '<StructureNoplural>Types.yaml#/<StructureNoplural>'
-;//
-;// Type without primary key properties
-;//
-<IF DEFINED_ENABLE_POST>
-<IF POST_ENDPOINT>
-  <StructureNoplural>Post:
-    $ref: '<StructureNoplural>Types.yaml#/<StructureNoplural>Post'
-</IF POST_ENDPOINT>
-</IF DEFINED_ENABLE_POST>
-</STRUCTURE_LOOP>
 ;//
 ;//----------------------------------------------------------------------------
 ;// Data model definitions for PATCH requests
