@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME><INTERFACE_NAME>Controller.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.3.17</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.4.1</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
@@ -36,7 +36,7 @@
 ;//
 ;;*****************************************************************************
 ;;
-;; Title:       RadleyService.dbl
+;; Title:       <INTERFACE_NAME>Controller.dbl
 ;;
 ;; Description: This class defines a WebAPI controller that exposes
 ;;              various endpoints used to execute routines via the
@@ -48,34 +48,45 @@
 ;; Any changes you make will be lost of the file is re-generated.
 ;;*****************************************************************************
 
+<IF DEFINED_ENABLE_AUTHENTICATION>
+import Microsoft.AspNetCore.Authorization
+</IF DEFINED_ENABLE_AUTHENTICATION>
 import Microsoft.AspNetCore.Mvc
+import Microsoft.Extensions.Configuration
+import Microsoft.Extensions.Options
+import Newtonsoft.Json
 import System
 import System.Collections.Generic
+import System.Linq
 import System.Text
 import System.Threading.Tasks
-import Microsoft.AspNetCore.Mvc
-import System.Linq
-import Newtonsoft.Json
 
 import <NAMESPACE>
 import <MODELS_NAMESPACE>
 
 namespace <NAMESPACE>
 
+	<IF DEFINED_ENABLE_AUTHENTICATION>
+	{Authorize}
+	</IF DEFINED_ENABLE_AUTHENTICATION>
     {Route("<INTERFACE_NAME>")}
     public partial class <INTERFACE_NAME>Controller extends ControllerBase
 
-        ;;Instance of the <INTERFACE_NAME>Service service class
+        ;;Services provided via dependency injection
         private _<INTERFACE_NAME>Service, @<INTERFACE_NAME>Service
+        private _AppSettings, @IOptions<AppSettings>
 
         ;;; <summary>
         ;;; Constructor
         ;;; </summary>
         ;;; <param name="a<INTERFACE_NAME>Service"><INTERFACE_NAME>Service instance provided via dependency injection</param>
+        ;;; <param name="aAppSettings">Application settings</param>
         public method <INTERFACE_NAME>Controller
-            required in a<INTERFACE_NAME>Service, @<INTERFACE_NAME>Service
+            a<INTERFACE_NAME>Service, @<INTERFACE_NAME>Service
+			aAppSettings, @IOptions<AppSettings>
         proc
             _<INTERFACE_NAME>Service = a<INTERFACE_NAME>Service
+            _AppSettings = aAppSettings
         endmethod
 
 <METHOD_LOOP>

@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME><StructureNoplural>.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.3.15</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.4.1</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
 ;// Title:       ODataModel.tpl
@@ -125,6 +125,14 @@ namespace <NAMESPACE>
         <IF ALPHA>
         {StringLength(<FIELD_SIZE>, ErrorMessage="<FIELD_DESC> cannot exceed <FIELD_SIZE> characters. ")}
         </IF ALPHA>
+		<IF DECIMAL>
+		<IF CUSTOM_NOT_HARMONY_AS_STRING>
+		{Range(<FIELD_MINVALUE>,<FIELD_MAXVALUE>, ErrorMessage="<FIELD_DESC> must be between <FIELD_MINVALUE> and <FIELD_MAXVALUE>. ")}
+		</IF CUSTOM_NOT_HARMONY_AS_STRING>
+		</IF DECIMAL>
+		<IF INTEGER>
+		{Range(<FIELD_MINVALUE>,<FIELD_MAXVALUE>, ErrorMessage="<FIELD_DESC> must be between <FIELD_MINVALUE> and <FIELD_MAXVALUE>. ")}
+		</IF INTEGER>
 ;//
 ;// Field property
 ;//

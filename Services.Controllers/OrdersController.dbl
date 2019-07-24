@@ -16,6 +16,7 @@ import Microsoft.AspNet.OData
 import Microsoft.AspNet.OData.Routing
 import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Infrastructure
+import Microsoft.Extensions.Options
 import Harmony.Core.EF.Extensions
 import Harmony.Core.Interface
 import Harmony.OData
@@ -29,20 +30,25 @@ namespace Services.Controllers
     ;;; </summary>
     public partial class OrdersController extends ODataController
     
-        public readwrite property DBContext, @Services.Models.DBContext
-        public readwrite property ServiceProvider, @IServiceProvider
+        ;;Services provided via dependency injection
+        private _DbContext, @Services.Models.DBContext
+        private _ServiceProvider, @IServiceProvider
+        private _AppSettings, @IOptions<AppSettings>
 
         ;;; <summary>
         ;;; Constructs a new instance of OrdersController
         ;;; </summary>
         ;;; <param name="aDbContext">Database context instance (DI)</param>
         ;;; <param name="aServiceProvider">Service provider instance (DI)</param>
+        ;;; <param name="aAppSettings">Application settings</param>
         public method OrdersController
             aDbContext, @Services.Models.DBContext
             aServiceProvider, @IServiceProvider
+            aAppSettings, @IOptions<AppSettings>
         proc
-            this.DBContext = aDbContext
-            this.ServiceProvider = aServiceProvider
+            this._DbContext = aDbContext
+            this._ServiceProvider = aServiceProvider
+			this._AppSettings = aAppSettings
         endmethod
 
         {ODataRoute("Orders")}
@@ -53,7 +59,7 @@ namespace Services.Controllers
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
         public method GetOrders, @IActionResult
         proc
-            mreturn Ok(DBContext.Orders.AsNoTracking())
+            mreturn Ok(_DbContext.Orders.AsNoTracking())
         endmethod
 
         {ODataRoute("Orders(OrderNumber={aOrderNumber})")}
@@ -67,7 +73,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in aOrderNumber, int
         proc
-            mreturn new SingleResult<Order>(DBContext.Orders.AsNoTracking().FindQuery<Order>(DBContext, aOrderNumber))
+            mreturn new SingleResult<Order>(_DbContext.Orders.AsNoTracking().FindQuery<Order>(_DbContext, aOrderNumber))
         endmethod
 
         {ODataRoute("Orders(CustomerNumber={aCustomerNumber})")}
@@ -81,7 +87,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in aCustomerNumber, int
         proc
-            data result = DBContext.Orders.AsNoTracking().FindAlternate("CustomerNumber",aCustomerNumber)
+            data result = _DbContext.Orders.AsNoTracking().FindAlternate("CustomerNumber",aCustomerNumber)
             if (result == ^null)
                 mreturn NotFound()
             mreturn Ok(result)
@@ -98,7 +104,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in aDateOrdered, DateTime
         proc
-            data result = DBContext.Orders.AsNoTracking().FindAlternate("DateOrdered",aDateOrdered)
+            data result = _DbContext.Orders.AsNoTracking().FindAlternate("DateOrdered",aDateOrdered)
             if (result == ^null)
                 mreturn NotFound()
             mreturn Ok(result)
@@ -115,7 +121,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in aDateCompleted, DateTime
         proc
-            data result = DBContext.Orders.AsNoTracking().FindAlternate("DateCompleted",aDateCompleted)
+            data result = _DbContext.Orders.AsNoTracking().FindAlternate("DateCompleted",aDateCompleted)
             if (result == ^null)
                 mreturn NotFound()
             mreturn Ok(result)
@@ -134,7 +140,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in key, int
         proc
-            data result = DBContext.Orders.Find(key)
+            data result = _DbContext.Orders.Find(key)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.CustomerNumber)
@@ -152,7 +158,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in key, int
         proc
-            data result = DBContext.Orders.Find(key)
+            data result = _DbContext.Orders.Find(key)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.PlacedBy)
@@ -170,7 +176,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in key, int
         proc
-            data result = DBContext.Orders.Find(key)
+            data result = _DbContext.Orders.Find(key)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.CustomerReference)
@@ -188,7 +194,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in key, int
         proc
-            data result = DBContext.Orders.Find(key)
+            data result = _DbContext.Orders.Find(key)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.PaymentTermsCode)
@@ -206,7 +212,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in key, int
         proc
-            data result = DBContext.Orders.Find(key)
+            data result = _DbContext.Orders.Find(key)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.DateOrdered)
@@ -224,7 +230,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in key, int
         proc
-            data result = DBContext.Orders.Find(key)
+            data result = _DbContext.Orders.Find(key)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.DateCompleted)
@@ -245,13 +251,14 @@ namespace Services.Controllers
             ;; Validate inbound data
             if (!ModelState.IsValid)
                 mreturn BadRequest(ModelState)
-            disposable data keyFactory = (@IPrimaryKeyFactory)ServiceProvider.GetService(^typeof(IPrimaryKeyFactory))
+
             ;;Get the next available primary key value
+            disposable data keyFactory = (@IPrimaryKeyFactory)_ServiceProvider.GetService(^typeof(IPrimaryKeyFactory))
             KeyFactory.AssignPrimaryKey(aOrder)
 
             ;;Add the new order
-            DBContext.Orders.Add(aOrder)
-            DBContext.SaveChanges(keyFactory)
+            _DbContext.Orders.Add(aOrder)
+            _DbContext.SaveChanges(keyFactory)
 
             mreturn Created(aOrder)
 
@@ -279,17 +286,17 @@ namespace Services.Controllers
             try
             begin
                 ;;Add and commit
-                data existing = DBContext.Orders.Find(aOrderNumber)
+                data existing = _DbContext.Orders.Find(aOrderNumber)
                 if(existing == ^null) then
                 begin
-                    DBContext.Orders.Add(aOrder)
-                    DBContext.SaveChanges()
+                    _DbContext.Orders.Add(aOrder)
+                    _DbContext.SaveChanges()
                     mreturn Created(aOrder)
                 end
                 else
                 begin
                     aOrder.CopyTo(existing)
-                    DBContext.SaveChanges()
+                    _DbContext.SaveChanges()
                     mreturn NoContent()
                 end
             end
@@ -321,7 +328,7 @@ namespace Services.Controllers
             try
             begin
                 ;;Get the order to be updated
-                data orderToUpdate = DBContext.Orders.Find(aOrderNumber)
+                data orderToUpdate = _DbContext.Orders.Find(aOrderNumber)
                 data patchError, @JsonPatchError, ^null
                 ;;Did we find it?
                 if(orderToUpdate == ^null)
@@ -334,8 +341,8 @@ namespace Services.Controllers
                     mreturn BadRequest(string.Format("Error applying patch document: error message {0}, caused by {1}", patchError.ErrorMessage, JsonConvert.SerializeObject(patchError.Operation)))
 
                 ;;Update and commit
-                DBContext.Orders.Update(orderToUpdate)
-                DBContext.SaveChanges()
+                _DbContext.Orders.Update(orderToUpdate)
+                _DbContext.SaveChanges()
             end
             catch (e, @InvalidOperationException)
             begin
@@ -358,15 +365,15 @@ namespace Services.Controllers
             required in aOrderNumber, int
         proc
             ;;Get the order to be deleted
-            data orderToRemove = DBContext.Orders.Find(aOrderNumber)
+            data orderToRemove = _DbContext.Orders.Find(aOrderNumber)
 
             ;;Did we find it?
             if (orderToRemove == ^null)
                 mreturn NotFound()
 
             ;;Delete and commit
-            DBContext.Orders.Remove(orderToRemove)
-            DBContext.SaveChanges()
+            _DbContext.Orders.Remove(orderToRemove)
+            _DbContext.SaveChanges()
 
             mreturn NoContent()
 

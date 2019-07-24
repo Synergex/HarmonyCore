@@ -1,4 +1,5 @@
 <CODEGEN_FILENAME><INTERFACE_NAME>PostmanTests.postman_collection.json</CODEGEN_FILENAME>
+<REQUIRES_CODEGEN_VERSION>5.4.1</REQUIRES_CODEGEN_VERSION>
 {
 	"info": {
 		"_postman_id": "2648742f-eaf1-4fe1-8a13-52af1cd8534a",
@@ -7,58 +8,15 @@
 	},
 	"item": [
 		{
-			"name": "Get Synergy Environment",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "https://localhost:8086/<INTERFACE_NAME>/GetEnvironment",
-					"protocol": "https",
-					"host": [
-						"localhost"
-					],
-					"port": "8086",
-					"path": [
-						"<INTERFACE_NAME>",
-						"GetEnvironment"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Get Logical Name",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "https://localhost:8086/<INTERFACE_NAME>/GetLogicalName/DBLDIR",
-					"protocol": "https",
-					"host": [
-						"localhost"
-					],
-					"port": "8086",
-					"path": [
-						"<INTERFACE_NAME>",
-						"GetLogicalName",
-						"DBLDIR"
-					]
-				}
-			},
-			"response": []
-		},
-		{
 			"name": "Add Two Numbers",
 			"request": {
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "https://localhost:8086/<INTERFACE_NAME>/AddTwoNumbers/1/1",
-					"protocol": "https",
+					"raw": "{{server}}/<INTERFACE_NAME>/AddTwoNumbers/1/1",
 					"host": [
-						"localhost"
+						"{{server}}"
 					],
-					"port": "8086",
 					"path": [
 						"<INTERFACE_NAME>",
 						"AddTwoNumbers",
@@ -88,12 +46,10 @@
 					"raw": "{ <PARAMETER_LOOP><IF IN_OR_INOUT>\n\t\"<PARAMETER_NAME>\": <PARAMETER_SAMPLE_DATA_ESCAPED><IF MORE_IN_OR_INOUT>,</IF MORE_IN_OR_INOUT></IF IN_OR_INOUT></PARAMETER_LOOP> \n}"
 				},
 				"url": {
-					"raw": "https://localhost:8086/<INTERFACE_NAME>/<METHOD_NAME>",
-					"protocol": "https",
+					"raw": "{{server}}/<INTERFACE_NAME>/<METHOD_NAME>",
 					"host": [
-						"localhost"
+						"{{server}}"
 					],
-					"port": "8086",
 					"path": [
 						"<INTERFACE_NAME>",
 						"<METHOD_NAME>"
@@ -109,12 +65,10 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "https://localhost:8086/<INTERFACE_NAME>/<METHOD_NAME>",
-					"protocol": "https",
+					"raw": "{{server}}/<INTERFACE_NAME>/<METHOD_NAME>",
 					"host": [
-						"localhost"
+						"{{server}}"
 					],
-					"port": "8086",
 					"path": [
 						"<INTERFACE_NAME>",
 						"<METHOD_NAME>"
@@ -125,5 +79,45 @@
 		}<,>
   </IF IN_OR_INOUT>
 </METHOD_LOOP>
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "JWT_HERE",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "3f8076a8-3672-4d3d-bf27-6a7fa8e1d73a",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "64969d3e-8215-4845-9deb-77f993fb049a",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"id": "348faa4b-487a-4d1e-9c94-9880cb11f521",
+			"key": "server",
+			"value": "https://localhost:8086",
+			"type": "string"
+		}
 	]
 }

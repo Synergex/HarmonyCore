@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME>SelfHost.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.3.15</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.4.1</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>API_DOCS_PATH</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVICES_NAMESPACE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVER_PROTOCOL</REQUIRES_USERTOKEN>
@@ -61,6 +61,7 @@ import <NAMESPACE>
 main SelfHost
 
 proc
+    ;;-------------------------------------------------------------------------
     ;;Configure the environment
     try
     begin
@@ -76,19 +77,26 @@ proc
     endtry
 
 <IF DEFINED_ENABLE_SWAGGER_DOCS>
+    ;;-------------------------------------------------------------------------
+	;;Report the location of the API documentation
+
     Console.WriteLine("API documentation is available at <SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<API_DOCS_PATH>")
+
+    ;;-------------------------------------------------------------------------
+	;;Define the location that static files are served from and make sure it exists
 
     data wwwroot = Path.Combine(AppContext.BaseDirectory, "wwwroot")
 
-    ;;Make sure the wwwroot folder is present
     if (!Directory.Exists(wwwroot))
         Directory.CreateDirectory(wwwroot)
 
 </IF DEFINED_ENABLE_SWAGGER_DOCS>
-    ;;Start self-hosting (Kestrel)
-    WebHost.CreateDefaultBuilder(new string[0])
+    ;;-------------------------------------------------------------------------
+    ;;Start the self-hosting environment (Kestrel)
+
+    WebHost.CreateDefaultBuilder(Environment.GetCommandLineArgs())
 <IF DEFINED_ENABLE_SWAGGER_DOCS>
-    &    .UseContentRoot(wwwroot)
+    &    .UseContentRoot(AppContext.BaseDirectory)
     &    .UseWebRoot(wwwroot)
 </IF DEFINED_ENABLE_SWAGGER_DOCS>
 <IF DEFINED_ENABLE_IIS_SUPPORT>
@@ -99,7 +107,9 @@ proc
     &    .Build()
     &    .Run()
 
-    ;;Cleanup the environment
+    ;;-------------------------------------------------------------------------
+    ;;When the server exist, cleanup the environment
+
     SelfHostEnvironment.Cleanup()
 
 endmain
