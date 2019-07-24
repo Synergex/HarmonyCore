@@ -107,7 +107,7 @@ set ENABLE_ADAPTER_ROUTING=-define ENABLE_ADAPTER_ROUTING
 rem set ENABLE_AUTHENTICATION=-define ENABLE_AUTHENTICATION
 rem set ENABLE_CUSTOM_AUTHENTICATION=-define ENABLE_CUSTOM_AUTHENTICATION
 rem set ENABLE_FIELD_SECURITY=-define ENABLE_FIELD_SECURITY
-set ENABLE_SIGNALR=-define ENABLE_SIGNALR
+rem set ENABLE_SIGNALR=-define ENABLE_SIGNALR
 set ENABLE_UNIT_TEST_GENERATION=YES
 rem set ENABLE_CASE_SENSITIVE_URL=-define ENABLE_CASE_SENSITIVE_URL
 rem set ENABLE_CORS=-define ENABLE_CORS
@@ -324,8 +324,8 @@ if DEFINED ENABLE_TRADITIONAL_BRIDGE_GENERATION (
 rem ================================================================================
 rem Generate code for the TraditionalBridge sample environment
 
-set SMC_XML_FILE=MDU\radley_mdu.xml
-set SMC_INTERFACE=Radley
+set SMC_XML_FILE=
+set SMC_INTERFACE=
 rem set BRIDGE_DISPATCHER_TEMPLATE=InterfaceMethodDispatchers
 set XFPL_SMCPATH=
 set STDOPTS=-e -lf -rps %RPSMFIL% %RPSTFIL% -r %ENABLE_AUTHENTICATION%
@@ -339,6 +339,8 @@ if DEFINED ENABLE_BRIDGE_OPTIONAL_PARAMETERS (
 if DEFINED ENABLE_XFSERVERPLUS_MIGRATION (
 
   rem Generate dispatcher classes for all methods in in interface (TRADITIONAL SIDE)
+
+  echo Are we getting here?
 
   codegen -smc %SMC_XML_FILE% ^
           -interface %SMC_INTERFACE% ^

@@ -141,19 +141,6 @@ namespace Services.Host
                     Startup.LogicalNames.Add(fileSpec)
             end
 
-            fileSpec = "DAT:sysparams.ddf"
-            if (fileSpec.Contains(":")) then
-            begin
-                logical = fileSpec.Split(":")[1].ToUpper()
-                if (!Startup.LogicalNames.Contains(logical))
-                    Startup.LogicalNames.Add(logical)
-            end
-            else if (!fileSpec.Contains("."))
-            begin
-                if (!Startup.LogicalNames.Contains(fileSpec))
-                    Startup.LogicalNames.Add(fileSpec)
-            end
-
             ;;If we have a SetLogicalsCustom method, call it
             SetLogicalsCustom()
 
@@ -242,12 +229,6 @@ namespace Services.Host
                 store(chout,vendor.SynergyRecord)
             close chout
 
-            ;;Create and load the sysparams file
-
-            dataFile = "DAT:sysparams.ddf"
-            data sourceFile = dataFile.ToLower().Replace(".ddf",".txt")
-            xcall copy(sourceFile,dataFile,1)
-
         endmethod
 
         private static method deleteFiles, void
@@ -300,17 +281,6 @@ namespace Services.Host
             try
             begin
                 xcall delet("DAT:vendors.ism")
-            end
-            catch (e, @NoFileFoundException)
-            begin
-                nop
-            end
-            endtry
-
-            ;;Delete the sysparams file
-            try
-            begin
-                xcall delet("DAT:sysparams.ddf")
             end
             catch (e, @NoFileFoundException)
             begin

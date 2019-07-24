@@ -16,6 +16,7 @@ import Microsoft.AspNet.OData
 import Microsoft.AspNet.OData.Routing
 import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Infrastructure
+import Microsoft.Extensions.Options
 import Harmony.Core.EF.Extensions
 import Harmony.Core.Interface
 import Harmony.OData
@@ -29,20 +30,25 @@ namespace Services.Controllers
     ;;; </summary>
     public partial class ItemsController extends ODataController
     
-        public readwrite property DBContext, @Services.Models.DBContext
-        public readwrite property ServiceProvider, @IServiceProvider
+        ;;Services provided via dependency injection
+        private _DbContext, @Services.Models.DBContext
+        private _ServiceProvider, @IServiceProvider
+        private _AppSettings, @IOptions<AppSettings>
 
         ;;; <summary>
         ;;; Constructs a new instance of ItemsController
         ;;; </summary>
         ;;; <param name="aDbContext">Database context instance (DI)</param>
         ;;; <param name="aServiceProvider">Service provider instance (DI)</param>
+        ;;; <param name="aAppSettings">Application settings</param>
         public method ItemsController
             aDbContext, @Services.Models.DBContext
             aServiceProvider, @IServiceProvider
+            aAppSettings, @IOptions<AppSettings>
         proc
-            this.DBContext = aDbContext
-            this.ServiceProvider = aServiceProvider
+            this._DbContext = aDbContext
+            this._ServiceProvider = aServiceProvider
+			this._AppSettings = aAppSettings
         endmethod
 
         {ODataRoute("Items")}
@@ -53,7 +59,7 @@ namespace Services.Controllers
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
         public method GetItems, @IActionResult
         proc
-            mreturn Ok(DBContext.Items.AsNoTracking())
+            mreturn Ok(_DbContext.Items.AsNoTracking())
         endmethod
 
         {ODataRoute("Items(ItemNumber={aItemNumber})")}
@@ -67,7 +73,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in aItemNumber, int
         proc
-            mreturn new SingleResult<Item>(DBContext.Items.AsNoTracking().FindQuery<Item>(DBContext, aItemNumber))
+            mreturn new SingleResult<Item>(_DbContext.Items.AsNoTracking().FindQuery<Item>(_DbContext, aItemNumber))
         endmethod
 
         {ODataRoute("Items(VendorNumber={aVendorNumber})")}
@@ -81,7 +87,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in aVendorNumber, int
         proc
-            data result = DBContext.Items.AsNoTracking().FindAlternate("VendorNumber",aVendorNumber)
+            data result = _DbContext.Items.AsNoTracking().FindAlternate("VendorNumber",aVendorNumber)
             if (result == ^null)
                 mreturn NotFound()
             mreturn Ok(result)
@@ -98,7 +104,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in aFlowerColor, String
         proc
-            data result = DBContext.Items.AsNoTracking().FindAlternate("FlowerColor",aFlowerColor)
+            data result = _DbContext.Items.AsNoTracking().FindAlternate("FlowerColor",aFlowerColor)
             if (result == ^null)
                 mreturn NotFound()
             mreturn Ok(result)
@@ -115,7 +121,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in aSize, int
         proc
-            data result = DBContext.Items.AsNoTracking().FindAlternate("Size",aSize)
+            data result = _DbContext.Items.AsNoTracking().FindAlternate("Size",aSize)
             if (result == ^null)
                 mreturn NotFound()
             mreturn Ok(result)
@@ -132,7 +138,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in aCommonName, String
         proc
-            data result = DBContext.Items.AsNoTracking().FindAlternate("CommonName",aCommonName)
+            data result = _DbContext.Items.AsNoTracking().FindAlternate("CommonName",aCommonName)
             if (result == ^null)
                 mreturn NotFound()
             mreturn Ok(result)
@@ -151,7 +157,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in key, int
         proc
-            data result = DBContext.Items.Find(key)
+            data result = _DbContext.Items.Find(key)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.VendorNumber)
@@ -169,7 +175,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in key, int
         proc
-            data result = DBContext.Items.Find(key)
+            data result = _DbContext.Items.Find(key)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.Size)
@@ -187,7 +193,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in key, int
         proc
-            data result = DBContext.Items.Find(key)
+            data result = _DbContext.Items.Find(key)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.CommonName)
@@ -205,7 +211,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in key, int
         proc
-            data result = DBContext.Items.Find(key)
+            data result = _DbContext.Items.Find(key)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.LatinName)
@@ -223,7 +229,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in key, int
         proc
-            data result = DBContext.Items.Find(key)
+            data result = _DbContext.Items.Find(key)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.ZoneCode)
@@ -241,7 +247,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in key, int
         proc
-            data result = DBContext.Items.Find(key)
+            data result = _DbContext.Items.Find(key)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.Type)
@@ -259,7 +265,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in key, int
         proc
-            data result = DBContext.Items.Find(key)
+            data result = _DbContext.Items.Find(key)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.Flowering)
@@ -277,7 +283,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in key, int
         proc
-            data result = DBContext.Items.Find(key)
+            data result = _DbContext.Items.Find(key)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.FlowerColor)
@@ -295,7 +301,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in key, int
         proc
-            data result = DBContext.Items.Find(key)
+            data result = _DbContext.Items.Find(key)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.Shape)
@@ -313,7 +319,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in key, int
         proc
-            data result = DBContext.Items.Find(key)
+            data result = _DbContext.Items.Find(key)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.MaxHeight)
@@ -331,7 +337,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in key, int
         proc
-            data result = DBContext.Items.Find(key)
+            data result = _DbContext.Items.Find(key)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.MaxWidth)
@@ -349,7 +355,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in key, int
         proc
-            data result = DBContext.Items.Find(key)
+            data result = _DbContext.Items.Find(key)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.WaterRequirement)
@@ -367,7 +373,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in key, int
         proc
-            data result = DBContext.Items.Find(key)
+            data result = _DbContext.Items.Find(key)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.SunRequirement)
@@ -385,7 +391,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in key, int
         proc
-            data result = DBContext.Items.Find(key)
+            data result = _DbContext.Items.Find(key)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.BinLocation)
@@ -403,7 +409,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in key, int
         proc
-            data result = DBContext.Items.Find(key)
+            data result = _DbContext.Items.Find(key)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.QtyOnHand)
@@ -421,7 +427,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in key, int
         proc
-            data result = DBContext.Items.Find(key)
+            data result = _DbContext.Items.Find(key)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.QtyAllocated)
@@ -439,7 +445,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in key, int
         proc
-            data result = DBContext.Items.Find(key)
+            data result = _DbContext.Items.Find(key)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.QtyOnOrder)
@@ -457,7 +463,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in key, int
         proc
-            data result = DBContext.Items.Find(key)
+            data result = _DbContext.Items.Find(key)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.ReorderLevel)
@@ -475,7 +481,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in key, int
         proc
-            data result = DBContext.Items.Find(key)
+            data result = _DbContext.Items.Find(key)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.UnitPrice)
@@ -493,7 +499,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in key, int
         proc
-            data result = DBContext.Items.Find(key)
+            data result = _DbContext.Items.Find(key)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.CostPrice)
@@ -514,13 +520,14 @@ namespace Services.Controllers
             ;; Validate inbound data
             if (!ModelState.IsValid)
                 mreturn BadRequest(ModelState)
-            disposable data keyFactory = (@IPrimaryKeyFactory)ServiceProvider.GetService(^typeof(IPrimaryKeyFactory))
+
             ;;Get the next available primary key value
+            disposable data keyFactory = (@IPrimaryKeyFactory)_ServiceProvider.GetService(^typeof(IPrimaryKeyFactory))
             KeyFactory.AssignPrimaryKey(aItem)
 
             ;;Add the new item
-            DBContext.Items.Add(aItem)
-            DBContext.SaveChanges(keyFactory)
+            _DbContext.Items.Add(aItem)
+            _DbContext.SaveChanges(keyFactory)
 
             mreturn Created(aItem)
 
@@ -548,17 +555,17 @@ namespace Services.Controllers
             try
             begin
                 ;;Add and commit
-                data existing = DBContext.Items.Find(aItemNumber)
+                data existing = _DbContext.Items.Find(aItemNumber)
                 if(existing == ^null) then
                 begin
-                    DBContext.Items.Add(aItem)
-                    DBContext.SaveChanges()
+                    _DbContext.Items.Add(aItem)
+                    _DbContext.SaveChanges()
                     mreturn Created(aItem)
                 end
                 else
                 begin
                     aItem.CopyTo(existing)
-                    DBContext.SaveChanges()
+                    _DbContext.SaveChanges()
                     mreturn NoContent()
                 end
             end
@@ -590,7 +597,7 @@ namespace Services.Controllers
             try
             begin
                 ;;Get the item to be updated
-                data itemToUpdate = DBContext.Items.Find(aItemNumber)
+                data itemToUpdate = _DbContext.Items.Find(aItemNumber)
                 data patchError, @JsonPatchError, ^null
                 ;;Did we find it?
                 if(itemToUpdate == ^null)
@@ -603,8 +610,8 @@ namespace Services.Controllers
                     mreturn BadRequest(string.Format("Error applying patch document: error message {0}, caused by {1}", patchError.ErrorMessage, JsonConvert.SerializeObject(patchError.Operation)))
 
                 ;;Update and commit
-                DBContext.Items.Update(itemToUpdate)
-                DBContext.SaveChanges()
+                _DbContext.Items.Update(itemToUpdate)
+                _DbContext.SaveChanges()
             end
             catch (e, @InvalidOperationException)
             begin
@@ -627,15 +634,15 @@ namespace Services.Controllers
             required in aItemNumber, int
         proc
             ;;Get the item to be deleted
-            data itemToRemove = DBContext.Items.Find(aItemNumber)
+            data itemToRemove = _DbContext.Items.Find(aItemNumber)
 
             ;;Did we find it?
             if (itemToRemove == ^null)
                 mreturn NotFound()
 
             ;;Delete and commit
-            DBContext.Items.Remove(itemToRemove)
-            DBContext.SaveChanges()
+            _DbContext.Items.Remove(itemToRemove)
+            _DbContext.SaveChanges()
 
             mreturn NoContent()
 

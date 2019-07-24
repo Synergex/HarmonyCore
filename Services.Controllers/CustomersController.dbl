@@ -16,6 +16,7 @@ import Microsoft.AspNet.OData
 import Microsoft.AspNet.OData.Routing
 import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Infrastructure
+import Microsoft.Extensions.Options
 import Harmony.Core.EF.Extensions
 import Harmony.Core.Interface
 import Harmony.OData
@@ -29,20 +30,25 @@ namespace Services.Controllers
     ;;; </summary>
     public partial class CustomersController extends ODataController
     
-        public readwrite property DBContext, @Services.Models.DBContext
-        public readwrite property ServiceProvider, @IServiceProvider
+        ;;Services provided via dependency injection
+        private _DbContext, @Services.Models.DBContext
+        private _ServiceProvider, @IServiceProvider
+        private _AppSettings, @IOptions<AppSettings>
 
         ;;; <summary>
         ;;; Constructs a new instance of CustomersController
         ;;; </summary>
         ;;; <param name="aDbContext">Database context instance (DI)</param>
         ;;; <param name="aServiceProvider">Service provider instance (DI)</param>
+        ;;; <param name="aAppSettings">Application settings</param>
         public method CustomersController
             aDbContext, @Services.Models.DBContext
             aServiceProvider, @IServiceProvider
+            aAppSettings, @IOptions<AppSettings>
         proc
-            this.DBContext = aDbContext
-            this.ServiceProvider = aServiceProvider
+            this._DbContext = aDbContext
+            this._ServiceProvider = aServiceProvider
+			this._AppSettings = aAppSettings
         endmethod
 
         {ODataRoute("Customers")}
@@ -53,7 +59,7 @@ namespace Services.Controllers
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
         public method GetCustomers, @IActionResult
         proc
-            mreturn Ok(DBContext.Customers.AsNoTracking())
+            mreturn Ok(_DbContext.Customers.AsNoTracking())
         endmethod
 
         {ODataRoute("Customers(CustomerNumber={aCustomerNumber})")}
@@ -67,7 +73,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in aCustomerNumber, int
         proc
-            mreturn new SingleResult<Customer>(DBContext.Customers.AsNoTracking().FindQuery<Customer>(DBContext, aCustomerNumber))
+            mreturn new SingleResult<Customer>(_DbContext.Customers.AsNoTracking().FindQuery<Customer>(_DbContext, aCustomerNumber))
         endmethod
 
         {ODataRoute("Customers(State={aState})")}
@@ -81,7 +87,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in aState, String
         proc
-            data result = DBContext.Customers.AsNoTracking().FindAlternate("State",aState)
+            data result = _DbContext.Customers.AsNoTracking().FindAlternate("State",aState)
             if (result == ^null)
                 mreturn NotFound()
             mreturn Ok(result)
@@ -98,7 +104,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in aZipCode, int
         proc
-            data result = DBContext.Customers.AsNoTracking().FindAlternate("ZipCode",aZipCode)
+            data result = _DbContext.Customers.AsNoTracking().FindAlternate("ZipCode",aZipCode)
             if (result == ^null)
                 mreturn NotFound()
             mreturn Ok(result)
@@ -115,7 +121,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in aPaymentTermsCode, String
         proc
-            data result = DBContext.Customers.AsNoTracking().FindAlternate("PaymentTermsCode",aPaymentTermsCode)
+            data result = _DbContext.Customers.AsNoTracking().FindAlternate("PaymentTermsCode",aPaymentTermsCode)
             if (result == ^null)
                 mreturn NotFound()
             mreturn Ok(result)
@@ -134,7 +140,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in key, int
         proc
-            data result = DBContext.Customers.Find(key)
+            data result = _DbContext.Customers.Find(key)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.Name)
@@ -152,7 +158,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in key, int
         proc
-            data result = DBContext.Customers.Find(key)
+            data result = _DbContext.Customers.Find(key)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.Street)
@@ -170,7 +176,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in key, int
         proc
-            data result = DBContext.Customers.Find(key)
+            data result = _DbContext.Customers.Find(key)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.City)
@@ -188,7 +194,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in key, int
         proc
-            data result = DBContext.Customers.Find(key)
+            data result = _DbContext.Customers.Find(key)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.State)
@@ -206,7 +212,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in key, int
         proc
-            data result = DBContext.Customers.Find(key)
+            data result = _DbContext.Customers.Find(key)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.ZipCode)
@@ -224,7 +230,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in key, int
         proc
-            data result = DBContext.Customers.Find(key)
+            data result = _DbContext.Customers.Find(key)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.Contact)
@@ -242,7 +248,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in key, int
         proc
-            data result = DBContext.Customers.Find(key)
+            data result = _DbContext.Customers.Find(key)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.Phone)
@@ -260,7 +266,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in key, int
         proc
-            data result = DBContext.Customers.Find(key)
+            data result = _DbContext.Customers.Find(key)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.Fax)
@@ -278,7 +284,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in key, int
         proc
-            data result = DBContext.Customers.Find(key)
+            data result = _DbContext.Customers.Find(key)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.FavoriteItem)
@@ -296,7 +302,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in key, int
         proc
-            data result = DBContext.Customers.Find(key)
+            data result = _DbContext.Customers.Find(key)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.PaymentTermsCode)
@@ -314,7 +320,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in key, int
         proc
-            data result = DBContext.Customers.Find(key)
+            data result = _DbContext.Customers.Find(key)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.TaxId)
@@ -332,7 +338,7 @@ namespace Services.Controllers
             {FromODataUri}
             required in key, int
         proc
-            data result = DBContext.Customers.Find(key)
+            data result = _DbContext.Customers.Find(key)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.CreditLimit)
@@ -353,13 +359,14 @@ namespace Services.Controllers
             ;; Validate inbound data
             if (!ModelState.IsValid)
                 mreturn BadRequest(ModelState)
-            disposable data keyFactory = (@IPrimaryKeyFactory)ServiceProvider.GetService(^typeof(IPrimaryKeyFactory))
+
             ;;Get the next available primary key value
+            disposable data keyFactory = (@IPrimaryKeyFactory)_ServiceProvider.GetService(^typeof(IPrimaryKeyFactory))
             KeyFactory.AssignPrimaryKey(aCustomer)
 
             ;;Add the new customer
-            DBContext.Customers.Add(aCustomer)
-            DBContext.SaveChanges(keyFactory)
+            _DbContext.Customers.Add(aCustomer)
+            _DbContext.SaveChanges(keyFactory)
 
             mreturn Created(aCustomer)
 
@@ -387,17 +394,17 @@ namespace Services.Controllers
             try
             begin
                 ;;Add and commit
-                data existing = DBContext.Customers.Find(aCustomerNumber)
+                data existing = _DbContext.Customers.Find(aCustomerNumber)
                 if(existing == ^null) then
                 begin
-                    DBContext.Customers.Add(aCustomer)
-                    DBContext.SaveChanges()
+                    _DbContext.Customers.Add(aCustomer)
+                    _DbContext.SaveChanges()
                     mreturn Created(aCustomer)
                 end
                 else
                 begin
                     aCustomer.CopyTo(existing)
-                    DBContext.SaveChanges()
+                    _DbContext.SaveChanges()
                     mreturn NoContent()
                 end
             end
@@ -429,7 +436,7 @@ namespace Services.Controllers
             try
             begin
                 ;;Get the customer to be updated
-                data customerToUpdate = DBContext.Customers.Find(aCustomerNumber)
+                data customerToUpdate = _DbContext.Customers.Find(aCustomerNumber)
                 data patchError, @JsonPatchError, ^null
                 ;;Did we find it?
                 if(customerToUpdate == ^null)
@@ -442,8 +449,8 @@ namespace Services.Controllers
                     mreturn BadRequest(string.Format("Error applying patch document: error message {0}, caused by {1}", patchError.ErrorMessage, JsonConvert.SerializeObject(patchError.Operation)))
 
                 ;;Update and commit
-                DBContext.Customers.Update(customerToUpdate)
-                DBContext.SaveChanges()
+                _DbContext.Customers.Update(customerToUpdate)
+                _DbContext.SaveChanges()
             end
             catch (e, @InvalidOperationException)
             begin
@@ -466,15 +473,15 @@ namespace Services.Controllers
             required in aCustomerNumber, int
         proc
             ;;Get the customer to be deleted
-            data customerToRemove = DBContext.Customers.Find(aCustomerNumber)
+            data customerToRemove = _DbContext.Customers.Find(aCustomerNumber)
 
             ;;Did we find it?
             if (customerToRemove == ^null)
                 mreturn NotFound()
 
             ;;Delete and commit
-            DBContext.Customers.Remove(customerToRemove)
-            DBContext.SaveChanges()
+            _DbContext.Customers.Remove(customerToRemove)
+            _DbContext.SaveChanges()
 
             mreturn NoContent()
 
