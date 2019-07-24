@@ -1,0 +1,84 @@
+;;*****************************************************************************
+;;
+;; Title:       AppSettings.dbl
+;;
+;; Description: Represents the application settings as defined in appsettings.json
+;;
+;;*****************************************************************************
+
+import System
+import System.Collections.Generic
+import System.Text
+import Microsoft.Extensions.Options
+
+namespace Services.Models
+
+    ;;; <summary>
+    ;;; Application settings.
+    ;;; </summary>
+    public partial class AppSettings implements IOptions<AppSettings>
+
+.region "Application settings"
+
+        ;;; <summary>
+        ;;; A collection of environment variables as required at runtime by the application.
+        ;;; These environment variables will be established via the ProcessEnvironmentVariables
+        ;;; method below.
+        ;;; </summary>
+        public readwrite property EnvironmentVariables, @List<AppEnvironmentVariable>, new List<AppEnvironmentVariable>()
+
+.endregion
+
+.region "IOptions members"
+
+        public virtual property Value, @AppSettings
+            method get
+            proc
+                mreturn this
+            endmethod
+        endproperty
+
+.endregion
+
+.region "Public methods"
+
+        ;;; <summary>
+        ;;; This method is called by the AppSettingsMonitor to initially set the emvironment variables,
+        ;;; and also to reset the values of environment variables if the application configuration
+        ;;; changes.
+        ;;; </summary>
+        public method ProcessEnvironmentVariables, void
+        proc
+            if (EnvironmentVariables.Count > 0)
+            begin
+                data ev, @AppEnvironmentVariable
+                foreach ev in EnvironmentVariables
+                begin
+                    data sts, int
+                    xcall setlog(ev.Name,ev.Value,sts)
+                end
+            end
+        endmethod
+
+.endregion
+
+    endclass
+
+    ;;; <summary>
+    ;;; Represents a aingle environment variable.
+    ;;; </summary>
+    public class AppEnvironmentVariable
+
+        ;;; <summary>
+        ;;; The name of the environment variable.
+        ;;; </summary>
+        public readwrite property Name, string
+
+        ;;; <summary>
+        ;;; The value of the environment variable.
+        ;;; </summary>
+        public readwrite property Value, string
+
+    endclass
+
+endnamespace
