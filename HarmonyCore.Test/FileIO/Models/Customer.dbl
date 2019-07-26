@@ -1,3 +1,4 @@
+import Harmony.Core.FileIO
 ;;*****************************************************************************
 ;;
 ;; Title:       Customer.dbl
@@ -17,6 +18,12 @@ import System.ComponentModel.DataAnnotations
 import System.Text
 import Harmony.Core
 import Harmony.Core.Converters
+import System.Diagnostics
+import Microsoft.Extensions.DependencyInjection
+import Microsoft.EntityFrameworkCore
+import Harmony.Core.Interface
+import Microsoft.EntityFrameworkCore.Internal
+import Harmony.Core.Context
 
 namespace Harmony.Core.Test
 
@@ -316,6 +323,23 @@ namespace Harmony.Core.Test
             mreturn new Object[13]
         endmethod
 
+
+        public override method Validate, void
+            type, ValidationType
+            serviceProvider, @IServiceProvider
+        proc
+            data dbContext = serviceProvider.GetService<ICurrentDBContext>().Context
+            data dataObjectProvider = serviceProvider.GetService<IDataObjectProvider>()
+            data fileChannelManager = dataObjectProvider.ChannelManager
+            data transactionContext = serviceProvider.GetService<IDataObjectTransactionContext>()
+            if(dbContext == ^null || fileChannelManager == ^null || transactionContext == ^null)
+                throw new Exception("something was null")
+
+            Trace.WriteLine(string.Format("Validating Customer Object for operation type {0}", type))
+
+            if(this.City != "Tbilisi")
+                throw new ValidationException("City was not valid")
+        endmethod
 .endregion
 
 .region "Properties to represent keys"

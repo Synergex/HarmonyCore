@@ -3,6 +3,7 @@ import System.Collections.Generic
 import System.Text
 import System.IO
 import Harmony.Core.Test.FileIO.Models
+import Harmony.Core.Test
 
 
 namespace HarmonyCore.Test
@@ -23,7 +24,14 @@ namespace HarmonyCore.Test
 				store(chout,order.SynergyRecord)
 			close chout
 
-
+            dataFile = "DAT:customers.ism"
+            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+            chout = 0
+            data customer, @Customer
+            open(chout=0,o:i,dataFile,FDL:xdlFile)
+            foreach customer in LoadCustomersFromFile()
+                store(chout,customer.SynergyRecord)
+            close chout
 		endmethod
 
 		public static method LoadFromFile, @List<Orders>
@@ -42,7 +50,25 @@ namespace HarmonyCore.Test
 		eof,
 			close orderCh
 			mreturn ordersLst
-		endmethod
+        endmethod
+
+        public static method LoadCustomersFromFile, @List<Customer>
+        proc
+            data dataFile = "DAT:customers.ism"
+            data textFile = dataFile.ToLower().Replace(".ism",".txt")
+            data orderCh, int, 0
+            data orderRec, strCustomer
+            data ordersLst = new List<Customer>()
+            open(orderCh,i:s,textFile)
+            repeat
+            begin
+                reads(orderCh,orderRec,eof)
+                ordersLst.Add(new Customer(orderRec, ""))
+            end
+        eof,
+            close orderCh
+            mreturn ordersLst
+        endmethod
 
 		private static method findRelativeFolderForAssembly, string
 			folderName, string

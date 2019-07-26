@@ -1,0 +1,106 @@
+import Harmony.Core.FileIO
+import Microsoft.Extensions.DependencyInjection
+import System
+import System.Collections.Generic
+import System.Text
+import Microsoft.EntityFrameworkCore
+import Harmony.Core.Test.FileIO.Models
+import Harmony.Core.Test
+import Harmony.Core
+import Harmony.Core.Context
+import Microsoft.VisualStudio.TestTools.UnitTesting
+import System.ComponentModel.DataAnnotations
+
+
+namespace HarmonyCore.Test.EF
+
+    {TestClass}
+    public class BasicEF
+        public method BasicEF
+            endparams
+        proc
+            TestEnvironment.Configure()
+        endmethod
+
+        public method MakeDBContext, @MyDBContext
+        proc
+            lambda AddDataObjectMappings(serviceProvider)
+            begin
+                data objectProvider = new DataObjectProvider(serviceProvider.GetService<IFileChannelManager>())
+                objectProvider.AddDataObjectMapping<Orders>("DAT:orders.ism", FileOpenMode.UpdateIndexed)
+                objectProvider.AddDataObjectMapping<Customer>("DAT:customers.ism", FileOpenMode.UpdateIndexed)
+                mreturn objectProvider
+            end
+            data serviceBuilder = new ServiceCollection()
+            serviceBuilder.AddSingleton<IFileChannelManager, FileChannelManager>()
+            serviceBuilder.AddSingleton<IDataObjectProvider>(AddDataObjectMappings)
+            serviceBuilder.AddDbContext<MyDBContext>()
+            data sp = serviceBuilder.BuildServiceProvider()
+            data dboBuilder = new DbContextOptionsBuilder<MyDBContext>()
+            dboBuilder.UseApplicationServiceProvider(sp)
+            dboBuilder.UseHarmonyDatabase(sp.GetService<IDataObjectProvider>())
+            data contextOptions, @DbContextOptions<MyDBContext>, dboBuilder.Options
+            mreturn new MyDBContext(contextOptions)
+        endmethod
+
+
+        {TestMethod}
+        public method EFFind, void
+        proc
+            disposable data context = MakeDBContext()
+            data firstRecord = Context.Orders.Find(1)
+            data customerRecrod = Context.Customers.Find(firstRecord.CustomerNumber)
+        endmethod
+
+        {TestMethod}
+        public method EFValidation, void
+        proc
+            try
+            begin
+                disposable data context = MakeDBContext()
+                data badCustomer = new Customer()
+                badCustomer.City = "This city Doesnt Exist"
+                badCustomer.CustomerNumber = 1337
+                context.Add(badCustomer)
+                context.SaveChanges()
+                Assert.Fail("should not have saved")
+            end
+            catch(ex, @ValidationException)
+            begin
+            end
+            endtry
+            begin
+                disposable data context = MakeDBContext()
+                data goodCustomer = new Customer()
+                goodCustomer.City = "Tbilisi"
+                goodCustomer.CustomerNumber = 1337
+                context.SaveChanges()
+            end
+
+        endmethod
+	endclass
+
+
+    
+    class MyDBContext extends DbContext
+        public readwrite property Orders, @DbSet<Orders>
+        public readwrite property Customers, @DbSet<Customer>
+        public method MyDBContext
+            opts, @DbContextOptions<MyDBContext>
+            endparams
+            parent(opts)
+        proc
+            
+        endmethod
+
+        protected override method OnModelCreating, void
+            parm, @ModelBuilder
+        proc
+            parm.Ignore(^typeof(AlphaDesc))
+            parm.Ignore(^typeof(DataObjectMetadataBase))
+        endmethod
+
+    endclass
+
+
+endnamespace
