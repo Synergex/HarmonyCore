@@ -2,7 +2,6 @@
 import Harmony.TraditionalBridge
 import Json
 import TraditionalBridge.Test
-import TraditionalBridge
 
 .ifdef D_VMS
 .define LOG_EXTENSION ".log;1"
@@ -12,7 +11,7 @@ import TraditionalBridge
 
 main
 	record
-		disp, @SampleXfplEnvDispatcher
+		disp, @SuperRoutineDispatcher
         ttChan, i4
         processId, d10
         processName, a256
@@ -41,22 +40,22 @@ proc
         else
             logLevelInt = 6 ;log almost everything
 
-        TraditionalBridge.Logger.Instance = new TraditionalBridge.Logger(%atrim(processName) + "_" + %string(processId) + LOG_EXTENSION, logLevelInt, false)
+        Logger.Instance = new TraditionalBridge.Logger(%atrim(processName) + "_" + %string(processId) + LOG_EXTENSION, logLevelInt, false)
 		
 		puts(ttChan, "READY" + %char(13)+ %char(10))
 
-		disp = new SampleXfplEnvDispatcher()
+		disp = new SuperRoutineDispatcher(new RoutineDispatcher[#] { new SampleXfplEnvDispatcher(), new syntstDispatcher() })
 
 		disp.Dispatch(ttChan)
 	end
 	
 	catch(e, @Exception)
 	begin
-		if(TraditionalBridge.Logger.Instance != ^null)
-			TraditionalBridge.Logger.Instance.Log("DISPATCHER EXITED with exception" + e.ToString())
+		if(Logger.Instance != ^null)
+			Logger.Instance.Log("DISPATCHER EXITED with exception" + e.ToString())
 	end
 	endtry
-	if(TraditionalBridge.Logger.Instance != ^null)
-		TraditionalBridge.Logger.Instance.CloseLog()
+	if(Logger.Instance != ^null)
+		Logger.Instance.CloseLog()
 
 endmain

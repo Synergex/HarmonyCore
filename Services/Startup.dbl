@@ -10,44 +10,40 @@
 ;; Any changes you make will be lost of the file is re-generated.
 ;;*****************************************************************************
 ;; 
-;; This environment requires the following NuGet packages:
-;;
-;;    Microsoft.AspNetCore.HttpsPolicy
-;;    Microsoft.AspNetCore.Mvc.Core
-;;    Microsoft.AspNetCore.OData
-;;    Microsoft.AspNetCore.StaticFiles
-;;    Microsoft.EntityFrameworkCore
-;;    Microsoft.OData.Core
-;;    Microsoft.OData.Edm
-;;    Microsoft.Spatial
-;;    Swashbuckle.AspNetCore
-;;    system.text.encoding.codepages
-;;
 
-import System.Collections.Generic
+import Harmony.AspNetCore
+import Harmony.AspNetCore.Context
+import Harmony.Core
 import Harmony.Core.Context
 import Harmony.Core.FileIO
 import Harmony.Core.Utility
 import Harmony.OData
 import Harmony.OData.Adapter
-import Harmony.AspNetCore
-import Harmony.AspNetCore.Context
 import Microsoft.AspNetCore.Builder
 import Microsoft.AspNetCore.Hosting
 import Microsoft.AspNetCore.Http
+import Microsoft.AspNetCore.Mvc.Abstractions
+import Microsoft.AspNetCore.StaticFiles
 import Microsoft.AspNet.OData
 import Microsoft.AspNet.OData.Extensions
 import Microsoft.AspNet.OData.Builder
 import Microsoft.AspNet.OData.Routing
 import Microsoft.AspNet.OData.Routing.Conventions
 import Microsoft.EntityFrameworkCore
+import Microsoft.Extensions.Configuration
 import Microsoft.Extensions.DependencyInjection
+import Microsoft.Extensions.DependencyInjection.Extensions
 import Microsoft.Extensions.Logging
+import Microsoft.Extensions.Options
+import Microsoft.Extensions.Primitives
 import Microsoft.OData
 import Microsoft.OData.Edm
 import Microsoft.OData.UriParser
-import Swashbuckle.AspNetCore.Swagger
-import Microsoft.AspNetCore.StaticFiles
+import System.Collections.Generic
+import System.IO
+import System.Linq
+import System.Text
+import System.Threading.Tasks
 import Services.Controllers
 import Services.Models
 
@@ -57,6 +53,31 @@ namespace Services
     ;;; 
     ;;; </summary>
     public partial class Startup
+
+        ;;; <summary>
+        ;;; This property will be populated later by the default SelfHostEnvironment class.
+        ;;; It wil contain a list of all of the logical names used to locate data files in the repository.
+        ;;; This information can be useful if implementing a custom FileSpecResolver class, which is done
+        ;;; in the Services Assembly, which is why the collection is defined here.
+        ;;; </summary>
+        public static readwrite property LogicalNames, @List<string>
+
+        ;; Items provided by dependency injection
+        public _env, @IHostingEnvironment
+        public _config, @IConfiguration
+
+        ;;; <summary>
+        ;;; Constructor
+        ;;; </summary>
+        ;;; <param name="env">HTTP hosting environment</param>
+        ;;; <param name="config">Configuration data</param>
+        public method Startup
+            env, @IHostingEnvironment
+            config, @IConfiguration
+        proc
+            _env = env
+            _config = config
+        endmethod
 
         ;;; <summary>
         ;;; This methoid is used to make services available to the application.
@@ -73,6 +94,24 @@ namespace Services
             ;;Enable logging
 
             services.AddLogging(lambda(builder) { builder.SetMinimumLevel(LogLevel.Error) })
+
+            ;;-------------------------------------------------------
+            ;;Make AppSettings available as a service
+
+            lambda GetAppSettings(appSettingsInstance)
+            begin
+                appSettingsInstance.ProcessEnvironmentVariables()
+                mreturn true
+            end
+
+            ;;Add an AppSettings service.
+            ;;To get an instance from DI ask for an @IOptions<AppSettings>
+
+			data optionsBuilder = services.AddOptions<AppSettings>().Validate(GetAppSettings)
+			if (_config?.GetSection("AppSettings") != ^null)
+			begin
+				optionsBuilder.Bind(_config.GetSection("AppSettings"))
+			end
 
             ;;-------------------------------------------------------
             ;;Load Harmony Core
@@ -126,6 +165,7 @@ namespace Services
             &    .AddApiExplorer()          ;;Swagger UI
             &    .AddApplicationPart(^typeof(IsolatedMethodsBase).Assembly)
 
+
             ;;-------------------------------------------------------
             ;;Enable HTTP redirection to HTTPS
 
@@ -142,6 +182,8 @@ namespace Services
 
         endmethod
 
+        private AppSettingsMonitor, @IDisposable 
+
         ;;; <summary>
         ;;; This method is used to configure the ASP.NET WebApi request pipeline.
         ;;; </summary>
@@ -151,6 +193,13 @@ namespace Services
             required in app, @IApplicationBuilder
             required in env, @IHostingEnvironment
         proc
+            ;;-------------------------------------------------------
+            ;;Configure the AppSettings environment
+
+            data optionsMonitorObj, @IOptionsMonitor<AppSettings>, ServiceProviderServiceExtensions.GetService<IOptionsMonitor<AppSettings>>(app.ApplicationServices)
+            AppSettingsMonitor = optionsMonitorObj.OnChange(lambda(opts, name) { opts.ProcessEnvironmentVariables() })
+            data settings, @AppSettings, ServiceProviderServiceExtensions.GetService<IOptions<AppSettings>>(app.ApplicationServices).Value
+
             ;;-------------------------------------------------------
             ;;Configure development and production specific components
 
@@ -246,6 +295,9 @@ namespace Services
             ;;-------------------------------------------------------
             ;;Enable MVC
 
+			;;If there is a ConfigureCustomBeforeMvc method, call it
+			ConfigureCustomBeforeMvc(app,env)
+
             app.UseMvc(mvcBuilder)
 
             ;;-------------------------------------------------------
@@ -302,6 +354,17 @@ namespace Services
             required in app, @IApplicationBuilder
             required in env, @IHostingEnvironment
         endmethod
+
+		;;; <summary>
+		;;; Declare the ConfigueCustom partial method called immediately before AddMvc
+		;;; Developers can implement this method in a partial class to provide custom configuration.
+		;;; </summary>
+		;;; <param name="app"></param>
+		;;; <param name="env"></param>
+		partial method ConfigureCustomBeforeMvc, void
+			required in app, @IApplicationBuilder
+			required in env, @IHostingEnvironment
+		endmethod
 
         .endregion
 

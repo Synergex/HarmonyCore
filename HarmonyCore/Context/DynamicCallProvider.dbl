@@ -12,6 +12,7 @@ import StreamJsonRpc
 import System.Buffers
 import StreamJsonRpc.Protocol
 import Harmony.Core.Utility
+import System.Globalization
 
 namespace Harmony.Core.Context
 
@@ -34,13 +35,32 @@ namespace Harmony.Core.Context
 		endclass
 
 		internal static CastMethodInfo, @MethodInfo
-
+		internal static SelectMethodInfo, @MethodInfo
+		internal static FormatProvider, @IFormatProvider
 		static method DynamicCallProvider
 		proc
+			FormatProvider = CultureInfo.CurrentCulture
 			CastMethodInfo = ^typeof(Enumerable).GetMethod("Cast")
+			SelectMethodInfo = ^typeof(Enumerable).GetMethods().Where(lambda(meth) { meth.Name == "Select" && meth.GetParameters().Length == 2}).First()
 		endmethod
 
-
+;		public static method ConvertCollection<C, T(IConvertable)>, @IEnumerable<T>
+;			inputSequence, @IEnumerable
+;		proc
+;			if(^typeof(C).IsArray) then
+;			begin
+;				inputSequence.Cast<IConvertable>().Select(lambda(itm) { (T)itm.ToType(^typeof(T))).ToArray()
+;			end
+;			else if(^typeof(C).IsGenericType && ^typeof(C).GetGenericTypeDefinition() == ^typeof(List<>)) then
+;			begin
+;				inputSequence.Cast<IConvertable>().Select(lambda(itm) { (T)itm.ToType(^typeof(T))).ToList()
+;			end
+;			else
+;			begin
+;				inputSequence.Cast<IConvertable>().Select(lambda(itm) { (T)itm.ToType(^typeof(T)))
+;			end
+;
+;		endmethod
 		protected connection, @IDynamicCallConnection
 		public readonly property IsolationLevel, ContextIsolationLevel
 		protected method DynamicCallProvider
@@ -95,69 +115,6 @@ namespace Harmony.Core.Context
 		proc
 			data hoist = new CallHoist<T>() { CallProvider = this }
 			mreturn hoist.CallMethod(name, args)
-
-;            data argsTemp, [#]@Object, args
-;			data arguments, [#]@ArgumentDataDefinition, new ArgumentDataDefinition[args.Length + 1]
-;			data i, int, 0
-;			for i from 1 thru args.Length
-;			begin
-;				data arg, @ArgumentDataDefinition, PreSerializeArgument(args[i])
-;				arguments[i + 1] = arg
-;			end
-;
-;			arguments[1] = new ArgumentDataDefinition() { PassedValue = ^null, ReturnedValue = true }
-;
-;			data returnType = ^typeof(T)
-;            if(returnType.IsPrimitive) then
-;				arguments[1].DataType = FieldDataType.IntegerField
-;			else if(returnType == ^typeof(string)) then
-;				arguments[1].DataType = FieldDataType.AlphaField
-;			else
-;				arguments[1].DataType = FieldDataType.DataObjectField
-;
-;			arguments = await CallMethodImplementation(name, arguments)
-;
-;			for i from 1 thru args.Length
-;			begin
-;				if(arguments[i + 1].ReturnedValue != ^null && arguments[i + 1].ReturnedValue.Value)
-;				begin
-;					data argValue = arguments[i + 1]
-;					if(argValue.PassedValue .is. JToken) then
-;                    begin
-;						data targetToken = ((@JToken)argValue.PassedValue)
-;						argsTemp[i] = targetToken.ToObject(argsTemp[i].GetType())
-;					end
-;					else
-;					begin
-;						if(argValue.DataType == FieldDataType.DataObjectField) then
-;						begin
-;							argsTemp[i] = argValue.PassedValue
-;						end
-;						else if(argValue.DataType == FieldDataType.DataObjectCollectionField) then
-;						begin
-;							data tempCollection = (@IEnumerable<DataObjectBase>)argValue.PassedValue
-;                            ;;TODO replace this with a generic element getter
-;							data argType = args[i].GetType().GetGenericArguments()[1]
-;							argsTemp[i] = CastMethodInfo.MakeGenericMethod(new Type[#] { argType }).Invoke(^null, new object[#] { tempCollection })
-;						end
-;						else
-;						begin
-;							argsTemp[i] = Convert.ChangeType(argValue.PassedValue, argsTemp[i].GetType())
-;						end
-;
-;					end
-;				end
-;			end
-;
-;			if(arguments[1].PassedValue .is. JToken) then
-;			begin
-;				data retValue = ((@JToken)arguments[1].PassedValue)
-;				mreturn Tuple.Create(retValue.Value<T>(), argsTemp)
-;			end
-;			else
-;			begin
-;				mreturn Tuple.Create((T)Convert.ChangeType(arguments[1].PassedValue,^typeof(T)), argsTemp)
-;			end
 		endmethod
 		
 		public async virtual method CallMethodV, @Task<[#]@object>
@@ -206,13 +163,79 @@ namespace Harmony.Core.Context
 			mreturn PreSerializeArgument(argValue)
 		endmethod
 
+		protected virtual method DataTypeForDotNetType, FieldDataType
+			targetType, @Type
+		proc
+			if(^typeof(DataObjectBase).IsAssignableFrom(targetType)) then
+			begin
+				mreturn FieldDataType.DataObjectField
+			end
+			else if(targetType == ^typeof(string)) then
+			begin
+				mreturn FieldDataType.StringField
+			end
+			else if(^typeof(IEnumerable).IsAssignableFrom(targetType)) then
+			begin
+				data elementType = targetType.GetInterfaces().FirstOrDefault(lambda(iface) { iface.IsGenericType && iface.GetGenericTypeDefinition() == ^typeof(IEnumerable<>) })
+				if(elementType != ^null) then
+				begin
+					data dataType = DataTypeForDotNetType(elementType.GenericTypeArguments.First())
+					if(dataType == FieldDataType.DataObjectField || dataType == FieldDataType.DataObjectCollectionField) then
+						mreturn FieldDataType.DataObjectCollectionField
+					else
+						mreturn FieldDataType.ArrayField | dataType
+				end
+				else
+					mreturn FieldDataType.DataObjectCollectionField
+			end
+			else if(targetType.IsArray) then
+			begin
+				data dataType = DataTypeForDotNetType(targetType.GetElementType())
+				if(dataType == FieldDataType.DataObjectField || dataType == FieldDataType.DataObjectCollectionField) then
+					mreturn FieldDataType.DataObjectCollectionField
+				else
+					mreturn FieldDataType.ArrayField | dataType
+			end
+			else if(targetType == ^typeof(int) || targetType == ^typeof(long) || targetType == ^typeof(short) || targetType == ^typeof(sbyte)
+			&	|| targetType == ^typeof(uint) || targetType == ^typeof(ulong) || targetType == ^typeof(ushort) || targetType == ^typeof(byte)) then
+			begin
+				mreturn FieldDataType.IntegerField
+			end
+			else if(^typeof(Synergex.SynergyDE.AlphaDesc).IsAssignableFrom(targetType)) then
+			begin
+				mreturn FieldDataType.AlphaField
+			end
+			else if(^typeof(Synergex.SynergyDE.DecimalDesc).IsAssignableFrom(targetType)) then
+			begin
+				mreturn FieldDataType.DecimalField
+			end
+			else if(^typeof(Synergex.SynergyDE.IntegerDesc).IsAssignableFrom(targetType)) then
+			begin
+				mreturn FieldDataType.IntegerField
+			end
+			else if(targetType == ^typeof(string)) then
+			begin
+				mreturn FieldDataType.StringField
+			end
+			else
+				throw new NotImplementedException(string.Format("unsupported type translating into bridge type, got {0}", targetType))
+		endmethod
+
 
 		protected virtual method PreSerializeArgument, @ArgumentDataDefinition
 			argValue, @Object
 		proc
 			data argDef = new ArgumentDataDefinition()
 				
-			if(argValue .is. DataObjectBase) then
+			if(argValue .is. ArgumentDataDefinition) then
+				argDef = (@ArgumentDataDefinition)argValue
+			else if(argValue .is. IArgumentPlaceholder) then
+			begin
+				argDef.DataType = DataTypeForDotNetType(((@IArgumentPlaceholder)argValue).ArgumentType)
+				if(((@IArgumentPlaceholder)argValue).Passed)
+					argDef.PassedValue = 0
+			end
+			else if(argValue .is. DataObjectBase) then
 			begin
 				data doValue = (@DataObjectBase)argValue
 				argDef.DataType = FieldDataType.DataObjectField
@@ -221,7 +244,11 @@ namespace Harmony.Core.Context
 				begin
 					data dict = new Dictionary<string, object>()
 					dict.Add("Type", doValue.Metadata.RPSStructureName)
-					dict.Add("Value", Convert.ToBase64String(([#]byte)alphaData))
+					if(doValue.Metadata.RPSStructureHasBinaryData) then
+						dict.Add("Base64Value", Convert.ToBase64String(([#]byte)alphaData))
+					else
+						dict.Add("Value", (@string)alphaData)
+
 					dict.Add("GRFA", Convert.ToBase64String(([#]byte)grfaData))
 					argDef.PassedValue = dict
 				end
@@ -389,8 +416,18 @@ namespace Harmony.Core.Context
 								elementType = argType.GetElementType()
 							else
 								throw new NotImplementedException()
+							if(argValue.PassedValue?.GetType() != argType)
+							begin
+								if(elementType.IsPrimitive) then
+								begin
+									argsTemp[i] = ^typeof(CollectionConverter<>).MakeGenericType(new Type[#] { elementType }).GetMethod("ConvertResultCollection").MakeGenericMethod(new Type[#] { argType }).Invoke(^null, new object[#] { argValue.PassedValue })
+								end
+								else
+								begin
+									argsTemp[i] = DynamicCallProvider.CastMethodInfo.MakeGenericMethod(new Type[#] { elementType }).Invoke(^null, new object[#] { argValue.PassedValue })
+								end
+							end
 
-							argsTemp[i] = DynamicCallProvider.CastMethodInfo.MakeGenericMethod(new Type[#] { elementType }).Invoke(^null, new object[#] { argValue.PassedValue })
 						end
 						else
 						begin
@@ -416,5 +453,40 @@ namespace Harmony.Core.Context
 			end
 		endmethod
 	endclass
+
+	class CollectionConverter<T>
+		public static method ConvertResultCollection<C>, @object
+			inputSequence, @IEnumerable
+		proc
+			data converter, @Func<IConvertible, T>, BakeConversion()
+;			if(^typeof(C).IsArray) then
+;			begin
+;				mreturn inputSequence.Cast<IConvertible>().Select(converter).ToArray()
+;			end
+;			else if(^typeof(C).IsGenericType && ^typeof(C).GetGenericTypeDefinition() == ^typeof(List<>)) then
+;			begin
+;				mreturn inputSequence.Cast<IConvertible>().Select(converter).ToList()
+;			end
+;			else
+;			begin
+				mreturn DynamicCallProvider.SelectMethodInfo.MakeGenericMethod(new Type[#] { ^typeof(IConvertible), ^typeof(T) }).Invoke(^null, new object[#] { inputSequence.Cast<IConvertible>(), converter })
+			;end
+			;throw new NotImplementedException()
+		endmethod
+
+		private static method BakeConversion, @Func<IConvertible, T>
+		proc
+			data result, @Func<IConvertible, T>, ConvertItem
+			mreturn result
+		endmethod
+
+
+		public static method ConvertItem, T
+			item, @IConvertible
+		proc
+			mreturn (T)item.ToType(^typeof(T), DynamicCallProvider.FormatProvider)
+		endmethod
+	endclass
+
 
 endnamespace

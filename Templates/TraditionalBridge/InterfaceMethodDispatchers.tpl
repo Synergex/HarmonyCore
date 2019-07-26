@@ -1,6 +1,6 @@
 <CODEGEN_FILENAME><INTERFACE_NAME>MethodDispachers.dbl</CODEGEN_FILENAME>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
-<REQUIRES_CODEGEN_VERSION>5.3.15</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.4.1</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
 ;// Title:       MethodDispachers.tpl
@@ -54,240 +54,215 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 
 <METHOD_LOOP>
 
-	;;-------------------------------------------------------------------------
-	;;; <summary>
-	;;; Dispatcher for method <INTERFACE_NAME>.<METHOD_NAME>
-	;;; </summary>
-	public class <METHOD_NAME>_Dispatch extends RoutineStub
+    ;;-------------------------------------------------------------------------
+    ;;; <summary>
+    ;;; Dispatcher for method <INTERFACE_NAME>.<METHOD_NAME>
+    ;;; </summary>
+    public class <METHOD_NAME>_Dispatcher extends RoutineStub
 
-		<PARAMETER_LOOP>
-		<IF STRUCTURE>
-		<IF FIRST_INSTANCE_OF_STRUCTURE>
-		private m<ParameterStructureNoplural>Metadata, @DataObjectMetadataBase
-		</IF FIRST_INSTANCE_OF_STRUCTURE>
-		</IF STRUCTURE>
-		</PARAMETER_LOOP>
+        <PARAMETER_LOOP>
+        <IF STRUCTURE>
+        <IF FIRST_INSTANCE_OF_STRUCTURE>
+        private m<ParameterStructureNoplural>Metadata, @DataObjectMetadataBase
+        </IF FIRST_INSTANCE_OF_STRUCTURE>
+        </IF STRUCTURE>
+        </PARAMETER_LOOP>
 
-		public method <METHOD_NAME>_Dispatch
-		proc
-			;;Initialize the meta data for any data objects that are used by parameters to the method
-			<PARAMETER_LOOP>
-			<IF STRUCTURE>
-			<IF FIRST_INSTANCE_OF_STRUCTURE>
-			m<ParameterStructureNoplural>Metadata = DataObjectMetadataBase.LookupType("<ParameterStructureNoplural>")
-			</IF FIRST_INSTANCE_OF_STRUCTURE>
-			</IF STRUCTURE>
-			</PARAMETER_LOOP>
-		endmethod
+        public method <METHOD_NAME>_Dispatcher
+        proc
+            ;;Initialize the meta data for any data objects that are used by parameters to the method
+            <PARAMETER_LOOP>
+            <IF STRUCTURE>
+            <IF FIRST_INSTANCE_OF_STRUCTURE>
+            m<ParameterStructureNoplural>Metadata = DataObjectMetadataBase.LookupType("<ParameterStructureNoplural>")
+            </IF FIRST_INSTANCE_OF_STRUCTURE>
+            </IF STRUCTURE>
+            </PARAMETER_LOOP>
+        endmethod
 
-		protected override method DispatchInternal, void
-			required in name,       string
-			required in callFrame,  @JsonObject
-			required in serializer, @DispatchSerializer
-			required in dispatcher, @RoutineDispatcher
-			record
-				requestId,			int
-				arguments,			@JsonArray
-				argumentDefinition, @ArgumentDataDefinition
+        protected override method DispatchInternal, void
+            required in name,       string
+            required in callFrame,  @JsonObject
+            required in serializer, @DispatchSerializer
+            required in dispatcher, @RoutineDispatcher
+            record
+                requestId,          int
+                arguments,          @JsonArray
+                argumentDefinition, @ArgumentDataDefinition
 
 <COUNTER_1_RESET>
 <PARAMETER_LOOP>
-	<COUNTER_1_INCREMENT>
+    <COUNTER_1_INCREMENT>
 ;//
 ;//=========================================================================================================================
 ;// Declare variables for arguments
 ;//
-				;;Argument <COUNTER_1_VALUE> (<PARAMETER_REQUIRED> <PARAMETER_DIRECTION> <PARAMETER_NAME> <IF COLLECTION_ARRAY>[*]</IF COLLECTION_ARRAY><IF COLLECTION_HANDLE>memory handle collection of </IF COLLECTION_HANDLE><IF COLLECTION_ARRAYLIST>ArrayList collection of </IF COLLECTION_ARRAYLIST><IF STRUCTURE>structure </IF STRUCTURE><IF ENUM>enum </IF ENUM><IF STRUCTURE>@<ParameterStructureNoplural><ELSE><PARAMETER_DEFINITION></IF STRUCTURE><IF DATE> <PARAMETER_DATE_FORMAT> date</IF DATE><IF TIME> <PARAMETER_DATE_FORMAT> time</IF TIME><IF REFERENCE> passed by REFERENCE</IF REFERENCE><IF VALUE> passed by VALUE</IF VALUE><IF DATATABLE> returned as DataTable</IF DATATABLE>)
-	<IF COLLECTION>
-		<IF IN_OR_INOUT>
-				arg<COUNTER_1_VALUE>Array,			@JsonArray
-		</IF IN_OR_INOUT>
-		<IF COLLECTION_ARRAY>
-				arg<COUNTER_1_VALUE>Handle,			D_HANDLE
-				arg<COUNTER_1_VALUE>HandlePos,		int
-		</IF COLLECTION_ARRAY>
-		<IF COLLECTION_HANDLE>
-				arg<COUNTER_1_VALUE>Handle,			D_HANDLE
-				arg<COUNTER_1_VALUE>HandlePos,		int
-		</IF COLLECTION_HANDLE>
-		<IF COLLECTION_ARRAYLIST>
-				arg<COUNTER_1_VALUE>,				@ArrayList
-		</IF COLLECTION_ARRAYLIST>
-	<ELSE>
-		<IF STRUCTURE>
-				arg<COUNTER_1_VALUE>DataObject, @DataObjectBase
-				arg<COUNTER_1_VALUE>, str<ParameterStructureNoplural>
-		<ELSE>
-				arg<COUNTER_1_VALUE>,				<parameter_definition>
-		</IF STRUCTURE>
-	</IF COLLECTION>
+                ;;Argument <COUNTER_1_VALUE> (<PARAMETER_REQUIRED> <PARAMETER_DIRECTION> <PARAMETER_NAME> <IF COLLECTION_ARRAY>[*]</IF COLLECTION_ARRAY><IF COLLECTION_HANDLE>memory handle collection of </IF COLLECTION_HANDLE><IF COLLECTION_ARRAYLIST>ArrayList collection of </IF COLLECTION_ARRAYLIST><IF STRUCTURE>structure </IF STRUCTURE><IF ENUM>enum </IF ENUM><IF STRUCTURE>@<ParameterStructureNoplural><ELSE><PARAMETER_DEFINITION></IF STRUCTURE><IF DATE> <PARAMETER_DATE_FORMAT> date</IF DATE><IF TIME> <PARAMETER_DATE_FORMAT> time</IF TIME><IF REFERENCE> passed by REFERENCE</IF REFERENCE><IF VALUE> passed by VALUE</IF VALUE><IF DATATABLE> returned as DataTable</IF DATATABLE>)
+    <IF COLLECTION>
+        <IF IN_OR_INOUT>
+                arg<COUNTER_1_VALUE>Array,          @JsonArray
+        </IF IN_OR_INOUT>
+        <IF COLLECTION_ARRAY>
+                arg<COUNTER_1_VALUE>Handle,         D_HANDLE
+                arg<COUNTER_1_VALUE>HandlePos,      int
+        </IF COLLECTION_ARRAY>
+        <IF COLLECTION_HANDLE>
+                arg<COUNTER_1_VALUE>Handle,         D_HANDLE
+                arg<COUNTER_1_VALUE>HandlePos,      int
+        </IF COLLECTION_HANDLE>
+        <IF COLLECTION_ARRAYLIST>
+                arg<COUNTER_1_VALUE>,               @ArrayList
+        </IF COLLECTION_ARRAYLIST>
+    <ELSE>
+        <IF STRUCTURE>
+                arg<COUNTER_1_VALUE>DataObject,     @DataObjectBase
+                arg<COUNTER_1_VALUE>,               str<ParameterStructureNoplural>
+        <ELSE>
+                arg<COUNTER_1_VALUE>,               <parameter_definition>
+        </IF STRUCTURE>
+    </IF COLLECTION>
 </PARAMETER_LOOP>
 ;//
 ;//=========================================================================================================================
 ;// Declare variable for function return value
 ;//
 <IF FUNCTION>
-				returnValue,		<IF HATVAL>i4<ELSE><METHOD_RETURN_TYPE></IF HATVAL>
+                returnValue,         <IF HATVAL>i4<ELSE><METHOD_RETURN_TYPE></IF HATVAL>
 </IF FUNCTION>
 ;//=========================================================================================================================
-			endrecord
+            endrecord
 
-		<COUNTER_1_RESET>
-		<PARAMETER_LOOP>
-			<COUNTER_1_INCREMENT>
-			<IF COLLECTION_ARRAY>
-			;;Temp structure tempstr<COUNTER_1_VALUE>
-			structure tempstr<COUNTER_1_VALUE>
-				arry, <IF STRUCTURE>@<ParameterStructureNoplural><ELSE>[1]<PARAMETER_DEFINITION></IF STRUCTURE>
-			endstructure
+        <COUNTER_1_RESET>
+        <PARAMETER_LOOP>
+            <COUNTER_1_INCREMENT>
+            <IF COLLECTION_ARRAY>
+            ;;Temp structure tempstr<COUNTER_1_VALUE>
+            structure tempstr<COUNTER_1_VALUE>
+                arry, <IF STRUCTURE>@<ParameterStructureNoplural><ELSE>[1]<PARAMETER_DEFINITION></IF STRUCTURE>
+            endstructure
 
-			</IF COLLECTION_ARRAY>
-		</PARAMETER_LOOP>
+            </IF COLLECTION_ARRAY>
+        </PARAMETER_LOOP>
 
-		proc
+        proc
 ;//
 ;//=========================================================================================================================
 ;// Assign values to argument variables
 ;//
 <COUNTER_1_RESET>
 <PARAMETER_LOOP>
-	<IF IN_OR_INOUT>
-		<COUNTER_1_INCREMENT>
-	</IF IN_OR_INOUT>
+    <IF IN_OR_INOUT>
+        <COUNTER_1_INCREMENT>
+    </IF IN_OR_INOUT>
 </PARAMETER_LOOP>
 ;//
 
-			;;------------------------------------------------------------
-			;;Process inbound arguments
+            ;;------------------------------------------------------------
+            ;;Process inbound arguments
 
 <IF COUNTER_1>
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+            arguments = (@JsonArray)callFrame.GetProperty("params")
 <ELSE>
-			;;There are no inbound arguments to process
+            ;;There are no inbound arguments to process
 </IF COUNTER_1>
 ;//
 <COUNTER_1_RESET>
 <PARAMETER_LOOP>
-	<COUNTER_1_INCREMENT>
-	<IF IN_OR_INOUT>
+    <COUNTER_1_INCREMENT>
+    <IF IN_OR_INOUT>
 
-			;;Argument <COUNTER_1_VALUE> (<PARAMETER_REQUIRED> <PARAMETER_DIRECTION> <PARAMETER_NAME> <IF COLLECTION_ARRAY>[*]</IF COLLECTION_ARRAY><IF COLLECTION_HANDLE>memory handle collection of </IF COLLECTION_HANDLE><IF COLLECTION_ARRAYLIST>ArrayList collection of </IF COLLECTION_ARRAYLIST><IF STRUCTURE>structure </IF STRUCTURE><IF ENUM>enum </IF ENUM><IF STRUCTURE>@<ParameterStructureNoplural><ELSE><PARAMETER_DEFINITION></IF STRUCTURE><IF DATE> <PARAMETER_DATE_FORMAT> date</IF DATE><IF TIME> <PARAMETER_DATE_FORMAT> time</IF TIME><IF REFERENCE> passed by REFERENCE</IF REFERENCE><IF VALUE> passed by VALUE</IF VALUE><IF DATATABLE> returned as DataTable</IF DATATABLE>)
-	<IF COLLECTION>
+            ;;Argument <COUNTER_1_VALUE> (<PARAMETER_REQUIRED> <PARAMETER_DIRECTION> <PARAMETER_NAME> <IF COLLECTION_ARRAY>[*]</IF COLLECTION_ARRAY><IF COLLECTION_HANDLE>memory handle collection of </IF COLLECTION_HANDLE><IF COLLECTION_ARRAYLIST>ArrayList collection of </IF COLLECTION_ARRAYLIST><IF STRUCTURE>structure </IF STRUCTURE><IF ENUM>enum </IF ENUM><IF STRUCTURE>@<ParameterStructureNoplural><ELSE><PARAMETER_DEFINITION></IF STRUCTURE><IF DATE> <PARAMETER_DATE_FORMAT> date</IF DATE><IF TIME> <PARAMETER_DATE_FORMAT> time</IF TIME><IF REFERENCE> passed by REFERENCE</IF REFERENCE><IF VALUE> passed by VALUE</IF VALUE><IF DATATABLE> returned as DataTable</IF DATATABLE>)
+    <IF COLLECTION>
 ;//
-			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>])
-			arg<COUNTER_1_VALUE>Array = (@JsonArray)((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>]).GetProperty("PassedValue")
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>])
+            arg<COUNTER_1_VALUE>Array = (@JsonArray)((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>]).GetProperty("PassedValue")
 ;//
-		<IF COLLECTION_ARRAY>
-			arg<COUNTER_1_VALUE>Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg<COUNTER_1_VALUE>Array.arrayValues.Count)
-			arg<COUNTER_1_VALUE>HandlePos = 1
-			dispatcher.UnwrapObjectCollection(^m(arg<COUNTER_1_VALUE>Handle),argumentDefinition,arg<COUNTER_1_VALUE>HandlePos,arg<COUNTER_1_VALUE>Array)
-		</IF COLLECTION_ARRAY>
+        <IF COLLECTION_ARRAY>
+            arg<COUNTER_1_VALUE>Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg<COUNTER_1_VALUE>Array.arrayValues.Count)
+            arg<COUNTER_1_VALUE>HandlePos = 1
+            dispatcher.UnwrapObjectCollection(^m(arg<COUNTER_1_VALUE>Handle),argumentDefinition,arg<COUNTER_1_VALUE>HandlePos,arg<COUNTER_1_VALUE>Array)
+        </IF COLLECTION_ARRAY>
 ;//
-		<IF COLLECTION_HANDLE>
-			arg<COUNTER_1_VALUE>Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg<COUNTER_1_VALUE>Array.arrayValues.Count)
-			arg<COUNTER_1_VALUE>HandlePos = 1
-			dispatcher.UnwrapObjectCollection(^m(arg<COUNTER_1_VALUE>Handle),argumentDefinition,arg<COUNTER_1_VALUE>HandlePos,arg<COUNTER_1_VALUE>Array)
-		</IF COLLECTION_HANDLE>
+        <IF COLLECTION_HANDLE>
+            arg<COUNTER_1_VALUE>Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg<COUNTER_1_VALUE>Array.arrayValues.Count)
+            arg<COUNTER_1_VALUE>HandlePos = 1
+            dispatcher.UnwrapObjectCollection(^m(arg<COUNTER_1_VALUE>Handle),argumentDefinition,arg<COUNTER_1_VALUE>HandlePos,arg<COUNTER_1_VALUE>Array)
+        </IF COLLECTION_HANDLE>
 ;//
-		<IF COLLECTION_ARRAYLIST>
-			arg<COUNTER_1_VALUE> = new ArrayList()
-			dispatcher.UnwrapObjectCollection(argumentDefinition,arg<COUNTER_1_VALUE>Array,arg<COUNTER_1_VALUE>)
-		</IF COLLECTION_ARRAYLIST>
-	<ELSE>
+        <IF COLLECTION_ARRAYLIST>
+            arg<COUNTER_1_VALUE> = new ArrayList()
+            dispatcher.UnwrapObjectCollection(argumentDefinition,arg<COUNTER_1_VALUE>Array,arg<COUNTER_1_VALUE>)
+        </IF COLLECTION_ARRAYLIST>
+    <ELSE>
 ;//
-		<IF ALPHA>
-			arg<COUNTER_1_VALUE> = dispatcher.GetText((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>])
-		</IF ALPHA>
+        <IF ALPHA>
+            arg<COUNTER_1_VALUE> = dispatcher.GetText((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>])
+        </IF ALPHA>
 ;//
-		<IF DECIMAL>
-			arg<COUNTER_1_VALUE> = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>])
-		</IF DECIMAL>
+        <IF DECIMAL>
+            arg<COUNTER_1_VALUE> = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>])
+        </IF DECIMAL>
 ;//
-		<IF IMPLIED>
-			arg<COUNTER_1_VALUE> = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>])
-		</IF IMPLIED>
+        <IF IMPLIED>
+            arg<COUNTER_1_VALUE> = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>])
+        </IF IMPLIED>
 ;//
-		<IF INTEGER>
-			arg<COUNTER_1_VALUE> = dispatcher.GetInt((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>])
-		</IF INTEGER>
+        <IF INTEGER>
+            arg<COUNTER_1_VALUE> = dispatcher.GetInt((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>])
+        </IF INTEGER>
 ;//
-		<IF ENUM>
-			arg<COUNTER_1_VALUE> = (<PARAMETER_ENUM>)dispatcher.GetInt((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>])
-		</IF ENUM>
+        <IF ENUM>
+            arg<COUNTER_1_VALUE> = (<PARAMETER_ENUM>)dispatcher.GetInt((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>])
+        </IF ENUM>
 ;//
-		<IF DATE>
-			arg<COUNTER_1_VALUE> = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>])
-		</IF DATE>
+        <IF DATE>
+            arg<COUNTER_1_VALUE> = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>])
+        </IF DATE>
 ;//
-		<IF TIME>
-			arg<COUNTER_1_VALUE> = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>])
-		</IF TIME>
+        <IF TIME>
+            arg<COUNTER_1_VALUE> = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>])
+        </IF TIME>
 ;//
-		<IF HANDLE>
-			;TODO: Template needs code for HANDLE arguments!
-			arg<COUNTER_1_VALUE> = 
-		</IF HANDLE>
+        <IF HANDLE>
+            ;TODO: Template needs code for HANDLE arguments!
+            arg<COUNTER_1_VALUE> = 
+        </IF HANDLE>
 ;//
-		<IF BINARY_HANDLE>
-			;TODO: Template needs code for BINARY HANDLE arguments!
-			arg<COUNTER_1_VALUE> =
-		</IF BINARY_HANDLE>
+        <IF BINARY_HANDLE>
+            ;TODO: Template needs code for BINARY HANDLE arguments!
+            arg<COUNTER_1_VALUE> =
+        </IF BINARY_HANDLE>
 ;//
-		<IF STRING>
-			arg<COUNTER_1_VALUE> = dispatcher.GetText((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>])
-		</IF STRING>
+        <IF STRING>
+            arg<COUNTER_1_VALUE> = dispatcher.GetText((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>])
+        </IF STRING>
 ;//
-		<IF STRUCTURE>
-			;;Structure argument. Get the data object then get the record from it
-			arg<COUNTER_1_VALUE>DataObject = dispatcher.DeserializeObject((@JsonObject)arguments.arrayValues[3],m<ParameterStructureNoplural>Metadata)
-			arg<COUNTER_1_VALUE> = arg<COUNTER_1_VALUE>DataObject.SynergyRecord
-		</IF STRUCTURE>
+        <IF STRUCTURE>
+            ;;Structure argument. Get the data object then get the record from it
+            arg<COUNTER_1_VALUE>DataObject = dispatcher.DeserializeObject((@JsonObject)arguments.arrayValues[3],m<ParameterStructureNoplural>Metadata)
+            arg<COUNTER_1_VALUE> = arg<COUNTER_1_VALUE>DataObject.SynergyRecord
+        </IF STRUCTURE>
 ;//
-	</IF COLLECTION>
-	</IF IN_OR_INOUT>
+    </IF COLLECTION>
+    </IF IN_OR_INOUT>
 </PARAMETER_LOOP>
 ;//
 ;//=========================================================================================================================
 ;// Make the method call
 ;//
 
-			;;------------------------------------------------------------
-			;; Call the underlying routine
+            ;;------------------------------------------------------------
+            ;; Call the underlying routine
 
-			<IF SUBROUTINE>xcall <ELSE>returnValue = %</IF SUBROUTINE><METHOD_ROUTINE>(<COUNTER_1_RESET><PARAMETER_LOOP><COUNTER_1_INCREMENT><IF COLLECTION><IF COLLECTION_ARRAY>^m(<IF STRUCTURE>str<ParameterStructureNoplural><ELSE>tempstr<COUNTER_1_VALUE>.arry</IF STRUCTURE>,arg<COUNTER_1_VALUE>Handle)<,></IF COLLECTION_ARRAY><IF COLLECTION_HANDLE>arg<COUNTER_1_VALUE>Handle<,></IF COLLECTION_HANDLE><IF COLLECTION_ARRAYLIST>arg<COUNTER_1_VALUE><,></IF COLLECTION_ARRAYLIST><ELSE>arg<COUNTER_1_VALUE><,></IF COLLECTION></PARAMETER_LOOP>)
+            <IF SUBROUTINE>xcall <ELSE>returnValue = %</IF SUBROUTINE><METHOD_ROUTINE>(<COUNTER_1_RESET><PARAMETER_LOOP><COUNTER_1_INCREMENT><IF COLLECTION><IF COLLECTION_ARRAY>^m(<IF STRUCTURE>str<ParameterStructureNoplural><ELSE>tempstr<COUNTER_1_VALUE>.arry</IF STRUCTURE>,arg<COUNTER_1_VALUE>Handle)<,></IF COLLECTION_ARRAY><IF COLLECTION_HANDLE>arg<COUNTER_1_VALUE>Handle<,></IF COLLECTION_HANDLE><IF COLLECTION_ARRAYLIST>arg<COUNTER_1_VALUE><,></IF COLLECTION_ARRAYLIST><ELSE>arg<COUNTER_1_VALUE><,></IF COLLECTION></PARAMETER_LOOP>)
 ;//
 ;//=========================================================================================================================
 ;// Build the JSON response
 ;//
-
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
 <IF FUNCTION>
 
-			;;Function return value
-
-			serializer.MapOpen()
-			serializer.String("Position")
-            serializer.Integer(0)
-			serializer.String("Value")
-			serializer.MapOpen()
-			;TODO: Needs to handle all the valid function return types
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.EnumField)
-            serializer.String("PassedValue")
-			serializer.Integer(returnValue)
-			serializer.MapClose()
-			serializer.MapClose()
+            ;;Function return value
+            serializer.ArgumentData(0, returnValue)
 </IF FUNCTION>
 ;//
 ;//Argument processing
@@ -297,172 +272,121 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 <COUNTER_1_INCREMENT>
 <IF OUT_OR_INOUT>
 
-			;;--------------------------------------------------------------------------------
-			;;Argument <COUNTER_1_VALUE> (<PARAMETER_REQUIRED> <PARAMETER_DIRECTION> <PARAMETER_NAME> <IF COLLECTION_ARRAY>[*]</IF COLLECTION_ARRAY><IF COLLECTION_HANDLE>memory handle collection of </IF COLLECTION_HANDLE><IF COLLECTION_ARRAYLIST>ArrayList collection of </IF COLLECTION_ARRAYLIST><IF STRUCTURE>structure </IF STRUCTURE><IF ENUM>enum </IF ENUM><IF STRUCTURE>@<ParameterStructureNoplural><ELSE><PARAMETER_DEFINITION></IF STRUCTURE><IF DATE> <PARAMETER_DATE_FORMAT> date</IF DATE><IF TIME> <PARAMETER_DATE_FORMAT> time</IF TIME><IF REFERENCE> passed by REFERENCE</IF REFERENCE><IF VALUE> passed by VALUE</IF VALUE><IF DATATABLE> returned as DataTable</IF DATATABLE>)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", <COUNTER_1_VALUE>)
-			serializer.String("Value")
-			serializer.MapOpen()
-			
+            ;;--------------------------------------------------------------------------------
+            ;;Argument <COUNTER_1_VALUE> (<PARAMETER_REQUIRED> <PARAMETER_DIRECTION> <PARAMETER_NAME> <IF COLLECTION_ARRAY>[*]</IF COLLECTION_ARRAY><IF COLLECTION_HANDLE>memory handle collection of </IF COLLECTION_HANDLE><IF COLLECTION_ARRAYLIST>ArrayList collection of </IF COLLECTION_ARRAYLIST><IF STRUCTURE>structure </IF STRUCTURE><IF ENUM>enum </IF ENUM><IF STRUCTURE>@<ParameterStructureNoplural><ELSE><PARAMETER_DEFINITION></IF STRUCTURE><IF DATE> <PARAMETER_DATE_FORMAT> date</IF DATE><IF TIME> <PARAMETER_DATE_FORMAT> time</IF TIME><IF REFERENCE> passed by REFERENCE</IF REFERENCE><IF VALUE> passed by VALUE</IF VALUE><IF DATATABLE> returned as DataTable</IF DATATABLE>)
+            
 ;//
-	<IF ALPHA>
-		<IF COLLECTION>
-			serializer.Pair("DataType", (i)FieldDataType.AlphaArrayField)
-			serializer.String("PassedValue")
-			serializer.ArrayOpen()
-
-			serializer.ArrayClose()
-		<ELSE>
-			serializer.Pair("DataType", (i)FieldDataType.AlphaField)
-			serializer.Pair("PassedValue", %atrim(arg<COUNTER_1_VALUE>))
-		</IF COLLECTION>
-	</IF ALPHA>
+    <IF ALPHA>
+        <IF COLLECTION>
+            serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.AlphaArrayField, <PARAMETER_SIZE>)
+        <ELSE>
+            serializer.ArgumentData(<COUNTER_1_VALUE>, %atrim(arg<COUNTER_1_VALUE>), FieldDataType.AlphaField)
+        </IF COLLECTION>
+    </IF ALPHA>
 ;//
-	<IF DECIMAL>
-		<IF COLLECTION>
-			;TODO: Need to add support for collection of decimal
-		<ELSE>
-			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
-			serializer.Pair("PassedValue", arg<COUNTER_1_VALUE>)
-		</IF COLLECTION>
-	</IF DECIMAL>
+    <IF DECIMAL>
+        <IF COLLECTION>
+            serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.DecimalArrayField, <PARAMETER_SIZE>)
+        <ELSE>
+            serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.DecimalField)
+        </IF COLLECTION>
+    </IF DECIMAL>
 ;//
-	<IF IMPLIED>
-		<IF COLLECTION>
-			;TODO: Need to add support for collection of implied decimal
-		<ELSE>
-			serializer.Pair("DataType", (i)FieldDataType.ImpliedDecimal)
-			serializer.Pair("PassedValue", arg<COUNTER_1_VALUE>)
-		</IF COLLECTION>
-	</IF IMPLIED>
+    <IF IMPLIED>
+        <IF COLLECTION>
+            serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.ImpliedDecimalArrayField, <PARAMETER_SIZE>, <PARAMETER_PRECISION>)
+        <ELSE>
+            serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.ImpliedDecimal, , <PARAMETER_SIZE>, <PARAMETER_PRECISION>)
+        </IF COLLECTION>
+    </IF IMPLIED>
 ;//
-	<IF INTEGER>
-		<IF COLLECTION>
-			;TODO: Need to add support for collection of integer
-		<ELSE>
-			serializer.Pair("DataType", (i)FieldDataType.IntegerField)
-			serializer.Pair("PassedValue", arg<COUNTER_1_VALUE>)
-		</IF COLLECTION>
-	</IF INTEGER>
+    <IF INTEGER>
+        <IF COLLECTION>
+            serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.IntegerArrayField, <PARAMETER_SIZE>)
+        <ELSE>
+            serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.IntegerField)
+        </IF COLLECTION>
+    </IF INTEGER>
 ;//
-	<IF ENUM>
-			;TODO: Do we need custom processing for enum fields beyond the integer value?
-			serializer.Pair("DataType", (i)FieldDataType.IntegerField)
-			serializer.Pair("PassedValue", arg<COUNTER_1_VALUE>)
-	</IF ENUM>
+    <IF ENUM>
+            ;TODO: Do we need custom processing for enum fields beyond the integer value?
+            serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.IntegerField)
+    </IF ENUM>
 ;//
-	<IF DATE>
-		<IF COLLECTION>
-			;TODO: Need to add support for collection of date
-		<ELSE>
-			;TODO: Do we need custom processing for date fields beyond the decimal value?
-			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
-			serializer.Pair("PassedValue", arg<COUNTER_1_VALUE>)
-		</IF COLLECTION>
-	</IF DATE>
+    <IF DATE>
+        <IF COLLECTION>
+            serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.DecimalArrayField, <PARAMETER_SIZE>)
+        <ELSE>
+            serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.DecimalField)
+        </IF COLLECTION>
+    </IF DATE>
 ;//
-	<IF TIME>
-		<IF COLLECTION>
-			;TODO: Need to add support for collection of time
-		<ELSE>
-			;TODO: Do we need custom processing for time fields beyond the decimal value?
-			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
-			serializer.Pair("PassedValue", arg<COUNTER_1_VALUE>)
-		</IF COLLECTION>
-	</IF TIME>
+    <IF TIME>
+        <IF COLLECTION>
+            serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.DecimalArrayField, <PARAMETER_SIZE>)
+        <ELSE>
+            serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.DecimalField)
+        </IF COLLECTION>
+    </IF TIME>
 ;//
-	<IF HANDLE>
-			serializer.Pair("DataType", (i)FieldDataType.HandleField)
-			serializer.String("PassedValue")
-			;TODO: Handle support is incomplete and will FAIL!!!
-	</IF HANDLE>
+    <IF HANDLE>
+            ;TODO: Handle support is incomplete and will FAIL!!!
+    </IF HANDLE>
 ;//
-	<IF BINARY_HANDLE>
-			serializer.Pair("DataType", (i)FieldDataType.BinaryHandleField)
-			serializer.String("PassedValue")
-			;TODO: Binary Handle support is incomplete and will FAIL!!!
-	</IF BINARY_HANDLE>
+    <IF BINARY_HANDLE>
+            ;TODO: Binary Handle support is incomplete and will FAIL!!!
+    </IF BINARY_HANDLE>
 ;//
-	<IF STRING>
-			serializer.Pair("DataType", (i)FieldDataType.StringField)
-			serializer.String("PassedValue")
-		<IF COLLECTION>
-			;TODO: Need to add support for collection of string
-		<ELSE>
-			;TODO: Need to add support for string
-		</IF COLLECTION>
-	</IF STRING>
+    <IF STRING>
+        <IF COLLECTION>
+            serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.StringArrayField)
+        <ELSE>
+            serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.StringField)
+        </IF COLLECTION>
+    </IF STRING>
 ;//
 ;//Start of structure parameter processing
 ;//
-	<IF STRUCTURE>
-		<IF COLLECTION>
+    <IF STRUCTURE>
+        <IF COLLECTION>
 ;//
 ;//Structure collection processing
 ;//
-			serializer.Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
-			serializer.String("PassedValue")
-			serializer.ArrayOpen()
 ;//
 ;//Structure array processing
 ;//
-		<IF COLLECTION_ARRAY>
-			;TODO: Need to add support for array of structure
-		</IF COLLECTION_ARRAY>
+        <IF COLLECTION_ARRAY>
+            serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.DataObjectCollectionField, <PARAMETER_SIZE>, <PARAMETER_STRUCTURE>)
+        </IF COLLECTION_ARRAY>
 ;//
 ;//Structure memory handle collection processing
 ;//
-		<IF COLLECTION_HANDLE>
-			;TODO: Need to add support for memory handle collection of structure
-		</IF COLLECTION_HANDLE>
+        <IF COLLECTION_HANDLE>
+            serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.DataObjectCollectionField, <PARAMETER_SIZE>, <PARAMETER_STRUCTURE>)
+        </IF COLLECTION_HANDLE>
 ;//
 ;//Structure ArrayList processing
 ;//
-		<IF COLLECTION_ARRAYLIST>
-			begin
-				data this<ParameterStructureNoplural>, @str<ParameterStructureNoplural>
-				foreach this<ParameterStructureNoplural> in arg<COUNTER_1_VALUE>
-					DataObjectBase.Serialize(serializer, this<ParameterStructureNoplural>, "<PARAMETER_STRUCTURE>", "", false)
-			end
-		</IF COLLECTION_ARRAYLIST>
+        <IF COLLECTION_ARRAYLIST>
+            serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.DataObjectCollectionField, <PARAMETER_SIZE>, <PARAMETER_STRUCTURE>)
+        </IF COLLECTION_ARRAYLIST>
 ;//
 ;//End of structure collection processing
 ;//
-			serializer.ArrayClose()
-		<ELSE>
+        <ELSE>
 ;//
 ;//Single structure processing
 ;//
-			;;Argument <COUNTER_1_VALUE>: Single <ParameterStructureNoplural> record
-			serializer.Pair("DataType", (i)FieldDataType.DataObjectField)
-			serializer.String("PassedValue")
-			;TODO: Support for single structure is incomplete
-		</IF COLLECTION>
+            ;;Argument <COUNTER_1_VALUE>: Single <ParameterStructureNoplural> record
+            serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.DataObjectField, <PARAMETER_SIZE>, <PARAMETER_STRUCTURE>)
+        </IF COLLECTION>
 ;//
-	</IF STRUCTURE>
-			serializer.MapClose()
-			serializer.MapClose()
+    </IF STRUCTURE>
 </IF OUT_OR_INOUT>
 </PARAMETER_LOOP>
+        endmethod
 
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
-		endmethod
-
-	endclass
+    endclass
 </METHOD_LOOP>
 
 endnamespace

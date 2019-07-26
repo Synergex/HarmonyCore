@@ -56,12 +56,23 @@ namespace TraditionalBridge.Test.Models
 			required in dataArea, a
 			required in grfa, a
 			record
-				newCustomer, @Customer
+				newCustomer, @TraditionalBridge.Test.Models.Customer
 		proc
 			newCustomer = new Customer(dataArea) 
 			newCustomer.GlobalRFA = grfa
 			mreturn newCustomer
 		endmethod
+
+        public override method SetIntoArray, void
+            dataArea, a
+            arrayObject, @object
+            index, int
+            record
+                typed, [#]strCustomer
+        proc
+            typed = ([#]strCustomer)arrayObject
+            typed[index] = dataArea
+        endmethod
 
 	endclass
 

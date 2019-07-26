@@ -53,7 +53,7 @@ namespace TraditionalBridge.Test.AutoTime
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED IN TIMEKEY ArrayList collection of structure @Timekey)
 			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1])
@@ -65,34 +65,6 @@ namespace TraditionalBridge.Test.AutoTime
 			;; Call the underlying routine
 
 			xcall AutoTimeALin(arg1)
-
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
 		endmethod
 
 	endclass
@@ -138,53 +110,10 @@ namespace TraditionalBridge.Test.AutoTime
 
 			xcall AutoTimeALout(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED OUT TIMEKEY ArrayList collection of structure @Timekey)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
-			serializer.String("PassedValue")
-			serializer.ArrayOpen()
-			begin
-				data thisTimekey, @strTimekey
-				foreach thisTimekey in arg1
-					DataObjectBase.Serialize(serializer, thisTimekey, "TIMEKEY", "", false)
-			end
-			serializer.ArrayClose()
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.DataObjectCollectionField, 50, "TIMEKEY", false)
 		endmethod
 
 	endclass
@@ -230,7 +159,7 @@ namespace TraditionalBridge.Test.AutoTime
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT TIMEKEY [*]structure @Timekey)
 			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1])
@@ -244,49 +173,10 @@ namespace TraditionalBridge.Test.AutoTime
 
 			xcall AutoTimeArray(^m(strTimekey,arg1Handle))
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT TIMEKEY [*]structure @Timekey)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
-			serializer.String("PassedValue")
-			serializer.ArrayOpen()
-			;TODO: Need to add support for array of structure
-			serializer.ArrayClose()
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentHandleData(1, arg1Handle, FieldDataType.DataObjectCollectionField, 50, "TIMEKEY", arg1Array.arrayValues.Count, false)
 		endmethod
 
 	endclass
@@ -326,7 +216,7 @@ namespace TraditionalBridge.Test.AutoTime
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT TIMEKEY structure @Timekey)
 			;;Structure argument. Get the data object then get the record from it
@@ -338,48 +228,11 @@ namespace TraditionalBridge.Test.AutoTime
 
 			xcall AutoTimeInOut(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT TIMEKEY structure @Timekey)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			;;Argument 1: Single Timekey record
-			serializer.Pair("DataType", (i)FieldDataType.DataObjectField)
-			serializer.String("PassedValue")
-			;TODO: Support for single structure is incomplete
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.DataObjectField, 50, "TIMEKEY", false)
+			
 		endmethod
 
 	endclass
@@ -419,7 +272,7 @@ namespace TraditionalBridge.Test.AutoTime
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED IN TIMEKEY structure @Timekey)
 			;;Structure argument. Get the data object then get the record from it
@@ -430,34 +283,6 @@ namespace TraditionalBridge.Test.AutoTime
 			;; Call the underlying routine
 
 			xcall AutoTimeIn(arg1)
-
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
 		endmethod
 
 	endclass
@@ -504,48 +329,11 @@ namespace TraditionalBridge.Test.AutoTime
 
 			xcall AutoTimeOut(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED OUT TIMEKEY structure @Timekey)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			;;Argument 1: Single Timekey record
-			serializer.Pair("DataType", (i)FieldDataType.DataObjectField)
-			serializer.String("PassedValue")
-			;TODO: Support for single structure is incomplete
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.DataObjectField, 50, "TIMEKEY", false)
+			
 		endmethod
 
 	endclass

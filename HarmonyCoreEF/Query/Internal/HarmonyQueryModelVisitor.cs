@@ -8,11 +8,13 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Harmony.Core.EF.Extensions.Internal;
+using Harmony.Core.FileIO;
 using Harmony.Core.FileIO.Queryable;
 using Harmony.Core.FileIO.Queryable.Expressions;
 using Harmony.Core.Utility;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
@@ -21,6 +23,7 @@ using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors;
 using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors.Internal;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.DependencyInjection;
 using Remotion.Linq;
 using Remotion.Linq.Clauses;
 using Remotion.Linq.Clauses.Expressions;
@@ -976,15 +979,33 @@ namespace Harmony.Core.EF.Query.Internal
             bool isTrackingQuery)
             where TEntity : DataObjectBase
         {
+            var sp = new FileIOServiceProvider { Context = queryContext };
             return queryPlan.ExecuteCollectionPlan<TEntity>(
                 (obj) => 
                 {
+                    obj.LoadOwnedObjects(sp);
                     if (isTrackingQuery)
                         queryContext.QueryBuffer.StartTracking(obj, (((HarmonyQueryContext)queryContext).GetEntityType(obj.GetType())));
                     return obj;
                 },
                 queryContext.ParameterValues, 
                 (((HarmonyQueryContext)queryContext).Store));
+        }
+
+        private class FileIOServiceProvider : IServiceProvider
+        {
+            public QueryContext Context { get; set; }
+            public object GetService(Type serviceType)
+            {
+                if (serviceType == typeof(DbContext))
+                {
+                    return Context.Context;
+                }
+                else
+                {
+                    return ((IInfrastructure<IServiceProvider>)Context.Context).Instance.GetService(serviceType);
+                }
+            }
         }
 
         /// <summary>

@@ -11,6 +11,13 @@ import System
 import System.Collections.Generic
 import System.Text
 import Harmony.Core.Converters
+import System.ComponentModel.DataAnnotations
+import Microsoft.EntityFrameworkCore
+import Harmony.Core.Context
+import Harmony.Core.Interface
+import Microsoft.Extensions.DependencyInjection
+import System.Diagnostics
+import Harmony.Core.FileIO
 
 namespace Harmony.Core.Test.FileIO.Models
 
@@ -58,93 +65,116 @@ namespace Harmony.Core.Test.FileIO.Models
 		;;{Contained}
 		;;public readwrite property VinylRecords, @ICollection<Orders>
 
-        ;;Expose fields as properties for data binding
-		;;Or_number
-		{System.ComponentModel.DataAnnotations.Key}
-		public property Order_number, int
-			method get
-			proc
-				mreturn (int)mSynergyData.ORDER_NUMBER
-				
+        {Key}
+        {Required(ErrorMessage="Order number is required. ")}
+        {Range(1,999999, ErrorMessage="Order number must be between 1 and 999999. ")}
+        public property OrderNumber, int
+            method get
+            proc
+                mreturn (int)mSynergyData.order_number
             endmethod
-			method set
-			proc
-				mSynergyData.ORDER_NUMBER = value
-			endmethod
-		endproperty
-		;;Or_customer
-		public property Customer_number, int
-			method get
-			proc
-				mreturn (int)mSynergyData.CUSTOMER_NUMBER
-				
-			endmethod
-			method set
-			proc
-				mSynergyData.CUSTOMER_NUMBER = value
-			endmethod
-		endproperty
-		;;Or_placed_by
-		public property Placed_by, string
-			method get
-			proc
-				mreturn (string)mSynergyData.PLACED_BY
-				
-			endmethod
-			method set
-			proc
-				mSynergyData.PLACED_BY = value
-			endmethod
-		endproperty
-		;;Or_customer_ref
-		public property Customer_reference, string
-			method get
-			proc
-				mreturn (string)mSynergyData.CUSTOMER_REFERENCE
-				
-			endmethod
-			method set
-			proc
-				mSynergyData.CUSTOMER_REFERENCE = value
-			endmethod
-		endproperty
-		;;Or_terms
-		public property Payment_terms_code, string
-			method get
-			proc
-				mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.PAYMENT_TERMS_CODE, ^null, ^null, ^null)
-				
-			endmethod
-			method set
-			proc
-				mSynergyData.PAYMENT_TERMS_CODE = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
-			endmethod
-		endproperty
-		;;Or_odate
-		public property Date_ordered, DateTime
-			method get
-			proc
-				data dt, DateTime
-				DateTime.TryParse((string)mSynergyData.DATE_ORDERED, dt)
-				mreturn dt
-			endmethod
-			method set
-			proc
-			endmethod
-		endproperty
-		;;Or_sdate
-		public property Date_completed, DateTime
-			method get
-			proc
-				data dt, DateTime
-				DateTime.TryParse((string)mSynergyData.DATE_COMPLETED, dt)
-				mreturn dt
-			endmethod
-			method set
-			proc
-			endmethod
-		endproperty
+            method set
+            proc
+                mSynergyData.order_number = value
+            endmethod
+        endproperty
 
+        ;;; <summary>
+        ;;; Customer number
+        ;;; </summary>
+        {Required(ErrorMessage="Customer number is required. ")}
+        {Range(1,999999, ErrorMessage="Customer number must be between 1 and 999999. ")}
+        public property CustomerNumber, int
+            method get
+            proc
+                mreturn (int)mSynergyData.customer_number
+            endmethod
+            method set
+            proc
+                mSynergyData.customer_number = value
+            endmethod
+        endproperty
+
+        ;;; <summary>
+        ;;; Order placed by
+        ;;; </summary>
+        {Required(ErrorMessage="Order placed by is required. ")}
+        {StringLength(25, ErrorMessage="Order placed by cannot exceed 25 characters. ")}
+        public property PlacedBy, string
+            method get
+            proc
+                mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.placed_by, ^null, ^null, ^null)
+            endmethod
+            method set
+            proc
+                mSynergyData.placed_by = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
+            endmethod
+        endproperty
+
+        ;;; <summary>
+        ;;; Customer order reference
+        ;;; </summary>
+        {StringLength(25, ErrorMessage="Customer order reference cannot exceed 25 characters. ")}
+        public property CustomerReference, string
+            method get
+            proc
+                mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.customer_reference, ^null, ^null, ^null)
+            endmethod
+            method set
+            proc
+                mSynergyData.customer_reference = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
+            endmethod
+        endproperty
+
+        ;;; <summary>
+        ;;; Payment terms code
+        ;;; </summary>
+        {StringLength(2, ErrorMessage="Payment terms code cannot exceed 2 characters. ")}
+        public property PaymentTermsCode, string
+            method get
+            proc
+                mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.payment_terms_code, ^null, ^null, ^null)
+            endmethod
+            method set
+            proc
+                mSynergyData.payment_terms_code = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
+            endmethod
+        endproperty
+
+        ;;; <summary>
+        ;;; Date ordered
+        ;;; </summary>
+        {Required(ErrorMessage="Date ordered is required. ")}
+        public property DateOrdered, DateTime
+            method get
+            proc
+                data formatString = "YYYYMMDD"
+                mreturn (DateTime)SynergyDecimalDateConverter.Convert(mSynergyData.date_ordered, ^null, formatString, ^null)
+            endmethod
+            method set
+            proc
+                data formatString = "YYYYMMDD"
+                mSynergyData.date_ordered = (D)SynergyDecimalDateConverter.ConvertBack(value, ^null, formatString, ^null)
+            endmethod
+        endproperty
+
+        ;;; <summary>
+        ;;; Date order completed
+        ;;; </summary>
+        public property DateCompleted, DateTime
+            method get
+            proc
+                data formatString = "YYYYMMDD"
+                mreturn (DateTime)SynergyDecimalDateConverter.Convert(mSynergyData.date_completed, ^null, formatString, ^null)
+            endmethod
+            method set
+            proc
+                data formatString = "YYYYMMDD"
+                mSynergyData.date_completed = (D)SynergyDecimalDateConverter.ConvertBack(value, ^null, formatString, ^null)
+            endmethod
+        endproperty
+
+        public readwrite property Customer, @Customer
         ;;; <summary>
         ;;; Expose the complete synergy record
         ;;; </summary>
@@ -186,23 +216,70 @@ namespace Harmony.Core.Test.FileIO.Models
 			mreturn new Object[0]
 		endmethod
 
+        protected virtual method LoadOwnedObjectsInternal, void
+            serviceProvider, @IServiceProvider
+        proc
+            data dataObjectProvider, @IDataObjectProvider, serviceProvider.GetService<IDataObjectProvider>()
+            data fileChannelManager = dataObjectProvider.ChannelManager
+            if(dataObjectProvider == ^null || fileChannelManager == ^null)
+                throw new Exception("something was null")
+
+            Trace.WriteLine("Loading Owned Objects for Orders")
+
+            disposable data customerFileIO, @IDataObjectIO<Customer>, dataObjectProvider.GetFileIO<Customer>()
+            data customerResult, @Customer
+            FileIOErrorHelper.EnsureSuccess(customerFileIO.ReadRecord(customerResult, 0, ^a(mSynergyData.customer_number), true))
+        endmethod
+
 	endclass
 	
 	public partial class OrdersMetadata extends Harmony.Core.DataObjectMetadataBase
-		
-		public method OrdersMetadata
-		proc
-			RPSStructureName = "ORDERS"
-			RPSStructureSize = ^size(STROrders)
-			;;fill in all of the field defs and other type level info here
-			AddFieldInfo("Or_number", "DECIMAL", 6, 1, 0, false)
-			AddFieldInfo("Or_customer", "DECIMAL", 6, 7, 0, false)
-			AddFieldInfo("Or_placed_by", "ALPHA", 25, 13, 0, false)
-			AddFieldInfo("Or_customer_ref", "ALPHA", 25, 38, 0, false)
-			AddFieldInfo("Or_terms", "ALPHA", 2, 63, 0, false)
-			AddFieldInfo("Or_ordered", "DATE", 6, 65, 0, false)
-			AddFieldInfo("Or_completed", "DATE", 6, 73, 0, false)
-		endmethod
+		;; Define custom property formatters
+        private mDateOrderedFormatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("FORMAT:YYYYMMDD")
+        private mDateCompletedFormatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("FORMAT:YYYYMMDD")
+
+        ;;; <summary>
+        ;;; Constructs an new OrderMetadata object.
+        ;;; </summary>
+        public method OrdersMetadata
+        proc
+            ;; Define structure name and size
+            RPSStructureName = "ORDERS"
+            RPSStructureSize = ^size(STROrders)
+
+            ;; Define fields
+            AddFieldInfo("OrderNumber", "DECIMAL", 6, 1, 0, false)
+            AddFieldInfo("CustomerNumber", "DECIMAL", 6, 7, 0, false)
+            AddFieldInfo("PlacedBy", "ALPHA", 25, 13, 0, false)
+            AddFieldInfo("CustomerReference", "ALPHA", 25, 38, 0, false)
+            AddFieldInfo("PaymentTermsCode", "ALPHA", 2, 63, 0, false)
+            AddFieldInfo("DateOrdered", "DATE", 8, 65, 0, false, mDateOrderedFormatter)
+            AddFieldInfo("DateCompleted", "DATE", 8, 73, 0, false, mDateCompletedFormatter)
+
+            ;; Define all fields that are associated wity key segments
+            AddKeyInfo(0, "OrderNumber")
+            AddKeyInfo(1, "CustomerNumber")
+            AddKeyInfo(2, "DateOrdered")
+            AddKeyInfo(3, "DateCompleted")
+
+            ;; Define the composition of access keys
+
+            data OrderNumber_KeyParts = new FieldDataDefinition[1]
+            OrderNumber_KeyParts[1] = GetFieldByName("OrderNumber")
+            AddFieldInfo("KEY_ORDER_NUMBER", "COMPOSITE", 0, 0, 0, false, ^null, ^null, OrderNumber_KeyParts)
+
+            data CustomerNumber_KeyParts = new FieldDataDefinition[1]
+            CustomerNumber_KeyParts[1] = GetFieldByName("CustomerNumber")
+            AddFieldInfo("KEY_CUSTOMER_NUMBER", "COMPOSITE", 0, 0, 0, false, ^null, ^null, CustomerNumber_KeyParts)
+
+            data DateOrdered_KeyParts = new FieldDataDefinition[1]
+            DateOrdered_KeyParts[1] = GetFieldByName("DateOrdered")
+            AddFieldInfo("KEY_DATE_ORDERED", "COMPOSITE", 0, 0, 0, false, ^null, ^null, DateOrdered_KeyParts)
+
+            data DateCompleted_KeyParts = new FieldDataDefinition[1]
+            DateCompleted_KeyParts[1] = GetFieldByName("DateCompleted")
+            AddFieldInfo("KEY_DATE_COMPLETED", "COMPOSITE", 0, 0, 0, false, ^null, ^null, DateCompleted_KeyParts)
+        endmethod
 	
 		public override method MakeNew, @DataObjectBase
 			req in dataArea, a

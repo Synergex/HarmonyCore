@@ -6,49 +6,67 @@ import Microsoft.Extensions.DependencyInjection
 
 namespace Harmony.Core.Context
 
-	public class RemoteExternalContextPool<T(IContextBase, class)> extends FreeThreadedContextPool<T>
-		private mTargetMachine, @string
-		private mUsername, @string
-		private mAuthentication, @AuthenticationMethod
-		private mTargetCommand, @string
-		private mTargetOS, RemoteTargetOS
-		private mCallTimeout, int
-		private mConnectTimeout, int
-		public method RemoteExternalContextPool
-			targetOS, RemoteTargetOS
-			targetMachine, @string
-			username, @string
-			authentication, @AuthenticationMethod
-			targetCommand, @string
-			min, int
-			callTimeout, int
-			connectTimeout, int
-			endparams
-			parent(min)
-		proc
-			mTargetOS = targetOS
-			mTargetMachine = targetMachine
-			mUsername = username
-			mAuthentication = authentication
-			mTargetCommand = targetCommand
-			mCallTimeout = callTimeout
-			mConnectTimeout = connectTimeout
-		endmethod
+    public class RemoteExternalContextPool<T(IContextBase, class)> extends FreeThreadedContextPool<T>
+        private mTargetMachine, @string
+        private mUsername, @string
+        private mAuthentication, @AuthenticationMethod
+        private mTargetCommand, @string
+        private mTargetOS, RemoteTargetOS
+        private mCallTimeout, int
+        private mConnectTimeout, int
+        public method RemoteExternalContextPool
+            targetOS, RemoteTargetOS
+            targetMachine, @string
+            username, @string
+            authentication, @AuthenticationMethod
+            targetCommand, @string
+            min, int
+            callTimeout, int
+            connectTimeout, int
+            stickySession, boolean
+            endparams
+            parent(min)
+        proc
+            if(stickySession)
+                SetSticky()
+            mTargetOS = targetOS
+            mTargetMachine = targetMachine
+            mUsername = username
+            mAuthentication = authentication
+            mTargetCommand = targetCommand
+            mCallTimeout = callTimeout
+            mConnectTimeout = connectTimeout
+        endmethod
 		
-		protected override method SlowMakeContext, T
-			provider, @IServiceProvider
-		proc
-			data callConnection = new SSHDynamicCallConnection(mTargetOS, new ConnectionInfo(mTargetMachine, mUsername, mAuthentication), mTargetCommand, mCallTimeout, mConnectTimeout)
-			mreturn ActivatorUtilities.CreateInstance<T>(provider, callConnection)
-		endmethod
+        public method RemoteExternalContextPool
+            targetOS, RemoteTargetOS
+            targetMachine, @string
+            username, @string
+            authentication, @AuthenticationMethod
+            targetCommand, @string
+            min, int
+            callTimeout, int
+            connectTimeout, int
+            endparams
+            this(targetOS, targetMachine, username, authentication, targetCommand, min, callTimeout, connectTimeout, false)
+        proc
+        endmethod
 
-	endclass
 
-	public enum RemoteTargetOS
-		Windows,
-		Linux,
-		Unix,
-		VMS
-	endenum
+        protected override method SlowMakeContext, T
+            provider, @IServiceProvider
+        proc
+            data callConnection = new SSHDynamicCallConnection(mTargetOS, new ConnectionInfo(mTargetMachine, mUsername, mAuthentication), mTargetCommand, mCallTimeout, mConnectTimeout)
+            mreturn ActivatorUtilities.CreateInstance<T>(provider, callConnection)
+        endmethod
+
+    endclass
+
+    public enum RemoteTargetOS
+        Windows,
+        Linux,
+        Unix,
+        VMS
+    endenum
 
 endnamespace

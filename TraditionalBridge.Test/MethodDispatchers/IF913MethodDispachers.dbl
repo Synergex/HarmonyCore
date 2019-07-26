@@ -57,49 +57,11 @@ namespace TraditionalBridge.Test.IF913
 
 			xcall ALofAlphaOut(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED OUT AryLstAlpha ArrayList collection of A25)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.AlphaArrayField)
-			serializer.String("PassedValue")
-			serializer.ArrayOpen()
-
-			serializer.ArrayClose()
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.AlphaArrayField, 25, 0, false)
+			
 		endmethod
 
 	endclass
@@ -137,7 +99,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED IN AlphaArrayList ArrayList collection of A25)
 			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1])
@@ -149,34 +111,6 @@ namespace TraditionalBridge.Test.IF913
 			;; Call the underlying routine
 
 			xcall ALofAlphas(arg1)
-
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
 		endmethod
 
 	endclass
@@ -214,7 +148,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED IN DecimalArrayList ArrayList collection of D10)
 			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1])
@@ -226,34 +160,6 @@ namespace TraditionalBridge.Test.IF913
 			;; Call the underlying routine
 
 			xcall ALofDecimal(arg1)
-
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
 		endmethod
 
 	endclass
@@ -297,45 +203,11 @@ namespace TraditionalBridge.Test.IF913
 
 			xcall ALofDecimalOut(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED OUT DecALOut ArrayList collection of D7)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			;TODO: Need to add support for collection of decimal
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.DecimalArrayField, 7, 0, false)
+			
 		endmethod
 
 	endclass
@@ -373,7 +245,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED IN IDArrayList ArrayList collection of D7.2)
 			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1])
@@ -385,34 +257,6 @@ namespace TraditionalBridge.Test.IF913
 			;; Call the underlying routine
 
 			xcall ALofImpDec(arg1)
-
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
 		endmethod
 
 	endclass
@@ -456,45 +300,11 @@ namespace TraditionalBridge.Test.IF913
 
 			xcall ALofImpDecOut(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED OUT IDALout ArrayList collection of D7.2)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			;TODO: Need to add support for collection of implied decimal
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.ImpliedDecimalArrayField, 7, 02, false)
+			
 		endmethod
 
 	endclass
@@ -532,7 +342,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED IN IntArrayList ArrayList collection of I4)
 			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1])
@@ -544,34 +354,6 @@ namespace TraditionalBridge.Test.IF913
 			;; Call the underlying routine
 
 			xcall ALofInt(arg1)
-
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
 		endmethod
 
 	endclass
@@ -615,45 +397,11 @@ namespace TraditionalBridge.Test.IF913
 
 			xcall ALofIntOut(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED OUT IntALOut ArrayList collection of I4)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			;TODO: Need to add support for collection of integer
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.IntegerArrayField, 4, 0, false)
+			
 		endmethod
 
 	endclass
@@ -693,7 +441,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED IN STRUCTURETEST ArrayList collection of structure @Structuretest)
 			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1])
@@ -705,34 +453,6 @@ namespace TraditionalBridge.Test.IF913
 			;; Call the underlying routine
 
 			xcall ALofStr(arg1)
-
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
 		endmethod
 
 	endclass
@@ -778,53 +498,10 @@ namespace TraditionalBridge.Test.IF913
 
 			xcall ALofStrOut(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED OUT STRUCTURETEST ArrayList collection of structure @Structuretest)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
-			serializer.String("PassedValue")
-			serializer.ArrayOpen()
-			begin
-				data thisStructuretest, @strStructuretest
-				foreach thisStructuretest in arg1
-					DataObjectBase.Serialize(serializer, thisStructuretest, "STRUCTURETEST", "", false)
-			end
-			serializer.ArrayClose()
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.DataObjectCollectionField, 41, "STRUCTURETEST", false)
 		endmethod
 
 	endclass
@@ -862,7 +539,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED IN StringArrayList ArrayList collection of STRING)
 			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1])
@@ -874,34 +551,6 @@ namespace TraditionalBridge.Test.IF913
 			;; Call the underlying routine
 
 			xcall ALofString(arg1)
-
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
 		endmethod
 
 	endclass
@@ -945,47 +594,10 @@ namespace TraditionalBridge.Test.IF913
 
 			xcall ALofStringOut(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED OUT StringALOut ArrayList collection of STRING)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.StringField)
-			serializer.String("PassedValue")
-			;TODO: Need to add support for collection of string
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1)
 		endmethod
 
 	endclass
@@ -1025,7 +637,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED IN STRTEST1 ArrayList collection of structure @Strtest1)
 			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1])
@@ -1037,34 +649,6 @@ namespace TraditionalBridge.Test.IF913
 			;; Call the underlying routine
 
 			xcall ALofStruct1(arg1)
-
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
 		endmethod
 
 	endclass
@@ -1110,53 +694,10 @@ namespace TraditionalBridge.Test.IF913
 
 			xcall AlofStruct1out(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED OUT STRTEST1 ArrayList collection of structure @Strtest1)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
-			serializer.String("PassedValue")
-			serializer.ArrayOpen()
-			begin
-				data thisStrtest1, @strStrtest1
-				foreach thisStrtest1 in arg1
-					DataObjectBase.Serialize(serializer, thisStrtest1, "STRTEST1", "", false)
-			end
-			serializer.ArrayClose()
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.DataObjectCollectionField, 46, "STRTEST1", false)
 		endmethod
 
 	endclass
@@ -1194,7 +735,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED IN DateTimeIn ArrayList collection of D8 YYYYMMDD date)
 			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1])
@@ -1206,34 +747,6 @@ namespace TraditionalBridge.Test.IF913
 			;; Call the underlying routine
 
 			xcall AlofDateTime(arg1)
-
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
 		endmethod
 
 	endclass
@@ -1277,45 +790,10 @@ namespace TraditionalBridge.Test.IF913
 
 			xcall AlofDateTimeOut(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED OUT DateTimeOut ArrayList collection of D8 YYYYMMDD date)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			;TODO: Need to add support for collection of date
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.DecimalArrayField, 8, 0, false)
 		endmethod
 
 	endclass
@@ -1353,7 +831,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED IN DecLong ArrayList collection of D18)
 			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1])
@@ -1365,34 +843,6 @@ namespace TraditionalBridge.Test.IF913
 			;; Call the underlying routine
 
 			xcall AlofDeclong(arg1)
-
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
 		endmethod
 
 	endclass
@@ -1436,45 +886,11 @@ namespace TraditionalBridge.Test.IF913
 
 			xcall AlofDecLongOut(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED OUT DecLong ArrayList collection of D18)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			;TODO: Need to add support for collection of decimal
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.DecimalArrayField, 18, 0, false)
+			
 		endmethod
 
 	endclass
@@ -1512,7 +928,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED IN DecShort ArrayList collection of D4)
 			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1])
@@ -1524,34 +940,6 @@ namespace TraditionalBridge.Test.IF913
 			;; Call the underlying routine
 
 			xcall AlofDecShort(arg1)
-
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
 		endmethod
 
 	endclass
@@ -1595,45 +983,11 @@ namespace TraditionalBridge.Test.IF913
 
 			xcall AlofDecShortOut(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED OUT DecShort ArrayList collection of D4)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			;TODO: Need to add support for collection of decimal
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.DecimalArrayField, 4, 0, false)
+			
 		endmethod
 
 	endclass
@@ -1671,7 +1025,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED IN IDDouble ArrayList collection of D12.2)
 			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1])
@@ -1683,34 +1037,6 @@ namespace TraditionalBridge.Test.IF913
 			;; Call the underlying routine
 
 			xcall AlofIDDouble(arg1)
-
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
 		endmethod
 
 	endclass
@@ -1754,45 +1080,11 @@ namespace TraditionalBridge.Test.IF913
 
 			xcall AlofIDDoubleOut(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED OUT IDDouble ArrayList collection of D12.2)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			;TODO: Need to add support for collection of implied decimal
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.ImpliedDecimalArrayField, 12, 02, false)
+			
 		endmethod
 
 	endclass
@@ -1830,7 +1122,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED IN BoolInt ArrayList collection of I1)
 			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1])
@@ -1842,34 +1134,6 @@ namespace TraditionalBridge.Test.IF913
 			;; Call the underlying routine
 
 			xcall AlofintBool(arg1)
-
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
 		endmethod
 
 	endclass
@@ -1913,45 +1177,11 @@ namespace TraditionalBridge.Test.IF913
 
 			xcall AlofIntBoolOut(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED OUT BoolInt ArrayList collection of I1)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			;TODO: Need to add support for collection of integer
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.IntegerArrayField, 1, 0, false)
+			
 		endmethod
 
 	endclass
@@ -1991,7 +1221,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT BOOLEANSTR structure @Booleanstr)
 			;;Structure argument. Get the data object then get the record from it
@@ -2003,48 +1233,11 @@ namespace TraditionalBridge.Test.IF913
 
 			xcall BoolStruct1(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT BOOLEANSTR structure @Booleanstr)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			;;Argument 1: Single Booleanstr record
-			serializer.Pair("DataType", (i)FieldDataType.DataObjectField)
-			serializer.String("PassedValue")
-			;TODO: Support for single structure is incomplete
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.DataObjectField, 77, "BOOLEANSTR", false)
+			
 		endmethod
 
 	endclass
@@ -2084,7 +1277,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED IN BOOLEANSTR ArrayList collection of structure @Booleanstr)
 			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1])
@@ -2096,34 +1289,6 @@ namespace TraditionalBridge.Test.IF913
 			;; Call the underlying routine
 
 			xcall BoolStruct2Al(arg1)
-
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
 		endmethod
 
 	endclass
@@ -2169,53 +1334,10 @@ namespace TraditionalBridge.Test.IF913
 
 			xcall BoolStruct3Alout(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED OUT BOOLEANSTR ArrayList collection of structure @Booleanstr)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
-			serializer.String("PassedValue")
-			serializer.ArrayOpen()
-			begin
-				data thisBooleanstr, @strBooleanstr
-				foreach thisBooleanstr in arg1
-					DataObjectBase.Serialize(serializer, thisBooleanstr, "BOOLEANSTR", "", false)
-			end
-			serializer.ArrayClose()
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.DataObjectCollectionField, 77, "BOOLEANSTR", false)
 		endmethod
 
 	endclass
@@ -2253,7 +1375,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT Favorite I4)
 			arg1 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[1])
@@ -2263,61 +1385,15 @@ namespace TraditionalBridge.Test.IF913
 
 			returnValue = %BoolToBool(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;Function return value
-
-			serializer.MapOpen()
-			serializer.String("Position")
-            serializer.Integer(0)
-			serializer.String("Value")
-			serializer.MapOpen()
-			;TODO: Needs to handle all the valid function return types
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.EnumField)
-            serializer.String("PassedValue")
-			serializer.Integer(returnValue)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(0, returnValue)
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT Favorite I4)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.IntegerField)
-			serializer.Pair("PassedValue", arg1)
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.IntegerField, 4, 0, false)
+			
+			
 		endmethod
 
 	endclass
@@ -2357,7 +1433,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT COERCESTRUCTURE structure @Coercestructure)
 			;;Structure argument. Get the data object then get the record from it
@@ -2369,48 +1445,11 @@ namespace TraditionalBridge.Test.IF913
 
 			xcall CoercedStructure(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT COERCESTRUCTURE structure @Coercestructure)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			;;Argument 1: Single Coercestructure record
-			serializer.Pair("DataType", (i)FieldDataType.DataObjectField)
-			serializer.String("PassedValue")
-			;TODO: Support for single structure is incomplete
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.DataObjectField, 106, "COERCESTRUCTURE", false)
+			
 		endmethod
 
 	endclass
@@ -2456,53 +1495,10 @@ namespace TraditionalBridge.Test.IF913
 
 			xcall DTALStructureOut(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED OUT DATATABLESTR ArrayList collection of structure @Datatablestr returned as DataTable)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
-			serializer.String("PassedValue")
-			serializer.ArrayOpen()
-			begin
-				data thisDatatablestr, @strDatatablestr
-				foreach thisDatatablestr in arg1
-					DataObjectBase.Serialize(serializer, thisDatatablestr, "DATATABLESTR", "", false)
-			end
-			serializer.ArrayClose()
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.DataObjectCollectionField, 44, "DATATABLESTR", false)
 		endmethod
 
 	endclass
@@ -2548,53 +1544,10 @@ namespace TraditionalBridge.Test.IF913
 
 			xcall DTArrayGroupStrs(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED OUT STRTEST12 ArrayList collection of structure @Strtest12 returned as DataTable)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
-			serializer.String("PassedValue")
-			serializer.ArrayOpen()
-			begin
-				data thisStrtest12, @strStrtest12
-				foreach thisStrtest12 in arg1
-					DataObjectBase.Serialize(serializer, thisStrtest12, "STRTEST12", "", false)
-			end
-			serializer.ArrayClose()
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.DataObjectCollectionField, 56, "STRTEST12", false)
 		endmethod
 
 	endclass
@@ -2634,7 +1587,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED IN DATATABLESTR ArrayList collection of structure @Datatablestr returned as DataTable)
 			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1])
@@ -2646,34 +1599,6 @@ namespace TraditionalBridge.Test.IF913
 			;; Call the underlying routine
 
 			xcall DTALStructureIn(arg1)
-
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
 		endmethod
 
 	endclass
@@ -2720,49 +1645,10 @@ namespace TraditionalBridge.Test.IF913
 
 			xcall DTCollection(arg1Handle)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED OUT DATETEBLESTR2 memory handle collection of structure @Dateteblestr2 returned as DataTable)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
-			serializer.String("PassedValue")
-			serializer.ArrayOpen()
-			;TODO: Need to add support for memory handle collection of structure
-			serializer.ArrayClose()
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			;serializer.ArgumentHandleData(1, arg1Handle, FieldDataType.DataObjectCollectionField, 46, "DATETEBLESTR2", arg1Array.arrayValues.Count, false)
 		endmethod
 
 	endclass
@@ -2808,53 +1694,10 @@ namespace TraditionalBridge.Test.IF913
 
 			xcall DTGroupStructs(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED OUT STRTEST14 ArrayList collection of structure @Strtest14 returned as DataTable)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
-			serializer.String("PassedValue")
-			serializer.ArrayOpen()
-			begin
-				data thisStrtest14, @strStrtest14
-				foreach thisStrtest14 in arg1
-					DataObjectBase.Serialize(serializer, thisStrtest14, "STRTEST14", "", false)
-			end
-			serializer.ArrayClose()
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.DataObjectCollectionField, 112, "STRTEST14", false)
 		endmethod
 
 	endclass
@@ -2892,7 +1735,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT datetimeOf14 D14 YYYYMMDD date)
 			arg1 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[1])
@@ -2902,62 +1745,15 @@ namespace TraditionalBridge.Test.IF913
 
 			returnValue = %DateTime14(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;Function return value
-
-			serializer.MapOpen()
-			serializer.String("Position")
-            serializer.Integer(0)
-			serializer.String("Value")
-			serializer.MapOpen()
-			;TODO: Needs to handle all the valid function return types
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.EnumField)
-            serializer.String("PassedValue")
-			serializer.Integer(returnValue)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(0, returnValue)
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT datetimeOf14 D14 YYYYMMDD date)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			;TODO: Do we need custom processing for date fields beyond the decimal value?
-			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
-			serializer.Pair("PassedValue", arg1)
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.DecimalField)
+			
+			
 		endmethod
 
 	endclass
@@ -2995,7 +1791,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT Dateyyjjj D5 YYJJJ date)
 			arg1 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[1])
@@ -3005,62 +1801,15 @@ namespace TraditionalBridge.Test.IF913
 
 			returnValue = %Dateyyjjj(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;Function return value
-
-			serializer.MapOpen()
-			serializer.String("Position")
-            serializer.Integer(0)
-			serializer.String("Value")
-			serializer.MapOpen()
-			;TODO: Needs to handle all the valid function return types
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.EnumField)
-            serializer.String("PassedValue")
-			serializer.Integer(returnValue)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(0, returnValue)
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT Dateyyjjj D5 YYJJJ date)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			;TODO: Do we need custom processing for date fields beyond the decimal value?
-			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
-			serializer.Pair("PassedValue", arg1)
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.DecimalField)
+			
+			
 		endmethod
 
 	endclass
@@ -3098,7 +1847,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT Dateyymmdd D6 YYMMDD date)
 			arg1 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[1])
@@ -3108,62 +1857,15 @@ namespace TraditionalBridge.Test.IF913
 
 			returnValue = %Dateyymmdd(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;Function return value
-
-			serializer.MapOpen()
-			serializer.String("Position")
-            serializer.Integer(0)
-			serializer.String("Value")
-			serializer.MapOpen()
-			;TODO: Needs to handle all the valid function return types
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.EnumField)
-            serializer.String("PassedValue")
-			serializer.Integer(returnValue)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(0, returnValue)
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT Dateyymmdd D6 YYMMDD date)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			;TODO: Do we need custom processing for date fields beyond the decimal value?
-			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
-			serializer.Pair("PassedValue", arg1)
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.DecimalField)
+			
+			
 		endmethod
 
 	endclass
@@ -3201,7 +1903,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT Dateyyyyjjj D7 YYYYJJJ date)
 			arg1 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[1])
@@ -3211,62 +1913,15 @@ namespace TraditionalBridge.Test.IF913
 
 			returnValue = %Dateyyyyjjj(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;Function return value
-
-			serializer.MapOpen()
-			serializer.String("Position")
-            serializer.Integer(0)
-			serializer.String("Value")
-			serializer.MapOpen()
-			;TODO: Needs to handle all the valid function return types
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.EnumField)
-            serializer.String("PassedValue")
-			serializer.Integer(returnValue)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(0, returnValue)
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT Dateyyyyjjj D7 YYYYJJJ date)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			;TODO: Do we need custom processing for date fields beyond the decimal value?
-			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
-			serializer.Pair("PassedValue", arg1)
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.DecimalField)
+			
+			
 		endmethod
 
 	endclass
@@ -3304,7 +1959,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT DateTimeyyyymmdd D8 YYYYMMDD date)
 			arg1 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[1])
@@ -3314,62 +1969,15 @@ namespace TraditionalBridge.Test.IF913
 
 			returnValue = %Dateyyyymmdd(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;Function return value
-
-			serializer.MapOpen()
-			serializer.String("Position")
-            serializer.Integer(0)
-			serializer.String("Value")
-			serializer.MapOpen()
-			;TODO: Needs to handle all the valid function return types
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.EnumField)
-            serializer.String("PassedValue")
-			serializer.Integer(returnValue)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(0, returnValue)
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT DateTimeyyyymmdd D8 YYYYMMDD date)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			;TODO: Do we need custom processing for date fields beyond the decimal value?
-			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
-			serializer.Pair("PassedValue", arg1)
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.DecimalField)
+			
+			
 		endmethod
 
 	endclass
@@ -3407,7 +2015,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT DecToBool D1)
 			arg1 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[1])
@@ -3417,61 +2025,15 @@ namespace TraditionalBridge.Test.IF913
 
 			returnValue = %DecBool(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;Function return value
-
-			serializer.MapOpen()
-			serializer.String("Position")
-            serializer.Integer(0)
-			serializer.String("Value")
-			serializer.MapOpen()
-			;TODO: Needs to handle all the valid function return types
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.EnumField)
-            serializer.String("PassedValue")
-			serializer.Integer(returnValue)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(0, returnValue)
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT DecToBool D1)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
-			serializer.Pair("PassedValue", arg1)
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.DecimalField, 1, 0, false)
+			
+			
 		endmethod
 
 	endclass
@@ -3509,7 +2071,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT DecToByte D1)
 			arg1 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[1])
@@ -3519,61 +2081,15 @@ namespace TraditionalBridge.Test.IF913
 
 			returnValue = %DecByte(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;Function return value
-
-			serializer.MapOpen()
-			serializer.String("Position")
-            serializer.Integer(0)
-			serializer.String("Value")
-			serializer.MapOpen()
-			;TODO: Needs to handle all the valid function return types
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.EnumField)
-            serializer.String("PassedValue")
-			serializer.Integer(returnValue)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(0, returnValue)
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT DecToByte D1)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
-			serializer.Pair("PassedValue", arg1)
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.DecimalField, 1, 0, false)
+			
+			
 		endmethod
 
 	endclass
@@ -3611,7 +2127,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT DecToDec D16)
 			arg1 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[1])
@@ -3621,61 +2137,15 @@ namespace TraditionalBridge.Test.IF913
 
 			returnValue = %DecDec(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;Function return value
-
-			serializer.MapOpen()
-			serializer.String("Position")
-            serializer.Integer(0)
-			serializer.String("Value")
-			serializer.MapOpen()
-			;TODO: Needs to handle all the valid function return types
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.EnumField)
-            serializer.String("PassedValue")
-			serializer.Integer(returnValue)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(0, returnValue)
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT DecToDec D16)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
-			serializer.Pair("PassedValue", arg1)
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.DecimalField, 16, 0, false)
+			
+			
 		endmethod
 
 	endclass
@@ -3713,7 +2183,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT DecToInt D4)
 			arg1 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[1])
@@ -3723,61 +2193,15 @@ namespace TraditionalBridge.Test.IF913
 
 			returnValue = %DecInt(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;Function return value
-
-			serializer.MapOpen()
-			serializer.String("Position")
-            serializer.Integer(0)
-			serializer.String("Value")
-			serializer.MapOpen()
-			;TODO: Needs to handle all the valid function return types
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.EnumField)
-            serializer.String("PassedValue")
-			serializer.Integer(returnValue)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(0, returnValue)
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT DecToInt D4)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
-			serializer.Pair("PassedValue", arg1)
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.DecimalField, 4, 0, false)
+			
+			
 		endmethod
 
 	endclass
@@ -3815,7 +2239,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT DecToLong D18)
 			arg1 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[1])
@@ -3825,61 +2249,15 @@ namespace TraditionalBridge.Test.IF913
 
 			returnValue = %DecLong(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;Function return value
-
-			serializer.MapOpen()
-			serializer.String("Position")
-            serializer.Integer(0)
-			serializer.String("Value")
-			serializer.MapOpen()
-			;TODO: Needs to handle all the valid function return types
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.EnumField)
-            serializer.String("PassedValue")
-			serializer.Integer(returnValue)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(0, returnValue)
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT DecToLong D18)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
-			serializer.Pair("PassedValue", arg1)
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.DecimalField, 18, 0, false)
+			
+			
 		endmethod
 
 	endclass
@@ -3917,7 +2295,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT DecToSbyte D1)
 			arg1 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[1])
@@ -3927,61 +2305,15 @@ namespace TraditionalBridge.Test.IF913
 
 			returnValue = %DecSbyte(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;Function return value
-
-			serializer.MapOpen()
-			serializer.String("Position")
-            serializer.Integer(0)
-			serializer.String("Value")
-			serializer.MapOpen()
-			;TODO: Needs to handle all the valid function return types
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.EnumField)
-            serializer.String("PassedValue")
-			serializer.Integer(returnValue)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(0, returnValue)
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT DecToSbyte D1)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
-			serializer.Pair("PassedValue", arg1)
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.DecimalField, 1, 0, false)
+			
+			
 		endmethod
 
 	endclass
@@ -4019,7 +2351,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT DecToShort D2)
 			arg1 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[1])
@@ -4029,61 +2361,15 @@ namespace TraditionalBridge.Test.IF913
 
 			returnValue = %DecShort(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;Function return value
-
-			serializer.MapOpen()
-			serializer.String("Position")
-            serializer.Integer(0)
-			serializer.String("Value")
-			serializer.MapOpen()
-			;TODO: Needs to handle all the valid function return types
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.EnumField)
-            serializer.String("PassedValue")
-			serializer.Integer(returnValue)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(0, returnValue)
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT DecToShort D2)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
-			serializer.Pair("PassedValue", arg1)
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.DecimalField, 2, 0, false)
+			
+			
 		endmethod
 
 	endclass
@@ -4121,7 +2407,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT DecToUint D4)
 			arg1 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[1])
@@ -4131,61 +2417,15 @@ namespace TraditionalBridge.Test.IF913
 
 			returnValue = %DecUint(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;Function return value
-
-			serializer.MapOpen()
-			serializer.String("Position")
-            serializer.Integer(0)
-			serializer.String("Value")
-			serializer.MapOpen()
-			;TODO: Needs to handle all the valid function return types
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.EnumField)
-            serializer.String("PassedValue")
-			serializer.Integer(returnValue)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(0, returnValue)
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT DecToUint D4)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
-			serializer.Pair("PassedValue", arg1)
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.DecimalField, 4, 0, false)
+			
+			
 		endmethod
 
 	endclass
@@ -4223,7 +2463,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT DecToUlong D18)
 			arg1 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[1])
@@ -4233,61 +2473,15 @@ namespace TraditionalBridge.Test.IF913
 
 			returnValue = %DecUlong(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;Function return value
-
-			serializer.MapOpen()
-			serializer.String("Position")
-            serializer.Integer(0)
-			serializer.String("Value")
-			serializer.MapOpen()
-			;TODO: Needs to handle all the valid function return types
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.EnumField)
-            serializer.String("PassedValue")
-			serializer.Integer(returnValue)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(0, returnValue)
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT DecToUlong D18)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
-			serializer.Pair("PassedValue", arg1)
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.DecimalField, 18, 0, false)
+			
+			
 		endmethod
 
 	endclass
@@ -4325,7 +2519,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT DecToUshort D2)
 			arg1 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[1])
@@ -4335,61 +2529,15 @@ namespace TraditionalBridge.Test.IF913
 
 			returnValue = %DecUshort(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;Function return value
-
-			serializer.MapOpen()
-			serializer.String("Position")
-            serializer.Integer(0)
-			serializer.String("Value")
-			serializer.MapOpen()
-			;TODO: Needs to handle all the valid function return types
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.EnumField)
-            serializer.String("PassedValue")
-			serializer.Integer(returnValue)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(0, returnValue)
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT DecToUshort D2)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
-			serializer.Pair("PassedValue", arg1)
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.DecimalField, 2, 0, false)
+			
+			
 		endmethod
 
 	endclass
@@ -4427,7 +2575,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT IDtoDecimal D6.2)
 			arg1 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[1])
@@ -4437,61 +2585,15 @@ namespace TraditionalBridge.Test.IF913
 
 			returnValue = %IDDecimal(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;Function return value
-
-			serializer.MapOpen()
-			serializer.String("Position")
-            serializer.Integer(0)
-			serializer.String("Value")
-			serializer.MapOpen()
-			;TODO: Needs to handle all the valid function return types
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.EnumField)
-            serializer.String("PassedValue")
-			serializer.Integer(returnValue)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(0, returnValue)
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT IDtoDecimal D6.2)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.ImpliedDecimal)
-			serializer.Pair("PassedValue", arg1)
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.ImpliedDecimalField, 6, 02, false)
+			
+			
 		endmethod
 
 	endclass
@@ -4529,7 +2631,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT IDtoDouble D6.2)
 			arg1 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[1])
@@ -4539,61 +2641,15 @@ namespace TraditionalBridge.Test.IF913
 
 			returnValue = %IDDouble(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;Function return value
-
-			serializer.MapOpen()
-			serializer.String("Position")
-            serializer.Integer(0)
-			serializer.String("Value")
-			serializer.MapOpen()
-			;TODO: Needs to handle all the valid function return types
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.EnumField)
-            serializer.String("PassedValue")
-			serializer.Integer(returnValue)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(0, returnValue)
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT IDtoDouble D6.2)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.ImpliedDecimal)
-			serializer.Pair("PassedValue", arg1)
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.ImpliedDecimalField, 6, 02, false)
+			
+			
 		endmethod
 
 	endclass
@@ -4631,7 +2687,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT IDtoFloat D6.2)
 			arg1 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[1])
@@ -4641,61 +2697,15 @@ namespace TraditionalBridge.Test.IF913
 
 			returnValue = %IDFloat(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;Function return value
-
-			serializer.MapOpen()
-			serializer.String("Position")
-            serializer.Integer(0)
-			serializer.String("Value")
-			serializer.MapOpen()
-			;TODO: Needs to handle all the valid function return types
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.EnumField)
-            serializer.String("PassedValue")
-			serializer.Integer(returnValue)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(0, returnValue)
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT IDtoFloat D6.2)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.ImpliedDecimal)
-			serializer.Pair("PassedValue", arg1)
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.ImpliedDecimalField, 6, 02, false)
+			
+			
 		endmethod
 
 	endclass
@@ -4733,7 +2743,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT IntToBool I1)
 			arg1 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[1])
@@ -4743,61 +2753,15 @@ namespace TraditionalBridge.Test.IF913
 
 			returnValue = %IntBool(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;Function return value
-
-			serializer.MapOpen()
-			serializer.String("Position")
-            serializer.Integer(0)
-			serializer.String("Value")
-			serializer.MapOpen()
-			;TODO: Needs to handle all the valid function return types
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.EnumField)
-            serializer.String("PassedValue")
-			serializer.Integer(returnValue)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(0, returnValue)
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT IntToBool I1)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.IntegerField)
-			serializer.Pair("PassedValue", arg1)
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.IntegerField, 1, 0, false)
+			
+			
 		endmethod
 
 	endclass
@@ -4835,7 +2799,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT IntToByte I1)
 			arg1 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[1])
@@ -4845,61 +2809,15 @@ namespace TraditionalBridge.Test.IF913
 
 			returnValue = %IntByte(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;Function return value
-
-			serializer.MapOpen()
-			serializer.String("Position")
-            serializer.Integer(0)
-			serializer.String("Value")
-			serializer.MapOpen()
-			;TODO: Needs to handle all the valid function return types
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.EnumField)
-            serializer.String("PassedValue")
-			serializer.Integer(returnValue)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(0, returnValue)
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT IntToByte I1)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.IntegerField)
-			serializer.Pair("PassedValue", arg1)
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.IntegerField, 1, 0, false)
+			
+			
 		endmethod
 
 	endclass
@@ -4937,7 +2855,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT IntToInt I4)
 			arg1 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[1])
@@ -4947,61 +2865,15 @@ namespace TraditionalBridge.Test.IF913
 
 			returnValue = %IntInt(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;Function return value
-
-			serializer.MapOpen()
-			serializer.String("Position")
-            serializer.Integer(0)
-			serializer.String("Value")
-			serializer.MapOpen()
-			;TODO: Needs to handle all the valid function return types
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.EnumField)
-            serializer.String("PassedValue")
-			serializer.Integer(returnValue)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(0, returnValue)
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT IntToInt I4)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.IntegerField)
-			serializer.Pair("PassedValue", arg1)
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.IntegerField, 4, 0, false)
+			
+			
 		endmethod
 
 	endclass
@@ -5039,7 +2911,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT IntToLong I8)
 			arg1 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[1])
@@ -5049,61 +2921,15 @@ namespace TraditionalBridge.Test.IF913
 
 			returnValue = %IntLong(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;Function return value
-
-			serializer.MapOpen()
-			serializer.String("Position")
-            serializer.Integer(0)
-			serializer.String("Value")
-			serializer.MapOpen()
-			;TODO: Needs to handle all the valid function return types
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.EnumField)
-            serializer.String("PassedValue")
-			serializer.Integer(returnValue)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(0, returnValue)
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT IntToLong I8)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.IntegerField)
-			serializer.Pair("PassedValue", arg1)
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.IntegerField, 8, 0, false)
+			
+			
 		endmethod
 
 	endclass
@@ -5141,7 +2967,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT IntToSbyte I1)
 			arg1 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[1])
@@ -5151,61 +2977,15 @@ namespace TraditionalBridge.Test.IF913
 
 			returnValue = %IntSbyte(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;Function return value
-
-			serializer.MapOpen()
-			serializer.String("Position")
-            serializer.Integer(0)
-			serializer.String("Value")
-			serializer.MapOpen()
-			;TODO: Needs to handle all the valid function return types
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.EnumField)
-            serializer.String("PassedValue")
-			serializer.Integer(returnValue)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(0, returnValue)
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT IntToSbyte I1)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.IntegerField)
-			serializer.Pair("PassedValue", arg1)
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.IntegerField, 1, 0, false)
+			
+			
 		endmethod
 
 	endclass
@@ -5243,7 +3023,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT IntToShort I2)
 			arg1 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[1])
@@ -5253,61 +3033,15 @@ namespace TraditionalBridge.Test.IF913
 
 			returnValue = %IntShort(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;Function return value
-
-			serializer.MapOpen()
-			serializer.String("Position")
-            serializer.Integer(0)
-			serializer.String("Value")
-			serializer.MapOpen()
-			;TODO: Needs to handle all the valid function return types
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.EnumField)
-            serializer.String("PassedValue")
-			serializer.Integer(returnValue)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(0, returnValue)
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT IntToShort I2)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.IntegerField)
-			serializer.Pair("PassedValue", arg1)
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.IntegerField, 2, 0, false)
+			
+			
 		endmethod
 
 	endclass
@@ -5345,7 +3079,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT IntToUint I4)
 			arg1 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[1])
@@ -5355,61 +3089,15 @@ namespace TraditionalBridge.Test.IF913
 
 			returnValue = %IntUint(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;Function return value
-
-			serializer.MapOpen()
-			serializer.String("Position")
-            serializer.Integer(0)
-			serializer.String("Value")
-			serializer.MapOpen()
-			;TODO: Needs to handle all the valid function return types
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.EnumField)
-            serializer.String("PassedValue")
-			serializer.Integer(returnValue)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(0, returnValue)
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT IntToUint I4)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.IntegerField)
-			serializer.Pair("PassedValue", arg1)
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.IntegerField, 4, 0, false)
+			
+			
 		endmethod
 
 	endclass
@@ -5447,7 +3135,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT IntToUlong I8)
 			arg1 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[1])
@@ -5457,61 +3145,15 @@ namespace TraditionalBridge.Test.IF913
 
 			returnValue = %IntUlong(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;Function return value
-
-			serializer.MapOpen()
-			serializer.String("Position")
-            serializer.Integer(0)
-			serializer.String("Value")
-			serializer.MapOpen()
-			;TODO: Needs to handle all the valid function return types
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.EnumField)
-            serializer.String("PassedValue")
-			serializer.Integer(returnValue)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(0, returnValue)
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT IntToUlong I8)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.IntegerField)
-			serializer.Pair("PassedValue", arg1)
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.IntegerField, 8, 0, false)
+			
+			
 		endmethod
 
 	endclass
@@ -5549,7 +3191,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT IntToUshort I2)
 			arg1 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[1])
@@ -5559,61 +3201,15 @@ namespace TraditionalBridge.Test.IF913
 
 			returnValue = %IntUshort(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;Function return value
-
-			serializer.MapOpen()
-			serializer.String("Position")
-            serializer.Integer(0)
-			serializer.String("Value")
-			serializer.MapOpen()
-			;TODO: Needs to handle all the valid function return types
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.EnumField)
-            serializer.String("PassedValue")
-			serializer.Integer(returnValue)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(0, returnValue)
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT IntToUshort I2)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.IntegerField)
-			serializer.Pair("PassedValue", arg1)
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.IntegerField, 2, 0, false)
+			
+			
 		endmethod
 
 	endclass
@@ -5651,7 +3247,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT ndatetimeOf14 D14 YYYYMMDD date)
 			arg1 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[1])
@@ -5661,62 +3257,15 @@ namespace TraditionalBridge.Test.IF913
 
 			returnValue = %DateTime14(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;Function return value
-
-			serializer.MapOpen()
-			serializer.String("Position")
-            serializer.Integer(0)
-			serializer.String("Value")
-			serializer.MapOpen()
-			;TODO: Needs to handle all the valid function return types
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.EnumField)
-            serializer.String("PassedValue")
-			serializer.Integer(returnValue)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(0, returnValue)
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT ndatetimeOf14 D14 YYYYMMDD date)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			;TODO: Do we need custom processing for date fields beyond the decimal value?
-			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
-			serializer.Pair("PassedValue", arg1)
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.DecimalField)
+			
+			
 		endmethod
 
 	endclass
@@ -5754,7 +3303,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT NDateTime8 D8 YYYYMMDD date)
 			arg1 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[1])
@@ -5764,62 +3313,15 @@ namespace TraditionalBridge.Test.IF913
 
 			returnValue = %Dateyyyymmdd(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;Function return value
-
-			serializer.MapOpen()
-			serializer.String("Position")
-            serializer.Integer(0)
-			serializer.String("Value")
-			serializer.MapOpen()
-			;TODO: Needs to handle all the valid function return types
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.EnumField)
-            serializer.String("PassedValue")
-			serializer.Integer(returnValue)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(0, returnValue)
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT NDateTime8 D8 YYYYMMDD date)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			;TODO: Do we need custom processing for date fields beyond the decimal value?
-			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
-			serializer.Pair("PassedValue", arg1)
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.DecimalField)
+			
+			
 		endmethod
 
 	endclass
@@ -5859,7 +3361,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT NULLDTSTR structure @Nulldtstr)
 			;;Structure argument. Get the data object then get the record from it
@@ -5871,48 +3373,11 @@ namespace TraditionalBridge.Test.IF913
 
 			xcall NullableDTStr(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT NULLDTSTR structure @Nulldtstr)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			;;Argument 1: Single Nulldtstr record
-			serializer.Pair("DataType", (i)FieldDataType.DataObjectField)
-			serializer.String("PassedValue")
-			;TODO: Support for single structure is incomplete
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.DataObjectField, 34, "NULLDTSTR", false)
+			
 		endmethod
 
 	endclass
@@ -5952,7 +3417,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT NULLDTARY structure @Nulldtary)
 			;;Structure argument. Get the data object then get the record from it
@@ -5964,48 +3429,11 @@ namespace TraditionalBridge.Test.IF913
 
 			xcall NullableDTAry(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT NULLDTARY structure @Nulldtary)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			;;Argument 1: Single Nulldtary record
-			serializer.Pair("DataType", (i)FieldDataType.DataObjectField)
-			serializer.String("PassedValue")
-			;TODO: Support for single structure is incomplete
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.DataObjectField, 108, "NULLDTARY", false)
+			
 		endmethod
 
 	endclass
@@ -6051,53 +3479,10 @@ namespace TraditionalBridge.Test.IF913
 
 			xcall NullableDTStrAL(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED OUT NULLDTSTR ArrayList collection of structure @Nulldtstr)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
-			serializer.String("PassedValue")
-			serializer.ArrayOpen()
-			begin
-				data thisNulldtstr, @strNulldtstr
-				foreach thisNulldtstr in arg1
-					DataObjectBase.Serialize(serializer, thisNulldtstr, "NULLDTSTR", "", false)
-			end
-			serializer.ArrayClose()
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.DataObjectCollectionField, 34, "NULLDTSTR", false)
 		endmethod
 
 	endclass
@@ -6143,7 +3528,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED IN CustNumber D1)
 			arg1 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[1])
@@ -6156,82 +3541,20 @@ namespace TraditionalBridge.Test.IF913
 
 			returnValue = %NullSSandAL(arg1,arg2,arg3,arg4)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;Function return value
-
-			serializer.MapOpen()
-			serializer.String("Position")
-            serializer.Integer(0)
-			serializer.String("Value")
-			serializer.MapOpen()
-			;TODO: Needs to handle all the valid function return types
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.EnumField)
-            serializer.String("PassedValue")
-			serializer.Integer(returnValue)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(0, returnValue)
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 3 (REQUIRED OUT info STRING)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 3)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.StringField)
-			serializer.String("PassedValue")
-			;TODO: Need to add support for string
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(3, arg3, FieldDataType.StringField, 0, 0, false)
+			
+			
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 4 (REQUIRED OUT STRTEST1 ArrayList collection of structure @Strtest1)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 4)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
-			serializer.String("PassedValue")
-			serializer.ArrayOpen()
-			begin
-				data thisStrtest1, @strStrtest1
-				foreach thisStrtest1 in arg4
-					DataObjectBase.Serialize(serializer, thisStrtest1, "STRTEST1", "", false)
-			end
-			serializer.ArrayClose()
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(4, arg4, FieldDataType.DataObjectCollectionField, 46, "STRTEST1", false)
 		endmethod
 
 	endclass
@@ -6269,7 +3592,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT timehhmm D4 HHMM time)
 			arg1 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[1])
@@ -6279,62 +3602,15 @@ namespace TraditionalBridge.Test.IF913
 
 			returnValue = %Time4(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;Function return value
-
-			serializer.MapOpen()
-			serializer.String("Position")
-            serializer.Integer(0)
-			serializer.String("Value")
-			serializer.MapOpen()
-			;TODO: Needs to handle all the valid function return types
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.EnumField)
-            serializer.String("PassedValue")
-			serializer.Integer(returnValue)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(0, returnValue)
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT timehhmm D4 HHMM time)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			;TODO: Do we need custom processing for time fields beyond the decimal value?
-			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
-			serializer.Pair("PassedValue", arg1)
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.DecimalField)
+			
+			
 		endmethod
 
 	endclass
@@ -6372,7 +3648,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT timehhmmss D6 HHMM time)
 			arg1 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[1])
@@ -6382,62 +3658,15 @@ namespace TraditionalBridge.Test.IF913
 
 			returnValue = %Time6(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;Function return value
-
-			serializer.MapOpen()
-			serializer.String("Position")
-            serializer.Integer(0)
-			serializer.String("Value")
-			serializer.MapOpen()
-			;TODO: Needs to handle all the valid function return types
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.EnumField)
-            serializer.String("PassedValue")
-			serializer.Integer(returnValue)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(0, returnValue)
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT timehhmmss D6 HHMM time)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			;TODO: Do we need custom processing for time fields beyond the decimal value?
-			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
-			serializer.Pair("PassedValue", arg1)
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.DecimalField)
+			
+			
 		endmethod
 
 	endclass
@@ -6475,7 +3704,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT astring STRING)
 			arg1 = dispatcher.GetText((@JsonObject)arguments.arrayValues[1])
@@ -6485,62 +3714,15 @@ namespace TraditionalBridge.Test.IF913
 
 			returnValue = %TrueString(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;Function return value
-
-			serializer.MapOpen()
-			serializer.String("Position")
-            serializer.Integer(0)
-			serializer.String("Value")
-			serializer.MapOpen()
-			;TODO: Needs to handle all the valid function return types
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.EnumField)
-            serializer.String("PassedValue")
-			serializer.Integer(returnValue)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(0, returnValue)
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT astring STRING)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.StringField)
-			serializer.String("PassedValue")
-			;TODO: Need to add support for string
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.StringField, 0, 0, false)
+			
+			
 		endmethod
 
 	endclass
@@ -6577,7 +3759,7 @@ namespace TraditionalBridge.Test.IF913
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT SysStr STRING)
 			arg1 = dispatcher.GetText((@JsonObject)arguments.arrayValues[1])
@@ -6587,47 +3769,12 @@ namespace TraditionalBridge.Test.IF913
 
 			xcall TrueStringParmOnly(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT SysStr STRING)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.StringField)
-			serializer.String("PassedValue")
-			;TODO: Need to add support for string
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.StringField, 0, 0, false)
+			
+			
 		endmethod
 
 	endclass

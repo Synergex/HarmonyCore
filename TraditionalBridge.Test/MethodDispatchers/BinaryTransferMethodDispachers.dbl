@@ -54,34 +54,6 @@ namespace TraditionalBridge.Test.BinaryTransfer
 			;; Call the underlying routine
 
 			xcall CreateGRFAFile()
-
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
 		endmethod
 
 	endclass
@@ -122,34 +94,6 @@ namespace TraditionalBridge.Test.BinaryTransfer
 			;; Call the underlying routine
 
 			xcall DeleteGRFAFile()
-
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
 		endmethod
 
 	endclass
@@ -196,48 +140,11 @@ namespace TraditionalBridge.Test.BinaryTransfer
 
 			xcall get0grfa(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED OUT grfat structure @Grfatest)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			;;Argument 1: Single Grfatest record
-			serializer.Pair("DataType", (i)FieldDataType.DataObjectField)
-			serializer.String("PassedValue")
-			;TODO: Support for single structure is incomplete
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.DataObjectField, 20, "GRFATEST", false)
+			
 		endmethod
 
 	endclass
@@ -283,53 +190,10 @@ namespace TraditionalBridge.Test.BinaryTransfer
 
 			xcall getarraylist(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED OUT myarraylist ArrayList collection of structure @Teststruct)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
-			serializer.String("PassedValue")
-			serializer.ArrayOpen()
-			begin
-				data thisTeststruct, @strTeststruct
-				foreach thisTeststruct in arg1
-					DataObjectBase.Serialize(serializer, thisTeststruct, "TESTSTRUCT", "", false)
-			end
-			serializer.ArrayClose()
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.DataObjectCollectionField, 1, "TESTSTRUCT", false)
 		endmethod
 
 	endclass
@@ -373,46 +237,12 @@ namespace TraditionalBridge.Test.BinaryTransfer
 
 			xcall getbyte(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED OUT mybyte I1)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.IntegerField)
-			serializer.Pair("PassedValue", arg1)
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.IntegerField, 1, 0, false)
+			
+			
 		endmethod
 
 	endclass
@@ -462,45 +292,10 @@ namespace TraditionalBridge.Test.BinaryTransfer
 
 			xcall getbytea(^m(tempstr1.arry,arg1Handle))
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED OUT amybyte [*]I1)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			;TODO: Need to add support for collection of integer
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			;serializer.ArgumentHandleData(1, arg1Handle, FieldDataType.IntegerArrayField, 1, 0, arg1Array.arrayValues.Count, false)
 		endmethod
 
 	endclass
@@ -547,48 +342,11 @@ namespace TraditionalBridge.Test.BinaryTransfer
 
 			xcall getstruct(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED OUT amyintegers structure @Integer)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			;;Argument 1: Single Integer record
-			serializer.Pair("DataType", (i)FieldDataType.DataObjectField)
-			serializer.String("PassedValue")
-			;TODO: Support for single structure is incomplete
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.DataObjectField, 342, "INTEGERS", false)
+			
 		endmethod
 
 	endclass
@@ -640,49 +398,10 @@ namespace TraditionalBridge.Test.BinaryTransfer
 
 			xcall getstructa(^m(strInteger,arg1Handle))
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED OUT amyintegers [*]structure @Integer)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
-			serializer.String("PassedValue")
-			serializer.ArrayOpen()
-			;TODO: Need to add support for array of structure
-			serializer.ArrayClose()
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			;serializer.ArgumentHandleData(1, arg1Handle, FieldDataType.DataObjectCollectionField, 342, "INTEGERS", arg1Array.arrayValues.Count, false)
 		endmethod
 
 	endclass
@@ -726,46 +445,12 @@ namespace TraditionalBridge.Test.BinaryTransfer
 
 			xcall getuint(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED OUT myuint I4)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.IntegerField)
-			serializer.Pair("PassedValue", arg1)
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.IntegerField, 4, 0, false)
+			
+			
 		endmethod
 
 	endclass
@@ -815,45 +500,10 @@ namespace TraditionalBridge.Test.BinaryTransfer
 
 			xcall getuinta(^m(tempstr1.arry,arg1Handle))
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED OUT amyuint [*]I4)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			;TODO: Need to add support for collection of integer
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			;serializer.ArgumentHandleData(1, arg1Handle, FieldDataType.IntegerArrayField, 4, 0, arg1Array.arrayValues.Count, false)
 		endmethod
 
 	endclass
@@ -897,46 +547,12 @@ namespace TraditionalBridge.Test.BinaryTransfer
 
 			xcall getushort(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED OUT myushort I2)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.IntegerField)
-			serializer.Pair("PassedValue", arg1)
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.IntegerField, 2, 0, false)
+			
+			
 		endmethod
 
 	endclass
@@ -986,45 +602,10 @@ namespace TraditionalBridge.Test.BinaryTransfer
 
 			xcall getushorta(^m(tempstr1.arry,arg1Handle))
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED OUT amyushort [*]I2)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			;TODO: Need to add support for collection of integer
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			;serializer.ArgumentHandleData(1, arg1Handle, FieldDataType.IntegerArrayField, 2, 0, arg1Array.arrayValues.Count, false)
 		endmethod
 
 	endclass
@@ -1068,7 +649,7 @@ namespace TraditionalBridge.Test.BinaryTransfer
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED IN amybyte [*]I1)
 			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1])
@@ -1081,34 +662,6 @@ namespace TraditionalBridge.Test.BinaryTransfer
 			;; Call the underlying routine
 
 			xcall setbytea(^m(tempstr1.arry,arg1Handle))
-
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
 		endmethod
 
 	endclass
@@ -1152,7 +705,7 @@ namespace TraditionalBridge.Test.BinaryTransfer
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED IN amyushort [*]I2)
 			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1])
@@ -1165,34 +718,6 @@ namespace TraditionalBridge.Test.BinaryTransfer
 			;; Call the underlying routine
 
 			xcall setushorta(^m(tempstr1.arry,arg1Handle))
-
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
 		endmethod
 
 	endclass
@@ -1232,7 +757,7 @@ namespace TraditionalBridge.Test.BinaryTransfer
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED IN grfa structure @Grfatest)
 			;;Structure argument. Get the data object then get the record from it
@@ -1243,34 +768,6 @@ namespace TraditionalBridge.Test.BinaryTransfer
 			;; Call the underlying routine
 
 			xcall xfReadWithGrfa(arg1)
-
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
 		endmethod
 
 	endclass

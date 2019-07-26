@@ -59,7 +59,7 @@ namespace TraditionalBridge.Test.LrgPkts
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT DATASET [*]structure @Dataset)
 			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1])
@@ -73,49 +73,10 @@ namespace TraditionalBridge.Test.LrgPkts
 
 			xcall P1StrAryO64k(^m(strDataset,arg1Handle))
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT DATASET [*]structure @Dataset)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
-			serializer.String("PassedValue")
-			serializer.ArrayOpen()
-			;TODO: Need to add support for array of structure
-			serializer.ArrayClose()
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentHandleData(1, arg1Handle, FieldDataType.DataObjectCollectionField, 1493, "DATASET", arg1Array.arrayValues.Count, false)
 		endmethod
 
 	endclass
@@ -172,7 +133,7 @@ namespace TraditionalBridge.Test.LrgPkts
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT ADDRESS [*]structure @Addres)
 			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1])
@@ -193,65 +154,15 @@ namespace TraditionalBridge.Test.LrgPkts
 
 			xcall P2StrArysO64k(^m(strAddres,arg1Handle),^m(strPerfstruct,arg2Handle))
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT ADDRESS [*]structure @Addres)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
-			serializer.String("PassedValue")
-			serializer.ArrayOpen()
-			;TODO: Need to add support for array of structure
-			serializer.ArrayClose()
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentHandleData(1, arg1Handle, FieldDataType.DataObjectCollectionField, 182, "ADDRESS", arg1Array.arrayValues.Count, false)
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 2 (REQUIRED INOUT PERFSTRUCT [*]structure @Perfstruct)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 2)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
-			serializer.String("PassedValue")
-			serializer.ArrayOpen()
-			;TODO: Need to add support for array of structure
-			serializer.ArrayClose()
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentHandleData(2, arg2Handle, FieldDataType.DataObjectCollectionField, 72, "PERFSTRUCT", arg2Array.arrayValues.Count, false)
 		endmethod
 
 	endclass
@@ -297,7 +208,7 @@ namespace TraditionalBridge.Test.LrgPkts
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT ADDRESS [*]structure @Addres)
 			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1])
@@ -311,49 +222,10 @@ namespace TraditionalBridge.Test.LrgPkts
 
 			xcall P3StrAry(^m(strAddres,arg1Handle))
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT ADDRESS [*]structure @Addres)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
-			serializer.String("PassedValue")
-			serializer.ArrayOpen()
-			;TODO: Need to add support for array of structure
-			serializer.ArrayClose()
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentHandleData(1, arg1Handle, FieldDataType.DataObjectCollectionField, 182, "ADDRESS", arg1Array.arrayValues.Count, false)
 		endmethod
 
 	endclass
@@ -410,7 +282,7 @@ namespace TraditionalBridge.Test.LrgPkts
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT PERFSTRUCT [*]structure @Perfstruct)
 			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1])
@@ -431,65 +303,15 @@ namespace TraditionalBridge.Test.LrgPkts
 
 			xcall P4StrAry(^m(strPerfstruct,arg1Handle),^m(strAddres,arg2Handle))
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT PERFSTRUCT [*]structure @Perfstruct)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
-			serializer.String("PassedValue")
-			serializer.ArrayOpen()
-			;TODO: Need to add support for array of structure
-			serializer.ArrayClose()
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentHandleData(1, arg1Handle, FieldDataType.DataObjectCollectionField, 72, "PERFSTRUCT", arg1Array.arrayValues.Count, false)
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 2 (REQUIRED INOUT ADDRESS [*]structure @Addres)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 2)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
-			serializer.String("PassedValue")
-			serializer.ArrayOpen()
-			;TODO: Need to add support for array of structure
-			serializer.ArrayClose()
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentHandleData(2, arg2Handle, FieldDataType.DataObjectCollectionField, 182, "ADDRESS", arg2Array.arrayValues.Count, false)
 		endmethod
 
 	endclass
@@ -533,46 +355,12 @@ namespace TraditionalBridge.Test.LrgPkts
 
 			xcall getNumRecords(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED OUT number I4)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.IntegerField)
-			serializer.Pair("PassedValue", arg1)
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.IntegerField, 4, 0, false)
+			
+			
 		endmethod
 
 	endclass
@@ -624,49 +412,10 @@ namespace TraditionalBridge.Test.LrgPkts
 
 			xcall getStructArray(^m(strPerfstruct,arg1Handle))
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED OUT PERFSTRUCT [*]structure @Perfstruct)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
-			serializer.String("PassedValue")
-			serializer.ArrayOpen()
-			;TODO: Need to add support for array of structure
-			serializer.ArrayClose()
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			;serializer.ArgumentHandleData(1, arg1Handle, FieldDataType.DataObjectCollectionField, 72, "PERFSTRUCT", arg1Array.arrayValues.Count, false)
 		endmethod
 
 	endclass
@@ -714,7 +463,7 @@ namespace TraditionalBridge.Test.LrgPkts
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED IN PERFSTRUCT [*]structure @Perfstruct)
 			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1])
@@ -730,34 +479,6 @@ namespace TraditionalBridge.Test.LrgPkts
 			;; Call the underlying routine
 
 			xcall setStructArray(^m(strPerfstruct,arg1Handle),arg2)
-
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
 		endmethod
 
 	endclass

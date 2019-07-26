@@ -1,3 +1,4 @@
+import Microsoft.Extensions.DependencyInjection
 import System
 import System.Linq
 import System.Collections.Generic
@@ -6,78 +7,84 @@ import Microsoft.VisualStudio.TestTools.UnitTesting
 import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Metadata.Conventions
 import Harmony.Core.EF.Extensions
+import Harmony.Core.Test
+import Harmony.Core
+import Harmony.Core.Context
+import Harmony.Core.FileIO
+import Harmony.Core.Test.FileIO.Models
 
 namespace HarmonyCore.Test.EF
 
-	{TestClass}
-	public class DBContextRelations
-		{TestMethod}
-		public method BasicRelations, void
-		proc
-			data conventionSet = new ConventionSet()
-			data model, @ModelBuilder, new ModelBuilder(conventionSet)
-			;;One way relations
-			model.AddOneToOneRelation<Entity1, Entity2>("REL_Entity2_OneToOne", "E1ToE2", "MainE2Key1")
-			model.AddOneToManyRelation<Entity1, Entity2>("REL_Entity2_OneToMany", "E1ToE2s", "MainE2Key1")
+    {TestClass}
+    public class DBContextRelations
 
-			;;Two way relations
-			model.AddOneToOneToOneRelation<Entity1, Entity2>("REL_Entity2_OneToOneToOne", "E1ToE2ToE1", "REL_Entity1_OneToOneToOne", "E2ToE1ToE2")
-			model.AddOneToOneToOneRelation<Entity2, Entity1>("REL_Entity1_OneToOneToOne", "E2ToE1ToE2", "REL_Entity2_OneToOneToOne", "E1ToE2ToE1")
+        {TestMethod}
+        public method BasicRelations, void
+        proc
+            data conventionSet = new ConventionSet()
+            data model, @ModelBuilder, new ModelBuilder(conventionSet)
+            ;;One way relations
+            model.AddOneToOneRelation<Entity1, Entity2>("REL_Entity2_OneToOne", "E1ToE2", "MainE2Key1")
+            model.AddOneToManyRelation<Entity1, Entity2>("REL_Entity2_OneToMany", "E1ToE2s", "MainE2Key1")
 
-			model.AddOneToManyToOneRelation<Entity1, Entity2>("REL_Entity2Plural_OneToManyToOne", "E2ToE1sToE2", "REL_Entity1_ManyToOneToMany", "E1sToE2ToE1s")
-			model.AddOneToOneToManyRelation<Entity2, Entity1>("REL_Entity1_ManyToOneToMany", "E1sToE2ToE1s", "REL_Entity2Plural_OneToManyToOne", "E2ToE1sToE2")
+            ;;Two way relations
+            model.AddOneToOneToOneRelation<Entity1, Entity2>("REL_Entity2_OneToOneToOne", "E1ToE2ToE1", "REL_Entity1_OneToOneToOne", "E2ToE1ToE2")
+            model.AddOneToOneToOneRelation<Entity2, Entity1>("REL_Entity1_OneToOneToOne", "E2ToE1ToE2", "REL_Entity2_OneToOneToOne", "E1ToE2ToE1")
 
-			data madeModel = model.FinalizeModel()
-			data madeE1 = madeModel.FindEntityType(^typeof(Entity1))
-			data madeE2 = madeModel.FindEntityType(^typeof(Entity2))
-			data e1Navs = madeE1.GetNavigations().ToList()
-			data e2Navs = madeE2.GetNavigations().ToList()
-			Assert.IsTrue(e1Navs.Count == 4)
-			Assert.IsTrue(e2Navs.Count == 2)
+            model.AddOneToManyToOneRelation<Entity1, Entity2>("REL_Entity2Plural_OneToManyToOne", "E2ToE1sToE2", "REL_Entity1_ManyToOneToMany", "E1sToE2ToE1s")
+            model.AddOneToOneToManyRelation<Entity2, Entity1>("REL_Entity1_ManyToOneToMany", "E1sToE2ToE1s", "REL_Entity2Plural_OneToManyToOne", "E2ToE1sToE2")
 
-			Assert.IsTrue(e1Navs.Any(lambda(itm) { ((@Object)itm).ToString().StartsWith("Navigation: Entity1.REL_Entity2_OneToMany (no field, Entity2) ToDependent Entity2") }))
-			Assert.IsTrue(e1Navs.Any(lambda(itm) { ((@Object)itm).ToString().StartsWith("Navigation: Entity1.REL_Entity2_OneToOne (no field, Entity2) ToDependent Entity2") }))
+            data madeModel = model.FinalizeModel()
+            data madeE1 = madeModel.FindEntityType(^typeof(Entity1))
+            data madeE2 = madeModel.FindEntityType(^typeof(Entity2))
+            data e1Navs = madeE1.GetNavigations().ToList()
+            data e2Navs = madeE2.GetNavigations().ToList()
+            Assert.IsTrue(e1Navs.Count == 4)
+            Assert.IsTrue(e2Navs.Count == 2)
 
-			Assert.IsTrue(e1Navs.Any(lambda(itm) { ((@Object)itm).ToString().StartsWith("Navigation: Entity1.REL_Entity2_OneToOneToOne (no field, Entity2) ToPrincipal Entity2 Inverse: REL_Entity1_OneToOneToOne") }))
-			Assert.IsTrue(e2Navs.Any(lambda(itm) { ((@Object)itm).ToString().StartsWith("Navigation: Entity2.REL_Entity1_OneToOneToOne (no field, Entity1) ToDependent Entity1 Inverse: REL_Entity2_OneToOneToOne") }))
+            Assert.IsTrue(e1Navs.Any(lambda(itm) { ((@Object)itm).ToString().StartsWith("Navigation: Entity1.REL_Entity2_OneToMany (no field, Entity2) ToDependent Entity2") }))
+            Assert.IsTrue(e1Navs.Any(lambda(itm) { ((@Object)itm).ToString().StartsWith("Navigation: Entity1.REL_Entity2_OneToOne (no field, Entity2) ToDependent Entity2") }))
 
-			Assert.IsTrue(e1Navs.Any(lambda(itm) { ((@Object)itm).ToString().StartsWith("Navigation: Entity1.REL_Entity2Plural_OneToManyToOne (no field, ICollection<Entity2>) Collection ToDependent Entity2 Inverse: REL_Entity1_ManyToOneToMany") }))
-			Assert.IsTrue(e2Navs.Any(lambda(itm) { ((@Object)itm).ToString().StartsWith("Navigation: Entity2.REL_Entity1_ManyToOneToMany (no field, Entity1) ToPrincipal Entity1 Inverse: REL_Entity2Plural_OneToManyToOne") }))
+            Assert.IsTrue(e1Navs.Any(lambda(itm) { ((@Object)itm).ToString().StartsWith("Navigation: Entity1.REL_Entity2_OneToOneToOne (no field, Entity2) ToPrincipal Entity2 Inverse: REL_Entity1_OneToOneToOne") }))
+            Assert.IsTrue(e2Navs.Any(lambda(itm) { ((@Object)itm).ToString().StartsWith("Navigation: Entity2.REL_Entity1_OneToOneToOne (no field, Entity1) ToDependent Entity1 Inverse: REL_Entity2_OneToOneToOne") }))
+
+            Assert.IsTrue(e1Navs.Any(lambda(itm) { ((@Object)itm).ToString().StartsWith("Navigation: Entity1.REL_Entity2Plural_OneToManyToOne (no field, ICollection<Entity2>) Collection ToDependent Entity2 Inverse: REL_Entity1_ManyToOneToMany") }))
+            Assert.IsTrue(e2Navs.Any(lambda(itm) { ((@Object)itm).ToString().StartsWith("Navigation: Entity2.REL_Entity1_ManyToOneToMany (no field, Entity1) ToPrincipal Entity1 Inverse: REL_Entity2Plural_OneToManyToOne") }))
 		
-			data e1Keys = madeE1.GetKeys()
-			data e1FKeys = madeE1.GetForeignKeys()
-			data e2Keys = madeE2.GetKeys()
-			data e2FKeys = madeE2.GetForeignKeys()
+            data e1Keys = madeE1.GetKeys()
+            data e1FKeys = madeE1.GetForeignKeys()
+            data e2Keys = madeE2.GetKeys()
+            data e2FKeys = madeE2.GetForeignKeys()
+
+        endmethod
+
+    endclass
 
 
-		endmethod
+    class Entity1
+        public readwrite property REL_Entity2_OneToOne, @Entity2
+        public readwrite property REL_Entity2_OneToMany, @Entity2
 
-	endclass
+        public readwrite property REL_Entity2_OneToOneToOne, @Entity2
+        public readwrite property REL_Entity2Plural_OneToManyToOne, @ICollection<Entity2>
 
-	class Entity1
-		public readwrite property REL_Entity2_OneToOne, @Entity2
-		public readwrite property REL_Entity2_OneToMany, @Entity2
+        public readwrite property REL_Entity2_ManyToOneToMany, @Entity2
 
-		public readwrite property REL_Entity2_OneToOneToOne, @Entity2
-		public readwrite property REL_Entity2Plural_OneToManyToOne, @ICollection<Entity2>
+        public MainE1Key1, @string, ""
 
-		public readwrite property REL_Entity2_ManyToOneToMany, @Entity2
+        public E1ToE2, @string, ""
+        public E1ToE2s, @string, ""
+        public E1ToE2ToE1, @string, ""
+        public E2ToE1sToE2, @string, ""
+    endclass
 
-		public MainE1Key1, @string, ""
+    class Entity2
+        public readwrite property REL_Entity1_OneToOneToOne, @Entity1
+        public readwrite property REL_Entity1_ManyToOneToMany, @Entity1
+        public readwrite property REL_Entity1Plural_OneToManyToOne, @ICollection<Entity1>
 
-		public E1ToE2, @string, ""
-		public E1ToE2s, @string, ""
-		public E1ToE2ToE1, @string, ""
-		public E2ToE1sToE2, @string, ""
-	endclass
-
-	class Entity2
-		public readwrite property REL_Entity1_OneToOneToOne, @Entity1
-		public readwrite property REL_Entity1_ManyToOneToMany, @Entity1
-		public readwrite property REL_Entity1Plural_OneToManyToOne, @ICollection<Entity1>
-
-		public MainE2Key1, @string, ""
-		public E2ToE1ToE2, @String, ""
-		public E1sToE2ToE1s, @string, ""
-	endclass
+        public MainE2Key1, @string, ""
+        public E2ToE1ToE2, @String, ""
+        public E1sToE2ToE1s, @string, ""
+    endclass
 endnamespace

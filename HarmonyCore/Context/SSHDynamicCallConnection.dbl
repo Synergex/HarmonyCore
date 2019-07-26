@@ -104,6 +104,10 @@ namespace Harmony.Core.Context
 				mNeedsRecycle = true
 				throw new BridgeException(ex)
 			end
+			catch(ex, @RemoteMethodNotFoundException)
+			begin
+				throw new BridgeException(ex)
+			end
 			catch(ex, @Exception)
 			begin
 				mNeedsRecycle = true
@@ -216,7 +220,7 @@ namespace Harmony.Core.Context
 			until(readLine == "READY")
 			
 			
-			data result = new JsonRPC(new HeaderDelimitedMessageHandler(streamWrapper, new JsonMessageFormatter(Encoding.UTF8)));;new DynamicCallProvider.HarmonyJsonMessageFormatter(Encoding.Ascii))) 
+			data result = new JsonRPC(new HeaderDelimitedMessageHandler(streamWrapper, new JsonMessageFormatter(new UTF8Encoding(false))))
 			result.TraceSource = new TraceSource("Client", SourceLevels.All)
 			result.StartListening()
 			mreturn result

@@ -55,7 +55,7 @@ namespace TraditionalBridge.Test.ZDateTime
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED IN Dt20In D20 YYYYMMDD date)
 			arg1 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[1])
@@ -68,76 +68,22 @@ namespace TraditionalBridge.Test.ZDateTime
 
 			returnValue = %DateTime20(arg1,arg2,arg3)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;Function return value
-
-			serializer.MapOpen()
-			serializer.String("Position")
-            serializer.Integer(0)
-			serializer.String("Value")
-			serializer.MapOpen()
-			;TODO: Needs to handle all the valid function return types
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.EnumField)
-            serializer.String("PassedValue")
-			serializer.Integer(returnValue)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(0, returnValue)
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 2 (REQUIRED OUT Dt20Out D20 YYYYMMDD date)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 2)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			;TODO: Do we need custom processing for date fields beyond the decimal value?
-			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
-			serializer.Pair("PassedValue", arg2)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(2, arg2, FieldDataType.DecimalField)
+			
+			
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 3 (REQUIRED INOUT Dt20InOut D20 YYYYMMDD date)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 3)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			;TODO: Do we need custom processing for date fields beyond the decimal value?
-			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
-			serializer.Pair("PassedValue", arg3)
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(3, arg3, FieldDataType.DecimalField)
+			
+			
 		endmethod
 
 	endclass
@@ -179,7 +125,7 @@ namespace TraditionalBridge.Test.ZDateTime
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT dt8 D8 YYYYMMDD date)
 			arg1 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[1])
@@ -195,90 +141,29 @@ namespace TraditionalBridge.Test.ZDateTime
 
 			returnValue = %DateTimeOther(arg1,arg2,arg3)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;Function return value
-
-			serializer.MapOpen()
-			serializer.String("Position")
-            serializer.Integer(0)
-			serializer.String("Value")
-			serializer.MapOpen()
-			;TODO: Needs to handle all the valid function return types
-			serializer.String("DataType")
-			serializer.Integer(FieldDataType.EnumField)
-            serializer.String("PassedValue")
-			serializer.Integer(returnValue)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(0, returnValue)
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT dt8 D8 YYYYMMDD date)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			;TODO: Do we need custom processing for date fields beyond the decimal value?
-			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
-			serializer.Pair("PassedValue", arg1)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(1, arg1, FieldDataType.DecimalField)
+			
+			
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 2 (REQUIRED INOUT dt6 D6 YYMMDD date)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 2)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			;TODO: Do we need custom processing for date fields beyond the decimal value?
-			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
-			serializer.Pair("PassedValue", arg2)
-			serializer.MapClose()
-			serializer.MapClose()
+			serializer.ArgumentData(2, arg2, FieldDataType.DecimalField)
+			
+			
 
 			;;--------------------------------------------------------------------------------
 			;;Argument 3 (REQUIRED INOUT dt14 D14 YYYYMMDD date)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 3)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			;TODO: Do we need custom processing for date fields beyond the decimal value?
-			serializer.Pair("DataType", (i)FieldDataType.DecimalField)
-			serializer.Pair("PassedValue", arg3)
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(3, arg3, FieldDataType.DecimalField)
+			
+			
 		endmethod
 
 	endclass
@@ -324,7 +209,7 @@ namespace TraditionalBridge.Test.ZDateTime
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT DATETIMESTR [*]structure @Datetimestr)
 			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1])
@@ -338,49 +223,10 @@ namespace TraditionalBridge.Test.ZDateTime
 
 			xcall DateTimex(^m(strDatetimestr,arg1Handle))
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT DATETIMESTR [*]structure @Datetimestr)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			serializer.Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
-			serializer.String("PassedValue")
-			serializer.ArrayOpen()
-			;TODO: Need to add support for array of structure
-			serializer.ArrayClose()
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentHandleData(1, arg1Handle, FieldDataType.DataObjectCollectionField, 34, "DATETIMESTR", arg1Array.arrayValues.Count, false)
 		endmethod
 
 	endclass
@@ -420,7 +266,7 @@ namespace TraditionalBridge.Test.ZDateTime
 			;;------------------------------------------------------------
 			;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("Arguments")
+			arguments = (@JsonArray)callFrame.GetProperty("params")
 
 			;;Argument 1 (REQUIRED INOUT DATETIMEARY structure @Datetimeary)
 			;;Structure argument. Get the data object then get the record from it
@@ -432,48 +278,11 @@ namespace TraditionalBridge.Test.ZDateTime
 
 			xcall DteTmeAry(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED INOUT DATETIMEARY structure @Datetimeary)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			;;Argument 1: Single Datetimeary record
-			serializer.Pair("DataType", (i)FieldDataType.DataObjectField)
-			serializer.String("PassedValue")
-			;TODO: Support for single structure is incomplete
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.DataObjectField, 108, "DATETIMEARY", false)
+			
 		endmethod
 
 	endclass
@@ -520,48 +329,11 @@ namespace TraditionalBridge.Test.ZDateTime
 
 			xcall Userdates(arg1)
 
-			;;------------------------------------------------------------
-			;;Build the JSON response
-			serializer.MapOpen()
-			serializer.Pair("jsonrpc", "2.0")
-
-			if(callFrame.TryGetProperty("id", requestId)) then
-				serializer.Pair("id", requestId)
-			else
-				serializer.PairNull("id")
-
-			serializer.String("result")
-			serializer.ArrayOpen()
-
 			;;--------------------------------------------------------------------------------
 			;;Argument 1 (REQUIRED OUT USERDATES structure @Userdate)
-
-			serializer.MapOpen()
-			serializer.Pair("Position", 1)
-			serializer.String("Value")
-			serializer.MapOpen()
 			
-			;;Argument 1: Single Userdate record
-			serializer.Pair("DataType", (i)FieldDataType.DataObjectField)
-			serializer.String("PassedValue")
-			;TODO: Support for single structure is incomplete
-			serializer.MapClose()
-			serializer.MapClose()
-
-			;;Terminate the "ReturnParameters" array
-			serializer.ArrayClose()
-
-            ;;Terminate the "Result" object
-			serializer.MapClose()
-            
-            ;;Terminate the response object
-			begin
-				;;Structured this way to assist with debugging
-				data protocolMessage, string
-				serializer.MapClose(protocolMessage)
-				nop
-			end
-
+			serializer.ArgumentData(1, arg1, FieldDataType.DataObjectField, 40, "USERDATES", false)
+			
 		endmethod
 
 	endclass

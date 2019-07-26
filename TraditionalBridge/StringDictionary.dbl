@@ -5,6 +5,21 @@ import System.Collections
 namespace Harmony.TraditionalBridge
 
 	public class StringDictionary
+		public class KeyValuePair
+			public method KeyValuePair
+				key, @string
+				value, @object
+			proc
+				this.Key = key
+				this.Value = value
+			endmethod
+
+
+			public Key, @string
+			public Value, @Object
+		endclass
+
+
 		private symbolTableId, i4
 		private objectStore, @ArrayList
 		private freeIndicies, @ArrayList
@@ -53,7 +68,7 @@ namespace Harmony.TraditionalBridge
 			
 			if(nspc_find(symbolTableId, key,, existingId) == 0) then
 			begin
-				newObjectIndex = AddObjectInternal(value)
+				newObjectIndex = AddObjectInternal(new KeyValuePair(key, value))
 				nspc_add(symbolTableId, key, newObjectIndex)
 			end
 			else 
@@ -65,10 +80,12 @@ namespace Harmony.TraditionalBridge
 			req out value, @object
 			record
 				objectIndex, i4
+				kvp, @object
 		proc
 			if(nspc_find(symbolTableId, key,objectIndex) != 0) then
 			begin
-				value = objectStore[objectIndex]
+				kvp = objectStore[objectIndex]
+				value = ((@KeyValuePair)kvp).Value
 				mreturn true
 			end
 			else
@@ -82,10 +99,12 @@ namespace Harmony.TraditionalBridge
 			req in key, @string 
 			record
 				objectIndex, i4
+				kvp, @Object
 		proc
 			if(nspc_find(symbolTableId, key,objectIndex) != 0) then
 			begin
-				mreturn objectStore[objectIndex]
+				kvp = objectStore[objectIndex]
+				mreturn ((@KeyValuePair)kvp).Value
 			end
 			else
 				throw new Exception("index not found")
@@ -100,7 +119,7 @@ namespace Harmony.TraditionalBridge
 		proc
 			if(nspc_find(symbolTableId, key,objectIndex) != 0) then
 			begin
-				objectStore[objectIndex] = value
+				objectStore[objectIndex] = new KeyValuePair(key, value)
 			end
 			else
 				Add(key, value)
@@ -132,6 +151,34 @@ namespace Harmony.TraditionalBridge
 			freeIndicies.Clear()
 			objectStore.Clear()
 		endmethod
+
+		public method Items, [#]@StringDictionary.KeyValuePair
+			record
+				itm, @StringDictionary.KeyValuePair
+				result, [#]@StringDictionary.KeyValuePair
+				itemCount, int
+				i, int
+		proc
+			itemCount = 0
+			foreach itm in objectStore
+			begin
+				if(itm != ^null)
+					incr itemCount
+			end
+
+			result = new KeyValuePair[itemCount]
+			i = 1
+			foreach itm in objectStore
+			begin
+				if(itm != ^null)
+				begin
+					result[i] = itm
+					incr i
+				end
+			end
+			mreturn result
+		endmethod
+
 	endclass
 
 endnamespace

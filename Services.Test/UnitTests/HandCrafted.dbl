@@ -53,6 +53,9 @@ import Harmony.Core.EF.Extensions
 import Harmony.Core.Converters
 import Services.Models
 import System.IO
+import Microsoft.AspNetCore.SignalR.Client
+import System.Threading.Tasks
+import System.Linq
 
 namespace Services.Test.UnitTests
 
@@ -676,7 +679,7 @@ namespace Services.Test.UnitTests
 		{TestMethod}
 		public method EF_FirstOrDefaultIncluding, void
 		proc
-			data startupClass = new Startup()
+			data startupClass = new Startup(^null, ^null)
 			data startupServices = new ServiceCollection()
 			startupClass.ConfigureServices(startupServices)
 			disposable data sp = startupServices.BuildServiceProvider()
@@ -691,7 +694,7 @@ namespace Services.Test.UnitTests
 		{TestMethod}
 		public method EF_FirstOrDefault, void
 		proc
-			data startupClass = new Startup()
+			data startupClass = new Startup(^null, ^null)
 			data startupServices = new ServiceCollection()
 			startupClass.ConfigureServices(startupServices)
 			disposable data sp = startupServices.BuildServiceProvider()
@@ -704,7 +707,7 @@ namespace Services.Test.UnitTests
 		{TestMethod}
 		public method EF_Where, void
 		proc
-			data startupClass = new Startup()
+			data startupClass = new Startup(^null, ^null)
 			data startupServices = new ServiceCollection()
 			startupClass.ConfigureServices(startupServices)
 			disposable data sp = startupServices.BuildServiceProvider()
@@ -721,7 +724,7 @@ namespace Services.Test.UnitTests
 		{TestMethod}
 		public method EF_WhereIncluding, void
 		proc
-			data startupClass = new Startup()
+			data startupClass = new Startup(^null, ^null)
 			data startupServices = new ServiceCollection()
 			startupClass.ConfigureServices(startupServices)
 			disposable data sp = startupServices.BuildServiceProvider()
@@ -741,7 +744,7 @@ namespace Services.Test.UnitTests
 		{TestMethod}
 		public method EF_WhereIncluding2, void
 		proc
-			data startupClass = new Startup()
+			data startupClass = new Startup(^null, ^null)
 			data startupServices = new ServiceCollection()
 			startupClass.ConfigureServices(startupServices)
 			disposable data sp = startupServices.BuildServiceProvider()
@@ -830,7 +833,28 @@ namespace Services.Test.UnitTests
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 			data customers, @ODataAvailabilitys, JsonConvert.DeserializeObject<ODataAvailabilitys>(result)
-		endmethod
+        endmethod
+
+        {TestMethod}
+        public async method SignalRTest, @Task
+        proc
+            data connection = new HubConnectionBuilder()
+            & .WithUrl("https://localhost/hub/orders", lambda(o) { o.HttpMessageHandlerFactory = lambda(d) { UnitTestEnvironment.Server.CreateHandler() } })
+            & .Build()
+            data echo, @HandCrafted.ArbitrarioReturnType
+            connection.On<HandCrafted.ArbitrarioReturnType>("Arbitrario_MethodWithParametersResult", lambda(msg) { echo = msg })
+
+            await connection.StartAsync()
+            data intArray = new int[#] {5, 4, 3, 2, 1 }
+            await connection.InvokeAsync("Arbitrario_MethodWithParameters", 5, "hello", new string[#] { "this", "is", "strings" }, (@object)intArray)
+            Assert.IsTrue(echo.StringList.SequenceEqual(new string[#] { "this", "is", "strings" }))
+        endmethod
+
+        public class ArbitrarioReturnType
+            public readwrite property ReturnCode, int
+            public readwrite property IntList, @List<int>
+            public readwrite property StringList, @List<string>
+        endclass
 
 		{TestMethod}
 		{TestCategory("Customer Tests - Read All")}

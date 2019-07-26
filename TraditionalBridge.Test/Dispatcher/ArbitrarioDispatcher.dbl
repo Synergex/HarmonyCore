@@ -2,47 +2,174 @@ import TraditionalBridge.Test.Methods
 import System.Collections
 import Harmony.TraditionalBridge
 import Json
+import TraditionalBridge.Test.Models
 
 namespace TraditionalBridge.Test.Dispatcher
 
-	public class ArbitrarioDispatcher extends RoutineStub
+    public class ArbitrarioDispatcher extends RoutineStub
 
-		protected override method DispatchInternal, void
-			required in name,       string
-			required in callFrame,  @JsonObject
-			required in serializer, @DispatchSerializer
-			required in dispatcher, @RoutineDispatcher
-			record
-				arguments,			@JsonArray
-				returnValue,		int
-				classInstance,		@arbitrario
-				arg4,				@ArrayList
-				arg5,				@ArrayList
-			endrecord
-		proc
-			classInstance = new arbitrario()
-			;;------------------------------------------------------------
-			;;Process inbound arguments
+        protected override method DispatchInternal, void
+            required in name,       string
+            required in callFrame,  @JsonObject
+            required in serializer, @DispatchSerializer
+            required in dispatcher, @RoutineDispatcher
+            record
+                arguments,			@JsonArray
+                returnValue,		int
+                classInstance,		@arbitrario
+                arg4,				@ArrayList
+                arg5,				@ArrayList
+            endrecord
+        proc
+            classInstance = new arbitrario()
+            ;;------------------------------------------------------------
+            ;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("params")
-			;;------------------------------------------------------------
-			;; Call the underlying routine
+            arguments = (@JsonArray)callFrame.GetProperty("params")
+            ;;------------------------------------------------------------
+            ;; Call the underlying routine
 			
-			arg5 = dispatcher.UnwrapObjectCollection(dispatcher.GetArray((@JsonObject)arguments.arrayValues[5]))
+            arg5 = dispatcher.UnwrapObjectCollection(dispatcher.GetArray((@JsonObject)arguments.arrayValues[5]))
 
-			returnValue = classInstance.MethodWithParameters(
-			&	dispatcher.GetInt((@JsonObject)arguments.arrayValues[1]),
-			&	dispatcher.GetText((@JsonObject)arguments.arrayValues[2]),
-			&	dispatcher.UnwrapStringArray(dispatcher.GetArray((@JsonObject)arguments.arrayValues[3])),
-			&	arg4,
-			&	arg5)
+            returnValue = classInstance.MethodWithParameters(
+            &    dispatcher.GetInt((@JsonObject)arguments.arrayValues[1]),
+            &    dispatcher.GetText((@JsonObject)arguments.arrayValues[2]),
+            &    dispatcher.UnwrapStringArray(dispatcher.GetArray((@JsonObject)arguments.arrayValues[3])),
+            &    arg4,
+            &    arg5)
 
-			serializer.ArgumentData(0, returnValue)
-			serializer.ArgumentData(4, arg4)
-			serializer.ArgumentData(5, arg5)
+            serializer.ArgumentData(0, returnValue)
+            serializer.ArgumentData(4, arg4)
+            serializer.ArgumentData(5, arg5)
+        endmethod
 
-		endmethod
+    endclass
 
-	endclass
+    public class ArbitrarioStructureDispatcher extends RoutineStub
+
+        protected override method DispatchInternal, void
+            required in name,       string
+            required in callFrame,  @JsonObject
+            required in serializer, @DispatchSerializer
+            required in dispatcher, @RoutineDispatcher
+            record
+                arguments,			@JsonArray
+                returnValue,		int
+                classInstance,		@arbitrario
+                arg1Array,          @JsonArray
+                arg1,               [#]@Customer
+                arg1Obj,               [#]@DataObjectBase
+                arg2,				@ArrayList
+                arg3,               @Customer
+                arg4,               @Customer
+                arg5Handle,         D_HANDLE
+                arg5Def,            @ArgumentDataDefinition
+                arg5BufPos,         int
+                arg6,               [#]TraditionalBridge.Test.Models.strCustomer
+                arg7,				@ArrayList
+                strCustomerBuffer,  TraditionalBridge.Test.Models.strCustomer
+            endrecord
+
+        proc
+            classInstance = new arbitrario()
+            ;;------------------------------------------------------------
+            ;;Process inbound arguments
+
+            arguments = (@JsonArray)callFrame.GetProperty("params")
+            ;;------------------------------------------------------------
+            ;; Call the underlying routine
+            arg1Array = dispatcher.GetArray((@JsonObject)arguments.arrayValues[1])
+            arg1 = new Customer[arg1Array.arrayValues.Count]
+            dispatcher.UnwrapObjectCollection(arg1Array, arg1, false, DataObjectMetadataBase.LookupType("CUSTOMER"), strCustomerBuffer, FieldDataType.DataObjectField, ^size(strCustomer), 0)
+            
+            
+            arg2 = new ArrayList()
+            dispatcher.UnwrapObjectCollection(dispatcher.GetArray((@JsonObject)arguments.arrayValues[2]), arg2, false, DataObjectMetadataBase.LookupType("CUSTOMER"), strCustomerBuffer, FieldDataType.DataObjectField, ^size(strCustomer), 0)
+            
+            arg3 = (@Customer)dispatcher.DeserializeObject((@JsonObject)arguments.arrayValues[3], DataObjectMetadataBase.LookupType("CUSTOMER"))
+            arg4 = (@Customer)dispatcher.DeserializeObject((@JsonObject)arguments.arrayValues[4], DataObjectMetadataBase.LookupType("CUSTOMER"))
+            
+            arg5Def = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1], ^size(strCustomer))
+            arg5BufPos = 1
+            arg5Handle = %mem_proc(DM_ALLOC, ^size(strCustomer) * arg1Array.arrayValues.Count)
+            dispatcher.UnwrapObjectCollection(arg5Handle, arg5Def, arg5BufPos, arg1Array)
+
+            arg6 = new TraditionalBridge.Test.Models.strCustomer[arg1Array.arrayValues.Count]
+            dispatcher.UnwrapObjectCollection(arg1Array, arg6, false, DataObjectMetadataBase.LookupType("CUSTOMER"), strCustomerBuffer, FieldDataType.AlphaField, ^size(strCustomer), 0)
+            arg7 = new ArrayList()
+            dispatcher.UnwrapObjectCollection(dispatcher.GetArray((@JsonObject)arguments.arrayValues[2]), arg7, false, DataObjectMetadataBase.LookupType("CUSTOMER"), strCustomerBuffer, FieldDataType.AlphaField, ^size(strCustomer), 0)
+
+            returnValue = classInstance.MethodWithStructures(arg1, arg2, arg3, arg4.SynergyRecord, ^m(strCustomer, arg5Handle), arg6, arg7)
+            arg1Obj = new DataObjectBase[arg1.Length]
+            System.Array.Copy(arg1, 1, arg1Obj, 1, arg1.Length)
+            serializer.ArgumentData(0, returnValue)
+            serializer.ArgumentData(1, arg1Obj)
+            serializer.ArgumentData(2, arg2)
+            serializer.ArgumentData(3, arg3)
+
+
+;            required inout customerArray, [#]@Customer
+;            required inout customerArrayList, @ArrayList
+;            required inout customer1, @Customer
+;            required in customer2, strCustomer
+;            required in customerSynergyArray, [*]strCustomer
+;            required in customerStrSynergyArray, [#]strCustomer
+;            required in customerStrArrayList, @ArrayList
+
+
+
+        endmethod
+
+    endclass
+
+    public class ArbitrarioOptionalDispatcher extends RoutineStub
+
+        private mRcbid, int
+
+        protected override method DispatchInternal, void
+            required in name,       string
+            required in callFrame,  @JsonObject
+            required in serializer, @DispatchSerializer
+            required in dispatcher, @RoutineDispatcher
+            record
+                arguments,			@JsonArray
+                arg1, a4
+                arg2, a24
+                arg2Passed, boolean
+                arg3, a24
+                arg3Passed, boolean
+                arg4, a18
+                arg4Passed, boolean
+            endrecord
+        proc
+            ;;------------------------------------------------------------
+            ;;Process inbound arguments
+
+            arguments = (@JsonArray)callFrame.GetProperty("params")
+            ;;------------------------------------------------------------
+            ;; Call the underlying routine
+			
+            RCBInit("arbitrary_optional", 4, mRcbid)
+            try
+            begin
+                RCBArg(1, (@JsonObject)arguments.arrayValues[1], FieldDataType.IntegerField, arg1, mRcbid, 0)
+                RCBArg(2, (@JsonObject)arguments.arrayValues[2], FieldDataType.AlphaField, arg2, mRcbid, 0, arg2Passed)
+                RCBArg(3, (@JsonObject)arguments.arrayValues[3], FieldDataType.AlphaField, arg3, mRcbid, 0, arg3Passed)
+                RCBArg(4, (@JsonObject)arguments.arrayValues[4], FieldDataType.DecimalField, arg4, mRcbid, 0, arg4Passed)
+
+                rcb_call(mRcbid)
+
+                RCBSerializeArg(2, arg2Passed, FieldDataType.AlphaField, arg2, 24, 0, serializer)
+                RCBSerializeArg(3, arg3Passed, FieldDataType.AlphaField, arg3, 24, 0, serializer)
+                RCBSerializeArg(4, arg4Passed, FieldDataType.DecimalField, arg4, 18, 0, serializer)
+            end
+            finally
+            begin
+                mRcbid = %rcb_create(4, DM_STATIC, mRcbid)
+            end
+            endtry
+        endmethod
+
+    endclass
 
 endnamespace

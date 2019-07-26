@@ -48,6 +48,15 @@ namespace Harmony.Core.Utility
 
 		endmethod
 
+		public method BridgeException
+			ex, @RemoteMethodNotFoundException
+		proc
+			data decodedMessage = Encoding.UTF8.GetString(Convert.FromBase64String(ex.Message))
+			data splitMessage = decodedMessage.Split(new string[#] {%char(10), %char(13) }, StringSplitOptions.RemoveEmptyEntries)
+			RemoteExceptionType = splitMessage[1]
+			RemoteStackTrace = Enumerable.ToArray(Enumerable.Skip(splitMessage, 1))
+		endmethod
+
 		public override property Message, @string
 			method get
 			proc

@@ -60,7 +60,8 @@ namespace Harmony.Core
 	;;; This base class defines the core elemnts of the code-generated data objects.
 	;;; </remarks>
 	{JsonObject(MemberSerialization.OptOut)}
-	public abstract class DataObjectBase
+    public abstract class DataObjectBase
+        private mOwnedObjectsLoaded, boolean, false
 		private mIsNew, boolean
 		private mPropertyBag, @Dictionary<Object, Object>
 		;;; <summary>
@@ -299,6 +300,35 @@ namespace Harmony.Core
 		proc
 		endmethod
 
+        ;;; <summary>
+        ;;; Validate the contents of the data object prior to being stored
+        ;;; </summary>
+        public virtual method Validate, void
+            type, ValidationType
+            serviceProvider, @IServiceProvider
+        proc
+            
+        endmethod
+
+        ;;; <summary>
+        ;;; Load any owned objects that are controlled by custom user logic
+        ;;; </summary>
+        public method LoadOwnedObjects, void
+            serviceProvider, @IServiceProvider
+        proc
+            if(!mOwnedObjectsLoaded)
+            begin
+                mOwnedObjectsLoaded = true
+                LoadOwnedObjectsInternal(serviceProvider)
+            end
+        endmethod
+
+        protected virtual method LoadOwnedObjectsInternal, void
+            serviceProvider, @IServiceProvider
+        proc
+            
+        endmethod
+
 	endclass
 
 	public delegate AlphaAction, void
@@ -306,6 +336,11 @@ namespace Harmony.Core
 		inout alphaData2, a
 	enddelegate
 
+    public enum ValidationType
+        Create,
+        Update,
+        Delete
+    endenum
 	
 endnamespace
 

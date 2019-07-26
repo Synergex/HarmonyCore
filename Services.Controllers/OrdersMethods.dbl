@@ -115,7 +115,18 @@ namespace Services.Controllers
 			data resultTpl = await CallMethod("Arbitrario.MethodWithParameters", 5, "hello", new string[#] { "this", "is", "strings" }, (@object)intArray, new string[0])
 			data returnToken = ((@JToken)resultTpl.Item1)
 			mreturn new ArbitrarioReturnType() { ReturnCode = returnToken.ToObject<int>(), IntList = ((@IEnumerable<int>)resultTpl.Item2[4]).ToList(), StringList = ((@IEnumerable<string>)resultTpl.Item2[5]).ToList() }
-		endmethod
+        endmethod
+
+        public async method Arbitrario_MethodWithParameters2, @Task<ArbitrarioReturnType>
+            aNumber, int
+            aString, @string
+            aStringArray, [#]string
+            aIntArray, [#]int
+        proc
+            data resultTpl = await CallMethod("Arbitrario.MethodWithParameters", aNumber, aString, aStringArray, aIntArray, new string[0])
+            data returnToken = ((@JToken)resultTpl.Item1)
+            mreturn new ArbitrarioReturnType() { ReturnCode = returnToken.ToObject<int>(), IntList = ((@IEnumerable<int>)resultTpl.Item2[4]).ToList(), StringList = ((@IEnumerable<string>)resultTpl.Item2[5]).ToList() }
+        endmethod
 
 		public class ArbitrarioReturnType
 			public readwrite property ReturnCode, int
@@ -130,11 +141,11 @@ namespace Services.Controllers
     
         {CallableMethodConfigurationAttribute(IsFunction=true, ReturnsFromEntitySet=true)}
         {EnableQuery()}
-        public method FindAvailability, @List<Availability>
+        public method FindAvailability, @ActionResult<List<Availability>>
             {AdapterParameterAttribute}
             filter, @AvailabiltyFilter
         proc
-            mreturn new List<Availability>() { new Availability() { PointsCost = 9999 } }
+            mreturn Ok(new List<Availability>() { new Availability() { PointsCost = 9999 } })
         endmethod
 
 		{CallableMethodConfigurationAttribute(IsFunction=true, ReturnsFromEntitySet=true)}
