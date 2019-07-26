@@ -12,6 +12,12 @@ import System.Collections.Generic
 import System.Text
 import Harmony.Core.Converters
 import System.ComponentModel.DataAnnotations
+import Microsoft.EntityFrameworkCore
+import Harmony.Core.Context
+import Harmony.Core.Interface
+import Microsoft.Extensions.DependencyInjection
+import System.Diagnostics
+import Harmony.Core.FileIO
 
 namespace Harmony.Core.Test.FileIO.Models
 
@@ -168,7 +174,7 @@ namespace Harmony.Core.Test.FileIO.Models
             endmethod
         endproperty
 
-
+        public readwrite property Customer, @Customer
         ;;; <summary>
         ;;; Expose the complete synergy record
         ;;; </summary>
@@ -209,6 +215,21 @@ namespace Harmony.Core.Test.FileIO.Models
 			;;this should be returning boxed values for each of our fields
 			mreturn new Object[0]
 		endmethod
+
+        protected virtual method LoadOwnedObjectsInternal, void
+            serviceProvider, @IServiceProvider
+        proc
+            data dataObjectProvider, @IDataObjectProvider, serviceProvider.GetService<IDataObjectProvider>()
+            data fileChannelManager = dataObjectProvider.ChannelManager
+            if(dataObjectProvider == ^null || fileChannelManager == ^null)
+                throw new Exception("something was null")
+
+            Trace.WriteLine("Loading Owned Objects for Orders")
+
+            disposable data customerFileIO, @IDataObjectIO<Customer>, dataObjectProvider.GetFileIO<Customer>()
+            data customerResult, @Customer
+            FileIOErrorHelper.EnsureSuccess(customerFileIO.ReadRecord(customerResult, 0, ^a(mSynergyData.customer_number), true))
+        endmethod
 
 	endclass
 	

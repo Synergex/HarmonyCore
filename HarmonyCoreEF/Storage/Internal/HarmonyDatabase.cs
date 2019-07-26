@@ -13,10 +13,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Update;
 using Microsoft.EntityFrameworkCore.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 using Remotion.Linq;
 
 namespace Harmony.Core.EF.Storage.Internal
@@ -29,6 +31,7 @@ namespace Harmony.Core.EF.Storage.Internal
     {
         private readonly IDiagnosticsLogger<DbLoggerCategory.Update> _updateLogger;
         private readonly IDataObjectProvider _dataObjectProvider;
+        private readonly IServiceProvider _serviceProvider;
         /// <summary>
         ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
         ///     directly from your code. This API may change or be removed in future releases.
@@ -36,6 +39,7 @@ namespace Harmony.Core.EF.Storage.Internal
         public HarmonyDatabase(
             DatabaseDependencies dependencies,
             IDataObjectProvider dataProvider,
+            IServiceProvider serviceProvider,
             IDbContextOptions options,
             IDiagnosticsLogger<DbLoggerCategory.Update> updateLogger)
             : base(dependencies)
@@ -43,6 +47,7 @@ namespace Harmony.Core.EF.Storage.Internal
             //_store = storeCache.GetStore(options);
             _updateLogger = updateLogger;
             _dataObjectProvider = dataProvider;
+            _serviceProvider = serviceProvider;
         }
 
         /// <summary>
@@ -122,7 +127,7 @@ namespace Harmony.Core.EF.Storage.Internal
 
             try
             {
-                _dataObjectProvider.ExecuteTransaction(created, updated, deleted);
+                _dataObjectProvider.ExecuteTransaction(new FileIOServiceProvider(_serviceProvider, created, updated, deleted), created, updated, deleted);
             }
             catch (Synergex.SynergyDE.RecordNotSameException)
             {
@@ -130,6 +135,41 @@ namespace Harmony.Core.EF.Storage.Internal
             }
 
             return created.Count + updated.Count + deleted.Count;
+        }
+
+        private class FileIOServiceProvider : IServiceProvider
+        {
+            public IServiceProvider Context { get; set; }
+            public IDataObjectTransactionContext TransactionContext {get; set;}
+            public FileIOServiceProvider(IServiceProvider sp, IEnumerable<DataObjectBase> created, IEnumerable<DataObjectBase> updated, IEnumerable<DataObjectBase> deleted)
+            {
+                TransactionContext = new TransactionContext { Created = created, Updated = updated, Deleted = deleted };
+                Context = sp;
+            }
+
+            public object GetService(Type serviceType)
+            {
+                if (serviceType == typeof(DbContext))
+                {
+                    return Context.GetService<ICurrentDbContext>().Context;
+                }
+                else if (serviceType == typeof(IDataObjectTransactionContext))
+                {
+                    return TransactionContext;
+                }
+                else
+                {
+                    return Context.GetService(serviceType);
+                }
+            }
+        }
+        private class TransactionContext : IDataObjectTransactionContext
+        {
+            public IEnumerable<DataObjectBase> Created { get; set; }
+
+            public IEnumerable<DataObjectBase> Updated { get; set; }
+
+            public IEnumerable<DataObjectBase> Deleted { get; set; }
         }
     }
 }

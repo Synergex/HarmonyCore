@@ -35,28 +35,24 @@ namespace Harmony.Core.Context
             data maybeRollbackStored = new List<DataObjectBase>()
             data maybeRollbackUpdated = new List<DataObjectBase>()
 
-            ;;scope needs to get cleaned up here to prevent bad user code from keeping locks based off the provided services/channel manager
+            ;;VALIDATION PHASE
+            ;;iterate over created, update, deleted calling validate
+            ;;Validate should throw and exception in order to interupt all other actions
+            foreach dataObject in created
             begin
-                disposable data transactionServiceProvider = new NestedServiceProvider(new IDataObjectProviderExtensions.TransactionContext() { Created=created, Updated = updated, Deleted = deleted }, serviceProvider)
-            
-                ;;VALIDATION PHASE
-                ;;iterate over created, update, deleted calling validate
-                ;;Validate should throw and exception in order to interupt all other actions
-                foreach dataObject in created
-                begin
-                    dataObject.Validate(ValidationType.Create, transactionServiceProvider)
-                end
+                dataObject.Validate(ValidationType.Create, serviceProvider)
+            end
 
-                foreach dataObject in updated
-                begin
-                    dataObject.Validate(ValidationType.Update, transactionServiceProvider)
-                end
+            foreach dataObject in updated
+            begin
+                dataObject.Validate(ValidationType.Update, serviceProvider)
+            end
 
-                foreach dataObject in deleted
-                begin
-                    dataObject.Validate(ValidationType.Delete, transactionServiceProvider)
-                end
-                end
+            foreach dataObject in deleted
+            begin
+                dataObject.Validate(ValidationType.Delete, serviceProvider)
+            end
+
             try
             begin
                 ;;LOCK PHASE
@@ -139,45 +135,6 @@ namespace Harmony.Core.Context
             endtry
 
         endmethod
-
-        class NestedServiceProvider implements IServiceProvider, IDisposable
-
-            public virtual method Dispose, void
-                endparams
-            proc
-                
-            endmethod
-
-
-            private _services, @IServiceProvider
-            private _transactionContext, @IDataObjectTransactionContext
-            public method NestedServiceProvider
-                context, @IDataObjectTransactionContext
-                nestedServices, @IServiceProvider
-                endparams
-            proc
-                _services = nestedServices
-                _transactionContext = context
-            endmethod
-
-            public virtual method GetService, @object
-                serviceType, @Type 
-                endparams
-            proc
-                if(serviceType == ^typeof(IDataObjectTransactionContext)) then
-                    mreturn _transactionContext
-                else
-                    mreturn _services.GetService(serviceType)
-            endmethod
-        endclass
-
-        class TransactionContext implements IDataObjectTransactionContext
-            public readwrite property Created, @IEnumerable<DataObjectBase>
-            public readwrite property Updated, @IEnumerable<DataObjectBase>
-            public readwrite property Deleted, @IEnumerable<DataObjectBase>
-        endclass
-
-
     endclass
 
 endnamespace
