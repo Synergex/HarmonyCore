@@ -18,648 +18,624 @@ import TraditionalBridge.Test.Models
 namespace TraditionalBridge.Test.data64k
 
 
-	;;-------------------------------------------------------------------------
-	;;; <summary>
-	;;; Dispatcher for method data64k.P1StrAryO64k
-	;;; </summary>
-	public class P1StrAryO64k_Dispatch extends RoutineStub
-
-		private mDatasetMetadata, @DataObjectMetadataBase
-
-		public method P1StrAryO64k_Dispatch
-		proc
-			;;Initialize the meta data for any data objects that are used by parameters to the method
-			mDatasetMetadata = DataObjectMetadataBase.LookupType("Dataset")
-		endmethod
-
-		protected override method DispatchInternal, void
-			required in name,       string
-			required in callFrame,  @JsonObject
-			required in serializer, @DispatchSerializer
-			required in dispatcher, @RoutineDispatcher
-			record
-				requestId,			int
-				arguments,			@JsonArray
-				argumentDefinition, @ArgumentDataDefinition
-
-				;;Argument 1 (REQUIRED INOUT DATASET [*]structure @Dataset)
-				arg1Array,			@JsonArray
-				arg1Handle,			D_HANDLE
-				arg1HandlePos,		int
-			endrecord
-
-			;;Temp structure tempstr1
-			structure tempstr1
-				arry, @Dataset
-			endstructure
-
-
-		proc
-
-			;;------------------------------------------------------------
-			;;Process inbound arguments
-
-			arguments = (@JsonArray)callFrame.GetProperty("params")
-
-			;;Argument 1 (REQUIRED INOUT DATASET [*]structure @Dataset)
-			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1])
-			arg1Array = (@JsonArray)((@JsonObject)arguments.arrayValues[1]).GetProperty("PassedValue")
-			arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.arrayValues.Count)
-			arg1HandlePos = 1
-			dispatcher.UnwrapObjectCollection(^m(arg1Handle),argumentDefinition,arg1HandlePos,arg1Array)
-
-			;;------------------------------------------------------------
-			;; Call the underlying routine
-
-			xcall P1StrAryO64k(^m(strDataset,arg1Handle))
-
-			;;--------------------------------------------------------------------------------
-			;;Argument 1 (REQUIRED INOUT DATASET [*]structure @Dataset)
-			
-			serializer.ArgumentHandleData(1, arg1Handle, FieldDataType.DataObjectCollectionField, 1493, "DATASET", arg1Array.arrayValues.Count, false)
-		endmethod
-
-	endclass
-
-	;;-------------------------------------------------------------------------
-	;;; <summary>
-	;;; Dispatcher for method data64k.BinaryArrayTest
-	;;; </summary>
-	public class BinaryArrayTest_Dispatch extends RoutineStub
-
-
-		public method BinaryArrayTest_Dispatch
-		proc
-			;;Initialize the meta data for any data objects that are used by parameters to the method
-		endmethod
-
-		protected override method DispatchInternal, void
-			required in name,       string
-			required in callFrame,  @JsonObject
-			required in serializer, @DispatchSerializer
-			required in dispatcher, @RoutineDispatcher
-			record
-				requestId,			int
-				arguments,			@JsonArray
-				argumentDefinition, @ArgumentDataDefinition
-
-				;;Argument 1 (REQUIRED INOUT decparm1 D5)
-				arg1,				d5
-				;;Argument 2 (REQUIRED IN inba D_HANDLE)
-				arg2,				d_handle
-				;;Argument 3 (REQUIRED INOUT alparm A10)
-				arg3,				a10
-				;;Argument 4 (REQUIRED OUT outba D_HANDLE)
-				arg4,				d_handle
-				;;Argument 5 (REQUIRED INOUT idparm D5.2)
-				arg5,				d5.2
-				;;Argument 6 (REQUIRED INOUT inoutba D_HANDLE)
-				arg6,				d_handle
-				;;Argument 7 (REQUIRED INOUT decparm2 D5)
-				arg7,				d5
-				returnValue,		I4
-			endrecord
-
-
-		proc
-
-			;;------------------------------------------------------------
-			;;Process inbound arguments
-
-			arguments = (@JsonArray)callFrame.GetProperty("params")
-
-			;;Argument 1 (REQUIRED INOUT decparm1 D5)
-			arg1 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[1])
+    ;;-------------------------------------------------------------------------
+    ;;; <summary>
+    ;;; Dispatcher for method data64k.P1StrAryO64k
+    ;;; </summary>
+    public class P1StrAryO64k_Dispatcher extends RoutineStub
+
+        private mDatasetMetadata, @DataObjectMetadataBase
+
+        public method P1StrAryO64k_Dispatcher
+        proc
+            ;;Initialize the meta data for any data objects that are used by parameters to the method
+            mDatasetMetadata = DataObjectMetadataBase.LookupType("Dataset")
+        endmethod
+
+        protected override method DispatchInternal, void
+            required in name,       string
+            required in callFrame,  @JsonObject
+            required in serializer, @DispatchSerializer
+            required in dispatcher, @RoutineDispatcher
+            record
+                requestId,          int
+                arguments,          @JsonArray
+                argumentDefinition, @ArgumentDataDefinition
+
+                ;;Argument 1 (REQUIRED INOUT DATASET [*]structure @Dataset)
+                arg1Array,          @JsonArray
+                arg1Handle,         D_HANDLE
+                arg1HandlePos,      int
+            endrecord
+
+            ;;Temp structure tempstr1
+            structure tempstr1
+                arry, @Dataset
+            endstructure
+
+
+        proc
+
+            ;;------------------------------------------------------------
+            ;;Process inbound arguments
+
+            arguments = (@JsonArray)callFrame.GetProperty("params")
+
+            ;;Argument 1 (REQUIRED INOUT DATASET [*]structure @Dataset)
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1])
+            arg1Array = (@JsonArray)((@JsonObject)arguments.arrayValues[1]).GetProperty("PassedValue")
+            arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.arrayValues.Count)
+            arg1HandlePos = 1
+            dispatcher.UnwrapObjectCollection(^m(arg1Handle),argumentDefinition,arg1HandlePos,arg1Array)
+
+            ;;------------------------------------------------------------
+            ;; Call the underlying routine
+
+            xcall P1StrAryO64k(^m(strDataset,arg1Handle))
+
+            ;;--------------------------------------------------------------------------------
+            ;;Argument 1 (REQUIRED INOUT DATASET [*]structure @Dataset)
+            
+            serializer.ArgumentHandleData(1, arg1Handle, FieldDataType.DataObjectCollectionField, 1493, "DATASET", %mem_proc(DM_GETSIZE, arg1Handle)/1493, false)
+        endmethod
+
+    endclass
+
+    ;;-------------------------------------------------------------------------
+    ;;; <summary>
+    ;;; Dispatcher for method data64k.BinaryArrayTest
+    ;;; </summary>
+    public class BinaryArrayTest_Dispatcher extends RoutineStub
+
+
+        public method BinaryArrayTest_Dispatcher
+        proc
+            ;;Initialize the meta data for any data objects that are used by parameters to the method
+        endmethod
+
+        protected override method DispatchInternal, void
+            required in name,       string
+            required in callFrame,  @JsonObject
+            required in serializer, @DispatchSerializer
+            required in dispatcher, @RoutineDispatcher
+            record
+                requestId,          int
+                arguments,          @JsonArray
+                argumentDefinition, @ArgumentDataDefinition
+
+                ;;Argument 1 (REQUIRED INOUT decparm1 D5)
+                arg1,               d5
+                ;;Argument 2 (REQUIRED IN inba D_HANDLE)
+                arg2,               d_handle
+                ;;Argument 3 (REQUIRED INOUT alparm A10)
+                arg3,               a10
+                ;;Argument 4 (REQUIRED OUT outba D_HANDLE)
+                arg4,               d_handle
+                ;;Argument 5 (REQUIRED INOUT idparm D5.2)
+                arg5,               d5.2
+                ;;Argument 6 (REQUIRED INOUT inoutba D_HANDLE)
+                arg6,               d_handle
+                ;;Argument 7 (REQUIRED INOUT decparm2 D5)
+                arg7,               d5
+                returnValue,         I4
+            endrecord
 
-			;;Argument 2 (REQUIRED IN inba D_HANDLE)
-			;TODO: Template needs code for BINARY HANDLE arguments!
-			arg2 =
 
-			;;Argument 3 (REQUIRED INOUT alparm A10)
-			arg3 = dispatcher.GetText((@JsonObject)arguments.arrayValues[3])
+        proc
 
-			;;Argument 5 (REQUIRED INOUT idparm D5.2)
-			arg5 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[5])
+            ;;------------------------------------------------------------
+            ;;Process inbound arguments
 
-			;;Argument 6 (REQUIRED INOUT inoutba D_HANDLE)
-			;TODO: Template needs code for BINARY HANDLE arguments!
-			arg6 =
+            arguments = (@JsonArray)callFrame.GetProperty("params")
 
-			;;Argument 7 (REQUIRED INOUT decparm2 D5)
-			arg7 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[7])
+            ;;Argument 1 (REQUIRED INOUT decparm1 D5)
+            arg1 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[1])
 
-			;;------------------------------------------------------------
-			;; Call the underlying routine
+            ;;Argument 2 (REQUIRED IN inba D_HANDLE)
+            ;TODO: Template needs code for BINARY HANDLE arguments!
+            arg2 =
 
-			returnValue = %BinaryArrayTest(arg1,arg2,arg3,arg4,arg5,arg6,arg7)
+            ;;Argument 3 (REQUIRED INOUT alparm A10)
+            arg3 = dispatcher.GetText((@JsonObject)arguments.arrayValues[3])
 
-			;;Function return value
-			serializer.ArgumentData(0, returnValue)
+            ;;Argument 5 (REQUIRED INOUT idparm D5.2)
+            arg5 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[5])
 
-			;;--------------------------------------------------------------------------------
-			;;Argument 1 (REQUIRED INOUT decparm1 D5)
-			
-			serializer.ArgumentData(1, arg1, FieldDataType.DecimalField, 5, 0, false)
-			
-			
+            ;;Argument 6 (REQUIRED INOUT inoutba D_HANDLE)
+            ;TODO: Template needs code for BINARY HANDLE arguments!
+            arg6 =
 
-			;;--------------------------------------------------------------------------------
-			;;Argument 3 (REQUIRED INOUT alparm A10)
-			
-			serializer.ArgumentData(3, %atrim(arg3), FieldDataType.AlphaField)
+            ;;Argument 7 (REQUIRED INOUT decparm2 D5)
+            arg7 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[7])
 
-			;;--------------------------------------------------------------------------------
-			;;Argument 4 (REQUIRED OUT outba D_HANDLE)
-			
-			serializer.ArgumentData(4, arg4, FieldDataType.BinaryHandleField, 0, 0, false)
-			
-			
+            ;;------------------------------------------------------------
+            ;; Call the underlying routine
 
-			;;--------------------------------------------------------------------------------
-			;;Argument 5 (REQUIRED INOUT idparm D5.2)
-			
-			serializer.ArgumentData(5, arg5, FieldDataType.ImpliedDecimalField, 5, 02, false)
-			
-			
+            returnValue = %BinaryArrayTest(arg1,arg2,arg3,arg4,arg5,arg6,arg7)
 
-			;;--------------------------------------------------------------------------------
-			;;Argument 6 (REQUIRED INOUT inoutba D_HANDLE)
-			
-			serializer.ArgumentData(6, arg6, FieldDataType.BinaryHandleField, 0, 0, false)
-			
-			
+            ;;Function return value
+            serializer.ArgumentData(0, returnValue)
 
-			;;--------------------------------------------------------------------------------
-			;;Argument 7 (REQUIRED INOUT decparm2 D5)
-			
-			serializer.ArgumentData(7, arg7, FieldDataType.DecimalField, 5, 0, false)
-			
-			
-		endmethod
+            ;;--------------------------------------------------------------------------------
+            ;;Argument 1 (REQUIRED INOUT decparm1 D5)
+            
+            serializer.ArgumentData(1, arg1, FieldDataType.DecimalField, 5, 0, false)
 
-	endclass
+            ;;--------------------------------------------------------------------------------
+            ;;Argument 3 (REQUIRED INOUT alparm A10)
+            
+            serializer.ArgumentData(3, %atrim(arg3), FieldDataType.AlphaField, 10, 0, false)
 
-	;;-------------------------------------------------------------------------
-	;;; <summary>
-	;;; Dispatcher for method data64k.inBinaryArrayTest
-	;;; </summary>
-	public class inBinaryArrayTest_Dispatch extends RoutineStub
+            ;;--------------------------------------------------------------------------------
+            ;;Argument 4 (REQUIRED OUT outba D_HANDLE)
+            
+            ;TODO: Binary Handle support is incomplete and will FAIL!!!
 
+            ;;--------------------------------------------------------------------------------
+            ;;Argument 5 (REQUIRED INOUT idparm D5.2)
+            
+            serializer.ArgumentData(5, arg5, FieldDataType.ImpliedDecimalField, 5, 02, false)
 
-		public method inBinaryArrayTest_Dispatch
-		proc
-			;;Initialize the meta data for any data objects that are used by parameters to the method
-		endmethod
+            ;;--------------------------------------------------------------------------------
+            ;;Argument 6 (REQUIRED INOUT inoutba D_HANDLE)
+            
+            ;TODO: Binary Handle support is incomplete and will FAIL!!!
 
-		protected override method DispatchInternal, void
-			required in name,       string
-			required in callFrame,  @JsonObject
-			required in serializer, @DispatchSerializer
-			required in dispatcher, @RoutineDispatcher
-			record
-				requestId,			int
-				arguments,			@JsonArray
-				argumentDefinition, @ArgumentDataDefinition
+            ;;--------------------------------------------------------------------------------
+            ;;Argument 7 (REQUIRED INOUT decparm2 D5)
+            
+            serializer.ArgumentData(7, arg7, FieldDataType.DecimalField, 5, 0, false)
+        endmethod
 
-				;;Argument 1 (REQUIRED IN inBA D_HANDLE)
-				arg1,				d_handle
-			endrecord
+    endclass
 
+    ;;-------------------------------------------------------------------------
+    ;;; <summary>
+    ;;; Dispatcher for method data64k.inBinaryArrayTest
+    ;;; </summary>
+    public class inBinaryArrayTest_Dispatcher extends RoutineStub
 
-		proc
 
-			;;------------------------------------------------------------
-			;;Process inbound arguments
+        public method inBinaryArrayTest_Dispatcher
+        proc
+            ;;Initialize the meta data for any data objects that are used by parameters to the method
+        endmethod
 
-			arguments = (@JsonArray)callFrame.GetProperty("params")
+        protected override method DispatchInternal, void
+            required in name,       string
+            required in callFrame,  @JsonObject
+            required in serializer, @DispatchSerializer
+            required in dispatcher, @RoutineDispatcher
+            record
+                requestId,          int
+                arguments,          @JsonArray
+                argumentDefinition, @ArgumentDataDefinition
 
-			;;Argument 1 (REQUIRED IN inBA D_HANDLE)
-			;TODO: Template needs code for BINARY HANDLE arguments!
-			arg1 =
+                ;;Argument 1 (REQUIRED IN inBA D_HANDLE)
+                arg1,               d_handle
+            endrecord
 
-			;;------------------------------------------------------------
-			;; Call the underlying routine
 
-			xcall inBinaryArrayTest(arg1)
-		endmethod
+        proc
 
-	endclass
+            ;;------------------------------------------------------------
+            ;;Process inbound arguments
 
-	;;-------------------------------------------------------------------------
-	;;; <summary>
-	;;; Dispatcher for method data64k.inHandle
-	;;; </summary>
-	public class inHandle_Dispatch extends RoutineStub
+            arguments = (@JsonArray)callFrame.GetProperty("params")
 
+            ;;Argument 1 (REQUIRED IN inBA D_HANDLE)
+            ;TODO: Template needs code for BINARY HANDLE arguments!
+            arg1 =
 
-		public method inHandle_Dispatch
-		proc
-			;;Initialize the meta data for any data objects that are used by parameters to the method
-		endmethod
+            ;;------------------------------------------------------------
+            ;; Call the underlying routine
 
-		protected override method DispatchInternal, void
-			required in name,       string
-			required in callFrame,  @JsonObject
-			required in serializer, @DispatchSerializer
-			required in dispatcher, @RoutineDispatcher
-			record
-				requestId,			int
-				arguments,			@JsonArray
-				argumentDefinition, @ArgumentDataDefinition
+            xcall inBinaryArrayTest(arg1)
+        endmethod
 
-				;;Argument 1 (REQUIRED IN p1 D_HANDLE)
-				arg1,				d_handle
-			endrecord
+    endclass
 
+    ;;-------------------------------------------------------------------------
+    ;;; <summary>
+    ;;; Dispatcher for method data64k.inHandle
+    ;;; </summary>
+    public class inHandle_Dispatcher extends RoutineStub
 
-		proc
 
-			;;------------------------------------------------------------
-			;;Process inbound arguments
+        public method inHandle_Dispatcher
+        proc
+            ;;Initialize the meta data for any data objects that are used by parameters to the method
+        endmethod
 
-			arguments = (@JsonArray)callFrame.GetProperty("params")
+        protected override method DispatchInternal, void
+            required in name,       string
+            required in callFrame,  @JsonObject
+            required in serializer, @DispatchSerializer
+            required in dispatcher, @RoutineDispatcher
+            record
+                requestId,          int
+                arguments,          @JsonArray
+                argumentDefinition, @ArgumentDataDefinition
 
-			;;Argument 1 (REQUIRED IN p1 D_HANDLE)
-			;TODO: Template needs code for HANDLE arguments!
-			arg1 = 
+                ;;Argument 1 (REQUIRED IN p1 D_HANDLE)
+                arg1,               d_handle
+            endrecord
 
-			;;------------------------------------------------------------
-			;; Call the underlying routine
 
-			xcall inHandle(arg1)
-		endmethod
+        proc
 
-	endclass
+            ;;------------------------------------------------------------
+            ;;Process inbound arguments
 
-	;;-------------------------------------------------------------------------
-	;;; <summary>
-	;;; Dispatcher for method data64k.inOutBinaryArrayTest
-	;;; </summary>
-	public class inOutBinaryArrayTest_Dispatch extends RoutineStub
+            arguments = (@JsonArray)callFrame.GetProperty("params")
 
+            ;;Argument 1 (REQUIRED IN p1 D_HANDLE)
+            ;TODO: Template needs code for HANDLE arguments!
+            arg1 = 
 
-		public method inOutBinaryArrayTest_Dispatch
-		proc
-			;;Initialize the meta data for any data objects that are used by parameters to the method
-		endmethod
+            ;;------------------------------------------------------------
+            ;; Call the underlying routine
 
-		protected override method DispatchInternal, void
-			required in name,       string
-			required in callFrame,  @JsonObject
-			required in serializer, @DispatchSerializer
-			required in dispatcher, @RoutineDispatcher
-			record
-				requestId,			int
-				arguments,			@JsonArray
-				argumentDefinition, @ArgumentDataDefinition
+            xcall inHandle(arg1)
+        endmethod
 
-				;;Argument 1 (REQUIRED INOUT inoutba D_HANDLE)
-				arg1,				d_handle
-			endrecord
+    endclass
 
+    ;;-------------------------------------------------------------------------
+    ;;; <summary>
+    ;;; Dispatcher for method data64k.inOutBinaryArrayTest
+    ;;; </summary>
+    public class inOutBinaryArrayTest_Dispatcher extends RoutineStub
 
-		proc
 
-			;;------------------------------------------------------------
-			;;Process inbound arguments
+        public method inOutBinaryArrayTest_Dispatcher
+        proc
+            ;;Initialize the meta data for any data objects that are used by parameters to the method
+        endmethod
 
-			arguments = (@JsonArray)callFrame.GetProperty("params")
+        protected override method DispatchInternal, void
+            required in name,       string
+            required in callFrame,  @JsonObject
+            required in serializer, @DispatchSerializer
+            required in dispatcher, @RoutineDispatcher
+            record
+                requestId,          int
+                arguments,          @JsonArray
+                argumentDefinition, @ArgumentDataDefinition
 
-			;;Argument 1 (REQUIRED INOUT inoutba D_HANDLE)
-			;TODO: Template needs code for BINARY HANDLE arguments!
-			arg1 =
+                ;;Argument 1 (REQUIRED INOUT inoutba D_HANDLE)
+                arg1,               d_handle
+            endrecord
 
-			;;------------------------------------------------------------
-			;; Call the underlying routine
 
-			xcall inOutBinaryArrayTest(arg1)
+        proc
 
-			;;--------------------------------------------------------------------------------
-			;;Argument 1 (REQUIRED INOUT inoutba D_HANDLE)
-			
-			serializer.ArgumentData(1, arg1, FieldDataType.BinaryHandleField, 0, 0, false)
-			
-			
-		endmethod
+            ;;------------------------------------------------------------
+            ;;Process inbound arguments
 
-	endclass
+            arguments = (@JsonArray)callFrame.GetProperty("params")
 
-	;;-------------------------------------------------------------------------
-	;;; <summary>
-	;;; Dispatcher for method data64k.inoutHandle
-	;;; </summary>
-	public class inoutHandle_Dispatch extends RoutineStub
+            ;;Argument 1 (REQUIRED INOUT inoutba D_HANDLE)
+            ;TODO: Template needs code for BINARY HANDLE arguments!
+            arg1 =
 
+            ;;------------------------------------------------------------
+            ;; Call the underlying routine
 
-		public method inoutHandle_Dispatch
-		proc
-			;;Initialize the meta data for any data objects that are used by parameters to the method
-		endmethod
+            xcall inOutBinaryArrayTest(arg1)
 
-		protected override method DispatchInternal, void
-			required in name,       string
-			required in callFrame,  @JsonObject
-			required in serializer, @DispatchSerializer
-			required in dispatcher, @RoutineDispatcher
-			record
-				requestId,			int
-				arguments,			@JsonArray
-				argumentDefinition, @ArgumentDataDefinition
+            ;;--------------------------------------------------------------------------------
+            ;;Argument 1 (REQUIRED INOUT inoutba D_HANDLE)
+            
+            ;TODO: Binary Handle support is incomplete and will FAIL!!!
+        endmethod
 
-				;;Argument 1 (REQUIRED INOUT p1 D_HANDLE)
-				arg1,				d_handle
-			endrecord
+    endclass
 
+    ;;-------------------------------------------------------------------------
+    ;;; <summary>
+    ;;; Dispatcher for method data64k.inoutHandle
+    ;;; </summary>
+    public class inoutHandle_Dispatcher extends RoutineStub
 
-		proc
 
-			;;------------------------------------------------------------
-			;;Process inbound arguments
+        public method inoutHandle_Dispatcher
+        proc
+            ;;Initialize the meta data for any data objects that are used by parameters to the method
+        endmethod
 
-			arguments = (@JsonArray)callFrame.GetProperty("params")
+        protected override method DispatchInternal, void
+            required in name,       string
+            required in callFrame,  @JsonObject
+            required in serializer, @DispatchSerializer
+            required in dispatcher, @RoutineDispatcher
+            record
+                requestId,          int
+                arguments,          @JsonArray
+                argumentDefinition, @ArgumentDataDefinition
 
-			;;Argument 1 (REQUIRED INOUT p1 D_HANDLE)
-			;TODO: Template needs code for HANDLE arguments!
-			arg1 = 
+                ;;Argument 1 (REQUIRED INOUT p1 D_HANDLE)
+                arg1,               d_handle
+            endrecord
 
-			;;------------------------------------------------------------
-			;; Call the underlying routine
 
-			xcall inoutHandle(arg1)
+        proc
 
-			;;--------------------------------------------------------------------------------
-			;;Argument 1 (REQUIRED INOUT p1 D_HANDLE)
-			
-			serializer.ArgumentData(1, arg1, FieldDataType.HandleField, 0, 0, false)
-			
-			
-		endmethod
+            ;;------------------------------------------------------------
+            ;;Process inbound arguments
 
-	endclass
+            arguments = (@JsonArray)callFrame.GetProperty("params")
 
-	;;-------------------------------------------------------------------------
-	;;; <summary>
-	;;; Dispatcher for method data64k.inoutHandle2
-	;;; </summary>
-	public class inoutHandle2_Dispatch extends RoutineStub
+            ;;Argument 1 (REQUIRED INOUT p1 D_HANDLE)
+            ;TODO: Template needs code for HANDLE arguments!
+            arg1 = 
 
+            ;;------------------------------------------------------------
+            ;; Call the underlying routine
 
-		public method inoutHandle2_Dispatch
-		proc
-			;;Initialize the meta data for any data objects that are used by parameters to the method
-		endmethod
+            xcall inoutHandle(arg1)
 
-		protected override method DispatchInternal, void
-			required in name,       string
-			required in callFrame,  @JsonObject
-			required in serializer, @DispatchSerializer
-			required in dispatcher, @RoutineDispatcher
-			record
-				requestId,			int
-				arguments,			@JsonArray
-				argumentDefinition, @ArgumentDataDefinition
+            ;;--------------------------------------------------------------------------------
+            ;;Argument 1 (REQUIRED INOUT p1 D_HANDLE)
+            
+            ;TODO: Handle support is incomplete and will FAIL!!!
+        endmethod
 
-				;;Argument 1 (REQUIRED INOUT p1 D_HANDLE)
-				arg1,				d_handle
-			endrecord
+    endclass
 
+    ;;-------------------------------------------------------------------------
+    ;;; <summary>
+    ;;; Dispatcher for method data64k.inoutHandle2
+    ;;; </summary>
+    public class inoutHandle2_Dispatcher extends RoutineStub
 
-		proc
 
-			;;------------------------------------------------------------
-			;;Process inbound arguments
+        public method inoutHandle2_Dispatcher
+        proc
+            ;;Initialize the meta data for any data objects that are used by parameters to the method
+        endmethod
 
-			arguments = (@JsonArray)callFrame.GetProperty("params")
+        protected override method DispatchInternal, void
+            required in name,       string
+            required in callFrame,  @JsonObject
+            required in serializer, @DispatchSerializer
+            required in dispatcher, @RoutineDispatcher
+            record
+                requestId,          int
+                arguments,          @JsonArray
+                argumentDefinition, @ArgumentDataDefinition
 
-			;;Argument 1 (REQUIRED INOUT p1 D_HANDLE)
-			;TODO: Template needs code for HANDLE arguments!
-			arg1 = 
+                ;;Argument 1 (REQUIRED INOUT p1 D_HANDLE)
+                arg1,               d_handle
+            endrecord
 
-			;;------------------------------------------------------------
-			;; Call the underlying routine
 
-			xcall inoutHandle2(arg1)
+        proc
 
-			;;--------------------------------------------------------------------------------
-			;;Argument 1 (REQUIRED INOUT p1 D_HANDLE)
-			
-			serializer.ArgumentData(1, arg1, FieldDataType.HandleField, 0, 0, false)
-			
-			
-		endmethod
+            ;;------------------------------------------------------------
+            ;;Process inbound arguments
 
-	endclass
+            arguments = (@JsonArray)callFrame.GetProperty("params")
 
-	;;-------------------------------------------------------------------------
-	;;; <summary>
-	;;; Dispatcher for method data64k.outBinaryArrayTest
-	;;; </summary>
-	public class outBinaryArrayTest_Dispatch extends RoutineStub
+            ;;Argument 1 (REQUIRED INOUT p1 D_HANDLE)
+            ;TODO: Template needs code for HANDLE arguments!
+            arg1 = 
 
+            ;;------------------------------------------------------------
+            ;; Call the underlying routine
 
-		public method outBinaryArrayTest_Dispatch
-		proc
-			;;Initialize the meta data for any data objects that are used by parameters to the method
-		endmethod
+            xcall inoutHandle2(arg1)
 
-		protected override method DispatchInternal, void
-			required in name,       string
-			required in callFrame,  @JsonObject
-			required in serializer, @DispatchSerializer
-			required in dispatcher, @RoutineDispatcher
-			record
-				requestId,			int
-				arguments,			@JsonArray
-				argumentDefinition, @ArgumentDataDefinition
+            ;;--------------------------------------------------------------------------------
+            ;;Argument 1 (REQUIRED INOUT p1 D_HANDLE)
+            
+            ;TODO: Handle support is incomplete and will FAIL!!!
+        endmethod
 
-				;;Argument 1 (REQUIRED OUT outba D_HANDLE)
-				arg1,				d_handle
-			endrecord
+    endclass
 
+    ;;-------------------------------------------------------------------------
+    ;;; <summary>
+    ;;; Dispatcher for method data64k.outBinaryArrayTest
+    ;;; </summary>
+    public class outBinaryArrayTest_Dispatcher extends RoutineStub
 
-		proc
 
-			;;------------------------------------------------------------
-			;;Process inbound arguments
+        public method outBinaryArrayTest_Dispatcher
+        proc
+            ;;Initialize the meta data for any data objects that are used by parameters to the method
+        endmethod
 
-			;;There are no inbound arguments to process
+        protected override method DispatchInternal, void
+            required in name,       string
+            required in callFrame,  @JsonObject
+            required in serializer, @DispatchSerializer
+            required in dispatcher, @RoutineDispatcher
+            record
+                requestId,          int
+                arguments,          @JsonArray
+                argumentDefinition, @ArgumentDataDefinition
 
-			;;------------------------------------------------------------
-			;; Call the underlying routine
+                ;;Argument 1 (REQUIRED OUT outba D_HANDLE)
+                arg1,               d_handle
+            endrecord
 
-			xcall outBinaryArrayTest(arg1)
 
-			;;--------------------------------------------------------------------------------
-			;;Argument 1 (REQUIRED OUT outba D_HANDLE)
-			
-			serializer.ArgumentData(1, arg1, FieldDataType.BinaryHandleField, 0, 0, false)
-			
-			
-		endmethod
+        proc
 
-	endclass
+            ;;------------------------------------------------------------
+            ;;Process inbound arguments
 
-	;;-------------------------------------------------------------------------
-	;;; <summary>
-	;;; Dispatcher for method data64k.outFileBinaryArrayTest
-	;;; </summary>
-	public class outFileBinaryArrayTest_Dispatch extends RoutineStub
+            ;;There are no inbound arguments to process
 
+            ;;------------------------------------------------------------
+            ;; Call the underlying routine
 
-		public method outFileBinaryArrayTest_Dispatch
-		proc
-			;;Initialize the meta data for any data objects that are used by parameters to the method
-		endmethod
+            xcall outBinaryArrayTest(arg1)
 
-		protected override method DispatchInternal, void
-			required in name,       string
-			required in callFrame,  @JsonObject
-			required in serializer, @DispatchSerializer
-			required in dispatcher, @RoutineDispatcher
-			record
-				requestId,			int
-				arguments,			@JsonArray
-				argumentDefinition, @ArgumentDataDefinition
+            ;;--------------------------------------------------------------------------------
+            ;;Argument 1 (REQUIRED OUT outba D_HANDLE)
+            
+            ;TODO: Binary Handle support is incomplete and will FAIL!!!
+        endmethod
 
-				;;Argument 1 (REQUIRED IN filename A80)
-				arg1,				a80
-				;;Argument 2 (REQUIRED OUT outba D_HANDLE)
-				arg2,				d_handle
-			endrecord
+    endclass
 
+    ;;-------------------------------------------------------------------------
+    ;;; <summary>
+    ;;; Dispatcher for method data64k.outFileBinaryArrayTest
+    ;;; </summary>
+    public class outFileBinaryArrayTest_Dispatcher extends RoutineStub
 
-		proc
 
-			;;------------------------------------------------------------
-			;;Process inbound arguments
+        public method outFileBinaryArrayTest_Dispatcher
+        proc
+            ;;Initialize the meta data for any data objects that are used by parameters to the method
+        endmethod
 
-			arguments = (@JsonArray)callFrame.GetProperty("params")
+        protected override method DispatchInternal, void
+            required in name,       string
+            required in callFrame,  @JsonObject
+            required in serializer, @DispatchSerializer
+            required in dispatcher, @RoutineDispatcher
+            record
+                requestId,          int
+                arguments,          @JsonArray
+                argumentDefinition, @ArgumentDataDefinition
 
-			;;Argument 1 (REQUIRED IN filename A80)
-			arg1 = dispatcher.GetText((@JsonObject)arguments.arrayValues[1])
+                ;;Argument 1 (REQUIRED IN filename A80)
+                arg1,               a80
+                ;;Argument 2 (REQUIRED OUT outba D_HANDLE)
+                arg2,               d_handle
+            endrecord
 
-			;;------------------------------------------------------------
-			;; Call the underlying routine
 
-			xcall outFileBinaryArrayTest(arg1,arg2)
+        proc
 
-			;;--------------------------------------------------------------------------------
-			;;Argument 2 (REQUIRED OUT outba D_HANDLE)
-			
-			serializer.ArgumentData(2, arg2, FieldDataType.BinaryHandleField, 0, 0, false)
-			
-			
-		endmethod
+            ;;------------------------------------------------------------
+            ;;Process inbound arguments
 
-	endclass
+            arguments = (@JsonArray)callFrame.GetProperty("params")
 
-	;;-------------------------------------------------------------------------
-	;;; <summary>
-	;;; Dispatcher for method data64k.outHandle
-	;;; </summary>
-	public class outHandle_Dispatch extends RoutineStub
+            ;;Argument 1 (REQUIRED IN filename A80)
+            arg1 = dispatcher.GetText((@JsonObject)arguments.arrayValues[1])
 
+            ;;------------------------------------------------------------
+            ;; Call the underlying routine
 
-		public method outHandle_Dispatch
-		proc
-			;;Initialize the meta data for any data objects that are used by parameters to the method
-		endmethod
+            xcall outFileBinaryArrayTest(arg1,arg2)
 
-		protected override method DispatchInternal, void
-			required in name,       string
-			required in callFrame,  @JsonObject
-			required in serializer, @DispatchSerializer
-			required in dispatcher, @RoutineDispatcher
-			record
-				requestId,			int
-				arguments,			@JsonArray
-				argumentDefinition, @ArgumentDataDefinition
+            ;;--------------------------------------------------------------------------------
+            ;;Argument 2 (REQUIRED OUT outba D_HANDLE)
+            
+            ;TODO: Binary Handle support is incomplete and will FAIL!!!
+        endmethod
 
-				;;Argument 1 (REQUIRED OUT p1 D_HANDLE)
-				arg1,				d_handle
-			endrecord
+    endclass
 
+    ;;-------------------------------------------------------------------------
+    ;;; <summary>
+    ;;; Dispatcher for method data64k.outHandle
+    ;;; </summary>
+    public class outHandle_Dispatcher extends RoutineStub
 
-		proc
 
-			;;------------------------------------------------------------
-			;;Process inbound arguments
+        public method outHandle_Dispatcher
+        proc
+            ;;Initialize the meta data for any data objects that are used by parameters to the method
+        endmethod
 
-			;;There are no inbound arguments to process
+        protected override method DispatchInternal, void
+            required in name,       string
+            required in callFrame,  @JsonObject
+            required in serializer, @DispatchSerializer
+            required in dispatcher, @RoutineDispatcher
+            record
+                requestId,          int
+                arguments,          @JsonArray
+                argumentDefinition, @ArgumentDataDefinition
 
-			;;------------------------------------------------------------
-			;; Call the underlying routine
+                ;;Argument 1 (REQUIRED OUT p1 D_HANDLE)
+                arg1,               d_handle
+            endrecord
 
-			xcall outHandle(arg1)
 
-			;;--------------------------------------------------------------------------------
-			;;Argument 1 (REQUIRED OUT p1 D_HANDLE)
-			
-			serializer.ArgumentData(1, arg1, FieldDataType.HandleField, 0, 0, false)
-			
-			
-		endmethod
+        proc
 
-	endclass
+            ;;------------------------------------------------------------
+            ;;Process inbound arguments
 
-	;;-------------------------------------------------------------------------
-	;;; <summary>
-	;;; Dispatcher for method data64k.twoparmsrtn
-	;;; </summary>
-	public class twoparmsrtn_Dispatch extends RoutineStub
+            ;;There are no inbound arguments to process
 
+            ;;------------------------------------------------------------
+            ;; Call the underlying routine
 
-		public method twoparmsrtn_Dispatch
-		proc
-			;;Initialize the meta data for any data objects that are used by parameters to the method
-		endmethod
+            xcall outHandle(arg1)
 
-		protected override method DispatchInternal, void
-			required in name,       string
-			required in callFrame,  @JsonObject
-			required in serializer, @DispatchSerializer
-			required in dispatcher, @RoutineDispatcher
-			record
-				requestId,			int
-				arguments,			@JsonArray
-				argumentDefinition, @ArgumentDataDefinition
+            ;;--------------------------------------------------------------------------------
+            ;;Argument 1 (REQUIRED OUT p1 D_HANDLE)
+            
+            ;TODO: Handle support is incomplete and will FAIL!!!
+        endmethod
 
-				;;Argument 1 (REQUIRED INOUT P1Handle D_HANDLE)
-				arg1,				d_handle
-				;;Argument 2 (REQUIRED OUT P2Alpha A20)
-				arg2,				a20
-			endrecord
+    endclass
 
+    ;;-------------------------------------------------------------------------
+    ;;; <summary>
+    ;;; Dispatcher for method data64k.twoparmsrtn
+    ;;; </summary>
+    public class twoparmsrtn_Dispatcher extends RoutineStub
 
-		proc
 
-			;;------------------------------------------------------------
-			;;Process inbound arguments
+        public method twoparmsrtn_Dispatcher
+        proc
+            ;;Initialize the meta data for any data objects that are used by parameters to the method
+        endmethod
 
-			arguments = (@JsonArray)callFrame.GetProperty("params")
+        protected override method DispatchInternal, void
+            required in name,       string
+            required in callFrame,  @JsonObject
+            required in serializer, @DispatchSerializer
+            required in dispatcher, @RoutineDispatcher
+            record
+                requestId,          int
+                arguments,          @JsonArray
+                argumentDefinition, @ArgumentDataDefinition
 
-			;;Argument 1 (REQUIRED INOUT P1Handle D_HANDLE)
-			;TODO: Template needs code for HANDLE arguments!
-			arg1 = 
+                ;;Argument 1 (REQUIRED INOUT P1Handle D_HANDLE)
+                arg1,               d_handle
+                ;;Argument 2 (REQUIRED OUT P2Alpha A20)
+                arg2,               a20
+            endrecord
 
-			;;------------------------------------------------------------
-			;; Call the underlying routine
 
-			xcall twoparmsrtn(arg1,arg2)
+        proc
 
-			;;--------------------------------------------------------------------------------
-			;;Argument 1 (REQUIRED INOUT P1Handle D_HANDLE)
-			
-			serializer.ArgumentData(1, arg1, FieldDataType.HandleField, 0, 0, false)
-			
-			
+            ;;------------------------------------------------------------
+            ;;Process inbound arguments
 
-			;;--------------------------------------------------------------------------------
-			;;Argument 2 (REQUIRED OUT P2Alpha A20)
-			
-			serializer.ArgumentData(2, %atrim(arg2), FieldDataType.AlphaField)
-		endmethod
+            arguments = (@JsonArray)callFrame.GetProperty("params")
 
-	endclass
+            ;;Argument 1 (REQUIRED INOUT P1Handle D_HANDLE)
+            ;TODO: Template needs code for HANDLE arguments!
+            arg1 = 
+
+            ;;------------------------------------------------------------
+            ;; Call the underlying routine
+
+            xcall twoparmsrtn(arg1,arg2)
+
+            ;;--------------------------------------------------------------------------------
+            ;;Argument 1 (REQUIRED INOUT P1Handle D_HANDLE)
+            
+            ;TODO: Handle support is incomplete and will FAIL!!!
+
+            ;;--------------------------------------------------------------------------------
+            ;;Argument 2 (REQUIRED OUT P2Alpha A20)
+            
+            serializer.ArgumentData(2, %atrim(arg2), FieldDataType.AlphaField, 20, 0, false)
+        endmethod
+
+    endclass
 
 endnamespace

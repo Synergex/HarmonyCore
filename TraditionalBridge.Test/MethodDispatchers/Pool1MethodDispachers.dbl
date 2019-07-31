@@ -18,96 +18,96 @@ import TraditionalBridge.Test.Models
 namespace TraditionalBridge.Test.Pool1
 
 
-	;;-------------------------------------------------------------------------
-	;;; <summary>
-	;;; Dispatcher for method Pool1.getGreeting
-	;;; </summary>
-	public class getGreeting_Dispatch extends RoutineStub
+    ;;-------------------------------------------------------------------------
+    ;;; <summary>
+    ;;; Dispatcher for method Pool1.getGreeting
+    ;;; </summary>
+    public class getGreeting_Dispatcher extends RoutineStub
 
 
-		public method getGreeting_Dispatch
-		proc
-			;;Initialize the meta data for any data objects that are used by parameters to the method
-		endmethod
+        public method getGreeting_Dispatcher
+        proc
+            ;;Initialize the meta data for any data objects that are used by parameters to the method
+        endmethod
 
-		protected override method DispatchInternal, void
-			required in name,       string
-			required in callFrame,  @JsonObject
-			required in serializer, @DispatchSerializer
-			required in dispatcher, @RoutineDispatcher
-			record
-				requestId,			int
-				arguments,			@JsonArray
-				argumentDefinition, @ArgumentDataDefinition
+        protected override method DispatchInternal, void
+            required in name,       string
+            required in callFrame,  @JsonObject
+            required in serializer, @DispatchSerializer
+            required in dispatcher, @RoutineDispatcher
+            record
+                requestId,          int
+                arguments,          @JsonArray
+                argumentDefinition, @ArgumentDataDefinition
 
-				;;Argument 1 (REQUIRED OUT message A30)
-				arg1,				a30
-			endrecord
-
-
-		proc
-
-			;;------------------------------------------------------------
-			;;Process inbound arguments
-
-			;;There are no inbound arguments to process
-
-			;;------------------------------------------------------------
-			;; Call the underlying routine
-
-			xcall getGreeting(arg1)
-
-			;;--------------------------------------------------------------------------------
-			;;Argument 1 (REQUIRED OUT message A30)
-			
-			serializer.ArgumentData(1, %atrim(arg1), FieldDataType.AlphaField)
-		endmethod
-
-	endclass
-
-	;;-------------------------------------------------------------------------
-	;;; <summary>
-	;;; Dispatcher for method Pool1.setGreeting
-	;;; </summary>
-	public class setGreeting_Dispatch extends RoutineStub
+                ;;Argument 1 (REQUIRED OUT message A30)
+                arg1,               a30
+            endrecord
 
 
-		public method setGreeting_Dispatch
-		proc
-			;;Initialize the meta data for any data objects that are used by parameters to the method
-		endmethod
+        proc
 
-		protected override method DispatchInternal, void
-			required in name,       string
-			required in callFrame,  @JsonObject
-			required in serializer, @DispatchSerializer
-			required in dispatcher, @RoutineDispatcher
-			record
-				requestId,			int
-				arguments,			@JsonArray
-				argumentDefinition, @ArgumentDataDefinition
+            ;;------------------------------------------------------------
+            ;;Process inbound arguments
 
-				;;Argument 1 (REQUIRED IN message A30)
-				arg1,				a30
-			endrecord
+            ;;There are no inbound arguments to process
+
+            ;;------------------------------------------------------------
+            ;; Call the underlying routine
+
+            xcall getGreeting(arg1)
+
+            ;;--------------------------------------------------------------------------------
+            ;;Argument 1 (REQUIRED OUT message A30)
+            
+            serializer.ArgumentData(1, %atrim(arg1), FieldDataType.AlphaField, 30, 0, false)
+        endmethod
+
+    endclass
+
+    ;;-------------------------------------------------------------------------
+    ;;; <summary>
+    ;;; Dispatcher for method Pool1.setGreeting
+    ;;; </summary>
+    public class setGreeting_Dispatcher extends RoutineStub
 
 
-		proc
+        public method setGreeting_Dispatcher
+        proc
+            ;;Initialize the meta data for any data objects that are used by parameters to the method
+        endmethod
 
-			;;------------------------------------------------------------
-			;;Process inbound arguments
+        protected override method DispatchInternal, void
+            required in name,       string
+            required in callFrame,  @JsonObject
+            required in serializer, @DispatchSerializer
+            required in dispatcher, @RoutineDispatcher
+            record
+                requestId,          int
+                arguments,          @JsonArray
+                argumentDefinition, @ArgumentDataDefinition
 
-			arguments = (@JsonArray)callFrame.GetProperty("params")
+                ;;Argument 1 (REQUIRED IN message A30)
+                arg1,               a30
+            endrecord
 
-			;;Argument 1 (REQUIRED IN message A30)
-			arg1 = dispatcher.GetText((@JsonObject)arguments.arrayValues[1])
 
-			;;------------------------------------------------------------
-			;; Call the underlying routine
+        proc
 
-			xcall setGreeting(arg1)
-		endmethod
+            ;;------------------------------------------------------------
+            ;;Process inbound arguments
 
-	endclass
+            arguments = (@JsonArray)callFrame.GetProperty("params")
+
+            ;;Argument 1 (REQUIRED IN message A30)
+            arg1 = dispatcher.GetText((@JsonObject)arguments.arrayValues[1])
+
+            ;;------------------------------------------------------------
+            ;; Call the underlying routine
+
+            xcall setGreeting(arg1)
+        endmethod
+
+    endclass
 
 endnamespace

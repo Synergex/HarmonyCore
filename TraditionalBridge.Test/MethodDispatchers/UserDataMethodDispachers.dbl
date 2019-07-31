@@ -18,60 +18,60 @@ import TraditionalBridge.Test.Models
 namespace TraditionalBridge.Test.UserData
 
 
-	;;-------------------------------------------------------------------------
-	;;; <summary>
-	;;; Dispatcher for method UserData.UDNetDteTme
-	;;; </summary>
-	public class UDNetDteTme_Dispatch extends RoutineStub
+    ;;-------------------------------------------------------------------------
+    ;;; <summary>
+    ;;; Dispatcher for method UserData.UDNetDteTme
+    ;;; </summary>
+    public class UDNetDteTme_Dispatcher extends RoutineStub
 
-		private mDnetdatetimeMetadata, @DataObjectMetadataBase
+        private mDnetdatetimeMetadata, @DataObjectMetadataBase
 
-		public method UDNetDteTme_Dispatch
-		proc
-			;;Initialize the meta data for any data objects that are used by parameters to the method
-			mDnetdatetimeMetadata = DataObjectMetadataBase.LookupType("Dnetdatetime")
-		endmethod
+        public method UDNetDteTme_Dispatcher
+        proc
+            ;;Initialize the meta data for any data objects that are used by parameters to the method
+            mDnetdatetimeMetadata = DataObjectMetadataBase.LookupType("Dnetdatetime")
+        endmethod
 
-		protected override method DispatchInternal, void
-			required in name,       string
-			required in callFrame,  @JsonObject
-			required in serializer, @DispatchSerializer
-			required in dispatcher, @RoutineDispatcher
-			record
-				requestId,			int
-				arguments,			@JsonArray
-				argumentDefinition, @ArgumentDataDefinition
+        protected override method DispatchInternal, void
+            required in name,       string
+            required in callFrame,  @JsonObject
+            required in serializer, @DispatchSerializer
+            required in dispatcher, @RoutineDispatcher
+            record
+                requestId,          int
+                arguments,          @JsonArray
+                argumentDefinition, @ArgumentDataDefinition
 
-				;;Argument 1 (REQUIRED INOUT DNETDATETIME structure @Dnetdatetime)
-				arg1DataObject, @DataObjectBase
-				arg1, strDnetdatetime
-			endrecord
+                ;;Argument 1 (REQUIRED INOUT DNETDATETIME structure @Dnetdatetime)
+                arg1DataObject,     @DataObjectBase
+                arg1,               strDnetdatetime
+            endrecord
 
 
-		proc
+        proc
 
-			;;------------------------------------------------------------
-			;;Process inbound arguments
+            ;;------------------------------------------------------------
+            ;;Process inbound arguments
 
-			arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = (@JsonArray)callFrame.GetProperty("params")
 
-			;;Argument 1 (REQUIRED INOUT DNETDATETIME structure @Dnetdatetime)
-			;;Structure argument. Get the data object then get the record from it
-			arg1DataObject = dispatcher.DeserializeObject((@JsonObject)arguments.arrayValues[3],mDnetdatetimeMetadata)
-			arg1 = arg1DataObject.SynergyRecord
+            ;;Argument 1 (REQUIRED INOUT DNETDATETIME structure @Dnetdatetime)
+            ;;Structure argument. Get the data object then get the record from it
+            arg1DataObject = dispatcher.DeserializeObject((@JsonObject)arguments.arrayValues[3],mDnetdatetimeMetadata)
+            arg1 = arg1DataObject.SynergyRecord
 
-			;;------------------------------------------------------------
-			;; Call the underlying routine
+            ;;------------------------------------------------------------
+            ;; Call the underlying routine
 
-			xcall UDNetDteTme(arg1)
+            xcall UDNetDteTme(arg1)
 
-			;;--------------------------------------------------------------------------------
-			;;Argument 1 (REQUIRED INOUT DNETDATETIME structure @Dnetdatetime)
-			
-			serializer.ArgumentData(1, arg1, FieldDataType.DataObjectField, 51, "DNETDATETIME", false)
-			
-		endmethod
+            ;;--------------------------------------------------------------------------------
+            ;;Argument 1 (REQUIRED INOUT DNETDATETIME structure @Dnetdatetime)
+            
+            ;;Argument 1: Single Dnetdatetime record
+            serializer.ArgumentData(1, arg1, FieldDataType.DataObjectField, 51, "DNETDATETIME", false)
+        endmethod
 
-	endclass
+    endclass
 
 endnamespace
