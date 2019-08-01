@@ -18,469 +18,467 @@ import TraditionalBridge.Test.Models
 namespace TraditionalBridge.Test.LrgPkts
 
 
-	;;-------------------------------------------------------------------------
-	;;; <summary>
-	;;; Dispatcher for method LrgPkts.P1StrAryO64k
-	;;; </summary>
-	public class P1StrAryO64k_Dispatch extends RoutineStub
-
-		private mDatasetMetadata, @DataObjectMetadataBase
-
-		public method P1StrAryO64k_Dispatch
-		proc
-			;;Initialize the meta data for any data objects that are used by parameters to the method
-			mDatasetMetadata = DataObjectMetadataBase.LookupType("Dataset")
-		endmethod
-
-		protected override method DispatchInternal, void
-			required in name,       string
-			required in callFrame,  @JsonObject
-			required in serializer, @DispatchSerializer
-			required in dispatcher, @RoutineDispatcher
-			record
-				requestId,			int
-				arguments,			@JsonArray
-				argumentDefinition, @ArgumentDataDefinition
-
-				;;Argument 1 (REQUIRED INOUT DATASET [*]structure @Dataset)
-				arg1Array,			@JsonArray
-				arg1Handle,			D_HANDLE
-				arg1HandlePos,		int
-			endrecord
-
-			;;Temp structure tempstr1
-			structure tempstr1
-				arry, @Dataset
-			endstructure
-
-
-		proc
-
-			;;------------------------------------------------------------
-			;;Process inbound arguments
-
-			arguments = (@JsonArray)callFrame.GetProperty("params")
-
-			;;Argument 1 (REQUIRED INOUT DATASET [*]structure @Dataset)
-			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1])
-			arg1Array = (@JsonArray)((@JsonObject)arguments.arrayValues[1]).GetProperty("PassedValue")
-			arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.arrayValues.Count)
-			arg1HandlePos = 1
-			dispatcher.UnwrapObjectCollection(^m(arg1Handle),argumentDefinition,arg1HandlePos,arg1Array)
-
-			;;------------------------------------------------------------
-			;; Call the underlying routine
-
-			xcall P1StrAryO64k(^m(strDataset,arg1Handle))
-
-			;;--------------------------------------------------------------------------------
-			;;Argument 1 (REQUIRED INOUT DATASET [*]structure @Dataset)
-			
-			serializer.ArgumentHandleData(1, arg1Handle, FieldDataType.DataObjectCollectionField, 1493, "DATASET", arg1Array.arrayValues.Count, false)
-		endmethod
-
-	endclass
-
-	;;-------------------------------------------------------------------------
-	;;; <summary>
-	;;; Dispatcher for method LrgPkts.P2StrArysO64k
-	;;; </summary>
-	public class P2StrArysO64k_Dispatch extends RoutineStub
-
-		private mAddresMetadata, @DataObjectMetadataBase
-		private mPerfstructMetadata, @DataObjectMetadataBase
-
-		public method P2StrArysO64k_Dispatch
-		proc
-			;;Initialize the meta data for any data objects that are used by parameters to the method
-			mAddresMetadata = DataObjectMetadataBase.LookupType("Addres")
-			mPerfstructMetadata = DataObjectMetadataBase.LookupType("Perfstruct")
-		endmethod
-
-		protected override method DispatchInternal, void
-			required in name,       string
-			required in callFrame,  @JsonObject
-			required in serializer, @DispatchSerializer
-			required in dispatcher, @RoutineDispatcher
-			record
-				requestId,			int
-				arguments,			@JsonArray
-				argumentDefinition, @ArgumentDataDefinition
-
-				;;Argument 1 (REQUIRED INOUT ADDRESS [*]structure @Addres)
-				arg1Array,			@JsonArray
-				arg1Handle,			D_HANDLE
-				arg1HandlePos,		int
-				;;Argument 2 (REQUIRED INOUT PERFSTRUCT [*]structure @Perfstruct)
-				arg2Array,			@JsonArray
-				arg2Handle,			D_HANDLE
-				arg2HandlePos,		int
-			endrecord
-
-			;;Temp structure tempstr1
-			structure tempstr1
-				arry, @Addres
-			endstructure
-
-			;;Temp structure tempstr2
-			structure tempstr2
-				arry, @Perfstruct
-			endstructure
-
-
-		proc
-
-			;;------------------------------------------------------------
-			;;Process inbound arguments
-
-			arguments = (@JsonArray)callFrame.GetProperty("params")
-
-			;;Argument 1 (REQUIRED INOUT ADDRESS [*]structure @Addres)
-			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1])
-			arg1Array = (@JsonArray)((@JsonObject)arguments.arrayValues[1]).GetProperty("PassedValue")
-			arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.arrayValues.Count)
-			arg1HandlePos = 1
-			dispatcher.UnwrapObjectCollection(^m(arg1Handle),argumentDefinition,arg1HandlePos,arg1Array)
-
-			;;Argument 2 (REQUIRED INOUT PERFSTRUCT [*]structure @Perfstruct)
-			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[2])
-			arg2Array = (@JsonArray)((@JsonObject)arguments.arrayValues[2]).GetProperty("PassedValue")
-			arg2Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg2Array.arrayValues.Count)
-			arg2HandlePos = 1
-			dispatcher.UnwrapObjectCollection(^m(arg2Handle),argumentDefinition,arg2HandlePos,arg2Array)
-
-			;;------------------------------------------------------------
-			;; Call the underlying routine
-
-			xcall P2StrArysO64k(^m(strAddres,arg1Handle),^m(strPerfstruct,arg2Handle))
-
-			;;--------------------------------------------------------------------------------
-			;;Argument 1 (REQUIRED INOUT ADDRESS [*]structure @Addres)
-			
-			serializer.ArgumentHandleData(1, arg1Handle, FieldDataType.DataObjectCollectionField, 182, "ADDRESS", arg1Array.arrayValues.Count, false)
-
-			;;--------------------------------------------------------------------------------
-			;;Argument 2 (REQUIRED INOUT PERFSTRUCT [*]structure @Perfstruct)
-			
-			serializer.ArgumentHandleData(2, arg2Handle, FieldDataType.DataObjectCollectionField, 72, "PERFSTRUCT", arg2Array.arrayValues.Count, false)
-		endmethod
-
-	endclass
-
-	;;-------------------------------------------------------------------------
-	;;; <summary>
-	;;; Dispatcher for method LrgPkts.P3StrAry
-	;;; </summary>
-	public class P3StrAry_Dispatch extends RoutineStub
-
-		private mAddresMetadata, @DataObjectMetadataBase
-
-		public method P3StrAry_Dispatch
-		proc
-			;;Initialize the meta data for any data objects that are used by parameters to the method
-			mAddresMetadata = DataObjectMetadataBase.LookupType("Addres")
-		endmethod
-
-		protected override method DispatchInternal, void
-			required in name,       string
-			required in callFrame,  @JsonObject
-			required in serializer, @DispatchSerializer
-			required in dispatcher, @RoutineDispatcher
-			record
-				requestId,			int
-				arguments,			@JsonArray
-				argumentDefinition, @ArgumentDataDefinition
-
-				;;Argument 1 (REQUIRED INOUT ADDRESS [*]structure @Addres)
-				arg1Array,			@JsonArray
-				arg1Handle,			D_HANDLE
-				arg1HandlePos,		int
-			endrecord
-
-			;;Temp structure tempstr1
-			structure tempstr1
-				arry, @Addres
-			endstructure
-
-
-		proc
-
-			;;------------------------------------------------------------
-			;;Process inbound arguments
-
-			arguments = (@JsonArray)callFrame.GetProperty("params")
-
-			;;Argument 1 (REQUIRED INOUT ADDRESS [*]structure @Addres)
-			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1])
-			arg1Array = (@JsonArray)((@JsonObject)arguments.arrayValues[1]).GetProperty("PassedValue")
-			arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.arrayValues.Count)
-			arg1HandlePos = 1
-			dispatcher.UnwrapObjectCollection(^m(arg1Handle),argumentDefinition,arg1HandlePos,arg1Array)
-
-			;;------------------------------------------------------------
-			;; Call the underlying routine
-
-			xcall P3StrAry(^m(strAddres,arg1Handle))
-
-			;;--------------------------------------------------------------------------------
-			;;Argument 1 (REQUIRED INOUT ADDRESS [*]structure @Addres)
-			
-			serializer.ArgumentHandleData(1, arg1Handle, FieldDataType.DataObjectCollectionField, 182, "ADDRESS", arg1Array.arrayValues.Count, false)
-		endmethod
-
-	endclass
-
-	;;-------------------------------------------------------------------------
-	;;; <summary>
-	;;; Dispatcher for method LrgPkts.P4StrAry
-	;;; </summary>
-	public class P4StrAry_Dispatch extends RoutineStub
-
-		private mPerfstructMetadata, @DataObjectMetadataBase
-		private mAddresMetadata, @DataObjectMetadataBase
-
-		public method P4StrAry_Dispatch
-		proc
-			;;Initialize the meta data for any data objects that are used by parameters to the method
-			mPerfstructMetadata = DataObjectMetadataBase.LookupType("Perfstruct")
-			mAddresMetadata = DataObjectMetadataBase.LookupType("Addres")
-		endmethod
-
-		protected override method DispatchInternal, void
-			required in name,       string
-			required in callFrame,  @JsonObject
-			required in serializer, @DispatchSerializer
-			required in dispatcher, @RoutineDispatcher
-			record
-				requestId,			int
-				arguments,			@JsonArray
-				argumentDefinition, @ArgumentDataDefinition
-
-				;;Argument 1 (REQUIRED INOUT PERFSTRUCT [*]structure @Perfstruct)
-				arg1Array,			@JsonArray
-				arg1Handle,			D_HANDLE
-				arg1HandlePos,		int
-				;;Argument 2 (REQUIRED INOUT ADDRESS [*]structure @Addres)
-				arg2Array,			@JsonArray
-				arg2Handle,			D_HANDLE
-				arg2HandlePos,		int
-			endrecord
-
-			;;Temp structure tempstr1
-			structure tempstr1
-				arry, @Perfstruct
-			endstructure
-
-			;;Temp structure tempstr2
-			structure tempstr2
-				arry, @Addres
-			endstructure
-
-
-		proc
-
-			;;------------------------------------------------------------
-			;;Process inbound arguments
-
-			arguments = (@JsonArray)callFrame.GetProperty("params")
-
-			;;Argument 1 (REQUIRED INOUT PERFSTRUCT [*]structure @Perfstruct)
-			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1])
-			arg1Array = (@JsonArray)((@JsonObject)arguments.arrayValues[1]).GetProperty("PassedValue")
-			arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.arrayValues.Count)
-			arg1HandlePos = 1
-			dispatcher.UnwrapObjectCollection(^m(arg1Handle),argumentDefinition,arg1HandlePos,arg1Array)
-
-			;;Argument 2 (REQUIRED INOUT ADDRESS [*]structure @Addres)
-			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[2])
-			arg2Array = (@JsonArray)((@JsonObject)arguments.arrayValues[2]).GetProperty("PassedValue")
-			arg2Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg2Array.arrayValues.Count)
-			arg2HandlePos = 1
-			dispatcher.UnwrapObjectCollection(^m(arg2Handle),argumentDefinition,arg2HandlePos,arg2Array)
-
-			;;------------------------------------------------------------
-			;; Call the underlying routine
-
-			xcall P4StrAry(^m(strPerfstruct,arg1Handle),^m(strAddres,arg2Handle))
-
-			;;--------------------------------------------------------------------------------
-			;;Argument 1 (REQUIRED INOUT PERFSTRUCT [*]structure @Perfstruct)
-			
-			serializer.ArgumentHandleData(1, arg1Handle, FieldDataType.DataObjectCollectionField, 72, "PERFSTRUCT", arg1Array.arrayValues.Count, false)
-
-			;;--------------------------------------------------------------------------------
-			;;Argument 2 (REQUIRED INOUT ADDRESS [*]structure @Addres)
-			
-			serializer.ArgumentHandleData(2, arg2Handle, FieldDataType.DataObjectCollectionField, 182, "ADDRESS", arg2Array.arrayValues.Count, false)
-		endmethod
-
-	endclass
-
-	;;-------------------------------------------------------------------------
-	;;; <summary>
-	;;; Dispatcher for method LrgPkts.getNumRecords
-	;;; </summary>
-	public class getNumRecords_Dispatch extends RoutineStub
-
-
-		public method getNumRecords_Dispatch
-		proc
-			;;Initialize the meta data for any data objects that are used by parameters to the method
-		endmethod
-
-		protected override method DispatchInternal, void
-			required in name,       string
-			required in callFrame,  @JsonObject
-			required in serializer, @DispatchSerializer
-			required in dispatcher, @RoutineDispatcher
-			record
-				requestId,			int
-				arguments,			@JsonArray
-				argumentDefinition, @ArgumentDataDefinition
-
-				;;Argument 1 (REQUIRED OUT number I4)
-				arg1,				i4
-			endrecord
-
-
-		proc
-
-			;;------------------------------------------------------------
-			;;Process inbound arguments
-
-			;;There are no inbound arguments to process
-
-			;;------------------------------------------------------------
-			;; Call the underlying routine
-
-			xcall getNumRecords(arg1)
-
-			;;--------------------------------------------------------------------------------
-			;;Argument 1 (REQUIRED OUT number I4)
-			
-			serializer.ArgumentData(1, arg1, FieldDataType.IntegerField, 4, 0, false)
-			
-			
-		endmethod
-
-	endclass
-
-	;;-------------------------------------------------------------------------
-	;;; <summary>
-	;;; Dispatcher for method LrgPkts.getStructArray
-	;;; </summary>
-	public class getStructArray_Dispatch extends RoutineStub
-
-		private mPerfstructMetadata, @DataObjectMetadataBase
-
-		public method getStructArray_Dispatch
-		proc
-			;;Initialize the meta data for any data objects that are used by parameters to the method
-			mPerfstructMetadata = DataObjectMetadataBase.LookupType("Perfstruct")
-		endmethod
-
-		protected override method DispatchInternal, void
-			required in name,       string
-			required in callFrame,  @JsonObject
-			required in serializer, @DispatchSerializer
-			required in dispatcher, @RoutineDispatcher
-			record
-				requestId,			int
-				arguments,			@JsonArray
-				argumentDefinition, @ArgumentDataDefinition
-
-				;;Argument 1 (REQUIRED OUT PERFSTRUCT [*]structure @Perfstruct)
-				arg1Handle,			D_HANDLE
-				arg1HandlePos,		int
-			endrecord
-
-			;;Temp structure tempstr1
-			structure tempstr1
-				arry, @Perfstruct
-			endstructure
-
-
-		proc
-
-			;;------------------------------------------------------------
-			;;Process inbound arguments
-
-			;;There are no inbound arguments to process
-
-			;;------------------------------------------------------------
-			;; Call the underlying routine
-
-			xcall getStructArray(^m(strPerfstruct,arg1Handle))
-
-			;;--------------------------------------------------------------------------------
-			;;Argument 1 (REQUIRED OUT PERFSTRUCT [*]structure @Perfstruct)
-			
-			;serializer.ArgumentHandleData(1, arg1Handle, FieldDataType.DataObjectCollectionField, 72, "PERFSTRUCT", arg1Array.arrayValues.Count, false)
-		endmethod
-
-	endclass
-
-	;;-------------------------------------------------------------------------
-	;;; <summary>
-	;;; Dispatcher for method LrgPkts.setStructArray
-	;;; </summary>
-	public class setStructArray_Dispatch extends RoutineStub
-
-		private mPerfstructMetadata, @DataObjectMetadataBase
-
-		public method setStructArray_Dispatch
-		proc
-			;;Initialize the meta data for any data objects that are used by parameters to the method
-			mPerfstructMetadata = DataObjectMetadataBase.LookupType("Perfstruct")
-		endmethod
-
-		protected override method DispatchInternal, void
-			required in name,       string
-			required in callFrame,  @JsonObject
-			required in serializer, @DispatchSerializer
-			required in dispatcher, @RoutineDispatcher
-			record
-				requestId,			int
-				arguments,			@JsonArray
-				argumentDefinition, @ArgumentDataDefinition
-
-				;;Argument 1 (REQUIRED IN PERFSTRUCT [*]structure @Perfstruct)
-				arg1Array,			@JsonArray
-				arg1Handle,			D_HANDLE
-				arg1HandlePos,		int
-				;;Argument 2 (REQUIRED IN count I4)
-				arg2,				i4
-			endrecord
-
-			;;Temp structure tempstr1
-			structure tempstr1
-				arry, @Perfstruct
-			endstructure
-
-
-		proc
-
-			;;------------------------------------------------------------
-			;;Process inbound arguments
-
-			arguments = (@JsonArray)callFrame.GetProperty("params")
-
-			;;Argument 1 (REQUIRED IN PERFSTRUCT [*]structure @Perfstruct)
-			argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1])
-			arg1Array = (@JsonArray)((@JsonObject)arguments.arrayValues[1]).GetProperty("PassedValue")
-			arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.arrayValues.Count)
-			arg1HandlePos = 1
-			dispatcher.UnwrapObjectCollection(^m(arg1Handle),argumentDefinition,arg1HandlePos,arg1Array)
-
-			;;Argument 2 (REQUIRED IN count I4)
-			arg2 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[2])
-
-			;;------------------------------------------------------------
-			;; Call the underlying routine
-
-			xcall setStructArray(^m(strPerfstruct,arg1Handle),arg2)
-		endmethod
-
-	endclass
+    ;;-------------------------------------------------------------------------
+    ;;; <summary>
+    ;;; Dispatcher for method LrgPkts.P1StrAryO64k
+    ;;; </summary>
+    public class P1StrAryO64k_Dispatcher extends RoutineStub
+
+        private mDatasetMetadata, @DataObjectMetadataBase
+
+        public method P1StrAryO64k_Dispatcher
+        proc
+            ;;Initialize the meta data for any data objects that are used by parameters to the method
+            mDatasetMetadata = DataObjectMetadataBase.LookupType("Dataset")
+        endmethod
+
+        protected override method DispatchInternal, void
+            required in name,       string
+            required in callFrame,  @JsonObject
+            required in serializer, @DispatchSerializer
+            required in dispatcher, @RoutineDispatcher
+            record
+                requestId,          int
+                arguments,          @JsonArray
+                argumentDefinition, @ArgumentDataDefinition
+
+                ;;Argument 1 (REQUIRED INOUT DATASET [*]structure @Dataset)
+                arg1Array,          @JsonArray
+                arg1Handle,         D_HANDLE
+                arg1HandlePos,      int
+            endrecord
+
+            ;;Temp structure tempstr1
+            structure tempstr1
+                arry, @Dataset
+            endstructure
+
+
+        proc
+
+            ;;------------------------------------------------------------
+            ;;Process inbound arguments
+
+            arguments = (@JsonArray)callFrame.GetProperty("params")
+
+            ;;Argument 1 (REQUIRED INOUT DATASET [*]structure @Dataset)
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1])
+            arg1Array = (@JsonArray)((@JsonObject)arguments.arrayValues[1]).GetProperty("PassedValue")
+            arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.arrayValues.Count)
+            arg1HandlePos = 1
+            dispatcher.UnwrapObjectCollection(^m(arg1Handle),argumentDefinition,arg1HandlePos,arg1Array)
+
+            ;;------------------------------------------------------------
+            ;; Call the underlying routine
+
+            xcall P1StrAryO64k(^m(strDataset,arg1Handle))
+
+            ;;--------------------------------------------------------------------------------
+            ;;Argument 1 (REQUIRED INOUT DATASET [*]structure @Dataset)
+            
+            serializer.ArgumentHandleData(1, arg1Handle, FieldDataType.DataObjectCollectionField, 1493, "DATASET", %mem_proc(DM_GETSIZE, arg1Handle)/1493, false)
+        endmethod
+
+    endclass
+
+    ;;-------------------------------------------------------------------------
+    ;;; <summary>
+    ;;; Dispatcher for method LrgPkts.P2StrArysO64k
+    ;;; </summary>
+    public class P2StrArysO64k_Dispatcher extends RoutineStub
+
+        private mAddresMetadata, @DataObjectMetadataBase
+        private mPerfstructMetadata, @DataObjectMetadataBase
+
+        public method P2StrArysO64k_Dispatcher
+        proc
+            ;;Initialize the meta data for any data objects that are used by parameters to the method
+            mAddresMetadata = DataObjectMetadataBase.LookupType("Addres")
+            mPerfstructMetadata = DataObjectMetadataBase.LookupType("Perfstruct")
+        endmethod
+
+        protected override method DispatchInternal, void
+            required in name,       string
+            required in callFrame,  @JsonObject
+            required in serializer, @DispatchSerializer
+            required in dispatcher, @RoutineDispatcher
+            record
+                requestId,          int
+                arguments,          @JsonArray
+                argumentDefinition, @ArgumentDataDefinition
+
+                ;;Argument 1 (REQUIRED INOUT ADDRESS [*]structure @Addres)
+                arg1Array,          @JsonArray
+                arg1Handle,         D_HANDLE
+                arg1HandlePos,      int
+                ;;Argument 2 (REQUIRED INOUT PERFSTRUCT [*]structure @Perfstruct)
+                arg2Array,          @JsonArray
+                arg2Handle,         D_HANDLE
+                arg2HandlePos,      int
+            endrecord
+
+            ;;Temp structure tempstr1
+            structure tempstr1
+                arry, @Addres
+            endstructure
+
+            ;;Temp structure tempstr2
+            structure tempstr2
+                arry, @Perfstruct
+            endstructure
+
+
+        proc
+
+            ;;------------------------------------------------------------
+            ;;Process inbound arguments
+
+            arguments = (@JsonArray)callFrame.GetProperty("params")
+
+            ;;Argument 1 (REQUIRED INOUT ADDRESS [*]structure @Addres)
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1])
+            arg1Array = (@JsonArray)((@JsonObject)arguments.arrayValues[1]).GetProperty("PassedValue")
+            arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.arrayValues.Count)
+            arg1HandlePos = 1
+            dispatcher.UnwrapObjectCollection(^m(arg1Handle),argumentDefinition,arg1HandlePos,arg1Array)
+
+            ;;Argument 2 (REQUIRED INOUT PERFSTRUCT [*]structure @Perfstruct)
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[2])
+            arg2Array = (@JsonArray)((@JsonObject)arguments.arrayValues[2]).GetProperty("PassedValue")
+            arg2Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg2Array.arrayValues.Count)
+            arg2HandlePos = 1
+            dispatcher.UnwrapObjectCollection(^m(arg2Handle),argumentDefinition,arg2HandlePos,arg2Array)
+
+            ;;------------------------------------------------------------
+            ;; Call the underlying routine
+
+            xcall P2StrArysO64k(^m(strAddres,arg1Handle),^m(strPerfstruct,arg2Handle))
+
+            ;;--------------------------------------------------------------------------------
+            ;;Argument 1 (REQUIRED INOUT ADDRESS [*]structure @Addres)
+            
+            serializer.ArgumentHandleData(1, arg1Handle, FieldDataType.DataObjectCollectionField, 182, "ADDRESS", %mem_proc(DM_GETSIZE, arg1Handle)/182, false)
+
+            ;;--------------------------------------------------------------------------------
+            ;;Argument 2 (REQUIRED INOUT PERFSTRUCT [*]structure @Perfstruct)
+            
+            serializer.ArgumentHandleData(2, arg2Handle, FieldDataType.DataObjectCollectionField, 72, "PERFSTRUCT", %mem_proc(DM_GETSIZE, arg2Handle)/72, false)
+        endmethod
+
+    endclass
+
+    ;;-------------------------------------------------------------------------
+    ;;; <summary>
+    ;;; Dispatcher for method LrgPkts.P3StrAry
+    ;;; </summary>
+    public class P3StrAry_Dispatcher extends RoutineStub
+
+        private mAddresMetadata, @DataObjectMetadataBase
+
+        public method P3StrAry_Dispatcher
+        proc
+            ;;Initialize the meta data for any data objects that are used by parameters to the method
+            mAddresMetadata = DataObjectMetadataBase.LookupType("Addres")
+        endmethod
+
+        protected override method DispatchInternal, void
+            required in name,       string
+            required in callFrame,  @JsonObject
+            required in serializer, @DispatchSerializer
+            required in dispatcher, @RoutineDispatcher
+            record
+                requestId,          int
+                arguments,          @JsonArray
+                argumentDefinition, @ArgumentDataDefinition
+
+                ;;Argument 1 (REQUIRED INOUT ADDRESS [*]structure @Addres)
+                arg1Array,          @JsonArray
+                arg1Handle,         D_HANDLE
+                arg1HandlePos,      int
+            endrecord
+
+            ;;Temp structure tempstr1
+            structure tempstr1
+                arry, @Addres
+            endstructure
+
+
+        proc
+
+            ;;------------------------------------------------------------
+            ;;Process inbound arguments
+
+            arguments = (@JsonArray)callFrame.GetProperty("params")
+
+            ;;Argument 1 (REQUIRED INOUT ADDRESS [*]structure @Addres)
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1])
+            arg1Array = (@JsonArray)((@JsonObject)arguments.arrayValues[1]).GetProperty("PassedValue")
+            arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.arrayValues.Count)
+            arg1HandlePos = 1
+            dispatcher.UnwrapObjectCollection(^m(arg1Handle),argumentDefinition,arg1HandlePos,arg1Array)
+
+            ;;------------------------------------------------------------
+            ;; Call the underlying routine
+
+            xcall P3StrAry(^m(strAddres,arg1Handle))
+
+            ;;--------------------------------------------------------------------------------
+            ;;Argument 1 (REQUIRED INOUT ADDRESS [*]structure @Addres)
+            
+            serializer.ArgumentHandleData(1, arg1Handle, FieldDataType.DataObjectCollectionField, 182, "ADDRESS", %mem_proc(DM_GETSIZE, arg1Handle)/182, false)
+        endmethod
+
+    endclass
+
+    ;;-------------------------------------------------------------------------
+    ;;; <summary>
+    ;;; Dispatcher for method LrgPkts.P4StrAry
+    ;;; </summary>
+    public class P4StrAry_Dispatcher extends RoutineStub
+
+        private mPerfstructMetadata, @DataObjectMetadataBase
+        private mAddresMetadata, @DataObjectMetadataBase
+
+        public method P4StrAry_Dispatcher
+        proc
+            ;;Initialize the meta data for any data objects that are used by parameters to the method
+            mPerfstructMetadata = DataObjectMetadataBase.LookupType("Perfstruct")
+            mAddresMetadata = DataObjectMetadataBase.LookupType("Addres")
+        endmethod
+
+        protected override method DispatchInternal, void
+            required in name,       string
+            required in callFrame,  @JsonObject
+            required in serializer, @DispatchSerializer
+            required in dispatcher, @RoutineDispatcher
+            record
+                requestId,          int
+                arguments,          @JsonArray
+                argumentDefinition, @ArgumentDataDefinition
+
+                ;;Argument 1 (REQUIRED INOUT PERFSTRUCT [*]structure @Perfstruct)
+                arg1Array,          @JsonArray
+                arg1Handle,         D_HANDLE
+                arg1HandlePos,      int
+                ;;Argument 2 (REQUIRED INOUT ADDRESS [*]structure @Addres)
+                arg2Array,          @JsonArray
+                arg2Handle,         D_HANDLE
+                arg2HandlePos,      int
+            endrecord
+
+            ;;Temp structure tempstr1
+            structure tempstr1
+                arry, @Perfstruct
+            endstructure
+
+            ;;Temp structure tempstr2
+            structure tempstr2
+                arry, @Addres
+            endstructure
+
+
+        proc
+
+            ;;------------------------------------------------------------
+            ;;Process inbound arguments
+
+            arguments = (@JsonArray)callFrame.GetProperty("params")
+
+            ;;Argument 1 (REQUIRED INOUT PERFSTRUCT [*]structure @Perfstruct)
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1])
+            arg1Array = (@JsonArray)((@JsonObject)arguments.arrayValues[1]).GetProperty("PassedValue")
+            arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.arrayValues.Count)
+            arg1HandlePos = 1
+            dispatcher.UnwrapObjectCollection(^m(arg1Handle),argumentDefinition,arg1HandlePos,arg1Array)
+
+            ;;Argument 2 (REQUIRED INOUT ADDRESS [*]structure @Addres)
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[2])
+            arg2Array = (@JsonArray)((@JsonObject)arguments.arrayValues[2]).GetProperty("PassedValue")
+            arg2Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg2Array.arrayValues.Count)
+            arg2HandlePos = 1
+            dispatcher.UnwrapObjectCollection(^m(arg2Handle),argumentDefinition,arg2HandlePos,arg2Array)
+
+            ;;------------------------------------------------------------
+            ;; Call the underlying routine
+
+            xcall P4StrAry(^m(strPerfstruct,arg1Handle),^m(strAddres,arg2Handle))
+
+            ;;--------------------------------------------------------------------------------
+            ;;Argument 1 (REQUIRED INOUT PERFSTRUCT [*]structure @Perfstruct)
+            
+            serializer.ArgumentHandleData(1, arg1Handle, FieldDataType.DataObjectCollectionField, 72, "PERFSTRUCT", %mem_proc(DM_GETSIZE, arg1Handle)/72, false)
+
+            ;;--------------------------------------------------------------------------------
+            ;;Argument 2 (REQUIRED INOUT ADDRESS [*]structure @Addres)
+            
+            serializer.ArgumentHandleData(2, arg2Handle, FieldDataType.DataObjectCollectionField, 182, "ADDRESS", %mem_proc(DM_GETSIZE, arg2Handle)/182, false)
+        endmethod
+
+    endclass
+
+    ;;-------------------------------------------------------------------------
+    ;;; <summary>
+    ;;; Dispatcher for method LrgPkts.getNumRecords
+    ;;; </summary>
+    public class getNumRecords_Dispatcher extends RoutineStub
+
+
+        public method getNumRecords_Dispatcher
+        proc
+            ;;Initialize the meta data for any data objects that are used by parameters to the method
+        endmethod
+
+        protected override method DispatchInternal, void
+            required in name,       string
+            required in callFrame,  @JsonObject
+            required in serializer, @DispatchSerializer
+            required in dispatcher, @RoutineDispatcher
+            record
+                requestId,          int
+                arguments,          @JsonArray
+                argumentDefinition, @ArgumentDataDefinition
+
+                ;;Argument 1 (REQUIRED OUT number I4)
+                arg1,               i4
+            endrecord
+
+
+        proc
+
+            ;;------------------------------------------------------------
+            ;;Process inbound arguments
+
+            ;;There are no inbound arguments to process
+
+            ;;------------------------------------------------------------
+            ;; Call the underlying routine
+
+            xcall getNumRecords(arg1)
+
+            ;;--------------------------------------------------------------------------------
+            ;;Argument 1 (REQUIRED OUT number I4)
+            
+            serializer.ArgumentData(1, arg1, FieldDataType.IntegerField, 4, 0, false)
+        endmethod
+
+    endclass
+
+    ;;-------------------------------------------------------------------------
+    ;;; <summary>
+    ;;; Dispatcher for method LrgPkts.getStructArray
+    ;;; </summary>
+    public class getStructArray_Dispatcher extends RoutineStub
+
+        private mPerfstructMetadata, @DataObjectMetadataBase
+
+        public method getStructArray_Dispatcher
+        proc
+            ;;Initialize the meta data for any data objects that are used by parameters to the method
+            mPerfstructMetadata = DataObjectMetadataBase.LookupType("Perfstruct")
+        endmethod
+
+        protected override method DispatchInternal, void
+            required in name,       string
+            required in callFrame,  @JsonObject
+            required in serializer, @DispatchSerializer
+            required in dispatcher, @RoutineDispatcher
+            record
+                requestId,          int
+                arguments,          @JsonArray
+                argumentDefinition, @ArgumentDataDefinition
+
+                ;;Argument 1 (REQUIRED OUT PERFSTRUCT [*]structure @Perfstruct)
+                arg1Handle,         D_HANDLE
+                arg1HandlePos,      int
+            endrecord
+
+            ;;Temp structure tempstr1
+            structure tempstr1
+                arry, @Perfstruct
+            endstructure
+
+
+        proc
+
+            ;;------------------------------------------------------------
+            ;;Process inbound arguments
+
+            ;;There are no inbound arguments to process
+
+            ;;------------------------------------------------------------
+            ;; Call the underlying routine
+
+            xcall getStructArray(^m(strPerfstruct,arg1Handle))
+
+            ;;--------------------------------------------------------------------------------
+            ;;Argument 1 (REQUIRED OUT PERFSTRUCT [*]structure @Perfstruct)
+            
+            serializer.ArgumentHandleData(1, arg1Handle, FieldDataType.DataObjectCollectionField, 72, "PERFSTRUCT", %mem_proc(DM_GETSIZE, arg1Handle)/72, false)
+        endmethod
+
+    endclass
+
+    ;;-------------------------------------------------------------------------
+    ;;; <summary>
+    ;;; Dispatcher for method LrgPkts.setStructArray
+    ;;; </summary>
+    public class setStructArray_Dispatcher extends RoutineStub
+
+        private mPerfstructMetadata, @DataObjectMetadataBase
+
+        public method setStructArray_Dispatcher
+        proc
+            ;;Initialize the meta data for any data objects that are used by parameters to the method
+            mPerfstructMetadata = DataObjectMetadataBase.LookupType("Perfstruct")
+        endmethod
+
+        protected override method DispatchInternal, void
+            required in name,       string
+            required in callFrame,  @JsonObject
+            required in serializer, @DispatchSerializer
+            required in dispatcher, @RoutineDispatcher
+            record
+                requestId,          int
+                arguments,          @JsonArray
+                argumentDefinition, @ArgumentDataDefinition
+
+                ;;Argument 1 (REQUIRED IN PERFSTRUCT [*]structure @Perfstruct)
+                arg1Array,          @JsonArray
+                arg1Handle,         D_HANDLE
+                arg1HandlePos,      int
+                ;;Argument 2 (REQUIRED IN count I4)
+                arg2,               i4
+            endrecord
+
+            ;;Temp structure tempstr1
+            structure tempstr1
+                arry, @Perfstruct
+            endstructure
+
+
+        proc
+
+            ;;------------------------------------------------------------
+            ;;Process inbound arguments
+
+            arguments = (@JsonArray)callFrame.GetProperty("params")
+
+            ;;Argument 1 (REQUIRED IN PERFSTRUCT [*]structure @Perfstruct)
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1])
+            arg1Array = (@JsonArray)((@JsonObject)arguments.arrayValues[1]).GetProperty("PassedValue")
+            arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.arrayValues.Count)
+            arg1HandlePos = 1
+            dispatcher.UnwrapObjectCollection(^m(arg1Handle),argumentDefinition,arg1HandlePos,arg1Array)
+
+            ;;Argument 2 (REQUIRED IN count I4)
+            arg2 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[2])
+
+            ;;------------------------------------------------------------
+            ;; Call the underlying routine
+
+            xcall setStructArray(^m(strPerfstruct,arg1Handle),arg2)
+        endmethod
+
+    endclass
 
 endnamespace

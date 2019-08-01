@@ -18,111 +18,111 @@ import TraditionalBridge.Test.Models
 namespace TraditionalBridge.Test.TestDate
 
 
-	;;-------------------------------------------------------------------------
-	;;; <summary>
-	;;; Dispatcher for method TestDate.GetDate8
-	;;; </summary>
-	public class GetDate8_Dispatch extends RoutineStub
+    ;;-------------------------------------------------------------------------
+    ;;; <summary>
+    ;;; Dispatcher for method TestDate.GetDate8
+    ;;; </summary>
+    public class GetDate8_Dispatcher extends RoutineStub
 
-		private mDatetimestrMetadata, @DataObjectMetadataBase
+        private mDatetimestrMetadata, @DataObjectMetadataBase
 
-		public method GetDate8_Dispatch
-		proc
-			;;Initialize the meta data for any data objects that are used by parameters to the method
-			mDatetimestrMetadata = DataObjectMetadataBase.LookupType("Datetimestr")
-		endmethod
+        public method GetDate8_Dispatcher
+        proc
+            ;;Initialize the meta data for any data objects that are used by parameters to the method
+            mDatetimestrMetadata = DataObjectMetadataBase.LookupType("Datetimestr")
+        endmethod
 
-		protected override method DispatchInternal, void
-			required in name,       string
-			required in callFrame,  @JsonObject
-			required in serializer, @DispatchSerializer
-			required in dispatcher, @RoutineDispatcher
-			record
-				requestId,			int
-				arguments,			@JsonArray
-				argumentDefinition, @ArgumentDataDefinition
+        protected override method DispatchInternal, void
+            required in name,       string
+            required in callFrame,  @JsonObject
+            required in serializer, @DispatchSerializer
+            required in dispatcher, @RoutineDispatcher
+            record
+                requestId,          int
+                arguments,          @JsonArray
+                argumentDefinition, @ArgumentDataDefinition
 
-				;;Argument 1 (REQUIRED IN idx D2)
-				arg1,				d2
-				;;Argument 2 (REQUIRED OUT dstruct structure @Datetimestr)
-				arg2DataObject, @DataObjectBase
-				arg2, strDatetimestr
-			endrecord
-
-
-		proc
-
-			;;------------------------------------------------------------
-			;;Process inbound arguments
-
-			arguments = (@JsonArray)callFrame.GetProperty("params")
-
-			;;Argument 1 (REQUIRED IN idx D2)
-			arg1 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[1])
-
-			;;------------------------------------------------------------
-			;; Call the underlying routine
-
-			xcall GetDate8(arg1,arg2)
-
-			;;--------------------------------------------------------------------------------
-			;;Argument 2 (REQUIRED OUT dstruct structure @Datetimestr)
-			
-			serializer.ArgumentData(2, arg2, FieldDataType.DataObjectField, 34, "DATETIMESTR", false)
-			
-		endmethod
-
-	endclass
-
-	;;-------------------------------------------------------------------------
-	;;; <summary>
-	;;; Dispatcher for method TestDate.UserDates
-	;;; </summary>
-	public class UserDates_Dispatch extends RoutineStub
-
-		private mUserdateMetadata, @DataObjectMetadataBase
-
-		public method UserDates_Dispatch
-		proc
-			;;Initialize the meta data for any data objects that are used by parameters to the method
-			mUserdateMetadata = DataObjectMetadataBase.LookupType("Userdate")
-		endmethod
-
-		protected override method DispatchInternal, void
-			required in name,       string
-			required in callFrame,  @JsonObject
-			required in serializer, @DispatchSerializer
-			required in dispatcher, @RoutineDispatcher
-			record
-				requestId,			int
-				arguments,			@JsonArray
-				argumentDefinition, @ArgumentDataDefinition
-
-				;;Argument 1 (REQUIRED OUT USERDATES structure @Userdate)
-				arg1DataObject, @DataObjectBase
-				arg1, strUserdate
-			endrecord
+                ;;Argument 1 (REQUIRED IN idx D2)
+                arg1,               d2
+                ;;Argument 2 (REQUIRED OUT dstruct structure @Datetimestr)
+                arg2DataObject,     @DataObjectBase
+                arg2,               strDatetimestr
+            endrecord
 
 
-		proc
+        proc
 
-			;;------------------------------------------------------------
-			;;Process inbound arguments
+            ;;------------------------------------------------------------
+            ;;Process inbound arguments
 
-			;;There are no inbound arguments to process
+            arguments = (@JsonArray)callFrame.GetProperty("params")
 
-			;;------------------------------------------------------------
-			;; Call the underlying routine
+            ;;Argument 1 (REQUIRED IN idx D2)
+            arg1 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[1])
 
-			xcall UserDates(arg1)
+            ;;------------------------------------------------------------
+            ;; Call the underlying routine
 
-			;;--------------------------------------------------------------------------------
-			;;Argument 1 (REQUIRED OUT USERDATES structure @Userdate)
-			
-			serializer.ArgumentData(1, arg1, FieldDataType.DataObjectField, 40, "USERDATES", false)
-			
-		endmethod
+            xcall GetDate8(arg1,arg2)
 
-	endclass
+            ;;--------------------------------------------------------------------------------
+            ;;Argument 2 (REQUIRED OUT dstruct structure @Datetimestr)
+            
+            ;;Argument 2: Single Datetimestr record
+            serializer.ArgumentData(2, arg2, FieldDataType.DataObjectField, 34, "DATETIMESTR", false)
+        endmethod
+
+    endclass
+
+    ;;-------------------------------------------------------------------------
+    ;;; <summary>
+    ;;; Dispatcher for method TestDate.UserDates
+    ;;; </summary>
+    public class UserDates_Dispatcher extends RoutineStub
+
+        private mUserdateMetadata, @DataObjectMetadataBase
+
+        public method UserDates_Dispatcher
+        proc
+            ;;Initialize the meta data for any data objects that are used by parameters to the method
+            mUserdateMetadata = DataObjectMetadataBase.LookupType("Userdate")
+        endmethod
+
+        protected override method DispatchInternal, void
+            required in name,       string
+            required in callFrame,  @JsonObject
+            required in serializer, @DispatchSerializer
+            required in dispatcher, @RoutineDispatcher
+            record
+                requestId,          int
+                arguments,          @JsonArray
+                argumentDefinition, @ArgumentDataDefinition
+
+                ;;Argument 1 (REQUIRED OUT USERDATES structure @Userdate)
+                arg1DataObject,     @DataObjectBase
+                arg1,               strUserdate
+            endrecord
+
+
+        proc
+
+            ;;------------------------------------------------------------
+            ;;Process inbound arguments
+
+            ;;There are no inbound arguments to process
+
+            ;;------------------------------------------------------------
+            ;; Call the underlying routine
+
+            xcall UserDates(arg1)
+
+            ;;--------------------------------------------------------------------------------
+            ;;Argument 1 (REQUIRED OUT USERDATES structure @Userdate)
+            
+            ;;Argument 1: Single Userdate record
+            serializer.ArgumentData(1, arg1, FieldDataType.DataObjectField, 40, "USERDATES", false)
+        endmethod
+
+    endclass
 
 endnamespace

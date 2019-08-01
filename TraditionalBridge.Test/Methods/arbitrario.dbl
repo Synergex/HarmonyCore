@@ -34,14 +34,14 @@ namespace TraditionalBridge.Test.Methods
             required inout customerArray, [#]@Customer
             required inout customerArrayList, @ArrayList
             required inout customer1, @Customer
-            required in customer2, strCustomer
-            required in customerSynergyArray, [*]strCustomer
-            required in customerStrSynergyArray, [#]strCustomer
+            required in customer2, TraditionalBridge.Test.Models.strCustomer
+            required in customerSynergyArray, [*]TraditionalBridge.Test.Models.strCustomer
+            required in customerStrSynergyArray, [#]TraditionalBridge.Test.Models.strCustomer
             required in customerStrArrayList, @ArrayList
             endparams
             record
                 tempCustomer, @Customer
-                tempStrCustomer, strCustomer
+                tempStrCustomer, TraditionalBridge.Test.Models.strCustomer
                 i, int
         proc
             if(^argdim(%argnum(customerSynergyArray), 1) != customerStrSynergyArray.Length)
@@ -53,7 +53,7 @@ namespace TraditionalBridge.Test.Methods
 
             for i from 1 thru customerArrayList.Count by 1
             begin
-                tempStrCustomer = (strCustomer)customerStrArrayList[i - 1]
+                tempStrCustomer = (TraditionalBridge.Test.Models.strCustomer)customerStrArrayList[i - 1]
                 tempCustomer = (@Customer)customerArrayList[i - 1]
                 if(tempCustomer.Name != tempStrCustomer.name)
                     throw new Exception("Object array list and structure array list failed to match")
