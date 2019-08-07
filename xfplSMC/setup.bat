@@ -105,7 +105,7 @@ set PROJECT=TraditionalBridge.Test
 set NAMESPACE=TraditionalBridge.Test
 
 rem Models
-codegen -s %DATA_STRUCTURES% -t ODataModel ODataMetaData -i %TEMPLATEROOT% -o %PROJECT%\Models -n %NAMESPACE%.Models -e -r -lf
+codegen -s %DATA_STRUCTURES% -t TraditionalModel TraditionalMetaData -i %TEMPLATEROOT% -o %PROJECT%\Models -n %NAMESPACE%.Models -e -r -lf
 if ERRORLEVEL 1 goto error
 
 rem smc
