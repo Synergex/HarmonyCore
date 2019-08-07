@@ -1,15 +1,14 @@
 <CODEGEN_FILENAME><StructureNoplural>MetaData.dbl</CODEGEN_FILENAME>
-<OPTIONAL_USERTOKEN>RPSDATAFILES= </OPTIONAL_USERTOKEN>
 <REQUIRES_CODEGEN_VERSION>5.4.1</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
-;// Title:       DataObjectMetaData.tpl
+;// Title:       ODataMetaData.tpl
 ;//
 ;// Type:        CodeGen Template
 ;//
-;// Description: Template to define meta data associated with a data object
+;// Description: Template to define meta data associated with a data model
 ;//
-;// Copyright (c) 2018, Synergex International, Inc. All rights reserved.
+;// Copyright (c) 2012, Synergex International, Inc. All rights reserved.
 ;//
 ;// Redistribution and use in source and binary forms, with or without
 ;// modification, are permitted provided that the following conditions are met:
@@ -37,7 +36,7 @@
 ;;
 ;; Title:       <StructureNoplural>MetaData.dbl
 ;;
-;; Description: Defines meta data associated with a data object <StructureNoplural>.
+;; Description: Defines meta data associated with a <StructureNoplural> model.
 ;;
 ;;*****************************************************************************
 ;; WARNING: GENERATED CODE!
@@ -45,52 +44,203 @@
 ;; Any changes you make will be lost of the file is re-generated.
 ;;*****************************************************************************
 
-import Harmony.TraditionalBridge
-
-subroutine Meta<StructureNoplural>
-	required out metadata, @DataObjectMetadataBase
-proc
-	if(<StructureNoplural>.sMetadata == ^null)
-		<StructureNoplural>.sMetadata = new <StructureNoplural>Metadata()
-	metadata = <StructureNoplural>.sMetadata
-	xreturn
-endsubroutine
+import System
+import System.Collections.Generic
+import System.Text
+import Harmony.Core
+import Harmony.Core.Converters
 
 namespace <NAMESPACE>
 
-	.include "<STRUCTURE_NOALIAS>" repository <RPSDATAFILES>, structure="str<StructureNoplural>", end
+    ;;; <summary>
+    ;;; Global structure representing a <StructureNoplural> record.
+    ;;; </summary>
+    .include "<STRUCTURE_NOALIAS>" repository, public structure="str<StructureNoplural>", end
 
-	public partial class <StructureNoplural>Metadata extends DataObjectMetadataBase
-		
-		public method <StructureNoplural>Metadata
-		proc
-			RPSStructureName = "<STRUCTURE_NOALIAS>"
-			RPSStructureSize = ^size(str<StructureNoplural>)
+    ;;; <summary>
+    ;;; Exposes metadata relating to the <StructureNoplural> model class.
+    ;;; </summary>
+    public partial class <StructureNoplural>Metadata extends DataObjectMetadataBase
+
+;//
+;//    Instantiate any required converters
+;//
+<COUNTER_1_RESET>
 <FIELD_LOOP>
-	<IF CUSTOM_NOT_HARMONY_EXCLUDE>
-			;AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false)
-	</IF CUSTOM_NOT_HARMONY_EXCLUDE>
+    <IF CUSTOM_NOT_HARMONY_EXCLUDE>
+      <COUNTER_1_INCREMENT>
+      <IF COUNTER_1_EQ_1>
+        ;; Define custom property formatters
+      </IF>
+        <IF DATEORTIME>
+          <IF DATE_YYMMDD>
+            <IF CUSTOM_HARMONY_AS_STRING>
+        private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalConverter.LiteralFormatter("XX-XX-XX")
+            <ELSE>
+        private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("FORMAT:YYMMDD")
+            </IF CUSTOM_HARMONY_AS_STRING>
+          </IF DATE_YYMMDD>
+          <IF DATE_YYYYMMDD>
+            <IF CUSTOM_HARMONY_AS_STRING>
+        private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalConverter.LiteralFormatter("XXXX-XX-XX")
+            <ELSE>
+        private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("FORMAT:YYYYMMDD")
+            </IF CUSTOM_HARMONY_AS_STRING>
+          </IF DATE_YYYYMMDD>
+          <IF DATE_YYYYJJJ>
+        private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("FORMAT:YYYYJJJ")
+          </IF DATE_YYYYJJJ>
+          <IF TIME>
+            <IF CUSTOM_HARMONY_AS_STRING>
+            <IF TIME_HHMM>
+        private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalConverter.LiteralFormatter("XX:XX")
+            </IF TIME_HHMM>
+            <IF TIME_HHMMSS>
+        private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalConverter.LiteralFormatter("XX:XX:XX")
+            </IF TIME_HHMMSS>
+            <ELSE>
+        private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("FORMAT:HHMM")
+            </IF CUSTOM_HARMONY_AS_STRING>
+          </IF TIME>
+        <ELSE>
+            <IF CUSTOM_HARMONY_AS_STRING>
+        private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalConverter.LiteralFormatter("<FIELD_FORMATSTRING>")
+            <ELSE>
+            </IF CUSTOM_HARMONY_AS_STRING>
+        </IF DATEORTIME>
+    </IF CUSTOM_NOT_HARMONY_EXCLUDE>
 </FIELD_LOOP>
-		endmethod
 
-;//TODO: If we're not going to use this we should remove it from the base class and here
-		public override method GetFieldByName, @FieldDataDefinition
-			fieldName, @string
-		proc
-			mreturn ^null
-		endmethod
+        ;;; <summary>
+        ;;; Constructs an new <StructureNoplural>Metadata object.
+        ;;; </summary>
+        public method <StructureNoplural>Metadata
+        proc
+            ;; Define structure name and size
+            RPSStructureName = "<STRUCTURE_NOALIAS>"
+            RPSStructureSize = ^size(str<StructureNoplural>)
+;//
+;//    Add definitions for the structures fields
+;//
 
-		public override method MakeNew, @DataObjectBase
-			required in dataArea, a
-			required in grfa, a
-			record
-				new<StructureNoplural>, @<NAMESPACE>.<StructureNoplural>
-		proc
-			new<StructureNoplural> = new <StructureNoplural>(dataArea) 
-			new<StructureNoplural>.GlobalRFA = grfa
-			mreturn new<StructureNoplural>
-		endmethod
+            ;; Define fields
+<FIELD_LOOP>
+<IF STRUCTURE_RELATIVE>
+            AddFieldInfo("RecordNumber", "INTEGER", 4, 0, 0, false)
+</IF STRUCTURE_RELATIVE>
+    <IF CUSTOM_NOT_HARMONY_EXCLUDE>
+        <IF DATEORTIME>
+          <IF DATE_YYMMDD>
+            <IF CUSTOM_HARMONY_AS_STRING>
+            AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false, m<FieldSqlname>Formatter)
+            <ELSE>
+            AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false, m<FieldSqlname>Formatter)
+            </IF CUSTOM_HARMONY_AS_STRING>
+          </IF DATE_YYMMDD>
+          <IF DATE_YYYYMMDD>
+            <IF CUSTOM_HARMONY_AS_STRING>
+            AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false, m<FieldSqlname>Formatter)
+            <ELSE>
+            AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false, m<FieldSqlname>Formatter)
+            </IF CUSTOM_HARMONY_AS_STRING>
+          </IF DATE_YYYYMMDD>
+          <IF DATE_YYYYJJJ>
+            <IF CUSTOM_HARMONY_AS_STRING>
+            AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false, m<FieldSqlname>Formatter)
+            <ELSE>
+            AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false, m<FieldSqlname>Formatter)
+            </IF CUSTOM_HARMONY_AS_STRING>
+          </IF DATE_YYYYJJJ>
+          <IF TIME>
+            <IF CUSTOM_HARMONY_AS_STRING>
+            <IF TIME_HHMM>
+            AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false, m<FieldSqlname>Formatter)
+            </IF TIME_HHMM>
+            <IF TIME_HHMMSS>
+            AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false, m<FieldSqlname>Formatter)
+            </IF TIME_HHMMSS>
+            <ELSE>
+            AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false, m<FieldSqlname>Formatter)
+            </IF CUSTOM_HARMONY_AS_STRING>
+          </IF TIME>
+        <ELSE>
+            <IF CUSTOM_HARMONY_AS_STRING>
+            AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false, m<FieldSqlname>Formatter)
+            <ELSE>
+            AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false)
+            </IF CUSTOM_HARMONY_AS_STRING>
+        </IF DATEORTIME>
+    </IF CUSTOM_NOT_HARMONY_EXCLUDE>
+</FIELD_LOOP>
 
-	endclass
+            ;;If we have an InitializeCustomFields method then call it.
+            InitializeCustomFields()
+
+        endmethod
+
+        ;;; <summary>
+        ;;; Returns a new <StructureNoplural> object containing data from a record and a GRFA.
+        ;;; </summary>
+        ;;; <param name="dataArea">The record containing the data for the new <StructureNoplural> object.</param>
+        ;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
+        ;;; <returns></returns>
+        public override method MakeNew, @DataObjectBase
+            required in dataArea, a
+            required in grfa, a
+        proc
+            mreturn new <StructureNoplural>(dataArea, grfa)
+        endmethod
+
+        ;;; <summary>
+        ;;; Returns a new <StructureNoplural> object containing data from a record and a GRFA.
+        ;;; </summary>
+        ;;; <param name="dataArea">The record containing the data for the new <StructureNoplural> object.</param>
+        ;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
+        ;;; <param name="joinedObjects">Data to allow the related data properties <IF DEFINED_ENABLE_RELATIONS><IF STRUCTURE_RELATIONS>(<RELATION_LOOP><IF TO_STRUCTURE_INCLUDED><IF MANY_TO_ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY><,and></IF TO_STRUCTURE_INCLUDED></RELATION_LOOP>) </IF STRUCTURE_RELATIONS></IF DEFINED_ENABLE_RELATIONS>to be populated.</param>
+        ;;; <returns></returns>
+        public override method MakeNew, @DataObjectBase
+            required in dataArea, a
+            required in grfa, a
+            required in joinedObjects, [#]KeyValuePair<String, Object>
+        proc
+            data new<StructureNoplural> = new <StructureNoplural>(dataArea, grfa)
+            mreturn new<StructureNoplural>
+
+        endmethod
+
+<IF STRUCTURE_ISAM>
+        ;;; <summary>
+        ;;; Formats a literal value for a key lookup.
+        ;;; </summary>
+        ;;; <param name="keyNumber">Key number.</param>
+        ;;; <param name="parts">Dictionary containing key segment names and values.</param>
+        ;;; <returns></returns>
+        public override method FormatKeyLiteral, a
+            required in keyNumber, int
+            required in parts, @Dictionary<String, Object>
+            endparams
+        proc
+
+            throw new ApplicationException(String.Format("Invalid key number {0} encountered in <StructureNoplural>Metadata.FormatKeyLiteral",keyNumber))
+
+        endmethod
+<ELSE>
+        public override method FormatKeyLiteral, a
+            required in keyNumber, int
+            required in parts, @Dictionary<String, Object>
+        proc
+            mreturn ' '
+        endmethod
+
+</IF STRUCTURE_ISAM>
+
+        ;;;<summary>
+        ;;; Provide a partial method to allow for initialization of custom fields.
+        ;;;</summary>
+        private partial method InitializeCustomFields, void
+
+        endmethod
+
+    endclass
 
 endnamespace

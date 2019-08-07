@@ -1,12 +1,13 @@
-<CODEGEN_FILENAME><INTERFACE_NAME>Dispatcher.dbl</CODEGEN_FILENAME>
+<CODEGEN_FILENAME><StructureNoplural>MetaData.dbl</CODEGEN_FILENAME>
+<OPTIONAL_USERTOKEN>RPSDATAFILES= </OPTIONAL_USERTOKEN>
 <REQUIRES_CODEGEN_VERSION>5.4.1</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
-;// Title:       InterfaceDispatcher.tpl
+;// Title:       DataObjectMetaData.tpl
 ;//
 ;// Type:        CodeGen Template
 ;//
-;// Description: Creates a class that declares dispacher classes for exposed methods
+;// Description: Template to define meta data associated with a data object
 ;//
 ;// Copyright (c) 2018, Synergex International, Inc. All rights reserved.
 ;//
@@ -34,9 +35,9 @@
 ;//
 ;;*****************************************************************************
 ;;
-;; Title:       <INTERFACE_NAME>Dispatcher.dbl
+;; Title:       <StructureNoplural>MetaData.dbl
 ;;
-;; Description: Declares dispacher classes for exposed methods
+;; Description: Defines meta data associated with a data object <StructureNoplural>.
 ;;
 ;;*****************************************************************************
 ;; WARNING: GENERATED CODE!
@@ -45,29 +46,51 @@
 ;;*****************************************************************************
 
 import Harmony.TraditionalBridge
-import <NAMESPACE>.<INTERFACE_NAME>
+
+subroutine Meta<StructureNoplural>
+	required out metadata, @DataObjectMetadataBase
+proc
+	if(<StructureNoplural>.sMetadata == ^null)
+		<StructureNoplural>.sMetadata = new <StructureNoplural>Metadata()
+	metadata = <StructureNoplural>.sMetadata
+	xreturn
+endsubroutine
 
 namespace <NAMESPACE>
 
-    public partial class <INTERFACE_NAME>Dispatcher extends RoutineDispatcher
+	.include "<STRUCTURE_NOALIAS>" repository <RPSDATAFILES>, structure="str<StructureNoplural>", end
 
-        public method <INTERFACE_NAME>Dispatcher
-        proc
-            ;;Harmony Core example methods
-            mDispatchStubs.Add("AddTwoNumbers",  new AddTwoNumbersDispatcher())
-            mDispatchStubs.Add("GetEnvironment", new GetEnvironmentDispatcher())
-            mDispatchStubs.Add("GetLogicalName", new GetLogicalNameDispatcher())
+	public partial class <StructureNoplural>Metadata extends DataObjectMetadataBase
+		
+		public method <StructureNoplural>Metadata
+		proc
+			RPSStructureName = "<STRUCTURE_NOALIAS>"
+			RPSStructureSize = ^size(str<StructureNoplural>)
+<FIELD_LOOP>
+	<IF CUSTOM_NOT_HARMONY_EXCLUDE>
+			;AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false)
+	</IF CUSTOM_NOT_HARMONY_EXCLUDE>
+</FIELD_LOOP>
+		endmethod
 
-            ;;Declare dispatcher classes for the '<INTERFACE_NAME>' interface methods
-            <METHOD_LOOP>
-            mDispatchStubs.Add("<METHOD_NAME>", new <METHOD_NAME>_Dispatcher())
-            </METHOD_LOOP>
+;//TODO: If we're not going to use this we should remove it from the base class and here
+		public override method GetFieldByName, @FieldDataDefinition
+			fieldName, @string
+		proc
+			mreturn ^null
+		endmethod
 
-            ;;Initialize all data object metadata
-            ;this.initMetaData()
-        
-        endmethod
+		public override method MakeNew, @DataObjectBase
+			required in dataArea, a
+			required in grfa, a
+			record
+				new<StructureNoplural>, @<NAMESPACE>.<StructureNoplural>
+		proc
+			new<StructureNoplural> = new <StructureNoplural>(dataArea) 
+			new<StructureNoplural>.GlobalRFA = grfa
+			mreturn new<StructureNoplural>
+		endmethod
 
-    endclass
+	endclass
 
 endnamespace

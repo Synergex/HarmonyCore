@@ -1,12 +1,13 @@
-<CODEGEN_FILENAME><INTERFACE_NAME>Dispatcher.dbl</CODEGEN_FILENAME>
+<CODEGEN_FILENAME>GlobalStructures.dbl</CODEGEN_FILENAME>
+<OPTIONAL_USERTOKEN>RPSDATAFILES= </OPTIONAL_USERTOKEN>
 <REQUIRES_CODEGEN_VERSION>5.4.1</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
-;// Title:       InterfaceDispatcher.tpl
+;// Title:       DataObjectMetaData.tpl
 ;//
 ;// Type:        CodeGen Template
 ;//
-;// Description: Creates a class that declares dispacher classes for exposed methods
+;// Description: Template to define meta data associated with a data object
 ;//
 ;// Copyright (c) 2018, Synergex International, Inc. All rights reserved.
 ;//
@@ -34,9 +35,9 @@
 ;//
 ;;*****************************************************************************
 ;;
-;; Title:       <INTERFACE_NAME>Dispatcher.dbl
+;; Title:       <StructureNoplural>MetaData.dbl
 ;;
-;; Description: Declares dispacher classes for exposed methods
+;; Description: Defines meta data associated with a data object <StructureNoplural>.
 ;;
 ;;*****************************************************************************
 ;; WARNING: GENERATED CODE!
@@ -44,30 +45,9 @@
 ;; Any changes you make will be lost of the file is re-generated.
 ;;*****************************************************************************
 
-import Harmony.TraditionalBridge
-import <NAMESPACE>.<INTERFACE_NAME>
-
 namespace <NAMESPACE>
 
-    public partial class <INTERFACE_NAME>Dispatcher extends RoutineDispatcher
-
-        public method <INTERFACE_NAME>Dispatcher
-        proc
-            ;;Harmony Core example methods
-            mDispatchStubs.Add("AddTwoNumbers",  new AddTwoNumbersDispatcher())
-            mDispatchStubs.Add("GetEnvironment", new GetEnvironmentDispatcher())
-            mDispatchStubs.Add("GetLogicalName", new GetLogicalNameDispatcher())
-
-            ;;Declare dispatcher classes for the '<INTERFACE_NAME>' interface methods
-            <METHOD_LOOP>
-            mDispatchStubs.Add("<METHOD_NAME>", new <METHOD_NAME>_Dispatcher())
-            </METHOD_LOOP>
-
-            ;;Initialize all data object metadata
-            ;this.initMetaData()
-        
-        endmethod
-
-    endclass
-
+<STRUCTURE_LOOP>
+	.include "<STRUCTURE_NOALIAS>" repository <RPSDATAFILES>, structure="<STRUCTURE_NOALIAS>", end
+</STRUCTURE_LOOP>
 endnamespace

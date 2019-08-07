@@ -1,5 +1,4 @@
 <CODEGEN_FILENAME><StructureNoplural>.dbl</CODEGEN_FILENAME>
-<PROCESS_TEMPLATE>ODataMetaData</PROCESS_TEMPLATE>
 <REQUIRES_CODEGEN_VERSION>5.4.1</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
@@ -7,9 +6,9 @@
 ;//
 ;// Type:        CodeGen Template
 ;//
-;// Description: Template to define structure based model with DBL types
+;// Description: Template to define structure based Data Object with CLR types
 ;//
-;// Copyright (c) 2018, Synergex International, Inc. All rights reserved.
+;// Copyright (c) 2012, Synergex International, Inc. All rights reserved.
 ;//
 ;// Redistribution and use in source and binary forms, with or without
 ;// modification, are permitted provided that the following conditions are met:
@@ -46,96 +45,309 @@
 ;; Any changes you make will be lost of the file is re-generated.
 ;;*****************************************************************************
 
-import Harmony.TraditionalBridge
+import System
+import System.Collections.Generic
+import System.ComponentModel.DataAnnotations
+import System.Text
+import Harmony.Core
+import Harmony.Core.Converters
+<IF DEFINED_ENABLE_FIELD_SECURITY>
+import Harmony.OData
+</IF DEFINED_ENABLE_FIELD_SECURITY>
 
 namespace <NAMESPACE>
 
-	public partial class <StructureNoplural> extends DataObjectBase
+    public partial class <StructureNoplural> extends DataObjectBase
 
-		;; Metadata, current record state, and a copy of the original state
-		public static sMetadata, @<StructureNoplural>Metadata
-		private m<StructureNoplural>, str<StructureNoplural> 
-		private mOriginal<StructureNoplural>, str<StructureNoplural> 
-		
-		;;; <summary>
-		;;;  Construct an empty <StructureNoplural> object
-		;;; </summary>
-		public method <StructureNoplural>
-			parent()
-		proc
-			init m<StructureNoplural>, mOriginal<StructureNoplural>
-		endmethod
+        ;;make the record available and a copy
+        private mSynergyData, str<StructureNoplural>
+        private mOriginalSynergyData, str<StructureNoplural>
 
-		;;; <summary>
-		;;;  Construct a <StructureNoplural> object containing data from a record
-		;;; </summary>
-		public method <StructureNoplural>
-			required in inData, str<StructureNoplural>
-			parent()
-		proc
-			m<StructureNoplural> = mOriginal<StructureNoplural> = inData
-		endmethod
+        private static sMetadata, @<StructureNoplural>Metadata
 
-		public override method InternalSynergyRecord, void
-			targetMethod, @AlphaAction
-		proc
-			targetMethod.Run(m<StructureNoplural>, mGlobalRFA)
-		endmethod
-		
-		<FIELD_LOOP>
-		<IF CUSTOM_NOT_HARMONY_EXCLUDE>
-		;;; <summary>
-		;;; <FIELD_DESC>
-		;;; </summary>
-		public property <FieldSqlname>, <field_type>
-			method get
-			proc
-				mreturn m<StructureNoplural>.<field_name>
-			endmethod
-			method set
-			proc
-				m<StructureNoplural>.<field_name> = value
-			endmethod
-		endproperty
+.region "Constructors"
 
-		</IF CUSTOM_NOT_HARMONY_EXCLUDE>
-		</FIELD_LOOP>
-		;;; <summary>
-		;;; Expose the complete synergy record
-		;;; </summary>
-		public override property SynergyRecord, a
-			method get
-			proc
-				mreturn m<StructureNoplural>
-			endmethod
-		endproperty
-		
-		;;; <summary>
-		;;; Expose the complete original synergy record
-		;;; </summary>
-		public override property OriginalSynergyRecord, a
-			method get
-			proc
-				mreturn mOriginal<StructureNoplural>
-			endmethod
-		endproperty
+        static method <StructureNoplural>
+        proc
+            sMetadata = new <StructureNoplural>Metadata()
+            DataObjectMetadataBase.MetadataLookup.TryAdd(^typeof(<StructureNoplural>), sMetadata)
+        endmethod
 
-		;;; <summary>
-		;;; Allow the host to validate all fields. Each field will fire the validation method.
-		;;; </summary>
-		public override method InitialValidateData, void
-		proc
-		endmethod
-		
-		public override property Metadata, @DataObjectMetadataBase
-			method get
-			proc
-				if(sMetadata == ^null)
-					sMetadata = new <StructureNoplural>Metadata()
-				mreturn sMetadata
-			endmethod
-		endproperty
+        ;;; <summary>
+        ;;;  Constructor, initialise the base fields
+        ;;; </summary>
+        public method <StructureNoplural>
+            parent()
+        proc
+            init mSynergyData, mOriginalSynergyData
+        endmethod
 
-	endclass
+        ;;; <summary>
+        ;;;  Alternate Constructor, accepts the structured data
+        ;;; </summary>
+        public method <StructureNoplural>
+            required in inData, a
+            required in inGrfa, a
+            parent()
+        proc
+            mSynergyData = mOriginalSynergyData = inData
+            mGlobalRFA = inGrfa
+        endmethod
+
+.endregion
+
+.region "Attributes of this entity"
+
+<IF STRUCTURE_RELATIVE>
+        ;;; <summary>
+        ;;; Record number
+        ;;; </summary>
+        public readwrite property RecordNumber, int
+
+</IF STRUCTURE_RELATIVE>
+<COUNTER_1_RESET>
+<FIELD_LOOP>
+<IF USER>
+<ELSE>
+    <IF CUSTOM_NOT_HARMONY_EXCLUDE>
+        ;;; <summary>
+        ;;; <FIELD_DESC>
+        ;;; </summary>
+;//
+;// Field property attributes
+;//
+        <IF ONLY_PKSEGMENT>
+        {Key}
+        </IF ONLY_PKSEGMENT>
+        <IF REQUIRED>
+        {Required(ErrorMessage="<FIELD_DESC> is required. ")}
+        </IF REQUIRED>
+        <IF ALPHA>
+        {StringLength(<FIELD_SIZE>, ErrorMessage="<FIELD_DESC> cannot exceed <FIELD_SIZE> characters. ")}
+        </IF ALPHA>
+        <IF DECIMAL>
+        <IF CUSTOM_NOT_HARMONY_AS_STRING>
+        {Range(<FIELD_MINVALUE>,<FIELD_MAXVALUE>, ErrorMessage="<FIELD_DESC> must be between <FIELD_MINVALUE> and <FIELD_MAXVALUE>. ")}
+        </IF CUSTOM_NOT_HARMONY_AS_STRING>
+        </IF DECIMAL>
+        <IF INTEGER>
+        {Range(<FIELD_MINVALUE>,<FIELD_MAXVALUE>, ErrorMessage="<FIELD_DESC> must be between <FIELD_MINVALUE> and <FIELD_MAXVALUE>. ")}
+        </IF INTEGER>
+;//
+;// Field property
+;//
+        <IF DEFINED_ENABLE_FIELD_SECURITY>
+        <IF CUSTOM_HARMONY_AUTHENTICATE>
+        {AuthorizeField}
+        </IF CUSTOM_HARMONY_AUTHENTICATE>
+        <IF HARMONY_ROLES>
+        {AuthorizeField("<HARMONY_ROLES>")}
+        </IF HARMONY_ROLES>
+        </IF DEFINED_ENABLE_FIELD_SECURITY>
+        <COUNTER_1_INCREMENT>
+<IF CUSTOM_HARMONY_AS_STRING>
+        public property <FieldSqlname>, String
+<ELSE>
+        public property <FieldSqlname>, <FIELD_CSTYPE>
+</IF CUSTOM_HARMONY_AS_STRING>
+;//
+;// Field property get method
+;//
+            method get
+            proc
+        <IF ALPHA>
+                mreturn (<FIELD_CSTYPE>)SynergyAlphaConverter.Convert(mSynergyData.<field_original_name_modified>, ^null, ^null, ^null)
+        </IF ALPHA>
+        <IF DATE>
+            <IF CUSTOM_HARMONY_AS_STRING>
+                mreturn %string(mSynergyData.<field_original_name_modified>,"XXXX-XX-XX")
+            <ELSE>
+                data formatString = "YYYYMMDD"
+                <IF DATE_YYMMDD>
+                formatString = "YYMMDD"
+                </IF DATE_YYMMDD>
+                <IF DATE_YYYYJJJ>
+                formatString = "YYYYJJJ"
+                </IF DATE_YYYYJJJ>
+                mreturn (<FIELD_CSTYPE>)SynergyDecimalDateConverter.Convert(mSynergyData.<field_original_name_modified>, ^null, formatString, ^null)
+            </IF CUSTOM_HARMONY_AS_STRING>
+        </IF DATE>
+        <IF TIME_HHMM>
+            <IF CUSTOM_HARMONY_AS_STRING>
+                mreturn %string(mSynergyData.<field_original_name_modified>,"XX:XX")
+            <ELSE>
+                mreturn Convert.ToDateTime(%string(mSynergyData.<field_original_name_modified>,"XX:XX"))
+            </IF CUSTOM_HARMONY_AS_STRING>
+        </IF TIME_HHMM>
+        <IF TIME_HHMMSS>
+            <IF CUSTOM_HARMONY_AS_STRING>
+                mreturn %string(mSynergyData.<field_original_name_modified>,"XX:XX:XX")
+            <ELSE>
+                mreturn Convert.ToDateTime(%string(mSynergyData.<field_original_name_modified>,"XX:XX:XX"))
+            </IF CUSTOM_HARMONY_AS_STRING>
+        </IF TIME_HHMMSS>
+        <IF DECIMAL>
+            <IF CUSTOM_HARMONY_AS_STRING>
+                <IF PRECISION>
+                mreturn %string(SynergyImpliedDecimalConverter.Convert(mSynergyData.<field_original_name_modified>, ^null, "DECIMALPLACES#<FIELD_PRECISION>", ^null),"<FIELD_FORMATSTRING>")
+                <ELSE>
+                mreturn %string(mSynergyData.<field_original_name_modified>,"<FIELD_FORMATSTRING>")
+                </IF PRECISION>
+            <ELSE>
+                <IF PRECISION>
+                mreturn (<FIELD_CSTYPE>)SynergyImpliedDecimalConverter.Convert(mSynergyData.<field_original_name_modified>, ^null, "DECIMALPLACES#<FIELD_PRECISION>", ^null)
+                <ELSE>
+                mreturn (<FIELD_CSTYPE>)mSynergyData.<field_original_name_modified>
+                </IF PRECISION>
+            </IF CUSTOM_HARMONY_AS_STRING>
+        </IF DECIMAL>
+        <IF INTEGER>
+                mreturn (<FIELD_CSTYPE>)mSynergyData.<field_original_name_modified>
+        </IF INTEGER>
+        <IF AUTO_SEQUENCE>
+                mreturn (<FIELD_CSTYPE>)mSynergyData.<field_original_name_modified>
+        </IF AUTO_SEQUENCE>
+        <IF AUTO_TIMESTAMP>
+                mreturn (<FIELD_CSTYPE>)mSynergyData.<field_original_name_modified>
+        </IF AUTO_TIMESTAMP>
+            endmethod
+;//
+;// Field property set method
+;//
+            method set
+            proc
+        <IF DEFINED_ENABLE_READ_ONLY_PROPERTIES>
+        <IF READONLY>
+                throw new ApplicationException("Property <FieldSqlname> is read only!")
+        </IF READONLY>
+        </IF DEFINED_ENABLE_READ_ONLY_PROPERTIES>
+        <IF ALPHA>
+                mSynergyData.<field_original_name_modified> = (<FIELD_TYPE>)SynergyAlphaConverter.ConvertBack(value<IF UPPERCASE>.ToUpper()</IF UPPERCASE>, ^null, ^null, ^null)
+        </IF ALPHA>
+        <IF DATE>
+            <IF CUSTOM_HARMONY_AS_STRING>
+                mSynergyData.<field_original_name_modified> = SynergyDecimalConverter.ConvertBack(value,"XXXX-XX-XX")
+            <ELSE>
+                data formatString = "YYYYMMDD"
+                <IF DATE_YYMMDD>
+                formatString = "YYMMDD"
+                </IF DATE_YYMMDD>
+                <IF DATE_YYYYJJJ>
+                formatString = "YYYYJJJ"
+                </IF DATE_YYYYJJJ>
+                mSynergyData.<field_original_name_modified> = (<FIELD_TYPE>)SynergyDecimalDateConverter.ConvertBack(value, ^null, formatString, ^null)
+            </IF CUSTOM_HARMONY_AS_STRING>
+        </IF DATE>
+        <IF TIME_HHMM>
+            <IF CUSTOM_HARMONY_AS_STRING>
+                mSynergyData.<field_original_name_modified> = SynergyDecimalConverter.ConvertBack(value,"XX:XX")
+            <ELSE>
+                mSynergyData.<field_original_name_modified> = (value.Hour * 100) + value.Minute
+            </IF CUSTOM_HARMONY_AS_STRING>
+        </IF TIME_HHMM>
+        <IF TIME_HHMMSS>
+            <IF CUSTOM_HARMONY_AS_STRING>
+                mSynergyData.<field_original_name_modified> = SynergyDecimalConverter.ConvertBack(value,"XX:XX:XX")
+            <ELSE>
+                mSynergyData.<field_original_name_modified> = (value.Hour * 10000) + (value.Minute * 100) + value.Second
+            </IF CUSTOM_HARMONY_AS_STRING>
+        </IF TIME_HHMMSS>
+        <IF DECIMAL>
+            <IF CUSTOM_HARMONY_AS_STRING>
+                <IF PRECISION>
+                mSynergyData.<field_original_name_modified> = SynergyImpliedDecimalConverter.ConvertBack(value,"<FIELD_FORMATSTRING>")
+                <ELSE>
+                mSynergyData.<field_original_name_modified> = SynergyDecimalConverter.ConvertBack(value,"<FIELD_FORMATSTRING>")
+                </IF PRECISION>
+            <ELSE>
+                mSynergyData.<field_original_name_modified> = value
+            </IF CUSTOM_HARMONY_AS_STRING>
+        </IF DECIMAL>
+        <IF INTEGER>
+                mSynergyData.<field_original_name_modified> = value
+        </IF INTEGER>
+        <IF AUTO_SEQUENCE>
+                mSynergyData.<field_original_name_modified> = value
+        </IF AUTO_SEQUENCE>
+        <IF AUTO_TIMESTAMP>
+                mSynergyData.<field_original_name_modified> = value
+        </IF AUTO_TIMESTAMP>
+            endmethod
+;//
+;// End of field property
+;//
+        endproperty
+
+    </IF CUSTOM_NOT_HARMONY_EXCLUDE>
+</IF USER>
+</FIELD_LOOP>
+.endregion
+;//
+;//
+;//
+
+.region "Other attributes"
+
+        ;;; <summary>
+        ;;; Expose the complete synergy record
+        ;;; </summary>
+        public override property SynergyRecord, a
+            method get
+            proc
+                mreturn mSynergyData
+            endmethod
+        endproperty
+
+        ;;; <summary>
+        ;;; Expose the complete original synergy record
+        ;;; </summary>
+        public override property OriginalSynergyRecord, a
+            method get
+            proc
+                mreturn mOriginalSynergyData
+            endmethod
+        endproperty
+
+        ;;; <summary>
+        ;;; Metadata describing the public field properties
+        ;;; </summary>
+        public override property Metadata, @DataObjectMetadataBase
+            method get
+            proc
+                mreturn sMetadata
+            endmethod
+        endproperty
+
+.endregion
+
+.region "Public methods"
+
+        ;;; <summary>
+        ;;;
+        ;;; </summary>
+        public override method InternalSynergyRecord, void
+            targetMethod, @AlphaAction
+        proc
+            targetMethod(mSynergyData, mGlobalRFA)
+        endmethod
+
+        ;;; <summary>
+        ;;; Allow the host to validate all fields. Each field will fire the validation method.
+        ;;; </summary>
+        public override method InitialValidateData, void
+        proc
+        endmethod
+
+        ;;; <summary>
+        ;;;
+        ;;; </summary>
+        public override method InternalGetValues, [#]@object
+        proc
+            ;;TODO: This should be returning boxed values for each of our fields
+            mreturn new Object[<COUNTER_1_VALUE>]
+        endmethod
+
+.endregion
+endclass
 
 endnamespace
