@@ -169,7 +169,6 @@ namespace <NAMESPACE>
                 <IF DATE_YYYYJJJ>
                 formatString = "YYYYJJJ"
                 </IF DATE_YYYYJJJ>
-                ;;mreturn (<FIELD_SNTYPE>)SynergyDecimalDateConverter.Convert(mSynergyData.<field_original_name_modified>, ^null, formatString, ^null)
                 mreturn SynergyDecimalDateConverter.Convert(mSynergyData.<field_original_name_modified>, ^null, formatString, ^null)
             </IF CUSTOM_HARMONY_AS_STRING>
         </IF DATE>
