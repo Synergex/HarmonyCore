@@ -259,11 +259,11 @@ namespace <NAMESPACE>
                 o.TokenValidationParameters = new TokenValidationParameters()
                 &    {
                 &    ValidateIssuer = true,
-                &    ValidIssuer = "Radley",
+                &    ValidIssuer = "<CUSTOM_JWT_ISSUER>",
                 &    ValidateAudience = true,
-                &    ValidAudience = "RADLEYAPI",
+                &    ValidAudience = "<CUSTOM_JWT_AUDIENCE>",
                 &    ValidateIssuerSigningKey = true,
-                &    IssuerSigningKey = new SymmetricSecurityKey(AuthTools.GetKey())
+                &    IssuerSigningKey = new SymmetricSecurityKey(<OAUTH_KEY>)
                 &    }
 		    <IF DEFINED_ENABLE_SIGNALR>
 
