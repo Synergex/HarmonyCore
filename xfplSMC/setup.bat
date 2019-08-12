@@ -106,10 +106,14 @@ set PROJECT=TraditionalBridge.Test
 set NAMESPACE=TraditionalBridge.Test
 set TESTPROJECT=TraditionalBridge.TestClient
 
-rem Unit Testing
-rem Generate the test environment
-codegen -s %DATA_STRUCTURES% -a %DATA_STRUCTURES% -t ODataModel ODataMetaData -i %TEMPLATEROOT% -o %TESTPROJECT%\Models -n %TESTPROJECT%.Models -e -r -lf
+rem Generate a Web API / OData CRUD environment
+rem Generate model and metadata classes
+codegen -s %DATA_STRUCTURES% -t ODataModel ODataMetaData -i %TEMPLATEROOT% -o %SolutionDir%TraditionalBridge.Models -n TraditionalBridge.Models -e -r -lf
 if ERRORLEVEL 1 goto error
+
+rem Unit testing project
+rem Generate OData client model, data loader and unit test classes
+
 
 rem Models
 codegen -s %DATA_STRUCTURES% -t TraditionalModel TraditionalMetaData -i %TEMPLATEROOT% -o %PROJECT%\Models -n %NAMESPACE%.Models -e -r -lf
