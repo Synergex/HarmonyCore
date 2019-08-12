@@ -75,9 +75,10 @@ namespace Services
             required in app, @IApplicationBuilder
             required in env, @IHostingEnvironment
         proc
+            
             ;;TODO there is a compiler bug with extension methods here
-            ;;		data contextPool = (@ExternalContextPool<ExternalCallContext>)app.ApplicationServices.GetService<IContextFactory<ExternalCallContext>>()
-            ;data contextPool = (@ExternalContextPool<ExternalCallContext>)app.ApplicationServices.GetService(^typeof(IContextFactory<ExternalCallContext>))
+            ;data contextPool = (@ExternalContextPool<ExternalCallContext>)app.ApplicationServices.GetService<IContextFactory<ExternalCallContext>>()
+            ;contextPool = (@ExternalContextPool<ExternalCallContext>)app.ApplicationServices.GetService(^typeof(IContextFactory<ExternalCallContext>))
             ;Task.WaitAll(contextPool.RealizeMinimumPoolSize(app.ApplicationServices))
             ;app.UseEagerContext<ExternalCallContext>(contextPool)
             

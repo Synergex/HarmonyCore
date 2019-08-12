@@ -59,8 +59,6 @@ namespace Harmony.OData
                 ;;  PERF: These are rarely going to be changed, so let's go copy-on-write.
                 controllerContext.ValueProviderFactories = new CopyOnWriteList<IValueProviderFactory>(_valueProviderFactories)
                 controllerContext.ModelState.MaxAllowedErrors = _maxModelValidationErrors
-                ;;TODO compiler bug this shouldnt compile, but it produces invalid il
-                ;;data invoker = new HarmonySprocActionInvoker(_logger, _diagnosticSource, _mapper, controllerContext, context.ActionContext.ActionDescriptor.FilterDescriptors.Select(lambda(desc) { desc.Filter }).ToArray(), _serviceProvider)
                 data invoker = new HarmonySprocActionInvoker(_logger, _diagnosticSource, _mapper, controllerContext, context.ActionContext.ActionDescriptor.FilterDescriptors.Select(lambda(desc) { desc.Filter }).ToArray(), context.ActionContext.HttpContext.RequestServices)
                 context.Result = invoker
             end

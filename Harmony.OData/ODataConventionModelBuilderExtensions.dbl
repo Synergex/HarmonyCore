@@ -221,9 +221,8 @@ namespace Harmony.OData
             builder, @ODataModelBuilder
             namespaceName, @string
         proc
-            data singletonConfig, @SingletonConfiguration<EntityTypeWrapper<T>>, String.IsNullOrWhiteSpace(namespaceName) ? ^null : builder.Singleton<EntityTypeWrapper<T>>(namespaceName)
-            data entityConfig, @EntityTypeConfiguration<EntityTypeWrapper<T>>, builder.EntityType<EntityTypeWrapper<T>>()
-            data targetType = ^typeof(T)
+            data singletonConfig = String.IsNullOrWhiteSpace(namespaceName) ? ^null : builder.Singleton<EntityTypeWrapper<T>>(namespaceName)
+            data entityConfig = builder.EntityType<EntityTypeWrapper<T>>()
             data targetMethod, @MethodInfo
             HarmonySprocRoutingConvention.AddSprocDispatcher<T>(namespaceName)
             data entitySetLookup = new Dictionary<Type, EntitySetConfiguration>()
@@ -234,9 +233,9 @@ namespace Harmony.OData
                     entitySetLookup.Add(eSet.ClrType, eSet)
             end
 
-            foreach targetMethod in targetType.GetMethods()
+            foreach targetMethod in ^typeof(T).GetMethods()
             begin
-                if(targetMethod.DeclaringType != targetType || targetMethod.IsSpecialName || targetMethod.Name.Contains("$"))
+                if(targetMethod.DeclaringType != ^typeof(T) || targetMethod.IsSpecialName || targetMethod.Name.Contains("$"))
                     nextloop
 
                 data securityAttribute = targetMethod.GetCustomAttribute<MethodSecurityAttribute>(false)

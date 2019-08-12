@@ -535,9 +535,7 @@ namespace Harmony.OData
             end
 
             data conversionRoutine = Expression.Lambda<Func<Task<IActionResult>>>(resultExpression, new ParameterExpression[0])
-            ;;TODO investigate compiler bug here, fails at runtime, something wrong with the type info
-            ;;data wrapResponseMethod = thisType.GetMethod("WrapResponseForExceptions")
-            data wrapResponseMethod = this.GetType().GetMethod("WrapResponseForExceptions")
+            data wrapResponseMethod = ^typeof(HarmonySprocActionInvoker).GetMethod("WrapResponseForExceptions")
             data responseWrapper = Expression.Call(wrapResponseMethod, conversionRoutine)
             ;;todo investigate compiler bug here
             ;;data resultLambdaExpression = Expression.Lambda<Func<IDictionary<object, object>, string, IServiceProvider, IActionResult>>(responseWrapper, new ParameterExpression[#] { uriArguments, bodyString })

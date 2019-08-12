@@ -159,8 +159,8 @@ namespace <NAMESPACE>
 
             ;;Add an AppSettings service.
             ;;To get an instance from DI ask for an @IOptions<AppSettings>
-
-            services.AddOptions<AppSettings>().Validate(GetAppSettings).Bind(_config.GetSection("AppSettings"))
+			if(_config != ^null)
+                services.AddOptions<AppSettings>().Validate(GetAppSettings).Bind(_config.GetSection("AppSettings"))
 
             ;;-------------------------------------------------------
             ;;Load Harmony Core
