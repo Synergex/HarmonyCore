@@ -7,7 +7,6 @@
 <REQUIRES_USERTOKEN>OAUTH_API</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>OAUTH_SERVER</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVER_HTTPS_PORT</REQUIRES_USERTOKEN>
-<REQUIRES_USERTOKEN>SIGNALR_PATH</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
 ;// Title:       ODataEdmBuilder.tpl
@@ -260,11 +259,11 @@ namespace <NAMESPACE>
                 o.TokenValidationParameters = new TokenValidationParameters()
                 &    {
                 &    ValidateIssuer = true,
-                &    ValidIssuer = "Radley",
+                &    ValidIssuer = "<CUSTOM_JWT_ISSUER>",
                 &    ValidateAudience = true,
-                &    ValidAudience = "RADLEYAPI",
+                &    ValidAudience = "<CUSTOM_JWT_AUDIENCE>",
                 &    ValidateIssuerSigningKey = true,
-                &    IssuerSigningKey = new SymmetricSecurityKey(AuthTools.GetKey())
+                &    IssuerSigningKey = new SymmetricSecurityKey(<OAUTH_KEY>)
                 &    }
 		    <IF DEFINED_ENABLE_SIGNALR>
 

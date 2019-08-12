@@ -53,18 +53,13 @@ namespace <NAMESPACE>
 
         public method <INTERFACE_NAME>Dispatcher
         proc
-            ;;Harmony Core example methods
-            mDispatchStubs.Add("AddTwoNumbers",  new AddTwoNumbersDispatcher())
-            mDispatchStubs.Add("GetEnvironment", new GetEnvironmentDispatcher())
-            mDispatchStubs.Add("GetLogicalName", new GetLogicalNameDispatcher())
-
             ;;Declare dispatcher classes for the '<INTERFACE_NAME>' interface methods
             <METHOD_LOOP>
             mDispatchStubs.Add("<METHOD_NAME>", new <METHOD_NAME>_Dispatcher())
             </METHOD_LOOP>
 
             ;;Initialize all data object metadata
-            ;this.initMetaData()
+            this.initMetaData()
         
         endmethod
 
