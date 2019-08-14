@@ -16,6 +16,8 @@ import Microsoft.AspNetCore.Mvc.Infrastructure
 import Microsoft.AspNet.OData.Query
 import Microsoft.AspNet.OData
 import Microsoft.OData.Edm
+import Microsoft.AspNetCore.Mvc.Internal
+import Microsoft.AspNetCore.Mvc.ActionConstraints
 
 namespace Harmony.OData.Adapter
 
@@ -65,7 +67,22 @@ namespace Harmony.OData.Adapter
 			data descriptor, @ControllerActionDescriptor
 			data result = new Dictionary<string, ControllerActionDescriptor>()
 			foreach descriptor in descriptors
-			begin
+            begin
+                data callableMethodConfig, @CallableMethodConfigurationAttribute
+                callableMethodConfig = descriptor.MethodInfo.GetCustomAttribute<CallableMethodConfigurationAttribute>(false)
+                if(callableMethodConfig != ^null)
+                begin
+                    if(descriptor.ActionConstraints != ^null) then
+                        descriptor.ActionConstraints.Clear()
+                    else
+                        descriptor.ActionConstraints = new List<IActionConstraintMetadata>()
+
+                    if(callableMethodConfig.IsFunction) then
+                        descriptor.ActionConstraints.Add(new HttpMethodActionConstraint(new string[#] { "GET" }))
+                    else
+                        descriptor.ActionConstraints.Add(new HttpMethodActionConstraint(new string[#] { "POST" }))
+                end
+
 				if(!result.ContainsKey(descriptor.ActionName))
 				begin
 					result.Add(descriptor.ActionName, descriptor)

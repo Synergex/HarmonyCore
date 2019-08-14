@@ -16,11 +16,13 @@ import Microsoft.AspNetCore.Mvc.Infrastructure
 import Microsoft.AspNet.OData.Query
 import Microsoft.AspNet.OData
 import Microsoft.OData.Edm
+import Microsoft.AspNetCore.Mvc.Internal
+import Microsoft.AspNetCore.Mvc.ActionConstraints
 
 namespace Harmony.OData
 
     public class HarmonySprocRoutingConvention implements IODataRoutingConvention
-        private static SprocDispatcherLookup, @ConcurrentDictionary<string, Type>, new ConcurrentDictionary<String, Type>()
+        internal static SprocDispatcherLookup, @ConcurrentDictionary<string, Type>, new ConcurrentDictionary<String, Type>()
 
         public static method AddSprocDispatcher<T>, void
             singletonType, @string
@@ -49,11 +51,13 @@ namespace Harmony.OData
                 end
             end
             else if(odataPath.PathTemplate == "~/singleton/action"||
-            &    odataPath.PathTemplate == "~/singleton/function")
+            &    odataPath.PathTemplate == "~/singleton/function" ||
+            &    odataPath.PathTemplate == "~/singleton/unresolved")
             begin
-			data opSeg, @OperationSegment, ^as(odataPath.Segments[1], OperationSegment)
+                data opSeg, @OperationSegment, ^as(odataPath.Segments[1], OperationSegment)
+                data unresolvedSeg = ^as(odataPath.Segments[1], UnresolvedPathSegment)
                 data singletonSeg, @SingletonSegment, ^as(odataPath.Segments[0], SingletonSegment)
-                if (opSeg != ^null && singletonSeg != ^null)
+                if ((opSeg != ^null || unresolvedSeg != ^null) && singletonSeg != ^null)
                 begin
                     data dispatcherType, @Type
                     if(SprocDispatcherLookup.TryGetValue(singletonSeg.Identifier, dispatcherType))
@@ -61,14 +65,33 @@ namespace Harmony.OData
                         data realControllerType = dispatcherType.GenericTypeArguments[1] 
                         data controllerTypeInfo = realControllerType.GetTypeInfo()
                         data actionCollectionProvider = (@IActionDescriptorCollectionProvider)routeContext.HttpContext.RequestServices.GetService(^typeof(IActionDescriptorCollectionProvider))
-                        data opName = opSeg.Identifier
+                        data opName = opSeg?.Identifier ?? unresolvedSeg?.SegmentValue
                         if(String.IsNullOrEmpty(opName) && opSeg.Operations != ^null)
                             opName = opSeg.Operations.First().Name
 
                         data actionDescriptor = actionCollectionProvider.ActionDescriptors.Items.OfType<ControllerActionDescriptor>().FirstOrDefault(lambda(aDesc) { aDesc.ControllerTypeInfo == controllerTypeInfo && string.Compare(aDesc.ActionName, opName, true) == 0 }) 
                         if(actionDescriptor != ^null)
                         begin
-							actionDescriptor.RouteValues["HarmonySprocRouteSentinel"] = ""
+                            if(!actionDescriptor.RouteValues.ContainsKey("HarmonySprocRouteSentinel"))
+                            begin
+                                data callableMethodConfig, @CallableMethodConfigurationAttribute
+                                callableMethodConfig = actionDescriptor.MethodInfo.GetCustomAttribute<CallableMethodConfigurationAttribute>(false)
+                                if(callableMethodConfig != ^null)
+                                begin
+                                     if(actionDescriptor.ActionConstraints != ^null) then
+                                        actionDescriptor.ActionConstraints.Clear()
+                                    else
+                                        actionDescriptor.ActionConstraints = new List<IActionConstraintMetadata>()
+
+                                    if(callableMethodConfig.IsFunction) then
+                                        actionDescriptor.ActionConstraints.Add(new HttpMethodActionConstraint(new string[#] { "GET" }))
+                                    else
+                                        actionDescriptor.ActionConstraints.Add(new HttpMethodActionConstraint(new string[#] { "POST" }))
+                                end
+
+                                    actionDescriptor.RouteValues["HarmonySprocRouteSentinel"] = ""
+                            end
+
                             mreturn new List<ControllerActionDescriptor>() { actionDescriptor }
                         end
 

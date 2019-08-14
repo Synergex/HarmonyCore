@@ -32,7 +32,7 @@ namespace Services.Test.UnitTests
         public method GetItems, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/Items").Result
+            disposable data response = client.GetAsync("/odata/v1/Items").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
             data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
@@ -45,7 +45,7 @@ namespace Services.Test.UnitTests
         {TestCategory("Item Tests - Read All")}
         public method GetItems_Expand_REL_Vendor, void
         proc
-            data uri = "/odata/Items?$expand=REL_Vendor"
+            data uri = "/odata/v1/Items?$expand=REL_Vendor"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync(uri).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -59,7 +59,7 @@ namespace Services.Test.UnitTests
         {TestCategory("Item Tests - Read All")}
         public method GetItems_Expand_REL_OrderItems, void
         proc
-            data uri = "/odata/Items?$expand=REL_OrderItems"
+            data uri = "/odata/v1/Items?$expand=REL_OrderItems"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync(uri).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -73,7 +73,7 @@ namespace Services.Test.UnitTests
         {TestCategory("Item Tests - Read All")}
         public method GetItems_Expand_All, void
         proc
-            data uri = "/odata/Items?$expand=REL_Vendor,REL_OrderItems"
+            data uri = "/odata/v1/Items?$expand=REL_Vendor,REL_OrderItems"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync(uri).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -88,7 +88,7 @@ namespace Services.Test.UnitTests
         public method GetItem, void
         proc
             data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/Items(ItemNumber={1})","",TestConstants.GetItem_ItemNumber)
+            data request = String.Format("/odata/v1/Items(ItemNumber={1})","",TestConstants.GetItem_ItemNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
@@ -103,7 +103,7 @@ namespace Services.Test.UnitTests
         public method GetItem_Expand_REL_Vendor, void
         proc
             data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/Items(ItemNumber={1})?$expand=REL_Vendor","",TestConstants.GetItem_Expand_REL_Vendor_ItemNumber)
+            data request = String.Format("/odata/v1/Items(ItemNumber={1})?$expand=REL_Vendor","",TestConstants.GetItem_Expand_REL_Vendor_ItemNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
@@ -118,7 +118,7 @@ namespace Services.Test.UnitTests
         public method GetItem_Expand_REL_OrderItems, void
         proc
             data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/Items(ItemNumber={1})?$expand=REL_OrderItems","",TestConstants.GetItem_Expand_REL_OrderItems_ItemNumber)
+            data request = String.Format("/odata/v1/Items(ItemNumber={1})?$expand=REL_OrderItems","",TestConstants.GetItem_Expand_REL_OrderItems_ItemNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
@@ -133,7 +133,7 @@ namespace Services.Test.UnitTests
         public method GetItem_Expand_All, void
         proc
             data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/Items(ItemNumber={1})?$expand=REL_Vendor,REL_OrderItems","",TestConstants.GetItem_Expand_All_ItemNumber)
+            data request = String.Format("/odata/v1/Items(ItemNumber={1})?$expand=REL_Vendor,REL_OrderItems","",TestConstants.GetItem_Expand_All_ItemNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
@@ -148,7 +148,7 @@ namespace Services.Test.UnitTests
         public method GetItem_ByAltKey_VendorNumber, void
         proc
             data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/Items(VendorNumber={1})", "", TestConstants.GetItem_ByAltKey_VendorNumber_VendorNumber)
+            data request = String.Format("/odata/v1/Items(VendorNumber={1})", "", TestConstants.GetItem_ByAltKey_VendorNumber_VendorNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
@@ -163,7 +163,7 @@ namespace Services.Test.UnitTests
         public method GetItem_ByAltKey_Color, void
         proc
             data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/Items(FlowerColor='{1}')", "", TestConstants.GetItem_ByAltKey_Color_FlowerColor)
+            data request = String.Format("/odata/v1/Items(FlowerColor='{1}')", "", TestConstants.GetItem_ByAltKey_Color_FlowerColor)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
@@ -178,7 +178,7 @@ namespace Services.Test.UnitTests
         public method GetItem_ByAltKey_Size, void
         proc
             data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/Items(Size={1})", "", TestConstants.GetItem_ByAltKey_Size_Size)
+            data request = String.Format("/odata/v1/Items(Size={1})", "", TestConstants.GetItem_ByAltKey_Size_Size)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
@@ -193,7 +193,7 @@ namespace Services.Test.UnitTests
         public method GetItem_ByAltKey_Name, void
         proc
             data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/Items(CommonName='{1}')", "", TestConstants.GetItem_ByAltKey_Name_CommonName)
+            data request = String.Format("/odata/v1/Items(CommonName='{1}')", "", TestConstants.GetItem_ByAltKey_Name_CommonName)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
@@ -210,7 +210,7 @@ namespace Services.Test.UnitTests
             disposable data client = UnitTestEnvironment.Server.CreateClient()
 
             ;;Get one item from the file
-            data getRequest = String.Format("/odata/Items({1})","",TestConstants.GetItem_ItemNumber)
+            data getRequest = String.Format("/odata/v1/Items({1})","",TestConstants.GetItem_ItemNumber)
             data getResponse = client.GetAsync(getRequest).Result
             data getResult = getResponse.Content.ReadAsStringAsync().Result
 
@@ -226,7 +226,7 @@ namespace Services.Test.UnitTests
 
             ;;Create new item
             disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doItem),System.Text.Encoding.UTF8, "application/json")
-            data request = String.Format("/odata/Items({1})","",TestConstants.UpdateItem_ItemNumber)
+            data request = String.Format("/odata/v1/Items({1})","",TestConstants.UpdateItem_ItemNumber)
             disposable data response = client.PutAsync(request, requestBody).Result
 
             ;;Check that we got a successful response from the web service
@@ -247,7 +247,7 @@ namespace Services.Test.UnitTests
 
             ;;Update full item
             requestBody = new StringContent(JsonConvert.SerializeObject(doItem),System.Text.Encoding.UTF8, "application/json")
-            request = String.Format("/odata/Items({1})","",TestConstants.UpdateItem_ItemNumber)
+            request = String.Format("/odata/v1/Items({1})","",TestConstants.UpdateItem_ItemNumber)
             response = client.PutAsync(request, requestBody).Result
 
             ;;Check that we got a successful response from the web service

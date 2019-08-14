@@ -16,6 +16,8 @@ import Harmony.OData
 import Microsoft.EntityFrameworkCore
 import Microsoft.OData.Edm
 import Microsoft.AspNet.OData.Builder
+import Microsoft.AspNetCore.Mvc
+import Microsoft.AspNetCore.Mvc.Versioning.Conventions
 import System.Collections.Generic
 import Services.Models
 
@@ -25,6 +27,14 @@ namespace Services
     ;;; Builds an entity framework entity data model.
     ;;; </summary>
     public partial class EdmBuilder implements IEdmBuilder
+
+        static method EdmBuilder
+        proc
+            CustomStaticEdmInit()
+
+            if(mEdmVersions.Count == 0)
+                mEdmVersions.Add(1)
+        endmethod
 
         public method EdmBuilder
             serviceProvider, @IServiceProvider
@@ -40,14 +50,41 @@ namespace Services
         endmethod
 
         private mServiceProvider, @IServiceProvider
-        private static mEdmModel, @IEdmModel
+        private static mEdmModels, @Dictionary<int, IEdmModel>, new Dictionary<int, IEdmModel>()
+        private static mEdmVersions, @List<int>, new List<int>()
 
         public static method GetEdmModel, @IEdmModel
             required in serviceProvider, @IServiceProvider
+            required in versionNumber, int
         proc
-            if(mEdmModel == ^null)
-                mEdmModel = GetEdmModel(new ODataConventionModelBuilder(serviceProvider), serviceProvider)
-            mreturn mEdmModel
+            if(!mEdmModels.ContainsKey(versionNumber))
+            begin
+                FillVersionedEdmModels(serviceProvider, versionNumber)
+
+                if(!mEdmModels.ContainsKey(versionNumber))
+                begin
+                    data madeModel = GetEdmModel(new ODataConventionModelBuilder(serviceProvider), serviceProvider)
+                    madeModel.SetAnnotationValue(madeModel, new ApiVersionAnnotation(new ApiVersion(versionNumber, 0)))
+                    mEdmModels.Add(versionNumber, madeModel)
+                end
+            end
+            mreturn mEdmModels[versionNumber]
+        endmethod
+
+        public static property EdmVersions, @IEnumerable<int>
+            method get
+            proc
+                mreturn mEdmVersions
+            endmethod
+        endproperty
+
+        private static partial method FillVersionedEdmModels, void
+            required in serviceProvider, @IServiceProvider
+            required in versionNumber, int
+        endmethod
+
+        private static partial method CustomStaticEdmInit, void
+        
         endmethod
 
         ;;; <summary>
