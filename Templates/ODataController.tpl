@@ -68,6 +68,9 @@ namespace <NAMESPACE>
 <IF DEFINED_ENABLE_AUTHENTICATION>
     {Authorize}
 </IF DEFINED_ENABLE_AUTHENTICATION>
+<IF DEFINED_ENABLE_API_VERSIONING>
+    ;{ApiVersion( "1.0" )}
+</IF DEFINED_ENABLE_API_VERSIONING>
     ;;; <summary>
     ;;; OData controller for <StructurePlural>
     ;;; </summary>

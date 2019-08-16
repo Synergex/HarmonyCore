@@ -88,11 +88,6 @@ import Microsoft.Extensions.Primitives
 import Microsoft.IdentityModel.Tokens
 </IF DEFINED_ENABLE_CUSTOM_AUTHENTICATION>
 </IF DEFINED_ENABLE_AUTHENTICATION>
-<IF DEFINED_ENABLE_API_VERSIONING>
-import Microsoft.AspNetCore.Mvc.ApiExplorer
-import Swashbuckle.AspNetCore.Swagger
-import Microsoft.AspNetCore.Mvc
-</IF DEFINED_ENABLE_API_VERSIONING>
 import Microsoft.OData
 import Microsoft.OData.Edm
 import Microsoft.OData.UriParser
@@ -103,6 +98,11 @@ import System.Text
 import System.Threading.Tasks
 import <CONTROLLERS_NAMESPACE>
 import <MODELS_NAMESPACE>
+<IF DEFINED_ENABLE_API_VERSIONING>
+import Microsoft.AspNetCore.Mvc.ApiExplorer
+import Swashbuckle.AspNetCore.Swagger
+import Microsoft.AspNetCore.Mvc
+</IF DEFINED_ENABLE_API_VERSIONING>
 
 namespace <NAMESPACE>
 
@@ -163,7 +163,7 @@ namespace <NAMESPACE>
 
             ;;Add an AppSettings service.
             ;;To get an instance from DI ask for an @IOptions<AppSettings>
-			if(_config != ^null)
+            if(_config != ^null)
                 services.AddOptions<AppSettings>().Validate(GetAppSettings).Bind(_config.GetSection("AppSettings"))
 
             ;;-------------------------------------------------------
@@ -194,7 +194,7 @@ namespace <NAMESPACE>
             ;;Load OData and ASP.NET
 
         <IF DEFINED_ENABLE_API_VERSIONING>
-			lambda APIVersionConfig(vOptions)
+            lambda APIVersionConfig(vOptions)
             begin
                 vOptions.ReportApiVersions = true
                 ;vOptions.AssumeDefaultVersionWhenUnspecified = true
@@ -214,7 +214,7 @@ namespace <NAMESPACE>
 
                 ;; note: this option is only necessary when versioning by url segment. the SubstitutionFormat
                 ;; can also be used to control the format of the API version in route templates
-                vOptions.SubstituteApiVersionInUrl = true;
+                vOptions.SubstituteApiVersionInUrl = true
             end
 
             services.AddODataApiExplorer(oDataApiExplorer)
@@ -234,21 +234,30 @@ namespace <NAMESPACE>
             ;;Load our workaround for the fact that OData alternate key support is messed up right now!
 
             services.AddSingleton<IPerRouteContainer, HarmonyPerRouteContainer>()
-			<IF DEFINED_ENABLE_API_VERSIONING>
-			lambda SwaggerGenConfig(options)
+            <IF DEFINED_ENABLE_API_VERSIONING>
+
+            lambda SwaggerGenConfig(options)
             begin
                 ;; resolve the IApiVersionDescriptionProvider service
                 ;; note: that we have to build a temporary service provider here because one has not been created yet
                 data provider = services.BuildServiceProvider().GetRequiredService<IApiVersionDescriptionProvider>()
                 data description, @ApiVersionDescription
+
                 ;; add a swagger document for each discovered API version
                 ;; note: you might choose to skip or document deprecated API versions differently
                 foreach description in provider.ApiVersionDescriptions
                 begin
-					;;GetSwaggerDescription needs to exist in non codegenerated code
-					;;If you get an error here ensure you have a partial class for Startup
-					;;and add a method GetSwaggerDescription that returns @Info and takes @ApiVersionDescription
-                    options.SwaggerDoc( description.GroupName, GetSwaggerDescription(description) )
+                    data info = new Info()
+                    & {
+                        & Title = "<API_TITLE> " + description.ApiVersion.ToString(),
+                        & Version = description.ApiVersion.ToString(),
+                        & Description = "<API_DESCRIPTION>",
+                        & Contact = new Contact() { Name = "<API_CONTACT_NAME>", Email = "<API_CONTACT_EMAIL>" },
+                        & TermsOfService = "<API_TERMS>",
+                        & License = new License() { Name = "<API_LICENSE_NAME>", Url = "<API_LICENSE_URL>" }
+                    & }
+
+                    options.SwaggerDoc( description.GroupName, info )
                 end
 
                 ;; add a custom operation filter which sets default values
@@ -259,19 +268,20 @@ namespace <NAMESPACE>
             end
 
             services.AddSwaggerGen(SwaggerGenConfig)
-			<ELSE>
-				<IF DEFINED_ENABLE_SWAGGER_DOCS>
+            <ELSE>
+                <IF DEFINED_ENABLE_SWAGGER_DOCS>
+
             services.AddSwaggerGen()
-				</IF DEFINED_ENABLE_SWAGGER_DOCS>
-			</IF DEFINED_ENABLE_API_VERSIONING>
+                </IF DEFINED_ENABLE_SWAGGER_DOCS>
+            </IF DEFINED_ENABLE_API_VERSIONING>
         
-			lambda MvcCoreConfig(options)
+            lambda MvcCoreConfig(options)
             begin
                 options.EnableEndpointRouting = false
             end
 
             data mvcBuilder = services.AddMvcCore(MvcCoreConfig)
-			&    .SetCompatibilityVersion(CompatibilityVersion.Version_2_2 )
+            &    .SetCompatibilityVersion(CompatibilityVersion.Version_2_2 )
             &    .AddDataAnnotations()      ;;Enable data annotations
             &    .AddJsonFormatters()       ;;For PATCH
         <IF DEFINED_ENABLE_SWAGGER_DOCS>
@@ -281,22 +291,22 @@ namespace <NAMESPACE>
 
         <IF DEFINED_ENABLE_AUTHENTICATION>
           <IF DEFINED_ENABLE_CUSTOM_AUTHENTICATION>
-		    <IF DEFINED_ENABLE_SIGNALR>
-			lambda jwtMessageHook(context)
-			begin
-				data accessToken = context.Request.Query["access_token"];
+            <IF DEFINED_ENABLE_SIGNALR>
+            lambda jwtMessageHook(context)
+            begin
+                data accessToken = context.Request.Query["access_token"];
 
-				;; If the request is for our hub...
-				data path = context.HttpContext.Request.Path
-				if (!string.IsNullOrEmpty(accessToken) && (path.StartsWithSegments(new PathString("<SIGNALR_PATH>"))))
-				begin
-					;; Read the token out of the query string
-					context.Token = accessToken;
-				end
-				mreturn Task.CompletedTask
-			end
+                ;; If the request is for our hub...
+                data path = context.HttpContext.Request.Path
+                if (!string.IsNullOrEmpty(accessToken) && (path.StartsWithSegments(new PathString("<SIGNALR_PATH>"))))
+                begin
+                    ;; Read the token out of the query string
+                    context.Token = accessToken;
+                end
+                mreturn Task.CompletedTask
+            end
 
-		    </IF DEFINED_ENABLE_SIGNALR>
+            </IF DEFINED_ENABLE_SIGNALR>
             lambda configJwt(o)
             begin
                 o.IncludeErrorDetails = true
@@ -311,12 +321,12 @@ namespace <NAMESPACE>
                 &    ValidateIssuerSigningKey = true,
                 &    IssuerSigningKey = new SymmetricSecurityKey(<OAUTH_KEY>)
                 &    }
-		    <IF DEFINED_ENABLE_SIGNALR>
+            <IF DEFINED_ENABLE_SIGNALR>
 
-				data jwtEvents = new JwtBearerEvents()
-				o.Events = jwtEvents
-				jwtEvents.OnMessageReceived=jwtMessageHook
-		    </IF DEFINED_ENABLE_SIGNALR>
+                data jwtEvents = new JwtBearerEvents()
+                o.Events = jwtEvents
+                jwtEvents.OnMessageReceived=jwtMessageHook
+            </IF DEFINED_ENABLE_SIGNALR>
             end
 
             lambda authenticationOptions(options)
@@ -404,6 +414,7 @@ namespace <NAMESPACE>
         public method Configure, void
             required in app, @IApplicationBuilder
             required in env, @IHostingEnvironment
+            required in versionProvider, @IApiVersionDescriptionProvider
         proc
             ;;-------------------------------------------------------
             ;;Configure the AppSettings environment
@@ -464,16 +475,8 @@ namespace <NAMESPACE>
                 <IF DEFINED_ENABLE_API_VERSIONING>
                     configContext.RoutingConventions.Insert(1, new HarmonySprocRoutingConvention())
                     configContext.RoutingConventions.Insert(1, new AdapterRoutingConvention())
-
                 </IF DEFINED_ENABLE_API_VERSIONING>
-                    data routeList = ODataRoutingConventions.CreateDefaultWithAttributeRouting(configContext.RouteName, builder)
-                <IF DEFINED_ENABLE_SPROC>
-                    routeList.Insert(0, new HarmonySprocRoutingConvention())
-                </IF DEFINED_ENABLE_SPROC>
-                <IF DEFINED_ENABLE_ADAPTER_ROUTING>
-                    routeList.Insert(0, new AdapterRoutingConvention())
-                </IF DEFINED_ENABLE_ADAPTER_ROUTING>
-                    mreturn routeList
+                    mreturn configContext.RoutingConventions
                 end
 
                 lambda EnableWritableEdmModel(sp)
@@ -571,12 +574,36 @@ namespace <NAMESPACE>
             ;;-------------------------------------------------------
             ;;Enable MVC
 
-			;;If there is a ConfigureCustomBeforeMvc method, call it
-			ConfigureCustomBeforeMvc(app,env)
+            ;;If there is a ConfigureCustomBeforeMvc method, call it
+            ConfigureCustomBeforeMvc(app,env)
 
             app.UseMvc(mvcBuilder)
-		<IF DEFINED_ENABLE_API_VERSIONING>
-			lambda configureSwaggerUi(config)
+
+            ;;-------------------------------------------------------
+            ;;Configure the web server to serve static files
+
+            ;;Support default files (index.html, etc.)
+            app.UseDefaultFiles()
+
+        <IF DEFINED_ENABLE_API_VERSIONING>
+            ;;Support serving static files
+            app.UseStaticFiles()
+
+        <ELSE>
+            ;;Add a media type for YAML files
+            data provider = new FileExtensionContentTypeProvider()
+            provider.Mappings[".yaml"] = "text/yaml"
+            data sfoptions = new StaticFileOptions()
+            sfoptions.ContentTypeProvider = provider
+            ;;Support serving static files
+            app.UseStaticFiles(sfoptions)
+
+        </IF DEFINED_ENABLE_API_VERSIONING>
+        <IF DEFINED_ENABLE_API_VERSIONING>
+            ;;-------------------------------------------------------
+            ;;Configure and enable API versioning
+
+            lambda configureSwaggerUi(config)
             begin
                 config.RoutePrefix = "api-docs"
                 data description, @ApiVersionDescription
@@ -589,25 +616,12 @@ namespace <NAMESPACE>
 
             app.UseSwagger()
             app.UseSwaggerUI(configureSwaggerUi)
-		<ELSE
-			<IF DEFINED_ENABLE_SWAGGER_DOCS>
-            ;;-------------------------------------------------------
-            ;;Configure the web server environment
 
-            ;;Support default files (index.html, etc.)
-            app.UseDefaultFiles()
-
-            ;;Add a media type for YAML files
-            data provider = new FileExtensionContentTypeProvider()
-            provider.Mappings[".yaml"] = "text/yaml"
-            data sfoptions = new StaticFileOptions()
-            sfoptions.ContentTypeProvider = provider
-
-            ;;Support serving static files
-            app.UseStaticFiles(sfoptions)
-
+        <ELSE>
+            <IF DEFINED_ENABLE_SWAGGER_DOCS>
             ;;-------------------------------------------------------
             ;;Configure and enable SwaggerUI
+
             lambda configureSwaggerUi(config)
             begin
                 config.SwaggerEndpoint("/SwaggerFile.yaml", "<API_TITLE>")
@@ -618,8 +632,8 @@ namespace <NAMESPACE>
             app.UseSwagger()
             app.UseSwaggerUI(configureSwaggerUi)
 
-			</IF DEFINED_ENABLE_SWAGGER_DOCS>
-		</IF DEFINED_ENABLE_API_VERSIONING>
+            </IF DEFINED_ENABLE_SWAGGER_DOCS>
+        </IF DEFINED_ENABLE_API_VERSIONING>
             ;;If there is a ConfigureCustom method, call it
             ConfigureCustom(app,env)
 
@@ -647,16 +661,16 @@ namespace <NAMESPACE>
             required in env, @IHostingEnvironment
         endmethod
 
-		;;; <summary>
-		;;; Declare the ConfigueCustom partial method called immediately before AddMvc
-		;;; Developers can implement this method in a partial class to provide custom configuration.
-		;;; </summary>
-		;;; <param name="app"></param>
-		;;; <param name="env"></param>
-		partial method ConfigureCustomBeforeMvc, void
-			required in app, @IApplicationBuilder
-			required in env, @IHostingEnvironment
-		endmethod
+        ;;; <summary>
+        ;;; Declare the ConfigueCustom partial method called immediately before AddMvc
+        ;;; Developers can implement this method in a partial class to provide custom configuration.
+        ;;; </summary>
+        ;;; <param name="app"></param>
+        ;;; <param name="env"></param>
+        partial method ConfigureCustomBeforeMvc, void
+            required in app, @IApplicationBuilder
+            required in env, @IHostingEnvironment
+        endmethod
 
         .endregion
 

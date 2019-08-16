@@ -109,7 +109,7 @@ namespace Services
 
             ;;Add an AppSettings service.
             ;;To get an instance from DI ask for an @IOptions<AppSettings>
-			if(_config != ^null)
+            if(_config != ^null)
                 services.AddOptions<AppSettings>().Validate(GetAppSettings).Bind(_config.GetSection("AppSettings"))
 
             ;;-------------------------------------------------------
@@ -140,6 +140,7 @@ namespace Services
 
             ;;-------------------------------------------------------
             ;;Load OData and ASP.NET
+
             lambda APIVersionConfig(vOptions)
             begin
                 vOptions.ReportApiVersions = true
@@ -157,6 +158,7 @@ namespace Services
                 ;; note: the specified format code will format the version as "'v'major[.minor][-status]"
                 vOptions.GroupNameFormat = "'v'V"
                 vOptions.SubstitutionFormat = "V"
+
                 ;; note: this option is only necessary when versioning by url segment. the SubstitutionFormat
                 ;; can also be used to control the format of the API version in route templates
                 vOptions.SubstituteApiVersionInUrl = true
@@ -175,18 +177,19 @@ namespace Services
                 ;; note: that we have to build a temporary service provider here because one has not been created yet
                 data provider = services.BuildServiceProvider().GetRequiredService<IApiVersionDescriptionProvider>()
                 data description, @ApiVersionDescription
+
                 ;; add a swagger document for each discovered API version
                 ;; note: you might choose to skip or document deprecated API versions differently
                 foreach description in provider.ApiVersionDescriptions
                 begin
                     data info = new Info()
                     & {
-                        & Title = "Sample API " + description.ApiVersion.ToString(),
+                        & Title = "Harmony Core Sample API " + description.ApiVersion.ToString(),
                         & Version = description.ApiVersion.ToString(),
-                        & Description = "A sample application with Swagger, Swashbuckle, and API versioning.",
-                        & Contact = new Contact() { Name = "Bill Mei", Email = "bill.mei@somewhere.com" },
-                        & TermsOfService = "Shareware",
-                        & License = new License() { Name = "MIT", Url = "https://opensource.org/licenses/MIT" }
+                        & Description = "This environment presents an example of using Harmony Core to expose a collection of RESTful Web Service endpoints that allow you to interact with a small sample dataset.",
+                        & Contact = new Contact() { Name = "Jodah Veloper", Email = "jodah.veloper@synergexpsg.com" },
+                        & TermsOfService = "Open Source",
+                        & License = new License() { Name = "BSD-2-Clause", Url = "https://opensource.org/licenses/BSD-2-Clause" }
                     & }
 
                     options.SwaggerDoc( description.GroupName, info )
@@ -200,18 +203,19 @@ namespace Services
             end
 
             services.AddSwaggerGen(SwaggerGenConfig)
-
+        
             lambda MvcCoreConfig(options)
             begin
                 options.EnableEndpointRouting = false
             end
 
-
-            data mvcBuilder = services.AddMvcCore(MvcCoreConfig).SetCompatibilityVersion(CompatibilityVersion.Version_2_2 )
+            data mvcBuilder = services.AddMvcCore(MvcCoreConfig)
+            &    .SetCompatibilityVersion(CompatibilityVersion.Version_2_2 )
             &    .AddDataAnnotations()      ;;Enable data annotations
             &    .AddJsonFormatters()       ;;For PATCH
             &    .AddApiExplorer()          ;;Swagger UI
             &    .AddApplicationPart(^typeof(IsolatedMethodsBase).Assembly)
+
 
             ;;-------------------------------------------------------
             ;;Enable HTTP redirection to HTTPS
@@ -239,7 +243,7 @@ namespace Services
         public method Configure, void
             required in app, @IApplicationBuilder
             required in env, @IHostingEnvironment
-            required in versionProvider, @IApiVersionDescriptionProvider 
+            required in versionProvider, @IApiVersionDescriptionProvider
         proc
             ;;-------------------------------------------------------
             ;;Configure the AppSettings environment
@@ -289,10 +293,6 @@ namespace Services
                     configContext.RoutingConventions.Insert(1, new HarmonySprocRoutingConvention())
                     configContext.RoutingConventions.Insert(1, new AdapterRoutingConvention())
                     mreturn configContext.RoutingConventions
-;                    data routeList = ODataRoutingConventions.CreateDefaultWithAttributeRouting(configContext.RouteName, builder)
-;                    routeList.Insert(0, new HarmonySprocRoutingConvention())
-;                    routeList.Insert(0, new AdapterRoutingConvention())
-;                    mreturn routeList
                 end
 
                 lambda EnableWritableEdmModel(sp)
@@ -346,33 +346,28 @@ namespace Services
 
                 ;;Specify the maximum rows that may be returned by $top expressions
                 builder.MaxTop(100)
+
             end
 
             ;;-------------------------------------------------------
             ;;Enable MVC
 
-			;;If there is a ConfigureCustomBeforeMvc method, call it
-			ConfigureCustomBeforeMvc(app,env)
+            ;;If there is a ConfigureCustomBeforeMvc method, call it
+            ConfigureCustomBeforeMvc(app,env)
 
             app.UseMvc(mvcBuilder)
 
             ;;-------------------------------------------------------
-            ;;Configure the web server environment
+            ;;Configure the web server to serve static files
 
             ;;Support default files (index.html, etc.)
             app.UseDefaultFiles()
 
-            ;;Add a media type for YAML files
-            data provider = new FileExtensionContentTypeProvider()
-            provider.Mappings[".yaml"] = "text/yaml"
-            data sfoptions = new StaticFileOptions()
-            sfoptions.ContentTypeProvider = provider
-
             ;;Support serving static files
-            app.UseStaticFiles(sfoptions)
+            app.UseStaticFiles()
 
             ;;-------------------------------------------------------
-            ;;Configure and enable SwaggerUI
+            ;;Configure and enable API versioning
 
             lambda configureSwaggerUi(config)
             begin
@@ -415,16 +410,16 @@ namespace Services
             required in env, @IHostingEnvironment
         endmethod
 
-		;;; <summary>
-		;;; Declare the ConfigueCustom partial method called immediately before AddMvc
-		;;; Developers can implement this method in a partial class to provide custom configuration.
-		;;; </summary>
-		;;; <param name="app"></param>
-		;;; <param name="env"></param>
-		partial method ConfigureCustomBeforeMvc, void
-			required in app, @IApplicationBuilder
-			required in env, @IHostingEnvironment
-		endmethod
+        ;;; <summary>
+        ;;; Declare the ConfigueCustom partial method called immediately before AddMvc
+        ;;; Developers can implement this method in a partial class to provide custom configuration.
+        ;;; </summary>
+        ;;; <param name="app"></param>
+        ;;; <param name="env"></param>
+        partial method ConfigureCustomBeforeMvc, void
+            required in app, @IApplicationBuilder
+            required in env, @IHostingEnvironment
+        endmethod
 
         .endregion
 
