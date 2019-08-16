@@ -49,7 +49,7 @@ swagger: '2.0'
 
 info:
   title: <StructureNoplural> Types
-  description: Describes complex types for  <StructureNoplural>
+  description: Describes complex types for <StructureNoplural>
   version: <API_VERSION>
 
 ;//
