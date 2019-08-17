@@ -17,6 +17,7 @@ import Microsoft.AspNet.OData.Routing
 import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Infrastructure
 import Microsoft.Extensions.Options
+import System.ComponentModel.DataAnnotations
 import Harmony.Core.EF.Extensions
 import Harmony.Core.Interface
 import Harmony.OData
@@ -49,7 +50,7 @@ namespace Services.Controllers
         proc
             this._DbContext = aDbContext
             this._ServiceProvider = aServiceProvider
-			this._AppSettings = aAppSettings
+            this._AppSettings = aAppSettings
         endmethod
 
         {ODataRoute("Orders")}
@@ -258,8 +259,17 @@ namespace Services.Controllers
             KeyFactory.AssignPrimaryKey(aOrder)
 
             ;;Add the new order
-            _DbContext.Orders.Add(aOrder)
-            _DbContext.SaveChanges(keyFactory)
+            try
+            begin
+                _DbContext.Orders.Add(aOrder)
+                _DbContext.SaveChanges(keyFactory)
+            end
+            catch (e, @ValidationException)
+            begin
+                ModelState.AddModelError("RelationValidation",e.Message)
+                mreturn BadRequest(ModelState)
+            end
+            endtry
 
             mreturn Created(aOrder)
 
@@ -305,6 +315,11 @@ namespace Services.Controllers
             begin
                 mreturn BadRequest(e)
             end
+            catch (e, @ValidationException)
+            begin
+                ModelState.AddModelError("RelationValidation",e.Message)
+                mreturn BadRequest(ModelState)
+            end
             endtry
 
         endmethod
@@ -348,6 +363,11 @@ namespace Services.Controllers
             catch (e, @InvalidOperationException)
             begin
                 mreturn BadRequest(e)
+            end
+            catch (e, @ValidationException)
+            begin
+                ModelState.AddModelError("RelationValidation",e.Message)
+                mreturn BadRequest(ModelState)
             end
             endtry
 

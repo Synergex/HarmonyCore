@@ -57,6 +57,7 @@ import Microsoft.AspNet.OData.Routing
 import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Infrastructure
 import Microsoft.Extensions.Options
+import System.ComponentModel.DataAnnotations
 import Harmony.Core.EF.Extensions
 import Harmony.Core.Interface
 import Harmony.OData
@@ -94,7 +95,7 @@ namespace <NAMESPACE>
         proc
             this._DbContext = aDbContext
             this._ServiceProvider = aServiceProvider
-			this._AppSettings = aAppSettings
+            this._AppSettings = aAppSettings
         endmethod
 
 ;//
@@ -412,8 +413,17 @@ namespace <NAMESPACE>
             KeyFactory.AssignPrimaryKey(a<StructureNoplural>)
 
             ;;Add the new <structureNoplural>
-            _DbContext.<StructurePlural>.Add(a<StructureNoplural>)
-            _DbContext.SaveChanges(keyFactory)
+            try
+            begin
+                _DbContext.<StructurePlural>.Add(a<StructureNoplural>)
+                _DbContext.SaveChanges(keyFactory)
+            end
+            catch (e, @ValidationException)
+            begin
+                ModelState.AddModelError("RelationValidation",e.Message)
+                mreturn BadRequest(ModelState)
+            end
+            endtry
 
             mreturn Created(a<StructureNoplural>)
 
@@ -513,6 +523,11 @@ namespace <NAMESPACE>
             begin
                 mreturn BadRequest(e)
             end
+            catch (e, @ValidationException)
+            begin
+                ModelState.AddModelError("RelationValidation",e.Message)
+                mreturn BadRequest(ModelState)
+            end
             endtry
 
         endmethod
@@ -597,6 +612,11 @@ namespace <NAMESPACE>
             catch (e, @InvalidOperationException)
             begin
                 mreturn BadRequest(e)
+            end
+            catch (e, @ValidationException)
+            begin
+                ModelState.AddModelError("RelationValidation",e.Message)
+                mreturn BadRequest(ModelState)
             end
             endtry
 

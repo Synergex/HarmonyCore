@@ -17,6 +17,9 @@ import System.ComponentModel.DataAnnotations
 import System.Text
 import Harmony.Core
 import Harmony.Core.Converters
+import Harmony.Core.Context
+import Harmony.Core.FileIO
+import Microsoft.Extensions.DependencyInjection
 
 namespace Services.Models
 
@@ -321,6 +324,34 @@ namespace Services.Models
             mreturn new Object[13]
         endmethod
 
+        ;;; <summary>
+        ;;; Validate data for one-to-one relations
+        ;;; </summary>
+        ;;; <param name="type">Validation type (create, update or delete)</param>
+        ;;; <param name="sp">Serices provider</param>
+        public override method Validate, void
+            required in vType, ValidationType
+            required in sp, @IServiceProvider
+            record rel2FromKey
+              favorite_item, d6
+            endrecord
+
+        proc
+            ;;No validation if the record is being deleted
+            if (vType == ValidationType.Delete)
+                mreturn
+
+            ;;Validate data for relation REL_CustomerFavoriteItem
+
+            rel2FromKey.favorite_item = mSynergyData.favorite_item
+
+            data dop, @IDataObjectProvider, sp.GetService<IDataObjectProvider>()
+            disposable data itemFio = dop.GetFileIO<Item>()
+
+            if (itemFio.FindRecord(0,rel2FromKey) != FileAccessResults.Success)
+                throw new ValidationException("Invalid data for relation REL_CustomerFavoriteItem")
+
+        endmethod
 .endregion
 
 .region "Relationships to other entities"

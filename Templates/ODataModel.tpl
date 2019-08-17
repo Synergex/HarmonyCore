@@ -54,6 +54,9 @@ import Harmony.Core.Converters
 <IF DEFINED_ENABLE_FIELD_SECURITY>
 import Harmony.OData
 </IF DEFINED_ENABLE_FIELD_SECURITY>
+import Harmony.Core.Context
+import Harmony.Core.FileIO
+import Microsoft.Extensions.DependencyInjection
 
 namespace <NAMESPACE>
 
@@ -347,6 +350,122 @@ namespace <NAMESPACE>
             mreturn new Object[<COUNTER_1_VALUE>]
         endmethod
 
+;//
+;// =========================================================================================
+;// RUNTIME VALIDATION FOR 1-1 RELATIONS
+;//
+<IF DEFINED_ENABLE_RELATIONS>
+<IF STRUCTURE_RELATIONS>
+;//
+;// Count how many 1-1 or 1-1-1 relations we have
+;//
+<COUNTER_1_RESET>
+<RELATION_LOOP>
+  <IF ONE_TO_ONE>
+    <COUNTER_1_INCREMENT>
+  </IF ONE_TO_ONE>
+  <IF ONE_TO_ONE_TO_ONE>
+    <COUNTER_1_INCREMENT>
+  </IF ONE_TO_ONE_TO_ONE>
+</RELATION_LOOP>
+;//
+;// -----------------------------------------------------------------------------------------
+;//
+;// Do we have any?
+<IF COUNTER_1>
+;//
+        ;;; <summary>
+        ;;; Validate data for one-to-one relations
+        ;;; </summary>
+        ;;; <param name="type">Validation type (create, update or delete)</param>
+        ;;; <param name="sp">Serices provider</param>
+        public override method Validate, void
+            required in vType, ValidationType
+            required in sp, @IServiceProvider
+  <RELATION_LOOP>
+    <IF ONE_TO_ONE>
+            record rel<RELATION_NUMBER>FromKey
+      <COUNTER_2_RESET>
+      <FROM_KEY_SEGMENT_LOOP>
+        <IF SEG_TYPE_FIELD>
+              <segment_name>, <segment_spec>
+        </IF SEG_TYPE_FIELD>
+        <IF SEG_TYPE_LITERAL>
+          <COUNTER_2_INCREMENT>
+              litseg<COUNTER_2_VALUE>, a*, "<SEGMENT_LITVAL>"
+        </IF SEG_TYPE_LITERAL>
+      </FROM_KEY_SEGMENT_LOOP>
+            endrecord
+    </IF ONE_TO_ONE>
+    <IF ONE_TO_ONE_TO_ONE>
+          SAME AS ABOVE!!!
+    </IF ONE_TO_ONE_TO_ONE>
+  </RELATION_LOOP>
+
+        proc
+            ;;No validation if the record is being deleted
+            if (vType == ValidationType.Delete)
+                mreturn
+
+    <RELATION_LOOP>
+;//
+;// -----------------------------------------------------------------------------------------
+;//
+      <COUNTER_2_RESET>
+      <IF ONE_TO_ONE>
+            ;;Validate data for relation <HARMONYCORE_RELATION_NAME>
+
+        <FROM_KEY_SEGMENT_LOOP>
+          <IF SEG_TYPE_FIELD>
+            rel<RELATION_NUMBER>FromKey.<segment_name> = mSynergyData.<segment_name>
+          <ELSE>
+            <IF SEG_TYPE_LITERAL>
+            <COUNTER_2_INCREMENT>
+            rel<RELATION_NUMBER>FromKey.litseg<COUNTER_2_VALUE> = <SEGMENT_LITVAL>
+            </IF SEG_TYPE_LITERAL>
+          </IF SEG_TYPE_FIELD>
+        </FROM_KEY_SEGMENT_LOOP>
+
+            data dop, @IDataObjectProvider, sp.GetService<IDataObjectProvider>()
+            disposable data <relationTostructureNoplural>Fio = dop.GetFileIO<<RelationTostructureNoplural>>()
+
+            if (itemFio.FindRecord(<TO_KEY_NUMBER>,rel<RELATION_NUMBER>FromKey) != FileAccessResults.Success)
+                throw new ValidationException("Invalid data for relation <HARMONYCORE_RELATION_NAME>")
+
+      </IF ONE_TO_ONE>
+;//
+;// -----------------------------------------------------------------------------------------
+;//
+      <IF ONE_TO_ONE_TO_ONE>
+            ;;Validate data for relation <HARMONYCORE_RELATION_NAME>
+
+        <FROM_KEY_SEGMENT_LOOP>
+          <IF SEG_TYPE_FIELD>
+            rel<RELATION_NUMBER>FromKey.<segment_name> = mSynergyData.<segment_name>
+          <ELSE>
+            <IF SEG_TYPE_LITERAL>
+            <COUNTER_2_INCREMENT>
+            rel<RELATION_NUMBER>FromKey.litseg<COUNTER_2_VALUE> = <SEGMENT_LITVAL>
+            </IF SEG_TYPE_LITERAL>
+          </IF SEG_TYPE_FIELD>
+        </FROM_KEY_SEGMENT_LOOP>
+
+            data dop, @IDataObjectProvider, sp.GetService<IDataObjectProvider>()
+            disposable data <relationTostructureNoplural>Fio = dop.GetFileIO<<RelationTostructureNoplural>>()
+
+            if (itemFio.FindRecord(<TO_KEY_NUMBER>,rel<RELATION_NUMBER>FromKey) != FileAccessResults.Success)
+                throw new ValidationException("Invalid data for relation <HARMONYCORE_RELATION_NAME>")
+
+      </IF ONE_TO_ONE_TO_ONE>
+;//
+;//
+;//
+    </RELATION_LOOP>
+        endmethod
+</IF COUNTER_1>
+</IF STRUCTURE_RELATIONS>
+</IF DEFINED_ENABLE_RELATIONS>
+;// =========================================================================================
 .endregion
 ;//
 ;// Relations
