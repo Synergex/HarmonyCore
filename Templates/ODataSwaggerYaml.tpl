@@ -327,8 +327,8 @@ paths:
 <IF STRUCTURE_ISAM>
   <PRIMARY_KEY>
     <SEGMENT_LOOP>
-	  <IF SEG_TAG_EQUAL>
-	  <ELSE>
+      <IF SEG_TAG_EQUAL>
+      <ELSE>
         - name: a<FieldSqlName>
           in: path
           description: <SEGMENT_DESC>
@@ -340,7 +340,7 @@ paths:
       <IF TIME>
           format: date-time
       </IF TIME>
-	  </IF SEG_TAG_EQUAL>
+      </IF SEG_TAG_EQUAL>
     </SEGMENT_LOOP>
   </PRIMARY_KEY>
 </IF STRUCTURE_ISAM>
@@ -385,8 +385,8 @@ paths:
 <IF STRUCTURE_ISAM>
   <PRIMARY_KEY>
     <SEGMENT_LOOP>
-	  <IF SEG_TAG_EQUAL>
-	  <ELSE>
+      <IF SEG_TAG_EQUAL>
+      <ELSE>
         - name: a<FieldSqlName>
           in: path
           description: <SEGMENT_DESC>
@@ -398,7 +398,7 @@ paths:
       <IF TIME>
           format: date-time
       </IF TIME>
-	  </IF SEG_TAG_EQUAL>
+      </IF SEG_TAG_EQUAL>
     </SEGMENT_LOOP>
   </PRIMARY_KEY>
 </IF STRUCTURE_ISAM>
@@ -453,8 +453,8 @@ paths:
 <IF STRUCTURE_ISAM>
   <PRIMARY_KEY>
     <SEGMENT_LOOP>
-	  <IF SEG_TAG_EQUAL>
-	  <ELSE>
+      <IF SEG_TAG_EQUAL>
+      <ELSE>
         - name: a<FieldSqlName>
           in: path
           description: <SEGMENT_DESC>
@@ -466,7 +466,7 @@ paths:
       <IF TIME>
           format: date-time
       </IF TIME>
-	  </IF SEG_TAG_EQUAL>
+      </IF SEG_TAG_EQUAL>
     </SEGMENT_LOOP>
   </PRIMARY_KEY>
 </IF STRUCTURE_ISAM>
@@ -528,7 +528,7 @@ paths:
       parameters:
   <SEGMENT_LOOP>
     <IF SEG_TAG_EQUAL>
-	<ELSE>
+    <ELSE>
         - name: a<FieldSqlName>
           in: path
           description: <SEGMENT_DESC>
@@ -540,7 +540,7 @@ paths:
       <IF TIME>
           format: date-time
       </IF TIME>
-	</IF SEG_TAG_EQUAL>
+    </IF SEG_TAG_EQUAL>
   </SEGMENT_LOOP>
   <IF DEFINED_ENABLE_RELATIONS>
         - name: $expand
@@ -613,8 +613,8 @@ paths:
         - <StructurePlural>
       parameters:
       <SEGMENT_LOOP>
-	    <IF SEG_TAG_EQUAL>
-		<ELSE>
+        <IF SEG_TAG_EQUAL>
+        <ELSE>
         - name: a<FieldSqlName>
           in: path
           description: <SEGMENT_DESC>
@@ -626,7 +626,7 @@ paths:
           <IF TIME>
           format: date-time
           </IF TIME>
-		</IF SEG_TAG_EQUAL>
+        </IF SEG_TAG_EQUAL>
       </SEGMENT_LOOP>
       <IF DEFINED_ENABLE_FILTER>
         - name: $filter
@@ -676,7 +676,7 @@ paths:
       <PRIMARY_KEY>
         <SEGMENT_LOOP>
         <IF SEG_TAG_EQUAL>
-		<ELSE>
+        <ELSE>
         <IF SINGLE_SEGMENT>
         - name: key
         <ELSE>
@@ -692,7 +692,7 @@ paths:
           <IF TIME>
           format: date-time
           </IF TIME>
-		  </IF SEG_TAG_EQUAL>
+          </IF SEG_TAG_EQUAL>
           </SEGMENT_LOOP>
       </PRIMARY_KEY>
     </IF STRUCTURE_ISAM>
@@ -732,8 +732,8 @@ paths:
     <IF STRUCTURE_ISAM>
       <PRIMARY_KEY>
         <SEGMENT_LOOP>
-		<IF SEG_TAG_EQUAL>
-		<ELSE>
+        <IF SEG_TAG_EQUAL>
+        <ELSE>
         <IF SINGLE_SEGMENT>
         - name: key
         <ELSE>
@@ -749,7 +749,7 @@ paths:
           <IF TIME>
           format: date-time
           </IF TIME>
-		</IF SEG_TAG_EQUAL>
+        </IF SEG_TAG_EQUAL>
         </SEGMENT_LOOP>
       </PRIMARY_KEY>
     </IF STRUCTURE_ISAM>

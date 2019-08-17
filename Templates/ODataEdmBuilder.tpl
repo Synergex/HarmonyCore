@@ -159,14 +159,14 @@ namespace <NAMESPACE>
     <PRIMARY_KEY>
       <IF MULTIPLE_SEGMENTS>
         <SEGMENT_LOOP>
-		  <IF SEG_TAG_EQUAL>
-		  <ELSE>
+          <IF SEG_TAG_EQUAL>
+          <ELSE>
             <IF CUSTOM_HARMONY_AS_STRING>
             builder.EntityType<<StructureNoplural>>().HasKey<<StructureNoplural>,string>("<FieldSqlname>")
             <ELSE>
             builder.EntityType<<StructureNoplural>>().HasKey<<StructureNoplural>,<FIELD_CSTYPE>>("<FieldSqlname>")
             </IF CUSTOM_HARMONY_AS_STRING>
-		  </IF SEG_TAG_EQUAL>
+          </IF SEG_TAG_EQUAL>
         </SEGMENT_LOOP>
       </IF MULTIPLE_SEGMENTS>
     </PRIMARY_KEY>

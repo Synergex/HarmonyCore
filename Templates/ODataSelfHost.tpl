@@ -78,12 +78,12 @@ proc
 
 <IF DEFINED_ENABLE_SWAGGER_DOCS>
     ;;-------------------------------------------------------------------------
-	;;Report the location of the API documentation
+    ;;Report the location of the API documentation
 
     Console.WriteLine("API documentation is available at <SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<API_DOCS_PATH>")
 
     ;;-------------------------------------------------------------------------
-	;;Define the location that static files are served from and make sure it exists
+    ;;Define the location that static files are served from and make sure it exists
 
     data wwwroot = Path.Combine(AppContext.BaseDirectory, "wwwroot")
 
