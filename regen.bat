@@ -65,7 +65,7 @@ rem                     be exposed to the Entity Framework provider.
 rem ================================================================================================================================
 rem Specify optional "system parameter file" structure
 
-set PARAMSTR=
+set PARAMSTR=SYSPARAMS
 
 rem In the sammple environment the system parameter file is a relative file that contains
 rem "next available record number" data for use in conjunction with POST (create with automated

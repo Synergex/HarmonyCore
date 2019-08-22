@@ -351,28 +351,11 @@ namespace <NAMESPACE>
         endmethod
 
 ;//
-;// =========================================================================================
-;// RUNTIME VALIDATION FOR 1-1 RELATIONS
+;// ==========================================================================================
+;// RUNTIME VALIDATION FOR RELATIONS
 ;//
 <IF DEFINED_ENABLE_RELATIONS>
 <IF STRUCTURE_RELATIONS>
-;//
-;// Count how many 1-1 or 1-1-1 relations we have
-;//
-<COUNTER_1_RESET>
-<RELATION_LOOP>
-  <IF ONE_TO_ONE>
-    <COUNTER_1_INCREMENT>
-  </IF ONE_TO_ONE>
-  <IF ONE_TO_ONE_TO_ONE>
-    <COUNTER_1_INCREMENT>
-  </IF ONE_TO_ONE_TO_ONE>
-</RELATION_LOOP>
-;//
-;// -----------------------------------------------------------------------------------------
-;//
-;// Do we have any?
-<IF COUNTER_1>
 ;//
         ;;; <summary>
         ;;; Validate data for one-to-one relations
@@ -383,89 +366,82 @@ namespace <NAMESPACE>
             required in vType, ValidationType
             required in sp, @IServiceProvider
   <RELATION_LOOP>
-    <IF ONE_TO_ONE>
+
+            ;;From key for <HARMONYCORE_RELATION_NAME>
             record rel<RELATION_NUMBER>FromKey
-      <COUNTER_2_RESET>
+      <COUNTER_1_RESET>
       <FROM_KEY_SEGMENT_LOOP>
         <IF SEG_TYPE_FIELD>
               <segment_name>, <segment_spec>
         </IF SEG_TYPE_FIELD>
         <IF SEG_TYPE_LITERAL>
-          <COUNTER_2_INCREMENT>
-              litseg<COUNTER_2_VALUE>, a*, "<SEGMENT_LITVAL>"
+          <COUNTER_1_INCREMENT>
+              litseg<COUNTER_1_VALUE>, a*, "<SEGMENT_LITVAL>"
         </IF SEG_TYPE_LITERAL>
       </FROM_KEY_SEGMENT_LOOP>
             endrecord
-    </IF ONE_TO_ONE>
-    <IF ONE_TO_ONE_TO_ONE>
-          SAME AS ABOVE!!!
-    </IF ONE_TO_ONE_TO_ONE>
   </RELATION_LOOP>
-
         proc
-            ;;No validation if the record is being deleted
+            ;;No relation validation if the record is being deleted
             if (vType == ValidationType.Delete)
                 mreturn
 
-    <RELATION_LOOP>
-;//
-;// -----------------------------------------------------------------------------------------
-;//
-      <COUNTER_2_RESET>
-      <IF ONE_TO_ONE>
-            ;;Validate data for relation <HARMONYCORE_RELATION_NAME>
+            ;;Get an instance of IDataObjectProvider
+            data doProvider, @IDataObjectProvider, sp.GetService<IDataObjectProvider>()
 
-        <FROM_KEY_SEGMENT_LOOP>
-          <IF SEG_TYPE_FIELD>
+  <RELATION_LOOP>
+            ;;--------------------------------------------------------------------------------
+            ;;Validate data for relation <RELATION_NUMBER> (<HARMONYCORE_RELATION_NAME>)
+
+    <IF REQUIRES_MATCH>
+      <COUNTER_1_RESET>
+      <FROM_KEY_SEGMENT_LOOP>
+        <IF SEG_TYPE_FIELD>
             rel<RELATION_NUMBER>FromKey.<segment_name> = mSynergyData.<segment_name>
-          <ELSE>
-            <IF SEG_TYPE_LITERAL>
-            <COUNTER_2_INCREMENT>
-            rel<RELATION_NUMBER>FromKey.litseg<COUNTER_2_VALUE> = <SEGMENT_LITVAL>
-            </IF SEG_TYPE_LITERAL>
-          </IF SEG_TYPE_FIELD>
-        </FROM_KEY_SEGMENT_LOOP>
-
-            data dop, @IDataObjectProvider, sp.GetService<IDataObjectProvider>()
-            disposable data <relationTostructureNoplural>Fio = dop.GetFileIO<<RelationTostructureNoplural>>()
-
-            if (itemFio.FindRecord(<TO_KEY_NUMBER>,rel<RELATION_NUMBER>FromKey) != FileAccessResults.Success)
+        <ELSE>
+          <IF SEG_TYPE_LITERAL>
+          <COUNTER_1_INCREMENT>
+            rel<RELATION_NUMBER>FromKey.litseg<COUNTER_1_VALUE> = <SEGMENT_LITVAL>
+          </IF SEG_TYPE_LITERAL>
+        </IF SEG_TYPE_FIELD>
+      </FROM_KEY_SEGMENT_LOOP>
+            disposable data rel<RELATION_NUMBER>FileIO = doProvider.GetFileIO<<RelationTostructureNoplural>>()
+            if (rel<RELATION_NUMBER>FileIO.FindRecord(<TO_KEY_NUMBER>,rel<RELATION_NUMBER>FromKey) != FileAccessResults.Success)
                 throw new ValidationException("Invalid data for relation <HARMONYCORE_RELATION_NAME>")
+    <ELSE>
+            ;;This relation does not REQUIRE a match in the target file.
+    </IF REQUIRES_MATCH>
 
-      </IF ONE_TO_ONE>
-;//
-;// -----------------------------------------------------------------------------------------
-;//
-      <IF ONE_TO_ONE_TO_ONE>
-            ;;Validate data for relation <HARMONYCORE_RELATION_NAME>
+  </RELATION_LOOP>
 
-        <FROM_KEY_SEGMENT_LOOP>
-          <IF SEG_TYPE_FIELD>
-            rel<RELATION_NUMBER>FromKey.<segment_name> = mSynergyData.<segment_name>
-          <ELSE>
-            <IF SEG_TYPE_LITERAL>
-            <COUNTER_2_INCREMENT>
-            rel<RELATION_NUMBER>FromKey.litseg<COUNTER_2_VALUE> = <SEGMENT_LITVAL>
-            </IF SEG_TYPE_LITERAL>
-          </IF SEG_TYPE_FIELD>
-        </FROM_KEY_SEGMENT_LOOP>
+            ;;If we have a ValidateCustom method, call it
+            ValidateCustom(vType,sp)
 
-            data dop, @IDataObjectProvider, sp.GetService<IDataObjectProvider>()
-            disposable data <relationTostructureNoplural>Fio = dop.GetFileIO<<RelationTostructureNoplural>>()
-
-            if (itemFio.FindRecord(<TO_KEY_NUMBER>,rel<RELATION_NUMBER>FromKey) != FileAccessResults.Success)
-                throw new ValidationException("Invalid data for relation <HARMONYCORE_RELATION_NAME>")
-
-      </IF ONE_TO_ONE_TO_ONE>
-;//
-;//
-;//
-    </RELATION_LOOP>
         endmethod
-</IF COUNTER_1>
+
+<ELSE>
+        ;;; <summary>
+        ;;; Validate data
+        ;;; </summary>
+        ;;; <param name="type">Validation type (create, update or delete)</param>
+        ;;; <param name="sp">Serices provider</param>
+        public override method Validate, void
+            required in vType, ValidationType
+            required in sp, @IServiceProvider
+        proc
+            ;;If we have a ValidateCustom method, call it
+            ValidateCustom(vType,sp)
+        endmethod
+
 </IF STRUCTURE_RELATIONS>
 </IF DEFINED_ENABLE_RELATIONS>
-;// =========================================================================================
+
+        private partial method ValidateCustom, void
+            required in vType, ValidationType
+            required in sp, @IServiceProvider
+        endmethod
+
+;// ==========================================================================================
 .endregion
 ;//
 ;// Relations
