@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME><StructurePlural>Controller.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.4.1</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.4.2</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVICES_NAMESPACE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>API_ENABLE_QUERY_PARAMS</REQUIRES_USERTOKEN>
@@ -57,6 +57,7 @@ import Microsoft.AspNet.OData.Routing
 import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Infrastructure
 import Microsoft.Extensions.Options
+import System.ComponentModel.DataAnnotations
 import Harmony.Core.EF.Extensions
 import Harmony.Core.Interface
 import Harmony.OData
@@ -68,6 +69,9 @@ namespace <NAMESPACE>
 <IF DEFINED_ENABLE_AUTHENTICATION>
     {Authorize}
 </IF DEFINED_ENABLE_AUTHENTICATION>
+<IF DEFINED_ENABLE_API_VERSIONING>
+    {ApiVersion("<API_VERSION>")}
+</IF DEFINED_ENABLE_API_VERSIONING>
     ;;; <summary>
     ;;; OData controller for <StructurePlural>
     ;;; </summary>
@@ -91,7 +95,7 @@ namespace <NAMESPACE>
         proc
             this._DbContext = aDbContext
             this._ServiceProvider = aServiceProvider
-			this._AppSettings = aAppSettings
+            this._AppSettings = aAppSettings
         endmethod
 
 ;//
@@ -144,7 +148,7 @@ namespace <NAMESPACE>
   <PRIMARY_KEY>
     <SEGMENT_LOOP>
       <IF SEG_TAG_EQUAL>
-	  <ELSE>
+      <ELSE>
         ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
       </IF SEG_TAG_EQUAL>
     </SEGMENT_LOOP>
@@ -159,7 +163,7 @@ namespace <NAMESPACE>
   <PRIMARY_KEY>
     <SEGMENT_LOOP>
       <IF SEG_TAG_EQUAL>
-	  <ELSE>
+      <ELSE>
             {FromODataUri}
             <IF CUSTOM_HARMONY_AS_STRING>
             required in a<FieldSqlName>, string
@@ -204,23 +208,23 @@ namespace <NAMESPACE>
         ;;; Get <structurePlural> by alternate key key <KeyName>.
         ;;; </summary>
         <SEGMENT_LOOP>
-		<IF SEG_TAG_EQUAL>
-		<ELSE>
+        <IF SEG_TAG_EQUAL>
+        <ELSE>
         ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
-		</IF SEG_TAG_EQUAL>
+        </IF SEG_TAG_EQUAL>
         </SEGMENT_LOOP>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
         public method Get<StructurePlural>By<KeyName>, @IActionResult
             <SEGMENT_LOOP>
-			<IF SEG_TAG_EQUAL>
-			<ELSE>
+            <IF SEG_TAG_EQUAL>
+            <ELSE>
             {FromODataUri}
             <IF CUSTOM_HARMONY_AS_STRING>
             required in a<FieldSqlName>, string
             <ELSE>
             required in a<FieldSqlName>, <SEGMENT_SNTYPE>
             </IF CUSTOM_HARMONY_AS_STRING>
-			</IF SEG_TAG_EQUAL>
+            </IF SEG_TAG_EQUAL>
             </SEGMENT_LOOP>
         proc
             data result = _DbContext.<StructurePlural>.AsNoTracking().FindAlternate(<SEGMENT_LOOP>"<FieldSqlName>",<IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP>)
@@ -244,23 +248,23 @@ namespace <NAMESPACE>
         ;;; Get <structureNoplural> by alternate key <KeyName>.
         ;;; </summary>
         <SEGMENT_LOOP>
-		<IF SEG_TAG_EQUAL>
-		<ELSE>
+        <IF SEG_TAG_EQUAL>
+        <ELSE>
         ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
-		</IF SEG_TAG_EQUAL>
+        </IF SEG_TAG_EQUAL>
         </SEGMENT_LOOP>
         ;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
         public method Get<StructureNoplural>By<KeyName>, @SingleResult<<StructureNoplural>>
             <SEGMENT_LOOP>
-			<IF SEG_TAG_EQUAL>
-			<ELSE>
+            <IF SEG_TAG_EQUAL>
+            <ELSE>
             {FromODataUri}
             <IF CUSTOM_HARMONY_AS_STRING>
             required in a<FieldSqlName>, string
             <ELSE>
             required in a<FieldSqlName>, <SEGMENT_SNTYPE>
             </IF CUSTOM_HARMONY_AS_STRING>
-			</IF SEG_TAG_EQUAL>
+            </IF SEG_TAG_EQUAL>
             </SEGMENT_LOOP>
         proc
             mreturn new SingleResult<<StructureNoplural>>(_DbContext.<StructurePlural>.AsNoTracking().FindAlternate(<SEGMENT_LOOP>"<FieldSqlName>",<IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP>))
@@ -281,8 +285,8 @@ namespace <NAMESPACE>
 ;// the name of a single key segment MUST be "key"!!! Likely doesn't work with segmented keys.
 ;//
   <FIELD_LOOP>
-	<IF USER>
-	<ELSE>
+    <IF USER>
+    <ELSE>
     <IF CUSTOM_NOT_HARMONY_EXCLUDE>
       <IF STRUCTURE_ISAM>
         <IF NOTPKSEGMENT>
@@ -300,10 +304,10 @@ namespace <NAMESPACE>
         ;;; <param name="key"><FIELD_DESC></param>
         <ELSE>
         <SEGMENT_LOOP>
-		  <IF SEG_TAG_EQUAL>
-		  <ELSE>
+          <IF SEG_TAG_EQUAL>
+          <ELSE>
         ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
-		  </IF SEG_TAG_EQUAL>
+          </IF SEG_TAG_EQUAL>
         </SEGMENT_LOOP>
         </IF SINGLE_SEGMENT>
         ;;; <returns>
@@ -320,7 +324,7 @@ namespace <NAMESPACE>
             </IF CUSTOM_HARMONY_AS_STRING>
             <ELSE>
               <IF SEG_TAG_EQUAL>
-		      <ELSE>
+              <ELSE>
             {FromODataUri}
             <IF CUSTOM_HARMONY_AS_STRING>
             required in a<FieldSqlName>, string
@@ -365,7 +369,7 @@ namespace <NAMESPACE>
       </IF STRUCTURE_RELATIVE>
 
     </IF CUSTOM_NOT_HARMONY_EXCLUDE>
-	</IF USER>
+    </IF USER>
   </FIELD_LOOP>
 </IF PROPERTY_ENDPOINTS>
 </IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
@@ -409,8 +413,17 @@ namespace <NAMESPACE>
             KeyFactory.AssignPrimaryKey(a<StructureNoplural>)
 
             ;;Add the new <structureNoplural>
-            _DbContext.<StructurePlural>.Add(a<StructureNoplural>)
-            _DbContext.SaveChanges(keyFactory)
+            try
+            begin
+                _DbContext.<StructurePlural>.Add(a<StructureNoplural>)
+                _DbContext.SaveChanges(keyFactory)
+            end
+            catch (e, @ValidationException)
+            begin
+                ModelState.AddModelError("RelationValidation",e.Message)
+                mreturn BadRequest(ModelState)
+            end
+            endtry
 
             mreturn Created(a<StructureNoplural>)
 
@@ -435,10 +448,10 @@ namespace <NAMESPACE>
   <IF STRUCTURE_ISAM>
     <PRIMARY_KEY>
       <SEGMENT_LOOP>
-	    <IF SEG_TAG_EQUAL>
-		<ELSE>
+        <IF SEG_TAG_EQUAL>
+        <ELSE>
         ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
-	    </IF SEG_TAG_EQUAL>
+        </IF SEG_TAG_EQUAL>
       </SEGMENT_LOOP>
     </PRIMARY_KEY>
   </IF STRUCTURE_ISAM>
@@ -450,15 +463,15 @@ namespace <NAMESPACE>
   <IF STRUCTURE_ISAM>
     <PRIMARY_KEY>
       <SEGMENT_LOOP>
-	    <IF SEG_TAG_EQUAL>
-		<ELSE>
+        <IF SEG_TAG_EQUAL>
+        <ELSE>
             {FromODataUri}
         <IF CUSTOM_HARMONY_AS_STRING>
             required in a<FieldSqlName>, string
         <ELSE>
             required in a<FieldSqlName>, <SEGMENT_SNTYPE>
         </IF CUSTOM_HARMONY_AS_STRING>
-	    </IF SEG_TAG_EQUAL>
+        </IF SEG_TAG_EQUAL>
       </SEGMENT_LOOP>
     </PRIMARY_KEY>
   </IF STRUCTURE_ISAM>
@@ -477,11 +490,11 @@ namespace <NAMESPACE>
   <IF STRUCTURE_ISAM>
     <PRIMARY_KEY>
       <SEGMENT_LOOP>
-	    <IF SEG_TAG_EQUAL>
+        <IF SEG_TAG_EQUAL>
             a<StructureNoplural>.<FieldSqlname> = <SEGMENT_TAG_VALUE>
-		<ELSE>
+        <ELSE>
             a<StructureNoplural>.<FieldSqlname> = a<FieldSqlName>
-	    </IF SEG_TAG_EQUAL>
+        </IF SEG_TAG_EQUAL>
       </SEGMENT_LOOP>
     </PRIMARY_KEY>
   </IF STRUCTURE_ISAM>
@@ -510,6 +523,11 @@ namespace <NAMESPACE>
             begin
                 mreturn BadRequest(e)
             end
+            catch (e, @ValidationException)
+            begin
+                ModelState.AddModelError("RelationValidation",e.Message)
+                mreturn BadRequest(ModelState)
+            end
             endtry
 
         endmethod
@@ -533,10 +551,10 @@ namespace <NAMESPACE>
   <IF STRUCTURE_ISAM>
     <PRIMARY_KEY>
       <SEGMENT_LOOP>
-	    <IF SEG_TAG_EQUAL>
-		<ELSE>
+        <IF SEG_TAG_EQUAL>
+        <ELSE>
         ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
-	    </IF SEG_TAG_EQUAL>
+        </IF SEG_TAG_EQUAL>
       </SEGMENT_LOOP>
     </PRIMARY_KEY>
   </IF STRUCTURE_ISAM>
@@ -548,15 +566,15 @@ namespace <NAMESPACE>
   <IF STRUCTURE_ISAM>
     <PRIMARY_KEY>
       <SEGMENT_LOOP>
-	    <IF SEG_TAG_EQUAL>
-		<ELSE>
+        <IF SEG_TAG_EQUAL>
+        <ELSE>
             {FromODataUri}
           <IF CUSTOM_HARMONY_AS_STRING>
             required in a<FieldSqlName>, string
           <ELSE>
             required in a<FieldSqlName>, <SEGMENT_SNTYPE>
           </IF CUSTOM_HARMONY_AS_STRING>
-	    </IF SEG_TAG_EQUAL>
+        </IF SEG_TAG_EQUAL>
       </SEGMENT_LOOP>
     </PRIMARY_KEY>
   </IF STRUCTURE_ISAM>
@@ -595,6 +613,11 @@ namespace <NAMESPACE>
             begin
                 mreturn BadRequest(e)
             end
+            catch (e, @ValidationException)
+            begin
+                ModelState.AddModelError("RelationValidation",e.Message)
+                mreturn BadRequest(ModelState)
+            end
             endtry
 
             mreturn NoContent()
@@ -620,10 +643,10 @@ namespace <NAMESPACE>
   <IF STRUCTURE_ISAM>
     <PRIMARY_KEY>
       <SEGMENT_LOOP>
-	    <IF SEG_TAG_EQUAL>
-		<ELSE>
+        <IF SEG_TAG_EQUAL>
+        <ELSE>
         ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
-		</IF SEG_TAG_EQUAL>
+        </IF SEG_TAG_EQUAL>
       </SEGMENT_LOOP>
     </PRIMARY_KEY>
   </IF STRUCTURE_ISAM>
@@ -635,15 +658,15 @@ namespace <NAMESPACE>
   <IF STRUCTURE_ISAM>
     <PRIMARY_KEY>
       <SEGMENT_LOOP>
-	    <IF SEG_TAG_EQUAL>
-		<ELSE>
+        <IF SEG_TAG_EQUAL>
+        <ELSE>
             {FromODataUri}
           <IF CUSTOM_HARMONY_AS_STRING>
             required in a<FieldSqlName>, string
           <ELSE>
             required in a<FieldSqlName>, <SEGMENT_SNTYPE>
           </IF CUSTOM_HARMONY_AS_STRING>
-	    </IF SEG_TAG_EQUAL>
+        </IF SEG_TAG_EQUAL>
       </SEGMENT_LOOP>
     </PRIMARY_KEY>
   </IF STRUCTURE_ISAM>

@@ -82,6 +82,14 @@ namespace Services.Test
                     logicals.Add(logical)
             end
 
+            fileSpec = "DAT:sysparams.ddf"
+            if (fileSpec.Contains(":"))
+            begin
+                logical = fileSpec.Split(":")[0].ToUpper()
+                if (!logicals.Contains(logical))
+                    logicals.Add(logical)
+            end
+
             foreach logical in logicals
             begin
                 data sts, int
@@ -157,6 +165,12 @@ namespace Services.Test
                 store(chout,vendor.SynergyRecord)
             close chout
 
+            ;;Create and load the sysparams file
+
+            dataFile = "DAT:sysparams.ddf"
+            data sourceFile = dataFile.ToLower().Replace(".ddf",".txt")
+            xcall copy(sourceFile,dataFile,1)
+
         endmethod
 
         private static method deleteFiles, void
@@ -209,6 +223,17 @@ namespace Services.Test
             try
             begin
                 xcall delet("DAT:vendors.ism")
+            end
+            catch (e, @NoFileFoundException)
+            begin
+                nop
+            end
+            endtry
+
+            ;;Delete the sysparams file
+            try
+            begin
+                xcall delet("DAT:sysparams.ddf")
             end
             catch (e, @NoFileFoundException)
             begin

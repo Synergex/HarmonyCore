@@ -17,6 +17,9 @@ import System.ComponentModel.DataAnnotations
 import System.Text
 import Harmony.Core
 import Harmony.Core.Converters
+import Harmony.Core.Context
+import Harmony.Core.FileIO
+import Microsoft.Extensions.DependencyInjection
 
 namespace Services.Models
 
@@ -233,6 +236,62 @@ namespace Services.Models
         proc
             ;;TODO: This should be returning boxed values for each of our fields
             mreturn new Object[7]
+        endmethod
+
+        ;;; <summary>
+        ;;; Validate data for one-to-one relations
+        ;;; </summary>
+        ;;; <param name="type">Validation type (create, update or delete)</param>
+        ;;; <param name="sp">Serices provider</param>
+        public override method Validate, void
+            required in vType, ValidationType
+            required in sp, @IServiceProvider
+
+            ;;From key for REL_Order
+            record rel1FromKey
+              order_number, d6
+              item_number, d2
+            endrecord
+
+            ;;From key for REL_Item
+            record rel2FromKey
+              item_ordered, d6
+            endrecord
+        proc
+            ;;No relation validation if the record is being deleted
+            if (vType == ValidationType.Delete)
+                mreturn
+
+            ;;Get an instance of IDataObjectProvider
+            data doProvider, @IDataObjectProvider, sp.GetService<IDataObjectProvider>()
+
+            ;;--------------------------------------------------------------------------------
+            ;;Validate data for relation 1 (REL_Order)
+
+            rel1FromKey.order_number = mSynergyData.order_number
+            rel1FromKey.item_number = mSynergyData.item_number
+            disposable data rel1FileIO = doProvider.GetFileIO<Order>()
+            if (rel1FileIO.FindRecord(0,rel1FromKey) != FileAccessResults.Success)
+                throw new ValidationException("Invalid data for relation REL_Order")
+
+            ;;--------------------------------------------------------------------------------
+            ;;Validate data for relation 2 (REL_Item)
+
+            rel2FromKey.item_ordered = mSynergyData.item_ordered
+            disposable data rel2FileIO = doProvider.GetFileIO<Item>()
+            if (rel2FileIO.FindRecord(0,rel2FromKey) != FileAccessResults.Success)
+                throw new ValidationException("Invalid data for relation REL_Item")
+
+
+            ;;If we have a ValidateCustom method, call it
+            ValidateCustom(vType,sp)
+
+        endmethod
+
+
+        private partial method ValidateCustom, void
+            required in vType, ValidationType
+            required in sp, @IServiceProvider
         endmethod
 
 .endregion
