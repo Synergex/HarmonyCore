@@ -14,9 +14,13 @@ steps:
   inputs:
     packageType: 'sdk'
     version: '2.2.x'
+- task: NuGetCommand@2
+  displayName: 'NuGet restore'
+  inputs:
+    restoreSolution: '$(HarmonyCoreSln)'
 - task: MSBuild@1
   inputs:
-    solution: '**/*.sln'
+    solution: '$(HarmonyCoreSln)'
     msbuildArchitecture: 'x64'
     platform: 'x64'
     configuration: 'Release'
