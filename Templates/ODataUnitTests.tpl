@@ -300,6 +300,8 @@ namespace <NAMESPACE>
             <COUNTER_1_RESET>
             <FIELD_LOOP>
             <IF NOTKEYSEGMENT>
+            <IF USED_IN_RELATION>
+            <ELSE>
             <COUNTER_1_INCREMENT>
             <IF COUNTER_1_EQ_1>
             <IF ALPHA>
@@ -308,6 +310,7 @@ namespace <NAMESPACE>
             do<StructureNoplural>.<FieldSqlName> = 8
             </IF ALPHA>
             </IF COUNTER_1_EQ_1>
+            </IF USED_IN_RELATION>
             </IF NOTKEYSEGMENT>
             </FIELD_LOOP>
 
@@ -332,6 +335,8 @@ namespace <NAMESPACE>
             <COUNTER_1_RESET>
             <FIELD_LOOP>
             <IF NOTKEYSEGMENT>
+            <IF USED_IN_RELATION>
+            <ELSE>
             <COUNTER_1_INCREMENT>
             <IF COUNTER_1_EQ_1>
             <IF ALPHA>
@@ -340,6 +345,7 @@ namespace <NAMESPACE>
             Assert.AreEqual(do<StructureNoplural>.<FieldSqlName>, 8)
             </IF ALPHA>
             </IF COUNTER_1_EQ_1>
+            </IF USED_IN_RELATION>
             </IF NOTKEYSEGMENT>
             </FIELD_LOOP>
 
@@ -362,6 +368,8 @@ namespace <NAMESPACE>
             <COUNTER_1_RESET>
             <FIELD_LOOP>
             <IF NOTKEYSEGMENT>
+            <IF USED_IN_RELATION>
+            <ELSE>
             <COUNTER_1_INCREMENT>
             <IF COUNTER_1_EQ_1>
             <IF ALPHA>
@@ -370,6 +378,7 @@ namespace <NAMESPACE>
             patchDoc.Replace("<FieldSqlName>", "9")
             </IF ALPHA>
             </IF COUNTER_1_EQ_1>
+            </IF USED_IN_RELATION>
             </IF NOTKEYSEGMENT>
             </FIELD_LOOP>
 
@@ -397,6 +406,8 @@ namespace <NAMESPACE>
             <COUNTER_1_RESET>
             <FIELD_LOOP>
             <IF NOTKEYSEGMENT>
+            <IF USED_IN_RELATION>
+            <ELSE>
             <COUNTER_1_INCREMENT>
             <IF COUNTER_1_EQ_1>
             <IF ALPHA>
@@ -405,6 +416,7 @@ namespace <NAMESPACE>
             Assert.AreEqual(do<StructureNoplural>.<FieldSqlName>, 9)
             </IF ALPHA>
             </IF COUNTER_1_EQ_1>
+            </IF USED_IN_RELATION>
             </IF NOTKEYSEGMENT>
             </FIELD_LOOP>
 
