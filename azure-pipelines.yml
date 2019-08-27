@@ -19,10 +19,6 @@ steps:
   inputs:
     versionSpec: 4.x
     checkLatest: true
-- task: NuGetCommand@2
-  displayName: 'NuGet restore'
-  inputs:
-    restoreSolution: '$(HarmonyCoreSln)'
 - task: MSBuild@1
   inputs:
     solution: '$(HarmonyCoreSln)'
@@ -30,9 +26,24 @@ steps:
     platform: 'x64'
     configuration: 'Release'
     restoreNugetPackages: true
+- task: MSBuild@1
+  inputs:
+    solution: '$(HarmonyCoreSln)'
+    msbuildArchitecture: 'x64'
+    platform: 'x64'
+    configuration: 'Debug'
+    restoreNugetPackages: true
 - task: DotNetCoreCLI@2
   inputs:
     command: 'test'
+    arguments: '-c Release'
+    projects: |
+      HarmonyCore.Test
+      Services.Test
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'test'
+    arguments: '-c Debug'
     projects: |
       HarmonyCore.Test
       Services.Test
