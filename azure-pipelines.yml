@@ -1,4 +1,5 @@
 # Starter pipeline
+
 # Start with a minimal pipeline that you can customize to build and deploy your code.
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
@@ -14,10 +15,15 @@ steps:
   inputs:
     packageType: 'sdk'
     version: '2.2.x'
-- task: NuGetCommand@2
-  displayName: 'NuGet restore'
+- task: NuGetToolInstaller@1
   inputs:
-    restoreSolution: '$(HarmonyCoreSln)'
+    versionSpec: 4.x
+    checkLatest: true
+- task: NuGetCommand@2
+  inputs:
+    command: 'restore'
+    restoreSolution: '**/*.sln'
+    feedsToUse: 'select'
 - task: MSBuild@1
   inputs:
     solution: '$(HarmonyCoreSln)'
@@ -25,3 +31,24 @@ steps:
     platform: 'x64'
     configuration: 'Release'
     restoreNugetPackages: true
+- task: MSBuild@1
+  inputs:
+    solution: '$(HarmonyCoreSln)'
+    msbuildArchitecture: 'x64'
+    platform: 'x64'
+    configuration: 'Debug'
+    restoreNugetPackages: true
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'test'
+    arguments: '-c Release'
+    projects: |
+      HarmonyCore.Test
+      Services.Test
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'test'
+    arguments: '-c Debug'
+    projects: |
+      HarmonyCore.Test
+      Services.Test
