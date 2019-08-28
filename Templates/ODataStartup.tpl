@@ -67,6 +67,7 @@ import Microsoft.AspNetCore.Authentication.JwtBearer
 import Microsoft.AspNetCore.Builder
 import Microsoft.AspNetCore.Hosting
 import Microsoft.AspNetCore.Http
+import Microsoft.AspNetCore.Mvc
 import Microsoft.AspNetCore.Mvc.Abstractions
 <IF DEFINED_ENABLE_SWAGGER_DOCS>
 import Microsoft.AspNetCore.StaticFiles
@@ -101,7 +102,6 @@ import <MODELS_NAMESPACE>
 <IF DEFINED_ENABLE_API_VERSIONING>
 import Microsoft.AspNetCore.Mvc.ApiExplorer
 import Swashbuckle.AspNetCore.Swagger
-import Microsoft.AspNetCore.Mvc
 </IF DEFINED_ENABLE_API_VERSIONING>
 
 namespace <NAMESPACE>
@@ -414,7 +414,9 @@ namespace <NAMESPACE>
         public method Configure, void
             required in app, @IApplicationBuilder
             required in env, @IHostingEnvironment
+            <IF DEFINED_ENABLE_API_VERSIONING>
             required in versionProvider, @IApiVersionDescriptionProvider
+            </IF DEFINED_ENABLE_API_VERSIONING>
         proc
             ;;-------------------------------------------------------
             ;;Configure the AppSettings environment
@@ -470,13 +472,22 @@ namespace <NAMESPACE>
                     mreturn result
                 end
 
-                lambda EnableRouting(<IF DEFINED_ENABLE_API_VERSIONING>configContext<ELSE>sp</IF DEFINED_ENABLE_API_VERSIONING>)
+                lambda EnableRouting(configContext)
                 begin
                 <IF DEFINED_ENABLE_API_VERSIONING>
                     configContext.RoutingConventions.Insert(1, new HarmonySprocRoutingConvention())
                     configContext.RoutingConventions.Insert(1, new AdapterRoutingConvention())
-                </IF DEFINED_ENABLE_API_VERSIONING>
                     mreturn configContext.RoutingConventions
+                <ELSE>
+                    data routeList = ODataRoutingConventions.CreateDefaultWithAttributeRouting("<SERVER_BASE_PATH>", builder)
+                  <IF DEFINED_ENABLE_SPROC>
+                    routeList.Insert(0, new HarmonySprocRoutingConvention())
+                  </IF DEFINED_ENABLE_SPROC>
+                  <IF DEFINED_ENABLE_ADAPTER_ROUTING>
+                    routeList.Insert(0, new AdapterRoutingConvention())
+                  </IF DEFINED_ENABLE_ADAPTER_ROUTING>
+                    mreturn routeList
+                </IF DEFINED_ENABLE_API_VERSIONING>
                 end
 
                 lambda EnableWritableEdmModel(sp)

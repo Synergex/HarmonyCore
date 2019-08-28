@@ -38,6 +38,15 @@ steps:
     platform: 'x64'
     configuration: 'Debug'
     restoreNugetPackages: true
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: |
+      Write-Host "##vso[task.setvariable variable=RPSMFIL;]$env:SolutionDir\HarmonyCore.Test.Repository\bin\Release\rpsmain.ism"
+      Write-Host "##vso[task.setvariable variable=RPSTFIL;]$env:SolutionDir\HarmonyCore.Test.Repository\bin\Release\rpstext.ism"
+- task: BatchScript@1
+  inputs:
+    filename: 'regen.bat'
 - task: DotNetCoreCLI@2
   inputs:
     command: 'test'
