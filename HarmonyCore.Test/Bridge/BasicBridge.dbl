@@ -19,10 +19,10 @@ namespace HarmonyCore.Test.Bridge
     {TestClass}
     public class BasicBridge
 
-        private method GetContextPool, @ExternalContextPool<BasicBridge.ExternalCallContext>
+        private method GetContextPool<T(IContextBase, class)>, @ExternalContextPool<T>
         proc
             data currentDirectory = Path.GetDirectoryName(^typeof(BasicBridge).Assembly.Location)
-            data contextPool = new ExternalContextPool<BasicBridge.ExternalCallContext>(Environment.GetEnvironmentVariable("SYNERGYDE64") + "dbl\bin\dbs.exe", 'TraditionalBridge.Test.dbr', Path.GetFullPath(Path.Combine(Environment.GetEnvironmentVariable("SolutionDir") ?? "..\..\..\..\", "TestDir")), ^null, 4) 
+            data contextPool = new ExternalContextPool<T>(Environment.GetEnvironmentVariable("SYNERGYDE64") + "dbl\bin\dbs.exe", 'TraditionalBridge.Test.dbr', Path.GetFullPath(Path.Combine(Environment.GetEnvironmentVariable("SolutionDir") ?? "..\..\..\..\", "TestDir")), ^null, 4) 
             mreturn contextPool
         endmethod
 
@@ -30,7 +30,7 @@ namespace HarmonyCore.Test.Bridge
         {TestMethod}
         public async method LocalTest, @Task
         proc
-            disposable data contextPool = GetContextPool()
+            disposable data contextPool = GetContextPool<BasicBridge.ExternalCallContext>()
             data sp = new ServiceCollection().BuildServiceProvider()
 			
             data context = contextPool.MakeContext(sp)
@@ -77,7 +77,7 @@ namespace HarmonyCore.Test.Bridge
         {TestMethod}
         public async method LocalOptionalTest, @Task
         proc
-            disposable data contextPool = GetContextPool()
+            disposable data contextPool = GetContextPool<BasicBridge.ExternalCallContext>()
             data sp = new ServiceCollection().BuildServiceProvider()
 			
             data context = contextPool.MakeContext(sp)
@@ -110,7 +110,7 @@ namespace HarmonyCore.Test.Bridge
         {TestMethod}
         public async method LocalLoggingTest, @Task
         proc
-            disposable data contextPool = GetContextPool()
+            disposable data contextPool = GetContextPool<BasicBridge.ExternalCallContext>()
             data sp = new ServiceCollection().BuildServiceProvider()
 			
             data context = contextPool.MakeContext(sp)
@@ -139,7 +139,7 @@ namespace HarmonyCore.Test.Bridge
         {TestMethod}
         public async method LocalGenTest, @Task
         proc
-            disposable data contextPool = GetContextPool()
+            disposable data contextPool = GetContextPool<syntstService>()
             data sp = new ServiceCollection().BuildServiceProvider()
 			
             data context = contextPool.MakeContext(sp)
