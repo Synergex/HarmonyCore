@@ -44,23 +44,43 @@ set BRIDGE_ALIASES=%BRIDGE_STRUCTURES%
 
 rem DATA_STRUCTURES     Is a list all structures that you wish to generate models, metadata and
 rem                     controllers for. In other words it declares all of the "entities"
-rem                     that are being represented and exposed by the environment. The DbContext
-rem                     and EdmBuilder classes will be aware of the types associated with These
-rem                     structures.
+rem                     that are being represented and exposed by the OData environment. The
+rem                     DbContextand EdmBuilder classes will be aware of the types associated
+rem                     with These structures.
+rem
+rem DATA_ALIASES        Is a list of alias names for the structures listed in DATA_STRUCTURES.
+rem                     If you wish to provide alternate names for the structures being exposed
+rem                     then list them here. Specify an alias name for each structure.
+rem
+rem DATA_FILES          Is a list of the repository file definition names that are associated
+rem                     with each structure listed in DATA_STRUCTURES. If you have a one to ONE
+rem                     mapping from structures to files then you can leave the setting to
+rem                     default to the same value as DATA_STRUCTURES, but if your structure and
+rem                     file definitions are different, especially if you have structures that
+rem                     are assigned to multiple file definitions, then it is important to list
+rem                     the correct file definition assignment for each structure.
 rem
 rem FILE_STRUCTURES     If you don't have multi-record format files then this should be the
 rem                     same as DATA_STRUCTURES. But if you do then FILE_STRUCTURES should
 rem                     only list ONE of the structures assigned to each file, so this list
 rem                     will be a subset of DATA_STRUCTURES.
 rem
+rem FILE_ALIASES        Optional aliases for the structures listed in FILE_STRUCTURES
+rem
+rem FILE_FILES          Repository file assignments for the structures listed in FILE_STRUCTURES
+rem
 rem CUSTOM_STRUCTURES	Is a list of structures that you wish to generate models and metadata
 rem                     for, but which will NOT be exposed to the Entity Framework provider.
 rem                     These classes are intended for use only by custom code-based endpoints
 rem                     and the DbContext and EdmBuilder classes will know nothing about them.
+rem
+rem CUSTOM_ALIASES      Optional aliases for the structures listed in CUSTOM_STRUCTURES
 
 rem BRIDGE_STRUCTURES	Is a list of structures that you wish to generate models and metadata
 rem                     for use with a Traditional Bridge environment. These types will NOT
 rem                     be exposed to the Entity Framework provider.
+rem
+rem BRIDGE_ALIASES      Optional aliases for the structures listed in BRIDGE_STRUCTURES
 
 rem ================================================================================================================================
 rem Specify optional "system parameter file" structure
@@ -125,14 +145,6 @@ if not "NONE%ENABLE_SELECT%%ENABLE_FILTER%%ENABLE_ORDERBY%%ENABLE_TOP%%ENABLE_SK
 
 rem ================================================================================================================================
 rem Configure standard command line options and the CodeGen environment
-
-if "%COMPUTERNAME%"=="SIVES" (
-  set USERTOKENFILE=UserDefinedTokensSteve.tkn
-) else (
-  set USERTOKENFILE=UserDefinedTokens.tkn
-)
-echo.
-echo User token file is %USERTOKENFILE%
 
 set NOREPLACEOPTS=-e -lf -u %SolutionDir%UserDefinedTokens.tkn %ENABLE_GET_ALL% %ENABLE_GET_ONE% %ENABLE_OVERLAYS% %DO_NOT_SET_FILE_LOGICALS% %ENABLE_ALTERNATE_FIELD_NAMES% %ENABLE_AUTHENTICATION% %ENABLE_CUSTOM_AUTHENTICATION% %ENABLE_SIGNALR% %ENABLE_FIELD_SECURITY% %ENABLE_PROPERTY_ENDPOINTS% %ENABLE_PROPERTY_VALUE_DOCS% %ENABLE_CASE_SENSITIVE_URL% %ENABLE_CREATE_TEST_FILES% %ENABLE_CORS% %ENABLE_IIS_SUPPORT% %ENABLE_DELETE% %ENABLE_PUT% %ENABLE_POST% %ENABLE_PATCH% %ENABLE_ALTERNATE_KEYS% %ENABLE_SWAGGER_DOCS% %ENABLE_API_VERSIONING% %ENABLE_RELATIONS% %ENABLE_SELECT% %ENABLE_FILTER% %ENABLE_ORDERBY% %ENABLE_COUNT% %ENABLE_TOP% %ENABLE_SKIP% %ENABLE_SPROC% %ENABLE_ADAPTER_ROUTING% %ENABLE_READ_ONLY_PROPERTIES% %PARAM_OPTIONS_PRESENT% -rps %RPSMFIL% %RPSTFIL%
 set STDOPTS=%NOREPLACEOPTS% -r
@@ -203,7 +215,6 @@ if DEFINED ENABLE_SELF_HOST_GENERATION (
           -ut SERVICES_NAMESPACE=%ServicesProject% MODELS_NAMESPACE=%ModelsProject% ^
               %STDOPTS%
   if ERRORLEVEL 1 goto error
-
 )
 
 rem ================================================================================
@@ -339,8 +350,6 @@ if DEFINED ENABLE_BRIDGE_OPTIONAL_PARAMETERS (
 if DEFINED ENABLE_XFSERVERPLUS_MIGRATION (
 
   rem Generate dispatcher classes for all methods in in interface (TRADITIONAL SIDE)
-
-  echo Are we getting here?
 
   codegen -smc %SMC_XML_FILE% ^
           -interface %SMC_INTERFACE% ^
