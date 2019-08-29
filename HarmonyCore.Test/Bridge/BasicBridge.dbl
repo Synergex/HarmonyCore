@@ -19,11 +19,18 @@ namespace HarmonyCore.Test.Bridge
     {TestClass}
     public class BasicBridge
 
+        private method GetContextPool, @ExternalContextPool<BasicBridge.ExternalCallContext>
+        proc
+            data currentDirectory = Path.GetDirectoryName(^typeof(BasicBridge).Assembly.Location)
+            data contextPool = new ExternalContextPool<BasicBridge.ExternalCallContext>(Environment.GetEnvironmentVariable("SYNERGYDE64") + "dbl\bin\dbs.exe", 'TraditionalBridge.Test.dbr', Path.GetFullPath(Path.Combine(Environment.GetEnvironmentVariable("SolutionDir") ?? "..\..\..\..\", "TestDir")), ^null, 4) 
+            mreturn contextPool
+        endmethod
+
+
         {TestMethod}
         public async method LocalTest, @Task
         proc
-            data currentDirectory = Path.GetDirectoryName(^typeof(BasicBridge).Assembly.Location)
-            disposable data contextPool = new ExternalContextPool<BasicBridge.ExternalCallContext>(Environment.GetEnvironmentVariable("SYNERGYDE64") + "dbl\bin\dbs.exe", 'TraditionalBridge.Test.dbr', Path.GetFullPath(Path.Combine(Environment.GetEnvironmentVariable("SolutionDir") ?? "..\..\..\..\", "TestDir")), ^null, 4) 
+            disposable data contextPool = GetContextPool()
             data sp = new ServiceCollection().BuildServiceProvider()
 			
             data context = contextPool.MakeContext(sp)
@@ -70,8 +77,7 @@ namespace HarmonyCore.Test.Bridge
         {TestMethod}
         public async method LocalOptionalTest, @Task
         proc
-            data currentDirectory = Path.GetDirectoryName(^typeof(BasicBridge).Assembly.Location)
-            disposable data contextPool = new ExternalContextPool<BasicBridge.ExternalCallContext>(Environment.GetEnvironmentVariable("SYNERGYDE32") + "dbl\bin\dbs.exe", 'TraditionalBridge.Test.dbr', Path.GetFullPath(Path.Combine(currentDirectory, "..\..\..\..\TestDir")), ^null, 4) 
+            disposable data contextPool = GetContextPool()
             data sp = new ServiceCollection().BuildServiceProvider()
 			
             data context = contextPool.MakeContext(sp)
@@ -104,8 +110,7 @@ namespace HarmonyCore.Test.Bridge
         {TestMethod}
         public async method LocalLoggingTest, @Task
         proc
-            data currentDirectory = Path.GetDirectoryName(^typeof(BasicBridge).Assembly.Location)
-            disposable data contextPool = new ExternalContextPool<BasicBridge.ExternalCallContext>(Environment.GetEnvironmentVariable("SYNERGYDE32") + "dbl\bin\dbs.exe", 'TraditionalBridge.Test.dbr', Path.GetFullPath(Path.Combine(currentDirectory, "..\..\..\..\TestDir")), ^null, 4) 
+            disposable data contextPool = GetContextPool()
             data sp = new ServiceCollection().BuildServiceProvider()
 			
             data context = contextPool.MakeContext(sp)
@@ -134,8 +139,7 @@ namespace HarmonyCore.Test.Bridge
         {TestMethod}
         public async method LocalGenTest, @Task
         proc
-            data currentDirectory = Path.GetDirectoryName(^typeof(BasicBridge).Assembly.Location)
-            disposable data contextPool = new ExternalContextPool<syntstService>(Environment.GetEnvironmentVariable("SYNERGYDE32") + "dbl\bin\dbr.exe", 'TraditionalBridge.Test.dbr', Path.GetFullPath(Path.Combine(currentDirectory, "..\..\..\..\TestDir")), ^null, 4) 
+            disposable data contextPool = GetContextPool()
             data sp = new ServiceCollection().BuildServiceProvider()
 			
             data context = contextPool.MakeContext(sp)
