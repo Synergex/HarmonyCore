@@ -248,14 +248,14 @@ namespace <NAMESPACE>
                 foreach description in provider.ApiVersionDescriptions
                 begin
                     data info = new Info()
-                    & {
-                        & Title = "<API_TITLE> " + description.ApiVersion.ToString(),
-                        & Version = description.ApiVersion.ToString(),
-                        & Description = "<API_DESCRIPTION>",
-                        & Contact = new Contact() { Name = "<API_CONTACT_NAME>", Email = "<API_CONTACT_EMAIL>" },
-                        & TermsOfService = "<API_TERMS>",
-                        & License = new License() { Name = "<API_LICENSE_NAME>", Url = "<API_LICENSE_URL>" }
-                    & }
+                    &    {
+                    &    Title = "<API_TITLE> " + description.ApiVersion.ToString(),
+                    &    Version = description.ApiVersion.ToString(),
+                    &    Description = "<API_DESCRIPTION>",
+                    &    Contact = new Contact() { Name = "<API_CONTACT_NAME>", Email = "<API_CONTACT_EMAIL>" },
+                    &    TermsOfService = "<API_TERMS>",
+                    &    License = new License() { Name = "<API_LICENSE_NAME>", Url = "<API_LICENSE_URL>" }
+                    &    }
 
                     options.SwaggerDoc( description.GroupName, info )
                 end
