@@ -8,23 +8,6 @@ stages:
 - stage: build
   displayName: 'Main Build'
   jobs: 
-  - job: Setup
-    pool:
-      name: Synergy-10-3-3Build
-      steps:
-      - task: UseDotNet@2
-        inputs:
-          packageType: 'sdk'
-          version: '2.2.x'
-      - task: NuGetToolInstaller@1
-        inputs:
-          versionSpec: 4.x
-          checkLatest: true
-      - task: NuGetCommand@2
-        inputs:
-          command: 'restore'
-          restoreSolution: '**/*.sln'
-          feedsToUse: 'select'
   - job: BuildJob
     pool:
       name: Synergy-10-3-3Build
@@ -47,6 +30,19 @@ stages:
           Configuration: Release
           Platform: linux
     steps:
+    - task: UseDotNet@2
+      inputs:
+        packageType: 'sdk'
+        version: '2.2.x'
+    - task: NuGetToolInstaller@1
+      inputs:
+        versionSpec: 4.x
+        checkLatest: true
+    - task: NuGetCommand@2
+      inputs:
+        command: 'restore'
+        restoreSolution: '**/*.sln'
+        feedsToUse: 'select'
     - task: MSBuild@1
       inputs:
         solution: '$(HarmonyCoreSln)'
@@ -54,28 +50,7 @@ stages:
         platform: $(Platform)
         configuration: $(Configuration)
         restoreNugetPackages: true
-  - job: TestJob
-    pool:
-      name: Synergy-10-3-3Build
-    strategy:
-      maxParallel: 4
-      matrix:
-        Debug_x64:
-          Configuration: Debug
-          Platform: x64
-        Release_x64:
-          Configuration: Release
-          Platform: x64
-        Debug_x86:
-          Configuration: Debug
-          Platform: x86
-        Release_x86:
-          Configuration: Release
-          Platform: x86
-        Release_linux:
-          Configuration: Release
-          Platform: linux
-    steps:
+
     - task: MSBuild@1
       inputs:
         solution: '$(HarmonyCoreSln)'
@@ -83,38 +58,16 @@ stages:
         platform: $(Platform)
         configuration: $(Configuration)
         restoreNugetPackages: true
-  - job: CodegenJob
-    pool:
-      name: Synergy-10-3-3Build
-    steps:
-      - task: PowerShell@2
-        inputs:
-          targetType: 'inline'
-          script: |
-            Write-Host "##vso[task.setvariable variable=RPSMFIL;]$env:SolutionDir\HarmonyCore.Test.Repository\bin\Release\rpsmain.ism"
-            Write-Host "##vso[task.setvariable variable=RPSTFIL;]$env:SolutionDir\HarmonyCore.Test.Repository\bin\Release\rpstext.ism"
-      - task: BatchScript@1
-        inputs:
-          filename: 'regen.bat'
-  - job: UnitTestJob
-    strategy:
-      maxParallel: 4
-      matrix:
-        Debug_x64:
-          Configuration: Debug
-          Platform: x64
-        Release_x64:
-          Configuration: Release
-          Platform: x64
-        Debug_x86:
-          Configuration: Debug
-          Platform: x86
-        Release_x86:
-          Configuration: Release
-          Platform: x86
-    pool:
-      name: Synergy-10-3-3Build
-    steps:
+    - task: PowerShell@2
+      inputs:
+        targetType: 'inline'
+        script: |
+          Write-Host "##vso[task.setvariable variable=RPSMFIL;]$env:SolutionDir\HarmonyCore.Test.Repository\bin\Release\rpsmain.ism"
+          Write-Host "##vso[task.setvariable variable=RPSTFIL;]$env:SolutionDir\HarmonyCore.Test.Repository\bin\Release\rpstext.ism"
+    - task: BatchScript@1
+      inputs:
+        filename: 'regen.bat'
+
     - task: DotNetCoreCLI@2
       inputs:
         command: 'test'
