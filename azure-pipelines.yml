@@ -60,28 +60,33 @@ stages:
       inputs:
         filename: 'regen.bat'
     - task: DotNetCoreCLI@2
+      displayName: 'Run Unit Tests'
       inputs:
         command: 'test'
         arguments: '-c $(Configuration)'
         projects: |
           HarmonyCore.Test
           Services.Test
+
     - task: DotNetCoreCLI@2
+      displayName: 'Publish Linux Test Binaries'
       condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
       inputs:
-        command: 'publish'
+        command: 'custom'
+        custom: 'publish'
         arguments: '-c Release -r linux-x64'
-        projects: |
-          Services.Host
-          Services.Test
-          HarmonyCore.Test
+        projects: Services.Host\Services.Host.synproj
+          Services.Test\Services.Test.synproj
+          HarmonyCore.Test\HarmonyCore.Test.synproj
+
     - task: DotNetCoreCLI@2
+      displayName: 'Publish Windows Test Binaries'
       condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
       inputs:
-        command: 'publish'
+        command: 'custom'
+        custom: 'publish'
         arguments: '-c Release -r win7-x64'
-        projects: |
-          Services.Host
+        projects: Services.Host\Services.Host.synproj
 
     - publish: '$(System.DefaultWorkingDirectory)/Services.Host/bin/Release/netcoreapp2.2/linux-x64/publish'
       condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
