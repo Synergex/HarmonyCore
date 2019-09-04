@@ -14,21 +14,21 @@ stages:
     strategy:
       maxParallel: 4
       matrix:
-        Debug_x64:
-          Configuration: Debug
-          Platform: x64
+#        Debug_x64:
+#          Configuration: Debug
+#          Platform: x64
         Release_x64:
           Configuration: Release
           Platform: x64
-        Debug_x86:
-          Configuration: Debug
-          Platform: x86
-        Release_x86:
-          Configuration: Release
-          Platform: x86
+#        Debug_x86:
+#          Configuration: Debug
+#          Platform: x86
+#        Release_x86:
+#          Configuration: Release
+#          Platform: x86
         Release_linux:
           Configuration: Release
-          Platform: linux
+          Platform: linux64
     steps:
     - task: UseDotNet@2
       inputs:
@@ -67,7 +67,7 @@ stages:
           HarmonyCore.Test
           Services.Test
     - task: DotNetCoreCLI@2
-      condition: and(eq(variables['Platform'], 'linux'), eq(variables['Configuration'], 'Release'))
+      condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
       inputs:
         command: 'publish'
         arguments: '-c Release -r linux-x64'
@@ -84,19 +84,19 @@ stages:
           Services.Host
 
     - publish: '$(System.DefaultWorkingDirectory)/Services.Host/bin/Release/netcoreapp2.2/publish/linux-x64'
-      condition: and(eq(variables['Platform'], 'linux'), eq(variables['Configuration'], 'Release'))
+      condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
       artifact: LinuxWebApp
     - publish: '$(System.DefaultWorkingDirectory)/Services.Host/bin/Release/netcoreapp2.2/publish/win7-x64'
       condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
       artifact: WindowsWebApp
     - publish: '$(System.DefaultWorkingDirectory)/Services.Test/bin/Release/netcoreapp2.2/publish/linux-x64'
-      condition: and(eq(variables['Platform'], 'linux'), eq(variables['Configuration'], 'Release'))
+      condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
       artifact: LinuxServicesTest
     - publish: '$(System.DefaultWorkingDirectory)/HarmonyCore.Test/bin/Release/netcoreapp2.2/publish/linux-x64'
-      condition: and(eq(variables['Platform'], 'linux'), eq(variables['Configuration'], 'Release'))
+      condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
       artifact: LinuxHarmonyCoreTest
     - publish: '$(System.DefaultWorkingDirectory)/TestDir/*.dbr'
-      condition: and(eq(variables['Platform'], 'linux'), eq(variables['Configuration'], 'Release'))
+      condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
       artifact: TraditionalBridgeDBR
   - job: LinuxTest
     dependsOn: BuildJob
