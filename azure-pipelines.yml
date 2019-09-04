@@ -75,9 +75,10 @@ stages:
         command: 'custom'
         custom: 'publish'
         arguments: '-c Release -r linux-x64'
-        projects: Services.Host\Services.Host.synproj
-          Services.Test\Services.Test.synproj
-          HarmonyCore.Test\HarmonyCore.Test.synproj
+        projects: |
+          $(System.DefaultWorkingDirectory)/Services.Host/Services.Host.synproj
+          $(System.DefaultWorkingDirectory)/Services.Test/Services.Test.synproj
+          $(System.DefaultWorkingDirectory)/HarmonyCore.Test/HarmonyCore.Test.synproj
 
     - task: DotNetCoreCLI@2
       displayName: 'Publish Windows Test Binaries'
@@ -86,7 +87,7 @@ stages:
         command: 'custom'
         custom: 'publish'
         arguments: '-c Release -r win7-x64'
-        projects: Services.Host\Services.Host.synproj
+        projects: $(System.DefaultWorkingDirectory)/Services.Host/Services.Host.synproj
 
     - publish: '$(System.DefaultWorkingDirectory)/Services.Host/bin/Release/netcoreapp2.2/linux-x64/publish'
       condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
