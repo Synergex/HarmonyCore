@@ -72,45 +72,27 @@ stages:
       displayName: 'Publish Linux Test Binaries'
       condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
       inputs:
-        command: 'custom'
-        custom: 'publish'
+        command: 'publish'
         publishWebProjects: false
         arguments: '-c Release -r linux-x64'
-        workingDirectory: '$(System.DefaultWorkingDirectory)/Services.Host/'
-    - task: DotNetCoreCLI@2
-      displayName: 'Publish Linux Test Binaries'
-      condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
-      inputs:
-        command: 'custom'
-        custom: 'publish'
-        arguments: '-c Release -r linux-x64'
-        publishWebProjects: false
-        workingDirectory: '$(System.DefaultWorkingDirectory)/Services.Test/'
-
-    - task: DotNetCoreCLI@2
-      displayName: 'Publish Linux Test Binaries'
-      condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
-      inputs:
-        command: 'custom'
-        custom: 'publish'
-        publishWebProjects: false
-        arguments: '-c Release -r linux-x64'
-        workingDirectory: '$(System.DefaultWorkingDirectory)/HarmonyCore.Test/'
+        projects: |
+          Services.Host
+          Services.Test
+          HarmonyCore.Test
 
     - task: DotNetCoreCLI@2
       displayName: 'Publish Windows Test Binaries'
       condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
       inputs:
-        command: 'custom'
-        custom: 'publish'
+        command: 'publish'
         arguments: '-c Release -r win7-x64'
         publishWebProjects: false
-        projects: $(System.DefaultWorkingDirectory)/Services.Host/Services.Host.synproj
+        projects: Services.Host
 
     - publish: '$(System.DefaultWorkingDirectory)/Services.Host/bin/Release/netcoreapp2.2/linux-x64/publish'
       condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
       artifact: LinuxWebApp
-    - publish: '$(System.DefaultWorkingDirectory)/Services.Host/bin/Release/netcoreapp2.2/win7-x64/publish'
+    - publish: '$(System.DefaultWorkingDirectory)Services.Host/bin/x64/Release/netcoreapp2.2/win7-x64/publish\'
       condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
       artifact: WindowsWebApp
     - publish: '$(System.DefaultWorkingDirectory)/Services.Test/bin/Release/netcoreapp2.2/linux-x64/publish'
