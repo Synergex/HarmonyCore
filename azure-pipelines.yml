@@ -59,7 +59,6 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
-          Start-Sleep -s 90
           Write-Host "##vso[task.setvariable variable=RPSMFIL;]$env:SolutionDir\HarmonyCore.Test.Repository\bin\Release\rpsmain.ism"
           Write-Host "##vso[task.setvariable variable=RPSTFIL;]$env:SolutionDir\HarmonyCore.Test.Repository\bin\Release\rpstext.ism"
     - task: BatchScript@1
@@ -79,9 +78,10 @@ stages:
       displayName: 'Publish Linux Test Binaries'
       condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
       inputs:
-        command: 'publish'
+        command: 'custom'
+        custom: 'msbuild'
         publishWebProjects: false
-        arguments: '-c Release -r linux-x64 --no-build'
+        arguments: 'msbuild -t:Publish -p:RuntimeIdentifiers=linux-x64 -p:Platform=AnyCPU -p:Config=Release'
         projects: |
           Services.Host
           Services.Test
@@ -92,8 +92,9 @@ stages:
       displayName: 'Publish Windows Test Binaries'
       condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
       inputs:
-        command: 'publish'
-        arguments: '-c Release -r win7-x64 --no-build'
+        command: 'custom'
+        custom: 'msbuild'
+        arguments: 'msbuild -t:Publish -p:RuntimeIdentifiers=win7-x64 -p:Platform=AnyCPU -p:Config=Release'
         publishWebProjects: false
         projects: Services.Host
         verbosityPack: Diagnostic
