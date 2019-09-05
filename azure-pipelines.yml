@@ -87,7 +87,7 @@ stages:
         command: 'custom'
         custom: 'msbuild'
         publishWebProjects: false
-        arguments: '-t:Publish -p:RuntimeIdentifiers=linux-x64 -p:Platform=AnyCPU -p:Config=Release'
+        arguments: '-t:Publish -p:RuntimeIdentifier=linux-x64 -p:Platform=AnyCPU -p:Config=Release'
         projects: |
           Services.Host
           Services.Test
@@ -95,22 +95,23 @@ stages:
         verbosityPack: Diagnostic
 
     - task: DotNetCoreCLI@2
+      enabled: false
       displayName: 'Publish Windows Test Binaries'
       condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
       inputs:
         command: 'custom'
         custom: 'msbuild'
-        arguments: '-t:Publish -p:RuntimeIdentifiers=win7-x64 -p:Platform=AnyCPU -p:Config=Release'
+        arguments: '-t:Publish -p:RuntimeIdentifier=win7-x64 -p:Platform=AnyCPU -p:Config=Release'
         publishWebProjects: false
         projects: Services.Host
         verbosityPack: Diagnostic
 
     - publish: '$(System.DefaultWorkingDirectory)/Services.Host/bin/Release/netcoreapp2.2/publish'
-      displayName: 'Publish Windows Services.Host Artifact'
+      displayName: 'Publish Linux Services.Host Artifact'
       condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
       artifact: LinuxWebApp
     - publish: '$(System.DefaultWorkingDirectory)Services.Host/bin/Release/netcoreapp2.2/publish'
-      displayName: 'Publish Linux Services.Host Artifact'
+      displayName: 'Publish Windows Services.Host Artifact'
       condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
       artifact: WindowsWebApp
     - publish: '$(System.DefaultWorkingDirectory)/Services.Test/bin/Release/netcoreapp2.2/publish'
