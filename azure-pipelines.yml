@@ -79,6 +79,7 @@ stages:
           Services.Host
           Services.Test
           HarmonyCore.Test
+        verbosityPack: Diagnostic
 
     - task: DotNetCoreCLI@2
       displayName: 'Publish Windows Test Binaries'
@@ -88,6 +89,7 @@ stages:
         arguments: '-c Release -r win7-x64'
         publishWebProjects: false
         projects: Services.Host
+        verbosityPack: Diagnostic
 
     - publish: '$(System.DefaultWorkingDirectory)/Services.Host/bin/Release/netcoreapp2.2/linux-x64/publish'
       condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
