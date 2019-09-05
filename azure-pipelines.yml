@@ -64,7 +64,7 @@ stages:
       displayName: 'Run Unit Tests'
       inputs:
         command: 'test'
-        arguments: '-c $(Configuration)'
+        arguments: '-c $(Configuration) --no-build'
         projects: |
           HarmonyCore.Test
           Services.Test
@@ -75,7 +75,7 @@ stages:
       inputs:
         command: 'publish'
         publishWebProjects: false
-        arguments: '-c Release -r linux-x64'
+        arguments: '-c Release -r linux-x64 --no-build'
         projects: |
           Services.Host
           Services.Test
@@ -87,7 +87,7 @@ stages:
       condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
       inputs:
         command: 'publish'
-        arguments: '-c Release -r win7-x64'
+        arguments: '-c Release -r win7-x64 --no-build'
         publishWebProjects: false
         projects: Services.Host
         verbosityPack: Diagnostic
