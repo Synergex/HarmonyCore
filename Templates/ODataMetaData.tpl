@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME><StructureNoplural>MetaData.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.4.1</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.4.2</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
 ;// Title:       ODataMetaData.tpl
@@ -182,7 +182,7 @@ namespace <NAMESPACE>
     <RELATION_LOOP>
       <IF TO_STRUCTURE_INCLUDED>
         <COUNTER_1_INCREMENT>
-	    <IF COUNTER_1_EQ_1>
+        <IF COUNTER_1_EQ_1>
 
             ;; Define relations
         </IF>
@@ -218,9 +218,9 @@ namespace <NAMESPACE>
       <FROM_KEY_SEGMENT_LOOP>
         <IF SEG_TYPE_LITERAL>
          <COUNTER_1_INCREMENT>
-		 <IF COUNTER_1_EQ_1>
-		    ;; Define literal key segments in relation "from" keys
-		 </IF>
+         <IF COUNTER_1_EQ_1>
+            ;; Define literal key segments in relation "from" keys
+         </IF>
             AddFieldInfo("<RelationFromkey>Literal<COUNTER_2_INCREMENT><COUNTER_2_VALUE>", "TAG_LITERAL", 0, 0, 0, false,^null,"<SEGMENT_LITVAL>")
         </IF SEG_TYPE_LITERAL>
       </FROM_KEY_SEGMENT_LOOP>

@@ -7,6 +7,7 @@ import System.Linq
 import System.Threading.Tasks
 import Harmony.OData.Adapter
 import Microsoft.AspNetCore.Mvc
+import System.Reflection.Emit
 
 namespace Harmony.OData
 
@@ -64,6 +65,7 @@ namespace Harmony.OData
         private static method CreateFunctionConfig<EntityType(class)>, @FunctionConfiguration
             typeConfig, @object
             memberName, @string
+            builder, @ODataModelBuilder
         proc
             if(typeConfig .is. EntityTypeConfiguration<EntityType>) then
             begin
@@ -74,6 +76,12 @@ namespace Harmony.OData
             begin
                 mreturn ((@EntityCollectionConfiguration<EntityType>)typeConfig).Function(memberName)
             end
+            else if(typeConfig .is. EntityTypeConfiguration) then
+            begin
+                data config = builder.Function(memberName)
+                config.SetBindingParameter("binding", (@IEdmTypeConfiguration)typeConfig)
+                mreturn config
+            end
             else
                 throw new InvalidOperationException("Type config needs to be an EntityTypeConfiguration<EntityType> or EntityCollectionConfiguration<EntityType>")
             
@@ -82,6 +90,7 @@ namespace Harmony.OData
         private static method CreateActionConfig<EntityType(class)>, @ActionConfiguration
             typeConfig, @object
             memberName, @string
+            builder, @ODataModelBuilder
         proc
             if(typeConfig .is. EntityTypeConfiguration<EntityType>) then
             begin
@@ -90,6 +99,12 @@ namespace Harmony.OData
             else if(typeConfig .is. EntityCollectionConfiguration<EntityType>) then
             begin
                 mreturn ((@EntityCollectionConfiguration<EntityType>)typeConfig).Action(memberName)
+            end
+            else if(typeConfig .is. EntityTypeConfiguration) then
+            begin
+                data config = builder.Action(memberName)
+                config.SetBindingParameter("binding", (@IEdmTypeConfiguration)typeConfig)
+                mreturn config
             end
             else
                 throw new InvalidOperationException("Type config needs to be an EntitySetConfiguration<EntityType> or EntityCollectionConfiguration<EntityType>")
@@ -139,7 +154,7 @@ namespace Harmony.OData
                 begin
                     ;;TODO isolate compiler bug here
                     ;addedFunction = singletonConfig.EntityType.Function(targetMethod.Name)
-                    addedFunction = CreateFunctionConfig<EntityType>(typeConfig, targetMethod.Name)
+                    addedFunction = CreateFunctionConfig<EntityType>(typeConfig, targetMethod.Name, builder)
                 end
                 else
 					addedFunction = builder.Function(targetMethod.Name)
@@ -152,7 +167,7 @@ namespace Harmony.OData
             begin
                 data addedAction, @ActionConfiguration
                 if(typeConfig != ^null) then
-                    addedAction = CreateActionConfig<EntityType>(typeConfig, targetMethod.Name)
+                    addedAction = CreateActionConfig<EntityType>(typeConfig, targetMethod.Name, builder)
                 else
                     addedAction = builder.Action(targetMethod.Name)
 
@@ -202,17 +217,45 @@ namespace Harmony.OData
 			begin
 				if(callableMethodConfig.IsFunction) then
 				begin
-					MakeReturnType(targetMethod, callableMethodConfig, typeConfig != ^null ? CreateFunctionConfig<EntityType>(typeConfig, targetMethod.Name) : builder.Function(targetMethod.Name), entitySetLookup)
+					MakeReturnType(targetMethod, callableMethodConfig, typeConfig != ^null ? CreateFunctionConfig<EntityType>(typeConfig, targetMethod.Name, builder) : builder.Function(targetMethod.Name), entitySetLookup)
 				end
 				else
 				begin
-					MakeReturnType(targetMethod, callableMethodConfig, typeConfig != ^null ? CreateActionConfig<EntityType>(typeConfig, targetMethod.Name) : builder.Action(targetMethod.Name), entitySetLookup)
+					MakeReturnType(targetMethod, callableMethodConfig, typeConfig != ^null ? CreateActionConfig<EntityType>(typeConfig, targetMethod.Name, builder) : builder.Action(targetMethod.Name), entitySetLookup)
 				end
 			end
 
-
+            ;builder.AddOperation((OperationConfiguration)resultObject)
 
         endmethod
+
+
+        private static method MakeEntityTypeWrapper<T(class)>, @Type
+        proc
+            data dynamicAssemblyName = "dynamic_" + ^typeof(EntityTypeWrapper<T>).Name
+            data ab, @AssemblyBuilder, AssemblyBuilder.DefineDynamicAssembly(new AssemblyName(dynamicAssemblyName), AssemblyBuilderAccess.RunAndCollect)
+            data mb, @ModuleBuilder, ab.DefineDynamicModule(dynamicAssemblyName)
+            data tb, @TypeBuilder, mb.DefineType("Harmony.OData.EntityTypeWrapperOf" + ^typeof(T).Name, TypeAttributes.Public, ^typeof(T))
+            data constructor = ^typeof(T).GetConstructors().FirstOrDefault()
+            data ctorBuilder, @ConstructorBuilder, tb.DefineConstructor(constructor.Attributes, constructor.CallingConvention, constructor.GetParameters().Select(lambda(parm) { parm.ParameterType }).ToArray())
+            data emitter = ctorBuilder.GetILGenerator()
+            emitter.Emit(OpCodes.Nop)
+
+            ;;Load 'this' and call base constructor with arguments
+            emitter.Emit(OpCodes.Ldarg_0)
+            data i = 0
+            for i from 1 thru constructor.GetParameters().Length by 1
+            begin
+                emitter.Emit(OpCodes.Ldarg, i)
+            end 
+
+            emitter.Emit(OpCodes.Call, constructor)
+
+            emitter.Emit(OpCodes.Ret)
+            data madeType, @Type, tb.CreateTypeInfo().AsType()
+            mreturn madeType
+        endmethod
+
 
 
         ;;Use reflection on the provided generic type, find all of the public methods
@@ -221,9 +264,10 @@ namespace Harmony.OData
             builder, @ODataModelBuilder
             namespaceName, @string
         proc
-            data singletonConfig, @SingletonConfiguration<EntityTypeWrapper<T>>, String.IsNullOrWhiteSpace(namespaceName) ? ^null : builder.Singleton<EntityTypeWrapper<T>>(namespaceName)
-            data entityConfig, @EntityTypeConfiguration<EntityTypeWrapper<T>>, builder.EntityType<EntityTypeWrapper<T>>()
-            data targetType = ^typeof(T)
+            data madeType = ^typeof(EntityTypeWrapper<T>)
+            data entityConfig = builder.AddEntityType(madeType)
+            
+            data singletonConfig, @NavigationSourceConfiguration, String.IsNullOrWhiteSpace(namespaceName) ? ^null : builder.AddSingleton(namespaceName, entityConfig)
             data targetMethod, @MethodInfo
             HarmonySprocRoutingConvention.AddSprocDispatcher<T>(namespaceName)
             data entitySetLookup = new Dictionary<Type, EntitySetConfiguration>()
@@ -234,9 +278,11 @@ namespace Harmony.OData
                     entitySetLookup.Add(eSet.ClrType, eSet)
             end
 
-            foreach targetMethod in targetType.GetMethods()
+            data targetType = ^typeof(T)
+            data methods = ^typeof(T).GetMethods()
+            foreach targetMethod in methods
             begin
-                if(targetMethod.DeclaringType != targetType || targetMethod.IsSpecialName || targetMethod.Name.Contains("$"))
+                if(targetMethod.DeclaringType != ^typeof(T) || targetMethod.IsSpecialName || targetMethod.Name.Contains("$"))
                     nextloop
 
                 data securityAttribute = targetMethod.GetCustomAttribute<MethodSecurityAttribute>(false)
@@ -245,7 +291,7 @@ namespace Harmony.OData
                     nextloop
                 end
 
-                AddMethod<EntityTypeWrapper<T>>(builder, targetMethod, namespaceName, entityConfig, entitySetLookup)
+                AddMethod<EntityTypeWrapper<T>>(builder, targetMethod, "Default", entityConfig, entitySetLookup)
 
             end
 

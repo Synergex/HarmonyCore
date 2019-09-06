@@ -32,7 +32,7 @@ namespace Services.Test.UnitTests
         public method GetVendors, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/Vendors").Result
+            disposable data response = client.GetAsync("/odata/v1/Vendors").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
             data vendors, @ODataVendors, JsonConvert.DeserializeObject<ODataVendors>(result)
@@ -45,7 +45,7 @@ namespace Services.Test.UnitTests
         {TestCategory("Vendor Tests - Read All")}
         public method GetVendors_Expand_REL_Items, void
         proc
-            data uri = "/odata/Vendors?$expand=REL_Items"
+            data uri = "/odata/v1/Vendors?$expand=REL_Items"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync(uri).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -59,7 +59,7 @@ namespace Services.Test.UnitTests
         {TestCategory("Vendor Tests - Read All")}
         public method GetVendors_Expand_All, void
         proc
-            data uri = "/odata/Vendors?$expand=REL_Items"
+            data uri = "/odata/v1/Vendors?$expand=REL_Items"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync(uri).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -74,7 +74,7 @@ namespace Services.Test.UnitTests
         public method GetVendor, void
         proc
             data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/Vendors(VendorNumber={1})","",TestConstants.GetVendor_VendorNumber)
+            data request = String.Format("/odata/v1/Vendors(VendorNumber={1})","",TestConstants.GetVendor_VendorNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
@@ -89,7 +89,7 @@ namespace Services.Test.UnitTests
         public method GetVendor_Expand_REL_Items, void
         proc
             data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/Vendors(VendorNumber={1})?$expand=REL_Items","",TestConstants.GetVendor_Expand_REL_Items_VendorNumber)
+            data request = String.Format("/odata/v1/Vendors(VendorNumber={1})?$expand=REL_Items","",TestConstants.GetVendor_Expand_REL_Items_VendorNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
@@ -104,7 +104,7 @@ namespace Services.Test.UnitTests
         public method GetVendor_Expand_All, void
         proc
             data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/Vendors(VendorNumber={1})?$expand=REL_Items","",TestConstants.GetVendor_Expand_All_VendorNumber)
+            data request = String.Format("/odata/v1/Vendors(VendorNumber={1})?$expand=REL_Items","",TestConstants.GetVendor_Expand_All_VendorNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
@@ -119,7 +119,7 @@ namespace Services.Test.UnitTests
         public method GetVendor_ByAltKey_State, void
         proc
             data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/Vendors(State='{1}')", "", TestConstants.GetVendor_ByAltKey_State_State)
+            data request = String.Format("/odata/v1/Vendors(State='{1}')", "", TestConstants.GetVendor_ByAltKey_State_State)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
@@ -134,7 +134,7 @@ namespace Services.Test.UnitTests
         public method GetVendor_ByAltKey_Zip, void
         proc
             data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/Vendors(ZipCode={1})", "", TestConstants.GetVendor_ByAltKey_Zip_ZipCode)
+            data request = String.Format("/odata/v1/Vendors(ZipCode={1})", "", TestConstants.GetVendor_ByAltKey_Zip_ZipCode)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
@@ -149,7 +149,7 @@ namespace Services.Test.UnitTests
         public method GetVendor_ByAltKey_PaymentTerms, void
         proc
             data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/Vendors(PaymentTermsCode='{1}')", "", TestConstants.GetVendor_ByAltKey_PaymentTerms_PaymentTermsCode)
+            data request = String.Format("/odata/v1/Vendors(PaymentTermsCode='{1}')", "", TestConstants.GetVendor_ByAltKey_PaymentTerms_PaymentTermsCode)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
@@ -166,7 +166,7 @@ namespace Services.Test.UnitTests
             disposable data client = UnitTestEnvironment.Server.CreateClient()
 
             ;;Get one vendor from the file
-            data getRequest = String.Format("/odata/Vendors({1})","",TestConstants.GetVendor_VendorNumber)
+            data getRequest = String.Format("/odata/v1/Vendors({1})","",TestConstants.GetVendor_VendorNumber)
             data getResponse = client.GetAsync(getRequest).Result
             data getResult = getResponse.Content.ReadAsStringAsync().Result
 
@@ -182,7 +182,7 @@ namespace Services.Test.UnitTests
 
             ;;Create new item
             disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doVendor),System.Text.Encoding.UTF8, "application/json")
-            data request = String.Format("/odata/Vendors({1})","",TestConstants.UpdateVendor_VendorNumber)
+            data request = String.Format("/odata/v1/Vendors({1})","",TestConstants.UpdateVendor_VendorNumber)
             disposable data response = client.PutAsync(request, requestBody).Result
 
             ;;Check that we got a successful response from the web service
@@ -203,7 +203,7 @@ namespace Services.Test.UnitTests
 
             ;;Update full item
             requestBody = new StringContent(JsonConvert.SerializeObject(doVendor),System.Text.Encoding.UTF8, "application/json")
-            request = String.Format("/odata/Vendors({1})","",TestConstants.UpdateVendor_VendorNumber)
+            request = String.Format("/odata/v1/Vendors({1})","",TestConstants.UpdateVendor_VendorNumber)
             response = client.PutAsync(request, requestBody).Result
 
             ;;Check that we got a successful response from the web service

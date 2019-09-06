@@ -16,6 +16,8 @@ import Microsoft.AspNetCore.Mvc.Infrastructure
 import Microsoft.AspNet.OData.Query
 import Microsoft.AspNet.OData
 import Microsoft.OData.Edm
+import Microsoft.AspNetCore.Mvc.Internal
+import Microsoft.AspNetCore.Mvc.ActionConstraints
 
 namespace Harmony.OData.Adapter
 
@@ -65,7 +67,22 @@ namespace Harmony.OData.Adapter
 			data descriptor, @ControllerActionDescriptor
 			data result = new Dictionary<string, ControllerActionDescriptor>()
 			foreach descriptor in descriptors
-			begin
+            begin
+                data callableMethodConfig, @CallableMethodConfigurationAttribute
+                callableMethodConfig = descriptor.MethodInfo.GetCustomAttribute<CallableMethodConfigurationAttribute>(false)
+                if(callableMethodConfig != ^null)
+                begin
+                    if(descriptor.ActionConstraints != ^null) then
+                        descriptor.ActionConstraints.Clear()
+                    else
+                        descriptor.ActionConstraints = new List<IActionConstraintMetadata>()
+
+                    if(callableMethodConfig.IsFunction) then
+                        descriptor.ActionConstraints.Add(new HttpMethodActionConstraint(new string[#] { "GET" }))
+                    else
+                        descriptor.ActionConstraints.Add(new HttpMethodActionConstraint(new string[#] { "POST" }))
+                end
+
 				if(!result.ContainsKey(descriptor.ActionName))
 				begin
 					result.Add(descriptor.ActionName, descriptor)
@@ -92,7 +109,7 @@ namespace Harmony.OData.Adapter
 			&	odataPath.PathTemplate == "~/unboundaction") then
 				&	
 			begin
-				data segment, @OperationImportSegment, ^as(odataPath.Segments[odataPath.Segments.Count - 1], OperationImportSegment)
+				data segment = ^as(odataPath.Segments[odataPath.Segments.Count - 1], OperationImportSegment)
                 
 				if (segment != ^null)
 				begin
@@ -103,8 +120,8 @@ namespace Harmony.OData.Adapter
 			else if(odataPath.PathTemplate == "~/singleton/action"||
 			&	odataPath.PathTemplate == "~/singleton/function") then
 			begin
-				data opSeg, @OperationSegment, ^as(odataPath.Segments[1], OperationSegment)
-				data singletonSeg, @SingletonSegment, ^as(odataPath.Segments[0], SingletonSegment)
+				data opSeg = ^as(odataPath.Segments[1], OperationSegment)
+				data singletonSeg =  ^as(odataPath.Segments[0], SingletonSegment)
 				if (opSeg != ^null && singletonSeg != ^null)
 				begin
 					data opName = opSeg.Identifier
@@ -132,8 +149,8 @@ namespace Harmony.OData.Adapter
 			end
 			else if (odataPath.PathTemplate == "~/entityset/function" || odataPath.PathTemplate == "~/entityset/action")
 			begin
-				data opSeg, @OperationSegment, ^as(odataPath.Segments[1], OperationSegment)
-				data entitySet, @EntitySetSegment, ^as(odataPath.Segments[0], EntitySetSegment)
+				data opSeg =  ^as(odataPath.Segments[1], OperationSegment)
+				data entitySet =  ^as(odataPath.Segments[0], EntitySetSegment)
 				if (opSeg != ^null && entitySet != ^null)
 				begin
 					data opName = opSeg.Identifier

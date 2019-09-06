@@ -5,6 +5,9 @@ import Microsoft.OData.UriParser
 import Microsoft.OData.Edm
 import System.Linq
 import Microsoft.OData.Edm.Vocabularies
+import System.Diagnostics
+import Microsoft.OData
+import System.Reflection
 
 
 namespace Harmony.OData
@@ -13,11 +16,16 @@ namespace Harmony.OData
 
         private _unqualified, @UnqualifiedODataUriResolver
         private _altKeys, @AlternateKeysODataUriResolver
-	
-;        public method Fred, @System.Collections.Generic.IDictionary<IEdmOperationParameter, string>
-;        proc
-;            ;mreturn ^null
-;        endmethod
+        private static _primativeMapper, @Func<IEdmPrimitiveType, Boolean, Type>
+
+
+        static method UnqualifiedAltKeyUriResolver
+        proc
+            data libExtensionType = ^typeof(ODataAction).Assembly.GetType("Microsoft.OData.Metadata.EdmLibraryExtensions")
+            data primativeClrTypeMethod, @MethodInfo, libExtensionType.GetMethod("GetPrimitiveClrType", BindingFlags.Static | BindingFlags.NonPublic, ^null, CallingConventions.Any, new Type[#] { ^typeof(IEdmPrimitiveType), ^typeof(Boolean) }, ^null)
+            _primativeMapper = (@Func<IEdmPrimitiveType, Boolean, Type>)primativeClrTypeMethod.CreateDelegate(^typeof(Func<IEdmPrimitiveType, Boolean, Type>), ^null)
+        endmethod
+
 
         public method UnqualifiedAltKeyUriResolver
             model, @IEdmModel
@@ -58,8 +66,16 @@ namespace Harmony.OData
             identifier, string
             bindingType, @IEdmType
         proc
-            data result = _unqualified.ResolveBoundOperations(model, identifier, bindingType)
-            mreturn result
+            ;;TODO match bindingWRappers here find the right type and make the iEdmOperation list
+            data result = _unqualified.ResolveBoundOperations(model, identifier, bindingType)?.ToList()
+
+            if(result == ^null || result.Count == 0) then
+            begin
+                data operations = model.SchemaElements.OfType<IEdmOperation>().Where(lambda(op) { op.Name == identifier }).ToList()
+                mreturn operations
+            end
+            else
+                mreturn result
         endmethod
 
         public override method ResolveKeys, @IEnumerable<KeyValuePair<string, object>>
@@ -75,8 +91,30 @@ namespace Harmony.OData
             positionalValues, @IList<string>
             convertFunc, @Func<IEdmTypeReference, string, object>
         proc
-            mreturn _altKeys.ResolveKeys(type, positionalValues, convertFunc)
+            try
+            begin
+                mreturn _altKeys.ResolveKeys(type, positionalValues, convertFunc)
+            end
+            catch(ex, @ODataException)
+            begin
+                mreturn type.DeclaredKey.Select(lambda(keyPart) { new KeyValuePair<string, Object>(keyPart.Name, "{" + keyPart.Name + "}" )})
+            end
+            endtry
         endmethod
+
+        private method MakeDefaultValue, @object
+            typeRef, @IEdmTypeReference
+        proc
+            data primitiveType = typeRef.AsPrimitive()
+            
+            data primitiveClrType = _primativeMapper((@IEdmPrimitiveType)primitiveType.Definition, primitiveType.IsNullable)
+            if (primitiveClrType?.IsValueType ?? false)
+                mreturn Activator.CreateInstance(primitiveClrType)
+
+            mreturn ^null
+        endmethod
+
+
 
         public override method ResolveTerm, @IEdmTerm
         model, @IEdmModel

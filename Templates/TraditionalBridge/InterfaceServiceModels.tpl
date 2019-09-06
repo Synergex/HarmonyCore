@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME><INTERFACE_NAME>ServiceModels.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.4.1</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.4.2</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
 ;// Title:       InterfaceServiceModels.tpl

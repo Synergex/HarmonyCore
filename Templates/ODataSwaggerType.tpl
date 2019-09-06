@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME><StructureNoplural>Types.yaml</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.4.1</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.4.2</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>API_VERSION</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
@@ -49,7 +49,7 @@ swagger: '2.0'
 
 info:
   title: <StructureNoplural> Types
-  description: Describes complex types for  <StructureNoplural>
+  description: Describes complex types for <StructureNoplural>
   version: <API_VERSION>
 
 ;//

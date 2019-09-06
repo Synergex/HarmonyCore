@@ -1,12 +1,8 @@
 <CODEGEN_FILENAME>SwaggerFile.yaml</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.4.1</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.4.2</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>API_TITLE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>API_VERSION</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>API_DESCRIPTION</REQUIRES_USERTOKEN>
-;//<REQUIRES_USERTOKEN>API_TERMS_URL</REQUIRES_USERTOKEN>
-;//<REQUIRES_USERTOKEN>API_CONTACT_EMAIL</REQUIRES_USERTOKEN>
-;//<REQUIRES_USERTOKEN>API_LICENSE_NAME</REQUIRES_USERTOKEN>
-;//<REQUIRES_USERTOKEN>API_LICENSE_URL</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVER_BASE_PATH</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVER_HTTPS_PORT</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVER_NAME</REQUIRES_USERTOKEN>
@@ -60,12 +56,6 @@ info:
   description: <API_DESCRIPTION>
   version: <API_VERSION>
   title: <API_TITLE>
-;//  termsOfService: <API_TERMS_URL>
-;//  contact:
-;//    email: <API_CONTACT_EMAIL>
-;//  license:
-;//    name: <API_LICENSE_NAME>
-;//    url: '<API_LICENSE_URL>'
 
 host: '<SERVER_NAME>:<SERVER_HTTPS_PORT>'
 basePath: /<SERVER_BASE_PATH>
@@ -337,8 +327,8 @@ paths:
 <IF STRUCTURE_ISAM>
   <PRIMARY_KEY>
     <SEGMENT_LOOP>
-	  <IF SEG_TAG_EQUAL>
-	  <ELSE>
+      <IF SEG_TAG_EQUAL>
+      <ELSE>
         - name: a<FieldSqlName>
           in: path
           description: <SEGMENT_DESC>
@@ -350,7 +340,7 @@ paths:
       <IF TIME>
           format: date-time
       </IF TIME>
-	  </IF SEG_TAG_EQUAL>
+      </IF SEG_TAG_EQUAL>
     </SEGMENT_LOOP>
   </PRIMARY_KEY>
 </IF STRUCTURE_ISAM>
@@ -395,8 +385,8 @@ paths:
 <IF STRUCTURE_ISAM>
   <PRIMARY_KEY>
     <SEGMENT_LOOP>
-	  <IF SEG_TAG_EQUAL>
-	  <ELSE>
+      <IF SEG_TAG_EQUAL>
+      <ELSE>
         - name: a<FieldSqlName>
           in: path
           description: <SEGMENT_DESC>
@@ -408,7 +398,7 @@ paths:
       <IF TIME>
           format: date-time
       </IF TIME>
-	  </IF SEG_TAG_EQUAL>
+      </IF SEG_TAG_EQUAL>
     </SEGMENT_LOOP>
   </PRIMARY_KEY>
 </IF STRUCTURE_ISAM>
@@ -463,8 +453,8 @@ paths:
 <IF STRUCTURE_ISAM>
   <PRIMARY_KEY>
     <SEGMENT_LOOP>
-	  <IF SEG_TAG_EQUAL>
-	  <ELSE>
+      <IF SEG_TAG_EQUAL>
+      <ELSE>
         - name: a<FieldSqlName>
           in: path
           description: <SEGMENT_DESC>
@@ -476,7 +466,7 @@ paths:
       <IF TIME>
           format: date-time
       </IF TIME>
-	  </IF SEG_TAG_EQUAL>
+      </IF SEG_TAG_EQUAL>
     </SEGMENT_LOOP>
   </PRIMARY_KEY>
 </IF STRUCTURE_ISAM>
@@ -538,7 +528,7 @@ paths:
       parameters:
   <SEGMENT_LOOP>
     <IF SEG_TAG_EQUAL>
-	<ELSE>
+    <ELSE>
         - name: a<FieldSqlName>
           in: path
           description: <SEGMENT_DESC>
@@ -550,7 +540,7 @@ paths:
       <IF TIME>
           format: date-time
       </IF TIME>
-	</IF SEG_TAG_EQUAL>
+    </IF SEG_TAG_EQUAL>
   </SEGMENT_LOOP>
   <IF DEFINED_ENABLE_RELATIONS>
         - name: $expand
@@ -623,8 +613,8 @@ paths:
         - <StructurePlural>
       parameters:
       <SEGMENT_LOOP>
-	    <IF SEG_TAG_EQUAL>
-		<ELSE>
+        <IF SEG_TAG_EQUAL>
+        <ELSE>
         - name: a<FieldSqlName>
           in: path
           description: <SEGMENT_DESC>
@@ -636,7 +626,7 @@ paths:
           <IF TIME>
           format: date-time
           </IF TIME>
-		</IF SEG_TAG_EQUAL>
+        </IF SEG_TAG_EQUAL>
       </SEGMENT_LOOP>
       <IF DEFINED_ENABLE_FILTER>
         - name: $filter
@@ -686,7 +676,7 @@ paths:
       <PRIMARY_KEY>
         <SEGMENT_LOOP>
         <IF SEG_TAG_EQUAL>
-		<ELSE>
+        <ELSE>
         <IF SINGLE_SEGMENT>
         - name: key
         <ELSE>
@@ -702,7 +692,7 @@ paths:
           <IF TIME>
           format: date-time
           </IF TIME>
-		  </IF SEG_TAG_EQUAL>
+          </IF SEG_TAG_EQUAL>
           </SEGMENT_LOOP>
       </PRIMARY_KEY>
     </IF STRUCTURE_ISAM>
@@ -742,8 +732,8 @@ paths:
     <IF STRUCTURE_ISAM>
       <PRIMARY_KEY>
         <SEGMENT_LOOP>
-		<IF SEG_TAG_EQUAL>
-		<ELSE>
+        <IF SEG_TAG_EQUAL>
+        <ELSE>
         <IF SINGLE_SEGMENT>
         - name: key
         <ELSE>
@@ -759,7 +749,7 @@ paths:
           <IF TIME>
           format: date-time
           </IF TIME>
-		</IF SEG_TAG_EQUAL>
+        </IF SEG_TAG_EQUAL>
         </SEGMENT_LOOP>
       </PRIMARY_KEY>
     </IF STRUCTURE_ISAM>

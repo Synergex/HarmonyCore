@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME>PostManTests.postman_collection.json</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.4.1</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.4.2</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>API_TITLE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVER_BASE_PATH</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVER_HTTPS_PORT</REQUIRES_USERTOKEN>
@@ -13,72 +13,72 @@
     },
     "item": [
 <IF DEFINED_ENABLE_AUTHENTICATION>
-		{
-			"name": "Get Access Token (Jodah)",
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/x-www-form-urlencoded"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "grant_type=password&username=jodah&password=P@ssw0rd&client_id=ro.client&client_secret=CBF7EBE6-D46E-41A7-903B-766A280616C3"
-				},
-				"url": {
-					"raw": "http://localhost:5000/connect/token",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "5000",
-					"path": [
-						"connect",
-						"token"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Get Access Token (Manny)",
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/x-www-form-urlencoded"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "grant_type=password&username=manny&password=P@ssw0rd&client_id=ro.client&client_secret=CBF7EBE6-D46E-41A7-903B-766A280616C3"
-				},
-				"url": {
-					"raw": "http://localhost:5000/connect/token",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "5000",
-					"path": [
-						"connect",
-						"token"
-					]
-				}
-			},
-			"response": []
-		},
+        {
+            "name": "Get Access Token (Jodah)",
+            "request": {
+                "auth": {
+                    "type": "noauth"
+                },
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/x-www-form-urlencoded"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "grant_type=password&username=jodah&password=P@ssw0rd&client_id=ro.client&client_secret=CBF7EBE6-D46E-41A7-903B-766A280616C3"
+                },
+                "url": {
+                    "raw": "http://localhost:5000/connect/token",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "5000",
+                    "path": [
+                        "connect",
+                        "token"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Get Access Token (Manny)",
+            "request": {
+                "auth": {
+                    "type": "noauth"
+                },
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/x-www-form-urlencoded"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "grant_type=password&username=manny&password=P@ssw0rd&client_id=ro.client&client_secret=CBF7EBE6-D46E-41A7-903B-766A280616C3"
+                },
+                "url": {
+                    "raw": "http://localhost:5000/connect/token",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "5000",
+                    "path": [
+                        "connect",
+                        "token"
+                    ]
+                }
+            },
+            "response": []
+        },
 </IF DEFINED_ENABLE_AUTHENTICATION>
-		<STRUCTURE_LOOP>
+        <STRUCTURE_LOOP>
         {
             <COUNTER_1_RESET>
             "_postman_id": "<guid_nobrace>",
@@ -102,7 +102,7 @@
                             "raw": ""
                         },
                         "url": {
-                            "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<SERVER_BASE_PATH>/<StructurePlural>",
+                            "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<SERVER_BASE_PATH><IF DEFINED_ENABLE_API_VERSIONING>/v<API_VERSION></IF DEFINED_ENABLE_API_VERSIONING>/<StructurePlural>",
                             "protocol": "<SERVER_PROTOCOL>",
                             "host": [
                                 "<SERVER_NAME>"
@@ -110,6 +110,9 @@
                             "port": "<SERVER_HTTPS_PORT>",
                             "path": [
                                 "<SERVER_BASE_PATH>",
+                              <IF DEFINED_ENABLE_API_VERSIONING>
+                                "v<API_VERSION>",
+                              </IF DEFINED_ENABLE_API_VERSIONING>
                                 "<StructurePlural>"
                             ]
                         }
@@ -138,7 +141,7 @@
                             "raw": ""
                         },
                         "url": {
-                            "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<SERVER_BASE_PATH>/<StructurePlural>/$count",
+                            "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<SERVER_BASE_PATH><IF DEFINED_ENABLE_API_VERSIONING>/v<API_VERSION></IF DEFINED_ENABLE_API_VERSIONING>/<StructurePlural>/$count",
                             "protocol": "<SERVER_PROTOCOL>",
                             "host": [
                                 "<SERVER_NAME>"
@@ -146,6 +149,9 @@
                             "port": "<SERVER_HTTPS_PORT>",
                             "path": [
                                 "<SERVER_BASE_PATH>",
+                              <IF DEFINED_ENABLE_API_VERSIONING>
+                                "v<API_VERSION>",
+                              </IF DEFINED_ENABLE_API_VERSIONING>
                                 "<StructurePlural>",
                                 "$count"
                             ]
@@ -175,7 +181,7 @@
                         "raw": ""
                     },
                     "url": {
-                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<SERVER_BASE_PATH>/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)",
+                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<SERVER_BASE_PATH><IF DEFINED_ENABLE_API_VERSIONING>/v<API_VERSION></IF DEFINED_ENABLE_API_VERSIONING>/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)",
                         "protocol": "<SERVER_PROTOCOL>",
                         "host": [
                             "<SERVER_NAME>"
@@ -183,6 +189,9 @@
                         "port": "<SERVER_HTTPS_PORT>",
                         "path": [
                             "<SERVER_BASE_PATH>",
+                          <IF DEFINED_ENABLE_API_VERSIONING>
+                            "v<API_VERSION>",
+                          </IF DEFINED_ENABLE_API_VERSIONING>
                             "<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)"
                         ]
                     }
@@ -217,7 +226,7 @@
                         "raw": ""
                     },
                     "url": {
-                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<SERVER_BASE_PATH>/<StructurePlural>(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>)",
+                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<SERVER_BASE_PATH><IF DEFINED_ENABLE_API_VERSIONING>/v<API_VERSION></IF DEFINED_ENABLE_API_VERSIONING>/<StructurePlural>(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>)",
                         "protocol": "<SERVER_PROTOCOL>",
                         "host": [
                             "<SERVER_NAME>"
@@ -225,6 +234,9 @@
                         "port": "<SERVER_HTTPS_PORT>",
                         "path": [
                             "<SERVER_BASE_PATH>",
+                          <IF DEFINED_ENABLE_API_VERSIONING>
+                            "v<API_VERSION>",
+                          </IF DEFINED_ENABLE_API_VERSIONING>
                             "<StructurePlural>(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>)"
                         ]
                     }
@@ -251,7 +263,7 @@
                         "raw": ""
                     },
                     "url": {
-                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<SERVER_BASE_PATH>/<StructurePlural>(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>)/$count",
+                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<SERVER_BASE_PATH><IF DEFINED_ENABLE_API_VERSIONING>/v<API_VERSION></IF DEFINED_ENABLE_API_VERSIONING>/<StructurePlural>(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>)/$count",
                         "protocol": "<SERVER_PROTOCOL>",
                         "host": [
                             "<SERVER_NAME>"
@@ -259,6 +271,9 @@
                         "port": "<SERVER_HTTPS_PORT>",
                         "path": [
                             "<SERVER_BASE_PATH>",
+                          <IF DEFINED_ENABLE_API_VERSIONING>
+                            "v<API_VERSION>",
+                          </IF DEFINED_ENABLE_API_VERSIONING>
                             "<StructurePlural>(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>)",
                             "$count"
                         ]
@@ -295,7 +310,7 @@
                         "raw": ""
                     },
                     "url": {
-                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<SERVER_BASE_PATH>/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)/<FieldSqlName>",
+                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<SERVER_BASE_PATH><IF DEFINED_ENABLE_API_VERSIONING>/v<API_VERSION></IF DEFINED_ENABLE_API_VERSIONING>/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)/<FieldSqlName>",
                         "protocol": "<SERVER_PROTOCOL>",
                         "host": [
                             "<SERVER_NAME>"
@@ -303,6 +318,9 @@
                         "port": "<SERVER_HTTPS_PORT>",
                         "path": [
                             "<SERVER_BASE_PATH>",
+                          <IF DEFINED_ENABLE_API_VERSIONING>
+                            "v<API_VERSION>",
+                          </IF DEFINED_ENABLE_API_VERSIONING>
                             "<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)/<FieldSqlName>"
                         ]
                     }
@@ -328,7 +346,7 @@
                         "raw": ""
                     },
                     "url": {
-                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<SERVER_BASE_PATH>/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)/<FieldSqlName>/$value",
+                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<SERVER_BASE_PATH><IF DEFINED_ENABLE_API_VERSIONING>/v<API_VERSION></IF DEFINED_ENABLE_API_VERSIONING>/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)/<FieldSqlName>/$value",
                         "protocol": "<SERVER_PROTOCOL>",
                         "host": [
                             "<SERVER_NAME>"
@@ -336,6 +354,9 @@
                         "port": "<SERVER_HTTPS_PORT>",
                         "path": [
                             "<SERVER_BASE_PATH>",
+                          <IF DEFINED_ENABLE_API_VERSIONING>
+                            "v<API_VERSION>",
+                          </IF DEFINED_ENABLE_API_VERSIONING>
                             "<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)/<FieldSqlName>/$value"
                         ]
                     }
@@ -368,7 +389,7 @@
                          "raw": "{\n<FIELD_LOOP><IF CUSTOM_NOT_HARMONY_EXCLUDE>    \"<FieldSqlName>\": <IF ALPHA>\"</IF ALPHA><IF CUSTOM_HARMONY_AS_STRING>\"</IF CUSTOM_HARMONY_AS_STRING><FIELD_SAMPLE_DATA_NOQUOTES><IF CUSTOM_HARMONY_AS_STRING>\"</IF CUSTOM_HARMONY_AS_STRING><IF ALPHA>\"</IF ALPHA><,>\n</IF CUSTOM_NOT_HARMONY_EXCLUDE></FIELD_LOOP>}"
                     },
                     "url": {
-                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<SERVER_BASE_PATH>/<StructurePlural>",
+                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<SERVER_BASE_PATH><IF DEFINED_ENABLE_API_VERSIONING>/v<API_VERSION></IF DEFINED_ENABLE_API_VERSIONING>/<StructurePlural>",
                         "protocol": "<SERVER_PROTOCOL>",
                         "host": [
                             "<SERVER_NAME>"
@@ -376,6 +397,9 @@
                         "port": "<SERVER_HTTPS_PORT>",
                         "path": [
                             "<SERVER_BASE_PATH>",
+                          <IF DEFINED_ENABLE_API_VERSIONING>
+                            "v<API_VERSION>",
+                          </IF DEFINED_ENABLE_API_VERSIONING>
                             "<StructurePlural>"
                         ]
                     }
@@ -404,7 +428,7 @@
                          "raw": "{\n<FIELD_LOOP><IF CUSTOM_NOT_HARMONY_EXCLUDE>    \"<FieldSqlName>\": <IF ALPHA>\"</IF ALPHA><IF CUSTOM_HARMONY_AS_STRING>\"</IF CUSTOM_HARMONY_AS_STRING><FIELD_SAMPLE_DATA_NOQUOTES><IF CUSTOM_HARMONY_AS_STRING>\"</IF CUSTOM_HARMONY_AS_STRING><IF ALPHA>\"</IF ALPHA><,>\n</IF CUSTOM_NOT_HARMONY_EXCLUDE></FIELD_LOOP>}"
                     },
                     "url": {
-                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<SERVER_BASE_PATH>/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)",
+                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<SERVER_BASE_PATH><IF DEFINED_ENABLE_API_VERSIONING>/v<API_VERSION></IF DEFINED_ENABLE_API_VERSIONING>/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)",
                         "protocol": "<SERVER_PROTOCOL>",
                         "host": [
                             "<SERVER_NAME>"
@@ -412,6 +436,9 @@
                         "port": "<SERVER_HTTPS_PORT>",
                         "path": [
                             "<SERVER_BASE_PATH>",
+                          <IF DEFINED_ENABLE_API_VERSIONING>
+                            "v<API_VERSION>",
+                          </IF DEFINED_ENABLE_API_VERSIONING>
                             "<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)"
                         ]
                     }
@@ -439,7 +466,7 @@
                             "raw": "[\r\n  {\r\n    \"op\": \"replace\",\r\n    \"path\": \"PropertyName\",\r\n    \"value\": \"PropertyValue\"\r\n  }\r\n]"
                         },
                     "url": {
-                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<SERVER_BASE_PATH>/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)",
+                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<SERVER_BASE_PATH><IF DEFINED_ENABLE_API_VERSIONING>/v<API_VERSION></IF DEFINED_ENABLE_API_VERSIONING>/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)",
                         "protocol": "<SERVER_PROTOCOL>",
                         "host": [
                             "<SERVER_NAME>"
@@ -447,6 +474,9 @@
                         "port": "<SERVER_HTTPS_PORT>",
                         "path": [
                             "<SERVER_BASE_PATH>",
+                          <IF DEFINED_ENABLE_API_VERSIONING>
+                            "v<API_VERSION>",
+                          </IF DEFINED_ENABLE_API_VERSIONING>
                             "<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)"
                         ]
                     }
@@ -475,7 +505,7 @@
                         "raw": ""
                     },
                     "url": {
-                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<SERVER_BASE_PATH>/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)",
+                        "raw": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<SERVER_BASE_PATH><IF DEFINED_ENABLE_API_VERSIONING>/v<API_VERSION></IF DEFINED_ENABLE_API_VERSIONING>/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)",
                         "protocol": "<SERVER_PROTOCOL>",
                         "host": [
                             "<SERVER_NAME>"
@@ -483,6 +513,9 @@
                         "port": "<SERVER_HTTPS_PORT>",
                         "path": [
                             "<SERVER_BASE_PATH>",
+                          <IF DEFINED_ENABLE_API_VERSIONING>
+                            "v<API_VERSION>",
+                          </IF DEFINED_ENABLE_API_VERSIONING>
                             "<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)"
                         ]
                     }
@@ -518,12 +551,12 @@
             }
         }
     ],
-	"variable": [
-		{
-			"id": "bd6f096f-5211-4e1d-ba95-e944e7e7b89a",
-			"key": "AccessToken",
-			"value": "",
-			"type": "string"
-		}
-	]
+    "variable": [
+        {
+            "id": "bd6f096f-5211-4e1d-ba95-e944e7e7b89a",
+            "key": "AccessToken",
+            "value": "",
+            "type": "string"
+        }
+    ]
 }

@@ -46,6 +46,9 @@ import System.Text
 import System.Threading.Tasks
 import Services.Controllers
 import Services.Models
+import Microsoft.AspNetCore.Mvc.ApiExplorer
+import Swashbuckle.AspNetCore.Swagger
+import Microsoft.AspNetCore.Mvc
 
 namespace Services
 
@@ -106,12 +109,8 @@ namespace Services
 
             ;;Add an AppSettings service.
             ;;To get an instance from DI ask for an @IOptions<AppSettings>
-
-			data optionsBuilder = services.AddOptions<AppSettings>().Validate(GetAppSettings)
-			if (_config?.GetSection("AppSettings") != ^null)
-			begin
-				optionsBuilder.Bind(_config.GetSection("AppSettings"))
-			end
+            if(_config != ^null)
+                services.AddOptions<AppSettings>().Validate(GetAppSettings).Bind(_config.GetSection("AppSettings"))
 
             ;;-------------------------------------------------------
             ;;Load Harmony Core
@@ -142,24 +141,76 @@ namespace Services
             ;;-------------------------------------------------------
             ;;Load OData and ASP.NET
 
-            lambda AddAltKeySupport(serviceProvider)
+            lambda APIVersionConfig(vOptions)
             begin
-                data model = EdmBuilder.GetEdmModel(serviceProvider)
-                mreturn new UnqualifiedAltKeyUriResolver(model) { EnableCaseInsensitive = true }
+                vOptions.ReportApiVersions = true
+                ;vOptions.AssumeDefaultVersionWhenUnspecified = true
+                vOptions.RouteConstraintName = "apiVersion"
+                vOptions.DefaultApiVersion = new ApiVersion(1, 0)
             end
 
-            services.AddSingleton<ODataUriResolver>(AddAltKeySupport)
+            services.AddApiVersioning(APIVersionConfig)
+            services.AddOData().EnableApiVersioning()
 
-            services.AddOData()
+            lambda oDataApiExplorer(vOptions)
+            begin
+                ;; add the versioned api explorer, which also adds IApiVersionDescriptionProvider service
+                ;; note: the specified format code will format the version as "'v'major[.minor][-status]"
+                vOptions.GroupNameFormat = "'v'V"
+                vOptions.SubstitutionFormat = "V"
+
+                ;; note: this option is only necessary when versioning by url segment. the SubstitutionFormat
+                ;; can also be used to control the format of the API version in route templates
+                vOptions.SubstituteApiVersionInUrl = true
+            end
+
+            services.AddODataApiExplorer(oDataApiExplorer)
 
             ;;-------------------------------------------------------
             ;;Load our workaround for the fact that OData alternate key support is messed up right now!
 
             services.AddSingleton<IPerRouteContainer, HarmonyPerRouteContainer>()
 
-            services.AddSwaggerGen()
+            lambda SwaggerGenConfig(options)
+            begin
+                ;; resolve the IApiVersionDescriptionProvider service
+                ;; note: that we have to build a temporary service provider here because one has not been created yet
+                data provider = services.BuildServiceProvider().GetRequiredService<IApiVersionDescriptionProvider>()
+                data description, @ApiVersionDescription
 
-            data mvcBuilder = services.AddMvcCore()
+                ;; add a swagger document for each discovered API version
+                ;; note: you might choose to skip or document deprecated API versions differently
+                foreach description in provider.ApiVersionDescriptions
+                begin
+                    data info = new Info()
+                    & {
+                        & Title = "Harmony Core Sample API " + description.ApiVersion.ToString(),
+                        & Version = description.ApiVersion.ToString(),
+                        & Description = "This environment presents an example of using Harmony Core to expose a collection of RESTful Web Service endpoints that allow you to interact with a small sample dataset.",
+                        & Contact = new Contact() { Name = "Jodah Veloper", Email = "jodah.veloper@synergexpsg.com" },
+                        & TermsOfService = "Open Source",
+                        & License = new License() { Name = "BSD-2-Clause", Url = "https://opensource.org/licenses/BSD-2-Clause" }
+                    & }
+
+                    options.SwaggerDoc( description.GroupName, info )
+                end
+
+                ;; add a custom operation filter which sets default values
+                ;;options.OperationFilter<SwaggerDefaultValues>()
+
+                ;; integrate xml comments
+                ;;options.IncludeXmlComments( XmlCommentsFilePath )
+            end
+
+            services.AddSwaggerGen(SwaggerGenConfig)
+        
+            lambda MvcCoreConfig(options)
+            begin
+                options.EnableEndpointRouting = false
+            end
+
+            data mvcBuilder = services.AddMvcCore(MvcCoreConfig)
+            &    .SetCompatibilityVersion(CompatibilityVersion.Version_2_2 )
             &    .AddDataAnnotations()      ;;Enable data annotations
             &    .AddJsonFormatters()       ;;For PATCH
             &    .AddApiExplorer()          ;;Swagger UI
@@ -192,6 +243,7 @@ namespace Services
         public method Configure, void
             required in app, @IApplicationBuilder
             required in env, @IHostingEnvironment
+            required in versionProvider, @IApiVersionDescriptionProvider
         proc
             ;;-------------------------------------------------------
             ;;Configure the AppSettings environment
@@ -230,20 +282,17 @@ namespace Services
 
             lambda mvcBuilder(builder)
             begin
-                data model = EdmBuilder.GetEdmModel(app.ApplicationServices)
-
                 lambda UriResolver(s)
                 begin
                     data result = app.ApplicationServices.GetRequiredService<ODataUriResolver>()
                     mreturn result
                 end
 
-                lambda EnableRouting(sp)
+                lambda EnableRouting(configContext)
                 begin
-                    data routeList = ODataRoutingConventions.CreateDefaultWithAttributeRouting("odata", builder)
-                    routeList.Insert(0, new HarmonySprocRoutingConvention())
-                    routeList.Insert(0, new AdapterRoutingConvention())
-                    mreturn routeList
+                    configContext.RoutingConventions.Insert(1, new HarmonySprocRoutingConvention())
+                    configContext.RoutingConventions.Insert(1, new AdapterRoutingConvention())
+                    mreturn configContext.RoutingConventions
                 end
 
                 lambda EnableWritableEdmModel(sp)
@@ -259,15 +308,23 @@ namespace Services
 
                 lambda ConfigureRoute(containerBuilder)
                 begin
-                    containerBuilder.AddService<IEdmModel>(Microsoft.OData.ServiceLifetime.Scoped, EnableWritableEdmModel)
-                    containerBuilder.AddService<IEnumerable<IODataRoutingConvention>>(Microsoft.OData.ServiceLifetime.Singleton, EnableRouting)
+                    data containerBuilderType, @Type, ((@Object)containerBuilder).GetType()
+                    data servicesField, @System.Reflection.FieldInfo, containerBuilderType.GetField("services", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                    data serviceDescriptors = ((@System.Collections.IEnumerable)servicesField.GetValue(containerBuilder)).OfType<ServiceDescriptor>()
+                    data versionedModelDescriptor = serviceDescriptors.Where(lambda(descriptor) { descriptor.ServiceType == ^typeof(IEdmModel) }).Last()
+                    data versionedModel = versionedModelDescriptor.ImplementationInstance
+                    if(versionedModel == ^null)
+                        versionedModel = versionedModelDescriptor.ImplementationFactory(app.ApplicationServices)
+                    containerBuilder.AddService<IEdmModel>(Microsoft.OData.ServiceLifetime.Scoped, lambda(sp) { new RefEdmModel() { RealModel = ^as(versionedModel, @IEdmModel) }  })
+                    containerBuilder.AddService<ODataUriResolver>(Microsoft.OData.ServiceLifetime.Singleton, lambda(sp) { new UnqualifiedAltKeyUriResolver(^as(versionedModel, @IEdmModel)) { EnableCaseInsensitive = true } })
                 end
 
                 ;;Enable support for dependency injection into controllers
                 builder.EnableDependencyInjection(EnableDI)
                 
                 ;;Configure the default OData route
-                builder.MapODataServiceRoute("odata", "odata", ConfigureRoute)
+                data versionedModels = EdmBuilder.EdmVersions.Select(lambda(versionNumber) { EdmBuilder.GetEdmModel(app.ApplicationServices, versionNumber) }).ToArray()
+                builder.MapVersionedODataRoutes("odata", "odata/v{version:apiVersion}", versionedModels, ConfigureRoute, EnableRouting)
 
                 ;;---------------------------------------------------
                 ;;Enable optional OData features
@@ -295,34 +352,32 @@ namespace Services
             ;;-------------------------------------------------------
             ;;Enable MVC
 
-			;;If there is a ConfigureCustomBeforeMvc method, call it
-			ConfigureCustomBeforeMvc(app,env)
+            ;;If there is a ConfigureCustomBeforeMvc method, call it
+            ConfigureCustomBeforeMvc(app,env)
 
             app.UseMvc(mvcBuilder)
 
             ;;-------------------------------------------------------
-            ;;Configure the web server environment
+            ;;Configure the web server to serve static files
 
             ;;Support default files (index.html, etc.)
             app.UseDefaultFiles()
 
-            ;;Add a media type for YAML files
-            data provider = new FileExtensionContentTypeProvider()
-            provider.Mappings[".yaml"] = "text/yaml"
-            data sfoptions = new StaticFileOptions()
-            sfoptions.ContentTypeProvider = provider
-
             ;;Support serving static files
-            app.UseStaticFiles(sfoptions)
+            app.UseStaticFiles()
 
             ;;-------------------------------------------------------
-            ;;Configure and enable SwaggerUI
+            ;;Configure and enable API versioning
 
             lambda configureSwaggerUi(config)
             begin
-                config.SwaggerEndpoint("/SwaggerFile.yaml", "Harmony Core Sample API")
                 config.RoutePrefix = "api-docs"
-                config.DocumentTitle = "Harmony Core Sample API"
+                data description, @ApiVersionDescription
+                foreach description in versionProvider.ApiVersionDescriptions
+                begin
+                    config.SwaggerEndpoint( "/swagger/" + description.GroupName + "/swagger.json", description.GroupName.ToUpperInvariant() )
+                end
+
             end
 
             app.UseSwagger()
@@ -355,16 +410,16 @@ namespace Services
             required in env, @IHostingEnvironment
         endmethod
 
-		;;; <summary>
-		;;; Declare the ConfigueCustom partial method called immediately before AddMvc
-		;;; Developers can implement this method in a partial class to provide custom configuration.
-		;;; </summary>
-		;;; <param name="app"></param>
-		;;; <param name="env"></param>
-		partial method ConfigureCustomBeforeMvc, void
-			required in app, @IApplicationBuilder
-			required in env, @IHostingEnvironment
-		endmethod
+        ;;; <summary>
+        ;;; Declare the ConfigueCustom partial method called immediately before AddMvc
+        ;;; Developers can implement this method in a partial class to provide custom configuration.
+        ;;; </summary>
+        ;;; <param name="app"></param>
+        ;;; <param name="env"></param>
+        partial method ConfigureCustomBeforeMvc, void
+            required in app, @IApplicationBuilder
+            required in env, @IHostingEnvironment
+        endmethod
 
         .endregion
 

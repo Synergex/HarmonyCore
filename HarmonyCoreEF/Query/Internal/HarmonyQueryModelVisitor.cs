@@ -375,6 +375,7 @@ namespace Harmony.Core.EF.Query.Internal
             public Dictionary<Expression, Expression> SelectorRewriterLookup = new Dictionary<Expression, Expression>();
             private Stack<string> SubQueryTargetNames = new Stack<string>();
             private ReadOnlyCollection<ParameterExpression> CurrentParameters;
+            private HashSet<ParameterExpression> SelfParameters = new HashSet<ParameterExpression>();
 
             private string SubQueryTargetName
             {
@@ -436,6 +437,11 @@ namespace Harmony.Core.EF.Query.Internal
             protected override Expression VisitLambda<T>(Expression<T> node)
             {
                 CurrentParameters = node.Parameters;
+                foreach (var param in node.Parameters)
+                {
+                    if(!SelfParameters.Contains(param))
+                        SelfParameters.Add(param);
+                }
                 return base.VisitLambda(node);
             }
 
@@ -921,6 +927,14 @@ namespace Harmony.Core.EF.Query.Internal
 
                 return node;
             }
+
+            protected override Expression VisitParameter(ParameterExpression node)
+            {
+                if (CurrentParameter != node && !(SelfParameters.Contains(node)) && node != Microsoft.EntityFrameworkCore.Query.EntityQueryModelVisitor.QueryContextParameter)
+                    return Expression.Convert(Expression.Property(Expression.Property(Microsoft.EntityFrameworkCore.Query.EntityQueryModelVisitor.QueryContextParameter, "ParameterValues"), "Item", Expression.Constant(node.Name)), node.Type);
+                else
+                    return base.VisitParameter(node);
+            }
         }
 
         public class SelectorRewriter : System.Linq.Expressions.ExpressionVisitor
@@ -952,6 +966,8 @@ namespace Harmony.Core.EF.Query.Internal
                 else
                     return node;
             }
+
+            
         }
 
         public PreparedQueryPlan QueryPlan { get; set; }

@@ -15,12 +15,12 @@ import Harmony.OData
 import Harmony.Core
 import System.Linq
 import Newtonsoft.Json.Linq
+import Microsoft.AspNet.OData.Routing
 
 namespace Services.Controllers
 
-    {Controller}
     {Authorize}
-	public class OrdersMethods
+	public class OrdersMethods extends ODataController
 
         private readwrite property mDbContext, @Services.Models.DBContext
         private readwrite property mServiceProvider, @IServiceProvider
@@ -38,6 +38,7 @@ namespace Services.Controllers
             mServiceProvider = aServiceProvider
         endmethod
 
+        {HttpPut}
         public method CreateNewOrder, int
             required in aOrder, @Order
             ;;TODO: something wrong with the registration method when this parameter is of type ICollection it wrecks the EDM model for OrderItem
@@ -77,20 +78,45 @@ namespace Services.Controllers
 
         endmethod
 
+        {ODataRoute("OrdersMethods/FindAvailability")}
+        {HttpGet}
 		{CallableMethodConfigurationAttribute(IsFunction=true, ReturnsFromEntitySet=true)}
 		{EnableQuery()}
 		public method FindAvailability, @List<Availability>
 			{AdapterParameterAttribute}
 			filter, @AvailabiltyFilter
 		proc
-			mreturn new List<Availability>() { new Availability() { PointsCost = 9999 } }
+			mreturn new List<Availability>() { new Availability() { PointsCost = 9999 } } 
 		endmethod
 
 
     endclass
 
-	{Controller}
-	{Authorize}
+    public class ExternalCallController extends ODataController
+        readwrite property CallContext, @ExternalCallContext
+        
+        public method ExternalCallController
+            callContext, @ExternalCallContext
+        proc
+            this.CallContext = callContext
+        endmethod
+
+        {ODataRoute("VMS/GetAllCustomers")}
+        {HttpGet}
+        {CallableMethodConfigurationAttribute(IsFunction=true, ReturnsFromEntitySet=true)}
+        public method GetAllCustomers, @Task<List<Customer>>
+        proc
+            mreturn CallContext.GetAllCustomers()
+        endmethod
+
+        {CallableMethodConfigurationAttribute(IsFunction=true, ReturnsFromEntitySet=false)}
+        public method Arbitrario_MethodWithParameters, @Task<ExternalCallContext.ArbitrarioReturnType>
+        proc
+            mreturn CallContext.Arbitrario_MethodWithParameters()
+        endmethod
+
+    endclass
+	
 	public class ExternalCallContext extends DynamicCallProvider
 		public method ExternalCallContext
 			connection, @IDynamicCallConnection
@@ -98,8 +124,8 @@ namespace Services.Controllers
 			parent(connection)
 		proc
 
-		endmethod
-		{CallableMethodConfigurationAttribute(IsFunction=true, ReturnsFromEntitySet=true)}
+        endmethod
+
 		public async method GetAllCustomers, @Task<List<Customer>>
 		proc
 			;;force metadata to be loaded if its not
@@ -108,7 +134,6 @@ namespace Services.Controllers
 			mreturn ((@IEnumerable<Customer>)resultTpl.Item2[1]).ToList<Customer>()
 		endmethod
 
-		{CallableMethodConfigurationAttribute(IsFunction=true, ReturnsFromEntitySet=false)}
 		public async method Arbitrario_MethodWithParameters, @Task<ArbitrarioReturnType>
 		proc
 			data intArray = new int[#] {5, 4, 3, 2, 1 }

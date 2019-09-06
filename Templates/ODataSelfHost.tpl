@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME>SelfHost.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.4.1</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.4.2</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>API_DOCS_PATH</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVICES_NAMESPACE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVER_PROTOCOL</REQUIRES_USERTOKEN>
@@ -78,27 +78,31 @@ proc
 
 <IF DEFINED_ENABLE_SWAGGER_DOCS>
     ;;-------------------------------------------------------------------------
-	;;Report the location of the API documentation
+    ;;Report the location of the API documentation
 
     Console.WriteLine("API documentation is available at <SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<API_DOCS_PATH>")
 
+</IF DEFINED_ENABLE_SWAGGER_DOCS>
+<IF DEFINED_ENABLE_API_VERSIONING>
     ;;-------------------------------------------------------------------------
-	;;Define the location that static files are served from and make sure it exists
+    ;;Report the location of the API documentation
+
+    Console.WriteLine("API documentation is available at <SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<API_DOCS_PATH>")
+
+</IF DEFINED_ENABLE_API_VERSIONING>
+    ;;-------------------------------------------------------------------------
+    ;;Define the location that static files are served from and make sure it exists
 
     data wwwroot = Path.Combine(AppContext.BaseDirectory, "wwwroot")
 
     if (!Directory.Exists(wwwroot))
         Directory.CreateDirectory(wwwroot)
-
-</IF DEFINED_ENABLE_SWAGGER_DOCS>
     ;;-------------------------------------------------------------------------
     ;;Start the self-hosting environment (Kestrel)
 
     WebHost.CreateDefaultBuilder(Environment.GetCommandLineArgs())
-<IF DEFINED_ENABLE_SWAGGER_DOCS>
     &    .UseContentRoot(AppContext.BaseDirectory)
     &    .UseWebRoot(wwwroot)
-</IF DEFINED_ENABLE_SWAGGER_DOCS>
 <IF DEFINED_ENABLE_IIS_SUPPORT>
     &    .UseIISIntegration()
 </IF DEFINED_ENABLE_IIS_SUPPORT>

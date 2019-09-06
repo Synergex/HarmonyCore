@@ -17,6 +17,9 @@ import System.ComponentModel.DataAnnotations
 import System.Text
 import Harmony.Core
 import Harmony.Core.Converters
+import Harmony.Core.Context
+import Harmony.Core.FileIO
+import Microsoft.Extensions.DependencyInjection
 
 namespace Services.Models
 
@@ -66,7 +69,7 @@ namespace Services.Models
         ;;; </summary>
         {Key}
         {Required(ErrorMessage="Vendor number is required. ")}
-		{Range(1,999999, ErrorMessage="Vendor number must be between 1 and 999999. ")}
+        {Range(1,999999, ErrorMessage="Vendor number must be between 1 and 999999. ")}
         public property VendorNumber, int
             method get
             proc
@@ -142,7 +145,7 @@ namespace Services.Models
         ;;; <summary>
         ;;; Zip Code
         ;;; </summary>
-		{Range(0,99999, ErrorMessage="Zip Code must be between 0 and 99999. ")}
+        {Range(0,99999, ErrorMessage="Zip Code must be between 0 and 99999. ")}
         public property ZipCode, int
             method get
             proc
@@ -273,6 +276,47 @@ namespace Services.Models
         proc
             ;;TODO: This should be returning boxed values for each of our fields
             mreturn new Object[10]
+        endmethod
+
+        ;;; <summary>
+        ;;; Validate data for one-to-one relations
+        ;;; </summary>
+        ;;; <param name="type">Validation type (create, update or delete)</param>
+        ;;; <param name="sp">Serices provider</param>
+        public override method Validate, void
+            required in vType, ValidationType
+            required in sp, @IServiceProvider
+
+            ;;From key for REL_Items
+            record rel1FromKey
+              vendor_number, d6
+            endrecord
+        proc
+            ;;No relation validation if the record is being deleted
+            if (vType == ValidationType.Delete)
+                mreturn
+
+            ;;Get an instance of IDataObjectProvider
+            data doProvider, @IDataObjectProvider, sp.GetService<IDataObjectProvider>()
+
+            ;;--------------------------------------------------------------------------------
+            ;;Validate data for relation 1 (REL_Items)
+
+            rel1FromKey.vendor_number = mSynergyData.vendor_number
+            disposable data rel1FileIO = doProvider.GetFileIO<Item>()
+            if (rel1FileIO.FindRecord(0,rel1FromKey) != FileAccessResults.Success)
+                throw new ValidationException("Invalid data for relation REL_Items")
+
+
+            ;;If we have a ValidateCustom method, call it
+            ValidateCustom(vType,sp)
+
+        endmethod
+
+
+        private partial method ValidateCustom, void
+            required in vType, ValidationType
+            required in sp, @IServiceProvider
         endmethod
 
 .endregion

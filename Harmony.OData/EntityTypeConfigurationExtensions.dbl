@@ -3,7 +3,7 @@ import System.Collections.Generic
 import System.Text
 import Microsoft.AspNet.OData.Builder
 import System.Linq.Expressions
-
+import System.Linq
 
 namespace Harmony.OData
 
@@ -16,10 +16,11 @@ namespace Harmony.OData
 			data lambdaParam = Expression.Parameter(^typeof(T))
             data expr = Expression.PropertyOrField(lambdaParam, keyName)
             ;;todo investigate compiler bug here
-            ;;data lambdaExpr = Expression.Lambda<Func<T, KeyType>>(expr, new ParameterExpression[#] { lambdaParam })
+            ;data lambdaExpr = Expression.Lambda<Func<T, KeyType>>(expr, new ParameterExpression[#] { lambdaParam })
             data lambdaExpr, @Expression<Func<T, KeyType>>, Expression.Lambda<Func<T, KeyType>>(expr, new ParameterExpression[#] { lambdaParam })
 			mreturn config.HasKey(lambdaExpr)
 		endmethod
+
 
 	endclass
 
