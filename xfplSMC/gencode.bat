@@ -9,6 +9,9 @@ if ERRORLEVEL 1 goto error
 codegen -smcstrs %SMCROOT%\%SMCNAME% -ms -t %SolutionDir%\%TEMPLATEROOT%\InterfaceDispatcherData -o %SolutionDir%\%PROJECT%\DispatcherData -n %NAMESPACE% -ut SMC_INTERFACE=%TESTNAME% -e -r -lf
 if ERRORLEVEL 1 goto bypass
 
+codegen -smcstrs %SMCROOT%\%SMCNAME% -ms -t %SolutionDir%\%TEMPLATEROOT%\ODataModel %SolutionDir%\%TEMPLATEROOT%\ODataMetaData -i %TEMPLATEROOT% -o %SolutionDir%\TraditionalBridge.Models -n TraditionalBridge.Models -e -r -lf
+if ERRORLEVEL 1 goto bypass
+
 goto done
 
 :bypass

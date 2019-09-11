@@ -106,15 +106,6 @@ set PROJECT=TraditionalBridge.Test
 set NAMESPACE=TraditionalBridge.Test
 set TESTPROJECT=TraditionalBridge.TestClient
 
-rem Generate a Web API / OData CRUD environment
-rem Generate model and metadata classes
-codegen -s %DATA_STRUCTURES% -t ODataModel ODataMetaData -i %TEMPLATEROOT% -o %SolutionDir%TraditionalBridge.Models -n TraditionalBridge.Models -e -r -lf
-if ERRORLEVEL 1 goto error
-
-rem Unit testing project
-rem Generate OData client model, data loader and unit test classes
-
-
 rem Models
 codegen -s %DATA_STRUCTURES% -t TraditionalModel TraditionalMetaData -i %TEMPLATEROOT% -o %PROJECT%\Models -n %NAMESPACE%.Models -e -r -lf
 if ERRORLEVEL 1 goto error
@@ -140,7 +131,7 @@ if ERRORLEVEL 1 goto error
 rem data64k
 set TESTNAME=data64k
 set SMCNAME=%TESTNAME%.xml
-call %SolutionDir%\%SMCROOT%\gencode.bat
+call %SMCROOT%\gencode.bat
 if ERRORLEVEL 1 goto error
 
 rem Encrypt
