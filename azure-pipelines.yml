@@ -56,7 +56,7 @@ stages:
         logFileVerbosity: diagnostic
         clean: false
 
-    - publish: '$(System.DefaultWorkingDirectory)/TestDir'
+    - publish: '$(Pipeline.Workspace)\\s\\TestDir'
       displayName: 'Publish Linux TB DBR'
       condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
       artifact: TraditionalBridgeDBR
@@ -106,19 +106,19 @@ stages:
         projects: Services.Host
         verbosityPack: Diagnostic
 
-    - publish: '$(System.DefaultWorkingDirectory)/Services.Host/bin/Release/netcoreapp2.2/publish'
+    - publish: '$(Pipeline.Workspace)\\s\\Services.Host\\bin\\Release\\netcoreapp2.2\\publish'
       displayName: 'Publish Linux Services.Host Artifact'
       condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
       artifact: LinuxWebApp
-    - publish: '$(System.DefaultWorkingDirectory)Services.Host/bin/Release/netcoreapp2.2/publish'
+    - publish: '$(Pipeline.Workspace)\\s\\Services.Host\\bin\\Release\\netcoreapp2.2\\publish'
       displayName: 'Publish Windows Services.Host Artifact'
       condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
       artifact: WindowsWebApp
-    - publish: '$(System.DefaultWorkingDirectory)/Services.Test/bin/Release/netcoreapp2.2/publish'
+    - publish: '$(Pipeline.Workspace)\\s\\Services.Test\\bin\\Release\\netcoreapp2.2\\publish'
       displayName: 'Publish Linux Services.Test Artifact'
       condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
       artifact: LinuxServicesTest
-    - publish: '$(System.DefaultWorkingDirectory)/HarmonyCore.Test/bin/Release/netcoreapp2.2/publish'
+    - publish: '$(Pipeline.Workspace)\\s\\HarmonyCore.Test\\bin\\Release\\netcoreapp2.2\\publish'
       displayName: 'Publish Linux HarmonyCore.Test Artifact'
       condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
       artifact: LinuxHarmonyCoreTest
