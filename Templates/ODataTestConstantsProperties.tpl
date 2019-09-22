@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME>TestConstants.Properties.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.4.2</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.4.3</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
 ;// Title:       ODataTestConstantsProperties.tpl
@@ -61,7 +61,7 @@ namespace <NAMESPACE>
 
   <PRIMARY_KEY>
     <SEGMENT_LOOP>
-        public static readwrite property Get<StructureNoplural>_<SegmentName>, <SEGMENT_CSTYPE>
+        public static readwrite property Get<StructureNoplural>_<SegmentName>, <SEGMENT_SNTYPE>
     </SEGMENT_LOOP>
   </PRIMARY_KEY>
 ;//
@@ -74,7 +74,7 @@ namespace <NAMESPACE>
 
         <PRIMARY_KEY>
         <SEGMENT_LOOP>
-        public static readwrite property Get<StructureNoplural>_Expand_<IF MANY_TO_ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY>_<SegmentName>, <SEGMENT_CSTYPE>
+        public static readwrite property Get<StructureNoplural>_Expand_<IF MANY_TO_ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY>_<SegmentName>, <SEGMENT_SNTYPE>
         </SEGMENT_LOOP>
         </PRIMARY_KEY>
       </IF TO_STRUCTURE_INCLUDED>
@@ -87,7 +87,7 @@ namespace <NAMESPACE>
   <PRIMARY_KEY>
 
     <SEGMENT_LOOP>
-        public static readwrite property Get<StructureNoplural>_Expand_All_<SegmentName>, <SEGMENT_CSTYPE>
+        public static readwrite property Get<StructureNoplural>_Expand_All_<SegmentName>, <SEGMENT_SNTYPE>
     </SEGMENT_LOOP>
   </PRIMARY_KEY>
 ;//
@@ -96,7 +96,7 @@ namespace <NAMESPACE>
   <ALTERNATE_KEY_LOOP>
     
     <SEGMENT_LOOP>
-        public static readwrite property Get<StructureNoplural>_ByAltKey_<KeyName>_<SegmentName>, <SEGMENT_CSTYPE>
+        public static readwrite property Get<StructureNoplural>_ByAltKey_<KeyName>_<SegmentName>, <SEGMENT_SNTYPE>
     </SEGMENT_LOOP>
   </ALTERNATE_KEY_LOOP>
 ;//
@@ -104,7 +104,7 @@ namespace <NAMESPACE>
 ;//
   <PRIMARY_KEY>
     <SEGMENT_LOOP>
-        public static readwrite property Update<StructureNoplural>_<SegmentName>, <SEGMENT_CSTYPE>
+        public static readwrite property Update<StructureNoplural>_<SegmentName>, <SEGMENT_SNTYPE>
     </SEGMENT_LOOP>
   </PRIMARY_KEY>
 

@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME><StructureNoplural>.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.4.2</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.4.3</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_OPTION>TF</REQUIRES_OPTION>
 <CODEGEN_FOLDER>Models</CODEGEN_FOLDER>
 ;//****************************************************************************
@@ -63,7 +63,7 @@ namespace <NAMESPACE>
         <IF CUSTOM_HARMONY_AS_STRING>
         public readwrite property <FieldSqlname>, String
         <ELSE>
-        public readwrite property <FieldSqlname>, <FIELD_CSTYPE>
+        public readwrite property <FieldSqlname>, <FIELD_SNTYPE>
         </IF CUSTOM_HARMONY_AS_STRING>
 
     </IF CUSTOM_NOT_HARMONY_EXCLUDE>

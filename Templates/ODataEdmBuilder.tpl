@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME>EdmBuilder.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.4.2</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.4.3</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
@@ -164,7 +164,7 @@ namespace <NAMESPACE>
             <IF CUSTOM_HARMONY_AS_STRING>
             builder.EntityType<<StructureNoplural>>().HasKey<<StructureNoplural>,string>("<FieldSqlname>")
             <ELSE>
-            builder.EntityType<<StructureNoplural>>().HasKey<<StructureNoplural>,<FIELD_CSTYPE>>("<FieldSqlname>")
+            builder.EntityType<<StructureNoplural>>().HasKey<<StructureNoplural>,<FIELD_SNTYPE>>("<FieldSqlname>")
             </IF CUSTOM_HARMONY_AS_STRING>
           </IF SEG_TAG_EQUAL>
         </SEGMENT_LOOP>
