@@ -22,6 +22,7 @@ import Harmony.OData.Adapter
 import Microsoft.AspNetCore.Builder
 import Microsoft.AspNetCore.Hosting
 import Microsoft.AspNetCore.Http
+import Microsoft.AspNetCore.Mvc
 import Microsoft.AspNetCore.Mvc.Abstractions
 import Microsoft.AspNetCore.StaticFiles
 import Microsoft.AspNet.OData
@@ -48,7 +49,6 @@ import Services.Controllers
 import Services.Models
 import Microsoft.AspNetCore.Mvc.ApiExplorer
 import Swashbuckle.AspNetCore.Swagger
-import Microsoft.AspNetCore.Mvc
 
 namespace Services
 
@@ -119,11 +119,11 @@ namespace Services
             lambda AddDataObjectMappings(serviceProvider)
             begin
                 data objectProvider = new DataObjectProvider(serviceProvider.GetService<IFileChannelManager>())
-                objectProvider.AddDataObjectMapping<Customer>("DAT:customers.ism", FileOpenMode.UpdateIndexed)
-                objectProvider.AddDataObjectMapping<Item>("DAT:items.ism", FileOpenMode.UpdateIndexed)
-                objectProvider.AddDataObjectMapping<Order>("DAT:orders.ism", FileOpenMode.UpdateIndexed)
-                objectProvider.AddDataObjectMapping<OrderItem>("DAT:order_items.ism", FileOpenMode.UpdateIndexed)
-                objectProvider.AddDataObjectMapping<Vendor>("DAT:vendors.ism", FileOpenMode.UpdateIndexed)
+                objectProvider.AddDataObjectMapping<Services.Models.Customer>("DAT:customers.ism", FileOpenMode.UpdateIndexed)
+                objectProvider.AddDataObjectMapping<Services.Models.Item>("DAT:items.ism", FileOpenMode.UpdateIndexed)
+                objectProvider.AddDataObjectMapping<Services.Models.Order>("DAT:orders.ism", FileOpenMode.UpdateIndexed)
+                objectProvider.AddDataObjectMapping<Services.Models.OrderItem>("DAT:order_items.ism", FileOpenMode.UpdateIndexed)
+                objectProvider.AddDataObjectMapping<Services.Models.Vendor>("DAT:vendors.ism", FileOpenMode.UpdateIndexed)
                 mreturn objectProvider
             end
 
@@ -183,14 +183,14 @@ namespace Services
                 foreach description in provider.ApiVersionDescriptions
                 begin
                     data info = new Info()
-                    & {
-                        & Title = "Harmony Core Sample API " + description.ApiVersion.ToString(),
-                        & Version = description.ApiVersion.ToString(),
-                        & Description = "This environment presents an example of using Harmony Core to expose a collection of RESTful Web Service endpoints that allow you to interact with a small sample dataset.",
-                        & Contact = new Contact() { Name = "Jodah Veloper", Email = "jodah.veloper@synergexpsg.com" },
-                        & TermsOfService = "Open Source",
-                        & License = new License() { Name = "BSD-2-Clause", Url = "https://opensource.org/licenses/BSD-2-Clause" }
-                    & }
+                    &    {
+                    &    Title = "Harmony Core Sample API " + description.ApiVersion.ToString(),
+                    &    Version = description.ApiVersion.ToString(),
+                    &    Description = "This environment presents an example of using Harmony Core to expose a collection of RESTful Web Service endpoints that allow you to interact with a small sample dataset.",
+                    &    Contact = new Swashbuckle.AspNetCore.Swagger.Contact() { Name = "Jodah Veloper", Email = "jodah.veloper@synergexpsg.com" },
+                    &    TermsOfService = "Open Source",
+                    &    License = new Swashbuckle.AspNetCore.Swagger.License() { Name = "BSD-2-Clause", Url = "https://opensource.org/licenses/BSD-2-Clause" }
+                    &    }
 
                     options.SwaggerDoc( description.GroupName, info )
                 end
