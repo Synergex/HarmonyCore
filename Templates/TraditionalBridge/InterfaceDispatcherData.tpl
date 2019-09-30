@@ -1,6 +1,6 @@
 <CODEGEN_FILENAME><SMC_INTERFACE>DispatcherData.dbl</CODEGEN_FILENAME>
 <REQUIRES_USERTOKEN>SMC_INTERFACE</REQUIRES_USERTOKEN>
-<REQUIRES_CODEGEN_VERSION>5.4.3</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.4.4</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
 ;// Title:       DispatcherData.tpl

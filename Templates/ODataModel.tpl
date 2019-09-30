@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME><StructureNoplural>.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.4.3</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.4.4</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
 ;// Title:       ODataModel.tpl
@@ -371,7 +371,7 @@ namespace <NAMESPACE>
         public override method Validate, void
             required in vType, ValidationType
             required in sp, @IServiceProvider
-  <RELATION_LOOP>
+  <RELATION_LOOP_RESTRICTED>
 
             ;;From key for <HARMONYCORE_RELATION_NAME>
             record rel<RELATION_NUMBER>FromKey
@@ -386,7 +386,7 @@ namespace <NAMESPACE>
         </IF SEG_TYPE_LITERAL>
       </FROM_KEY_SEGMENT_LOOP>
             endrecord
-  </RELATION_LOOP>
+  </RELATION_LOOP_RESTRICTED>
         proc
             ;;No relation validation if the record is being deleted
             if (vType == ValidationType.Delete)
@@ -395,7 +395,7 @@ namespace <NAMESPACE>
             ;;Get an instance of IDataObjectProvider
             data doProvider, @IDataObjectProvider, sp.GetService<IDataObjectProvider>()
 
-  <RELATION_LOOP>
+  <RELATION_LOOP_RESTRICTED>
             ;;--------------------------------------------------------------------------------
             ;;Validate data for relation <RELATION_NUMBER> (<HARMONYCORE_RELATION_NAME>)
 
@@ -418,7 +418,7 @@ namespace <NAMESPACE>
             ;;This relation does not REQUIRE a match in the target file.
     </IF REQUIRES_MATCH>
 
-  </RELATION_LOOP>
+  </RELATION_LOOP_RESTRICTED>
 
             ;;If we have a ValidateCustom method, call it
             ValidateCustom(vType,sp)
@@ -457,8 +457,7 @@ namespace <NAMESPACE>
 
 .region "Relationships to other entities"
 
-    <RELATION_LOOP>
-      <IF TO_STRUCTURE_INCLUDED>
+    <RELATION_LOOP_RESTRICTED>
         <COUNTER_1_INCREMENT>
 ;//
 ;//
@@ -511,14 +510,13 @@ namespace <NAMESPACE>
         public readwrite property <HARMONYCORE_RELATION_NAME>, @ICollection<<RelationTostructureNoplural>>
         </IF ONE_TO_MANY>
 
-      </IF TO_STRUCTURE_INCLUDED>
-    </RELATION_LOOP>
+    </RELATION_LOOP_RESTRICTED>
 .endregion
 ;//
 ;//
 ;//
     <COUNTER_2_RESET>
-    <RELATION_LOOP>
+    <RELATION_LOOP_RESTRICTED>
         <COUNTER_1_RESET>
         <FROM_KEY_SEGMENT_LOOP>
             <IF SEG_TYPE_LITERAL>
@@ -535,7 +533,7 @@ namespace <NAMESPACE>
         private _<RelationFromkey>Literal<COUNTER_1_VALUE>, <LITERAL_SEGMENT_SNTYPE>, <LITERAL_SEGMENT_VALUE>
             </IF SEG_TYPE_LITERAL>
         </FROM_KEY_SEGMENT_LOOP>
-    </RELATION_LOOP>
+    </RELATION_LOOP_RESTRICTED>
     <IF COUNTER_2_GT_0>
 
 .endregion
