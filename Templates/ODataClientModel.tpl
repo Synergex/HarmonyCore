@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME><StructureNoplural>.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.4.2</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.4.4</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_OPTION>TF</REQUIRES_OPTION>
 <CODEGEN_FOLDER>Models</CODEGEN_FOLDER>
 ;//****************************************************************************
@@ -63,7 +63,7 @@ namespace <NAMESPACE>
         <IF CUSTOM_HARMONY_AS_STRING>
         public readwrite property <FieldSqlname>, String
         <ELSE>
-        public readwrite property <FieldSqlname>, <FIELD_CSTYPE>
+        public readwrite property <FieldSqlname>, <FIELD_SNTYPE>
         </IF CUSTOM_HARMONY_AS_STRING>
 
     </IF CUSTOM_NOT_HARMONY_EXCLUDE>
@@ -72,9 +72,8 @@ namespace <NAMESPACE>
 .region "Relationships to other entities"
 
   <IF STRUCTURE_RELATIONS>
-    <RELATION_LOOP>
-      <IF TO_STRUCTURE_INCLUDED>
-        <COUNTER_1_INCREMENT>
+    <RELATION_LOOP_RESTRICTED>
+      <COUNTER_1_INCREMENT>
 ;//
 ;//
 ;//
@@ -126,8 +125,7 @@ namespace <NAMESPACE>
         public readwrite property <HARMONYCORE_RELATION_NAME>, @ICollection<<RelationTostructureNoplural>>
         </IF ONE_TO_MANY>
 
-      </IF TO_STRUCTURE_INCLUDED>
-    </RELATION_LOOP>
+    </RELATION_LOOP_RESTRICTED>
   </IF STRUCTURE_RELATIONS>
 .endregion
 
