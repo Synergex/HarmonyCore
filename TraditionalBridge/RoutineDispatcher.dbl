@@ -1543,8 +1543,13 @@ namespace Harmony.TraditionalBridge
         proc
             foreach kvp in dict.Items()
             begin
-                MaybeLog(5, "SuperRoutineDispatcher: adding dispatcher " + kvp.Key)
-                mDispatchStubs.Add(kvp.Key, kvp.Value)
+                if (!mDispatchStubs.Contains(kvp.Key)) then
+                begin
+                    MaybeLog(5, "SuperRoutineDispatcher: adding dispatcher " + kvp.Key)
+                    mDispatchStubs.Add(kvp.Key, kvp.Value)
+                end
+                else
+                    MaybeLog(5, "SuperRoutineDispatcher: Skipping dispatcher. Already exists: " + kvp.Key)
             end
 
         endmethod

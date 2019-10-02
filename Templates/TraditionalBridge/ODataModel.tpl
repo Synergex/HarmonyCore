@@ -1,4 +1,4 @@
-<CODEGEN_FILENAME><StructureNoplural>.dbl</CODEGEN_FILENAME>
+<CODEGEN_FILENAME><StructureName>.dbl</CODEGEN_FILENAME>
 <REQUIRES_CODEGEN_VERSION>5.4.2</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
@@ -34,7 +34,7 @@
 ;//
 ;;*****************************************************************************
 ;;
-;; Title:       <StructureNoplural>.dbl
+;; Title:       <StructureName>.dbl
 ;;
 ;; Description: Data model representing data defined by the repository
 ;;              structure <STRUCTURE_NOALIAS><IF STRUCTURE_FILES> and from the data file <FILE_NAME></IF STRUCTURE_FILES>.
@@ -57,26 +57,26 @@ import Harmony.OData
 
 namespace <NAMESPACE>
 
-    public partial class <StructureNoplural> extends DataObjectBase
+    public partial class <StructureName> extends DataObjectBase
 
         ;;make the record available and a copy
-        private mSynergyData, str<StructureNoplural>
-        private mOriginalSynergyData, str<StructureNoplural>
+        private mSynergyData, str<StructureName>
+        private mOriginalSynergyData, str<StructureName>
 
-        private static sMetadata, @<StructureNoplural>Metadata
+        private static sMetadata, @<StructureName>Metadata
 
 .region "Constructors"
 
-        static method <StructureNoplural>
+        static method <StructureName>
         proc
-            sMetadata = new <StructureNoplural>Metadata()
-            DataObjectMetadataBase.MetadataLookup.TryAdd(^typeof(<StructureNoplural>), sMetadata)
+            sMetadata = new <StructureName>Metadata()
+            DataObjectMetadataBase.MetadataLookup.TryAdd(^typeof(<StructureName>), sMetadata)
         endmethod
 
         ;;; <summary>
         ;;;  Constructor, initialise the base fields
         ;;; </summary>
-        public method <StructureNoplural>
+        public method <StructureName>
             parent()
         proc
             init mSynergyData, mOriginalSynergyData
@@ -85,7 +85,7 @@ namespace <NAMESPACE>
         ;;; <summary>
         ;;;  Alternate Constructor, accepts the structured data
         ;;; </summary>
-        public method <StructureNoplural>
+        public method <StructureName>
             required in inData, a
             required in inGrfa, a
             parent()
