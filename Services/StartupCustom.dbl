@@ -55,7 +55,8 @@ namespace Services
             services.AddScoped<Microsoft.EntityFrameworkCore.DbContext>(MakeGenericDbContext)
             ;data contextPool, @RemoteExternalContextPool<ExternalCallContext>, new RemoteExternalContextPool<ExternalCallContext>(RemoteTargetOS.VMS, "VMSIT", "STEVEI_RSAC", new Renci.SshNet.PasswordAuthenticationMethod("STEVEI_RSAC", "rsac"), "RUN PROGRAM.EXE" , 4, 10000, 10000) 
             data currentDirectory = Path.GetDirectoryName(^typeof(Startup).Assembly.Location)
-            data contextPool,@ExternalContextPool<ExternalCallContext>, new ExternalContextPool<ExternalCallContext>(Environment.GetEnvironmentVariable("SYNERGYDE64") + "dbl\bin\dbs.exe", 'TraditionalBridge.Test.dbr', Path.GetFullPath(Path.Combine(Environment.GetEnvironmentVariable("SolutionDir") ?? "..\..\..\..\", "TestDir")), ^null, 4, true) 
+            data solutionDir = Environment.GetEnvironmentVariable("SolutionDir")
+            data contextPool,@ExternalContextPool<ExternalCallContext>, new ExternalContextPool<ExternalCallContext>(Environment.GetEnvironmentVariable("SYNERGYDE64") + "dbl\bin\dbs.exe", 'TraditionalBridge.Test.dbr', Path.GetFullPath(Path.Combine(solutionDir ?? (currentDirectory + "..\..\..\..\..\"), "TestDir")), ^null, 4, true) 
 			
             services.AddSingleton<IContextFactory<ExternalCallContext>>(contextPool)
             services.AddContextPool<ExternalCallContext>()

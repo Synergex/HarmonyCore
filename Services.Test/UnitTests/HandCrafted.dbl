@@ -56,6 +56,7 @@ import System.IO
 import Microsoft.AspNetCore.SignalR.Client
 import System.Threading.Tasks
 import System.Linq
+import System.Text
 
 namespace Services.Test.UnitTests
 
@@ -836,6 +837,15 @@ namespace Services.Test.UnitTests
         endmethod
 
         {TestMethod}
+        public method ODataAction, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.PostAsync("/odata/v1/DoAnAction", new StringContent('{"intParam" : 5}', Encoding.UTF8, "application/json")).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+        endmethod
+
+        {TestMethod}
         public async method SignalRTest, @Task
         proc
             data connection = new HubConnectionBuilder()
@@ -844,16 +854,44 @@ namespace Services.Test.UnitTests
             data echo, @HandCrafted.ArbitrarioReturnType
             connection.On<HandCrafted.ArbitrarioReturnType>("Arbitrario_MethodWithParametersResult", lambda(msg) { echo = msg })
 
+            data optRet, @HandCrafted.ArbitrarioOptionalReturnType
+            connection.On<HandCrafted.ArbitrarioOptionalReturnType>("Arbitrario_OptionalResult", lambda(msg) { optRet = msg })
+
             await connection.StartAsync()
             data intArray = new int[#] {5, 4, 3, 2, 1 }
             await connection.InvokeAsync("Arbitrario_MethodWithParameters", 5, "hello", new string[#] { "this", "is", "strings" }, (@object)intArray)
             Assert.IsTrue(echo.StringList.SequenceEqual(new string[#] { "this", "is", "strings" }))
+
+            await connection.InvokeAsync("Arbitrario_Optional", new ArbitrarioOptionalParameter() { p1 = 9, p2 = "World", p3 = String.Empty, p4 = 5 })
+            Assert.AreEqual("World", optRet.p3)
+            Assert.AreEqual(45, optRet.p4)
+            await connection.InvokeAsync("Arbitrario_Optional", new ArbitrarioOptionalParameter() { p1 = 9, p2 = "World", p3 = String.Empty })
+            Assert.AreEqual("World", optRet.p3)
+            Assert.AreEqual(^null, optRet.p4)
+            await connection.InvokeAsync("Arbitrario_Optional", new ArbitrarioOptionalParameter() { p1 = 9 })
+            Assert.AreEqual(^null, optRet.p3)
+            Assert.AreEqual(^null, optRet.p4)
+            await connection.InvokeAsync("Arbitrario_Optional", new ArbitrarioOptionalParameter() { p1 = 9, p4 = 5 })
+            Assert.AreEqual(^null, optRet.p3)
+            Assert.AreEqual(45, optRet.p4)
         endmethod
 
         public class ArbitrarioReturnType
             public readwrite property ReturnCode, int
             public readwrite property IntList, @List<int>
             public readwrite property StringList, @List<string>
+        endclass
+
+        public class ArbitrarioOptionalParameter
+            public readwrite property p1, int
+            public readwrite property p2, @string
+            public readwrite property p3, @string
+            public readwrite property p4, int?
+        endclass
+
+        public class ArbitrarioOptionalReturnType
+            public readwrite property p3, @string
+            public readwrite property p4, int?
         endclass
 
 		{TestMethod}

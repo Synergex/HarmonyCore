@@ -199,7 +199,7 @@ namespace <NAMESPACE>
                 vOptions.ReportApiVersions = true
                 ;vOptions.AssumeDefaultVersionWhenUnspecified = true
                 vOptions.RouteConstraintName = "apiVersion"
-                vOptions.DefaultApiVersion = new ApiVersion(1, 0)
+                vOptions.DefaultApiVersion = ApiVersion.Parse("1")
             end
 
             services.AddApiVersioning(APIVersionConfig)

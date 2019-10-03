@@ -106,7 +106,7 @@ namespace <NAMESPACE>
                 if(!mEdmModels.ContainsKey(versionNumber))
                 begin
                     data madeModel = GetEdmModel(new ODataConventionModelBuilder(serviceProvider), serviceProvider)
-                    madeModel.SetAnnotationValue(madeModel, new ApiVersionAnnotation(new ApiVersion(versionNumber, 0)))
+                    madeModel.SetAnnotationValue(madeModel, new ApiVersionAnnotation(ApiVersion.Parse(versionNumber.ToString())))
                     mEdmModels.Add(versionNumber, madeModel)
                 end
             end
