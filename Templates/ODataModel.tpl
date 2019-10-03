@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME><StructureNoplural>.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.4.2</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.4.4</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
 ;// Title:       ODataModel.tpl
@@ -151,7 +151,7 @@ namespace <NAMESPACE>
 <IF CUSTOM_HARMONY_AS_STRING>
         public property <FieldSqlname>, String
 <ELSE>
-        public property <FieldSqlname>, <FIELD_CSTYPE>
+        public property <FieldSqlname>, <FIELD_SNTYPE>
 </IF CUSTOM_HARMONY_AS_STRING>
 ;//
 ;// Field property get method
@@ -159,7 +159,7 @@ namespace <NAMESPACE>
             method get
             proc
         <IF ALPHA>
-                mreturn (<FIELD_CSTYPE>)SynergyAlphaConverter.Convert(mSynergyData.<field_original_name_modified>, ^null, ^null, ^null)
+                mreturn (<FIELD_SNTYPE>)SynergyAlphaConverter.Convert(mSynergyData.<field_original_name_modified>, ^null, ^null, ^null)
         </IF ALPHA>
         <IF DATE>
             <IF CUSTOM_HARMONY_AS_STRING>
@@ -172,7 +172,7 @@ namespace <NAMESPACE>
                 <IF DATE_YYYYJJJ>
                 formatString = "YYYYJJJ"
                 </IF DATE_YYYYJJJ>
-                mreturn (<FIELD_CSTYPE>)SynergyDecimalDateConverter.Convert(mSynergyData.<field_original_name_modified>, ^null, formatString, ^null)
+                mreturn (<FIELD_SNTYPE>)SynergyDecimalDateConverter.Convert(mSynergyData.<field_original_name_modified>, ^null, formatString, ^null)
             </IF CUSTOM_HARMONY_AS_STRING>
         </IF DATE>
         <IF TIME_HHMM>
@@ -198,20 +198,23 @@ namespace <NAMESPACE>
                 </IF PRECISION>
             <ELSE>
                 <IF PRECISION>
-                mreturn (<FIELD_CSTYPE>)SynergyImpliedDecimalConverter.Convert(mSynergyData.<field_original_name_modified>, ^null, "DECIMALPLACES#<FIELD_PRECISION>", ^null)
+                mreturn (<FIELD_SNTYPE>)SynergyImpliedDecimalConverter.Convert(mSynergyData.<field_original_name_modified>, ^null, "DECIMALPLACES#<FIELD_PRECISION>", ^null)
                 <ELSE>
-                mreturn (<FIELD_CSTYPE>)mSynergyData.<field_original_name_modified>
+                mreturn (<FIELD_SNTYPE>)mSynergyData.<field_original_name_modified>
                 </IF PRECISION>
             </IF CUSTOM_HARMONY_AS_STRING>
         </IF DECIMAL>
         <IF INTEGER>
-                mreturn (<FIELD_CSTYPE>)mSynergyData.<field_original_name_modified>
+                mreturn (<FIELD_SNTYPE>)mSynergyData.<field_original_name_modified>
         </IF INTEGER>
+        <IF BOOLEAN>
+                mreturn (<FIELD_SNTYPE>)mSynergyData.<field_original_name_modified>
+        </IF BOOLEAN>
         <IF AUTO_SEQUENCE>
-                mreturn (<FIELD_CSTYPE>)mSynergyData.<field_original_name_modified>
+                mreturn (<FIELD_SNTYPE>)mSynergyData.<field_original_name_modified>
         </IF AUTO_SEQUENCE>
         <IF AUTO_TIMESTAMP>
-                mreturn (<FIELD_CSTYPE>)mSynergyData.<field_original_name_modified>
+                mreturn (<FIELD_SNTYPE>)mSynergyData.<field_original_name_modified>
         </IF AUTO_TIMESTAMP>
             endmethod
 ;//
@@ -269,6 +272,9 @@ namespace <NAMESPACE>
         <IF INTEGER>
                 mSynergyData.<field_original_name_modified> = value
         </IF INTEGER>
+        <IF BOOLEAN>
+                mSynergyData.<field_original_name_modified> = value
+        </IF BOOLEAN>
         <IF AUTO_SEQUENCE>
                 mSynergyData.<field_original_name_modified> = value
         </IF AUTO_SEQUENCE>
@@ -365,7 +371,7 @@ namespace <NAMESPACE>
         public override method Validate, void
             required in vType, ValidationType
             required in sp, @IServiceProvider
-  <RELATION_LOOP>
+  <RELATION_LOOP_RESTRICTED>
 
             ;;From key for <HARMONYCORE_RELATION_NAME>
             record rel<RELATION_NUMBER>FromKey
@@ -380,7 +386,7 @@ namespace <NAMESPACE>
         </IF SEG_TYPE_LITERAL>
       </FROM_KEY_SEGMENT_LOOP>
             endrecord
-  </RELATION_LOOP>
+  </RELATION_LOOP_RESTRICTED>
         proc
             ;;No relation validation if the record is being deleted
             if (vType == ValidationType.Delete)
@@ -389,7 +395,7 @@ namespace <NAMESPACE>
             ;;Get an instance of IDataObjectProvider
             data doProvider, @IDataObjectProvider, sp.GetService<IDataObjectProvider>()
 
-  <RELATION_LOOP>
+  <RELATION_LOOP_RESTRICTED>
             ;;--------------------------------------------------------------------------------
             ;;Validate data for relation <RELATION_NUMBER> (<HARMONYCORE_RELATION_NAME>)
 
@@ -412,7 +418,7 @@ namespace <NAMESPACE>
             ;;This relation does not REQUIRE a match in the target file.
     </IF REQUIRES_MATCH>
 
-  </RELATION_LOOP>
+  </RELATION_LOOP_RESTRICTED>
 
             ;;If we have a ValidateCustom method, call it
             ValidateCustom(vType,sp)
@@ -451,8 +457,7 @@ namespace <NAMESPACE>
 
 .region "Relationships to other entities"
 
-    <RELATION_LOOP>
-      <IF TO_STRUCTURE_INCLUDED>
+    <RELATION_LOOP_RESTRICTED>
         <COUNTER_1_INCREMENT>
 ;//
 ;//
@@ -505,14 +510,13 @@ namespace <NAMESPACE>
         public readwrite property <HARMONYCORE_RELATION_NAME>, @ICollection<<RelationTostructureNoplural>>
         </IF ONE_TO_MANY>
 
-      </IF TO_STRUCTURE_INCLUDED>
-    </RELATION_LOOP>
+    </RELATION_LOOP_RESTRICTED>
 .endregion
 ;//
 ;//
 ;//
     <COUNTER_2_RESET>
-    <RELATION_LOOP>
+    <RELATION_LOOP_RESTRICTED>
         <COUNTER_1_RESET>
         <FROM_KEY_SEGMENT_LOOP>
             <IF SEG_TYPE_LITERAL>
@@ -525,11 +529,11 @@ namespace <NAMESPACE>
         ;;; <summary>
         ;;;
         ;;; </summary>
-        public readonly property <RelationFromkey>Literal<COUNTER_1_INCREMENT><COUNTER_1_VALUE>, <LITERAL_SEGMENT_CSTYPE>, <LITERAL_SEGMENT_VALUE>
-        private _<RelationFromkey>Literal<COUNTER_1_VALUE>, <LITERAL_SEGMENT_CSTYPE>, <LITERAL_SEGMENT_VALUE>
+        public readonly property <RelationFromkey>Literal<COUNTER_1_INCREMENT><COUNTER_1_VALUE>, <LITERAL_SEGMENT_SNTYPE>, <LITERAL_SEGMENT_VALUE>
+        private _<RelationFromkey>Literal<COUNTER_1_VALUE>, <LITERAL_SEGMENT_SNTYPE>, <LITERAL_SEGMENT_VALUE>
             </IF SEG_TYPE_LITERAL>
         </FROM_KEY_SEGMENT_LOOP>
-    </RELATION_LOOP>
+    </RELATION_LOOP_RESTRICTED>
     <IF COUNTER_2_GT_0>
 
 .endregion

@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME>Startup.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.4.2</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.4.4</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>API_DOCS_PATH</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>API_TITLE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
@@ -174,7 +174,7 @@ namespace <NAMESPACE>
             begin
                 data objectProvider = new DataObjectProvider(serviceProvider.GetService<IFileChannelManager>())
                 <STRUCTURE_LOOP>
-                objectProvider.AddDataObjectMapping<<StructureNoplural>>("<FILE_NAME>", <IF STRUCTURE_ISAM>FileOpenMode.UpdateIndexed</IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>FileOpenMode.UpdateRelative</IF STRUCTURE_RELATIVE>)
+                objectProvider.AddDataObjectMapping<<MODELS_NAMESPACE>.<StructureNoplural>>("<FILE_NAME>", <IF STRUCTURE_ISAM>FileOpenMode.UpdateIndexed</IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>FileOpenMode.UpdateRelative</IF STRUCTURE_RELATIVE>)
                 </STRUCTURE_LOOP>
                 mreturn objectProvider
             end
@@ -252,9 +252,9 @@ namespace <NAMESPACE>
                     &    Title = "<API_TITLE> " + description.ApiVersion.ToString(),
                     &    Version = description.ApiVersion.ToString(),
                     &    Description = "<API_DESCRIPTION>",
-                    &    Contact = new Contact() { Name = "<API_CONTACT_NAME>", Email = "<API_CONTACT_EMAIL>" },
+                    &    Contact = new Swashbuckle.AspNetCore.Swagger.Contact() { Name = "<API_CONTACT_NAME>", Email = "<API_CONTACT_EMAIL>" },
                     &    TermsOfService = "<API_TERMS>",
-                    &    License = new License() { Name = "<API_LICENSE_NAME>", Url = "<API_LICENSE_URL>" }
+                    &    License = new Swashbuckle.AspNetCore.Swagger.License() { Name = "<API_LICENSE_NAME>", Url = "<API_LICENSE_URL>" }
                     &    }
 
                     options.SwaggerDoc( description.GroupName, info )

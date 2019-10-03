@@ -1,0 +1,99 @@
+import System
+import System.Collections.Generic
+import System.Text
+import Harmony.Core.Context
+import System.IO
+import System.Linq
+import Microsoft.Extensions.DependencyInjection
+import Microsoft.VisualStudio.TestTools.UnitTesting
+import System.Threading.Tasks
+import Newtonsoft.Json.Linq
+import StreamJsonRpc
+import Harmony.Core.Utility
+import TraditionalBridge.Models
+import Harmony.Core
+
+namespace TraditionalBridge.TestClient
+    public class ExternalCallContext extends DynamicCallProvider
+        public method ExternalCallContext
+            connection, @IDynamicCallConnection
+            endparams
+            parent(connection)
+        proc
+        endmethod
+
+        public async method function_one, @Task<Tuple<@string, int, decimal, int>>
+            a_alpha,    @string
+            a_dec,      int
+            a_impdec,   decimal
+            a_int,      int
+        proc
+            data resultTpl = await CallMethod("function_one", a_alpha, a_dec, a_impdec, a_int)
+            mreturn new Tuple<@string, int, decimal, int>((@string)resultTpl.Item2[1], (int)resultTpl.Item2[2], (decimal)resultTpl.Item2[3], (int)resultTpl.Item2[4])
+        endmethod
+
+        public async method function_two, @Task<Tuple<decimal, decimal, decimal, decimal, long, decimal, decimal, Tuple<int, decimal, int>>>
+            a_idec1,    decimal
+            a_idec2,    decimal
+            a_idec3,    decimal
+            a_idec4,    decimal
+            a_idec5,    long
+            a_idec6,    decimal
+            a_idec7,    decimal
+            a_idec8,    int
+            a_idec9,    decimal
+            a_idec10,   int
+        proc
+            data resultTpl = await CallMethod("function_two", a_idec1, a_idec2, a_idec3, a_idec4, a_idec5, a_idec6, a_idec7, a_idec8, a_idec9, a_idec10)
+            mreturn new Tuple<decimal, decimal, decimal, decimal, long, decimal, decimal, Tuple<int, decimal, int>>((decimal)resultTpl.Item2[1], (decimal)resultTpl.Item2[2], (decimal)resultTpl.Item2[3], (decimal)resultTpl.Item2[4], (long)resultTpl.Item2[5], (decimal)resultTpl.Item2[6], (decimal)resultTpl.Item2[7], new Tuple<int, decimal, int>((int)resultTpl.Item2[8], (decimal)resultTpl.Item2[9], (int)resultTpl.Item2[10]))
+        endmethod
+
+        public async method function_four, @Task<Tuple<@string, @string, @string, @string>>
+            a_alpha1,    @string
+            a_alpha2,    @string
+            a_alpha3,    @string
+            a_alpha4,    @string
+        proc
+            data resultTpl = await CallMethod("function_four", a_alpha1, a_alpha2, a_alpha3, a_alpha4)
+            mreturn new Tuple<@string, @string, @string, @string>((@string)resultTpl.Item2[1], (@string)resultTpl.Item2[2], (@string)resultTpl.Item2[3], (@string)resultTpl.Item2[4])
+        endmethod
+
+        public async method function_eight, @Task<Tuple<@string, int, int, @string, decimal, [#]int, [#]string, Tuple<[#]decimal, [#]int>>>
+            a_alpha1,   @string
+            a_int1,     int
+            a_dec2,     int
+            a_alpha2,   @string
+            a_idec1,    decimal
+            a_decarray, [#]int
+            a_alarray,  [#]string
+            a_idarray,  [#]decimal
+            a_inarray,  [#]int
+        proc
+            data resultTpl = await CallMethod("function_eight", a_alpha1, a_int1, a_dec2, a_alpha2, a_idec1, a_decarray, a_alarray, a_idarray, a_inarray)
+            mreturn new Tuple<@string, int, int, @string, decimal, [#]int, [#]string, Tuple<[#]decimal, [#]int>>((@string)resultTpl.Item2[1], (int)resultTpl.Item2[2], (int)resultTpl.Item2[3], (@string)resultTpl.Item2[4], (decimal)resultTpl.Item2[5], ((IEnumerable<int>)resultTpl.Item2[6]).ToArray(), ((IEnumerable<string>)resultTpl.Item2[7]).ToArray(), new Tuple<[#]decimal, [#]int>(((IEnumerable<decimal>)resultTpl.Item2[8]).ToArray(), ((IEnumerable<int>)resultTpl.Item2[9]).ToArray()))
+        endmethod
+
+        public async method function_nine, @Task<Tuple<@string, @string, @string>>
+            a_alpha1,    @string
+            a_alpha2,    @string
+        proc
+            data resultTpl = await CallMethod("function_nine", a_alpha1, a_alpha2)
+            mreturn new Tuple<@string, @string, @string>((@string)((@JValue)resultTpl.Item1).Value, (@string)resultTpl.Item2[1], (@string)resultTpl.Item2[2])
+        endmethod
+
+        public async method function_ten, @Task<Tuple<Int64, @string, @string>>
+            a_alpha1,    @string
+            a_alpha2,    @string
+        proc
+            data resultTpl = await CallMethod("function_ten", a_alpha1, a_alpha2)
+            mreturn new Tuple<Int64, @string, @string>((Int64)((@JValue)resultTpl.Item1).Value, (@string)resultTpl.Item2[1], (@string)resultTpl.Item2[2])
+        endmethod
+
+        public async method get_verno_tst, @Task<Tuple<@string>>
+            a_verno,    @string
+        proc
+            data resultTpl = await CallMethod("get_verno_tst", a_verno)
+            mreturn new Tuple<@string>((@string)resultTpl.Item2[1])
+        endmethod
+    endclass
+endnamespace
