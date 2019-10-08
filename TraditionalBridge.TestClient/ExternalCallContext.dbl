@@ -10,8 +10,9 @@ import System.Threading.Tasks
 import Newtonsoft.Json.Linq
 import StreamJsonRpc
 import Harmony.Core.Utility
-import TraditionalBridge.Models
 import Harmony.Core
+import TraditionalBridge.Models
+import System.Numerics
 
 namespace TraditionalBridge.TestClient
     public class ExternalCallContext extends DynamicCallProvider
@@ -22,6 +23,7 @@ namespace TraditionalBridge.TestClient
         proc
         endmethod
 
+.region "InteropTests"
         public async method function_one, @Task<Tuple<@string, int, decimal, int>>
             a_alpha,    @string
             a_dec,      int
@@ -89,11 +91,69 @@ namespace TraditionalBridge.TestClient
             mreturn new Tuple<Int64, @string, @string>((Int64)((@JValue)resultTpl.Item1).Value, (@string)resultTpl.Item2[1], (@string)resultTpl.Item2[2])
         endmethod
 
-        public async method get_verno_tst, @Task<Tuple<@string>>
+        public async method get_verno_tst, @Task<@string>
             a_verno,    @string
         proc
             data resultTpl = await CallMethod("get_verno_tst", a_verno)
-            mreturn new Tuple<@string>((@string)resultTpl.Item2[1])
+            mreturn (@string)resultTpl.Item2[1]
         endmethod
+.endregion
+
+.region "DateTimeTests"
+        public async method DateTimeS, @Task<[#]@Datetimestr>
+            a_strary, [#]@Datetimestr
+        proc
+            data resultTpl = await CallMethod("DateTimeS", a_strary.ToList())
+            mreturn (((IEnumerable<@Datetimestr>)resultTpl.Item2[1]).ToArray())
+        endmethod
+
+        public async method DteTmeAry, @Task<@Datetimeary>
+            a_dtetmeary, @Datetimeary
+        proc
+            data resultTpl = await CallMethod("DteTmeAry", a_dtetmeary)
+            mreturn (@Datetimeary)((IEnumerable<DataObjectBase>)resultTpl.Item2[1]).First()
+        endmethod
+
+        public async method udnetdtetme, @Task<@Dnetdatetime>
+            a_dtetme, @Dnetdatetime
+        proc
+            data resultTpl = await CallMethod("UDNetDteTme", a_dtetme)
+            mreturn (@Dnetdatetime)((IEnumerable<DataObjectBase>)resultTpl.Item2[1]).First()
+        endmethod
+
+        public async method GetDate8, @Task<Tuple<int, @Datetimestr>>
+            idx, int
+            a_date, @Datetimestr
+        proc
+            data resultTpl = await CallMethod("GetDate8", idx, a_date)
+            mreturn new Tuple<int, @Datetimestr>((int)resultTpl.Item2[1], (@Datetimestr)((IEnumerable<DataObjectBase>)resultTpl.Item2[2]).First())
+        endmethod
+
+        public async method UserDates, @Task<@Userdates>
+            a_dteStr, @Userdates
+        proc
+            data resultTpl = await CallMethod("UserDates", a_dteStr)
+            mreturn (@Userdates)((IEnumerable<DataObjectBase>)resultTpl.Item2[1]).First()
+        endmethod
+
+        public async method DateTimeOther, @Task<@Tuple<Int64, Int64, Int64>>
+            a_dt8, Int64
+            a_dt6, Int64
+            a_dt14, Int64
+        proc
+            data resultTpl = await CallMethod("DateTimeOther", a_dt8, a_dt6, a_dt14)
+            mreturn new Tuple<Int64, Int64, Int64>((Int64)resultTpl.Item2[1], (Int64)resultTpl.Item2[2], (Int64)resultTpl.Item2[3])
+        endmethod
+
+        public async method DateTime20, @Task<@Tuple<decimal, decimal, decimal>>
+            a_dt20a, decimal
+            a_dt20b, decimal
+            a_dt20c, decimal
+        proc
+            data resultTpl = await CallMethod("DateTime20", a_dt20a, a_dt20b, a_dt20c)
+            mreturn new Tuple<decimal, decimal, decimal>((decimal)resultTpl.Item2[1], (decimal)resultTpl.Item2[2], (decimal)resultTpl.Item2[3])
+        endmethod
+.endregion
+
     endclass
 endnamespace

@@ -1,0 +1,135 @@
+import System
+import System.Collections.Generic
+import System.Text
+import Harmony.Core.Context
+import System.IO
+import System.Linq
+import Microsoft.Extensions.DependencyInjection
+import Microsoft.VisualStudio.TestTools.UnitTesting
+import System.Threading.Tasks
+import Newtonsoft.Json.Linq
+import StreamJsonRpc
+import Harmony.Core.Utility
+import TraditionalBridge.Models
+import System.Globalization
+import System.Numerics
+
+namespace TraditionalBridge.TestClient
+
+    {TestClass}
+    public class DateTimeTests
+
+        private method GetContextPool<T(IContextBase, class)>, @ExternalContextPool<T>
+        proc
+            data currentDirectory = Path.GetDirectoryName(^typeof(InteropTests).Assembly.Location)
+            ;data contextPool = new ExternalContextPool<T>(Environment.GetEnvironmentVariable("SYNERGYDE64") + "dbl\bin\dbr.exe", '-dv -rd 5000 TraditionalBridge.Test.dbr', Path.GetFullPath(Path.Combine(Environment.GetEnvironmentVariable("SolutionDir") ?? "..\..\..\..\", "TestDir")), ^null, 4) 
+            data contextPool = new ExternalContextPool<T>(Environment.GetEnvironmentVariable("SYNERGYDE64") + "dbl\bin\dbs.exe", 'TraditionalBridge.Test.dbr', Path.GetFullPath(Path.Combine(Environment.GetEnvironmentVariable("SolutionDir") ?? "..\..\..\..\", "TestDir")), ^null, 4) 
+            mreturn contextPool
+        endmethod
+
+        {TestMethod}
+        public async method DateTimeS_Test, @Task
+        proc
+            disposable data contextPool = GetContextPool<ExternalCallContext>()
+            data sp = new ServiceCollection().BuildServiceProvider()
+
+            data context = contextPool.MakeContext(sp)
+
+            data return, [#]@Datetimestr, await context.DateTimeS(new @Datetimestr[#] { new @Datetimestr(), new @Datetimestr(), new @Datetimestr() })
+            Assert.AreEqual(return[2].DtsAlpha, "james")
+            Assert.AreEqual(return[2].DtsDate6, new @DateTime(2000, 8, 12))
+            Assert.AreEqual(return[2].DtsDate8, new @DateTime(2000, 4, 15))
+        endmethod
+
+        {TestMethod}
+        public async method DteTmeAry_Test, @Task
+        proc
+            disposable data contextPool = GetContextPool<ExternalCallContext>()
+            data sp = new ServiceCollection().BuildServiceProvider()
+
+            data context = contextPool.MakeContext(sp)
+
+            data return = await context.DteTmeAry(new Datetimeary(){ AdtsDt51 = new @DateTime(2011, 1, 31, 7, 45, 18, 123), AdtsDt52 = new @DateTime(2011, 2, 28, 10, 15, 45, 47), AdtsDt53 = new @DateTime(2011, 3, 15, 11, 18, 25, 12) })
+            Assert.AreEqual(return.AdtsDt61, new @DateTime(1999, 11, 23, 0, 0, 0))
+            Assert.AreEqual(return.AdtsDt62, new @DateTime(2000, 4, 15, 0, 0, 0))
+            Assert.AreEqual(return.AdtsDt63, new @DateTime(2001, 3, 20, 0, 0, 0))
+            Assert.AreEqual(return.AdtsDt81, new @DateTime(1999, 11, 23, 0, 0, 0))
+            Assert.AreEqual(return.AdtsDt82, new @DateTime(2000, 4, 15, 0, 0, 0))
+            Assert.AreEqual(return.AdtsDt83, new @DateTime(2001, 3, 20, 0, 0, 0))
+        endmethod
+
+        {TestMethod}
+        public async method udnetdtetme_Test, @Task
+        proc
+            disposable data contextPool = GetContextPool<ExternalCallContext>()
+            data sp = new ServiceCollection().BuildServiceProvider()
+
+            data context = contextPool.MakeContext(sp)
+
+            data return = await context.udnetdtetme(new Dnetdatetime())
+            ;TODO: Support for user types
+        endmethod
+
+        {TestMethod}
+        public async method GetDate8_Test, @Task
+        proc
+            disposable data contextPool = GetContextPool<ExternalCallContext>()
+            data sp = new ServiceCollection().BuildServiceProvider()
+
+            data context = contextPool.MakeContext(sp)
+
+            data i = 0
+            for i from 0 thru 5
+            begin
+                data return = await context.GetDate8(i, new @Datetimestr())
+                Assert.AreEqual(return.Item2.DtsAlpha, "hey")
+                Assert.AreEqual(return.Item2.DtsDate6, new @DateTime(1, 1, 1))
+                if (i == 0) then
+                    Assert.AreEqual(return.item2.DtsDate8, new @Datetime(2005, 5, 20))
+                else
+                    Assert.AreEqual(return.Item2.DtsDate8, new @DateTime(1, 1, 1))
+                nop
+            end
+        endmethod
+
+        {TestMethod}
+        public async method UserDates_Test, @Task
+        proc
+            disposable data contextPool = GetContextPool<ExternalCallContext>()
+            data sp = new ServiceCollection().BuildServiceProvider()
+
+            data context = contextPool.MakeContext(sp)
+
+            data return = await context.UserDates(new Userdates())
+            ;TODO: Support for user types
+        endmethod
+
+        {TestMethod}
+        public async method DateTimeOther_Test, @Task
+        proc
+            disposable data contextPool = GetContextPool<ExternalCallContext>()
+            data sp = new ServiceCollection().BuildServiceProvider()
+
+            data context = contextPool.MakeContext(sp)
+
+            data return = await context.DateTimeOther(2011131, 110228, 20110315111825)
+            Assert.AreEqual(DateTime.ParseExact(return.Item1.ToString(), "yyyyMMdd", CultureInfo.InvariantCulture), new @DateTime(2011, 1, 31))
+            Assert.AreEqual(DateTime.ParseExact(return.Item2.ToString(), "yyMMdd", CultureInfo.InvariantCulture), new @DateTime(2011, 2, 28))
+            Assert.AreEqual(DateTime.ParseExact(return.Item3.ToString(), "yyyyMMddHHmmss", CultureInfo.InvariantCulture), new @DateTime(2011, 3, 15, 11, 18, 25))
+        endmethod
+
+        {TestMethod}
+        public async method DateTime20_Test, @Task
+        proc
+            disposable data contextPool = GetContextPool<ExternalCallContext>()
+            data sp = new ServiceCollection().BuildServiceProvider()
+
+            data context = contextPool.MakeContext(sp)
+
+            data return = await context.DateTime20(decimal.Parse((string)"20110131074518123000"), decimal.Parse((string)"20110228101545470000"), decimal.Parse((string)"20110315111825120000"))
+            Assert.AreEqual(DateTime.ParseExact(return.Item1.ToString(), "yyyyMMddHHmmssFFFFFF", CultureInfo.InvariantCulture), new @DateTime(634320567181230000))
+            Assert.AreEqual(DateTime.ParseExact(return.Item2.ToString(), "yyyyMMddHHmmssFFFFFF", CultureInfo.InvariantCulture), new @DateTime(634344849450000470))
+            Assert.AreEqual(DateTime.ParseExact(return.Item3.ToString(), "yyyyMMddHHmmssFFFFFF", CultureInfo.InvariantCulture), new @DateTime(634357847050000120))
+        endmethod
+    endclass
+endnamespace
