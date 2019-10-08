@@ -239,7 +239,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 ;//
         <IF STRUCTURE>
             ;;Structure argument. Get the data object then get the record from it
-            arg<COUNTER_1_VALUE>DataObject = dispatcher.DeserializeObject((@JsonObject)arguments.arrayValues[3],m<ParameterStructureNoplural>Metadata)
+            arg<COUNTER_1_VALUE>DataObject = dispatcher.DeserializeObject((@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>],m<ParameterStructureNoplural>Metadata)
             arg<COUNTER_1_VALUE> = arg<COUNTER_1_VALUE>DataObject.SynergyRecord
         </IF STRUCTURE>
 ;//
