@@ -125,6 +125,9 @@ namespace <NAMESPACE>
         <IF REQUIRED>
         {Required(ErrorMessage="<FIELD_DESC> is required. ")}
         </IF REQUIRED>
+<IF HARMONYCORE_CUSTOM_DATATYPE>
+;//We can't add validation attributes for fields with custom data types!!!
+<ELSE>
         <IF ALPHA>
         {StringLength(<FIELD_SIZE>, ErrorMessage="<FIELD_DESC> cannot exceed <FIELD_SIZE> characters. ")}
         </IF ALPHA>
@@ -136,6 +139,7 @@ namespace <NAMESPACE>
         <IF INTEGER>
         {Range(<FIELD_MINVALUE>,<FIELD_MAXVALUE>, ErrorMessage="<FIELD_DESC> must be between <FIELD_MINVALUE> and <FIELD_MAXVALUE>. ")}
         </IF INTEGER>
+</IF HARMONYCORE_CUSTOM_DATATYPE>
 ;//
 ;// Field property
 ;//
