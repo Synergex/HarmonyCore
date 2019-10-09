@@ -151,13 +151,16 @@ namespace <NAMESPACE>
 <IF CUSTOM_HARMONY_AS_STRING>
         public property <FieldSqlname>, String
 <ELSE>
-        public property <FieldSqlname>, <FIELD_SNTYPE>
+        public property <FieldSqlname>, <IF HARMONYCORE_CUSTOM_FIELD><HARMONYCORE_CUSTOM_FIELD_DATATYPE><ELSE><FIELD_SNTYPE></IF HARMONYCORE_CUSTOM_FIELD>
 </IF CUSTOM_HARMONY_AS_STRING>
 ;//
 ;// Field property get method
 ;//
             method get
             proc
+      <IF HARMONYCORE_CUSTOM_FIELD>
+                mreturn <HARMONYCORE_CUSTOM_FIELD_TYPE>Converter.Convert(mSynergyData.<field_original_name_modified>)
+      <ELSE>
         <IF ALPHA>
                 mreturn (<FIELD_SNTYPE>)SynergyAlphaConverter.Convert(mSynergyData.<field_original_name_modified>, ^null, ^null, ^null)
         </IF ALPHA>
@@ -216,6 +219,7 @@ namespace <NAMESPACE>
         <IF AUTO_TIMESTAMP>
                 mreturn (<FIELD_SNTYPE>)mSynergyData.<field_original_name_modified>
         </IF AUTO_TIMESTAMP>
+      </IF HARMONYCORE_CUSTOM_FIELD>
             endmethod
 ;//
 ;// Field property set method
@@ -227,6 +231,9 @@ namespace <NAMESPACE>
                 throw new ApplicationException("Property <FieldSqlname> is read only!")
         </IF READONLY>
         </IF DEFINED_ENABLE_READ_ONLY_PROPERTIES>
+      <IF HARMONYCORE_CUSTOM_FIELD>
+                mSynergyData.<field_original_name_modified> = <HARMONYCORE_CUSTOM_FIELD_TYPE>Converter.ConvertBack(value)
+      <ELSE>
         <IF ALPHA>
                 mSynergyData.<field_original_name_modified> = (<FIELD_TYPE>)SynergyAlphaConverter.ConvertBack(value<IF UPPERCASE>.ToUpper()</IF UPPERCASE>, ^null, ^null, ^null)
         </IF ALPHA>
@@ -281,6 +288,7 @@ namespace <NAMESPACE>
         <IF AUTO_TIMESTAMP>
                 mSynergyData.<field_original_name_modified> = value
         </IF AUTO_TIMESTAMP>
+      </IF HARMONYCORE_CUSTOM_FIELD>
             endmethod
 ;//
 ;// End of field property
