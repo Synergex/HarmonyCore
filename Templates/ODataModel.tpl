@@ -110,8 +110,8 @@ namespace <NAMESPACE>
 </IF STRUCTURE_RELATIVE>
 <COUNTER_1_RESET>
 <FIELD_LOOP>
-<IF USER>
-<ELSE>
+  <IF USER>
+  <ELSE>
     <IF CUSTOM_NOT_HARMONY_EXCLUDE>
         ;;; <summary>
         ;;; <FIELD_DESC>
@@ -119,44 +119,44 @@ namespace <NAMESPACE>
 ;//
 ;// Field property attributes
 ;//
-        <IF ONLY_PKSEGMENT>
+      <IF ONLY_PKSEGMENT>
         {Key}
-        </IF ONLY_PKSEGMENT>
-        <IF REQUIRED>
+      </IF ONLY_PKSEGMENT>
+      <IF REQUIRED>
         {Required(ErrorMessage="<FIELD_DESC> is required. ")}
-        </IF REQUIRED>
-<IF HARMONYCORE_CUSTOM_DATATYPE>
+      </IF REQUIRED>
+      <IF HARMONYCORE_CUSTOM_DATATYPE>
 ;//We can't add validation attributes for fields with custom data types!!!
-<ELSE>
+      <ELSE>
         <IF ALPHA>
         {StringLength(<FIELD_SIZE>, ErrorMessage="<FIELD_DESC> cannot exceed <FIELD_SIZE> characters. ")}
         </IF ALPHA>
         <IF DECIMAL>
-        <IF CUSTOM_NOT_HARMONY_AS_STRING>
+          <IF CUSTOM_NOT_HARMONY_AS_STRING>
         {Range(<FIELD_MINVALUE>,<FIELD_MAXVALUE>, ErrorMessage="<FIELD_DESC> must be between <FIELD_MINVALUE> and <FIELD_MAXVALUE>. ")}
-        </IF CUSTOM_NOT_HARMONY_AS_STRING>
+          </IF CUSTOM_NOT_HARMONY_AS_STRING>
         </IF DECIMAL>
         <IF INTEGER>
         {Range(<FIELD_MINVALUE>,<FIELD_MAXVALUE>, ErrorMessage="<FIELD_DESC> must be between <FIELD_MINVALUE> and <FIELD_MAXVALUE>. ")}
         </IF INTEGER>
-</IF HARMONYCORE_CUSTOM_DATATYPE>
+      </IF HARMONYCORE_CUSTOM_DATATYPE>
 ;//
 ;// Field property
 ;//
-        <IF DEFINED_ENABLE_FIELD_SECURITY>
+      <IF DEFINED_ENABLE_FIELD_SECURITY>
         <IF CUSTOM_HARMONY_AUTHENTICATE>
         {AuthorizeField}
         </IF CUSTOM_HARMONY_AUTHENTICATE>
         <IF HARMONY_ROLES>
         {AuthorizeField("<HARMONY_ROLES>")}
         </IF HARMONY_ROLES>
-        </IF DEFINED_ENABLE_FIELD_SECURITY>
-        <COUNTER_1_INCREMENT>
-<IF CUSTOM_HARMONY_AS_STRING>
+      </IF DEFINED_ENABLE_FIELD_SECURITY>
+      <COUNTER_1_INCREMENT>
+      <IF CUSTOM_HARMONY_AS_STRING>
         public property <FieldSqlname>, String
-<ELSE>
+      <ELSE>
         public property <FieldSqlname>, <IF HARMONYCORE_CUSTOM_FIELD><HARMONYCORE_CUSTOM_FIELD_DATATYPE><ELSE><FIELD_SNTYPE></IF HARMONYCORE_CUSTOM_FIELD>
-</IF CUSTOM_HARMONY_AS_STRING>
+      </IF CUSTOM_HARMONY_AS_STRING>
 ;//
 ;// Field property get method
 ;//
@@ -169,47 +169,47 @@ namespace <NAMESPACE>
                 mreturn (<FIELD_SNTYPE>)SynergyAlphaConverter.Convert(mSynergyData.<field_original_name_modified>, ^null, ^null, ^null)
         </IF ALPHA>
         <IF DATE>
-            <IF CUSTOM_HARMONY_AS_STRING>
+          <IF CUSTOM_HARMONY_AS_STRING>
                 mreturn %string(mSynergyData.<field_original_name_modified>,"XXXX-XX-XX")
-            <ELSE>
+          <ELSE>
                 data formatString = "YYYYMMDD"
-                <IF DATE_YYMMDD>
+            <IF DATE_YYMMDD>
                 formatString = "YYMMDD"
-                </IF DATE_YYMMDD>
-                <IF DATE_YYYYJJJ>
+            </IF DATE_YYMMDD>
+            <IF DATE_YYYYJJJ>
                 formatString = "YYYYJJJ"
-                </IF DATE_YYYYJJJ>
+            </IF DATE_YYYYJJJ>
                 mreturn (<FIELD_SNTYPE>)SynergyDecimalDateConverter.Convert(mSynergyData.<field_original_name_modified>, ^null, formatString, ^null)
-            </IF CUSTOM_HARMONY_AS_STRING>
+          </IF CUSTOM_HARMONY_AS_STRING>
         </IF DATE>
         <IF TIME_HHMM>
-            <IF CUSTOM_HARMONY_AS_STRING>
+          <IF CUSTOM_HARMONY_AS_STRING>
                 mreturn %string(mSynergyData.<field_original_name_modified>,"XX:XX")
-            <ELSE>
+          <ELSE>
                 mreturn Convert.ToDateTime(%string(mSynergyData.<field_original_name_modified>,"XX:XX"))
-            </IF CUSTOM_HARMONY_AS_STRING>
+          </IF CUSTOM_HARMONY_AS_STRING>
         </IF TIME_HHMM>
         <IF TIME_HHMMSS>
-            <IF CUSTOM_HARMONY_AS_STRING>
+          <IF CUSTOM_HARMONY_AS_STRING>
                 mreturn %string(mSynergyData.<field_original_name_modified>,"XX:XX:XX")
-            <ELSE>
+          <ELSE>
                 mreturn Convert.ToDateTime(%string(mSynergyData.<field_original_name_modified>,"XX:XX:XX"))
-            </IF CUSTOM_HARMONY_AS_STRING>
+          </IF CUSTOM_HARMONY_AS_STRING>
         </IF TIME_HHMMSS>
         <IF DECIMAL>
-            <IF CUSTOM_HARMONY_AS_STRING>
-                <IF PRECISION>
+          <IF CUSTOM_HARMONY_AS_STRING>
+            <IF PRECISION>
                 mreturn %string(SynergyImpliedDecimalConverter.Convert(mSynergyData.<field_original_name_modified>, ^null, "DECIMALPLACES#<FIELD_PRECISION>", ^null),"<FIELD_FORMATSTRING>")
-                <ELSE>
-                mreturn %string(mSynergyData.<field_original_name_modified>,"<FIELD_FORMATSTRING>")
-                </IF PRECISION>
             <ELSE>
-                <IF PRECISION>
+                mreturn %string(mSynergyData.<field_original_name_modified>,"<FIELD_FORMATSTRING>")
+            </IF PRECISION>
+          <ELSE>
+            <IF PRECISION>
                 mreturn (<FIELD_SNTYPE>)SynergyImpliedDecimalConverter.Convert(mSynergyData.<field_original_name_modified>, ^null, "DECIMALPLACES#<FIELD_PRECISION>", ^null)
-                <ELSE>
+            <ELSE>
                 mreturn (<FIELD_SNTYPE>)mSynergyData.<field_original_name_modified>
-                </IF PRECISION>
-            </IF CUSTOM_HARMONY_AS_STRING>
+            </IF PRECISION>
+          </IF CUSTOM_HARMONY_AS_STRING>
         </IF DECIMAL>
         <IF INTEGER>
                 mreturn (<FIELD_SNTYPE>)mSynergyData.<field_original_name_modified>
@@ -230,11 +230,11 @@ namespace <NAMESPACE>
 ;//
             method set
             proc
-        <IF DEFINED_ENABLE_READ_ONLY_PROPERTIES>
+      <IF DEFINED_ENABLE_READ_ONLY_PROPERTIES>
         <IF READONLY>
                 throw new ApplicationException("Property <FieldSqlname> is read only!")
         </IF READONLY>
-        </IF DEFINED_ENABLE_READ_ONLY_PROPERTIES>
+      </IF DEFINED_ENABLE_READ_ONLY_PROPERTIES>
       <IF HARMONYCORE_CUSTOM_FIELD>
                 mSynergyData.<field_original_name_modified> = <HARMONYCORE_CUSTOM_FIELD_TYPE>Converter.ConvertBack(value)
       <ELSE>
@@ -242,43 +242,43 @@ namespace <NAMESPACE>
                 mSynergyData.<field_original_name_modified> = (<FIELD_TYPE>)SynergyAlphaConverter.ConvertBack(value<IF UPPERCASE>.ToUpper()</IF UPPERCASE>, ^null, ^null, ^null)
         </IF ALPHA>
         <IF DATE>
-            <IF CUSTOM_HARMONY_AS_STRING>
+          <IF CUSTOM_HARMONY_AS_STRING>
                 mSynergyData.<field_original_name_modified> = SynergyDecimalConverter.ConvertBack(value,"XXXX-XX-XX")
-            <ELSE>
+          <ELSE>
                 data formatString = "YYYYMMDD"
-                <IF DATE_YYMMDD>
+            <IF DATE_YYMMDD>
                 formatString = "YYMMDD"
-                </IF DATE_YYMMDD>
-                <IF DATE_YYYYJJJ>
+            </IF DATE_YYMMDD>
+            <IF DATE_YYYYJJJ>
                 formatString = "YYYYJJJ"
-                </IF DATE_YYYYJJJ>
+            </IF DATE_YYYYJJJ>
                 mSynergyData.<field_original_name_modified> = (<FIELD_TYPE>)SynergyDecimalDateConverter.ConvertBack(value, ^null, formatString, ^null)
-            </IF CUSTOM_HARMONY_AS_STRING>
+          </IF CUSTOM_HARMONY_AS_STRING>
         </IF DATE>
         <IF TIME_HHMM>
-            <IF CUSTOM_HARMONY_AS_STRING>
+          <IF CUSTOM_HARMONY_AS_STRING>
                 mSynergyData.<field_original_name_modified> = SynergyDecimalConverter.ConvertBack(value,"XX:XX")
-            <ELSE>
+          <ELSE>
                 mSynergyData.<field_original_name_modified> = (value.Hour * 100) + value.Minute
-            </IF CUSTOM_HARMONY_AS_STRING>
+          </IF CUSTOM_HARMONY_AS_STRING>
         </IF TIME_HHMM>
         <IF TIME_HHMMSS>
-            <IF CUSTOM_HARMONY_AS_STRING>
+          <IF CUSTOM_HARMONY_AS_STRING>
                 mSynergyData.<field_original_name_modified> = SynergyDecimalConverter.ConvertBack(value,"XX:XX:XX")
-            <ELSE>
+          <ELSE>
                 mSynergyData.<field_original_name_modified> = (value.Hour * 10000) + (value.Minute * 100) + value.Second
-            </IF CUSTOM_HARMONY_AS_STRING>
+          </IF CUSTOM_HARMONY_AS_STRING>
         </IF TIME_HHMMSS>
         <IF DECIMAL>
-            <IF CUSTOM_HARMONY_AS_STRING>
-                <IF PRECISION>
+          <IF CUSTOM_HARMONY_AS_STRING>
+            <IF PRECISION>
                 mSynergyData.<field_original_name_modified> = SynergyImpliedDecimalConverter.ConvertBack(value,"<FIELD_FORMATSTRING>")
-                <ELSE>
-                mSynergyData.<field_original_name_modified> = SynergyDecimalConverter.ConvertBack(value,"<FIELD_FORMATSTRING>")
-                </IF PRECISION>
             <ELSE>
+                mSynergyData.<field_original_name_modified> = SynergyDecimalConverter.ConvertBack(value,"<FIELD_FORMATSTRING>")
+            </IF PRECISION>
+          <ELSE>
                 mSynergyData.<field_original_name_modified> = value
-            </IF CUSTOM_HARMONY_AS_STRING>
+          </IF CUSTOM_HARMONY_AS_STRING>
         </IF DECIMAL>
         <IF INTEGER>
                 mSynergyData.<field_original_name_modified> = value
@@ -300,7 +300,7 @@ namespace <NAMESPACE>
         endproperty
 
     </IF CUSTOM_NOT_HARMONY_EXCLUDE>
-</IF USER>
+  </IF USER>
 </FIELD_LOOP>
 .endregion
 ;//
@@ -373,7 +373,7 @@ namespace <NAMESPACE>
 ;// RUNTIME VALIDATION FOR RELATIONS
 ;//
 <IF DEFINED_ENABLE_RELATIONS>
-<IF STRUCTURE_RELATIONS>
+  <IF STRUCTURE_RELATIONS>
 ;//
         ;;; <summary>
         ;;; Validate data for one-to-one relations
@@ -383,7 +383,7 @@ namespace <NAMESPACE>
         public override method Validate, void
             required in vType, ValidationType
             required in sp, @IServiceProvider
-  <RELATION_LOOP_RESTRICTED>
+    <RELATION_LOOP_RESTRICTED>
 
             ;;From key for <HARMONYCORE_RELATION_NAME>
             record rel<RELATION_NUMBER>FromKey
@@ -398,7 +398,7 @@ namespace <NAMESPACE>
         </IF SEG_TYPE_LITERAL>
       </FROM_KEY_SEGMENT_LOOP>
             endrecord
-  </RELATION_LOOP_RESTRICTED>
+    </RELATION_LOOP_RESTRICTED>
         proc
             ;;No relation validation if the record is being deleted
             if (vType == ValidationType.Delete)
@@ -407,37 +407,37 @@ namespace <NAMESPACE>
             ;;Get an instance of IDataObjectProvider
             data doProvider, @IDataObjectProvider, sp.GetService<IDataObjectProvider>()
 
-  <RELATION_LOOP_RESTRICTED>
+    <RELATION_LOOP_RESTRICTED>
             ;;--------------------------------------------------------------------------------
             ;;Validate data for relation <RELATION_NUMBER> (<HARMONYCORE_RELATION_NAME>)
 
-    <IF REQUIRES_MATCH>
-      <COUNTER_1_RESET>
-      <FROM_KEY_SEGMENT_LOOP>
-        <IF SEG_TYPE_FIELD>
+      <IF REQUIRES_MATCH>
+        <COUNTER_1_RESET>
+        <FROM_KEY_SEGMENT_LOOP>
+          <IF SEG_TYPE_FIELD>
             rel<RELATION_NUMBER>FromKey.<segment_name> = mSynergyData.<segment_name>
-        <ELSE>
-          <IF SEG_TYPE_LITERAL>
-          <COUNTER_1_INCREMENT>
+          <ELSE>
+            <IF SEG_TYPE_LITERAL>
+            <COUNTER_1_INCREMENT>
             rel<RELATION_NUMBER>FromKey.litseg<COUNTER_1_VALUE> = <SEGMENT_LITVAL>
-          </IF SEG_TYPE_LITERAL>
-        </IF SEG_TYPE_FIELD>
-      </FROM_KEY_SEGMENT_LOOP>
+            </IF SEG_TYPE_LITERAL>
+          </IF SEG_TYPE_FIELD>
+        </FROM_KEY_SEGMENT_LOOP>
             disposable data rel<RELATION_NUMBER>FileIO = doProvider.GetFileIO<<RelationTostructureNoplural>>()
             if (rel<RELATION_NUMBER>FileIO.FindRecord(<TO_KEY_NUMBER>,rel<RELATION_NUMBER>FromKey) != FileAccessResults.Success)
                 throw new ValidationException("Invalid data for relation <HARMONYCORE_RELATION_NAME>")
-    <ELSE>
+      <ELSE>
             ;;This relation does not REQUIRE a match in the target file.
-    </IF REQUIRES_MATCH>
+      </IF REQUIRES_MATCH>
 
-  </RELATION_LOOP_RESTRICTED>
+    </RELATION_LOOP_RESTRICTED>
 
             ;;If we have a ValidateCustom method, call it
             ValidateCustom(vType,sp)
 
         endmethod
 
-<ELSE>
+  <ELSE>
         ;;; <summary>
         ;;; Validate data
         ;;; </summary>
@@ -451,7 +451,7 @@ namespace <NAMESPACE>
             ValidateCustom(vType,sp)
         endmethod
 
-</IF STRUCTURE_RELATIONS>
+  </IF STRUCTURE_RELATIONS>
 </IF DEFINED_ENABLE_RELATIONS>
 
         private partial method ValidateCustom, void
@@ -470,57 +470,57 @@ namespace <NAMESPACE>
 .region "Relationships to other entities"
 
     <RELATION_LOOP_RESTRICTED>
-        <COUNTER_1_INCREMENT>
+      <COUNTER_1_INCREMENT>
 ;//
 ;//
 ;//
-        <IF MANY_TO_ONE_TO_MANY>
+      <IF MANY_TO_ONE_TO_MANY>
         ;;; <summary>
         ;;; Relationship (Type A)
         ;;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) --> (one) --> (many) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
         ;;; </summary>
         public readwrite property <HARMONYCORE_RELATION_NAME>, @<RelationTostructureNoplural>
-        </IF MANY_TO_ONE_TO_MANY>
+      </IF MANY_TO_ONE_TO_MANY>
 ;//
 ;//
 ;//
-        <IF ONE_TO_ONE_TO_ONE>
+      <IF ONE_TO_ONE_TO_ONE>
         ;;; <summary>
         ;;; Relationship (Type B)
         ;;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) --> (one) --> (one) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
         ;;; </summary>
         public readwrite property <HARMONYCORE_RELATION_NAME>, @<RelationTostructureNoplural>
-        </IF ONE_TO_ONE_TO_ONE>
+      </IF ONE_TO_ONE_TO_ONE>
 ;//
 ;//
 ;//
-        <IF ONE_TO_ONE>
+      <IF ONE_TO_ONE>
         ;;; <summary>
         ;;; Relationship (Type C)
         ;;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) --> (one) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
         ;;; </summary>
         public readwrite property <HARMONYCORE_RELATION_NAME>, @<RelationTostructureNoplural>
-        </IF ONE_TO_ONE>
+      </IF ONE_TO_ONE>
 ;//
 ;//
 ;//
-        <IF ONE_TO_MANY_TO_ONE>
+      <IF ONE_TO_MANY_TO_ONE>
         ;;; <summary>
         ;;; Relationship (Type D)
         ;;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) <-> (many) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
         ;;; </summary>
         public readwrite property <HARMONYCORE_RELATION_NAME>, @ICollection<<RelationTostructureNoplural>>
-        </IF ONE_TO_MANY_TO_ONE>
+      </IF ONE_TO_MANY_TO_ONE>
 ;//
 ;//
 ;//
-        <IF ONE_TO_MANY>
+      <IF ONE_TO_MANY>
         ;;; <summary>
         ;;; Relationship (Type E)
         ;;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) --> (many) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
         ;;; </summary>
         public readwrite property <HARMONYCORE_RELATION_NAME>, @ICollection<<RelationTostructureNoplural>>
-        </IF ONE_TO_MANY>
+      </IF ONE_TO_MANY>
 
     </RELATION_LOOP_RESTRICTED>
 .endregion
@@ -529,22 +529,22 @@ namespace <NAMESPACE>
 ;//
     <COUNTER_2_RESET>
     <RELATION_LOOP_RESTRICTED>
-        <COUNTER_1_RESET>
-        <FROM_KEY_SEGMENT_LOOP>
-            <IF SEG_TYPE_LITERAL>
-                <COUNTER_2_INCREMENT>
-                <IF COUNTER_2_EQ_1>
+      <COUNTER_1_RESET>
+      <FROM_KEY_SEGMENT_LOOP>
+        <IF SEG_TYPE_LITERAL>
+          <COUNTER_2_INCREMENT>
+            <IF COUNTER_2_EQ_1>
 
 .region "Properties to represent literal key segments"
 
-                </IF COUNTER_2_EQ_1>
+            </IF COUNTER_2_EQ_1>
         ;;; <summary>
         ;;;
         ;;; </summary>
         public readonly property <RelationFromkey>Literal<COUNTER_1_INCREMENT><COUNTER_1_VALUE>, <LITERAL_SEGMENT_SNTYPE>, <LITERAL_SEGMENT_VALUE>
         private _<RelationFromkey>Literal<COUNTER_1_VALUE>, <LITERAL_SEGMENT_SNTYPE>, <LITERAL_SEGMENT_VALUE>
-            </IF SEG_TYPE_LITERAL>
-        </FROM_KEY_SEGMENT_LOOP>
+        </IF SEG_TYPE_LITERAL>
+      </FROM_KEY_SEGMENT_LOOP>
     </RELATION_LOOP_RESTRICTED>
     <IF COUNTER_2_GT_0>
 
@@ -557,24 +557,24 @@ namespace <NAMESPACE>
 <IF STRUCTURE_FILES>
 .region "Properties to represent keys"
 
-    <KEY_LOOP>
-      <IF FIRST>
+  <KEY_LOOP>
+    <IF FIRST>
         ;;Access keys
 
-      </IF FIRST>
+    </IF FIRST>
         private _KEY_<KEY_NAME>, string, ""
         public readonly property KEY_<KEY_NAME>, string, ""
 
-    </KEY_LOOP>
-    <FOREIGN_KEY_LOOP>
-      <IF FIRST>
+  </KEY_LOOP>
+  <FOREIGN_KEY_LOOP>
+    <IF FIRST>
         ;;Foreign keys
 
-      </IF FIRST>
+    </IF FIRST>
         private _KEY_<KEY_NAME>, string, ""
         public readonly property KEY_<KEY_NAME>, string, ""
 
-    </FOREIGN_KEY_LOOP>
+  </FOREIGN_KEY_LOOP>
 
 .endregion
 
