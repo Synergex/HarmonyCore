@@ -165,11 +165,11 @@ namespace <NAMESPACE>
       <IF SEG_TAG_EQUAL>
       <ELSE>
             {FromODataUri}
-            <IF CUSTOM_HARMONY_AS_STRING>
+        <IF CUSTOM_HARMONY_AS_STRING>
             required in a<FieldSqlName>, string
-            <ELSE>
+        <ELSE>
             required in a<FieldSqlName>, <SEGMENT_SNTYPE>
-            </IF CUSTOM_HARMONY_AS_STRING>
+        </IF CUSTOM_HARMONY_AS_STRING>
       </IF SEG_TAG_EQUAL>
     </SEGMENT_LOOP>
   </PRIMARY_KEY>
@@ -190,166 +190,172 @@ namespace <NAMESPACE>
 ;//
 <IF STRUCTURE_ISAM>
   <IF DEFINED_ENABLE_ALTERNATE_KEYS>
-  <IF ALTERNATE_KEY_ENDPOINTS>
-    <ALTERNATE_KEY_LOOP>
-      <IF DUPLICATES>
+    <IF ALTERNATE_KEY_ENDPOINTS>
+      <ALTERNATE_KEY_LOOP>
+        <IF DUPLICATES>
         {ODataRoute("<StructurePlural>(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>)")}
-        <IF DEFINED_ENABLE_AUTHENTICATION>
-          <IF USERTOKEN_ROLES_GET>
+          <IF DEFINED_ENABLE_AUTHENTICATION>
+            <IF USERTOKEN_ROLES_GET>
         {Authorize(Roles="<ROLES_GET>")}
-          </IF USERTOKEN_ROLES_GET>
-        </IF DEFINED_ENABLE_AUTHENTICATION>
-        <IF DEFINED_ENABLE_FIELD_SECURITY>
+            </IF USERTOKEN_ROLES_GET>
+          </IF DEFINED_ENABLE_AUTHENTICATION>
+          <IF DEFINED_ENABLE_FIELD_SECURITY>
         {HarmonyFieldSecurity<API_ENABLE_QUERY_PARAMS>}
-        <ELSE>
+          <ELSE>
         {EnableQuery<API_ENABLE_QUERY_PARAMS>}
-        </IF DEFINED_ENABLE_FIELD_SECURITY>
+          </IF DEFINED_ENABLE_FIELD_SECURITY>
         ;;; <summary>
         ;;; Get <structurePlural> by alternate key key <KeyName>.
         ;;; </summary>
-        <SEGMENT_LOOP>
-        <IF SEG_TAG_EQUAL>
-        <ELSE>
+          <SEGMENT_LOOP>
+            <IF SEG_TAG_EQUAL>
+            <ELSE>
         ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
-        </IF SEG_TAG_EQUAL>
-        </SEGMENT_LOOP>
+            </IF SEG_TAG_EQUAL>
+          </SEGMENT_LOOP>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
         public method Get<StructurePlural>By<KeyName>, @IActionResult
-            <SEGMENT_LOOP>
+          <SEGMENT_LOOP>
             <IF SEG_TAG_EQUAL>
             <ELSE>
             {FromODataUri}
-            <IF CUSTOM_HARMONY_AS_STRING>
+              <IF CUSTOM_HARMONY_AS_STRING>
             required in a<FieldSqlName>, string
-            <ELSE>
+              <ELSE>
             required in a<FieldSqlName>, <SEGMENT_SNTYPE>
-            </IF CUSTOM_HARMONY_AS_STRING>
+              </IF CUSTOM_HARMONY_AS_STRING>
             </IF SEG_TAG_EQUAL>
-            </SEGMENT_LOOP>
+          </SEGMENT_LOOP>
         proc
             data result = _DbContext.<StructurePlural>.AsNoTracking().FindAlternate(<SEGMENT_LOOP>"<FieldSqlName>",<IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP>)
             if (result == ^null)
                 mreturn NotFound()
             mreturn Ok(result)
         endmethod
-      <ELSE>
-        {ODataRoute("<StructurePlural>(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>)")}
-        <IF DEFINED_ENABLE_AUTHENTICATION>
-          <IF USERTOKEN_ROLES_GET>
-        {Authorize(Roles="<ROLES_GET>")}
-          </IF USERTOKEN_ROLES_GET>
-        </IF DEFINED_ENABLE_AUTHENTICATION>
-        <IF DEFINED_ENABLE_FIELD_SECURITY>
-        {HarmonyFieldSecurity<API_ENABLE_QUERY_PARAMS>}
         <ELSE>
+        {ODataRoute("<StructurePlural>(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>)")}
+          <IF DEFINED_ENABLE_AUTHENTICATION>
+            <IF USERTOKEN_ROLES_GET>
+        {Authorize(Roles="<ROLES_GET>")}
+            </IF USERTOKEN_ROLES_GET>
+          </IF DEFINED_ENABLE_AUTHENTICATION>
+          <IF DEFINED_ENABLE_FIELD_SECURITY>
+        {HarmonyFieldSecurity<API_ENABLE_QUERY_PARAMS>}
+          <ELSE>
         {EnableQuery<API_ENABLE_QUERY_PARAMS>}
-        </IF DEFINED_ENABLE_FIELD_SECURITY>
+          </IF DEFINED_ENABLE_FIELD_SECURITY>
         ;;; <summary>
         ;;; Get <structureNoplural> by alternate key <KeyName>.
         ;;; </summary>
-        <SEGMENT_LOOP>
-        <IF SEG_TAG_EQUAL>
-        <ELSE>
+          <SEGMENT_LOOP>
+            <IF SEG_TAG_EQUAL>
+            <ELSE>
         ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
-        </IF SEG_TAG_EQUAL>
-        </SEGMENT_LOOP>
+            </IF SEG_TAG_EQUAL>
+          </SEGMENT_LOOP>
         ;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
         public method Get<StructureNoplural>By<KeyName>, @SingleResult<<StructureNoplural>>
-            <SEGMENT_LOOP>
+          <SEGMENT_LOOP>
             <IF SEG_TAG_EQUAL>
             <ELSE>
             {FromODataUri}
-            <IF CUSTOM_HARMONY_AS_STRING>
+              <IF CUSTOM_HARMONY_AS_STRING>
             required in a<FieldSqlName>, string
-            <ELSE>
+              <ELSE>
             required in a<FieldSqlName>, <SEGMENT_SNTYPE>
-            </IF CUSTOM_HARMONY_AS_STRING>
+              </IF CUSTOM_HARMONY_AS_STRING>
             </IF SEG_TAG_EQUAL>
-            </SEGMENT_LOOP>
+          </SEGMENT_LOOP>
         proc
             mreturn new SingleResult<<StructureNoplural>>(_DbContext.<StructurePlural>.AsNoTracking().FindAlternate(<SEGMENT_LOOP>"<FieldSqlName>",<IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP>))
         endmethod
-      </IF DUPLICATES>
+        </IF DUPLICATES>
 
-    </ALTERNATE_KEY_LOOP>
-  </IF ALTERNATE_KEY_ENDPOINTS>
+      </ALTERNATE_KEY_LOOP>
+    </IF ALTERNATE_KEY_ENDPOINTS>
   </IF DEFINED_ENABLE_ALTERNATE_KEYS>
 </IF STRUCTURE_ISAM>
 ;//
 ;// GET INDIVIDUAL PROPERTIES -------------------------------------------------
 ;//
 <IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
-<IF PROPERTY_ENDPOINTS>
+  <IF PROPERTY_ENDPOINTS>
 ;//
 ;// In order for the $value function to work in conjunction with these properties,
 ;// the name of a single key segment MUST be "key"!!! Likely doesn't work with segmented keys.
 ;//
-  <FIELD_LOOP>
-    <IF USER>
-    <ELSE>
-    <IF CUSTOM_NOT_HARMONY_EXCLUDE>
-      <IF STRUCTURE_ISAM>
-        <IF NOTPKSEGMENT>
-        <PRIMARY_KEY>
+    <FIELD_LOOP>
+      <IF USER>
+      <ELSE>
+        <IF CUSTOM_NOT_HARMONY_EXCLUDE>
+;//
+;// ISAM
+;//
+          <IF STRUCTURE_ISAM>
+            <IF NOTPKSEGMENT>
+              <PRIMARY_KEY>
         {ODataRoute("<StructurePlural>(<IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></IF SINGLE_SEGMENT>)/<FieldSqlName>")}
-        <IF DEFINED_ENABLE_AUTHENTICATION>
-          <IF USERTOKEN_ROLES_GET>
+                <IF DEFINED_ENABLE_AUTHENTICATION>
+                  <IF USERTOKEN_ROLES_GET>
         {Authorize(Roles="<ROLES_GET>")}
-          </IF USERTOKEN_ROLES_GET>
-        </IF DEFINED_ENABLE_AUTHENTICATION>
+                  </IF USERTOKEN_ROLES_GET>
+                </IF DEFINED_ENABLE_AUTHENTICATION>
         ;;; <summary>
         ;;; Get the <FieldSqlName> property of a single <StructureNoplural>, by primary key.
         ;;; </summary>
-        <IF SINGLE_SEGMENT>
+                <IF SINGLE_SEGMENT>
         ;;; <param name="key"><FIELD_DESC></param>
-        <ELSE>
-        <SEGMENT_LOOP>
-          <IF SEG_TAG_EQUAL>
-          <ELSE>
+                <ELSE>
+                  <SEGMENT_LOOP>
+                    <IF SEG_TAG_EQUAL>
+                    <ELSE>
         ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
-          </IF SEG_TAG_EQUAL>
-        </SEGMENT_LOOP>
-        </IF SINGLE_SEGMENT>
+                    </IF SEG_TAG_EQUAL>
+                  </SEGMENT_LOOP>
+                </IF SINGLE_SEGMENT>
         ;;; <returns>
         ;;; Returns <IF ALPHA>a string</IF ALPHA><IF DECIMAL><IF PRECISION>a decimal<ELSE><IF CUSTOM_HARMONY_AS_STRING>a string<ELSE>an int</IF CUSTOM_HARMONY_AS_STRING></IF PRECISION></IF DECIMAL><IF DATE>a DateTime</IF DATE><IF TIME>a DateTime</IF TIME><IF INTEGER>an int</IF INTEGER> containing the value of the requested property.
         ;;;</returns>
         public method Get<FieldSqlName>, @IActionResult
-        <SEGMENT_LOOP>
-            <IF SINGLE_SEGMENT>
+                <SEGMENT_LOOP>
+                  <IF SINGLE_SEGMENT>
             {FromODataUri}
-            <IF CUSTOM_HARMONY_AS_STRING>
+                    <IF CUSTOM_HARMONY_AS_STRING>
             required in key, string
-            <ELSE>
+                     <ELSE>
             required in key, <SEGMENT_SNTYPE>
-            </IF CUSTOM_HARMONY_AS_STRING>
-            <ELSE>
-              <IF SEG_TAG_EQUAL>
-              <ELSE>
+                    </IF CUSTOM_HARMONY_AS_STRING>
+                  <ELSE>
+                    <IF SEG_TAG_EQUAL>
+                    <ELSE>
             {FromODataUri}
-            <IF CUSTOM_HARMONY_AS_STRING>
+                      <IF CUSTOM_HARMONY_AS_STRING>
             required in a<FieldSqlName>, string
-            <ELSE>
+                      <ELSE>
             required in a<FieldSqlName>, <SEGMENT_SNTYPE>
-            </IF CUSTOM_HARMONY_AS_STRING>
-              </IF SEG_TAG_EQUAL>
-            </IF SINGLE_SEGMENT>
-        </SEGMENT_LOOP>
+                      </IF CUSTOM_HARMONY_AS_STRING>
+                    </IF SEG_TAG_EQUAL>
+                  </IF SINGLE_SEGMENT>
+                </SEGMENT_LOOP>
         proc
             data result = _DbContext.<StructurePlural>.Find(<IF SINGLE_SEGMENT>key<ELSE><SEGMENT_LOOP><IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP></IF SINGLE_SEGMENT>)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.<FieldSqlName>)
         endmethod
-        </PRIMARY_KEY>
-        </IF NOTPKSEGMENT>
-      </IF STRUCTURE_ISAM>
-      <IF STRUCTURE_RELATIVE>
+              </PRIMARY_KEY>
+            </IF NOTPKSEGMENT>
+          </IF STRUCTURE_ISAM>
+;//
+;// RELATIVE
+;//
+          <IF STRUCTURE_RELATIVE>
         {ODataRoute("<StructurePlural>({key})}
-        <IF DEFINED_ENABLE_AUTHENTICATION>
-          <IF USERTOKEN_ROLES_GET>
+            <IF DEFINED_ENABLE_AUTHENTICATION>
+              <IF USERTOKEN_ROLES_GET>
         {Authorize(Roles="<ROLES_GET>")}
-          </IF USERTOKEN_ROLES_GET>
-        </IF DEFINED_ENABLE_AUTHENTICATION>
+              </IF USERTOKEN_ROLES_GET>
+            </IF DEFINED_ENABLE_AUTHENTICATION>
         ;;; <summary>
         ;;; Get the <FieldSqlName> property of a single <StructureNoplural>, by record number.
         ;;; </summary>
@@ -366,23 +372,23 @@ namespace <NAMESPACE>
                 mreturn NotFound()
             mreturn OK(result.<FieldSqlName>)
         endmethod
-      </IF STRUCTURE_RELATIVE>
+          </IF STRUCTURE_RELATIVE>
 
-    </IF CUSTOM_NOT_HARMONY_EXCLUDE>
-    </IF USER>
-  </FIELD_LOOP>
-</IF PROPERTY_ENDPOINTS>
+        </IF CUSTOM_NOT_HARMONY_EXCLUDE>
+      </IF USER>
+    </FIELD_LOOP>
+  </IF PROPERTY_ENDPOINTS>
 </IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
 ;//
 ;// POST ----------------------------------------------------------------------
 ;//
 <IF DEFINED_ENABLE_POST>
-<IF POST_ENDPOINT>
-  <IF DEFINED_ENABLE_AUTHENTICATION>
-    <IF USERTOKEN_ROLES_POST>
+  <IF POST_ENDPOINT>
+    <IF DEFINED_ENABLE_AUTHENTICATION>
+      <IF USERTOKEN_ROLES_POST>
         {Authorize(Roles="<ROLES_POST>")}
-    </IF USERTOKEN_ROLES_POST>
-  </IF DEFINED_ENABLE_AUTHENTICATION>
+      </IF USERTOKEN_ROLES_POST>
+    </IF DEFINED_ENABLE_AUTHENTICATION>
         {ODataRoute("<StructurePlural>")}
         ;;; <summary>
         ;;; Create a new <structureNoplural> (automatically assigned primary key).
@@ -393,16 +399,25 @@ namespace <NAMESPACE>
             required in a<StructureNoplural>, @<StructureNoplural>
         proc
             ;;Remove the primary key fields from ModelState
-  <IF STRUCTURE_ISAM>
-    <PRIMARY_KEY>
-      <SEGMENT_LOOP>
+;//
+;// ISAM
+;//
+    <IF STRUCTURE_ISAM>
+      <PRIMARY_KEY>
+        <SEGMENT_LOOP>
             ModelState.Remove("<FieldSqlName>")
-      </SEGMENT_LOOP>
-    </PRIMARY_KEY>
-  </IF STRUCTURE_ISAM>
-  <IF STRUCTURE_RELATIVE>
+        </SEGMENT_LOOP>
+      </PRIMARY_KEY>
+    </IF STRUCTURE_ISAM>
+;//
+;// RELATIVE
+;//
+    <IF STRUCTURE_RELATIVE>
             ModelState.Remove("RecordNumber")
-  </IF STRUCTURE_RELATIVE>
+    </IF STRUCTURE_RELATIVE>
+;//
+;// BOTH
+;//
 
             ;; Validate inbound data
             if (!ModelState.IsValid)
@@ -429,56 +444,56 @@ namespace <NAMESPACE>
 
         endmethod
 
-</IF POST_ENDPOINT>
+  </IF POST_ENDPOINT>
 </IF DEFINED_ENABLE_POST>
 ;//
 ;// PUT -----------------------------------------------------------------------
 ;//
 <IF DEFINED_ENABLE_PUT>
-<IF PUT_ENDPOINT>
-  <IF DEFINED_ENABLE_AUTHENTICATION>
-    <IF USERTOKEN_ROLES_PUT>
+  <IF PUT_ENDPOINT>
+    <IF DEFINED_ENABLE_AUTHENTICATION>
+      <IF USERTOKEN_ROLES_PUT>
         {Authorize(Roles="<ROLES_PUT>")}
-    </IF USERTOKEN_ROLES_PUT>
-  </IF DEFINED_ENABLE_AUTHENTICATION>
+      </IF USERTOKEN_ROLES_PUT>
+    </IF DEFINED_ENABLE_AUTHENTICATION>
         {ODataRoute("<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>)")}
         ;;; <summary>
         ;;; Create (with a client-supplied primary key) or replace a <structureNoplural>.
         ;;; </summary>
-  <IF STRUCTURE_ISAM>
-    <PRIMARY_KEY>
-      <SEGMENT_LOOP>
-        <IF SEG_TAG_EQUAL>
-        <ELSE>
+    <IF STRUCTURE_ISAM>
+      <PRIMARY_KEY>
+        <SEGMENT_LOOP>
+          <IF SEG_TAG_EQUAL>
+          <ELSE>
         ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
-        </IF SEG_TAG_EQUAL>
-      </SEGMENT_LOOP>
-    </PRIMARY_KEY>
-  </IF STRUCTURE_ISAM>
-  <IF STRUCTURE_RELATIVE>
+          </IF SEG_TAG_EQUAL>
+        </SEGMENT_LOOP>
+      </PRIMARY_KEY>
+    </IF STRUCTURE_ISAM>
+    <IF STRUCTURE_RELATIVE>
         ;;; <param name="aRecordNumber">Record number</param>
-  </IF STRUCTURE_RELATIVE>
+    </IF STRUCTURE_RELATIVE>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
         public method Put<StructureNoplural>, @IActionResult
-  <IF STRUCTURE_ISAM>
-    <PRIMARY_KEY>
-      <SEGMENT_LOOP>
-        <IF SEG_TAG_EQUAL>
-        <ELSE>
+    <IF STRUCTURE_ISAM>
+      <PRIMARY_KEY>
+        <SEGMENT_LOOP>
+          <IF SEG_TAG_EQUAL>
+          <ELSE>
             {FromODataUri}
-        <IF CUSTOM_HARMONY_AS_STRING>
+            <IF CUSTOM_HARMONY_AS_STRING>
             required in a<FieldSqlName>, string
-        <ELSE>
+            <ELSE>
             required in a<FieldSqlName>, <SEGMENT_SNTYPE>
-        </IF CUSTOM_HARMONY_AS_STRING>
-        </IF SEG_TAG_EQUAL>
-      </SEGMENT_LOOP>
-    </PRIMARY_KEY>
-  </IF STRUCTURE_ISAM>
-  <IF STRUCTURE_RELATIVE>
+            </IF CUSTOM_HARMONY_AS_STRING>
+          </IF SEG_TAG_EQUAL>
+        </SEGMENT_LOOP>
+      </PRIMARY_KEY>
+    </IF STRUCTURE_ISAM>
+    <IF STRUCTURE_RELATIVE>
             {FromODataUri}
             required in aRecordNumber, int
-  </IF STRUCTURE_RELATIVE>
+    </IF STRUCTURE_RELATIVE>
             {FromBody}
             required in a<StructureNoplural>, @<StructureNoplural>
         proc
@@ -487,20 +502,20 @@ namespace <NAMESPACE>
                 mreturn BadRequest(ModelState)
 
             ;;Ensure that the key values in the URI win over any data that may be in the model object
-  <IF STRUCTURE_ISAM>
-    <PRIMARY_KEY>
-      <SEGMENT_LOOP>
-        <IF SEG_TAG_EQUAL>
+    <IF STRUCTURE_ISAM>
+      <PRIMARY_KEY>
+        <SEGMENT_LOOP>
+          <IF SEG_TAG_EQUAL>
             a<StructureNoplural>.<FieldSqlname> = <SEGMENT_TAG_VALUE>
-        <ELSE>
+          <ELSE>
             a<StructureNoplural>.<FieldSqlname> = a<FieldSqlName>
-        </IF SEG_TAG_EQUAL>
-      </SEGMENT_LOOP>
-    </PRIMARY_KEY>
-  </IF STRUCTURE_ISAM>
-  <IF STRUCTURE_RELATIVE>
+          </IF SEG_TAG_EQUAL>
+        </SEGMENT_LOOP>
+      </PRIMARY_KEY>
+    </IF STRUCTURE_ISAM>
+    <IF STRUCTURE_RELATIVE>
             a<StructureNoplural>.RecordNumber = aRecordNumber
-  </IF STRUCTURE_RELATIVE>
+    </IF STRUCTURE_RELATIVE>
 
             try
             begin
@@ -532,56 +547,56 @@ namespace <NAMESPACE>
 
         endmethod
 
-</IF PUT_ENDPOINT>
+  </IF PUT_ENDPOINT>
 </IF DEFINED_ENABLE_PUT>
 ;//
 ;// PATCH ---------------------------------------------------------------------
 ;//
 <IF DEFINED_ENABLE_PATCH>
-<IF PATCH_ENDPOINT>
-  <IF DEFINED_ENABLE_AUTHENTICATION>
-    <IF USERTOKEN_ROLES_PATCH>
+  <IF PATCH_ENDPOINT>
+    <IF DEFINED_ENABLE_AUTHENTICATION>
+      <IF USERTOKEN_ROLES_PATCH>
         {Authorize(Roles="<ROLES_PATCH>")}
-    </IF USERTOKEN_ROLES_PATCH>
-  </IF DEFINED_ENABLE_AUTHENTICATION>
+      </IF USERTOKEN_ROLES_PATCH>
+    </IF DEFINED_ENABLE_AUTHENTICATION>
         {ODataRoute("<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>RecordNumber={aRecordNumber}</IF STRUCTURE_RELATIVE>)")}
         ;;; <summary>
         ;;; Patch  (partial update) a <structureNoplural>.
         ;;; </summary>
-  <IF STRUCTURE_ISAM>
-    <PRIMARY_KEY>
-      <SEGMENT_LOOP>
-        <IF SEG_TAG_EQUAL>
-        <ELSE>
+    <IF STRUCTURE_ISAM>
+      <PRIMARY_KEY>
+        <SEGMENT_LOOP>
+          <IF SEG_TAG_EQUAL>
+          <ELSE>
         ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
-        </IF SEG_TAG_EQUAL>
-      </SEGMENT_LOOP>
-    </PRIMARY_KEY>
-  </IF STRUCTURE_ISAM>
-  <IF STRUCTURE_RELATIVE>
+          </IF SEG_TAG_EQUAL>
+        </SEGMENT_LOOP>
+      </PRIMARY_KEY>
+    </IF STRUCTURE_ISAM>
+    <IF STRUCTURE_RELATIVE>
         ;;; <param name="aRecordNumber">Record number</param>
-  </IF STRUCTURE_RELATIVE>
+    </IF STRUCTURE_RELATIVE>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
         public method Patch<StructureNoplural>, @IActionResult
-  <IF STRUCTURE_ISAM>
-    <PRIMARY_KEY>
-      <SEGMENT_LOOP>
-        <IF SEG_TAG_EQUAL>
-        <ELSE>
-            {FromODataUri}
-          <IF CUSTOM_HARMONY_AS_STRING>
-            required in a<FieldSqlName>, string
+    <IF STRUCTURE_ISAM>
+      <PRIMARY_KEY>
+        <SEGMENT_LOOP>
+          <IF SEG_TAG_EQUAL>
           <ELSE>
+            {FromODataUri}
+            <IF CUSTOM_HARMONY_AS_STRING>
+            required in a<FieldSqlName>, string
+            <ELSE>
             required in a<FieldSqlName>, <SEGMENT_SNTYPE>
-          </IF CUSTOM_HARMONY_AS_STRING>
-        </IF SEG_TAG_EQUAL>
-      </SEGMENT_LOOP>
-    </PRIMARY_KEY>
-  </IF STRUCTURE_ISAM>
-  <IF STRUCTURE_RELATIVE>
+            </IF CUSTOM_HARMONY_AS_STRING>
+          </IF SEG_TAG_EQUAL>
+        </SEGMENT_LOOP>
+      </PRIMARY_KEY>
+    </IF STRUCTURE_ISAM>
+    <IF STRUCTURE_RELATIVE>
             {FromODataUri}
             required in aRecordNumber, int
-  </IF STRUCTURE_RELATIVE>
+    </IF STRUCTURE_RELATIVE>
             {FromBody}
             required in a<StructureNoplural>, @JsonPatchDocument<<StructureNoplural>>
         proc
@@ -624,56 +639,56 @@ namespace <NAMESPACE>
 
         endmethod
 
-</IF PATCH_ENDPOINT>
+  </IF PATCH_ENDPOINT>
 </IF DEFINED_ENABLE_PATCH>
 ;//
 ;// DELETE --------------------------------------------------------------------
 ;//
 <IF DEFINED_ENABLE_DELETE>
-<IF DELETE_ENDPOINT>
-  <IF DEFINED_ENABLE_AUTHENTICATION>
-    <IF USERTOKEN_ROLES_DELETE>
+  <IF DELETE_ENDPOINT>
+    <IF DEFINED_ENABLE_AUTHENTICATION>
+      <IF USERTOKEN_ROLES_DELETE>
         {Authorize(Roles="<ROLES_DELETE>")}
-    </IF USERTOKEN_ROLES_DELETE>
-  </IF DEFINED_ENABLE_AUTHENTICATION>
+      </IF USERTOKEN_ROLES_DELETE>
+    </IF DEFINED_ENABLE_AUTHENTICATION>
         {ODataRoute("<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>RecordNumber={aRecordNumber}</IF STRUCTURE_RELATIVE>)")}
         ;;; <summary>
         ;;; Delete a <structureNoplural>.
         ;;; </summary>
-  <IF STRUCTURE_ISAM>
-    <PRIMARY_KEY>
-      <SEGMENT_LOOP>
-        <IF SEG_TAG_EQUAL>
-        <ELSE>
+    <IF STRUCTURE_ISAM>
+      <PRIMARY_KEY>
+        <SEGMENT_LOOP>
+          <IF SEG_TAG_EQUAL>
+          <ELSE>
         ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
-        </IF SEG_TAG_EQUAL>
-      </SEGMENT_LOOP>
-    </PRIMARY_KEY>
-  </IF STRUCTURE_ISAM>
-  <IF STRUCTURE_RELATIVE>
+          </IF SEG_TAG_EQUAL>
+        </SEGMENT_LOOP>
+      </PRIMARY_KEY>
+    </IF STRUCTURE_ISAM>
+    <IF STRUCTURE_RELATIVE>
         ;;; <param name="aRecordNumber">Record number</param>
-  </IF STRUCTURE_RELATIVE>
+    </IF STRUCTURE_RELATIVE>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
         public method Delete<StructureNoplural>, @IActionResult
-  <IF STRUCTURE_ISAM>
-    <PRIMARY_KEY>
-      <SEGMENT_LOOP>
-        <IF SEG_TAG_EQUAL>
-        <ELSE>
-            {FromODataUri}
-          <IF CUSTOM_HARMONY_AS_STRING>
-            required in a<FieldSqlName>, string
+    <IF STRUCTURE_ISAM>
+      <PRIMARY_KEY>
+        <SEGMENT_LOOP>
+          <IF SEG_TAG_EQUAL>
           <ELSE>
+            {FromODataUri}
+            <IF CUSTOM_HARMONY_AS_STRING>
+            required in a<FieldSqlName>, string
+            <ELSE>
             required in a<FieldSqlName>, <SEGMENT_SNTYPE>
-          </IF CUSTOM_HARMONY_AS_STRING>
-        </IF SEG_TAG_EQUAL>
-      </SEGMENT_LOOP>
-    </PRIMARY_KEY>
-  </IF STRUCTURE_ISAM>
-  <IF STRUCTURE_RELATIVE>
+            </IF CUSTOM_HARMONY_AS_STRING>
+          </IF SEG_TAG_EQUAL>
+        </SEGMENT_LOOP>
+      </PRIMARY_KEY>
+    </IF STRUCTURE_ISAM>
+    <IF STRUCTURE_RELATIVE>
             {FromODataUri}
             required in arecordNumber, int
-  </IF STRUCTURE_RELATIVE>
+    </IF STRUCTURE_RELATIVE>
         proc
             ;;Get the <structureNoplural> to be deleted
             data <structureNoplural>ToRemove = _DbContext.<StructurePlural>.Find(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>)
@@ -690,7 +705,7 @@ namespace <NAMESPACE>
 
         endmethod
 
-</IF DELETE_ENDPOINT>
+  </IF DELETE_ENDPOINT>
 </IF DEFINED_ENABLE_DELETE>
     endclass
 

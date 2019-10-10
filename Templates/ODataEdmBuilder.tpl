@@ -65,7 +65,7 @@ namespace <NAMESPACE>
     ;;; </summary>
     public partial class EdmBuilder implements IEdmBuilder
 
-    <IF DEFINED_ENABLE_API_VERSIONING>
+<IF DEFINED_ENABLE_API_VERSIONING>
         static method EdmBuilder
         proc
             CustomStaticEdmInit()
@@ -74,7 +74,7 @@ namespace <NAMESPACE>
                 mEdmVersions.Add(1)
         endmethod
 
-    </IF DEFINED_ENABLE_API_VERSIONING>
+</IF DEFINED_ENABLE_API_VERSIONING>
         public method EdmBuilder
             serviceProvider, @IServiceProvider
         proc
@@ -90,11 +90,11 @@ namespace <NAMESPACE>
 
         private mServiceProvider, @IServiceProvider
         private static mEdmModel<IF DEFINED_ENABLE_API_VERSIONING>s, @Dictionary<int, IEdmModel>, new Dictionary<int, IEdmModel>()<ELSE>, @IEdmModel</IF DEFINED_ENABLE_API_VERSIONING>
-    <IF DEFINED_ENABLE_API_VERSIONING>
+<IF DEFINED_ENABLE_API_VERSIONING>
         private static mEdmVersions, @List<int>, new List<int>()
-    </IF DEFINED_ENABLE_API_VERSIONING>
+</IF DEFINED_ENABLE_API_VERSIONING>
 
-    <IF DEFINED_ENABLE_API_VERSIONING>
+<IF DEFINED_ENABLE_API_VERSIONING>
         public static method GetEdmModel, @IEdmModel
             required in serviceProvider, @IServiceProvider
             required in versionNumber, int
@@ -128,7 +128,7 @@ namespace <NAMESPACE>
         private static partial method CustomStaticEdmInit, void
         
         endmethod
-    <ELSE>
+<ELSE>
         public static method GetEdmModel, @IEdmModel
             required in serviceProvider, @IServiceProvider
         proc
@@ -136,7 +136,7 @@ namespace <NAMESPACE>
                 mEdmModel = GetEdmModel(new ODataConventionModelBuilder(serviceProvider), serviceProvider)
             mreturn mEdmModel
         endmethod
-    </IF DEFINED_ENABLE_API_VERSIONING>
+</IF DEFINED_ENABLE_API_VERSIONING>
 
         ;;; <summary>
         ;;; Gets the entity data model.
@@ -184,24 +184,24 @@ namespace <NAMESPACE>
             ;;-----------------------------------------------
 
             data tempModel = (@EdmModel)builder.GetEdmModel()
-            <STRUCTURE_LOOP>
-            <COUNTER_1_RESET>
-            <IF STRUCTURE_ISAM>
-            <ALTERNATE_KEY_LOOP>
-                <SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><COUNTER_1_INCREMENT></IF SEG_TAG_EQUAL></SEGMENT_LOOP>
-            </ALTERNATE_KEY_LOOP>
-            </IF STRUCTURE_ISAM>
-            
+<STRUCTURE_LOOP>
+  <COUNTER_1_RESET>
+  <IF STRUCTURE_ISAM>
+    <ALTERNATE_KEY_LOOP>
+      <SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><COUNTER_1_INCREMENT></IF SEG_TAG_EQUAL></SEGMENT_LOOP>
+    </ALTERNATE_KEY_LOOP>
+  </IF STRUCTURE_ISAM>
+
             data <structureNoplural>Type = (@EdmEntityType)tempModel.FindDeclaredType("<MODELS_NAMESPACE>.<StructureNoplural>")
-            <IF STRUCTURE_ISAM>
-            <ALTERNATE_KEY_LOOP>
-            <IF NOT_COUNTER_1>
-            <ELSE>
+  <IF STRUCTURE_ISAM>
+    <ALTERNATE_KEY_LOOP>
+      <IF NOT_COUNTER_1>
+      <ELSE>
             tempModel.AddAlternateKeyAnnotation(<structureNoplural>Type, new Dictionary<string, IEdmProperty>() {<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE>{"<FieldSqlName>",<structureNoplural>Type.FindProperty("<FieldSqlName>")}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>})
-            </IF NOT_COUNTER_1>
-            </ALTERNATE_KEY_LOOP>
-            </IF STRUCTURE_ISAM>
-            </STRUCTURE_LOOP>
+      </IF NOT_COUNTER_1>
+    </ALTERNATE_KEY_LOOP>
+  </IF STRUCTURE_ISAM>
+</STRUCTURE_LOOP>
 
             ;;-----------------------------------------------
             ;;If we have a PostEdmModelCustom method, call it 

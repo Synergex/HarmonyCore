@@ -283,13 +283,13 @@ namespace <NAMESPACE>
       </IF>
 
             data <KeyName>_KeyParts = new FieldDataDefinition[<KEY_SEGMENTS>]
-    <SEGMENT_LOOP>
-      <IF SEG_TYPE_LITERAL>
+      <SEGMENT_LOOP>
+        <IF SEG_TYPE_LITERAL>
             <KeyName>_KeyParts[<SEGMENT_NUMBER>] = AddFieldInfo("<KEY_NAME>Literal<SEGMENT_NUMBER>", "TAG_LITERAL", <SEGMENT_LENGTH>, 0, 0, false,^null,"<SEGMENT_LITVAL>")
-      <ELSE>
+        <ELSE>
             <KeyName>_KeyParts[<SEGMENT_NUMBER>] = GetFieldByName("<FieldSqlname>")
-      </IF SEG_TYPE_LITERAL>
-    </SEGMENT_LOOP>
+        </IF SEG_TYPE_LITERAL>
+      </SEGMENT_LOOP>
             AddFieldInfo("KEY_<KEY_NAME>", "COMPOSITE", 0, 0, 0, false, ^null, ^null, <KeyName>_KeyParts)
   </FOREIGN_KEY_LOOP>
 </IF STRUCTURE_ISAM>
@@ -302,9 +302,9 @@ namespace <NAMESPACE>
         ;;; <summary>
         ;;; Returns a new <StructureNoplural> object containing data from a record and a GRFA.
 <IF DEFINED_ENABLE_RELATIONS>
-<IF STRUCTURE_RELATIONS>
+  <IF STRUCTURE_RELATIONS>
         ;;; The related data properties (<RELATION_LOOP_RESTRICTED><IF MANY_TO_ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY><,and></RELATION_LOOP_RESTRICTED>) will not be populated.
-</IF STRUCTURE_RELATIONS>
+  </IF STRUCTURE_RELATIONS>
 </IF DEFINED_ENABLE_RELATIONS>
         ;;; </summary>
         ;;; <param name="dataArea">The record containing the data for the new <StructureNoplural> object.</param>
