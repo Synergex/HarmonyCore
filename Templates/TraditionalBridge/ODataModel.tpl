@@ -107,8 +107,8 @@ namespace <NAMESPACE>
 </IF STRUCTURE_RELATIVE>
 <COUNTER_1_RESET>
 <FIELD_LOOP>
-<IF USER>
-<ELSE>
+  <IF USER>
+  <ELSE>
     <IF CUSTOM_NOT_HARMONY_EXCLUDE>
         ;;; <summary>
         ;;; <FIELD_DESC>
@@ -116,90 +116,93 @@ namespace <NAMESPACE>
 ;//
 ;// Field property attributes
 ;//
-        <IF ONLY_PKSEGMENT>
+      <IF ONLY_PKSEGMENT>
         {Key}
-        </IF ONLY_PKSEGMENT>
-        <IF REQUIRED>
+      </IF ONLY_PKSEGMENT>
+      <IF REQUIRED>
         {Required(ErrorMessage="<FIELD_DESC> is required. ")}
-        </IF REQUIRED>
-        <IF ALPHA>
+      </IF REQUIRED>
+      <IF ALPHA>
         {StringLength(<FIELD_SIZE>, ErrorMessage="<FIELD_DESC> cannot exceed <FIELD_SIZE> characters. ")}
-        </IF ALPHA>
-        <IF DECIMAL>
+      </IF ALPHA>
+      <IF DECIMAL>
         <IF CUSTOM_NOT_HARMONY_AS_STRING>
         {Range(<FIELD_MINVALUE>,<FIELD_MAXVALUE>, ErrorMessage="<FIELD_DESC> must be between <FIELD_MINVALUE> and <FIELD_MAXVALUE>. ")}
         </IF CUSTOM_NOT_HARMONY_AS_STRING>
-        </IF DECIMAL>
-        <IF INTEGER>
+      </IF DECIMAL>
+      <IF INTEGER>
         {Range(<FIELD_MINVALUE>,<FIELD_MAXVALUE>, ErrorMessage="<FIELD_DESC> must be between <FIELD_MINVALUE> and <FIELD_MAXVALUE>. ")}
-        </IF INTEGER>
+      </IF INTEGER>
 ;//
 ;// Field property
 ;//
-        <IF DEFINED_ENABLE_FIELD_SECURITY>
+      <IF DEFINED_ENABLE_FIELD_SECURITY>
         <IF CUSTOM_HARMONY_AUTHENTICATE>
         {AuthorizeField}
         </IF CUSTOM_HARMONY_AUTHENTICATE>
         <IF HARMONY_ROLES>
         {AuthorizeField("<HARMONY_ROLES>")}
         </IF HARMONY_ROLES>
-        </IF DEFINED_ENABLE_FIELD_SECURITY>
-        <COUNTER_1_INCREMENT>
-<IF CUSTOM_HARMONY_AS_STRING>
+      </IF DEFINED_ENABLE_FIELD_SECURITY>
+      <COUNTER_1_INCREMENT>
+      <IF CUSTOM_HARMONY_AS_STRING>
         public property <FieldSqlname>, String
-<ELSE>
-        public property <FieldSqlname>, <FIELD_SNTYPE>
-</IF CUSTOM_HARMONY_AS_STRING>
+      <ELSE>
+        public property <FieldSqlname>, <HARMONYCORE_FIELD_DATATYPE>
+      </IF CUSTOM_HARMONY_AS_STRING>
 ;//
 ;// Field property get method
 ;//
             method get
             proc
+      <IF HARMONYCORE_CUSTOM_FIELD>
+                mreturn <HARMONYCORE_CUSTOM_FIELD_TYPE>Converter.Convert(mSynergyData.<field_original_name_modified>)
+      <ELSE>
         <IF ALPHA>
                 mreturn (<FIELD_SNTYPE>)SynergyAlphaConverter.Convert(mSynergyData.<field_original_name_modified>, ^null, ^null, ^null)
         </IF ALPHA>
         <IF DATE>
-            <IF CUSTOM_HARMONY_AS_STRING>
+          <IF CUSTOM_HARMONY_AS_STRING>
                 mreturn %string(mSynergyData.<field_original_name_modified>,"XXXX-XX-XX")
-            <ELSE>
+          <ELSE>
                 data formatString = "YYYYMMDD"
-                <IF DATE_YYMMDD>
+            <IF DATE_YYMMDD>
                 formatString = "YYMMDD"
-                </IF DATE_YYMMDD>
-                <IF DATE_YYYYJJJ>
+            </IF DATE_YYMMDD>
+            <IF DATE_YYYYJJJ>
                 formatString = "YYYYJJJ"
-                </IF DATE_YYYYJJJ>
+            </IF DATE_YYYYJJJ>
                 mreturn SynergyDecimalDateConverter.Convert(mSynergyData.<field_original_name_modified>, ^null, formatString, ^null)
-            </IF CUSTOM_HARMONY_AS_STRING>
+          </IF CUSTOM_HARMONY_AS_STRING>
         </IF DATE>
         <IF TIME_HHMM>
-            <IF CUSTOM_HARMONY_AS_STRING>
+          <IF CUSTOM_HARMONY_AS_STRING>
                 mreturn %string(mSynergyData.<field_original_name_modified>,"XX:XX")
-            <ELSE>
+          <ELSE>
                 mreturn Convert.ToDateTime(%string(mSynergyData.<field_original_name_modified>,"XX:XX"))
-            </IF CUSTOM_HARMONY_AS_STRING>
+          </IF CUSTOM_HARMONY_AS_STRING>
         </IF TIME_HHMM>
         <IF TIME_HHMMSS>
-            <IF CUSTOM_HARMONY_AS_STRING>
+          <IF CUSTOM_HARMONY_AS_STRING>
                 mreturn %string(mSynergyData.<field_original_name_modified>,"XX:XX:XX")
-            <ELSE>
+          <ELSE>
                 mreturn Convert.ToDateTime(%string(mSynergyData.<field_original_name_modified>,"XX:XX:XX"))
-            </IF CUSTOM_HARMONY_AS_STRING>
+          </IF CUSTOM_HARMONY_AS_STRING>
         </IF TIME_HHMMSS>
         <IF DECIMAL>
-            <IF CUSTOM_HARMONY_AS_STRING>
-                <IF PRECISION>
+          <IF CUSTOM_HARMONY_AS_STRING>
+            <IF PRECISION>
                 mreturn %string(SynergyImpliedDecimalConverter.Convert(mSynergyData.<field_original_name_modified>, ^null, "DECIMALPLACES#<FIELD_PRECISION>", ^null),"<FIELD_FORMATSTRING>")
-                <ELSE>
-                mreturn %string(mSynergyData.<field_original_name_modified>,"<FIELD_FORMATSTRING>")
-                </IF PRECISION>
             <ELSE>
-                <IF PRECISION>
+                mreturn %string(mSynergyData.<field_original_name_modified>,"<FIELD_FORMATSTRING>")
+            </IF PRECISION>
+          <ELSE>
+            <IF PRECISION>
                 mreturn (<FIELD_SNTYPE>)SynergyImpliedDecimalConverter.Convert(mSynergyData.<field_original_name_modified>, ^null, "DECIMALPLACES#<FIELD_PRECISION>", ^null)
-                <ELSE>
+            <ELSE>
                 mreturn (<FIELD_SNTYPE>)mSynergyData.<field_original_name_modified>
-                </IF PRECISION>
-            </IF CUSTOM_HARMONY_AS_STRING>
+            </IF PRECISION>
+          </IF CUSTOM_HARMONY_AS_STRING>
         </IF DECIMAL>
         <IF INTEGER>
                 mreturn (<FIELD_SNTYPE>)mSynergyData.<field_original_name_modified>
@@ -213,58 +216,62 @@ namespace <NAMESPACE>
         <IF BOOLEAN>
                 mreturn (<FIELD_SNTYPE>)mSynergyData.<field_original_name_modified>
         </IF BOOLEAN>
+      </IF HARMONYCORE_CUSTOM_FIELD>
             endmethod
 ;//
 ;// Field property set method
 ;//
             method set
             proc
-        <IF DEFINED_ENABLE_READ_ONLY_PROPERTIES>
+      <IF DEFINED_ENABLE_READ_ONLY_PROPERTIES>
         <IF READONLY>
                 throw new ApplicationException("Property <FieldSqlname> is read only!")
         </IF READONLY>
-        </IF DEFINED_ENABLE_READ_ONLY_PROPERTIES>
+      </IF DEFINED_ENABLE_READ_ONLY_PROPERTIES>
+      <IF HARMONYCORE_CUSTOM_FIELD>
+                mSynergyData.<field_original_name_modified> = <HARMONYCORE_CUSTOM_FIELD_TYPE>Converter.ConvertBack(value)
+      <ELSE>
         <IF ALPHA>
                 mSynergyData.<field_original_name_modified> = (<FIELD_TYPE>)SynergyAlphaConverter.ConvertBack(value<IF UPPERCASE>.ToUpper()</IF UPPERCASE>, ^null, ^null, ^null)
         </IF ALPHA>
         <IF DATE>
-            <IF CUSTOM_HARMONY_AS_STRING>
+          <IF CUSTOM_HARMONY_AS_STRING>
                 mSynergyData.<field_original_name_modified> = SynergyDecimalConverter.ConvertBack(value,"XXXX-XX-XX")
-            <ELSE>
+          <ELSE>
                 data formatString = "YYYYMMDD"
-                <IF DATE_YYMMDD>
+            <IF DATE_YYMMDD>
                 formatString = "YYMMDD"
-                </IF DATE_YYMMDD>
-                <IF DATE_YYYYJJJ>
+            </IF DATE_YYMMDD>
+            <IF DATE_YYYYJJJ>
                 formatString = "YYYYJJJ"
-                </IF DATE_YYYYJJJ>
+            </IF DATE_YYYYJJJ>
                 mSynergyData.<field_original_name_modified> = (<FIELD_TYPE>)SynergyDecimalDateConverter.ConvertBack(value, ^null, formatString, ^null)
-            </IF CUSTOM_HARMONY_AS_STRING>
+          </IF CUSTOM_HARMONY_AS_STRING>
         </IF DATE>
         <IF TIME_HHMM>
-            <IF CUSTOM_HARMONY_AS_STRING>
+          <IF CUSTOM_HARMONY_AS_STRING>
                 mSynergyData.<field_original_name_modified> = SynergyDecimalConverter.ConvertBack(value,"XX:XX")
-            <ELSE>
+          <ELSE>
                 mSynergyData.<field_original_name_modified> = (value.Hour * 100) + value.Minute
-            </IF CUSTOM_HARMONY_AS_STRING>
+          </IF CUSTOM_HARMONY_AS_STRING>
         </IF TIME_HHMM>
         <IF TIME_HHMMSS>
-            <IF CUSTOM_HARMONY_AS_STRING>
+          <IF CUSTOM_HARMONY_AS_STRING>
                 mSynergyData.<field_original_name_modified> = SynergyDecimalConverter.ConvertBack(value,"XX:XX:XX")
-            <ELSE>
+          <ELSE>
                 mSynergyData.<field_original_name_modified> = (value.Hour * 10000) + (value.Minute * 100) + value.Second
-            </IF CUSTOM_HARMONY_AS_STRING>
+          </IF CUSTOM_HARMONY_AS_STRING>
         </IF TIME_HHMMSS>
         <IF DECIMAL>
-            <IF CUSTOM_HARMONY_AS_STRING>
-                <IF PRECISION>
+          <IF CUSTOM_HARMONY_AS_STRING>
+            <IF PRECISION>
                 mSynergyData.<field_original_name_modified> = SynergyImpliedDecimalConverter.ConvertBack(value,"<FIELD_FORMATSTRING>")
-                <ELSE>
-                mSynergyData.<field_original_name_modified> = SynergyDecimalConverter.ConvertBack(value,"<FIELD_FORMATSTRING>")
-                </IF PRECISION>
             <ELSE>
+                mSynergyData.<field_original_name_modified> = SynergyDecimalConverter.ConvertBack(value,"<FIELD_FORMATSTRING>")
+            </IF PRECISION>
+          <ELSE>
                 mSynergyData.<field_original_name_modified> = value
-            </IF CUSTOM_HARMONY_AS_STRING>
+          </IF CUSTOM_HARMONY_AS_STRING>
         </IF DECIMAL>
         <IF INTEGER>
                 mSynergyData.<field_original_name_modified> = value
@@ -278,6 +285,7 @@ namespace <NAMESPACE>
         <IF BOOLEAN>
                 mSynergyData.<field_original_name_modified> = value
         </IF BOOLEAN>
+      </IF HARMONYCORE_CUSTOM_FIELD>
             endmethod
 ;//
 ;// End of field property
@@ -285,7 +293,7 @@ namespace <NAMESPACE>
         endproperty
 
     </IF CUSTOM_NOT_HARMONY_EXCLUDE>
-</IF USER>
+  </IF USER>
 </FIELD_LOOP>
 .endregion
 ;//
@@ -354,6 +362,6 @@ namespace <NAMESPACE>
         endmethod
 
 .endregion
-endclass
+    endclass
 
 endnamespace

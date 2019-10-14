@@ -137,39 +137,7 @@ namespace <NAMESPACE>
             AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false, m<FieldSqlname>Formatter)
     <ELSE>
       <IF DATEORTIME>
-        <IF DATE_YYMMDD>
-          <IF CUSTOM_HARMONY_AS_STRING>
             AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false, m<FieldSqlname>Formatter)
-          <ELSE>
-            AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false, m<FieldSqlname>Formatter)
-          </IF CUSTOM_HARMONY_AS_STRING>
-        </IF DATE_YYMMDD>
-        <IF DATE_YYYYMMDD>
-          <IF CUSTOM_HARMONY_AS_STRING>
-            AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false, m<FieldSqlname>Formatter)
-          <ELSE>
-            AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false, m<FieldSqlname>Formatter)
-          </IF CUSTOM_HARMONY_AS_STRING>
-        </IF DATE_YYYYMMDD>
-        <IF DATE_YYYYJJJ>
-          <IF CUSTOM_HARMONY_AS_STRING>
-            AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false, m<FieldSqlname>Formatter)
-          <ELSE>
-            AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false, m<FieldSqlname>Formatter)
-          </IF CUSTOM_HARMONY_AS_STRING>
-        </IF DATE_YYYYJJJ>
-        <IF TIME>
-          <IF CUSTOM_HARMONY_AS_STRING>
-            <IF TIME_HHMM>
-            AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false, m<FieldSqlname>Formatter)
-            </IF TIME_HHMM>
-            <IF TIME_HHMMSS>
-            AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false, m<FieldSqlname>Formatter)
-            </IF TIME_HHMMSS>
-          <ELSE>
-            AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false, m<FieldSqlname>Formatter)
-          </IF CUSTOM_HARMONY_AS_STRING>
-        </IF TIME>
       <ELSE>
         <IF CUSTOM_HARMONY_AS_STRING>
             AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false, m<FieldSqlname>Formatter)

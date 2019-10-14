@@ -56,77 +56,77 @@ namespace <NAMESPACE>
     public partial class <StructureNoplural>
 
 <FIELD_LOOP>
-    <IF CUSTOM_NOT_HARMONY_EXCLUDE>
+  <IF CUSTOM_NOT_HARMONY_EXCLUDE>
         ;;; <summary>
         ;;; <FIELD_DESC>
         ;;; </summary>
-        <IF CUSTOM_HARMONY_AS_STRING>
+    <IF CUSTOM_HARMONY_AS_STRING>
         public readwrite property <FieldSqlname>, String
-        <ELSE>
-        public readwrite property <FieldSqlname>, <FIELD_SNTYPE>
-        </IF CUSTOM_HARMONY_AS_STRING>
+    <ELSE>
+        public readwrite property <FieldSqlname>, <HARMONYCORE_FIELD_DATATYPE>
+    </IF CUSTOM_HARMONY_AS_STRING>
 
-    </IF CUSTOM_NOT_HARMONY_EXCLUDE>
+  </IF CUSTOM_NOT_HARMONY_EXCLUDE>
 </FIELD_LOOP>
 
 .region "Relationships to other entities"
 
-  <IF STRUCTURE_RELATIONS>
-    <RELATION_LOOP_RESTRICTED>
-      <COUNTER_1_INCREMENT>
+<IF STRUCTURE_RELATIONS>
+  <RELATION_LOOP_RESTRICTED>
+    <COUNTER_1_INCREMENT>
 ;//
 ;//
 ;//
-        <IF MANY_TO_ONE_TO_MANY>
+    <IF MANY_TO_ONE_TO_MANY>
         ;;; <summary>
         ;;; Relationship (Type A)
         ;;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) --> (one) --> (many) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
         ;;; </summary>
         public readwrite property <HARMONYCORE_RELATION_NAME>, @<RelationTostructureNoplural>
-        </IF MANY_TO_ONE_TO_MANY>
+    </IF MANY_TO_ONE_TO_MANY>
 ;//
 ;//
 ;//
-        <IF ONE_TO_ONE_TO_ONE>
+    <IF ONE_TO_ONE_TO_ONE>
         ;;; <summary>
         ;;; Relationship (Type B)
         ;;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) --> (one) --> (one) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
         ;;; </summary>
         public readwrite property <HARMONYCORE_RELATION_NAME>, @<RelationTostructureNoplural>
-        </IF ONE_TO_ONE_TO_ONE>
+    </IF ONE_TO_ONE_TO_ONE>
 ;//
 ;//
 ;//
-        <IF ONE_TO_ONE>
+    <IF ONE_TO_ONE>
         ;;; <summary>
         ;;; Relationship (Type C)
         ;;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) --> (one) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
         ;;; </summary>
         public readwrite property <HARMONYCORE_RELATION_NAME>, @<RelationTostructureNoplural>
-        </IF ONE_TO_ONE>
+    </IF ONE_TO_ONE>
 ;//
 ;//
 ;//
-        <IF ONE_TO_MANY_TO_ONE>
+    <IF ONE_TO_MANY_TO_ONE>
         ;;; <summary>
         ;;; Relationship (Type D)
         ;;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) <-> (many) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
         ;;; </summary>
         public readwrite property <HARMONYCORE_RELATION_NAME>, @ICollection<<RelationTostructureNoplural>>
-        </IF ONE_TO_MANY_TO_ONE>
+    </IF ONE_TO_MANY_TO_ONE>
 ;//
 ;//
 ;//
-        <IF ONE_TO_MANY>
+    <IF ONE_TO_MANY>
         ;;; <summary>
         ;;; Relationship (Type E)
         ;;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (one) --> (many) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
         ;;; </summary>
         public readwrite property <HARMONYCORE_RELATION_NAME>, @ICollection<<RelationTostructureNoplural>>
-        </IF ONE_TO_MANY>
+    </IF ONE_TO_MANY>
 
-    </RELATION_LOOP_RESTRICTED>
-  </IF STRUCTURE_RELATIONS>
+  </RELATION_LOOP_RESTRICTED>
+</IF STRUCTURE_RELATIONS>
 .endregion
 
     endclass
@@ -135,6 +135,7 @@ namespace <NAMESPACE>
         
         {JsonProperty("odata.metadata")}
         public readwrite property Metadata, string
+
         {JsonProperty("value")}
         public readwrite property Value, @<StructureNoplural>
 
@@ -144,6 +145,7 @@ namespace <NAMESPACE>
         
         {JsonProperty("odata.metadata")}
         public readwrite property Metadata, string
+
         {JsonProperty("value")}
         public readwrite property Value, @List<<StructureNoplural>>
 

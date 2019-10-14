@@ -164,7 +164,7 @@ namespace <NAMESPACE>
             <IF CUSTOM_HARMONY_AS_STRING>
             builder.EntityType<<StructureNoplural>>().HasKey<<StructureNoplural>,string>("<FieldSqlname>")
             <ELSE>
-            builder.EntityType<<StructureNoplural>>().HasKey<<StructureNoplural>,<FIELD_SNTYPE>>("<FieldSqlname>")
+            builder.EntityType<<StructureNoplural>>().HasKey<<StructureNoplural>,<HARMONYCORE_SEGMENT_DATATYPE>>("<FieldSqlname>")
             </IF CUSTOM_HARMONY_AS_STRING>
           </IF SEG_TAG_EQUAL>
         </SEGMENT_LOOP>

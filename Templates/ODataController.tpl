@@ -168,7 +168,7 @@ namespace <NAMESPACE>
         <IF CUSTOM_HARMONY_AS_STRING>
             required in a<FieldSqlName>, string
         <ELSE>
-            required in a<FieldSqlName>, <SEGMENT_SNTYPE>
+            required in a<FieldSqlName>, <HARMONYCORE_SEGMENT_DATATYPE>
         </IF CUSTOM_HARMONY_AS_STRING>
       </IF SEG_TAG_EQUAL>
     </SEGMENT_LOOP>
@@ -180,7 +180,7 @@ namespace <NAMESPACE>
 </IF STRUCTURE_RELATIVE>
         proc
 ;//Shouldn't really need the generic type arg on FindQuery. Compiler issue?
-            mreturn new SingleResult<<StructureNoplural>>(_DbContext.<StructurePlural>.AsNoTracking().FindQuery<<StructureNoplural>>(_DbContext, <IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>))
+            mreturn new SingleResult<<StructureNoplural>>(_DbContext.<StructurePlural>.AsNoTracking().FindQuery<<StructureNoplural>>(_DbContext, <IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE><ELSE><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>))
         endmethod
 
 </IF GET_ENDPOINT>
@@ -222,7 +222,7 @@ namespace <NAMESPACE>
               <IF CUSTOM_HARMONY_AS_STRING>
             required in a<FieldSqlName>, string
               <ELSE>
-            required in a<FieldSqlName>, <SEGMENT_SNTYPE>
+            required in a<FieldSqlName>, <HARMONYCORE_SEGMENT_DATATYPE>
               </IF CUSTOM_HARMONY_AS_STRING>
             </IF SEG_TAG_EQUAL>
           </SEGMENT_LOOP>
@@ -262,12 +262,12 @@ namespace <NAMESPACE>
               <IF CUSTOM_HARMONY_AS_STRING>
             required in a<FieldSqlName>, string
               <ELSE>
-            required in a<FieldSqlName>, <SEGMENT_SNTYPE>
+            required in a<FieldSqlName>, <HARMONYCORE_SEGMENT_DATATYPE>
               </IF CUSTOM_HARMONY_AS_STRING>
             </IF SEG_TAG_EQUAL>
           </SEGMENT_LOOP>
         proc
-            mreturn new SingleResult<<StructureNoplural>>(_DbContext.<StructurePlural>.AsNoTracking().FindAlternate(<SEGMENT_LOOP>"<FieldSqlName>",<IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP>))
+            mreturn new SingleResult<<StructureNoplural>>(_DbContext.<StructurePlural>.AsNoTracking().FindAlternate(<SEGMENT_LOOP>"<FieldSqlName>",<IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE><ELSE><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP>))
         endmethod
         </IF DUPLICATES>
 
@@ -323,7 +323,7 @@ namespace <NAMESPACE>
                     <IF CUSTOM_HARMONY_AS_STRING>
             required in key, string
                      <ELSE>
-            required in key, <SEGMENT_SNTYPE>
+            required in key, <HARMONYCORE_SEGMENT_DATATYPE>
                     </IF CUSTOM_HARMONY_AS_STRING>
                   <ELSE>
                     <IF SEG_TAG_EQUAL>
@@ -332,13 +332,13 @@ namespace <NAMESPACE>
                       <IF CUSTOM_HARMONY_AS_STRING>
             required in a<FieldSqlName>, string
                       <ELSE>
-            required in a<FieldSqlName>, <SEGMENT_SNTYPE>
+            required in a<FieldSqlName>, <HARMONYCORE_SEGMENT_DATATYPE>
                       </IF CUSTOM_HARMONY_AS_STRING>
                     </IF SEG_TAG_EQUAL>
                   </IF SINGLE_SEGMENT>
                 </SEGMENT_LOOP>
         proc
-            data result = _DbContext.<StructurePlural>.Find(<IF SINGLE_SEGMENT>key<ELSE><SEGMENT_LOOP><IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP></IF SINGLE_SEGMENT>)
+            data result = _DbContext.<StructurePlural>.Find(<IF SINGLE_SEGMENT>key<ELSE><SEGMENT_LOOP><IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE><ELSE><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP></IF SINGLE_SEGMENT>)
             if (result==^null)
                 mreturn NotFound()
             mreturn OK(result.<FieldSqlName>)
@@ -484,7 +484,7 @@ namespace <NAMESPACE>
             <IF CUSTOM_HARMONY_AS_STRING>
             required in a<FieldSqlName>, string
             <ELSE>
-            required in a<FieldSqlName>, <SEGMENT_SNTYPE>
+            required in a<FieldSqlName>, <HARMONYCORE_SEGMENT_DATATYPE>
             </IF CUSTOM_HARMONY_AS_STRING>
           </IF SEG_TAG_EQUAL>
         </SEGMENT_LOOP>
@@ -520,7 +520,7 @@ namespace <NAMESPACE>
             try
             begin
                 ;;Add and commit
-                data existing = _DbContext.<StructurePlural>.Find(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>)
+                data existing = _DbContext.<StructurePlural>.Find(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE><ELSE><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>)
                 if(existing == ^null) then
                 begin
                     _DbContext.<StructurePlural>.Add(a<StructureNoplural>)
@@ -587,7 +587,7 @@ namespace <NAMESPACE>
             <IF CUSTOM_HARMONY_AS_STRING>
             required in a<FieldSqlName>, string
             <ELSE>
-            required in a<FieldSqlName>, <SEGMENT_SNTYPE>
+            required in a<FieldSqlName>, <HARMONYCORE_SEGMENT_DATATYPE>
             </IF CUSTOM_HARMONY_AS_STRING>
           </IF SEG_TAG_EQUAL>
         </SEGMENT_LOOP>
@@ -608,7 +608,7 @@ namespace <NAMESPACE>
             try
             begin
                 ;;Get the <structureNoplural> to be updated
-                data <structureNoplural>ToUpdate = _DbContext.<StructurePlural>.Find(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>)
+                data <structureNoplural>ToUpdate = _DbContext.<StructurePlural>.Find(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE><ELSE><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>)
                 data patchError, @JsonPatchError, ^null
                 ;;Did we find it?
                 if(<structureNoplural>ToUpdate == ^null)
@@ -679,7 +679,7 @@ namespace <NAMESPACE>
             <IF CUSTOM_HARMONY_AS_STRING>
             required in a<FieldSqlName>, string
             <ELSE>
-            required in a<FieldSqlName>, <SEGMENT_SNTYPE>
+            required in a<FieldSqlName>, <HARMONYCORE_SEGMENT_DATATYPE>
             </IF CUSTOM_HARMONY_AS_STRING>
           </IF SEG_TAG_EQUAL>
         </SEGMENT_LOOP>
@@ -691,7 +691,7 @@ namespace <NAMESPACE>
     </IF STRUCTURE_RELATIVE>
         proc
             ;;Get the <structureNoplural> to be deleted
-            data <structureNoplural>ToRemove = _DbContext.<StructurePlural>.Find(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>)
+            data <structureNoplural>ToRemove = _DbContext.<StructurePlural>.Find(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE><ELSE><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>)
 
             ;;Did we find it?
             if (<structureNoplural>ToRemove == ^null)
