@@ -336,7 +336,9 @@ namespace Harmony.Core.FileIO.Queryable
 				throw new NotImplementedException("where expression must contain at least one field or property expression")
 		endmethod
 
-		private static StringContains, @MethodInfo, ^typeof(string).GetMethod("Contains", new Type[#] { ^typeof(String) })
+        private static StringContains, @MethodInfo, ^typeof(string).GetMethod("Contains", new Type[#] { ^typeof(String) })
+		private static StringCompare, @MethodInfo, ^typeof(string).GetMethod("Compare", new Type[#] { ^typeof(String), ^typeof(String) })
+		private static StringCompare2, @MethodInfo, ^typeof(string).GetMethod("Compare", new Type[#] { ^typeof(String), ^typeof(String), ^typeof(StringComparison) })
 		private static StringToLower, @MethodInfo, ^typeof(string).GetMethod("ToLower", new Type[0])
 		private static StringToUpper, @MethodInfo, ^typeof(string).GetMethod("ToUpper", new Type[0])
 
@@ -353,7 +355,7 @@ namespace Harmony.Core.FileIO.Queryable
 				mreturn parent.VisitMethodCall(node)
 			end
 
-
+			
 			mreturn node
 		endmethod
 
@@ -379,7 +381,29 @@ namespace Harmony.Core.FileIO.Queryable
 					end
 
 					
-				end
+                end
+                else if(node.Left .is. MethodCallExpression && node.Right .is. ConstantExpression) then
+                begin
+                    data methodCallExpr = ^as(node.Left, @MethodCallExpression)
+                    data constExpr = ^as(node.Right, @ConstantExpression)
+                    if(methodCallExpr.Method == StringCompare || methodCallExpr.Method == StringCompare2) then
+                    begin
+                        data targetOperator = WhereClauseOperator.EqualTo
+                        if((int)constExpr.Value == 0) then
+                        begin
+                            targetOperator = op.Value
+                        end
+                        else
+                            throw new NotImplementedException("unexpected comparison value for string.compare " + constExpr.Value.ToString())
+
+
+                        ProcessWhereClause(methodCallExpr.Arguments[0], methodCallExpr.Arguments[1], targetOperator)
+                    end
+                    else
+                    begin
+                        throw new NotImplementedException("unsupported function in where clause " + methodCallExpr.Method.Name)
+                    end
+                end
 				else
 					ProcessWhereClause(node.Left, node.Right, op.Value)
 			end

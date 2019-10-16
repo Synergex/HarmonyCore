@@ -655,9 +655,19 @@ namespace Json
 			
 			Pair("DataType", (i)FieldDataType.AlphaField)
 			if(encodeElement) then
-				Pair("Base64Value", Convert.ToBase64String(value))
+			begin
+				if(^passed(size) && ^size(value) > size) then
+					Pair("Base64Value", Convert.ToBase64String(value(1:size)))
+				else
+					Pair("Base64Value", Convert.ToBase64String(value))
+			end
 			else
-				Pair("PassedValue", %atrim(value))
+			begin
+				if(^passed(size) && ^size(value) > size) then
+					Pair("PassedValue", %atrim(value(1:size)))
+				else
+					Pair("PassedValue", %atrim(value))
+			end
 			MapClose()
 			MapClose()
 		endmethod
