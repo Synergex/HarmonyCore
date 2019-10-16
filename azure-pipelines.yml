@@ -123,35 +123,35 @@ stages:
       condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
       artifact: LinuxHarmonyCoreTest
     
-  - job: LinuxTest
-    dependsOn: BuildJob
-    pool:
-      name: Linux-test
-    steps:
-      - task: DownloadPipelineArtifact@2
-        inputs:
-          buildType: 'current'
-          artifactName: LinuxServicesTest
-          targetPath: '$(Pipeline.Workspace)/LinuxServicesTest'
-      - task: DownloadPipelineArtifact@2
-        inputs:
-          buildType: 'current'
-          artifactName: LinuxHarmonyCoreTest
-          targetPath: '$(Pipeline.Workspace)/LinuxHarmonyCoreTest'
-      - task: DownloadPipelineArtifact@2
-        inputs:
-          buildType: 'current'
-          artifactName: LinuxWebApp
-          targetPath: '$(Pipeline.Workspace)/LinuxWebApp'
-      - task: DotNetCoreCLI@2
-        inputs:
-          command: 'custom'
-          custom: 'vstest'
-          arguments: 'HarmonyCore.Test.dll'
-          workingDirectory: '$(Pipeline.Workspace)/LinuxHarmonyCoreTest'
-      - task: DotNetCoreCLI@2
-        inputs:
-          command: 'custom'
-          custom: 'vstest'
-          arguments: 'Services.Test.dll'
-          workingDirectory: '$(Pipeline.Workspace)/LinuxHarmonyCoreTest'
+#  - job: LinuxTest
+#    dependsOn: BuildJob
+#    pool:
+#      name: Linux-test
+#    steps:
+#      - task: DownloadPipelineArtifact@2
+#        inputs:
+#          buildType: 'current'
+#          artifactName: LinuxServicesTest
+#          targetPath: '$(Pipeline.Workspace)/LinuxServicesTest'
+#      - task: DownloadPipelineArtifact@2
+#        inputs:
+#          buildType: 'current'
+#          artifactName: LinuxHarmonyCoreTest
+#          targetPath: '$(Pipeline.Workspace)/LinuxHarmonyCoreTest'
+#      - task: DownloadPipelineArtifact@2
+#        inputs:
+#          buildType: 'current'
+#          artifactName: LinuxWebApp
+#          targetPath: '$(Pipeline.Workspace)/LinuxWebApp'
+#      - task: DotNetCoreCLI@2
+#        inputs:
+#          command: 'custom'
+#          custom: 'vstest'
+#          arguments: 'HarmonyCore.Test.dll'
+#          workingDirectory: '$(Pipeline.Workspace)/LinuxHarmonyCoreTest'
+#      - task: DotNetCoreCLI@2
+#        inputs:
+#          command: 'custom'
+#          custom: 'vstest'
+#          arguments: 'Services.Test.dll'
+#          workingDirectory: '$(Pipeline.Workspace)/LinuxHarmonyCoreTest'
