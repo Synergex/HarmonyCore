@@ -21,10 +21,6 @@ rem Generate model and metadata classes
 codegen -smcstrs %SMCROOT%\%SMCNAME% -interface %TESTNAME% -t %SolutionDir%\%TEMPLATEROOT%\ODataModel %SolutionDir%\%TEMPLATEROOT%\ODataMetaData -i %TEMPLATEROOT% -o %SolutionDir%\TraditionalBridge.Models\Models -n TraditionalBridge.Models -e -r -lf
 if ERRORLEVEL 1 goto bypass
 
-rem Generate controller classes
-codegen -smcstrs %SMCROOT%\%SMCNAME% -t %SolutionDir%\%TEMPLATEROOT%\ODataController -i %TEMPLATEROOT% -o %SolutionDir%\TraditionalBridge.Controllers -n TraditionalBridge.Controllers -ut MODELS_NAMESPACE=TraditionalBridge.Models -e -r -lf
-if ERRORLEVEL 1 goto bypass
-
 goto done
 
 :bypass

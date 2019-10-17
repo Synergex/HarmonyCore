@@ -110,12 +110,6 @@ rem Models
 codegen -s %DATA_STRUCTURES% -t TraditionalModel TraditionalMetaData -i %TEMPLATEROOT% -o %PROJECT%\Models -n %NAMESPACE%.Models -e -r -lf
 if ERRORLEVEL 1 goto error
 
-codegen -s %DATA_STRUCTURES% -t ODataModel ODataMetaData -i %TEMPLATEROOT% -o %SolutionDir%\TraditionalBridge.Models -n TraditionalBridge.Models -e -r -lf
-
-rem Generate the DbContext class
-codegen -s BOOLEANSTR DATETIMEARY DATETIMESTR DNETDATETIME STRTEST1 TIMEKEY -ms -t ODataDbContext -i %TEMPLATEROOT% -o %SolutionDir%\TraditionalBridge.Models -n TraditionalBridge.Models -ut MODELS_NAMESPACE=TraditionalBridge.Models -e -r -lf
-if ERRORLEVEL 1 goto error
-
 rem smc
 set TESTNAME=smc
 set SMCNAME=%TESTNAME%.xml
