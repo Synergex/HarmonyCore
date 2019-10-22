@@ -7,6 +7,9 @@ name: $(Date:yyyyMMdd)$(Build.BuildId)
 
 stages:
 - stage: build
+  variables:
+    BUILD_BUILDNUMBER: 1.0.0.$[counter(buildCounter, 100)]
+
   displayName: 'Main Build'
   jobs: 
   - job: BuildJob
@@ -105,6 +108,18 @@ stages:
         publishWebProjects: false
         projects: Services.Host
         verbosityPack: Diagnostic
+
+    - task: NuGetCommand@2
+      inputs:
+        command: 'pack'
+        packagesToPack: '*.nuspec'
+        versioningScheme: 'byEnvVar'
+    - task: NuGetCommand@2
+      inputs:
+        command: 'push'
+        packagesToPush: '$(Build.ArtifactStagingDirectory)/*.nupkg'
+        nuGetFeedType: 'external'
+        publishFeedCredentials: 'HarmonyBuild'
 
     - publish: '$(Pipeline.Workspace)\\s\\Services.Host\\bin\\Release\\netcoreapp2.2\\publish'
       displayName: 'Publish Linux Services.Host Artifact'
