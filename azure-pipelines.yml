@@ -8,7 +8,7 @@ name: $(Date:yyyyMMdd)$(Build.BuildId)
 stages:
 - stage: build
   variables:
-    BUILD.BUILDNUMBER: 1.0.0.$[counter(buildCounter, 100)]
+    BUILDNUMBER: 1.0.0.$[counter(buildCounter, 100)]
 
   displayName: 'Main Build'
   jobs: 
@@ -114,9 +114,9 @@ stages:
       displayName: 'Pack HarmonyCore'
       inputs:
         command: 'pack'
-        packagesToPack: '$(Pipeline.Workspace)\\s\\Harmony.Core.nuspec'
+        packagesToPack: '$(Pipeline.Workspace)\\s\\*.nuspec'
         versioningScheme: 'byEnvVar'
-        versionEnvVar: 'BUILD_BUILDNUMBER'
+        versionEnvVar: 'BUILDNUMBER'
     - task: NuGetCommand@2
       inputs:
         command: 'push'
