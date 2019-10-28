@@ -3,10 +3,11 @@
 # Start with a minimal pipeline that you can customize to build and deploy your code.
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
-name: $(Date:yyyyMMdd)$(Build.BuildId)
+name: 1.1.$(Rev:r)
 
 stages:
 - stage: build
+
   displayName: 'Main Build'
   jobs: 
   - job: BuildJob
@@ -105,6 +106,20 @@ stages:
         publishWebProjects: false
         projects: Services.Host
         verbosityPack: Diagnostic
+
+    - task: NuGetCommand@2
+      name: 'HarmonyCoreNuget'
+      displayName: 'Pack HarmonyCore'
+      inputs:
+        command: 'pack'
+        packagesToPack: '*.nuspec'
+        versioningScheme: 'byBuildNumber'
+    - task: NuGetCommand@2
+      inputs:
+        command: 'push'
+        packagesToPush: '$(Build.ArtifactStagingDirectory)/*.nupkg'
+        nuGetFeedType: 'external'
+        publishFeedCredentials: 'HarmonyBuild'
 
     - publish: '$(Pipeline.Workspace)\\s\\Services.Host\\bin\\Release\\netcoreapp2.2\\publish'
       displayName: 'Publish Linux Services.Host Artifact'
