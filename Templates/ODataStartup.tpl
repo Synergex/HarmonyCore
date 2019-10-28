@@ -174,7 +174,7 @@ namespace <NAMESPACE>
             begin
                 data objectProvider = new DataObjectProvider(serviceProvider.GetService<IFileChannelManager>())
                 <STRUCTURE_LOOP>
-                objectProvider.AddDataObjectMapping<<MODELS_NAMESPACE>.<StructureNoplural>>("<FILE_NAME>", <IF STRUCTURE_ISAM>FileOpenMode.UpdateIndexed</IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>FileOpenMode.UpdateRelative</IF STRUCTURE_RELATIVE>)
+                objectProvider.AddDataObjectMapping<<StructureNoplural>>("<FILE_NAME>", <IF STRUCTURE_ISAM>FileOpenMode.UpdateIndexed</IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>FileOpenMode.UpdateRelative</IF STRUCTURE_RELATIVE>)
                 </STRUCTURE_LOOP>
                 mreturn objectProvider
             end

@@ -83,18 +83,6 @@ rem
 rem BRIDGE_ALIASES      Optional aliases for the structures listed in BRIDGE_STRUCTURES
 
 rem ================================================================================================================================
-rem Specify optional "system parameter file" structure
-
-set PARAMSTR=SYSPARAMS
-
-rem In the sammple environment the system parameter file is a relative file that contains
-rem "next available record number" data for use in conjunction with POST (create with automated
-rem primary key assignment) operaitons. Naming the structure associated with that file here
-rem ensures that a copy of that file will be made available in the sample self-host environment
-rem along with other data files in the sample data folder. This mechanism will require customization
-rem for use in other environments.
-
-rem ================================================================================================================================
 rem Comment or uncomment the following lines to enable or disable optional features:
 
 rem Note that the ENABLE_SWAGGER_DOCS and ENABLE_API_VERSIONING are mutually exclusive.
@@ -205,7 +193,7 @@ rem Self hosting
 
 if DEFINED ENABLE_SELF_HOST_GENERATION (
 
-  codegen -s  %FILE_STRUCTURES% %PARAMSTR% -ms ^
+  codegen -s  %FILE_STRUCTURES% -ms ^
           -a  %FILE_ALIASES% ^
 		  -fo %FILE_FILES% ^
           -t  ODataSelfHost ODataSelfHostEnvironment ^
@@ -272,7 +260,7 @@ if DEFINED ENABLE_UNIT_TEST_GENERATION (
   if ERRORLEVEL 1 goto error
 
   rem Generate the test environment
-  codegen -s  %FILE_STRUCTURES% %PARAMSTR% -ms ^
+  codegen -s  %FILE_STRUCTURES% -ms ^
           -a  %FILE_ALIASES% ^
 		  -fo %FILE_FILES% ^
           -t  ODataTestEnvironment ^
