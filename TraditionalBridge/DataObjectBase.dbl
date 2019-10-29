@@ -254,30 +254,12 @@ namespace Harmony.TraditionalBridge
 		;;override this in a dataobjectbase where we have to deal with binary data being sent from a big endian to a little endian system
 		public virtual method Serialize, void
 			serializer, @JsonSerializer
-			;;TODO maybe add serializer options here?
+			optional name, @string
 		proc
-			DataObjectBase.Serialize(serializer, SynergyRecord, Metadata.RPSStructureName, mGlobalRFA, Metadata.RPSStructureHasBinaryData)
-		endmethod
-
-		public static method Serialize, void
-			serializer, @JsonSerializer
-			dataValue, a
-			dataType, a
-			grfa, a
-			dataNeedsEncoding, boolean
-		proc
-			serializer.MapOpen()
-			serializer.Pair("Type", dataType)
-			if(!dataNeedsEncoding) then
-			begin
-				serializer.Pair("Value", dataValue)
-			end
+			if(^passed(name)) then
+				serializer.ObjectData(SynergyRecord, Metadata.RPSStructureName, mGlobalRFA, Metadata.RPSStructureHasBinaryData, name)
 			else
-			begin
-				serializer.Pair("Base64Value", Convert.ToBase64String(dataValue))
-			end
-			serializer.Pair("GRFA", grfa)
-			serializer.MapClose()
+				serializer.ObjectData(SynergyRecord, Metadata.RPSStructureName, mGlobalRFA, Metadata.RPSStructureHasBinaryData, ^null)
 		endmethod
 
 		public abstract property Metadata, @DataObjectMetadataBase
