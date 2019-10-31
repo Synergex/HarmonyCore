@@ -398,7 +398,11 @@ namespace Harmony.Core.FileIO.Queryable
 
 
                         ProcessWhereClause(methodCallExpr.Arguments[0], methodCallExpr.Arguments[1], targetOperator)
-                    end
+					end
+					else if(((@MethodCallExpression)node.Left).Method.Name == "Property") then
+					begin
+						ProcessWhereClause(node.Left, node.Right, op.Value)
+					end
                     else
                     begin
                         throw new NotImplementedException("unsupported function in where clause " + methodCallExpr.Method.Name)
