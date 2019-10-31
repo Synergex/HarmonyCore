@@ -419,7 +419,7 @@ namespace <NAMESPACE>
           <ELSE>
             <IF SEG_TYPE_LITERAL>
             <COUNTER_1_INCREMENT>
-            rel<RELATION_NUMBER>FromKey.litseg<COUNTER_1_VALUE> = <SEGMENT_LITVAL>
+            rel<RELATION_NUMBER>FromKey.litseg<COUNTER_1_VALUE> = "<SEGMENT_LITVAL>"
             </IF SEG_TYPE_LITERAL>
           </IF SEG_TYPE_FIELD>
         </FROM_KEY_SEGMENT_LOOP>
