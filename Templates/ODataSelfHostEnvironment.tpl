@@ -107,7 +107,7 @@ namespace <NAMESPACE>
         ;;Declare the SetLogicalsCustom partial method
         ;;This method can be implemented in a partial class to provide custom code to define logical names
         partial static method SetLogicalsCustom, void
-
+            required in logicals, @List<string>
         endmethod
 
         private static method setLogicals, void
@@ -133,7 +133,7 @@ namespace <NAMESPACE>
             </STRUCTURE_LOOP>
 
             ;;If we have a SetLogicalsCustom method, call it
-            SetLogicalsCustom()
+            SetLogicalsCustom(Startup.LogicalNames)
 
 <IF NOT_DEFINED_DO_NOT_SET_FILE_LOGICALS>
             ;;Now we'll check each logical. If it already has a value we'll do nothing, otherwise
