@@ -13,7 +13,8 @@ namespace Harmony.Core.FileIO.Queryable
 			public childrenState, @List<DataObjectMaterializer.MaterializerState>
 			public typeBuf, @QueryBuffer.TypeBuffer
 			public grfa, a10
-			public madeItems, @IEnumerable<DataObjectBase>
+            public madeItems, @IEnumerable<DataObjectBase>
+            public dedupSet, @HashSet<System.Numerics.BigInteger>
 			public lastMadeItem, @DataObjectBase
 			public createdItemCount, int, 0
 			public lastBubbleTarget, int, -1
@@ -41,7 +42,7 @@ namespace Harmony.Core.FileIO.Queryable
 								childState.MaybeBubbleMake(tracker, true)
 						end
 						data structureSize, i4, typeBuf.Metadata.StructureSize
-						data memPnt, i4, typeBuf.MemoryHandle.Value
+                        data memPnt, i4, typeBuf.MemoryHandle.Value
 						;;construct the object
 						lastMadeItem = dependentItems != ^null ? 
 						&	typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa, dependentItems.ToArray()) : 
@@ -164,7 +165,15 @@ namespace Harmony.Core.FileIO.Queryable
 				obj, @DataObjectBase
 			proc
 				data typedItems = ((@List<T>)madeItems)
-				data item, T, (T)obj
+                data item, T, (T)obj
+
+                ;;todo: short circut duplicate item construction
+                data grfaInt = new System.Numerics.BigInteger(obj.GlobalRFA)
+                if(dedupSet.Contains(grfaInt)) then
+                    mreturn
+                else
+                    dedupSet.Add(grfaInt)
+
 				if(typeBuf.OrderBy != ^null) then
 				begin
 					if(CmpObj == ^null)
@@ -197,7 +206,8 @@ namespace Harmony.Core.FileIO.Queryable
 
 			public override method InitItems, void
 			proc
-				madeItems = (@IEnumerable<DataObjectBase>)new List<T>()
+                madeItems = (@IEnumerable<DataObjectBase>)new List<T>()
+                dedupSet = new HashSet<System.Numerics.BigInteger>()
 			endmethod
 
 			public override method HasOneItem, boolean
