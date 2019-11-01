@@ -1,6 +1,6 @@
 <CODEGEN_FILENAME>GlobalStructures.dbl</CODEGEN_FILENAME>
 <OPTIONAL_USERTOKEN>RPSDATAFILES= </OPTIONAL_USERTOKEN>
-<REQUIRES_CODEGEN_VERSION>5.4.5</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.4.6</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
 ;// Title:       DataObjectMetaData.tpl

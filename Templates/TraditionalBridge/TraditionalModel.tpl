@@ -1,6 +1,6 @@
 <CODEGEN_FILENAME><StructureNoplural>.dbl</CODEGEN_FILENAME>
 <PROCESS_TEMPLATE>TraditionalModel</PROCESS_TEMPLATE>
-<REQUIRES_CODEGEN_VERSION>5.4.5</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.4.6</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
 ;// Title:       ODataModel.tpl
