@@ -240,7 +240,7 @@ namespace <NAMESPACE>
             begin
                 ;; resolve the IApiVersionDescriptionProvider service
                 ;; note: that we have to build a temporary service provider here because one has not been created yet
-                data provider = services.BuildServiceProvider().GetRequiredService<IApiVersionDescriptionProvider>()
+                data provider, @IApiVersionDescriptionProvider, (@IApiVersionDescriptionProvider)services.BuildServiceProvider().GetRequiredService(^typeof(IApiVersionDescriptionProvider))
                 data description, @ApiVersionDescription
 
                 ;; add a swagger document for each discovered API version
