@@ -1,9 +1,9 @@
 ;;*****************************************************************************
 ;;
-;; Title:       Order.dbl
+;; Title:       CustomerNote.dbl
 ;;
 ;; Description: OData model class representing data defined by the repository
-;;              structure ORDERS and from the data file DAT:orders.ism.
+;;              structure CUSTOMER_NOTES and from the data file DAT:customer_notes.ism.
 ;;
 ;;*****************************************************************************
 ;; WARNING: GENERATED CODE!
@@ -17,12 +17,7 @@ import System.Collections.Generic
 namespace Services.Test.Models
 
     {JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)}
-    public partial class Order
-
-        ;;; <summary>
-        ;;; Order number
-        ;;; </summary>
-        public readwrite property OrderNumber, int
+    public partial class CustomerNote
 
         ;;; <summary>
         ;;; Customer number
@@ -30,42 +25,21 @@ namespace Services.Test.Models
         public readwrite property CustomerNumber, int
 
         ;;; <summary>
-        ;;; Order placed by
+        ;;; Note number
         ;;; </summary>
-        public readwrite property PlacedBy, String
+        public readwrite property NoteNumber, int
 
         ;;; <summary>
-        ;;; Customer order reference
+        ;;; Note text
         ;;; </summary>
-        public readwrite property CustomerReference, String
-
-        ;;; <summary>
-        ;;; Payment terms code
-        ;;; </summary>
-        public readwrite property PaymentTermsCode, String
-
-        ;;; <summary>
-        ;;; Date ordered
-        ;;; </summary>
-        public readwrite property DateOrdered, DateTime
-
-        ;;; <summary>
-        ;;; Date order completed
-        ;;; </summary>
-        public readwrite property DateCompleted, DateTime
+        public readwrite property NoteText, String
 
 
 .region "Relationships to other entities"
 
         ;;; <summary>
-        ;;; Relationship (Type D)
-        ;;; ORDER.ORDER_NUMBER (one) <-> (many) ORDER_ITEM.ORDER_NUMBER_AND_LINE_ITEM
-        ;;; </summary>
-        public readwrite property REL_OrderItems, @ICollection<OrderItem>
-
-        ;;; <summary>
         ;;; Relationship (Type A)
-        ;;; ORDER.CUSTOMER_NUMBER (one) --> (one) --> (many) CUSTOMER.CUSTOMER_NUMBER
+        ;;; CUSTOMER_NOTE.CUSTOMER_NUMBER (one) --> (one) --> (many) CUSTOMER.CUSTOMER_NUMBER
         ;;; </summary>
         public readwrite property REL_Customer, @Customer
 
@@ -73,23 +47,23 @@ namespace Services.Test.Models
 
     endclass
 
-    public class ODataOrder
+    public class ODataCustomerNote
         
         {JsonProperty("odata.metadata")}
         public readwrite property Metadata, string
 
         {JsonProperty("value")}
-        public readwrite property Value, @Order
+        public readwrite property Value, @CustomerNote
 
     endclass
 
-    public class ODataOrders
+    public class ODataCustomerNotes
         
         {JsonProperty("odata.metadata")}
         public readwrite property Metadata, string
 
         {JsonProperty("value")}
-        public readwrite property Value, @List<Order>
+        public readwrite property Value, @List<CustomerNote>
 
     endclass
 

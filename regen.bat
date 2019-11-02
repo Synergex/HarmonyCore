@@ -28,7 +28,7 @@ set TraditionalBridgeProject=TraditionalBridge
 rem ================================================================================================================================
 rem Specify the names of the repository structures to generate code from:
 
-set DATA_STRUCTURES=CUSTOMERS ITEMS ORDERS ORDER_ITEMS VENDORS
+set DATA_STRUCTURES=CUSTOMERS CUSTOMER_NOTES ITEMS ORDERS ORDER_ITEMS VENDORS
 set DATA_ALIASES=%DATA_STRUCTURES%
 set DATA_FILES=%DATA_STRUCTURES%
 

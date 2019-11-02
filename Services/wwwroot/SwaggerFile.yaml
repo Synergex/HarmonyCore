@@ -33,6 +33,9 @@ tags:
   - name: Customers
     description: Operations related to Customer record
 
+  - name: CustomerNotes
+    description: Operations related to Customer notes
+
   - name: Items
     description: Operations related to Item master record
 
@@ -729,6 +732,242 @@ paths:
             type: number
         '404':
           description: Not found (the specified customer was not found)
+
+  /CustomerNotes:
+
+    get:
+      summary: Get all customerNotes
+      description: Get all or a filtered collection of customerNotes.
+      operationId: GetCustomerNotes
+      deprecated: false
+      tags:
+        - CustomerNotes
+      parameters:
+        - name: $expand
+          in: query
+          description: Expand one or more navigation properties.
+          type: string
+        - name: $select
+          in: query
+          description: List of properties to be returned.
+          type: string
+        - name: $filter
+          in: query
+          description: Filter expression to restrict returned rows.
+          type: string
+        - name: $orderby
+          in: query
+          description: Order by some property
+          type: string
+        - name: $top
+          in: query
+          description: Maximum number of rows to return.
+          type: integer
+        - name: $skip
+          in: query
+          description: Rows to skip before starting to return data.
+          type: integer
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: 'CustomerNoteTypes.yaml#/CustomerNote'
+
+    post:
+      summary: Create a customerNote
+      description: Create a new customerNote. When using a POST operation the primary key value will be assigned automatically. The primary key properties can be ommitted from the data in the request body, but if present will be ignored and replaced by automatically generated values.
+      operationId: PostCustomerNote
+      deprecated: false
+      tags:
+        - CustomerNotes
+      parameters:
+        - name: aCustomerNote
+          in: body
+          description: Data for customerNote to create.
+          required: true
+          schema:
+            $ref: 'CustomerNoteTypes.yaml#/CustomerNotePost'
+      responses:
+        '201':
+          description: The customerNote was created. The data for the new customerNote will be included in the response body, including the auotmatically assigned primary key values, and the response will include a "Location" header indicating the URL that can be used to retrieve the newly created customerNote.
+          schema:
+            $ref: 'CustomerNoteTypes.yaml#/CustomerNote'
+        '400':
+          description: Bad request
+
+  /CustomerNotes/$count:
+
+    get:
+      summary: Count customerNotes
+      description: Count all or a filtered collection of customerNotes.
+      operationId: CountCustomerNotes
+      deprecated: false
+      tags:
+        - CustomerNotes
+      parameters:
+        - name: $filter
+          in: query
+          description: Filter expression to restrict returned rows.
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: integer
+
+  '/CustomerNotes(CustomerNumber={aCustomerNumber})':
+
+    get:
+      summary: Get a single customerNote
+      description: Get a customerNote via a complete primary key.
+      operationId: GetCustomerNote
+      deprecated: false
+      tags:
+        - CustomerNotes
+      parameters:
+        - name: aCustomerNumber
+          in: path
+          description: Customer number
+          required: true
+          type: integer
+        - name: $expand
+          in: query
+          description: Expand one or more navigation properties.
+          type: string
+        - name: $select
+          in: query
+          description: List of properties to be returned.
+          type: string
+      responses:
+        '200':
+          description: OK (the requested customerNote was found and returned)
+          schema:
+            $ref: 'CustomerNoteTypes.yaml#/CustomerNote'
+        '404':
+          description: Not found (the requested customerNote was not found)
+
+    delete:
+      summary: Delete customerNote
+      description: Delete a customerNote via a complete primary key.
+      operationId: DeleteCustomerNote
+      deprecated: false
+      tags:
+        - CustomerNotes
+      parameters:
+        - name: aCustomerNumber
+          in: path
+          description: Customer number
+          required: true
+          type: integer
+      responses:
+        '204':
+          description: No content (the specified customerNote was deleted)
+        '404':
+          description: Not found content (the specified customerNote was not found)
+
+    put:
+      summary: Create or update customerNote
+      description: Create or update a customerNote via a complete primary key.
+      operationId: CreateOrUpdateCustomerNote
+      deprecated: false
+      tags:
+        - CustomerNotes
+      parameters:
+        - name: aCustomerNumber
+          in: path
+          description: Customer number
+          required: true
+          type: integer
+        - name: aCustomerNote
+          in: body
+          description: Data for customerNote to create or update.
+          required: true
+          schema:
+            $ref: 'CustomerNoteTypes.yaml#/CustomerNote'
+      responses:
+        '201':
+          description: Created (the customerNote was created)
+          schema:
+            $ref: 'CustomerNoteTypes.yaml#/CustomerNote'
+        '204':
+          description: No Content (the customerNote was updated)
+        '400':
+          description: Bad request
+
+    patch:
+      summary: Patch customerNote
+      description: Patch a customerNote via complete primary key.
+      operationId: PatchCustomerNote
+      deprecated: false
+      tags:
+        - CustomerNotes
+      parameters:
+        - name: aCustomerNumber
+          in: path
+          description: Customer number
+          required: true
+          type: integer
+        - name: aPatchDocument
+          in: body
+          description: JSON patch document describing the changes to make to the customerNote.
+          required: true
+          schema:
+            $ref: '#/definitions/PatchRequest'
+      responses:
+        '204':
+          description: No content (the specified customerNote was patched)
+        '400':
+          description: Bad request
+        '404':
+          description: Not found (the specified customerNote was not found)
+
+  '/CustomerNotes({key})/NoteNumber':
+
+    get:
+      summary: Get customerNote property NoteNumber
+      description: Get customerNote property NoteNumber via complete primary key.
+      operationId: CustomerNoteNoteNumber
+      deprecated: false
+      tags:
+        - CustomerNotes
+      parameters:
+        - name: key
+          in: path
+          description: Customer number
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: OK (the selected customerNote was founn and the requested property was returned)
+          schema:
+            type: integer
+        '404':
+          description: Not found (the specified customerNote was not found)
+
+  '/CustomerNotes({key})/NoteText':
+
+    get:
+      summary: Get customerNote property NoteText
+      description: Get customerNote property NoteText via complete primary key.
+      operationId: CustomerNoteNoteText
+      deprecated: false
+      tags:
+        - CustomerNotes
+      parameters:
+        - name: key
+          in: path
+          description: Customer number
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: OK (the selected customerNote was founn and the requested property was returned)
+          schema:
+            type: string
+        '404':
+          description: Not found (the specified customerNote was not found)
 
   /Items:
 

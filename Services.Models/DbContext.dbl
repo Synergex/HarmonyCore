@@ -41,6 +41,11 @@ namespace Services.Models
         public readwrite property Customers, @DbSet<Customer>
 
         ;;; <summary>
+        ;;; Exposes CustomerNote data.
+        ;;; </summary>
+        public readwrite property CustomerNotes, @DbSet<CustomerNote>
+
+        ;;; <summary>
         ;;; Exposes Item data.
         ;;; </summary>
         public readwrite property Items, @DbSet<Item>
@@ -103,6 +108,21 @@ namespace Services.Models
             ;;    To segments   : ITEM_NUMBER(D6) 
 
             parm.AddOneToOneRelation<Customer, Item>("REL_CustomerFavoriteItem", "KEY_FAVORITE_ITEM", "KEY_ITEM_NUMBER")
+            ;; CUSTOMER.CUSTOMER_NUMBER (one) --> (many) --> (one) CUSTOMER_NOTE.CUSTOMER_NUMBER
+            ;;    Type          : D
+            ;;    From segments : CUSTOMER_NUMBER(D6) 
+            ;;    To segments   : CUSTOMER_NUMBER(D6) 
+
+            parm.AddOneToManyToOneRelation<Customer, CustomerNote>("REL_CustomerNotes", "KEY_CUSTOMER_NUMBER", "REL_Customer", "KEY_CUSTOMER_NUMBER")
+            ;;--------------------------------------
+            ;; Relationships from CUSTOMER_NOTE
+
+             ;; CUSTOMER_NOTE.CUSTOMER_NUMBER (many) --> (one) --> (many) CUSTOMER.CUSTOMER_NUMBER
+             ;;    Type          : A
+             ;;    From segments : CUSTOMER_NUMBER(D6) 
+             ;;    To segments   : CUSTOMER_NUMBER(D6) 
+
+             parm.AddOneToOneToManyRelation<CustomerNote, Customer>("REL_Customer", "KEY_CUSTOMER_NUMBER", "REL_CustomerNotes", "KEY_CUSTOMER_NUMBER")
             ;;--------------------------------------
             ;; Relationships from ITEM
 

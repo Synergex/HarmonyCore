@@ -89,6 +89,19 @@ namespace Services.Host
                     Startup.LogicalNames.Add(fileSpec)
             end
 
+            fileSpec = "DAT:customer_notes.ism"
+            if (fileSpec.Contains(":")) then
+            begin
+                logical = fileSpec.Split(":")[1].ToUpper()
+                if (!Startup.LogicalNames.Contains(logical))
+                    Startup.LogicalNames.Add(logical)
+            end
+            else if (!fileSpec.Contains("."))
+            begin
+                if (!Startup.LogicalNames.Contains(fileSpec))
+                    Startup.LogicalNames.Add(fileSpec)
+            end
+
             fileSpec = "DAT:items.ism"
             if (fileSpec.Contains(":")) then
             begin
@@ -169,6 +182,7 @@ namespace Services.Host
             data xdlFile, string
 
             data customers = loadCustomers()
+            data customerNotes = loadCustomerNotes()
             data items = loadItems()
             data orders = loadOrders()
             data orderItems = loadOrderItems()
@@ -183,6 +197,17 @@ namespace Services.Host
             open(chout=0,o:i,dataFile,FDL:xdlFile)
             foreach customer in customers
                 store(chout,customer.SynergyRecord)
+            close chout
+
+            ;;Create and load the customerNotes file
+
+            dataFile = "DAT:customer_notes.ism"
+            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+
+            data customerNote, @CustomerNote
+            open(chout=0,o:i,dataFile,FDL:xdlFile)
+            foreach customerNote in customerNotes
+                store(chout,customerNote.SynergyRecord)
             close chout
 
             ;;Create and load the items file
@@ -237,6 +262,17 @@ namespace Services.Host
             try
             begin
                 xcall delet("DAT:customers.ism")
+            end
+            catch (e, @NoFileFoundException)
+            begin
+                nop
+            end
+            endtry
+
+            ;;Delete the customerNotes file
+            try
+            begin
+                xcall delet("DAT:customer_notes.ism")
             end
             catch (e, @NoFileFoundException)
             begin
@@ -307,6 +343,25 @@ namespace Services.Host
         eof,
             close customerCh
             mreturn customers
+        endmethod
+
+        public static method loadCustomerNotes, @List<CustomerNote>
+        proc
+            data dataFile = "DAT:customer_notes.ism"
+            data textFile = dataFile.ToLower().Replace(".ism",".txt")
+            data customerNoteCh, int, 0
+            data customerNoteRec, strCustomerNote
+            data customerNotes = new List<CustomerNote>()
+            data grfa, a10
+            open(customerNoteCh,i:s,textFile)
+            repeat
+            begin
+                reads(customerNoteCh,customerNoteRec,eof)
+                customerNotes.Add(new CustomerNote(customerNoteRec, grfa))
+            end
+        eof,
+            close customerNoteCh
+            mreturn customerNotes
         endmethod
 
         public static method loadItems, @List<Item>

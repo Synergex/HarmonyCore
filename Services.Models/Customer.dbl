@@ -342,6 +342,11 @@ namespace Services.Models
             record rel2FromKey
               favorite_item, d6
             endrecord
+
+            ;;From key for REL_CustomerNotes
+            record rel3FromKey
+              customer_number, d6
+            endrecord
         proc
             ;;No relation validation if the record is being deleted
             if (vType == ValidationType.Delete)
@@ -362,6 +367,14 @@ namespace Services.Models
             disposable data rel2FileIO = doProvider.GetFileIO<Item>()
             if (rel2FileIO.FindRecord(0,rel2FromKey) != FileAccessResults.Success)
                 throw new ValidationException("Invalid data for relation REL_CustomerFavoriteItem")
+
+            ;;--------------------------------------------------------------------------------
+            ;;Validate data for relation 3 (REL_CustomerNotes)
+
+            rel3FromKey.customer_number = mSynergyData.customer_number
+            disposable data rel3FileIO = doProvider.GetFileIO<CustomerNote>()
+            if (rel3FileIO.FindRecord(0,rel3FromKey) != FileAccessResults.Success)
+                throw new ValidationException("Invalid data for relation REL_CustomerNotes")
 
 
             ;;If we have a ValidateCustom method, call it
@@ -390,6 +403,12 @@ namespace Services.Models
         ;;; CUSTOMER.FAVORITE_ITEM (one) --> (one) ITEM.ITEM_NUMBER
         ;;; </summary>
         public readwrite property REL_CustomerFavoriteItem, @Item
+
+        ;;; <summary>
+        ;;; Relationship (Type D)
+        ;;; CUSTOMER.CUSTOMER_NUMBER (one) <-> (many) CUSTOMER_NOTE.CUSTOMER_NUMBER
+        ;;; </summary>
+        public readwrite property REL_CustomerNotes, @ICollection<CustomerNote>
 
 .endregion
 

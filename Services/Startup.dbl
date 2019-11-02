@@ -120,6 +120,7 @@ namespace Services
             begin
                 data objectProvider = new DataObjectProvider(serviceProvider.GetService<IFileChannelManager>())
                 objectProvider.AddDataObjectMapping<Customer>("DAT:customers.ism", FileOpenMode.UpdateIndexed)
+                objectProvider.AddDataObjectMapping<CustomerNote>("DAT:customer_notes.ism", FileOpenMode.UpdateIndexed)
                 objectProvider.AddDataObjectMapping<Item>("DAT:items.ism", FileOpenMode.UpdateIndexed)
                 objectProvider.AddDataObjectMapping<Order>("DAT:orders.ism", FileOpenMode.UpdateIndexed)
                 objectProvider.AddDataObjectMapping<OrderItem>("DAT:order_items.ism", FileOpenMode.UpdateIndexed)
@@ -175,7 +176,7 @@ namespace Services
             begin
                 ;; resolve the IApiVersionDescriptionProvider service
                 ;; note: that we have to build a temporary service provider here because one has not been created yet
-                data provider = services.BuildServiceProvider().GetRequiredService<IApiVersionDescriptionProvider>()
+                data provider, @IApiVersionDescriptionProvider, (@IApiVersionDescriptionProvider)services.BuildServiceProvider().GetRequiredService(^typeof(IApiVersionDescriptionProvider))
                 data description, @ApiVersionDescription
 
                 ;; add a swagger document for each discovered API version
