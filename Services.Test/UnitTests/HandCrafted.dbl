@@ -706,6 +706,19 @@ namespace Services.Test.UnitTests
 		endmethod
 
 		{TestMethod}
+		public method EF_FirstOrDefaultNotZero, void
+		proc
+			data startupClass = new Startup(^null, ^null)
+			data startupServices = new ServiceCollection()
+			startupClass.ConfigureServices(startupServices)
+			disposable data sp = startupServices.BuildServiceProvider()
+			disposable data context, @DbContext, sp.GetService<DbContext>()
+			data customerData = context.Customers.FirstOrDefault("CustomerNumber != 0 && CustomerNumber == @0", 8)
+			Assert.IsFalse(customerData == ^null)
+			Assert.AreEqual(customerData.CustomerNumber, 8)
+		endmethod
+
+		{TestMethod}
 		public method EF_Where, void
 		proc
 			data startupClass = new Startup(^null, ^null)
