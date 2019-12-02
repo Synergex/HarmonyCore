@@ -174,14 +174,18 @@ namespace HarmonyCore.Test.Bridge
             Assert.AreEqual(7777777, mscAryTstIntResult.p1[3])
             Assert.AreEqual(666666, mscAryTstIntResult.p1[4])
 
+            ;Console.ReadKey()
+
             data timeStart = DateTime.Now
             data i = 0
-            for i from 1 thru 100 by 1
+            data CData = new string('C', 65535)
+            data DData = new string('D', 65535)
+            for i from 1 thru 1000 by 1
             begin
-                data passtringResult = await context.passstring(new passstring_Request() { p1 = new string('C', 65535), p3=new string('D', 65535) })
+                data passtringResult = await context.passstring(new passstring_Request() { p1 = CData, p3=DData})
 
-                Assert.AreEqual(new string('C', 65535), passtringResult.p2)
-                Assert.AreEqual(new string('D', 65535), passtringResult.p3)
+                Assert.AreEqual(CData, passtringResult.p2)
+                Assert.AreEqual(DData, passtringResult.p3)
             end
             data timeEnd = DateTime.Now
             data timeTaken = timeEnd - timeStart
