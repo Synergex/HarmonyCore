@@ -15,6 +15,13 @@ import Harmony.TraditionalBridge
 import System.Collections
 import TraditionalBridge.Test.Models
 
+.ifdef DBLV11
+import System.Text.Json
+.define JSON_ELEMENT @JsonElement
+.else
+.define JSON_ELEMENT @JsonValue
+.endc
+
 namespace TraditionalBridge.Test.syntst
 
 
@@ -32,12 +39,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED IN p1 A5)
@@ -81,7 +88,7 @@ namespace TraditionalBridge.Test.syntst
                 ;;Argument 20 (REQUIRED IN p20 A5)
                 arg20,               a5
                 ;;Argument 21 (REQUIRED INOUT p21 [*]A7)
-                arg21Array,          @JsonArray
+                arg21Array,          JSON_ELEMENT
                 arg21Handle,         D_HANDLE
                 arg21HandlePos,      int
                 ;;Argument 22 (REQUIRED IN p22 A5)
@@ -99,77 +106,77 @@ namespace TraditionalBridge.Test.syntst
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED IN p1 A5)
-            arg1 = dispatcher.GetText((@JsonObject)arguments.arrayValues[1])
+            arg1 = dispatcher.GetText(arguments[1])
 
             ;;Argument 2 (REQUIRED IN p2 A5)
-            arg2 = dispatcher.GetText((@JsonObject)arguments.arrayValues[2])
+            arg2 = dispatcher.GetText(arguments[2])
 
             ;;Argument 3 (REQUIRED IN p3 A5)
-            arg3 = dispatcher.GetText((@JsonObject)arguments.arrayValues[3])
+            arg3 = dispatcher.GetText(arguments[3])
 
             ;;Argument 4 (REQUIRED IN p4 A5)
-            arg4 = dispatcher.GetText((@JsonObject)arguments.arrayValues[4])
+            arg4 = dispatcher.GetText(arguments[4])
 
             ;;Argument 5 (REQUIRED IN p5 A5)
-            arg5 = dispatcher.GetText((@JsonObject)arguments.arrayValues[5])
+            arg5 = dispatcher.GetText(arguments[5])
 
             ;;Argument 6 (REQUIRED IN p6 A5)
-            arg6 = dispatcher.GetText((@JsonObject)arguments.arrayValues[6])
+            arg6 = dispatcher.GetText(arguments[6])
 
             ;;Argument 7 (REQUIRED IN p7 A5)
-            arg7 = dispatcher.GetText((@JsonObject)arguments.arrayValues[7])
+            arg7 = dispatcher.GetText(arguments[7])
 
             ;;Argument 8 (REQUIRED IN p8 A5)
-            arg8 = dispatcher.GetText((@JsonObject)arguments.arrayValues[8])
+            arg8 = dispatcher.GetText(arguments[8])
 
             ;;Argument 9 (REQUIRED IN p9 A5)
-            arg9 = dispatcher.GetText((@JsonObject)arguments.arrayValues[9])
+            arg9 = dispatcher.GetText(arguments[9])
 
             ;;Argument 10 (REQUIRED IN p10 A5)
-            arg10 = dispatcher.GetText((@JsonObject)arguments.arrayValues[10])
+            arg10 = dispatcher.GetText(arguments[10])
 
             ;;Argument 11 (REQUIRED IN p11 A5)
-            arg11 = dispatcher.GetText((@JsonObject)arguments.arrayValues[11])
+            arg11 = dispatcher.GetText(arguments[11])
 
             ;;Argument 12 (REQUIRED IN p12 A5)
-            arg12 = dispatcher.GetText((@JsonObject)arguments.arrayValues[12])
+            arg12 = dispatcher.GetText(arguments[12])
 
             ;;Argument 13 (REQUIRED IN p13 A5)
-            arg13 = dispatcher.GetText((@JsonObject)arguments.arrayValues[13])
+            arg13 = dispatcher.GetText(arguments[13])
 
             ;;Argument 14 (REQUIRED IN p14 A5)
-            arg14 = dispatcher.GetText((@JsonObject)arguments.arrayValues[14])
+            arg14 = dispatcher.GetText(arguments[14])
 
             ;;Argument 15 (REQUIRED IN p15 A5)
-            arg15 = dispatcher.GetText((@JsonObject)arguments.arrayValues[15])
+            arg15 = dispatcher.GetText(arguments[15])
 
             ;;Argument 16 (REQUIRED IN p16 A5)
-            arg16 = dispatcher.GetText((@JsonObject)arguments.arrayValues[16])
+            arg16 = dispatcher.GetText(arguments[16])
 
             ;;Argument 17 (REQUIRED IN p17 A5)
-            arg17 = dispatcher.GetText((@JsonObject)arguments.arrayValues[17])
+            arg17 = dispatcher.GetText(arguments[17])
 
             ;;Argument 18 (REQUIRED IN p18 A5)
-            arg18 = dispatcher.GetText((@JsonObject)arguments.arrayValues[18])
+            arg18 = dispatcher.GetText(arguments[18])
 
             ;;Argument 19 (REQUIRED IN p19 A5)
-            arg19 = dispatcher.GetText((@JsonObject)arguments.arrayValues[19])
+            arg19 = dispatcher.GetText(arguments[19])
 
             ;;Argument 20 (REQUIRED IN p20 A5)
-            arg20 = dispatcher.GetText((@JsonObject)arguments.arrayValues[20])
+            arg20 = dispatcher.GetText(arguments[20])
 
             ;;Argument 21 (REQUIRED INOUT p21 [*]A7)
-            argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[21], 7)
-            arg21Array = (@JsonArray)((@JsonObject)arguments.arrayValues[21]).GetProperty("PassedValue")
-            arg21Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg21Array.arrayValues.Count)
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[21], 7)
+            arg21Array = arguments[21].GetProperty("PassedValue")
+            arg21Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg21Array.GetArrayLength())
             arg21HandlePos = 1
             dispatcher.UnwrapObjectCollection(^m(arg21Handle),argumentDefinition,arg21HandlePos,arg21Array)
 
             ;;Argument 22 (REQUIRED IN p22 A5)
-            arg22 = dispatcher.GetText((@JsonObject)arguments.arrayValues[22])
+            arg22 = dispatcher.GetText(arguments[22])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -198,12 +205,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (OPTIONAL INOUT param1 A5)
@@ -222,19 +229,19 @@ namespace TraditionalBridge.Test.syntst
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (OPTIONAL INOUT param1 A5)
-            arg1 = dispatcher.GetText((@JsonObject)arguments.arrayValues[1])
+            arg1 = dispatcher.GetText(arguments[1])
 
             ;;Argument 2 (OPTIONAL INOUT param2 A5)
-            arg2 = dispatcher.GetText((@JsonObject)arguments.arrayValues[2])
+            arg2 = dispatcher.GetText(arguments[2])
 
             ;;Argument 3 (OPTIONAL INOUT param3 A5)
-            arg3 = dispatcher.GetText((@JsonObject)arguments.arrayValues[3])
+            arg3 = dispatcher.GetText(arguments[3])
 
             ;;Argument 4 (OPTIONAL INOUT param4 A5)
-            arg4 = dispatcher.GetText((@JsonObject)arguments.arrayValues[4])
+            arg4 = dispatcher.GetText(arguments[4])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -278,12 +285,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (OPTIONAL INOUT p1 A30)
@@ -302,19 +309,19 @@ namespace TraditionalBridge.Test.syntst
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (OPTIONAL INOUT p1 A30)
-            arg1 = dispatcher.GetText((@JsonObject)arguments.arrayValues[1])
+            arg1 = dispatcher.GetText(arguments[1])
 
             ;;Argument 2 (OPTIONAL INOUT p2 A30)
-            arg2 = dispatcher.GetText((@JsonObject)arguments.arrayValues[2])
+            arg2 = dispatcher.GetText(arguments[2])
 
             ;;Argument 3 (OPTIONAL INOUT p3 A10)
-            arg3 = dispatcher.GetText((@JsonObject)arguments.arrayValues[3])
+            arg3 = dispatcher.GetText(arguments[3])
 
             ;;Argument 4 (OPTIONAL INOUT p4 A5)
-            arg4 = dispatcher.GetText((@JsonObject)arguments.arrayValues[4])
+            arg4 = dispatcher.GetText(arguments[4])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -358,12 +365,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (OPTIONAL INOUT param1 A5)
@@ -379,13 +386,13 @@ namespace TraditionalBridge.Test.syntst
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (OPTIONAL INOUT param1 A5)
-            arg1 = dispatcher.GetText((@JsonObject)arguments.arrayValues[1])
+            arg1 = dispatcher.GetText(arguments[1])
 
             ;;Argument 2 (OPTIONAL IN param2 A5)
-            arg2 = dispatcher.GetText((@JsonObject)arguments.arrayValues[2])
+            arg2 = dispatcher.GetText(arguments[2])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -417,12 +424,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (OPTIONAL IN p1 A5)
@@ -438,13 +445,13 @@ namespace TraditionalBridge.Test.syntst
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (OPTIONAL IN p1 A5)
-            arg1 = dispatcher.GetText((@JsonObject)arguments.arrayValues[1])
+            arg1 = dispatcher.GetText(arguments[1])
 
             ;;Argument 2 (OPTIONAL INOUT p2 A5)
-            arg2 = dispatcher.GetText((@JsonObject)arguments.arrayValues[2])
+            arg2 = dispatcher.GetText(arguments[2])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -476,16 +483,16 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (OPTIONAL INOUT p1 [*]A20)
-                arg1Array,          @JsonArray
+                arg1Array,          JSON_ELEMENT
                 arg1Handle,         D_HANDLE
                 arg1HandlePos,      int
             endrecord
@@ -501,12 +508,12 @@ namespace TraditionalBridge.Test.syntst
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (OPTIONAL INOUT p1 [*]A20)
-            argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1], 20)
-            arg1Array = (@JsonArray)((@JsonObject)arguments.arrayValues[1]).GetProperty("PassedValue")
-            arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.arrayValues.Count)
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1], 20)
+            arg1Array = arguments[1].GetProperty("PassedValue")
+            arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.GetArrayLength())
             arg1HandlePos = 1
             dispatcher.UnwrapObjectCollection(^m(arg1Handle),argumentDefinition,arg1HandlePos,arg1Array)
 
@@ -537,12 +544,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (OPTIONAL INOUT p1 D14)
@@ -567,28 +574,28 @@ namespace TraditionalBridge.Test.syntst
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (OPTIONAL INOUT p1 D14)
-            arg1 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[1])
+            arg1 = dispatcher.GetDecimal(arguments[1])
 
             ;;Argument 2 (OPTIONAL INOUT p2 D10)
-            arg2 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[2])
+            arg2 = dispatcher.GetDecimal(arguments[2])
 
             ;;Argument 3 (OPTIONAL INOUT p3 D7)
-            arg3 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[3])
+            arg3 = dispatcher.GetDecimal(arguments[3])
 
             ;;Argument 4 (OPTIONAL INOUT p4 D10)
-            arg4 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[4])
+            arg4 = dispatcher.GetDecimal(arguments[4])
 
             ;;Argument 5 (OPTIONAL INOUT p5 D7)
-            arg5 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[5])
+            arg5 = dispatcher.GetDecimal(arguments[5])
 
             ;;Argument 6 (OPTIONAL IN p6 D4)
-            arg6 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[6])
+            arg6 = dispatcher.GetDecimal(arguments[6])
 
             ;;Argument 7 (OPTIONAL IN p7 D8)
-            arg7 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[7])
+            arg7 = dispatcher.GetDecimal(arguments[7])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -637,12 +644,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (OPTIONAL INOUT p1 A10)
@@ -661,19 +668,19 @@ namespace TraditionalBridge.Test.syntst
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (OPTIONAL INOUT p1 A10)
-            arg1 = dispatcher.GetText((@JsonObject)arguments.arrayValues[1])
+            arg1 = dispatcher.GetText(arguments[1])
 
             ;;Argument 2 (OPTIONAL INOUT p2 A7)
-            arg2 = dispatcher.GetText((@JsonObject)arguments.arrayValues[2])
+            arg2 = dispatcher.GetText(arguments[2])
 
             ;;Argument 3 (OPTIONAL INOUT p3 A10)
-            arg3 = dispatcher.GetText((@JsonObject)arguments.arrayValues[3])
+            arg3 = dispatcher.GetText(arguments[3])
 
             ;;Argument 4 (OPTIONAL INOUT p4 A13)
-            arg4 = dispatcher.GetText((@JsonObject)arguments.arrayValues[4])
+            arg4 = dispatcher.GetText(arguments[4])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -717,12 +724,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (OPTIONAL INOUT param1 A5)
@@ -742,19 +749,19 @@ namespace TraditionalBridge.Test.syntst
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (OPTIONAL INOUT param1 A5)
-            arg1 = dispatcher.GetText((@JsonObject)arguments.arrayValues[1])
+            arg1 = dispatcher.GetText(arguments[1])
 
             ;;Argument 2 (OPTIONAL INOUT param2 A30)
-            arg2 = dispatcher.GetText((@JsonObject)arguments.arrayValues[2])
+            arg2 = dispatcher.GetText(arguments[2])
 
             ;;Argument 3 (OPTIONAL INOUT param3 A8)
-            arg3 = dispatcher.GetText((@JsonObject)arguments.arrayValues[3])
+            arg3 = dispatcher.GetText(arguments[3])
 
             ;;Argument 4 (OPTIONAL IN param4 A1)
-            arg4 = dispatcher.GetText((@JsonObject)arguments.arrayValues[4])
+            arg4 = dispatcher.GetText(arguments[4])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -796,12 +803,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (OPTIONAL INOUT p1 I4)
@@ -814,10 +821,10 @@ namespace TraditionalBridge.Test.syntst
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (OPTIONAL INOUT p1 I4)
-            arg1 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[1])
+            arg1 = dispatcher.GetInt(arguments[1])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -846,12 +853,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (OPTIONAL IN param1 I4)
@@ -868,16 +875,16 @@ namespace TraditionalBridge.Test.syntst
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (OPTIONAL IN param1 I4)
-            arg1 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[1])
+            arg1 = dispatcher.GetInt(arguments[1])
 
             ;;Argument 2 (OPTIONAL IN param2 I1)
-            arg2 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[2])
+            arg2 = dispatcher.GetInt(arguments[2])
 
             ;;Argument 3 (OPTIONAL IN param3 I1)
-            arg3 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[3])
+            arg3 = dispatcher.GetInt(arguments[3])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -901,12 +908,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (OPTIONAL IN param1 I1)
@@ -947,52 +954,52 @@ namespace TraditionalBridge.Test.syntst
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (OPTIONAL IN param1 I1)
-            arg1 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[1])
+            arg1 = dispatcher.GetInt(arguments[1])
 
             ;;Argument 2 (OPTIONAL IN param2 I2)
-            arg2 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[2])
+            arg2 = dispatcher.GetInt(arguments[2])
 
             ;;Argument 3 (OPTIONAL IN param3 I4)
-            arg3 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[3])
+            arg3 = dispatcher.GetInt(arguments[3])
 
             ;;Argument 4 (OPTIONAL IN param4 I4)
-            arg4 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[4])
+            arg4 = dispatcher.GetInt(arguments[4])
 
             ;;Argument 5 (OPTIONAL IN param5 I1)
-            arg5 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[5])
+            arg5 = dispatcher.GetInt(arguments[5])
 
             ;;Argument 6 (OPTIONAL IN param6 I1)
-            arg6 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[6])
+            arg6 = dispatcher.GetInt(arguments[6])
 
             ;;Argument 7 (OPTIONAL IN param7 I2)
-            arg7 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[7])
+            arg7 = dispatcher.GetInt(arguments[7])
 
             ;;Argument 8 (OPTIONAL IN param8 I4)
-            arg8 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[8])
+            arg8 = dispatcher.GetInt(arguments[8])
 
             ;;Argument 9 (OPTIONAL IN param9 I4)
-            arg9 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[9])
+            arg9 = dispatcher.GetInt(arguments[9])
 
             ;;Argument 10 (OPTIONAL IN param10 I1)
-            arg10 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[10])
+            arg10 = dispatcher.GetInt(arguments[10])
 
             ;;Argument 11 (OPTIONAL IN param11 I1)
-            arg11 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[11])
+            arg11 = dispatcher.GetInt(arguments[11])
 
             ;;Argument 12 (OPTIONAL IN param12 I2)
-            arg12 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[12])
+            arg12 = dispatcher.GetInt(arguments[12])
 
             ;;Argument 13 (OPTIONAL IN param13 I4)
-            arg13 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[13])
+            arg13 = dispatcher.GetInt(arguments[13])
 
             ;;Argument 14 (OPTIONAL IN param14 I4)
-            arg14 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[14])
+            arg14 = dispatcher.GetInt(arguments[14])
 
             ;;Argument 15 (OPTIONAL IN param15 I1)
-            arg15 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[15])
+            arg15 = dispatcher.GetInt(arguments[15])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -1016,12 +1023,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (OPTIONAL IN param1 I1)
@@ -1062,52 +1069,52 @@ namespace TraditionalBridge.Test.syntst
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (OPTIONAL IN param1 I1)
-            arg1 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[1])
+            arg1 = dispatcher.GetInt(arguments[1])
 
             ;;Argument 2 (OPTIONAL IN param2 I2)
-            arg2 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[2])
+            arg2 = dispatcher.GetInt(arguments[2])
 
             ;;Argument 3 (OPTIONAL IN param3 I4)
-            arg3 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[3])
+            arg3 = dispatcher.GetInt(arguments[3])
 
             ;;Argument 4 (OPTIONAL IN param4 I8)
-            arg4 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[4])
+            arg4 = dispatcher.GetInt(arguments[4])
 
             ;;Argument 5 (OPTIONAL IN param5 I1)
-            arg5 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[5])
+            arg5 = dispatcher.GetInt(arguments[5])
 
             ;;Argument 6 (OPTIONAL IN param6 I1)
-            arg6 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[6])
+            arg6 = dispatcher.GetInt(arguments[6])
 
             ;;Argument 7 (OPTIONAL IN param7 I2)
-            arg7 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[7])
+            arg7 = dispatcher.GetInt(arguments[7])
 
             ;;Argument 8 (OPTIONAL IN param8 I4)
-            arg8 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[8])
+            arg8 = dispatcher.GetInt(arguments[8])
 
             ;;Argument 9 (OPTIONAL IN param9 I8)
-            arg9 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[9])
+            arg9 = dispatcher.GetInt(arguments[9])
 
             ;;Argument 10 (OPTIONAL IN param10 I1)
-            arg10 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[10])
+            arg10 = dispatcher.GetInt(arguments[10])
 
             ;;Argument 11 (OPTIONAL IN param11 I1)
-            arg11 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[11])
+            arg11 = dispatcher.GetInt(arguments[11])
 
             ;;Argument 12 (OPTIONAL IN param12 I2)
-            arg12 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[12])
+            arg12 = dispatcher.GetInt(arguments[12])
 
             ;;Argument 13 (OPTIONAL IN param13 I4)
-            arg13 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[13])
+            arg13 = dispatcher.GetInt(arguments[13])
 
             ;;Argument 14 (OPTIONAL IN param14 I8)
-            arg14 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[14])
+            arg14 = dispatcher.GetInt(arguments[14])
 
             ;;Argument 15 (OPTIONAL IN param15 I1)
-            arg15 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[15])
+            arg15 = dispatcher.GetInt(arguments[15])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -1131,12 +1138,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (OPTIONAL IN param1 D1)
@@ -1179,55 +1186,55 @@ namespace TraditionalBridge.Test.syntst
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (OPTIONAL IN param1 D1)
-            arg1 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[1])
+            arg1 = dispatcher.GetDecimal(arguments[1])
 
             ;;Argument 2 (OPTIONAL IN param2 D3)
-            arg2 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[2])
+            arg2 = dispatcher.GetDecimal(arguments[2])
 
             ;;Argument 3 (OPTIONAL IN param3 D4.2)
-            arg3 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[3])
+            arg3 = dispatcher.GetImplied(arguments[3])
 
             ;;Argument 4 (OPTIONAL IN param4 D2.2)
-            arg4 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[4])
+            arg4 = dispatcher.GetImplied(arguments[4])
 
             ;;Argument 5 (OPTIONAL IN param5 D1)
-            arg5 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[5])
+            arg5 = dispatcher.GetDecimal(arguments[5])
 
             ;;Argument 6 (OPTIONAL IN param6 D3)
-            arg6 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[6])
+            arg6 = dispatcher.GetDecimal(arguments[6])
 
             ;;Argument 7 (OPTIONAL IN param7 D4.2)
-            arg7 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[7])
+            arg7 = dispatcher.GetImplied(arguments[7])
 
             ;;Argument 8 (OPTIONAL IN param8 D2.2)
-            arg8 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[8])
+            arg8 = dispatcher.GetImplied(arguments[8])
 
             ;;Argument 9 (OPTIONAL IN param9 D1)
-            arg9 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[9])
+            arg9 = dispatcher.GetDecimal(arguments[9])
 
             ;;Argument 10 (OPTIONAL IN param10 D5)
-            arg10 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[10])
+            arg10 = dispatcher.GetDecimal(arguments[10])
 
             ;;Argument 11 (OPTIONAL IN param11 D6.1)
-            arg11 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[11])
+            arg11 = dispatcher.GetImplied(arguments[11])
 
             ;;Argument 12 (OPTIONAL IN param12 D3.3)
-            arg12 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[12])
+            arg12 = dispatcher.GetImplied(arguments[12])
 
             ;;Argument 13 (OPTIONAL IN param13 D1)
-            arg13 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[13])
+            arg13 = dispatcher.GetDecimal(arguments[13])
 
             ;;Argument 14 (OPTIONAL IN param14 D9)
-            arg14 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[14])
+            arg14 = dispatcher.GetDecimal(arguments[14])
 
             ;;Argument 15 (OPTIONAL IN param15 D10)
-            arg15 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[15])
+            arg15 = dispatcher.GetDecimal(arguments[15])
 
             ;;Argument 16 (OPTIONAL IN param16 D7.1)
-            arg16 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[16])
+            arg16 = dispatcher.GetImplied(arguments[16])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -1251,12 +1258,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (OPTIONAL INOUT param1 A1)
@@ -1291,43 +1298,43 @@ namespace TraditionalBridge.Test.syntst
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (OPTIONAL INOUT param1 A1)
-            arg1 = dispatcher.GetText((@JsonObject)arguments.arrayValues[1])
+            arg1 = dispatcher.GetText(arguments[1])
 
             ;;Argument 2 (OPTIONAL INOUT param2 A26)
-            arg2 = dispatcher.GetText((@JsonObject)arguments.arrayValues[2])
+            arg2 = dispatcher.GetText(arguments[2])
 
             ;;Argument 3 (OPTIONAL INOUT param3 A35)
-            arg3 = dispatcher.GetText((@JsonObject)arguments.arrayValues[3])
+            arg3 = dispatcher.GetText(arguments[3])
 
             ;;Argument 4 (OPTIONAL INOUT param4 A21)
-            arg4 = dispatcher.GetText((@JsonObject)arguments.arrayValues[4])
+            arg4 = dispatcher.GetText(arguments[4])
 
             ;;Argument 5 (OPTIONAL INOUT param5 D1)
-            arg5 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[5])
+            arg5 = dispatcher.GetDecimal(arguments[5])
 
             ;;Argument 6 (OPTIONAL INOUT param6 D6)
-            arg6 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[6])
+            arg6 = dispatcher.GetDecimal(arguments[6])
 
             ;;Argument 7 (OPTIONAL INOUT param7 D7)
-            arg7 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[7])
+            arg7 = dispatcher.GetDecimal(arguments[7])
 
             ;;Argument 8 (OPTIONAL INOUT param8 D4)
-            arg8 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[8])
+            arg8 = dispatcher.GetDecimal(arguments[8])
 
             ;;Argument 9 (OPTIONAL INOUT param9 D1)
-            arg9 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[9])
+            arg9 = dispatcher.GetDecimal(arguments[9])
 
             ;;Argument 10 (OPTIONAL INOUT param10 D9)
-            arg10 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[10])
+            arg10 = dispatcher.GetDecimal(arguments[10])
 
             ;;Argument 11 (OPTIONAL INOUT param11 D10)
-            arg11 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[11])
+            arg11 = dispatcher.GetDecimal(arguments[11])
 
             ;;Argument 12 (OPTIONAL INOUT param12 D7)
-            arg12 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[12])
+            arg12 = dispatcher.GetDecimal(arguments[12])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -1411,12 +1418,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (OPTIONAL INOUT param1 I4)
@@ -1467,67 +1474,67 @@ namespace TraditionalBridge.Test.syntst
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (OPTIONAL INOUT param1 I4)
-            arg1 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[1])
+            arg1 = dispatcher.GetInt(arguments[1])
 
             ;;Argument 2 (OPTIONAL INOUT param2 I1)
-            arg2 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[2])
+            arg2 = dispatcher.GetInt(arguments[2])
 
             ;;Argument 3 (OPTIONAL INOUT param3 I2)
-            arg3 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[3])
+            arg3 = dispatcher.GetInt(arguments[3])
 
             ;;Argument 4 (OPTIONAL INOUT param4 I4)
-            arg4 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[4])
+            arg4 = dispatcher.GetInt(arguments[4])
 
             ;;Argument 5 (OPTIONAL INOUT param5 I4)
-            arg5 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[5])
+            arg5 = dispatcher.GetInt(arguments[5])
 
             ;;Argument 6 (OPTIONAL INOUT param6 I4)
-            arg6 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[6])
+            arg6 = dispatcher.GetInt(arguments[6])
 
             ;;Argument 7 (OPTIONAL INOUT param7 I1)
-            arg7 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[7])
+            arg7 = dispatcher.GetInt(arguments[7])
 
             ;;Argument 8 (OPTIONAL INOUT param8 I2)
-            arg8 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[8])
+            arg8 = dispatcher.GetInt(arguments[8])
 
             ;;Argument 9 (OPTIONAL INOUT param9 I4)
-            arg9 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[9])
+            arg9 = dispatcher.GetInt(arguments[9])
 
             ;;Argument 10 (OPTIONAL INOUT param10 I4)
-            arg10 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[10])
+            arg10 = dispatcher.GetInt(arguments[10])
 
             ;;Argument 11 (OPTIONAL INOUT param11 I1)
-            arg11 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[11])
+            arg11 = dispatcher.GetInt(arguments[11])
 
             ;;Argument 12 (OPTIONAL INOUT param12 I1)
-            arg12 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[12])
+            arg12 = dispatcher.GetInt(arguments[12])
 
             ;;Argument 13 (OPTIONAL INOUT param13 I2)
-            arg13 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[13])
+            arg13 = dispatcher.GetInt(arguments[13])
 
             ;;Argument 14 (OPTIONAL INOUT param14 I4)
-            arg14 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[14])
+            arg14 = dispatcher.GetInt(arguments[14])
 
             ;;Argument 15 (OPTIONAL INOUT param15 I4)
-            arg15 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[15])
+            arg15 = dispatcher.GetInt(arguments[15])
 
             ;;Argument 16 (OPTIONAL INOUT param16 I1)
-            arg16 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[16])
+            arg16 = dispatcher.GetInt(arguments[16])
 
             ;;Argument 17 (OPTIONAL INOUT param17 I1)
-            arg17 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[17])
+            arg17 = dispatcher.GetInt(arguments[17])
 
             ;;Argument 18 (OPTIONAL INOUT param18 I2)
-            arg18 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[18])
+            arg18 = dispatcher.GetInt(arguments[18])
 
             ;;Argument 19 (OPTIONAL INOUT param19 I4)
-            arg19 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[19])
+            arg19 = dispatcher.GetInt(arguments[19])
 
             ;;Argument 20 (OPTIONAL INOUT param20 I4)
-            arg20 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[20])
+            arg20 = dispatcher.GetInt(arguments[20])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -1651,12 +1658,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (OPTIONAL IN param1 D1)
@@ -1695,49 +1702,49 @@ namespace TraditionalBridge.Test.syntst
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (OPTIONAL IN param1 D1)
-            arg1 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[1])
+            arg1 = dispatcher.GetDecimal(arguments[1])
 
             ;;Argument 2 (OPTIONAL IN param2 D3.3)
-            arg2 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[2])
+            arg2 = dispatcher.GetImplied(arguments[2])
 
             ;;Argument 3 (OPTIONAL IN param3 D2.2)
-            arg3 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[3])
+            arg3 = dispatcher.GetImplied(arguments[3])
 
             ;;Argument 4 (OPTIONAL IN param4 D3.2)
-            arg4 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[4])
+            arg4 = dispatcher.GetImplied(arguments[4])
 
             ;;Argument 5 (OPTIONAL IN param5 D3)
-            arg5 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[5])
+            arg5 = dispatcher.GetDecimal(arguments[5])
 
             ;;Argument 6 (OPTIONAL IN param6 D1)
-            arg6 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[6])
+            arg6 = dispatcher.GetDecimal(arguments[6])
 
             ;;Argument 7 (OPTIONAL IN param7 D3)
-            arg7 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[7])
+            arg7 = dispatcher.GetDecimal(arguments[7])
 
             ;;Argument 8 (OPTIONAL IN param8 D2)
-            arg8 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[8])
+            arg8 = dispatcher.GetDecimal(arguments[8])
 
             ;;Argument 9 (OPTIONAL IN param9 D2.2)
-            arg9 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[9])
+            arg9 = dispatcher.GetImplied(arguments[9])
 
             ;;Argument 10 (OPTIONAL IN param10 D1)
-            arg10 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[10])
+            arg10 = dispatcher.GetDecimal(arguments[10])
 
             ;;Argument 11 (OPTIONAL IN param11 D5.3)
-            arg11 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[11])
+            arg11 = dispatcher.GetImplied(arguments[11])
 
             ;;Argument 12 (OPTIONAL IN param12 D4.3)
-            arg12 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[12])
+            arg12 = dispatcher.GetImplied(arguments[12])
 
             ;;Argument 13 (OPTIONAL IN param13 D4.2)
-            arg13 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[13])
+            arg13 = dispatcher.GetImplied(arguments[13])
 
             ;;Argument 14 (OPTIONAL IN param14 D1)
-            arg14 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[14])
+            arg14 = dispatcher.GetDecimal(arguments[14])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -1761,12 +1768,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (OPTIONAL IN param1 A1)
@@ -1801,43 +1808,43 @@ namespace TraditionalBridge.Test.syntst
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (OPTIONAL IN param1 A1)
-            arg1 = dispatcher.GetText((@JsonObject)arguments.arrayValues[1])
+            arg1 = dispatcher.GetText(arguments[1])
 
             ;;Argument 2 (OPTIONAL IN param2 A5)
-            arg2 = dispatcher.GetText((@JsonObject)arguments.arrayValues[2])
+            arg2 = dispatcher.GetText(arguments[2])
 
             ;;Argument 3 (OPTIONAL IN param3 A6)
-            arg3 = dispatcher.GetText((@JsonObject)arguments.arrayValues[3])
+            arg3 = dispatcher.GetText(arguments[3])
 
             ;;Argument 4 (OPTIONAL IN param4 A2)
-            arg4 = dispatcher.GetText((@JsonObject)arguments.arrayValues[4])
+            arg4 = dispatcher.GetText(arguments[4])
 
             ;;Argument 5 (OPTIONAL IN param5 A1)
-            arg5 = dispatcher.GetText((@JsonObject)arguments.arrayValues[5])
+            arg5 = dispatcher.GetText(arguments[5])
 
             ;;Argument 6 (OPTIONAL IN param6 A5)
-            arg6 = dispatcher.GetText((@JsonObject)arguments.arrayValues[6])
+            arg6 = dispatcher.GetText(arguments[6])
 
             ;;Argument 7 (OPTIONAL IN param7 A12)
-            arg7 = dispatcher.GetText((@JsonObject)arguments.arrayValues[7])
+            arg7 = dispatcher.GetText(arguments[7])
 
             ;;Argument 8 (OPTIONAL IN param8 A1)
-            arg8 = dispatcher.GetText((@JsonObject)arguments.arrayValues[8])
+            arg8 = dispatcher.GetText(arguments[8])
 
             ;;Argument 9 (OPTIONAL IN param9 A1)
-            arg9 = dispatcher.GetText((@JsonObject)arguments.arrayValues[9])
+            arg9 = dispatcher.GetText(arguments[9])
 
             ;;Argument 10 (OPTIONAL IN param10 A6)
-            arg10 = dispatcher.GetText((@JsonObject)arguments.arrayValues[10])
+            arg10 = dispatcher.GetText(arguments[10])
 
             ;;Argument 11 (OPTIONAL IN param11 A18)
-            arg11 = dispatcher.GetText((@JsonObject)arguments.arrayValues[11])
+            arg11 = dispatcher.GetText(arguments[11])
 
             ;;Argument 12 (OPTIONAL IN param12 A4)
-            arg12 = dispatcher.GetText((@JsonObject)arguments.arrayValues[12])
+            arg12 = dispatcher.GetText(arguments[12])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -1861,12 +1868,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (OPTIONAL INOUT param1 A100)
@@ -1879,10 +1886,10 @@ namespace TraditionalBridge.Test.syntst
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (OPTIONAL INOUT param1 A100)
-            arg1 = dispatcher.GetText((@JsonObject)arguments.arrayValues[1])
+            arg1 = dispatcher.GetText(arguments[1])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -1911,12 +1918,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (OPTIONAL IN param1 I4)
@@ -1930,10 +1937,10 @@ namespace TraditionalBridge.Test.syntst
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (OPTIONAL IN param1 I4)
-            arg1 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[1])
+            arg1 = dispatcher.GetInt(arguments[1])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -1960,12 +1967,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (OPTIONAL IN param1 I4 passed by VALUE)
@@ -1979,10 +1986,10 @@ namespace TraditionalBridge.Test.syntst
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (OPTIONAL IN param1 I4 passed by VALUE)
-            arg1 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[1])
+            arg1 = dispatcher.GetInt(arguments[1])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -2009,12 +2016,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (OPTIONAL IN param1 D12.4)
@@ -2057,55 +2064,55 @@ namespace TraditionalBridge.Test.syntst
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (OPTIONAL IN param1 D12.4)
-            arg1 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[1])
+            arg1 = dispatcher.GetImplied(arguments[1])
 
             ;;Argument 2 (OPTIONAL IN param2 D8.4)
-            arg2 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[2])
+            arg2 = dispatcher.GetImplied(arguments[2])
 
             ;;Argument 3 (OPTIONAL IN param3 D4.4)
-            arg3 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[3])
+            arg3 = dispatcher.GetImplied(arguments[3])
 
             ;;Argument 4 (OPTIONAL IN param4 D2.2)
-            arg4 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[4])
+            arg4 = dispatcher.GetImplied(arguments[4])
 
             ;;Argument 5 (OPTIONAL IN param5 D12.4)
-            arg5 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[5])
+            arg5 = dispatcher.GetImplied(arguments[5])
 
             ;;Argument 6 (OPTIONAL IN param6 D8.4)
-            arg6 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[6])
+            arg6 = dispatcher.GetImplied(arguments[6])
 
             ;;Argument 7 (OPTIONAL IN param7 D4.4)
-            arg7 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[7])
+            arg7 = dispatcher.GetImplied(arguments[7])
 
             ;;Argument 8 (OPTIONAL IN param8 D2.2)
-            arg8 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[8])
+            arg8 = dispatcher.GetImplied(arguments[8])
 
             ;;Argument 9 (OPTIONAL IN param9 D12.4)
-            arg9 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[9])
+            arg9 = dispatcher.GetImplied(arguments[9])
 
             ;;Argument 10 (OPTIONAL IN param10 D8.4)
-            arg10 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[10])
+            arg10 = dispatcher.GetImplied(arguments[10])
 
             ;;Argument 11 (OPTIONAL IN param11 D4.4)
-            arg11 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[11])
+            arg11 = dispatcher.GetImplied(arguments[11])
 
             ;;Argument 12 (OPTIONAL IN param12 D2.2)
-            arg12 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[12])
+            arg12 = dispatcher.GetImplied(arguments[12])
 
             ;;Argument 13 (OPTIONAL IN param13 D12.4)
-            arg13 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[13])
+            arg13 = dispatcher.GetImplied(arguments[13])
 
             ;;Argument 14 (OPTIONAL IN param14 D8.4)
-            arg14 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[14])
+            arg14 = dispatcher.GetImplied(arguments[14])
 
             ;;Argument 15 (OPTIONAL IN param15 D4.4)
-            arg15 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[15])
+            arg15 = dispatcher.GetImplied(arguments[15])
 
             ;;Argument 16 (OPTIONAL IN param16 D2.2)
-            arg16 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[16])
+            arg16 = dispatcher.GetImplied(arguments[16])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -2129,12 +2136,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (OPTIONAL IN param1 I4 passed by REFERENCE)
@@ -2148,10 +2155,10 @@ namespace TraditionalBridge.Test.syntst
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (OPTIONAL IN param1 I4 passed by REFERENCE)
-            arg1 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[1])
+            arg1 = dispatcher.GetInt(arguments[1])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -2178,12 +2185,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (OPTIONAL IN p1 I4 passed by VALUE)
@@ -2196,10 +2203,10 @@ namespace TraditionalBridge.Test.syntst
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (OPTIONAL IN p1 I4 passed by VALUE)
-            arg1 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[1])
+            arg1 = dispatcher.GetInt(arguments[1])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -2223,12 +2230,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (OPTIONAL INOUT p1 I4 passed by REFERENCE)
@@ -2241,10 +2248,10 @@ namespace TraditionalBridge.Test.syntst
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (OPTIONAL INOUT p1 I4 passed by REFERENCE)
-            arg1 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[1])
+            arg1 = dispatcher.GetInt(arguments[1])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -2273,12 +2280,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (OPTIONAL INOUT p1 I4 passed by REFERENCE)
@@ -2294,13 +2301,13 @@ namespace TraditionalBridge.Test.syntst
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (OPTIONAL INOUT p1 I4 passed by REFERENCE)
-            arg1 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[1])
+            arg1 = dispatcher.GetInt(arguments[1])
 
             ;;Argument 2 (OPTIONAL INOUT p2 D7.2 passed by REFERENCE)
-            arg2 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[2])
+            arg2 = dispatcher.GetImplied(arguments[2])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -2337,12 +2344,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (OPTIONAL IN param1 A25)
@@ -2377,43 +2384,43 @@ namespace TraditionalBridge.Test.syntst
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (OPTIONAL IN param1 A25)
-            arg1 = dispatcher.GetText((@JsonObject)arguments.arrayValues[1])
+            arg1 = dispatcher.GetText(arguments[1])
 
             ;;Argument 2 (OPTIONAL IN p2 A5)
-            arg2 = dispatcher.GetText((@JsonObject)arguments.arrayValues[2])
+            arg2 = dispatcher.GetText(arguments[2])
 
             ;;Argument 3 (OPTIONAL IN param3 A6)
-            arg3 = dispatcher.GetText((@JsonObject)arguments.arrayValues[3])
+            arg3 = dispatcher.GetText(arguments[3])
 
             ;;Argument 4 (OPTIONAL IN param4 A2)
-            arg4 = dispatcher.GetText((@JsonObject)arguments.arrayValues[4])
+            arg4 = dispatcher.GetText(arguments[4])
 
             ;;Argument 5 (OPTIONAL IN param5 A24)
-            arg5 = dispatcher.GetText((@JsonObject)arguments.arrayValues[5])
+            arg5 = dispatcher.GetText(arguments[5])
 
             ;;Argument 6 (OPTIONAL IN param6 A5)
-            arg6 = dispatcher.GetText((@JsonObject)arguments.arrayValues[6])
+            arg6 = dispatcher.GetText(arguments[6])
 
             ;;Argument 7 (OPTIONAL IN param7 A12)
-            arg7 = dispatcher.GetText((@JsonObject)arguments.arrayValues[7])
+            arg7 = dispatcher.GetText(arguments[7])
 
             ;;Argument 8 (OPTIONAL IN x A4)
-            arg8 = dispatcher.GetText((@JsonObject)arguments.arrayValues[8])
+            arg8 = dispatcher.GetText(arguments[8])
 
             ;;Argument 9 (OPTIONAL IN param9 A25)
-            arg9 = dispatcher.GetText((@JsonObject)arguments.arrayValues[9])
+            arg9 = dispatcher.GetText(arguments[9])
 
             ;;Argument 10 (OPTIONAL IN param10 A6)
-            arg10 = dispatcher.GetText((@JsonObject)arguments.arrayValues[10])
+            arg10 = dispatcher.GetText(arguments[10])
 
             ;;Argument 11 (OPTIONAL IN param11 A18)
-            arg11 = dispatcher.GetText((@JsonObject)arguments.arrayValues[11])
+            arg11 = dispatcher.GetText(arguments[11])
 
             ;;Argument 12 (OPTIONAL IN param12 A4)
-            arg12 = dispatcher.GetText((@JsonObject)arguments.arrayValues[12])
+            arg12 = dispatcher.GetText(arguments[12])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -2437,12 +2444,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (OPTIONAL IN param1 A1)
@@ -2477,43 +2484,43 @@ namespace TraditionalBridge.Test.syntst
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (OPTIONAL IN param1 A1)
-            arg1 = dispatcher.GetText((@JsonObject)arguments.arrayValues[1])
+            arg1 = dispatcher.GetText(arguments[1])
 
             ;;Argument 2 (OPTIONAL IN param2 A5)
-            arg2 = dispatcher.GetText((@JsonObject)arguments.arrayValues[2])
+            arg2 = dispatcher.GetText(arguments[2])
 
             ;;Argument 3 (OPTIONAL IN param3 A6)
-            arg3 = dispatcher.GetText((@JsonObject)arguments.arrayValues[3])
+            arg3 = dispatcher.GetText(arguments[3])
 
             ;;Argument 4 (OPTIONAL IN param4 A2)
-            arg4 = dispatcher.GetText((@JsonObject)arguments.arrayValues[4])
+            arg4 = dispatcher.GetText(arguments[4])
 
             ;;Argument 5 (OPTIONAL IN param5 A1)
-            arg5 = dispatcher.GetText((@JsonObject)arguments.arrayValues[5])
+            arg5 = dispatcher.GetText(arguments[5])
 
             ;;Argument 6 (OPTIONAL IN param6 A5)
-            arg6 = dispatcher.GetText((@JsonObject)arguments.arrayValues[6])
+            arg6 = dispatcher.GetText(arguments[6])
 
             ;;Argument 7 (OPTIONAL IN param7 A12)
-            arg7 = dispatcher.GetText((@JsonObject)arguments.arrayValues[7])
+            arg7 = dispatcher.GetText(arguments[7])
 
             ;;Argument 8 (OPTIONAL IN param8 A4)
-            arg8 = dispatcher.GetText((@JsonObject)arguments.arrayValues[8])
+            arg8 = dispatcher.GetText(arguments[8])
 
             ;;Argument 9 (OPTIONAL IN param9 A1)
-            arg9 = dispatcher.GetText((@JsonObject)arguments.arrayValues[9])
+            arg9 = dispatcher.GetText(arguments[9])
 
             ;;Argument 10 (OPTIONAL IN param10 A6)
-            arg10 = dispatcher.GetText((@JsonObject)arguments.arrayValues[10])
+            arg10 = dispatcher.GetText(arguments[10])
 
             ;;Argument 11 (OPTIONAL IN param11 A18)
-            arg11 = dispatcher.GetText((@JsonObject)arguments.arrayValues[11])
+            arg11 = dispatcher.GetText(arguments[11])
 
             ;;Argument 12 (OPTIONAL IN param12 A4)
-            arg12 = dispatcher.GetText((@JsonObject)arguments.arrayValues[12])
+            arg12 = dispatcher.GetText(arguments[12])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -2537,12 +2544,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (OPTIONAL INOUT param1 A5)
@@ -2562,19 +2569,19 @@ namespace TraditionalBridge.Test.syntst
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (OPTIONAL INOUT param1 A5)
-            arg1 = dispatcher.GetText((@JsonObject)arguments.arrayValues[1])
+            arg1 = dispatcher.GetText(arguments[1])
 
             ;;Argument 2 (OPTIONAL INOUT param2 A30)
-            arg2 = dispatcher.GetText((@JsonObject)arguments.arrayValues[2])
+            arg2 = dispatcher.GetText(arguments[2])
 
             ;;Argument 3 (OPTIONAL INOUT param3 A8)
-            arg3 = dispatcher.GetText((@JsonObject)arguments.arrayValues[3])
+            arg3 = dispatcher.GetText(arguments[3])
 
             ;;Argument 4 (OPTIONAL IN param4 A1)
-            arg4 = dispatcher.GetText((@JsonObject)arguments.arrayValues[4])
+            arg4 = dispatcher.GetText(arguments[4])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -2616,12 +2623,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (OPTIONAL INOUT param1 A5)
@@ -2637,13 +2644,13 @@ namespace TraditionalBridge.Test.syntst
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (OPTIONAL INOUT param1 A5)
-            arg1 = dispatcher.GetText((@JsonObject)arguments.arrayValues[1])
+            arg1 = dispatcher.GetText(arguments[1])
 
             ;;Argument 2 (OPTIONAL IN param2 A5)
-            arg2 = dispatcher.GetText((@JsonObject)arguments.arrayValues[2])
+            arg2 = dispatcher.GetText(arguments[2])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -2675,12 +2682,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
             endrecord
@@ -2715,12 +2722,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
             endrecord
@@ -2755,12 +2762,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED IN name A20)
@@ -2775,13 +2782,13 @@ namespace TraditionalBridge.Test.syntst
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED IN name A20)
-            arg1 = dispatcher.GetText((@JsonObject)arguments.arrayValues[1])
+            arg1 = dispatcher.GetText(arguments[1])
 
             ;;Argument 2 (REQUIRED INOUT message A30)
-            arg2 = dispatcher.GetText((@JsonObject)arguments.arrayValues[2])
+            arg2 = dispatcher.GetText(arguments[2])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -2810,12 +2817,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 returnValue,         i4
@@ -2854,12 +2861,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
             endrecord
@@ -2894,16 +2901,16 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED INOUT p1 [*]D5)
-                arg1Array,          @JsonArray
+                arg1Array,          JSON_ELEMENT
                 arg1Handle,         D_HANDLE
                 arg1HandlePos,      int
             endrecord
@@ -2919,12 +2926,12 @@ namespace TraditionalBridge.Test.syntst
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED INOUT p1 [*]D5)
-            argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1], 5)
-            arg1Array = (@JsonArray)((@JsonObject)arguments.arrayValues[1]).GetProperty("PassedValue")
-            arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.arrayValues.Count)
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1], 5)
+            arg1Array = arguments[1].GetProperty("PassedValue")
+            arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.GetArrayLength())
             arg1HandlePos = 1
             dispatcher.UnwrapObjectCollection(^m(arg1Handle),argumentDefinition,arg1HandlePos,arg1Array)
 
@@ -2955,16 +2962,16 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED INOUT p1 [*]D10.3)
-                arg1Array,          @JsonArray
+                arg1Array,          JSON_ELEMENT
                 arg1Handle,         D_HANDLE
                 arg1HandlePos,      int
             endrecord
@@ -2980,12 +2987,12 @@ namespace TraditionalBridge.Test.syntst
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED INOUT p1 [*]D10.3)
-            argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1], 10)
-            arg1Array = (@JsonArray)((@JsonObject)arguments.arrayValues[1]).GetProperty("PassedValue")
-            arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.arrayValues.Count)
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1], 10)
+            arg1Array = arguments[1].GetProperty("PassedValue")
+            arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.GetArrayLength())
             arg1HandlePos = 1
             dispatcher.UnwrapObjectCollection(^m(arg1Handle),argumentDefinition,arg1HandlePos,arg1Array)
 
@@ -3016,16 +3023,16 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED INOUT p1 [*]I4)
-                arg1Array,          @JsonArray
+                arg1Array,          JSON_ELEMENT
                 arg1Handle,         D_HANDLE
                 arg1HandlePos,      int
             endrecord
@@ -3041,12 +3048,12 @@ namespace TraditionalBridge.Test.syntst
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED INOUT p1 [*]I4)
-            argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1], 4)
-            arg1Array = (@JsonArray)((@JsonObject)arguments.arrayValues[1]).GetProperty("PassedValue")
-            arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.arrayValues.Count)
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1], 4)
+            arg1Array = arguments[1].GetProperty("PassedValue")
+            arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.GetArrayLength())
             arg1HandlePos = 1
             dispatcher.UnwrapObjectCollection(^m(arg1Handle),argumentDefinition,arg1HandlePos,arg1Array)
 
@@ -3077,16 +3084,16 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED INOUT p1 [*]A20)
-                arg1Array,          @JsonArray
+                arg1Array,          JSON_ELEMENT
                 arg1Handle,         D_HANDLE
                 arg1HandlePos,      int
             endrecord
@@ -3102,12 +3109,12 @@ namespace TraditionalBridge.Test.syntst
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED INOUT p1 [*]A20)
-            argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1], 20)
-            arg1Array = (@JsonArray)((@JsonObject)arguments.arrayValues[1]).GetProperty("PassedValue")
-            arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.arrayValues.Count)
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1], 20)
+            arg1Array = arguments[1].GetProperty("PassedValue")
+            arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.GetArrayLength())
             arg1HandlePos = 1
             dispatcher.UnwrapObjectCollection(^m(arg1Handle),argumentDefinition,arg1HandlePos,arg1Array)
 
@@ -3138,12 +3145,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED IN parm1 D5)
@@ -3156,10 +3163,10 @@ namespace TraditionalBridge.Test.syntst
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED IN parm1 D5)
-            arg1 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[1])
+            arg1 = dispatcher.GetDecimal(arguments[1])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -3183,12 +3190,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED INOUT p1 A5)
@@ -3245,76 +3252,76 @@ namespace TraditionalBridge.Test.syntst
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED INOUT p1 A5)
-            arg1 = dispatcher.GetText((@JsonObject)arguments.arrayValues[1])
+            arg1 = dispatcher.GetText(arguments[1])
 
             ;;Argument 2 (REQUIRED INOUT p2 A5)
-            arg2 = dispatcher.GetText((@JsonObject)arguments.arrayValues[2])
+            arg2 = dispatcher.GetText(arguments[2])
 
             ;;Argument 3 (REQUIRED INOUT p3 A5)
-            arg3 = dispatcher.GetText((@JsonObject)arguments.arrayValues[3])
+            arg3 = dispatcher.GetText(arguments[3])
 
             ;;Argument 4 (REQUIRED INOUT p4 A5)
-            arg4 = dispatcher.GetText((@JsonObject)arguments.arrayValues[4])
+            arg4 = dispatcher.GetText(arguments[4])
 
             ;;Argument 5 (REQUIRED INOUT p5 A5)
-            arg5 = dispatcher.GetText((@JsonObject)arguments.arrayValues[5])
+            arg5 = dispatcher.GetText(arguments[5])
 
             ;;Argument 6 (REQUIRED INOUT p6 A5)
-            arg6 = dispatcher.GetText((@JsonObject)arguments.arrayValues[6])
+            arg6 = dispatcher.GetText(arguments[6])
 
             ;;Argument 7 (REQUIRED INOUT p7 A5)
-            arg7 = dispatcher.GetText((@JsonObject)arguments.arrayValues[7])
+            arg7 = dispatcher.GetText(arguments[7])
 
             ;;Argument 8 (REQUIRED INOUT p8 A5)
-            arg8 = dispatcher.GetText((@JsonObject)arguments.arrayValues[8])
+            arg8 = dispatcher.GetText(arguments[8])
 
             ;;Argument 9 (REQUIRED INOUT p9 A5)
-            arg9 = dispatcher.GetText((@JsonObject)arguments.arrayValues[9])
+            arg9 = dispatcher.GetText(arguments[9])
 
             ;;Argument 10 (REQUIRED INOUT p10 A5)
-            arg10 = dispatcher.GetText((@JsonObject)arguments.arrayValues[10])
+            arg10 = dispatcher.GetText(arguments[10])
 
             ;;Argument 11 (REQUIRED INOUT p11 A5)
-            arg11 = dispatcher.GetText((@JsonObject)arguments.arrayValues[11])
+            arg11 = dispatcher.GetText(arguments[11])
 
             ;;Argument 12 (REQUIRED INOUT p12 A5)
-            arg12 = dispatcher.GetText((@JsonObject)arguments.arrayValues[12])
+            arg12 = dispatcher.GetText(arguments[12])
 
             ;;Argument 13 (REQUIRED INOUT p13 A5)
-            arg13 = dispatcher.GetText((@JsonObject)arguments.arrayValues[13])
+            arg13 = dispatcher.GetText(arguments[13])
 
             ;;Argument 14 (REQUIRED INOUT p14 A5)
-            arg14 = dispatcher.GetText((@JsonObject)arguments.arrayValues[14])
+            arg14 = dispatcher.GetText(arguments[14])
 
             ;;Argument 15 (REQUIRED INOUT p15 A5)
-            arg15 = dispatcher.GetText((@JsonObject)arguments.arrayValues[15])
+            arg15 = dispatcher.GetText(arguments[15])
 
             ;;Argument 16 (REQUIRED INOUT p16 A5)
-            arg16 = dispatcher.GetText((@JsonObject)arguments.arrayValues[16])
+            arg16 = dispatcher.GetText(arguments[16])
 
             ;;Argument 17 (REQUIRED INOUT p17 A5)
-            arg17 = dispatcher.GetText((@JsonObject)arguments.arrayValues[17])
+            arg17 = dispatcher.GetText(arguments[17])
 
             ;;Argument 18 (REQUIRED INOUT p18 A5)
-            arg18 = dispatcher.GetText((@JsonObject)arguments.arrayValues[18])
+            arg18 = dispatcher.GetText(arguments[18])
 
             ;;Argument 19 (REQUIRED INOUT p19 A5)
-            arg19 = dispatcher.GetText((@JsonObject)arguments.arrayValues[19])
+            arg19 = dispatcher.GetText(arguments[19])
 
             ;;Argument 20 (REQUIRED INOUT p20 A5)
-            arg20 = dispatcher.GetText((@JsonObject)arguments.arrayValues[20])
+            arg20 = dispatcher.GetText(arguments[20])
 
             ;;Argument 21 (REQUIRED INOUT p21 A5)
-            arg21 = dispatcher.GetText((@JsonObject)arguments.arrayValues[21])
+            arg21 = dispatcher.GetText(arguments[21])
 
             ;;Argument 22 (REQUIRED INOUT p22 A5)
-            arg22 = dispatcher.GetText((@JsonObject)arguments.arrayValues[22])
+            arg22 = dispatcher.GetText(arguments[22])
 
             ;;Argument 23 (REQUIRED INOUT p23 A5)
-            arg23 = dispatcher.GetText((@JsonObject)arguments.arrayValues[23])
+            arg23 = dispatcher.GetText(arguments[23])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -3453,12 +3460,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED INOUT p1 A5)
@@ -3515,76 +3522,76 @@ namespace TraditionalBridge.Test.syntst
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED INOUT p1 A5)
-            arg1 = dispatcher.GetText((@JsonObject)arguments.arrayValues[1])
+            arg1 = dispatcher.GetText(arguments[1])
 
             ;;Argument 2 (REQUIRED INOUT p2 A5)
-            arg2 = dispatcher.GetText((@JsonObject)arguments.arrayValues[2])
+            arg2 = dispatcher.GetText(arguments[2])
 
             ;;Argument 3 (REQUIRED INOUT p3 A5)
-            arg3 = dispatcher.GetText((@JsonObject)arguments.arrayValues[3])
+            arg3 = dispatcher.GetText(arguments[3])
 
             ;;Argument 4 (REQUIRED INOUT p4 A5)
-            arg4 = dispatcher.GetText((@JsonObject)arguments.arrayValues[4])
+            arg4 = dispatcher.GetText(arguments[4])
 
             ;;Argument 5 (REQUIRED INOUT p5 A5)
-            arg5 = dispatcher.GetText((@JsonObject)arguments.arrayValues[5])
+            arg5 = dispatcher.GetText(arguments[5])
 
             ;;Argument 6 (REQUIRED INOUT p6 A5)
-            arg6 = dispatcher.GetText((@JsonObject)arguments.arrayValues[6])
+            arg6 = dispatcher.GetText(arguments[6])
 
             ;;Argument 7 (REQUIRED INOUT p7 A5)
-            arg7 = dispatcher.GetText((@JsonObject)arguments.arrayValues[7])
+            arg7 = dispatcher.GetText(arguments[7])
 
             ;;Argument 8 (REQUIRED INOUT p8 A5)
-            arg8 = dispatcher.GetText((@JsonObject)arguments.arrayValues[8])
+            arg8 = dispatcher.GetText(arguments[8])
 
             ;;Argument 9 (REQUIRED INOUT p9 A5)
-            arg9 = dispatcher.GetText((@JsonObject)arguments.arrayValues[9])
+            arg9 = dispatcher.GetText(arguments[9])
 
             ;;Argument 10 (REQUIRED INOUT p10 A5)
-            arg10 = dispatcher.GetText((@JsonObject)arguments.arrayValues[10])
+            arg10 = dispatcher.GetText(arguments[10])
 
             ;;Argument 11 (REQUIRED INOUT p11 A5)
-            arg11 = dispatcher.GetText((@JsonObject)arguments.arrayValues[11])
+            arg11 = dispatcher.GetText(arguments[11])
 
             ;;Argument 12 (REQUIRED INOUT p12 A5)
-            arg12 = dispatcher.GetText((@JsonObject)arguments.arrayValues[12])
+            arg12 = dispatcher.GetText(arguments[12])
 
             ;;Argument 13 (REQUIRED INOUT p13 A5)
-            arg13 = dispatcher.GetText((@JsonObject)arguments.arrayValues[13])
+            arg13 = dispatcher.GetText(arguments[13])
 
             ;;Argument 14 (REQUIRED INOUT p14 A5)
-            arg14 = dispatcher.GetText((@JsonObject)arguments.arrayValues[14])
+            arg14 = dispatcher.GetText(arguments[14])
 
             ;;Argument 15 (REQUIRED INOUT p15 A5)
-            arg15 = dispatcher.GetText((@JsonObject)arguments.arrayValues[15])
+            arg15 = dispatcher.GetText(arguments[15])
 
             ;;Argument 16 (REQUIRED INOUT p16 A5)
-            arg16 = dispatcher.GetText((@JsonObject)arguments.arrayValues[16])
+            arg16 = dispatcher.GetText(arguments[16])
 
             ;;Argument 17 (REQUIRED INOUT p17 A5)
-            arg17 = dispatcher.GetText((@JsonObject)arguments.arrayValues[17])
+            arg17 = dispatcher.GetText(arguments[17])
 
             ;;Argument 18 (REQUIRED INOUT p18 A5)
-            arg18 = dispatcher.GetText((@JsonObject)arguments.arrayValues[18])
+            arg18 = dispatcher.GetText(arguments[18])
 
             ;;Argument 19 (REQUIRED INOUT p19 A5)
-            arg19 = dispatcher.GetText((@JsonObject)arguments.arrayValues[19])
+            arg19 = dispatcher.GetText(arguments[19])
 
             ;;Argument 20 (REQUIRED INOUT p20 A5)
-            arg20 = dispatcher.GetText((@JsonObject)arguments.arrayValues[20])
+            arg20 = dispatcher.GetText(arguments[20])
 
             ;;Argument 21 (REQUIRED INOUT p21 A5)
-            arg21 = dispatcher.GetText((@JsonObject)arguments.arrayValues[21])
+            arg21 = dispatcher.GetText(arguments[21])
 
             ;;Argument 22 (OPTIONAL INOUT p22 A5)
-            arg22 = dispatcher.GetText((@JsonObject)arguments.arrayValues[22])
+            arg22 = dispatcher.GetText(arguments[22])
 
             ;;Argument 23 (REQUIRED INOUT p23 A5)
-            arg23 = dispatcher.GetText((@JsonObject)arguments.arrayValues[23])
+            arg23 = dispatcher.GetText(arguments[23])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -3723,12 +3730,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (OPTIONAL OUT p1 I4)
@@ -3774,12 +3781,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED OUT outi8 I8)
@@ -3825,12 +3832,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED INOUT p1 A5)
@@ -3921,127 +3928,127 @@ namespace TraditionalBridge.Test.syntst
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED INOUT p1 A5)
-            arg1 = dispatcher.GetText((@JsonObject)arguments.arrayValues[1])
+            arg1 = dispatcher.GetText(arguments[1])
 
             ;;Argument 2 (REQUIRED IN p2 A5)
-            arg2 = dispatcher.GetText((@JsonObject)arguments.arrayValues[2])
+            arg2 = dispatcher.GetText(arguments[2])
 
             ;;Argument 3 (REQUIRED INOUT p3 A5)
-            arg3 = dispatcher.GetText((@JsonObject)arguments.arrayValues[3])
+            arg3 = dispatcher.GetText(arguments[3])
 
             ;;Argument 4 (REQUIRED IN p4 A5)
-            arg4 = dispatcher.GetText((@JsonObject)arguments.arrayValues[4])
+            arg4 = dispatcher.GetText(arguments[4])
 
             ;;Argument 5 (REQUIRED INOUT p5 A5)
-            arg5 = dispatcher.GetText((@JsonObject)arguments.arrayValues[5])
+            arg5 = dispatcher.GetText(arguments[5])
 
             ;;Argument 6 (REQUIRED IN p6 A5)
-            arg6 = dispatcher.GetText((@JsonObject)arguments.arrayValues[6])
+            arg6 = dispatcher.GetText(arguments[6])
 
             ;;Argument 7 (REQUIRED INOUT p7 A5)
-            arg7 = dispatcher.GetText((@JsonObject)arguments.arrayValues[7])
+            arg7 = dispatcher.GetText(arguments[7])
 
             ;;Argument 8 (REQUIRED IN p8 A5)
-            arg8 = dispatcher.GetText((@JsonObject)arguments.arrayValues[8])
+            arg8 = dispatcher.GetText(arguments[8])
 
             ;;Argument 9 (REQUIRED INOUT p9 A5)
-            arg9 = dispatcher.GetText((@JsonObject)arguments.arrayValues[9])
+            arg9 = dispatcher.GetText(arguments[9])
 
             ;;Argument 10 (REQUIRED IN p10 A5)
-            arg10 = dispatcher.GetText((@JsonObject)arguments.arrayValues[10])
+            arg10 = dispatcher.GetText(arguments[10])
 
             ;;Argument 11 (REQUIRED INOUT p11 D10)
-            arg11 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[11])
+            arg11 = dispatcher.GetDecimal(arguments[11])
 
             ;;Argument 12 (REQUIRED IN p12 D10)
-            arg12 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[12])
+            arg12 = dispatcher.GetDecimal(arguments[12])
 
             ;;Argument 13 (REQUIRED INOUT p13 D10)
-            arg13 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[13])
+            arg13 = dispatcher.GetDecimal(arguments[13])
 
             ;;Argument 14 (REQUIRED IN p14 D10)
-            arg14 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[14])
+            arg14 = dispatcher.GetDecimal(arguments[14])
 
             ;;Argument 15 (REQUIRED INOUT p15 D10)
-            arg15 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[15])
+            arg15 = dispatcher.GetDecimal(arguments[15])
 
             ;;Argument 16 (REQUIRED IN p16 D10)
-            arg16 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[16])
+            arg16 = dispatcher.GetDecimal(arguments[16])
 
             ;;Argument 17 (REQUIRED INOUT p17 D10)
-            arg17 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[17])
+            arg17 = dispatcher.GetDecimal(arguments[17])
 
             ;;Argument 18 (REQUIRED IN p18 D10)
-            arg18 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[18])
+            arg18 = dispatcher.GetDecimal(arguments[18])
 
             ;;Argument 19 (REQUIRED INOUT p19 D10)
-            arg19 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[19])
+            arg19 = dispatcher.GetDecimal(arguments[19])
 
             ;;Argument 20 (REQUIRED IN p20 D10)
-            arg20 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[20])
+            arg20 = dispatcher.GetDecimal(arguments[20])
 
             ;;Argument 21 (REQUIRED INOUT p21 D5.2)
-            arg21 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[21])
+            arg21 = dispatcher.GetImplied(arguments[21])
 
             ;;Argument 22 (REQUIRED IN p22 D5.2)
-            arg22 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[22])
+            arg22 = dispatcher.GetImplied(arguments[22])
 
             ;;Argument 23 (REQUIRED INOUT p23 D5.2)
-            arg23 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[23])
+            arg23 = dispatcher.GetImplied(arguments[23])
 
             ;;Argument 24 (REQUIRED IN p24 D5.2)
-            arg24 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[24])
+            arg24 = dispatcher.GetImplied(arguments[24])
 
             ;;Argument 25 (REQUIRED INOUT p25 D5.2)
-            arg25 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[25])
+            arg25 = dispatcher.GetImplied(arguments[25])
 
             ;;Argument 26 (REQUIRED IN p26 D5.2)
-            arg26 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[26])
+            arg26 = dispatcher.GetImplied(arguments[26])
 
             ;;Argument 27 (REQUIRED INOUT p27 D5.2)
-            arg27 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[27])
+            arg27 = dispatcher.GetImplied(arguments[27])
 
             ;;Argument 28 (REQUIRED IN p28 D5.2)
-            arg28 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[28])
+            arg28 = dispatcher.GetImplied(arguments[28])
 
             ;;Argument 29 (REQUIRED INOUT p29 D5.2)
-            arg29 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[29])
+            arg29 = dispatcher.GetImplied(arguments[29])
 
             ;;Argument 30 (REQUIRED IN p30 D5.2)
-            arg30 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[30])
+            arg30 = dispatcher.GetImplied(arguments[30])
 
             ;;Argument 31 (REQUIRED INOUT p31 I1)
-            arg31 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[31])
+            arg31 = dispatcher.GetInt(arguments[31])
 
             ;;Argument 32 (REQUIRED IN p32 I1)
-            arg32 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[32])
+            arg32 = dispatcher.GetInt(arguments[32])
 
             ;;Argument 33 (REQUIRED INOUT p33 I1)
-            arg33 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[33])
+            arg33 = dispatcher.GetInt(arguments[33])
 
             ;;Argument 34 (REQUIRED IN p34 I2)
-            arg34 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[34])
+            arg34 = dispatcher.GetInt(arguments[34])
 
             ;;Argument 35 (REQUIRED INOUT p35 I2)
-            arg35 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[35])
+            arg35 = dispatcher.GetInt(arguments[35])
 
             ;;Argument 36 (REQUIRED IN p36 I2)
-            arg36 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[36])
+            arg36 = dispatcher.GetInt(arguments[36])
 
             ;;Argument 37 (REQUIRED INOUT p37 I4)
-            arg37 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[37])
+            arg37 = dispatcher.GetInt(arguments[37])
 
             ;;Argument 38 (REQUIRED IN p38 I4)
-            arg38 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[38])
+            arg38 = dispatcher.GetInt(arguments[38])
 
             ;;Argument 39 (REQUIRED INOUT p39 I4)
-            arg39 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[39])
+            arg39 = dispatcher.GetInt(arguments[39])
 
             ;;Argument 40 (REQUIRED IN p40 I4)
-            arg40 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[40])
+            arg40 = dispatcher.GetInt(arguments[40])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -4165,12 +4172,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED IN p1 A65535)
@@ -4187,13 +4194,13 @@ namespace TraditionalBridge.Test.syntst
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED IN p1 A65535)
-            arg1 = dispatcher.GetText((@JsonObject)arguments.arrayValues[1])
+            arg1 = dispatcher.GetText(arguments[1])
 
             ;;Argument 3 (REQUIRED INOUT p3 A65535)
-            arg3 = dispatcher.GetText((@JsonObject)arguments.arrayValues[3])
+            arg3 = dispatcher.GetText(arguments[3])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -4227,12 +4234,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 returnValue,         A5
@@ -4271,12 +4278,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 returnValue,         D3
@@ -4315,12 +4322,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 returnValue,         I4
@@ -4359,12 +4366,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 returnValue,         D3.1
@@ -4403,12 +4410,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 returnValue,         i4
@@ -4447,12 +4454,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 returnValue,         A40000
@@ -4491,12 +4498,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 returnValue,         i4
@@ -4535,12 +4542,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (OPTIONAL OUT p1 A5)
@@ -4603,12 +4610,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED OUT message A30)
@@ -4650,12 +4657,12 @@ namespace TraditionalBridge.Test.syntst
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED IN message A30)
@@ -4668,10 +4675,10 @@ namespace TraditionalBridge.Test.syntst
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED IN message A30)
-            arg1 = dispatcher.GetText((@JsonObject)arguments.arrayValues[1])
+            arg1 = dispatcher.GetText(arguments[1])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine

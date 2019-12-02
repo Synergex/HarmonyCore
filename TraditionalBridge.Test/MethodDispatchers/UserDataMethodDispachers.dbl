@@ -15,6 +15,13 @@ import Harmony.TraditionalBridge
 import System.Collections
 import TraditionalBridge.Test.Models
 
+.ifdef DBLV11
+import System.Text.Json
+.define JSON_ELEMENT @JsonElement
+.else
+.define JSON_ELEMENT @JsonValue
+.endc
+
 namespace TraditionalBridge.Test.UserData
 
 
@@ -34,12 +41,12 @@ namespace TraditionalBridge.Test.UserData
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED INOUT DNETDATETIME structure @Dnetdatetime)
@@ -53,11 +60,11 @@ namespace TraditionalBridge.Test.UserData
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED INOUT DNETDATETIME structure @Dnetdatetime)
             ;;Structure argument. Get the data object then get the record from it
-            arg1DataObject = dispatcher.DeserializeObject((@JsonObject)arguments.arrayValues[1],mDnetdatetimeMetadata)
+            arg1DataObject = dispatcher.DeserializeObject(arguments[1],mDnetdatetimeMetadata)
             arg1 = arg1DataObject.SynergyRecord
 
             ;;------------------------------------------------------------

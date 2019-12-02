@@ -1,7 +1,23 @@
-
-import Json
 import System.Collections
 import TraditionalBridge
+import Json
+
+.ifdef DBLV11
+import System.Text.Json
+.define JSON_ELEMENT @JsonElement
+.define IS_OBJ(element) ((element).ValueKind == JsonValueKind.Object)
+.define IS_NUMBER(element) ((element).ValueKind == JsonValueKind.Number)
+.define IS_TEXT(element) ((element).ValueKind == JsonValueKind.String)
+.define IS_ARRAY(element) ((element).ValueKind == JsonValueKind.Array)
+.define IS_BOOLEAN(element) ((element).ValueKind == JsonValueKind.True || (element).ValueKind == JsonValueKind.False)
+.else
+.define JSON_ELEMENT @JsonValue
+.define IS_OBJ(element) ((element).JsonType == JSON_TYPE.OBJ)
+.define IS_NUMBER(element) ((element).JsonType == JSON_TYPE.NUMBER || (element).JsonType == JSON_TYPE.INT_VAL)
+.define IS_TEXT(element) ((element).JsonType == JSON_TYPE.TEXT)
+.define IS_ARRAY(element) ((element).JsonType == JSON_TYPE.ARRAY_VAL)
+.define IS_BOOLEAN(element) ((element).JsonType == JSON_TYPE.BOOL)
+.endc
 
 .define MaybeLog(priority, msg) if((priority) <= Logger.LogLevel) Logger.Instance.Log(msg)
 ;.define MaybeLog(priority, msg) Logger.Instance.Log(msg)
@@ -51,20 +67,20 @@ namespace Harmony.TraditionalBridge
         ;;; <param name="targetType">Instance of a data object metadata class indicating the type to deserialize to</param>
         ;;; <returns>A data object of the appropriate type</returns>
         public virtual method DeserializeObject, @DataObjectBase
-            obj, @JsonObject
+            obj, JSON_ELEMENT
             targetType, @DataObjectMetadataBase
             record
-                passedValue, @JsonObject
+                passedValue, JSON_ELEMENT
                 objectMetadata, @DataObjectMetadataBase
-                objectType, @JsonText
+                objectType, @string
             endrecord
         proc
-            passedValue = (@JsonObject)obj.GetProperty("PassedValue")
+            passedValue = obj.GetProperty("PassedValue")
             objectMetadata = targetType
             if(objectMetadata == ^null)
             begin
-                objectType = (@JsonText)passedValue.GetProperty("Type")
-                objectMetadata = DataObjectMetadataBase.LookupType(objectType.Value)
+                objectType = passedValue.GetProperty("Type").GetString()
+                objectMetadata = DataObjectMetadataBase.LookupType(objectType)
             end
             mreturn objectMetadata.Deserialize(passedValue)
         endmethod
@@ -79,53 +95,57 @@ namespace Harmony.TraditionalBridge
         ;;; <param name="obj">JSON object to deserialize</param>
         ;;; <returns>ArrayList containing data objects.</returns>
         public virtual method DeserializeObjectCollection, @ArrayList
-            obj, @JsonObject
+            obj, JSON_ELEMENT
             record
-                passedValue, @JsonArray
-                elementValue, @JsonValue
-                elementObject, @JsonObject
+                passedValue, JSON_ELEMENT
+                elementValue, JSON_ELEMENT
+                elementObject, JSON_ELEMENT
                 objectMetadata, @DataObjectMetadataBase
-                objectType, @JsonText
+                objectType, @string
                 result, @ArrayList
+                elementIsEncodedProp, JSON_ELEMENT
                 elementIsEncoded, boolean
-                elementTypeValue, @JsonValue
+                elementTypeValue, JSON_ELEMENT
                 isBriefEncoding, boolean
+                i, int
+                collectionSize, int
             endrecord
         proc
             isBriefEncoding = false
+            elementIsEncoded = false
             result = new ArrayList()
-            passedValue = (@JsonArray)obj.GetProperty("PassedValue")
+            passedValue = obj.GetProperty("PassedValue")
 
-            obj.TryGetBoolProperty("ElementIsEncoded", elementIsEncoded)
+            if(obj.TryGetProperty("ElementIsEncoded", elementIsEncodedProp))
+                elementIsEncoded = elementIsEncodedProp.GetBoolean()
+
             if(obj.TryGetProperty("ElementType", elementTypeValue))
             begin
                 isBriefEncoding = true
-                objectMetadata = DataObjectMetadataBase.LookupType(((@JsonText)elementTypeValue).Value)
+                objectMetadata = DataObjectMetadataBase.LookupType(elementTypeValue.GetString())
             end
-
-            foreach elementValue in passedValue.arrayValues
+            collectionSize = passedValue.GetArrayLength()
+            for i from 0 thru collectionSize - 1 by 1
             begin
+                elementValue = passedValue[i]
+
                 ;;TODO might be able to skip the lookup if the typename hasnt changed
                 if(!isBriefEncoding) then
                 begin
-                    if(elementValue .is. @JsonObject) then 
+                    if(IS_OBJ(elementValue)) then 
                     begin
-                        elementObject = (@JsonObject)elementValue
-                        objectType = (@JsonText)elementObject.GetProperty("Type")
-                        objectMetadata = DataObjectMetadataBase.LookupType(objectType.Value)
+                        elementObject = elementValue
+                        objectType = elementObject.GetProperty("Type").GetString()
+                        objectMetadata = DataObjectMetadataBase.LookupType(objectType)
                         result.Add(objectMetadata.Deserialize(elementObject))
                     end
-                    else if(elementValue .is. @JsonText) then
+                    else if(IS_TEXT(elementValue)) then
                     begin
-                        result.Add(((@JsonText)elementValue).Value)
+                        result.Add(elementValue.GetString())
                     end
-                    else if(elementValue .is. @JsonInt) then
+                    else if(IS_NUMBER(elementValue)) then
                     begin
-                        result.Add((@i)((@JsonInt)elementValue).Value)
-                    end
-                    else if(elementValue .is. @JsonNumber) then
-                    begin
-                        result.Add((@id)((@JsonNumber)elementValue).Value)
+                        result.Add((@*)elementValue.GetDecimal())
                     end
                     ;else if(elementValue .is. @JsonBoolean) then
                     ;  begin
@@ -136,11 +156,11 @@ namespace Harmony.TraditionalBridge
                 end
                 else if(elementIsEncoded) then
                 begin
-                    result.Add(objectMetadata.MakeNew(Convert.FromBase64String(((@JsonText)elementValue).Value), ""))
+                    result.Add(objectMetadata.MakeNew(elementValue.GetStringFromBase64(), ""))
                 end
                 else
                 begin
-                    result.Add(objectMetadata.MakeNew(((@JsonText)elementValue).Value, ""))
+                    result.Add(objectMetadata.MakeNew(elementValue.GetString(), ""))
                 end
             end
             mreturn result
@@ -160,7 +180,7 @@ namespace Harmony.TraditionalBridge
 
         public method UnwrapObjectCollection, void
             dataDef, @ArgumentDataDefinition
-            jsonArray, @JsonArray
+            jsonArray, JSON_ELEMENT
             arrayList, @ArrayList
         proc
 
@@ -179,47 +199,47 @@ namespace Harmony.TraditionalBridge
             inout buffer, a
             elementInfo, @ArgumentDataDefinition
             inout bufferPosition, i
-            collection, @JsonArray
+            collection, JSON_ELEMENT
             record
-                element, @JsonValue
+                element, JSON_ELEMENT
+                itr, int
+                collectionSize, int
             endrecord
         proc
-            foreach element in collection.arrayValues
+            collectionSize = collection.GetArrayLength()
+            for itr from 0 thru collectionSize - 1 by 1
             begin
-                if(element .is. JsonObject) then
+                element = collection[itr]
+                if(IS_OBJ(element)) then
                 begin
-                    data valueToken, @JsonValue
+                    data valueToken, JSON_ELEMENT
                     data stringValue, @string
-                    if(((@JsonObject)element).TryGetProperty("Value", valueToken)) then
+                    if(element.TryGetProperty("Value", valueToken)) then
                     begin
-                        stringValue = ((@JsonText)valueToken).Value
+                        stringValue = valueToken.GetString()
                     end
                     else
                     begin
-                        stringValue = Convert.FromBase64String(((@JsonText)((@JsonObject)element).GetProperty("Base64Value")).Value)
+                        stringValue = element.GetProperty("Base64Value").GetStringFromBase64()
                     end
                     buffer(bufferPosition:elementInfo.ElementSize) = stringValue
                 end
-                else if(element .is. JsonText) then
+                else if(IS_TEXT(element)) then
                 begin
-                    buffer(bufferPosition:elementInfo.ElementSize) = ((@JsonText)element).Value
+                    buffer(bufferPosition:elementInfo.ElementSize) = element.GetString()
                 end
-                else if(element .is. JsonNumber) then
-                begin
-                    ^d(buffer(bufferPosition:elementInfo.ElementSize), elementInfo.DecimalPrecision) = ((@JsonNumber)element).Value
-                end
-                else if(element .is. JsonInt) then
+                else if(IS_NUMBER(element)) then
                 begin
                     if(elementInfo.DataType == FieldDataType.IntegerField) then
-                        ^i(buffer(bufferPosition:elementInfo.ElementSize)) = ((@JsonInt)element).Value
+                        ^i(buffer(bufferPosition:elementInfo.ElementSize)) = element.GetDecimal()
                     else
-                        ^d(buffer(bufferPosition:elementInfo.ElementSize), elementInfo.DecimalPrecision) = %string(((@JsonInt)element).Value)
+                        ^d(buffer(bufferPosition:elementInfo.ElementSize), elementInfo.DecimalPrecision) = element.GetDecimal()
                 end
-                else if(element .is. JsonBoolean) then
+                else if(IS_BOOLEAN(element)) then
                 begin
                                         
                 end
-                else if(element .is. JsonArray)
+                else if(IS_ARRAY(element))
                 begin
 
                 end
@@ -232,52 +252,51 @@ namespace Harmony.TraditionalBridge
             handle, D_HANDLE
             elementInfo, @ArgumentDataDefinition
             inout bufferPosition, i
-            collection, @JsonArray
-            record
-                element, @JsonValue
-            endrecord
+            collection, JSON_ELEMENT
             structure localStr
                 fld, a1
             endstructure
-
+            record
+                element, JSON_ELEMENT
+                itr, int
+                collectionSize, int
+            endrecord
         proc
-            foreach element in collection.arrayValues
+            collectionSize = collection.GetArrayLength()
+            for itr from 0 thru collectionSize - 1 by 1
             begin
-                if(element .is. JsonObject) then
+                element = collection[itr]
+                if(IS_OBJ(element)) then
                 begin
-                    data valueToken, @JsonValue
+                    data valueToken, JSON_ELEMENT
                     data stringValue, @string
-                    if(((@JsonObject)element).TryGetProperty("Value", valueToken)) then
+                    if(element.TryGetProperty("Value", valueToken)) then
                     begin
-                        stringValue = ((@JsonText)valueToken).Value
+                        stringValue = valueToken.GetString()
                     end
                     else
                     begin
-                        stringValue = Convert.FromBase64String(((@JsonText)((@JsonObject)element).GetProperty("Base64Value")).Value)
+                        stringValue = element.GetProperty("Base64Value").GetStringFromBase64()
                     end
                     MaybeLog(6, "filling handle bufferPosition: " + %string(bufferPosition) + " elementSize: " + %string(elementInfo.ElementSize))
                     ^m(localStr.fld(bufferPosition:elementInfo.ElementSize), handle) = stringValue
                 end
-                else if(element .is. JsonText) then
+                else if(IS_TEXT(element)) then
                 begin
-                    ^m(localStr.fld(bufferPosition:elementInfo.ElementSize), handle) = ((@JsonText)element).Value
+                    ^m(localStr.fld(bufferPosition:elementInfo.ElementSize), handle) = element.GetString()
                 end
-                else if(element .is. JsonNumber) then
-                begin
-                    ^d(^m(localStr.fld(bufferPosition:elementInfo.ElementSize), handle), elementInfo.DecimalPrecision) = ((@JsonNumber)element).Value
-                end
-                else if(element .is. JsonInt) then
+                else if(IS_NUMBER(element)) then
                 begin
                     if(elementInfo.DataType == FieldDataType.IntegerField) then
-                        ^i(^m(localStr.fld(bufferPosition:elementInfo.ElementSize), handle)) = ((@JsonInt)element).Value
+                        ^i(^m(localStr.fld(bufferPosition:elementInfo.ElementSize), handle)) = element.GetDecimal()
                     else
-                        ^d(^m(localStr.fld(bufferPosition:elementInfo.ElementSize), handle), elementInfo.DecimalPrecision) = %string(((@JsonInt)element).Value)
+                        ^d(^m(localStr.fld(bufferPosition:elementInfo.ElementSize), handle), elementInfo.DecimalPrecision) = element.GetDecimal()
                 end
-                else if(element .is. JsonBoolean) then
+                else if(IS_BOOLEAN(element)) then
                 begin
                                         
                 end
-                else if(element .is. JsonArray)
+                else if(IS_ARRAY(element))
                 begin
 
                 end
@@ -292,22 +311,28 @@ namespace Harmony.TraditionalBridge
         ;;; <param name="argument"></param>
         ;;; <returns></returns>
         public method GetArgumentDataDefForCollection, @ArgumentDataDefinition
-            argument, @JsonObject
+            argument, JSON_ELEMENT
             in optional elementSize, int
             record
                 result, @ArgumentDataDefinition
                 dataType, i4
+                temp, JSON_ELEMENT
             endrecord
         proc
             result = new ArgumentDataDefinition()
             result.ElementSize = elementSize
 
-            argument.TryGetProperty("DecimalPrecision", result.DecimalPrecision)
-            argument.TryGetProperty("ElementSize", result.ElementSize)
-            if(argument.TryGetProperty("DataType", dataType))
-                result.DataType = (FieldDataType)dataType
+            if(argument.TryGetProperty("DecimalPrecision", temp))
+                result.DecimalPrecision = temp.GetInt32()
 
-            argument.TryGetBoolProperty("ReturnedValue", result.ReturnedValue)
+            if(argument.TryGetProperty("ElementSize", temp))
+                result.ElementSize = temp.GetInt32()
+
+            if(argument.TryGetProperty("DataType", temp))
+                result.DataType = (FieldDataType)temp.GetInt32()
+
+            if(argument.TryGetProperty("ReturnedValue", temp))
+                result.ReturnedValue = temp.GetBoolean()
 
             mreturn result
 
@@ -316,7 +341,7 @@ namespace Harmony.TraditionalBridge
         ;;TODO: This needs to take an expected type parameter of some kind so we can do basic conversions int -> decimal vs int -> int
 
         public method UnwrapObjectCollection, @ArrayList
-            collection, @JsonArray
+            collection, JSON_ELEMENT
             record
                 result, @ArrayList
                 buffer, a65535
@@ -327,7 +352,7 @@ namespace Harmony.TraditionalBridge
         endmethod
 
         private method UnwrapJsonValue, @object
-            element, @JsonValue
+            element, JSON_ELEMENT
             elementIsEncoded, boolean
             elementType, @DataObjectMetadataBase
             inout elementBuffer, a
@@ -336,18 +361,18 @@ namespace Harmony.TraditionalBridge
             optional desiredPrecision, int
             optional grfa, a
         proc
-            if(element .is. JsonText) then
+            if(IS_TEXT(element)) then
             begin
                 if(^passed(desiredSize)) then
                 begin
                     if(!^passed(desiredType)) then
                     begin
-                        elementBuffer(1: desiredSize) = ((@JsonText)element).Value
+                        elementBuffer(1: desiredSize) = element.GetString()
                         mreturn (@*)elementBuffer(1: desiredSize)
                     end
                     else if(desiredType == FieldDataType.DataObjectField) then
                     begin
-                        elementBuffer(1: desiredSize) = ((@JsonText)element).Value
+                        elementBuffer(1: desiredSize) = element.GetString()
                         if(^passed(grfa)) then
                             mreturn elementType.MakeNew(elementBuffer(1: desiredSize), grfa)
                         else
@@ -355,72 +380,47 @@ namespace Harmony.TraditionalBridge
                     end
                     else if(desiredType == FieldDataType.StringField) then
                     begin
-                        mreturn ((@JsonText)element).Value
+                        mreturn element.GetString()
                     end
                     else if(desiredType == FieldDataType.AlphaField)
                     begin
-                        elementBuffer(1: desiredSize) = ((@JsonText)element).Value
+                        elementBuffer(1: desiredSize) = element.GetString()
                         mreturn (@*)elementBuffer(1: desiredSize)
                     end
                 end
                 else
                 begin
-                    mreturn (@a)(a)((@JsonText)element).Value
+                    mreturn (@a)(a)element.GetString()
                 end
             end
-            else if(element .is. JsonNumber) then
+            else if(IS_NUMBER(element)) then
             begin
                 if(!^passed(desiredType)) then
                 begin
-                    ^d(elementBuffer(1: 28), 10) = ((@JsonNumber)element).Value 
+                    ^d(elementBuffer(1: 28), 10) = element.GetDecimal()
                     mreturn (@*)^d(elementBuffer(1: 28), 10)
                 end
                 else if(desiredType == FieldDataType.IntegerField) then
                 begin
-                    ^i(elementBuffer(1: desiredSize)) = ((@JsonNumber)element).Value 
+                    ^i(elementBuffer(1: desiredSize)) = element.GetInt64()
                     mreturn (@*)^i(elementBuffer(1: desiredSize))
                 end
                 else if(desiredType == FieldDataType.DecimalField) then
                 begin
-                    ^d(elementBuffer(1: desiredSize)) = ((@JsonNumber)element).Value
+                    ^d(elementBuffer(1: desiredSize)) = element.GetDecimal()
                     mreturn (@*)^d(elementBuffer(1: desiredSize))
                 end
                 else if(desiredType == FieldDataType.ImpliedDecimal) then
                 begin
-                    ^d(elementBuffer(1: desiredSize), desiredPrecision) = ((@JsonNumber)element).Value
+                    ^d(elementBuffer(1: desiredSize), desiredPrecision) = element.GetDecimal()
                     mreturn (@*)^d(elementBuffer(1: desiredSize), desiredPrecision)
                 end
                 else
                     throw new Exception("invalid desired type " + %string(desiredType))
             end
-            else if(element .is. JsonInt) then
+            else if(IS_BOOLEAN(element))
             begin
-                if(!^passed(desiredType)) then
-                begin
-                    ^i(elementBuffer(1: 8)) = ((@JsonInt)element).Value 
-                    mreturn (@*)^i(elementBuffer(1: 8))
-                end
-                else if(desiredType == FieldDataType.IntegerField) then
-                begin
-                    ^i(elementBuffer(1: desiredSize)) = ((@JsonInt)element).Value 
-                    mreturn (@*)^i(elementBuffer(1: desiredSize))
-                end
-                else if(desiredType == FieldDataType.DecimalField) then
-                begin
-                    ^d(elementBuffer(1: desiredSize)) = ((@JsonInt)element).Value
-                    mreturn (@*)^d(elementBuffer(1: desiredSize))
-                end
-                else if(desiredType == FieldDataType.ImpliedDecimal) then
-                begin
-                    ^d(elementBuffer(1: desiredSize), desiredPrecision) = ((@JsonInt)element).Value
-                    mreturn (@*)^d(elementBuffer(1: desiredSize), desiredPrecision)
-                end
-                else
-                    throw new Exception("invalid desired type " + %string(desiredType))
-            end
-            else if(element .is. JsonBoolean)
-            begin
-                mreturn (@boolean)((@JsonBoolean)element).Value
+                mreturn (@boolean)element.GetBoolean()
             end
         endmethod
 
@@ -431,7 +431,7 @@ namespace Harmony.TraditionalBridge
         ;;; <param name="collection"></param>
         ;;; <param name="targetArrayList"></param>
         public method UnwrapObjectCollection, void
-            collection, @JsonArray
+            collection, JSON_ELEMENT
             ;;must be an arraylist or a typed dynamic array
             targetCollection, @Array
             elementIsEncoded, boolean
@@ -441,20 +441,23 @@ namespace Harmony.TraditionalBridge
             optional desiredSize, int
             optional desiredPrecision, int
             record
-                element, @JsonValue
+                element, JSON_ELEMENT
                 index, int
+                collectionLength, int
             endrecord
         proc
-            if(targetCollection.Length != collection.arrayValues.Count)
+            collectionLength = collection.GetArrayLength()
+            if(targetCollection.Length != collectionLength)
                 throw new Exception("Dynamic array must be correctly sized before unwrapping object collection into it")
-            index = 1
-
-            foreach element in collection.arrayValues
+            
+            
+            for index from 1 thru collectionLength by 1
             begin
-                if(element .is. JsonObject) then
+                element = collection[index]
+                if(IS_OBJ(element)) then
                 begin
-                    data valueToken, @JsonValue
-                    if(((@JsonObject)element).TryGetProperty("Value", valueToken)) then
+                    data valueToken, JSON_ELEMENT
+                    if(element.TryGetProperty("Value", valueToken)) then
                     begin
                         if(elementType != ^null && ^passed(desiredType) && desiredType == FieldDataType.AlphaField) then
                             elementType.SetIntoArray((@a)UnwrapJsonValue(valueToken, false, elementType, elementBuffer, desiredType, desiredSize, desiredPrecision), targetCollection, index)
@@ -463,7 +466,7 @@ namespace Harmony.TraditionalBridge
                     end
                     else
                     begin
-                        targetCollection.SetValue(UnwrapJsonValue(((@JsonObject)element).GetProperty("Base64Value"), true, elementType, elementBuffer, desiredType, desiredSize, desiredPrecision), index)
+                        targetCollection.SetValue(UnwrapJsonValue(element.GetProperty("Base64Value"), true, elementType, elementBuffer, desiredType, desiredSize, desiredPrecision), index)
                     end
                 end
                 else
@@ -478,7 +481,7 @@ namespace Harmony.TraditionalBridge
         endmethod
 
         public method UnwrapObjectCollection, void
-            collection, @JsonArray
+            collection, JSON_ELEMENT
             ;;must be an arraylist or a typed dynamic array
             targetCollection, @ArrayList
             elementIsEncoded, boolean
@@ -488,21 +491,25 @@ namespace Harmony.TraditionalBridge
             optional desiredSize, int
             optional desiredPrecision, int
             record
-                element, @JsonValue
+                element, JSON_ELEMENT
+                i, int
+                collectionLength, int
             endrecord
         proc
-            foreach element in collection.arrayValues
+            collectionLength = collection.GetArrayLength()
+            for i from 0 thru collectionLength by 1
             begin
-                if(element .is. JsonObject) then
+                element = collection[i]
+                if(IS_OBJ(element)) then
                 begin
-                    data valueToken, @JsonValue
-                    if(((@JsonObject)element).TryGetProperty("Value", valueToken)) then
+                    data valueToken, JSON_ELEMENT
+                    if(element.TryGetProperty("Value", valueToken)) then
                     begin
                         targetCollection.Add(UnwrapJsonValue(valueToken, false, elementType, elementBuffer, desiredType, desiredSize, desiredPrecision))
                     end
                     else
                     begin
-                        targetCollection.Add(UnwrapJsonValue(((@JsonObject)element).GetProperty("Base64Value"), true, elementType, elementBuffer, desiredType, desiredSize, desiredPrecision))
+                        targetCollection.Add(UnwrapJsonValue(element.GetProperty("Base64Value"), true, elementType, elementBuffer, desiredType, desiredSize, desiredPrecision))
                     end
                 end
                 else
@@ -513,90 +520,97 @@ namespace Harmony.TraditionalBridge
         endmethod
 
         public method UnwrapStringArray, [#]@string
-            collection, @JsonArray
+            collection, JSON_ELEMENT
             record
                 result, [#]@string
-                element, @JsonValue
+                element, JSON_ELEMENT
                 i, int
+                collectionLength, int
             endrecord
         proc
-            i = 1
-            result = new String[collection.arrayValues.Count]
-            foreach element in collection.arrayValues
+            collectionLength = collection.GetArrayLength()
+            result = new string[collectionLength]
+            for i from 0 thru collectionLength by 1
             begin
-                if(element .is. JsonText) then
+                element = collection[i]
+                if(IS_TEXT(element)) then
                 begin
-                    result[i] = ((@JsonText)element).Value
+                    result[i] = element.GetString()
                 end
                 else
                     throw new InvalidCastException()
-                incr i
             end
             mreturn result
         endmethod
 
         public method UnwrapIntArray, [#]int
-            collection, @JsonArray
+            collection, JSON_ELEMENT
             record
                 result, [#]int
-                element, @JsonValue
+                element, JSON_ELEMENT
                 i, int
+                collectionLength, int
+            endrecord
         proc
-            i = 1
-            result = new int[collection.arrayValues.Count]
-            foreach element in collection.arrayValues
+            collectionLength = collection.GetArrayLength()
+            result = new int[collectionLength]
+            for i from 0 thru collectionLength by 1
             begin
-                if(element .is. JsonInt) then
+                element = collection[i]
+                if(IS_NUMBER(element)) then
                 begin
-                    result[i] = ((@JsonInt)element).Value
+                    result[i + 1] = element.GetInt32()
                 end
                 else
                     throw new InvalidCastException()
-                incr i
             end
             mreturn result
         endmethod
 
         public method UnwrapBoolArray, [#]boolean
-            collection, @JsonArray
+            collection, JSON_ELEMENT
             record
                 result, [#]boolean
-                element, @JsonValue
+                element, JSON_ELEMENT
                 i, int
+                collectionLength, int
+            endrecord
         proc
-            i = 1
-            result = new boolean[collection.arrayValues.Count]
-            foreach element in collection.arrayValues
+            collectionLength = collection.GetArrayLength()
+            result = new boolean[collectionLength]
+            for i from 0 thru collectionLength by 1
             begin
-                if(element .is. JsonBoolean) then
+                element = collection[i]
+                if(IS_BOOLEAN(element)) then
                 begin
-                    result[i] = ((@JsonBoolean)element).Value
+                    result[i + 1] = element.GetBoolean()
                 end
                 else
                     throw new InvalidCastException()
-                incr i
             end
             mreturn result
         endmethod
 
         public method UnwrapImpliedDecimalArray, [#]@id
-            collection, @JsonArray
+            collection, JSON_ELEMENT
             record
                 result, [#]@id
-                element, @JsonValue
-                i,      int
+                element, JSON_ELEMENT
+                i, int
+                collectionLength, int
+            endrecord
         proc
-            i = 1
-            result = new @id[collection.arrayValues.Count]
-            foreach element in collection.arrayValues
+            collectionLength = collection.GetArrayLength()
+            result = new @id[collectionLength]
+            for i from 0 thru collectionLength by 1
             begin
-                if(element .is. JsonNumber) then
+                element = collection[i]
+                if(IS_NUMBER(element)) then
                 begin
-                    result[i] = (@id)((@JsonNumber)element).Value
+                    result[i + 1] = (@id)element.GetDecimal()
                 end
                 else
                     throw new InvalidCastException()
-                incr i
             end
             mreturn result
         endmethod
@@ -606,14 +620,10 @@ namespace Harmony.TraditionalBridge
         ;;; </summary>
         ;;; <param name="value"></param>
         ;;; <returns></returns>
-        public method GetText, a
-            value, @JsonObject
-            record
-                valueText, @JsonText
-            endrecord
+        public method GetText, @string
+            value, JSON_ELEMENT
         proc
-            valueText = (@JsonText)value.GetProperty("PassedValue")
-            mreturn valueText.Value
+            mreturn value.GetProperty("PassedValue").GetString()
         endmethod
 
         ;;; <summary>
@@ -622,23 +632,15 @@ namespace Harmony.TraditionalBridge
         ;;; <param name="value"></param>
         ;;; <returns></returns>
         public method GetInt, i
-            value, @JsonObject
-            record
-                valueInt, @JsonInt
-            endrecord
+            value, JSON_ELEMENT
         proc
-            valueInt = (@JsonInt)value.GetProperty("PassedValue")
-            mreturn valueInt.Value
+            mreturn value.GetProperty("PassedValue").GetInt64()
         endmethod
 
-        public method GetArray, @JsonArray
-            value, @JsonObject
-            record
-                valueArray, @JsonArray
-            endrecord
+        public method GetArray, JSON_ELEMENT
+            value, JSON_ELEMENT
         proc
-            valueArray = (@JsonArray)value.GetProperty("PassedValue")
-            mreturn valueArray
+            mreturn value.GetProperty("PassedValue")
         endmethod
 
         ;;; <summary>
@@ -647,26 +649,17 @@ namespace Harmony.TraditionalBridge
         ;;; <param name="value"></param>
         ;;; <returns></returns>
         public method GetDecimal, d
-            value, @JsonObject
+            value, JSON_ELEMENT
             record
-                passedValue, @JsonValue
-                valueInt, @JsonInt
-                valuestring, @JsonText
-                tempD, d28
+                passedValue, JSON_ELEMENT
             endrecord
         proc
+
             passedValue = value.GetProperty("PassedValue")
-            if(passedValue.JsonType == JSON_TYPE.INT_VAL ) then
-            begin
-                valueInt = (@JsonInt)passedValue
-                tempD = valueInt.Value
-                mreturn tempD
-            end
+            if(IS_TEXT(passedValue)) then
+                mreturn ^d((a)passedValue.GetString())
             else
-            begin
-                valuestring = (@JsonText)passedValue
-                mreturn ^d((a)valuestring.Value)
-            end
+                mreturn passedValue.GetDecimal()
         endmethod
 
         ;;; <summary>
@@ -675,32 +668,19 @@ namespace Harmony.TraditionalBridge
         ;;; <param name="value"></param>
         ;;; <returns></returns>
         public method GetImplied, d.
-            value, @JsonObject
+            value, JSON_ELEMENT
             record
-                passedValue, @JsonValue
-                valueInt, @JsonInt
-                precisionValue, @JsonValue
-                precisionInt, @JsonInt
-                valuestring, @JsonText
-                tempD, d56.28
+                precisionValue, d18
+                passedValue, JSON_ELEMENT
             endrecord
         proc
             passedValue = value.GetProperty("PassedValue")
+            precisionValue = value.GetProperty("DecimalPrecision").GetDecimal()
 
-            precisionValue = value.GetProperty("DecimalPrecision")
-            precisionInt = (@JsonInt)precisionValue
-
-            if(passedValue.JsonType == JSON_TYPE.INT_VAL ) then
-            begin
-                valueInt = (@JsonInt)passedValue
-                tempD = ^d(%string(valueInt.Value),precisionInt.Value)
-                mreturn tempD
-            end
+            if(IS_TEXT(passedValue)) then
+                mreturn %implied(passedValue.GetString())
             else
-            begin
-                valuestring = (@JsonText)passedValue
-                mreturn %implied((a)valuestring.Value)
-            end
+                mreturn ^d(%string(passedValue.GetDecimal()),precisionValue)
         endmethod
 
         ;;; <summary>
@@ -710,15 +690,13 @@ namespace Harmony.TraditionalBridge
         ;;; <param name="dataType"></param>
         ;;; <returns></returns>
         public method DeserializeObject, @object
-            obj, @JsonObject
+            obj, JSON_ELEMENT
             out dataType, FieldDataType
             record
-                dataTypeInt, @JsonInt
-                propValue, @JsonValue
+                propValue, JSON_ELEMENT
             endrecord
         proc
-            dataTypeInt = ((@JsonInt)obj.GetProperty("DataType"))
-            dataType = (FieldDataType)dataTypeInt.Value
+            dataType = (FieldDataType)obj.GetProperty("DataType").GetInt32()
             if(dataType == FieldDataType.DataObjectField) then
             begin
                 mreturn DeserializeObject(obj, ^null)
@@ -736,8 +714,7 @@ namespace Harmony.TraditionalBridge
                         mreturn (@object)""
                     else
                     begin
-                        data textObject, @JsonText, ((@JsonText)propValue)
-                        mreturn textObject.Value
+                        mreturn propValue.GetString()
                     end
                 end
                 else if(dataType == FieldDataType.DecimalField) then
@@ -748,7 +725,7 @@ namespace Harmony.TraditionalBridge
                     end
                     else
                     begin
-                        mreturn ((@JsonText)propValue).Value
+                        mreturn propValue.GetString()
                     end
                 end
                 else if(dataType == FieldDataType.ImpliedDecimal) then
@@ -759,14 +736,14 @@ namespace Harmony.TraditionalBridge
                     end
                     else
                     begin
-                        mreturn ((@JsonText)propValue).Value
+                        mreturn propValue.GetString()
                     end
                 end
                 else if(dataType == FieldDataType.IntegerField)
                 begin
                     data intValue, i4, 0
                     if(propValue != ^null)
-                        intValue = ((@JsonInt)propValue).Value
+                        intValue = propValue.GetInt32()
                                 
                     mreturn (@object)intValue
                 end
@@ -786,8 +763,12 @@ namespace Harmony.TraditionalBridge
             required in leftovers, a
             required in leftoversLength, i
             record
+.ifdef DBLV11  
+                jsonDoc, @JsonDocument
+.else
                 jsonReader, @Json
-                parsedJson, @JsonValue
+.endc
+                parsedJson, JSON_ELEMENT
                 serializer, @DispatchSerializer
                 result, boolean
                 readerPosition, int
@@ -797,7 +778,9 @@ namespace Harmony.TraditionalBridge
                 innerHandle, D_HANDLE
             endrecord
         proc
+.ifndef DBLV11  
             jsonReader = new Json()
+.endc
             serializer = new DispatchSerializer(new ChannelOutputStream(ttChannel))
             ;;reuse the same buffer if possible
             if(mReadBufferSize < frameHeader)
@@ -848,48 +831,55 @@ namespace Harmony.TraditionalBridge
                 MaybeLog(6, "Dispatcher: Parsing buffer " + ^m(MemStruct(1:64000), mReadBuffer))
             else
                 MaybeLog(6, "Dispatcher: Parsing buffer " + ^m(MemStruct(1:frameHeader), mReadBuffer))
-            ;innerHandle = %mem_proc(DM_REG, readerPosition - 1, ^addr(^m(MemStruct(1:1), mReadBuffer)))
+.ifdef DBLV11
+            innerString = %string_from_handle(mReadBuffer)
+            jsonDoc = JsonDocument.Parse(innerString.Substring(0, readerPosition - 1))
+            parsedJson = jsonDoc.RootElement
+.else
             innerString = %string_from_handle(mReadBuffer)
             parsedJson = jsonReader.ParseJson(innerString.Substring(0, readerPosition - 1))
-            if (!(parsedJson .is. @JsonObject) && !(parsedJson .is. @JsonArray))
+.endc
+            if (!(IS_OBJ(parsedJson)) && !(IS_ARRAY(parsedJson)))
             begin
-				serializer.ReportError("failed to parse json request", (int)-32700, (int)-1)
+                serializer.ReportError("failed to parse json request", (int)-32700, (int)-1)
                 mreturn true
             end
 
             MaybeLog(5, "Dispatcher: Finished Json Parsing")
 
             result = true
-            if(parsedJson .is. JsonObject) then
+            if(IS_OBJ(parsedJson)) then
             begin
                 MaybeLog(5, "Dispatcher: Single Call")
-                result = ProcessCallBlock((@JsonObject)parsedJson, serializer)
+                result = ProcessCallBlock(parsedJson, serializer)
             end
-            else if(parsedJson .is. JsonArray)
+            else if(IS_ARRAY(parsedJson))
             begin
-                data parsedArray, @JsonArray
-                data jsonVal, @JsonValue
-                parsedArray = (@JsonArray)parsedJson
-
+                data jsonVal, JSON_ELEMENT
+                data i, int
+                data collectionSize, int
                 MaybeLog(5, "Dispatcher: Batch Call")
 
+                collectionSize = parsedJson.GetArrayLength()
+
                 serializer.ArrayOpen()
-                foreach jsonVal in parsedArray.arrayValues
+                for i from 1 thru collectionSize - 1 by 1
                 begin
-                    if(jsonVal .is. JsonObject) then
+                    jsonVal = parsedJson[i]
+                    if(IS_OBJ(jsonVal)) then
                     begin
-                        result = ProcessCallBlock((@JsonObject)parsedJson, serializer)
+                        result = ProcessCallBlock(parsedJson, serializer)
                         if(!result)
                             exitloop
                     end
                     else
                     begin
-						serializer.ReportError("failed to parse json request", (int)-32700, (int)-1)
+                        serializer.ReportError("failed to parse json request", (int)-32700, (int)-1)
                     end
-				end
+                end
                 serializer.ArrayClose()
-			end
-			serializer.Flush()
+            end
+            serializer.Flush()
             flush(ttChannel)
             mreturn result
 
@@ -988,7 +978,7 @@ namespace Harmony.TraditionalBridge
                 try
                 begin
                     data serializer = new DispatchSerializer(new ChannelOutputStream(ttChannel))
-					serializer.ReportError(ex.ToString(), (int)-32603, (int)-1)
+                    serializer.ReportError(ex.ToString(), (int)-32603, (int)-1)
                 end
                 catch(ex2, @Exception)
                 begin
@@ -1007,22 +997,28 @@ namespace Harmony.TraditionalBridge
         ;;; <param name="responseChannel"></param>
         ;;; <returns></returns>
         public method ProcessCallBlock, boolean
-            jsonData, @JsonObject
+            jsonData, JSON_ELEMENT
             serializer, @DispatchSerializer
             record
                 requestId, int
                 name, @string
-                argArrayList, @ArrayList
                 dispatchStub, @RoutineStub
+                temp, JSON_ELEMENT
             endrecord
         proc
                         
-            if(!jsonData.TryGetProperty("id", requestId))
+            if(jsonData.TryGetProperty("id", temp)) then
+                requestId = temp.GetInt32()
+            else
                 requestId = -1
 
-            if(!jsonData.TryGetProperty("method", name))
+            if(jsonData.TryGetProperty("method", temp)) then
             begin
-				serializer.ReportError("method name missing", (int)-32600, requestId)
+                name = temp.GetString()
+            end
+            else
+            begin
+                serializer.ReportError("method name missing", (int)-32600, requestId)
             end
 
             MaybeLog(5, "Dispatcher: method target was " + name)
@@ -1036,59 +1032,76 @@ namespace Harmony.TraditionalBridge
                     if(name == "rpc.shutdown") then
                     begin
                         ;;we've been asked to shutdown so return false and let the outer loop take care of it
-						serializer.ReportResult(requestId, 0)
+                        serializer.ReportResult(requestId, 0)
                         serializer.OutputScopeClose()
                         mreturn false
                     end
                     else if(name == "rpc.ping") then
                     begin
-						serializer.ReportResult(requestId, 0)
+                        serializer.ReportResult(requestId, 0)
                     end
                     else if(name == "rpc.serializer_protocol") then
                     begin
-						serializer.ReportResult(requestId, "1.0")
+                        serializer.ReportResult(requestId, "1.0")
                     end
                     else if(name == "rpc.set_log_level") then
                     begin
-                        data logArg, @JsonInt
-                        argArrayList = ((@JsonArray)jsonData.GetProperty("params")).arrayValues
-
-                        if(argArrayList.Count != 1 || !(argArrayList[0] .is. JsonObject)) then
-							serializer.ReportError("invalid parameters for rpc.set_log_level", (int)-32602, requestId)
+                        data paramsArray = jsonData.GetProperty("params")
+                        data paramsArrayLength = paramsArray.GetArrayLength()
+                        if(paramsArrayLength != 1) then
+                            serializer.ReportError("invalid parameters for rpc.set_log_level", (int)-32602, requestId)
                         else
                         begin
-                            data settingsArgumentData = (@JsonObject)argArrayList[0] 
-                            data passedValueProp = settingsArgumentData.GetProperty("PassedValue")
-                            data passedValue = (@JsonObject)passedValueProp
+                            data settingsArgumentData = paramsArray[0]
+                            data passedValue = settingsArgumentData.GetProperty("PassedValue")
                             data targetLogSettings = new LoggerScopeSettings()
+                            data tempElement, JSON_ELEMENT
+                            data complete = true
                             if(passedValue == ^null)
-								serializer.ReportError("invalid parameters for rpc.set_log_level", (int)-32602, requestId)
+                                serializer.ReportError("invalid parameters for rpc.set_log_level", (int)-32602, requestId)
 
-                            passedValue.TryGetProperty("ScopeIdentifier", targetLogSettings.ScopeIdentifier)
-                            passedValue.TryGetProperty("LogLocation", targetLogSettings.LogLocation)
-                            if(!(passedValue.TryGetBoolProperty("LogToMemory", targetLogSettings.LogToMemory) &&
-                            &    passedValue.TryGetBoolProperty("LogToDisk", targetLogSettings.LogToDisk) &&
-                            &    passedValue.TryGetBoolProperty("FlushLog", targetLogSettings.FlushLog) &&
-                            &    passedValue.TryGetProperty("OnDiskLogLevel", targetLogSettings.OnDiskLogLevel) &&
-                            &    passedValue.TryGetProperty("InMemoryLogLevel", targetLogSettings.InMemoryLogLevel) &&
-                            &    passedValue.TryGetBoolProperty("AttachLogsToExceptions", targetLogSettings.AttachLogsToExceptions)))
+                            if(passedValue.TryGetProperty("ScopeIdentifier", tempElement))
+                                targetLogSettings.ScopeIdentifier = tempElement.GetString()
+
+                            if(passedValue.TryGetProperty("LogLocation", tempElement))
+                                targetLogSettings.LogLocation = tempElement.GetString()
+
+                            if(complete = (complete && passedValue.TryGetProperty("LogToMemory", tempElement)))
+                                targetLogSettings.LogToMemory = tempElement.GetBoolean()
+
+                            if(complete = (complete && passedValue.TryGetProperty("LogToDisk", tempElement)))
+                                targetLogSettings.LogToDisk = tempElement.GetBoolean()
+
+                            if(complete = (complete && passedValue.TryGetProperty("FlushLog", tempElement)))
+                                targetLogSettings.FlushLog = tempElement.GetBoolean()
+
+                            if(complete = (complete && passedValue.TryGetProperty("OnDiskLogLevel", tempElement)))
+                                targetLogSettings.OnDiskLogLevel = tempElement.GetInt32()
+
+                            if(complete = (complete && passedValue.TryGetProperty("InMemoryLogLevel", tempElement)))
+                                targetLogSettings.InMemoryLogLevel = tempElement.GetInt32()
+
+                            if(complete = (complete && passedValue.TryGetProperty("AttachLogsToExceptions", tempElement)))
+                                targetLogSettings.AttachLogsToExceptions = tempElement.GetBoolean()
+
+                            if(!complete)
                                 Logger.Instance.Log("incomplete log settings object was passed")
 
                             Logger.Instance.SetRootScope(targetLogSettings)
 
-							serializer.ReportResult(requestId, 0)
+                            serializer.ReportResult(requestId, 0)
                         end
 
                     end
                     else if(name == "rpc.chain") then
                     begin
                         ;;TODO: flush everything out and stop chain to ourselves
-						serializer.ReportError("rpc.chain not yet implemented", -32603, requestId)
+                        serializer.ReportError("rpc.chain not yet implemented", -32603, requestId)
                     end
                     else
                     begin
                         ;;extension method was called but isnt supported
-						serializer.ReportError("unknown extension method", -32601, requestId)
+                        serializer.ReportError("unknown extension method", -32601, requestId)
                     end
                 end
                 else
@@ -1109,13 +1122,13 @@ namespace Harmony.TraditionalBridge
             catch(rtnNotFound, @RoutineNotFound)
             begin
                 serializer.OutputScopeAbort()
-				serializer.ReportError(rtnNotFound.ToString(), -32601, requestId)
+                serializer.ReportError(rtnNotFound.ToString(), -32601, requestId)
             end
             catch(ex, @Exception)
             begin
                 serializer.OutputScopeAbort()
                 ;;TODO maybe this should be a specific type, we might need to do additional processing for certain exception types here
-				serializer.ReportError(ex.ToString(), -32000, requestId)
+                serializer.ReportError(ex.ToString(), -32000, requestId)
             end
             endtry
 
@@ -1137,25 +1150,25 @@ namespace Harmony.TraditionalBridge
         ;;; <param name="dispatcher"></param>
         protected abstract method DispatchInternal, void
             name, @string
-            callFrame, @JsonObject
+            callFrame, JSON_ELEMENT
             serializer, @DispatchSerializer
             dispatcher, @RoutineDispatcher
         proc
 
-		endmethod
+        endmethod
 
-		public method Dispatch, void
-			name, @string
-			callFrame, @JsonObject
-			serializer, @DispatchSerializer
-			dispatcher, @RoutineDispatcher
-			record
-				requestId, int
-		proc
-			serializer.ReportResponseProlog(callFrame.TryGetProperty("id", requestId), requestId)
-			DispatchInternal(name, callFrame, serializer, dispatcher)
-			serializer.ReportResponseEpilog()
-		endmethod
+        public method Dispatch, void
+            name, @string
+            callFrame, JSON_ELEMENT
+            serializer, @DispatchSerializer
+            dispatcher, @RoutineDispatcher
+            record
+                idElement, JSON_ELEMENT
+        proc
+            serializer.ReportResponseProlog(callFrame.TryGetProperty("id", idElement), idElement.GetInt32())
+            DispatchInternal(name, callFrame, serializer, dispatcher)
+            serializer.ReportResponseEpilog()
+        endmethod
 
         public method RCBInit, void
             required in targetMethod, a
@@ -1173,7 +1186,7 @@ namespace Harmony.TraditionalBridge
 
         public method RCBArg, void
             index, int
-            argObject, @JsonObject
+            argObject, JSON_ELEMENT
             argType, FieldDataType
             inout argBuffer, a
             rcbid, D_HANDLE
@@ -1182,7 +1195,8 @@ namespace Harmony.TraditionalBridge
             record
                 argLength, i4
                 argPrecision, i4
-                argValue, @JsonValue
+                argValue, JSON_ELEMENT
+                argEncodedProp, JSON_ELEMENT
                 argIsEncoded, boolean
         proc
             argLength = ^size(argBuffer)
@@ -1193,46 +1207,48 @@ namespace Harmony.TraditionalBridge
                 if(^passed(passed))
                     passed = true
 
-                if(!argObject.TryGetBoolProperty("ElementIsEncoded", argIsEncoded))
+                if(argObject.TryGetProperty("ElementIsEncoded", argEncodedProp)) then
+                    argIsEncoded = argEncodedProp.GetBoolean()
+                else
                     argIsEncoded = false
 
                 if(argType != FieldDataType.DataObjectField && argType != FieldDataType.DataObjectCollectionField) then
                 begin
-                    data elementSizeValue, @JsonValue
-                    if(argObject.HasProperty("DecimalPrecision"))
-                        argPrecision = ((@JsonInt)argObject.GetProperty("DecimalPrecision")).Value
+                    data decimalPrecision, JSON_ELEMENT
+                    if(argObject.TryGetProperty("DecimalPrecision", decimalPrecision))
+                        argPrecision = decimalPrecision.GetInt32()
 
                     if(argType == FieldDataType.AlphaField) then
                     begin
                         if(argIsEncoded) then
-                            argBuffer = Convert.FromBase64String(((@JsonText)argValue).Value)
+                            argBuffer = argValue.GetStringFromBase64()
                         else
-                            argBuffer = ((@JsonText)argValue).Value
+                            argBuffer = argValue.GetString()
                     end
                     else if(argType == FieldDataType.DecimalField) then
                     begin
-                        if(argValue .is. JsonNumber) then
+                        if(IS_NUMBER(argValue)) then
                         begin
-                            MaybeLog(4, "argument " + %string(index) + " passed to rcb dispatcher with argType " + %string(argType) + " JsonNumber value " + %string(((@JsonNumber)argValue).Value))
-                            ^d(argBuffer) = ((@JsonNumber)argValue).Value
+                            MaybeLog(4, "argument " + %string(index) + " passed to rcb dispatcher with argType " + %string(argType) + " JsonNumber value " + %string(argValue.GetDecimal()))
+                            ^d(argBuffer) = argValue.GetDecimal()
                         end
-                        else if(argValue .is. JsonInt)
-                        begin
-                            MaybeLog(4, "argument " + %string(index) + " passed to rcb dispatcher with argType " + %string(argType) + " and arglength " + %string(argLength) + " JsonInt value " + %string(((@JsonInt)argValue).Value))
-                            ^d(argBuffer) = %implied(((@JsonInt)argValue).Value)
-                        end
+                        else
+                            throw new Exception("Invalid argument type")
                     end
                     else if(argType == FieldDataType.ImpliedDecimalField) then
                     begin
                         if(argValue .is. JsonNumber) then
-                            ^d(argBuffer, argBufferPrecision) = ((@JsonNumber)argValue).Value
-                        else if(argValue .is. JsonInt)
-                            ^d(argBuffer, argBufferPrecision) = %implied(((@JsonInt)argValue).Value)
+                        begin
+                            MaybeLog(4, "argument " + %string(index) + " passed to rcb dispatcher with argType " + %string(argType) + " JsonNumber value " + %string(argValue.GetDecimal()))
+                            ^d(argBuffer, argBufferPrecision) = argValue.GetDecimal()
+                        end
+                        else
+                            throw new Exception("Invalid argument type")
                     end
                     else if(argType == FieldDataType.IntegerField) then
                     begin
-                        MaybeLog(4, "argument " + %string(index) + " passed to rcb dispatcher with argType " + %string(argType)  + " and arglength " + %string(argLength) + " JsonInt value " + %string(((@JsonInt)argValue).Value))
-                        ^i(argBuffer) = ((@JsonInt)argValue).Value
+                        MaybeLog(4, "argument " + %string(index) + " passed to rcb dispatcher with argType " + %string(argType)  + " and arglength " + %string(argLength) + " JsonInt value " + %string(argValue.GetInt64()))
+                        ^i(argBuffer) = argValue.GetInt64()
                     end
 
                     else

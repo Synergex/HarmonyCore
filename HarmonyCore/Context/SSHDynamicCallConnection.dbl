@@ -221,7 +221,10 @@ namespace Harmony.Core.Context
 			
 			
 			data result = new JsonRPC(new HeaderDelimitedMessageHandler(streamWrapper, new JsonMessageFormatter(new UTF8Encoding(false))))
-			result.TraceSource = new TraceSource("Client", SourceLevels.All)
+			if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+            begin
+                result.TraceSource = new TraceSource("Client", SourceLevels.All)
+            end
 			result.StartListening()
 			mreturn result
 		endmethod
