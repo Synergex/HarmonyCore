@@ -6,9 +6,11 @@ using Harmony.Core.Context;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Storage;
+using Harmony.Core.EF.Storage;
 using Microsoft.EntityFrameworkCore.Utilities;
 using Microsoft.Extensions.DependencyInjection;
+using System.Collections.Generic;
+using System.Globalization;
 
 namespace Harmony.Core.EF.Infrastructure.Internal
 {
@@ -95,12 +97,10 @@ namespace Harmony.Core.EF.Infrastructure.Internal
         ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
-        public virtual bool ApplyServices(IServiceCollection services)
+        public virtual void ApplyServices(IServiceCollection services)
         {
             services.AddSingleton<IDataObjectProvider>(_objectProvider);
             services.AddEntityFrameworkHarmonyDatabase();
-
-            return true;
         }
 
         /// <summary>
@@ -136,6 +136,47 @@ namespace Harmony.Core.EF.Infrastructure.Internal
 
                 return _logFragment;
             }
+        }
+
+        public DbContextOptionsExtensionInfo Info => new ExtensionInfo(this);
+
+
+        private sealed class ExtensionInfo : DbContextOptionsExtensionInfo
+        {
+            private string _logFragment;
+
+            public ExtensionInfo(IDbContextOptionsExtension extension)
+                : base(extension)
+            {
+            }
+
+            private new HarmonyOptionsExtension Extension
+                => (HarmonyOptionsExtension)base.Extension;
+
+            public override bool IsDatabaseProvider => true;
+
+            public override string LogFragment
+            {
+                get
+                {
+                    if (_logFragment == null)
+                    {
+                        var builder = new StringBuilder();
+
+                        builder.Append("StoreName=").Append(Extension._storeName).Append(' ');
+
+                        _logFragment = builder.ToString();
+                    }
+
+                    return _logFragment;
+                }
+            }
+
+            public override long GetServiceProviderHashCode() => Extension._databaseRoot?.GetHashCode() ?? 0L;
+
+            public override void PopulateDebugInfo(IDictionary<string, string> debugInfo)
+                => debugInfo["HarmonyDatabase:DatabaseRoot"]
+                    = (Extension._databaseRoot?.GetHashCode() ?? 0L).ToString(CultureInfo.InvariantCulture);
         }
     }
 }

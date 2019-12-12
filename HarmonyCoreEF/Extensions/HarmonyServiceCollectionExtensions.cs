@@ -5,18 +5,19 @@ using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Harmony.Core.EF.Infrastructure.Internal;
 using Harmony.Core.EF.Metadata.Conventions.Internal;
-using Harmony.Core.EF.Query.ExpressionVisitors.Internal;
 using Harmony.Core.EF.Query.Internal;
-using Harmony.Core.EF.Storage.Internal;
+using Harmony.Core.EF.Storage;
 using Harmony.Core.EF.ValueGeneration.Internal;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions.Internal;
 using Microsoft.EntityFrameworkCore.Query;
-using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors;
 using Microsoft.EntityFrameworkCore.Query.Internal;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Utilities;
 using Microsoft.EntityFrameworkCore.ValueGeneration;
 using Remotion.Linq.Parsing.ExpressionVisitors.TreeEvaluation;
+using Microsoft.EntityFrameworkCore.Storage;
+using Harmony.Core.EF.Storage.Internal;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions.Infrastructure;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection
@@ -57,23 +58,28 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </returns>
         public static IServiceCollection AddEntityFrameworkHarmonyDatabase(this IServiceCollection serviceCollection)
         {
+            //
+
             var builder = new EntityFrameworkServicesBuilder(serviceCollection)
+                .TryAdd<LoggingDefinitions, HarmonyLoggingDefinitions>()
                 .TryAdd<IDatabaseProvider, DatabaseProvider<HarmonyOptionsExtension>>()
                 .TryAdd<IValueGeneratorSelector, HarmonyValueGeneratorSelector>()
                 .TryAdd<IDatabase>(p => p.GetService<IHarmonyDatabase>())
                 .TryAdd<IDbContextTransactionManager, HarmonyTransactionManager>()
                 .TryAdd<IDatabaseCreator, HarmonyDatabaseCreator>()
                 .TryAdd<IQueryContextFactory, HarmonyQueryContextFactory>()
-                .TryAdd<IEntityQueryModelVisitorFactory, HarmonyQueryModelVisitorFactory>()
-                .TryAdd<IEntityQueryableExpressionVisitorFactory, HarmonyEntityQueryableExpressionVisitorFactory>()
-                .TryAdd<IEvaluatableExpressionFilter, EvaluatableExpressionFilter>()
-                .TryAdd<IConventionSetBuilder, HarmonyConventionSetBuilder>()
+                .TryAdd<IProviderConventionSetBuilder, HarmonyConventionSetBuilder>()
+                .TryAdd<ITypeMappingSource, HarmonyTypeMappingSource>()
+
+                // New Query pipeline
+                .TryAdd<IShapedQueryCompilingExpressionVisitorFactory, HarmonyShapedQueryCompilingExpressionVisitorFactory>()
+                .TryAdd<IQueryableMethodTranslatingExpressionVisitorFactory, HarmonyQueryableMethodTranslatingExpressionVisitorFactory>()
+                .TryAdd<IQueryTranslationPostprocessorFactory, HarmonyQueryTranslationPostprocessorFactory>()
                 .TryAdd<ISingletonOptions, IHarmonySingletonOptions>(p => p.GetService<IHarmonySingletonOptions>())
                 .TryAddProviderSpecificServices(
                     b => b
                         .TryAddSingleton<IHarmonySingletonOptions, HarmonySingletonOptions>()
-                        .TryAddScoped<IHarmonyDatabase, HarmonyDatabase>()
-                        .TryAddScoped<IHarmonyMaterializerFactory, HarmonyMaterializerFactory>());
+                        .TryAddScoped<IHarmonyDatabase, HarmonyDatabase>());
 
             builder.TryAddCoreServices();
 
