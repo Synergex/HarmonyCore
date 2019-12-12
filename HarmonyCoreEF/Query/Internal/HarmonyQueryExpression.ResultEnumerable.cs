@@ -19,36 +19,41 @@ namespace Harmony.Core.EF.Query.Internal
                 _getElement = getElement;
             }
 
-            public IEnumerator<DataObjectBase> GetEnumerator() => new ResultEnumerator(_getElement);
+            public IEnumerator<DataObjectBase> GetEnumerator() => new ResultEnumerator(_getElement());
 
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
             private sealed class ResultEnumerator : IEnumerator<DataObjectBase>
             {
-                private DataObjectBase _value;
-                private readonly Func<DataObjectBase> _getValue;
+                private readonly DataObjectBase _value;
+                private bool _moved;
 
-                public ResultEnumerator(Func<DataObjectBase> getValue)
+                public ResultEnumerator(DataObjectBase value)
                 {
-                    //TODO: this might be a weird shaper behavior
-                    //_moved = _value.IsEmpty;
-                    _getValue = getValue;
+                    _value = value;
+                    _moved = _value == null;
                 }
 
                 public bool MoveNext()
                 {
-                    _value = _getValue();
-                    return _value != null;
+                    if (!_moved)
+                    {
+                        _moved = true;
+
+                        return _moved;
+                    }
+
+                    return false;
                 }
 
                 public void Reset()
                 {
-                    throw new NotImplementedException();
+                    _moved = false;
                 }
 
                 object IEnumerator.Current => Current;
 
-                public DataObjectBase Current => _value;
+                public DataObjectBase Current => !_moved ? null : _value;
 
                 void IDisposable.Dispose()
                 {
