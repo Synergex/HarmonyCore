@@ -38,6 +38,7 @@ namespace Harmony.Core.EF.Query.Internal
                     return Visit(inMemoryQueryExpression.ServerQueryExpression);
 
                 case HarmonyTableExpression inMemoryTableExpression:
+                    inMemoryTableExpression.QueryPlan.Prepare();
                     return Expression.Call(
                         _tableMethodInfo,
                         QueryCompilationContext.QueryContextParameter,
@@ -89,10 +90,24 @@ namespace Harmony.Core.EF.Query.Internal
                 queryContext.StartTracking(entityType, obj, default(Microsoft.EntityFrameworkCore.Storage.ValueBuffer));
                 return obj;
             };
-            return typeof(PreparedQueryPlan)
-                .GetMethod("ExecuteCollectionPlan")
-                .MakeGenericMethod(new Type[] { entityType.ClrType })
-                .Invoke(queryPlan, new object[] { track, ((HarmonyQueryContext)queryContext).ParameterValues, ((HarmonyQueryContext)queryContext).Store }) as IEnumerable<DataObjectBase>;
+
+            if (queryPlan.IsCollection)
+            {
+                return typeof(PreparedQueryPlan)
+                    .GetMethod("ExecuteCollectionPlan")
+                    .MakeGenericMethod(new Type[] { entityType.ClrType })
+                    .Invoke(queryPlan, new object[] { track, ((HarmonyQueryContext)queryContext).ParameterValues, ((HarmonyQueryContext)queryContext).Store }) as IEnumerable<DataObjectBase>;
+            }
+            else
+            {
+                var singleResult = typeof(PreparedQueryPlan)
+                    .GetMethod("ExecutePlan")
+                    .MakeGenericMethod(new Type[] { entityType.ClrType })
+                    .Invoke(queryPlan, new object[] { track, ((HarmonyQueryContext)queryContext).ParameterValues, ((HarmonyQueryContext)queryContext).Store }) as DataObjectBase;
+                var arrayResult = Array.CreateInstance(entityType.ClrType, 1);
+                arrayResult.SetValue(singleResult, 0);
+                return arrayResult as IEnumerable<DataObjectBase>;
+            }
         }
     }
 }

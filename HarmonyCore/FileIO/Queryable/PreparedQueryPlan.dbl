@@ -49,23 +49,9 @@ namespace Harmony.Core.FileIO.Queryable
 		public readwrite property IsKeyedRead, boolean
 		public static readwrite property LocalSparse, boolean, false
 		public static readwrite property DisableSparse, boolean, false
-		public method PreparedQueryPlan
-			isCollection, boolean
-			whereParts, @IEnumerable<object>
-			sparseParts, @Dictionary<int, List<FieldDataDefinition>>
-			onParts, @IEnumerable<object>
-			orderBy, @List<Tuple<FieldReference, Boolean>>
-			queryBufferPrototype, @QueryBuffer
-			traceIdentifier, @string
+
+		public method Prepare, void
 		proc
-			mTraceIdentifier = traceIdentifier
-			mSparseParts = sparseParts
-			mWhereParts = whereParts.ToList()
-			mOnParts = onParts.ToList()
-			mOrderBy = orderBy
-			mQueryBufferPrototype = queryBufferPrototype
-			IsJoin = mQueryBufferPrototype.TypeBuffers.Count > 1
-			this.IsCollection = isCollection
 			if(!IsJoin)
 			begin
 				data fieldNames = new List<string>()
@@ -81,14 +67,14 @@ namespace Harmony.Core.FileIO.Queryable
 
 			;;Find any Orderby that isnt on the driving table a push it into the appropriate type buffer
 			;;this only works if the target type buffer is a collection so we should error if it isnt
-			if(orderBy != ^null)
+			if(mOrderBy != ^null)
 			begin
 				data orderByTpl, @Tuple<FieldReference, boolean>
-				foreach orderByTpl in orderBy
+				foreach orderByTpl in mOrderBy
 				begin
 					if(orderByTpl.Item1.QuerySourceKey != 0)
 					begin
-						data typeBuffer = queryBufferPrototype.TypeBuffers[orderByTpl.Item1.QuerySourceKey]
+						data typeBuffer = mQueryBufferPrototype.TypeBuffers[orderByTpl.Item1.QuerySourceKey]
 						data item1Parm = Expression.Parameter(typeBuffer.DataObjectType, "item1")
 						data item2Parm = Expression.Parameter(typeBuffer.DataObjectType, "item2")
 
@@ -111,6 +97,27 @@ namespace Harmony.Core.FileIO.Queryable
 					end
 				end
 			end
+		
+		endmethod
+
+		public method PreparedQueryPlan
+			isCollection, boolean
+			whereParts, @IEnumerable<object>
+			sparseParts, @Dictionary<int, List<FieldDataDefinition>>
+			onParts, @IEnumerable<object>
+			orderBy, @List<Tuple<FieldReference, Boolean>>
+			queryBufferPrototype, @QueryBuffer
+			traceIdentifier, @string
+		proc
+			mTraceIdentifier = traceIdentifier
+			mSparseParts = sparseParts
+			mWhereParts = whereParts.ToList()
+			mOnParts = onParts.ToList()
+			mOrderBy = orderBy
+			mQueryBufferPrototype = queryBufferPrototype
+			IsJoin = mQueryBufferPrototype.TypeBuffers.Count > 1
+			this.IsCollection = isCollection
+			Prepare()
 
 		endmethod
 

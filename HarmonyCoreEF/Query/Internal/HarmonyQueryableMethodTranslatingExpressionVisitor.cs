@@ -1005,7 +1005,7 @@ namespace Harmony.Core.EF.Query.Internal
             ShapedQueryExpression source, LambdaExpression predicate, Type returnType, MethodInfo method)
         {
             var inMemoryQueryExpression = (HarmonyQueryExpression)source.QueryExpression;
-
+            inMemoryQueryExpression.RootExpressions[""].QueryPlan.IsCollection = false;
             if (predicate != null)
             {
                 source = TranslateWhere(source, predicate);
