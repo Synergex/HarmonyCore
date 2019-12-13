@@ -13,7 +13,6 @@ using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.EntityFrameworkCore.Utilities;
 using Microsoft.EntityFrameworkCore.ValueGeneration;
-using Remotion.Linq.Parsing.ExpressionVisitors.TreeEvaluation;
 using Microsoft.EntityFrameworkCore.Storage;
 using Harmony.Core.EF.Storage.Internal;
 using Microsoft.EntityFrameworkCore.Diagnostics;

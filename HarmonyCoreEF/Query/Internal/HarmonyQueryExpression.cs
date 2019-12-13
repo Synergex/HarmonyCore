@@ -31,6 +31,48 @@ namespace Harmony.Core.EF.Query.Internal
         public virtual IReadOnlyList<Expression> Projection => _valueBufferSlots;
         public virtual Expression ServerQueryExpression { get; set; }
         public Dictionary<string, HarmonyTableExpression> RootExpressions { get; set; }
+
+        public PreparedQueryPlan PrepareQuery()
+        {
+            var rootExpr = RootExpressions[""];
+
+            var whereBuilder = new WhereExpressionBuilder(rootExpr.IsCaseSensitive, RootExpressions.Where(kvp => kvp.Key != "").Select(kvp => kvp.Value as IHarmonyQueryTable).ToList(), new Dictionary<IHarmonyQueryTable, IHarmonyQueryTable>());
+            
+            var typeBuffers = new QueryBuffer.TypeBuffer[]
+            {
+                    new QueryBuffer.TypeBuffer { DataObjectType = RootExpressions[""].ItemType, IsCollection = true, ParentFieldName = "", JoinedBuffers = new List<QueryBuffer.TypeBuffer>(), Metadata = DataObjectMetadataBase.LookupType(RootExpressions[""].ItemType) }
+            };
+
+            var processedWheres = new List<Object>();
+            var processedOns = new List<Object>();
+            var orderBys = new List<Tuple<FileIO.Queryable.FieldReference, bool>>();
+            foreach (var expr in rootExpr.WhereExpressions)
+            {
+                whereBuilder.VisitForWhere(expr, processedWheres, processedOns);
+            }
+
+            foreach (var expr in rootExpr.OnExpressions)
+            {
+                var madeOn = whereBuilder.VisitForOn(expr);
+                if (madeOn != null)
+                    processedOns.Add(madeOn);
+            }
+
+            foreach (var expr in rootExpr.OrderByExpressions)
+            {
+                var fieldRef = whereBuilder.VisitForOrderBy(expr.Item1);
+                if(fieldRef != null)
+                {
+                    orderBys.Add(Tuple.Create(fieldRef, expr.Item2));
+                }
+            }
+
+            var queryPlan = new PreparedQueryPlan(true, processedWheres, new Dictionary<int, List<FieldDataDefinition>>(), processedOns,
+                orderBys, new QueryBuffer(typeBuffers), "");
+
+            return queryPlan;
+        }
+
         public virtual ParameterExpression CurrentParameter => _groupingParameter ?? _valueBufferParameter;
         public override Type Type { get; }
         public sealed override ExpressionType NodeType => ExpressionType.Extension;
@@ -39,22 +81,9 @@ namespace Harmony.Core.EF.Query.Internal
         {
             Type = typeof(IEnumerable<>).MakeGenericType(new Type[] { entityType.ClrType });
             _valueBufferParameter = Parameter(typeof(DataObjectBase), "valueBuffer");
-            var rootTable = new HarmonyTableExpression(entityType);
+            var rootTable = new HarmonyTableExpression(entityType, "", this);
             RootExpressions = new Dictionary<string, HarmonyTableExpression> { { "", rootTable } };
             ServerQueryExpression = rootTable;
-
-
-
-            var typeBuffers = new QueryBuffer.TypeBuffer[]
-            {
-                    new QueryBuffer.TypeBuffer { DataObjectType = entityType.ClrType, IsCollection = true, ParentFieldName = "", JoinedBuffers = new List<QueryBuffer.TypeBuffer>(), Metadata = DataObjectMetadataBase.LookupType(entityType.ClrType) }
-            };
-
-            var queryPlan = new PreparedQueryPlan(true, Enumerable.Empty<object>(), new Dictionary<int, List<FieldDataDefinition>>(), Enumerable.Empty<object>(),
-                new List<Tuple<FileIO.Queryable.FieldReference, bool>>(), new QueryBuffer(typeBuffers), "");
-
-            rootTable.QueryPlan = queryPlan;
-
             //var readExpressionMap = new Dictionary<IProperty, Expression>();
             //foreach (var property in entityType.GetAllBaseTypesInclusive().SelectMany(et => et.GetDeclaredProperties()))
             //{

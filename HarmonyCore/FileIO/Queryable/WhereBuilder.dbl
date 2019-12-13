@@ -5,32 +5,31 @@ import Harmony.Core.Enumerations
 import Synergex.SynergyDE.Select
 import System.Linq.Expressions
 import Harmony.Core.Utility
-import Remotion.Linq.Clauses
 import System.Linq
 import System.Reflection
 import Harmony.Core.FileIO.Queryable.Expressions
 
 namespace Harmony.Core.FileIO.Queryable
 
-	internal class WhereExpressionBuilder extends ExpressionVisitor
+	public class WhereExpressionBuilder extends ExpressionVisitor
 		;;this might need to be a stack to handle nesting fully
 		private mWhereStack, @Stack<object>
 		private mOnStack, @Stack<object>
-		private mDataObjects, @Dictionary<IQuerySource, DataObjectMetadataBase>
+		private mDataObjects, @Dictionary<IHarmonyQueryTable, DataObjectMetadataBase>
 		private mCaseSensitive, boolean
-		private mQuerySources, @List<IQuerySource>
-		private mQuerySourceMap, @Dictionary<IQuerySource, IQuerySource>
+		private mQuerySources, @List<IHarmonyQueryTable>
+		private mQuerySourceMap, @Dictionary<IHarmonyQueryTable, IHarmonyQueryTable>
 		public method WhereExpressionBuilder
 			caseSensitive, boolean
-			querySources, @List<IQuerySource>
-			querySourceMap, @Dictionary<IQuerySource, IQuerySource>
+			querySources, @List<IHarmonyQueryTable>
+			querySourceMap, @Dictionary<IHarmonyQueryTable, IHarmonyQueryTable>
 		proc
 			mQuerySourceMap = querySourceMap
-			mDataObjects = new Dictionary<IQuerySource, DataObjectMetadataBase>()
+			mDataObjects = new Dictionary<IHarmonyQueryTable, DataObjectMetadataBase>()
 			mWhereStack = new Stack<object>()
 			mOnStack = new Stack<object>()
 			mQuerySources = querySources
-			data querySource, @IQuerySource
+			data querySource, @IHarmonyQueryTable
 			foreach querySource in mQuerySources
 			begin
 				data itemType = querySource.ItemType.IsGenericType ? querySource.ItemType.GenericTypeArguments.First() : querySource.ItemType
@@ -144,13 +143,13 @@ namespace Harmony.Core.FileIO.Queryable
 				throw new NotImplementedException()
 		endmethod
 
-		private method MapQuerySource, @IQuerySource
-			source, @IQuerySource
-			querySourceMap, @Dictionary<IQuerySource, IQuerySource>
+		private method MapQuerySource, @IHarmonyQueryTable
+			source, @IHarmonyQueryTable
+			querySourceMap, @Dictionary<IHarmonyQueryTable, IHarmonyQueryTable>
 		proc
 			if(querySourceMap != ^null)
 			begin
-				data result, @IQuerySource
+				data result, @IHarmonyQueryTable
 				if(querySourceMap.TryGetValue(source, result))
 				begin
 					mreturn result
@@ -163,13 +162,13 @@ namespace Harmony.Core.FileIO.Queryable
 		public method FindTargetField, @object
 			node, @Expression
 			node2, @Expression
-			default querySourceMap, @Dictionary<IQuerySource, IQuerySource>, ^null
+			default querySourceMap, @Dictionary<IHarmonyQueryTable, IHarmonyQueryTable>, ^null
 		proc
 			if(node .is. MemberExpression) then
 			begin
 				data memberExpression = (@MemberExpression)node
-				data querySource = ^as(memberExpression.Expression, @Remotion.Linq.Clauses.Expressions.QuerySourceReferenceExpression) 
-				data mappedQuerySource, @IQuerySource, querySource != ^null ? MapQuerySource(querySource.ReferencedQuerySource, querySourceMap) : ^null
+				data querySource = ^as(memberExpression.Expression, @IHarmonyQueryTable) 
+				data mappedQuerySource, @IHarmonyQueryTable, querySource != ^null ? MapQuerySource(querySource, querySourceMap) : ^null
 				data dObj = querySource != ^null ? mDataObjects[mappedQuerySource] : mDataObjects.First().Value
 				mreturn new FieldReference() { FieldDef = dObj.GetFieldByName(memberExpression.Member.Name), QuerySourceKey = querySource != ^null ? mQuerySources.IndexOf(mappedQuerySource) : 0 }
 			end
@@ -179,9 +178,9 @@ namespace Harmony.Core.FileIO.Queryable
 				if(callNode.Method.Name == "Property") then
 				begin
 					;;this is where we can do a metadata object lookup for join
-					data memberTargetParameter = (@Remotion.Linq.Clauses.Expressions.QuerySourceReferenceExpression)callNode.Arguments[0]
+					data memberTargetParameter = (@IHarmonyQueryTable)callNode.Arguments[0]
 					data memberNameConstant = (@ConstantExpression)callNode.Arguments[1]
-					data memberTargetType, @DataObjectMetadataBase, mDataObjects[MapQuerySource(memberTargetParameter.ReferencedQuerySource, querySourceMap)]
+					data memberTargetType, @DataObjectMetadataBase, mDataObjects[MapQuerySource(memberTargetParameter, querySourceMap)]
 
 					;;if we're looking at a tag literal (fake) field just drop out here
 					data targetField = memberTargetType.GetFieldByName(memberNameConstant.Value.ToString())
@@ -191,7 +190,7 @@ namespace Harmony.Core.FileIO.Queryable
 					end
 					else
 					begin
-						data querySource = MapQuerySource(memberTargetParameter.ReferencedQuerySource, querySourceMap)
+						data querySource = MapQuerySource(memberTargetParameter, querySourceMap)
 						data queryIndex = mQuerySources.IndexOf(querySource)
 						mreturn new FieldReference() { FieldDef = targetField, QuerySourceKey = queryIndex }
 					end
@@ -212,7 +211,7 @@ namespace Harmony.Core.FileIO.Queryable
 
 		private method FindConstantValue, @object
 			node, @Expression
-			default querySourceMap, @Dictionary<IQuerySource, IQuerySource>, ^null
+			default querySourceMap, @Dictionary<IHarmonyQueryTable, IHarmonyQueryTable>, ^null
 		proc
 			if(node .is. ConstantExpression) then
 			begin
@@ -233,9 +232,9 @@ namespace Harmony.Core.FileIO.Queryable
 				if(callNode.Method.Name == "Property")
 				begin
 					;;this is where we can do a metadata object lookup for join
-					data memberTargetParameter = (@Remotion.Linq.Clauses.Expressions.QuerySourceReferenceExpression)callNode.Arguments[0]
+					data memberTargetParameter = (@IHarmonyQueryTable)callNode.Arguments[0]
 					data memberNameConstant, @ConstantExpression, (@ConstantExpression)callNode.Arguments[1]
-					data memberTargetType, @DataObjectMetadataBase, mDataObjects[MapQuerySource(memberTargetParameter.ReferencedQuerySource, querySourceMap)]
+					data memberTargetType, @DataObjectMetadataBase, mDataObjects[MapQuerySource(memberTargetParameter, querySourceMap)]
 					data targetField = memberTargetType.GetFieldByName(memberNameConstant.Value.ToString())
 					if(((int)targetField.DataType & (int)FieldDataType.TagLiteral) != 0)
 					begin

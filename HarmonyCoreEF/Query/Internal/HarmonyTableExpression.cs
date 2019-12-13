@@ -13,18 +13,33 @@ using Harmony.Core.FileIO.Queryable;
 
 namespace Harmony.Core.EF.Query.Internal
 {
-    public class HarmonyTableExpression : Expression, IPrintableExpression
+    public class HarmonyTableExpression : Expression, IPrintableExpression, IHarmonyQueryTable
     {
-        public HarmonyTableExpression(IEntityType entityType)
+        public HarmonyTableExpression(IEntityType entityType, string name, HarmonyQueryExpression rootExpr)
         {
             EntityType = entityType;
             Type = typeof(IEnumerable<>).MakeGenericType(new Type[] { EntityType.ClrType });
+            Name = name;
+            RootExpression = rootExpr;
+            WhereExpressions = new List<Expression>();
+            OrderByExpressions = new List<Tuple<Expression, bool>>();
+            OnExpressions = new List<Expression>();
         }
 
         public override Type Type { get; } 
         public virtual IEntityType EntityType { get; }
-        public PreparedQueryPlan QueryPlan { get; set; }
+        public HarmonyQueryExpression RootExpression { get; }
+
+        public List<Expression> WhereExpressions { get; }
+        public List<Tuple<Expression, bool>> OrderByExpressions { get; }
+        public List<Expression> OnExpressions { get; }
+        public bool IsCaseSensitive { get; set; }
+        public bool IsCollection { get; set; }
         public sealed override ExpressionType NodeType => ExpressionType.Extension;
+
+        public string Name { get; set; }
+
+        public Type ItemType => EntityType.ClrType;
 
         protected override Expression VisitChildren(ExpressionVisitor visitor)
         {
