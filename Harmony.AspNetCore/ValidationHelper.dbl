@@ -1,0 +1,31 @@
+import System
+import System.Collections.Generic
+import System.Text
+import Microsoft.AspNetCore.Mvc
+import Microsoft.AspNetCore.Mvc.ModelBinding
+
+namespace Harmony.AspNetCore
+
+	public class ValidationHelper
+	
+		public static method ReturnValidationError, @IActionResult
+			state, @ModelStateDictionary
+		proc
+			data errorText = new List<String>()
+			data errorPair, @KeyValuePair<string, ModelStateEntry>
+			
+			foreach errorPair in state
+			begin
+				data errorValue, @ModelError
+				foreach errorValue in errorPair.Value.Errors
+				begin
+					errorText.Add(errorValue.ErrorMessage)
+				end
+			end
+
+			mreturn new BadRequestObjectResult(string.Join(%char(13) + %char(10), errorText))
+		endmethod
+
+	endclass
+
+endnamespace
