@@ -368,14 +368,14 @@ namespace <NAMESPACE>
             begin
     <SEGMENT_LOOP>
       <IF DATEORTIME>
-                if((segValueLength=KeyValueHelper(key<KEY_NUMBER>.<FieldSqlName>, "<FieldSqlname>", parts, m<FieldSqlname>Formatter))<<SEGMENT_LENGTH>)
+                if((segValueLength=KeyValueHelper(key<KEY_NUMBER>.<FieldSqlName>, "<FieldSqlname>", parts, m<FieldSqlname>Formatter))<<SEGMENT_LENGTH> && segValueLength>0)
                     mreturn key<KEY_NUMBER>(1:startPos+segValueLength)
       <ELSE>
         <IF CUSTOM_HARMONY_AS_STRING>
-                if((segValueLength=KeyValueHelper(key<KEY_NUMBER>.<FieldSqlName>, "<FieldSqlname>", parts, m<FieldSqlname>Formatter))<<SEGMENT_LENGTH>)
+                if((segValueLength=KeyValueHelper(key<KEY_NUMBER>.<FieldSqlName>, "<FieldSqlname>", parts, m<FieldSqlname>Formatter))<<SEGMENT_LENGTH> && segValueLength>0)
                     mreturn key<KEY_NUMBER>(1:startPos+segValueLength)
         <ELSE>
-                if((segValueLength=KeyValueHelper(key<KEY_NUMBER>.<FieldSqlName>, "<FieldSqlname>", parts))<<SEGMENT_LENGTH>)
+                if((segValueLength=KeyValueHelper(key<KEY_NUMBER>.<FieldSqlName>, "<FieldSqlname>", parts))<<SEGMENT_LENGTH> && segValueLength>0)
                     mreturn key<KEY_NUMBER>(1:startPos+segValueLength)
         </IF CUSTOM_HARMONY_AS_STRING>
       </IF DATEORTIME>

@@ -102,6 +102,8 @@ import <MODELS_NAMESPACE>
 <IF DEFINED_ENABLE_API_VERSIONING>
 import Microsoft.AspNetCore.Mvc.ApiExplorer
 import Swashbuckle.AspNetCore.Swagger
+import Microsoft.AspNet.OData.Formatter
+import Microsoft.Net.Http.Headers
 </IF DEFINED_ENABLE_API_VERSIONING>
 
 namespace <NAMESPACE>
@@ -274,10 +276,22 @@ namespace <NAMESPACE>
             services.AddSwaggerGen()
                 </IF DEFINED_ENABLE_SWAGGER_DOCS>
             </IF DEFINED_ENABLE_API_VERSIONING>
-        
-            lambda MvcCoreConfig(options)
+
+            lambda MvcCoreConfig(op)
             begin
-                options.EnableEndpointRouting = false
+                data formatter, @ODataOutputFormatter
+                data iformatter, @ODataInputFormatter
+                data mediaTypeName, @string, "application/prs.mock-odata"
+                data sseg = new StringSegment(mediaTypeName)
+                op.EnableEndpointRouting = false
+                foreach formatter in op.OutputFormatters.OfType<ODataOutputFormatter>().Where(lambda(it) { !it.SupportedMediaTypes.Any() })
+                begin
+                    formatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue(sseg));
+                end
+                foreach iformatter in op.InputFormatters.OfType<ODataInputFormatter>().Where(lambda(it) { !it.SupportedMediaTypes.Any() })
+                begin
+                    iformatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue(sseg));
+                end
             end
 
             data mvcBuilder = services.AddMvcCore(MvcCoreConfig)
