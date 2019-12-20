@@ -18,11 +18,11 @@ namespace Harmony.Core.FileIO.Queryable
 		private mDataObjects, @Dictionary<IHarmonyQueryTable, DataObjectMetadataBase>
 		private mCaseSensitive, boolean
 		private mQuerySources, @List<IHarmonyQueryTable>
-		private mQuerySourceMap, @Dictionary<IHarmonyQueryTable, IHarmonyQueryTable>
+		private mQuerySourceMap, @Dictionary<Expression, IHarmonyQueryTable>
 		public method WhereExpressionBuilder
 			caseSensitive, boolean
 			querySources, @List<IHarmonyQueryTable>
-			querySourceMap, @Dictionary<IHarmonyQueryTable, IHarmonyQueryTable>
+			querySourceMap, @Dictionary<Expression, IHarmonyQueryTable>
 		proc
 			mQuerySourceMap = querySourceMap
 			mDataObjects = new Dictionary<IHarmonyQueryTable, DataObjectMetadataBase>()
@@ -144,33 +144,43 @@ namespace Harmony.Core.FileIO.Queryable
 		endmethod
 
 		private method MapQuerySource, @IHarmonyQueryTable
-			source, @IHarmonyQueryTable
-			querySourceMap, @Dictionary<IHarmonyQueryTable, IHarmonyQueryTable>
-		proc
+			source, @Expression
+			querySourceMap, @Dictionary<Expression, IHarmonyQueryTable>
+        proc
+			data localSource = source
 			if(querySourceMap != ^null)
 			begin
-				data result, @IHarmonyQueryTable
-				if(querySourceMap.TryGetValue(source, result))
+                data result, @IHarmonyQueryTable
+                if(source.NodeType == ExpressionType.Convert)
+                begin
+                    data convert = ^as(localSource, @UnaryExpression)
+					localSource = convert.Operand
+                end
+
+				if(querySourceMap.TryGetValue(localSource, result))
 				begin
 					mreturn result
 				end
-			end
-			mreturn source
+            end
+
+            if(localSource .is. IHarmonyQueryTable) then
+                mreturn ^as(localSource, @IHarmonyQueryTable)
+			else
+				throw new NotImplementedException()
 		endmethod
 
 
 		public method FindTargetField, @object
 			node, @Expression
 			node2, @Expression
-			default querySourceMap, @Dictionary<IHarmonyQueryTable, IHarmonyQueryTable>, ^null
+			default querySourceMap, @Dictionary<Expression, IHarmonyQueryTable>, ^null
 		proc
 			if(node .is. MemberExpression) then
 			begin
 				data memberExpression = (@MemberExpression)node
-				data querySource = ^as(memberExpression.Expression, @IHarmonyQueryTable) 
-				data mappedQuerySource, @IHarmonyQueryTable, querySource != ^null ? MapQuerySource(querySource, querySourceMap) : ^null
-				data dObj = querySource != ^null ? mDataObjects[mappedQuerySource] : mDataObjects.First().Value
-				mreturn new FieldReference() { FieldDef = dObj.GetFieldByName(memberExpression.Member.Name), QuerySourceKey = querySource != ^null ? mQuerySources.IndexOf(mappedQuerySource) : 0 }
+				data mappedQuerySource = MapQuerySource(memberExpression.Expression, querySourceMap)
+				data dObj = mDataObjects[mappedQuerySource]
+				mreturn new FieldReference() { FieldDef = dObj.GetFieldByName(memberExpression.Member.Name), QuerySourceKey = mQuerySources.IndexOf(mappedQuerySource)}
 			end
 			else if(node .is. MethodCallExpression) then
 			begin
@@ -178,7 +188,7 @@ namespace Harmony.Core.FileIO.Queryable
 				if(callNode.Method.Name == "Property") then
 				begin
 					;;this is where we can do a metadata object lookup for join
-					data memberTargetParameter = (@IHarmonyQueryTable)callNode.Arguments[0]
+					data memberTargetParameter = callNode.Arguments[0]
 					data memberNameConstant = (@ConstantExpression)callNode.Arguments[1]
 					data memberTargetType, @DataObjectMetadataBase, mDataObjects[MapQuerySource(memberTargetParameter, querySourceMap)]
 
@@ -211,7 +221,7 @@ namespace Harmony.Core.FileIO.Queryable
 
 		private method FindConstantValue, @object
 			node, @Expression
-			default querySourceMap, @Dictionary<IHarmonyQueryTable, IHarmonyQueryTable>, ^null
+			default querySourceMap, @Dictionary<Expression, IHarmonyQueryTable>, ^null
 		proc
 			if(node .is. ConstantExpression) then
 			begin
@@ -229,10 +239,10 @@ namespace Harmony.Core.FileIO.Queryable
 			else if(node .is. MethodCallExpression) then
 			begin
 				data callNode = (@MethodCallExpression)node
-				if(callNode.Method.Name == "Property")
+				if(callNode.Method.Name == "Property") then
 				begin
 					;;this is where we can do a metadata object lookup for join
-					data memberTargetParameter = (@IHarmonyQueryTable)callNode.Arguments[0]
+					data memberTargetParameter = callNode.Arguments[0]
 					data memberNameConstant, @ConstantExpression, (@ConstantExpression)callNode.Arguments[1]
 					data memberTargetType, @DataObjectMetadataBase, mDataObjects[MapQuerySource(memberTargetParameter, querySourceMap)]
 					data targetField = memberTargetType.GetFieldByName(memberNameConstant.Value.ToString())
@@ -240,7 +250,13 @@ namespace Harmony.Core.FileIO.Queryable
 					begin
 						mreturn targetField.TagValue
 					end
-				end
+                end
+                else if(callNode.Method.Name == "GetParameterValue")
+                begin
+                    data memberNameConstant, @ConstantExpression, (@ConstantExpression)callNode.Arguments[1]
+                    mreturn new ParameterReference() { Name = memberNameConstant.Value.ToString() }
+                end
+
 			end
 			else if(node .is. UnaryExpression && node.NodeType == ExpressionType.Convert)
 			begin

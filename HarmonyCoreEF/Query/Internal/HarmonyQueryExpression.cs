@@ -30,17 +30,17 @@ namespace Harmony.Core.EF.Query.Internal
 
         public virtual IReadOnlyList<Expression> Projection => _valueBufferSlots;
         public virtual Expression ServerQueryExpression { get; set; }
-        public Dictionary<string, HarmonyTableExpression> RootExpressions { get; set; }
+        public Dictionary<Expression, HarmonyTableExpression> RootExpressions { get; set; }
 
         public PreparedQueryPlan PrepareQuery()
         {
-            var rootExpr = RootExpressions[""];
+            var rootExpr = RootExpressions[_valueBufferParameter];
 
-            var whereBuilder = new WhereExpressionBuilder(rootExpr.IsCaseSensitive, RootExpressions.Where(kvp => kvp.Key != "").Select(kvp => kvp.Value as IHarmonyQueryTable).ToList(), new Dictionary<IHarmonyQueryTable, IHarmonyQueryTable>());
+            var whereBuilder = new WhereExpressionBuilder(rootExpr.IsCaseSensitive, RootExpressions.Values.OfType<IHarmonyQueryTable>().ToList(), RootExpressions.ToDictionary(kvp => kvp.Key, kvp => kvp.Value as IHarmonyQueryTable));
             
             var typeBuffers = new QueryBuffer.TypeBuffer[]
             {
-                    new QueryBuffer.TypeBuffer { DataObjectType = RootExpressions[""].ItemType, IsCollection = true, ParentFieldName = "", JoinedBuffers = new List<QueryBuffer.TypeBuffer>(), Metadata = DataObjectMetadataBase.LookupType(RootExpressions[""].ItemType) }
+                    new QueryBuffer.TypeBuffer { DataObjectType = rootExpr.ItemType, IsCollection = true, ParentFieldName = "", JoinedBuffers = new List<QueryBuffer.TypeBuffer>(), Metadata = DataObjectMetadataBase.LookupType(rootExpr.ItemType) }
             };
 
             var processedWheres = new List<Object>();
@@ -82,7 +82,7 @@ namespace Harmony.Core.EF.Query.Internal
             Type = typeof(IEnumerable<>).MakeGenericType(new Type[] { entityType.ClrType });
             _valueBufferParameter = Parameter(typeof(DataObjectBase), "valueBuffer");
             var rootTable = new HarmonyTableExpression(entityType, "", this);
-            RootExpressions = new Dictionary<string, HarmonyTableExpression> { { "", rootTable } };
+            RootExpressions = new Dictionary<Expression, HarmonyTableExpression> { { CurrentParameter, rootTable } };
             ServerQueryExpression = rootTable;
             //var readExpressionMap = new Dictionary<IProperty, Expression>();
             //foreach (var property in entityType.GetAllBaseTypesInclusive().SelectMany(et => et.GetDeclaredProperties()))

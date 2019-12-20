@@ -746,7 +746,7 @@ namespace Harmony.Core.EF.Query.Internal
             {
                 return null;
             }
-            inMemoryQueryExpression.RootExpressions[""].WhereExpressions.Add(predicate);
+            inMemoryQueryExpression.RootExpressions[inMemoryQueryExpression.CurrentParameter].WhereExpressions.Add(predicate);
             return source;
         }
 
@@ -1000,7 +1000,7 @@ namespace Harmony.Core.EF.Query.Internal
             ShapedQueryExpression source, LambdaExpression predicate, Type returnType, MethodInfo method)
         {
             var inMemoryQueryExpression = (HarmonyQueryExpression)source.QueryExpression;
-            inMemoryQueryExpression.RootExpressions[""].IsCollection = false;
+            inMemoryQueryExpression.RootExpressions[inMemoryQueryExpression.CurrentParameter].IsCollection = false;
             if (predicate != null)
             {
                 source = TranslateWhere(source, predicate);
