@@ -32,43 +32,68 @@ namespace Harmony.Core.EF.Query.Internal
         public virtual Expression ServerQueryExpression { get; set; }
         public Dictionary<Expression, HarmonyTableExpression> RootExpressions { get; set; }
 
+        private static QueryBuffer.TypeBuffer GetTypeBuffer(HarmonyTableExpression table, List<Tuple<HarmonyTableExpression, QueryBuffer.TypeBuffer>> flatList)
+        {
+            var queryTables = table.RootExpression.RootExpressions.Values.OfType<HarmonyTableExpression>().Where(qt => qt != table);
+            var made = new QueryBuffer.TypeBuffer
+            {
+                DataObjectType = table.ItemType,
+                IsCollection = table.IsCollection,
+                ParentFieldName = table.Name,
+                Metadata = DataObjectMetadataBase.LookupType(table.ItemType)
+            };
+            flatList.Add(Tuple.Create(table, made));
+            made.JoinedBuffers = queryTables.OfType<HarmonyTableExpression>().Select(qt => GetTypeBuffer(qt, flatList)).ToList();
+            return made;
+        }
+
         public PreparedQueryPlan PrepareQuery()
         {
             var rootExpr = RootExpressions[_valueBufferParameter];
+            var processedOns = new List<object>();
+            var flatList = new List<Tuple<HarmonyTableExpression, QueryBuffer.TypeBuffer>>();
+            var typeBuffers = new QueryBuffer.TypeBuffer[] { GetTypeBuffer(rootExpr, flatList) };
 
-            var whereBuilder = new WhereExpressionBuilder(rootExpr.IsCaseSensitive, RootExpressions.Values.OfType<IHarmonyQueryTable>().ToList(), RootExpressions.ToDictionary(kvp => kvp.Key, kvp => kvp.Value as IHarmonyQueryTable));
-            
-            var typeBuffers = new QueryBuffer.TypeBuffer[]
-            {
-                    new QueryBuffer.TypeBuffer { DataObjectType = rootExpr.ItemType, IsCollection = true, ParentFieldName = "", JoinedBuffers = new List<QueryBuffer.TypeBuffer>(), Metadata = DataObjectMetadataBase.LookupType(rootExpr.ItemType) }
-            };
+            var whereBuilder = new WhereExpressionBuilder(rootExpr.IsCaseSensitive, flatList.Select(tpl => tpl.Item1 as IHarmonyQueryTable).ToList(), RootExpressions.ToDictionary(kvp => kvp.Key, kvp => kvp.Value as IHarmonyQueryTable));
 
             var processedWheres = new List<Object>();
-            var processedOns = new List<Object>();
             var orderBys = new List<Tuple<FileIO.Queryable.FieldReference, bool>>();
             foreach (var expr in rootExpr.WhereExpressions)
             {
                 whereBuilder.VisitForWhere(expr, processedWheres, processedOns);
             }
 
-            foreach (var expr in rootExpr.OnExpressions)
+            foreach (var tpl in flatList)
             {
-                var madeOn = whereBuilder.VisitForOn(expr);
-                if (madeOn != null)
-                    processedOns.Add(madeOn);
-            }
-
-            foreach (var expr in rootExpr.OrderByExpressions)
-            {
-                var fieldRef = whereBuilder.VisitForOrderBy(expr.Item1);
-                if(fieldRef != null)
+                foreach (var expr in tpl.Item1.OnExpressions)
                 {
-                    orderBys.Add(Tuple.Create(fieldRef, expr.Item2));
+                    var madeOn = whereBuilder.VisitForOn(expr);
+                    if (madeOn != null)
+                    {
+                        processedOns.Add(madeOn);
+                        if (tpl.Item2.JoinOn == null)
+                        {
+                            tpl.Item2.JoinOn = madeOn;
+                        }
+                        else
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+                }
+
+                foreach (var expr in tpl.Item1.OrderByExpressions)
+                {
+                    var fieldRef = whereBuilder.VisitForOrderBy(expr.Item1);
+                    if (fieldRef != null)
+                    {
+                        orderBys.Add(Tuple.Create(fieldRef, expr.Item2));
+                    }
                 }
             }
 
             var queryPlan = new PreparedQueryPlan(true, processedWheres, new Dictionary<int, List<FieldDataDefinition>>(), processedOns,
-                orderBys, new QueryBuffer(typeBuffers), "");
+                orderBys, new QueryBuffer(flatList.Select(tpl => tpl.Item2).ToList()), "");
 
             return queryPlan;
         }
@@ -438,8 +463,13 @@ namespace Harmony.Core.EF.Query.Internal
 
         private static Expression CreateReadValueExpression(
             Expression valueBufferParameter, Type type, int index, IPropertyBase property)
-            => Expression.PropertyOrField(Expression.Convert(valueBufferParameter, property.DeclaringType.ClrType), property.Name);
-            
+
+        {
+            if (property != null)
+                return Expression.PropertyOrField(Expression.Convert(valueBufferParameter, property.DeclaringType.ClrType), property.Name);
+            else
+                return valueBufferParameter;
+        }
             /*Call(
                 EntityMaterializerSource.TryReadValueMethod.MakeGenericMethod(type),
                 valueBufferParameter,
@@ -542,134 +572,14 @@ namespace Harmony.Core.EF.Query.Internal
         public virtual void AddLeftJoin(
             HarmonyQueryExpression innerQueryExpression,
             LambdaExpression outerKeySelector,
-            LambdaExpression innerKeySelector,
-            Type transparentIdentifierType)
+            LambdaExpression innerKeySelector)
         {
-            // GroupJoin phase
-            var groupTransparentIdentifierType = TransparentIdentifierFactory.Create(
-                typeof(DataObjectBase), typeof(IEnumerable<DataObjectBase>));
-            var outerParameter = Parameter(typeof(DataObjectBase), "outer");
-            var innerParameter = Parameter(typeof(IEnumerable<DataObjectBase>), "inner");
-            var outerMemberInfo = groupTransparentIdentifierType.GetTypeInfo().GetDeclaredField("Outer");
-            var innerMemberInfo = groupTransparentIdentifierType.GetTypeInfo().GetDeclaredField("Inner");
-            var resultSelector = Lambda(
-                New(
-                    groupTransparentIdentifierType.GetTypeInfo().DeclaredConstructors.Single(),
-                    new[] { outerParameter, innerParameter }, outerMemberInfo, innerMemberInfo),
-                outerParameter,
-                innerParameter);
-
-            var groupJoinExpression = Call(
-                EnumerableMethods.GroupJoin.MakeGenericMethod(
-                    typeof(DataObjectBase), typeof(DataObjectBase), outerKeySelector.ReturnType, groupTransparentIdentifierType),
-                ServerQueryExpression,
-                innerQueryExpression.ServerQueryExpression,
-                outerKeySelector,
-                innerKeySelector,
-                resultSelector);
-
-            // SelectMany phase
-            var collectionParameter = Parameter(groupTransparentIdentifierType, "collection");
-            var collection = MakeMemberAccess(collectionParameter, innerMemberInfo);
-            outerParameter = Parameter(groupTransparentIdentifierType, "outer");
-            innerParameter = Parameter(typeof(DataObjectBase), "inner");
-
-            var resultValueBufferExpressions = new List<Expression>();
-            var projectionMapping = new Dictionary<ProjectionMember, Expression>();
-            var replacingVisitor = new ReplacingExpressionVisitor(
-                new Dictionary<Expression, Expression>
-                {
-                    { CurrentParameter, MakeMemberAccess(outerParameter, outerMemberInfo) },
-                    { innerQueryExpression.CurrentParameter, innerParameter }
-                });
-
-            var index = 0;
-            outerMemberInfo = transparentIdentifierType.GetTypeInfo().GetDeclaredField("Outer");
-            foreach (var projection in _projectionMapping)
+            if (!RootExpressions.ContainsKey(innerQueryExpression.CurrentParameter))
             {
-                if (projection.Value is EntityProjectionExpression entityProjection)
-                {
-                    var readExpressionMap = new Dictionary<IProperty, Expression>();
-                    foreach (var property in GetAllPropertiesInHierarchy(entityProjection.EntityType))
-                    {
-                        var replacedExpression = replacingVisitor.Visit(entityProjection.BindProperty(property));
-                        resultValueBufferExpressions.Add(replacedExpression);
-                        readExpressionMap[property] = CreateReadValueExpression(replacedExpression.Type, index++, property);
-                    }
-
-                    projectionMapping[projection.Key.Prepend(outerMemberInfo)]
-                        = new EntityProjectionExpression(entityProjection.EntityType, readExpressionMap);
-                }
-                else
-                {
-                    var replacedExpression = replacingVisitor.Visit(projection.Value);
-                    resultValueBufferExpressions.Add(replacedExpression);
-                    projectionMapping[projection.Key.Prepend(outerMemberInfo)]
-                        = CreateReadValueExpression(replacedExpression.Type, index++, InferPropertyFromInner(projection.Value));
-                }
+                RootExpressions.Add(innerQueryExpression.CurrentParameter, innerQueryExpression.ServerQueryExpression as HarmonyTableExpression);
             }
 
-            var outerIndex = index;
-            innerMemberInfo = transparentIdentifierType.GetTypeInfo().GetDeclaredField("Inner");
-            var nullableReadValueExpressionVisitor = new NullableReadValueExpressionVisitor();
-            foreach (var projection in innerQueryExpression._projectionMapping)
-            {
-                if (projection.Value is EntityProjectionExpression entityProjection)
-                {
-                    var readExpressionMap = new Dictionary<IProperty, Expression>();
-                    foreach (var property in GetAllPropertiesInHierarchy(entityProjection.EntityType))
-                    {
-                        var replacedExpression = replacingVisitor.Visit(entityProjection.BindProperty(property));
-                        replacedExpression = nullableReadValueExpressionVisitor.Visit(replacedExpression);
-                        resultValueBufferExpressions.Add(replacedExpression);
-                        readExpressionMap[property] = CreateReadValueExpression(replacedExpression.Type, index++, property);
-                    }
-
-                    projectionMapping[projection.Key.Prepend(innerMemberInfo)]
-                        = new EntityProjectionExpression(entityProjection.EntityType, readExpressionMap);
-                }
-                else
-                {
-                    var replacedExpression = replacingVisitor.Visit(projection.Value);
-                    replacedExpression = nullableReadValueExpressionVisitor.Visit(replacedExpression);
-                    resultValueBufferExpressions.Add(replacedExpression);
-                    projectionMapping[projection.Key.Prepend(innerMemberInfo)]
-                        = CreateReadValueExpression(replacedExpression.Type, index++, InferPropertyFromInner(projection.Value));
-                }
-            }
-
-            //var collectionSelector = Lambda(
-            //    Call(
-            //        EnumerableMethods.DefaultIfEmptyWithArgument.MakeGenericMethod(typeof(DataObjectBase)),
-            //        collection,
-            //        New(
-            //            _valueBufferConstructor,
-            //            NewArrayInit(
-            //                typeof(object),
-            //                Enumerable.Range(0, index - outerIndex).Select(i => Constant(null))))),
-            //    collectionParameter);
-
-            //resultSelector = Lambda(
-            //    New(
-            //        _valueBufferConstructor,
-            //        NewArrayInit(
-            //            typeof(object),
-            //            resultValueBufferExpressions
-            //                .Select(e => e.Type.IsValueType ? Convert(e, typeof(object)) : e)
-            //                .ToArray())),
-            //    outerParameter,
-            //    innerParameter);
-
-            //ServerQueryExpression = Call(
-            //    EnumerableMethods.SelectManyWithCollectionSelector.MakeGenericMethod(
-            //        groupTransparentIdentifierType, typeof(DataObjectBase), typeof(DataObjectBase)),
-            //    groupJoinExpression,
-            //    collectionSelector,
-            //    resultSelector);
-
-            throw new NotImplementedException();
-
-            _projectionMapping = projectionMapping;
+            (innerQueryExpression.ServerQueryExpression as HarmonyTableExpression).OnExpressions.Add(Expression.Equal(innerKeySelector.Body, outerKeySelector.Body));
         }
 
         public virtual void AddSelectMany(HarmonyQueryExpression innerQueryExpression, Type transparentIdentifierType, bool innerNullable)

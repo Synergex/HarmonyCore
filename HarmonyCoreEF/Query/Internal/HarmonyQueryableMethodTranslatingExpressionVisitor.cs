@@ -25,14 +25,18 @@ namespace Harmony.Core.EF.Query.Internal
         private readonly WeakEntityExpandingExpressionVisitor _weakEntityExpandingExpressionVisitor;
         private readonly HarmonyProjectionBindingExpressionVisitor _projectionBindingExpressionVisitor;
         private readonly IModel _model;
+        internal readonly Dictionary<Expression, HarmonyQueryExpression> _parameterToQueryMapping;
+        internal readonly Dictionary<object, HarmonyQueryExpression> _identifierToQueryMapping;
 
         public HarmonyQueryableMethodTranslatingExpressionVisitor(
             QueryableMethodTranslatingExpressionVisitorDependencies dependencies,
             IModel model)
             : base(dependencies, subquery: false)
         {
+            _parameterToQueryMapping = new Dictionary<Expression, HarmonyQueryExpression>();
+            _identifierToQueryMapping = new Dictionary<object, HarmonyQueryExpression>();
             _expressionTranslator = new HarmonyExpressionTranslatingExpressionVisitor(this);
-            _weakEntityExpandingExpressionVisitor = new WeakEntityExpandingExpressionVisitor(_expressionTranslator);
+            _weakEntityExpandingExpressionVisitor = new WeakEntityExpandingExpressionVisitor(_parameterToQueryMapping, _expressionTranslator);
             _projectionBindingExpressionVisitor = new HarmonyProjectionBindingExpressionVisitor(this, _expressionTranslator);
             _model = model;
         }
@@ -51,12 +55,14 @@ namespace Harmony.Core.EF.Query.Internal
             => new HarmonyQueryableMethodTranslatingExpressionVisitor(this);
 
         protected override ShapedQueryExpression CreateShapedQueryExpression(Type elementType)
-            => CreateShapedQueryExpression(_model.FindEntityType(elementType));
+        {
+            return CreateShapedQueryExpression(_model.FindEntityType(elementType), _parameterToQueryMapping);
+        }
 
-        private static ShapedQueryExpression CreateShapedQueryExpression(IEntityType entityType)
+        private static ShapedQueryExpression CreateShapedQueryExpression(IEntityType entityType, Dictionary<Expression, HarmonyQueryExpression> mapping)
         {
             var queryExpression = new HarmonyQueryExpression(entityType);
-
+            mapping.Add(queryExpression.CurrentParameter, queryExpression);
             return new ShapedQueryExpression(
                 queryExpression,
                 Expression.Convert(queryExpression.CurrentParameter, entityType.ClrType));
@@ -419,21 +425,12 @@ namespace Harmony.Core.EF.Query.Internal
 
             (outerKeySelector, innerKeySelector) = AlignKeySelectorTypes(outerKeySelector, innerKeySelector);
 
-            var transparentIdentifierType = TransparentIdentifierFactory.Create(
-                resultSelector.Parameters[0].Type,
-                resultSelector.Parameters[1].Type);
-
             ((HarmonyQueryExpression)outer.QueryExpression).AddLeftJoin(
                 (HarmonyQueryExpression)inner.QueryExpression,
                 outerKeySelector,
-                innerKeySelector,
-                transparentIdentifierType);
-
-            return TranslateResultSelectorForJoin(
-                outer,
-                resultSelector,
-                MarkShaperNullable(inner.ShaperExpression),
-                transparentIdentifierType);
+                innerKeySelector);
+            //make custom shaped Query expression to keep track of the added left join
+            return new JoinedShapedQueryExpression(outer.QueryExpression, outer.ShaperExpression, inner, true);
         }
 
         protected override ShapedQueryExpression TranslateLongCount(ShapedQueryExpression source, LambdaExpression predicate)
@@ -580,13 +577,30 @@ namespace Harmony.Core.EF.Query.Internal
                 return source;
             }
 
+            var cleanSelector = selector;
+            var selectorBody = selector.Body;
+            var includeExpression = selectorBody as IncludeExpression;
+            if (includeExpression != null)
+            {
+                var cleanParameters = new ParameterExpression[] { Expression.Parameter(source.ShaperExpression.Type) };
+                cleanSelector = Expression.Lambda(Expression.PropertyOrField(cleanParameters.First(), includeExpression.Navigation.PropertyInfo.Name), cleanParameters);
+                var joinSource = source as JoinedShapedQueryExpression;
+                if (joinSource != null)
+                {
+                    var queryExpr = joinSource.QueryExpression as HarmonyQueryExpression;
+                    var innerExpr = joinSource.Inner.QueryExpression as HarmonyQueryExpression;
+                    var innerTableExpression = queryExpr.RootExpressions[innerExpr.CurrentParameter];
+                    innerTableExpression.Name = includeExpression.Navigation.PropertyInfo.Name;
+                    innerTableExpression.IsCollection = includeExpression.Navigation.IsCollection();
+                }
+            }
             var newSelectorBody = ReplacingExpressionVisitor.Replace(
-                selector.Parameters.Single(), source.ShaperExpression, selector.Body);
+                cleanSelector.Parameters.Single(), source.ShaperExpression, cleanSelector.Body);
 
             var groupByQuery = source.ShaperExpression is GroupByShaperExpression;
             var queryExpression = (HarmonyQueryExpression)source.QueryExpression;
 
-            source.ShaperExpression = _projectionBindingExpressionVisitor.Translate(queryExpression, newSelectorBody);
+            //source.ShaperExpression = _projectionBindingExpressionVisitor.Translate(queryExpression, newSelectorBody);
 
             if (groupByQuery)
             {
@@ -796,9 +810,10 @@ namespace Harmony.Core.EF.Query.Internal
         {
             private HarmonyQueryExpression _queryExpression;
             private readonly HarmonyExpressionTranslatingExpressionVisitor _expressionTranslator;
-
-            public WeakEntityExpandingExpressionVisitor(HarmonyExpressionTranslatingExpressionVisitor expressionTranslator)
+            private readonly Dictionary<Expression, HarmonyQueryExpression> _parameterToQueryMapping;
+            public WeakEntityExpandingExpressionVisitor(Dictionary<Expression, HarmonyQueryExpression> parameterToQueryMapping, HarmonyExpressionTranslatingExpressionVisitor expressionTranslator)
             {
+                _parameterToQueryMapping = parameterToQueryMapping;
                 _expressionTranslator = expressionTranslator;
             }
 
@@ -875,7 +890,7 @@ namespace Harmony.Core.EF.Query.Internal
                 var foreignKey = navigation.ForeignKey;
                 if (navigation.IsCollection())
                 {
-                    var innerShapedQuery = CreateShapedQueryExpression(targetEntityType);
+                    var innerShapedQuery = CreateShapedQueryExpression(targetEntityType, _parameterToQueryMapping);
                     var innerQueryExpression = (HarmonyQueryExpression)innerShapedQuery.QueryExpression;
 
                     var makeNullable = foreignKey.PrincipalKey.Properties
@@ -922,7 +937,7 @@ namespace Harmony.Core.EF.Query.Internal
                 var innerShaper = entityProjectionExpression.BindNavigation(navigation);
                 if (innerShaper == null)
                 {
-                    var innerShapedQuery = CreateShapedQueryExpression(targetEntityType);
+                    var innerShapedQuery = CreateShapedQueryExpression(targetEntityType, _parameterToQueryMapping);
                     var innerQueryExpression = (HarmonyQueryExpression)innerShapedQuery.QueryExpression;
 
                     var makeNullable = foreignKey.PrincipalKey.Properties
@@ -1044,6 +1059,17 @@ namespace Harmony.Core.EF.Query.Internal
                 inMemoryQueryExpression2.ServerQueryExpression);
 
             return source1;
+        }
+
+        internal class JoinedShapedQueryExpression : ShapedQueryExpression
+        {
+            public ShapedQueryExpression Inner;
+            public bool LeftJoin;
+            public JoinedShapedQueryExpression(Expression queryExpression, Expression shaperExpression, ShapedQueryExpression inner, bool leftJoin) : base(queryExpression, shaperExpression)
+            {
+                Inner = inner;
+                LeftJoin = leftJoin;
+            }
         }
     }
 }
