@@ -600,11 +600,11 @@ namespace Harmony.Core.EF.Query.Internal
             }
         }
 
-        protected override Expression VisitListInit(ListInitExpression node) => null;
+        //protected override Expression VisitListInit(ListInitExpression node) => null;
 
-        protected override Expression VisitInvocation(InvocationExpression node) => null;
+        //protected override Expression VisitInvocation(InvocationExpression node) => null;
 
-        protected override Expression VisitLambda<T>(Expression<T> node) => null;
+        //protected override Expression VisitLambda<T>(Expression<T> node) => null;
 
         protected override Expression VisitParameter(ParameterExpression parameterExpression)
         {

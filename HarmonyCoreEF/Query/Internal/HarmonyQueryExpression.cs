@@ -99,12 +99,13 @@ namespace Harmony.Core.EF.Query.Internal
         }
 
         public virtual ParameterExpression CurrentParameter => _groupingParameter ?? _valueBufferParameter;
+        public Expression ConvertedParameter { get; }
         public override Type Type { get; }
         public sealed override ExpressionType NodeType => ExpressionType.Extension;
 
         public HarmonyQueryExpression(IEntityType entityType)
         {
-            Type = typeof(IEnumerable<>).MakeGenericType(new Type[] { entityType.ClrType });
+            Type = typeof(IQueryable<>).MakeGenericType(new Type[] { entityType.ClrType });
             _valueBufferParameter = Parameter(typeof(DataObjectBase), "valueBuffer");
             var rootTable = new HarmonyTableExpression(entityType, "", this);
             RootExpressions = new Dictionary<Expression, HarmonyTableExpression> { { CurrentParameter, rootTable } };
@@ -121,7 +122,7 @@ namespace Harmony.Core.EF.Query.Internal
             //}
 
             //var entityProjection = new EntityProjectionExpression(entityType, readExpressionMap);
-            _projectionMapping[new ProjectionMember()] = Expression.Convert(CurrentParameter, entityType.ClrType);
+            _projectionMapping[new ProjectionMember()] = ConvertedParameter = Expression.Convert(CurrentParameter, entityType.ClrType);
         }
 
         public virtual Expression GetSingleScalarProjection()
@@ -571,15 +572,15 @@ namespace Harmony.Core.EF.Query.Internal
 
         public virtual void AddLeftJoin(
             HarmonyQueryExpression innerQueryExpression,
-            LambdaExpression outerKeySelector,
-            LambdaExpression innerKeySelector)
+            Expression outerKeySelector,
+            Expression innerKeySelector)
         {
             if (!RootExpressions.ContainsKey(innerQueryExpression.CurrentParameter))
             {
                 RootExpressions.Add(innerQueryExpression.CurrentParameter, innerQueryExpression.ServerQueryExpression as HarmonyTableExpression);
             }
 
-            (innerQueryExpression.ServerQueryExpression as HarmonyTableExpression).OnExpressions.Add(Expression.Equal(innerKeySelector.Body, outerKeySelector.Body));
+            (innerQueryExpression.ServerQueryExpression as HarmonyTableExpression).OnExpressions.Add(Expression.Equal(innerKeySelector, outerKeySelector));
         }
 
         public virtual void AddSelectMany(HarmonyQueryExpression innerQueryExpression, Type transparentIdentifierType, bool innerNullable)

@@ -26,7 +26,6 @@ namespace Harmony.Core.EF.Query.Internal
         private readonly HarmonyProjectionBindingExpressionVisitor _projectionBindingExpressionVisitor;
         private readonly IModel _model;
         internal readonly Dictionary<Expression, HarmonyQueryExpression> _parameterToQueryMapping;
-        internal readonly Dictionary<object, HarmonyQueryExpression> _identifierToQueryMapping;
 
         public HarmonyQueryableMethodTranslatingExpressionVisitor(
             QueryableMethodTranslatingExpressionVisitorDependencies dependencies,
@@ -34,7 +33,6 @@ namespace Harmony.Core.EF.Query.Internal
             : base(dependencies, subquery: false)
         {
             _parameterToQueryMapping = new Dictionary<Expression, HarmonyQueryExpression>();
-            _identifierToQueryMapping = new Dictionary<object, HarmonyQueryExpression>();
             _expressionTranslator = new HarmonyExpressionTranslatingExpressionVisitor(this);
             _weakEntityExpandingExpressionVisitor = new WeakEntityExpandingExpressionVisitor(_parameterToQueryMapping, _expressionTranslator);
             _projectionBindingExpressionVisitor = new HarmonyProjectionBindingExpressionVisitor(this, _expressionTranslator);
@@ -45,6 +43,7 @@ namespace Harmony.Core.EF.Query.Internal
             HarmonyQueryableMethodTranslatingExpressionVisitor parentVisitor)
             : base(parentVisitor.Dependencies, subquery: true)
         {
+            _parameterToQueryMapping = new Dictionary<Expression, HarmonyQueryExpression>();
             _expressionTranslator = parentVisitor._expressionTranslator;
             _weakEntityExpandingExpressionVisitor = parentVisitor._weakEntityExpandingExpressionVisitor;
             _projectionBindingExpressionVisitor = new HarmonyProjectionBindingExpressionVisitor(this, _expressionTranslator);
@@ -427,8 +426,8 @@ namespace Harmony.Core.EF.Query.Internal
 
             ((HarmonyQueryExpression)outer.QueryExpression).AddLeftJoin(
                 (HarmonyQueryExpression)inner.QueryExpression,
-                outerKeySelector,
-                innerKeySelector);
+                outerKeySelector.Body,
+                innerKeySelector.Body);
             //make custom shaped Query expression to keep track of the added left join
             return new JoinedShapedQueryExpression(outer.QueryExpression, outer.ShaperExpression, inner, true);
         }
@@ -570,6 +569,80 @@ namespace Harmony.Core.EF.Query.Internal
         protected override ShapedQueryExpression TranslateReverse(ShapedQueryExpression source)
             => null;
 
+
+        private static bool ComparePastConvert(Expression expr1, Expression expr2)
+        {
+            if (expr1 == expr2)
+                return true;
+            else if ((expr1 as UnaryExpression)?.Operand == expr2)
+                return true;
+            else if ((expr2 as UnaryExpression)?.Operand == expr1)
+                return true;
+            else if (expr1 is UnaryExpression && expr2 is UnaryExpression && 
+                (expr1 as UnaryExpression)?.Operand == (expr2 as UnaryExpression)?.Operand)
+                return true;
+            else 
+                return false;
+        }
+
+        private static bool ExtractKeySelectors(BinaryExpression expr, Expression inner, Expression outer, ref Expression innerSelector, ref Expression outerSelector)
+        {
+            var foundSelector = false;
+            var leftBinary = expr.Left as BinaryExpression;
+            var rightBinary = expr.Right as BinaryExpression;
+
+            var leftMember = expr.Left as MemberExpression;
+            var rightMember = expr.Right as MemberExpression;
+
+            if (leftMember != null && rightMember != null)
+            {
+                if (ComparePastConvert(leftMember.Expression, inner))
+                {
+                    innerSelector = leftMember;
+                    foundSelector = true;
+                }
+                else if (ComparePastConvert(leftMember.Expression, outer))
+                {
+                    outerSelector = leftMember;
+                    foundSelector = true;
+                }
+
+                if (ComparePastConvert(rightMember.Expression, inner))
+                {
+                    innerSelector = rightMember;
+                    foundSelector = true;
+                }
+                else if (ComparePastConvert(rightMember.Expression, outer))
+                {
+                    outerSelector = rightMember;
+                    foundSelector = true;
+                }
+            }
+    
+            if (leftBinary != null)
+            {
+                foundSelector |= ExtractKeySelectors(leftBinary, inner, outer, ref innerSelector, ref outerSelector);
+            }
+            if (rightBinary != null)
+            {
+                foundSelector |= ExtractKeySelectors(rightBinary, inner, outer, ref innerSelector, ref outerSelector);
+            }
+            return foundSelector;
+        }
+
+        private static bool ExtractKeySelectors(LambdaExpression expr, Expression inner, Expression outer, out Expression innerSelector, out Expression outerSelector)
+        {
+            innerSelector = null;
+            outerSelector = null;
+            var binaryExpr = expr.Body as BinaryExpression;
+            if (binaryExpr != null)
+            {
+                return ExtractKeySelectors(binaryExpr, inner, outer, ref innerSelector, ref outerSelector);
+            }
+            else
+                return false;
+        }
+
         protected override ShapedQueryExpression TranslateSelect(ShapedQueryExpression source, LambdaExpression selector)
         {
             if (selector.Body == selector.Parameters[0])
@@ -580,27 +653,45 @@ namespace Harmony.Core.EF.Query.Internal
             var cleanSelector = selector;
             var selectorBody = selector.Body;
             var includeExpression = selectorBody as IncludeExpression;
+
             if (includeExpression != null)
             {
-                var cleanParameters = new ParameterExpression[] { Expression.Parameter(source.ShaperExpression.Type) };
-                cleanSelector = Expression.Lambda(Expression.PropertyOrField(cleanParameters.First(), includeExpression.Navigation.PropertyInfo.Name), cleanParameters);
-                var joinSource = source as JoinedShapedQueryExpression;
-                if (joinSource != null)
+                while (includeExpression != null)
                 {
-                    var queryExpr = joinSource.QueryExpression as HarmonyQueryExpression;
-                    var innerExpr = joinSource.Inner.QueryExpression as HarmonyQueryExpression;
-                    var innerTableExpression = queryExpr.RootExpressions[innerExpr.CurrentParameter];
-                    innerTableExpression.Name = includeExpression.Navigation.PropertyInfo.Name;
-                    innerTableExpression.IsCollection = includeExpression.Navigation.IsCollection();
+                    var queryExpr = source.QueryExpression as HarmonyQueryExpression;
+                    var navExpression = includeExpression.NavigationExpression as MaterializeCollectionNavigationExpression;
+                    if (navExpression != null)
+                    {
+                        var cleanSubQuery = navExpression.Subquery;
+                        var replacementVisitor = new IdentifierReplacingExpressionVisitor() { ReplacementSource = source as JoinedShapedQueryExpression, Target = selector.Parameters.First() };
+                        var subQueryTable = ((HarmonyQueryExpression)LiftSubquery(queryExpr, cleanSubQuery, replacementVisitor).QueryExpression).ServerQueryExpression as HarmonyTableExpression;
+
+                        subQueryTable.Name = includeExpression.Navigation.PropertyInfo.Name;
+                        subQueryTable.IsCollection = includeExpression.Navigation.IsCollection();
+                    }
+                    else
+                    {
+                        var joinSource = source as JoinedShapedQueryExpression;
+                        if (joinSource != null)
+                        {
+                            var innerExpr = joinSource.Inner.QueryExpression as HarmonyQueryExpression;
+                            var innerTableExpression = queryExpr.RootExpressions[innerExpr.CurrentParameter];
+                            innerTableExpression.Name = includeExpression.Navigation.PropertyInfo.Name;
+                            innerTableExpression.IsCollection = includeExpression.Navigation.IsCollection();
+                        }
+                    }
+
+                    includeExpression = includeExpression.EntityExpression as IncludeExpression;
                 }
             }
-            var newSelectorBody = ReplacingExpressionVisitor.Replace(
-                cleanSelector.Parameters.Single(), source.ShaperExpression, cleanSelector.Body);
+            else if(selectorBody is MemberInitExpression)
+            {
+                var subqueryVisitor = new SubqueryReplacingExpressionVisitor() { CurrentVisitor = this, ReplacementSource = source, Outer = selector.Parameters.First()};
+                source.ShaperExpression = subqueryVisitor.Visit(selector);
+            }
 
             var groupByQuery = source.ShaperExpression is GroupByShaperExpression;
             var queryExpression = (HarmonyQueryExpression)source.QueryExpression;
-
-            //source.ShaperExpression = _projectionBindingExpressionVisitor.Translate(queryExpression, newSelectorBody);
 
             if (groupByQuery)
             {
@@ -609,6 +700,37 @@ namespace Harmony.Core.EF.Query.Internal
 
             return source;
         }
+
+        internal ShapedQueryExpression LiftSubquery(HarmonyQueryExpression queryExpr, Expression cleanSubQuery, IdentifierReplacingExpressionVisitor replacementVisitor, Expression outerOverride = null)
+        {
+            var subquery = TranslateSubquery(cleanSubQuery);
+            var subQueryExpr = subquery.QueryExpression as HarmonyQueryExpression;
+            var subQueryTable = subQueryExpr.ServerQueryExpression as HarmonyTableExpression;
+            for (int i = 0; i < subQueryTable.WhereExpressions.Count; i++)
+            {
+                if(replacementVisitor != null)
+                    subQueryTable.WhereExpressions[i] = replacementVisitor.Visit(subQueryTable.WhereExpressions[i]);
+
+                if (ExtractKeySelectors(subQueryTable.WhereExpressions[i] as LambdaExpression, subQueryExpr.ConvertedParameter, outerOverride ?? queryExpr.ConvertedParameter, out var innerSelector, out var outerSelector))
+                {
+                    //to avoid remapping this later just swap it out for the actual query expression before we add it to the join list
+                    if (outerOverride != null)
+                    {
+                        outerSelector = ReplacingExpressionVisitor.Replace(outerOverride, queryExpr.ConvertedParameter, outerSelector);
+                    }
+                    queryExpr.AddLeftJoin(subQueryExpr, outerSelector, innerSelector);
+                    //this expression was really a join expression, dont treat it like a where
+                    subQueryTable.WhereExpressions.RemoveAt(i);
+                    i--;
+                    continue;
+                }
+            }
+
+            return subquery;
+        }
+
+        public override ShapedQueryExpression TranslateSubquery(Expression expression)
+            => CreateSubqueryVisitor().Visit(expression) as ShapedQueryExpression;
 
         protected override ShapedQueryExpression TranslateSelectMany(
             ShapedQueryExpression source, LambdaExpression collectionSelector, LambdaExpression resultSelector)
@@ -1069,6 +1191,133 @@ namespace Harmony.Core.EF.Query.Internal
             {
                 Inner = inner;
                 LeftJoin = leftJoin;
+            }
+        }
+
+        internal class IdentifierReplacingExpressionVisitor : ExpressionVisitor
+        {
+            public Expression Target;
+            public ShapedQueryExpression ReplacementSource;
+            protected override Expression VisitMember(MemberExpression node)
+            {
+                if ((node.Expression as MemberExpression)?.Member?.Name == "Outer")
+                {
+                    return Expression.PropertyOrField((ReplacementSource.QueryExpression as HarmonyQueryExpression).ConvertedParameter, node.Member.Name);
+                }
+                else if (ReplacementSource is JoinedShapedQueryExpression && (node.Expression as MemberExpression)?.Member?.Name == "Inner")
+                {
+                    return Expression.PropertyOrField((((JoinedShapedQueryExpression)ReplacementSource).Inner.QueryExpression as HarmonyQueryExpression).ConvertedParameter, node.Member.Name);
+                }
+                return base.VisitMember(node);
+            }
+        }
+
+        internal class SubqueryReplacingExpressionVisitor : ExpressionVisitor
+        {
+            public ShapedQueryExpression ReplacementSource;
+            public HarmonyQueryableMethodTranslatingExpressionVisitor CurrentVisitor;
+            public ParameterExpression Outer;
+            public Stack<string> SubQueryTargetNames = new Stack<string>();
+            public Stack<Expression> SourceStack = new Stack<Expression>();
+
+            public Expression CurrentParameter
+            {
+                get
+                {
+                    return SourceStack.Count > 0 ? SourceStack.Peek() : Outer;
+                }
+            }
+            protected override MemberAssignment VisitMemberAssignment(MemberAssignment node)
+            {
+                //check if we're putting a subquery into an entity type
+                if (typeof(DataObjectBase).IsAssignableFrom(node.Member.DeclaringType))
+                {
+                    var creatingType = node.Member.DeclaringType;
+                    try
+                    {
+                        SubQueryTargetNames.Push(node.Member.Name);
+                        var updatedExpression = CurrentVisitor.LiftSubquery(ReplacementSource.QueryExpression as HarmonyQueryExpression, node.Expression, null, CurrentParameter);
+                        if(updatedExpression != null)
+                            return node.Update(updatedExpression);
+                    }
+                    finally
+                    {
+                        SubQueryTargetNames.Pop();
+                    }
+                }
+                else
+                {
+                    //this is for things like SelectAllAndExpand from OData
+                    //we should be able to shake things into this pattern if they have a similar purpose with a subquery
+                    if (node.Member.Name == "Instance")
+                    {
+                        SourceStack.Push(node.Expression);
+                    }
+                    else if (node.Member.Name == "Name")
+                    {
+                        SubQueryTargetNames.Push(((ConstantExpression)node.Expression).Value as string);
+                    }
+                    else if (node.Member.Name.StartsWith("Next") && node.Expression is MemberInitExpression)
+                    {
+                    }
+                    else if (node.Member.Name == "IsNull")
+                    {
+                        var propCall = (node.Expression as BinaryExpression)?.Left as MethodCallExpression;
+                        //if (propCall != null && propCall.Method.Name == "Property" && (propCall.Arguments[0] is QuerySourceReferenceExpression))
+                        //{
+                        //    var targetQuerySource = (propCall.Arguments[0] as QuerySourceReferenceExpression).ReferencedQuerySource;
+                        //    var targetParameter = QuerySourceMapping.ContainsMapping(targetQuerySource) ? QuerySourceMapping.GetExpression(targetQuerySource) : CurrentParameter;
+                        //    Expression targetProperty = Expression.Property(targetParameter, SubQueryTargetName);
+                        //    return node.Update(Expression.Equal(targetProperty, Expression.Default(targetProperty.Type)));
+                        //}
+                    }
+                    else if (node.Member.Name == "Value")
+                    {
+                        var selectCall = node.Expression as MethodCallExpression;
+                        if (selectCall != null && selectCall.Method.Name == "Select" && selectCall.Method.DeclaringType == typeof(Queryable))
+                        {
+                            var updatedExpression = CurrentVisitor.LiftSubquery(ReplacementSource.QueryExpression as HarmonyQueryExpression, node.Expression, null, CurrentParameter);
+                            if (updatedExpression != null)
+                            {
+                                var tableExpression = ((HarmonyQueryExpression)updatedExpression.QueryExpression).ServerQueryExpression as HarmonyTableExpression;
+                                tableExpression.Name = SubQueryTargetNames.Peek();
+                                tableExpression.IsCollection = true;
+                                var queryableType = typeof(Queryable);
+                                var asQueryableMethod = queryableType.GetMethods().FirstOrDefault(mi => mi.Name == nameof(Queryable.AsQueryable) && mi.IsGenericMethod);
+                                return node.Update(selectCall.Update(null, new Expression[] { Expression.Call(null, asQueryableMethod.MakeGenericMethod(tableExpression.ItemType), Expression.PropertyOrField(CurrentParameter, SubQueryTargetNames.Peek())), updatedExpression.ShaperExpression }));
+                            }
+                        }
+                    }
+                }
+                return base.VisitMemberAssignment(node);
+            }
+        
+
+            private static readonly MethodInfo _getParameterValueMethodInfo
+                = typeof(HarmonyExpressionTranslatingExpressionVisitor)
+                    .GetTypeInfo().GetDeclaredMethod(nameof(GetParameterValue));
+            //protected override Expression VisitMethodCall(MethodCallExpression node)
+            //{
+            //    if (node.Method.Name == "Select" && node.Method.DeclaringType == typeof(Queryable))
+            //    {
+            //        var subQueryExpr = CurrentVisitor.LiftSubquery(ReplacementSource.QueryExpression as HarmonyQueryExpression, node, null, CurrentParameter);
+            //        //return subQueryExpr;
+            //    }
+            //    return base.VisitMethodCall(node);
+            //}
+
+            private static T GetParameterValue<T>(QueryContext queryContext, string parameterName) => (T)queryContext.ParameterValues[parameterName];
+
+            protected override Expression VisitParameter(ParameterExpression node)
+            {
+                if (node.Name.StartsWith("__"))
+                {
+                    return Expression.Call(
+                    _getParameterValueMethodInfo.MakeGenericMethod(node.Type),
+                    QueryCompilationContext.QueryContextParameter,
+                    Expression.Constant(node.Name));
+                }
+                return base.VisitParameter(node);
             }
         }
     }

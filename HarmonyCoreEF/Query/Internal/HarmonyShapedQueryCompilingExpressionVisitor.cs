@@ -52,25 +52,29 @@ namespace Harmony.Core.EF.Query.Internal
         {
             var inMemoryQueryExpression = (HarmonyQueryExpression)shapedQueryExpression.QueryExpression;
 
-            var shaper = new ShaperExpressionProcessingExpressionVisitor(
-                    inMemoryQueryExpression, inMemoryQueryExpression.CurrentParameter)
-                .Inject(shapedQueryExpression.ShaperExpression);
+            //var shaper = new ShaperExpressionProcessingExpressionVisitor(
+            //        inMemoryQueryExpression, inMemoryQueryExpression.CurrentParameter)
+            //    .Inject(shapedQueryExpression.ShaperExpression);
 
-            shaper = InjectEntityMaterializers(shaper);
+            var shaper = InjectEntityMaterializers(shapedQueryExpression.ShaperExpression);
 
             var innerEnumerable = Visit(inMemoryQueryExpression);
-
-            shaper = new HarmonyProjectionBindingRemovingExpressionVisitor().Visit(shaper);
 
             shaper = new CustomShaperCompilingExpressionVisitor(IsTracking).Visit(shaper);
 
             var shaperLambda = (LambdaExpression)shaper;
+            var shaperArg = Expression.Parameter(typeof(DataObjectBase));
+            var capturedShaper = Expression.Lambda(
+                Expression.Invoke(shaperLambda, 
+                    Expression.Convert(shaperArg, shaperLambda.Parameters[0].Type)), 
+                new ParameterExpression[] { QueryCompilationContext.QueryContextParameter, shaperArg });
+
 
             return Expression.New(
                 typeof(QueryingEnumerable<>).MakeGenericType(shaperLambda.ReturnType).GetConstructors()[0],
                 QueryCompilationContext.QueryContextParameter,
                 innerEnumerable,
-                Expression.Constant(shaperLambda.Compile()),
+                Expression.Constant(capturedShaper.Compile()),
                 Expression.Constant(_contextType),
                 Expression.Constant(_logger));
         }
