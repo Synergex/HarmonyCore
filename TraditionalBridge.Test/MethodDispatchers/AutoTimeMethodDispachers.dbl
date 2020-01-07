@@ -15,6 +15,13 @@ import Harmony.TraditionalBridge
 import System.Collections
 import TraditionalBridge.Test.Models
 
+.ifdef DBLV11
+import System.Text.Json
+.define JSON_ELEMENT @JsonElement
+.else
+.define JSON_ELEMENT @JsonValue
+.endc
+
 namespace TraditionalBridge.Test.AutoTime
 
 
@@ -34,16 +41,16 @@ namespace TraditionalBridge.Test.AutoTime
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED IN TIMEKEY ArrayList collection of structure @Timekey)
-                arg1Array,          @JsonArray
+                arg1Array,          JSON_ELEMENT
                 arg1,               @ArrayList
             endrecord
 
@@ -53,11 +60,11 @@ namespace TraditionalBridge.Test.AutoTime
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED IN TIMEKEY ArrayList collection of structure @Timekey)
-            argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1], 50)
-            arg1Array = (@JsonArray)((@JsonObject)arguments.arrayValues[1]).GetProperty("PassedValue")
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1], 50)
+            arg1Array = arguments[1].GetProperty("PassedValue")
             arg1 = new ArrayList()
             dispatcher.UnwrapObjectCollection(argumentDefinition,arg1Array,arg1)
 
@@ -85,12 +92,12 @@ namespace TraditionalBridge.Test.AutoTime
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED OUT TIMEKEY ArrayList collection of structure @Timekey)
@@ -134,16 +141,16 @@ namespace TraditionalBridge.Test.AutoTime
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED INOUT TIMEKEY [*]structure @Timekey)
-                arg1Array,          @JsonArray
+                arg1Array,          JSON_ELEMENT
                 arg1Handle,         D_HANDLE
                 arg1HandlePos,      int
             endrecord
@@ -159,12 +166,12 @@ namespace TraditionalBridge.Test.AutoTime
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED INOUT TIMEKEY [*]structure @Timekey)
-            argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1], 50)
-            arg1Array = (@JsonArray)((@JsonObject)arguments.arrayValues[1]).GetProperty("PassedValue")
-            arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.arrayValues.Count)
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1], 50)
+            arg1Array = arguments[1].GetProperty("PassedValue")
+            arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.GetArrayLength())
             arg1HandlePos = 1
             dispatcher.UnwrapObjectCollection(^m(arg1Handle),argumentDefinition,arg1HandlePos,arg1Array)
 
@@ -197,12 +204,12 @@ namespace TraditionalBridge.Test.AutoTime
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED INOUT TIMEKEY structure @Timekey)
@@ -216,11 +223,11 @@ namespace TraditionalBridge.Test.AutoTime
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED INOUT TIMEKEY structure @Timekey)
             ;;Structure argument. Get the data object then get the record from it
-            arg1DataObject = dispatcher.DeserializeObject((@JsonObject)arguments.arrayValues[1],mTimekeyMetadata)
+            arg1DataObject = dispatcher.DeserializeObject(arguments[1],mTimekeyMetadata)
             arg1 = arg1DataObject.SynergyRecord
 
             ;;------------------------------------------------------------
@@ -253,12 +260,12 @@ namespace TraditionalBridge.Test.AutoTime
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED IN TIMEKEY structure @Timekey)
@@ -272,11 +279,11 @@ namespace TraditionalBridge.Test.AutoTime
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED IN TIMEKEY structure @Timekey)
             ;;Structure argument. Get the data object then get the record from it
-            arg1DataObject = dispatcher.DeserializeObject((@JsonObject)arguments.arrayValues[1],mTimekeyMetadata)
+            arg1DataObject = dispatcher.DeserializeObject(arguments[1],mTimekeyMetadata)
             arg1 = arg1DataObject.SynergyRecord
 
             ;;------------------------------------------------------------
@@ -303,12 +310,12 @@ namespace TraditionalBridge.Test.AutoTime
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED OUT TIMEKEY structure @Timekey)

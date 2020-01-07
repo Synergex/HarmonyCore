@@ -15,6 +15,13 @@ import Harmony.TraditionalBridge
 import System.Collections
 import TraditionalBridge.Test.Models
 
+.ifdef DBLV11
+import System.Text.Json
+.define JSON_ELEMENT @JsonElement
+.else
+.define JSON_ELEMENT @JsonValue
+.endc
+
 namespace TraditionalBridge.Test.V93IF
 
 
@@ -34,12 +41,12 @@ namespace TraditionalBridge.Test.V93IF
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED OUT V93REPOSOPTS ArrayList collection of structure @V93reposopt returned as DataTable)
@@ -83,16 +90,16 @@ namespace TraditionalBridge.Test.V93IF
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED IN V93REPOSOPTS ArrayList collection of structure @V93reposopt returned as DataTable)
-                arg1Array,          @JsonArray
+                arg1Array,          JSON_ELEMENT
                 arg1,               @ArrayList
             endrecord
 
@@ -102,11 +109,11 @@ namespace TraditionalBridge.Test.V93IF
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED IN V93REPOSOPTS ArrayList collection of structure @V93reposopt returned as DataTable)
-            argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1], 41)
-            arg1Array = (@JsonArray)((@JsonObject)arguments.arrayValues[1]).GetProperty("PassedValue")
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1], 41)
+            arg1Array = arguments[1].GetProperty("PassedValue")
             arg1 = new ArrayList()
             dispatcher.UnwrapObjectCollection(argumentDefinition,arg1Array,arg1)
 
@@ -134,12 +141,12 @@ namespace TraditionalBridge.Test.V93IF
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED INOUT BINARYTEST structure @Binarytest)
@@ -153,11 +160,11 @@ namespace TraditionalBridge.Test.V93IF
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED INOUT BINARYTEST structure @Binarytest)
             ;;Structure argument. Get the data object then get the record from it
-            arg1DataObject = dispatcher.DeserializeObject((@JsonObject)arguments.arrayValues[1],mBinarytestMetadata)
+            arg1DataObject = dispatcher.DeserializeObject(arguments[1],mBinarytestMetadata)
             arg1 = arg1DataObject.SynergyRecord
 
             ;;------------------------------------------------------------
@@ -188,12 +195,12 @@ namespace TraditionalBridge.Test.V93IF
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED IN CustID I4)
@@ -213,13 +220,13 @@ namespace TraditionalBridge.Test.V93IF
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED IN CustID I4)
-            arg1 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[1])
+            arg1 = dispatcher.GetInt(arguments[1])
 
             ;;Argument 2 (REQUIRED IN AddressID I4)
-            arg2 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[2])
+            arg2 = dispatcher.GetInt(arguments[2])
 
             ;;Argument 4 (REQUIRED IN GRFA D_HANDLE)
             ;TODO: Template needs code for BINARY HANDLE arguments!
@@ -255,12 +262,12 @@ namespace TraditionalBridge.Test.V93IF
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED IN CustID I4)
@@ -280,13 +287,13 @@ namespace TraditionalBridge.Test.V93IF
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED IN CustID I4)
-            arg1 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[1])
+            arg1 = dispatcher.GetInt(arguments[1])
 
             ;;Argument 2 (REQUIRED IN AddressID I4)
-            arg2 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[2])
+            arg2 = dispatcher.GetInt(arguments[2])
 
             ;;Argument 4 (REQUIRED INOUT GRFA D_HANDLE)
             ;TODO: Template needs code for BINARY HANDLE arguments!
@@ -327,12 +334,12 @@ namespace TraditionalBridge.Test.V93IF
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED IN CustID I4)
@@ -352,13 +359,13 @@ namespace TraditionalBridge.Test.V93IF
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED IN CustID I4)
-            arg1 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[1])
+            arg1 = dispatcher.GetInt(arguments[1])
 
             ;;Argument 2 (REQUIRED IN AddressID I4)
-            arg2 = dispatcher.GetInt((@JsonObject)arguments.arrayValues[2])
+            arg2 = dispatcher.GetInt(arguments[2])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -397,12 +404,12 @@ namespace TraditionalBridge.Test.V93IF
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED INOUT FUENTES structure @Fuente)
@@ -416,11 +423,11 @@ namespace TraditionalBridge.Test.V93IF
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED INOUT FUENTES structure @Fuente)
             ;;Structure argument. Get the data object then get the record from it
-            arg1DataObject = dispatcher.DeserializeObject((@JsonObject)arguments.arrayValues[1],mFuenteMetadata)
+            arg1DataObject = dispatcher.DeserializeObject(arguments[1],mFuenteMetadata)
             arg1 = arg1DataObject.SynergyRecord
 
             ;;------------------------------------------------------------
@@ -453,16 +460,16 @@ namespace TraditionalBridge.Test.V93IF
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED IN FUENTES ArrayList collection of structure @Fuente)
-                arg1Array,          @JsonArray
+                arg1Array,          JSON_ELEMENT
                 arg1,               @ArrayList
             endrecord
 
@@ -472,11 +479,11 @@ namespace TraditionalBridge.Test.V93IF
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED IN FUENTES ArrayList collection of structure @Fuente)
-            argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1], 43)
-            arg1Array = (@JsonArray)((@JsonObject)arguments.arrayValues[1]).GetProperty("PassedValue")
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1], 43)
+            arg1Array = arguments[1].GetProperty("PassedValue")
             arg1 = new ArrayList()
             dispatcher.UnwrapObjectCollection(argumentDefinition,arg1Array,arg1)
 
@@ -504,12 +511,12 @@ namespace TraditionalBridge.Test.V93IF
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED OUT FUENTES ArrayList collection of structure @Fuente)
@@ -551,12 +558,12 @@ namespace TraditionalBridge.Test.V93IF
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED INOUT AColor enum COLOR)
@@ -569,10 +576,10 @@ namespace TraditionalBridge.Test.V93IF
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED INOUT AColor enum COLOR)
-            arg1 = (COLOR)dispatcher.GetInt((@JsonObject)arguments.arrayValues[1])
+            arg1 = (COLOR)dispatcher.GetInt(arguments[1])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -602,12 +609,12 @@ namespace TraditionalBridge.Test.V93IF
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 returnValue,         COLOR
@@ -646,12 +653,12 @@ namespace TraditionalBridge.Test.V93IF
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED IN aColor enum COLOR)
@@ -669,13 +676,13 @@ namespace TraditionalBridge.Test.V93IF
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED IN aColor enum COLOR)
-            arg1 = (COLOR)dispatcher.GetInt((@JsonObject)arguments.arrayValues[1])
+            arg1 = (COLOR)dispatcher.GetInt(arguments[1])
 
             ;;Argument 2 (REQUIRED INOUT Alpha1 A10)
-            arg2 = dispatcher.GetText((@JsonObject)arguments.arrayValues[2])
+            arg2 = dispatcher.GetText(arguments[2])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -715,12 +722,12 @@ namespace TraditionalBridge.Test.V93IF
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED INOUT ENUMSTRUCTURE structure @Enumstructure)
@@ -734,11 +741,11 @@ namespace TraditionalBridge.Test.V93IF
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED INOUT ENUMSTRUCTURE structure @Enumstructure)
             ;;Structure argument. Get the data object then get the record from it
-            arg1DataObject = dispatcher.DeserializeObject((@JsonObject)arguments.arrayValues[1],mEnumstructureMetadata)
+            arg1DataObject = dispatcher.DeserializeObject(arguments[1],mEnumstructureMetadata)
             arg1 = arg1DataObject.SynergyRecord
 
             ;;------------------------------------------------------------
@@ -771,16 +778,16 @@ namespace TraditionalBridge.Test.V93IF
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED INOUT ENUMSTRUCTURE [*]structure @Enumstructure)
-                arg1Array,          @JsonArray
+                arg1Array,          JSON_ELEMENT
                 arg1Handle,         D_HANDLE
                 arg1HandlePos,      int
             endrecord
@@ -796,12 +803,12 @@ namespace TraditionalBridge.Test.V93IF
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED INOUT ENUMSTRUCTURE [*]structure @Enumstructure)
-            argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1], 44)
-            arg1Array = (@JsonArray)((@JsonObject)arguments.arrayValues[1]).GetProperty("PassedValue")
-            arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.arrayValues.Count)
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1], 44)
+            arg1Array = arguments[1].GetProperty("PassedValue")
+            arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.GetArrayLength())
             arg1HandlePos = 1
             dispatcher.UnwrapObjectCollection(^m(arg1Handle),argumentDefinition,arg1HandlePos,arg1Array)
 
@@ -834,16 +841,16 @@ namespace TraditionalBridge.Test.V93IF
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED IN ENUMSTRUCTURE ArrayList collection of structure @Enumstructure)
-                arg1Array,          @JsonArray
+                arg1Array,          JSON_ELEMENT
                 arg1,               @ArrayList
             endrecord
 
@@ -853,11 +860,11 @@ namespace TraditionalBridge.Test.V93IF
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED IN ENUMSTRUCTURE ArrayList collection of structure @Enumstructure)
-            argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1], 44)
-            arg1Array = (@JsonArray)((@JsonObject)arguments.arrayValues[1]).GetProperty("PassedValue")
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1], 44)
+            arg1Array = arguments[1].GetProperty("PassedValue")
             arg1 = new ArrayList()
             dispatcher.UnwrapObjectCollection(argumentDefinition,arg1Array,arg1)
 
@@ -885,12 +892,12 @@ namespace TraditionalBridge.Test.V93IF
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED OUT ENUMSTRUCTURE ArrayList collection of structure @Enumstructure)
@@ -934,12 +941,12 @@ namespace TraditionalBridge.Test.V93IF
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED OUT TIMEKEY ArrayList collection of structure @Timekey returned as DataTable)
@@ -983,12 +990,12 @@ namespace TraditionalBridge.Test.V93IF
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED INOUT V93REPOSOPTS structure @V93reposopt)
@@ -1002,11 +1009,11 @@ namespace TraditionalBridge.Test.V93IF
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED INOUT V93REPOSOPTS structure @V93reposopt)
             ;;Structure argument. Get the data object then get the record from it
-            arg1DataObject = dispatcher.DeserializeObject((@JsonObject)arguments.arrayValues[1],mV93reposoptMetadata)
+            arg1DataObject = dispatcher.DeserializeObject(arguments[1],mV93reposoptMetadata)
             arg1 = arg1DataObject.SynergyRecord
 
             ;;------------------------------------------------------------
@@ -1039,12 +1046,12 @@ namespace TraditionalBridge.Test.V93IF
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED INOUT STROPTSOUTTER structure @Stroptsoutter)
@@ -1058,11 +1065,11 @@ namespace TraditionalBridge.Test.V93IF
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED INOUT STROPTSOUTTER structure @Stroptsoutter)
             ;;Structure argument. Get the data object then get the record from it
-            arg1DataObject = dispatcher.DeserializeObject((@JsonObject)arguments.arrayValues[1],mStroptsoutterMetadata)
+            arg1DataObject = dispatcher.DeserializeObject(arguments[1],mStroptsoutterMetadata)
             arg1 = arg1DataObject.SynergyRecord
 
             ;;------------------------------------------------------------

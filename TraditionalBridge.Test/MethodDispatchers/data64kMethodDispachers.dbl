@@ -15,6 +15,13 @@ import Harmony.TraditionalBridge
 import System.Collections
 import TraditionalBridge.Test.Models
 
+.ifdef DBLV11
+import System.Text.Json
+.define JSON_ELEMENT @JsonElement
+.else
+.define JSON_ELEMENT @JsonValue
+.endc
+
 namespace TraditionalBridge.Test.data64k
 
 
@@ -34,16 +41,16 @@ namespace TraditionalBridge.Test.data64k
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED INOUT DATASET [*]structure @Dataset)
-                arg1Array,          @JsonArray
+                arg1Array,          JSON_ELEMENT
                 arg1Handle,         D_HANDLE
                 arg1HandlePos,      int
             endrecord
@@ -59,12 +66,12 @@ namespace TraditionalBridge.Test.data64k
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED INOUT DATASET [*]structure @Dataset)
-            argumentDefinition = dispatcher.GetArgumentDataDefForCollection((@JsonObject)arguments.arrayValues[1], 1493)
-            arg1Array = (@JsonArray)((@JsonObject)arguments.arrayValues[1]).GetProperty("PassedValue")
-            arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.arrayValues.Count)
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1], 1493)
+            arg1Array = arguments[1].GetProperty("PassedValue")
+            arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.GetArrayLength())
             arg1HandlePos = 1
             dispatcher.UnwrapObjectCollection(^m(arg1Handle),argumentDefinition,arg1HandlePos,arg1Array)
 
@@ -95,12 +102,12 @@ namespace TraditionalBridge.Test.data64k
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED INOUT decparm1 D5)
@@ -126,27 +133,27 @@ namespace TraditionalBridge.Test.data64k
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED INOUT decparm1 D5)
-            arg1 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[1])
+            arg1 = dispatcher.GetDecimal(arguments[1])
 
             ;;Argument 2 (REQUIRED IN inba D_HANDLE)
             ;TODO: Template needs code for BINARY HANDLE arguments!
             arg2 =
 
             ;;Argument 3 (REQUIRED INOUT alparm A10)
-            arg3 = dispatcher.GetText((@JsonObject)arguments.arrayValues[3])
+            arg3 = dispatcher.GetText(arguments[3])
 
             ;;Argument 5 (REQUIRED INOUT idparm D5.2)
-            arg5 = dispatcher.GetImplied((@JsonObject)arguments.arrayValues[5])
+            arg5 = dispatcher.GetImplied(arguments[5])
 
             ;;Argument 6 (REQUIRED INOUT inoutba D_HANDLE)
             ;TODO: Template needs code for BINARY HANDLE arguments!
             arg6 =
 
             ;;Argument 7 (REQUIRED INOUT decparm2 D5)
-            arg7 = dispatcher.GetDecimal((@JsonObject)arguments.arrayValues[7])
+            arg7 = dispatcher.GetDecimal(arguments[7])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -203,12 +210,12 @@ namespace TraditionalBridge.Test.data64k
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED IN inBA D_HANDLE)
@@ -221,7 +228,7 @@ namespace TraditionalBridge.Test.data64k
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED IN inBA D_HANDLE)
             ;TODO: Template needs code for BINARY HANDLE arguments!
@@ -249,12 +256,12 @@ namespace TraditionalBridge.Test.data64k
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED IN p1 D_HANDLE)
@@ -267,7 +274,7 @@ namespace TraditionalBridge.Test.data64k
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED IN p1 D_HANDLE)
             ;TODO: Template needs code for HANDLE arguments!
@@ -295,12 +302,12 @@ namespace TraditionalBridge.Test.data64k
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED INOUT inoutba D_HANDLE)
@@ -313,7 +320,7 @@ namespace TraditionalBridge.Test.data64k
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED INOUT inoutba D_HANDLE)
             ;TODO: Template needs code for BINARY HANDLE arguments!
@@ -346,12 +353,12 @@ namespace TraditionalBridge.Test.data64k
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED INOUT p1 D_HANDLE)
@@ -364,7 +371,7 @@ namespace TraditionalBridge.Test.data64k
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED INOUT p1 D_HANDLE)
             ;TODO: Template needs code for HANDLE arguments!
@@ -397,12 +404,12 @@ namespace TraditionalBridge.Test.data64k
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED INOUT p1 D_HANDLE)
@@ -415,7 +422,7 @@ namespace TraditionalBridge.Test.data64k
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED INOUT p1 D_HANDLE)
             ;TODO: Template needs code for HANDLE arguments!
@@ -448,12 +455,12 @@ namespace TraditionalBridge.Test.data64k
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED OUT outba D_HANDLE)
@@ -495,12 +502,12 @@ namespace TraditionalBridge.Test.data64k
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED IN filename A80)
@@ -515,10 +522,10 @@ namespace TraditionalBridge.Test.data64k
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED IN filename A80)
-            arg1 = dispatcher.GetText((@JsonObject)arguments.arrayValues[1])
+            arg1 = dispatcher.GetText(arguments[1])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -547,12 +554,12 @@ namespace TraditionalBridge.Test.data64k
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED OUT p1 D_HANDLE)
@@ -594,12 +601,12 @@ namespace TraditionalBridge.Test.data64k
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED INOUT P1Handle D_HANDLE)
@@ -614,7 +621,7 @@ namespace TraditionalBridge.Test.data64k
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED INOUT P1Handle D_HANDLE)
             ;TODO: Template needs code for HANDLE arguments!
