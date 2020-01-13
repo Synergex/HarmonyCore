@@ -599,22 +599,25 @@ namespace Harmony.Core.EF.Query.Internal
                 if (ComparePastConvert(leftMember.Expression, inner))
                 {
                     innerSelector = leftMember;
+                    outerSelector = rightMember;
                     foundSelector = true;
                 }
                 else if (ComparePastConvert(leftMember.Expression, outer))
                 {
                     outerSelector = leftMember;
+                    innerSelector = rightMember;
                     foundSelector = true;
                 }
-
-                if (ComparePastConvert(rightMember.Expression, inner))
+                else if (ComparePastConvert(rightMember.Expression, inner))
                 {
                     innerSelector = rightMember;
+                    outerSelector = leftMember;
                     foundSelector = true;
                 }
                 else if (ComparePastConvert(rightMember.Expression, outer))
                 {
                     outerSelector = rightMember;
+                    innerSelector = leftMember;
                     foundSelector = true;
                 }
             }
@@ -713,6 +716,8 @@ namespace Harmony.Core.EF.Query.Internal
 
                 if (ExtractKeySelectors(subQueryTable.WhereExpressions[i] as LambdaExpression, subQueryExpr.ConvertedParameter, outerOverride ?? queryExpr.ConvertedParameter, out var innerSelector, out var outerSelector))
                 {
+                    if (innerSelector == null || outerSelector == null)
+                        throw new NotImplementedException("failed to find key selector expression");
                     //to avoid remapping this later just swap it out for the actual query expression before we add it to the join list
                     if (outerOverride != null)
                     {
@@ -1227,6 +1232,23 @@ namespace Harmony.Core.EF.Query.Internal
                     return SourceStack.Count > 0 ? SourceStack.Peek() : Outer;
                 }
             }
+
+            protected override Expression VisitMemberInit(MemberInitExpression node)
+            {
+                var nameStackCount = SubQueryTargetNames.Count;
+                var parameterStackCount = SourceStack.Count;
+
+                var result = base.VisitMemberInit(node);
+
+                while (SubQueryTargetNames.Count > nameStackCount)
+                    SubQueryTargetNames.Pop();
+
+                while (SourceStack.Count > parameterStackCount)
+                    SourceStack.Pop();
+
+                return result;
+            }
+
             protected override MemberAssignment VisitMemberAssignment(MemberAssignment node)
             {
                 //check if we're putting a subquery into an entity type
@@ -1263,13 +1285,15 @@ namespace Harmony.Core.EF.Query.Internal
                     else if (node.Member.Name == "IsNull")
                     {
                         var propCall = (node.Expression as BinaryExpression)?.Left as MethodCallExpression;
-                        //if (propCall != null && propCall.Method.Name == "Property" && (propCall.Arguments[0] is QuerySourceReferenceExpression))
-                        //{
-                        //    var targetQuerySource = (propCall.Arguments[0] as QuerySourceReferenceExpression).ReferencedQuerySource;
-                        //    var targetParameter = QuerySourceMapping.ContainsMapping(targetQuerySource) ? QuerySourceMapping.GetExpression(targetQuerySource) : CurrentParameter;
-                        //    Expression targetProperty = Expression.Property(targetParameter, SubQueryTargetName);
-                        //    return node.Update(Expression.Equal(targetProperty, Expression.Default(targetProperty.Type)));
-                        //}
+                        if (propCall != null && propCall.Method.Name == "Property")
+                        {
+                            var propTarget = (propCall.Arguments[1] as ConstantExpression)?.Value as string;
+                            if (propTarget == null)
+                                throw new NotImplementedException("EF Property call has an invalid 2nd argument, check debug tree");
+                            var targetProperty = Expression.Property(propCall.Arguments[0], propTarget);
+                            var nullsafeProperty = Expression.Condition(Expression.Equal(Expression.Constant(null), propCall.Arguments[0]), Expression.Default(targetProperty.Type), targetProperty, targetProperty.Type);
+                            return node.Update(Expression.Equal(nullsafeProperty, Expression.Default(targetProperty.Type)));
+                        }
                     }
                     else if (node.Member.Name == "Value")
                     {
@@ -1284,7 +1308,11 @@ namespace Harmony.Core.EF.Query.Internal
                                 tableExpression.IsCollection = true;
                                 var queryableType = typeof(Queryable);
                                 var asQueryableMethod = queryableType.GetMethods().FirstOrDefault(mi => mi.Name == nameof(Queryable.AsQueryable) && mi.IsGenericMethod);
-                                return node.Update(selectCall.Update(null, new Expression[] { Expression.Call(null, asQueryableMethod.MakeGenericMethod(tableExpression.ItemType), Expression.PropertyOrField(CurrentParameter, SubQueryTargetNames.Peek())), updatedExpression.ShaperExpression }));
+                                var emptyMethod = typeof(Enumerable).GetMethod("Empty").MakeGenericMethod(tableExpression.ItemType);
+                                var enumerableResult = Expression.PropertyOrField(CurrentParameter, SubQueryTargetNames.Peek());
+                                var nullsafeEnumerable = Expression.Condition(Expression.Equal(Expression.Default(enumerableResult.Type), enumerableResult), Expression.Call(null, emptyMethod), enumerableResult, emptyMethod.ReturnType);
+                                var asQueryableCall = Expression.Call(null, asQueryableMethod.MakeGenericMethod(tableExpression.ItemType), nullsafeEnumerable);
+                                return node.Update(selectCall.Update(null, new Expression[] { asQueryableCall, updatedExpression.ShaperExpression }));
                             }
                         }
                     }
@@ -1310,7 +1338,7 @@ namespace Harmony.Core.EF.Query.Internal
 
             protected override Expression VisitParameter(ParameterExpression node)
             {
-                if (node.Name.StartsWith("__"))
+                if (node.Name?.StartsWith("__") ?? false)
                 {
                     return Expression.Call(
                     _getParameterValueMethodInfo.MakeGenericMethod(node.Type),

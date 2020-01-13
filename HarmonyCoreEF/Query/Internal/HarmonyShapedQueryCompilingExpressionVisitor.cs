@@ -61,8 +61,13 @@ namespace Harmony.Core.EF.Query.Internal
             var innerEnumerable = Visit(inMemoryQueryExpression);
 
             shaper = new CustomShaperCompilingExpressionVisitor(IsTracking).Visit(shaper);
+            var queryExpr = shapedQueryExpression.QueryExpression as HarmonyQueryExpression;
+            LambdaExpression shaperLambda = null;
+            if (shaper is LambdaExpression)
+                shaperLambda = (LambdaExpression)shaper;
+            else
+                shaperLambda = Expression.Lambda(shaper, new ParameterExpression[] { queryExpr.CurrentParameter });
 
-            var shaperLambda = (LambdaExpression)shaper;
             var shaperArg = Expression.Parameter(typeof(DataObjectBase));
             var capturedShaper = Expression.Lambda(
                 Expression.Invoke(shaperLambda, 

@@ -54,7 +54,7 @@ namespace Harmony.Core.EF.Query.Internal
             var flatList = new List<Tuple<HarmonyTableExpression, QueryBuffer.TypeBuffer>>();
             var typeBuffers = new QueryBuffer.TypeBuffer[] { GetTypeBuffer(rootExpr, flatList) };
 
-            var whereBuilder = new WhereExpressionBuilder(rootExpr.IsCaseSensitive, flatList.Select(tpl => tpl.Item1 as IHarmonyQueryTable).ToList(), RootExpressions.ToDictionary(kvp => kvp.Key, kvp => kvp.Value as IHarmonyQueryTable));
+            var whereBuilder = new WhereExpressionBuilder(rootExpr.IsCaseSensitive, flatList.Select(tpl => tpl.Item1 as IHarmonyQueryTable).ToList(), flatList.ToDictionary(kvp => kvp.Item1.RootExpression.CurrentParameter as Expression, kvp => kvp.Item1 as IHarmonyQueryTable));
 
             var processedWheres = new List<Object>();
             var orderBys = new List<Tuple<FileIO.Queryable.FieldReference, bool>>();

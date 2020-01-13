@@ -71,6 +71,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .TryAdd<ITypeMappingSource, HarmonyTypeMappingSource>()
 
                 // New Query pipeline
+                .TryAdd<IQueryTranslationPreprocessorFactory, HarmonyQueryTranslationPreprocessorFactory>()
                 .TryAdd<IShapedQueryCompilingExpressionVisitorFactory, HarmonyShapedQueryCompilingExpressionVisitorFactory>()
                 .TryAdd<IQueryableMethodTranslatingExpressionVisitorFactory, HarmonyQueryableMethodTranslatingExpressionVisitorFactory>()
                 .TryAdd<IQueryTranslationPostprocessorFactory, HarmonyQueryTranslationPostprocessorFactory>()
