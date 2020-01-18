@@ -47,7 +47,7 @@ namespace Harmony.Core.EF.Query.Internal
             return made;
         }
 
-        public PreparedQueryPlan PrepareQuery()
+        public PreparedQueryPlan PrepareQuery(HarmonyQueryCompilationContext compilationContext)
         {
             var rootExpr = RootExpressions[_valueBufferParameter];
             var processedOns = new List<object>();

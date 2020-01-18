@@ -428,8 +428,20 @@ namespace Harmony.Core.EF.Query.Internal
                 (HarmonyQueryExpression)inner.QueryExpression,
                 outerKeySelector.Body,
                 innerKeySelector.Body);
+
+            INavigation innerNav = null;
+            if (resultSelector.Body is BlockExpression block && 
+                block.Expressions[0] is ConstantExpression navConstant &&
+                navConstant.Value is INavigation navValue)
+            {
+                innerNav = navValue;
+                var outerTable = ((HarmonyQueryExpression)outer.QueryExpression).ServerQueryExpression as HarmonyTableExpression;
+                var innerQuery = inner.QueryExpression as HarmonyQueryExpression;
+                var innerTable = innerQuery.ServerQueryExpression as HarmonyTableExpression;
+                innerTable.Name = string.IsNullOrWhiteSpace(outerTable.Name) ? navValue.Name : outerTable.Name + "." + navValue.Name;
+            }
             //make custom shaped Query expression to keep track of the added left join
-            return new JoinedShapedQueryExpression(outer.QueryExpression, outer.ShaperExpression, inner, true);
+            return new JoinedShapedQueryExpression(outer.QueryExpression, outer.ShaperExpression, inner, true, innerNav);
         }
 
         protected override ShapedQueryExpression TranslateLongCount(ShapedQueryExpression source, LambdaExpression predicate)
@@ -1191,11 +1203,13 @@ namespace Harmony.Core.EF.Query.Internal
         internal class JoinedShapedQueryExpression : ShapedQueryExpression
         {
             public ShapedQueryExpression Inner;
+            public INavigation InnerNavigation;
             public bool LeftJoin;
-            public JoinedShapedQueryExpression(Expression queryExpression, Expression shaperExpression, ShapedQueryExpression inner, bool leftJoin) : base(queryExpression, shaperExpression)
+            public JoinedShapedQueryExpression(Expression queryExpression, Expression shaperExpression, ShapedQueryExpression inner, bool leftJoin, INavigation innerNavigation) : base(queryExpression, shaperExpression)
             {
                 Inner = inner;
                 LeftJoin = leftJoin;
+                InnerNavigation = innerNavigation;
             }
         }
 

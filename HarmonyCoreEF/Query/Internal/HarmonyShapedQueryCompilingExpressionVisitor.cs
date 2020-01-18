@@ -19,14 +19,17 @@ namespace Harmony.Core.EF.Query.Internal
     {
         private readonly Type _contextType;
         private readonly IDiagnosticsLogger<DbLoggerCategory.Query> _logger;
-
+        private readonly HarmonyQueryCompilationContext _compilationContext;
         public HarmonyShapedQueryCompilingExpressionVisitor(
             ShapedQueryCompilingExpressionVisitorDependencies dependencies,
             QueryCompilationContext queryCompilationContext)
             : base(dependencies, queryCompilationContext)
         {
             _contextType = queryCompilationContext.ContextType;
-            _logger = queryCompilationContext.Logger;
+            _logger = queryCompilationContext.Logger; 
+            _compilationContext = queryCompilationContext as HarmonyQueryCompilationContext;
+            if (_compilationContext == null)
+                throw new Exception("invalid compilation context");
         }
 
         protected override Expression VisitExtension(Expression extensionExpression)
@@ -42,7 +45,7 @@ namespace Harmony.Core.EF.Query.Internal
                         _tableMethodInfo,
                         QueryCompilationContext.QueryContextParameter,
                         Expression.Constant(inMemoryTableExpression.EntityType),
-                        Expression.Constant(inMemoryTableExpression.RootExpression.PrepareQuery()));
+                        Expression.Constant(inMemoryTableExpression.RootExpression.PrepareQuery(_compilationContext)));
             }
 
             return base.VisitExtension(extensionExpression);

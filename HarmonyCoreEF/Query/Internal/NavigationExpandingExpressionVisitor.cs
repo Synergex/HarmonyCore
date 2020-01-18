@@ -52,6 +52,17 @@ namespace Harmony.Core.EF.Query.Internal
 
         private readonly Parameters _parameters = new Parameters();
 
+        internal HarmonyQueryCompilationContext CompilationContext
+        {
+            get
+            {
+                if (_queryCompilationContext is HarmonyQueryCompilationContext context)
+                    return context;
+                else
+                    throw new Exception("Invalid compilation context");
+            }
+        }
+
         public NavigationExpandingExpressionVisitor(
             QueryCompilationContext queryCompilationContext,
             IEvaluatableExpressionFilter evaluatableExpressionFilter)

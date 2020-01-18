@@ -24,7 +24,7 @@ namespace Harmony.Core.EF.Query.Internal
     public class HarmonyQueryableMethodTranslatingExpressionVisitorFactory : IQueryableMethodTranslatingExpressionVisitorFactory
     {
         private readonly QueryableMethodTranslatingExpressionVisitorDependencies _dependencies;
-
+        private readonly HarmonyQueryCompilationContext _compilationContext;
         public HarmonyQueryableMethodTranslatingExpressionVisitorFactory(
              QueryableMethodTranslatingExpressionVisitorDependencies dependencies)
         {

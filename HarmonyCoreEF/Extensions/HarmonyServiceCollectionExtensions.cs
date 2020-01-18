@@ -67,6 +67,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .TryAdd<IDbContextTransactionManager, HarmonyTransactionManager>()
                 .TryAdd<IDatabaseCreator, HarmonyDatabaseCreator>()
                 .TryAdd<IQueryContextFactory, HarmonyQueryContextFactory>()
+                .TryAdd<IQueryCompilationContextFactory, HarmonyQueryCompilationContextFactory>()
                 .TryAdd<IProviderConventionSetBuilder, HarmonyConventionSetBuilder>()
                 .TryAdd<ITypeMappingSource, HarmonyTypeMappingSource>()
 

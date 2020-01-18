@@ -332,10 +332,28 @@ namespace Harmony.Core.EF.Query.Internal
                     return CurrentParameter;
                 }
 
-                var parentExperssion = Parent.GetExpression();
-                var result = Parent.Left == this
-                    ? parentExperssion
-                    : MakeMemberAccess(parentExperssion, (RightNavigation ?? Parent.RightNavigation).GetMemberInfo(true, false));
+                var parentExpression = Parent.GetExpression();
+                Expression result = null;
+                if (Parent.Left == this)
+                {
+                    result = parentExpression;
+                }
+                else
+                {
+                    if (RightNavigation != null)
+                    {
+                        result = MakeMemberAccess(parentExpression, (RightNavigation).GetMemberInfo(true, false));
+                    }
+                    else if (Parent.Left?.RightNavigation != null)
+                    {
+                        result = MakeMemberAccess(MakeMemberAccess(parentExpression, Parent.Left.RightNavigation.GetMemberInfo(true, false)), (Parent.RightNavigation).GetMemberInfo(true, false));
+                    }
+                    else
+                    {
+                        result = MakeMemberAccess(parentExpression, (Parent.RightNavigation).GetMemberInfo(true, false));
+                    }
+                }
+
                 if (result.Type != Type)
                     throw new Exception();
                 else

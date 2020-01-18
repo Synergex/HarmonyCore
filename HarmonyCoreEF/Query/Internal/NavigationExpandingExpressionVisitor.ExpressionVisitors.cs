@@ -267,8 +267,12 @@ namespace Harmony.Core.EF.Query.Internal
                 var resultSelectorInnerParameter = Expression.Parameter(innerSource.SourceElementType, "i");
                 var resultType = innerSource.SourceElementType;
 
+                _navigationExpandingExpressionVisitor.CompilationContext.AddNavigationToParameter(resultSelectorInnerParameter, resultSelectorOuterParameter, navigation);
+
+                var navBlock = Expression.Block(Expression.Constant(navigation), resultSelectorOuterParameter);
+
                 var resultSelector = Expression.Lambda(
-                    resultSelectorOuterParameter,
+                    navBlock,
                     resultSelectorOuterParameter,
                     resultSelectorInnerParameter);
 
@@ -619,7 +623,6 @@ namespace Harmony.Core.EF.Query.Internal
                         navigationExpression = Visit(navigationExpression);
 
                         return includeExpression.Update(entityExpression, navigationExpression);
-
                     default:
                         return base.Visit(expression);
                 }

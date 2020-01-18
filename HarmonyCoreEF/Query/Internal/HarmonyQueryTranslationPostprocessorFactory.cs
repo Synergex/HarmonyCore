@@ -30,7 +30,7 @@ namespace Harmony.Core.EF.Query.Internal
 
         public virtual QueryTranslationPostprocessor Create(QueryCompilationContext queryCompilationContext)
         {
-            return new HarmonyQueryTranslationPostprocessor(_dependencies);
+            return new HarmonyQueryTranslationPostprocessor(queryCompilationContext as HarmonyQueryCompilationContext, _dependencies);
         }
     }
 }
