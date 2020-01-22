@@ -23,15 +23,6 @@ namespace Harmony.Core.EF.Query.Internal
             var visitor = new ValueBufferParameterVisitor(_compilationContext);
             query = visitor.Visit(query);
 
-            foreach (var tpl in _compilationContext.ValueBufferToParameterLookup)
-            {
-
-            }
-
-            foreach (var tpl in _compilationContext.ParameterToQueryExpressionLookup)
-            {
-
-            }
 
             return query;
         }

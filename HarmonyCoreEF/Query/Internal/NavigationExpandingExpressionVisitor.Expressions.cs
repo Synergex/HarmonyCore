@@ -325,6 +325,50 @@ namespace Harmony.Core.EF.Query.Internal
             public override ExpressionType NodeType => ExpressionType.Extension;
             public override Type Type { get; }
 
+            private Expression FullyExpandExpression(Type targetType)
+            {
+                if (Parent == null)
+                    return CurrentParameter;
+
+                var parentExpression = Parent.GetExpression();
+
+                if (parentExpression.Type == targetType)
+                    return parentExpression;
+
+                Expression result = null;
+                if (Parent.Left == this)
+                {
+                    if (RightNavigation != null)
+                    {
+                        result = MakeMemberAccess(parentExpression, (RightNavigation).GetMemberInfo(true, false));
+                    }
+                    else
+                    {
+                        result = parentExpression;
+                    }
+                }
+                else
+                {
+                    var fullyExpandedLeft = Parent.Left.FullyExpandExpression(RightNavigation?.DeclaringType?.ClrType ?? Parent?.RightNavigation?.DeclaringType?.ClrType ?? targetType);
+                    if (fullyExpandedLeft.Type == targetType)
+                    {
+                        return fullyExpandedLeft;
+                    }
+                    else if (RightNavigation != null)
+                    {
+                        result = MakeMemberAccess(fullyExpandedLeft, (RightNavigation).GetMemberInfo(true, false));
+                    }
+                    else if (Parent.RightNavigation != null)
+                    {
+                        result = MakeMemberAccess(fullyExpandedLeft, (Parent.RightNavigation).GetMemberInfo(true, false));
+                    }
+                    else
+                        throw new NotImplementedException();
+                }
+
+                return result;
+            }
+
             public virtual Expression GetExpression()
             {
                 if (Parent == null)
@@ -340,18 +384,7 @@ namespace Harmony.Core.EF.Query.Internal
                 }
                 else
                 {
-                    if (RightNavigation != null)
-                    {
-                        result = MakeMemberAccess(parentExpression, (RightNavigation).GetMemberInfo(true, false));
-                    }
-                    else if (Parent.Left?.RightNavigation != null)
-                    {
-                        result = MakeMemberAccess(MakeMemberAccess(parentExpression, Parent.Left.RightNavigation.GetMemberInfo(true, false)), (Parent.RightNavigation).GetMemberInfo(true, false));
-                    }
-                    else
-                    {
-                        result = MakeMemberAccess(parentExpression, (Parent.RightNavigation).GetMemberInfo(true, false));
-                    }
+                    result = FullyExpandExpression(Type);
                 }
 
                 if (result.Type != Type)

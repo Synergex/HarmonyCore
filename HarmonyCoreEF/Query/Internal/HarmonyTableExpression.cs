@@ -24,12 +24,13 @@ namespace Harmony.Core.EF.Query.Internal
             WhereExpressions = new List<Expression>();
             OrderByExpressions = new List<Tuple<Expression, bool>>();
             OnExpressions = new List<Expression>();
+            Aliases = new List<Expression>();
         }
 
         public override Type Type { get; } 
         public virtual IEntityType EntityType { get; }
         public HarmonyQueryExpression RootExpression { get; }
-
+        public List<Expression> Aliases { get; }
         public List<Expression> WhereExpressions { get; }
         public List<Tuple<Expression, bool>> OrderByExpressions { get; }
         public List<Expression> OnExpressions { get; }

@@ -435,10 +435,32 @@ namespace Harmony.Core.EF.Query.Internal
                 navConstant.Value is INavigation navValue)
             {
                 innerNav = navValue;
-                var outerTable = ((HarmonyQueryExpression)outer.QueryExpression).ServerQueryExpression as HarmonyTableExpression;
+                HarmonyQueryExpression outerQueryExpression;
+                if (outer is JoinedShapedQueryExpression joinedQuery)
+                {
+                    var topOuterQueryExpression = (HarmonyQueryExpression)joinedQuery.QueryExpression;
+                    var outerSelectorBody = outerKeySelector.Body as MemberExpression;
+                    if (outerKeySelector.Parameters[0] == topOuterQueryExpression.CurrentParameter && (outerSelectorBody == null || !(outerSelectorBody.Expression is MemberExpression)))
+                    {
+                        outerQueryExpression = topOuterQueryExpression;
+                    }
+                    else
+                    {
+                        outerQueryExpression = (HarmonyQueryExpression)joinedQuery.Inner.QueryExpression;
+                    }
+                }
+                else
+                {
+                    outerQueryExpression = (HarmonyQueryExpression)outer.QueryExpression;
+                }
+                var outerTable = outerQueryExpression.ServerQueryExpression as HarmonyTableExpression;
                 var innerQuery = inner.QueryExpression as HarmonyQueryExpression;
                 var innerTable = innerQuery.ServerQueryExpression as HarmonyTableExpression;
                 innerTable.Name = string.IsNullOrWhiteSpace(outerTable.Name) ? navValue.Name : outerTable.Name + "." + navValue.Name;
+                //Add outerQuery.ConvertedParameter + innerNav to map to innerTable
+                var innerExpr = Expression.PropertyOrField(outerQueryExpression.ConvertedParameter, navValue.Name);
+                //this should fit into our table as an alias so we can make a mapping later on when processing the On objects
+                innerTable.Aliases.Add(innerExpr);
             }
             //make custom shaped Query expression to keep track of the added left join
             return new JoinedShapedQueryExpression(outer.QueryExpression, outer.ShaperExpression, inner, true, innerNav);
