@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore.Query;
 using Harmony.Core.EF.Storage;
 using Microsoft.EntityFrameworkCore;
 using Harmony.Core.FileIO.Queryable;
+using Harmony.Core.EF.Extensions.Internal;
 
 namespace Harmony.Core.EF.Query.Internal
 {
@@ -71,20 +72,30 @@ namespace Harmony.Core.EF.Query.Internal
             else
                 shaperLambda = Expression.Lambda(shaper, new ParameterExpression[] { queryExpr.CurrentParameter });
 
-            var shaperArg = Expression.Parameter(typeof(DataObjectBase));
+            var innerEnumerableType = innerEnumerable.Type.TryGetSequenceType() ?? typeof(DataObjectBase);
+            var shaperArg = Expression.Parameter(innerEnumerableType);
             var capturedShaper = Expression.Lambda(
                 Expression.Invoke(shaperLambda, 
                     Expression.Convert(shaperArg, shaperLambda.Parameters[0].Type)), 
                 new ParameterExpression[] { QueryCompilationContext.QueryContextParameter, shaperArg });
 
-
-            return Expression.New(
-                typeof(QueryingEnumerable<>).MakeGenericType(shaperLambda.ReturnType).GetConstructors()[0],
+            //TODO: we still need to pass the query context along here
+            if (shapedQueryExpression.ResultCardinality == ResultCardinality.Single && shaperLambda.Parameters[0].Type == innerEnumerable.Type)
+            {
+                return Expression.NewArrayInit(shaperLambda.ReturnType, Expression.Invoke(shaperLambda, innerEnumerable));
+            }
+            else
+            {
+                return Expression.New(
+                typeof(QueryingEnumerable<,>).MakeGenericType(shaperLambda.ReturnType, innerEnumerableType).GetConstructors()[0],
                 QueryCompilationContext.QueryContextParameter,
                 innerEnumerable,
                 Expression.Constant(capturedShaper.Compile()),
                 Expression.Constant(_contextType),
                 Expression.Constant(_logger));
+            }
+
+            
         }
 
         private static readonly MethodInfo _tableMethodInfo

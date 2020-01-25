@@ -623,12 +623,33 @@ namespace Harmony.Core.FileIO.Queryable
 					if (!caseInsensitive) then
 					begin
 						DebugLogSession.Logging.LogTrace("HARMONY-commandParser::fieldWhereClause: IsLike Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
-						mreturn Where.Contains(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), ((^m(tmpStructure(1:length), memPnt) - "%") - "%"))
+						mreturn Where.Like(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), (^m(tmpStructure(1:length), memPnt)))
 					end
 					else
 					begin
 						DebugLogSession.Logging.LogTrace("HARMONY-commandParser::fieldWhereClause: IsLike NoCaseWhere (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
-						mreturn NoCaseWhere.Contains(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), (^m(tmpStructure(1:length), memPnt) - "%") - "%")
+						mreturn NoCaseWhere.Like(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), (^m(tmpStructure(1:length), memPnt)))
+					end
+				end
+				endusing
+			end
+			(whereClauseOperator.EndsWith, whereClauseOperator.EndsWithNoCase),
+			begin
+				using fieldDetails.DataType select
+				(FieldDataType.AlphaField),
+				begin
+					data length	,i4	,%trim(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt))
+					if (!length) length = fieldDetails.ElementSize
+
+					if (!caseInsensitive) then
+					begin
+						DebugLogSession.Logging.LogTrace("HARMONY-commandParser::fieldWhereClause: EndsWith Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
+						mreturn Where.Like(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), "%" + (^m(tmpStructure(1:length), memPnt)))
+					end
+					else
+					begin
+						DebugLogSession.Logging.LogTrace("HARMONY-commandParser::fieldWhereClause: EndsWith NoCaseWhere (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
+						mreturn NoCaseWhere.Like(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), "%" + (^m(tmpStructure(1:length), memPnt)))
 					end
 				end
 				endusing
@@ -1114,6 +1135,11 @@ namespace Harmony.Core.FileIO.Queryable
 			data leftWhere = ProcessWhere(connector.Left)
 			data rightWhere = ProcessWhere(connector.Right)
 
+			if(leftWhere == ^null)
+				mreturn rightWhere
+			if(rightWhere == ^null)
+				mreturn leftWhere
+
 			if(connector.Op == WhereClauseConnector.AndOperator) then
 			begin
 				mreturn leftWhere .and. rightWhere
@@ -1161,14 +1187,17 @@ namespace Harmony.Core.FileIO.Queryable
 				&	expr.Op,
 				&	ProcessValue(expr.Right, leftField.FieldDef))
 			end
-			else if(rightField != ^null)
+			else if(rightField != ^null) then
 			begin
 				mreturn fieldWhereClause(^m(tmpStructure(1:rightBuffer.Metadata.StructureSize), rightBuffer.MemoryHandle.Value), 
 				&	rightField.FieldDef, 
 				&	expr.Op,
 				&	ProcessValue(expr.Left, rightField.FieldDef))
 			end
-			
+			else if(expr.Left .is. ParameterReference && expr.Right .is. string)
+			begin
+				mreturn ^null
+			end
 			throw new InvalidOperationException("Invalid Where Expression Tree")
 		endmethod
 

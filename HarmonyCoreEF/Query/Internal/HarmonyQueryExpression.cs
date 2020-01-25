@@ -140,13 +140,10 @@ namespace Harmony.Core.EF.Query.Internal
 
         public virtual Expression GetSingleScalarProjection()
         {
-            var expression = CreateReadValueExpression(ServerQueryExpression.Type, 0, null);
-            _projectionMapping.Clear();
-            _projectionMapping[new ProjectionMember()] = expression;
-
             ConvertToEnumerable();
+            var expression = CreateReadValueExpression(ServerQueryExpression.Type, 0, null);
 
-            return new ProjectionBindingExpression(this, new ProjectionMember(), expression.Type);
+            return expression;
         }
 
         public virtual void ConvertToEnumerable()
@@ -155,23 +152,22 @@ namespace Harmony.Core.EF.Query.Internal
             {
                 if (ServerQueryExpression.Type != typeof(DataObjectBase))
                 {
-                    //if (ServerQueryExpression.Type.IsValueType)
-                    //{
-                    //    ServerQueryExpression = Convert(ServerQueryExpression, typeof(object));
-                    //}
+                    if (ServerQueryExpression.Type.IsValueType)
+                    {
+                        ServerQueryExpression = Convert(ServerQueryExpression, typeof(object));
+                    }
 
-                    //ServerQueryExpression = New(
-                    //    typeof(ResultEnumerable).GetConstructors().Single(),
-                    //    Lambda<Func<DataObjectBase>>(
-                    //        New(
-                    //            _valueBufferConstructor,
-                    //            NewArrayInit(typeof(object), ServerQueryExpression))));
-                    throw new NotImplementedException();
+                    var resultEnumerableType = typeof(ResultEnumerable<>).MakeGenericType(ServerQueryExpression.Type);
+                    var funcType = typeof(Func<>).MakeGenericType(ServerQueryExpression.Type);
+                    
+                    ServerQueryExpression = New(
+                        resultEnumerableType.GetConstructors().Single(),
+                        Lambda(funcType, ServerQueryExpression));
                 }
                 else
                 {
                     ServerQueryExpression = New(
-                        typeof(ResultEnumerable).GetConstructors().Single(),
+                        typeof(ResultEnumerable<DataObjectBase>).GetConstructors().Single(),
                         Lambda<Func<DataObjectBase>>(ServerQueryExpression));
                 }
             }
@@ -216,7 +212,7 @@ namespace Harmony.Core.EF.Query.Internal
             var serverQueryExpression = subquery.ServerQueryExpression;
 
             if (serverQueryExpression is MethodCallExpression selectMethodCall
-                && selectMethodCall.Arguments[0].Type == typeof(ResultEnumerable))
+                && selectMethodCall.Arguments[0].Type == typeof(ResultEnumerable<DataObjectBase>))
             {
                 var terminatingMethodCall =
                     (MethodCallExpression)((LambdaExpression)((NewExpression)selectMethodCall.Arguments[0]).Arguments[0]).Body;

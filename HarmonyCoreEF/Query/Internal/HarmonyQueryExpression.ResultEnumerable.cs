@@ -10,25 +10,25 @@ namespace Harmony.Core.EF.Query.Internal
 {
     public partial class HarmonyQueryExpression
     {
-        private sealed class ResultEnumerable : IEnumerable<DataObjectBase>
+        private sealed class ResultEnumerable<T> : IEnumerable<T> where T : class
         {
-            private readonly Func<DataObjectBase> _getElement;
+            private readonly Func<T> _getElement;
 
-            public ResultEnumerable(Func<DataObjectBase> getElement)
+            public ResultEnumerable(Func<T> getElement)
             {
                 _getElement = getElement;
             }
 
-            public IEnumerator<DataObjectBase> GetEnumerator() => new ResultEnumerator(_getElement());
+            public IEnumerator<T> GetEnumerator() => new ResultEnumerator(_getElement());
 
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-            private sealed class ResultEnumerator : IEnumerator<DataObjectBase>
+            private sealed class ResultEnumerator : IEnumerator<T>
             {
-                private readonly DataObjectBase _value;
+                private readonly T _value;
                 private bool _moved;
 
-                public ResultEnumerator(DataObjectBase value)
+                public ResultEnumerator(T value)
                 {
                     _value = value;
                     _moved = _value == null;
@@ -53,7 +53,7 @@ namespace Harmony.Core.EF.Query.Internal
 
                 object IEnumerator.Current => Current;
 
-                public DataObjectBase Current => !_moved ? null : _value;
+                public T Current => !_moved ? null : _value;
 
                 void IDisposable.Dispose()
                 {

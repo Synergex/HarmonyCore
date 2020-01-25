@@ -16,18 +16,18 @@ namespace Harmony.Core.EF.Query.Internal
 {
     public partial class HarmonyShapedQueryCompilingExpressionVisitor
     {
-        private sealed class QueryingEnumerable<T> : IAsyncEnumerable<T>, IEnumerable<T>
+        private sealed class QueryingEnumerable<T, I> : IAsyncEnumerable<T>, IEnumerable<T>
         {
             private readonly QueryContext _queryContext;
-            private readonly IEnumerable<DataObjectBase> _innerEnumerable;
-            private readonly Func<QueryContext, DataObjectBase, T> _shaper;
+            private readonly IEnumerable<I> _innerEnumerable;
+            private readonly Func<QueryContext, I, T> _shaper;
             private readonly Type _contextType;
             private readonly IDiagnosticsLogger<DbLoggerCategory.Query> _logger;
 
             public QueryingEnumerable(
                 QueryContext queryContext,
-                IEnumerable<DataObjectBase> innerEnumerable,
-                Func<QueryContext, DataObjectBase, T> shaper,
+                IEnumerable<I> innerEnumerable,
+                Func<QueryContext, I, T> shaper,
                 Type contextType,
                 IDiagnosticsLogger<DbLoggerCategory.Query> logger)
             {
@@ -47,14 +47,14 @@ namespace Harmony.Core.EF.Query.Internal
 
             private sealed class Enumerator : IEnumerator<T>
             {
-                private IEnumerator<DataObjectBase> _enumerator;
+                private IEnumerator<I> _enumerator;
                 private readonly QueryContext _queryContext;
-                private readonly IEnumerable<DataObjectBase> _innerEnumerable;
-                private readonly Func<QueryContext, DataObjectBase, T> _shaper;
+                private readonly IEnumerable<I> _innerEnumerable;
+                private readonly Func<QueryContext, I, T> _shaper;
                 private readonly Type _contextType;
                 private readonly IDiagnosticsLogger<DbLoggerCategory.Query> _logger;
 
-                public Enumerator(QueryingEnumerable<T> queryingEnumerable)
+                public Enumerator(QueryingEnumerable<T, I> queryingEnumerable)
                 {
                     _queryContext = queryingEnumerable._queryContext;
                     _innerEnumerable = queryingEnumerable._innerEnumerable;
@@ -106,16 +106,16 @@ namespace Harmony.Core.EF.Query.Internal
 
             private sealed class AsyncEnumerator : IAsyncEnumerator<T>
             {
-                private IEnumerator<DataObjectBase> _enumerator;
+                private IEnumerator<I> _enumerator;
                 private readonly QueryContext _queryContext;
-                private readonly IEnumerable<DataObjectBase> _innerEnumerable;
-                private readonly Func<QueryContext, DataObjectBase, T> _shaper;
+                private readonly IEnumerable<I> _innerEnumerable;
+                private readonly Func<QueryContext, I, T> _shaper;
                 private readonly Type _contextType;
                 private readonly IDiagnosticsLogger<DbLoggerCategory.Query> _logger;
                 private readonly CancellationToken _cancellationToken;
 
                 public AsyncEnumerator(
-                    QueryingEnumerable<T> asyncQueryingEnumerable,
+                    QueryingEnumerable<T, I> asyncQueryingEnumerable,
                     CancellationToken cancellationToken)
                 {
                     _queryContext = asyncQueryingEnumerable._queryContext;

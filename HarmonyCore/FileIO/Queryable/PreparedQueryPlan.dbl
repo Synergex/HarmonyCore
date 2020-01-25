@@ -323,8 +323,12 @@ namespace Harmony.Core.FileIO.Queryable
 			data selectBuilder = new SelectBuilder(queryBuf)
 			if(mWhereParts.Count == 1) then
 				mreturn selectBuilder.ProcessWhere(mWhereParts.First())
-			else if(mWhereParts.Count > 1) then
-				throw new NotImplementedException()
+            else if(mWhereParts.Count == 2) then
+			begin
+                mreturn selectBuilder.ProcessWhere(new ConnectorPart() { Left = mWhereParts[0], Right = mWhereParts[1], Op=WhereClauseConnector.AndOperator }) 
+            end
+            else if(mWhereParts.Count > 2) then
+				throw new NotImplementedException();
 			else
 				mreturn ^null
 		endmethod

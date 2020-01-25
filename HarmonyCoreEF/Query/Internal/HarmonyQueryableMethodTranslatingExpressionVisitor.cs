@@ -472,11 +472,12 @@ namespace Harmony.Core.EF.Query.Internal
 
             if (predicate == null)
             {
-                inMemoryQueryExpression.ServerQueryExpression =
-                    Expression.Call(
-                        EnumerableMethods.LongCountWithoutPredicate.MakeGenericMethod(
-                            inMemoryQueryExpression.CurrentParameter.Type),
-                        inMemoryQueryExpression.ServerQueryExpression);
+                var funcType = typeof(Func<IEnumerable<DataObjectBase>, long>);//.MakeGenericType(inMemoryQueryExpression.ServerQueryExpression.Type, typeof(long));
+                var seqParameter = Expression.Parameter(typeof(IEnumerable<DataObjectBase>));//inMemoryQueryExpression.ServerQueryExpression.Type);
+                source.ShaperExpression = 
+                    Expression.Lambda(funcType, Expression.Call(
+                        EnumerableMethods.LongCountWithoutPredicate.MakeGenericMethod(typeof(DataObjectBase)), seqParameter), seqParameter);
+                    
             }
             else
             {
@@ -494,7 +495,7 @@ namespace Harmony.Core.EF.Query.Internal
                         predicate);
             }
 
-            source.ShaperExpression = inMemoryQueryExpression.GetSingleScalarProjection();
+            //source.ShaperExpression = inMemoryQueryExpression.GetSingleScalarProjection();
 
             return source;
         }
@@ -690,7 +691,9 @@ namespace Harmony.Core.EF.Query.Internal
             var cleanSelector = selector;
             var selectorBody = selector.Body;
             var includeExpression = selectorBody as IncludeExpression;
-
+            var includeParameterReplacements = new Dictionary<Expression, Expression>(new ExpressionValueComparer());
+            includeParameterReplacements.Add(selector.Parameters[0], ((HarmonyQueryExpression)source.QueryExpression).ConvertedParameter);
+            var replacementVisitor = new IdentifierReplacingExpressionVisitor() { ReplacementExpressions = includeParameterReplacements };
             if (includeExpression != null)
             {
                 while (includeExpression != null)
@@ -700,7 +703,6 @@ namespace Harmony.Core.EF.Query.Internal
                     if (navExpression != null)
                     {
                         var cleanSubQuery = navExpression.Subquery;
-                        var replacementVisitor = new IdentifierReplacingExpressionVisitor() { ReplacementSource = source as JoinedShapedQueryExpression, Target = selector.Parameters.First() };
                         var subQueryTable = ((HarmonyQueryExpression)LiftSubquery(queryExpr, cleanSubQuery, replacementVisitor).QueryExpression).ServerQueryExpression as HarmonyTableExpression;
 
                         subQueryTable.Name = includeExpression.Navigation.PropertyInfo.Name;
@@ -921,8 +923,136 @@ namespace Harmony.Core.EF.Query.Internal
             {
                 return null;
             }
-            inMemoryQueryExpression.RootExpressions[inMemoryQueryExpression.CurrentParameter].WhereExpressions.Add(predicate);
+            inMemoryQueryExpression.RootExpressions[inMemoryQueryExpression.CurrentParameter].WhereExpressions.Add(SimplifyPredicate(predicate));
             return source;
+        }
+
+        class LambdaSimplifier : ExpressionVisitor
+        {
+            protected override Expression VisitBinary(BinaryExpression node)
+            {
+                //remove nullable checks
+                //remove parameter empty checks
+                //fold upwards AndAlso binary ops with collapsed left or right sides
+
+                var simplifiedLeft = Visit(node.Left);
+                var simplifiedRight = Visit(node.Right);
+
+                switch (node.NodeType)
+                {
+                    case ExpressionType.Equal:
+                    case ExpressionType.NotEqual:
+                        if (simplifiedLeft == null)
+                        {
+                            if (simplifiedRight is ConstantExpression)
+                                return null;
+                        }
+                        if (simplifiedRight == null)
+                        {
+                            if (simplifiedLeft is ConstantExpression)
+                                return null;
+                        }
+
+                        if (IsParameter(simplifiedLeft) && simplifiedRight is ConstantExpression)
+                            return null;
+
+                        if (IsParameter(simplifiedRight) && simplifiedLeft is ConstantExpression)
+                            return null;
+
+                        if (simplifiedLeft is ConstantExpression constLeft && constLeft.Value == null)
+                            return null;
+
+                        if (simplifiedRight is ConstantExpression constRight && constRight.Value == null)
+                            return null;
+
+                        break;
+                    case ExpressionType.AndAlso:
+                        if (simplifiedLeft == null || simplifiedRight == null)
+                            return simplifiedLeft ?? simplifiedRight;
+                        break;
+                    default:
+                        if (simplifiedLeft == null || simplifiedRight == null)
+                        {
+                            throw new NotImplementedException("Unsupported binary expression while simplifying where predicate");
+                        }
+                        break;
+                }
+
+                return node.Update(simplifiedLeft, node.Conversion, simplifiedRight);
+            }
+
+            private static bool IsParameter(Expression expression)
+            {
+                if (expression is ParameterExpression)
+                {
+                    return true;
+                }
+                else if (expression is MethodCallExpression methodExpression && methodExpression.Method.Name == "GetParameterValue")
+                {
+                    return true;
+                }
+
+                return false;
+            }
+
+            protected override Expression VisitConstant(ConstantExpression node)
+            {
+                if (node.Type.IsGenericType && node.Type.GetGenericTypeDefinition() == typeof(Nullable<>))
+                {
+                    return Expression.Constant(node.Value, node.Type.GetGenericArguments()[0]);
+                }
+                return base.VisitConstant(node);
+            }
+
+            protected override Expression VisitConditional(ConditionalExpression node)
+            {
+                //remove null checks here return the non null condition side
+                var testExpression = node.Test as BinaryExpression; 
+                switch (node.Test.NodeType)
+                {
+                    case ExpressionType.Equal:
+                        {
+                            if (testExpression.Left is ConstantExpression leftConst && leftConst.Value == null)
+                            {
+                                return Visit(node.IfFalse);
+                            }
+                            if (testExpression.Right is ConstantExpression rightConst && rightConst.Value == null)
+                            {
+                                return Visit(node.IfFalse);
+                            }
+                            break;
+                        }
+                    case ExpressionType.NotEqual:
+                        {
+                            if (testExpression.Left is ConstantExpression leftConst && leftConst.Value == null)
+                            {
+                                return Visit(node.IfTrue);
+                            }
+                            if (testExpression.Right is ConstantExpression rightConst && rightConst.Value == null)
+                            {
+                                return Visit(node.IfTrue);
+                            }
+                            break;
+                        }
+                }
+                return base.VisitConditional(node);
+            }
+
+            protected override Expression VisitUnary(UnaryExpression node)
+            {
+                if (node.Type.IsGenericType && node.Type.GetGenericTypeDefinition() == typeof(Nullable<>))
+                    return Visit(node.Operand);
+                else if (node.Type == node.Operand.Type)
+                    return Visit(node.Operand);
+                else
+                    return base.VisitUnary(node);
+            }
+        }
+
+        private LambdaExpression SimplifyPredicate(LambdaExpression predicate)
+        {
+            var simplifier = new LambdaSimplifier();
+            return simplifier.Visit(predicate) as LambdaExpression;
         }
 
         private Expression TranslateExpression(Expression expression, bool preserveType = false)
@@ -1237,17 +1367,12 @@ namespace Harmony.Core.EF.Query.Internal
 
         internal class IdentifierReplacingExpressionVisitor : ExpressionVisitor
         {
-            public Expression Target;
-            public ShapedQueryExpression ReplacementSource;
+            public Dictionary<Expression, Expression> ReplacementExpressions;
             protected override Expression VisitMember(MemberExpression node)
             {
-                if ((node.Expression as MemberExpression)?.Member?.Name == "Outer")
+                if (ReplacementExpressions.TryGetValue(node.Expression, out var mappedExpression))
                 {
-                    return Expression.PropertyOrField((ReplacementSource.QueryExpression as HarmonyQueryExpression).ConvertedParameter, node.Member.Name);
-                }
-                else if (ReplacementSource is JoinedShapedQueryExpression && (node.Expression as MemberExpression)?.Member?.Name == "Inner")
-                {
-                    return Expression.PropertyOrField((((JoinedShapedQueryExpression)ReplacementSource).Inner.QueryExpression as HarmonyQueryExpression).ConvertedParameter, node.Member.Name);
+                    return node.Update(mappedExpression);
                 }
                 return base.VisitMember(node);
             }
