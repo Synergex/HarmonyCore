@@ -216,8 +216,30 @@ namespace Services.Test.UnitTests
 			disposable data response = client.GetAsync("/odata/v1/Items?$filter=not endswith(LatinName,'costata')").Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
-			data customers, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
-		endmethod
+			data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
+			data itm, @Item
+			foreach itm in items.Value
+			begin
+                if(itm.LatinName.EndsWith("costata"))
+					Assert.Fail("latin name ended with costata")
+			end
+        endmethod
+
+        {TestMethod}
+        public method GetCustomersLatinEndWith, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Items?$filter=endswith(LatinName,'costata')").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
+            data itm, @Item
+            foreach itm in items.Value
+            begin
+                if(!itm.LatinName.EndsWith("costata"))
+                    Assert.Fail("latin name didnt end with costata")
+            end
+        endmethod
 
 		;;------------------------------------------------------------
 		;;Customer 1 (paren syntax)
@@ -395,7 +417,7 @@ namespace Services.Test.UnitTests
 		public method GetCustomer1WithOrders, void
 		proc
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/v1/Customers(1)?$expand=REL_CustomerOrders").Result
+			disposable data response = client.GetAsync("/odata/v1/Customers(1)?$expand=REL_CustomerOrders").Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
@@ -409,7 +431,7 @@ namespace Services.Test.UnitTests
 		public method GetCustomer8WithOrders, void
 		proc
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/v1/Customers(8)?$expand=REL_CustomerOrders").Result
+			disposable data response = client.GetAsync("/odata/v1/Customers(8)?$expand=REL_CustomerOrders").Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
@@ -437,7 +459,7 @@ namespace Services.Test.UnitTests
 		public method GetCustomer8WithOrdersExpand, void
 		proc
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/v1/Customers(8)?$expand=REL_CustomerOrders($expand=REL_OrderItems($expand=REL_Item))").Result
+			disposable data response = client.GetAsync("/odata/v1/Customers(8)?$expand=REL_CustomerOrders($expand=REL_OrderItems($expand=REL_Item))").Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
@@ -499,7 +521,7 @@ namespace Services.Test.UnitTests
 		public method ExpandAndSelectAndFilter1, void
 		proc
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/v1/Customers(8)?$expand=REL_CustomerOrders($filter=OrderNumber eq 10)").Result
+			disposable data response = client.GetAsync("/odata/v1/Customers(8)?$expand=REL_CustomerOrders($filter=OrderNumber eq 10)").Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 			data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
@@ -509,7 +531,7 @@ namespace Services.Test.UnitTests
 		public method ExpandAndSelectAndFilter2, void
 		proc
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/v1/Customers(8)?$expand=REL_CustomerOrders($filter=OrderNumber in(10, 12, 15))").Result
+			disposable data response = client.GetAsync("/odata/v1/Customers(8)?$expand=REL_CustomerOrders($filter=OrderNumber in(10, 12, 15))").Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 			data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
@@ -519,7 +541,7 @@ namespace Services.Test.UnitTests
 		public method ExpandAndSelectAndFilter3, void
 		proc
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/v1/Customers(8)?$expand=REL_CustomerOrders($filter=OrderNumber in(10, 12, 15) and CustomerNumber gt 1)").Result
+			disposable data response = client.GetAsync("/odata/v1/Customers(8)?$expand=REL_CustomerOrders($filter=OrderNumber in(10, 12, 15) and CustomerNumber gt 1)").Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 			data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
@@ -529,7 +551,7 @@ namespace Services.Test.UnitTests
 		public method ExpandAndSelectAndFilter4, void
 		proc
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/v1/Customers(8)?$expand=REL_CustomerOrders($expand=REL_OrderItems($filter=ItemNumber in(12, 15, 25)))").Result
+			disposable data response = client.GetAsync("/odata/v1/Customers(8)?$expand=REL_CustomerOrders($expand=REL_OrderItems($filter=ItemNumber in(12, 15, 25)))").Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 			data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
@@ -591,7 +613,7 @@ namespace Services.Test.UnitTests
 		public method ExpandAndSelect1, void
 		proc
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/v1/Customers(8)?$expand=REL_CustomerOrders($expand=REL_OrderItems($expand=REL_Item))&$select=CustomerNumber,Name").Result
+			disposable data response = client.GetAsync("/odata/v1/Customers(8)?$expand=REL_CustomerOrders($expand=REL_OrderItems($expand=REL_Item))&$select=CustomerNumber,Name").Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 			data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
@@ -601,7 +623,7 @@ namespace Services.Test.UnitTests
 		public method ExpandAndSelect2, void
 		proc
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/v1/Customers(8)?$expand=REL_CustomerOrders($select=PlacedBy;$expand=REL_OrderItems($expand=REL_Item))").Result
+			disposable data response = client.GetAsync("/odata/v1/Customers(8)?$expand=REL_CustomerOrders($select=PlacedBy;$expand=REL_OrderItems($expand=REL_Item))").Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 			data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
@@ -612,7 +634,7 @@ namespace Services.Test.UnitTests
 		public method ExpandAndSelect3, void
 		proc
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/v1/Customers(8)?$expand=REL_CustomerOrders($select=OrderNumber,DateOrdered;$expand=REL_OrderItems($select=ItemNumber,QuantityOrdered;$expand=REL_Item))&$select=CustomerNumber,Name").Result
+			disposable data response = client.GetAsync("/odata/v1/Customers(8)?$expand=REL_CustomerOrders($select=OrderNumber,DateOrdered;$expand=REL_OrderItems($select=ItemNumber,QuantityOrdered;$expand=REL_Item))&$select=CustomerNumber,Name").Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 			data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
@@ -623,7 +645,7 @@ namespace Services.Test.UnitTests
 		public method ExpandAndSelect4, void
 		proc
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/v1/Customers(8)?$expand=REL_CustomerOrders($expand=REL_OrderItems($expand=REL_Item($expand=REL_Vendor)))").Result
+			disposable data response = client.GetAsync("/odata/v1/Customers(8)?$expand=REL_CustomerOrders($expand=REL_OrderItems($expand=REL_Item($expand=REL_Vendor)))").Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 			data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
@@ -634,7 +656,7 @@ namespace Services.Test.UnitTests
 		public method ExpandAndSelect5, void
 		proc
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/v1/Customers?$filter=State eq 'CA'&$expand=REL_CustomerOrders($select=OrderNumber,DateOrdered;$expand=REL_OrderItems($select=ItemNumber,QuantityOrdered;$expand=REL_Item))&$select=CustomerNumber,Name").Result
+			disposable data response = client.GetAsync("/odata/v1/Customers?$filter=State eq 'CA'&$expand=REL_CustomerOrders($select=OrderNumber,DateOrdered;$expand=REL_OrderItems($select=ItemNumber,QuantityOrdered;$expand=REL_Item))&$select=CustomerNumber,Name").Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 			data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
@@ -645,7 +667,7 @@ namespace Services.Test.UnitTests
 		public method ExpandAndSelect7, void
 		proc
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/v1/Customers?$filter=State eq 'CA'&$expand=REL_CustomerOrders($select=OrderNumber,DateOrdered;$expand=REL_OrderItems($select=ItemNumber,QuantityOrdered;$expand=REL_Item($select=CommonName)))&$select=CustomerNumber,Name").Result
+			disposable data response = client.GetAsync("/odata/v1/Customers?$filter=State eq 'CA'&$expand=REL_CustomerOrders($select=OrderNumber,DateOrdered;$expand=REL_OrderItems($select=ItemNumber,QuantityOrdered;$expand=REL_Item($select=CommonName)))&$select=CustomerNumber,Name").Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 			data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
@@ -656,7 +678,7 @@ namespace Services.Test.UnitTests
 		public method ExpandAndSelect6, void
 		proc
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/v1/Customers?$filter=State in ('CA','WA')&$expand=REL_CustomerOrders($select=OrderNumber,DateOrdered;$expand=REL_OrderItems($select=ItemNumber,QuantityOrdered;$expand=REL_Item))&$select=CustomerNumber,Name").Result
+			disposable data response = client.GetAsync("/odata/v1/Customers?$filter=State in ('CA','WA')&$expand=REL_CustomerOrders($select=OrderNumber,DateOrdered;$expand=REL_OrderItems($select=ItemNumber,QuantityOrdered;$expand=REL_Item))&$select=CustomerNumber,Name").Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 			data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
@@ -685,11 +707,11 @@ namespace Services.Test.UnitTests
 			startupClass.ConfigureServices(startupServices)
 			disposable data sp = startupServices.BuildServiceProvider()
 			disposable data context, @DbContext, sp.GetService<DbContext>()
-            data customerData = context.Customers.FirstOrDefaultIncluding("REL_CustomerFavoriteItem", "CustomerNumber == @0", 8)
+			data customerData = context.Customers.FirstOrDefaultIncluding("REL_CustomerFavoriteItem", "CustomerNumber == @0", 8)
 			Assert.IsFalse(customerData == ^null)
-            Assert.IsFalse(customerData.REL_CustomerFavoriteItem == ^null)
+			Assert.IsFalse(customerData.REL_CustomerFavoriteItem == ^null)
 			Assert.AreEqual(customerData.CustomerNumber, 8)
-            Assert.AreEqual(customerData.REL_CustomerFavoriteItem.ItemNumber, customerData.FavoriteItem)
+			Assert.AreEqual(customerData.REL_CustomerFavoriteItem.ItemNumber, customerData.FavoriteItem)
 		endmethod
 
 		{TestMethod}
@@ -743,13 +765,13 @@ namespace Services.Test.UnitTests
 			startupClass.ConfigureServices(startupServices)
 			disposable data sp = startupServices.BuildServiceProvider()
 			disposable data context, @DbContext, sp.GetService<DbContext>()
-            data customerCollection, @IEnumerable<Services.Models.Customer>, context.Customers.WhereIncluding("REL_CustomerFavoriteItem", "CustomerNumber >= @0", 8)
+			data customerCollection, @IEnumerable<Services.Models.Customer>, context.Customers.WhereIncluding("REL_CustomerFavoriteItem", "CustomerNumber >= @0", 8)
 			data customerData, @Services.Models.Customer
 			foreach customerData in customerCollection
 			begin
 				Assert.IsTrue(customerData.CustomerNumber >= 8)
-                Assert.IsFalse(customerData.REL_CustomerFavoriteItem == ^null)
-                Assert.AreEqual(customerData.REL_CustomerFavoriteItem.ItemNumber, customerData.FavoriteItem)
+				Assert.IsFalse(customerData.REL_CustomerFavoriteItem == ^null)
+				Assert.AreEqual(customerData.REL_CustomerFavoriteItem.ItemNumber, customerData.FavoriteItem)
 			end
 
 		endmethod
@@ -763,13 +785,13 @@ namespace Services.Test.UnitTests
 			startupClass.ConfigureServices(startupServices)
 			disposable data sp = startupServices.BuildServiceProvider()
 			disposable data context, @DbContext, sp.GetService<DbContext>()
-            data customerCollection, @IEnumerable<Services.Models.Customer>, context.Customers.WhereIncluding("REL_CustomerFavoriteItem,REL_CustomerOrders", "CustomerNumber >= @0", 8)
+			data customerCollection, @IEnumerable<Services.Models.Customer>, context.Customers.WhereIncluding("REL_CustomerFavoriteItem,REL_CustomerOrders", "CustomerNumber >= @0", 8)
 			data customerData, @Services.Models.Customer
 			foreach customerData in customerCollection
 			begin
 				Assert.IsTrue(customerData.CustomerNumber >= 8)
-                Assert.IsFalse(customerData.REL_CustomerFavoriteItem == ^null)
-                Assert.AreEqual(customerData.REL_CustomerFavoriteItem.ItemNumber, customerData.FavoriteItem)
+				Assert.IsFalse(customerData.REL_CustomerFavoriteItem == ^null)
+				Assert.AreEqual(customerData.REL_CustomerFavoriteItem.ItemNumber, customerData.FavoriteItem)
 			end
 
 		endmethod
@@ -847,71 +869,71 @@ namespace Services.Test.UnitTests
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 			data customers, @ODataAvailabilitys, JsonConvert.DeserializeObject<ODataAvailabilitys>(result)
-        endmethod
+		endmethod
 
-        {TestMethod}
-        public method ODataAction, void
-        proc
-            disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.PostAsync("/odata/v1/DoAnAction", new StringContent('{"intParam" : 5}', Encoding.UTF8, "application/json")).Result
-            data result = response.Content.ReadAsStringAsync().Result
-            response.EnsureSuccessStatusCode()
-        endmethod
+		{TestMethod}
+		public method ODataAction, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.PostAsync("/odata/v1/DoAnAction", new StringContent('{"intParam" : 5}', Encoding.UTF8, "application/json")).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+		endmethod
 
-        {TestMethod}
-        public async method SignalRTest, @Task
-        proc
-            data connection = new HubConnectionBuilder()
-            & .WithUrl("https://localhost/hub/orders", lambda(o) { o.HttpMessageHandlerFactory = lambda(d) { UnitTestEnvironment.Server.CreateHandler() } })
-            & .Build()
-            data echo, @HandCrafted.ArbitrarioReturnType
-            connection.On<HandCrafted.ArbitrarioReturnType>("Arbitrario_MethodWithParametersResult", lambda(msg) { echo = msg })
+		{TestMethod}
+		public async method SignalRTest, @Task
+		proc
+			data connection = new HubConnectionBuilder()
+			& .WithUrl("https://localhost/hub/orders", lambda(o) { o.HttpMessageHandlerFactory = lambda(d) { UnitTestEnvironment.Server.CreateHandler() } })
+			& .Build()
+			data echo, @HandCrafted.ArbitrarioReturnType
+			connection.On<HandCrafted.ArbitrarioReturnType>("Arbitrario_MethodWithParametersResult", lambda(msg) { echo = msg })
 
-            data optRet, @HandCrafted.ArbitrarioOptionalReturnType
-            connection.On<HandCrafted.ArbitrarioOptionalReturnType>("Arbitrario_OptionalResult", lambda(msg) { optRet = msg })
+			data optRet, @HandCrafted.ArbitrarioOptionalReturnType
+			connection.On<HandCrafted.ArbitrarioOptionalReturnType>("Arbitrario_OptionalResult", lambda(msg) { optRet = msg })
 
-            await connection.StartAsync()
-            data intArray = new int[#] {5, 4, 3, 2, 1 }
-            await connection.InvokeAsync("Arbitrario_MethodWithParameters", 5, "hello", new string[#] { "this", "is", "strings" }, (@object)intArray)
-            Assert.IsTrue(echo.StringList.SequenceEqual(new string[#] { "this", "is", "strings" }))
+			await connection.StartAsync()
+			data intArray = new int[#] {5, 4, 3, 2, 1 }
+			await connection.InvokeAsync("Arbitrario_MethodWithParameters", 5, "hello", new string[#] { "this", "is", "strings" }, (@object)intArray)
+			Assert.IsTrue(echo.StringList.SequenceEqual(new string[#] { "this", "is", "strings" }))
 
-            await connection.InvokeAsync("Arbitrario_Optional", new ArbitrarioOptionalParameter() { p1 = 9, p2 = "World", p3 = String.Empty, p4 = 5 })
-            Assert.AreEqual("World", optRet.p3)
-            Assert.AreEqual(45, optRet.p4)
-            await connection.InvokeAsync("Arbitrario_Optional", new ArbitrarioOptionalParameter() { p1 = 9, p2 = "World", p3 = String.Empty })
-            Assert.AreEqual("World", optRet.p3)
-            Assert.AreEqual(^null, optRet.p4)
-            await connection.InvokeAsync("Arbitrario_Optional", new ArbitrarioOptionalParameter() { p1 = 9 })
-            Assert.AreEqual(^null, optRet.p3)
-            Assert.AreEqual(^null, optRet.p4)
-            await connection.InvokeAsync("Arbitrario_Optional", new ArbitrarioOptionalParameter() { p1 = 9, p4 = 5 })
-            Assert.AreEqual(^null, optRet.p3)
-            Assert.AreEqual(45, optRet.p4)
-        endmethod
+			await connection.InvokeAsync("Arbitrario_Optional", new ArbitrarioOptionalParameter() { p1 = 9, p2 = "World", p3 = String.Empty, p4 = 5 })
+			Assert.AreEqual("World", optRet.p3)
+			Assert.AreEqual(45, optRet.p4)
+			await connection.InvokeAsync("Arbitrario_Optional", new ArbitrarioOptionalParameter() { p1 = 9, p2 = "World", p3 = String.Empty })
+			Assert.AreEqual("World", optRet.p3)
+			Assert.AreEqual(^null, optRet.p4)
+			await connection.InvokeAsync("Arbitrario_Optional", new ArbitrarioOptionalParameter() { p1 = 9 })
+			Assert.AreEqual(^null, optRet.p3)
+			Assert.AreEqual(^null, optRet.p4)
+			await connection.InvokeAsync("Arbitrario_Optional", new ArbitrarioOptionalParameter() { p1 = 9, p4 = 5 })
+			Assert.AreEqual(^null, optRet.p3)
+			Assert.AreEqual(45, optRet.p4)
+		endmethod
 
-        public class ArbitrarioReturnType
-            public readwrite property ReturnCode, int
-            public readwrite property IntList, @List<int>
-            public readwrite property StringList, @List<string>
-        endclass
+		public class ArbitrarioReturnType
+			public readwrite property ReturnCode, int
+			public readwrite property IntList, @List<int>
+			public readwrite property StringList, @List<string>
+		endclass
 
-        public class ArbitrarioOptionalParameter
-            public readwrite property p1, int
-            public readwrite property p2, @string
-            public readwrite property p3, @string
-            public readwrite property p4, int?
-        endclass
+		public class ArbitrarioOptionalParameter
+			public readwrite property p1, int
+			public readwrite property p2, @string
+			public readwrite property p3, @string
+			public readwrite property p4, int?
+		endclass
 
-        public class ArbitrarioOptionalReturnType
-            public readwrite property p3, @string
-            public readwrite property p4, int?
-        endclass
+		public class ArbitrarioOptionalReturnType
+			public readwrite property p3, @string
+			public readwrite property p4, int?
+		endclass
 
 		{TestMethod}
 		{TestCategory("Customer Tests - Read All")}
-        public method GetCustomers_Expand_REL_CustomerOrders_Validating, void
+		public method GetCustomers_Expand_REL_CustomerOrders_Validating, void
 		proc
-            data uri = "/odata/v1/Customers?$expand=REL_CustomerOrders"
+			data uri = "/odata/v1/Customers?$expand=REL_CustomerOrders"
 			disposable data client = UnitTestEnvironment.Server.CreateClient()
 			disposable data response = client.GetAsync(uri).Result
 			data result = response.Content.ReadAsStringAsync().Result
@@ -921,7 +943,7 @@ namespace Services.Test.UnitTests
 			foreach c in customers.Value
 			begin
 				data o, @Order
-                foreach o in c.REL_CustomerOrders
+				foreach o in c.REL_CustomerOrders
 				begin
 					Assert.AreEqual(o.CustomerNumber, c.CustomerNumber)
 				end

@@ -967,6 +967,7 @@ namespace Harmony.Core.EF.Query.Internal
 
                         break;
                     case ExpressionType.AndAlso:
+                    case ExpressionType.OrElse:
                         if (simplifiedLeft == null || simplifiedRight == null)
                             return simplifiedLeft ?? simplifiedRight;
                         break;
