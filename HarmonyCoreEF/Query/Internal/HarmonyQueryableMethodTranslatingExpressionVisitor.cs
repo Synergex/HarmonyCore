@@ -1477,6 +1477,9 @@ namespace Harmony.Core.EF.Query.Internal
                                 return node.Update(selectCall.Update(null, new Expression[] { asQueryableCall, updatedExpression.ShaperExpression }));
                             }
                         }
+                        else
+                        {
+                        }
                     }
                 }
                 return base.VisitMemberAssignment(node);
