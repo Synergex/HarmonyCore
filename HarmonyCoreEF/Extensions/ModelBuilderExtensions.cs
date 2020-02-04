@@ -49,8 +49,8 @@ namespace Harmony.Core.EF.Extensions
             builder.Entity(typeof(D))
                .HasMany(typeof(J), drivingProperty)
                .WithOne(null)
-               .HasForeignKey(joinFK)
-               .HasPrincipalKey(drivingKey);
+               .HasPrincipalKey(drivingKey)
+               .HasForeignKey(joinFK);
         }
 
         public static void AddManyToOneRelation<D, J>(this ModelBuilder builder, string drivingProperty, string drivingKey, string joinFK)
@@ -58,8 +58,8 @@ namespace Harmony.Core.EF.Extensions
             builder.Entity(typeof(D))
                .HasOne(typeof(J), drivingProperty)
                .WithOne(null)
-               .HasForeignKey(typeof(J), joinFK)
-               .HasPrincipalKey(typeof(D), drivingKey);
+               .HasPrincipalKey(typeof(D), drivingKey)
+               .HasForeignKey(typeof(J), joinFK);
         }
 
 
