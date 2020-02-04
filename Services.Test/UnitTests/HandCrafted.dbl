@@ -220,26 +220,26 @@ namespace Services.Test.UnitTests
 			data itm, @Item
 			foreach itm in items.Value
 			begin
-                if(itm.LatinName.EndsWith("costata"))
+				if(itm.LatinName.EndsWith("costata"))
 					Assert.Fail("latin name ended with costata")
 			end
-        endmethod
+		endmethod
 
-        {TestMethod}
-        public method GetCustomersLatinEndWith, void
-        proc
-            disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/v1/Items?$filter=endswith(LatinName,'costata')").Result
-            data result = response.Content.ReadAsStringAsync().Result
-            response.EnsureSuccessStatusCode()
-            data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
-            data itm, @Item
-            foreach itm in items.Value
-            begin
-                if(!itm.LatinName.EndsWith("costata"))
-                    Assert.Fail("latin name didnt end with costata")
-            end
-        endmethod
+		{TestMethod}
+		public method GetCustomersLatinEndWith, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync("/odata/v1/Items?$filter=endswith(LatinName,'costata')").Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
+			data itm, @Item
+			foreach itm in items.Value
+			begin
+				if(!itm.LatinName.EndsWith("costata"))
+					Assert.Fail("latin name didnt end with costata")
+			end
+		endmethod
 
 		;;------------------------------------------------------------
 		;;Customer 1 (paren syntax)
@@ -886,34 +886,47 @@ namespace Services.Test.UnitTests
 			data connection = new HubConnectionBuilder()
 			& .WithUrl("https://localhost/hub/orders", lambda(o) { o.HttpMessageHandlerFactory = lambda(d) { UnitTestEnvironment.Server.CreateHandler() } })
 			& .Build()
-            data echo, @HandCrafted.ArbitrarioReturnType
-            data Arbitrario_MethodWithParametersResultHandler, @Action<HandCrafted.ArbitrarioReturnType>
-            Arbitrario_MethodWithParametersResultHandler = lambda(msg) { echo = msg }
+			data echo = new TaskCompletionSource<HandCrafted.ArbitrarioReturnType>()
+			data Arbitrario_MethodWithParametersResultHandler, @Action<HandCrafted.ArbitrarioReturnType>
+			Arbitrario_MethodWithParametersResultHandler = lambda(msg) { echo.TrySetResult(msg) }
 			connection.On<HandCrafted.ArbitrarioReturnType>("Arbitrario_MethodWithParametersResult", Arbitrario_MethodWithParametersResultHandler)
 
-            data optRet, @HandCrafted.ArbitrarioOptionalReturnType
+			data optRet = new TaskCompletionSource<HandCrafted.ArbitrarioOptionalReturnType>()
             data Arbitrario_OptionalResultHandler, @Action<HandCrafted.ArbitrarioOptionalReturnType>
-            Arbitrario_OptionalResultHandler = lambda(msg) { Console.WriteLine("hello1") }
+            lambda OptionalHandler(msg)
+            begin
+                optRet.TrySetResult(msg)
+            end
+
+
+			Arbitrario_OptionalResultHandler = OptionalHandler
 			connection.On<HandCrafted.ArbitrarioOptionalReturnType>("Arbitrario_OptionalResult", Arbitrario_OptionalResultHandler)
 
 			await connection.StartAsync()
 			data intArray = new int[#] {5, 4, 3, 2, 1 }
 			await connection.InvokeAsync("Arbitrario_MethodWithParameters", 5, "hello", new string[#] { "this", "is", "strings" }, (@object)intArray)
-			Assert.IsTrue(echo.StringList.SequenceEqual(new string[#] { "this", "is", "strings" }))
+            await echo.Task
+			Assert.IsTrue(echo.Task.Result.StringList.SequenceEqual(new string[#] { "this", "is", "strings" }))
 
-            await connection.InvokeAsync("Arbitrario_Optional", new ArbitrarioOptionalParameter() { p1 = 9, p2 = "World", p3 = String.Empty, p4 = 5 })
-            Console.WriteLine("hello2")
-			Assert.AreEqual("World", optRet?.p3)
-			Assert.AreEqual(45, optRet?.p4)
-			await connection.InvokeAsync("Arbitrario_Optional", new ArbitrarioOptionalParameter() { p1 = 9, p2 = "World", p3 = String.Empty })
-			Assert.AreEqual("World", optRet?.p3)
-			Assert.AreEqual(^null, optRet?.p4)
+			await connection.InvokeAsync("Arbitrario_Optional", new ArbitrarioOptionalParameter() { p1 = 9, p2 = "World", p3 = String.Empty, p4 = 5 })
+			await optRet.Task
+			Assert.AreEqual("World", optRet.Task.Result.p3)
+            Assert.AreEqual(45, optRet.Task.Result.p4)
+            optRet = new TaskCompletionSource<ArbitrarioOptionalReturnType>()
+            await connection.InvokeAsync("Arbitrario_Optional", new ArbitrarioOptionalParameter() { p1 = 9, p2 = "World", p3 = String.Empty })
+            await optRet.Task
+			Assert.AreEqual("World", optRet.Task.Result.p3)
+            Assert.AreEqual(^null, optRet.Task.Result.p4)
+            optRet = new TaskCompletionSource<ArbitrarioOptionalReturnType>()
 			await connection.InvokeAsync("Arbitrario_Optional", new ArbitrarioOptionalParameter() { p1 = 9 })
-			Assert.AreEqual(^null, optRet?.p3)
-			Assert.AreEqual(^null, optRet?.p4)
+            await optRet.Task 
+			Assert.AreEqual(^null, optRet.Task.Result.p3)
+            Assert.AreEqual(^null, optRet.Task.Result.p4)
+            optRet = new TaskCompletionSource<ArbitrarioOptionalReturnType>()
 			await connection.InvokeAsync("Arbitrario_Optional", new ArbitrarioOptionalParameter() { p1 = 9, p4 = 5 })
-			Assert.AreEqual(^null, optRet?.p3)
-			Assert.AreEqual(45, optRet?.p4)
+            await optRet.Task
+			Assert.AreEqual(^null, optRet.Task.Result.p3)
+			Assert.AreEqual(45, optRet.Task.Result.p4)
 		endmethod
 
 		public class ArbitrarioReturnType
