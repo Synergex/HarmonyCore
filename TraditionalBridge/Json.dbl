@@ -1,4 +1,5 @@
 import System.Collections
+import Harmony.TraditionalBridge
 
 .ifdef DBLNET
 .define STRING_AT(inputValue, index) inputValue[index]
@@ -789,7 +790,145 @@ namespace Json
 	endclass
 
 	class JsonValue
-		public JsonType, JSON_TYPE
+        public JsonType, JSON_TYPE
+
+        public method GetProperty, @JsonValue
+            propertyName, @string
+        proc
+            if(JsonType == JSON_TYPE.OBJ) then
+            begin
+                mreturn ((@JsonObject)this).GetProperty(propertyName)
+            end
+            else
+                throw new InvalidOperationException()
+        endmethod
+
+        public method TryGetProperty, boolean
+            propertyName, @string
+            out value, @JsonValue
+        proc
+            if(JsonType == JSON_TYPE.OBJ) then
+            begin
+                mreturn ((@JsonObject)this).TryGetProperty(propertyName, value)
+            end
+            else
+                throw new InvalidOperationException()
+        endmethod
+
+        public property ValueKind, JSON_TYPE
+            method get
+            proc
+                mreturn JsonType
+            endmethod
+        endproperty
+
+
+        public method GetArrayLength, int
+        proc
+            if(JsonType == JSON_TYPE.ARRAY_VAL) then
+            begin
+                mreturn ((@JsonArray)this).arrayValues.Count
+            end
+            else
+                throw new InvalidOperationException()
+        endmethod
+
+        public property Indexer, @JsonValue
+            in index, int
+            method get
+            proc
+                if(JsonType == JSON_TYPE.ARRAY_VAL) then
+                begin
+                    mreturn (@JsonValue)((@JsonArray)this).arrayValues[index]
+                end
+                else
+                    throw new InvalidOperationException()
+            end
+        endproperty
+
+        public method GetBoolean, boolean
+        proc
+            if(JsonType == JSON_TYPE.BOOL) then
+            begin
+                mreturn ((@JsonBoolean)this).Value
+            end
+            else
+                throw new InvalidOperationException()
+        endmethod
+
+        public method GetByte, i1 
+        proc
+            if(JsonType == JSON_TYPE.NUMBER) then
+            begin
+                mreturn ((@JsonNumber)this).Value
+            end
+            else
+                throw new InvalidOperationException()
+        endmethod
+
+        public method GetStringFromBase64, @string 
+        proc
+            if(JsonType == JSON_TYPE.TEXT) then
+            begin
+                mreturn Convert.FromBase64String(((@JsonText)this).Value)
+            end
+            else
+                throw new InvalidOperationException()
+        endmethod
+
+        public method GetDecimal, decimal 
+        proc
+            if(JsonType == JSON_TYPE.NUMBER) then
+            begin
+                mreturn ((@JsonNumber)this).Value
+            end
+            else if(JsonType == JSON_TYPE.INT_VAL) then
+            begin
+                mreturn ((@JsonInt)this).Value
+            end
+            else
+                throw new InvalidOperationException()
+        endmethod
+
+        public method GetInt16, short
+        proc
+            if(JsonType == JSON_TYPE.INT_VAL) then
+            begin
+                mreturn ((@JsonInt)this).Value
+            end
+            else
+                throw new InvalidOperationException()
+        endmethod
+
+        public method GetInt32, int
+        proc
+            if(JsonType == JSON_TYPE.INT_VAL) then
+            begin
+                mreturn ((@JsonInt)this).Value
+            end
+            else
+                throw new InvalidOperationException()
+        endmethod
+
+        public method GetInt64, i8
+        proc
+            if(JsonType == JSON_TYPE.INT_VAL) then
+            begin
+                mreturn ((@JsonInt)this).Value
+            end
+            else
+                throw new InvalidOperationException()
+        endmethod
+
+        public method GetString, @string 
+        proc
+            if(JsonType == JSON_TYPE.TEXT) then
+            begin
+                mreturn ((@JsonText)this).Value
+            end
+            else
+                throw new InvalidOperationException()
+        endmethod
 	endclass
 
 	class jsonNull extends JsonValue 

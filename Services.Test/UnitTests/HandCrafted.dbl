@@ -76,6 +76,16 @@ namespace Services.Test.UnitTests
 			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
 		endmethod
 
+		{TestMethod}
+		public method CheckSwaggerDoc, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync("/swagger/v1/swagger.json").Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+		endmethod
+
+		
 		;;------------------------------------------------------------
 		;;Get all Customers count
 
