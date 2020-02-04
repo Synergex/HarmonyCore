@@ -17,6 +17,7 @@ import Microsoft.AspNet.OData.Query
 import Microsoft.AspNet.OData
 import Microsoft.OData.Edm
 import Microsoft.AspNetCore.Mvc.ActionConstraints
+import Microsoft.AspNetCore.Mvc.Filters
 
 namespace Harmony.OData.Adapter
 
@@ -37,7 +38,11 @@ namespace Harmony.OData.Adapter
 			begin
 				if(descriptorLookup.Value.TryGetValue(name, result))
 				begin
-					result.RouteValues["AdapterRouteSentinel"] = ""
+					if(!result.RouteValues.ContainsKey("AdapterRouteSentinel"))
+					begin
+						result.RouteValues["AdapterRouteSentinel"] = ""
+						result.FilterDescriptors.Add(new FilterDescriptor((@IFilterMetadata)new Harmony.OData.Adapter.AdapterRoutingFilter(), -1))
+					end
 					mreturn new List<ControllerActionDescriptor>() { result }
 				end
 
@@ -66,21 +71,21 @@ namespace Harmony.OData.Adapter
 			data descriptor, @ControllerActionDescriptor
 			data result = new Dictionary<string, ControllerActionDescriptor>()
 			foreach descriptor in descriptors
-            begin
-                data callableMethodConfig, @CallableMethodConfigurationAttribute
-                callableMethodConfig = descriptor.MethodInfo.GetCustomAttribute<CallableMethodConfigurationAttribute>(false)
-                if(callableMethodConfig != ^null)
-                begin
-                    if(descriptor.ActionConstraints != ^null) then
-                        descriptor.ActionConstraints.Clear()
-                    else
-                        descriptor.ActionConstraints = new List<IActionConstraintMetadata>()
+			begin
+				data callableMethodConfig, @CallableMethodConfigurationAttribute
+				callableMethodConfig = descriptor.MethodInfo.GetCustomAttribute<CallableMethodConfigurationAttribute>(false)
+				if(callableMethodConfig != ^null)
+				begin
+					if(descriptor.ActionConstraints != ^null) then
+						descriptor.ActionConstraints.Clear()
+					else
+						descriptor.ActionConstraints = new List<IActionConstraintMetadata>()
 
-                    if(callableMethodConfig.IsFunction) then
-                        descriptor.ActionConstraints.Add(new HttpMethodActionConstraint(new string[#] { "GET" }))
-                    else
-                        descriptor.ActionConstraints.Add(new HttpMethodActionConstraint(new string[#] { "POST" }))
-                end
+					if(callableMethodConfig.IsFunction) then
+						descriptor.ActionConstraints.Add(new HttpMethodActionConstraint(new string[#] { "GET" }))
+					else
+						descriptor.ActionConstraints.Add(new HttpMethodActionConstraint(new string[#] { "POST" }))
+				end
 
 				if(!result.ContainsKey(descriptor.ActionName))
 				begin
@@ -109,7 +114,7 @@ namespace Harmony.OData.Adapter
 				&	
 			begin
 				data segment = ^as(odataPath.Segments[odataPath.Segments.Count - 1], OperationImportSegment)
-                
+				
 				if (segment != ^null)
 				begin
 					data opName = segment.Identifier
