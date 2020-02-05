@@ -10,6 +10,8 @@
 ;; Any changes you make will be lost of the file is re-generated.
 ;;*****************************************************************************
 
+import Microsoft.AspNetCore.Http
+import Microsoft.OData
 import Microsoft.AspNetCore.JsonPatch
 import Microsoft.AspNetCore.Mvc
 import Microsoft.AspNet.OData
@@ -17,6 +19,7 @@ import Microsoft.AspNet.OData.Routing
 import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Infrastructure
 import Microsoft.Extensions.Options
+import System.Collections.Generic
 import System.ComponentModel.DataAnnotations
 import Harmony.Core.EF.Extensions
 import Harmony.Core.Interface
@@ -28,6 +31,7 @@ import Services.Models
 namespace Services.Controllers
 
     {ApiVersion("1")}
+    {ODataRoutePrefix("Items")}
     ;;; <summary>
     ;;; OData controller for Items
     ;;; </summary>
@@ -54,7 +58,9 @@ namespace Services.Controllers
             this._AppSettings = aAppSettings
         endmethod
 
-        {ODataRoute("Items")}
+        {ODataRoute}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Item>>),StatusCodes.Status200OK)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get all Items
@@ -65,7 +71,10 @@ namespace Services.Controllers
             mreturn Ok(_DbContext.Items.AsNoTracking())
         endmethod
 
-        {ODataRoute("Items(ItemNumber={aItemNumber})")}
+        {ODataRoute("(ItemNumber={aItemNumber})")}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(Item),StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get a single Item by primary key.
@@ -79,7 +88,10 @@ namespace Services.Controllers
             mreturn new SingleResult<Item>(_DbContext.Items.AsNoTracking().FindQuery<Item>(_DbContext, aItemNumber))
         endmethod
 
-        {ODataRoute("Items(VendorNumber={aVendorNumber})")}
+        {ODataRoute("(VendorNumber={aVendorNumber})")}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Item>>),StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get items by alternate key key VendorNumber.
@@ -96,7 +108,10 @@ namespace Services.Controllers
             mreturn Ok(result)
         endmethod
 
-        {ODataRoute("Items(FlowerColor={aFlowerColor})")}
+        {ODataRoute("(FlowerColor={aFlowerColor})")}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Item>>),StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get items by alternate key key Color.
@@ -113,7 +128,10 @@ namespace Services.Controllers
             mreturn Ok(result)
         endmethod
 
-        {ODataRoute("Items(Size={aSize})")}
+        {ODataRoute("(Size={aSize})")}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Item>>),StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get items by alternate key key Size.
@@ -130,7 +148,10 @@ namespace Services.Controllers
             mreturn Ok(result)
         endmethod
 
-        {ODataRoute("Items(CommonName={aCommonName})")}
+        {ODataRoute("(CommonName={aCommonName})")}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Item>>),StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get items by alternate key key Name.
@@ -148,7 +169,9 @@ namespace Services.Controllers
         endmethod
 
 
-        {ODataRoute("Items({key})/VendorNumber")}
+        {ODataRoute("({key})/VendorNumber")}
+        {ProducesResponseType(StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Get the VendorNumber property of a single Item, by primary key.
         ;;; </summary>
@@ -166,7 +189,9 @@ namespace Services.Controllers
             mreturn OK(result.VendorNumber)
         endmethod
 
-        {ODataRoute("Items({key})/Size")}
+        {ODataRoute("({key})/Size")}
+        {ProducesResponseType(StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Get the Size property of a single Item, by primary key.
         ;;; </summary>
@@ -184,7 +209,9 @@ namespace Services.Controllers
             mreturn OK(result.Size)
         endmethod
 
-        {ODataRoute("Items({key})/CommonName")}
+        {ODataRoute("({key})/CommonName")}
+        {ProducesResponseType(StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Get the CommonName property of a single Item, by primary key.
         ;;; </summary>
@@ -202,7 +229,9 @@ namespace Services.Controllers
             mreturn OK(result.CommonName)
         endmethod
 
-        {ODataRoute("Items({key})/LatinName")}
+        {ODataRoute("({key})/LatinName")}
+        {ProducesResponseType(StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Get the LatinName property of a single Item, by primary key.
         ;;; </summary>
@@ -220,7 +249,9 @@ namespace Services.Controllers
             mreturn OK(result.LatinName)
         endmethod
 
-        {ODataRoute("Items({key})/ZoneCode")}
+        {ODataRoute("({key})/ZoneCode")}
+        {ProducesResponseType(StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Get the ZoneCode property of a single Item, by primary key.
         ;;; </summary>
@@ -238,7 +269,9 @@ namespace Services.Controllers
             mreturn OK(result.ZoneCode)
         endmethod
 
-        {ODataRoute("Items({key})/Type")}
+        {ODataRoute("({key})/Type")}
+        {ProducesResponseType(StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Get the Type property of a single Item, by primary key.
         ;;; </summary>
@@ -256,7 +289,9 @@ namespace Services.Controllers
             mreturn OK(result.Type)
         endmethod
 
-        {ODataRoute("Items({key})/Flowering")}
+        {ODataRoute("({key})/Flowering")}
+        {ProducesResponseType(StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Get the Flowering property of a single Item, by primary key.
         ;;; </summary>
@@ -274,7 +309,9 @@ namespace Services.Controllers
             mreturn OK(result.Flowering)
         endmethod
 
-        {ODataRoute("Items({key})/FlowerColor")}
+        {ODataRoute("({key})/FlowerColor")}
+        {ProducesResponseType(StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Get the FlowerColor property of a single Item, by primary key.
         ;;; </summary>
@@ -292,7 +329,9 @@ namespace Services.Controllers
             mreturn OK(result.FlowerColor)
         endmethod
 
-        {ODataRoute("Items({key})/Shape")}
+        {ODataRoute("({key})/Shape")}
+        {ProducesResponseType(StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Get the Shape property of a single Item, by primary key.
         ;;; </summary>
@@ -310,7 +349,9 @@ namespace Services.Controllers
             mreturn OK(result.Shape)
         endmethod
 
-        {ODataRoute("Items({key})/MaxHeight")}
+        {ODataRoute("({key})/MaxHeight")}
+        {ProducesResponseType(StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Get the MaxHeight property of a single Item, by primary key.
         ;;; </summary>
@@ -328,7 +369,9 @@ namespace Services.Controllers
             mreturn OK(result.MaxHeight)
         endmethod
 
-        {ODataRoute("Items({key})/MaxWidth")}
+        {ODataRoute("({key})/MaxWidth")}
+        {ProducesResponseType(StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Get the MaxWidth property of a single Item, by primary key.
         ;;; </summary>
@@ -346,7 +389,9 @@ namespace Services.Controllers
             mreturn OK(result.MaxWidth)
         endmethod
 
-        {ODataRoute("Items({key})/WaterRequirement")}
+        {ODataRoute("({key})/WaterRequirement")}
+        {ProducesResponseType(StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Get the WaterRequirement property of a single Item, by primary key.
         ;;; </summary>
@@ -364,7 +409,9 @@ namespace Services.Controllers
             mreturn OK(result.WaterRequirement)
         endmethod
 
-        {ODataRoute("Items({key})/SunRequirement")}
+        {ODataRoute("({key})/SunRequirement")}
+        {ProducesResponseType(StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Get the SunRequirement property of a single Item, by primary key.
         ;;; </summary>
@@ -382,7 +429,9 @@ namespace Services.Controllers
             mreturn OK(result.SunRequirement)
         endmethod
 
-        {ODataRoute("Items({key})/BinLocation")}
+        {ODataRoute("({key})/BinLocation")}
+        {ProducesResponseType(StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Get the BinLocation property of a single Item, by primary key.
         ;;; </summary>
@@ -400,7 +449,9 @@ namespace Services.Controllers
             mreturn OK(result.BinLocation)
         endmethod
 
-        {ODataRoute("Items({key})/QtyOnHand")}
+        {ODataRoute("({key})/QtyOnHand")}
+        {ProducesResponseType(StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Get the QtyOnHand property of a single Item, by primary key.
         ;;; </summary>
@@ -418,7 +469,9 @@ namespace Services.Controllers
             mreturn OK(result.QtyOnHand)
         endmethod
 
-        {ODataRoute("Items({key})/QtyAllocated")}
+        {ODataRoute("({key})/QtyAllocated")}
+        {ProducesResponseType(StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Get the QtyAllocated property of a single Item, by primary key.
         ;;; </summary>
@@ -436,7 +489,9 @@ namespace Services.Controllers
             mreturn OK(result.QtyAllocated)
         endmethod
 
-        {ODataRoute("Items({key})/QtyOnOrder")}
+        {ODataRoute("({key})/QtyOnOrder")}
+        {ProducesResponseType(StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Get the QtyOnOrder property of a single Item, by primary key.
         ;;; </summary>
@@ -454,7 +509,9 @@ namespace Services.Controllers
             mreturn OK(result.QtyOnOrder)
         endmethod
 
-        {ODataRoute("Items({key})/ReorderLevel")}
+        {ODataRoute("({key})/ReorderLevel")}
+        {ProducesResponseType(StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Get the ReorderLevel property of a single Item, by primary key.
         ;;; </summary>
@@ -472,7 +529,9 @@ namespace Services.Controllers
             mreturn OK(result.ReorderLevel)
         endmethod
 
-        {ODataRoute("Items({key})/UnitPrice")}
+        {ODataRoute("({key})/UnitPrice")}
+        {ProducesResponseType(StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Get the UnitPrice property of a single Item, by primary key.
         ;;; </summary>
@@ -490,7 +549,9 @@ namespace Services.Controllers
             mreturn OK(result.UnitPrice)
         endmethod
 
-        {ODataRoute("Items({key})/CostPrice")}
+        {ODataRoute("({key})/CostPrice")}
+        {ProducesResponseType(StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Get the CostPrice property of a single Item, by primary key.
         ;;; </summary>
@@ -508,7 +569,10 @@ namespace Services.Controllers
             mreturn OK(result.CostPrice)
         endmethod
 
-        {ODataRoute("Items")}
+        {ODataRoute}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(Item),StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status400BadRequest)}
         ;;; <summary>
         ;;; Create a new item (automatically assigned primary key).
         ;;; </summary>
@@ -545,7 +609,11 @@ namespace Services.Controllers
 
         endmethod
 
-        {ODataRoute("Items(ItemNumber={aItemNumber})")}
+        {ODataRoute("(ItemNumber={aItemNumber})")}
+        {Produces("application/json")}
+        {ProducesResponseType(StatusCodes.Status201Created)}
+        {ProducesResponseType(StatusCodes.Status400BadRequest)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Create (with a client-supplied primary key) or replace a item.
         ;;; </summary>
@@ -594,7 +662,11 @@ namespace Services.Controllers
 
         endmethod
 
-        {ODataRoute("Items(ItemNumber={aItemNumber})")}
+        {ODataRoute("(ItemNumber={aItemNumber})")}
+        {Produces("application/json")}
+        {ProducesResponseType(StatusCodes.Status204NoContent)}
+        {ProducesResponseType(StatusCodes.Status400BadRequest)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Patch  (partial update) a item.
         ;;; </summary>
@@ -645,7 +717,9 @@ namespace Services.Controllers
 
         endmethod
 
-        {ODataRoute("Items(ItemNumber={aItemNumber})")}
+        {ODataRoute("(ItemNumber={aItemNumber})")}
+        {ProducesResponseType(StatusCodes.Status204NoContent)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Delete a item.
         ;;; </summary>

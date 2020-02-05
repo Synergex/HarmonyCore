@@ -10,6 +10,8 @@
 ;; Any changes you make will be lost of the file is re-generated.
 ;;*****************************************************************************
 
+import Microsoft.AspNetCore.Http
+import Microsoft.OData
 import Microsoft.AspNetCore.JsonPatch
 import Microsoft.AspNetCore.Mvc
 import Microsoft.AspNet.OData
@@ -17,6 +19,7 @@ import Microsoft.AspNet.OData.Routing
 import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Infrastructure
 import Microsoft.Extensions.Options
+import System.Collections.Generic
 import System.ComponentModel.DataAnnotations
 import Harmony.Core.EF.Extensions
 import Harmony.Core.Interface
@@ -28,6 +31,7 @@ import Services.Models
 namespace Services.Controllers
 
     {ApiVersion("1")}
+    {ODataRoutePrefix("Customers")}
     ;;; <summary>
     ;;; OData controller for Customers
     ;;; </summary>
@@ -54,7 +58,9 @@ namespace Services.Controllers
             this._AppSettings = aAppSettings
         endmethod
 
-        {ODataRoute("Customers")}
+        {ODataRoute}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Customer>>),StatusCodes.Status200OK)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get all Customers
@@ -65,7 +71,10 @@ namespace Services.Controllers
             mreturn Ok(_DbContext.Customers.AsNoTracking())
         endmethod
 
-        {ODataRoute("Customers(CustomerNumber={aCustomerNumber})")}
+        {ODataRoute("(CustomerNumber={aCustomerNumber})")}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(Customer),StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get a single Customer by primary key.
@@ -79,7 +88,10 @@ namespace Services.Controllers
             mreturn new SingleResult<Customer>(_DbContext.Customers.AsNoTracking().FindQuery<Customer>(_DbContext, aCustomerNumber))
         endmethod
 
-        {ODataRoute("Customers(State={aState})")}
+        {ODataRoute("(State={aState})")}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Customer>>),StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get customers by alternate key key State.
@@ -96,7 +108,10 @@ namespace Services.Controllers
             mreturn Ok(result)
         endmethod
 
-        {ODataRoute("Customers(ZipCode={aZipCode})")}
+        {ODataRoute("(ZipCode={aZipCode})")}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Customer>>),StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get customers by alternate key key Zip.
@@ -113,7 +128,10 @@ namespace Services.Controllers
             mreturn Ok(result)
         endmethod
 
-        {ODataRoute("Customers(PaymentTermsCode={aPaymentTermsCode})")}
+        {ODataRoute("(PaymentTermsCode={aPaymentTermsCode})")}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Customer>>),StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get customers by alternate key key PaymentTerms.
@@ -131,7 +149,9 @@ namespace Services.Controllers
         endmethod
 
 
-        {ODataRoute("Customers({key})/Name")}
+        {ODataRoute("({key})/Name")}
+        {ProducesResponseType(StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Get the Name property of a single Customer, by primary key.
         ;;; </summary>
@@ -149,7 +169,9 @@ namespace Services.Controllers
             mreturn OK(result.Name)
         endmethod
 
-        {ODataRoute("Customers({key})/Street")}
+        {ODataRoute("({key})/Street")}
+        {ProducesResponseType(StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Get the Street property of a single Customer, by primary key.
         ;;; </summary>
@@ -167,7 +189,9 @@ namespace Services.Controllers
             mreturn OK(result.Street)
         endmethod
 
-        {ODataRoute("Customers({key})/City")}
+        {ODataRoute("({key})/City")}
+        {ProducesResponseType(StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Get the City property of a single Customer, by primary key.
         ;;; </summary>
@@ -185,7 +209,9 @@ namespace Services.Controllers
             mreturn OK(result.City)
         endmethod
 
-        {ODataRoute("Customers({key})/State")}
+        {ODataRoute("({key})/State")}
+        {ProducesResponseType(StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Get the State property of a single Customer, by primary key.
         ;;; </summary>
@@ -203,7 +229,9 @@ namespace Services.Controllers
             mreturn OK(result.State)
         endmethod
 
-        {ODataRoute("Customers({key})/ZipCode")}
+        {ODataRoute("({key})/ZipCode")}
+        {ProducesResponseType(StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Get the ZipCode property of a single Customer, by primary key.
         ;;; </summary>
@@ -221,7 +249,9 @@ namespace Services.Controllers
             mreturn OK(result.ZipCode)
         endmethod
 
-        {ODataRoute("Customers({key})/Contact")}
+        {ODataRoute("({key})/Contact")}
+        {ProducesResponseType(StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Get the Contact property of a single Customer, by primary key.
         ;;; </summary>
@@ -239,7 +269,9 @@ namespace Services.Controllers
             mreturn OK(result.Contact)
         endmethod
 
-        {ODataRoute("Customers({key})/Phone")}
+        {ODataRoute("({key})/Phone")}
+        {ProducesResponseType(StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Get the Phone property of a single Customer, by primary key.
         ;;; </summary>
@@ -257,7 +289,9 @@ namespace Services.Controllers
             mreturn OK(result.Phone)
         endmethod
 
-        {ODataRoute("Customers({key})/Fax")}
+        {ODataRoute("({key})/Fax")}
+        {ProducesResponseType(StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Get the Fax property of a single Customer, by primary key.
         ;;; </summary>
@@ -275,7 +309,9 @@ namespace Services.Controllers
             mreturn OK(result.Fax)
         endmethod
 
-        {ODataRoute("Customers({key})/FavoriteItem")}
+        {ODataRoute("({key})/FavoriteItem")}
+        {ProducesResponseType(StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Get the FavoriteItem property of a single Customer, by primary key.
         ;;; </summary>
@@ -293,7 +329,9 @@ namespace Services.Controllers
             mreturn OK(result.FavoriteItem)
         endmethod
 
-        {ODataRoute("Customers({key})/PaymentTermsCode")}
+        {ODataRoute("({key})/PaymentTermsCode")}
+        {ProducesResponseType(StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Get the PaymentTermsCode property of a single Customer, by primary key.
         ;;; </summary>
@@ -311,7 +349,9 @@ namespace Services.Controllers
             mreturn OK(result.PaymentTermsCode)
         endmethod
 
-        {ODataRoute("Customers({key})/TaxId")}
+        {ODataRoute("({key})/TaxId")}
+        {ProducesResponseType(StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Get the TaxId property of a single Customer, by primary key.
         ;;; </summary>
@@ -329,7 +369,9 @@ namespace Services.Controllers
             mreturn OK(result.TaxId)
         endmethod
 
-        {ODataRoute("Customers({key})/CreditLimit")}
+        {ODataRoute("({key})/CreditLimit")}
+        {ProducesResponseType(StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Get the CreditLimit property of a single Customer, by primary key.
         ;;; </summary>
@@ -347,7 +389,10 @@ namespace Services.Controllers
             mreturn OK(result.CreditLimit)
         endmethod
 
-        {ODataRoute("Customers")}
+        {ODataRoute}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(Customer),StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status400BadRequest)}
         ;;; <summary>
         ;;; Create a new customer (automatically assigned primary key).
         ;;; </summary>
@@ -384,7 +429,11 @@ namespace Services.Controllers
 
         endmethod
 
-        {ODataRoute("Customers(CustomerNumber={aCustomerNumber})")}
+        {ODataRoute("(CustomerNumber={aCustomerNumber})")}
+        {Produces("application/json")}
+        {ProducesResponseType(StatusCodes.Status201Created)}
+        {ProducesResponseType(StatusCodes.Status400BadRequest)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Create (with a client-supplied primary key) or replace a customer.
         ;;; </summary>
@@ -433,7 +482,11 @@ namespace Services.Controllers
 
         endmethod
 
-        {ODataRoute("Customers(CustomerNumber={aCustomerNumber})")}
+        {ODataRoute("(CustomerNumber={aCustomerNumber})")}
+        {Produces("application/json")}
+        {ProducesResponseType(StatusCodes.Status204NoContent)}
+        {ProducesResponseType(StatusCodes.Status400BadRequest)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Patch  (partial update) a customer.
         ;;; </summary>
@@ -484,7 +537,9 @@ namespace Services.Controllers
 
         endmethod
 
-        {ODataRoute("Customers(CustomerNumber={aCustomerNumber})")}
+        {ODataRoute("(CustomerNumber={aCustomerNumber})")}
+        {ProducesResponseType(StatusCodes.Status204NoContent)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Delete a customer.
         ;;; </summary>
