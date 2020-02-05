@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -19,7 +20,6 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Update;
 using Microsoft.EntityFrameworkCore.Utilities;
 using Microsoft.Extensions.DependencyInjection;
-using Remotion.Linq;
 
 namespace Harmony.Core.EF.Storage.Internal
 {
@@ -60,7 +60,7 @@ namespace Harmony.Core.EF.Storage.Internal
         ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
-        public override int SaveChanges(IReadOnlyList<IUpdateEntry> entries)
+        public override int SaveChanges(IList<IUpdateEntry> entries)
             => DispatchTransactionFromEntries(entries);
 
         /// <summary>
@@ -68,7 +68,7 @@ namespace Harmony.Core.EF.Storage.Internal
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
         public override Task<int> SaveChangesAsync(
-            IReadOnlyList<IUpdateEntry> entries,
+            IList<IUpdateEntry> entries,
             CancellationToken cancellationToken = default)
             => Task.FromResult(DispatchTransactionFromEntries(entries));
 
@@ -79,15 +79,6 @@ namespace Harmony.Core.EF.Storage.Internal
         public virtual bool EnsureDatabaseCreated(StateManagerDependencies stateManagerDependencies)
             => true; //do nothing we dont support this
 
-        /// <summary>
-        ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
-        public override Func<QueryContext, IAsyncEnumerable<TResult>> CompileAsyncQuery<TResult>(QueryModel queryModel)
-        {
-            var syncQueryExecutor = CompileQuery<TResult>(queryModel);
-            return qc => syncQueryExecutor(qc).ToAsyncEnumerable();
-        }
 
         public void AddPrimaryKeygeneratorToTransaction(IPrimaryKeyFactory keyFactory)
         {
@@ -109,7 +100,30 @@ namespace Harmony.Core.EF.Storage.Internal
             
         }
 
-        private int DispatchTransactionFromEntries(IReadOnlyList<IUpdateEntry> entries)
+        public static IReadOnlyList<T> AsReadOnly<T>(IList<T> list)
+        {
+            if (list == null)
+                throw new ArgumentNullException(nameof(list));
+
+            return list as IReadOnlyList<T> ?? new ReadOnlyWrapper<T>(list);
+        }
+
+        private sealed class ReadOnlyWrapper<T> : IReadOnlyList<T>
+        {
+            private readonly IList<T> _list;
+
+            public ReadOnlyWrapper(IList<T> list) => _list = list;
+
+            public int Count => _list.Count;
+
+            public T this[int index] => _list[index];
+
+            public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        }
+
+        private int DispatchTransactionFromEntries(IList<IUpdateEntry> entries)
         {
             List<DataObjectBase> created = new List<DataObjectBase>();
             List<DataObjectBase> updated = new List<DataObjectBase>();
@@ -131,7 +145,7 @@ namespace Harmony.Core.EF.Storage.Internal
             }
             catch (Synergex.SynergyDE.RecordNotSameException)
             {
-                throw new DbUpdateConcurrencyException("", entries);
+                throw new DbUpdateConcurrencyException("", AsReadOnly(entries));
             }
 
             return created.Count + updated.Count + deleted.Count;

@@ -239,19 +239,19 @@ namespace Harmony.OData
             data constructor = ^typeof(T).GetConstructors().FirstOrDefault()
             data ctorBuilder, @ConstructorBuilder, tb.DefineConstructor(constructor.Attributes, constructor.CallingConvention, constructor.GetParameters().Select(lambda(parm) { parm.ParameterType }).ToArray())
             data emitter = ctorBuilder.GetILGenerator()
-            emitter.Emit(OpCodes.Nop)
+            emitter.Emit(System.Reflection.Emit.OpCodes.Nop)
 
             ;;Load 'this' and call base constructor with arguments
-            emitter.Emit(OpCodes.Ldarg_0)
+            emitter.Emit(System.Reflection.Emit.OpCodes.Ldarg_0)
             data i = 0
             for i from 1 thru constructor.GetParameters().Length by 1
             begin
-                emitter.Emit(OpCodes.Ldarg, i)
+                emitter.Emit(System.Reflection.Emit.OpCodes.Ldarg, i)
             end 
 
-            emitter.Emit(OpCodes.Call, constructor)
+            emitter.Emit(System.Reflection.Emit.OpCodes.Call, constructor)
 
-            emitter.Emit(OpCodes.Ret)
+            emitter.Emit(System.Reflection.Emit.OpCodes.Ret)
             data madeType, @Type, tb.CreateTypeInfo().AsType()
             mreturn madeType
         endmethod

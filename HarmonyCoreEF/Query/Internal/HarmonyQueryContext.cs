@@ -24,28 +24,28 @@ namespace Harmony.Core.EF.Query.Internal
 		/// </summary>
 		public HarmonyQueryContext(
 			QueryContextDependencies dependencies,
-			Func<IQueryBuffer> queryBufferFactory,
 			IDataObjectProvider store)
-			: base(dependencies, () => new QueryBufferWrapper(dependencies))
+			: base(dependencies)
 		{
 			Store = store;
 
 		}
 
-		private class QueryBufferWrapper : QueryBuffer
-		{
-			public QueryBufferWrapper(QueryContextDependencies dependencies) : base(dependencies)
-			{
-			}
+        //TODO: find matching behavior in 3.1
+		//private class QueryBufferWrapper : QueryBuffer
+		//{
+		//	public QueryBufferWrapper(QueryContextDependencies dependencies) : base(dependencies)
+		//	{
+		//	}
 
-			public override object GetPropertyValue(object entity, IProperty property)
-			{
-				if (property.FieldInfo.Name.StartsWith("_KEY_"))
-					return "";
-				else
-					return base.GetPropertyValue(entity, property);
-			}
-		}
+		//	public override object GetPropertyValue(object entity, IProperty property)
+		//	{
+		//		if (property.FieldInfo.Name.StartsWith("_KEY_"))
+		//			return "";
+		//		else
+		//			return base.GetPropertyValue(entity, property);
+		//	}
+		//}
 
         /// <summary>
         ///     This API supports the Entity Framework Core infrastructure and is not intended to be used

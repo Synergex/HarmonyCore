@@ -5,7 +5,8 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Internal;
-using Microsoft.EntityFrameworkCore.Storage;
+using Harmony.Core.EF.Storage;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace Harmony.Core.EF.Infrastructure.Internal
 {
