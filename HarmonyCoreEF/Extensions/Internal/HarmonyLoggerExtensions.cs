@@ -23,22 +23,22 @@ namespace Microsoft.EntityFrameworkCore.Internal
         public static void TransactionIgnoredWarning(
             this IDiagnosticsLogger<DbLoggerCategory.Database.Transaction> diagnostics)
         {
-            var definition = HarmonyStrings.LogTransactionsNotSupported;
+            //var definition = HarmonyStrings.LogTransactionsNotSupported;
 
-            var warningBehavior = definition.GetLogBehavior(diagnostics);
-            if (warningBehavior != WarningBehavior.Ignore)
-            {
-                definition.Log(diagnostics, warningBehavior);
-            }
+            //var warningBehavior = definition.GetLogBehavior(diagnostics);
+            //if (warningBehavior != WarningBehavior.Ignore)
+            //{
+            //    definition.Log(diagnostics, warningBehavior);
+            //}
 
-            if (diagnostics.DiagnosticSource.IsEnabled(definition.EventId.Name))
-            {
-                diagnostics.DiagnosticSource.Write(
-                    definition.EventId.Name,
-                    new EventData(
-                        definition,
-                        (d, p) => ((EventDefinition)d).GenerateMessage()));
-            }
+            //if (diagnostics.DiagnosticSource.IsEnabled(definition.EventId.Name))
+            //{
+            //    diagnostics.DiagnosticSource.Write(
+            //        definition.EventId.Name,
+            //        new EventData(
+            //            definition,
+            //            (d, p) => ((EventDefinition)d).GenerateMessage()));
+            //}
         }
 
         /// <summary>
@@ -50,27 +50,27 @@ namespace Microsoft.EntityFrameworkCore.Internal
             IEnumerable<IUpdateEntry> entries,
             int rowsAffected)
         {
-            var definition = HarmonyStrings.LogSavedChanges;
+            //var definition = HarmonyStrings.LogSavedChanges;
 
-            var warningBehavior = definition.GetLogBehavior(diagnostics);
-            if (warningBehavior != WarningBehavior.Ignore)
-            {
-                definition.Log(
-                    diagnostics,
-                    warningBehavior,
-                    rowsAffected);
-            }
+            //var warningBehavior = definition.GetLogBehavior(diagnostics);
+            //if (warningBehavior != WarningBehavior.Ignore)
+            //{
+            //    definition.Log(
+            //        diagnostics,
+            //        warningBehavior,
+            //        rowsAffected);
+            //}
 
-            if (diagnostics.DiagnosticSource.IsEnabled(definition.EventId.Name))
-            {
-                diagnostics.DiagnosticSource.Write(
-                    definition.EventId.Name,
-                    new SaveChangesEventData(
-                        definition,
-                        ChangesSaved,
-                        entries,
-                        rowsAffected));
-            }
+            //if (diagnostics.DiagnosticSource.IsEnabled(definition.EventId.Name))
+            //{
+            //    diagnostics.DiagnosticSource.Write(
+            //        definition.EventId.Name,
+            //        new SaveChangesEventData(
+            //            definition,
+            //            ChangesSaved,
+            //            entries,
+            //            rowsAffected));
+            //}
         }
 
         private static string ChangesSaved(EventDefinitionBase definition, EventData payload)

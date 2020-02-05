@@ -6,7 +6,7 @@ using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Harmony.Core.EF.Infrastructure.Internal;
-using Microsoft.EntityFrameworkCore.Storage;
+using Harmony.Core.EF.Storage;
 using Microsoft.EntityFrameworkCore.Utilities;
 using Harmony.Core.Context;
 

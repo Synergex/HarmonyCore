@@ -18,31 +18,6 @@ namespace Harmony.Core.EF.Properties
         private static readonly ResourceManager _resourceManager
             = new ResourceManager("Harmony.Core.EF.Properties.HarmonyStrings", typeof(HarmonyStrings).GetTypeInfo().Assembly);
 
-        /// <summary>
-        ///     Saved {count} entities to in-memory store.
-        /// </summary>
-        public static readonly EventDefinition<int> LogSavedChanges
-            = new EventDefinition<int>(
-                HarmonyEventId.ChangesSaved,
-                LogLevel.Information,
-                "HarmonyEventId.ChangesSaved",
-                LoggerMessage.Define<int>(
-                    LogLevel.Information,
-                    HarmonyEventId.ChangesSaved,
-                    _resourceManager.GetString("LogSavedChanges")));
-
-        /// <summary>
-        ///     Transactions are not supported by the in-memory store. See http://go.microsoft.com/fwlink/?LinkId=800142
-        /// </summary>
-        public static readonly EventDefinition LogTransactionsNotSupported
-            = new EventDefinition(
-                HarmonyEventId.TransactionIgnoredWarning,
-                LogLevel.Warning,
-                "HarmonyEventId.TransactionIgnoredWarning",
-                LoggerMessage.Define(
-                    LogLevel.Warning,
-                    HarmonyEventId.TransactionIgnoredWarning,
-                    _resourceManager.GetString("LogTransactionsNotSupported")));
 
         /// <summary>
         ///     Attempted to update or delete an entity that does not exist in the store.
