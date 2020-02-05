@@ -10,6 +10,8 @@
 ;; Any changes you make will be lost of the file is re-generated.
 ;;*****************************************************************************
 
+import Microsoft.AspNetCore.Http
+import Microsoft.OData
 import Microsoft.AspNetCore.JsonPatch
 import Microsoft.AspNetCore.Mvc
 import Microsoft.AspNet.OData
@@ -17,6 +19,7 @@ import Microsoft.AspNet.OData.Routing
 import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Infrastructure
 import Microsoft.Extensions.Options
+import System.Collections.Generic
 import System.ComponentModel.DataAnnotations
 import Harmony.Core.EF.Extensions
 import Harmony.Core.Interface
@@ -28,6 +31,7 @@ import Services.Models
 namespace Services.Controllers
 
     {ApiVersion("1")}
+    {ODataRoutePrefix("Orders")}
     ;;; <summary>
     ;;; OData controller for Orders
     ;;; </summary>
@@ -54,7 +58,9 @@ namespace Services.Controllers
             this._AppSettings = aAppSettings
         endmethod
 
-        {ODataRoute("Orders")}
+        {ODataRoute}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Order>>),StatusCodes.Status200OK)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get all Orders
@@ -65,7 +71,10 @@ namespace Services.Controllers
             mreturn Ok(_DbContext.Orders.AsNoTracking())
         endmethod
 
-        {ODataRoute("Orders(OrderNumber={aOrderNumber})")}
+        {ODataRoute("(OrderNumber={aOrderNumber})")}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(Order),StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get a single Order by primary key.
@@ -79,7 +88,10 @@ namespace Services.Controllers
             mreturn new SingleResult<Order>(_DbContext.Orders.AsNoTracking().FindQuery<Order>(_DbContext, aOrderNumber))
         endmethod
 
-        {ODataRoute("Orders(CustomerNumber={aCustomerNumber})")}
+        {ODataRoute("(CustomerNumber={aCustomerNumber})")}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Order>>),StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get orders by alternate key key CustomerNumber.
@@ -96,7 +108,10 @@ namespace Services.Controllers
             mreturn Ok(result)
         endmethod
 
-        {ODataRoute("Orders(DateOrdered={aDateOrdered})")}
+        {ODataRoute("(DateOrdered={aDateOrdered})")}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Order>>),StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get orders by alternate key key DateOrdered.
@@ -113,7 +128,10 @@ namespace Services.Controllers
             mreturn Ok(result)
         endmethod
 
-        {ODataRoute("Orders(DateCompleted={aDateCompleted})")}
+        {ODataRoute("(DateCompleted={aDateCompleted})")}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Order>>),StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get orders by alternate key key DateCompleted.
@@ -131,7 +149,9 @@ namespace Services.Controllers
         endmethod
 
 
-        {ODataRoute("Orders({key})/CustomerNumber")}
+        {ODataRoute("({key})/CustomerNumber")}
+        {ProducesResponseType(StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Get the CustomerNumber property of a single Order, by primary key.
         ;;; </summary>
@@ -149,7 +169,9 @@ namespace Services.Controllers
             mreturn OK(result.CustomerNumber)
         endmethod
 
-        {ODataRoute("Orders({key})/PlacedBy")}
+        {ODataRoute("({key})/PlacedBy")}
+        {ProducesResponseType(StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Get the PlacedBy property of a single Order, by primary key.
         ;;; </summary>
@@ -167,7 +189,9 @@ namespace Services.Controllers
             mreturn OK(result.PlacedBy)
         endmethod
 
-        {ODataRoute("Orders({key})/CustomerReference")}
+        {ODataRoute("({key})/CustomerReference")}
+        {ProducesResponseType(StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Get the CustomerReference property of a single Order, by primary key.
         ;;; </summary>
@@ -185,7 +209,9 @@ namespace Services.Controllers
             mreturn OK(result.CustomerReference)
         endmethod
 
-        {ODataRoute("Orders({key})/PaymentTermsCode")}
+        {ODataRoute("({key})/PaymentTermsCode")}
+        {ProducesResponseType(StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Get the PaymentTermsCode property of a single Order, by primary key.
         ;;; </summary>
@@ -203,7 +229,9 @@ namespace Services.Controllers
             mreturn OK(result.PaymentTermsCode)
         endmethod
 
-        {ODataRoute("Orders({key})/DateOrdered")}
+        {ODataRoute("({key})/DateOrdered")}
+        {ProducesResponseType(StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Get the DateOrdered property of a single Order, by primary key.
         ;;; </summary>
@@ -221,7 +249,9 @@ namespace Services.Controllers
             mreturn OK(result.DateOrdered)
         endmethod
 
-        {ODataRoute("Orders({key})/DateCompleted")}
+        {ODataRoute("({key})/DateCompleted")}
+        {ProducesResponseType(StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Get the DateCompleted property of a single Order, by primary key.
         ;;; </summary>
@@ -239,7 +269,10 @@ namespace Services.Controllers
             mreturn OK(result.DateCompleted)
         endmethod
 
-        {ODataRoute("Orders")}
+        {ODataRoute}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(Order),StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status400BadRequest)}
         ;;; <summary>
         ;;; Create a new order (automatically assigned primary key).
         ;;; </summary>
@@ -276,7 +309,11 @@ namespace Services.Controllers
 
         endmethod
 
-        {ODataRoute("Orders(OrderNumber={aOrderNumber})")}
+        {ODataRoute("(OrderNumber={aOrderNumber})")}
+        {Produces("application/json")}
+        {ProducesResponseType(StatusCodes.Status201Created)}
+        {ProducesResponseType(StatusCodes.Status400BadRequest)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Create (with a client-supplied primary key) or replace a order.
         ;;; </summary>
@@ -325,7 +362,11 @@ namespace Services.Controllers
 
         endmethod
 
-        {ODataRoute("Orders(OrderNumber={aOrderNumber})")}
+        {ODataRoute("(OrderNumber={aOrderNumber})")}
+        {Produces("application/json")}
+        {ProducesResponseType(StatusCodes.Status204NoContent)}
+        {ProducesResponseType(StatusCodes.Status400BadRequest)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Patch  (partial update) a order.
         ;;; </summary>
@@ -376,7 +417,9 @@ namespace Services.Controllers
 
         endmethod
 
-        {ODataRoute("Orders(OrderNumber={aOrderNumber})")}
+        {ODataRoute("(OrderNumber={aOrderNumber})")}
+        {ProducesResponseType(StatusCodes.Status204NoContent)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
         ;;; Delete a order.
         ;;; </summary>
