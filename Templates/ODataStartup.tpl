@@ -513,6 +513,10 @@ namespace <NAMESPACE>
                 ;app.UseHsts()
             end
 
+<IF DEFINED_ENABLE_MULTITENANCY>
+		    app.UseMultiTenancy(GetTenantId)
+
+</IF DEFINED_ENABLE_MULTITENANCY>
             ;;-------------------------------------------------------
             ;;Enable HTTP redirection to HTTPS
 
