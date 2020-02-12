@@ -451,7 +451,7 @@ namespace Harmony.TraditionalBridge
                 throw new Exception("Dynamic array must be correctly sized before unwrapping object collection into it")
             
             
-            for index from 1 thru collectionLength by 1
+            for index from 1 thru collectionLength - 1 by 1
             begin
                 element = collection[index]
                 if(IS_OBJ(element)) then
@@ -496,9 +496,11 @@ namespace Harmony.TraditionalBridge
                 collectionLength, int
             endrecord
         proc
-            collectionLength = collection.GetArrayLength()
-            for i from 0 thru collectionLength by 1
-            begin
+			collectionLength = collection.GetArrayLength()
+			MaybeLog(6, "collection array length:" + %string(collectionLength))
+            for i from 0 thru collectionLength - 1 by 1
+			begin
+				MaybeLog(6, "indexing array:" + %string(i) + " for array of length:" + %string(collectionLength))
                 element = collection[i]
                 if(IS_OBJ(element)) then
                 begin
@@ -530,12 +532,12 @@ namespace Harmony.TraditionalBridge
         proc
             collectionLength = collection.GetArrayLength()
             result = new string[collectionLength]
-            for i from 0 thru collectionLength by 1
+            for i from 0 thru collectionLength - 1 by 1
             begin
                 element = collection[i]
                 if(IS_TEXT(element)) then
                 begin
-                    result[i] = element.GetString()
+                    result[i + 1] = element.GetString()
                 end
                 else
                     throw new InvalidCastException()
@@ -554,7 +556,7 @@ namespace Harmony.TraditionalBridge
         proc
             collectionLength = collection.GetArrayLength()
             result = new int[collectionLength]
-            for i from 0 thru collectionLength by 1
+            for i from 0 thru collectionLength - 1 by 1
             begin
                 element = collection[i]
                 if(IS_NUMBER(element)) then
@@ -578,7 +580,7 @@ namespace Harmony.TraditionalBridge
         proc
             collectionLength = collection.GetArrayLength()
             result = new boolean[collectionLength]
-            for i from 0 thru collectionLength by 1
+            for i from 0 thru collectionLength - 1 by 1
             begin
                 element = collection[i]
                 if(IS_BOOLEAN(element)) then
@@ -602,7 +604,7 @@ namespace Harmony.TraditionalBridge
         proc
             collectionLength = collection.GetArrayLength()
             result = new @id[collectionLength]
-            for i from 0 thru collectionLength by 1
+            for i from 0 thru collectionLength - 1 by 1
             begin
                 element = collection[i]
                 if(IS_NUMBER(element)) then
