@@ -139,7 +139,7 @@ namespace Services
 
             services.AddSingleton<IEdmBuilder, EdmBuilder>()
             services.AddSingleton<IFileChannelManager, FileChannelManager>()
-            services.AddSingleton<IDataObjectProvider>(AddDataObjectMappings)
+			services.AddSingleton<IDataObjectProvider>(AddDataObjectMappings)
             services.AddDbContextPool<Services.Models.DBContext>(ConfigureDBContext)
 
             ;;-------------------------------------------------------
@@ -248,7 +248,6 @@ namespace Services
 
             ;;If there is a ConfigureServicesCustom method, call it
             ConfigureServicesCustom(services)
-
         endmethod
 
         private AppSettingsMonitor, @IDisposable 
@@ -320,7 +319,7 @@ namespace Services
 
                 lambda EnableDI(containerBuilder)
                 begin
-                    containerBuilder.AddService<Microsoft.OData.UriParser.ODataUriResolver>( Microsoft.OData.ServiceLifetime.Singleton, UriResolver)
+					containerBuilder.AddService<Microsoft.OData.UriParser.ODataUriResolver>( Microsoft.OData.ServiceLifetime.Singleton, UriResolver)
                     nop
                 end
 
@@ -334,7 +333,9 @@ namespace Services
                     if(versionedModel == ^null)
                         versionedModel = versionedModelDescriptor.ImplementationFactory(app.ApplicationServices)
                     containerBuilder.AddService<IEdmModel>(Microsoft.OData.ServiceLifetime.Scoped, lambda(sp) { new RefEdmModel() { RealModel = ^as(versionedModel, @IEdmModel) }  })
-                    containerBuilder.AddService<ODataUriResolver>(Microsoft.OData.ServiceLifetime.Singleton, lambda(sp) { new UnqualifiedAltKeyUriResolver(^as(versionedModel, @IEdmModel)) { EnableCaseInsensitive = true } })
+					containerBuilder.AddService<ODataUriResolver>(Microsoft.OData.ServiceLifetime.Singleton, lambda(sp) { new UnqualifiedAltKeyUriResolver(^as(versionedModel, @IEdmModel)) { EnableCaseInsensitive = true } })
+					containerBuilder.AddService<IODataPathTemplateHandler, PathTemplateHandler>( Microsoft.OData.ServiceLifetime.Singleton)
+					containerBuilder.AddService<IODataPathHandler, PathTemplateHandler>( Microsoft.OData.ServiceLifetime.Singleton)
                 end
 
                 ;;Enable support for dependency injection into controllers
