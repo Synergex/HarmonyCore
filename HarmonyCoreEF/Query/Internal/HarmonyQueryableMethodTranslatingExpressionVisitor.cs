@@ -453,9 +453,9 @@ namespace Harmony.Core.EF.Query.Internal
                 {
                     outerQueryExpression = (HarmonyQueryExpression)outer.QueryExpression;
                 }
-                var outerTable = outerQueryExpression.ServerQueryExpression as HarmonyTableExpression;
+                var outerTable = outerQueryExpression.FindServerExpression();
                 var innerQuery = inner.QueryExpression as HarmonyQueryExpression;
-                var innerTable = innerQuery.ServerQueryExpression as HarmonyTableExpression;
+                var innerTable = innerQuery.FindServerExpression();
                 innerTable.Name = string.IsNullOrWhiteSpace(outerTable.Name) ? navValue.Name : outerTable.Name + "." + navValue.Name;
                 //Add outerQuery.ConvertedParameter + innerNav to map to innerTable
                 var innerExpr = Expression.PropertyOrField(outerQueryExpression.ConvertedParameter, navValue.Name);
@@ -703,7 +703,7 @@ namespace Harmony.Core.EF.Query.Internal
                     if (navExpression != null)
                     {
                         var cleanSubQuery = navExpression.Subquery;
-                        var subQueryTable = ((HarmonyQueryExpression)LiftSubquery(queryExpr, cleanSubQuery, replacementVisitor).QueryExpression).ServerQueryExpression as HarmonyTableExpression;
+                        var subQueryTable = ((HarmonyQueryExpression)LiftSubquery(queryExpr, cleanSubQuery, replacementVisitor).QueryExpression).FindServerExpression();
 
                         subQueryTable.Name = includeExpression.Navigation.PropertyInfo.Name;
                         subQueryTable.IsCollection = includeExpression.Navigation.IsCollection();
@@ -744,7 +744,7 @@ namespace Harmony.Core.EF.Query.Internal
         {
             var subquery = TranslateSubquery(cleanSubQuery);
             var subQueryExpr = subquery.QueryExpression as HarmonyQueryExpression;
-            var subQueryTable = subQueryExpr.ServerQueryExpression as HarmonyTableExpression;
+            var subQueryTable = subQueryExpr.FindServerExpression();
             for (int i = 0; i < subQueryTable.WhereExpressions.Count; i++)
             {
                 if(replacementVisitor != null)
@@ -857,11 +857,8 @@ namespace Harmony.Core.EF.Query.Internal
                 return null;
             }
 
-            inMemoryQueryExpression.ServerQueryExpression
-                = Expression.Call(
-                    EnumerableMethods.Skip.MakeGenericMethod(inMemoryQueryExpression.CurrentParameter.Type),
-                    inMemoryQueryExpression.ServerQueryExpression,
-                    count);
+            var serverExpr = inMemoryQueryExpression.FindServerExpression();
+            serverExpr.Skip = count;
 
             return source;
         }
@@ -881,11 +878,8 @@ namespace Harmony.Core.EF.Query.Internal
                 return null;
             }
 
-            inMemoryQueryExpression.ServerQueryExpression
-                = Expression.Call(
-                    EnumerableMethods.Take.MakeGenericMethod(inMemoryQueryExpression.CurrentParameter.Type),
-                    inMemoryQueryExpression.ServerQueryExpression,
-                    count);
+            var serverExpr = inMemoryQueryExpression.FindServerExpression();
+            serverExpr.Top = count;
 
             return source;
         }
@@ -1465,7 +1459,7 @@ namespace Harmony.Core.EF.Query.Internal
                             var updatedExpression = CurrentVisitor.LiftSubquery(ReplacementSource.QueryExpression as HarmonyQueryExpression, node.Expression, null, CurrentParameter);
                             if (updatedExpression != null)
                             {
-                                var tableExpression = ((HarmonyQueryExpression)updatedExpression.QueryExpression).ServerQueryExpression as HarmonyTableExpression;
+                                var tableExpression = ((HarmonyQueryExpression)updatedExpression.QueryExpression).FindServerExpression();
                                 tableExpression.Name = SubQueryTargetNames.Peek();
                                 tableExpression.IsCollection = true;
                                 var queryableType = typeof(Queryable);
@@ -1486,7 +1480,7 @@ namespace Harmony.Core.EF.Query.Internal
             }
         
 
-            private static readonly MethodInfo _getParameterValueMethodInfo
+            internal static readonly MethodInfo _getParameterValueMethodInfo
                 = typeof(HarmonyExpressionTranslatingExpressionVisitor)
                     .GetTypeInfo().GetDeclaredMethod(nameof(GetParameterValue));
             //protected override Expression VisitMethodCall(MethodCallExpression node)

@@ -12,9 +12,12 @@ namespace Harmony.Core.FileIO.Queryable
 			public parentState, @DataObjectMaterializer.MaterializerState
 			public childrenState, @List<DataObjectMaterializer.MaterializerState>
 			public typeBuf, @QueryBuffer.TypeBuffer
+			public toSkip, long
+			public skipped, long
+			public toTake, long?
 			public grfa, a10
-            public madeItems, @IEnumerable<DataObjectBase>
-            public dedupSet, @HashSet<System.Numerics.BigInteger>
+			public madeItems, @IEnumerable<DataObjectBase>
+			public dedupSet, @HashSet<System.Numerics.BigInteger>
 			public lastMadeItem, @DataObjectBase
 			public createdItemCount, int, 0
 			public lastBubbleTarget, int, -1
@@ -42,7 +45,7 @@ namespace Harmony.Core.FileIO.Queryable
 								childState.MaybeBubbleMake(tracker, true)
 						end
 						data structureSize, i4, typeBuf.Metadata.StructureSize
-                        data memPnt, i4, typeBuf.MemoryHandle.Value
+						data memPnt, i4, typeBuf.MemoryHandle.Value
 						;;construct the object
 						lastMadeItem = dependentItems != ^null ? 
 						&	typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa, dependentItems.ToArray()) : 
@@ -88,7 +91,7 @@ namespace Harmony.Core.FileIO.Queryable
 
 				if(parentState != ^null)
 				begin
-					if(madeItems != ^null && HasOneItem() && lastBubbleTarget != parentState.createdItemCount)
+					if(madeItems != ^null && (HasOneItem() || IsEmpty()) && lastBubbleTarget != parentState.createdItemCount)
 					begin
 						parentState.dependentItems.Add(typeBuf.ParentFieldName, madeItems)
 					end
@@ -124,6 +127,7 @@ namespace Harmony.Core.FileIO.Queryable
 
 			public static method MakeState, @MaterializerState
 				buf, @QueryBuffer.TypeBuffer
+				parentQuery, @QueryBuffer
 				parentState, @DataObjectMaterializer.MaterializerState
 			proc
 				data madeState = (@MaterializerState)Activator.CreateInstance(^typeof(MaterializerState<>).MakeGenericType(new Type[#] { buf.DataObjectType }))
@@ -135,6 +139,10 @@ namespace Harmony.Core.FileIO.Queryable
 				madeState.parentState = parentState
 				madeState.changed = false
 				madeState.filled = false
+				
+				madeState.toTake = parentQuery.GetTop(buf)
+				madeState.toSkip = parentQuery.GetSkip(buf)
+
 				mreturn madeState
 			endmethod
 
@@ -165,14 +173,25 @@ namespace Harmony.Core.FileIO.Queryable
 				obj, @DataObjectBase
 			proc
 				data typedItems = ((@List<T>)madeItems)
-                data item, T, (T)obj
+				data item, T, (T)obj
 
-                ;;todo: short circut duplicate item construction
-                data grfaInt = new System.Numerics.BigInteger(obj.GlobalRFA)
-                if(dedupSet.Contains(grfaInt)) then
-                    mreturn
-                else
-                    dedupSet.Add(grfaInt)
+				;;todo: short circut duplicate item construction
+				data grfaInt = new System.Numerics.BigInteger(obj.GlobalRFA)
+				if(dedupSet.Contains(grfaInt)) then
+					mreturn
+				else
+					dedupSet.Add(grfaInt)
+
+				if(skipped < toSkip)
+				begin
+					incr skipped
+					mreturn
+				end
+
+				if(toTake > 0 && toTake <= typedItems.Count)
+				begin
+					mreturn
+				end
 
 				if(typeBuf.OrderBy != ^null) then
 				begin
@@ -206,8 +225,9 @@ namespace Harmony.Core.FileIO.Queryable
 
 			public override method InitItems, void
 			proc
-                madeItems = (@IEnumerable<DataObjectBase>)new List<T>()
-                dedupSet = new HashSet<System.Numerics.BigInteger>()
+				skipped = 0
+				madeItems = (@IEnumerable<DataObjectBase>)new List<T>()
+				dedupSet = new HashSet<System.Numerics.BigInteger>()
 			endmethod
 
 			public override method HasOneItem, boolean
@@ -252,12 +272,13 @@ namespace Harmony.Core.FileIO.Queryable
 
 		public static method MaterializeObject, @IEnumerable<DataObjectBase>
 			typeBuf, @QueryBuffer.TypeBuffer
+			parentQuery, @QueryBuffer
 			rowEnumerator, @Synergex.SynergyDE.Select.RowEnumerator
 			tracker, @Func<DataObjectBase, DataObjectBase>
 			stats, @DataObjectMaterializer.MaterializerStats
 		proc
 			data returnedItem, @DataObjectBase
-			data materializerQueue, @List<DataObjectMaterializer.MaterializerState>, MakeIterationQueue(typeBuf)
+			data materializerQueue, @List<DataObjectMaterializer.MaterializerState>, MakeIterationQueue(typeBuf, parentQuery)
 			data resultState = materializerQueue.First()
 			data currentRow, @Synergex.SynergyDE.Select.Rows
 			materializerQueue.Reverse()
@@ -342,11 +363,12 @@ namespace Harmony.Core.FileIO.Queryable
 
 		private static method MakeIterationQueue, @List<DataObjectMaterializer.MaterializerState>
 			source, @QueryBuffer.TypeBuffer
+			parentQuery, @QueryBuffer
 		proc
 			data result = new List<DataObjectMaterializer.MaterializerState>()
 			data q = new @Queue<DataObjectMaterializer.MaterializerState>()
 
-			data rootState = MaterializerState.MakeState(source, ^null)
+			data rootState = MaterializerState.MakeState(source, parentQuery, ^null)
 			if(source.JoinedBuffers != ^null && source.JoinedBuffers.Count > 0)
 				rootState.dependentItems = new Dictionary<string, Object>()
 
@@ -359,7 +381,7 @@ namespace Harmony.Core.FileIO.Queryable
 				data joined, @QueryBuffer.TypeBuffer
 				foreach joined in current.typeBuf.JoinedBuffers
 				begin
-					data newMatState = MaterializerState.MakeState(joined, current)
+					data newMatState = MaterializerState.MakeState(joined, parentQuery, current)
 					if(joined.IsCollection)
 						newMatState.InitItems()
 

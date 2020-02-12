@@ -42,13 +42,69 @@ namespace Harmony.Core.EF.Query.Internal
                 ParentFieldName = table.Name,
                 Metadata = DataObjectMetadataBase.LookupType(table.ItemType)
             };
+
+            if (table.Top != null)
+            {
+                var bakedFunction = Expression.Lambda<Func<QueryContext, long>>(Expression.Convert(table.Top, typeof(long)), QueryCompilationContext.QueryContextParameter).Compile();
+                made.Top = (obj) => bakedFunction(obj as QueryContext);
+            }
+
+            if (table.Skip != null)
+            {
+                var bakedFunction = Expression.Lambda<Func<QueryContext, long>>(Expression.Convert(table.Skip, typeof(long)), QueryCompilationContext.QueryContextParameter).Compile();
+                made.Skip = (obj) => bakedFunction(obj as QueryContext);
+            }
+
             flatList.Add(Tuple.Create(table, made));
             made.JoinedBuffers = queryTables.OfType<HarmonyTableExpression>().Select(qt => GetTypeBuffer(qt, flatList)).ToList();
             return made;
         }
 
+        public HarmonyTableExpression FindServerExpression()
+        {
+            var subQueryTable = ServerQueryExpression as HarmonyTableExpression;
+            if (subQueryTable == null)
+            {
+                var finder = new HarmonyTableExpressionFindingExpressionVisitor();
+                finder.Visit(ServerQueryExpression);
+                if (finder.TableExpressions.Count == 1)
+                {
+                    subQueryTable = finder.TableExpressions.First();
+                }
+                else
+                {
+                    throw new NotImplementedException("oddly shaped query");
+                }
+            }
+            return subQueryTable;
+        }
+
+        private sealed class HarmonyTableExpressionFindingExpressionVisitor : ExpressionVisitor
+        {
+            public List<HarmonyTableExpression> TableExpressions = new List<HarmonyTableExpression>();
+
+            protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
+            {
+                foreach (var arg in methodCallExpression.Arguments)
+                {
+                    Visit(arg);
+                }
+                return methodCallExpression;
+            }
+
+            protected override Expression VisitExtension(Expression node)
+            {
+                if (node is HarmonyTableExpression expr && !TableExpressions.Contains(expr))
+                {
+                    TableExpressions.Add(expr);
+                }
+                return node;
+            }
+        }
+
         public PreparedQueryPlan PrepareQuery(HarmonyQueryCompilationContext compilationContext)
         {
+            
             var rootExpr = RootExpressions[_valueBufferParameter];
             var processedOns = new List<object>();
             var flatList = new List<Tuple<HarmonyTableExpression, QueryBuffer.TypeBuffer>>();
@@ -584,12 +640,13 @@ namespace Harmony.Core.EF.Query.Internal
             Expression outerKeySelector,
             Expression innerKeySelector)
         {
+            var serverQueryExpression = innerQueryExpression.FindServerExpression();
             if (!RootExpressions.ContainsKey(innerQueryExpression.CurrentParameter))
             {
-                RootExpressions.Add(innerQueryExpression.CurrentParameter, innerQueryExpression.ServerQueryExpression as HarmonyTableExpression);
+                RootExpressions.Add(innerQueryExpression.CurrentParameter, serverQueryExpression);
             }
 
-            (innerQueryExpression.ServerQueryExpression as HarmonyTableExpression).OnExpressions.Add(Expression.Equal(innerKeySelector, outerKeySelector));
+            serverQueryExpression.OnExpressions.Add(Expression.Equal(innerKeySelector, outerKeySelector));
         }
 
         public virtual void AddSelectMany(HarmonyQueryExpression innerQueryExpression, Type transparentIdentifierType, bool innerNullable)

@@ -18,11 +18,56 @@ namespace Harmony.Core.FileIO.Queryable
 			public JoinOn, @object
 			public JoinedBuffers, @List<TypeBuffer>
 			public IsInnerJoin, boolean
-			public OrderBy, @Delegate
+            public OrderBy, @Delegate
+            public Top, @Func<Object, long>
+			public Skip, @Func<Object, long>
 		endclass
 		
 		public readwrite property TypeBuffers, @List<QueryBuffer.TypeBuffer>
 		public readwrite property Parameters, @IReadOnlyDictionary<string, Object>
+		public readwrite property Context, @object
+
+		public method GetTop, long?
+			targetBufferIndex, int
+		proc
+			data targetBuffer = TypeBuffers[targetBufferIndex]
+			mreturn GetTop(targetBuffer)
+		endmethod
+
+		public method GetTop, long?
+			targetBuffer, @QueryBuffer.TypeBuffer
+		proc
+			if(targetBuffer.Top != ^null) then
+			begin
+				mreturn targetBuffer.Top(Context)
+			end
+			else
+			begin
+				mreturn ^null
+			end
+
+		endmethod
+
+		public method GetSkip, long
+			targetBufferIndex, int
+		proc
+			data targetBuffer = TypeBuffers[targetBufferIndex]
+			mreturn GetSkip(targetBuffer)
+		endmethod
+
+		public method GetSkip, long
+			targetBuffer, @QueryBuffer.TypeBuffer
+		proc
+			if(targetBuffer.Skip != ^null) then
+			begin
+				mreturn targetBuffer.Skip(Context)
+			end
+			else
+			begin
+				mreturn 0
+			end
+		endmethod
+
 		private DataObjectProvider, @IDataObjectProvider
 		;;these buffers should not have their memory handles set, this is used as a prototype for the real buffers
 		public method QueryBuffer
@@ -53,7 +98,9 @@ namespace Harmony.Core.FileIO.Queryable
 				&	JoinOn = buf.JoinOn,
 				&	JoinedBuffers = buf.JoinedBuffers.Select(lambda(jBuf) { MakeTypeBuffer(jBuf, dataObjectProvider, bufferMap) }).ToList(),
 				&	IsInnerJoin = buf.IsInnerJoin,
-				&	OrderBy = buf.OrderBy
+                &	OrderBy = buf.OrderBy,
+				&	Top = buf.Top,
+				&	Skip = buf.Skip
 				&	}
 
 				newTypeBuf.MemoryHandle = buf.Metadata.GetBuffer()
@@ -80,8 +127,10 @@ namespace Harmony.Core.FileIO.Queryable
 			bufferProtoType, @QueryBuffer
 			dataObjectProvider, @IDataObjectProvider
 			params, @IReadOnlyDictionary<string, Object>
+			context, @object
 		proc
 			Parameters = params
+			this.Context = context
 			this.DataObjectProvider = dataObjectProvider
 			TypeBuffers = new List<QueryBuffer.TypeBuffer>()
 			data protoBufferMap = new Dictionary<QueryBuffer.TypeBuffer, QueryBuffer.TypeBuffer>()

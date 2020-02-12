@@ -118,14 +118,14 @@ namespace Harmony.Core.EF.Query.Internal
                 return typeof(PreparedQueryPlan)
                     .GetMethod("ExecuteCollectionPlan")
                     .MakeGenericMethod(new Type[] { entityType.ClrType })
-                    .Invoke(queryPlan, new object[] { track, ((HarmonyQueryContext)queryContext).ParameterValues, ((HarmonyQueryContext)queryContext).Store }) as IEnumerable<DataObjectBase>;
+                    .Invoke(queryPlan, new object[] { track, ((HarmonyQueryContext)queryContext).ParameterValues, ((HarmonyQueryContext)queryContext).Store, queryContext }) as IEnumerable<DataObjectBase>;
             }
             else
             {
                 var singleResult = typeof(PreparedQueryPlan)
                     .GetMethod("ExecutePlan")
                     .MakeGenericMethod(new Type[] { entityType.ClrType })
-                    .Invoke(queryPlan, new object[] { track, ((HarmonyQueryContext)queryContext).ParameterValues, ((HarmonyQueryContext)queryContext).Store }) as DataObjectBase;
+                    .Invoke(queryPlan, new object[] { track, ((HarmonyQueryContext)queryContext).ParameterValues, ((HarmonyQueryContext)queryContext).Store, queryContext }) as DataObjectBase;
                 var arrayResult = Array.CreateInstance(entityType.ClrType, 1);
                 arrayResult.SetValue(singleResult, 0);
                 return arrayResult as IEnumerable<DataObjectBase>;
