@@ -110,7 +110,29 @@ namespace Services.Test.UnitTests
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
             data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
-        endmethod
+		endmethod
+
+		{TestMethod}
+		public method GetCustomersInC, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync("/odata/v1/Customers?$filter=State eq 'C'").Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            Assert.AreEqual(customers.Value.Count, 0)
+		endmethod
+
+		{TestMethod}
+		public method GetCustomersInCAD, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync("/odata/v1/Customers?$filter=State eq 'CAD'").Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+			Assert.AreEqual(customers.Value.Count, 0)
+		endmethod
 
         ;;------------------------------------------------------------
         ;;Get all Customers NOT in California

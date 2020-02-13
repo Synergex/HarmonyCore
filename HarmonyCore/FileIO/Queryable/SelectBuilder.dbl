@@ -289,20 +289,29 @@ namespace Harmony.Core.FileIO.Queryable
 		proc
 			data caseInsensitive = theOperator == WhereClauseOperator.NoCaseEqualTo
 
+			if(length > fieldDetails.ElementSize)
+				DebugLogSession.Logging.LogDebug("HARMONY-commandParser::fieldWhereClause: literal length is longer than target field, this will result in 0 matching records")
+
 			using fieldDetails.DataType select
 			(FieldDataType.AlphaField),
 			begin
 				if (fieldDetails.ElementSize != length) then
 				begin
+					if(length > fieldDetails.ElementSize)
+					begin
+						;;this shouldnt match anything because its .eq. and the size of the literal is too long
+						mreturn (Where)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .eq. new string(" ", length))
+					end
+
 					if (!caseInsensitive) then
 					begin
 						DebugLogSession.Logging.LogTrace("HARMONY-commandParser::fieldWhereClause: StartsWith Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, length, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
-						mreturn (Where)(dataBuffer(fieldDetails.StructurePosition:length) .eq. (targetAlpha(1:length)))
+						mreturn (Where)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .eq. targetAlpha)
 					end
 					else
 					begin
 						DebugLogSession.Logging.LogTrace("HARMONY-commandParser::fieldWhereClause: StartsWith NoCaseWhere (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, length, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
-						mreturn (NoCaseWhere)(dataBuffer(fieldDetails.StructurePosition:length) .eq. (targetAlpha(1:length)))
+						mreturn (NoCaseWhere)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .eq. targetAlpha)
 					end
 				end
 				else
