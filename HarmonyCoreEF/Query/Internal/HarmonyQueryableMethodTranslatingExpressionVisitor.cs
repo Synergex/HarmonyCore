@@ -1035,7 +1035,12 @@ namespace Harmony.Core.EF.Query.Internal
 
             protected override Expression VisitUnary(UnaryExpression node)
             {
-                if (node.Type.IsGenericType && node.Type.GetGenericTypeDefinition() == typeof(Nullable<>))
+                if (node.NodeType == ExpressionType.Not)
+                {
+                    var body = Visit(node.Operand);
+                    return Expression.Not(body);
+                }
+                else if (node.Type.IsGenericType && node.Type.GetGenericTypeDefinition() == typeof(Nullable<>))
                     return Visit(node.Operand);
                 else if (node.Type == node.Operand.Type)
                     return Visit(node.Operand);

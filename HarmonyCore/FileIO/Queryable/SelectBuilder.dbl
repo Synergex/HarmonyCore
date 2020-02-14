@@ -286,32 +286,32 @@ namespace Harmony.Core.FileIO.Queryable
 			in req targetAlpha			,a
 			in req memPnt				,i
 			in req length               ,int
+			in req startsWith			,boolean
+			in req caseInsensitive		,boolean
 		proc
-			data caseInsensitive = theOperator == WhereClauseOperator.NoCaseEqualTo
-
 			if(length > fieldDetails.ElementSize)
 				DebugLogSession.Logging.LogDebug("HARMONY-commandParser::fieldWhereClause: literal length is longer than target field, this will result in 0 matching records")
 
 			using fieldDetails.DataType select
 			(FieldDataType.AlphaField),
 			begin
-				if (fieldDetails.ElementSize != length) then
+				if (!startsWith) then
 				begin
 					if(length > fieldDetails.ElementSize)
 					begin
 						;;this shouldnt match anything because its .eq. and the size of the literal is too long
-						mreturn (Where)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .eq. new string(" ", length))
+						mreturn (Where)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .eqs. new string(" ", length))
 					end
 
 					if (!caseInsensitive) then
 					begin
 						DebugLogSession.Logging.LogTrace("HARMONY-commandParser::fieldWhereClause: StartsWith Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, length, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
-						mreturn (Where)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .eq. targetAlpha)
+						mreturn (Where)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .eqs. targetAlpha)
 					end
 					else
 					begin
 						DebugLogSession.Logging.LogTrace("HARMONY-commandParser::fieldWhereClause: StartsWith NoCaseWhere (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, length, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
-						mreturn (NoCaseWhere)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .eq. targetAlpha)
+						mreturn (NoCaseWhere)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .eqs. targetAlpha)
 					end
 				end
 				else
@@ -319,12 +319,12 @@ namespace Harmony.Core.FileIO.Queryable
 					if (!caseInsensitive) then
 					begin
 						DebugLogSession.Logging.LogTrace("HARMONY-commandParser::fieldWhereClause: EqualTo Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
-						mreturn (Where)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .eqs. (targetAlpha(1:length)))
+						mreturn (Where)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .eq. targetAlpha(1:length))
 					end
 					else
 					begin
 						DebugLogSession.Logging.LogTrace("HARMONY-commandParser::fieldWhereClause: EqualTo NoCaseWhere (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
-						mreturn (NoCaseWhere)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .eqs. (targetAlpha(1:length)))
+						mreturn (NoCaseWhere)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .eq. targetAlpha(1:length))
 					end
 				end
 			end
@@ -357,7 +357,7 @@ namespace Harmony.Core.FileIO.Queryable
 				foreach innerField in fieldDetails.CompositeParts
 				begin
 					targetLength = innerField.ElementSize
-					data madeWhere = makeFieldEqClause(dataBuffer, innerField, theOperator, targetAlpha, memPnt, length)
+					data madeWhere = makeFieldEqClause(dataBuffer, innerField, theOperator, targetAlpha, memPnt, length, false, caseInsensitive)
 					if(resultWhere == ^null) then
 						resultWhere = madeWhere
 					else
@@ -376,21 +376,43 @@ namespace Harmony.Core.FileIO.Queryable
 			in req targetAlpha			,a
 			in req memPnt				,i
 			in req length               ,int
+			in req startsWith			,boolean
+			in req caseInsensitive		,boolean
 		proc
-			data caseInsensitive = theOperator == WhereClauseOperator.NoCaseNotEqualTo
-
 			using fieldDetails.DataType select
 			(FieldDataType.AlphaField),
 			begin
-				if (!caseInsensitive) then
+				if (!startsWith) then
 				begin
-					DebugLogSession.Logging.LogTrace("HARMONY-commandParser::fieldWhereClause: NotEqualTo Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, length, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
-					mreturn (Where)(dataBuffer(fieldDetails.StructurePosition:length) .nes. (targetAlpha(1:length)))
+					if(length > fieldDetails.ElementSize)
+					begin
+						;;this shouldnt match anything because its .eq. and the size of the literal is too long
+						mreturn (Where)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .nes. new string(" ", length))
+					end
+
+					if (!caseInsensitive) then
+					begin
+						DebugLogSession.Logging.LogTrace("HARMONY-commandParser::fieldWhereClause: NotEqualTo Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, length, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
+						mreturn (Where)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .nes. targetAlpha)
+					end
+					else
+					begin
+						DebugLogSession.Logging.LogTrace("HARMONY-commandParser::fieldWhereClause: NotEqualTo NoCaseWhere (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, length, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
+						mreturn (NoCaseWhere)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .nes. targetAlpha)
+					end
 				end
 				else
 				begin
-					DebugLogSession.Logging.LogTrace("HARMONY-commandParser::fieldWhereClause: NotEqualTo NoCaseWhere (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, length, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
-					mreturn (NoCaseWhere)(dataBuffer(fieldDetails.StructurePosition:length) .nes. (targetAlpha(1:length)))
+					if (!caseInsensitive) then
+					begin
+						DebugLogSession.Logging.LogTrace("HARMONY-commandParser::fieldWhereClause: NotStartsWith Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
+						mreturn (Where)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .ne. targetAlpha(1:length))
+					end
+					else
+					begin
+						DebugLogSession.Logging.LogTrace("HARMONY-commandParser::fieldWhereClause: NotStartsWith NoCaseWhere (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
+						mreturn (NoCaseWhere)(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize) .ne. targetAlpha(1:length))
+					end
 				end
 			end
 			(FieldDataType.IntegerField),
@@ -422,7 +444,7 @@ namespace Harmony.Core.FileIO.Queryable
 				foreach innerField in fieldDetails.CompositeParts
 				begin
 					targetLength = innerField.ElementSize
-					data madeWhere = makeFieldEqClause(dataBuffer, innerField, theOperator, targetAlpha, memPnt, length)
+					data madeWhere = makeFieldEqClause(dataBuffer, innerField, theOperator, targetAlpha, memPnt, length, false, caseInsensitive)
 					if(resultWhere == ^null) then
 						resultWhere = madeWhere
 					else
@@ -439,7 +461,7 @@ namespace Harmony.Core.FileIO.Queryable
 		private method fieldWhereClause	,@Where
 			in req dataBuffer			,a
 			in req fieldDetails			,@FieldDataDefinition
-			in req theOperator			,whereClauseOperator
+			in req theOperatorParam		,whereClauseOperator
 			in req theValues			,[#]string
 			endparams
 			
@@ -453,8 +475,11 @@ namespace Harmony.Core.FileIO.Queryable
 				bNum	,d3
 				memPnt	,i4
 				valueLength, int
+				theOperator, whereClauseOperator
+				startsWith, boolean
 			endrecord
 		proc
+			theOperator = theOperatorParam
 			memPnt = %mem_proc(DM_ALLOC, fieldDetails.ElementSize)
 			^m(tmpStructure(1:fieldDetails.ElementSize), memPnt) = theValues[1]
 			valueLength = theValues[1].Length
@@ -463,16 +488,42 @@ namespace Harmony.Core.FileIO.Queryable
 			data caseInsensitive = theOperator == WhereClauseOperator.NoCaseEqualTo || 
 			&	theOperator == WhereClauseOperator.NoCaseNotEqualTo ||
 			&	theOperator == WhereClauseOperator.IsLikeNoCase ||
-			&	theOperator == WhereClauseOperator.IsInNoCase
+			&	theOperator == WhereClauseOperator.IsInNoCase ||
+			&	theOperator == WhereClauseOperator.StartsWithNoCase ||
+			&	theOperator == WhereClauseOperator.NotStartsWithNoCase
+
+			using theOperator select
+			(WhereClauseOperator.StartsWithNoCase),
+			begin
+				startsWith = true
+				theOperator = WhereClauseOperator.NoCaseEqualTo
+			end
+			(WhereClauseOperator.StartsWith),
+			begin
+				startsWith = true
+				theOperator = WhereClauseOperator.EqualTo
+			end
+			(WhereClauseOperator.NotStartsWith),
+			begin
+				startsWith = true
+				theOperator = WhereClauseOperator.NotEqualTo
+			end
+			(WhereClauseOperator.NotStartsWithNoCase),
+			begin
+				startsWith = true
+				theOperator = WhereClauseOperator.NoCaseNotEqualTo
+			end
+
+			endusing
 
 			using theOperator select
 			(whereClauseOperator.EqualTo, WhereClauseOperator.NoCaseEqualTo),
 			begin
-				mreturn makeFieldEqClause(dataBuffer, fieldDetails, theOperator, ^m(tmpStructure(1:fieldDetails.ElementSize), memPnt), memPnt, valueLength)
+				mreturn makeFieldEqClause(dataBuffer, fieldDetails, theOperator, ^m(tmpStructure(1:fieldDetails.ElementSize), memPnt), memPnt, valueLength, startsWith, caseInsensitive)
 			end
 			(whereClauseOperator.NotEqualTo, WhereClauseOperator.NoCaseNotEqualTo),
 			begin
-				mreturn makeFieldNeqClause(dataBuffer, fieldDetails, theOperator, ^m(tmpStructure(1:fieldDetails.ElementSize), memPnt), memPnt, valueLength)
+				mreturn makeFieldNeqClause(dataBuffer, fieldDetails, theOperator, ^m(tmpStructure(1:fieldDetails.ElementSize), memPnt), memPnt, valueLength, startsWith, caseInsensitive)
 			end
 			(whereClauseOperator.GreaterThanOrEqualTo),
 			begin
@@ -642,8 +693,9 @@ namespace Harmony.Core.FileIO.Queryable
 				end
 				endusing
 			end
-			(whereClauseOperator.EndsWith, whereClauseOperator.EndsWithNoCase),
+			(whereClauseOperator.EndsWith, whereClauseOperator.EndsWithNoCase, WhereClauseOperator.NotEndsWith, WhereClauseOperator.NotEndsWithNoCase),
 			begin
+				data resultWhere, @Where
 				using fieldDetails.DataType select
 				(FieldDataType.AlphaField),
 				begin
@@ -653,15 +705,20 @@ namespace Harmony.Core.FileIO.Queryable
 					if (!caseInsensitive) then
 					begin
 						DebugLogSession.Logging.LogTrace("HARMONY-commandParser::fieldWhereClause: EndsWith Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
-						mreturn Where.Like(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), "%" + (^m(tmpStructure(1:length), memPnt)))
+						resultWhere = Where.Like(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), "%" + (^m(tmpStructure(1:length), memPnt)))
 					end
 					else
 					begin
 						DebugLogSession.Logging.LogTrace("HARMONY-commandParser::fieldWhereClause: EndsWith NoCaseWhere (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
-						mreturn NoCaseWhere.Like(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), "%" + (^m(tmpStructure(1:length), memPnt)))
+						resultWhere = NoCaseWhere.Like(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), "%" + (^m(tmpStructure(1:length), memPnt)))
 					end
 				end
 				endusing
+
+				if(theOperator == WhereClauseOperator.NotEndsWith || theOperator == WhereClauseOperator.NotEndsWithNoCase)
+					resultWhere = !resultWhere
+
+				mreturn resultWhere
 			end
 			(whereClauseOperator.IsBetween),
 			begin
