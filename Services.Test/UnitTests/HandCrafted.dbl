@@ -120,7 +120,73 @@ namespace Services.Test.UnitTests
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
-            Assert.AreEqual(customers.Value.Count, 0)
+			Assert.AreEqual(customers.Value.Count, 0)
+
+		endmethod
+
+		{TestMethod}
+		public method GetCustomersInCPrefix, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync("/odata/v1/Customers?$filter=startswith(State,'C')").Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+			Assert.AreNotEqual(customers.Value.Count, 0)
+			data customer, @Customer
+			foreach customer in customers.Value
+			begin
+				Assert.IsTrue(customer.State.StartsWith("C"))
+			end
+		endmethod
+
+		{TestMethod}
+		public method GetCustomersNotInCPrefix, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync("/odata/v1/Customers?$filter=not startswith(State,'C')").Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+			Assert.AreNotEqual(customers.Value.Count, 0)
+			data customer, @Customer
+			foreach customer in customers.Value
+			begin
+				Assert.IsFalse(customer.State.StartsWith("C"))
+			end
+		endmethod
+
+		{TestMethod}
+		public method GetCustomersNotInCPrefixCaseI, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync("/odata/v1/Customers?$filter=not startswith(tolower(State),'c')").Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+			Assert.AreNotEqual(customers.Value.Count, 0)
+			data customer, @Customer
+			foreach customer in customers.Value
+			begin
+				Assert.IsFalse(customer.State.ToLower().StartsWith("c"))
+			end
+
+		endmethod
+
+		{TestMethod}
+		public method GetCustomersInCPrefixCaseI, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync("/odata/v1/Customers?$filter=startswith(tolower(State),'c')").Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+			Assert.AreNotEqual(customers.Value.Count, 0)
+			data customer, @Customer
+			foreach customer in customers.Value
+			begin
+				Assert.IsTrue(customer.State.StartsWith("C"))
+			end
 		endmethod
 
 		{TestMethod}
@@ -241,21 +307,21 @@ namespace Services.Test.UnitTests
         ;;------------------------------------------------------------
         ;;All items latin name not end with 'costata'
 
-        {TestMethod}
-        public method GetCustomersLatinNotEndWith, void
-        proc
-            disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/v1/Items?$filter=not endswith(LatinName,'costata')").Result
-            data result = response.Content.ReadAsStringAsync().Result
-            response.EnsureSuccessStatusCode()
-            data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
-            data itm, @Item
-            foreach itm in items.Value
-            begin
-                if(itm.LatinName.EndsWith("costata"))
-                    Assert.Fail("latin name ended with costata")
-            end
-        endmethod
+;        {TestMethod}
+;        public method GetCustomersLatinNotEndWith, void
+;        proc
+;            disposable data client = UnitTestEnvironment.Server.CreateClient()
+;            disposable data response = client.GetAsync("/odata/v1/Items?$filter=not endswith(LatinName,'costata')").Result
+;            data result = response.Content.ReadAsStringAsync().Result
+;            response.EnsureSuccessStatusCode()
+;            data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
+;            data itm, @Item
+;            foreach itm in items.Value
+;            begin
+;                if(itm.LatinName.EndsWith("costata"))
+;                    Assert.Fail("latin name ended with costata")
+;            end
+;        endmethod
 
         {TestMethod}
         public method GetCustomersLatinEndWith, void
