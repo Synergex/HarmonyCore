@@ -307,21 +307,22 @@ namespace Services.Test.UnitTests
         ;;------------------------------------------------------------
         ;;All items latin name not end with 'costata'
 
-;        {TestMethod}
-;        public method GetCustomersLatinNotEndWith, void
-;        proc
-;            disposable data client = UnitTestEnvironment.Server.CreateClient()
-;            disposable data response = client.GetAsync("/odata/v1/Items?$filter=not endswith(LatinName,'costata')").Result
-;            data result = response.Content.ReadAsStringAsync().Result
-;            response.EnsureSuccessStatusCode()
-;            data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
-;            data itm, @Item
-;            foreach itm in items.Value
-;            begin
-;                if(itm.LatinName.EndsWith("costata"))
-;                    Assert.Fail("latin name ended with costata")
-;            end
-;        endmethod
+        {TestMethod}
+        public method GetCustomersLatinNotEndWith, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Items?$filter=not endswith(LatinName,'costata')").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+			data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
+            Assert.AreNotEqual(0, items.Value.Count)
+            data itm, @Item
+            foreach itm in items.Value
+            begin
+                if(itm.LatinName.EndsWith("costata"))
+                    Assert.Fail("latin name ended with costata")
+            end
+        endmethod
 
         {TestMethod}
         public method GetCustomersLatinEndWith, void
@@ -330,7 +331,8 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Items?$filter=endswith(LatinName,'costata')").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
+			data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
+			Assert.AreNotEqual(0, items.Value.Count)
             data itm, @Item
             foreach itm in items.Value
             begin
