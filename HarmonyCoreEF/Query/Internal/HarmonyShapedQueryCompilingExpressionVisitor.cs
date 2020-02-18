@@ -13,6 +13,8 @@ using Harmony.Core.EF.Storage;
 using Microsoft.EntityFrameworkCore;
 using Harmony.Core.FileIO.Queryable;
 using Harmony.Core.EF.Extensions.Internal;
+using Harmony.Core.Utility;
+using System.Runtime.CompilerServices;
 
 namespace Harmony.Core.EF.Query.Internal
 {
@@ -86,11 +88,18 @@ namespace Harmony.Core.EF.Query.Internal
             }
             else
             {
+                //if trace logging is turned on, compile the shaper expression with debug info
+                Delegate shaperInstance = null;
+                if (DebugLogSession.Logging.Level == Interface.LogLevel.Trace)
+                    shaperInstance = capturedShaper.Compile(DebugInfoGenerator.CreatePdbGenerator());
+                else
+                    shaperInstance = capturedShaper.Compile();
+
                 return Expression.New(
                 typeof(QueryingEnumerable<,>).MakeGenericType(shaperLambda.ReturnType, innerEnumerableType).GetConstructors()[0],
                 QueryCompilationContext.QueryContextParameter,
                 innerEnumerable,
-                Expression.Constant(capturedShaper.Compile()),
+                Expression.Constant(shaperInstance),
                 Expression.Constant(_contextType),
                 Expression.Constant(_logger));
             }
