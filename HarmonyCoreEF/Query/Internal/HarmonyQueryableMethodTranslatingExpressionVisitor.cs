@@ -1435,7 +1435,7 @@ namespace Harmony.Core.EF.Query.Internal
                 var nullableType = target.Type.IsValueType ? typeof(Nullable<>).MakeGenericType(target.Type) : null;
                 if (baseExpression.Type.IsValueType)
                     return nullable ? Expression.Convert(target, nullableType) : target;
-                else if(!nullable)
+                else if(!nullable || nullableType == null)
                     return Expression.Condition(Expression.Equal(Expression.Constant(null), baseExpression), Expression.Default(target.Type), target, target.Type);
                 else
                     return Expression.Condition(Expression.Equal(Expression.Constant(null), baseExpression), Expression.Constant(null, nullableType), Expression.Convert(target, nullableType), nullableType);
