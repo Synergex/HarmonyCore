@@ -591,13 +591,7 @@ namespace Harmony.Core.EF.Query.Internal
                 return null;
             }
 
-            var orderBy = ascending ? EnumerableMethods.OrderBy : EnumerableMethods.OrderByDescending;
-            inMemoryQueryExpression.ServerQueryExpression
-                = Expression.Call(
-                    orderBy.MakeGenericMethod(inMemoryQueryExpression.CurrentParameter.Type, keySelector.ReturnType),
-                    inMemoryQueryExpression.ServerQueryExpression,
-                    keySelector);
-
+            inMemoryQueryExpression.FindServerExpression().OrderByExpressions.Add(Tuple.Create<Expression, bool>(keySelector.Body, ascending));
             return source;
         }
 
@@ -858,6 +852,7 @@ namespace Harmony.Core.EF.Query.Internal
             }
 
             var serverExpr = inMemoryQueryExpression.FindServerExpression();
+            serverExpr.IsCollection = true;
             serverExpr.Skip = count;
 
             return source;
@@ -879,6 +874,7 @@ namespace Harmony.Core.EF.Query.Internal
             }
 
             var serverExpr = inMemoryQueryExpression.FindServerExpression();
+            serverExpr.IsCollection = true;
             serverExpr.Top = count;
 
             return source;

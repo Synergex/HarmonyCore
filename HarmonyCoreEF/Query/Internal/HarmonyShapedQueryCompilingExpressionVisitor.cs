@@ -90,10 +90,11 @@ namespace Harmony.Core.EF.Query.Internal
             {
                 //if trace logging is turned on, compile the shaper expression with debug info
                 Delegate shaperInstance = null;
-                if (DebugLogSession.Logging.Level == Interface.LogLevel.Trace)
-                    shaperInstance = capturedShaper.Compile(DebugInfoGenerator.CreatePdbGenerator());
-                else
-                    shaperInstance = capturedShaper.Compile();
+                //put this back in when its supported in .Net Core
+                //if (DebugLogSession.Logging.Level == Interface.LogLevel.Trace)
+                //    shaperInstance = capturedShaper.Compile(DebugInfoGenerator.CreatePdbGenerator());
+                //else
+                shaperInstance = capturedShaper.Compile();
 
                 return Expression.New(
                 typeof(QueryingEnumerable<,>).MakeGenericType(shaperLambda.ReturnType, innerEnumerableType).GetConstructors()[0],

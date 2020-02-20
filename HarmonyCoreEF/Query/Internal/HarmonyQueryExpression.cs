@@ -42,7 +42,7 @@ namespace Harmony.Core.EF.Query.Internal
                 ParentFieldName = table.Name,
                 Metadata = DataObjectMetadataBase.LookupType(table.ItemType)
             };
-
+            
             if (table.Top != null)
             {
                 var bakedFunction = Expression.Lambda<Func<QueryContext, long>>(Expression.Convert(table.Top, typeof(long)), QueryCompilationContext.QueryContextParameter).Compile();
@@ -55,9 +55,36 @@ namespace Harmony.Core.EF.Query.Internal
                 made.Skip = (obj) => bakedFunction(obj as QueryContext);
             }
 
+            if (made.Top != null || made.Skip != null)
+            {
+                made.SelectResult = CollectionFilterMethod.MakeGenericMethod(made.DataObjectType).CreateDelegate(typeof(Func<QueryBuffer, QueryBuffer.TypeBuffer, object, object>), null) as Func<QueryBuffer, QueryBuffer.TypeBuffer, object, object>;
+            }
+
             flatList.Add(Tuple.Create(table, made));
             made.JoinedBuffers = queryTables.OfType<HarmonyTableExpression>().Select(qt => GetTypeBuffer(qt, flatList)).ToList();
             return made;
+        }
+
+        private static MethodInfo CollectionFilterMethod = typeof(HarmonyQueryExpression).GetMethod("CollectionFilter");
+
+        public static object CollectionFilter<T>(QueryBuffer query, QueryBuffer.TypeBuffer typeBuf, object result)
+        {
+            var typedResult = result as IEnumerable<T>;
+            if (typedResult != null)
+            {
+                if (typeBuf.Skip != null)
+                {
+                    typedResult = typedResult.Skip((int)typeBuf.Skip(query.Context));
+                }
+
+                if (typeBuf.Top != null)
+                {
+                    typedResult = typedResult.Take((int)typeBuf.Top(query.Context));
+                }
+                return typedResult.ToList();
+            }
+            else
+                return result;
         }
 
         public HarmonyTableExpression FindServerExpression()
@@ -161,8 +188,10 @@ namespace Harmony.Core.EF.Query.Internal
                 }
             }
 
+            var queryBuffer = new QueryBuffer(flatList.Select(tpl => tpl.Item2).ToList());
+
             var queryPlan = new PreparedQueryPlan(true, processedWheres, new Dictionary<int, List<FieldDataDefinition>>(), processedOns,
-                orderBys, new QueryBuffer(flatList.Select(tpl => tpl.Item2).ToList()), "");
+                orderBys, queryBuffer, "");
 
             return queryPlan;
         }

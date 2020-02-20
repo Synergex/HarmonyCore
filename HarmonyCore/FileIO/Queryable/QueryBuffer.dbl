@@ -18,7 +18,8 @@ namespace Harmony.Core.FileIO.Queryable
 			public JoinOn, @object
 			public JoinedBuffers, @List<TypeBuffer>
 			public IsInnerJoin, boolean
-            public OrderBy, @Delegate
+			public OrderBy, @Delegate
+			public SelectResult, @Func<QueryBuffer, QueryBuffer.TypeBuffer, Object, Object>
             public Top, @Func<Object, long>
 			public Skip, @Func<Object, long>
 		endclass
@@ -75,7 +76,7 @@ namespace Harmony.Core.FileIO.Queryable
 		proc
 			if(buffers.Any(lambda (buf) { buf.MemoryHandle != ^null || buf.IOChannel != ^null }))
 				throw new InvalidOperationException("TypeBuffer should not have its MemoryHandle member set during QueryBuffer construction")
-				
+			
 			TypeBuffers = buffers.ToList()
 		endmethod
 		
@@ -98,7 +99,8 @@ namespace Harmony.Core.FileIO.Queryable
 				&	JoinOn = buf.JoinOn,
 				&	JoinedBuffers = buf.JoinedBuffers.Select(lambda(jBuf) { MakeTypeBuffer(jBuf, dataObjectProvider, bufferMap) }).ToList(),
 				&	IsInnerJoin = buf.IsInnerJoin,
-                &	OrderBy = buf.OrderBy,
+				&	OrderBy = buf.OrderBy,
+				&	SelectResult = buf.SelectResult,
 				&	Top = buf.Top,
 				&	Skip = buf.Skip
 				&	}

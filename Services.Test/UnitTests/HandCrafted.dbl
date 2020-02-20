@@ -731,7 +731,73 @@ namespace Services.Test.UnitTests
             Assert.AreEqual(customers2.REL_CustomerOrders.ElementAt(2).OrderNumber, customers.REL_CustomerOrders.ElementAt(0).OrderNumber)
             Assert.AreEqual(customers2.REL_CustomerOrders.ElementAt(3).OrderNumber, customers.REL_CustomerOrders.ElementAt(1).OrderNumber)
 
-        endmethod
+		endmethod
+
+		{TestMethod}
+		public method ExpandAndTopSkip2, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync("/odata/v1/Customers?$top=5&$expand=REL_CustomerOrders($top=2;$skip=2)").Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+
+			Assert.AreEqual(customers.Value.Count, 5)
+
+			disposable data response2 = client.GetAsync("/odata/v1/Customers?$top=5&$expand=REL_CustomerOrders($top=4)").Result
+			data result2 = response2.Content.ReadAsStringAsync().Result
+			response2.EnsureSuccessStatusCode()
+			data customers2, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result2)
+
+			Assert.AreEqual(customers2.Value.Count, 5)
+
+			data i = 0
+            data cust, @Customer
+			data cust2, @Customer
+			for i from 0 thru 4 by 1
+			begin
+				cust = customers.Value[i]
+				cust2 = customers2.Value[i]
+				Assert.AreEqual(cust.REL_CustomerOrders.Count, 2)
+				Assert.AreEqual(cust2.REL_CustomerOrders.Count, 4)
+				Assert.AreEqual(cust2.REL_CustomerOrders.ElementAt(2).OrderNumber, cust.REL_CustomerOrders.ElementAt(0).OrderNumber)
+				Assert.AreEqual(cust2.REL_CustomerOrders.ElementAt(3).OrderNumber, cust.REL_CustomerOrders.ElementAt(1).OrderNumber)
+			end
+
+		endmethod
+
+		{TestMethod}
+		public method ExpandAndTopSkip3, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync("/odata/v1/Customers?$top=2&$skip=2&$orderby=CustomerNumber&$expand=REL_CustomerOrders($top=2;$skip=2)").Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+
+			Assert.AreEqual(customers.Value.Count, 2)
+
+			disposable data response2 = client.GetAsync("/odata/v1/Customers?$top=4&$orderby=CustomerNumber&$expand=REL_CustomerOrders($top=4)").Result
+			data result2 = response2.Content.ReadAsStringAsync().Result
+			response2.EnsureSuccessStatusCode()
+			data customers2, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result2)
+
+			Assert.AreEqual(customers2.Value.Count, 4)
+
+			data i = 0
+			data cust, @Customer
+			data cust2, @Customer
+			for i from 0 thru 1 by 1
+			begin
+				cust = customers.Value[i]
+				cust2 = customers2.Value[i + 2]
+				Assert.AreEqual(cust.REL_CustomerOrders.Count, 2)
+				Assert.AreEqual(cust2.REL_CustomerOrders.Count, 4)
+				Assert.AreEqual(cust2.REL_CustomerOrders.ElementAt(2).OrderNumber, cust.REL_CustomerOrders.ElementAt(0).OrderNumber)
+				Assert.AreEqual(cust2.REL_CustomerOrders.ElementAt(3).OrderNumber, cust.REL_CustomerOrders.ElementAt(1).OrderNumber)
+			end
+
+		endmethod
 
         {TestMethod}
         public method ExpandAndSelect1, void

@@ -9,6 +9,7 @@ namespace Harmony.Core.FileIO.Queryable
 
 	public class DataObjectMaterializer
 		private abstract class MaterializerState
+			public queryBuf, @QueryBuffer
 			public parentState, @DataObjectMaterializer.MaterializerState
 			public childrenState, @List<DataObjectMaterializer.MaterializerState>
 			public typeBuf, @QueryBuffer.TypeBuffer
@@ -48,7 +49,7 @@ namespace Harmony.Core.FileIO.Queryable
 						data memPnt, i4, typeBuf.MemoryHandle.Value
 						;;construct the object
 						lastMadeItem = dependentItems != ^null ? 
-						&	typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa, dependentItems.ToArray()) : 
+						&	typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa, ProcessDependentItems()) : 
 						&	typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa)
 
 						createdItemCount += 1
@@ -64,6 +65,28 @@ namespace Harmony.Core.FileIO.Queryable
 					lastMadeItem = ^null
 				end
 			endmethod
+
+			private method ProcessDependentItems, [#]KeyValuePair<string, Object>
+			proc
+				data result = new List<KeyValuePair<string, Object>>()
+				data i = 0
+				for i from 0 thru dependentItems.Count - 1 by 1
+				begin
+					data child = childrenState[i]
+					data dependentResult, @object, ^null
+
+					dependentItems.TryGetValue(child.TypeBuf.ParentFieldName, dependentResult)
+					if(child.typeBuf.SelectResult != ^null && dependentResult != ^null) then
+					begin
+						result.Add(new KeyValuePair<string, Object>(child.typeBuf.ParentFieldName, child.typeBuf.SelectResult(queryBuf, child.typeBuf, dependentResult)))
+					end
+					else if(dependentResult != ^null)
+						result.Add(new KeyValuePair<string, Object>(child.typeBuf.ParentFieldName, dependentResult))
+				end
+				mreturn result.ToArray()
+
+			endmethod
+
 
 			public method Bubble, void
 				madeObject, @DataObjectBase
@@ -136,6 +159,7 @@ namespace Harmony.Core.FileIO.Queryable
 
 				madeState.childrenState = new List<DataObjectMaterializer.MaterializerState>()
 				madeState.typeBuf = buf
+				madeState.queryBuf = parentQuery
 				madeState.parentState = parentState
 				madeState.changed = false
 				madeState.filled = false
@@ -181,17 +205,6 @@ namespace Harmony.Core.FileIO.Queryable
 					mreturn
 				else
 					dedupSet.Add(grfaInt)
-
-				if(skipped < toSkip)
-				begin
-					incr skipped
-					mreturn
-				end
-
-				if(toTake > 0 && toTake <= typedItems.Count)
-				begin
-					mreturn
-				end
 
 				if(typeBuf.OrderBy != ^null) then
 				begin
