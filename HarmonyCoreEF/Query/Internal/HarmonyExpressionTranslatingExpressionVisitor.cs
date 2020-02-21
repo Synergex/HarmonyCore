@@ -14,6 +14,7 @@ using Microsoft.EntityFrameworkCore.Query;
 using Harmony.Core.EF.Storage;
 using Harmony.Core.EF.Extensions.Internal;
 using Microsoft.EntityFrameworkCore;
+using Harmony.Core.FileIO.Queryable.Expressions;
 
 namespace Harmony.Core.EF.Query.Internal
 {
@@ -65,9 +66,7 @@ namespace Harmony.Core.EF.Query.Internal
         {
             var result = Visit(expression);
 
-            return _entityProjectionFindingExpressionVisitor.Find(result)
-                ? null
-                : result;
+            return result;
         }
 
         protected override Expression VisitBinary(BinaryExpression binaryExpression)
@@ -458,6 +457,14 @@ namespace Harmony.Core.EF.Query.Internal
 
                 arguments[i] = argument;
             }
+
+            if (methodCallExpression.Method.DeclaringType == typeof(Enumerable) && methodCallExpression.Method.Name == "Contains" && 
+                methodCallExpression.Arguments.Count == 2 && methodCallExpression.Arguments[0] is ConstantExpression constExpr && 
+                constExpr.Value is System.Collections.IEnumerable)
+            {
+                return new InExpression { Collection = ((System.Collections.IEnumerable)constExpr.Value).OfType<object>().Select(obj => obj.ToString()).ToList(), Predicate = methodCallExpression.Arguments[1] };
+            }
+
 
             // if object is nullable, add null safeguard before calling the function
             // we special-case Nullable<>.GetValueOrDefault, which doesn't need the safeguard

@@ -14,6 +14,7 @@ using Microsoft.EntityFrameworkCore.Query;
 using Harmony.Core.EF.Storage;
 using Microsoft.EntityFrameworkCore;
 using Harmony.Core.EF.Extensions.Internal;
+using Harmony.Core.FileIO.Queryable.Expressions;
 
 namespace Harmony.Core.EF.Query.Internal
 {
@@ -1027,6 +1028,14 @@ namespace Harmony.Core.EF.Query.Internal
                         }
                 }
                 return base.VisitConditional(node);
+            }
+
+            protected override Expression VisitExtension(Expression node)
+            {
+                if (node is InExpression)
+                    return node;
+
+                return base.VisitExtension(node);
             }
 
             protected override Expression VisitUnary(UnaryExpression node)

@@ -13,6 +13,7 @@ using Harmony.Core.EF.Storage;
 using Microsoft.EntityFrameworkCore;
 using Harmony.Core.EF.Extensions.Internal;
 using Harmony.Core.FileIO.Queryable;
+using Harmony.Core.Enumerations;
 
 namespace Harmony.Core.EF.Query.Internal
 {
@@ -174,6 +175,22 @@ namespace Harmony.Core.EF.Query.Internal
                         else
                         {
                             throw new NotImplementedException();
+                        }
+                    }
+                }
+
+                if (tpl.Item1 != rootExpr)
+                {
+                    foreach (var expr in tpl.Item1.WhereExpressions)
+                    {
+                        var madeOn = whereBuilder.VisitForOn(expr);
+                        if (madeOn != null)
+                        {
+                            processedOns.Add(madeOn);
+                            if (tpl.Item2.JoinOn != null)
+                                madeOn = new ConnectorPart() { Op = WhereClauseConnector.AndOperator, Left = tpl.Item2.JoinOn, Right = madeOn };
+
+                            tpl.Item2.JoinOn = madeOn;
                         }
                     }
                 }

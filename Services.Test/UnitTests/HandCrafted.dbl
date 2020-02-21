@@ -641,10 +641,12 @@ namespace Services.Test.UnitTests
         public method ExpandAndSelectAndFilter3, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/v1/Customers(8)?$expand=REL_CustomerOrders($filter=OrderNumber in(10, 12, 15) and CustomerNumber gt 1)").Result
+            disposable data response = client.GetAsync("/odata/v1/Customers(8)?$expand=REL_CustomerOrders($filter=OrderNumber in(41, 56, 64) and CustomerNumber gt 1)").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
+			data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
+            ;;TODO validate that this contains 3 items, current select bug means this returns one row
+            Assert.AreNotEqual(customers.REL_CustomerOrders.Count, 0)
         endmethod
 
         {TestMethod}
@@ -797,6 +799,53 @@ namespace Services.Test.UnitTests
 				Assert.AreEqual(cust2.REL_CustomerOrders.ElementAt(3).OrderNumber, cust.REL_CustomerOrders.ElementAt(1).OrderNumber)
 			end
 
+		endmethod
+
+		{TestMethod}
+		public method CustomerExpandAllAndVerify, void
+		proc
+			data client = UnitTestEnvironment.Server.CreateClient()
+			data response = client.GetAsync("/odata/v1/Customers(CustomerNumber=8)?$expand=REL_CustomerOrders,REL_CustomerFavoriteItem,REL_CustomerNotes($filter=NoteNumber+gt+900)").Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data cust, @Customer, JsonConvert.DeserializeObject<Customer>(result)
+			Assert.AreNotEqual(cust.REL_CustomerOrders.Count, 0)
+			Assert.AreNotEqual(cust.REL_CustomerFavoriteItem, ^null)
+			Assert.AreEqual(cust.REL_CustomerNotes.Count, 0)
+            
+		endmethod
+
+		{TestMethod}
+		public method CustomerExpandAndVerify1, void
+		proc
+			data client = UnitTestEnvironment.Server.CreateClient()
+			data response = client.GetAsync("/odata/v1/Customers(CustomerNumber=8)?$expand=REL_CustomerNotes").Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data cust, @Customer, JsonConvert.DeserializeObject<Customer>(result)
+			Assert.AreNotEqual(cust.REL_CustomerNotes.Count, 0)
+		endmethod
+
+		{TestMethod}
+		public method CustomerExpandAndVerify2, void
+		proc
+			data client = UnitTestEnvironment.Server.CreateClient()
+			data response = client.GetAsync("/odata/v1/Customers(CustomerNumber=8)?$expand=REL_CustomerFavoriteItem").Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data cust, @Customer, JsonConvert.DeserializeObject<Customer>(result)
+			Assert.AreNotEqual(cust.REL_CustomerFavoriteItem, ^null)
+		endmethod
+
+		{TestMethod}
+		public method CustomerExpandAndVerify3, void
+		proc
+			data client = UnitTestEnvironment.Server.CreateClient()
+			data response = client.GetAsync("/odata/v1/Customers(CustomerNumber=8)?$expand=REL_CustomerOrders").Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data cust, @Customer, JsonConvert.DeserializeObject<Customer>(result)
+			Assert.AreNotEqual(cust.REL_CustomerOrders.Count, 0)
 		endmethod
 
         {TestMethod}
