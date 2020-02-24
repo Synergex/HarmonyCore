@@ -320,12 +320,14 @@ namespace <NAMESPACE>
                 begin
                     iformatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue(sseg));
                 end
+                
+                op.MaxIAsyncEnumerableBufferLimit = int.MaxValue
             end
 
             data mvcBuilder = services.AddMvcCore(MvcCoreConfig)
             &    .SetCompatibilityVersion(CompatibilityVersion.Version_2_2 )
             &    .AddDataAnnotations()      ;;Enable data annotations
-            &    .AddJsonFormatters()       ;;For PATCH
+            &    .AddNewtonsoftJson()      ;;For PATCH
         <IF DEFINED_ENABLE_SWAGGER_DOCS>
             &    .AddApiExplorer()          ;;Swagger UI
         </IF DEFINED_ENABLE_SWAGGER_DOCS>
