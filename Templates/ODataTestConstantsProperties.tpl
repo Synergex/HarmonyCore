@@ -55,6 +55,7 @@ namespace <NAMESPACE>
 
     public static partial class TestConstants
 <STRUCTURE_LOOP>
+<IF STRUCTURE_ISAM>
 
         ;;------------------------------------------------------------
         ;;Test data for <StructureNoplural>
@@ -106,6 +107,7 @@ namespace <NAMESPACE>
     </SEGMENT_LOOP>
   </PRIMARY_KEY>
 
+</IF STRUCTURE_ISAM>
 </STRUCTURE_LOOP>
     endclass
 
