@@ -556,7 +556,7 @@ namespace <NAMESPACE>
 
 <IF STRUCTURE_FILES>
 .region "Properties to represent keys"
-
+<IF STRUCTURE_ISAM>
   <KEY_LOOP>
     <IF FIRST>
         ;;Access keys
@@ -576,6 +576,7 @@ namespace <NAMESPACE>
 
   </FOREIGN_KEY_LOOP>
 
+</IF STRUCTURE_ISAM>
 .endregion
 
 </IF STRUCTURE_FILES>

@@ -60,6 +60,7 @@ namespace <NAMESPACE>
         static method TestConstants
         proc
 <STRUCTURE_LOOP>
+<IF STRUCTURE_ISAM>
 
             ;;------------------------------------------------------------
             ;;Test data for <StructureNoplural>
@@ -110,6 +111,7 @@ namespace <NAMESPACE>
             Update<StructureNoplural>_<SegmentName> = <FIELD_CSDEFAULT>
         </SEGMENT_LOOP>
     </PRIMARY_KEY>
+</IF STRUCTURE_ISAM>
 </STRUCTURE_LOOP>
 
         endmethod

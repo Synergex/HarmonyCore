@@ -137,6 +137,7 @@ namespace <NAMESPACE>
         
   </IF STRUCTURE_RELATIONS>
 </IF DEFINED_ENABLE_RELATIONS>
+<IF STRUCTURE_ISAM>
         ;;------------------------------------------------------------
         ;;Get a single <StructureNoplural> by primary key
 
@@ -155,6 +156,7 @@ namespace <NAMESPACE>
             data <structureNoplural>, @OData<StructureNoplural>, JsonConvert.DeserializeObject<OData<StructureNoplural>>(result)
         endmethod
 
+</IF STRUCTURE_ISAM>
 <IF DEFINED_ENABLE_RELATIONS>
   <IF STRUCTURE_RELATIONS>
     <RELATION_LOOP_RESTRICTED>
@@ -197,6 +199,7 @@ namespace <NAMESPACE>
 
   </IF STRUCTURE_RELATIONS>
 </IF DEFINED_ENABLE_RELATIONS>
+<IF STRUCTURE_ISAM>
 <IF DEFINED_ENABLE_ALTERNATE_KEYS>
 <ALTERNATE_KEY_LOOP>
         ;;------------------------------------------------------------
@@ -223,6 +226,7 @@ namespace <NAMESPACE>
 
 </ALTERNATE_KEY_LOOP>
 </IF DEFINED_ENABLE_ALTERNATE_KEYS>
+</IF STRUCTURE_ISAM>
 ;//        ;;------------------------------------------------------------
 ;//        ;;Create a new <StructureNoplural> (auto assign key)
 ;//
