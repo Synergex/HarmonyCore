@@ -125,6 +125,7 @@ rem set ENABLE_ALTERNATE_FIELD_NAMES=-af
 rem set ENABLE_READ_ONLY_PROPERTIES=-define ENABLE_READ_ONLY_PROPERTIES
 rem set ENABLE_TRADITIONAL_BRIDGE_GENERATION=YES
 rem set ENABLE_XFSERVERPLUS_MIGRATION=YES
+rem set ENABLE_XFSERVERPLUS_MODEL_GENERATION=YES
 rem set ENABLE_BRIDGE_SAMPLE_DISPATCHERS=-define ENABLE_BRIDGE_SAMPLE_DISPATCHERS
 rem set ENABLE_BRIDGE_OPTIONAL_PARAMETERS=YES
 
@@ -337,104 +338,14 @@ if DEFINED ENABLE_BRIDGE_OPTIONAL_PARAMETERS (
 )
 
 if DEFINED ENABLE_XFSERVERPLUS_MIGRATION (
-
-  rem Generate dispatcher classes for all methods in in interface (TRADITIONAL SIDE)
-
-  codegen -smc %SMC_XML_FILE% ^
-          -interface %SMC_INTERFACE% ^
-          -t %BRIDGE_DISPATCHER_TEMPLATE% ^
-          -i %SolutionDir%Templates\TraditionalBridge ^
-          -o %SolutionDir%%TraditionalBridgeProject%\Dispatchers ^
-          -n %TraditionalBridgeProject%.Dispatchers ^
-          -ut MODELS_NAMESPACE=%TraditionalBridgeProject%.Models ^
-          %STDOPTS%
-  if ERRORLEVEL 1 goto error
-
-  rem Generate the main dispatcher class (TRADITIONAL SIDE)
-  
-  codegen -smc %SMC_XML_FILE% ^
-          -interface %SMC_INTERFACE% ^
-          -t InterfaceDispatcher ^
-          -i %SolutionDir%Templates\TraditionalBridge ^
-          -o %SolutionDir%%TraditionalBridgeProject%\Dispatchers ^
-          -n %TraditionalBridgeProject%.Dispatchers ^
-          -ut MODELS_NAMESPACE=%TraditionalBridgeProject%.Models ^
-          %STDOPTS%
-  if ERRORLEVEL 1 goto error
-
-    rem Generate a class with methods that generate sample data for OUT and inout params and return value (TRADITIONAL SIDE)
-
-  codegen -smc %SMC_XML_FILE% ^
-          -interface %SMC_INTERFACE% ^
-          -t InterfaceTestResponses ^
-          -i %SolutionDir%Templates\TraditionalBridge ^
-          -o %SolutionDir%%TraditionalBridgeProject%\Methods ^
-          -n %TraditionalBridgeProject%.Methods ^
-          %STDOPTS%
-  if ERRORLEVEL 1 goto error
-  
-  rem Generate the request and response models for the service class methods (.NET side)
-
-  codegen -smc %SMC_XML_FILE% ^
-          -interface %SMC_INTERFACE% ^
-          -t InterfaceServiceModels ^
-          -i %SolutionDir%Templates\TraditionalBridge ^
-          -o %SolutionDir%%ModelsProject% ^
-          -n %ModelsProject% ^
-          %STDOPTS%
-  if ERRORLEVEL 1 goto error
-
-  rem Generate the service class (.NET side)
-
-  codegen -smc %SMC_XML_FILE% ^
-          -interface %SMC_INTERFACE% ^
-          -t InterfaceService ^
-          -i %SolutionDir%Templates\TraditionalBridge ^
-          -o %SolutionDir%%ControllersProject% ^
-          -n %ControllersProject% ^
-          -ut MODELS_NAMESPACE=%ModelsProject% ^
-          %STDOPTS%
-  if ERRORLEVEL 1 goto error
-
-  rem Generate the Web API controller (.NET side)
-
-  codegen -smc %SMC_XML_FILE% ^
-          -interface %SMC_INTERFACE% ^
-          -t InterfaceController ^
-          -i %SolutionDir%Templates\TraditionalBridge ^
-          -o %SolutionDir%%ControllersProject% ^
-          -n %ControllersProject% ^
-          -ut MODELS_NAMESPACE=%ModelsProject% ^
-          %STDOPTS%
-  if ERRORLEVEL 1 goto error
-
-  rem Generate the Postman tests for the Interface
-
-  codegen -smc %SMC_XML_FILE% ^
-          -interface %SMC_INTERFACE% ^
-          -t InterfacePostmanTests ^
-          -i %SolutionDir%Templates\TraditionalBridge ^
-          -o %SolutionDir% ^
-          %STDOPTS%
-  if ERRORLEVEL 1 goto error
-
+  call :GenerateCodeForInterface %SMC_INTERFACE%
 )
 
 rem ================================================================================
 rem Generate code for the Traditional Bridge SignalR sample environment
 
 if DEFINED ENABLE_SIGNALR (
-
-  codegen -smc %SMC_XML_FILE% ^
-          -interface %SMC_INTERFACE% ^
-          -t SignalRHub ^
-          -i %SolutionDir%Templates\SignalR ^
-          -o %SolutionDir%%ControllersProject% ^
-          -n %ControllersProject% ^
-          -ut MODELS_NAMESPACE=%ServicesProject%.Models ^
-          %STDOPTS%
-  if ERRORLEVEL 1 goto error  
-
+  call :GenerateCodeForSignalR %SMC_INTERFACE%
 )
 
 echo.
@@ -448,3 +359,120 @@ echo *** CODE GENERATION INCOMPLETE ***
 :done
 popd
 endlocal
+exit
+
+:GenerateCodeForInterface
+
+  echo Generating Traditional Bridge code for interface %1...
+
+  rem Generate dispatcher classes for all methods in in interface (TRADITIONAL SIDE)
+
+  codegen -smc %SMC_XML_FILE% ^
+          -interface %1 ^
+          -t %BRIDGE_DISPATCHER_TEMPLATE% ^
+          -i %SolutionDir%Templates\TraditionalBridge ^
+          -o %SolutionDir%%TraditionalBridgeProject%\Dispatchers ^
+          -n %TraditionalBridgeProject%.Dispatchers ^
+          -ut MODELS_NAMESPACE=%TraditionalBridgeProject%.Models ^
+          %STDOPTS%
+  if ERRORLEVEL 1 goto error
+
+  rem Generate the main dispatcher class (TRADITIONAL SIDE)
+  
+  codegen -smc %SMC_XML_FILE% ^
+          -interface %1 ^
+          -t InterfaceDispatcher ^
+          -i %SolutionDir%Templates\TraditionalBridge ^
+          -o %SolutionDir%%TraditionalBridgeProject%\Dispatchers ^
+          -n %TraditionalBridgeProject%.Dispatchers ^
+          -ut MODELS_NAMESPACE=%TraditionalBridgeProject%.Models ^
+          %STDOPTS%
+  if ERRORLEVEL 1 goto error
+
+  rem Generate model classes (TRADITIONAL SIDE)
+
+  codegen -smcstrs %SMC_XML_FILE% ^
+          -interface %1 ^
+          -t TraditionalModel TraditionalMetadata ^
+          -i %SolutionDir%Templates\TraditionalBridge ^
+          -o %SolutionDir%%TraditionalBridgeProject%\Models ^
+          -n %TraditionalBridgeProject%.Models ^
+          %STDOPTS%
+
+  rem Generate model classes (.NET side)
+  rem Ideally the same data classes are shared between OData and Traditional Bridge
+  rem environments. But if OData is not being used, enable this to generate Models
+  rem in the web service based on SMC content.
+
+  if defined ENABLE_XFSERVERPLUS_MODEL_GENERATION (
+    codegen -smcstrs %SMC_XML_FILE% ^
+            -interface %SMC_INTERFACE% ^
+            -t ODataModel ODataMetaData ^
+            -i %SolutionDir%Templates\TraditionalBridge ^
+            -o %SolutionDir%%ModelsProject% ^
+            -n %ModelsProject% ^
+            %STDOPTS%
+  )
+
+  rem Generate request and response models for the service class methods (.NET side)
+
+  codegen -smc %SMC_XML_FILE% ^
+          -interface %1 ^
+          -t InterfaceServiceModels ^
+          -i %SolutionDir%Templates\TraditionalBridge ^
+          -o %SolutionDir%%ModelsProject% ^
+          -n %ModelsProject% ^
+          %STDOPTS%
+  if ERRORLEVEL 1 goto error
+
+  rem Generate the service class (.NET side)
+
+  codegen -smc %SMC_XML_FILE% ^
+          -interface %1 ^
+          -t InterfaceService ^
+          -i %SolutionDir%Templates\TraditionalBridge ^
+          -o %SolutionDir%%ControllersProject% ^
+          -n %ControllersProject% ^
+          -ut MODELS_NAMESPACE=%ModelsProject% ^
+          %STDOPTS%
+  if ERRORLEVEL 1 goto error
+
+  rem Generate the Web API controller (.NET side)
+
+  codegen -smc %SMC_XML_FILE% ^
+          -interface %1 ^
+          -t InterfaceController ^
+          -i %SolutionDir%Templates\TraditionalBridge ^
+          -o %SolutionDir%%ControllersProject% ^
+          -n %ControllersProject% ^
+          -ut MODELS_NAMESPACE=%ModelsProject% ^
+          %STDOPTS%
+  if ERRORLEVEL 1 goto error
+
+  rem Generate the Postman tests for the Interface
+
+  codegen -smc %SMC_XML_FILE% ^
+          -interface %1 ^
+          -t InterfacePostmanTests ^
+          -i %SolutionDir%Templates\TraditionalBridge ^
+          -o %SolutionDir% ^
+          %STDOPTS%
+  if ERRORLEVEL 1 goto error
+
+GOTO:eof
+
+:GenerateCodeForSignalR
+
+  echo Generating SignalR code for interface %1...
+
+  codegen -smc %SMC_XML_FILE% ^
+          -interface %1 ^
+          -t SignalRHub ^
+          -i %SolutionDir%Templates\SignalR ^
+          -o %SolutionDir%%ControllersProject% ^
+          -n %ControllersProject% ^
+          -ut MODELS_NAMESPACE=%ServicesProject%.Models ^
+          %STDOPTS%
+  if ERRORLEVEL 1 goto error  
+
+GOTO:eof
