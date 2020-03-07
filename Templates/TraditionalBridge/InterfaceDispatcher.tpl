@@ -55,7 +55,7 @@ namespace <NAMESPACE>
         proc
 <IF DEFINED_ENABLE_BRIDGE_SAMPLE_DISPATCHERS>
             ;;Declare dispatcher classes fotr the sample methods
-            mDispatchStubs.Add("AddTwoNumbers", new AddTwoNumbersDispatcherDispatcher())
+            mDispatchStubs.Add("AddTwoNumbers", new AddTwoNumbersDispatcher())
             mDispatchStubs.Add("GetEnvironment", new GetEnvironmentDispatcher())
             mDispatchStubs.Add("GetLogicalName", new GetLogicalNameDispatcher())
 
