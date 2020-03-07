@@ -1,4 +1,4 @@
-<CODEGEN_FILENAME><StructureName>MetaData.dbl</CODEGEN_FILENAME>
+<CODEGEN_FILENAME><StructureNoplural>MetaData.dbl</CODEGEN_FILENAME>
 <REQUIRES_CODEGEN_VERSION>5.4.6</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
@@ -34,9 +34,9 @@
 ;//
 ;;*****************************************************************************
 ;;
-;; Title:       <StructureName>MetaData.dbl
+;; Title:       <StructureNoplural>MetaData.dbl
 ;;
-;; Description: Defines meta data associated with a <StructureName> model.
+;; Description: Defines meta data associated with a <StructureNoplural> model.
 ;;
 ;;*****************************************************************************
 ;; WARNING: GENERATED CODE!
@@ -53,14 +53,14 @@ import Harmony.Core.Converters
 namespace <NAMESPACE>
 
     ;;; <summary>
-    ;;; Global structure representing a <StructureName> record.
+    ;;; Global structure representing a <StructureNoplural> record.
     ;;; </summary>
-    .include "<STRUCTURE_NOALIAS>" repository, public structure="str<StructureName>", end
+    .include "<STRUCTURE_NOALIAS>" repository, public structure="str<StructureNoplural>", end
 
     ;;; <summary>
-    ;;; Exposes metadata relating to the <StructureName> model class.
+    ;;; Exposes metadata relating to the <StructureNoplural> model class.
     ;;; </summary>
-    public partial class <StructureName>Metadata extends DataObjectMetadataBase
+    public partial class <StructureNoplural>Metadata extends DataObjectMetadataBase
 
 ;//
 ;//    Instantiate any required converters
@@ -112,13 +112,13 @@ namespace <NAMESPACE>
 </FIELD_LOOP>
 
         ;;; <summary>
-        ;;; Constructs an new <StructureName>Metadata object.
+        ;;; Constructs an new <StructureNoplural>Metadata object.
         ;;; </summary>
-        public method <StructureName>Metadata
+        public method <StructureNoplural>Metadata
         proc
             ;; Define structure name and size
             RPSStructureName = "<STRUCTURE_NOALIAS>"
-            RPSStructureSize = ^size(str<StructureName>)
+            RPSStructureSize = ^size(str<StructureNoplural>)
 ;//
 ;//    Add definitions for the structures fields
 ;//
@@ -179,22 +179,22 @@ namespace <NAMESPACE>
         endmethod
 
         ;;; <summary>
-        ;;; Returns a new <StructureName> object containing data from a record and a GRFA.
+        ;;; Returns a new <StructureNoplural> object containing data from a record and a GRFA.
         ;;; </summary>
-        ;;; <param name="dataArea">The record containing the data for the new <StructureName> object.</param>
+        ;;; <param name="dataArea">The record containing the data for the new <StructureNoplural> object.</param>
         ;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
         ;;; <returns></returns>
         public override method MakeNew, @DataObjectBase
             required in dataArea, a
             required in grfa, a
         proc
-            mreturn new <StructureName>(dataArea, grfa)
+            mreturn new <StructureNoplural>(dataArea, grfa)
         endmethod
 
         ;;; <summary>
-        ;;; Returns a new <StructureName> object containing data from a record and a GRFA.
+        ;;; Returns a new <StructureNoplural> object containing data from a record and a GRFA.
         ;;; </summary>
-        ;;; <param name="dataArea">The record containing the data for the new <StructureName> object.</param>
+        ;;; <param name="dataArea">The record containing the data for the new <StructureNoplural> object.</param>
         ;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
         ;;; <param name="joinedObjects">Data to allow the related data properties <IF DEFINED_ENABLE_RELATIONS><IF STRUCTURE_RELATIONS>(<RELATION_LOOP_RESTRICTED><IF MANY_TO_ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY><,and></RELATION_LOOP_RESTRICTED>) </IF STRUCTURE_RELATIONS></IF DEFINED_ENABLE_RELATIONS>to be populated.</param>
         ;;; <returns></returns>
@@ -203,8 +203,8 @@ namespace <NAMESPACE>
             required in grfa, a
             required in joinedObjects, [#]KeyValuePair<String, Object>
         proc
-            data new<StructureName> = new <StructureName>(dataArea, grfa)
-            mreturn new<StructureName>
+            data new<StructureNoplural> = new <StructureNoplural>(dataArea, grfa)
+            mreturn new<StructureNoplural>
 
         endmethod
 

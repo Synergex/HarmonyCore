@@ -66,7 +66,7 @@ namespace <NAMESPACE>
             </METHOD_LOOP>
 
             ;;Initialize all data object metadata
-            this.initMetaData()
+            ;this.initMetaData()
         
         endmethod
 
