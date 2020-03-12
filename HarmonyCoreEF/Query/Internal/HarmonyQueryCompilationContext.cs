@@ -23,15 +23,20 @@ namespace Harmony.Core.EF.Query.Internal
         {
             if (NavigationsForParameterLookup.TryGetValue(outerExpr, out var navCollection))
             {
-                if(!navCollection.Contains(nav))
+                if (!navCollection.Contains(nav))
                     navCollection.Add(nav);
             }
             else
             {
                 NavigationsForParameterLookup.Add(outerExpr, new List<INavigation> { nav });
             }
-
-            ParameterToNavigationLookup.Add(innerExpr, nav);
+            if (ParameterToNavigationLookup.TryGetValue(innerExpr, out var existingNav))
+            {
+                if (existingNav != nav)
+                    throw new NotImplementedException("duplicate parameters pointing to different navigations");
+            }
+            else
+                ParameterToNavigationLookup.Add(innerExpr, nav);
         }
 
         public void MapQueryExpression(ShapedQueryExpression shapedExpression, Expression selectParameter)
