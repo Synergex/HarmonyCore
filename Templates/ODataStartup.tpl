@@ -104,6 +104,7 @@ import Microsoft.AspNetCore.Mvc.ApiExplorer
 import Swashbuckle.AspNetCore.Swagger
 import Microsoft.AspNet.OData.Formatter
 import Microsoft.Net.Http.Headers
+import Microsoft.OpenApi.Models
 </IF DEFINED_ENABLE_API_VERSIONING>
 
 namespace <NAMESPACE>
