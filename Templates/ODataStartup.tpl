@@ -278,14 +278,14 @@ namespace <NAMESPACE>
                 ;; note: you might choose to skip or document deprecated API versions differently
                 foreach description in provider.ApiVersionDescriptions
                 begin
-                    data info = new Info()
+                    data info = new OpenApiInfo()
                     &    {
                     &    Title = "<API_TITLE> " + description.ApiVersion.ToString(),
                     &    Version = description.ApiVersion.ToString(),
                     &    Description = "<API_DESCRIPTION>",
-                    &    Contact = new Swashbuckle.AspNetCore.Swagger.Contact() { Name = "<API_CONTACT_NAME>", Email = "<API_CONTACT_EMAIL>" },
-                    &    TermsOfService = "<API_TERMS>",
-                    &    License = new Swashbuckle.AspNetCore.Swagger.License() { Name = "<API_LICENSE_NAME>", Url = "<API_LICENSE_URL>" }
+                    &    Contact = new OpenApiContact() { Name = "<API_CONTACT_NAME>", Email = "<API_CONTACT_EMAIL>" },
+                    &    TermsOfService = new Uri("https://opensource.org/licenses/BSD-2-Clause"),
+                    &    License = new OpenApiLicense() { Name = "<API_LICENSE_NAME>", Url = "<API_LICENSE_URL>" }
                     &    }
 
                     options.SwaggerDoc( description.GroupName, info )
