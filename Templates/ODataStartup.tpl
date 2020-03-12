@@ -284,8 +284,8 @@ namespace <NAMESPACE>
                     &    Version = description.ApiVersion.ToString(),
                     &    Description = "<API_DESCRIPTION>",
                     &    Contact = new OpenApiContact() { Name = "<API_CONTACT_NAME>", Email = "<API_CONTACT_EMAIL>" },
-                    &    TermsOfService = new Uri("https://opensource.org/licenses/BSD-2-Clause"),
-                    &    License = new OpenApiLicense() { Name = "<API_LICENSE_NAME>", Url = "<API_LICENSE_URL>" }
+                    &    TermsOfService = new Uri("<API_LICENSE_URL>"),
+                    &    License = new OpenApiLicense() { Name = "<API_LICENSE_NAME>", Url = new Uri("<API_LICENSE_URL>") }
                     &    }
 
                     options.SwaggerDoc( description.GroupName, info )
@@ -584,6 +584,8 @@ namespace <NAMESPACE>
                         versionedModel = versionedModelDescriptor.ImplementationFactory(app.ApplicationServices)
                     containerBuilder.AddService<IEdmModel>(Microsoft.OData.ServiceLifetime.Scoped, lambda(sp) { new RefEdmModel() { RealModel = ^as(versionedModel, @IEdmModel) }  })
                     containerBuilder.AddService<ODataUriResolver>(Microsoft.OData.ServiceLifetime.Singleton, lambda(sp) { new UnqualifiedAltKeyUriResolver(^as(versionedModel, @IEdmModel)) { EnableCaseInsensitive = true } })
+                    containerBuilder.AddService<IODataPathTemplateHandler, PathTemplateHandler>( Microsoft.OData.ServiceLifetime.Singleton)
+                    containerBuilder.AddService<IODataPathHandler, PathTemplateHandler>( Microsoft.OData.ServiceLifetime.Singleton)
                 end
             <ELSE>
                 lambda ConfigureRoute(containerBuilder)
