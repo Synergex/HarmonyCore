@@ -159,7 +159,7 @@ if DEFINED ENABLE_ODATA_ENVIRONMENT (
   codegen -s  %DATA_STRUCTURES% ^
           -a  %DATA_ALIASES% ^
 		  -fo %DATA_FILES% ^
-          -t  ODataController ^
+          -t  ODataControllerV2 ^
           -i  %SolutionDir%Templates ^
           -o  %SolutionDir%%ControllersProject% ^
           -n  %ControllersProject% ^
@@ -359,7 +359,7 @@ echo *** CODE GENERATION INCOMPLETE ***
 :done
 popd
 endlocal
-exit
+exit /B
 
 :GenerateCodeForInterface
 
@@ -458,8 +458,8 @@ exit
           -o %SolutionDir% ^
           %STDOPTS%
   if ERRORLEVEL 1 goto error
-
-GOTO:eof
+ 
+GOTO EOF
 
 :GenerateCodeForSignalR
 
@@ -475,4 +475,4 @@ GOTO:eof
           %STDOPTS%
   if ERRORLEVEL 1 goto error  
 
-GOTO:eof
+GOTO EOF
