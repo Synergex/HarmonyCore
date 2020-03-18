@@ -641,12 +641,11 @@ namespace Services.Test.UnitTests
         public method ExpandAndSelectAndFilter3, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/v1/Customers(8)?$expand=REL_CustomerOrders($filter=OrderNumber in(41, 56, 64) and CustomerNumber gt 1)").Result
+            disposable data response = client.GetAsync("/odata/v1/Customers(26)?$expand=REL_CustomerOrders($filter=OrderNumber in(26, 27, 41) and CustomerNumber gt 1)").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
 			data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
-            ;;TODO validate that this contains 3 items, current select bug means this returns one row
-            Assert.AreNotEqual(customers.REL_CustomerOrders.Count, 0)
+            Assert.AreEqual(customers.REL_CustomerOrders.Count, 3)
         endmethod
 
         {TestMethod}
