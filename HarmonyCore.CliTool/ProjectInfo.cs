@@ -124,11 +124,11 @@ namespace HarmonyCore.CliTool
                 importFragment.Attributes.Append(projectAttr);
                 importFragment.Attributes.Append(conditionAttr);
                 var targetFragment = ProjectDoc.CreateElement("Project", ProjectDoc.DocumentElement.NamespaceURI);
-                targetFragment.InnerXml = $"<Target Name=\"EnsureNuGetPackageBuildImports\" BeforeTargets=\"PrepareForBuild\" xmlns=\"{ProjectDoc.DocumentElement.NamespaceURI}\">" +
-                                          "<PropertyGroup>" +
-                                          "<ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>" +
-                                          "</PropertyGroup>" +
-                                          $"<Error Condition=\"!Exists('$(USERPROFILE)\\.nuget\\packages\\synergex.synergyde.build\\{Program.BuildPackageVersion}\\build\\rps\\Synergex.SynergyDE.Build.targets')\" Text=\"$([System.String]::Format('$(ErrorText)', '$(USERPROFILE)\\.nuget\\packages\\synergex.synergyde.build\\{Program.BuildPackageVersion}\\build\\rps\\Synergex.SynergyDE.Build.targets'))\" />" +
+                targetFragment.InnerXml = $"<Target Name=\"EnsureNuGetPackageBuildImports\" BeforeTargets=\"PrepareForBuild\" xmlns=\"{ProjectDoc.DocumentElement.NamespaceURI}\">\r\n" +
+                                          "<PropertyGroup>\r\n" +
+                                          "<ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>\r\n" +
+                                          "</PropertyGroup>\r\n" +
+                                          $"<Error Condition=\"!Exists('$(USERPROFILE)\\.nuget\\packages\\synergex.synergyde.build\\{Program.BuildPackageVersion}\\build\\rps\\Synergex.SynergyDE.Build.targets')\" Text=\"$([System.String]::Format('$(ErrorText)', '$(USERPROFILE)\\.nuget\\packages\\synergex.synergyde.build\\{Program.BuildPackageVersion}\\build\\rps\\Synergex.SynergyDE.Build.targets'))\" />\r\n" +
                                           "</Target>";
                 
                 var importedElement = ProjectDoc.DocumentElement.AppendChild(importFragment);
