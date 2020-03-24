@@ -31,6 +31,14 @@ namespace HarmonyCore.CliTool
         {
             "Services.Controllers"
         };
+
+        private static HashSet<string> CodeDomProjects = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "Services.Controllers",
+            "Services",
+            "Services.Host",
+            "Services.Test"
+        };
         public string FileName { get; set; }
         public XmlDocument ProjectDoc { get; set; }
 
@@ -146,7 +154,7 @@ namespace HarmonyCore.CliTool
 
             //upgrade Host and test to Web sdk if needed
             //Add SDK reference to Services.Controllers
-            if (WebReferenceProjects.Contains(cleanFileName))
+            if (WebReferenceProjects.Contains(cleanFileName) || CodeDomProjects.Contains(cleanFileName))
             {
                 var firstItemGroup =
                         ProjectDoc.GetElementsByTagName("ItemGroup").OfType<XmlNode>().FirstOrDefault();
@@ -156,29 +164,35 @@ namespace HarmonyCore.CliTool
                     ProjectDoc.AppendChild(firstItemGroup);
                 }
 
-                var hasFramworkReference = ProjectDoc.GetElementsByTagName("FrameworkReference").OfType<XmlNode>()
-                    .Any(node => node.Attributes["Include"]?.Value == "Microsoft.AspNetCore.App");
-                if (!hasFramworkReference)
+                if (WebReferenceProjects.Contains(cleanFileName))
                 {
-                    var webReference = ProjectDoc.CreateElement("FrameworkReference");
-                    var webReferenceName = ProjectDoc.CreateAttribute("Include");
-                    webReferenceName.Value = "Microsoft.AspNetCore.App";
-                    webReference.Attributes.Append(webReferenceName);
-                    firstItemGroup.AppendChild(webReference);
+                    var hasFramworkReference = ProjectDoc.GetElementsByTagName("FrameworkReference").OfType<XmlNode>()
+                        .Any(node => node.Attributes["Include"]?.Value == "Microsoft.AspNetCore.App");
+                    if (!hasFramworkReference)
+                    {
+                        var webReference = ProjectDoc.CreateElement("FrameworkReference");
+                        var webReferenceName = ProjectDoc.CreateAttribute("Include");
+                        webReferenceName.Value = "Microsoft.AspNetCore.App";
+                        webReference.Attributes.Append(webReferenceName);
+                        firstItemGroup.AppendChild(webReference);
+                    }
                 }
 
-                var hasCodeDomInjector = ProjectDoc.GetElementsByTagName("PackageReference").OfType<XmlNode>()
-                    .Any(node => node.Attributes["Include"]?.Value == "HarmonyCore.CodeDomProvider");
-                if(!hasCodeDomInjector)
+                if (CodeDomProjects.Contains(cleanFileName))
                 {
-                    var codeDomReference = ProjectDoc.CreateElement("FrameworkReference");
-                    var codeDomReferenceName = ProjectDoc.CreateAttribute("Include");
-                    codeDomReferenceName.Value = "Microsoft.AspNetCore.App";
-                    var codeDomReferenceVersion = ProjectDoc.CreateAttribute("Version");
-                    codeDomReferenceVersion.Value = Program.CodeDomProviderVersion;
-                    codeDomReference.Attributes.Append(codeDomReferenceName);
-                    codeDomReference.Attributes.Append(codeDomReferenceVersion);
-                    firstItemGroup.AppendChild(codeDomReference);
+                    var hasCodeDomInjector = ProjectDoc.GetElementsByTagName("PackageReference").OfType<XmlNode>()
+                    .Any(node => node.Attributes["Include"]?.Value == "HarmonyCore.CodeDomProvider");
+                    if (!hasCodeDomInjector)
+                    {
+                        var codeDomReference = ProjectDoc.CreateElement("FrameworkReference");
+                        var codeDomReferenceName = ProjectDoc.CreateAttribute("Include");
+                        codeDomReferenceName.Value = "Microsoft.AspNetCore.App";
+                        var codeDomReferenceVersion = ProjectDoc.CreateAttribute("Version");
+                        codeDomReferenceVersion.Value = Program.CodeDomProviderVersion;
+                        codeDomReference.Attributes.Append(codeDomReferenceName);
+                        codeDomReference.Attributes.Append(codeDomReferenceVersion);
+                        firstItemGroup.AppendChild(codeDomReference);
+                    }
                 }
             }
         }

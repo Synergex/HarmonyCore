@@ -17,7 +17,7 @@ namespace HarmonyCore.CliTool
             [Option('p', "project")]
             public bool ProjectOnly { get; set; }
         }
-        public static string CurrentVersionTag = "release-v3.1";
+        public static string CurrentVersionTag = "release-v3.1.1";
         public static string BuildPackageVersion = "11.1.1030.2704";
         public static string CodeDomProviderVersion = "1.0.7";
         private static Dictionary<string, string> LatestNugetReferences = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase)
@@ -27,22 +27,23 @@ namespace HarmonyCore.CliTool
             {"Harmony.Core.EF", "3.1.17"},
             {"Harmony.Core.OData", "3.1.17"},
             {"Harmony.Core.AspNetCore", "3.1.17"},
-            {"Synergex.SynergyDE.synrnt", "11.1.1030"},
+            {"Synergex.SynergyDE.synrnt", "11.1.1031"},
             {"Synergex.SynergyDE.Build", BuildPackageVersion},
-            {"Microsoft.AspNetCore.Mvc.NewtonsoftJson", "3.1.1"},
-            {"Microsoft.Extensions.Logging.Console", "3.1.1"},
-            {"Microsoft.AspNetCore.SignalR.Client", "3.1.2"},
-            {"Microsoft.EntityFrameworkCore", "3.1.1"},
+            {"Microsoft.AspNetCore.Mvc.NewtonsoftJson", "3.1.3"},
+            {"Microsoft.Extensions.Logging.Console", "3.1.3"},
+            {"Microsoft.AspNetCore.SignalR.Client", "3.1.3"},
+            {"Microsoft.EntityFrameworkCore", "3.1.3"},
+            {"IdentityServer4.AccessTokenValidation", "3.0.1"},
             {"Microsoft.AspNetCore.OData", "7.3.0"},
-            {"Microsoft.OData.Core", "7.6.2"},
-            {"Microsoft.OData.Edm", "7.6.2"},
-            {"Microsoft.Spatial", "7.6.2"},
-            {"Swashbuckle.AspNetCore", "5.0.0"},
+            {"Microsoft.OData.Core", "7.6.3"},
+            {"Microsoft.OData.Edm", "7.6.3"},
+            {"Microsoft.Spatial", "7.6.3"},
+            {"Swashbuckle.AspNetCore", "5.2.1"},
             {"SSH.NET", "2016.1.0"},
             {"Microsoft.AspNetCore.Mvc.Versioning", "4.1.1"},
             {"Microsoft.AspNetCore.OData.Versioning.ApiExplorer", "4.1.1"},
             {"Nito.AsyncEx", "5.0.0"},
-            {"System.Linq.Dynamic.Core", "1.0.20"},
+            {"System.Linq.Dynamic.Core", "1.0.22"},
             {"system.text.encoding.codepages", "4.7.0"},
         };
         
@@ -69,6 +70,17 @@ namespace HarmonyCore.CliTool
             .MapResult(
               (UpgradeLatestOptions opts) =>
               {
+                  Console.WriteLine("This utility will make significant changes to projects and other source files in your Harmony Core development environment. Before running this tool we recommend checking the current state of your development environment into your source code repository, taking a backup copy of the environment if you don't use source code control.\n\n");
+
+
+                  Console.WriteLine("Type YES to proceed: ");
+                  if(string.Compare(Console.ReadLine(), "YES", true) != 0)
+                  {
+                      Console.WriteLine("exiting without changes");
+                      return 1;
+                  }
+
+
                   if (opts.ProjectOnly)
                       UpgradeProjects(solutionInfo);
                   else
