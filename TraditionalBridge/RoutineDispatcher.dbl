@@ -1283,11 +1283,18 @@ namespace Harmony.TraditionalBridge
             MaybeLog(4, "RCBSerializeArg: serializing argType " + %string(argType) + " marked as passed: " + %string(passed) + " with buffer " + argBuffer)
 
             if(passed)
-            begin
+			begin
+				;;alpha data can contain binary bits, if we're on pre v11 we cant encode these properly unless we let the serializer know ahead of time
+                ;;this is the true/false last parameter to ArgumentData seen below
                 case (argType) of
                 begincase
-                FieldDataType.AlphaField:
+				FieldDataType.AlphaField:
+.if DBLV11
                     serializer.ArgumentData(index, argBuffer, argType, argLength, argPrecision, false)
+.else
+                    serializer.ArgumentData(index, argBuffer, argType, argLength, argPrecision, true)
+.endc
+
                 FieldDataType.IntegerField:
                     serializer.ArgumentData(index, ^i(argBuffer), argType, argLength, argPrecision, false)
                 FieldDataType.ImpliedDecimalField:
