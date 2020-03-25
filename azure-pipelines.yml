@@ -86,9 +86,9 @@ stages:
       condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
       inputs:
         command: 'custom'
-        custom: 'msbuild'
+        custom: 'publish'
         publishWebProjects: false
-        arguments: '-t:Publish -p:RuntimeIdentifier=linux-x64 -p:Platform=AnyCPU -p:Config=Release'
+        arguments: '-r=linux-x64 -c Release'
         projects: |
           Services.Host
           Services.Test
@@ -101,8 +101,8 @@ stages:
       condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
       inputs:
         command: 'custom'
-        custom: 'msbuild'
-        arguments: '-t:Publish -p:RuntimeIdentifier=win7-x64 -p:Platform=AnyCPU -p:Config=Release'
+        custom: 'publish'
+        arguments: '-r=win7-x64 -c Release'
         publishWebProjects: false
         projects: Services.Host
         verbosityPack: Diagnostic
@@ -138,12 +138,6 @@ stages:
       displayName: 'Publish Linux HarmonyCore.Test Artifact'
       condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
       artifact: LinuxHarmonyCoreTest
-    - publish: '$(Pipeline.Workspace)\\s\\Templates\\'
-      displayName: 'Publish Templates'
-      artifact: HCTemplates
-    - publish: '$(Pipeline.Workspace)\\s\\TraditionalBridge\\'
-      displayName: 'Publish Traditional Bridge Source'
-      artifact: TBSource
     - publish: '$(Build.ArtifactStagingDirectory)/'
       displayName: 'Publish nuget packages'
       artifact: NugetPackages
