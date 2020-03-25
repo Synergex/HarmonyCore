@@ -1,5 +1,6 @@
 <CODEGEN_FILENAME><INTERFACE_NAME>ServiceModels.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.4.9</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.4.6</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
 ;// Title:       InterfaceServiceModels.tpl
@@ -49,6 +50,8 @@
 
 import System
 import System.ComponentModel.DataAnnotations
+
+import <MODELS_NAMESPACE>
 
 namespace <NAMESPACE>
 <METHOD_LOOP>

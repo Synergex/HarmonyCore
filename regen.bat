@@ -359,7 +359,7 @@ echo *** CODE GENERATION INCOMPLETE ***
 :done
 popd
 endlocal
-exit /B
+goto :eof
 
 :GenerateCodeForInterface
 
@@ -421,7 +421,8 @@ exit /B
           -t InterfaceServiceModels ^
           -i %SolutionDir%Templates\TraditionalBridge ^
           -o %SolutionDir%%ModelsProject% ^
-          -n %ModelsProject% ^
+          -n %SMC_INTERFACE% ^
+          -ut MODELS_NAMESPACE=%ModelsProject% ^
           %STDOPTS%
   if ERRORLEVEL 1 goto error
 
@@ -433,7 +434,7 @@ exit /B
           -i %SolutionDir%Templates\TraditionalBridge ^
           -o %SolutionDir%%ControllersProject% ^
           -n %ControllersProject% ^
-          -ut MODELS_NAMESPACE=%ModelsProject% ^
+          -ut MODELS_NAMESPACE=%ModelsProject% DTOS_NAMESPACE=%SMC_INTERFACE% ^
           %STDOPTS%
   if ERRORLEVEL 1 goto error
 
@@ -445,7 +446,7 @@ exit /B
           -i %SolutionDir%Templates\TraditionalBridge ^
           -o %SolutionDir%%ControllersProject% ^
           -n %ControllersProject% ^
-          -ut MODELS_NAMESPACE=%ModelsProject% ^
+          -ut MODELS_NAMESPACE=%ModelsProject% DTOS_NAMESPACE=%SMC_INTERFACE% ^
           %STDOPTS%
   if ERRORLEVEL 1 goto error
 
@@ -459,7 +460,7 @@ exit /B
           %STDOPTS%
   if ERRORLEVEL 1 goto error
  
-GOTO EOF
+GOTO:eof
 
 :GenerateCodeForSignalR
 
@@ -471,8 +472,8 @@ GOTO EOF
           -i %SolutionDir%Templates\SignalR ^
           -o %SolutionDir%%ControllersProject% ^
           -n %ControllersProject% ^
-          -ut MODELS_NAMESPACE=%ServicesProject%.Models ^
+          -ut MODELS_NAMESPACE=%ModelsProject% DTOS_NAMESPACE=%SMC_INTERFACE% ^
           %STDOPTS%
   if ERRORLEVEL 1 goto error  
 
-GOTO EOF
+GOTO:eof

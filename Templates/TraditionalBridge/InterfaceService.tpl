@@ -1,6 +1,7 @@
 <CODEGEN_FILENAME><INTERFACE_NAME>Service.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.4.9</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.4.6</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
+<REQUIRES_USERTOKEN>DTOS_NAMESPACE</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
 ;// Title:       InterfaceService.tpl
@@ -84,14 +85,14 @@ namespace <NAMESPACE>
         ;;; <summary>
         ;;; <IF COMMENT><METHOD_COMMENT><ELSE>No description found in method catalog</IF COMMENT>
         ;;; </summary>
-        public async method <METHOD_NAME>, @Task<IF RETURNS_DATA><<METHOD_NAME>_Response></IF RETURNS_DATA>
+        public async method <METHOD_NAME>, @Task<IF RETURNS_DATA><<DTOS_NAMESPACE>.<METHOD_NAME>_Response></IF RETURNS_DATA>
   <IF IN_OR_INOUT>
-            required in args, @<MODELS_NAMESPACE>.<METHOD_NAME>_Request
+            required in args, @<DTOS_NAMESPACE>.<METHOD_NAME>_Request
   </IF IN_OR_INOUT>
         proc
   <IF RETURNS_DATA>
             ;;Prepare the response object
-            data response = new <METHOD_NAME>_Response()
+            data response = new <DTOS_NAMESPACE>.<METHOD_NAME>_Response()
 
   </IF RETURNS_DATA>
             ;;Make the JSON-RPC call the traditional Synergy routine
