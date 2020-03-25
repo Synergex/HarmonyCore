@@ -20,13 +20,14 @@ namespace HarmonyCore.CliTool
         public static string CurrentVersionTag = "release-v3.1.1";
         public static string BuildPackageVersion = "11.1.1030.2704";
         public static string CodeDomProviderVersion = "1.0.7";
-        private static Dictionary<string, string> LatestNugetReferences = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase)
+        public static string HCBuildVersion = "3.1.17";
+        public static Dictionary<string, string> LatestNugetReferences = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase)
         {
-            {"Harmony.Core", "3.1.17"},
+            {"Harmony.Core", HCBuildVersion},
             {"HarmonyCore.CodeDomProvider", CodeDomProviderVersion},
-            {"Harmony.Core.EF", "3.1.17"},
-            {"Harmony.Core.OData", "3.1.17"},
-            {"Harmony.Core.AspNetCore", "3.1.17"},
+            {"Harmony.Core.EF", HCBuildVersion},
+            {"Harmony.Core.OData", HCBuildVersion},
+            {"Harmony.Core.AspNetCore", HCBuildVersion},
             {"Synergex.SynergyDE.synrnt", "11.1.1031"},
             {"Synergex.SynergyDE.Build", BuildPackageVersion},
             {"Microsoft.AspNetCore.Mvc.NewtonsoftJson", "3.1.3"},
@@ -140,7 +141,8 @@ namespace HarmonyCore.CliTool
             }
 
             var client = new HttpClient();
-            var sourceDistStream = await client.GetStreamAsync($"https://github.com/Synergex/HarmonyCore/releases/download/{CurrentVersionTag}/HarmonyCoreSourceDist.zip");
+            var targeturl = $"https://github.com/Synergex/HarmonyCore/archive/{CurrentVersionTag}.zip";
+            var sourceDistStream = await client.GetStreamAsync(targeturl);
             
             using (var zip = new ZipArchive(sourceDistStream, ZipArchiveMode.Read))
             {
@@ -150,7 +152,7 @@ namespace HarmonyCore.CliTool
                     {
                         if (distinctTemplateFolders.Count > 0)
                         {
-                            var targetFileName = Path.Combine(distinctTemplateFolders.First(), entry.FullName.Replace("SourceDist/Templates/HCTemplates/", "").Replace("/", "\\"));
+                            var targetFileName = Path.Combine(distinctTemplateFolders.First(), entry.FullName.Replace($"HarmonyCore-{CurrentVersionTag}/Templates/", "").Replace("/", "\\").Replace("\\\\", "\\"));
                             Directory.CreateDirectory(Path.GetDirectoryName(targetFileName));
                             if (File.Exists(targetFileName))
                                 File.Delete(targetFileName);
@@ -158,9 +160,9 @@ namespace HarmonyCore.CliTool
                             entry.ExtractToFile(targetFileName);
                         }
                     }
-                    else if (entry.CompressedLength > 0 && hasTraditionalBridge && entry.FullName.Contains("TraditionalBridge"))
+                    else if (entry.CompressedLength > 0 && hasTraditionalBridge && entry.FullName.StartsWith($"HarmonyCore-{CurrentVersionTag}/TraditionalBridge/"))
                     {
-                        var targetFileName = Path.Combine(traditionalBridgeFolder, Path.GetFileName(entry.FullName));
+                        var targetFileName = Path.Combine(traditionalBridgeFolder, Path.GetFileName(entry.FullName.Replace($"HarmonyCore-{CurrentVersionTag}", "").Replace("/", "\\").Replace("\\\\", "\\")));
                         if(File.Exists(targetFileName))
                             File.Delete(targetFileName);
                         entry.ExtractToFile(targetFileName);
