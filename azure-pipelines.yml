@@ -96,12 +96,23 @@ stages:
         verbosityPack: Diagnostic
     - task: DotNetCoreCLI@2
       enabled: true
+      displayName: 'dotnet bug workaround'
+      condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
+      inputs:
+        command: 'custom'
+        custom: 'clean'
+        arguments: '-c Release'
+        publishWebProjects: false
+        projects: Services.Host
+        verbosityPack: Diagnostic
+    - task: DotNetCoreCLI@2
+      enabled: true
       displayName: 'Publish Windows Test Binaries'
       condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
       inputs:
         command: 'custom'
         custom: 'publish'
-        arguments: '--no-restore -r=win7-x64 -c Release'
+        arguments: '-r=win7-x64 -c Release'
         publishWebProjects: false
         projects: Services.Host
         verbosityPack: Diagnostic
