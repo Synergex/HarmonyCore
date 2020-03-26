@@ -20,7 +20,7 @@ namespace HarmonyCore.CliTool
         public static string CurrentVersionTag = "release-v3.1.1";
         public static string BuildPackageVersion = "11.1.1030.2704";
         public static string CodeDomProviderVersion = "1.0.7";
-        public static string HCBuildVersion = "3.1.17";
+        public static string HCBuildVersion = "3.1.37";
         public static Dictionary<string, string> LatestNugetReferences = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase)
         {
             {"Harmony.Core", HCBuildVersion},
@@ -67,7 +67,7 @@ namespace HarmonyCore.CliTool
             }
             var solutionInfo = new SolutionInfo(synprojFiles, solutionDir);
 
-            CommandLine.Parser.Default.ParseArguments<UpgradeLatestOptions>(args)
+            CommandLine.Parser.Default.ParseArguments<UpgradeLatestOptions, object>(args)
             .MapResult(
               (UpgradeLatestOptions opts) =>
               {
@@ -86,6 +86,11 @@ namespace HarmonyCore.CliTool
                       UpgradeProjects(solutionInfo);
                   else
                       UpgradeLatest(solutionInfo).Wait();
+                  return 0;
+              },
+              (object opts) =>
+              {
+                  Console.WriteLine("no arguments passed, exiting");
                   return 0;
               },
               errs =>
