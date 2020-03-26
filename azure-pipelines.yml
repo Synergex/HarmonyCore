@@ -96,22 +96,12 @@ stages:
         verbosityPack: Diagnostic
     - task: DotNetCoreCLI@2
       enabled: true
-      displayName: 'workaround dotnet bug'
-      inputs:
-        command: 'custom'
-        custom: 'clean'
-        arguments: '-c Release'
-        publishWebProjects: false
-        projects: HarmonyCoreEF
-        verbosityPack: Diagnostic
-    - task: DotNetCoreCLI@2
-      enabled: true
       displayName: 'Publish Windows Test Binaries'
       condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
       inputs:
         command: 'custom'
         custom: 'publish'
-        arguments: '-r=win7-x64 -c Release'
+        arguments: '--no-build -r=win7-x64 -c Release'
         publishWebProjects: false
         projects: Services.Host
         verbosityPack: Diagnostic
