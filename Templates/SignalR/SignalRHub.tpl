@@ -95,15 +95,18 @@ namespace <NAMESPACE>
 			data context = await _contextFactory.MakeContextAsync(_serviceProvider)			
 			Context.Items.Add("RPCContext", context)
 
-            data userDetail, [#]string, MultiTenantProvider.TenantId.Split("|")
-
-            data request, @<DTOS_NAMESPACE>.wmaintlogin_Request, new <DTOS_NAMESPACE>.wmaintlogin_Request() { username=userDetail[1], access_no=userDetail[2], company=userDetail[3], password="RADLEY", temp_dir=String.Empty }
-            data response, @<DTOS_NAMESPACE>.wmaintlogin_Response
-
-            response = await context.wmaintlogin(request)
-
-            if (response.ReturnValue != 0)
-                throw new Exception("Invalid user login in OnConnectedAsync")
+			;If you need to do user authorization via a custom method then THIS
+			;is a good place to do so. Maybe something like this:
+			;
+            ;data userDetail, [#]string, MultiTenantProvider.TenantId.Split("|")
+			;
+            ;data request, @<DTOS_NAMESPACE>.UserLogin_Request, new <DTOS_NAMESPACE>.UserLogin_Request() { username=userDetail[1], password=userDetail[2], company=userDetail[3] }
+            ;data response, @<DTOS_NAMESPACE>.UserLogin_Response
+			;
+            ;response = await context.UserLogin(request)
+			;
+            ;if (response.ReturnValue != 0)
+            ;    throw new Exception("Invalid user login in OnConnectedAsync")
 
 		endmethod
 
