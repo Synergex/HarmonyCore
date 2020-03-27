@@ -183,7 +183,7 @@ namespace HarmonyCore.CliTool
                 .Any(node => node.Attributes["Include"]?.Value == "HarmonyCore.CodeDomProvider");
                 if (!hasCodeDomInjector)
                 {
-                    var codeDomReference = ProjectDoc.CreateElement("FrameworkReference");
+                    var codeDomReference = ProjectDoc.CreateElement("PackageReference");
                     var codeDomReferenceName = ProjectDoc.CreateAttribute("Include");
                     codeDomReferenceName.Value = "HarmonyCore.CodeDomProvider";
                     var codeDomReferenceVersion = ProjectDoc.CreateAttribute("Version");
@@ -199,7 +199,7 @@ namespace HarmonyCore.CliTool
                 .Any(node => node.Attributes["Include"]?.Value == "Microsoft.AspNetCore.Mvc.NewtonsoftJson");
                 if (!hasNewtonsoft)
                 {
-                    var fRef = ProjectDoc.CreateElement("FrameworkReference");
+                    var fRef = ProjectDoc.CreateElement("PackageReference");
                     var fRefName = ProjectDoc.CreateAttribute("Include");
                     fRefName.Value = "Microsoft.AspNetCore.Mvc.NewtonsoftJson";
                     var fRefVersion = ProjectDoc.CreateAttribute("Version");

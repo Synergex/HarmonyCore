@@ -5,6 +5,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace HarmonyCore.CliTool
@@ -17,7 +18,7 @@ namespace HarmonyCore.CliTool
             [Option('p', "project")]
             public bool ProjectOnly { get; set; }
         }
-        public static string CurrentVersionTag = "release-v3.1.1";
+        public static string CurrentVersionTag = "release-v3.1.2";
         public static string BuildPackageVersion = "11.1.1030.2704";
         public static string CodeDomProviderVersion = "1.0.7";
         public static string HCBuildVersion = "3.1.37";
@@ -37,6 +38,9 @@ namespace HarmonyCore.CliTool
             {"IdentityServer4.AccessTokenValidation", "3.0.1"},
             {"Microsoft.AspNetCore.OData", "7.3.0"},
             {"Microsoft.OData.Core", "7.6.3"},
+            {"Microsoft.VisualStudio.Threading", "16.5.132"},
+            {"StreamJsonRpc", "2.3.103"},
+            {"IdentityModel", "4.1.1" },
             {"Microsoft.OData.Edm", "7.6.3"},
             {"Microsoft.Spatial", "7.6.3"},
             {"Swashbuckle.AspNetCore", "5.2.1"},
@@ -148,7 +152,7 @@ namespace HarmonyCore.CliTool
             var client = new HttpClient();
             var targeturl = $"https://github.com/Synergex/HarmonyCore/archive/{CurrentVersionTag}.zip";
             var sourceDistStream = await client.GetStreamAsync(targeturl);
-            
+            var normalizer = new Regex(@"\r\n|\n\r|\n|\r", RegexOptions.Compiled);
             using (var zip = new ZipArchive(sourceDistStream, ZipArchiveMode.Read))
             {
                 foreach(var entry in zip.Entries)
@@ -158,11 +162,21 @@ namespace HarmonyCore.CliTool
                         if (distinctTemplateFolders.Count > 0)
                         {
                             var targetFileName = Path.Combine(distinctTemplateFolders.First(), entry.FullName.Replace($"HarmonyCore-{CurrentVersionTag}/Templates/", "").Replace("/", "\\").Replace("\\\\", "\\"));
+
+                            if (targetFileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+                                continue;
+
                             Directory.CreateDirectory(Path.GetDirectoryName(targetFileName));
                             if (File.Exists(targetFileName))
                                 File.Delete(targetFileName);
 
-                            entry.ExtractToFile(targetFileName);
+                            using (var stream = entry.Open())
+                            {
+                                using (var reader = new StreamReader(stream))
+                                {
+                                    File.WriteAllText(targetFileName, normalizer.Replace(reader.ReadToEnd(), "\r\n"));
+                                }
+                            }
                         }
                     }
                     else if (entry.CompressedLength > 0 && hasTraditionalBridge && entry.FullName.StartsWith($"HarmonyCore-{CurrentVersionTag}/TraditionalBridge/"))
@@ -170,7 +184,14 @@ namespace HarmonyCore.CliTool
                         var targetFileName = Path.Combine(traditionalBridgeFolder, Path.GetFileName(entry.FullName.Replace($"HarmonyCore-{CurrentVersionTag}", "").Replace("/", "\\").Replace("\\\\", "\\")));
                         if(File.Exists(targetFileName))
                             File.Delete(targetFileName);
-                        entry.ExtractToFile(targetFileName);
+
+                        using (var stream = entry.Open())
+                        {
+                            using (var reader = new StreamReader(stream))
+                            {
+                                File.WriteAllText(targetFileName, normalizer.Replace(reader.ReadToEnd(), "\r\n"));
+                            }
+                        }
                     }
                 }
             }
