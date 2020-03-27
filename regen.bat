@@ -98,7 +98,7 @@ set ENABLE_API_VERSIONING=-define ENABLE_API_VERSIONING
 set ENABLE_POSTMAN_TESTS=YES
 set ENABLE_ALTERNATE_KEYS=-define ENABLE_ALTERNATE_KEYS
 set ENABLE_COUNT=-define ENABLE_COUNT
-set ENABLE_PROPERTY_ENDPOINTS=-define ENABLE_PROPERTY_ENDPOINTS
+rem set ENABLE_PROPERTY_ENDPOINTS=-define ENABLE_PROPERTY_ENDPOINTS
 rem set ENABLE_PROPERTY_VALUE_DOCS=-define ENABLE_PROPERTY_VALUE_DOCS
 set ENABLE_SELECT=-define ENABLE_SELECT
 set ENABLE_FILTER=-define ENABLE_FILTER
@@ -159,13 +159,26 @@ if DEFINED ENABLE_ODATA_ENVIRONMENT (
   codegen -s  %DATA_STRUCTURES% ^
           -a  %DATA_ALIASES% ^
 		  -fo %DATA_FILES% ^
-          -t  ODataControllerV2 ^
+          -t  ODataController ^
           -i  %SolutionDir%Templates ^
           -o  %SolutionDir%%ControllersProject% ^
           -n  %ControllersProject% ^
               %STDOPTS%
   if ERRORLEVEL 1 goto error
   
+if DEFINED ENABLE_PROPERTY_ENDPOINTS (
+  rem Generate partial controller class for individual property endpoints
+
+  codegen -s  %DATA_STRUCTURES% ^
+          -a  %DATA_ALIASES% ^
+		  -fo %DATA_FILES% ^
+          -t  ODataControllerPropertyEndpoints ^
+          -i  %SolutionDir%Templates ^
+          -o  %SolutionDir%%ControllersProject% ^
+          -n  %ControllersProject% ^
+              %STDOPTS%
+  if ERRORLEVEL 1 goto error
+)
   rem Generate the DbContext class
   codegen -s  %DATA_STRUCTURES% -ms ^
           -a  %DATA_ALIASES% ^
