@@ -19,6 +19,7 @@ import System.Text.Json
 .define IS_BOOLEAN(element) ((element).JsonType == JSON_TYPE.BOOL)
 .endc
 
+.define TEMP_AD_TYPE a28
 .define MaybeLog(priority, msg) if((priority) <= Logger.LogLevel) Logger.Instance.Log(msg)
 ;.define MaybeLog(priority, msg) Logger.Instance.Log(msg)
 
@@ -669,21 +670,33 @@ namespace Harmony.TraditionalBridge
         ;;; </summary>
         ;;; <param name="value"></param>
         ;;; <returns></returns>
-        public method GetImplied, d.
-            value, JSON_ELEMENT
-            record
-                precisionValue, d18
-                passedValue, JSON_ELEMENT
-            endrecord
-        proc
-            passedValue = value.GetProperty("PassedValue")
-            precisionValue = value.GetProperty("DecimalPrecision").GetDecimal()
+		public method GetImplied, d.
+			value, JSON_ELEMENT
+			record
+				precisionValue, d18
+				aVal, TEMP_AD_TYPE
+				passedValue, JSON_ELEMENT
+				precisionElement, JSON_ELEMENT
+			endrecord
+		proc
+			passedValue = value.GetProperty("PassedValue")
 
-            if(IS_TEXT(passedValue)) then
-                mreturn %implied(passedValue.GetString())
-            else
-                mreturn ^d(%string(passedValue.GetDecimal()),precisionValue)
-        endmethod
+			if(IS_TEXT(passedValue)) then
+			begin
+				mreturn %implied(passedValue.GetString())
+			end
+			else
+			begin
+				if(value.TryGetProperty("DecimalPrecision", precisionElement)) then
+				begin
+					aVal = ^a(passedValue.GetDecimal())
+					mreturn ^d(aVal,precisionElement.GetDecimal())
+				end
+				else
+					mreturn passedValue.GetDecimal()
+			end
+
+		endmethod
 
         ;;; <summary>
         ;;; 
