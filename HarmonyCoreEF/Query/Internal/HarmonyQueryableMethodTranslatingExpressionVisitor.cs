@@ -726,7 +726,9 @@ namespace Harmony.Core.EF.Query.Internal
 
             var groupByQuery = source.ShaperExpression is GroupByShaperExpression;
             var queryExpression = (HarmonyQueryExpression)source.QueryExpression;
-
+            var tableExpression = queryExpression.ServerQueryExpression as HarmonyTableExpression;
+            if(tableExpression != null)
+                tableExpression.IsCollection = true;
             if (groupByQuery)
             {
                 queryExpression.PushdownIntoSubquery();
