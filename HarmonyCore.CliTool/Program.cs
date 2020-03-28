@@ -132,7 +132,7 @@ namespace HarmonyCore.CliTool
                     SearchOption.AllDirectories);
 
             var hasTraditionalBridge = (traditionalBridgeFiles?.Length ?? 0) > 0;
-            var traditionalBridgeFolder = Path.GetDirectoryName(traditionalBridgeFiles[0]);
+            var traditionalBridgeFolder = hasTraditionalBridge ? Path.GetDirectoryName(traditionalBridgeFiles[0]) : string.Empty;
 
             var distinctTemplateFolders = templateFiles.Select(fileName => Path.GetDirectoryName(fileName)).Distinct().OrderBy(folder => folder.Length).ToList();
             if (distinctTemplateFolders.Count > 0)
