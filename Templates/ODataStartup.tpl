@@ -69,12 +69,12 @@ import Microsoft.AspNetCore.Hosting
 import Microsoft.AspNetCore.Http
 import Microsoft.AspNetCore.Mvc
 import Microsoft.AspNetCore.Mvc.Abstractions
-<IF DEFINED_ENABLE_SWAGGER_DOCS>
+import Microsoft.AspNetCore.Mvc.ApiExplorer
 import Microsoft.AspNetCore.StaticFiles
-</IF DEFINED_ENABLE_SWAGGER_DOCS>
 import Microsoft.AspNet.OData
 import Microsoft.AspNet.OData.Extensions
 import Microsoft.AspNet.OData.Builder
+import Microsoft.AspNet.OData.Formatter
 import Microsoft.AspNet.OData.Routing
 import Microsoft.AspNet.OData.Routing.Conventions
 import Microsoft.EntityFrameworkCore
@@ -89,6 +89,7 @@ import Microsoft.Extensions.Primitives
 import Microsoft.IdentityModel.Tokens
 </IF DEFINED_ENABLE_CUSTOM_AUTHENTICATION>
 </IF DEFINED_ENABLE_AUTHENTICATION>
+import Microsoft.Net.Http.Headers
 import Microsoft.OData
 import Microsoft.OData.Edm
 import Microsoft.OData.UriParser
@@ -100,10 +101,7 @@ import System.Threading.Tasks
 import <CONTROLLERS_NAMESPACE>
 import <MODELS_NAMESPACE>
 <IF DEFINED_ENABLE_API_VERSIONING>
-import Microsoft.AspNetCore.Mvc.ApiExplorer
 import Swashbuckle.AspNetCore.Swagger
-import Microsoft.AspNet.OData.Formatter
-import Microsoft.Net.Http.Headers
 import Microsoft.OpenApi.Models
 </IF DEFINED_ENABLE_API_VERSIONING>
 
@@ -315,11 +313,11 @@ namespace <NAMESPACE>
                 op.EnableEndpointRouting = false
                 foreach formatter in op.OutputFormatters.OfType<ODataOutputFormatter>().Where(lambda(it) { !it.SupportedMediaTypes.Any() })
                 begin
-                    formatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue(sseg));
+                    formatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue(sseg))
                 end
                 foreach iformatter in op.InputFormatters.OfType<ODataInputFormatter>().Where(lambda(it) { !it.SupportedMediaTypes.Any() })
                 begin
-                    iformatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue(sseg));
+                    iformatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue(sseg))
                 end
                 
                 op.MaxIAsyncEnumerableBufferLimit = int.MaxValue
