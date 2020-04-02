@@ -45,6 +45,10 @@
 ;; Any changes you make will be lost of the file is re-generated.
 ;;*****************************************************************************
 
+import Microsoft.AspNet.OData
+import Microsoft.AspNet.OData.Routing
+import Microsoft.AspNetCore.Mvc
+
 namespace <NAMESPACE>
 
     public partial class <StructurePlural>Controller
@@ -62,7 +66,7 @@ namespace <NAMESPACE>
 ;//
         <IF STRUCTURE_ISAM AND NOTPKSEGMENT>
           <PRIMARY_KEY>
-        {ODataRoute("(<IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></IF SINGLE_SEGMENT>)/<FieldSqlName>")}
+        {ODataRoute("(<IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></IF SINGLE_SEGMENT>)/<FieldSqlName>")}
             <IF DEFINED_ENABLE_API_VERSIONING>
         {ProducesResponseType(StatusCodes.Status200OK)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
@@ -81,7 +85,7 @@ namespace <NAMESPACE>
               <SEGMENT_LOOP>
                 <IF NOT SEG_TAG_EQUAL>
         ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
-                </IF NOT SEG_TAG_EQUAL>
+                </IF SEG_TAG_EQUAL>
               </SEGMENT_LOOP>
             </IF SINGLE_SEGMENT>
         ;;; <returns>
@@ -104,7 +108,7 @@ namespace <NAMESPACE>
                   <ELSE>
             required in a<FieldSqlName>, <HARMONYCORE_SEGMENT_DATATYPE>
                   </IF CUSTOM_HARMONY_AS_STRING>
-                </IF NOT SEG_TAG_EQUAL>
+                </IF SEG_TAG_EQUAL>
               </IF SINGLE_SEGMENT>
             </SEGMENT_LOOP>
         proc
@@ -114,7 +118,7 @@ namespace <NAMESPACE>
             mreturn OK(result.<FieldSqlName>)
         endmethod
           </PRIMARY_KEY>
-      </IF STRUCTURE_ISAM AND NOTPKSEGMENT>
+      </IF STRUCTURE_ISAM>
 ;//
 ;// RELATIVE
 ;//
@@ -122,7 +126,7 @@ namespace <NAMESPACE>
         {ODataRoute("({key})}
           <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_GET>
         {Authorize(Roles="<ROLES_GET>")}
-          </IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_GET>
+          </IF DEFINED_ENABLE_AUTHENTICATION>
         ;;; <summary>
         ;;; Get the <FieldSqlName> property of a single <StructureNoplural>, by record number.
         ;;; </summary>
@@ -142,7 +146,7 @@ namespace <NAMESPACE>
         </IF STRUCTURE_RELATIVE>
 
       </IF CUSTOM_NOT_HARMONY_EXCLUDE>
-    </IF NOT USER>
+    </IF USER>
   </FIELD_LOOP>
 </IF PROPERTY_ENDPOINTS>
 
