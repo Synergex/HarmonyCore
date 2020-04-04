@@ -889,19 +889,14 @@ namespace Harmony.Core.EF.Query.Internal
         protected override ShapedQueryExpression TranslateThenBy(ShapedQueryExpression source, LambdaExpression keySelector, bool ascending)
         {
             var inMemoryQueryExpression = (HarmonyQueryExpression)source.QueryExpression;
+
             keySelector = TranslateLambdaExpression(source, keySelector);
             if (keySelector == null)
             {
                 return null;
             }
 
-            inMemoryQueryExpression.ServerQueryExpression
-                = Expression.Call(
-                    (ascending ? EnumerableMethods.ThenBy : EnumerableMethods.ThenByDescending)
-                    .MakeGenericMethod(inMemoryQueryExpression.CurrentParameter.Type, keySelector.ReturnType),
-                    inMemoryQueryExpression.ServerQueryExpression,
-                    keySelector);
-
+            inMemoryQueryExpression.FindServerExpression().OrderByExpressions.Add(Tuple.Create<Expression, bool>(keySelector.Body, ascending));
             return source;
         }
 
