@@ -5,6 +5,8 @@ import System.Linq
 import Harmony.Core.Enumerations
 import System.Linq.Expressions
 import Harmony.Core.FileIO
+import Harmony.Core.FileIO.Queryable.Materializer
+import Synergex.SynergyDE.Select
 
 namespace Harmony.Core.FileIO.Queryable
 
@@ -172,44 +174,129 @@ namespace Harmony.Core.FileIO.Queryable
 
 		endmethod
 
+;		private method ExecuteMARSPlan, @IEnumerable<DataObjectBase>
+;			tracker, @Func<DataObjectBase, DataObjectBase>
+;			parameters, @IReadOnlyDictionary<string, Object>
+;			dataObjectProvider, @Harmony.Core.Context.IDataObjectProvider
+;			context, @object
+;		proc
+;			disposable data rows, @Synergex.SynergyDE.Select.RowEnumerator
+;			disposable data joinSelectObject, @Synergex.SynergyDE.Select.JoinSelect
+;			disposable data queryBuffer, @QueryBuffer, new QueryBuffer(mQueryBufferPrototype, dataObjectProvider, parameters, context)
+;			disposable data fromObj = FromObject(queryBuffer)
+;			data tObj, @DataObjectBase
+;			data stats = new DataObjectMaterializer.MaterializerStats()
+;			data materializerState = new DataObjectMaterializer.IterationState(queryBuffer.TypeBuffers[0], queryBuffer, stats, tracker)
+;			data top = queryBuffer.GetTop(0)
+;			data skip = queryBuffer.GetSkip(0)
+;			data targetCount = top.HasValue ? skip + top : 0
+;
+;			joinSelectObject = JoinObject(queryBuffer, fromObj, WhereObject(queryBuffer), OrderByObject(queryBuffer), SparseObject(queryBuffer))
+;			rows = joinSelectObject.GetEnumerator()
+;			data rowManager = new RowsManager(rows, materializerState.ResultState)
+;			mreturn RunMaterializer(materializerState, rowManager, top, skip, targetCount)
+;
+;		endmethod
+
+
 		private method UntypedExecuteJoinCollectionPlan, @IEnumerable<DataObjectBase>
 			tracker, @Func<DataObjectBase, DataObjectBase>
 			parameters, @IReadOnlyDictionary<string, Object>
 			dataObjectProvider, @Harmony.Core.Context.IDataObjectProvider
 			context, @object
 		proc
-			disposable data rows, @Synergex.SynergyDE.Select.RowEnumerator
-			disposable data joinSelectObject, @Synergex.SynergyDE.Select.JoinSelect
-			disposable data queryBuffer, @QueryBuffer, new QueryBuffer(mQueryBufferPrototype, dataObjectProvider, parameters, context)
-			disposable data fromObj = FromObject(queryBuffer)
-			data tObj, @DataObjectBase
-			data materializerResult, @IEnumerable<DataObjectBase>
-			data materializerEnumerator, @IEnumerator<DataObjectBase>
-			data stats = new DataObjectMaterializer.MaterializerStats()
-			data currentCount = 0 
-			data top = queryBuffer.GetTop(0)
-			data skip = queryBuffer.GetSkip(0)
-			data targetCount = top.HasValue ? skip + top : 0
+			data rows, @Synergex.SynergyDE.Select.RowEnumerator
+			data joinSelectObject, @Synergex.SynergyDE.Select.JoinSelect
+			data queryBuffer, @QueryBuffer
+			data fromObj, @From
 
-			joinSelectObject = JoinObject(queryBuffer, fromObj, WhereObject(queryBuffer), OrderByObject(queryBuffer), SparseObject(queryBuffer))
-			rows = joinSelectObject.GetEnumerator()
-			materializerResult = DataObjectMaterializer.MaterializeObject(queryBuffer.TypeBuffers[0], queryBuffer, rows, tracker, stats)
-			materializerEnumerator = materializerResult.GetEnumerator()
-			while(materializerEnumerator.MoveNext())
+			lambda cleanup()
 			begin
-				tObj = materializerEnumerator.Current
-				incr currentCount
-				if(skip && skip >= currentCount)
-					nextloop
-						
-				if (targetCount && currentCount > targetCount)
-					exitloop
+				rows?.Dispose()
+				joinSelectObject?.Dispose()
+				queryBuffer?.Dispose()
+				fromObj?.Dispose()
 
-				yield mreturn tObj
+				rows = ^null
+				joinSelectObject = ^null
+				queryBuffer = ^null
+				fromObj = ^null
 			end
+			data cleanupAction, @Action, cleanup
+			try
+			begin
+				queryBuffer = new QueryBuffer(mQueryBufferPrototype, dataObjectProvider, parameters, context)
+				fromObj = FromObject(queryBuffer)
+			
+				data tObj, @DataObjectBase
+				data stats = new DataObjectMaterializer.MaterializerStats()
+				data materializerState = new DataObjectMaterializer.IterationState(queryBuffer.TypeBuffers[0], queryBuffer, stats, tracker)
+				data top = queryBuffer.GetTop(0)
+				data skip = queryBuffer.GetSkip(0)
+				data targetCount = top.HasValue ? skip + top : 0
+
+				joinSelectObject = JoinObject(queryBuffer, fromObj, WhereObject(queryBuffer), OrderByObject(queryBuffer), SparseObject(queryBuffer))
+				rows = joinSelectObject.GetEnumerator()
+				data rowManager = new RowsManager(rows, materializerState.ResultState, materializerState.MaterializerQueue, joinSelectObject)
+				data resultEnumerable = RunMaterializer(materializerState, rowManager, cleanupAction)
+				if(skip != 0)
+					resultEnumerable = resultEnumerable.Skip((int)skip)
+				if(top != ^null)
+					resultEnumerable = resultEnumerable.Take((int)top.Value)
+
+				mreturn resultEnumerable
+			end
+			catch(ex, @Exception)
+			begin
+				cleanupAction()
+			end
+			endtry
 
 		endmethod
 
+		private method RunMaterializer, @IEnumerable<DataObjectBase>
+			iterState, @DataObjectMaterializer.IterationState
+			rows, @RowsManager
+			cleanup, @Action
+		proc
+			;try
+			;begin
+			data endOfIter = false
+			do forever
+			begin
+				if(!endOfIter) then
+				begin
+					if(!rows.MoveNext())
+					begin
+						endOfIter = true
+						nextloop
+					end
+
+					DataObjectMaterializer.IterateMaterializer(iterState, rows)
+					data iterResult = DataObjectMaterializer.AfterIterate(iterState)
+					endOfIter = iterResult.endOfResult
+					if(iterResult.objResult != ^null)
+					begin
+						yield mreturn iterResult.objResult
+					end
+				end
+				else
+				begin
+					data fullResult = DataObjectMaterializer.FinishIteration(iterState)
+					data resultObject, @DataObjectBase
+					foreach resultObject in fullResult
+					begin
+						yield mreturn resultObject
+					end
+					exitloop
+				end
+			end
+			;end
+			;finally
+			cleanup()
+			;endtry
+
+		endmethod
 		
 		private method UntypedExecuteSelectCollectionPlan, @IEnumerable<DataObjectBase>
 			tracker, @Func<DataObjectBase, DataObjectBase>
