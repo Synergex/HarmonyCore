@@ -71,6 +71,7 @@ namespace <NAMESPACE>
           <PRIMARY_KEY>
         {ODataRoute("(<IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></IF SINGLE_SEGMENT>)/<FieldSqlName>")}
             <IF DEFINED_ENABLE_API_VERSIONING>
+        {Produces("application/json")}
         {ProducesResponseType(StatusCodes.Status200OK)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
             </IF DEFINED_ENABLE_API_VERSIONING>
@@ -127,6 +128,11 @@ namespace <NAMESPACE>
 ;//
         <IF STRUCTURE_RELATIVE>
         {ODataRoute("({key})}
+            <IF DEFINED_ENABLE_API_VERSIONING>
+        {Produces("application/json")}
+        {ProducesResponseType(StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
+            </IF DEFINED_ENABLE_API_VERSIONING>
           <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_GET>
         {Authorize(Roles="<ROLES_GET>")}
           </IF DEFINED_ENABLE_AUTHENTICATION>
