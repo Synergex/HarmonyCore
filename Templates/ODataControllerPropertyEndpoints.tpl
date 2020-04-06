@@ -47,6 +47,9 @@
 
 import Microsoft.AspNet.OData
 import Microsoft.AspNet.OData.Routing
+<IF DEFINED_ENABLE_API_VERSIONING>
+import Microsoft.AspNetCore.Http
+</IF DEFINED_ENABLE_API_VERSIONING>
 import Microsoft.AspNetCore.Mvc
 
 namespace <NAMESPACE>
