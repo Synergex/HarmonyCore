@@ -818,7 +818,7 @@ namespace Services.Test.UnitTests
 		public method CustomersExpandAllAndVerify, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()
-			data response = client.GetAsync("/odata/v1/Customers?$expand=REL_CustomerFavoriteItem,REL_CustomerNotes($filter=NoteNumber+gt+900),REL_CustomerOrders").Result
+			data response = client.GetAsync("/odata/v1/Customers?$expand=REL_CustomerFavoriteItem,REL_CustomerNotes,REL_CustomerOrders").Result
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 			data customersResult, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
@@ -830,7 +830,10 @@ namespace Services.Test.UnitTests
                 if(cust.FavoriteItem != 0)
 					Assert.AreNotEqual(cust.REL_CustomerFavoriteItem, ^null)
 
-                Assert.AreEqual(cust.REL_CustomerNotes.Count, 0)
+                if(cust.CustomerNumber > 10) then
+					Assert.AreEqual(cust.REL_CustomerNotes.Count, 0)
+				else
+					Assert.AreEqual(cust.REL_CustomerNotes.Count, 3)
 			end
 
 		endmethod
