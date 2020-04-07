@@ -815,6 +815,27 @@ namespace Services.Test.UnitTests
 		endmethod
 
 		{TestMethod}
+		public method CustomersExpandAllAndVerify, void
+		proc
+			data client = UnitTestEnvironment.Server.CreateClient()
+			data response = client.GetAsync("/odata/v1/Customers?$expand=REL_CustomerFavoriteItem,REL_CustomerNotes($filter=NoteNumber+gt+900),REL_CustomerOrders").Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data customersResult, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+			data cust, @Customer
+			foreach cust in customersResult.Value
+			begin
+				Assert.AreNotEqual(cust.REL_CustomerOrders.Count, 0)
+
+                if(cust.FavoriteItem != 0)
+					Assert.AreNotEqual(cust.REL_CustomerFavoriteItem, ^null)
+
+                Assert.AreEqual(cust.REL_CustomerNotes.Count, 0)
+			end
+
+		endmethod
+
+		{TestMethod}
 		public method CustomerExpandAndVerify1, void
 		proc
 			data client = UnitTestEnvironment.Server.CreateClient()

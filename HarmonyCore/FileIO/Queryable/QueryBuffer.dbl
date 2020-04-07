@@ -27,6 +27,7 @@ namespace Harmony.Core.FileIO.Queryable
 		public readwrite property TypeBuffers, @List<QueryBuffer.TypeBuffer>
 		public readwrite property Parameters, @IReadOnlyDictionary<string, Object>
 		public readwrite property Context, @object
+		private DrivingBuffers, @Dictionary<QueryBuffer.TypeBuffer, QueryBuffer.TypeBuffer>
 
 		public method GetTop, long?
 			targetBufferIndex, int
@@ -80,13 +81,41 @@ namespace Harmony.Core.FileIO.Queryable
 			TypeBuffers = buffers.ToList()
 		endmethod
 		
+		public method UnmapDrivingTableBuffer, @QueryBuffer.TypeBuffer
+			buf, @QueryBuffer.TypeBuffer
+		proc
+			if(buf == ^null)
+				mreturn ^null
+
+			if(DrivingBuffers != ^null)
+			begin
+				data result, @QueryBuffer.TypeBuffer
+				if(DrivingBuffers.TryGetValue(buf, result))
+					mreturn result
+			end
+
+			mreturn buf
+		endmethod
+
+		public method MakeDrivingBuffer, @QueryBuffer.TypeBuffer
+			buf, @QueryBuffer.TypeBuffer
+		proc
+			if(DrivingBuffers == ^null)
+				DrivingBuffers = new Dictionary<QueryBuffer.TypeBuffer, QueryBuffer.TypeBuffer>()
+
+			data result = MakeTypeBuffer(buf, DataObjectProvider, ^null)
+			DrivingBuffers.Add(buf, result)
+			mreturn result
+		endmethod
+
+
 		private static method MakeTypeBuffer, @QueryBuffer.TypeBuffer
 			buf, @QueryBuffer.TypeBuffer
 			dataObjectProvider, @IDataObjectProvider
 			bufferMap, @Dictionary<QueryBuffer.TypeBuffer, QueryBuffer.TypeBuffer>
 		proc
 			data madeBuffer, @QueryBuffer.TypeBuffer
-			if(bufferMap.TryGetValue(buf,madeBuffer)) then
+			if(bufferMap != ^null && bufferMap.TryGetValue(buf,madeBuffer)) then
 				mreturn madeBuffer
 			else
 			begin
@@ -118,7 +147,7 @@ namespace Harmony.Core.FileIO.Queryable
 				data remoteBuf, d1
 				xcall getfa(newTypeBuf.IOChannel.Value, "RMT", remoteBuf)
 				newTypeBuf.RemoteIO = remoteBuf == 1
-				bufferMap.Add(buf, newTypeBuf)
+				bufferMap?.Add(buf, newTypeBuf)
 				mreturn newTypeBuf
 			end
 
@@ -162,7 +191,11 @@ namespace Harmony.Core.FileIO.Queryable
 			endparams
 		proc
 			data buf, @QueryBuffer.TypeBuffer
-			foreach buf in TypeBuffers
+			data allBuffers, @IEnumerable<QueryBuffer.TypeBuffer>, TypeBuffers
+			if(DrivingBuffers != ^null)
+				allBuffers = allBuffers.Concat(DrivingBuffers.Values)
+
+			foreach buf in allBuffers
 			begin
 				if(buf.MemoryHandle != ^null)
 					buf.Metadata.ReturnBuffer(buf.MemoryHandle.Value)

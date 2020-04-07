@@ -3,7 +3,7 @@ import System.Collections.Generic
 import System.Text
 import Harmony.Core.Utility
 import Synergex.SynergyDE.Select
-
+import System.Linq
 
 namespace Harmony.Core.FileIO.Queryable.Materializer
 
@@ -39,6 +39,7 @@ namespace Harmony.Core.FileIO.Queryable.Materializer
 		;;this should be zero but its possible for it to be different in the future
 		DrivingRowIndex, int
 		RowLookup, @Dictionary<MaterializerState, int>
+		IsDrivingRow, boolean
 		private Grfa, a10
 
 		public method SimpleRowState
@@ -46,12 +47,13 @@ namespace Harmony.Core.FileIO.Queryable.Materializer
 			driveState, @MaterializerState
 			allStates, @IEnumerable<MaterializerState>
 			joinObj, @JoinSelect
+			isDrivingRow, boolean
 		proc
 			DrivingState = driveState
 			Enumerator = rowEnumerator
 			RowLookup = IndexStates(allStates,joinObj)
+			this.IsDrivingRow = isDrivingRow
 		endmethod
-
 
 		private static method IndexStates, @Dictionary<MaterializerState, int>
 			allStates, @IEnumerable<MaterializerState>
@@ -91,6 +93,9 @@ namespace Harmony.Core.FileIO.Queryable.Materializer
 
 		public method MoveNext, boolean
 		proc
+			if(Finished || (!IsDrivingRow && DrivingState.grfa != Grfa))
+				mreturn false
+
 			data moveNextResult = Enumerator.MoveNext()
 			if(moveNextResult) then
 			begin
@@ -99,11 +104,8 @@ namespace Harmony.Core.FileIO.Queryable.Materializer
 				if(!Enumerator.Current.RowInfo(DrivingRowIndex, Grfa,,changed))
 					throw new InvalidOperationException("Driving row was invalid")
 
-				if(changed)
-				begin
-					if(DrivingState.grfa != Grfa)
-						Waiting = true
-				end
+				if(!IsDrivingRow && DrivingState.grfa != Grfa)
+					Waiting = true
 			end
 			else
 				Finished = true
@@ -127,7 +129,26 @@ namespace Harmony.Core.FileIO.Queryable.Materializer
 			allStates, @IEnumerable<MaterializerState>
 			joinObj, @JoinSelect
 		proc
-			Rows = new List<IRowState>() { new SimpleRowState(simpleEnumerator, drivingState, allStates, joinObj) }
+			Rows = new List<IRowState>() { new SimpleRowState(simpleEnumerator, drivingState, allStates, joinObj, true) }
+		endmethod
+
+		public method RowsManager
+			activeResultSets, @List<Tuple<Synergex.SynergyDE.Select.RowEnumerator, IEnumerable<MaterializerState>, JoinSelect>>
+			drivingState, @MaterializerState
+		proc
+			RowLookup = new Dictionary<MaterializerState, IRowState>()
+			data tpl, @Tuple<Synergex.SynergyDE.Select.RowEnumerator, IEnumerable<MaterializerState>, JoinSelect>
+			Rows = new List<IRowState>(); { new SimpleRowState(simpleEnumerator, drivingState, allStates, joinObj) }
+			foreach tpl in activeResultSets
+			begin
+				data rowState = new SimpleRowState(tpl.Item1, drivingState, tpl.Item2, tpl.Item3, activeResultSets.First() == tpl)
+				data matState, @MaterializerState
+				foreach matState in tpl.Item2
+					if(!RowLookup.ContainsKey(matState))
+						RowLookup.Add(matState, rowState)
+
+				Rows.Add(rowState)
+			end
 		endmethod
 
 
@@ -158,7 +179,6 @@ namespace Harmony.Core.FileIO.Queryable.Materializer
 				if(!row.Waiting)
 				begin
 					allRowsReady = false
-					row.MoveNext()
 				end
 			end
 
@@ -168,9 +188,16 @@ namespace Harmony.Core.FileIO.Queryable.Materializer
 
 			if(allRowsReady)
 			begin
-				if(!row.MoveNext() && allRowsFinished)
+				if(!row.MoveNext())
 					mreturn false
 			end
+
+			for i from 1 thru Rows.Count - 1 by 1
+			begin
+				row = Rows[i]
+				row.MoveNext()
+			end
+
 
 			mreturn true
 		endmethod

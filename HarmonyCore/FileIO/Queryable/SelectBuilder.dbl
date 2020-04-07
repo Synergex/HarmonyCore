@@ -11,13 +11,15 @@ namespace Harmony.Core.FileIO.Queryable
 
 	public class SelectBuilder
 		private mQueryBuffer, @QueryBuffer
+		private mTargetBuffers, @List<QueryBuffer.TypeBuffer>
 
 		public method SelectBuilder
 			queryBuffer, @QueryBuffer
+			targetBuffers, @List<QueryBuffer.TypeBuffer>
 		proc
 			mQueryBuffer = queryBuffer
+			mTargetBuffers = targetBuffers
 		endmethod
-
 
 		private method fieldOnClause  ,@On
 			in req dataBuffer1			,a
@@ -1218,6 +1220,16 @@ namespace Harmony.Core.FileIO.Queryable
 				throw new InvalidOperationException("Invalid Where Expression Tree")
 		endmethod
 
+		private method MapTypeBuffer, @QueryBuffer.TypeBuffer
+			sourceKey, int
+		proc
+			if(sourceKey == 0 && mTargetBuffers != ^null)
+				mreturn mTargetBuffers[0]
+
+			mreturn mQueryBuffer.TypeBuffers[sourceKey]
+		endmethod
+
+
 		private method ProcessWhereExpression, @Where
 			expr, @ExprPart
 			structure tmpStructure
@@ -1228,8 +1240,11 @@ namespace Harmony.Core.FileIO.Queryable
 			data rightField = ^as(expr.Right, @FieldReference)
 			data leftBuffer, @QueryBuffer.TypeBuffer, ^null
 			data rightBuffer, @QueryBuffer.TypeBuffer, ^null
-			leftBuffer = leftField != ^null ? mQueryBuffer.TypeBuffers[leftField.QuerySourceKey] : ^null
-			rightBuffer = rightField != ^null ? mQueryBuffer.TypeBuffers[rightField.QuerySourceKey] : ^null
+			leftBuffer = leftField != ^null ? MapTypeBuffer(leftField.QuerySourceKey) : ^null
+			rightBuffer = rightField != ^null ? MapTypeBuffer(rightField.QuerySourceKey) : ^null
+
+			if(mTargetBuffers != ^null && ((leftBuffer != ^null && !mTargetBuffers.Contains(leftBuffer)) || (rightBuffer != ^null && !mTargetBuffers.Contains(rightBuffer))))
+				mreturn ^null
 
 			if(leftField != ^null && rightField != ^null) then
 			begin
@@ -1340,8 +1355,8 @@ namespace Harmony.Core.FileIO.Queryable
 			data rightField = ^as(expr.Right, @FieldReference)
 			data leftBuffer, @QueryBuffer.TypeBuffer, ^null
 			data rightBuffer, @QueryBuffer.TypeBuffer, ^null
-			leftBuffer = leftField != ^null ? mQueryBuffer.TypeBuffers[leftField.QuerySourceKey] : ^null
-			rightBuffer = rightField != ^null ? mQueryBuffer.TypeBuffers[rightField.QuerySourceKey] : ^null
+			leftBuffer = leftField != ^null ? MapTypeBuffer(leftField.QuerySourceKey) : ^null
+			rightBuffer = rightField != ^null ? MapTypeBuffer(rightField.QuerySourceKey) : ^null
 
 			if(leftField != ^null && rightField != ^null) then
 			begin
