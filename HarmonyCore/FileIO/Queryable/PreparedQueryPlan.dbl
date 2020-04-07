@@ -33,7 +33,7 @@ namespace Harmony.Core.FileIO.Queryable
 
 	public class PreparedQueryPlan
 		public static MARSTargetSize, int, 2
-
+		public static EnableMARS, boolean, false
 
 		structure memMapper
 			fld,a1
@@ -51,6 +51,25 @@ namespace Harmony.Core.FileIO.Queryable
 		public readwrite property IsKeyedRead, boolean
 		public static readwrite property LocalSparse, boolean, false
 		public static readwrite property DisableSparse, boolean, false
+
+		static method PreparedQueryPlan
+		proc
+			data enableValue = Environment.GetEnvironmentVariable("HARMONYCORE_ENABLE_MARS")
+			data marsTargetValue = Environment.GetEnvironmentVariable("HARMONYCORE_MARS_TARGET_SIZE")
+
+			if(enableValue != ^null && enableValue != "0")
+			begin
+				enableValue = true
+			end
+
+			if(!string.IsNullOrWhiteSpace(marsTargetValue))
+			begin
+				int.TryParse(marsTargetValue, MARSTargetSize)
+				if(MARSTargetSize < 2)
+					MARSTargetSize = 2
+			end
+		endmethod
+
 
 		public method Prepare, void
 		proc
@@ -462,8 +481,10 @@ namespace Harmony.Core.FileIO.Queryable
 			dataObjectProvider, @Harmony.Core.Context.IDataObjectProvider
 			context, @object
 		proc
-			if(IsJoin) then
+			if(IsJoin && EnableMARS) then
 				mreturn ExecuteMARSPlan(tracker, parameters, dataObjectProvider, context).OfType<T>()
+			else if(IsJoin) then
+				mreturn UntypedExecuteJoinCollectionPlan(tracker, parameters, dataObjectProvider, context).OfType<T>()
 			else
 				mreturn UntypedExecuteSelectCollectionPlan(tracker, parameters, dataObjectProvider, context).OfType<T>()
 		endmethod
