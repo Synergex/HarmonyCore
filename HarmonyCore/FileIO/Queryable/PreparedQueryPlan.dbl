@@ -299,6 +299,10 @@ namespace Harmony.Core.FileIO.Queryable
 					data groupBuffers = drivingBuffer.JoinedBuffers.Skip(realTargetSize * i).Take(realTargetSize)
 					data flatGroupBuffers = new List<QueryBuffer.TypeBuffer>()
 					data buff, @QueryBuffer.TypeBuffer
+
+					if(groupBuffers.Count() == 0)
+						exitloop
+
 					flatGroupBuffers.Add(i > 0 ? sourceBuffer.MakeDrivingBuffer(drivingBuffer) : drivingBuffer)
 					foreach buff in groupBuffers
 					begin
