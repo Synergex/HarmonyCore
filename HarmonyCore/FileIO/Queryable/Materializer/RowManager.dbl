@@ -55,7 +55,7 @@ namespace Harmony.Core.FileIO.Queryable.Materializer
 			this.IsDrivingRow = isDrivingRow
 		endmethod
 
-		private static method IndexStates, @Dictionary<MaterializerState, int>
+		private method IndexStates, @Dictionary<MaterializerState, int>
 			allStates, @IEnumerable<MaterializerState>
 			joinObj, @JoinSelect
 		proc
@@ -65,7 +65,10 @@ namespace Harmony.Core.FileIO.Queryable.Materializer
 			begin
 				data memPnt, i4, matState.typeBuf.MemoryHandle.Value
 				data structureSize, i4, matState.typeBuf.Metadata.StructureSize
-				result.Add(matState, joinObj.GetRowArrayIndex(^m(memMapper.fld(1:structureSize), memPnt)))
+				if(string.IsNullOrWhiteSpace(matState.typeBuf.ParentFieldName)) then
+					result.Add(matState, DrivingRowIndex)
+				else
+					result.Add(matState, joinObj.GetRowArrayIndex(^m(memMapper.fld(1:structureSize), memPnt)))
 			end
 			mreturn result
 		endmethod
