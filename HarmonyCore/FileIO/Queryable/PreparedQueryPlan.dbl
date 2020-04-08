@@ -241,10 +241,10 @@ namespace Harmony.Core.FileIO.Queryable
 					joinSelectObjects.Add(joinSelectObject)
 					data selEnumerator = joinSelectObject.GetEnumerator()
 					rows.Add(selEnumerator)
-					marsTpls.Add(Tuple.Create<Synergex.SynergyDE.Select.RowEnumerator, IEnumerable<MaterializerState>, JoinSelect>(selEnumerator, materializerState.MaterializerQueue.Where(lambda (mat) { splitBuffer.Contains(mat.typeBuf) }).ToList(), joinSelectObject))
+					marsTpls.Add(Tuple.Create<Synergex.SynergyDE.Select.RowEnumerator, IEnumerable<MaterializerState>, JoinSelect>(selEnumerator, materializerState.MaterializerQueue.Where(lambda (mat) { splitBuffer.Contains(mat.typeBuf) || mat.parentState == ^null }).ToList(), joinSelectObject))
 				end
 
-				data rowManager = new RowsManager(marsTpls, marsTpls.First().Item2.Last())
+				data rowManager = new RowsManager(marsTpls, marsTpls.First().Item2.First())
 				data resultEnumerable = RunMaterializer(materializerState, rowManager, cleanupAction)
 				if(skip != 0)
 					resultEnumerable = resultEnumerable.Skip((int)skip)
