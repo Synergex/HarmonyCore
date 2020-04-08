@@ -27,7 +27,7 @@ namespace Harmony.Core.FileIO.Queryable
 		public readwrite property TypeBuffers, @List<QueryBuffer.TypeBuffer>
 		public readwrite property Parameters, @IReadOnlyDictionary<string, Object>
 		public readwrite property Context, @object
-		private DrivingBuffers, @Dictionary<QueryBuffer.TypeBuffer, QueryBuffer.TypeBuffer>
+		private DrivingBuffers, @List<QueryBuffer.TypeBuffer>
 
 		public method GetTop, long?
 			targetBufferIndex, int
@@ -80,31 +80,15 @@ namespace Harmony.Core.FileIO.Queryable
 			
 			TypeBuffers = buffers.ToList()
 		endmethod
-		
-		public method UnmapDrivingTableBuffer, @QueryBuffer.TypeBuffer
-			buf, @QueryBuffer.TypeBuffer
-		proc
-			if(buf == ^null)
-				mreturn ^null
-
-			if(DrivingBuffers != ^null)
-			begin
-				data result, @QueryBuffer.TypeBuffer
-				if(DrivingBuffers.TryGetValue(buf, result))
-					mreturn result
-			end
-
-			mreturn buf
-		endmethod
 
 		public method MakeDrivingBuffer, @QueryBuffer.TypeBuffer
 			buf, @QueryBuffer.TypeBuffer
 		proc
 			if(DrivingBuffers == ^null)
-				DrivingBuffers = new Dictionary<QueryBuffer.TypeBuffer, QueryBuffer.TypeBuffer>()
+				DrivingBuffers = new List<QueryBuffer.TypeBuffer>()
 
 			data result = MakeTypeBuffer(buf, DataObjectProvider, ^null)
-			DrivingBuffers.Add(buf, result)
+			DrivingBuffers.Add(result)
 			mreturn result
 		endmethod
 
@@ -193,7 +177,7 @@ namespace Harmony.Core.FileIO.Queryable
 			data buf, @QueryBuffer.TypeBuffer
 			data allBuffers, @IEnumerable<QueryBuffer.TypeBuffer>, TypeBuffers
 			if(DrivingBuffers != ^null)
-				allBuffers = allBuffers.Concat(DrivingBuffers.Values)
+				allBuffers = allBuffers.Concat(DrivingBuffers)
 
 			foreach buf in allBuffers
 			begin
