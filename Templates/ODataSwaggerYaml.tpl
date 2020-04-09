@@ -717,7 +717,6 @@ paths:
 ;//
 ;// Invividual property - value only
 ;//
-<IF DEFINED_ENABLE_PROPERTY_VALUE_DOCS>
 
   '/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF ALPHA>''</IF ALPHA>{a<FieldSqlName>}<IF ALPHA>''</IF ALPHA><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></IF SINGLE_SEGMENT></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>{RecordNumber}</IF STRUCTURE_RELATIVE>)/<FieldSqlName>/$value':
 
@@ -771,7 +770,6 @@ paths:
         </IF DEFINED_ENABLE_AUTHENTICATION>
         '404':
           description: Not found (the specified <structureNoplural> was not found)
-</IF DEFINED_ENABLE_PROPERTY_VALUE_DOCS>
 </IF CUSTOM_NOT_HARMONY_EXCLUDE>
 </IF NOTPKSEGMENT>
 </FIELD_LOOP>
