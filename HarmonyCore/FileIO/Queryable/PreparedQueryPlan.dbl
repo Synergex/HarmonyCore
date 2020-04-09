@@ -209,10 +209,18 @@ namespace Harmony.Core.FileIO.Queryable
 
 			lambda cleanup()
 			begin
-				rows.ForEach(lambda(row) { row.Dispose() })
-				joinSelectObjects.ForEach(lambda(row) { row.Dispose() })
+				data row, @Synergex.SynergyDE.Select.RowEnumerator
+				data joinSelObj, @Synergex.SynergyDE.Select.JoinSelect
+				data fromObj, @From
+				foreach row in rows
+					row.Dispose()
+
+				foreach joinSelObj in joinSelectObjects
+					joinSelObj.Dispose()
+
 				queryBuffer?.Dispose()
-				fromObjs.ForEach(lambda(row) { row.Dispose() })
+				foreach fromObj in fromObjs
+					fromObj.Dispose()
 
 				rows.Clear()
 				joinSelectObjects.Clear()
@@ -386,48 +394,154 @@ namespace Harmony.Core.FileIO.Queryable
 
 		endmethod
 
+		class MaterializerEnumeratable implements IEnumerable<DataObjectBase>, IDisposable
+
+			enumerator, @PreparedQueryPlan.MaterializerEnumerator
+			public method MaterializerEnumeratable
+				iterState, @DataObjectMaterializer.IterationState
+				rows, @RowsManager
+				cleanup, @Action
+			proc
+				enumerator = new MaterializerEnumerator(iterState, rows, cleanup)
+			endmethod
+
+			public virtual method Dispose, void
+				endparams
+			proc
+				enumerator.Dispose()
+			endmethod
+
+			public virtual method GetEnumerator, @IEnumerator<DataObjectBase>
+				endparams
+			proc
+				mreturn enumerator
+			endmethod
+
+			public virtual method System.Collections.IEnumerable.GetEnumerator, @System.Collections.IEnumerator
+				endparams
+			proc
+				mreturn enumerator
+			endmethod
+			
+		endclass
+
+		class MaterializerEnumerator implements IEnumerator<DataObjectBase>, IDisposable
+
+			private CurrentValue, @DataObjectBase
+			private CurrentNestedEnumerator, @IEnumerator<DataObjectBase>
+			iterState, @DataObjectMaterializer.IterationState
+			rows, @RowsManager
+			cleanup, @Action
+
+			public method MaterializerEnumerator
+				iterState, @DataObjectMaterializer.IterationState
+				rows, @RowsManager
+				cleanup, @Action
+			proc
+				this.iterState = iterState
+				this.rows = rows
+				this.cleanup = cleanup
+			endmethod
+
+
+			public property Current, @DataObjectBase
+				method get
+				proc
+					if(CurrentNestedEnumerator != ^null) then
+						mreturn CurrentNestedEnumerator.Current
+					else
+						mreturn CurrentValue
+				endmethod
+			endproperty
+
+
+
+			property System.Collections.IEnumerator.Current, @object
+				method get
+				proc
+					if(CurrentNestedEnumerator != ^null) then
+						mreturn CurrentNestedEnumerator.Current
+					else
+						mreturn CurrentValue
+				endmethod
+			endproperty
+
+
+
+			public virtual method MoveNext, Boolean
+				endparams
+			proc
+				if(CurrentNestedEnumerator != ^null)
+					mreturn CurrentNestedEnumerator.MoveNext()
+
+				data endOfIter = false
+				do forever
+				begin
+					if(!endOfIter) then
+					begin
+						if(!rows.MoveNext())
+						begin
+							endOfIter = true
+							nextloop
+						end
+
+						DataObjectMaterializer.IterateMaterializer(iterState, rows)
+						data iterResult = DataObjectMaterializer.AfterIterate(iterState)
+						endOfIter = iterResult.endOfResult
+						if(iterResult.objResult != ^null)
+						begin
+							CurrentValue = iterResult.objResult
+							mreturn true
+						end
+					end
+					else
+					begin
+						data fullResult = DataObjectMaterializer.FinishIteration(iterState).GetEnumerator()
+						CurrentNestedEnumerator = fullResult
+						mreturn fullResult.MoveNext()
+					end
+				end
+			endmethod
+
+
+
+			public virtual method Reset, void
+				endparams
+			proc
+				throw new System.NotImplementedException()
+			endmethod
+
+			method ~MaterializerEnumerator
+			proc
+				Dispose(true)
+			endmethod
+
+			public virtual method Dispose, void
+				endparams
+			proc
+				GC.SuppressFinalize(this)
+				Dispose(false)
+			endmethod
+		
+			protected virtual method Dispose, void
+				isFinalizer, boolean
+				endparams
+			proc
+				cleanup()
+				if(CurrentNestedEnumerator != ^null)
+					CurrentNestedEnumerator.Dispose()
+
+			endmethod
+			
+		endclass
+
+
 		private method RunMaterializer, @IEnumerable<DataObjectBase>
 			iterState, @DataObjectMaterializer.IterationState
 			rows, @RowsManager
 			cleanup, @Action
 		proc
-			;try
-			;begin
-			data endOfIter = false
-			do forever
-			begin
-				if(!endOfIter) then
-				begin
-					if(!rows.MoveNext())
-					begin
-						endOfIter = true
-						nextloop
-					end
-
-					DataObjectMaterializer.IterateMaterializer(iterState, rows)
-					data iterResult = DataObjectMaterializer.AfterIterate(iterState)
-					endOfIter = iterResult.endOfResult
-					if(iterResult.objResult != ^null)
-					begin
-						yield mreturn iterResult.objResult
-					end
-				end
-				else
-				begin
-					data fullResult = DataObjectMaterializer.FinishIteration(iterState)
-					data resultObject, @DataObjectBase
-					foreach resultObject in fullResult
-					begin
-						yield mreturn resultObject
-					end
-					exitloop
-				end
-			end
-			;end
-			;finally
-			cleanup()
-			;endtry
-
+			mreturn new PreparedQueryPlan.MaterializerEnumeratable(iterState, rows, cleanup)
 		endmethod
 		
 		private method UntypedExecuteSelectCollectionPlan, @IEnumerable<DataObjectBase>
@@ -469,11 +583,11 @@ namespace Harmony.Core.FileIO.Queryable
 				incr stats.RecordsReturned
 				yield mreturn tracker(metadataObject.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa))
 			end
-				;;end
+			;;end
 			;;finally
 			;;begin
-				;;HarmonyFileIOMetricsEventSource.Log.ReportIOOPS(stats.IOOPS)
-				;;HarmonyFileIOMetricsEventSource.Log.ReportRecordsReturned(stats.RecordsReturned)
+			;;HarmonyFileIOMetricsEventSource.Log.ReportIOOPS(stats.IOOPS)
+			;;HarmonyFileIOMetricsEventSource.Log.ReportRecordsReturned(stats.RecordsReturned)
 			;;end
 			;;endtry
 		endmethod
@@ -546,11 +660,11 @@ namespace Harmony.Core.FileIO.Queryable
 			data selectBuilder = new SelectBuilder(queryBuf, queryBuf.TypeBuffers == targetBuffers ? ^null : targetBuffers)
 			if(mWhereParts.Count == 1) then
 				mreturn selectBuilder.ProcessWhere(mWhereParts.First())
-            else if(mWhereParts.Count == 2) then
+			else if(mWhereParts.Count == 2) then
 			begin
-                mreturn selectBuilder.ProcessWhere(new ConnectorPart() { Left = mWhereParts[0], Right = mWhereParts[1], Op=WhereClauseConnector.AndOperator }) 
-            end
-            else if(mWhereParts.Count > 2) then
+				mreturn selectBuilder.ProcessWhere(new ConnectorPart() { Left = mWhereParts[0], Right = mWhereParts[1], Op=WhereClauseConnector.AndOperator }) 
+			end
+			else if(mWhereParts.Count > 2) then
 				throw new NotImplementedException();
 			else
 				mreturn ^null

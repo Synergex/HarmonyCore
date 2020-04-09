@@ -3,6 +3,7 @@ import System.Collections.Generic
 import System.Text
 import System.Linq
 import Harmony.Core.Context
+import System.Diagnostics
 
 namespace Harmony.Core.FileIO.Queryable
 
@@ -22,6 +23,21 @@ namespace Harmony.Core.FileIO.Queryable
 			public SelectResult, @Func<QueryBuffer, QueryBuffer.TypeBuffer, Object, Object>
             public Top, @Func<Object, long>
 			public Skip, @Func<Object, long>
+.ifdef DEBUG
+			private AllocationTrace, @StackTrace
+			public method TypeBuffer
+			proc
+				AllocationTrace = new StackTrace()
+			endmethod
+
+
+			method ~TypeBuffer
+			proc
+				if(IOChannel != ^null)
+					throw new Exception("channel leaked")
+			endmethod
+.endc
+
 		endclass
 		
 		public readwrite property TypeBuffers, @List<QueryBuffer.TypeBuffer>
@@ -87,9 +103,36 @@ namespace Harmony.Core.FileIO.Queryable
 			if(DrivingBuffers == ^null)
 				DrivingBuffers = new List<QueryBuffer.TypeBuffer>()
 
-			data result = MakeTypeBuffer(buf, DataObjectProvider, ^null)
-			DrivingBuffers.Add(result)
-			mreturn result
+			data newTypeBuf = new QueryBuffer.TypeBuffer() 
+				&	{ 
+				&	Metadata = buf.Metadata,
+				&	IsCollection = buf.IsCollection,
+				&	ParentFieldName = buf.ParentFieldName,
+				&	DataObjectType = buf.DataObjectType,
+				&	JoinOn = buf.JoinOn,
+				&	JoinedBuffers = buf.JoinedBuffers,
+				&	IsInnerJoin = buf.IsInnerJoin,
+				&	OrderBy = buf.OrderBy,
+				&	SelectResult = buf.SelectResult,
+				&	Top = buf.Top,
+				&	Skip = buf.Skip
+				&	}
+
+			newTypeBuf.MemoryHandle = buf.Metadata.GetBuffer()
+			data fileInfo = dataObjectProvider.GetFileInfo(buf.DataObjectType)
+			;;this is read only, performance is significantly improved by using an input channel 
+			data fileOpenMode = fileInfo.Item2
+			if(fileOpenMode == FileOpenMode.Update) then
+				fileOpenMode = FileOpenMode.Input
+			else if(fileOpenMode == FileOpenMode.UpdateIndexed)
+				fileOpenMode = FileOpenMode.InputIndexed
+
+			newTypeBuf.IOChannel = dataObjectProvider.ChannelManager.GetChannel(fileInfo.Item1, fileOpenMode)
+			data remoteBuf, d1
+			xcall getfa(newTypeBuf.IOChannel.Value, "RMT", remoteBuf)
+			newTypeBuf.RemoteIO = remoteBuf == 1
+			DrivingBuffers.Add(newTypeBuf)
+			mreturn newTypeBuf
 		endmethod
 
 
@@ -167,6 +210,7 @@ namespace Harmony.Core.FileIO.Queryable
 		public virtual method Dispose, void
 			endparams
 		proc
+			GC.SuppressFinalize(this)
 			Dispose(false)
 		endmethod
 		
@@ -189,9 +233,15 @@ namespace Harmony.Core.FileIO.Queryable
 					DataObjectProvider.ChannelManager.ReturnChannel(buf.IOChannel.Value)
 					buf.IOChannel = ^null
 				end
+.ifdef DEBUG
+				if(DataObjectProvider == ^null)
+					throw new Exception("invalid query buffer")
+.endc
+
 			end
 			TypeBuffers.Clear()
 			DataObjectProvider = ^null
+			DrivingBuffers = ^null
 		endmethod
 
 	endclass
