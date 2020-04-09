@@ -73,19 +73,18 @@ namespace Services.Controllers
 
         {ODataRoute("(CustomerNumber={aCustomerNumber})")}
         {Produces("application/json")}
-        {ProducesResponseType(^typeof(CustomerNote),StatusCodes.Status200OK)}
-        {ProducesResponseType(StatusCodes.Status404NotFound)}
+        {ProducesResponseType(^typeof(ODataValue<IEnumerable<CustomerNote>>),StatusCodes.Status200OK)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
-        ;;; Get a single CustomerNote by primary key.
+        ;;; Get all CustomerNotes matching non-unique primary key.
         ;;; </summary>
         ;;; <param name="aCustomerNumber">Customer number</param>
-        ;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetCustomerNote, @SingleResult<CustomerNote>
+        ;;; <returns>Returns a collection of any CustomerNotes matching non-unique primary key, or an empty collection if no matching records are found.</returns>
+        public method GetCustomerNote, @IActionResult
             {FromODataUri}
             required in aCustomerNumber, int
         proc
-            mreturn new SingleResult<CustomerNote>(_DbContext.CustomerNotes.AsNoTracking().FindQuery<CustomerNote>(_DbContext, aCustomerNumber))
+            mreturn Ok(_DbContext.CustomerNotes.AsNoTracking().FindQuery<CustomerNote>(_DbContext, aCustomerNumber))
         endmethod
 
         {ODataRoute}

@@ -495,7 +495,7 @@
         {
             "id": "516455e6-1f03-436c-83a5-2d1fb2499807",
             "key": "ServerBaseUri",
-            "value": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<SERVER_BASE_PATH><IF DEFINED_ENABLE_API_VERSIONING>/v<API_VERSION></IF DEFINED_ENABLE_API_VERSIONING>",
+            "value": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<SERVER_BASE_PATH>/v<API_VERSION>",
             "type": "string"
         }
     ]

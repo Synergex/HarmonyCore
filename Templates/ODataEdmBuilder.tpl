@@ -51,10 +51,8 @@ import Harmony.OData
 import Microsoft.EntityFrameworkCore
 import Microsoft.OData.Edm
 import Microsoft.AspNet.OData.Builder
-<IF DEFINED_ENABLE_API_VERSIONING>
 import Microsoft.AspNetCore.Mvc
 import Microsoft.AspNetCore.Mvc.Versioning.Conventions
-</IF DEFINED_ENABLE_API_VERSIONING>
 import System.Collections.Generic
 import <MODELS_NAMESPACE>
 
@@ -65,7 +63,6 @@ namespace <NAMESPACE>
     ;;; </summary>
     public partial class EdmBuilder implements IEdmBuilder
 
-<IF DEFINED_ENABLE_API_VERSIONING>
         static method EdmBuilder
         proc
             CustomStaticEdmInit()
@@ -74,7 +71,6 @@ namespace <NAMESPACE>
                 mEdmVersions.Add(1)
         endmethod
 
-</IF DEFINED_ENABLE_API_VERSIONING>
         public method EdmBuilder
             serviceProvider, @IServiceProvider
         proc
@@ -89,12 +85,9 @@ namespace <NAMESPACE>
         endmethod
 
         private mServiceProvider, @IServiceProvider
-        private static mEdmModel<IF DEFINED_ENABLE_API_VERSIONING>s, @Dictionary<int, IEdmModel>, new Dictionary<int, IEdmModel>()<ELSE>, @IEdmModel</IF DEFINED_ENABLE_API_VERSIONING>
-<IF DEFINED_ENABLE_API_VERSIONING>
+        private static mEdmModels, @Dictionary<int, IEdmModel>, new Dictionary<int, IEdmModel>()
         private static mEdmVersions, @List<int>, new List<int>()
-</IF DEFINED_ENABLE_API_VERSIONING>
 
-<IF DEFINED_ENABLE_API_VERSIONING>
         public static method GetEdmModel, @IEdmModel
             required in serviceProvider, @IServiceProvider
             required in versionNumber, int
@@ -128,15 +121,6 @@ namespace <NAMESPACE>
         private static partial method CustomStaticEdmInit, void
         
         endmethod
-<ELSE>
-        public static method GetEdmModel, @IEdmModel
-            required in serviceProvider, @IServiceProvider
-        proc
-            if(mEdmModel == ^null)
-                mEdmModel = GetEdmModel(new ODataConventionModelBuilder(serviceProvider), serviceProvider)
-            mreturn mEdmModel
-        endmethod
-</IF DEFINED_ENABLE_API_VERSIONING>
 
         ;;; <summary>
         ;;; Gets the entity data model.
