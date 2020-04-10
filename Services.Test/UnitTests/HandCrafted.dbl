@@ -910,7 +910,22 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Customers(8)?$expand=REL_CustomerOrders($expand=REL_OrderItems($expand=REL_Item($expand=REL_Vendor)))").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
+			data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
+			Assert.AreNotEqual(customers.REL_CustomerOrders.Count, 0)
+			data custOrd, @Order
+			foreach custOrd in customers.REL_CustomerOrders
+			begin
+				data ordItm, @OrderItem
+
+				Assert.AreNotEqual(custOrd.REL_OrderItems.Count, 0)
+
+				foreach ordItm in custOrd.REL_OrderItems
+				begin
+				    Assert.IsNotNull(ordItm.REL_Item)
+					Assert.IsNotNull(ordItm.REL_Item.REL_Vendor)
+				end
+
+			end
         endmethod
 
         ;3 levels of expansion with select at each level, with a filter at the top level
@@ -932,7 +947,25 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Customers?$filter=State eq 'CA'&$expand=REL_CustomerOrders($select=OrderNumber,DateOrdered;$expand=REL_OrderItems($select=ItemNumber,QuantityOrdered;$expand=REL_Item($select=CommonName)))&$select=CustomerNumber,Name").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
+			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+			data cust, @Customer
+			foreach cust in customers.Value
+			begin
+				data custOrd, @Order
+				Assert.AreNotEqual(cust.REL_CustomerOrders.Count, 0)
+			    foreach custOrd in cust.REL_CustomerOrders
+			    begin
+				    data ordItm, @OrderItem
+
+				    Assert.AreNotEqual(custOrd.REL_OrderItems.Count, 0)
+
+				    foreach ordItm in custOrd.REL_OrderItems
+				    begin
+				        Assert.IsNotNull(ordItm.REL_Item)
+				    end
+
+			    end
+			end
         endmethod
 
         ;3 levels of expansion with select at each level, with a filter at the top level
@@ -943,7 +976,26 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Customers?$filter=State in ('CA','WA')&$expand=REL_CustomerOrders($select=OrderNumber,DateOrdered;$expand=REL_OrderItems($select=ItemNumber,QuantityOrdered;$expand=REL_Item))&$select=CustomerNumber,Name").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
+			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+			data cust, @Services.Test.Models.Customer
+
+			foreach cust in customers.Value
+			begin
+				Assert.AreNotEqual(cust.REL_CustomerOrders.Count, 0)
+				data custOrd, @Order
+			    foreach custOrd in cust.REL_CustomerOrders
+			    begin
+				    data ordItm, @OrderItem
+
+				    Assert.AreNotEqual(custOrd.REL_OrderItems.Count, 0)
+
+				    foreach ordItm in custOrd.REL_OrderItems
+				    begin
+				        Assert.IsNotNull(ordItm.REL_Item)
+				    end
+
+			    end
+			end
         endmethod
 
 		{TestMethod}

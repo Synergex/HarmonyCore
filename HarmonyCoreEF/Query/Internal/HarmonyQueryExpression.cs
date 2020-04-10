@@ -62,7 +62,23 @@ namespace Harmony.Core.EF.Query.Internal
             }
 
             flatList.Add(Tuple.Create(table, made));
-            made.JoinedBuffers = queryTables.OfType<HarmonyTableExpression>().Select(qt => GetTypeBuffer(qt, flatList)).ToList();
+            var joinedBuffers = queryTables.OfType<HarmonyTableExpression>().Where(qt => !qt.Name.Contains(".")).Select(qt => GetTypeBuffer(qt, flatList)).ToList();
+            var namedLookup = joinedBuffers.ToDictionary(tb => tb.ParentFieldName);
+            foreach (var nestedTable in queryTables.OfType<HarmonyTableExpression>().Where(qt => qt.Name.Contains(".")).OrderBy(qt => qt.Name.Length))
+            {
+                var nameParts = nestedTable.Name.Split(".");
+                if (namedLookup.TryGetValue(string.Join(".", nameParts.Take(nameParts.Length - 1)), out var foundBuffer))
+                {
+                    var fullName = nestedTable.Name;
+                    nestedTable.Name = nameParts.Last();
+                    var madeBuffer = GetTypeBuffer(nestedTable, flatList);
+                    foundBuffer.JoinedBuffers.Add(madeBuffer);
+                    namedLookup.Add(fullName, madeBuffer);
+                }
+                else
+                    throw new Exception(string.Format("failed to find parent table while processing query {0}", nestedTable.Name));
+            }
+            made.JoinedBuffers = joinedBuffers;
             return made;
         }
 
