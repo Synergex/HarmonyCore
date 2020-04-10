@@ -50,10 +50,8 @@
 <IF DEFINED_ENABLE_AUTHENTICATION>
 import Microsoft.AspNetCore.Authorization
 </IF DEFINED_ENABLE_AUTHENTICATION>
-<IF DEFINED_ENABLE_API_VERSIONING>
 import Microsoft.AspNetCore.Http
 import Microsoft.OData
-</IF DEFINED_ENABLE_API_VERSIONING>
 import Microsoft.AspNetCore.JsonPatch
 import Microsoft.AspNetCore.Mvc
 import Microsoft.AspNet.OData
@@ -75,9 +73,7 @@ namespace <NAMESPACE>
 <IF DEFINED_ENABLE_AUTHENTICATION>
     {Authorize}
 </IF DEFINED_ENABLE_AUTHENTICATION>
-<IF DEFINED_ENABLE_API_VERSIONING>
     {ApiVersion("<API_VERSION>")}
-</IF DEFINED_ENABLE_API_VERSIONING>
     {ODataRoutePrefix("<StructurePlural>")}
     ;;; <summary>
     ;;; OData controller for <StructurePlural>
@@ -110,10 +106,8 @@ namespace <NAMESPACE>
 ;//
 <IF DEFINED_ENABLE_GET_ALL AND GET_ALL_ENDPOINT>
         {ODataRoute}
-  <IF DEFINED_ENABLE_API_VERSIONING>
         {Produces("application/json")}
         {ProducesResponseType(^typeof(ODataValue<IEnumerable<<StructureNoplural>>>),StatusCodes.Status200OK)}
-  </IF DEFINED_ENABLE_API_VERSIONING>
   <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_GET>
         {Authorize(Roles="<ROLES_GET>")}
   </IF DEFINED_ENABLE_AUTHENTICATION_AND_USERTOKEN_ROLES_GET>
@@ -137,11 +131,9 @@ namespace <NAMESPACE>
 ;//
 <IF STRUCTURE_ISAM AND STRUCTURE_HAS_UNIQUE_PK AND DEFINED_ENABLE_GET_ONE AND GET_ENDPOINT>
         {ODataRoute("(<PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY>)")}
-  <IF DEFINED_ENABLE_API_VERSIONING>
         {Produces("application/json")}
         {ProducesResponseType(^typeof(<StructureNoplural>),StatusCodes.Status200OK)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
-  </IF DEFINED_ENABLE_API_VERSIONING>
   <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_GET>
         {Authorize(Roles="<ROLES_GET>")}
   </IF DEFINED_ENABLE_AUTHENTICATION>
@@ -185,10 +177,8 @@ namespace <NAMESPACE>
 ;//
 <IF STRUCTURE_ISAM AND NOT STRUCTURE_HAS_UNIQUE_PK AND DEFINED_ENABLE_GET_ONE AND GET_ENDPOINT>
         {ODataRoute("(<PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY>)")}
-  <IF DEFINED_ENABLE_API_VERSIONING>
         {Produces("application/json")}
         {ProducesResponseType(^typeof(ODataValue<IEnumerable<<StructureNoplural>>>),StatusCodes.Status200OK)}
-  </IF DEFINED_ENABLE_API_VERSIONING>
   <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_GET>
         {Authorize(Roles="<ROLES_GET>")}
   </IF DEFINED_ENABLE_AUTHENTICATION>
@@ -232,11 +222,9 @@ namespace <NAMESPACE>
 ;//
 <IF STRUCTURE_RELATIVE AND DEFINED_ENABLE_GET_ONE AND GET_ENDPOINT>
         {ODataRoute("(aRecordNumber)")}
-  <IF DEFINED_ENABLE_API_VERSIONING>
         {Produces("application/json")}
         {ProducesResponseType(^typeof(<StructureNoplural>),StatusCodes.Status200OK)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
-  </IF DEFINED_ENABLE_API_VERSIONING>
   <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_GET>
         {Authorize(Roles="<ROLES_GET>")}
   </IF DEFINED_ENABLE_AUTHENTICATION>
@@ -266,11 +254,9 @@ namespace <NAMESPACE>
   <ALTERNATE_KEY_LOOP>
     <IF DUPLICATES>
         {ODataRoute("(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>)")}
-      <IF DEFINED_ENABLE_API_VERSIONING>
         {Produces("application/json")}
         {ProducesResponseType(^typeof(ODataValue<IEnumerable<<StructureNoplural>>>),StatusCodes.Status200OK)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
-      </IF DEFINED_ENABLE_API_VERSIONING>
       <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_GET>
         {Authorize(Roles="<ROLES_GET>")}
       </IF DEFINED_ENABLE_AUTHENTICATION>
@@ -307,11 +293,9 @@ namespace <NAMESPACE>
         endmethod
     <ELSE>
         {ODataRoute("(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>)")}
-      <IF DEFINED_ENABLE_API_VERSIONING>
         {Produces("application/json")}
         {ProducesResponseType(^typeof(<StructureNoplural>),StatusCodes.Status200OK)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
-      </IF DEFINED_ENABLE_API_VERSIONING>
       <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_GET>
         {Authorize(Roles="<ROLES_GET>")}
       </IF DEFINED_ENABLE_AUTHENTICATION>
@@ -357,12 +341,10 @@ namespace <NAMESPACE>
     </IF USERTOKEN_ROLES_POST>
   </IF DEFINED_ENABLE_AUTHENTICATION>
         {ODataRoute}
-  <IF DEFINED_ENABLE_API_VERSIONING>
         {Produces("application/json")}
         {ProducesResponseType(^typeof(<StructureNoplural>),StatusCodes.Status200OK)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
         {HttpPost}
-  </IF DEFINED_ENABLE_API_VERSIONING>
         ;;; <summary>
         ;;; Create a new <structureNoplural> (automatically assigned primary key).
         ;;; </summary>
@@ -417,13 +399,11 @@ namespace <NAMESPACE>
         {Authorize(Roles="<ROLES_PUT>")}
       </IF DEFINED_ENABLE_AUTHENTICATION>
         {ODataRoute("(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>)")}
-      <IF DEFINED_ENABLE_API_VERSIONING>
         {Produces("application/json")}
         {ProducesResponseType(StatusCodes.Status201Created)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {HttpPut}
-      </IF DEFINED_ENABLE_API_VERSIONING>
         ;;; <summary>
         ;;; Create (with a client-supplied primary key) or replace a <structureNoplural>.
         ;;; </summary>
@@ -503,13 +483,11 @@ namespace <NAMESPACE>
         {Authorize(Roles="<ROLES_PATCH>")}
     </IF DEFINED_ENABLE_AUTHENTICATION>
         {ODataRoute("(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>)")}
-    <IF DEFINED_ENABLE_API_VERSIONING>
         {Produces("application/json")}
         {ProducesResponseType(StatusCodes.Status204NoContent)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {HttpPatch}
-    </IF DEFINED_ENABLE_API_VERSIONING>
         ;;; <summary>
         ;;; Patch  (partial update) a <structureNoplural>.
         ;;; </summary>
@@ -584,11 +562,9 @@ namespace <NAMESPACE>
         {Authorize(Roles="<ROLES_DELETE>")}
     </IF DEFINED_ENABLE_AUTHENTICATION>
         {ODataRoute("(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>)")}
-    <IF DEFINED_ENABLE_API_VERSIONING>
         {ProducesResponseType(StatusCodes.Status204NoContent)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {HttpDelete}
-    </IF DEFINED_ENABLE_API_VERSIONING>
         ;;; <summary>
         ;;; Delete a <structureNoplural>.
         ;;; </summary>

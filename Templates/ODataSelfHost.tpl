@@ -76,20 +76,11 @@ proc
     end
     endtry
 
-<IF DEFINED_ENABLE_SWAGGER_DOCS>
     ;;-------------------------------------------------------------------------
     ;;Report the location of the API documentation
 
     Console.WriteLine("API documentation is available at <SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<API_DOCS_PATH>")
 
-</IF DEFINED_ENABLE_SWAGGER_DOCS>
-<IF DEFINED_ENABLE_API_VERSIONING>
-    ;;-------------------------------------------------------------------------
-    ;;Report the location of the API documentation
-
-    Console.WriteLine("API documentation is available at <SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<API_DOCS_PATH>")
-
-</IF DEFINED_ENABLE_API_VERSIONING>
     ;;-------------------------------------------------------------------------
     ;;Define the location that static files are served from and make sure it exists
 

@@ -85,16 +85,12 @@ rem BRIDGE_ALIASES      Optional aliases for the structures listed in BRIDGE_STR
 rem ================================================================================================================================
 rem Comment or uncomment the following lines to enable or disable optional features:
 
-rem Note that the ENABLE_SWAGGER_DOCS and ENABLE_API_VERSIONING are mutually exclusive.
-
 set ENABLE_ODATA_ENVIRONMENT=YES
 set ENABLE_SELF_HOST_GENERATION=YES
 set ENABLE_CREATE_TEST_FILES=-define ENABLE_CREATE_TEST_FILES
 rem set DO_NOT_SET_FILE_LOGICALS=-define DO_NOT_SET_FILE_LOGICALS
 set ENABLE_GET_ALL=-define ENABLE_GET_ALL
 set ENABLE_GET_ONE=-define ENABLE_GET_ONE
-set ENABLE_SWAGGER_DOCS=-define ENABLE_SWAGGER_DOCS
-set ENABLE_API_VERSIONING=-define ENABLE_API_VERSIONING
 set ENABLE_POSTMAN_TESTS=YES
 set ENABLE_ALTERNATE_KEYS=-define ENABLE_ALTERNATE_KEYS
 set ENABLE_COUNT=-define ENABLE_COUNT
@@ -135,7 +131,7 @@ if not "NONE%ENABLE_SELECT%%ENABLE_FILTER%%ENABLE_ORDERBY%%ENABLE_TOP%%ENABLE_SK
 rem ================================================================================================================================
 rem Configure standard command line options and the CodeGen environment
 
-set NOREPLACEOPTS=-e -lf -u %SolutionDir%UserDefinedTokens.tkn %ENABLE_GET_ALL% %ENABLE_GET_ONE% %ENABLE_OVERLAYS% %DO_NOT_SET_FILE_LOGICALS% %ENABLE_ALTERNATE_FIELD_NAMES% %ENABLE_AUTHENTICATION% %ENABLE_CUSTOM_AUTHENTICATION% %ENABLE_SIGNALR% %ENABLE_FIELD_SECURITY% %ENABLE_PROPERTY_ENDPOINTS% %ENABLE_CASE_SENSITIVE_URL% %ENABLE_CREATE_TEST_FILES% %ENABLE_CORS% %ENABLE_IIS_SUPPORT% %ENABLE_DELETE% %ENABLE_PUT% %ENABLE_POST% %ENABLE_PATCH% %ENABLE_ALTERNATE_KEYS% %ENABLE_SWAGGER_DOCS% %ENABLE_API_VERSIONING% %ENABLE_RELATIONS% %ENABLE_SELECT% %ENABLE_FILTER% %ENABLE_ORDERBY% %ENABLE_COUNT% %ENABLE_TOP% %ENABLE_SKIP% %ENABLE_SPROC% %ENABLE_ADAPTER_ROUTING% %ENABLE_READ_ONLY_PROPERTIES% %PARAM_OPTIONS_PRESENT% -rps %RPSMFIL% %RPSTFIL%
+set NOREPLACEOPTS=-e -lf -u %SolutionDir%UserDefinedTokens.tkn %ENABLE_GET_ALL% %ENABLE_GET_ONE% %ENABLE_OVERLAYS% %DO_NOT_SET_FILE_LOGICALS% %ENABLE_ALTERNATE_FIELD_NAMES% %ENABLE_AUTHENTICATION% %ENABLE_CUSTOM_AUTHENTICATION% %ENABLE_SIGNALR% %ENABLE_FIELD_SECURITY% %ENABLE_PROPERTY_ENDPOINTS% %ENABLE_CASE_SENSITIVE_URL% %ENABLE_CREATE_TEST_FILES% %ENABLE_CORS% %ENABLE_IIS_SUPPORT% %ENABLE_DELETE% %ENABLE_PUT% %ENABLE_POST% %ENABLE_PATCH% %ENABLE_ALTERNATE_KEYS% %ENABLE_RELATIONS% %ENABLE_SELECT% %ENABLE_FILTER% %ENABLE_ORDERBY% %ENABLE_COUNT% %ENABLE_TOP% %ENABLE_SKIP% %ENABLE_SPROC% %ENABLE_ADAPTER_ROUTING% %ENABLE_READ_ONLY_PROPERTIES% %PARAM_OPTIONS_PRESENT% -rps %RPSMFIL% %RPSTFIL%
 set STDOPTS=%NOREPLACEOPTS% -r
 
 rem ================================================================================================================================
@@ -220,30 +216,7 @@ if DEFINED ENABLE_SELF_HOST_GENERATION (
 )
 
 rem ================================================================================
-rem Swagger documentation and Postman tests
-
-if DEFINED ENABLE_SWAGGER_DOCS (
-
-  rem Generate main Swagger files
-  codegen -s  %DATA_STRUCTURES% -ms ^
-          -a  %DATA_ALIASES% ^
-		  -fo %DATA_FILES% ^
-          -t  ODataSwaggerYaml ^
-          -i  %SolutionDir%Templates ^
-          -o  %SolutionDir%%ServicesProject%\wwwroot ^
-              %STDOPTS%
-  if ERRORLEVEL 1 goto error
-
-  rem Generate Swagger files for each model
-  codegen -s  %DATA_STRUCTURES% ^
-          -a  %DATA_ALIASES% ^
-		  -fo %DATA_FILES% ^
-          -t  ODataSwaggerType ^
-          -i  %SolutionDir%Templates ^
-          -o  %SolutionDir%%ServicesProject%\wwwroot ^
-              %STDOPTS%
-  if ERRORLEVEL 1 goto error
-)
+rem Postman tests
 
 rem Generate Postman Tests
 if DEFINED ENABLE_POSTMAN_TESTS (

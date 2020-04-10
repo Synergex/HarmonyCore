@@ -100,10 +100,8 @@ import System.Text
 import System.Threading.Tasks
 import <CONTROLLERS_NAMESPACE>
 import <MODELS_NAMESPACE>
-<IF DEFINED_ENABLE_API_VERSIONING>
 import Swashbuckle.AspNetCore.Swagger
 import Microsoft.OpenApi.Models
-</IF DEFINED_ENABLE_API_VERSIONING>
 
 namespace <NAMESPACE>
 
@@ -222,7 +220,6 @@ namespace <NAMESPACE>
             ;;-------------------------------------------------------
             ;;Load OData and ASP.NET
 
-        <IF DEFINED_ENABLE_API_VERSIONING>
             lambda APIVersionConfig(vOptions)
             begin
                 vOptions.ReportApiVersions = true
@@ -247,23 +244,11 @@ namespace <NAMESPACE>
             end
 
             services.AddODataApiExplorer(oDataApiExplorer)
-        <ELSE>
-            lambda AddAltKeySupport(serviceProvider)
-            begin
-                data model = EdmBuilder.GetEdmModel(serviceProvider)
-                mreturn new UnqualifiedAltKeyUriResolver(model) <IF NOT_DEFINED_ENABLE_CASE_SENSITIVE_URL>{ EnableCaseInsensitive = true }</IF NOT_DEFINED_ENABLE_CASE_SENSITIVE_URL>
-            end
-
-            services.AddSingleton<ODataUriResolver>(AddAltKeySupport)
-
-            services.AddOData()
-        </IF DEFINED_ENABLE_API_VERSIONING>
 
             ;;-------------------------------------------------------
             ;;Load our workaround for the fact that OData alternate key support is messed up right now!
 
             services.AddSingleton<IPerRouteContainer, HarmonyPerRouteContainer>()
-            <IF DEFINED_ENABLE_API_VERSIONING>
 
             lambda SwaggerGenConfig(options)
             begin
@@ -297,12 +282,6 @@ namespace <NAMESPACE>
             end
 
             services.AddSwaggerGen(SwaggerGenConfig)
-            <ELSE>
-                <IF DEFINED_ENABLE_SWAGGER_DOCS>
-
-            services.AddSwaggerGen()
-                </IF DEFINED_ENABLE_SWAGGER_DOCS>
-            </IF DEFINED_ENABLE_API_VERSIONING>
 
             lambda MvcCoreConfig(op)
             begin
@@ -327,9 +306,6 @@ namespace <NAMESPACE>
             &    .SetCompatibilityVersion(CompatibilityVersion.Version_2_2 )
             &    .AddDataAnnotations()      ;;Enable data annotations
             &    .AddNewtonsoftJson()      ;;For PATCH
-        <IF DEFINED_ENABLE_SWAGGER_DOCS>
-            &    .AddApiExplorer()          ;;Swagger UI
-        </IF DEFINED_ENABLE_SWAGGER_DOCS>
             &    .AddApplicationPart(^typeof(IsolatedMethodsBase).Assembly)
 
         <IF DEFINED_ENABLE_AUTHENTICATION>
@@ -457,9 +433,7 @@ namespace <NAMESPACE>
         public method Configure, void
             required in app, @IApplicationBuilder
             required in env, @IHostingEnvironment
-            <IF DEFINED_ENABLE_API_VERSIONING>
             required in versionProvider, @IApiVersionDescriptionProvider
-            </IF DEFINED_ENABLE_API_VERSIONING>
         proc
             ;;-------------------------------------------------------
             ;;Configure the AppSettings environment
@@ -531,10 +505,6 @@ namespace <NAMESPACE>
 
             lambda mvcBuilder(builder)
             begin
-            <IF NOT_DEFINED_ENABLE_API_VERSIONING>
-                data model = EdmBuilder.GetEdmModel(app.ApplicationServices)
-
-            </IF NOT_DEFINED_ENABLE_API_VERSIONING>
                 lambda UriResolver(s)
                 begin
                     data result = app.ApplicationServices.GetRequiredService<ODataUriResolver>()
@@ -543,20 +513,9 @@ namespace <NAMESPACE>
 
                 lambda EnableRouting(configContext)
                 begin
-                <IF DEFINED_ENABLE_API_VERSIONING>
                     configContext.RoutingConventions.Insert(1, new HarmonySprocRoutingConvention())
                     configContext.RoutingConventions.Insert(1, new AdapterRoutingConvention())
                     mreturn configContext.RoutingConventions
-                <ELSE>
-                    data routeList = ODataRoutingConventions.CreateDefaultWithAttributeRouting("<SERVER_BASE_PATH>", builder)
-                  <IF DEFINED_ENABLE_SPROC>
-                    routeList.Insert(0, new HarmonySprocRoutingConvention())
-                  </IF DEFINED_ENABLE_SPROC>
-                  <IF DEFINED_ENABLE_ADAPTER_ROUTING>
-                    routeList.Insert(0, new AdapterRoutingConvention())
-                  </IF DEFINED_ENABLE_ADAPTER_ROUTING>
-                    mreturn routeList
-                </IF DEFINED_ENABLE_API_VERSIONING>
                 end
 
                 lambda EnableWritableEdmModel(sp)
@@ -570,7 +529,6 @@ namespace <NAMESPACE>
                     nop
                 end
 
-            <IF DEFINED_ENABLE_API_VERSIONING>
                 lambda ConfigureRoute(containerBuilder)
                 begin
                     data containerBuilderType, @Type, ((@Object)containerBuilder).GetType()
@@ -585,24 +543,13 @@ namespace <NAMESPACE>
                     containerBuilder.AddService<IODataPathTemplateHandler, PathTemplateHandler>( Microsoft.OData.ServiceLifetime.Singleton)
                     containerBuilder.AddService<IODataPathHandler, PathTemplateHandler>( Microsoft.OData.ServiceLifetime.Singleton)
                 end
-            <ELSE>
-                lambda ConfigureRoute(containerBuilder)
-                begin
-                    containerBuilder.AddService<IEdmModel>(Microsoft.OData.ServiceLifetime.Scoped, EnableWritableEdmModel)
-                    containerBuilder.AddService<IEnumerable<IODataRoutingConvention>>(Microsoft.OData.ServiceLifetime.Singleton, EnableRouting)
-                end
-            </IF DEFINED_ENABLE_API_VERSIONING>
 
                 ;;Enable support for dependency injection into controllers
                 builder.EnableDependencyInjection(EnableDI)
 
                 ;;Configure the default OData route
-            <IF DEFINED_ENABLE_API_VERSIONING>
                 data versionedModels = EdmBuilder.EdmVersions.Select(lambda(versionNumber) { EdmBuilder.GetEdmModel(app.ApplicationServices, versionNumber) }).ToArray()
                 builder.MapVersionedODataRoutes("<SERVER_BASE_PATH>", "<SERVER_BASE_PATH>/v{version:apiVersion}", versionedModels, ConfigureRoute, EnableRouting)
-            <ELSE>
-                builder.MapODataServiceRoute("<SERVER_BASE_PATH>", "<SERVER_BASE_PATH>", ConfigureRoute)
-            </IF DEFINED_ENABLE_API_VERSIONING>
 
                 ;;---------------------------------------------------
                 ;;Enable optional OData features
@@ -667,21 +614,9 @@ namespace <NAMESPACE>
             ;;Support default files (index.html, etc.)
             app.UseDefaultFiles()
 
-        <IF DEFINED_ENABLE_API_VERSIONING>
             ;;Support serving static files
             app.UseStaticFiles()
 
-        <ELSE>
-            ;;Add a media type for YAML files
-            data provider = new FileExtensionContentTypeProvider()
-            provider.Mappings[".yaml"] = "text/yaml"
-            data sfoptions = new StaticFileOptions()
-            sfoptions.ContentTypeProvider = provider
-            ;;Support serving static files
-            app.UseStaticFiles(sfoptions)
-
-        </IF DEFINED_ENABLE_API_VERSIONING>
-        <IF DEFINED_ENABLE_API_VERSIONING>
             ;;-------------------------------------------------------
             ;;Configure and enable API versioning
 
@@ -699,23 +634,6 @@ namespace <NAMESPACE>
             app.UseSwagger()
             app.UseSwaggerUI(configureSwaggerUi)
 
-        <ELSE>
-            <IF DEFINED_ENABLE_SWAGGER_DOCS>
-            ;;-------------------------------------------------------
-            ;;Configure and enable SwaggerUI
-
-            lambda configureSwaggerUi(config)
-            begin
-                config.SwaggerEndpoint("/SwaggerFile.yaml", "<API_TITLE>")
-                config.RoutePrefix = "<API_DOCS_PATH>"
-                config.DocumentTitle = "<API_TITLE>"
-            end
-
-            app.UseSwagger()
-            app.UseSwaggerUI(configureSwaggerUi)
-
-            </IF DEFINED_ENABLE_SWAGGER_DOCS>
-        </IF DEFINED_ENABLE_API_VERSIONING>
             ;;If there is a ConfigureCustom method, call it
             ConfigureCustom(app,env)
 
