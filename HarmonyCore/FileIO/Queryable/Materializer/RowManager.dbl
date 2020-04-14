@@ -55,7 +55,7 @@ namespace Harmony.Core.FileIO.Queryable.Materializer
 			this.IsDrivingRow = isDrivingRow
 		endmethod
 
-		private static method IndexStates, @Dictionary<MaterializerState, int>
+		private method IndexStates, @Dictionary<MaterializerState, int>
 			allStates, @IEnumerable<MaterializerState>
 			joinObj, @JoinSelect
 		proc
@@ -65,7 +65,10 @@ namespace Harmony.Core.FileIO.Queryable.Materializer
 			begin
 				data memPnt, i4, matState.typeBuf.MemoryHandle.Value
 				data structureSize, i4, matState.typeBuf.Metadata.StructureSize
-				result.Add(matState, joinObj.GetRowArrayIndex(^m(memMapper.fld(1:structureSize), memPnt)))
+				if(string.IsNullOrWhiteSpace(matState.typeBuf.ParentFieldName)) then
+					result.Add(matState, DrivingRowIndex)
+				else
+					result.Add(matState, joinObj.GetRowArrayIndex(^m(memMapper.fld(1:structureSize), memPnt)))
 			end
 			mreturn result
 		endmethod
@@ -73,7 +76,10 @@ namespace Harmony.Core.FileIO.Queryable.Materializer
 		public method GetChangeState, void
 			targetState, @MaterializerState
 		proc
-			Enumerator.Current.RowInfo(RowLookup[targetState], , ,targetState.changed)
+			if(Waiting || Finished) then
+				targetState.changed = false
+			else
+				Enumerator.Current.RowInfo(RowLookup[targetState], , ,targetState.changed)
 		endmethod
 
 		public method Fill, void
@@ -93,8 +99,19 @@ namespace Harmony.Core.FileIO.Queryable.Materializer
 
 		public method MoveNext, boolean
 		proc
-			if(Finished || (!IsDrivingRow && DrivingState.grfa != Grfa))
+			if(Finished)
 				mreturn false
+
+			if(Waiting && !IsDrivingRow)
+			begin
+				if(DrivingState.grfa == Grfa) then
+				begin
+					Waiting = false
+					mreturn true
+				end
+				else
+					mreturn false
+			end
 
 			data moveNextResult = Enumerator.MoveNext()
 			if(moveNextResult) then
@@ -115,7 +132,7 @@ namespace Harmony.Core.FileIO.Queryable.Materializer
 	endclass
 
 	public class RowsManager
-			
+		private Started, boolean
 		private Rows, @List<IRowState>
 		private RowLookup, @Dictionary<MaterializerState, IRowState>
 		private method SimpleMoveNext, boolean
@@ -129,6 +146,7 @@ namespace Harmony.Core.FileIO.Queryable.Materializer
 			allStates, @IEnumerable<MaterializerState>
 			joinObj, @JoinSelect
 		proc
+			Started = false
 			Rows = new List<IRowState>() { new SimpleRowState(simpleEnumerator, drivingState, allStates, joinObj, true) }
 		endmethod
 
@@ -136,6 +154,7 @@ namespace Harmony.Core.FileIO.Queryable.Materializer
 			activeResultSets, @List<Tuple<Synergex.SynergyDE.Select.RowEnumerator, IEnumerable<MaterializerState>, JoinSelect>>
 			drivingState, @MaterializerState
 		proc
+			Started = false
 			RowLookup = new Dictionary<MaterializerState, IRowState>()
 			data tpl, @Tuple<Synergex.SynergyDE.Select.RowEnumerator, IEnumerable<MaterializerState>, JoinSelect>
 			Rows = new List<IRowState>(); { new SimpleRowState(simpleEnumerator, drivingState, allStates, joinObj) }
@@ -162,6 +181,23 @@ namespace Harmony.Core.FileIO.Queryable.Materializer
 			data i = 0;
 			data allRowsReady = true
 			data allRowsFinished = true
+			
+			if(!Started)
+			begin
+				data moveNextVal = true
+				for i from 0 thru Rows.Count - 1 by 1
+				begin
+					moveNextVal &= Rows[i].MoveNext()
+				end
+				Started = true
+				mreturn moveNextVal
+			end
+			
+
+			;;iterate all rows except driving table looking to see if anyone is waiting or finished
+			;;if everyone is finished and driving table is finished, we're finished
+			;;if everyone is waiting, iterate driving table
+			;;repeat
 			for i from 1 thru Rows.Count - 1 by 1
 			begin
 				;;foreach row state we need to check if its currently on the same sequence as the driving row
@@ -186,20 +222,21 @@ namespace Harmony.Core.FileIO.Queryable.Materializer
 			if(allRowsFinished && row.Finished)
 				mreturn false
 
+			
+
 			if(allRowsReady)
 			begin
-				if(!row.MoveNext())
-					mreturn false
+				allRowsFinished = !row.MoveNext()
 			end
 
 			for i from 1 thru Rows.Count - 1 by 1
 			begin
 				row = Rows[i]
-				row.MoveNext()
+				allRowsFinished &= !row.MoveNext()
 			end
 
 
-			mreturn true
+			mreturn !allRowsFinished
 		endmethod
 			
 		public method GetChangeState, void

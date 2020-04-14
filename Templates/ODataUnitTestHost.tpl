@@ -78,22 +78,8 @@ proc
 </IF DEFINED_ENABLE_RELATIONS>
     ;tester.GetCustomer()      
 
-<IF DEFINED_ENABLE_SWAGGER_DOCS>
-    Console.WriteLine("API documentation is available at <SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<API_DOCS_PATH>")
-
-    data wwwroot = Path.Combine(AppContext.BaseDirectory, "wwwroot")
-
-    ;;Make sure the wwwroot folder is present
-    if (!Directory.Exists(wwwroot))
-        Directory.CreateDirectory(wwwroot)
-
-</IF DEFINED_ENABLE_SWAGGER_DOCS>
     ;;Start self-hosting (Kestrel)
     WebHost.CreateDefaultBuilder(new string[0])
-<IF DEFINED_ENABLE_SWAGGER_DOCS>
-    &    .UseContentRoot(wwwroot)
-    &    .UseWebRoot(wwwroot)
-</IF DEFINED_ENABLE_SWAGGER_DOCS>
 <IF DEFINED_ENABLE_IIS_SUPPORT>
     &    .UseIISIntegration()
 </IF DEFINED_ENABLE_IIS_SUPPORT>
