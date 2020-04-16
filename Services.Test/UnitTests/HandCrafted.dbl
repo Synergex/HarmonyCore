@@ -1012,16 +1012,11 @@ namespace Services.Test.UnitTests
         {TestMethod}
         public method TraditionalBridgeGetAllCustomers, void
         proc
-            if(File.Exists(Path.GetFullPath(Path.Combine(Path.GetDirectoryName(^typeof(HandCrafted).Assembly.Location), "..\..\..\..\TestDir\TraditionalBridge.Test.dbr")))) then
-            begin
-                disposable data client = UnitTestEnvironment.Server.CreateClient()
-                disposable data response = client.GetAsync("/odata/v1/VMS/GetAllCustomers()").Result
-                data result = response.Content.ReadAsStringAsync().Result
-                response.EnsureSuccessStatusCode()
-                data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
-            end
-            else
-                Console.WriteLine("Skipping TraditionalBridgeGetAllCustomers")
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/VMS/GetAllCustomers()").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
         endmethod
 
         {TestMethod}
