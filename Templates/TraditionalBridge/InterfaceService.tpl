@@ -70,6 +70,17 @@ namespace <NAMESPACE>
 
     public partial class <INTERFACE_NAME>Service extends DynamicCallProvider
 
+        static method <INTERFACE_NAME>Service
+        proc
+        <METHOD_LOOP>
+            <PARAMETER_LOOP>
+                <IF STRUCTURE>
+            DataObjectMetadataBase.LookupType(^typeof(<PARAMETER_STRUCTURE>))
+                </IF STRUCTURE>
+            </PARAMETER_LOOP>
+        </METHOD_LOOP>
+        endmethod
+
         ;;; <summary>
         ;;; Constructor
         ;;; </summary>
@@ -98,29 +109,19 @@ namespace <NAMESPACE>
             ;;Make the JSON-RPC call the traditional Synergy routine
             data resultTuple = await CallMethod("<METHOD_NAME>"
     <PARAMETER_LOOP>
-            &   ,<IF OPTIONAL>ArgumentHelper.MayBeOptional(</IF OPTIONAL><IF IN_OR_INOUT>args.<PARAMETER_NAME><ELSE>response.<PARAMETER_NAME></IF IN_OR_INOUT><IF OPTIONAL>)</IF OPTIONAL>
+            &   ,<IF OPTIONAL>ArgumentHelper.MayBeOptional(</IF OPTIONAL><IF IN_OR_INOUT>args.<PARAMETER_NAME><ELSE>ArgumentHelper.MaybeNull(response.<PARAMETER_NAME></IF IN_OR_INOUT><IF OPTIONAL>)</IF OPTIONAL>
     </PARAMETER_LOOP>
             &   )
   <IF RETURNS_DATA>
-
-            ;;Get the returned information
-            data returnToken = (@JToken)(resultTuple.Item1)
     <IF FUNCTION>
 
             ;;Set the return value in the return data
-            response.ReturnValue = returnToken.ToObject<<HARMONYCORE_BRIDGE_RETURN_TYPE>>()
+            ArgumentHelper.Argument(0, resultTuple, response.ReturnValue)
     </IF FUNCTION>
     <IF OUT_OR_INOUT>
-
-            ;;Set returned values for OUT or INOUT parameters
-            data resultList, @List<Object>, resultTuple.Item2.ToList()
     <PARAMETER_LOOP>
       <IF OUT_OR_INOUT>
-        <IF REQUIRED>
-            response.<PARAMETER_NAME> = (<HARMONYCORE_BRIDGE_PARAMETER_TYPE>)resultList[<PARAMETER_NUMBER> - 1]
-        <ELSE>
-            response.<PARAMETER_NAME> = ^as(resultList[<PARAMETER_NUMBER> - 1],<HARMONYCORE_BRIDGE_PARAMETER_TYPE>)
-        </IF REQUIRED>
+            ArgumentHelper.Argument<<HARMONYCORE_BRIDGE_PARAMETER_TYPE>>(<PARAMETER_NUMBER>, resultTuple, response.<PARAMETER_NAME>)
       </IF OUT_OR_INOUT>
     </PARAMETER_LOOP>
   </IF OUT_OR_INOUT>

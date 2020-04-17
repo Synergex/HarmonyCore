@@ -179,6 +179,17 @@ namespace Harmony.Core
 				mreturn ArgumentImpl<T>(argBlock.Item2[argPos - 1])
 		endmethod
 
+		public static method Argument<T>, void
+			argPos, int
+			argBlock, @Tuple<Object, [#]Object>
+			out val, T
+		proc
+			if(argPos == 0) then
+				val = ArgumentImpl<T>(argBlock.Item1)
+			else
+				val = ArgumentImpl<T>(argBlock.Item2[argPos - 1])
+		endmethod
+
 		private static ArrayArgImplMethod, @MethodInfo
 
 		private static method ArgumentImpl<T>, T
@@ -203,18 +214,27 @@ namespace Harmony.Core
 				data typedEnumerable = ^typeof(IEnumerable<>).MakeGenericType(new Type[#] { elementType })
 				mreturn (T)ArrayArgImplMethod.MakeGenericMethod(new Type[#] { elementType }).Invoke(^null, new Object[#] { arg })
 			end
+			else if(^typeof(T).IsGenericType && ^typeof(T).GetGenericTypeDefinition() == ^typeof(List<>)) then
+			begin
+				try
+				begin
+					mreturn (T)Activator.CreateInstance(^typeof(T), new Object[#] { arg })
+				end
+				catch(ex, @Exception)
+				begin
+					throw new Exception(string.Format("Failed to create instance of {0} using argument of type {1}", ^typeof(T), argType))
+				end
+				endtry
+			end
 			else
 				throw new NotImplementedException(string.Format("{0} not a currently supported type in Traditional Bridge", ^typeof(T)))
 		endmethod
 
-		private static method ArrayArgumentImpl<T>, [#]T
+		private static method ArrayArgumentImpl<T>, @object
 			obj, @Object
 		proc
 			data enumerable = (IEnumerable<T>)obj
-			if(obj .is. [#]T) then
-				mreturn ([#]T)obj
-			else
-				mreturn enumerable.ToArray()
+			mreturn enumerable.ToArray()
 		endmethod
 
 
