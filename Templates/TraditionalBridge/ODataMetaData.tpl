@@ -125,9 +125,6 @@ namespace <NAMESPACE>
 
             ;; Define fields
 <FIELD_LOOP>
-<IF STRUCTURE_RELATIVE>
-            AddFieldInfo("RecordNumber", "INTEGER", 4, 0, 0, false)
-</IF STRUCTURE_RELATIVE>
     <IF CUSTOM_NOT_HARMONY_EXCLUDE>
         <IF DATEORTIME>
           <IF DATE_YYMMDD>

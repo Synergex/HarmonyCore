@@ -129,9 +129,6 @@ namespace <NAMESPACE>
 
             ;; Define fields
 <FIELD_LOOP>
-  <IF STRUCTURE_RELATIVE>
-            AddFieldInfo("RecordNumber", "INTEGER", 4, 0, 0, false)
-  </IF STRUCTURE_RELATIVE>
   <IF CUSTOM_NOT_HARMONY_EXCLUDE>
     <IF HARMONYCORE_CUSTOM_FIELD>
             AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false, m<FieldSqlname>Formatter)
