@@ -152,12 +152,11 @@ namespace HarmonyCore.CliTool
                 targetFramework.InnerText = newTargetFramework;
             }
 
-            var firstItemGroup =
-                        ProjectDoc.GetElementsByTagName("ItemGroup").OfType<XmlNode>().FirstOrDefault();
+            var firstItemGroup = ProjectDoc.GetElementsByTagName("ItemGroup").OfType<XmlNode>().FirstOrDefault();
             if (firstItemGroup == null)
             {
                 firstItemGroup = ProjectDoc.CreateElement("ItemGroup");
-                ProjectDoc.AppendChild(firstItemGroup);
+                ProjectDoc.DocumentElement.AppendChild(firstItemGroup);
             }
 
             //upgrade Host and test to Web sdk if needed

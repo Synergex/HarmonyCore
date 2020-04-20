@@ -18,10 +18,10 @@ namespace HarmonyCore.CliTool
             [Option('p', "project")]
             public bool ProjectOnly { get; set; }
         }
-        public static string CurrentVersionTag = "release-v3.1.2";
+        public static string CurrentVersionTag = "release-v3.1.3";
         public static string BuildPackageVersion = "11.1.1030.2704";
         public static string CodeDomProviderVersion = "1.0.7";
-        public static string HCBuildVersion = "3.1.42";
+        public static string HCBuildVersion = "3.1.75";
         public static Dictionary<string, string> LatestNugetReferences = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase)
         {
             {"Harmony.Core", HCBuildVersion},
