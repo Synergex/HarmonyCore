@@ -411,28 +411,34 @@ namespace <NAMESPACE>
             ;;--------------------------------------------------------------------------------
             ;;Validate data for relation <RELATION_NUMBER> (<HARMONYCORE_RELATION_NAME>)
 
-      <IF REQUIRES_MATCH>
-        <COUNTER_1_RESET>
-        <FROM_KEY_SEGMENT_LOOP>
-          <IF SEG_TYPE_FIELD>
+      <COUNTER_1_RESET>
+      <FROM_KEY_SEGMENT_LOOP>
+        <IF SEG_TYPE_FIELD>
             rel<RELATION_NUMBER>FromKey.<segment_name> = mSynergyData.<segment_name>
-          <ELSE>
-            <IF SEG_TYPE_LITERAL>
-            <COUNTER_1_INCREMENT>
+        <ELSE>
+          <IF SEG_TYPE_LITERAL>
+          <COUNTER_1_INCREMENT>
             rel<RELATION_NUMBER>FromKey.litseg<COUNTER_1_VALUE> = "<SEGMENT_LITVAL>"
-            </IF SEG_TYPE_LITERAL>
-          </IF SEG_TYPE_FIELD>
-        </FROM_KEY_SEGMENT_LOOP>
-            disposable data rel<RELATION_NUMBER>FileIO = doProvider.GetFileIO<<RelationTostructureNoplural>>()
-            if (rel<RELATION_NUMBER>FileIO.FindRecord(<TO_KEY_NUMBER>,rel<RELATION_NUMBER>FromKey) != FileAccessResults.Success)
-                throw new ValidationException("Invalid data for relation <HARMONYCORE_RELATION_NAME>")
-      <ELSE>
-            ;;This relation does not REQUIRE a match in the target file.
+          </IF SEG_TYPE_LITERAL>
+        </IF SEG_TYPE_FIELD>
+      </FROM_KEY_SEGMENT_LOOP>
+      <IF NOT REQUIRES_MATCH>
+            ;;This key does not REQUIRE a match, so only attempt to validate if we have a "from key" value
+            data rel<RELATION_NUMBER>FromKeyValue, string, rel<RELATION_NUMBER>FromKey
+            if (!String.IsNullOrWhiteSpace(rel<RELATION_NUMBER>FromKeyValue.Replace("0"," ")))
       </IF REQUIRES_MATCH>
+            begin
+                disposable data rel<RELATION_NUMBER>FileIO = doProvider.GetFileIO<<RelationTostructureNoplural>>()
+                if (rel<RELATION_NUMBER>FileIO.FindRecord(<TO_KEY_NUMBER>,rel<RELATION_NUMBER>FromKey) != FileAccessResults.Success)
+                begin
+                    throw new ValidationException("Invalid data for relation <HARMONYCORE_RELATION_NAME>")
+                end
+            end
 
     </RELATION_LOOP_RESTRICTED>
-
+            ;;--------------------------------------------------------------------------------
             ;;If we have a ValidateCustom method, call it
+
             ValidateCustom(vType,sp)
 
         endmethod

@@ -303,12 +303,17 @@ namespace Services.Models
             ;;Validate data for relation 1 (REL_Items)
 
             rel1FromKey.vendor_number = mSynergyData.vendor_number
-            disposable data rel1FileIO = doProvider.GetFileIO<Item>()
-            if (rel1FileIO.FindRecord(0,rel1FromKey) != FileAccessResults.Success)
-                throw new ValidationException("Invalid data for relation REL_Items")
+            begin
+                disposable data rel1FileIO = doProvider.GetFileIO<Item>()
+                if (rel1FileIO.FindRecord(0,rel1FromKey) != FileAccessResults.Success)
+                begin
+                    throw new ValidationException("Invalid data for relation REL_Items")
+                end
+            end
 
-
+            ;;--------------------------------------------------------------------------------
             ;;If we have a ValidateCustom method, call it
+
             ValidateCustom(vType,sp)
 
         endmethod
