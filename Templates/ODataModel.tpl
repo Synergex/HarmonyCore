@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME><StructureNoplural>.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.4.6</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.5.3</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
 ;// Title:       ODataModel.tpl
@@ -563,15 +563,13 @@ namespace <NAMESPACE>
 <IF STRUCTURE_FILES>
 .region "Properties to represent keys"
 <IF STRUCTURE_ISAM>
-  <KEY_LOOP>
-    <IF FIRST>
         ;;Access keys
 
-    </IF FIRST>
+  <KEY_LOOP_UNIQUE>
         private _KEY_<KEY_NAME>, string, ""
         public readonly property KEY_<KEY_NAME>, string, ""
 
-  </KEY_LOOP>
+  </KEY_LOOP_UNIQUE>
   <FOREIGN_KEY_LOOP>
     <IF FIRST>
         ;;Foreign keys
