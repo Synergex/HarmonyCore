@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME><StructureNoplural>.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.4.6</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.5.3</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
 ;// Title:       EfProviderModel.tpl
@@ -400,8 +400,7 @@ namespace <NAMESPACE>
             ;;--------------------------------------------------------------------------------
             ;;Validate data for relation <RELATION_NUMBER> (<HARMONYCORE_RELATION_NAME>)
 
-      <IF REQUIRES_MATCH>
-        <COUNTER_1_RESET>
+      <COUNTER_1_RESET>
         <FROM_KEY_SEGMENT_LOOP>
           <IF SEG_TYPE_FIELD>
             rel<RELATION_NUMBER>FromKey.<segment_name> = mSynergyData.<segment_name>
@@ -412,16 +411,23 @@ namespace <NAMESPACE>
             </IF SEG_TYPE_LITERAL>
           </IF SEG_TYPE_FIELD>
         </FROM_KEY_SEGMENT_LOOP>
+      <IF NOT REQUIRES_MATCH>
+            ;;This key does not REQUIRE a match, so only attempt to validate if we have a "from key" value
+            data rel<RELATION_NUMBER>FromKeyValue, string, rel<RELATION_NUMBER>FromKey
+            if (!String.IsNullOrWhiteSpace(rel<RELATION_NUMBER>FromKeyValue.Replace("0"," ")))
+      </IF REQUIRES_MATCH>
+            begin
             disposable data rel<RELATION_NUMBER>FileIO = doProvider.GetFileIO<<RelationTostructureNoplural>>()
             if (rel<RELATION_NUMBER>FileIO.FindRecord(<TO_KEY_NUMBER>,rel<RELATION_NUMBER>FromKey) != FileAccessResults.Success)
+                begin
                 throw new ValidationException("Invalid data for relation <HARMONYCORE_RELATION_NAME>")
-      <ELSE>
-            ;;This relation does not REQUIRE a match in the target file.
-      </IF REQUIRES_MATCH>
+                end
+            end
 
     </RELATION_LOOP_RESTRICTED>
-
+            ;;--------------------------------------------------------------------------------
             ;;If we have a ValidateCustom method, call it
+
             ValidateCustom(vType,sp)
 
         endmethod
@@ -545,16 +551,14 @@ namespace <NAMESPACE>
 
 <IF STRUCTURE_FILES>
 .region "Properties to represent keys"
-
-  <KEY_LOOP>
-    <IF FIRST>
+<IF STRUCTURE_ISAM>
         ;;Access keys
 
-    </IF FIRST>
+  <KEY_LOOP_UNIQUE>
         private _KEY_<KEY_NAME>, string, ""
         public readonly property KEY_<KEY_NAME>, string, ""
 
-  </KEY_LOOP>
+  </KEY_LOOP_UNIQUE>
   <FOREIGN_KEY_LOOP>
     <IF FIRST>
         ;;Foreign keys
@@ -565,6 +569,7 @@ namespace <NAMESPACE>
 
   </FOREIGN_KEY_LOOP>
 
+</IF STRUCTURE_ISAM>
 .endregion
 
 </IF STRUCTURE_FILES>
