@@ -338,7 +338,7 @@ namespace <NAMESPACE>
                 &    ValidateAudience = true,
                 &    ValidAudience = "<CUSTOM_JWT_AUDIENCE>",
                 &    ValidateIssuerSigningKey = true,
-                &    IssuerSigningKey = new SymmetricSecurityKey(<OAUTH_KEY>)
+                &    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("<OAUTH_SECRET>"))
                 &    }
             <IF DEFINED_ENABLE_SIGNALR>
 

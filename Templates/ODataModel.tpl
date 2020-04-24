@@ -376,7 +376,7 @@ namespace <NAMESPACE>
   <IF STRUCTURE_RELATIONS>
 ;//
         ;;; <summary>
-        ;;; Validate data for one-to-one relations
+        ;;; Validate data for relations
         ;;; </summary>
         ;;; <param name="type">Validation type (create, update or delete)</param>
         ;;; <param name="sp">Serices provider</param>
