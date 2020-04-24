@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME><StructurePlural>Controller.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.4.2</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.5.3</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVICES_NAMESPACE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>API_ENABLE_QUERY_PARAMS</REQUIRES_USERTOKEN>
@@ -50,6 +50,8 @@
 <IF DEFINED_ENABLE_AUTHENTICATION>
 import Microsoft.AspNetCore.Authorization
 </IF DEFINED_ENABLE_AUTHENTICATION>
+import Microsoft.AspNetCore.Http
+import Microsoft.OData
 import Microsoft.AspNetCore.JsonPatch
 import Microsoft.AspNetCore.Mvc
 import Microsoft.AspNet.OData
@@ -57,10 +59,12 @@ import Microsoft.AspNet.OData.Routing
 import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Infrastructure
 import Microsoft.Extensions.Options
+import System.Collections.Generic
 import System.ComponentModel.DataAnnotations
 import Harmony.Core.EF.Extensions
 import Harmony.Core.Interface
 import Harmony.OData
+import Harmony.AspNetCore
 import Newtonsoft.Json
 import <MODELS_NAMESPACE>
 
@@ -69,9 +73,8 @@ namespace <NAMESPACE>
 <IF DEFINED_ENABLE_AUTHENTICATION>
     {Authorize}
 </IF DEFINED_ENABLE_AUTHENTICATION>
-<IF DEFINED_ENABLE_API_VERSIONING>
     {ApiVersion("<API_VERSION>")}
-</IF DEFINED_ENABLE_API_VERSIONING>
+    {ODataRoutePrefix("<StructurePlural>")}
     ;;; <summary>
     ;;; OData controller for <StructurePlural>
     ;;; </summary>
@@ -101,14 +104,13 @@ namespace <NAMESPACE>
 ;//
 ;// GET ALL -------------------------------------------------------------------
 ;//
-<IF DEFINED_ENABLE_GET_ALL>
-<IF GET_ALL_ENDPOINT>
-        {ODataRoute("<StructurePlural>")}
-  <IF DEFINED_ENABLE_AUTHENTICATION>
-    <IF USERTOKEN_ROLES_GET>
+<IF DEFINED_ENABLE_GET_ALL AND GET_ALL_ENDPOINT>
+        {ODataRoute}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(ODataValue<IEnumerable<<StructureNoplural>>>),StatusCodes.Status200OK)}
+  <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_GET>
         {Authorize(Roles="<ROLES_GET>")}
-    </IF USERTOKEN_ROLES_GET>
-  </IF DEFINED_ENABLE_AUTHENTICATION>
+  </IF DEFINED_ENABLE_AUTHENTICATION_AND_USERTOKEN_ROLES_GET>
   <IF DEFINED_ENABLE_FIELD_SECURITY>
         {HarmonyFieldSecurity<API_ENABLE_QUERY_PARAMS>}
   <ELSE>
@@ -123,18 +125,17 @@ namespace <NAMESPACE>
             mreturn Ok(_DbContext.<StructurePlural>.AsNoTracking())
         endmethod
 
-</IF GET_ALL_ENDPOINT>
-</IF DEFINED_ENABLE_GET_ALL>
+</IF DEFINED_ENABLE_GET_ALL_AND_GET_ALL_ENDPOINT>
 ;//
-;// GET ONE (PRIMARY KEY READ) ------------------------------------------------
+;// GET ONE (ISAM, UNIQUE PRIMARY KEY READ) -----------------------------------
 ;//
-<IF DEFINED_ENABLE_GET_ONE>
-<IF GET_ENDPOINT>
-        {ODataRoute("<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>)")}
-  <IF DEFINED_ENABLE_AUTHENTICATION>
-    <IF USERTOKEN_ROLES_GET>
+<IF STRUCTURE_ISAM AND STRUCTURE_HAS_UNIQUE_PK AND DEFINED_ENABLE_GET_ONE AND GET_ENDPOINT>
+        {ODataRoute("(<PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY>)")}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(<StructureNoplural>),StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
+  <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_GET>
         {Authorize(Roles="<ROLES_GET>")}
-    </IF USERTOKEN_ROLES_GET>
   </IF DEFINED_ENABLE_AUTHENTICATION>
   <IF DEFINED_ENABLE_FIELD_SECURITY>
         {HarmonyFieldSecurity<API_ENABLE_QUERY_PARAMS>}
@@ -144,246 +145,206 @@ namespace <NAMESPACE>
         ;;; <summary>
         ;;; Get a single <StructureNoplural> by primary key.
         ;;; </summary>
-<IF STRUCTURE_ISAM>
   <PRIMARY_KEY>
     <SEGMENT_LOOP>
-      <IF SEG_TAG_EQUAL>
-      <ELSE>
+      <IF NOT SEG_TAG_EQUAL>
         ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
-      </IF SEG_TAG_EQUAL>
+      </IF>
     </SEGMENT_LOOP>
   </PRIMARY_KEY>
-</IF STRUCTURE_ISAM>
-<IF STRUCTURE_RELATIVE>
-        ;;; <param name="aRecordNumber">Record number</param>
-</IF STRUCTURE_RELATIVE>
         ;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
         public method Get<StructureNoplural>, @SingleResult<<StructureNoplural>>
-<IF STRUCTURE_ISAM>
   <PRIMARY_KEY>
     <SEGMENT_LOOP>
-      <IF SEG_TAG_EQUAL>
-      <ELSE>
+      <IF NOT SEG_TAG_EQUAL>
             {FromODataUri}
-            <IF CUSTOM_HARMONY_AS_STRING>
+        <IF CUSTOM_HARMONY_AS_STRING>
             required in a<FieldSqlName>, string
-            <ELSE>
-            required in a<FieldSqlName>, <SEGMENT_SNTYPE>
-            </IF CUSTOM_HARMONY_AS_STRING>
-      </IF SEG_TAG_EQUAL>
+        <ELSE>
+            required in a<FieldSqlName>, <HARMONYCORE_SEGMENT_DATATYPE>
+        </IF CUSTOM_HARMONY_AS_STRING>
+      </IF>
     </SEGMENT_LOOP>
   </PRIMARY_KEY>
-</IF STRUCTURE_ISAM>
-<IF STRUCTURE_RELATIVE>
-            {FromODataUri}
-            required in aRecordNumber, int
-</IF STRUCTURE_RELATIVE>
         proc
 ;//Shouldn't really need the generic type arg on FindQuery. Compiler issue?
-            mreturn new SingleResult<<StructureNoplural>>(_DbContext.<StructurePlural>.AsNoTracking().FindQuery<<StructureNoplural>>(_DbContext, <IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>))
+            mreturn new SingleResult<<StructureNoplural>>(_DbContext.<StructurePlural>.AsNoTracking().FindQuery<<StructureNoplural>>(_DbContext, <PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE><ELSE><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP></PRIMARY_KEY>))
         endmethod
 
-</IF GET_ENDPOINT>
-</IF DEFINED_ENABLE_GET_ONE>
+</IF STRUCTURE_ISAM>
+;//
+;// GET "ONE" (not in this case!) (ISAM, NON-UNIQUE PRIMARY KEY READ) ---------
+;//
+<IF STRUCTURE_ISAM AND NOT STRUCTURE_HAS_UNIQUE_PK AND DEFINED_ENABLE_GET_ONE AND GET_ENDPOINT>
+        {ODataRoute("(<PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY>)")}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(ODataValue<IEnumerable<<StructureNoplural>>>),StatusCodes.Status200OK)}
+  <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_GET>
+        {Authorize(Roles="<ROLES_GET>")}
+  </IF DEFINED_ENABLE_AUTHENTICATION>
+  <IF DEFINED_ENABLE_FIELD_SECURITY>
+        {HarmonyFieldSecurity<API_ENABLE_QUERY_PARAMS>}
+  <ELSE>
+        {EnableQuery<API_ENABLE_QUERY_PARAMS>}
+  </IF DEFINED_ENABLE_FIELD_SECURITY>
+        ;;; <summary>
+        ;;; Get all <StructurePlural> matching non-unique primary key.
+        ;;; </summary>
+  <PRIMARY_KEY>
+    <SEGMENT_LOOP>
+      <IF NOT SEG_TAG_EQUAL>
+        ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
+      </IF>
+    </SEGMENT_LOOP>
+  </PRIMARY_KEY>
+        ;;; <returns>Returns a collection of any <StructurePlural> matching non-unique primary key, or an empty collection if no matching records are found.</returns>
+        public method Get<StructureNoplural>, @IActionResult
+  <PRIMARY_KEY>
+    <SEGMENT_LOOP>
+      <IF NOT SEG_TAG_EQUAL>
+            {FromODataUri}
+        <IF CUSTOM_HARMONY_AS_STRING>
+            required in a<FieldSqlName>, string
+        <ELSE>
+            required in a<FieldSqlName>, <HARMONYCORE_SEGMENT_DATATYPE>
+        </IF CUSTOM_HARMONY_AS_STRING>
+      </IF>
+    </SEGMENT_LOOP>
+  </PRIMARY_KEY>
+        proc
+;//Shouldn't really need the generic type arg on FindQuery. Compiler issue?
+            mreturn Ok(_DbContext.<StructurePlural>.AsNoTracking().FindQuery<<StructureNoplural>>(_DbContext, <PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE><ELSE><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP></PRIMARY_KEY>))
+        endmethod
+
+</IF STRUCTURE_ISAM>
+;//
+;// GET ONE (RELATIVE FILE RECORD NUMBER READ) --------------------------------
+;//
+<IF STRUCTURE_RELATIVE AND DEFINED_ENABLE_GET_ONE AND GET_ENDPOINT>
+        {ODataRoute("(aRecordNumber)")}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(<StructureNoplural>),StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
+  <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_GET>
+        {Authorize(Roles="<ROLES_GET>")}
+  </IF DEFINED_ENABLE_AUTHENTICATION>
+  <IF DEFINED_ENABLE_FIELD_SECURITY>
+        {HarmonyFieldSecurity<API_ENABLE_QUERY_PARAMS>}
+  <ELSE>
+        {EnableQuery<API_ENABLE_QUERY_PARAMS>}
+  </IF DEFINED_ENABLE_FIELD_SECURITY>
+        ;;; <summary>
+        ;;; Get a single <StructureNoplural> by relative record number.
+        ;;; </summary>
+        ;;; <param name="aRecordNumber">Record number</param>
+        ;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
+        public method Get<StructureNoplural>, @SingleResult<<StructureNoplural>>
+            {FromODataUri}
+            required in aRecordNumber, int
+        proc
+;//Shouldn't really need the generic type arg on FindQuery. Compiler issue?
+            mreturn new SingleResult<<StructureNoplural>>(_DbContext.<StructurePlural>.AsNoTracking().FindQuery<<StructureNoplural>>(_DbContext, aRecordNumber))
+        endmethod
+
+</IF STRUCTURE_RELATIVE>
 ;//
 ;// GET BY ALTERNATE KEY ------------------------------------------------------
 ;//
-<IF STRUCTURE_ISAM>
-  <IF DEFINED_ENABLE_ALTERNATE_KEYS>
-  <IF ALTERNATE_KEY_ENDPOINTS>
-    <ALTERNATE_KEY_LOOP>
-      <IF DUPLICATES>
-        {ODataRoute("<StructurePlural>(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>)")}
-        <IF DEFINED_ENABLE_AUTHENTICATION>
-          <IF USERTOKEN_ROLES_GET>
+<IF STRUCTURE_ISAM AND DEFINED_ENABLE_ALTERNATE_KEYS AND ALTERNATE_KEY_ENDPOINTS> 
+  <ALTERNATE_KEY_LOOP_UNIQUE>
+    <IF DUPLICATES>
+        {ODataRoute("(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>)")}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(ODataValue<IEnumerable<<StructureNoplural>>>),StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
+      <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_GET>
         {Authorize(Roles="<ROLES_GET>")}
-          </IF USERTOKEN_ROLES_GET>
-        </IF DEFINED_ENABLE_AUTHENTICATION>
-        <IF DEFINED_ENABLE_FIELD_SECURITY>
+      </IF DEFINED_ENABLE_AUTHENTICATION>
+      <IF DEFINED_ENABLE_FIELD_SECURITY>
         {HarmonyFieldSecurity<API_ENABLE_QUERY_PARAMS>}
-        <ELSE>
+      <ELSE>
         {EnableQuery<API_ENABLE_QUERY_PARAMS>}
-        </IF DEFINED_ENABLE_FIELD_SECURITY>
+      </IF DEFINED_ENABLE_FIELD_SECURITY>
         ;;; <summary>
         ;;; Get <structurePlural> by alternate key key <KeyName>.
         ;;; </summary>
-        <SEGMENT_LOOP>
-        <IF SEG_TAG_EQUAL>
-        <ELSE>
+      <SEGMENT_LOOP>
+        <IF NOT SEG_TAG_EQUAL>
         ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
-        </IF SEG_TAG_EQUAL>
-        </SEGMENT_LOOP>
+        </IF>
+      </SEGMENT_LOOP>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
         public method Get<StructurePlural>By<KeyName>, @IActionResult
-            <SEGMENT_LOOP>
-            <IF SEG_TAG_EQUAL>
-            <ELSE>
+      <SEGMENT_LOOP>
+        <IF NOT SEG_TAG_EQUAL>
             {FromODataUri}
-            <IF CUSTOM_HARMONY_AS_STRING>
+          <IF CUSTOM_HARMONY_AS_STRING>
             required in a<FieldSqlName>, string
-            <ELSE>
-            required in a<FieldSqlName>, <SEGMENT_SNTYPE>
-            </IF CUSTOM_HARMONY_AS_STRING>
-            </IF SEG_TAG_EQUAL>
-            </SEGMENT_LOOP>
+          <ELSE>
+            required in a<FieldSqlName>, <HARMONYCORE_SEGMENT_DATATYPE>
+          </IF CUSTOM_HARMONY_AS_STRING>
+        </IF>
+      </SEGMENT_LOOP>
         proc
             data result = _DbContext.<StructurePlural>.AsNoTracking().FindAlternate(<SEGMENT_LOOP>"<FieldSqlName>",<IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP>)
             if (result == ^null)
                 mreturn NotFound()
             mreturn Ok(result)
         endmethod
-      <ELSE>
-        {ODataRoute("<StructurePlural>(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>)")}
-        <IF DEFINED_ENABLE_AUTHENTICATION>
-          <IF USERTOKEN_ROLES_GET>
+    <ELSE>
+        {ODataRoute("(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>)")}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(<StructureNoplural>),StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
+      <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_GET>
         {Authorize(Roles="<ROLES_GET>")}
-          </IF USERTOKEN_ROLES_GET>
-        </IF DEFINED_ENABLE_AUTHENTICATION>
-        <IF DEFINED_ENABLE_FIELD_SECURITY>
+      </IF DEFINED_ENABLE_AUTHENTICATION>
+      <IF DEFINED_ENABLE_FIELD_SECURITY>
         {HarmonyFieldSecurity<API_ENABLE_QUERY_PARAMS>}
-        <ELSE>
+      <ELSE>
         {EnableQuery<API_ENABLE_QUERY_PARAMS>}
-        </IF DEFINED_ENABLE_FIELD_SECURITY>
+      </IF DEFINED_ENABLE_FIELD_SECURITY>
         ;;; <summary>
         ;;; Get <structureNoplural> by alternate key <KeyName>.
         ;;; </summary>
-        <SEGMENT_LOOP>
-        <IF SEG_TAG_EQUAL>
-        <ELSE>
+      <SEGMENT_LOOP>
+        <IF NOT SEG_TAG_EQUAL>
         ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
-        </IF SEG_TAG_EQUAL>
-        </SEGMENT_LOOP>
+        </IF>
+      </SEGMENT_LOOP>
         ;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
         public method Get<StructureNoplural>By<KeyName>, @SingleResult<<StructureNoplural>>
-            <SEGMENT_LOOP>
-            <IF SEG_TAG_EQUAL>
-            <ELSE>
+      <SEGMENT_LOOP>
+        <IF NOT SEG_TAG_EQUAL>
             {FromODataUri}
-            <IF CUSTOM_HARMONY_AS_STRING>
+          <IF CUSTOM_HARMONY_AS_STRING>
             required in a<FieldSqlName>, string
-            <ELSE>
-            required in a<FieldSqlName>, <SEGMENT_SNTYPE>
-            </IF CUSTOM_HARMONY_AS_STRING>
-            </IF SEG_TAG_EQUAL>
-            </SEGMENT_LOOP>
-        proc
-            mreturn new SingleResult<<StructureNoplural>>(_DbContext.<StructurePlural>.AsNoTracking().FindAlternate(<SEGMENT_LOOP>"<FieldSqlName>",<IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP>))
-        endmethod
-      </IF DUPLICATES>
-
-    </ALTERNATE_KEY_LOOP>
-  </IF ALTERNATE_KEY_ENDPOINTS>
-  </IF DEFINED_ENABLE_ALTERNATE_KEYS>
-</IF STRUCTURE_ISAM>
-;//
-;// GET INDIVIDUAL PROPERTIES -------------------------------------------------
-;//
-<IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
-<IF PROPERTY_ENDPOINTS>
-;//
-;// In order for the $value function to work in conjunction with these properties,
-;// the name of a single key segment MUST be "key"!!! Likely doesn't work with segmented keys.
-;//
-  <FIELD_LOOP>
-    <IF USER>
-    <ELSE>
-    <IF CUSTOM_NOT_HARMONY_EXCLUDE>
-      <IF STRUCTURE_ISAM>
-        <IF NOTPKSEGMENT>
-        <PRIMARY_KEY>
-        {ODataRoute("<StructurePlural>(<IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></IF SINGLE_SEGMENT>)/<FieldSqlName>")}
-        <IF DEFINED_ENABLE_AUTHENTICATION>
-          <IF USERTOKEN_ROLES_GET>
-        {Authorize(Roles="<ROLES_GET>")}
-          </IF USERTOKEN_ROLES_GET>
-        </IF DEFINED_ENABLE_AUTHENTICATION>
-        ;;; <summary>
-        ;;; Get the <FieldSqlName> property of a single <StructureNoplural>, by primary key.
-        ;;; </summary>
-        <IF SINGLE_SEGMENT>
-        ;;; <param name="key"><FIELD_DESC></param>
-        <ELSE>
-        <SEGMENT_LOOP>
-          <IF SEG_TAG_EQUAL>
           <ELSE>
-        ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
-          </IF SEG_TAG_EQUAL>
-        </SEGMENT_LOOP>
-        </IF SINGLE_SEGMENT>
-        ;;; <returns>
-        ;;; Returns <IF ALPHA>a string</IF ALPHA><IF DECIMAL><IF PRECISION>a decimal<ELSE><IF CUSTOM_HARMONY_AS_STRING>a string<ELSE>an int</IF CUSTOM_HARMONY_AS_STRING></IF PRECISION></IF DECIMAL><IF DATE>a DateTime</IF DATE><IF TIME>a DateTime</IF TIME><IF INTEGER>an int</IF INTEGER> containing the value of the requested property.
-        ;;;</returns>
-        public method Get<FieldSqlName>, @IActionResult
-        <SEGMENT_LOOP>
-            <IF SINGLE_SEGMENT>
-            {FromODataUri}
-            <IF CUSTOM_HARMONY_AS_STRING>
-            required in key, string
-            <ELSE>
-            required in key, <SEGMENT_SNTYPE>
-            </IF CUSTOM_HARMONY_AS_STRING>
-            <ELSE>
-              <IF SEG_TAG_EQUAL>
-              <ELSE>
-            {FromODataUri}
-            <IF CUSTOM_HARMONY_AS_STRING>
-            required in a<FieldSqlName>, string
-            <ELSE>
-            required in a<FieldSqlName>, <SEGMENT_SNTYPE>
-            </IF CUSTOM_HARMONY_AS_STRING>
-              </IF SEG_TAG_EQUAL>
-            </IF SINGLE_SEGMENT>
-        </SEGMENT_LOOP>
+            required in a<FieldSqlName>, <HARMONYCORE_SEGMENT_DATATYPE>
+          </IF CUSTOM_HARMONY_AS_STRING>
+        </IF>
+      </SEGMENT_LOOP>
         proc
-            data result = _DbContext.<StructurePlural>.Find(<IF SINGLE_SEGMENT>key<ELSE><SEGMENT_LOOP><IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP></IF SINGLE_SEGMENT>)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.<FieldSqlName>)
+            mreturn new SingleResult<<StructureNoplural>>(_DbContext.<StructurePlural>.AsNoTracking().FindAlternate(<SEGMENT_LOOP>"<FieldSqlName>",<IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE><ELSE><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP>))
         endmethod
-        </PRIMARY_KEY>
-        </IF NOTPKSEGMENT>
-      </IF STRUCTURE_ISAM>
-      <IF STRUCTURE_RELATIVE>
-        {ODataRoute("<StructurePlural>({key})}
-        <IF DEFINED_ENABLE_AUTHENTICATION>
-          <IF USERTOKEN_ROLES_GET>
-        {Authorize(Roles="<ROLES_GET>")}
-          </IF USERTOKEN_ROLES_GET>
-        </IF DEFINED_ENABLE_AUTHENTICATION>
-        ;;; <summary>
-        ;;; Get the <FieldSqlName> property of a single <StructureNoplural>, by record number.
-        ;;; </summary>
-        ;;; <param name="key">Record number</param>
-        ;;; <returns>
-        ;;; Returns <IF ALPHA>a string</IF ALPHA><IF DECIMAL><IF PRECISION>a decimal<ELSE><IF CUSTOM_HARMONY_AS_STRING>a string<ELSE>an int</IF CUSTOM_HARMONY_AS_STRING></IF PRECISION></IF DECIMAL><IF DATE>a DateTime</IF DATE><IF TIME>a DateTime</IF TIME><IF INTEGER>an int</IF INTEGER> containing the value of the requested property.
-        ;;;</returns>
-        public method Get<FieldSqlName>, @IActionResult
-            {FromODataUri}
-            required in key, int
-        proc
-            data result = _DbContext.<StructurePlural>.Find(key)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.<FieldSqlName>)
-        endmethod
-      </IF STRUCTURE_RELATIVE>
+    </IF DUPLICATES>
 
-    </IF CUSTOM_NOT_HARMONY_EXCLUDE>
-    </IF USER>
-  </FIELD_LOOP>
-</IF PROPERTY_ENDPOINTS>
-</IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
+  </ALTERNATE_KEY_LOOP_UNIQUE>
+</IF STRUCTURE_ISAM>
 ;//
 ;// POST ----------------------------------------------------------------------
 ;//
-<IF DEFINED_ENABLE_POST>
-<IF POST_ENDPOINT>
+<IF STRUCTURE_ISAM AND DEFINED_ENABLE_POST AND POST_ENDPOINT>
   <IF DEFINED_ENABLE_AUTHENTICATION>
     <IF USERTOKEN_ROLES_POST>
         {Authorize(Roles="<ROLES_POST>")}
     </IF USERTOKEN_ROLES_POST>
   </IF DEFINED_ENABLE_AUTHENTICATION>
-        {ODataRoute("<StructurePlural>")}
+        {ODataRoute}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(<StructureNoplural>),StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status400BadRequest)}
+        {HttpPost}
         ;;; <summary>
         ;;; Create a new <structureNoplural> (automatically assigned primary key).
         ;;; </summary>
@@ -393,20 +354,18 @@ namespace <NAMESPACE>
             required in a<StructureNoplural>, @<StructureNoplural>
         proc
             ;;Remove the primary key fields from ModelState
-  <IF STRUCTURE_ISAM>
+;//
+;// ISAM
+;//
     <PRIMARY_KEY>
       <SEGMENT_LOOP>
             ModelState.Remove("<FieldSqlName>")
       </SEGMENT_LOOP>
     </PRIMARY_KEY>
-  </IF STRUCTURE_ISAM>
-  <IF STRUCTURE_RELATIVE>
-            ModelState.Remove("RecordNumber")
-  </IF STRUCTURE_RELATIVE>
 
             ;; Validate inbound data
             if (!ModelState.IsValid)
-                mreturn BadRequest(ModelState)
+                mreturn ValidationHelper.ReturnValidationError(ModelState)
 
             ;;Get the next available primary key value
             disposable data keyFactory = (@IPrimaryKeyFactory)_ServiceProvider.GetService(^typeof(IPrimaryKeyFactory))
@@ -421,7 +380,7 @@ namespace <NAMESPACE>
             catch (e, @ValidationException)
             begin
                 ModelState.AddModelError("RelationValidation",e.Message)
-                mreturn BadRequest(ModelState)
+                mreturn ValidationHelper.ReturnValidationError(ModelState)
             end
             endtry
 
@@ -429,66 +388,51 @@ namespace <NAMESPACE>
 
         endmethod
 
-</IF POST_ENDPOINT>
-</IF DEFINED_ENABLE_POST>
+</IF STRUCTURE_ISAM>
 ;//
 ;// PUT -----------------------------------------------------------------------
 ;//
-<IF DEFINED_ENABLE_PUT>
-<IF PUT_ENDPOINT>
-  <IF DEFINED_ENABLE_AUTHENTICATION>
-    <IF USERTOKEN_ROLES_PUT>
+<IF STRUCTURE_ISAM AND DEFINED_ENABLE_PUT AND PUT_ENDPOINT>
+  <KEY_LOOP>
+    <IF FIRST_UNIQUE_KEY OR (NODUPLICATES AND DEFINED_ENABLE_ALT_PUT)>
+      <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_PUT>
         {Authorize(Roles="<ROLES_PUT>")}
-    </IF USERTOKEN_ROLES_PUT>
-  </IF DEFINED_ENABLE_AUTHENTICATION>
-        {ODataRoute("<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>)")}
+      </IF DEFINED_ENABLE_AUTHENTICATION>
+        {ODataRoute("(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>)")}
+        {Produces("application/json")}
+        {ProducesResponseType(StatusCodes.Status201Created)}
+        {ProducesResponseType(StatusCodes.Status400BadRequest)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
+        {HttpPut}
         ;;; <summary>
         ;;; Create (with a client-supplied primary key) or replace a <structureNoplural>.
         ;;; </summary>
-  <IF STRUCTURE_ISAM>
-    <PRIMARY_KEY>
+
       <SEGMENT_LOOP>
-        <IF SEG_TAG_EQUAL>
-        <ELSE>
+        <IF NOT SEG_TAG_EQUAL>
         ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
-        </IF SEG_TAG_EQUAL>
+        </IF>
       </SEGMENT_LOOP>
-    </PRIMARY_KEY>
-  </IF STRUCTURE_ISAM>
-  <IF STRUCTURE_RELATIVE>
-        ;;; <param name="aRecordNumber">Record number</param>
-  </IF STRUCTURE_RELATIVE>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method Put<StructureNoplural>, @IActionResult
-  <IF STRUCTURE_ISAM>
-    <PRIMARY_KEY>
+        public method Put<StructureNoplural><IF NOT FIRST_UNIQUE_KEY>By<KeyName></IF>, @IActionResult
       <SEGMENT_LOOP>
-        <IF SEG_TAG_EQUAL>
-        <ELSE>
+        <IF NOT SEG_TAG_EQUAL>
             {FromODataUri}
-        <IF CUSTOM_HARMONY_AS_STRING>
+          <IF CUSTOM_HARMONY_AS_STRING>
             required in a<FieldSqlName>, string
-        <ELSE>
-            required in a<FieldSqlName>, <SEGMENT_SNTYPE>
-        </IF CUSTOM_HARMONY_AS_STRING>
-        </IF SEG_TAG_EQUAL>
+          <ELSE>
+            required in a<FieldSqlName>, <HARMONYCORE_SEGMENT_DATATYPE>
+          </IF CUSTOM_HARMONY_AS_STRING>
+        </IF>
       </SEGMENT_LOOP>
-    </PRIMARY_KEY>
-  </IF STRUCTURE_ISAM>
-  <IF STRUCTURE_RELATIVE>
-            {FromODataUri}
-            required in aRecordNumber, int
-  </IF STRUCTURE_RELATIVE>
             {FromBody}
             required in a<StructureNoplural>, @<StructureNoplural>
         proc
             ;; Validate inbound data
             if (!ModelState.IsValid)
-                mreturn BadRequest(ModelState)
+                mreturn ValidationHelper.ReturnValidationError(ModelState)
 
             ;;Ensure that the key values in the URI win over any data that may be in the model object
-  <IF STRUCTURE_ISAM>
-    <PRIMARY_KEY>
       <SEGMENT_LOOP>
         <IF SEG_TAG_EQUAL>
             a<StructureNoplural>.<FieldSqlname> = <SEGMENT_TAG_VALUE>
@@ -496,16 +440,11 @@ namespace <NAMESPACE>
             a<StructureNoplural>.<FieldSqlname> = a<FieldSqlName>
         </IF SEG_TAG_EQUAL>
       </SEGMENT_LOOP>
-    </PRIMARY_KEY>
-  </IF STRUCTURE_ISAM>
-  <IF STRUCTURE_RELATIVE>
-            a<StructureNoplural>.RecordNumber = aRecordNumber
-  </IF STRUCTURE_RELATIVE>
 
             try
             begin
                 ;;Add and commit
-                data existing = _DbContext.<StructurePlural>.Find(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>)
+                data existing = _DbContext.<StructurePlural>.Find(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE><ELSE><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP>)
                 if(existing == ^null) then
                 begin
                     _DbContext.<StructurePlural>.Add(a<StructureNoplural>)
@@ -526,74 +465,61 @@ namespace <NAMESPACE>
             catch (e, @ValidationException)
             begin
                 ModelState.AddModelError("RelationValidation",e.Message)
-                mreturn BadRequest(ModelState)
+                mreturn ValidationHelper.ReturnValidationError(ModelState)
             end
             endtry
 
         endmethod
-
-</IF PUT_ENDPOINT>
-</IF DEFINED_ENABLE_PUT>
+    </IF FIRST_UNIQUE_KEY>
+  </KEY_LOOP>
+</IF STRUCTURE_ISAM>
 ;//
 ;// PATCH ---------------------------------------------------------------------
 ;//
-<IF DEFINED_ENABLE_PATCH>
-<IF PATCH_ENDPOINT>
-  <IF DEFINED_ENABLE_AUTHENTICATION>
-    <IF USERTOKEN_ROLES_PATCH>
+<IF STRUCTURE_ISAM AND DEFINED_ENABLE_PATCH AND PATCH_ENDPOINT>
+  <KEY_LOOP>
+    <IF FIRST_UNIQUE_KEY OR (NODUPLICATES AND DEFINED_ENABLE_ALT_PATCH)>
+    <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_PATCH>
         {Authorize(Roles="<ROLES_PATCH>")}
-    </IF USERTOKEN_ROLES_PATCH>
-  </IF DEFINED_ENABLE_AUTHENTICATION>
-        {ODataRoute("<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>RecordNumber={aRecordNumber}</IF STRUCTURE_RELATIVE>)")}
+    </IF DEFINED_ENABLE_AUTHENTICATION>
+        {ODataRoute("(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>)")}
+        {Produces("application/json")}
+        {ProducesResponseType(StatusCodes.Status204NoContent)}
+        {ProducesResponseType(StatusCodes.Status400BadRequest)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
+        {HttpPatch}
         ;;; <summary>
         ;;; Patch  (partial update) a <structureNoplural>.
         ;;; </summary>
-  <IF STRUCTURE_ISAM>
-    <PRIMARY_KEY>
-      <SEGMENT_LOOP>
-        <IF SEG_TAG_EQUAL>
-        <ELSE>
+        <SEGMENT_LOOP>
+          <IF NOT SEG_TAG_EQUAL>
         ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
-        </IF SEG_TAG_EQUAL>
-      </SEGMENT_LOOP>
-    </PRIMARY_KEY>
-  </IF STRUCTURE_ISAM>
-  <IF STRUCTURE_RELATIVE>
-        ;;; <param name="aRecordNumber">Record number</param>
-  </IF STRUCTURE_RELATIVE>
+          </IF>
+        </SEGMENT_LOOP>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method Patch<StructureNoplural>, @IActionResult
-  <IF STRUCTURE_ISAM>
-    <PRIMARY_KEY>
-      <SEGMENT_LOOP>
-        <IF SEG_TAG_EQUAL>
-        <ELSE>
+        public method Patch<StructureNoplural><IF NOT FIRST_UNIQUE_KEY>By<KeyName></IF>, @IActionResult
+        <SEGMENT_LOOP>
+          <IF NOT SEG_TAG_EQUAL>
             {FromODataUri}
-          <IF CUSTOM_HARMONY_AS_STRING>
+            <IF CUSTOM_HARMONY_AS_STRING>
             required in a<FieldSqlName>, string
-          <ELSE>
-            required in a<FieldSqlName>, <SEGMENT_SNTYPE>
-          </IF CUSTOM_HARMONY_AS_STRING>
-        </IF SEG_TAG_EQUAL>
-      </SEGMENT_LOOP>
-    </PRIMARY_KEY>
-  </IF STRUCTURE_ISAM>
-  <IF STRUCTURE_RELATIVE>
-            {FromODataUri}
-            required in aRecordNumber, int
-  </IF STRUCTURE_RELATIVE>
+            <ELSE>
+            required in a<FieldSqlName>, <HARMONYCORE_SEGMENT_DATATYPE>
+            </IF CUSTOM_HARMONY_AS_STRING>
+          </IF>
+        </SEGMENT_LOOP>
             {FromBody}
             required in a<StructureNoplural>, @JsonPatchDocument<<StructureNoplural>>
         proc
             ;; Validate inbound data
             if (!ModelState.IsValid)
-                mreturn BadRequest(ModelState)
+                mreturn ValidationHelper.ReturnValidationError(ModelState)
 
             ;;Patch the existing <structureNoplural>
             try
             begin
                 ;;Get the <structureNoplural> to be updated
-                data <structureNoplural>ToUpdate = _DbContext.<StructurePlural>.Find(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>)
+                data <structureNoplural>ToUpdate = _DbContext.<StructurePlural>.Find(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE><ELSE><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP>)
                 data patchError, @JsonPatchError, ^null
                 ;;Did we find it?
                 if(<structureNoplural>ToUpdate == ^null)
@@ -616,67 +542,52 @@ namespace <NAMESPACE>
             catch (e, @ValidationException)
             begin
                 ModelState.AddModelError("RelationValidation",e.Message)
-                mreturn BadRequest(ModelState)
+                mreturn ValidationHelper.ReturnValidationError(ModelState)
             end
             endtry
 
             mreturn NoContent()
 
         endmethod
-
-</IF PATCH_ENDPOINT>
-</IF DEFINED_ENABLE_PATCH>
+    </IF FIRST_UNIQUE_KEY>
+  </KEY_LOOP>
+</IF STRUCTURE_ISAM>
 ;//
 ;// DELETE --------------------------------------------------------------------
 ;//
-<IF DEFINED_ENABLE_DELETE>
-<IF DELETE_ENDPOINT>
-  <IF DEFINED_ENABLE_AUTHENTICATION>
-    <IF USERTOKEN_ROLES_DELETE>
+<IF STRUCTURE_ISAM AND DEFINED_ENABLE_DELETE AND DELETE_ENDPOINT>
+   <KEY_LOOP>
+    <IF FIRST_UNIQUE_KEY OR (NODUPLICATES AND DEFINED_ENABLE_ALT_DELETE)>
+    <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_DELETE>
         {Authorize(Roles="<ROLES_DELETE>")}
-    </IF USERTOKEN_ROLES_DELETE>
-  </IF DEFINED_ENABLE_AUTHENTICATION>
-        {ODataRoute("<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>RecordNumber={aRecordNumber}</IF STRUCTURE_RELATIVE>)")}
+    </IF DEFINED_ENABLE_AUTHENTICATION>
+        {ODataRoute("(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>)")}
+        {ProducesResponseType(StatusCodes.Status204NoContent)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
+        {HttpDelete}
         ;;; <summary>
         ;;; Delete a <structureNoplural>.
         ;;; </summary>
-  <IF STRUCTURE_ISAM>
-    <PRIMARY_KEY>
-      <SEGMENT_LOOP>
-        <IF SEG_TAG_EQUAL>
-        <ELSE>
+        <SEGMENT_LOOP>
+          <IF NOT SEG_TAG_EQUAL>
         ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
-        </IF SEG_TAG_EQUAL>
-      </SEGMENT_LOOP>
-    </PRIMARY_KEY>
-  </IF STRUCTURE_ISAM>
-  <IF STRUCTURE_RELATIVE>
-        ;;; <param name="aRecordNumber">Record number</param>
-  </IF STRUCTURE_RELATIVE>
+          </IF>
+        </SEGMENT_LOOP>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method Delete<StructureNoplural>, @IActionResult
-  <IF STRUCTURE_ISAM>
-    <PRIMARY_KEY>
-      <SEGMENT_LOOP>
-        <IF SEG_TAG_EQUAL>
-        <ELSE>
+        public method Delete<StructureNoplural><IF NOT FIRST_UNIQUE_KEY>By<KeyName></IF>, @IActionResult
+        <SEGMENT_LOOP>
+          <IF NOT SEG_TAG_EQUAL>
             {FromODataUri}
-          <IF CUSTOM_HARMONY_AS_STRING>
+            <IF CUSTOM_HARMONY_AS_STRING>
             required in a<FieldSqlName>, string
-          <ELSE>
-            required in a<FieldSqlName>, <SEGMENT_SNTYPE>
-          </IF CUSTOM_HARMONY_AS_STRING>
-        </IF SEG_TAG_EQUAL>
-      </SEGMENT_LOOP>
-    </PRIMARY_KEY>
-  </IF STRUCTURE_ISAM>
-  <IF STRUCTURE_RELATIVE>
-            {FromODataUri}
-            required in arecordNumber, int
-  </IF STRUCTURE_RELATIVE>
+            <ELSE>
+            required in a<FieldSqlName>, <HARMONYCORE_SEGMENT_DATATYPE>
+            </IF CUSTOM_HARMONY_AS_STRING>
+          </IF>
+        </SEGMENT_LOOP>
         proc
             ;;Get the <structureNoplural> to be deleted
-            data <structureNoplural>ToRemove = _DbContext.<StructurePlural>.Find(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>aRecordNumber</IF STRUCTURE_RELATIVE>)
+            data <structureNoplural>ToRemove = _DbContext.<StructurePlural>.Find(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE><ELSE><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP>)
 
             ;;Did we find it?
             if (<structureNoplural>ToRemove == ^null)
@@ -689,9 +600,9 @@ namespace <NAMESPACE>
             mreturn NoContent()
 
         endmethod
-
-</IF DELETE_ENDPOINT>
-</IF DEFINED_ENABLE_DELETE>
+    </IF FIRST_UNIQUE_KEY>
+  </KEY_LOOP>
+</IF STRUCTURE_ISAM>
     endclass
 
 endnamespace

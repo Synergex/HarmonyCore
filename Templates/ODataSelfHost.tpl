@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME>SelfHost.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.4.2</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.4.6</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>API_DOCS_PATH</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVICES_NAMESPACE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVER_PROTOCOL</REQUIRES_USERTOKEN>
@@ -76,7 +76,6 @@ proc
     end
     endtry
 
-<IF DEFINED_ENABLE_SWAGGER_DOCS>
     ;;-------------------------------------------------------------------------
     ;;Report the location of the API documentation
 
@@ -89,16 +88,12 @@ proc
 
     if (!Directory.Exists(wwwroot))
         Directory.CreateDirectory(wwwroot)
-
-</IF DEFINED_ENABLE_SWAGGER_DOCS>
     ;;-------------------------------------------------------------------------
     ;;Start the self-hosting environment (Kestrel)
 
     WebHost.CreateDefaultBuilder(Environment.GetCommandLineArgs())
-<IF DEFINED_ENABLE_SWAGGER_DOCS>
     &    .UseContentRoot(AppContext.BaseDirectory)
     &    .UseWebRoot(wwwroot)
-</IF DEFINED_ENABLE_SWAGGER_DOCS>
 <IF DEFINED_ENABLE_IIS_SUPPORT>
     &    .UseIISIntegration()
 </IF DEFINED_ENABLE_IIS_SUPPORT>

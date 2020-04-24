@@ -1,46 +1,46 @@
-;//****************************************************************************
-;//
-;// Title:       ArgumentDataDefinition.dbl
-;//
-;// Type:        Class
-;//
-;// Description: Define the argument data
-;//
-;// Author:      Richard C. Morris, Synergex Technology Evengelist
-;//
-;// Copyright (c) 2014, Synergex International, Inc. All rights reserved.
-;//
-;// Redistribution and use in source and binary forms, with or without
-;// modification, are permitted provided that the following conditions are met:
-;//
-;// * Redistributions of source code must retain the above copyright notice,
-;//   this list of conditions and the following disclaimer.
-;//
-;// * Redistributions in binary form must reproduce the above copyright notice,
-;//   this list of conditions and the following disclaimer in the documentation
-;//   and/or other materials provided with the distribution.
-;//
-;// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-;// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-;// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-;// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-;// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-;// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-;// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-;// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-;// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-;// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-;// POSSIBILITY OF SUCH DAMAGE.
-;//
-;//****************************************************************************
+;;****************************************************************************
+;;
+;; Title:       ArgumentDataDefinition.dbl
+;;
+;; Type:        Class
+;;
+;; Description: Define the argument data
+;;
+;; Copyright (c) 2014, Synergex International, Inc. All rights reserved.
+;;
+;; Redistribution and use in source and binary forms, with or without
+;; modification, are permitted provided that the following conditions are met:
+;;
+;; * Redistributions of source code must retain the above copyright notice,
+;;   this list of conditions and the following disclaimer.
+;;
+;; * Redistributions in binary form must reproduce the above copyright notice,
+;;   this list of conditions and the following disclaimer in the documentation
+;;   and/or other materials provided with the distribution.
+;;
+;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;; ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+;; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+;; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+;; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+;; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+;; POSSIBILITY OF SUCH DAMAGE.
+;;
+;;****************************************************************************
 
 import System
 import System.Collections.Generic
 import System.Text
+import System.Linq
 import Newtonsoft.Json
 import Harmony.Core.Enumerations
 import Harmony.Core.Converters
 import Newtonsoft.Json.Linq
+import System.Reflection
 
 namespace Harmony.Core
 
@@ -79,6 +79,13 @@ namespace Harmony.Core
 	endclass
 
 	public static class ArgumentHelper
+
+		static method ArgumentHelper
+		proc
+			ArrayArgImplMethod = ^typeof(ArgumentHelper).GetMethod("ArrayArgumentImpl", BindingFlags.NonPublic | BindingFlags.Static)
+		endmethod
+
+
 		public static method MaybeOptional<T(class)>, @object
 			arg, T
 		proc
@@ -150,6 +157,87 @@ namespace Harmony.Core
 			else
 				mreturn arg
 		endmethod
+
+		public static method MaybeNull<T(class)>, @Object
+			parm, T
+		proc
+			if(parm == ^null) then
+			begin
+				mreturn ArgumentPlaceholder<T>.Instance
+			end
+			else
+				mreturn (@Object)parm
+		endmethod
+
+		public static method Argument<T>, T
+			argPos, int
+			argBlock, @Tuple<Object, [#]Object>
+		proc
+			if(argPos == 0) then
+				mreturn ArgumentImpl<T>(argBlock.Item1)
+			else
+				mreturn ArgumentImpl<T>(argBlock.Item2[argPos])
+		endmethod
+
+		public static method Argument<T>, void
+			argPos, int
+			argBlock, @Tuple<Object, [#]Object>
+			out val, T
+		proc
+			if(argPos == 0) then
+				val = ArgumentImpl<T>(argBlock.Item1)
+			else
+				val = ArgumentImpl<T>(argBlock.Item2[argPos])
+		endmethod
+
+		private static ArrayArgImplMethod, @MethodInfo
+
+		private static method ArgumentImpl<T>, T
+			arg, @object
+		proc
+			data tVal, T
+
+			if(arg == ^null)
+				mreturn tVal
+
+			data argType = arg.GetType()
+
+			if(arg .is. JToken) then
+			begin
+				mreturn (T)((@JToken)arg).ToObject(^typeof(T))
+			end
+			else if(^typeof(T) == argType || argType.IsAssignableFrom(^typeof(T))) then
+				mreturn (T)arg
+			else if(^typeof(T).IsArray) then
+			begin
+				data elementType = ^typeof(T).GetElementType()
+				data typedEnumerable = ^typeof(IEnumerable<>).MakeGenericType(new Type[#] { elementType })
+				mreturn (T)ArrayArgImplMethod.MakeGenericMethod(new Type[#] { elementType }).Invoke(^null, new Object[#] { arg })
+			end
+			else if(^typeof(T).IsGenericType && ^typeof(T).GetGenericTypeDefinition() == ^typeof(List<>)) then
+			begin
+				try
+				begin
+					mreturn (T)Activator.CreateInstance(^typeof(T), new Object[#] { arg })
+				end
+				catch(ex, @Exception)
+				begin
+					throw new Exception(string.Format("Failed to create instance of {0} using argument of type {1}", ^typeof(T), argType))
+				end
+				endtry
+			end
+			else
+				throw new NotImplementedException(string.Format("{0} not a currently supported type in Traditional Bridge", ^typeof(T)))
+		endmethod
+
+		private static method ArrayArgumentImpl<T>, @object
+			obj, @Object
+		proc
+			data enumerable = (IEnumerable<T>)obj
+			mreturn enumerable.ToArray()
+		endmethod
+
+
 
 ;		public static method MaybeOptional<R(structure)>, @object
 ;			arg, Nullable<R>

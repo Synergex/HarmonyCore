@@ -244,7 +244,7 @@ namespace Harmony.Core
 
 
 		;;; <summary>
-		;;;  Readonly property that returns the names of the fields defined within the $$Symphony Data Object$$.
+		;;;  Readonly property that returns the names of the fields defined within the $$HarmonyCore Data Object$$.
 		;;; </summary>
 		public property FieldNames, @List<String>
 			method get
@@ -257,7 +257,7 @@ namespace Harmony.Core
 		protected mFieldHeadings	,@List<String>, new List<String>()
 		
 		;;; <summary>
-		;;;  Readonly property that returns the report headings of the fields defined within the $$Symphony Data Object$$.
+		;;;  Readonly property that returns the report headings of the fields defined within the $$HarmonyCore Data Object$$.
 		;;; </summary>
 		public property FieldHeadings, @List<String>
 			method get
@@ -395,7 +395,9 @@ namespace Harmony.Core
 			endusing
 
 			mFields.Add(fieldInfo)
-			mfieldDictionary.Add(languageName, mFields.Count - 1)
+			if(!mfieldDictionary.TryAdd(languageName, mFields.Count - 1))
+				mfieldDictionary[languageName] = mFields.Count - 1
+
 			mreturn fieldInfo
 		endmethod
 

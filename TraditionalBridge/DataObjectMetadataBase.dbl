@@ -43,7 +43,7 @@ namespace Harmony.TraditionalBridge
 		endmethod
 		
 		;;; <summary>
-		;;;  Readonly property that returns the names of the fields defined within the $$Symphony Data Object$$.
+		;;;  Readonly property that returns the names of the fields defined within the $$HarmonyCore Data Object$$.
 		;;; </summary>
 		public property FieldNames, @ArrayList
 			method get
@@ -141,9 +141,8 @@ namespace Harmony.TraditionalBridge
         endmethod
 
 		public method Deserialize, @DataObjectBase
-			passedValue, @Json.JsonObject
+			passedValue, @Json.JsonValue
 			record
-				passedValue, @Json.JsonObject
 				objectMetadata, @DataObjectMetadataBase
 				objectType, @Json.JsonText
 				objectValue, @Json.JsonText
@@ -164,8 +163,26 @@ namespace Harmony.TraditionalBridge
 			objectGRFA = (@Json.JsonText)passedValue.GetProperty("GRFA")
 			mreturn MakeNew(stringValue, Convert.FromBase64String(objectGRFA.Value))
 
-		endmethod
+        endmethod
+.ifdef DBLV11
+        public method Deserialize, @DataObjectBase
+            passedValue, @System.Text.Json.JsonElement
+            record
+                stringValue, @string
+        proc
+            if(RPSStructureHasBinaryData) then
+            begin
+                stringValue = passedValue.GetProperty("Base64Value").GetStringFromBase64()
+            end
+            else
+            begin
+                stringValue = passedValue.GetProperty("Value").GetString()
+            end
 
+            mreturn MakeNew(stringValue, passedValue.GetProperty("GRFA").GetStringFromBase64())
+
+        endmethod
+.endc
 	endclass
 
 endnamespace

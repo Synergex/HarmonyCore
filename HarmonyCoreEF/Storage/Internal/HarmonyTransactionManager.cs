@@ -96,5 +96,10 @@ namespace Harmony.Core.EF.Storage.Internal
         public virtual void ResetState()
         {
         }
+
+        public Task ResetStateAsync(CancellationToken cancellationToken = default)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

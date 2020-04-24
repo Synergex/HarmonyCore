@@ -10,7 +10,7 @@ import Microsoft.AspNet.OData.Extensions
 import System.Collections.Concurrent
 import Microsoft.OData.Edm
 import System.Security.Claims
-
+import Microsoft.AspNetCore.Authentication
 namespace Harmony.OData
 
     public class HarmonyFieldSecurityAttribute extends EnableQueryAttribute
@@ -26,7 +26,7 @@ namespace Harmony.OData
             data isAuthenticated, boolean, false
             if(authenticatedUser != ^null)
             begin
-                data userIdentity = (@ClaimsIdentity)authenticatedUser.Identity
+                data userIdentity = (@System.Security.Claims.ClaimsIdentity)authenticatedUser.Identity
                 data claims = userIdentity.Claims
                 data roleClaimType = userIdentity.RoleClaimType
                 userRoles = claims.Where(lambda(c) { c.Type == roleClaimType }).Select(lambda(c) { c.Value }).ToArray()

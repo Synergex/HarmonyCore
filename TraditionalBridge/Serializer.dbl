@@ -78,6 +78,7 @@ namespace Json
 		endmethod
 	endclass
 
+.ifndef DBLV11
 	;;; <summary>
 	;;; Builds a Harmony Core TraditionalBridge JSON message and writes it to a channel.
 	;;; </summary>
@@ -110,6 +111,31 @@ namespace Json
 			outStream = stream
 			serializerStack = new System.Collections.ArrayList()
 			serializerStack.Add((@SerializerStackType)SerializerStackType.None)
+		endmethod
+
+		public method ObjectData, void
+			dataValue, a
+			dataType, a
+			grfa, a
+			dataNeedsEncoding, boolean
+			name, @string
+		proc
+			if(name == ^null) then
+				MapOpen()
+			else
+				MapOpen(name)
+
+			Pair("Type", dataType)
+			if(!dataNeedsEncoding) then
+			begin
+				Pair("Value", dataValue)
+			end
+			else
+			begin
+				Pair("Base64Value", Convert.ToBase64String(dataValue))
+			end
+			Pair("GRFA", grfa)
+			MapClose()
 		endmethod
 
 		;;; <summary>
@@ -566,7 +592,10 @@ namespace Json
 				mreturn buffer
 			endmethod
 		endproperty
-
+		public method Flush, void
+		proc
+			;;do nothing this is managed automatically
+		endmethod
 .endregion
 
 .region "Helper methods"
@@ -620,6 +649,18 @@ namespace Json
 		proc
 		endmethod
 
+        public method ArgumentData, void
+            required in argPos, int
+            required in value, string
+            required in type, FieldDataType
+            required in size, int
+            required in precision, int
+            required in hasBinaryData, boolean
+        proc
+            ArgumentData(argPos, (a)value, type, size, precision, hasBinaryData)
+        endmethod
+
+
 		public method ArgumentData, void
 			required in argPos, int
 			required in value, a
@@ -643,9 +684,19 @@ namespace Json
 			
 			Pair("DataType", (i)FieldDataType.AlphaField)
 			if(encodeElement) then
-				Pair("Base64Value", Convert.ToBase64String(value))
+			begin
+				if(^passed(size) && ^size(value) > size) then
+					Pair("Base64Value", Convert.ToBase64String(value(1:size)))
+				else
+					Pair("Base64Value", Convert.ToBase64String(value))
+			end
 			else
-				Pair("PassedValue", %atrim(value))
+			begin
+				if(^passed(size) && ^size(value) > size) then
+					Pair("PassedValue", %atrim(value(1:size)))
+				else
+					Pair("PassedValue", %atrim(value))
+			end
 			MapClose()
 			MapClose()
 		endmethod
@@ -1085,5 +1136,181 @@ namespace Json
 			MapClose()
 		endmethod
 
+		public method ReportResponseProlog, void
+			hasId, boolean
+			requestId, i4
+		proc
+			MapOpen()
+            Pair("jsonrpc", "2.0")
+
+            if(hasId) then
+                Pair("id", requestId)
+            else
+                PairNull("id")
+
+            String("result")
+            ArrayOpen()
+		endmethod
+
+		public method ReportResponseEpilog, void
+		proc
+			;;Terminate the "ReturnParameters" array
+            ArrayClose()
+
+            ;;Terminate the "Result" object
+            MapClose()
+            ;;Terminate the response object
+            MapClose()
+		endmethod
+
+		public method ReportError, void
+            errorText, @string
+            errorCode, int
+            messageId, int
+            record
+                scopeLog, @ArrayList
+                loggerSettings, @LoggerScopeSettings
+        proc
+            OutputScopeAbort()
+                        
+            if(messageId != -1) then
+            begin
+                MapOpen()
+                Pair("jsonrpc", "2.0")
+                String("error")
+                MapOpen()
+                Pair("code", errorCode)
+
+                Pair("message", Convert.ToBase64String(errorText))
+
+                ;;if scope logging is active return everything that was logged as part of this request scope
+                if(Logger.Instance.ShouldAttachLogsToExceptions)
+                begin
+                    scopeLog = Logger.Instance.CurrentScopeLog()
+                    if(scopeLog != ^null && scopeLog.Count > 0)
+                    begin
+                                                
+                        data logEntry, @string
+                        MaybeLog(2, "Dispatcher: attaching in memory logs to thrown exception")
+
+                        MapOpen("data")
+                        String("logs")
+                        ArrayOpen()
+
+                        foreach logEntry in scopeLog as @String
+                        begin
+                            String(Convert.ToBase64String(logEntry))
+                        end
+
+                        ArrayClose()
+
+                        loggerSettings = Logger.Instance.CurrentLogSettings()
+
+                        MapOpen("log_settings")
+                        Pair("ScopeIdentifier", loggerSettings.ScopeIdentifier)
+                        PairBool("LogToMemory", loggerSettings.LogToMemory)
+                        PairBool("LogToDisk", loggerSettings.LogToDisk)
+                        Pair("LogLocation", loggerSettings.LogLocation)
+                        PairBool("FlushLog", loggerSettings.FlushLog)
+                        Pair("OnDiskLogLevel", loggerSettings.OnDiskLogLevel)
+                        Pair("InMemoryLogLevel", loggerSettings.InMemoryLogLevel)
+                        PairBool("AttachLogsToExceptions", loggerSettings.AttachLogsToExceptions)
+                        MapClose()
+
+                        MapClose()
+                    end
+                end
+
+                MapClose()
+
+                if(messageId > -1) then
+                    Pair("id", messageId)
+                else
+                    PairNull("id")
+
+                MapClose()
+
+                MaybeLog(1, "ReportError: " + errorText + " messageId" + %string(messageId))
+            end
+            else
+            begin
+                MaybeLog(5, "ReportError: Notify -> " + errorText)
+            end
+        endmethod
+
+        public method ReportResult, void
+            requestId, int
+            result, @string
+        proc
+            if(requestId != -1) then
+            begin
+                MapOpen()
+                Pair("jsonrpc", "2.0")
+                Pair("result", result)
+                        
+                if(requestId > -1) then
+                    Pair("id", requestId)
+                else
+                    PairNull("id")
+
+                MapClose()
+
+                MaybeLog(5, "ReportResult: " + result + " messageId" + %string(requestId))
+            end
+            else
+            begin
+                MaybeLog(5, "ReportResult: Notify")
+            end
+
+        endmethod
+
+        public method ReportResult, void
+            requestId, int
+            result, n
+        proc
+            if(requestId != -1) then
+            begin
+                MapOpen()
+                Pair("jsonrpc", "2.0")
+                Pair("result", result)
+                        
+                if(requestId > -1) then
+                    Pair("id", requestId)
+                else
+                    PairNull("id")
+
+                MapClose()
+                MaybeLog(5, "ReportResult: " + %string(result) + " messageId" + %string(requestId))
+            end
+            else
+            begin
+                MaybeLog(5, "ReportResult: Notify")
+            end
+        endmethod
+
+        public method ReportResult, void
+            requestId, int
+            result, [#]@object
+            inputSet, [#]boolean
+            resultTypes, [#]FieldDataType
+            record
+                arg, @object
+                ii, int
+        proc
+            ArrayOpen()
+            ii = 0
+            foreach arg in result
+            begin
+                incr ii
+                if(inputSet[ii])
+                begin
+                    ;;TODO input set
+                end
+            end
+            MaybeLog(5, "ReportResult: array(" + %string(result.Length) + ") messageId" + %string(requestId))
+			
+        endmethod
+
 	endclass
+.endc
 endnamespace

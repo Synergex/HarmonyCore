@@ -5,436 +5,529 @@ import Harmony.Core.Enumerations
 import Synergex.SynergyDE.Select
 import System.Linq.Expressions
 import Harmony.Core.Utility
-import Remotion.Linq.Clauses
 import System.Linq
 import System.Reflection
 import Harmony.Core.FileIO.Queryable.Expressions
 
 namespace Harmony.Core.FileIO.Queryable
 
-	internal class WhereExpressionBuilder extends ExpressionVisitor
-		;;this might need to be a stack to handle nesting fully
-		private mWhereStack, @Stack<object>
-		private mOnStack, @Stack<object>
-		private mDataObjects, @Dictionary<IQuerySource, DataObjectMetadataBase>
-		private mCaseSensitive, boolean
-		private mQuerySources, @List<IQuerySource>
-		private mQuerySourceMap, @Dictionary<IQuerySource, IQuerySource>
-		public method WhereExpressionBuilder
-			caseSensitive, boolean
-			querySources, @List<IQuerySource>
-			querySourceMap, @Dictionary<IQuerySource, IQuerySource>
-		proc
-			mQuerySourceMap = querySourceMap
-			mDataObjects = new Dictionary<IQuerySource, DataObjectMetadataBase>()
-			mWhereStack = new Stack<object>()
-			mOnStack = new Stack<object>()
-			mQuerySources = querySources
-			data querySource, @IQuerySource
-			foreach querySource in mQuerySources
-			begin
-				data itemType = querySource.ItemType.IsGenericType ? querySource.ItemType.GenericTypeArguments.First() : querySource.ItemType
-				data metadataObject = DataObjectMetadataBase.LookupType(itemType)
-				mDataObjects.Add(querySource, metadataObject)
-			end
-		endmethod
+    public class WhereExpressionBuilder extends ExpressionVisitor
+        ;;this might need to be a stack to handle nesting fully
+        private mWhereStack, @Stack<object>
+        private mOnStack, @Stack<object>
+        private mDataObjects, @Dictionary<IHarmonyQueryTable, DataObjectMetadataBase>
+        private mCaseSensitive, boolean
+        private mQuerySources, @List<IHarmonyQueryTable>
+		private mQuerySourceMap, @Dictionary<Expression, IHarmonyQueryTable>
+        private mNotFlag, boolean
+        public method WhereExpressionBuilder
+            caseSensitive, boolean
+            querySources, @List<IHarmonyQueryTable>
+            querySourceMap, @Dictionary<Expression, IHarmonyQueryTable>
+        proc
+            mQuerySourceMap = querySourceMap
+            mDataObjects = new Dictionary<IHarmonyQueryTable, DataObjectMetadataBase>()
+            mWhereStack = new Stack<object>()
+            mOnStack = new Stack<object>()
+            mQuerySources = querySources
+            data querySource, @IHarmonyQueryTable
+            foreach querySource in mQuerySources
+            begin
+                data itemType = querySource.ItemType.IsGenericType ? querySource.ItemType.GenericTypeArguments.First() : querySource.ItemType
+                data metadataObject = DataObjectMetadataBase.LookupType(itemType)
+                mDataObjects.Add(querySource, metadataObject)
+            end
+        endmethod
 
-		public method VisitForWhere, void
-			expr, @Expression
-			whereParts, @List<Object>
-			onParts, @List<object>
-		proc
-			mWhereStack = new Stack<object>()
-			mOnStack = new Stack<object>()
-			Visit(expr)
-			if(mWhereStack.Count > 0)
-				whereParts.Add(mWhereStack.Peek())
+        public method VisitForWhere, void
+            expr, @Expression
+            whereParts, @List<Object>
+            onParts, @List<object>
+        proc
+            mWhereStack = new Stack<object>()
+            mOnStack = new Stack<object>()
+            Visit(expr)
+            if(mWhereStack.Count > 0)
+                whereParts.Add(mWhereStack.Peek())
 
-			if(mOnStack.Count > 0)
-				onParts.Add(mOnStack.Peek())
-		endmethod
+            if(mOnStack.Count > 0)
+                onParts.Add(mOnStack.Peek())
+        endmethod
 
-		public method VisitForOn, @object
-			expr, @Expression
-		proc
-			mWhereStack = new Stack<object>()
-			mOnStack = new Stack<object>()
-			Visit(expr)
-			if(mOnStack.Count == 1 && mWhereStack.Count == 0) then
-				mreturn mOnStack.Peek()
-			else if(mOnStack.Count > 1) then
-			begin
-				data resultObj = mOnStack.Pop()
-				while(mOnStack.Count > 0)
-				begin
-					resultObj = new ConnectorPart() { Op = WhereClauseConnector.AndOperator, Left = resultObj, Right = mOnStack.Pop() }
-				end
+        public method VisitForOn, @object
+            expr, @Expression
+        proc
+            mWhereStack = new Stack<object>()
+            mOnStack = new Stack<object>()
+            Visit(expr)
+            if(mOnStack.Count == 1 && mWhereStack.Count == 0) then
+                mreturn mOnStack.Peek()
+            else if(mOnStack.Count > 1) then
+            begin
+                data resultObj = mOnStack.Pop()
+                while(mOnStack.Count > 0)
+                begin
+                    resultObj = new ConnectorPart() { Op = WhereClauseConnector.AndOperator, Left = resultObj, Right = mOnStack.Pop() }
+                end
 
-				while(mWhereStack.Count > 0)
-				begin
-					resultObj = new ConnectorPart() { Op = WhereClauseConnector.AndOperator, Left = resultObj, Right = mWhereStack.Pop() }
-				end
-				mreturn resultObj
-			end
-			else if(mWhereStack.Count == 1) then
-				mreturn mWhereStack.Peek()
-			else if(mWhereStack.Count > 1) then
-			begin
-				data resultObj = mWhereStack.Pop()
-				while(mWhereStack.Count > 0)
-				begin
-					resultObj = new ConnectorPart() { Op = WhereClauseConnector.AndOperator, Left = resultObj, Right = mWhereStack.Pop() }
-				end
-				mreturn resultObj
-			end
-			else
-				mreturn ^null
-		endmethod
+                while(mWhereStack.Count > 0)
+                begin
+                    resultObj = new ConnectorPart() { Op = WhereClauseConnector.AndOperator, Left = resultObj, Right = mWhereStack.Pop() }
+                end
+                mreturn resultObj
+            end
+            else if(mWhereStack.Count == 1) then
+                mreturn mWhereStack.Peek()
+            else if(mWhereStack.Count > 1) then
+            begin
+                data resultObj = mWhereStack.Pop()
+                while(mWhereStack.Count > 0)
+                begin
+                    resultObj = new ConnectorPart() { Op = WhereClauseConnector.AndOperator, Left = resultObj, Right = mWhereStack.Pop() }
+                end
+                mreturn resultObj
+            end
+            else
+                mreturn ^null
+        endmethod
 
-		public method VisitForOrderBy, @FieldReference
-			expr, @Expression
-		proc
-			data targetField = ^as(FindTargetField(expr, ^null, mQuerySourceMap), @FieldReference)
-			if(targetField != ^null) then
-				mreturn targetField
-			else
-				throw new NotImplementedException("encountered order by, but failed to find field definition")
-		endmethod
+        public method VisitForOrderBy, @FieldReference
+            expr, @Expression
+        proc
+            data targetField = ^as(FindTargetField(expr, ^null, mQuerySourceMap), @FieldReference)
+            if(targetField != ^null) then
+                mreturn targetField
+            else
+                throw new NotImplementedException("encountered order by, but failed to find field definition")
+        endmethod
 
-		private static method OpKindFromExpression, void
-			required in node, @Expression
-			required inout op, WhereClauseOperator?
-			required inout glue, WhereClauseConnector?
-		proc
-			op = ^null
-			glue = ^null
-			if(node.NodeType == ExpressionType.AndAlso || node.NodeType == ExpressionType.And) then
+        private static method OpKindFromExpression, void
+            required in node, @Expression
+            required inout op, WhereClauseOperator?
+            required inout glue, WhereClauseConnector?
+        proc
+            op = ^null
+            glue = ^null
+            if(node.NodeType == ExpressionType.AndAlso || node.NodeType == ExpressionType.And) then
+            begin
+                glue = WhereClauseConnector.AndOperator
+            end
+            else if(node.NodeType == ExpressionType.OrElse)  then
+            begin
+                glue = WhereClauseConnector.OrOperator
+            end
+            else if(node.NodeType == ExpressionType.Equal) then
 			begin
-				glue = WhereClauseConnector.AndOperator
-			end
-			else if(node.NodeType == ExpressionType.OrElse)  then
-			begin
-				glue = WhereClauseConnector.OrOperator
-			end
-			else if(node.NodeType == ExpressionType.Equal) then
-			begin
-				op = WhereClauseOperator.EqualTo
-			end
-			else if(node.NodeType == ExpressionType.LessThan) then
-			begin
-				op = WhereClauseOperator.LessThan
-			end
-			else if(node.NodeType == ExpressionType.LessThanOrEqual) then
-			begin
-				op = WhereClauseOperator.LessThanOrEqualTo
-			end
-			else if(node.NodeType == ExpressionType.GreaterThan) then
-			begin
-				op = WhereClauseOperator.GreaterThan
-			end
-			else if(node.NodeType == ExpressionType.GreaterThanOrEqual) then
-			begin
-				op = WhereClauseOperator.GreaterThanOrEqualTo
-			end
-			else if(node.NodeType == ExpressionType.NotEqual) then
-			begin
-				op = WhereClauseOperator.NotEqualTo
-			end
-			else
-				throw new NotImplementedException()
-		endmethod
+                op = WhereClauseOperator.EqualTo
+            end
+            else if(node.NodeType == ExpressionType.LessThan) then
+            begin
+                op = WhereClauseOperator.LessThan
+            end
+            else if(node.NodeType == ExpressionType.LessThanOrEqual) then
+            begin
+                op = WhereClauseOperator.LessThanOrEqualTo
+            end
+            else if(node.NodeType == ExpressionType.GreaterThan) then
+            begin
+                op = WhereClauseOperator.GreaterThan
+            end
+            else if(node.NodeType == ExpressionType.GreaterThanOrEqual) then
+            begin
+                op = WhereClauseOperator.GreaterThanOrEqualTo
+            end
+            else if(node.NodeType == ExpressionType.NotEqual) then
+            begin
+                op = WhereClauseOperator.NotEqualTo
+            end
+            else
+                throw new NotImplementedException()
+        endmethod
 
-		private method MapQuerySource, @IQuerySource
-			source, @IQuerySource
-			querySourceMap, @Dictionary<IQuerySource, IQuerySource>
-		proc
-			if(querySourceMap != ^null)
-			begin
-				data result, @IQuerySource
-				if(querySourceMap.TryGetValue(source, result))
-				begin
-					mreturn result
-				end
-			end
-			mreturn source
-		endmethod
+        private method MapQuerySource, @IHarmonyQueryTable
+            source, @Expression
+            querySourceMap, @Dictionary<Expression, IHarmonyQueryTable>
+        proc
+            data localSource = source
+            if(querySourceMap != ^null)
+            begin
+                data result, @IHarmonyQueryTable
+                if(source.NodeType == ExpressionType.Convert)
+                begin
+                    data convert = ^as(localSource, @UnaryExpression)
+                    localSource = convert.Operand
+                end
+
+                if(querySourceMap.TryGetValue(localSource, result))
+                begin
+                    mreturn result
+                end
+            end
+
+            if(localSource .is. IHarmonyQueryTable) then
+                mreturn ^as(localSource, @IHarmonyQueryTable)
+            else
+                throw new NotImplementedException()
+        endmethod
 
 
-		public method FindTargetField, @object
-			node, @Expression
-			node2, @Expression
-			default querySourceMap, @Dictionary<IQuerySource, IQuerySource>, ^null
-		proc
-			if(node .is. MemberExpression) then
-			begin
-				data memberExpression = (@MemberExpression)node
-				data querySource = ^as(memberExpression.Expression, @Remotion.Linq.Clauses.Expressions.QuerySourceReferenceExpression) 
-				data mappedQuerySource, @IQuerySource, querySource != ^null ? MapQuerySource(querySource.ReferencedQuerySource, querySourceMap) : ^null
-				data dObj = querySource != ^null ? mDataObjects[mappedQuerySource] : mDataObjects.First().Value
-				mreturn new FieldReference() { FieldDef = dObj.GetFieldByName(memberExpression.Member.Name), QuerySourceKey = querySource != ^null ? mQuerySources.IndexOf(mappedQuerySource) : 0 }
-			end
-			else if(node .is. MethodCallExpression) then
-			begin
-				data callNode = (@MethodCallExpression)node
-				if(callNode.Method.Name == "Property") then
-				begin
-					;;this is where we can do a metadata object lookup for join
-					data memberTargetParameter = (@Remotion.Linq.Clauses.Expressions.QuerySourceReferenceExpression)callNode.Arguments[0]
-					data memberNameConstant = (@ConstantExpression)callNode.Arguments[1]
-					data memberTargetType, @DataObjectMetadataBase, mDataObjects[MapQuerySource(memberTargetParameter.ReferencedQuerySource, querySourceMap)]
+        public method FindTargetField, @object
+            node, @Expression
+            node2, @Expression
+            default querySourceMap, @Dictionary<Expression, IHarmonyQueryTable>, ^null
+        proc
+            if(node .is. MemberExpression) then
+            begin
+                data memberExpression = (@MemberExpression)node
+                data mappedQuerySource = MapQuerySource(memberExpression.Expression, querySourceMap)
+                data dObj = mDataObjects[mappedQuerySource]
+                mreturn new FieldReference() { FieldDef = dObj.GetFieldByName(memberExpression.Member.Name), QuerySourceKey = mQuerySources.IndexOf(mappedQuerySource)}
+            end
+            else if(node .is. MethodCallExpression) then
+            begin
+                data callNode = (@MethodCallExpression)node
+                if(callNode.Method.Name == "Property") then
+                begin
+                    ;;this is where we can do a metadata object lookup for join
+                    data memberTargetParameter = callNode.Arguments[0]
+                    data memberNameConstant = (@ConstantExpression)callNode.Arguments[1]
+                    data memberTargetType, @DataObjectMetadataBase, mDataObjects[MapQuerySource(memberTargetParameter, querySourceMap)]
 
-					;;if we're looking at a tag literal (fake) field just drop out here
-					data targetField = memberTargetType.GetFieldByName(memberNameConstant.Value.ToString())
-					if(((int)targetField.DataType & (int)FieldDataType.TagLiteral) != 0) then
-					begin
-						mreturn targetField.TagValue
-					end
-					else
-					begin
-						data querySource = MapQuerySource(memberTargetParameter.ReferencedQuerySource, querySourceMap)
-						data queryIndex = mQuerySources.IndexOf(querySource)
-						mreturn new FieldReference() { FieldDef = targetField, QuerySourceKey = queryIndex }
-					end
-				end
-				else if(callNode.Method == StringToLower || callNode.Method == StringToUpper)
-				begin
-					mreturn FindTargetField(callNode.Object, node2, querySourceMap)
-				end
-			end
-			else if(node .is. UnaryExpression && node.NodeType == ExpressionType.Convert)
+                    ;;if we're looking at a tag literal (fake) field just drop out here
+                    data targetField = memberTargetType.GetFieldByName(memberNameConstant.Value.ToString())
+                    if(((int)targetField.DataType & (int)FieldDataType.TagLiteral) != 0) then
+                    begin
+                        mreturn targetField.TagValue
+                    end
+                    else
+                    begin
+                        data querySource = MapQuerySource(memberTargetParameter, querySourceMap)
+                        data queryIndex = mQuerySources.IndexOf(querySource)
+                        mreturn new FieldReference() { FieldDef = targetField, QuerySourceKey = queryIndex }
+                    end
+                end
+                else if(callNode.Method == StringToLower || callNode.Method == StringToUpper || callNode.Method == StringEndsWith || callNode.Method == StringStartsWith)
+                begin
+                    mreturn FindTargetField(callNode.Object, node2, querySourceMap)
+                end
+            end
+            else if(node .is. UnaryExpression )
 			begin
 				data convertNode = (@UnaryExpression)node
-				mreturn FindTargetField(convertNode.Operand, node2, querySourceMap)
+				if(node.NodeType == ExpressionType.Convert || node.NodeType == ExpressionType.Not)
+                    mreturn FindTargetField(convertNode.Operand, node2, querySourceMap)
+            end
+
+            mreturn ^null
+        endmethod
+
+        private method FindConstantValue, @object
+            node, @Expression
+            default querySourceMap, @Dictionary<Expression, IHarmonyQueryTable>, ^null
+        proc
+            if(node .is. ConstantExpression) then
+            begin
+                data constNode = (@ConstantExpression)node
+                if(constNode.Value != ^null) then
+                    mreturn constNode.Value.ToString()
+                else
+                    mreturn ^null
+            end
+            else if(node .is. ParameterExpression) then
+            begin
+                data paramNode = (@ParameterExpression)node
+                mreturn new ParameterReference() { Name = paramNode.Name }
+            end
+            else if(node .is. MethodCallExpression) then
+            begin
+                data callNode = (@MethodCallExpression)node
+                if(callNode.Method.Name == "Property") then
+                begin
+                    ;;this is where we can do a metadata object lookup for join
+                    data memberTargetParameter = callNode.Arguments[0]
+                    data memberNameConstant, @ConstantExpression, (@ConstantExpression)callNode.Arguments[1]
+                    data memberTargetType, @DataObjectMetadataBase, mDataObjects[MapQuerySource(memberTargetParameter, querySourceMap)]
+                    data targetField = memberTargetType.GetFieldByName(memberNameConstant.Value.ToString())
+                    if(((int)targetField.DataType & (int)FieldDataType.TagLiteral) != 0)
+                    begin
+                        mreturn targetField.TagValue
+                    end
+                end
+                else if(callNode.Method.Name == "GetParameterValue")
+                begin
+                    data memberNameConstant, @ConstantExpression, (@ConstantExpression)callNode.Arguments[1]
+                    mreturn new ParameterReference() { Name = memberNameConstant.Value.ToString() }
+                end
+
+            end
+            else if(node .is. UnaryExpression && node.NodeType == ExpressionType.Convert)
+            begin
+                data convertNode = (@UnaryExpression)node
+                mreturn FindConstantValue(convertNode.Operand)
+            end
+            throw new NotImplementedException()
+        endmethod
+
+        protected override method VisitExtension, @Expression
+            node, @System.Linq.Expressions.Expression 
+            endparams
+        proc
+            if(node.GetType().Name == "NullSafeEqualExpression") then
+            begin
+                data equalExpr = node.GetType().GetProperty("EqualExpression").GetValue(node)
+                Visit((@BinaryExpression)equalExpr)
+            end
+            else if(node .is. InExpression)
+            begin
+                data inExpr = (@InExpression)node
+                mWhereStack.Push(MakePart(inExpr.Collection, FindTargetField(inExpr.Predicate, ^null, mQuerySourceMap), inExpr.CaseInsensitive ? WhereClauseOperator.IsInNoCase : WhereClauseOperator.IsIn, ^null))
+            end
+
+            mreturn node
+        endmethod
+
+        private method IsCaseInsensitive, boolean
+            expr, @Expression
+        proc
+            if(expr .is. MethodCallExpression)
+            begin
+                data methodCallNode = (@MethodCallExpression)expr
+                if(methodCallNode.Method == StringToLower || methodCallNode.Method == StringToUpper)
+                begin
+                    mreturn true
+                end
+            end
+            mreturn false
+        endmethod
+
+
+        private method IsCaseInsensitive, boolean
+            left, @Expression
+            right, @Expression
+        proc
+            mreturn IsCaseInsensitive(left) || IsCaseInsensitive(right)
+        endmethod
+
+        private method ProcessWhereClause, void
+            left, @Expression
+            right, @Expression
+            op, WhereClauseOperator
+            structure tmpStructure
+                fld,a1
+            endstructure
+        proc
+            ;;TODO this doesnt deal with 'between'
+            data leftTarget = FindTargetField(left, right, mQuerySourceMap)
+            data rightTarget = FindTargetField(right, left, mQuerySourceMap)
+            data casedOp = op
+            if((casedOp == WhereClauseOperator.IsLike || 
+            &	casedOp == WhereClauseOperator.EqualTo ||
+			&	casedOp == WhereClauseOperator.NotEqualTo ||
+			&	casedOp == WhereClauseOperator.StartsWith ||
+			&	casedOp == WhereClauseOperator.NotStartsWith ||
+			&	casedOp == WhereClauseOperator.EndsWith) && IsCaseInsensitive(left, right))
+            begin
+                ;;the case insensitive variants follow in the enum declaration so this is switching to IsLikeNoCase | NodeCaseEqualTo | NoCaseNotEqualTo
+                casedOp = (WhereClauseOperator)((int)casedOp + 1)
+            end
+
+            if(leftTarget != ^null && rightTarget != ^null) then
+            begin
+                ;;this is a surprise join
+                mOnStack.Push(MakePart(leftTarget, rightTarget,casedOp, ^null))
+            end
+            else if(leftTarget != ^null) then
+            begin
+
+                mWhereStack.Push(MakePart(leftTarget, FindConstantValue(right), casedOp, ^null))
+            end
+            else if(rightTarget != ^null) then
+            begin
+                mWhereStack.Push(MakePart(FindConstantValue(left), rightTarget, casedOp, ^null))
+            end
+            else
+                throw new NotImplementedException("where expression must contain at least one field or property expression")
+        endmethod
+
+        private static StringContains, @MethodInfo, ^typeof(string).GetMethod("Contains", new Type[#] { ^typeof(String) })
+        private static StringCompare, @MethodInfo, ^typeof(string).GetMethod("Compare", new Type[#] { ^typeof(String), ^typeof(String) })
+        private static StringCompare2, @MethodInfo, ^typeof(string).GetMethod("Compare", new Type[#] { ^typeof(String), ^typeof(String), ^typeof(StringComparison) })
+        private static StringToLower, @MethodInfo, ^typeof(string).GetMethod("ToLower", new Type[0])
+        private static StringToUpper, @MethodInfo, ^typeof(string).GetMethod("ToUpper", new Type[0])
+        private static StringEndsWith, @MethodInfo, ^typeof(string).GetMethod("EndsWith", new Type[#] { ^typeof(String) })
+		private static StringStartsWith, @MethodInfo, ^typeof(string).GetMethod("StartsWith", new Type[#] { ^typeof(String) })
+
+        protected override method VisitMethodCall, @Expression
+            node, @System.Linq.Expressions.MethodCallExpression  
+            endparams
+        proc
+            if(node.Method == StringContains) then
+            begin
+                ProcessWhereClause(node.Object, node.Arguments[0], WhereClauseOperator.IsLike)
+            end
+            else if(node.Method == StringEndsWith) then
+            begin
+                ProcessWhereClause(node.Object, node.Arguments[0], mNotFlag ? WhereClauseOperator.NotEndsWith : WhereClauseOperator.EndsWith)
 			end
-
-			mreturn ^null
-		endmethod
-
-		private method FindConstantValue, @object
-			node, @Expression
-			default querySourceMap, @Dictionary<IQuerySource, IQuerySource>, ^null
-		proc
-			if(node .is. ConstantExpression) then
+			else if(node.Method == StringStartsWith) then
 			begin
-				data constNode = (@ConstantExpression)node
-				if(constNode.Value != ^null) then
-					mreturn constNode.Value.ToString()
-				else
-					mreturn ^null
+				ProcessWhereClause(node.Object, node.Arguments[0],  mNotFlag ? WhereClauseOperator.NotStartsWith : WhereClauseOperator.StartsWith)
 			end
-			else if(node .is. ParameterExpression) then
-			begin
-				data paramNode = (@ParameterExpression)node
-				mreturn new ParameterReference() { Name = paramNode.Name }
-			end
-			else if(node .is. MethodCallExpression) then
-			begin
-				data callNode = (@MethodCallExpression)node
-				if(callNode.Method.Name == "Property")
-				begin
-					;;this is where we can do a metadata object lookup for join
-					data memberTargetParameter = (@Remotion.Linq.Clauses.Expressions.QuerySourceReferenceExpression)callNode.Arguments[0]
-					data memberNameConstant, @ConstantExpression, (@ConstantExpression)callNode.Arguments[1]
-					data memberTargetType, @DataObjectMetadataBase, mDataObjects[MapQuerySource(memberTargetParameter.ReferencedQuerySource, querySourceMap)]
-					data targetField = memberTargetType.GetFieldByName(memberNameConstant.Value.ToString())
-					if(((int)targetField.DataType & (int)FieldDataType.TagLiteral) != 0)
-					begin
-						mreturn targetField.TagValue
-					end
-				end
-			end
-			else if(node .is. UnaryExpression && node.NodeType == ExpressionType.Convert)
-			begin
-				data convertNode = (@UnaryExpression)node
-				mreturn FindConstantValue(convertNode.Operand)
-			end
-			throw new NotImplementedException()
-		endmethod
+            else
+            begin
+                mreturn parent.VisitMethodCall(node)
+            end
 
-		protected override method VisitExtension, @Expression
-			node, @System.Linq.Expressions.Expression 
-			endparams
-		proc
-			if(node.GetType().Name == "NullSafeEqualExpression") then
-			begin
-				data equalExpr = node.GetType().GetProperty("EqualExpression").GetValue(node)
-				Visit((@BinaryExpression)equalExpr)
-			end
-			else if(node .is. InExpression)
-			begin
-				data inExpr = (@InExpression)node
-				mWhereStack.Push(MakePart(inExpr.Collection, FindTargetField(inExpr.Predicate, ^null, mQuerySourceMap), inExpr.CaseInsensitive ? WhereClauseOperator.IsInNoCase : WhereClauseOperator.IsIn, ^null))
-			end
+            
+            mreturn node
+        endmethod
 
-			mreturn node
-		endmethod
-
-		private method IsCaseInsensitive, boolean
-			expr, @Expression
-		proc
-			if(expr .is. MethodCallExpression)
-			begin
-				data methodCallNode = (@MethodCallExpression)expr
-				if(methodCallNode.Method == StringToLower || methodCallNode.Method == StringToUpper)
-				begin
-					mreturn true
-				end
-			end
-			mreturn false
-		endmethod
-
-
-		private method IsCaseInsensitive, boolean
-			left, @Expression
-			right, @Expression
-		proc
-			mreturn IsCaseInsensitive(left) || IsCaseInsensitive(right)
-		endmethod
-
-		private method ProcessWhereClause, void
-			left, @Expression
-			right, @Expression
-			op, WhereClauseOperator
-			structure tmpStructure
-				fld,a1
-			endstructure
-		proc
-			;;TODO this doesnt deal with 'between'
-			data leftTarget = FindTargetField(left, right, mQuerySourceMap)
-			data rightTarget = FindTargetField(right, left, mQuerySourceMap)
-			data casedOp = op
-			if((casedOp == WhereClauseOperator.IsLike || 
-			&	casedOp == WhereClauseOperator.EqualTo ||
-			&	casedOp == WhereClauseOperator.NotEqualTo) && IsCaseInsensitive(left, right))
-			begin
-				;;the case insensitive variants follow in the enum declaration so this is switching to IsLikeNoCase | NodeCaseEqualTo | NoCaseNotEqualTo
-				casedOp = (WhereClauseOperator)((int)casedOp + 1)
-			end
-
-			if(leftTarget != ^null && rightTarget != ^null) then
-			begin
-				if(leftTarget == rightTarget) then
-				begin
-					mWhereStack.Push(MakePart(leftTarget, rightTarget,casedOp, ^null))
-				end
-				else
-				begin
-					;;this is a surprise join
-					mOnStack.Push(MakePart(leftTarget, rightTarget,casedOp, ^null))
-				end
-			end
-			else if(leftTarget != ^null) then
-			begin
-
-				mWhereStack.Push(MakePart(leftTarget, FindConstantValue(right), casedOp, ^null))
-			end
-			else if(rightTarget != ^null) then
-			begin
-				mWhereStack.Push(MakePart(FindConstantValue(left), rightTarget, casedOp, ^null))
-			end
-			else
-				throw new NotImplementedException("where expression must contain at least one field or property expression")
-		endmethod
-
-		private static StringContains, @MethodInfo, ^typeof(string).GetMethod("Contains", new Type[#] { ^typeof(String) })
-		private static StringToLower, @MethodInfo, ^typeof(string).GetMethod("ToLower", new Type[0])
-		private static StringToUpper, @MethodInfo, ^typeof(string).GetMethod("ToUpper", new Type[0])
-
-		protected override method VisitMethodCall, @Expression
-			node, @System.Linq.Expressions.MethodCallExpression  
-			endparams
-		proc
-			if(node.Method == StringContains) then
-			begin
-				ProcessWhereClause(node.Object, node.Arguments[0], WhereClauseOperator.IsLike)
-			end
-			else
-			begin
-				mreturn parent.VisitMethodCall(node)
-			end
-
-
-			mreturn node
-		endmethod
-
-		protected override method VisitBinary, @Expression
-			node, @BinaryExpression
-		proc
-			data op, WhereClauseOperator?, ^null
+        protected override method VisitBinary, @Expression
+            node, @BinaryExpression
+        proc
+            data op, WhereClauseOperator?, ^null
 			data glue, WhereClauseConnector?, ^null
-			OpKindFromExpression(node, op, glue)
-			if(op != ^null) then
+
+			if(node.Left.NodeType == ExpressionType.Not && node.Right.NodeType == ExpressionType.Constant)
 			begin
-				;;this should be a composite key match them up by order
-				if(node.Left .is. NewExpression && node.Right .is. NewExpression) then
-				begin
-					data newLeft = (@NewExpression)node.Left
-					data newRight = (@NewExpression)node.Right
-					data leftArgument = (@NewArrayExpression)newLeft.Arguments.First()
-					data rightArgument = (@NewArrayExpression)newRight.Arguments.First()
-					data i, int, 0
-					for i from 0 thru leftArgument.Expressions.Count - 1 by 1
-					begin
-						ProcessWhereClause(leftArgument.Expressions[i], rightArgument.Expressions[i], op.Value)
+                data notFlagValue = mNotFlag
+				mNotFlag = true
+                Visit(node.Left)
+                mreturn node
+                mNotFlag = notFlagValue
+			end
+
+
+            OpKindFromExpression(node, op, glue)
+            if(op != ^null) then
+            begin
+                ;;this should be a composite key match them up by order
+                if(node.Left .is. NewExpression && node.Right .is. NewExpression) then
+                begin
+                    data newLeft = (@NewExpression)node.Left
+                    data newRight = (@NewExpression)node.Right
+                    data leftArgument = (@NewArrayExpression)newLeft.Arguments.First()
+                    data rightArgument = (@NewArrayExpression)newRight.Arguments.First()
+                    data i, int, 0
+                    for i from 0 thru leftArgument.Expressions.Count - 1 by 1
+                    begin
+                        ProcessWhereClause(leftArgument.Expressions[i], rightArgument.Expressions[i], op.Value)
+                    end
+
+                    
+                end
+                else if(node.Left .is. BinaryExpression || node.Right .is. BinaryExpression) then
+                begin
+                    if(node.Left .is. BinaryExpression) then
+                    begin
+                        VisitBinary(^as(node.Left, BinaryExpression))
+                        if(!(node.Right .is. ConstantExpression))
+                            throw new NotImplementedException()
+                    end
+                    else
+                    begin
+
+                    end
+                end
+                else if(node.Left .is. MethodCallExpression && node.Right .is. ConstantExpression) then
+                begin
+                    data methodCallExpr = ^as(node.Left, @MethodCallExpression)
+                    data constExpr = ^as(node.Right, @ConstantExpression)
+                    if(methodCallExpr.Method == StringCompare || methodCallExpr.Method == StringCompare2) then
+                    begin
+                        data targetOperator = WhereClauseOperator.EqualTo
+                        if((int)constExpr.Value == 0) then
+                        begin
+                            targetOperator = op.Value
+                        end
+                        else
+                            throw new NotImplementedException("unexpected comparison value for string.compare " + constExpr.Value.ToString())
+
+
+                        ProcessWhereClause(methodCallExpr.Arguments[0], methodCallExpr.Arguments[1], targetOperator)
+                    end
+                    else if(methodCallExpr.Method == StringEndsWith) then
+                    begin
+						data targetOperator = WhereClauseOperator.EndsWith
+
+						if(mNotFlag)
+							targetOperator = WhereClauseOperator.NotEndsWith
+
+                        ProcessWhereClause(methodCallExpr.Object, methodCallExpr.Arguments[0], targetOperator)
 					end
-
-					
-				end
-				else
-					ProcessWhereClause(node.Left, node.Right, op.Value)
-			end
-			else
-			begin
-				Visit(node.Left)
-				if(mOnStack.Count > 0) then
-				begin
-					data leftOn = mOnStack.Pop()
-					Visit(node.Right)
-					if(mOnStack.Count > 0) then
+					else if(methodCallExpr.Method == StringStartsWith) then
 					begin
-						data rightOn = mOnStack.Pop()
-						mOnStack.Push(MakePart(leftOn, rightOn, op, glue))
+						data targetOperator = WhereClauseOperator.StartsWith
+						
+                        if(mNotFlag)
+							targetOperator = WhereClauseOperator.NotStartsWith
+
+						ProcessWhereClause(methodCallExpr.Object, methodCallExpr.Arguments[0], targetOperator)
 					end
-					else
-					begin
-						data rightWhere = mWhereStack.Pop()
-						mWhereStack.Push(MakePart(leftOn, rightWhere, op, glue))
-					end
-				end
-				else
-				begin
-					data leftWhere = mWhereStack.Pop()
-					Visit(node.Right)
-					data rightWhere = mWhereStack.Pop()
-					mWhereStack.Push(MakePart(leftWhere, rightWhere, op, glue))
-				end
+                    else if(methodCallExpr.Method.Name == "Property" || methodCallExpr.Method.Name == "GetParameterValue") then
+                    begin
+                        ProcessWhereClause(node.Left, node.Right, op.Value)
+                    end
+                    else
+                    begin
+                        throw new NotImplementedException("unsupported function in where clause " + methodCallExpr.Method.Name)
+                    end
+                end
+                else
+                    ProcessWhereClause(node.Left, node.Right, op.Value)
+            end
+            else
+            begin
+                Visit(node.Left)
+                if(mOnStack.Count > 0) then
+                begin
+                    data leftOn = mOnStack.Pop()
+                    Visit(node.Right)
+                    if(mOnStack.Count > 0) then
+                    begin
+                        data rightOn = mOnStack.Pop()
+                        mOnStack.Push(MakePart(leftOn, rightOn, op, glue))
+                    end
+                    else
+                    begin
+                        data rightWhere = mWhereStack.Pop()
+                        mWhereStack.Push(MakePart(leftOn, rightWhere, op, glue))
+                    end
+                end
+                else
+                begin
+                    data leftWhere = mWhereStack.Pop()
+                    Visit(node.Right)
+                    data rightWhere = mWhereStack.Pop()
+                    mWhereStack.Push(MakePart(leftWhere, rightWhere, op, glue))
+                end
 
-			end
+            end
 
-			mreturn node
-		endmethod
+            mreturn node
+        endmethod
 
-		private method MakePart, @Object
-			left, @Object
-			right, @Object
-			op, WhereClauseOperator?
-			glue, WhereClauseConnector?
-		proc
-			if(glue != ^null) then
-			begin
-				mreturn new ConnectorPart() { Left = left, Right = right, Op = glue.Value }
-			end
-			else if(op != ^null) then
-			begin
-				mreturn new ExprPart() { Left = left, Right = right, Op = op.Value }
-			end
-			else
-			begin
-				throw new NotImplementedException("where clause needs at least one operator")
-			end
+        private method MakePart, @Object
+            left, @Object
+            right, @Object
+            op, WhereClauseOperator?
+            glue, WhereClauseConnector?
+        proc
+            if(glue != ^null) then
+            begin
+                mreturn new ConnectorPart() { Left = left, Right = right, Op = glue.Value }
+            end
+            else if(op != ^null) then
+            begin
+                mreturn new ExprPart() { Left = left, Right = right, Op = op.Value }
+            end
+            else
+            begin
+                throw new NotImplementedException("where clause needs at least one operator")
+            end
 
-		endmethod
+        endmethod
 
-	endclass
+    endclass
 
 endnamespace

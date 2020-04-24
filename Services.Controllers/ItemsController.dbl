@@ -10,6 +10,8 @@
 ;; Any changes you make will be lost of the file is re-generated.
 ;;*****************************************************************************
 
+import Microsoft.AspNetCore.Http
+import Microsoft.OData
 import Microsoft.AspNetCore.JsonPatch
 import Microsoft.AspNetCore.Mvc
 import Microsoft.AspNet.OData
@@ -17,16 +19,19 @@ import Microsoft.AspNet.OData.Routing
 import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Infrastructure
 import Microsoft.Extensions.Options
+import System.Collections.Generic
 import System.ComponentModel.DataAnnotations
 import Harmony.Core.EF.Extensions
 import Harmony.Core.Interface
 import Harmony.OData
+import Harmony.AspNetCore
 import Newtonsoft.Json
 import Services.Models
 
 namespace Services.Controllers
 
     {ApiVersion("1")}
+    {ODataRoutePrefix("Items")}
     ;;; <summary>
     ;;; OData controller for Items
     ;;; </summary>
@@ -53,7 +58,9 @@ namespace Services.Controllers
             this._AppSettings = aAppSettings
         endmethod
 
-        {ODataRoute("Items")}
+        {ODataRoute}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Item>>),StatusCodes.Status200OK)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get all Items
@@ -64,7 +71,10 @@ namespace Services.Controllers
             mreturn Ok(_DbContext.Items.AsNoTracking())
         endmethod
 
-        {ODataRoute("Items(ItemNumber={aItemNumber})")}
+        {ODataRoute("(ItemNumber={aItemNumber})")}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(Item),StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get a single Item by primary key.
@@ -78,7 +88,10 @@ namespace Services.Controllers
             mreturn new SingleResult<Item>(_DbContext.Items.AsNoTracking().FindQuery<Item>(_DbContext, aItemNumber))
         endmethod
 
-        {ODataRoute("Items(VendorNumber={aVendorNumber})")}
+        {ODataRoute("(VendorNumber={aVendorNumber})")}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Item>>),StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get items by alternate key key VendorNumber.
@@ -95,7 +108,10 @@ namespace Services.Controllers
             mreturn Ok(result)
         endmethod
 
-        {ODataRoute("Items(FlowerColor={aFlowerColor})")}
+        {ODataRoute("(FlowerColor={aFlowerColor})")}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Item>>),StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get items by alternate key key Color.
@@ -112,7 +128,10 @@ namespace Services.Controllers
             mreturn Ok(result)
         endmethod
 
-        {ODataRoute("Items(Size={aSize})")}
+        {ODataRoute("(Size={aSize})")}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Item>>),StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get items by alternate key key Size.
@@ -129,7 +148,10 @@ namespace Services.Controllers
             mreturn Ok(result)
         endmethod
 
-        {ODataRoute("Items(CommonName={aCommonName})")}
+        {ODataRoute("(CommonName={aCommonName})")}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Item>>),StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get items by alternate key key Name.
@@ -146,368 +168,11 @@ namespace Services.Controllers
             mreturn Ok(result)
         endmethod
 
-
-        {ODataRoute("Items({key})/VendorNumber")}
-        ;;; <summary>
-        ;;; Get the VendorNumber property of a single Item, by primary key.
-        ;;; </summary>
-        ;;; <param name="key">Vendor number</param>
-        ;;; <returns>
-        ;;; Returns an int containing the value of the requested property.
-        ;;;</returns>
-        public method GetVendorNumber, @IActionResult
-            {FromODataUri}
-            required in key, int
-        proc
-            data result = _DbContext.Items.Find(key)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.VendorNumber)
-        endmethod
-
-        {ODataRoute("Items({key})/Size")}
-        ;;; <summary>
-        ;;; Get the Size property of a single Item, by primary key.
-        ;;; </summary>
-        ;;; <param name="key">Size in gallons</param>
-        ;;; <returns>
-        ;;; Returns an int containing the value of the requested property.
-        ;;;</returns>
-        public method GetSize, @IActionResult
-            {FromODataUri}
-            required in key, int
-        proc
-            data result = _DbContext.Items.Find(key)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.Size)
-        endmethod
-
-        {ODataRoute("Items({key})/CommonName")}
-        ;;; <summary>
-        ;;; Get the CommonName property of a single Item, by primary key.
-        ;;; </summary>
-        ;;; <param name="key">Common name</param>
-        ;;; <returns>
-        ;;; Returns a string containing the value of the requested property.
-        ;;;</returns>
-        public method GetCommonName, @IActionResult
-            {FromODataUri}
-            required in key, int
-        proc
-            data result = _DbContext.Items.Find(key)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.CommonName)
-        endmethod
-
-        {ODataRoute("Items({key})/LatinName")}
-        ;;; <summary>
-        ;;; Get the LatinName property of a single Item, by primary key.
-        ;;; </summary>
-        ;;; <param name="key">Latin name</param>
-        ;;; <returns>
-        ;;; Returns a string containing the value of the requested property.
-        ;;;</returns>
-        public method GetLatinName, @IActionResult
-            {FromODataUri}
-            required in key, int
-        proc
-            data result = _DbContext.Items.Find(key)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.LatinName)
-        endmethod
-
-        {ODataRoute("Items({key})/ZoneCode")}
-        ;;; <summary>
-        ;;; Get the ZoneCode property of a single Item, by primary key.
-        ;;; </summary>
-        ;;; <param name="key">Hardiness zone code</param>
-        ;;; <returns>
-        ;;; Returns an int containing the value of the requested property.
-        ;;;</returns>
-        public method GetZoneCode, @IActionResult
-            {FromODataUri}
-            required in key, int
-        proc
-            data result = _DbContext.Items.Find(key)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.ZoneCode)
-        endmethod
-
-        {ODataRoute("Items({key})/Type")}
-        ;;; <summary>
-        ;;; Get the Type property of a single Item, by primary key.
-        ;;; </summary>
-        ;;; <param name="key">Type code</param>
-        ;;; <returns>
-        ;;; Returns an int containing the value of the requested property.
-        ;;;</returns>
-        public method GetType, @IActionResult
-            {FromODataUri}
-            required in key, int
-        proc
-            data result = _DbContext.Items.Find(key)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.Type)
-        endmethod
-
-        {ODataRoute("Items({key})/Flowering")}
-        ;;; <summary>
-        ;;; Get the Flowering property of a single Item, by primary key.
-        ;;; </summary>
-        ;;; <param name="key">Flowering?</param>
-        ;;; <returns>
-        ;;; Returns a string containing the value of the requested property.
-        ;;;</returns>
-        public method GetFlowering, @IActionResult
-            {FromODataUri}
-            required in key, int
-        proc
-            data result = _DbContext.Items.Find(key)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.Flowering)
-        endmethod
-
-        {ODataRoute("Items({key})/FlowerColor")}
-        ;;; <summary>
-        ;;; Get the FlowerColor property of a single Item, by primary key.
-        ;;; </summary>
-        ;;; <param name="key">Flower color</param>
-        ;;; <returns>
-        ;;; Returns a string containing the value of the requested property.
-        ;;;</returns>
-        public method GetFlowerColor, @IActionResult
-            {FromODataUri}
-            required in key, int
-        proc
-            data result = _DbContext.Items.Find(key)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.FlowerColor)
-        endmethod
-
-        {ODataRoute("Items({key})/Shape")}
-        ;;; <summary>
-        ;;; Get the Shape property of a single Item, by primary key.
-        ;;; </summary>
-        ;;; <param name="key">Shape</param>
-        ;;; <returns>
-        ;;; Returns a string containing the value of the requested property.
-        ;;;</returns>
-        public method GetShape, @IActionResult
-            {FromODataUri}
-            required in key, int
-        proc
-            data result = _DbContext.Items.Find(key)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.Shape)
-        endmethod
-
-        {ODataRoute("Items({key})/MaxHeight")}
-        ;;; <summary>
-        ;;; Get the MaxHeight property of a single Item, by primary key.
-        ;;; </summary>
-        ;;; <param name="key">Maximum height (in inches)</param>
-        ;;; <returns>
-        ;;; Returns an int containing the value of the requested property.
-        ;;;</returns>
-        public method GetMaxHeight, @IActionResult
-            {FromODataUri}
-            required in key, int
-        proc
-            data result = _DbContext.Items.Find(key)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.MaxHeight)
-        endmethod
-
-        {ODataRoute("Items({key})/MaxWidth")}
-        ;;; <summary>
-        ;;; Get the MaxWidth property of a single Item, by primary key.
-        ;;; </summary>
-        ;;; <param name="key">Maximum width (in inches)</param>
-        ;;; <returns>
-        ;;; Returns an int containing the value of the requested property.
-        ;;;</returns>
-        public method GetMaxWidth, @IActionResult
-            {FromODataUri}
-            required in key, int
-        proc
-            data result = _DbContext.Items.Find(key)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.MaxWidth)
-        endmethod
-
-        {ODataRoute("Items({key})/WaterRequirement")}
-        ;;; <summary>
-        ;;; Get the WaterRequirement property of a single Item, by primary key.
-        ;;; </summary>
-        ;;; <param name="key">Water requirements</param>
-        ;;; <returns>
-        ;;; Returns a string containing the value of the requested property.
-        ;;;</returns>
-        public method GetWaterRequirement, @IActionResult
-            {FromODataUri}
-            required in key, int
-        proc
-            data result = _DbContext.Items.Find(key)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.WaterRequirement)
-        endmethod
-
-        {ODataRoute("Items({key})/SunRequirement")}
-        ;;; <summary>
-        ;;; Get the SunRequirement property of a single Item, by primary key.
-        ;;; </summary>
-        ;;; <param name="key">Sun requirements</param>
-        ;;; <returns>
-        ;;; Returns a string containing the value of the requested property.
-        ;;;</returns>
-        public method GetSunRequirement, @IActionResult
-            {FromODataUri}
-            required in key, int
-        proc
-            data result = _DbContext.Items.Find(key)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.SunRequirement)
-        endmethod
-
-        {ODataRoute("Items({key})/BinLocation")}
-        ;;; <summary>
-        ;;; Get the BinLocation property of a single Item, by primary key.
-        ;;; </summary>
-        ;;; <param name="key">Bin/aisle</param>
-        ;;; <returns>
-        ;;; Returns a string containing the value of the requested property.
-        ;;;</returns>
-        public method GetBinLocation, @IActionResult
-            {FromODataUri}
-            required in key, int
-        proc
-            data result = _DbContext.Items.Find(key)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.BinLocation)
-        endmethod
-
-        {ODataRoute("Items({key})/QtyOnHand")}
-        ;;; <summary>
-        ;;; Get the QtyOnHand property of a single Item, by primary key.
-        ;;; </summary>
-        ;;; <param name="key">Qty on hand</param>
-        ;;; <returns>
-        ;;; Returns an int containing the value of the requested property.
-        ;;;</returns>
-        public method GetQtyOnHand, @IActionResult
-            {FromODataUri}
-            required in key, int
-        proc
-            data result = _DbContext.Items.Find(key)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.QtyOnHand)
-        endmethod
-
-        {ODataRoute("Items({key})/QtyAllocated")}
-        ;;; <summary>
-        ;;; Get the QtyAllocated property of a single Item, by primary key.
-        ;;; </summary>
-        ;;; <param name="key">Qty allocated</param>
-        ;;; <returns>
-        ;;; Returns an int containing the value of the requested property.
-        ;;;</returns>
-        public method GetQtyAllocated, @IActionResult
-            {FromODataUri}
-            required in key, int
-        proc
-            data result = _DbContext.Items.Find(key)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.QtyAllocated)
-        endmethod
-
-        {ODataRoute("Items({key})/QtyOnOrder")}
-        ;;; <summary>
-        ;;; Get the QtyOnOrder property of a single Item, by primary key.
-        ;;; </summary>
-        ;;; <param name="key">Qty on order</param>
-        ;;; <returns>
-        ;;; Returns an int containing the value of the requested property.
-        ;;;</returns>
-        public method GetQtyOnOrder, @IActionResult
-            {FromODataUri}
-            required in key, int
-        proc
-            data result = _DbContext.Items.Find(key)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.QtyOnOrder)
-        endmethod
-
-        {ODataRoute("Items({key})/ReorderLevel")}
-        ;;; <summary>
-        ;;; Get the ReorderLevel property of a single Item, by primary key.
-        ;;; </summary>
-        ;;; <param name="key">Reorder point</param>
-        ;;; <returns>
-        ;;; Returns an int containing the value of the requested property.
-        ;;;</returns>
-        public method GetReorderLevel, @IActionResult
-            {FromODataUri}
-            required in key, int
-        proc
-            data result = _DbContext.Items.Find(key)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.ReorderLevel)
-        endmethod
-
-        {ODataRoute("Items({key})/UnitPrice")}
-        ;;; <summary>
-        ;;; Get the UnitPrice property of a single Item, by primary key.
-        ;;; </summary>
-        ;;; <param name="key">Unit price</param>
-        ;;; <returns>
-        ;;; Returns a decimal containing the value of the requested property.
-        ;;;</returns>
-        public method GetUnitPrice, @IActionResult
-            {FromODataUri}
-            required in key, int
-        proc
-            data result = _DbContext.Items.Find(key)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.UnitPrice)
-        endmethod
-
-        {ODataRoute("Items({key})/CostPrice")}
-        ;;; <summary>
-        ;;; Get the CostPrice property of a single Item, by primary key.
-        ;;; </summary>
-        ;;; <param name="key">Item cost</param>
-        ;;; <returns>
-        ;;; Returns a decimal containing the value of the requested property.
-        ;;;</returns>
-        public method GetCostPrice, @IActionResult
-            {FromODataUri}
-            required in key, int
-        proc
-            data result = _DbContext.Items.Find(key)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.CostPrice)
-        endmethod
-
-        {ODataRoute("Items")}
+        {ODataRoute}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(Item),StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status400BadRequest)}
+        {HttpPost}
         ;;; <summary>
         ;;; Create a new item (automatically assigned primary key).
         ;;; </summary>
@@ -521,7 +186,7 @@ namespace Services.Controllers
 
             ;; Validate inbound data
             if (!ModelState.IsValid)
-                mreturn BadRequest(ModelState)
+                mreturn ValidationHelper.ReturnValidationError(ModelState)
 
             ;;Get the next available primary key value
             disposable data keyFactory = (@IPrimaryKeyFactory)_ServiceProvider.GetService(^typeof(IPrimaryKeyFactory))
@@ -536,7 +201,7 @@ namespace Services.Controllers
             catch (e, @ValidationException)
             begin
                 ModelState.AddModelError("RelationValidation",e.Message)
-                mreturn BadRequest(ModelState)
+                mreturn ValidationHelper.ReturnValidationError(ModelState)
             end
             endtry
 
@@ -544,10 +209,16 @@ namespace Services.Controllers
 
         endmethod
 
-        {ODataRoute("Items(ItemNumber={aItemNumber})")}
+        {ODataRoute("(ItemNumber={aItemNumber})")}
+        {Produces("application/json")}
+        {ProducesResponseType(StatusCodes.Status201Created)}
+        {ProducesResponseType(StatusCodes.Status400BadRequest)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
+        {HttpPut}
         ;;; <summary>
         ;;; Create (with a client-supplied primary key) or replace a item.
         ;;; </summary>
+
         ;;; <param name="aItemNumber">Item number</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
         public method PutItem, @IActionResult
@@ -558,7 +229,7 @@ namespace Services.Controllers
         proc
             ;; Validate inbound data
             if (!ModelState.IsValid)
-                mreturn BadRequest(ModelState)
+                mreturn ValidationHelper.ReturnValidationError(ModelState)
 
             ;;Ensure that the key values in the URI win over any data that may be in the model object
             aItem.ItemNumber = aItemNumber
@@ -587,13 +258,17 @@ namespace Services.Controllers
             catch (e, @ValidationException)
             begin
                 ModelState.AddModelError("RelationValidation",e.Message)
-                mreturn BadRequest(ModelState)
+                mreturn ValidationHelper.ReturnValidationError(ModelState)
             end
             endtry
 
         endmethod
-
-        {ODataRoute("Items(ItemNumber={aItemNumber})")}
+        {ODataRoute("(ItemNumber={aItemNumber})")}
+        {Produces("application/json")}
+        {ProducesResponseType(StatusCodes.Status204NoContent)}
+        {ProducesResponseType(StatusCodes.Status400BadRequest)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
+        {HttpPatch}
         ;;; <summary>
         ;;; Patch  (partial update) a item.
         ;;; </summary>
@@ -607,7 +282,7 @@ namespace Services.Controllers
         proc
             ;; Validate inbound data
             if (!ModelState.IsValid)
-                mreturn BadRequest(ModelState)
+                mreturn ValidationHelper.ReturnValidationError(ModelState)
 
             ;;Patch the existing item
             try
@@ -636,15 +311,17 @@ namespace Services.Controllers
             catch (e, @ValidationException)
             begin
                 ModelState.AddModelError("RelationValidation",e.Message)
-                mreturn BadRequest(ModelState)
+                mreturn ValidationHelper.ReturnValidationError(ModelState)
             end
             endtry
 
             mreturn NoContent()
 
         endmethod
-
-        {ODataRoute("Items(ItemNumber={aItemNumber})")}
+        {ODataRoute("(ItemNumber={aItemNumber})")}
+        {ProducesResponseType(StatusCodes.Status204NoContent)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
+        {HttpDelete}
         ;;; <summary>
         ;;; Delete a item.
         ;;; </summary>
@@ -668,7 +345,6 @@ namespace Services.Controllers
             mreturn NoContent()
 
         endmethod
-
     endclass
 
 endnamespace

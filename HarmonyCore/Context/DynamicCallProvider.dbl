@@ -359,6 +359,58 @@ namespace Harmony.Core.Context
 	internal class CallHoist<T>
 		public readwrite property CallProvider, @DynamicCallProvider
 
+		private static method GetElementType, @Type
+			argType, @Type
+		proc
+			data elementType = argType
+			;;TODO: handle more generic collection types here
+			if(argType.IsGenericType) then
+				elementType = argType.GetGenericArguments()[1]
+			else if(argType.HasElementType) then
+				elementType = argType.GetElementType()
+			else
+				throw new NotImplementedException()
+
+			mreturn elementType
+		endmethod
+
+		private static method GetElementType, @Type
+			arg, @Object
+		proc
+			data argType = arg.GetType()
+
+			if(arg .is. IArgumentPlaceholder) then
+				mreturn GetElementType(((@IArgumentPlaceholder)arg).ArgumentType)
+			else
+				mreturn GetElementType(argType)
+		endmethod
+
+		private static method GetTypeCorrectedCollectionValue, @object
+			arg, @Object
+			retArg, @ArgumentDataDefinition
+		proc
+			data elementType = GetElementType(arg)
+			data argType = arg .is. IArgumentPlaceholder ? ((@IArgumentPlaceholder)arg).ArgumentType : arg.GetType()
+
+			if(retArg.PassedValue == ^null) then
+				mreturn Array.CreateInstance(elementType, 0)
+
+			else if(retArg.PassedValue?.GetType() != elementType) then
+			begin
+				if(elementType.IsPrimitive) then
+				begin
+					mreturn ^typeof(CollectionConverter<>).MakeGenericType(new Type[#] { elementType }).GetMethod("ConvertResultCollection").Invoke(^null, new object[#] { retArg.PassedValue })
+				end
+				else
+				begin
+					mreturn DynamicCallProvider.CastMethodInfo.MakeGenericMethod(new Type[#] { elementType }).Invoke(^null, new object[#] { retArg.PassedValue })
+				end
+			end
+			else
+				mreturn retArg.PassedValue
+		endmethod
+
+
 		public async method CallMethod, @Task<Tuple<T, [#]@Object>>
 			name, @string
 			args, [#]@object 
@@ -407,27 +459,7 @@ namespace Harmony.Core.Context
 						end
 						else if(argValue.DataType == FieldDataType.DataObjectCollectionField) then
 						begin
-							;;TODO replace this with a generic element getter
-							data argType = args[i].GetType()
-							data elementType = argType
-							if(argType.IsGenericType) then
-								elementType = argType.GetGenericArguments()[1]
-							else if(argType.HasElementType) then
-								elementType = argType.GetElementType()
-							else
-								throw new NotImplementedException()
-							if(argValue.PassedValue?.GetType() != argType)
-							begin
-								if(elementType.IsPrimitive) then
-								begin
-									argsTemp[i] = ^typeof(CollectionConverter<>).MakeGenericType(new Type[#] { elementType }).GetMethod("ConvertResultCollection").MakeGenericMethod(new Type[#] { argType }).Invoke(^null, new object[#] { argValue.PassedValue })
-								end
-								else
-								begin
-									argsTemp[i] = DynamicCallProvider.CastMethodInfo.MakeGenericMethod(new Type[#] { elementType }).Invoke(^null, new object[#] { argValue.PassedValue })
-								end
-							end
-
+							argsTemp[i] = GetTypeCorrectedCollectionValue(args[i], argValue)
 						end
 						else
 						begin
@@ -455,7 +487,7 @@ namespace Harmony.Core.Context
 	endclass
 
 	class CollectionConverter<T>
-		public static method ConvertResultCollection<C>, @object
+		public static method ConvertResultCollection, @object
 			inputSequence, @IEnumerable
 		proc
 			data converter, @Func<IConvertible, T>, BakeConversion()

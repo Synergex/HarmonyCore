@@ -102,10 +102,10 @@ namespace Services.Models
         ;;; </summary>
         {Required(ErrorMessage="Order placed by is required. ")}
         {StringLength(25, ErrorMessage="Order placed by cannot exceed 25 characters. ")}
-        public property PlacedBy, string
+        public property PlacedBy, String
             method get
             proc
-                mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.placed_by, ^null, ^null, ^null)
+                mreturn (String)SynergyAlphaConverter.Convert(mSynergyData.placed_by, ^null, ^null, ^null)
             endmethod
             method set
             proc
@@ -117,10 +117,10 @@ namespace Services.Models
         ;;; Customer order reference
         ;;; </summary>
         {StringLength(25, ErrorMessage="Customer order reference cannot exceed 25 characters. ")}
-        public property CustomerReference, string
+        public property CustomerReference, String
             method get
             proc
-                mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.customer_reference, ^null, ^null, ^null)
+                mreturn (String)SynergyAlphaConverter.Convert(mSynergyData.customer_reference, ^null, ^null, ^null)
             endmethod
             method set
             proc
@@ -132,10 +132,10 @@ namespace Services.Models
         ;;; Payment terms code
         ;;; </summary>
         {StringLength(2, ErrorMessage="Payment terms code cannot exceed 2 characters. ")}
-        public property PaymentTermsCode, string
+        public property PaymentTermsCode, String
             method get
             proc
-                mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.payment_terms_code, ^null, ^null, ^null)
+                mreturn (String)SynergyAlphaConverter.Convert(mSynergyData.payment_terms_code, ^null, ^null, ^null)
             endmethod
             method set
             proc
@@ -269,20 +269,29 @@ namespace Services.Models
             ;;Validate data for relation 1 (REL_OrderItems)
 
             rel1FromKey.order_number = mSynergyData.order_number
-            disposable data rel1FileIO = doProvider.GetFileIO<OrderItem>()
-            if (rel1FileIO.FindRecord(0,rel1FromKey) != FileAccessResults.Success)
-                throw new ValidationException("Invalid data for relation REL_OrderItems")
+            begin
+                disposable data rel1FileIO = doProvider.GetFileIO<OrderItem>()
+                if (rel1FileIO.FindRecord(0,rel1FromKey) != FileAccessResults.Success)
+                begin
+                    throw new ValidationException("Invalid data for relation REL_OrderItems")
+                end
+            end
 
             ;;--------------------------------------------------------------------------------
             ;;Validate data for relation 2 (REL_Customer)
 
             rel2FromKey.customer_number = mSynergyData.customer_number
-            disposable data rel2FileIO = doProvider.GetFileIO<Customer>()
-            if (rel2FileIO.FindRecord(0,rel2FromKey) != FileAccessResults.Success)
-                throw new ValidationException("Invalid data for relation REL_Customer")
+            begin
+                disposable data rel2FileIO = doProvider.GetFileIO<Customer>()
+                if (rel2FileIO.FindRecord(0,rel2FromKey) != FileAccessResults.Success)
+                begin
+                    throw new ValidationException("Invalid data for relation REL_Customer")
+                end
+            end
 
-
+            ;;--------------------------------------------------------------------------------
             ;;If we have a ValidateCustom method, call it
+
             ValidateCustom(vType,sp)
 
         endmethod
@@ -312,7 +321,6 @@ namespace Services.Models
 .endregion
 
 .region "Properties to represent keys"
-
         ;;Access keys
 
         private _KEY_ORDER_NUMBER, string, ""

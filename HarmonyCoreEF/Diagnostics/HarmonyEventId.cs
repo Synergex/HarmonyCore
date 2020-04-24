@@ -62,4 +62,9 @@ namespace Microsoft.EntityFrameworkCore.Diagnostics
         /// </summary>
         public static readonly EventId ChangesSaved = MakeUpdateId(Id.ChangesSaved);
     }
+
+
+    public class HarmonyLoggingDefinitions : LoggingDefinitions
+    {
+    }
 }

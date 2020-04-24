@@ -1,6 +1,7 @@
 import Harmony.Core.FileIO
 import Microsoft.Extensions.DependencyInjection
 import System
+import System.Linq
 import System.Collections.Generic
 import System.Text
 import Microsoft.EntityFrameworkCore
@@ -8,6 +9,7 @@ import Harmony.Core.Test.FileIO.Models
 import Harmony.Core.Test
 import Harmony.Core
 import Harmony.Core.Context
+import Harmony.Core.EF.Extensions
 import Microsoft.VisualStudio.TestTools.UnitTesting
 import System.ComponentModel.DataAnnotations
 
@@ -44,6 +46,14 @@ namespace HarmonyCore.Test.EF
             disposable data context = MakeDBContext()
             data firstRecord = Context.Orders.Find(1)
             data customerRecord = Context.Customers.Find(firstRecord.CustomerNumber)
+        endmethod
+
+        {TestMethod}
+        public method EFStringComparison, void
+        proc
+            disposable data context = MakeDBContext()
+            data oldOrders = Context.Orders.Where('PaymentTermsCode < "AA"', new Object[0]).ToList()
+            Assert.IsNotNull(oldOrders, "didnt get any orders")
         endmethod
 
         {TestMethod}

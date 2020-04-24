@@ -64,7 +64,7 @@ namespace Services
                 if(!mEdmModels.ContainsKey(versionNumber))
                 begin
                     data madeModel = GetEdmModel(new ODataConventionModelBuilder(serviceProvider), serviceProvider)
-                    madeModel.SetAnnotationValue(madeModel, new ApiVersionAnnotation(new ApiVersion(versionNumber, 0)))
+                    madeModel.SetAnnotationValue(madeModel, new ApiVersionAnnotation(ApiVersion.Parse(versionNumber.ToString())))
                     mEdmModels.Add(versionNumber, madeModel)
                 end
             end
@@ -96,6 +96,7 @@ namespace Services
         proc
             ;;Declare entities
             builder.EntitySet<Customer>("Customers")
+            builder.EntitySet<CustomerNote>("CustomerNotes")
             builder.EntitySet<Item>("Items")
             builder.EntitySet<Order>("Orders")
             builder.EntitySet<OrderItem>("OrderItems")
@@ -116,44 +117,46 @@ namespace Services
             ;;-----------------------------------------------
 
             data tempModel = (@EdmModel)builder.GetEdmModel()
-                
-                
-                
-            
+      
+      
+      
+
             data customerType = (@EdmEntityType)tempModel.FindDeclaredType("Services.Models.Customer")
             tempModel.AddAlternateKeyAnnotation(customerType, new Dictionary<string, IEdmProperty>() {{"State",customerType.FindProperty("State")}})
             tempModel.AddAlternateKeyAnnotation(customerType, new Dictionary<string, IEdmProperty>() {{"ZipCode",customerType.FindProperty("ZipCode")}})
             tempModel.AddAlternateKeyAnnotation(customerType, new Dictionary<string, IEdmProperty>() {{"PaymentTermsCode",customerType.FindProperty("PaymentTermsCode")}})
-                
-                
-                
-                
-            
+
+            data customerNoteType = (@EdmEntityType)tempModel.FindDeclaredType("Services.Models.CustomerNote")
+      
+      
+      
+      
+
             data itemType = (@EdmEntityType)tempModel.FindDeclaredType("Services.Models.Item")
             tempModel.AddAlternateKeyAnnotation(itemType, new Dictionary<string, IEdmProperty>() {{"VendorNumber",itemType.FindProperty("VendorNumber")}})
             tempModel.AddAlternateKeyAnnotation(itemType, new Dictionary<string, IEdmProperty>() {{"FlowerColor",itemType.FindProperty("FlowerColor")}})
             tempModel.AddAlternateKeyAnnotation(itemType, new Dictionary<string, IEdmProperty>() {{"Size",itemType.FindProperty("Size")}})
             tempModel.AddAlternateKeyAnnotation(itemType, new Dictionary<string, IEdmProperty>() {{"CommonName",itemType.FindProperty("CommonName")}})
-                
-                
-                
-            
+      
+      
+      
+
             data orderType = (@EdmEntityType)tempModel.FindDeclaredType("Services.Models.Order")
             tempModel.AddAlternateKeyAnnotation(orderType, new Dictionary<string, IEdmProperty>() {{"CustomerNumber",orderType.FindProperty("CustomerNumber")}})
             tempModel.AddAlternateKeyAnnotation(orderType, new Dictionary<string, IEdmProperty>() {{"DateOrdered",orderType.FindProperty("DateOrdered")}})
             tempModel.AddAlternateKeyAnnotation(orderType, new Dictionary<string, IEdmProperty>() {{"DateCompleted",orderType.FindProperty("DateCompleted")}})
-                
-                
-                
-            
+      
+      
+      
+
             data orderItemType = (@EdmEntityType)tempModel.FindDeclaredType("Services.Models.OrderItem")
             tempModel.AddAlternateKeyAnnotation(orderItemType, new Dictionary<string, IEdmProperty>() {{"ItemOrdered",orderItemType.FindProperty("ItemOrdered")}})
             tempModel.AddAlternateKeyAnnotation(orderItemType, new Dictionary<string, IEdmProperty>() {{"DateShipped",orderItemType.FindProperty("DateShipped")}})
             tempModel.AddAlternateKeyAnnotation(orderItemType, new Dictionary<string, IEdmProperty>() {{"InvoiceNumber",orderItemType.FindProperty("InvoiceNumber")}})
-                
-                
-                
-            
+      
+      
+      
+
             data vendorType = (@EdmEntityType)tempModel.FindDeclaredType("Services.Models.Vendor")
             tempModel.AddAlternateKeyAnnotation(vendorType, new Dictionary<string, IEdmProperty>() {{"State",vendorType.FindProperty("State")}})
             tempModel.AddAlternateKeyAnnotation(vendorType, new Dictionary<string, IEdmProperty>() {{"ZipCode",vendorType.FindProperty("ZipCode")}})

@@ -28,8 +28,8 @@ namespace Services.Controllers
         public override async method OnDisconnectedAsync, @Task
             ex, @Exception
         proc
-            parent.OnDisconnectedAsync(ex)
             data contextObject, @Object
+            await parent.OnDisconnectedAsync(ex)
             if(Context.Items.TryGetValue("RPCContext", contextObject))
             begin
                 data callContext = ^as(contextObject, @ExternalCallContext)
@@ -49,6 +49,15 @@ namespace Services.Controllers
             data callContext = ^as(Context.Items["RPCContext"], @ExternalCallContext)
             data result = await callContext.Arbitrario_MethodWithParameters2(aNumber, aString, aStringArray, aIntArray)
             await Clients.Caller.Arbitrario_MethodWithParametersResult(result)
+
+        endmethod
+
+        public async method Arbitrario_Optional, @Task
+            parm, @ExternalCallContext.ArbitrarioOptionalParameter
+        proc
+            data callContext = ^as(Context.Items["RPCContext"], @ExternalCallContext)
+            data result = await callContext.Arbitrario_Optional(parm)
+            await Clients.Caller.Arbitrario_OptionalResult(result)
         endmethod
 
 	endclass
@@ -58,7 +67,10 @@ namespace Services.Controllers
             param, @ExternalCallContext.ArbitrarioReturnType
         endmethod
 
-    endinterface
+        method Arbitrario_OptionalResult, @Task
+            param, @ExternalCallContext.ArbitrarioOptionalReturnType
+        endmethod
 
+    endinterface
 
 endnamespace

@@ -117,10 +117,10 @@ namespace Services.Models
         ;;; </summary>
         {Required(ErrorMessage="Common name is required. ")}
         {StringLength(30, ErrorMessage="Common name cannot exceed 30 characters. ")}
-        public property CommonName, string
+        public property CommonName, String
             method get
             proc
-                mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.common_name, ^null, ^null, ^null)
+                mreturn (String)SynergyAlphaConverter.Convert(mSynergyData.common_name, ^null, ^null, ^null)
             endmethod
             method set
             proc
@@ -132,10 +132,10 @@ namespace Services.Models
         ;;; Latin name
         ;;; </summary>
         {StringLength(30, ErrorMessage="Latin name cannot exceed 30 characters. ")}
-        public property LatinName, string
+        public property LatinName, String
             method get
             proc
-                mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.latin_name, ^null, ^null, ^null)
+                mreturn (String)SynergyAlphaConverter.Convert(mSynergyData.latin_name, ^null, ^null, ^null)
             endmethod
             method set
             proc
@@ -177,10 +177,10 @@ namespace Services.Models
         ;;; Flowering?
         ;;; </summary>
         {StringLength(1, ErrorMessage="Flowering? cannot exceed 1 characters. ")}
-        public property Flowering, string
+        public property Flowering, String
             method get
             proc
-                mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.flowering, ^null, ^null, ^null)
+                mreturn (String)SynergyAlphaConverter.Convert(mSynergyData.flowering, ^null, ^null, ^null)
             endmethod
             method set
             proc
@@ -192,10 +192,10 @@ namespace Services.Models
         ;;; Flower color
         ;;; </summary>
         {StringLength(6, ErrorMessage="Flower color cannot exceed 6 characters. ")}
-        public property FlowerColor, string
+        public property FlowerColor, String
             method get
             proc
-                mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.flower_color, ^null, ^null, ^null)
+                mreturn (String)SynergyAlphaConverter.Convert(mSynergyData.flower_color, ^null, ^null, ^null)
             endmethod
             method set
             proc
@@ -207,10 +207,10 @@ namespace Services.Models
         ;;; Shape
         ;;; </summary>
         {StringLength(10, ErrorMessage="Shape cannot exceed 10 characters. ")}
-        public property Shape, string
+        public property Shape, String
             method get
             proc
-                mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.shape, ^null, ^null, ^null)
+                mreturn (String)SynergyAlphaConverter.Convert(mSynergyData.shape, ^null, ^null, ^null)
             endmethod
             method set
             proc
@@ -252,10 +252,10 @@ namespace Services.Models
         ;;; Water requirements
         ;;; </summary>
         {StringLength(4, ErrorMessage="Water requirements cannot exceed 4 characters. ")}
-        public property WaterRequirement, string
+        public property WaterRequirement, String
             method get
             proc
-                mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.water_requirement, ^null, ^null, ^null)
+                mreturn (String)SynergyAlphaConverter.Convert(mSynergyData.water_requirement, ^null, ^null, ^null)
             endmethod
             method set
             proc
@@ -267,10 +267,10 @@ namespace Services.Models
         ;;; Sun requirements
         ;;; </summary>
         {StringLength(6, ErrorMessage="Sun requirements cannot exceed 6 characters. ")}
-        public property SunRequirement, string
+        public property SunRequirement, String
             method get
             proc
-                mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.sun_requirement, ^null, ^null, ^null)
+                mreturn (String)SynergyAlphaConverter.Convert(mSynergyData.sun_requirement, ^null, ^null, ^null)
             endmethod
             method set
             proc
@@ -282,10 +282,10 @@ namespace Services.Models
         ;;; Bin/aisle
         ;;; </summary>
         {StringLength(3, ErrorMessage="Bin/aisle cannot exceed 3 characters. ")}
-        public property BinLocation, string
+        public property BinLocation, String
             method get
             proc
-                mreturn (string)SynergyAlphaConverter.Convert(mSynergyData.bin_location, ^null, ^null, ^null)
+                mreturn (String)SynergyAlphaConverter.Convert(mSynergyData.bin_location, ^null, ^null, ^null)
             endmethod
             method set
             proc
@@ -476,20 +476,29 @@ namespace Services.Models
             ;;Validate data for relation 1 (REL_Vendor)
 
             rel1FromKey.vendor_number = mSynergyData.vendor_number
-            disposable data rel1FileIO = doProvider.GetFileIO<Vendor>()
-            if (rel1FileIO.FindRecord(0,rel1FromKey) != FileAccessResults.Success)
-                throw new ValidationException("Invalid data for relation REL_Vendor")
+            begin
+                disposable data rel1FileIO = doProvider.GetFileIO<Vendor>()
+                if (rel1FileIO.FindRecord(0,rel1FromKey) != FileAccessResults.Success)
+                begin
+                    throw new ValidationException("Invalid data for relation REL_Vendor")
+                end
+            end
 
             ;;--------------------------------------------------------------------------------
             ;;Validate data for relation 2 (REL_OrderItems)
 
             rel2FromKey.item_number = mSynergyData.item_number
-            disposable data rel2FileIO = doProvider.GetFileIO<OrderItem>()
-            if (rel2FileIO.FindRecord(1,rel2FromKey) != FileAccessResults.Success)
-                throw new ValidationException("Invalid data for relation REL_OrderItems")
+            begin
+                disposable data rel2FileIO = doProvider.GetFileIO<OrderItem>()
+                if (rel2FileIO.FindRecord(1,rel2FromKey) != FileAccessResults.Success)
+                begin
+                    throw new ValidationException("Invalid data for relation REL_OrderItems")
+                end
+            end
 
-
+            ;;--------------------------------------------------------------------------------
             ;;If we have a ValidateCustom method, call it
+
             ValidateCustom(vType,sp)
 
         endmethod
@@ -519,7 +528,6 @@ namespace Services.Models
 .endregion
 
 .region "Properties to represent keys"
-
         ;;Access keys
 
         private _KEY_ITEM_NUMBER, string, ""

@@ -138,8 +138,7 @@ namespace Services.Controllers
 		proc
 			data intArray = new int[#] {5, 4, 3, 2, 1 }
 			data resultTpl = await CallMethod("Arbitrario.MethodWithParameters", 5, "hello", new string[#] { "this", "is", "strings" }, (@object)intArray, new string[0])
-			data returnToken = ((@JToken)resultTpl.Item1)
-			mreturn new ArbitrarioReturnType() { ReturnCode = returnToken.ToObject<int>(), IntList = ((@IEnumerable<int>)resultTpl.Item2[4]).ToList(), StringList = ((@IEnumerable<string>)resultTpl.Item2[5]).ToList() }
+			mreturn new ArbitrarioReturnType() { ReturnCode = ArgumentHelper.Argument<int>(0, resultTpl), IntList = ArgumentHelper.Argument<List<int>>(4, resultTpl), StringList = ArgumentHelper.Argument<List<string>>(5, resultTpl) }
         endmethod
 
         public async method Arbitrario_MethodWithParameters2, @Task<ArbitrarioReturnType>
@@ -149,15 +148,37 @@ namespace Services.Controllers
             aIntArray, [#]int
         proc
             data resultTpl = await CallMethod("Arbitrario.MethodWithParameters", aNumber, aString, aStringArray, aIntArray, new string[0])
-            data returnToken = ((@JToken)resultTpl.Item1)
-            mreturn new ArbitrarioReturnType() { ReturnCode = returnToken.ToObject<int>(), IntList = ((@IEnumerable<int>)resultTpl.Item2[4]).ToList(), StringList = ((@IEnumerable<string>)resultTpl.Item2[5]).ToList() }
+            mreturn new ArbitrarioReturnType() { ReturnCode = ArgumentHelper.Argument<int>(0, resultTpl), IntList = ArgumentHelper.Argument<List<int>>(4, resultTpl), StringList = ArgumentHelper.Argument<List<string>>(5, resultTpl) }
+        endmethod
+
+        public async method Arbitrario_Optional, @Task<ArbitrarioOptionalReturnType>
+            parm, @ArbitrarioOptionalParameter
+        proc
+            data resultTpl = await CallMethod("arbitrario_optional", parm.p1, ArgumentHelper.MaybeOptional(parm.p2), ArgumentHelper.MaybeOptional(parm.p3), ArgumentHelper.MaybeOptional(parm.p4))
+            data resultArray = resultTpl.Item2.ToList()
+            data returnValue = new ArbitrarioOptionalReturnType()
+            returnValue.p3 = ^as(resultArray[2], @string)
+            returnValue.p4 = ^as(resultArray[3], Nullable<int>)
+            mreturn returnValue
         endmethod
 
 		public class ArbitrarioReturnType
 			public readwrite property ReturnCode, int
 			public readwrite property IntList, @List<int>
 			public readwrite property StringList, @List<string>
-		endclass
+        endclass
+
+        public class ArbitrarioOptionalParameter
+            public readwrite property p1, int
+            public readwrite property p2, @string
+            public readwrite property p3, @string
+            public readwrite property p4, int?
+        endclass
+
+        public class ArbitrarioOptionalReturnType
+            public readwrite property p3, @string
+            public readwrite property p4, int?
+        endclass
 
     endclass
 
@@ -182,6 +203,42 @@ namespace Services.Controllers
 			mreturn new Availability() { PointsCost = 9999 }
 		endmethod
 
+        {ODataRoute("DoAnAction")}
+        {HttpPost}
+        {EnableQuery()}
+        {ApiVersionNeutral}
+        public method DoAnAction, @ActionResult<int>
+            {FromBody}
+            parameters, @ODataActionParameters
+        proc
+            if(parameters == ^null)
+            begin
+                mreturn new BadRequestResult()
+            end
+            mreturn new ActionResult<int>(5)
+        endmethod
+
+        {ODataRoute("DoAFunction")}
+        {HttpGet}
+        public method DoAFunction, @IActionResult
+            parm1, int
+            parm2, @string
+        proc
+            if(parm2 == ^null)
+            begin
+                mreturn new BadRequestResult()
+            end
+            mreturn new OkObjectResult("Hello")
+        endmethod
+
     endclass
+
+    
+;    public class ODataActionAndFunctionController extends ODataController
+;        
+;        
+;
+;    endclass
+
 
 endnamespace

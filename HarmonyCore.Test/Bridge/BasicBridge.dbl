@@ -19,11 +19,18 @@ namespace HarmonyCore.Test.Bridge
     {TestClass}
     public class BasicBridge
 
+        private method GetContextPool<T(IContextBase, class)>, @ExternalContextPool<T>
+        proc
+            data currentDirectory = Path.GetDirectoryName(^typeof(BasicBridge).Assembly.Location)
+            data contextPool = new ExternalContextPool<T>(Environment.GetEnvironmentVariable("SYNERGYDE64") + "dbl\bin\dbs.exe", 'TraditionalBridge.Test.dbr', Path.GetFullPath(Path.Combine(Environment.GetEnvironmentVariable("SolutionDir") ?? (currentDirectory + "..\..\..\..\..\"), "TestDir")), ^null, 4) 
+            mreturn contextPool
+        endmethod
+
+
         {TestMethod}
         public async method LocalTest, @Task
         proc
-            data currentDirectory = Path.GetDirectoryName(^typeof(BasicBridge).Assembly.Location)
-            disposable data contextPool = new ExternalContextPool<BasicBridge.ExternalCallContext>(Environment.GetEnvironmentVariable("SYNERGYDE32") + "dbl\bin\dbs.exe", 'TraditionalBridge.Test.dbr', Path.GetFullPath(Path.Combine(currentDirectory, "..\..\..\..\TestDir")), ^null, 4) 
+            disposable data contextPool = GetContextPool<BasicBridge.ExternalCallContext>()
             data sp = new ServiceCollection().BuildServiceProvider()
 			
             data context = contextPool.MakeContext(sp)
@@ -51,7 +58,7 @@ namespace HarmonyCore.Test.Bridge
             Assert.AreEqual(functionFourReturn.p1, "Coming back 1")
             Assert.AreEqual(functionFourReturn.p2, "Coming back 2")
             Assert.AreEqual(functionFourReturn.p3, "back 3")
-            Assert.AreEqual(functionFourReturn.p4, "backi")
+            Assert.AreEqual(functionFourReturn.p4, "backi1234567890 1234567890 1234567") ;;there are two dispatchers in the test set that can resolve for function_four
 
             Assert.AreEqual(customers.Count, 38, "customer count was wrong")
 
@@ -70,8 +77,7 @@ namespace HarmonyCore.Test.Bridge
         {TestMethod}
         public async method LocalOptionalTest, @Task
         proc
-            data currentDirectory = Path.GetDirectoryName(^typeof(BasicBridge).Assembly.Location)
-            disposable data contextPool = new ExternalContextPool<BasicBridge.ExternalCallContext>(Environment.GetEnvironmentVariable("SYNERGYDE32") + "dbl\bin\dbs.exe", 'TraditionalBridge.Test.dbr', Path.GetFullPath(Path.Combine(currentDirectory, "..\..\..\..\TestDir")), ^null, 4) 
+            disposable data contextPool = GetContextPool<BasicBridge.ExternalCallContext>()
             data sp = new ServiceCollection().BuildServiceProvider()
 			
             data context = contextPool.MakeContext(sp)
@@ -104,8 +110,7 @@ namespace HarmonyCore.Test.Bridge
         {TestMethod}
         public async method LocalLoggingTest, @Task
         proc
-            data currentDirectory = Path.GetDirectoryName(^typeof(BasicBridge).Assembly.Location)
-            disposable data contextPool = new ExternalContextPool<BasicBridge.ExternalCallContext>(Environment.GetEnvironmentVariable("SYNERGYDE32") + "dbl\bin\dbs.exe", 'TraditionalBridge.Test.dbr', Path.GetFullPath(Path.Combine(currentDirectory, "..\..\..\..\TestDir")), ^null, 4) 
+            disposable data contextPool = GetContextPool<BasicBridge.ExternalCallContext>()
             data sp = new ServiceCollection().BuildServiceProvider()
 			
             data context = contextPool.MakeContext(sp)
@@ -134,8 +139,7 @@ namespace HarmonyCore.Test.Bridge
         {TestMethod}
         public async method LocalGenTest, @Task
         proc
-            data currentDirectory = Path.GetDirectoryName(^typeof(BasicBridge).Assembly.Location)
-            disposable data contextPool = new ExternalContextPool<syntstService>(Environment.GetEnvironmentVariable("SYNERGYDE32") + "dbl\bin\dbr.exe", 'TraditionalBridge.Test.dbr', Path.GetFullPath(Path.Combine(currentDirectory, "..\..\..\..\TestDir")), ^null, 4) 
+            disposable data contextPool = GetContextPool<syntstService>()
             data sp = new ServiceCollection().BuildServiceProvider()
 			
             data context = contextPool.MakeContext(sp)
@@ -170,20 +174,24 @@ namespace HarmonyCore.Test.Bridge
             Assert.AreEqual(7777777, mscAryTstIntResult.p1[3])
             Assert.AreEqual(666666, mscAryTstIntResult.p1[4])
 
+            ;Console.ReadKey()
+
             data timeStart = DateTime.Now
             data i = 0
-            for i from 1 thru 100 by 1
+            data CData = new string('C', 65535)
+            data DData = new string('D', 65535)
+            for i from 1 thru 1000 by 1
             begin
-                data passtringResult = await context.passstring(new passstring_Request() { p1 = new string('C', 65535), p3=new string('D', 65535) })
+                data passtringResult = await context.passstring(new passstring_Request() { p1 = CData, p3=DData})
 
-                Assert.AreEqual(new string('C', 65535), passtringResult.p2)
-                Assert.AreEqual(new string('D', 65535), passtringResult.p3)
+                Assert.AreEqual(CData, passtringResult.p2)
+                Assert.AreEqual(DData, passtringResult.p3)
             end
             data timeEnd = DateTime.Now
             data timeTaken = timeEnd - timeStart
             contextPool.ReturnContext(context)
             await contextPool.TrimPool(0)
-            Console.WriteLine("shutting down test")
+            Console.WriteLine("shutting down test {0}", timeTaken)
         endmethod
 
         public class ExternalCallContext extends DynamicCallProvider

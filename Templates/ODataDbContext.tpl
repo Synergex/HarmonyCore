@@ -1,5 +1,5 @@
 ﻿<CODEGEN_FILENAME>DbContext.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.4.2</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.4.6</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
@@ -140,7 +140,7 @@ namespace <NAMESPACE>
             &                    (
             &                        ^typeof(EF),
             &                        "Property",
-            &                        new Type[#] { ^typeof(<TAGLOOP_FIELD_CSTYPE>) },
+            &                        new Type[#] { ^typeof(<TAGLOOP_FIELD_SNTYPE>) },
             &                        <structureNoplural>Param,
             &                        Expression.Constant("<TagloopFieldSqlname>")
             &                    ),

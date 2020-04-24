@@ -13,9 +13,10 @@ namespace Harmony.Core.EF.Query.Internal
     ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
     ///     directly from your code. This API may change or be removed in future releases.
     /// </summary>
-    public class HarmonyQueryContextFactory : QueryContextFactory
+    public class HarmonyQueryContextFactory : IQueryContextFactory
     {
         private readonly IDataObjectProvider _provider;
+        private readonly QueryContextDependencies _dependencies;
 
         /// <summary>
         ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
@@ -25,16 +26,16 @@ namespace Harmony.Core.EF.Query.Internal
             QueryContextDependencies dependencies,
             IDataObjectProvider provider,
             IDbContextOptions contextOptions)
-            : base(dependencies)
         {
             _provider = provider;
+            _dependencies = dependencies;
         }
 
         /// <summary>
         ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
-        public override QueryContext Create()
-            => new HarmonyQueryContext(Dependencies, CreateQueryBuffer, _provider);
+        public virtual QueryContext Create()
+            => new HarmonyQueryContext(_dependencies, _provider);
     }
 }

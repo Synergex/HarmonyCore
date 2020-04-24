@@ -1,0 +1,756 @@
+.ifdef DBLV11
+import System.Collections
+import Harmony.TraditionalBridge
+import System.Text.Json
+import System.Text
+
+.define MaybeLog(priority, msg) if((priority) <= Logger.LogLevel) Logger.Instance.Log(msg)
+
+namespace Json
+
+	;;; <summary>
+	;;; Builds a Harmony Core TraditionalBridge JSON message and writes it to a channel.
+	;;; </summary>
+	public abstract class JsonSerializer
+
+		protected outStream, @OutputStream
+		private buffer, @StringBuilder
+		protected jsonWriter, @Utf8JsonWriter
+		;;; <summary>
+		;;; Constructs a new serializer associated with an open channel.
+		;;; </summary>
+		;;; <param name="chan">Channel to write JSON data to.</param>
+		public method JsonSerializer
+			required in stream, @OutputStream
+		proc
+			buffer = new StringBuilder()
+			outStream = stream
+			jsonWriter = Utf8JsonWriter.CreateUtf8JsonWriter(buffer)
+		endmethod
+
+.region "Serialization methods"
+		public method OutputScopeOpen, void
+		proc
+
+		endmethod
+
+		;;abort the current output scope, rolling back any output in the buffer back to the last OutputScopeOpen call
+		public method OutputScopeAbort, void
+		proc
+			jsonWriter.Reset()
+			buffer.Clear()
+		endmethod
+
+
+		public method OutputScopeClose, void
+		proc
+
+		endmethod
+
+		public abstract method ObjectData, void
+			dataValue, a
+			dataType, a
+			grfa, a
+			dataNeedsEncoding, boolean
+			name, @string
+		proc
+		endmethod
+
+.endregion
+
+.region "Other public members"
+
+		public property CurrentBuffer, string
+			method get
+			proc
+				mreturn buffer.ToString()
+			endmethod
+		endproperty
+
+.endregion
+
+.region "Helper methods"
+
+		;;; <summary>
+		;;; Constructs the TraditionalBridge protocol message and sends it to the channel.
+		;;; After sending the message the JSON buffer is cleared.
+		;;; </summary>
+		;;; <returns>The complete protocol message that was sent.</returns>
+		public method Flush, void
+			stack record
+				message, string
+				messageLength, int
+			endrecord
+		proc
+			
+
+			;;clear and reset utf8jsonwriter
+			jsonWriter.Flush()
+			message = buffer.ToString()
+			jsonWriter.Reset()
+
+			messageLength = message.length
+
+			if(messageLength == 0)
+				mreturn
+
+			if(6 <= Logger.LogLevel) then
+			begin
+				data lengthheader, string
+				lengthHeader = "Content-Length:" + %string(messageLength) + %char(13) + %char(10) + %char(13) + %char(10)
+				MaybeLog(6, "Serializer: " + lengthHeader)
+				outStream.FlushData(lengthHeader)
+			end
+			else 
+				outStream.FlushData("Content-Length:" + %string(messageLength) + %char(13) + %char(10) + %char(13) + %char(10))
+			
+			MaybeLog(6, "Serializer: " + message)
+			outStream.FlushData(message)
+			
+		endmethod
+
+.endregion
+
+	endclass
+
+	public class DispatchSerializer extends JsonSerializer
+		public method DispatchSerializer
+			stream, @OutputStream
+			parent(stream)
+		proc
+		endmethod
+
+		public method ArgumentData, void
+			required in argPos, int
+			required in value, string
+			required in type, FieldDataType
+			required in size, int
+			required in precision, int
+			required in hasBinaryData, boolean
+		proc
+			ArgumentData(argPos, (a)value, type, size, precision, hasBinaryData)
+		endmethod
+
+		public override method ObjectData, void
+			dataValue, a
+			dataType, a
+			grfa, a
+			dataNeedsEncoding, boolean
+			name, @string
+		proc
+			if(name != ^null) then
+				jsonWriter.WriteStartObject(name)
+			else
+				jsonWriter.WriteStartObject()
+
+			jsonWriter.WriteString("Type", dataType)
+			if(!dataNeedsEncoding) then
+			begin
+				jsonWriter.WriteString("Value", dataValue)
+			end
+			else
+			begin
+				jsonWriter.WriteString("Base64Value", Convert.ToBase64String(dataValue))
+			end
+			jsonWriter.WriteString("GRFA", grfa)
+			jsonWriter.WriteEndObject()
+		endmethod
+
+		public method ArgumentData, void
+			required in argPos, int
+			required in value, a
+			optional in type, FieldDataType
+			optional in size, int
+			optional in precision, int
+			optional in hasBinaryData, boolean
+			record
+				encodeElement, boolean
+		proc
+			if(^passed(hasBinaryData)) then
+				encodeElement = hasBinaryData
+			else
+				encodeElement = false
+
+			jsonWriter.WriteStartObject()
+			jsonWriter.WriteNumber("Position", argPos)
+			jsonWriter.WriteStartObject("Value")
+
+			jsonWriter.WriteNumber("DataType", (i)FieldDataType.AlphaField)
+			if(encodeElement) then
+			begin
+				if(^passed(size) && ^size(value) > size) then
+					jsonWriter.WriteString("Base64Value", Convert.ToBase64String(value(1:size)))
+				else
+					jsonWriter.WriteString("Base64Value", Convert.ToBase64String(value))
+			end
+			else
+			begin
+				if(^passed(size) && ^size(value) > size) then
+					jsonWriter.WriteString("PassedValue", %atrim(value(1:size)))
+				else
+					jsonWriter.WriteString("PassedValue", %atrim(value))
+			end
+			jsonWriter.WriteEndObject()
+			jsonWriter.WriteEndObject()
+		endmethod
+
+		public method ArgumentData, void
+			required in argPos, int
+			required in value, d
+			optional in type, FieldDataType
+		proc
+			jsonWriter.WriteStartObject()
+			jsonWriter.WriteNumber("Position", argPos)
+			jsonWriter.WriteStartObject("Value")
+			
+			jsonWriter.WriteNumber("DataType", (i)FieldDataType.DecimalField)
+			jsonWriter.WriteNumber("PassedValue", ^d(value, 0))
+			jsonWriter.WriteEndObject()
+			jsonWriter.WriteEndObject()
+		endmethod
+
+		public method ArgumentData, void
+			required in argPos, int
+			required in value, id
+			required in type, FieldDataType
+			required in size, int
+			required in precision, int
+			required in hasBinaryData, boolean
+		proc
+			jsonWriter.WriteStartObject()
+			jsonWriter.WriteNumber("Position", argPos)
+			jsonWriter.WriteStartObject("Value")
+			
+			jsonWriter.WriteNumber("DataType", (i)FieldDataType.ImpliedDecimal)
+			jsonWriter.WriteNumber("ElementSize", size)
+			jsonWriter.WriteNumber("DecimalPrecision", precision)
+			jsonWriter.WriteNumber("PassedValue", value)
+			jsonWriter.WriteEndObject()
+			jsonWriter.WriteEndObject()
+		endmethod
+
+		public method ArgumentData, void
+			required in argPos, int
+			required in value, i
+			optional in type, FieldDataType
+			optional in size, int
+			optional in precision, int
+			optional in hasBinaryData, boolean
+		proc
+			jsonWriter.WriteStartObject()
+			jsonWriter.WriteNumber("Position", argPos)
+			jsonWriter.WriteStartObject("Value")
+			
+			jsonWriter.WriteNumber("DataType", (i)FieldDataType.IntegerField)
+			jsonWriter.WriteNumber("PassedValue", value)
+			jsonWriter.WriteEndObject()
+			jsonWriter.WriteEndObject()
+		endmethod
+
+		public method ArgumentData, void
+			argPos, int
+			value, @ArrayList
+			record
+				item, @object
+				doElement, @DataObjectBase
+		proc
+			jsonWriter.WriteStartObject()
+			jsonWriter.WriteNumber("Position", argPos)
+			jsonWriter.WriteStartObject("Value")
+
+			jsonWriter.WriteNumber("DataType", (i)FieldDataType.DataObjectCollectionField)
+			jsonWriter.WriteStartArray("PassedValue")
+			foreach item in value
+			begin
+				if(item .is. @DataObjectBase) then
+				begin
+					doElement = (@DataObjectBase)item
+					doElement.Serialize(this)
+				end
+				else if(item .is. @string) then
+					jsonWriter.WriteStringValue((@string)item)
+				else if(item .is. @i) then
+					jsonWriter.WriteNumberValue((@i)item)
+				else if(item .is. @d) then
+					jsonWriter.WriteNumberValue((@d)item)
+				else if(item .is. @id) then
+					jsonWriter.WriteNumberValue((@id)item)
+				else if(item .is. @boolean)
+					jsonWriter.WriteBooleanValue((@boolean)item)
+			end
+			jsonWriter.WriteEndArray()
+			jsonWriter.WriteEndObject()
+			jsonWriter.WriteEndObject()
+		endmethod
+
+		public method ArgumentData, void
+			argPos, int
+			value, [#]@DataObjectBase
+			record
+				doElement, @DataObjectBase
+		proc
+			jsonWriter.WriteStartObject()
+			jsonWriter.WriteNumber("Position", argPos)
+			jsonWriter.WriteStartObject("Value")
+
+			jsonWriter.WriteNumber("DataType", (i)FieldDataType.DataObjectCollectionField)
+			jsonWriter.WriteStartArray("PassedValue")
+			foreach doElement in value
+			begin
+				doElement.Serialize(this)
+			end
+			jsonWriter.WriteEndArray()
+			jsonWriter.WriteEndObject()
+			jsonWriter.WriteEndObject()
+		endmethod
+
+		public method ArgumentData, void
+			argPos, int
+			value, @DataObjectBase
+			record
+				item, @object
+				doElement, @DataObjectBase
+		proc
+			jsonWriter.WriteStartObject()
+			jsonWriter.WriteNumber("Position", argPos)
+			jsonWriter.WriteStartObject("Value")
+
+			jsonWriter.WriteNumber("DataType", (i)FieldDataType.DataObjectField)
+			value.Serialize(this, "PassedValue")
+			jsonWriter.WriteEndObject()
+			jsonWriter.WriteEndObject()
+		endmethod
+
+		public method ArgumentData, void
+			argPos, int
+			value, @ArrayList
+			type, FieldDataType
+			elementSize, int
+			elementPrecision, int
+			hasBinaryData, boolean
+			record
+				item, @object
+				doElement, @DataObjectBase
+		proc
+			throw new Exception("Not Yet Implemented")
+		endmethod
+
+		public method ArgumentData, void
+			argPos, int
+			value, @ArrayList
+			type, FieldDataType
+			elementSize, int
+			elementType, a
+			hasBinaryData, boolean
+			record
+				item, @object
+				doElement, @DataObjectBase
+		proc
+			jsonWriter.WriteStartObject()
+			jsonWriter.WriteNumber("Position", argPos)
+			jsonWriter.WriteStartObject("Value")
+
+			jsonWriter.WriteNumber("DataType", (i)FieldDataType.DataObjectCollectionField)
+			jsonWriter.WriteString("ElementType", elementType)
+			jsonWriter.WriteBoolean("ElementIsEncoded", hasBinaryData)
+			jsonWriter.WriteStartArray("PassedValue")
+			foreach item in value
+			begin
+				if(hasBinaryData) then
+					jsonWriter.WriteStringValue(Convert.FromBase64String((a)item))
+				else
+					jsonWriter.WriteStringValue((a)item)
+			end
+			jsonWriter.WriteEndArray()
+			jsonWriter.WriteEndObject()
+			jsonWriter.WriteEndObject()
+		endmethod
+
+		public method ArgumentData, void
+			argPos, int
+			value, [#]@string
+			record
+				item, @string
+		proc
+			jsonWriter.WriteStartObject()
+			jsonWriter.WriteNumber("Position", argPos)
+			jsonWriter.WriteStartObject("Value")
+
+			jsonWriter.WriteNumber("DataType", (i)FieldDataType.DataObjectCollectionField)
+			jsonWriter.WriteStartArray("PassedValue")
+			foreach item in value
+			begin
+				jsonWriter.WriteStringValue(item)
+			end
+			jsonWriter.WriteEndArray()
+			jsonWriter.WriteEndObject()
+			jsonWriter.WriteEndObject()
+		endmethod
+
+		public method ArgumentData, void
+			argPos, int
+			value, [#]int
+			record
+				item, int
+		proc
+			jsonWriter.WriteStartObject()
+			jsonWriter.WriteNumber("Position", argPos)
+			jsonWriter.WriteStartObject("Value")
+
+			jsonWriter.WriteNumber("DataType", (i)FieldDataType.DataObjectCollectionField)
+			jsonWriter.WriteStartArray("PassedValue")
+			foreach item in value
+			begin
+				jsonWriter.WriteNumberValue(item)
+			end
+			jsonWriter.WriteEndArray()
+			jsonWriter.WriteEndObject()
+			jsonWriter.WriteEndObject()
+		endmethod
+
+		public method ArgumentData, void
+			argPos, int
+			value, [#]@a
+			record
+				item, @a
+		proc
+			jsonWriter.WriteStartObject()
+			jsonWriter.WriteNumber("Position", argPos)
+			jsonWriter.WriteStartObject("Value")
+
+			jsonWriter.WriteNumber("DataType", (i)FieldDataType.DataObjectCollectionField)
+			jsonWriter.WriteStartArray("PassedValue")
+			foreach item in value
+			begin
+				jsonWriter.WriteStringValue(%atrim(item))
+			end
+			jsonWriter.WriteEndArray()
+			jsonWriter.WriteEndObject()
+			jsonWriter.WriteEndObject()
+		endmethod
+
+		public method ArgumentData, void
+			argPos, int
+			value, [#]@id
+			record
+				item, @id
+		proc
+			jsonWriter.WriteStartObject()
+			jsonWriter.WriteNumber("Position", argPos)
+			jsonWriter.WriteStartObject("Value")
+
+			jsonWriter.WriteNumber("DataType", (i)FieldDataType.DataObjectCollectionField)
+			jsonWriter.WriteStartArray("PassedValue")
+			foreach item in value
+			begin
+				jsonWriter.WriteNumberValue(item)
+			end
+			jsonWriter.WriteEndArray()
+			jsonWriter.WriteEndObject()
+			jsonWriter.WriteEndObject()
+		endmethod
+
+		public method ArgumentData, void
+			argPos, int
+			value, a
+			type, FieldDataType
+			structureSize, int
+			structureName, a
+			binaryData, boolean
+			record
+				item, @id
+				i, int
+				structureCount, int
+		proc
+			jsonWriter.WriteStartObject()
+			jsonWriter.WriteNumber("Position", argPos)
+			jsonWriter.WriteStartObject("Value")
+
+			jsonWriter.WriteNumber("DataType", (i)FieldDataType.DataObjectCollectionField)
+			jsonWriter.WriteString("ElementType", structureName)
+			jsonWriter.WriteBoolean("ElementIsEncoded", binaryData)
+			jsonWriter.WriteStartArray("PassedValue")
+			
+			structureCount = ^size(value) / structureSize
+
+			for i from 0 thru structureCount by 1
+			begin
+				if(!binaryData) then
+				begin
+					jsonWriter.WriteStringValue(value((i * structureSize) + 1 : structureSize))
+				end
+				else
+				begin
+					jsonWriter.WriteStringValue(Convert.ToBase64String(value((i * structureSize) + 1 : structureSize)))
+				end
+			end
+			jsonWriter.WriteEndArray()
+			jsonWriter.WriteEndObject()
+			jsonWriter.WriteEndObject()
+		endmethod
+
+		public method ArgumentHandleData, void
+			argPos, int
+			value, D_HANDLE
+			type, FieldDataType
+			structureSize, int
+			structureName, a
+			elementCount, int
+			binaryData, boolean
+			record
+				item, @id
+				i, int
+				structureCount, int
+			structure fake
+				fld1, a1
+			endstructure
+
+		proc
+			MaybeLog(4, "serializing argument handle data, structureSize was " + %string(structureSize) + " element count was " + %string(elementCount) + " handle length was " + %string(^size(^m(value))))
+			jsonWriter.WriteStartObject()
+			jsonWriter.WriteNumber("Position", argPos)
+			jsonWriter.WriteStartObject("Value")
+
+			jsonWriter.WriteNumber("DataType", (i)FieldDataType.DataObjectCollectionField)
+			jsonWriter.WriteString("ElementType", structureName)
+			jsonWriter.WriteBoolean("ElementIsEncoded", binaryData)
+			jsonWriter.WriteStartArray("PassedValue")
+
+			for i from 0 thru elementCount - 1 by 1
+			begin
+				if(!binaryData) then
+				begin
+					jsonWriter.WriteStringValue(^m(fake.fld1((i * structureSize) + 1 : structureSize), value))
+				end
+				else
+				begin
+					jsonWriter.WriteStringValue(Convert.ToBase64String(^m(fake.fld1((i * structureSize) + 1 : structureSize), value)))
+				end
+			end
+			jsonWriter.WriteEndArray()
+			jsonWriter.WriteEndObject()
+			jsonWriter.WriteEndObject()
+		endmethod
+
+		public method ArgumentHandleData, void
+			argPos, int
+			value, D_HANDLE
+			type, FieldDataType
+			elementSize, int
+			precision, int
+			elementCount, int
+			binaryData, boolean
+			record
+				item, @id
+				i, int
+			structure fake
+				fld1, a1
+			endstructure
+
+		proc
+			MaybeLog(4, "serializing argument handle data, elementSize was " + %string(elementSize) + " element count was " + %string(elementCount) + " handle length was " + %string(^size(^m(value))))
+			
+			jsonWriter.WriteStartObject()
+			jsonWriter.WriteNumber("Position", argPos)
+			jsonWriter.WriteStartObject("Value")
+
+			jsonWriter.WriteNumber("DataType", (i)type)
+			jsonWriter.WriteBoolean("ElementIsEncoded", binaryData)
+			jsonWriter.WriteStartArray("PassedValue")
+
+			for i from 0 thru elementCount - 1 by 1
+			begin
+				if(type == FieldDataType.AlphaArrayField) then
+				begin
+					if(!binaryData) then
+					begin
+						jsonWriter.WriteStringValue(^m(fake.fld1((i * elementSize) + 1 : elementSize), value))
+					end
+					else
+					begin
+						jsonWriter.WriteStringValue(Convert.ToBase64String(^m(fake.fld1((i * elementSize) + 1 : elementSize), value)))
+					end
+				end
+				else if(type == FieldDataType.DecimalArrayField) then
+				begin
+					jsonWriter.WriteNumberValue(^d(^m(fake.fld1((i * elementSize) + 1 : elementSize), value), 0))
+				end
+				else if(type == FieldDataType.ImpliedDecimalArrayField) then
+				begin
+					jsonWriter.WriteNumberValue(^d(^m(fake.fld1((i * elementSize) + 1 : elementSize), value), precision))
+				end
+				else if(type == FieldDataType.IntegerArrayField) then
+				begin
+					jsonWriter.WriteNumberValue(^i(^m(fake.fld1((i * elementSize) + 1 : elementSize), value)))
+				end
+				else
+					throw new Exception("element type not implemented " + %string(type))
+			end
+			jsonWriter.WriteEndArray()
+			jsonWriter.WriteEndObject()
+			jsonWriter.WriteEndObject()
+		endmethod
+
+		public method ArrayOpen, void
+		proc
+			jsonWriter.WriteStartArray()
+		endmethod
+
+		public method ArrayClose, void
+		proc
+			jsonWriter.WriteEndArray()
+		endmethod
+
+		public method ReportResponseProlog, void
+			hasId, boolean
+			requestId, i4
+		proc
+			jsonWriter.WriteStartObject()
+			jsonWriter.WriteString("jsonrpc", "2.0")
+
+			if(hasId) then
+				jsonWriter.WriteNumber("id", requestId)
+			else
+				jsonWriter.WriteNull("id")
+
+			jsonWriter.WriteStartArray("result")
+		endmethod
+
+		public method ReportResponseEpilog, void
+		proc
+			;;Terminate the "ReturnParameters" array
+			jsonWriter.WriteEndArray()
+
+			;;Terminate the "Result" object
+			jsonWriter.WriteEndObject()
+		endmethod
+
+		public method ReportError, void
+			errorText, @string
+			errorCode, int
+			messageId, int
+			record
+				scopeLog, @ArrayList
+				loggerSettings, @LoggerScopeSettings
+		proc
+			OutputScopeAbort()
+
+			if(messageId != -1) then
+			begin
+				jsonWriter.WriteStartObject()
+				jsonWriter.WriteString("jsonrpc", "2.0")
+				jsonWriter.WriteStartObject("error")
+				jsonWriter.WriteNumber("code", errorCode)
+
+				jsonWriter.WriteString("message", Convert.ToBase64String(errorText))
+
+				;;if scope logging is active return everything that was logged as part of this request scope
+				if(Logger.Instance.ShouldAttachLogsToExceptions)
+				begin
+					scopeLog = Logger.Instance.CurrentScopeLog()
+					if(scopeLog != ^null && scopeLog.Count > 0)
+					begin
+
+						data logEntry, @string
+						MaybeLog(2, "Dispatcher: attaching in memory logs to thrown exception")
+
+						jsonWriter.WriteStartObject("data")
+						jsonWriter.WriteStartArray("logs")
+
+						foreach logEntry in scopeLog as @String
+						begin
+							jsonWriter.WriteStringValue(Convert.ToBase64String(logEntry))
+						end
+
+						jsonWriter.WriteEndArray()
+
+						loggerSettings = Logger.Instance.CurrentLogSettings()
+
+						jsonWriter.WriteStartObject("log_settings")
+						jsonWriter.WriteString("ScopeIdentifier", loggerSettings.ScopeIdentifier)
+						jsonWriter.WriteBoolean("LogToMemory", loggerSettings.LogToMemory)
+						jsonWriter.WriteBoolean("LogToDisk", loggerSettings.LogToDisk)
+						jsonWriter.WriteString("LogLocation", loggerSettings.LogLocation)
+						jsonWriter.WriteBoolean("FlushLog", loggerSettings.FlushLog)
+						jsonWriter.WriteNumber("OnDiskLogLevel", loggerSettings.OnDiskLogLevel)
+						jsonWriter.WriteNumber("InMemoryLogLevel", loggerSettings.InMemoryLogLevel)
+						jsonWriter.WriteBoolean("AttachLogsToExceptions", loggerSettings.AttachLogsToExceptions)
+						jsonWriter.WriteEndObject()
+						jsonWriter.WriteEndObject()
+					end
+				end
+
+				jsonWriter.WriteEndObject()
+
+				if(messageId > -1) then
+					jsonWriter.WriteNumber("id", messageId)
+				else
+					jsonWriter.WriteNull("id")
+
+				jsonWriter.WriteEndObject()
+
+				MaybeLog(1, "ReportError: " + errorText + " messageId" + %string(messageId))
+			end
+			else
+			begin
+				MaybeLog(5, "ReportError: Notify -> " + errorText)
+			end
+			this.Flush()
+		endmethod
+
+		public method ReportResult, void
+			requestId, int
+			result, @string
+		proc
+			if(requestId != -1) then
+			begin
+				jsonWriter.WriteStartObject()
+				jsonWriter.WriteString("jsonrpc", "2.0")
+				jsonWriter.WriteString("result", result)
+
+				if(requestId > -1) then
+					jsonWriter.WriteNumber("id", requestId)
+				else
+					jsonWriter.WriteNull("id")
+
+				jsonWriter.WriteEndObject()
+
+				MaybeLog(5, "ReportResult: " + result + " messageId" + %string(requestId))
+			end
+			else
+			begin
+				MaybeLog(5, "ReportResult: Notify")
+			end
+			this.Flush()
+		endmethod
+
+		public method ReportResult, void
+			requestId, int
+			result, n
+		proc
+			if(requestId != -1) then
+			begin
+				jsonWriter.WriteStartObject()
+				jsonWriter.WriteString("jsonrpc", "2.0")
+				jsonWriter.WriteNumber("result", result)
+
+				if(requestId > -1) then
+					jsonWriter.WriteNumber("id", requestId)
+				else
+					jsonWriter.WriteNull("id")
+
+				jsonWriter.WriteEndObject()
+				MaybeLog(5, "ReportResult: " + %string(result) + " messageId" + %string(requestId))
+			end
+			else
+			begin
+				MaybeLog(5, "ReportResult: Notify")
+			end
+			this.Flush()
+		endmethod
+
+
+	endclass
+
+endnamespace
+.endc

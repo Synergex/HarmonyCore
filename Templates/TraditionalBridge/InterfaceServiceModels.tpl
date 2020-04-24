@@ -1,5 +1,6 @@
 <CODEGEN_FILENAME><INTERFACE_NAME>ServiceModels.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.4.2</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.4.6</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
 ;// Title:       InterfaceServiceModels.tpl
@@ -50,6 +51,8 @@
 import System
 import System.ComponentModel.DataAnnotations
 
+import <MODELS_NAMESPACE>
+
 namespace <NAMESPACE>
 <METHOD_LOOP>
 
@@ -81,7 +84,7 @@ namespace <NAMESPACE>
         ;;; No description found in method catalog
         </IF COMMENT>
         ;;; </summary>
-        public readwrite property <PARAMETER_NAME>, <HARMONYCORE_BRIDGE_PARAMETER_TYPE>
+        public  <PARAMETER_NAME>, <IF COLLECTION>[#]</IF><HARMONYCORE_BRIDGE_PARAMETER_TYPE>
         </IF IN_OR_INOUT>
       </PARAMETER_LOOP>
 
@@ -101,7 +104,7 @@ namespace <NAMESPACE>
         ;;; <summary>
         ;;; Return value
         ;;; </summary>
-        public readwrite property ReturnValue, <HARMONYCORE_BRIDGE_RETURN_TYPE>
+        public ReturnValue, <HARMONYCORE_BRIDGE_RETURN_TYPE>
     </IF FUNCTION>
     <IF OUT_OR_INOUT>
       <PARAMETER_LOOP>
@@ -115,7 +118,7 @@ namespace <NAMESPACE>
         ;;; No description found in method catalog
         </IF COMMENT>
         ;;; </summary>
-        public readwrite property <PARAMETER_NAME>, <HARMONYCORE_BRIDGE_PARAMETER_TYPE><IF STRING>, String.Empty</IF STRING><IF ALPHA>, String.Empty</IF ALPHA>
+        public <PARAMETER_NAME>, <IF COLLECTION>[#]</IF><HARMONYCORE_BRIDGE_PARAMETER_TYPE><IF STRING>, String.Empty</IF STRING><IF ALPHA>, String.Empty</IF ALPHA>
         </IF OUT_OR_INOUT>
       </PARAMETER_LOOP>
     </IF OUT_OR_INOUT>

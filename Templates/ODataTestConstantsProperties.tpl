@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME>TestConstants.Properties.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.4.2</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.5.3</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
 ;// Title:       ODataTestConstantsProperties.tpl
@@ -55,13 +55,14 @@ namespace <NAMESPACE>
 
     public static partial class TestConstants
 <STRUCTURE_LOOP>
+<IF STRUCTURE_ISAM>
 
         ;;------------------------------------------------------------
         ;;Test data for <StructureNoplural>
 
   <PRIMARY_KEY>
     <SEGMENT_LOOP>
-        public static readwrite property Get<StructureNoplural>_<SegmentName>, <SEGMENT_CSTYPE>
+        public static readwrite property Get<StructureNoplural>_<SegmentName>, <SEGMENT_SNTYPE>
     </SEGMENT_LOOP>
   </PRIMARY_KEY>
 ;//
@@ -69,16 +70,14 @@ namespace <NAMESPACE>
 ;//
   <IF DEFINED_ENABLE_RELATIONS>
     <IF STRUCTURE_RELATIONS>
-      <RELATION_LOOP>
-      <IF TO_STRUCTURE_INCLUDED>
+      <RELATION_LOOP_RESTRICTED>
 
         <PRIMARY_KEY>
         <SEGMENT_LOOP>
-        public static readwrite property Get<StructureNoplural>_Expand_<IF MANY_TO_ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY>_<SegmentName>, <SEGMENT_CSTYPE>
+        public static readwrite property Get<StructureNoplural>_Expand_<IF MANY_TO_ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY>_<SegmentName>, <SEGMENT_SNTYPE>
         </SEGMENT_LOOP>
         </PRIMARY_KEY>
-      </IF TO_STRUCTURE_INCLUDED>
-      </RELATION_LOOP>
+      </RELATION_LOOP_RESTRICTED>
     </IF STRUCTURE_RELATIONS>
   </IF DEFINED_ENABLE_RELATIONS>
 ;//
@@ -87,27 +86,28 @@ namespace <NAMESPACE>
   <PRIMARY_KEY>
 
     <SEGMENT_LOOP>
-        public static readwrite property Get<StructureNoplural>_Expand_All_<SegmentName>, <SEGMENT_CSTYPE>
+        public static readwrite property Get<StructureNoplural>_Expand_All_<SegmentName>, <SEGMENT_SNTYPE>
     </SEGMENT_LOOP>
   </PRIMARY_KEY>
 ;//
 ;//
 ;//
-  <ALTERNATE_KEY_LOOP>
+  <ALTERNATE_KEY_LOOP_UNIQUE>
     
     <SEGMENT_LOOP>
-        public static readwrite property Get<StructureNoplural>_ByAltKey_<KeyName>_<SegmentName>, <SEGMENT_CSTYPE>
+        public static readwrite property Get<StructureNoplural>_ByAltKey_<KeyName>_<SegmentName>, <SEGMENT_SNTYPE>
     </SEGMENT_LOOP>
-  </ALTERNATE_KEY_LOOP>
+  </ALTERNATE_KEY_LOOP_UNIQUE>
 ;//
 ;//
 ;//
   <PRIMARY_KEY>
     <SEGMENT_LOOP>
-        public static readwrite property Update<StructureNoplural>_<SegmentName>, <SEGMENT_CSTYPE>
+        public static readwrite property Update<StructureNoplural>_<SegmentName>, <SEGMENT_SNTYPE>
     </SEGMENT_LOOP>
   </PRIMARY_KEY>
 
+</IF STRUCTURE_ISAM>
 </STRUCTURE_LOOP>
     endclass
 

@@ -109,7 +109,11 @@ namespace Harmony.Core.Context
 			mTargetProcess.Exited += ProcessExit
 
 			data result = JsonRpc.Attach(new StreamWrapper(mTargetProcess.StandardOutput, mTargetProcess.StandardInput), ^null) 
-			result.TraceSource = new TraceSource("Client", SourceLevels.All)
+            if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+            begin
+                result.TraceSource = new TraceSource("Client", SourceLevels.All)
+            end
+
 			mreturn result
 		endmethod
 	

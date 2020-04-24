@@ -10,6 +10,8 @@
 ;; Any changes you make will be lost of the file is re-generated.
 ;;*****************************************************************************
 
+import Microsoft.AspNetCore.Http
+import Microsoft.OData
 import Microsoft.AspNetCore.JsonPatch
 import Microsoft.AspNetCore.Mvc
 import Microsoft.AspNet.OData
@@ -17,16 +19,19 @@ import Microsoft.AspNet.OData.Routing
 import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Infrastructure
 import Microsoft.Extensions.Options
+import System.Collections.Generic
 import System.ComponentModel.DataAnnotations
 import Harmony.Core.EF.Extensions
 import Harmony.Core.Interface
 import Harmony.OData
+import Harmony.AspNetCore
 import Newtonsoft.Json
 import Services.Models
 
 namespace Services.Controllers
 
     {ApiVersion("1")}
+    {ODataRoutePrefix("Customers")}
     ;;; <summary>
     ;;; OData controller for Customers
     ;;; </summary>
@@ -53,7 +58,9 @@ namespace Services.Controllers
             this._AppSettings = aAppSettings
         endmethod
 
-        {ODataRoute("Customers")}
+        {ODataRoute}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Customer>>),StatusCodes.Status200OK)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get all Customers
@@ -64,7 +71,10 @@ namespace Services.Controllers
             mreturn Ok(_DbContext.Customers.AsNoTracking())
         endmethod
 
-        {ODataRoute("Customers(CustomerNumber={aCustomerNumber})")}
+        {ODataRoute("(CustomerNumber={aCustomerNumber})")}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(Customer),StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get a single Customer by primary key.
@@ -78,7 +88,10 @@ namespace Services.Controllers
             mreturn new SingleResult<Customer>(_DbContext.Customers.AsNoTracking().FindQuery<Customer>(_DbContext, aCustomerNumber))
         endmethod
 
-        {ODataRoute("Customers(State={aState})")}
+        {ODataRoute("(State={aState})")}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Customer>>),StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get customers by alternate key key State.
@@ -95,7 +108,10 @@ namespace Services.Controllers
             mreturn Ok(result)
         endmethod
 
-        {ODataRoute("Customers(ZipCode={aZipCode})")}
+        {ODataRoute("(ZipCode={aZipCode})")}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Customer>>),StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get customers by alternate key key Zip.
@@ -112,7 +128,10 @@ namespace Services.Controllers
             mreturn Ok(result)
         endmethod
 
-        {ODataRoute("Customers(PaymentTermsCode={aPaymentTermsCode})")}
+        {ODataRoute("(PaymentTermsCode={aPaymentTermsCode})")}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Customer>>),StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get customers by alternate key key PaymentTerms.
@@ -129,224 +148,11 @@ namespace Services.Controllers
             mreturn Ok(result)
         endmethod
 
-
-        {ODataRoute("Customers({key})/Name")}
-        ;;; <summary>
-        ;;; Get the Name property of a single Customer, by primary key.
-        ;;; </summary>
-        ;;; <param name="key">Customer name</param>
-        ;;; <returns>
-        ;;; Returns a string containing the value of the requested property.
-        ;;;</returns>
-        public method GetName, @IActionResult
-            {FromODataUri}
-            required in key, int
-        proc
-            data result = _DbContext.Customers.Find(key)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.Name)
-        endmethod
-
-        {ODataRoute("Customers({key})/Street")}
-        ;;; <summary>
-        ;;; Get the Street property of a single Customer, by primary key.
-        ;;; </summary>
-        ;;; <param name="key">Street address</param>
-        ;;; <returns>
-        ;;; Returns a string containing the value of the requested property.
-        ;;;</returns>
-        public method GetStreet, @IActionResult
-            {FromODataUri}
-            required in key, int
-        proc
-            data result = _DbContext.Customers.Find(key)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.Street)
-        endmethod
-
-        {ODataRoute("Customers({key})/City")}
-        ;;; <summary>
-        ;;; Get the City property of a single Customer, by primary key.
-        ;;; </summary>
-        ;;; <param name="key">City</param>
-        ;;; <returns>
-        ;;; Returns a string containing the value of the requested property.
-        ;;;</returns>
-        public method GetCity, @IActionResult
-            {FromODataUri}
-            required in key, int
-        proc
-            data result = _DbContext.Customers.Find(key)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.City)
-        endmethod
-
-        {ODataRoute("Customers({key})/State")}
-        ;;; <summary>
-        ;;; Get the State property of a single Customer, by primary key.
-        ;;; </summary>
-        ;;; <param name="key">State</param>
-        ;;; <returns>
-        ;;; Returns a string containing the value of the requested property.
-        ;;;</returns>
-        public method GetState, @IActionResult
-            {FromODataUri}
-            required in key, int
-        proc
-            data result = _DbContext.Customers.Find(key)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.State)
-        endmethod
-
-        {ODataRoute("Customers({key})/ZipCode")}
-        ;;; <summary>
-        ;;; Get the ZipCode property of a single Customer, by primary key.
-        ;;; </summary>
-        ;;; <param name="key">Zip code</param>
-        ;;; <returns>
-        ;;; Returns an int containing the value of the requested property.
-        ;;;</returns>
-        public method GetZipCode, @IActionResult
-            {FromODataUri}
-            required in key, int
-        proc
-            data result = _DbContext.Customers.Find(key)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.ZipCode)
-        endmethod
-
-        {ODataRoute("Customers({key})/Contact")}
-        ;;; <summary>
-        ;;; Get the Contact property of a single Customer, by primary key.
-        ;;; </summary>
-        ;;; <param name="key">Contact name</param>
-        ;;; <returns>
-        ;;; Returns a string containing the value of the requested property.
-        ;;;</returns>
-        public method GetContact, @IActionResult
-            {FromODataUri}
-            required in key, int
-        proc
-            data result = _DbContext.Customers.Find(key)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.Contact)
-        endmethod
-
-        {ODataRoute("Customers({key})/Phone")}
-        ;;; <summary>
-        ;;; Get the Phone property of a single Customer, by primary key.
-        ;;; </summary>
-        ;;; <param name="key">Phone number</param>
-        ;;; <returns>
-        ;;; Returns a string containing the value of the requested property.
-        ;;;</returns>
-        public method GetPhone, @IActionResult
-            {FromODataUri}
-            required in key, int
-        proc
-            data result = _DbContext.Customers.Find(key)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.Phone)
-        endmethod
-
-        {ODataRoute("Customers({key})/Fax")}
-        ;;; <summary>
-        ;;; Get the Fax property of a single Customer, by primary key.
-        ;;; </summary>
-        ;;; <param name="key">Fax number</param>
-        ;;; <returns>
-        ;;; Returns a string containing the value of the requested property.
-        ;;;</returns>
-        public method GetFax, @IActionResult
-            {FromODataUri}
-            required in key, int
-        proc
-            data result = _DbContext.Customers.Find(key)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.Fax)
-        endmethod
-
-        {ODataRoute("Customers({key})/FavoriteItem")}
-        ;;; <summary>
-        ;;; Get the FavoriteItem property of a single Customer, by primary key.
-        ;;; </summary>
-        ;;; <param name="key">Customers favorite item</param>
-        ;;; <returns>
-        ;;; Returns an int containing the value of the requested property.
-        ;;;</returns>
-        public method GetFavoriteItem, @IActionResult
-            {FromODataUri}
-            required in key, int
-        proc
-            data result = _DbContext.Customers.Find(key)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.FavoriteItem)
-        endmethod
-
-        {ODataRoute("Customers({key})/PaymentTermsCode")}
-        ;;; <summary>
-        ;;; Get the PaymentTermsCode property of a single Customer, by primary key.
-        ;;; </summary>
-        ;;; <param name="key">Payment terms code</param>
-        ;;; <returns>
-        ;;; Returns a string containing the value of the requested property.
-        ;;;</returns>
-        public method GetPaymentTermsCode, @IActionResult
-            {FromODataUri}
-            required in key, int
-        proc
-            data result = _DbContext.Customers.Find(key)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.PaymentTermsCode)
-        endmethod
-
-        {ODataRoute("Customers({key})/TaxId")}
-        ;;; <summary>
-        ;;; Get the TaxId property of a single Customer, by primary key.
-        ;;; </summary>
-        ;;; <param name="key">Customers tax ID number</param>
-        ;;; <returns>
-        ;;; Returns an int containing the value of the requested property.
-        ;;;</returns>
-        public method GetTaxId, @IActionResult
-            {FromODataUri}
-            required in key, int
-        proc
-            data result = _DbContext.Customers.Find(key)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.TaxId)
-        endmethod
-
-        {ODataRoute("Customers({key})/CreditLimit")}
-        ;;; <summary>
-        ;;; Get the CreditLimit property of a single Customer, by primary key.
-        ;;; </summary>
-        ;;; <param name="key">Credit limit</param>
-        ;;; <returns>
-        ;;; Returns a decimal containing the value of the requested property.
-        ;;;</returns>
-        public method GetCreditLimit, @IActionResult
-            {FromODataUri}
-            required in key, int
-        proc
-            data result = _DbContext.Customers.Find(key)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.CreditLimit)
-        endmethod
-
-        {ODataRoute("Customers")}
+        {ODataRoute}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(Customer),StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status400BadRequest)}
+        {HttpPost}
         ;;; <summary>
         ;;; Create a new customer (automatically assigned primary key).
         ;;; </summary>
@@ -360,7 +166,7 @@ namespace Services.Controllers
 
             ;; Validate inbound data
             if (!ModelState.IsValid)
-                mreturn BadRequest(ModelState)
+                mreturn ValidationHelper.ReturnValidationError(ModelState)
 
             ;;Get the next available primary key value
             disposable data keyFactory = (@IPrimaryKeyFactory)_ServiceProvider.GetService(^typeof(IPrimaryKeyFactory))
@@ -375,7 +181,7 @@ namespace Services.Controllers
             catch (e, @ValidationException)
             begin
                 ModelState.AddModelError("RelationValidation",e.Message)
-                mreturn BadRequest(ModelState)
+                mreturn ValidationHelper.ReturnValidationError(ModelState)
             end
             endtry
 
@@ -383,10 +189,16 @@ namespace Services.Controllers
 
         endmethod
 
-        {ODataRoute("Customers(CustomerNumber={aCustomerNumber})")}
+        {ODataRoute("(CustomerNumber={aCustomerNumber})")}
+        {Produces("application/json")}
+        {ProducesResponseType(StatusCodes.Status201Created)}
+        {ProducesResponseType(StatusCodes.Status400BadRequest)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
+        {HttpPut}
         ;;; <summary>
         ;;; Create (with a client-supplied primary key) or replace a customer.
         ;;; </summary>
+
         ;;; <param name="aCustomerNumber">Customer number</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
         public method PutCustomer, @IActionResult
@@ -397,7 +209,7 @@ namespace Services.Controllers
         proc
             ;; Validate inbound data
             if (!ModelState.IsValid)
-                mreturn BadRequest(ModelState)
+                mreturn ValidationHelper.ReturnValidationError(ModelState)
 
             ;;Ensure that the key values in the URI win over any data that may be in the model object
             aCustomer.CustomerNumber = aCustomerNumber
@@ -426,13 +238,17 @@ namespace Services.Controllers
             catch (e, @ValidationException)
             begin
                 ModelState.AddModelError("RelationValidation",e.Message)
-                mreturn BadRequest(ModelState)
+                mreturn ValidationHelper.ReturnValidationError(ModelState)
             end
             endtry
 
         endmethod
-
-        {ODataRoute("Customers(CustomerNumber={aCustomerNumber})")}
+        {ODataRoute("(CustomerNumber={aCustomerNumber})")}
+        {Produces("application/json")}
+        {ProducesResponseType(StatusCodes.Status204NoContent)}
+        {ProducesResponseType(StatusCodes.Status400BadRequest)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
+        {HttpPatch}
         ;;; <summary>
         ;;; Patch  (partial update) a customer.
         ;;; </summary>
@@ -446,7 +262,7 @@ namespace Services.Controllers
         proc
             ;; Validate inbound data
             if (!ModelState.IsValid)
-                mreturn BadRequest(ModelState)
+                mreturn ValidationHelper.ReturnValidationError(ModelState)
 
             ;;Patch the existing customer
             try
@@ -475,15 +291,17 @@ namespace Services.Controllers
             catch (e, @ValidationException)
             begin
                 ModelState.AddModelError("RelationValidation",e.Message)
-                mreturn BadRequest(ModelState)
+                mreturn ValidationHelper.ReturnValidationError(ModelState)
             end
             endtry
 
             mreturn NoContent()
 
         endmethod
-
-        {ODataRoute("Customers(CustomerNumber={aCustomerNumber})")}
+        {ODataRoute("(CustomerNumber={aCustomerNumber})")}
+        {ProducesResponseType(StatusCodes.Status204NoContent)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
+        {HttpDelete}
         ;;; <summary>
         ;;; Delete a customer.
         ;;; </summary>
@@ -507,7 +325,6 @@ namespace Services.Controllers
             mreturn NoContent()
 
         endmethod
-
     endclass
 
 endnamespace

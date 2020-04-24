@@ -6,8 +6,6 @@
 ;;
 ;; Description: base class from which all data objects sould be derived
 ;;
-;; Author:      Richard C. Morris, Synergex Technology Evangelist
-;;
 ;; Copyright (c) 2012, Synergex International, Inc. All rights reserved.
 ;;
 ;; Redistribution and use in source and binary forms, with or without
@@ -99,7 +97,7 @@ namespace Harmony.TraditionalBridge
 		;;; </summary>
 		;;; <remarks>
 		;;; This method should be called if you require data validation events to fire when setting values through
-		;;; the $$Synergy Record$$ property.  By default the $$Symphony Data Object$$ class does not validate data when set through
+		;;; the $$Synergy Record$$ property.  By default the $$HarmonyCore Data Object$$ class does not validate data when set through
 		;;; the $$Synergy Record$$ property.  Once this method is called data validation will occur.
 		;;; </remarks>
 		public method ForceSynergyRecordValidate	,void
@@ -114,8 +112,8 @@ namespace Harmony.TraditionalBridge
 		;;; </summary>
 		;;; <remarks>
 		;;; The $$Synergy Record$$ is used to communicate the complete Synergy record area between you program and the 
-		;;; $$Symphony Data Object$$.  This property will always contain the current record data and can be used by your program
-		;;; to update all the fields within the $$Symphony Data Object$$.  when setting, the data is extracted into the individual internal
+		;;; $$HarmonyCore Data Object$$.  This property will always contain the current record data and can be used by your program
+		;;; to update all the fields within the $$HarmonyCore Data Object$$.  when setting, the data is extracted into the individual internal
 		;;; fields and the _PROPRTYCHANGED_ event is raised.
 		;;; </remarks>
 		public abstract readonly property SynergyRecord, a
@@ -124,7 +122,7 @@ namespace Harmony.TraditionalBridge
 		private mIsDataModified, boolean
 		
 		;;; <summary>
-		;;;  This method allows you to restore the internal data area (SynergyRecord) of a $$Symphony Data Object$$ to it's original value.  The original value
+		;;;  This method allows you to restore the internal data area (SynergyRecord) of a $$HarmonyCore Data Object$$ to it's original value.  The original value
 		;;;  must have previously been stored in the OriginalSynergyRecord property.  This OriginalSynergyRecord value is then used to reset the 
 		;;;  SynergyRecord value.  All the required RaisePropertyChanged events are fired and the IsModified property will be reset to False.
 		;;; </summary>		
@@ -168,7 +166,7 @@ namespace Harmony.TraditionalBridge
 		endmethod		
 		
 		;;; <summary>
-		;;;  Method to allow the extending class to indicate the $$Symphony Data Object$$ has changed.  The IsNew flag is set to False.
+		;;;  Method to allow the extending class to indicate the $$HarmonyCore Data Object$$ has changed.  The IsNew flag is set to False.
 		;;; </summary>
 		protected method setUsed	,void
 			endparams
@@ -222,7 +220,7 @@ namespace Harmony.TraditionalBridge
 		;;;</returns>
 		;;;<remarks>
 		;;; The CompareObjects method is designed to be implemented by the implementing class.  It will be called when objects within a list are being sorted.  
-		;;; When called, two objects are supplied and the required sort direction.  By default the $$Symphony Data Object$$ will execute the CompareObjects method.  This method will be executed if the
+		;;; When called, two objects are supplied and the required sort direction.  By default the $$HarmonyCore Data Object$$ will execute the CompareObjects method.  This method will be executed if the
 		;;; default CompareObjects method returns a value of (-2)
 		;;;</remarks>
 		public virtual method CustomCompareObjects	,int
@@ -239,7 +237,7 @@ namespace Harmony.TraditionalBridge
 		protected mGlobalRFA  ,a10
 		
 		;;; <summary>
-		;;;  Expose a simpler property that allows you to store/retreive the $$Symphony Data Object$$ global RFA address.
+		;;;  Expose a simpler property that allows you to store/retreive the $$HarmonyCore Data Object$$ global RFA address.
 		;;; </summary>		
 		
 		public property GlobalRFA, a10
@@ -256,30 +254,12 @@ namespace Harmony.TraditionalBridge
 		;;override this in a dataobjectbase where we have to deal with binary data being sent from a big endian to a little endian system
 		public virtual method Serialize, void
 			serializer, @JsonSerializer
-			;;TODO maybe add serializer options here?
+			optional name, @string
 		proc
-			DataObjectBase.Serialize(serializer, SynergyRecord, Metadata.RPSStructureName, mGlobalRFA, Metadata.RPSStructureHasBinaryData)
-		endmethod
-
-		public static method Serialize, void
-			serializer, @JsonSerializer
-			dataValue, a
-			dataType, a
-			grfa, a
-			dataNeedsEncoding, boolean
-		proc
-			serializer.MapOpen()
-			serializer.Pair("Type", dataType)
-			if(!dataNeedsEncoding) then
-			begin
-				serializer.Pair("Value", dataValue)
-			end
+			if(^passed(name)) then
+				serializer.ObjectData(SynergyRecord, Metadata.RPSStructureName, mGlobalRFA, Metadata.RPSStructureHasBinaryData, name)
 			else
-			begin
-				serializer.Pair("Base64Value", Convert.ToBase64String(dataValue))
-			end
-			serializer.Pair("GRFA", grfa)
-			serializer.MapClose()
+				serializer.ObjectData(SynergyRecord, Metadata.RPSStructureName, mGlobalRFA, Metadata.RPSStructureHasBinaryData, ^null)
 		endmethod
 
 		public abstract property Metadata, @DataObjectMetadataBase
