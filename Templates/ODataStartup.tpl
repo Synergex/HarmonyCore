@@ -6,6 +6,9 @@
 <REQUIRES_USERTOKEN>CONTROLLERS_NAMESPACE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>OAUTH_API</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>OAUTH_SERVER</REQUIRES_USERTOKEN>
+<REQUIRES_USERTOKEN>CUSTOM_JWT_ISSUER</REQUIRES_USERTOKEN>
+<REQUIRES_USERTOKEN>CUSTOM_JWT_AUDIENCE</REQUIRES_USERTOKEN>
+<REQUIRES_USERTOKEN>CUSTOM_JWT_SECRET</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVER_HTTPS_PORT</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
@@ -338,7 +341,7 @@ namespace <NAMESPACE>
                 &    ValidateAudience = true,
                 &    ValidAudience = "<CUSTOM_JWT_AUDIENCE>",
                 &    ValidateIssuerSigningKey = true,
-                &    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("<OAUTH_SECRET>"))
+                &    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("<CUSTOM_JWT_SECRET>"))
                 &    }
             <IF DEFINED_ENABLE_SIGNALR>
 
