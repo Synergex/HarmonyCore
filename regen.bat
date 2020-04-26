@@ -235,14 +235,6 @@ rem Custom Authentication Example
 
 if DEFINED ENABLE_CUSTOM_AUTHENTICATION (
 
-  rem Generate AuthenticateController.dbl
-  codegen -t  ODataCustomAuthController ^
-          -i  %SolutionDir%Templates ^
-          -o  %SolutionDir%%ControllersProject% ^
-          -n  %ControllersProject% ^
-              %NOREPLACEOPTS%
-  if ERRORLEVEL 1 goto error
-
   rem Generate AuthenticationModels.dbl
   codegen -t  ODataCustomAuthModels ^
           -i  %SolutionDir%Templates ^
@@ -251,8 +243,8 @@ if DEFINED ENABLE_CUSTOM_AUTHENTICATION (
               %NOREPLACEOPTS%
   if ERRORLEVEL 1 goto error
 
-  rem Generate AuthTools.dbl
-  codegen -t  ODataCustomAuthTools ^
+  rem Generate AuthenticationController.dbl and AuthenticationTools.dbl
+  codegen -t  ODataCustomAuthController ODataCustomAuthTools ^
           -i  %SolutionDir%Templates ^
           -o  %SolutionDir%%ControllersProject% ^
           -n  %ControllersProject% ^

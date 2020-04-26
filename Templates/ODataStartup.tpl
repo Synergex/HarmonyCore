@@ -6,9 +6,6 @@
 <REQUIRES_USERTOKEN>CONTROLLERS_NAMESPACE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>OAUTH_API</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>OAUTH_SERVER</REQUIRES_USERTOKEN>
-<REQUIRES_USERTOKEN>CUSTOM_JWT_ISSUER</REQUIRES_USERTOKEN>
-<REQUIRES_USERTOKEN>CUSTOM_JWT_AUDIENCE</REQUIRES_USERTOKEN>
-<REQUIRES_USERTOKEN>CUSTOM_JWT_SECRET</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVER_HTTPS_PORT</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
@@ -332,16 +329,16 @@ namespace <NAMESPACE>
             lambda configJwt(o)
             begin
                 o.IncludeErrorDetails = true
-                o.ClaimsIssuer = "<CUSTOM_JWT_ISSUER>"
-                o.Audience = "<CUSTOM_JWT_AUDIENCE>"
+                o.ClaimsIssuer = AuthenticationTools.GetIssuer()
+                o.Audience = AuthenticationTools.GetAudience()
                 o.TokenValidationParameters = new TokenValidationParameters()
                 &    {
                 &    ValidateIssuer = true,
-                &    ValidIssuer = "<CUSTOM_JWT_ISSUER>",
+                &    ValidIssuer = AuthenticationTools.GetIssuer(),
                 &    ValidateAudience = true,
-                &    ValidAudience = "<CUSTOM_JWT_AUDIENCE>",
+                &    ValidAudience = AuthenticationTools.GetAudience(),
                 &    ValidateIssuerSigningKey = true,
-                &    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("<CUSTOM_JWT_SECRET>"))
+                &    IssuerSigningKey = new SymmetricSecurityKey(AuthenticationTools.GetKey())
                 &    }
             <IF DEFINED_ENABLE_SIGNALR>
 

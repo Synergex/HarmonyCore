@@ -1,7 +1,4 @@
 <CODEGEN_FILENAME>AuthenticationTools.dbl</CODEGEN_FILENAME>
-<REQUIRES_USERTOKEN>CUSTOM_JWT_ISSUER</REQUIRES_USERTOKEN>
-<REQUIRES_USERTOKEN>CUSTOM_JWT_AUDIENCE</REQUIRES_USERTOKEN>
-<REQUIRES_USERTOKEN>CUSTOM_JWT_SECRET</REQUIRES_USERTOKEN>
 ;;*****************************************************************************
 ;;
 ;; Title:       AuthenticationTools.dbl
@@ -24,11 +21,25 @@ namespace <NAMESPACE>
 
     public static class AuthenticationTools
 
+        public static method GetIssuer, string
+            endparams
+        proc
+            ;TODO: Set the name of the "issuer" of the JWT. This is commonly the name of an organization.
+            mreturn "MyCompany"
+        endmethod
+
+        public static method GetAudience, string
+            endparams
+        proc
+            ;TODO: Set the name of the "audience" of the JWT. This is commpnly the name of an API or service.
+            mreturn "MyApi"
+        endmethod
+
         public static method GetKey, [#]Byte
             endparams
         proc
             ;TODO: DO NOT HARD CODE THIS LIKE THIS IN PRODUCTION, AND USE SOMETHIONG MUCH MORE COMPLEX!!!!!
-            mreturn Encoding.UTF8.Getbytes("<CUSTOM_JWT_SECRET>")
+            mreturn Encoding.UTF8.Getbytes("<GUID_NOBRACE>")
         endmethod
 
         private static ourKey, @SymmetricSecurityKey, new SymmetricSecurityKey(GetKey())
@@ -92,7 +103,7 @@ namespace <NAMESPACE>
             data theFuture, DateTime, DateTime.Now.AddHours(tokenDuration)
             data current,   DateTime, DateTime.Now.AddHours(-1)
 
-            data betterToken = handler.CreateJwtSecurityToken("<CUSTOM_JWT_ISSUER>", "<CUSTOM_JWT_AUDIENCE>", ident, new Nullable<DateTime>(current),new Nullable<DateTime>(theFuture), new Nullable<DateTime>(DateTime.Now), credentials, ^null)
+            data betterToken = handler.CreateJwtSecurityToken(AuthenticationTools.GetIssuer(), AuthenticationTools.GetAudience(), ident, new Nullable<DateTime>(current),new Nullable<DateTime>(theFuture), new Nullable<DateTime>(DateTime.Now), credentials, ^null)
 
             ;;  Token to String so you can use it in your client
             data tokenString = handler.WriteToken(betterToken)
