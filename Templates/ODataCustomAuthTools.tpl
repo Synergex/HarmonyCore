@@ -22,24 +22,21 @@ namespace <NAMESPACE>
     public static class AuthenticationTools
 
         public static method GetIssuer, string
-            endparams
         proc
-            ;TODO: Set the name of the "issuer" of the JWT. This is commonly the name of an organization.
+            ;TODO: Set the name of the "issuer" of the JWT. This is frequently the name of an organization.
             mreturn "MyCompany"
         endmethod
 
         public static method GetAudience, string
-            endparams
         proc
-            ;TODO: Set the name of the "audience" of the JWT. This is commpnly the name of an API or service.
+            ;TODO: Set the name of the "audience" of the JWT. This is frequently the name of an API or service.
             mreturn "MyApi"
         endmethod
 
         public static method GetKey, [#]Byte
-            endparams
         proc
-            ;TODO: DO NOT HARD CODE THIS LIKE THIS IN PRODUCTION, AND USE SOMETHIONG MUCH MORE COMPLEX!!!!!
-            mreturn Encoding.UTF8.Getbytes("<GUID_NOBRACE>")
+            ;TODO: Obtain the private encryption key. PLEASE don't do it this way in production environments.
+            mreturn Encoding.UTF8.Getbytes("This is the secret value or password that is used as the encryption key. In production environments you should use something far more complex and random, and should not enbed the value in source code like this. We recommend using some secure key storage mechanism such as Azure KeyVault. <GUID_NOBRACE>")
         endmethod
 
         private static ourKey, @SymmetricSecurityKey, new SymmetricSecurityKey(GetKey())
