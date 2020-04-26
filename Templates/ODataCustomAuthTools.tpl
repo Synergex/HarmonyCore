@@ -36,7 +36,7 @@ namespace <NAMESPACE>
         public static method GetKey, [#]Byte
         proc
             ;TODO: Obtain the private encryption key. PLEASE don't do it this way in production environments.
-            mreturn Encoding.UTF8.Getbytes("This is the secret value or password that is used as the encryption key. In production environments you should use something far more complex and random, and should not enbed the value in source code like this. We recommend using some secure key storage mechanism such as Azure KeyVault. <GUID_NOBRACE>")
+            mreturn Encoding.UTF8.Getbytes("This is the secret value or password that is used as the encryption key. In production environments you should use something far more complex and random, and should not embed the value in source code like this. We recommend using some secure key storage mechanism such as Azure KeyVault. <GUID_NOBRACE>")
         endmethod
 
         private static ourKey, @SymmetricSecurityKey, new SymmetricSecurityKey(GetKey())
