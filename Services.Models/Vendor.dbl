@@ -279,7 +279,7 @@ namespace Services.Models
         endmethod
 
         ;;; <summary>
-        ;;; Validate data for one-to-one relations
+        ;;; Validate data for relations
         ;;; </summary>
         ;;; <param name="type">Validation type (create, update or delete)</param>
         ;;; <param name="sp">Serices provider</param>
@@ -303,6 +303,9 @@ namespace Services.Models
             ;;Validate data for relation 1 (REL_Items)
 
             rel1FromKey.vendor_number = mSynergyData.vendor_number
+            ;;This key does not REQUIRE a match, so only attempt to validate if we have a "from key" value
+            data rel1FromKeyValue, string, rel1FromKey
+            if (!String.IsNullOrWhiteSpace(rel1FromKeyValue.Replace("0"," ")))
             begin
                 disposable data rel1FileIO = doProvider.GetFileIO<Item>()
                 if (rel1FileIO.FindRecord(0,rel1FromKey) != FileAccessResults.Success)

@@ -325,7 +325,7 @@ namespace Services.Models
         endmethod
 
         ;;; <summary>
-        ;;; Validate data for one-to-one relations
+        ;;; Validate data for relations
         ;;; </summary>
         ;;; <param name="type">Validation type (create, update or delete)</param>
         ;;; <param name="sp">Serices provider</param>
@@ -389,6 +389,9 @@ namespace Services.Models
             ;;Validate data for relation 3 (REL_CustomerNotes)
 
             rel3FromKey.customer_number = mSynergyData.customer_number
+            ;;This key does not REQUIRE a match, so only attempt to validate if we have a "from key" value
+            data rel3FromKeyValue, string, rel3FromKey
+            if (!String.IsNullOrWhiteSpace(rel3FromKeyValue.Replace("0"," ")))
             begin
                 disposable data rel3FileIO = doProvider.GetFileIO<CustomerNote>()
                 if (rel3FileIO.FindRecord(0,rel3FromKey) != FileAccessResults.Success)

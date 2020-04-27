@@ -239,7 +239,7 @@ namespace Services.Models
         endmethod
 
         ;;; <summary>
-        ;;; Validate data for one-to-one relations
+        ;;; Validate data for relations
         ;;; </summary>
         ;;; <param name="type">Validation type (create, update or delete)</param>
         ;;; <param name="sp">Serices provider</param>
@@ -270,6 +270,9 @@ namespace Services.Models
 
             rel1FromKey.order_number = mSynergyData.order_number
             rel1FromKey.item_number = mSynergyData.item_number
+            ;;This key does not REQUIRE a match, so only attempt to validate if we have a "from key" value
+            data rel1FromKeyValue, string, rel1FromKey
+            if (!String.IsNullOrWhiteSpace(rel1FromKeyValue.Replace("0"," ")))
             begin
                 disposable data rel1FileIO = doProvider.GetFileIO<Order>()
                 if (rel1FileIO.FindRecord(0,rel1FromKey) != FileAccessResults.Success)
@@ -282,6 +285,9 @@ namespace Services.Models
             ;;Validate data for relation 2 (REL_Item)
 
             rel2FromKey.item_ordered = mSynergyData.item_ordered
+            ;;This key does not REQUIRE a match, so only attempt to validate if we have a "from key" value
+            data rel2FromKeyValue, string, rel2FromKey
+            if (!String.IsNullOrWhiteSpace(rel2FromKeyValue.Replace("0"," ")))
             begin
                 disposable data rel2FileIO = doProvider.GetFileIO<Item>()
                 if (rel2FileIO.FindRecord(0,rel2FromKey) != FileAccessResults.Success)
