@@ -1288,6 +1288,17 @@ namespace Services.Test.UnitTests
             end
         endmethod
 
+		{TestMethod}
+		public method BasicSystemTextJson, void
+		proc
+
+			data testCustomer = new Services.Models.Customer()
+            testCustomer.CustomerNumber = 5
+			data serializedCustomer = System.Text.Json.JsonSerializer.Serialize<Services.Models.Customer>(testCustomer, new System.Text.Json.JsonSerializerOptions())
+			Assert.AreEqual('{"CustomerNumber":5,"Name":"","Street":"","City":"","State":"","ZipCode":0,"Contact":"","Phone":"(000) 000-0000","Fax":"(000) 000-0000","FavoriteItem":0,"PaymentTermsCode":"","TaxId":0,"CreditLimit":0.00}', serializedCustomer)
+			System.Text.Json.JsonSerializer.Deserialize<Services.Models.Customer>(serializedCustomer, new System.Text.Json.JsonSerializerOptions())
+		endmethod
+
     endclass
 
 endnamespace
