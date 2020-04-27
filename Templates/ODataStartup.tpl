@@ -329,16 +329,16 @@ namespace <NAMESPACE>
             lambda configJwt(o)
             begin
                 o.IncludeErrorDetails = true
-                o.ClaimsIssuer = "<CUSTOM_JWT_ISSUER>"
-                o.Audience = "<CUSTOM_JWT_AUDIENCE>"
+                o.ClaimsIssuer = AuthenticationTools.GetIssuer()
+                o.Audience = AuthenticationTools.GetAudience()
                 o.TokenValidationParameters = new TokenValidationParameters()
                 &    {
                 &    ValidateIssuer = true,
-                &    ValidIssuer = "<CUSTOM_JWT_ISSUER>",
+                &    ValidIssuer = AuthenticationTools.GetIssuer(),
                 &    ValidateAudience = true,
-                &    ValidAudience = "<CUSTOM_JWT_AUDIENCE>",
+                &    ValidAudience = AuthenticationTools.GetAudience(),
                 &    ValidateIssuerSigningKey = true,
-                &    IssuerSigningKey = new SymmetricSecurityKey(<OAUTH_KEY>)
+                &    IssuerSigningKey = new SymmetricSecurityKey(AuthenticationTools.GetKey())
                 &    }
             <IF DEFINED_ENABLE_SIGNALR>
 

@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME>EdmBuilder.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.4.6</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.5.3</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
@@ -171,19 +171,19 @@ namespace <NAMESPACE>
 <STRUCTURE_LOOP>
   <COUNTER_1_RESET>
   <IF STRUCTURE_ISAM>
-    <ALTERNATE_KEY_LOOP>
+    <ALTERNATE_KEY_LOOP_UNIQUE>
       <SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><COUNTER_1_INCREMENT></IF SEG_TAG_EQUAL></SEGMENT_LOOP>
-    </ALTERNATE_KEY_LOOP>
+    </ALTERNATE_KEY_LOOP_UNIQUE>
   </IF STRUCTURE_ISAM>
 
             data <structureNoplural>Type = (@EdmEntityType)tempModel.FindDeclaredType("<MODELS_NAMESPACE>.<StructureNoplural>")
   <IF STRUCTURE_ISAM>
-    <ALTERNATE_KEY_LOOP>
+    <ALTERNATE_KEY_LOOP_UNIQUE>
       <IF NOT_COUNTER_1>
       <ELSE>
             tempModel.AddAlternateKeyAnnotation(<structureNoplural>Type, new Dictionary<string, IEdmProperty>() {<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE>{"<FieldSqlName>",<structureNoplural>Type.FindProperty("<FieldSqlName>")}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>})
       </IF NOT_COUNTER_1>
-    </ALTERNATE_KEY_LOOP>
+    </ALTERNATE_KEY_LOOP_UNIQUE>
   </IF STRUCTURE_ISAM>
 </STRUCTURE_LOOP>
 

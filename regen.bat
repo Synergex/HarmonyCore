@@ -231,6 +231,28 @@ if DEFINED ENABLE_POSTMAN_TESTS (
 )
 
 rem ================================================================================
+rem Custom Authentication Example
+
+if DEFINED ENABLE_CUSTOM_AUTHENTICATION (
+
+  rem Generate AuthenticationModels.dbl
+  codegen -t  ODataCustomAuthModels ^
+          -i  %SolutionDir%Templates ^
+          -o  %SolutionDir%%ModelsProject% ^
+          -n  %ModelsProject% ^
+              %NOREPLACEOPTS%
+  if ERRORLEVEL 1 goto error
+
+  rem Generate AuthenticationController.dbl and AuthenticationTools.dbl
+  codegen -t  ODataCustomAuthController ODataCustomAuthTools ^
+          -i  %SolutionDir%Templates ^
+          -o  %SolutionDir%%ControllersProject% ^
+          -n  %ControllersProject% ^
+              %NOREPLACEOPTS%
+  if ERRORLEVEL 1 goto error
+)
+
+rem ================================================================================
 rem Unit testing project
 
 if DEFINED ENABLE_UNIT_TEST_GENERATION (
