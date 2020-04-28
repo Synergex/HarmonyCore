@@ -122,9 +122,18 @@ namespace <NAMESPACE>
             ArgumentHelper.Argument(0, resultTuple, response.ReturnValue)
     </IF FUNCTION>
     <IF OUT_OR_INOUT>
+
+    <IF OPTIONAL>
+            data resultList, @List<Object>, resultTuple.Item2.ToList()
+    </IF>
+
     <PARAMETER_LOOP>
       <IF OUT_OR_INOUT>
+      <IF OPTIONAL>
+            response.<PARAMETER_NAME> = ^as(resultList[<PARAMETER_NUMBER> - 1],<HARMONYCORE_BRIDGE_PARAMETER_TYPE>)
+      <ELSE>
             ArgumentHelper.Argument(<PARAMETER_NUMBER>, resultTuple, response.<PARAMETER_NAME>)
+      </IF>
       </IF OUT_OR_INOUT>
     </PARAMETER_LOOP>
   </IF OUT_OR_INOUT>
