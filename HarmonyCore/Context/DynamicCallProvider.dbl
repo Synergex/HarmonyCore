@@ -410,7 +410,6 @@ namespace Harmony.Core.Context
 				mreturn retArg.PassedValue
 		endmethod
 
-
 		public async method CallMethod, @Task<Tuple<T, [#]@Object>>
 			name, @string
 			args, [#]@object 
@@ -479,9 +478,21 @@ namespace Harmony.Core.Context
 				data retValue = ((@JToken)arguments[1].PassedValue)
 				mreturn Tuple.Create(retValue.Value<T>(), argsTemp)
 			end
+			else if(arguments[1].DataType == FieldDataType.DataObjectCollectionField) then
+			begin
+				mreturn Tuple.Create((T)GetTypeCorrectedCollectionValue(args[1], arguments[1]), argsTemp)
+			end
+			else if(arguments[1].PassedValue != ^null && argsTemp[1] != ^null) then
+			begin
+				if(^typeof(T) == ^typeof(Object)) then
+					mreturn Tuple.Create((T)arguments[1].PassedValue, argsTemp)
+				else
+					mreturn Tuple.Create((T)Convert.ChangeType(arguments[1].PassedValue,^typeof(T)), argsTemp)
+			end
 			else
 			begin
-				mreturn Tuple.Create((T)Convert.ChangeType(arguments[1].PassedValue,^typeof(T)), argsTemp)
+				data defaultT, T
+				mreturn Tuple.Create(defaultT, argsTemp)
 			end
 		endmethod
 	endclass

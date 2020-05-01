@@ -229,7 +229,22 @@ namespace Harmony.Core
 			begin
 				try
 				begin
-					mreturn (T)Activator.CreateInstance(^typeof(T), new Object[#] { arg })
+					data typedArgCollection = ^typeof(Enumerable).GetMethod("OfType").MakeGenericMethod(^typeof(T).GenericTypeArguments[1]).Invoke(^null, new Object[#] { arg })
+					mreturn (T)Activator.CreateInstance(^typeof(T), new Object[#] { typedArgCollection })
+				end
+				catch(ex, @Exception)
+				begin
+					throw new Exception(string.Format("Failed to create instance of {0} using argument of type {1}", ^typeof(T), argType))
+				end
+				endtry
+			end
+			else if(^typeof(T).IsGenericType && (^typeof(T).GetGenericTypeDefinition() == ^typeof(IEnumerable<>) || 
+			&	^typeof(T).GetGenericTypeDefinition() == ^typeof(ICollection<>) || ^typeof(T).GetGenericTypeDefinition() == ^typeof(IList<>))) then
+			begin
+				try
+				begin
+					data typedArgCollection = ^typeof(Enumerable).GetMethod("OfType").MakeGenericMethod(^typeof(T).GenericTypeArguments[1]).Invoke(^null, new Object[#] { arg })
+					mreturn (T)Activator.CreateInstance(^typeof(List<>).MakeGenericType(new Type[#] { ^typeof(T).GenericTypeArguments[1] }), new Object[#] { typedArgCollection })
 				end
 				catch(ex, @Exception)
 				begin
