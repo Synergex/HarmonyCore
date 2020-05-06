@@ -441,29 +441,30 @@ namespace <NAMESPACE>
             required in vType, ValidationType
             required in sp, @IServiceProvider
     <RELATION_LOOP_RESTRICTED>
-
+      <IF VALIDATION_VALUE_PRESENT OR VALIDATION_ALWAYS>
             ;;From key for <HARMONYCORE_RELATION_NAME>
             record rel<RELATION_NUMBER>FromKey
-      <COUNTER_1_RESET>
-      <FROM_KEY_SEGMENT_LOOP>
-        <IF SEG_TYPE_FIELD>
+        <COUNTER_1_RESET>
+        <FROM_KEY_SEGMENT_LOOP>
+          <IF SEG_TYPE_FIELD>
               <segment_name>, <segment_spec>
-        <ELSE SEG_TYPE_LITERAL>
-          <COUNTER_1_INCREMENT>
+          <ELSE SEG_TYPE_LITERAL>
+            <COUNTER_1_INCREMENT>
               litseg<COUNTER_1_VALUE>, a*, "<SEGMENT_LITVAL>"
-        </IF SEG_TYPE_FIELD>
-      </FROM_KEY_SEGMENT_LOOP>
+          </IF SEG_TYPE_FIELD>
+        </FROM_KEY_SEGMENT_LOOP>
             endrecord
 
             ;;From key for <HARMONYCORE_RELATION_NAME> (no tags)
             record rel<RELATION_NUMBER>FromKeyNoTag
-      <COUNTER_1_RESET>
-      <FROM_KEY_SEGMENT_LOOP>
-        <IF SEG_TYPE_FIELD>
+        <COUNTER_1_RESET>
+        <FROM_KEY_SEGMENT_LOOP>
+          <IF SEG_TYPE_FIELD>
               <segment_name>, <segment_spec>
-        </IF SEG_TYPE_FIELD>
-      </FROM_KEY_SEGMENT_LOOP>
+          </IF SEG_TYPE_FIELD>
+        </FROM_KEY_SEGMENT_LOOP>
             endrecord
+      </IF VALIDATION_VALUE_PRESENT>
     </RELATION_LOOP_RESTRICTED>
         proc
             ;;No relation validation if the record is being deleted
