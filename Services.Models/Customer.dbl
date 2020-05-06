@@ -324,95 +324,6 @@ namespace Services.Models
             mreturn new Object[13]
         endmethod
 
-        ;;; <summary>
-        ;;; Validate data for relations
-        ;;; </summary>
-        ;;; <param name="type">Validation type (create, update or delete)</param>
-        ;;; <param name="sp">Serices provider</param>
-        public override method Validate, void
-            required in vType, ValidationType
-            required in sp, @IServiceProvider
-
-            ;;From key for REL_CustomerOrders
-            record rel1FromKey
-              customer_number, d6
-            endrecord
-
-            ;;From key for REL_CustomerFavoriteItem
-            record rel2FromKey
-              favorite_item, d6
-            endrecord
-
-            ;;From key for REL_CustomerNotes
-            record rel3FromKey
-              customer_number, d6
-            endrecord
-        proc
-            ;;No relation validation if the record is being deleted
-            if (vType == ValidationType.Delete)
-                mreturn
-
-            ;;Get an instance of IDataObjectProvider
-            data doProvider, @IDataObjectProvider, sp.GetService<IDataObjectProvider>()
-
-            ;;--------------------------------------------------------------------------------
-            ;;Validate data for relation 1 (REL_CustomerOrders)
-
-            rel1FromKey.customer_number = mSynergyData.customer_number
-            ;;This key does not REQUIRE a match, so only attempt to validate if we have a "from key" value
-            data rel1FromKeyValue, string, rel1FromKey
-            if (!String.IsNullOrWhiteSpace(rel1FromKeyValue.Replace("0"," ")))
-            begin
-                disposable data rel1FileIO = doProvider.GetFileIO<Order>()
-                if (rel1FileIO.FindRecord(1,rel1FromKey) != FileAccessResults.Success)
-                begin
-                    throw new ValidationException("Invalid data for relation REL_CustomerOrders")
-                end
-            end
-
-            ;;--------------------------------------------------------------------------------
-            ;;Validate data for relation 2 (REL_CustomerFavoriteItem)
-
-            rel2FromKey.favorite_item = mSynergyData.favorite_item
-            ;;This key does not REQUIRE a match, so only attempt to validate if we have a "from key" value
-            data rel2FromKeyValue, string, rel2FromKey
-            if (!String.IsNullOrWhiteSpace(rel2FromKeyValue.Replace("0"," ")))
-            begin
-                disposable data rel2FileIO = doProvider.GetFileIO<Item>()
-                if (rel2FileIO.FindRecord(0,rel2FromKey) != FileAccessResults.Success)
-                begin
-                    throw new ValidationException("Invalid data for relation REL_CustomerFavoriteItem")
-                end
-            end
-
-            ;;--------------------------------------------------------------------------------
-            ;;Validate data for relation 3 (REL_CustomerNotes)
-
-            rel3FromKey.customer_number = mSynergyData.customer_number
-            ;;This key does not REQUIRE a match, so only attempt to validate if we have a "from key" value
-            data rel3FromKeyValue, string, rel3FromKey
-            if (!String.IsNullOrWhiteSpace(rel3FromKeyValue.Replace("0"," ")))
-            begin
-                disposable data rel3FileIO = doProvider.GetFileIO<CustomerNote>()
-                if (rel3FileIO.FindRecord(0,rel3FromKey) != FileAccessResults.Success)
-                begin
-                    throw new ValidationException("Invalid data for relation REL_CustomerNotes")
-                end
-            end
-
-            ;;--------------------------------------------------------------------------------
-            ;;If we have a ValidateCustom method, call it
-
-            ValidateCustom(vType,sp)
-
-        endmethod
-
-
-        private partial method ValidateCustom, void
-            required in vType, ValidationType
-            required in sp, @IServiceProvider
-        endmethod
-
 .endregion
 
 .region "Relationships to other entities"
@@ -437,7 +348,106 @@ namespace Services.Models
 
 .endregion
 
+.region "Relation validation"
+
+        ;;; <summary>
+        ;;; Validate data for relations
+        ;;; </summary>
+        ;;; <param name="type">Validation type (create, update or delete)</param>
+        ;;; <param name="sp">Serices provider</param>
+        public override method Validate, void
+            required in vType, ValidationType
+            required in sp, @IServiceProvider
+
+            ;;From key for REL_CustomerOrders
+            record rel1FromKey
+              customer_number, d6
+            endrecord
+
+            ;;From key for REL_CustomerOrders (no tags)
+            record rel1FromKeyNoTag
+              customer_number, d6
+            endrecord
+
+            ;;From key for REL_CustomerFavoriteItem
+            record rel2FromKey
+              favorite_item, d6
+            endrecord
+
+            ;;From key for REL_CustomerFavoriteItem (no tags)
+            record rel2FromKeyNoTag
+              favorite_item, d6
+            endrecord
+
+            ;;From key for REL_CustomerNotes
+            record rel3FromKey
+              customer_number, d6
+            endrecord
+
+            ;;From key for REL_CustomerNotes (no tags)
+            record rel3FromKeyNoTag
+              customer_number, d6
+            endrecord
+        proc
+            ;;No relation validation if the record is being deleted
+            if (vType == ValidationType.Delete)
+                mreturn
+
+            ;;Get an instance of IDataObjectProvider
+            data dataObjectProvider, @IDataObjectProvider, sp.GetService<IDataObjectProvider>()
+
+            ;;--------------------------------------------------------------------------------
+            ;;Validate data for relation 1 (REL_CustomerOrders)
+
+            ;;Validation mode: None
+
+            ;;--------------------------------------------------------------------------------
+            ;;Validate data for relation 2 (REL_CustomerFavoriteItem)
+
+            ;;Validation mode: ValuePresent
+
+            ;;Populate from key values
+            rel2FromKey.favorite_item = mSynergyData.favorite_item
+            rel2FromKeyNoTag.favorite_item = mSynergyData.favorite_item
+
+            ;;Move the key value, excluding tag literals, into a string so we can use String.Replace()
+            data rel2FromKeyValue, string, rel2FromKeyNoTag
+
+            ;;After replacing "0" with " ", is there anything remaining?
+            if (!String.IsNullOrWhiteSpace(rel2FromKeyValue.Replace("0"," ")))
+            begin
+                ;;Get a file I/O object for type "Item".
+                disposable data rel2FileIO = dataObjectProvider.GetFileIO<Item>()
+
+                ;;And use it to attempt to read the record in the other file.
+                if (rel2FileIO.FindRecord(0,rel2FromKey) != FileAccessResults.Success)
+                begin
+                    throw new ValidationException("Invalid data for relation REL_CustomerFavoriteItem")
+                end
+            end
+
+            ;;--------------------------------------------------------------------------------
+            ;;Validate data for relation 3 (REL_CustomerNotes)
+
+            ;;Validation mode: None
+
+            ;;--------------------------------------------------------------------------------
+            ;;If we have a ValidateCustom method, call it
+
+            ValidateCustom(vType,sp)
+
+        endmethod
+
+
+        private partial method ValidateCustom, void
+            required in vType, ValidationType
+            required in sp, @IServiceProvider
+        endmethod
+
+.endregion
+
 .region "Properties to represent keys"
+
         ;;Access keys
 
         private _KEY_CUSTOMER_NUMBER, string, ""
@@ -457,9 +467,8 @@ namespace Services.Models
         private _KEY_FAVORITE_ITEM, string, ""
         public readonly property KEY_FAVORITE_ITEM, string, ""
 
-
 .endregion
 
-endclass
+    endclass
 
 endnamespace

@@ -173,6 +173,20 @@ namespace Services.Models
             mreturn new Object[3]
         endmethod
 
+.endregion
+
+.region "Relationships to other entities"
+
+        ;;; <summary>
+        ;;; Relationship (Type A)
+        ;;; CUSTOMER_NOTE.CUSTOMER_NUMBER (one) --> (one) --> (many) CUSTOMER.CUSTOMER_NUMBER
+        ;;; </summary>
+        public readwrite property REL_Customer, @Customer
+
+.endregion
+
+.region "Relation validation"
+
         ;;; <summary>
         ;;; Validate data for relations
         ;;; </summary>
@@ -186,28 +200,23 @@ namespace Services.Models
             record rel1FromKey
               customer_number, d6
             endrecord
+
+            ;;From key for REL_Customer (no tags)
+            record rel1FromKeyNoTag
+              customer_number, d6
+            endrecord
         proc
             ;;No relation validation if the record is being deleted
             if (vType == ValidationType.Delete)
                 mreturn
 
             ;;Get an instance of IDataObjectProvider
-            data doProvider, @IDataObjectProvider, sp.GetService<IDataObjectProvider>()
+            data dataObjectProvider, @IDataObjectProvider, sp.GetService<IDataObjectProvider>()
 
             ;;--------------------------------------------------------------------------------
             ;;Validate data for relation 1 (REL_Customer)
 
-            rel1FromKey.customer_number = mSynergyData.customer_number
-            ;;This key does not REQUIRE a match, so only attempt to validate if we have a "from key" value
-            data rel1FromKeyValue, string, rel1FromKey
-            if (!String.IsNullOrWhiteSpace(rel1FromKeyValue.Replace("0"," ")))
-            begin
-                disposable data rel1FileIO = doProvider.GetFileIO<Customer>()
-                if (rel1FileIO.FindRecord(0,rel1FromKey) != FileAccessResults.Success)
-                begin
-                    throw new ValidationException("Invalid data for relation REL_Customer")
-                end
-            end
+            ;;Validation mode: None
 
             ;;--------------------------------------------------------------------------------
             ;;If we have a ValidateCustom method, call it
@@ -224,25 +233,15 @@ namespace Services.Models
 
 .endregion
 
-.region "Relationships to other entities"
-
-        ;;; <summary>
-        ;;; Relationship (Type A)
-        ;;; CUSTOMER_NOTE.CUSTOMER_NUMBER (one) --> (one) --> (many) CUSTOMER.CUSTOMER_NUMBER
-        ;;; </summary>
-        public readwrite property REL_Customer, @Customer
-
-.endregion
-
 .region "Properties to represent keys"
+
         ;;Access keys
 
         private _KEY_CUSTOMER_NUMBER, string, ""
         public readonly property KEY_CUSTOMER_NUMBER, string, ""
 
-
 .endregion
 
-endclass
+    endclass
 
 endnamespace
