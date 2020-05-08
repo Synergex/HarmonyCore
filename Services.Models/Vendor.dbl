@@ -278,6 +278,20 @@ namespace Services.Models
             mreturn new Object[10]
         endmethod
 
+.endregion
+
+.region "Relationships to other entities"
+
+        ;;; <summary>
+        ;;; Relationship (Type D)
+        ;;; VENDOR.VENDOR_NUMBER (one) <-> (many) ITEM.VENDOR_NUMBER
+        ;;; </summary>
+        public readwrite property REL_Items, @ICollection<Item>
+
+.endregion
+
+.region "Relation validation"
+
         ;;; <summary>
         ;;; Validate data for relations
         ;;; </summary>
@@ -291,28 +305,23 @@ namespace Services.Models
             record rel1FromKey
               vendor_number, d6
             endrecord
+
+            ;;From key for REL_Items (no tags)
+            record rel1FromKeyNoTag
+              vendor_number, d6
+            endrecord
         proc
             ;;No relation validation if the record is being deleted
             if (vType == ValidationType.Delete)
                 mreturn
 
             ;;Get an instance of IDataObjectProvider
-            data doProvider, @IDataObjectProvider, sp.GetService<IDataObjectProvider>()
+            data dataObjectProvider, @IDataObjectProvider, sp.GetService<IDataObjectProvider>()
 
             ;;--------------------------------------------------------------------------------
             ;;Validate data for relation 1 (REL_Items)
 
-            rel1FromKey.vendor_number = mSynergyData.vendor_number
-            ;;This key does not REQUIRE a match, so only attempt to validate if we have a "from key" value
-            data rel1FromKeyValue, string, rel1FromKey
-            if (!String.IsNullOrWhiteSpace(rel1FromKeyValue.Replace("0"," ")))
-            begin
-                disposable data rel1FileIO = doProvider.GetFileIO<Item>()
-                if (rel1FileIO.FindRecord(0,rel1FromKey) != FileAccessResults.Success)
-                begin
-                    throw new ValidationException("Invalid data for relation REL_Items")
-                end
-            end
+            ;;Validation mode: None
 
             ;;--------------------------------------------------------------------------------
             ;;If we have a ValidateCustom method, call it
@@ -329,17 +338,8 @@ namespace Services.Models
 
 .endregion
 
-.region "Relationships to other entities"
-
-        ;;; <summary>
-        ;;; Relationship (Type D)
-        ;;; VENDOR.VENDOR_NUMBER (one) <-> (many) ITEM.VENDOR_NUMBER
-        ;;; </summary>
-        public readwrite property REL_Items, @ICollection<Item>
-
-.endregion
-
 .region "Properties to represent keys"
+
         ;;Access keys
 
         private _KEY_VENDOR_NUMBER, string, ""
@@ -354,9 +354,8 @@ namespace Services.Models
         private _KEY_PAYMENT_TERMS, string, ""
         public readonly property KEY_PAYMENT_TERMS, string, ""
 
-
 .endregion
 
-endclass
+    endclass
 
 endnamespace
