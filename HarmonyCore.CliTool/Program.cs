@@ -18,10 +18,10 @@ namespace HarmonyCore.CliTool
             [Option('p', "project")]
             public bool ProjectOnly { get; set; }
         }
-        public static string CurrentVersionTag = "release-v3.1.3";
+        public static string CurrentVersionTag = "release-v3.1.5";
         public static string BuildPackageVersion = "11.1.1030.2704";
         public static string CodeDomProviderVersion = "1.0.7";
-        public static string HCBuildVersion = "3.1.75";
+        public static string HCBuildVersion = "3.1.90";
         public static Dictionary<string, string> LatestNugetReferences = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase)
         {
             {"Harmony.Core", HCBuildVersion},
@@ -38,6 +38,7 @@ namespace HarmonyCore.CliTool
             {"IdentityServer4.AccessTokenValidation", "3.0.1"},
             {"Microsoft.AspNetCore.OData", "7.3.0"},
             {"Microsoft.OData.Core", "7.6.3"},
+            {"Microsoft.AspNetCore.JsonPatch", "3.1.3"},
             {"Microsoft.VisualStudio.Threading", "16.5.132"},
             {"StreamJsonRpc", "2.3.103"},
             {"IdentityModel", "4.1.1" },

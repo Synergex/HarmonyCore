@@ -174,6 +174,20 @@ namespace HarmonyCore.CliTool
                     webReference.Attributes.Append(webReferenceName);
                     firstItemGroup.AppendChild(webReference);
                 }
+
+                var hasOdataVersioning = ProjectDoc.GetElementsByTagName("PackageReference").OfType<XmlNode>()
+                    .Any(node => node.Attributes["Include"]?.Value == "Microsoft.AspNetCore.OData.Versioning.ApiExplorer");
+                if (!hasOdataVersioning)
+                {
+                    var versioningReference = ProjectDoc.CreateElement("PackageReference");
+                    var versioningReferenceName = ProjectDoc.CreateAttribute("Include");
+                    versioningReferenceName.Value = "Microsoft.AspNetCore.OData.Versioning.ApiExplorer";
+                    var versioningReferenceVersion = ProjectDoc.CreateAttribute("Version");
+                    versioningReferenceVersion.Value = Program.LatestNugetReferences["Microsoft.AspNetCore.OData.Versioning.ApiExplorer"];
+                    versioningReference.Attributes.Append(versioningReferenceName);
+                    versioningReference.Attributes.Append(versioningReferenceVersion);
+                    firstItemGroup.AppendChild(versioningReference);
+                }
             }
 
             if (CodeDomProjects.Contains(cleanFileName))
