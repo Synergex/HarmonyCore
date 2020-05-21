@@ -22,7 +22,7 @@ namespace HarmonyCore.Test.Bridge
         private method GetContextPool<T(IContextBase, class)>, @ExternalContextPool<T>
         proc
             data currentDirectory = Path.GetDirectoryName(^typeof(BasicBridge).Assembly.Location)
-            data contextPool = new ExternalContextPool<T>(Environment.GetEnvironmentVariable("SYNERGYDE64") + "dbl\bin\dbs.exe", 'TraditionalBridge.Test.dbr', Path.GetFullPath(Path.Combine(Environment.GetEnvironmentVariable("SolutionDir") ?? (currentDirectory + "..\..\..\..\..\"), "TestDir")), ^null, 4) 
+            data contextPool = new ExternalContextPool<T>(Environment.GetEnvironmentVariable("SYNERGYDE32") + "dbl\bin\dbs.exe", 'TraditionalBridge.Test.dbr', Path.GetFullPath(Path.Combine(Environment.GetEnvironmentVariable("SolutionDir") ?? (currentDirectory + "..\..\..\..\..\..\"), "TestDir")), ^null, 4) 
             mreturn contextPool
         endmethod
 
@@ -235,8 +235,13 @@ namespace HarmonyCore.Test.Bridge
                 data theatus = new Customer() { Name="theatus", CustomerNumber=5 }
                 data snorkle = new Customer() { Name="snorkle", CustomerNumber=6 }
                 data resultTpl, @Tuple<Object, [#]Object>, await CallMethod("Arbitrario.Structures", new Object[#] { customerArray, customerList, theatus, snorkle })
-                data returnToken = ((@JToken)resultTpl.Item1)
-                mreturn new ArbitrarioStructuresReturnType() { ReturnCode = returnToken.ToObject<int>(), CustomerList =((@IEnumerable<Customer>)resultTpl.Item2[1]).ToList(), CustomerArray =((@IEnumerable<Customer>)resultTpl.Item2[2]).ToArray(), Customer=(@Customer)resultTpl.Item2[3] }
+				mreturn new ArbitrarioStructuresReturnType() 
+				&	{ 
+				&	ReturnCode = ArgumentHelper.Argument<int>(0, resultTpl), 
+				&	CustomerList = ArgumentHelper.Argument<List<Customer>>(1, resultTpl), 
+				&	CustomerArray = ArgumentHelper.Argument<[#]@Customer>(2, resultTpl),
+				&	Customer = ArgumentHelper.Argument<Customer>(3, resultTpl)
+                &   }
             endmethod
 
             public async method Arbitrario_Optional, @Task<ArbitrarioOptionalReturnType>
