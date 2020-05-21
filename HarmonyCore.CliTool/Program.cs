@@ -158,11 +158,11 @@ namespace HarmonyCore.CliTool
             {
                 foreach(var entry in zip.Entries)
                 {
-                    if (entry.CompressedLength > 0 && entry.FullName.Contains("Templates"))
+                    if (entry.CompressedLength > 0 && entry.FullName.StartsWith($"HarmonyCore-{CurrentVersionTag}/Templates/"))
                     {
                         if (distinctTemplateFolders.Count > 0)
                         {
-                            var targetFileName = Path.Combine(distinctTemplateFolders.First(), entry.FullName.Replace($"HarmonyCore-{CurrentVersionTag}/Templates/", "").Replace("/", "\\").Replace("\\\\", "\\"));
+                            var targetFileName = Path.Combine(distinctTemplateFolders.First(), entry.FullName.Replace($"HarmonyCore-{CurrentVersionTag}/Templates/", "", StringComparison.CurrentCultureIgnoreCase).Replace("/", "\\").Replace("\\\\", "\\"));
 
                             if (targetFileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
                                 continue;
@@ -182,7 +182,7 @@ namespace HarmonyCore.CliTool
                     }
                     else if (entry.CompressedLength > 0 && hasTraditionalBridge && entry.FullName.StartsWith($"HarmonyCore-{CurrentVersionTag}/TraditionalBridge/"))
                     {
-                        var targetFileName = Path.Combine(traditionalBridgeFolder, Path.GetFileName(entry.FullName.Replace($"HarmonyCore-{CurrentVersionTag}", "").Replace("/", "\\").Replace("\\\\", "\\")));
+                        var targetFileName = Path.Combine(traditionalBridgeFolder, Path.GetFileName(entry.FullName.Replace($"HarmonyCore-{CurrentVersionTag}", "", StringComparison.CurrentCultureIgnoreCase).Replace("/", "\\").Replace("\\\\", "\\")));
                         if(File.Exists(targetFileName))
                             File.Delete(targetFileName);
 
