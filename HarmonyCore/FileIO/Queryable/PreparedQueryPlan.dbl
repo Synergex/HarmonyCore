@@ -33,7 +33,7 @@ namespace Harmony.Core.FileIO.Queryable
 
 	public class PreparedQueryPlan
 		public static MARSTargetSize, int, 2
-		public static EnableMARS, boolean, false
+		public static EnableMARS, boolean, true
 
 		structure memMapper
 			fld,a1
@@ -249,7 +249,8 @@ namespace Harmony.Core.FileIO.Queryable
 					joinSelectObjects.Add(joinSelectObject)
 					data selEnumerator = joinSelectObject.GetEnumerator()
 					rows.Add(selEnumerator)
-					marsTpls.Add(Tuple.Create<Synergex.SynergyDE.Select.RowEnumerator, IEnumerable<MaterializerState>, JoinSelect>(selEnumerator, materializerState.MaterializerQueue.Where(lambda (mat) { splitBuffer.Contains(mat.typeBuf) || mat.parentState == ^null }).ToList(), joinSelectObject))
+					data materializerStates = materializerState.MaterializerQueue.Where(lambda (mat) { splitBuffer.Contains(mat.typeBuf) || mat.parentState == ^null }).ToList()
+					marsTpls.Add(Tuple.Create<Synergex.SynergyDE.Select.RowEnumerator, IEnumerable<MaterializerState>, JoinSelect>(selEnumerator, materializerStates, joinSelectObject))
 				end
 
 				data rowManager = new RowsManager(marsTpls, marsTpls.First().Item2.First(lambda (mat) { mat.parentState == ^null }))
@@ -269,6 +270,26 @@ namespace Harmony.Core.FileIO.Queryable
 
 		endmethod
 
+		private static method BufferCost, int
+			targetbuffer, @QueryBuffer.TypeBuffer
+		proc
+			;;if the buffer is single, its inherent cost is 1
+			;;multiply inherent cost against the cost of a buffers children
+			data inherentCost = targetbuffer.IsCollection ? 10 : 1
+			
+			if(targetbuffer.JoinedBuffers != ^null)
+			begin
+				data childBuffer, @QueryBuffer.TypeBuffer
+				foreach childBuffer in targetbuffer.JoinedBuffers
+				begin
+					inherentCost += (inherentCost * BufferCost(childBuffer))
+				end
+			end
+
+			mreturn inherentCost
+		endmethod
+
+
 		private method SplitMARSBuffers, @List<List<QueryBuffer.TypeBuffer>>
 			targetSize, int
 			sourceBuffer, @QueryBuffer
@@ -281,44 +302,30 @@ namespace Harmony.Core.FileIO.Queryable
 			end
 			else
 			begin
-				data realTargetSize = targetSize
-				data groups = drivingBuffer.JoinedBuffers.Count / realTargetSize
-				if(groups == 1) then
+				data flatGroupBuffers = new List<QueryBuffer.TypeBuffer>()
+				data targetBuffer, @QueryBuffer.TypeBuffer
+				data accumulatedCost = 0
+				foreach targetBuffer in drivingBuffer.JoinedBuffers.OrderBy(BufferCost)
 				begin
-					if(drivingBuffer.JoinedBuffers.Count .mod. realTargetSize != 0)
-						groups = 2
-				end
-				else
-				begin
-					data leftovers = drivingBuffer.JoinedBuffers.Count .mod. realTargetSize
-					if(leftovers > groups) then
+					accumulatedCost += BufferCost(targetBuffer)
+
+					;;have to get at least one in each leg regardless of the buffer cost
+					if(accumulatedCost > PreparedQueryPlan.MARSTargetSize && flatGroupBuffers.Count > 0)
 					begin
-						groups += 1
+						result.Add(flatGroupBuffers)
+						flatGroupBuffers = new List<QueryBuffer.TypeBuffer>()
 					end
-					else
+
+					if(flatGroupBuffers.Count == 0)
 					begin
-						realTargetSize += 1
+						flatGroupBuffers.Add(result.Count > 0 ? sourceBuffer.MakeDrivingBuffer(drivingBuffer) : drivingBuffer)
 					end
+
+					flatGroupBuffers.Add(targetBuffer)
+					GetFlatTypeBuffers(targetBuffer, flatGroupBuffers)
 				end
 
-				data i = 0
-				for i from 0 thru groups - 1 by 1
-				begin
-					data groupBuffers = drivingBuffer.JoinedBuffers.Skip(realTargetSize * i).Take(realTargetSize)
-					data flatGroupBuffers = new List<QueryBuffer.TypeBuffer>()
-					data buff, @QueryBuffer.TypeBuffer
-
-					if(groupBuffers.Count() == 0)
-						exitloop
-
-					flatGroupBuffers.Add(i > 0 ? sourceBuffer.MakeDrivingBuffer(drivingBuffer) : drivingBuffer)
-					foreach buff in groupBuffers
-					begin
-						flatGroupBuffers.Add(buff)
-						GetFlatTypeBuffers(buff, flatGroupBuffers)
-					end
-					result.Add(flatGroupBuffers)
-				end
+				result.Add(flatGroupBuffers)
 			end
 			mreturn result
 			

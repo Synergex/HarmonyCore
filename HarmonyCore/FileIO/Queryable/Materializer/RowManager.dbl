@@ -11,7 +11,7 @@ namespace Harmony.Core.FileIO.Queryable.Materializer
 	public interface IRowState
 		
 		readonly property Finished, boolean
-		readonly property Waiting, boolean
+		readwrite property Waiting, boolean
 
 		method GetChangeState, void
 			targetState, @MaterializerState
@@ -34,7 +34,7 @@ namespace Harmony.Core.FileIO.Queryable.Materializer
 
 		public readwrite property Finished, boolean
 		public readwrite property Waiting, boolean
-		DrivingState, @MaterializerState
+		DrivingState, @SimpleRowState
 		Enumerator, @Synergex.SynergyDE.Select.RowEnumerator
 		;;this should be zero but its possible for it to be different in the future
 		DrivingRowIndex, int
@@ -44,12 +44,12 @@ namespace Harmony.Core.FileIO.Queryable.Materializer
 
 		public method SimpleRowState
 			rowEnumerator, @Synergex.SynergyDE.Select.RowEnumerator
-			driveState, @MaterializerState
+			driveState, @SimpleRowState
 			allStates, @IEnumerable<MaterializerState>
 			joinObj, @JoinSelect
 			isDrivingRow, boolean
 		proc
-			DrivingState = driveState
+			DrivingState = driveState ?? this
 			Enumerator = rowEnumerator
 			RowLookup = IndexStates(allStates,joinObj)
 			this.IsDrivingRow = isDrivingRow
@@ -77,7 +77,9 @@ namespace Harmony.Core.FileIO.Queryable.Materializer
 			targetState, @MaterializerState
 		proc
 			if(Waiting || Finished) then
+			begin
 				targetState.changed = false
+			end
 			else
 				Enumerator.Current.RowInfo(RowLookup[targetState], , ,targetState.changed)
 		endmethod
@@ -91,7 +93,7 @@ namespace Harmony.Core.FileIO.Queryable.Materializer
 			if(currentRow.RowInfo(RowLookup[targetState], targetState.grfa)) then
 			begin
 				targetState.filled = currentRow.Fill(^m(memMapper.fld(1:structureSize), memPnt))
-				DebugLogSession.Logging.LogDebug("Materializer: filled record of type {0} with value {1}", targetState.typeBuf.DataObjectType, new MemoryHandleDebugLogHelper(memPnt, structureSize, true))
+				DebugLogSession.Logging.LogTrace("Materializer: filled record of type {0} with value {1}", targetState.typeBuf.DataObjectType, new MemoryHandleDebugLogHelper(memPnt, structureSize, true))
 			end
 			else
 				targetState.filled = false
@@ -104,13 +106,16 @@ namespace Harmony.Core.FileIO.Queryable.Materializer
 
 			if(Waiting && !IsDrivingRow)
 			begin
-				if(DrivingState.grfa == Grfa) then
+				if(!DrivingState.Waiting && DrivingState.grfa == Grfa) then
 				begin
 					Waiting = false
-					mreturn true
 				end
 				else
-					mreturn false
+				begin
+					if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+						DebugLogSession.Logging.LogTrace("MARS move next was mismatched with grfa {0} driving table was {1}", new Object[#] { Convert.ToBase64String(([#]byte)Grfa), Convert.ToBase64String(([#]byte)DrivingState.grfa)})
+				end
+				mreturn true
 			end
 
 			data moveNextResult = Enumerator.MoveNext()
@@ -121,7 +126,10 @@ namespace Harmony.Core.FileIO.Queryable.Materializer
 				if(!Enumerator.Current.RowInfo(DrivingRowIndex, Grfa,,changed))
 					throw new InvalidOperationException("Driving row was invalid")
 
-				if(!IsDrivingRow && DrivingState.grfa != Grfa)
+				if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+					DebugLogSession.Logging.LogTrace("MARS move next got grfa {0} driving table was {1} this table is driving table {2}", new Object[#] { Convert.ToBase64String(([#]byte)Grfa), Convert.ToBase64String(([#]byte)DrivingState.grfa), IsDrivingRow})
+
+				if(!IsDrivingRow && changed && DrivingState.grfa != Grfa)
 					Waiting = true
 			end
 			else
@@ -147,7 +155,7 @@ namespace Harmony.Core.FileIO.Queryable.Materializer
 			joinObj, @JoinSelect
 		proc
 			Started = false
-			Rows = new List<IRowState>() { new SimpleRowState(simpleEnumerator, drivingState, allStates, joinObj, true) }
+			Rows = new List<IRowState>() { new SimpleRowState(simpleEnumerator, ^null, allStates, joinObj, true) }
 		endmethod
 
 		public method RowsManager
@@ -160,7 +168,7 @@ namespace Harmony.Core.FileIO.Queryable.Materializer
 			Rows = new List<IRowState>(); { new SimpleRowState(simpleEnumerator, drivingState, allStates, joinObj) }
 			foreach tpl in activeResultSets
 			begin
-				data rowState = new SimpleRowState(tpl.Item1, drivingState, tpl.Item2, tpl.Item3, activeResultSets.First() == tpl)
+				data rowState = new SimpleRowState(tpl.Item1, ^as(Rows.FirstOrDefault(), @SimpleRowState), tpl.Item2, tpl.Item3, activeResultSets.First() == tpl)
 				data matState, @MaterializerState
 				foreach matState in tpl.Item2
 					if(!RowLookup.ContainsKey(matState))
@@ -224,10 +232,10 @@ namespace Harmony.Core.FileIO.Queryable.Materializer
 
 			
 
-			if(allRowsReady)
-			begin
+			if(allRowsReady) then
 				allRowsFinished = !row.MoveNext()
-			end
+			else
+				row.Waiting = true
 
 			for i from 1 thru Rows.Count - 1 by 1
 			begin
