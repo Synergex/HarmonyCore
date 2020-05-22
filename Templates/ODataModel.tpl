@@ -60,6 +60,9 @@ import Microsoft.Extensions.DependencyInjection
 
 namespace <NAMESPACE>
 
+    <IF DEFINED_ENABLE_NEWTONSOFT>
+    {Newtonsoft.Json.JsonObject( Newtonsoft.Json.MemberSerialization.OptIn)}
+    </IF>
     public partial class <StructureNoplural> extends DataObjectBase
 
         ;;make the record available and a copy
@@ -143,6 +146,9 @@ namespace <NAMESPACE>
 ;//
 ;// Field property
 ;//
+      <IF DEFINED_ENABLE_NEWTONSOFT>
+        {Newtonsoft.Json.JsonProperty}
+      </IF>
       <IF DEFINED_ENABLE_FIELD_SECURITY>
         <IF CUSTOM_HARMONY_AUTHENTICATE>
         {AuthorizeField}
@@ -370,6 +376,9 @@ namespace <NAMESPACE>
 
     <RELATION_LOOP_RESTRICTED>
       <COUNTER_1_INCREMENT>
+      <IF DEFINED_ENABLE_NEWTONSOFT>
+        {Newtonsoft.Json.JsonProperty(DefaultValueHandling=DefaultValueHandling.Ignore)}
+      </IF>
 ;//
 ;//
 ;//

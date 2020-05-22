@@ -23,6 +23,7 @@ import Microsoft.Extensions.DependencyInjection
 
 namespace Services.Models
 
+    {Newtonsoft.Json.JsonObject( Newtonsoft.Json.MemberSerialization.OptIn)}
     public partial class Customer extends DataObjectBase
 
         ;;make the record available and a copy
@@ -70,6 +71,7 @@ namespace Services.Models
         {Key}
         {Required(ErrorMessage="Customer number is required. ")}
         {Range(1,999999, ErrorMessage="Customer number must be between 1 and 999999. ")}
+        {Newtonsoft.Json.JsonProperty}
         public property CustomerNumber, int
             method get
             proc
@@ -86,6 +88,7 @@ namespace Services.Models
         ;;; </summary>
         {Required(ErrorMessage="Customer name is required. ")}
         {StringLength(30, ErrorMessage="Customer name cannot exceed 30 characters. ")}
+        {Newtonsoft.Json.JsonProperty}
         public property Name, String
             method get
             proc
@@ -101,6 +104,7 @@ namespace Services.Models
         ;;; Street address
         ;;; </summary>
         {StringLength(25, ErrorMessage="Street address cannot exceed 25 characters. ")}
+        {Newtonsoft.Json.JsonProperty}
         public property Street, String
             method get
             proc
@@ -116,6 +120,7 @@ namespace Services.Models
         ;;; City
         ;;; </summary>
         {StringLength(20, ErrorMessage="City cannot exceed 20 characters. ")}
+        {Newtonsoft.Json.JsonProperty}
         public property City, String
             method get
             proc
@@ -131,6 +136,7 @@ namespace Services.Models
         ;;; State
         ;;; </summary>
         {StringLength(2, ErrorMessage="State cannot exceed 2 characters. ")}
+        {Newtonsoft.Json.JsonProperty}
         public property State, String
             method get
             proc
@@ -146,6 +152,7 @@ namespace Services.Models
         ;;; Zip code
         ;;; </summary>
         {Range(0,999999999, ErrorMessage="Zip code must be between 0 and 999999999. ")}
+        {Newtonsoft.Json.JsonProperty}
         public property ZipCode, int
             method get
             proc
@@ -161,6 +168,7 @@ namespace Services.Models
         ;;; Contact name
         ;;; </summary>
         {StringLength(25, ErrorMessage="Contact name cannot exceed 25 characters. ")}
+        {Newtonsoft.Json.JsonProperty}
         public property Contact, String
             method get
             proc
@@ -175,6 +183,7 @@ namespace Services.Models
         ;;; <summary>
         ;;; Phone number
         ;;; </summary>
+        {Newtonsoft.Json.JsonProperty}
         public property Phone, String
             method get
             proc
@@ -189,6 +198,7 @@ namespace Services.Models
         ;;; <summary>
         ;;; Fax number
         ;;; </summary>
+        {Newtonsoft.Json.JsonProperty}
         public property Fax, String
             method get
             proc
@@ -204,6 +214,7 @@ namespace Services.Models
         ;;; Customers favorite item
         ;;; </summary>
         {Range(0,999999, ErrorMessage="Customers favorite item must be between 0 and 999999. ")}
+        {Newtonsoft.Json.JsonProperty}
         public property FavoriteItem, int
             method get
             proc
@@ -219,6 +230,7 @@ namespace Services.Models
         ;;; Payment terms code
         ;;; </summary>
         {StringLength(2, ErrorMessage="Payment terms code cannot exceed 2 characters. ")}
+        {Newtonsoft.Json.JsonProperty}
         public property PaymentTermsCode, String
             method get
             proc
@@ -235,6 +247,7 @@ namespace Services.Models
         ;;; </summary>
         {Required(ErrorMessage="Customers tax ID number is required. ")}
         {Range(1,999999999, ErrorMessage="Customers tax ID number must be between 1 and 999999999. ")}
+        {Newtonsoft.Json.JsonProperty}
         public property TaxId, int
             method get
             proc
@@ -250,6 +263,7 @@ namespace Services.Models
         ;;; Credit limit
         ;;; </summary>
         {Range(0,99999.99, ErrorMessage="Credit limit must be between 0 and 99999.99. ")}
+        {Newtonsoft.Json.JsonProperty}
         public property CreditLimit, decimal
             method get
             proc
@@ -328,18 +342,21 @@ namespace Services.Models
 
 .region "Relationships to other entities"
 
+        {Newtonsoft.Json.JsonProperty(DefaultValueHandling=DefaultValueHandling.Ignore)}
         ;;; <summary>
         ;;; Relationship (Type D)
         ;;; CUSTOMER.CUSTOMER_NUMBER (one) <-> (many) ORDER.CUSTOMER_NUMBER
         ;;; </summary>
         public readwrite property REL_CustomerOrders, @ICollection<Order>
 
+        {Newtonsoft.Json.JsonProperty(DefaultValueHandling=DefaultValueHandling.Ignore)}
         ;;; <summary>
         ;;; Relationship (Type C)
         ;;; CUSTOMER.FAVORITE_ITEM (one) --> (one) ITEM.ITEM_NUMBER
         ;;; </summary>
         public readwrite property REL_CustomerFavoriteItem, @Item
 
+        {Newtonsoft.Json.JsonProperty(DefaultValueHandling=DefaultValueHandling.Ignore)}
         ;;; <summary>
         ;;; Relationship (Type D)
         ;;; CUSTOMER.CUSTOMER_NUMBER (one) <-> (many) CUSTOMER_NOTE.CUSTOMER_NUMBER
@@ -358,17 +375,6 @@ namespace Services.Models
         public override method Validate, void
             required in vType, ValidationType
             required in sp, @IServiceProvider
-
-            ;;From key for REL_CustomerOrders
-            record rel1FromKey
-              customer_number, d6
-            endrecord
-
-            ;;From key for REL_CustomerOrders (no tags)
-            record rel1FromKeyNoTag
-              customer_number, d6
-            endrecord
-
             ;;From key for REL_CustomerFavoriteItem
             record rel2FromKey
               favorite_item, d6
@@ -377,16 +383,6 @@ namespace Services.Models
             ;;From key for REL_CustomerFavoriteItem (no tags)
             record rel2FromKeyNoTag
               favorite_item, d6
-            endrecord
-
-            ;;From key for REL_CustomerNotes
-            record rel3FromKey
-              customer_number, d6
-            endrecord
-
-            ;;From key for REL_CustomerNotes (no tags)
-            record rel3FromKeyNoTag
-              customer_number, d6
             endrecord
         proc
             ;;No relation validation if the record is being deleted
