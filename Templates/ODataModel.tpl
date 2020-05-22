@@ -61,7 +61,7 @@ import Microsoft.Extensions.DependencyInjection
 namespace <NAMESPACE>
 
     <IF DEFINED_ENABLE_NEWTONSOFT>
-    {Newtonsoft.Json.JsonObject( Newtonsoft.Json.MemberSerialization.OptIn)}
+    {Newtonsoft.Json.JsonObject(Newtonsoft.Json.MemberSerialization.OptIn)}
     </IF>
     public partial class <StructureNoplural> extends DataObjectBase
 
