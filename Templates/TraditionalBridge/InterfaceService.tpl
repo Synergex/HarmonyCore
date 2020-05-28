@@ -121,11 +121,15 @@ namespace <NAMESPACE>
              ;;Set the return value in the return data
             ArgumentHelper.Argument(0, resultTuple, response.ReturnValue)
     </IF FUNCTION>
-    <IF OUT_OR_INOUT>
+;//
+    <COUNTER_1_RESET>
+    <PARAMETER_LOOP>
+        <IF COUNTER_1_EQ_0 AND OPTIONAL>
+            <COUNTER_1_INCREMENT>
 
-    <IF OPTIONAL>
             data resultList, @List<Object>, resultTuple.Item2.ToList()
-    </IF>
+        </IF>
+    </PARAMETER_LOOP>
 
     <PARAMETER_LOOP>
       <IF OUT_OR_INOUT>
@@ -136,7 +140,6 @@ namespace <NAMESPACE>
       </IF>
       </IF OUT_OR_INOUT>
     </PARAMETER_LOOP>
-  </IF OUT_OR_INOUT>
 
             ;;Return the response
             mreturn response
