@@ -54,6 +54,11 @@ import System.ComponentModel.DataAnnotations
 import <MODELS_NAMESPACE>
 
 namespace <NAMESPACE>
+<ENUM_LOOP>
+.ifndef <ENUM_NAME>
+.include "<ENUM_NAME>" repository, enum
+.endc
+</ENUM_LOOP>
 <METHOD_LOOP>
 
 ;;--------------------------------------------------------------------------------
@@ -118,7 +123,7 @@ namespace <NAMESPACE>
         ;;; No description found in method catalog
         </IF COMMENT>
         ;;; </summary>
-        public <PARAMETER_NAME>, <IF COLLECTION>[#]</IF><HARMONYCORE_BRIDGE_PARAMETER_TYPE><IF STRING>, String.Empty</IF STRING><IF ALPHA>, String.Empty</IF ALPHA>
+        public <PARAMETER_NAME>, <IF COLLECTION>[#]</IF><HARMONYCORE_BRIDGE_PARAMETER_TYPE>
         </IF OUT_OR_INOUT>
       </PARAMETER_LOOP>
     </IF OUT_OR_INOUT>
