@@ -45,14 +45,20 @@ namespace HarmonyCore.Test.EF
         proc
             disposable data context = MakeDBContext()
             data firstRecord = Context.Orders.Find(1)
-            data customerRecord = Context.Customers.Find(firstRecord.CustomerNumber)
+			data customerRecord = Context.Customers.Find(firstRecord.CustomerNumber)
+            Assert.AreEqual(1, customerRecord.CustomerNumber)
         endmethod
 
         {TestMethod}
         public method EFStringComparison, void
         proc
             disposable data context = MakeDBContext()
-            data oldOrders = Context.Orders.Where('PaymentTermsCode < "AA"', new Object[0]).ToList()
+			data oldOrders = Context.Orders.Where('PaymentTermsCode < "50"', new Object[0]).ToList()
+			data order, @Orders
+			foreach order in oldOrders
+			begin
+				Assert.IsTrue(string.Compare(order.PaymentTermsCode, "50") < 0)
+			end
             Assert.IsNotNull(oldOrders, "didnt get any orders")
         endmethod
 
