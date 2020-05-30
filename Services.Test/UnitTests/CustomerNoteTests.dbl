@@ -14,8 +14,8 @@ import Microsoft.AspNetCore.JsonPatch
 import Microsoft.VisualStudio.TestTools.UnitTesting
 import Newtonsoft.Json
 import System.Collections.Generic
-import System.Net.Http
 import System.Net
+import System.Net.Http
 import Services
 import Services.Test.Models
 
@@ -73,7 +73,7 @@ namespace Services.Test.UnitTests
         {TestCategory("CustomerNote Tests - Read by Primary Key")}
         public method GetCustomerNote, void
         proc
-            data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/CustomerNotes(CustomerNumber={1})","",TestConstants.GetCustomerNote_CustomerNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -88,7 +88,7 @@ namespace Services.Test.UnitTests
         {TestCategory("CustomerNote Tests - Read by Primary Key")}
         public method GetCustomerNote_Expand_REL_Customer, void
         proc
-            data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/CustomerNotes(CustomerNumber={1})?$expand=REL_Customer","",TestConstants.GetCustomerNote_Expand_REL_Customer_CustomerNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -103,7 +103,7 @@ namespace Services.Test.UnitTests
         {TestCategory("CustomerNote Tests - Read by Primary Key")}
         public method GetCustomerNote_Expand_All, void
         proc
-            data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/CustomerNotes(CustomerNumber={1})?$expand=REL_Customer","",TestConstants.GetCustomerNote_Expand_All_CustomerNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result

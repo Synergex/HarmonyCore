@@ -14,8 +14,8 @@ import Microsoft.AspNetCore.JsonPatch
 import Microsoft.VisualStudio.TestTools.UnitTesting
 import Newtonsoft.Json
 import System.Collections.Generic
-import System.Net.Http
 import System.Net
+import System.Net.Http
 import Services
 import Services.Test.Models
 
@@ -101,7 +101,7 @@ namespace Services.Test.UnitTests
         {TestCategory("Customer Tests - Read by Primary Key")}
         public method GetCustomer, void
         proc
-            data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/Customers(CustomerNumber={1})","",TestConstants.GetCustomer_CustomerNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -116,7 +116,7 @@ namespace Services.Test.UnitTests
         {TestCategory("Customer Tests - Read by Primary Key")}
         public method GetCustomer_Expand_REL_CustomerOrders, void
         proc
-            data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/Customers(CustomerNumber={1})?$expand=REL_CustomerOrders","",TestConstants.GetCustomer_Expand_REL_CustomerOrders_CustomerNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -131,7 +131,7 @@ namespace Services.Test.UnitTests
         {TestCategory("Customer Tests - Read by Primary Key")}
         public method GetCustomer_Expand_REL_CustomerFavoriteItem, void
         proc
-            data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/Customers(CustomerNumber={1})?$expand=REL_CustomerFavoriteItem","",TestConstants.GetCustomer_Expand_REL_CustomerFavoriteItem_CustomerNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -146,7 +146,7 @@ namespace Services.Test.UnitTests
         {TestCategory("Customer Tests - Read by Primary Key")}
         public method GetCustomer_Expand_REL_CustomerNotes, void
         proc
-            data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/Customers(CustomerNumber={1})?$expand=REL_CustomerNotes","",TestConstants.GetCustomer_Expand_REL_CustomerNotes_CustomerNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -161,7 +161,7 @@ namespace Services.Test.UnitTests
         {TestCategory("Customer Tests - Read by Primary Key")}
         public method GetCustomer_Expand_All, void
         proc
-            data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/Customers(CustomerNumber={1})?$expand=REL_CustomerOrders,REL_CustomerFavoriteItem,REL_CustomerNotes","",TestConstants.GetCustomer_Expand_All_CustomerNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -176,7 +176,7 @@ namespace Services.Test.UnitTests
         {TestCategory("Customer Tests - Read by Alternate Key")}
         public method GetCustomer_ByAltKey_State, void
         proc
-            data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/Customers(State='{1}')", "", TestConstants.GetCustomer_ByAltKey_State_State)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -191,7 +191,7 @@ namespace Services.Test.UnitTests
         {TestCategory("Customer Tests - Read by Alternate Key")}
         public method GetCustomer_ByAltKey_Zip, void
         proc
-            data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/Customers(ZipCode={1})", "", TestConstants.GetCustomer_ByAltKey_Zip_ZipCode)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -206,7 +206,7 @@ namespace Services.Test.UnitTests
         {TestCategory("Customer Tests - Read by Alternate Key")}
         public method GetCustomer_ByAltKey_PaymentTerms, void
         proc
-            data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/Customers(PaymentTermsCode='{1}')", "", TestConstants.GetCustomer_ByAltKey_PaymentTerms_PaymentTermsCode)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result

@@ -14,8 +14,8 @@ import Microsoft.AspNetCore.JsonPatch
 import Microsoft.VisualStudio.TestTools.UnitTesting
 import Newtonsoft.Json
 import System.Collections.Generic
-import System.Net.Http
 import System.Net
+import System.Net.Http
 import Services
 import Services.Test.Models
 
@@ -87,7 +87,7 @@ namespace Services.Test.UnitTests
         {TestCategory("OrderItem Tests - Read by Primary Key")}
         public method GetOrderItem, void
         proc
-            data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/OrderItems(OrderNumber={1},ItemNumber={2})","",TestConstants.GetOrderItem_OrderNumber,TestConstants.GetOrderItem_ItemNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -102,7 +102,7 @@ namespace Services.Test.UnitTests
         {TestCategory("OrderItem Tests - Read by Primary Key")}
         public method GetOrderItem_Expand_REL_Order, void
         proc
-            data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/OrderItems(OrderNumber={1},ItemNumber={2})?$expand=REL_Order","",TestConstants.GetOrderItem_Expand_REL_Order_OrderNumber,TestConstants.GetOrderItem_Expand_REL_Order_ItemNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -117,7 +117,7 @@ namespace Services.Test.UnitTests
         {TestCategory("OrderItem Tests - Read by Primary Key")}
         public method GetOrderItem_Expand_REL_Item, void
         proc
-            data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/OrderItems(OrderNumber={1},ItemNumber={2})?$expand=REL_Item","",TestConstants.GetOrderItem_Expand_REL_Item_OrderNumber,TestConstants.GetOrderItem_Expand_REL_Item_ItemNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -132,7 +132,7 @@ namespace Services.Test.UnitTests
         {TestCategory("OrderItem Tests - Read by Primary Key")}
         public method GetOrderItem_Expand_All, void
         proc
-            data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/OrderItems(OrderNumber={1},ItemNumber={2})?$expand=REL_Order,REL_Item","",TestConstants.GetOrderItem_Expand_All_OrderNumber,TestConstants.GetOrderItem_Expand_All_ItemNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -147,7 +147,7 @@ namespace Services.Test.UnitTests
         {TestCategory("OrderItem Tests - Read by Alternate Key")}
         public method GetOrderItem_ByAltKey_ItemOrdered, void
         proc
-            data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/OrderItems(ItemOrdered={1})", "", TestConstants.GetOrderItem_ByAltKey_ItemOrdered_ItemOrdered)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -162,7 +162,7 @@ namespace Services.Test.UnitTests
         {TestCategory("OrderItem Tests - Read by Alternate Key")}
         public method GetOrderItem_ByAltKey_DateShipped, void
         proc
-            data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/OrderItems(DateShipped={1})", "", TestConstants.GetOrderItem_ByAltKey_DateShipped_DateShipped.ToString("yyyy-MM-dd"))
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -177,7 +177,7 @@ namespace Services.Test.UnitTests
         {TestCategory("OrderItem Tests - Read by Alternate Key")}
         public method GetOrderItem_ByAltKey_InvoiceNumber, void
         proc
-            data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/OrderItems(InvoiceNumber={1})", "", TestConstants.GetOrderItem_ByAltKey_InvoiceNumber_InvoiceNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result

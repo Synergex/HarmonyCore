@@ -14,8 +14,8 @@ import Microsoft.AspNetCore.JsonPatch
 import Microsoft.VisualStudio.TestTools.UnitTesting
 import Newtonsoft.Json
 import System.Collections.Generic
-import System.Net.Http
 import System.Net
+import System.Net.Http
 import Services
 import Services.Test.Models
 
@@ -73,7 +73,7 @@ namespace Services.Test.UnitTests
         {TestCategory("Vendor Tests - Read by Primary Key")}
         public method GetVendor, void
         proc
-            data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/Vendors(VendorNumber={1})","",TestConstants.GetVendor_VendorNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -88,7 +88,7 @@ namespace Services.Test.UnitTests
         {TestCategory("Vendor Tests - Read by Primary Key")}
         public method GetVendor_Expand_REL_Items, void
         proc
-            data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/Vendors(VendorNumber={1})?$expand=REL_Items","",TestConstants.GetVendor_Expand_REL_Items_VendorNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -103,7 +103,7 @@ namespace Services.Test.UnitTests
         {TestCategory("Vendor Tests - Read by Primary Key")}
         public method GetVendor_Expand_All, void
         proc
-            data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/Vendors(VendorNumber={1})?$expand=REL_Items","",TestConstants.GetVendor_Expand_All_VendorNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -118,7 +118,7 @@ namespace Services.Test.UnitTests
         {TestCategory("Vendor Tests - Read by Alternate Key")}
         public method GetVendor_ByAltKey_State, void
         proc
-            data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/Vendors(State='{1}')", "", TestConstants.GetVendor_ByAltKey_State_State)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -133,7 +133,7 @@ namespace Services.Test.UnitTests
         {TestCategory("Vendor Tests - Read by Alternate Key")}
         public method GetVendor_ByAltKey_Zip, void
         proc
-            data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/Vendors(ZipCode={1})", "", TestConstants.GetVendor_ByAltKey_Zip_ZipCode)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -148,7 +148,7 @@ namespace Services.Test.UnitTests
         {TestCategory("Vendor Tests - Read by Alternate Key")}
         public method GetVendor_ByAltKey_PaymentTerms, void
         proc
-            data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/Vendors(PaymentTermsCode='{1}')", "", TestConstants.GetVendor_ByAltKey_PaymentTerms_PaymentTermsCode)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
