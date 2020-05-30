@@ -66,6 +66,8 @@ import Microsoft.AspNetCore.Hosting
 import Microsoft.AspNetCore.TestHost
 import Microsoft.VisualStudio.TestTools.UnitTesting
 import System.IO
+import System.Net.Http
+import System.Text
 import <SERVICES_NAMESPACE>
 import <MODELS_NAMESPACE>
 
@@ -111,7 +113,13 @@ namespace <NAMESPACE>
   <IF DEFINED_ENABLE_CUSTOM_AUTHENTICATION>
             ;;Get the access token from the custom authentication endpoint
 
-            ;TODO: Need to get an access token from the custom authentication endpoint
+            disposable data client = Server.CreateClient()
+            data requestUri, @Uri, new Uri("/Authentication/GetToken/")
+            data jsonInString, string, '{"Username":"<UNIT_TEST_USERNAME>","Password":"<UNIT_TEST_PASSWORD>"}'
+            disposable data requestBody, @StringContent, new StringContent(jsonInString,Encoding.UTF8,"application/json")
+            data response = client.PostAsync(requestUri,requestBody).Result
+            response.EnsureSuccessStatusCode()
+            AccessToken = response.Content.ToString()
 
   <ELSE>
             ;;Get the access token from the OAuth Server

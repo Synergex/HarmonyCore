@@ -148,7 +148,7 @@ namespace <NAMESPACE>
         {TestCategory("<StructureNoplural> Tests - Read by Primary Key")}
         public method Get<StructureNoplural>, void
         proc
-            data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
             <IF DEFINED_ENABLE_AUTHENTICATION>
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",UnitTestEnvironment.AccessToken)
             </IF DEFINED_ENABLE_AUTHENTICATION>
@@ -170,7 +170,7 @@ namespace <NAMESPACE>
         {TestCategory("<StructureNoplural> Tests - Read by Primary Key")}
         public method Get<StructureNoplural>_Expand_<IF MANY_TO_ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY>, void
         proc
-            data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
             <IF DEFINED_ENABLE_AUTHENTICATION>
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",UnitTestEnvironment.AccessToken)
             </IF DEFINED_ENABLE_AUTHENTICATION>
@@ -189,7 +189,7 @@ namespace <NAMESPACE>
         {TestCategory("<StructureNoplural> Tests - Read by Primary Key")}
         public method Get<StructureNoplural>_Expand_All, void
         proc
-            data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
             <IF DEFINED_ENABLE_AUTHENTICATION>
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",UnitTestEnvironment.AccessToken)
             </IF DEFINED_ENABLE_AUTHENTICATION>
@@ -212,7 +212,7 @@ namespace <NAMESPACE>
         {TestCategory("<StructureNoplural> Tests - Read by Alternate Key")}
         public method Get<StructureNoplural>_ByAltKey_<KeyName>, void
         proc
-            data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
             <IF DEFINED_ENABLE_AUTHENTICATION>
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",UnitTestEnvironment.AccessToken)
             </IF DEFINED_ENABLE_AUTHENTICATION>
@@ -449,7 +449,7 @@ namespace <NAMESPACE>
 ;//        {TestCategory("<StructureNoplural> Tests - Read by Primary Key")}
 ;//        public method Get<StructureNoplural>_ByPartialPrimaryKey, void
 ;//        proc
-;//            data client = UnitTestEnvironment.Server.CreateClient()
+;//            disposable data client = UnitTestEnvironment.Server.CreateClient()
 ;//            <IF DEFINED_ENABLE_AUTHENTICATION>
 ;//            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",UnitTestEnvironment.AccessToken)
 ;//            </IF DEFINED_ENABLE_AUTHENTICATION>
