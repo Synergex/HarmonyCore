@@ -53,8 +53,11 @@ import Microsoft.AspNetCore.JsonPatch
 import Microsoft.VisualStudio.TestTools.UnitTesting
 import Newtonsoft.Json
 import System.Collections.Generic
-import System.Net.Http
 import System.Net
+import System.Net.Http
+<IF DEFINED_ENABLE_AUTHENTICATION>
+import System.Net.Http.Headers
+</IF DEFINED_ENABLE_AUTHENTICATION>
 import <SERVICES_NAMESPACE>
 import <CLIENT_MODELS_NAMESPACE>
 
@@ -72,7 +75,7 @@ namespace <NAMESPACE>
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             <IF DEFINED_ENABLE_AUTHENTICATION>
-            client.SetBearerToken(UnitTestEnvironment.AccessToken)
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",UnitTestEnvironment.AccessToken)
             </IF DEFINED_ENABLE_AUTHENTICATION>
             disposable data response = client.GetAsync("/odata/v<API_VERSION>/<StructurePlural>").Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -110,7 +113,7 @@ namespace <NAMESPACE>
         </IF ONE_TO_MANY>
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             <IF DEFINED_ENABLE_AUTHENTICATION>
-            client.SetBearerToken(UnitTestEnvironment.AccessToken)
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",UnitTestEnvironment.AccessToken)
             </IF DEFINED_ENABLE_AUTHENTICATION>
             disposable data response = client.GetAsync(uri).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -128,7 +131,7 @@ namespace <NAMESPACE>
             data uri = "/odata/v<API_VERSION>/<StructurePlural>?$expand=<RELATION_LOOP_RESTRICTED><IF MANY_TO_ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY><,></RELATION_LOOP_RESTRICTED>"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             <IF DEFINED_ENABLE_AUTHENTICATION>
-            client.SetBearerToken(UnitTestEnvironment.AccessToken)
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",UnitTestEnvironment.AccessToken)
             </IF DEFINED_ENABLE_AUTHENTICATION>
             disposable data response = client.GetAsync(uri).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -147,7 +150,7 @@ namespace <NAMESPACE>
         proc
             data client = UnitTestEnvironment.Server.CreateClient()
             <IF DEFINED_ENABLE_AUTHENTICATION>
-            client.SetBearerToken(UnitTestEnvironment.AccessToken)
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",UnitTestEnvironment.AccessToken)
             </IF DEFINED_ENABLE_AUTHENTICATION>
             data request = String.Format("/odata/v<API_VERSION>/<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)","",<SEGMENT_LOOP>TestConstants.Get<StructureNoplural>_<SegmentName><,></SEGMENT_LOOP></PRIMARY_KEY>)
             data response = client.GetAsync(request).Result
@@ -169,7 +172,7 @@ namespace <NAMESPACE>
         proc
             data client = UnitTestEnvironment.Server.CreateClient()
             <IF DEFINED_ENABLE_AUTHENTICATION>
-            client.SetBearerToken(UnitTestEnvironment.AccessToken)
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",UnitTestEnvironment.AccessToken)
             </IF DEFINED_ENABLE_AUTHENTICATION>
             data request = String.Format("/odata/v<API_VERSION>/<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY>)?$expand=<IF MANY_TO_ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY>","",<PRIMARY_KEY><SEGMENT_LOOP>TestConstants.Get<StructureNoplural>_Expand_<IF MANY_TO_ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY>_<SegmentName><,></SEGMENT_LOOP></PRIMARY_KEY>)
             data response = client.GetAsync(request).Result
@@ -188,7 +191,7 @@ namespace <NAMESPACE>
         proc
             data client = UnitTestEnvironment.Server.CreateClient()
             <IF DEFINED_ENABLE_AUTHENTICATION>
-            client.SetBearerToken(UnitTestEnvironment.AccessToken)
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",UnitTestEnvironment.AccessToken)
             </IF DEFINED_ENABLE_AUTHENTICATION>
             data request = String.Format("/odata/v<API_VERSION>/<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY>)?$expand=<RELATION_LOOP_RESTRICTED><IF MANY_TO_ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY><,></RELATION_LOOP_RESTRICTED>","",<PRIMARY_KEY><SEGMENT_LOOP>TestConstants.Get<StructureNoplural>_Expand_All_<SegmentName><,></SEGMENT_LOOP></PRIMARY_KEY>)
             data response = client.GetAsync(request).Result
@@ -211,7 +214,7 @@ namespace <NAMESPACE>
         proc
             data client = UnitTestEnvironment.Server.CreateClient()
             <IF DEFINED_ENABLE_AUTHENTICATION>
-            client.SetBearerToken(UnitTestEnvironment.AccessToken)
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",UnitTestEnvironment.AccessToken)
             </IF DEFINED_ENABLE_AUTHENTICATION>
             data request = String.Format("/odata/v<API_VERSION>/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP>)", "", <SEGMENT_LOOP>TestConstants.Get<StructureNoplural>_ByAltKey_<KeyName>_<SegmentName><IF DATE>.ToString("yyyy-MM-dd")</IF DATE><,></SEGMENT_LOOP>)
             data response = client.GetAsync(request).Result
@@ -236,7 +239,7 @@ namespace <NAMESPACE>
 ;//        proc
 ;//            disposable data client = UnitTestEnvironment.Server.CreateClient()
 ;//            <IF DEFINED_ENABLE_AUTHENTICATION>
-;//            client.SetBearerToken(UnitTestEnvironment.AccessToken)
+;//            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",UnitTestEnvironment.AccessToken)
 ;//            </IF DEFINED_ENABLE_AUTHENTICATION>
 ;//            disposable data requestBody = new StringContent("")
 ;//            disposable data response = client.PostAsync("/odata/v<API_VERSION>/<StructurePlural>", requestBody).Result
@@ -256,7 +259,7 @@ namespace <NAMESPACE>
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             <IF DEFINED_ENABLE_AUTHENTICATION>
-            client.SetBearerToken(UnitTestEnvironment.AccessToken)
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",UnitTestEnvironment.AccessToken)
             </IF DEFINED_ENABLE_AUTHENTICATION>
 
             ;;Get one <structureNoplural> from the file
@@ -448,7 +451,7 @@ namespace <NAMESPACE>
 ;//        proc
 ;//            data client = UnitTestEnvironment.Server.CreateClient()
 ;//            <IF DEFINED_ENABLE_AUTHENTICATION>
-;//            client.SetBearerToken(UnitTestEnvironment.AccessToken)
+;//            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",UnitTestEnvironment.AccessToken)
 ;//            </IF DEFINED_ENABLE_AUTHENTICATION>
 ;//            data request = String.Format("/odata/v<API_VERSION>/<StructurePlural>(<SEGMENT_LOOP_FILTER><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP_FILTER>)","",<SEGMENT_LOOP_FILTER>TestConstants.Get<StructureNoplural>_ByPartialPrimaryKey_<SegmentName><,></SEGMENT_LOOPFILTER>)
 ;//            data response = client.GetAsync(request).Result

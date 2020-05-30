@@ -57,7 +57,9 @@
 ;;*****************************************************************************
 
 <IF DEFINED_ENABLE_AUTHENTICATION>
+  <IF NOT_DEFINED_ENABLE_CUSTOM_AUTHENTICATION>
 import IdentityModel.Client
+  </IF NOT_DEFINED_ENABLE_CUSTOM_AUTHENTICATION>
 </IF DEFINED_ENABLE_AUTHENTICATION>
 import Microsoft.AspNetCore
 import Microsoft.AspNetCore.Hosting
@@ -106,6 +108,12 @@ namespace <NAMESPACE>
             Server.BaseAddress = new Uri("<SERVER_PROTOCOL>://<SERVER_NAME>")
 
 <IF DEFINED_ENABLE_AUTHENTICATION>
+  <IF DEFINED_ENABLE_CUSTOM_AUTHENTICATION>
+            ;;Get the access token from the custom authentication endpoint
+
+            ;TODO: Need to get an access token from the custom authentication endpoint
+
+  <ELSE>
             ;;Get the access token from the OAuth Server
             data disco = DiscoveryClient.GetAsync("<OAUTH_SERVER>").GetAwaiter().GetResult()
 
@@ -130,6 +138,7 @@ namespace <NAMESPACE>
                 end
             end
 
+  </IF DEFINED_ENABLE_CUSTOM_AUTHENTICATION>
 </IF DEFINED_ENABLE_AUTHENTICATION>
         endmethod
 
