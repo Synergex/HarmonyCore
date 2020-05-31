@@ -122,9 +122,9 @@ namespace <NAMESPACE>
             data requestUri, @Uri, new Uri("/Authentication/GetToken/")
             data jsonInString, string, '{"Username":"<UNIT_TEST_USERNAME>","Password":"<UNIT_TEST_PASSWORD>"}'
             disposable data requestBody, @StringContent, new StringContent(jsonInString,Encoding.UTF8,"application/json")
-            data response = client.PostAsync(requestUri,requestBody).Result
+            data response = client.PostAsync("/Authentication/GetToken",requestBody).Result
             response.EnsureSuccessStatusCode()
-            AccessToken = response.Content.ToString()
+            AccessToken = response.Content.ReadAsStringAsync().Result
 
   <ELSE>
             ;;Get the access token from the OAuth Server
