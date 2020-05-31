@@ -117,12 +117,9 @@ namespace <NAMESPACE>
 <IF DEFINED_ENABLE_AUTHENTICATION>
   <IF DEFINED_ENABLE_CUSTOM_AUTHENTICATION>
             ;;Get the access token from the custom authentication endpoint
-
             disposable data client = Server.CreateClient()
-            data requestUri, @Uri, new Uri("/Authentication/GetToken/")
-            data jsonInString, string, '{"Username":"<UNIT_TEST_USERNAME>","Password":"<UNIT_TEST_PASSWORD>"}'
-            disposable data requestBody, @StringContent, new StringContent(jsonInString,Encoding.UTF8,"application/json")
-            data response = client.PostAsync("/Authentication/GetToken",requestBody).Result
+            disposable data requestBody, @StringContent, new StringContent('{"Username":"<UNIT_TEST_USERNAME>","Password":"<UNIT_TEST_PASSWORD>"}',Encoding.UTF8,"application/json")
+            disposable data response = client.PostAsync("/Authentication/GetToken",requestBody).Result
             response.EnsureSuccessStatusCode()
             AccessToken = response.Content.ReadAsStringAsync().Result
 
