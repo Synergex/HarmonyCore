@@ -48,7 +48,8 @@ namespace Harmony.Core.EF.Query.Internal
                         _tableMethodInfo,
                         QueryCompilationContext.QueryContextParameter,
                         Expression.Constant(inMemoryTableExpression.EntityType),
-                        Expression.Constant(inMemoryTableExpression.RootExpression.PrepareQuery(_compilationContext)));
+                        Expression.Constant(inMemoryTableExpression.RootExpression.PrepareQuery(_compilationContext)),
+                        Expression.Constant(_compilationContext.IsTracking));
             }
 
             return base.VisitExtension(extensionExpression);
@@ -115,11 +116,14 @@ namespace Harmony.Core.EF.Query.Internal
         private static IEnumerable<DataObjectBase> Table(
             QueryContext queryContext,
             IEntityType entityType,
-            PreparedQueryPlan queryPlan)
+            PreparedQueryPlan queryPlan,
+            bool isTracking)
         {
             Func<DataObjectBase, DataObjectBase> track = (obj) =>
             {
-                queryContext.StartTracking(entityType, obj, default(Microsoft.EntityFrameworkCore.Storage.ValueBuffer));
+                if(isTracking)
+                    queryContext.StartTracking(entityType, obj, default(Microsoft.EntityFrameworkCore.Storage.ValueBuffer));
+
                 return obj;
             };
 

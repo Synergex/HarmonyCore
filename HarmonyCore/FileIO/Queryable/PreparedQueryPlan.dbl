@@ -557,6 +557,7 @@ namespace Harmony.Core.FileIO.Queryable
 			dataObjectProvider, @Harmony.Core.Context.IDataObjectProvider
 			context, @Object
 		proc
+			
 			disposable data selectObject, @Synergex.SynergyDE.Select.Select
 			;;dont ever use mQueryBufferPrototype for operations directly
 			disposable data queryBuffer, @QueryBuffer, new QueryBuffer(mQueryBufferPrototype, dataObjectProvider, parameters, context)
@@ -567,7 +568,6 @@ namespace Harmony.Core.FileIO.Queryable
 			data top = queryBuffer.GetTop(0)
 			data skip = queryBuffer.GetSkip(0)
 			data targetCount = top.HasValue ? skip + top : 0
-
 			selectObject = SelectObject(fromObj, WhereObject(queryBuffer, queryBuffer.TypeBuffers), OrderByObject(queryBuffer, queryBuffer.TypeBuffers), SparseObject(queryBuffer, queryBuffer.TypeBuffers))
 			data memPnt, int, queryBuffer.TypeBuffers[0].MemoryHandle.Value
 			data metadataObject = queryBuffer.TypeBuffers[0].Metadata
@@ -584,19 +584,59 @@ namespace Harmony.Core.FileIO.Queryable
 				if (targetCount && currentCount > targetCount) 
 					yield exit
 				if(enumerator == ^null)
-					enumerator = selectObject.GetEnum()
+					enumerator = Synergex.SynergyDE.Select.Select.GetEnum()
 				enumerator.CurrentRFA(grfa)
 				stats.IOOPS = enumerator.TotalReadCount
 				incr stats.RecordsReturned
 				yield mreturn tracker(metadataObject.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa))
 			end
-			;;end
-			;;finally
-			;;begin
-			;;HarmonyFileIOMetricsEventSource.Log.ReportIOOPS(stats.IOOPS)
-			;;HarmonyFileIOMetricsEventSource.Log.ReportRecordsReturned(stats.RecordsReturned)
-			;;end
-			;;endtry
+		endmethod
+
+		private method UntypedExecuteSizedSelectCollectionPlan, @IEnumerable<DataObjectBase>
+			tracker, @Func<DataObjectBase, DataObjectBase>
+			parameters, @IReadOnlyDictionary<string, Object>
+			dataObjectProvider, @Harmony.Core.Context.IDataObjectProvider
+			context, @Object
+		proc
+			disposable data selectObject, @Synergex.SynergyDE.Select.Select
+			;;dont ever use mQueryBufferPrototype for operations directly
+			disposable data queryBuffer, @QueryBuffer, new QueryBuffer(mQueryBufferPrototype, dataObjectProvider, parameters, context)
+			disposable data fromObj = FromObject(queryBuffer, queryBuffer.TypeBuffers)
+			data tObj, @DataObjectBase
+			data stats = new DataObjectMaterializer.MaterializerStats()
+			data currentCount = 0 
+			data top = queryBuffer.GetTop(0)
+			data skip = queryBuffer.GetSkip(0)
+			data targetCount = top.HasValue ? skip + top : 0
+
+			selectObject = SelectObject(fromObj, WhereObject(queryBuffer, queryBuffer.TypeBuffers), OrderByObject(queryBuffer, queryBuffer.TypeBuffers), SparseObject(queryBuffer, queryBuffer.TypeBuffers))
+			data memPnt, int, queryBuffer.TypeBuffers[0].MemoryHandle.Value
+			data metadataObject = queryBuffer.TypeBuffers[0].Metadata
+			data structureSize = metadataObject.StructureSize
+			data enumerator, @Synergex.SynergyDE.Select.RestrictedAlphaEnumerator
+			data result = new List<DataObjectBase>()
+			foreach ^m(memMapper.fld(1:structureSize), memPnt) in selectObject
+			begin
+				data grfa	,a10
+				incr currentCount
+					
+				if(skip && skip >= currentCount)
+					nextloop
+						
+				if (targetCount && currentCount > targetCount) 
+					exitloop
+
+				if(enumerator == ^null)
+					enumerator = Synergex.SynergyDE.Select.Select.GetEnum()
+				enumerator.CurrentRFA(grfa)
+				stats.IOOPS = enumerator.TotalReadCount
+				incr stats.RecordsReturned
+				result.Add(tracker(metadataObject.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa)))
+			end
+
+			HarmonyFileIOMetricsEventSource.Log.ReportIOOPS(stats.IOOPS)
+			HarmonyFileIOMetricsEventSource.Log.ReportRecordsReturned(stats.RecordsReturned)
+			mreturn result
 		endmethod
 
 
@@ -610,6 +650,8 @@ namespace Harmony.Core.FileIO.Queryable
 				mreturn ExecuteMARSPlan(tracker, parameters, dataObjectProvider, context).OfType<T>()
 			else if(IsJoin) then
 				mreturn UntypedExecuteJoinCollectionPlan(tracker, parameters, dataObjectProvider, context).OfType<T>()
+			else if(mQueryBufferPrototype.TypeBuffers[0].Top != ^null) then
+				mreturn UntypedExecuteSizedSelectCollectionPlan(tracker, parameters, dataObjectProvider, context).OfType<T>()
 			else
 				mreturn UntypedExecuteSelectCollectionPlan(tracker, parameters, dataObjectProvider, context).OfType<T>()
 		endmethod
