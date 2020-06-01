@@ -36,6 +36,7 @@ namespace Services.Test.UnitTests
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
             data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            Assert.AreEqual(customers.Value.Count,TestConstants.GetCustomers_Count)
         endmethod
 
         ;;------------------------------------------------------------
@@ -93,7 +94,7 @@ namespace Services.Test.UnitTests
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
         endmethod
-        
+
         ;;------------------------------------------------------------
         ;;Get a single Customer by primary key
 
@@ -278,7 +279,6 @@ namespace Services.Test.UnitTests
             doCustomer = JsonConvert.DeserializeObject<Customer>(getResult)
 
             Assert.AreEqual(doCustomer.Name, "Y")
-
 
             ;;Update one non-existant property in the customer
             data badPatchDoc = new JsonPatchDocument()

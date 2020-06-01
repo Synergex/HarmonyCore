@@ -36,6 +36,7 @@ namespace Services.Test.UnitTests
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
             data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
+            Assert.AreEqual(items.Value.Count,TestConstants.GetItems_Count)
         endmethod
 
         ;;------------------------------------------------------------
@@ -79,7 +80,7 @@ namespace Services.Test.UnitTests
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
         endmethod
-        
+
         ;;------------------------------------------------------------
         ;;Get a single Item by primary key
 
@@ -264,7 +265,6 @@ namespace Services.Test.UnitTests
             doItem = JsonConvert.DeserializeObject<Item>(getResult)
 
             Assert.AreEqual(doItem.LatinName, "Y")
-
 
             ;;Update one non-existant property in the customer
             data badPatchDoc = new JsonPatchDocument()

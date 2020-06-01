@@ -60,58 +60,59 @@ namespace <NAMESPACE>
         static method TestConstants
         proc
 <STRUCTURE_LOOP>
-<IF STRUCTURE_ISAM>
+  <IF STRUCTURE_ISAM>
 
             ;;------------------------------------------------------------
             ;;Test data for <StructureNoplural>
-
+            ;;
+    <IF DEFINED_ENABLE_GET_ALL>
+            Get<StructurePlural>_Count = 0
+    </IF DEFINED_ENABLE_GET_ALL>
+;//
     <PRIMARY_KEY>
-        <SEGMENT_LOOP>
+      <SEGMENT_LOOP>
             Get<StructureNoplural>_<SegmentName> = <FIELD_CSDEFAULT>
-        </SEGMENT_LOOP>
+      </SEGMENT_LOOP>
     </PRIMARY_KEY>
 ;//
 ;//
 ;//
-<IF DEFINED_ENABLE_RELATIONS>
-  <IF STRUCTURE_RELATIONS>
-    <RELATION_LOOP_RESTRICTED>
-
-        <PRIMARY_KEY>
-        <SEGMENT_LOOP>
+    <IF DEFINED_ENABLE_RELATIONS>
+      <IF STRUCTURE_RELATIONS>
+        <RELATION_LOOP_RESTRICTED>
+          <PRIMARY_KEY>
+            <SEGMENT_LOOP>
             Get<StructureNoplural>_Expand_<IF MANY_TO_ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY>_<SegmentName> = <FIELD_CSDEFAULT>
-        </SEGMENT_LOOP>
-        </PRIMARY_KEY>
-    </RELATION_LOOP_RESTRICTED>
-  </IF STRUCTURE_RELATIONS>
-</IF DEFINED_ENABLE_RELATIONS>
+            </SEGMENT_LOOP>
+          </PRIMARY_KEY>
+        </RELATION_LOOP_RESTRICTED>
+      </IF STRUCTURE_RELATIONS>
+    </IF DEFINED_ENABLE_RELATIONS>
 ;//
 ;//
 ;//
-        <PRIMARY_KEY>
-
-        <SEGMENT_LOOP>
+    <PRIMARY_KEY>
+      <SEGMENT_LOOP>
             Get<StructureNoplural>_Expand_All_<SegmentName> = <FIELD_CSDEFAULT>
-        </SEGMENT_LOOP>
-        </PRIMARY_KEY>
+      </SEGMENT_LOOP>
+    </PRIMARY_KEY>
 ;//
 ;//
 ;//
     <ALTERNATE_KEY_LOOP_UNIQUE>
-    
-        <SEGMENT_LOOP>
+      <SEGMENT_LOOP>
             Get<StructureNoplural>_ByAltKey_<KeyName>_<SegmentName> = <FIELD_CSDEFAULT>
-        </SEGMENT_LOOP>
+      </SEGMENT_LOOP>
     </ALTERNATE_KEY_LOOP_UNIQUE>
 ;//
 ;//
 ;//
     <PRIMARY_KEY>
-        <SEGMENT_LOOP>
+      <SEGMENT_LOOP>
             Update<StructureNoplural>_<SegmentName> = <FIELD_CSDEFAULT>
-        </SEGMENT_LOOP>
+      </SEGMENT_LOOP>
     </PRIMARY_KEY>
-</IF STRUCTURE_ISAM>
+  </IF STRUCTURE_ISAM>
 </STRUCTURE_LOOP>
 
         endmethod

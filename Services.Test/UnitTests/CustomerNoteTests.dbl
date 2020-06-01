@@ -36,6 +36,7 @@ namespace Services.Test.UnitTests
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
             data customerNotes, @ODataCustomerNotes, JsonConvert.DeserializeObject<ODataCustomerNotes>(result)
+            Assert.AreEqual(customerNotes.Value.Count,TestConstants.GetCustomerNotes_Count)
         endmethod
 
         ;;------------------------------------------------------------
@@ -65,7 +66,7 @@ namespace Services.Test.UnitTests
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
         endmethod
-        
+
         ;;------------------------------------------------------------
         ;;Get a single CustomerNote by primary key
 
@@ -175,7 +176,6 @@ namespace Services.Test.UnitTests
             doCustomerNote = JsonConvert.DeserializeObject<CustomerNote>(getResult)
 
             Assert.AreEqual(doCustomerNote.NoteNumber, 8)
-
 
             ;;Update one non-existant property in the customer
             data badPatchDoc = new JsonPatchDocument()

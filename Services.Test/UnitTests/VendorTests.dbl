@@ -36,6 +36,7 @@ namespace Services.Test.UnitTests
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
             data vendors, @ODataVendors, JsonConvert.DeserializeObject<ODataVendors>(result)
+            Assert.AreEqual(vendors.Value.Count,TestConstants.GetVendors_Count)
         endmethod
 
         ;;------------------------------------------------------------
@@ -65,7 +66,7 @@ namespace Services.Test.UnitTests
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
         endmethod
-        
+
         ;;------------------------------------------------------------
         ;;Get a single Vendor by primary key
 
@@ -220,7 +221,6 @@ namespace Services.Test.UnitTests
             doVendor = JsonConvert.DeserializeObject<Vendor>(getResult)
 
             Assert.AreEqual(doVendor.Name, "Y")
-
 
             ;;Update one non-existant property in the customer
             data badPatchDoc = new JsonPatchDocument()
