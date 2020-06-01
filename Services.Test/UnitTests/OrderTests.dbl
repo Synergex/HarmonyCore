@@ -14,8 +14,8 @@ import Microsoft.AspNetCore.JsonPatch
 import Microsoft.VisualStudio.TestTools.UnitTesting
 import Newtonsoft.Json
 import System.Collections.Generic
-import System.Net.Http
 import System.Net
+import System.Net.Http
 import Services
 import Services.Test.Models
 
@@ -36,6 +36,7 @@ namespace Services.Test.UnitTests
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
             data orders, @ODataOrders, JsonConvert.DeserializeObject<ODataOrders>(result)
+            Assert.AreEqual(orders.Value.Count,TestConstants.GetOrders_Count)
         endmethod
 
         ;;------------------------------------------------------------
@@ -79,7 +80,7 @@ namespace Services.Test.UnitTests
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
         endmethod
-        
+
         ;;------------------------------------------------------------
         ;;Get a single Order by primary key
 
@@ -87,7 +88,7 @@ namespace Services.Test.UnitTests
         {TestCategory("Order Tests - Read by Primary Key")}
         public method GetOrder, void
         proc
-            data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/Orders(OrderNumber={1})","",TestConstants.GetOrder_OrderNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -102,7 +103,7 @@ namespace Services.Test.UnitTests
         {TestCategory("Order Tests - Read by Primary Key")}
         public method GetOrder_Expand_REL_OrderItems, void
         proc
-            data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/Orders(OrderNumber={1})?$expand=REL_OrderItems","",TestConstants.GetOrder_Expand_REL_OrderItems_OrderNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -117,7 +118,7 @@ namespace Services.Test.UnitTests
         {TestCategory("Order Tests - Read by Primary Key")}
         public method GetOrder_Expand_REL_Customer, void
         proc
-            data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/Orders(OrderNumber={1})?$expand=REL_Customer","",TestConstants.GetOrder_Expand_REL_Customer_OrderNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -132,7 +133,7 @@ namespace Services.Test.UnitTests
         {TestCategory("Order Tests - Read by Primary Key")}
         public method GetOrder_Expand_All, void
         proc
-            data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/Orders(OrderNumber={1})?$expand=REL_OrderItems,REL_Customer","",TestConstants.GetOrder_Expand_All_OrderNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -147,7 +148,7 @@ namespace Services.Test.UnitTests
         {TestCategory("Order Tests - Read by Alternate Key")}
         public method GetOrder_ByAltKey_CustomerNumber, void
         proc
-            data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/Orders(CustomerNumber={1})", "", TestConstants.GetOrder_ByAltKey_CustomerNumber_CustomerNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -162,7 +163,7 @@ namespace Services.Test.UnitTests
         {TestCategory("Order Tests - Read by Alternate Key")}
         public method GetOrder_ByAltKey_DateOrdered, void
         proc
-            data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/Orders(DateOrdered={1})", "", TestConstants.GetOrder_ByAltKey_DateOrdered_DateOrdered.ToString("yyyy-MM-dd"))
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -177,7 +178,7 @@ namespace Services.Test.UnitTests
         {TestCategory("Order Tests - Read by Alternate Key")}
         public method GetOrder_ByAltKey_DateCompleted, void
         proc
-            data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/Orders(DateCompleted={1})", "", TestConstants.GetOrder_ByAltKey_DateCompleted_DateCompleted.ToString("yyyy-MM-dd"))
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -249,7 +250,6 @@ namespace Services.Test.UnitTests
             doOrder = JsonConvert.DeserializeObject<Order>(getResult)
 
             Assert.AreEqual(doOrder.PlacedBy, "Y")
-
 
             ;;Update one non-existant property in the customer
             data badPatchDoc = new JsonPatchDocument()

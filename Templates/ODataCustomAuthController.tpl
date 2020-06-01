@@ -42,7 +42,7 @@ namespace <NAMESPACE>
             end
 
             ;TODO: Authenticate the user login. For now we'll hard code some valid credentials
-            if (aRequest.Username.ToUpper().Equals("USERNAME") && aRequest.Password.Equals("password")) then
+            if (aRequest.Username.ToUpper().Equals("<UNIT_TEST_USERNAME>") && aRequest.Password.Equals("<UNIT_TEST_PASSWORD>")) then
             begin
                 data tokenValidHours, int, 24
                 ;;To add custom claims to the JWT, add parameters to GetToken and pass values here!

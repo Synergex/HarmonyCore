@@ -55,45 +55,51 @@ namespace <NAMESPACE>
 
     public static partial class TestConstants
 <STRUCTURE_LOOP>
-<IF STRUCTURE_ISAM>
+  <IF STRUCTURE_ISAM>
 
         ;;------------------------------------------------------------
         ;;Test data for <StructureNoplural>
-
-  <PRIMARY_KEY>
-    <SEGMENT_LOOP>
-        public static readwrite property Get<StructureNoplural>_<SegmentName>, <SEGMENT_SNTYPE>
-    </SEGMENT_LOOP>
-  </PRIMARY_KEY>
 ;//
+;// ENABLE_GET_ALL
 ;//
+    <IF DEFINED_ENABLE_GET_ALL>
+        ;;
+        public static readwrite property Get<StructurePlural>_Count, int
 ;//
-  <IF DEFINED_ENABLE_RELATIONS>
-    <IF STRUCTURE_RELATIONS>
-      <RELATION_LOOP_RESTRICTED>
-
-        <PRIMARY_KEY>
+;// ENABLE_GET_ONE
+;//
+    <IF DEFINED_ENABLE_GET_ONE>
+      <PRIMARY_KEY>
         <SEGMENT_LOOP>
-        public static readwrite property Get<StructureNoplural>_Expand_<IF MANY_TO_ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY>_<SegmentName>, <SEGMENT_SNTYPE>
+        public static readwrite property Get<StructureNoplural>_<SegmentName>, <SEGMENT_SNTYPE>
         </SEGMENT_LOOP>
-        </PRIMARY_KEY>
-      </RELATION_LOOP_RESTRICTED>
-    </IF STRUCTURE_RELATIONS>
-  </IF DEFINED_ENABLE_RELATIONS>
+      </PRIMARY_KEY>
+      <IF DEFINED_ENABLE_RELATIONS>
+        <IF STRUCTURE_RELATIONS>
+          <RELATION_LOOP_RESTRICTED>
+            <PRIMARY_KEY>
+              <SEGMENT_LOOP>
+        public static readwrite property Get<StructureNoplural>_Expand_<IF MANY_TO_ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY>_<SegmentName>, <SEGMENT_SNTYPE>
+              </SEGMENT_LOOP>
+            </PRIMARY_KEY>
+          </RELATION_LOOP_RESTRICTED>
 ;//
-;//
-;//
-  <PRIMARY_KEY>
-
-    <SEGMENT_LOOP>
+          <PRIMARY_KEY>
+            <SEGMENT_LOOP>
         public static readwrite property Get<StructureNoplural>_Expand_All_<SegmentName>, <SEGMENT_SNTYPE>
-    </SEGMENT_LOOP>
-  </PRIMARY_KEY>
+            </SEGMENT_LOOP>
+          </PRIMARY_KEY>
+        </IF STRUCTURE_RELATIONS>
+      </IF DEFINED_ENABLE_RELATIONS>
+;//
+    </IF DEFINED_ENABLE_GET_ALL>
+;//
+    </IF DEFINED_ENABLE_GET_ONE>
+;//
 ;//
 ;//
 ;//
   <ALTERNATE_KEY_LOOP_UNIQUE>
-    
     <SEGMENT_LOOP>
         public static readwrite property Get<StructureNoplural>_ByAltKey_<KeyName>_<SegmentName>, <SEGMENT_SNTYPE>
     </SEGMENT_LOOP>
@@ -106,9 +112,9 @@ namespace <NAMESPACE>
         public static readwrite property Update<StructureNoplural>_<SegmentName>, <SEGMENT_SNTYPE>
     </SEGMENT_LOOP>
   </PRIMARY_KEY>
-
-</IF STRUCTURE_ISAM>
+  </IF STRUCTURE_ISAM>
 </STRUCTURE_LOOP>
+
     endclass
 
 endnamespace

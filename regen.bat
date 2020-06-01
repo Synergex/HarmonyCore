@@ -272,17 +272,6 @@ if DEFINED ENABLE_UNIT_TEST_GENERATION (
               %STDOPTS%
   if ERRORLEVEL 1 goto error
 
-  rem Generate the test environment
-  codegen -s  %FILE_STRUCTURES% -ms ^
-          -a  %FILE_ALIASES% ^
-		  -fo %FILE_FILES% ^
-          -t  ODataTestEnvironment ^
-          -i  %SolutionDir%Templates ^
-          -o  %SolutionDir%%TestProject% ^
-          -n  %TestProject% ^
-              %STDOPTS%
-  if ERRORLEVEL 1 goto error
-
   rem Generate the unit test environment class, and the unit test hosting program
   codegen -s  %FILE_STRUCTURES% -ms ^
           -a  %FILE_ALIASES% ^
