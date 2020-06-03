@@ -23,11 +23,11 @@ import System.Threading.Tasks
 
 namespace <NAMESPACE>
 
-    {Route("Authentication")}
+    {Route("<CUSTOM_AUTH_CONTROLLER_PATH>")}
     public class AuthenticationController extends ControllerBase
 
         {AllowAnonymous}
-        {Route("GetToken")}
+        {Route("<CUSTOM_AUTH_ENDPOINT_PATH>")}
         ;;; <summary>
         ;;; 
         ;;; </summary>
