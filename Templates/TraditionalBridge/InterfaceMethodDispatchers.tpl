@@ -286,7 +286,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
   <ELSE STRING>
             serializer.ArgumentData(0,returnValue,FieldDataType.StringField,<METHOD_RETURN_SIZE>,0,false)
   <ELSE ENUM>
-            serializer.ArgumentData(0,returnValue,FieldDataType.EnumField,<METHOD_RETURN_SIZE>,0,false)
+            serializer.ArgumentData(0,(int)returnValue,FieldDataType.EnumField,<METHOD_RETURN_SIZE>,0,false)
   </IF>
 </IF FUNCTION>
 ;//
@@ -367,7 +367,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 ;//
     <IF ENUM>
             ;TODO: Do we need custom processing for enum fields beyond the integer value?
-            serializer.ArgumentData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>,FieldDataType.IntegerField,<PARAMETER_SIZE>,0,false)
+            serializer.ArgumentData(<COUNTER_1_VALUE>,(int)arg<COUNTER_1_VALUE>,FieldDataType.IntegerField,<PARAMETER_SIZE>,0,false)
     </IF ENUM>
 ;//
     <IF DATE>
