@@ -32,7 +32,7 @@ namespace Harmony.Core.Context
         proc
             while(mContextPool.Count < mMinSize)
             begin
-                data madeContext, @IContextBase, mContextPool.Allocate(provider)
+                data madeContext, @IContextBase, AllocateContext(provider)
                 if(madeContext .is. IPooledContextBase)
                 begin
                     await ((@IPooledContextBase)madeContext).EnsureReady()
@@ -107,7 +107,7 @@ namespace Harmony.Core.Context
         proc
             mreturn Task.FromResult(MakeContext(sessionId, provider))
         endmethod
-		
+        
         public override method MakeContext, T
             sessionId, @string
             provider, @IServiceProvider
@@ -161,7 +161,13 @@ namespace Harmony.Core.Context
             data pooledContext = ^as(context, @IPooledContextBase)
             try
             begin
-                if(pooledContext != ^null)
+                if(pooledContext != ^null && !pooledContext.IsHealthy) then
+                begin
+                    ;;if the context isnt good, dont return it to the pool
+                    pooledContext.Destroy()
+                    mreturn
+                end
+                else if(pooledContext != ^null)
                     await pooledContext.Recycle()
 
                 mContextPool.Free(context)

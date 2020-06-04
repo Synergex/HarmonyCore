@@ -26,7 +26,10 @@ namespace Harmony.Core.Context
 			mTargetProcess.StartInfo = startInfo
 			mMakeReadyTask = new Lazy<Task<JsonRpc>>(MakeReadyInternal)
 			mDisconnectToken = new CancellationTokenSource()
+			IsHealthy = true
 		endmethod
+
+		public readwrite property IsHealthy, boolean
 
 		public virtual method Recycle, @Task
 			endparams
@@ -121,6 +124,7 @@ namespace Harmony.Core.Context
 			sender, @Object
 			args, @EventArgs
 		proc
+			IsHealthy = false
 			mDisconnectToken.Cancel()
 		endmethod
 

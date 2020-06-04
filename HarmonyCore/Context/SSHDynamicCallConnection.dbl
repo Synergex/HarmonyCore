@@ -38,8 +38,11 @@ namespace Harmony.Core.Context
 			mLaunchCommand = command
 			mTargetConnection = new SshClient(startInfo)
 			mMakeReadyTask = new Lazy<Task<JsonRpc>>(MakeReadyInternal)
+			IsHealthy = true
 		endmethod
 		
+		public readwrite property IsHealthy, boolean
+
 		public virtual async method Recycle, @Task
 			endparams
 		proc
@@ -110,7 +113,7 @@ namespace Harmony.Core.Context
 			end
 			catch(ex, @Exception)
 			begin
-				mNeedsRecycle = true
+				IsHealthy = false
 				throw
 			end
 			endtry
@@ -133,9 +136,13 @@ namespace Harmony.Core.Context
 				mNeedsRecycle = true
 				throw new BridgeException(ex)
 			end
+			catch(ex, @RemoteMethodNotFoundException)
+			begin
+				throw new BridgeException(ex)
+			end
 			catch(ex, @Exception)
 			begin
-				mNeedsRecycle = true
+				IsHealthy = false
 				throw
 			end
 			endtry
