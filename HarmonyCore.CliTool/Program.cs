@@ -18,10 +18,10 @@ namespace HarmonyCore.CliTool
             [Option('p', "project")]
             public bool ProjectOnly { get; set; }
         }
-        public static string CurrentVersionTag = "release-v3.1.8";
-        public static string BuildPackageVersion = "11.1.1030.2704";
+        public static string CurrentVersionTag = "release-v3.1.9";
+        public static string BuildPackageVersion = "11.1.1030.2714";
         public static string CodeDomProviderVersion = "1.0.7";
-        public static string HCBuildVersion = "3.1.108";
+        public static string HCBuildVersion = "3.1.129";
         public static Dictionary<string, string> LatestNugetReferences = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase)
         {
             {"Harmony.Core", HCBuildVersion},
@@ -52,7 +52,7 @@ namespace HarmonyCore.CliTool
             {"System.Linq.Dynamic.Core", "1.0.22"},
             {"system.text.encoding.codepages", "4.7.0"},
         };
-        
+
         static void Main(string[] args)
         {
             var solutionDir = Environment.GetEnvironmentVariable("SolutionDir") ?? Environment.CurrentDirectory;
@@ -80,7 +80,7 @@ namespace HarmonyCore.CliTool
 
 
                   Console.WriteLine("Type YES to proceed: ");
-                  if(string.Compare(Console.ReadLine(), "YES", true) != 0)
+                  if (string.Compare(Console.ReadLine(), "YES", true) != 0)
                   {
                       Console.WriteLine("exiting without changes");
                       return 1;
@@ -156,7 +156,7 @@ namespace HarmonyCore.CliTool
             var normalizer = new Regex(@"\r\n|\n\r|\n|\r", RegexOptions.Compiled);
             using (var zip = new ZipArchive(sourceDistStream, ZipArchiveMode.Read))
             {
-                foreach(var entry in zip.Entries)
+                foreach (var entry in zip.Entries)
                 {
                     if (entry.CompressedLength > 0 && entry.FullName.StartsWith($"HarmonyCore-{CurrentVersionTag}/Templates/"))
                     {
@@ -183,7 +183,36 @@ namespace HarmonyCore.CliTool
                     else if (entry.CompressedLength > 0 && hasTraditionalBridge && entry.FullName.StartsWith($"HarmonyCore-{CurrentVersionTag}/TraditionalBridge/") && entry.FullName.EndsWith(".dbl"))
                     {
                         var targetFileName = Path.Combine(traditionalBridgeFolder, Path.GetFileName(entry.FullName.Replace($"HarmonyCore-{CurrentVersionTag}", "", StringComparison.CurrentCultureIgnoreCase).Replace("/", "\\").Replace("\\\\", "\\")));
-                        if(File.Exists(targetFileName))
+                        if (File.Exists(targetFileName))
+                            File.Delete(targetFileName);
+
+                        using (var stream = entry.Open())
+                        {
+                            using (var reader = new StreamReader(stream))
+                            {
+                                File.WriteAllText(targetFileName, normalizer.Replace(reader.ReadToEnd(), "\r\n"));
+                            }
+                        }
+                    }
+                    else if (entry.CompressedLength > 0 && entry.FullName == $"HarmonyCore-{CurrentVersionTag}/regen.bat")
+                    {
+                        var targetFileName = Path.Combine(solution.SolutionDir, "regen.bat.example");
+                        if (File.Exists(targetFileName))
+                            File.Delete(targetFileName);
+
+                        using (var stream = entry.Open())
+                        {
+                            using (var reader = new StreamReader(stream))
+                            {
+                                File.WriteAllText(targetFileName, normalizer.Replace(reader.ReadToEnd(), "\r\n"));
+                            }
+                        }
+                    }
+
+                    else if (entry.CompressedLength > 0 && entry.FullName == $"HarmonyCore-{CurrentVersionTag}/UserDefinedTokens.tkn")
+                    {
+                        var targetFileName = Path.Combine(solution.SolutionDir, "UserDefinedTokens.tkn.example");
+                        if (File.Exists(targetFileName))
                             File.Delete(targetFileName);
 
                         using (var stream = entry.Open())
