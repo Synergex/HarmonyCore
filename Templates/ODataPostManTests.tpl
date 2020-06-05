@@ -95,7 +95,12 @@
                             {
                                 "key": "Accept",
                                 "value": "application/json"
-                            }
+                            },
+							{
+								"key": "X-TENANT-ID",
+								"value": "{{TenantID}}",
+								"type": "text"
+							}
                         ],
                         "body": {
                             "mode": "raw",
@@ -128,7 +133,12 @@
                             {
                                 "key": "Accept",
                                 "value": "application/json"
-                            }
+                            },
+							{
+								"key": "X-TENANT-ID",
+								"value": "{{TenantID}}",
+								"type": "text"
+							}
                         ],
                         "body": {
                             "mode": "raw",
@@ -162,7 +172,12 @@
                         {
                         "key": "Accept",
                         "value": "application/json"
-                        }
+                        },
+    					{
+							"key": "X-TENANT-ID",
+							"value": "{{TenantID}}",
+							"type": "text"
+						}
                     ],
                     "body": {
                         "mode": "raw",
@@ -199,9 +214,14 @@
                     "method": "GET",
                     "header": [
                         {
-                        "key": "Accept",
-                        "value": "application/json"
-                        }
+                            "key": "Accept",
+                            "value": "application/json"
+                        },
+						{
+							"key": "X-TENANT-ID",
+							"value": "{{TenantID}}",
+							"type": "text"
+						}
                     ],
                     "body": {
                         "mode": "raw",
@@ -230,9 +250,14 @@
                     "method": "GET",
                     "header": [
                         {
-                        "key": "Accept",
-                        "value": "application/json"
-                        }
+                            "key": "Accept",
+                            "value": "application/json"
+                        },
+						{
+							"key": "X-TENANT-ID",
+							"value": "{{TenantID}}",
+							"type": "text"
+						}
                     ],
                     "body": {
                         "mode": "raw",
@@ -271,9 +296,14 @@
                     "method": "GET",
                     "header": [
                         {
-                        "key": "Accept",
-                        "value": "application/json"
-                        }
+                            "key": "Accept",
+                            "value": "application/json"
+                        },
+						{
+							"key": "X-TENANT-ID",
+							"value": "{{TenantID}}",
+							"type": "text"
+						}
                     ],
                     "body": {
                         "mode": "raw",
@@ -301,9 +331,14 @@
                     "method": "GET",
                     "header": [
                         {
-                        "key": "Accept",
-                        "value": "application/json"
-                        }
+                            "key": "Accept",
+                            "value": "application/json"
+                        },
+						{
+							"key": "X-TENANT-ID",
+							"value": "{{TenantID}}",
+							"type": "text"
+						}
                     ],
                     "body": {
                         "mode": "raw",
@@ -338,9 +373,14 @@
                     "method": "POST",
                     "header": [
                         {
-                        "key": "Content-Type",
-                        "value": "application/json"
-                        }
+                            "key": "Content-Type",
+                            "value": "application/json"
+                        },
+						{
+							"key": "X-TENANT-ID",
+							"value": "{{TenantID}}",
+							"type": "text"
+						}
                     ],
                     "body": {
                         "mode": "raw",
@@ -371,9 +411,14 @@
                     "method": "PUT",
                     "header": [
                         {
-                        "key": "Content-Type",
-                        "value": "application/json"
-                        }
+                            "key": "Content-Type",
+                            "value": "application/json"
+                        },
+						{
+							"key": "X-TENANT-ID",
+							"value": "{{TenantID}}",
+							"type": "text"
+						}
                     ],
                     "body": {
                         "mode": "raw",
@@ -405,7 +450,12 @@
                             {
                                 "key": "Content-Type",
                                 "value": "application/json"
-                            }
+                            },
+							{
+								"key": "X-TENANT-ID",
+								"value": "{{TenantID}}",
+								"type": "text"
+							}
                         ],
                         "body": {
                             "mode": "raw",
@@ -436,9 +486,14 @@
                     "method": "DELETE",
                     "header": [
                         {
-                        "key": "Accept",
-                        "value": "application/json"
-                        }
+                            "key": "Accept",
+                            "value": "application/json"
+                        },
+						{
+							"key": "X-TENANT-ID",
+							"value": "{{TenantID}}",
+							"type": "text"
+						}
                     ],
                     "body": {
                         "mode": "raw",
@@ -488,7 +543,7 @@
     "variable": [
         {
             "id": "bd6f096f-5211-4e1d-ba95-e944e7e7b89a",
-            "key": "AccessToken",
+            "key": "TenantID",
             "value": "",
             "type": "string"
         },
