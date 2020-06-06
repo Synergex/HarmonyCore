@@ -10,6 +10,7 @@ import System.Text.Json
 .define IS_TEXT(element) ((element).ValueKind == JsonValueKind.String)
 .define IS_ARRAY(element) ((element).ValueKind == JsonValueKind.Array)
 .define IS_BOOLEAN(element) ((element).ValueKind == JsonValueKind.True || (element).ValueKind == JsonValueKind.False)
+.define GET_ELEMENT_TYPENAME(element) %string(element.ValueKind)
 .else
 .define JSON_ELEMENT @JsonValue
 .define IS_OBJ(element) ((element).JsonType == JSON_TYPE.OBJ)
@@ -17,6 +18,7 @@ import System.Text.Json
 .define IS_TEXT(element) ((element).JsonType == JSON_TYPE.TEXT)
 .define IS_ARRAY(element) ((element).JsonType == JSON_TYPE.ARRAY_VAL)
 .define IS_BOOLEAN(element) ((element).JsonType == JSON_TYPE.BOOL)
+.define GET_ELEMENT_TYPENAME(element) %string(element.JsonType)
 .endc
 
 .define TEMP_AD_TYPE a28
@@ -428,9 +430,21 @@ namespace Harmony.TraditionalBridge
                 else
                     throw new Exception("invalid desired type " + %string(desiredType))
             end
-            else if(IS_BOOLEAN(element))
+            else if(IS_BOOLEAN(element)) then
             begin
                 mreturn (@boolean)element.GetBoolean()
+            end
+            else if(IS_ARRAY(element)) then
+            begin
+                throw new Exception("invalid element type was: ARRAY")
+            end
+            else if(IS_OBJ(element)) then
+            begin
+                throw new Exception("invalid element type was: OBJECT")
+            end
+            else
+            begin
+                throw new Exception("invalid element type was: " + GET_ELEMENT_TYPENAME(element))
             end
         endmethod
 
@@ -1013,6 +1027,48 @@ namespace Harmony.TraditionalBridge
             endtry
         endmethod
 
+        class StopGuard
+            serializer, @DispatchSerializer
+            public UnexpectedDeconstruction, boolean
+            requestId, int
+            public method StopGuard
+                serializer, @DispatchSerializer
+                requestId, int
+                endparams
+            proc
+                this.requestId = requestId
+                this.serializer = serializer
+                UnexpectedDeconstruction = true
+            endmethod
+
+            method ~StopGuard
+                record
+                    moduleName, a256
+                    blanks, a256
+                    line, int
+                    i, int
+                    callStack, @string
+            proc
+                if(UnexpectedDeconstruction)
+                begin
+                    callStack = ""
+                    i = 1
+                    clear blanks
+                    xcall modname(i, moduleName, line)              ;Start with current routine
+                    do
+                    begin
+                        callStack += " in routine " + %atrim(moduleName) + " at line " + %string(line) + ";"
+                        incr i
+                        xcall modname(i, moduleName, line)
+                    end
+                    until(moduleName .eq. blanks)
+
+                    serializer.ReportError("Unexpected deconstruction, this indicates either stop (implicit?) or a runtime bug. Dispatching" + callStack, -32000, requestId)
+                end
+
+            endmethod
+        endclass
+
         ;;; <summary>
         ;;; 
         ;;; </summary>
@@ -1027,13 +1083,15 @@ namespace Harmony.TraditionalBridge
                 name, @string
                 dispatchStub, @RoutineStub
                 temp, JSON_ELEMENT
+                guard, @StopGuard
             endrecord
         proc
-                        
             if(jsonData.TryGetProperty("id", temp)) then
                 requestId = temp.GetInt32()
             else
                 requestId = -1
+
+            guard = new StopGuard(serializer, requestId)
 
             if(jsonData.TryGetProperty("method", temp)) then
             begin
@@ -1154,6 +1212,9 @@ namespace Harmony.TraditionalBridge
                 serializer.ReportError(ex.ToString(), -32000, requestId)
             end
             endtry
+            ;;If we run this line, it means we *havent* been aborted by a rogue stop statement
+            if(guard != ^null)
+                guard.UnexpectedDeconstruction = false
 
             mreturn true
         endmethod
