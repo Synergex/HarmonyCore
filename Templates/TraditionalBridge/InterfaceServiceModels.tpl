@@ -89,11 +89,13 @@ namespace <NAMESPACE>
         ;;; No description found in method catalog
         </IF COMMENT>
         ;;; </summary>
-        public  <PARAMETER_NAME>, <IF COLLECTION>[#]</IF><HARMONYCORE_BRIDGE_PARAMETER_TYPE>
+        public <PARAMETER_NAME>, <IF COLLECTION>[#]</IF><HARMONYCORE_BRIDGE_PARAMETER_TYPE>
         </IF IN_OR_INOUT>
       </PARAMETER_LOOP>
 
     endclass
+  <ELSE>
+    ;; This method has no in parameters
   </IF IN_OR_INOUT>
 ;//
 ;// RESPONSE MODEL
@@ -130,6 +132,8 @@ namespace <NAMESPACE>
 
     endclass
 
+  <ELSE>
+    ;; This method does not return any data!
   </IF RETURNS_DATA>
 </METHOD_LOOP>
 endnamespace

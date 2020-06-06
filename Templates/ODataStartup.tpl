@@ -673,6 +673,15 @@ namespace <NAMESPACE>
             required in env, @IHostingEnvironment
         endmethod
 
+        ;;; <summary>
+        ;;; Declare the MvcConfigCustom partial method
+        ;;; Developers can use this to inject custom options into the MVC environemnt
+        ;;; </summary>
+        ;;; <param name="options">MVC options</param>
+        partial method MvcConfigCustom, void
+            options, @MvcOptions
+        endmethod
+
         .endregion
 
     endclass

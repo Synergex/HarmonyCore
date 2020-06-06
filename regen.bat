@@ -329,7 +329,8 @@ set SMC_XML_FILE=
 set SMC_INTERFACE=
 rem set BRIDGE_DISPATCHER_TEMPLATE=InterfaceMethodDispatchers
 set XFPL_SMCPATH=
-set STDOPTS=-e -lf -rps %RPSMFIL% %RPSTFIL% -r %ENABLE_AUTHENTICATION% %ENABLE_BRIDGE_SAMPLE_DISPATCHERS%
+set NOREPLACEOPTS=-e -lf -rps %RPSMFIL% %RPSTFIL% %ENABLE_AUTHENTICATION% %ENABLE_BRIDGE_SAMPLE_DISPATCHERS%
+set STDOPTS=%NOREPLACEOPTS% -r
 
 if DEFINED ENABLE_BRIDGE_OPTIONAL_PARAMETERS (
   set BRIDGE_DISPATCHER_TEMPLATE=OptionalParameterMethodDispatchers
@@ -450,6 +451,8 @@ goto :eof
           %STDOPTS%
   if ERRORLEVEL 1 goto error
 
+  if DEFINED ENABLE_POSTMAN_TESTS (
+
   rem Generate the Postman tests for the Interface
 
   codegen -smc %SMC_XML_FILE% ^
@@ -457,9 +460,25 @@ goto :eof
           -t InterfacePostmanTests ^
           -i %SolutionDir%Templates\TraditionalBridge ^
           -o %SolutionDir% ^
+            %STDOPTS%
+    if ERRORLEVEL 1 goto error
+  )
+
+  if DEFINED ENABLE_UNIT_TEST_GENERATION (
+
+    rem Generate a unit test class for the Interface
+    codegen -smc %SMC_XML_FILE% ^
+            -interface %1 ^
+            -t  InterfaceUnitTests InterfaceUnitTestValues ^
+            -i  %SolutionDir%Templates\TraditionalBridge ^
+            -o  %SolutionDir%%TestProject% -tf ^
+            -n  %TestProject% ^
+            -ut CLIENT_MODELS_NAMESPACE=%TestProject%.Models DTOS_NAMESPACE=%SMC_INTERFACE% ^
           %STDOPTS%
   if ERRORLEVEL 1 goto error
  
+  )
+
 GOTO:eof
 
 :GenerateCodeForSignalR
