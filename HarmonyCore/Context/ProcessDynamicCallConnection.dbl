@@ -74,11 +74,19 @@ namespace Harmony.Core.Context
 			end
 			catch(ex, @RemoteInvocationException)
 			begin
+				if(ex.ErrorCode == -32000)
+					IsHealthy = false
+
 				throw new BridgeException(ex)
 			end
 			catch(ex, @RemoteMethodNotFoundException)
 			begin
 				throw new BridgeException(ex)
+			end
+			catch(ex, @Exception)
+			begin
+				IsHealthy = false
+				throw
 			end
 			endtry
 		endmethod
@@ -95,6 +103,7 @@ namespace Harmony.Core.Context
 			endparams
 		proc
 			data readLine, @string
+			mTargetProcess.EnableRaisingEvents = true
 			mTargetProcess.Start()
 			mProcessStarted = true
 			mTargetProcess.StartInfo.StandardOutputEncoding = ASCIIEncoding.ASCII

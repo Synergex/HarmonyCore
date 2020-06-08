@@ -25,6 +25,7 @@ namespace Harmony.Core.Context
             IsSessionSticky = true
         endmethod
 
+        public IsHealthyRetryCount, int, 100
 
         public virtual async method RealizeMinimumPoolSize, @Task
             provider, @IServiceProvider
@@ -124,6 +125,7 @@ namespace Harmony.Core.Context
                 mreturn new Lazy<T>(LazyItemFactory, LazyThreadSafetyMode.ExecutionAndPublication)
             end
 
+            
             if(!String.IsNullOrWhiteSpace(sessionId)) then
             begin
                 data lazyResult = mSessionCache.GetOrCreate<Lazy<T>>(sessionId, CacheFactory)
@@ -131,20 +133,33 @@ namespace Harmony.Core.Context
             end
             else
             begin
-                mreturn AllocateContext(provider)
+				mreturn AllocateContext(provider)
             end
+            
         endmethod
 
         protected virtual method AllocateContext, T
             provider, @IServiceProvider
             endparams
         proc
-            data result = mContextPool.Allocate(provider)
-            if(result .is. IPooledContextBase)
+            data retryCount = 0
+            for retryCount from 0 thru IsHealthyRetryCount by 1
             begin
-                ((@IPooledContextBase)result).InitServices(provider)
+                data result = mContextPool.Allocate(provider)
+                if(result .is. IPooledContextBase)
+                begin
+                    ((@IPooledContextBase)result).InitServices(provider)
+                end
+
+                data pooledContext = ^as(result, @IPooledContextBase2)
+                if(pooledContext == ^null || pooledContext.IsHealthy) then
+                begin
+                    mreturn result
+                end
+                else if(pooledContext != ^null)
+                    pooledContext.Destroy()
             end
-            mreturn result
+            throw new Exception(string.Format("failed to create healthy context after {0} attempts, aborting", IsHealthyRetryCount))
         endmethod
 
         protected virtual method SlowMakeContext, T
