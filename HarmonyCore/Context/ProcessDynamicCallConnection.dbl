@@ -104,20 +104,35 @@ namespace Harmony.Core.Context
 		proc
 			data readLine, @string
 			mTargetProcess.EnableRaisingEvents = true
+			mTargetProcess.StartInfo.StandardOutputEncoding = ASCIIEncoding.ASCII
 			mTargetProcess.Start()
 			mProcessStarted = true
-			mTargetProcess.StartInfo.StandardOutputEncoding = ASCIIEncoding.ASCII
+			
 			readLine = await mTargetProcess.StandardOutput.ReadLineAsync()
-			Trace.WriteLine(readLine)
 			while(!mTargetProcess.HasExited && readLine != "READY")
 			begin
-				readLine = await mTargetProcess.StandardOutput.ReadLineAsync()
-				Trace.WriteLine(readLine)
+				readLine += await mTargetProcess.StandardOutput.ReadLineAsync()
 			end
 
 			if(mTargetProcess.HasExited)
-				throw new Exception("process exited during initialization")
-			
+			begin
+				data outputText = await mTargetProcess.StandardOutput.ReadToEndAsync()
+				outputText = readLine + outputText
+				data logs = new string[#] { string.Format(" application: '{0}' arguments: '{1}' working directory: '{2}' stdOut: '{3}'", mTargetProcess.StartInfo.FileName, mTargetProcess.StartInfo.Arguments, mTargetProcess.StartInfo.WorkingDirectory, outputText) }
+				if(outputText.Contains("%DBR-F-NOTDBR")) then
+				begin
+					throw new BridgeConnectionException("TraditionalBridge failed to initialize most likely due to x86/x64 mismatch.", logs)
+				end
+				else if(outputText.Contains("%DBR-E-OPENF")) then
+				begin
+					throw new BridgeConnectionException("TraditionalBridge failed to initialize most likely due to missing dbr or elb file.", logs)
+				end
+				else
+				begin
+					throw new BridgeConnectionException("TraditionalBridge failed to initialize.", logs)
+				end
+			end
+
 			mTargetProcess.Exited += ProcessExit
 
 			data result = JsonRpc.Attach(new StreamWrapper(mTargetProcess.StandardOutput, mTargetProcess.StandardInput), ^null) 

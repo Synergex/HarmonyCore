@@ -27,6 +27,41 @@ namespace HarmonyCore.Test.Bridge
             mreturn contextPool
         endmethod
 
+		{TestMethod}
+		public async method InitFailure, @Task
+		proc
+			data currentDirectory = Path.GetDirectoryName(^typeof(BasicBridge).Assembly.Location)
+			data testDirFolder = TestEnvironment.findRelativeFolderForAssembly("TestDir")
+			data contextPool1 = new ExternalContextPool<BasicBridge.ExternalCallContext>(Environment.GetEnvironmentVariable("SYNERGYDE64") + "dbl\bin\dbs.exe", 'TraditionalBridge.Testt.dbr', testDirFolder, ^null, 4) 
+			data sp = new ServiceCollection().BuildServiceProvider()
+			try
+			begin
+				data context = contextPool1.MakeContext(sp)
+				await context.GetAllCustomers()
+                Assert.Fail()
+			end
+			catch(ex, @BridgeConnectionException)
+			begin
+                Assert.AreEqual(ex.InnerMessage, "TraditionalBridge failed to initialize most likely due to missing dbr or elb file.")
+			end
+            endtry
+
+
+			data contextPool2 = new ExternalContextPool<BasicBridge.ExternalCallContext>(Environment.GetEnvironmentVariable("SYNERGYDE32") + "dbl\bin\dbs.exe", 'TraditionalBridge.Test.dbr', testDirFolder, ^null, 4) 
+
+			try
+			begin
+				data context = contextPool2.MakeContext(sp)
+				await context.GetAllCustomers()
+				Assert.Fail()
+			end
+			catch(ex, @BridgeConnectionException)
+			begin
+				Assert.AreEqual(ex.InnerMessage, "TraditionalBridge failed to initialize most likely due to x86/x64 mismatch.")
+			end
+			endtry
+		endmethod
+
 
         {TestMethod}
         public async method LocalTest, @Task

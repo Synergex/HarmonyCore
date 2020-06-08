@@ -69,14 +69,23 @@ namespace Harmony.Core.Utility
 	public class BridgeConnectionException extends ApplicationException
 	
 	public readwrite property ConnectionLogs, @IEnumerable<string>
-	
+	public readwrite property InnerMessage, @string
 		public method BridgeConnectionException
 			message, string
 			logItems, @IEnumerable<string>
 			parent(message)
 		proc
+			InnerMessage = message
 			ConnectionLogs = logItems
 		endmethod
+
+		public override property Message, @string
+			method get
+			proc
+				mreturn InnerMessage + " logs: " + string.Join(";", ConnectionLogs)
+			endmethod
+		endproperty
+
 
 	endclass
 
