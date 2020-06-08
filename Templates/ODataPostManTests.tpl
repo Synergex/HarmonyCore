@@ -24,7 +24,7 @@
                 "header": [
                     {
                         "key": "Content-Type",
-                        "value": "application/x-www-form-urlencoded"
+                        "value": "application/json"
                     }
                 ],
                 "body": {
@@ -40,7 +40,7 @@
                     "port": "<SERVER_HTTPS_PORT>",
                     "path": [
                         "<CUSTOM_AUTH_CONTROLLER_PATH>",
-                        "CUSTOM_AUTH_ENDPOINT_PATH"
+                        "<CUSTOM_AUTH_ENDPOINT_PATH>"
                     ]
                 }
             },
