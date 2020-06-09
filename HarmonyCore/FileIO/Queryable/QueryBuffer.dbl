@@ -4,6 +4,7 @@ import System.Text
 import System.Linq
 import Harmony.Core.Context
 import System.Diagnostics
+import Newtonsoft.Json
 
 namespace Harmony.Core.FileIO.Queryable
 
@@ -19,9 +20,13 @@ namespace Harmony.Core.FileIO.Queryable
 			public JoinOn, @object
 			public JoinedBuffers, @List<TypeBuffer>
 			public IsInnerJoin, boolean
+			{JsonIgnore}
 			public OrderBy, @Delegate
+			{JsonIgnore}
 			public SelectResult, @Func<QueryBuffer, QueryBuffer.TypeBuffer, Object, Object>
-            public Top, @Func<Object, long>
+			{JsonIgnore}
+			public Top, @Func<Object, long>
+			{JsonIgnore}
 			public Skip, @Func<Object, long>
 .ifdef DEBUG
 			private AllocationTrace, @StackTrace
@@ -37,6 +42,10 @@ namespace Harmony.Core.FileIO.Queryable
 					throw new Exception("channel leaked")
 			endmethod
 .endc
+			public override method ToString, @string
+			proc
+				mreturn JsonConvert.SerializeObject(this)
+			endmethod
 
 		endclass
 		

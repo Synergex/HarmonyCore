@@ -7,6 +7,7 @@ import System.Linq.Expressions
 import Harmony.Core.FileIO
 import Harmony.Core.FileIO.Queryable.Materializer
 import Synergex.SynergyDE.Select
+import Newtonsoft.Json
 
 namespace Harmony.Core.FileIO.Queryable
 
@@ -70,6 +71,14 @@ namespace Harmony.Core.FileIO.Queryable
 			end
 		endmethod
 
+		public override method ToString, @string
+		proc
+			mreturn string.Format("EnableMARS: {1}{0}MARSTargetSize: {2}{0}Where: {3}{0}On:{4}{0}OrderBy:{5}{0}IsCollection{6}",Environment.NewLine, EnableMARS, MARSTargetSize,
+			&	JsonConvert.SerializeObject(mWhereParts),
+			&	JsonConvert.SerializeObject(mOnParts),
+			&	JsonConvert.SerializeObject(mOrderBy),
+			&	IsCollection)
+		endmethod
 
 		public method Prepare, void
 		proc
@@ -405,11 +414,12 @@ namespace Harmony.Core.FileIO.Queryable
 
 			enumerator, @PreparedQueryPlan.MaterializerEnumerator
 			public method MaterializerEnumeratable
+				preparedQuery, @PreparedQueryPlan
 				iterState, @DataObjectMaterializer.IterationState
 				rows, @RowsManager
 				cleanup, @Action
 			proc
-				enumerator = new MaterializerEnumerator(iterState, rows, cleanup)
+				enumerator = new MaterializerEnumerator(preparedQuery, iterState, rows, cleanup)
 			endmethod
 
 			public virtual method Dispose, void
@@ -439,8 +449,10 @@ namespace Harmony.Core.FileIO.Queryable
 			iterState, @DataObjectMaterializer.IterationState
 			rows, @RowsManager
 			cleanup, @Action
+			queryPlan, @PreparedQueryPlan
 
 			public method MaterializerEnumerator
+				queryPlan, @PreparedQueryPlan
 				iterState, @DataObjectMaterializer.IterationState
 				rows, @RowsManager
 				cleanup, @Action
@@ -448,6 +460,7 @@ namespace Harmony.Core.FileIO.Queryable
 				this.iterState = iterState
 				this.rows = rows
 				this.cleanup = cleanup
+				this.queryPlan = queryPlan
 			endmethod
 
 
@@ -478,35 +491,48 @@ namespace Harmony.Core.FileIO.Queryable
 			public virtual method MoveNext, Boolean
 				endparams
 			proc
+				data phase = "init"
 				if(CurrentNestedEnumerator != ^null)
 					mreturn CurrentNestedEnumerator.MoveNext()
 
 				data endOfIter = false
 				do forever
 				begin
-					if(!endOfIter) then
+					try
 					begin
-						if(!rows.MoveNext())
+						if(!endOfIter) then
 						begin
-							endOfIter = true
-							nextloop
-						end
+							phase = "RowManager.MoveNext"
+							if(!rows.MoveNext())
+							begin
+								endOfIter = true
+								nextloop
+							end
 
-						DataObjectMaterializer.IterateMaterializer(iterState, rows)
-						data iterResult = DataObjectMaterializer.AfterIterate(iterState)
-						endOfIter = iterResult.endOfResult
-						if(iterResult.objResult != ^null)
+							phase = "Iterate"
+							DataObjectMaterializer.IterateMaterializer(iterState, rows)
+							phase = "AfterIterate"
+							data iterResult = DataObjectMaterializer.AfterIterate(iterState)
+							endOfIter = iterResult.endOfResult
+							if(iterResult.objResult != ^null)
+							begin
+								CurrentValue = iterResult.objResult
+								mreturn true
+							end
+						end
+						else
 						begin
-							CurrentValue = iterResult.objResult
-							mreturn true
+							phase = "FinishIterate"
+							data fullResult = DataObjectMaterializer.FinishIteration(iterState).GetEnumerator()
+							CurrentNestedEnumerator = fullResult
+							mreturn fullResult.MoveNext()
 						end
 					end
-					else
+					catch(ex, @Exception)
 					begin
-						data fullResult = DataObjectMaterializer.FinishIteration(iterState).GetEnumerator()
-						CurrentNestedEnumerator = fullResult
-						mreturn fullResult.MoveNext()
+						throw new MaterializationException(queryPlan.ToString(), iterState.ToString(), phase, ex)
 					end
+					endtry
 				end
 			endmethod
 
@@ -548,7 +574,7 @@ namespace Harmony.Core.FileIO.Queryable
 			rows, @RowsManager
 			cleanup, @Action
 		proc
-			mreturn new PreparedQueryPlan.MaterializerEnumeratable(iterState, rows, cleanup)
+			mreturn new PreparedQueryPlan.MaterializerEnumeratable(this, iterState, rows, cleanup)
 		endmethod
 		
 		private method UntypedExecuteSelectCollectionPlan, @IEnumerable<DataObjectBase>

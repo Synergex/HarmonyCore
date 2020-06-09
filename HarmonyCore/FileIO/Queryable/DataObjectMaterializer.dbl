@@ -5,6 +5,7 @@ import System.Linq
 import System.Diagnostics
 import Harmony.Core.Utility
 import Harmony.Core.FileIO.Queryable.Materializer
+import Newtonsoft.Json
 
 namespace Harmony.Core.FileIO.Queryable
 
@@ -36,6 +37,15 @@ namespace Harmony.Core.FileIO.Queryable
 				this.MaterializerQueue.Reverse()
 				this.Stats = stats
 				this.Tracker = tracker
+			endmethod
+
+			public override method ToString, @string
+			proc
+				mreturn string.Format("Parent Parameters: {1}{0}Parent Buffers: {2}{0}Current Buffer: {3}{0}Stats: {4}{0}", Environment.NewLine, 
+				&	JsonConvert.SerializeObject(ResultState.queryBuf.Parameters), 
+				&	string.Join(Environment.NewLine + "    ", ResultState.queryBuf.TypeBuffers.Select(lambda(tb) { tb.ToString() })),
+				&	TypeBuf,
+				&	JsonConvert.SerializeObject(Stats))
 			endmethod
 
 			private static method MakeIterationQueue, @List<MaterializerState>
@@ -92,7 +102,7 @@ namespace Harmony.Core.FileIO.Queryable
 				mreturn result
 			end
 
-			if(!iterState.ResultState.IsSorted())
+			if(!iterState.ResultState.IsSorted()) then
 			begin
 				data returnedItem, @DataObjectBase
 				if((returnedItem = iterState.ResultState.TakeItem()) != ^null)
@@ -103,6 +113,12 @@ namespace Harmony.Core.FileIO.Queryable
 					result.objResult = returnedItem
 					mreturn result
 				end
+			end
+			else
+			begin
+				data result, DataObjectMaterializer.MaterializeResult
+				result.endOfResult = false
+				mreturn result
 			end
 		endmethod
 
