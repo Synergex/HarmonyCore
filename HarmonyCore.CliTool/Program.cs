@@ -1,27 +1,155 @@
-﻿using CommandLine;
+﻿using CodeGen.RepositoryAPI;
+using CommandLine;
+using HarmonyCore.CliTool.Commands;
+using HarmonyCoreGenerator.Generator;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace HarmonyCore.CliTool
 {
+    [Verb("upgrade-latest")]
+    class UpgradeLatestOptions
+    {
+        [Option('p', "project")]
+        public bool ProjectOnly { get; set; }
+    }
+    [Verb("rps")]
+    class RpsOptions
+    {
+        [Option("ls", Required = false, HelpText = "List structures contained in the specified repository")]
+        public bool ListStructures { get; set; }
+
+        [Option("lf", Required = false, HelpText = "List fields contained in the selected structure")]
+        public bool ListFields { get; set; }
+
+        [Option("lr", Required = false, HelpText = "List relations involving the selected structure")]
+        public bool ListRelations { get; set; }
+
+        [Option("lk", Required = false, HelpText = "List keys in the selected structure")]
+        public bool ListKeys { get; set; }
+
+        [Option('s', Required = false, HelpText = "Specify structure name to be operated on")]
+        public string Structure { get; set; }
+
+        [Option('f', Required = false, HelpText = "Specify field name to be operated on, use the fields fully qualified name or specify the structure using the -s option")]
+        public string Field { get; set; }
+
+        [Option('p', Required = false, HelpText =
+@"Add/Remove property syntax is key:value with spaces between pairs
+Known structure properties:
+    Alias - string
+	Files - Comma delimited values
+	EnableRelations - true/false
+	EnableRelationValidation - true/false
+	EnableGetAll - true/false
+	EnableGetOne - true/false
+	EnableAltGet - true/false 
+	EnablePut - true/false
+	EnablePost - true/false
+	EnablePatch - true/false
+	EnableDelete - true/false
+	ControllerAuthorization - true/false or comma delimited role names
+	PostAuthorization - true/false or comma delimited role names
+	PutAuthorization - true/false or comma delimited role names
+	PatchAuthorization - true/false or comma delimited role names
+	DeleteAuthorization - true/false or comma delimited role names
+	GetAuthorization - true/false or comma delimited role names
+	ODataQueryOptions - string", Separator = ' ')]
+        public IEnumerable<string> Properties { get; set; }
+
+        [Option('r', Required = false, HelpText = "Remove properties instead of adding them")]
+        public bool RemoveProperties { get; set; }
+    }
+
+    [Verb("smc")]
+    class SmcOptions
+    {
+        [Option("li", Required = false, HelpText = "List interfaces")]
+        public bool ListInterfaces { get; set; }
+
+        [Option("lm", Required = false, HelpText = "List methods in selected interface")]
+        public bool ListMethods { get; set; }
+
+        [Option("lp", Required = false, HelpText = "List parameter info in selected interface/method")]
+        public bool ListParameters { get; set; }
+
+        [Option("ls", Required = false, HelpText = "List structures used as parameters in selected interface/method")]
+        public bool ListStructures { get; set; }
+
+        [Option('i', Required = false, HelpText = "Specify interface name to be operated on")]
+        public string Interface { get; set; }
+
+        [Option('m', Required = false, HelpText = "Specify method name to be operated on")]
+        public string Method { get; set; }
+    }
+
+    [Verb("regen")]
+    class RegenOptions
+    {
+    }
+
+    [Verb("codegen-list")]
+    class CodegenListOptions
+    {
+        [Option('i', "interface")]
+        public bool Interface { get; set; }
+        [Option('s', "structure")]
+        public bool Structure { get; set; }
+    }
+
+    [Verb("codegen-add")]
+    class CodegenAddOptions
+    {
+        [Option("interface", SetName = "smc")]
+        public bool Interface { get; set; }
+
+        [Option("webapi", SetName = "smc")]
+        public bool TBWebApi { get; set; }
+
+        [Option("signalr", SetName = "smc")]
+        public bool TBSignalR { get; set; }
+
+        [Option("structure", SetName = "rps")]
+        public bool Structure { get; set; }
+
+        [Option("odata", SetName = "rps")]
+        public bool OData { get; set; }
+        [Option("ef", SetName = "rps")]
+        public bool Ef { get; set; }
+        [Option("custom", SetName = "rps")]
+        public bool Custom { get; set; }
+        [Option('i', Required = true, Separator = ' ')]
+        public IEnumerable<string> Items { get; set; }
+    }
+
+    [Verb("codegen-remove")]
+    class CodegenRemoveOptions
+    {
+        [Option("interface", SetName = "smc")]
+        public bool Interface { get; set; }
+
+        [Option("structure", SetName = "rps")]
+        public bool Structure { get; set; }
+
+        [Option('i', Required = true, Separator = ' ')]
+        public IEnumerable<string> Items { get; set; }
+    }
+
     class Program
     {
-        [Verb("upgrade-latest")]
-        class UpgradeLatestOptions
-        {
-            [Option('p', "project")]
-            public bool ProjectOnly { get; set; }
-        }
-        public static string CurrentVersionTag = "release-v3.1.9";
-        public static string BuildPackageVersion = "11.1.1030.2714";
+        public static string CurrentVersionTag = "release-v3.1.11";
+        public static string BuildPackageVersion = "11.1.1030.2704";
         public static string CodeDomProviderVersion = "1.0.7";
-        public static string HCBuildVersion = "3.1.129";
+        public static string HCBuildVersion = "3.1.145";
         public static Dictionary<string, string> LatestNugetReferences = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase)
         {
             {"Harmony.Core", HCBuildVersion},
@@ -53,8 +181,21 @@ namespace HarmonyCore.CliTool
             {"system.text.encoding.codepages", "4.7.0"},
         };
 
+        const int STD_INPUT_HANDLE = -10;
+        [DllImport("kernel32.dll", SetLastError = true)]
+        static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint lpMode);
+        [DllImport("kernel32.dll", SetLastError = true)]
+        static extern bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
+        [DllImport("kernel32.dll", SetLastError = true)]
+        static extern IntPtr GetStdHandle(int nStdHandle);
+
+
         static void Main(string[] args)
         {
+            var handle = GetStdHandle(STD_INPUT_HANDLE);
+            uint currentMode = 0;
+            GetConsoleMode(handle, out currentMode);
+
             var solutionDir = Environment.GetEnvironmentVariable("SolutionDir") ?? Environment.CurrentDirectory;
             Console.WriteLine("Scanning '{0}' for HarmonyCore project files", solutionDir);
             string[] synprojFiles = new string[0];
@@ -72,8 +213,15 @@ namespace HarmonyCore.CliTool
             }
             var solutionInfo = new SolutionInfo(synprojFiles, solutionDir);
 
-            CommandLine.Parser.Default.ParseArguments<UpgradeLatestOptions, object>(args)
-            .MapResult(
+            if (!SetConsoleMode(handle, currentMode))
+            {
+                throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
+            }
+
+
+            CommandLine.Parser.Default.ParseArguments<UpgradeLatestOptions, CodegenListOptions, CodegenAddOptions, CodegenRemoveOptions, RpsOptions, RegenOptions>(args)
+            .MapResult<UpgradeLatestOptions, CodegenListOptions, CodegenAddOptions, CodegenRemoveOptions, RpsOptions, RegenOptions, int>(
+
               (UpgradeLatestOptions opts) =>
               {
                   Console.WriteLine("This utility will make significant changes to projects and other source files in your Harmony Core development environment. Before running this tool we recommend checking the current state of your development environment into your source code repository, taking a backup copy of the environment if you don't use source code control.\n\n");
@@ -93,11 +241,11 @@ namespace HarmonyCore.CliTool
                       UpgradeLatest(solutionInfo).Wait();
                   return 0;
               },
-              (object opts) =>
-              {
-                  Console.WriteLine("no arguments passed, exiting");
-                  return 0;
-              },
+              new CodegenCommand(solutionInfo).List,
+              new CodegenCommand(solutionInfo).Add,
+              new CodegenCommand(solutionInfo).Remove,
+              new RPSCommand(solutionInfo).Run,
+              new RegenCommand(solutionInfo).Run,
               errs =>
               {
                   foreach (var error in errs)
@@ -150,81 +298,7 @@ namespace HarmonyCore.CliTool
                 Console.WriteLine("Updating traditional bridge files in {0}", traditionalBridgeFolder);
             }
 
-            var client = new HttpClient();
-            var targeturl = $"https://github.com/Synergex/HarmonyCore/archive/{CurrentVersionTag}.zip";
-            var sourceDistStream = await client.GetStreamAsync(targeturl);
-            var normalizer = new Regex(@"\r\n|\n\r|\n|\r", RegexOptions.Compiled);
-            using (var zip = new ZipArchive(sourceDistStream, ZipArchiveMode.Read))
-            {
-                foreach (var entry in zip.Entries)
-                {
-                    if (entry.CompressedLength > 0 && entry.FullName.StartsWith($"HarmonyCore-{CurrentVersionTag}/Templates/"))
-                    {
-                        if (distinctTemplateFolders.Count > 0)
-                        {
-                            var targetFileName = Path.Combine(distinctTemplateFolders.First(), entry.FullName.Replace($"HarmonyCore-{CurrentVersionTag}/Templates/", "", StringComparison.CurrentCultureIgnoreCase).Replace("/", "\\").Replace("\\\\", "\\"));
-
-                            if (targetFileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
-                                continue;
-
-                            Directory.CreateDirectory(Path.GetDirectoryName(targetFileName));
-                            if (File.Exists(targetFileName))
-                                File.Delete(targetFileName);
-
-                            using (var stream = entry.Open())
-                            {
-                                using (var reader = new StreamReader(stream))
-                                {
-                                    File.WriteAllText(targetFileName, normalizer.Replace(reader.ReadToEnd(), "\r\n"));
-                                }
-                            }
-                        }
-                    }
-                    else if (entry.CompressedLength > 0 && hasTraditionalBridge && entry.FullName.StartsWith($"HarmonyCore-{CurrentVersionTag}/TraditionalBridge/") && entry.FullName.EndsWith(".dbl"))
-                    {
-                        var targetFileName = Path.Combine(traditionalBridgeFolder, Path.GetFileName(entry.FullName.Replace($"HarmonyCore-{CurrentVersionTag}", "", StringComparison.CurrentCultureIgnoreCase).Replace("/", "\\").Replace("\\\\", "\\")));
-                        if (File.Exists(targetFileName))
-                            File.Delete(targetFileName);
-
-                        using (var stream = entry.Open())
-                        {
-                            using (var reader = new StreamReader(stream))
-                            {
-                                File.WriteAllText(targetFileName, normalizer.Replace(reader.ReadToEnd(), "\r\n"));
-                            }
-                        }
-                    }
-                    else if (entry.CompressedLength > 0 && entry.FullName == $"HarmonyCore-{CurrentVersionTag}/regen.bat")
-                    {
-                        var targetFileName = Path.Combine(solution.SolutionDir, "regen.bat.example");
-                        if (File.Exists(targetFileName))
-                            File.Delete(targetFileName);
-
-                        using (var stream = entry.Open())
-                        {
-                            using (var reader = new StreamReader(stream))
-                            {
-                                File.WriteAllText(targetFileName, normalizer.Replace(reader.ReadToEnd(), "\r\n"));
-                            }
-                        }
-                    }
-
-                    else if (entry.CompressedLength > 0 && entry.FullName == $"HarmonyCore-{CurrentVersionTag}/UserDefinedTokens.tkn")
-                    {
-                        var targetFileName = Path.Combine(solution.SolutionDir, "UserDefinedTokens.tkn.example");
-                        if (File.Exists(targetFileName))
-                            File.Delete(targetFileName);
-
-                        using (var stream = entry.Open())
-                        {
-                            using (var reader = new StreamReader(stream))
-                            {
-                                File.WriteAllText(targetFileName, normalizer.Replace(reader.ReadToEnd(), "\r\n"));
-                            }
-                        }
-                    }
-                }
-            }
+            await GitHubRelease.GetAndUnpackLatest(hasTraditionalBridge, traditionalBridgeFolder, distinctTemplateFolders, solution);
 
             UpgradeProjects(solution);
         }
