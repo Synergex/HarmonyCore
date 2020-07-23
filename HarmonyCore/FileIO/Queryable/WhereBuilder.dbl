@@ -320,7 +320,8 @@ namespace Harmony.Core.FileIO.Queryable
             data leftTarget = FindTargetField(left, right, mQuerySourceMap)
             data rightTarget = FindTargetField(right, left, mQuerySourceMap)
             data casedOp = op
-            if((casedOp == WhereClauseOperator.IsLike || 
+			if((casedOp == WhereClauseOperator.IsNotLike || 
+            &   casedOp == WhereClauseOperator.IsLike || 
             &	casedOp == WhereClauseOperator.EqualTo ||
 			&	casedOp == WhereClauseOperator.NotEqualTo ||
 			&	casedOp == WhereClauseOperator.StartsWith ||
@@ -454,6 +455,15 @@ namespace Harmony.Core.FileIO.Queryable
 							targetOperator = WhereClauseOperator.NotEndsWith
 
                         ProcessWhereClause(methodCallExpr.Object, methodCallExpr.Arguments[0], targetOperator)
+					end
+					else if(methodCallExpr.Method == StringContains) then
+					begin
+						data targetOperator = WhereClauseOperator.IsLike
+
+						if(mNotFlag)
+							targetOperator = WhereClauseOperator.IsNotLike
+
+						ProcessWhereClause(methodCallExpr.Object, methodCallExpr.Arguments[0], targetOperator)
 					end
 					else if(methodCallExpr.Method == StringStartsWith) then
 					begin

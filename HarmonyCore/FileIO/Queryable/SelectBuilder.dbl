@@ -490,6 +490,7 @@ namespace Harmony.Core.FileIO.Queryable
 			data caseInsensitive = theOperator == WhereClauseOperator.NoCaseEqualTo || 
 			&	theOperator == WhereClauseOperator.NoCaseNotEqualTo ||
 			&	theOperator == WhereClauseOperator.IsLikeNoCase ||
+			&	theOperator == WhereClauseOperator.IsNotLikeNoCase ||
 			&	theOperator == WhereClauseOperator.IsInNoCase ||
 			&	theOperator == WhereClauseOperator.StartsWithNoCase ||
 			&	theOperator == WhereClauseOperator.NotStartsWithNoCase
@@ -674,8 +675,9 @@ namespace Harmony.Core.FileIO.Queryable
 				end
 				endusing
 			end
-			(whereClauseOperator.IsLike, whereClauseOperator.IsLikeNoCase),
+			(whereClauseOperator.IsLike, whereClauseOperator.IsLikeNoCase, WhereClauseOperator.IsNotLike, WhereClauseOperator.IsNotLikeNoCase),
 			begin
+				data resultWhere, @Where
 				using fieldDetails.DataType select
 				(FieldDataType.AlphaField),
 				begin
@@ -685,15 +687,20 @@ namespace Harmony.Core.FileIO.Queryable
 					if (!caseInsensitive) then
 					begin
 						DebugLogSession.Logging.LogTrace("HARMONY-commandParser::fieldWhereClause: IsLike Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
-						mreturn Where.Like(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), (^m(tmpStructure(1:length), memPnt)))
+						resultWhere = Where.Like(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), (^m(tmpStructure(1:length), memPnt)))
 					end
 					else
 					begin
 						DebugLogSession.Logging.LogTrace("HARMONY-commandParser::fieldWhereClause: IsLike NoCaseWhere (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
-						mreturn NoCaseWhere.Like(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), (^m(tmpStructure(1:length), memPnt)))
+						resultWhere = NoCaseWhere.Like(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), (^m(tmpStructure(1:length), memPnt)))
 					end
 				end
 				endusing
+
+				if(theOperator == WhereClauseOperator.IsNotLike || theOperator == WhereClauseOperator.IsNotLikeNoCase)
+					resultWhere = !resultWhere
+
+				mreturn resultWhere
 			end
 			(whereClauseOperator.EndsWith, whereClauseOperator.EndsWithNoCase, WhereClauseOperator.NotEndsWith, WhereClauseOperator.NotEndsWithNoCase),
 			begin
