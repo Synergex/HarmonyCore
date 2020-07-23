@@ -1413,7 +1413,21 @@ namespace Harmony.Core.FileIO.Queryable
 		proc
 			if(expr .is. @ParameterReference) then
 			begin
-				mreturn new string[#] { FormatValue(mQueryBuffer.Parameters[((@ParameterReference)expr).Name].ToString(), targetField) }
+				data parameterValue = mQueryBuffer.Parameters[((@ParameterReference)expr).Name]
+				data enumerableParameterValue = ^as(parameterValue, @System.Collections.IEnumerable)
+				if(parameterValue .is. String) then
+				begin
+					mreturn new string[#] { FormatValue((@string)parameterValue, targetField) }
+				end
+				else if(enumerableParameterValue != ^null) then
+				begin
+					mreturn enumerableParameterValue.OfType<Object>().Select(lambda(element) { element.ToString() }).ToArray()
+				end
+				else
+				begin
+					mreturn new string[#] { FormatValue(parameterValue.ToString(), targetField) }
+				end
+					
 			end
 			else if(expr .is. @FieldReference) then
 			begin

@@ -279,8 +279,9 @@ namespace Harmony.Core.FileIO.Queryable
             end
             else if(node .is. InExpression)
             begin
-                data inExpr = (@InExpression)node
-                mWhereStack.Push(MakePart(inExpr.Collection, FindTargetField(inExpr.Predicate, ^null, mQuerySourceMap), inExpr.CaseInsensitive ? WhereClauseOperator.IsInNoCase : WhereClauseOperator.IsIn, ^null))
+				data inExpr = (@InExpression)node
+
+                mWhereStack.Push(MakePart(inExpr.Collection ?? inExpr.CollectionParameter, FindTargetField(inExpr.Predicate, ^null, mQuerySourceMap), inExpr.CaseInsensitive ? WhereClauseOperator.IsInNoCase : WhereClauseOperator.IsIn, ^null))
             end
 
             mreturn node
