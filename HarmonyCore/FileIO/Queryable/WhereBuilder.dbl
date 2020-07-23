@@ -345,7 +345,11 @@ namespace Harmony.Core.FileIO.Queryable
             else if(rightTarget != ^null) then
             begin
                 mWhereStack.Push(MakePart(FindConstantValue(left), rightTarget, casedOp, ^null))
-            end
+			end
+			else if(leftTarget == ^null && rightTarget == ^null && ^as(FindConstantValue(right), @string) == "") then
+			begin
+
+			end
             else
                 throw new NotImplementedException("where expression must contain at least one field or property expression")
         endmethod
@@ -506,10 +510,16 @@ namespace Harmony.Core.FileIO.Queryable
                 end
                 else
                 begin
-                    data leftWhere = mWhereStack.Pop()
-                    Visit(node.Right)
-                    data rightWhere = mWhereStack.Pop()
-                    mWhereStack.Push(MakePart(leftWhere, rightWhere, op, glue))
+                    data leftWhere, @Object, mWhereStack.Count > 0 ? mWhereStack.Pop() : ^null
+					Visit(node.Right)
+					if(leftWhere != ^null)
+					begin
+						data rightWhere, @Object, mWhereStack.Count > 0 ? mWhereStack.Pop() : ^null
+                        if(rightWhere != ^null) then
+							mWhereStack.Push(MakePart(leftWhere, rightWhere, op, glue))
+						else
+							mWhereStack.Push(leftWhere)
+					end
                 end
 
             end

@@ -510,6 +510,16 @@ namespace Services.Test.UnitTests
             data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
         endmethod
 
+		{TestMethod}
+		public method Getedge, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync("/odata/v1/Items?$filter=Contains(CommonName,'edge')").Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
+		endmethod
+
         ;;------------------------------------------------------------
         ;;Customer 1 with orders
 
@@ -1075,7 +1085,33 @@ namespace Services.Test.UnitTests
                 Assert.IsTrue(customerData.CustomerNumber >= 8)
             end
 
-        endmethod
+		endmethod
+
+		{TestMethod}
+		public method EF_WhereUpdate, void
+		proc
+			data startupClass = new Startup(^null, ^null)
+			data startupServices = new ServiceCollection()
+			startupClass.ConfigureServices(startupServices)
+			disposable data sp = startupServices.BuildServiceProvider()
+			disposable data context, @DbContext, sp.GetService<DbContext>()
+			data customerCollection, @IEnumerable<Services.Models.Customer>, context.Customers.Where("CustomerNumber >= @0", 8).ToList()
+			data customerData, @Services.Models.Customer
+			foreach customerData in customerCollection
+			begin
+				customerData.City = customerData.City + "1"
+			end
+
+			
+			Assert.IsTrue(context.ChangeTracker.Entries().Count() == customerCollection.Count())
+            Assert.IsTrue(context.ChangeTracker.Entries().All(lambda(entry) { entry.State == Microsoft.EntityFrameworkCore.EntityState.Modified }))
+
+			context.SaveChanges()
+
+			data customerCollection2, @IEnumerable<Services.Models.Customer>, context.Customers.Where('City.EndsWith(@0)', "1").ToList()
+			Assert.IsTrue(customerCollection2.Count() == customerCollection.Count())
+
+		endmethod
 
         {TestMethod}
         public method EF_WhereIncluding, void
