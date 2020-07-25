@@ -1,9 +1,9 @@
 ;;*****************************************************************************
 ;;
-;; Title:       Stroptsinner.dbl
+;; Title:       Userdate.dbl
 ;;
 ;; Description: Data model representing data defined by the repository
-;;              structure STROPTSINNER.
+;;              structure USERDATES.
 ;;
 ;;*****************************************************************************
 ;; WARNING: GENERATED CODE!
@@ -17,29 +17,33 @@ import System.ComponentModel.DataAnnotations
 import System.Text
 import Harmony.Core
 import Harmony.Core.Converters
+import Harmony.Core.Context
+import Harmony.Core.FileIO
+import Microsoft.Extensions.DependencyInjection
 
 namespace TraditionalBridge.Models
 
-    public partial class Stroptsinner extends DataObjectBase
+    public partial class Userdate extends DataObjectBase
 
         ;;make the record available and a copy
-        private mSynergyData, strStroptsinner
-        private mOriginalSynergyData, strStroptsinner
+        private mSynergyData, strUserdate
+        private mOriginalSynergyData, strUserdate
+        protected mGlobalRFA  ,a10
 
-        private static sMetadata, @StroptsinnerMetadata
+        private static sMetadata, @UserdateMetadata
 
 .region "Constructors"
 
-        static method Stroptsinner
+        static method Userdate
         proc
-            sMetadata = new StroptsinnerMetadata()
-            DataObjectMetadataBase.MetadataLookup.TryAdd(^typeof(Stroptsinner), sMetadata)
+            sMetadata = new UserdateMetadata()
+            DataObjectMetadataBase.MetadataLookup.TryAdd(^typeof(Userdate), sMetadata)
         endmethod
 
         ;;; <summary>
         ;;;  Constructor, initialise the base fields
         ;;; </summary>
-        public method Stroptsinner
+        public method Userdate
             parent()
         proc
             init mSynergyData, mOriginalSynergyData
@@ -48,7 +52,7 @@ namespace TraditionalBridge.Models
         ;;; <summary>
         ;;;  Alternate Constructor, accepts the structured data
         ;;; </summary>
-        public method Stroptsinner
+        public method Userdate
             required in inData, a
             required in inGrfa, a
             parent()
@@ -64,45 +68,15 @@ namespace TraditionalBridge.Models
         ;;; <summary>
         ;;; 
         ;;; </summary>
-        {Range(0,99999, ErrorMessage=" must be between 0 and 99999. ")}
-        public property KeyInnner, int
+        {Range(0,999999, ErrorMessage=" must be between 0 and 999999. ")}
+        public property Keynumber, int
             method get
             proc
-                mreturn (int)mSynergyData.key_innner
+                mreturn (int)mSynergyData.keynumber
             endmethod
             method set
             proc
-                mSynergyData.key_innner = value
-            endmethod
-        endproperty
-
-        ;;; <summary>
-        ;;; 
-        ;;; </summary>
-        {StringLength(25, ErrorMessage=" cannot exceed 25 characters. ")}
-        public property DescInner, String
-            method get
-            proc
-                mreturn (String)SynergyAlphaConverter.Convert(mSynergyData.desc_inner, ^null, ^null, ^null)
-            endmethod
-            method set
-            proc
-                mSynergyData.desc_inner = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
-            endmethod
-        endproperty
-
-        ;;; <summary>
-        ;;; 
-        ;;; </summary>
-        {Range(0,9999999.99, ErrorMessage=" must be between 0 and 9999999.99. ")}
-        public property AmountInner, decimal
-            method get
-            proc
-                mreturn (decimal)SynergyImpliedDecimalConverter.Convert(mSynergyData.amount_inner, ^null, "DECIMALPLACES#2", ^null)
-            endmethod
-            method set
-            proc
-                mSynergyData.amount_inner = value
+                mSynergyData.keynumber = value
             endmethod
         endproperty
 
@@ -140,6 +114,17 @@ namespace TraditionalBridge.Models
             endmethod
         endproperty
 
+        public override property GlobalRFA, [#]byte
+			method get
+			proc
+                mreturn mGlobalRFA
+			endmethod
+			method set
+			proc
+                mGlobalRFA = value
+			endmethod
+		endproperty
+
 .endregion
 
 .region "Public methods"
@@ -154,22 +139,16 @@ namespace TraditionalBridge.Models
         endmethod
 
         ;;; <summary>
-        ;;; Allow the host to validate all fields. Each field will fire the validation method.
-        ;;; </summary>
-        public override method InitialValidateData, void
-        proc
-        endmethod
-
-        ;;; <summary>
         ;;;
         ;;; </summary>
         public override method InternalGetValues, [#]@object
         proc
             ;;TODO: This should be returning boxed values for each of our fields
-            mreturn new Object[3]
+            mreturn new Object[1]
         endmethod
 
 .endregion
-endclass
+
+    endclass
 
 endnamespace

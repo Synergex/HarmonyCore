@@ -69,7 +69,7 @@ namespace TraditionalBridge.Test.data64k
             arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED INOUT DATASET [*]structure @Dataset)
-            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1], 1493)
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1],1493)
             arg1Array = arguments[1].GetProperty("PassedValue")
             arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.GetArrayLength())
             arg1HandlePos = 1
@@ -83,7 +83,7 @@ namespace TraditionalBridge.Test.data64k
             ;;--------------------------------------------------------------------------------
             ;;Argument 1 (REQUIRED INOUT DATASET [*]structure @Dataset)
             
-            serializer.ArgumentHandleData(1, arg1Handle, FieldDataType.DataObjectCollectionField, 1493, "DATASET", %mem_proc(DM_GETSIZE, arg1Handle)/1493, false)
+            serializer.ArgumentHandleData(1,arg1Handle,FieldDataType.DataObjectCollectionField,1493,"DATASET",%mem_proc(DM_GETSIZE,arg1Handle)/1493,false)
         endmethod
 
     endclass
@@ -161,17 +161,17 @@ namespace TraditionalBridge.Test.data64k
             returnValue = %BinaryArrayTest(arg1,arg2,arg3,arg4,arg5,arg6,arg7)
 
             ;;Function return value
-            serializer.ArgumentData(0, returnValue)
+            serializer.ArgumentData(0,returnValue,FieldDataType.IntegerField,4,0,false)
 
             ;;--------------------------------------------------------------------------------
             ;;Argument 1 (REQUIRED INOUT decparm1 D5)
             
-            serializer.ArgumentData(1, arg1, FieldDataType.DecimalField, 5, 0, false)
+            serializer.ArgumentData(1,arg1,FieldDataType.DecimalField,5,0,false)
 
             ;;--------------------------------------------------------------------------------
             ;;Argument 3 (REQUIRED INOUT alparm A10)
             
-            serializer.ArgumentData(3, %atrim(arg3), FieldDataType.AlphaField, 10, 0, false)
+            serializer.ArgumentData(3,%atrim(arg3),FieldDataType.AlphaField,10,0,false)
 
             ;;--------------------------------------------------------------------------------
             ;;Argument 4 (REQUIRED OUT outba D_HANDLE)
@@ -181,7 +181,7 @@ namespace TraditionalBridge.Test.data64k
             ;;--------------------------------------------------------------------------------
             ;;Argument 5 (REQUIRED INOUT idparm D5.2)
             
-            serializer.ArgumentData(5, arg5, FieldDataType.ImpliedDecimalField, 5, 02, false)
+            serializer.ArgumentData(5,arg5,FieldDataType.ImpliedDecimalField,5,2,false)
 
             ;;--------------------------------------------------------------------------------
             ;;Argument 6 (REQUIRED INOUT inoutba D_HANDLE)
@@ -191,7 +191,7 @@ namespace TraditionalBridge.Test.data64k
             ;;--------------------------------------------------------------------------------
             ;;Argument 7 (REQUIRED INOUT decparm2 D5)
             
-            serializer.ArgumentData(7, arg7, FieldDataType.DecimalField, 5, 0, false)
+            serializer.ArgumentData(7,arg7,FieldDataType.DecimalField,5,0,false)
         endmethod
 
     endclass
@@ -640,7 +640,7 @@ namespace TraditionalBridge.Test.data64k
             ;;--------------------------------------------------------------------------------
             ;;Argument 2 (REQUIRED OUT P2Alpha A20)
             
-            serializer.ArgumentData(2, %atrim(arg2), FieldDataType.AlphaField, 20, 0, false)
+            serializer.ArgumentData(2,%atrim(arg2),FieldDataType.AlphaField,20,0,false)
         endmethod
 
     endclass

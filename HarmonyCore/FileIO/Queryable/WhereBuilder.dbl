@@ -368,8 +368,9 @@ namespace Harmony.Core.FileIO.Queryable
             endparams
         proc
             if(node.Method == StringContains) then
-            begin
-                ProcessWhereClause(node.Object, node.Arguments[0], WhereClauseOperator.IsLike)
+			begin
+                data arg1Literal = ^as(FindConstantValue(node.Arguments[0]), string)
+                ProcessWhereClause(node.Object, Expression.Constant("%" + arg1Literal + "%"), mNotFlag ? WhereClauseOperator.IsNotLike : WhereClauseOperator.IsLike)
             end
             else if(node.Method == StringEndsWith) then
             begin
@@ -463,12 +464,8 @@ namespace Harmony.Core.FileIO.Queryable
 					end
 					else if(methodCallExpr.Method == StringContains) then
 					begin
-						data targetOperator = WhereClauseOperator.IsLike
-
-						if(mNotFlag)
-							targetOperator = WhereClauseOperator.IsNotLike
-
-						ProcessWhereClause(methodCallExpr.Object, methodCallExpr.Arguments[0], targetOperator)
+						data arg1Literal = ^as(FindConstantValue(methodCallExpr.Arguments[0]), string)
+						ProcessWhereClause(methodCallExpr.Object, Expression.Constant("%" + arg1Literal + "%"), mNotFlag ? WhereClauseOperator.IsNotLike : WhereClauseOperator.IsLike)
 					end
 					else if(methodCallExpr.Method == StringStartsWith) then
 					begin

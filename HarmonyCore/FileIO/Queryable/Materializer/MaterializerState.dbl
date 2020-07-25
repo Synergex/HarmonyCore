@@ -45,9 +45,18 @@ namespace Harmony.Core.FileIO.Queryable.Materializer
 					data structureSize, i4, typeBuf.Metadata.StructureSize
 					data memPnt, i4, typeBuf.MemoryHandle.Value
 					;;construct the object
-					lastMadeItem = dependentItems != ^null ? 
-					&	typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa, ProcessDependentItems()) : 
-					&	typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa)
+					if(dependentItems != ^null) then
+					begin
+						data processedDeps = ProcessDependentItems()
+						data madeItem = typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa, processedDeps)
+						lastMadeItem = tracker(madeItem)
+						if(lastMadeItem != madeItem)
+							typeBuf.Metadata.UpdateExistingJoin(lastMadeItem, processedDeps)
+					end
+					else
+					begin
+						lastMadeItem = tracker(typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa))
+					end
 
 					createdItemCount += 1
 
@@ -57,7 +66,7 @@ namespace Harmony.Core.FileIO.Queryable.Materializer
 				end
 
 				if(doBubble || (parentState != ^null && lastBubbleTarget != parentState.createdItemCount))
-					Bubble(lastMadeItem, parentState == ^null, tracker)
+					Bubble(lastMadeItem, parentState == ^null)
 
 				lastMadeItem = ^null
 			end
@@ -88,12 +97,7 @@ namespace Harmony.Core.FileIO.Queryable.Materializer
 		public method Bubble, void
 			madeObject, @DataObjectBase
 			isRoot, boolean
-			tracker, @Func<DataObjectBase, DataObjectBase>
 		proc
-			;;we only need to track top level objects
-			if(isRoot)
-				tracker(madeObject)
-
 			;;if there is a parent state and we're a collection
 			;;and if madeItems is empty, add ourselves to it and then add our madeItems
 			;;to our parent states, dependentItems, using typeBuf.ParentFieldName as the key

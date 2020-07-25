@@ -1,8 +1,8 @@
 ;;*****************************************************************************
 ;;
-;; Title:       Msc1MetaData.dbl
+;; Title:       UserdateMetaData.dbl
 ;;
-;; Description: Defines meta data associated with a Msc1 model.
+;; Description: Defines meta data associated with a Userdate model.
 ;;
 ;;*****************************************************************************
 ;; WARNING: GENERATED CODE!
@@ -19,29 +19,35 @@ import Harmony.Core.Converters
 namespace TraditionalBridge.Models
 
     ;;; <summary>
-    ;;; Global structure representing a Msc1 record.
+    ;;; Global structure representing a Userdate record.
     ;;; </summary>
-    .include "MSC1" repository, public structure="strMsc1", end
+    .include "USERDATES" repository, public structure="strUserdate", end
 
     ;;; <summary>
-    ;;; Exposes metadata relating to the Msc1 model class.
+    ;;; Exposes metadata relating to the Userdate model class.
     ;;; </summary>
-    public partial class Msc1Metadata extends DataObjectMetadataBase
+    public partial class UserdateMetadata extends DataObjectMetadataBase
 
         ;; Define custom property formatters
 
         ;;; <summary>
-        ;;; Constructs an new Msc1Metadata object.
+        ;;; Constructs an new UserdateMetadata object.
         ;;; </summary>
-        public method Msc1Metadata
+        public method UserdateMetadata
         proc
             ;; Define structure name and size
-            RPSStructureName = "MSC1"
-            RPSStructureSize = ^size(strMsc1)
+            RPSStructureName = "USERDATES"
+            RPSStructureSize = ^size(strUserdate)
 
             ;; Define fields
-            AddFieldInfo("Msc1Al10", "ALPHA", 10, 1, 0, false)
-            AddFieldInfo("Msc1De5", "DECIMAL", 5, 11, 0, false)
+            AddFieldInfo("Keynumber", "DECIMAL", 6, 1, 0, false)
+            AddFieldInfo("Userdate14", "USER DATE", 14, 7, 0, false)
+            AddFieldInfo("Userdate20", "USER DATE", 20, 21, 0, false)
+
+            ;; Define all fields that are associated wity key segments
+
+            ;; Define the composition of access keys
+
 
             ;;If we have an InitializeCustomFields method then call it.
             InitializeCustomFields()
@@ -49,22 +55,22 @@ namespace TraditionalBridge.Models
         endmethod
 
         ;;; <summary>
-        ;;; Returns a new Msc1 object containing data from a record and a GRFA.
+        ;;; Returns a new Userdate object containing data from a record and a GRFA.
         ;;; </summary>
-        ;;; <param name="dataArea">The record containing the data for the new Msc1 object.</param>
+        ;;; <param name="dataArea">The record containing the data for the new Userdate object.</param>
         ;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
         ;;; <returns></returns>
         public override method MakeNew, @DataObjectBase
             required in dataArea, a
             required in grfa, a
         proc
-            mreturn new Msc1(dataArea, grfa)
+            mreturn new Userdate(dataArea, grfa)
         endmethod
 
         ;;; <summary>
-        ;;; Returns a new Msc1 object containing data from a record and a GRFA.
+        ;;; Returns a new Userdate object containing data from a record and a GRFA.
         ;;; </summary>
-        ;;; <param name="dataArea">The record containing the data for the new Msc1 object.</param>
+        ;;; <param name="dataArea">The record containing the data for the new Userdate object.</param>
         ;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
         ;;; <param name="joinedObjects">Data to allow the related data properties to be populated.</param>
         ;;; <returns></returns>
@@ -73,9 +79,22 @@ namespace TraditionalBridge.Models
             required in grfa, a
             required in joinedObjects, [#]KeyValuePair<String, Object>
         proc
-            data newMsc1 = new Msc1(dataArea, grfa)
-            mreturn newMsc1
+            data newUserdate = new Userdate(dataArea, grfa)
+            UpdateExistingJoin(newUserdate, joinedObjects)
+            mreturn newUserdate
+        endmethod
+        
+        public override method UpdateExistingJoin, void
+            required in existing, @DataObjectBase
+            required in joinedObjects, [#]KeyValuePair<String, Object>
+        proc
+            UpdateExistingJoin((@Userdate)existing, joinedObjects)
+        endmethod
 
+        public method UpdateExistingJoin, void
+            required in existing, @Userdate
+            required in joinedObjects, [#]KeyValuePair<String, Object>
+        proc
         endmethod
 
         public override method FormatKeyLiteral, a

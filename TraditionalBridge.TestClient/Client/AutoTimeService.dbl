@@ -33,6 +33,18 @@ namespace TraditionalBridge.TestClient
 
     public partial class AutoTimeService extends DynamicCallProvider
 
+        static IsInitialized, boolean
+        static method AutoTimeService
+        proc
+            DataObjectMetadataBase.LookupType(^typeof(Timekey))
+            DataObjectMetadataBase.LookupType(^typeof(Timekey))
+            DataObjectMetadataBase.LookupType(^typeof(Timekey))
+            DataObjectMetadataBase.LookupType(^typeof(Timekey))
+            DataObjectMetadataBase.LookupType(^typeof(Timekey))
+            DataObjectMetadataBase.LookupType(^typeof(Timekey))
+            IsInitialized = true
+        endmethod
+
         ;;; <summary>
         ;;; Constructor
         ;;; </summary>
@@ -41,14 +53,15 @@ namespace TraditionalBridge.TestClient
             endparams
             parent(connection)
         proc
-            
+            if(!IsInitialized)
+                throw new Exception("cctor missing")
         endmethod
 
         ;;; <summary>
         ;;; No description found in method catalog
         ;;; </summary>
         public async method AutoTimeALin, @Task
-            required in args, @AutoTime.AutoTimeALin_Request
+            required in args, @ZDateTime-e.AutoTimeALin_Request
         proc
             ;;Make the JSON-RPC call the traditional Synergy routine
             data resultTuple = await CallMethod("AutoTimeALin"
@@ -59,22 +72,17 @@ namespace TraditionalBridge.TestClient
         ;;; <summary>
         ;;; No description found in method catalog
         ;;; </summary>
-        public async method AutoTimeALout, @Task<AutoTime.AutoTimeALout_Response>
+        public async method AutoTimeALout, @Task<ZDateTime-e.AutoTimeALout_Response>
         proc
             ;;Prepare the response object
-            data response = new AutoTime.AutoTimeALout_Response()
+            data response = new ZDateTime-e.AutoTimeALout_Response()
 
             ;;Make the JSON-RPC call the traditional Synergy routine
             data resultTuple = await CallMethod("AutoTimeALout"
-            &   ,response.TIMEKEY
+            &   ,ArgumentHelper.MaybeNull(response.TIMEKEY)
             &   )
 
-            ;;Get the returned information
-            data returnToken = (@JToken)(resultTuple.Item1)
-
-            ;;Set returned values for OUT or INOUT parameters
-            data resultList, @List<Object>, resultTuple.Item2.ToList()
-            response.TIMEKEY = (@TIMEKEY)resultList[1 - 1]
+            ArgumentHelper.Argument(1, resultTuple, response.TIMEKEY)
 
             ;;Return the response
             mreturn response
@@ -84,23 +92,18 @@ namespace TraditionalBridge.TestClient
         ;;; <summary>
         ;;; No description found in method catalog
         ;;; </summary>
-        public async method AutoTimeArray, @Task<AutoTime.AutoTimeArray_Response>
-            required in args, @AutoTime.AutoTimeArray_Request
+        public async method AutoTimeArray, @Task<ZDateTime-e.AutoTimeArray_Response>
+            required in args, @ZDateTime-e.AutoTimeArray_Request
         proc
             ;;Prepare the response object
-            data response = new AutoTime.AutoTimeArray_Response()
+            data response = new ZDateTime-e.AutoTimeArray_Response()
 
             ;;Make the JSON-RPC call the traditional Synergy routine
             data resultTuple = await CallMethod("AutoTimeArray"
             &   ,args.TIMEKEY
             &   )
 
-            ;;Get the returned information
-            data returnToken = (@JToken)(resultTuple.Item1)
-
-            ;;Set returned values for OUT or INOUT parameters
-            data resultList, @List<Object>, resultTuple.Item2.ToList()
-            response.TIMEKEY = (@TIMEKEY)resultList[1 - 1]
+            ArgumentHelper.Argument(1, resultTuple, response.TIMEKEY)
 
             ;;Return the response
             mreturn response
@@ -110,23 +113,18 @@ namespace TraditionalBridge.TestClient
         ;;; <summary>
         ;;; No description found in method catalog
         ;;; </summary>
-        public async method AutoTimeINOUT, @Task<AutoTime.AutoTimeINOUT_Response>
-            required in args, @AutoTime.AutoTimeINOUT_Request
+        public async method AutoTimeINOUT, @Task<ZDateTime-e.AutoTimeINOUT_Response>
+            required in args, @ZDateTime-e.AutoTimeINOUT_Request
         proc
             ;;Prepare the response object
-            data response = new AutoTime.AutoTimeINOUT_Response()
+            data response = new ZDateTime-e.AutoTimeINOUT_Response()
 
             ;;Make the JSON-RPC call the traditional Synergy routine
             data resultTuple = await CallMethod("AutoTimeINOUT"
             &   ,args.TIMEKEY
             &   )
 
-            ;;Get the returned information
-            data returnToken = (@JToken)(resultTuple.Item1)
-
-            ;;Set returned values for OUT or INOUT parameters
-            data resultList, @List<Object>, resultTuple.Item2.ToList()
-            response.TIMEKEY = (@TIMEKEY)resultList[1 - 1]
+            ArgumentHelper.Argument(1, resultTuple, response.TIMEKEY)
 
             ;;Return the response
             mreturn response
@@ -137,7 +135,7 @@ namespace TraditionalBridge.TestClient
         ;;; No description found in method catalog
         ;;; </summary>
         public async method AutoTimeIn, @Task
-            required in args, @AutoTime.AutoTimeIn_Request
+            required in args, @ZDateTime-e.AutoTimeIn_Request
         proc
             ;;Make the JSON-RPC call the traditional Synergy routine
             data resultTuple = await CallMethod("AutoTimeIn"
@@ -148,22 +146,17 @@ namespace TraditionalBridge.TestClient
         ;;; <summary>
         ;;; No description found in method catalog
         ;;; </summary>
-        public async method AutoTimeOut, @Task<AutoTime.AutoTimeOut_Response>
+        public async method AutoTimeOut, @Task<ZDateTime-e.AutoTimeOut_Response>
         proc
             ;;Prepare the response object
-            data response = new AutoTime.AutoTimeOut_Response()
+            data response = new ZDateTime-e.AutoTimeOut_Response()
 
             ;;Make the JSON-RPC call the traditional Synergy routine
             data resultTuple = await CallMethod("AutoTimeOut"
-            &   ,response.TIMEKEY
+            &   ,ArgumentHelper.MaybeNull(response.TIMEKEY)
             &   )
 
-            ;;Get the returned information
-            data returnToken = (@JToken)(resultTuple.Item1)
-
-            ;;Set returned values for OUT or INOUT parameters
-            data resultList, @List<Object>, resultTuple.Item2.ToList()
-            response.TIMEKEY = (@TIMEKEY)resultList[1 - 1]
+            ArgumentHelper.Argument(1, resultTuple, response.TIMEKEY)
 
             ;;Return the response
             mreturn response

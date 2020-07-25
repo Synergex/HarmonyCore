@@ -64,12 +64,20 @@ namespace TraditionalBridge.Models
             AddFieldInfo("AdtsDt71", "DATE", 7, 43, 0, false, mAdtsDt71Formatter)
             AddFieldInfo("AdtsDt72", "DATE", 7, 50, 0, false, mAdtsDt72Formatter)
             AddFieldInfo("AdtsDt73", "DATE", 7, 57, 0, false, mAdtsDt73Formatter)
+            AddFieldInfo("AdtsDt51", "DATE", 5, 64, 0, false, mAdtsDt51Formatter)
+            AddFieldInfo("AdtsDt52", "DATE", 5, 69, 0, false, mAdtsDt52Formatter)
+            AddFieldInfo("AdtsDt53", "DATE", 5, 74, 0, false, mAdtsDt53Formatter)
             AddFieldInfo("AdtsTm61", "TIME", 6, 79, 0, false, mAdtsTm61Formatter)
             AddFieldInfo("AdtsTm62", "TIME", 6, 85, 0, false, mAdtsTm62Formatter)
             AddFieldInfo("AdtsTm63", "TIME", 6, 91, 0, false, mAdtsTm63Formatter)
             AddFieldInfo("AdtsTm41", "TIME", 4, 97, 0, false, mAdtsTm41Formatter)
             AddFieldInfo("AdtsTm42", "TIME", 4, 101, 0, false, mAdtsTm42Formatter)
             AddFieldInfo("AdtsTm43", "TIME", 4, 105, 0, false, mAdtsTm43Formatter)
+
+            ;; Define all fields that are associated wity key segments
+
+            ;; Define the composition of access keys
+
 
             ;;If we have an InitializeCustomFields method then call it.
             InitializeCustomFields()
@@ -102,25 +110,30 @@ namespace TraditionalBridge.Models
             required in joinedObjects, [#]KeyValuePair<String, Object>
         proc
             data newDatetimeary = new Datetimeary(dataArea, grfa)
+            UpdateExistingJoin(newDatetimeary, joinedObjects)
             mreturn newDatetimeary
-
+        endmethod
+        
+        public override method UpdateExistingJoin, void
+            required in existing, @DataObjectBase
+            required in joinedObjects, [#]KeyValuePair<String, Object>
+        proc
+            UpdateExistingJoin((@Datetimeary)existing, joinedObjects)
         endmethod
 
-        ;;; <summary>
-        ;;; Formats a literal value for a key lookup.
-        ;;; </summary>
-        ;;; <param name="keyNumber">Key number.</param>
-        ;;; <param name="parts">Dictionary containing key segment names and values.</param>
-        ;;; <returns></returns>
+        public method UpdateExistingJoin, void
+            required in existing, @Datetimeary
+            required in joinedObjects, [#]KeyValuePair<String, Object>
+        proc
+        endmethod
+
         public override method FormatKeyLiteral, a
             required in keyNumber, int
             required in parts, @Dictionary<String, Object>
-            endparams
         proc
-
-            throw new ApplicationException(String.Format("Invalid key number {0} encountered in DatetimearyMetadata.FormatKeyLiteral",keyNumber))
-
+            mreturn ' '
         endmethod
+
 
         ;;;<summary>
         ;;; Provide a partial method to allow for initialization of custom fields.

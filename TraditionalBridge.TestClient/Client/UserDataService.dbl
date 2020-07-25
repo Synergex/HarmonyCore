@@ -33,6 +33,13 @@ namespace TraditionalBridge.TestClient
 
     public partial class UserDataService extends DynamicCallProvider
 
+        static IsInitialized, boolean
+        static method UserDataService
+        proc
+            DataObjectMetadataBase.LookupType(^typeof(Dnetdatetime))
+            IsInitialized = true
+        endmethod
+
         ;;; <summary>
         ;;; Constructor
         ;;; </summary>
@@ -41,29 +48,25 @@ namespace TraditionalBridge.TestClient
             endparams
             parent(connection)
         proc
-            
+            if(!IsInitialized)
+                throw new Exception("cctor missing")
         endmethod
 
         ;;; <summary>
         ;;; No description found in method catalog
         ;;; </summary>
-        public async method UDNetDteTme, @Task<UserData.UDNetDteTme_Response>
-            required in args, @UserData.UDNetDteTme_Request
+        public async method UDNetDteTme, @Task<ZDateTime-e.UDNetDteTme_Response>
+            required in args, @ZDateTime-e.UDNetDteTme_Request
         proc
             ;;Prepare the response object
-            data response = new UserData.UDNetDteTme_Response()
+            data response = new ZDateTime-e.UDNetDteTme_Response()
 
             ;;Make the JSON-RPC call the traditional Synergy routine
             data resultTuple = await CallMethod("UDNetDteTme"
             &   ,args.DNETDATETIME
             &   )
 
-            ;;Get the returned information
-            data returnToken = (@JToken)(resultTuple.Item1)
-
-            ;;Set returned values for OUT or INOUT parameters
-            data resultList, @List<Object>, resultTuple.Item2.ToList()
-            response.DNETDATETIME = (@DNETDATETIME)resultList[1 - 1]
+            ArgumentHelper.Argument(1, resultTuple, response.DNETDATETIME)
 
             ;;Return the response
             mreturn response

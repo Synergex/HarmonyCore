@@ -33,6 +33,14 @@ namespace TraditionalBridge.TestClient
 
     public partial class TestDateService extends DynamicCallProvider
 
+        static IsInitialized, boolean
+        static method TestDateService
+        proc
+            DataObjectMetadataBase.LookupType(^typeof(Datetimestr))
+            DataObjectMetadataBase.LookupType(^typeof(Userdate))
+            IsInitialized = true
+        endmethod
+
         ;;; <summary>
         ;;; Constructor
         ;;; </summary>
@@ -41,30 +49,26 @@ namespace TraditionalBridge.TestClient
             endparams
             parent(connection)
         proc
-            
+            if(!IsInitialized)
+                throw new Exception("cctor missing")
         endmethod
 
         ;;; <summary>
         ;;; No description found in method catalog
         ;;; </summary>
-        public async method GetDate8, @Task<TestDate.GetDate8_Response>
-            required in args, @TestDate.GetDate8_Request
+        public async method GetDate8, @Task<ZDateTime-e.GetDate8_Response>
+            required in args, @ZDateTime-e.GetDate8_Request
         proc
             ;;Prepare the response object
-            data response = new TestDate.GetDate8_Response()
+            data response = new ZDateTime-e.GetDate8_Response()
 
             ;;Make the JSON-RPC call the traditional Synergy routine
             data resultTuple = await CallMethod("GetDate8"
             &   ,args.idx
-            &   ,response.dstruct
+            &   ,ArgumentHelper.MaybeNull(response.dstruct)
             &   )
 
-            ;;Get the returned information
-            data returnToken = (@JToken)(resultTuple.Item1)
-
-            ;;Set returned values for OUT or INOUT parameters
-            data resultList, @List<Object>, resultTuple.Item2.ToList()
-            response.dstruct = (@DATETIMESTR)resultList[2 - 1]
+            ArgumentHelper.Argument(2, resultTuple, response.dstruct)
 
             ;;Return the response
             mreturn response
@@ -74,22 +78,17 @@ namespace TraditionalBridge.TestClient
         ;;; <summary>
         ;;; No description found in method catalog
         ;;; </summary>
-        public async method UserDates, @Task<TestDate.UserDates_Response>
+        public async method UserDates, @Task<ZDateTime-e.UserDates_Response>
         proc
             ;;Prepare the response object
-            data response = new TestDate.UserDates_Response()
+            data response = new ZDateTime-e.UserDates_Response()
 
             ;;Make the JSON-RPC call the traditional Synergy routine
             data resultTuple = await CallMethod("UserDates"
-            &   ,response.USERDATES
+            &   ,ArgumentHelper.MaybeNull(response.USERDATES)
             &   )
 
-            ;;Get the returned information
-            data returnToken = (@JToken)(resultTuple.Item1)
-
-            ;;Set returned values for OUT or INOUT parameters
-            data resultList, @List<Object>, resultTuple.Item2.ToList()
-            response.USERDATES = (@USERDATES)resultList[1 - 1]
+            ArgumentHelper.Argument(1, resultTuple, response.USERDATES)
 
             ;;Return the response
             mreturn response

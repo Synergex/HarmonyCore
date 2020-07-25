@@ -47,6 +47,16 @@ namespace TraditionalBridge.Models
             AddFieldInfo("Str3De7", "DECIMAL", 7, 27, 0, false)
             AddFieldInfo("Str3Al25", "ALPHA", 25, 34, 0, false)
 
+            ;; Define all fields that are associated wity key segments
+            AddKeyInfo(0, "Str3Al10")
+
+            ;; Define the composition of access keys
+
+            data Primarykey_KeyParts = new FieldDataDefinition[1]
+            Primarykey_KeyParts[1] = GetFieldByName("Str3Al10")
+            AddFieldInfo("KEY_PRIMARYKEY", "COMPOSITE", 0, 0, 0, false, ^null, ^null, Primarykey_KeyParts)
+
+
             ;;If we have an InitializeCustomFields method then call it.
             InitializeCustomFields()
 
@@ -78,8 +88,21 @@ namespace TraditionalBridge.Models
             required in joinedObjects, [#]KeyValuePair<String, Object>
         proc
             data newStrtest3 = new Strtest3(dataArea, grfa)
+            UpdateExistingJoin(newStrtest3, joinedObjects)
             mreturn newStrtest3
+        endmethod
+        
+        public override method UpdateExistingJoin, void
+            required in existing, @DataObjectBase
+            required in joinedObjects, [#]KeyValuePair<String, Object>
+        proc
+            UpdateExistingJoin((@Strtest3)existing, joinedObjects)
+        endmethod
 
+        public method UpdateExistingJoin, void
+            required in existing, @Strtest3
+            required in joinedObjects, [#]KeyValuePair<String, Object>
+        proc
         endmethod
 
         ;;; <summary>
@@ -92,7 +115,20 @@ namespace TraditionalBridge.Models
             required in keyNumber, int
             required in parts, @Dictionary<String, Object>
             endparams
+            stack record key0
+                Str3Al10, A10
+            endrecord
         proc
+            data startPos = 0
+            data segValueLength, int
+            using keyNumber select
+            (0),
+            begin
+                if((segValueLength=KeyValueHelper(key0.Str3Al10, "Str3Al10", parts))<10 && segValueLength>0)
+                    mreturn key0(1:startPos+segValueLength)
+                mreturn key0
+            end
+            endusing
 
             throw new ApplicationException(String.Format("Invalid key number {0} encountered in Strtest3Metadata.FormatKeyLiteral",keyNumber))
 

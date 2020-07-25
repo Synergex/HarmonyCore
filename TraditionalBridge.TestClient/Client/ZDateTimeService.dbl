@@ -33,6 +33,15 @@ namespace TraditionalBridge.TestClient
 
     public partial class ZDateTimeService extends DynamicCallProvider
 
+        static IsInitialized, boolean
+        static method ZDateTimeService
+        proc
+            DataObjectMetadataBase.LookupType(^typeof(Datetimestr))
+            DataObjectMetadataBase.LookupType(^typeof(Datetimeary))
+            DataObjectMetadataBase.LookupType(^typeof(Userdate))
+            IsInitialized = true
+        endmethod
+
         ;;; <summary>
         ;;; Constructor
         ;;; </summary>
@@ -41,17 +50,18 @@ namespace TraditionalBridge.TestClient
             endparams
             parent(connection)
         proc
-            
+            if(!IsInitialized)
+                throw new Exception("cctor missing")
         endmethod
 
         ;;; <summary>
         ;;; No description found in method catalog
         ;;; </summary>
-        public async method DateTime20, @Task<ZDateTime.DateTime20_Response>
-            required in args, @ZDateTime.DateTime20_Request
+        public async method DateTime20, @Task<ZDateTime-e.DateTime20_Response>
+            required in args, @ZDateTime-e.DateTime20_Request
         proc
             ;;Prepare the response object
-            data response = new ZDateTime.DateTime20_Response()
+            data response = new ZDateTime-e.DateTime20_Response()
 
             ;;Make the JSON-RPC call the traditional Synergy routine
             data resultTuple = await CallMethod("DateTime20"
@@ -60,16 +70,11 @@ namespace TraditionalBridge.TestClient
             &   ,args.Dt20InOut
             &   )
 
-            ;;Get the returned information
-            data returnToken = (@JToken)(resultTuple.Item1)
+             ;;Set the return value in the return data
+            ArgumentHelper.Argument(0, resultTuple, response.ReturnValue)
 
-            ;;Set the return value in the return data
-            response.ReturnValue = returnToken.ToObject<DateTime>()
-
-            ;;Set returned values for OUT or INOUT parameters
-            data resultList, @List<Object>, resultTuple.Item2.ToList()
-            response.Dt20Out = (DateTime)resultList[2 - 1]
-            response.Dt20InOut = (DateTime)resultList[3 - 1]
+            ArgumentHelper.Argument(2, resultTuple, response.Dt20Out)
+            ArgumentHelper.Argument(3, resultTuple, response.Dt20InOut)
 
             ;;Return the response
             mreturn response
@@ -79,11 +84,11 @@ namespace TraditionalBridge.TestClient
         ;;; <summary>
         ;;; No description found in method catalog
         ;;; </summary>
-        public async method DateTimeOther, @Task<ZDateTime.DateTimeOther_Response>
-            required in args, @ZDateTime.DateTimeOther_Request
+        public async method DateTimeOther, @Task<ZDateTime-e.DateTimeOther_Response>
+            required in args, @ZDateTime-e.DateTimeOther_Request
         proc
             ;;Prepare the response object
-            data response = new ZDateTime.DateTimeOther_Response()
+            data response = new ZDateTime-e.DateTimeOther_Response()
 
             ;;Make the JSON-RPC call the traditional Synergy routine
             data resultTuple = await CallMethod("DateTimeOther"
@@ -92,17 +97,12 @@ namespace TraditionalBridge.TestClient
             &   ,args.dt14
             &   )
 
-            ;;Get the returned information
-            data returnToken = (@JToken)(resultTuple.Item1)
+             ;;Set the return value in the return data
+            ArgumentHelper.Argument(0, resultTuple, response.ReturnValue)
 
-            ;;Set the return value in the return data
-            response.ReturnValue = returnToken.ToObject<DateTime>()
-
-            ;;Set returned values for OUT or INOUT parameters
-            data resultList, @List<Object>, resultTuple.Item2.ToList()
-            response.dt8 = (DateTime)resultList[1 - 1]
-            response.dt6 = (DateTime)resultList[2 - 1]
-            response.dt14 = (DateTime)resultList[3 - 1]
+            ArgumentHelper.Argument(1, resultTuple, response.dt8)
+            ArgumentHelper.Argument(2, resultTuple, response.dt6)
+            ArgumentHelper.Argument(3, resultTuple, response.dt14)
 
             ;;Return the response
             mreturn response
@@ -112,23 +112,18 @@ namespace TraditionalBridge.TestClient
         ;;; <summary>
         ;;; No description found in method catalog
         ;;; </summary>
-        public async method DateTimeS, @Task<ZDateTime.DateTimeS_Response>
-            required in args, @ZDateTime.DateTimeS_Request
+        public async method DateTimeS, @Task<ZDateTime-e.DateTimeS_Response>
+            required in args, @ZDateTime-e.DateTimeS_Request
         proc
             ;;Prepare the response object
-            data response = new ZDateTime.DateTimeS_Response()
+            data response = new ZDateTime-e.DateTimeS_Response()
 
             ;;Make the JSON-RPC call the traditional Synergy routine
             data resultTuple = await CallMethod("DateTimeS"
             &   ,args.DATETIMESTR
             &   )
 
-            ;;Get the returned information
-            data returnToken = (@JToken)(resultTuple.Item1)
-
-            ;;Set returned values for OUT or INOUT parameters
-            data resultList, @List<Object>, resultTuple.Item2.ToList()
-            response.DATETIMESTR = (@DATETIMESTR)resultList[1 - 1]
+            ArgumentHelper.Argument(1, resultTuple, response.DATETIMESTR)
 
             ;;Return the response
             mreturn response
@@ -138,23 +133,18 @@ namespace TraditionalBridge.TestClient
         ;;; <summary>
         ;;; No description found in method catalog
         ;;; </summary>
-        public async method DteTmeAry, @Task<ZDateTime.DteTmeAry_Response>
-            required in args, @ZDateTime.DteTmeAry_Request
+        public async method DteTmeAry, @Task<ZDateTime-e.DteTmeAry_Response>
+            required in args, @ZDateTime-e.DteTmeAry_Request
         proc
             ;;Prepare the response object
-            data response = new ZDateTime.DteTmeAry_Response()
+            data response = new ZDateTime-e.DteTmeAry_Response()
 
             ;;Make the JSON-RPC call the traditional Synergy routine
             data resultTuple = await CallMethod("DteTmeAry"
             &   ,args.DATETIMEARY
             &   )
 
-            ;;Get the returned information
-            data returnToken = (@JToken)(resultTuple.Item1)
-
-            ;;Set returned values for OUT or INOUT parameters
-            data resultList, @List<Object>, resultTuple.Item2.ToList()
-            response.DATETIMEARY = (@DATETIMEARY)resultList[1 - 1]
+            ArgumentHelper.Argument(1, resultTuple, response.DATETIMEARY)
 
             ;;Return the response
             mreturn response
@@ -164,22 +154,17 @@ namespace TraditionalBridge.TestClient
         ;;; <summary>
         ;;; No description found in method catalog
         ;;; </summary>
-        public async method Userdates, @Task<ZDateTime.Userdates_Response>
+        public async method Userdates, @Task<ZDateTime-e.Userdates_Response>
         proc
             ;;Prepare the response object
-            data response = new ZDateTime.Userdates_Response()
+            data response = new ZDateTime-e.Userdates_Response()
 
             ;;Make the JSON-RPC call the traditional Synergy routine
             data resultTuple = await CallMethod("Userdates"
-            &   ,response.USERDATES
+            &   ,ArgumentHelper.MaybeNull(response.USERDATES)
             &   )
 
-            ;;Get the returned information
-            data returnToken = (@JToken)(resultTuple.Item1)
-
-            ;;Set returned values for OUT or INOUT parameters
-            data resultList, @List<Object>, resultTuple.Item2.ToList()
-            response.USERDATES = (@USERDATES)resultList[1 - 1]
+            ArgumentHelper.Argument(1, resultTuple, response.USERDATES)
 
             ;;Return the response
             mreturn response
