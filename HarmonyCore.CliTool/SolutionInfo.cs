@@ -49,7 +49,7 @@ namespace HarmonyCore.CliTool
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Failed to load codegen project information: {0}", ex);
+                Console.WriteLine("WARNING: Exception while synthesizing codegen project information: {0}", ex);
             }
         }
          
