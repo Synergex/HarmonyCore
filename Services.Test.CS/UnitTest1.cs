@@ -90,5 +90,25 @@ namespace Services.Test.CS
                 }
             }
         }
+
+        [TestMethod]
+        public void Projection1()
+        {
+            var startupClass = new Startup(null, null);
+            var startupServices = new ServiceCollection();
+            startupClass.ConfigureServices(startupServices);
+            using (var sp = startupServices.BuildServiceProvider())
+            {
+                using (var context = sp.GetService<Services.Models.DbContext>())
+                {
+                    var header1 = from salesOrderheader in context.Orders
+                                  join setmst in context.OrderItems on salesOrderheader.OrderNumber equals setmst.OrderNumber into totals
+                                  select new { SalesOrderHeader = salesOrderheader, Total = totals };
+
+                    header1.ToList();
+                }
+            }
+        }
+
     }
 }
