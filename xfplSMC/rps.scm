@@ -217,7 +217,7 @@ Field KEYNO   Type DECIMAL   Size 6
  
 Field DESC   Type ALPHA   Size 25
  
-Field BINARRAY   Type ALPHA   Size 10   Stored BINARY   Dimension 5
+Field BINARRAY   Type ALPHA   Size 10   Dimension 5
  
 Field NUMBER   Type DECIMAL   Size 9
  
@@ -508,11 +508,11 @@ Field HHMMSS   Type TIME   Size 6   Stored HHMMSS
 Field HHMM   Type TIME   Size 4   Stored HHMM
    Report Just RIGHT   Input Just RIGHT
  
-Field BINARY10   Type ALPHA   Size 10   Stored BINARY
+Field BINARY10   Type ALPHA   Size 10 
  
-Field BINARY20   Type ALPHA   Size 20   Stored BINARY
+Field BINARY20   Type ALPHA   Size 20
  
-Field BINARY40   Type ALPHA   Size 40   Stored BINARY
+Field BINARY40   Type ALPHA   Size 40
  
 Field PACKED6   Type DECIMAL   Size 6
    User Text "^CLASS^=PACKED"
@@ -718,9 +718,9 @@ Field ID   Type DECIMAL   Size 6
  
 Field DESC   Type ALPHA   Size 30
  
-Field ACOLOR   Type ENUM   Size 4   Enum MYCOLOR
+Field ACOLOR   Type INTEGER   Size 4
  
-Field ADAY   Type ENUM   Size 4   Enum DAYOFWEEK
+Field ADAY   Type INTEGER   Size 4 
  
 Structure FUENTES   DBL ISAM
    Description "Test file for binary array"
@@ -729,7 +729,7 @@ Field FIELDONE   Type ALPHA   Size 20
  
 Field FIELD2   Type DECIMAL   Size 12
  
-Field BINARYARRAY   Type ALPHA   Size 6   Stored BINARY
+Field BINARYARRAY   Type ALPHA   Size 6
  
 Field DEC   Type DECIMAL   Size 5
  
@@ -804,7 +804,7 @@ Structure GRFATEST   DBL ISAM
  
 Field A_STRING   Type ALPHA   Size 10
  
-Field A_GRFA   Type ALPHA   Size 10   Stored BINARY
+Field A_GRFA   Type ALPHA   Size 10
  
 Structure IMPLIEDDECIMALTEST   DBL ISAM
    Description "ID test"
