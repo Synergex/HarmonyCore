@@ -1,32 +1,493 @@
 import System
 import System.Collections.Generic
 import System.Text
+import Microsoft.AspNetCore.Mvc.Filters
+import System.Threading.Tasks
+import Microsoft.OData.UriParser
+import System.Linq.Expressions
+import System.ComponentModel
+import System.Reflection
+import System.Linq
+import Microsoft.AspNet.OData.Query
+import Microsoft.AspNet.OData.Extensions
+import Microsoft.OData.Edm
+import Microsoft.AspNet.OData
+import Harmony.Core.Utility
+import Newtonsoft.Json
+import System.Collections.Concurrent
 
 
 namespace Harmony.OData.Adapter
 
-	public class OrFieldAdapterAttribute extends Attribute
-		public readwrite property EdmName, @string
-		public readwrite property FillOrder, int
-	endclass
+    public class OrFieldAdapterAttribute extends Attribute
+        public readwrite property EdmName, @string
+        public readwrite property FillOrder, int
+    endclass
 
-	public class RangeFieldAdapterAttribute extends Attribute
-		public readwrite property EdmName, @string
-		public readwrite property IsLowerBound, boolean
+    public class RangeFieldAdapterAttribute extends Attribute
+        public readwrite property EdmName, @string
+        public readwrite property IsLowerBound, boolean 
 		public readwrite property IsUpperBound, boolean
 	endclass
 
-	public class MatchFieldAdapterAttribute extends Attribute
+	public class RangeOperatorAdapterAttribute extends Attribute
 		public readwrite property EdmName, @string
 	endclass
 
-	public class ParameterFieldAdapterAttribute extends Attribute
-		public readwrite property EdmName, @string
-		public readwrite property IsOptional, boolean
-	endclass
+	public enum RangeOperator
+		Equals,
+		BoundInclusive
+		BoundExclusive
+		LowerInclusive
+        UpperInclusive
+	endenum
 
-	public class AdapterParameterAttribute extends Attribute
-	endclass
 
+    public class MatchFieldAdapterAttribute extends Attribute
+        public readwrite property EdmName, @string
+    endclass
+
+    public class ParameterFieldAdapterAttribute extends Attribute
+        public readwrite property EdmName, @string
+        public readwrite property IsOptional, boolean
+    endclass
+
+    public class AdapterParameterAttribute extends Attribute
+    endclass
+
+    public class AdapterRoutingFilter extends ActionFilterAttribute
+        private static ExpressionLookup, @ConcurrentDictionary<string, Func<IDictionary<object, object>, ODataQueryOptions, Dictionary<string, List<AdapterOp>>, object>>
+
+        static method AdapterRoutingFilter
+        proc
+            ExpressionLookup = new ConcurrentDictionary<string, Func<IDictionary<object, object>, ODataQueryOptions, Dictionary<string, List<AdapterOp>>, object>>()
+        endmethod
+
+
+        public method AdapterRoutingFilter
+            endparams
+        proc
+            Order = -1
+        endmethod
+
+        public override method OnActionExecuting, void
+            context, @ActionExecutingContext
+        proc
+            FixAdapterParameters(context)
+        endmethod
+
+        public override method OnActionExecutionAsync, @Task
+            context, @ActionExecutingContext
+            deleg, @ActionExecutionDelegate
+        proc
+            OnActionExecuting(context)
+            mreturn deleg.Invoke()
+        endmethod
+
+        private method FixAdapterParameters, void
+            context, @ActionExecutingContext
+        proc
+            data feature = context.HttpContext.ODataFeature()
+            data odataPath = feature.Path
+            data svc = feature.RequestContainer.GetService(^typeof(IEdmModel))
+            data model = ^as(svc, @IEdmModel)
+            data elementType = odataPath.EdmType .is. IEdmCollectionType ? ((@IEdmCollectionType)odataPath.EdmType).ElementType.Definition : odataPath.EdmType
+            data odataQuery = new ODataQueryOptions(new ODataQueryContext(model, elementType, odataPath), context.HttpContext.Request)
+            data filterClause = odataQuery.Filter?.FilterClause
+            data filterLookup = new Dictionary<string, List<AdapterOp>>()
+            DebugLogSession.Logging.LogTrace("AdapterActionInvoker: processing expression tree {0}, with lookup {1}", new UriExpressionLogHelper(filterClause?.Expression),  new JsonLogHelper(filterLookup))
+            ExtractAdapterOp(filterClause?.Expression, filterLookup, ^null)
+            ;;get filter stucture
+            ;;build lookups for the result fields based on the target edm name
+            ;;
+            data targetMethodParameters = context.ActionDescriptor.Parameters
+            if(targetMethodParameters.Count != 1)
+                throw new InvalidOperationException("Adapter invocation only works for methods with a single parameter defined")
+            
+            data targetParameterType = targetMethodParameters.First().ParameterType
+            data uriParameters = Expression.Parameter(^typeof(IDictionary<object, object>))
+            data odataQueryParameter = Expression.Parameter(^typeof(ODataQueryOptions))
+            data filterLookupParam = Expression.Parameter(^typeof(Dictionary<string, List<AdapterOp>>))
+            lambda expressionBuilder(methodName)
+            begin
+                data unpackOdataParameters = ^typeof(AdapterRoutingFilter).GetMethod("AppendODataParameters")
+                data getter = BakeFieldValueGetter(targetParameterType, filterLookupParam, Expression.Call(unpackOdataParameters, uriParameters, odataQueryParameter))
+                data fieldValueExpr = getter(targetMethodParameters[0].Name)
+                ;;actionexecutingcontext has the parameter we need to replace its value with the result of running fieldValueExpr
+                ;;FieldValueGetter needs uriParameters, oDataQueryParameter and filterLookupParam
+                ;;need to generate assignment statement for setting the adapter parameter
+                data typedLambda, @Expression<Func<IDictionary<object, object>, ODataQueryOptions, Dictionary<string, List<AdapterOp>>, object>>
+                typedLambda = Expression.Lambda<Func<IDictionary<object, object>, ODataQueryOptions, Dictionary<string, List<AdapterOp>>, object>>(fieldValueExpr, new ParameterExpression[#] { uriParameters, odataQueryParameter, filterLookupParam })
+                mreturn typedLambda.Compile()
+            end
+
+            data paramBaker = ExpressionLookup.GetOrAdd(context.ActionDescriptor.DisplayName, expressionBuilder)
+            data uriParamValue = new Dictionary<Object, object>()
+            context.ActionArguments[targetMethodParameters.First().Name] = paramBaker((@IDictionary<object, object>)uriParamValue, odataQuery, filterLookup)
+        endmethod
+
+        private method ExtractAdapterOp, void
+            targetNode, @QueryNode
+            filterLookup, @Dictionary<string, List<AdapterOp>>
+            parentOpKind, BinaryOperatorKind?
+        proc
+            if(targetNode .is. BinaryOperatorNode) then
+            begin
+                data binaryOp = ^as(targetNode, @BinaryOperatorNode)
+                data left = GetRealNode(binaryOp.Left)
+                data right = GetRealNode(binaryOp.Right)
+                if(left .is. SingleValuePropertyAccessNode) then
+                begin
+                    if(right .is. ConstantNode)
+                    begin
+                        AddAdapterOp(ExtractPropertyOp(GetOpKind(binaryOp), (@SingleValuePropertyAccessNode)left, (@ConstantNode)right), filterLookup)
+                    end
+                end
+                else if(((binaryOp.OperatorKind == BinaryOperatorKind.Or || binaryOp.OperatorKind == BinaryOperatorKind.And)))
+                begin
+                    ExtractAdapterOp(left, filterLookup, binaryOp.OperatorKind)
+                    ExtractAdapterOp(right, filterLookup, binaryOp.OperatorKind)
+                end
+            end
+            else if(targetNode .is. ConvertNode) then
+            begin
+                data convertNode = ^as(targetNode, @ConvertNode)
+                ExtractAdapterOp(convertNode.Source, filterLookup, parentOpKind)
+            end
+            else if(targetNode .is. UnaryOperatorNode)
+            begin
+                ;;we dont support these currently
+            end
+
+        endmethod
+
+        private method GetRealNode, @SingleValueNode
+            node, @SingleValueNode
+        proc
+            if(node .is. ConvertNode) then
+                mreturn ((@ConvertNode)node).Source
+            else
+                mreturn node
+        endmethod
+
+
+        private method ExtractPropertyOp, @AdapterOp
+            opKind, AdapterOpKind
+            targetNode, @SingleValuePropertyAccessNode
+            valueNode, @ConstantNode
+        proc
+            mreturn new AdapterOp() { Name = targetNode.Property.Name, OpKind = opKind, Value = valueNode.Value }
+        endmethod
+
+        private method AddAdapterOp, void
+            op, @AdapterOp
+            filterLookup, @Dictionary<string, List<AdapterOp>>
+        proc
+            data existing, @List<AdapterOp>
+            if(!filterLookup.TryGetValue(op.Name, existing))
+            begin
+                existing = new List<AdapterOp>()
+                filterLookup.Add(op.Name, existing)
+            end
+
+            existing.Add(op)
+        endmethod
+
+
+        private method GetOpKind, AdapterOpKind
+            opNode, @BinaryOperatorNode
+        proc
+            if(opNode.OperatorKind == BinaryOperatorKind.Equal) then
+                mreturn AdapterOpKind.Eq
+            else if(opNode.OperatorKind == BinaryOperatorKind.NotEqual) then
+                mreturn AdapterOpKind.Ne
+            else if(opNode.OperatorKind == BinaryOperatorKind.LessThan) then
+                mreturn AdapterOpKind.Lt
+            else if(opNode.OperatorKind == BinaryOperatorKind.LessThanOrEqual) then
+                mreturn AdapterOpKind.Le
+            else if(opNode.OperatorKind == BinaryOperatorKind.GreaterThan) then
+                mreturn AdapterOpKind.Gt
+            else if(opNode.OperatorKind == BinaryOperatorKind.GreaterThanOrEqual)
+                mreturn AdapterOpKind.Ge
+        endmethod
+
+        private method GetOpKind, AdapterOpKind
+            opNode, @UnaryOperatorNode
+        proc
+            throw new NotImplementedException()
+        endmethod
+
+        public static method AppendODataParameters, @IDictionary<object, object>
+            original, @IDictionary<object, object>
+            odataOptions, @ODataQueryOptions
+        proc
+            data result = new Dictionary<object, object>(original)
+            data opSeg = ^as(odataOptions.Context.Path.Segments.Last(), @OperationSegment)
+            data param, @OperationSegmentParameter
+            foreach param in opSeg.Parameters
+            begin
+                if(!result.ContainsKey(param.Name))
+                begin
+                    if(param.Value .is. ConstantNode)
+                    begin
+                        data constNode = ^as(param.Value, @ConstantNode)
+                        result.Add(param.Name, constNode.Value)
+                    end
+                end
+            end
+            mreturn result
+
+        endmethod
+
+
+		public static method GetValueForDestinationField, @object
+            fieldsWithRangeOps, @HashSet<string>
+            adapterType, @Type
+            destinationFieldName, @string
+            opLookup, @Dictionary<string, List<AdapterOp>>
+            uriParameters, @IDictionary<object, object>
+        proc
+            data targetProp = adapterType.GetProperty(destinationFieldName)
+            data customAttributes = targetProp.GetCustomAttributes(false)
+            data attr, @object
+            foreach attr in customAttributes
+            begin
+                if(attr .is. ParameterFieldAdapterAttribute) then
+                begin
+                    data paramAttr = ^as(attr, @ParameterFieldAdapterAttribute)
+                    data paramValue, @object
+                    if(uriParameters.TryGetValue(paramAttr.EdmName, paramValue))
+                    begin
+                        mreturn paramValue
+                    end
+                end
+                else if(attr .is. MatchFieldAdapterAttribute) then
+                begin
+                    data matchAttr = ^as(attr, @MatchFieldAdapterAttribute)
+                    data matchFieldOps, @List<AdapterOp>
+                    if(opLookup.TryGetValue(matchAttr.EdmName, matchFieldOps))
+                    begin
+                        data adapterOp = matchFieldOps.First()
+                        mreturn adapterOp.Value
+                    end
+				end
+				else if(attr .is. RangeOperatorAdapterAttribute) then
+				begin
+					data rangeAttr = ^as(attr, @RangeOperatorAdapterAttribute)
+					data rangeFieldOps, @List<AdapterOp>
+					if(opLookup.TryGetValue(rangeAttr.EdmName, rangeFieldOps))
+					begin
+						data rangeOp, @AdapterOp
+						data hasGt = true
+						data hasGe = false
+						data hasLt = true
+                        data hasLe = false
+						foreach rangeOp in rangeFieldOps
+						begin
+							if(rangeOp.OpKind == AdapterOpKind.Eq) then
+								mreturn RangeOperator.Equals
+							else if(rangeOp.OpKind == AdapterOpKind.Gt) then
+								hasGt = true
+							else if(rangeOp.OpKind == AdapterOpKind.Ge) then
+							begin
+								hasGt = false
+								hasGe = true
+							end
+							else if(rangeOp.OpKind == AdapterOpKind.Lt) then
+								hasLt = true
+							else if(rangeOp.OpKind == AdapterOpKind.Le)
+							begin
+								hasLt = false
+								hasLe = true
+							end
+						end
+
+						if(hasGt && hasLt) then
+							mreturn RangeOperator.BoundExclusive
+						else if(hasGe && hasLe) then
+							mreturn RangeOperator.BoundInclusive
+						else if(hasGt && hasLe) then
+							mreturn RangeOperator.UpperInclusive
+						else if(hasGe && hasLt)
+                            mreturn RangeOperator.LowerInclusive
+					end
+				end
+
+                else if(attr .is. RangeFieldAdapterAttribute) then
+                begin
+                    data rangeAttr = ^as(attr, @RangeFieldAdapterAttribute)
+                    data rangeFieldOps, @List<AdapterOp>
+                    if(opLookup.TryGetValue(rangeAttr.EdmName, rangeFieldOps))
+                    begin
+                        data rangeOp, @AdapterOp
+                        foreach rangeOp in rangeFieldOps
+						begin
+                            ;;if there is a range op we can put any sort of range op in
+							if(fieldsWithRangeOps.Contains(rangeAttr.EdmName)) then
+							begin
+                                if(rangeAttr.IsLowerBound) then
+                                begin
+                                    if(rangeOp.OpKind == AdapterOpKind.Gt || rangeOp.OpKind == AdapterOpKind.Ge || rangeOp.OpKind == AdapterOpKind.Eq)
+                                        mreturn rangeOp.Value
+                                end
+                                else if(rangeAttr.IsUpperBound) then
+                                begin
+                                    if(rangeOp.OpKind == AdapterOpKind.Lt || rangeOp.OpKind == AdapterOpKind.Le || rangeOp.OpKind == AdapterOpKind.Eq)
+                                        mreturn rangeOp.Value
+                                end
+                                else
+									throw new InvalidOperationException("invalid range attribute, must be either a Lower or Upper bound")
+							end
+							else
+							begin
+								if(rangeAttr.IsLowerBound) then
+								begin
+									if(rangeOp.OpKind == AdapterOpKind.Gt)
+										mreturn rangeOp.Value
+								end
+								else if(rangeAttr.IsUpperBound) then
+								begin
+									if(rangeOp.OpKind == AdapterOpKind.Lt)
+										mreturn rangeOp.Value
+								end
+								else
+									throw new InvalidOperationException("invalid range attribute, must be either a Lower or Upper bound")
+							end
+                        end
+                    end
+                end
+                else if(attr .is. OrFieldAdapterAttribute)
+                begin
+                    data orAttr = ^as(attr, @OrFieldAdapterAttribute)
+                    data orFieldOps, @List<AdapterOp>
+                    if(opLookup.TryGetValue(orAttr.EdmName, orFieldOps))
+                    begin
+                        if(orAttr.FillOrder < orFieldOps.Count)
+                            mreturn orFieldOps[orAttr.FillOrder].Value
+                    end
+                end
+            end
+
+            mreturn GetDefaultValueForProperty(targetProp)
+        endmethod
+
+        public static method GetDefaultValueForProperty, @object
+            prop, @PropertyInfo 
+        proc
+            data defaultAttr = ^as(prop.GetCustomAttribute(^typeof(DefaultValueAttribute)), @DefaultValueAttribute)
+            if (defaultAttr != ^null)
+                mreturn defaultAttr.Value
+
+            data propertyType = prop.PropertyType;
+            mreturn propertyType.IsValueType ? Activator.CreateInstance(propertyType) : ^null
+        endmethod
+
+        private static method BakeFieldValueGetter, @Func<string, Expression>
+            adapterType, @Type
+            filterLookup, @ParameterExpression
+            uriParameters, @Expression
+        proc
+            ;;performance of this could be improved by generating the expression monolithically 
+            ;;at expression compile time rather than one field at a time at runtime
+            lambda fieldValueGetter(name)
+            begin
+                data callMethod = ^typeof(AdapterRoutingFilter).GetMethod("GetValueForDestinationField")
+                data memberBindings = new List<MemberBinding>()
+
+				data properties = adapterType.GetProperties()
+
+                data rangeOpFields = new HashSet<string>(properties.Select(lambda(prop) { prop.GetCustomAttribute<RangeOperatorAdapterAttribute>(false)?.EdmName }).Where(lambda(propName) { propName != ^null }))
+                data targetProp, @PropertyInfo
+                foreach targetProp in properties
+				begin
+                    data getter = targetProp.GetMethod
+                    if(getter.IsPublic && !getter.IsStatic)
+                        memberBindings.Add(Expression.Bind(targetProp, Expression.Convert(Expression.Call(callMethod, Expression.Constant(rangeOpFields), Expression.Constant(adapterType), Expression.Constant(targetProp.Name), filterLookup, uriParameters), targetProp.PropertyType)))
+                end
+
+                mreturn Expression.MemberInit(Expression.New(adapterType), memberBindings)
+            end
+            mreturn fieldValueGetter
+        endmethod
+
+        enum AdapterOpKind
+            Eq,
+            Ne,
+            Lt,
+            Le,
+            Gt,
+            Ge,
+            AndEq,
+            OrEq
+        endenum
+
+        class AdapterOp
+            public readwrite property Name, @string
+            public readwrite property OpKind, AdapterOpKind
+            public readwrite property Value, @object
+        endclass
+
+        class UriExpressionLogHelper
+            public obj, @SingleValueNode
+            public method UriExpressionLogHelper
+                arg, @SingleValueNode
+                endparams
+            proc
+                obj = arg
+            endmethod
+
+            public override method ToString, @string
+            proc
+                if(obj == ^null)
+                    mreturn "(null)"
+
+                try
+                begin
+                    mreturn obj.Accept(new UriExpressionDebugHelper())
+                end
+                catch(ex, @Exception)
+                begin
+                    mreturn obj.ToString()
+                end
+
+                endtry
+            endmethod
+    
+        endclass
+
+
+        class UriExpressionDebugHelper extends QueryNodeVisitor<string>
+            public override method Visit, string
+                nodeIn, @BinaryOperatorNode 
+            proc
+                mreturn String.Format("(Op {0}, {1}, {2})", nodeIn.OperatorKind, nodeIn.Left.Accept(this), nodeIn.Right.Accept(this))
+            endmethod
+
+            public override method Visit, string
+                nodeIn, @ConstantNode  
+            proc
+                mreturn String.Format("(Constant {0})", JsonConvert.SerializeObject(nodeIn.Value))
+            endmethod
+
+            public override method Visit, string
+                nodeIn, @ConvertNode  
+            proc
+                data sourceString = nodeIn.Source.Accept(this)
+                mreturn String.Format("(Convert {0} -> {1})", nodeIn.TypeReference.Definition.FullTypeName(), sourceString)
+            endmethod
+
+            public override method Visit, string
+                nodeIn, @SingleValuePropertyAccessNode  
+            proc
+                mreturn String.Format("(Property Access {0}.{1})", nodeIn.Source.Accept(this), nodeIn.Property.Name)
+            endmethod
+
+            public override method Visit, string
+                nodeIn, @ResourceRangeVariableReferenceNode  
+            proc
+                mreturn nodeIn.Name
+            endmethod
+        endclass
+    endclass
 
 endnamespace

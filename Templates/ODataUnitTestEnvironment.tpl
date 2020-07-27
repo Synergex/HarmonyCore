@@ -1,5 +1,6 @@
 <CODEGEN_FILENAME>UnitTestEnvironment.dbl</CODEGEN_FILENAME>
 <REQUIRES_CODEGEN_VERSION>5.4.6</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_USERTOKEN>DATA_FOLDER</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVICES_NAMESPACE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVER_PROTOCOL</REQUIRES_USERTOKEN>
@@ -57,15 +58,23 @@
 ;;*****************************************************************************
 
 <IF DEFINED_ENABLE_AUTHENTICATION>
+  <IF NOT_DEFINED_ENABLE_CUSTOM_AUTHENTICATION>
 import IdentityModel.Client
+  </IF NOT_DEFINED_ENABLE_CUSTOM_AUTHENTICATION>
 </IF DEFINED_ENABLE_AUTHENTICATION>
 import Microsoft.AspNetCore
 import Microsoft.AspNetCore.Hosting
 import Microsoft.AspNetCore.TestHost
 import Microsoft.VisualStudio.TestTools.UnitTesting
+import System.Collections.Generic
 import System.IO
+import System.Net.Http
+import System.Text
 import <SERVICES_NAMESPACE>
 import <MODELS_NAMESPACE>
+<IF DEFINED_ENABLE_CREATE_TEST_FILES>
+import <NAMESPACE>.DataGenerators
+</IF DEFINED_ENABLE_CREATE_TEST_FILES>
 
 namespace <NAMESPACE>
 
@@ -86,7 +95,7 @@ namespace <NAMESPACE>
             xcall setlog("SYNSEL_NUMALPHA_KEYS", 1, status) 
 
             ;;Configure the test environment (set logicals, create files in a known state, etc.)
-            TestEnvironment.Configure()
+            UnitTestEnvironment.Configure()
 
             ;;Define the content root and web root folders (so we can pick up the Swagger file for API documentation)
             data wwwroot = Path.Combine(AppContext.BaseDirectory, "wwwroot")
@@ -106,6 +115,15 @@ namespace <NAMESPACE>
             Server.BaseAddress = new Uri("<SERVER_PROTOCOL>://<SERVER_NAME>")
 
 <IF DEFINED_ENABLE_AUTHENTICATION>
+  <IF DEFINED_ENABLE_CUSTOM_AUTHENTICATION>
+            ;;Get the access token from the custom authentication endpoint
+            disposable data client = Server.CreateClient()
+            disposable data requestBody, @StringContent, new StringContent('{"Username":"<CUSTOM_AUTH_USERNAME>","Password":"<CUSTOM_AUTH_PASSWORD>"}',Encoding.UTF8,"application/json")
+            disposable data response = client.PostAsync("/<CUSTOM_AUTH_CONTROLLER_PATH>/<CUSTOM_AUTH_ENDPOINT_PATH>",requestBody).Result
+            response.EnsureSuccessStatusCode()
+            AccessToken = response.Content.ReadAsStringAsync().Result
+
+  <ELSE>
             ;;Get the access token from the OAuth Server
             data disco = DiscoveryClient.GetAsync("<OAUTH_SERVER>").GetAwaiter().GetResult()
 
@@ -130,6 +148,7 @@ namespace <NAMESPACE>
                 end
             end
 
+  </IF DEFINED_ENABLE_CUSTOM_AUTHENTICATION>
 </IF DEFINED_ENABLE_AUTHENTICATION>
         endmethod
 
@@ -141,8 +160,119 @@ namespace <NAMESPACE>
             Server = ^null
 
             ;;Delete the data files
-            TestEnvironment.Cleanup()
+            UnitTestEnvironment.Cleanup()
 
+        endmethod
+
+        public static method Configure, void
+        proc
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)
+            setLogicals()
+<IF DEFINED_ENABLE_CREATE_TEST_FILES>
+            deleteFiles()
+            createFiles()
+</IF DEFINED_ENABLE_CREATE_TEST_FILES>
+        endmethod
+
+        public static method Cleanup, void
+        proc
+<IF DEFINED_ENABLE_CREATE_TEST_FILES>
+            deleteFiles()
+</IF DEFINED_ENABLE_CREATE_TEST_FILES>
+        endmethod
+
+        private static method setLogicals, void
+        proc
+            data sampleDataFolder = findRelativeFolderForAssembly("<DATA_FOLDER>")
+            data logicals = new List<string>()
+            data logical = String.Empty
+            data fileSpec = String.Empty
+            <STRUCTURE_LOOP>
+
+            fileSpec = "<FILE_NAME>"
+            if (fileSpec.Contains(":"))
+            begin
+                logical = fileSpec.Split(":")[1].ToUpper()
+                if (!logicals.Contains(logical))
+                    logicals.Add(logical)
+            end
+            </STRUCTURE_LOOP>
+
+            foreach logical in logicals
+            begin
+                data sts, int
+                xcall setlog(logical,sampleDataFolder,sts)
+            end
+
+        endmethod
+
+<IF DEFINED_ENABLE_CREATE_TEST_FILES>
+        private static method createFiles, void
+        proc
+            data chout, int
+            data dataFile, string
+            data xdlFile, string
+
+<STRUCTURE_LOOP>
+  <IF STRUCTURE_ISAM>
+            data <structurePlural> = <StructureNoplural>Loader.LoadFromFile()
+  </IF STRUCTURE_ISAM>
+</STRUCTURE_LOOP>
+
+<STRUCTURE_LOOP>
+            ;;Create and load the <structurePlural> file
+
+            dataFile = "<FILE_NAME>"
+  <IF STRUCTURE_ISAM>
+            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+
+            data <structureNoplural>, @<StructureNoplural>
+            open(chout=0,o:i,dataFile,FDL:xdlFile)
+            foreach <structureNoplural> in <structurePlural>
+                store(chout,<structureNoplural>.SynergyRecord)
+            close chout
+
+  </IF STRUCTURE_ISAM>
+  <IF STRUCTURE_RELATIVE>
+            data sourceFile = dataFile.ToLower().Replace(".ddf",".txt")
+            xcall copy(sourceFile,dataFile,1)
+
+  </IF STRUCTURE_RELATIVE>
+</STRUCTURE_LOOP>
+        endmethod
+
+        private static method deleteFiles, void
+        proc
+            <STRUCTURE_LOOP>
+            ;;Delete the <structurePlural> file
+            try
+            begin
+                xcall delet("<FILE_NAME>")
+            end
+            catch (e, @NoFileFoundException)
+            begin
+                nop
+            end
+            endtry
+
+            </STRUCTURE_LOOP>
+        endmethod
+
+</IF DEFINED_ENABLE_CREATE_TEST_FILES>
+        private static method findRelativeFolderForAssembly, string
+            folderName, string
+        proc
+            data assemblyLocation = ^typeof(UnitTestEnvironment).Assembly.Location
+            data currentFolder = Path.GetDirectoryName(assemblyLocation)
+            data rootPath = Path.GetPathRoot(currentFolder)
+            while(currentFolder != rootPath)
+            begin
+                if(Directory.Exists(Path.Combine(currentFolder, folderName))) then
+                    mreturn Path.Combine(currentFolder, folderName)
+                else
+                    currentFolder = Path.GetFullPath(currentFolder + "..\")
+            end
+            mreturn ^null
         endmethod
 
     endclass

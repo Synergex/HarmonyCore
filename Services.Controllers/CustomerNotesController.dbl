@@ -10,6 +10,8 @@
 ;; Any changes you make will be lost of the file is re-generated.
 ;;*****************************************************************************
 
+import Microsoft.AspNetCore.Http
+import Microsoft.OData
 import Microsoft.AspNetCore.JsonPatch
 import Microsoft.AspNetCore.Mvc
 import Microsoft.AspNet.OData
@@ -17,16 +19,19 @@ import Microsoft.AspNet.OData.Routing
 import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Infrastructure
 import Microsoft.Extensions.Options
+import System.Collections.Generic
 import System.ComponentModel.DataAnnotations
 import Harmony.Core.EF.Extensions
 import Harmony.Core.Interface
 import Harmony.OData
+import Harmony.AspNetCore
 import Newtonsoft.Json
 import Services.Models
 
 namespace Services.Controllers
 
     {ApiVersion("1")}
+    {ODataRoutePrefix("CustomerNotes")}
     ;;; <summary>
     ;;; OData controller for CustomerNotes
     ;;; </summary>
@@ -53,7 +58,9 @@ namespace Services.Controllers
             this._AppSettings = aAppSettings
         endmethod
 
-        {ODataRoute("CustomerNotes")}
+        {ODataRoute}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(ODataValue<IEnumerable<CustomerNote>>),StatusCodes.Status200OK)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get all CustomerNotes
@@ -64,58 +71,27 @@ namespace Services.Controllers
             mreturn Ok(_DbContext.CustomerNotes.AsNoTracking())
         endmethod
 
-        {ODataRoute("CustomerNotes(CustomerNumber={aCustomerNumber})")}
+        {ODataRoute("(CustomerNumber={aCustomerNumber})")}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(ODataValue<IEnumerable<CustomerNote>>),StatusCodes.Status200OK)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
-        ;;; Get a single CustomerNote by primary key.
+        ;;; Get all CustomerNotes matching non-unique primary key.
         ;;; </summary>
         ;;; <param name="aCustomerNumber">Customer number</param>
-        ;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetCustomerNote, @SingleResult<CustomerNote>
+        ;;; <returns>Returns a collection of any CustomerNotes matching non-unique primary key, or an empty collection if no matching records are found.</returns>
+        public method GetCustomerNote, @IActionResult
             {FromODataUri}
             required in aCustomerNumber, int
         proc
-            mreturn new SingleResult<CustomerNote>(_DbContext.CustomerNotes.AsNoTracking().FindQuery<CustomerNote>(_DbContext, aCustomerNumber))
+            mreturn Ok(_DbContext.CustomerNotes.AsNoTracking().FindQuery<CustomerNote>(_DbContext, aCustomerNumber))
         endmethod
 
-
-        {ODataRoute("CustomerNotes({key})/NoteNumber")}
-        ;;; <summary>
-        ;;; Get the NoteNumber property of a single CustomerNote, by primary key.
-        ;;; </summary>
-        ;;; <param name="key">Note number</param>
-        ;;; <returns>
-        ;;; Returns an int containing the value of the requested property.
-        ;;;</returns>
-        public method GetNoteNumber, @IActionResult
-            {FromODataUri}
-            required in key, int
-        proc
-            data result = _DbContext.CustomerNotes.Find(key)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.NoteNumber)
-        endmethod
-
-        {ODataRoute("CustomerNotes({key})/NoteText")}
-        ;;; <summary>
-        ;;; Get the NoteText property of a single CustomerNote, by primary key.
-        ;;; </summary>
-        ;;; <param name="key">Note text</param>
-        ;;; <returns>
-        ;;; Returns a string containing the value of the requested property.
-        ;;;</returns>
-        public method GetNoteText, @IActionResult
-            {FromODataUri}
-            required in key, int
-        proc
-            data result = _DbContext.CustomerNotes.Find(key)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.NoteText)
-        endmethod
-
-        {ODataRoute("CustomerNotes")}
+        {ODataRoute}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(CustomerNote),StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status400BadRequest)}
+        {HttpPost}
         ;;; <summary>
         ;;; Create a new customerNote (automatically assigned primary key).
         ;;; </summary>
@@ -129,7 +105,7 @@ namespace Services.Controllers
 
             ;; Validate inbound data
             if (!ModelState.IsValid)
-                mreturn BadRequest(ModelState)
+                mreturn ValidationHelper.ReturnValidationError(ModelState)
 
             ;;Get the next available primary key value
             disposable data keyFactory = (@IPrimaryKeyFactory)_ServiceProvider.GetService(^typeof(IPrimaryKeyFactory))
@@ -144,136 +120,11 @@ namespace Services.Controllers
             catch (e, @ValidationException)
             begin
                 ModelState.AddModelError("RelationValidation",e.Message)
-                mreturn BadRequest(ModelState)
+                mreturn ValidationHelper.ReturnValidationError(ModelState)
             end
             endtry
 
             mreturn Created(aCustomerNote)
-
-        endmethod
-
-        {ODataRoute("CustomerNotes(CustomerNumber={aCustomerNumber})")}
-        ;;; <summary>
-        ;;; Create (with a client-supplied primary key) or replace a customerNote.
-        ;;; </summary>
-        ;;; <param name="aCustomerNumber">Customer number</param>
-        ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method PutCustomerNote, @IActionResult
-            {FromODataUri}
-            required in aCustomerNumber, int
-            {FromBody}
-            required in aCustomerNote, @CustomerNote
-        proc
-            ;; Validate inbound data
-            if (!ModelState.IsValid)
-                mreturn BadRequest(ModelState)
-
-            ;;Ensure that the key values in the URI win over any data that may be in the model object
-            aCustomerNote.CustomerNumber = aCustomerNumber
-
-            try
-            begin
-                ;;Add and commit
-                data existing = _DbContext.CustomerNotes.Find(aCustomerNumber)
-                if(existing == ^null) then
-                begin
-                    _DbContext.CustomerNotes.Add(aCustomerNote)
-                    _DbContext.SaveChanges()
-                    mreturn Created(aCustomerNote)
-                end
-                else
-                begin
-                    aCustomerNote.CopyTo(existing)
-                    _DbContext.SaveChanges()
-                    mreturn NoContent()
-                end
-            end
-            catch (e, @InvalidOperationException)
-            begin
-                mreturn BadRequest(e)
-            end
-            catch (e, @ValidationException)
-            begin
-                ModelState.AddModelError("RelationValidation",e.Message)
-                mreturn BadRequest(ModelState)
-            end
-            endtry
-
-        endmethod
-
-        {ODataRoute("CustomerNotes(CustomerNumber={aCustomerNumber})")}
-        ;;; <summary>
-        ;;; Patch  (partial update) a customerNote.
-        ;;; </summary>
-        ;;; <param name="aCustomerNumber">Customer number</param>
-        ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method PatchCustomerNote, @IActionResult
-            {FromODataUri}
-            required in aCustomerNumber, int
-            {FromBody}
-            required in aCustomerNote, @JsonPatchDocument<CustomerNote>
-        proc
-            ;; Validate inbound data
-            if (!ModelState.IsValid)
-                mreturn BadRequest(ModelState)
-
-            ;;Patch the existing customerNote
-            try
-            begin
-                ;;Get the customerNote to be updated
-                data customerNoteToUpdate = _DbContext.CustomerNotes.Find(aCustomerNumber)
-                data patchError, @JsonPatchError, ^null
-                ;;Did we find it?
-                if(customerNoteToUpdate == ^null)
-                    mreturn NotFound()
-
-                ;;Apply the changes to the customerNote we read
-                aCustomerNote.ApplyTo(customerNoteToUpdate, lambda(error) { patchError = error })
-                ;;if the patchdoc was bad return the error info
-                if(patchError != ^null)
-                    mreturn BadRequest(string.Format("Error applying patch document: error message {0}, caused by {1}", patchError.ErrorMessage, JsonConvert.SerializeObject(patchError.Operation)))
-
-                ;;Update and commit
-                _DbContext.CustomerNotes.Update(customerNoteToUpdate)
-                _DbContext.SaveChanges()
-            end
-            catch (e, @InvalidOperationException)
-            begin
-                mreturn BadRequest(e)
-            end
-            catch (e, @ValidationException)
-            begin
-                ModelState.AddModelError("RelationValidation",e.Message)
-                mreturn BadRequest(ModelState)
-            end
-            endtry
-
-            mreturn NoContent()
-
-        endmethod
-
-        {ODataRoute("CustomerNotes(CustomerNumber={aCustomerNumber})")}
-        ;;; <summary>
-        ;;; Delete a customerNote.
-        ;;; </summary>
-        ;;; <param name="aCustomerNumber">Customer number</param>
-        ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method DeleteCustomerNote, @IActionResult
-            {FromODataUri}
-            required in aCustomerNumber, int
-        proc
-            ;;Get the customerNote to be deleted
-            data customerNoteToRemove = _DbContext.CustomerNotes.Find(aCustomerNumber)
-
-            ;;Did we find it?
-            if (customerNoteToRemove == ^null)
-                mreturn NotFound()
-
-            ;;Delete and commit
-            _DbContext.CustomerNotes.Remove(customerNoteToRemove)
-            _DbContext.SaveChanges()
-
-            mreturn NoContent()
 
         endmethod
 

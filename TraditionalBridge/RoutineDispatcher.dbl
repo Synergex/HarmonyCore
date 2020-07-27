@@ -10,6 +10,7 @@ import System.Text.Json
 .define IS_TEXT(element) ((element).ValueKind == JsonValueKind.String)
 .define IS_ARRAY(element) ((element).ValueKind == JsonValueKind.Array)
 .define IS_BOOLEAN(element) ((element).ValueKind == JsonValueKind.True || (element).ValueKind == JsonValueKind.False)
+.define GET_ELEMENT_TYPENAME(element) %string(element.ValueKind)
 .else
 .define JSON_ELEMENT @JsonValue
 .define IS_OBJ(element) ((element).JsonType == JSON_TYPE.OBJ)
@@ -17,8 +18,10 @@ import System.Text.Json
 .define IS_TEXT(element) ((element).JsonType == JSON_TYPE.TEXT)
 .define IS_ARRAY(element) ((element).JsonType == JSON_TYPE.ARRAY_VAL)
 .define IS_BOOLEAN(element) ((element).JsonType == JSON_TYPE.BOOL)
+.define GET_ELEMENT_TYPENAME(element) %string(element.JsonType)
 .endc
 
+.define TEMP_AD_TYPE a28
 .define MaybeLog(priority, msg) if((priority) <= Logger.LogLevel) Logger.Instance.Log(msg)
 ;.define MaybeLog(priority, msg) Logger.Instance.Log(msg)
 
@@ -263,8 +266,10 @@ namespace Harmony.TraditionalBridge
             endrecord
         proc
             collectionSize = collection.GetArrayLength()
+            MaybeLog(6, "UnwrapObjectCollection handle collectionSize: " + %string(collectionSize))
             for itr from 0 thru collectionSize - 1 by 1
             begin
+                MaybeLog(6, "UnwrapObjectCollection handle element: " + %string(itr))
                 element = collection[itr]
                 if(IS_OBJ(element)) then
                 begin
@@ -278,11 +283,12 @@ namespace Harmony.TraditionalBridge
                     begin
                         stringValue = element.GetProperty("Base64Value").GetStringFromBase64()
                     end
-                    MaybeLog(6, "filling handle bufferPosition: " + %string(bufferPosition) + " elementSize: " + %string(elementInfo.ElementSize))
+                    MaybeLog(6, "filling handle bufferPosition: " + %string(bufferPosition) + " elementSize: " + %string(elementInfo.ElementSize) + " value:" + stringValue)
                     ^m(localStr.fld(bufferPosition:elementInfo.ElementSize), handle) = stringValue
                 end
                 else if(IS_TEXT(element)) then
                 begin
+                    MaybeLog(6, "filling handle bufferPosition: " + %string(bufferPosition) + " elementSize: " + %string(elementInfo.ElementSize) + " value:" + element.GetString())
                     ^m(localStr.fld(bufferPosition:elementInfo.ElementSize), handle) = element.GetString()
                 end
                 else if(IS_NUMBER(element)) then
@@ -368,11 +374,14 @@ namespace Harmony.TraditionalBridge
                     if(!^passed(desiredType)) then
                     begin
                         elementBuffer(1: desiredSize) = element.GetString()
+                        MaybeLog(6, "unwrapjsonvalue Alpha: " + elementBuffer(1: desiredSize))
                         mreturn (@*)elementBuffer(1: desiredSize)
                     end
                     else if(desiredType == FieldDataType.DataObjectField) then
                     begin
                         elementBuffer(1: desiredSize) = element.GetString()
+
+                        MaybeLog(6, "unwrapjsonvalue Object: " + elementBuffer(1: desiredSize))
                         if(^passed(grfa)) then
                             mreturn elementType.MakeNew(elementBuffer(1: desiredSize), grfa)
                         else
@@ -380,16 +389,19 @@ namespace Harmony.TraditionalBridge
                     end
                     else if(desiredType == FieldDataType.StringField) then
                     begin
+                        MaybeLog(6, "unwrapjsonvalue String: " + element.GetString())
                         mreturn element.GetString()
                     end
                     else if(desiredType == FieldDataType.AlphaField)
                     begin
                         elementBuffer(1: desiredSize) = element.GetString()
+                        MaybeLog(6, "unwrapjsonvalue Alpha explicit: " + elementBuffer(1: desiredSize))
                         mreturn (@*)elementBuffer(1: desiredSize)
                     end
                 end
                 else
                 begin
+                    MaybeLog(6, "unwrapjsonvalue unsized Alpha: " + (a)element.GetString())
                     mreturn (@a)(a)element.GetString()
                 end
             end
@@ -418,9 +430,21 @@ namespace Harmony.TraditionalBridge
                 else
                     throw new Exception("invalid desired type " + %string(desiredType))
             end
-            else if(IS_BOOLEAN(element))
+            else if(IS_BOOLEAN(element)) then
             begin
                 mreturn (@boolean)element.GetBoolean()
+            end
+            else if(IS_ARRAY(element)) then
+            begin
+                throw new Exception("invalid element type was: ARRAY")
+            end
+            else if(IS_OBJ(element)) then
+            begin
+                throw new Exception("invalid element type was: OBJECT")
+            end
+            else
+            begin
+                throw new Exception("invalid element type was: " + GET_ELEMENT_TYPENAME(element))
             end
         endmethod
 
@@ -450,10 +474,13 @@ namespace Harmony.TraditionalBridge
             if(targetCollection.Length != collectionLength)
                 throw new Exception("Dynamic array must be correctly sized before unwrapping object collection into it")
             
-            
+            MaybeLog(6, "UnwrapObjectCollection array collectionSize: " + %string(collectionLength))
+
             for index from 1 thru collectionLength by 1
             begin
-                element = collection[index]
+                MaybeLog(6, "UnwrapObjectCollection array element: " + %string(index - 1))
+
+                element = collection[index - 1]
                 if(IS_OBJ(element)) then
                 begin
                     data valueToken, JSON_ELEMENT
@@ -476,7 +503,6 @@ namespace Harmony.TraditionalBridge
                     else
                         targetCollection.SetValue(UnwrapJsonValue(element, false, elementType, elementBuffer, desiredType, desiredSize, desiredPrecision), index)
                 end
-                incr index
             end
         endmethod
 
@@ -497,8 +523,10 @@ namespace Harmony.TraditionalBridge
             endrecord
         proc
             collectionLength = collection.GetArrayLength()
-            for i from 0 thru collectionLength by 1
+            MaybeLog(6, "collection array length:" + %string(collectionLength))
+            for i from 0 thru collectionLength - 1 by 1
             begin
+                MaybeLog(6, "indexing array:" + %string(i) + " for array of length:" + %string(collectionLength))
                 element = collection[i]
                 if(IS_OBJ(element)) then
                 begin
@@ -530,12 +558,12 @@ namespace Harmony.TraditionalBridge
         proc
             collectionLength = collection.GetArrayLength()
             result = new string[collectionLength]
-            for i from 0 thru collectionLength by 1
+            for i from 0 thru collectionLength - 1 by 1
             begin
                 element = collection[i]
                 if(IS_TEXT(element)) then
                 begin
-                    result[i] = element.GetString()
+                    result[i + 1] = element.GetString()
                 end
                 else
                     throw new InvalidCastException()
@@ -554,7 +582,7 @@ namespace Harmony.TraditionalBridge
         proc
             collectionLength = collection.GetArrayLength()
             result = new int[collectionLength]
-            for i from 0 thru collectionLength by 1
+            for i from 0 thru collectionLength - 1 by 1
             begin
                 element = collection[i]
                 if(IS_NUMBER(element)) then
@@ -578,7 +606,7 @@ namespace Harmony.TraditionalBridge
         proc
             collectionLength = collection.GetArrayLength()
             result = new boolean[collectionLength]
-            for i from 0 thru collectionLength by 1
+            for i from 0 thru collectionLength - 1 by 1
             begin
                 element = collection[i]
                 if(IS_BOOLEAN(element)) then
@@ -602,7 +630,7 @@ namespace Harmony.TraditionalBridge
         proc
             collectionLength = collection.GetArrayLength()
             result = new @id[collectionLength]
-            for i from 0 thru collectionLength by 1
+            for i from 0 thru collectionLength - 1 by 1
             begin
                 element = collection[i]
                 if(IS_NUMBER(element)) then
@@ -671,16 +699,28 @@ namespace Harmony.TraditionalBridge
             value, JSON_ELEMENT
             record
                 precisionValue, d18
+                aVal, TEMP_AD_TYPE
                 passedValue, JSON_ELEMENT
+                precisionElement, JSON_ELEMENT
             endrecord
         proc
             passedValue = value.GetProperty("PassedValue")
-            precisionValue = value.GetProperty("DecimalPrecision").GetDecimal()
 
             if(IS_TEXT(passedValue)) then
+            begin
                 mreturn %implied(passedValue.GetString())
+            end
             else
-                mreturn ^d(%string(passedValue.GetDecimal()),precisionValue)
+            begin
+                if(value.TryGetProperty("DecimalPrecision", precisionElement)) then
+                begin
+                    aVal = ^a(passedValue.GetDecimal())
+                    mreturn ^d(aVal,precisionElement.GetDecimal())
+                end
+                else
+                    mreturn passedValue.GetDecimal()
+            end
+
         endmethod
 
         ;;; <summary>
@@ -826,17 +866,14 @@ namespace Harmony.TraditionalBridge
                                 
             end
             until remainingRead <= 0
-
-            if(frameHeader > 64000) then
-                MaybeLog(6, "Dispatcher: Parsing buffer " + ^m(MemStruct(1:64000), mReadBuffer))
-            else
-                MaybeLog(6, "Dispatcher: Parsing buffer " + ^m(MemStruct(1:frameHeader), mReadBuffer))
 .ifdef DBLV11
             innerString = %string_from_handle(mReadBuffer)
+            MaybeLog(6, "Dispatcher: Parsing buffer " + innerString.Substring(0, readerPosition - 1))
             jsonDoc = JsonDocument.Parse(innerString.Substring(0, readerPosition - 1))
             parsedJson = jsonDoc.RootElement
 .else
             innerString = %string_from_handle(mReadBuffer)
+            MaybeLog(6, "Dispatcher: Parsing buffer " + innerString.Substring(0, readerPosition - 1))
             parsedJson = jsonReader.ParseJson(innerString.Substring(0, readerPosition - 1))
 .endc
             if (!(IS_OBJ(parsedJson)) && !(IS_ARRAY(parsedJson)))
@@ -990,6 +1027,48 @@ namespace Harmony.TraditionalBridge
             endtry
         endmethod
 
+        class StopGuard
+            serializer, @DispatchSerializer
+            public UnexpectedDeconstruction, boolean
+            requestId, int
+            public method StopGuard
+                serializer, @DispatchSerializer
+                requestId, int
+                endparams
+            proc
+                this.requestId = requestId
+                this.serializer = serializer
+                UnexpectedDeconstruction = true
+            endmethod
+
+            method ~StopGuard
+                record
+                    moduleName, a256
+                    blanks, a256
+                    line, int
+                    i, int
+                    callStack, @string
+            proc
+                if(UnexpectedDeconstruction)
+                begin
+                    callStack = ""
+                    i = 1
+                    clear blanks
+                    xcall modname(i, moduleName, line)              ;Start with current routine
+                    do
+                    begin
+                        callStack += " in routine " + %atrim(moduleName) + " at line " + %string(line) + ";"
+                        incr i
+                        xcall modname(i, moduleName, line)
+                    end
+                    until(moduleName .eq. blanks)
+
+                    serializer.ReportError("Unexpected deconstruction, this indicates either stop (implicit?) or a runtime bug. Dispatching" + callStack, -32000, requestId)
+                end
+
+            endmethod
+        endclass
+
         ;;; <summary>
         ;;; 
         ;;; </summary>
@@ -1004,13 +1083,15 @@ namespace Harmony.TraditionalBridge
                 name, @string
                 dispatchStub, @RoutineStub
                 temp, JSON_ELEMENT
+                guard, @StopGuard
             endrecord
         proc
-                        
             if(jsonData.TryGetProperty("id", temp)) then
                 requestId = temp.GetInt32()
             else
                 requestId = -1
+
+            guard = new StopGuard(serializer, requestId)
 
             if(jsonData.TryGetProperty("method", temp)) then
             begin
@@ -1131,6 +1212,9 @@ namespace Harmony.TraditionalBridge
                 serializer.ReportError(ex.ToString(), -32000, requestId)
             end
             endtry
+            ;;If we run this line, it means we *havent* been aborted by a rogue stop statement
+            if(guard != ^null)
+                guard.UnexpectedDeconstruction = false
 
             mreturn true
         endmethod
@@ -1221,9 +1305,17 @@ namespace Harmony.TraditionalBridge
                     if(argType == FieldDataType.AlphaField) then
                     begin
                         if(argIsEncoded) then
+                        begin
                             argBuffer = argValue.GetStringFromBase64()
+                            MaybeLog(4, "argument " + %string(index) + " passed to rcb dispatcher with argType " + %string(argType) + " JsonString value " + argValue.GetStringFromBase64())
+                        end
+
                         else
+                        begin
                             argBuffer = argValue.GetString()
+                            MaybeLog(4, "argument " + %string(index) + " passed to rcb dispatcher with argType " + %string(argType) + " JsonString value " + argValue.GetString())
+                        end
+
                     end
                     else if(argType == FieldDataType.DecimalField) then
                     begin
@@ -1268,7 +1360,7 @@ namespace Harmony.TraditionalBridge
             end
 
         endmethod
-		
+        
         public method RCBSerializeArg, void
             index, int
             passed, boolean
@@ -1282,10 +1374,17 @@ namespace Harmony.TraditionalBridge
 
             if(passed)
             begin
+                ;;alpha data can contain binary bits, if we're on pre v11 we cant encode these properly unless we let the serializer know ahead of time
+                ;;this is the true/false last parameter to ArgumentData seen below
                 case (argType) of
                 begincase
                 FieldDataType.AlphaField:
+.ifdef DBLV11
                     serializer.ArgumentData(index, argBuffer, argType, argLength, argPrecision, false)
+.else
+                    serializer.ArgumentData(index, argBuffer, argType, argLength, argPrecision, true)
+.endc
+
                 FieldDataType.IntegerField:
                     serializer.ArgumentData(index, ^i(argBuffer), argType, argLength, argPrecision, false)
                 FieldDataType.ImpliedDecimalField:

@@ -23,6 +23,7 @@ import Microsoft.Extensions.DependencyInjection
 
 namespace Services.Models
 
+    {Newtonsoft.Json.JsonObject(Newtonsoft.Json.MemberSerialization.OptIn)}
     public partial class CustomerNote extends DataObjectBase
 
         ;;make the record available and a copy
@@ -69,6 +70,7 @@ namespace Services.Models
         ;;; </summary>
         {Key}
         {Range(0,999999, ErrorMessage="Customer number must be between 0 and 999999. ")}
+        {Newtonsoft.Json.JsonProperty}
         public property CustomerNumber, int
             method get
             proc
@@ -84,6 +86,7 @@ namespace Services.Models
         ;;; Note number
         ;;; </summary>
         {Range(0,999, ErrorMessage="Note number must be between 0 and 999. ")}
+        {Newtonsoft.Json.JsonProperty}
         public property NoteNumber, int
             method get
             proc
@@ -99,6 +102,7 @@ namespace Services.Models
         ;;; Note text
         ;;; </summary>
         {StringLength(30720, ErrorMessage="Note text cannot exceed 30720 characters. ")}
+        {Newtonsoft.Json.JsonProperty}
         public property NoteText, String
             method get
             proc
@@ -173,37 +177,45 @@ namespace Services.Models
             mreturn new Object[3]
         endmethod
 
+.endregion
+
+.region "Relationships to other entities"
+
+        {Newtonsoft.Json.JsonProperty(DefaultValueHandling=DefaultValueHandling.Ignore)}
         ;;; <summary>
-        ;;; Validate data for one-to-one relations
+        ;;; Relationship (Type A)
+        ;;; CUSTOMER_NOTE.CUSTOMER_NUMBER (one) --> (one) --> (many) CUSTOMER.CUSTOMER_NUMBER
+        ;;; </summary>
+        public readwrite property REL_Customer, @Customer
+
+.endregion
+
+.region "Relation validation"
+
+        ;;; <summary>
+        ;;; Validate data for relations
         ;;; </summary>
         ;;; <param name="type">Validation type (create, update or delete)</param>
         ;;; <param name="sp">Serices provider</param>
         public override method Validate, void
             required in vType, ValidationType
             required in sp, @IServiceProvider
-
-            ;;From key for REL_Customer
-            record rel1FromKey
-              customer_number, d6
-            endrecord
         proc
             ;;No relation validation if the record is being deleted
             if (vType == ValidationType.Delete)
                 mreturn
 
             ;;Get an instance of IDataObjectProvider
-            data doProvider, @IDataObjectProvider, sp.GetService<IDataObjectProvider>()
+            data dataObjectProvider, @IDataObjectProvider, sp.GetService<IDataObjectProvider>()
 
             ;;--------------------------------------------------------------------------------
             ;;Validate data for relation 1 (REL_Customer)
 
-            rel1FromKey.customer_number = mSynergyData.customer_number
-            disposable data rel1FileIO = doProvider.GetFileIO<Customer>()
-            if (rel1FileIO.FindRecord(0,rel1FromKey) != FileAccessResults.Success)
-                throw new ValidationException("Invalid data for relation REL_Customer")
+            ;;Validation mode: None
 
-
+            ;;--------------------------------------------------------------------------------
             ;;If we have a ValidateCustom method, call it
+
             ValidateCustom(vType,sp)
 
         endmethod
@@ -216,16 +228,6 @@ namespace Services.Models
 
 .endregion
 
-.region "Relationships to other entities"
-
-        ;;; <summary>
-        ;;; Relationship (Type A)
-        ;;; CUSTOMER_NOTE.CUSTOMER_NUMBER (one) --> (one) --> (many) CUSTOMER.CUSTOMER_NUMBER
-        ;;; </summary>
-        public readwrite property REL_Customer, @Customer
-
-.endregion
-
 .region "Properties to represent keys"
 
         ;;Access keys
@@ -233,9 +235,8 @@ namespace Services.Models
         private _KEY_CUSTOMER_NUMBER, string, ""
         public readonly property KEY_CUSTOMER_NUMBER, string, ""
 
-
 .endregion
 
-endclass
+    endclass
 
 endnamespace

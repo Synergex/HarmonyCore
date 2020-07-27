@@ -1,0 +1,271 @@
+import System
+import System.Collections.Generic
+import System.Text
+import Harmony.Core.Utility
+import Synergex.SynergyDE.Select
+import System.Linq
+
+namespace Harmony.Core.FileIO.Queryable.Materializer
+
+	;;the intent here is to allow us to implement in memory tables and also direct isam operations
+	public interface IRowState
+		
+		readonly property Finished, boolean
+		readwrite property Waiting, boolean
+
+		method GetChangeState, void
+			targetState, @MaterializerState
+		endmethod
+
+		method Fill, void
+			targetState, @MaterializerState
+		endmethod
+
+		method MoveNext, boolean
+		endmethod
+
+	endinterface
+
+
+	public class SimpleRowState implements IRowState
+		structure memMapper
+			fld,a1
+		endstructure
+
+		public readwrite property Finished, boolean
+		public readwrite property Waiting, boolean
+		DrivingState, @SimpleRowState
+		Enumerator, @Synergex.SynergyDE.Select.RowEnumerator
+		;;this should be zero but its possible for it to be different in the future
+		DrivingRowIndex, int
+		RowLookup, @Dictionary<MaterializerState, int>
+		IsDrivingRow, boolean
+		private Grfa, a10
+
+		public method SimpleRowState
+			rowEnumerator, @Synergex.SynergyDE.Select.RowEnumerator
+			driveState, @SimpleRowState
+			allStates, @IEnumerable<MaterializerState>
+			joinObj, @JoinSelect
+			isDrivingRow, boolean
+		proc
+			DrivingState = driveState ?? this
+			Enumerator = rowEnumerator
+			RowLookup = IndexStates(allStates,joinObj)
+			this.IsDrivingRow = isDrivingRow
+		endmethod
+
+		private method IndexStates, @Dictionary<MaterializerState, int>
+			allStates, @IEnumerable<MaterializerState>
+			joinObj, @JoinSelect
+		proc
+			data result = new Dictionary<MaterializerState, int>()
+			data matState, @MaterializerState
+			foreach matState in allStates
+			begin
+				data memPnt, i4, matState.typeBuf.MemoryHandle.Value
+				data structureSize, i4, matState.typeBuf.Metadata.StructureSize
+				if(string.IsNullOrWhiteSpace(matState.typeBuf.ParentFieldName)) then
+					result.Add(matState, DrivingRowIndex)
+				else
+					result.Add(matState, joinObj.GetRowArrayIndex(^m(memMapper.fld(1:structureSize), memPnt)))
+			end
+			mreturn result
+		endmethod
+
+		public method GetChangeState, void
+			targetState, @MaterializerState
+		proc
+			if(Waiting || Finished) then
+			begin
+				targetState.changed = false
+			end
+			else
+				Enumerator.Current.RowInfo(RowLookup[targetState], , ,targetState.changed)
+		endmethod
+
+		public method Fill, void
+			targetState, @MaterializerState
+		proc
+			data currentRow = Enumerator.Current
+			data memPnt, i4, targetState.typeBuf.MemoryHandle.Value
+			data structureSize, i4, targetState.typeBuf.Metadata.StructureSize
+			if(currentRow.RowInfo(RowLookup[targetState], targetState.grfa)) then
+			begin
+				targetState.filled = currentRow.Fill(^m(memMapper.fld(1:structureSize), memPnt))
+				DebugLogSession.Logging.LogTrace("Materializer: filled record of type {0} with value {1}", targetState.typeBuf.DataObjectType, new MemoryHandleDebugLogHelper(memPnt, structureSize, true))
+			end
+			else
+				targetState.filled = false
+		endmethod
+
+		public method MoveNext, boolean
+		proc
+			if(Finished)
+				mreturn false
+
+			if(Waiting && !IsDrivingRow)
+			begin
+				if(!DrivingState.Waiting && DrivingState.grfa == Grfa) then
+				begin
+					Waiting = false
+				end
+				else
+				begin
+					if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+						DebugLogSession.Logging.LogTrace("MARS move next was mismatched with grfa {0} driving table was {1}", new Object[#] { Convert.ToBase64String(([#]byte)Grfa), Convert.ToBase64String(([#]byte)DrivingState.grfa)})
+				end
+				mreturn true
+			end
+
+			data moveNextResult = Enumerator.MoveNext()
+			if(moveNextResult) then
+			begin
+				Waiting = false
+				data changed = false
+				if(!Enumerator.Current.RowInfo(DrivingRowIndex, Grfa,,changed))
+					throw new InvalidOperationException("Driving row was invalid")
+
+				if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+					DebugLogSession.Logging.LogTrace("MARS move next got grfa {0} driving table was {1} this table is driving table {2}", new Object[#] { Convert.ToBase64String(([#]byte)Grfa), Convert.ToBase64String(([#]byte)DrivingState.grfa), IsDrivingRow})
+
+				if(!IsDrivingRow && changed && DrivingState.grfa != Grfa)
+					Waiting = true
+			end
+			else
+				Finished = true
+
+			mreturn moveNextResult
+		endmethod
+	endclass
+
+	public class RowsManager
+		private Started, boolean
+		private Rows, @List<IRowState>
+		private RowLookup, @Dictionary<MaterializerState, IRowState>
+		private method SimpleMoveNext, boolean
+		proc
+			mreturn Rows[0].MoveNext()
+		endmethod
+
+		public method RowsManager
+			simpleEnumerator, @Synergex.SynergyDE.Select.RowEnumerator
+			drivingState, @MaterializerState
+			allStates, @IEnumerable<MaterializerState>
+			joinObj, @JoinSelect
+		proc
+			Started = false
+			Rows = new List<IRowState>() { new SimpleRowState(simpleEnumerator, ^null, allStates, joinObj, true) }
+		endmethod
+
+		public method RowsManager
+			activeResultSets, @List<Tuple<Synergex.SynergyDE.Select.RowEnumerator, IEnumerable<MaterializerState>, JoinSelect>>
+			drivingState, @MaterializerState
+		proc
+			Started = false
+			RowLookup = new Dictionary<MaterializerState, IRowState>()
+			data tpl, @Tuple<Synergex.SynergyDE.Select.RowEnumerator, IEnumerable<MaterializerState>, JoinSelect>
+			Rows = new List<IRowState>(); { new SimpleRowState(simpleEnumerator, drivingState, allStates, joinObj) }
+			foreach tpl in activeResultSets
+			begin
+				data rowState = new SimpleRowState(tpl.Item1, ^as(Rows.FirstOrDefault(), @SimpleRowState), tpl.Item2, tpl.Item3, activeResultSets.First() == tpl)
+				data matState, @MaterializerState
+				foreach matState in tpl.Item2
+					if(!RowLookup.ContainsKey(matState))
+						RowLookup.Add(matState, rowState)
+
+				Rows.Add(rowState)
+			end
+		endmethod
+
+
+		public method MoveNext, boolean
+		proc
+			;;fast dump out if we're the single select simple case
+			if(Rows.Count == 1)
+				mreturn SimpleMoveNext()
+
+			data row, @IRowState
+			data i = 0;
+			data allRowsReady = true
+			data allRowsFinished = true
+			
+			if(!Started)
+			begin
+				data moveNextVal = true
+				for i from 0 thru Rows.Count - 1 by 1
+				begin
+					moveNextVal &= Rows[i].MoveNext()
+				end
+				Started = true
+				mreturn moveNextVal
+			end
+			
+
+			;;iterate all rows except driving table looking to see if anyone is waiting or finished
+			;;if everyone is finished and driving table is finished, we're finished
+			;;if everyone is waiting, iterate driving table
+			;;repeat
+			for i from 1 thru Rows.Count - 1 by 1
+			begin
+				;;foreach row state we need to check if its currently on the same sequence as the driving row
+				;;always validate grfa's after actually iterating the underlying rowsenumerator
+				;;this most likely needs to be a fetal error, but should only happen during very high write scenarios where there elements of the sequence are changing
+
+				row = Rows[i]
+				if(row.Finished)
+				begin
+					nextloop
+				end
+
+				allRowsFinished = false
+
+				if(!row.Waiting)
+				begin
+					allRowsReady = false
+				end
+			end
+
+			row = Rows[0]
+			if(allRowsFinished && row.Finished)
+				mreturn false
+
+			
+
+			if(allRowsReady) then
+				allRowsFinished = !row.MoveNext()
+			else
+				row.Waiting = true
+
+			for i from 1 thru Rows.Count - 1 by 1
+			begin
+				row = Rows[i]
+				allRowsFinished &= !row.MoveNext()
+			end
+
+
+			mreturn !allRowsFinished
+		endmethod
+			
+		public method GetChangeState, void
+			targetState, @MaterializerState
+		proc
+			if(Rows.Count == 1) then
+				Rows[0].GetChangeState(targetState)
+			else
+				RowLookup[targetState].GetChangeState(targetState)
+		endmethod
+
+		public method Fill, void
+			targetState, @MaterializerState
+		proc
+			if(Rows.Count == 1) then
+				Rows[0].Fill(targetState)
+			else
+				RowLookup[targetState].Fill(targetState)
+		endmethod
+
+
+	endclass
+
+endnamespace

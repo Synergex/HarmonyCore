@@ -2,6 +2,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Platform Condition=" '$(Platform)' == 'Any CPU' ">AnyCPU</Platform>
     <Name>HarmonyCore.Test.Repository</Name>
     <OutputName>HarmonyCore.Test.Repository</OutputName>
     <ProjectGuid>53aa5b85-6883-416d-9b52-bf754be2d168</ProjectGuid>
@@ -10,6 +11,11 @@
     <EnableCommonProperties>True</EnableCommonProperties>
     <AssemblyName>HarmonyCore.Test.Repository</AssemblyName>
     <RootNamespace>HarmonyCore.Test.Repository</RootNamespace>
+    <OutputPath>bin\Debug\</OutputPath>
+    <UnevaluatedOutputPath>bin\Debug\</UnevaluatedOutputPath>
+    <MOutputName>rpsmain</MOutputName>
+    <TOutputName>rpstext</TOutputName>
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <OutputPath>bin\Debug\</OutputPath>
@@ -19,24 +25,29 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <OutputPath>bin\Release\</OutputPath>
-    <UnevaluatedOutputPath>bin\Release\</UnevaluatedOutputPath>
+    <OutputPath>bin\Debug\</OutputPath>
+    <UnevaluatedOutputPath>bin\Debug\</UnevaluatedOutputPath>
     <MOutputName>rpsmain</MOutputName>
     <TOutputName>rpstext</TOutputName>
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'ReleaseNuget|AnyCPU' ">
-    <UnevaluatedOutputPath>bin\Release\</UnevaluatedOutputPath>
+    <UnevaluatedOutputPath>bin\Debug\</UnevaluatedOutputPath>
     <MOutputName>rpsmain</MOutputName>
     <TOutputName>rpstext</TOutputName>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <OutputPath>bin\AnyCPU\ReleaseNuget\</OutputPath>
+    <OutputPath>bin\Debug\</OutputPath>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="repository.scm" />
   </ItemGroup>
-  <Import Condition="Exists('$(MSBuildExtensionsPath)\Synergex\dbl\Synergex.SynergyDE.Repository.targets')" Project="$(MSBuildExtensionsPath)\Synergex\dbl\Synergex.SynergyDE.Repository.targets" />
-  <Import Condition="!Exists('$(MSBuildExtensionsPath)\Synergex\dbl\Synergex.SynergyDE.Repository.targets')" Project="$(MSBuildProgramFiles32)\MSBuild\Synergex\dbl\Synergex.SynergyDE.Repository.targets" />
+  <Import Project="$(USERPROFILE)\.nuget\packages\synergex.synergyde.build\11.1.1030.2704\build\rps\Synergex.SynergyDE.Build.targets" Condition="Exists('$(USERPROFILE)\.nuget\packages\synergex.synergyde.build\11.1.1030.2704\build\rps\Synergex.SynergyDE.Build.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(USERPROFILE)\.nuget\packages\synergex.synergyde.build\11.1.1030.2704\build\rps\Synergex.SynergyDE.Build.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(USERPROFILE)\.nuget\packages\synergex.synergyde.build\11.1.1030.2704\build\rps\Synergex.SynergyDE.Build.targets'))" />
+  </Target>
   <PropertyGroup>
     <PreBuildEvent>
     </PreBuildEvent>

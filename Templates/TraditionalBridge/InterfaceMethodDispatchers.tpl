@@ -181,7 +181,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
             ;;Argument <COUNTER_1_VALUE> (<PARAMETER_REQUIRED> <PARAMETER_DIRECTION> <PARAMETER_NAME> <IF COLLECTION_ARRAY>[*]</IF COLLECTION_ARRAY><IF COLLECTION_HANDLE>memory handle collection of </IF COLLECTION_HANDLE><IF COLLECTION_ARRAYLIST>ArrayList collection of </IF COLLECTION_ARRAYLIST><IF STRUCTURE>structure </IF STRUCTURE><IF ENUM>enum </IF ENUM><IF STRUCTURE>@<ParameterStructureNoplural><ELSE><PARAMETER_DEFINITION></IF STRUCTURE><IF DATE> <PARAMETER_DATE_FORMAT> date</IF DATE><IF TIME> <PARAMETER_DATE_FORMAT> time</IF TIME><IF REFERENCE> passed by REFERENCE</IF REFERENCE><IF VALUE> passed by VALUE</IF VALUE><IF DATATABLE> returned as DataTable</IF DATATABLE>)
     <IF COLLECTION>
 ;//
-            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[<COUNTER_1_VALUE>], <PARAMETER_SIZE>)
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[<COUNTER_1_VALUE>],<PARAMETER_SIZE>)
             arg<COUNTER_1_VALUE>Array = arguments[<COUNTER_1_VALUE>].GetProperty("PassedValue")
 ;//
         <IF COLLECTION_ARRAY>
@@ -251,6 +251,12 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
         </IF STRUCTURE>
 ;//
     </IF COLLECTION>
+    <ELSE OUT>
+        <IF COLLECTION>
+            <IF COLLECTION_HANDLE>
+            arg<COUNTER_1_VALUE>Handle = %mem_proc(DM_ALLOC,1)
+            </IF COLLECTION_HANDLE>
+        </IF COLLECTION>
     </IF IN_OR_INOUT>
 </PARAMETER_LOOP>
 ;//
@@ -269,7 +275,19 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 <IF FUNCTION>
 
             ;;Function return value
-            serializer.ArgumentData(0, returnValue)
+  <IF ALPHA>
+            serializer.ArgumentData(0,returnValue,FieldDataType.AlphaField,<METHOD_RETURN_SIZE>,0,true)
+  <ELSE DECIMAL>
+            serializer.ArgumentData(0,returnValue,FieldDataType.DecimalField,<METHOD_RETURN_SIZE>,0,false)
+  <ELSE IMPLIED>
+            serializer.ArgumentData(0,returnValue,FieldDataType.ImpliedDecimalField,<METHOD_RETURN_SIZE>,<METHOD_RETURN_PRECISION>,false)
+  <ELSE INTEGER OR HATVAL>
+            serializer.ArgumentData(0,returnValue,FieldDataType.IntegerField,<METHOD_RETURN_SIZE>,0,false)
+  <ELSE STRING>
+            serializer.ArgumentData(0,returnValue,FieldDataType.StringField,<METHOD_RETURN_SIZE>,0,false)
+  <ELSE ENUM>
+            serializer.ArgumentData(0,(int)returnValue,FieldDataType.EnumField,<METHOD_RETURN_SIZE>,0,false)
+  </IF>
 </IF FUNCTION>
 ;//
 ;//Argument processing
@@ -286,101 +304,101 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
     <IF ALPHA>
         <IF COLLECTION>
             <IF COLLECTION_ARRAY>
-			serializer.ArgumentHandleData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>Handle, FieldDataType.AlphaArrayField, <PARAMETER_SIZE>, 0<PARAMETER_PRECISION>, %mem_proc(DM_GETSIZE, arg<COUNTER_1_VALUE>Handle)/<PARAMETER_SIZE>, false)
+			serializer.ArgumentHandleData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>Handle,FieldDataType.AlphaArrayField,<PARAMETER_SIZE>,0<PARAMETER_PRECISION>,%mem_proc(DM_GETSIZE,arg<COUNTER_1_VALUE>Handle)/<PARAMETER_SIZE>,false)
             </IF COLLECTION_ARRAY>
             <IF COLLECTION_ARRAYLIST>
-            serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.AlphaArrayField, <PARAMETER_SIZE>, 0<PARAMETER_PRECISION>, false)
+            serializer.ArgumentData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>,FieldDataType.AlphaArrayField,<PARAMETER_SIZE>,0,false)
             </IF COLLECTION_ARRAYLIST>
             <IF COLLECTION_HANDLE>
-            serializer.ArgumentHandleData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>Handle, FieldDataType.AlphaArrayField, <PARAMETER_SIZE>, 0<PARAMETER_PRECISION>, %mem_proc(DM_GETSIZE, arg<COUNTER_1_VALUE>Handle)/<PARAMETER_SIZE>, false)
+            serializer.ArgumentHandleData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>Handle,FieldDataType.AlphaArrayField,<PARAMETER_SIZE>,0,%mem_proc(DM_GETSIZE,arg<COUNTER_1_VALUE>Handle)/<PARAMETER_SIZE>,false)
             </IF COLLECTION_HANDLE>
         <ELSE>
-            serializer.ArgumentData(<COUNTER_1_VALUE>, %atrim(arg<COUNTER_1_VALUE>), FieldDataType.AlphaField, <PARAMETER_SIZE>, 0<PARAMETER_PRECISION>, false)
+            serializer.ArgumentData(<COUNTER_1_VALUE>,%atrim(arg<COUNTER_1_VALUE>),FieldDataType.AlphaField,<PARAMETER_SIZE>,0,false)
         </IF COLLECTION>
     </IF ALPHA>
 ;//
     <IF DECIMAL>
         <IF COLLECTION>
             <IF COLLECTION_ARRAY>
-            serializer.ArgumentHandleData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>Handle, FieldDataType.DecimalArrayField, <PARAMETER_SIZE>, 0<PARAMETER_PRECISION>, %mem_proc(DM_GETSIZE, arg<COUNTER_1_VALUE>Handle)/<PARAMETER_SIZE>, false)
+            serializer.ArgumentHandleData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>Handle,FieldDataType.DecimalArrayField,<PARAMETER_SIZE>,0,%mem_proc(DM_GETSIZE,arg<COUNTER_1_VALUE>Handle)/<PARAMETER_SIZE>,false)
             </IF COLLECTION_ARRAY>
             <IF COLLECTION_ARRAYLIST>
-            serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.DecimalArrayField, <PARAMETER_SIZE>, 0<PARAMETER_PRECISION>, false)
+            serializer.ArgumentData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>,FieldDataType.DecimalArrayField,<PARAMETER_SIZE>,0,false)
             </IF COLLECTION_ARRAYLIST>
             <IF COLLECTION_HANDLE>
-            serializer.ArgumentHandleData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>Handle, FieldDataType.DecimalArrayField, <PARAMETER_SIZE>, 0<PARAMETER_PRECISION>, %mem_proc(DM_GETSIZE, arg<COUNTER_1_VALUE>Handle)/<PARAMETER_SIZE>, false)
+            serializer.ArgumentHandleData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>Handle,FieldDataType.DecimalArrayField,<PARAMETER_SIZE>,0,%mem_proc(DM_GETSIZE,arg<COUNTER_1_VALUE>Handle)/<PARAMETER_SIZE>,false)
             </IF COLLECTION_HANDLE>
         <ELSE>
-            serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.DecimalField, <PARAMETER_SIZE>, 0<PARAMETER_PRECISION>, false)
+            serializer.ArgumentData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>,FieldDataType.DecimalField,<PARAMETER_SIZE>,0,false)
         </IF COLLECTION>
     </IF DECIMAL>
 ;//
     <IF IMPLIED>
         <IF COLLECTION>
             <IF COLLECTION_ARRAY>
-            serializer.ArgumentHandleData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>Handle, FieldDataType.ImpliedDecimalArrayField, <PARAMETER_SIZE>, 0<PARAMETER_PRECISION>, %mem_proc(DM_GETSIZE, arg<COUNTER_1_VALUE>Handle)/<PARAMETER_SIZE>, false)
+            serializer.ArgumentHandleData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>Handle,FieldDataType.ImpliedDecimalArrayField,<PARAMETER_SIZE>,<PARAMETER_PRECISION>,%mem_proc(DM_GETSIZE,arg<COUNTER_1_VALUE>Handle)/<PARAMETER_SIZE>,false)
             </IF COLLECTION_ARRAY>
             <IF COLLECTION_ARRAYLIST>
-            serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.ImpliedDecimalArrayField, <PARAMETER_SIZE>, 0<PARAMETER_PRECISION>, false)
+            serializer.ArgumentData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>,FieldDataType.ImpliedDecimalArrayField,<PARAMETER_SIZE>,<PARAMETER_PRECISION>,false)
             </IF COLLECTION_ARRAYLIST>
             <IF COLLECTION_HANDLE>
-            serializer.ArgumentHandleData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>Handle, FieldDataType.ImpliedDecimalArrayField, <PARAMETER_SIZE>, 0<PARAMETER_PRECISION>, %mem_proc(DM_GETSIZE, arg<COUNTER_1_VALUE>Handle)/<PARAMETER_SIZE>, false)
+            serializer.ArgumentHandleData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>Handle,FieldDataType.ImpliedDecimalArrayField,<PARAMETER_SIZE>,<PARAMETER_PRECISION>,%mem_proc(DM_GETSIZE,arg<COUNTER_1_VALUE>Handle)/<PARAMETER_SIZE>,false)
             </IF COLLECTION_HANDLE>
         <ELSE>
-            serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.ImpliedDecimalField, <PARAMETER_SIZE>, 0<PARAMETER_PRECISION>, false)
+            serializer.ArgumentData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>,FieldDataType.ImpliedDecimalField,<PARAMETER_SIZE>,<PARAMETER_PRECISION>,false)
         </IF COLLECTION>
     </IF IMPLIED>
 ;//
     <IF INTEGER>
         <IF COLLECTION>
             <IF COLLECTION_ARRAY>
-            serializer.ArgumentHandleData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>Handle, FieldDataType.IntegerArrayField, <PARAMETER_SIZE>, 0<PARAMETER_PRECISION>, %mem_proc(DM_GETSIZE, arg<COUNTER_1_VALUE>Handle)/<PARAMETER_SIZE>, false)
+            serializer.ArgumentHandleData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>Handle,FieldDataType.IntegerArrayField,<PARAMETER_SIZE>,0,%mem_proc(DM_GETSIZE,arg<COUNTER_1_VALUE>Handle)/<PARAMETER_SIZE>,false)
             </IF COLLECTION_ARRAY>
             <IF COLLECTION_ARRAYLIST>
-            serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.IntegerArrayField, <PARAMETER_SIZE>, 0<PARAMETER_PRECISION>, false)
+            serializer.ArgumentData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>,FieldDataType.IntegerArrayField,<PARAMETER_SIZE>,0,false)
             </IF COLLECTION_ARRAYLIST>
             <IF COLLECTION_HANDLE>
-            serializer.ArgumentHandleData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>Handle, FieldDataType.IntegerArrayField, <PARAMETER_SIZE>, 0<PARAMETER_PRECISION>, %mem_proc(DM_GETSIZE, arg<COUNTER_1_VALUE>Handle)/<PARAMETER_SIZE>, false)
+            serializer.ArgumentHandleData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>Handle,FieldDataType.IntegerArrayField,<PARAMETER_SIZE>,0,%mem_proc(DM_GETSIZE,arg<COUNTER_1_VALUE>Handle)/<PARAMETER_SIZE>,false)
             </IF COLLECTION_HANDLE>
         <ELSE>
-            serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.IntegerField, <PARAMETER_SIZE>, 0<PARAMETER_PRECISION>, false)
+            serializer.ArgumentData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>,FieldDataType.IntegerField,<PARAMETER_SIZE>,0,false)
         </IF COLLECTION>
     </IF INTEGER>
 ;//
     <IF ENUM>
             ;TODO: Do we need custom processing for enum fields beyond the integer value?
-            serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.IntegerField)
+            serializer.ArgumentData(<COUNTER_1_VALUE>,(int)arg<COUNTER_1_VALUE>,FieldDataType.IntegerField,<PARAMETER_SIZE>,0,false)
     </IF ENUM>
 ;//
     <IF DATE>
         <IF COLLECTION>
             <IF COLLECTION_ARRAY>
-            serializer.ArgumentHandleData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>Handle, FieldDataType.DecimalArrayField, <PARAMETER_SIZE>, 0<PARAMETER_PRECISION>, %mem_proc(DM_GETSIZE, arg<COUNTER_1_VALUE>Handle)/<PARAMETER_SIZE>, false)
+            serializer.ArgumentHandleData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>Handle,FieldDataType.DecimalArrayField,<PARAMETER_SIZE>,0,%mem_proc(DM_GETSIZE,arg<COUNTER_1_VALUE>Handle)/<PARAMETER_SIZE>,false)
             </IF COLLECTION_ARRAY>
             <IF COLLECTION_ARRAYLIST>
-            serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.DecimalArrayField, <PARAMETER_SIZE>, 0<PARAMETER_PRECISION>, false)
+            serializer.ArgumentData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>,FieldDataType.DecimalArrayField,<PARAMETER_SIZE>,0,false)
             </IF COLLECTION_ARRAYLIST>
             <IF COLLECTION_HANDLE>
-            serializer.ArgumentHandleData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>Handle, FieldDataType.DecimalArrayField, <PARAMETER_SIZE>, 0<PARAMETER_PRECISION>, %mem_proc(DM_GETSIZE, arg<COUNTER_1_VALUE>Handle)/<PARAMETER_SIZE>, false)
+            serializer.ArgumentHandleData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>Handle,FieldDataType.DecimalArrayField,<PARAMETER_SIZE>,0,%mem_proc(DM_GETSIZE,arg<COUNTER_1_VALUE>Handle)/<PARAMETER_SIZE>,false)
             </IF COLLECTION_HANDLE>
         <ELSE>
-            serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.DecimalField, <PARAMETER_SIZE>, 0<PARAMETER_PRECISION>, false)
+            serializer.ArgumentData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>,FieldDataType.DecimalField,<PARAMETER_SIZE>,0,false)
         </IF COLLECTION>
     </IF DATE>
 ;//
     <IF TIME>
         <IF COLLECTION>
             <IF COLLECTION_ARRAY>
-            serializer.ArgumentHandleData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>Handle, FieldDataType.DecimalArrayField, <PARAMETER_SIZE>, 0<PARAMETER_PRECISION>, %mem_proc(DM_GETSIZE, arg<COUNTER_1_VALUE>Handle)/<PARAMETER_SIZE>, false)
+            serializer.ArgumentHandleData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>Handle,FieldDataType.DecimalArrayField,<PARAMETER_SIZE>,0,%mem_proc(DM_GETSIZE,arg<COUNTER_1_VALUE>Handle)/<PARAMETER_SIZE>,false)
             </IF COLLECTION_ARRAY>
             <IF COLLECTION_ARRAYLIST>
-            serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.DecimalArrayField, <PARAMETER_SIZE>, 0<PARAMETER_PRECISION>, false)
+            serializer.ArgumentData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>,FieldDataType.DecimalArrayField,<PARAMETER_SIZE>,0,false)
             </IF COLLECTION_ARRAYLIST>
             <IF COLLECTION_HANDLE>
-            serializer.ArgumentHandleData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>Handle, FieldDataType.DecimalArrayField, <PARAMETER_SIZE>, 0<PARAMETER_PRECISION>, %mem_proc(DM_GETSIZE, arg<COUNTER_1_VALUE>Handle)/<PARAMETER_SIZE>, false)
+            serializer.ArgumentHandleData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>Handle,FieldDataType.DecimalArrayField,<PARAMETER_SIZE>,0,%mem_proc(DM_GETSIZE,arg<COUNTER_1_VALUE>Handle)/<PARAMETER_SIZE>,false)
             </IF COLLECTION_HANDLE>
         <ELSE>
-            serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.DecimalField, <PARAMETER_SIZE>, 0<PARAMETER_PRECISION>, false)
+            serializer.ArgumentData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>,FieldDataType.DecimalField,<PARAMETER_SIZE>,0,false)
         </IF COLLECTION>
     </IF TIME>
 ;//
@@ -395,16 +413,16 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
     <IF STRING>
         <IF COLLECTION>
             <IF COLLECTION_ARRAY>
-            serializer.ArgumentHandleData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>Handle, FieldDataType.StringArrayField, <PARAMETER_SIZE>, 0<PARAMETER_PRECISION>, %mem_proc(DM_GETSIZE, arg<COUNTER_1_VALUE>Handle)/<PARAMETER_SIZE>, false)
+            serializer.ArgumentHandleData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>Handle,FieldDataType.StringArrayField,<PARAMETER_SIZE>,0,%mem_proc(DM_GETSIZE,arg<COUNTER_1_VALUE>Handle)/<PARAMETER_SIZE>,false)
             </IF COLLECTION_ARRAY>
             <IF COLLECTION_ARRAYLIST>
-            serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.StringArrayField, <PARAMETER_SIZE>, 0<PARAMETER_PRECISION>, false)
+            serializer.ArgumentData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>,FieldDataType.StringArrayField,<PARAMETER_SIZE>,0,false)
             </IF COLLECTION_ARRAYLIST>
             <IF COLLECTION_HANDLE>
-            serializer.ArgumentHandleData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>Handle, FieldDataType.StringArrayField, <PARAMETER_SIZE>, 0<PARAMETER_PRECISION>, %mem_proc(DM_GETSIZE, arg<COUNTER_1_VALUE>Handle)/<PARAMETER_SIZE>, false)
+            serializer.ArgumentHandleData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>Handle,FieldDataType.StringArrayField,<PARAMETER_SIZE>,0,%mem_proc(DM_GETSIZE,arg<COUNTER_1_VALUE>Handle)/<PARAMETER_SIZE>,false)
             </IF COLLECTION_HANDLE>
         <ELSE>
-            serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.StringField, <PARAMETER_SIZE>, 0<PARAMETER_PRECISION>, false)
+            serializer.ArgumentData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>,FieldDataType.StringField,<PARAMETER_SIZE>,0,false)
         </IF COLLECTION>
     </IF STRING>
 ;//
@@ -419,19 +437,19 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 ;//Structure array processing
 ;//
         <IF COLLECTION_ARRAY>
-            serializer.ArgumentHandleData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>Handle, FieldDataType.DataObjectCollectionField, <PARAMETER_SIZE>, "<PARAMETER_STRUCTURE>", %mem_proc(DM_GETSIZE, arg<COUNTER_1_VALUE>Handle)/<PARAMETER_SIZE>, false)
+            serializer.ArgumentHandleData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>Handle,FieldDataType.DataObjectCollectionField,<PARAMETER_SIZE>,"<PARAMETER_STRUCTURE>",%mem_proc(DM_GETSIZE,arg<COUNTER_1_VALUE>Handle)/<PARAMETER_SIZE>,false)
         </IF COLLECTION_ARRAY>
 ;//
 ;//Structure memory handle collection processing
 ;//
         <IF COLLECTION_HANDLE>
-            serializer.ArgumentHandleData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>Handle, FieldDataType.DataObjectCollectionField, <PARAMETER_SIZE>, "<PARAMETER_STRUCTURE>", %mem_proc(DM_GETSIZE, arg<COUNTER_1_VALUE>Handle)/<PARAMETER_SIZE>, false)
+            serializer.ArgumentHandleData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>Handle,FieldDataType.DataObjectCollectionField,<PARAMETER_SIZE>,"<PARAMETER_STRUCTURE>",%mem_proc(DM_GETSIZE,arg<COUNTER_1_VALUE>Handle)/<PARAMETER_SIZE>,false)
         </IF COLLECTION_HANDLE>
 ;//
 ;//Structure ArrayList processing
 ;//
         <IF COLLECTION_ARRAYLIST>
-            serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.DataObjectCollectionField, <PARAMETER_SIZE>, "<PARAMETER_STRUCTURE>", false)
+            serializer.ArgumentData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>,FieldDataType.DataObjectCollectionField,<PARAMETER_SIZE>,"<PARAMETER_STRUCTURE>",false)
         </IF COLLECTION_ARRAYLIST>
 ;//
 ;//End of structure collection processing
@@ -441,7 +459,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 ;//Single structure processing
 ;//
             ;;Argument <COUNTER_1_VALUE>: Single <ParameterStructureNoplural> record
-            serializer.ArgumentData(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>, FieldDataType.DataObjectField, <PARAMETER_SIZE>, "<PARAMETER_STRUCTURE>", false)
+            serializer.ArgumentData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>,FieldDataType.DataObjectField,<PARAMETER_SIZE>,"<PARAMETER_STRUCTURE>",false)
         </IF COLLECTION>
 ;//
     </IF STRUCTURE>

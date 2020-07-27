@@ -465,26 +465,38 @@ namespace Json
 			jsonWriter.WriteStartObject()
 			jsonWriter.WriteNumber("Position", argPos)
 			jsonWriter.WriteStartObject("Value")
+			jsonWriter.WriteNumber("DataType", (i)type)
 
-			jsonWriter.WriteNumber("DataType", (i)FieldDataType.DataObjectCollectionField)
-			jsonWriter.WriteString("ElementType", structureName)
-			jsonWriter.WriteBoolean("ElementIsEncoded", binaryData)
-			jsonWriter.WriteStartArray("PassedValue")
-			
-			structureCount = ^size(value) / structureSize
-
-			for i from 0 thru structureCount by 1
+			if(type == FieldDataType.DataObjectField) then
 			begin
-				if(!binaryData) then
-				begin
-					jsonWriter.WriteStringValue(value((i * structureSize) + 1 : structureSize))
-				end
-				else
-				begin
-					jsonWriter.WriteStringValue(Convert.ToBase64String(value((i * structureSize) + 1 : structureSize)))
-				end
+				ObjectData(value, structureName, "", binaryData, "PassedValue")
 			end
-			jsonWriter.WriteEndArray()
+			else if (type == FieldDataType.DataObjectCollectionField) then
+			begin
+				
+				jsonWriter.WriteString("ElementType", structureName)
+				jsonWriter.WriteBoolean("ElementIsEncoded", binaryData)
+
+				jsonWriter.WriteStartArray("PassedValue") 
+				structureCount = ^size(value) / structureSize
+
+				for i from 0 thru structureCount by 1
+				begin
+					if(!binaryData) then
+					begin
+						jsonWriter.WriteStringValue(value((i * structureSize) + 1 : structureSize))
+					end
+					else
+					begin
+						jsonWriter.WriteStringValue(Convert.ToBase64String(value((i * structureSize) + 1 : structureSize)))
+					end
+				end
+				jsonWriter.WriteEndArray()
+				
+			end
+			else
+				throw new Exception("Invalid type for stucture")
+
 			jsonWriter.WriteEndObject()
 			jsonWriter.WriteEndObject()
 		endmethod

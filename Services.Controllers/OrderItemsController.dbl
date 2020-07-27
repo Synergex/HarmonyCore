@@ -10,6 +10,8 @@
 ;; Any changes you make will be lost of the file is re-generated.
 ;;*****************************************************************************
 
+import Microsoft.AspNetCore.Http
+import Microsoft.OData
 import Microsoft.AspNetCore.JsonPatch
 import Microsoft.AspNetCore.Mvc
 import Microsoft.AspNet.OData
@@ -17,16 +19,19 @@ import Microsoft.AspNet.OData.Routing
 import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Infrastructure
 import Microsoft.Extensions.Options
+import System.Collections.Generic
 import System.ComponentModel.DataAnnotations
 import Harmony.Core.EF.Extensions
 import Harmony.Core.Interface
 import Harmony.OData
+import Harmony.AspNetCore
 import Newtonsoft.Json
 import Services.Models
 
 namespace Services.Controllers
 
     {ApiVersion("1")}
+    {ODataRoutePrefix("OrderItems")}
     ;;; <summary>
     ;;; OData controller for OrderItems
     ;;; </summary>
@@ -53,7 +58,9 @@ namespace Services.Controllers
             this._AppSettings = aAppSettings
         endmethod
 
-        {ODataRoute("OrderItems")}
+        {ODataRoute}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(ODataValue<IEnumerable<OrderItem>>),StatusCodes.Status200OK)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get all OrderItems
@@ -64,7 +71,10 @@ namespace Services.Controllers
             mreturn Ok(_DbContext.OrderItems.AsNoTracking())
         endmethod
 
-        {ODataRoute("OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})")}
+        {ODataRoute("(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})")}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(OrderItem),StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get a single OrderItem by primary key.
@@ -81,7 +91,10 @@ namespace Services.Controllers
             mreturn new SingleResult<OrderItem>(_DbContext.OrderItems.AsNoTracking().FindQuery<OrderItem>(_DbContext, aOrderNumber,aItemNumber))
         endmethod
 
-        {ODataRoute("OrderItems(ItemOrdered={aItemOrdered})")}
+        {ODataRoute("(ItemOrdered={aItemOrdered})")}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(ODataValue<IEnumerable<OrderItem>>),StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get orderItems by alternate key key ItemOrdered.
@@ -98,7 +111,10 @@ namespace Services.Controllers
             mreturn Ok(result)
         endmethod
 
-        {ODataRoute("OrderItems(DateShipped={aDateShipped})")}
+        {ODataRoute("(DateShipped={aDateShipped})")}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(ODataValue<IEnumerable<OrderItem>>),StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get orderItems by alternate key key DateShipped.
@@ -115,7 +131,10 @@ namespace Services.Controllers
             mreturn Ok(result)
         endmethod
 
-        {ODataRoute("OrderItems(InvoiceNumber={aInvoiceNumber})")}
+        {ODataRoute("(InvoiceNumber={aInvoiceNumber})")}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(ODataValue<IEnumerable<OrderItem>>),StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get orderItems by alternate key key InvoiceNumber.
@@ -132,114 +151,11 @@ namespace Services.Controllers
             mreturn Ok(result)
         endmethod
 
-
-
-        {ODataRoute("OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})/ItemOrdered")}
-        ;;; <summary>
-        ;;; Get the ItemOrdered property of a single OrderItem, by primary key.
-        ;;; </summary>
-        ;;; <param name="aOrderNumber">Order number</param>
-        ;;; <param name="aItemNumber">Line item number</param>
-        ;;; <returns>
-        ;;; Returns an int containing the value of the requested property.
-        ;;;</returns>
-        public method GetItemOrdered, @IActionResult
-            {FromODataUri}
-            required in aOrderNumber, int
-            {FromODataUri}
-            required in aItemNumber, int
-        proc
-            data result = _DbContext.OrderItems.Find(aOrderNumber,aItemNumber)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.ItemOrdered)
-        endmethod
-
-        {ODataRoute("OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})/QuantityOrdered")}
-        ;;; <summary>
-        ;;; Get the QuantityOrdered property of a single OrderItem, by primary key.
-        ;;; </summary>
-        ;;; <param name="aOrderNumber">Order number</param>
-        ;;; <param name="aItemNumber">Line item number</param>
-        ;;; <returns>
-        ;;; Returns an int containing the value of the requested property.
-        ;;;</returns>
-        public method GetQuantityOrdered, @IActionResult
-            {FromODataUri}
-            required in aOrderNumber, int
-            {FromODataUri}
-            required in aItemNumber, int
-        proc
-            data result = _DbContext.OrderItems.Find(aOrderNumber,aItemNumber)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.QuantityOrdered)
-        endmethod
-
-        {ODataRoute("OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})/UnitPrice")}
-        ;;; <summary>
-        ;;; Get the UnitPrice property of a single OrderItem, by primary key.
-        ;;; </summary>
-        ;;; <param name="aOrderNumber">Order number</param>
-        ;;; <param name="aItemNumber">Line item number</param>
-        ;;; <returns>
-        ;;; Returns a decimal containing the value of the requested property.
-        ;;;</returns>
-        public method GetUnitPrice, @IActionResult
-            {FromODataUri}
-            required in aOrderNumber, int
-            {FromODataUri}
-            required in aItemNumber, int
-        proc
-            data result = _DbContext.OrderItems.Find(aOrderNumber,aItemNumber)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.UnitPrice)
-        endmethod
-
-        {ODataRoute("OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})/DateShipped")}
-        ;;; <summary>
-        ;;; Get the DateShipped property of a single OrderItem, by primary key.
-        ;;; </summary>
-        ;;; <param name="aOrderNumber">Order number</param>
-        ;;; <param name="aItemNumber">Line item number</param>
-        ;;; <returns>
-        ;;; Returns a DateTime containing the value of the requested property.
-        ;;;</returns>
-        public method GetDateShipped, @IActionResult
-            {FromODataUri}
-            required in aOrderNumber, int
-            {FromODataUri}
-            required in aItemNumber, int
-        proc
-            data result = _DbContext.OrderItems.Find(aOrderNumber,aItemNumber)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.DateShipped)
-        endmethod
-
-        {ODataRoute("OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})/InvoiceNumber")}
-        ;;; <summary>
-        ;;; Get the InvoiceNumber property of a single OrderItem, by primary key.
-        ;;; </summary>
-        ;;; <param name="aOrderNumber">Order number</param>
-        ;;; <param name="aItemNumber">Line item number</param>
-        ;;; <returns>
-        ;;; Returns an int containing the value of the requested property.
-        ;;;</returns>
-        public method GetInvoiceNumber, @IActionResult
-            {FromODataUri}
-            required in aOrderNumber, int
-            {FromODataUri}
-            required in aItemNumber, int
-        proc
-            data result = _DbContext.OrderItems.Find(aOrderNumber,aItemNumber)
-            if (result==^null)
-                mreturn NotFound()
-            mreturn OK(result.InvoiceNumber)
-        endmethod
-
-        {ODataRoute("OrderItems")}
+        {ODataRoute}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(OrderItem),StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status400BadRequest)}
+        {HttpPost}
         ;;; <summary>
         ;;; Create a new orderItem (automatically assigned primary key).
         ;;; </summary>
@@ -254,7 +170,7 @@ namespace Services.Controllers
 
             ;; Validate inbound data
             if (!ModelState.IsValid)
-                mreturn BadRequest(ModelState)
+                mreturn ValidationHelper.ReturnValidationError(ModelState)
 
             ;;Get the next available primary key value
             disposable data keyFactory = (@IPrimaryKeyFactory)_ServiceProvider.GetService(^typeof(IPrimaryKeyFactory))
@@ -269,7 +185,7 @@ namespace Services.Controllers
             catch (e, @ValidationException)
             begin
                 ModelState.AddModelError("RelationValidation",e.Message)
-                mreturn BadRequest(ModelState)
+                mreturn ValidationHelper.ReturnValidationError(ModelState)
             end
             endtry
 
@@ -277,10 +193,16 @@ namespace Services.Controllers
 
         endmethod
 
-        {ODataRoute("OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})")}
+        {ODataRoute("(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})")}
+        {Produces("application/json")}
+        {ProducesResponseType(StatusCodes.Status201Created)}
+        {ProducesResponseType(StatusCodes.Status400BadRequest)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
+        {HttpPut}
         ;;; <summary>
         ;;; Create (with a client-supplied primary key) or replace a orderItem.
         ;;; </summary>
+
         ;;; <param name="aOrderNumber">Order number</param>
         ;;; <param name="aItemNumber">Line item number</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
@@ -294,7 +216,7 @@ namespace Services.Controllers
         proc
             ;; Validate inbound data
             if (!ModelState.IsValid)
-                mreturn BadRequest(ModelState)
+                mreturn ValidationHelper.ReturnValidationError(ModelState)
 
             ;;Ensure that the key values in the URI win over any data that may be in the model object
             aOrderItem.OrderNumber = aOrderNumber
@@ -324,13 +246,17 @@ namespace Services.Controllers
             catch (e, @ValidationException)
             begin
                 ModelState.AddModelError("RelationValidation",e.Message)
-                mreturn BadRequest(ModelState)
+                mreturn ValidationHelper.ReturnValidationError(ModelState)
             end
             endtry
 
         endmethod
-
-        {ODataRoute("OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})")}
+        {ODataRoute("(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})")}
+        {Produces("application/json")}
+        {ProducesResponseType(StatusCodes.Status204NoContent)}
+        {ProducesResponseType(StatusCodes.Status400BadRequest)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
+        {HttpPatch}
         ;;; <summary>
         ;;; Patch  (partial update) a orderItem.
         ;;; </summary>
@@ -347,7 +273,7 @@ namespace Services.Controllers
         proc
             ;; Validate inbound data
             if (!ModelState.IsValid)
-                mreturn BadRequest(ModelState)
+                mreturn ValidationHelper.ReturnValidationError(ModelState)
 
             ;;Patch the existing orderItem
             try
@@ -376,15 +302,17 @@ namespace Services.Controllers
             catch (e, @ValidationException)
             begin
                 ModelState.AddModelError("RelationValidation",e.Message)
-                mreturn BadRequest(ModelState)
+                mreturn ValidationHelper.ReturnValidationError(ModelState)
             end
             endtry
 
             mreturn NoContent()
 
         endmethod
-
-        {ODataRoute("OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})")}
+        {ODataRoute("(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})")}
+        {ProducesResponseType(StatusCodes.Status204NoContent)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
+        {HttpDelete}
         ;;; <summary>
         ;;; Delete a orderItem.
         ;;; </summary>
@@ -411,7 +339,6 @@ namespace Services.Controllers
             mreturn NoContent()
 
         endmethod
-
     endclass
 
 endnamespace

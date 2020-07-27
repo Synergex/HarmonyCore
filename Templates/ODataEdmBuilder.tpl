@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME>EdmBuilder.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.4.6</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.5.3</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
@@ -51,10 +51,8 @@ import Harmony.OData
 import Microsoft.EntityFrameworkCore
 import Microsoft.OData.Edm
 import Microsoft.AspNet.OData.Builder
-<IF DEFINED_ENABLE_API_VERSIONING>
 import Microsoft.AspNetCore.Mvc
 import Microsoft.AspNetCore.Mvc.Versioning.Conventions
-</IF DEFINED_ENABLE_API_VERSIONING>
 import System.Collections.Generic
 import <MODELS_NAMESPACE>
 
@@ -65,7 +63,6 @@ namespace <NAMESPACE>
     ;;; </summary>
     public partial class EdmBuilder implements IEdmBuilder
 
-<IF DEFINED_ENABLE_API_VERSIONING>
         static method EdmBuilder
         proc
             CustomStaticEdmInit()
@@ -74,7 +71,6 @@ namespace <NAMESPACE>
                 mEdmVersions.Add(1)
         endmethod
 
-</IF DEFINED_ENABLE_API_VERSIONING>
         public method EdmBuilder
             serviceProvider, @IServiceProvider
         proc
@@ -89,12 +85,9 @@ namespace <NAMESPACE>
         endmethod
 
         private mServiceProvider, @IServiceProvider
-        private static mEdmModel<IF DEFINED_ENABLE_API_VERSIONING>s, @Dictionary<int, IEdmModel>, new Dictionary<int, IEdmModel>()<ELSE>, @IEdmModel</IF DEFINED_ENABLE_API_VERSIONING>
-<IF DEFINED_ENABLE_API_VERSIONING>
+        private static mEdmModels, @Dictionary<int, IEdmModel>, new Dictionary<int, IEdmModel>()
         private static mEdmVersions, @List<int>, new List<int>()
-</IF DEFINED_ENABLE_API_VERSIONING>
 
-<IF DEFINED_ENABLE_API_VERSIONING>
         public static method GetEdmModel, @IEdmModel
             required in serviceProvider, @IServiceProvider
             required in versionNumber, int
@@ -128,15 +121,6 @@ namespace <NAMESPACE>
         private static partial method CustomStaticEdmInit, void
         
         endmethod
-<ELSE>
-        public static method GetEdmModel, @IEdmModel
-            required in serviceProvider, @IServiceProvider
-        proc
-            if(mEdmModel == ^null)
-                mEdmModel = GetEdmModel(new ODataConventionModelBuilder(serviceProvider), serviceProvider)
-            mreturn mEdmModel
-        endmethod
-</IF DEFINED_ENABLE_API_VERSIONING>
 
         ;;; <summary>
         ;;; Gets the entity data model.
@@ -187,19 +171,19 @@ namespace <NAMESPACE>
 <STRUCTURE_LOOP>
   <COUNTER_1_RESET>
   <IF STRUCTURE_ISAM>
-    <ALTERNATE_KEY_LOOP>
+    <ALTERNATE_KEY_LOOP_UNIQUE>
       <SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><COUNTER_1_INCREMENT></IF SEG_TAG_EQUAL></SEGMENT_LOOP>
-    </ALTERNATE_KEY_LOOP>
+    </ALTERNATE_KEY_LOOP_UNIQUE>
   </IF STRUCTURE_ISAM>
 
             data <structureNoplural>Type = (@EdmEntityType)tempModel.FindDeclaredType("<MODELS_NAMESPACE>.<StructureNoplural>")
   <IF STRUCTURE_ISAM>
-    <ALTERNATE_KEY_LOOP>
+    <ALTERNATE_KEY_LOOP_UNIQUE>
       <IF NOT_COUNTER_1>
       <ELSE>
             tempModel.AddAlternateKeyAnnotation(<structureNoplural>Type, new Dictionary<string, IEdmProperty>() {<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE>{"<FieldSqlName>",<structureNoplural>Type.FindProperty("<FieldSqlName>")}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>})
       </IF NOT_COUNTER_1>
-    </ALTERNATE_KEY_LOOP>
+    </ALTERNATE_KEY_LOOP_UNIQUE>
   </IF STRUCTURE_ISAM>
 </STRUCTURE_LOOP>
 

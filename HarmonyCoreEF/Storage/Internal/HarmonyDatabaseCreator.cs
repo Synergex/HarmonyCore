@@ -56,5 +56,15 @@ namespace Harmony.Core.EF.Storage.Internal
         /// </summary>
         public virtual Task<bool> EnsureCreatedAsync(CancellationToken cancellationToken = default)
             => Task.FromResult(_database.EnsureDatabaseCreated(_stateManagerDependencies));
+
+        public bool CanConnect()
+        {
+            return true;
+        }
+
+        public Task<bool> CanConnectAsync(CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(CanConnect());
+        }
     }
 }

@@ -5,29 +5,32 @@ import TraditionalBridge.Test.Models
 
 namespace TraditionalBridge.Test.Methods
 
-	public class arbitrario
-		public method MethodWithParameters, int
-			required in intValue, int
-			required in stringValue, @string
-			required in stringArray, [#]@string
-			required out intArrayList, @ArrayList
-			required inout stringArrayList, @ArrayList
-			endparams
-			record
-				stringElement, @string
-		proc
-			Logger.Instance.Log("intValue was " + %string(intValue))
-			if(intValue == -1)
-				throw new Exception("intValue cannot be -1")
+    public class arbitrario
+        public method MethodWithParameters, int
+            required in intValue, int
+            required in stringValue, @string
+            required in stringArray, [#]@string
+            required out intArrayList, @ArrayList
+            required inout stringArrayList, @ArrayList
+            endparams
+            record
+                stringElement, @string
+        proc
+            ;;test that we can recover from total runtime failure
+            if(stringValue == "STOP NOW!!!")
+                STOP
 
-			intArrayList = new ArrayList()
-			intArrayList.Add((@int)intValue)
+            Logger.Instance.Log("intValue was " + %string(intValue))
+            if(intValue == -1)
+                throw new Exception("intValue cannot be -1")
 
-			foreach stringElement in stringArray
-				stringArrayList.Add(stringElement)
- 
+            intArrayList = new ArrayList()
+            intArrayList.Add((@int)intValue)
 
-			mreturn stringArrayList.Count + intValue
+            foreach stringElement in stringArray
+                stringArrayList.Add(stringElement)
+
+            mreturn stringArrayList.Count + intValue
         endmethod
 
         public method MethodWithStructures, int
@@ -62,7 +65,7 @@ namespace TraditionalBridge.Test.Methods
             for i from 1 thru customerArray.Length by 1
             begin
                 if(customerArray[i].Name != customerSynergyArray[i].name || customerArray[i].Name != customerStrSynergyArray[i].name)
-                    throw new Exception("Object array and structure array failed to match " + customerArray[i].Name + ", " + customerSynergyArray[i].name + ", " + customerStrSynergyArray[i].name)
+                    throw new Exception("Object array and structure array failed to match " + %atrim(customerArray[i].Name) + ", " + %atrim(customerSynergyArray[i].name) + ", " + %atrim(customerStrSynergyArray[i].name))
             end
 
             for i from 1 thru customerArrayList.Count by 1
@@ -77,22 +80,22 @@ namespace TraditionalBridge.Test.Methods
             mreturn customerArrayList.Count
         endmethod
 
-	endclass
+    endclass
 
 endnamespace
 
 subroutine arbitrary_optional
-	required in arg1, i
-	optional in arg2, a
-	optional out arg3, a
-	optional inout arg4, d
+    required in arg1, i
+    optional in arg2, a
+    optional out arg3, a
+    optional inout arg4, d
 proc
-	if(^passed(arg2) && ^passed(arg3))
-		arg3 = arg2
+    if(^passed(arg2) && ^passed(arg3))
+        arg3 = arg2
 
-	if(^passed(arg4))
-		arg4 = arg1 * arg4
-	
-	xreturn
+    if(^passed(arg4))
+        arg4 = arg1 * arg4
+    
+    xreturn
 endsubroutine
 

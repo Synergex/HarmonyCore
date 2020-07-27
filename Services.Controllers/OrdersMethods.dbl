@@ -138,8 +138,7 @@ namespace Services.Controllers
 		proc
 			data intArray = new int[#] {5, 4, 3, 2, 1 }
 			data resultTpl = await CallMethod("Arbitrario.MethodWithParameters", 5, "hello", new string[#] { "this", "is", "strings" }, (@object)intArray, new string[0])
-			data returnToken = ((@JToken)resultTpl.Item1)
-			mreturn new ArbitrarioReturnType() { ReturnCode = returnToken.ToObject<int>(), IntList = ((@IEnumerable<int>)resultTpl.Item2[4]).ToList(), StringList = ((@IEnumerable<string>)resultTpl.Item2[5]).ToList() }
+			mreturn new ArbitrarioReturnType() { ReturnCode = ArgumentHelper.Argument<int>(0, resultTpl), IntList = ArgumentHelper.Argument<List<int>>(4, resultTpl), StringList = ArgumentHelper.Argument<List<string>>(5, resultTpl) }
         endmethod
 
         public async method Arbitrario_MethodWithParameters2, @Task<ArbitrarioReturnType>
@@ -149,8 +148,7 @@ namespace Services.Controllers
             aIntArray, [#]int
         proc
             data resultTpl = await CallMethod("Arbitrario.MethodWithParameters", aNumber, aString, aStringArray, aIntArray, new string[0])
-            data returnToken = ((@JToken)resultTpl.Item1)
-            mreturn new ArbitrarioReturnType() { ReturnCode = returnToken.ToObject<int>(), IntList = ((@IEnumerable<int>)resultTpl.Item2[4]).ToList(), StringList = ((@IEnumerable<string>)resultTpl.Item2[5]).ToList() }
+            mreturn new ArbitrarioReturnType() { ReturnCode = ArgumentHelper.Argument<int>(0, resultTpl), IntList = ArgumentHelper.Argument<List<int>>(4, resultTpl), StringList = ArgumentHelper.Argument<List<string>>(5, resultTpl) }
         endmethod
 
         public async method Arbitrario_Optional, @Task<ArbitrarioOptionalReturnType>

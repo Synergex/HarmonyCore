@@ -1003,27 +1003,35 @@ namespace Json
 			Pair("Position", argPos)
 			String("Value")
 			MapOpen()
-			
-			Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
-			Pair("ElementType", structureName)
-			PairBool("ElementIsEncoded", binaryData)
-			String("PassedValue")
-			ArrayOpen()
-			
-			structureCount = ^size(value) / structureSize
-
-			for i from 0 thru structureCount by 1
+			Pair("DataType", (i)type)
+			if(type == FieldDataType.DataObjectField) then
 			begin
-				if(!binaryData) then
-				begin
-					String(value((i * structureSize) + 1 : structureSize))
-				end
-				else
-				begin
-					String(Convert.ToBase64String(value((i * structureSize) + 1 : structureSize)))
-				end
+				ObjectData(value, structureName, "", binaryData, "PassedValue")
 			end
-			ArrayClose()
+			else if(type == FieldDataType.DataObjectCollectionField) then
+			begin
+				Pair("ElementType", structureName)
+				PairBool("ElementIsEncoded", binaryData)
+				String("PassedValue")
+				ArrayOpen()
+			
+				structureCount = ^size(value) / structureSize
+
+				for i from 0 thru structureCount by 1
+				begin
+					if(!binaryData) then
+					begin
+						String(value((i * structureSize) + 1 : structureSize))
+					end
+					else
+					begin
+						String(Convert.ToBase64String(value((i * structureSize) + 1 : structureSize)))
+					end
+				end
+				ArrayClose()
+			end
+			else
+				throw new Exception("Invalid type for stucture")
 			MapClose()
 			MapClose()
 		endmethod

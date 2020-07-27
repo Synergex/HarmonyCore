@@ -1,6 +1,7 @@
 <CODEGEN_FILENAME><INTERFACE_NAME>Controller.dbl</CODEGEN_FILENAME>
 <REQUIRES_CODEGEN_VERSION>5.4.6</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
+<REQUIRES_USERTOKEN>DTOS_NAMESPACE</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
 ;// Title:       InterfaceController.tpl
@@ -62,7 +63,6 @@ import System.Text
 import System.Threading.Tasks
 
 import <NAMESPACE>
-import <MODELS_NAMESPACE>
 
 namespace <NAMESPACE>
 
@@ -74,7 +74,7 @@ namespace <NAMESPACE>
 
         ;;Services provided via dependency injection
         private _<INTERFACE_NAME>Service, @<INTERFACE_NAME>Service
-        private _AppSettings, @IOptions<AppSettings>
+        private _AppSettings, @IOptions<<MODELS_NAMESPACE>.AppSettings>
 
         ;;; <summary>
         ;;; Constructor
@@ -83,7 +83,7 @@ namespace <NAMESPACE>
         ;;; <param name="aAppSettings">Application settings</param>
         public method <INTERFACE_NAME>Controller
             a<INTERFACE_NAME>Service, @<INTERFACE_NAME>Service
-			aAppSettings, @IOptions<AppSettings>
+			aAppSettings, @IOptions<<MODELS_NAMESPACE>.AppSettings>
         proc
             _<INTERFACE_NAME>Service = a<INTERFACE_NAME>Service
             _AppSettings = aAppSettings
@@ -95,10 +95,10 @@ namespace <NAMESPACE>
         ;;; 
         ;;; </summary>
         ;;; <returns></returns>
-        public async method <IF IN_OR_INOUT>Post<ELSE>Get</IF IN_OR_INOUT>_<METHOD_NAME>, <IF RETURNS_DATA>@Task<ActionResult<<METHOD_NAME>_Response>><ELSE>@Task<IActionResult></IF RETURNS_DATA>
+        public async method <IF IN_OR_INOUT>Post<ELSE>Get</IF IN_OR_INOUT>_<METHOD_NAME>, <IF RETURNS_DATA>@Task<ActionResult<<DTOS_NAMESPACE>.<METHOD_NAME>_Response>><ELSE>@Task<IActionResult></IF RETURNS_DATA>
   <IF IN_OR_INOUT>
             {FromBody}
-            required in aRequest, @<METHOD_NAME>_Request
+            required in aRequest, @<DTOS_NAMESPACE>.<METHOD_NAME>_Request
   </IF IN_OR_INOUT>
         proc
   <IF IN_OR_INOUT>

@@ -1,5 +1,5 @@
 ﻿using Harmony.Core.Context;
-using Harmony.Core.EF.Storage.Internal;
+using Harmony.Core.EF.Storage;
 using Harmony.Core.Interface;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;

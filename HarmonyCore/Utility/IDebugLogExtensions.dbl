@@ -4,6 +4,7 @@ import System.Text
 import Harmony.Core.Interface
 import Renci.SshNet
 import Newtonsoft.Json
+import System.Diagnostics
 
 
 namespace Harmony.Core.Utility
@@ -34,7 +35,12 @@ namespace Harmony.Core.Utility
 			arguments, [#]@object
 		proc
 			if((int)debugLog.Level <= (int)LogLevel.Trace)
-			debugLog.LogMessage(LogLevel.Trace, LogType.File | LogType.DebugView | LogType.Console, formatString, arguments)
+			begin
+.ifdef DEBUG
+				Trace.WriteLine(string.Format(formatString, arguments))
+.endc
+				debugLog.LogMessage(LogLevel.Trace, LogType.File | LogType.DebugView | LogType.Console, formatString, arguments)
+			end
 		endmethod
 
 		public static extension method LogTrace, void
@@ -42,7 +48,12 @@ namespace Harmony.Core.Utility
 			message, @string
 		proc
 			if((int)debugLog.Level <= (int)LogLevel.Trace)
-			debugLog.LogMessage(LogLevel.Trace, LogType.File | LogType.DebugView | LogType.Console, message)
+			begin
+.ifdef DEBUG
+				Trace.WriteLine(string.Format(message))
+.endc
+				debugLog.LogMessage(LogLevel.Trace, LogType.File | LogType.DebugView | LogType.Console, message)
+			end
 		endmethod
 
 		public static extension method LogDebug, void

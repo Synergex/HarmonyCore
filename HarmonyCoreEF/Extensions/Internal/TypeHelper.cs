@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 namespace Harmony.Core.EF.Extensions.Internal
 {
@@ -137,24 +138,6 @@ namespace Harmony.Core.EF.Extensions.Internal
                 if (type.IsGenericType)
                 {
                     return !type.IsGenericTypeDefinition;
-                }
-                return true;
-            }
-            return false;
-        }
-
-        public static bool IsGrouping(this Type type)
-        {
-            return TypeHelper.IsGrouping(type.GetTypeInfo());
-        }
-
-        private static bool IsGrouping(TypeInfo type)
-        {
-            if (type.IsGenericType)
-            {
-                if (!(type.GetGenericTypeDefinition() == typeof(IGrouping<,>)))
-                {
-                    return type.GetGenericTypeDefinition() == typeof(IAsyncGrouping<,>);
                 }
                 return true;
             }
@@ -364,6 +347,34 @@ namespace Harmony.Core.EF.Extensions.Internal
                         where t != (Type)null
                         select t).Select(IntrospectionExtensions.GetTypeInfo);
             }
+        }
+    }
+
+    internal static class ExpressionExtensions
+    {
+        public static LambdaExpression UnwrapLambdaFromQuote(this Expression expression)
+        {
+            UnaryExpression unaryExpression = expression as UnaryExpression;
+            return (LambdaExpression)((unaryExpression != null && expression.NodeType == ExpressionType.Quote) ? unaryExpression.Operand : expression);
+        }
+
+        public static Expression UnwrapTypeConversion(this Expression expression, out Type convertedType)
+        {
+            convertedType = null;
+            while (true)
+            {
+                UnaryExpression unaryExpression = expression as UnaryExpression;
+                if (unaryExpression == null || unaryExpression.NodeType != ExpressionType.Convert)
+                {
+                    break;
+                }
+                expression = unaryExpression.Operand;
+                if (unaryExpression.Type != typeof(object) && !unaryExpression.Type.IsAssignableFrom(expression.Type))
+                {
+                    convertedType = unaryExpression.Type;
+                }
+            }
+            return expression;
         }
     }
 }

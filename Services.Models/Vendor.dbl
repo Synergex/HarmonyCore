@@ -23,6 +23,7 @@ import Microsoft.Extensions.DependencyInjection
 
 namespace Services.Models
 
+    {Newtonsoft.Json.JsonObject(Newtonsoft.Json.MemberSerialization.OptIn)}
     public partial class Vendor extends DataObjectBase
 
         ;;make the record available and a copy
@@ -70,6 +71,7 @@ namespace Services.Models
         {Key}
         {Required(ErrorMessage="Vendor number is required. ")}
         {Range(1,999999, ErrorMessage="Vendor number must be between 1 and 999999. ")}
+        {Newtonsoft.Json.JsonProperty}
         public property VendorNumber, int
             method get
             proc
@@ -86,6 +88,7 @@ namespace Services.Models
         ;;; </summary>
         {Required(ErrorMessage="Vendor name is required. ")}
         {StringLength(30, ErrorMessage="Vendor name cannot exceed 30 characters. ")}
+        {Newtonsoft.Json.JsonProperty}
         public property Name, String
             method get
             proc
@@ -101,6 +104,7 @@ namespace Services.Models
         ;;; Street address
         ;;; </summary>
         {StringLength(25, ErrorMessage="Street address cannot exceed 25 characters. ")}
+        {Newtonsoft.Json.JsonProperty}
         public property Street, String
             method get
             proc
@@ -116,6 +120,7 @@ namespace Services.Models
         ;;; City
         ;;; </summary>
         {StringLength(20, ErrorMessage="City cannot exceed 20 characters. ")}
+        {Newtonsoft.Json.JsonProperty}
         public property City, String
             method get
             proc
@@ -131,6 +136,7 @@ namespace Services.Models
         ;;; State
         ;;; </summary>
         {StringLength(2, ErrorMessage="State cannot exceed 2 characters. ")}
+        {Newtonsoft.Json.JsonProperty}
         public property State, String
             method get
             proc
@@ -146,6 +152,7 @@ namespace Services.Models
         ;;; Zip Code
         ;;; </summary>
         {Range(0,99999, ErrorMessage="Zip Code must be between 0 and 99999. ")}
+        {Newtonsoft.Json.JsonProperty}
         public property ZipCode, int
             method get
             proc
@@ -161,6 +168,7 @@ namespace Services.Models
         ;;; Contact name
         ;;; </summary>
         {StringLength(25, ErrorMessage="Contact name cannot exceed 25 characters. ")}
+        {Newtonsoft.Json.JsonProperty}
         public property Contact, String
             method get
             proc
@@ -175,6 +183,7 @@ namespace Services.Models
         ;;; <summary>
         ;;; Phone number
         ;;; </summary>
+        {Newtonsoft.Json.JsonProperty}
         public property Phone, String
             method get
             proc
@@ -189,6 +198,7 @@ namespace Services.Models
         ;;; <summary>
         ;;; Fax number
         ;;; </summary>
+        {Newtonsoft.Json.JsonProperty}
         public property Fax, String
             method get
             proc
@@ -204,6 +214,7 @@ namespace Services.Models
         ;;; Payment terms code
         ;;; </summary>
         {StringLength(2, ErrorMessage="Payment terms code cannot exceed 2 characters. ")}
+        {Newtonsoft.Json.JsonProperty}
         public property PaymentTermsCode, String
             method get
             proc
@@ -278,37 +289,45 @@ namespace Services.Models
             mreturn new Object[10]
         endmethod
 
+.endregion
+
+.region "Relationships to other entities"
+
+        {Newtonsoft.Json.JsonProperty(DefaultValueHandling=DefaultValueHandling.Ignore)}
         ;;; <summary>
-        ;;; Validate data for one-to-one relations
+        ;;; Relationship (Type D)
+        ;;; VENDOR.VENDOR_NUMBER (one) <-> (many) ITEM.VENDOR_NUMBER
+        ;;; </summary>
+        public readwrite property REL_Items, @ICollection<Item>
+
+.endregion
+
+.region "Relation validation"
+
+        ;;; <summary>
+        ;;; Validate data for relations
         ;;; </summary>
         ;;; <param name="type">Validation type (create, update or delete)</param>
         ;;; <param name="sp">Serices provider</param>
         public override method Validate, void
             required in vType, ValidationType
             required in sp, @IServiceProvider
-
-            ;;From key for REL_Items
-            record rel1FromKey
-              vendor_number, d6
-            endrecord
         proc
             ;;No relation validation if the record is being deleted
             if (vType == ValidationType.Delete)
                 mreturn
 
             ;;Get an instance of IDataObjectProvider
-            data doProvider, @IDataObjectProvider, sp.GetService<IDataObjectProvider>()
+            data dataObjectProvider, @IDataObjectProvider, sp.GetService<IDataObjectProvider>()
 
             ;;--------------------------------------------------------------------------------
             ;;Validate data for relation 1 (REL_Items)
 
-            rel1FromKey.vendor_number = mSynergyData.vendor_number
-            disposable data rel1FileIO = doProvider.GetFileIO<Item>()
-            if (rel1FileIO.FindRecord(0,rel1FromKey) != FileAccessResults.Success)
-                throw new ValidationException("Invalid data for relation REL_Items")
+            ;;Validation mode: None
 
-
+            ;;--------------------------------------------------------------------------------
             ;;If we have a ValidateCustom method, call it
+
             ValidateCustom(vType,sp)
 
         endmethod
@@ -318,16 +337,6 @@ namespace Services.Models
             required in vType, ValidationType
             required in sp, @IServiceProvider
         endmethod
-
-.endregion
-
-.region "Relationships to other entities"
-
-        ;;; <summary>
-        ;;; Relationship (Type D)
-        ;;; VENDOR.VENDOR_NUMBER (one) <-> (many) ITEM.VENDOR_NUMBER
-        ;;; </summary>
-        public readwrite property REL_Items, @ICollection<Item>
 
 .endregion
 
@@ -347,9 +356,8 @@ namespace Services.Models
         private _KEY_PAYMENT_TERMS, string, ""
         public readonly property KEY_PAYMENT_TERMS, string, ""
 
-
 .endregion
 
-endclass
+    endclass
 
 endnamespace
