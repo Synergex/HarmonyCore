@@ -230,8 +230,9 @@ namespace Harmony.Core.Context
 			end
 			until(readLine == "READY")
 			
-			
-			data result = new JsonRPC(new HeaderDelimitedMessageHandler(streamWrapper, new JsonMessageFormatter(new UTF8Encoding(false))))
+			data formatter = new JsonMessageFormatter(new UTF8Encoding(false))
+			formatter.JsonSerializer.FloatParseHandling = FloatParseHandling.Decimal
+			data result = new JsonRPC(new HeaderDelimitedMessageHandler(streamWrapper, formatter))
 			if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
             begin
                 result.TraceSource = new TraceSource("Client", SourceLevels.All)
