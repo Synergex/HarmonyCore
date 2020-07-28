@@ -1,0 +1,210 @@
+import System
+import System.Collections.Generic
+import System.Text
+import System.Diagnostics
+import System.Collections.Concurrent
+import System.Threading
+
+
+namespace Harmony.Core.Utility
+
+	public class BlockingObjectPool<T(class)> implements IDisposable
+
+		public virtual method Dispose, void
+			endparams
+		proc
+			throw new System.NotImplementedException()
+		endmethod
+
+
+		private _factory, @Func<IServiceProvider, T> 
+
+		private _enableDebug, boolean
+		private _maxCreated, int
+		private _pruneAbove, int
+		private _madeItems, @List<ItemPlaceHolder>
+		private _availableItems, @BlockingCollection<T>
+		private _waitDuration, TimeSpan
+		public readwrite property Init, @Action<T>  
+		public readwrite property Recycle, @Action<T>  
+		public readwrite property Destroy, @Action<T>  
+
+		private class ItemPlaceHolder
+			public Item, T
+			public AllocatedAt, @StackTrace
+		endclass
+
+		public method BlockingObjectPool
+			factory, @Func<IServiceProvider, T>
+			maxCreated, int
+			pruneAbove, int 
+			waitDuration, TimeSpan
+			default enableDebug, boolean, false
+			endparams
+		proc
+			_enableDebug = enableDebug
+			_maxCreated = maxCreated
+			_pruneAbove = pruneAbove
+			_waitDuration = waitDuration
+			_availableItems = new BlockingCollection<T>()
+			_madeItems = new List<ItemPlaceHolder>()
+		endmethod
+
+		public method Create, T
+			serviceProvider, @IServiceProvider
+			endparams
+		proc
+			data result, @ItemPlaceHolder, ^null
+			data avilableResult, T
+			if (_availableItems.TryTake(avilableResult))
+				mreturn avilableResult
+
+			try
+			begin
+				Monitor.Enter(_madeItems)
+				begin
+					if (_madeItems.Count < _maxCreated)
+					begin
+						result = new ItemPlaceHolder()
+						_madeItems.Add(result)
+					end
+				end
+			end
+			finally
+			begin
+				Monitor.Exit(_madeItems)
+			end
+			endtry
+			if (result != ^null) then
+			begin
+				try
+				begin
+					;; make the item and initial it if possible
+					result.Item = _factory(serviceProvider)
+					if (this.Init != ^null)
+						this.Init(result.Item)
+				end
+				catch (ex, @Exception)
+				begin
+					try
+					begin
+						Monitor.Enter(_madeItems)
+						begin
+							_madeItems.Remove(result)
+						end
+					end
+					finally
+					begin
+						Monitor.Exit(_madeItems)
+					end
+					endtry
+					throw
+				end
+				endtry
+				if (_enableDebug)
+				begin
+					result.AllocatedAt = new StackTrace()
+				end
+				mreturn result.Item
+			end
+			else
+			begin
+				data resultObj, T, ^null
+				if (_waitDuration.Ticks != 0) then
+				begin
+					data tokenSource = new CancellationTokenSource(_waitDuration)
+					resultObj = _availableItems.Take(tokenSource.Token)
+				end
+				else
+				begin
+					resultObj = _availableItems.Take()
+				end
+				if (_enableDebug)
+				begin
+					try
+					begin
+						Monitor.Enter(_madeItems)
+						begin
+							data foundObject = _madeItems.Find(lambda (holder) { holder.Item == resultObj })
+							foundObject.AllocatedAt = new StackTrace()
+						end
+					end
+					finally
+					begin
+						Monitor.Exit(_madeItems)
+					end
+					endtry
+				end
+				mreturn resultObj
+			end
+		endmethod
+		
+		public method Return, boolean
+			obj, T 
+			endparams
+		proc
+			if (_availableItems.Count >= _pruneAbove) then
+			begin
+				try
+				begin
+					try
+					begin
+						Monitor.Enter(_madeItems)
+						begin
+							_madeItems.RemoveAll(lambda (holder) { holder.Item == obj })
+						end
+					end
+					finally
+					begin
+						Monitor.Exit(_madeItems)
+					end
+					endtry
+
+					if (Destroy != ^null)
+						Destroy(obj)
+					;; dispose if possible otherwise remove from _madeItems and let the garbage collector deal with it
+					data disposableObj = ^as(obj, @IDisposable)
+					disposableObj?.Dispose()
+					
+				end
+				catch (ex, @Exception)
+				begin
+					;; nothing left to try here
+					Trace.TraceError(ex.ToString())
+				end
+				endtry
+			end
+			else
+			begin
+				try
+				begin
+					if (Recycle != ^null)
+						Recycle(obj)
+					_availableItems.Add(obj)
+				end
+				catch (ex, @Exception)
+				begin
+					try
+					begin
+						Monitor.Enter(_madeItems)
+						begin
+							_madeItems.RemoveAll(lambda (holder) { holder.Item == obj })
+						end
+					end
+					finally
+					begin
+						Monitor.Exit(_madeItems)
+					end
+					endtry
+
+					data disposableObj = ^as(obj, @IDisposable)
+					disposableObj?.Dispose()
+					Trace.TraceError(ex.ToString())
+				end
+				endtry
+			end
+			mreturn false
+		endmethod
+	endclass
+
+endnamespace
