@@ -17,21 +17,55 @@ namespace TraditionalBridge.TestClient
     {TestClass}
     public class InteropTests
 
+        public method InteropTests
+			endparams
+		proc
+			contextPool = GetContextPool<ExternalCallContext>()
+			data sp = new ServiceCollection().BuildServiceProvider()
+
+			context = contextPool.MakeContext(sp)
+		endmethod
+
+        contextPool, @ExternalContextPool<ExternalCallContext>
+		context, @ExternalCallContext
+        {TestCleanup}
+		public method Cleanup, void
+		proc
+			contextPool.ReturnContext(context)
+			contextPool.TrimPool(0)
+			contextPool.Dispose()
+			contextPool = ^null
+			context = ^null
+		endmethod
+
+
+		private static method findRelativeFolderForAssembly, string
+			folderName, string
+		proc
+			data assemblyLocation = ^typeof(DateTimeTests).Assembly.Location
+			data currentFolder = Path.GetDirectoryName(assemblyLocation)
+			data rootPath = Path.GetPathRoot(currentFolder)
+			while(currentFolder != rootPath)
+			begin
+				if(Directory.Exists(Path.Combine(currentFolder, folderName))) then
+					mreturn Path.Combine(currentFolder, folderName)
+				else
+					currentFolder = Path.GetFullPath(currentFolder + "..\")
+			end
+			mreturn ^null
+		endmethod
+
         private method GetContextPool<T(IContextBase, class)>, @ExternalContextPool<T>
         proc
-            data currentDirectory = Path.GetDirectoryName(^typeof(InteropTests).Assembly.Location)
-            data contextPool = new ExternalContextPool<T>(Environment.GetEnvironmentVariable("SYNERGYDE64") + "dbl\bin\dbs.exe", 'TraditionalBridge.Test.dbr', Path.GetFullPath(Path.Combine(Environment.GetEnvironmentVariable("SolutionDir") ?? "..\..\..\..\", "TestDir")), ^null, 4) 
+			data testDir = findRelativeFolderForAssembly("TestDir")
+            ;data contextPool = new ExternalContextPool<T>(Environment.GetEnvironmentVariable("SYNERGYDE64") + "dbl\bin\dbr.exe", '-dv -rd 5000 TraditionalBridge.Test.dbr', Path.GetFullPath(Path.Combine(Environment.GetEnvironmentVariable("SolutionDir") ?? "..\..\..\..\", "TestDir")), ^null, 4) 
+            data contextPool = new ExternalContextPool<T>(Environment.GetEnvironmentVariable("SYNERGYDE64") + "dbl\bin\dbs.exe", 'TraditionalBridge.Test.dbr', testDir, ^null, 4) 
             mreturn contextPool
         endmethod
 
         {TestMethod}
         public async method function_one_Test, @Task
         proc
-            disposable data contextPool = GetContextPool<ExternalCallContext>()
-            data sp = new ServiceCollection().BuildServiceProvider()
-
-            data context = contextPool.MakeContext(sp)
-
             data return = await context.function_one("This is an alpha string that will likely be truncated", 12345, 9876543, 9876543)
             Assert.AreEqual(return.Item1, "This is an alpha string that will likely be truncated")
             Assert.AreEqual(return.Item2, 12345)
@@ -42,11 +76,6 @@ namespace TraditionalBridge.TestClient
         {TestMethod}
         public async method function_two_Test, @Task
         proc
-            disposable data contextPool = GetContextPool<ExternalCallContext>()
-            data sp = new ServiceCollection().BuildServiceProvider()
-
-            data context = contextPool.MakeContext(sp)
-
             data return = await context.function_two(-1234567891, 333.334, 123456.7891, 1234567.891, 123456789, 0.9988332, 1.2345, 88991010, 654321, 123456789)
             Assert.AreEqual(return.Item1, -1234567891.12)
             Assert.AreEqual(return.Item2, 333.334)
@@ -63,11 +92,6 @@ namespace TraditionalBridge.TestClient
         {TestMethod}
         public async method function_four_Test, @Task
         proc
-            disposable data contextPool = GetContextPool<ExternalCallContext>()
-            data sp = new ServiceCollection().BuildServiceProvider()
-
-            data context = contextPool.MakeContext(sp)
-
             data return = await context.function_four("This;is;number 1", "This;is;number 2", "number 3", "This#is;number 4")
             Assert.AreEqual(return.Item1, "Coming back 1")
             Assert.AreEqual(return.Item2, "Coming back 2")
@@ -78,11 +102,6 @@ namespace TraditionalBridge.TestClient
         {TestMethod}
         public async method function_eight_Test, @Task
         proc
-            disposable data contextPool = GetContextPool<ExternalCallContext>()
-            data sp = new ServiceCollection().BuildServiceProvider()
-
-            data context = contextPool.MakeContext(sp)
-
             data return = await context.function_eight("abcde", 14321, 52345, "opqr", 123.567, new int[#] {1, 22, 333, 4444, 55555}, new string[#] {"abcde", "fghi", "jklmn", "opqr", "stuvw", "xyz"}, new decimal[#] {12.3, 987.65, 123.456, 987.654}, new int[#] {1, 22, 333, 4444, 55555})
             Assert.AreEqual(return.Item1, "aaaaa")
             Assert.AreEqual(return.Item2, 77777)
@@ -98,11 +117,6 @@ namespace TraditionalBridge.TestClient
         {TestMethod}
         public async method function_nine_Test, @Task
         proc
-            disposable data contextPool = GetContextPool<ExternalCallContext>()
-            data sp = new ServiceCollection().BuildServiceProvider()
-
-            data context = contextPool.MakeContext(sp)
-
             data return = await context.function_nine("abcde", "back2")
             Assert.AreEqual(return.Item1, "Return")
             Assert.AreEqual(return.Item2, "back1")
@@ -112,11 +126,6 @@ namespace TraditionalBridge.TestClient
         {TestMethod}
         public async method function_ten_Test, @Task
         proc
-            disposable data contextPool = GetContextPool<ExternalCallContext>()
-            data sp = new ServiceCollection().BuildServiceProvider()
-
-            data context = contextPool.MakeContext(sp)
-
             data return = await context.function_ten("abcde", "54321")
             Assert.AreEqual(return.Item1, 123456789)
             Assert.AreEqual(return.Item2, "abcde")
@@ -126,11 +135,6 @@ namespace TraditionalBridge.TestClient
         {TestMethod}
         public async method get_verno_tst_Test, @Task
         proc
-            disposable data contextPool = GetContextPool<ExternalCallContext>()
-            data sp = new ServiceCollection().BuildServiceProvider()
-
-            data context = contextPool.MakeContext(sp)
-
             data return = await context.get_verno_tst("")
             Assert.IsTrue(return.StartsWith("DBL/MS-WINDOWS Version 11"))
         endmethod
