@@ -35,6 +35,7 @@ namespace Harmony.Core.FileIO.Queryable
 			data caseInsensitive = theOperator == WhereClauseOperator.NoCaseEqualTo || 
 			&	theOperator == WhereClauseOperator.NoCaseNotEqualTo ||
 			&	theOperator == WhereClauseOperator.IsLikeNoCase ||
+			&	theOperator == WhereClauseOperator.StringContainsNoCase ||
 			&	theOperator == WhereClauseOperator.IsInNoCase
 
 			data leftMinSize = Math.Min(fieldDetails2.ElementSize, fieldDetails1.ElementSize)
@@ -225,6 +226,7 @@ namespace Harmony.Core.FileIO.Queryable
 			data caseInsensitive = theOperator == WhereClauseOperator.NoCaseEqualTo || 
 			&	theOperator == WhereClauseOperator.NoCaseNotEqualTo ||
 			&	theOperator == WhereClauseOperator.IsLikeNoCase ||
+			&	theOperator == WhereClauseOperator.StringContainsNoCase ||
 			&	theOperator == WhereClauseOperator.IsInNoCase
 
 			using theOperator select
@@ -491,6 +493,8 @@ namespace Harmony.Core.FileIO.Queryable
 			&	theOperator == WhereClauseOperator.NoCaseNotEqualTo ||
 			&	theOperator == WhereClauseOperator.IsLikeNoCase ||
 			&	theOperator == WhereClauseOperator.IsNotLikeNoCase ||
+			&	theOperator == WhereClauseOperator.StringContainsNoCase ||
+			&	theOperator == WhereClauseOperator.NotStringContainsNoCase ||
 			&	theOperator == WhereClauseOperator.IsInNoCase ||
 			&	theOperator == WhereClauseOperator.StartsWithNoCase ||
 			&	theOperator == WhereClauseOperator.NotStartsWithNoCase
@@ -702,6 +706,33 @@ namespace Harmony.Core.FileIO.Queryable
 
 				mreturn resultWhere
 			end
+			(whereClauseOperator.StringContains, whereClauseOperator.StringContainsNoCase, WhereClauseOperator.NotStringContains, WhereClauseOperator.NotStringContainsNoCase),
+			begin
+				data resultWhere, @Where
+				using fieldDetails.DataType select
+				(FieldDataType.AlphaField),
+				begin
+					data length	,i4	,%trim(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt))
+					if (!length) length = fieldDetails.ElementSize
+
+					if (!caseInsensitive) then
+					begin
+						DebugLogSession.Logging.LogTrace("HARMONY-commandParser::fieldWhereClause: StringContains Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
+						resultWhere = Where.Contains(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), (^m(tmpStructure(1:length), memPnt)))
+					end
+					else
+					begin
+						DebugLogSession.Logging.LogTrace("HARMONY-commandParser::fieldWhereClause: StringContains NoCaseWhere (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
+						resultWhere = NoCaseWhere.Contains(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), (^m(tmpStructure(1:length), memPnt)))
+					end
+				end
+				endusing
+
+				if(theOperator == WhereClauseOperator.NotStringContains || theOperator == WhereClauseOperator.NotStringContainsNoCase)
+					resultWhere = !resultWhere
+
+				mreturn resultWhere
+			end
 			(whereClauseOperator.EndsWith, whereClauseOperator.EndsWithNoCase, WhereClauseOperator.NotEndsWith, WhereClauseOperator.NotEndsWithNoCase),
 			begin
 				data resultWhere, @Where
@@ -819,6 +850,7 @@ namespace Harmony.Core.FileIO.Queryable
 			data caseInsensitive = theOperator == WhereClauseOperator.NoCaseEqualTo || 
 			&	theOperator == WhereClauseOperator.NoCaseNotEqualTo ||
 			&	theOperator == WhereClauseOperator.IsLikeNoCase ||
+			&	theOperator == WhereClauseOperator.StringContainsNoCase ||
 			&	theOperator == WhereClauseOperator.IsInNoCase
 
 			using theOperator select

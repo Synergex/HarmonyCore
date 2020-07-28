@@ -518,6 +518,11 @@ namespace Services.Test.UnitTests
 			data result = response.Content.ReadAsStringAsync().Result
 			response.EnsureSuccessStatusCode()
 			data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
+			data item, @Item
+			foreach item in items.Value
+			begin
+                Assert.IsTrue(item.CommonName.Contains("edge"))
+			end
 		endmethod
 
         ;;------------------------------------------------------------

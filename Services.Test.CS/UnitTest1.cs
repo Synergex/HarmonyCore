@@ -87,6 +87,10 @@ namespace Services.Test.CS
                 {
                     var customers = context.Customers.Where(cust => cust.Name.Contains("Nursery")).ToList();
                     Assert.IsTrue(customers.Count > 0);
+                    foreach (var customer in customers)
+                    {
+                        Assert.IsTrue(customer.Name.Contains("Nursery"));
+                    }
                 }
             }
         }
