@@ -69,6 +69,44 @@ namespace Harmony.Core.Utility
 		endclass
 
 
+
 	endclass
 
+
+	public class ConsoleLogger implements IDebugLogging
+		public method ConsoleLogger
+			level, LogLevel 
+			endparams
+		proc
+			this.Level = level
+		endmethod
+
+		public virtual method LogMessage, void
+			level, LogLevel 
+			logKind, LogType 
+			message, String 
+			endparams
+		proc
+			if((int)level >= (int)this.Level)
+				Console.WriteLine("SessionId '{0}' {1}", DebugLogSession.CurrentSessionId, message)
+		endmethod
+			
+			
+			
+		public virtual method LogMessage, void
+			level, LogLevel 
+			logKind, LogType 
+			formatString, String 
+			{ParamArray}
+			args, [#]@object
+			endparams
+		proc
+			if((int)level >= (int)this.Level)
+				Console.WriteLine("SessionId '{0}' {1}", DebugLogSession.CurrentSessionId, string.Format(formatString, args))
+		endmethod
+			
+
+		public readwrite property Level, LogLevel
+
+	endclass
 endnamespace
