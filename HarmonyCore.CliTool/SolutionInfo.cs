@@ -29,9 +29,8 @@ namespace HarmonyCore.CliTool
                 Console.WriteLine($"Using MSBuild from path: {msbuildDeploymentToUse.MSBuildPath}");
                 Console.WriteLine();
 
-                MSBuildLocator.RegisterMSBuildPath(msbuildDeploymentToUse.MSBuildPath);
-                
-
+                if(!MSBuildLocator.IsRegistered)
+                    MSBuildLocator.RegisterMSBuildPath(msbuildDeploymentToUse.MSBuildPath);
 
                 if (File.Exists(codegenProjectPath))
                 {
