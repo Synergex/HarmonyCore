@@ -64,6 +64,22 @@ namespace Harmony.TraditionalBridge
             MaybeLog(5, "Destroying RoutineDispatcher")
         endmethod
 
+		public virtual method BeforeDispatch, void
+			name, @string
+			callFrame, JSON_ELEMENT
+			serializer, @DispatchSerializer
+        proc
+
+        endmethod
+
+		public virtual method AfterDispatch, void
+			name, @string
+			callFrame, JSON_ELEMENT
+			serializer, @DispatchSerializer
+        proc
+
+        endmethod
+
         ;;; <summary>
         ;;; Deserialize a JSON object to a data object
         ;;; </summary>
@@ -893,7 +909,7 @@ namespace Harmony.TraditionalBridge
                     MaybeLog(5, "Dispatcher: starting callblock processing with ContentLength " + %string(header.length) + " ContentType " + %atrim(header.contentTypeBuffer))
 
                     running = ReadCallBlock(messageReader, serializer, header)
-					Logger.Instance.FinishMemoryLog()
+                    Logger.Instance.FinishMemoryLog()
                 end
                 MaybeLog(1, "Shutting down due to running == false")
             end
@@ -993,7 +1009,7 @@ namespace Harmony.TraditionalBridge
             else
                 requestId = -1
 
-			MaybeLog(5, "Dispatcher: requestid " + %string(requestId))
+            MaybeLog(5, "Dispatcher: requestid " + %string(requestId))
 
             guard = new StopGuard(serializer, requestId)
 
@@ -1153,20 +1169,22 @@ namespace Harmony.TraditionalBridge
             serializer, @DispatchSerializer
             dispatcher, @RoutineDispatcher
             record
-				idElement, JSON_ELEMENT
+                idElement, JSON_ELEMENT
                 idValue, int
                 hasId, boolean
-		proc
-			hasId = callFrame.TryGetProperty("id", idElement)
-			idValue = -1
-			if(hasId)
-			begin
-				idValue = idElement.GetInt32()
+        proc
+            hasId = callFrame.TryGetProperty("id", idElement)
+            idValue = -1
+            if(hasId)
+            begin
+                idValue = idElement.GetInt32()
                 MaybeLog(6, "prolog for id " + %string(idValue))
-			end
-
+            end
+            
             serializer.ReportResponseProlog(hasId, idValue)
+            dispatcher.BeforeDispatch(name, callFrame, serializer)
             DispatchInternal(name, callFrame, serializer, dispatcher)
+            dispatcher.AfterDispatch(name, callFrame, serializer)
             serializer.ReportResponseEpilog()
         endmethod
 

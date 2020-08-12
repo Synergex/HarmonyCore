@@ -16,6 +16,8 @@ import Harmony.Core
 import System.Linq
 import Newtonsoft.Json.Linq
 import Microsoft.AspNet.OData.Routing
+import Microsoft.AspNetCore.Http
+import Microsoft.AspNetCore.Mvc.Infrastructure
 
 namespace Services.Controllers
 
@@ -118,13 +120,40 @@ namespace Services.Controllers
     endclass
 	
 	public class ExternalCallContext extends DynamicCallProvider
-		public method ExternalCallContext
+		private contextAccessor, @IActionContextAccessor
+		
+        public method ExternalCallContext
 			connection, @IDynamicCallConnection
 			endparams
 			parent(connection)
 		proc
 
         endmethod
+
+		public override method InitServices, void
+			sp, @IServiceProvider
+		proc
+            parent.InitServices(sp)
+			contextAccessor = (@IActionContextAccessor)sp.GetService(^typeof(IActionContextAccessor))
+		endmethod
+
+		public override method Recycle, @Task
+		proc
+			contextAccessor = ^null
+			mreturn parent.Recycle()
+		endmethod
+
+		protected internal override method BeforeCall, [#]@Object
+			name, @string
+			args, [#]@Object
+		proc
+			data authedArgs = args
+			Array.Resize(authedArgs, args.Length + 1)
+            ;contextAccessor.ActionContext.HttpContext.User.Identity.Name ??? 
+			authedArgs[args.Length + 1] = "claimed!"
+			mreturn authedArgs
+		endmethod
+
 
 		public async method GetAllCustomers, @Task<List<Customer>>
 		proc
