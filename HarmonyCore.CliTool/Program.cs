@@ -146,9 +146,14 @@ Known structure properties:
 
     class Program
     {
-        public static string BuildPackageVersion = "11.1.1060.2805";
+        public static string CurrentVersionTag = "release-v3.1.11";
+        public static string BuildPackageVersion = "11.1.1050.2769";
         public static string CodeDomProviderVersion = "1.0.7";
-        public static string HCBuildVersion = "3.1.200";
+        public static string HCBuildVersion = "3.1.156";
+        public static List<string> HCRegenRequiredVersions = new List<string>
+        {
+            "3.1.156"
+        };
         public static Dictionary<string, string> LatestNugetReferences = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase)
         {
             {"Harmony.Core", HCBuildVersion},
