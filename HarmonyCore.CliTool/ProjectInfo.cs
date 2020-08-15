@@ -236,7 +236,9 @@ namespace HarmonyCore.CliTool
                 return attribute;
             }
         }
-        
+
+        public static bool _hasAlerted = false;
+
         public void PatchNugetVersions(Dictionary<string, string> packageToVersionMapping)
         {
             var packageReferences = ProjectDoc.GetElementsByTagName("PackageReference").OfType<XmlNode>().ToList();
@@ -250,6 +252,20 @@ namespace HarmonyCore.CliTool
                     var versionValue = versionNode?.InnerText;
                     if (string.IsNullOrWhiteSpace(versionValue) || targetVersion != versionValue)
                     {
+                        if (includeValue.Contains("Harmony.Core"))
+                        {
+                            if (!_hasAlerted && !string.IsNullOrWhiteSpace(versionValue) && !Program.HCRegenRequiredVersions.All((ver) => string.Compare(versionValue, ver) >= 0))
+                            {
+                                _hasAlerted = true;
+                                Console.WriteLine("Upgrading Harmony Core to version {0} from version {1} of packages requires you to regenerate from codegen template. \r\n\r\nPlease type YES to acknowledge and continue package upgrade", versionValue, Program.HCBuildVersion);
+                                if (string.Compare(Console.ReadLine(), "yes", true) != 0)
+                                {
+                                    Console.WriteLine("exiting");
+                                    Environment.Exit(1);
+                                }
+                            }
+                        }
+
                         if (versionNode == null)
                         {
                             versionNode = ProjectDoc.CreateAttribute("Version");
