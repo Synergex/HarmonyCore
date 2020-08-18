@@ -156,7 +156,7 @@ namespace <NAMESPACE>
 .region "Entity Relationships"
 
             <STRUCTURE_LOOP>
-            <IF STRUCTURE_RELATIONS>
+            <IF STRUCTURE_RELATIONS AND HARMONYCORE_RELATIONS_ENABLED>
             ;;--------------------------------------
             ;; Relationships from <STRUCTURE_NOPLURAL>
 

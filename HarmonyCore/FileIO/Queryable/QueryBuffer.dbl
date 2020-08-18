@@ -53,6 +53,7 @@ namespace Harmony.Core.FileIO.Queryable
 		public readwrite property Parameters, @IReadOnlyDictionary<string, Object>
 		public readwrite property Context, @object
 		private DrivingBuffers, @List<QueryBuffer.TypeBuffer>
+		public readwrite property FailedDueToNetwork, boolean, false
 
 		public method GetTop, long?
 			targetBufferIndex, int
@@ -231,6 +232,9 @@ namespace Harmony.Core.FileIO.Queryable
 			data allBuffers, @IEnumerable<QueryBuffer.TypeBuffer>, TypeBuffers
 			if(DrivingBuffers != ^null)
 				allBuffers = allBuffers.Concat(DrivingBuffers)
+
+			if(FailedDueToNetwork)
+				DataObjectProvider.ChannelManager.AbandonOpenChannels()
 
 			foreach buf in allBuffers
 			begin

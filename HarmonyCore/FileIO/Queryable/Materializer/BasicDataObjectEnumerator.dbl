@@ -1,0 +1,183 @@
+import System
+import System.Collections.Generic
+import System.Text
+import Synergex.SynergyDE.Select
+import Newtonsoft.Json
+
+
+namespace Harmony.Core.FileIO.Queryable.Materializer
+
+	public class BasicDataObjectEnumerator implements IEnumerator<DataObjectBase>
+
+		structure memMapper
+			fld,a1
+		endstructure
+
+		innerEnumerator, @AlphaEnumerator
+		stats, @DataObjectMaterializer.MaterializerStats
+		top, Nullable<long>
+		skip, Nullable<long>
+		queryBuffer, @QueryBuffer
+		queryPlan, @PreparedQueryPlan
+		targetTop, long
+		structureSize, int
+		memPnt, int
+		currentCount, long
+		tracker, @Func<DataObjectBase, DataObjectBase>
+		metadataObject, @DataObjectMetadataBase
+		innerCurrent, @DataObjectBase
+		targetCount, long
+		statsReported, boolean
+		selectObject, @Synergex.SynergyDE.Select.Select
+		fromObject, @Synergex.SynergyDE.Select.From
+
+		public method BasicDataObjectEnumerator
+			queryBuffer, @QueryBuffer
+			queryPlan, @PreparedQueryPlan
+			tracker, @Func<DataObjectBase, DataObjectBase>
+		proc
+			this.queryPlan = queryPlan
+			this.metadataObject = queryBuffer.TypeBuffers[0].Metadata
+			this.stats = new DataObjectMaterializer.MaterializerStats()
+			this.top = queryBuffer.GetTop(0)
+			this.skip = queryBuffer.GetSkip(0)
+			this.queryBuffer = queryBuffer
+			this.memPnt = queryBuffer.TypeBuffers[0].MemoryHandle.Value
+			this.structureSize = metadataObject.StructureSize
+			this.tracker = tracker
+			this.currentCount = 0
+			this.targetCount = this.top.HasValue ? this.skip + this.top : 0
+			this.statsReported = false
+			this.fromObject = queryPlan.FromObject(this.queryBuffer, this.queryBuffer.TypeBuffers)
+			this.selectObject = queryPlan.SelectObject(this.fromObject, queryPlan.WhereObject(this.queryBuffer, this.queryBuffer.TypeBuffers), queryPlan.OrderByObject(this.queryBuffer, this.queryBuffer.TypeBuffers), queryPlan.SparseObject(this.queryBuffer, this.queryBuffer.TypeBuffers))
+			this.innerEnumerator = this.selectObject.GetEnumerator()
+		endmethod
+
+		public property Current, @DataObjectBase
+			method get
+			proc
+				mreturn innerCurrent
+			endmethod
+		endproperty
+
+
+		property System.Collections.IEnumerator.Current, @object
+			method get
+			proc
+				mreturn Current
+			endmethod
+		endproperty
+
+		public virtual method Reset, void
+			endparams
+		proc
+			currentCount = 0
+			innerEnumerator.Reset()
+		endmethod
+
+		public virtual method MoveNext, Boolean
+			endparams
+		proc
+			try
+			begin
+				data grfa	,a10
+				while(innerEnumerator.MoveNext())
+				begin
+					incr currentCount
+					if(skip && skip >= currentCount)
+						nextloop
+						
+					if (targetCount && currentCount > targetCount) 
+					begin
+						;;we're done here, report the io stats
+						ReportStats()
+						mreturn false
+					end
+
+					innerEnumerator.CurrentRFA(grfa)
+					stats.IOOPS = innerEnumerator.TotalReadCount
+					incr stats.RecordsReturned
+					innerCurrent = tracker(metadataObject.MakeNew(innerEnumerator.Current, grfa))
+					mreturn true
+				end
+
+				;;fall through if we're done and report the io stats on the way out
+				ReportStats()
+			end
+			catch(netEx, @Synergex.SynergyDE.NetworkException)
+			begin
+				this.queryBuffer.FailedDueToNetwork = true
+				throw new MaterializationException(queryPlan.ToString(), ToString(), "Iterate", netEx)
+			end
+			catch(ex, @Exception)
+			begin
+				throw new MaterializationException(queryPlan.ToString(), ToString(), "Iterate", ex)
+			end
+			endtry
+
+		endmethod
+
+		public override method ToString, @string
+		proc
+			mreturn string.Format("Parameters: {1}{0}Current Buffer: {2}{0}Stats: {3}{0}", Environment.NewLine, 
+			&	JsonConvert.SerializeObject(queryBuffer.Parameters),
+			&	queryBuffer.TypeBuffers[0],
+			&	JsonConvert.SerializeObject(stats))
+		endmethod
+
+		private method ReportStats, void
+		proc
+			if(!statsReported)
+			begin
+				statsReported = true
+				HarmonyFileIOMetricsEventSource.Log.ReportIOOPS(stats.IOOPS)
+				HarmonyFileIOMetricsEventSource.Log.ReportRecordsReturned(stats.RecordsReturned)
+			end
+		endmethod
+
+
+		public virtual method Dispose, void
+			endparams
+		proc
+			this.innerEnumerator?.Dispose()
+			this.queryBuffer?.Dispose()
+			this.queryBuffer = ^null
+			this.innerEnumerator = ^null
+
+			ReportStats()
+		endmethod
+	endclass
+
+	public class BasicDataObjectEnumerable implements IEnumerable<DataObjectBase>, IDisposable
+		innerEnumerator, @BasicDataObjectEnumerator
+		
+		public method BasicDataObjectEnumerable
+			queryBuffer, @QueryBuffer
+			queryPlan, @PreparedQueryPlan
+			tracker, @Func<DataObjectBase, DataObjectBase>
+		proc
+			innerEnumerator = new BasicDataObjectEnumerator(queryBuffer, queryPlan, tracker)
+		endmethod
+
+		public virtual method GetEnumerator, @IEnumerator<DataObjectBase>
+			endparams
+		proc
+			mreturn innerEnumerator
+		endmethod
+
+		public virtual method System.Collections.IEnumerable.GetEnumerator, @System.Collections.IEnumerator
+			endparams
+		proc
+			mreturn innerEnumerator
+		endmethod
+
+		public virtual method Dispose, void
+			endparams
+		proc
+			innerEnumerator?.Dispose()
+			innerEnumerator = ^null
+		endmethod
+	endclass
+
+
+endnamespace
