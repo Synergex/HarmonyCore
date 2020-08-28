@@ -1,26 +1,23 @@
+
+import TraditionalBridge.Test.Models
+
 .include "MYCOLOR" REPOSITORY ,public ENUM
 .include "DAYOFWEEK" REPOSITORY ,public ENUM
-.include "BINARYTEST" REPOSITORY ,structure="Binarytest" ,end
-.include "ENUMSTRUCTURE" REPOSITORY ,structure="Enumstructure" ,end
-.include "FUENTES" REPOSITORY ,structure="Fuentes" ,end
-;.include "STROPTSOUTTER" REPOSITORY ,structure="Stroptsoutter" ,end; 
-.include "V93REPOSOPTS" REPOSITORY ,structure="V93reposopts" ,end
-.include "TIMEKEY" REPOSITORY ,structure="Timekey" ,end
 
 public enum Color	; old #
-  red		,0   	; 1
-  blue		,1	; 2
-  green		,2	; 3
-  yellow	,3	; 4
+  red		    ,0   	; 1
+  blue		    ,1	    ; 2
+  green		    ,2	    ; 3
+  yellow	    ,3	    ; 4
 endenum
 
 public enum DaysOfTheWeek
-    Sunday	,1
-    Monday	,2
-    Tuesday	,3
+    Sunday	    ,1
+    Monday	    ,2
+    Tuesday	    ,3
     Wednesday	,4
     Thursday	,5
-    Friday	,6
+    Friday	    ,6
     Saturday	,7
 endenum
 
@@ -129,8 +126,8 @@ record
 
 {xfMethod(interface="V93IF",name="EnumTest4",elb="TEST:V93ELB",id="EnumTest4")}
 subroutine EnumTest4
-{xfParameter(name="ENUMSTRUCTURE",structure="Enumstructure")}
-req inout   a_enumStr ,Enumstructure        ;;
+{xfParameter(name="ENUMSTRUCTURE",structure="strEnumstructure")}
+req inout   a_enumStr ,strEnumstructure        ;;
 endparams
 ;.subroutine enumtest4
 ;        a_enumStr        ,a
@@ -174,8 +171,8 @@ record EnumTst
 
 {xfMethod(interface="V93IF",name="EnumTest5",elb="TEST:V93ELB",id="EnumTest5")}
 subroutine EnumTest5
-{xfParameter(name="ENUMSTRUCTURE",structure="Enumstructure")}
-req inout   a_strary ,[*]Enumstructure     ;;
+{xfParameter(name="ENUMSTRUCTURE",structure="strEnumstructure")}
+req inout   a_strary ,[*]strEnumstructure     ;;
 endparams
 ;.subroutine enumtest5
 ;        a_strary        ,[*]a
@@ -219,7 +216,7 @@ record EnumTst
 
 {xfMethod(interface="V93IF",name="EnumTest6",elb="TEST:V93ELB",id="EnumTest6")}
 subroutine EnumTest6
-{xfParameter(name="ENUMSTRUCTURE",structure="Enumstructure",collectionType=xfCollectType.structure)}
+{xfParameter(name="ENUMSTRUCTURE",structure="strEnumstructure",collectionType=xfCollectType.structure)}
 req in      a_al ,@System.Collections.ArrayList ;;
 endparams
 ;.subroutine enumtest6
@@ -235,7 +232,7 @@ record
 		m_day	,DaysOfTheWeek
 		abox	,@a
 		arylst	,@System.Collections.ArrayList
-		aRec	,Enumstructure
+		aRec	,strEnumstructure
 
 record EnumTst                                              
   ID     ,D6       ; (1,6) key                                                  
@@ -260,8 +257,8 @@ record EnumTst
 		begin
 	;	    abox = arylst[ndx]
 	;	    EnumTst = (a)abox
-			;;;		EnumTst = (Enumstructure)arylst[ndx]
-			aRec = (Enumstructure)arylst[ndx]
+			;;;		EnumTst = (strEnumstructure)arylst[ndx]
+			aRec = (strEnumstructure)arylst[ndx]
 			EnumTst = aRec
 		    writes(chan, EnumTst)
 		    m_color =  (Color)(%integer(EnumTst.ACOLOR))
@@ -279,7 +276,7 @@ record EnumTst
 
 {xfMethod(interface="V93IF",name="EnumTest7",elb="TEST:V93ELB",id="EnumTest7")}
 subroutine EnumTest7
-{xfParameter(name="ENUMSTRUCTURE",structure="Enumstructure",collectionType=xfCollectType.structure)}
+{xfParameter(name="ENUMSTRUCTURE",structure="strEnumstructure",collectionType=xfCollectType.structure)}
 req out     a_al ,@System.Collections.ArrayList ;;
 endparams
 ;.subroutine enumtest7
@@ -293,7 +290,7 @@ record
 		m_color	,Color
 		m_day	,DaysOfTheWeek
 		abox	,@a
-		aSt1	,Enumstructure
+		aSt1	,strEnumstructure
 		arylst	,@System.Collections.ArrayList
 
 record EnumTst                                              
@@ -395,8 +392,8 @@ record stroptOutter
 
 {xfMethod(interface="V93IF",name="reposoptsv93",elb="TEST:V93ELB",id="ReposOptionsV93")}
 subroutine reposoptsv93
-{xfParameter(name="V93REPOSOPTS",structure="V93reposopts")}
-req inout   a_Str ,V93reposopts          ;;
+{xfParameter(name="V93REPOSOPTS",structure="strV93reposopt")}
+req inout   a_Str ,strV93reposopt          ;;
 endparams
 ;.subroutine reposoptsv93
 ;        a_Str        ,a
@@ -440,7 +437,7 @@ record rsposopts
 
 {xfMethod(interface="V93IF",name="alreposopts",elb="TEST:V93ELB",id="ALReposOpts")}
 subroutine alreposopts
-{xfParameter(name="V93REPOSOPTS",structure="V93reposopts",collectionType=xfCollectType.structure,dataTable=true)}
+{xfParameter(name="V93REPOSOPTS",structure="strV93reposopt",collectionType=xfCollectType.structure,dataTable=true)}
 req out     a_al ,@System.Collections.ArrayList ;;
 endparams
 ;.subroutine alreposopts
@@ -455,7 +452,7 @@ record
 		m_day	,DaysOfTheWeek
 		abox	,@a
 		arylst	,@System.Collections.ArrayList
-		aRec	,@V93reposopts
+		aRec	,@strV93reposopt
 
 record rsposopts
   NEWBOOL  ,Boolean  ; (1,1)
@@ -496,7 +493,7 @@ record rsposopts
 
 {xfMethod(interface="V93IF",name="alreposoptsin",elb="TEST:V93ELB",id="ALReposOptsIn")}
 subroutine alreposoptsin
-{xfParameter(name="V93REPOSOPTS",structure="V93reposopts",collectionType=xfCollectType.structure,dataTable=true)}
+{xfParameter(name="V93REPOSOPTS",structure="strV93reposopt",collectionType=xfCollectType.structure,dataTable=true)}
 req in      a_al ,@System.Collections.ArrayList ;;
 endparams
 ;.subroutine alreposoptsin
@@ -511,7 +508,7 @@ record
 		m_day	,DaysOfTheWeek
 ;		abox	,@a
 		arylst	,@System.Collections.ArrayList
-		aRec	,V93reposopts
+		aRec	,strV93reposopt
 
 record Arsposopts
   NEWBOOL  ,Boolean  ; (1,1)
@@ -530,7 +527,7 @@ record Arsposopts
 	    begin
 ;		abox = arylst[i]
 ;		rsposopts = (a)abox
-		aRec = (V93reposopts)arylst[i]
+		aRec = (strV93reposopt)arylst[i]
 		Arsposopts = aRec
 		writes(chan, Arsposopts)
 		writes(chan, %string(Arsposopts.NEWBOOL))
@@ -545,12 +542,9 @@ record Arsposopts
 
 {xfMethod(interface="V93IF",name="DeFuentes",elb="TEST:V93ELB",id="DoFuentes")}
 subroutine DeFuentes
-{xfParameter(name="FUENTES",structure="Fuentes", length=43)}
-req inout   a_fu     ,Fuentes                ;;
+{xfParameter(name="FUENTES",structure="strFuentes", length=43)}
+req inout   a_fu     ,strFuentes                ;;
 endparams
-;.subroutine DeFuentes
-;       Arguments
-;        a_fu         ,a
 
 .align
 record
@@ -589,7 +583,7 @@ record LaFuentes
 
 subroutine DoFuentesALin
 
-{xfParameter(name="FUENTES",structure="Fuentes",collectionType=xfCollectType.structure)}
+{xfParameter(name="FUENTES",structure="strFuentes",collectionType=xfCollectType.structure)}
 req in      Alin     ,@System.Collections.ArrayList ;;
 
 endparams
@@ -613,7 +607,7 @@ proc
 
 ;	chan = 211
 ;	open(chan, a, "TEST:fuentes.log")
-	LaFuentes = (Fuentes)Alin[1]
+	LaFuentes = (strFuentes)Alin[1]
 ;	writes(chan, LaFuentes)
 ;	writes(chan, "    ")
 ;	close (chan)
@@ -627,7 +621,7 @@ endsubroutine
 
 subroutine DoFuentesALout
 
-{xfParameter(name="FUENTES",structure="Fuentes",collectionType=xfCollectType.structure)}
+{xfParameter(name="FUENTES",structure="strFuentes",collectionType=xfCollectType.structure)}
 req out     Alout     ,@System.Collections.ArrayList ;;
 
 endparams
@@ -638,7 +632,7 @@ record
         ast     ,a25
 		d2	,d2
 		abox	,@a
-		recF	,@Fuentes
+		recF	,@strFuentes
 		arylst	,@System.Collections.ArrayList
 	
 
