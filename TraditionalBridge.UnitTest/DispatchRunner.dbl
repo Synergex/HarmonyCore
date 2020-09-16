@@ -13,22 +13,39 @@ import System.Text.Json
 namespace TraditionalBridge.UnitTest
 
 	public class DispatchRunner
-		public static method RunDispatch, @string
-			inputString, @string
-			record
-				dispatch, @SampleXfplEnvDispatcher
-				outStream, @MockOutputStream
-				messageReader, @MockHeaderDelimitedMessageReader
-		proc
-			if(Logger.Instance == ^null)
-				Logger.Instance = new TraditionalBridge.Logger("fred.log", 6, false)
+        public static method RunDispatch, @string
+            inputString, @string
+            record
+                dispatch, @SampleXfplEnvDispatcher
+                outStream, @MockOutputStream
+                messageReader, @MockHeaderDelimitedMessageReader
+        proc
+            if(Logger.Instance == ^null)
+                Logger.Instance = new TraditionalBridge.Logger("fred.log", 6, false)
 
-			dispatch = new SampleXfplEnvDispatcher()
-			messageReader = new MockHeaderDelimitedMessageReader(inputString)
-			outStream = new MockOutputStream()
-			dispatch.Dispatch(messageReader, new DispatchSerializer(outStream))
-			mreturn outStream.FlushedData
-		endmethod
+            dispatch = new SampleXfplEnvDispatcher()
+            messageReader = new MockHeaderDelimitedMessageReader(inputString)
+            outStream = new MockOutputStream()
+            dispatch.Dispatch(messageReader, new DispatchSerializer(outStream))
+            mreturn outStream.FlushedData
+        endmethod
+
+        public static method RunDispatchAutoTime, @string
+            inputString, @string
+            record
+                dispatch, @AutoTimeDispatcher
+                outStream, @MockOutputStream
+                messageReader, @MockHeaderDelimitedMessageReader
+        proc
+            if(Logger.Instance == ^null)
+                Logger.Instance = new TraditionalBridge.Logger("fred.log", 6, false)
+
+            dispatch = new AutoTimeDispatcher()
+            messageReader = new MockHeaderDelimitedMessageReader(inputString)
+            outStream = new MockOutputStream()
+            dispatch.Dispatch(messageReader, new DispatchSerializer(outStream))
+            mreturn outStream.FlushedData
+        endmethod
 
 		public static method DecodeResult, void
 			in inputString, @string
