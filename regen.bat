@@ -24,7 +24,7 @@ set ControllersProject=Services.Controllers
 set HostProject=Services.Host
 set TestProject=Services.Test
 set TraditionalBridgeProject=TraditionalBridge
-
+set RepositoryProject=HarmonyCore.Test.Repository\HarmonyCore.Test.Repository.synproj
 rem ================================================================================================================================
 rem Specify the names of the repository structures to generate code from:
 
