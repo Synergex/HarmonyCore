@@ -20,9 +20,13 @@ namespace TraditionalBridge.Test
 		;;; Initialize all data object metadata
 		;;; <summary>
 		private method initMetaData, void
+		record
+			dataObj, @DataObjectMetadataBase
 		proc
-			DataObjectMetadataBase.LookupType("Datetimestr")
-			DataObjectMetadataBase.LookupType("Userdate")
+			xcall MetaDatetimestr(dataObj)
+			DataObjectMetadataBase.ForceLookupType("Datetimestr", dataObj)
+			xcall MetaUserdate(dataObj)
+			DataObjectMetadataBase.ForceLookupType("Userdate", dataObj)
 		endmethod
 
 	endclass

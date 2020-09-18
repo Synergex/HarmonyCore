@@ -98,7 +98,9 @@ proc
     &    .UseIISIntegration()
 </IF DEFINED_ENABLE_IIS_SUPPORT>
     &    .UseStartup<Startup>()
+<IF NOT DEFINED_DISABLE_USEURLS>
     &    .UseUrls("http://<SERVER_NAME>:<SERVER_HTTP_PORT>", "https://<SERVER_NAME>:<SERVER_HTTPS_PORT>")
+</IF>
     &    .Build()
     &    .Run()
 

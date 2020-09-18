@@ -1,13 +1,12 @@
-<CODEGEN_FILENAME><SMC_INTERFACE>DispatcherCustom.dbl</CODEGEN_FILENAME>
-<REQUIRES_USERTOKEN>SMC_INTERFACE</REQUIRES_USERTOKEN>
+<CODEGEN_FILENAME>MetadataInit.dbl</CODEGEN_FILENAME>
 <REQUIRES_CODEGEN_VERSION>5.4.6</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
-;// Title:       DispatcherData.tpl
+;// Title:       DataObjectMetaData.tpl
 ;//
 ;// Type:        CodeGen Template
 ;//
-;// Description: Creates a class that initializes all data object metadata
+;// Description: Template to define meta data associated with a data object
 ;//
 ;// Copyright (c) 2018, Synergex International, Inc. All rights reserved.
 ;//
@@ -35,9 +34,9 @@
 ;//
 ;;*****************************************************************************
 ;;
-;; Title:       <SMC_INTERFACE>DispatcherData.dbl
+;; Title:       MetaDataInit.dbl
 ;;
-;; Description: Initializes all data object metadata
+;; Description: Defines init routine to set up metadata objects.
 ;;
 ;;*****************************************************************************
 ;; WARNING: GENERATED CODE!
@@ -47,23 +46,13 @@
 
 import Harmony.TraditionalBridge
 
-namespace <NAMESPACE>
+subroutine MetaDataInit
+record
+	dataObj, @DataObjectMetadataBase
+proc
 
-	public partial class <SMC_INTERFACE>Dispatcher
-
-		;;; <summary>
-		;;; Initialize all data object metadata
-		;;; <summary>
-		private method initMetaData, void
-		record
-			dataObj, @DataObjectMetadataBase
-		proc
-			<STRUCTURE_LOOP>
-			xcall Meta<StructureNoplural>(dataObj)
-			DataObjectMetadataBase.ForceLookupType("<StructureNoplural>", dataObj)
-			</STRUCTURE_LOOP>		
-		endmethod
-
-	endclass
-
-endnamespace
+<STRUCTURE_LOOP>
+	xcall Meta<StructureNoplural>(dataObj)
+	DataObjectMetadataBase.ForceLookupType("<StructureNoplural>", dataObj)
+</STRUCTURE_LOOP>
+endsubroutine

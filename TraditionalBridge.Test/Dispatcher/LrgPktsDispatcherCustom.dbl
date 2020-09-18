@@ -20,10 +20,15 @@ namespace TraditionalBridge.Test
 		;;; Initialize all data object metadata
 		;;; <summary>
 		private method initMetaData, void
+		record
+			dataObj, @DataObjectMetadataBase
 		proc
-			DataObjectMetadataBase.LookupType("Addres")
-			DataObjectMetadataBase.LookupType("Dataset")
-			DataObjectMetadataBase.LookupType("Perfstruct")
+			xcall MetaAddres(dataObj)
+			DataObjectMetadataBase.ForceLookupType("Addres", dataObj)
+			;xcall MetaDataset(dataObj)
+			;DataObjectMetadataBase.ForceLookupType("Dataset", dataObj)
+			xcall MetaPerfstruct(dataObj)
+			DataObjectMetadataBase.ForceLookupType("Perfstruct", dataObj)
 		endmethod
 
 	endclass
