@@ -1145,5 +1145,84 @@ namespace TraditionalBridge.UnitTest
         endmethod
 .endregion
 
+.region "Pool"
+        {TestCategory("Pool")}
+        {TestMethod}
+        public method getGreeting, void
+            endparams
+            record
+                dispatchResult, @string
+        proc
+            dispatchResult = DispatchRunner.RemoveMessageHeader(DispatchRunner.RunDispatchPool1('{"jsonrpc":"2.0","id":103,"method":"getGreeting","params":[{"ReturnedValue":false},{"PassedValue":"hello","DataType":1}]}'))
+            DispatchRunner.EnsureSuccess(dispatchResult)
+        endmethod
+        
+        {TestCategory("Pool")}
+        {TestMethod}
+        public method setGreeting, void
+            endparams
+            record
+                dispatchResult, @string
+        proc
+            dispatchResult = DispatchRunner.RemoveMessageHeader(DispatchRunner.RunDispatchPool1('{"jsonrpc":"2.0","id":104,"method":"setGreeting","params":[{"ReturnedValue":false},{"PassedValue":"hello","DataType":1}]}'))
+            DispatchRunner.EnsureSuccess(dispatchResult)
+        endmethod
+
+        {TestCategory("Pool")}
+        {TestMethod}
+        public method Initialize, void
+            endparams
+            record
+                dispatchResult, @string
+        proc
+            dispatchResult = DispatchRunner.RemoveMessageHeader(DispatchRunner.RunDispatchPool2('{"jsonrpc":"2.0","id":104,"method":"Initialize","params":[{"ReturnedValue":false}]}'))
+            DispatchRunner.EnsureSuccess(dispatchResult)
+        endmethod
+
+        {TestCategory("Pool")}
+        {TestMethod}
+        public method Cleanup, void
+            endparams
+            record
+                dispatchResult, @string
+        proc
+            dispatchResult = DispatchRunner.RemoveMessageHeader(DispatchRunner.RunDispatchPool2('{"jsonrpc":"2.0","id":105,"method":"Cleanup","params":[{"ReturnedValue":false}]}'))
+            DispatchRunner.EnsureSuccess(dispatchResult)
+        endmethod
+
+        {TestCategory("Pool")}
+        {TestMethod}
+        public method Activate, void
+            endparams
+            record
+                dispatchResult, @string
+        proc
+            dispatchResult = DispatchRunner.RemoveMessageHeader(DispatchRunner.RunDispatchPool3('{"jsonrpc":"2.0","id":106,"method":"Activate","params":[{"ReturnedValue":false}]}'))
+            DispatchRunner.EnsureSuccess(dispatchResult)
+        endmethod
+
+        {TestCategory("Pool")}
+        {TestMethod}
+        public method Deactivate, void
+            endparams
+            record
+                dispatchResult, @string
+        proc
+            dispatchResult = DispatchRunner.RemoveMessageHeader(DispatchRunner.RunDispatchPool3('{"jsonrpc":"2.0","id":107,"method":"Deactivate","params":[{"ReturnedValue":false}]}'))
+            DispatchRunner.EnsureSuccess(dispatchResult)
+        endmethod
+
+        {TestCategory("Pool")}
+        {TestMethod}
+        public method CanBePooled, void
+            endparams
+            record
+                dispatchResult, @string
+        proc
+            dispatchResult = DispatchRunner.RemoveMessageHeader(DispatchRunner.RunDispatchPool5('{"jsonrpc":"2.0","id":108,"method":"CanBePooled","params":[{"ReturnedValue":true,"DataType":8}]}'))
+            DispatchRunner.EnsureSuccess(dispatchResult)
+        endmethod
+.endregion
+
     endclass
 endnamespace
