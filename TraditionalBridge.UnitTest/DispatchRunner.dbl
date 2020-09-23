@@ -11,7 +11,6 @@ import System.Text.Json
 .endc
 
 namespace TraditionalBridge.UnitTest
-
     public class DispatchRunner
         public static method RunDispatch, @string
             inputString, @string
@@ -182,7 +181,7 @@ namespace TraditionalBridge.UnitTest
             dispatch.Dispatch(messageReader, new DispatchSerializer(outStream))
             mreturn outStream.FlushedData
         endmethod
-
+        
         public static method RunDispatchPool6, @string
             inputString, @string
             record
@@ -194,6 +193,23 @@ namespace TraditionalBridge.UnitTest
                 Logger.Instance = new TraditionalBridge.Logger("fred.log", 6, false)
 
             dispatch = new Pool6Dispatcher()
+            messageReader = new MockHeaderDelimitedMessageReader(inputString)
+            outStream = new MockOutputStream()
+            dispatch.Dispatch(messageReader, new DispatchSerializer(outStream))
+            mreturn outStream.FlushedData
+        endmethod
+        
+        public static method RunDispatchsmc, @string
+            inputString, @string
+            record
+                dispatch, @smcDispatcher
+                outStream, @MockOutputStream
+                messageReader, @MockHeaderDelimitedMessageReader
+        proc
+            if(Logger.Instance == ^null)
+                Logger.Instance = new TraditionalBridge.Logger("fred.log", 6, false)
+
+            dispatch = new smcDispatcher()
             messageReader = new MockHeaderDelimitedMessageReader(inputString)
             outStream = new MockOutputStream()
             dispatch.Dispatch(messageReader, new DispatchSerializer(outStream))
@@ -236,7 +252,6 @@ namespace TraditionalBridge.UnitTest
             end
         endmethod
 
-
         public static method RemoveMessageHeader, @string
             fullInput, @string
             record
@@ -256,7 +271,5 @@ namespace TraditionalBridge.UnitTest
                 mreturn fullInput
         endmethod
 
-
     endclass
-
 endnamespace
