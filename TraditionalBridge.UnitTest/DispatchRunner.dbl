@@ -81,6 +81,23 @@ namespace TraditionalBridge.UnitTest
             mreturn outStream.FlushedData
         endmethod
 
+        public static method RunDispatchNoParms, @string
+            inputString, @string
+            record
+                dispatch, @NoParmsDispatcher
+                outStream, @MockOutputStream
+                messageReader, @MockHeaderDelimitedMessageReader
+        proc
+            if(Logger.Instance == ^null)
+                Logger.Instance = new TraditionalBridge.Logger("fred.log", 6, false)
+
+            dispatch = new NoParmsDispatcher()
+            messageReader = new MockHeaderDelimitedMessageReader(inputString)
+            outStream = new MockOutputStream()
+            dispatch.Dispatch(messageReader, new DispatchSerializer(outStream))
+            mreturn outStream.FlushedData
+        endmethod
+
         public static method DecodeResult, void
             in inputString, @string
             out jsonRoot, @object
