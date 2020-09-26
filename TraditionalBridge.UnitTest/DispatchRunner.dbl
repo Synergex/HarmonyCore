@@ -215,6 +215,23 @@ namespace TraditionalBridge.UnitTest
             dispatch.Dispatch(messageReader, new DispatchSerializer(outStream))
             mreturn outStream.FlushedData
         endmethod
+        
+        public static method RunDispatchsyntst, @string
+            inputString, @string
+            record
+                dispatch, @syntstDispatcher
+                outStream, @MockOutputStream
+                messageReader, @MockHeaderDelimitedMessageReader
+        proc
+            if(Logger.Instance == ^null)
+                Logger.Instance = new TraditionalBridge.Logger("fred.log", 6, false)
+
+            dispatch = new syntstDispatcher()
+            messageReader = new MockHeaderDelimitedMessageReader(inputString)
+            outStream = new MockOutputStream()
+            dispatch.Dispatch(messageReader, new DispatchSerializer(outStream))
+            mreturn outStream.FlushedData
+        endmethod
 
         public static method DecodeResult, void
             in inputString, @string
