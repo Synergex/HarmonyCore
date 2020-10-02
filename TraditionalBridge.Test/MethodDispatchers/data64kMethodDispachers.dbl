@@ -25,69 +25,68 @@ import System.Text.Json
 namespace TraditionalBridge.Test.data64k
 
 
-    ;;-------------------------------------------------------------------------
-    ;;; <summary>
-    ;;; Dispatcher for method data64k.P1StrAryO64k
-    ;;; </summary>
-    public class P1StrAryO64k_Dispatcher extends RoutineStub
-
-        private mDatasetMetadata, @DataObjectMetadataBase
-
-        public method P1StrAryO64k_Dispatcher
-        proc
-            ;;Initialize the meta data for any data objects that are used by parameters to the method
-            mDatasetMetadata = DataObjectMetadataBase.LookupType("Dataset")
-        endmethod
-
-        protected override method DispatchInternal, void
-            required in name,       string
-            required in callFrame,  JSON_ELEMENT
-            required in serializer, @DispatchSerializer
-            required in dispatcher, @RoutineDispatcher
-            record
-                requestId,          int
-                arguments,          JSON_ELEMENT
-                argumentDefinition, @ArgumentDataDefinition
-
-                ;;Argument 1 (REQUIRED INOUT DATASET [*]structure @Dataset)
-                arg1Array,          JSON_ELEMENT
-                arg1Handle,         D_HANDLE
-                arg1HandlePos,      int
-            endrecord
-
-            ;;Temp structure tempstr1
-            ;structure tempstr1
-            ;    arry, @Dataset
-            ;endstructure
-
-
-        proc
-
-            ;;------------------------------------------------------------
-            ;;Process inbound arguments
-
-            arguments = callFrame.GetProperty("params")
-
-            ;;Argument 1 (REQUIRED INOUT DATASET [*]structure @Dataset)
-
-            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1],1493)
-            arg1Array = arguments[1].GetProperty("PassedValue")
-            arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.GetArrayLength())
-            arg1HandlePos = 1
-            dispatcher.UnwrapObjectCollection(^m(arg1Handle),argumentDefinition,arg1HandlePos,arg1Array)
-
-            ;;------------------------------------------------------------
-            ;; Call the underlying routine
-
-            xcall P1StrAryO64k(^m(strDataset,arg1Handle))
-
-            ;;--------------------------------------------------------------------------------
-            ;;Argument 1 (REQUIRED INOUT DATASET [*]structure @Dataset)
-            
-            serializer.ArgumentHandleData(1,arg1Handle,FieldDataType.DataObjectCollectionField,1493,"DATASET",%mem_proc(DM_GETSIZE,arg1Handle)/1493,true)
-        endmethod
-
-    endclass
+;    ;;-------------------------------------------------------------------------
+;    ;;; <summary>
+;    ;;; Dispatcher for method data64k.P1StrAryO64k
+;    ;;; </summary>
+;    public class P1StrAryO64k_Dispatcher extends RoutineStub
+;
+;        private mDatasetMetadata, @DataObjectMetadataBase
+;
+;        public method P1StrAryO64k_Dispatcher
+;        proc
+;            ;;Initialize the meta data for any data objects that are used by parameters to the method
+;            mDatasetMetadata = DataObjectMetadataBase.LookupType("Dataset")
+;        endmethod
+;
+;        protected override method DispatchInternal, void
+;            required in name,       string
+;            required in callFrame,  JSON_ELEMENT
+;            required in serializer, @DispatchSerializer
+;            required in dispatcher, @RoutineDispatcher
+;            record
+;                requestId,          int
+;                arguments,          JSON_ELEMENT
+;                argumentDefinition, @ArgumentDataDefinition
+;
+;                ;;Argument 1 (REQUIRED INOUT DATASET [*]structure @Dataset)
+;                arg1Array,          JSON_ELEMENT
+;                arg1Handle,         D_HANDLE
+;                arg1HandlePos,      int
+;            endrecord
+;
+;            ;;Temp structure tempstr1
+;            structure tempstr1
+;                arry, @Dataset
+;            endstructure
+;
+;
+;        proc
+;
+;            ;;------------------------------------------------------------
+;            ;;Process inbound arguments
+;
+;            arguments = callFrame.GetProperty("params")
+;
+;            ;;Argument 1 (REQUIRED INOUT DATASET [*]structure @Dataset)
+;            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1],1493)
+;            arg1Array = arguments[1].GetProperty("PassedValue")
+;            arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.GetArrayLength())
+;            arg1HandlePos = 1
+;            dispatcher.UnwrapObjectCollection(^m(arg1Handle),argumentDefinition,arg1HandlePos,arg1Array)
+;
+;            ;;------------------------------------------------------------
+;            ;; Call the underlying routine
+;
+;            xcall P1StrAryO64k(^m(strDataset,arg1Handle))
+;
+;            ;;--------------------------------------------------------------------------------
+;            ;;Argument 1 (REQUIRED INOUT DATASET [*]structure @Dataset)
+;            
+;            serializer.ArgumentHandleData(1,arg1Handle,FieldDataType.DataObjectCollectionField,1493,"DATASET",%mem_proc(DM_GETSIZE,arg1Handle)/1493,false)
+;        endmethod
+;
+;    endclass
 
     ;;-------------------------------------------------------------------------
     ;;; <summary>
