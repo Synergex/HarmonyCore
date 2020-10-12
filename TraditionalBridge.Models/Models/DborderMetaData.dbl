@@ -57,6 +57,16 @@ namespace TraditionalBridge.Models
             AddFieldInfo("Adresses2Country", "ALPHA", 10, 385, 0, false)
             AddFieldInfo("Adresses2PostalCode", "ALPHA", 20, 395, 0, false)
 
+            ;; Define all fields that are associated wity key segments
+            AddKeyInfo(0, "Orderno")
+
+            ;; Define the composition of access keys
+
+            data Orderno_KeyParts = new FieldDataDefinition[1]
+            Orderno_KeyParts[1] = GetFieldByName("Orderno")
+            AddFieldInfo("KEY_ORDERNO", "COMPOSITE", 0, 0, 0, false, ^null, ^null, Orderno_KeyParts)
+
+
             ;;If we have an InitializeCustomFields method then call it.
             InitializeCustomFields()
 
@@ -88,8 +98,21 @@ namespace TraditionalBridge.Models
             required in joinedObjects, [#]KeyValuePair<String, Object>
         proc
             data newDborder = new Dborder(dataArea, grfa)
+            UpdateExistingJoin(newDborder, joinedObjects)
             mreturn newDborder
+        endmethod
+        
+        public override method UpdateExistingJoin, void
+            required in existing, @DataObjectBase
+            required in joinedObjects, [#]KeyValuePair<String, Object>
+        proc
+            UpdateExistingJoin((@Dborder)existing, joinedObjects)
+        endmethod
 
+        public method UpdateExistingJoin, void
+            required in existing, @Dborder
+            required in joinedObjects, [#]KeyValuePair<String, Object>
+        proc
         endmethod
 
         ;;; <summary>
@@ -102,7 +125,20 @@ namespace TraditionalBridge.Models
             required in keyNumber, int
             required in parts, @Dictionary<String, Object>
             endparams
+            stack record key0
+                Orderno, D10
+            endrecord
         proc
+            data startPos = 0
+            data segValueLength, int
+            using keyNumber select
+            (0),
+            begin
+                if((segValueLength=KeyValueHelper(key0.Orderno, "Orderno", parts))<10 && segValueLength>0)
+                    mreturn key0(1:startPos+segValueLength)
+                mreturn key0
+            end
+            endusing
 
             throw new ApplicationException(String.Format("Invalid key number {0} encountered in DborderMetadata.FormatKeyLiteral",keyNumber))
 

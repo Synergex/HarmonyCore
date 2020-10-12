@@ -203,7 +203,7 @@ namespace <NAMESPACE>
 ;//
 
             ;; Define all fields that are associated wity key segments
-<IF STRUCTURE_ISAM>
+<IF STRUCTURE_ISAM AND STRUCTURE_HAS_UNIQUE_KEY>
   <KEY_LOOP_UNIQUE>
     <SEGMENT_LOOP>
             AddKeyInfo(<KEY_NUMBER>, "<FieldSqlname>")
@@ -292,6 +292,21 @@ namespace <NAMESPACE>
             required in joinedObjects, [#]KeyValuePair<String, Object>
         proc
             data new<StructureNoplural> = new <StructureNoplural>(dataArea, grfa)
+            UpdateExistingJoin(new<StructureNoplural>, joinedObjects)
+            mreturn new<StructureNoplural>
+        endmethod
+        
+        public override method UpdateExistingJoin, void
+            required in existing, @DataObjectBase
+            required in joinedObjects, [#]KeyValuePair<String, Object>
+        proc
+            UpdateExistingJoin((@<StructureNoplural>)existing, joinedObjects)
+        endmethod
+
+        public method UpdateExistingJoin, void
+            required in existing, @<StructureNoplural>
+            required in joinedObjects, [#]KeyValuePair<String, Object>
+        proc
 <IF DEFINED_ENABLE_RELATIONS>
   <IF STRUCTURE_RELATIONS>
             data joinedObject, KeyValuePair<String, Object>
@@ -300,37 +315,36 @@ namespace <NAMESPACE>
                 using joinedObject.Key select
     <RELATION_LOOP_RESTRICTED>
 ;//
-      <IF MANY_TO_ONE_TO_MANY>
                 ("<HARMONYCORE_RELATION_NAME>"),
-                    new<StructureNoplural>.<HARMONYCORE_RELATION_NAME> = (@<RelationTostructureNoplural>)joinedObject.Value
+                begin
+                    if(existing.<HARMONYCORE_RELATION_NAME> == ^null)
+                    begin
+      <IF MANY_TO_ONE_TO_MANY>
+                        existing.<HARMONYCORE_RELATION_NAME> = (@<RelationTostructureNoplural>)joinedObject.Value
       </IF MANY_TO_ONE_TO_MANY>
 ;//
       <IF ONE_TO_ONE>
-                ("<HARMONYCORE_RELATION_NAME>"),
-                    new<StructureNoplural>.<HARMONYCORE_RELATION_NAME> = (@<RelationTostructureNoplural>)joinedObject.Value
+                        existing.<HARMONYCORE_RELATION_NAME> = (@<RelationTostructureNoplural>)joinedObject.Value
       </IF ONE_TO_ONE>
 ;//
       <IF ONE_TO_MANY_TO_ONE>
-                ("<HARMONYCORE_RELATION_NAME>"),
-                    new<StructureNoplural>.<HARMONYCORE_RELATION_NAME> = (@ICollection<<RelationTostructureNoplural>>)joinedObject.Value
+                        existing.<HARMONYCORE_RELATION_NAME> = (@ICollection<<RelationTostructureNoplural>>)joinedObject.Value
       </IF ONE_TO_MANY_TO_ONE>
 ;//
       <IF ONE_TO_MANY>
-                ("<HARMONYCORE_RELATION_NAME>"),
-                    new<StructureNoplural>.<HARMONYCORE_RELATION_NAME> = (@ICollection<<RelationTostructureNoplural>>)joinedObject.Value
+                        existing.<HARMONYCORE_RELATION_NAME> = (@ICollection<<RelationTostructureNoplural>>)joinedObject.Value
       </IF ONE_TO_MANY>
 ;//
+                    end
+                end
     </RELATION_LOOP_RESTRICTED>
                 endusing
             end
   </IF STRUCTURE_RELATIONS>
 </IF DEFINED_ENABLE_RELATIONS>
-
-            mreturn new<StructureNoplural>
-
         endmethod
 
-<IF STRUCTURE_ISAM>
+<IF STRUCTURE_ISAM AND STRUCTURE_HAS_UNIQUE_KEY>
         ;;; <summary>
         ;;; Formats a literal value for a key lookup.
         ;;; </summary>

@@ -121,8 +121,20 @@ namespace Harmony.Core.EF.Query.Internal
         {
             Func<DataObjectBase, DataObjectBase> track = (obj) =>
             {
-                if(isTracking)
-                    queryContext.StartTracking(entityType, obj, default(Microsoft.EntityFrameworkCore.Storage.ValueBuffer));
+                if (isTracking)
+                {
+                    var localType = entityType;
+                    if (entityType.ClrType != obj.GetType())
+                    {
+                        localType = queryContext.Context.Model.FindEntityType(obj.GetType());
+                    }
+                    var keyValues = localType.FindPrimaryKey().Properties.Select(prop => prop.GetGetter().GetClrValue(obj)).ToArray();
+                    var foundEntry = queryContext.StateManager.TryGetEntry(localType.FindPrimaryKey(), keyValues);
+                    if (foundEntry != null && foundEntry.EntityState != EntityState.Detached)
+                        return foundEntry.Entity as DataObjectBase;
+                    else
+                        queryContext.StartTracking(localType, obj, default(Microsoft.EntityFrameworkCore.Storage.ValueBuffer));
+                }
 
                 return obj;
             };

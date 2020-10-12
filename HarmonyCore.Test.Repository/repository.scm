@@ -906,9 +906,6 @@ Group GRP_1A   Type ALPHA
       Group STRUCT_2E   Reference GPC4   Type ALPHA
          Description "GPC.GRP_1A.GRP_1B.STRUCT_2E"
  
-      Field FLD_3E   Type ALPHA   Size 6
-         Description "GPC.GRP_1A.GRP_1B.FLD_3E"
- 
    Endgroup
  
    Group STRUCT_1B   Reference GPC2   Type ALPHA

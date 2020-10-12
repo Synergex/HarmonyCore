@@ -87,13 +87,13 @@ namespace HarmonyCore.CliTool.Commands
 
                     if (!_extendedStructureLookup.TryGetValue(name, out var structEx))
                     {
-                        structEx = new HarmonyCoreGenerator.Model.StructureEx { Name = name, Alias = alias };
+                        structEx = new HarmonyCoreGenerator.Model.StructureEx { Name = name, Aliases = new List<string> { alias } };
                         _extendedStructureLookup.Add(name, structEx);
                         _solutionInfo.CodeGenSolution.ExtendedStructures.Add(structEx);
                     }
                     else
                     {
-                        structEx.Alias = alias;
+                        structEx.Aliases.Add(alias);
                     }
 
                     if (structEx.EnabledGenerators == null)
@@ -178,10 +178,12 @@ namespace HarmonyCore.CliTool.Commands
         {
             foreach (var structure in _solutionInfo.CodeGenSolution.ExtendedStructures)
             {
-                if (String.IsNullOrEmpty(structure.Alias))
-                    Console.WriteLine("{0} : {1}", structure.Name, string.Join("|", structure.EnabledGenerators));
+                if ((structure.Aliases?.Count ?? 0) > 0)
+                {
+                    Console.WriteLine("{0} -> {1} : {2}", structure.Name, string.Join("|", structure.Aliases), string.Join("|", structure.EnabledGenerators));
+                }
                 else
-                    Console.WriteLine("{0} -> {1} : {2}", structure.Name, structure.Alias, string.Join("|", structure.EnabledGenerators));
+                    Console.WriteLine("{0} : {1}", structure.Name, string.Join("|", structure.EnabledGenerators));
             }
             return 0;
         }

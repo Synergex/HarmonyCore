@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME><StructureNoplural>.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.5.3</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.5.4</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
 ;// Title:       EfProviderModel.tpl
@@ -8,7 +8,7 @@
 ;//
 ;// Description: Template to define structure based Data Object with CLR types
 ;//
-;// Copyright (c) 2020, Synergex International, Inc. All rights reserved.
+;// Copyright (c) 2012, Synergex International, Inc. All rights reserved.
 ;//
 ;// Redistribution and use in source and binary forms, with or without
 ;// modification, are permitted provided that the following conditions are met:
@@ -57,11 +57,15 @@ import Microsoft.Extensions.DependencyInjection
 
 namespace <NAMESPACE>
 
+    <IF DEFINED_ENABLE_NEWTONSOFT>
+    {Newtonsoft.Json.JsonObject(Newtonsoft.Json.MemberSerialization.OptIn)}
+    </IF>
     public partial class <StructureNoplural> extends DataObjectBase
 
         ;;make the record available and a copy
         private mSynergyData, str<StructureNoplural>
         private mOriginalSynergyData, str<StructureNoplural>
+        protected mGlobalRFA  ,a10
 
         private static sMetadata, @<StructureNoplural>Metadata
 
@@ -140,6 +144,9 @@ namespace <NAMESPACE>
 ;//
 ;// Field property
 ;//
+      <IF DEFINED_ENABLE_NEWTONSOFT>
+        {Newtonsoft.Json.JsonProperty}
+      </IF>
       <COUNTER_1_INCREMENT>
       <IF CUSTOM_HARMONY_AS_STRING>
         public property <FieldSqlname>, String
@@ -164,10 +171,9 @@ namespace <NAMESPACE>
                 data formatString = "YYYYMMDD"
             <IF DATE_YYMMDD>
                 formatString = "YYMMDD"
-            </IF DATE_YYMMDD>
-            <IF DATE_YYYYJJJ>
+            <ELSE DATE_YYYYJJJ>
                 formatString = "YYYYJJJ"
-            </IF DATE_YYYYJJJ>
+            </IF DATE_YYMMDD>
                 mreturn (<FIELD_SNTYPE>)SynergyDecimalDateConverter.Convert(mSynergyData.<field_original_name_modified>, ^null, formatString, ^null)
           </IF CUSTOM_HARMONY_AS_STRING>
         </IF DATE>
@@ -229,8 +235,7 @@ namespace <NAMESPACE>
       <ELSE>
         <IF ALPHA>
                 mSynergyData.<field_original_name_modified> = (<FIELD_TYPE>)SynergyAlphaConverter.ConvertBack(value<IF UPPERCASE>.ToUpper()</IF UPPERCASE>, ^null, ^null, ^null)
-        </IF ALPHA>
-        <IF DATE>
+        <ELSE DATE>
           <IF CUSTOM_HARMONY_AS_STRING>
                 mSynergyData.<field_original_name_modified> = SynergyDecimalConverter.ConvertBack(value,"XXXX-XX-XX")
           <ELSE>
@@ -243,22 +248,19 @@ namespace <NAMESPACE>
             </IF DATE_YYYYJJJ>
                 mSynergyData.<field_original_name_modified> = (<FIELD_TYPE>)SynergyDecimalDateConverter.ConvertBack(value, ^null, formatString, ^null)
           </IF CUSTOM_HARMONY_AS_STRING>
-        </IF DATE>
-        <IF TIME_HHMM>
+        <ELSE TIME_HHMM>
           <IF CUSTOM_HARMONY_AS_STRING>
                 mSynergyData.<field_original_name_modified> = SynergyDecimalConverter.ConvertBack(value,"XX:XX")
           <ELSE>
                 mSynergyData.<field_original_name_modified> = (value.Hour * 100) + value.Minute
           </IF CUSTOM_HARMONY_AS_STRING>
-        </IF TIME_HHMM>
-        <IF TIME_HHMMSS>
+        <ELSE TIME_HHMMSS>
           <IF CUSTOM_HARMONY_AS_STRING>
                 mSynergyData.<field_original_name_modified> = SynergyDecimalConverter.ConvertBack(value,"XX:XX:XX")
           <ELSE>
                 mSynergyData.<field_original_name_modified> = (value.Hour * 10000) + (value.Minute * 100) + value.Second
           </IF CUSTOM_HARMONY_AS_STRING>
-        </IF TIME_HHMMSS>
-        <IF DECIMAL>
+        <ELSE DECIMAL>
           <IF CUSTOM_HARMONY_AS_STRING>
             <IF PRECISION>
                 mSynergyData.<field_original_name_modified> = SynergyImpliedDecimalConverter.ConvertBack(value,"<FIELD_FORMATSTRING>")
@@ -268,19 +270,15 @@ namespace <NAMESPACE>
           <ELSE>
                 mSynergyData.<field_original_name_modified> = value
           </IF CUSTOM_HARMONY_AS_STRING>
-        </IF DECIMAL>
-        <IF INTEGER>
+        <ELSE INTEGER>
                 mSynergyData.<field_original_name_modified> = value
-        </IF INTEGER>
-        <IF BOOLEAN>
+        <ELSE BOOLEAN>
                 mSynergyData.<field_original_name_modified> = value
-        </IF BOOLEAN>
-        <IF AUTO_SEQUENCE>
+        <ELSE AUTO_SEQUENCE>
                 mSynergyData.<field_original_name_modified> = value
-        </IF AUTO_SEQUENCE>
-        <IF AUTO_TIMESTAMP>
+        <ELSE AUTO_TIMESTAMP>
                 mSynergyData.<field_original_name_modified> = value
-        </IF AUTO_TIMESTAMP>
+        </IF ALPHA>
       </IF HARMONYCORE_CUSTOM_FIELD>
             endmethod
 ;//
@@ -328,6 +326,17 @@ namespace <NAMESPACE>
             endmethod
         endproperty
 
+        public override property GlobalRFA, [#]byte
+			method get
+			proc
+                mreturn mGlobalRFA
+			endmethod
+			method set
+			proc
+                mGlobalRFA = value
+			endmethod
+		endproperty
+
 .endregion
 
 .region "Public methods"
@@ -342,13 +351,6 @@ namespace <NAMESPACE>
         endmethod
 
         ;;; <summary>
-        ;;; Allow the host to validate all fields. Each field will fire the validation method.
-        ;;; </summary>
-        public override method InitialValidateData, void
-        proc
-        endmethod
-
-        ;;; <summary>
         ;;;
         ;;; </summary>
         public override method InternalGetValues, [#]@object
@@ -357,104 +359,6 @@ namespace <NAMESPACE>
             mreturn new Object[<COUNTER_1_VALUE>]
         endmethod
 
-;//
-;// ==========================================================================================
-;// RUNTIME VALIDATION FOR RELATIONS
-;//
-<IF DEFINED_ENABLE_RELATIONS>
-  <IF STRUCTURE_RELATIONS>
-;//
-        ;;; <summary>
-        ;;; Validate data for one-to-one relations
-        ;;; </summary>
-        ;;; <param name="type">Validation type (create, update or delete)</param>
-        ;;; <param name="sp">Serices provider</param>
-        public override method Validate, void
-            required in vType, ValidationType
-            required in sp, @IServiceProvider
-    <RELATION_LOOP_RESTRICTED>
-
-            ;;From key for <HARMONYCORE_RELATION_NAME>
-            record rel<RELATION_NUMBER>FromKey
-      <COUNTER_1_RESET>
-      <FROM_KEY_SEGMENT_LOOP>
-        <IF SEG_TYPE_FIELD>
-              <segment_name>, <segment_spec>
-        </IF SEG_TYPE_FIELD>
-        <IF SEG_TYPE_LITERAL>
-          <COUNTER_1_INCREMENT>
-              litseg<COUNTER_1_VALUE>, a*, "<SEGMENT_LITVAL>"
-        </IF SEG_TYPE_LITERAL>
-      </FROM_KEY_SEGMENT_LOOP>
-            endrecord
-    </RELATION_LOOP_RESTRICTED>
-        proc
-            ;;No relation validation if the record is being deleted
-            if (vType == ValidationType.Delete)
-                mreturn
-
-            ;;Get an instance of IDataObjectProvider
-            data doProvider, @IDataObjectProvider, sp.GetService<IDataObjectProvider>()
-
-    <RELATION_LOOP_RESTRICTED>
-            ;;--------------------------------------------------------------------------------
-            ;;Validate data for relation <RELATION_NUMBER> (<HARMONYCORE_RELATION_NAME>)
-
-      <COUNTER_1_RESET>
-        <FROM_KEY_SEGMENT_LOOP>
-          <IF SEG_TYPE_FIELD>
-            rel<RELATION_NUMBER>FromKey.<segment_name> = mSynergyData.<segment_name>
-          <ELSE>
-            <IF SEG_TYPE_LITERAL>
-            <COUNTER_1_INCREMENT>
-            rel<RELATION_NUMBER>FromKey.litseg<COUNTER_1_VALUE> = "<SEGMENT_LITVAL>"
-            </IF SEG_TYPE_LITERAL>
-          </IF SEG_TYPE_FIELD>
-        </FROM_KEY_SEGMENT_LOOP>
-      <IF NOT REQUIRES_MATCH>
-            ;;This key does not REQUIRE a match, so only attempt to validate if we have a "from key" value
-            data rel<RELATION_NUMBER>FromKeyValue, string, rel<RELATION_NUMBER>FromKey
-            if (!String.IsNullOrWhiteSpace(rel<RELATION_NUMBER>FromKeyValue.Replace("0"," ")))
-      </IF REQUIRES_MATCH>
-            begin
-            disposable data rel<RELATION_NUMBER>FileIO = doProvider.GetFileIO<<RelationTostructureNoplural>>()
-            if (rel<RELATION_NUMBER>FileIO.FindRecord(<TO_KEY_NUMBER>,rel<RELATION_NUMBER>FromKey) != FileAccessResults.Success)
-                begin
-                throw new ValidationException("Invalid data for relation <HARMONYCORE_RELATION_NAME>")
-                end
-            end
-
-    </RELATION_LOOP_RESTRICTED>
-            ;;--------------------------------------------------------------------------------
-            ;;If we have a ValidateCustom method, call it
-
-            ValidateCustom(vType,sp)
-
-        endmethod
-
-  <ELSE>
-        ;;; <summary>
-        ;;; Validate data
-        ;;; </summary>
-        ;;; <param name="type">Validation type (create, update or delete)</param>
-        ;;; <param name="sp">Serices provider</param>
-        public override method Validate, void
-            required in vType, ValidationType
-            required in sp, @IServiceProvider
-        proc
-            ;;If we have a ValidateCustom method, call it
-            ValidateCustom(vType,sp)
-        endmethod
-
-  </IF STRUCTURE_RELATIONS>
-</IF DEFINED_ENABLE_RELATIONS>
-
-        private partial method ValidateCustom, void
-            required in vType, ValidationType
-            required in sp, @IServiceProvider
-        endmethod
-
-;// ==========================================================================================
 .endregion
 ;//
 ;// Relations
@@ -466,6 +370,9 @@ namespace <NAMESPACE>
 
     <RELATION_LOOP_RESTRICTED>
       <COUNTER_1_INCREMENT>
+      <IF DEFINED_ENABLE_NEWTONSOFT>
+        {Newtonsoft.Json.JsonProperty(DefaultValueHandling=DefaultValueHandling.Ignore)}
+      </IF>
 ;//
 ;//
 ;//
@@ -520,7 +427,163 @@ namespace <NAMESPACE>
     </RELATION_LOOP_RESTRICTED>
 .endregion
 ;//
+;// ==========================================================================================
+;// RUNTIME VALIDATION FOR RELATIONS
 ;//
+
+.region "Relation validation"
+
+<IF DEFINED_ENABLE_RELATIONS>
+  <IF STRUCTURE_RELATIONS AND DEFINED_ENABLE_RELATIONS_VALIDATION>
+        ;;; <summary>
+        ;;; Validate data for relations
+        ;;; </summary>
+        ;;; <param name="type">Validation type (create, update or delete)</param>
+        ;;; <param name="sp">Serices provider</param>
+        public override method Validate, void
+            required in vType, ValidationType
+            required in sp, @IServiceProvider
+    <RELATION_LOOP_RESTRICTED>
+      <IF VALIDATION_VALUE_PRESENT OR VALIDATION_ALWAYS>
+            ;;From key for <HARMONYCORE_RELATION_NAME>
+            record rel<RELATION_NUMBER>FromKey
+        <COUNTER_1_RESET>
+        <FROM_KEY_SEGMENT_LOOP>
+          <IF SEG_TYPE_FIELD>
+              <segment_name>, <segment_spec>
+          <ELSE SEG_TYPE_LITERAL>
+            <COUNTER_1_INCREMENT>
+              litseg<COUNTER_1_VALUE>, a*, "<SEGMENT_LITVAL>"
+          </IF SEG_TYPE_FIELD>
+        </FROM_KEY_SEGMENT_LOOP>
+            endrecord
+
+            ;;From key for <HARMONYCORE_RELATION_NAME> (no tags)
+            record rel<RELATION_NUMBER>FromKeyNoTag
+        <COUNTER_1_RESET>
+        <FROM_KEY_SEGMENT_LOOP>
+          <IF SEG_TYPE_FIELD>
+              <segment_name>, <segment_spec>
+          </IF SEG_TYPE_FIELD>
+        </FROM_KEY_SEGMENT_LOOP>
+            endrecord
+      </IF VALIDATION_VALUE_PRESENT>
+    </RELATION_LOOP_RESTRICTED>
+        proc
+            ;;No relation validation if the record is being deleted
+            if (vType == ValidationType.Delete)
+                mreturn
+
+            ;;Get an instance of IDataObjectProvider
+            data dataObjectProvider, @IDataObjectProvider, sp.GetService<IDataObjectProvider>()
+
+    <RELATION_LOOP_RESTRICTED>
+            ;;--------------------------------------------------------------------------------
+            ;;Validate data for relation <RELATION_NUMBER> (<HARMONYCORE_RELATION_NAME>)
+;//
+      <IF VALIDATION_NONE>
+;//
+
+            ;;Validation mode: None
+;//
+      <ELSE VALIDATION_VALUE_PRESENT>
+;//
+
+            ;;Validation mode: ValuePresent
+
+            ;;Populate from key values
+        <COUNTER_1_RESET>
+        <FROM_KEY_SEGMENT_LOOP>
+          <IF SEG_TYPE_FIELD>
+            rel<RELATION_NUMBER>FromKey.<segment_name> = mSynergyData.<segment_name>
+            rel<RELATION_NUMBER>FromKeyNoTag.<segment_name> = mSynergyData.<segment_name>
+          <ELSE SEG_TYPE_LITERAL>
+            <COUNTER_1_INCREMENT>
+            rel<RELATION_NUMBER>FromKey.litseg<COUNTER_1_VALUE> = "<SEGMENT_LITVAL>"
+          </IF SEG_TYPE_FIELD>
+        </FROM_KEY_SEGMENT_LOOP>
+
+            ;;Move the key value, excluding tag literals, into a string so we can use String.Replace()
+            data rel<RELATION_NUMBER>FromKeyValue, string, rel<RELATION_NUMBER>FromKeyNoTag
+
+            ;;After replacing "0" with " ", is there anything remaining?
+            if (!String.IsNullOrWhiteSpace(rel<RELATION_NUMBER>FromKeyValue.Replace("0"," ")))
+            begin
+                ;;Get a file I/O object for type "<RelationTostructureNoplural>".
+                disposable data rel<RELATION_NUMBER>FileIO = dataObjectProvider.GetFileIO<<RelationTostructureNoplural>>()
+
+                ;;And use it to attempt to read the record in the other file.
+                if (rel<RELATION_NUMBER>FileIO.FindRecord(<TO_KEY_NUMBER>,rel<RELATION_NUMBER>FromKey) != FileAccessResults.Success)
+                begin
+                    throw new ValidationException("Invalid data for relation <HARMONYCORE_RELATION_NAME>")
+                end
+            end
+;//
+      <ELSE VALIDATION_ALWAYS>
+;//
+            ;;Validation mode: Always
+
+            ;;Populate from key values
+        <COUNTER_1_RESET>
+        <FROM_KEY_SEGMENT_LOOP>
+          <IF SEG_TYPE_FIELD>
+            rel<RELATION_NUMBER>FromKey.<segment_name> = mSynergyData.<segment_name>
+          <ELSE SEG_TYPE_LITERAL>
+            <COUNTER_1_INCREMENT>
+            rel<RELATION_NUMBER>FromKey.litseg<COUNTER_1_VALUE> = "<SEGMENT_LITVAL>"
+          </IF SEG_TYPE_FIELD>
+        </FROM_KEY_SEGMENT_LOOP>
+
+            ;;Get a file I/O object for type "<RelationTostructureNoplural>".
+            disposable data rel<RELATION_NUMBER>FileIO = dataObjectProvider.GetFileIO<<RelationTostructureNoplural>>()
+
+            ;;And use it to attempt to read the record in the other file.
+            if (rel<RELATION_NUMBER>FileIO.FindRecord(<TO_KEY_NUMBER>,rel<RELATION_NUMBER>FromKey) != FileAccessResults.Success)
+            begin
+                throw new ValidationException("Invalid data for relation <HARMONYCORE_RELATION_NAME>")
+            end
+;//
+      <ELSE VALIDATION_CUSTOM_CODE>
+;//
+            ;;Validation mode: Custom code
+
+            ;TODO: The mechanism for custom code validation has not yet been defined
+;//
+      </IF VALIDATION_NONE>
+;//
+
+    </RELATION_LOOP_RESTRICTED>
+            ;;--------------------------------------------------------------------------------
+            ;;If we have a ValidateCustom method, call it
+
+            ValidateCustom(vType,sp)
+
+        endmethod
+
+  <ELSE>
+        ;;; <summary>
+        ;;; Validate data
+        ;;; </summary>
+        ;;; <param name="type">Validation type (create, update or delete)</param>
+        ;;; <param name="sp">Serices provider</param>
+        public override method Validate, void
+            required in vType, ValidationType
+            required in sp, @IServiceProvider
+        proc
+            ;;If we have a ValidateCustom method, call it
+            ValidateCustom(vType,sp)
+        endmethod
+  </IF STRUCTURE_RELATIONS>
+</IF DEFINED_ENABLE_RELATIONS>
+
+        private partial method ValidateCustom, void
+            required in vType, ValidationType
+            required in sp, @IServiceProvider
+        endmethod
+
+.endregion
+;//
+;// ==========================================================================================
 ;//
     <COUNTER_2_RESET>
     <RELATION_LOOP_RESTRICTED>
@@ -549,9 +612,9 @@ namespace <NAMESPACE>
   </IF STRUCTURE_RELATIONS>
 </IF DEFINED_ENABLE_RELATIONS>
 
-<IF STRUCTURE_FILES>
+<IF STRUCTURE_FILES AND STRUCTURE_HAS_UNIQUE_KEY>
 .region "Properties to represent keys"
-<IF STRUCTURE_ISAM>
+
         ;;Access keys
 
   <KEY_LOOP_UNIQUE>
@@ -568,11 +631,9 @@ namespace <NAMESPACE>
         public readonly property KEY_<KEY_NAME>, string, ""
 
   </FOREIGN_KEY_LOOP>
-
-</IF STRUCTURE_ISAM>
 .endregion
 
 </IF STRUCTURE_FILES>
-endclass
+    endclass
 
 endnamespace

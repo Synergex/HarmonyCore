@@ -68,6 +68,7 @@ namespace <NAMESPACE>
         ;;make the record available and a copy
         private mSynergyData, str<StructureNoplural>
         private mOriginalSynergyData, str<StructureNoplural>
+        protected mGlobalRFA  ,a10
 
         private static sMetadata, @<StructureNoplural>Metadata
 
@@ -336,6 +337,17 @@ namespace <NAMESPACE>
             endmethod
         endproperty
 
+        public override property GlobalRFA, [#]byte
+			method get
+			proc
+                mreturn mGlobalRFA
+			endmethod
+			method set
+			proc
+                mGlobalRFA = value
+			endmethod
+		endproperty
+
 .endregion
 
 .region "Public methods"
@@ -347,13 +359,6 @@ namespace <NAMESPACE>
             targetMethod, @AlphaAction
         proc
             targetMethod(mSynergyData, mGlobalRFA)
-        endmethod
-
-        ;;; <summary>
-        ;;; Allow the host to validate all fields. Each field will fire the validation method.
-        ;;; </summary>
-        public override method InitialValidateData, void
-        proc
         endmethod
 
         ;;; <summary>
@@ -618,7 +623,7 @@ namespace <NAMESPACE>
   </IF STRUCTURE_RELATIONS>
 </IF DEFINED_ENABLE_RELATIONS>
 
-<IF STRUCTURE_FILES AND STRUCTURE_ISAM>
+<IF STRUCTURE_FILES AND STRUCTURE_ISAM AND STRUCTURE_HAS_UNIQUE_KEY>
 .region "Properties to represent keys"
 
         ;;Access keys

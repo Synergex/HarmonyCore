@@ -33,6 +33,16 @@ namespace TraditionalBridge.TestClient
 
     public partial class WCFieldsService extends DynamicCallProvider
 
+        static IsInitialized, boolean
+        static method WCFieldsService
+        proc
+            DataObjectMetadataBase.LookupType(^typeof(Strtest1))
+            DataObjectMetadataBase.LookupType(^typeof(Strtest2))
+            DataObjectMetadataBase.LookupType(^typeof(Strtest3))
+            DataObjectMetadataBase.LookupType(^typeof(Strtest3))
+            IsInitialized = true
+        endmethod
+
         ;;; <summary>
         ;;; Constructor
         ;;; </summary>
@@ -41,29 +51,25 @@ namespace TraditionalBridge.TestClient
             endparams
             parent(connection)
         proc
-            
+            if(!IsInitialized)
+                throw new Exception("cctor missing")
         endmethod
 
         ;;; <summary>
         ;;; No description found in method catalog
         ;;; </summary>
-        public async method teststr1, @Task<WCFields.teststr1_Response>
-            required in args, @WCFields.teststr1_Request
+        public async method teststr1, @Task<TraditionalBridge.TestClient.WCFields.teststr1_Response>
+            required in args, @TraditionalBridge.TestClient.WCFields.teststr1_Request
         proc
             ;;Prepare the response object
-            data response = new WCFields.teststr1_Response()
+            data response = new TraditionalBridge.TestClient.WCFields.teststr1_Response()
 
             ;;Make the JSON-RPC call the traditional Synergy routine
             data resultTuple = await CallMethod("teststr1"
             &   ,args.STRTEST1
             &   )
 
-            ;;Get the returned information
-            data returnToken = (@JToken)(resultTuple.Item1)
-
-            ;;Set returned values for OUT or INOUT parameters
-            data resultList, @List<Object>, resultTuple.Item2.ToList()
-            response.STRTEST1 = (@STRTEST1)resultList[1 - 1]
+            ArgumentHelper.Argument(1, resultTuple, response.STRTEST1)
 
             ;;Return the response
             mreturn response
@@ -73,23 +79,18 @@ namespace TraditionalBridge.TestClient
         ;;; <summary>
         ;;; No description found in method catalog
         ;;; </summary>
-        public async method teststr2, @Task<WCFields.teststr2_Response>
-            required in args, @WCFields.teststr2_Request
+        public async method teststr2, @Task<TraditionalBridge.TestClient.WCFields.teststr2_Response>
+            required in args, @TraditionalBridge.TestClient.WCFields.teststr2_Request
         proc
             ;;Prepare the response object
-            data response = new WCFields.teststr2_Response()
+            data response = new TraditionalBridge.TestClient.WCFields.teststr2_Response()
 
             ;;Make the JSON-RPC call the traditional Synergy routine
             data resultTuple = await CallMethod("teststr2"
             &   ,args.STRTEST2
             &   )
 
-            ;;Get the returned information
-            data returnToken = (@JToken)(resultTuple.Item1)
-
-            ;;Set returned values for OUT or INOUT parameters
-            data resultList, @List<Object>, resultTuple.Item2.ToList()
-            response.STRTEST2 = (@STRTEST2)resultList[1 - 1]
+            ArgumentHelper.Argument(1, resultTuple, response.STRTEST2)
 
             ;;Return the response
             mreturn response
@@ -99,23 +100,18 @@ namespace TraditionalBridge.TestClient
         ;;; <summary>
         ;;; No description found in method catalog
         ;;; </summary>
-        public async method teststr3, @Task<WCFields.teststr3_Response>
-            required in args, @WCFields.teststr3_Request
+        public async method teststr3, @Task<TraditionalBridge.TestClient.WCFields.teststr3_Response>
+            required in args, @TraditionalBridge.TestClient.WCFields.teststr3_Request
         proc
             ;;Prepare the response object
-            data response = new WCFields.teststr3_Response()
+            data response = new TraditionalBridge.TestClient.WCFields.teststr3_Response()
 
             ;;Make the JSON-RPC call the traditional Synergy routine
             data resultTuple = await CallMethod("teststr3"
             &   ,args.STRTEST3
             &   )
 
-            ;;Get the returned information
-            data returnToken = (@JToken)(resultTuple.Item1)
-
-            ;;Set returned values for OUT or INOUT parameters
-            data resultList, @List<Object>, resultTuple.Item2.ToList()
-            response.STRTEST3 = (@STRTEST3)resultList[1 - 1]
+            ArgumentHelper.Argument(1, resultTuple, response.STRTEST3)
 
             ;;Return the response
             mreturn response
@@ -125,11 +121,11 @@ namespace TraditionalBridge.TestClient
         ;;; <summary>
         ;;; No description found in method catalog
         ;;; </summary>
-        public async method teststr9, @Task<WCFields.teststr9_Response>
-            required in args, @WCFields.teststr9_Request
+        public async method teststr9, @Task<TraditionalBridge.TestClient.WCFields.teststr9_Response>
+            required in args, @TraditionalBridge.TestClient.WCFields.teststr9_Request
         proc
             ;;Prepare the response object
-            data response = new WCFields.teststr9_Response()
+            data response = new TraditionalBridge.TestClient.WCFields.teststr9_Response()
 
             ;;Make the JSON-RPC call the traditional Synergy routine
             data resultTuple = await CallMethod("teststr9"
@@ -138,14 +134,9 @@ namespace TraditionalBridge.TestClient
             &   ,args.p3al10
             &   )
 
-            ;;Get the returned information
-            data returnToken = (@JToken)(resultTuple.Item1)
-
-            ;;Set returned values for OUT or INOUT parameters
-            data resultList, @List<Object>, resultTuple.Item2.ToList()
-            response.p1de7 = (int)resultList[1 - 1]
-            response.STRTEST3 = (@STRTEST3)resultList[2 - 1]
-            response.p3al10 = (String)resultList[3 - 1]
+            ArgumentHelper.Argument(1, resultTuple, response.p1de7)
+            ArgumentHelper.Argument(2, resultTuple, response.STRTEST3)
+            ArgumentHelper.Argument(3, resultTuple, response.p3al10)
 
             ;;Return the response
             mreturn response

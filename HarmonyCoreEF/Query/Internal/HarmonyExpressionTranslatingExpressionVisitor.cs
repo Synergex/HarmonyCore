@@ -464,7 +464,12 @@ namespace Harmony.Core.EF.Query.Internal
             {
                 return new InExpression { Collection = ((System.Collections.IEnumerable)constExpr.Value).OfType<object>().Select(obj => obj.ToString()).ToList(), Predicate = methodCallExpression.Arguments[1] };
             }
-
+            else if (methodCallExpression.Method.DeclaringType == typeof(Enumerable) && methodCallExpression.Method.Name == "Contains" &&
+                methodCallExpression.Arguments.Count == 2 && methodCallExpression.Arguments[0].NodeType == ExpressionType.Parameter &&
+                typeof(System.Collections.IEnumerable).IsAssignableFrom(methodCallExpression.Arguments[0].Type))
+            {
+                return new InExpression { CollectionParameter = new FileIO.Queryable.ParameterReference() { Name = ((ParameterExpression)methodCallExpression.Arguments[0]).Name }, Predicate = methodCallExpression.Arguments[1] };
+            }
 
             // if object is nullable, add null safeguard before calling the function
             // we special-case Nullable<>.GetValueOrDefault, which doesn't need the safeguard

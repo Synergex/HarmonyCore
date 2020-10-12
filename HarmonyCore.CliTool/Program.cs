@@ -146,10 +146,9 @@ Known structure properties:
 
     class Program
     {
-        public static string CurrentVersionTag = "release-v3.1.11";
         public static string BuildPackageVersion = "11.1.1030.2704";
         public static string CodeDomProviderVersion = "1.0.7";
-        public static string HCBuildVersion = "3.1.145";
+        public static string HCBuildVersion = "3.1.156";
         public static Dictionary<string, string> LatestNugetReferences = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase)
         {
             {"Harmony.Core", HCBuildVersion},
@@ -157,28 +156,35 @@ Known structure properties:
             {"Harmony.Core.EF", HCBuildVersion},
             {"Harmony.Core.OData", HCBuildVersion},
             {"Harmony.Core.AspNetCore", HCBuildVersion},
-            {"Synergex.SynergyDE.synrnt", "11.1.1031"},
+            {"Synergex.SynergyDE.synrnt", "11.1.1050"},
             {"Synergex.SynergyDE.Build", BuildPackageVersion},
-            {"Microsoft.AspNetCore.Mvc.NewtonsoftJson", "3.1.3"},
-            {"Microsoft.Extensions.Logging.Console", "3.1.3"},
-            {"Microsoft.AspNetCore.SignalR.Client", "3.1.3"},
-            {"Microsoft.EntityFrameworkCore", "3.1.3"},
+            {"Microsoft.AspNetCore.Mvc.NewtonsoftJson", "3.1.6"},
+            {"Microsoft.AspNetCore.Mvc.Testing", "3.1.6"},
+            {"Microsoft.Extensions.DependencyInjection", "3.1.6"},
+            {"Microsoft.Extensions.Logging.Console", "3.1.6"},
+            {"Microsoft.AspNetCore.SignalR.Client", "3.1.6"},
+            {"Microsoft.EntityFrameworkCore", "3.1.6"},
             {"IdentityServer4.AccessTokenValidation", "3.0.1"},
-            {"Microsoft.AspNetCore.OData", "7.3.0"},
-            {"Microsoft.OData.Core", "7.6.3"},
-            {"Microsoft.AspNetCore.JsonPatch", "3.1.3"},
-            {"Microsoft.VisualStudio.Threading", "16.5.132"},
-            {"StreamJsonRpc", "2.3.103"},
+            {"Microsoft.AspNetCore.OData", "7.4.1"},
+            {"Microsoft.OData.Core", "7.7.0"},
+            {"Microsoft.AspNetCore.JsonPatch", "3.1.6"},
+            {"Microsoft.VisualStudio.Threading", "16.6.13"},
+            {"StreamJsonRpc", "2.4.48"},
             {"IdentityModel", "4.1.1" },
-            {"Microsoft.OData.Edm", "7.6.3"},
-            {"Microsoft.Spatial", "7.6.3"},
-            {"Swashbuckle.AspNetCore", "5.2.1"},
+            {"Microsoft.OData.Edm", "7.7.0"},
+            {"Microsoft.Spatial", "7.7.0"},
+            {"Swashbuckle.AspNetCore", "5.5.1"},
             {"SSH.NET", "2016.1.0"},
             {"Microsoft.AspNetCore.Mvc.Versioning", "4.1.1"},
             {"Microsoft.AspNetCore.OData.Versioning.ApiExplorer", "4.1.1"},
             {"Nito.AsyncEx", "5.0.0"},
-            {"System.Linq.Dynamic.Core", "1.0.22"},
-            {"system.text.encoding.codepages", "4.7.0"},
+            {"System.Linq.Dynamic.Core", "1.1.8"},
+            {"system.text.encoding.codepages", "4.7.1"},
+        };
+
+        public static List<string> HCRegenRequiredVersions = new List<string>
+        {
+            "3.1.156"
         };
 
         const int STD_INPUT_HANDLE = -10;

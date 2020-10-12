@@ -50,6 +50,23 @@ namespace TraditionalBridge.Models
             AddFieldInfo("Str2Id83", "IMPLIED", 8, 60, 03, false)
             AddFieldInfo("Str2In4", "INTEGER", 4, 68, 0, false)
 
+            ;; Define all fields that are associated wity key segments
+            AddKeyInfo(0, "Str2De10")
+            AddKeyInfo(0, "Str2Date8")
+            AddKeyInfo(1, "Str2De10")
+
+            ;; Define the composition of access keys
+
+            data Primarykey_KeyParts = new FieldDataDefinition[2]
+            Primarykey_KeyParts[1] = GetFieldByName("Str2De10")
+            Primarykey_KeyParts[2] = GetFieldByName("Str2Date8")
+            AddFieldInfo("KEY_PRIMARYKEY", "COMPOSITE", 0, 0, 0, false, ^null, ^null, Primarykey_KeyParts)
+
+            data Secondarykey_KeyParts = new FieldDataDefinition[1]
+            Secondarykey_KeyParts[1] = GetFieldByName("Str2De10")
+            AddFieldInfo("KEY_SECONDARYKEY", "COMPOSITE", 0, 0, 0, false, ^null, ^null, Secondarykey_KeyParts)
+
+
             ;;If we have an InitializeCustomFields method then call it.
             InitializeCustomFields()
 
@@ -81,8 +98,21 @@ namespace TraditionalBridge.Models
             required in joinedObjects, [#]KeyValuePair<String, Object>
         proc
             data newStrtest2 = new Strtest2(dataArea, grfa)
+            UpdateExistingJoin(newStrtest2, joinedObjects)
             mreturn newStrtest2
+        endmethod
+        
+        public override method UpdateExistingJoin, void
+            required in existing, @DataObjectBase
+            required in joinedObjects, [#]KeyValuePair<String, Object>
+        proc
+            UpdateExistingJoin((@Strtest2)existing, joinedObjects)
+        endmethod
 
+        public method UpdateExistingJoin, void
+            required in existing, @Strtest2
+            required in joinedObjects, [#]KeyValuePair<String, Object>
+        proc
         endmethod
 
         ;;; <summary>
@@ -95,7 +125,33 @@ namespace TraditionalBridge.Models
             required in keyNumber, int
             required in parts, @Dictionary<String, Object>
             endparams
+            stack record key0
+                Str2De10, D10
+                Str2Date8, D8
+            endrecord
+            stack record key1
+                Str2De10, D10
+            endrecord
         proc
+            data startPos = 0
+            data segValueLength, int
+            using keyNumber select
+            (0),
+            begin
+                if((segValueLength=KeyValueHelper(key0.Str2De10, "Str2De10", parts))<10 && segValueLength>0)
+                    mreturn key0(1:startPos+segValueLength)
+                startPos += 10
+                if((segValueLength=KeyValueHelper(key0.Str2Date8, "Str2Date8", parts))<8 && segValueLength>0)
+                    mreturn key0(1:startPos+segValueLength)
+                mreturn key0
+            end
+            (1),
+            begin
+                if((segValueLength=KeyValueHelper(key1.Str2De10, "Str2De10", parts))<10 && segValueLength>0)
+                    mreturn key1(1:startPos+segValueLength)
+                mreturn key1
+            end
+            endusing
 
             throw new ApplicationException(String.Format("Invalid key number {0} encountered in Strtest2Metadata.FormatKeyLiteral",keyNumber))
 

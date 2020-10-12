@@ -124,21 +124,48 @@ namespace Services.Models
             required in joinedObjects, [#]KeyValuePair<String, Object>
         proc
             data newCustomer = new Customer(dataArea, grfa)
+            UpdateExistingJoin(newCustomer, joinedObjects)
+            mreturn newCustomer
+        endmethod
+        
+        public override method UpdateExistingJoin, void
+            required in existing, @DataObjectBase
+            required in joinedObjects, [#]KeyValuePair<String, Object>
+        proc
+            UpdateExistingJoin((@Customer)existing, joinedObjects)
+        endmethod
+
+        public method UpdateExistingJoin, void
+            required in existing, @Customer
+            required in joinedObjects, [#]KeyValuePair<String, Object>
+        proc
             data joinedObject, KeyValuePair<String, Object>
             foreach joinedObject in joinedObjects
             begin
                 using joinedObject.Key select
                 ("REL_CustomerOrders"),
-                    newCustomer.REL_CustomerOrders = (@ICollection<Order>)joinedObject.Value
+                begin
+                    if(existing.REL_CustomerOrders == ^null)
+                    begin
+                        existing.REL_CustomerOrders = (@ICollection<Order>)joinedObject.Value
+                    end
+                end
                 ("REL_CustomerFavoriteItem"),
-                    newCustomer.REL_CustomerFavoriteItem = (@Item)joinedObject.Value
+                begin
+                    if(existing.REL_CustomerFavoriteItem == ^null)
+                    begin
+                        existing.REL_CustomerFavoriteItem = (@Item)joinedObject.Value
+                    end
+                end
                 ("REL_CustomerNotes"),
-                    newCustomer.REL_CustomerNotes = (@ICollection<CustomerNote>)joinedObject.Value
+                begin
+                    if(existing.REL_CustomerNotes == ^null)
+                    begin
+                        existing.REL_CustomerNotes = (@ICollection<CustomerNote>)joinedObject.Value
+                    end
+                end
                 endusing
             end
-
-            mreturn newCustomer
-
         endmethod
 
         ;;; <summary>

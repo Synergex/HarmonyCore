@@ -29,9 +29,8 @@ namespace HarmonyCore.CliTool
                 Console.WriteLine($"Using MSBuild from path: {msbuildDeploymentToUse.MSBuildPath}");
                 Console.WriteLine();
 
-                MSBuildLocator.RegisterMSBuildPath(msbuildDeploymentToUse.MSBuildPath);
-                
-
+                if(!MSBuildLocator.IsRegistered)
+                    MSBuildLocator.RegisterMSBuildPath(msbuildDeploymentToUse.MSBuildPath);
 
                 if (File.Exists(codegenProjectPath))
                 {
@@ -49,7 +48,7 @@ namespace HarmonyCore.CliTool
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Failed to load codegen project information: {0}", ex);
+                Console.WriteLine("WARNING: Exception while synthesizing codegen project information: {0}", ex);
             }
         }
          

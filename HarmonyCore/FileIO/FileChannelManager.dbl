@@ -30,7 +30,11 @@ namespace Harmony.Core.FileIO
 			Dispose(false)
 		endmethod
 
-		
+		public virtual method AbandonOpenChannels, void
+		proc
+			mAllOpenChannels.Clear()
+		endmethod
+
 		private mAllOpenChannels, @ConcurrentDictionary<int, Tuple<string, FileOpenMode>>, new ConcurrentDictionary<int, Tuple<string, FileOpenMode>>()
 		private mChannelLookup, @ConcurrentDictionary<string, ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>>, new ConcurrentDictionary<string, ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>>()
 		
@@ -98,10 +102,18 @@ namespace Harmony.Core.FileIO
 		proc
 			DebugLogSession.Logging.LogInfo("FileChannelManager: Returned channel {0}", channelId)
 			xcall free(channelId)
-			data channelInfo = mAllOpenChannels[channelId]
-			data openModeLookup = mChannelLookup[channelInfo.Item1]
-			data channelBag = openModeLookup[channelInfo.Item2]
-			channelBag.Add(channelId)
+			data channelInfo, @Tuple<string, FileOpenMode>
+			if(!mAllOpenChannels.TryGetValue(channelId, channelInfo)) then
+			begin
+				close channelId
+			end
+			else
+			begin
+				data openModeLookup = mChannelLookup[channelInfo.Item1]
+				data channelBag = openModeLookup[channelInfo.Item2]
+				channelBag.Add(channelId)
+			end
+
 		endmethod
 
 		public virtual method ChannelHasHook, boolean

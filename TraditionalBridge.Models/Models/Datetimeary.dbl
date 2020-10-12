@@ -17,6 +17,9 @@ import System.ComponentModel.DataAnnotations
 import System.Text
 import Harmony.Core
 import Harmony.Core.Converters
+import Harmony.Core.Context
+import Harmony.Core.FileIO
+import Microsoft.Extensions.DependencyInjection
 
 namespace TraditionalBridge.Models
 
@@ -25,6 +28,7 @@ namespace TraditionalBridge.Models
         ;;make the record available and a copy
         private mSynergyData, strDatetimeary
         private mOriginalSynergyData, strDatetimeary
+        protected mGlobalRFA  ,a10
 
         private static sMetadata, @DatetimearyMetadata
 
@@ -68,7 +72,7 @@ namespace TraditionalBridge.Models
             method get
             proc
                 data formatString = "YYYYMMDD"
-                mreturn SynergyDecimalDateConverter.Convert(mSynergyData.adts_dt8[1], ^null, formatString, ^null)
+                mreturn (DateTime)SynergyDecimalDateConverter.Convert(mSynergyData.adts_dt8[1], ^null, formatString, ^null)
             endmethod
             method set
             proc
@@ -84,7 +88,7 @@ namespace TraditionalBridge.Models
             method get
             proc
                 data formatString = "YYYYMMDD"
-                mreturn SynergyDecimalDateConverter.Convert(mSynergyData.adts_dt8[2], ^null, formatString, ^null)
+                mreturn (DateTime)SynergyDecimalDateConverter.Convert(mSynergyData.adts_dt8[2], ^null, formatString, ^null)
             endmethod
             method set
             proc
@@ -100,7 +104,7 @@ namespace TraditionalBridge.Models
             method get
             proc
                 data formatString = "YYYYMMDD"
-                mreturn SynergyDecimalDateConverter.Convert(mSynergyData.adts_dt8[3], ^null, formatString, ^null)
+                mreturn (DateTime)SynergyDecimalDateConverter.Convert(mSynergyData.adts_dt8[3], ^null, formatString, ^null)
             endmethod
             method set
             proc
@@ -117,7 +121,7 @@ namespace TraditionalBridge.Models
             proc
                 data formatString = "YYYYMMDD"
                 formatString = "YYMMDD"
-                mreturn SynergyDecimalDateConverter.Convert(mSynergyData.adts_dt6[1], ^null, formatString, ^null)
+                mreturn (DateTime)SynergyDecimalDateConverter.Convert(mSynergyData.adts_dt6[1], ^null, formatString, ^null)
             endmethod
             method set
             proc
@@ -135,7 +139,7 @@ namespace TraditionalBridge.Models
             proc
                 data formatString = "YYYYMMDD"
                 formatString = "YYMMDD"
-                mreturn SynergyDecimalDateConverter.Convert(mSynergyData.adts_dt6[2], ^null, formatString, ^null)
+                mreturn (DateTime)SynergyDecimalDateConverter.Convert(mSynergyData.adts_dt6[2], ^null, formatString, ^null)
             endmethod
             method set
             proc
@@ -153,7 +157,7 @@ namespace TraditionalBridge.Models
             proc
                 data formatString = "YYYYMMDD"
                 formatString = "YYMMDD"
-                mreturn SynergyDecimalDateConverter.Convert(mSynergyData.adts_dt6[3], ^null, formatString, ^null)
+                mreturn (DateTime)SynergyDecimalDateConverter.Convert(mSynergyData.adts_dt6[3], ^null, formatString, ^null)
             endmethod
             method set
             proc
@@ -171,7 +175,7 @@ namespace TraditionalBridge.Models
             proc
                 data formatString = "YYYYMMDD"
                 formatString = "YYYYJJJ"
-                mreturn SynergyDecimalDateConverter.Convert(mSynergyData.adts_dt7[1], ^null, formatString, ^null)
+                mreturn (DateTime)SynergyDecimalDateConverter.Convert(mSynergyData.adts_dt7[1], ^null, formatString, ^null)
             endmethod
             method set
             proc
@@ -189,7 +193,7 @@ namespace TraditionalBridge.Models
             proc
                 data formatString = "YYYYMMDD"
                 formatString = "YYYYJJJ"
-                mreturn SynergyDecimalDateConverter.Convert(mSynergyData.adts_dt7[2], ^null, formatString, ^null)
+                mreturn (DateTime)SynergyDecimalDateConverter.Convert(mSynergyData.adts_dt7[2], ^null, formatString, ^null)
             endmethod
             method set
             proc
@@ -207,7 +211,7 @@ namespace TraditionalBridge.Models
             proc
                 data formatString = "YYYYMMDD"
                 formatString = "YYYYJJJ"
-                mreturn SynergyDecimalDateConverter.Convert(mSynergyData.adts_dt7[3], ^null, formatString, ^null)
+                mreturn (DateTime)SynergyDecimalDateConverter.Convert(mSynergyData.adts_dt7[3], ^null, formatString, ^null)
             endmethod
             method set
             proc
@@ -224,7 +228,7 @@ namespace TraditionalBridge.Models
             method get
             proc
                 data formatString = "YYYYMMDD"
-                mreturn SynergyDecimalDateConverter.Convert(mSynergyData.adts_dt5[1], ^null, formatString, ^null)
+                mreturn (DateTime)SynergyDecimalDateConverter.Convert(mSynergyData.adts_dt5[1], ^null, formatString, ^null)
             endmethod
             method set
             proc
@@ -240,7 +244,7 @@ namespace TraditionalBridge.Models
             method get
             proc
                 data formatString = "YYYYMMDD"
-                mreturn SynergyDecimalDateConverter.Convert(mSynergyData.adts_dt5[2], ^null, formatString, ^null)
+                mreturn (DateTime)SynergyDecimalDateConverter.Convert(mSynergyData.adts_dt5[2], ^null, formatString, ^null)
             endmethod
             method set
             proc
@@ -256,7 +260,7 @@ namespace TraditionalBridge.Models
             method get
             proc
                 data formatString = "YYYYMMDD"
-                mreturn SynergyDecimalDateConverter.Convert(mSynergyData.adts_dt5[3], ^null, formatString, ^null)
+                mreturn (DateTime)SynergyDecimalDateConverter.Convert(mSynergyData.adts_dt5[3], ^null, formatString, ^null)
             endmethod
             method set
             proc
@@ -383,6 +387,17 @@ namespace TraditionalBridge.Models
             endmethod
         endproperty
 
+        public override property GlobalRFA, [#]byte
+			method get
+			proc
+                mreturn mGlobalRFA
+			endmethod
+			method set
+			proc
+                mGlobalRFA = value
+			endmethod
+		endproperty
+
 .endregion
 
 .region "Public methods"
@@ -397,13 +412,6 @@ namespace TraditionalBridge.Models
         endmethod
 
         ;;; <summary>
-        ;;; Allow the host to validate all fields. Each field will fire the validation method.
-        ;;; </summary>
-        public override method InitialValidateData, void
-        proc
-        endmethod
-
-        ;;; <summary>
         ;;;
         ;;; </summary>
         public override method InternalGetValues, [#]@object
@@ -413,6 +421,7 @@ namespace TraditionalBridge.Models
         endmethod
 
 .endregion
+
     endclass
 
 endnamespace

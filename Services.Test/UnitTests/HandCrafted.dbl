@@ -510,6 +510,21 @@ namespace Services.Test.UnitTests
             data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
         endmethod
 
+		{TestMethod}
+		public method Getedge, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data response = client.GetAsync("/odata/v1/Items?$filter=Contains(CommonName,'edge')").Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
+			data item, @Item
+			foreach item in items.Value
+			begin
+                Assert.IsTrue(item.CommonName.Contains("edge"))
+			end
+		endmethod
+
         ;;------------------------------------------------------------
         ;;Customer 1 with orders
 
@@ -1075,7 +1090,33 @@ namespace Services.Test.UnitTests
                 Assert.IsTrue(customerData.CustomerNumber >= 8)
             end
 
-        endmethod
+		endmethod
+
+		{TestMethod}
+		public method EF_WhereUpdate, void
+		proc
+			data startupClass = new Startup(^null, ^null)
+			data startupServices = new ServiceCollection()
+			startupClass.ConfigureServices(startupServices)
+			disposable data sp = startupServices.BuildServiceProvider()
+			disposable data context, @DbContext, sp.GetService<DbContext>()
+			data customerCollection, @IEnumerable<Services.Models.Customer>, context.Customers.Where("CustomerNumber >= @0", 8).ToList()
+			data customerData, @Services.Models.Customer
+			foreach customerData in customerCollection
+			begin
+				customerData.City = customerData.City + "1"
+			end
+
+			
+			Assert.IsTrue(context.ChangeTracker.Entries().Count() == customerCollection.Count())
+            Assert.IsTrue(context.ChangeTracker.Entries().All(lambda(entry) { entry.State == Microsoft.EntityFrameworkCore.EntityState.Modified }))
+
+			context.SaveChanges()
+
+			data customerCollection2, @IEnumerable<Services.Models.Customer>, context.Customers.Where('City.EndsWith(@0)', "1").ToList()
+			Assert.IsTrue(customerCollection2.Count() == customerCollection.Count())
+
+		endmethod
 
         {TestMethod}
         public method EF_WhereIncluding, void
@@ -1378,16 +1419,16 @@ namespace Services.Test.UnitTests
             end
         endmethod
 
-		{TestMethod}
-		public method BasicSystemTextJson, void
-		proc
-
-			data testCustomer = new Services.Models.Customer()
-            testCustomer.CustomerNumber = 5
-			data serializedCustomer = System.Text.Json.JsonSerializer.Serialize<Services.Models.Customer>(testCustomer, new System.Text.Json.JsonSerializerOptions())
-			Assert.AreEqual('{"CustomerNumber":5,"Name":"","Street":"","City":"","State":"","ZipCode":0,"Contact":"","Phone":"(000) 000-0000","Fax":"(000) 000-0000","FavoriteItem":0,"PaymentTermsCode":"","TaxId":0,"CreditLimit":0.00}', serializedCustomer)
-			System.Text.Json.JsonSerializer.Deserialize<Services.Models.Customer>(serializedCustomer, new System.Text.Json.JsonSerializerOptions())
-		endmethod
+;		{TestMethod}
+;		public method BasicSystemTextJson, void
+;		proc
+;
+;			data testCustomer = new Services.Models.Customer()
+;            testCustomer.CustomerNumber = 5
+;			data serializedCustomer = System.Text.Json.JsonSerializer.Serialize<Services.Models.Customer>(testCustomer, new System.Text.Json.JsonSerializerOptions())
+;			Assert.AreEqual('{"CustomerNumber":5,"Name":"","Street":"","City":"","State":"","ZipCode":0,"Contact":"","Phone":"(000) 000-0000","Fax":"(000) 000-0000","FavoriteItem":0,"PaymentTermsCode":"","TaxId":0,"CreditLimit":0.00}', serializedCustomer)
+;			System.Text.Json.JsonSerializer.Deserialize<Services.Models.Customer>(serializedCustomer, new System.Text.Json.JsonSerializerOptions())
+;		endmethod
 
     endclass
 

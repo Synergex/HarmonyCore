@@ -35,6 +35,7 @@ namespace Harmony.Core.FileIO.Queryable
 			data caseInsensitive = theOperator == WhereClauseOperator.NoCaseEqualTo || 
 			&	theOperator == WhereClauseOperator.NoCaseNotEqualTo ||
 			&	theOperator == WhereClauseOperator.IsLikeNoCase ||
+			&	theOperator == WhereClauseOperator.StringContainsNoCase ||
 			&	theOperator == WhereClauseOperator.IsInNoCase
 
 			data leftMinSize = Math.Min(fieldDetails2.ElementSize, fieldDetails1.ElementSize)
@@ -225,6 +226,7 @@ namespace Harmony.Core.FileIO.Queryable
 			data caseInsensitive = theOperator == WhereClauseOperator.NoCaseEqualTo || 
 			&	theOperator == WhereClauseOperator.NoCaseNotEqualTo ||
 			&	theOperator == WhereClauseOperator.IsLikeNoCase ||
+			&	theOperator == WhereClauseOperator.StringContainsNoCase ||
 			&	theOperator == WhereClauseOperator.IsInNoCase
 
 			using theOperator select
@@ -490,6 +492,9 @@ namespace Harmony.Core.FileIO.Queryable
 			data caseInsensitive = theOperator == WhereClauseOperator.NoCaseEqualTo || 
 			&	theOperator == WhereClauseOperator.NoCaseNotEqualTo ||
 			&	theOperator == WhereClauseOperator.IsLikeNoCase ||
+			&	theOperator == WhereClauseOperator.IsNotLikeNoCase ||
+			&	theOperator == WhereClauseOperator.StringContainsNoCase ||
+			&	theOperator == WhereClauseOperator.NotStringContainsNoCase ||
 			&	theOperator == WhereClauseOperator.IsInNoCase ||
 			&	theOperator == WhereClauseOperator.StartsWithNoCase ||
 			&	theOperator == WhereClauseOperator.NotStartsWithNoCase
@@ -674,8 +679,9 @@ namespace Harmony.Core.FileIO.Queryable
 				end
 				endusing
 			end
-			(whereClauseOperator.IsLike, whereClauseOperator.IsLikeNoCase),
+			(whereClauseOperator.IsLike, whereClauseOperator.IsLikeNoCase, WhereClauseOperator.IsNotLike, WhereClauseOperator.IsNotLikeNoCase),
 			begin
+				data resultWhere, @Where
 				using fieldDetails.DataType select
 				(FieldDataType.AlphaField),
 				begin
@@ -685,15 +691,47 @@ namespace Harmony.Core.FileIO.Queryable
 					if (!caseInsensitive) then
 					begin
 						DebugLogSession.Logging.LogTrace("HARMONY-commandParser::fieldWhereClause: IsLike Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
-						mreturn Where.Like(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), (^m(tmpStructure(1:length), memPnt)))
+						resultWhere = Where.Like(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), (^m(tmpStructure(1:length), memPnt)))
 					end
 					else
 					begin
 						DebugLogSession.Logging.LogTrace("HARMONY-commandParser::fieldWhereClause: IsLike NoCaseWhere (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
-						mreturn NoCaseWhere.Like(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), (^m(tmpStructure(1:length), memPnt)))
+						resultWhere = NoCaseWhere.Like(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), (^m(tmpStructure(1:length), memPnt)))
 					end
 				end
 				endusing
+
+				if(theOperator == WhereClauseOperator.IsNotLike || theOperator == WhereClauseOperator.IsNotLikeNoCase)
+					resultWhere = !resultWhere
+
+				mreturn resultWhere
+			end
+			(whereClauseOperator.StringContains, whereClauseOperator.StringContainsNoCase, WhereClauseOperator.NotStringContains, WhereClauseOperator.NotStringContainsNoCase),
+			begin
+				data resultWhere, @Where
+				using fieldDetails.DataType select
+				(FieldDataType.AlphaField),
+				begin
+					data length	,i4	,%trim(^m(tmpStructure(1:fieldDetails.ElementSize), memPnt))
+					if (!length) length = fieldDetails.ElementSize
+
+					if (!caseInsensitive) then
+					begin
+						DebugLogSession.Logging.LogTrace("HARMONY-commandParser::fieldWhereClause: StringContains Where (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
+						resultWhere = Where.Contains(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), (^m(tmpStructure(1:length), memPnt)))
+					end
+					else
+					begin
+						DebugLogSession.Logging.LogTrace("HARMONY-commandParser::fieldWhereClause: StringContains NoCaseWhere (AlphaField) clause.  Structure position : {0}, size : {1}, value : {2}", fieldDetails.StructurePosition, fieldDetails.ElementSize, new MemoryHandleDebugLogHelper(memPnt, fieldDetails.ElementSize))
+						resultWhere = NoCaseWhere.Contains(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), (^m(tmpStructure(1:length), memPnt)))
+					end
+				end
+				endusing
+
+				if(theOperator == WhereClauseOperator.NotStringContains || theOperator == WhereClauseOperator.NotStringContainsNoCase)
+					resultWhere = !resultWhere
+
+				mreturn resultWhere
 			end
 			(whereClauseOperator.EndsWith, whereClauseOperator.EndsWithNoCase, WhereClauseOperator.NotEndsWith, WhereClauseOperator.NotEndsWithNoCase),
 			begin
@@ -812,6 +850,7 @@ namespace Harmony.Core.FileIO.Queryable
 			data caseInsensitive = theOperator == WhereClauseOperator.NoCaseEqualTo || 
 			&	theOperator == WhereClauseOperator.NoCaseNotEqualTo ||
 			&	theOperator == WhereClauseOperator.IsLikeNoCase ||
+			&	theOperator == WhereClauseOperator.StringContainsNoCase ||
 			&	theOperator == WhereClauseOperator.IsInNoCase
 
 			using theOperator select
@@ -1406,7 +1445,21 @@ namespace Harmony.Core.FileIO.Queryable
 		proc
 			if(expr .is. @ParameterReference) then
 			begin
-				mreturn new string[#] { FormatValue(mQueryBuffer.Parameters[((@ParameterReference)expr).Name].ToString(), targetField) }
+				data parameterValue = mQueryBuffer.Parameters[((@ParameterReference)expr).Name]
+				data enumerableParameterValue = ^as(parameterValue, @System.Collections.IEnumerable)
+				if(parameterValue .is. String) then
+				begin
+					mreturn new string[#] { FormatValue((@string)parameterValue, targetField) }
+				end
+				else if(enumerableParameterValue != ^null) then
+				begin
+					mreturn enumerableParameterValue.OfType<Object>().Select(lambda(element) { element.ToString() }).ToArray()
+				end
+				else
+				begin
+					mreturn new string[#] { FormatValue(parameterValue.ToString(), targetField) }
+				end
+					
 			end
 			else if(expr .is. @FieldReference) then
 			begin

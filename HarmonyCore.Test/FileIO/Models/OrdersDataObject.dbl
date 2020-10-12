@@ -25,7 +25,8 @@ namespace Harmony.Core.Test.FileIO.Models
         ;;make the record available and a copy
         private mSynergyData, STROrders 
 		private mOriginalSynergyData, STROrders 
-		
+		protected mGlobalRFA  ,a10
+
 		private static sMetadata, @OrdersMetadata
 		static method Orders
 		proc
@@ -192,15 +193,18 @@ namespace Harmony.Core.Test.FileIO.Models
                 mreturn mOriginalSynergyData
             endmethod
         endproperty
-
-		;;; <summary>
-		;;; Allow the host to validate all fields. Each field will fire the validation method.
-		;;; </summary>
-		public override method InitialValidateData, void
-			endparams
-		proc
-		endmethod
 		
+		public override property GlobalRFA, [#]byte
+			method get
+			proc
+				mreturn mGlobalRFA
+			endmethod
+			method set
+			proc
+				mGlobalRFA = value
+			endmethod
+		endproperty
+
 		public override property Metadata, @DataObjectMetadataBase
 			method get
 			proc
@@ -287,12 +291,28 @@ namespace Harmony.Core.Test.FileIO.Models
 		endmethod
 
 		public override method MakeNew, @DataObjectBase
-			in req recordData, a
-			in req grfaData, a
-			in req joinedData, [#]KeyValuePair<string, Object>
+			required in dataArea, a
+			required in grfa, a
+			required in joinedObjects, [#]KeyValuePair<String, Object>
 		proc
-			mreturn new Orders((STROrders)recordData) { GlobalRFA = grfaData }
+			data newOrder = new Orders((STROrders)dataArea) { GlobalRFA = grfa }
+			mreturn newOrder
 		endmethod
+        
+		public override method UpdateExistingJoin, void
+			required in existing, @DataObjectBase
+			required in joinedObjects, [#]KeyValuePair<String, Object>
+		proc
+			UpdateExistingJoin((@Orders)existing, joinedObjects)
+		endmethod
+
+		public method UpdateExistingJoin, void
+			required in existing, @Orders
+			required in joinedObjects, [#]KeyValuePair<String, Object>
+		proc
+			
+		endmethod
+
 		public override method FormatKeyLiteral, a
 			keyNumber, int
 			parts, @Dictionary<string, Object>

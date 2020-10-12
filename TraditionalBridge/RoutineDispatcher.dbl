@@ -48,6 +48,7 @@ namespace Harmony.TraditionalBridge
         ;;; </summary>
         public method RoutineDispatcher
         proc
+            ;;setchars(mActivationMask, 3, 4, 25, 26)
             mDispatchStubs = new StringDictionary()
             mReadBufferSize = 0
             mReadBuffer = 0
@@ -61,6 +62,22 @@ namespace Harmony.TraditionalBridge
 
             mReadBufferSize = 0
             MaybeLog(5, "Destroying RoutineDispatcher")
+        endmethod
+
+		public virtual method BeforeDispatch, void
+			name, @string
+			callFrame, JSON_ELEMENT
+			serializer, @DispatchSerializer
+        proc
+
+        endmethod
+
+		public virtual method AfterDispatch, void
+			name, @string
+			callFrame, JSON_ELEMENT
+			serializer, @DispatchSerializer
+        proc
+
         endmethod
 
         ;;; <summary>
@@ -798,84 +815,38 @@ namespace Harmony.TraditionalBridge
         ;;; <param name="frameHeader"></param>
         ;;; <returns></returns>
         private method ReadCallBlock, boolean
-            required in ttChannel, i
-            required in frameHeader, i4
-            required in leftovers, a
-            required in leftoversLength, i
+            messageReader, @HeaderDelimitedMessageReader
+            serializer, @DispatchSerializer
+            header, ContentHeader
             record
 .ifdef DBLV11  
                 jsonDoc, @JsonDocument
 .else
-                jsonReader, @Json
+                jsonDoc, @object
 .endc
                 parsedJson, JSON_ELEMENT
-                serializer, @DispatchSerializer
                 result, boolean
-                readerPosition, int
-                remainingRead, int
-                constrainedRemainingRead, int
-                innerString, @string
-                innerHandle, D_HANDLE
             endrecord
         proc
-.ifndef DBLV11  
-            jsonReader = new Json()
-.endc
-            serializer = new DispatchSerializer(new ChannelOutputStream(ttChannel))
             ;;reuse the same buffer if possible
-            if(mReadBufferSize < frameHeader)
+            if(mReadBufferSize < header.length)
             begin
                 if(mReadBuffer != 0) then
                 begin
-                    MaybeLog(6, "Dispatcher: reallocating buffer was " + %string(mReadBufferSize) + " -> " + %string(frameHeader) )
-                    mReadBuffer = %mem_proc(DM_RESIZ, frameHeader, mReadBuffer)
-                    mReadBufferSize = frameHeader
+                    MaybeLog(6, "Dispatcher: reallocating buffer was " + %string(mReadBufferSize) + " -> " + %string(header.length) )
+                    mReadBuffer = %mem_proc(DM_RESIZ, header.length, mReadBuffer)
+                    mReadBufferSize = header.length
                 end
                 else
                 begin
-                    MaybeLog(6, "Dispatcher: allocating buffer with length" + %string(frameHeader))
-                    mReadBuffer = %mem_proc(DM_ALLOC | DM_STATIC, frameHeader)
-                    mReadBufferSize = frameHeader
+                    MaybeLog(6, "Dispatcher: allocating buffer with length" + %string(header.length))
+                    mReadBuffer = %mem_proc(DM_ALLOC | DM_STATIC, header.length)
+                    mReadBufferSize = header.length
                 end
             end
 
-            MaybeLog(6, "Dispatcher: Reading " + %string(frameHeader) + " total bytes of Content from input" )
-            readerPosition = 1 + leftoversLength
-            remainingRead = frameHeader - leftoversLength
-
-            if(leftoversLength > 0)
-            begin
-                ;;workaround for non conforming io on newlines
-                decr(remainingRead)
-                ^m(MemStruct(1:leftoversLength), mReadBuffer) = leftovers(1:leftoversLength)
-            end
-
-
-            do 
-            begin
-                MaybeLog(6, "Dispatcher: Reading " + %string(remainingRead) + " bytes from input")
-                if(remainingRead > 65535) then
-                    constrainedRemainingRead = 65535
-                else
-                    constrainedRemainingRead = remainingRead
-                gets(ttChannel, ^m(MemStruct(readerPosition:constrainedRemainingRead), mReadBuffer), wait:100, MASK:mActivationMask) [$ERR_TIMOUT=again]
-            again,  
-                MaybeLog(7, "Dispatcher: Reading Content from input" + ^m(MemStruct(readerPosition:remainingRead), mReadBuffer) + ": got " + %string(%rdlen(ttChannel)) + " bytes, was expecting " + %string(remainingRead) + " bytes")
-                readerPosition += %rdlen(ttChannel)
-                remainingRead = frameHeader - readerPosition
-                                
-            end
-            until remainingRead <= 0
-.ifdef DBLV11
-            innerString = %string_from_handle(mReadBuffer)
-            MaybeLog(6, "Dispatcher: Parsing buffer " + innerString.Substring(0, readerPosition - 1))
-            jsonDoc = JsonDocument.Parse(innerString.Substring(0, readerPosition - 1))
-            parsedJson = jsonDoc.RootElement
-.else
-            innerString = %string_from_handle(mReadBuffer)
-            MaybeLog(6, "Dispatcher: Parsing buffer " + innerString.Substring(0, readerPosition - 1))
-            parsedJson = jsonReader.ParseJson(innerString.Substring(0, readerPosition - 1))
-.endc
+            messageReader.ReadContent(header, mReadBuffer, mReadBufferSize, jsonDoc, parsedJson) 
+            
             if (!(IS_OBJ(parsedJson)) && !(IS_ARRAY(parsedJson)))
             begin
                 serializer.ReportError("failed to parse json request", (int)-32700, (int)-1)
@@ -917,95 +888,27 @@ namespace Harmony.TraditionalBridge
                 serializer.ArrayClose()
             end
             serializer.Flush()
-            flush(ttChannel)
             mreturn result
 
         endmethod
 
-        ;;; <summary>
-        ;;; 
-        ;;; </summary>
-        ;;; <param name="ttChannel"></param>
         public method Dispatch, void
-            ttChannel, i
-            record PacketLength
-                contentLengthPart, a16
-                lengthValue, a10
-                padding, a2
-            endrecord
-            record ContentType
-                contentTypeBuffer, a255
-            endrecord
-            record
-                leftoverData, a1
-                leftoverLength, int
-                lengthReadPos, int
+            messageReader, @HeaderDelimitedMessageReader
+            serializer, @DispatchSerializer
             record
                 running, boolean
-                frameHeader, d10
-                contentTypePos, int
-                contentTypeLength, int
-            endrecord
+                header, ContentHeader
         proc
-            ;;read 10 bytes of data from input when its available
-            ;;read count of bytes from input (in chunks ideally) 
-            ;;look for the target routine name
-            ;;build rcb block for the call
-            ;;deserialize arguments based on the types in json
-            ;;make the call
-            ;;trap any exceptions
             try
             begin
                 running = true
                 while(running)
                 begin
-                    clear ContentType
-                    clear PacketLength
-                    lengthReadPos = 1
-                    do 
-                    begin
-                        gets(ttChannel, PacketLength(lengthReadPos:1), wait:100, MASK:mActivationMask)  [$ERR_TIMOUT=again]
-                        contentTypeLength = %rdlen(ttChannel)
-                                                                                                
-                        if(contentTypeLength != 1)
-                            MaybeLog(5, "Dispatcher: got zero length from single char read without timeout")
-                                                                                                
-                        lengthReadPos += contentTypeLength
-                    again,          
-                        
-                    end
-                    until lengthReadPos > 16 && PacketLength(lengthReadPos - 1:1) == %char(10)
+                    messageReader.ReadHeader(header)
 
-                    MaybeLog(6, "Dispatcher: Reading ContentLength from input" + %atrim(PacketLength) + ":" + %string(lengthReadPos))
+                    MaybeLog(5, "Dispatcher: starting callblock processing with ContentLength " + %string(header.length) + " ContentType " + %atrim(header.contentTypeBuffer))
 
-                    clear PacketLength(lengthReadPos - 2:2)
-                    frameHeader = ^d(%atrim(lengthValue))
-                    contentTypePos = 1
-                    while(contentTypePos < 255)
-                    begin
-                    againContent,   
-                        gets(ttChannel, ContentType(contentTypePos:1), wait:100, MASK:mActivationMask)  [$ERR_TIMOUT=againContent]
-                        ;;if(contentTypePos > 3 && ContentType(contentTypePos:1) == %char(10))
-                        ;;begin
-                        ;;        leftoverLength = 0
-                        ;;        exitloop
-                        ;;end
-
-                        if(ContentType(contentTypePos:1) == '{')
-                        begin
-                            leftoverData = '{'
-                            leftoverLength = 1
-                            exitloop
-                        end
-
-                        contentTypePos += %rdlen(ttChannel)
-                    end
-
-                    MaybeLog(6, "Dispatcher: Reading ContentType from input" + %atrim(ContentType) + ":" + %string(contentTypePos))
-
-                    MaybeLog(5, "Dispatcher: starting callblock processing with ContentLength " + %atrim(lengthValue) + " ContentType " + %atrim(ContentType))
-
-                    running = ReadCallBlock(ttChannel, (int)frameHeader + 1, leftoverData, leftoverLength)
+                    running = ReadCallBlock(messageReader, serializer, header)
                     Logger.Instance.FinishMemoryLog()
                 end
                 MaybeLog(1, "Shutting down due to running == false")
@@ -1014,7 +917,6 @@ namespace Harmony.TraditionalBridge
             begin
                 try
                 begin
-                    data serializer = new DispatchSerializer(new ChannelOutputStream(ttChannel))
                     serializer.ReportError(ex.ToString(), (int)-32603, (int)-1)
                 end
                 catch(ex2, @Exception)
@@ -1025,6 +927,22 @@ namespace Harmony.TraditionalBridge
                 endtry
             end
             endtry
+        endmethod
+
+
+        ;;; <summary>
+        ;;; 
+        ;;; </summary>
+        ;;; <param name="ttChannel"></param>
+        public method Dispatch, void
+            ttChannel, i
+            record
+                messageReader, @HeaderDelimitedMessageReader
+                serializer, @DispatchSerializer
+        proc
+            messageReader = new HeaderDelimitedMessageReader(ttChannel)
+            serializer = new DispatchSerializer(new ChannelOutputStream(ttChannel))
+            Dispatch(messageReader, serializer)
         endmethod
 
         class StopGuard
@@ -1091,6 +1009,8 @@ namespace Harmony.TraditionalBridge
             else
                 requestId = -1
 
+            MaybeLog(5, "Dispatcher: requestid " + %string(requestId))
+
             guard = new StopGuard(serializer, requestId)
 
             if(jsonData.TryGetProperty("method", temp)) then
@@ -1115,6 +1035,8 @@ namespace Harmony.TraditionalBridge
                         ;;we've been asked to shutdown so return false and let the outer loop take care of it
                         serializer.ReportResult(requestId, 0)
                         serializer.OutputScopeClose()
+                        if(guard != ^null)
+                            guard.UnexpectedDeconstruction = false
                         mreturn false
                     end
                     else if(name == "rpc.ping") then
@@ -1248,9 +1170,21 @@ namespace Harmony.TraditionalBridge
             dispatcher, @RoutineDispatcher
             record
                 idElement, JSON_ELEMENT
+                idValue, int
+                hasId, boolean
         proc
-            serializer.ReportResponseProlog(callFrame.TryGetProperty("id", idElement), idElement.GetInt32())
+            hasId = callFrame.TryGetProperty("id", idElement)
+            idValue = -1
+            if(hasId)
+            begin
+                idValue = idElement.GetInt32()
+                MaybeLog(6, "prolog for id " + %string(idValue))
+            end
+            
+            serializer.ReportResponseProlog(hasId, idValue)
+            dispatcher.BeforeDispatch(name, callFrame, serializer)
             DispatchInternal(name, callFrame, serializer, dispatcher)
+            dispatcher.AfterDispatch(name, callFrame, serializer)
             serializer.ReportResponseEpilog()
         endmethod
 

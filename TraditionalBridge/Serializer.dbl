@@ -3,6 +3,13 @@ import System.Collections
 import Harmony.TraditionalBridge
 
 
+.ifdef DBLV11
+import System.Text.Json
+.define JSON_ELEMENT @JsonElement
+.else
+.define JSON_ELEMENT @JsonValue
+.endc
+
 .define MaybeLog(priority, msg) if((priority) <= Logger.LogLevel) Logger.Instance.Log(msg)
 ;.define MaybeLog(priority, msg) Logger.Instance.Log(msg)
 namespace Json
@@ -37,6 +44,195 @@ namespace Json
 		proc
 		endmethod
 	endclass
+
+	public class HeaderDelimitedMessageReader
+		private structure MemStruct
+			fld, a1
+		endstructure
+
+		protected method HeaderDelimitedMessageReader
+		proc
+
+		endmethod
+
+
+		public method HeaderDelimitedMessageReader
+			channel, int
+			endparams
+		proc
+			ttChannel = channel
+		endmethod
+
+
+		protected ttChannel, int
+		protected mActivationMask, [32]i1
+		public virtual method ReadHeader, void
+			out header, ContentHeader
+			record
+				lengthHeader, ContentLengthHeader
+				lengthReadPos, int
+				contentTypePos, int
+				contentTypeLength, int
+		proc
+			clear lengthHeader
+			clear header.contentTypeBuffer
+			header.leftoverLength = 0
+			clear header.leftoverData
+			lengthReadPos = 1
+			do 
+			begin
+				gets(ttChannel, lengthHeader(lengthReadPos:1), wait:100, MASK:mActivationMask)  [$ERR_TIMOUT=again]
+				contentTypeLength = %rdlen(ttChannel)
+                                                                                                
+				if(contentTypeLength != 1)
+					MaybeLog(5, "Dispatcher: got zero length from single char read without timeout")
+
+.ifdef D_VMS
+				if(lengthHeader(lengthReadPos:1) == %char(26) || lengthHeader(lengthReadPos:1) == %char(25))
+					throw new Exception("process termination requested by ctrl-z/y")
+.endc
+				if(lengthHeader(lengthReadPos:1) == %char(3) || lengthHeader(lengthReadPos:1) == %char(4))
+					throw new Exception("process termination requested by ctrl-c/d")
+
+				lengthReadPos += contentTypeLength
+			again,          
+                        
+			end
+			until lengthReadPos > 16 && lengthHeader(lengthReadPos - 1:1) == %char(10)
+
+			MaybeLog(6, "Dispatcher: Reading ContentLength from input" + %atrim(lengthHeader) + ":" + %string(lengthReadPos))
+
+			clear lengthHeader(lengthReadPos - 2:2)
+			header.length = ^d(%atrim(lengthHeader.lengthValue))
+			contentTypePos = 1
+			while(contentTypePos < 255)
+			begin
+			againContent,   
+				gets(ttChannel, header.contentTypeBuffer(contentTypePos:1), wait:100, MASK:mActivationMask)  [$ERR_TIMOUT=againContent]
+
+				if(header.contentTypeBuffer(contentTypePos:1) == '{')
+				begin
+					header.leftoverData = '{'
+					header.leftoverLength = 1
+					exitloop
+				end
+
+				contentTypePos += %rdlen(ttChannel)
+			end
+		endmethod
+
+		private static varargs method SetChars, void
+;
+; Description:  Routine to set the appropriate bits in the activation
+;               character mask for desired terminators
+;
+; Arguments:
+;
+			inout a_actchars          ,[32]i1         ;Array of activation bit characters
+			a_char              ,n              ;0 or more character values
+;
+.define D_BITS_IN_CHAR          ,8      ;Number of bits in a character
+.align
+			stack record
+				argnm               ,i4                     ;Argument counter
+				charval             ,i4                     ;Character value
+				ndx                 ,i4                     ;Index into array
+				group dbits         ,d D_BITS_IN_CHAR       ;"Bit flags" for a character
+					dbit               ,[D_BITS_IN_CHAR]d1
+				endgroup
+				abits               ,a D_BITS_IN_CHAR @dbits           ;Union as alpha
+		proc
+			for argnm from ^argnum(a_char) thru %numargs   ;For all "a_char" args
+				if (^passed(^arg(argnm)))
+				begin
+					charval = ^argn(argnm)                          ;Get the character value
+					decr charval                                    ;Make 1 = 0
+					ndx = (charval / D_BITS_IN_CHAR)                ;Base 0 array index
+					charval -= (ndx * D_BITS_IN_CHAR)               ;Modulo array element size
+					clear dbits
+					dbit[D_BITS_IN_CHAR - charval] = 1              ;Set the "bit"
+					incr ndx                                        ;Make the array base 1
+					a_actchars[ndx] = a_actchars[ndx] .bor. %b(abits)
+					;Mask in the bit
+				end
+			mreturn
+		endmethod
+
+		public virtual method ReadContent, void
+			in header, ContentHeader
+			in readBuffer, D_HANDLE
+			in readBufferSize, int
+			out jsonDoc, @object
+			out rootElement, JSON_ELEMENT
+			record
+				headerLength, int
+				remainingRead, int
+				readerPosition, int
+				constrainedRemainingRead, int
+				innerString, @string
+.ifdef DBLV11  
+				typedJsonDoc, @JsonDocument
+.else
+				jsonReader, @Json
+.endc
+		proc
+.ifndef DBLV11  
+			jsonReader = new Json()
+.endc
+			headerLength = header.length + 1
+			MaybeLog(6, "Dispatcher: Reading " + %string(headerLength) + " total bytes of Content from input" )
+			readerPosition = 1 + header.leftoverLength
+			remainingRead = headerLength - header.leftoverLength
+
+			if(header.leftoverLength > 0)
+			begin
+				;;workaround for non conforming io on newlines
+				decr(remainingRead)
+				^m(MemStruct(1:header.leftoverLength), readBuffer) = header.leftoverData(1:header.leftoverLength)
+			end
+
+			do 
+			begin
+				MaybeLog(6, "Dispatcher: Reading " + %string(remainingRead) + " bytes from input")
+				if(remainingRead > 65535) then
+					constrainedRemainingRead = 65535
+				else
+					constrainedRemainingRead = remainingRead
+				gets(ttChannel, ^m(MemStruct(readerPosition:constrainedRemainingRead), readBuffer), wait:100, MASK:mActivationMask) [$ERR_TIMOUT=again]
+			again,  
+				MaybeLog(7, "Dispatcher: Reading Content from input" + ^m(MemStruct(readerPosition:remainingRead), readBuffer) + ": got " + %string(%rdlen(ttChannel)) + " bytes, was expecting " + %string(remainingRead) + " bytes")
+				readerPosition += %rdlen(ttChannel)
+				remainingRead = headerLength - readerPosition
+                                
+			end
+			until remainingRead <= 0
+.ifdef DBLV11
+			innerString = %string_from_handle(readBuffer)
+			MaybeLog(6, "Dispatcher: Parsing buffer " + innerString.Substring(0, readerPosition - 1))
+			jsonDoc = typedJsonDoc = JsonDocument.Parse(innerString.Substring(0, readerPosition - 1))
+			rootElement = typedJsonDoc.RootElement
+.else
+			innerString = %string_from_handle(readBuffer)
+			MaybeLog(6, "Dispatcher: Parsing buffer " + innerString.Substring(0, readerPosition - 1))
+			rootElement = jsonReader.ParseJson(innerString.Substring(0, readerPosition - 1))
+.endc
+		endmethod
+	endclass
+
+	structure ContentHeader
+		length, i4
+		contentTypeBuffer, a255
+		leftoverData, a1
+		leftoverLength, int
+	endstructure
+
+
+	structure ContentLengthHeader
+		contentLengthPart, a16
+		lengthValue, a10
+		padding, a2
+	endstructure
+
 
 	public class ChannelOutputStream extends OutputStream
 		public readwrite property Channel, int
@@ -205,7 +401,7 @@ namespace Json
 
 		;;; <summary>
 		;;; Removes the top serializer state from the stack. The stack indicates
-		;;; whether the serializer is currently processing an onject or an array.
+		;;; whether the serializer is currently processing an object or an array.
 		;;; </summary>
 		;;; <returns>The SerializerStackType that was removed from the stack.</returns>
 		private method Pop, SerializerStackType
@@ -634,8 +830,9 @@ namespace Json
 				MaybeLog(6, "Serializer: " + alphaBuf(1:alphaPosition))
 				outStream.FlushData(alphaBuf(1:alphaPosition))
 			end
-			clear alphaposition
 			buffer = ""
+			first = true
+			alphaPosition = 0
 		endmethod
 
 .endregion
@@ -1162,11 +1359,9 @@ namespace Json
 
 		public method ReportResponseEpilog, void
 		proc
-			;;Terminate the "ReturnParameters" array
+			;;Terminate the "Result" array
             ArrayClose()
 
-            ;;Terminate the "Result" object
-            MapClose()
             ;;Terminate the response object
             MapClose()
 		endmethod
