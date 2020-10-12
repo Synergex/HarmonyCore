@@ -1,0 +1,90 @@
+import Json
+import Synergex.TestFramework
+import Harmony.TraditionalBridge
+import System.Text.Json
+import TraditionalBridge.Test
+
+namespace TraditionalBridge.UnitTest
+
+    {TestClass}
+    public class smc
+        
+        {TestCategory("smc")}
+        {TestMethod}
+        public method function_one, void
+            endparams
+            record
+                dispatchResult, @string
+        proc
+            dispatchResult = DispatchRunner.RemoveMessageHeader(DispatchRunner.RunDispatchsmc('{"jsonrpc":"2.0","id":110,"method":"function_one","params":[{"ReturnedValue":false},{"PassedValue":"hello","DataType":1},{"PassedValue":"12345","DataType":2},{"PassedValue":"2012.222","DataType":4},{"PassedValue":4321,"DataType":8}]}'))
+            DispatchRunner.EnsureSuccess(dispatchResult)
+        endmethod
+        
+        {TestCategory("smc")}
+        {TestMethod}
+        public method function_two, void
+            endparams
+            record
+                dispatchResult, @string
+        proc
+            dispatchResult = DispatchRunner.RemoveMessageHeader(DispatchRunner.RunDispatchsmc('{"jsonrpc":"2.0","id":111,"method":"function_two","params":[{"ReturnedValue":false},{"PassedValue":"123456789.87","DataType":4},{"PassedValue":"12345.54321","DataType":4},{"PassedValue":"67890.09876","DataType":4},{"PassedValue":"24680.12","DataType":4},{"PassedValue":"20122202","DataType":2},{"PassedValue":"7531.2468","DataType":4},{"PassedValue":"12345.6789","DataType":4},{"PassedValue":"98765432","DataType":2},{"PassedValue":"220212.1","DataType":4},{"PassedValue":"22201222","DataType":2}]}'))
+            DispatchRunner.EnsureSuccess(dispatchResult)
+        endmethod
+        
+        {TestCategory("smc")}
+        {TestMethod}
+        public method function_four, void
+            endparams
+            record
+                dispatchResult, @string
+        proc
+            dispatchResult = DispatchRunner.RemoveMessageHeader(DispatchRunner.RunDispatchsmc('{"jsonrpc":"2.0","id":112,"method":"function_four","params":[{"ReturnedValue":false},{"PassedValue":"hello","DataType":1},{"PassedValue":"world","DataType":1},{"PassedValue":"2012","DataType":1},{"PassedValue":"0222","DataType":1}]}'))
+            DispatchRunner.EnsureSuccess(dispatchResult)
+        endmethod
+        
+        {TestCategory("smc")}
+        {Ignore("dbr.exe crashes by ntdll.dll here")}
+        {TestMethod}
+        public method function_eight, void
+            endparams
+            record
+                dispatchResult, @string
+        proc
+            dispatchResult = DispatchRunner.RemoveMessageHeader(DispatchRunner.RunDispatchsmc('{"jsonrpc":"2.0","id":113,"method":"function_eight","params":[{"ReturnedValue":false},{"PassedValue":"hello","DataType":1},{"PassedValue":2012,"DataType":8},{"PassedValue":"201202","DataType":2},{"PassedValue":"world","DataType":1},{"PassedValue":"12345.432","DataType":4},{"PassedValue":["1234","4321"],"DataType":1024},{"PassedValue":["hello","world"],"DataType":1024},{"PassedValue":["2012.02","22.12"],"DataType":1024},{"PassedValue":[2012,222],"DataType":1024}]}'))
+            DispatchRunner.EnsureSuccess(dispatchResult)
+        endmethod
+        
+        {TestCategory("smc")}
+        {TestMethod}
+        public method function_nine, void
+            endparams
+            record
+                dispatchResult, @string
+        proc
+            dispatchResult = DispatchRunner.RemoveMessageHeader(DispatchRunner.RunDispatchsmc('{"jsonrpc":"2.0","id":114,"method":"function_nine","params":[{"ReturnedValue":false,"DataType":2},{"PassedValue":"hello","DataType":1},{"PassedValue":"world","DataType":1}]}'))
+            DispatchRunner.EnsureSuccess(dispatchResult)
+        endmethod
+        
+        {TestCategory("smc")}
+        {TestMethod}
+        public method function_ten, void
+            endparams
+            record
+                dispatchResult, @string
+        proc
+            dispatchResult = DispatchRunner.RemoveMessageHeader(DispatchRunner.RunDispatchsmc('{"jsonrpc":"2.0","id":115,"method":"function_ten","params":[{"ReturnedValue":true,"DataType":2},{"PassedValue":"hello","DataType":1},{"PassedValue":"world","DataType":1}]}'))
+            DispatchRunner.EnsureSuccess(dispatchResult)
+        endmethod
+        
+        {TestCategory("smc")}
+        {TestMethod}
+        public method get_verno_tst, void
+            endparams
+            record
+                dispatchResult, @string
+        proc
+            dispatchResult = DispatchRunner.RemoveMessageHeader(DispatchRunner.RunDispatchsmc('{"jsonrpc":"2.0","id":116,"method":"get_verno_tst","params":[{"ReturnedValue":false},{"PassedValue":"helloworld","DataType":1}]}'))
+            DispatchRunner.EnsureSuccess(dispatchResult)
+        endmethod
+    endclass
+endnamespace

@@ -1,0 +1,34 @@
+import Json
+import Synergex.TestFramework
+import Harmony.TraditionalBridge
+import System.Text.Json
+import TraditionalBridge.Test
+
+namespace TraditionalBridge.UnitTest
+
+    {TestClass}
+    public class NoParams
+        
+        {TestCategory("NoParms")}
+        {TestMethod}
+        public method NoParmsNoRtn, void
+            endparams
+            record
+                dispatchResult, @string
+        proc
+            dispatchResult = DispatchRunner.RemoveMessageHeader(DispatchRunner.RunDispatchNoParms('{"jsonrpc":"2.0","id":101,"method":"NoParmsNoRtn","params":[{"ReturnedValue":false}]}'))
+            DispatchRunner.EnsureSuccess(dispatchResult)
+        endmethod
+
+        {TestCategory("NoParms")}
+        {TestMethod}
+        public method NoParmsWithRtn, void
+            endparams
+            record
+                dispatchResult, @string
+        proc
+            dispatchResult = DispatchRunner.RemoveMessageHeader(DispatchRunner.RunDispatchNoParms('{"jsonrpc":"2.0","id":102,"method":"NoParmsWithRtn","params":[{"ReturnedValue":true,"DataType":2}]}'))
+            DispatchRunner.EnsureSuccess(dispatchResult)
+        endmethod
+    endclass
+endnamespace
