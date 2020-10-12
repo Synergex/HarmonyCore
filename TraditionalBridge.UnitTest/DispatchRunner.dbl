@@ -113,6 +113,23 @@ namespace TraditionalBridge.UnitTest
             dispatch.Dispatch(messageReader, new DispatchSerializer(outStream))
             mreturn outStream.FlushedData
         endmethod
+        
+        public static method RunDispatchLrgPkts, @string
+            inputString, @string
+            record
+                dispatch, @LrgPktsDispatcher
+                outStream, @MockOutputStream
+                messageReader, @MockHeaderDelimitedMessageReader
+        proc
+            if(Logger.Instance == ^null)
+                Logger.Instance = new TraditionalBridge.Logger("fred.log", 6, false)
+
+            dispatch = new LrgPktsDispatcher()
+            messageReader = new MockHeaderDelimitedMessageReader(inputString)
+            outStream = new MockOutputStream()
+            dispatch.Dispatch(messageReader, new DispatchSerializer(outStream))
+            mreturn outStream.FlushedData
+        endmethod
 
         public static method RunDispatchNoParms, @string
             inputString, @string
@@ -244,6 +261,23 @@ namespace TraditionalBridge.UnitTest
                 Logger.Instance = new TraditionalBridge.Logger("fred.log", 6, false)
 
             dispatch = new smcDispatcher()
+            messageReader = new MockHeaderDelimitedMessageReader(inputString)
+            outStream = new MockOutputStream()
+            dispatch.Dispatch(messageReader, new DispatchSerializer(outStream))
+            mreturn outStream.FlushedData
+        endmethod
+        
+        public static method RunDispatchstrtests, @string
+            inputString, @string
+            record
+                dispatch, @strtestsDispatcher
+                outStream, @MockOutputStream
+                messageReader, @MockHeaderDelimitedMessageReader
+        proc
+            if(Logger.Instance == ^null)
+                Logger.Instance = new TraditionalBridge.Logger("fred.log", 6, false)
+
+            dispatch = new strtestsDispatcher()
             messageReader = new MockHeaderDelimitedMessageReader(inputString)
             outStream = new MockOutputStream()
             dispatch.Dispatch(messageReader, new DispatchSerializer(outStream))
