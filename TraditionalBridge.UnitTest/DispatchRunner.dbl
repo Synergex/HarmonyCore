@@ -335,6 +335,23 @@ namespace TraditionalBridge.UnitTest
             mreturn outStream.FlushedData
         endmethod
         
+        public static method RunDispatchV93IF, @string
+            inputString, @string
+            record
+                dispatch, @V93IFDispatcher
+                outStream, @MockOutputStream
+                messageReader, @MockHeaderDelimitedMessageReader
+        proc
+            if(Logger.Instance == ^null)
+                Logger.Instance = new TraditionalBridge.Logger("fred.log", 6, false)
+
+            dispatch = new V93IFDispatcher()
+            messageReader = new MockHeaderDelimitedMessageReader(inputString)
+            outStream = new MockOutputStream()
+            dispatch.Dispatch(messageReader, new DispatchSerializer(outStream))
+            mreturn outStream.FlushedData
+        endmethod
+        
         public static method RunDispatchWCFields, @string
             inputString, @string
             record
