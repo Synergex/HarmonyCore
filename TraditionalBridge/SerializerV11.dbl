@@ -375,20 +375,21 @@ namespace Json
             jsonWriter.WriteEndObject()
         endmethod
 
-        public method ArgumentData, void
-            argPos, int
-            value, @ArrayList
-            type, FieldDataType
-            elementSize, int
-            elementType, a
-            hasBinaryData, boolean
-            record
-                item, @object
-                doElement, @DataObjectBase
-        proc
-            jsonWriter.WriteStartObject()
-            jsonWriter.WriteNumber("Position", argPos)
-            jsonWriter.WriteStartObject("Value")
+			jsonWriter.WriteNumber("DataType", (i)FieldDataType.DataObjectCollectionField)
+			jsonWriter.WriteString("ElementType", elementType)
+			jsonWriter.WriteBoolean("ElementIsEncoded", hasBinaryData)
+			jsonWriter.WriteStartArray("PassedValue")
+			foreach item in value
+			begin
+				if(hasBinaryData) then
+					jsonWriter.WriteStringValue(Convert.ToBase64String((a)item))
+				else
+					jsonWriter.WriteStringValue((a)item)
+			end
+			jsonWriter.WriteEndArray()
+			jsonWriter.WriteEndObject()
+			jsonWriter.WriteEndObject()
+		endmethod
 
             jsonWriter.WriteNumber("DataType", (i)FieldDataType.DataObjectCollectionField)
             jsonWriter.WriteString("ElementType", elementType)
