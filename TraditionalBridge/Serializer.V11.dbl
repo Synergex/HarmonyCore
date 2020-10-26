@@ -181,7 +181,12 @@ namespace Json
                 if(^passed(size) && ^size(value) > size) then
                     jsonWriter.WriteString("Base64Value", Convert.ToBase64String(value(1:size)))
                 else
-                    jsonWriter.WriteString("Base64Value", Convert.ToBase64String(value))
+                begin
+                    if (^size(value) == 0) then
+                        jsonWriter.WriteString("Base64Value", "")
+                    else
+                        jsonWriter.WriteString("Base64Value", Convert.ToBase64String(value))
+                end
             end
             else
             begin
