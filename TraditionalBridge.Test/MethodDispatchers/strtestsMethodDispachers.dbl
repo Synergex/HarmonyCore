@@ -643,6 +643,7 @@ namespace TraditionalBridge.Test.strtests
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED OUT PERFSTRUCT [*]structure @Perfstruct)
+                arg1Array,          JSON_ELEMENT
                 arg1Handle,         D_HANDLE
                 arg1HandlePos,      int
                 ;;Argument 2 (REQUIRED OUT Count I4)
@@ -651,7 +652,7 @@ namespace TraditionalBridge.Test.strtests
 
             ;;Temp structure tempstr1
             structure tempstr1
-                arry, @Perfstruct
+                arry, [1]strPerfstruct
             endstructure
 
 
@@ -660,12 +661,19 @@ namespace TraditionalBridge.Test.strtests
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            ;;There are no inbound arguments to process
+            arguments = callFrame.GetProperty("params")
+
+            ;;Argument 1 (REQUIRED OUT PERFSTRUCT [*]structure @Perfstruct)
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1], 72)
+            arg1Array = (arguments[1]).GetProperty("PassedValue")
+            arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.GetArrayLength())
+            arg1HandlePos = 1
+            dispatcher.UnwrapObjectCollection(^m(arg1Handle),argumentDefinition,arg1HandlePos,arg1Array)
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
 
-            xcall outStructArray(^m(strPerfstruct,arg1Handle),arg2)
+            xcall outStructArray(^m(tempstr1.arry,arg1Handle),arg2)
 
             ;;--------------------------------------------------------------------------------
             ;;Argument 1 (REQUIRED OUT PERFSTRUCT [*]structure @Perfstruct)
@@ -773,6 +781,7 @@ namespace TraditionalBridge.Test.strtests
                 arg1DataObject,     @DataObjectBase
                 arg1,               strTrSyninsInp
                 ;;Argument 2 (OPTIONAL OUT TR_SYNINS_RET [*]structure @TrSyninsRet)
+                arg2Array,          JSON_ELEMENT
                 arg2Handle,         D_HANDLE
                 arg2HandlePos,      int
                 ;;Argument 3 (REQUIRED INOUT elementcount I4)
@@ -797,6 +806,13 @@ namespace TraditionalBridge.Test.strtests
             ;;Structure argument. Get the data object then get the record from it
             arg1DataObject = dispatcher.DeserializeObject(arguments[1],mTrSyninsInpMetadata)
             arg1 = arg1DataObject.SynergyRecord
+
+            ;;Argument 2 (OPTIONAL OUT TR_SYNINS_RET [*]structure @TrSyninsRet)
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[2], 258)
+            arg2Array = (arguments[2]).GetProperty("PassedValue")
+            arg2Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg2Array.GetArrayLength())
+            arg2HandlePos = 1
+            dispatcher.UnwrapObjectCollection(^m(arg2Handle),argumentDefinition,arg2HandlePos,arg2Array)
 
             ;;Argument 3 (REQUIRED INOUT elementcount I4)
             arg3 = dispatcher.GetInt(arguments[3])

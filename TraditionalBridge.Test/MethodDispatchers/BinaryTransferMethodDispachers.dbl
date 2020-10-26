@@ -13,7 +13,6 @@
 import Json
 import Harmony.TraditionalBridge
 import System.Collections
-import TraditionalBridge.Test.Models
 
 .ifdef DBLV11
 import System.Text.Json
@@ -275,6 +274,7 @@ namespace TraditionalBridge.Test.BinaryTransfer
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED OUT amybyte [*]I1)
+                arg1Array,          JSON_ELEMENT
                 arg1Handle,         D_HANDLE
                 arg1HandlePos,      int
             endrecord
@@ -290,7 +290,14 @@ namespace TraditionalBridge.Test.BinaryTransfer
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            ;;There are no inbound arguments to process
+            arguments = callFrame.GetProperty("params")
+
+            ;;Argument 1 (REQUIRED OUT amybyte [*]I1)
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1], 1)
+            arg1Array = (arguments[1]).GetProperty("PassedValue")
+            arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.GetArrayLength())
+            arg1HandlePos = 1
+            dispatcher.UnwrapObjectCollection(^m(arg1Handle),argumentDefinition,arg1HandlePos,arg1Array)
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -381,13 +388,14 @@ namespace TraditionalBridge.Test.BinaryTransfer
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED OUT amyintegers [*]structure @Integer)
+                arg1Array,          JSON_ELEMENT
                 arg1Handle,         D_HANDLE
                 arg1HandlePos,      int
             endrecord
 
             ;;Temp structure tempstr1
             structure tempstr1
-                arry, @Integer
+                arry, [1]strInteger
             endstructure
 
 
@@ -396,17 +404,24 @@ namespace TraditionalBridge.Test.BinaryTransfer
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            ;;There are no inbound arguments to process
+            arguments = callFrame.GetProperty("params")
+
+            ;;Argument 1 (REQUIRED OUT amyintegers [*]structure @Integer)
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1], 342)
+            arg1Array = (arguments[1]).GetProperty("PassedValue")
+            arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.GetArrayLength())
+            arg1HandlePos = 1
+            dispatcher.UnwrapObjectCollection(^m(arg1Handle),argumentDefinition,arg1HandlePos,arg1Array)
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
 
-            xcall getstructa(^m(strInteger,arg1Handle))
+            xcall getstructa(^m(tempstr1.arry,arg1Handle))
 
             ;;--------------------------------------------------------------------------------
             ;;Argument 1 (REQUIRED OUT amyintegers [*]structure @Integer)
             
-            serializer.ArgumentHandleData(1,arg1Handle,FieldDataType.DataObjectCollectionField,342,"INTEGERS",%mem_proc(DM_GETSIZE,arg1Handle)/342,false)
+            serializer.ArgumentHandleData(1,arg1Handle,FieldDataType.DataObjectCollectionField,342,"INTEGERS",%mem_proc(DM_GETSIZE,arg1Handle)/342,true)
         endmethod
 
     endclass
@@ -481,6 +496,7 @@ namespace TraditionalBridge.Test.BinaryTransfer
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED OUT amyuint [*]I4)
+                arg1Array,          JSON_ELEMENT
                 arg1Handle,         D_HANDLE
                 arg1HandlePos,      int
             endrecord
@@ -496,7 +512,14 @@ namespace TraditionalBridge.Test.BinaryTransfer
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            ;;There are no inbound arguments to process
+            arguments = callFrame.GetProperty("params")
+
+            ;;Argument 1 (REQUIRED OUT amyuint [*]I4)
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1], 4)
+            arg1Array = (arguments[1]).GetProperty("PassedValue")
+            arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.GetArrayLength())
+            arg1HandlePos = 1
+            dispatcher.UnwrapObjectCollection(^m(arg1Handle),argumentDefinition,arg1HandlePos,arg1Array)
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -581,6 +604,7 @@ namespace TraditionalBridge.Test.BinaryTransfer
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED OUT amyushort [*]I2)
+                arg1Array,          JSON_ELEMENT
                 arg1Handle,         D_HANDLE
                 arg1HandlePos,      int
             endrecord
@@ -596,7 +620,14 @@ namespace TraditionalBridge.Test.BinaryTransfer
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            ;;There are no inbound arguments to process
+            arguments = callFrame.GetProperty("params")
+
+            ;;Argument 1 (REQUIRED OUT amyushort [*]I2)
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1], 1)
+            arg1Array = (arguments[1]).GetProperty("PassedValue")
+            arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.GetArrayLength())
+            arg1HandlePos = 1
+            dispatcher.UnwrapObjectCollection(^m(arg1Handle),argumentDefinition,arg1HandlePos,arg1Array)
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine

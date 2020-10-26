@@ -395,13 +395,14 @@ namespace TraditionalBridge.Test.LrgPkts
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED OUT PERFSTRUCT [*]structure @Perfstruct)
+                arg1Array,          JSON_ELEMENT
                 arg1Handle,         D_HANDLE
                 arg1HandlePos,      int
             endrecord
 
             ;;Temp structure tempstr1
             structure tempstr1
-                arry, @Perfstruct
+                arry, [1]strPerfstruct
             endstructure
 
 
@@ -410,12 +411,19 @@ namespace TraditionalBridge.Test.LrgPkts
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            ;;There are no inbound arguments to process
+            arguments = callFrame.GetProperty("params")
+
+            ;;Argument 1 (REQUIRED OUT PERFSTRUCT [*]structure @Perfstruct)
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1], 72)
+            arg1Array = (arguments[1]).GetProperty("PassedValue")
+            arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.GetArrayLength())
+            arg1HandlePos = 1
+            dispatcher.UnwrapObjectCollection(^m(arg1Handle),argumentDefinition,arg1HandlePos,arg1Array)
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
 
-            xcall getStructArray(^m(strPerfstruct,arg1Handle))
+            xcall getStructArray(^m(tempstr1.arry,arg1Handle))
 
             ;;--------------------------------------------------------------------------------
             ;;Argument 1 (REQUIRED OUT PERFSTRUCT [*]structure @Perfstruct)

@@ -13,7 +13,6 @@
 import Json
 import Harmony.TraditionalBridge
 import System.Collections
-import TraditionalBridge.Test.Models
 
 .ifdef DBLV11
 import System.Text.Json
@@ -933,7 +932,7 @@ namespace TraditionalBridge.Test.SampleXfplEnv
                 arg1Handle,			D_HANDLE
                 arg1HandlePos,		int
                 ;;Argument 2 (REQUIRED OUT p2 [*]A1)
-                arg2Array,			JSON_ELEMENT
+                arg2Array,          JSON_ELEMENT
                 arg2Handle,			D_HANDLE
                 arg2HandlePos,		int
                 ;;Argument 3 (REQUIRED INOUT p3 [*]A1)
@@ -945,13 +944,14 @@ namespace TraditionalBridge.Test.SampleXfplEnv
                 arg4Handle,			D_HANDLE
                 arg4HandlePos,		int
                 ;;Argument 5 (REQUIRED OUT p26 [*]structure @Customer)
-                arg5Array,			JSON_ELEMENT
+                arg5Array,          JSON_ELEMENT
                 arg5Handle,			D_HANDLE
                 arg5HandlePos,		int
                 ;;Argument 6 (REQUIRED INOUT p27 [*]structure @Customer)
                 arg6Array,			JSON_ELEMENT
                 arg6Handle,			D_HANDLE
                 arg6HandlePos,		int
+                blsh,int
             endrecord
 
             ;;Temp structure tempstr1
@@ -971,17 +971,17 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 
             ;;Temp structure tempstr4
             structure tempstr4
-                arry, @Customer
+                arry, strCustomer
             endstructure
 
             ;;Temp structure tempstr5
             structure tempstr5
-                arry, @Customer
+                arry, strCustomer
             endstructure
 
             ;;Temp structure tempstr6
             structure tempstr6
-                arry, @Customer
+                arry, strCustomer
             endstructure
 
 
@@ -991,7 +991,7 @@ namespace TraditionalBridge.Test.SampleXfplEnv
             ;;Process inbound arguments
 
             arguments = callFrame.GetProperty("params")
-            
+
             ;;Argument 1 (REQUIRED IN p1 [*]A1)
             argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1], 1)
             arg1Array = (arguments[1]).GetProperty("PassedValue")
@@ -1014,21 +1014,21 @@ namespace TraditionalBridge.Test.SampleXfplEnv
             dispatcher.UnwrapObjectCollection(^m(arg3Handle),argumentDefinition,arg3HandlePos,arg3Array)
 
             ;;Argument 4 (REQUIRED IN p25 [*]structure @Customer)
-            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[4], 1)
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[4], 141)
             arg4Array = (arguments[4]).GetProperty("PassedValue")
             arg4Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg4Array.GetArrayLength())
             arg4HandlePos = 1
             dispatcher.UnwrapObjectCollection(^m(arg4Handle),argumentDefinition,arg4HandlePos,arg4Array)
 
             ;;Argument 5 (REQUIRED OUT p26 [*]structure @Customer)
-            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[5], 1)
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[5], 141)
             arg5Array = (arguments[5]).GetProperty("PassedValue")
             arg5Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg5Array.GetArrayLength())
             arg5HandlePos = 1
             dispatcher.UnwrapObjectCollection(^m(arg5Handle),argumentDefinition,arg5HandlePos,arg5Array)
 
             ;;Argument 6 (REQUIRED INOUT p27 [*]structure @Customer)
-            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[6], 1)
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[6], 141)
             arg6Array = (arguments[6]).GetProperty("PassedValue")
             arg6Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg6Array.GetArrayLength())
             arg6HandlePos = 1
@@ -1037,7 +1037,7 @@ namespace TraditionalBridge.Test.SampleXfplEnv
             ;;------------------------------------------------------------
             ;; Call the underlying routine
 
-            xcall array_parameters(^m(tempstr1.arry,arg1Handle),^m(tempstr2.arry,arg2Handle),^m(tempstr3.arry,arg3Handle),^m(strCustomer,arg4Handle),^m(strCustomer,arg5Handle),^m(strCustomer,arg6Handle))
+            xcall array_parameters(^m(tempstr1.arry,arg1Handle),^m(tempstr2.arry,arg2Handle),^m(tempstr3.arry,arg3Handle),^m(tempstr4.arry,arg4Handle),^m(tempstr5.arry,arg5Handle),^m(tempstr6.arry,arg6Handle))
 
             ;;--------------------------------------------------------------------------------
             ;;Argument 2 (REQUIRED OUT p2 [*]A1)
@@ -1057,7 +1057,7 @@ namespace TraditionalBridge.Test.SampleXfplEnv
             ;;--------------------------------------------------------------------------------
             ;;Argument 6 (REQUIRED INOUT p27 [*]structure @Customer)
             
-            serializer.ArgumentHandleData(6, arg6Handle, FieldDataType.DataObjectCollectionField, 161, "CUSTOMERS", arg6Array.GetArrayLength(), false)
+            serializer.ArgumentHandleData(6, arg6Handle, FieldDataType.DataObjectCollectionField, 161, "CUSTOMERS", arg6Array.GetArrayLength(), true)
         endmethod
 
     endclass
