@@ -102,7 +102,7 @@ namespace <NAMESPACE>
             </PRIMARY_KEY>
             </IF STRUCTURE_ISAM>
             <IF STRUCTURE_RELATIVE>
-            parm.Entity<<StructureNoplural>>().HasKey(RecordNumber)
+            parm.Entity<<StructureNoplural>>().HasKey("RecordNumber")
             </IF STRUCTURE_RELATIVE>
             </STRUCTURE_LOOP>
 
