@@ -26,9 +26,22 @@ namespace Harmony.OData.Adapter
 
     public class RangeFieldAdapterAttribute extends Attribute
         public readwrite property EdmName, @string
-        public readwrite property IsLowerBound, boolean
-        public readwrite property IsUpperBound, boolean
-    endclass
+        public readwrite property IsLowerBound, boolean 
+		public readwrite property IsUpperBound, boolean
+	endclass
+
+	public class RangeOperatorAdapterAttribute extends Attribute
+		public readwrite property EdmName, @string
+	endclass
+
+	public enum RangeOperator
+		Equals,
+		BoundInclusive
+		BoundExclusive
+		LowerInclusive
+        UpperInclusive
+	endenum
+
 
     public class MatchFieldAdapterAttribute extends Attribute
         public readwrite property EdmName, @string
@@ -227,7 +240,8 @@ namespace Harmony.OData.Adapter
         endmethod
 
 
-        public static method GetValueForDestinationField, @object
+		public static method GetValueForDestinationField, @object
+            fieldsWithRangeOps, @HashSet<string>
             adapterType, @Type
             destinationFieldName, @string
             opLookup, @Dictionary<string, List<AdapterOp>>
@@ -256,7 +270,49 @@ namespace Harmony.OData.Adapter
                         data adapterOp = matchFieldOps.First()
                         mreturn adapterOp.Value
                     end
-                end
+				end
+				else if(attr .is. RangeOperatorAdapterAttribute) then
+				begin
+					data rangeAttr = ^as(attr, @RangeOperatorAdapterAttribute)
+					data rangeFieldOps, @List<AdapterOp>
+					if(opLookup.TryGetValue(rangeAttr.EdmName, rangeFieldOps))
+					begin
+						data rangeOp, @AdapterOp
+						data hasGt = true
+						data hasGe = false
+						data hasLt = true
+                        data hasLe = false
+						foreach rangeOp in rangeFieldOps
+						begin
+							if(rangeOp.OpKind == AdapterOpKind.Eq) then
+								mreturn RangeOperator.Equals
+							else if(rangeOp.OpKind == AdapterOpKind.Gt) then
+								hasGt = true
+							else if(rangeOp.OpKind == AdapterOpKind.Ge) then
+							begin
+								hasGt = false
+								hasGe = true
+							end
+							else if(rangeOp.OpKind == AdapterOpKind.Lt) then
+								hasLt = true
+							else if(rangeOp.OpKind == AdapterOpKind.Le)
+							begin
+								hasLt = false
+								hasLe = true
+							end
+						end
+
+						if(hasGt && hasLt) then
+							mreturn RangeOperator.BoundExclusive
+						else if(hasGe && hasLe) then
+							mreturn RangeOperator.BoundInclusive
+						else if(hasGt && hasLe) then
+							mreturn RangeOperator.UpperInclusive
+						else if(hasGe && hasLt)
+                            mreturn RangeOperator.LowerInclusive
+					end
+				end
+
                 else if(attr .is. RangeFieldAdapterAttribute) then
                 begin
                     data rangeAttr = ^as(attr, @RangeFieldAdapterAttribute)
@@ -265,19 +321,38 @@ namespace Harmony.OData.Adapter
                     begin
                         data rangeOp, @AdapterOp
                         foreach rangeOp in rangeFieldOps
-                        begin
-                            if(rangeAttr.IsLowerBound) then
-                            begin
-                                if(rangeOp.OpKind == AdapterOpKind.Gt)
-                                    mreturn rangeOp.Value
-                            end
-                            else if(rangeAttr.IsUpperBound) then
-                            begin
-                                if(rangeOp.OpKind == AdapterOpKind.Lt)
-                                    mreturn rangeOp.Value
-                            end
-                            else
-                                throw new InvalidOperationException("invalid range attribute, must be either a Lower or Upper bound")
+						begin
+                            ;;if there is a range op we can put any sort of range op in
+							if(fieldsWithRangeOps.Contains(rangeAttr.EdmName)) then
+							begin
+                                if(rangeAttr.IsLowerBound) then
+                                begin
+                                    if(rangeOp.OpKind == AdapterOpKind.Gt || rangeOp.OpKind == AdapterOpKind.Ge || rangeOp.OpKind == AdapterOpKind.Eq)
+                                        mreturn rangeOp.Value
+                                end
+                                else if(rangeAttr.IsUpperBound) then
+                                begin
+                                    if(rangeOp.OpKind == AdapterOpKind.Lt || rangeOp.OpKind == AdapterOpKind.Le || rangeOp.OpKind == AdapterOpKind.Eq)
+                                        mreturn rangeOp.Value
+                                end
+                                else
+									throw new InvalidOperationException("invalid range attribute, must be either a Lower or Upper bound")
+							end
+							else
+							begin
+								if(rangeAttr.IsLowerBound) then
+								begin
+									if(rangeOp.OpKind == AdapterOpKind.Gt)
+										mreturn rangeOp.Value
+								end
+								else if(rangeAttr.IsUpperBound) then
+								begin
+									if(rangeOp.OpKind == AdapterOpKind.Lt)
+										mreturn rangeOp.Value
+								end
+								else
+									throw new InvalidOperationException("invalid range attribute, must be either a Lower or Upper bound")
+							end
                         end
                     end
                 end
@@ -319,12 +394,15 @@ namespace Harmony.OData.Adapter
                 data callMethod = ^typeof(AdapterRoutingFilter).GetMethod("GetValueForDestinationField")
                 data memberBindings = new List<MemberBinding>()
 
+				data properties = adapterType.GetProperties()
+
+                data rangeOpFields = new HashSet<string>(properties.Select(lambda(prop) { prop.GetCustomAttribute<RangeOperatorAdapterAttribute>(false)?.EdmName }).Where(lambda(propName) { propName != ^null }))
                 data targetProp, @PropertyInfo
-                foreach targetProp in adapterType.GetProperties()
-                begin
+                foreach targetProp in properties
+				begin
                     data getter = targetProp.GetMethod
                     if(getter.IsPublic && !getter.IsStatic)
-                        memberBindings.Add(Expression.Bind(targetProp, Expression.Convert(Expression.Call(callMethod, Expression.Constant(adapterType), Expression.Constant(targetProp.Name), filterLookup, uriParameters), targetProp.PropertyType)))
+                        memberBindings.Add(Expression.Bind(targetProp, Expression.Convert(Expression.Call(callMethod, Expression.Constant(rangeOpFields), Expression.Constant(adapterType), Expression.Constant(targetProp.Name), filterLookup, uriParameters), targetProp.PropertyType)))
                 end
 
                 mreturn Expression.MemberInit(Expression.New(adapterType), memberBindings)

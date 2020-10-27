@@ -53,14 +53,21 @@ namespace <NAMESPACE>
 
         public method <INTERFACE_NAME>Dispatcher
         proc
+<IF DEFINED_ENABLE_BRIDGE_SAMPLE_DISPATCHERS>
+            ;;Declare dispatcher classes fotr the sample methods
+            mDispatchStubs.Add("AddTwoNumbers", new AddTwoNumbersDispatcher())
+            mDispatchStubs.Add("GetEnvironment", new GetEnvironmentDispatcher())
+            mDispatchStubs.Add("GetLogicalName", new GetLogicalNameDispatcher())
+
+</IF DEFINED_ENABLE_BRIDGE_SAMPLE_DISPATCHERS>
             ;;Declare dispatcher classes for the '<INTERFACE_NAME>' interface methods
             <METHOD_LOOP>
             mDispatchStubs.Add("<METHOD_NAME>", new <METHOD_NAME>_Dispatcher())
             </METHOD_LOOP>
-
+<IF DEFINED_ENABLE_BRIDGE_INIT>
             ;;Initialize all data object metadata
             this.initMetaData()
-        
+</IF DEFINED_ENABLE_BRIDGE_INIT>
         endmethod
 
     endclass

@@ -81,9 +81,14 @@ namespace Json
 
 
 		private method GetEscape, a
-			req in value, byte
+			req in value, a
+			record
+				byteVal, i1
+			record, x
+				aVal, a1
 		proc
-			case value of
+			aVal = value
+			case byteVal of
 			begincase
 			34:
 				mreturn '"'
@@ -103,7 +108,7 @@ namespace Json
 				mreturn %char(9)
 			endcase
 			else
-				mreturn %char(value)
+				mreturn aVal
 		endmethod
 
 		private method IsHexDigit, boolean
@@ -143,6 +148,7 @@ namespace Json
 				bufPos, int
 				stringBuf, @string
 		proc
+			stringBuf = ^null
 			bufPos = currentPos
 			headPos = currentPos;
 
@@ -151,7 +157,26 @@ namespace Json
 				if(STRING_AT(inputValue, headPos) == '"') then
 				begin
 					currentPos = headPos
-					mreturn Substring(bufPos, headPos, inputValue)
+					if(stringBuf != ^null) then
+						mreturn stringBuf + Substring(bufPos, headPos, inputValue)
+					else
+						mreturn Substring(bufPos, headPos, inputValue)
+
+					if(stringBuf == ^null) then
+					begin
+						if(bufPos < (headPos - 1)) then
+							mreturn stringBuf + Substring(bufPos, headPos, inputValue)
+						else
+							mreturn stringBuf
+					end
+					else
+					begin
+						if(bufPos < (headPos - 1)) then
+							mreturn Substring(bufPos, headPos, inputValue)
+						else
+							mreturn ""
+					end
+
 				end
 				else if(STRING_AT(inputValue, headPos) == '\')
 				begin
@@ -166,11 +191,24 @@ namespace Json
 					end
 					else
 					begin
-						data esc, a1, GetEscape(headPos)
+						data esc, a1, GetEscape(STRING_AT(inputValue, headPos))
 						if(^i(esc) == 0) mreturn ^null
+						if(stringBuf == ^null) then
+						begin
+							if(bufPos < (headPos - 1)) then
+								stringBuf = Substring(bufPos, (headPos - 1), inputValue) + esc
+							else
+								stringBuf = esc
+						end
+						else
+						begin
+							if(bufPos < (headPos - 1)) then
+								stringBuf += Substring(bufPos, (headPos - 1), inputValue) + esc
+							else
+								stringBuf += esc
+						end
 
-						stringBuf += Substring(bufPos, (headPos - 1), inputValue) + esc
-						bufPos = headPos
+						bufPos = headPos + 1
 					end
 				end
 

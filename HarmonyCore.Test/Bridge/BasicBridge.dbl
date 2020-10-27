@@ -21,10 +21,46 @@ namespace HarmonyCore.Test.Bridge
 
         private method GetContextPool<T(IContextBase, class)>, @ExternalContextPool<T>
         proc
-            data currentDirectory = Path.GetDirectoryName(^typeof(BasicBridge).Assembly.Location)
-            data contextPool = new ExternalContextPool<T>(Environment.GetEnvironmentVariable("SYNERGYDE64") + "dbl\bin\dbs.exe", 'TraditionalBridge.Test.dbr', Path.GetFullPath(Path.Combine(Environment.GetEnvironmentVariable("SolutionDir") ?? (currentDirectory + "..\..\..\..\..\"), "TestDir")), ^null, 4) 
+			data currentDirectory = Path.GetDirectoryName(^typeof(BasicBridge).Assembly.Location)
+            data testDirFolder = TestEnvironment.findRelativeFolderForAssembly("TestDir")
+            data contextPool = new ExternalContextPool<T>(Environment.GetEnvironmentVariable("SYNERGYDE64") + "dbl\bin\dbs.exe", 'TraditionalBridge.Test.dbr', testDirFolder, ^null, 4) 
             mreturn contextPool
         endmethod
+
+		{TestMethod}
+		public async method InitFailure, @Task
+		proc
+			data currentDirectory = Path.GetDirectoryName(^typeof(BasicBridge).Assembly.Location)
+			data testDirFolder = TestEnvironment.findRelativeFolderForAssembly("TestDir")
+			data contextPool1 = new ExternalContextPool<BasicBridge.ExternalCallContext>(Environment.GetEnvironmentVariable("SYNERGYDE64") + "dbl\bin\dbs.exe", 'TraditionalBridge.Testt.dbr', testDirFolder, ^null, 4) 
+			data sp = new ServiceCollection().BuildServiceProvider()
+			try
+			begin
+				data context = contextPool1.MakeContext(sp)
+				await context.GetAllCustomers()
+                Assert.Fail()
+			end
+			catch(ex, @BridgeConnectionException)
+			begin
+                Assert.AreEqual(ex.InnerMessage, "TraditionalBridge failed to initialize most likely due to missing dbr or elb file.")
+			end
+            endtry
+
+
+			data contextPool2 = new ExternalContextPool<BasicBridge.ExternalCallContext>(Environment.GetEnvironmentVariable("SYNERGYDE32") + "dbl\bin\dbs.exe", 'TraditionalBridge.Test.dbr', testDirFolder, ^null, 4) 
+
+			try
+			begin
+				data context = contextPool2.MakeContext(sp)
+				await context.GetAllCustomers()
+				Assert.Fail()
+			end
+			catch(ex, @BridgeConnectionException)
+			begin
+				Assert.AreEqual(ex.InnerMessage, "TraditionalBridge failed to initialize most likely due to x86/x64 mismatch.")
+			end
+			endtry
+		endmethod
 
 
         {TestMethod}
@@ -32,13 +68,15 @@ namespace HarmonyCore.Test.Bridge
         proc
             disposable data contextPool = GetContextPool<BasicBridge.ExternalCallContext>()
             data sp = new ServiceCollection().BuildServiceProvider()
-			
+            
             data context = contextPool.MakeContext(sp)
-			
+            
+			Console.WriteLine("Calling GetAllCustomers")
             data customers = await context.GetAllCustomers()
-			
+            
             try
-            begin
+			begin
+				Console.WriteLine("Calling Exception Test")
                 data failureResult = await context.Arbitrario_Exception()
                 Assert.Fail("exception wasnt thrown")
             end
@@ -52,6 +90,22 @@ namespace HarmonyCore.Test.Bridge
             end
 
             endtry
+
+            try
+			begin
+				Console.WriteLine("Calling Stop Test")
+                data failureResult = await context.Arbitrario_Stop()
+                Assert.Fail("exception wasnt thrown")
+            end
+            catch(ex, @Exception)
+            begin
+				contextPool.ReturnContext(context)
+                context = contextPool.MakeContext(sp)
+            end
+
+            endtry
+
+			Console.WriteLine("Calling Parameter tests")
             data arbitrarioReturn = await context.Arbitrario_MethodWithParameters()
             data functionFourReturn = await context.function_four("hello", "some", "text", "here")
 
@@ -65,10 +119,11 @@ namespace HarmonyCore.Test.Bridge
             Assert.AreEqual(arbitrarioReturn.IntList.Count, 1, "arbitrario int array count was wrong")
             Assert.AreEqual(arbitrarioReturn.StringList.Count, 3, "arbitrario string array count was wrong")
 
-
+			Console.WriteLine("Calling Structure test")
             data structuresReturn = await context.Arbitrario_Structures()
 
-            contextPool.ReturnContext(context)
+			contextPool.ReturnContext(context)
+            Console.WriteLine("Trimming Pool")
             await contextPool.TrimPool(0)
             Console.WriteLine("shutting down test")
         endmethod
@@ -79,11 +134,11 @@ namespace HarmonyCore.Test.Bridge
         proc
             disposable data contextPool = GetContextPool<BasicBridge.ExternalCallContext>()
             data sp = new ServiceCollection().BuildServiceProvider()
-			
+            
             data context = contextPool.MakeContext(sp)
-			
+            
             await context.SetRemoteLogSettings(new RemoteLogSettings() { AttachLogsToExceptions = true, InMemoryLogLevel = 5, LogToMemory = true, LogToDisk = true, OnDiskLogLevel = 6, FlushLog = true }) 
-			
+            
 
             data ret1 = await context.Arbitrario_Optional(new ExternalCallContext.ArbitrarioOptionalParameter() { p1=9, p2="World", p3=String.Empty, p4=5 })
             data ret2 = await context.Arbitrario_Optional(new ExternalCallContext.ArbitrarioOptionalParameter() { p1=9, p2="World", p3=String.Empty})
@@ -112,7 +167,7 @@ namespace HarmonyCore.Test.Bridge
         proc
             disposable data contextPool = GetContextPool<BasicBridge.ExternalCallContext>()
             data sp = new ServiceCollection().BuildServiceProvider()
-			
+            
             data context = contextPool.MakeContext(sp)
             await context.SetRemoteLogSettings(new RemoteLogSettings() { AttachLogsToExceptions = true, InMemoryLogLevel = 5, LogToMemory = true, LogToDisk = true, OnDiskLogLevel = 6, FlushLog = true }) 
             try
@@ -141,10 +196,10 @@ namespace HarmonyCore.Test.Bridge
         proc
             disposable data contextPool = GetContextPool<syntstService>()
             data sp = new ServiceCollection().BuildServiceProvider()
-			
+            
             data context = contextPool.MakeContext(sp)
             await context.SetRemoteLogSettings(new RemoteLogSettings() { AttachLogsToExceptions = true, InMemoryLogLevel = 1, LogToMemory = true, LogToDisk = true, OnDiskLogLevel = 4, FlushLog = true }) 
-			
+            
             data array21Result = await context.array21(new array21_Request() { p1 = "Z", p2 = "Z", p3 = "Z", p4 = "Z", p5 = "Z", p6 = "Z", p7 = "Z", p8 = "Z", p9 = "Z", p10 = "Z", p11 = "Z", p12 = "Z", p13 = "Z", p14 = "Z", p15 = "Z", p16 = "Z", p17 = "Z", p18 = "Z", p19 = "Z", p20 = "Z", p21 = new string[#] { "Z", "Z", "Z" }, p22 = "Z" })
 
             Assert.AreEqual("AAAAAAA", array21Result.p21[1])
@@ -219,6 +274,14 @@ namespace HarmonyCore.Test.Bridge
                 mreturn new ArbitrarioReturnType() { ReturnCode = returnToken.ToObject<int>(), IntList = ((@IEnumerable<int>)resultTpl.Item2[4]).ToList(), StringList = ((@IEnumerable<string>)resultTpl.Item2[5]).ToList() }
             endmethod
 
+            public async method Arbitrario_Stop, @Task<ArbitrarioReturnType>
+            proc
+                data intArray = new int[#] {5, 4, 3, 2, 1 }
+                data resultTpl = await CallMethod("Arbitrario.MethodWithParameters", -1, "STOP NOW!!!", new string[#] { "this", "is", "strings" }, (@object)intArray, new string[0])
+                data returnToken = ((@JToken)resultTpl.Item1)
+                mreturn new ArbitrarioReturnType() { ReturnCode = returnToken.ToObject<int>(), IntList = ((@IEnumerable<int>)resultTpl.Item2[4]).ToList(), StringList = ((@IEnumerable<string>)resultTpl.Item2[5]).ToList() }
+            endmethod
+
             public async method Arbitrario_MethodWithParameters, @Task<ArbitrarioReturnType>
             proc
                 data intArray = new int[#] {5, 4, 3, 2, 1 }
@@ -235,8 +298,17 @@ namespace HarmonyCore.Test.Bridge
                 data theatus = new Customer() { Name="theatus", CustomerNumber=5 }
                 data snorkle = new Customer() { Name="snorkle", CustomerNumber=6 }
                 data resultTpl, @Tuple<Object, [#]Object>, await CallMethod("Arbitrario.Structures", new Object[#] { customerArray, customerList, theatus, snorkle })
-                data returnToken = ((@JToken)resultTpl.Item1)
-                mreturn new ArbitrarioStructuresReturnType() { ReturnCode = returnToken.ToObject<int>(), CustomerList =((@IEnumerable<Customer>)resultTpl.Item2[1]).ToList(), CustomerArray =((@IEnumerable<Customer>)resultTpl.Item2[2]).ToArray(), Customer=(@Customer)resultTpl.Item2[3] }
+                data customerResult = ArgumentHelper.Argument<Customer>(3, resultTpl)
+                data customerResult2 = ArgumentHelper.Argument<Customer>(4, resultTpl)
+                if(customerResult.SynergyRecord != customerResult2.SynergyRecord)
+                    throw new Exception("customerResult mismatched")
+                mreturn new ArbitrarioStructuresReturnType() 
+                &	{ 
+                &	ReturnCode = ArgumentHelper.Argument<int>(0, resultTpl), 
+                &	CustomerList = ArgumentHelper.Argument<List<Customer>>(1, resultTpl), 
+                &	CustomerArray = ArgumentHelper.Argument<[#]@Customer>(2, resultTpl),
+                &	Customer = ArgumentHelper.Argument<Customer>(3, resultTpl)
+                &   }
             endmethod
 
             public async method Arbitrario_Optional, @Task<ArbitrarioOptionalReturnType>

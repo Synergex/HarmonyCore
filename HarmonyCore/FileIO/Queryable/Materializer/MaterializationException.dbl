@@ -1,0 +1,37 @@
+import System
+import System.Collections.Generic
+import System.Text
+
+
+namespace Harmony.Core.FileIO.Queryable.Materializer
+
+	public class MaterializationException extends Exception
+
+		public setprotected property ActiveSelectIdentifier, @string
+		public setprotected property MaterializationState, @string
+		public setprotected property MaterializationPhase, @string
+		
+		public method MaterializationException
+			selectIdentifier, @string
+			state, @string
+			phase, @string
+			innerEx, @Exception
+			endparams
+			parent("", innerEx)
+		proc
+			ActiveSelectIdentifier = selectIdentifier
+			MaterializationState = state
+			MaterializationPhase = phase
+		endmethod
+
+		public override property Message, @string
+			method get
+			proc
+				mreturn string.Format("Inner Exception: {1}{0}Active Select: {2}{0}Materializer State: {3}{0}Failure Phase: {4}", Environment.NewLine, InnerException.Message, ActiveSelectIdentifier, MaterializationState, MaterializationPhase)
+			endmethod
+		endproperty
+
+
+	endclass
+
+endnamespace

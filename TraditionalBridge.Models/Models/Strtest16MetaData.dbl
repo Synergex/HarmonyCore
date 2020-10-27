@@ -61,6 +61,11 @@ namespace TraditionalBridge.Models
             AddFieldInfo("Intary4", "INTEGER", 4, 113, 0, false)
             AddFieldInfo("Intary5", "INTEGER", 4, 117, 0, false)
 
+            ;; Define all fields that are associated wity key segments
+
+            ;; Define the composition of access keys
+
+
             ;;If we have an InitializeCustomFields method then call it.
             InitializeCustomFields()
 
@@ -92,25 +97,30 @@ namespace TraditionalBridge.Models
             required in joinedObjects, [#]KeyValuePair<String, Object>
         proc
             data newStrtest16 = new Strtest16(dataArea, grfa)
+            UpdateExistingJoin(newStrtest16, joinedObjects)
             mreturn newStrtest16
-
+        endmethod
+        
+        public override method UpdateExistingJoin, void
+            required in existing, @DataObjectBase
+            required in joinedObjects, [#]KeyValuePair<String, Object>
+        proc
+            UpdateExistingJoin((@Strtest16)existing, joinedObjects)
         endmethod
 
-        ;;; <summary>
-        ;;; Formats a literal value for a key lookup.
-        ;;; </summary>
-        ;;; <param name="keyNumber">Key number.</param>
-        ;;; <param name="parts">Dictionary containing key segment names and values.</param>
-        ;;; <returns></returns>
+        public method UpdateExistingJoin, void
+            required in existing, @Strtest16
+            required in joinedObjects, [#]KeyValuePair<String, Object>
+        proc
+        endmethod
+
         public override method FormatKeyLiteral, a
             required in keyNumber, int
             required in parts, @Dictionary<String, Object>
-            endparams
         proc
-
-            throw new ApplicationException(String.Format("Invalid key number {0} encountered in Strtest16Metadata.FormatKeyLiteral",keyNumber))
-
+            mreturn ' '
         endmethod
+
 
         ;;;<summary>
         ;;; Provide a partial method to allow for initialization of custom fields.

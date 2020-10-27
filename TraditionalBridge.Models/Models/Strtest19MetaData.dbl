@@ -47,6 +47,11 @@ namespace TraditionalBridge.Models
             AddFieldInfo("Str19Grp2Str19Gp2de5", "DECIMAL", 5, 27, 0, false)
             AddFieldInfo("Str19Grp2Str19Gp2id5", "IMPLIED", 5, 32, 02, false)
 
+            ;; Define all fields that are associated wity key segments
+
+            ;; Define the composition of access keys
+
+
             ;;If we have an InitializeCustomFields method then call it.
             InitializeCustomFields()
 
@@ -78,25 +83,30 @@ namespace TraditionalBridge.Models
             required in joinedObjects, [#]KeyValuePair<String, Object>
         proc
             data newStrtest19 = new Strtest19(dataArea, grfa)
+            UpdateExistingJoin(newStrtest19, joinedObjects)
             mreturn newStrtest19
-
+        endmethod
+        
+        public override method UpdateExistingJoin, void
+            required in existing, @DataObjectBase
+            required in joinedObjects, [#]KeyValuePair<String, Object>
+        proc
+            UpdateExistingJoin((@Strtest19)existing, joinedObjects)
         endmethod
 
-        ;;; <summary>
-        ;;; Formats a literal value for a key lookup.
-        ;;; </summary>
-        ;;; <param name="keyNumber">Key number.</param>
-        ;;; <param name="parts">Dictionary containing key segment names and values.</param>
-        ;;; <returns></returns>
+        public method UpdateExistingJoin, void
+            required in existing, @Strtest19
+            required in joinedObjects, [#]KeyValuePair<String, Object>
+        proc
+        endmethod
+
         public override method FormatKeyLiteral, a
             required in keyNumber, int
             required in parts, @Dictionary<String, Object>
-            endparams
         proc
-
-            throw new ApplicationException(String.Format("Invalid key number {0} encountered in Strtest19Metadata.FormatKeyLiteral",keyNumber))
-
+            mreturn ' '
         endmethod
+
 
         ;;;<summary>
         ;;; Provide a partial method to allow for initialization of custom fields.

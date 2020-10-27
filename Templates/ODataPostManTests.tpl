@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME>PostManTests.postman_collection.json</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.4.6</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.5.3</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>API_TITLE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVER_BASE_PATH</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVER_HTTPS_PORT</REQUIRES_USERTOKEN>
@@ -13,6 +13,40 @@
     },
     "item": [
 <IF DEFINED_ENABLE_AUTHENTICATION>
+  <IF DEFINED_ENABLE_CUSTOM_AUTHENTICATION>
+        {
+            "name": "Get Access Token",
+            "request": {
+                "auth": {
+                    "type": "noauth"
+                },
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{ \"Username": \"<CUSTOM_AUTH_USERNAME>\", \"Password\": \"<CUSTOM_AUTH_PASSWORD>\"}"
+                },
+                "url": {
+                    "raw": "{{ServerAuthUri}}/<CUSTOM_AUTH_CONTROLLER_PATH>/<CUSTOM_AUTH_ENDPOINT_PATH>",
+                    "protocol": "<SERVER_PROTOCOL>",
+                    "host": [
+                        "<SERVER_NAME>"
+                    ],
+                    "port": "<SERVER_HTTPS_PORT>",
+                    "path": [
+                        "<CUSTOM_AUTH_CONTROLLER_PATH>",
+                        "<CUSTOM_AUTH_ENDPOINT_PATH>"
+                    ]
+                }
+            },
+            "response": []
+        },
+  <ELSE>
         {
             "name": "Get Access Token (Jodah)",
             "request": {
@@ -77,6 +111,7 @@
             },
             "response": []
         },
+  </IF DEFINED_ENABLE_CUSTOM_AUTHENTICATION>
 </IF DEFINED_ENABLE_AUTHENTICATION>
         <STRUCTURE_LOOP>
         {
@@ -95,6 +130,11 @@
                             {
                                 "key": "Accept",
                                 "value": "application/json"
+                            },
+                            {
+                                "key": "x-tenant-id",
+                                "value": "{{TenantID}}",
+                                "type": "text"
                             }
                         ],
                         "body": {
@@ -128,6 +168,11 @@
                             {
                                 "key": "Accept",
                                 "value": "application/json"
+                            },
+                            {
+                                "key": "x-tenant-id",
+                                "value": "{{TenantID}}",
+                                "type": "text"
                             }
                         ],
                         "body": {
@@ -162,6 +207,11 @@
                         {
                         "key": "Accept",
                         "value": "application/json"
+                        },
+                        {
+                            "key": "x-tenant-id",
+                            "value": "{{TenantID}}",
+                            "type": "text"
                         }
                     ],
                     "body": {
@@ -186,7 +236,7 @@
 <IF STRUCTURE_ISAM>
 <IF DEFINED_ENABLE_ALTERNATE_KEYS>
 <IF ALTERNATE_KEY_ENDPOINTS>
-              <ALTERNATE_KEY_LOOP>
+              <ALTERNATE_KEY_LOOP_UNIQUE>
                 <IF COUNTER_1>,</IF COUNTER_1>
                 {
                     "_postman_id": "<guid_nobrace>",
@@ -199,8 +249,13 @@
                     "method": "GET",
                     "header": [
                         {
-                        "key": "Accept",
-                        "value": "application/json"
+                            "key": "Accept",
+                            "value": "application/json"
+                        },
+                        {
+                            "key": "x-tenant-id",
+                            "value": "{{TenantID}}",
+                            "type": "text"
                         }
                     ],
                     "body": {
@@ -230,8 +285,13 @@
                     "method": "GET",
                     "header": [
                         {
-                        "key": "Accept",
-                        "value": "application/json"
+                            "key": "Accept",
+                            "value": "application/json"
+                        },
+                        {
+                            "key": "x-tenant-id",
+                            "value": "{{TenantID}}",
+                            "type": "text"
                         }
                     ],
                     "body": {
@@ -271,8 +331,13 @@
                     "method": "GET",
                     "header": [
                         {
-                        "key": "Accept",
-                        "value": "application/json"
+                            "key": "Accept",
+                            "value": "application/json"
+                        },
+                        {
+                            "key": "x-tenant-id",
+                            "value": "{{TenantID}}",
+                            "type": "text"
                         }
                     ],
                     "body": {
@@ -301,8 +366,13 @@
                     "method": "GET",
                     "header": [
                         {
-                        "key": "Accept",
-                        "value": "application/json"
+                            "key": "Accept",
+                            "value": "application/json"
+                        },
+                        {
+                            "key": "x-tenant-id",
+                            "value": "{{TenantID}}",
+                            "type": "text"
                         }
                     ],
                     "body": {
@@ -338,8 +408,13 @@
                     "method": "POST",
                     "header": [
                         {
-                        "key": "Content-Type",
-                        "value": "application/json"
+                            "key": "Content-Type",
+                            "value": "application/json"
+                        },
+                        {
+                            "key": "x-tenant-id",
+                            "value": "{{TenantID}}",
+                            "type": "text"
                         }
                     ],
                     "body": {
@@ -371,8 +446,13 @@
                     "method": "PUT",
                     "header": [
                         {
-                        "key": "Content-Type",
-                        "value": "application/json"
+                            "key": "Content-Type",
+                            "value": "application/json"
+                        },
+                        {
+                            "key": "x-tenant-id",
+                            "value": "{{TenantID}}",
+                            "type": "text"
                         }
                     ],
                     "body": {
@@ -405,6 +485,11 @@
                             {
                                 "key": "Content-Type",
                                 "value": "application/json"
+                            },
+                            {
+                                "key": "x-tenant-id",
+                                "value": "{{TenantID}}",
+                                "type": "text"
                             }
                         ],
                         "body": {
@@ -436,8 +521,13 @@
                     "method": "DELETE",
                     "header": [
                         {
-                        "key": "Accept",
-                        "value": "application/json"
+                            "key": "Accept",
+                            "value": "application/json"
+                        },
+                        {
+                            "key": "x-tenant-id",
+                            "value": "{{TenantID}}",
+                            "type": "text"
                         }
                     ],
                     "body": {
@@ -487,15 +577,21 @@
     ],
     "variable": [
         {
-            "id": "bd6f096f-5211-4e1d-ba95-e944e7e7b89a",
-            "key": "AccessToken",
+            "id": "<guid_nobrace>",
+            "key": "TenantID",
             "value": "",
             "type": "string"
         },
         {
-            "id": "516455e6-1f03-436c-83a5-2d1fb2499807",
+            "id": "<guid_nobrace>",
             "key": "ServerBaseUri",
-            "value": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<SERVER_BASE_PATH><IF DEFINED_ENABLE_API_VERSIONING>/v<API_VERSION></IF DEFINED_ENABLE_API_VERSIONING>",
+            "value": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<SERVER_BASE_PATH>/v<API_VERSION>",
+            "type": "string"
+        },
+        {
+            "id": "<guid_nobrace>",
+            "key": "ServerAuthUri",
+            "value": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>",
             "type": "string"
         }
     ]

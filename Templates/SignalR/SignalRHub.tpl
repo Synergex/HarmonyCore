@@ -1,6 +1,7 @@
 <CODEGEN_FILENAME><INTERFACE_NAME>Hub.dbl</CODEGEN_FILENAME>
 <REQUIRES_CODEGEN_VERSION>5.4.6</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
+<REQUIRES_USERTOKEN>DTOS_NAMESPACE</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
 ;// Title:       SignalRHub.tpl
@@ -94,15 +95,18 @@ namespace <NAMESPACE>
 			data context = await _contextFactory.MakeContextAsync(_serviceProvider)			
 			Context.Items.Add("RPCContext", context)
 
-            data userDetail, [#]string, MultiTenantProvider.TenantId.Split("|")
-
-            data request, @wmaintlogin_Request, new wmaintlogin_Request() { username=userDetail[1], access_no=userDetail[2], company=userDetail[3], password="RADLEY", temp_dir=String.Empty }
-            data response, @wmaintlogin_Response
-
-            response = await context.wmaintlogin(request)
-
-            if (response.ReturnValue != 0)
-                throw new Exception("Invalid user login in OnConnectedAsync")
+			;If you need to do user authorization via a custom method then THIS
+			;is a good place to do so. Maybe something like this:
+			;
+            ;data userDetail, [#]string, MultiTenantProvider.TenantId.Split("|")
+			;
+            ;data request, @<DTOS_NAMESPACE>.UserLogin_Request, new <DTOS_NAMESPACE>.UserLogin_Request() { username=userDetail[1], password=userDetail[2], company=userDetail[3] }
+            ;data response, @<DTOS_NAMESPACE>.UserLogin_Response
+			;
+            ;response = await context.UserLogin(request)
+			;
+            ;if (response.ReturnValue != 0)
+            ;    throw new Exception("Invalid user login in OnConnectedAsync")
 
 		endmethod
 
@@ -134,7 +138,7 @@ namespace <NAMESPACE>
 			aDecimal, decimal
 			aDecimal2, decimal
 		proc
-			data callContext = ^as(Context.Items["RPCContext"], @RadleyService)
+			data callContext = ^as(Context.Items["RPCContext"], @<INTERFACE_NAME>Service)
 			data result = await callContext.AddTwoNumbers(aDecimal, aDecimal2)
 			await Clients.Caller.AddTwoNumbers_Result(result)
 		endmethod
@@ -145,7 +149,7 @@ namespace <NAMESPACE>
 		<METHOD_LOOP>
 		public async method <METHOD_NAME>, @Task
 			<IF IN_OR_INOUT>
-			aRequest, @<METHOD_NAME>_Request
+			aRequest, @<DTOS_NAMESPACE>.<METHOD_NAME>_Request
 			</IF IN_OR_INOUT>
 		proc
 			data callContext = ^as(Context.Items["RPCContext"], @<INTERFACE_NAME>Service)
@@ -165,7 +169,7 @@ namespace <NAMESPACE>
 		<METHOD_LOOP>
         method <METHOD_NAME>_Result, @Task
 			<IF RETURNS_DATA>
-            response, @<METHOD_NAME>_Response
+            response, @<DTOS_NAMESPACE>.<METHOD_NAME>_Response
 			</IF RETURNS_DATA>
         endmethod
     

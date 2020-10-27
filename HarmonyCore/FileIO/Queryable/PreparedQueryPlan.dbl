@@ -5,6 +5,9 @@ import System.Linq
 import Harmony.Core.Enumerations
 import System.Linq.Expressions
 import Harmony.Core.FileIO
+import Harmony.Core.FileIO.Queryable.Materializer
+import Synergex.SynergyDE.Select
+import Newtonsoft.Json
 
 namespace Harmony.Core.FileIO.Queryable
 
@@ -30,6 +33,9 @@ namespace Harmony.Core.FileIO.Queryable
 	endclass
 
 	public class PreparedQueryPlan
+		public static MARSTargetSize, int, 2
+		public static EnableMARS, boolean, false
+
 		structure memMapper
 			fld,a1
 		endstructure
@@ -41,14 +47,38 @@ namespace Harmony.Core.FileIO.Queryable
 		private mQueryBufferPrototype, @QueryBuffer
 		private mSimpleKeyNumber, short
 		private mTraceIdentifier, @string
-		public readwrite property TopParam, string
-		public readwrite property SkipParam, string
-		public readwrite property SkipTokenParam, string
 		public readwrite property IsJoin, boolean
 		public readwrite property IsCollection, boolean
 		public readwrite property IsKeyedRead, boolean
 		public static readwrite property LocalSparse, boolean, false
 		public static readwrite property DisableSparse, boolean, false
+
+		static method PreparedQueryPlan
+		proc
+			data enableValue = Environment.GetEnvironmentVariable("HARMONYCORE_ENABLE_MARS")
+			data marsTargetValue = Environment.GetEnvironmentVariable("HARMONYCORE_MARS_TARGET_SIZE")
+
+			if(enableValue != ^null && enableValue != "0")
+			begin
+				EnableMARS = true
+			end
+
+			if(!string.IsNullOrWhiteSpace(marsTargetValue))
+			begin
+				int.TryParse(marsTargetValue, MARSTargetSize)
+				if(MARSTargetSize < 2)
+					MARSTargetSize = 2
+			end
+		endmethod
+
+		public override method ToString, @string
+		proc
+			mreturn string.Format("EnableMARS: {1}{0}MARSTargetSize: {2}{0}Where: {3}{0}On:{4}{0}OrderBy:{5}{0}IsCollection{6}",Environment.NewLine, EnableMARS, MARSTargetSize,
+			&	JsonConvert.SerializeObject(mWhereParts),
+			&	JsonConvert.SerializeObject(mOnParts),
+			&	JsonConvert.SerializeObject(mOrderBy),
+			&	IsCollection)
+		endmethod
 
 		public method Prepare, void
 		proc
@@ -130,20 +160,21 @@ namespace Harmony.Core.FileIO.Queryable
 			tracker, @Func<DataObjectBase, DataObjectBase>
 			parameters, @IReadOnlyDictionary<string, Object>
 			dataObjectProvider, @Harmony.Core.Context.IDataObjectProvider
+			context, @object
 		proc
 			HarmonyFileIOMetricsEventSource.Log.MaterializationStart(mTraceIdentifier)
 			try
 			begin
 				if(!IsCollection) then
 				begin
-					data result = ExecutePlan<T>(tracker, parameters, dataObjectProvider)
+					data result = ExecutePlan<T>(tracker, parameters, dataObjectProvider, context)
 					if(result == ^null) then
 						mreturn Enumerable.Empty<T>()
 					else
 						mreturn new T[#] { result }
 				end
 				else
-					mreturn ExecuteSelectCollectionPlan<T>(tracker, parameters, dataObjectProvider)
+					mreturn ExecuteSelectCollectionPlan<T>(tracker, parameters, dataObjectProvider, context)
 			end
 			finally
 			begin
@@ -156,6 +187,7 @@ namespace Harmony.Core.FileIO.Queryable
 			tracker, @Func<DataObjectBase, DataObjectBase>
 			parameters, @IReadOnlyDictionary<string, Object>
 			dataObjectProvider, @Harmony.Core.Context.IDataObjectProvider
+			context, @object
 		proc
 			HarmonyFileIOMetricsEventSource.Log.MaterializationStart(mTraceIdentifier)
 			try
@@ -163,7 +195,7 @@ namespace Harmony.Core.FileIO.Queryable
 				if(IsKeyedRead && !IsJoin) then
 					mreturn ExecuteKeyedPlan<T>(tracker, parameters, dataObjectProvider)
 				else
-					mreturn ExecuteSelectPlan<T>(tracker, parameters, dataObjectProvider)
+					mreturn ExecuteSelectPlan<T>(tracker, parameters, dataObjectProvider, context)
 			end
 			finally
 			begin
@@ -173,89 +205,463 @@ namespace Harmony.Core.FileIO.Queryable
 
 		endmethod
 
+		private method ExecuteMARSPlan, @IEnumerable<DataObjectBase>
+			tracker, @Func<DataObjectBase, DataObjectBase>
+			parameters, @IReadOnlyDictionary<string, Object>
+			dataObjectProvider, @Harmony.Core.Context.IDataObjectProvider
+			context, @object
+		proc
+			data rows = new List<Synergex.SynergyDE.Select.RowEnumerator>()
+			data joinSelectObjects = new List<Synergex.SynergyDE.Select.JoinSelect>()
+			data queryBuffer, @QueryBuffer
+			data fromObjs = new List<From>()
+
+			lambda cleanup(netFailure)
+			begin
+				data row, @Synergex.SynergyDE.Select.RowEnumerator
+				data joinSelObj, @Synergex.SynergyDE.Select.JoinSelect
+				data fromObj, @From
+				foreach row in rows
+					row.Dispose()
+
+				foreach joinSelObj in joinSelectObjects
+					joinSelObj.Dispose()
+
+				if(netFailure && queryBuffer != ^null)
+					queryBuffer.FailedDueToNetwork = true
+
+				queryBuffer?.Dispose()
+				foreach fromObj in fromObjs
+					fromObj.Dispose()
+
+				rows.Clear()
+				joinSelectObjects.Clear()
+				queryBuffer = ^null
+				fromObjs.Clear()
+			end
+			data cleanupAction, @Action<boolean>, cleanup
+			try
+			begin
+				queryBuffer = new QueryBuffer(mQueryBufferPrototype, dataObjectProvider, parameters, context)
+				data splitBuffers = SplitMARSBuffers(MARSTargetSize, queryBuffer)
+				;;split top level legs 
+				data splitBuffer, @List<QueryBuffer.TypeBuffer>
+				data marsTpls = new List<Tuple<Synergex.SynergyDE.Select.RowEnumerator, IEnumerable<MaterializerState>, JoinSelect>>()
+
+				data stats = new DataObjectMaterializer.MaterializerStats()
+				data materializerState = new DataObjectMaterializer.IterationState(queryBuffer.TypeBuffers[0], queryBuffer, stats, tracker)
+				data top = queryBuffer.GetTop(0)
+				data skip = queryBuffer.GetSkip(0)
+				data targetCount = top.HasValue ? skip + top : 0
+				foreach splitBuffer in splitBuffers
+				begin
+					data fromObj = FromObject(queryBuffer, splitBuffer)
+					fromObjs.Add(fromObj)
+					data joinSelectObject = JoinObject(fromObj, WhereObject(queryBuffer, splitBuffer), OrderByObject(queryBuffer, splitBuffer), SparseObject(queryBuffer, splitBuffer))
+					joinSelectObjects.Add(joinSelectObject)
+					data selEnumerator = joinSelectObject.GetEnumerator()
+					rows.Add(selEnumerator)
+					data materializerStates = materializerState.MaterializerQueue.Where(lambda (mat) { splitBuffer.Contains(mat.typeBuf) || mat.parentState == ^null }).ToList()
+					marsTpls.Add(Tuple.Create<Synergex.SynergyDE.Select.RowEnumerator, IEnumerable<MaterializerState>, JoinSelect>(selEnumerator, materializerStates, joinSelectObject))
+				end
+
+				data rowManager = new RowsManager(marsTpls, marsTpls.First().Item2.First(lambda (mat) { mat.parentState == ^null }))
+				data resultEnumerable = RunMaterializer(materializerState, rowManager, cleanupAction)
+				if(skip != 0)
+					resultEnumerable = resultEnumerable.Skip((int)skip)
+				if(top != ^null)
+					resultEnumerable = resultEnumerable.Take((int)top.Value)
+
+				mreturn resultEnumerable
+			end
+			catch(ex, @Synergex.SynergyDE.NetworkException)
+			begin
+				cleanupAction(true)
+			end
+			catch(ex, @Exception)
+			begin
+				cleanupAction(false)
+			end
+			endtry
+
+		endmethod
+
+		private static method BufferCost, int
+			targetbuffer, @QueryBuffer.TypeBuffer
+		proc
+			;;if the buffer is single, its inherent cost is 1
+			;;multiply inherent cost against the cost of a buffers children
+			data inherentCost = targetbuffer.IsCollection ? 10 : 1
+			
+			if(targetbuffer.JoinedBuffers != ^null)
+			begin
+				data childBuffer, @QueryBuffer.TypeBuffer
+				foreach childBuffer in targetbuffer.JoinedBuffers
+				begin
+					inherentCost += (inherentCost * BufferCost(childBuffer))
+				end
+			end
+
+			mreturn inherentCost
+		endmethod
+
+
+		private method SplitMARSBuffers, @List<List<QueryBuffer.TypeBuffer>>
+			targetSize, int
+			sourceBuffer, @QueryBuffer
+		proc
+			data result = new List<List<QueryBuffer.TypeBuffer>>()
+			data drivingBuffer = sourceBuffer.TypeBuffers[0]
+			if((drivingBuffer?.JoinedBuffers?.Count ?? 0) <= targetSize) then
+			begin
+				result.Add(sourceBuffer.TypeBuffers)
+			end
+			else
+			begin
+				data flatGroupBuffers = new List<QueryBuffer.TypeBuffer>()
+				data targetBuffer, @QueryBuffer.TypeBuffer
+				data accumulatedCost = 0
+				foreach targetBuffer in drivingBuffer.JoinedBuffers.OrderBy(BufferCost)
+				begin
+					accumulatedCost += BufferCost(targetBuffer)
+
+					;;have to get at least one in each leg regardless of the buffer cost
+					if(accumulatedCost > PreparedQueryPlan.MARSTargetSize && flatGroupBuffers.Count > 0)
+					begin
+						result.Add(flatGroupBuffers)
+						flatGroupBuffers = new List<QueryBuffer.TypeBuffer>()
+					end
+
+					if(flatGroupBuffers.Count == 0)
+					begin
+						flatGroupBuffers.Add(result.Count > 0 ? sourceBuffer.MakeDrivingBuffer(drivingBuffer) : drivingBuffer)
+					end
+
+					flatGroupBuffers.Add(targetBuffer)
+					GetFlatTypeBuffers(targetBuffer, flatGroupBuffers)
+				end
+
+				result.Add(flatGroupBuffers)
+			end
+			mreturn result
+			
+		endmethod
+
+		private method GetFlatTypeBuffers, void
+			targetBuffer, @QueryBuffer.TypeBuffer
+			resultList, @List<QueryBuffer.TypeBuffer>
+		proc
+			data dependentBuffer, @QueryBuffer.TypeBuffer
+			if(targetBuffer.JoinedBuffers != ^null)
+			begin
+				foreach dependentBuffer in targetBuffer.JoinedBuffers
+				begin
+					resultList.Add(dependentBuffer)
+					GetFlatTypeBuffers(dependentBuffer, resultList)
+				end
+			end
+		endmethod
+
 		private method UntypedExecuteJoinCollectionPlan, @IEnumerable<DataObjectBase>
 			tracker, @Func<DataObjectBase, DataObjectBase>
 			parameters, @IReadOnlyDictionary<string, Object>
 			dataObjectProvider, @Harmony.Core.Context.IDataObjectProvider
-			skip, int
-			top, int
+			context, @object
 		proc
-			disposable data rows, @Synergex.SynergyDE.Select.RowEnumerator
-			disposable data joinSelectObject, @Synergex.SynergyDE.Select.JoinSelect
-			disposable data queryBuffer, @QueryBuffer, new QueryBuffer(mQueryBufferPrototype, dataObjectProvider, parameters)
-			disposable data fromObj = FromObject(queryBuffer)
-			data tObj, @DataObjectBase
-			data materializerResult, @IEnumerable<DataObjectBase>
-			data materializerEnumerator, @IEnumerator<DataObjectBase>
-			data stats = new DataObjectMaterializer.MaterializerStats()
-			data currentCount = 0 
-			data targetCount = top ? skip + top : 0
+			data rows, @Synergex.SynergyDE.Select.RowEnumerator
+			data joinSelectObject, @Synergex.SynergyDE.Select.JoinSelect
+			data queryBuffer, @QueryBuffer
+			data fromObj, @From
 
-			joinSelectObject = JoinObject(queryBuffer, fromObj, WhereObject(queryBuffer), OrderByObject(queryBuffer), SparseObject(queryBuffer))
-			rows = joinSelectObject.GetEnumerator()
-			materializerResult = DataObjectMaterializer.MaterializeObject(queryBuffer.TypeBuffers[0], rows, tracker, stats)
-			materializerEnumerator = materializerResult.GetEnumerator()
-			while(materializerEnumerator.MoveNext())
+			lambda cleanup(networkDead)
 			begin
-				tObj = materializerEnumerator.Current
-				incr currentCount
-				if(skip && skip > currentCount)
-					nextloop
-						
-				if (targetCount && currentCount > targetCount)
-					exitloop
+				if(networkDead && queryBuffer != ^null)
+					queryBuffer.FailedDueToNetwork = true
 
-				yield mreturn tObj
+				rows?.Dispose()
+				joinSelectObject?.Dispose()
+				queryBuffer?.Dispose()
+				fromObj?.Dispose()
+
+				rows = ^null
+				joinSelectObject = ^null
+				queryBuffer = ^null
+				fromObj = ^null
 			end
+			data cleanupAction, @Action<boolean>, cleanup
+			try
+			begin
+				queryBuffer = new QueryBuffer(mQueryBufferPrototype, dataObjectProvider, parameters, context)
+				fromObj = FromObject(queryBuffer, queryBuffer.TypeBuffers)
+			
+				data tObj, @DataObjectBase
+				data stats = new DataObjectMaterializer.MaterializerStats()
+				data materializerState = new DataObjectMaterializer.IterationState(queryBuffer.TypeBuffers[0], queryBuffer, stats, tracker)
+				data top = queryBuffer.GetTop(0)
+				data skip = queryBuffer.GetSkip(0)
+				data targetCount = top.HasValue ? skip + top : 0
+
+				joinSelectObject = JoinObject(fromObj, WhereObject(queryBuffer, queryBuffer.TypeBuffers), OrderByObject(queryBuffer, queryBuffer.TypeBuffers), SparseObject(queryBuffer, queryBuffer.TypeBuffers))
+				rows = joinSelectObject.GetEnumerator()
+				data rowManager = new RowsManager(rows, materializerState.ResultState, materializerState.MaterializerQueue, joinSelectObject)
+				data resultEnumerable = RunMaterializer(materializerState, rowManager, cleanupAction)
+				if(skip != 0)
+					resultEnumerable = resultEnumerable.Skip((int)skip)
+				if(top != ^null)
+					resultEnumerable = resultEnumerable.Take((int)top.Value)
+
+				mreturn resultEnumerable
+			end
+			catch(ex, @Synergex.SynergyDE.NetworkException)
+			begin
+				cleanupAction(true)
+			end
+			catch(ex, @Exception)
+			begin
+				cleanupAction(false)
+			end
+			endtry
 
 		endmethod
 
+		class MaterializerEnumeratable implements IEnumerable<DataObjectBase>, IDisposable
+
+			enumerator, @PreparedQueryPlan.MaterializerEnumerator
+			public method MaterializerEnumeratable
+				preparedQuery, @PreparedQueryPlan
+				iterState, @DataObjectMaterializer.IterationState
+				rows, @RowsManager
+				cleanup, @Action<Boolean>
+			proc
+				enumerator = new MaterializerEnumerator(preparedQuery, iterState, rows, cleanup)
+			endmethod
+
+			public virtual method Dispose, void
+				endparams
+			proc
+				enumerator.Dispose()
+			endmethod
+
+			public virtual method GetEnumerator, @IEnumerator<DataObjectBase>
+				endparams
+			proc
+				mreturn enumerator
+			endmethod
+
+			public virtual method System.Collections.IEnumerable.GetEnumerator, @System.Collections.IEnumerator
+				endparams
+			proc
+				mreturn enumerator
+			endmethod
+			
+		endclass
+
+		class MaterializerEnumerator implements IEnumerator<DataObjectBase>, IDisposable
+
+			private CurrentValue, @DataObjectBase
+			private CurrentNestedEnumerator, @IEnumerator<DataObjectBase>
+			iterState, @DataObjectMaterializer.IterationState
+			rows, @RowsManager
+			cleanup, @Action<Boolean>
+			queryPlan, @PreparedQueryPlan
+			deadFromNetworkError, boolean, false
+
+			public method MaterializerEnumerator
+				queryPlan, @PreparedQueryPlan
+				iterState, @DataObjectMaterializer.IterationState
+				rows, @RowsManager
+				cleanup, @Action<Boolean>
+			proc
+				this.iterState = iterState
+				this.rows = rows
+				this.cleanup = cleanup
+				this.queryPlan = queryPlan
+			endmethod
+
+
+			public property Current, @DataObjectBase
+				method get
+				proc
+					if(CurrentNestedEnumerator != ^null) then
+						mreturn CurrentNestedEnumerator.Current
+					else
+						mreturn CurrentValue
+				endmethod
+			endproperty
+
+
+
+			property System.Collections.IEnumerator.Current, @object
+				method get
+				proc
+					if(CurrentNestedEnumerator != ^null) then
+						mreturn CurrentNestedEnumerator.Current
+					else
+						mreturn CurrentValue
+				endmethod
+			endproperty
+
+
+
+			public virtual method MoveNext, Boolean
+				endparams
+			proc
+				data phase = "init"
+				if(CurrentNestedEnumerator != ^null)
+					mreturn CurrentNestedEnumerator.MoveNext()
+
+				data endOfIter = false
+				do forever
+				begin
+					try
+					begin
+						if(!endOfIter) then
+						begin
+							phase = "RowManager.MoveNext"
+							if(!rows.MoveNext())
+							begin
+								endOfIter = true
+								nextloop
+							end
+
+							phase = "Iterate"
+							DataObjectMaterializer.IterateMaterializer(iterState, rows)
+							phase = "AfterIterate"
+							data iterResult = DataObjectMaterializer.AfterIterate(iterState)
+							endOfIter = iterResult.endOfResult
+							if(iterResult.objResult != ^null)
+							begin
+								CurrentValue = iterResult.objResult
+								mreturn true
+							end
+						end
+						else
+						begin
+							phase = "FinishIterate"
+							data fullResult = DataObjectMaterializer.FinishIteration(iterState).GetEnumerator()
+							CurrentNestedEnumerator = fullResult
+							mreturn fullResult.MoveNext()
+						end
+					end
+					catch(ex, @Synergex.SynergyDE.NetworkException)
+					begin
+						deadFromNetworkError = true
+						throw new MaterializationException(queryPlan.ToString(), iterState.ToString(), phase, ex)
+					end
+					catch(ex, @Exception)
+					begin
+						throw new MaterializationException(queryPlan.ToString(), iterState.ToString(), phase, ex)
+					end
+					endtry
+				end
+			endmethod
+
+
+
+			public virtual method Reset, void
+				endparams
+			proc
+				throw new System.NotImplementedException()
+			endmethod
+
+			method ~MaterializerEnumerator
+			proc
+				Dispose(true)
+			endmethod
+
+			public virtual method Dispose, void
+				endparams
+			proc
+				GC.SuppressFinalize(this)
+				Dispose(false)
+			endmethod
+		
+			protected virtual method Dispose, void
+				isFinalizer, boolean
+				endparams
+			proc
+				cleanup(deadFromNetworkError)
+				if(CurrentNestedEnumerator != ^null)
+					CurrentNestedEnumerator.Dispose()
+
+			endmethod
+			
+		endclass
+
+
+		private method RunMaterializer, @IEnumerable<DataObjectBase>
+			iterState, @DataObjectMaterializer.IterationState
+			rows, @RowsManager
+			cleanup, @Action<Boolean>
+		proc
+			mreturn new PreparedQueryPlan.MaterializerEnumeratable(this, iterState, rows, cleanup)
+		endmethod
 		
 		private method UntypedExecuteSelectCollectionPlan, @IEnumerable<DataObjectBase>
 			tracker, @Func<DataObjectBase, DataObjectBase>
 			parameters, @IReadOnlyDictionary<string, Object>
 			dataObjectProvider, @Harmony.Core.Context.IDataObjectProvider
-			skip, int
-			top, int
+			context, @Object
+		proc
+			;;dont ever use mQueryBufferPrototype for operations directly
+			mreturn new BasicDataObjectEnumerable(new QueryBuffer(mQueryBufferPrototype, dataObjectProvider, parameters, context), this, tracker)
+		endmethod
+
+		private method UntypedExecuteSizedSelectCollectionPlan, @IEnumerable<DataObjectBase>
+			tracker, @Func<DataObjectBase, DataObjectBase>
+			parameters, @IReadOnlyDictionary<string, Object>
+			dataObjectProvider, @Harmony.Core.Context.IDataObjectProvider
+			context, @Object
 		proc
 			disposable data selectObject, @Synergex.SynergyDE.Select.Select
 			;;dont ever use mQueryBufferPrototype for operations directly
-			disposable data queryBuffer, @QueryBuffer, new QueryBuffer(mQueryBufferPrototype, dataObjectProvider, parameters)
-			disposable data fromObj = FromObject(queryBuffer)
-			data tObj, @DataObjectBase
-			data stats = new DataObjectMaterializer.MaterializerStats()
-			data currentCount = 0 
-			data targetCount = top ? skip + top : 0
-
-			selectObject = SelectObject(queryBuffer, fromObj, WhereObject(queryBuffer), OrderByObject(queryBuffer), SparseObject(queryBuffer))
-			data memPnt, int, queryBuffer.TypeBuffers[0].MemoryHandle.Value
-			data metadataObject = queryBuffer.TypeBuffers[0].Metadata
-			data structureSize = metadataObject.StructureSize
-			data enumerator, @Synergex.SynergyDE.Select.RestrictedAlphaEnumerator
-			foreach ^m(memMapper.fld(1:structureSize), memPnt) in selectObject
+			disposable data queryBuffer, @QueryBuffer, new QueryBuffer(mQueryBufferPrototype, dataObjectProvider, parameters, context)
+			disposable data fromObj = FromObject(queryBuffer, queryBuffer.TypeBuffers)
+			try
 			begin
-				data grfa	,a10
-				incr currentCount
+				data tObj, @DataObjectBase
+				data stats = new DataObjectMaterializer.MaterializerStats()
+				data currentCount = 0 
+				data top = queryBuffer.GetTop(0)
+				data skip = queryBuffer.GetSkip(0)
+				data targetCount = top.HasValue ? skip + top : 0
+
+				selectObject = SelectObject(fromObj, WhereObject(queryBuffer, queryBuffer.TypeBuffers), OrderByObject(queryBuffer, queryBuffer.TypeBuffers), SparseObject(queryBuffer, queryBuffer.TypeBuffers))
+				data memPnt, int, queryBuffer.TypeBuffers[0].MemoryHandle.Value
+				data metadataObject = queryBuffer.TypeBuffers[0].Metadata
+				data structureSize = metadataObject.StructureSize
+				data enumerator, @Synergex.SynergyDE.Select.RestrictedAlphaEnumerator
+				data result = new List<DataObjectBase>()
+				foreach ^m(memMapper.fld(1:structureSize), memPnt) in selectObject
+				begin
+					data grfa	,a10
+					incr currentCount
 					
-				if(skip && skip > currentCount)
-					nextloop
+					if(skip && skip >= currentCount)
+						nextloop
 						
-				if (targetCount && currentCount > targetCount) 
-					yield exit
-				if(enumerator == ^null)
-					enumerator = selectObject.GetEnum()
-				enumerator.CurrentRFA(grfa)
-				stats.IOOPS = enumerator.TotalReadCount
-				incr stats.RecordsReturned
-				yield mreturn tracker(metadataObject.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa))
+					if (targetCount && currentCount > targetCount) 
+						exitloop
+
+					if(enumerator == ^null)
+						enumerator = Synergex.SynergyDE.Select.Select.GetEnum()
+					enumerator.CurrentRFA(grfa)
+					stats.IOOPS = enumerator.TotalReadCount
+					incr stats.RecordsReturned
+					result.Add(tracker(metadataObject.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa)))
+				end
+
+				HarmonyFileIOMetricsEventSource.Log.ReportIOOPS(stats.IOOPS)
+				HarmonyFileIOMetricsEventSource.Log.ReportRecordsReturned(stats.RecordsReturned)
+				mreturn result
 			end
-				;;end
-			;;finally
-			;;begin
-				;;HarmonyFileIOMetricsEventSource.Log.ReportIOOPS(stats.IOOPS)
-				;;HarmonyFileIOMetricsEventSource.Log.ReportRecordsReturned(stats.RecordsReturned)
-			;;end
-			;;endtry
+			catch(netEx, @Synergex.SynergyDE.NetworkException)
+			begin
+				;;make sure the active channels dont get reused if we're experiancing an xfServer Failure
+				queryBuffer.FailedDueToNetwork = true
+				throw
+			end
+			endtry
 		endmethod
 
 
@@ -263,14 +669,16 @@ namespace Harmony.Core.FileIO.Queryable
 			tracker, @Func<DataObjectBase, DataObjectBase>
 			parameters, @IReadOnlyDictionary<string, Object>
 			dataObjectProvider, @Harmony.Core.Context.IDataObjectProvider
-			
+			context, @object
 		proc
-			data skip, int, !String.IsNullOrWhiteSpace(SkipParam) ? (int)parameters[SkipParam] : 0
-			data top, int, !String.IsNullOrWhiteSpace(TopParam) ? (int)parameters[TopParam] : 0
-			if(IsJoin) then
-				mreturn UntypedExecuteJoinCollectionPlan(tracker, parameters, dataObjectProvider, skip, top).OfType<T>()
+			if(IsJoin && EnableMARS) then
+				mreturn ExecuteMARSPlan(tracker, parameters, dataObjectProvider, context).OfType<T>()
+			else if(IsJoin) then
+				mreturn UntypedExecuteJoinCollectionPlan(tracker, parameters, dataObjectProvider, context).OfType<T>()
+			else if(mQueryBufferPrototype.TypeBuffers[0].Top != ^null) then
+				mreturn UntypedExecuteSizedSelectCollectionPlan(tracker, parameters, dataObjectProvider, context).OfType<T>()
 			else
-				mreturn UntypedExecuteSelectCollectionPlan(tracker, parameters, dataObjectProvider, skip, top).OfType<T>()
+				mreturn UntypedExecuteSelectCollectionPlan(tracker, parameters, dataObjectProvider, context).OfType<T>()
 		endmethod
 
 		;;this isnt right, dont use it for now
@@ -313,31 +721,35 @@ namespace Harmony.Core.FileIO.Queryable
 			tracker, @Func<DataObjectBase, DataObjectBase>
 			parameters, @IReadOnlyDictionary<string, Object>
 			dataObjectProvider, @Harmony.Core.Context.IDataObjectProvider
+			context, @object
 		proc
-			mreturn ExecuteSelectCollectionPlan<T>(tracker, parameters, dataObjectProvider).FirstOrDefault()
+			mreturn ExecuteSelectCollectionPlan<T>(tracker, parameters, dataObjectProvider, context).FirstOrDefault()
 		endmethod
 
-		private method WhereObject, @Synergex.SynergyDE.Select.Where
+		internal method WhereObject, @Synergex.SynergyDE.Select.Where
 			queryBuf, @QueryBuffer
+			targetBuffers, @List<QueryBuffer.TypeBuffer>
 		proc
-			data selectBuilder = new SelectBuilder(queryBuf)
+			;;todo: full MARS implementation needs this to break out per select
+			data selectBuilder = new SelectBuilder(queryBuf, queryBuf.TypeBuffers == targetBuffers ? ^null : targetBuffers)
 			if(mWhereParts.Count == 1) then
 				mreturn selectBuilder.ProcessWhere(mWhereParts.First())
-            else if(mWhereParts.Count == 2) then
+			else if(mWhereParts.Count == 2) then
 			begin
-                mreturn selectBuilder.ProcessWhere(new ConnectorPart() { Left = mWhereParts[0], Right = mWhereParts[1], Op=WhereClauseConnector.AndOperator }) 
-            end
-            else if(mWhereParts.Count > 2) then
+				mreturn selectBuilder.ProcessWhere(new ConnectorPart() { Left = mWhereParts[0], Right = mWhereParts[1], Op=WhereClauseConnector.AndOperator }) 
+			end
+			else if(mWhereParts.Count > 2) then
 				throw new NotImplementedException();
 			else
 				mreturn ^null
 		endmethod
 
-		private method OnObject, @Synergex.SynergyDE.Select.On
+		internal method OnObject, @Synergex.SynergyDE.Select.On
 			queryBuf, @QueryBuffer
 			typeBuf, @QueryBuffer.TypeBuffer
+			allBuffers, @List<QueryBuffer.TypeBuffer>
 		proc
-			data selectBuilder = new SelectBuilder(queryBuf)
+			data selectBuilder = new SelectBuilder(queryBuf, queryBuf.TypeBuffers == allBuffers ? ^null : allBuffers)
 			if(typeBuf.JoinOn != ^null) then
 				mreturn selectBuilder.ProcessOn(typeBuf.JoinOn)
 			else
@@ -355,8 +767,9 @@ namespace Harmony.Core.FileIO.Queryable
 				mreturn Synergex.SynergyDE.Select.OrderBy.Descending(recordArea(fieldDef.StructurePosition:fieldDef.ElementSize))
 		endmethod
 
-		private method OrderByObject, @Synergex.SynergyDE.Select.OrderBy
+		internal method OrderByObject, @Synergex.SynergyDE.Select.OrderBy
 			queryBuf, @QueryBuffer
+			targetBuffers, @List<QueryBuffer.TypeBuffer>
 		proc
 			data orderByResult, @Synergex.SynergyDE.Select.OrderBy, ^null
 			if(mOrderBy != ^null)
@@ -368,6 +781,10 @@ namespace Harmony.Core.FileIO.Queryable
 					if(tpl.Item1.QuerySourceKey == 0)
 					begin
 						data typeBuffer = queryBuf.TypeBuffers[tpl.Item1.QuerySourceKey]
+
+						if(!targetBuffers.Contains(typeBuffer))
+							nextloop
+
 						data handle = typeBuffer.MemoryHandle.Value
 						;;TODO: this isnt handling composite keys in a join
 						if(IsJoin) then
@@ -398,8 +815,7 @@ namespace Harmony.Core.FileIO.Queryable
 			mreturn orderByResult
 		endmethod
 
-		private method SelectObject, @Synergex.SynergyDE.Select.Select
-			queryBuf, @QueryBuffer
+		internal method SelectObject, @Synergex.SynergyDE.Select.Select
 			fromObject, @Synergex.SynergyDE.Select.From
 			whereObject, @Synergex.SynergyDE.Select.Where
 			orderObject, @Synergex.SynergyDE.Select.OrderBy
@@ -423,8 +839,9 @@ namespace Harmony.Core.FileIO.Queryable
 			end
 		endmethod
 
-		private method SparseObject, @Synergex.SynergyDE.Select.Sparse
+		internal method SparseObject, @Synergex.SynergyDE.Select.Sparse
 			queryBuf, @QueryBuffer
+			targetBuffers, @List<QueryBuffer.TypeBuffer>
 			structure tmpStructure
 				fld	,a1
 			endstructure
@@ -442,6 +859,9 @@ namespace Harmony.Core.FileIO.Queryable
 					begin
 						data sparseItem, @Synergex.SynergyDE.Select.Sparse
 						data typeBuffer = queryBuf.TypeBuffers[typeBufKvp.Key]
+						if(!targetBuffers.Contains(typeBuffer))
+							nextloop
+
 						data memPtr, int, typeBuffer.MemoryHandle.Value
 						sparseItem = new Synergex.SynergyDE.Select.Sparse(^m(tmpStructure(fieldDetails.StructurePosition:fieldDetails.ElementSize), memPtr))
 
@@ -459,7 +879,6 @@ namespace Harmony.Core.FileIO.Queryable
 
 
 		private method JoinObject, @Synergex.SynergyDE.Select.JoinSelect
-			queryBuf, @QueryBuffer
 			fromObject, @Synergex.SynergyDE.Select.From
 			whereObject, @Synergex.SynergyDE.Select.Where
 			orderObject, @Synergex.SynergyDE.Select.OrderBy
@@ -484,12 +903,13 @@ namespace Harmony.Core.FileIO.Queryable
 			end
 		endmethod
 
-		private method FromObject, @Synergex.SynergyDE.Select.From
+		internal method FromObject, @Synergex.SynergyDE.Select.From
 			queryBuf, @QueryBuffer
+			targetBuffers, @List<QueryBuffer.TypeBuffer>
 		proc
 			data fromItem, @QueryBuffer.TypeBuffer
 			data currentJoin, @Synergex.SynergyDE.Select.From, ^null
-			foreach fromItem in queryBuf.TypeBuffers
+			foreach fromItem in targetBuffers
 			begin
 				data memPtr, i4, fromItem.MemoryHandle.Value
 				data channel, i4, fromItem.IOChannel.Value
@@ -500,11 +920,11 @@ namespace Harmony.Core.FileIO.Queryable
 				end
 				else if(fromItem.IsInnerJoin && fromItem.JoinOn != ^null) then
 				begin
-					currentJoin = currentJoin.InnerJoin(madeJoin, OnObject(queryBuf, fromItem))
+					currentJoin = currentJoin.InnerJoin(madeJoin, OnObject(queryBuf, fromItem, targetBuffers))
 				end
 				else if(fromItem.JoinOn != ^null)
 				begin
-					currentJoin = currentJoin.LeftJoin(madeJoin, OnObject(queryBuf, fromItem))
+					currentJoin = currentJoin.LeftJoin(madeJoin, OnObject(queryBuf, fromItem, targetBuffers))
 				end
 			end
 			mreturn currentJoin

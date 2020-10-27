@@ -10,7 +10,6 @@ namespace Harmony.Core.EF.Query.Internal
 {
     public class HarmonyQueryCompilationContext : QueryCompilationContext
     {
-        public Dictionary<Expression, INavigation> ParameterToNavigationLookup = new Dictionary<Expression, INavigation>(new ExpressionValueComparer());
         public Dictionary<Expression, ICollection<INavigation>> NavigationsForParameterLookup = new Dictionary<Expression, ICollection<INavigation>>(new ExpressionValueComparer());
         public Dictionary<Expression, Expression> ParameterToValueBufferLookup = new Dictionary<Expression, Expression>(new ExpressionValueComparer());
         public Dictionary<Expression, HarmonyQueryExpression> ParameterToQueryExpressionLookup = new Dictionary<Expression, HarmonyQueryExpression>(new ExpressionValueComparer());
@@ -23,15 +22,13 @@ namespace Harmony.Core.EF.Query.Internal
         {
             if (NavigationsForParameterLookup.TryGetValue(outerExpr, out var navCollection))
             {
-                if(!navCollection.Contains(nav))
+                if (!navCollection.Contains(nav))
                     navCollection.Add(nav);
             }
             else
             {
                 NavigationsForParameterLookup.Add(outerExpr, new List<INavigation> { nav });
             }
-
-            ParameterToNavigationLookup.Add(innerExpr, nav);
         }
 
         public void MapQueryExpression(ShapedQueryExpression shapedExpression, Expression selectParameter)

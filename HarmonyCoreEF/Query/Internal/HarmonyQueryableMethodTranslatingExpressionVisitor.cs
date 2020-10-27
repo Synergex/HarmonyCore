@@ -14,6 +14,7 @@ using Microsoft.EntityFrameworkCore.Query;
 using Harmony.Core.EF.Storage;
 using Microsoft.EntityFrameworkCore;
 using Harmony.Core.EF.Extensions.Internal;
+using Harmony.Core.FileIO.Queryable.Expressions;
 
 namespace Harmony.Core.EF.Query.Internal
 {
@@ -453,9 +454,9 @@ namespace Harmony.Core.EF.Query.Internal
                 {
                     outerQueryExpression = (HarmonyQueryExpression)outer.QueryExpression;
                 }
-                var outerTable = outerQueryExpression.ServerQueryExpression as HarmonyTableExpression;
+                var outerTable = outerQueryExpression.FindServerExpression();
                 var innerQuery = inner.QueryExpression as HarmonyQueryExpression;
-                var innerTable = innerQuery.ServerQueryExpression as HarmonyTableExpression;
+                var innerTable = innerQuery.FindServerExpression();
                 innerTable.Name = string.IsNullOrWhiteSpace(outerTable.Name) ? navValue.Name : outerTable.Name + "." + navValue.Name;
                 //Add outerQuery.ConvertedParameter + innerNav to map to innerTable
                 var innerExpr = Expression.PropertyOrField(outerQueryExpression.ConvertedParameter, navValue.Name);
@@ -591,13 +592,7 @@ namespace Harmony.Core.EF.Query.Internal
                 return null;
             }
 
-            var orderBy = ascending ? EnumerableMethods.OrderBy : EnumerableMethods.OrderByDescending;
-            inMemoryQueryExpression.ServerQueryExpression
-                = Expression.Call(
-                    orderBy.MakeGenericMethod(inMemoryQueryExpression.CurrentParameter.Type, keySelector.ReturnType),
-                    inMemoryQueryExpression.ServerQueryExpression,
-                    keySelector);
-
+            inMemoryQueryExpression.FindServerExpression().OrderByExpressions.Add(Tuple.Create<Expression, bool>(keySelector.Body, ascending));
             return source;
         }
 
@@ -703,7 +698,7 @@ namespace Harmony.Core.EF.Query.Internal
                     if (navExpression != null)
                     {
                         var cleanSubQuery = navExpression.Subquery;
-                        var subQueryTable = ((HarmonyQueryExpression)LiftSubquery(queryExpr, cleanSubQuery, replacementVisitor).QueryExpression).ServerQueryExpression as HarmonyTableExpression;
+                        var subQueryTable = ((HarmonyQueryExpression)LiftSubquery(queryExpr, cleanSubQuery, replacementVisitor).QueryExpression).FindServerExpression();
 
                         subQueryTable.Name = includeExpression.Navigation.PropertyInfo.Name;
                         subQueryTable.IsCollection = includeExpression.Navigation.IsCollection();
@@ -731,7 +726,9 @@ namespace Harmony.Core.EF.Query.Internal
 
             var groupByQuery = source.ShaperExpression is GroupByShaperExpression;
             var queryExpression = (HarmonyQueryExpression)source.QueryExpression;
-
+            var tableExpression = queryExpression.ServerQueryExpression as HarmonyTableExpression;
+            if(tableExpression != null)
+                tableExpression.IsCollection = true;
             if (groupByQuery)
             {
                 queryExpression.PushdownIntoSubquery();
@@ -744,7 +741,7 @@ namespace Harmony.Core.EF.Query.Internal
         {
             var subquery = TranslateSubquery(cleanSubQuery);
             var subQueryExpr = subquery.QueryExpression as HarmonyQueryExpression;
-            var subQueryTable = subQueryExpr.ServerQueryExpression as HarmonyTableExpression;
+            var subQueryTable = subQueryExpr.FindServerExpression();
             for (int i = 0; i < subQueryTable.WhereExpressions.Count; i++)
             {
                 if(replacementVisitor != null)
@@ -857,11 +854,9 @@ namespace Harmony.Core.EF.Query.Internal
                 return null;
             }
 
-            inMemoryQueryExpression.ServerQueryExpression
-                = Expression.Call(
-                    EnumerableMethods.Skip.MakeGenericMethod(inMemoryQueryExpression.CurrentParameter.Type),
-                    inMemoryQueryExpression.ServerQueryExpression,
-                    count);
+            var serverExpr = inMemoryQueryExpression.FindServerExpression();
+            serverExpr.IsCollection = true;
+            serverExpr.Skip = count;
 
             return source;
         }
@@ -881,11 +876,9 @@ namespace Harmony.Core.EF.Query.Internal
                 return null;
             }
 
-            inMemoryQueryExpression.ServerQueryExpression
-                = Expression.Call(
-                    EnumerableMethods.Take.MakeGenericMethod(inMemoryQueryExpression.CurrentParameter.Type),
-                    inMemoryQueryExpression.ServerQueryExpression,
-                    count);
+            var serverExpr = inMemoryQueryExpression.FindServerExpression();
+            serverExpr.IsCollection = true;
+            serverExpr.Top = count;
 
             return source;
         }
@@ -896,19 +889,14 @@ namespace Harmony.Core.EF.Query.Internal
         protected override ShapedQueryExpression TranslateThenBy(ShapedQueryExpression source, LambdaExpression keySelector, bool ascending)
         {
             var inMemoryQueryExpression = (HarmonyQueryExpression)source.QueryExpression;
+
             keySelector = TranslateLambdaExpression(source, keySelector);
             if (keySelector == null)
             {
                 return null;
             }
 
-            inMemoryQueryExpression.ServerQueryExpression
-                = Expression.Call(
-                    (ascending ? EnumerableMethods.ThenBy : EnumerableMethods.ThenByDescending)
-                    .MakeGenericMethod(inMemoryQueryExpression.CurrentParameter.Type, keySelector.ReturnType),
-                    inMemoryQueryExpression.ServerQueryExpression,
-                    keySelector);
-
+            inMemoryQueryExpression.FindServerExpression().OrderByExpressions.Add(Tuple.Create<Expression, bool>(keySelector.Body, ascending));
             return source;
         }
 
@@ -1039,9 +1027,22 @@ namespace Harmony.Core.EF.Query.Internal
                 return base.VisitConditional(node);
             }
 
+            protected override Expression VisitExtension(Expression node)
+            {
+                if (node is InExpression)
+                    return node;
+
+                return base.VisitExtension(node);
+            }
+
             protected override Expression VisitUnary(UnaryExpression node)
             {
-                if (node.Type.IsGenericType && node.Type.GetGenericTypeDefinition() == typeof(Nullable<>))
+                if (node.NodeType == ExpressionType.Not)
+                {
+                    var body = Visit(node.Operand);
+                    return Expression.Not(body);
+                }
+                else if (node.Type.IsGenericType && node.Type.GetGenericTypeDefinition() == typeof(Nullable<>))
                     return Visit(node.Operand);
                 else if (node.Type == node.Operand.Type)
                     return Visit(node.Operand);
@@ -1411,6 +1412,88 @@ namespace Harmony.Core.EF.Query.Internal
                 return result;
             }
 
+            protected override Expression VisitMember(MemberExpression node)
+            {
+                //check if member expression is a dangerous dereference and should be made nullable
+                //as a pattern, parameters here should be null safe
+                if (!(node.Expression is ParameterExpression) && !node.Type.IsValueType)
+                {
+                    if (node.Member is PropertyInfo propInfo && !propInfo.PropertyType.IsValueType)
+                    {
+                        return MakeNullSafeExpression(Visit(node.Expression), propInfo.Name, false);
+                    }
+                    else if (node.Member is FieldInfo fieldInfo && !fieldInfo.FieldType.IsValueType)
+                    {
+                        return MakeNullSafeExpression(Visit(node.Expression), fieldInfo.Name, false);
+                    }
+                }
+                
+                return base.VisitMember(node);
+            }
+
+            private Expression MakeNullSafeExpression(Expression baseExpression, string propOrFieldName, bool nullable)
+            {
+                var target = Expression.PropertyOrField(baseExpression, propOrFieldName) as Expression;
+                var nullableType = target.Type.IsValueType ? typeof(Nullable<>).MakeGenericType(target.Type) : null;
+                if (baseExpression.Type.IsValueType)
+                    return nullable ? Expression.Convert(target, nullableType) : target;
+                else if(!nullable || nullableType == null)
+                    return Expression.Condition(Expression.Equal(Expression.Constant(null), baseExpression), Expression.Default(target.Type), target, target.Type);
+                else
+                    return Expression.Condition(Expression.Equal(Expression.Constant(null), baseExpression), Expression.Constant(null, nullableType), Expression.Convert(target, nullableType), nullableType);
+            }
+
+            protected override Expression VisitUnary(UnaryExpression node)
+            {
+                if (node.NodeType == ExpressionType.Convert && node.Type.IsGenericType && node.Type.GetGenericTypeDefinition() == typeof(Nullable<>))
+                {
+                    if (node.Operand is MemberExpression memberExpr)
+                    {
+                        if (memberExpr.Member is PropertyInfo propInfo)
+                        {
+                            return MakeNullSafeExpression(Visit(memberExpr.Expression), propInfo.Name, true);
+                        }
+                        else if (memberExpr.Member is FieldInfo fieldInfo)
+                        {
+                            return MakeNullSafeExpression(Visit(memberExpr.Expression), fieldInfo.Name, true);
+                        }
+                    }
+                }
+                return base.VisitUnary(node);
+            }
+
+            protected override Expression VisitMethodCall(MethodCallExpression methodCall)
+            {
+                if (methodCall.Method.Name == "Property")
+                {
+                    var propTarget = (methodCall.Arguments[1] as ConstantExpression)?.Value as string;
+                    if (propTarget == null)
+                        throw new NotImplementedException("EF Property call has an invalid 2nd argument, check debug tree");
+
+                    var targetArgs = Visit(methodCall.Arguments[0]);
+                    return MakeNullSafeExpression(targetArgs, propTarget, true);
+                }
+                else if (methodCall.Method.Name == "Select" && methodCall.Method.DeclaringType == typeof(Queryable))
+                {
+                    var updatedExpression = CurrentVisitor.LiftSubquery(ReplacementSource.QueryExpression as HarmonyQueryExpression, methodCall, null, CurrentParameter);
+                    if (updatedExpression != null)
+                    {
+                        var tableExpression = ((HarmonyQueryExpression)updatedExpression.QueryExpression).FindServerExpression();
+                        tableExpression.Name = SubQueryTargetNames.Peek();
+                        tableExpression.IsCollection = true;
+                        var queryableType = typeof(Queryable);
+                        var asQueryableMethod = queryableType.GetMethods().FirstOrDefault(mi => mi.Name == nameof(Queryable.AsQueryable) && mi.IsGenericMethod);
+                        var emptyMethod = typeof(Enumerable).GetMethod("Empty").MakeGenericMethod(tableExpression.ItemType);
+                        var enumerableResult = Expression.PropertyOrField(CurrentParameter, SubQueryTargetNames.Peek());
+                        var nullsafeEnumerable = Expression.Condition(Expression.Equal(Expression.Default(enumerableResult.Type), enumerableResult), Expression.Call(null, emptyMethod), enumerableResult, emptyMethod.ReturnType);
+                        var asQueryableCall = Expression.Call(null, asQueryableMethod.MakeGenericMethod(tableExpression.ItemType), nullsafeEnumerable);
+                        return methodCall.Update(null, new Expression[] { asQueryableCall, updatedExpression.ShaperExpression });
+                    }
+                }
+                
+                return base.VisitMethodCall(methodCall);
+            }
+
             protected override MemberAssignment VisitMemberAssignment(MemberAssignment node)
             {
                 //check if we're putting a subquery into an entity type
@@ -1441,52 +1524,19 @@ namespace Harmony.Core.EF.Query.Internal
                     {
                         SubQueryTargetNames.Push(((ConstantExpression)node.Expression).Value as string);
                     }
-                    else if (node.Member.Name.StartsWith("Next") && node.Expression is MemberInitExpression)
-                    {
-                    }
-                    else if (node.Member.Name == "IsNull")
-                    {
-                        var propCall = (node.Expression as BinaryExpression)?.Left as MethodCallExpression;
-                        if (propCall != null && propCall.Method.Name == "Property")
-                        {
-                            var propTarget = (propCall.Arguments[1] as ConstantExpression)?.Value as string;
-                            if (propTarget == null)
-                                throw new NotImplementedException("EF Property call has an invalid 2nd argument, check debug tree");
-                            var targetProperty = Expression.Property(propCall.Arguments[0], propTarget);
-                            var nullsafeProperty = Expression.Condition(Expression.Equal(Expression.Constant(null), propCall.Arguments[0]), Expression.Default(targetProperty.Type), targetProperty, targetProperty.Type);
-                            return node.Update(Expression.Equal(nullsafeProperty, Expression.Default(targetProperty.Type)));
-                        }
-                    }
-                    else if (node.Member.Name == "Value")
-                    {
-                        var selectCall = node.Expression as MethodCallExpression;
-                        if (selectCall != null && selectCall.Method.Name == "Select" && selectCall.Method.DeclaringType == typeof(Queryable))
-                        {
-                            var updatedExpression = CurrentVisitor.LiftSubquery(ReplacementSource.QueryExpression as HarmonyQueryExpression, node.Expression, null, CurrentParameter);
-                            if (updatedExpression != null)
-                            {
-                                var tableExpression = ((HarmonyQueryExpression)updatedExpression.QueryExpression).ServerQueryExpression as HarmonyTableExpression;
-                                tableExpression.Name = SubQueryTargetNames.Peek();
-                                tableExpression.IsCollection = true;
-                                var queryableType = typeof(Queryable);
-                                var asQueryableMethod = queryableType.GetMethods().FirstOrDefault(mi => mi.Name == nameof(Queryable.AsQueryable) && mi.IsGenericMethod);
-                                var emptyMethod = typeof(Enumerable).GetMethod("Empty").MakeGenericMethod(tableExpression.ItemType);
-                                var enumerableResult = Expression.PropertyOrField(CurrentParameter, SubQueryTargetNames.Peek());
-                                var nullsafeEnumerable = Expression.Condition(Expression.Equal(Expression.Default(enumerableResult.Type), enumerableResult), Expression.Call(null, emptyMethod), enumerableResult, emptyMethod.ReturnType);
-                                var asQueryableCall = Expression.Call(null, asQueryableMethod.MakeGenericMethod(tableExpression.ItemType), nullsafeEnumerable);
-                                return node.Update(selectCall.Update(null, new Expression[] { asQueryableCall, updatedExpression.ShaperExpression }));
-                            }
-                        }
-                        else
-                        {
-                        }
-                    }
                 }
-                return base.VisitMemberAssignment(node);
+
+                var expr = Visit(node.Expression);
+                if (node.Expression.Type.IsValueType && !expr.Type.IsValueType)
+                {
+                    return node.Update(Expression.Convert(expr, node.Expression.Type));
+                }
+                else
+                    return node.Update(expr);
             }
         
 
-            private static readonly MethodInfo _getParameterValueMethodInfo
+            internal static readonly MethodInfo _getParameterValueMethodInfo
                 = typeof(HarmonyExpressionTranslatingExpressionVisitor)
                     .GetTypeInfo().GetDeclaredMethod(nameof(GetParameterValue));
             //protected override Expression VisitMethodCall(MethodCallExpression node)

@@ -29,7 +29,13 @@ namespace Harmony.Core.Context
 
 	endinterface
 
-	public interface IAsyncPooledContextBase extends IPooledContextBase
+	public interface IPooledContextBase2 extends IPooledContextBase
+
+		readonly property IsHealthy, boolean
+
+	endinterface
+
+	public interface IAsyncPooledContextBase extends IPooledContextBase2
 
 		method DestroyAsync, @Task
 		endmethod
@@ -83,6 +89,15 @@ namespace Harmony.Core.Context
 		proc
 			mreturn Task.FromResult(true)
 		endmethod
+
+		public virtual property IsHealthy, boolean
+			method get
+			proc
+				mreturn true
+			endmethod
+		endproperty
+
+
 	endclass
 
 	public abstract class AsyncPooledContextBase extends PooledContextBase implements IContextBase, IAsyncPooledContextBase

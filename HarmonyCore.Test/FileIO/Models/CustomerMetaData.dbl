@@ -117,18 +117,29 @@ namespace Harmony.Core.Test
         ;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
         ;;; <param name="joinedObjects">Data to allow the related data properties (REL_CustomerOrders and REL_CustomerFavoriteItem) to be populated.</param>
         ;;; <returns></returns>
-        public override method MakeNew, @DataObjectBase
-            required in dataArea, a
-            required in grfa, a
-            required in joinedObjects, [#]KeyValuePair<String, Object>
-        proc
-            data newCustomer = new Customer(dataArea, grfa)
-            data joinedObject, KeyValuePair<String, Object>
-            
+		public override method MakeNew, @DataObjectBase
+			required in dataArea, a
+			required in grfa, a
+			required in joinedObjects, [#]KeyValuePair<String, Object>
+		proc
+			data newCustomer = new Customer(dataArea, grfa)
+			UpdateExistingJoin(newCustomer, joinedObjects)
+			mreturn newCustomer
+		endmethod
+        
+		public override method UpdateExistingJoin, void
+			required in existing, @DataObjectBase
+			required in joinedObjects, [#]KeyValuePair<String, Object>
+		proc
+			UpdateExistingJoin((@Customer)existing, joinedObjects)
+		endmethod
 
-            mreturn newCustomer
-
-        endmethod
+		public method UpdateExistingJoin, void
+			required in existing, @Customer
+			required in joinedObjects, [#]KeyValuePair<String, Object>
+		proc
+			
+		endmethod
 
         ;;; <summary>
         ;;; Formats a literal value for a key lookup.

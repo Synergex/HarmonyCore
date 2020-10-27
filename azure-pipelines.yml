@@ -3,7 +3,7 @@
 # Start with a minimal pipeline that you can customize to build and deploy your code.
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
-name: 1.1.$(Rev:r)
+name: 3.1.$(Rev:r)
 
 stages:
 - stage: build
@@ -57,17 +57,17 @@ stages:
         logFileVerbosity: diagnostic
         clean: false
 
-    - publish: '$(Pipeline.Workspace)\\s\\TestDir'
-      displayName: 'Publish Linux TB DBR'
-      condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
-      artifact: TraditionalBridgeDBR
+#    - publish: '$(Pipeline.Workspace)\\s\\TestDir'
+#      displayName: 'Publish Linux TB DBR'
+#      condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
+#      artifact: TraditionalBridgeDBR
 
     - task: PowerShell@2
       inputs:
         targetType: 'inline'
         script: |
-          Write-Host "##vso[task.setvariable variable=RPSMFIL;]$env:SolutionDir\HarmonyCore.Test.Repository\bin\Release\rpsmain.ism"
-          Write-Host "##vso[task.setvariable variable=RPSTFIL;]$env:SolutionDir\HarmonyCore.Test.Repository\bin\Release\rpstext.ism"
+          Write-Host "##vso[task.setvariable variable=RPSMFIL;]$env:SolutionDir\HarmonyCore.Test.Repository\bin\Debug\rpsmain.ism"
+          Write-Host "##vso[task.setvariable variable=RPSTFIL;]$env:SolutionDir\HarmonyCore.Test.Repository\bin\Debug\rpstext.ism"
     - task: BatchScript@1
       inputs:
         filename: 'regen.bat'
@@ -81,31 +81,41 @@ stages:
           HarmonyCore.Test
           Services.Test
 
-    - task: DotNetCoreCLI@2
-      displayName: 'Publish Linux Test Binaries'
-      condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
-      inputs:
-        command: 'custom'
-        custom: 'msbuild'
-        publishWebProjects: false
-        arguments: '-t:Publish -p:RuntimeIdentifier=linux-x64 -p:Platform=AnyCPU -p:Config=Release'
-        projects: |
-          Services.Host
-          Services.Test
-          HarmonyCore.Test
-        verbosityPack: Diagnostic
-
-    - task: DotNetCoreCLI@2
-      enabled: true
-      displayName: 'Publish Windows Test Binaries'
-      condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
-      inputs:
-        command: 'custom'
-        custom: 'msbuild'
-        arguments: '-t:Publish -p:RuntimeIdentifier=win7-x64 -p:Platform=AnyCPU -p:Config=Release'
-        publishWebProjects: false
-        projects: Services.Host
-        verbosityPack: Diagnostic
+#   - task: DotNetCoreCLI@2
+#     displayName: 'Publish Linux Test Binaries'
+#     condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
+#     inputs:
+#       command: 'custom'
+#       custom: 'publish'
+#       publishWebProjects: false
+#       arguments: '-r=linux-x64 -c Release'
+#       projects: |
+#         Services.Host
+#         Services.Test
+#         HarmonyCore.Test
+#       verbosityPack: Diagnostic
+#   - task: DotNetCoreCLI@2
+#     enabled: true
+#     displayName: 'dotnet bug workaround'
+#     condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
+#     inputs:
+#       command: 'custom'
+#       custom: 'clean'
+#       arguments: '-c Release'
+#       publishWebProjects: false
+#       projects: Services.Host
+#       verbosityPack: Diagnostic
+#   - task: DotNetCoreCLI@2
+#     enabled: true
+#     displayName: 'Publish Windows Test Binaries'
+#     condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
+#     inputs:
+#       command: 'custom'
+#       custom: 'publish'
+#       arguments: '-v detailed -r=win7-x64 -c Release'
+#       publishWebProjects: false
+#       projects: Services.Host
+#       verbosityPack: Diagnostic
 
     - task: NuGetCommand@2
       name: 'HarmonyCoreNuget'
@@ -122,23 +132,25 @@ stages:
         nuGetFeedType: 'external'
         publishFeedCredentials: 'HarmonyBuild'
 
-    - publish: '$(Pipeline.Workspace)\\s\\Services.Host\\bin\\Release\\netcoreapp3.1\\publish'
-      displayName: 'Publish Linux Services.Host Artifact'
-      condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
-      artifact: LinuxWebApp
-    - publish: '$(Pipeline.Workspace)\\s\\Services.Host\\bin\\Release\\netcoreapp3.1\\win7-x64\\publish'
-      displayName: 'Publish Windows Services.Host Artifact'
-      condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
-      artifact: WindowsWebApp
-    - publish: '$(Pipeline.Workspace)\\s\\Services.Test\\bin\\Release\\netcoreapp3.1\\publish'
-      displayName: 'Publish Linux Services.Test Artifact'
-      condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
-      artifact: LinuxServicesTest
-    - publish: '$(Pipeline.Workspace)\\s\\HarmonyCore.Test\\bin\\Release\\netcoreapp3.1\\publish'
-      displayName: 'Publish Linux HarmonyCore.Test Artifact'
-      condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
-      artifact: LinuxHarmonyCoreTest
-    
+#    - publish: '$(Pipeline.Workspace)\\s\\Services.Host\\bin\\Release\\netcoreapp3.1\\publish'
+#      displayName: 'Publish Linux Services.Host Artifact'
+#      condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
+#      artifact: LinuxWebApp
+#    - publish: '$(Pipeline.Workspace)\\s\\Services.Host\\bin\\x64\\Release\\netcoreapp3.1\\win7-x64\\'
+#      displayName: 'Publish Windows Services.Host Artifact'
+#      condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
+#      artifact: WindowsWebApp
+#    - publish: '$(Pipeline.Workspace)\\s\\Services.Test\\bin\\Release\\netcoreapp3.1\\publish'
+#      displayName: 'Publish Linux Services.Test Artifact'
+#      condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
+#      artifact: LinuxServicesTest
+#    - publish: '$(Pipeline.Workspace)\\s\\HarmonyCore.Test\\bin\\Release\\netcoreapp3.1\\publish'
+#      displayName: 'Publish Linux HarmonyCore.Test Artifact'
+#      condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
+#      artifact: LinuxHarmonyCoreTest
+    - publish: '$(Build.ArtifactStagingDirectory)/'
+      displayName: 'Publish nuget packages'
+      artifact: NugetPackages
 #  - job: LinuxTest
 #    dependsOn: BuildJob
 #    pool:

@@ -33,6 +33,18 @@ namespace TraditionalBridge.TestClient
 
     public partial class EncryptService extends DynamicCallProvider
 
+        static IsInitialized, boolean
+        static method EncryptService
+        proc
+            DataObjectMetadataBase.LookupType(^typeof(Strtest3))
+            DataObjectMetadataBase.LookupType(^typeof(Strtest4))
+            DataObjectMetadataBase.LookupType(^typeof(Strtest1))
+            DataObjectMetadataBase.LookupType(^typeof(Strtest3))
+            DataObjectMetadataBase.LookupType(^typeof(Strtest1))
+            DataObjectMetadataBase.LookupType(^typeof(Strtest2))
+            IsInitialized = true
+        endmethod
+
         ;;; <summary>
         ;;; Constructor
         ;;; </summary>
@@ -41,14 +53,15 @@ namespace TraditionalBridge.TestClient
             endparams
             parent(connection)
         proc
-            
+            if(!IsInitialized)
+                throw new Exception("cctor missing")
         endmethod
 
         ;;; <summary>
         ;;; No description found in method catalog
         ;;; </summary>
         public async method encrypt_tst1, @Task
-            required in args, @Encrypt.encrypt_tst1_Request
+            required in args, @TraditionalBridge.TestClient.Encrypt.encrypt_tst1_Request
         proc
             ;;Make the JSON-RPC call the traditional Synergy routine
             data resultTuple = await CallMethod("encrypt_tst1"
@@ -62,23 +75,18 @@ namespace TraditionalBridge.TestClient
         ;;; <summary>
         ;;; No description found in method catalog
         ;;; </summary>
-        public async method encrypt_tst10, @Task<Encrypt.encrypt_tst10_Response>
-            required in args, @Encrypt.encrypt_tst10_Request
+        public async method encrypt_tst10, @Task<TraditionalBridge.TestClient.Encrypt.encrypt_tst10_Response>
+            required in args, @TraditionalBridge.TestClient.Encrypt.encrypt_tst10_Request
         proc
             ;;Prepare the response object
-            data response = new Encrypt.encrypt_tst10_Response()
+            data response = new TraditionalBridge.TestClient.Encrypt.encrypt_tst10_Response()
 
             ;;Make the JSON-RPC call the traditional Synergy routine
             data resultTuple = await CallMethod("encrypt_tst10"
             &   ,args.strtest3
             &   )
 
-            ;;Get the returned information
-            data returnToken = (@JToken)(resultTuple.Item1)
-
-            ;;Set returned values for OUT or INOUT parameters
-            data resultList, @List<Object>, resultTuple.Item2.ToList()
-            response.strtest3 = (@STRTEST3)resultList[1 - 1]
+            ArgumentHelper.Argument(1, resultTuple, response.strtest3)
 
             ;;Return the response
             mreturn response
@@ -88,23 +96,18 @@ namespace TraditionalBridge.TestClient
         ;;; <summary>
         ;;; No description found in method catalog
         ;;; </summary>
-        public async method encrypt_tst11, @Task<Encrypt.encrypt_tst11_Response>
-            required in args, @Encrypt.encrypt_tst11_Request
+        public async method encrypt_tst11, @Task<TraditionalBridge.TestClient.Encrypt.encrypt_tst11_Response>
+            required in args, @TraditionalBridge.TestClient.Encrypt.encrypt_tst11_Request
         proc
             ;;Prepare the response object
-            data response = new Encrypt.encrypt_tst11_Response()
+            data response = new TraditionalBridge.TestClient.Encrypt.encrypt_tst11_Response()
 
             ;;Make the JSON-RPC call the traditional Synergy routine
             data resultTuple = await CallMethod("encrypt_tst11"
             &   ,args.strtest4
             &   )
 
-            ;;Get the returned information
-            data returnToken = (@JToken)(resultTuple.Item1)
-
-            ;;Set returned values for OUT or INOUT parameters
-            data resultList, @List<Object>, resultTuple.Item2.ToList()
-            response.strtest4 = (@STRTEST4)resultList[1 - 1]
+            ArgumentHelper.Argument(1, resultTuple, response.strtest4)
 
             ;;Return the response
             mreturn response
@@ -114,11 +117,11 @@ namespace TraditionalBridge.TestClient
         ;;; <summary>
         ;;; No description found in method catalog
         ;;; </summary>
-        public async method encrypt_tst12, @Task<Encrypt.encrypt_tst12_Response>
-            required in args, @Encrypt.encrypt_tst12_Request
+        public async method encrypt_tst12, @Task<TraditionalBridge.TestClient.Encrypt.encrypt_tst12_Response>
+            required in args, @TraditionalBridge.TestClient.Encrypt.encrypt_tst12_Request
         proc
             ;;Prepare the response object
-            data response = new Encrypt.encrypt_tst12_Response()
+            data response = new TraditionalBridge.TestClient.Encrypt.encrypt_tst12_Response()
 
             ;;Make the JSON-RPC call the traditional Synergy routine
             data resultTuple = await CallMethod("encrypt_tst12"
@@ -126,13 +129,8 @@ namespace TraditionalBridge.TestClient
             &   ,args.strtest3
             &   )
 
-            ;;Get the returned information
-            data returnToken = (@JToken)(resultTuple.Item1)
-
-            ;;Set returned values for OUT or INOUT parameters
-            data resultList, @List<Object>, resultTuple.Item2.ToList()
-            response.strtest1 = (@STRTEST1)resultList[1 - 1]
-            response.strtest3 = (@STRTEST3)resultList[2 - 1]
+            ArgumentHelper.Argument(1, resultTuple, response.strtest1)
+            ArgumentHelper.Argument(2, resultTuple, response.strtest3)
 
             ;;Return the response
             mreturn response
@@ -142,11 +140,11 @@ namespace TraditionalBridge.TestClient
         ;;; <summary>
         ;;; No description found in method catalog
         ;;; </summary>
-        public async method encrypt_tst2, @Task<Encrypt.encrypt_tst2_Response>
-            required in args, @Encrypt.encrypt_tst2_Request
+        public async method encrypt_tst2, @Task<TraditionalBridge.TestClient.Encrypt.encrypt_tst2_Response>
+            required in args, @TraditionalBridge.TestClient.Encrypt.encrypt_tst2_Request
         proc
             ;;Prepare the response object
-            data response = new Encrypt.encrypt_tst2_Response()
+            data response = new TraditionalBridge.TestClient.Encrypt.encrypt_tst2_Response()
 
             ;;Make the JSON-RPC call the traditional Synergy routine
             data resultTuple = await CallMethod("encrypt_tst2"
@@ -162,11 +160,8 @@ namespace TraditionalBridge.TestClient
             &   ,ArgumentHelper.MayBeOptional(args.p10)
             &   )
 
-            ;;Get the returned information
-            data returnToken = (@JToken)(resultTuple.Item1)
-
-            ;;Set returned values for OUT or INOUT parameters
             data resultList, @List<Object>, resultTuple.Item2.ToList()
+
             response.p1 = ^as(resultList[1 - 1],Nullable<decimal>)
             response.p2 = ^as(resultList[2 - 1],Nullable<decimal>)
             response.p6 = ^as(resultList[6 - 1],Nullable<decimal>)
@@ -181,11 +176,11 @@ namespace TraditionalBridge.TestClient
         ;;; <summary>
         ;;; No description found in method catalog
         ;;; </summary>
-        public async method encrypt_tst3, @Task<Encrypt.encrypt_tst3_Response>
-            required in args, @Encrypt.encrypt_tst3_Request
+        public async method encrypt_tst3, @Task<TraditionalBridge.TestClient.Encrypt.encrypt_tst3_Response>
+            required in args, @TraditionalBridge.TestClient.Encrypt.encrypt_tst3_Request
         proc
             ;;Prepare the response object
-            data response = new Encrypt.encrypt_tst3_Response()
+            data response = new TraditionalBridge.TestClient.Encrypt.encrypt_tst3_Response()
 
             ;;Make the JSON-RPC call the traditional Synergy routine
             data resultTuple = await CallMethod("encrypt_tst3"
@@ -195,11 +190,8 @@ namespace TraditionalBridge.TestClient
             &   ,ArgumentHelper.MayBeOptional(args.p4)
             &   )
 
-            ;;Get the returned information
-            data returnToken = (@JToken)(resultTuple.Item1)
-
-            ;;Set returned values for OUT or INOUT parameters
             data resultList, @List<Object>, resultTuple.Item2.ToList()
+
             response.p1 = ^as(resultList[1 - 1],String)
             response.p2 = ^as(resultList[2 - 1],String)
             response.p3 = ^as(resultList[3 - 1],String)
@@ -213,39 +205,36 @@ namespace TraditionalBridge.TestClient
         ;;; <summary>
         ;;; No description found in method catalog
         ;;; </summary>
-        public async method encrypt_tst4, @Task<Encrypt.encrypt_tst4_Response>
-            required in args, @Encrypt.encrypt_tst4_Request
+        public async method encrypt_tst4, @Task<TraditionalBridge.TestClient.Encrypt.encrypt_tst4_Response>
+            required in args, @TraditionalBridge.TestClient.Encrypt.encrypt_tst4_Request
         proc
             ;;Prepare the response object
-            data response = new Encrypt.encrypt_tst4_Response()
+            data response = new TraditionalBridge.TestClient.Encrypt.encrypt_tst4_Response()
 
             ;;Make the JSON-RPC call the traditional Synergy routine
-            data resultTuple = await CallMethod("encrypt_tst4"
-            &   ,ArgumentHelper.MayBeOptional(args.p1)
-            &   ,ArgumentHelper.MayBeOptional(args.p2)
-            &   ,ArgumentHelper.MayBeOptional(args.p3)
-            &   ,ArgumentHelper.MayBeOptional(args.p4)
-            &   ,ArgumentHelper.MayBeOptional(args.p5)
-            &   ,ArgumentHelper.MayBeOptional(args.p6)
-            &   ,ArgumentHelper.MayBeOptional(args.p7)
-            &   ,ArgumentHelper.MayBeOptional(args.p8)
-            &   ,ArgumentHelper.MayBeOptional(args.p9)
-            &   )
-
-            ;;Get the returned information
-            data returnToken = (@JToken)(resultTuple.Item1)
-
-            ;;Set returned values for OUT or INOUT parameters
-            data resultList, @List<Object>, resultTuple.Item2.ToList()
-            response.p1 = ^as(resultList[1 - 1],String)
-            response.p2 = ^as(resultList[2 - 1],Nullable<int>)
-            response.p3 = ^as(resultList[3 - 1],Nullable<int>)
-            response.p5 = ^as(resultList[5 - 1],Nullable<decimal>)
-            response.p6 = ^as(resultList[6 - 1],Nullable<int>)
-            response.p7 = ^as(resultList[7 - 1],String)
-            response.p8 = ^as(resultList[8 - 1],Nullable<decimal>)
-            response.p9 = ^as(resultList[9 - 1],Nullable<int>)
-
+;            data resultTuple = await CallMethod("encrypt_tst4"
+;            &   ,ArgumentHelper.MayBeOptional(args.p1)
+;            &   ,ArgumentHelper.MayBeOptional(args.p2)
+;            &   ,ArgumentHelper.MayBeOptional(args.p3)
+;            &   ,ArgumentHelper.MayBeOptional(args.p4)
+;            &   ,ArgumentHelper.MayBeOptional(args.p5)
+;            &   ,ArgumentHelper.MayBeOptional(args.p6)
+;            &   ,ArgumentHelper.MayBeOptional(args.p7)
+;            &   ,ArgumentHelper.MayBeOptional(args.p8)
+;            &   ,ArgumentHelper.MayBeOptional(args.p9)
+;            &   )
+;
+;            data resultList, @List<Object>, resultTuple.Item2.ToList()
+;
+;            response.p1 = ^as(resultList[1 - 1],String)
+;            response.p2 = ^as(resultList[2 - 1],Nullable<int>)
+;            response.p3 = ^as(resultList[3 - 1],Nullable<int>)
+;            response.p5 = ^as(resultList[5 - 1],Nullable<decimal>)
+;            response.p6 = ^as(resultList[6 - 1],Nullable<int>)
+;            response.p7 = ^as(resultList[7 - 1],String)
+;            response.p8 = ^as(resultList[8 - 1],Nullable<decimal>)
+;            response.p9 = ^as(resultList[9 - 1],Nullable<int>)
+;
             ;;Return the response
             mreturn response
 
@@ -254,11 +243,11 @@ namespace TraditionalBridge.TestClient
         ;;; <summary>
         ;;; No description found in method catalog
         ;;; </summary>
-        public async method encrypt_tst5, @Task<Encrypt.encrypt_tst5_Response>
-            required in args, @Encrypt.encrypt_tst5_Request
+        public async method encrypt_tst5, @Task<TraditionalBridge.TestClient.Encrypt.encrypt_tst5_Response>
+            required in args, @TraditionalBridge.TestClient.Encrypt.encrypt_tst5_Request
         proc
             ;;Prepare the response object
-            data response = new Encrypt.encrypt_tst5_Response()
+            data response = new TraditionalBridge.TestClient.Encrypt.encrypt_tst5_Response()
 
             ;;Make the JSON-RPC call the traditional Synergy routine
             data resultTuple = await CallMethod("encrypt_tst5"
@@ -266,14 +255,11 @@ namespace TraditionalBridge.TestClient
             &   ,ArgumentHelper.MayBeOptional(args.p2)
             &   )
 
-            ;;Get the returned information
-            data returnToken = (@JToken)(resultTuple.Item1)
+             ;;Set the return value in the return data
+            ArgumentHelper.Argument(0, resultTuple, response.ReturnValue)
 
-            ;;Set the return value in the return data
-            response.ReturnValue = returnToken.ToObject<String>()
-
-            ;;Set returned values for OUT or INOUT parameters
             data resultList, @List<Object>, resultTuple.Item2.ToList()
+
             response.p1 = ^as(resultList[1 - 1],String)
             response.p2 = ^as(resultList[2 - 1],String)
 
@@ -285,11 +271,11 @@ namespace TraditionalBridge.TestClient
         ;;; <summary>
         ;;; No description found in method catalog
         ;;; </summary>
-        public async method encrypt_tst6, @Task<Encrypt.encrypt_tst6_Response>
-            required in args, @Encrypt.encrypt_tst6_Request
+        public async method encrypt_tst6, @Task<TraditionalBridge.TestClient.Encrypt.encrypt_tst6_Response>
+            required in args, @TraditionalBridge.TestClient.Encrypt.encrypt_tst6_Request
         proc
             ;;Prepare the response object
-            data response = new Encrypt.encrypt_tst6_Response()
+            data response = new TraditionalBridge.TestClient.Encrypt.encrypt_tst6_Response()
 
             ;;Make the JSON-RPC call the traditional Synergy routine
             data resultTuple = await CallMethod("encrypt_tst6"
@@ -297,14 +283,11 @@ namespace TraditionalBridge.TestClient
             &   ,ArgumentHelper.MayBeOptional(args.p2)
             &   )
 
-            ;;Get the returned information
-            data returnToken = (@JToken)(resultTuple.Item1)
+             ;;Set the return value in the return data
+            ArgumentHelper.Argument(0, resultTuple, response.ReturnValue)
 
-            ;;Set the return value in the return data
-            response.ReturnValue = returnToken.ToObject<int>()
-
-            ;;Set returned values for OUT or INOUT parameters
             data resultList, @List<Object>, resultTuple.Item2.ToList()
+
             response.p2 = ^as(resultList[2 - 1],String)
 
             ;;Return the response
@@ -315,23 +298,18 @@ namespace TraditionalBridge.TestClient
         ;;; <summary>
         ;;; No description found in method catalog
         ;;; </summary>
-        public async method encrypt_tst7, @Task<Encrypt.encrypt_tst7_Response>
-            required in args, @Encrypt.encrypt_tst7_Request
+        public async method encrypt_tst7, @Task<TraditionalBridge.TestClient.Encrypt.encrypt_tst7_Response>
+            required in args, @TraditionalBridge.TestClient.Encrypt.encrypt_tst7_Request
         proc
             ;;Prepare the response object
-            data response = new Encrypt.encrypt_tst7_Response()
+            data response = new TraditionalBridge.TestClient.Encrypt.encrypt_tst7_Response()
 
             ;;Make the JSON-RPC call the traditional Synergy routine
             data resultTuple = await CallMethod("encrypt_tst7"
             &   ,args.verno
             &   )
 
-            ;;Get the returned information
-            data returnToken = (@JToken)(resultTuple.Item1)
-
-            ;;Set returned values for OUT or INOUT parameters
-            data resultList, @List<Object>, resultTuple.Item2.ToList()
-            response.verno = (String)resultList[1 - 1]
+            ArgumentHelper.Argument(1, resultTuple, response.verno)
 
             ;;Return the response
             mreturn response
@@ -341,23 +319,18 @@ namespace TraditionalBridge.TestClient
         ;;; <summary>
         ;;; No description found in method catalog
         ;;; </summary>
-        public async method encrypt_tst8, @Task<Encrypt.encrypt_tst8_Response>
-            required in args, @Encrypt.encrypt_tst8_Request
+        public async method encrypt_tst8, @Task<TraditionalBridge.TestClient.Encrypt.encrypt_tst8_Response>
+            required in args, @TraditionalBridge.TestClient.Encrypt.encrypt_tst8_Request
         proc
             ;;Prepare the response object
-            data response = new Encrypt.encrypt_tst8_Response()
+            data response = new TraditionalBridge.TestClient.Encrypt.encrypt_tst8_Response()
 
             ;;Make the JSON-RPC call the traditional Synergy routine
             data resultTuple = await CallMethod("encrypt_tst8"
             &   ,args.STRTEST1
             &   )
 
-            ;;Get the returned information
-            data returnToken = (@JToken)(resultTuple.Item1)
-
-            ;;Set returned values for OUT or INOUT parameters
-            data resultList, @List<Object>, resultTuple.Item2.ToList()
-            response.STRTEST1 = (@STRTEST1)resultList[1 - 1]
+            ArgumentHelper.Argument(1, resultTuple, response.STRTEST1)
 
             ;;Return the response
             mreturn response
@@ -367,23 +340,18 @@ namespace TraditionalBridge.TestClient
         ;;; <summary>
         ;;; No description found in method catalog
         ;;; </summary>
-        public async method encrypt_tst9, @Task<Encrypt.encrypt_tst9_Response>
-            required in args, @Encrypt.encrypt_tst9_Request
+        public async method encrypt_tst9, @Task<TraditionalBridge.TestClient.Encrypt.encrypt_tst9_Response>
+            required in args, @TraditionalBridge.TestClient.Encrypt.encrypt_tst9_Request
         proc
             ;;Prepare the response object
-            data response = new Encrypt.encrypt_tst9_Response()
+            data response = new TraditionalBridge.TestClient.Encrypt.encrypt_tst9_Response()
 
             ;;Make the JSON-RPC call the traditional Synergy routine
             data resultTuple = await CallMethod("encrypt_tst9"
             &   ,args.strtest2
             &   )
 
-            ;;Get the returned information
-            data returnToken = (@JToken)(resultTuple.Item1)
-
-            ;;Set returned values for OUT or INOUT parameters
-            data resultList, @List<Object>, resultTuple.Item2.ToList()
-            response.strtest2 = (@STRTEST2)resultList[1 - 1]
+            ArgumentHelper.Argument(1, resultTuple, response.strtest2)
 
             ;;Return the response
             mreturn response

@@ -23,11 +23,13 @@ import Microsoft.Extensions.DependencyInjection
 
 namespace Services.Models
 
+    {Newtonsoft.Json.JsonObject(Newtonsoft.Json.MemberSerialization.OptIn)}
     public partial class OrderItem extends DataObjectBase
 
         ;;make the record available and a copy
         private mSynergyData, strOrderItem
         private mOriginalSynergyData, strOrderItem
+        protected mGlobalRFA  ,a10
 
         private static sMetadata, @OrderItemMetadata
 
@@ -69,6 +71,7 @@ namespace Services.Models
         ;;; </summary>
         {Required(ErrorMessage="Order number is required. ")}
         {Range(1,999999, ErrorMessage="Order number must be between 1 and 999999. ")}
+        {Newtonsoft.Json.JsonProperty}
         public property OrderNumber, int
             method get
             proc
@@ -85,6 +88,7 @@ namespace Services.Models
         ;;; </summary>
         {Required(ErrorMessage="Line item number is required. ")}
         {Range(1,99, ErrorMessage="Line item number must be between 1 and 99. ")}
+        {Newtonsoft.Json.JsonProperty}
         public property ItemNumber, int
             method get
             proc
@@ -101,6 +105,7 @@ namespace Services.Models
         ;;; </summary>
         {Required(ErrorMessage="Item ordered is required. ")}
         {Range(1,999999, ErrorMessage="Item ordered must be between 1 and 999999. ")}
+        {Newtonsoft.Json.JsonProperty}
         public property ItemOrdered, int
             method get
             proc
@@ -117,6 +122,7 @@ namespace Services.Models
         ;;; </summary>
         {Required(ErrorMessage="Quantity ordered is required. ")}
         {Range(1,999999, ErrorMessage="Quantity ordered must be between 1 and 999999. ")}
+        {Newtonsoft.Json.JsonProperty}
         public property QuantityOrdered, int
             method get
             proc
@@ -133,6 +139,7 @@ namespace Services.Models
         ;;; </summary>
         {Required(ErrorMessage="Unit price is required. ")}
         {Range(0,99999.99, ErrorMessage="Unit price must be between 0 and 99999.99. ")}
+        {Newtonsoft.Json.JsonProperty}
         public property UnitPrice, decimal
             method get
             proc
@@ -147,6 +154,7 @@ namespace Services.Models
         ;;; <summary>
         ;;; Date shipped
         ;;; </summary>
+        {Newtonsoft.Json.JsonProperty}
         public property DateShipped, DateTime
             method get
             proc
@@ -164,6 +172,7 @@ namespace Services.Models
         ;;; Invoice number
         ;;; </summary>
         {Range(0,9999999, ErrorMessage="Invoice number must be between 0 and 9999999. ")}
+        {Newtonsoft.Json.JsonProperty}
         public property InvoiceNumber, int
             method get
             proc
@@ -209,6 +218,17 @@ namespace Services.Models
             endmethod
         endproperty
 
+        public override property GlobalRFA, [#]byte
+			method get
+			proc
+                mreturn mGlobalRFA
+			endmethod
+			method set
+			proc
+                mGlobalRFA = value
+			endmethod
+		endproperty
+
 .endregion
 
 .region "Public methods"
@@ -223,13 +243,6 @@ namespace Services.Models
         endmethod
 
         ;;; <summary>
-        ;;; Allow the host to validate all fields. Each field will fire the validation method.
-        ;;; </summary>
-        public override method InitialValidateData, void
-        proc
-        endmethod
-
-        ;;; <summary>
         ;;;
         ;;; </summary>
         public override method InternalGetValues, [#]@object
@@ -238,52 +251,57 @@ namespace Services.Models
             mreturn new Object[7]
         endmethod
 
+.endregion
+
+.region "Relationships to other entities"
+
+        {Newtonsoft.Json.JsonProperty(DefaultValueHandling=DefaultValueHandling.Ignore)}
         ;;; <summary>
-        ;;; Validate data for one-to-one relations
+        ;;; Relationship (Type A)
+        ;;; ORDER_ITEM.ORDER_NUMBER_AND_LINE_ITEM (one) --> (one) --> (many) ORDER.ORDER_NUMBER
+        ;;; </summary>
+        public readwrite property REL_Order, @Order
+
+        {Newtonsoft.Json.JsonProperty(DefaultValueHandling=DefaultValueHandling.Ignore)}
+        ;;; <summary>
+        ;;; Relationship (Type A)
+        ;;; ORDER_ITEM.ITEM_ORDERED (one) --> (one) --> (many) ITEM.ITEM_NUMBER
+        ;;; </summary>
+        public readwrite property REL_Item, @Item
+
+.endregion
+
+.region "Relation validation"
+
+        ;;; <summary>
+        ;;; Validate data for relations
         ;;; </summary>
         ;;; <param name="type">Validation type (create, update or delete)</param>
         ;;; <param name="sp">Serices provider</param>
         public override method Validate, void
             required in vType, ValidationType
             required in sp, @IServiceProvider
-
-            ;;From key for REL_Order
-            record rel1FromKey
-              order_number, d6
-              item_number, d2
-            endrecord
-
-            ;;From key for REL_Item
-            record rel2FromKey
-              item_ordered, d6
-            endrecord
         proc
             ;;No relation validation if the record is being deleted
             if (vType == ValidationType.Delete)
                 mreturn
 
             ;;Get an instance of IDataObjectProvider
-            data doProvider, @IDataObjectProvider, sp.GetService<IDataObjectProvider>()
+            data dataObjectProvider, @IDataObjectProvider, sp.GetService<IDataObjectProvider>()
 
             ;;--------------------------------------------------------------------------------
             ;;Validate data for relation 1 (REL_Order)
 
-            rel1FromKey.order_number = mSynergyData.order_number
-            rel1FromKey.item_number = mSynergyData.item_number
-            disposable data rel1FileIO = doProvider.GetFileIO<Order>()
-            if (rel1FileIO.FindRecord(0,rel1FromKey) != FileAccessResults.Success)
-                throw new ValidationException("Invalid data for relation REL_Order")
+            ;;Validation mode: None
 
             ;;--------------------------------------------------------------------------------
             ;;Validate data for relation 2 (REL_Item)
 
-            rel2FromKey.item_ordered = mSynergyData.item_ordered
-            disposable data rel2FileIO = doProvider.GetFileIO<Item>()
-            if (rel2FileIO.FindRecord(0,rel2FromKey) != FileAccessResults.Success)
-                throw new ValidationException("Invalid data for relation REL_Item")
+            ;;Validation mode: None
 
-
+            ;;--------------------------------------------------------------------------------
             ;;If we have a ValidateCustom method, call it
+
             ValidateCustom(vType,sp)
 
         endmethod
@@ -293,22 +311,6 @@ namespace Services.Models
             required in vType, ValidationType
             required in sp, @IServiceProvider
         endmethod
-
-.endregion
-
-.region "Relationships to other entities"
-
-        ;;; <summary>
-        ;;; Relationship (Type A)
-        ;;; ORDER_ITEM.ORDER_NUMBER_AND_LINE_ITEM (one) --> (one) --> (many) ORDER.ORDER_NUMBER
-        ;;; </summary>
-        public readwrite property REL_Order, @Order
-
-        ;;; <summary>
-        ;;; Relationship (Type A)
-        ;;; ORDER_ITEM.ITEM_ORDERED (one) --> (one) --> (many) ITEM.ITEM_NUMBER
-        ;;; </summary>
-        public readwrite property REL_Item, @Item
 
 .endregion
 
@@ -328,9 +330,8 @@ namespace Services.Models
         private _KEY_INVOICE_NUMBER, string, ""
         public readonly property KEY_INVOICE_NUMBER, string, ""
 
-
 .endregion
 
-endclass
+    endclass
 
 endnamespace

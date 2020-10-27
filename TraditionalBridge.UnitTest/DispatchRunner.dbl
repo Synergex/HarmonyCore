@@ -1,0 +1,92 @@
+import Harmony.TraditionalBridge
+import TraditionalBridge.Test
+import Json
+import Synergex.TestFramework
+
+.ifdef DBLV11
+import System.Text.Json
+.define JSON_ELEMENT @JsonElement
+.else
+.define JSON_ELEMENT @JsonValue
+.endc
+
+namespace TraditionalBridge.UnitTest
+
+	public class DispatchRunner
+		public static method RunDispatch, @string
+			inputString, @string
+			record
+				dispatch, @SampleXfplEnvDispatcher
+				outStream, @MockOutputStream
+				messageReader, @MockHeaderDelimitedMessageReader
+		proc
+			if(Logger.Instance == ^null)
+				Logger.Instance = new TraditionalBridge.Logger("fred.log", 6, false)
+
+			dispatch = new SampleXfplEnvDispatcher()
+			messageReader = new MockHeaderDelimitedMessageReader(inputString)
+			outStream = new MockOutputStream()
+			dispatch.Dispatch(messageReader, new DispatchSerializer(outStream))
+			mreturn outStream.FlushedData
+		endmethod
+
+		public static method DecodeResult, void
+			in inputString, @string
+			out jsonRoot, @object
+			out element, JSON_ELEMENT
+			record
+.ifdef DBLV11
+				typedJsonDoc, @JsonDocument
+.else
+				jsonReader, @Json
+.endc
+		proc
+.ifdef DBLV11
+			jsonRoot = typedJsonDoc = JsonDocument.Parse(inputString)
+			element = typedJsonDoc.RootElement
+.else
+			jsonReader = new Json()
+			element = jsonReader.ParseJson(inputString)
+.endc
+		endmethod
+
+		public static method EnsureSuccess, void
+			result, @string
+			record
+				root, @object
+				element, JSON_ELEMENT
+				dispatch, @MockDispatcher
+				errorElement, JSON_ELEMENT
+		proc
+			dispatch = new MockDispatcher()
+			DecodeResult(result, root, element)
+			if(element.TryGetProperty("error", errorElement))
+			begin
+				Assert.Fail("Failed with code {0} and message {1}", dispatch.GetDecimal(errorElement.GetProperty("code")), Convert.FromBase64String(dispatch.GetText(errorElement.GetProperty("message"))))
+			end
+		endmethod
+
+
+		public static method RemoveMessageHeader, @string
+			fullInput, @string
+			record
+				startOfObject, int
+				endOfObject, int
+				inputLength, int
+		proc
+			inputLength = fullInput.Length
+			startOfObject = fullInput.IndexOf("{")
+			endOfObject = fullInput.IndexOf("Content-Length:", startOfObject)
+			if(endOfObject == -1)
+				endOfObject = fullInput.LastIndexOf("}") + 1
+
+			if(startOfObject > 0) then 
+				mreturn fullInput.Substring(startOfObject, (endOfObject - startOfObject))
+			else
+				mreturn fullInput
+		endmethod
+
+
+	endclass
+
+endnamespace

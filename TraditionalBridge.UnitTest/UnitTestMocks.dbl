@@ -1,0 +1,100 @@
+import Json
+import Harmony.TraditionalBridge
+.ifdef DBLV11
+import System.Text.Json
+.define JSON_ELEMENT @JsonElement
+.else
+.define JSON_ELEMENT @JsonValue
+.endc
+
+
+namespace TraditionalBridge.UnitTest
+
+	public class MockHeaderDelimitedMessageReader extends HeaderDelimitedMessageReader
+		mResultHeader, ContentHeader
+		mResultJsonDoc, @Object
+		mResultJsonElement, JSON_ELEMENT
+		mInnerString, @string
+		public method MockHeaderDelimitedMessageReader
+			contentBody, @string
+		proc
+			this.Init(contentBody)
+		endmethod
+
+		private method Init, void
+			contentBody, @string
+			record
+.ifdef DBLV11
+				typedJsonDoc, @JsonDocument
+.else
+				jsonReader, @Json
+.endc
+		proc
+			mInnerString = contentBody
+			mResultHeader.length = contentBody.Length
+			mResultHeader.leftoverLength = 0
+			clear mResultHeader.leftoverData
+			clear mResultHeader.contentTypeBuffer
+.ifdef DBLV11
+			mResultJsonDoc = typedJsonDoc = JsonDocument.Parse(mInnerString)
+			mResultJsonElement = typedJsonDoc.RootElement
+.else
+			jsonReader = new Json()
+			mResultJsonElement = jsonReader.ParseJson(mInnerString)
+.endc
+		endmethod
+
+
+		public override method ReadHeader, void
+			out header, ContentHeader
+		proc
+			header = mResultHeader
+		endmethod
+
+		public override method ReadContent, void
+			in header, ContentHeader
+			in readBuffer, D_HANDLE
+			in readBufferSize, int
+			out jsonDoc, @object
+			out rootElement, JSON_ELEMENT
+		proc
+			jsonDoc = mResultJsonDoc
+			rootElement = mResultJsonElement
+
+			;;second read should terminate
+			this.Init('{"jsonrpc":"2.0","method":"rpc.shutdown","params":[]}')
+		endmethod
+
+	endclass
+
+	public class MockOutputStream extends OutputStream
+
+		public readwrite property FlushedData, @string
+
+		public method MockOutputStream
+		proc
+			FlushedData = ""
+		endmethod
+
+		public override method FlushData, void
+			dataToAppend, a 
+			endparams
+		proc
+			FlushedData += dataToAppend
+		endmethod
+
+		public override method FlushData, void
+			dataToAppend, String 
+			endparams
+		proc
+			FlushedData += dataToAppend
+		endmethod
+
+	endclass
+
+	public class MockDispatcher extends RoutineDispatcher
+	endclass
+
+
+
+endnamespace

@@ -34,6 +34,8 @@ namespace Harmony.Core.EF.Query.Internal
         public List<Expression> WhereExpressions { get; }
         public List<Tuple<Expression, bool>> OrderByExpressions { get; }
         public List<Expression> OnExpressions { get; }
+        public Expression Top { get; set; }
+        public Expression Skip { get; set; }
         public bool IsCaseSensitive { get; set; }
         public bool IsCollection { get; set; }
         public sealed override ExpressionType NodeType => ExpressionType.Extension;

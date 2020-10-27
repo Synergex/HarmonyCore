@@ -16,6 +16,8 @@ import Harmony.Core
 import System.Linq
 import Newtonsoft.Json.Linq
 import Microsoft.AspNet.OData.Routing
+import Microsoft.AspNetCore.Http
+import Microsoft.AspNetCore.Mvc.Infrastructure
 
 namespace Services.Controllers
 
@@ -118,13 +120,64 @@ namespace Services.Controllers
     endclass
 	
 	public class ExternalCallContext extends DynamicCallProvider
-		public method ExternalCallContext
+		private contextAccessor, @IActionContextAccessor
+		
+        public method ExternalCallContext
 			connection, @IDynamicCallConnection
 			endparams
 			parent(connection)
 		proc
 
         endmethod
+
+		public override method InitServices, void
+			sp, @IServiceProvider
+		proc
+            parent.InitServices(sp)
+			contextAccessor = (@IActionContextAccessor)sp.GetService(^typeof(IActionContextAccessor))
+		endmethod
+
+		public override method Recycle, @Task
+		proc
+			contextAccessor = ^null
+			mreturn parent.Recycle()
+		endmethod
+
+        ;;; <summary>
+        ;;; Called before each bridge call, before returning to your code
+        ;;; </summary>
+        ;;; <param name="name">name of the method being called</param>
+        ;;; <param name="args">Arguments being passed to the method, which you could change!</param>
+        ;;; <returns></returns>
+		protected internal override method BeforeCall, [#]@Object
+			name, @string
+			args, [#]@Object
+		proc
+            ;;This example could be used to access current user info
+            ;;and artificially add an additional parameter to the bridge call
+            ;;to pass user or auth info.
+           
+            data authedArgs = args
+			Array.Resize(authedArgs, args.Length + 1)
+            ;contextAccessor.ActionContext.HttpContext.User.Identity.Name ??? 
+			authedArgs[args.Length + 1] = "claimed!"
+			mreturn authedArgs
+		endmethod
+
+;        ;;; <summary>
+;        ;;; Called after each bridge call, before returning to your code
+;        ;;; </summary>
+;        ;;; <param name="name">Name of the method that was called</param>
+;        ;;; <param name="result">Results from the method that yoo could change!</param>
+;        ;;; <returns></returns>
+;        protected internal virtual method AfterCall<T>, @Tuple<T, [#]@Object>
+;            name, @string
+;            result, @Tuple<T, [#]@Object>
+;        proc
+;            ;;Not sure of a use case, but you can override AfterCall and it will be called
+;            ;;after each bridge call, before control returns to your code.
+;            mreturn result
+;        endmethod
 
 		public async method GetAllCustomers, @Task<List<Customer>>
 		proc
@@ -138,8 +191,7 @@ namespace Services.Controllers
 		proc
 			data intArray = new int[#] {5, 4, 3, 2, 1 }
 			data resultTpl = await CallMethod("Arbitrario.MethodWithParameters", 5, "hello", new string[#] { "this", "is", "strings" }, (@object)intArray, new string[0])
-			data returnToken = ((@JToken)resultTpl.Item1)
-			mreturn new ArbitrarioReturnType() { ReturnCode = returnToken.ToObject<int>(), IntList = ((@IEnumerable<int>)resultTpl.Item2[4]).ToList(), StringList = ((@IEnumerable<string>)resultTpl.Item2[5]).ToList() }
+			mreturn new ArbitrarioReturnType() { ReturnCode = ArgumentHelper.Argument<int>(0, resultTpl), IntList = ArgumentHelper.Argument<List<int>>(4, resultTpl), StringList = ArgumentHelper.Argument<List<string>>(5, resultTpl) }
         endmethod
 
         public async method Arbitrario_MethodWithParameters2, @Task<ArbitrarioReturnType>
@@ -149,8 +201,7 @@ namespace Services.Controllers
             aIntArray, [#]int
         proc
             data resultTpl = await CallMethod("Arbitrario.MethodWithParameters", aNumber, aString, aStringArray, aIntArray, new string[0])
-            data returnToken = ((@JToken)resultTpl.Item1)
-            mreturn new ArbitrarioReturnType() { ReturnCode = returnToken.ToObject<int>(), IntList = ((@IEnumerable<int>)resultTpl.Item2[4]).ToList(), StringList = ((@IEnumerable<string>)resultTpl.Item2[5]).ToList() }
+            mreturn new ArbitrarioReturnType() { ReturnCode = ArgumentHelper.Argument<int>(0, resultTpl), IntList = ArgumentHelper.Argument<List<int>>(4, resultTpl), StringList = ArgumentHelper.Argument<List<string>>(5, resultTpl) }
         endmethod
 
         public async method Arbitrario_Optional, @Task<ArbitrarioOptionalReturnType>

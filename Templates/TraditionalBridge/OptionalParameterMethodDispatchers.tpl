@@ -54,6 +54,13 @@ import Harmony.TraditionalBridge
 import System.Collections
 import <MODELS_NAMESPACE>
 
+.ifdef DBLV11
+import System.Text.Json
+.define JSON_ELEMENT @JsonElement
+.else
+.define JSON_ELEMENT @JsonValue
+.endc
+
 namespace <NAMESPACE>.<INTERFACE_NAME>
 
 <METHOD_LOOP>
@@ -92,12 +99,12 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 
         protected override method DispatchInternal, void
             required in name,       string
-            required in callFrame,  @JsonObject
+            required in callFrame,  JSON_ELEMENT
             required in serializer, @DispatchSerializer
             required in dispatcher, @RoutineDispatcher
             record
                 requestId,          int
-                arguments,          @JsonArray
+                arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
 <COUNTER_1_RESET>
@@ -110,7 +117,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
                 ;;Argument <COUNTER_1_VALUE> (<PARAMETER_REQUIRED> <PARAMETER_DIRECTION> <PARAMETER_NAME> <IF COLLECTION_ARRAY>[*]</IF COLLECTION_ARRAY><IF COLLECTION_HANDLE>memory handle collection of </IF COLLECTION_HANDLE><IF COLLECTION_ARRAYLIST>ArrayList collection of </IF COLLECTION_ARRAYLIST><IF STRUCTURE>structure </IF STRUCTURE><IF ENUM>enum </IF ENUM><IF STRUCTURE>@<ParameterStructureNoplural><ELSE><PARAMETER_DEFINITION></IF STRUCTURE><IF DATE> <PARAMETER_DATE_FORMAT> date</IF DATE><IF TIME> <PARAMETER_DATE_FORMAT> time</IF TIME><IF REFERENCE> passed by REFERENCE</IF REFERENCE><IF VALUE> passed by VALUE</IF VALUE><IF DATATABLE> returned as DataTable</IF DATATABLE>)
     <IF COLLECTION>
         <IF IN_OR_INOUT>
-                arg<COUNTER_1_VALUE>Array,          @JsonArray
+                arg<COUNTER_1_VALUE>Array,          JSON_ELEMENT
         </IF IN_OR_INOUT>
         <IF COLLECTION_ARRAY>
                 arg<COUNTER_1_VALUE>Handle,         D_HANDLE
@@ -158,7 +165,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
             ;;Process inbound arguments
 
 <IF PARAMETERS>
-            arguments = (@JsonArray)callFrame.GetProperty("params")
+            arguments = callFrame.GetProperty("params")
 <ELSE>
             ;;There are no inbound arguments to process
 </IF PARAMETERS>
@@ -179,7 +186,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 </IF FUNCTION>
             <PARAMETER_LOOP>
             <COUNTER_1_INCREMENT>
-                RCBArg(<COUNTER_1_VALUE> + <COUNTER_2_VALUE>, (@JsonObject)arguments.arrayValues[<COUNTER_1_VALUE>], FieldDataType.<PARAMETER_TYPE>Field, arg<COUNTER_1_VALUE>, mRcbid, 0<PARAMETER_PRECISION>, arg<COUNTER_1_VALUE>Passed)
+                RCBArg(<COUNTER_1_VALUE> + <COUNTER_2_VALUE>, arguments[<COUNTER_1_VALUE>], FieldDataType.<PARAMETER_TYPE>Field, arg<COUNTER_1_VALUE>, mRcbid, 0<PARAMETER_PRECISION>, arg<COUNTER_1_VALUE>Passed)
             </PARAMETER_LOOP>
                 <IF FUNCTION>
                     <IF HATVAL>

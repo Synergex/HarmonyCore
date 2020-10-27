@@ -45,6 +45,11 @@ namespace TraditionalBridge.Models
             AddFieldInfo("Dtetme3", "USER DATE", 14, 24, 0, false)
             AddFieldInfo("Dtetme4", "USER DATE", 14, 38, 0, false)
 
+            ;; Define all fields that are associated wity key segments
+
+            ;; Define the composition of access keys
+
+
             ;;If we have an InitializeCustomFields method then call it.
             InitializeCustomFields()
 
@@ -76,25 +81,30 @@ namespace TraditionalBridge.Models
             required in joinedObjects, [#]KeyValuePair<String, Object>
         proc
             data newDnetdatetime = new Dnetdatetime(dataArea, grfa)
+            UpdateExistingJoin(newDnetdatetime, joinedObjects)
             mreturn newDnetdatetime
-
+        endmethod
+        
+        public override method UpdateExistingJoin, void
+            required in existing, @DataObjectBase
+            required in joinedObjects, [#]KeyValuePair<String, Object>
+        proc
+            UpdateExistingJoin((@Dnetdatetime)existing, joinedObjects)
         endmethod
 
-        ;;; <summary>
-        ;;; Formats a literal value for a key lookup.
-        ;;; </summary>
-        ;;; <param name="keyNumber">Key number.</param>
-        ;;; <param name="parts">Dictionary containing key segment names and values.</param>
-        ;;; <returns></returns>
+        public method UpdateExistingJoin, void
+            required in existing, @Dnetdatetime
+            required in joinedObjects, [#]KeyValuePair<String, Object>
+        proc
+        endmethod
+
         public override method FormatKeyLiteral, a
             required in keyNumber, int
             required in parts, @Dictionary<String, Object>
-            endparams
         proc
-
-            throw new ApplicationException(String.Format("Invalid key number {0} encountered in DnetdatetimeMetadata.FormatKeyLiteral",keyNumber))
-
+            mreturn ' '
         endmethod
+
 
         ;;;<summary>
         ;;; Provide a partial method to allow for initialization of custom fields.
