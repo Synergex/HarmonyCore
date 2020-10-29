@@ -104,23 +104,9 @@ namespace <NAMESPACE>
 
         {TestMethod}
         {TestCategory("<StructureNoplural> Tests - Read All")}
-          <IF MANY_TO_ONE_TO_MANY>
         public method Get<StructurePlural>_Expand_<HARMONYCORE_RELATION_NAME>, void
         proc
             data uri = "/odata/v<API_VERSION>/<StructurePlural>?$expand=<HARMONYCORE_RELATION_NAME>"
-          <ELSE ONE_TO_ONE>
-        public method Get<StructurePlural>_Expand_<HARMONYCORE_RELATION_NAME>, void
-        proc
-            data uri = "/odata/v<API_VERSION>/<StructurePlural>?$expand=<HARMONYCORE_RELATION_NAME>"
-          <ELSE ONE_TO_MANY_TO_ONE>
-        public method Get<StructurePlural>_Expand_<HARMONYCORE_RELATION_NAME>, void
-        proc
-            data uri = "/odata/v<API_VERSION>/<StructurePlural>?$expand=<HARMONYCORE_RELATION_NAME>"
-          <ELSE ONE_TO_MANY>
-        public method Get<StructurePlural>_Expand_<HARMONYCORE_RELATION_NAME>, void
-        proc
-            data uri = "/odata/v<API_VERSION>/<StructurePlural>?$expand=<HARMONYCORE_RELATION_NAME>"
-          </IF>
             disposable data client = UnitTestEnvironment.Server.CreateClient()
           <IF DEFINED_ENABLE_AUTHENTICATION>
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",UnitTestEnvironment.AccessToken)
@@ -138,7 +124,7 @@ namespace <NAMESPACE>
         {TestCategory("<StructureNoplural> Tests - Read All")}
         public method Get<StructurePlural>_Expand_All, void
         proc
-            data uri = "/odata/v<API_VERSION>/<StructurePlural>?$expand=<RELATION_LOOP_RESTRICTED><IF MANY_TO_ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY><,></RELATION_LOOP_RESTRICTED>"
+            data uri = "/odata/v<API_VERSION>/<StructurePlural>?$expand=<RELATION_LOOP_RESTRICTED><HARMONYCORE_RELATION_NAME><,></RELATION_LOOP_RESTRICTED>"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             <IF DEFINED_ENABLE_AUTHENTICATION>
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",UnitTestEnvironment.AccessToken)
@@ -179,17 +165,17 @@ namespace <NAMESPACE>
       <RELATION_LOOP_RESTRICTED>
 
         ;;------------------------------------------------------------
-        ;;Get a single <StructureNoplural> by primary key and expand relation <IF MANY_TO_ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY>
+        ;;Get a single <StructureNoplural> by primary key and expand relation <HARMONYCORE_RELATION_NAME>
 
         {TestMethod}
         {TestCategory("<StructureNoplural> Tests - Read by Primary Key")}
-        public method Get<StructureNoplural>_Expand_<IF MANY_TO_ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY>, void
+        public method Get<StructureNoplural>_Expand_<HARMONYCORE_RELATION_NAME>, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
         <IF DEFINED_ENABLE_AUTHENTICATION>
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",UnitTestEnvironment.AccessToken)
         </IF DEFINED_ENABLE_AUTHENTICATION>
-            data request = String.Format("/odata/v<API_VERSION>/<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY>)?$expand=<IF MANY_TO_ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY>","",<PRIMARY_KEY><SEGMENT_LOOP>TestConstants.Get<StructureNoplural>_Expand_<IF MANY_TO_ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY>_<SegmentName><,></SEGMENT_LOOP></PRIMARY_KEY>)
+            data request = String.Format("/odata/v<API_VERSION>/<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY>)?$expand=<HARMONYCORE_RELATION_NAME>","",<PRIMARY_KEY><SEGMENT_LOOP>TestConstants.Get<StructureNoplural>_Expand_<HARMONYCORE_RELATION_NAME>_<SegmentName><,></SEGMENT_LOOP></PRIMARY_KEY>)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
@@ -208,7 +194,7 @@ namespace <NAMESPACE>
       <IF DEFINED_ENABLE_AUTHENTICATION>
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",UnitTestEnvironment.AccessToken)
       </IF DEFINED_ENABLE_AUTHENTICATION>
-            data request = String.Format("/odata/v<API_VERSION>/<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY>)?$expand=<RELATION_LOOP_RESTRICTED><IF MANY_TO_ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY><,></RELATION_LOOP_RESTRICTED>","",<PRIMARY_KEY><SEGMENT_LOOP>TestConstants.Get<StructureNoplural>_Expand_All_<SegmentName><,></SEGMENT_LOOP></PRIMARY_KEY>)
+            data request = String.Format("/odata/v<API_VERSION>/<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><,></SEGMENT_LOOP></PRIMARY_KEY>)?$expand=<RELATION_LOOP_RESTRICTED><HARMONYCORE_RELATION_NAME><,></RELATION_LOOP_RESTRICTED>","",<PRIMARY_KEY><SEGMENT_LOOP>TestConstants.Get<StructureNoplural>_Expand_All_<SegmentName><,></SEGMENT_LOOP></PRIMARY_KEY>)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()

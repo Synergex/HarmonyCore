@@ -79,7 +79,7 @@ namespace <NAMESPACE>
           <RELATION_LOOP_RESTRICTED>
             <PRIMARY_KEY>
               <SEGMENT_LOOP>
-        public static readwrite property Get<StructureNoplural>_Expand_<IF MANY_TO_ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF MANY_TO_ONE_TO_MANY><IF ONE_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_ONE><IF ONE_TO_MANY_TO_ONE><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY_TO_ONE><IF ONE_TO_MANY><HARMONYCORE_RELATION_NAME></IF ONE_TO_MANY>_<SegmentName>, <SEGMENT_SNTYPE>
+        public static readwrite property Get<StructureNoplural>_Expand_<HARMONYCORE_RELATION_NAME>_<SegmentName>, <SEGMENT_SNTYPE>
               </SEGMENT_LOOP>
             </PRIMARY_KEY>
           </RELATION_LOOP_RESTRICTED>

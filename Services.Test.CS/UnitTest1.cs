@@ -96,6 +96,26 @@ namespace Services.Test.CS
         }
 
         [TestMethod]
+        public void EFSparse()
+        {
+            var startupClass = new Startup(null, null);
+            var startupServices = new ServiceCollection();
+            startupClass.ConfigureServices(startupServices);
+            using (var sp = startupServices.BuildServiceProvider())
+            {
+                using (var context = sp.GetService<Services.Models.DbContext>())
+                {
+                    var customers = context.Customers.Where(cust => cust.Name.Contains("Nursery")).Select(cust => cust.Name).ToList();
+                    Assert.IsTrue(customers.Count > 0);
+                    foreach (var customer in customers)
+                    {
+                        Assert.IsTrue(customer.Contains("Nursery"));
+                    }
+                }
+            }
+        }
+
+        [TestMethod]
         public void Projection1()
         {
             var startupClass = new Startup(null, null);

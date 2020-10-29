@@ -44,6 +44,9 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("CustomerEx Tests - Read All")}
+        public method GetCustomerExs_Expand_REL_Customer, void
+        proc
+            data uri = "/odata/v1/CustomerExs?$expand=REL_Customer"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync(uri).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -57,7 +60,7 @@ namespace Services.Test.UnitTests
         {TestCategory("CustomerEx Tests - Read All")}
         public method GetCustomerExs_Expand_All, void
         proc
-            data uri = "/odata/v1/CustomerExs?$expand="
+            data uri = "/odata/v1/CustomerExs?$expand=REL_Customer"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync(uri).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -80,14 +83,14 @@ namespace Services.Test.UnitTests
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get a single CustomerEx by primary key and expand relation 
+        ;;Get a single CustomerEx by primary key and expand relation REL_Customer
 
         {TestMethod}
         {TestCategory("CustomerEx Tests - Read by Primary Key")}
-        public method GetCustomerEx_Expand_, void
+        public method GetCustomerEx_Expand_REL_Customer, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/v1/CustomerExs(Customerid={1})?$expand=","",TestConstants.GetCustomerEx_Expand__Customerid)
+            data request = String.Format("/odata/v1/CustomerExs(Customerid={1})?$expand=REL_Customer","",TestConstants.GetCustomerEx_Expand_REL_Customer_Customerid)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
@@ -102,7 +105,7 @@ namespace Services.Test.UnitTests
         public method GetCustomerEx_Expand_All, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/v1/CustomerExs(Customerid={1})?$expand=","",TestConstants.GetCustomerEx_Expand_All_Customerid)
+            data request = String.Format("/odata/v1/CustomerExs(Customerid={1})?$expand=REL_Customer","",TestConstants.GetCustomerEx_Expand_All_Customerid)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
