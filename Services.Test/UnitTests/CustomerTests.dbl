@@ -86,6 +86,9 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("Customer Tests - Read All")}
+        public method GetCustomers_Expand_REL_CustomerEx, void
+        proc
+            data uri = "/odata/v1/Customers?$expand=REL_CustomerEx"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync(uri).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -99,7 +102,7 @@ namespace Services.Test.UnitTests
         {TestCategory("Customer Tests - Read All")}
         public method GetCustomers_Expand_All, void
         proc
-            data uri = "/odata/v1/Customers?$expand=REL_CustomerOrders,REL_CustomerFavoriteItem,REL_CustomerNotes,"
+            data uri = "/odata/v1/Customers?$expand=REL_CustomerOrders,REL_CustomerFavoriteItem,REL_CustomerNotes,REL_CustomerEx"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync(uri).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -167,14 +170,14 @@ namespace Services.Test.UnitTests
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get a single Customer by primary key and expand relation 
+        ;;Get a single Customer by primary key and expand relation REL_CustomerEx
 
         {TestMethod}
         {TestCategory("Customer Tests - Read by Primary Key")}
-        public method GetCustomer_Expand_, void
+        public method GetCustomer_Expand_REL_CustomerEx, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/v1/Customers(CustomerNumber={1})?$expand=","",TestConstants.GetCustomer_Expand__CustomerNumber)
+            data request = String.Format("/odata/v1/Customers(CustomerNumber={1})?$expand=REL_CustomerEx","",TestConstants.GetCustomer_Expand_REL_CustomerEx_CustomerNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
@@ -189,7 +192,7 @@ namespace Services.Test.UnitTests
         public method GetCustomer_Expand_All, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/v1/Customers(CustomerNumber={1})?$expand=REL_CustomerOrders,REL_CustomerFavoriteItem,REL_CustomerNotes,","",TestConstants.GetCustomer_Expand_All_CustomerNumber)
+            data request = String.Format("/odata/v1/Customers(CustomerNumber={1})?$expand=REL_CustomerOrders,REL_CustomerFavoriteItem,REL_CustomerNotes,REL_CustomerEx","",TestConstants.GetCustomer_Expand_All_CustomerNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
