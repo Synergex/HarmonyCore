@@ -1,12 +1,12 @@
  
 ;  SYNERGY DATA LANGUAGE OUTPUT
 ;
-;  REPOSITORY     : D:\HarmonyCoreProjects\HarmonyCore\HarmonyCore.Test.Reposito
-;                 : D:\HarmonyCoreProjects\HarmonyCore\HarmonyCore.Test.Reposito
-;                 : Version 11.1.1
+;  REPOSITORY     : C:\Users\hippi\source\repos\HarmonyCore\HarmonyCore.Test.Repository\bin\Debug\rpsmain.ism
+;                 : C:\Users\hippi\source\repos\HarmonyCore\HarmonyCore.Test.Repository\bin\Debug\rpstext.ism
+;                 : Version 11.1.1e
 ;
-;  GENERATED      : 01-NOV-2019, 16:45:21
-;                 : Version 11.1.1
+;  GENERATED      : 28-OCT-2020, 13:14:11
+;                 : Version 11.1.1f
 ;  EXPORT OPTIONS : [ALL] 
  
  
@@ -114,26 +114,6 @@ Alias AL_GPC3   Structure GPC3
    Alias AL_FLD_4F   Field FLD_4F
    Alias AL_FLD_4F2   Field FLD_4F
  
-Structure GPC4   DBL ISAM
-   Description "Fourth Structure"
- 
-Field FLD_1G   Type ALPHA   Size 3
-   Description "GPC4.FLD_1G"
- 
-Field FLD_2G   Type INTEGER   Size 2   Dimension 4
-   Description "GPC4.FLD_2G"
- 
-Field STRUCT_1G   Type STRUCT   Size 16   Struct GPC3
-   Description "GPC4.STRUCT_1G"
- 
-Field FLD_3G   Type ALPHA   Size 3   Dimension 3
-   Description "GPC4.FLD_3G"
- 
-Field FLD_4G   Type DECIMAL   Size 13
-   Description "GPC4.FLD_4G"
- 
-Alias AL_GPC4   Structure GPC4
- 
 Structure GPC6   DBL ISAM
    Description "Sixth Structure"
  
@@ -156,6 +136,26 @@ Group GROUP_ONE   Type ALPHA
 Endgroup
  
 Alias AL_GPC6   Structure GPC6
+ 
+Structure GPC4   DBL ISAM
+   Description "Fourth Structure"
+ 
+Field FLD_1G   Type ALPHA   Size 3
+   Description "GPC4.FLD_1G"
+ 
+Field FLD_2G   Type INTEGER   Size 2   Dimension 4
+   Description "GPC4.FLD_2G"
+ 
+Field STRUCT_1G   Type STRUCT   Size 16   Struct GPC3
+   Description "GPC4.STRUCT_1G"
+ 
+Field FLD_3G   Type ALPHA   Size 3   Dimension 3
+   Description "GPC4.FLD_3G"
+ 
+Field FLD_4G   Type DECIMAL   Size 13
+   Description "GPC4.FLD_4G"
+ 
+Alias AL_GPC4   Structure GPC4
  
 Structure GPC2   DBL ISAM
    Description "Second Structure"
@@ -491,9 +491,23 @@ Key FAVORITE_ITEM   FOREIGN
  
 Relation  1   CUSTOMERS CUSTOMER_NUMBER   ORDERS CUSTOMER_NUMBER
  
+Relation  4   CUSTOMERS CUSTOMER_NUMBER   CUSTOMER_EX PRIMARY
+ 
 Relation  2   CUSTOMERS FAVORITE_ITEM   ITEMS ITEM_NUMBER
  
 Relation  3   CUSTOMERS CUSTOMER_NUMBER   CUSTOMER_NOTES CUSTOMER_NUMBER
+ 
+Structure CUSTOMER_EX   DBL ISAM
+   Description "extended fields for a customer record"
+ 
+Field CUSTOMERID   Type DECIMAL   Size 6
+ 
+Field EXTRADATA   Type ALPHA   Size 128
+ 
+Key PRIMARY   ACCESS   Order ASCENDING   Dups NO
+   Segment FIELD   CUSTOMERID
+ 
+Relation  1   CUSTOMER_EX PRIMARY   CUSTOMERS CUSTOMER_NUMBER
  
 Structure CUSTOMER_NOTES   DBL ISAM
    Description "Customer notes"
@@ -2366,6 +2380,11 @@ File BOOK   DBL ISAM   "DATA:book"
 File CUSTOMERS   DBL ISAM   "DAT:customers.ism"
    Description "Customer master file"
    Assign CUSTOMERS
+ 
+File CUSTOMER_EX   DBL ISAM   "DAT:CUSTOMER_EX.ism"
+   Description "extended customer data"
+   RecType VARIABLE   Compress   Terabyte   Stored GRFA
+   Assign CUSTOMER_EX
  
 File CUSTOMER_NOTES   DBL ISAM   "DAT:customer_notes.ism"
    Description "Customer notes file"
