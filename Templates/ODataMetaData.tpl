@@ -319,21 +319,13 @@ namespace <NAMESPACE>
                 begin
                     if(existing.<HARMONYCORE_RELATION_NAME> == ^null)
                     begin
-      <IF MANY_TO_ONE_TO_MANY>
+      <IF MANY_TO_ONE_TO_MANY OR ONE_TO_ONE OR ONE_TO_ONE_TO_ONE>
                         existing.<HARMONYCORE_RELATION_NAME> = (@<RelationTostructureNoplural>)joinedObject.Value
-      </IF MANY_TO_ONE_TO_MANY>
+      </IF>
 ;//
-      <IF ONE_TO_ONE>
-                        existing.<HARMONYCORE_RELATION_NAME> = (@<RelationTostructureNoplural>)joinedObject.Value
-      </IF ONE_TO_ONE>
-;//
-      <IF ONE_TO_MANY_TO_ONE>
+      <IF ONE_TO_MANY_TO_ONE OR ONE_TO_MANY>
                         existing.<HARMONYCORE_RELATION_NAME> = (@ICollection<<RelationTostructureNoplural>>)joinedObject.Value
-      </IF ONE_TO_MANY_TO_ONE>
-;//
-      <IF ONE_TO_MANY>
-                        existing.<HARMONYCORE_RELATION_NAME> = (@ICollection<<RelationTostructureNoplural>>)joinedObject.Value
-      </IF ONE_TO_MANY>
+      </IF>
 ;//
                     end
                 end

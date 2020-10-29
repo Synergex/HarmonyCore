@@ -140,6 +140,14 @@ namespace Services.Test
                     logicals.Add(logical)
             end
 
+            fileSpec = "DAT:CUSTOMER_EX.ism"
+            if (fileSpec.Contains(":"))
+            begin
+                logical = fileSpec.Split(":")[1].ToUpper()
+                if (!logicals.Contains(logical))
+                    logicals.Add(logical)
+            end
+
             foreach logical in logicals
             begin
                 data sts, int
@@ -160,6 +168,7 @@ namespace Services.Test
             data orders = OrderLoader.LoadFromFile()
             data orderItems = OrderItemLoader.LoadFromFile()
             data vendors = VendorLoader.LoadFromFile()
+            data customerExs = CustomerExLoader.LoadFromFile()
 
             ;;Create and load the customers file
 
@@ -227,6 +236,17 @@ namespace Services.Test
                 store(chout,vendor.SynergyRecord)
             close chout
 
+            ;;Create and load the customerExs file
+
+            dataFile = "DAT:CUSTOMER_EX.ism"
+            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+
+            data customerEx, @CustomerEx
+            open(chout=0,o:i,dataFile,FDL:xdlFile)
+            foreach customerEx in customerExs
+                store(chout,customerEx.SynergyRecord)
+            close chout
+
         endmethod
 
         private static method deleteFiles, void
@@ -290,6 +310,17 @@ namespace Services.Test
             try
             begin
                 xcall delet("DAT:vendors.ism")
+            end
+            catch (e, @NoFileFoundException)
+            begin
+                nop
+            end
+            endtry
+
+            ;;Delete the customerExs file
+            try
+            begin
+                xcall delet("DAT:CUSTOMER_EX.ism")
             end
             catch (e, @NoFileFoundException)
             begin

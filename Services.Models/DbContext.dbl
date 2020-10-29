@@ -66,6 +66,11 @@ namespace Services.Models
         public readwrite property Vendors, @DbSet<Vendor>
 
         ;;; <summary>
+        ;;; Exposes CustomerEx data.
+        ;;; </summary>
+        public readwrite property CustomerExs, @DbSet<CustomerEx>
+
+        ;;; <summary>
         ;;;
         ;;; </summary>
         protected override method OnModelCreating, void
@@ -114,6 +119,12 @@ namespace Services.Models
             ;;    To segments   : CUSTOMER_NUMBER(D6) 
 
             parm.AddOneToManyToOneRelation<Customer, CustomerNote>("REL_CustomerNotes", "KEY_CUSTOMER_NUMBER", "REL_Customer", "KEY_CUSTOMER_NUMBER")
+             ;; CUSTOMER.CUSTOMER_NUMBER (one) --> (one) --> (one) CUSTOMER_EX.PRIMARY
+             ;;    Type          : B
+             ;;    From segments : CUSTOMER_NUMBER(D6) 
+             ;;    To segments   : CUSTOMERID(D6) 
+
+             parm.AddOneToOneToOneRelation<Customer, CustomerEx>("REL_CustomerEx", "KEY_CUSTOMER_NUMBER", "REL_Customer", "KEY_PRIMARY")
             ;;--------------------------------------
             ;; Relationships from CUSTOMER_NOTE
 
@@ -177,6 +188,15 @@ namespace Services.Models
             ;;    To segments   : VENDOR_NUMBER(D6) 
 
             parm.AddOneToManyToOneRelation<Vendor, Item>("REL_Items", "KEY_VENDOR_NUMBER", "REL_Vendor", "KEY_VENDOR_NUMBER")
+            ;;--------------------------------------
+            ;; Relationships from CUSTOMER_EX
+
+             ;; CUSTOMER_EX.PRIMARY (one) --> (one) --> (one) CUSTOMER.CUSTOMER_NUMBER
+             ;;    Type          : B
+             ;;    From segments : CUSTOMERID(D6) 
+             ;;    To segments   : CUSTOMER_NUMBER(D6) 
+
+             parm.AddOneToOneToOneRelation<CustomerEx, Customer>("REL_Customer", "KEY_PRIMARY", "REL_CustomerEx", "KEY_CUSTOMER_NUMBER")
 .endregion
 
             parent.OnModelCreating(parm)

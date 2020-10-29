@@ -13,6 +13,7 @@ namespace Harmony.Core.EF.Extensions
             builder.Entity(typeof(D))
                .HasOne(typeof(J), drivingProperty)
                .WithOne(joinedProperty)
+               .IsRequired(false)
                .HasForeignKey(typeof(J), joinedKey)
                .HasPrincipalKey(typeof(D), drivingKey);
         }

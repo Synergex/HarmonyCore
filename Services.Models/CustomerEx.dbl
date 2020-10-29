@@ -1,9 +1,9 @@
 ;;*****************************************************************************
 ;;
-;; Title:       CustomerNote.dbl
+;; Title:       CustomerEx.dbl
 ;;
 ;; Description: Data model representing data defined by the repository
-;;              structure CUSTOMER_NOTES and from the data file DAT:customer_notes.ism.
+;;              structure CUSTOMER_EX and from the data file DAT:CUSTOMER_EX.ism.
 ;;
 ;;*****************************************************************************
 ;; WARNING: GENERATED CODE!
@@ -24,27 +24,27 @@ import Microsoft.Extensions.DependencyInjection
 namespace Services.Models
 
     {Newtonsoft.Json.JsonObject(Newtonsoft.Json.MemberSerialization.OptIn)}
-    public partial class CustomerNote extends DataObjectBase
+    public partial class CustomerEx extends DataObjectBase
 
         ;;make the record available and a copy
-        private mSynergyData, strCustomerNote
-        private mOriginalSynergyData, strCustomerNote
+        private mSynergyData, strCustomerEx
+        private mOriginalSynergyData, strCustomerEx
         protected mGlobalRFA  ,a10
 
-        private static sMetadata, @CustomerNoteMetadata
+        private static sMetadata, @CustomerExMetadata
 
 .region "Constructors"
 
-        static method CustomerNote
+        static method CustomerEx
         proc
-            sMetadata = new CustomerNoteMetadata()
-            DataObjectMetadataBase.MetadataLookup.TryAdd(^typeof(CustomerNote), sMetadata)
+            sMetadata = new CustomerExMetadata()
+            DataObjectMetadataBase.MetadataLookup.TryAdd(^typeof(CustomerEx), sMetadata)
         endmethod
 
         ;;; <summary>
         ;;;  Constructor, initialise the base fields
         ;;; </summary>
-        public method CustomerNote
+        public method CustomerEx
             parent()
         proc
             init mSynergyData, mOriginalSynergyData
@@ -53,7 +53,7 @@ namespace Services.Models
         ;;; <summary>
         ;;;  Alternate Constructor, accepts the structured data
         ;;; </summary>
-        public method CustomerNote
+        public method CustomerEx
             required in inData, a
             required in inGrfa, a
             parent()
@@ -67,51 +67,35 @@ namespace Services.Models
 .region "Attributes of this entity"
 
         ;;; <summary>
-        ;;; Customer number
+        ;;; 
         ;;; </summary>
         {Key}
-        {Range(0,999999, ErrorMessage="Customer number must be between 0 and 999999. ")}
+        {Range(0,999999, ErrorMessage=" must be between 0 and 999999. ")}
         {Newtonsoft.Json.JsonProperty}
-        public property CustomerNumber, int
+        public property Customerid, int
             method get
             proc
-                mreturn (int)mSynergyData.customer_number
+                mreturn (int)mSynergyData.customerid
             endmethod
             method set
             proc
-                mSynergyData.customer_number = value
+                mSynergyData.customerid = value
             endmethod
         endproperty
 
         ;;; <summary>
-        ;;; Note number
+        ;;; 
         ;;; </summary>
-        {Range(0,999, ErrorMessage="Note number must be between 0 and 999. ")}
+        {StringLength(128, ErrorMessage=" cannot exceed 128 characters. ")}
         {Newtonsoft.Json.JsonProperty}
-        public property NoteNumber, int
+        public property Extradata, String
             method get
             proc
-                mreturn (int)mSynergyData.note_number
+                mreturn (String)SynergyAlphaConverter.Convert(mSynergyData.extradata, ^null, ^null, ^null)
             endmethod
             method set
             proc
-                mSynergyData.note_number = value
-            endmethod
-        endproperty
-
-        ;;; <summary>
-        ;;; Note text
-        ;;; </summary>
-        {StringLength(30720, ErrorMessage="Note text cannot exceed 30720 characters. ")}
-        {Newtonsoft.Json.JsonProperty}
-        public property NoteText, String
-            method get
-            proc
-                mreturn (String)SynergyAlphaConverter.Convert(mSynergyData.note_text, ^null, ^null, ^null)
-            endmethod
-            method set
-            proc
-                mSynergyData.note_text = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
+                mSynergyData.extradata = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
             endmethod
         endproperty
 
@@ -179,7 +163,7 @@ namespace Services.Models
         public override method InternalGetValues, [#]@object
         proc
             ;;TODO: This should be returning boxed values for each of our fields
-            mreturn new Object[3]
+            mreturn new Object[2]
         endmethod
 
 .endregion
@@ -188,8 +172,8 @@ namespace Services.Models
 
         {Newtonsoft.Json.JsonProperty(DefaultValueHandling=DefaultValueHandling.Ignore)}
         ;;; <summary>
-        ;;; Relationship (Type A)
-        ;;; CUSTOMER_NOTE.CUSTOMER_NUMBER (one) --> (one) --> (many) CUSTOMER.CUSTOMER_NUMBER
+        ;;; Relationship (Type B)
+        ;;; CUSTOMER_EX.PRIMARY (one) --> (one) --> (one) CUSTOMER.CUSTOMER_NUMBER
         ;;; </summary>
         public readwrite property REL_Customer, @Customer
 
@@ -230,6 +214,15 @@ namespace Services.Models
             required in vType, ValidationType
             required in sp, @IServiceProvider
         endmethod
+
+.endregion
+
+.region "Properties to represent keys"
+
+        ;;Access keys
+
+        private _KEY_PRIMARY, string, ""
+        public readonly property KEY_PRIMARY, string, ""
 
 .endregion
 

@@ -154,6 +154,19 @@ namespace Services.Host
                     Startup.LogicalNames.Add(fileSpec)
             end
 
+            fileSpec = "DAT:CUSTOMER_EX.ism"
+            if (fileSpec.Contains(":")) then
+            begin
+                logical = fileSpec.Split(":")[1].ToUpper()
+                if (!Startup.LogicalNames.Contains(logical))
+                    Startup.LogicalNames.Add(logical)
+            end
+            else if (!fileSpec.Contains("."))
+            begin
+                if (!Startup.LogicalNames.Contains(fileSpec))
+                    Startup.LogicalNames.Add(fileSpec)
+            end
+
             ;;If we have a SetLogicalsCustom method, call it
             SetLogicalsCustom(Startup.LogicalNames)
 
@@ -187,6 +200,7 @@ namespace Services.Host
             data orders = loadOrders()
             data orderItems = loadOrderItems()
             data vendors = loadVendors()
+            data customerExs = loadCustomerExs()
 
             ;;Create and load the customers file
 
@@ -254,6 +268,17 @@ namespace Services.Host
                 store(chout,vendor.SynergyRecord)
             close chout
 
+            ;;Create and load the customerExs file
+
+            dataFile = "DAT:CUSTOMER_EX.ism"
+            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+
+            data customerEx, @CustomerEx
+            open(chout=0,o:i,dataFile,FDL:xdlFile)
+            foreach customerEx in customerExs
+                store(chout,customerEx.SynergyRecord)
+            close chout
+
         endmethod
 
         private static method deleteFiles, void
@@ -317,6 +342,17 @@ namespace Services.Host
             try
             begin
                 xcall delet("DAT:vendors.ism")
+            end
+            catch (e, @NoFileFoundException)
+            begin
+                nop
+            end
+            endtry
+
+            ;;Delete the customerExs file
+            try
+            begin
+                xcall delet("DAT:CUSTOMER_EX.ism")
             end
             catch (e, @NoFileFoundException)
             begin
@@ -438,6 +474,25 @@ namespace Services.Host
         eof,
             close vendorCh
             mreturn vendors
+        endmethod
+
+        public static method loadCustomerExs, @List<CustomerEx>
+        proc
+            data dataFile = "DAT:CUSTOMER_EX.ism"
+            data textFile = dataFile.ToLower().Replace(".ism",".txt")
+            data customerExCh, int, 0
+            data customerExRec, strCustomerEx
+            data customerExs = new List<CustomerEx>()
+            data grfa, a10
+            open(customerExCh,i:s,textFile)
+            repeat
+            begin
+                reads(customerExCh,customerExRec,eof)
+                customerExs.Add(new CustomerEx(customerExRec, grfa))
+            end
+        eof,
+            close customerExCh
+            mreturn customerExs
         endmethod
 
         private static method findRelativeFolderForAssembly, string
