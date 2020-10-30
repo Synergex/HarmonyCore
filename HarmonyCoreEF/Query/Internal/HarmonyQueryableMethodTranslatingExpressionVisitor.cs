@@ -690,53 +690,23 @@ namespace Harmony.Core.EF.Query.Internal
             includeParameterReplacements.Add(selector.Parameters[0], ((HarmonyQueryExpression)source.QueryExpression).ConvertedParameter);
             var replacementVisitor = new IdentifierReplacingExpressionVisitor() { ReplacementExpressions = includeParameterReplacements };
             var referencedFieldDefs = new List<FieldDataDefinition>();
-            if (includeExpression != null)
+            
+            var subqueryVisitor = new SubqueryReplacingExpressionVisitor() { CurrentVisitor = this, ReplacementSource = source, ReplacementVisitor = replacementVisitor, Outer = selector.Parameters.First()};
+            source.ShaperExpression = subqueryVisitor.Visit(selector);
+            foreach (var propInfo in subqueryVisitor.ReferencedProperties)
             {
-                while (includeExpression != null)
-                {
-                    var queryExpr = source.QueryExpression as HarmonyQueryExpression;
-                    var navExpression = includeExpression.NavigationExpression as MaterializeCollectionNavigationExpression;
-                    if (navExpression != null)
-                    {
-                        var cleanSubQuery = navExpression.Subquery;
-                        var subQueryTable = ((HarmonyQueryExpression)LiftSubquery(queryExpr, cleanSubQuery, replacementVisitor).QueryExpression).FindServerExpression();
+                var metadataObject = DataObjectMetadataBase.LookupType(propInfo.DeclaringType);
 
-                        subQueryTable.Name = includeExpression.Navigation.PropertyInfo.Name;
-                        subQueryTable.IsCollection = includeExpression.Navigation.IsCollection();
-                    }
-                    else
-                    {
-                        var joinSource = source as JoinedShapedQueryExpression;
-                        if (joinSource != null)
-                        {
-                            var innerExpr = joinSource.Inner.QueryExpression as HarmonyQueryExpression;
-                            var innerTableExpression = queryExpr.RootExpressions[innerExpr.CurrentParameter];
-                            innerTableExpression.Name = includeExpression.Navigation.PropertyInfo.Name;
-                            innerTableExpression.IsCollection = includeExpression.Navigation.IsCollection();
-                        }
-                    }
-
-                    includeExpression = includeExpression.EntityExpression as IncludeExpression;
-                }
+                referencedFieldDefs.Add(metadataObject.GetFieldByName(propInfo.Name));
             }
-            else if(selectorBody is MemberInitExpression)
+
+            foreach (var fieldInfo in subqueryVisitor.ReferencedFields)
             {
-                var subqueryVisitor = new SubqueryReplacingExpressionVisitor() { CurrentVisitor = this, ReplacementSource = source, Outer = selector.Parameters.First()};
-                source.ShaperExpression = subqueryVisitor.Visit(selector);
-                foreach (var propInfo in subqueryVisitor.ReferencedProperties)
-                {
-                    var metadataObject = DataObjectMetadataBase.LookupType(propInfo.DeclaringType);
+                var metadataObject = DataObjectMetadataBase.LookupType(fieldInfo.DeclaringType);
 
-                    referencedFieldDefs.Add(metadataObject.GetFieldByName(propInfo.Name));
-                }
-
-                foreach (var fieldInfo in subqueryVisitor.ReferencedFields)
-                {
-                    var metadataObject = DataObjectMetadataBase.LookupType(fieldInfo.DeclaringType);
-
-                    referencedFieldDefs.Add(metadataObject.GetFieldByName(fieldInfo.Name));
-                }
+                referencedFieldDefs.Add(metadataObject.GetFieldByName(fieldInfo.Name));
             }
+            
 
             var groupByQuery = source.ShaperExpression is GroupByShaperExpression;
             var queryExpression = (HarmonyQueryExpression)source.QueryExpression;
@@ -1342,7 +1312,7 @@ namespace Harmony.Core.EF.Query.Internal
 
             inMemoryQueryExpression.ConvertToEnumerable();
 
-            if (source.ShaperExpression.Type != returnType)
+            if (!(source.ShaperExpression is LambdaExpression) && source.ShaperExpression.Type != returnType)
             {
                 source.ShaperExpression = Expression.Convert(source.ShaperExpression, returnType);
             }
@@ -1406,6 +1376,7 @@ namespace Harmony.Core.EF.Query.Internal
             public Stack<Expression> SourceStack = new Stack<Expression>();
             public HashSet<PropertyInfo> ReferencedProperties = new HashSet<PropertyInfo>();
             public HashSet<FieldInfo> ReferencedFields = new HashSet<FieldInfo>();
+            public IdentifierReplacingExpressionVisitor ReplacementVisitor;
 
             public Expression CurrentParameter
             {
@@ -1413,6 +1384,52 @@ namespace Harmony.Core.EF.Query.Internal
                 {
                     return SourceStack.Count > 0 ? SourceStack.Peek() : Outer;
                 }
+            }
+
+            private Expression ProcessNav(MaterializeCollectionNavigationExpression matColExpr, HarmonyQueryExpression queryExpr)
+            {
+                var cleanSubQuery = matColExpr.Subquery;
+                var subQueryTable = ((HarmonyQueryExpression)CurrentVisitor.LiftSubquery(queryExpr, cleanSubQuery, ReplacementVisitor).QueryExpression).FindServerExpression();
+
+                subQueryTable.Name = matColExpr.Navigation.PropertyInfo.Name;
+                subQueryTable.IsCollection = matColExpr.Navigation.IsCollection();
+                return Expression.PropertyOrField(CurrentParameter, matColExpr.Navigation.PropertyInfo.Name);
+            }
+
+            protected override Expression VisitExtension(Expression node)
+            {
+                switch (node)
+                {
+                    case MaterializeCollectionNavigationExpression matColExpr:
+                        return ProcessNav(matColExpr, ReplacementSource.QueryExpression as HarmonyQueryExpression);
+                    case IncludeExpression includeExpression:
+                        while (includeExpression != null)
+                        {
+                            var queryExpr = ReplacementSource.QueryExpression as HarmonyQueryExpression;
+                            var navExpression = includeExpression.NavigationExpression as MaterializeCollectionNavigationExpression;
+                            if (navExpression != null)
+                            {
+                                ProcessNav(navExpression, ReplacementSource.QueryExpression as HarmonyQueryExpression);
+                            }
+                            else
+                            {
+                                var joinSource = ReplacementSource as JoinedShapedQueryExpression;
+                                if (joinSource != null)
+                                {
+                                    var innerExpr = joinSource.Inner.QueryExpression as HarmonyQueryExpression;
+                                    var innerTableExpression = queryExpr.RootExpressions[innerExpr.CurrentParameter];
+                                    innerTableExpression.Name = includeExpression.Navigation.PropertyInfo.Name;
+                                    innerTableExpression.IsCollection = includeExpression.Navigation.IsCollection();
+                                }
+                            }
+
+                            includeExpression = includeExpression.EntityExpression as IncludeExpression;
+                        }
+                        return CurrentParameter;
+                }
+
+
+                return base.VisitExtension(node);
             }
 
             protected override Expression VisitMemberInit(MemberInitExpression node)
