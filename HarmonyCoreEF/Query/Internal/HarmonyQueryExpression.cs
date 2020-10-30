@@ -223,7 +223,17 @@ namespace Harmony.Core.EF.Query.Internal
 
             var queryBuffer = new QueryBuffer(flatList.Select(tpl => tpl.Item2).ToList());
 
-            var queryPlan = new PreparedQueryPlan(true, processedWheres, new Dictionary<int, List<FieldDataDefinition>>(), processedOns,
+            var fieldReferences = new Dictionary<int, List<FieldDataDefinition>>();
+            foreach(var queryExpr in flatList)
+            {
+                if (queryExpr.Item1.ReferencedFields.Count > 0)
+                {
+                    var bufferIndex = queryBuffer.TypeBuffers.IndexOf(queryExpr.Item2);
+                    fieldReferences.Add(bufferIndex, queryExpr.Item1.ReferencedFields);
+                }
+            }
+
+            var queryPlan = new PreparedQueryPlan(true, processedWheres, fieldReferences, processedOns,
                 orderBys, queryBuffer, "");
 
             return queryPlan;
