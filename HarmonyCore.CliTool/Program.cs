@@ -146,9 +146,9 @@ Known structure properties:
 
     class Program
     {
-        public static string BuildPackageVersion = "11.1.1030.2704";
+        public static string BuildPackageVersion = "11.1.1060.2805";
         public static string CodeDomProviderVersion = "1.0.7";
-        public static string HCBuildVersion = "3.1.156";
+        public static string HCBuildVersion = "3.1.200";
         public static Dictionary<string, string> LatestNugetReferences = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase)
         {
             {"Harmony.Core", HCBuildVersion},
@@ -156,7 +156,7 @@ Known structure properties:
             {"Harmony.Core.EF", HCBuildVersion},
             {"Harmony.Core.OData", HCBuildVersion},
             {"Harmony.Core.AspNetCore", HCBuildVersion},
-            {"Synergex.SynergyDE.synrnt", "11.1.1050"},
+            {"Synergex.SynergyDE.synrnt", "11.1.1060"},
             {"Synergex.SynergyDE.Build", BuildPackageVersion},
             {"Microsoft.AspNetCore.Mvc.NewtonsoftJson", "3.1.6"},
             {"Microsoft.AspNetCore.Mvc.Testing", "3.1.6"},
