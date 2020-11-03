@@ -57,6 +57,7 @@ import Harmony.OData
 import Harmony.Core.Context
 import Harmony.Core.FileIO
 import Microsoft.Extensions.DependencyInjection
+import System.Runtime.Serialization
 
 namespace <NAMESPACE>
 
@@ -629,8 +630,24 @@ namespace <NAMESPACE>
         ;;Access keys
 
   <KEY_LOOP_UNIQUE>
-        private _KEY_<KEY_NAME>, string, ""
-        public readonly property KEY_<KEY_NAME>, string, ""
+        {IgnoreDataMember}
+        public property KEY_<KEY_NAME>, string
+            method get
+            proc
+            <IF SINGLE_SEGMENT>
+                <SEGMENT_LOOP>
+                mreturn <FieldSqlname>.ToString()
+                </SEGMENT_LOOP>
+            <ELSE>
+                mreturn string.Join('|',  <SEGMENT_LOOP><IF SEG_TYPE_LITERAL>"<SEGMENT_LITVAL>"<ELSE><FieldSqlname></IF><,></SEGMENT_LOOP>)
+            </IF>
+                
+            endmethod
+            method set
+            proc
+                
+            endmethod
+        endproperty
 
   </KEY_LOOP_UNIQUE>
   <FOREIGN_KEY_LOOP>
@@ -638,8 +655,24 @@ namespace <NAMESPACE>
         ;;Foreign keys
 
     </IF FIRST>
-        private _KEY_<KEY_NAME>, string, ""
-        public readonly property KEY_<KEY_NAME>, string, ""
+        {IgnoreDataMember}
+        public property KEY_<KEY_NAME>, string
+            method get
+            proc
+            <IF SINGLE_SEGMENT>
+                <SEGMENT_LOOP>
+                mreturn <FieldSqlname>.ToString()
+                </SEGMENT_LOOP>
+            <ELSE>
+                mreturn string.Join('|',  <SEGMENT_LOOP><IF SEG_TYPE_LITERAL>"<SEGMENT_LITVAL>"<ELSE><FieldSqlname></IF><,></SEGMENT_LOOP>)
+            </IF>
+                
+            endmethod
+            method set
+            proc
+                
+            endmethod
+        endproperty
 
   </FOREIGN_KEY_LOOP>
 .endregion

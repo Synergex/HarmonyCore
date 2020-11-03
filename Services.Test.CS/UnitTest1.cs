@@ -99,6 +99,7 @@ namespace Services.Test.CS
         [TestMethod]
         public void EFSparse()
         {
+            //force sparse select even though we arent using xfServer here
             Harmony.Core.FileIO.Queryable.PreparedQueryPlan.LocalSparse = true;
             var startupClass = new Startup(null, null);
             var startupServices = new ServiceCollection();
@@ -173,6 +174,46 @@ namespace Services.Test.CS
                     Assert.IsNotNull(customer);
                     Assert.AreEqual(customer.CustomerNumber, 8);
                     Assert.IsNotNull(customer.REL_CustomerFavoriteItem);
+                }
+            }
+        }
+
+
+        [TestMethod]
+        public void UpdateFavoriteItem()
+        {
+            var startupClass = new Startup(null, null);
+            var startupServices = new ServiceCollection();
+            startupClass.ConfigureServices(startupServices);
+            using (var sp = startupServices.BuildServiceProvider())
+            {
+                using (var context = sp.GetService<Services.Models.DbContext>())
+                {
+                    var customer = context.Customers.Include(customer => customer.REL_CustomerFavoriteItem).FirstOrDefault(customer => customer.CustomerNumber == 8);
+
+                    customer.REL_CustomerFavoriteItem.CommonName = "bunnybear";
+                    var changeCount = context.SaveChanges();
+                    Assert.AreEqual(1, changeCount);
+                }
+            }
+        }
+
+
+        [TestMethod]
+        public void UpdateFavoriteItem2()
+        {
+            var startupClass = new Startup(null, null);
+            var startupServices = new ServiceCollection();
+            startupClass.ConfigureServices(startupServices);
+            using (var sp = startupServices.BuildServiceProvider())
+            {
+                using (var context = sp.GetService<Services.Models.DbContext>())
+                {
+                    var customer = context.Customers.FirstOrDefault(customer => customer.CustomerNumber == 8);
+                    customer.FavoriteItem = context.Items.Where(item => item.FlowerColor.ToLower() == "blue").First().ItemNumber;
+
+                    var changeCount = context.SaveChanges();
+                    Assert.AreEqual(1, changeCount);
                 }
             }
         }
