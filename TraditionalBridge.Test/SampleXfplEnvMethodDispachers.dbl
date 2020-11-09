@@ -482,17 +482,23 @@ namespace TraditionalBridge.Test.SampleXfplEnv
                 ;;Argument 54 (REQUIRED INOUT p54 enum METHOD_STATUS)
                 arg54,				method_status
                 ;;Argument 55 (REQUIRED IN p55 D_HANDLE)
-                arg55,				d_handle
+                arg55Array,			JSON_ELEMENT
+                arg55Handle,        D_HANDLE
                 ;;Argument 56 (REQUIRED OUT p56 D_HANDLE)
-                arg56,				d_handle
+                arg56Array,			JSON_ELEMENT
+                arg56Handle,        D_HANDLE
                 ;;Argument 57 (REQUIRED INOUT p57 D_HANDLE)
-                arg57,				d_handle
+                arg57Array,			JSON_ELEMENT
+                arg57Handle,        D_HANDLE
                 ;;Argument 58 (REQUIRED IN p58 D_HANDLE)
-                arg58,				d_handle
+                arg58Array,			JSON_ELEMENT
+                arg58Handle,        D_HANDLE
                 ;;Argument 59 (REQUIRED OUT p59 D_HANDLE)
-                arg59,				d_handle
+                arg59Array,			JSON_ELEMENT
+                arg59Handle,        D_HANDLE
                 ;;Argument 60 (REQUIRED INOUT p60 D_HANDLE)
-                arg60,				d_handle
+                arg60Array,			JSON_ELEMENT
+                arg60Handle,        D_HANDLE
             endrecord
 
                 ;;Argument 1 (REQUIRED IN p1 A1)
@@ -747,25 +753,29 @@ namespace TraditionalBridge.Test.SampleXfplEnv
             arg54 = (METHOD_STATUS)dispatcher.GetInt(arguments[54])
 
             ;;Argument 55 (REQUIRED IN p55 D_HANDLE)
-            ;TODO: Template needs code for HANDLE arguments!
-            arg55 = 
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[55])
+            arg55Array = arguments[55].GetProperty("PassedValue")
+            arg55Handle = %mem_proc(DM_ALLOC,arg55Array.GetArrayLength())
 
             ;;Argument 57 (REQUIRED INOUT p57 D_HANDLE)
-            ;TODO: Template needs code for HANDLE arguments!
-            arg57 = 
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[57])
+            arg57Array = arguments[57].GetProperty("PassedValue")
+            arg57Handle = %mem_proc(DM_ALLOC,arg57Array.GetArrayLength())
 
             ;;Argument 58 (REQUIRED IN p58 D_HANDLE)
-            ;TODO: Template needs code for BINARY HANDLE arguments!
-            arg58 =
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[58])
+            arg58Array = arguments[58].GetProperty("PassedValue")
+            arg58Handle = %mem_proc(DM_ALLOC,arg58Array.GetArrayLength())
 
             ;;Argument 60 (REQUIRED INOUT p60 D_HANDLE)
-            ;TODO: Template needs code for BINARY HANDLE arguments!
-            arg60 =
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[60])
+            arg60Array = arguments[60].GetProperty("PassedValue")
+            arg60Handle = %mem_proc(DM_ALLOC,arg60Array.GetArrayLength())
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
 
-            xcall simple_parameters(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19,arg20,arg21,arg22,arg23,arg24,arg25,arg26,arg27,arg28,arg29,arg30,arg31,arg32,arg33,arg34,arg35,arg36,arg37,arg38,arg39,arg40,arg41,arg42,arg43,arg44,arg45,arg46,arg47,arg48,arg49,arg50,arg51,arg52,arg53,arg54,arg55,arg56,arg57,arg58,arg59,arg60)
+            xcall simple_parameters(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19,arg20,arg21,arg22,arg23,arg24,arg25,arg26,arg27,arg28,arg29,arg30,arg31,arg32,arg33,arg34,arg35,arg36,arg37,arg38,arg39,arg40,arg41,arg42,arg43,arg44,arg45,arg46,arg47,arg48,arg49,arg50,arg51,arg52,arg53,arg54,arg55Handle,arg56Handle,arg57Handle,arg58Handle,arg59Handle,arg60Handle)
 
             ;;--------------------------------------------------------------------------------
             ;;Argument 2 (REQUIRED OUT p2 A1)
@@ -1016,28 +1026,28 @@ namespace TraditionalBridge.Test.SampleXfplEnv
             ;;--------------------------------------------------------------------------------
             ;;Argument 56 (REQUIRED OUT p56 D_HANDLE)
             
-            serializer.ArgumentData(56, arg56, FieldDataType.HandleField, 0, 0, false)
+            serializer.ArgumentData(56, arg56Handle, FieldDataType.HandleField, 4, 0, false)
             
             
 
             ;;--------------------------------------------------------------------------------
             ;;Argument 57 (REQUIRED INOUT p57 D_HANDLE)
             
-            serializer.ArgumentData(57, arg57, FieldDataType.HandleField, 0, 0, false)
+            serializer.ArgumentData(57, arg57Handle, FieldDataType.HandleField, 4, 0, false)
             
             
 
             ;;--------------------------------------------------------------------------------
             ;;Argument 59 (REQUIRED OUT p59 D_HANDLE)
             
-            serializer.ArgumentData(59, arg59, FieldDataType.BinaryHandleField, 0, 0, false)
+            serializer.ArgumentData(59, arg59Handle, FieldDataType.BinaryHandleField, 4, 0, false)
             
             
 
             ;;--------------------------------------------------------------------------------
             ;;Argument 60 (REQUIRED INOUT p60 D_HANDLE)
             
-            serializer.ArgumentData(60, arg60, FieldDataType.BinaryHandleField, 0, 0, false)
+            serializer.ArgumentData(60, arg60Handle, FieldDataType.BinaryHandleField, 4, 0, false)
             
             
         endmethod

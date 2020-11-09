@@ -105,8 +105,6 @@ namespace TraditionalBridge.Test.V93IF
                 ;;Argument 1 (REQUIRED IN V93REPOSOPTS ArrayList collection of structure @V93reposopt returned as DataTable)
                 arg1Array,          JSON_ELEMENT
                 arg1,               @ArrayList
-                v93,                V93reposopts
-                v93at,              @V93reposopts
             endrecord
 
 
@@ -122,11 +120,7 @@ namespace TraditionalBridge.Test.V93IF
             argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1],41)
             arg1Array = arguments[1].GetProperty("PassedValue")
             arg1 = new ArrayList()
-            v93at = (@V93reposopts)v93
-            arg1.Add(v93at)
-            arg1.Add(v93at)
-            arg1.Add(v93at)
-            dispatcher.UnwrapObjectCollection(argumentDefinition,arg1Array,arg1)
+            dispatcher.UnwrapObjectCollection(argumentDefinition,arg1Array,arg1,FieldDataType.AlphaField)
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -136,61 +130,62 @@ namespace TraditionalBridge.Test.V93IF
 
     endclass
 
-;    ;;-------------------------------------------------------------------------
-;    ;;; <summary>
-;    ;;; Dispatcher for method V93IF.BinArrayStr
-;    ;;; </summary>
-;    public class BinArrayStr_Dispatcher extends RoutineStub
-;
-;        private mBinarytestMetadata, @DataObjectMetadataBase
-;
-;        public method BinArrayStr_Dispatcher
-;        proc
-;            ;;Initialize the meta data for any data objects that are used by parameters to the method
-;            mBinarytestMetadata = DataObjectMetadataBase.LookupType("Binarytest")
-;        endmethod
-;
-;        protected override method DispatchInternal, void
-;            required in name,       string
-;            required in callFrame,  JSON_ELEMENT
-;            required in serializer, @DispatchSerializer
-;            required in dispatcher, @RoutineDispatcher
-;            record
-;                requestId,          int
-;                arguments,          JSON_ELEMENT
-;                argumentDefinition, @ArgumentDataDefinition
-;
-;                ;;Argument 1 (REQUIRED INOUT BINARYTEST structure @Binarytest)
-;                arg1DataObject,     @DataObjectBase
-;                arg1,               strBinarytest
-;            endrecord
-;
-;
-;        proc
-;
-;            ;;------------------------------------------------------------
-;            ;;Process inbound arguments
-;
-;            arguments = callFrame.GetProperty("params")
-;
-;            ;;Argument 1 (REQUIRED INOUT BINARYTEST structure @Binarytest)
-;            ;;Structure argument. Get the data object then get the record from it
-;            arg1DataObject = dispatcher.DeserializeObject(arguments[1],mBinarytestMetadata)
-;            arg1 = arg1DataObject.SynergyRecord
-;
-;            ;;------------------------------------------------------------
-;            ;; Call the underlying routine
-;
-;            xcall BinArrayStr(arg1)
-;
-;            ;;--------------------------------------------------------------------------------
-;            ;;Argument 1 (REQUIRED INOUT BINARYTEST structure @Binarytest)
-;            
-;            ;;Argument 1: Single Binarytest record
-;            serializer.ArgumentData(1,arg1,FieldDataType.DataObjectField,90,"BINARYTEST",false)
-;        endmethod
-;
-;    endclass
+    ;;-------------------------------------------------------------------------
+    ;;; <summary>
+    ;;; Dispatcher for method V93IF.BinArrayStr
+    ;;; </summary>
+    public class BinArrayStr_Dispatcher extends RoutineStub
+
+        private mBinarytestMetadata, @DataObjectMetadataBase
+
+        public method BinArrayStr_Dispatcher
+        proc
+            ;;Initialize the meta data for any data objects that are used by parameters to the method
+            mBinarytestMetadata = DataObjectMetadataBase.LookupType("Binarytest")
+        endmethod
+
+        protected override method DispatchInternal, void
+            required in name,       string
+            required in callFrame,  JSON_ELEMENT
+            required in serializer, @DispatchSerializer
+            required in dispatcher, @RoutineDispatcher
+            record
+                requestId,          int
+                arguments,          JSON_ELEMENT
+                argumentDefinition, @ArgumentDataDefinition
+
+                ;;Argument 1 (REQUIRED INOUT BINARYTEST structure @Binarytest)
+                arg1DataObject,     @DataObjectBase
+                arg1,               strBinarytest
+            endrecord
+
+
+        proc
+
+            ;;------------------------------------------------------------
+            ;;Process inbound arguments
+
+            arguments = callFrame.GetProperty("params")
+
+            ;;Argument 1 (REQUIRED INOUT BINARYTEST structure @Binarytest)
+
+            ;;Structure argument. Get the data object then get the record from it
+            arg1DataObject = dispatcher.DeserializeObject(arguments[1],mBinarytestMetadata)
+            arg1 = arg1DataObject.SynergyRecord
+
+            ;;------------------------------------------------------------
+            ;; Call the underlying routine
+
+            xcall BinArrayStr(arg1)
+
+            ;;--------------------------------------------------------------------------------
+            ;;Argument 1 (REQUIRED INOUT BINARYTEST structure @Binarytest)
+            
+            ;;Argument 1: Single Binarytest record
+            serializer.ArgumentData(1,arg1,FieldDataType.DataObjectField,90,"BINARYTEST",true)
+        endmethod
+
+    endclass
 
     ;;-------------------------------------------------------------------------
     ;;; <summary>
@@ -463,6 +458,7 @@ namespace TraditionalBridge.Test.V93IF
 ;            arguments = callFrame.GetProperty("params")
 ;
 ;            ;;Argument 1 (REQUIRED INOUT FUENTES structure @Fuente)
+;
 ;            ;;Structure argument. Get the data object then get the record from it
 ;            arg1DataObject = dispatcher.DeserializeObject(arguments[1],mFuenteMetadata)
 ;            arg1 = arg1DataObject.SynergyRecord
@@ -476,7 +472,7 @@ namespace TraditionalBridge.Test.V93IF
 ;            ;;Argument 1 (REQUIRED INOUT FUENTES structure @Fuente)
 ;            
 ;            ;;Argument 1: Single Fuente record
-;            serializer.ArgumentData(1,arg1,FieldDataType.DataObjectField,43,"FUENTES",false)
+;            serializer.ArgumentData(1,arg1,FieldDataType.DataObjectField,43,"FUENTES",true)
 ;        endmethod
 ;
 ;    endclass
@@ -519,10 +515,11 @@ namespace TraditionalBridge.Test.V93IF
 ;            arguments = callFrame.GetProperty("params")
 ;
 ;            ;;Argument 1 (REQUIRED IN FUENTES ArrayList collection of structure @Fuente)
+;
 ;            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1],43)
 ;            arg1Array = arguments[1].GetProperty("PassedValue")
 ;            arg1 = new ArrayList()
-;            dispatcher.UnwrapObjectCollection(argumentDefinition,arg1Array,arg1)
+;            dispatcher.UnwrapObjectCollection(argumentDefinition,arg1Array,arg1,FieldDataType.AlphaField)
 ;
 ;            ;;------------------------------------------------------------
 ;            ;; Call the underlying routine
@@ -557,6 +554,7 @@ namespace TraditionalBridge.Test.V93IF
 ;                argumentDefinition, @ArgumentDataDefinition
 ;
 ;                ;;Argument 1 (REQUIRED OUT FUENTES ArrayList collection of structure @Fuente)
+;                arg1Array,          JSON_ELEMENT
 ;                arg1,               @ArrayList
 ;            endrecord
 ;
@@ -566,7 +564,10 @@ namespace TraditionalBridge.Test.V93IF
 ;            ;;------------------------------------------------------------
 ;            ;;Process inbound arguments
 ;
-;            ;;There are no inbound arguments to process
+;            arguments = callFrame.GetProperty("params")
+;
+;            ;;Argument 1 (REQUIRED OUT FUENTES ArrayList collection of structure @Fuente)
+;
 ;
 ;            ;;------------------------------------------------------------
 ;            ;; Call the underlying routine
@@ -576,7 +577,7 @@ namespace TraditionalBridge.Test.V93IF
 ;            ;;--------------------------------------------------------------------------------
 ;            ;;Argument 1 (REQUIRED OUT FUENTES ArrayList collection of structure @Fuente)
 ;            
-;            serializer.ArgumentData(1,arg1,FieldDataType.DataObjectCollectionField,43,"FUENTES",false)
+;            serializer.ArgumentData(1,arg1,FieldDataType.DataObjectCollectionField,43,"FUENTES",true)
 ;        endmethod
 ;
 ;    endclass
@@ -787,6 +788,7 @@ namespace TraditionalBridge.Test.V93IF
 ;            arguments = callFrame.GetProperty("params")
 ;
 ;            ;;Argument 1 (REQUIRED INOUT ENUMSTRUCTURE structure @Enumstructure)
+;
 ;            ;;Structure argument. Get the data object then get the record from it
 ;            arg1DataObject = dispatcher.DeserializeObject(arguments[1],mEnumstructureMetadata)
 ;            arg1 = arg1DataObject.SynergyRecord
@@ -800,7 +802,7 @@ namespace TraditionalBridge.Test.V93IF
 ;            ;;Argument 1 (REQUIRED INOUT ENUMSTRUCTURE structure @Enumstructure)
 ;            
 ;            ;;Argument 1: Single Enumstructure record
-;            serializer.ArgumentData(1,arg1,FieldDataType.DataObjectField,44,"ENUMSTRUCTURE",false)
+;            serializer.ArgumentData(1,arg1,FieldDataType.DataObjectField,44,"ENUMSTRUCTURE",true)
 ;        endmethod
 ;
 ;    endclass
@@ -849,6 +851,7 @@ namespace TraditionalBridge.Test.V93IF
 ;            arguments = callFrame.GetProperty("params")
 ;
 ;            ;;Argument 1 (REQUIRED INOUT ENUMSTRUCTURE [*]structure @Enumstructure)
+;
 ;            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1],44)
 ;            arg1Array = arguments[1].GetProperty("PassedValue")
 ;            arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.GetArrayLength())
@@ -863,7 +866,7 @@ namespace TraditionalBridge.Test.V93IF
 ;            ;;--------------------------------------------------------------------------------
 ;            ;;Argument 1 (REQUIRED INOUT ENUMSTRUCTURE [*]structure @Enumstructure)
 ;            
-;            serializer.ArgumentHandleData(1,arg1Handle,FieldDataType.DataObjectCollectionField,44,"ENUMSTRUCTURE",%mem_proc(DM_GETSIZE,arg1Handle)/44,false)
+;            serializer.ArgumentHandleData(1,arg1Handle,FieldDataType.DataObjectCollectionField,44,"ENUMSTRUCTURE",%mem_proc(DM_GETSIZE,arg1Handle)/44,true)
 ;        endmethod
 ;
 ;    endclass
@@ -906,10 +909,11 @@ namespace TraditionalBridge.Test.V93IF
 ;            arguments = callFrame.GetProperty("params")
 ;
 ;            ;;Argument 1 (REQUIRED IN ENUMSTRUCTURE ArrayList collection of structure @Enumstructure)
+;
 ;            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1],44)
 ;            arg1Array = arguments[1].GetProperty("PassedValue")
 ;            arg1 = new ArrayList()
-;            dispatcher.UnwrapObjectCollection(argumentDefinition,arg1Array,arg1)
+;            dispatcher.UnwrapObjectCollection(argumentDefinition,arg1Array,arg1,FieldDataType.AlphaField)
 ;
 ;            ;;------------------------------------------------------------
 ;            ;; Call the underlying routine
@@ -944,6 +948,7 @@ namespace TraditionalBridge.Test.V93IF
 ;                argumentDefinition, @ArgumentDataDefinition
 ;
 ;                ;;Argument 1 (REQUIRED OUT ENUMSTRUCTURE ArrayList collection of structure @Enumstructure)
+;                arg1Array,          JSON_ELEMENT
 ;                arg1,               @ArrayList
 ;            endrecord
 ;
@@ -953,7 +958,10 @@ namespace TraditionalBridge.Test.V93IF
 ;            ;;------------------------------------------------------------
 ;            ;;Process inbound arguments
 ;
-;            ;;There are no inbound arguments to process
+;            arguments = callFrame.GetProperty("params")
+;
+;            ;;Argument 1 (REQUIRED OUT ENUMSTRUCTURE ArrayList collection of structure @Enumstructure)
+;
 ;
 ;            ;;------------------------------------------------------------
 ;            ;; Call the underlying routine
@@ -963,7 +971,7 @@ namespace TraditionalBridge.Test.V93IF
 ;            ;;--------------------------------------------------------------------------------
 ;            ;;Argument 1 (REQUIRED OUT ENUMSTRUCTURE ArrayList collection of structure @Enumstructure)
 ;            
-;            serializer.ArgumentData(1,arg1,FieldDataType.DataObjectCollectionField,44,"ENUMSTRUCTURE",false)
+;            serializer.ArgumentData(1,arg1,FieldDataType.DataObjectCollectionField,44,"ENUMSTRUCTURE",true)
 ;        endmethod
 ;
 ;    endclass
@@ -1047,7 +1055,7 @@ namespace TraditionalBridge.Test.V93IF
 
                 ;;Argument 1 (REQUIRED INOUT V93REPOSOPTS structure @V93reposopt)
                 arg1DataObject,     @DataObjectBase
-                arg1,               V93reposopts
+                arg1,               strV93reposopt
             endrecord
 
 
@@ -1116,6 +1124,7 @@ namespace TraditionalBridge.Test.V93IF
 ;            arguments = callFrame.GetProperty("params")
 ;
 ;            ;;Argument 1 (REQUIRED INOUT STROPTSOUTTER structure @Stroptsoutter)
+;
 ;            ;;Structure argument. Get the data object then get the record from it
 ;            arg1DataObject = dispatcher.DeserializeObject(arguments[1],mStroptsoutterMetadata)
 ;            arg1 = arg1DataObject.SynergyRecord
@@ -1129,7 +1138,7 @@ namespace TraditionalBridge.Test.V93IF
 ;            ;;Argument 1 (REQUIRED INOUT STROPTSOUTTER structure @Stroptsoutter)
 ;            
 ;            ;;Argument 1: Single Stroptsoutter record
-;            serializer.ArgumentData(1,arg1,FieldDataType.DataObjectField,70,"STROPTSOUTTER",false)
+;            serializer.ArgumentData(1,arg1,FieldDataType.DataObjectField,70,"STROPTSOUTTER",true)
 ;        endmethod
 ;
 ;    endclass
