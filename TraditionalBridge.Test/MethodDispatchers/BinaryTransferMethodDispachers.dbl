@@ -13,6 +13,7 @@
 import Json
 import Harmony.TraditionalBridge
 import System.Collections
+import TraditionalBridge.Test.Models
 
 .ifdef DBLV11
 import System.Text.Json
@@ -104,56 +105,59 @@ namespace TraditionalBridge.Test.BinaryTransfer
 
     endclass
 
-;    ;;-------------------------------------------------------------------------
-;    ;;; <summary>
-;    ;;; Dispatcher for method BinaryTransfer.get0grfa
-;    ;;; </summary>
-;    public class get0grfa_Dispatcher extends RoutineStub
-;
-;        private mGrfatestMetadata, @DataObjectMetadataBase
-;
-;        public method get0grfa_Dispatcher
-;        proc
-;            ;;Initialize the meta data for any data objects that are used by parameters to the method
-;            mGrfatestMetadata = DataObjectMetadataBase.LookupType("Grfatest")
-;        endmethod
-;
-;        protected override method DispatchInternal, void
-;            required in name,       string
-;            required in callFrame,  JSON_ELEMENT
-;            required in serializer, @DispatchSerializer
-;            required in dispatcher, @RoutineDispatcher
-;            record
-;                requestId,          int
-;                arguments,          JSON_ELEMENT
-;                argumentDefinition, @ArgumentDataDefinition
-;
-;                ;;Argument 1 (REQUIRED OUT grfat structure @Grfatest)
-;                arg1DataObject,     @DataObjectBase
-;                arg1,               strGrfatest
-;            endrecord
-;
-;
-;        proc
-;
-;            ;;------------------------------------------------------------
-;            ;;Process inbound arguments
-;
-;            ;;There are no inbound arguments to process
-;
-;            ;;------------------------------------------------------------
-;            ;; Call the underlying routine
-;
-;            xcall get0grfa(arg1)
-;
-;            ;;--------------------------------------------------------------------------------
-;            ;;Argument 1 (REQUIRED OUT grfat structure @Grfatest)
-;            
-;            ;;Argument 1: Single Grfatest record
-;            serializer.ArgumentData(1,arg1,FieldDataType.DataObjectField,20,"GRFATEST",false)
-;        endmethod
-;
-;    endclass
+    ;;-------------------------------------------------------------------------
+    ;;; <summary>
+    ;;; Dispatcher for method BinaryTransfer.get0grfa
+    ;;; </summary>
+    public class get0grfa_Dispatcher extends RoutineStub
+
+        private mGrfatestMetadata, @DataObjectMetadataBase
+
+        public method get0grfa_Dispatcher
+        proc
+            ;;Initialize the meta data for any data objects that are used by parameters to the method
+            mGrfatestMetadata = DataObjectMetadataBase.LookupType("Grfatest")
+        endmethod
+
+        protected override method DispatchInternal, void
+            required in name,       string
+            required in callFrame,  JSON_ELEMENT
+            required in serializer, @DispatchSerializer
+            required in dispatcher, @RoutineDispatcher
+            record
+                requestId,          int
+                arguments,          JSON_ELEMENT
+                argumentDefinition, @ArgumentDataDefinition
+
+                ;;Argument 1 (REQUIRED OUT grfat structure @Grfatest)
+                arg1DataObject,     @DataObjectBase
+                arg1,               strGrfatest
+            endrecord
+
+
+        proc
+
+            ;;------------------------------------------------------------
+            ;;Process inbound arguments
+
+            arguments = callFrame.GetProperty("params")
+
+            ;;Argument 1 (REQUIRED OUT grfat structure @Grfatest)
+
+
+            ;;------------------------------------------------------------
+            ;; Call the underlying routine
+
+            xcall get0grfa(arg1)
+
+            ;;--------------------------------------------------------------------------------
+            ;;Argument 1 (REQUIRED OUT grfat structure @Grfatest)
+            
+            ;;Argument 1: Single Grfatest record
+            serializer.ArgumentData(1,arg1,FieldDataType.DataObjectField,20,"GRFATEST",true)
+        endmethod
+
+    endclass
 
     ;;-------------------------------------------------------------------------
     ;;; <summary>
@@ -180,6 +184,7 @@ namespace TraditionalBridge.Test.BinaryTransfer
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED OUT myarraylist ArrayList collection of structure @Teststruct)
+                arg1Array,          JSON_ELEMENT
                 arg1,               @ArrayList
             endrecord
 
@@ -189,7 +194,10 @@ namespace TraditionalBridge.Test.BinaryTransfer
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            ;;There are no inbound arguments to process
+            arguments = callFrame.GetProperty("params")
+
+            ;;Argument 1 (REQUIRED OUT myarraylist ArrayList collection of structure @Teststruct)
+
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -199,7 +207,7 @@ namespace TraditionalBridge.Test.BinaryTransfer
             ;;--------------------------------------------------------------------------------
             ;;Argument 1 (REQUIRED OUT myarraylist ArrayList collection of structure @Teststruct)
             
-            serializer.ArgumentData(1,arg1,FieldDataType.DataObjectCollectionField,1,"TESTSTRUCT",false)
+            serializer.ArgumentData(1,arg1,FieldDataType.DataObjectCollectionField,1,"TESTSTRUCT",true)
         endmethod
 
     endclass
@@ -227,7 +235,7 @@ namespace TraditionalBridge.Test.BinaryTransfer
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED OUT mybyte I1)
-                arg1,               i1
+                arg1,               I1
             endrecord
 
 
@@ -236,7 +244,10 @@ namespace TraditionalBridge.Test.BinaryTransfer
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            ;;There are no inbound arguments to process
+            arguments = callFrame.GetProperty("params")
+
+            ;;Argument 1 (REQUIRED OUT mybyte I1)
+
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -293,11 +304,8 @@ namespace TraditionalBridge.Test.BinaryTransfer
             arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED OUT amybyte [*]I1)
-            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1], 1)
-            arg1Array = (arguments[1]).GetProperty("PassedValue")
-            arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.GetArrayLength())
-            arg1HandlePos = 1
-            dispatcher.UnwrapObjectCollection(^m(arg1Handle),argumentDefinition,arg1HandlePos,arg1Array)
+
+            arg1Handle = %mem_proc(DM_ALLOC,1)
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -347,7 +355,10 @@ namespace TraditionalBridge.Test.BinaryTransfer
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            ;;There are no inbound arguments to process
+            arguments = callFrame.GetProperty("params")
+
+            ;;Argument 1 (REQUIRED OUT amyintegers structure @Integer)
+
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -395,7 +406,7 @@ namespace TraditionalBridge.Test.BinaryTransfer
 
             ;;Temp structure tempstr1
             structure tempstr1
-                arry, [1]strInteger
+                arry, @Integer
             endstructure
 
 
@@ -407,16 +418,13 @@ namespace TraditionalBridge.Test.BinaryTransfer
             arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED OUT amyintegers [*]structure @Integer)
-            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1], 342)
-            arg1Array = (arguments[1]).GetProperty("PassedValue")
-            arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.GetArrayLength())
-            arg1HandlePos = 1
-            dispatcher.UnwrapObjectCollection(^m(arg1Handle),argumentDefinition,arg1HandlePos,arg1Array)
+
+            arg1Handle = %mem_proc(DM_ALLOC,342)
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
 
-            xcall getstructa(^m(tempstr1.arry,arg1Handle))
+            xcall getstructa(^m(strInteger,arg1Handle))
 
             ;;--------------------------------------------------------------------------------
             ;;Argument 1 (REQUIRED OUT amyintegers [*]structure @Integer)
@@ -449,7 +457,7 @@ namespace TraditionalBridge.Test.BinaryTransfer
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED OUT myuint I4)
-                arg1,               i4
+                arg1,               I4
             endrecord
 
 
@@ -458,7 +466,10 @@ namespace TraditionalBridge.Test.BinaryTransfer
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            ;;There are no inbound arguments to process
+            arguments = callFrame.GetProperty("params")
+
+            ;;Argument 1 (REQUIRED OUT myuint I4)
+
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -515,11 +526,8 @@ namespace TraditionalBridge.Test.BinaryTransfer
             arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED OUT amyuint [*]I4)
-            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1], 4)
-            arg1Array = (arguments[1]).GetProperty("PassedValue")
-            arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.GetArrayLength())
-            arg1HandlePos = 1
-            dispatcher.UnwrapObjectCollection(^m(arg1Handle),argumentDefinition,arg1HandlePos,arg1Array)
+
+            arg1Handle = %mem_proc(DM_ALLOC,1)
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -557,7 +565,7 @@ namespace TraditionalBridge.Test.BinaryTransfer
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED OUT myushort I2)
-                arg1,               i2
+                arg1,               I2
             endrecord
 
 
@@ -566,7 +574,10 @@ namespace TraditionalBridge.Test.BinaryTransfer
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            ;;There are no inbound arguments to process
+            arguments = callFrame.GetProperty("params")
+
+            ;;Argument 1 (REQUIRED OUT myushort I2)
+
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -623,11 +634,8 @@ namespace TraditionalBridge.Test.BinaryTransfer
             arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED OUT amyushort [*]I2)
-            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1], 1)
-            arg1Array = (arguments[1]).GetProperty("PassedValue")
-            arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.GetArrayLength())
-            arg1HandlePos = 1
-            dispatcher.UnwrapObjectCollection(^m(arg1Handle),argumentDefinition,arg1HandlePos,arg1Array)
+
+            arg1Handle = %mem_proc(DM_ALLOC,1)
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -684,6 +692,7 @@ namespace TraditionalBridge.Test.BinaryTransfer
             arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED IN amybyte [*]I1)
+
             argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1],1)
             arg1Array = arguments[1].GetProperty("PassedValue")
             arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.GetArrayLength())
@@ -740,6 +749,7 @@ namespace TraditionalBridge.Test.BinaryTransfer
             arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED IN amyushort [*]I2)
+
             argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1],2)
             arg1Array = arguments[1].GetProperty("PassedValue")
             arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.GetArrayLength())
@@ -754,54 +764,55 @@ namespace TraditionalBridge.Test.BinaryTransfer
 
     endclass
 
-;    ;;-------------------------------------------------------------------------
-;    ;;; <summary>
-;    ;;; Dispatcher for method BinaryTransfer.xfReadWithGrfa
-;    ;;; </summary>
-;    public class xfReadWithGrfa_Dispatcher extends RoutineStub
-;
-;        private mGrfatestMetadata, @DataObjectMetadataBase
-;
-;        public method xfReadWithGrfa_Dispatcher
-;        proc
-;            ;;Initialize the meta data for any data objects that are used by parameters to the method
-;            mGrfatestMetadata = DataObjectMetadataBase.LookupType("Grfatest")
-;        endmethod
-;
-;        protected override method DispatchInternal, void
-;            required in name,       string
-;            required in callFrame,  JSON_ELEMENT
-;            required in serializer, @DispatchSerializer
-;            required in dispatcher, @RoutineDispatcher
-;            record
-;                requestId,          int
-;                arguments,          JSON_ELEMENT
-;                argumentDefinition, @ArgumentDataDefinition
-;
-;                ;;Argument 1 (REQUIRED IN grfa structure @Grfatest)
-;                arg1DataObject,     @DataObjectBase
-;                arg1,               strGrfatest
-;            endrecord
-;
-;
-;        proc
-;
-;            ;;------------------------------------------------------------
-;            ;;Process inbound arguments
-;
-;            arguments = callFrame.GetProperty("params")
-;
-;            ;;Argument 1 (REQUIRED IN grfa structure @Grfatest)
-;            ;;Structure argument. Get the data object then get the record from it
-;            arg1DataObject = dispatcher.DeserializeObject(arguments[1],mGrfatestMetadata)
-;            arg1 = arg1DataObject.SynergyRecord
-;
-;            ;;------------------------------------------------------------
-;            ;; Call the underlying routine
-;
-;            xcall xfReadWithGrfa(arg1)
-;        endmethod
-;
-;    endclass
+    ;;-------------------------------------------------------------------------
+    ;;; <summary>
+    ;;; Dispatcher for method BinaryTransfer.xfReadWithGrfa
+    ;;; </summary>
+    public class xfReadWithGrfa_Dispatcher extends RoutineStub
+
+        private mGrfatestMetadata, @DataObjectMetadataBase
+
+        public method xfReadWithGrfa_Dispatcher
+        proc
+            ;;Initialize the meta data for any data objects that are used by parameters to the method
+            mGrfatestMetadata = DataObjectMetadataBase.LookupType("Grfatest")
+        endmethod
+
+        protected override method DispatchInternal, void
+            required in name,       string
+            required in callFrame,  JSON_ELEMENT
+            required in serializer, @DispatchSerializer
+            required in dispatcher, @RoutineDispatcher
+            record
+                requestId,          int
+                arguments,          JSON_ELEMENT
+                argumentDefinition, @ArgumentDataDefinition
+
+                ;;Argument 1 (REQUIRED IN grfa structure @Grfatest)
+                arg1DataObject,     @DataObjectBase
+                arg1,               strGrfatest
+            endrecord
+
+
+        proc
+
+            ;;------------------------------------------------------------
+            ;;Process inbound arguments
+
+            arguments = callFrame.GetProperty("params")
+
+            ;;Argument 1 (REQUIRED IN grfa structure @Grfatest)
+
+            ;;Structure argument. Get the data object then get the record from it
+            arg1DataObject = dispatcher.DeserializeObject(arguments[1],mGrfatestMetadata)
+            arg1 = arg1DataObject.SynergyRecord
+
+            ;;------------------------------------------------------------
+            ;; Call the underlying routine
+
+            xcall xfReadWithGrfa(arg1)
+        endmethod
+
+    endclass
 
 endnamespace
