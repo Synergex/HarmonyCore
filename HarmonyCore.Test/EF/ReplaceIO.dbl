@@ -1,0 +1,148 @@
+import Harmony.Core
+import Harmony.Core.Context
+import System
+import System.Collections.Generic
+import System.Text
+import Microsoft.VisualStudio.TestTools.UnitTesting
+import Microsoft.Extensions.DependencyInjection
+import Harmony.Core.FileIO
+import Harmony.Core.EF.Extensions
+import Microsoft.EntityFrameworkCore
+import Harmony.Core.Test.FileIO.Models
+import Harmony.Core.Test
+import System.Collections.Concurrent
+import System.Reflection
+import System.Linq
+
+
+namespace HarmonyCore.Test.EF
+
+    {TestClass}
+    public class ReplaceIO
+        public method MakeDBContext, @MyDBContext
+        proc
+            lambda AddDataObjectMappings(serviceProvider)
+            begin
+                data objectProvider = new MyDataObjectProvider(serviceProvider.GetService<IFileChannelManager>())
+                objectProvider.AddDataObjectMapping<Orders>("DAT:orders.ism", FileOpenMode.UpdateIndexed)
+                objectProvider.AddDataObjectMapping<Customer>("DAT:customers.ism", FileOpenMode.UpdateIndexed)
+                mreturn objectProvider
+            end
+            data serviceBuilder = new ServiceCollection()
+            serviceBuilder.AddSingleton<IFileChannelManager, FileChannelManager>()
+            serviceBuilder.AddSingleton<IDataObjectProvider>(AddDataObjectMappings)
+            serviceBuilder.AddDbContext<MyDBContext>()
+            data sp = serviceBuilder.BuildServiceProvider()
+            data dboBuilder = new DbContextOptionsBuilder<MyDBContext>()
+            dboBuilder.UseApplicationServiceProvider(sp)
+            dboBuilder.UseHarmonyDatabase(sp.GetService<IDataObjectProvider>())
+            data contextOptions, @DbContextOptions<MyDBContext>, dboBuilder.Options
+            mreturn new MyDBContext(contextOptions)
+        endmethod
+
+
+        {TestMethod}
+        public method EFFind, void
+        proc
+            disposable data context = MakeDBContext()
+            data firstRecord = context.Orders.Find(1)
+            data customerRecord = context.Customers.Find(firstRecord.CustomerNumber)
+            Assert.AreEqual(1, firstRecord.OrderNumber)
+            Assert.AreEqual(firstRecord.CustomerNumber, customerRecord.CustomerNumber)
+        endmethod
+    endclass
+
+    class ReplacementDataObjectMapping
+        public Filename, @string
+        public OpenMode, FileOpenMode
+
+        public virtual method MakeFileIO<T(DataObjectBase)>, @IDataObjectIO<T>
+            channelManager, @IFileChannelManager
+        proc
+            mreturn new MySpecialDataObjectIO<T>(channelManager, Filename, OpenMode)
+        endmethod
+    endclass
+
+    public class MyDataObjectProvider implements IDataObjectProvider
+		private typeMapping, @Dictionary<Type, ReplacementDataObjectMapping>
+		private channelManager, @IFileChannelManager
+		private queryableMapping, @ConcurrentDictionary<Type, IQueryable>
+		private fileIOMapping, @ConcurrentDictionary<Type, IDataObjectIO>
+		private static makeFileIOMethod, @MethodInfo
+		public method MyDataObjectProvider
+			chanManager, @IFileChannelManager
+		proc
+			typeMapping = new Dictionary<Type, ReplacementDataObjectMapping>()
+			fileIOMapping = new ConcurrentDictionary<Type, IDataObjectIO>()
+			channelManager = chanManager
+			data doMapType = ^typeof(ReplacementDataObjectMapping)
+			makeFileIOMethod = doMapType.GetMethod("MakeFileIO")
+		endmethod
+
+		public property ChannelManager, @IFileChannelManager
+			method get
+			proc
+				mreturn channelManager
+			endmethod
+		endproperty
+
+		public method GetFileIO<T(DataObjectBase)>, @IDataObjectIO<T>
+		proc
+			mreturn typeMapping[^typeof(T)].MakeFileIO<T>(channelManager)
+		endmethod
+
+		public method GetFileInfo<T(DataObjectBase)>, @Tuple<string, FileOpenMode>
+		proc
+			data typeMap = typeMapping[^typeof(T)]
+			mreturn Tuple.Create(typeMap.Filename, typeMap.OpenMode)
+		endmethod
+
+		public method AddDataObjectMapping<T(DataObjectBase)>, void
+			req in fileName, @string
+			req in openMode, FileOpenMode
+		proc
+			typeMapping.Add(^typeof(T), new ReplacementDataObjectMapping() { Filename = fileName, OpenMode = openMode })
+		endmethod
+
+		public method AddDataObjectMapping<T(DataObjectBase)>, void
+			req in mapping, @ReplacementDataObjectMapping
+		proc
+			typeMapping.Add(^typeof(T), mapping)
+		endmethod
+
+		public method GetFileInfo, @Tuple<string, FileOpenMode>
+			entityType, @Type
+		proc
+			data typeMap = typeMapping[entityType]
+			mreturn Tuple.Create(typeMap.Filename, typeMap.OpenMode)
+		endmethod
+
+		public method GetFileIO, @IDataObjectIO
+			entityType, @Type
+		proc
+			mreturn (@IDataObjectIO)(makeFileIOMethod.MakeGenericMethod(new Type[#] { entityType }).Invoke(typeMapping[entityType], new Object[#] { channelManager }))
+		endmethod
+	endclass
+
+    class MySpecialDataObjectIO<T(DataObjectBase)> extends IsamDataObjectIO<T>
+        public method MySpecialDataObjectIO
+            req in channelManager, @IFileChannelManager
+            req in fileName, @string
+            req in openMode, FileOpenMode
+            endparams
+            parent(channelManager, fileName, openMode)
+        proc
+            
+        endmethod
+
+
+        protected override method OnRecordLocked, boolean
+        proc
+            ;;always abort on lock (could be smarter about this if you want)
+            mreturn false
+        endmethod
+
+    endclass
+
+
+endnamespace
