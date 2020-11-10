@@ -427,8 +427,15 @@ namespace TraditionalBridge.UnitTest
             record
                 dispatchResult, @string
         proc
-            dispatchResult = DispatchRunner.RemoveMessageHeader(DispatchRunner.RunDispatchsyntst('{"jsonrpc":"2.0","id":146,"method":"fatal","params":[{"ReturnedValue":false}]}'))
-            DispatchRunner.EnsureSuccess(dispatchResult)
+            try
+            begin
+                dispatchResult = DispatchRunner.RemoveMessageHeader(DispatchRunner.RunDispatchsyntst('{"jsonrpc":"2.0","id":146,"method":"fatal","params":[{"ReturnedValue":false}]}'))
+                DispatchRunner.EnsureSuccess(dispatchResult)
+            end
+            catch (e, @Exception)
+            begin
+            end
+            endtry
         endmethod
         
         {TestCategory("syntst")}
