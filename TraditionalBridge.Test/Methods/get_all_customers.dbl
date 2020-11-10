@@ -1,70 +1,69 @@
 
 import System.Collections
 import Synergex.SynergyDE.Select
-import TraditionalBridge.Test.Models
 
 {xfMethod(name="GetAllCustomers", interface="SampleXfplEnv", elb="sample_xfpl_env")}
 function get_all_customers, METHOD_STATUS
-	{xfParameter(name="Customers",collectionType=xfCollectType.STRUCTURE, structure="strCustomer")}
-	required out aCustomers, @ArrayList
-	{xfParameter(name="ErrorMessage")}
-	required out aErrorMessage, a80
-	endparams
+    {xfParameter(name="Customers",collectionType=xfCollectType.STRUCTURE, structure="strCustomer")}
+    required out aCustomers, @ArrayList
+    {xfParameter(name="ErrorMessage")}
+    required out aErrorMessage, a80
+    endparams
 
-	stack record
-		status, METHOD_STATUS
-		customer, strCustomer
-	endrecord
+    stack record
+        status, METHOD_STATUS
+        customer, strCustomer
+    endrecord
 proc
 
-	aCustomers = new ArrayList()
+    aCustomers = new ArrayList()
 
-	try
-	begin
-		foreach customer in new Select(new From("DAT:customers.ism",customer))
-			aCustomers.Add((@strCustomer)customer)
-		status = METHOD_STATUS.SUCCESS
-		aErrorMessage = ""
-	end
-	catch (e, @Exception)
-	begin
-		status = METHOD_STATUS.ERROR
-		aErrorMessage = e.Message
-	end
-	endtry
-	freturn status
+    try
+    begin
+        foreach customer in new Select(new From("DAT:customers.ism",customer))
+            aCustomers.Add((@strCustomer)customer)
+        status = METHOD_STATUS.SUCCESS
+        aErrorMessage = ""
+    end
+    catch (e, @Exception)
+    begin
+        status = METHOD_STATUS.ERROR
+        aErrorMessage = e.Message
+    end
+    endtry
+    freturn status
 
 endfunction
 
 function get_customer, METHOD_STATUS
-	required in aCustomer, @string
-	required out aErrorMessage, a80
-	endparams
+    required in aCustomer, @string
+    required out aErrorMessage, a80
+    endparams
 
-	stack record
-		status, METHOD_STATUS
-		customer, strCustomer
-	endrecord
+    stack record
+        status, METHOD_STATUS
+        customer, strCustomer
+    endrecord
 proc
 
-	aErrorMessage = aCustomer + " Not Found"
-	freturn status
+    aErrorMessage = aCustomer + " Not Found"
+    freturn status
 endfunction
 
 {xfMethod(name="GetCustomerArray", interface="SampleXfplEnv", elb="sample_xfpl_env")}
 function get_customers_array, METHOD_STATUS
-	{xfParameter(name="Customers",structure="strCustomer")}
-	required out aCustomers, [*]a^size(strCustomer)
-	{xfParameter(name="ErrorMessage")}
-	required out aErrorMessage, a80
-	endparams
+    {xfParameter(name="Customers",structure="strCustomer")}
+    required out aCustomers, [*]a^size(strCustomer)
+    {xfParameter(name="ErrorMessage")}
+    required out aErrorMessage, a80
+    endparams
 
-	stack record
-		status, METHOD_STATUS
-		customer, strCustomer
-	endrecord
+    stack record
+        status, METHOD_STATUS
+        customer, strCustomer
+    endrecord
 proc
 
-	freturn METHOD_STATUS.SUCCESS
+    freturn METHOD_STATUS.SUCCESS
 
 endfunction

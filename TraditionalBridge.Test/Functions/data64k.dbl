@@ -2,33 +2,33 @@
 ; Tests for memory handles and Binary types
 ;--------------------------------------------
 
-import TraditionalBridge.Test.Models
+.include "DATASET" REPOSITORY ,structure="Dataset" ,end
 
-{xfMethod(interface="data64k",name="inHandle",elb="TEST:testelb",id="inHandle")}
+    {xfMethod(interface="data64k",name="inHandle",elb="TEST:testelb",id="inHandle")}
 subroutine inHandle
-{xfParameter(name="p1",type=SynType.handle)}
-req in      p1          ,D_HANDLE               ;;
-endparams
+    {xfParameter(name="p1",type=SynType.handle)}
+    req in      p1          ,D_HANDLE               ;;
+    endparams
 ;.subroutine inHandle
 ;  p1, n
 
-global fred, init
-record
-    myhandle, d_addr, 0
-endglobal
+    global fred, init
+    record
+        myhandle, d_addr, 0
+    endglobal
 
-structure Abd
-	Abdy,	a1
+    structure Abd
+        Abdy,	a1
 
-structure Bbd
-	Bbdy,	a1
+    structure Bbd
+        Bbdy,	a1
 
 .align
-record
-  len,  	i4
-  topos,	i4
-  cur,		i4
-  size,		i4
+    record
+        len,  	i4
+        topos,	i4
+        cur,		i4
+        size,		i4
 ;  chn,		i4
 
 .proc
@@ -36,97 +36,97 @@ record
 ;  open(chn,a,"TEST:data64k.log")
 ;  writes(chn,"myhandle * " + %string(myhandle))
 ;  writes(chn,"p1 * " + %string(p1))
-  len = %mem_proc(DM_GETSIZE,p1)
-  if (myhandle) then
-    myhandle = %mem_proc(DM_RESIZ,len,myhandle)
-  else
-    myhandle = %mem_proc(DM_ALLOC+DM_STATIC,len)
+    len = %mem_proc(DM_GETSIZE,p1)
+    if (myhandle) then
+        myhandle = %mem_proc(DM_RESIZ,len,myhandle)
+    else
+        myhandle = %mem_proc(DM_ALLOC+DM_STATIC,len)
 
-   ;; ^m(myhandle) = ^m(p1)
-   size = len
-   cur = 1
-   while (size > 50000)
-     begin
-    	topos = 50000
-	^m(Bbd.Bbdy(cur:topos),myhandle) = ^m(Abd.Abdy(cur:topos),p1) 
+    ;; ^m(myhandle) = ^m(p1)
+    size = len
+    cur = 1
+    while (size > 50000)
+    begin
+        topos = 50000
+        ^m(Bbd.Bbdy(cur:topos),myhandle) = ^m(Abd.Abdy(cur:topos),p1) 
 ;	writes(chn,"In * " + ^m(Bbd.Bbdy(cur:topos),myhandle))
-	cur = cur + topos
-	size = size - 50000
-     end
-   if (size > 0)
-     begin
-	topos = size
-	^m(Bbd.Bbdy(cur:topos),myhandle) = ^m(Abd.Abdy(cur:topos),p1)
+        cur = cur + topos
+        size = size - 50000
+    end
+    if (size > 0)
+    begin
+        topos = size
+        ^m(Bbd.Bbdy(cur:topos),myhandle) = ^m(Abd.Abdy(cur:topos),p1)
 ;	writes(chn,"In * " + ^m(Bbd.Bbdy(cur:topos),myhandle))
-     end
+    end
 ;   writes(chn,"In len = " + %string(len))
 ;   close (chn)
-   xreturn
+    xreturn
 .end
 ;--------------------------------------------
 ;
 ;--------------------------------------------
 {xfMethod(interface="data64k",name="outHandle",elb="TEST:testelb",id="outHandle")}
 subroutine outHandle
-{xfParameter(name="p1",type=SynType.handle)}
-req out     p1          ,D_HANDLE               ;;
-endparams
+    {xfParameter(name="p1",type=SynType.handle)}
+    req out     p1          ,D_HANDLE               ;;
+    endparams
 ;.subroutine outHandle
 ;  p1, n
 
-global fred
-record
-    myhandle, d_addr
-endglobal
+    global fred
+    record
+        myhandle, d_addr
+    endglobal
 
-structure Abd
-	Abdy,	a1
+    structure Abd
+        Abdy,	a1
 
-structure Bbd
-	Bbdy,	a1
+    structure Bbd
+        Bbdy,	a1
 
 .align
-record
-  len, 		i4
-  topos,	i4
-  cur,		i4
-  size,		i4
-  psiz,		i4
+    record
+        len, 		i4
+        topos,	i4
+        cur,		i4
+        size,		i4
+        psiz,		i4
 ;  chn,		i4
-  str, 		a20
+        str, 		a20
 
 .proc
 ;  chn = 207
 ;  open(chn,a,"TEST:data64k.log")
 ;  writes(chn, " out myhandle * " + %string(myhandle))
 ;  writes(chn,"p1 * " + %string(p1))
-  len = %mem_proc(DM_GETSIZE,myhandle)
-  psiz = %mem_proc(DM_GETSIZE,p1)
+    len = %mem_proc(DM_GETSIZE,myhandle)
+    psiz = %mem_proc(DM_GETSIZE,p1)
 ;  writes(chn,"psiz * " + %string(psiz))
-  p1 = %mem_proc(DM_RESIZ,len,p1)
+    p1 = %mem_proc(DM_RESIZ,len,p1)
 
 ;;  ^m(p1) = ^m(myhandle)
 
-  size = len
-  cur = 1
-  while (size > 50000)
+    size = len
+    cur = 1
+    while (size > 50000)
     begin
-       topos = 50000
-       ^m(Bbd.Bbdy(cur:topos),p1) = ^m(Abd.Abdy(cur:topos),myhandle) 
+        topos = 50000
+        ^m(Bbd.Bbdy(cur:topos),p1) = ^m(Abd.Abdy(cur:topos),myhandle) 
 ;      writes(chn,"Out * " + ^m(Bbd.Bbdy(cur:topos),p1))
-       cur = cur + topos
-       size = size - 50000
+        cur = cur + topos
+        size = size - 50000
     end
-  if (size > 0)
+    if (size > 0)
     begin
-       topos = size
-       ^m(Bbd.Bbdy(cur:topos),p1) = ^m(Abd.Abdy(cur:topos),myhandle)
+        topos = size
+        ^m(Bbd.Bbdy(cur:topos),p1) = ^m(Abd.Abdy(cur:topos),myhandle)
 ;       writes(chn,"Out * " + ^m(Bbd.Bbdy(cur:topos),p1))
     end
 
 ;  writes(chn,"Out len = " + %string(len))
 ;  close (chn)
-  xreturn
+    xreturn
 .end
 
 ;--------------------------------------------
@@ -136,29 +136,29 @@ record
 {xfMethod(interface="data64k",name="inoutHandle",elb="TEST:testelb",id="inoutHandle")}
 
 subroutine inoutHandle
-{xfParameter(name="p1",type=SynType.handle)}
-req inout   p1          ,D_HANDLE               ;;
-endparams
+    {xfParameter(name="p1",type=SynType.handle)}
+    req inout   p1          ,D_HANDLE               ;;
+    endparams
 ;.subroutine inoutHandle
 ; p1, n
 
-structure Abd
-	Abdy,	a1
+    structure Abd
+        Abdy,	a1
 
-structure Bbd
-	Bbdy,	a1
+    structure Bbd
+        Bbdy,	a1
 .align
-record
-  len, i4
+    record
+        len, i4
 ;  cur,		i4
 ;  sizeleft,		i4
 ;  chn,		i4
 
 .proc
-  len = %mem_proc(DM_GETSIZE,p1)
-  p1 = %mem_proc(DM_RESIZ,len+3,p1)
-  ^m(Bbd.Bbdy(len+1:3),p1) = "hey"
-  len = len + 3
+    len = %mem_proc(DM_GETSIZE,p1)
+    p1 = %mem_proc(DM_RESIZ,len+3,p1)
+    ^m(Bbd.Bbdy(len+1:3),p1) = "hey"
+    len = len + 3
 ;  sizeleft = len
 ;  cur = 1
 ;  chn = 207
@@ -179,7 +179,7 @@ record
 ;	  end
 ;  end
 ;  close (chn)
-  xreturn
+    xreturn
 .end
 ;--------------------------------------------
 ; passes an inout handle but does nothing with it.
@@ -187,113 +187,118 @@ record
 ;--------------------------------------------
 {xfMethod(interface="data64k",name="inoutHandle2",elb="TEST:testelb",id="inoutHandle2")}
 subroutine inoutHandle2
-{xfParameter(name="p1",type=SynType.handle)}
-req inout   p1          ,D_HANDLE               ;;
-endparams
+    {xfParameter(name="p1",type=SynType.handle)}
+    req inout   p1          ,D_HANDLE               ;;
+    endparams
 ;.subroutine inoutHandle2
 ; p1, n
 
 .proc
-	xreturn
+    xreturn
 .end
 
 ;********************************
 
 {xfMethod(interface="data64k",name="P1StrAryO64k",elb="TEST:testelb",id="ArrayOvr64k")}
 subroutine P1StrAryO64k
-{xfParameter(name="DATASET",structure="strDataset")}
-req inout   a_str     ,[*]strDataset             ;;
-endparams
+    {xfParameter(name="DATASET",structure="Dataset")}
+    req inout   a_str     ,[*]Dataset             ;;
+    endparams
+;.subroutine P1StrAryO64k
+;	Arguments
+;	a_str, [*]a
+; .include "strtest32.rec"
+;.include "Dataset" repository, record="Strtest32", end
 
 .align
-record
+    record
 ;	chan	,i4
-	ndx	,i4
-	ds	,strDataset
+        ndx	,i4
+        ds	,Dataset
 
 .proc
 ;	chan = 211
 ;	open(chan, a, "TEST:data64k.log")
 ;	writes(chan, " ********************************")
 
-        for ndx from 1 thru 45 by 1
-	  begin
-	    ds = a_str[ndx]
-	    ds.dkey = 999999
-	    ds.idkey = 999999.9
-	    ds.akey = "9999999999999999999999999999"
-	    ds.d_1 = 9
-	    ds.d_2 = 99
-	    ds.d_3 = 999
-	    ds.d_4 = 9999
-	    ds.d_5 = 99999
-	    ds.d_6 = 999999
-	    ds.d_7 = 9999999
-	    ds.d_8 = 99999999
-	    ds.d_9 = 999999999
-	    ds.d_10 = 9999999999
-	    ds.d_11 = 99999999999
-	    ds.d_12 = 999999999999
-	    ds.d_13 = 9999999999999
-	    ds.d_14 = 99999999999999
-	    ds.d_15 = 999999999999999
-	    ds.d_16 = 9999999999999999
-	    ds.d_17 = 99999999999999999
-	    ds.id_21 = 9.9
-	    ds.id_32 = 9.99
-	    ds.id_42 = 99.99
-	    ds.id_52 = 999.99
-	    ds.id_82 = 999999.99
-	    ds.id_84 = 9999.9999
-	    ds.id_104 = 999999.9999
-	    ds.id_124 = 99999999.9999
-	    ds.id_186 = 999999999999.999999
-	    ds.id_206 = 99999999999999.999999
-	    ds.id_237 = 99999.9999
-	    ds.id_268 = 99999.9999
-	    ds.i_1 = 99
-	    ds.i_2 = 999
-	    ds.i_4 = 999999
-	    ds.i_8 = 99999999
-	    ds.yymmdd = 991231
-	    ds.yyyymmdd = 19991231
-	    ds.yyjjj = 99365
-	    ds.yyyyjjj = 1999365
-	    ds.yypp = 9904
-	    ds.yyyypp = 199904
-	    ds.mmddyy = "123199"
-	    ds.mmddyyyy = "12311999"
-	    ds.ddmmyy = "311299"
-	    ds.ddmmyyyy = "31121999"
-	    ds.jjjjjj = "123456"
-	    ds.jjjyy = "36599"
-	    ds.jjjyyyy = "3651999"
-	    ds.ppyy = "0499"
-	    ds.ppyyyy = "041999"
-	    ds.monddyy = "Dec3199"
-	    ds.monddyyyy = "Dec311999"
-	    ds.ddmonyy = "31Dec99"
-	    ds.ddmonyyyy = "31Dec1999"
-	    ds.yymondd = "99Dec31"
-	    ds.yyyymondd = "1999Dec31"
-	    ds.hhmmss = "235959"
-	    ds.hhmm = "2359"
-	    ds.binary10 = "9999999999"
-	    ds.binary20 = "9999999999"
-	    ds.binary40 = "9999999999"
-	    ds.packed6 = 999999
-	    ds.packed8 = 99999999
-	    ds.a1 = "9"
-	    ds.a10 = "9999999999"
-	    ds.a100 = "9999999999"
-	    ds.a255 = "9999999999"
-	    ds.a512 = "9999999999"
-	    a_str[ndx] = ds
+    for ndx from 1 thru 45 by 1
+    begin
+        ds = a_str[ndx]
+        ds.dkey = 999999
+        ds.idkey = 999999.9
+        ds.akey = "9999999999999999999999999999"
+        ds.d_1 = 9
+        ds.d_2 = 99
+        ds.d_3 = 999
+        ds.d_4 = 9999
+        ds.d_5 = 99999
+        ds.d_6 = 999999
+        ds.d_7 = 9999999
+        ds.d_8 = 99999999
+        ds.d_9 = 999999999
+        ds.d_10 = 9999999999
+        ds.d_11 = 99999999999
+        ds.d_12 = 999999999999
+        ds.d_13 = 9999999999999
+        ds.d_14 = 99999999999999
+        ds.d_15 = 999999999999999
+        ds.d_16 = 9999999999999999
+        ds.d_17 = 99999999999999999
+        ds.id_21 = 9.9
+        ds.id_32 = 9.99
+        ds.id_42 = 99.99
+        ds.id_52 = 999.99
+        ds.id_82 = 999999.99
+        ds.id_84 = 9999.9999
+        ds.id_104 = 999999.9999
+        ds.id_124 = 99999999.9999
+        ds.id_186 = 999999999999.999999
+        ds.id_206 = 99999999999999.999999
+        ds.id_237 = 99999.9999
+        ds.id_268 = 99999.9999
+        ds.i_1 = 99
+        ds.i_2 = 999
+        ds.i_4 = 999999
+        ds.i_8 = 99999999
+        ds.yymmdd = 991231
+        ds.yyyymmdd = 19991231
+        ds.yyjjj = 99365
+        ds.yyyyjjj = 1999365
+        ds.yypp = 9904
+        ds.yyyypp = 199904
+        ds.mmddyy = "123199"
+        ds.mmddyyyy = "12311999"
+        ds.ddmmyy = "311299"
+        ds.ddmmyyyy = "31121999"
+        ds.jjjjjj = "123456"
+        ds.jjjyy = "36599"
+        ds.jjjyyyy = "3651999"
+        ds.ppyy = "0499"
+        ds.ppyyyy = "041999"
+        ds.monddyy = "Dec3199"
+        ds.monddyyyy = "Dec311999"
+        ds.ddmonyy = "31Dec99"
+        ds.ddmonyyyy = "31Dec1999"
+        ds.yymondd = "99Dec31"
+        ds.yyyymondd = "1999Dec31"
+        ds.hhmmss = "235959"
+        ds.hhmm = "2359"
+        ds.binary10 = "9999999999"
+        ds.binary20 = "9999999999"
+        ds.binary40 = "9999999999"
+        ds.packed6 = 999999
+        ds.packed8 = 99999999
+        ds.a1 = "9"
+        ds.a10 = "9999999999"
+        ds.a100 = "9999999999"
+        ds.a255 = "9999999999"
+        ds.a512 = "9999999999"
+        a_str[ndx] = ds
 ;	    writes(chan, %string(ndx) + " = " + a_str[ndx])
-	  end
+    end
 ;	writes(chan, " ********************************")
 ;	close (chan)
-	xreturn
+    xreturn
 .end
 
 ;********************************
@@ -302,46 +307,46 @@ record
 
 {xfMethod(interface="data64k",name="twoparmsrtn",elb="TEST:testelb",id="twoparmsrtn")}
 subroutine twoparmsrtn
-{xfParameter(name="P1Handle",type=SynType.handle)}
-req inout   p1    ,D_HANDLE               ;;
-{xfParameter(name="P2Alpha")}
-req out     p2     ,a20                    ;;
-endparams
+    {xfParameter(name="P1Handle",type=SynType.handle)}
+    req inout   p1    ,D_HANDLE               ;;
+    {xfParameter(name="P2Alpha")}
+    req out     p2     ,a20                    ;;
+    endparams
 ;.subroutine twoparmsrtn
 ; p1, n
 ; p2, a
 
-structure Abd
-	Abdy,	a1
+    structure Abd
+        Abdy,	a1
 
-structure Bbd
-	Bbdy,	a1
+    structure Bbd
+        Bbdy,	a1
 .align
-record
-  len, i4
-  topos,	i4
-  cur,		i4
-  curB,		i4
-  rtnval,	i4
-  size,		i4
-  string,	a20
+    record
+        len, i4
+        topos,	i4
+        cur,		i4
+        curB,		i4
+        rtnval,	i4
+        size,		i4
+        string,	a20
 ;  chn,		i4
 
 .proc
 ;  chn = 207
 ;  open(chn,a,"TEST:data64k.log")
-  len = %mem_proc(DM_GETSIZE,p1)
-  p1 = %mem_proc(DM_RESIZ,len+3,p1)
+    len = %mem_proc(DM_GETSIZE,p1)
+    p1 = %mem_proc(DM_RESIZ,len+3,p1)
 ;; ^m(p1) = "hey" + %atrim(^m(p1))
 
 ;  writes(chn,"parm2 In = " + p2)
-  ;;        12345678901234567890
-  string = "This is an alpha 20!"
-  p2 = string
-  rtnval = 1
-  size = len
-  cur = 4
-  ^m(Bbd.Bbdy(len+1:3),p1) = "hey"
+    ;;        12345678901234567890
+    string = "This is an alpha 20!"
+    p2 = string
+    rtnval = 1
+    size = len
+    cur = 4
+    ^m(Bbd.Bbdy(len+1:3),p1) = "hey"
 ;  if (len < 65534) then
 ;    writes(chn,"InOut * " + ^m(Bbd.Bbdy(1:len),p1))
 ;  else
@@ -360,29 +365,29 @@ record
 
 {xfMethod(interface="data64k",name="inBinaryArrayTest",elb="TEST:testelb",id="inBinaryArrayTest")}
 subroutine inBinaryArrayTest
-{xfParameter(name="inBA",type=SynType.binaryhandle)}
-req in      p1        ,D_HANDLE               ;;
-endparams
+    {xfParameter(name="inBA",type=SynType.binaryhandle)}
+    req in      p1        ,D_HANDLE               ;;
+    endparams
 ;.subroutine inBinaryArrayTest
 ;  p1, n
 
-global sam, init
-record
-    myhandle, d_addr, 0
-endglobal
+    global sam, init
+    record
+        myhandle, d_addr, 0
+    endglobal
 
-structure Abd
-	Abdy,	a1
+    structure Abd
+        Abdy,	a1
 
-structure Bbd
-	Bbdy,	a1
+    structure Bbd
+        Bbdy,	a1
 
 .align
-record
-  len,  	i4
-  topos,	i4
-  cur,		i4
-  size,		i4
+    record
+        len,  	i4
+        topos,	i4
+        cur,		i4
+        size,		i4
 ;  chn,		i4
 
 .proc
@@ -390,153 +395,153 @@ record
 ;  open(chn,a,"TEST:data64k.log")
 ;  writes(chn,"myhandle * " + %string(myhandle))
 ;  writes(chn,"p1 * " + %string(p1))
-  len = %mem_proc(DM_GETSIZE,p1)
-  if (myhandle) then
-    myhandle = %mem_proc(DM_RESIZ,len,myhandle)
-  else
-    myhandle = %mem_proc(DM_ALLOC+DM_STATIC,len)
+    len = %mem_proc(DM_GETSIZE,p1)
+    if (myhandle) then
+        myhandle = %mem_proc(DM_RESIZ,len,myhandle)
+    else
+        myhandle = %mem_proc(DM_ALLOC+DM_STATIC,len)
 
-   ;; ^m(myhandle) = ^m(p1)
-   size = len
-   cur = 1
-   while (size > 50000)
-     begin
-    	topos = 50000
-	^m(Bbd.Bbdy(cur:topos),myhandle) = ^m(Abd.Abdy(cur:topos),p1) 
+    ;; ^m(myhandle) = ^m(p1)
+    size = len
+    cur = 1
+    while (size > 50000)
+    begin
+        topos = 50000
+        ^m(Bbd.Bbdy(cur:topos),myhandle) = ^m(Abd.Abdy(cur:topos),p1) 
 ;	writes(chn,"In * " + ^m(Bbd.Bbdy(cur:topos),myhandle))
-	cur = cur + topos
-	size = size - 50000
-     end
-   if (size > 0)
-     begin
-	topos = size
-	^m(Bbd.Bbdy(cur:topos),myhandle) = ^m(Abd.Abdy(cur:topos),p1)
+        cur = cur + topos
+        size = size - 50000
+    end
+    if (size > 0)
+    begin
+        topos = size
+        ^m(Bbd.Bbdy(cur:topos),myhandle) = ^m(Abd.Abdy(cur:topos),p1)
 ;	writes(chn,"In * " + ^m(Bbd.Bbdy(cur:topos),myhandle))
-     end
+    end
 ;   writes(chn,"In len = " + %string(len))
 ;   close (chn)
-   xreturn
+    xreturn
 .end
 
 ;--------------------------------------------
 
 {xfMethod(interface="data64k",name="outBinaryArrayTest",elb="TEST:testelb",id="outBinaryArrayTest")}
 subroutine outBinaryArrayTest
-{xfParameter(name="outba",type=SynType.binaryhandle)}
-req out     p1       ,D_HANDLE               ;;
-endparams
+    {xfParameter(name="outba",type=SynType.binaryhandle)}
+    req out     p1       ,D_HANDLE               ;;
+    endparams
 ;.subroutine outBinaryArrayTest
 ;  p1, n
 
-global sam
-record
-    myhandle, d_addr
-endglobal
+    global sam
+    record
+        myhandle, d_addr
+    endglobal
 
-structure Abd
-	Abdy,	a1
+    structure Abd
+        Abdy,	a1
 
-structure Bbd
-	Bbdy,	a1
+    structure Bbd
+        Bbdy,	a1
 
 .align
-record
-  len, 		i4
-  topos,	i4
-  cur,		i4
-  size,		i4
-  psiz,		i4
+    record
+        len, 		i4
+        topos,	i4
+        cur,		i4
+        size,		i4
+        psiz,		i4
 ;  chn,		i4
-  str, 		a20
+        str, 		a20
 
 .proc
 ;  chn = 207
 ;  open(chn,a,"TEST:data64k.log")
 
-  len = %mem_proc(DM_GETSIZE,myhandle)
+    len = %mem_proc(DM_GETSIZE,myhandle)
 
 ;  writes(chn,"out myhandle * " + %string(myhandle))
 ;  writes(chn,"p1 * " + %string(p1))
 ;  writes(chn,"In len = " + %string(len))
-  psiz = %mem_proc(DM_GETSIZE,p1)
+    psiz = %mem_proc(DM_GETSIZE,p1)
 ;  writes(chn,"psiz * " + %string(psiz))
 ;  close (chn)
 
-  p1 = %mem_proc(DM_RESIZ,len,p1)
+    p1 = %mem_proc(DM_RESIZ,len,p1)
 
 ;;  ^m(p1) = ^m(myhandle)
 
-  size = len
-  cur = 1
-  while (size > 50000)
+    size = len
+    cur = 1
+    while (size > 50000)
     begin
-       topos = 50000
-       ^m(Bbd.Bbdy(cur:topos),p1) = ^m(Abd.Abdy(cur:topos),myhandle) 
+        topos = 50000
+        ^m(Bbd.Bbdy(cur:topos),p1) = ^m(Abd.Abdy(cur:topos),myhandle) 
 ;      writes(chn,"Out * " + ^m(Bbd.Bbdy(cur:topos),p1))
-       cur = cur + topos
-       size = size - 50000
+        cur = cur + topos
+        size = size - 50000
     end
-  if (size > 0)
+    if (size > 0)
     begin
-       topos = size
-       ^m(Bbd.Bbdy(cur:topos),p1) = ^m(Abd.Abdy(cur:topos),myhandle)
+        topos = size
+        ^m(Bbd.Bbdy(cur:topos),p1) = ^m(Abd.Abdy(cur:topos),myhandle)
 ;       writes(chn,"Out * " + ^m(Bbd.Bbdy(cur:topos),p1))
     end
 
 ;  writes(chn,"Out len = " + %string(len))
 ;  close (chn)
-  xreturn
+    xreturn
 .end
 ;--------------------------------------------
 {xfMethod(interface="data64k",name="inOutBinaryArrayTest",elb="TEST:testelb",id="inOutBinaryArrayTest")}
 subroutine inOutBinaryArrayTest
-{xfParameter(name="inoutba",type=SynType.binaryhandle)}
-req inout   p1     ,D_HANDLE               ;;
-endparams
+    {xfParameter(name="inoutba",type=SynType.binaryhandle)}
+    req inout   p1     ,D_HANDLE               ;;
+    endparams
 ;.subroutine inOutBinaryArrayTest
 ; p1, n
 
-structure Abd
-	Abdy,	a1
+    structure Abd
+        Abdy,	a1
 
-structure Bbd
-	Bbdy,	a1
+    structure Bbd
+        Bbdy,	a1
 .align
-record
-  len, 		i4
+    record
+        len, 		i4
 ;  chn,		i4
 
 .proc
 ;  chn = 207
 ;  open(chn,a,"TEST:data64k.log")
 ;  writes(chn,"p1 * " + %string(p1))
-  len = %mem_proc(DM_GETSIZE,p1)
-  p1 = %mem_proc(DM_RESIZ,len+3,p1)
-  ^m(Bbd.Bbdy(len+1:3),p1) = "hey"
-  len = len + 3
+    len = %mem_proc(DM_GETSIZE,p1)
+    p1 = %mem_proc(DM_RESIZ,len+3,p1)
+    ^m(Bbd.Bbdy(len+1:3),p1) = "hey"
+    len = len + 3
 ;  writes(chn,"Out len = " + %string(len))
 ;  close (chn)
-  xreturn
+    xreturn
 .end
 ;--------------------------------------------
 
 {xfMethod(interface="data64k",name="BinaryArrayTest",elb="TEST:testelb",id="BinaryArrayTest")}
 function BinaryArrayTest ,i4
-{xfParameter(name="decparm1")}
-req inout   dp1    	,d5            
-{xfParameter(name="inba",type=SynType.binaryhandle)}
-req in      inba        ,D_HANDLE     
-{xfParameter(name="alparm")}
-req inout   ap2      	,a10            
-{xfParameter(name="outba",type=SynType.binaryhandle)}
-req out     outba       ,D_HANDLE       
-{xfParameter(name="idparm")}
-req inout   idp3      	,d5.2            
-{xfParameter(name="inoutba",type=SynType.binaryhandle)}
-req inout   inoutba     ,D_HANDLE          
-{xfParameter(name="decparm2")}
-req inout   dp4    	,d5           
-endparams
+    {xfParameter(name="decparm1")}
+    req inout   dp1    	,d5            
+    {xfParameter(name="inba",type=SynType.binaryhandle)}
+    req in      inba        ,D_HANDLE     
+    {xfParameter(name="alparm")}
+    req inout   ap2      	,a10            
+    {xfParameter(name="outba",type=SynType.binaryhandle)}
+    req out     outba       ,D_HANDLE       
+    {xfParameter(name="idparm")}
+    req inout   idp3      	,d5.2            
+    {xfParameter(name="inoutba",type=SynType.binaryhandle)}
+    req inout   inoutba     ,D_HANDLE          
+    {xfParameter(name="decparm2")}
+    req inout   dp4    	,d5           
+    endparams
 ;.function BinaryArrayTest
 ; dp1, n
 ; inba, n
@@ -546,23 +551,23 @@ endparams
 ; inoutba, n
 ; dp4, n
 
-structure Abd
-	Abdy,	a1
+    structure Abd
+        Abdy,	a1
 
-structure Bbd
-	Bbdy,	a1
+    structure Bbd
+        Bbdy,	a1
 .align
-record
-  len, 		i4
+    record
+        len, 		i4
 ;  chn,		i4
-  topos,	i4
-  cur,		i4
-  size,		i4
-  psiz,		i4
-  rtnvalue,	i4
+        topos,	i4
+        cur,		i4
+        size,		i4
+        psiz,		i4
+        rtnvalue,	i4
 
 .proc
-  clear rtnvalue
+    clear rtnvalue
 ;  chn = 207
 ;  open(chn,a,"TEST:data64k.log")
 ;  writes(chn,"dp1 * " + %string(dp1))
@@ -573,37 +578,37 @@ record
 ;  writes(chn,"inoutba * " + %string(inoutba))
 ;  writes(chn,"dp4 * " + %string(dp4))
 
-  dp1 = 678
-  ap2 = "Hello"
-  idp3 = 14.17
-  dp4 = 151
+    dp1 = 678
+    ap2 = "Hello"
+    idp3 = 14.17
+    dp4 = 151
 
-  len = %mem_proc(DM_GETSIZE,inba)
-  outba = %mem_proc(DM_RESIZ,len+3,outba)
+    len = %mem_proc(DM_GETSIZE,inba)
+    outba = %mem_proc(DM_RESIZ,len+3,outba)
 
-  size = len
-  cur = 1
-  while (size > 50000)
+    size = len
+    cur = 1
+    while (size > 50000)
     begin
-       topos = 50000
-       ^m(Bbd.Bbdy(cur:topos),outba) = ^m(Abd.Abdy(cur:topos),inba) 
-       cur = cur + topos
-       size = size - 50000
+        topos = 50000
+        ^m(Bbd.Bbdy(cur:topos),outba) = ^m(Abd.Abdy(cur:topos),inba) 
+        cur = cur + topos
+        size = size - 50000
     end
-  if (size > 0)
+    if (size > 0)
     begin
-       topos = size
-       ^m(Bbd.Bbdy(cur:topos),outba) = ^m(Abd.Abdy(cur:topos),inba)
+        topos = size
+        ^m(Bbd.Bbdy(cur:topos),outba) = ^m(Abd.Abdy(cur:topos),inba)
     end
 
 
-  ^m(Bbd.Bbdy(len+1:3),outba) = "hey"
+    ^m(Bbd.Bbdy(len+1:3),outba) = "hey"
 
 
 
-  len = %mem_proc(DM_GETSIZE,inoutba)
-  inoutba = %mem_proc(DM_RESIZ,len+3,inoutba)
-  ^m(Bbd.Bbdy(len+1:3),inoutba) = "hey"
+    len = %mem_proc(DM_GETSIZE,inoutba)
+    inoutba = %mem_proc(DM_RESIZ,len+3,inoutba)
+    ^m(Bbd.Bbdy(len+1:3),inoutba) = "hey"
 
 ;  writes(chn,"dp1 * " + %string(dp1))
 ;  writes(chn,"inba * " + %string(inba))
@@ -613,8 +618,8 @@ record
 ;  writes(chn,"inoutba * " + %string(inoutba))
 ;  writes(chn,"dp4 * " + %string(dp4))
 ;  close (chn)
-  rtnvalue = 47
-  freturn rtnvalue
+    rtnvalue = 47
+    freturn rtnvalue
 .end
 
 ;--------------------------------------------
@@ -622,77 +627,77 @@ record
 {xfMethod(interface="data64k",name="outFileBinaryArrayTest",elb="TEST:testelb",id="outFileBinaryArrayTest")}
 
 subroutine outFileBinaryArrayTest
-{xfParameter(name="filename")}
-req in      filenme    ,a80    
-{xfParameter(name="outba",type=SynType.binaryhandle)}
-req out     ba         ,D_HANDLE    
-endparams
+    {xfParameter(name="filename")}
+    req in      filenme    ,a80    
+    {xfParameter(name="outba",type=SynType.binaryhandle)}
+    req out     ba         ,D_HANDLE    
+    endparams
 ;.subroutine outFileBinaryArrayTest
 ;  filenme,	a
 ;  ba, 		n
 
-structure bd
-	bdy,	a1
+    structure bd
+        bdy,	a1
 
 .align
-record
-  len, 		i4
-  topos,	i4
-  cur,		i4
-  size,		i4
-  psiz,		i4
+    record
+        len, 		i4
+        topos,	i4
+        cur,		i4
+        size,		i4
+        psiz,		i4
 ;  chn,		i4
-  filechn,	i4
-  sendlen,	i4
-  count,	i8
-  numchrs,	i8
-  basesize,	d5
-  filename,	a80
-  str, 		a20
-  msg,		a1000
+        filechn,	i4
+        sendlen,	i4
+        count,	i8
+        numchrs,	i8
+        basesize,	d5
+        filename,	a80
+        str, 		a20
+        msg,		a1000
 
 .proc
 ;  chn = 207
-  filechn = 209
+    filechn = 209
 ;  open(chn,a,"TEST:data64k.log")
-  basesize = 1000
-  len = basesize
+    basesize = 1000
+    len = basesize
 
-  ba = %mem_proc(DM_RESIZ,len,ba)
-  clear ^m(ba)	   
-  filename = %atrim(filenme)
-  open (filechn, I, filename) [ERR=get_nofile]
+    ba = %mem_proc(DM_RESIZ,len,ba)
+    clear ^m(ba)	   
+    filename = %atrim(filenme)
+    open (filechn, I, filename) [ERR=get_nofile]
 
     ;read file and add contents to buffer
-  count = 1
-  repeat
-      begin
-      gets(filechn, msg, thatsall)
-      numchrs = %rdlen
-      if (numchrs)
-	begin
-	    sendlen = count + numchrs
-	    ba = %mem_proc(DM_RESIZ, sendlen, ba)
-	    ^m(bd.bdy(count:numchrs), ba) = msg(1:numchrs)
-	    count += numchrs
-	end
-      end
+    count = 1
+    repeat
+    begin
+        gets(filechn, msg, thatsall)
+        numchrs = %rdlen
+        if (numchrs)
+        begin
+            sendlen = count + numchrs
+            ba = %mem_proc(DM_RESIZ, sendlen, ba)
+            ^m(bd.bdy(count:numchrs), ba) = msg(1:numchrs)
+            count += numchrs
+        end
+    end
 
 thatsall,
-  numchrs = %rdlen
-  if (numchrs)
+    numchrs = %rdlen
+    if (numchrs)
     begin
-	sendlen = count + numchrs - 1
-	ba = %mem_proc(DM_RESIZ, sendlen, ba)
-	^m(bd.bdy(count:numchrs-1), ba) = msg(1:numchrs-1)
-	count += numchrs - 1
+        sendlen = count + numchrs - 1
+        ba = %mem_proc(DM_RESIZ, sendlen, ba)
+        ^m(bd.bdy(count:numchrs-1), ba) = msg(1:numchrs-1)
+        count += numchrs - 1
     end
-  close (filechn)
+    close (filechn)
 
 get_nofile,
 ;  writes(chn,"Out numchrs = " + %string(numchrs))
 ;  writes(chn,"Out count = " + %string(count))
 ;  close (chn)
-  xreturn
+    xreturn
 .end
 ; -------------------------------------------------------------------------
