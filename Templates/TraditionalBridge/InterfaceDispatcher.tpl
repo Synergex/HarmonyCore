@@ -64,10 +64,10 @@ namespace <NAMESPACE>
             <METHOD_LOOP>
             mDispatchStubs.Add("<METHOD_NAME>", new <METHOD_NAME>_Dispatcher())
             </METHOD_LOOP>
-
+<IF DEFINED_ENABLE_BRIDGE_INIT>
             ;;Initialize all data object metadata
-            ;this.initMetaData()
-        
+            this.initMetaData()
+</IF DEFINED_ENABLE_BRIDGE_INIT>
         endmethod
 
     endclass

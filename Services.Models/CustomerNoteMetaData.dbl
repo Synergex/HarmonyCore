@@ -48,7 +48,6 @@ namespace Services.Models
             AddFieldInfo("REL_Customer", "DATAOBJECT", 0, 0, 0, false)
 
             ;; Define all fields that are associated wity key segments
-            AddKeyInfo(0, "CustomerNumber")
 
             ;; Define the composition of access keys
 
@@ -120,34 +119,13 @@ namespace Services.Models
             end
         endmethod
 
-        ;;; <summary>
-        ;;; Formats a literal value for a key lookup.
-        ;;; </summary>
-        ;;; <param name="keyNumber">Key number.</param>
-        ;;; <param name="parts">Dictionary containing key segment names and values.</param>
-        ;;; <returns></returns>
         public override method FormatKeyLiteral, a
             required in keyNumber, int
             required in parts, @Dictionary<String, Object>
-            endparams
-            stack record key0
-                CustomerNumber, D6
-            endrecord
         proc
-            data startPos = 0
-            data segValueLength, int
-            using keyNumber select
-            (0),
-            begin
-                if((segValueLength=KeyValueHelper(key0.CustomerNumber, "CustomerNumber", parts))<6 && segValueLength>0)
-                    mreturn key0(1:startPos+segValueLength)
-                mreturn key0
-            end
-            endusing
-
-            throw new ApplicationException(String.Format("Invalid key number {0} encountered in CustomerNoteMetadata.FormatKeyLiteral",keyNumber))
-
+            mreturn ' '
         endmethod
+
 
         ;;;<summary>
         ;;; Provide a partial method to allow for initialization of custom fields.

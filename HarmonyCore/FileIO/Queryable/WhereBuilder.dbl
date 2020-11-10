@@ -18,7 +18,7 @@ namespace Harmony.Core.FileIO.Queryable
         private mDataObjects, @Dictionary<IHarmonyQueryTable, DataObjectMetadataBase>
         private mCaseSensitive, boolean
         private mQuerySources, @List<IHarmonyQueryTable>
-		private mQuerySourceMap, @Dictionary<Expression, IHarmonyQueryTable>
+        private mQuerySourceMap, @Dictionary<Expression, IHarmonyQueryTable>
         private mNotFlag, boolean
         public method WhereExpressionBuilder
             caseSensitive, boolean
@@ -117,7 +117,7 @@ namespace Harmony.Core.FileIO.Queryable
                 glue = WhereClauseConnector.OrOperator
             end
             else if(node.NodeType == ExpressionType.Equal) then
-			begin
+            begin
                 op = WhereClauseOperator.EqualTo
             end
             else if(node.NodeType == ExpressionType.LessThan) then
@@ -212,9 +212,9 @@ namespace Harmony.Core.FileIO.Queryable
                 end
             end
             else if(node .is. UnaryExpression )
-			begin
-				data convertNode = (@UnaryExpression)node
-				if(node.NodeType == ExpressionType.Convert || node.NodeType == ExpressionType.Not)
+            begin
+                data convertNode = (@UnaryExpression)node
+                if(node.NodeType == ExpressionType.Convert || node.NodeType == ExpressionType.Not)
                     mreturn FindTargetField(convertNode.Operand, node2, querySourceMap)
             end
 
@@ -279,7 +279,7 @@ namespace Harmony.Core.FileIO.Queryable
             end
             else if(node .is. InExpression)
             begin
-				data inExpr = (@InExpression)node
+                data inExpr = (@InExpression)node
 
                 mWhereStack.Push(MakePart(inExpr.Collection ?? inExpr.CollectionParameter, FindTargetField(inExpr.Predicate, ^null, mQuerySourceMap), inExpr.CaseInsensitive ? WhereClauseOperator.IsInNoCase : WhereClauseOperator.IsIn, ^null))
             end
@@ -321,13 +321,13 @@ namespace Harmony.Core.FileIO.Queryable
             data leftTarget = FindTargetField(left, right, mQuerySourceMap)
             data rightTarget = FindTargetField(right, left, mQuerySourceMap)
             data casedOp = op
-			if((casedOp == WhereClauseOperator.IsNotLike || 
+            if((casedOp == WhereClauseOperator.IsNotLike || 
             &   casedOp == WhereClauseOperator.IsLike || 
             &	casedOp == WhereClauseOperator.EqualTo ||
-			&	casedOp == WhereClauseOperator.NotEqualTo ||
-			&	casedOp == WhereClauseOperator.StartsWith ||
-			&	casedOp == WhereClauseOperator.NotStartsWith ||
-			&	casedOp == WhereClauseOperator.EndsWith) && IsCaseInsensitive(left, right))
+            &	casedOp == WhereClauseOperator.NotEqualTo ||
+            &	casedOp == WhereClauseOperator.StartsWith ||
+            &	casedOp == WhereClauseOperator.NotStartsWith ||
+            &	casedOp == WhereClauseOperator.EndsWith) && IsCaseInsensitive(left, right))
             begin
                 ;;the case insensitive variants follow in the enum declaration so this is switching to IsLikeNoCase | NodeCaseEqualTo | NoCaseNotEqualTo
                 casedOp = (WhereClauseOperator)((int)casedOp + 1)
@@ -346,11 +346,11 @@ namespace Harmony.Core.FileIO.Queryable
             else if(rightTarget != ^null) then
             begin
                 mWhereStack.Push(MakePart(FindConstantValue(left), rightTarget, casedOp, ^null))
-			end
-			else if(leftTarget == ^null && rightTarget == ^null && ^as(FindConstantValue(right), @string) == "") then
-			begin
+            end
+            else if(leftTarget == ^null && rightTarget == ^null && ^as(FindConstantValue(right), @string) == "") then
+            begin
 
-			end
+            end
             else
                 throw new NotImplementedException("where expression must contain at least one field or property expression")
         endmethod
@@ -361,24 +361,24 @@ namespace Harmony.Core.FileIO.Queryable
         private static StringToLower, @MethodInfo, ^typeof(string).GetMethod("ToLower", new Type[0])
         private static StringToUpper, @MethodInfo, ^typeof(string).GetMethod("ToUpper", new Type[0])
         private static StringEndsWith, @MethodInfo, ^typeof(string).GetMethod("EndsWith", new Type[#] { ^typeof(String) })
-		private static StringStartsWith, @MethodInfo, ^typeof(string).GetMethod("StartsWith", new Type[#] { ^typeof(String) })
+        private static StringStartsWith, @MethodInfo, ^typeof(string).GetMethod("StartsWith", new Type[#] { ^typeof(String) })
 
         protected override method VisitMethodCall, @Expression
             node, @System.Linq.Expressions.MethodCallExpression  
             endparams
         proc
             if(node.Method == StringContains) then
-			begin
+            begin
                 ProcessWhereClause(node.Object, node.Arguments[0], mNotFlag ? WhereClauseOperator.IsNotLike : WhereClauseOperator.IsLike)
             end
             else if(node.Method == StringEndsWith) then
             begin
                 ProcessWhereClause(node.Object, node.Arguments[0], mNotFlag ? WhereClauseOperator.NotEndsWith : WhereClauseOperator.EndsWith)
-			end
-			else if(node.Method == StringStartsWith) then
-			begin
-				ProcessWhereClause(node.Object, node.Arguments[0],  mNotFlag ? WhereClauseOperator.NotStartsWith : WhereClauseOperator.StartsWith)
-			end
+            end
+            else if(node.Method == StringStartsWith) then
+            begin
+                ProcessWhereClause(node.Object, node.Arguments[0],  mNotFlag ? WhereClauseOperator.NotStartsWith : WhereClauseOperator.StartsWith)
+            end
             else
             begin
                 mreturn parent.VisitMethodCall(node)
@@ -392,16 +392,16 @@ namespace Harmony.Core.FileIO.Queryable
             node, @BinaryExpression
         proc
             data op, WhereClauseOperator?, ^null
-			data glue, WhereClauseConnector?, ^null
+            data glue, WhereClauseConnector?, ^null
 
-			if(node.Left.NodeType == ExpressionType.Not && node.Right.NodeType == ExpressionType.Constant)
-			begin
+            if(node.Left.NodeType == ExpressionType.Not && node.Right.NodeType == ExpressionType.Constant)
+            begin
                 data notFlagValue = mNotFlag
-				mNotFlag = true
+                mNotFlag = true
                 Visit(node.Left)
                 mreturn node
                 mNotFlag = notFlagValue
-			end
+            end
 
 
             OpKindFromExpression(node, op, glue)
@@ -454,26 +454,30 @@ namespace Harmony.Core.FileIO.Queryable
                     end
                     else if(methodCallExpr.Method == StringEndsWith) then
                     begin
-						data targetOperator = WhereClauseOperator.EndsWith
+                        data targetOperator = WhereClauseOperator.EndsWith
 
-						if(mNotFlag)
-							targetOperator = WhereClauseOperator.NotEndsWith
+                        if(mNotFlag)
+                            targetOperator = WhereClauseOperator.NotEndsWith
 
                         ProcessWhereClause(methodCallExpr.Object, methodCallExpr.Arguments[0], targetOperator)
-					end
-					else if(methodCallExpr.Method == StringContains) then
-					begin
-						ProcessWhereClause(methodCallExpr.Object, methodCallExpr.Arguments[0], mNotFlag ? WhereClauseOperator.NotStringContains : WhereClauseOperator.StringContains)
-					end
-					else if(methodCallExpr.Method == StringStartsWith) then
-					begin
-						data targetOperator = WhereClauseOperator.StartsWith
-						
+                    end
+                    else if(methodCallExpr.Method == StringContains) then
+                    begin
+                        ProcessWhereClause(methodCallExpr.Object, methodCallExpr.Arguments[0], mNotFlag ? WhereClauseOperator.NotStringContains : WhereClauseOperator.StringContains)
+                    end
+                    else if(methodCallExpr.Method == StringStartsWith) then
+                    begin
+                        data targetOperator = WhereClauseOperator.StartsWith
+                        
                         if(mNotFlag)
-							targetOperator = WhereClauseOperator.NotStartsWith
+                            targetOperator = WhereClauseOperator.NotStartsWith
 
-						ProcessWhereClause(methodCallExpr.Object, methodCallExpr.Arguments[0], targetOperator)
-					end
+                        ProcessWhereClause(methodCallExpr.Object, methodCallExpr.Arguments[0], targetOperator)
+                    end
+                    else if(methodCallExpr.Method == StringToLower || methodCallExpr.Method == StringToUpper) then
+                    begin
+                        ProcessWhereClause(methodCallExpr, node.Right, op.Value)
+                    end
                     else if(methodCallExpr.Method.Name == "Property" || methodCallExpr.Method.Name == "GetParameterValue") then
                     begin
                         ProcessWhereClause(node.Left, node.Right, op.Value)
@@ -507,15 +511,15 @@ namespace Harmony.Core.FileIO.Queryable
                 else
                 begin
                     data leftWhere, @Object, mWhereStack.Count > 0 ? mWhereStack.Pop() : ^null
-					Visit(node.Right)
-					if(leftWhere != ^null)
-					begin
-						data rightWhere, @Object, mWhereStack.Count > 0 ? mWhereStack.Pop() : ^null
+                    Visit(node.Right)
+                    if(leftWhere != ^null)
+                    begin
+                        data rightWhere, @Object, mWhereStack.Count > 0 ? mWhereStack.Pop() : ^null
                         if(rightWhere != ^null) then
-							mWhereStack.Push(MakePart(leftWhere, rightWhere, op, glue))
-						else
-							mWhereStack.Push(leftWhere)
-					end
+                            mWhereStack.Push(MakePart(leftWhere, rightWhere, op, glue))
+                        else
+                            mWhereStack.Push(leftWhere)
+                    end
                 end
 
             end

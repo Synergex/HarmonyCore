@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Services.Models;
+using System;
 using System.Data;
 using System.Linq;
 
@@ -96,6 +97,28 @@ namespace Services.Test.CS
         }
 
         [TestMethod]
+        public void EFSparse()
+        {
+            //force sparse select even though we arent using xfServer here
+            Harmony.Core.FileIO.Queryable.PreparedQueryPlan.LocalSparse = true;
+            var startupClass = new Startup(null, null);
+            var startupServices = new ServiceCollection();
+            startupClass.ConfigureServices(startupServices);
+            using (var sp = startupServices.BuildServiceProvider())
+            {
+                using (var context = sp.GetService<Services.Models.DbContext>())
+                {
+                    var customers = context.Customers.Where(cust => cust.Name.Contains("Nursery")).Select(cust => new { Name = cust.Name, fred = cust.City }).ToList();
+                    Assert.IsTrue(customers.Count > 0);
+                    foreach (var customer in customers)
+                    {
+                        Assert.IsTrue(customer.Name.Contains("Nursery"));
+                    }
+                }
+            }
+        }
+
+        [TestMethod]
         public void Projection1()
         {
             var startupClass = new Startup(null, null);
@@ -105,11 +128,92 @@ namespace Services.Test.CS
             {
                 using (var context = sp.GetService<Services.Models.DbContext>())
                 {
+                    //referencing a navigation propery in the selector will cause it to be included
+                    //as though we had called context.Orders.Include(salesOrderHeader => salesOrderHeader.REL_OrderItems)
                     var header1 = from salesOrderheader in context.Orders
-                                  join setmst in context.OrderItems on salesOrderheader.OrderNumber equals setmst.OrderNumber into totals
-                                  select new { SalesOrderHeader = salesOrderheader, Total = totals };
+                                  where salesOrderheader.OrderNumber < 100
+                                  select new { SalesOrderHeader = salesOrderheader, Total = salesOrderheader.REL_OrderItems };
 
-                    header1.ToList();
+                    foreach (var header in header1)
+                    {
+                        Console.Write(header.SalesOrderHeader.CustomerNumber);
+                    }
+                }
+            }
+        }
+
+        [TestMethod]
+        public void IncludeWhere()
+        {
+            var startupClass = new Startup(null, null);
+            var startupServices = new ServiceCollection();
+            startupClass.ConfigureServices(startupServices);
+            using (var sp = startupServices.BuildServiceProvider())
+            {
+                using (var context = sp.GetService<Services.Models.DbContext>())
+                {
+                    var customers = context.Customers.Where(customer => customer.CustomerNumber == 8).Include(customer => customer.REL_CustomerFavoriteItem).ToList();
+                    Assert.AreEqual(customers.Count, 1);
+                    Assert.AreEqual(customers.First().CustomerNumber, 8);
+                    Assert.IsNotNull(customers.First().REL_CustomerFavoriteItem);
+                }
+            }
+        }
+
+        [TestMethod]
+        public void IncludeFirstOrDefault()
+        {
+            var startupClass = new Startup(null, null);
+            var startupServices = new ServiceCollection();
+            startupClass.ConfigureServices(startupServices);
+            using (var sp = startupServices.BuildServiceProvider())
+            {
+                using (var context = sp.GetService<Services.Models.DbContext>())
+                {
+                    var customer = context.Customers.Include(customer => customer.REL_CustomerFavoriteItem).FirstOrDefault(customer => customer.CustomerNumber == 8);
+                    Assert.IsNotNull(customer);
+                    Assert.AreEqual(customer.CustomerNumber, 8);
+                    Assert.IsNotNull(customer.REL_CustomerFavoriteItem);
+                }
+            }
+        }
+
+
+        [TestMethod]
+        public void UpdateFavoriteItem()
+        {
+            var startupClass = new Startup(null, null);
+            var startupServices = new ServiceCollection();
+            startupClass.ConfigureServices(startupServices);
+            using (var sp = startupServices.BuildServiceProvider())
+            {
+                using (var context = sp.GetService<Services.Models.DbContext>())
+                {
+                    var customer = context.Customers.Include(customer => customer.REL_CustomerFavoriteItem).FirstOrDefault(customer => customer.CustomerNumber == 8);
+
+                    customer.REL_CustomerFavoriteItem.CommonName = "bunnybear";
+                    var changeCount = context.SaveChanges();
+                    Assert.AreEqual(1, changeCount);
+                }
+            }
+        }
+
+
+        [TestMethod]
+        public void UpdateFavoriteItem2()
+        {
+            var startupClass = new Startup(null, null);
+            var startupServices = new ServiceCollection();
+            startupClass.ConfigureServices(startupServices);
+            using (var sp = startupServices.BuildServiceProvider())
+            {
+                using (var context = sp.GetService<Services.Models.DbContext>())
+                {
+                    var customer = context.Customers.FirstOrDefault(customer => customer.CustomerNumber == 8);
+                    customer.FavoriteItem = context.Items.Where(item => item.FlowerColor.ToLower() == "blue").First().ItemNumber;
+
+                    var changeCount = context.SaveChanges();
+                    Assert.AreEqual(1, changeCount);
                 }
             }
         }

@@ -187,6 +187,11 @@ Known structure properties:
             {"system.text.encoding.codepages", "4.7.1"},
         };
 
+        public static List<string> HCRegenRequiredVersions = new List<string>
+        {
+            "3.1.156"
+        };
+
         const int STD_INPUT_HANDLE = -10;
         [DllImport("kernel32.dll", SetLastError = true)]
         static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint lpMode);
