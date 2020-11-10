@@ -2,9 +2,8 @@
 .include "DAYOFWEEK" REPOSITORY ,public ENUM
 .include "BINARYTEST" REPOSITORY ,structure="Binarytest" ,end
 .include "ENUMSTRUCTURE" REPOSITORY ,structure="Enumstructure" ,end
-.include "FUENTES" REPOSITORY ,structure="Fuentes" ,end
+.include "FUENTES" REPOSITORY ,structure="strFuentes" ,end
 ;.include "STROPTSOUTTER" REPOSITORY ,structure="Stroptsoutter" ,end; 
-.include "V93REPOSOPTS" REPOSITORY ,structure="V93reposopts" ,end
 .include "TIMEKEY" REPOSITORY ,structure="Timekey" ,end
 
 public enum Color	; old #
@@ -395,8 +394,8 @@ record stroptOutter
 
 {xfMethod(interface="V93IF",name="reposoptsv93",elb="TEST:V93ELB",id="ReposOptionsV93")}
 subroutine reposoptsv93
-{xfParameter(name="V93REPOSOPTS",structure="V93reposopts")}
-req inout   a_Str ,V93reposopts          ;;
+{xfParameter(name="V93REPOSOPTS",structure="strV93reposopt")}
+req inout   a_Str ,strV93reposopt          ;;
 endparams
 ;.subroutine reposoptsv93
 ;        a_Str        ,a
@@ -440,7 +439,7 @@ record rsposopts
 
 {xfMethod(interface="V93IF",name="alreposopts",elb="TEST:V93ELB",id="ALReposOpts")}
 subroutine alreposopts
-{xfParameter(name="V93REPOSOPTS",structure="V93reposopts",collectionType=xfCollectType.structure,dataTable=true)}
+{xfParameter(name="V93REPOSOPTS",structure="strV93reposopt",collectionType=xfCollectType.structure,dataTable=true)}
 req out     a_al ,@System.Collections.ArrayList ;;
 endparams
 ;.subroutine alreposopts
@@ -455,7 +454,7 @@ record
 		m_day	,DaysOfTheWeek
 		abox	,@a
 		arylst	,@System.Collections.ArrayList
-		aRec	,@V93reposopts
+		aRec	,@strV93reposopt
 
 record rsposopts
   NEWBOOL  ,Boolean  ; (1,1)
@@ -496,7 +495,7 @@ record rsposopts
 
 {xfMethod(interface="V93IF",name="alreposoptsin",elb="TEST:V93ELB",id="ALReposOptsIn")}
 subroutine alreposoptsin
-{xfParameter(name="V93REPOSOPTS",structure="V93reposopts",collectionType=xfCollectType.structure,dataTable=true)}
+{xfParameter(name="V93REPOSOPTS",structure="strV93reposopt",collectionType=xfCollectType.structure,dataTable=true)}
 req in      a_al ,@System.Collections.ArrayList ;;
 endparams
 ;.subroutine alreposoptsin
@@ -511,7 +510,7 @@ record
 		m_day	,DaysOfTheWeek
 ;		abox	,@a
 		arylst	,@System.Collections.ArrayList
-		aRec	,V93reposopts
+		aRec	,strV93reposopt
 
 record Arsposopts
   NEWBOOL  ,Boolean  ; (1,1)
@@ -530,7 +529,7 @@ record Arsposopts
 	    begin
 ;		abox = arylst[i]
 ;		rsposopts = (a)abox
-		aRec = (V93reposopts)arylst[i]
+		aRec = (strV93reposopt)arylst[i]
 		Arsposopts = aRec
 		writes(chan, Arsposopts)
 		writes(chan, %string(Arsposopts.NEWBOOL))
@@ -543,12 +542,12 @@ record Arsposopts
 
 ; -------------------------------------------------------------------------------
 
-{xfMethod(interface="V93IF",name="DeFuentes",elb="TEST:V93ELB",id="DoFuentes")}
-subroutine DeFuentes
-{xfParameter(name="FUENTES",structure="Fuentes", length=43)}
-req inout   a_fu     ,Fuentes                ;;
+{xfMethod(interface="V93IF",name="DestrFuentes",elb="TEST:V93ELB",id="DostrFuentes")}
+subroutine DestrFuentes
+{xfParameter(name="strFuentes",structure="strFuentes", length=43)}
+req inout   a_fu     ,strFuentes                ;;
 endparams
-;.subroutine DeFuentes
+;.subroutine DestrFuentes
 ;       Arguments
 ;        a_fu         ,a
 
@@ -559,7 +558,7 @@ record
         ast     ,a25
 	d2	,d2
 
-record LaFuentes
+record LastrFuentes
   FIELDONE    ,A20  ; (1,20)
 
   FIELD2      ,D12  ; (21,32)
@@ -571,25 +570,25 @@ record LaFuentes
 
 .proc
 ;	chan = 211
-;	open(chan, a, "TEST:fuentes.log")
-	LaFuentes = a_fu
-;	writes(chan, LaFuentes)
-	LaFuentes.FIELDONE = "Hello There Fuentes"
-	LaFuentes.FIELD2 = 445566778899
-	LaFuentes.BINARYFIELD = "abcdef"
-	LaFuentes.Dec = 41125
-	a_fu = LaFuentes
-;	writes(chan, LaFuentes)
+;	open(chan, a, "TEST:strFuentes.log")
+	LastrFuentes = a_fu
+;	writes(chan, LastrFuentes)
+	LastrFuentes.FIELDONE = "Hello There strFuentes"
+	LastrFuentes.FIELD2 = 445566778899
+	LastrFuentes.BINARYFIELD = "abcdef"
+	LastrFuentes.Dec = 41125
+	a_fu = LastrFuentes
+;	writes(chan, LastrFuentes)
 ;	writes(chan, "    ")
 ;	close (chan)
         xreturn 
 .end
 ; ---------------------------------------------------------------------------
-{xfMethod(interface="V93IF",name="DoFuentesALin",elb="TEST:V93ELB",id="DoFuentesALin")}
+{xfMethod(interface="V93IF",name="DostrFuentesALin",elb="TEST:V93ELB",id="DostrFuentesALin")}
 
-subroutine DoFuentesALin
+subroutine DostrFuentesALin
 
-{xfParameter(name="FUENTES",structure="Fuentes",collectionType=xfCollectType.structure)}
+{xfParameter(name="strFuentes",structure="strFuentes",collectionType=xfCollectType.structure)}
 req in      Alin     ,@System.Collections.ArrayList ;;
 
 endparams
@@ -600,7 +599,7 @@ record
         ast     ,a25
 	d2	,d2
 
-record LaFuentes
+record LastrFuentes
   FIELDONE    ,A20  ; (1,20)
 
   FIELD2      ,D12  ; (21,32)
@@ -612,9 +611,9 @@ record LaFuentes
 proc
 
 ;	chan = 211
-;	open(chan, a, "TEST:fuentes.log")
-	LaFuentes = (Fuentes)Alin[1]
-;	writes(chan, LaFuentes)
+;	open(chan, a, "TEST:strFuentes.log")
+	LastrFuentes = (strFuentes)Alin[1]
+;	writes(chan, LastrFuentes)
 ;	writes(chan, "    ")
 ;	close (chan)
 
@@ -623,11 +622,11 @@ proc
 endsubroutine
 ; ---------------------------------------------------------------------------
 
-{xfMethod(interface="V93IF",name="DoFuentesALout",elb="TEST:V93ELB",id="DoFuentesALout")}
+{xfMethod(interface="V93IF",name="DostrFuentesALout",elb="TEST:V93ELB",id="DostrFuentesALout")}
 
-subroutine DoFuentesALout
+subroutine DostrFuentesALout
 
-{xfParameter(name="FUENTES",structure="Fuentes",collectionType=xfCollectType.structure)}
+{xfParameter(name="strFuentes",structure="strFuentes",collectionType=xfCollectType.structure)}
 req out     Alout     ,@System.Collections.ArrayList ;;
 
 endparams
@@ -638,11 +637,11 @@ record
         ast     ,a25
 		d2	,d2
 		abox	,@a
-		recF	,@Fuentes
+		recF	,@strFuentes
 		arylst	,@System.Collections.ArrayList
 	
 
-record LaFuentes
+record LastrFuentes
   FIELDONE    ,A20  ; (1,20)
 
   FIELD2      ,D12  ; (21,32)
@@ -653,23 +652,23 @@ record LaFuentes
 proc
 
 ;	chan = 211
-;	open(chan, a, "TEST:fuentes.log")
+;	open(chan, a, "TEST:strFuentes.log")
 
 	arylst = new System.Collections.ArrayList()
 	for i from 1 thru 3
 	  begin
-		clear LaFuentes
-		LaFuentes.FIELDONE = "Hello There Fuentes"
-		LaFuentes.FIELD2 = 445566778899
-		LaFuentes.BINARYFIELD = "abcdef"
-		LaFuentes.Dec = 41125
-;		writes(chan, LaFuentes)
+		clear LastrFuentes
+		LastrFuentes.FIELDONE = "Hello There strFuentes"
+		LastrFuentes.FIELD2 = 445566778899
+		LastrFuentes.BINARYFIELD = "abcdef"
+		LastrFuentes.Dec = 41125
+;		writes(chan, LastrFuentes)
 ;		writes(chan, "    ")
 .ifdef DBLNET
-		recF = LaFuentes
+		recF = LastrFuentes
 		arylst.Add(recF)
 .else
-		abox = (@a)LaFuentes
+		abox = (@a)LastrFuentes
 		arylst.add(abox)
 .endc
 	  end
@@ -727,7 +726,7 @@ record
     end
   writes(chn,"Out * " + ^m(Bbd.Bbdy(1:5),grfa))
   close (chn)
-  struct = "hello there fuentes"
+  struct = "hello there strFuentes"
   rtn = 0
   freturn (rtn)
 .end
@@ -781,7 +780,7 @@ record
   writes(chn,"IN * " + ^m(Bbd.Bbdy(1:psiz),grfa))
   writes(chn,"str = " + str)
   close (chn)
-  struct = "hello there fuentes"
+  struct = "hello there strFuentes"
   rtn = 0
   freturn (rtn)
 .end
@@ -842,7 +841,7 @@ record
     end
   writes(chn,"Out * " + ^m(Bbd.Bbdy(1:5),grfa))
   close (chn)
-  struct = "hello there fuentes"
+  struct = "hello there strFuentes"
   rtn = 0
   freturn (rtn)
 .end

@@ -63,10 +63,11 @@ namespace TraditionalBridge.Test.AutoTime
             arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED IN TIMEKEY ArrayList collection of structure @Timekey)
+
             argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1],50)
             arg1Array = arguments[1].GetProperty("PassedValue")
             arg1 = new ArrayList()
-            dispatcher.UnwrapObjectCollection(argumentDefinition,arg1Array,arg1)
+            dispatcher.UnwrapObjectCollection(argumentDefinition,arg1Array,arg1,FieldDataType.AlphaField)
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -101,6 +102,7 @@ namespace TraditionalBridge.Test.AutoTime
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED OUT TIMEKEY ArrayList collection of structure @Timekey)
+                arg1Array,          JSON_ELEMENT
                 arg1,               @ArrayList
             endrecord
 
@@ -110,7 +112,10 @@ namespace TraditionalBridge.Test.AutoTime
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            ;;There are no inbound arguments to process
+            arguments = callFrame.GetProperty("params")
+
+            ;;Argument 1 (REQUIRED OUT TIMEKEY ArrayList collection of structure @Timekey)
+
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -120,7 +125,7 @@ namespace TraditionalBridge.Test.AutoTime
             ;;--------------------------------------------------------------------------------
             ;;Argument 1 (REQUIRED OUT TIMEKEY ArrayList collection of structure @Timekey)
             
-            serializer.ArgumentData(1,arg1,FieldDataType.DataObjectCollectionField,50,"TIMEKEY",false)
+            serializer.ArgumentData(1,arg1,FieldDataType.DataObjectCollectionField,50,"TIMEKEY",true)
         endmethod
 
     endclass
@@ -169,6 +174,7 @@ namespace TraditionalBridge.Test.AutoTime
             arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED INOUT TIMEKEY [*]structure @Timekey)
+
             argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1],50)
             arg1Array = arguments[1].GetProperty("PassedValue")
             arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.GetArrayLength())
@@ -183,7 +189,7 @@ namespace TraditionalBridge.Test.AutoTime
             ;;--------------------------------------------------------------------------------
             ;;Argument 1 (REQUIRED INOUT TIMEKEY [*]structure @Timekey)
             
-            serializer.ArgumentHandleData(1,arg1Handle,FieldDataType.DataObjectCollectionField,50,"TIMEKEY",%mem_proc(DM_GETSIZE,arg1Handle)/50,false)
+            serializer.ArgumentHandleData(1,arg1Handle,FieldDataType.DataObjectCollectionField,50,"TIMEKEY",%mem_proc(DM_GETSIZE,arg1Handle)/50,true)
         endmethod
 
     endclass
@@ -226,6 +232,7 @@ namespace TraditionalBridge.Test.AutoTime
             arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED INOUT TIMEKEY structure @Timekey)
+
             ;;Structure argument. Get the data object then get the record from it
             arg1DataObject = dispatcher.DeserializeObject(arguments[1],mTimekeyMetadata)
             arg1 = arg1DataObject.SynergyRecord
@@ -239,7 +246,7 @@ namespace TraditionalBridge.Test.AutoTime
             ;;Argument 1 (REQUIRED INOUT TIMEKEY structure @Timekey)
             
             ;;Argument 1: Single Timekey record
-            serializer.ArgumentData(1,arg1,FieldDataType.DataObjectField,50,"TIMEKEY",false)
+            serializer.ArgumentData(1,arg1,FieldDataType.DataObjectField,50,"TIMEKEY",true)
         endmethod
 
     endclass
@@ -282,6 +289,7 @@ namespace TraditionalBridge.Test.AutoTime
             arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED IN TIMEKEY structure @Timekey)
+
             ;;Structure argument. Get the data object then get the record from it
             arg1DataObject = dispatcher.DeserializeObject(arguments[1],mTimekeyMetadata)
             arg1 = arg1DataObject.SynergyRecord
@@ -329,7 +337,10 @@ namespace TraditionalBridge.Test.AutoTime
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            ;;There are no inbound arguments to process
+            arguments = callFrame.GetProperty("params")
+
+            ;;Argument 1 (REQUIRED OUT TIMEKEY structure @Timekey)
+
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -340,7 +351,7 @@ namespace TraditionalBridge.Test.AutoTime
             ;;Argument 1 (REQUIRED OUT TIMEKEY structure @Timekey)
             
             ;;Argument 1: Single Timekey record
-            serializer.ArgumentData(1,arg1,FieldDataType.DataObjectField,50,"TIMEKEY",false)
+            serializer.ArgumentData(1,arg1,FieldDataType.DataObjectField,50,"TIMEKEY",true)
         endmethod
 
     endclass

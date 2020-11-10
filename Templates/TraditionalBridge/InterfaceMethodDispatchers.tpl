@@ -106,9 +106,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 ;//
                 ;;Argument <COUNTER_1_VALUE> (<PARAMETER_REQUIRED> <PARAMETER_DIRECTION> <PARAMETER_NAME> <IF COLLECTION_ARRAY>[*]</IF COLLECTION_ARRAY><IF COLLECTION_HANDLE>memory handle collection of </IF COLLECTION_HANDLE><IF COLLECTION_ARRAYLIST>ArrayList collection of </IF COLLECTION_ARRAYLIST><IF STRUCTURE>structure </IF STRUCTURE><IF ENUM>enum </IF ENUM><IF STRUCTURE>@<ParameterStructureNoplural><ELSE><PARAMETER_DEFINITION></IF STRUCTURE><IF DATE> <PARAMETER_DATE_FORMAT> date</IF DATE><IF TIME> <PARAMETER_DATE_FORMAT> time</IF TIME><IF REFERENCE> passed by REFERENCE</IF REFERENCE><IF VALUE> passed by VALUE</IF VALUE><IF DATATABLE> returned as DataTable</IF DATATABLE>)
     <IF COLLECTION>
-        <IF IN_OR_INOUT>
                 arg<COUNTER_1_VALUE>Array,          JSON_ELEMENT
-        </IF IN_OR_INOUT>
         <IF COLLECTION_ARRAY>
                 arg<COUNTER_1_VALUE>Handle,         D_HANDLE
                 arg<COUNTER_1_VALUE>HandlePos,      int
@@ -124,9 +122,12 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
         <IF STRUCTURE>
                 arg<COUNTER_1_VALUE>DataObject,     @DataObjectBase
                 arg<COUNTER_1_VALUE>,               str<ParameterStructureNoplural>
+        <ELSE HANDLE OR BINARY_HANDLE>
+                arg<COUNTER_1_VALUE>Array,          JSON_ELEMENT
+                arg<COUNTER_1_VALUE>Handle,         <parameter_definition>
         <ELSE>
-                arg<COUNTER_1_VALUE>,               <parameter_definition>
-        </IF STRUCTURE>
+                arg<COUNTER_1_VALUE>,               <HARMONYCORE_BRIDGE_PARAMETER_DEFINITION>
+        </IF>
     </IF COLLECTION>
 </PARAMETER_LOOP>
 ;//
@@ -158,9 +159,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 ;//
 <COUNTER_1_RESET>
 <PARAMETER_LOOP>
-    <IF IN_OR_INOUT>
-        <COUNTER_1_INCREMENT>
-    </IF IN_OR_INOUT>
+    <COUNTER_1_INCREMENT> 
 </PARAMETER_LOOP>
 ;//
 
@@ -176,12 +175,13 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 <COUNTER_1_RESET>
 <PARAMETER_LOOP>
     <COUNTER_1_INCREMENT>
-    <IF IN_OR_INOUT>
 
             ;;Argument <COUNTER_1_VALUE> (<PARAMETER_REQUIRED> <PARAMETER_DIRECTION> <PARAMETER_NAME> <IF COLLECTION_ARRAY>[*]</IF COLLECTION_ARRAY><IF COLLECTION_HANDLE>memory handle collection of </IF COLLECTION_HANDLE><IF COLLECTION_ARRAYLIST>ArrayList collection of </IF COLLECTION_ARRAYLIST><IF STRUCTURE>structure </IF STRUCTURE><IF ENUM>enum </IF ENUM><IF STRUCTURE>@<ParameterStructureNoplural><ELSE><PARAMETER_DEFINITION></IF STRUCTURE><IF DATE> <PARAMETER_DATE_FORMAT> date</IF DATE><IF TIME> <PARAMETER_DATE_FORMAT> time</IF TIME><IF REFERENCE> passed by REFERENCE</IF REFERENCE><IF VALUE> passed by VALUE</IF VALUE><IF DATATABLE> returned as DataTable</IF DATATABLE>)
+
+    <IF IN_OR_INOUT>
     <IF COLLECTION>
 ;//
-            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[<COUNTER_1_VALUE>],<PARAMETER_SIZE>)
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[<COUNTER_1_VALUE>],<PARAMETER_SIZE><IF IMPLIED>,<PARAMETER_PRECISION></IF>)
             arg<COUNTER_1_VALUE>Array = arguments[<COUNTER_1_VALUE>].GetProperty("PassedValue")
 ;//
         <IF COLLECTION_ARRAY>
@@ -198,7 +198,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 ;//
         <IF COLLECTION_ARRAYLIST>
             arg<COUNTER_1_VALUE> = new ArrayList()
-            dispatcher.UnwrapObjectCollection(argumentDefinition,arg<COUNTER_1_VALUE>Array,arg<COUNTER_1_VALUE>)
+            dispatcher.UnwrapObjectCollection(argumentDefinition,arg<COUNTER_1_VALUE>Array,arg<COUNTER_1_VALUE>,<IF ALPHA>FieldDataType.AlphaField<ELSE DECIMAL>FieldDataType.DecimalField<ELSE IMPLIED>FieldDataType.ImpliedDecimal<ELSE INTEGER>FieldDataType.IntegerField<ELSE STRING>FieldDataType.StringField<ELSE ENUM>FieldDataType.IntegerField<ELSE DATE>FieldDataType.DecimalField<ELSE TIME>FieldDataType.DecimalField<ELSE>FieldDataType.AlphaField</IF>)
         </IF COLLECTION_ARRAYLIST>
     <ELSE>
 ;//
@@ -230,15 +230,11 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
             arg<COUNTER_1_VALUE> = dispatcher.GetDecimal(arguments[<COUNTER_1_VALUE>])
         </IF TIME>
 ;//
-        <IF HANDLE>
-            ;TODO: Template needs code for HANDLE arguments!
-            arg<COUNTER_1_VALUE> = 
-        </IF HANDLE>
-;//
-        <IF BINARY_HANDLE>
-            ;TODO: Template needs code for BINARY HANDLE arguments!
-            arg<COUNTER_1_VALUE> =
-        </IF BINARY_HANDLE>
+        <IF HANDLE OR BINARY_HANDLE>
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[<COUNTER_1_VALUE>])
+            arg<COUNTER_1_VALUE>Array = arguments[<COUNTER_1_VALUE>].GetProperty("PassedValue")
+            arg<COUNTER_1_VALUE>Handle = %mem_proc(DM_ALLOC,arg<COUNTER_1_VALUE>Array.GetArrayLength())
+        </IF>
 ;//
         <IF STRING>
             arg<COUNTER_1_VALUE> = dispatcher.GetText(arguments[<COUNTER_1_VALUE>])
@@ -252,11 +248,17 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 ;//
     </IF COLLECTION>
     <ELSE OUT>
-        <IF COLLECTION>
-            <IF COLLECTION_HANDLE>
+        <IF HANDLE OR BINARY_HANDLE>
+            arg<COUNTER_1_VALUE>Handle = %mem_proc(DM_ALLOC,4)
+        <ELSE COLLECTION>
+            <IF COLLECTION_HANDLE OR COLLECTION_ARRAY>
+            <IF STRUCTURE>
+            arg<COUNTER_1_VALUE>Handle = %mem_proc(DM_ALLOC,<PARAMETER_SIZE>)
+            <ELSE>
             arg<COUNTER_1_VALUE>Handle = %mem_proc(DM_ALLOC,1)
-            </IF COLLECTION_HANDLE>
-        </IF COLLECTION>
+            </IF>
+            </IF>
+        </IF>
     </IF IN_OR_INOUT>
 </PARAMETER_LOOP>
 ;//
@@ -267,7 +269,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
             ;;------------------------------------------------------------
             ;; Call the underlying routine
 
-            <IF SUBROUTINE>xcall <ELSE>returnValue = %</IF SUBROUTINE><METHOD_ROUTINE>(<COUNTER_1_RESET><PARAMETER_LOOP><COUNTER_1_INCREMENT><IF COLLECTION><IF COLLECTION_ARRAY>^m(<IF STRUCTURE>str<ParameterStructureNoplural><ELSE>tempstr<COUNTER_1_VALUE>.arry</IF STRUCTURE>,arg<COUNTER_1_VALUE>Handle)<,></IF COLLECTION_ARRAY><IF COLLECTION_HANDLE>arg<COUNTER_1_VALUE>Handle<,></IF COLLECTION_HANDLE><IF COLLECTION_ARRAYLIST>arg<COUNTER_1_VALUE><,></IF COLLECTION_ARRAYLIST><ELSE>arg<COUNTER_1_VALUE><,></IF COLLECTION></PARAMETER_LOOP>)
+            <IF SUBROUTINE>xcall <ELSE>returnValue = %</IF SUBROUTINE><METHOD_ROUTINE>(<COUNTER_1_RESET><PARAMETER_LOOP><COUNTER_1_INCREMENT><IF HANDLE OR BINARY_HANDLE>arg<COUNTER_1_VALUE>Handle<,><ELSE><IF COLLECTION><IF COLLECTION_ARRAY>^m(<IF STRUCTURE>str<ParameterStructureNoplural><ELSE>tempstr<COUNTER_1_VALUE>.arry</IF STRUCTURE>,arg<COUNTER_1_VALUE>Handle)<,></IF COLLECTION_ARRAY><IF COLLECTION_HANDLE>arg<COUNTER_1_VALUE>Handle<,></IF COLLECTION_HANDLE><IF COLLECTION_ARRAYLIST>arg<COUNTER_1_VALUE><,></IF COLLECTION_ARRAYLIST><ELSE>arg<COUNTER_1_VALUE><,></IF COLLECTION></IF></PARAMETER_LOOP>)
 ;//
 ;//=========================================================================================================================
 ;// Build the JSON response
@@ -304,7 +306,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
     <IF ALPHA>
         <IF COLLECTION>
             <IF COLLECTION_ARRAY>
-			serializer.ArgumentHandleData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>Handle,FieldDataType.AlphaArrayField,<PARAMETER_SIZE>,0<PARAMETER_PRECISION>,%mem_proc(DM_GETSIZE,arg<COUNTER_1_VALUE>Handle)/<PARAMETER_SIZE>,false)
+            serializer.ArgumentHandleData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>Handle,FieldDataType.AlphaArrayField,<PARAMETER_SIZE>,0<PARAMETER_PRECISION>,%mem_proc(DM_GETSIZE,arg<COUNTER_1_VALUE>Handle)/<PARAMETER_SIZE>,false)
             </IF COLLECTION_ARRAY>
             <IF COLLECTION_ARRAYLIST>
             serializer.ArgumentData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>,FieldDataType.AlphaArrayField,<PARAMETER_SIZE>,0,false)
@@ -402,13 +404,9 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
         </IF COLLECTION>
     </IF TIME>
 ;//
-    <IF HANDLE>
-            ;TODO: Handle support is incomplete and will FAIL!!!
-    </IF HANDLE>
-;//
-    <IF BINARY_HANDLE>
-            ;TODO: Binary Handle support is incomplete and will FAIL!!!
-    </IF BINARY_HANDLE>
+    <IF HANDLE OR BINARY_HANDLE>
+            serializer.ArgumentData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>Handle,FieldDataType.IntegerField,4,0,false)
+    </IF>
 ;//
     <IF STRING>
         <IF COLLECTION>
@@ -422,7 +420,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
             serializer.ArgumentHandleData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>Handle,FieldDataType.StringArrayField,<PARAMETER_SIZE>,0,%mem_proc(DM_GETSIZE,arg<COUNTER_1_VALUE>Handle)/<PARAMETER_SIZE>,false)
             </IF COLLECTION_HANDLE>
         <ELSE>
-            serializer.ArgumentData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>,FieldDataType.StringField,<PARAMETER_SIZE>,0,false)
+            serializer.ArgumentData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>,FieldDataType.StringField)
         </IF COLLECTION>
     </IF STRING>
 ;//
@@ -437,19 +435,19 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 ;//Structure array processing
 ;//
         <IF COLLECTION_ARRAY>
-            serializer.ArgumentHandleData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>Handle,FieldDataType.DataObjectCollectionField,<PARAMETER_SIZE>,"<PARAMETER_STRUCTURE>",%mem_proc(DM_GETSIZE,arg<COUNTER_1_VALUE>Handle)/<PARAMETER_SIZE>,false)
+            serializer.ArgumentHandleData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>Handle,FieldDataType.DataObjectCollectionField,<PARAMETER_SIZE>,"<PARAMETER_STRUCTURE>",%mem_proc(DM_GETSIZE,arg<COUNTER_1_VALUE>Handle)/<PARAMETER_SIZE>,true)
         </IF COLLECTION_ARRAY>
 ;//
 ;//Structure memory handle collection processing
 ;//
         <IF COLLECTION_HANDLE>
-            serializer.ArgumentHandleData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>Handle,FieldDataType.DataObjectCollectionField,<PARAMETER_SIZE>,"<PARAMETER_STRUCTURE>",%mem_proc(DM_GETSIZE,arg<COUNTER_1_VALUE>Handle)/<PARAMETER_SIZE>,false)
+            serializer.ArgumentHandleData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>Handle,FieldDataType.DataObjectCollectionField,<PARAMETER_SIZE>,"<PARAMETER_STRUCTURE>",%mem_proc(DM_GETSIZE,arg<COUNTER_1_VALUE>Handle)/<PARAMETER_SIZE>,true)
         </IF COLLECTION_HANDLE>
 ;//
 ;//Structure ArrayList processing
 ;//
         <IF COLLECTION_ARRAYLIST>
-            serializer.ArgumentData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>,FieldDataType.DataObjectCollectionField,<PARAMETER_SIZE>,"<PARAMETER_STRUCTURE>",false)
+            serializer.ArgumentData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>,FieldDataType.DataObjectCollectionField,<PARAMETER_SIZE>,"<PARAMETER_STRUCTURE>",true)
         </IF COLLECTION_ARRAYLIST>
 ;//
 ;//End of structure collection processing
@@ -459,7 +457,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 ;//Single structure processing
 ;//
             ;;Argument <COUNTER_1_VALUE>: Single <ParameterStructureNoplural> record
-            serializer.ArgumentData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>,FieldDataType.DataObjectField,<PARAMETER_SIZE>,"<PARAMETER_STRUCTURE>",false)
+            serializer.ArgumentData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>,FieldDataType.DataObjectField,<PARAMETER_SIZE>,"<PARAMETER_STRUCTURE>",true)
         </IF COLLECTION>
 ;//
     </IF STRUCTURE>

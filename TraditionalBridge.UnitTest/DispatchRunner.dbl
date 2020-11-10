@@ -11,82 +11,435 @@ import System.Text.Json
 .endc
 
 namespace TraditionalBridge.UnitTest
+    public class DispatchRunner
+        public static method RunDispatch, @string
+            inputString, @string
+            record
+                dispatch, @SampleXfplEnvDispatcher
+                outStream, @MockOutputStream
+                messageReader, @MockHeaderDelimitedMessageReader
+        proc
+            if(Logger.Instance == ^null)
+                Logger.Instance = new TraditionalBridge.Logger("fred.log", 6, false)
 
-	public class DispatchRunner
-		public static method RunDispatch, @string
-			inputString, @string
-			record
-				dispatch, @SampleXfplEnvDispatcher
-				outStream, @MockOutputStream
-				messageReader, @MockHeaderDelimitedMessageReader
-		proc
-			if(Logger.Instance == ^null)
-				Logger.Instance = new TraditionalBridge.Logger("fred.log", 6, false)
+            dispatch = new SampleXfplEnvDispatcher()
+            messageReader = new MockHeaderDelimitedMessageReader(inputString)
+            outStream = new MockOutputStream()
+            dispatch.Dispatch(messageReader, new DispatchSerializer(outStream))
+            mreturn outStream.FlushedData
+        endmethod
 
-			dispatch = new SampleXfplEnvDispatcher()
-			messageReader = new MockHeaderDelimitedMessageReader(inputString)
-			outStream = new MockOutputStream()
-			dispatch.Dispatch(messageReader, new DispatchSerializer(outStream))
-			mreturn outStream.FlushedData
-		endmethod
+        public static method RunDispatchAutoTime, @string
+            inputString, @string
+            record
+                dispatch, @AutoTimeDispatcher
+                outStream, @MockOutputStream
+                messageReader, @MockHeaderDelimitedMessageReader
+        proc
+            if(Logger.Instance == ^null)
+                Logger.Instance = new TraditionalBridge.Logger("fred.log", 6, false)
 
-		public static method DecodeResult, void
-			in inputString, @string
-			out jsonRoot, @object
-			out element, JSON_ELEMENT
-			record
+            dispatch = new AutoTimeDispatcher()
+            messageReader = new MockHeaderDelimitedMessageReader(inputString)
+            outStream = new MockOutputStream()
+            dispatch.Dispatch(messageReader, new DispatchSerializer(outStream))
+            mreturn outStream.FlushedData
+        endmethod
+        
+        public static method RunDispatchBinaryTransfer, @string
+            inputString, @string
+            record
+                dispatch, @BinaryTransferDispatcher
+                outStream, @MockOutputStream
+                messageReader, @MockHeaderDelimitedMessageReader
+        proc
+            if(Logger.Instance == ^null)
+                Logger.Instance = new TraditionalBridge.Logger("fred.log", 6, false)
+
+            dispatch = new BinaryTransferDispatcher()
+            messageReader = new MockHeaderDelimitedMessageReader(inputString)
+            outStream = new MockOutputStream()
+            dispatch.Dispatch(messageReader, new DispatchSerializer(outStream))
+            mreturn outStream.FlushedData
+        endmethod
+
+        public static method RunDispatchdata64k, @string
+            inputString, @string
+            record
+                dispatch, @data64kDispatcher
+                outStream, @MockOutputStream
+                messageReader, @MockHeaderDelimitedMessageReader
+        proc
+            if(Logger.Instance == ^null)
+                Logger.Instance = new TraditionalBridge.Logger("fred.log", 6, false)
+
+            dispatch = new data64kDispatcher()
+            messageReader = new MockHeaderDelimitedMessageReader(inputString)
+            outStream = new MockOutputStream()
+            dispatch.Dispatch(messageReader, new DispatchSerializer(outStream))
+            mreturn outStream.FlushedData
+        endmethod
+
+        public static method RunDispatchEncrypt, @string
+            inputString, @string
+            record
+                dispatch, @EncryptDispatcher
+                outStream, @MockOutputStream
+                messageReader, @MockHeaderDelimitedMessageReader
+        proc
+            if(Logger.Instance == ^null)
+                Logger.Instance = new TraditionalBridge.Logger("fred.log", 6, false)
+
+            dispatch = new EncryptDispatcher()
+            messageReader = new MockHeaderDelimitedMessageReader(inputString)
+            outStream = new MockOutputStream()
+            dispatch.Dispatch(messageReader, new DispatchSerializer(outStream))
+            mreturn outStream.FlushedData
+        endmethod
+
+        public static method RunDispatchIF913, @string
+            inputString, @string
+            record
+                dispatch, @IF913Dispatcher
+                outStream, @MockOutputStream
+                messageReader, @MockHeaderDelimitedMessageReader
+        proc
+            if(Logger.Instance == ^null)
+                Logger.Instance = new TraditionalBridge.Logger("fred.log", 6, false)
+
+            dispatch = new IF913Dispatcher()
+            messageReader = new MockHeaderDelimitedMessageReader(inputString)
+            outStream = new MockOutputStream()
+            dispatch.Dispatch(messageReader, new DispatchSerializer(outStream))
+            mreturn outStream.FlushedData
+        endmethod
+        
+        public static method RunDispatchLrgPkts, @string
+            inputString, @string
+            record
+                dispatch, @LrgPktsDispatcher
+                outStream, @MockOutputStream
+                messageReader, @MockHeaderDelimitedMessageReader
+        proc
+            if(Logger.Instance == ^null)
+                Logger.Instance = new TraditionalBridge.Logger("fred.log", 6, false)
+
+            dispatch = new LrgPktsDispatcher()
+            messageReader = new MockHeaderDelimitedMessageReader(inputString)
+            outStream = new MockOutputStream()
+            dispatch.Dispatch(messageReader, new DispatchSerializer(outStream))
+            mreturn outStream.FlushedData
+        endmethod
+
+        public static method RunDispatchNoParms, @string
+            inputString, @string
+            record
+                dispatch, @NoParmsDispatcher
+                outStream, @MockOutputStream
+                messageReader, @MockHeaderDelimitedMessageReader
+        proc
+            if(Logger.Instance == ^null)
+                Logger.Instance = new TraditionalBridge.Logger("fred.log", 6, false)
+
+            dispatch = new NoParmsDispatcher()
+            messageReader = new MockHeaderDelimitedMessageReader(inputString)
+            outStream = new MockOutputStream()
+            dispatch.Dispatch(messageReader, new DispatchSerializer(outStream))
+            mreturn outStream.FlushedData
+        endmethod
+
+        public static method RunDispatchPool1, @string
+            inputString, @string
+            record
+                dispatch, @Pool1Dispatcher
+                outStream, @MockOutputStream
+                messageReader, @MockHeaderDelimitedMessageReader
+        proc
+            if(Logger.Instance == ^null)
+                Logger.Instance = new TraditionalBridge.Logger("fred.log", 6, false)
+
+            dispatch = new Pool1Dispatcher()
+            messageReader = new MockHeaderDelimitedMessageReader(inputString)
+            outStream = new MockOutputStream()
+            dispatch.Dispatch(messageReader, new DispatchSerializer(outStream))
+            mreturn outStream.FlushedData
+        endmethod
+
+        public static method RunDispatchPool2, @string
+            inputString, @string
+            record
+                dispatch, @Pool2Dispatcher
+                outStream, @MockOutputStream
+                messageReader, @MockHeaderDelimitedMessageReader
+        proc
+            if(Logger.Instance == ^null)
+                Logger.Instance = new TraditionalBridge.Logger("fred.log", 6, false)
+
+            dispatch = new Pool2Dispatcher()
+            messageReader = new MockHeaderDelimitedMessageReader(inputString)
+            outStream = new MockOutputStream()
+            dispatch.Dispatch(messageReader, new DispatchSerializer(outStream))
+            mreturn outStream.FlushedData
+        endmethod
+
+        public static method RunDispatchPool3, @string
+            inputString, @string
+            record
+                dispatch, @Pool3Dispatcher
+                outStream, @MockOutputStream
+                messageReader, @MockHeaderDelimitedMessageReader
+        proc
+            if(Logger.Instance == ^null)
+                Logger.Instance = new TraditionalBridge.Logger("fred.log", 6, false)
+
+            dispatch = new Pool3Dispatcher()
+            messageReader = new MockHeaderDelimitedMessageReader(inputString)
+            outStream = new MockOutputStream()
+            dispatch.Dispatch(messageReader, new DispatchSerializer(outStream))
+            mreturn outStream.FlushedData
+        endmethod
+
+        public static method RunDispatchPool4, @string
+            inputString, @string
+            record
+                dispatch, @Pool4Dispatcher
+                outStream, @MockOutputStream
+                messageReader, @MockHeaderDelimitedMessageReader
+        proc
+            if(Logger.Instance == ^null)
+                Logger.Instance = new TraditionalBridge.Logger("fred.log", 6, false)
+
+            dispatch = new Pool4Dispatcher()
+            messageReader = new MockHeaderDelimitedMessageReader(inputString)
+            outStream = new MockOutputStream()
+            dispatch.Dispatch(messageReader, new DispatchSerializer(outStream))
+            mreturn outStream.FlushedData
+        endmethod
+
+        public static method RunDispatchPool5, @string
+            inputString, @string
+            record
+                dispatch, @Pool5Dispatcher
+                outStream, @MockOutputStream
+                messageReader, @MockHeaderDelimitedMessageReader
+        proc
+            if(Logger.Instance == ^null)
+                Logger.Instance = new TraditionalBridge.Logger("fred.log", 6, false)
+
+            dispatch = new Pool5Dispatcher()
+            messageReader = new MockHeaderDelimitedMessageReader(inputString)
+            outStream = new MockOutputStream()
+            dispatch.Dispatch(messageReader, new DispatchSerializer(outStream))
+            mreturn outStream.FlushedData
+        endmethod
+        
+        public static method RunDispatchPool6, @string
+            inputString, @string
+            record
+                dispatch, @Pool6Dispatcher
+                outStream, @MockOutputStream
+                messageReader, @MockHeaderDelimitedMessageReader
+        proc
+            if(Logger.Instance == ^null)
+                Logger.Instance = new TraditionalBridge.Logger("fred.log", 6, false)
+
+            dispatch = new Pool6Dispatcher()
+            messageReader = new MockHeaderDelimitedMessageReader(inputString)
+            outStream = new MockOutputStream()
+            dispatch.Dispatch(messageReader, new DispatchSerializer(outStream))
+            mreturn outStream.FlushedData
+        endmethod
+        
+        public static method RunDispatchsmc, @string
+            inputString, @string
+            record
+                dispatch, @smcDispatcher
+                outStream, @MockOutputStream
+                messageReader, @MockHeaderDelimitedMessageReader
+        proc
+            if(Logger.Instance == ^null)
+                Logger.Instance = new TraditionalBridge.Logger("fred.log", 6, false)
+
+            dispatch = new smcDispatcher()
+            messageReader = new MockHeaderDelimitedMessageReader(inputString)
+            outStream = new MockOutputStream()
+            dispatch.Dispatch(messageReader, new DispatchSerializer(outStream))
+            mreturn outStream.FlushedData
+        endmethod
+        
+        public static method RunDispatchstrtests, @string
+            inputString, @string
+            record
+                dispatch, @strtestsDispatcher
+                outStream, @MockOutputStream
+                messageReader, @MockHeaderDelimitedMessageReader
+        proc
+            if(Logger.Instance == ^null)
+                Logger.Instance = new TraditionalBridge.Logger("fred.log", 6, false)
+
+            dispatch = new strtestsDispatcher()
+            messageReader = new MockHeaderDelimitedMessageReader(inputString)
+            outStream = new MockOutputStream()
+            dispatch.Dispatch(messageReader, new DispatchSerializer(outStream))
+            mreturn outStream.FlushedData
+        endmethod
+        
+        public static method RunDispatchsyntst, @string
+            inputString, @string
+            record
+                dispatch, @syntstDispatcher
+                outStream, @MockOutputStream
+                messageReader, @MockHeaderDelimitedMessageReader
+        proc
+            if(Logger.Instance == ^null)
+                Logger.Instance = new TraditionalBridge.Logger("fred.log", 6, false)
+
+            dispatch = new syntstDispatcher()
+            messageReader = new MockHeaderDelimitedMessageReader(inputString)
+            outStream = new MockOutputStream()
+            dispatch.Dispatch(messageReader, new DispatchSerializer(outStream))
+            mreturn outStream.FlushedData
+        endmethod
+
+        public static method RunDispatchTestDate, @string
+            inputString, @string
+            record
+                dispatch, @TestDateDispatcher
+                outStream, @MockOutputStream
+                messageReader, @MockHeaderDelimitedMessageReader
+        proc
+            if(Logger.Instance == ^null)
+                Logger.Instance = new TraditionalBridge.Logger("fred.log", 6, false)
+
+            dispatch = new TestDateDispatcher()
+            messageReader = new MockHeaderDelimitedMessageReader(inputString)
+            outStream = new MockOutputStream()
+            dispatch.Dispatch(messageReader, new DispatchSerializer(outStream))
+            mreturn outStream.FlushedData
+        endmethod
+
+        public static method RunDispatchUserData, @string
+            inputString, @string
+            record
+                dispatch, @UserDataDispatcher
+                outStream, @MockOutputStream
+                messageReader, @MockHeaderDelimitedMessageReader
+        proc
+            if(Logger.Instance == ^null)
+                Logger.Instance = new TraditionalBridge.Logger("fred.log", 6, false)
+
+            dispatch = new UserDataDispatcher()
+            messageReader = new MockHeaderDelimitedMessageReader(inputString)
+            outStream = new MockOutputStream()
+            dispatch.Dispatch(messageReader, new DispatchSerializer(outStream))
+            mreturn outStream.FlushedData
+        endmethod
+        
+        public static method RunDispatchV93IF, @string
+            inputString, @string
+            record
+                dispatch, @V93IFDispatcher
+                outStream, @MockOutputStream
+                messageReader, @MockHeaderDelimitedMessageReader
+        proc
+            if(Logger.Instance == ^null)
+                Logger.Instance = new TraditionalBridge.Logger("fred.log", 6, false)
+
+            dispatch = new V93IFDispatcher()
+            messageReader = new MockHeaderDelimitedMessageReader(inputString)
+            outStream = new MockOutputStream()
+            dispatch.Dispatch(messageReader, new DispatchSerializer(outStream))
+            mreturn outStream.FlushedData
+        endmethod
+        
+        public static method RunDispatchWCFields, @string
+            inputString, @string
+            record
+                dispatch, @WCFieldsDispatcher
+                outStream, @MockOutputStream
+                messageReader, @MockHeaderDelimitedMessageReader
+        proc
+            if(Logger.Instance == ^null)
+                Logger.Instance = new TraditionalBridge.Logger("fred.log", 6, false)
+
+            dispatch = new WCFieldsDispatcher()
+            messageReader = new MockHeaderDelimitedMessageReader(inputString)
+            outStream = new MockOutputStream()
+            dispatch.Dispatch(messageReader, new DispatchSerializer(outStream))
+            mreturn outStream.FlushedData
+        endmethod
+        
+        public static method RunDispatchZDateTime, @string
+            inputString, @string
+            record
+                dispatch, @ZDateTimeDispatcher
+                outStream, @MockOutputStream
+                messageReader, @MockHeaderDelimitedMessageReader
+        proc
+            if(Logger.Instance == ^null)
+                Logger.Instance = new TraditionalBridge.Logger("fred.log", 6, false)
+
+            dispatch = new ZDateTimeDispatcher()
+            messageReader = new MockHeaderDelimitedMessageReader(inputString)
+            outStream = new MockOutputStream()
+            dispatch.Dispatch(messageReader, new DispatchSerializer(outStream))
+            mreturn outStream.FlushedData
+        endmethod
+
+        public static method DecodeResult, void
+            in inputString, @string
+            out jsonRoot, @object
+            out element, JSON_ELEMENT
+            record
 .ifdef DBLV11
-				typedJsonDoc, @JsonDocument
+                typedJsonDoc, @JsonDocument
 .else
-				jsonReader, @Json
+                jsonReader, @Json
 .endc
-		proc
+        proc
 .ifdef DBLV11
-			jsonRoot = typedJsonDoc = JsonDocument.Parse(inputString)
-			element = typedJsonDoc.RootElement
+            jsonRoot = typedJsonDoc = JsonDocument.Parse(inputString)
+            element = typedJsonDoc.RootElement
 .else
-			jsonReader = new Json()
-			element = jsonReader.ParseJson(inputString)
+            jsonReader = new Json()
+            element = jsonReader.ParseJson(inputString)
 .endc
-		endmethod
+        endmethod
 
-		public static method EnsureSuccess, void
-			result, @string
-			record
-				root, @object
-				element, JSON_ELEMENT
-				dispatch, @MockDispatcher
-				errorElement, JSON_ELEMENT
-		proc
-			dispatch = new MockDispatcher()
-			DecodeResult(result, root, element)
-			if(element.TryGetProperty("error", errorElement))
-			begin
-				Assert.Fail("Failed with code {0} and message {1}", dispatch.GetDecimal(errorElement.GetProperty("code")), Convert.FromBase64String(dispatch.GetText(errorElement.GetProperty("message"))))
-			end
-		endmethod
+        public static method EnsureSuccess, void
+            result, @string
+            record
+                root, @object
+                element, JSON_ELEMENT
+                dispatch, @MockDispatcher
+                errorElement, JSON_ELEMENT
+        proc
+            dispatch = new MockDispatcher()
+            DecodeResult(result, root, element)
+            if(element.TryGetProperty("error", errorElement))
+            begin
+                Assert.Fail("Failed with code {0} and message {1}", dispatch.GetDecimal(errorElement.GetProperty("code")), Convert.FromBase64String(dispatch.GetText(errorElement.GetProperty("message"))))
+            end
+        endmethod
 
+        public static method RemoveMessageHeader, @string
+            fullInput, @string
+            record
+                startOfObject, int
+                endOfObject, int
+                inputLength, int
+        proc
+            inputLength = fullInput.Length
+            startOfObject = fullInput.IndexOf("{")
+            endOfObject = fullInput.IndexOf("Content-Length:", startOfObject)
+            if(endOfObject == -1)
+                endOfObject = fullInput.LastIndexOf("}") + 1
 
-		public static method RemoveMessageHeader, @string
-			fullInput, @string
-			record
-				startOfObject, int
-				endOfObject, int
-				inputLength, int
-		proc
-			inputLength = fullInput.Length
-			startOfObject = fullInput.IndexOf("{")
-			endOfObject = fullInput.IndexOf("Content-Length:", startOfObject)
-			if(endOfObject == -1)
-				endOfObject = fullInput.LastIndexOf("}") + 1
+            if(startOfObject > 0) then 
+                mreturn fullInput.Substring(startOfObject, (endOfObject - startOfObject))
+            else
+                mreturn fullInput
+        endmethod
 
-			if(startOfObject > 0) then 
-				mreturn fullInput.Substring(startOfObject, (endOfObject - startOfObject))
-			else
-				mreturn fullInput
-		endmethod
-
-
-	endclass
-
+    endclass
 endnamespace

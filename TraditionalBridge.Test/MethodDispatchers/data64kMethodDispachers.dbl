@@ -69,6 +69,7 @@ namespace TraditionalBridge.Test.data64k
             arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED INOUT DATASET [*]structure @Dataset)
+
             argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1],1493)
             arg1Array = arguments[1].GetProperty("PassedValue")
             arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.GetArrayLength())
@@ -83,7 +84,7 @@ namespace TraditionalBridge.Test.data64k
             ;;--------------------------------------------------------------------------------
             ;;Argument 1 (REQUIRED INOUT DATASET [*]structure @Dataset)
             
-            serializer.ArgumentHandleData(1,arg1Handle,FieldDataType.DataObjectCollectionField,1493,"DATASET",%mem_proc(DM_GETSIZE,arg1Handle)/1493,false)
+            serializer.ArgumentHandleData(1,arg1Handle,FieldDataType.DataObjectCollectionField,1493,"DATASET",%mem_proc(DM_GETSIZE,arg1Handle)/1493,true)
         endmethod
 
     endclass
@@ -111,19 +112,22 @@ namespace TraditionalBridge.Test.data64k
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED INOUT decparm1 D5)
-                arg1,               d5
+                arg1,               D5
                 ;;Argument 2 (REQUIRED IN inba D_HANDLE)
-                arg2,               d_handle
+                arg2Array,          JSON_ELEMENT
+                arg2Handle,         d_handle
                 ;;Argument 3 (REQUIRED INOUT alparm A10)
-                arg3,               a10
+                arg3,               A10
                 ;;Argument 4 (REQUIRED OUT outba D_HANDLE)
-                arg4,               d_handle
+                arg4Array,          JSON_ELEMENT
+                arg4Handle,         d_handle
                 ;;Argument 5 (REQUIRED INOUT idparm D5.2)
-                arg5,               d5.2
+                arg5,               D5.2
                 ;;Argument 6 (REQUIRED INOUT inoutba D_HANDLE)
-                arg6,               d_handle
+                arg6Array,          JSON_ELEMENT
+                arg6Handle,         d_handle
                 ;;Argument 7 (REQUIRED INOUT decparm2 D5)
-                arg7,               d5
+                arg7,               D5
                 returnValue,         I4
             endrecord
 
@@ -136,29 +140,41 @@ namespace TraditionalBridge.Test.data64k
             arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED INOUT decparm1 D5)
+
             arg1 = dispatcher.GetDecimal(arguments[1])
 
             ;;Argument 2 (REQUIRED IN inba D_HANDLE)
-            ;TODO: Template needs code for BINARY HANDLE arguments!
-            arg2 =
+
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[2])
+            arg2Array = arguments[2].GetProperty("PassedValue")
+            arg2Handle = %mem_proc(DM_ALLOC,arg2Array.GetArrayLength())
 
             ;;Argument 3 (REQUIRED INOUT alparm A10)
+
             arg3 = dispatcher.GetText(arguments[3])
 
+            ;;Argument 4 (REQUIRED OUT outba D_HANDLE)
+
+            arg4Handle = %mem_proc(DM_ALLOC,4)
+
             ;;Argument 5 (REQUIRED INOUT idparm D5.2)
+
             arg5 = dispatcher.GetImplied(arguments[5])
 
             ;;Argument 6 (REQUIRED INOUT inoutba D_HANDLE)
-            ;TODO: Template needs code for BINARY HANDLE arguments!
-            arg6 =
+
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[6])
+            arg6Array = arguments[6].GetProperty("PassedValue")
+            arg6Handle = %mem_proc(DM_ALLOC,arg6Array.GetArrayLength())
 
             ;;Argument 7 (REQUIRED INOUT decparm2 D5)
+
             arg7 = dispatcher.GetDecimal(arguments[7])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
 
-            returnValue = %BinaryArrayTest(arg1,arg2,arg3,arg4,arg5,arg6,arg7)
+            returnValue = %BinaryArrayTest(arg1,arg2Handle,arg3,arg4Handle,arg5,arg6Handle,arg7)
 
             ;;Function return value
             serializer.ArgumentData(0,returnValue,FieldDataType.IntegerField,4,0,false)
@@ -176,7 +192,7 @@ namespace TraditionalBridge.Test.data64k
             ;;--------------------------------------------------------------------------------
             ;;Argument 4 (REQUIRED OUT outba D_HANDLE)
             
-            ;TODO: Binary Handle support is incomplete and will FAIL!!!
+            serializer.ArgumentData(4,arg4Handle,FieldDataType.IntegerField,4,0,false)
 
             ;;--------------------------------------------------------------------------------
             ;;Argument 5 (REQUIRED INOUT idparm D5.2)
@@ -186,7 +202,7 @@ namespace TraditionalBridge.Test.data64k
             ;;--------------------------------------------------------------------------------
             ;;Argument 6 (REQUIRED INOUT inoutba D_HANDLE)
             
-            ;TODO: Binary Handle support is incomplete and will FAIL!!!
+            serializer.ArgumentData(6,arg6Handle,FieldDataType.IntegerField,4,0,false)
 
             ;;--------------------------------------------------------------------------------
             ;;Argument 7 (REQUIRED INOUT decparm2 D5)
@@ -219,7 +235,8 @@ namespace TraditionalBridge.Test.data64k
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED IN inBA D_HANDLE)
-                arg1,               d_handle
+                arg1Array,          JSON_ELEMENT
+                arg1Handle,         d_handle
             endrecord
 
 
@@ -231,13 +248,15 @@ namespace TraditionalBridge.Test.data64k
             arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED IN inBA D_HANDLE)
-            ;TODO: Template needs code for BINARY HANDLE arguments!
-            arg1 =
+
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1])
+            arg1Array = arguments[1].GetProperty("PassedValue")
+            arg1Handle = %mem_proc(DM_ALLOC,arg1Array.GetArrayLength())
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
 
-            xcall inBinaryArrayTest(arg1)
+            xcall inBinaryArrayTest(arg1Handle)
         endmethod
 
     endclass
@@ -265,7 +284,8 @@ namespace TraditionalBridge.Test.data64k
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED IN p1 D_HANDLE)
-                arg1,               d_handle
+                arg1Array,          JSON_ELEMENT
+                arg1Handle,         d_handle
             endrecord
 
 
@@ -277,13 +297,15 @@ namespace TraditionalBridge.Test.data64k
             arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED IN p1 D_HANDLE)
-            ;TODO: Template needs code for HANDLE arguments!
-            arg1 = 
+
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1])
+            arg1Array = arguments[1].GetProperty("PassedValue")
+            arg1Handle = %mem_proc(DM_ALLOC,arg1Array.GetArrayLength())
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
 
-            xcall inHandle(arg1)
+            xcall inHandle(arg1Handle)
         endmethod
 
     endclass
@@ -311,7 +333,8 @@ namespace TraditionalBridge.Test.data64k
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED INOUT inoutba D_HANDLE)
-                arg1,               d_handle
+                arg1Array,          JSON_ELEMENT
+                arg1Handle,         d_handle
             endrecord
 
 
@@ -323,18 +346,20 @@ namespace TraditionalBridge.Test.data64k
             arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED INOUT inoutba D_HANDLE)
-            ;TODO: Template needs code for BINARY HANDLE arguments!
-            arg1 =
+
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1])
+            arg1Array = arguments[1].GetProperty("PassedValue")
+            arg1Handle = %mem_proc(DM_ALLOC,arg1Array.GetArrayLength())
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
 
-            xcall inOutBinaryArrayTest(arg1)
+            xcall inOutBinaryArrayTest(arg1Handle)
 
             ;;--------------------------------------------------------------------------------
             ;;Argument 1 (REQUIRED INOUT inoutba D_HANDLE)
             
-            ;TODO: Binary Handle support is incomplete and will FAIL!!!
+            serializer.ArgumentData(1,arg1Handle,FieldDataType.IntegerField,4,0,false)
         endmethod
 
     endclass
@@ -362,7 +387,8 @@ namespace TraditionalBridge.Test.data64k
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED INOUT p1 D_HANDLE)
-                arg1,               d_handle
+                arg1Array,          JSON_ELEMENT
+                arg1Handle,         d_handle
             endrecord
 
 
@@ -374,18 +400,20 @@ namespace TraditionalBridge.Test.data64k
             arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED INOUT p1 D_HANDLE)
-            ;TODO: Template needs code for HANDLE arguments!
-            arg1 = 
+
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1])
+            arg1Array = arguments[1].GetProperty("PassedValue")
+            arg1Handle = %mem_proc(DM_ALLOC,arg1Array.GetArrayLength())
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
 
-            xcall inoutHandle(arg1)
+            xcall inoutHandle(arg1Handle)
 
             ;;--------------------------------------------------------------------------------
             ;;Argument 1 (REQUIRED INOUT p1 D_HANDLE)
             
-            ;TODO: Handle support is incomplete and will FAIL!!!
+            serializer.ArgumentData(1,arg1Handle,FieldDataType.IntegerField,4,0,false)
         endmethod
 
     endclass
@@ -413,7 +441,8 @@ namespace TraditionalBridge.Test.data64k
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED INOUT p1 D_HANDLE)
-                arg1,               d_handle
+                arg1Array,          JSON_ELEMENT
+                arg1Handle,         d_handle
             endrecord
 
 
@@ -425,18 +454,20 @@ namespace TraditionalBridge.Test.data64k
             arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED INOUT p1 D_HANDLE)
-            ;TODO: Template needs code for HANDLE arguments!
-            arg1 = 
+
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1])
+            arg1Array = arguments[1].GetProperty("PassedValue")
+            arg1Handle = %mem_proc(DM_ALLOC,arg1Array.GetArrayLength())
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
 
-            xcall inoutHandle2(arg1)
+            xcall inoutHandle2(arg1Handle)
 
             ;;--------------------------------------------------------------------------------
             ;;Argument 1 (REQUIRED INOUT p1 D_HANDLE)
             
-            ;TODO: Handle support is incomplete and will FAIL!!!
+            serializer.ArgumentData(1,arg1Handle,FieldDataType.IntegerField,4,0,false)
         endmethod
 
     endclass
@@ -464,7 +495,8 @@ namespace TraditionalBridge.Test.data64k
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED OUT outba D_HANDLE)
-                arg1,               d_handle
+                arg1Array,          JSON_ELEMENT
+                arg1Handle,         d_handle
             endrecord
 
 
@@ -473,17 +505,21 @@ namespace TraditionalBridge.Test.data64k
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            ;;There are no inbound arguments to process
+            arguments = callFrame.GetProperty("params")
+
+            ;;Argument 1 (REQUIRED OUT outba D_HANDLE)
+
+            arg1Handle = %mem_proc(DM_ALLOC,4)
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
 
-            xcall outBinaryArrayTest(arg1)
+            xcall outBinaryArrayTest(arg1Handle)
 
             ;;--------------------------------------------------------------------------------
             ;;Argument 1 (REQUIRED OUT outba D_HANDLE)
             
-            ;TODO: Binary Handle support is incomplete and will FAIL!!!
+            serializer.ArgumentData(1,arg1Handle,FieldDataType.IntegerField,4,0,false)
         endmethod
 
     endclass
@@ -511,9 +547,10 @@ namespace TraditionalBridge.Test.data64k
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED IN filename A80)
-                arg1,               a80
+                arg1,               A80
                 ;;Argument 2 (REQUIRED OUT outba D_HANDLE)
-                arg2,               d_handle
+                arg2Array,          JSON_ELEMENT
+                arg2Handle,         d_handle
             endrecord
 
 
@@ -525,17 +562,22 @@ namespace TraditionalBridge.Test.data64k
             arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED IN filename A80)
+
             arg1 = dispatcher.GetText(arguments[1])
+
+            ;;Argument 2 (REQUIRED OUT outba D_HANDLE)
+
+            arg2Handle = %mem_proc(DM_ALLOC,4)
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
 
-            xcall outFileBinaryArrayTest(arg1,arg2)
+            xcall outFileBinaryArrayTest(arg1,arg2Handle)
 
             ;;--------------------------------------------------------------------------------
             ;;Argument 2 (REQUIRED OUT outba D_HANDLE)
             
-            ;TODO: Binary Handle support is incomplete and will FAIL!!!
+            serializer.ArgumentData(2,arg2Handle,FieldDataType.IntegerField,4,0,false)
         endmethod
 
     endclass
@@ -563,7 +605,8 @@ namespace TraditionalBridge.Test.data64k
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED OUT p1 D_HANDLE)
-                arg1,               d_handle
+                arg1Array,          JSON_ELEMENT
+                arg1Handle,         d_handle
             endrecord
 
 
@@ -572,17 +615,21 @@ namespace TraditionalBridge.Test.data64k
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            ;;There are no inbound arguments to process
+            arguments = callFrame.GetProperty("params")
+
+            ;;Argument 1 (REQUIRED OUT p1 D_HANDLE)
+
+            arg1Handle = %mem_proc(DM_ALLOC,4)
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
 
-            xcall outHandle(arg1)
+            xcall outHandle(arg1Handle)
 
             ;;--------------------------------------------------------------------------------
             ;;Argument 1 (REQUIRED OUT p1 D_HANDLE)
             
-            ;TODO: Handle support is incomplete and will FAIL!!!
+            serializer.ArgumentData(1,arg1Handle,FieldDataType.IntegerField,4,0,false)
         endmethod
 
     endclass
@@ -610,9 +657,10 @@ namespace TraditionalBridge.Test.data64k
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED INOUT P1Handle D_HANDLE)
-                arg1,               d_handle
+                arg1Array,          JSON_ELEMENT
+                arg1Handle,         d_handle
                 ;;Argument 2 (REQUIRED OUT P2Alpha A20)
-                arg2,               a20
+                arg2,               A20
             endrecord
 
 
@@ -624,18 +672,23 @@ namespace TraditionalBridge.Test.data64k
             arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED INOUT P1Handle D_HANDLE)
-            ;TODO: Template needs code for HANDLE arguments!
-            arg1 = 
+
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1])
+            arg1Array = arguments[1].GetProperty("PassedValue")
+            arg1Handle = %mem_proc(DM_ALLOC,arg1Array.GetArrayLength())
+
+            ;;Argument 2 (REQUIRED OUT P2Alpha A20)
+
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
 
-            xcall twoparmsrtn(arg1,arg2)
+            xcall twoparmsrtn(arg1Handle,arg2)
 
             ;;--------------------------------------------------------------------------------
             ;;Argument 1 (REQUIRED INOUT P1Handle D_HANDLE)
             
-            ;TODO: Handle support is incomplete and will FAIL!!!
+            serializer.ArgumentData(1,arg1Handle,FieldDataType.IntegerField,4,0,false)
 
             ;;--------------------------------------------------------------------------------
             ;;Argument 2 (REQUIRED OUT P2Alpha A20)
