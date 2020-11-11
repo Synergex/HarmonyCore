@@ -1,77 +1,63 @@
 
-;;*****************************************************************************
-;;
-;; Title:       TraditionalBridgeHost.dbl
-;;
-;; Description: A program to host a Harmony Core Traditional Bridge environment
-;;              that exposes traditional Synergy business logic to a Harmony
-;;              Core RESTful web service
-;;
-;;*****************************************************************************
-
 import Harmony.TraditionalBridge
 import Json
 import TraditionalBridge.Test
 
-main TraditionalBridgeHost
+.ifdef D_VMS
+.define LOG_EXTENSION ".log;1"
+.else
+.define LOG_EXTENSION ".log"
+.endc
 
-    record
-        ttChan,         i4                  ;;Terminal channel number
-        length,         int                 ;;Length of a strin
-        tmpa,           a10                 ;;Temporary alpha variable
-        logLevel,       int, 2              ;;Logging level. 2 is normal logging, 6 is highest logging.
-        logFileName,    string              ;;Log file name
-        dispatcher,     @SuperRoutineDispatcher  ;;Message dispatcher instance
-        group now, a20
-            ymdhms, a14
-            ,a6
-        endgroup
-    endrecord
+main
+	record
+		disp, @SuperRoutineDispatcher
+        ttChan, i4
+        processId, d10
+        processName, a256
+        logLevel, a1
+        logLevelLength, int
+        logLevelInt, int
+	endrecord
 proc
-    try
-    begin
-        ;;Configure the environment and open the terminal chanel.
-        ;;Remember this (STDIN) is the mechanism by which Harmony Core will send
-        ;;us requests, and is the mechanism by which we will issue responses.
+	try
+	begin
+		data jsn, @Json.Json, new Json.Json()
+		data jsnValue, @Json.JsonValue
+		data jsnObj, @Json.JsonObject
+		data jsnArray, @Json.JsonArray
+		data targetLogSettings, @LoggerScopeSettings, new LoggerScopeSettings()
+		nop
+		xcall flags(1907050020)
+        open(ttChan=0, O, "TT:")
 
-        xcall flags(1907050020)
-        open(ttChan=0,o,"TT:")
+        ;;get the process number to create a unique log file name with
+        xcall JBNO(processId)
+        xcall JBNAM(processName)
+        getlog("HARMONY_LOG_LEVEL", logLevel, logLevelLength)
+        if(logLevelLength > 0) then
+            logLevelInt = %integer(logLevel)
+        else
+            logLevelInt = 6 ;log almost everything
 
-        ;;Does the environment define the logging level?
-        getlog("HARMONY_LOG_LEVEL", tmpa, length)
-        if (length)
-            logLevel = %integer(tmpa)
-        
-        ;;Define the log file name
-        now = %datetime
-        logFileName = "BRIDGE_" + ymdhms + "_" + %string(%jbno) + ".LOG"
+        Logger.Instance = new TraditionalBridge.Logger(%atrim(processName) + "_" + %string(processId) + LOG_EXTENSION, logLevelInt, false)
+		
+		puts(ttChan, "READY" + %char(13)+ %char(10))
 
-        ;;Initiate logging
-        Logger.Instance = new Logger(logFileName, logLevel, false)
-        
-        ;;Create a new instance of the main "dispather" class
-        dispatcher = new SuperRoutineDispatcher(new RoutineDispatcher[#] { new AutoTimeDispatcher(), new EncryptDispatcher(), new IF913Dispatcher(), new NoParmsDispatcher(), new Pool1Dispatcher(), new Pool2Dispatcher(), new Pool3Dispatcher(), new Pool4Dispatcher(), new Pool5Dispatcher(), new Pool6Dispatcher(), new SampleXfplEnvDispatcher(), new smcDispatcher(), new syntstDispatcher(), new TestDateDispatcher(), new UserDataDispatcher(), new WCFieldsDispatcher(), new ZDateTimeDispatcher() })
-        
-        ;;Issue the "READY" message.
-        ;;Harmony Core looks for this and considers the connection active when it sees it
-        puts(ttChan, "READY" + %char(13)+ %char(10))
+		;disp = new SuperRoutineDispatcher(new RoutineDispatcher[#] { new AutoTimeDispatcher(), new BinaryTransferDispatcher(), new data64kDispatcher(), new EncryptDispatcher(), new IF913Dispatcher(), new LrgPktsDispatcher(), new NoParmsDispatcher(), new Pool1Dispatcher(), new Pool2Dispatcher(), new Pool3Dispatcher(), new Pool4Dispatcher(), new Pool5Dispatcher(), new Pool6Dispatcher(), new SampleXfplEnvDispatcher(), new smcDispatcher(), new strtestsDispatcher(), new syntstDispatcher(), new TestDateDispatcher(), new UserDataDispatcher(), new WCFieldsDispatcher(), new ZDateTimeDispatcher() })
 
-        ;;Start dispatching requests
-        dispatcher.Dispatch(ttChan)
+		disp = new SuperRoutineDispatcher(new RoutineDispatcher[#] { new AutoTimeDispatcher(), new EncryptDispatcher(), new IF913Dispatcher(), new NoParmsDispatcher(), new Pool1Dispatcher(), new Pool2Dispatcher(), new Pool3Dispatcher(), new Pool4Dispatcher(), new Pool5Dispatcher(), new Pool6Dispatcher(), new SampleXfplEnvDispatcher(), new smcDispatcher(), new syntstDispatcher(), new TestDateDispatcher(), new UserDataDispatcher(), new WCFieldsDispatcher(), new ZDateTimeDispatcher() })
 
-    end
-    catch(e, @Exception)
-    begin
-        ;;If anything failed, log an error if we can
-        if (Logger.Instance != ^null)
-            Logger.Instance.Log("DISPATCHER EXITED with exception" + e.ToString())
-    end
-    endtry
-    
-    ;;Close the log
-    if (Logger.Instance != ^null)
-        Logger.Instance.CloseLog()
-
-    stop
+		disp.Dispatch(ttChan)
+	end
+	
+	catch(e, @Exception)
+	begin
+		if(Logger.Instance != ^null)
+			Logger.Instance.Log("DISPATCHER EXITED with exception" + e.ToString())
+	end
+	endtry
+	if(Logger.Instance != ^null)
+		Logger.Instance.CloseLog()
 
 endmain

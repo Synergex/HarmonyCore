@@ -1,4 +1,4 @@
-<CODEGEN_FILENAME><SMC_INTERFACE>DispatcherCustom.dbl</CODEGEN_FILENAME>
+<CODEGEN_FILENAME><SMC_INTERFACE>DispatcherData.dbl</CODEGEN_FILENAME>
 <REQUIRES_USERTOKEN>SMC_INTERFACE</REQUIRES_USERTOKEN>
 <REQUIRES_CODEGEN_VERSION>5.4.6</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
@@ -55,12 +55,9 @@ namespace <NAMESPACE>
 		;;; Initialize all data object metadata
 		;;; <summary>
 		private method initMetaData, void
-		record
-			dataObj, @DataObjectMetadataBase
 		proc
 			<STRUCTURE_LOOP>
-			xcall Meta<StructureNoplural>(dataObj)
-			DataObjectMetadataBase.ForceLookupType("<StructureNoplural>", dataObj)
+			DataObjectMetadataBase.LookupType("<StructureNoplural>")
 			</STRUCTURE_LOOP>		
 		endmethod
 

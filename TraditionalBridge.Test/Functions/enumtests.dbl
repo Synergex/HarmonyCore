@@ -1,23 +1,25 @@
-
-import TraditionalBridge.Test.Models
-
 .include "MYCOLOR" REPOSITORY ,public ENUM
 .include "DAYOFWEEK" REPOSITORY ,public ENUM
+.include "BINARYTEST" REPOSITORY ,structure="Binarytest" ,end
+.include "ENUMSTRUCTURE" REPOSITORY ,structure="Enumstructure" ,end
+.include "FUENTES" REPOSITORY ,structure="strFuentes" ,end
+;.include "STROPTSOUTTER" REPOSITORY ,structure="Stroptsoutter" ,end; 
+.include "TIMEKEY" REPOSITORY ,structure="Timekey" ,end
 
 public enum Color	; old #
-  red		    ,0   	; 1
-  blue		    ,1	    ; 2
-  green		    ,2	    ; 3
-  yellow	    ,3	    ; 4
+  red		,0   	; 1
+  blue		,1	; 2
+  green		,2	; 3
+  yellow	,3	; 4
 endenum
 
 public enum DaysOfTheWeek
-    Sunday	    ,1
-    Monday	    ,2
-    Tuesday	    ,3
+    Sunday	,1
+    Monday	,2
+    Tuesday	,3
     Wednesday	,4
     Thursday	,5
-    Friday	    ,6
+    Friday	,6
     Saturday	,7
 endenum
 
@@ -126,8 +128,8 @@ record
 
 {xfMethod(interface="V93IF",name="EnumTest4",elb="TEST:V93ELB",id="EnumTest4")}
 subroutine EnumTest4
-{xfParameter(name="ENUMSTRUCTURE",structure="strEnumstructure")}
-req inout   a_enumStr ,strEnumstructure        ;;
+{xfParameter(name="ENUMSTRUCTURE",structure="Enumstructure")}
+req inout   a_enumStr ,Enumstructure        ;;
 endparams
 ;.subroutine enumtest4
 ;        a_enumStr        ,a
@@ -171,8 +173,8 @@ record EnumTst
 
 {xfMethod(interface="V93IF",name="EnumTest5",elb="TEST:V93ELB",id="EnumTest5")}
 subroutine EnumTest5
-{xfParameter(name="ENUMSTRUCTURE",structure="strEnumstructure")}
-req inout   a_strary ,[*]strEnumstructure     ;;
+{xfParameter(name="ENUMSTRUCTURE",structure="Enumstructure")}
+req inout   a_strary ,[*]Enumstructure     ;;
 endparams
 ;.subroutine enumtest5
 ;        a_strary        ,[*]a
@@ -216,7 +218,7 @@ record EnumTst
 
 {xfMethod(interface="V93IF",name="EnumTest6",elb="TEST:V93ELB",id="EnumTest6")}
 subroutine EnumTest6
-{xfParameter(name="ENUMSTRUCTURE",structure="strEnumstructure",collectionType=xfCollectType.structure)}
+{xfParameter(name="ENUMSTRUCTURE",structure="Enumstructure",collectionType=xfCollectType.structure)}
 req in      a_al ,@System.Collections.ArrayList ;;
 endparams
 ;.subroutine enumtest6
@@ -232,7 +234,7 @@ record
 		m_day	,DaysOfTheWeek
 		abox	,@a
 		arylst	,@System.Collections.ArrayList
-		aRec	,strEnumstructure
+		aRec	,Enumstructure
 
 record EnumTst                                              
   ID     ,D6       ; (1,6) key                                                  
@@ -257,8 +259,8 @@ record EnumTst
 		begin
 	;	    abox = arylst[ndx]
 	;	    EnumTst = (a)abox
-			;;;		EnumTst = (strEnumstructure)arylst[ndx]
-			aRec = (strEnumstructure)arylst[ndx]
+			;;;		EnumTst = (Enumstructure)arylst[ndx]
+			aRec = (Enumstructure)arylst[ndx]
 			EnumTst = aRec
 		    writes(chan, EnumTst)
 		    m_color =  (Color)(%integer(EnumTst.ACOLOR))
@@ -276,7 +278,7 @@ record EnumTst
 
 {xfMethod(interface="V93IF",name="EnumTest7",elb="TEST:V93ELB",id="EnumTest7")}
 subroutine EnumTest7
-{xfParameter(name="ENUMSTRUCTURE",structure="strEnumstructure",collectionType=xfCollectType.structure)}
+{xfParameter(name="ENUMSTRUCTURE",structure="Enumstructure",collectionType=xfCollectType.structure)}
 req out     a_al ,@System.Collections.ArrayList ;;
 endparams
 ;.subroutine enumtest7
@@ -290,7 +292,7 @@ record
 		m_color	,Color
 		m_day	,DaysOfTheWeek
 		abox	,@a
-		aSt1	,strEnumstructure
+		aSt1	,Enumstructure
 		arylst	,@System.Collections.ArrayList
 
 record EnumTst                                              
@@ -540,11 +542,14 @@ record Arsposopts
 
 ; -------------------------------------------------------------------------------
 
-{xfMethod(interface="V93IF",name="DeFuentes",elb="TEST:V93ELB",id="DoFuentes")}
-subroutine DeFuentes
-{xfParameter(name="FUENTES",structure="strFuentes", length=43)}
+{xfMethod(interface="V93IF",name="DestrFuentes",elb="TEST:V93ELB",id="DostrFuentes")}
+subroutine DestrFuentes
+{xfParameter(name="strFuentes",structure="strFuentes", length=43)}
 req inout   a_fu     ,strFuentes                ;;
 endparams
+;.subroutine DestrFuentes
+;       Arguments
+;        a_fu         ,a
 
 .align
 record
@@ -553,7 +558,7 @@ record
         ast     ,a25
 	d2	,d2
 
-record LaFuentes
+record LastrFuentes
   FIELDONE    ,A20  ; (1,20)
 
   FIELD2      ,D12  ; (21,32)
@@ -565,25 +570,25 @@ record LaFuentes
 
 .proc
 ;	chan = 211
-;	open(chan, a, "TEST:fuentes.log")
-	LaFuentes = a_fu
-;	writes(chan, LaFuentes)
-	LaFuentes.FIELDONE = "Hello There Fuentes"
-	LaFuentes.FIELD2 = 445566778899
-	LaFuentes.BINARYFIELD = "abcdef"
-	LaFuentes.Dec = 41125
-	a_fu = LaFuentes
-;	writes(chan, LaFuentes)
+;	open(chan, a, "TEST:strFuentes.log")
+	LastrFuentes = a_fu
+;	writes(chan, LastrFuentes)
+	LastrFuentes.FIELDONE = "Hello There strFuentes"
+	LastrFuentes.FIELD2 = 445566778899
+	LastrFuentes.BINARYFIELD = "abcdef"
+	LastrFuentes.Dec = 41125
+	a_fu = LastrFuentes
+;	writes(chan, LastrFuentes)
 ;	writes(chan, "    ")
 ;	close (chan)
         xreturn 
 .end
 ; ---------------------------------------------------------------------------
-{xfMethod(interface="V93IF",name="DoFuentesALin",elb="TEST:V93ELB",id="DoFuentesALin")}
+{xfMethod(interface="V93IF",name="DostrFuentesALin",elb="TEST:V93ELB",id="DostrFuentesALin")}
 
-subroutine DoFuentesALin
+subroutine DostrFuentesALin
 
-{xfParameter(name="FUENTES",structure="strFuentes",collectionType=xfCollectType.structure)}
+{xfParameter(name="strFuentes",structure="strFuentes",collectionType=xfCollectType.structure)}
 req in      Alin     ,@System.Collections.ArrayList ;;
 
 endparams
@@ -594,7 +599,7 @@ record
         ast     ,a25
 	d2	,d2
 
-record LaFuentes
+record LastrFuentes
   FIELDONE    ,A20  ; (1,20)
 
   FIELD2      ,D12  ; (21,32)
@@ -606,9 +611,9 @@ record LaFuentes
 proc
 
 ;	chan = 211
-;	open(chan, a, "TEST:fuentes.log")
-	LaFuentes = (strFuentes)Alin[1]
-;	writes(chan, LaFuentes)
+;	open(chan, a, "TEST:strFuentes.log")
+	LastrFuentes = (strFuentes)Alin[1]
+;	writes(chan, LastrFuentes)
 ;	writes(chan, "    ")
 ;	close (chan)
 
@@ -617,11 +622,11 @@ proc
 endsubroutine
 ; ---------------------------------------------------------------------------
 
-{xfMethod(interface="V93IF",name="DoFuentesALout",elb="TEST:V93ELB",id="DoFuentesALout")}
+{xfMethod(interface="V93IF",name="DostrFuentesALout",elb="TEST:V93ELB",id="DostrFuentesALout")}
 
-subroutine DoFuentesALout
+subroutine DostrFuentesALout
 
-{xfParameter(name="FUENTES",structure="strFuentes",collectionType=xfCollectType.structure)}
+{xfParameter(name="strFuentes",structure="strFuentes",collectionType=xfCollectType.structure)}
 req out     Alout     ,@System.Collections.ArrayList ;;
 
 endparams
@@ -636,7 +641,7 @@ record
 		arylst	,@System.Collections.ArrayList
 	
 
-record LaFuentes
+record LastrFuentes
   FIELDONE    ,A20  ; (1,20)
 
   FIELD2      ,D12  ; (21,32)
@@ -647,23 +652,23 @@ record LaFuentes
 proc
 
 ;	chan = 211
-;	open(chan, a, "TEST:fuentes.log")
+;	open(chan, a, "TEST:strFuentes.log")
 
 	arylst = new System.Collections.ArrayList()
 	for i from 1 thru 3
 	  begin
-		clear LaFuentes
-		LaFuentes.FIELDONE = "Hello There Fuentes"
-		LaFuentes.FIELD2 = 445566778899
-		LaFuentes.BINARYFIELD = "abcdef"
-		LaFuentes.Dec = 41125
-;		writes(chan, LaFuentes)
+		clear LastrFuentes
+		LastrFuentes.FIELDONE = "Hello There strFuentes"
+		LastrFuentes.FIELD2 = 445566778899
+		LastrFuentes.BINARYFIELD = "abcdef"
+		LastrFuentes.Dec = 41125
+;		writes(chan, LastrFuentes)
 ;		writes(chan, "    ")
 .ifdef DBLNET
-		recF = LaFuentes
+		recF = LastrFuentes
 		arylst.Add(recF)
 .else
-		abox = (@a)LaFuentes
+		abox = (@a)LastrFuentes
 		arylst.add(abox)
 .endc
 	  end
@@ -721,7 +726,7 @@ record
     end
   writes(chn,"Out * " + ^m(Bbd.Bbdy(1:5),grfa))
   close (chn)
-  struct = "hello there fuentes"
+  struct = "hello there strFuentes"
   rtn = 0
   freturn (rtn)
 .end
@@ -775,7 +780,7 @@ record
   writes(chn,"IN * " + ^m(Bbd.Bbdy(1:psiz),grfa))
   writes(chn,"str = " + str)
   close (chn)
-  struct = "hello there fuentes"
+  struct = "hello there strFuentes"
   rtn = 0
   freturn (rtn)
 .end
@@ -836,7 +841,7 @@ record
     end
   writes(chn,"Out * " + ^m(Bbd.Bbdy(1:5),grfa))
   close (chn)
-  struct = "hello there fuentes"
+  struct = "hello there strFuentes"
   rtn = 0
   freturn (rtn)
 .end

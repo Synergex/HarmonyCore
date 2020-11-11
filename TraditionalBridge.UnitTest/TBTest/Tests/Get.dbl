@@ -1,0 +1,82 @@
+import Json
+import Synergex.TestFramework
+import Harmony.TraditionalBridge
+import System.Text.Json
+import TraditionalBridge.Test
+
+namespace TraditionalBridge.UnitTest
+
+    {TestClass}
+    public class Get
+
+        {TestCategory("Get")}
+        {TestMethod}
+        ;;; <summary>
+        ;;; Gets all customers from DAT:customers.ism, returns METHOD_STATUS
+        ;;; </summary>
+        public method GetAllCustomers, void
+            endparams
+            record
+                dispatchResult, @string
+        proc
+            dispatchResult = DispatchRunner.RemoveMessageHeader(DispatchRunner.RunDispatch('{"jsonrpc":"2.0","id":4,"method":"GetAllCustomers", "params":[{"ReturnedValue":true,"DataType":64}]}'))
+            DispatchRunner.EnsureSuccess(dispatchResult)
+        endmethod
+        
+        {TestCategory("Get")}
+        {TestMethod}
+        ;;; <summary>
+        ;;; Outs array of customers and error msg. Returns METHOD_STATUS.SUCCESS
+        ;;; </summary>
+        public method GetCustomerArray, void
+            endparams
+            record
+                dispatchResult, @string
+        proc
+            dispatchResult = DispatchRunner.RemoveMessageHeader(DispatchRunner.RunDispatch('{"jsonrpc":"2.0","id":5,"method":"GetCustomerArray", "params":[{"ReturnedValue":true,"DataType":8}, {"PassedValue":["hello","world"],"DataType":1024}, {"PassedValue":"helloworld","DataType":1}]}'))
+            DispatchRunner.EnsureSuccess(dispatchResult)
+        endmethod
+        
+        {TestCategory("Get")}
+        {TestMethod}
+        ;;; <summary>
+        ;;; Gets all items from DAT:items.ism, returns METHOD_STATUS
+        ;;; </summary>
+        public method GetAllItems, void
+            endparams
+            record
+                dispatchResult, @string
+        proc
+            dispatchResult = DispatchRunner.RemoveMessageHeader(DispatchRunner.RunDispatch('{"jsonrpc":"2.0","id":6,"method":"GetAllItems", "params":[{"ReturnedValue":true,"DataType":64}]}'))
+            DispatchRunner.EnsureSuccess(dispatchResult)
+        endmethod
+        
+        {TestCategory("Get")}
+        {TestMethod}
+        ;;; <summary>
+        ;;; Gets all items from DAT:orders.ism, returns METHOD_STATUS
+        ;;; </summary>
+        public method GetAllOrders, void
+            endparams
+            record
+                dispatchResult, @string
+        proc
+            dispatchResult = DispatchRunner.RemoveMessageHeader(DispatchRunner.RunDispatch('{"jsonrpc":"2.0","id":7,"method":"GetAllOrders", "params":[{"ReturnedValue":true,"DataType":64}]}'))
+            DispatchRunner.EnsureSuccess(dispatchResult)
+        endmethod
+        
+        {TestCategory("Get")}
+        {TestMethod}
+        ;;; <summary>
+        ;;; Gets all items from DAT:vendors.ism, returns METHOD_STATUS
+        ;;; </summary>
+        public method GetAllVendors, void
+            endparams
+            record
+                dispatchResult, @string
+        proc
+            dispatchResult = DispatchRunner.RemoveMessageHeader(DispatchRunner.RunDispatch('{"jsonrpc":"2.0","id":8,"method":"GetAllVendors", "params":[{"ReturnedValue":true,"DataType":64}]}'))
+            DispatchRunner.EnsureSuccess(dispatchResult)
+        endmethod
+    endclass
+endnamespace
