@@ -107,6 +107,7 @@ namespace TraditionalBridge.Test.SampleXfplEnv
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED OUT Customers [*]A162)
+                arg1Array,			JSON_ELEMENT
                 arg1Handle,			D_HANDLE
                 arg1HandlePos,		int
                 ;;Argument 2 (REQUIRED OUT ErrorMessage A80)
@@ -125,7 +126,14 @@ namespace TraditionalBridge.Test.SampleXfplEnv
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            ;;There are no inbound arguments to process
+            arguments = callFrame.GetProperty("params")
+
+            ;;Argument 1 (REQUIRED OUT Customers [*]A162))
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1], 162)
+            arg1Array = (arguments[1]).GetProperty("PassedValue")
+            arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.GetArrayLength())
+            arg1HandlePos = 1
+            dispatcher.UnwrapObjectCollection(^m(arg1Handle),argumentDefinition,arg1HandlePos,arg1Array)
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -179,12 +187,6 @@ namespace TraditionalBridge.Test.SampleXfplEnv
                 returnValue,		METHOD_STATUS
             endrecord
 
-                ;;Argument 1 (REQUIRED OUT Items ArrayList collection of structure @Item)
-                arg1,				@ArrayList
-                ;;Argument 2 (REQUIRED OUT ErrorMessage A80)
-                arg2,				a80
-                returnValue,		METHOD_STATUS
-            endrecord
 
         proc
 
@@ -245,12 +247,6 @@ namespace TraditionalBridge.Test.SampleXfplEnv
                 returnValue,		METHOD_STATUS
             endrecord
 
-                ;;Argument 1 (REQUIRED OUT Orders ArrayList collection of structure @Order)
-                arg1,				@ArrayList
-                ;;Argument 2 (REQUIRED OUT ErrorMessage A80)
-                arg2,				a80
-                returnValue,		METHOD_STATUS
-            endrecord
 
         proc
 
@@ -311,12 +307,6 @@ namespace TraditionalBridge.Test.SampleXfplEnv
                 returnValue,		METHOD_STATUS
             endrecord
 
-                ;;Argument 1 (REQUIRED OUT Vendors ArrayList collection of structure @Vendor)
-                arg1,				@ArrayList
-                ;;Argument 2 (REQUIRED OUT ErrorMessage A80)
-                arg2,				a80
-                returnValue,		METHOD_STATUS
-            endrecord
 
         proc
 
@@ -499,139 +489,9 @@ namespace TraditionalBridge.Test.SampleXfplEnv
                 ;;Argument 60 (REQUIRED INOUT p60 D_HANDLE)
                 arg60Array,			JSON_ELEMENT
                 arg60Handle,        D_HANDLE
-            endrecord
-
-                ;;Argument 1 (REQUIRED IN p1 A1)
-                arg1,				a1
-                ;;Argument 2 (REQUIRED OUT p2 A1)
-                arg2,				a1
-                ;;Argument 3 (REQUIRED INOUT p3 A1)
-                arg3,				a1
-                ;;Argument 4 (REQUIRED IN p4 D6)
-                arg4,				d6
-                ;;Argument 5 (REQUIRED OUT p5 D6)
-                arg5,				d6
-                ;;Argument 6 (REQUIRED INOUT p6 D6)
-                arg6,				d6
-                ;;Argument 7 (REQUIRED IN p7 D12)
-                arg7,				d12
-                ;;Argument 8 (REQUIRED OUT p8 D12)
-                arg8,				d12
-                ;;Argument 9 (REQUIRED INOUT p9 D12)
-                arg9,				d12
-                ;;Argument 10 (REQUIRED IN p10 D6.2)
-                arg10,				d6.2
-                ;;Argument 11 (REQUIRED OUT p11 D6.2)
-                arg11,				d6.2
-                ;;Argument 12 (REQUIRED INOUT p12 D6.2)
-                arg12,				d6.2
-                ;;Argument 13 (REQUIRED IN p13 I1)
-                arg13,				i1
-                ;;Argument 14 (REQUIRED OUT p14 I1)
-                arg14,				i1
-                ;;Argument 15 (REQUIRED INOUT p15 I1)
-                arg15,				i1
-                ;;Argument 16 (REQUIRED IN p16 I2)
-                arg16,				i2
-                ;;Argument 17 (REQUIRED OUT p17 I2)
-                arg17,				i2
-                ;;Argument 18 (REQUIRED INOUT p18 I2)
-                arg18,				i2
-                ;;Argument 19 (REQUIRED IN p19 I4)
-                arg19,				i4
-                ;;Argument 20 (REQUIRED OUT p20 I4)
-                arg20,				i4
-                ;;Argument 21 (REQUIRED INOUT p21 I4)
-                arg21,				i4
-                ;;Argument 22 (REQUIRED IN p22 I8)
-                arg22,				i8
-                ;;Argument 23 (REQUIRED OUT p23 I8)
-                arg23,				i8
-                ;;Argument 24 (REQUIRED INOUT p24 I8)
-                arg24,				i8
-                ;;Argument 25 (REQUIRED IN p25 structure @Customer)
-                arg25DataObject, @DataObjectBase
-                arg25, strCustomer
-                ;;Argument 26 (REQUIRED OUT p26 structure @Customer)
-                arg26DataObject, @DataObjectBase
-                arg26, strCustomer
-                ;;Argument 27 (REQUIRED INOUT p27 structure @Customer)
-                arg27DataObject, @DataObjectBase
-                arg27, strCustomer
-                ;;Argument 28 (REQUIRED IN p28 D8 YYYYMMDD date)
-                arg28,				d8
-                ;;Argument 29 (REQUIRED OUT p29 D8 YYYYMMDD date)
-                arg29,				d8
-                ;;Argument 30 (REQUIRED INOUT p30 D8 YYYYMMDD date)
-                arg30,				d8
-                ;;Argument 31 (REQUIRED IN p31 D6 YYMMDD date)
-                arg31,				d6
-                ;;Argument 32 (REQUIRED OUT p32 D6 YYMMDD date)
-                arg32,				d6
-                ;;Argument 33 (REQUIRED INOUT p33 D6 YYMMDD date)
-                arg33,				d6
-                ;;Argument 34 (REQUIRED IN p34 D7 YYYYJJJ date)
-                arg34,				d7
-                ;;Argument 35 (REQUIRED OUT p35 D7 YYYYJJJ date)
-                arg35,				d7
-                ;;Argument 36 (REQUIRED INOUT p36 D7 YYYYJJJ date)
-                arg36,				d7
-                ;;Argument 37 (REQUIRED IN p37 D5 YYJJJ date)
-                arg37,				d5
-                ;;Argument 38 (REQUIRED OUT p38 D5 YYJJJ date)
-                arg38,				d5
-                ;;Argument 39 (REQUIRED INOUT p39 D5 YYJJJ date)
-                arg39,				d5
-                ;;Argument 40 (REQUIRED IN p40 D6 HHMM time)
-                arg40,				d6
-                ;;Argument 41 (REQUIRED OUT p41 D6 HHMM time)
-                arg41,				d6
-                ;;Argument 42 (REQUIRED INOUT p42 D6 HHMM time)
-                arg42,				d6
-                ;;Argument 43 (REQUIRED IN p43 D4 HHMM time)
-                arg43,				d4
-                ;;Argument 44 (REQUIRED OUT p44 D4 HHMM time)
-                arg44,				d4
-                ;;Argument 45 (REQUIRED INOUT p45 D4 HHMM time)
-                arg45,				d4
-                ;;Argument 46 (REQUIRED IN p46 D14 YYYYMMDD date)
-                arg46,				d14
-                ;;Argument 47 (REQUIRED OUT p47 D14 HHMM time)
-                arg47,				d14
-                ;;Argument 48 (REQUIRED INOUT p48 D14 HHMM time)
-                arg48,				d14
-                ;;Argument 49 (REQUIRED IN p49 D20 YYYYMMDD date)
-                arg49,				d20
-                ;;Argument 50 (REQUIRED OUT p50 D20 YYYYMMDD date)
-                arg50,				d20
-                ;;Argument 51 (REQUIRED INOUT p51 D20 YYYYMMDD date)
-                arg51,				d20
-                ;;Argument 52 (REQUIRED IN p52 enum METHOD_STATUS)
-                arg52,				method_status
-                ;;Argument 53 (REQUIRED OUT p53 enum METHOD_STATUS)
-                arg53,				method_status
-                ;;Argument 54 (REQUIRED INOUT p54 enum METHOD_STATUS)
-                arg54,				method_status
-                ;;Argument 55 (REQUIRED IN p55 D_HANDLE)
-                arg55Array,			JSON_ELEMENT
-                arg55Handle,        D_HANDLE
-                ;;Argument 56 (REQUIRED OUT p56 D_HANDLE)
-                arg56Array,			JSON_ELEMENT
-                arg56Handle,        D_HANDLE
-                ;;Argument 57 (REQUIRED INOUT p57 D_HANDLE)
-                arg57Array,			JSON_ELEMENT
-                arg57Handle,        D_HANDLE
-                ;;Argument 58 (REQUIRED IN p58 D_HANDLE)
-                arg58Array,			JSON_ELEMENT
-                arg58Handle,        D_HANDLE
-                ;;Argument 59 (REQUIRED OUT p59 D_HANDLE)
-                arg59Array,			JSON_ELEMENT
-                arg59Handle,        D_HANDLE
-                ;;Argument 60 (REQUIRED INOUT p60 D_HANDLE)
-                arg60Array,			JSON_ELEMENT
-                arg60Handle,        D_HANDLE
                 blah, int
             endrecord
+
 
         proc
 
@@ -639,6 +499,7 @@ namespace TraditionalBridge.Test.SampleXfplEnv
             ;;Process inbound arguments
 
             arguments = callFrame.GetProperty("params")
+            blah = arguments.GetArrayLength()
 
             ;;Argument 1 (REQUIRED IN p1 A1)
             arg1 = dispatcher.GetText(arguments[1])
@@ -690,12 +551,12 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 
             ;;Argument 25 (REQUIRED IN p25 structure @Customer)
             ;;Structure argument. Get the data object then get the record from it
-            arg25DataObject = dispatcher.DeserializeObject(arguments[3],mCustomerMetadata)
+            arg25DataObject = dispatcher.DeserializeObject(arguments[25],mCustomerMetadata)
             arg25 = arg25DataObject.SynergyRecord
 
             ;;Argument 27 (REQUIRED INOUT p27 structure @Customer)
             ;;Structure argument. Get the data object then get the record from it
-            arg27DataObject = dispatcher.DeserializeObject(arguments[3],mCustomerMetadata)
+            arg27DataObject = dispatcher.DeserializeObject(arguments[27],mCustomerMetadata)
             arg27 = arg27DataObject.SynergyRecord
 
             ;;Argument 28 (REQUIRED IN p28 D8 YYYYMMDD date)
@@ -1083,6 +944,7 @@ namespace TraditionalBridge.Test.SampleXfplEnv
                 arg1Handle,			D_HANDLE
                 arg1HandlePos,		int
                 ;;Argument 2 (REQUIRED OUT p2 [*]A1)
+                arg2Array,          JSON_ELEMENT
                 arg2Handle,			D_HANDLE
                 arg2HandlePos,		int
                 ;;Argument 3 (REQUIRED INOUT p3 [*]A1)
@@ -1094,12 +956,14 @@ namespace TraditionalBridge.Test.SampleXfplEnv
                 arg4Handle,			D_HANDLE
                 arg4HandlePos,		int
                 ;;Argument 5 (REQUIRED OUT p26 [*]structure @Customer)
+                arg5Array,          JSON_ELEMENT
                 arg5Handle,			D_HANDLE
                 arg5HandlePos,		int
                 ;;Argument 6 (REQUIRED INOUT p27 [*]structure @Customer)
                 arg6Array,			JSON_ELEMENT
                 arg6Handle,			D_HANDLE
                 arg6HandlePos,		int
+                blsh,int
             endrecord
 
             ;;Temp structure tempstr1
@@ -1119,23 +983,19 @@ namespace TraditionalBridge.Test.SampleXfplEnv
 
             ;;Temp structure tempstr4
             structure tempstr4
-                arry, @Customer
+                arry, strCustomer
             endstructure
 
             ;;Temp structure tempstr5
             structure tempstr5
-                arry, @Customer
-            endstructure
-
-            ;;Temp structure tempstr6
-            structure tempstr6
-                arry, @Customer
+                arry, strCustomer
             endstructure
 
             ;;Temp structure tempstr6
             structure tempstr6
                 arry, strCustomer
             endstructure
+
 
         proc
 
@@ -1151,6 +1011,13 @@ namespace TraditionalBridge.Test.SampleXfplEnv
             arg1HandlePos = 1
             dispatcher.UnwrapObjectCollection(^m(arg1Handle),argumentDefinition,arg1HandlePos,arg1Array)
 
+            ;;Argument 2 (REQUIRED OUT p2 [*]A1)
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[2], 1)
+            arg2Array = (arguments[2]).GetProperty("PassedValue")
+            arg2Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg2Array.GetArrayLength())
+            arg2HandlePos = 1
+            dispatcher.UnwrapObjectCollection(^m(arg2Handle),argumentDefinition,arg2HandlePos,arg2Array)
+
             ;;Argument 3 (REQUIRED INOUT p3 [*]A1)
             argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[3], 1)
             arg3Array = (arguments[3]).GetProperty("PassedValue")
@@ -1159,14 +1026,21 @@ namespace TraditionalBridge.Test.SampleXfplEnv
             dispatcher.UnwrapObjectCollection(^m(arg3Handle),argumentDefinition,arg3HandlePos,arg3Array)
 
             ;;Argument 4 (REQUIRED IN p25 [*]structure @Customer)
-            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[4], 1)
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[4], 141)
             arg4Array = (arguments[4]).GetProperty("PassedValue")
             arg4Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg4Array.GetArrayLength())
             arg4HandlePos = 1
             dispatcher.UnwrapObjectCollection(^m(arg4Handle),argumentDefinition,arg4HandlePos,arg4Array)
 
+            ;;Argument 5 (REQUIRED OUT p26 [*]structure @Customer)
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[5], 141)
+            arg5Array = (arguments[5]).GetProperty("PassedValue")
+            arg5Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg5Array.GetArrayLength())
+            arg5HandlePos = 1
+            dispatcher.UnwrapObjectCollection(^m(arg5Handle),argumentDefinition,arg5HandlePos,arg5Array)
+
             ;;Argument 6 (REQUIRED INOUT p27 [*]structure @Customer)
-            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[6], 1)
+            argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[6], 141)
             arg6Array = (arguments[6]).GetProperty("PassedValue")
             arg6Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg6Array.GetArrayLength())
             arg6HandlePos = 1
@@ -1175,7 +1049,7 @@ namespace TraditionalBridge.Test.SampleXfplEnv
             ;;------------------------------------------------------------
             ;; Call the underlying routine
 
-            xcall array_parameters(^m(tempstr1.arry,arg1Handle),^m(tempstr2.arry,arg2Handle),^m(tempstr3.arry,arg3Handle),^m(strCustomer,arg4Handle),^m(strCustomer,arg5Handle),^m(strCustomer,arg6Handle))
+            xcall array_parameters(^m(tempstr1.arry,arg1Handle),^m(tempstr2.arry,arg2Handle),^m(tempstr3.arry,arg3Handle),^m(tempstr4.arry,arg4Handle),^m(tempstr5.arry,arg5Handle),^m(tempstr6.arry,arg6Handle))
 
             ;;--------------------------------------------------------------------------------
             ;;Argument 2 (REQUIRED OUT p2 [*]A1)
@@ -1195,7 +1069,7 @@ namespace TraditionalBridge.Test.SampleXfplEnv
             ;;--------------------------------------------------------------------------------
             ;;Argument 6 (REQUIRED INOUT p27 [*]structure @Customer)
             
-            serializer.ArgumentHandleData(6, arg6Handle, FieldDataType.DataObjectCollectionField, 161, "CUSTOMERS", arg6Array.GetArrayLength(), false)
+            serializer.ArgumentHandleData(6, arg6Handle, FieldDataType.DataObjectCollectionField, 161, "CUSTOMERS", arg6Array.GetArrayLength(), true)
         endmethod
 
     endclass
@@ -1228,94 +1102,106 @@ namespace TraditionalBridge.Test.SampleXfplEnv
                 arg1Array,			JSON_ELEMENT
                 arg1,				@ArrayList
                 ;;Argument 2 (REQUIRED OUT p2 ArrayList collection of A1)
+                arg2Array,          JSON_ELEMENT
                 arg2,				@ArrayList
                 ;;Argument 3 (REQUIRED IN p4 ArrayList collection of D6)
                 arg3Array,			JSON_ELEMENT
                 arg3,				@ArrayList
                 ;;Argument 4 (REQUIRED OUT p5 ArrayList collection of D6)
+                arg4Array,          JSON_ELEMENT
                 arg4,				@ArrayList
                 ;;Argument 5 (REQUIRED IN p7 ArrayList collection of D12)
                 arg5Array,			JSON_ELEMENT
                 arg5,				@ArrayList
                 ;;Argument 6 (REQUIRED OUT p8 ArrayList collection of D12)
+                arg6Array,			JSON_ELEMENT
                 arg6,				@ArrayList
                 ;;Argument 7 (REQUIRED IN p10 ArrayList collection of D6.2)
                 arg7Array,			JSON_ELEMENT
                 arg7,				@ArrayList
                 ;;Argument 8 (REQUIRED OUT p11 ArrayList collection of D6.2)
+                arg8Array,          JSON_ELEMENT
                 arg8,				@ArrayList
                 ;;Argument 9 (REQUIRED IN p13 ArrayList collection of I1)
                 arg9Array,			JSON_ELEMENT
                 arg9,				@ArrayList
                 ;;Argument 10 (REQUIRED OUT p14 ArrayList collection of I1)
+                arg10Array,         JSON_ELEMENT
                 arg10,				@ArrayList
                 ;;Argument 11 (REQUIRED IN p16 ArrayList collection of I2)
                 arg11Array,			JSON_ELEMENT
                 arg11,				@ArrayList
                 ;;Argument 12 (REQUIRED OUT p17 ArrayList collection of I2)
+                arg12Array,         JSON_ELEMENT
                 arg12,				@ArrayList
                 ;;Argument 13 (REQUIRED IN p19 ArrayList collection of I4)
                 arg13Array,			JSON_ELEMENT
                 arg13,				@ArrayList
                 ;;Argument 14 (REQUIRED OUT p20 ArrayList collection of I4)
+                arg14Array,         JSON_ELEMENT
                 arg14,				@ArrayList
                 ;;Argument 15 (REQUIRED IN p22 ArrayList collection of I8)
                 arg15Array,			JSON_ELEMENT
                 arg15,				@ArrayList
                 ;;Argument 16 (REQUIRED OUT p23 ArrayList collection of I8)
+                arg16Array,         JSON_ELEMENT
                 arg16,				@ArrayList
                 ;;Argument 17 (REQUIRED IN p25 ArrayList collection of structure @Customer)
                 arg17Array,			JSON_ELEMENT
                 arg17,				@ArrayList
                 ;;Argument 18 (REQUIRED OUT p26 ArrayList collection of structure @Customer)
+                arg18Array,         JSON_ELEMENT
                 arg18,				@ArrayList
                 ;;Argument 19 (REQUIRED IN p28 ArrayList collection of D8 YYYYMMDD date)
                 arg19Array,			JSON_ELEMENT
                 arg19,				@ArrayList
                 ;;Argument 20 (REQUIRED OUT p29 ArrayList collection of D8 YYYYMMDD date)
+                arg20Array,         JSON_ELEMENT
                 arg20,				@ArrayList
                 ;;Argument 21 (REQUIRED IN p31 ArrayList collection of D6 YYMMDD date)
                 arg21Array,			JSON_ELEMENT
                 arg21,				@ArrayList
                 ;;Argument 22 (REQUIRED OUT p32 ArrayList collection of D6 YYMMDD date)
+                arg22Array,         JSON_ELEMENT
                 arg22,				@ArrayList
                 ;;Argument 23 (REQUIRED IN p34 ArrayList collection of D7 YYYYJJJ date)
                 arg23Array,			JSON_ELEMENT
                 arg23,				@ArrayList
                 ;;Argument 24 (REQUIRED OUT p35 ArrayList collection of D7 YYYYJJJ date)
+                arg24Array,         JSON_ELEMENT
                 arg24,				@ArrayList
                 ;;Argument 25 (REQUIRED IN p37 ArrayList collection of D5 YYJJJ date)
                 arg25Array,			JSON_ELEMENT
                 arg25,				@ArrayList
                 ;;Argument 26 (REQUIRED OUT p38 ArrayList collection of D5 YYJJJ date)
+                arg26Array,         JSON_ELEMENT
                 arg26,				@ArrayList
                 ;;Argument 27 (REQUIRED IN p40 ArrayList collection of D6 HHMM time)
                 arg27Array,			JSON_ELEMENT
                 arg27,				@ArrayList
                 ;;Argument 28 (REQUIRED OUT p41 ArrayList collection of D6 HHMM time)
+                arg28Array,         JSON_ELEMENT
                 arg28,				@ArrayList
                 ;;Argument 29 (REQUIRED IN p43 ArrayList collection of D4 HHMM time)
                 arg29Array,			JSON_ELEMENT
                 arg29,				@ArrayList
                 ;;Argument 30 (REQUIRED OUT p44 ArrayList collection of D4 HHMM time)
+                arg30Array,         JSON_ELEMENT
                 arg30,				@ArrayList
                 ;;Argument 31 (REQUIRED IN p46 ArrayList collection of D14 YYYYMMDD date)
                 arg31Array,			JSON_ELEMENT
                 arg31,				@ArrayList
                 ;;Argument 32 (REQUIRED OUT p47 ArrayList collection of D14 YYYYMMDD date)
+                arg32Array,         JSON_ELEMENT
                 arg32,				@ArrayList
                 ;;Argument 33 (REQUIRED IN p49 ArrayList collection of D20 YYYYMMDD date)
                 arg33Array,			JSON_ELEMENT
                 arg33,				@ArrayList
                 ;;Argument 34 (REQUIRED OUT p50 ArrayList collection of D20 YYYYMMDD date)
+                arg34Array,         JSON_ELEMENT
                 arg34,				@ArrayList
             endrecord
 
-        public method ArrayListParameters_Dispatch
-        proc
-            ;;Initialize the meta data for any data objects that are used by parameters to the method
-            mCustomerMetadata = DataObjectMetadataBase.LookupType("Customer")
-        endmethod
 
         proc
 
@@ -1323,12 +1209,14 @@ namespace TraditionalBridge.Test.SampleXfplEnv
             ;;Process inbound arguments
 
             arguments = callFrame.GetProperty("params")
-
+            
             ;;Argument 1 (REQUIRED IN p1 ArrayList collection of A1)
             argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1], 1)
             arg1Array = (arguments[1]).GetProperty("PassedValue")
             arg1 = new ArrayList()
             dispatcher.UnwrapObjectCollection(argumentDefinition,arg1Array,arg1)
+
+            arg2 = new ArrayList()
 
             ;;Argument 3 (REQUIRED IN p4 ArrayList collection of D6)
             argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[3], 1)
@@ -1336,11 +1224,15 @@ namespace TraditionalBridge.Test.SampleXfplEnv
             arg3 = new ArrayList()
             dispatcher.UnwrapObjectCollection(argumentDefinition,arg3Array,arg3)
 
+            arg4 = new ArrayList()
+
             ;;Argument 5 (REQUIRED IN p7 ArrayList collection of D12)
             argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[5], 1)
             arg5Array = (arguments[5]).GetProperty("PassedValue")
             arg5 = new ArrayList()
             dispatcher.UnwrapObjectCollection(argumentDefinition,arg5Array,arg5)
+
+            arg6 = new ArrayList()
 
             ;;Argument 7 (REQUIRED IN p10 ArrayList collection of D6.2)
             argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[7], 1)
@@ -1348,11 +1240,15 @@ namespace TraditionalBridge.Test.SampleXfplEnv
             arg7 = new ArrayList()
             dispatcher.UnwrapObjectCollection(argumentDefinition,arg7Array,arg7)
 
+            arg8 = new ArrayList()
+
             ;;Argument 9 (REQUIRED IN p13 ArrayList collection of I1)
             argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[9], 1)
             arg9Array = (arguments[9]).GetProperty("PassedValue")
             arg9 = new ArrayList()
             dispatcher.UnwrapObjectCollection(argumentDefinition,arg9Array,arg9)
+
+            arg10 = new ArrayList()
 
             ;;Argument 11 (REQUIRED IN p16 ArrayList collection of I2)
             argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[11], 1)
@@ -1360,11 +1256,15 @@ namespace TraditionalBridge.Test.SampleXfplEnv
             arg11 = new ArrayList()
             dispatcher.UnwrapObjectCollection(argumentDefinition,arg11Array,arg11)
 
+            arg12 = new ArrayList()
+
             ;;Argument 13 (REQUIRED IN p19 ArrayList collection of I4)
             argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[13], 1)
             arg13Array = (arguments[13]).GetProperty("PassedValue")
             arg13 = new ArrayList()
             dispatcher.UnwrapObjectCollection(argumentDefinition,arg13Array,arg13)
+
+            arg14 = new ArrayList()
 
             ;;Argument 15 (REQUIRED IN p22 ArrayList collection of I8)
             argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[15], 1)
@@ -1372,11 +1272,15 @@ namespace TraditionalBridge.Test.SampleXfplEnv
             arg15 = new ArrayList()
             dispatcher.UnwrapObjectCollection(argumentDefinition,arg15Array,arg15)
 
+            arg16 = new ArrayList()
+
             ;;Argument 17 (REQUIRED IN p25 ArrayList collection of structure @Customer)
             argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[17], 1)
             arg17Array = (arguments[17]).GetProperty("PassedValue")
             arg17 = new ArrayList()
             dispatcher.UnwrapObjectCollection(argumentDefinition,arg17Array,arg17)
+
+            arg18 = new ArrayList()
 
             ;;Argument 19 (REQUIRED IN p28 ArrayList collection of D8 YYYYMMDD date)
             argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[19], 1)
@@ -1384,11 +1288,15 @@ namespace TraditionalBridge.Test.SampleXfplEnv
             arg19 = new ArrayList()
             dispatcher.UnwrapObjectCollection(argumentDefinition,arg19Array,arg19)
 
+            arg20 = new ArrayList()
+
             ;;Argument 21 (REQUIRED IN p31 ArrayList collection of D6 YYMMDD date)
             argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[21], 1)
             arg21Array = (arguments[21]).GetProperty("PassedValue")
             arg21 = new ArrayList()
             dispatcher.UnwrapObjectCollection(argumentDefinition,arg21Array,arg21)
+
+            arg22 = new ArrayList()
 
             ;;Argument 23 (REQUIRED IN p34 ArrayList collection of D7 YYYYJJJ date)
             argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[23], 1)
@@ -1396,11 +1304,15 @@ namespace TraditionalBridge.Test.SampleXfplEnv
             arg23 = new ArrayList()
             dispatcher.UnwrapObjectCollection(argumentDefinition,arg23Array,arg23)
 
+            arg24 = new ArrayList()
+
             ;;Argument 25 (REQUIRED IN p37 ArrayList collection of D5 YYJJJ date)
             argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[25], 1)
             arg25Array = (arguments[25]).GetProperty("PassedValue")
             arg25 = new ArrayList()
             dispatcher.UnwrapObjectCollection(argumentDefinition,arg25Array,arg25)
+
+            arg26 = new ArrayList()
 
             ;;Argument 27 (REQUIRED IN p40 ArrayList collection of D6 HHMM time)
             argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[27], 1)
@@ -1408,11 +1320,15 @@ namespace TraditionalBridge.Test.SampleXfplEnv
             arg27 = new ArrayList()
             dispatcher.UnwrapObjectCollection(argumentDefinition,arg27Array,arg27)
 
+            arg28 = new ArrayList()
+
             ;;Argument 29 (REQUIRED IN p43 ArrayList collection of D4 HHMM time)
             argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[29], 1)
             arg29Array = (arguments[29]).GetProperty("PassedValue")
             arg29 = new ArrayList()
             dispatcher.UnwrapObjectCollection(argumentDefinition,arg29Array,arg29)
+
+            arg30 = new ArrayList()
 
             ;;Argument 31 (REQUIRED IN p46 ArrayList collection of D14 YYYYMMDD date)
             argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[31], 1)
@@ -1420,112 +1336,18 @@ namespace TraditionalBridge.Test.SampleXfplEnv
             arg31 = new ArrayList()
             dispatcher.UnwrapObjectCollection(argumentDefinition,arg31Array,arg31)
 
+            arg32 = new ArrayList()
+
             ;;Argument 33 (REQUIRED IN p49 ArrayList collection of D20 YYYYMMDD date)
             argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[33], 1)
             arg33Array = (arguments[33]).GetProperty("PassedValue")
             arg33 = new ArrayList()
             dispatcher.UnwrapObjectCollection(argumentDefinition,arg33Array,arg33)
 
+            arg34 = new ArrayList()
+
             ;;------------------------------------------------------------
             ;; Call the underlying routine
-
-            xcall arraylist_parameters(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19,arg20,arg21,arg22,arg23,arg24,arg25,arg26,arg27,arg28,arg29,arg30,arg31,arg32,arg33,arg34)
-
-            ;;--------------------------------------------------------------------------------
-            ;;Argument 2 (REQUIRED OUT p2 ArrayList collection of A1)
-            
-            serializer.ArgumentData(2, arg2, FieldDataType.AlphaArrayField, 1, 0, false)
-            
-
-            ;;--------------------------------------------------------------------------------
-            ;;Argument 4 (REQUIRED OUT p5 ArrayList collection of D6)
-            
-            serializer.ArgumentData(4, arg4, FieldDataType.DecimalArrayField, 6, 0, false)
-            
-
-            ;;--------------------------------------------------------------------------------
-            ;;Argument 6 (REQUIRED OUT p8 ArrayList collection of D12)
-            
-            serializer.ArgumentData(6, arg6, FieldDataType.DecimalArrayField, 12, 0, false)
-            
-
-            ;;--------------------------------------------------------------------------------
-            ;;Argument 8 (REQUIRED OUT p11 ArrayList collection of D6.2)
-            
-            serializer.ArgumentData(8, arg8, FieldDataType.ImpliedDecimalArrayField, 6, 02, false)
-            
-
-            ;;--------------------------------------------------------------------------------
-            ;;Argument 10 (REQUIRED OUT p14 ArrayList collection of I1)
-            
-            serializer.ArgumentData(10, arg10, FieldDataType.IntegerArrayField, 1, 0, false)
-            
-
-            ;;--------------------------------------------------------------------------------
-            ;;Argument 12 (REQUIRED OUT p17 ArrayList collection of I2)
-            
-            serializer.ArgumentData(12, arg12, FieldDataType.IntegerArrayField, 2, 0, false)
-            
-
-            ;;--------------------------------------------------------------------------------
-            ;;Argument 14 (REQUIRED OUT p20 ArrayList collection of I4)
-            
-            serializer.ArgumentData(14, arg14, FieldDataType.IntegerArrayField, 4, 0, false)
-            
-
-            ;;--------------------------------------------------------------------------------
-            ;;Argument 16 (REQUIRED OUT p23 ArrayList collection of I8)
-            
-            serializer.ArgumentData(16, arg16, FieldDataType.IntegerArrayField, 8, 0, false)
-            
-
-            ;;--------------------------------------------------------------------------------
-            ;;Argument 18 (REQUIRED OUT p26 ArrayList collection of structure @Customer)
-            
-            serializer.ArgumentData(18, arg18, FieldDataType.DataObjectCollectionField, 161, "CUSTOMERS", false)
-
-            ;;--------------------------------------------------------------------------------
-            ;;Argument 20 (REQUIRED OUT p29 ArrayList collection of D8 YYYYMMDD date)
-            
-            serializer.ArgumentData(20, arg20, FieldDataType.DecimalArrayField, 8, 0, false)
-
-            ;;--------------------------------------------------------------------------------
-            ;;Argument 22 (REQUIRED OUT p32 ArrayList collection of D6 YYMMDD date)
-            
-            serializer.ArgumentData(22, arg22, FieldDataType.DecimalArrayField, 6, 0, false)
-
-            ;;--------------------------------------------------------------------------------
-            ;;Argument 24 (REQUIRED OUT p35 ArrayList collection of D7 YYYYJJJ date)
-            
-            serializer.ArgumentData(24, arg24, FieldDataType.DecimalArrayField, 7, 0, false)
-
-            ;;--------------------------------------------------------------------------------
-            ;;Argument 26 (REQUIRED OUT p38 ArrayList collection of D5 YYJJJ date)
-            
-            serializer.ArgumentData(26, arg26, FieldDataType.DecimalArrayField, 5, 0, false)
-
-            ;;--------------------------------------------------------------------------------
-            ;;Argument 28 (REQUIRED OUT p41 ArrayList collection of D6 HHMM time)
-            
-            serializer.ArgumentData(28, arg28, FieldDataType.DecimalArrayField, 6, 0, false)
-
-            ;;--------------------------------------------------------------------------------
-            ;;Argument 30 (REQUIRED OUT p44 ArrayList collection of D4 HHMM time)
-            
-            serializer.ArgumentData(30, arg30, FieldDataType.DecimalArrayField, 4, 0, false)
-
-            ;;--------------------------------------------------------------------------------
-            ;;Argument 32 (REQUIRED OUT p47 ArrayList collection of D14 YYYYMMDD date)
-            
-            serializer.ArgumentData(32, arg32, FieldDataType.DecimalArrayField, 14, 0, false)
-
-            ;;--------------------------------------------------------------------------------
-            ;;Argument 34 (REQUIRED OUT p50 ArrayList collection of D20 YYYYMMDD date)
-            
-            serializer.ArgumentData(34, arg34, FieldDataType.DecimalArrayField, 20, 0, false)
-        endmethod
-
-    endclass
 
             xcall arraylist_parameters(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19,arg20,arg21,arg22,arg23,arg24,arg25,arg26,arg27,arg28,arg29,arg30,arg31,arg32,arg33,arg34)
 
