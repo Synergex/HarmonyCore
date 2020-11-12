@@ -14,7 +14,7 @@ rem Generate the service class (.NET side)
 codegen -smcstrs %SMCROOT%\%SMCNAME% -interface %TESTNAME% -ms -t %SolutionDir%\%TEMPLATEROOT%\InterfaceService -i %TEMPLATEROOT% -o %SolutionDir%\TraditionalBridge.TestClient\Client -n %TESTPROJECT% -ut MODELS_NAMESPACE=TraditionalBridge.Models DTOS_NAMESPACE=TraditionalBridge.TestClient.%TESTNAME% -e -r -lf
 if ERRORLEVEL 1 goto bypass
 
-codegen -smcstrs %SMCROOT%\%SMCNAME% -ms -t %SolutionDir%\%TEMPLATEROOT%\InterfaceDispatcherData -o %SolutionDir%\%PROJECT%\DispatcherData -n %NAMESPACE% -ut SMC_INTERFACE=%TESTNAME% DTOS_NAMESPACE=%NAMESPACE% -e -r -lf
+codegen -smcstrs %SMCROOT%\%SMCNAME% -ms -t %SolutionDir%\%TEMPLATEROOT%\InterfaceDispatcherCustom -o %SolutionDir%\%PROJECT%\DispatcherCustom -n %NAMESPACE% -ut SMC_INTERFACE=%TESTNAME% DTOS_NAMESPACE=%NAMESPACE% -e -r -lf
 if ERRORLEVEL 1 goto bypass
 
 rem Generate model and metadata classes

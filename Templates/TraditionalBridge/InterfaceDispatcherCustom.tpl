@@ -1,9 +1,9 @@
-<CODEGEN_FILENAME><SMC_INTERFACE>DispatcherData.dbl</CODEGEN_FILENAME>
+<CODEGEN_FILENAME><SMC_INTERFACE>DispatcherCustom.dbl</CODEGEN_FILENAME>
 <REQUIRES_USERTOKEN>SMC_INTERFACE</REQUIRES_USERTOKEN>
 <REQUIRES_CODEGEN_VERSION>5.4.6</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
-;// Title:       DispatcherData.tpl
+;// Title:       DispatcherCustom.tpl
 ;//
 ;// Type:        CodeGen Template
 ;//
@@ -35,7 +35,7 @@
 ;//
 ;;*****************************************************************************
 ;;
-;; Title:       <SMC_INTERFACE>DispatcherData.dbl
+;; Title:       <SMC_INTERFACE>DispatcherCustom.dbl
 ;;
 ;; Description: Initializes all data object metadata
 ;;
