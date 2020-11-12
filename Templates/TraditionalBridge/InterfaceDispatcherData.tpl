@@ -55,9 +55,12 @@ namespace <NAMESPACE>
 		;;; Initialize all data object metadata
 		;;; <summary>
 		private method initMetaData, void
+		record
+			dataObj, @DataObjectMetadataBase
 		proc
 			<STRUCTURE_LOOP>
-			DataObjectMetadataBase.LookupType("<StructureNoplural>")
+			xcall Meta<StructureNoplural>(dataObj)
+			DataObjectMetadataBase.ForceLookupType("<StructureNoplural>", dataObj)
 			</STRUCTURE_LOOP>		
 		endmethod
 

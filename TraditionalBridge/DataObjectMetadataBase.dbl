@@ -3,134 +3,143 @@ import System.Collections
 
 namespace Harmony.TraditionalBridge
 
-	public abstract class DataObjectMetadataBase
+    public abstract class DataObjectMetadataBase
 	
-		private static mLookupRCBId, i4
-		private static mLookupDictionary, @StringDictionary
-		public static method LookupType, @DataObjectMetadataBase
-			targetType, @string
-			record
-				result, @DataObjectMetadataBase
-		proc
-			if(mLookupDictionary == ^null)
-			begin
-				mLookupDictionary = new StringDictionary()
-				mLookupRCBId = %rcb_create(1, DM_STATIC)
-			end
+        private static mLookupRCBId, i4
+        private static mLookupDictionary, @StringDictionary
+
+        public static method ForceLookupType, void
+            targetType, @string
+            targetObject, @DataObjectMetadataBase
+        proc
+            if(!mLookupDictionary.Contains(targetType))
+                mLookupDictionary.Add(targetType, targetObject)
+        endmethod
+
+        public static method LookupType, @DataObjectMetadataBase
+            targetType, @string
+            record
+                result, @DataObjectMetadataBase
+        proc
+            if(mLookupDictionary == ^null)
+            begin
+                mLookupDictionary = new StringDictionary()
+                mLookupRCBId = %rcb_create(1, DM_STATIC)
+            end
 			
-			if(!mLookupDictionary.TryGet("Meta" + targetType, result))
-			begin
-				;;it might be possible to use the symbol api as a dictionary here so we dont have to make an rcb call each time we want to look this up
-				xcall rcb_setarg(mLookupRCBId, result, 1) 
-				xcall rcb_setfnc(mLookupRCBId, "Meta" + targetType)  ;this doesnt deal with namespaces, users must not allow dataobjects that differ only by namespace
-				xcall rcb_call(mLookupRCBId)  
-				xcall rcb_setarg(mLookupRCBId, ^null, 1) ;;dont leave around a reference to the last DataObjectMetadataBase handle, that might corrupt memory
-				mLookupDictionary.Add("Meta" + targetType, result)
-			end
-			mreturn result
-		endmethod
+            if(!mLookupDictionary.TryGet("Meta" + targetType, result))
+            begin
+                ;;it might be possible to use the symbol api as a dictionary here so we dont have to make an rcb call each time we want to look this up
+                xcall rcb_setarg(mLookupRCBId, result, 1) 
+                xcall rcb_setfnc(mLookupRCBId, "Meta" + targetType)  ;this doesnt deal with namespaces, users must not allow dataobjects that differ only by namespace
+                xcall rcb_call(mLookupRCBId)  
+                xcall rcb_setarg(mLookupRCBId, ^null, 1) ;;dont leave around a reference to the last DataObjectMetadataBase handle, that might corrupt memory
+                mLookupDictionary.Add("Meta" + targetType, result)
+            end
+            mreturn result
+        endmethod
 
-		public RPSStructureHasBinaryData, boolean
-		public RPSStructureName, String
-		public RPSStructureSize, i4
+        public RPSStructureHasBinaryData, boolean
+        public RPSStructureName, String
+        public RPSStructureSize, i4
 
-		;;backing field to store the objects field names
-		protected mFieldNames	,@ArrayList
+        ;;backing field to store the objects field names
+        protected mFieldNames	,@ArrayList
 		
-		public abstract method GetFieldByName, @FieldDataDefinition
-				in required fldName,	string
-		proc
-		endmethod
+        public abstract method GetFieldByName, @FieldDataDefinition
+            in required fldName,	string
+        proc
+        endmethod
 		
-		;;; <summary>
-		;;;  Readonly property that returns the names of the fields defined within the $$HarmonyCore Data Object$$.
-		;;; </summary>
-		public property FieldNames, @ArrayList
-			method get
-			proc
-				mreturn mFieldNames
-			endmethod
-		endproperty
+        ;;; <summary>
+        ;;;  Readonly property that returns the names of the fields defined within the $$HarmonyCore Data Object$$.
+        ;;; </summary>
+        public property FieldNames, @ArrayList
+            method get
+            proc
+                mreturn mFieldNames
+            endmethod
+        endproperty
 
-		protected method MakeFieldInfo, @FieldDataDefinition
-			languageName, String
-			dataType, string
-			elementSize, int
-			structurePosition, int
-			decimalPrecision ,int
-			clearField, boolean
-			endparams
-			record
-				fieldInfo, @FieldDataDefinition
-		proc
-			fieldInfo = new FieldDataDefinition() { LanguageName = languageName, ElementSize = elementSize, StructurePosition = structurePosition, DecimalPrecision = decimalPrecision, ClearField = clearField }
+        protected method MakeFieldInfo, @FieldDataDefinition
+            languageName, String
+            dataType, string
+            elementSize, int
+            structurePosition, int
+            decimalPrecision ,int
+            clearField, boolean
+            endparams
+            record
+                fieldInfo, @FieldDataDefinition
+        proc
+            fieldInfo = new FieldDataDefinition() { LanguageName = languageName, ElementSize = elementSize, StructurePosition = structurePosition, DecimalPrecision = decimalPrecision, ClearField = clearField }
 			
 
-			using dataType select
-			("ALPHA"),
-			begin
-				fieldInfo.DataType = FieldDataType.AlphaField
-			end
-			("BINARY"),
-			begin
-				fieldInfo.DataType = FieldDataType.AlphaField
-			end
-			("DATE"),
-			begin
-				fieldInfo.DataType = FieldDataType.DecimalField
-			end
-			("DECIMAL"),
-			begin
-				fieldInfo.DataType = FieldDataType.DecimalField
-			end
-			("IMPLIED"),
-			begin
-				fieldInfo.DataType = FieldDataType.ImpliedDecimal
-			end
-			("INTEGER"),
-			begin
-				fieldInfo.DataType = FieldDataType.IntegerField
-			end
-			("JULIAN"),
-			begin
-				fieldInfo.DataType = FieldDataType.DecimalField
-			end
-			("TIME"),
-			begin
-				fieldInfo.DataType = FieldDataType.DecimalField
-			end
-			("USER ALPHA"),
-			begin
-				fieldInfo.DataType = FieldDataType.AlphaField
-			end
-			("USER DATE"),
-			begin
-				fieldInfo.DataType = FieldDataType.AlphaField
-			end
-			("USER NUMERIC"),
-			begin
-				fieldInfo.DataType = FieldDataType.AlphaField
-			end
-			endusing
-			mreturn fieldInfo
-		endmethod
+            using dataType select
+            ("ALPHA"),
+            begin
+                fieldInfo.DataType = FieldDataType.AlphaField
+            end
+            ("BINARY"),
+            begin
+                fieldInfo.DataType = FieldDataType.AlphaField
+            end
+            ("DATE"),
+            begin
+                fieldInfo.DataType = FieldDataType.DecimalField
+            end
+            ("DECIMAL"),
+            begin
+                fieldInfo.DataType = FieldDataType.DecimalField
+            end
+            ("IMPLIED"),
+            begin
+                fieldInfo.DataType = FieldDataType.ImpliedDecimal
+            end
+            ("INTEGER"),
+            begin
+                fieldInfo.DataType = FieldDataType.IntegerField
+            end
+            ("JULIAN"),
+            begin
+                fieldInfo.DataType = FieldDataType.DecimalField
+            end
+            ("TIME"),
+            begin
+                fieldInfo.DataType = FieldDataType.DecimalField
+            end
+            ("USER ALPHA"),
+            begin
+                fieldInfo.DataType = FieldDataType.AlphaField
+            end
+            ("USER DATE"),
+            begin
+                fieldInfo.DataType = FieldDataType.AlphaField
+            end
+            ("USER NUMERIC"),
+            begin
+                fieldInfo.DataType = FieldDataType.AlphaField
+            end
+            endusing
+            mreturn fieldInfo
+        endmethod
 		
-		;;; <summary>
-		;;; Expose the underlying structure size.
-		;;; </summary>
-		public virtual property StructureSize, int
-			method get
-			proc
-				mreturn RPSStructureSize
-			endmethod
-		endproperty
+        ;;; <summary>
+        ;;; Expose the underlying structure size.
+        ;;; </summary>
+        public virtual property StructureSize, int
+            method get
+            proc
+                mreturn RPSStructureSize
+            endmethod
+        endproperty
 
-		;;generated metadata type can just call new and create the data object base
-		public abstract method MakeNew, @DataObjectBase
-			dataArea, a
-			grfa, a
-		proc
-		endmethod
+        ;;generated metadata type can just call new and create the data object base
+        public abstract method MakeNew, @DataObjectBase
+            dataArea, a
+            grfa, a
+        proc
+        endmethod
 
         public virtual method SetIntoArray, void
             dataArea, a
@@ -140,28 +149,28 @@ namespace Harmony.TraditionalBridge
             throw new Exception("Not yet implemented")
         endmethod
 
-		public method Deserialize, @DataObjectBase
-			passedValue, @Json.JsonValue
-			record
-				objectMetadata, @DataObjectMetadataBase
-				objectType, @Json.JsonText
-				objectValue, @Json.JsonText
-				objectGRFA, @Json.JsonText
-				stringValue, @string
-		proc
-			if(RPSStructureHasBinaryData) then
-			begin
-				objectValue = (@Json.JsonText)passedValue.GetProperty("Base64Value")
-				stringValue = Convert.FromBase64String(objectValue.Value)
-			end
-			else
-			begin
-				objectValue = (@Json.JsonText)passedValue.GetProperty("Value")
-				stringValue = objectValue.Value
-			end
+        public method Deserialize, @DataObjectBase
+            passedValue, @Json.JsonValue
+            record
+                objectMetadata, @DataObjectMetadataBase
+                objectType, @Json.JsonText
+                objectValue, @Json.JsonText
+                objectGRFA, @Json.JsonText
+                stringValue, @string
+        proc
+            if(RPSStructureHasBinaryData) then
+            begin
+                objectValue = (@Json.JsonText)passedValue.GetProperty("Base64Value")
+                stringValue = Convert.FromBase64String(objectValue.Value)
+            end
+            else
+            begin
+                objectValue = (@Json.JsonText)passedValue.GetProperty("Value")
+                stringValue = objectValue.Value
+            end
 
-			objectGRFA = (@Json.JsonText)passedValue.GetProperty("GRFA")
-			mreturn MakeNew(stringValue, Convert.FromBase64String(objectGRFA.Value))
+            objectGRFA = (@Json.JsonText)passedValue.GetProperty("GRFA")
+            mreturn MakeNew(stringValue, Convert.FromBase64String(objectGRFA.Value))
 
         endmethod
 .ifdef DBLV11
@@ -183,6 +192,6 @@ namespace Harmony.TraditionalBridge
 
         endmethod
 .endc
-	endclass
+    endclass
 
 endnamespace
