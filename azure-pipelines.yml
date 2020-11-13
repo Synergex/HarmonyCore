@@ -62,15 +62,13 @@ stages:
 #      condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
 #      artifact: TraditionalBridgeDBR
 
-    - task: PowerShell@2
-      inputs:
-        targetType: 'inline'
-        script: |
-          Write-Host "##vso[task.setvariable variable=RPSMFIL;]$env:SolutionDir\HarmonyCore.Test.Repository\bin\Debug\rpsmain.ism"
-          Write-Host "##vso[task.setvariable variable=RPSTFIL;]$env:SolutionDir\HarmonyCore.Test.Repository\bin\Debug\rpstext.ism"
     - task: BatchScript@1
+      env:
+        RPSMFIL: $(SolutionDir)\HarmonyCore.Test.Repository\bin\Debug\rpsmain.ism
+        RPSTFIL: $(SolutionDir)\HarmonyCore.Test.Repository\bin\Debug\rpstext.ism
       inputs:
         filename: 'regen.bat'
+        modifyEnvironment: true
     - task: DotNetCoreCLI@2
       enabled: true
       displayName: 'Run Unit Tests'
