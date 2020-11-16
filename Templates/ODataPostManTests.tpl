@@ -29,7 +29,7 @@
                 ],
                 "body": {
                     "mode": "raw",
-                    "raw": "{ \"Username": \"<CUSTOM_AUTH_USERNAME>\", \"Password\": \"<CUSTOM_AUTH_PASSWORD>\"}"
+                    "raw": "{ \"Username\": \"<CUSTOM_AUTH_USERNAME>\", \"Password\": \"<CUSTOM_AUTH_PASSWORD>\"}"
                 },
                 "url": {
                     "raw": "{{ServerAuthUri}}/<CUSTOM_AUTH_CONTROLLER_PATH>/<CUSTOM_AUTH_ENDPOINT_PATH>",
