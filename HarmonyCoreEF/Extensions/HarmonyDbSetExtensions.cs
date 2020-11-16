@@ -168,18 +168,33 @@ namespace Harmony.Core.EF.Extensions
 			return FindQuery<T>((IQueryable<T>)thisp, context, parameters);
         }
 
+        public static IList<string> GetPKFieldNames<T>(IEntityType entityType)
+        {
+            if (typeof(DataObjectBase).IsAssignableFrom(typeof(T)))
+            {
+                var metadata = DataObjectMetadataBase.LookupType(typeof(T));
+                var fields = metadata.GetKeyFields(0, KeyType.ISAMGenerated | KeyType.KeyFactorySupplied | KeyType.UserSupplied);
+                return fields;
+            }
+            else
+            {
+                var primaryKey = entityType.FindPrimaryKey();
+                return primaryKey.Properties.Select(prop => prop.Name).ToList();
+            }
+            
+        }
+
 		public static IQueryable<T> FindQuery<T>(this IQueryable<T> thisp, DbContext context, params object[] parameters)
 			where T : class
 		{
-			var entityType = context.Model.FindEntityType(typeof(T));
-			var primaryKey = entityType.FindPrimaryKey();
 			var entityParameter = Expression.Parameter(typeof(T), "entity");
 			Expression whereClause = null;
-			for (int i = 0; i < primaryKey.Properties.Count && i < parameters.Length; i++)
+            var primaryKeyFields = GetPKFieldNames<T>(context.Model.FindEntityType(typeof(T)));
+            for (int i = 0; i < primaryKeyFields.Count && i < parameters.Length; i++)
 			{
-				var property = primaryKey.Properties[i];
+				var property = primaryKeyFields[i];
 				var newWhereClause = Expression.Equal(
-					Expression.Property(entityParameter, property.Name),
+					Expression.Property(entityParameter, property),
 					Expression.Constant(parameters[i]));
 				if (whereClause != null)
 				{

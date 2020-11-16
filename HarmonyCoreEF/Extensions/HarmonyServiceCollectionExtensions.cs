@@ -17,6 +17,8 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Harmony.Core.EF.Storage.Internal;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions.Infrastructure;
+using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
+using Microsoft.EntityFrameworkCore.Internal;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection
@@ -70,6 +72,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 .TryAdd<IQueryCompilationContextFactory, HarmonyQueryCompilationContextFactory>()
                 .TryAdd<IProviderConventionSetBuilder, HarmonyConventionSetBuilder>()
                 .TryAdd<ITypeMappingSource, HarmonyTypeMappingSource>()
+                .TryAdd<IStateManager, HarmonyStateManager>()
+                .TryAdd<IEntityFinderSource, HarmonyEntityFinderSource>()
 
                 // New Query pipeline
                 .TryAdd<IQueryTranslationPreprocessorFactory, HarmonyQueryTranslationPreprocessorFactory>()
@@ -86,5 +90,6 @@ namespace Microsoft.Extensions.DependencyInjection
 
             return serviceCollection;
         }
+
     }
 }
