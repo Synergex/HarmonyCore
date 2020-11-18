@@ -111,9 +111,6 @@ Known structure properties:
 
         [Option("project", HelpText = "The name of the project. Defaults to 'TraditionalBridge'")]
         public string Project { get; set; } = "TraditionalBridge";
-
-        [Option("testproject", HelpText = "The name of the test project. Defaults to 'TraditionalBridge.TestClient'")]
-        public string TestProject { get; set; } = "TraditionalBridge.TestClient";
     }
 
     [Verb("codegen-list")]
