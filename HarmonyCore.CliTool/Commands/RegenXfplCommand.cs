@@ -15,7 +15,6 @@ namespace HarmonyCore.CliTool.Commands
             int errorCode;
 
             // Generate models
-            // codegen -s %DATA_STRUCTURES% -t TraditionalModel TraditionalMetaData -i %TEMPLATEROOT% -o %PROJECT%\Models -n %NAMESPACE%.Models -e -r -lf
             {
                 Console.WriteLine("Generating TraditionalModel and TraditionalMetaData");
 
@@ -72,7 +71,6 @@ namespace HarmonyCore.CliTool.Commands
                     }
 
                     // Generate InterfaceDispatcher
-                    // codegen -smc %SMCROOT%\%SMCNAME% -interface %TESTNAME% -t %SolutionDir%\%TEMPLATEROOT%\InterfaceDispatcher -o %SolutionDir%\%PROJECT%\Dispatchers -n %NAMESPACE% -ut MODELS_NAMESPACE=%NAMESPACE%.Models DTOS_NAMESPACE=%NAMESPACE%.Models -e -r -lf
                     {
                         Console.WriteLine($"{Environment.NewLine}Generating InterfaceDispatcher");
 
@@ -105,7 +103,6 @@ namespace HarmonyCore.CliTool.Commands
                         return;
 
                     // Generate InterfaceMethodDispatchers
-                    // codegen -smc %SMCROOT%\%SMCNAME% -interface %TESTNAME% -t %SolutionDir%\%TEMPLATEROOT%\InterfaceMethodDispatchers -o %SolutionDir%\%PROJECT%\Dispatchers -n %NAMESPACE% -ut MODELS_NAMESPACE=%NAMESPACE%.Models DTOS_NAMESPACE=%NAMESPACE%.Models -e -r -lf
                     {
                         Console.WriteLine($"{Environment.NewLine}Generating InterfaceMethodDispatchers");
 
@@ -137,8 +134,9 @@ namespace HarmonyCore.CliTool.Commands
                     if (errorCode != 0)
                         return;
 
+                    // The below can error out and it is okay
+
                     // Generate MultiInterfaceServiceModels
-                    // codegen -smcstrs %SMCROOT%\%SMCNAME% -interface %TESTNAME% -t %SolutionDir%\%TEMPLATEROOT%\MultiInterfaceServiceModels -i %TEMPLATEROOT% -o %SolutionDir%\TraditionalBridge.TestClient\Client -n %TESTPROJECT% -ut MODELS_NAMESPACE=TraditionalBridge.Models DTOS_NAMESPACE=TraditionalBridge.TestClient.%TESTNAME% -e -r -lf
                     {
                         Console.WriteLine($"{Environment.NewLine}Generating MultiInterfaceServiceModels");
 
@@ -169,7 +167,6 @@ namespace HarmonyCore.CliTool.Commands
                     }
 
                     // Generate InterfaceService
-                    // codegen -smcstrs %SMCROOT%\%SMCNAME% -interface %TESTNAME% -ms -t %SolutionDir%\%TEMPLATEROOT%\InterfaceService -i %TEMPLATEROOT% -o %SolutionDir%\TraditionalBridge.TestClient\Client -n %TESTPROJECT% -ut MODELS_NAMESPACE=TraditionalBridge.Models DTOS_NAMESPACE=TraditionalBridge.TestClient.%TESTNAME% -e -r -lf
                     {
                         Console.WriteLine($"{Environment.NewLine}Generating InterfaceService");
 
@@ -200,7 +197,6 @@ namespace HarmonyCore.CliTool.Commands
                     }
 
                     // Generate InterfaceDispatcherData
-                    // codegen -smcstrs %SMCROOT%\%SMCNAME% -ms -t %SolutionDir%\%TEMPLATEROOT%\InterfaceDispatcherData -o %SolutionDir%\%PROJECT%\Dispatcher -n %NAMESPACE% -ut SMC_INTERFACE=%TESTNAME% DTOS_NAMESPACE=%NAMESPACE% -e -r -lf
                     {
                         Console.WriteLine($"{Environment.NewLine}Generating InterfaceDispatcherData");
 
