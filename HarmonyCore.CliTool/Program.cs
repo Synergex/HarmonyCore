@@ -47,23 +47,23 @@ namespace HarmonyCore.CliTool
 @"Add/Remove property syntax is key:value with spaces between pairs
 Known structure properties:
     Alias - string
-	Files - Comma delimited values
-	EnableRelations - true/false
-	EnableRelationValidation - true/false
-	EnableGetAll - true/false
-	EnableGetOne - true/false
-	EnableAltGet - true/false 
-	EnablePut - true/false
-	EnablePost - true/false
-	EnablePatch - true/false
-	EnableDelete - true/false
-	ControllerAuthorization - true/false or comma delimited role names
-	PostAuthorization - true/false or comma delimited role names
-	PutAuthorization - true/false or comma delimited role names
-	PatchAuthorization - true/false or comma delimited role names
-	DeleteAuthorization - true/false or comma delimited role names
-	GetAuthorization - true/false or comma delimited role names
-	ODataQueryOptions - string", Separator = ' ')]
+    Files - Comma delimited values
+    EnableRelations - true/false
+    EnableRelationValidation - true/false
+    EnableGetAll - true/false
+    EnableGetOne - true/false
+    EnableAltGet - true/false 
+    EnablePut - true/false
+    EnablePost - true/false
+    EnablePatch - true/false
+    EnableDelete - true/false
+    ControllerAuthorization - true/false or comma delimited role names
+    PostAuthorization - true/false or comma delimited role names
+    PutAuthorization - true/false or comma delimited role names
+    PatchAuthorization - true/false or comma delimited role names
+    DeleteAuthorization - true/false or comma delimited role names
+    GetAuthorization - true/false or comma delimited role names
+    ODataQueryOptions - string", Separator = ' ')]
         public IEnumerable<string> Properties { get; set; }
 
         [Option('r', Required = false, HelpText = "Remove properties instead of adding them")]
@@ -95,6 +95,25 @@ Known structure properties:
     [Verb("regen")]
     class RegenOptions
     {
+    }
+
+    [Verb("regenxfpl")]
+    class RegenXFPLOptions
+    {
+        [Option("structures", Required = true, HelpText = "The names of the repository structures to generate code from, in a space separated list", Separator = ' ')]
+        public IEnumerable<string> Structures { get; set; }
+
+        [Option("xmldirectory", Required = true, HelpText = "Name of the directory containing xml files generated using genxml")]
+        public string XMLDirectory { get; set; }
+
+        [Option("namespace", HelpText = "The name of the namespace of the project. Defaults to 'TraditionalBridge'" )]
+        public string Namespace { get; set; } = "TraditionalBridge";
+
+        [Option("project", HelpText = "The name of the project. Defaults to 'TraditionalBridge'")]
+        public string Project { get; set; } = "TraditionalBridge";
+
+        [Option("testproject", HelpText = "The name of the test project. Defaults to 'TraditionalBridge.TestClient'")]
+        public string TestProject { get; set; } = "TraditionalBridge.TestClient";
     }
 
     [Verb("codegen-list")]
@@ -225,8 +244,8 @@ Known structure properties:
             }
 
 
-            CommandLine.Parser.Default.ParseArguments<UpgradeLatestOptions, CodegenListOptions, CodegenAddOptions, CodegenRemoveOptions, RpsOptions, RegenOptions>(args)
-            .MapResult<UpgradeLatestOptions, CodegenListOptions, CodegenAddOptions, CodegenRemoveOptions, RpsOptions, RegenOptions, int>(
+            CommandLine.Parser.Default.ParseArguments<UpgradeLatestOptions, CodegenListOptions, CodegenAddOptions, CodegenRemoveOptions, RpsOptions, RegenOptions, RegenXFPLOptions>(args)
+            .MapResult<UpgradeLatestOptions, CodegenListOptions, CodegenAddOptions, CodegenRemoveOptions, RpsOptions, RegenOptions, RegenXFPLOptions, int>(
 
               (UpgradeLatestOptions opts) =>
               {
@@ -252,6 +271,7 @@ Known structure properties:
               new CodegenCommand(solutionInfo).Remove,
               new RPSCommand(solutionInfo).Run,
               new RegenCommand(solutionInfo).Run,
+              new RegenXfplCommand().Run,
               errs =>
               {
                   foreach (var error in errs)
