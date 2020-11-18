@@ -97,22 +97,6 @@ Known structure properties:
     {
     }
 
-    [Verb("regenxfpl")]
-    class RegenXFPLOptions
-    {
-        [Option("structures", Required = true, HelpText = "The names of the repository structures to generate code from, in a space separated list", Separator = ' ')]
-        public IEnumerable<string> Structures { get; set; }
-
-        [Option("xmldirectory", Required = true, HelpText = "Name of the directory containing xml files generated using genxml")]
-        public string XMLDirectory { get; set; }
-
-        [Option("namespace", HelpText = "The name of the namespace of the project. Defaults to 'TraditionalBridge'" )]
-        public string Namespace { get; set; } = "TraditionalBridge";
-
-        [Option("project", HelpText = "The name of the project. Defaults to 'TraditionalBridge'")]
-        public string Project { get; set; } = "TraditionalBridge";
-    }
-
     [Verb("codegen-list")]
     class CodegenListOptions
     {
@@ -241,8 +225,8 @@ Known structure properties:
             }
 
 
-            CommandLine.Parser.Default.ParseArguments<UpgradeLatestOptions, CodegenListOptions, CodegenAddOptions, CodegenRemoveOptions, RpsOptions, RegenOptions, RegenXFPLOptions>(args)
-            .MapResult<UpgradeLatestOptions, CodegenListOptions, CodegenAddOptions, CodegenRemoveOptions, RpsOptions, RegenOptions, RegenXFPLOptions, int>(
+            CommandLine.Parser.Default.ParseArguments<UpgradeLatestOptions, CodegenListOptions, CodegenAddOptions, CodegenRemoveOptions, RpsOptions, RegenOptions>(args)
+            .MapResult<UpgradeLatestOptions, CodegenListOptions, CodegenAddOptions, CodegenRemoveOptions, RpsOptions, RegenOptions, int>(
 
               (UpgradeLatestOptions opts) =>
               {
@@ -268,7 +252,6 @@ Known structure properties:
               new CodegenCommand(solutionInfo).Remove,
               new RPSCommand(solutionInfo).Run,
               new RegenCommand(solutionInfo).Run,
-              new RegenXfplCommand().Run,
               errs =>
               {
                   foreach (var error in errs)
