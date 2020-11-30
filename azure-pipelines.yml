@@ -60,6 +60,7 @@ stages:
         restoreNugetPackages: true
         logFileVerbosity: diagnostic
         clean: false
+        msbuildArguments: '-m'
 
 #    - publish: '$(Pipeline.Workspace)\\s\\TestDir'
 #      displayName: 'Publish Linux TB DBR'
@@ -73,13 +74,14 @@ stages:
         RPSTFIL: $(SolutionDir)HarmonyCore.Test.Repository\bin\Release\rpstext.ism
       inputs:
         filename: 'regen.bat'
-        modifyEnvironment: true
+        modifyEnvironment: false
     - task: DotNetCoreCLI@2
       enabled: true
       displayName: 'Run Unit Tests'
       env:
         RPSMFIL: $(SolutionDir)HarmonyCore.Test.Repository\bin\Release\rpsmain.ism
         RPSTFIL: $(SolutionDir)HarmonyCore.Test.Repository\bin\Release\rpstext.ism
+        SolutionDir: $(SolutionDir)
       inputs:
         command: 'test'
         arguments: '-c $(Configuration)'
