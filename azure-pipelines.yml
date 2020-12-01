@@ -75,13 +75,17 @@ stages:
       inputs:
         filename: 'regen.bat'
         modifyEnvironment: false
+    - task: BatchScript@1
+      displayName: 'Configure SDE environment'
+      inputs:
+        filename: '$(SYNERGYDE32)\dbl\dblvars32.bat'
+        modifyEnvironment: true
     - task: DotNetCoreCLI@2
       enabled: true
       displayName: 'Run Unit Tests'
       env:
         RPSMFIL: $(SolutionDir)HarmonyCore.Test.Repository\bin\Release\rpsmain.ism
         RPSTFIL: $(SolutionDir)HarmonyCore.Test.Repository\bin\Release\rpstext.ism
-        SolutionDir: $(SolutionDir)
       inputs:
         command: 'test'
         arguments: '-c $(Configuration)'
