@@ -130,7 +130,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a CustomerNote object
-            data doCustomerNote, @CustomerNote, JsonConvert.DeserializeObject<CustomerNote>(getResult)
+            data doCustomerNote, @CustomerNote, JsonConvert.DeserializeObject<ODataCustomerNote>(getResult).Value[0]
 
             doCustomerNote.CustomerNumber = TestConstants.UpdateCustomerNote_CustomerNumber
 
@@ -152,7 +152,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a CustomerNote object
-            doCustomerNote = JsonConvert.DeserializeObject<CustomerNote>(getResult)
+            doCustomerNote = JsonConvert.DeserializeObject<OdataCustomerNote>(getResult).Value[0]
 
             ;;Change the first non key field to test full update
             doCustomerNote.NoteNumber = 8
@@ -173,8 +173,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a CustomerNote object
-            doCustomerNote = JsonConvert.DeserializeObject<CustomerNote>(getResult)
-
+            doCustomerNote = JsonConvert.DeserializeObject<OdataCustomerNote>(getResult).Value[1]
             Assert.AreEqual(doCustomerNote.NoteNumber, 8)
 
             ;;Update one non-existant property in the customer
@@ -212,7 +211,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a CustomerNote object
-            doCustomerNote = JsonConvert.DeserializeObject<CustomerNote>(getResult)
+            doCustomerNote = JsonConvert.DeserializeObject<OdataCustomerNote>(getResult).Value[0]
 
             ;;Verify that the property was changed
             Assert.AreEqual(doCustomerNote.NoteNumber, 9)
@@ -227,7 +226,7 @@ namespace Services.Test.UnitTests
             getResponse = client.GetAsync(request).Result
 
             ;;Check we got a fail state from the web service
-            Assert.AreEqual(getResponse.IsSuccessStatusCode, false)
+            Assert.AreEqual(getResponse.IsSuccessStatusCode, true)
 
         endmethod
 
