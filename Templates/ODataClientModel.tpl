@@ -137,7 +137,7 @@ namespace <NAMESPACE>
         public readwrite property Metadata, string
 
         {JsonProperty("value")}
-        public readwrite property Value, @<StructureNoplural>
+        public readwrite property Value, <IF STRUCTURE_HAS_UNIQUE_KEY>@<StructureNoplural><ELSE>@List<<StructureNoplural>></IF>
 
     endclass
 

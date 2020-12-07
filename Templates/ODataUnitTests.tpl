@@ -280,7 +280,7 @@ namespace <NAMESPACE>
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a <StructureNoplural> object
-            data do<StructureNoplural>, @<StructureNoplural>, JsonConvert.DeserializeObject<<StructureNoplural>>(getResult)
+            data do<StructureNoplural>, @<StructureNoplural>, JsonConvert.DeserializeObject<<IF NOT STRUCTURE_HAS_UNIQUE_KEY>OData</IF><StructureNoplural>>(getResult)<IF NOT STRUCTURE_HAS_UNIQUE_KEY>.Value[0]</IF>
 
   <PRIMARY_KEY>
     <SEGMENT_LOOP>
@@ -306,7 +306,7 @@ namespace <NAMESPACE>
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a <StructureNoplural> object
-            do<StructureNoplural> = JsonConvert.DeserializeObject<<StructureNoplural>>(getResult)
+            do<StructureNoplural> = JsonConvert.DeserializeObject<<IF NOT STRUCTURE_HAS_UNIQUE_KEY>Odata</IF><StructureNoplural>>(getResult)<IF NOT STRUCTURE_HAS_UNIQUE_KEY>.Value[0]</IF>
 
             ;;Change the first non key field to test full update
   <COUNTER_1_RESET>
@@ -339,7 +339,7 @@ namespace <NAMESPACE>
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a <StructureNoplural> object
-            do<StructureNoplural> = JsonConvert.DeserializeObject<<StructureNoplural>>(getResult)
+            do<StructureNoplural> = JsonConvert.DeserializeObject<<IF NOT STRUCTURE_HAS_UNIQUE_KEY>Odata</IF><StructureNoplural>>(getResult)<IF NOT STRUCTURE_HAS_UNIQUE_KEY>.Value[1]</IF>
 
   <COUNTER_1_RESET>
   <FIELD_LOOP>
@@ -347,8 +347,10 @@ namespace <NAMESPACE>
       <COUNTER_1_INCREMENT>
       <IF COUNTER_1_EQ_1>
         <IF ALPHA>
+
             Assert.AreEqual(do<StructureNoplural>.<FieldSqlName>, "Y")
         <ELSE>
+
             Assert.AreEqual(do<StructureNoplural>.<FieldSqlName>, 8)
         </IF ALPHA>
       </IF COUNTER_1_EQ_1>
@@ -402,7 +404,7 @@ namespace <NAMESPACE>
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a <StructureNoplural> object
-            do<StructureNoplural> = JsonConvert.DeserializeObject<<StructureNoplural>>(getResult)
+            do<StructureNoplural> = JsonConvert.DeserializeObject<<IF NOT STRUCTURE_HAS_UNIQUE_KEY>Odata</IF><StructureNoplural>>(getResult)<IF NOT STRUCTURE_HAS_UNIQUE_KEY>.Value[0]</IF>
 
             ;;Verify that the property was changed
   <COUNTER_1_RESET>
@@ -429,7 +431,7 @@ namespace <NAMESPACE>
             getResponse = client.GetAsync(request).Result
 
             ;;Check we got a fail state from the web service
-            Assert.AreEqual(getResponse.IsSuccessStatusCode, false)
+            Assert.AreEqual(getResponse.IsSuccessStatusCode, <IF STRUCTURE_HAS_UNIQUE_KEY>false<ELSE>true</IF STRUCTURE_HAS_UNIQUE_KEY>)
 
         endmethod
 </IF>

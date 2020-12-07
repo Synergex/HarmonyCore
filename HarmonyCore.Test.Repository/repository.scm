@@ -1,11 +1,11 @@
  
 ;  SYNERGY DATA LANGUAGE OUTPUT
 ;
-;  REPOSITORY     : C:\Users\hippi\source\repos\HarmonyCore\HarmonyCore.Test.Repository\bin\Debug\rpsmain.ism
-;                 : C:\Users\hippi\source\repos\HarmonyCore\HarmonyCore.Test.Repository\bin\Debug\rpstext.ism
-;                 : Version 11.1.1e
+;  REPOSITORY     : C:\Users\devadm\Desktop\HarmonyCore\HarmonyCore.Test.Repository\bin\Debug\rpsmain.ism
+;                 : C:\Users\devadm\Desktop\HarmonyCore\HarmonyCore.Test.Repository\bin\Debug\rpstext.ism
+;                 : Version 11.1.1f
 ;
-;  GENERATED      : 28-OCT-2020, 13:14:11
+;  GENERATED      : 04-DEC-2020, 08:41:22
 ;                 : Version 11.1.1f
 ;  EXPORT OPTIONS : [ALL] 
  
@@ -137,7 +137,7 @@ Endgroup
  
 Alias AL_GPC6   Structure GPC6
  
-Structure GPC4   DBL ISAM
+ Structure GPC4   DBL ISAM
    Description "Fourth Structure"
  
 Field FLD_1G   Type ALPHA   Size 3
@@ -1226,6 +1226,20 @@ Field MSC3_DE3   Type DECIMAL   Size 3
 Field MSC3_STRUCT_MSC2   Type STRUCT   Size 40   Struct MSC2
  
 Field MSC3_AL10   Type ALPHA   Size 10
+ 
+Structure NONUNIQUEPK   DBL ISAM
+   Description "Str with nonunique PKs"
+ 
+Field PK   Type DECIMAL   Size 6
+   Description "Primary Key"
+   Required
+ 
+Field NAME   Type ALPHA   Size 30
+   Description "Name of person"
+   Required
+ 
+Key PK   ACCESS   Order ASCENDING   Dups YES   Insert END
+   Segment FIELD   PK  SegType DECIMAL
  
 Structure NULLDTARY   DBL ISAM
    Description "Str with null date/times as arrays"
@@ -2395,6 +2409,10 @@ File CUSTOMER_NOTES   DBL ISAM   "DAT:customer_notes.ism"
 File ITEMS   DBL ISAM   "DAT:items.ism"
    Description "Inventory master file"
    Assign ITEMS
+ 
+File NONUNIQUEPK   DBL ISAM   "DAT:nonuniquepk.ism"
+   Description "Nonunique PK file"
+   Assign NONUNIQUEPK
  
 File ORD   DBL ISAM   "DATA:ord"
    Description "Order header"

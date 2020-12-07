@@ -28,7 +28,7 @@ set RepositoryProject=HarmonyCore.Test.Repository\HarmonyCore.Test.Repository.sy
 rem ================================================================================================================================
 rem Specify the names of the repository structures to generate code from:
 
-set DATA_STRUCTURES=CUSTOMERS CUSTOMER_NOTES ITEMS ORDERS ORDER_ITEMS VENDORS CUSTOMER_EX
+set DATA_STRUCTURES=CUSTOMERS CUSTOMER_NOTES ITEMS ORDERS ORDER_ITEMS VENDORS CUSTOMER_EX NONUNIQUEPK
 set DATA_ALIASES=%DATA_STRUCTURES%
 set DATA_FILES=%DATA_STRUCTURES%
 
@@ -144,7 +144,7 @@ if DEFINED ENABLE_ODATA_ENVIRONMENT (
   rem Generate model and metadata classes
   codegen -s  %DATA_STRUCTURES% %CUSTOM_STRUCTURES% ^
           -a  %DATA_ALIASES% %CUSTOM_ALIASES% ^
-		  -fo %DATA_FILES% ^
+          -fo %DATA_FILES% ^
           -t  ODataModel ODataMetaData ^
           -i  %SolutionDir%Templates ^
           -o  %SolutionDir%%ModelsProject% ^
@@ -155,7 +155,7 @@ if DEFINED ENABLE_ODATA_ENVIRONMENT (
   rem Generate controller classes
   codegen -s  %DATA_STRUCTURES% ^
           -a  %DATA_ALIASES% ^
-		  -fo %DATA_FILES% ^
+          -fo %DATA_FILES% ^
           -t  ODataController ^
           -i  %SolutionDir%Templates ^
           -o  %SolutionDir%%ControllersProject% ^
@@ -168,7 +168,7 @@ if DEFINED ENABLE_PROPERTY_ENDPOINTS (
 
   codegen -s  %DATA_STRUCTURES% ^
           -a  %DATA_ALIASES% ^
-		  -fo %DATA_FILES% ^
+          -fo %DATA_FILES% ^
           -t  ODataControllerPropertyEndpoints ^
           -i  %SolutionDir%Templates ^
           -o  %SolutionDir%%ControllersProject% ^
@@ -179,7 +179,7 @@ if DEFINED ENABLE_PROPERTY_ENDPOINTS (
   rem Generate the DbContext class
   codegen -s  %DATA_STRUCTURES% -ms ^
           -a  %DATA_ALIASES% ^
-		  -fo %DATA_FILES% ^
+          -fo %DATA_FILES% ^
           -t  ODataDbContext ^
           -i  %SolutionDir%Templates ^
           -o  %SolutionDir%%ModelsProject% ^
@@ -190,7 +190,7 @@ if DEFINED ENABLE_PROPERTY_ENDPOINTS (
   rem Generate the EdmBuilder and Startup classes
   codegen -s  %DATA_STRUCTURES% -ms ^
           -a  %DATA_ALIASES% ^
-		  -fo %DATA_FILES% ^
+          -fo %DATA_FILES% ^
           -t  ODataEdmBuilder ODataStartup ^
           -i  %SolutionDir%Templates ^
           -o  %SolutionDir%%ServicesProject% ^
@@ -207,7 +207,7 @@ if DEFINED ENABLE_SELF_HOST_GENERATION (
 
   codegen -s  %FILE_STRUCTURES% -ms ^
           -a  %FILE_ALIASES% ^
-		  -fo %FILE_FILES% ^
+          -fo %FILE_FILES% ^
           -t  ODataSelfHost ODataSelfHostEnvironment ^
           -i  %SolutionDir%Templates ^
           -o  %SolutionDir%%HostProject% ^
@@ -224,7 +224,7 @@ rem Generate Postman Tests
 if DEFINED ENABLE_POSTMAN_TESTS (
   codegen -s  %DATA_STRUCTURES% -ms ^
           -a  %DATA_ALIASES% ^
-		  -fo %DATA_FILES% ^
+          -fo %DATA_FILES% ^
           -t  ODataPostManTests ^
           -i  %SolutionDir%Templates ^
           -o  %SolutionDir% ^
@@ -264,7 +264,7 @@ if DEFINED ENABLE_UNIT_TEST_GENERATION (
   rem Generate OData client model, data loader and unit test classes
   codegen -s  %DATA_STRUCTURES% ^
           -a  %DATA_ALIASES% ^
-		  -fo %DATA_FILES% ^
+          -fo %DATA_FILES% ^
           -t  ODataClientModel ODataTestDataLoader ODataUnitTests ^
           -i  %SolutionDir%Templates ^
           -o  %SolutionDir%%TestProject% -tf ^
@@ -275,7 +275,7 @@ if DEFINED ENABLE_UNIT_TEST_GENERATION (
   rem Generate the unit test environment class, and the unit test hosting program
   codegen -s  %FILE_STRUCTURES% -ms ^
           -a  %FILE_ALIASES% ^
-		  -fo %FILE_FILES% ^
+          -fo %FILE_FILES% ^
           -t  ODataUnitTestEnvironment ODataUnitTestHost ^
           -i  %SolutionDir%Templates ^
           -o  %SolutionDir%%TestProject% ^
@@ -286,7 +286,7 @@ if DEFINED ENABLE_UNIT_TEST_GENERATION (
   rem Generate the unit test constants properties classes
   codegen -s  %DATA_STRUCTURES% -ms ^
           -a  %DATA_ALIASES% ^
-		  -fo %DATA_FILES% ^
+          -fo %DATA_FILES% ^
           -t  ODataTestConstantsProperties ^
           -i  %SolutionDir%Templates ^
           -o  %SolutionDir%%TestProject% ^
@@ -297,7 +297,7 @@ if DEFINED ENABLE_UNIT_TEST_GENERATION (
   rem Generate unit test constants values class; one time, not replaced
   codegen -s  %DATA_STRUCTURES% -ms ^
           -a  %DATA_ALIASES% ^
-		  -fo %DATA_FILES% ^
+          -fo %DATA_FILES% ^
           -t  ODataTestConstantsValues ^
           -i  %SolutionDir%Templates ^
           -o  %SolutionDir%%TestProject% ^
