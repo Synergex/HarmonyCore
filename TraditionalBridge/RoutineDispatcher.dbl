@@ -1236,7 +1236,7 @@ namespace Harmony.TraditionalBridge
                     if(argObject.TryGetProperty("DecimalPrecision", decimalPrecision))
                         argPrecision = decimalPrecision.GetInt32()
 
-                    if(argType == FieldDataType.AlphaField) then
+                    if(argType == FieldDataType.AlphaField || argType == FieldDataType.StringField) then
                     begin
                         if(argIsEncoded) then
                         begin
@@ -1312,7 +1312,14 @@ namespace Harmony.TraditionalBridge
                 ;;this is the true/false last parameter to ArgumentData seen below
                 case (argType) of
                 begincase
+                
                 FieldDataType.AlphaField:
+.ifdef DBLV11
+                    serializer.ArgumentData(index, argBuffer, argType, argLength, argPrecision, false)
+.else
+                    serializer.ArgumentData(index, argBuffer, argType, argLength, argPrecision, true)
+.endc
+                FieldDataType.StringField:
 .ifdef DBLV11
                     serializer.ArgumentData(index, argBuffer, argType, argLength, argPrecision, false)
 .else

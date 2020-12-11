@@ -15,6 +15,8 @@ namespace Services.Test.CS
         [AssemblyInitialize]
         public static void AssemblyInitialize(TestContext context)
         {
+            Environment.SetEnvironmentVariable("DBG_SELECT", "2");
+            Environment.SetEnvironmentVariable("DBG_SELECT_FILE", @"c:\wrk\dbg.log");
             UnitTestEnvironment.AssemblyInitialize(context);
         }
 
@@ -92,6 +94,41 @@ namespace Services.Test.CS
                     {
                         Assert.IsTrue(customer.Name.Contains("Nursery"));
                     }
+                }
+            }
+        }
+
+        [TestMethod]
+        public void InCollection()
+        {
+            var startupClass = new Startup(null, null);
+            var startupServices = new ServiceCollection();
+            startupClass.ConfigureServices(startupServices);
+            using (var sp = startupServices.BuildServiceProvider())
+            {
+                using (var context = sp.GetService<Services.Models.DbContext>())
+                {
+                    var ids = new int[] { 1, 2, 4, 9 };
+                    var customers = context.Customers.Where(cust => ids.Contains(cust.CustomerNumber)).ToList();
+                    Assert.IsTrue(customers.Count > 0);
+                }
+            }
+        }
+
+
+        [TestMethod]
+        public void InCollection2()
+        {
+            var startupClass = new Startup(null, null);
+            var startupServices = new ServiceCollection();
+            startupClass.ConfigureServices(startupServices);
+            using (var sp = startupServices.BuildServiceProvider())
+            {
+                using (var context = sp.GetService<Services.Models.DbContext>())
+                {
+                    var states = new string[] { "CA", "FL", "WA" };
+                    var customers = context.Customers.Where(cust => states.Contains(cust.State)).ToList();
+                    Assert.IsTrue(customers.Count > 0);
                 }
             }
         }
