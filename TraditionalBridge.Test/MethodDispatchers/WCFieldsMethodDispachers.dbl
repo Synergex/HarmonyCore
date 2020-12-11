@@ -63,6 +63,7 @@ namespace TraditionalBridge.Test.WCFields
             arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED INOUT STRTEST1 structure @Strtest1)
+
             ;;Structure argument. Get the data object then get the record from it
             arg1DataObject = dispatcher.DeserializeObject(arguments[1],mStrtest1Metadata)
             arg1 = arg1DataObject.SynergyRecord
@@ -76,7 +77,7 @@ namespace TraditionalBridge.Test.WCFields
             ;;Argument 1 (REQUIRED INOUT STRTEST1 structure @Strtest1)
             
             ;;Argument 1: Single Strtest1 record
-            serializer.ArgumentData(1,arg1,FieldDataType.DataObjectField,46,"STRTEST1",false)
+            serializer.ArgumentData(1,arg1,FieldDataType.DataObjectField,46,"STRTEST1",true)
         endmethod
 
     endclass
@@ -119,6 +120,7 @@ namespace TraditionalBridge.Test.WCFields
             arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED INOUT STRTEST2 structure @Strtest2)
+
             ;;Structure argument. Get the data object then get the record from it
             arg1DataObject = dispatcher.DeserializeObject(arguments[1],mStrtest2Metadata)
             arg1 = arg1DataObject.SynergyRecord
@@ -132,7 +134,7 @@ namespace TraditionalBridge.Test.WCFields
             ;;Argument 1 (REQUIRED INOUT STRTEST2 structure @Strtest2)
             
             ;;Argument 1: Single Strtest2 record
-            serializer.ArgumentData(1,arg1,FieldDataType.DataObjectField,71,"STRTEST2",false)
+            serializer.ArgumentData(1,arg1,FieldDataType.DataObjectField,71,"STRTEST2",true)
         endmethod
 
     endclass
@@ -175,6 +177,7 @@ namespace TraditionalBridge.Test.WCFields
             arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED INOUT STRTEST3 structure @Strtest3)
+
             ;;Structure argument. Get the data object then get the record from it
             arg1DataObject = dispatcher.DeserializeObject(arguments[1],mStrtest3Metadata)
             arg1 = arg1DataObject.SynergyRecord
@@ -188,7 +191,7 @@ namespace TraditionalBridge.Test.WCFields
             ;;Argument 1 (REQUIRED INOUT STRTEST3 structure @Strtest3)
             
             ;;Argument 1: Single Strtest3 record
-            serializer.ArgumentData(1,arg1,FieldDataType.DataObjectField,58,"STRTEST3",false)
+            serializer.ArgumentData(1,arg1,FieldDataType.DataObjectField,58,"STRTEST3",true)
         endmethod
 
     endclass
@@ -218,13 +221,13 @@ namespace TraditionalBridge.Test.WCFields
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED INOUT p1de7 D7)
-                arg1,               d7
+                arg1,               D7
                 ;;Argument 2 (REQUIRED INOUT STRTEST3 [*]structure @Strtest3)
                 arg2Array,          JSON_ELEMENT
                 arg2Handle,         D_HANDLE
                 arg2HandlePos,      int
                 ;;Argument 3 (REQUIRED INOUT p3al10 A10)
-                arg3,               a10
+                arg3,               A10
             endrecord
 
             ;;Temp structure tempstr2
@@ -241,9 +244,11 @@ namespace TraditionalBridge.Test.WCFields
             arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED INOUT p1de7 D7)
+
             arg1 = dispatcher.GetDecimal(arguments[1])
 
             ;;Argument 2 (REQUIRED INOUT STRTEST3 [*]structure @Strtest3)
+
             argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[2],58)
             arg2Array = arguments[2].GetProperty("PassedValue")
             arg2Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg2Array.GetArrayLength())
@@ -251,6 +256,7 @@ namespace TraditionalBridge.Test.WCFields
             dispatcher.UnwrapObjectCollection(^m(arg2Handle),argumentDefinition,arg2HandlePos,arg2Array)
 
             ;;Argument 3 (REQUIRED INOUT p3al10 A10)
+
             arg3 = dispatcher.GetText(arguments[3])
 
             ;;------------------------------------------------------------
@@ -266,7 +272,7 @@ namespace TraditionalBridge.Test.WCFields
             ;;--------------------------------------------------------------------------------
             ;;Argument 2 (REQUIRED INOUT STRTEST3 [*]structure @Strtest3)
             
-            serializer.ArgumentHandleData(2,arg2Handle,FieldDataType.DataObjectCollectionField,58,"STRTEST3",%mem_proc(DM_GETSIZE,arg2Handle)/58,false)
+            serializer.ArgumentHandleData(2,arg2Handle,FieldDataType.DataObjectCollectionField,58,"STRTEST3",%mem_proc(DM_GETSIZE,arg2Handle)/58,true)
 
             ;;--------------------------------------------------------------------------------
             ;;Argument 3 (REQUIRED INOUT p3al10 A10)

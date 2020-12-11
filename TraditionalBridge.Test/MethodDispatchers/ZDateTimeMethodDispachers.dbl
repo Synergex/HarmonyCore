@@ -48,11 +48,11 @@ namespace TraditionalBridge.Test.ZDateTime
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED IN Dt20In D20 YYYYMMDD date)
-                arg1,               d20
+                arg1,               D20
                 ;;Argument 2 (REQUIRED OUT Dt20Out D20 YYYYMMDD date)
-                arg2,               d20
+                arg2,               D20
                 ;;Argument 3 (REQUIRED INOUT Dt20InOut D20 YYYYMMDD date)
-                arg3,               d20
+                arg3,               D20
                 returnValue,         D20
             endrecord
 
@@ -65,9 +65,14 @@ namespace TraditionalBridge.Test.ZDateTime
             arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED IN Dt20In D20 YYYYMMDD date)
+
             arg1 = dispatcher.GetDecimal(arguments[1])
 
+            ;;Argument 2 (REQUIRED OUT Dt20Out D20 YYYYMMDD date)
+
+
             ;;Argument 3 (REQUIRED INOUT Dt20InOut D20 YYYYMMDD date)
+
             arg3 = dispatcher.GetDecimal(arguments[3])
 
             ;;------------------------------------------------------------
@@ -114,11 +119,11 @@ namespace TraditionalBridge.Test.ZDateTime
                 argumentDefinition, @ArgumentDataDefinition
 
                 ;;Argument 1 (REQUIRED INOUT dt8 D8 YYYYMMDD date)
-                arg1,               d8
+                arg1,               D8
                 ;;Argument 2 (REQUIRED INOUT dt6 D6 YYMMDD date)
-                arg2,               d6
+                arg2,               D6
                 ;;Argument 3 (REQUIRED INOUT dt14 D14 YYYYMMDD date)
-                arg3,               d14
+                arg3,               D14
                 returnValue,         D8
             endrecord
 
@@ -131,12 +136,15 @@ namespace TraditionalBridge.Test.ZDateTime
             arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED INOUT dt8 D8 YYYYMMDD date)
+
             arg1 = dispatcher.GetDecimal(arguments[1])
 
             ;;Argument 2 (REQUIRED INOUT dt6 D6 YYMMDD date)
+
             arg2 = dispatcher.GetDecimal(arguments[2])
 
             ;;Argument 3 (REQUIRED INOUT dt14 D14 YYYYMMDD date)
+
             arg3 = dispatcher.GetDecimal(arguments[3])
 
             ;;------------------------------------------------------------
@@ -209,6 +217,7 @@ namespace TraditionalBridge.Test.ZDateTime
             arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED INOUT DATETIMESTR [*]structure @Datetimestr)
+
             argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1],34)
             arg1Array = arguments[1].GetProperty("PassedValue")
             arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.GetArrayLength())
@@ -223,7 +232,7 @@ namespace TraditionalBridge.Test.ZDateTime
             ;;--------------------------------------------------------------------------------
             ;;Argument 1 (REQUIRED INOUT DATETIMESTR [*]structure @Datetimestr)
             
-            serializer.ArgumentHandleData(1,arg1Handle,FieldDataType.DataObjectCollectionField,34,"DATETIMESTR",%mem_proc(DM_GETSIZE,arg1Handle)/34,false)
+            serializer.ArgumentHandleData(1,arg1Handle,FieldDataType.DataObjectCollectionField,34,"DATETIMESTR",%mem_proc(DM_GETSIZE,arg1Handle)/34,true)
         endmethod
 
     endclass
@@ -266,6 +275,7 @@ namespace TraditionalBridge.Test.ZDateTime
             arguments = callFrame.GetProperty("params")
 
             ;;Argument 1 (REQUIRED INOUT DATETIMEARY structure @Datetimeary)
+
             ;;Structure argument. Get the data object then get the record from it
             arg1DataObject = dispatcher.DeserializeObject(arguments[1],mDatetimearyMetadata)
             arg1 = arg1DataObject.SynergyRecord
@@ -279,7 +289,7 @@ namespace TraditionalBridge.Test.ZDateTime
             ;;Argument 1 (REQUIRED INOUT DATETIMEARY structure @Datetimeary)
             
             ;;Argument 1: Single Datetimeary record
-            serializer.ArgumentData(1,arg1,FieldDataType.DataObjectField,108,"DATETIMEARY",false)
+            serializer.ArgumentData(1,arg1,FieldDataType.DataObjectField,108,"DATETIMEARY",true)
         endmethod
 
     endclass
@@ -319,7 +329,10 @@ namespace TraditionalBridge.Test.ZDateTime
             ;;------------------------------------------------------------
             ;;Process inbound arguments
 
-            ;;There are no inbound arguments to process
+            arguments = callFrame.GetProperty("params")
+
+            ;;Argument 1 (REQUIRED OUT USERDATES structure @Userdate)
+
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
@@ -330,7 +343,7 @@ namespace TraditionalBridge.Test.ZDateTime
             ;;Argument 1 (REQUIRED OUT USERDATES structure @Userdate)
             
             ;;Argument 1: Single Userdate record
-            serializer.ArgumentData(1,arg1,FieldDataType.DataObjectField,40,"USERDATES",false)
+            serializer.ArgumentData(1,arg1,FieldDataType.DataObjectField,40,"USERDATES",true)
         endmethod
 
     endclass
