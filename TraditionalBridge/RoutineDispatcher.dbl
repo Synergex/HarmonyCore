@@ -64,18 +64,18 @@ namespace Harmony.TraditionalBridge
             MaybeLog(5, "Destroying RoutineDispatcher")
         endmethod
 
-		public virtual method BeforeDispatch, void
-			name, @string
-			callFrame, JSON_ELEMENT
-			serializer, @DispatchSerializer
+        public virtual method BeforeDispatch, void
+            name, @string
+            callFrame, JSON_ELEMENT
+            serializer, @DispatchSerializer
         proc
 
         endmethod
 
-		public virtual method AfterDispatch, void
-			name, @string
-			callFrame, JSON_ELEMENT
-			serializer, @DispatchSerializer
+        public virtual method AfterDispatch, void
+            name, @string
+            callFrame, JSON_ELEMENT
+            serializer, @DispatchSerializer
         proc
 
         endmethod
@@ -202,8 +202,13 @@ namespace Harmony.TraditionalBridge
             dataDef, @ArgumentDataDefinition
             jsonArray, JSON_ELEMENT
             arrayList, @ArrayList
+            optional desiredType, FieldDataType
+            record
+                result, @ArrayList
+                buffer, a65535
+            endrecord
         proc
-
+            UnwrapObjectCollection(jsonArray, arrayList, dataDef.ElementIsEncoded, ^null, buffer, ^passed(desiredType) ? desiredType : FieldDataType.AlphaField, dataDef.ElementSize, dataDef.DecimalPrecision)
         endmethod
 
         ;;this needs to take an expected type parameter of some kind so we can do basic conversions int -> decimal vs int -> int
@@ -336,6 +341,7 @@ namespace Harmony.TraditionalBridge
         public method GetArgumentDataDefForCollection, @ArgumentDataDefinition
             argument, JSON_ELEMENT
             in optional elementSize, int
+            in optional decimalPrecision, int
             record
                 result, @ArgumentDataDefinition
                 dataType, i4
@@ -343,7 +349,8 @@ namespace Harmony.TraditionalBridge
             endrecord
         proc
             result = new ArgumentDataDefinition()
-            result.ElementSize = elementSize
+            result.ElementSize = ^passed(elementSize) ? elementSize : 0
+            result.DecimalPrecision = ^passed(decimalPrecision) ? decimalPrecision : 0
 
             if(argument.TryGetProperty("DecimalPrecision", temp))
                 result.DecimalPrecision = temp.GetInt32()
@@ -442,7 +449,7 @@ namespace Harmony.TraditionalBridge
                 else if(desiredType == FieldDataType.ImpliedDecimal) then
                 begin
                     ^d(elementBuffer(1: desiredSize), desiredPrecision) = element.GetDecimal()
-                    mreturn (@*)^d(elementBuffer(1: desiredSize), desiredPrecision)
+                    mreturn (@*)%implied(^d(elementBuffer(1: desiredSize), desiredPrecision))
                 end
                 else
                     throw new Exception("invalid desired type " + %string(desiredType))

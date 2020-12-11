@@ -1,0 +1,45 @@
+import Json
+import Synergex.TestFramework
+import Harmony.TraditionalBridge
+import System.Text.Json
+import TraditionalBridge.Test
+
+namespace TraditionalBridge.UnitTest
+
+    {TestClass}
+    public class Arbitrario
+
+        {TestCategory("Arbitrario")}
+        {TestMethod}
+        public method ArbitrarioMethodWithParameters, void
+            endparams
+            record
+                dispatchResult, @string
+        proc
+            dispatchResult = DispatchRunner.RemoveMessageHeader(DispatchRunner.RunDispatch('{"jsonrpc":"2.0","id":1,"method":"Arbitrario.MethodWithParameters","params":[{"ReturnedValue":true,"DataType":16},{"PassedValue":5,"DataType":8},{"PassedValue":"hello","DataType":1},{"PassedValue":["this","is","strings"],"DataType":32},{"PassedValue":[5,4,3,2,1],"DataType":32},{"PassedValue":[],"DataType":32}]}'))
+            DispatchRunner.EnsureSuccess(dispatchResult)
+        endmethod
+        
+        {TestCategory("Arbitrario")}
+        {TestMethod}
+        public method ArbitrarioMethodWithStructures, void
+            endparams
+            record
+                dispatchResult, @string
+        proc
+            dispatchResult = DispatchRunner.RemoveMessageHeader(DispatchRunner.RunDispatch('{"jsonrpc":"2.0","id":2,"method":"Arbitrario.MethodWithStructures","params":[{"ReturnedValue":true,"DataType":8},{"PassedValue":[{"GRFA": "", "Value":""}],"DataType":32},{"PassedValue":[],"DataType":1024},{"PassedValue":{"GRFA": "", "Value":""},"DataType":16},{"PassedValue":{"GRFA": "", "Value":""},"DataType":16},{"PassedValue":[],"DataType":32},{"PassedValue":[],"DataType":32},{"PassedValue":[],"DataType":1024}]}'))
+            DispatchRunner.EnsureSuccess(dispatchResult)
+        endmethod
+        
+        {TestCategory("Arbitrario")}
+        {TestMethod}
+        public method ArbitrarioOptional, void
+            endparams
+            record
+                dispatchResult, @string
+        proc
+            dispatchResult = DispatchRunner.RemoveMessageHeader(DispatchRunner.RunDispatch('{"jsonrpc":"2.0","id":3,"method":"arbitrario_optional","params":[{"ReturnedValue":true,"DataType":16},{"PassedValue":9,"DataType":8},{"PassedValue":"World","DataType":1},{"PassedValue":"","DataType":1},{"DataType":8}]}'))
+            DispatchRunner.EnsureSuccess(dispatchResult)
+        endmethod
+    endclass
+endnamespace

@@ -35,19 +35,23 @@ stages:
 #          Platform: linux64
     steps:
     - task: UseDotNet@2
+      displayName: 'Get .NET SDK 3.1.x'
       inputs:
         packageType: 'sdk'
         version: '3.1.x'
     - task: NuGetToolInstaller@1
+      displayName: 'Get NuGet 5.x'
       inputs:
         versionSpec: 5.x
         checkLatest: true
     - task: NuGetCommand@2
+      displayName: 'NuGet restore'
       inputs:
         command: 'restore'
         restoreSolution: '**/*.sln'
         feedsToUse: 'select'
     - task: MSBuild@1
+      displayName: 'Build solution'
       inputs:
         solution: '$(HarmonyCoreSln)'
         msbuildArchitecture: 'x64'
@@ -56,30 +60,43 @@ stages:
         restoreNugetPackages: true
         logFileVerbosity: diagnostic
         clean: false
+        msbuildArguments: '-m'
 
 #    - publish: '$(Pipeline.Workspace)\\s\\TestDir'
 #      displayName: 'Publish Linux TB DBR'
 #      condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
 #      artifact: TraditionalBridgeDBR
 
-    - task: PowerShell@2
-      inputs:
-        targetType: 'inline'
-        script: |
-          Write-Host "##vso[task.setvariable variable=RPSMFIL;]$env:SolutionDir\HarmonyCore.Test.Repository\bin\Debug\rpsmain.ism"
-          Write-Host "##vso[task.setvariable variable=RPSTFIL;]$env:SolutionDir\HarmonyCore.Test.Repository\bin\Debug\rpstext.ism"
     - task: BatchScript@1
+      displayName: 'Run regen.bat'
+      env:
+        RPSMFIL: $(SolutionDir)HarmonyCore.Test.Repository\bin\Release\rpsmain.ism
+        RPSTFIL: $(SolutionDir)HarmonyCore.Test.Repository\bin\Release\rpstext.ism
       inputs:
         filename: 'regen.bat'
+        modifyEnvironment: false
+    - task: BatchScript@1
+      displayName: 'Configure SDE environment'
+      inputs:
+        filename: '$(SYNERGYDE32)\dbl\dblvars32.bat'
+        modifyEnvironment: true
     - task: DotNetCoreCLI@2
-      enabled: false
+      enabled: true
       displayName: 'Run Unit Tests'
+      env:
+        RPSMFIL: $(SolutionDir)HarmonyCore.Test.Repository\bin\Release\rpsmain.ism
+        RPSTFIL: $(SolutionDir)HarmonyCore.Test.Repository\bin\Release\rpstext.ism
       inputs:
         command: 'test'
         arguments: '-c $(Configuration)'
         projects: |
           HarmonyCore.Test
           Services.Test
+          Services.Test.CS
+    - task: VSTest@2
+      inputs:
+        testAssemblyVer2:
+          $(SolutionDir)TestDir\TraditionalBridge.UnitTest.elb
 
 #   - task: DotNetCoreCLI@2
 #     displayName: 'Publish Linux Test Binaries'
