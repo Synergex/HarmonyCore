@@ -88,12 +88,15 @@ stages:
         RPSTFIL: $(SolutionDir)HarmonyCore.Test.Repository\bin\Release\rpstext.ism
       inputs:
         command: 'test'
-        arguments: '-c $(Configuration) -v diag'
+        arguments: '-c $(Configuration)'
         projects: |
           HarmonyCore.Test
           Services.Test
           Services.Test.CS
-          TraditionalBridge.UnitTest
+    - task: VSTest@2
+      inputs:
+        testAssemblyVer2:
+          $(SolutionDir)TestDir\TraditionalBridge.UnitTest.elb
 
 #   - task: DotNetCoreCLI@2
 #     displayName: 'Publish Linux Test Binaries'
