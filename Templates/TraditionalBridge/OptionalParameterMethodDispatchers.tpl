@@ -186,7 +186,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 </IF FUNCTION>
             <PARAMETER_LOOP>
             <COUNTER_1_INCREMENT>
-                RCBArg(<COUNTER_1_VALUE> + <COUNTER_2_VALUE>, arguments[<COUNTER_1_VALUE>], FieldDataType.<PARAMETER_TYPE>Field, arg<COUNTER_1_VALUE>, mRcbid, 0<PARAMETER_PRECISION>, arg<COUNTER_1_VALUE>Passed)
+                <IF OUT>RCBOutArg<ELSE>RCBArg</IF>(<COUNTER_1_VALUE> + <COUNTER_2_VALUE>, arguments[<COUNTER_1_VALUE>], FieldDataType.<PARAMETER_TYPE>Field, arg<COUNTER_1_VALUE>, mRcbid, 0<PARAMETER_PRECISION>, arg<COUNTER_1_VALUE>Passed)
             </PARAMETER_LOOP>
                 <IF FUNCTION>
                     <IF HATVAL>

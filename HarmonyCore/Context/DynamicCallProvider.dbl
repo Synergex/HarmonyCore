@@ -448,7 +448,15 @@ namespace Harmony.Core.Context
 					if(argValue.PassedValue .is. JToken) then
 					begin
 						data targetToken = ((@JToken)argValue.PassedValue)
-						args[i] = targetToken.ToObject(args[i].GetType())
+						if(args[i] .is. IArgumentPlaceholder) then
+						begin
+							args[i] = targetToken.ToObject(((@IArgumentPlaceholder)args[i]).ArgumentType)
+						end
+						else
+						begin
+							args[i] = targetToken.ToObject(args[i].GetType())
+						end
+
 					end
 					else
 					begin

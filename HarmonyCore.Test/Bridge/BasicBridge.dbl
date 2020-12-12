@@ -141,7 +141,7 @@ namespace HarmonyCore.Test.Bridge
             
 
             data ret1 = await context.Arbitrario_Optional(new ExternalCallContext.ArbitrarioOptionalParameter() { p1=9, p2="World", p3=String.Empty, p4=5 })
-            data ret2 = await context.Arbitrario_Optional(new ExternalCallContext.ArbitrarioOptionalParameter() { p1=9, p2="World", p3=String.Empty})
+            data ret2 = await context.Arbitrario_Optional(new ExternalCallContext.ArbitrarioOptionalParameter() { p1=9, p2="World"})
             data ret3 = await context.Arbitrario_Optional(new ExternalCallContext.ArbitrarioOptionalParameter() { p1=9})
             data ret4 = await context.Arbitrario_Optional(new ExternalCallContext.ArbitrarioOptionalParameter() { p1=9, p4=5 })
 
@@ -151,10 +151,10 @@ namespace HarmonyCore.Test.Bridge
             Assert.AreEqual(ret2.p3, "World")
             Assert.IsNull(ret2.p4)
 
-            Assert.IsNull(ret3.p3)
+            Assert.IsNotNull(ret3.p3)
             Assert.IsNull(ret3.p4)
 
-            Assert.IsNull(ret4.p3)
+            Assert.IsNotNull(ret4.p3)
             Assert.AreEqual(ret4.p4, 45)
 
             contextPool.ReturnContext(context)

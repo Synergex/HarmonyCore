@@ -1209,6 +1209,24 @@ namespace Harmony.TraditionalBridge
             xcall rcb_setfnc(existingHandle, targetMethod)
         endmethod
 
+        public method RCBOutArg, void
+            index, int
+            argObject, JSON_ELEMENT
+            argType, FieldDataType
+            inout argBuffer, a
+            rcbid, D_HANDLE
+            argBufferPrecision, int
+            out passed, boolean
+            record
+                argLength, i4
+                argPrecision, i4
+                argValue, JSON_ELEMENT
+                argEncodedProp, JSON_ELEMENT
+                argIsEncoded, boolean
+        proc
+            RCBArgInternal(index, argObject, argType, argBuffer, rcbid, argBufferPrecision, true, passed)
+        endmethod
+
         public method RCBArg, void
             index, int
             argObject, JSON_ELEMENT
@@ -1217,17 +1235,32 @@ namespace Harmony.TraditionalBridge
             rcbid, D_HANDLE
             argBufferPrecision, int
             optional out passed, boolean
+        proc
+            RCBArgInternal(index, argObject, argType, argBuffer, rcbid, argBufferPrecision, false, passed)
+        endmethod
+
+
+        public method RCBArgInternal, void
+            index, int
+            argObject, JSON_ELEMENT
+            argType, FieldDataType
+            inout argBuffer, a
+            rcbid, D_HANDLE
+            argBufferPrecision, int
+            alwaysPassed, boolean
+            optional out passed, boolean
             record
                 argLength, i4
                 argPrecision, i4
                 argValue, JSON_ELEMENT
                 argEncodedProp, JSON_ELEMENT
                 argIsEncoded, boolean
+                argHasValue, boolean
         proc
             argLength = ^size(argBuffer)
             argPrecision = 0
-
-            if(argObject.TryGetProperty("PassedValue", argValue)) then
+            argHasValue = argObject.TryGetProperty("PassedValue", argValue)
+            if(argHasValue || alwaysPassed) then
             begin
                 if(^passed(passed))
                     passed = true
@@ -1245,43 +1278,62 @@ namespace Harmony.TraditionalBridge
 
                     if(argType == FieldDataType.AlphaField || argType == FieldDataType.StringField) then
                     begin
-                        if(argIsEncoded) then
+                        if(argHasValue) then
                         begin
-                            argBuffer = argValue.GetStringFromBase64()
-                            MaybeLog(4, "argument " + %string(index) + " passed to rcb dispatcher with argType " + %string(argType) + " JsonString value " + argValue.GetStringFromBase64())
-                        end
+                            if(argIsEncoded) then
+                            begin
+                                argBuffer = argValue.GetStringFromBase64()
+                                MaybeLog(4, "argument " + %string(index) + " passed to rcb dispatcher with argType " + %string(argType) + " JsonString value " + argValue.GetStringFromBase64())
+                            end
 
+                            else
+                            begin
+                                argBuffer = argValue.GetString()
+                                MaybeLog(4, "argument " + %string(index) + " passed to rcb dispatcher with argType " + %string(argType) + " JsonString value " + argValue.GetString())
+                            end
+                        end
                         else
-                        begin
-                            argBuffer = argValue.GetString()
-                            MaybeLog(4, "argument " + %string(index) + " passed to rcb dispatcher with argType " + %string(argType) + " JsonString value " + argValue.GetString())
-                        end
-
+                            clear argBuffer
                     end
                     else if(argType == FieldDataType.DecimalField) then
                     begin
-                        if(IS_NUMBER(argValue)) then
+                        if(argHasValue) then
                         begin
-                            MaybeLog(4, "argument " + %string(index) + " passed to rcb dispatcher with argType " + %string(argType) + " JsonNumber value " + %string(argValue.GetDecimal()))
-                            ^d(argBuffer) = argValue.GetDecimal()
+                            if(IS_NUMBER(argValue)) then
+                            begin
+                                MaybeLog(4, "argument " + %string(index) + " passed to rcb dispatcher with argType " + %string(argType) + " JsonNumber value " + %string(argValue.GetDecimal()))
+                                ^d(argBuffer) = argValue.GetDecimal()
+                            end
+                            else
+                                throw new Exception("Invalid argument type")
                         end
                         else
-                            throw new Exception("Invalid argument type")
+                            ^d(argBuffer) = 0
                     end
                     else if(argType == FieldDataType.ImpliedDecimalField) then
                     begin
-                        if(argValue .is. JsonNumber) then
+                        if(argHasValue) then
                         begin
-                            MaybeLog(4, "argument " + %string(index) + " passed to rcb dispatcher with argType " + %string(argType) + " JsonNumber value " + %string(argValue.GetDecimal()))
-                            ^d(argBuffer, argBufferPrecision) = argValue.GetDecimal()
+                            if(argValue .is. JsonNumber) then
+                            begin
+                                MaybeLog(4, "argument " + %string(index) + " passed to rcb dispatcher with argType " + %string(argType) + " JsonNumber value " + %string(argValue.GetDecimal()))
+                                ^d(argBuffer, argBufferPrecision) = argValue.GetDecimal()
+                            end
+                            else
+                                throw new Exception("Invalid argument type")
                         end
                         else
-                            throw new Exception("Invalid argument type")
+                            ^d(argBuffer, argBufferPrecision) = 0
                     end
                     else if(argType == FieldDataType.IntegerField) then
                     begin
-                        MaybeLog(4, "argument " + %string(index) + " passed to rcb dispatcher with argType " + %string(argType)  + " and arglength " + %string(argLength) + " JsonInt value " + %string(argValue.GetInt64()))
-                        ^i(argBuffer) = argValue.GetInt64()
+                        if(argHasValue) then
+                        begin
+                            MaybeLog(4, "argument " + %string(index) + " passed to rcb dispatcher with argType " + %string(argType)  + " and arglength " + %string(argLength) + " JsonInt value " + %string(argValue.GetInt64()))
+                            ^i(argBuffer) = argValue.GetInt64()
+                        end
+                        else
+                            ^i(argBuffer) = 0
                     end
 
                     else
