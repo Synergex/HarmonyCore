@@ -115,6 +115,39 @@ namespace Services.Test.CS
             }
         }
 
+        [TestMethod]
+        public void InSingleCollection()
+        {
+            var startupClass = new Startup(null, null);
+            var startupServices = new ServiceCollection();
+            startupClass.ConfigureServices(startupServices);
+            using (var sp = startupServices.BuildServiceProvider())
+            {
+                using (var context = sp.GetService<Services.Models.DbContext>())
+                {
+                    var ids = new int[] { 1 };
+                    var customers = context.Customers.Where(cust => ids.Contains(cust.CustomerNumber)).ToList();
+                    Assert.IsTrue(customers.Count > 0);
+                }
+            }
+        }
+
+        [TestMethod]
+        public void InEmptyCollection()
+        {
+            var startupClass = new Startup(null, null);
+            var startupServices = new ServiceCollection();
+            startupClass.ConfigureServices(startupServices);
+            using (var sp = startupServices.BuildServiceProvider())
+            {
+                using (var context = sp.GetService<Services.Models.DbContext>())
+                {
+                    var ids = new int[] { };
+                    var customers = context.Customers.Where(cust => ids.Contains(cust.CustomerNumber)).ToList();
+                    Assert.IsTrue(customers.Count == 0);
+                }
+            }
+        }
 
         [TestMethod]
         public void InCollection2()

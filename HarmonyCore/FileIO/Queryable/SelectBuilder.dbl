@@ -485,8 +485,10 @@ namespace Harmony.Core.FileIO.Queryable
         proc
             theOperator = theOperatorParam
             memPnt = %mem_proc(DM_ALLOC, fieldDetails.ElementSize)
-            ^m(tmpStructure(1:fieldDetails.ElementSize), memPnt) = theValues[1]
-            valueLength = theValues[1].Length
+            if(theValues.Length > 0)
+                ^m(tmpStructure(1:fieldDetails.ElementSize), memPnt) = theValues[1]
+
+            valueLength = theValues.Length > 0 ? theValues[1].Length : 0
             if (!valueLength) valueLength = fieldDetails.ElementSize
 
             data caseInsensitive = theOperator == WhereClauseOperator.NoCaseEqualTo || 
@@ -786,6 +788,11 @@ namespace Harmony.Core.FileIO.Queryable
             end
             (whereClauseOperator.IsIn, WhereClauseOperator.IsInNoCase),
             begin
+                if(theValues.Length == 0)
+                    clear ^m(tmpStructure(1:fieldDetails.ElementSize), memPnt)
+                if(theValues.Length <= 1)
+                    mreturn makeFieldEqClause(dataBuffer, fieldDetails, theOperator, ^m(tmpStructure(1:fieldDetails.ElementSize), memPnt), memPnt, valueLength, startsWith, caseInsensitive)
+
                 using fieldDetails.DataType select
                 (FieldDataType.AlphaField),
                 begin
@@ -797,10 +804,6 @@ namespace Harmony.Core.FileIO.Queryable
                         begin
                             data varargArray = theValues.Skip(1).Select<string, VariantDesc>(lambda(str) { (@Synergex.SynergyDE.AlphaDesc)(a)str }).ToArray()
                             mreturn Where.In(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), theValues[1], ^varargarray(varargArray))
-                        end
-                        else if(theValues.Length == 1) then
-                        begin
-                            throw new InvalidOperationException("Not enough arguments to build a Where.In operation")
                         end
                         else
                         begin
@@ -819,10 +822,6 @@ namespace Harmony.Core.FileIO.Queryable
                         data varargArray = theValues.Skip(1).Select<string, VariantDesc>(lambda(str) { (@Synergex.SynergyDE.IntegerDesc)%integer(str) }).ToArray()
                         mreturn Where.In(^i(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize)), theValues[1], ^varargarray(varargArray))
                     end
-                    else if(theValues.Length == 1) then
-                    begin
-                        throw new InvalidOperationException("Not enough arguments to build a Where.In operation")
-                    end
                     else
                     begin
                         mreturn Where.In(^i(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize)), %integer(theValues[1]), %integer(theValues[2]))
@@ -833,10 +832,6 @@ namespace Harmony.Core.FileIO.Queryable
                     begin
                         data varargArray = theValues.Skip(1).Select<string, VariantDesc>(lambda(str) { (@Synergex.SynergyDE.ImpliedDecimalDesc)%implied(str) }).ToArray()
                         mreturn Where.In(^d(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize), fieldDetails.DecimalPrecision), theValues[1], ^varargarray(varargArray))
-                    end
-                    else if(theValues.Length == 1) then
-                    begin
-                        throw new InvalidOperationException("Not enough arguments to build a Where.In operation")
                     end
                     else
                     begin
@@ -849,10 +844,6 @@ namespace Harmony.Core.FileIO.Queryable
                     begin
                         data varargArray = theValues.Skip(1).Select<string, VariantDesc>(lambda(str) { (@Synergex.SynergyDE.DecimalDesc)%implied(str) }).ToArray()
                         mreturn Where.In(^d(dataBuffer(fieldDetails.StructurePosition:fieldDetails.ElementSize)), %implied(theValues[1]), ^varargarray(varargArray))
-                    end
-                    else if(theValues.Length == 1) then
-                    begin
-                        throw new InvalidOperationException("Not enough arguments to build a Where.In operation")
                     end
                     else
                     begin
