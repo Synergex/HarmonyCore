@@ -321,9 +321,19 @@ namespace Harmony.Core
 			else if(^typeof(T).IsGenericType && ^typeof(T).GetGenericTypeDefinition() == ^typeof(Nullable<>)) then
 			begin
 				mreturn (T)arg
-			end
-			else
-				throw new NotImplementedException(string.Format("{0} not a currently supported type in Traditional Bridge", ^typeof(T)))
+            end
+            else
+                try
+				begin
+                    mreturn (T)Convert.ChangeType(arg, ^typeof(T))
+                end
+                catch(ex, @Exception)
+                begin
+                    throw new NotImplementedException(string.Format("{0} not a currently supported type in Traditional Bridge", ^typeof(T)))
+                end
+                endtry
+
+				
 		endmethod
 
 		private static method ArrayArgumentImpl<T>, @object
@@ -592,7 +602,7 @@ namespace Harmony.Core
 					data base64Value = jObj.Property("Base64Value")
 					if(base64Value != ^null) then
 					begin
-						result.PassedValue = WindowsEncoding.GetString(Convert.FromBase64String(base64Value.ToObject<string>()))
+						result.PassedValue = JToken.Parse(WindowsEncoding.GetString(Convert.FromBase64String(base64Value.ToObject<string>())))
 					end
 					else
 						result.PassedValue = jObj["PassedValue"]

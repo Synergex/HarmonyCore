@@ -206,9 +206,15 @@ namespace Harmony.TraditionalBridge
             record
                 result, @ArrayList
                 buffer, a65535
+                typeTemp, FieldDataType
             endrecord
         proc
-            UnwrapObjectCollection(jsonArray, arrayList, dataDef.ElementIsEncoded, ^null, buffer, ^passed(desiredType) ? desiredType : FieldDataType.AlphaField, dataDef.ElementSize, dataDef.DecimalPrecision)
+            if(^passed(desiredType)) then
+                typeTemp = desiredType
+            else
+                typeTemp = FieldDataType.AlphaField
+
+            UnwrapObjectCollection(jsonArray, arrayList, dataDef.ElementIsEncoded, ^null, buffer, typeTemp, dataDef.ElementSize, dataDef.DecimalPrecision)
         endmethod
 
         ;;this needs to take an expected type parameter of some kind so we can do basic conversions int -> decimal vs int -> int

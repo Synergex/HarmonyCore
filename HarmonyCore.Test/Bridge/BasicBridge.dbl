@@ -270,24 +270,24 @@ namespace HarmonyCore.Test.Bridge
             proc
                 data intArray = new int[#] {5, 4, 3, 2, 1 }
                 data resultTpl = await CallMethod("Arbitrario.MethodWithParameters", -1, "hello", new string[#] { "this", "is", "strings" }, (@object)intArray, new string[0])
-                data returnToken = ((@JToken)resultTpl.Item1)
-                mreturn new ArbitrarioReturnType() { ReturnCode = returnToken.ToObject<int>(), IntList = ((@IEnumerable<int>)resultTpl.Item2[4]).ToList(), StringList = ((@IEnumerable<string>)resultTpl.Item2[5]).ToList() }
+                data returnCode = ArgumentHelper.Argument<int>(0, resultTpl)
+                mreturn new ArbitrarioReturnType() { ReturnCode = returnCode, IntList = ((@IEnumerable<int>)resultTpl.Item2[4]).ToList(), StringList = ((@IEnumerable<string>)resultTpl.Item2[5]).ToList() }
             endmethod
 
             public async method Arbitrario_Stop, @Task<ArbitrarioReturnType>
             proc
                 data intArray = new int[#] {5, 4, 3, 2, 1 }
                 data resultTpl = await CallMethod("Arbitrario.MethodWithParameters", -1, "STOP NOW!!!", new string[#] { "this", "is", "strings" }, (@object)intArray, new string[0])
-                data returnToken = ((@JToken)resultTpl.Item1)
-                mreturn new ArbitrarioReturnType() { ReturnCode = returnToken.ToObject<int>(), IntList = ((@IEnumerable<int>)resultTpl.Item2[4]).ToList(), StringList = ((@IEnumerable<string>)resultTpl.Item2[5]).ToList() }
+                data returnCode = ArgumentHelper.Argument<int>(0, resultTpl)
+                mreturn new ArbitrarioReturnType() { ReturnCode = returnCode, IntList = ((@IEnumerable<int>)resultTpl.Item2[4]).ToList(), StringList = ((@IEnumerable<string>)resultTpl.Item2[5]).ToList() }
             endmethod
 
             public async method Arbitrario_MethodWithParameters, @Task<ArbitrarioReturnType>
             proc
                 data intArray = new int[#] {5, 4, 3, 2, 1 }
                 data resultTpl = await CallMethod("Arbitrario.MethodWithParameters", 5, "hello", new string[#] { "this", "is", "strings" }, (@object)intArray, new string[0])
-                data returnToken = ((@JToken)resultTpl.Item1)
-                mreturn new ArbitrarioReturnType() { ReturnCode = returnToken.ToObject<int>(), IntList = ((@IEnumerable<int>)resultTpl.Item2[4]).ToList(), StringList = ((@IEnumerable<string>)resultTpl.Item2[5]).ToList() }
+                data returnCode = ArgumentHelper.Argument<int>(0, resultTpl)
+                mreturn new ArbitrarioReturnType() { ReturnCode = returnCode, IntList = ((@IEnumerable<int>)resultTpl.Item2[4]).ToList(), StringList = ((@IEnumerable<string>)resultTpl.Item2[5]).ToList() }
             endmethod
 
             public async method Arbitrario_Structures, @Task<ArbitrarioStructuresReturnType>

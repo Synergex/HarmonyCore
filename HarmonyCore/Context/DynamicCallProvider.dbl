@@ -432,6 +432,14 @@ namespace Harmony.Core.Context
 				mreturn retArg.PassedValue
 		endmethod
 
+        private static method ConvertArgument, @object
+            arg, @object
+			argType, @Type
+        proc
+			mreturn Convert.ChangeType(arg, argType)
+        endmethod
+
+
 		private method ReEncodeArguments, @Tuple<T, [#]@Object>
 			name, @string
 			arguments, [#]@ArgumentDataDefinition
@@ -472,7 +480,14 @@ namespace Harmony.Core.Context
 						begin
 							if(argValue.PassedValue != ^null && args[i] != ^null)
 							begin
-								args[i] = Convert.ChangeType(argValue.PassedValue, args[i].GetType())
+								if(args[i] .is. IArgumentPlaceholder) then
+								begin
+									args[i] = Convert.ChangeType(argValue.PassedValue, ((@IArgumentPlaceholder)args[i]).ArgumentType)
+								end
+								else
+								begin
+									args[i] = ConvertArgument(argValue.PassedValue, args[i].GetType())
+								end
 							end
 
 						end
