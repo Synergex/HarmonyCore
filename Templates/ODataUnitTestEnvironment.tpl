@@ -58,10 +58,10 @@
 ;;*****************************************************************************
 
 <IF DEFINED_ENABLE_AUTHENTICATION>
-  <IF NOT_DEFINED_ENABLE_CUSTOM_AUTHENTICATION>
+  <IF NOT DEFINED_ENABLE_CUSTOM_AUTHENTICATION>
 import IdentityModel.Client
-  </IF NOT_DEFINED_ENABLE_CUSTOM_AUTHENTICATION>
-</IF DEFINED_ENABLE_AUTHENTICATION>
+  </IF>
+</IF>
 import Microsoft.AspNetCore
 import Microsoft.AspNetCore.Hosting
 import Microsoft.AspNetCore.TestHost
