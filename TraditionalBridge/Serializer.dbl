@@ -850,9 +850,9 @@ namespace Json
             required in argPos, int
             required in value, string
             required in type, FieldDataType
-            required in size, int
-            required in precision, int
-            required in hasBinaryData, boolean
+            optional in size, int
+            optional in precision, int
+            optional in hasBinaryData, boolean
         proc
             ArgumentData(argPos, (a)value, type, size, precision, hasBinaryData)
         endmethod
@@ -884,8 +884,13 @@ namespace Json
 			begin
 				if(^passed(size) && ^size(value) > size) then
 					Pair("Base64Value", Convert.ToBase64String(value(1:size)))
-				else
-					Pair("Base64Value", Convert.ToBase64String(value))
+                else
+                begin
+                    if (^size(value) == 0) then
+                        Pair("Base64Value", "")
+                    else
+                        Pair("Base64Value", Convert.ToBase64String(value))
+                end
 			end
 			else
 			begin
@@ -1049,8 +1054,44 @@ namespace Json
 			record
 				item, @object
 				doElement, @DataObjectBase
-		proc
-			throw new Exception("Not Yet Implemented")
+                tempDec, decimal
+        proc
+            MapOpen()
+            Pair("Position", argPos)
+            String("Value")
+            MapOpen()
+            Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
+            String("PassedValue")
+            ArrayOpen()
+            foreach item in value
+            begin
+                if(hasBinaryData) then
+                    String(Convert.ToBase64String((a)item))
+                else
+                begin
+                    if(item .is. @DataObjectBase) then
+                    begin
+                        doElement = (@DataObjectBase)item
+                        doElement.Serialize(this)
+                    end
+                    else if(item .is. @string) then
+                        String(@string)item)
+                    else if(item .is. @i) then
+                        Integer((@i)item)
+                    else if(item .is. @d) then
+                    begin
+                        tempDec = (d)item
+                        Integer(tempDec)
+                    end
+                    else if(item .is. @id) then
+                        Double((@id)item)
+                    else if(item .is. @boolean)
+                        Bool((@boolean)item)
+                end
+            end
+            ArrayClose()
+            MapClose()
+            MapClose()
 		endmethod
 
 		public method ArgumentData, void
@@ -1078,7 +1119,7 @@ namespace Json
 			foreach item in value
 			begin
 				if(hasBinaryData) then
-					String(Convert.FromBase64String((a)item))
+					String(Convert.ToBase64String((a)item))
 				else
 					String((a)item)
 			end
