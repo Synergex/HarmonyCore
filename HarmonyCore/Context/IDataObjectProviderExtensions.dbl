@@ -15,6 +15,7 @@ namespace Harmony.Core.Context
             created, @IEnumerable<DataObjectBase>
             updated, @IEnumerable<DataObjectBase>
             deleted, @IEnumerable<DataObjectBase>
+            timeoutSeconds, double
         proc
             data ioObjectLookup = new Dictionary<DataObjectMetadataBase, IDataObjectIO>()
 
@@ -26,6 +27,7 @@ namespace Harmony.Core.Context
                     ioObject = provider.GetFileIO(dataObject.GetType())
                     ioObjectLookup.Add(dataObject.Metadata, ioObject)
                 end
+                ioObject.TimeoutSeconds = timeoutSeconds
                 mreturn ioObject
             end
             ;;we lock all of the deleted and updated records prior to actually executing the operation

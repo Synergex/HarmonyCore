@@ -1,832 +1,1249 @@
 import System
 import System.Collections.Generic
 import System.Text
-
+import System.Threading
+import System.Threading.Tasks
 
 namespace Harmony.Core.FileIO
 
-	structure MemoryMapper
-		fld,a1
-	endstructure
+    structure MemoryMapper
+        fld,a1
+    endstructure
 
-	public abstract class DataObjectIOBase<T(DataObjectBase)> implements IDataObjectIO<T>, IDisposable
-		private mRecordBuffer, int ;D_HANDLE
-		protected mDataObjectMetadata, @DataObjectMetadataBase
-		
-		protected method DataObjectIOBase
-		proc
-			mDataObjectMetadata = DataObjectMetadataBase.LookupType(^typeof(T))
-			mRecordBuffer = mDataObjectMetadata.GetBuffer()
-		endmethod
-		
-		;method ~DataObjectIOBase
-		;proc
-		;	if (mRecordBuffer) mRecordBuffer = %mem_proc(DM_FREE, mRecordBuffer)
-		;endmethod
+    public abstract class DataObjectIOBase<T(DataObjectBase)> implements IDataObjectIO<T>, IDisposable
+        private mRecordBuffer, int ;D_HANDLE
+        protected mDataObjectMetadata, @DataObjectMetadataBase
+        
+        protected method DataObjectIOBase
+        proc
+            mDataObjectMetadata = DataObjectMetadataBase.LookupType(^typeof(T))
+            mRecordBuffer = mDataObjectMetadata.GetBuffer()
+        endmethod
+        
+        ;method ~DataObjectIOBase
+        ;proc
+        ;	if (mRecordBuffer) mRecordBuffer = %mem_proc(DM_FREE, mRecordBuffer)
+        ;endmethod
 
-		method ~DataObjectIOBase
-		proc
-			Dispose(true)
-		endmethod
+        method ~DataObjectIOBase
+        proc
+            Dispose(true)
+        endmethod
 
-		public method Dispose, void
-		proc
-			Dispose(false)
-		endmethod
+        public method Dispose, void
+        proc
+            Dispose(false)
+        endmethod
 
-		protected virtual method Dispose, void
-			isFinalizer, boolean
-		proc
-			if(!isFinalizer)
-				GC.SuppressFinalize(this)
+        protected virtual method Dispose, void
+            isFinalizer, boolean
+        proc
+            if(!isFinalizer)
+                GC.SuppressFinalize(this)
 
-			if (mRecordBuffer) 
-			begin
-				mDataObjectMetadata.ReturnBuffer(mRecordBuffer)
-				mRecordBuffer = 0
-			end
+            if (mRecordBuffer) 
+            begin
+                mDataObjectMetadata.ReturnBuffer(mRecordBuffer)
+                mRecordBuffer = 0
+            end
 
-		endmethod
-		
-		protected abstract method Find, FileAccessResults
-			in req keyOfReference, int
-			in req keyValue, a
-			in req operation, FindOperation
-			in req lockRecord, int
-		proc
-		endmethod
-		
-		protected abstract method Read, FileAccessResults
-			inout req recordBuffer, a
-			inout req grfaBuffer, a
-			in req keyOfReference, int
-			in req keyValue, a
-			in req operation, FindOperation
-			in req withLock, int
-		proc
-		endmethod
-		
-		protected abstract method Write, FileAccessResults
-			inout req recordBuffer, a
-			in req current, boolean
-			in req useGrfa, boolean
-			in req withLock, int
-			inout req grfa, a
-		proc
-		endmethod
-		
-		protected abstract method Delete, FileAccessResults
-			in req keyOfReference, int
-			in req keyValue, a
-			in req operation, FindOperation
-			in req manualLocking, boolean
-		proc
-		endmethod
-		
-		protected abstract method ISInfoCall, int
-			in req request, @string
-			in req keyNumber, int
-			in req keySegment, int 
-		proc
-		endmethod
-		
-		protected abstract method GetAlphaFileInfo, a
-			in req request, @string
-			in req recordArea, a
-			in req keyOfReference, int
-		proc
-		endmethod
-		
-		;;; <summary>
-		;;;  Unlock the record within the file
-		;;; </summary>
-		public abstract method UnlockChannel, FileAccessResults
-		proc
-		endmethod
-		
-		public setprotected property IOStatus, FileAccessResults
-		public setprotected property LastSynergyError, int
-		
-		;;; <summary>
-		;;;  Specify the actual/full length of the key to read.  Setting this will prevent partial key reads of the file.
-		;;; </summary>
-		public readwrite property ForceKeyLength, short
-		
-		;;; <summary>
-		;;;  Allow the caller to force a full key read.  Setting this will prevent the built key to be trimmed of trailing blanks.
-		;;; </summary>
-		public readwrite property ForceFullKeyRead, boolean
-		
-		;;; <summary>
-		;;;  Allow the ability to specify the key of reference to use.  Default is 0 (primary)
-		;;; </summary>
-		public readwrite property KeyReference, short
-		
-		;;; <summary>
-		;;;  Returns the number of records in the ISAM file.
-		;;; </summary>
-		public property NumberOfRecords, int
-			method get
-			proc
-				mreturn ISInfoCall("NUMRECS", 0 , 0)
-			endmethod
-		endproperty
-		
-		;;; <summary>
-		;;;  Returns the size of the record in the ISAM file.
-		;;; </summary>
-		public property SizeOfRecord, int
-			method get
-			proc
-				mreturn ISInfoCall("SIZE", 0 , 0)
-			endmethod
-		endproperty
-		
-		;;; <summary>
-		;;;  Returns the number of keys defined in the ISAM file.
-		;;; </summary>
-		public property NumberOfKeys, int
-			method get
-			proc
-				mreturn ISInfoCall("NUMKEYS", 0 , 0)
-			endmethod
-		endproperty
-		
-		;;; <summary>
-		;;;	Returns the start position of the passed in key.
-		;;; </summary>
-		;;; <param name="keyNumber">The key number of enquire on.</param>
-		public method KeyPosition, int
-			in req keyNumber, int
-		proc
-			mreturn ISInfoCall("KPOSITION", keyNumber , 0)
-		endmethod
-		
-		;;; <summary>
-		;;;	Returns the length of the passed in key.
-		;;; </summary>
-		;;; <param name="keyNumber">The key number of enquire on.</param>
-		public method KeyLength, int
-			in req keyNumber, int
-		proc
-			mreturn ISInfoCall("KEYLENGTH", keyNumber , 0)
-		endmethod
-		
-		;;; <summary>
-		;;; Return the full file specification of the opened file.
-		;;; </summary>
-		public property OpenFileName, @string
-			method get
-			proc
-				mreturn GetAlphaFileInfo("FILENAME", "", 0)
-			endmethod
-		endproperty
-		
-		;;; <summary>
-		;;;  Find the first record in the file.
-		;;; </summary>
-		;;; <remarks>
-		;;; Locate the first record in the file.
-		;;; </remarks>
-		public method FindFirstRecord, FileAccessResults
-		proc
-			mreturn this.Find(0, "", FindOperation.FromBeginingOfFile, Q_NO_LOCK)
-		endmethod
-		
-		;;; <summary>
-		;;;  Find the required record in the indexed file using the passed key.
-		;;; </summary>
-		;;; <param name="keyValue">Required key value to locate.</param>
-		;;; <remarks>
-		;;; Locate a record given the passed key value.  The primary key will be used.
-		;;; </remarks>
-		public method FindRecord, FileAccessResults
-			in req keyValue, a
-		proc
-			mreturn this.Find(0, keyValue, FindOperation.FromBeginingOfFile, Q_NO_LOCK)
-		endmethod
+        endmethod
+        
+        protected abstract method Find, FileAccessResults
+            in req keyOfReference, int
+            in req keyValue, a
+            in req operation, FindOperation
+            in req lockRecord, int
+        proc
+        endmethod
+        
+        protected abstract method Read, FileAccessResults
+            inout req recordBuffer, a
+            inout req grfaBuffer, a
+            in req keyOfReference, int
+            in req keyValue, a
+            in req operation, FindOperation
+            in req withLock, int
+        proc
+        endmethod
+        
+        protected abstract method Write, FileAccessResults
+            inout req recordBuffer, a
+            in req current, boolean
+            in req useGrfa, boolean
+            in req withLock, int
+            inout req grfa, a
+        proc
+        endmethod
+        
+        protected abstract method Delete, FileAccessResults
+            in req keyOfReference, int
+            in req keyValue, a
+            in req operation, FindOperation
+            in req manualLocking, boolean
+        proc
+        endmethod
+        
+        protected abstract method ISInfoCall, int
+            in req request, @string
+            in req keyNumber, int
+            in req keySegment, int 
+        proc
+        endmethod
+        
+        protected abstract method GetAlphaFileInfo, a
+            in req request, @string
+            in req recordArea, a
+            in req keyOfReference, int
+        proc
+        endmethod
+        
+        ;;; <summary>
+        ;;;  Unlock the record within the file
+        ;;; </summary>
+        public abstract method UnlockChannel, FileAccessResults
+        proc
+        endmethod
+        
+        public setprotected property IOStatus, FileAccessResults
+        public setprotected property LastSynergyError, int
+        
+        ;;; <summary>
+        ;;;  Specify the actual/full length of the key to read.  Setting this will prevent partial key reads of the file.
+        ;;; </summary>
+        public readwrite property ForceKeyLength, short
+        
+        ;;; <summary>
+        ;;;  Allow the caller to force a full key read.  Setting this will prevent the built key to be trimmed of trailing blanks.
+        ;;; </summary>
+        public readwrite property ForceFullKeyRead, boolean
+        
+        ;;; <summary>
+        ;;;  Allow the ability to specify the key of reference to use.  Default is 0 (primary)
+        ;;; </summary>
+        public readwrite property KeyReference, short
+        
+        ;;; <summary>
+        ;;;  Returns the number of records in the ISAM file.
+        ;;; </summary>
+        public property NumberOfRecords, int
+            method get
+            proc
+                mreturn ISInfoCall("NUMRECS", 0 , 0)
+            endmethod
+        endproperty
+        
+        ;;; <summary>
+        ;;;  Returns the size of the record in the ISAM file.
+        ;;; </summary>
+        public property SizeOfRecord, int
+            method get
+            proc
+                mreturn ISInfoCall("SIZE", 0 , 0)
+            endmethod
+        endproperty
+        
+        ;;; <summary>
+        ;;;  Returns the number of keys defined in the ISAM file.
+        ;;; </summary>
+        public property NumberOfKeys, int
+            method get
+            proc
+                mreturn ISInfoCall("NUMKEYS", 0 , 0)
+            endmethod
+        endproperty
+        
+        ;;; <summary>
+        ;;;	Returns the start position of the passed in key.
+        ;;; </summary>
+        ;;; <param name="keyNumber">The key number of enquire on.</param>
+        public method KeyPosition, int
+            in req keyNumber, int
+        proc
+            mreturn ISInfoCall("KPOSITION", keyNumber , 0)
+        endmethod
+        
+        ;;; <summary>
+        ;;;	Returns the length of the passed in key.
+        ;;; </summary>
+        ;;; <param name="keyNumber">The key number of enquire on.</param>
+        public method KeyLength, int
+            in req keyNumber, int
+        proc
+            mreturn ISInfoCall("KEYLENGTH", keyNumber , 0)
+        endmethod
+        
+        ;;; <summary>
+        ;;; Return the full file specification of the opened file.
+        ;;; </summary>
+        public property OpenFileName, @string
+            method get
+            proc
+                mreturn GetAlphaFileInfo("FILENAME", "", 0)
+            endmethod
+        endproperty
+        
+        ;;; <summary>
+        ;;;  Specify the maximum amount of seconds to wait for lock operations to complete.
+        ;;; </summary>
+        public readwrite property TimeoutSeconds, double  
 
-		public method FindRecord, FileAccessResults
-			in req keyNumber, n
-			in req keyValue, a
-		proc
-			mreturn this.Find(keyNumber, keyValue, FindOperation.FromBeginingOfFile, Q_NO_LOCK)
-		endmethod
-		
-		;;; <summary>
-		;;;  Find the required record in the relative file using the passed record number.
-		;;; </summary>
-		;;; <param name="recordNumber">Required record number to locate.</param>
-		;;; <remarks>
-		;;; Locate a record given the passed record number.
-		;;; </remarks>
-		public method FindRecord, FileAccessResults
-			in req recordNumber, int
-		proc
-			mreturn this.Find(0, ^a(recordNumber), FindOperation.FromBeginingOfFile, Q_NO_LOCK)
-		endmethod
-		
-		;;; <summary>
-		;;;  Find the last record in the file.
-		;;; </summary>
-		;;; <remarks>
-		;;; Locate the last record in the file.
-		;;; </remarks>
-		public method FindLastRecord, FileAccessResults
-		proc
-			mreturn this.Find(0, "", FindOperation.ToEndOfFile, false)
-		endmethod
-		
-		public event RecordLocked	,@RecordLockedEventHandler
-		
-		
-		;;; <summary>
-		;;;	Return the full key value for the passed in data object, for the given key-or-reference.
-		;;; </summary>
-		;;; <param name="dataObject">The passed in data object.</param>
-		;;; <param name="keyOfReference">The required key-of-reference to return the key value for.</param>
-		;;; <returns></returns>
-		public method GetKeyValue, a
-			in req dataObject, T
-			in req keyOfReference, int
-		proc
-			mreturn GetAlphaFileInfo("KEYVAL", dataObject.SynergyRecord, keyOfReference)
-		endmethod
-		
-		;;; <summary>
-		;;;  Read the first record from the file and assign the located record to a $$HarmonyCore Data Object$$.
-		;;; </summary>
-		;;; <param name="dataObject">The $$HarmonyCore Data Object$$ to propogate with the located data.</param>
-		;;; <remarks>
-		;;; The file will be read on the key index that was set by the last read operation, or the default of primary if no previous operation was performed.  
-		;;; The record will be locked if the file is opened in update mode and the record is successfully located.
-		;;; </remarks>
-		public method ReadFirstRecord, FileAccessResults
-			out req dataObject, T
-		proc
-			mreturn ReadFirstRecord(dataObject, false)
-		endmethod
-		
-		;;; <summary>
-		;;;  Read the first record from the file and assign the located record to a $$HarmonyCore Data Object$$.
-		;;; </summary>
-		;;; <param name="dataObject">The $$HarmonyCore Data Object$$ to propogate with the located data.</param>
-		;;; <param name="noLock">If passed as TRUE then the record will not be locked, regardless of the file open mode.</param>
-		;;; <remarks>
-		;;; The file will be read on the key index that was set by the last read operation, or the default of primary if no previous operation was performed.
-		;;; The record will not be locked.  To update the record you should use the UpdateRecordUsingGRFA method.
-		;;; </remarks>
-		public method ReadFirstRecord, FileAccessResults
-			out req dataObject, T
-			in req noLock, boolean
-		proc
-			data grfaBuffer, a10
-			dataObject = ^null
-			data result = this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, 0, "", FindOperation.FromBeginingOfFile, noLock ? Q_NO_LOCK : Q_AUTO_LOCK)
-			if(result == FileAccessResults.Success)
-				dataObject = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
-				
-			mreturn result
-		endmethod
-		
-		;;; <summary>
-		;;;  Read the next record from the file and assign the located record to a $$HarmonyCore Data Object$$.
-		;;; </summary>
-		;;; <param name="dataObject">The $$HarmonyCore Data Object$$ to propogate with the located data.</param>
-		;;; <remarks>
-		;;; The file will be read on the key index that was set by the last read operation, or the default of primary if no previous operation was performed.  The record will be locked if the file is opened in update mode and the record is successfully located.
-		;;; </remarks>
-		public method ReadNextRecord, FileAccessResults
-			out req dataObject, T
-		proc
-			data grfaBuffer, a10
-			dataObject = ^null
-			data result = this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, 0, "", FindOperation.FromCurrent, Q_AUTO_LOCK)
-			if(result == FileAccessResults.Success)
-				dataObject = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
-				
-			mreturn result
-		endmethod
-		
-		;;; <summary>
-		;;;  Read the previous record from the file and assign the located record to a $$HarmonyCore Data Object$$.
-		;;; </summary>
-		;;; <param name="dataObject">The $$HarmonyCore Data Object$$ to propogate with the located data.</param>
-		;;; <remarks>
-		;;; The file will be read on the key index that was set by the last read operation, or the default of primary if no previous operation was performed.  The record will be locked if the file is opened in update mode and the record is successfully located.
-		;;; </remarks>
-		public method ReadPrevRecord, FileAccessResults
-			out req dataObject, T
-		proc
-			mreturn ReadPrevRecord(dataObject, false)
-		endmethod
-		
-		;;; <summary>
-		;;;  Read the previous record from the file and assign the located record to a $$HarmonyCore Data Object$$.
-		;;; </summary>
-		;;; <param name="dataObject">The $$HarmonyCore Data Object$$ to propogate with the located data.</param>
-		;;; <param name="noLock">If passed as TRUE then the record will not be locked, regardless of the file open mode.</param>
-		;;; <remarks>
-		;;; The file will be read on the key index that was set by the last read operation, or the default of primary if no previous operation was performed.
-		;;; The record will not be locked.  To update the record you should use the UpdateRecordUsingGRFA method.
-		;;; </remarks>
-		public method ReadPrevRecord, FileAccessResults
-			out req dataObject, T
-			in req noLock, boolean
-		proc
-			data grfaBuffer, a10
-			dataObject = ^null
-			data result = this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, 0, "", FindOperation.FromCurrentReverse, noLock ? Q_NO_LOCK : Q_AUTO_LOCK)
-			if(result == FileAccessResults.Success)
-				dataObject = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
-				
-			mreturn result
-		endmethod
-		
-		;;; <summary>
-		;;;  Read the last record from the file and assign the located record to a $$HarmonyCore Data Object$$.
-		;;; </summary>
-		;;; <param name="dataObject">The $$HarmonyCore Data Object$$ to propogate with the located data.</param>
-		;;; <remarks>
-		;;; The file will be read on the key index that was set by the last read operation, or the default of primary if no previous operation was performed.  The record will be locked if the file is opened in update mode and the record is successfully located.
-		;;; </remarks>
-		public method ReadLastRecord, FileAccessResults
-			out req dataObject, T
-		proc
-			mreturn ReadLastRecord(dataObject, false)
-		endmethod
-		
-		;;; <summary>
-		;;;  Read the last record from the file and assign the located record to a $$HarmonyCore Data Object$$.
-		;;; </summary>
-		;;; <param name="dataObject">The $$HarmonyCore Data Object$$ to propogate with the located data.</param>
-		;;; <param name="noLock">If passed as TRUE then the record will not be locked, regardless of the file open mode.</param>
-		;;; <remarks>
-		;;; The file will be read on the key index that was set by the last read operation, or the default of primary if no previous operation was performed.
-		;;; The record will not be locked.  To update the record you should use the UpdateRecordUsingGRFA method.
-		;;; </remarks>
-		public method ReadLastRecord, FileAccessResults
-			out req dataObject, T
-			in req noLock, Boolean
-		proc
-			data grfaBuffer, a10
-			dataObject = ^null
-			data result = this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, 0, "", FindOperation.ToEndOfFile, noLock ? Q_NO_LOCK : Q_AUTO_LOCK)
-			if(result == FileAccessResults.Success)
-				dataObject = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
-				
-			mreturn result
-		endmethod
-		
-		;;; <summary>
-		;;;  Read a record from the file and assign the located record to a $$HarmonyCore Data Object$$.
-		;;; </summary>
-		;;; <param name="dataObject">The $$HarmonyCore Data Object$$ to use as the key value and to propogate with the located data.</param>
-		;;; <remarks>
-		;;; Given the passed $$HarmonyCore Data Object$$ the key value will be extracted.  This key value will then be used to locate the matching record in the file.  The file will be read on the primary key index, unless the KeyReference 
-		;;; property has previously been set.  The record will be locked if the file is opened in update mode and the record is successfully located.
-		;;; </remarks>
-		public method ReadRecord, FileAccessResults
-			out req dataObject, T
-		proc
-			mreturn ReadRecord(dataObject, false)
-		endmethod
-		
-		;;; <summary>
-		;;;  Read a record from the file and assign the located record to a $$HarmonyCore Data Object$$, but do not lock the record.
-		;;; </summary>
-		;;; <param name="dataObject">The $$HarmonyCore Data Object$$ to use as the key value and to propogate with the located data.</param>
-		;;; <param name="noLock">If passed as TRUE then the record will not be locked, regardless of the file open mode.</param>
-		;;; <remarks>
-		;;; Given the passed $$HarmonyCore Data Object$$ the key value will be extracted.  This key value will then be used to locate the matching record in the file.  The file will be read on the primary key index, unless the KeyReference 
-		;;; property has previously been set. The record will not be locked.  To subsequently perform an update, call the UpdateRecordUsingGRFA method.
-		;;; </remarks>
-		public method ReadRecord, FileAccessResults
-			out req dataObject, T
-			in req noLock, Boolean
-		proc
-			data grfaBuffer, a10
-			dataObject = ^null
-			data result = this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, 0, "", FindOperation.AtCurrent, noLock ? Q_NO_LOCK : Q_AUTO_LOCK)
-			if(result == FileAccessResults.Success)
-				dataObject = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
-				
-			mreturn result
-		endmethod
-		
-		;;; <summary>
-		;;;  Read a record from the file and assign the located record to a $$HarmonyCore Data Object$$.
-		;;; </summary>
-		;;; <param name="dataObject">The $$HarmonyCore Data Object$$ to use as the key value and to propogate with the located data.</param>
-		;;; <param name="recordNumber">The record number (integer) to use as the record position to read .</param>
-		;;; <remarks>
-		;;; The data from the file for the passed record number will be returned in the passed $$HarmonyCore Data Object$$.  The record number is any valid integer value.
-		;;; </remarks>
-		public method ReadRecord, FileAccessResults
-			out req dataObject, T
-			in req recordNumber, int
-		proc
-			mreturn ReadRecord(dataObject, (d)recordNumber, false)
-		endmethod
-		
-		;;; <summary>
-		;;;  Read a record from the file and assign the located record to a $$HarmonyCore Data Object$$.
-		;;; </summary>
-		;;; <param name="dataObject">The $$HarmonyCore Data Object$$ to use as the key value and to propogate with the located data.</param>
-		;;; <param name="recordNumber">The record number (Synergy decimal) to use as the record position to read .</param>
-		;;; <remarks>
-		;;; The data from the file for the passed record number will be returned in the passed $$HarmonyCore Data Object$$.  The record number is any valid Synergy decimal value.
-		;;; </remarks>
-		public method ReadRecord, FileAccessResults
-			out req dataObject, T
-			in req recordNumber, d
-		proc
-			mreturn ReadRecord(dataObject, recordNumber, false)
-		endmethod
-		
-		;;; <summary>
-		;;;  Read a record from the file and assign the located record to a $$HarmonyCore Data Object$$.
-		;;; </summary>
-		;;; <param name="dataObject">The $$HarmonyCore Data Object$$ to use as the key value and to propogate with the located data.</param>
-		;;; <param name="recordNumber">The record number (Synergy decimal) to use as the record position to read .</param>
-		;;; <param name="noLock">If passed as TRUE then the record will not be locked, regardless of the file open mode.</param>
-		;;; <remarks>
-		;;; The data from the file for the passed record number will be returned in the passed $$HarmonyCore Data Object$$.  The record number is any valid integer value.
-		;;; </remarks>
-		public method ReadRecord, FileAccessResults
-			out req dataObject, T
-			in req recordNumber, d
-			in req noLock, boolean
-		proc
-			data grfaBuffer, a10
-			dataObject = ^null
-			data result = this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, 0, ^a(recordNumber), FindOperation.AtCurrent, noLock ? Q_NO_LOCK : Q_AUTO_LOCK)
-			if(result == FileAccessResults.Success)
-				dataObject = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
-				
-			mreturn result
-		endmethod
-		
-		
-		;;; <summary>
-		;;;  Read a record from the file and assign the located record to a $$HarmonyCore Data Object$$.
-		;;; </summary>
-		;;; <param name="dataObject">The $$HarmonyCore Data Object$$ to use as the key value and to propogate with the located data.</param>
-		;;; <param name="recordNumber">The record number (integer) to use as the record position to read .</param>
-		;;; <param name="noLock">If passed as TRUE then the record will not be locked, regardless of the file open mode.</param>
-		;;; <remarks>
-		;;; The data from the file for the passed record number will be returned in the passed $$HarmonyCore Data Object$$.  The record number is any valid integer value.
-		;;; </remarks>
-		public method ReadRecord, FileAccessResults
-			out req dataObject, T
-			in req recordNumber, int
-			in req noLock, boolean
-		proc
-			mreturn ReadRecord(dataObject, (d)recordNumber, noLock)
-		endmethod
-		
-		;;; <summary>
-		;;;  Update the currently locked record the file.
-		;;; </summary>
-		;;; <param name="dataObject">The $$HarmonyCore Data Object$$ to use as the value and to update the locked record.</param>
-		;;; <remarks>
-		;;; Given the passed $$HarmonyCore Data Object$$ the data will be extracted and used to update the currently locked record.
-		;;; </remarks>
-		public method UpdateRecord, FileAccessResults
-			in req dataObject, T
-		proc 
-			data result = FileAccessResults.Success
-			lambda writeOperation(recordData, grfaData)
-			begin
-				data updatedGrfa, a10, grfaData
-				result = this.Write(recordData, true, false, Q_NO_LOCK, updatedGrfa)
-				if(result == FileAccessResults.Success)
-					grfaData = updatedGrfa
-			end
-			dataObject.InternalSynergyRecord(writeOperation)
-			mreturn result
-		endmethod
-		
-		;;; <summary>
-		;;; Update the record to referecned by it's Global RFA.
-		;;; </summary>
-		;;; <param name="dataObject">The $$HarmonyCore Data Object$$ to use as the value and to locate and updated the record.</param>
-		;;; <remarks>
-		;;; Given the passed $$HarmonyCore Data Object$$ the data will be extracted and used to loate and update the record.
-		;;; </remarks>
-		public method UpdateRecordUsingGRFA, FileAccessResults
-			in req dataObject, T
-		proc
-			data result = FileAccessResults.Success
-			lambda writeOperation(recordData, grfaData)
-			begin
-				data updatedGrfa, a10, grfaData
-				result = this.Write(recordData, false, true, Q_NO_LOCK, updatedGrfa)
-				if(result == FileAccessResults.Success)
-					grfaData = updatedGrfa
-			end
-			dataObject.InternalSynergyRecord(writeOperation)
-			mreturn result
-		endmethod
-		
-		;;; <summary>
-		;;;  Create a new record within the data files.
-		;;; </summary>
-		;;; <remarks>
-		;;; The passed-in $$HarmonyCore Data Object$$ will will be created in the data files.
-		;;; </remarks>
-		public method CreateRecord, FileAccessResults
-			in req dataObject, T
-		proc
-			mreturn CreateRecord(dataObject, false)
-		endmethod
-		
-		public method CreateRecord, FileAccessResults
-			in req dataObject, @DataObjectBase
-			in req keepManualLock, boolean
-		proc
-			data result = FileAccessResults.Success
-			lambda writeOperation(recordData, grfaData)
-			begin
-				data updatedGrfa, a10
-				result = this.Write(recordData, false, false, keepManualLock ? Q_MANUAL_LOCK : Q_NO_LOCK, updatedGrfa)
-				if(result == FileAccessResults.Success)
-					grfaData = updatedGrfa
-			end
-			dataObject.InternalSynergyRecord(writeOperation)
-			mreturn result
-		endmethod
+        ;;; <summary>
+        ;;;  Find the first record in the file.
+        ;;; </summary>
+        ;;; <remarks>
+        ;;; Locate the first record in the file.
+        ;;; </remarks>
+        public method FindFirstRecord, FileAccessResults
+        proc
+            mreturn this.Find(0, "", FindOperation.FromBeginingOfFile, Q_NO_LOCK)
+        endmethod
+        
+        ;;; <summary>
+        ;;;  Find the required record in the indexed file using the passed key.
+        ;;; </summary>
+        ;;; <param name="keyValue">Required key value to locate.</param>
+        ;;; <remarks>
+        ;;; Locate a record given the passed key value.  The primary key will be used.
+        ;;; </remarks>
+        public method FindRecord, FileAccessResults
+            in req keyValue, a
+        proc
+            mreturn this.Find(0, keyValue, FindOperation.FromBeginingOfFile, Q_NO_LOCK)
+        endmethod
 
-		public method ManualLockUsingGRFA, FileAccessResults
-			in req dataObject, @DataObjectBase
-		proc
-			mreturn this.Find(-1, (a)dataObject.GlobalRFA, FindOperation.FromBeginingOfFile, Q_MANUAL_LOCK) 
-		endmethod
+        public method FindRecord, FileAccessResults
+            in req keyNumber, n
+            in req keyValue, a
+        proc
+            mreturn this.Find(keyNumber, keyValue, FindOperation.FromBeginingOfFile, Q_NO_LOCK)
+        endmethod
+        
+        ;;; <summary>
+        ;;;  Find the required record in the relative file using the passed record number.
+        ;;; </summary>
+        ;;; <param name="recordNumber">Required record number to locate.</param>
+        ;;; <remarks>
+        ;;; Locate a record given the passed record number.
+        ;;; </remarks>
+        public method FindRecord, FileAccessResults
+            in req recordNumber, int
+        proc
+            mreturn this.Find(0, ^a(recordNumber), FindOperation.FromBeginingOfFile, Q_NO_LOCK)
+        endmethod
+        
+        ;;; <summary>
+        ;;;  Find the last record in the file.
+        ;;; </summary>
+        ;;; <remarks>
+        ;;; Locate the last record in the file.
+        ;;; </remarks>
+        public method FindLastRecord, FileAccessResults
+        proc
+            mreturn this.Find(0, "", FindOperation.ToEndOfFile, false)
+        endmethod
+        
+        public event RecordLocked	,@RecordLockedEventHandler
+        
+        
+        ;;; <summary>
+        ;;;	Return the full key value for the passed in data object, for the given key-or-reference.
+        ;;; </summary>
+        ;;; <param name="dataObject">The passed in data object.</param>
+        ;;; <param name="keyOfReference">The required key-of-reference to return the key value for.</param>
+        ;;; <returns></returns>
+        public method GetKeyValue, a
+            in req dataObject, T
+            in req keyOfReference, int
+        proc
+            mreturn GetAlphaFileInfo("KEYVAL", dataObject.SynergyRecord, keyOfReference)
+        endmethod
+        
+        ;;; <summary>
+        ;;;  Read the first record from the file and assign the located record to a $$HarmonyCore Data Object$$.
+        ;;; </summary>
+        ;;; <param name="dataObject">The $$HarmonyCore Data Object$$ to propogate with the located data.</param>
+        ;;; <remarks>
+        ;;; The file will be read on the key index that was set by the last read operation, or the default of primary if no previous operation was performed.  
+        ;;; The record will be locked if the file is opened in update mode and the record is successfully located.
+        ;;; </remarks>
+        public method ReadFirstRecord, FileAccessResults
+            out req dataObject, T
+        proc
+            mreturn ReadFirstRecord(dataObject, false)
+        endmethod
+        
+        ;;; <summary>
+        ;;;  Read the first record from the file and assign the located record to a $$HarmonyCore Data Object$$.
+        ;;; </summary>
+        ;;; <param name="dataObject">The $$HarmonyCore Data Object$$ to propogate with the located data.</param>
+        ;;; <param name="noLock">If passed as TRUE then the record will not be locked, regardless of the file open mode.</param>
+        ;;; <remarks>
+        ;;; The file will be read on the key index that was set by the last read operation, or the default of primary if no previous operation was performed.
+        ;;; The record will not be locked.  To update the record you should use the UpdateRecordUsingGRFA method.
+        ;;; </remarks>
+        public method ReadFirstRecord, FileAccessResults
+            out req dataObject, T
+            in req noLock, boolean
+        proc
+            dataObject = ^null
+
+            if (noLock) then
+            begin
+                data grfaBuffer, a10
+                data result = this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, 0, "", FindOperation.FromBeginingOfFile, Q_NO_LOCK)
+                if(result == FileAccessResults.Success)
+                    dataObject = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
+                
+                mreturn result
+            end
+            else
+            begin
+                data cancelTokenSource, @CancellationTokenSource, new CancellationTokenSource()
+                data cancelToken, @CancellationToken, cancelTokenSource.Token
+                data dataObj = dataObject
+
+                lambda lamb()
+                begin
+                    data grfaBuffer, a10
+                    data result, FileAccessResults, this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, 0, "", FindOperation.FromBeginingOfFile, Q_AUTO_LOCK)
+                    if(result == FileAccessResults.Success)
+                        dataObj = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
+                
+                    mreturn result
+                end
+
+                data myTask, @Task<FileAccessResults>, Task.Run(lamb, cancelToken)
+                if (myTask.Wait(TimeSpan.FromSeconds(TimeoutSeconds))) then
+                begin
+                    dataObject = dataObj
+                    mreturn myTask.Result
+                end
+                else
+                    mreturn FileAccessResults.TimedOut
+            end
+        endmethod
+        
+        ;;; <summary>
+        ;;;  Read the next record from the file and assign the located record to a $$HarmonyCore Data Object$$.
+        ;;; </summary>
+        ;;; <param name="dataObject">The $$HarmonyCore Data Object$$ to propogate with the located data.</param>
+        ;;; <remarks>
+        ;;; The file will be read on the key index that was set by the last read operation, or the default of primary if no previous operation was performed.  The record will be locked if the file is opened in update mode and the record is successfully located.
+        ;;; </remarks>
+        public method ReadNextRecord, FileAccessResults
+            out req dataObject, T
+        proc
+            data cancelTokenSource, @CancellationTokenSource, new CancellationTokenSource()
+            data cancelToken, @CancellationToken, cancelTokenSource.Token
+            dataObject = ^null
+            data dataObj = dataObject
+
+            lambda lamb()
+            begin
+                data grfaBuffer, a10
+                data result, FileAccessResults, this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, 0, "", FindOperation.FromCurrent, Q_AUTO_LOCK)
+                if(result == FileAccessResults.Success)
+                    dataObj = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
+                
+                mreturn result
+            end
+
+            data myTask, @Task<FileAccessResults>, Task.Run(lamb, cancelToken)
+            if (myTask.Wait(TimeSpan.FromSeconds(TimeoutSeconds))) then
+            begin
+                dataObject = dataObj 
+                mreturn myTask.Result
+            end
+            else
+                mreturn FileAccessResults.TimedOut
+        endmethod
+        
+        ;;; <summary>
+        ;;;  Read the previous record from the file and assign the located record to a $$HarmonyCore Data Object$$.
+        ;;; </summary>
+        ;;; <param name="dataObject">The $$HarmonyCore Data Object$$ to propogate with the located data.</param>
+        ;;; <remarks>
+        ;;; The file will be read on the key index that was set by the last read operation, or the default of primary if no previous operation was performed.  The record will be locked if the file is opened in update mode and the record is successfully located.
+        ;;; </remarks>
+        public method ReadPrevRecord, FileAccessResults
+            out req dataObject, T
+        proc
+            mreturn ReadPrevRecord(dataObject, false)
+        endmethod
+        
+        ;;; <summary>
+        ;;;  Read the previous record from the file and assign the located record to a $$HarmonyCore Data Object$$.
+        ;;; </summary>
+        ;;; <param name="dataObject">The $$HarmonyCore Data Object$$ to propogate with the located data.</param>
+        ;;; <param name="noLock">If passed as TRUE then the record will not be locked, regardless of the file open mode.</param>
+        ;;; <remarks>
+        ;;; The file will be read on the key index that was set by the last read operation, or the default of primary if no previous operation was performed.
+        ;;; The record will not be locked.  To update the record you should use the UpdateRecordUsingGRFA method.
+        ;;; </remarks>
+        public method ReadPrevRecord, FileAccessResults
+            out req dataObject, T
+            in req noLock, boolean
+        proc
+            dataObject = ^null
+
+            if (noLock) then
+            begin
+                data grfaBuffer, a10
+                data result = this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, 0, "", FindOperation.FromCurrentReverse, Q_NO_LOCK)
+                if(result == FileAccessResults.Success)
+                    dataObject = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
+                
+                mreturn result
+            end
+            else
+            begin
+                data cancelTokenSource, @CancellationTokenSource, new CancellationTokenSource()
+                data cancelToken, @CancellationToken, cancelTokenSource.Token
+                data dataObj = dataObject
+
+                lambda lamb()
+                begin
+                    data grfaBuffer, a10
+                    data result, FileAccessResults, this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, 0, "", FindOperation.FromCurrentReverse, Q_AUTO_LOCK)
+                    if(result == FileAccessResults.Success)
+                        dataObj = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
+                
+                    mreturn result
+                end
+
+                data myTask, @Task<FileAccessResults>, Task.Run(lamb, cancelToken)
+                if (myTask.Wait(TimeSpan.FromSeconds(TimeoutSeconds))) then
+                begin
+                    dataObject = dataObj
+                    mreturn myTask.Result
+                end
+                else
+                    mreturn FileAccessResults.TimedOut
+            end
+        endmethod
+        
+        ;;; <summary>
+        ;;;  Read the last record from the file and assign the located record to a $$HarmonyCore Data Object$$.
+        ;;; </summary>
+        ;;; <param name="dataObject">The $$HarmonyCore Data Object$$ to propogate with the located data.</param>
+        ;;; <remarks>
+        ;;; The file will be read on the key index that was set by the last read operation, or the default of primary if no previous operation was performed.  The record will be locked if the file is opened in update mode and the record is successfully located.
+        ;;; </remarks>
+        public method ReadLastRecord, FileAccessResults
+            out req dataObject, T
+        proc
+            mreturn ReadLastRecord(dataObject, false)
+        endmethod
+        
+        ;;; <summary>
+        ;;;  Read the last record from the file and assign the located record to a $$HarmonyCore Data Object$$.
+        ;;; </summary>
+        ;;; <param name="dataObject">The $$HarmonyCore Data Object$$ to propogate with the located data.</param>
+        ;;; <param name="noLock">If passed as TRUE then the record will not be locked, regardless of the file open mode.</param>
+        ;;; <remarks>
+        ;;; The file will be read on the key index that was set by the last read operation, or the default of primary if no previous operation was performed.
+        ;;; The record will not be locked.  To update the record you should use the UpdateRecordUsingGRFA method.
+        ;;; </remarks>
+        public method ReadLastRecord, FileAccessResults
+            out req dataObject, T
+            in req noLock, Boolean
+        proc
+            dataObject = ^null
+
+            if (noLock) then
+            begin
+                data grfaBuffer, a10
+                data result = this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, 0, "", FindOperation.ToEndOfFile, Q_NO_LOCK)
+                if(result == FileAccessResults.Success)
+                    dataObject = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
+                
+                mreturn result
+            end
+            else
+            begin
+                data cancelTokenSource, @CancellationTokenSource, new CancellationTokenSource()
+                data cancelToken, @CancellationToken, cancelTokenSource.Token
+                data dataObj = dataObject
+
+                lambda lamb()
+                begin
+                    data grfaBuffer, a10
+                    data result, FileAccessResults, this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, 0, "", FindOperation.ToEndOfFile, Q_AUTO_LOCK)
+                    if(result == FileAccessResults.Success)
+                        dataObj = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
+                
+                    mreturn result
+                end
+
+                data myTask, @Task<FileAccessResults>, Task.Run(lamb, cancelToken)
+                if (myTask.Wait(TimeSpan.FromSeconds(TimeoutSeconds))) then
+                begin
+                    dataObject = dataObj
+                    mreturn myTask.Result
+                end
+                else
+                    mreturn FileAccessResults.TimedOut
+            end
+        endmethod
+        
+        ;;; <summary>
+        ;;;  Read a record from the file and assign the located record to a $$HarmonyCore Data Object$$.
+        ;;; </summary>
+        ;;; <param name="dataObject">The $$HarmonyCore Data Object$$ to use as the key value and to propogate with the located data.</param>
+        ;;; <remarks>
+        ;;; Given the passed $$HarmonyCore Data Object$$ the key value will be extracted.  This key value will then be used to locate the matching record in the file.  The file will be read on the primary key index, unless the KeyReference 
+        ;;; property has previously been set.  The record will be locked if the file is opened in update mode and the record is successfully located.
+        ;;; </remarks>
+        public method ReadRecord, FileAccessResults
+            out req dataObject, T
+        proc
+            mreturn ReadRecord(dataObject, false)
+        endmethod
+        
+        ;;; <summary>
+        ;;;  Read a record from the file and assign the located record to a $$HarmonyCore Data Object$$, but do not lock the record.
+        ;;; </summary>
+        ;;; <param name="dataObject">The $$HarmonyCore Data Object$$ to use as the key value and to propogate with the located data.</param>
+        ;;; <param name="noLock">If passed as TRUE then the record will not be locked, regardless of the file open mode.</param>
+        ;;; <remarks>
+        ;;; Given the passed $$HarmonyCore Data Object$$ the key value will be extracted.  This key value will then be used to locate the matching record in the file.  The file will be read on the primary key index, unless the KeyReference 
+        ;;; property has previously been set. The record will not be locked.  To subsequently perform an update, call the UpdateRecordUsingGRFA method.
+        ;;; </remarks>
+        public method ReadRecord, FileAccessResults
+            out req dataObject, T
+            in req noLock, Boolean
+        proc
+            dataObject = ^null
+
+            if (noLock) then
+            begin
+                data grfaBuffer, a10
+                data result = this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, 0, "", FindOperation.AtCurrent, Q_NO_LOCK)
+                if(result == FileAccessResults.Success)
+                    dataObject = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
+                
+                mreturn result
+            end
+            else
+            begin
+                data cancelTokenSource, @CancellationTokenSource, new CancellationTokenSource()
+                data cancelToken, @CancellationToken, cancelTokenSource.Token
+                data dataObj = dataObject
+
+                lambda lamb()
+                begin
+                    data grfaBuffer, a10
+                    data result, FileAccessResults, this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, 0, "", FindOperation.AtCurrent, Q_AUTO_LOCK)
+                    if(result == FileAccessResults.Success)
+                        dataObj = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
+                
+                    mreturn result
+                end
+
+                data myTask, @Task<FileAccessResults>, Task.Run(lamb, cancelToken)
+                if (myTask.Wait(TimeSpan.FromSeconds(TimeoutSeconds))) then
+                begin
+                    dataObject = dataObj
+                    mreturn myTask.Result
+                end
+                else
+                    mreturn FileAccessResults.TimedOut
+            end
+        endmethod
+        
+        ;;; <summary>
+        ;;;  Read a record from the file and assign the located record to a $$HarmonyCore Data Object$$.
+        ;;; </summary>
+        ;;; <param name="dataObject">The $$HarmonyCore Data Object$$ to use as the key value and to propogate with the located data.</param>
+        ;;; <param name="recordNumber">The record number (integer) to use as the record position to read .</param>
+        ;;; <remarks>
+        ;;; The data from the file for the passed record number will be returned in the passed $$HarmonyCore Data Object$$.  The record number is any valid integer value.
+        ;;; </remarks>
+        public method ReadRecord, FileAccessResults
+            out req dataObject, T
+            in req recordNumber, int
+        proc
+            mreturn ReadRecord(dataObject, (d)recordNumber, false)
+        endmethod
+        
+        ;;; <summary>
+        ;;;  Read a record from the file and assign the located record to a $$HarmonyCore Data Object$$.
+        ;;; </summary>
+        ;;; <param name="dataObject">The $$HarmonyCore Data Object$$ to use as the key value and to propogate with the located data.</param>
+        ;;; <param name="recordNumber">The record number (Synergy decimal) to use as the record position to read .</param>
+        ;;; <remarks>
+        ;;; The data from the file for the passed record number will be returned in the passed $$HarmonyCore Data Object$$.  The record number is any valid Synergy decimal value.
+        ;;; </remarks>
+        public method ReadRecord, FileAccessResults
+            out req dataObject, T
+            in req recordNumber, d
+        proc
+            mreturn ReadRecord(dataObject, recordNumber, false)
+        endmethod
+        
+        ;;; <summary>
+        ;;;  Read a record from the file and assign the located record to a $$HarmonyCore Data Object$$.
+        ;;; </summary>
+        ;;; <param name="dataObject">The $$HarmonyCore Data Object$$ to use as the key value and to propogate with the located data.</param>
+        ;;; <param name="recordNumber">The record number (Synergy decimal) to use as the record position to read .</param>
+        ;;; <param name="noLock">If passed as TRUE then the record will not be locked, regardless of the file open mode.</param>
+        ;;; <remarks>
+        ;;; The data from the file for the passed record number will be returned in the passed $$HarmonyCore Data Object$$.  The record number is any valid integer value.
+        ;;; </remarks>
+        public method ReadRecord, FileAccessResults
+            out req dataObject, T
+            in req recordNumber, d
+            in req noLock, boolean
+        proc
+            dataObject = ^null
+
+            if (noLock) then
+            begin
+                data grfaBuffer, a10
+                data result = this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, 0, ^a(recordNumber), FindOperation.AtCurrent, Q_NO_LOCK)
+                if(result == FileAccessResults.Success)
+                    dataObject = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
+                
+                mreturn result
+            end
+            else
+            begin
+                data cancelTokenSource, @CancellationTokenSource, new CancellationTokenSource()
+                data cancelToken, @CancellationToken, cancelTokenSource.Token
+                data dataObj = dataObject
+                data recNum, double, recordNumber
+
+                lambda lamb()
+                begin
+                    data grfaBuffer, a10
+                    data result, FileAccessResults, this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, 0, ^a(recNum), FindOperation.AtCurrent, Q_AUTO_LOCK)
+                    if(result == FileAccessResults.Success)
+                        dataObj = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
+                
+                    mreturn result
+                end
+
+                data myTask, @Task<FileAccessResults>, Task.Run(lamb, cancelToken)
+                if (myTask.Wait(TimeSpan.FromSeconds(TimeoutSeconds))) then
+                begin
+                    dataObject = dataObj
+                    mreturn myTask.Result
+                end
+                else
+                    mreturn FileAccessResults.TimedOut
+            end
+        endmethod
+        
+        
+        ;;; <summary>
+        ;;;  Read a record from the file and assign the located record to a $$HarmonyCore Data Object$$.
+        ;;; </summary>
+        ;;; <param name="dataObject">The $$HarmonyCore Data Object$$ to use as the key value and to propogate with the located data.</param>
+        ;;; <param name="recordNumber">The record number (integer) to use as the record position to read .</param>
+        ;;; <param name="noLock">If passed as TRUE then the record will not be locked, regardless of the file open mode.</param>
+        ;;; <remarks>
+        ;;; The data from the file for the passed record number will be returned in the passed $$HarmonyCore Data Object$$.  The record number is any valid integer value.
+        ;;; </remarks>
+        public method ReadRecord, FileAccessResults
+            out req dataObject, T
+            in req recordNumber, int
+            in req noLock, boolean
+        proc
+            if (noLock) then
+                mreturn ReadRecord(dataObject, (d)recordNumber, noLock)
+            else
+            begin
+                data cancelTokenSource, @CancellationTokenSource, new CancellationTokenSource()
+                data cancelToken, @CancellationToken, cancelTokenSource.Token
+                data dataObj = dataObject
+
+                lambda lamb()
+                begin
+                    mreturn ReadRecord(dataObj, (d)recordNumber, noLock)
+                end
+
+                data myTask, @Task<FileAccessResults>, Task.Run(lamb, cancelToken)
+                if (myTask.Wait(TimeSpan.FromSeconds(TimeoutSeconds))) then
+                begin
+                    dataObject = dataObj
+                    mreturn myTask.Result
+                end
+                else
+                    mreturn FileAccessResults.TimedOut
+            end
+        endmethod
+        
+        ;;; <summary>
+        ;;;  Update the currently locked record the file.
+        ;;; </summary>
+        ;;; <param name="dataObject">The $$HarmonyCore Data Object$$ to use as the value and to update the locked record.</param>
+        ;;; <remarks>
+        ;;; Given the passed $$HarmonyCore Data Object$$ the data will be extracted and used to update the currently locked record.
+        ;;; </remarks>
+        public method UpdateRecord, FileAccessResults
+            in req dataObject, T
+        proc 
+            data result = FileAccessResults.Success
+            lambda writeOperation(recordData, grfaData)
+            begin
+                data updatedGrfa, a10, grfaData
+                result = this.Write(recordData, true, false, Q_NO_LOCK, updatedGrfa)
+                if(result == FileAccessResults.Success)
+                    grfaData = updatedGrfa
+            end
+            dataObject.InternalSynergyRecord(writeOperation)
+            mreturn result
+        endmethod
+        
+        ;;; <summary>
+        ;;; Update the record to referecned by it's Global RFA.
+        ;;; </summary>
+        ;;; <param name="dataObject">The $$HarmonyCore Data Object$$ to use as the value and to locate and updated the record.</param>
+        ;;; <remarks>
+        ;;; Given the passed $$HarmonyCore Data Object$$ the data will be extracted and used to loate and update the record.
+        ;;; </remarks>
+        public method UpdateRecordUsingGRFA, FileAccessResults
+            in req dataObject, T
+        proc
+            data result = FileAccessResults.Success
+            lambda writeOperation(recordData, grfaData)
+            begin
+                data updatedGrfa, a10, grfaData
+                result = this.Write(recordData, false, true, Q_NO_LOCK, updatedGrfa)
+                if(result == FileAccessResults.Success)
+                    grfaData = updatedGrfa
+            end
+            dataObject.InternalSynergyRecord(writeOperation)
+            mreturn result
+        endmethod
+        
+        ;;; <summary>
+        ;;;  Create a new record within the data files.
+        ;;; </summary>
+        ;;; <remarks>
+        ;;; The passed-in $$HarmonyCore Data Object$$ will will be created in the data files.
+        ;;; </remarks>
+        public method CreateRecord, FileAccessResults
+            in req dataObject, T
+        proc
+            mreturn CreateRecord(dataObject, false)
+        endmethod
+        
+        public method CreateRecord, FileAccessResults
+            in req dataObject, @DataObjectBase
+            in req keepManualLock, boolean
+        proc
+            data result = FileAccessResults.Success
+            lambda writeOperation(recordData, grfaData)
+            begin
+                data updatedGrfa, a10
+                result = this.Write(recordData, false, false, keepManualLock ? Q_MANUAL_LOCK : Q_NO_LOCK, updatedGrfa)
+                if(result == FileAccessResults.Success)
+                    grfaData = updatedGrfa
+            end
+            dataObject.InternalSynergyRecord(writeOperation)
+            mreturn result
+        endmethod
+
+        public method ManualLockUsingGRFA, FileAccessResults
+            in req dataObject, @DataObjectBase
+        proc
+            data cancelTokenSource, @CancellationTokenSource, new CancellationTokenSource()
+            data cancelToken, @CancellationToken, cancelTokenSource.Token
+
+            lambda lamb()
+            begin
+                mreturn this.Find(-1, (a)dataObject.GlobalRFA, FindOperation.FromBeginingOfFile, Q_MANUAL_LOCK)
+            end
+
+            data myTask, @Task<FileAccessResults>, Task.Run(lamb, cancelToken)
+            if (myTask.Wait(TimeSpan.FromSeconds(TimeoutSeconds))) then
+            begin
+                mreturn myTask.Result
+            end
+            else
+                mreturn FileAccessResults.TimedOut
+        endmethod
 
 
-		;;; <summary>
-		;;;  Delete the currently locked record the file.
-		;;; </summary>
-		;;; <remarks>
-		;;; The currently locked record will be deleted.
-		;;; </remarks>
-		public method DeleteRecord, FileAccessResults
-		proc
-			mreturn this.Delete(0, "", FindOperation.AtCurrent, false)
-		endmethod
-		
-		;;; <summary>
-		;;;  Delete the currently locked record the file.
-		;;; </summary>
-		;;; <remarks>
-		;;; The currently locked record will be deleted.
-		;;; </remarks>
-		public method DeleteRecordUsingGRFA, FileAccessResults
-			in req dataObject, T
-		proc
-			mreturn this.Delete(-1, (a)dataObject.GlobalRFA, FindOperation.FromCurrent, false)
-		endmethod
+        ;;; <summary>
+        ;;;  Delete the currently locked record the file.
+        ;;; </summary>
+        ;;; <remarks>
+        ;;; The currently locked record will be deleted.
+        ;;; </remarks>
+        public method DeleteRecord, FileAccessResults
+        proc
+            mreturn this.Delete(0, "", FindOperation.AtCurrent, false)
+        endmethod
+        
+        ;;; <summary>
+        ;;;  Delete the currently locked record the file.
+        ;;; </summary>
+        ;;; <remarks>
+        ;;; The currently locked record will be deleted.
+        ;;; </remarks>
+        public method DeleteRecordUsingGRFA, FileAccessResults
+            in req dataObject, T
+        proc
+            mreturn this.Delete(-1, (a)dataObject.GlobalRFA, FindOperation.FromCurrent, false)
+        endmethod
 
-		public virtual method IDataObjectIO.ReadRecord, FileAccessResults
-			out dataObject, @DataObjectBase 
-			endparams
-		proc
-			data tempObject, T
-			data result = ReadRecord(tempObject)
-			dataObject = tempObject
-			mreturn result
-		endmethod
-		
+        public virtual method IDataObjectIO.ReadRecord, FileAccessResults
+            out dataObject, @DataObjectBase 
+            endparams
+        proc
+            data tempObject, T
+            data result = ReadRecord(tempObject)
+            dataObject = tempObject
+            mreturn result
+        endmethod
+        
 
-		public virtual method ReadRecord, FileAccessResults
-			out req dataObject, T
-			in req keyNumber, n
-			in req keyValue, a
-			in req noLock, Boolean
-		proc
-			data grfaBuffer, a10
-			dataObject = ^null
-			data result = this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, keyNumber, keyValue, FindOperation.AtCurrent, noLock ? Q_NO_LOCK : Q_AUTO_LOCK)
-			if(result == FileAccessResults.Success)
-				dataObject = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
-				
-			mreturn result
-		endmethod
-		
-		public virtual method IDataObjectIO.ReadRecord, FileAccessResults
-			out req dataObject, @DataObjectBase
-			in req keyNumber, n
-			in req keyValue, a
-			in req noLock, Boolean
-		proc
-			data tempObject, T
-			data result = ReadRecord(tempObject, keyNumber, keyValue, noLock)
-			dataObject = tempObject
-			mreturn result
-		endmethod
-		
-		public virtual method IDataObjectIO.ReadRecord, FileAccessResults
-			out dataObject, @DataObjectBase 
-			noLock, Boolean 
-			endparams
-		proc
-			data tempObject, T
-			data result = ReadRecord(tempObject, noLock)
-			dataObject = tempObject
-			mreturn result
-		endmethod
-		
-		
-		
-		public virtual method IDataObjectIO.ReadRecord, FileAccessResults
-			out dataObject, @DataObjectBase 
-			recordNumber, int 
-			endparams
-		proc
-			data tempObject, T
-			data result = ReadRecord(tempObject, recordNumber)
-			dataObject = tempObject
-			mreturn result
-		endmethod
-		
-		
-		
-		public virtual method IDataObjectIO.ReadRecord, FileAccessResults
-			out dataObject, @DataObjectBase 
-			recordNumber, d 
-			endparams
-		proc
-			data tempObject, T
-			data result = ReadRecord(tempObject, recordNumber)
-			dataObject = tempObject
-			mreturn result
-		endmethod
-		
-		
-		
-		public virtual method IDataObjectIO.ReadRecord, FileAccessResults
-			out dataObject, @DataObjectBase 
-			recordNumber, d 
-			noLock, Boolean 
-			endparams
-		proc
-			data tempObject, T
-			data result = ReadRecord(tempObject, recordNumber, noLock)
-			dataObject = tempObject
-			mreturn result
-		endmethod
-		
-		
-		
-		public virtual method IDataObjectIO.ReadRecord, FileAccessResults
-			out dataObject, @DataObjectBase 
-			recordNumber, int 
-			noLock, Boolean 
-			endparams
-		proc
-			data tempObject, T
-			data result = ReadRecord(tempObject, recordNumber, noLock)
-			dataObject = tempObject
-			mreturn result
-		endmethod
-		
-		
-		
-		public virtual method IDataObjectIO.UpdateRecord, FileAccessResults
-			dataObject, @DataObjectBase 
-			endparams
-		proc
-			mreturn UpdateRecord((T)dataObject)
-		endmethod
-		
-		
-		
-		public virtual method IDataObjectIO.ReadFirstRecord, FileAccessResults
-			out dataObject, @DataObjectBase 
-			endparams
-		proc
-			data tempObject, T
-			data result = ReadFirstRecord(tempObject)
-			dataObject = tempObject
-			mreturn result
-		endmethod
-		
-		
-		
-		public virtual method IDataObjectIO.ReadFirstRecord, FileAccessResults
-			out dataObject, @DataObjectBase 
-			noLock, Boolean 
-			endparams
-		proc
-			data tempObject, T
-			data result = ReadFirstRecord(tempObject, noLock)
-			dataObject = tempObject
-			mreturn result
-		endmethod
-		
-		
-		
-		public virtual method IDataObjectIO.GetKeyValue, a
-			dataObject, @DataObjectBase 
-			keyOfReference, int 
-			endparams
-		proc
-			mreturn GetKeyValue((T)dataObject, keyOfReference)
-		endmethod
-		
-		
-		
-		public virtual method IDataObjectIO.UpdateRecordUsingGRFA, FileAccessResults
-			dataObject, @DataObjectBase 
-			endparams
-		proc
-			mreturn UpdateRecordUsingGRFA((T)dataObject)
-		endmethod
-		
-		
-		
-		public virtual method IDataObjectIO.ReadLastRecord, FileAccessResults
-			out dataObject, @DataObjectBase 
-			endparams
-		proc
-			data tempObject, T
-			data result = ReadLastRecord(tempObject)
-			dataObject = tempObject
-			mreturn result
-		endmethod
-		
-		
-		
-		public virtual method IDataObjectIO.ReadLastRecord, FileAccessResults
-			out dataObject, @DataObjectBase 
-			noLock, Boolean 
-			endparams
-		proc
-			data tempObject, T
-			data result = ReadLastRecord(tempObject, noLock)
-			dataObject = tempObject
-			mreturn result
-		endmethod
-		
-		
-		
-		public virtual method IDataObjectIO.CreateRecord, FileAccessResults
-			dataObject, @DataObjectBase 
-			endparams
-		proc
-			mreturn CreateRecord((T)dataObject)
-		endmethod
-		
-		
-		
-		public virtual method IDataObjectIO.DeleteRecordUsingGRFA, FileAccessResults
-			dataObject, @DataObjectBase 
-			endparams
-		proc
-			mreturn DeleteRecordUsingGRFA((T)dataObject)
-		endmethod
-		
-		public method DeleteRecordUsingGRFA, FileAccessResults
-			in req dataObject, @DataObjectBase
-			in req withManualLock, boolean
-		proc
-			mreturn this.Delete(-1, (a)dataObject.GlobalRFA, FindOperation.FromCurrent, withManualLock)
-		endmethod
-		
-		public virtual method IDataObjectIO.ReadPrevRecord, FileAccessResults
-			out dataObject, @DataObjectBase 
-			endparams
-		proc
-			data tempObject, T
-			data result = ReadPrevRecord(tempObject)
-			dataObject = tempObject
-			mreturn result
-		endmethod
-		
-		
-		
-		public virtual method IDataObjectIO.ReadPrevRecord, FileAccessResults
-			out dataObject, @DataObjectBase 
-			noLock, Boolean 
-			endparams
-		proc
-			data tempObject, T
-			data result = ReadPrevRecord(tempObject, noLock)
-			dataObject = tempObject
-			mreturn result
-		endmethod
-		
-		
-		
-		public virtual method IDataObjectIO.ReadNextRecord, FileAccessResults
-			out dataObject, @DataObjectBase
-			endparams
-		proc
-			data tempObject, T
-			data result = ReadNextRecord(tempObject)
-			dataObject = tempObject
-			mreturn result
-		endmethod
-	endclass
-	
+        public virtual method ReadRecord, FileAccessResults
+            out req dataObject, T
+            in req keyNumber, n
+            in req keyValue, a
+            in req noLock, Boolean
+        proc
+            dataObject = ^null
+
+            if (noLock) then
+            begin
+                data grfaBuffer, a10
+                data result = this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, keyNumber, keyValue, FindOperation.AtCurrent, Q_NO_LOCK)
+                if(result == FileAccessResults.Success)
+                    dataObject = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
+                
+                mreturn result
+            end
+            else
+            begin
+                data cancelTokenSource, @CancellationTokenSource, new CancellationTokenSource()
+                data cancelToken, @CancellationToken, cancelTokenSource.Token
+                data keyNum, int, keyNumber
+                data keyVal, string, keyValue
+                data tempObject = dataObject
+
+                lambda lamb()
+                begin
+                    data grfaBuffer, a10
+                    data result, FileAccessResults, this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, keyNum, keyVal, FindOperation.AtCurrent, Q_AUTO_LOCK)
+                    if(result == FileAccessResults.Success)
+                        tempObject = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
+
+                    mreturn result
+                end
+
+                data myTask, @Task<FileAccessResults>, Task.Run(lamb, cancelToken)
+                if (myTask.Wait(TimeSpan.FromSeconds(TimeoutSeconds))) then
+                begin
+                    dataObject = tempObject
+                    mreturn myTask.Result
+                end
+                else
+                    mreturn FileAccessResults.TimedOut
+            end
+        endmethod
+        
+        public virtual method IDataObjectIO.ReadRecord, FileAccessResults
+            out req dataObject, @DataObjectBase
+            in req keyNumber, n
+            in req keyValue, a
+            in req noLock, Boolean
+        proc
+            data tempObject, T
+
+            if (noLock) then
+            begin
+                data result = ReadRecord(tempObject, keyNumber, keyValue, noLock)
+                dataObject = tempObject
+                mreturn result
+            end
+            else
+            begin
+                data cancelTokenSource, @CancellationTokenSource, new CancellationTokenSource()
+                data cancelToken, @CancellationToken, cancelTokenSource.Token
+                data keyNum, int, keyNumber
+                data keyVal, string, keyValue
+
+                lambda lamb()
+                begin
+                    mreturn ReadRecord(tempObject, keyNum, keyVal, noLock)
+                end
+
+                data myTask, @Task<FileAccessResults>, Task.Run(lamb, cancelToken)
+                if (myTask.Wait(TimeSpan.FromSeconds(TimeoutSeconds))) then
+                begin
+                    dataObject = tempObject
+                    mreturn myTask.Result
+                end
+                else
+                    mreturn FileAccessResults.TimedOut
+            end
+        endmethod
+        
+        public virtual method IDataObjectIO.ReadRecord, FileAccessResults
+            out dataObject, @DataObjectBase 
+            noLock, Boolean 
+            endparams
+        proc
+            data tempObject, T
+
+            if (noLock) then
+            begin
+                data result = ReadRecord(tempObject, noLock)
+                dataObject = tempObject
+                mreturn result
+            end
+            else
+            begin
+                data cancelTokenSource, @CancellationTokenSource, new CancellationTokenSource()
+                data cancelToken, @CancellationToken, cancelTokenSource.Token
+
+                lambda lamb()
+                begin
+                    mreturn ReadRecord(tempObject, noLock)
+                end
+
+                data myTask, @Task<FileAccessResults>, Task.Run(lamb, cancelToken)
+                if (myTask.Wait(TimeSpan.FromSeconds(TimeoutSeconds))) then
+                begin
+                    dataObject = tempObject
+                    mreturn myTask.Result
+                end
+                else
+                    mreturn FileAccessResults.TimedOut
+            end
+        endmethod
+        
+        
+        
+        public virtual method IDataObjectIO.ReadRecord, FileAccessResults
+            out dataObject, @DataObjectBase 
+            recordNumber, int 
+            endparams
+        proc
+            data tempObject, T
+            data result = ReadRecord(tempObject, recordNumber)
+            dataObject = tempObject
+            mreturn result
+        endmethod
+        
+        
+        
+        public virtual method IDataObjectIO.ReadRecord, FileAccessResults
+            out dataObject, @DataObjectBase 
+            recordNumber, d 
+            endparams
+        proc
+            data tempObject, T
+            data result = ReadRecord(tempObject, recordNumber)
+            dataObject = tempObject
+            mreturn result
+        endmethod
+        
+        
+        
+        public virtual method IDataObjectIO.ReadRecord, FileAccessResults
+            out dataObject, @DataObjectBase 
+            recordNumber, d 
+            noLock, Boolean 
+            endparams
+        proc
+            data tempObject, T
+
+            if (noLock) then
+            begin
+                data result = ReadRecord(tempObject, recordNumber, noLock)
+                dataObject = tempObject
+                mreturn result
+            end
+            else
+            begin
+                data cancelTokenSource, @CancellationTokenSource, new CancellationTokenSource()
+                data cancelToken, @CancellationToken, cancelTokenSource.Token
+                data recNum, double, recordNumber
+
+                lambda lamb()
+                begin
+                    mreturn ReadRecord(tempObject, recNum, noLock)
+                end
+
+                data myTask, @Task<FileAccessResults>, Task.Run(lamb, cancelToken)
+                if (myTask.Wait(TimeSpan.FromSeconds(TimeoutSeconds))) then
+                begin
+                    dataObject = tempObject
+                    mreturn myTask.Result
+                end
+                else
+                    mreturn FileAccessResults.TimedOut
+            end
+        endmethod
+        
+        
+        
+        public virtual method IDataObjectIO.ReadRecord, FileAccessResults
+            out dataObject, @DataObjectBase 
+            recordNumber, int 
+            noLock, Boolean 
+            endparams
+        proc
+            data tempObject, T
+
+            if (noLock) then
+            begin
+                data result = ReadRecord(tempObject, recordNumber, noLock)
+                dataObject = tempObject
+                mreturn result
+            end
+            else
+            begin
+                data cancelTokenSource, @CancellationTokenSource, new CancellationTokenSource()
+                data cancelToken, @CancellationToken, cancelTokenSource.Token
+
+                lambda lamb()
+                begin
+                    mreturn ReadRecord(tempObject, recordNumber, noLock)
+                end
+
+                data myTask, @Task<FileAccessResults>, Task.Run(lamb, cancelToken)
+                if (myTask.Wait(TimeSpan.FromSeconds(TimeoutSeconds))) then
+                begin
+                    dataObject = tempObject
+                    mreturn myTask.Result
+                end
+                else
+                    mreturn FileAccessResults.TimedOut
+            end
+        endmethod
+        
+        
+        
+        public virtual method IDataObjectIO.UpdateRecord, FileAccessResults
+            dataObject, @DataObjectBase 
+            endparams
+        proc
+            mreturn UpdateRecord((T)dataObject)
+        endmethod
+        
+        
+        
+        public virtual method IDataObjectIO.ReadFirstRecord, FileAccessResults
+            out dataObject, @DataObjectBase 
+            endparams
+        proc
+            data tempObject, T
+            data result = ReadFirstRecord(tempObject)
+            dataObject = tempObject
+            mreturn result
+        endmethod
+        
+        
+        
+        public virtual method IDataObjectIO.ReadFirstRecord, FileAccessResults
+            out dataObject, @DataObjectBase 
+            noLock, Boolean 
+            endparams
+        proc
+            data tempObject, T
+
+            if (noLock) then
+            begin
+                data result = ReadFirstRecord(tempObject, noLock)
+                dataObject = tempObject
+                mreturn result
+            end
+            else
+            begin
+                data cancelTokenSource, @CancellationTokenSource, new CancellationTokenSource()
+                data cancelToken, @CancellationToken, cancelTokenSource.Token
+
+                lambda lamb()
+                begin
+                    mreturn ReadFirstRecord(tempObject, noLock)
+                end
+
+                data myTask, @Task<FileAccessResults>, Task.Run(lamb, cancelToken)
+                if (myTask.Wait(TimeSpan.FromSeconds(TimeoutSeconds))) then
+                begin
+                    dataObject = tempObject
+                    mreturn myTask.Result
+                end
+                else
+                    mreturn FileAccessResults.TimedOut
+            end
+        endmethod
+        
+        
+        
+        public virtual method IDataObjectIO.GetKeyValue, a
+            dataObject, @DataObjectBase 
+            keyOfReference, int 
+            endparams
+        proc
+            mreturn GetKeyValue((T)dataObject, keyOfReference)
+        endmethod
+        
+        
+        
+        public virtual method IDataObjectIO.UpdateRecordUsingGRFA, FileAccessResults
+            dataObject, @DataObjectBase 
+            endparams
+        proc
+            mreturn UpdateRecordUsingGRFA((T)dataObject)
+        endmethod
+        
+        
+        
+        public virtual method IDataObjectIO.ReadLastRecord, FileAccessResults
+            out dataObject, @DataObjectBase 
+            endparams
+        proc
+            data tempObject, T
+            data result = ReadLastRecord(tempObject)
+            dataObject = tempObject
+            mreturn result
+        endmethod
+        
+        
+        
+        public virtual method IDataObjectIO.ReadLastRecord, FileAccessResults
+            out dataObject, @DataObjectBase 
+            noLock, Boolean 
+            endparams
+        proc
+            data tempObject, T
+
+            if (noLock) then
+            begin
+                data result = ReadLastRecord(tempObject, noLock)
+                dataObject = tempObject
+                mreturn result
+            end
+            else
+            begin
+                data cancelTokenSource, @CancellationTokenSource, new CancellationTokenSource()
+                data cancelToken, @CancellationToken, cancelTokenSource.Token
+
+                lambda lamb()
+                begin
+                    mreturn ReadLastRecord(tempObject, noLock)
+                end
+
+                data myTask, @Task<FileAccessResults>, Task.Run(lamb, cancelToken)
+                if (myTask.Wait(TimeSpan.FromSeconds(TimeoutSeconds))) then
+                begin
+                    dataObject = tempObject
+                    mreturn myTask.Result
+                end
+                else
+                    mreturn FileAccessResults.TimedOut
+            end
+        endmethod
+        
+        
+        
+        public virtual method IDataObjectIO.CreateRecord, FileAccessResults
+            dataObject, @DataObjectBase 
+            endparams
+        proc
+            mreturn CreateRecord((T)dataObject)
+        endmethod
+        
+        
+        
+        public virtual method IDataObjectIO.DeleteRecordUsingGRFA, FileAccessResults
+            dataObject, @DataObjectBase 
+            endparams
+        proc
+            mreturn DeleteRecordUsingGRFA((T)dataObject)
+        endmethod
+        
+        public method DeleteRecordUsingGRFA, FileAccessResults
+            in req dataObject, @DataObjectBase
+            in req withManualLock, boolean
+        proc
+            if (withManualLock) then
+            begin
+                data cancelTokenSource, @CancellationTokenSource, new CancellationTokenSource()
+                data cancelToken, @CancellationToken, cancelTokenSource.Token
+
+                lambda lamb()
+                begin
+                    mreturn this.Delete(-1, (a)dataObject.GlobalRFA, FindOperation.FromCurrent, withManualLock)
+                end
+
+                data myTask, @Task<FileAccessResults>, Task.Run(lamb, cancelToken)
+                if (myTask.Wait(TimeSpan.FromSeconds(TimeoutSeconds))) then
+                    mreturn myTask.Result
+                else
+                    mreturn FileAccessResults.TimedOut
+            end
+            else
+            begin
+                mreturn this.Delete(-1, (a)dataObject.GlobalRFA, FindOperation.FromCurrent, withManualLock)
+            end
+        endmethod
+        
+        public virtual method IDataObjectIO.ReadPrevRecord, FileAccessResults
+            out dataObject, @DataObjectBase 
+            endparams
+        proc
+            data tempObject, T
+            data result = ReadPrevRecord(tempObject)
+            dataObject = tempObject
+            mreturn result
+        endmethod
+        
+        
+        
+        public virtual method IDataObjectIO.ReadPrevRecord, FileAccessResults
+            out dataObject, @DataObjectBase 
+            noLock, Boolean 
+            endparams
+        proc
+            data tempObject, T
+
+            if (noLock) then
+            begin
+                data result = ReadPrevRecord(tempObject, noLock)
+                dataObject = tempObject
+                mreturn result
+            end
+            else
+            begin
+                data cancelTokenSource, @CancellationTokenSource, new CancellationTokenSource()
+                data cancelToken, @CancellationToken, cancelTokenSource.Token
+
+                lambda lamb()
+                begin
+                    mreturn ReadPrevRecord(tempObject, noLock)
+                end
+
+                data myTask, @Task<FileAccessResults>, Task.Run(lamb, cancelToken)
+                if (myTask.Wait(TimeSpan.FromSeconds(TimeoutSeconds))) then
+                begin
+                    dataObject = tempObject
+                    mreturn myTask.Result
+                end
+                else
+                    mreturn FileAccessResults.TimedOut
+            end
+        endmethod
+        
+        
+        
+        public virtual method IDataObjectIO.ReadNextRecord, FileAccessResults
+            out dataObject, @DataObjectBase
+            endparams
+        proc
+            data tempObject, T
+            data result = ReadNextRecord(tempObject)
+            dataObject = tempObject
+            mreturn result
+        endmethod
+    endclass
+    
 endnamespace
