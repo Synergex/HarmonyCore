@@ -127,7 +127,7 @@ namespace Harmony.Core.EF.Storage.Internal
         /// Specify the maximum amount of seconds to wait for lock operations to complete.
         /// <para/>Defaults to 5 seconds.
         /// </summary>
-        public double TimeoutSeconds { get; set; } = 5;
+        public int TimeoutSeconds { get; set; } = 5;
 
         private int DispatchTransactionFromEntries(IList<IUpdateEntry> entries)
         {

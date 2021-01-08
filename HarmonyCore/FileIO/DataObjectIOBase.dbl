@@ -1,8 +1,7 @@
 import System
 import System.Collections.Generic
 import System.Text
-import System.Threading
-import System.Threading.Tasks
+
 
 namespace Harmony.Core.FileIO
 
@@ -186,7 +185,7 @@ namespace Harmony.Core.FileIO
         ;;; <summary>
         ;;;  Specify the maximum amount of seconds to wait for lock operations to complete.
         ;;; </summary>
-        public readwrite property TimeoutSeconds, double, 5
+        public readwrite property TimeoutSeconds, int, 5
 
         ;;; <summary>
         ;;;  Find the first record in the file.
@@ -286,42 +285,13 @@ namespace Harmony.Core.FileIO
             out req dataObject, T
             in req noLock, boolean
         proc
+            data grfaBuffer, a10
             dataObject = ^null
-
-            if (noLock) then
-            begin
-                data grfaBuffer, a10
-                data result = this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, 0, "", FindOperation.FromBeginingOfFile, Q_NO_LOCK)
-                if(result == FileAccessResults.Success)
-                    dataObject = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
+            data result = this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, 0, "", FindOperation.FromBeginingOfFile, noLock ? Q_NO_LOCK : Q_AUTO_LOCK)
+            if(result == FileAccessResults.Success)
+                dataObject = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
                 
-                mreturn result
-            end
-            else
-            begin
-                data cancelTokenSource, @CancellationTokenSource, new CancellationTokenSource()
-                data cancelToken, @CancellationToken, cancelTokenSource.Token
-                data dataObj = dataObject
-
-                lambda lamb()
-                begin
-                    data grfaBuffer, a10
-                    data result, FileAccessResults, this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, 0, "", FindOperation.FromBeginingOfFile, Q_AUTO_LOCK)
-                    if(result == FileAccessResults.Success)
-                        dataObj = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
-                
-                    mreturn result
-                end
-
-                data myTask, @Task<FileAccessResults>, Task.Run(lamb, cancelToken)
-                if (myTask.Wait(TimeSpan.FromSeconds(TimeoutSeconds))) then
-                begin
-                    dataObject = dataObj
-                    mreturn myTask.Result
-                end
-                else
-                    mreturn FileAccessResults.TimedOut
-            end
+            mreturn result
         endmethod
         
         ;;; <summary>
@@ -334,29 +304,13 @@ namespace Harmony.Core.FileIO
         public method ReadNextRecord, FileAccessResults
             out req dataObject, T
         proc
-            data cancelTokenSource, @CancellationTokenSource, new CancellationTokenSource()
-            data cancelToken, @CancellationToken, cancelTokenSource.Token
+            data grfaBuffer, a10
             dataObject = ^null
-            data dataObj = dataObject
-
-            lambda lamb()
-            begin
-                data grfaBuffer, a10
-                data result, FileAccessResults, this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, 0, "", FindOperation.FromCurrent, Q_AUTO_LOCK)
-                if(result == FileAccessResults.Success)
-                    dataObj = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
+            data result = this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, 0, "", FindOperation.FromCurrent, Q_AUTO_LOCK)
+            if(result == FileAccessResults.Success)
+                dataObject = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
                 
-                mreturn result
-            end
-
-            data myTask, @Task<FileAccessResults>, Task.Run(lamb, cancelToken)
-            if (myTask.Wait(TimeSpan.FromSeconds(TimeoutSeconds))) then
-            begin
-                dataObject = dataObj 
-                mreturn myTask.Result
-            end
-            else
-                mreturn FileAccessResults.TimedOut
+            mreturn result
         endmethod
         
         ;;; <summary>
@@ -385,42 +339,13 @@ namespace Harmony.Core.FileIO
             out req dataObject, T
             in req noLock, boolean
         proc
+            data grfaBuffer, a10
             dataObject = ^null
-
-            if (noLock) then
-            begin
-                data grfaBuffer, a10
-                data result = this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, 0, "", FindOperation.FromCurrentReverse, Q_NO_LOCK)
-                if(result == FileAccessResults.Success)
-                    dataObject = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
+            data result = this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, 0, "", FindOperation.FromCurrentReverse, noLock ? Q_NO_LOCK : Q_AUTO_LOCK)
+            if(result == FileAccessResults.Success)
+                dataObject = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
                 
-                mreturn result
-            end
-            else
-            begin
-                data cancelTokenSource, @CancellationTokenSource, new CancellationTokenSource()
-                data cancelToken, @CancellationToken, cancelTokenSource.Token
-                data dataObj = dataObject
-
-                lambda lamb()
-                begin
-                    data grfaBuffer, a10
-                    data result, FileAccessResults, this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, 0, "", FindOperation.FromCurrentReverse, Q_AUTO_LOCK)
-                    if(result == FileAccessResults.Success)
-                        dataObj = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
-                
-                    mreturn result
-                end
-
-                data myTask, @Task<FileAccessResults>, Task.Run(lamb, cancelToken)
-                if (myTask.Wait(TimeSpan.FromSeconds(TimeoutSeconds))) then
-                begin
-                    dataObject = dataObj
-                    mreturn myTask.Result
-                end
-                else
-                    mreturn FileAccessResults.TimedOut
-            end
+            mreturn result
         endmethod
         
         ;;; <summary>
@@ -449,42 +374,13 @@ namespace Harmony.Core.FileIO
             out req dataObject, T
             in req noLock, Boolean
         proc
+            data grfaBuffer, a10
             dataObject = ^null
-
-            if (noLock) then
-            begin
-                data grfaBuffer, a10
-                data result = this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, 0, "", FindOperation.ToEndOfFile, Q_NO_LOCK)
-                if(result == FileAccessResults.Success)
-                    dataObject = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
+            data result = this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, 0, "", FindOperation.ToEndOfFile, noLock ? Q_NO_LOCK : Q_AUTO_LOCK)
+            if(result == FileAccessResults.Success)
+                dataObject = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
                 
-                mreturn result
-            end
-            else
-            begin
-                data cancelTokenSource, @CancellationTokenSource, new CancellationTokenSource()
-                data cancelToken, @CancellationToken, cancelTokenSource.Token
-                data dataObj = dataObject
-
-                lambda lamb()
-                begin
-                    data grfaBuffer, a10
-                    data result, FileAccessResults, this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, 0, "", FindOperation.ToEndOfFile, Q_AUTO_LOCK)
-                    if(result == FileAccessResults.Success)
-                        dataObj = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
-                
-                    mreturn result
-                end
-
-                data myTask, @Task<FileAccessResults>, Task.Run(lamb, cancelToken)
-                if (myTask.Wait(TimeSpan.FromSeconds(TimeoutSeconds))) then
-                begin
-                    dataObject = dataObj
-                    mreturn myTask.Result
-                end
-                else
-                    mreturn FileAccessResults.TimedOut
-            end
+            mreturn result
         endmethod
         
         ;;; <summary>
@@ -514,42 +410,13 @@ namespace Harmony.Core.FileIO
             out req dataObject, T
             in req noLock, Boolean
         proc
+            data grfaBuffer, a10
             dataObject = ^null
-
-            if (noLock) then
-            begin
-                data grfaBuffer, a10
-                data result = this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, 0, "", FindOperation.AtCurrent, Q_NO_LOCK)
-                if(result == FileAccessResults.Success)
-                    dataObject = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
+            data result = this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, 0, "", FindOperation.AtCurrent, noLock ? Q_NO_LOCK : Q_AUTO_LOCK)
+            if(result == FileAccessResults.Success)
+                dataObject = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
                 
-                mreturn result
-            end
-            else
-            begin
-                data cancelTokenSource, @CancellationTokenSource, new CancellationTokenSource()
-                data cancelToken, @CancellationToken, cancelTokenSource.Token
-                data dataObj = dataObject
-
-                lambda lamb()
-                begin
-                    data grfaBuffer, a10
-                    data result, FileAccessResults, this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, 0, "", FindOperation.AtCurrent, Q_AUTO_LOCK)
-                    if(result == FileAccessResults.Success)
-                        dataObj = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
-                
-                    mreturn result
-                end
-
-                data myTask, @Task<FileAccessResults>, Task.Run(lamb, cancelToken)
-                if (myTask.Wait(TimeSpan.FromSeconds(TimeoutSeconds))) then
-                begin
-                    dataObject = dataObj
-                    mreturn myTask.Result
-                end
-                else
-                    mreturn FileAccessResults.TimedOut
-            end
+            mreturn result
         endmethod
         
         ;;; <summary>
@@ -596,43 +463,13 @@ namespace Harmony.Core.FileIO
             in req recordNumber, d
             in req noLock, boolean
         proc
+            data grfaBuffer, a10
             dataObject = ^null
-
-            if (noLock) then
-            begin
-                data grfaBuffer, a10
-                data result = this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, 0, ^a(recordNumber), FindOperation.AtCurrent, Q_NO_LOCK)
-                if(result == FileAccessResults.Success)
-                    dataObject = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
+            data result = this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, 0, ^a(recordNumber), FindOperation.AtCurrent, noLock ? Q_NO_LOCK : Q_AUTO_LOCK)
+            if(result == FileAccessResults.Success)
+                dataObject = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
                 
-                mreturn result
-            end
-            else
-            begin
-                data cancelTokenSource, @CancellationTokenSource, new CancellationTokenSource()
-                data cancelToken, @CancellationToken, cancelTokenSource.Token
-                data dataObj = dataObject
-                data recNum, double, recordNumber
-
-                lambda lamb()
-                begin
-                    data grfaBuffer, a10
-                    data result, FileAccessResults, this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, 0, ^a(recNum), FindOperation.AtCurrent, Q_AUTO_LOCK)
-                    if(result == FileAccessResults.Success)
-                        dataObj = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
-                
-                    mreturn result
-                end
-
-                data myTask, @Task<FileAccessResults>, Task.Run(lamb, cancelToken)
-                if (myTask.Wait(TimeSpan.FromSeconds(TimeoutSeconds))) then
-                begin
-                    dataObject = dataObj
-                    mreturn myTask.Result
-                end
-                else
-                    mreturn FileAccessResults.TimedOut
-            end
+            mreturn result
         endmethod
         
         
@@ -650,28 +487,7 @@ namespace Harmony.Core.FileIO
             in req recordNumber, int
             in req noLock, boolean
         proc
-            if (noLock) then
-                mreturn ReadRecord(dataObject, (d)recordNumber, noLock)
-            else
-            begin
-                data cancelTokenSource, @CancellationTokenSource, new CancellationTokenSource()
-                data cancelToken, @CancellationToken, cancelTokenSource.Token
-                data dataObj = dataObject
-
-                lambda lamb()
-                begin
-                    mreturn ReadRecord(dataObj, (d)recordNumber, noLock)
-                end
-
-                data myTask, @Task<FileAccessResults>, Task.Run(lamb, cancelToken)
-                if (myTask.Wait(TimeSpan.FromSeconds(TimeoutSeconds))) then
-                begin
-                    dataObject = dataObj
-                    mreturn myTask.Result
-                end
-                else
-                    mreturn FileAccessResults.TimedOut
-            end
+            mreturn ReadRecord(dataObject, (d)recordNumber, noLock)
         endmethod
         
         ;;; <summary>
@@ -749,21 +565,7 @@ namespace Harmony.Core.FileIO
         public method ManualLockUsingGRFA, FileAccessResults
             in req dataObject, @DataObjectBase
         proc
-            data cancelTokenSource, @CancellationTokenSource, new CancellationTokenSource()
-            data cancelToken, @CancellationToken, cancelTokenSource.Token
-
-            lambda lamb()
-            begin
-                mreturn this.Find(-1, (a)dataObject.GlobalRFA, FindOperation.FromBeginingOfFile, Q_MANUAL_LOCK)
-            end
-
-            data myTask, @Task<FileAccessResults>, Task.Run(lamb, cancelToken)
-            if (myTask.Wait(TimeSpan.FromSeconds(TimeoutSeconds))) then
-            begin
-                mreturn myTask.Result
-            end
-            else
-                mreturn FileAccessResults.TimedOut
+            mreturn this.Find(-1, (a)dataObject.GlobalRFA, FindOperation.FromBeginingOfFile, Q_MANUAL_LOCK) 
         endmethod
 
 
@@ -807,44 +609,13 @@ namespace Harmony.Core.FileIO
             in req keyValue, a
             in req noLock, Boolean
         proc
+            data grfaBuffer, a10
             dataObject = ^null
-
-            if (noLock) then
-            begin
-                data grfaBuffer, a10
-                data result = this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, keyNumber, keyValue, FindOperation.AtCurrent, Q_NO_LOCK)
-                if(result == FileAccessResults.Success)
-                    dataObject = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
+            data result = this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, keyNumber, keyValue, FindOperation.AtCurrent, noLock ? Q_NO_LOCK : Q_AUTO_LOCK)
+            if(result == FileAccessResults.Success)
+                dataObject = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
                 
-                mreturn result
-            end
-            else
-            begin
-                data cancelTokenSource, @CancellationTokenSource, new CancellationTokenSource()
-                data cancelToken, @CancellationToken, cancelTokenSource.Token
-                data keyNum, int, keyNumber
-                data keyVal, string, keyValue
-                data tempObject = dataObject
-
-                lambda lamb()
-                begin
-                    data grfaBuffer, a10
-                    data result, FileAccessResults, this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, keyNum, keyVal, FindOperation.AtCurrent, Q_AUTO_LOCK)
-                    if(result == FileAccessResults.Success)
-                        tempObject = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
-
-                    mreturn result
-                end
-
-                data myTask, @Task<FileAccessResults>, Task.Run(lamb, cancelToken)
-                if (myTask.Wait(TimeSpan.FromSeconds(TimeoutSeconds))) then
-                begin
-                    dataObject = tempObject
-                    mreturn myTask.Result
-                end
-                else
-                    mreturn FileAccessResults.TimedOut
-            end
+            mreturn result
         endmethod
         
         public virtual method IDataObjectIO.ReadRecord, FileAccessResults
@@ -854,34 +625,9 @@ namespace Harmony.Core.FileIO
             in req noLock, Boolean
         proc
             data tempObject, T
-
-            if (noLock) then
-            begin
-                data result = ReadRecord(tempObject, keyNumber, keyValue, noLock)
-                dataObject = tempObject
-                mreturn result
-            end
-            else
-            begin
-                data cancelTokenSource, @CancellationTokenSource, new CancellationTokenSource()
-                data cancelToken, @CancellationToken, cancelTokenSource.Token
-                data keyNum, int, keyNumber
-                data keyVal, string, keyValue
-
-                lambda lamb()
-                begin
-                    mreturn ReadRecord(tempObject, keyNum, keyVal, noLock)
-                end
-
-                data myTask, @Task<FileAccessResults>, Task.Run(lamb, cancelToken)
-                if (myTask.Wait(TimeSpan.FromSeconds(TimeoutSeconds))) then
-                begin
-                    dataObject = tempObject
-                    mreturn myTask.Result
-                end
-                else
-                    mreturn FileAccessResults.TimedOut
-            end
+            data result = ReadRecord(tempObject, keyNumber, keyValue, noLock)
+            dataObject = tempObject
+            mreturn result
         endmethod
         
         public virtual method IDataObjectIO.ReadRecord, FileAccessResults
@@ -890,32 +636,9 @@ namespace Harmony.Core.FileIO
             endparams
         proc
             data tempObject, T
-
-            if (noLock) then
-            begin
-                data result = ReadRecord(tempObject, noLock)
-                dataObject = tempObject
-                mreturn result
-            end
-            else
-            begin
-                data cancelTokenSource, @CancellationTokenSource, new CancellationTokenSource()
-                data cancelToken, @CancellationToken, cancelTokenSource.Token
-
-                lambda lamb()
-                begin
-                    mreturn ReadRecord(tempObject, noLock)
-                end
-
-                data myTask, @Task<FileAccessResults>, Task.Run(lamb, cancelToken)
-                if (myTask.Wait(TimeSpan.FromSeconds(TimeoutSeconds))) then
-                begin
-                    dataObject = tempObject
-                    mreturn myTask.Result
-                end
-                else
-                    mreturn FileAccessResults.TimedOut
-            end
+            data result = ReadRecord(tempObject, noLock)
+            dataObject = tempObject
+            mreturn result
         endmethod
         
         
@@ -953,33 +676,9 @@ namespace Harmony.Core.FileIO
             endparams
         proc
             data tempObject, T
-
-            if (noLock) then
-            begin
-                data result = ReadRecord(tempObject, recordNumber, noLock)
-                dataObject = tempObject
-                mreturn result
-            end
-            else
-            begin
-                data cancelTokenSource, @CancellationTokenSource, new CancellationTokenSource()
-                data cancelToken, @CancellationToken, cancelTokenSource.Token
-                data recNum, double, recordNumber
-
-                lambda lamb()
-                begin
-                    mreturn ReadRecord(tempObject, recNum, noLock)
-                end
-
-                data myTask, @Task<FileAccessResults>, Task.Run(lamb, cancelToken)
-                if (myTask.Wait(TimeSpan.FromSeconds(TimeoutSeconds))) then
-                begin
-                    dataObject = tempObject
-                    mreturn myTask.Result
-                end
-                else
-                    mreturn FileAccessResults.TimedOut
-            end
+            data result = ReadRecord(tempObject, recordNumber, noLock)
+            dataObject = tempObject
+            mreturn result
         endmethod
         
         
@@ -991,32 +690,9 @@ namespace Harmony.Core.FileIO
             endparams
         proc
             data tempObject, T
-
-            if (noLock) then
-            begin
-                data result = ReadRecord(tempObject, recordNumber, noLock)
-                dataObject = tempObject
-                mreturn result
-            end
-            else
-            begin
-                data cancelTokenSource, @CancellationTokenSource, new CancellationTokenSource()
-                data cancelToken, @CancellationToken, cancelTokenSource.Token
-
-                lambda lamb()
-                begin
-                    mreturn ReadRecord(tempObject, recordNumber, noLock)
-                end
-
-                data myTask, @Task<FileAccessResults>, Task.Run(lamb, cancelToken)
-                if (myTask.Wait(TimeSpan.FromSeconds(TimeoutSeconds))) then
-                begin
-                    dataObject = tempObject
-                    mreturn myTask.Result
-                end
-                else
-                    mreturn FileAccessResults.TimedOut
-            end
+            data result = ReadRecord(tempObject, recordNumber, noLock)
+            dataObject = tempObject
+            mreturn result
         endmethod
         
         
@@ -1048,32 +724,9 @@ namespace Harmony.Core.FileIO
             endparams
         proc
             data tempObject, T
-
-            if (noLock) then
-            begin
-                data result = ReadFirstRecord(tempObject, noLock)
-                dataObject = tempObject
-                mreturn result
-            end
-            else
-            begin
-                data cancelTokenSource, @CancellationTokenSource, new CancellationTokenSource()
-                data cancelToken, @CancellationToken, cancelTokenSource.Token
-
-                lambda lamb()
-                begin
-                    mreturn ReadFirstRecord(tempObject, noLock)
-                end
-
-                data myTask, @Task<FileAccessResults>, Task.Run(lamb, cancelToken)
-                if (myTask.Wait(TimeSpan.FromSeconds(TimeoutSeconds))) then
-                begin
-                    dataObject = tempObject
-                    mreturn myTask.Result
-                end
-                else
-                    mreturn FileAccessResults.TimedOut
-            end
+            data result = ReadFirstRecord(tempObject, noLock)
+            dataObject = tempObject
+            mreturn result
         endmethod
         
         
@@ -1115,32 +768,9 @@ namespace Harmony.Core.FileIO
             endparams
         proc
             data tempObject, T
-
-            if (noLock) then
-            begin
-                data result = ReadLastRecord(tempObject, noLock)
-                dataObject = tempObject
-                mreturn result
-            end
-            else
-            begin
-                data cancelTokenSource, @CancellationTokenSource, new CancellationTokenSource()
-                data cancelToken, @CancellationToken, cancelTokenSource.Token
-
-                lambda lamb()
-                begin
-                    mreturn ReadLastRecord(tempObject, noLock)
-                end
-
-                data myTask, @Task<FileAccessResults>, Task.Run(lamb, cancelToken)
-                if (myTask.Wait(TimeSpan.FromSeconds(TimeoutSeconds))) then
-                begin
-                    dataObject = tempObject
-                    mreturn myTask.Result
-                end
-                else
-                    mreturn FileAccessResults.TimedOut
-            end
+            data result = ReadLastRecord(tempObject, noLock)
+            dataObject = tempObject
+            mreturn result
         endmethod
         
         
@@ -1165,26 +795,7 @@ namespace Harmony.Core.FileIO
             in req dataObject, @DataObjectBase
             in req withManualLock, boolean
         proc
-            if (withManualLock) then
-            begin
-                data cancelTokenSource, @CancellationTokenSource, new CancellationTokenSource()
-                data cancelToken, @CancellationToken, cancelTokenSource.Token
-
-                lambda lamb()
-                begin
-                    mreturn this.Delete(-1, (a)dataObject.GlobalRFA, FindOperation.FromCurrent, withManualLock)
-                end
-
-                data myTask, @Task<FileAccessResults>, Task.Run(lamb, cancelToken)
-                if (myTask.Wait(TimeSpan.FromSeconds(TimeoutSeconds))) then
-                    mreturn myTask.Result
-                else
-                    mreturn FileAccessResults.TimedOut
-            end
-            else
-            begin
-                mreturn this.Delete(-1, (a)dataObject.GlobalRFA, FindOperation.FromCurrent, withManualLock)
-            end
+            mreturn this.Delete(-1, (a)dataObject.GlobalRFA, FindOperation.FromCurrent, withManualLock)
         endmethod
         
         public virtual method IDataObjectIO.ReadPrevRecord, FileAccessResults
@@ -1205,32 +816,9 @@ namespace Harmony.Core.FileIO
             endparams
         proc
             data tempObject, T
-
-            if (noLock) then
-            begin
-                data result = ReadPrevRecord(tempObject, noLock)
-                dataObject = tempObject
-                mreturn result
-            end
-            else
-            begin
-                data cancelTokenSource, @CancellationTokenSource, new CancellationTokenSource()
-                data cancelToken, @CancellationToken, cancelTokenSource.Token
-
-                lambda lamb()
-                begin
-                    mreturn ReadPrevRecord(tempObject, noLock)
-                end
-
-                data myTask, @Task<FileAccessResults>, Task.Run(lamb, cancelToken)
-                if (myTask.Wait(TimeSpan.FromSeconds(TimeoutSeconds))) then
-                begin
-                    dataObject = tempObject
-                    mreturn myTask.Result
-                end
-                else
-                    mreturn FileAccessResults.TimedOut
-            end
+            data result = ReadPrevRecord(tempObject, noLock)
+            dataObject = tempObject
+            mreturn result
         endmethod
         
         
