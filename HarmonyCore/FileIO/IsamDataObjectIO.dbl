@@ -71,7 +71,7 @@ namespace Harmony.Core.FileIO
 						(FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
 						begin
 							;;TODO why is this only 6 bytes?
-							find(mChannel,, ^FIRST, WAIT:1, LOCK:lockValue)
+							find(mChannel,, ^FIRST, WAIT:TimeoutSeconds, LOCK:lockValue)
 							&	[$ERR_EOF = end_of_file,
 							&	$ERR_LOCKED = record_locked,
 							&	$ERR_KEYNOT = key_not_same,
@@ -80,7 +80,7 @@ namespace Harmony.Core.FileIO
 						end
 						(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
 						begin
-							find(mChannel,, ^FIRST, KEYNUM:keyOfReference, WAIT:1, LOCK:lockValue)
+							find(mChannel,, ^FIRST, KEYNUM:keyOfReference, WAIT:TimeoutSeconds, LOCK:lockValue)
 							&	[$ERR_EOF = end_of_file,
 							&	$ERR_LOCKED = record_locked,
 							&	$ERR_KEYNOT = key_not_same,
@@ -100,7 +100,7 @@ namespace Harmony.Core.FileIO
 						using mOpenMode select
 						(FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
 						begin
-							find(mChannel,, ^LAST, WAIT:1, LOCK:lockValue)
+							find(mChannel,, ^LAST, WAIT:TimeoutSeconds, LOCK:lockValue)
 							&	[$ERR_EOF = end_of_file,
 							&	$ERR_LOCKED = record_locked,
 							&	$ERR_KEYNOT = key_not_same,
@@ -109,7 +109,7 @@ namespace Harmony.Core.FileIO
 						end
 						(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
 						begin
-							find(mChannel,, ^LAST, KEYNUM:keyOfReference, WAIT:1, LOCK:lockValue)
+							find(mChannel,, ^LAST, KEYNUM:keyOfReference, WAIT:TimeoutSeconds, LOCK:lockValue)
 							&	[$ERR_EOF = end_of_file,
 							&	$ERR_LOCKED = record_locked,
 							&	$ERR_KEYNOT = key_not_same,
@@ -118,7 +118,7 @@ namespace Harmony.Core.FileIO
 						end
 						(FileOpenMode.InputSequential,FileOpenMode.OutputSequential),
 						begin
-							find(mChannel,, ^LAST, WAIT:1, LOCK:lockValue)
+							find(mChannel,, ^LAST, WAIT:TimeoutSeconds, LOCK:lockValue)
 							&	[$ERR_EOF = end_of_file]
 							mreturn FileAccessResults.Success
 						end
@@ -129,7 +129,7 @@ namespace Harmony.Core.FileIO
 						using mOpenMode select
 						(FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
 						begin
-							find(mChannel,, keyValue, WAIT:1, LOCK:lockValue)
+							find(mChannel,, keyValue, WAIT:TimeoutSeconds, LOCK:lockValue)
 							&	[$ERR_EOF = end_of_file,
 							&	$ERR_LOCKED = record_locked,
 							&	$ERR_KEYNOT = key_not_same,
@@ -137,8 +137,8 @@ namespace Harmony.Core.FileIO
 							mreturn FileAccessResults.Success
 						end
 						(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
-						begin
-							find(mChannel,, keyValue, KEYNUM:keyOfReference, WAIT:1, LOCK:lockValue)
+                        begin
+							find(mChannel,, keyValue, KEYNUM:keyOfReference, WAIT:TimeoutSeconds, LOCK:lockValue)
 							&	[$ERR_EOF = end_of_file,
 							&	$ERR_LOCKED = record_locked,
 							&	$ERR_KEYNOT = key_not_same,
@@ -152,7 +152,7 @@ namespace Harmony.Core.FileIO
 						using mOpenMode select
 						(FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
 						begin
-							find(mChannel, RFA:keyValue, WAIT:1, LOCK:lockValue)
+							find(mChannel, RFA:keyValue, WAIT:TimeoutSeconds, LOCK:lockValue)
 							&	[$ERR_EOF = end_of_file,
 							&	$ERR_LOCKED = record_locked,
 							&	$ERR_KEYNOT = key_not_same,
@@ -167,7 +167,7 @@ namespace Harmony.Core.FileIO
 								try
 								begin
 									read(mChannel,^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), tempRecordBuffer), 
-									&	MATCH: Q_RFA, RFA:keyValue, WAIT:1, LOCK:lockValue)
+									&	MATCH: Q_RFA, RFA:keyValue, WAIT:TimeoutSeconds, LOCK:lockValue)
 									&	[$ERR_EOF = end_of_file,
 									&	$ERR_LOCKED = record_locked,
 									&	$ERR_KEYNOT = key_not_same,
@@ -183,7 +183,7 @@ namespace Harmony.Core.FileIO
 							else
 							begin
 
-								find(mChannel, RFA:keyValue, WAIT:1, LOCK:lockValue)
+								find(mChannel, RFA:keyValue, WAIT:TimeoutSeconds, LOCK:lockValue)
 								&	[$ERR_EOF = end_of_file,
 								&	$ERR_LOCKED = record_locked,
 								&	$ERR_KEYNOT = key_not_same,
@@ -238,7 +238,7 @@ namespace Harmony.Core.FileIO
 						using mOpenMode select
 						(FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
 						begin
-							read(mChannel, recordBuffer, ^FIRST, LOCK:lockFlag, WAIT:1, GETRFA:grfaBuffer)
+							read(mChannel, recordBuffer, ^FIRST, LOCK:lockFlag, WAIT:TimeoutSeconds, GETRFA:grfaBuffer)
 							&	[$ERR_EOF = end_of_file,
 							&	$ERR_LOCKED = record_locked,
 							&	$ERR_KEYNOT = key_not_same,
@@ -251,7 +251,7 @@ namespace Harmony.Core.FileIO
 						end
 						(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
 						begin
-							read(mChannel, recordBuffer, ^FIRST, KEYNUM:keyOfReference, LOCK:lockFlag, WAIT:1, GETRFA:grfaBuffer)
+							read(mChannel, recordBuffer, ^FIRST, KEYNUM:keyOfReference, LOCK:lockFlag, WAIT:TimeoutSeconds, GETRFA:grfaBuffer)
 							&	[$ERR_EOF = end_of_file,
 							&	$ERR_LOCKED = record_locked,
 							&	$ERR_KEYNOT = key_not_same,
@@ -279,7 +279,7 @@ namespace Harmony.Core.FileIO
 						using mOpenMode select
 						(FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
 						begin
-							reads(mChannel, recordBuffer,LOCK:lockFlag, WAIT:1, GETRFA:grfaBuffer)
+							reads(mChannel, recordBuffer,LOCK:lockFlag, WAIT:TimeoutSeconds, GETRFA:grfaBuffer)
 							&	[$ERR_EOF = end_of_file,
 							&	$ERR_LOCKED = record_locked,
 							&	$ERR_KEYNOT = key_not_same,
@@ -291,7 +291,7 @@ namespace Harmony.Core.FileIO
 						end
 						(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
 						begin
-							reads(mChannel, recordBuffer, LOCK:lockFlag, WAIT:1, GETRFA:grfaBuffer)
+							reads(mChannel, recordBuffer, LOCK:lockFlag, WAIT:TimeoutSeconds, GETRFA:grfaBuffer)
 							&	[$ERR_EOF = end_of_file,
 							&	$ERR_LOCKED = record_locked,
 							&	$ERR_KEYNOT = key_not_same,
@@ -307,7 +307,7 @@ namespace Harmony.Core.FileIO
 						using mOpenMode select
 						(FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
 						begin
-							read(mChannel, recordBuffer, ^d(keyValue), LOCK:lockFlag, WAIT:1, GETRFA:grfaBuffer)
+							read(mChannel, recordBuffer, ^d(keyValue), LOCK:lockFlag, WAIT:TimeoutSeconds, GETRFA:grfaBuffer)
 							&	[$ERR_EOF = end_of_file,
 							&	$ERR_LOCKED = record_locked,
 							&	$ERR_KEYNOT = key_not_same,
@@ -318,7 +318,7 @@ namespace Harmony.Core.FileIO
 						end
 						(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
 						begin
-							read(mChannel, recordBuffer, keyValue, KEYNUM:keyOfReference, LOCK:lockFlag, WAIT:1, GETRFA:grfaBuffer, MATCH:Q_EQ)
+							read(mChannel, recordBuffer, keyValue, KEYNUM:keyOfReference, LOCK:lockFlag, WAIT:TimeoutSeconds, GETRFA:grfaBuffer, MATCH:Q_EQ)
 							&	[$ERR_EOF = end_of_file,
 							&	$ERR_LOCKED = record_locked,
 							&	$ERR_KEYNOT = key_not_same,
@@ -331,7 +331,7 @@ namespace Harmony.Core.FileIO
 					end
 					else if(keyOfReference == -1 && %size(keyValue) > 0) then
 					begin
-						read(mChannel, recordBuffer, LOCK:lockFlag, RFA:grfaBuffer, WAIT:1)
+						read(mChannel, recordBuffer, LOCK:lockFlag, RFA:grfaBuffer, WAIT:TimeoutSeconds)
 						&	[$ERR_EOF = end_of_file,
 						&	$ERR_LOCKED = record_locked,
 						&	$ERR_KEYNOT = key_not_same,
@@ -346,7 +346,7 @@ namespace Harmony.Core.FileIO
 						using mOpenMode select
 						(FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
 						begin
-							read(mChannel, recordBuffer, ^LAST, LOCK:lockFlag, WAIT:1, GETRFA:grfaBuffer)
+							read(mChannel, recordBuffer, ^LAST, LOCK:lockFlag, WAIT:TimeoutSeconds, GETRFA:grfaBuffer)
 							&	[$ERR_EOF = end_of_file,
 							&	$ERR_LOCKED = record_locked,
 							&	$ERR_KEYNOT = key_not_same,
@@ -357,7 +357,7 @@ namespace Harmony.Core.FileIO
 						end
 						(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
 						begin
-							read(mChannel, recordBuffer, ^LAST, KEYNUM:keyOfReference, LOCK:lockFlag, WAIT:1, GETRFA:grfaBuffer)
+							read(mChannel, recordBuffer, ^LAST, KEYNUM:keyOfReference, LOCK:lockFlag, WAIT:TimeoutSeconds, GETRFA:grfaBuffer)
 							&	[$ERR_EOF = end_of_file,
 							&	$ERR_LOCKED = record_locked,
 							&	$ERR_KEYNOT = key_not_same,
@@ -381,16 +381,16 @@ namespace Harmony.Core.FileIO
 						using mOpenMode select
 						(FileOpenMode.UpdateRelative,FileOpenMode.InputRelative),
 						begin
-							reads(mChannel, recordBuffer,, REVERSE, LOCK:lockFlag, WAIT:1, GETRFA:grfaBuffer)
+							reads(mChannel, recordBuffer,, REVERSE, LOCK:lockFlag, WAIT:TimeoutSeconds, GETRFA:grfaBuffer)
 							&	[$ERR_EOF = end_of_file]
 							if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
 								DebugLogSession.Logging.LogTrace("Reading from channel: {0} on file '{1}' with open mode {2} operation: {3} krf: {4} grfa: {5} record: {6} ", mChannel, mFileName, mOpenMode, operation, -1, grfaBuffer, recordBuffer)
-                            
+							
 							mreturn FileAccessResults.Success
 						end
 						(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
 						begin
-							reads(mChannel, recordBuffer,, REVERSE, LOCK:lockFlag, WAIT:1, GETRFA:grfaBuffer)
+							reads(mChannel, recordBuffer,, REVERSE, LOCK:lockFlag, WAIT:TimeoutSeconds, GETRFA:grfaBuffer)
 							&	[$ERR_EOF = end_of_file,
 							&	$ERR_LOCKED = record_locked,
 							&	$ERR_KEYNOT = key_not_same,
@@ -414,7 +414,7 @@ namespace Harmony.Core.FileIO
 						end
 						(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
 						begin
-							reads(mChannel, recordBuffer, LOCK:lockFlag, WAIT:1, GETRFA:grfaBuffer)
+							reads(mChannel, recordBuffer, LOCK:lockFlag, WAIT:TimeoutSeconds, GETRFA:grfaBuffer)
 							&	[$ERR_EOF = end_of_file,
 							&	$ERR_LOCKED = record_locked,
 							&	$ERR_KEYNOT = key_not_same,

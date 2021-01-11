@@ -123,6 +123,12 @@ namespace Harmony.Core.EF.Storage.Internal
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
 
+        /// <summary>
+        /// Specify the maximum amount of seconds to wait for lock operations to complete.
+        /// <para/>Defaults to 5 seconds.
+        /// </summary>
+        public int TimeoutSeconds { get; set; } = 5;
+
         private int DispatchTransactionFromEntries(IList<IUpdateEntry> entries)
         {
             List<DataObjectBase> created = new List<DataObjectBase>();
@@ -141,7 +147,7 @@ namespace Harmony.Core.EF.Storage.Internal
 
             try
             {
-                _dataObjectProvider.ExecuteTransaction(new FileIOServiceProvider(_serviceProvider, created, updated, deleted), created, updated, deleted);
+                _dataObjectProvider.ExecuteTransaction(new FileIOServiceProvider(_serviceProvider, created, updated, deleted), created, updated, deleted, TimeoutSeconds);
             }
             catch (Synergex.SynergyDE.RecordNotSameException)
             {
