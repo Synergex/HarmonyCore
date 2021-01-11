@@ -306,7 +306,19 @@ namespace <NAMESPACE>
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a <StructureNoplural> object
-            do<StructureNoplural> = JsonConvert.DeserializeObject<<IF NOT STRUCTURE_HAS_UNIQUE_KEY>Odata</IF><StructureNoplural>>(getResult)<IF NOT STRUCTURE_HAS_UNIQUE_KEY>.Value[0]</IF>
+            <IF NOT STRUCTURE_HAS_UNIQUE_KEY>
+            data results = JsonConvert.DeserializeObject<OData<StructureNoplural>>(getResult).Value
+            data resultItem, @<StructureNoplural>
+            do<StructureNoplural> = results[0]
+
+            ;;Test that all value PKs are the same
+            foreach resultItem in results
+            begin
+                Assert.AreEqual(do<StructureNoplural>.<PRIMARY_KEY><SEGMENT_LOOP><SegmentName>, resultItem.<SegmentName></SEGMENT_LOOP></PRIMARY_KEY>)
+            end
+            <ELSE>
+            do<StructureNoplural> = JsonConvert.DeserializeObject<<StructureNoplural>>(getResult)
+            </IF NOT STRUCTURE_HAS_UNIQUE_KEY>
 
             ;;Change the first non key field to test full update
   <COUNTER_1_RESET>

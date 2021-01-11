@@ -94,7 +94,15 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a Nonuniquepk object
-            doNonuniquepk = JsonConvert.DeserializeObject<OdataNonuniquepk>(getResult).Value[0]
+            data results = JsonConvert.DeserializeObject<ODataNonuniquepk>(getResult).Value
+            data resultItem, @Nonuniquepk
+            doNonuniquepk = results[0]
+
+            ;;Test that all value PKs are the same
+            foreach resultItem in results
+            begin
+                Assert.AreEqual(doNonuniquepk.Pk, resultItem.Pk)
+            end
 
             ;;Change the first non key field to test full update
             doNonuniquepk.Name = "Y"

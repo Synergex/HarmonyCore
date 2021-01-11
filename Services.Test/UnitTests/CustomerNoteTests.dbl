@@ -152,7 +152,15 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a CustomerNote object
-            doCustomerNote = JsonConvert.DeserializeObject<OdataCustomerNote>(getResult).Value[0]
+            data results = JsonConvert.DeserializeObject<ODataCustomerNote>(getResult).Value
+            data resultItem, @CustomerNote
+            doCustomerNote = results[0]
+
+            ;;Test that all value PKs are the same
+            foreach resultItem in results
+            begin
+                Assert.AreEqual(doCustomerNote.CustomerNumber, resultItem.CustomerNumber)
+            end
 
             ;;Change the first non key field to test full update
             doCustomerNote.NoteNumber = 8
