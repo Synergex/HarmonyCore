@@ -308,5 +308,24 @@ namespace Services.Test.CS
             }
         }
 
+        [TestMethod]
+        public void MultiToLower2()
+        {
+            var startupClass = new Startup(null, null);
+            var startupServices = new ServiceCollection();
+            startupClass.ConfigureServices(startupServices);
+            using (var sp = startupServices.BuildServiceProvider())
+            {
+                using (var context = sp.GetService<Services.Models.DbContext>())
+                {
+
+                    var second = context.Items.Where(item => item.FlowerColor.ToLower() == "white" && item.LatinName.ToLower().Contains("bougai")).First();
+                    var first = context.Items.Where(item => item.FlowerColor.ToLower() == "white" && item.LatinName.ToLower() == "bougainvillea").First();
+                    Assert.AreEqual(first.LatinName, second.LatinName);
+                    Assert.AreEqual(second.LatinName, "Bougainvillea");
+                }
+            }
+        }
+
     }
 }
