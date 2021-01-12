@@ -167,6 +167,19 @@ namespace Services.Host
                     Startup.LogicalNames.Add(fileSpec)
             end
 
+            fileSpec = "DAT:nonuniquepk.ism"
+            if (fileSpec.Contains(":")) then
+            begin
+                logical = fileSpec.Split(":")[1].ToUpper()
+                if (!Startup.LogicalNames.Contains(logical))
+                    Startup.LogicalNames.Add(logical)
+            end
+            else if (!fileSpec.Contains("."))
+            begin
+                if (!Startup.LogicalNames.Contains(fileSpec))
+                    Startup.LogicalNames.Add(fileSpec)
+            end
+
             ;;If we have a SetLogicalsCustom method, call it
             SetLogicalsCustom(Startup.LogicalNames)
 
@@ -201,6 +214,7 @@ namespace Services.Host
             data orderItems = loadOrderItems()
             data vendors = loadVendors()
             data customerExs = loadCustomerExs()
+            data nonuniquepks = loadNonuniquepks()
 
             ;;Create and load the customers file
 
@@ -279,6 +293,17 @@ namespace Services.Host
                 store(chout,customerEx.SynergyRecord)
             close chout
 
+            ;;Create and load the nonuniquepks file
+
+            dataFile = "DAT:nonuniquepk.ism"
+            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+
+            data nonuniquepk, @Nonuniquepk
+            open(chout=0,o:i,dataFile,FDL:xdlFile)
+            foreach nonuniquepk in nonuniquepks
+                store(chout,nonuniquepk.SynergyRecord)
+            close chout
+
         endmethod
 
         private static method deleteFiles, void
@@ -353,6 +378,17 @@ namespace Services.Host
             try
             begin
                 xcall delet("DAT:CUSTOMER_EX.ism")
+            end
+            catch (e, @NoFileFoundException)
+            begin
+                nop
+            end
+            endtry
+
+            ;;Delete the nonuniquepks file
+            try
+            begin
+                xcall delet("DAT:nonuniquepk.ism")
             end
             catch (e, @NoFileFoundException)
             begin
@@ -493,6 +529,25 @@ namespace Services.Host
         eof,
             close customerExCh
             mreturn customerExs
+        endmethod
+
+        public static method loadNonuniquepks, @List<Nonuniquepk>
+        proc
+            data dataFile = "DAT:nonuniquepk.ism"
+            data textFile = dataFile.ToLower().Replace(".ism",".txt")
+            data nonuniquepkCh, int, 0
+            data nonuniquepkRec, strNonuniquepk
+            data nonuniquepks = new List<Nonuniquepk>()
+            data grfa, a10
+            open(nonuniquepkCh,i:s,textFile)
+            repeat
+            begin
+                reads(nonuniquepkCh,nonuniquepkRec,eof)
+                nonuniquepks.Add(new Nonuniquepk(nonuniquepkRec, grfa))
+            end
+        eof,
+            close nonuniquepkCh
+            mreturn nonuniquepks
         endmethod
 
         private static method findRelativeFolderForAssembly, string

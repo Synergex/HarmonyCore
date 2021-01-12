@@ -1,8 +1,8 @@
 ;;*****************************************************************************
 ;;
-;; Title:       CustomerNotesController.dbl
+;; Title:       NonuniquepksController.dbl
 ;;
-;; Description: OData controller for the CUSTOMER_NOTES structure.
+;; Description: OData controller for the NONUNIQUEPK structure.
 ;;
 ;;*****************************************************************************
 ;; WARNING: GENERATED CODE!
@@ -31,11 +31,11 @@ import Services.Models
 namespace Services.Controllers
 
     {ApiVersion("1")}
-    {ODataRoutePrefix("CustomerNotes")}
+    {ODataRoutePrefix("Nonuniquepks")}
     ;;; <summary>
-    ;;; OData controller for CustomerNotes
+    ;;; OData controller for Nonuniquepks
     ;;; </summary>
-    public partial class CustomerNotesController extends ODataController
+    public partial class NonuniquepksController extends ODataController
     
         ;;Services provided via dependency injection
         private _DbContext, @Services.Models.DBContext
@@ -43,12 +43,12 @@ namespace Services.Controllers
         private _AppSettings, @IOptions<AppSettings>
 
         ;;; <summary>
-        ;;; Constructs a new instance of CustomerNotesController
+        ;;; Constructs a new instance of NonuniquepksController
         ;;; </summary>
         ;;; <param name="aDbContext">Database context instance (DI)</param>
         ;;; <param name="aServiceProvider">Service provider instance (DI)</param>
         ;;; <param name="aAppSettings">Application settings</param>
-        public method CustomerNotesController
+        public method NonuniquepksController
             aDbContext, @Services.Models.DBContext
             aServiceProvider, @IServiceProvider
             aAppSettings, @IOptions<AppSettings>
@@ -60,54 +60,54 @@ namespace Services.Controllers
 
         {ODataRoute}
         {Produces("application/json")}
-        {ProducesResponseType(^typeof(ODataValue<IEnumerable<CustomerNote>>),StatusCodes.Status200OK)}
+        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Nonuniquepk>>),StatusCodes.Status200OK)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
-        ;;; Get all CustomerNotes
+        ;;; Get all Nonuniquepks
         ;;; </summary>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetCustomerNotes, @IActionResult
+        public method GetNonuniquepks, @IActionResult
         proc
-            mreturn Ok(_DbContext.CustomerNotes.AsNoTracking())
+            mreturn Ok(_DbContext.Nonuniquepks.AsNoTracking())
         endmethod
 
-        {ODataRoute("(CustomerNumber={aCustomerNumber})")}
+        {ODataRoute("(Pk={aPk})")}
         {Produces("application/json")}
-        {ProducesResponseType(^typeof(ODataValue<IEnumerable<CustomerNote>>),StatusCodes.Status200OK)}
+        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Nonuniquepk>>),StatusCodes.Status200OK)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
-        ;;; Get all CustomerNotes matching non-unique primary key.
+        ;;; Get all Nonuniquepks matching non-unique primary key.
         ;;; </summary>
-        ;;; <param name="aCustomerNumber">Customer number</param>
-        ;;; <returns>Returns a collection of any CustomerNotes matching non-unique primary key, or an empty collection if no matching records are found.</returns>
-        public method GetCustomerNote, @IActionResult
+        ;;; <param name="aPk">Primary Key</param>
+        ;;; <returns>Returns a collection of any Nonuniquepks matching non-unique primary key, or an empty collection if no matching records are found.</returns>
+        public method GetNonuniquepk, @IActionResult
             {FromODataUri}
-            required in aCustomerNumber, int
+            required in aPk, int
         proc
-            mreturn Ok(_DbContext.CustomerNotes.AsNoTracking().FindQuery<CustomerNote>(_DbContext, aCustomerNumber))
+            mreturn Ok(_DbContext.Nonuniquepks.AsNoTracking().FindQuery<Nonuniquepk>(_DbContext, aPk))
         endmethod
 
-        {ODataRoute("(CustomerNumber={aCustomerNumber})")}
+        {ODataRoute("(Pk={aPk})")}
         {Produces("application/json")}
         {ProducesResponseType(StatusCodes.Status201Created)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {HttpPut}
         ;;; <summary>
-        ;;; Create (with a client-supplied primary key) or replace a customerNote.
+        ;;; Create (with a client-supplied primary key) or replace a nonuniquepk.
         ;;; </summary>
 
-        ;;; <param name="aCustomerNumber">Customer number</param>
+        ;;; <param name="aPk">Primary Key</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method PutCustomerNoteByCustomerNumber, @IActionResult
+        public method PutNonuniquepkByPk, @IActionResult
             {FromODataUri}
-            required in aCustomerNumber, int
+            required in aPk, int
             {FromBody}
-            required in aCustomerNote, @CustomerNote
+            required in aNonuniquepk, @Nonuniquepk
         proc
             ;;Ensure that the key values in the URI win over any data that may be in the model object
-            aCustomerNote.CustomerNumber = aCustomerNumber
-            ModelState.Remove("CustomerNumber")
+            aNonuniquepk.Pk = aPk
+            ModelState.Remove("Pk")
 
             ;; Validate inbound data
             if (!ModelState.IsValid)
@@ -116,9 +116,9 @@ namespace Services.Controllers
 
             try
             begin
-                _DbContext.CustomerNotes.Add(aCustomerNote)
+                _DbContext.Nonuniquepks.Add(aNonuniquepk)
                 _DbContext.SaveChanges()
-                mreturn Created(aCustomerNote)
+                mreturn Created(aNonuniquepk)
             end
             catch (e, @InvalidOperationException)
             begin
@@ -132,48 +132,48 @@ namespace Services.Controllers
             endtry
 
         endmethod
-        {ODataRoute("(CustomerNumber={aCustomerNumber})")}
+        {ODataRoute("(Pk={aPk})")}
         {Produces("application/json")}
         {ProducesResponseType(StatusCodes.Status204NoContent)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {HttpPatch}
         ;;; <summary>
-        ;;; Patch  (partial update) a customerNote.
+        ;;; Patch  (partial update) a nonuniquepk.
         ;;; </summary>
-        ;;; <param name="aCustomerNumber">Customer number</param>
+        ;;; <param name="aPk">Primary Key</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method PatchCustomerNoteByCustomerNumber, @IActionResult
+        public method PatchNonuniquepkByPk, @IActionResult
             {FromODataUri}
-            required in aCustomerNumber, int
+            required in aPk, int
             {FromBody}
-            required in aCustomerNote, @JsonPatchDocument<CustomerNote>
+            required in aNonuniquepk, @JsonPatchDocument<Nonuniquepk>
         proc
             ;; Validate inbound data
             if (!ModelState.IsValid)
                 mreturn ValidationHelper.ReturnValidationError(ModelState)
 
-            ;;Patch the existing customerNote
+            ;;Patch the existing nonuniquepk
             try
             begin
-                ;;Get the customerNote to be updated
-                data customerNoteToUpdate = _DbContext.CustomerNotes.FindQuery<CustomerNote>(aCustomerNumber)
+                ;;Get the nonuniquepk to be updated
+                data nonuniquepkToUpdate = _DbContext.Nonuniquepks.FindQuery<Nonuniquepk>(aPk)
                 data patchError, @JsonPatchError, ^null
                 ;;Did we find it?
-                if(customerNoteToUpdate == ^null)
+                if(nonuniquepkToUpdate == ^null)
                     mreturn NotFound()
 
-                ;;Apply the changes to the customerNote we read
-                data item, @CustomerNote
-                foreach item in customerNoteToUpdate
+                ;;Apply the changes to the nonuniquepk we read
+                data item, @Nonuniquepk
+                foreach item in nonuniquepkToUpdate
                 begin
-                    aCustomerNote.ApplyTo(item, lambda(error) { patchError = error })
+                    aNonuniquepk.ApplyTo(item, lambda(error) { patchError = error })
                     ;;if the patchdoc was bad return the error info
                     if(patchError != ^null)
                         mreturn BadRequest(string.Format("Error applying patch document: error message {0}, caused by {1}", patchError.ErrorMessage, JsonConvert.SerializeObject(patchError.Operation)))
 
                     ;;Update and commit
-                    _DbContext.CustomerNotes.Update(item)
+                    _DbContext.Nonuniquepks.Update(item)
                 end
                 _DbContext.SaveChanges()
             end
@@ -191,31 +191,31 @@ namespace Services.Controllers
             mreturn NoContent()
 
         endmethod
-        {ODataRoute("(CustomerNumber={aCustomerNumber})")}
+        {ODataRoute("(Pk={aPk})")}
         {ProducesResponseType(StatusCodes.Status204NoContent)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {HttpDelete}
         ;;; <summary>
-        ;;; Delete a customerNote.
+        ;;; Delete a nonuniquepk.
         ;;; </summary>
-        ;;; <param name="aCustomerNumber">Customer number</param>
+        ;;; <param name="aPk">Primary Key</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method DeleteCustomerNoteByCustomerNumber, @IActionResult
+        public method DeleteNonuniquepkByPk, @IActionResult
             {FromODataUri}
-            required in aCustomerNumber, int
+            required in aPk, int
         proc
-            ;;Get the customerNote to be deleted
-            data customerNoteToRemove = _DbContext.CustomerNotes.FindQuery<CustomerNote>(aCustomerNumber)
+            ;;Get the nonuniquepk to be deleted
+            data nonuniquepkToRemove = _DbContext.Nonuniquepks.FindQuery<Nonuniquepk>(aPk)
 
             ;;Did we find it?
-            if (customerNoteToRemove == ^null)
+            if (nonuniquepkToRemove == ^null)
                 mreturn NotFound()
 
             ;;Delete and commit
-            data item, @CustomerNote
-            foreach item in customerNoteToRemove
+            data item, @Nonuniquepk
+            foreach item in nonuniquepkToRemove
             begin
-                _DbContext.CustomerNotes.Remove(item)
+                _DbContext.Nonuniquepks.Remove(item)
             end
             _DbContext.SaveChanges()
 

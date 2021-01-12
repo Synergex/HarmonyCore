@@ -399,7 +399,7 @@
 </IF PROPERTY_ENDPOINTS>
 </IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
 <IF DEFINED_ENABLE_POST>
-<IF POST_ENDPOINT>
+<IF POST_ENDPOINT AND STRUCTURE_HAS_UNIQUE_KEY>
                 <IF COUNTER_1>,</IF COUNTER_1>
                 {
                     "_postman_id": "<guid_nobrace>",

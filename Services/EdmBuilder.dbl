@@ -102,6 +102,7 @@ namespace Services
             builder.EntitySet<OrderItem>("OrderItems")
             builder.EntitySet<Vendor>("Vendors")
             builder.EntitySet<CustomerEx>("CustomerExs")
+            builder.EntitySet<Nonuniquepk>("Nonuniquepks")
 
             ;;Entities with a single primary key segment have the key declared to EF via a
             ;;{Key} attribute on the appropriate property in the data model, but only one {key}
@@ -164,6 +165,8 @@ namespace Services
             tempModel.AddAlternateKeyAnnotation(vendorType, new Dictionary<string, IEdmProperty>() {{"PaymentTermsCode",vendorType.FindProperty("PaymentTermsCode")}})
 
             data customerExType = (@EdmEntityType)tempModel.FindDeclaredType("Services.Models.CustomerEx")
+
+            data nonuniquepkType = (@EdmEntityType)tempModel.FindDeclaredType("Services.Models.Nonuniquepk")
 
             ;;-----------------------------------------------
             ;;If we have a PostEdmModelCustom method, call it 

@@ -1,8 +1,8 @@
 ;;*****************************************************************************
 ;;
-;; Title:       CustomerNoteMetaData.dbl
+;; Title:       NonuniquepkMetaData.dbl
 ;;
-;; Description: Defines meta data associated with a CustomerNote model.
+;; Description: Defines meta data associated with a Nonuniquepk model.
 ;;
 ;;*****************************************************************************
 ;; WARNING: GENERATED CODE!
@@ -19,42 +19,38 @@ import Harmony.Core.Converters
 namespace Services.Models
 
     ;;; <summary>
-    ;;; Global structure representing a CustomerNote record.
+    ;;; Global structure representing a Nonuniquepk record.
     ;;; </summary>
-    .include "CUSTOMER_NOTES" repository, public structure="strCustomerNote", end
+    .include "NONUNIQUEPK" repository, public structure="strNonuniquepk", end
 
     ;;; <summary>
-    ;;; Exposes metadata relating to the CustomerNote model class.
+    ;;; Exposes metadata relating to the Nonuniquepk model class.
     ;;; </summary>
-    public partial class CustomerNoteMetadata extends DataObjectMetadataBase
+    public partial class NonuniquepkMetadata extends DataObjectMetadataBase
 
         ;; Define custom property formatters
 
         ;;; <summary>
-        ;;; Constructs an new CustomerNoteMetadata object.
+        ;;; Constructs an new NonuniquepkMetadata object.
         ;;; </summary>
-        public method CustomerNoteMetadata
+        public method NonuniquepkMetadata
         proc
             ;; Define structure name and size
-            RPSStructureName = "CUSTOMER_NOTES"
-            RPSStructureSize = ^size(strCustomerNote)
+            RPSStructureName = "NONUNIQUEPK"
+            RPSStructureSize = ^size(strNonuniquepk)
 
             ;; Define fields
-            AddFieldInfo("CustomerNumber", "DECIMAL", 6, 1, 0, false)
-            AddFieldInfo("NoteNumber", "DECIMAL", 3, 7, 0, false)
-            AddFieldInfo("NoteText", "ALPHA", 30720, 10, 0, false)
-
-            ;; Define relations
-            AddFieldInfo("REL_Customer", "DATAOBJECT", 0, 0, 0, false)
+            AddFieldInfo("Pk", "DECIMAL", 6, 1, 0, false)
+            AddFieldInfo("Name", "ALPHA", 30, 7, 0, false)
 
             ;; Define all fields that are associated wity key segments
-            AddKeyInfo(0, "CustomerNumber")
+            AddKeyInfo(0, "Pk")
 
             ;; Define the composition of access keys
 
-            data CustomerNumber_KeyParts = new FieldDataDefinition[1]
-            CustomerNumber_KeyParts[1] = GetFieldByName("CustomerNumber")
-            AddFieldInfo("KEY_CUSTOMER_NUMBER", "COMPOSITE", 0, 0, 0, false, ^null, ^null, CustomerNumber_KeyParts)
+            data Pk_KeyParts = new FieldDataDefinition[1]
+            Pk_KeyParts[1] = GetFieldByName("Pk")
+            AddFieldInfo("KEY_PK", "COMPOSITE", 0, 0, 0, false, ^null, ^null, Pk_KeyParts)
 
 
             ;;If we have an InitializeCustomFields method then call it.
@@ -63,61 +59,46 @@ namespace Services.Models
         endmethod
 
         ;;; <summary>
-        ;;; Returns a new CustomerNote object containing data from a record and a GRFA.
-        ;;; The related data properties (REL_Customer) will not be populated.
+        ;;; Returns a new Nonuniquepk object containing data from a record and a GRFA.
         ;;; </summary>
-        ;;; <param name="dataArea">The record containing the data for the new CustomerNote object.</param>
+        ;;; <param name="dataArea">The record containing the data for the new Nonuniquepk object.</param>
         ;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
         ;;; <returns></returns>
         public override method MakeNew, @DataObjectBase
             required in dataArea, a
             required in grfa, a
         proc
-            mreturn new CustomerNote(dataArea, grfa)
+            mreturn new Nonuniquepk(dataArea, grfa)
         endmethod
 
         ;;; <summary>
-        ;;; Returns a new CustomerNote object containing data from a record and a GRFA.
-        ;;; The related data properties (REL_Customer) will be populated.
+        ;;; Returns a new Nonuniquepk object containing data from a record and a GRFA.
         ;;; </summary>
-        ;;; <param name="dataArea">The record containing the data for the new CustomerNote object.</param>
+        ;;; <param name="dataArea">The record containing the data for the new Nonuniquepk object.</param>
         ;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
-        ;;; <param name="joinedObjects">Data to allow the related data properties (REL_Customer) to be populated.</param>
+        ;;; <param name="joinedObjects">Data to allow the related data properties to be populated.</param>
         ;;; <returns></returns>
         public override method MakeNew, @DataObjectBase
             required in dataArea, a
             required in grfa, a
             required in joinedObjects, [#]KeyValuePair<String, Object>
         proc
-            data newCustomerNote = new CustomerNote(dataArea, grfa)
-            UpdateExistingJoin(newCustomerNote, joinedObjects)
-            mreturn newCustomerNote
+            data newNonuniquepk = new Nonuniquepk(dataArea, grfa)
+            UpdateExistingJoin(newNonuniquepk, joinedObjects)
+            mreturn newNonuniquepk
         endmethod
         
         public override method UpdateExistingJoin, void
             required in existing, @DataObjectBase
             required in joinedObjects, [#]KeyValuePair<String, Object>
         proc
-            UpdateExistingJoin((@CustomerNote)existing, joinedObjects)
+            UpdateExistingJoin((@Nonuniquepk)existing, joinedObjects)
         endmethod
 
         public method UpdateExistingJoin, void
-            required in existing, @CustomerNote
+            required in existing, @Nonuniquepk
             required in joinedObjects, [#]KeyValuePair<String, Object>
         proc
-            data joinedObject, KeyValuePair<String, Object>
-            foreach joinedObject in joinedObjects
-            begin
-                using joinedObject.Key select
-                ("REL_Customer"),
-                begin
-                    if(existing.REL_Customer == ^null)
-                    begin
-                        existing.REL_Customer = (@Customer)joinedObject.Value
-                    end
-                end
-                endusing
-            end
         endmethod
 
         ;;; <summary>
@@ -131,7 +112,7 @@ namespace Services.Models
             required in parts, @Dictionary<String, Object>
             endparams
             stack record key0
-                CustomerNumber, D6
+                Pk, D6
             endrecord
         proc
             data startPos = 0
@@ -139,13 +120,13 @@ namespace Services.Models
             using keyNumber select
             (0),
             begin
-                if((segValueLength=KeyValueHelper(key0.CustomerNumber, "CustomerNumber", parts))<6 && segValueLength>0)
+                if((segValueLength=KeyValueHelper(key0.Pk, "Pk", parts))<6 && segValueLength>0)
                     mreturn key0(1:startPos+segValueLength)
                 mreturn key0
             end
             endusing
 
-            throw new ApplicationException(String.Format("Invalid key number {0} encountered in CustomerNoteMetadata.FormatKeyLiteral",keyNumber))
+            throw new ApplicationException(String.Format("Invalid key number {0} encountered in NonuniquepkMetadata.FormatKeyLiteral",keyNumber))
 
         endmethod
 

@@ -148,6 +148,14 @@ namespace Services.Test
                     logicals.Add(logical)
             end
 
+            fileSpec = "DAT:nonuniquepk.ism"
+            if (fileSpec.Contains(":"))
+            begin
+                logical = fileSpec.Split(":")[1].ToUpper()
+                if (!logicals.Contains(logical))
+                    logicals.Add(logical)
+            end
+
             foreach logical in logicals
             begin
                 data sts, int
@@ -169,6 +177,7 @@ namespace Services.Test
             data orderItems = OrderItemLoader.LoadFromFile()
             data vendors = VendorLoader.LoadFromFile()
             data customerExs = CustomerExLoader.LoadFromFile()
+            data nonuniquepks = NonuniquepkLoader.LoadFromFile()
 
             ;;Create and load the customers file
 
@@ -247,6 +256,17 @@ namespace Services.Test
                 store(chout,customerEx.SynergyRecord)
             close chout
 
+            ;;Create and load the nonuniquepks file
+
+            dataFile = "DAT:nonuniquepk.ism"
+            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+
+            data nonuniquepk, @Nonuniquepk
+            open(chout=0,o:i,dataFile,FDL:xdlFile)
+            foreach nonuniquepk in nonuniquepks
+                store(chout,nonuniquepk.SynergyRecord)
+            close chout
+
         endmethod
 
         private static method deleteFiles, void
@@ -321,6 +341,17 @@ namespace Services.Test
             try
             begin
                 xcall delet("DAT:CUSTOMER_EX.ism")
+            end
+            catch (e, @NoFileFoundException)
+            begin
+                nop
+            end
+            endtry
+
+            ;;Delete the nonuniquepks file
+            try
+            begin
+                xcall delet("DAT:nonuniquepk.ism")
             end
             catch (e, @NoFileFoundException)
             begin
