@@ -7,7 +7,7 @@ import System.Collections.Concurrent
 namespace Harmony.Core.FileIO
 
 	public abstract class HookableFileChannelManager extends FileChannelManager
-        
+		
 		private HookTypeLookup, @ConcurrentDictionary<int, Synergex.SynergyDE.IOExtensions.IOHooks>, new ConcurrentDictionary<int, Synergex.SynergyDE.IOExtensions.IOHooks>()
 
 		protected abstract method HookChannel, @Synergex.SynergyDE.IOExtensions.IOHooks
@@ -22,7 +22,11 @@ namespace Harmony.Core.FileIO
 			openMode, FileOpenMode
 		proc
 			data openedChannel = parent.OpenChannel(fileName, openMode)
-			HookTypeLookup.TryAdd(openedChannel, HookChannel(openedChannel, fileName, openMode))
+			data hook = HookChannel(openedChannel, fileName, openMode)
+
+			if (hook != ^null)
+				HookTypeLookup.TryAdd(openedChannel, hook)
+
 			mreturn openedChannel
 		endmethod
 
