@@ -69,6 +69,9 @@ namespace <NAMESPACE>
         {ODataRoute("(<IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></IF SINGLE_SEGMENT>)/<FieldSqlName>")}
         {Produces("application/json")}
         {ProducesResponseType(StatusCodes.Status200OK)}
+            <IF DEFINED_ENABLE_AUTHENTICATION>
+        {ProducesResponseType(StatusCodes.Status401Unauthorized)}
+            </IF DEFINED_ENABLE_AUTHENTICATION>
         {ProducesResponseType(StatusCodes.Status404NotFound)}
             <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_GET>
         {Authorize(Roles="<ROLES_GET>")}
@@ -123,6 +126,9 @@ namespace <NAMESPACE>
         {ODataRoute("({key})}
         {Produces("application/json")}
         {ProducesResponseType(StatusCodes.Status200OK)}
+          <IF DEFINED_ENABLE_AUTHENTICATION>
+        {ProducesResponseType(StatusCodes.Status401Unauthorized)}
+          </IF DEFINED_ENABLE_AUTHENTICATION>
         {ProducesResponseType(StatusCodes.Status404NotFound)}
           <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_GET>
         {Authorize(Roles="<ROLES_GET>")}
