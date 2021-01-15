@@ -108,6 +108,9 @@ namespace <NAMESPACE>
         {ODataRoute}
         {Produces("application/json")}
         {ProducesResponseType(^typeof(ODataValue<IEnumerable<<StructureNoplural>>>),StatusCodes.Status200OK)}
+  <IF DEFINED_ENABLE_AUTHENTICATION>
+        {ProducesResponseType(StatusCodes.Status401Unauthorized)}
+  </IF DEFINED_ENABLE_AUTHENTICATION>
   <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_GET>
         {Authorize(Roles="<ROLES_GET>")}
   </IF DEFINED_ENABLE_AUTHENTICATION_AND_USERTOKEN_ROLES_GET>
@@ -133,6 +136,9 @@ namespace <NAMESPACE>
         {ODataRoute("(<PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY>)")}
         {Produces("application/json")}
         {ProducesResponseType(^typeof(<StructureNoplural>),StatusCodes.Status200OK)}
+  <IF DEFINED_ENABLE_AUTHENTICATION>
+        {ProducesResponseType(StatusCodes.Status401Unauthorized)}
+  </IF DEFINED_ENABLE_AUTHENTICATION>
         {ProducesResponseType(StatusCodes.Status404NotFound)}
   <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_GET>
         {Authorize(Roles="<ROLES_GET>")}
@@ -179,6 +185,9 @@ namespace <NAMESPACE>
         {ODataRoute("(<PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY>)")}
         {Produces("application/json")}
         {ProducesResponseType(^typeof(ODataValue<IEnumerable<<StructureNoplural>>>),StatusCodes.Status200OK)}
+  <IF DEFINED_ENABLE_AUTHENTICATION>
+        {ProducesResponseType(StatusCodes.Status401Unauthorized)}
+  </IF DEFINED_ENABLE_AUTHENTICATION>
   <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_GET>
         {Authorize(Roles="<ROLES_GET>")}
   </IF DEFINED_ENABLE_AUTHENTICATION>
@@ -224,6 +233,9 @@ namespace <NAMESPACE>
         {ODataRoute("(aRecordNumber)")}
         {Produces("application/json")}
         {ProducesResponseType(^typeof(<StructureNoplural>),StatusCodes.Status200OK)}
+  <IF DEFINED_ENABLE_AUTHENTICATION>
+        {ProducesResponseType(StatusCodes.Status401Unauthorized)}
+  </IF DEFINED_ENABLE_AUTHENTICATION>
         {ProducesResponseType(StatusCodes.Status404NotFound)}
   <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_GET>
         {Authorize(Roles="<ROLES_GET>")}
@@ -256,6 +268,9 @@ namespace <NAMESPACE>
         {ODataRoute("(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>)")}
         {Produces("application/json")}
         {ProducesResponseType(^typeof(ODataValue<IEnumerable<<StructureNoplural>>>),StatusCodes.Status200OK)}
+      <IF DEFINED_ENABLE_AUTHENTICATION>
+        {ProducesResponseType(StatusCodes.Status401Unauthorized)}
+      </IF DEFINED_ENABLE_AUTHENTICATION>
         {ProducesResponseType(StatusCodes.Status404NotFound)}
       <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_GET>
         {Authorize(Roles="<ROLES_GET>")}
@@ -295,6 +310,9 @@ namespace <NAMESPACE>
         {ODataRoute("(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>)")}
         {Produces("application/json")}
         {ProducesResponseType(^typeof(<StructureNoplural>),StatusCodes.Status200OK)}
+      <IF DEFINED_ENABLE_AUTHENTICATION>
+        {ProducesResponseType(StatusCodes.Status401Unauthorized)}
+      </IF DEFINED_ENABLE_AUTHENTICATION>
         {ProducesResponseType(StatusCodes.Status404NotFound)}
       <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_GET>
         {Authorize(Roles="<ROLES_GET>")}
@@ -343,6 +361,9 @@ namespace <NAMESPACE>
         {ODataRoute}
         {Produces("application/json")}
         {ProducesResponseType(^typeof(<StructureNoplural>),StatusCodes.Status200OK)}
+  <IF DEFINED_ENABLE_AUTHENTICATION>
+        {ProducesResponseType(StatusCodes.Status401Unauthorized)}
+  </IF DEFINED_ENABLE_AUTHENTICATION>
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
         {HttpPost}
         ;;; <summary>
@@ -401,6 +422,9 @@ namespace <NAMESPACE>
         {Produces("application/json")}
         {ProducesResponseType(StatusCodes.Status201Created)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
+      <IF DEFINED_ENABLE_AUTHENTICATION>
+        {ProducesResponseType(StatusCodes.Status401Unauthorized)}
+      </IF DEFINED_ENABLE_AUTHENTICATION>
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {HttpPut}
         ;;; <summary>
@@ -506,6 +530,9 @@ namespace <NAMESPACE>
         {Produces("application/json")}
         {ProducesResponseType(StatusCodes.Status204NoContent)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
+      <IF DEFINED_ENABLE_AUTHENTICATION>
+        {ProducesResponseType(StatusCodes.Status401Unauthorized)}
+      </IF DEFINED_ENABLE_AUTHENTICATION>
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {HttpPatch}
         ;;; <summary>
@@ -595,6 +622,9 @@ namespace <NAMESPACE>
     </IF DEFINED_ENABLE_AUTHENTICATION>
         {ODataRoute("(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>)")}
         {ProducesResponseType(StatusCodes.Status204NoContent)}
+    <IF DEFINED_ENABLE_AUTHENTICATION>
+        {ProducesResponseType(StatusCodes.Status401Unauthorized)}
+    </IF DEFINED_ENABLE_AUTHENTICATION>
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {HttpDelete}
         ;;; <summary>
