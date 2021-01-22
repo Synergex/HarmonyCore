@@ -138,7 +138,74 @@ namespace Services.Test.UnitTests
 			begin
 				Assert.IsTrue(customer.State.StartsWith("C"))
 			end
-		endmethod
+        endmethod
+
+
+        {TestMethod}
+        public method GetCustomerOrdersWithRef, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Customers?$expand=REL_CustomerOrders($filter=contains(CustomerReference,'c'))").Result ;;&$filter=REL_CustomerFavoriteItem/Size+gt+1
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            Assert.AreNotEqual(customers.Value.Count, 0)
+            data customer, @Customer
+            foreach customer in customers.Value
+            begin
+                data ord, @Services.Test.Models.Order
+                foreach ord in customer.REL_CustomerOrders
+                begin
+                    Assert.IsTrue(ord.CustomerReference.Contains('c', StringComparison.CurrentCultureIgnoreCase))
+                end
+            end
+        endmethod
+
+        {TestMethod}
+        public method GetCustomerOrdersWithRef2, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Customers?$expand=REL_CustomerFavoriteItem,REL_CustomerOrders($filter=contains(CustomerReference,'c'))&$filter=REL_CustomerFavoriteItem/Size+gt+1").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            Assert.AreNotEqual(customers.Value.Count, 0)
+            data customer, @Customer
+            foreach customer in customers.Value
+            begin
+                if(customer.REL_CustomerFavoriteItem != ^null)
+                    Assert.IsTrue(customer.REL_CustomerFavoriteItem.Size > 1)
+                data ord, @Services.Test.Models.Order
+                foreach ord in customer.REL_CustomerOrders
+                begin
+                    Assert.IsTrue(ord.CustomerReference.Contains('c', StringComparison.CurrentCultureIgnoreCase))
+                end
+            end
+        endmethod
+
+        {TestMethod}
+        public method GetCustomerOrdersWithRef3, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Customers?$expand=REL_CustomerFavoriteItem,REL_CustomerOrders($filter=contains(CustomerReference,'c'))&$filter=REL_CustomerFavoriteItem/Size+gt+1+and+CustomerNumber+ne+5").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            Assert.AreNotEqual(customers.Value.Count, 0)
+            data customer, @Customer
+            foreach customer in customers.Value
+            begin
+                Assert.IsTrue(customer.CustomerNumber != 5)
+
+                if(customer.REL_CustomerFavoriteItem != ^null)
+                    Assert.IsTrue(customer.REL_CustomerFavoriteItem.Size > 1)
+                data ord, @Services.Test.Models.Order
+                foreach ord in customer.REL_CustomerOrders
+                begin
+                    Assert.IsTrue(ord.CustomerReference.Contains('c', StringComparison.CurrentCultureIgnoreCase))
+                end
+            end
+        endmethod
 
 		{TestMethod}
 		public method GetCustomersNotInCPrefix, void

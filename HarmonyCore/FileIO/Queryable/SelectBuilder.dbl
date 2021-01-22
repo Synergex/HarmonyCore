@@ -184,30 +184,6 @@ namespace Harmony.Core.FileIO.Queryable
                 endusing
 
             end
-            (whereClauseOperator.NotEqualTo),
-            begin
-            end
-            (whereClauseOperator.GreaterThan),
-            begin
-            end
-            (whereClauseOperator.GreaterThanOrEqualTo),
-            begin
-            end
-            (whereClauseOperator.LessThan),
-            begin
-            end
-            (whereClauseOperator.LessThanOrEqualTo),
-            begin
-            end
-            (whereClauseOperator.IsLike),
-            begin
-            end
-            (whereClauseOperator.IsBetween),
-            begin
-            end
-            (WhereClauseOperator.IsIn),
-            begin
-            end
             endusing
             throw new NotImplementedException()
         endmethod
@@ -1372,7 +1348,7 @@ namespace Harmony.Core.FileIO.Queryable
             throw new InvalidOperationException("Invalid Where Expression Tree")
         endmethod
 
-        public method ProcessOn, @On
+        public method ProcessOn, @Where
             expr, @object
         proc
             if(expr .is. @ConnectorPart) then
@@ -1413,29 +1389,55 @@ namespace Harmony.Core.FileIO.Queryable
         endmethod
 
 
-        private method ProcessOnConnector, @On
+        private method ProcessOnConnector, @Where
             connector, @ConnectorPart
         proc
+            data WH_ANDOP = 15
+            data WH_OROP = 16
+
             data leftOn = ProcessOn(connector.Left)
             data rightOn = ProcessOn(connector.Right)
 
-            if(connector.Op == WhereClauseConnector.AndOperator) then
+            if(leftOn == ^null || rightOn == ^null)
+                mreturn (leftOn ?? rightOn)
+
+            if(leftOn .is. On || rightOn .is. On) then
             begin
-                ;;cant pass a literal part as the first element to an On object
-                if(ExprPartIsLiteral(connector.Left)) then
-                    mreturn rightOn .and. leftOn
-                else
-                    mreturn leftOn .and. rightOn
-            end
-            else if(connector.Op == WhereClauseConnector.OrOperator) then
-            begin
-                mreturn leftOn .or. rightOn
+                if(connector.Op == WhereClauseConnector.AndOperator) then
+                begin
+                    ;;cant pass a literal part as the first element to an On object
+                    if(ExprPartIsLiteral(connector.Left)) then
+                    begin
+                        if(rightOn .is. On) then
+                            mreturn new On(WH_ANDOP, (@On)(rightOn), leftOn)
+                        else
+                            mreturn rightOn .and. leftOn
+                    end
+                    else
+                    begin
+                        if(leftOn .is. On) then
+                            mreturn new On(WH_ANDOP, (@On)(leftOn), rightOn)
+                        else
+                            mreturn leftOn .and. rightOn
+                    end
+                end
+                else if(connector.Op == WhereClauseConnector.OrOperator) 
+                begin
+                    if(leftOn .is. On) then
+                        mreturn new On(WH_OROP, (@On)(leftOn), rightOn)
+                    else
+                        mreturn leftOn .or. rightOn
+                end
             end
             else
-                throw new InvalidOperationException("Invalid Where Expression Tree")
+            begin
+                mreturn ProcessWhereConnector(connector)
+            end
+            
+            throw new InvalidOperationException("Invalid Where Expression Tree")
         endmethod
 
-        private method ProcessOnExpression, @On
+        private method ProcessOnExpression, @Where
             expr, @ExprPart
             structure tmpStructure
                 fld	,a1
@@ -1463,21 +1465,10 @@ namespace Harmony.Core.FileIO.Queryable
                     throw new InvalidOperationException("Invalid Where Expression Tree")
                 end
             end
-            else if(leftField != ^null) then
+            else
             begin
-                mreturn fieldOnClause(^m(tmpStructure(1:leftBuffer.Metadata.StructureSize), leftBuffer.MemoryHandle.Value), 
-                &    leftField.FieldDef, 
-                &    expr.Op,
-                &    ProcessValue(expr.Right, leftField.FieldDef))
+                mreturn ProcessWhereExpression(expr)
             end
-            else if(rightField != ^null)
-            begin
-                mreturn fieldOnClause(^m(tmpStructure(1:rightBuffer.Metadata.StructureSize), rightBuffer.MemoryHandle.Value), 
-                &    rightField.FieldDef, 
-                &    expr.Op,
-                &    ProcessValue(expr.Left, rightField.FieldDef))
-            end
-            throw new InvalidOperationException("Invalid Where Expression Tree")
         endmethod
 
         private method FormatValue, @string
