@@ -898,12 +898,59 @@ namespace Harmony.Core.EF.Query.Internal
             {
                 return null;
             }
-            inMemoryQueryExpression.RootExpressions[inMemoryQueryExpression.CurrentParameter].WhereExpressions.Add(SimplifyPredicate(predicate));
+            AddWherePredicateToQueryExpression(inMemoryQueryExpression.CurrentParameter, inMemoryQueryExpression, predicate);
             return source;
+        }
+
+        private void AddWherePredicateToQueryExpression(ParameterExpression currentParameter, HarmonyQueryExpression queryExpression, LambdaExpression predicate)
+        {
+            //break predicate into one or more expressions, swapping the specified current parameter for the actual navigation's parameter
+            var parameterPairings = SimplifyPredicate(queryExpression, predicate);
+            foreach(var paramPair in parameterPairings)
+            {
+                if (paramPair.Key == currentParameter)
+                {
+                    queryExpression.RootExpressions[currentParameter].WhereExpressions.Add(paramPair.Value);
+                }
+                else
+                {
+                    queryExpression.RootExpressions[paramPair.Key].WhereExpressions.Add(paramPair.Value);
+                }
+            }
+            
+        }
+
+        private class JoinOnClause : Expression
+        {
+            public HarmonyTableExpression TargetTable;
+            public Expression InnerExpression;
+            public ParameterExpression CurrentParameter;
+
+            public override ExpressionType NodeType => InnerExpression.NodeType;
+            public override Type Type => InnerExpression.Type;
         }
 
         class LambdaSimplifier : ExpressionVisitor
         {
+            public HarmonyQueryExpression QueryExpression;
+            public Dictionary<string, HarmonyTableExpression> _navigationMappings = new Dictionary<string, HarmonyTableExpression>();
+            public Dictionary<HarmonyTableExpression, ParameterExpression> _tableMapping = new Dictionary<HarmonyTableExpression, ParameterExpression>();
+
+            public LambdaSimplifier(HarmonyQueryExpression queryExpression)
+            {
+                QueryExpression = queryExpression;
+                foreach (var rootExpr in queryExpression.RootExpressions)
+                {
+                    if (rootExpr.Value.Name.Contains("."))
+                        throw new NotImplementedException();
+                    else
+                    {
+                        _navigationMappings.Add(rootExpr.Value.Name, rootExpr.Value);
+                        _tableMapping.Add(rootExpr.Value, rootExpr.Key as ParameterExpression);
+                    }
+                }
+            }
+
             protected override Expression VisitBinary(BinaryExpression node)
             {
                 //remove nullable checks
@@ -916,7 +963,7 @@ namespace Harmony.Core.EF.Query.Internal
                 switch (node.NodeType)
                 {
                     case ExpressionType.Equal:
-                    case ExpressionType.NotEqual:
+                    case ExpressionType.NotEqual:  
                         if (simplifiedLeft == null)
                         {
                             if (simplifiedRight is ConstantExpression)
@@ -954,7 +1001,67 @@ namespace Harmony.Core.EF.Query.Internal
                         break;
                 }
 
-                return node.Update(simplifiedLeft, node.Conversion, simplifiedRight);
+
+                var leftNav = FindParameterOrNavigation(simplifiedLeft);
+                var rightNav = FindParameterOrNavigation(simplifiedRight);
+
+                var updatedNode = node.Update(simplifiedLeft, node.Conversion, simplifiedRight) as Expression;
+
+                if (leftNav.Item1 is HarmonyTableExpression || rightNav.Item1 is HarmonyTableExpression)
+                {
+                    var targetTable = (leftNav.Item1 as HarmonyTableExpression) ?? (rightNav.Item1 as HarmonyTableExpression);
+                    var targetParameter = (leftNav.Item1 is HarmonyTableExpression) ? leftNav.Item2 : rightNav.Item2;
+                    if (targetParameter != null)
+                    {
+                        var paramReplacer = new IdentifierReplacingExpressionVisitor
+                        {
+                            ReplacementExpressions = new Dictionary<Expression, Expression>
+                            {
+                                {targetParameter, Expression.Convert(_tableMapping[targetTable], targetTable.ItemType) }
+                            }
+                        };
+                        updatedNode = paramReplacer.Visit(updatedNode);
+                    }
+
+                    if ((node.NodeType == ExpressionType.OrElse || node.NodeType == ExpressionType.AndAlso) &&
+                        !(rightNav.Item1 is HarmonyTableExpression && leftNav.Item1 is HarmonyTableExpression))
+                    {
+                        //if only one side is a JoinOnClause then dont bubble up any further
+                        return updatedNode;
+                    }
+                    else
+                    {
+                        return new JoinOnClause
+                        {
+                            InnerExpression = updatedNode,
+                            TargetTable = (leftNav.Item1 as HarmonyTableExpression) ?? (rightNav.Item1 as HarmonyTableExpression),
+                            CurrentParameter = _tableMapping[targetTable]
+                        };
+                    }
+                }
+                else
+                {
+                    return updatedNode;
+                }
+            }
+
+            (Expression, Expression) FindParameterOrNavigation(Expression expr)
+            {
+                if (expr is ParameterExpression)
+                    return (expr, expr);
+
+                else if (expr is MemberExpression memberExpr)
+                {
+                    if (_navigationMappings.TryGetValue(memberExpr.Member.Name, out var harmonyTableExpression))
+                    {
+                        return (harmonyTableExpression, expr);
+                    }
+                    return FindParameterOrNavigation(memberExpr.Expression);
+                }
+                else if (expr is JoinOnClause joc)
+                    return (joc.TargetTable, null);
+                else
+                    return (expr, null);
             }
 
             private static bool IsParameter(Expression expression)
@@ -1038,10 +1145,54 @@ namespace Harmony.Core.EF.Query.Internal
             }
         }
 
-        private LambdaExpression SimplifyPredicate(LambdaExpression predicate)
+        private Dictionary<ParameterExpression, LambdaExpression> SimplifyPredicate(HarmonyQueryExpression queryExpression, LambdaExpression predicate)
         {
-            var simplifier = new LambdaSimplifier();
-            return simplifier.Visit(predicate) as LambdaExpression;
+            var simplifier = new LambdaSimplifier(queryExpression);
+            var visitorResult = simplifier.Visit(predicate) as LambdaExpression;
+            var result = new Dictionary<ParameterExpression, LambdaExpression>();
+            var expressionBody = ExtractJoins(result, visitorResult.Body);
+
+            if(expressionBody != null)
+            {
+                result.Add(queryExpression.CurrentParameter, Expression.Lambda(expressionBody, queryExpression.CurrentParameter));
+            }
+
+            return result;
+        }
+
+        private Expression ExtractJoins(Dictionary<ParameterExpression, LambdaExpression> predicates, Expression node)
+        {
+            if (node is BinaryExpression be)
+            {
+                var left = ExtractJoins(predicates, be.Left);
+                var right = ExtractJoins(predicates, be.Right);
+                if (left == null || right == null)
+                    return left ?? right;
+                else
+                    return be.Update(left, be.Conversion, right);
+            }
+            else if (node is UnaryExpression ue)
+            {
+                var operand = ExtractJoins(predicates, ue.Operand);
+                if (operand != null)
+                    return ue.Update(operand);
+                else
+                    return null;
+            }
+            else if (node is JoinOnClause joc)
+            {
+                if (predicates.TryGetValue(joc.CurrentParameter, out var currentPredicate))
+                {
+                    predicates[joc.CurrentParameter] = Expression.Lambda(Expression.AndAlso(currentPredicate.Body, joc.InnerExpression), joc.CurrentParameter);
+                }
+                else
+                {
+                    predicates.Add(joc.CurrentParameter, Expression.Lambda(joc.InnerExpression, joc.CurrentParameter));
+                }
+                return null;
+            }
+            else
+                return node;
         }
 
         private Expression TranslateExpression(Expression expression, bool preserveType = false)
@@ -1360,7 +1511,7 @@ namespace Harmony.Core.EF.Query.Internal
             protected override Expression VisitMember(MemberExpression node)
             {
                 if (ReplacementExpressions.TryGetValue(node.Expression, out var mappedExpression))
-                {
+                { 
                     return node.Update(mappedExpression);
                 }
                 return base.VisitMember(node);
