@@ -18,6 +18,7 @@ import System.Net
 import System.Net.Http
 import Services
 import Services.Test.Models
+import System.Linq
 
 namespace Services.Test.UnitTests
 
@@ -36,7 +37,7 @@ namespace Services.Test.UnitTests
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
             data orderItems, @ODataOrderItems, JsonConvert.DeserializeObject<ODataOrderItems>(result)
-            Assert.AreEqual(orderItems.Value.Count,TestConstants.GetOrderItems_Count)
+            Assert.AreEqual(orderItems.Value.Count,TestConstants.Instance.GetOrderItems_Count)
         endmethod
 
         ;;------------------------------------------------------------
@@ -89,7 +90,7 @@ namespace Services.Test.UnitTests
         public method GetOrderItem, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/v1/OrderItems(OrderNumber={1},ItemNumber={2})","",TestConstants.GetOrderItem_OrderNumber,TestConstants.GetOrderItem_ItemNumber)
+            data request = String.Format("/odata/v1/OrderItems(OrderNumber={1},ItemNumber={2})","",TestConstants.Instance.GetOrderItem_OrderNumber,TestConstants.Instance.GetOrderItem_ItemNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
@@ -104,7 +105,7 @@ namespace Services.Test.UnitTests
         public method GetOrderItem_Expand_REL_Order, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/v1/OrderItems(OrderNumber={1},ItemNumber={2})?$expand=REL_Order","",TestConstants.GetOrderItem_Expand_REL_Order_OrderNumber,TestConstants.GetOrderItem_Expand_REL_Order_ItemNumber)
+            data request = String.Format("/odata/v1/OrderItems(OrderNumber={1},ItemNumber={2})?$expand=REL_Order","",TestConstants.Instance.GetOrderItem_Expand_REL_Order_OrderNumber,TestConstants.Instance.GetOrderItem_Expand_REL_Order_ItemNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
@@ -119,7 +120,7 @@ namespace Services.Test.UnitTests
         public method GetOrderItem_Expand_REL_Item, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/v1/OrderItems(OrderNumber={1},ItemNumber={2})?$expand=REL_Item","",TestConstants.GetOrderItem_Expand_REL_Item_OrderNumber,TestConstants.GetOrderItem_Expand_REL_Item_ItemNumber)
+            data request = String.Format("/odata/v1/OrderItems(OrderNumber={1},ItemNumber={2})?$expand=REL_Item","",TestConstants.Instance.GetOrderItem_Expand_REL_Item_OrderNumber,TestConstants.Instance.GetOrderItem_Expand_REL_Item_ItemNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
@@ -134,7 +135,7 @@ namespace Services.Test.UnitTests
         public method GetOrderItem_Expand_All, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/v1/OrderItems(OrderNumber={1},ItemNumber={2})?$expand=REL_Order,REL_Item","",TestConstants.GetOrderItem_Expand_All_OrderNumber,TestConstants.GetOrderItem_Expand_All_ItemNumber)
+            data request = String.Format("/odata/v1/OrderItems(OrderNumber={1},ItemNumber={2})?$expand=REL_Order,REL_Item","",TestConstants.Instance.GetOrderItem_Expand_All_OrderNumber,TestConstants.Instance.GetOrderItem_Expand_All_ItemNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
@@ -149,7 +150,7 @@ namespace Services.Test.UnitTests
         public method GetOrderItem_ByAltKey_ItemOrdered, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/v1/OrderItems(ItemOrdered={1})", "", TestConstants.GetOrderItem_ByAltKey_ItemOrdered_ItemOrdered)
+            data request = String.Format("/odata/v1/OrderItems(ItemOrdered={1})", "", TestConstants.Instance.GetOrderItem_ByAltKey_ItemOrdered_ItemOrdered)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
@@ -164,7 +165,7 @@ namespace Services.Test.UnitTests
         public method GetOrderItem_ByAltKey_DateShipped, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/v1/OrderItems(DateShipped={1})", "", TestConstants.GetOrderItem_ByAltKey_DateShipped_DateShipped.ToString("yyyy-MM-dd"))
+            data request = String.Format("/odata/v1/OrderItems(DateShipped={1})", "", TestConstants.Instance.GetOrderItem_ByAltKey_DateShipped_DateShipped.ToString("yyyy-MM-dd"))
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
@@ -179,7 +180,7 @@ namespace Services.Test.UnitTests
         public method GetOrderItem_ByAltKey_InvoiceNumber, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/v1/OrderItems(InvoiceNumber={1})", "", TestConstants.GetOrderItem_ByAltKey_InvoiceNumber_InvoiceNumber)
+            data request = String.Format("/odata/v1/OrderItems(InvoiceNumber={1})", "", TestConstants.Instance.GetOrderItem_ByAltKey_InvoiceNumber_InvoiceNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
@@ -196,7 +197,7 @@ namespace Services.Test.UnitTests
             disposable data client = UnitTestEnvironment.Server.CreateClient()
 
             ;;Get one orderItem from the file
-            data getRequest = String.Format("/odata/v1/OrderItems({1},{2})","",TestConstants.GetOrderItem_OrderNumber,TestConstants.GetOrderItem_ItemNumber)
+            data getRequest = String.Format("/odata/v1/OrderItems({1},{2})","",TestConstants.Instance.GetOrderItem_OrderNumber,TestConstants.Instance.GetOrderItem_ItemNumber)
             data getResponse = client.GetAsync(getRequest).Result
             data getResult = getResponse.Content.ReadAsStringAsync().Result
 
@@ -206,14 +207,14 @@ namespace Services.Test.UnitTests
             ;;Deserialize the JSON into a OrderItem object
             data doOrderItem, @OrderItem, JsonConvert.DeserializeObject<OrderItem>(getResult)
 
-            doOrderItem.OrderNumber = TestConstants.UpdateOrderItem_OrderNumber
-            doOrderItem.ItemNumber = TestConstants.UpdateOrderItem_ItemNumber
+            doOrderItem.OrderNumber = TestConstants.Instance.UpdateOrderItem_OrderNumber
+            doOrderItem.ItemNumber = TestConstants.Instance.UpdateOrderItem_ItemNumber
 
             ;TODO: Also need to ensure any nodups alternate keys get unique values
 
             ;;Create new item
             disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doOrderItem),System.Text.Encoding.UTF8, "application/json")
-            data request = String.Format("/odata/v1/OrderItems({1},{2})","",TestConstants.UpdateOrderItem_OrderNumber,TestConstants.UpdateOrderItem_ItemNumber)
+            data request = String.Format("/odata/v1/OrderItems({1},{2})","",TestConstants.Instance.UpdateOrderItem_OrderNumber,TestConstants.Instance.UpdateOrderItem_ItemNumber)
             disposable data response = client.PutAsync(request, requestBody).Result
 
             ;;Check that we got a successful response from the web service
@@ -234,7 +235,7 @@ namespace Services.Test.UnitTests
 
             ;;Update full item
             requestBody = new StringContent(JsonConvert.SerializeObject(doOrderItem),System.Text.Encoding.UTF8, "application/json")
-            request = String.Format("/odata/v1/OrderItems({1},{2})","",TestConstants.UpdateOrderItem_OrderNumber,TestConstants.UpdateOrderItem_ItemNumber)
+            request = String.Format("/odata/v1/OrderItems({1},{2})","",TestConstants.Instance.UpdateOrderItem_OrderNumber,TestConstants.Instance.UpdateOrderItem_ItemNumber)
             response = client.PutAsync(request, requestBody).Result
 
             ;;Check that we got a successful response from the web service
@@ -249,7 +250,6 @@ namespace Services.Test.UnitTests
 
             ;;Deserialize the JSON into a OrderItem object
             doOrderItem = JsonConvert.DeserializeObject<OrderItem>(getResult)
-
             Assert.AreEqual(doOrderItem.QuantityOrdered, 8)
 
             ;;Update one non-existant property in the customer

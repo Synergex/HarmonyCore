@@ -1,0 +1,392 @@
+import System
+import System.Text.Json
+import System.Text.Json.Serialization
+import System.IO
+
+namespace Services.Test
+    public class GenerateTestValues
+
+        .include "CUSTOMERS" repository, record="customer", end
+        .include "CUSTOMER_NOTES" repository, record="customerNote", end
+        .include "ITEMS" repository, record="item", end
+        .include "ORDERS" repository, record="order", end
+        .include "ORDER_ITEMS" repository, record="orderItem", end
+        .include "VENDORS" repository, record="vendor", end
+        .include "CUSTOMER_EX" repository, record="customerEx", end
+        .include "NONUNIQUEPK" repository, record="nonuniquepk", end
+
+        public method SerializeValues, void
+            endparams
+        proc
+            data chin, int
+            data count, int
+            data pknum, int
+
+            ;;------------------------------------------------------------
+            ;;Test data for Customer
+            open(chin=0,i:i,"DAT:customers.ism")
+
+            ;Total number of records
+            count = 0
+            repeat
+            begin
+                reads(chin,customer,eofCustomer1)
+                count += 1
+                nextloop
+            eofCustomer1,
+                if (count) then
+                    TestConstants.Instance.GetCustomers_Count = count
+                else
+                    Console.WriteLine("ERROR: Failed to read record from DAT:customers.ism")
+                exitloop
+            end
+            
+            ;Get by primary key
+            repeat
+            begin
+                read(chin,customer,^FIRST) [ERR=eofCustomer2]
+                pknum = customer.customer_number
+                TestConstants.Instance.GetCustomer_CustomerNumber = pknum
+                TestConstants.Instance.GetCustomer_Expand_REL_CustomerOrders_CustomerNumber = pknum
+                TestConstants.Instance.GetCustomer_Expand_All_CustomerNumber = pknum
+                pknum = customer.customer_number
+                TestConstants.Instance.GetCustomer_CustomerNumber = pknum
+                TestConstants.Instance.GetCustomer_Expand_REL_CustomerFavoriteItem_CustomerNumber = pknum
+                TestConstants.Instance.GetCustomer_Expand_All_CustomerNumber = pknum
+                pknum = customer.customer_number
+                TestConstants.Instance.GetCustomer_CustomerNumber = pknum
+                TestConstants.Instance.GetCustomer_Expand_REL_CustomerNotes_CustomerNumber = pknum
+                TestConstants.Instance.GetCustomer_Expand_All_CustomerNumber = pknum
+                pknum = customer.customer_number
+                TestConstants.Instance.GetCustomer_CustomerNumber = pknum
+                TestConstants.Instance.GetCustomer_Expand_REL_CustomerEx_CustomerNumber = pknum
+                TestConstants.Instance.GetCustomer_Expand_All_CustomerNumber = pknum
+                exitloop
+            eofCustomer2,
+                Console.WriteLine("ERROR: Failed to read first record from DAT:customers.ism")
+                exitloop
+            end
+
+            TestConstants.Instance.GetCustomer_Expand_REL_CustomerOrders_CustomerNumber = pknum
+            TestConstants.Instance.GetCustomer_Expand_REL_CustomerFavoriteItem_CustomerNumber = pknum
+            TestConstants.Instance.GetCustomer_Expand_REL_CustomerNotes_CustomerNumber = pknum
+            TestConstants.Instance.GetCustomer_Expand_REL_CustomerEx_CustomerNumber = pknum
+            TestConstants.Instance.GetCustomer_Expand_All_CustomerNumber = pknum
+            TestConstants.Instance.GetCustomer_ByAltKey_State_State = customer.state
+            TestConstants.Instance.GetCustomer_ByAltKey_Zip_ZipCode = customer.zip_code
+            TestConstants.Instance.GetCustomer_ByAltKey_PaymentTerms_PaymentTermsCode = customer.payment_terms_code
+            TestConstants.Instance.UpdateCustomer_CustomerNumber = pknum + 1
+
+            close chin
+
+            ;;------------------------------------------------------------
+            ;;Test data for CustomerNote
+            open(chin=0,i:i,"DAT:customer_notes.ism")
+
+            ;Total number of records
+            count = 0
+            repeat
+            begin
+                reads(chin,customerNote,eofCustomerNote1)
+                count += 1
+                nextloop
+            eofCustomerNote1,
+                if (count) then
+                    TestConstants.Instance.GetCustomerNotes_Count = count
+                else
+                    Console.WriteLine("ERROR: Failed to read record from DAT:customer_notes.ism")
+                exitloop
+            end
+            
+            ;Get by primary key
+            repeat
+            begin
+                read(chin,customerNote,^FIRST) [ERR=eofCustomerNote2]
+                pknum = customerNote.customer_number
+                TestConstants.Instance.GetCustomerNote_CustomerNumber = pknum
+                TestConstants.Instance.GetCustomerNote_Expand_REL_Customer_CustomerNumber = pknum
+                TestConstants.Instance.GetCustomerNote_Expand_All_CustomerNumber = pknum
+                exitloop
+            eofCustomerNote2,
+                Console.WriteLine("ERROR: Failed to read first record from DAT:customer_notes.ism")
+                exitloop
+            end
+
+            TestConstants.Instance.GetCustomerNote_Expand_REL_Customer_CustomerNumber = pknum
+            TestConstants.Instance.GetCustomerNote_Expand_All_CustomerNumber = pknum
+            TestConstants.Instance.UpdateCustomerNote_CustomerNumber = pknum + 1
+
+            close chin
+
+            ;;------------------------------------------------------------
+            ;;Test data for Item
+            open(chin=0,i:i,"DAT:items.ism")
+
+            ;Total number of records
+            count = 0
+            repeat
+            begin
+                reads(chin,item,eofItem1)
+                count += 1
+                nextloop
+            eofItem1,
+                if (count) then
+                    TestConstants.Instance.GetItems_Count = count
+                else
+                    Console.WriteLine("ERROR: Failed to read record from DAT:items.ism")
+                exitloop
+            end
+            
+            ;Get by primary key
+            repeat
+            begin
+                read(chin,item,^FIRST) [ERR=eofItem2]
+                pknum = item.item_number
+                TestConstants.Instance.GetItem_ItemNumber = pknum
+                TestConstants.Instance.GetItem_Expand_REL_Vendor_ItemNumber = pknum
+                TestConstants.Instance.GetItem_Expand_All_ItemNumber = pknum
+                pknum = item.item_number
+                TestConstants.Instance.GetItem_ItemNumber = pknum
+                TestConstants.Instance.GetItem_Expand_REL_OrderItems_ItemNumber = pknum
+                TestConstants.Instance.GetItem_Expand_All_ItemNumber = pknum
+                exitloop
+            eofItem2,
+                Console.WriteLine("ERROR: Failed to read first record from DAT:items.ism")
+                exitloop
+            end
+
+            TestConstants.Instance.GetItem_Expand_REL_Vendor_ItemNumber = pknum
+            TestConstants.Instance.GetItem_Expand_REL_OrderItems_ItemNumber = pknum
+            TestConstants.Instance.GetItem_Expand_All_ItemNumber = pknum
+            TestConstants.Instance.GetItem_ByAltKey_VendorNumber_VendorNumber = item.vendor_number
+            TestConstants.Instance.GetItem_ByAltKey_Color_FlowerColor = item.flower_color
+            TestConstants.Instance.GetItem_ByAltKey_Size_Size = item.size
+            TestConstants.Instance.GetItem_ByAltKey_Name_CommonName = item.common_name
+            TestConstants.Instance.UpdateItem_ItemNumber = pknum + 1
+
+            close chin
+
+            ;;------------------------------------------------------------
+            ;;Test data for Order
+            open(chin=0,i:i,"DAT:orders.ism")
+
+            ;Total number of records
+            count = 0
+            repeat
+            begin
+                reads(chin,order,eofOrder1)
+                count += 1
+                nextloop
+            eofOrder1,
+                if (count) then
+                    TestConstants.Instance.GetOrders_Count = count
+                else
+                    Console.WriteLine("ERROR: Failed to read record from DAT:orders.ism")
+                exitloop
+            end
+            
+            ;Get by primary key
+            repeat
+            begin
+                read(chin,order,^FIRST) [ERR=eofOrder2]
+                pknum = order.order_number
+                TestConstants.Instance.GetOrder_OrderNumber = pknum
+                TestConstants.Instance.GetOrder_Expand_REL_OrderItems_OrderNumber = pknum
+                TestConstants.Instance.GetOrder_Expand_All_OrderNumber = pknum
+                pknum = order.order_number
+                TestConstants.Instance.GetOrder_OrderNumber = pknum
+                TestConstants.Instance.GetOrder_Expand_REL_Customer_OrderNumber = pknum
+                TestConstants.Instance.GetOrder_Expand_All_OrderNumber = pknum
+                exitloop
+            eofOrder2,
+                Console.WriteLine("ERROR: Failed to read first record from DAT:orders.ism")
+                exitloop
+            end
+
+            TestConstants.Instance.GetOrder_Expand_REL_OrderItems_OrderNumber = pknum
+            TestConstants.Instance.GetOrder_Expand_REL_Customer_OrderNumber = pknum
+            TestConstants.Instance.GetOrder_Expand_All_OrderNumber = pknum
+            TestConstants.Instance.GetOrder_ByAltKey_CustomerNumber_CustomerNumber = order.customer_number
+            TestConstants.Instance.GetOrder_ByAltKey_DateOrdered_DateOrdered = DateTime.ParseExact((string)(order.date_ordered), "yyyyMMdd", System.Globalization.CultureInfo.InvariantCulture)
+            TestConstants.Instance.GetOrder_ByAltKey_DateCompleted_DateCompleted = DateTime.ParseExact((string)(order.date_completed), "yyyyMMdd", System.Globalization.CultureInfo.InvariantCulture)
+            TestConstants.Instance.UpdateOrder_OrderNumber = pknum + 1
+
+            close chin
+
+            ;;------------------------------------------------------------
+            ;;Test data for OrderItem
+            open(chin=0,i:i,"DAT:order_items.ism")
+
+            ;Total number of records
+            count = 0
+            repeat
+            begin
+                reads(chin,orderItem,eofOrderItem1)
+                count += 1
+                nextloop
+            eofOrderItem1,
+                if (count) then
+                    TestConstants.Instance.GetOrderItems_Count = count
+                else
+                    Console.WriteLine("ERROR: Failed to read record from DAT:order_items.ism")
+                exitloop
+            end
+            
+            ;Get by primary key
+            repeat
+            begin
+                read(chin,orderItem,^FIRST) [ERR=eofOrderItem2]
+                pknum = orderItem.order_number
+                TestConstants.Instance.GetOrderItem_OrderNumber = pknum
+                TestConstants.Instance.GetOrderItem_Expand_REL_Order_OrderNumber = pknum
+                TestConstants.Instance.GetOrderItem_Expand_All_OrderNumber = pknum
+                pknum = orderItem.item_number
+                TestConstants.Instance.GetOrderItem_ItemNumber = pknum
+                TestConstants.Instance.GetOrderItem_Expand_REL_Order_ItemNumber = pknum
+                TestConstants.Instance.GetOrderItem_Expand_All_ItemNumber = pknum
+                pknum = orderItem.order_number
+                TestConstants.Instance.GetOrderItem_OrderNumber = pknum
+                TestConstants.Instance.GetOrderItem_Expand_REL_Item_OrderNumber = pknum
+                TestConstants.Instance.GetOrderItem_Expand_All_OrderNumber = pknum
+                pknum = orderItem.item_number
+                TestConstants.Instance.GetOrderItem_ItemNumber = pknum
+                TestConstants.Instance.GetOrderItem_Expand_REL_Item_ItemNumber = pknum
+                TestConstants.Instance.GetOrderItem_Expand_All_ItemNumber = pknum
+                exitloop
+            eofOrderItem2,
+                Console.WriteLine("ERROR: Failed to read first record from DAT:order_items.ism")
+                exitloop
+            end
+
+            TestConstants.Instance.GetOrderItem_Expand_REL_Order_OrderNumber = pknum
+            TestConstants.Instance.GetOrderItem_Expand_REL_Order_ItemNumber = pknum
+            TestConstants.Instance.GetOrderItem_Expand_REL_Item_OrderNumber = pknum
+            TestConstants.Instance.GetOrderItem_Expand_REL_Item_ItemNumber = pknum
+            TestConstants.Instance.GetOrderItem_Expand_All_OrderNumber = pknum
+            TestConstants.Instance.GetOrderItem_Expand_All_ItemNumber = pknum
+            TestConstants.Instance.GetOrderItem_ByAltKey_ItemOrdered_ItemOrdered = orderItem.item_ordered
+            TestConstants.Instance.GetOrderItem_ByAltKey_DateShipped_DateShipped = DateTime.ParseExact((string)(orderItem.date_shipped), "yyyyMMdd", System.Globalization.CultureInfo.InvariantCulture)
+            TestConstants.Instance.GetOrderItem_ByAltKey_InvoiceNumber_InvoiceNumber = orderItem.invoice_number
+            TestConstants.Instance.UpdateOrderItem_OrderNumber = pknum + 1
+            TestConstants.Instance.UpdateOrderItem_ItemNumber = pknum + 1
+
+            close chin
+
+            ;;------------------------------------------------------------
+            ;;Test data for Vendor
+            open(chin=0,i:i,"DAT:vendors.ism")
+
+            ;Total number of records
+            count = 0
+            repeat
+            begin
+                reads(chin,vendor,eofVendor1)
+                count += 1
+                nextloop
+            eofVendor1,
+                if (count) then
+                    TestConstants.Instance.GetVendors_Count = count
+                else
+                    Console.WriteLine("ERROR: Failed to read record from DAT:vendors.ism")
+                exitloop
+            end
+            
+            ;Get by primary key
+            repeat
+            begin
+                read(chin,vendor,^FIRST) [ERR=eofVendor2]
+                pknum = vendor.vendor_number
+                TestConstants.Instance.GetVendor_VendorNumber = pknum
+                TestConstants.Instance.GetVendor_Expand_REL_Items_VendorNumber = pknum
+                TestConstants.Instance.GetVendor_Expand_All_VendorNumber = pknum
+                exitloop
+            eofVendor2,
+                Console.WriteLine("ERROR: Failed to read first record from DAT:vendors.ism")
+                exitloop
+            end
+
+            TestConstants.Instance.GetVendor_Expand_REL_Items_VendorNumber = pknum
+            TestConstants.Instance.GetVendor_Expand_All_VendorNumber = pknum
+            TestConstants.Instance.GetVendor_ByAltKey_State_State = vendor.state
+            TestConstants.Instance.GetVendor_ByAltKey_Zip_ZipCode = vendor.zip_code
+            TestConstants.Instance.GetVendor_ByAltKey_PaymentTerms_PaymentTermsCode = vendor.payment_terms_code
+            TestConstants.Instance.UpdateVendor_VendorNumber = pknum + 1
+
+            close chin
+
+            ;;------------------------------------------------------------
+            ;;Test data for CustomerEx
+            open(chin=0,i:i,"DAT:CUSTOMER_EX.ism")
+
+            ;Total number of records
+            count = 0
+            repeat
+            begin
+                reads(chin,customerEx,eofCustomerEx1)
+                count += 1
+                nextloop
+            eofCustomerEx1,
+                if (count) then
+                    TestConstants.Instance.GetCustomerExs_Count = count
+                else
+                    Console.WriteLine("ERROR: Failed to read record from DAT:CUSTOMER_EX.ism")
+                exitloop
+            end
+            
+            ;Get by primary key
+            repeat
+            begin
+                read(chin,customerEx,^FIRST) [ERR=eofCustomerEx2]
+                pknum = customerEx.customerid
+                TestConstants.Instance.GetCustomerEx_Customerid = pknum
+                TestConstants.Instance.GetCustomerEx_Expand_REL_Customer_Customerid = pknum
+                TestConstants.Instance.GetCustomerEx_Expand_All_Customerid = pknum
+                exitloop
+            eofCustomerEx2,
+                Console.WriteLine("ERROR: Failed to read first record from DAT:CUSTOMER_EX.ism")
+                exitloop
+            end
+
+            TestConstants.Instance.GetCustomerEx_Expand_REL_Customer_Customerid = pknum
+            TestConstants.Instance.GetCustomerEx_Expand_All_Customerid = pknum
+            TestConstants.Instance.UpdateCustomerEx_Customerid = pknum + 1
+
+            close chin
+
+            ;;------------------------------------------------------------
+            ;;Test data for Nonuniquepk
+            open(chin=0,i:i,"DAT:nonuniquepk.ism")
+
+            ;Total number of records
+            count = 0
+            repeat
+            begin
+                reads(chin,nonuniquepk,eofNonuniquepk1)
+                count += 1
+                nextloop
+            eofNonuniquepk1,
+                if (count) then
+                    TestConstants.Instance.GetNonuniquepks_Count = count
+                else
+                    Console.WriteLine("ERROR: Failed to read record from DAT:nonuniquepk.ism")
+                exitloop
+            end
+            
+            ;Get by primary key
+            repeat
+            begin
+                read(chin,nonuniquepk,^FIRST) [ERR=eofNonuniquepk2]
+                exitloop
+            eofNonuniquepk2,
+                Console.WriteLine("ERROR: Failed to read first record from DAT:nonuniquepk.ism")
+                exitloop
+            end
+
+            TestConstants.Instance.UpdateNonuniquepk_Pk = pknum + 1
+
+            close chin
+
+            File.WriteAllText(Path.Combine("C:\Users\devadm\Desktop\HarmonyCore\Services.Test", "TestConstants.Values.json"), JsonSerializer.Serialize(TestConstants.Instance, new JsonSerializerOptions(){ WriteIndented = true }))
+        endmethod
+    endclass
+endnamespace

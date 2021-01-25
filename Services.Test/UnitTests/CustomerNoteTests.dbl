@@ -18,6 +18,7 @@ import System.Net
 import System.Net.Http
 import Services
 import Services.Test.Models
+import System.Linq
 
 namespace Services.Test.UnitTests
 
@@ -36,7 +37,7 @@ namespace Services.Test.UnitTests
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
             data customerNotes, @ODataCustomerNotes, JsonConvert.DeserializeObject<ODataCustomerNotes>(result)
-            Assert.AreEqual(customerNotes.Value.Count,TestConstants.GetCustomerNotes_Count)
+            Assert.AreEqual(customerNotes.Value.Count,TestConstants.Instance.GetCustomerNotes_Count)
         endmethod
 
         ;;------------------------------------------------------------
@@ -75,7 +76,7 @@ namespace Services.Test.UnitTests
         public method GetCustomerNote, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/v1/CustomerNotes(CustomerNumber={1})","",TestConstants.GetCustomerNote_CustomerNumber)
+            data request = String.Format("/odata/v1/CustomerNotes(CustomerNumber={1})","",TestConstants.Instance.GetCustomerNote_CustomerNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
@@ -90,7 +91,7 @@ namespace Services.Test.UnitTests
         public method GetCustomerNote_Expand_REL_Customer, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/v1/CustomerNotes(CustomerNumber={1})?$expand=REL_Customer","",TestConstants.GetCustomerNote_Expand_REL_Customer_CustomerNumber)
+            data request = String.Format("/odata/v1/CustomerNotes(CustomerNumber={1})?$expand=REL_Customer","",TestConstants.Instance.GetCustomerNote_Expand_REL_Customer_CustomerNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
@@ -105,7 +106,7 @@ namespace Services.Test.UnitTests
         public method GetCustomerNote_Expand_All, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/v1/CustomerNotes(CustomerNumber={1})?$expand=REL_Customer","",TestConstants.GetCustomerNote_Expand_All_CustomerNumber)
+            data request = String.Format("/odata/v1/CustomerNotes(CustomerNumber={1})?$expand=REL_Customer","",TestConstants.Instance.GetCustomerNote_Expand_All_CustomerNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
@@ -122,7 +123,7 @@ namespace Services.Test.UnitTests
             disposable data client = UnitTestEnvironment.Server.CreateClient()
 
             ;;Get one customerNote from the file
-            data getRequest = String.Format("/odata/v1/CustomerNotes({1})","",TestConstants.GetCustomerNote_CustomerNumber)
+            data getRequest = String.Format("/odata/v1/CustomerNotes({1})","",TestConstants.Instance.GetCustomerNote_CustomerNumber)
             data getResponse = client.GetAsync(getRequest).Result
             data getResult = getResponse.Content.ReadAsStringAsync().Result
 
@@ -132,13 +133,13 @@ namespace Services.Test.UnitTests
             ;;Deserialize the JSON into a CustomerNote object
             data doCustomerNote, @CustomerNote, JsonConvert.DeserializeObject<ODataCustomerNote>(getResult).Value[0]
 
-            doCustomerNote.CustomerNumber = TestConstants.UpdateCustomerNote_CustomerNumber
+            doCustomerNote.CustomerNumber = TestConstants.Instance.UpdateCustomerNote_CustomerNumber
 
             ;TODO: Also need to ensure any nodups alternate keys get unique values
 
             ;;Create new item
             disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doCustomerNote),System.Text.Encoding.UTF8, "application/json")
-            data request = String.Format("/odata/v1/CustomerNotes({1})","",TestConstants.UpdateCustomerNote_CustomerNumber)
+            data request = String.Format("/odata/v1/CustomerNotes({1})","",TestConstants.Instance.UpdateCustomerNote_CustomerNumber)
             disposable data response = client.PutAsync(request, requestBody).Result
 
             ;;Check that we got a successful response from the web service
@@ -167,7 +168,7 @@ namespace Services.Test.UnitTests
 
             ;;Update full item
             requestBody = new StringContent(JsonConvert.SerializeObject(doCustomerNote),System.Text.Encoding.UTF8, "application/json")
-            request = String.Format("/odata/v1/CustomerNotes({1})","",TestConstants.UpdateCustomerNote_CustomerNumber)
+            request = String.Format("/odata/v1/CustomerNotes({1})","",TestConstants.Instance.UpdateCustomerNote_CustomerNumber)
             response = client.PutAsync(request, requestBody).Result
 
             ;;Check that we got a successful response from the web service
@@ -181,7 +182,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a CustomerNote object
-            doCustomerNote = JsonConvert.DeserializeObject<OdataCustomerNote>(getResult).Value[1]
+            doCustomerNote = JsonConvert.DeserializeObject<OdataCustomerNote>(getResult).Value.FirstOrDefault(lambda (k) {k.NoteNumber.Equals("Y")})
             Assert.AreEqual(doCustomerNote.NoteNumber, 8)
 
             ;;Update one non-existant property in the customer
