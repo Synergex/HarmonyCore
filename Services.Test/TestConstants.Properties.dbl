@@ -32,7 +32,17 @@ namespace Services.Test
                     Monitor.Enter(lockObject)
                     begin
                         if (instance == ^null)
-                            instance = JsonSerializer.Deserialize<TestConstants>(File.ReadAllText(Path.Combine(Environment.GetEnvironmentVariable("SOLUTIONDIR"), "Services.Test", "TestConstants.Values.json")))
+                        begin
+                            try
+                            begin
+                                instance = JsonSerializer.Deserialize<TestConstants>(File.ReadAllText(Path.Combine(Environment.GetEnvironmentVariable("SOLUTIONDIR"), "Services.Test", "TestConstants.Values.json")))
+                            end
+                            catch (e, @Exception)
+                            begin
+                                instance = new TestConstants()
+                            end
+                            endtry
+                        end
                         mreturn instance
                     end
                 end

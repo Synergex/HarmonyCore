@@ -8,6 +8,7 @@ import System.IO
 
 main
 proc
+    Services.Test.UnitTestEnvironment.AssemblyInitialize(^null)
     new GenerateTestValues().SerializeValues()
 endmain
 
