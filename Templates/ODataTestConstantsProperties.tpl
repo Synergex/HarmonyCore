@@ -72,12 +72,16 @@ namespace <NAMESPACE>
                             begin
                                 data filePath = Path.Combine(Environment.GetEnvironmentVariable("SOLUTIONDIR"), "Services.Test", "TestConstants.Values.json")
                                 if (File.Exists(filePath)) then
+                                begin
                                     instance = JsonSerializer.Deserialize<TestConstants>(File.ReadAllText(filePath))
+                                end
                                 else
+                                    Console.WriteLine("No JSON file found here: {0}{1}Creating a new JSON file", filePath, Environment.NewLine)
                                     instance = new TestConstants()
                             end
                             catch (e, @JsonException)
                             begin
+                                Console.WriteLine(e)
                                 instance = new TestConstants()
                             end
                             endtry
