@@ -35,9 +35,13 @@ namespace Services.Test
                         begin
                             try
                             begin
-                                instance = JsonSerializer.Deserialize<TestConstants>(File.ReadAllText(Path.Combine(Environment.GetEnvironmentVariable("SOLUTIONDIR"), "Services.Test", "TestConstants.Values.json")))
+                                data filePath = Path.Combine(Environment.GetEnvironmentVariable("SOLUTIONDIR"), "Services.Test", "TestConstants.Values.json")
+                                if (File.Exists(filePath)) then
+                                    instance = JsonSerializer.Deserialize<TestConstants>(File.ReadAllText(filePath))
+                                else
+                                    instance = new TestConstants()
                             end
-                            catch (e, @Exception)
+                            catch (e, @JsonException)
                             begin
                                 instance = new TestConstants()
                             end
