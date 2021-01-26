@@ -18,6 +18,7 @@ import System.Net
 import System.Net.Http
 import Services
 import Services.Test.Models
+import System.Linq
 
 namespace Services.Test.UnitTests
 
@@ -36,7 +37,7 @@ namespace Services.Test.UnitTests
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
             data customerExs, @ODataCustomerExs, JsonConvert.DeserializeObject<ODataCustomerExs>(result)
-            Assert.AreEqual(customerExs.Value.Count,TestConstants.GetCustomerExs_Count)
+            Assert.AreEqual(customerExs.Value.Count,TestConstants.Instance.GetCustomerExs_Count)
         endmethod
 
         ;;------------------------------------------------------------
@@ -75,7 +76,7 @@ namespace Services.Test.UnitTests
         public method GetCustomerEx, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/v1/CustomerExs(Customerid={1})","",TestConstants.GetCustomerEx_Customerid)
+            data request = String.Format("/odata/v1/CustomerExs(Customerid={1})","",TestConstants.Instance.GetCustomerEx_Customerid)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
@@ -90,7 +91,7 @@ namespace Services.Test.UnitTests
         public method GetCustomerEx_Expand_REL_Customer, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/v1/CustomerExs(Customerid={1})?$expand=REL_Customer","",TestConstants.GetCustomerEx_Expand_REL_Customer_Customerid)
+            data request = String.Format("/odata/v1/CustomerExs(Customerid={1})?$expand=REL_Customer","",TestConstants.Instance.GetCustomerEx_Expand_REL_Customer_Customerid)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
@@ -105,7 +106,7 @@ namespace Services.Test.UnitTests
         public method GetCustomerEx_Expand_All, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/v1/CustomerExs(Customerid={1})?$expand=REL_Customer","",TestConstants.GetCustomerEx_Expand_All_Customerid)
+            data request = String.Format("/odata/v1/CustomerExs(Customerid={1})?$expand=REL_Customer","",TestConstants.Instance.GetCustomerEx_Expand_All_Customerid)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
@@ -122,7 +123,7 @@ namespace Services.Test.UnitTests
             disposable data client = UnitTestEnvironment.Server.CreateClient()
 
             ;;Get one customerEx from the file
-            data getRequest = String.Format("/odata/v1/CustomerExs({1})","",TestConstants.GetCustomerEx_Customerid)
+            data getRequest = String.Format("/odata/v1/CustomerExs({1})","",TestConstants.Instance.GetCustomerEx_Customerid)
             data getResponse = client.GetAsync(getRequest).Result
             data getResult = getResponse.Content.ReadAsStringAsync().Result
 
@@ -132,13 +133,13 @@ namespace Services.Test.UnitTests
             ;;Deserialize the JSON into a CustomerEx object
             data doCustomerEx, @CustomerEx, JsonConvert.DeserializeObject<CustomerEx>(getResult)
 
-            doCustomerEx.Customerid = TestConstants.UpdateCustomerEx_Customerid
+            doCustomerEx.Customerid = TestConstants.Instance.UpdateCustomerEx_Customerid
 
             ;TODO: Also need to ensure any nodups alternate keys get unique values
 
             ;;Create new item
             disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doCustomerEx),System.Text.Encoding.UTF8, "application/json")
-            data request = String.Format("/odata/v1/CustomerExs({1})","",TestConstants.UpdateCustomerEx_Customerid)
+            data request = String.Format("/odata/v1/CustomerExs({1})","",TestConstants.Instance.UpdateCustomerEx_Customerid)
             disposable data response = client.PutAsync(request, requestBody).Result
 
             ;;Check that we got a successful response from the web service
@@ -159,7 +160,7 @@ namespace Services.Test.UnitTests
 
             ;;Update full item
             requestBody = new StringContent(JsonConvert.SerializeObject(doCustomerEx),System.Text.Encoding.UTF8, "application/json")
-            request = String.Format("/odata/v1/CustomerExs({1})","",TestConstants.UpdateCustomerEx_Customerid)
+            request = String.Format("/odata/v1/CustomerExs({1})","",TestConstants.Instance.UpdateCustomerEx_Customerid)
             response = client.PutAsync(request, requestBody).Result
 
             ;;Check that we got a successful response from the web service
@@ -174,7 +175,6 @@ namespace Services.Test.UnitTests
 
             ;;Deserialize the JSON into a CustomerEx object
             doCustomerEx = JsonConvert.DeserializeObject<CustomerEx>(getResult)
-
             Assert.AreEqual(doCustomerEx.Extradata, "Y")
 
             ;;Update one non-existant property in the customer
