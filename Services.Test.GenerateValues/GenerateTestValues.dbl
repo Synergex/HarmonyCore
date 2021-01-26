@@ -3,7 +3,12 @@ import System.Text.Json
 import System.Text.Json.Serialization
 import System.IO
 
-namespace Services.Test
+main
+proc
+    new GenerateTestValues().SerializeValues()
+endmain
+
+namespace Services.Test.GenerateValues
     public class GenerateTestValues
 
         .include "CUSTOMERS" repository, record="customer", end
@@ -47,20 +52,6 @@ namespace Services.Test
                 read(chin,customer,^FIRST) [ERR=eofCustomer2]
                 pknum = customer.customer_number
                 TestConstants.Instance.GetCustomer_CustomerNumber = pknum
-                TestConstants.Instance.GetCustomer_Expand_REL_CustomerOrders_CustomerNumber = pknum
-                TestConstants.Instance.GetCustomer_Expand_All_CustomerNumber = pknum
-                pknum = customer.customer_number
-                TestConstants.Instance.GetCustomer_CustomerNumber = pknum
-                TestConstants.Instance.GetCustomer_Expand_REL_CustomerFavoriteItem_CustomerNumber = pknum
-                TestConstants.Instance.GetCustomer_Expand_All_CustomerNumber = pknum
-                pknum = customer.customer_number
-                TestConstants.Instance.GetCustomer_CustomerNumber = pknum
-                TestConstants.Instance.GetCustomer_Expand_REL_CustomerNotes_CustomerNumber = pknum
-                TestConstants.Instance.GetCustomer_Expand_All_CustomerNumber = pknum
-                pknum = customer.customer_number
-                TestConstants.Instance.GetCustomer_CustomerNumber = pknum
-                TestConstants.Instance.GetCustomer_Expand_REL_CustomerEx_CustomerNumber = pknum
-                TestConstants.Instance.GetCustomer_Expand_All_CustomerNumber = pknum
                 exitloop
             eofCustomer2,
                 Console.WriteLine("ERROR: Failed to read first record from DAT:customers.ism")
@@ -104,8 +95,6 @@ namespace Services.Test
                 read(chin,customerNote,^FIRST) [ERR=eofCustomerNote2]
                 pknum = customerNote.customer_number
                 TestConstants.Instance.GetCustomerNote_CustomerNumber = pknum
-                TestConstants.Instance.GetCustomerNote_Expand_REL_Customer_CustomerNumber = pknum
-                TestConstants.Instance.GetCustomerNote_Expand_All_CustomerNumber = pknum
                 exitloop
             eofCustomerNote2,
                 Console.WriteLine("ERROR: Failed to read first record from DAT:customer_notes.ism")
@@ -143,12 +132,6 @@ namespace Services.Test
                 read(chin,item,^FIRST) [ERR=eofItem2]
                 pknum = item.item_number
                 TestConstants.Instance.GetItem_ItemNumber = pknum
-                TestConstants.Instance.GetItem_Expand_REL_Vendor_ItemNumber = pknum
-                TestConstants.Instance.GetItem_Expand_All_ItemNumber = pknum
-                pknum = item.item_number
-                TestConstants.Instance.GetItem_ItemNumber = pknum
-                TestConstants.Instance.GetItem_Expand_REL_OrderItems_ItemNumber = pknum
-                TestConstants.Instance.GetItem_Expand_All_ItemNumber = pknum
                 exitloop
             eofItem2,
                 Console.WriteLine("ERROR: Failed to read first record from DAT:items.ism")
@@ -191,12 +174,6 @@ namespace Services.Test
                 read(chin,order,^FIRST) [ERR=eofOrder2]
                 pknum = order.order_number
                 TestConstants.Instance.GetOrder_OrderNumber = pknum
-                TestConstants.Instance.GetOrder_Expand_REL_OrderItems_OrderNumber = pknum
-                TestConstants.Instance.GetOrder_Expand_All_OrderNumber = pknum
-                pknum = order.order_number
-                TestConstants.Instance.GetOrder_OrderNumber = pknum
-                TestConstants.Instance.GetOrder_Expand_REL_Customer_OrderNumber = pknum
-                TestConstants.Instance.GetOrder_Expand_All_OrderNumber = pknum
                 exitloop
             eofOrder2,
                 Console.WriteLine("ERROR: Failed to read first record from DAT:orders.ism")
@@ -238,20 +215,8 @@ namespace Services.Test
                 read(chin,orderItem,^FIRST) [ERR=eofOrderItem2]
                 pknum = orderItem.order_number
                 TestConstants.Instance.GetOrderItem_OrderNumber = pknum
-                TestConstants.Instance.GetOrderItem_Expand_REL_Order_OrderNumber = pknum
-                TestConstants.Instance.GetOrderItem_Expand_All_OrderNumber = pknum
                 pknum = orderItem.item_number
                 TestConstants.Instance.GetOrderItem_ItemNumber = pknum
-                TestConstants.Instance.GetOrderItem_Expand_REL_Order_ItemNumber = pknum
-                TestConstants.Instance.GetOrderItem_Expand_All_ItemNumber = pknum
-                pknum = orderItem.order_number
-                TestConstants.Instance.GetOrderItem_OrderNumber = pknum
-                TestConstants.Instance.GetOrderItem_Expand_REL_Item_OrderNumber = pknum
-                TestConstants.Instance.GetOrderItem_Expand_All_OrderNumber = pknum
-                pknum = orderItem.item_number
-                TestConstants.Instance.GetOrderItem_ItemNumber = pknum
-                TestConstants.Instance.GetOrderItem_Expand_REL_Item_ItemNumber = pknum
-                TestConstants.Instance.GetOrderItem_Expand_All_ItemNumber = pknum
                 exitloop
             eofOrderItem2,
                 Console.WriteLine("ERROR: Failed to read first record from DAT:order_items.ism")
@@ -297,8 +262,6 @@ namespace Services.Test
                 read(chin,vendor,^FIRST) [ERR=eofVendor2]
                 pknum = vendor.vendor_number
                 TestConstants.Instance.GetVendor_VendorNumber = pknum
-                TestConstants.Instance.GetVendor_Expand_REL_Items_VendorNumber = pknum
-                TestConstants.Instance.GetVendor_Expand_All_VendorNumber = pknum
                 exitloop
             eofVendor2,
                 Console.WriteLine("ERROR: Failed to read first record from DAT:vendors.ism")
@@ -339,8 +302,6 @@ namespace Services.Test
                 read(chin,customerEx,^FIRST) [ERR=eofCustomerEx2]
                 pknum = customerEx.customerid
                 TestConstants.Instance.GetCustomerEx_Customerid = pknum
-                TestConstants.Instance.GetCustomerEx_Expand_REL_Customer_Customerid = pknum
-                TestConstants.Instance.GetCustomerEx_Expand_All_Customerid = pknum
                 exitloop
             eofCustomerEx2,
                 Console.WriteLine("ERROR: Failed to read first record from DAT:CUSTOMER_EX.ism")
@@ -376,6 +337,8 @@ namespace Services.Test
             repeat
             begin
                 read(chin,nonuniquepk,^FIRST) [ERR=eofNonuniquepk2]
+                pknum = nonuniquepk.pk
+                TestConstants.Instance.GetNonuniquepk_Pk = pknum
                 exitloop
             eofNonuniquepk2,
                 Console.WriteLine("ERROR: Failed to read first record from DAT:nonuniquepk.ism")
@@ -386,7 +349,7 @@ namespace Services.Test
 
             close chin
 
-            File.WriteAllText(Path.Combine("C:\Users\devadm\Desktop\HarmonyCore\Services.Test", "TestConstants.Values.json"), JsonSerializer.Serialize(TestConstants.Instance, new JsonSerializerOptions(){ WriteIndented = true }))
+            File.WriteAllText(Path.Combine(Environment.GetEnvironmentVariable("SOLUTIONDIR"), "Services.Test", "TestConstants.Values.json"), JsonSerializer.Serialize(TestConstants.Instance, new JsonSerializerOptions(){ WriteIndented = true }))
         endmethod
     endclass
 endnamespace

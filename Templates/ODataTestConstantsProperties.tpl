@@ -67,7 +67,7 @@ namespace <NAMESPACE>
                     Monitor.Enter(lockObject)
                     begin
                         if (instance == ^null)
-                            instance = JsonSerializer.Deserialize<TestConstants>(File.ReadAllText("C:\Users\devadm\Desktop\HarmonyCore\Services.Test\TestConstants.Values.json"))
+                            instance = JsonSerializer.Deserialize<TestConstants>(File.ReadAllText(Path.Combine(Environment.GetEnvironmentVariable("SOLUTIONDIR"), "Services.Test", "TestConstants.Values.json")))
                         mreturn instance
                     end
                 end

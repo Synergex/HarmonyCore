@@ -65,9 +65,6 @@ proc
     ;;Configure the environment
     UnitTestEnvironment.AssemblyInitialize(^null)
 
-    ;Regenerate TestConstants.Values.json
-    ;new GenerateTestValues().SerializeValues()
-
     ;Leave this here for Jeff 
     ;data tester = new OrderTests()  
     ;tester.AdapterTestBasic()

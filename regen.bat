@@ -300,7 +300,7 @@ if DEFINED ENABLE_UNIT_TEST_GENERATION (
           -fo %DATA_FILES% ^
           -t  GenerateTestValues^
           -i  %SolutionDir%Templates ^
-          -o  %SolutionDir%%TestProject% ^
+          -o  %SolutionDir%%TestProject%.GenerateValues ^
           -n  %TestProject% ^
               %STDOPTS%
   if ERRORLEVEL 1 goto error

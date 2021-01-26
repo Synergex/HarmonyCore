@@ -6,7 +6,12 @@ import System.Text.Json
 import System.Text.Json.Serialization
 import System.IO
 
-namespace Services.Test
+main
+proc
+    new GenerateTestValues().SerializeValues()
+endmain
+
+namespace Services.Test.GenerateValues
     public class GenerateTestValues
 
     <STRUCTURE_LOOP>
@@ -110,7 +115,7 @@ namespace Services.Test
   </IF STRUCTURE_ISAM>
 </STRUCTURE_LOOP>
 
-            File.WriteAllText(Path.Combine("C:\Users\devadm\Desktop\HarmonyCore\Services.Test", "TestConstants.Values.json"), JsonSerializer.Serialize(TestConstants.Instance, new JsonSerializerOptions(){ WriteIndented = true }))
+            File.WriteAllText(Path.Combine(Environment.GetEnvironmentVariable("SOLUTIONDIR"), "Services.Test", "TestConstants.Values.json"), JsonSerializer.Serialize(TestConstants.Instance, new JsonSerializerOptions(){ WriteIndented = true }))
         endmethod
     endclass
 endnamespace
