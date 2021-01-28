@@ -40,6 +40,7 @@ namespace Harmony.Core.EF.Query.Internal
         public Expression Skip { get; set; }
         public bool IsCaseSensitive { get; set; }
         public bool IsCollection { get; set; }
+        public bool IsInnerJoin { get; set; } = false;
         public sealed override ExpressionType NodeType => ExpressionType.Extension;
 
         public string Name { get; set; }

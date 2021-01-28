@@ -40,6 +40,7 @@ namespace Harmony.Core.EF.Query.Internal
             {
                 DataObjectType = table.ItemType,
                 IsCollection = table.IsCollection,
+                IsInnerJoin = table.IsInnerJoin,
                 ParentFieldName = table.Name,
                 Metadata = DataObjectMetadataBase.LookupType(table.ItemType)
             };

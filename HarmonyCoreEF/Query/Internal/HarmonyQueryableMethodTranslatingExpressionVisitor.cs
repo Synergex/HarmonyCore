@@ -914,6 +914,11 @@ namespace Harmony.Core.EF.Query.Internal
                 }
                 else
                 {
+                    if (paramPair.Key != currentParameter)
+                    {
+                        //if we're doing a top level filter, the table must have a value in order to eval true
+                        queryExpression.RootExpressions[paramPair.Key].IsInnerJoin = true;
+                    }
                     queryExpression.RootExpressions[paramPair.Key].WhereExpressions.Add(paramPair.Value);
                 }
             }
@@ -1009,16 +1014,32 @@ namespace Harmony.Core.EF.Query.Internal
 
                 if (leftNav.Item1 is HarmonyTableExpression || rightNav.Item1 is HarmonyTableExpression)
                 {
+
+                    if (simplifiedLeft is ConstantExpression)
+                        updatedNode = simplifiedRight;
+                    if (simplifiedRight is ConstantExpression)
+                        updatedNode = simplifiedLeft;
+                    if (updatedNode is ConstantExpression)
+                        throw new NotImplementedException();
+
+
                     var targetTable = (leftNav.Item1 as HarmonyTableExpression) ?? (rightNav.Item1 as HarmonyTableExpression);
-                    var targetParameter = (leftNav.Item1 is HarmonyTableExpression) ? leftNav.Item2 : rightNav.Item2;
-                    if (targetParameter != null)
+                    var replacements = new Dictionary<Expression, Expression>();
+                    if (leftNav.Item1 is HarmonyTableExpression leftTable && leftNav.Item2 != null)
+                    {
+                        replacements.Add(leftNav.Item2, Expression.Convert(_tableMapping[leftTable], leftTable.ItemType));
+                    }
+                    
+                    if (rightNav.Item1 is HarmonyTableExpression rightTable && rightNav.Item2 != null)
+                    {
+                        replacements.Add(rightNav.Item2, Expression.Convert(_tableMapping[rightTable], rightTable.ItemType));
+                    }
+                    
+                    if (replacements.Count > 0)
                     {
                         var paramReplacer = new IdentifierReplacingExpressionVisitor
                         {
-                            ReplacementExpressions = new Dictionary<Expression, Expression>
-                            {
-                                {targetParameter, Expression.Convert(_tableMapping[targetTable], targetTable.ItemType) }
-                            }
+                            ReplacementExpressions = replacements
                         };
                         updatedNode = paramReplacer.Visit(updatedNode);
                     }
@@ -1031,12 +1052,17 @@ namespace Harmony.Core.EF.Query.Internal
                     }
                     else
                     {
-                        return new JoinOnClause
+                        if (updatedNode is JoinOnClause)
+                            return updatedNode;
+                        else
                         {
-                            InnerExpression = updatedNode,
-                            TargetTable = (leftNav.Item1 as HarmonyTableExpression) ?? (rightNav.Item1 as HarmonyTableExpression),
-                            CurrentParameter = _tableMapping[targetTable]
-                        };
+                            return new JoinOnClause
+                            {
+                                InnerExpression = updatedNode,
+                                TargetTable = targetTable,
+                                CurrentParameter = _tableMapping[targetTable]
+                            };
+                        }
                     }
                 }
                 else
@@ -1056,10 +1082,23 @@ namespace Harmony.Core.EF.Query.Internal
                     {
                         return (harmonyTableExpression, expr);
                     }
-                    return FindParameterOrNavigation(memberExpr.Expression);
+                    var nestedFind = FindParameterOrNavigation(memberExpr.Expression);
+                    if (nestedFind.Item1 is HarmonyTableExpression || nestedFind.Item1 is ParameterExpression)
+                        return nestedFind;
+                    else
+                        return (expr, null);
+
                 }
                 else if (expr is JoinOnClause joc)
                     return (joc.TargetTable, null);
+                else if (expr is MethodCallExpression mce && mce.Object != null)
+                {
+                    var nestedFind = FindParameterOrNavigation(mce.Object);
+                    if (nestedFind.Item1 is HarmonyTableExpression || nestedFind.Item1 is ParameterExpression)
+                        return nestedFind;
+                    else
+                        return (expr, null);
+                }
                 else
                     return (expr, null);
             }
@@ -1183,16 +1222,24 @@ namespace Harmony.Core.EF.Query.Internal
             {
                 if (predicates.TryGetValue(joc.CurrentParameter, out var currentPredicate))
                 {
-                    predicates[joc.CurrentParameter] = Expression.Lambda(Expression.AndAlso(currentPredicate.Body, joc.InnerExpression), joc.CurrentParameter);
+                    predicates[joc.CurrentParameter] = Expression.Lambda(Expression.AndAlso(currentPredicate.Body, PeekPastJoinClause(joc)), joc.CurrentParameter);
                 }
                 else
                 {
-                    predicates.Add(joc.CurrentParameter, Expression.Lambda(joc.InnerExpression, joc.CurrentParameter));
+                    predicates.Add(joc.CurrentParameter, Expression.Lambda(PeekPastJoinClause(joc), joc.CurrentParameter));
                 }
                 return null;
             }
             else
                 return node;
+        }
+
+        Expression PeekPastJoinClause(JoinOnClause joc)
+        {
+            if (joc.InnerExpression is JoinOnClause joc2)
+                return PeekPastJoinClause(joc2);
+            else
+                return joc.InnerExpression;
         }
 
         private Expression TranslateExpression(Expression expression, bool preserveType = false)
