@@ -294,15 +294,15 @@ if DEFINED ENABLE_UNIT_TEST_GENERATION (
               %STDOPTS%
   if ERRORLEVEL 1 goto error
 
-  rem Generate unit test constants values class; one time, not replaced
+  rem Generate unit test values class
   codegen -s  %DATA_STRUCTURES% -ms ^
           -a  %DATA_ALIASES% ^
           -fo %DATA_FILES% ^
-          -t  ODataTestConstantsValues ^
+          -t  GenerateTestValues^
           -i  %SolutionDir%Templates ^
-          -o  %SolutionDir%%TestProject% ^
+          -o  %SolutionDir%%TestProject%.GenerateValues ^
           -n  %TestProject% ^
-              %NOREPLACEOPTS%
+              %STDOPTS%
   if ERRORLEVEL 1 goto error
 )
 

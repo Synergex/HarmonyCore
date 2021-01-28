@@ -18,6 +18,7 @@ import System.Net
 import System.Net.Http
 import Services
 import Services.Test.Models
+import System.Linq
 
 namespace Services.Test.UnitTests
 
@@ -36,7 +37,7 @@ namespace Services.Test.UnitTests
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
             data nonuniquepks, @ODataNonuniquepks, JsonConvert.DeserializeObject<ODataNonuniquepks>(result)
-            Assert.AreEqual(nonuniquepks.Value.Count,TestConstants.GetNonuniquepks_Count)
+            Assert.AreEqual(nonuniquepks.Value.Count,TestConstants.Instance.GetNonuniquepks_Count)
         endmethod
 
         ;;------------------------------------------------------------
@@ -47,7 +48,7 @@ namespace Services.Test.UnitTests
         public method GetNonuniquepk, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/v1/Nonuniquepks(Pk={1})","",TestConstants.GetNonuniquepk_Pk)
+            data request = String.Format("/odata/v1/Nonuniquepks(Pk={1})","",TestConstants.Instance.GetNonuniquepk_Pk)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
@@ -64,7 +65,7 @@ namespace Services.Test.UnitTests
             disposable data client = UnitTestEnvironment.Server.CreateClient()
 
             ;;Get one nonuniquepk from the file
-            data getRequest = String.Format("/odata/v1/Nonuniquepks({1})","",TestConstants.GetNonuniquepk_Pk)
+            data getRequest = String.Format("/odata/v1/Nonuniquepks({1})","",TestConstants.Instance.GetNonuniquepk_Pk)
             data getResponse = client.GetAsync(getRequest).Result
             data getResult = getResponse.Content.ReadAsStringAsync().Result
 
@@ -74,13 +75,13 @@ namespace Services.Test.UnitTests
             ;;Deserialize the JSON into a Nonuniquepk object
             data doNonuniquepk, @Nonuniquepk, JsonConvert.DeserializeObject<ODataNonuniquepk>(getResult).Value[0]
 
-            doNonuniquepk.Pk = TestConstants.UpdateNonuniquepk_Pk
+            doNonuniquepk.Pk = TestConstants.Instance.UpdateNonuniquepk_Pk
 
             ;TODO: Also need to ensure any nodups alternate keys get unique values
 
             ;;Create new item
             disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doNonuniquepk),System.Text.Encoding.UTF8, "application/json")
-            data request = String.Format("/odata/v1/Nonuniquepks({1})","",TestConstants.UpdateNonuniquepk_Pk)
+            data request = String.Format("/odata/v1/Nonuniquepks({1})","",TestConstants.Instance.UpdateNonuniquepk_Pk)
             disposable data response = client.PutAsync(request, requestBody).Result
 
             ;;Check that we got a successful response from the web service
@@ -109,7 +110,7 @@ namespace Services.Test.UnitTests
 
             ;;Update full item
             requestBody = new StringContent(JsonConvert.SerializeObject(doNonuniquepk),System.Text.Encoding.UTF8, "application/json")
-            request = String.Format("/odata/v1/Nonuniquepks({1})","",TestConstants.UpdateNonuniquepk_Pk)
+            request = String.Format("/odata/v1/Nonuniquepks({1})","",TestConstants.Instance.UpdateNonuniquepk_Pk)
             response = client.PutAsync(request, requestBody).Result
 
             ;;Check that we got a successful response from the web service
@@ -123,7 +124,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a Nonuniquepk object
-            doNonuniquepk = JsonConvert.DeserializeObject<OdataNonuniquepk>(getResult).Value[1]
+            doNonuniquepk = JsonConvert.DeserializeObject<OdataNonuniquepk>(getResult).Value.FirstOrDefault(lambda (k) {k.Name.Equals("Y")})
             Assert.AreEqual(doNonuniquepk.Name, "Y")
 
             ;;Update one non-existant property in the customer
