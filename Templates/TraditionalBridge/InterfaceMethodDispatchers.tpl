@@ -146,7 +146,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
             <IF COLLECTION_ARRAY>
             ;;Temp structure tempstr<COUNTER_1_VALUE>
             structure tempstr<COUNTER_1_VALUE>
-                arry, <IF STRUCTURE>@<ParameterStructureNoplural><ELSE>[1]<PARAMETER_DEFINITION></IF STRUCTURE>
+                arry, <IF STRUCTURE>@<ParameterStructureNoplural><ELSE><PARAMETER_DEFINITION></IF STRUCTURE>
             endstructure
 
             </IF COLLECTION_ARRAY>
@@ -252,11 +252,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
             arg<COUNTER_1_VALUE>Handle = %mem_proc(DM_ALLOC,4)
         <ELSE COLLECTION>
             <IF COLLECTION_HANDLE OR COLLECTION_ARRAY>
-            <IF STRUCTURE>
             arg<COUNTER_1_VALUE>Handle = %mem_proc(DM_ALLOC,<PARAMETER_SIZE>)
-            <ELSE>
-            arg<COUNTER_1_VALUE>Handle = %mem_proc(DM_ALLOC,1)
-            </IF>
             </IF>
         </IF>
     </IF IN_OR_INOUT>
@@ -269,7 +265,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
             ;;------------------------------------------------------------
             ;; Call the underlying routine
 
-            <IF SUBROUTINE>xcall <ELSE>returnValue = %</IF SUBROUTINE><METHOD_ROUTINE>(<COUNTER_1_RESET><PARAMETER_LOOP><COUNTER_1_INCREMENT><IF HANDLE OR BINARY_HANDLE>arg<COUNTER_1_VALUE>Handle<,><ELSE><IF COLLECTION><IF COLLECTION_ARRAY>^m(<IF STRUCTURE>str<ParameterStructureNoplural><ELSE>tempstr<COUNTER_1_VALUE>.arry</IF STRUCTURE>,arg<COUNTER_1_VALUE>Handle)<,></IF COLLECTION_ARRAY><IF COLLECTION_HANDLE>arg<COUNTER_1_VALUE>Handle<,></IF COLLECTION_HANDLE><IF COLLECTION_ARRAYLIST>arg<COUNTER_1_VALUE><,></IF COLLECTION_ARRAYLIST><ELSE>arg<COUNTER_1_VALUE><,></IF COLLECTION></IF></PARAMETER_LOOP>)
+            <IF SUBROUTINE>xcall <ELSE>returnValue = %</IF SUBROUTINE><METHOD_ROUTINE>(<COUNTER_1_RESET><PARAMETER_LOOP><COUNTER_1_INCREMENT><IF HANDLE OR BINARY_HANDLE>arg<COUNTER_1_VALUE>Handle<,><ELSE><IF COLLECTION><IF COLLECTION_ARRAY>^marray(<IF STRUCTURE>str<ParameterStructureNoplural><ELSE>tempstr<COUNTER_1_VALUE>.arry</IF STRUCTURE>,arg<COUNTER_1_VALUE>Handle)<,></IF COLLECTION_ARRAY><IF COLLECTION_HANDLE>arg<COUNTER_1_VALUE>Handle<,></IF COLLECTION_HANDLE><IF COLLECTION_ARRAYLIST>arg<COUNTER_1_VALUE><,></IF COLLECTION_ARRAYLIST><ELSE>arg<COUNTER_1_VALUE><,></IF COLLECTION></IF></PARAMETER_LOOP>)
 ;//
 ;//=========================================================================================================================
 ;// Build the JSON response
