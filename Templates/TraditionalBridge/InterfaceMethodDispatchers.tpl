@@ -469,3 +469,12 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 </METHOD_LOOP>
 
 endnamespace
+
+;; This is here to ensure that the <MODELS_NAMESPACE> namespace exists.
+;; If the Synergy methods don't expsoe any structure or collection of structure
+;; parameters then there won't be anything in the Models folder, and the import above will fail.
+namespace <MODELS_NAMESPACE>
+    public class DummyModel
+    endclass
+endnamespace
+
