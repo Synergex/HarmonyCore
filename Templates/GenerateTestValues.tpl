@@ -1,14 +1,16 @@
 <CODEGEN_FILENAME>GenerateTestValues.dbl</CODEGEN_FILENAME>
 <REQUIRES_CODEGEN_VERSION>5.6.5</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_USERTOKEN>UNIT_TEST_NAMESPACE</REQUIRES_USERTOKEN>
 
 import System
 import System.Text.Json
 import System.Text.Json.Serialization
 import System.IO
+import <UNIT_TEST_NAMESPACE>
 
-main
+main GenerateTestValues
 proc
-    Services.Test.UnitTestEnvironment.AssemblyInitialize(^null)
+    <UNIT_TEST_NAMESPACE>.UnitTestEnvironment.AssemblyInitialize(^null)
     new GenerateTestValues().SerializeValues()
 endmain
 
@@ -52,7 +54,8 @@ namespace Services.Test.GenerateValues
                     Console.WriteLine("ERROR: Failed to read record from <FILE_NAME>")
                 exitloop
             end
-            
+;//RELATION LOGIC MISSING
+    </IF DEFINED_ENABLE_GET_ALL>
 ;//
 ;// ENABLE_GET_ONE
 ;//
@@ -63,8 +66,8 @@ namespace Services.Test.GenerateValues
                 read(chin,<structureNoplural>,^FIRST) [ERR=eof<StructureNoplural>2]
               <PRIMARY_KEY>
                 <SEGMENT_LOOP>
-                pknum = <IF SEG_TYPE_FIELD><structureNoplural>.<segment_name><ELSE SEG_TYPE_LITERAL>"<SEGMENT_LITVAL>"</IF SEG_TYPE_FIELD>
-                TestConstants.Instance.Get<StructureNoplural>_<SegmentName> = pknum
+;//                pknum = <IF SEG_TYPE_FIELD><structureNoplural>.<segment_name><ELSE SEG_TYPE_LITERAL>"<SEGMENT_LITVAL>"</IF SEG_TYPE_FIELD>
+                TestConstants.Instance.Get<StructureNoplural>_<SegmentName> = <IF SEG_TYPE_FIELD><structureNoplural>.<segment_name><ELSE SEG_TYPE_LITERAL>"<SEGMENT_LITVAL>"</IF SEG_TYPE_FIELD>
                 </SEGMENT_LOOP>
               </PRIMARY_KEY>
                 exitloop
@@ -91,7 +94,6 @@ namespace Services.Test.GenerateValues
         </IF STRUCTURE_RELATIONS>
       </IF DEFINED_ENABLE_RELATIONS>
 ;//
-    </IF DEFINED_ENABLE_GET_ALL>
 ;//
     </IF DEFINED_ENABLE_GET_ONE>
 ;//
@@ -116,7 +118,8 @@ namespace Services.Test.GenerateValues
   </IF STRUCTURE_ISAM>
 </STRUCTURE_LOOP>
 
-            File.WriteAllText(Path.Combine(Environment.GetEnvironmentVariable("SOLUTIONDIR"), "Services.Test", "TestConstants.Values.json"), JsonSerializer.Serialize(TestConstants.Instance, new JsonSerializerOptions(){ WriteIndented = true }))
+            data jsonFilePath = <UNIT_TEST_NAMESPACE>.UnitTestEnvironment.FindRelativeFolderForAssembly("<UNIT_TEST_NAMESPACE>")
+            File.WriteAllText(Path.Combine(jsonFilePath, "TestConstants.Values.json"), JsonSerializer.Serialize(TestConstants.Instance, new JsonSerializerOptions(){ WriteIndented = true }))
         endmethod
     endclass
 endnamespace

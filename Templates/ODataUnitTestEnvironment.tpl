@@ -183,7 +183,7 @@ namespace <NAMESPACE>
 
         private static method setLogicals, void
         proc
-            data sampleDataFolder = findRelativeFolderForAssembly("<DATA_FOLDER>")
+            data sampleDataFolder = FindRelativeFolderForAssembly("<DATA_FOLDER>")
             data logicals = new List<string>()
             data logical = String.Empty
             data fileSpec = String.Empty
@@ -259,7 +259,7 @@ namespace <NAMESPACE>
         endmethod
 
 </IF DEFINED_ENABLE_CREATE_TEST_FILES>
-        private static method findRelativeFolderForAssembly, string
+        public static method FindRelativeFolderForAssembly, string
             folderName, string
         proc
             data assemblyLocation = ^typeof(UnitTestEnvironment).Assembly.Location

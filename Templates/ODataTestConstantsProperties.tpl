@@ -70,7 +70,7 @@ namespace <NAMESPACE>
                         begin
                             try
                             begin
-                                data filePath = Path.Combine(Environment.GetEnvironmentVariable("SOLUTIONDIR"), "Services.Test", "TestConstants.Values.json")
+                                data filePath = Path.Combine(UnitTestEnvironment.FindRelativeFolderForAssembly("<NAMESPACE>"), "TestConstants.Values.json")
                                 if (File.Exists(filePath)) then
                                     instance = JsonSerializer.Deserialize<TestConstants>(File.ReadAllText(filePath))
                                 else
@@ -107,11 +107,55 @@ namespace <NAMESPACE>
         ;;------------------------------------------------------------
         ;;Test data for <StructureNoplural>
 ;//
-;// ENABLE_GET_ALL
+;// GET ALL
 ;//
-    <IF DEFINED_ENABLE_GET_ALL>
+    <IF DEFINED_ENABLE_GET_ALL AND GET_ALL_ENDPOINT>
         ;;
         public readwrite property Get<StructurePlural>_Count, int
+;//
+;// If GET ALL and ENABLE_RELATIONS are enabled
+;//
+      <IF DEFINED_ENABLE_RELATIONS>
+        <IF STRUCTURE_RELATIONS>
+          <RELATION_LOOP_RESTRICTED>
+        ;TODO: Generate method parameters for each relation endpoint
+        ;;------------------------------------------------------------
+        ;;Get all <StructurePlural> and expand relation <HARMONYCORE_RELATION_NAME>
+
+        {TestMethod}
+        {TestCategory("<StructureNoplural> Tests - Read All")}
+        public method Get<StructurePlural>_Expand_<HARMONYCORE_RELATION_NAME>, void
+        proc
+            data uri = "/odata/v<API_VERSION>/<StructurePlural>?$expand=<HARMONYCORE_RELATION_NAME>"
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            <IF DEFINED_ENABLE_AUTHENTICATION>
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",UnitTestEnvironment.AccessToken)
+            </IF DEFINED_ENABLE_AUTHENTICATION>
+            disposable data response = client.GetAsync(uri).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+        endmethod
+          </RELATION_LOOP_RESTRICTED>
+
+        ;;------------------------------------------------------------
+        ;;Get all <StructurePlural> and expand all relations
+
+        {TestMethod}
+        {TestCategory("<StructureNoplural> Tests - Read All")}
+        public method Get<StructurePlural>_Expand_All, void
+        proc
+            data uri = "/odata/v<API_VERSION>/<StructurePlural>?$expand=<RELATION_LOOP_RESTRICTED><HARMONYCORE_RELATION_NAME><,></RELATION_LOOP_RESTRICTED>"
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+              <IF DEFINED_ENABLE_AUTHENTICATION>
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",UnitTestEnvironment.AccessToken)
+              </IF DEFINED_ENABLE_AUTHENTICATION>
+            disposable data response = client.GetAsync(uri).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+        endmethod
+        </IF STRUCTURE_RELATIONS>
+      </IF DEFINED_ENABLE_RELATIONS>
+    </IF DEFINED_ENABLE_GET_ALL>
 ;//
 ;// ENABLE_GET_ONE
 ;//
@@ -139,7 +183,6 @@ namespace <NAMESPACE>
         </IF STRUCTURE_RELATIONS>
       </IF DEFINED_ENABLE_RELATIONS>
 ;//
-    </IF DEFINED_ENABLE_GET_ALL>
 ;//
     </IF DEFINED_ENABLE_GET_ONE>
 ;//

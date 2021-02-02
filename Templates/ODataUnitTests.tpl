@@ -74,7 +74,7 @@ namespace <NAMESPACE>
 ;//
 ;// If ENABLE_GET_ALL is enabled
 ;//
-  <IF DEFINED_ENABLE_GET_ALL>
+  <IF DEFINED_ENABLE_GET_ALL AND GET_ALL_ENDPOINT>
 
         ;;------------------------------------------------------------
         ;;Get all <StructurePlural>
@@ -136,7 +136,7 @@ namespace <NAMESPACE>
         endmethod
       </IF STRUCTURE_RELATIONS>
     </IF DEFINED_ENABLE_RELATIONS>
-  </IF DEFINED_ENABLE_GET_ALL>
+  </IF>
 ;//
 ;// If ENABLE_GET_ONE is enabled
 ;//
