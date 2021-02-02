@@ -626,6 +626,9 @@ namespace Harmony.Core.FileIO.Queryable
 				data skip = queryBuffer.GetSkip(0)
 				data targetCount = top.HasValue ? skip + top : 0
 
+				if(top.HasValue && top.Value == 0)
+					mreturn Enumerable.Empty<DataObjectBase>()
+
 				selectObject = SelectObject(fromObj, WhereObject(queryBuffer, queryBuffer.TypeBuffers), OrderByObject(queryBuffer, queryBuffer.TypeBuffers), SparseObject(queryBuffer, queryBuffer.TypeBuffers))
 				data memPnt, int, queryBuffer.TypeBuffers[0].MemoryHandle.Value
 				data metadataObject = queryBuffer.TypeBuffers[0].Metadata
