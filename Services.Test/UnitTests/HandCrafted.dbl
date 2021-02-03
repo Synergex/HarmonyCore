@@ -215,7 +215,7 @@ namespace Services.Test.UnitTests
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
             data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
-            Assert.AreNotEqual(customers.Value.Count, 0)
+            Assert.AreEqual(customers.Value.Count, 2)
             data customer, @Customer
             foreach customer in customers.Value
             begin
@@ -248,7 +248,20 @@ namespace Services.Test.UnitTests
 
             data customers, @CustomerWithCount, JsonConvert.DeserializeObject<CustomerWithCount>(result)
             Assert.AreEqual(customers.Value.Length, 0)
-            Assert.AreEqual(customers.Count, 3)
+            Assert.AreEqual(customers.Count, 2)
+        endmethod
+
+        {TestMethod}
+        public method GetCustomerOrdersWithRef6, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Customers?$filter=contains(tolower(REL_CustomerFavoriteItem/LatinName),'uss') or contains(tolower(REL_CustomerFavoriteItem/LatinName),'cam')&$count=true").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+
+            data customers, @CustomerWithCount, JsonConvert.DeserializeObject<CustomerWithCount>(result)
+            Assert.AreEqual(customers.Value.Length, 2)
+            Assert.AreEqual(customers.Count, 2)
         endmethod
 
         {TestMethod}
