@@ -1,9 +1,9 @@
-<CODEGEN_FILENAME><INTERFACE_NAME>MethodDispachers.dbl</CODEGEN_FILENAME>
+<CODEGEN_FILENAME><INTERFACE_NAME>MethodDispatchers.dbl</CODEGEN_FILENAME>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
 <REQUIRES_CODEGEN_VERSION>5.4.6</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
-;// Title:       MethodDispachers.tpl
+;// Title:       MethodDispatchers.tpl
 ;//
 ;// Type:        CodeGen Template
 ;//
@@ -37,7 +37,7 @@
 ;//
 ;;*****************************************************************************
 ;;
-;; Title:       <INTERFACE_NAME>MethodDispachers.dbl
+;; Title:       <INTERFACE_NAME>MethodDispatchers.dbl
 ;;
 ;; Description: Dispatcher classes for exposed methods that uses the RCB API
 ;;              to call the underlying methods. This is done in order to have
