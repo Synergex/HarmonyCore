@@ -211,16 +211,16 @@ namespace Services.Test.UnitTests
         public method GetCustomerOrdersWithRef4, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/v1/Customers?$expand=REL_CustomerFavoriteItem,REL_CustomerOrders($filter=contains(CustomerReference,'c'))&$filter=contains(tolower(REL_CustomerFavoriteItem/LatinName),'uss') or contains(tolower(REL_CustomerFavoriteItem/LatinName),'cam')").Result
+            disposable data response = client.GetAsync("/odata/v1/Customers?$expand=REL_CustomerFavoriteItem,REL_CustomerOrders($filter=contains(CustomerReference,'c'))&$filter=contains(tolower(REL_CustomerFavoriteItem/LatinName),'uss') or contains(tolower(REL_CustomerFavoriteItem/LatinName),'is')").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
             data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
-            Assert.AreEqual(customers.Value.Count, 2)
+            Assert.AreEqual(customers.Value.Count, 4)
             data customer, @Customer
             foreach customer in customers.Value
             begin
                 Assert.IsTrue(customer.REL_CustomerFavoriteItem != ^null)
-                Assert.IsTrue(customer.REL_CustomerFavoriteItem.LatinName.Contains('cam', StringComparison.CurrentCultureIgnoreCase) || 
+                Assert.IsTrue(customer.REL_CustomerFavoriteItem.LatinName.Contains('is', StringComparison.CurrentCultureIgnoreCase) || 
                 & customer.REL_CustomerFavoriteItem.LatinName.Contains('uss', StringComparison.CurrentCultureIgnoreCase))
                 data ord, @Services.Test.Models.Order
                 foreach ord in customer.REL_CustomerOrders
@@ -242,26 +242,26 @@ namespace Services.Test.UnitTests
         public method GetCustomerOrdersWithRef5, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/v1/Customers?$expand=REL_CustomerFavoriteItem,REL_CustomerOrders($filter=contains(CustomerReference,'c'))&$filter=contains(tolower(REL_CustomerFavoriteItem/LatinName),'uss') or contains(tolower(REL_CustomerFavoriteItem/LatinName),'cam')&$top=0&$count=true").Result
+            disposable data response = client.GetAsync("/odata/v1/Customers?$expand=REL_CustomerFavoriteItem,REL_CustomerOrders($filter=contains(CustomerReference,'c'))&$filter=contains(tolower(REL_CustomerFavoriteItem/LatinName),'uss') or contains(tolower(REL_CustomerFavoriteItem/LatinName),'is')&$top=0&$count=true").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
 
             data customers, @CustomerWithCount, JsonConvert.DeserializeObject<CustomerWithCount>(result)
             Assert.AreEqual(customers.Value.Length, 0)
-            Assert.AreEqual(customers.Count, 2)
+            Assert.AreEqual(customers.Count, 4)
         endmethod
 
         {TestMethod}
         public method GetCustomerOrdersWithRef6, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/v1/Customers?$filter=contains(tolower(REL_CustomerFavoriteItem/LatinName),'uss') or contains(tolower(REL_CustomerFavoriteItem/LatinName),'cam')&$count=true").Result
+            disposable data response = client.GetAsync("/odata/v1/Customers?$filter=contains(tolower(REL_CustomerFavoriteItem/LatinName),'uss') or contains(tolower(REL_CustomerFavoriteItem/LatinName),'is')&$count=true").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
 
             data customers, @CustomerWithCount, JsonConvert.DeserializeObject<CustomerWithCount>(result)
-            Assert.AreEqual(customers.Value.Length, 2)
-            Assert.AreEqual(customers.Count, 2)
+            Assert.AreEqual(customers.Value.Length, 4)
+            Assert.AreEqual(customers.Count, 4)
         endmethod
 
         {TestMethod}
