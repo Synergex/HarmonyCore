@@ -110,34 +110,34 @@ namespace Services.Test.UnitTests
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
             data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
-		endmethod
+        endmethod
 
-		{TestMethod}
-		public method GetCustomersInC, void
-		proc
-			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync("/odata/v1/Customers?$filter=State eq 'C'").Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
-			Assert.AreEqual(customers.Value.Count, 0)
+        {TestMethod}
+        public method GetCustomersInC, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Customers?$filter=State eq 'C'").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            Assert.AreEqual(customers.Value.Count, 0)
 
-		endmethod
+        endmethod
 
-		{TestMethod}
-		public method GetCustomersInCPrefix, void
-		proc
-			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync("/odata/v1/Customers?$filter=startswith(State,'C')").Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
-			Assert.AreNotEqual(customers.Value.Count, 0)
-			data customer, @Customer
-			foreach customer in customers.Value
-			begin
-				Assert.IsTrue(customer.State.StartsWith("C"))
-			end
+        {TestMethod}
+        public method GetCustomersInCPrefix, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Customers?$filter=startswith(State,'C')").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            Assert.AreNotEqual(customers.Value.Count, 0)
+            data customer, @Customer
+            foreach customer in customers.Value
+            begin
+                Assert.IsTrue(customer.State.StartsWith("C"))
+            end
         endmethod
 
 
@@ -211,16 +211,16 @@ namespace Services.Test.UnitTests
         public method GetCustomerOrdersWithRef4, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/v1/Customers?$expand=REL_CustomerFavoriteItem,REL_CustomerOrders($filter=contains(CustomerReference,'c'))&$filter=contains(tolower(REL_CustomerFavoriteItem/LatinName),'uss') or contains(tolower(REL_CustomerFavoriteItem/LatinName),'cam')").Result
+            disposable data response = client.GetAsync("/odata/v1/Customers?$expand=REL_CustomerFavoriteItem,REL_CustomerOrders($filter=contains(CustomerReference,'c'))&$filter=contains(tolower(REL_CustomerFavoriteItem/LatinName),'uss') or contains(tolower(REL_CustomerFavoriteItem/LatinName),'is')").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
             data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
-            Assert.AreNotEqual(customers.Value.Count, 0)
+            Assert.AreEqual(customers.Value.Count, 4)
             data customer, @Customer
             foreach customer in customers.Value
             begin
                 Assert.IsTrue(customer.REL_CustomerFavoriteItem != ^null)
-                Assert.IsTrue(customer.REL_CustomerFavoriteItem.LatinName.Contains('cam', StringComparison.CurrentCultureIgnoreCase) || 
+                Assert.IsTrue(customer.REL_CustomerFavoriteItem.LatinName.Contains('is', StringComparison.CurrentCultureIgnoreCase) || 
                 & customer.REL_CustomerFavoriteItem.LatinName.Contains('uss', StringComparison.CurrentCultureIgnoreCase))
                 data ord, @Services.Test.Models.Order
                 foreach ord in customer.REL_CustomerOrders
@@ -230,65 +230,124 @@ namespace Services.Test.UnitTests
             end
         endmethod
 
-		{TestMethod}
-		public method GetCustomersNotInCPrefix, void
-		proc
-			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync("/odata/v1/Customers?$filter=not startswith(State,'C')").Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
-			Assert.AreNotEqual(customers.Value.Count, 0)
-			data customer, @Customer
-			foreach customer in customers.Value
-			begin
-				Assert.IsFalse(customer.State.StartsWith("C"))
-			end
-		endmethod
+        class CustomerWithCount
+            {JsonProperty("@odata.count")}
+            public readwrite property Count, long
+            {JsonProperty("value")}
+            public readwrite property Value, [#]@Services.Models.Customer
+        endclass
 
-		{TestMethod}
-		public method GetCustomersNotInCPrefixCaseI, void
-		proc
-			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync("/odata/v1/Customers?$filter=not startswith(tolower(State),'c')").Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
-			Assert.AreNotEqual(customers.Value.Count, 0)
-			data customer, @Customer
-			foreach customer in customers.Value
-			begin
-				Assert.IsFalse(customer.State.ToLower().StartsWith("c"))
-			end
 
-		endmethod
+        {TestMethod}
+        public method GetCustomerOrdersWithRef5, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Customers?$expand=REL_CustomerFavoriteItem,REL_CustomerOrders($filter=contains(CustomerReference,'c'))&$filter=contains(tolower(REL_CustomerFavoriteItem/LatinName),'uss') or contains(tolower(REL_CustomerFavoriteItem/LatinName),'is')&$top=0&$count=true").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
 
-		{TestMethod}
-		public method GetCustomersInCPrefixCaseI, void
-		proc
-			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync("/odata/v1/Customers?$filter=startswith(tolower(State),'c')").Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
-			Assert.AreNotEqual(customers.Value.Count, 0)
-			data customer, @Customer
-			foreach customer in customers.Value
-			begin
-				Assert.IsTrue(customer.State.StartsWith("C"))
-			end
-		endmethod
+            data customers, @CustomerWithCount, JsonConvert.DeserializeObject<CustomerWithCount>(result)
+            Assert.AreEqual(customers.Value.Length, 0)
+            Assert.AreEqual(customers.Count, 4)
+        endmethod
 
-		{TestMethod}
-		public method GetCustomersInCAD, void
-		proc
-			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync("/odata/v1/Customers?$filter=State eq 'CAD'").Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
-			Assert.AreEqual(customers.Value.Count, 0)
-		endmethod
+        {TestMethod}
+        public method GetCustomerOrdersWithRef6, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Customers?$filter=contains(tolower(REL_CustomerFavoriteItem/LatinName),'uss') or contains(tolower(REL_CustomerFavoriteItem/LatinName),'is')&$count=true").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+
+            data customers, @CustomerWithCount, JsonConvert.DeserializeObject<CustomerWithCount>(result)
+            Assert.AreEqual(customers.Value.Length, 4)
+            Assert.AreEqual(customers.Count, 4)
+        endmethod
+
+        {TestMethod}
+        public method GetCustomerGeLePhone, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Customers?$filter=(Phone ge '(555) 900-0000') and (Phone le '(555) 920-0000')").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+
+            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            Assert.AreEqual(customers.Value.Count, 1)
+        endmethod
+
+        {TestMethod}
+        public method GetCustomerGeLePhoneCount, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Customers?$filter=(Phone ge '(555) 900-0000') and (Phone le '(555) 920-0000')&$top=0&$count=true").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+
+            data customers, @CustomerWithCount, JsonConvert.DeserializeObject<CustomerWithCount>(result)
+            Assert.AreEqual(customers.Value.Length, 0)
+            Assert.AreEqual(customers.Count, 1)
+        endmethod
+
+        {TestMethod}
+        public method GetCustomersNotInCPrefix, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Customers?$filter=not startswith(State,'C')").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            Assert.AreNotEqual(customers.Value.Count, 0)
+            data customer, @Customer
+            foreach customer in customers.Value
+            begin
+                Assert.IsFalse(customer.State.StartsWith("C"))
+            end
+        endmethod
+
+        {TestMethod}
+        public method GetCustomersNotInCPrefixCaseI, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Customers?$filter=not startswith(tolower(State),'c')").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            Assert.AreNotEqual(customers.Value.Count, 0)
+            data customer, @Customer
+            foreach customer in customers.Value
+            begin
+                Assert.IsFalse(customer.State.ToLower().StartsWith("c"))
+            end
+
+        endmethod
+
+        {TestMethod}
+        public method GetCustomersInCPrefixCaseI, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Customers?$filter=startswith(tolower(State),'c')").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            Assert.AreNotEqual(customers.Value.Count, 0)
+            data customer, @Customer
+            foreach customer in customers.Value
+            begin
+                Assert.IsTrue(customer.State.StartsWith("C"))
+            end
+        endmethod
+
+        {TestMethod}
+        public method GetCustomersInCAD, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Customers?$filter=State eq 'CAD'").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            Assert.AreEqual(customers.Value.Count, 0)
+        endmethod
 
         ;;------------------------------------------------------------
         ;;Get all Customers NOT in California
@@ -404,7 +463,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Items?$filter=not endswith(LatinName,'costata')").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-			data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
+            data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
             Assert.AreNotEqual(0, items.Value.Count)
             data itm, @Item
             foreach itm in items.Value
@@ -421,8 +480,8 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Items?$filter=endswith(LatinName,'costata')").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-			data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
-			Assert.AreNotEqual(0, items.Value.Count)
+            data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
+            Assert.AreNotEqual(0, items.Value.Count)
             data itm, @Item
             foreach itm in items.Value
             begin
@@ -600,20 +659,20 @@ namespace Services.Test.UnitTests
             data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
         endmethod
 
-		{TestMethod}
-		public method Getedge, void
-		proc
-			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync("/odata/v1/Items?$filter=Contains(CommonName,'edge')").Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
-			data item, @Item
-			foreach item in items.Value
-			begin
+        {TestMethod}
+        public method Getedge, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Items?$filter=Contains(CommonName,'edge')").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
+            data item, @Item
+            foreach item in items.Value
+            begin
                 Assert.IsTrue(item.CommonName.Contains("edge"))
-			end
-		endmethod
+            end
+        endmethod
 
         ;;------------------------------------------------------------
         ;;Customer 1 with orders
@@ -749,7 +808,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Customers(26)?$expand=REL_CustomerOrders($filter=OrderNumber in(26, 27, 41) and CustomerNumber gt 1)").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-			data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
+            data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
             Assert.AreEqual(customers.REL_CustomerOrders.Count, 3)
         endmethod
 
@@ -837,144 +896,144 @@ namespace Services.Test.UnitTests
             Assert.AreEqual(customers2.REL_CustomerOrders.ElementAt(2).OrderNumber, customers.REL_CustomerOrders.ElementAt(0).OrderNumber)
             Assert.AreEqual(customers2.REL_CustomerOrders.ElementAt(3).OrderNumber, customers.REL_CustomerOrders.ElementAt(1).OrderNumber)
 
-		endmethod
+        endmethod
 
-		{TestMethod}
-		public method ExpandAndTopSkip2, void
-		proc
-			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync("/odata/v1/Customers?$top=5&$expand=REL_CustomerOrders($top=2;$skip=2)").Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+        {TestMethod}
+        public method ExpandAndTopSkip2, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Customers?$top=5&$expand=REL_CustomerOrders($top=2;$skip=2)").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
 
-			Assert.AreEqual(customers.Value.Count, 5)
+            Assert.AreEqual(customers.Value.Count, 5)
 
-			disposable data response2 = client.GetAsync("/odata/v1/Customers?$top=5&$expand=REL_CustomerOrders($top=4)").Result
-			data result2 = response2.Content.ReadAsStringAsync().Result
-			response2.EnsureSuccessStatusCode()
-			data customers2, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result2)
+            disposable data response2 = client.GetAsync("/odata/v1/Customers?$top=5&$expand=REL_CustomerOrders($top=4)").Result
+            data result2 = response2.Content.ReadAsStringAsync().Result
+            response2.EnsureSuccessStatusCode()
+            data customers2, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result2)
 
-			Assert.AreEqual(customers2.Value.Count, 5)
+            Assert.AreEqual(customers2.Value.Count, 5)
 
-			data i = 0
+            data i = 0
             data cust, @Customer
-			data cust2, @Customer
-			for i from 0 thru 4 by 1
-			begin
-				cust = customers.Value[i]
-				cust2 = customers2.Value[i]
-				Assert.AreEqual(cust.REL_CustomerOrders.Count, 2)
-				Assert.AreEqual(cust2.REL_CustomerOrders.Count, 4)
-				Assert.AreEqual(cust2.REL_CustomerOrders.ElementAt(2).OrderNumber, cust.REL_CustomerOrders.ElementAt(0).OrderNumber)
-				Assert.AreEqual(cust2.REL_CustomerOrders.ElementAt(3).OrderNumber, cust.REL_CustomerOrders.ElementAt(1).OrderNumber)
-			end
+            data cust2, @Customer
+            for i from 0 thru 4 by 1
+            begin
+                cust = customers.Value[i]
+                cust2 = customers2.Value[i]
+                Assert.AreEqual(cust.REL_CustomerOrders.Count, 2)
+                Assert.AreEqual(cust2.REL_CustomerOrders.Count, 4)
+                Assert.AreEqual(cust2.REL_CustomerOrders.ElementAt(2).OrderNumber, cust.REL_CustomerOrders.ElementAt(0).OrderNumber)
+                Assert.AreEqual(cust2.REL_CustomerOrders.ElementAt(3).OrderNumber, cust.REL_CustomerOrders.ElementAt(1).OrderNumber)
+            end
 
-		endmethod
+        endmethod
 
-		{TestMethod}
-		public method ExpandAndTopSkip3, void
-		proc
-			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync("/odata/v1/Customers?$top=2&$skip=2&$orderby=CustomerNumber&$expand=REL_CustomerOrders($top=2;$skip=2)").Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+        {TestMethod}
+        public method ExpandAndTopSkip3, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Customers?$top=2&$skip=2&$orderby=CustomerNumber&$expand=REL_CustomerOrders($top=2;$skip=2)").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
 
-			Assert.AreEqual(customers.Value.Count, 2)
+            Assert.AreEqual(customers.Value.Count, 2)
 
-			disposable data response2 = client.GetAsync("/odata/v1/Customers?$top=4&$orderby=CustomerNumber&$expand=REL_CustomerOrders($top=4)").Result
-			data result2 = response2.Content.ReadAsStringAsync().Result
-			response2.EnsureSuccessStatusCode()
-			data customers2, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result2)
+            disposable data response2 = client.GetAsync("/odata/v1/Customers?$top=4&$orderby=CustomerNumber&$expand=REL_CustomerOrders($top=4)").Result
+            data result2 = response2.Content.ReadAsStringAsync().Result
+            response2.EnsureSuccessStatusCode()
+            data customers2, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result2)
 
-			Assert.AreEqual(customers2.Value.Count, 4)
+            Assert.AreEqual(customers2.Value.Count, 4)
 
-			data i = 0
-			data cust, @Customer
-			data cust2, @Customer
-			for i from 0 thru 1 by 1
-			begin
-				cust = customers.Value[i]
-				cust2 = customers2.Value[i + 2]
-				Assert.AreEqual(cust.REL_CustomerOrders.Count, 2)
-				Assert.AreEqual(cust2.REL_CustomerOrders.Count, 4)
-				Assert.AreEqual(cust2.REL_CustomerOrders.ElementAt(2).OrderNumber, cust.REL_CustomerOrders.ElementAt(0).OrderNumber)
-				Assert.AreEqual(cust2.REL_CustomerOrders.ElementAt(3).OrderNumber, cust.REL_CustomerOrders.ElementAt(1).OrderNumber)
-			end
+            data i = 0
+            data cust, @Customer
+            data cust2, @Customer
+            for i from 0 thru 1 by 1
+            begin
+                cust = customers.Value[i]
+                cust2 = customers2.Value[i + 2]
+                Assert.AreEqual(cust.REL_CustomerOrders.Count, 2)
+                Assert.AreEqual(cust2.REL_CustomerOrders.Count, 4)
+                Assert.AreEqual(cust2.REL_CustomerOrders.ElementAt(2).OrderNumber, cust.REL_CustomerOrders.ElementAt(0).OrderNumber)
+                Assert.AreEqual(cust2.REL_CustomerOrders.ElementAt(3).OrderNumber, cust.REL_CustomerOrders.ElementAt(1).OrderNumber)
+            end
 
-		endmethod
+        endmethod
 
-		{TestMethod}
-		public method CustomerExpandAllAndVerify, void
-		proc
-			data client = UnitTestEnvironment.Server.CreateClient()
-			data response = client.GetAsync("/odata/v1/Customers(CustomerNumber=8)?$expand=REL_CustomerOrders,REL_CustomerFavoriteItem,REL_CustomerNotes($filter=NoteNumber+gt+900)").Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data cust, @Customer, JsonConvert.DeserializeObject<Customer>(result)
-			Assert.AreNotEqual(cust.REL_CustomerOrders.Count, 0)
-			Assert.AreNotEqual(cust.REL_CustomerFavoriteItem, ^null)
-			Assert.AreEqual(cust.REL_CustomerNotes.Count, 0)
+        {TestMethod}
+        public method CustomerExpandAllAndVerify, void
+        proc
+            data client = UnitTestEnvironment.Server.CreateClient()
+            data response = client.GetAsync("/odata/v1/Customers(CustomerNumber=8)?$expand=REL_CustomerOrders,REL_CustomerFavoriteItem,REL_CustomerNotes($filter=NoteNumber+gt+900)").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data cust, @Customer, JsonConvert.DeserializeObject<Customer>(result)
+            Assert.AreNotEqual(cust.REL_CustomerOrders.Count, 0)
+            Assert.AreNotEqual(cust.REL_CustomerFavoriteItem, ^null)
+            Assert.AreEqual(cust.REL_CustomerNotes.Count, 0)
             
-		endmethod
+        endmethod
 
-		{TestMethod}
-		public method CustomersExpandAllAndVerify, void
-		proc
-			data client = UnitTestEnvironment.Server.CreateClient()
-			data response = client.GetAsync("/odata/v1/Customers?$expand=REL_CustomerFavoriteItem,REL_CustomerNotes,REL_CustomerOrders").Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data customersResult, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
-			data cust, @Customer
-			foreach cust in customersResult.Value
-			begin
-				Assert.AreNotEqual(cust.REL_CustomerOrders.Count, 0)
+        {TestMethod}
+        public method CustomersExpandAllAndVerify, void
+        proc
+            data client = UnitTestEnvironment.Server.CreateClient()
+            data response = client.GetAsync("/odata/v1/Customers?$expand=REL_CustomerFavoriteItem,REL_CustomerNotes,REL_CustomerOrders").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customersResult, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            data cust, @Customer
+            foreach cust in customersResult.Value
+            begin
+                Assert.AreNotEqual(cust.REL_CustomerOrders.Count, 0)
 
                 if(cust.FavoriteItem != 0)
-					Assert.AreNotEqual(cust.REL_CustomerFavoriteItem, ^null)
+                    Assert.AreNotEqual(cust.REL_CustomerFavoriteItem, ^null)
 
                 if(cust.CustomerNumber > 10) then
-					Assert.AreEqual(cust.REL_CustomerNotes.Count, 0)
-				else
-					Assert.AreEqual(cust.REL_CustomerNotes.Count, 3)
-			end
+                    Assert.AreEqual(cust.REL_CustomerNotes.Count, 0)
+                else
+                    Assert.AreEqual(cust.REL_CustomerNotes.Count, 3)
+            end
 
-		endmethod
+        endmethod
 
-		{TestMethod}
-		public method CustomerExpandAndVerify1, void
-		proc
-			data client = UnitTestEnvironment.Server.CreateClient()
-			data response = client.GetAsync("/odata/v1/Customers(CustomerNumber=8)?$expand=REL_CustomerNotes").Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data cust, @Customer, JsonConvert.DeserializeObject<Customer>(result)
-			Assert.AreNotEqual(cust.REL_CustomerNotes.Count, 0)
-		endmethod
+        {TestMethod}
+        public method CustomerExpandAndVerify1, void
+        proc
+            data client = UnitTestEnvironment.Server.CreateClient()
+            data response = client.GetAsync("/odata/v1/Customers(CustomerNumber=8)?$expand=REL_CustomerNotes").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data cust, @Customer, JsonConvert.DeserializeObject<Customer>(result)
+            Assert.AreNotEqual(cust.REL_CustomerNotes.Count, 0)
+        endmethod
 
-		{TestMethod}
-		public method CustomerExpandAndVerify2, void
-		proc
-			data client = UnitTestEnvironment.Server.CreateClient()
-			data response = client.GetAsync("/odata/v1/Customers(CustomerNumber=8)?$expand=REL_CustomerFavoriteItem").Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data cust, @Customer, JsonConvert.DeserializeObject<Customer>(result)
-			Assert.AreNotEqual(cust.REL_CustomerFavoriteItem, ^null)
-		endmethod
+        {TestMethod}
+        public method CustomerExpandAndVerify2, void
+        proc
+            data client = UnitTestEnvironment.Server.CreateClient()
+            data response = client.GetAsync("/odata/v1/Customers(CustomerNumber=8)?$expand=REL_CustomerFavoriteItem").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data cust, @Customer, JsonConvert.DeserializeObject<Customer>(result)
+            Assert.AreNotEqual(cust.REL_CustomerFavoriteItem, ^null)
+        endmethod
 
-		{TestMethod}
-		public method CustomerExpandAndVerify3, void
-		proc
-			data client = UnitTestEnvironment.Server.CreateClient()
-			data response = client.GetAsync("/odata/v1/Customers(CustomerNumber=8)?$expand=REL_CustomerOrders").Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data cust, @Customer, JsonConvert.DeserializeObject<Customer>(result)
-			Assert.AreNotEqual(cust.REL_CustomerOrders.Count, 0)
-		endmethod
+        {TestMethod}
+        public method CustomerExpandAndVerify3, void
+        proc
+            data client = UnitTestEnvironment.Server.CreateClient()
+            data response = client.GetAsync("/odata/v1/Customers(CustomerNumber=8)?$expand=REL_CustomerOrders").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data cust, @Customer, JsonConvert.DeserializeObject<Customer>(result)
+            Assert.AreNotEqual(cust.REL_CustomerOrders.Count, 0)
+        endmethod
 
         {TestMethod}
         public method ExpandAndSelect1, void
@@ -1015,22 +1074,22 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Customers(8)?$expand=REL_CustomerOrders($expand=REL_OrderItems($expand=REL_Item($expand=REL_Vendor)))").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-			data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
-			Assert.AreNotEqual(customers.REL_CustomerOrders.Count, 0)
-			data custOrd, @Order
-			foreach custOrd in customers.REL_CustomerOrders
-			begin
-				data ordItm, @OrderItem
+            data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
+            Assert.AreNotEqual(customers.REL_CustomerOrders.Count, 0)
+            data custOrd, @Order
+            foreach custOrd in customers.REL_CustomerOrders
+            begin
+                data ordItm, @OrderItem
 
-				Assert.AreNotEqual(custOrd.REL_OrderItems.Count, 0)
+                Assert.AreNotEqual(custOrd.REL_OrderItems.Count, 0)
 
-				foreach ordItm in custOrd.REL_OrderItems
-				begin
-				    Assert.IsNotNull(ordItm.REL_Item)
-					Assert.IsNotNull(ordItm.REL_Item.REL_Vendor)
-				end
+                foreach ordItm in custOrd.REL_OrderItems
+                begin
+                    Assert.IsNotNull(ordItm.REL_Item)
+                    Assert.IsNotNull(ordItm.REL_Item.REL_Vendor)
+                end
 
-			end
+            end
         endmethod
 
         ;3 levels of expansion with select at each level, with a filter at the top level
@@ -1052,25 +1111,25 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Customers?$filter=State eq 'CA'&$expand=REL_CustomerOrders($select=OrderNumber,DateOrdered;$expand=REL_OrderItems($select=ItemNumber,QuantityOrdered;$expand=REL_Item($select=CommonName)))&$select=CustomerNumber,Name").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
-			data cust, @Customer
-			foreach cust in customers.Value
-			begin
-				data custOrd, @Order
-				Assert.AreNotEqual(cust.REL_CustomerOrders.Count, 0)
-			    foreach custOrd in cust.REL_CustomerOrders
-			    begin
-				    data ordItm, @OrderItem
+            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            data cust, @Customer
+            foreach cust in customers.Value
+            begin
+                data custOrd, @Order
+                Assert.AreNotEqual(cust.REL_CustomerOrders.Count, 0)
+                foreach custOrd in cust.REL_CustomerOrders
+                begin
+                    data ordItm, @OrderItem
 
-				    Assert.AreNotEqual(custOrd.REL_OrderItems.Count, 0)
+                    Assert.AreNotEqual(custOrd.REL_OrderItems.Count, 0)
 
-				    foreach ordItm in custOrd.REL_OrderItems
-				    begin
-				        Assert.IsNotNull(ordItm.REL_Item)
-				    end
+                    foreach ordItm in custOrd.REL_OrderItems
+                    begin
+                        Assert.IsNotNull(ordItm.REL_Item)
+                    end
 
-			    end
-			end
+                end
+            end
         endmethod
 
         ;3 levels of expansion with select at each level, with a filter at the top level
@@ -1081,38 +1140,38 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Customers?$filter=State in ('CA','WA')&$expand=REL_CustomerOrders($select=OrderNumber,DateOrdered;$expand=REL_OrderItems($select=ItemNumber,QuantityOrdered;$expand=REL_Item))&$select=CustomerNumber,Name").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
-			data cust, @Services.Test.Models.Customer
+            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            data cust, @Services.Test.Models.Customer
 
-			foreach cust in customers.Value
-			begin
-				Assert.AreNotEqual(cust.REL_CustomerOrders.Count, 0)
-				data custOrd, @Order
-			    foreach custOrd in cust.REL_CustomerOrders
-			    begin
-				    data ordItm, @OrderItem
+            foreach cust in customers.Value
+            begin
+                Assert.AreNotEqual(cust.REL_CustomerOrders.Count, 0)
+                data custOrd, @Order
+                foreach custOrd in cust.REL_CustomerOrders
+                begin
+                    data ordItm, @OrderItem
 
-				    Assert.AreNotEqual(custOrd.REL_OrderItems.Count, 0)
+                    Assert.AreNotEqual(custOrd.REL_OrderItems.Count, 0)
 
-				    foreach ordItm in custOrd.REL_OrderItems
-				    begin
-				        Assert.IsNotNull(ordItm.REL_Item)
-				    end
+                    foreach ordItm in custOrd.REL_OrderItems
+                    begin
+                        Assert.IsNotNull(ordItm.REL_Item)
+                    end
 
-			    end
-			end
+                end
+            end
         endmethod
 
-		{TestMethod}
-		public method ExpandAndSelect8, void
-		proc
-			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync("/odata/v1/Customers?$expand=REL_CustomerOrders($select=PlacedBy;$expand=REL_OrderItems($expand=REL_Item))").Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+        {TestMethod}
+        public method ExpandAndSelect8, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Customers?$expand=REL_CustomerOrders($select=PlacedBy;$expand=REL_OrderItems($expand=REL_Item))").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
             Assert.IsTrue(customers.Value.Count > 1)
-		endmethod
+        endmethod
 
         {TestMethod}
         public method TraditionalBridgeGetAllCustomers, void
@@ -1180,33 +1239,33 @@ namespace Services.Test.UnitTests
                 Assert.IsTrue(customerData.CustomerNumber >= 8)
             end
 
-		endmethod
+        endmethod
 
-		{TestMethod}
-		public method EF_WhereUpdate, void
-		proc
-			data startupClass = new Startup(^null, ^null)
-			data startupServices = new ServiceCollection()
-			startupClass.ConfigureServices(startupServices)
-			disposable data sp = startupServices.BuildServiceProvider()
-			disposable data context, @DbContext, sp.GetService<DbContext>()
-			data customerCollection, @IEnumerable<Services.Models.Customer>, context.Customers.Where("CustomerNumber >= @0", 8).ToList()
-			data customerData, @Services.Models.Customer
-			foreach customerData in customerCollection
-			begin
-				customerData.City = customerData.City + "1"
-			end
+        {TestMethod}
+        public method EF_WhereUpdate, void
+        proc
+            data startupClass = new Startup(^null, ^null)
+            data startupServices = new ServiceCollection()
+            startupClass.ConfigureServices(startupServices)
+            disposable data sp = startupServices.BuildServiceProvider()
+            disposable data context, @DbContext, sp.GetService<DbContext>()
+            data customerCollection, @IEnumerable<Services.Models.Customer>, context.Customers.Where("CustomerNumber >= @0", 8).ToList()
+            data customerData, @Services.Models.Customer
+            foreach customerData in customerCollection
+            begin
+                customerData.City = customerData.City + "1"
+            end
 
-			
-			Assert.IsTrue(context.ChangeTracker.Entries().Count() == customerCollection.Count())
+            
+            Assert.IsTrue(context.ChangeTracker.Entries().Count() == customerCollection.Count())
             Assert.IsTrue(context.ChangeTracker.Entries().All(lambda(entry) { entry.State == Microsoft.EntityFrameworkCore.EntityState.Modified }))
 
-			context.SaveChanges()
+            context.SaveChanges()
 
-			data customerCollection2, @IEnumerable<Services.Models.Customer>, context.Customers.Where('City.EndsWith(@0)', "1").ToList()
-			Assert.IsTrue(customerCollection2.Count() == customerCollection.Count())
+            data customerCollection2, @IEnumerable<Services.Models.Customer>, context.Customers.Where('City.EndsWith(@0)', "1").ToList()
+            Assert.IsTrue(customerCollection2.Count() == customerCollection.Count())
 
-		endmethod
+        endmethod
 
         {TestMethod}
         public method EF_WhereIncluding, void
@@ -1320,97 +1379,97 @@ namespace Services.Test.UnitTests
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
             data customers, @ODataAvailabilitys, JsonConvert.DeserializeObject<ODataAvailabilitys>(result)
-		endmethod
+        endmethod
 
-		{TestMethod}
-		public method AdapterTestRange1, void
-		proc
-			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync("/odata/v1/OrdersMethods/FindAvailability(Adults=5)?$filter=PointsCost eq 5").Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data customers, @ODataAvailabilitys, JsonConvert.DeserializeObject<ODataAvailabilitys>(result)
-		endmethod
+        {TestMethod}
+        public method AdapterTestRange1, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/OrdersMethods/FindAvailability(Adults=5)?$filter=PointsCost eq 5").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customers, @ODataAvailabilitys, JsonConvert.DeserializeObject<ODataAvailabilitys>(result)
+        endmethod
 
-		{TestMethod}
-		public method AdapterTestRange2, void
-		proc
-			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync("/odata/v1/OrdersMethods/FindAvailability(Adults=5)?$filter=PointsCost gt 5").Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data customers, @ODataAvailabilitys, JsonConvert.DeserializeObject<ODataAvailabilitys>(result)
-		endmethod
+        {TestMethod}
+        public method AdapterTestRange2, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/OrdersMethods/FindAvailability(Adults=5)?$filter=PointsCost gt 5").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customers, @ODataAvailabilitys, JsonConvert.DeserializeObject<ODataAvailabilitys>(result)
+        endmethod
 
-		{TestMethod}
-		public method AdapterTestRange3, void
-		proc
-			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync("/odata/v1/OrdersMethods/FindAvailability(Adults=5)?$filter=PointsCost ge 5").Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data customers, @ODataAvailabilitys, JsonConvert.DeserializeObject<ODataAvailabilitys>(result)
-		endmethod
+        {TestMethod}
+        public method AdapterTestRange3, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/OrdersMethods/FindAvailability(Adults=5)?$filter=PointsCost ge 5").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customers, @ODataAvailabilitys, JsonConvert.DeserializeObject<ODataAvailabilitys>(result)
+        endmethod
 
-		{TestMethod}
-		public method AdapterTestRange4, void
-		proc
-			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync("/odata/v1/OrdersMethods/FindAvailability(Adults=5)?$filter=PointsCost lt 5").Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data customers, @ODataAvailabilitys, JsonConvert.DeserializeObject<ODataAvailabilitys>(result)
-		endmethod
+        {TestMethod}
+        public method AdapterTestRange4, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/OrdersMethods/FindAvailability(Adults=5)?$filter=PointsCost lt 5").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customers, @ODataAvailabilitys, JsonConvert.DeserializeObject<ODataAvailabilitys>(result)
+        endmethod
 
-		{TestMethod}
-		public method AdapterTestRange5, void
-		proc
-			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync("/odata/v1/OrdersMethods/FindAvailability(Adults=5)?$filter=PointsCost le 5").Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data customers, @ODataAvailabilitys, JsonConvert.DeserializeObject<ODataAvailabilitys>(result)
-		endmethod
+        {TestMethod}
+        public method AdapterTestRange5, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/OrdersMethods/FindAvailability(Adults=5)?$filter=PointsCost le 5").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customers, @ODataAvailabilitys, JsonConvert.DeserializeObject<ODataAvailabilitys>(result)
+        endmethod
 
-		{TestMethod}
-		public method AdapterTestRange6, void
-		proc
-			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync("/odata/v1/OrdersMethods/FindAvailability(Adults=5)?$filter=PointsCost le 5 and PointsCost ge 1").Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data customers, @ODataAvailabilitys, JsonConvert.DeserializeObject<ODataAvailabilitys>(result)
-		endmethod
+        {TestMethod}
+        public method AdapterTestRange6, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/OrdersMethods/FindAvailability(Adults=5)?$filter=PointsCost le 5 and PointsCost ge 1").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customers, @ODataAvailabilitys, JsonConvert.DeserializeObject<ODataAvailabilitys>(result)
+        endmethod
 
-		{TestMethod}
-		public method AdapterTestRange7, void
-		proc
-			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync("/odata/v1/OrdersMethods/FindAvailability(Adults=5)?$filter=PointsCost lt 5 and PointsCost ge 1").Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data customers, @ODataAvailabilitys, JsonConvert.DeserializeObject<ODataAvailabilitys>(result)
-		endmethod
+        {TestMethod}
+        public method AdapterTestRange7, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/OrdersMethods/FindAvailability(Adults=5)?$filter=PointsCost lt 5 and PointsCost ge 1").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customers, @ODataAvailabilitys, JsonConvert.DeserializeObject<ODataAvailabilitys>(result)
+        endmethod
 
-		{TestMethod}
-		public method AdapterTestRange8, void
-		proc
-			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync("/odata/v1/OrdersMethods/FindAvailability(Adults=5)?$filter=PointsCost le 5 and PointsCost gt 1").Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data customers, @ODataAvailabilitys, JsonConvert.DeserializeObject<ODataAvailabilitys>(result)
-		endmethod
+        {TestMethod}
+        public method AdapterTestRange8, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/OrdersMethods/FindAvailability(Adults=5)?$filter=PointsCost le 5 and PointsCost gt 1").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customers, @ODataAvailabilitys, JsonConvert.DeserializeObject<ODataAvailabilitys>(result)
+        endmethod
 
-		{TestMethod}
-		public method AdapterTestRange9, void
-		proc
-			disposable data client = UnitTestEnvironment.Server.CreateClient()
-			disposable data response = client.GetAsync("/odata/v1/OrdersMethods/FindAvailability(Adults=5)?$filter=PointsCost lt 5 and PointsCost gt 1").Result
-			data result = response.Content.ReadAsStringAsync().Result
-			response.EnsureSuccessStatusCode()
-			data customers, @ODataAvailabilitys, JsonConvert.DeserializeObject<ODataAvailabilitys>(result)
-		endmethod
+        {TestMethod}
+        public method AdapterTestRange9, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/OrdersMethods/FindAvailability(Adults=5)?$filter=PointsCost lt 5 and PointsCost gt 1").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customers, @ODataAvailabilitys, JsonConvert.DeserializeObject<ODataAvailabilitys>(result)
+        endmethod
 
         {TestMethod}
         public method ODataAction, void
