@@ -237,6 +237,13 @@ namespace Services.Test.UnitTests
             public readwrite property Value, [#]@Services.Models.Customer
         endclass
 
+        class OrderWithCount
+            {JsonProperty("@odata.count")}
+            public readwrite property Count, long
+            {JsonProperty("value")}
+            public readwrite property Value, [#]@Services.Models.Order
+        endclass
+
 
         {TestMethod}
         public method GetCustomerOrdersWithRef5, void
@@ -275,7 +282,7 @@ namespace Services.Test.UnitTests
             data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
             Assert.AreEqual(customers.Value.Count, 1)
         endmethod
-
+        ;REL_Customer
         {TestMethod}
         public method GetCustomerGeLePhoneCount, void
         proc
@@ -287,6 +294,49 @@ namespace Services.Test.UnitTests
             data customers, @CustomerWithCount, JsonConvert.DeserializeObject<CustomerWithCount>(result)
             Assert.AreEqual(customers.Value.Length, 0)
             Assert.AreEqual(customers.Count, 1)
+        endmethod
+
+        {TestMethod}
+        public method GetCustomerGeLePhoneRef, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Orders?$filter=(REL_Customer/Phone ge '(555) 900-0000') and (REL_Customer/Phone le '(555) 920-0000')").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+
+            data orders, @ODataOrders, JsonConvert.DeserializeObject<ODataOrders>(result)
+            Assert.AreEqual(orders.Value.Count, 113)
+        endmethod
+
+        {TestMethod}
+        public method GetCustomerGeLePhoneInc, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Orders?$expand=REL_Customer&$filter=(REL_Customer/Phone ge '(555) 900-0000') and (REL_Customer/Phone le '(555) 920-0000')").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+
+            data orders, @ODataOrders, JsonConvert.DeserializeObject<ODataOrders>(result)
+            data ord, @Order
+            foreach ord in orders.Value
+            begin
+                Assert.IsTrue(string.CompareOrdinal(ord.REL_Customer.Phone, '(555) 900-0000') >= 0 && string.CompareOrdinal(ord.REL_Customer.Phone, '(555) 920-0000') <= 0)
+            end
+
+            Assert.AreEqual(orders.Value.Count, 113)
+        endmethod
+
+        {TestMethod}
+        public method GetCustomerGeLePhoneRefCount, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Orders?$filter=(REL_Customer/Phone ge '(555) 900-0000') and (REL_Customer/Phone le '(555) 920-0000')&$top=0&$count=true").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+
+            data orders, @OrderWithCount, JsonConvert.DeserializeObject<OrderWithCount>(result)
+            Assert.AreEqual(orders.Count, 113)
+            Assert.AreEqual(orders.Value.Length, 0)
         endmethod
 
         {TestMethod}
