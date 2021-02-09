@@ -148,39 +148,8 @@ Known structure properties:
     {
         public static string BuildPackageVersion = "11.1.1060.2805";
         public static string CodeDomProviderVersion = "1.0.7";
-        public static string HCBuildVersion = "3.1.200";
-        public static Dictionary<string, string> LatestNugetReferences = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase)
-        {
-            {"Harmony.Core", HCBuildVersion},
-            {"HarmonyCore.CodeDomProvider", CodeDomProviderVersion},
-            {"Harmony.Core.EF", HCBuildVersion},
-            {"Harmony.Core.OData", HCBuildVersion},
-            {"Harmony.Core.AspNetCore", HCBuildVersion},
-            {"Synergex.SynergyDE.synrnt", "11.1.1060"},
-            {"Synergex.SynergyDE.Build", BuildPackageVersion},
-            {"Microsoft.AspNetCore.Mvc.NewtonsoftJson", "3.1.6"},
-            {"Microsoft.AspNetCore.Mvc.Testing", "3.1.6"},
-            {"Microsoft.Extensions.DependencyInjection", "3.1.6"},
-            {"Microsoft.Extensions.Logging.Console", "3.1.6"},
-            {"Microsoft.AspNetCore.SignalR.Client", "3.1.6"},
-            {"Microsoft.EntityFrameworkCore", "3.1.6"},
-            {"IdentityServer4.AccessTokenValidation", "3.0.1"},
-            {"Microsoft.AspNetCore.OData", "7.4.1"},
-            {"Microsoft.OData.Core", "7.7.0"},
-            {"Microsoft.AspNetCore.JsonPatch", "3.1.6"},
-            {"Microsoft.VisualStudio.Threading", "16.6.13"},
-            {"StreamJsonRpc", "2.4.48"},
-            {"IdentityModel", "4.1.1" },
-            {"Microsoft.OData.Edm", "7.7.0"},
-            {"Microsoft.Spatial", "7.7.0"},
-            {"Swashbuckle.AspNetCore", "5.5.1"},
-            {"SSH.NET", "2016.1.0"},
-            {"Microsoft.AspNetCore.Mvc.Versioning", "4.1.1"},
-            {"Microsoft.AspNetCore.OData.Versioning.ApiExplorer", "4.1.1"},
-            {"Nito.AsyncEx", "5.0.0"},
-            {"System.Linq.Dynamic.Core", "1.1.8"},
-            {"system.text.encoding.codepages", "4.7.1"},
-        };
+        public static string HCBuildVersion = "3.1.323";
+        public static Dictionary<string, string> LatestNugetReferences;
 
         public static List<string> HCRegenRequiredVersions = new List<string>
         {
@@ -201,6 +170,44 @@ Known structure properties:
             var handle = GetStdHandle(STD_INPUT_HANDLE);
             uint currentMode = 0;
             GetConsoleMode(handle, out currentMode);
+            var versionOverride = Environment.GetEnvironmentVariable("HC_VERSION");
+            if (!string.IsNullOrWhiteSpace(versionOverride))
+            {
+                HCBuildVersion = versionOverride;
+            }
+
+            LatestNugetReferences = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase)
+            {
+                {"Harmony.Core", HCBuildVersion},
+                {"HarmonyCore.CodeDomProvider", CodeDomProviderVersion},
+                {"Harmony.Core.EF", HCBuildVersion},
+                {"Harmony.Core.OData", HCBuildVersion},
+                {"Harmony.Core.AspNetCore", HCBuildVersion},
+                {"Synergex.SynergyDE.synrnt", "11.1.1060"},
+                {"Synergex.SynergyDE.Build", BuildPackageVersion},
+                {"Microsoft.AspNetCore.Mvc.NewtonsoftJson", "3.1.6"},
+                {"Microsoft.AspNetCore.Mvc.Testing", "3.1.6"},
+                {"Microsoft.Extensions.DependencyInjection", "3.1.6"},
+                {"Microsoft.Extensions.Logging.Console", "3.1.6"},
+                {"Microsoft.AspNetCore.SignalR.Client", "3.1.6"},
+                {"Microsoft.EntityFrameworkCore", "3.1.6"},
+                {"IdentityServer4.AccessTokenValidation", "3.0.1"},
+                {"Microsoft.AspNetCore.OData", "7.4.1"},
+                {"Microsoft.OData.Core", "7.7.0"},
+                {"Microsoft.AspNetCore.JsonPatch", "3.1.6"},
+                {"Microsoft.VisualStudio.Threading", "16.6.13"},
+                {"StreamJsonRpc", "2.4.48"},
+                {"IdentityModel", "4.1.1" },
+                {"Microsoft.OData.Edm", "7.7.0"},
+                {"Microsoft.Spatial", "7.7.0"},
+                {"Swashbuckle.AspNetCore", "5.5.1"},
+                {"SSH.NET", "2016.1.0"},
+                {"Microsoft.AspNetCore.Mvc.Versioning", "4.1.1"},
+                {"Microsoft.AspNetCore.OData.Versioning.ApiExplorer", "4.1.1"},
+                {"Nito.AsyncEx", "5.0.0"},
+                {"System.Linq.Dynamic.Core", "1.1.8"},
+                {"system.text.encoding.codepages", "4.7.1"},
+            };
 
             var solutionDir = Environment.GetEnvironmentVariable("SolutionDir") ?? Environment.CurrentDirectory;
             Console.WriteLine("Scanning '{0}' for HarmonyCore project files", solutionDir);
