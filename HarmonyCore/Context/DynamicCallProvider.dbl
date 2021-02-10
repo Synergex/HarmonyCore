@@ -501,7 +501,7 @@ namespace Harmony.Core.Context
 				data retValue = ((@JToken)arguments[1].PassedValue)
 				mreturn CallProvider.AfterCall<T>(name, Tuple.Create(retValue.Value<T>(), args))
 			end
-			else if(arguments[1].DataType == FieldDataType.DataObjectCollectionField) then
+			else if(arguments[1].DataType == FieldDataType.DataObjectCollectionField || (arguments[1].DataType & FieldDataType.ArrayField) != 0) then
 			begin
 				mreturn CallProvider.AfterCall<T>(name, Tuple.Create((T)GetTypeCorrectedCollectionValue(args[1], arguments[1]), args))
 			end
