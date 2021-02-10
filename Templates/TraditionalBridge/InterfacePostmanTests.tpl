@@ -1,9 +1,10 @@
 <CODEGEN_FILENAME><INTERFACE_NAME>PostmanTests.postman_collection.json</CODEGEN_FILENAME>
+<REQUIRES_USERTOKEN>API_TITLE</REQUIRES_USERTOKEN>
 <REQUIRES_CODEGEN_VERSION>5.4.6</REQUIRES_CODEGEN_VERSION>
 {
 	"info": {
 		"_postman_id": "2648742f-eaf1-4fe1-8a13-52af1cd8534a",
-		"name": "<INTERFACE_NAME> Interface",
+		"name": "<API_TITLE> (<INTERFACE_NAME>)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
