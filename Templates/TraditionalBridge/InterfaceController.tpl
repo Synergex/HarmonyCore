@@ -66,9 +66,9 @@ import <NAMESPACE>
 
 namespace <NAMESPACE>
 
-	<IF DEFINED_ENABLE_AUTHENTICATION>
-	{Authorize}
-	</IF DEFINED_ENABLE_AUTHENTICATION>
+    <IF DEFINED_ENABLE_AUTHENTICATION>
+    {Authorize}
+    </IF DEFINED_ENABLE_AUTHENTICATION>
     {Route("<INTERFACE_NAME>")}
     public partial class <INTERFACE_NAME>Controller extends ControllerBase
 
@@ -83,7 +83,7 @@ namespace <NAMESPACE>
         ;;; <param name="aAppSettings">Application settings</param>
         public method <INTERFACE_NAME>Controller
             a<INTERFACE_NAME>Service, @<INTERFACE_NAME>Service
-			aAppSettings, @IOptions<<MODELS_NAMESPACE>.AppSettings>
+            aAppSettings, @IOptions<<MODELS_NAMESPACE>.AppSettings>
         proc
             _<INTERFACE_NAME>Service = a<INTERFACE_NAME>Service
             _AppSettings = aAppSettings
