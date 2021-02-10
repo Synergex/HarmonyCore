@@ -3,30 +3,10 @@
 {
 	"info": {
 		"_postman_id": "2648742f-eaf1-4fe1-8a13-52af1cd8534a",
-		"name": "<INTERFACE_NAME> Interface Tests",
+		"name": "<INTERFACE_NAME> Interface",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
-		{
-			"name": "Add Two Numbers",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{server}}/<INTERFACE_NAME>/AddTwoNumbers/1/1",
-					"host": [
-						"{{server}}"
-					],
-					"path": [
-						"<INTERFACE_NAME>",
-						"AddTwoNumbers",
-						"1",
-						"1"
-					]
-				}
-			},
-			"response": []
-		},
 <METHOD_LOOP>
   <IF IN_OR_INOUT>
 		{
