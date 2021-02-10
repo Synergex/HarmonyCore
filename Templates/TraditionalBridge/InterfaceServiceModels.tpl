@@ -125,7 +125,7 @@ namespace <NAMESPACE>
         ;;; No description found in method catalog
         </IF COMMENT>
         ;;; </summary>
-        public <PARAMETER_NAME>, <IF COLLECTION>[#]</IF><HARMONYCORE_BRIDGE_PARAMETER_TYPE>
+        public <PARAMETER_NAME>, <IF COLLECTION>[#]</IF><HARMONYCORE_BRIDGE_PARAMETER_TYPE><IF OPTIONAL AND OUT AND ALPHA>, ""</IF OPTIONAL>
         </IF OUT_OR_INOUT>
       </PARAMETER_LOOP>
     </IF OUT_OR_INOUT>

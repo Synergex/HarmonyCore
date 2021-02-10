@@ -44,7 +44,7 @@ namespace Harmony.Core.EF.Query.Internal
             else
                 ParameterToQueryExpressionLookup.Add(selectParameter, queryExpression);
 
-            if (shapedExpression is JoinedShapedQueryExpression joinedExpr)
+            if (shapedExpression is JoinedShapedQueryExpression joinedExpr && selectParameter.Type == joinedExpr.InnerNavigation.ClrType)
             {
                 var innerSelectParameter = Expression.PropertyOrField(selectParameter, joinedExpr.InnerNavigation.Name);
                 MapQueryExpression(joinedExpr.Inner, innerSelectParameter);

@@ -91,7 +91,7 @@ namespace <NAMESPACE>
 		public readwrite property <PARAMETER_NAME>, @<ParameterStructureNoplural>
 		</IF STRUCTURE>
 		<IF ALPHA>
-		public readwrite property <PARAMETER_NAME>, string
+		public readwrite property <PARAMETER_NAME>, string <IF OPTIONAL AND OUT>, ""</IF OPTIONAL>
 		</IF ALPHA>
 		<IF DECIMAL>
 		public readwrite property <PARAMETER_NAME>, int

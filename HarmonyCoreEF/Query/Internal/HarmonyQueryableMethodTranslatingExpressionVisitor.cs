@@ -1015,9 +1015,9 @@ namespace Harmony.Core.EF.Query.Internal
                 if (leftNav.Item1 is HarmonyTableExpression || rightNav.Item1 is HarmonyTableExpression)
                 {
 
-                    if (simplifiedLeft is ConstantExpression)
+                    if (simplifiedLeft is ConstantExpression lce && lce.Value == null)
                         updatedNode = simplifiedRight;
-                    if (simplifiedRight is ConstantExpression)
+                    if (simplifiedRight is ConstantExpression rce && rce.Value == null)
                         updatedNode = simplifiedLeft;
                     if (updatedNode is ConstantExpression)
                         throw new NotImplementedException();
@@ -1091,11 +1091,15 @@ namespace Harmony.Core.EF.Query.Internal
                 }
                 else if (expr is JoinOnClause joc)
                     return (joc.TargetTable, null);
-                else if (expr is MethodCallExpression mce && mce.Object != null)
+                else if (expr is MethodCallExpression mce)
                 {
                     var nestedFind = FindParameterOrNavigation(mce.Object);
                     if (nestedFind.Item1 is HarmonyTableExpression || nestedFind.Item1 is ParameterExpression)
                         return nestedFind;
+
+                    var argFind = mce.Arguments.Select(expr => FindParameterOrNavigation(expr)).FirstOrDefault(exprTpl => exprTpl.Item1 is HarmonyTableExpression || exprTpl.Item1 is ParameterExpression);
+                    if (argFind.Item1 != null || argFind.Item2 != null)
+                        return argFind;
                     else
                         return (expr, null);
                 }
@@ -1182,6 +1186,11 @@ namespace Harmony.Core.EF.Query.Internal
                 else
                     return base.VisitUnary(node);
             }
+
+            protected override Expression VisitMethodCall(MethodCallExpression node)
+            {
+                return base.VisitMethodCall(node);
+            }
         }
 
         private Dictionary<ParameterExpression, LambdaExpression> SimplifyPredicate(HarmonyQueryExpression queryExpression, LambdaExpression predicate)
@@ -1218,6 +1227,22 @@ namespace Harmony.Core.EF.Query.Internal
                 else
                     return null;
             }
+            else if (node is MethodCallExpression mce)
+            {
+                var obj = ExtractJoins(predicates, mce.Object);
+                bool hasExtracted = obj != null;
+                var arguments = mce.Arguments.Select(expr =>
+                {
+                    var extracted = ExtractJoins(predicates, expr);
+                    if (extracted != null)
+                        hasExtracted = true;
+                    return extracted ?? expr;
+                }).ToList();
+                if (hasExtracted)
+                    return mce.Update(obj ?? mce.Object, arguments);
+                else
+                    return null;
+            }
             else if (node is JoinOnClause joc)
             {
                 if (predicates.TryGetValue(joc.CurrentParameter, out var currentPredicate))
@@ -1236,8 +1261,15 @@ namespace Harmony.Core.EF.Query.Internal
 
         Expression PeekPastJoinClause(JoinOnClause joc)
         {
+            if (joc == null)
+                return null;
+
             if (joc.InnerExpression is JoinOnClause joc2)
                 return PeekPastJoinClause(joc2);
+            else if(joc.InnerExpression is BinaryExpression be)
+            {
+                return be.Update(PeekPastJoinClause(be.Left as JoinOnClause) ?? be.Left, be.Conversion, PeekPastJoinClause(be.Right as JoinOnClause) ?? be.Right);
+            }
             else
                 return joc.InnerExpression;
         }

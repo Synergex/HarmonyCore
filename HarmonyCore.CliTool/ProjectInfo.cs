@@ -37,7 +37,8 @@ namespace HarmonyCore.CliTool
             "Services.Controllers",
             "Services",
             "Services.Host",
-            "Services.Test"
+            "Services.Test",
+            "Services.Isolated"
         };
         public string FileName { get; set; }
         public XmlDocument ProjectDoc { get; set; }
@@ -159,6 +160,13 @@ namespace HarmonyCore.CliTool
                 ProjectDoc.DocumentElement.AppendChild(firstItemGroup);
             }
 
+            var firstPropertyGroup = ProjectDoc.GetElementsByTagName("PropertyGroup").OfType<XmlNode>().FirstOrDefault();
+            if (firstPropertyGroup == null)
+            {
+                firstPropertyGroup = ProjectDoc.CreateElement("PropertyGroup");
+                ProjectDoc.DocumentElement.AppendChild(firstPropertyGroup);
+            }
+
             //upgrade Host and test to Web sdk if needed
             //Add SDK reference to Services.Controllers
 
@@ -192,18 +200,19 @@ namespace HarmonyCore.CliTool
 
             if (CodeDomProjects.Contains(cleanFileName))
             {
-                var hasCodeDomInjector = ProjectDoc.GetElementsByTagName("PackageReference").OfType<XmlNode>()
-                .Any(node => node.Attributes["Include"]?.Value == "HarmonyCore.CodeDomProvider");
-                if (!hasCodeDomInjector)
+                var codeDomInjector = ProjectDoc.GetElementsByTagName("PackageReference").OfType<XmlNode>()
+                .FirstOrDefault(node => node.Attributes["Include"]?.Value == "HarmonyCore.CodeDomProvider");
+                if (codeDomInjector != null)
                 {
-                    var codeDomReference = ProjectDoc.CreateElement("PackageReference");
-                    var codeDomReferenceName = ProjectDoc.CreateAttribute("Include");
-                    codeDomReferenceName.Value = "HarmonyCore.CodeDomProvider";
-                    var codeDomReferenceVersion = ProjectDoc.CreateAttribute("Version");
-                    codeDomReferenceVersion.Value = Program.CodeDomProviderVersion;
-                    codeDomReference.Attributes.Append(codeDomReferenceName);
-                    codeDomReference.Attributes.Append(codeDomReferenceVersion);
-                    firstItemGroup.AppendChild(codeDomReference);
+                    codeDomInjector.ParentNode.RemoveChild(codeDomInjector);
+                }
+
+                var hasRazorPartsDisabled = ProjectDoc.GetElementsByTagName("GenerateMvcApplicationPartsAssemblyAttributes").Count > 0;
+                if (!hasRazorPartsDisabled)
+                {
+                    var partsNode = ProjectDoc.CreateElement("GenerateMvcApplicationPartsAssemblyAttributes");
+                    partsNode.AppendChild(ProjectDoc.CreateTextNode("false"));
+                    firstPropertyGroup.AppendChild(partsNode);
                 }
             }
             if (string.Compare(cleanFileName, "Services", true) == 0)
@@ -244,7 +253,7 @@ namespace HarmonyCore.CliTool
             var packageReferences = ProjectDoc.GetElementsByTagName("PackageReference").OfType<XmlNode>().ToList();
             foreach (var node in packageReferences)
             {
-                var includeValue = AttributeOrChild(node, "Include")?.Value;
+                var includeValue = AttributeOrChild(node, "Include")?.Value?.Trim();
                 //if we have a target version see what version we're currently at
                 if (packageToVersionMapping.TryGetValue(includeValue, out var targetVersion))
                 {
