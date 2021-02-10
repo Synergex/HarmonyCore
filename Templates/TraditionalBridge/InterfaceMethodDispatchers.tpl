@@ -164,7 +164,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 ;//
 
             ;;------------------------------------------------------------
-            ;;Process inbound arguments
+            ;;Prepare variables for arguments
 
 <IF COUNTER_1>
             arguments = callFrame.GetProperty("params")
@@ -253,6 +253,8 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
         <ELSE COLLECTION>
             <IF COLLECTION_HANDLE OR COLLECTION_ARRAY>
             arg<COUNTER_1_VALUE>Handle = %mem_proc(DM_ALLOC,<PARAMETER_SIZE>)
+            <ELSE COLLECTION_ARRAYLIST>
+            arg<COUNTER_1_VALUE> = new ArrayList()
             </IF>
         </IF>
     </IF IN_OR_INOUT>
@@ -470,7 +472,7 @@ endnamespace
 ;; If the Synergy methods don't expsoe any structure or collection of structure
 ;; parameters then there won't be anything in the Models folder, and the import above will fail.
 namespace <MODELS_NAMESPACE>
-    public class DummyModel
+    public class <INTERFACE_NAME>DummyModel
     endclass
 endnamespace
 
