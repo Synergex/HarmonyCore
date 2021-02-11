@@ -68,6 +68,7 @@ namespace <NAMESPACE>
         public static method Initialize, void
 
         proc
+<IF NOT DEFINED_EF_PROVIDER_MYSQL>
             ;;Allows select to join when the keys in the file are not the same type as the keys in the code
             data status, int
             xcall setlog("SYNSEL_NUMALPHA_KEYS", 1, status) 
@@ -75,10 +76,11 @@ namespace <NAMESPACE>
             ;;Configure the test environment (set logicals, create files in a known state, etc.)
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)
             setLogicals()
-<IF DEFINED_ENABLE_CREATE_TEST_FILES>
+  <IF DEFINED_ENABLE_CREATE_TEST_FILES>
             deleteFiles()
             createFiles()
 
+  </IF>
 </IF>
             ;;If we have an InitializeCustom method, call it
             InitializeCustom()
@@ -94,7 +96,7 @@ namespace <NAMESPACE>
         public static method Cleanup, void
 
         proc
-<IF DEFINED_ENABLE_CREATE_TEST_FILES>
+<IF NOT DEFINED_EF_PROVIDER_MYSQL AND DEFINED_ENABLE_CREATE_TEST_FILES>
             ;;Delete the data files
             deleteFiles()
 
@@ -104,6 +106,7 @@ namespace <NAMESPACE>
 
         endmethod
 
+<IF NOT DEFINED_EF_PROVIDER_MYSQL>
         ;;Declare the SetLogicalsCustom partial method
         ;;This method can be implemented in a partial class to provide custom code to define logical names
         partial static method SetLogicalsCustom, void
@@ -116,7 +119,7 @@ namespace <NAMESPACE>
             Startup.LogicalNames = new List<string>()
             data logical = String.Empty
             data fileSpec = String.Empty
-<STRUCTURE_LOOP>
+  <STRUCTURE_LOOP>
 
             fileSpec = "<FILE_NAME>"
             if (fileSpec.Contains(":")) then
@@ -130,12 +133,12 @@ namespace <NAMESPACE>
                 if (!Startup.LogicalNames.Contains(fileSpec))
                     Startup.LogicalNames.Add(fileSpec)
             end
-</STRUCTURE_LOOP>
+  </STRUCTURE_LOOP>
 
             ;;If we have a SetLogicalsCustom method, call it
             SetLogicalsCustom(Startup.LogicalNames)
 
-<IF NOT DEFINED_DO_NOT_SET_FILE_LOGICALS>
+  <IF NOT DEFINED_DO_NOT_SET_FILE_LOGICALS>
             ;;Now we'll check each logical. If it already has a value we'll do nothing, otherwise
             ;;we'll set the logical to point to the local folder whose name is identified by the
             ;;user-defined token DATA_FOLDER
@@ -152,27 +155,27 @@ namespace <NAMESPACE>
                 end
             end
 
-</IF>
+  </IF>
         endmethod
 
-<IF DEFINED_ENABLE_CREATE_TEST_FILES>
+  <IF DEFINED_ENABLE_CREATE_TEST_FILES>
         private static method createFiles, void
         proc
             data chout, int
             data dataFile, string
             data xdlFile, string
 
-  <STRUCTURE_LOOP>
-    <IF STRUCTURE_ISAM>
+    <STRUCTURE_LOOP>
+      <IF STRUCTURE_ISAM>
             data <structurePlural> = load<StructurePlural>()
-    </IF>
-  </STRUCTURE_LOOP>
+      </IF>
+    </STRUCTURE_LOOP>
 
-  <STRUCTURE_LOOP>
+    <STRUCTURE_LOOP>
             ;;Create and load the <structurePlural> file
 
             dataFile = "<FILE_NAME>"
-    <IF STRUCTURE_ISAM>
+      <IF STRUCTURE_ISAM>
             xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
 
             data <structureNoplural>, @<StructureNoplural>
@@ -181,18 +184,18 @@ namespace <NAMESPACE>
                 store(chout,<structureNoplural>.SynergyRecord)
             close chout
 
-    </IF>
-    <IF STRUCTURE_RELATIVE>
+      </IF>
+      <IF STRUCTURE_RELATIVE>
             data sourceFile = dataFile.ToLower().Replace(".ddf",".txt")
             xcall copy(sourceFile,dataFile,1)
 
-    </IF>
-  </STRUCTURE_LOOP>
+      </IF>
+    </STRUCTURE_LOOP>
         endmethod
 
         private static method deleteFiles, void
         proc
-  <STRUCTURE_LOOP>
+    <STRUCTURE_LOOP>
             ;;Delete the <structurePlural> file
             try
             begin
@@ -204,11 +207,11 @@ namespace <NAMESPACE>
             end
             endtry
 
-  </STRUCTURE_LOOP>
+    </STRUCTURE_LOOP>
         endmethod
 
-  <STRUCTURE_LOOP>
-    <IF STRUCTURE_ISAM>
+    <STRUCTURE_LOOP>
+      <IF STRUCTURE_ISAM>
         public static method load<StructurePlural>, @List<<StructureNoplural>>
         proc
             data dataFile = "<FILE_NAME>"
@@ -228,9 +231,9 @@ namespace <NAMESPACE>
             mreturn <structurePlural>
         endmethod
 
-    </IF>
-  </STRUCTURE_LOOP>
-</IF>
+      </IF>
+    </STRUCTURE_LOOP>
+  </IF>
         private static method findRelativeFolderForAssembly, string
             folderName, string
         proc
@@ -247,6 +250,7 @@ namespace <NAMESPACE>
             mreturn ^null
         endmethod
 
+</IF>
     endclass
 
 endnamespace

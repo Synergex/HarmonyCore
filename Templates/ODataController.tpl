@@ -81,7 +81,7 @@ namespace <NAMESPACE>
     public partial class <StructurePlural>Controller extends ODataController
     
         ;;Services provided via dependency injection
-        private _DbContext, @<MODELS_NAMESPACE>.DBContext
+        private _DbContext, @<MODELS_NAMESPACE>.<IF DEFINED_EF_PROVIDER_MYSQL><MYSQL_DBCONTEXT_CLASS><ELSE>DBContext</IF>
         private _ServiceProvider, @IServiceProvider
         private _AppSettings, @IOptions<AppSettings>
 
@@ -92,7 +92,7 @@ namespace <NAMESPACE>
         ;;; <param name="aServiceProvider">Service provider instance (DI)</param>
         ;;; <param name="aAppSettings">Application settings</param>
         public method <StructurePlural>Controller
-            aDbContext, @<MODELS_NAMESPACE>.DBContext
+            aDbContext, @<MODELS_NAMESPACE>.<IF DEFINED_EF_PROVIDER_MYSQL><MYSQL_DBCONTEXT_CLASS><ELSE>DBContext</IF>
             aServiceProvider, @IServiceProvider
             aAppSettings, @IOptions<AppSettings>
         proc
@@ -130,15 +130,69 @@ namespace <NAMESPACE>
 
 </IF DEFINED_ENABLE_GET_ALL_AND_GET_ALL_ENDPOINT>
 ;//
-;// GET ONE (ISAM, UNIQUE PRIMARY KEY READ) -----------------------------------
+;// GET BY UNIQUE ISAM PRIMARY KEY ----------------------------------------------------------------
 ;//
 <IF STRUCTURE_ISAM AND STRUCTURE_HAS_UNIQUE_PK AND DEFINED_ENABLE_GET_ONE AND GET_ENDPOINT>
+  <IF NOT DEFINED_EF_PROVIDER_MYSQL>
+;//
+;// GET BY UNIQUE PRIMARY KEY (SDMS) --------------------------------------------------------------
+;//
         {ODataRoute("(<PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY>)")}
         {Produces("application/json")}
         {ProducesResponseType(^typeof(<StructureNoplural>),StatusCodes.Status200OK)}
   <IF DEFINED_ENABLE_AUTHENTICATION>
         {ProducesResponseType(StatusCodes.Status401Unauthorized)}
   </IF DEFINED_ENABLE_AUTHENTICATION>
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
+    <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_GET>
+        {Authorize(Roles="<ROLES_GET>")}
+    </IF DEFINED_ENABLE_AUTHENTICATION>
+    <IF DEFINED_ENABLE_FIELD_SECURITY>
+        {HarmonyFieldSecurity<API_ENABLE_QUERY_PARAMS>}
+    <ELSE>
+        {EnableQuery<API_ENABLE_QUERY_PARAMS>}
+    </IF DEFINED_ENABLE_FIELD_SECURITY>
+        ;;; <summary>
+        ;;; Get a single <StructureNoplural> by primary key.
+        ;;; </summary>
+    <PRIMARY_KEY>
+      <SEGMENT_LOOP>
+        <IF NOT SEG_TAG_EQUAL>
+        ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
+        </IF>
+      </SEGMENT_LOOP>
+    </PRIMARY_KEY>
+        ;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
+        public method Get<StructureNoplural>, @SingleResult<<StructureNoplural>>
+    <PRIMARY_KEY>
+      <SEGMENT_LOOP>
+        <IF NOT SEG_TAG_EQUAL>
+            {FromODataUri}
+          <IF CUSTOM_HARMONY_AS_STRING>
+            required in a<FieldSqlName>, string
+          <ELSE>
+            required in a<FieldSqlName>, <HARMONYCORE_SEGMENT_DATATYPE>
+          </IF CUSTOM_HARMONY_AS_STRING>
+        </IF>
+      </SEGMENT_LOOP>
+    </PRIMARY_KEY>
+        proc
+;//Shouldn't really need the generic type arg on FindQuery. Compiler issue?
+            mreturn new SingleResult<<StructureNoplural>>(_DbContext.<StructurePlural>.AsNoTracking().FindQuery<<StructureNoplural>>(_DbContext,<PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE><ELSE><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP></PRIMARY_KEY>))
+        endmethod
+
+  <ELSE>
+;//
+;// GET BY UNIQUE PRIMARY KEY (MySQL) -------------------------------------------------------------
+;//
+;// When working with MySQL (at FCL at least) we don't have access to the actual primary key, because the corresponding
+;// field is not defined in the repository. The first key defined in repository actually refers to an alternate index
+;// as far as MySQL and EF are concerned. So our EdmBuilder declares the key the same way we generally declare alternate
+;// keys, and that means we need to use FindAlternate here instead of FindQuery.
+;//
+        {ODataRoute("(Companyext={aCompanyext},<PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY>)")}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(<StructureNoplural>),StatusCodes.Status200OK)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
   <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_GET>
         {Authorize(Roles="<ROLES_GET>")}
@@ -151,6 +205,7 @@ namespace <NAMESPACE>
         ;;; <summary>
         ;;; Get a single <StructureNoplural> by primary key.
         ;;; </summary>
+        ;;; <param name="aCompanyext">Company Code</param>
   <PRIMARY_KEY>
     <SEGMENT_LOOP>
       <IF NOT SEG_TAG_EQUAL>
@@ -160,6 +215,8 @@ namespace <NAMESPACE>
   </PRIMARY_KEY>
         ;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
         public method Get<StructureNoplural>, @SingleResult<<StructureNoplural>>
+            {FromODataUri}
+            required in aCompanyext, string
   <PRIMARY_KEY>
     <SEGMENT_LOOP>
       <IF NOT SEG_TAG_EQUAL>
@@ -177,11 +234,16 @@ namespace <NAMESPACE>
             mreturn new SingleResult<<StructureNoplural>>(_DbContext.<StructurePlural>.AsNoTracking().FindQuery<<StructureNoplural>>(_DbContext, <PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE><ELSE><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP></PRIMARY_KEY>))
         endmethod
 
+  </IF>
 </IF STRUCTURE_ISAM>
 ;//
-;// GET "ONE" (not in this case!) (ISAM, NON-UNIQUE PRIMARY KEY READ) ---------
+;// GET BY NON-UNIQUE ISAM PRIMARY KEY READ -------------------------------------------------------
 ;//
 <IF STRUCTURE_ISAM AND NOT STRUCTURE_HAS_UNIQUE_PK AND DEFINED_ENABLE_GET_ONE AND GET_ENDPOINT>
+  <IF NOT DEFINED_EF_PROVIDER_MYSQL>
+;//
+;// GET BY NON-UNIQUE PRIMARY KEY (SDMS) ----------------------------------------------------------
+;//
         {ODataRoute("(<PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY>)")}
         {Produces("application/json")}
         {ProducesResponseType(^typeof(ODataValue<IEnumerable<<StructureNoplural>>>),StatusCodes.Status200OK)}
@@ -225,6 +287,61 @@ namespace <NAMESPACE>
             mreturn Ok(_DbContext.<StructurePlural>.AsNoTracking().FindQuery<<StructureNoplural>>(_DbContext, <PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE><ELSE><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP></PRIMARY_KEY>))
         endmethod
 
+  <ELSE>
+;//
+;// GET BY NON-UNIQUE PRIMARY KEY (MySQL) ---------------------------------------------------------
+;//
+;// When working with MySQL (at FCL at least) we don't have access to the actual primary key, because the corresponding
+;// field is not defined in the repository. The first key defined in repository actually refers to an alternate index
+;// as far as MySQL and EF are concerned. So our EdmBuilder declares the key the same way we generally declare alternate
+;// keys, and that means we need to use FindAlternate here instead of FindQuery.
+;//
+        {ODataRoute("(Companyext={aCompanyext},<PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY>)")}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(ODataValue<IEnumerable<<StructureNoplural>>>),StatusCodes.Status200OK)}
+  <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_GET>
+        {Authorize(Roles="<ROLES_GET>")}
+  </IF DEFINED_ENABLE_AUTHENTICATION>
+  <IF DEFINED_ENABLE_FIELD_SECURITY>
+        {HarmonyFieldSecurity<API_ENABLE_QUERY_PARAMS>}
+  <ELSE>
+        {EnableQuery<API_ENABLE_QUERY_PARAMS>}
+  </IF DEFINED_ENABLE_FIELD_SECURITY>
+        ;;; <summary>
+        ;;; Get all <StructurePlural> matching non-unique primary key.
+        ;;; </summary>
+        ;;; <param name="aCompanyext">Company Code</param>
+  <PRIMARY_KEY>
+    <SEGMENT_LOOP>
+      <IF NOT SEG_TAG_EQUAL>
+        ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
+      </IF>
+    </SEGMENT_LOOP>
+  </PRIMARY_KEY>
+        ;;; <returns>Returns a collection of any <StructurePlural> matching non-unique primary key, or an empty collection if no matching records are found.</returns>
+        public method Get<StructureNoplural>, @IActionResult
+            {FromODataUri}
+            required in aCompanyext, string
+  <PRIMARY_KEY>
+    <SEGMENT_LOOP>
+      <IF NOT SEG_TAG_EQUAL>
+            {FromODataUri}
+        <IF CUSTOM_HARMONY_AS_STRING>
+            required in a<FieldSqlName>, string
+        <ELSE>
+            required in a<FieldSqlName>, <HARMONYCORE_SEGMENT_DATATYPE>
+        </IF CUSTOM_HARMONY_AS_STRING>
+      </IF>
+    </SEGMENT_LOOP>
+  </PRIMARY_KEY>
+        proc
+            data result = _DbContext.<StructurePlural>.AsNoTracking().FindAlternate("Companyext",aCompanyext.PadRight(3),<PRIMARY_KEY><SEGMENT_LOOP>"<FieldSqlName>",<IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP></PRIMARY_KEY>)
+            if (result == ^null)
+                mreturn NotFound()
+            mreturn Ok(result)
+        endmethod
+
+  </IF>
 </IF STRUCTURE_ISAM>
 ;//
 ;// GET ONE (RELATIVE FILE RECORD NUMBER READ) --------------------------------

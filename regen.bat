@@ -1,4 +1,5 @@
 @echo off
+cls
 setlocal
 
 set SolutionDir=%~dp0
@@ -23,8 +24,9 @@ set ModelsProject=Services.Models
 set ControllersProject=Services.Controllers
 set HostProject=Services.Host
 set TestProject=Services.Test
+set TestValuesProject=Services.Test.GetTestValues
 set TraditionalBridgeProject=TraditionalBridge
-set RepositoryProject=HarmonyCore.Test.Repository\HarmonyCore.Test.Repository.synproj
+
 rem ================================================================================================================================
 rem Specify the names of the repository structures to generate code from:
 
@@ -69,14 +71,14 @@ rem FILE_ALIASES        Optional aliases for the structures listed in FILE_STRUC
 rem
 rem FILE_FILES          Repository file assignments for the structures listed in FILE_STRUCTURES
 rem
-rem CUSTOM_STRUCTURES	Is a list of structures that you wish to generate models and metadata
+rem CUSTOM_STRUCTURES    Is a list of structures that you wish to generate models and metadata
 rem                     for, but which will NOT be exposed to the Entity Framework provider.
 rem                     These classes are intended for use only by custom code-based endpoints
 rem                     and the DbContext and EdmBuilder classes will know nothing about them.
 rem
 rem CUSTOM_ALIASES      Optional aliases for the structures listed in CUSTOM_STRUCTURES
 
-rem BRIDGE_STRUCTURES	Is a list of structures that you wish to generate models and metadata
+rem BRIDGE_STRUCTURES    Is a list of structures that you wish to generate models and metadata
 rem                     for use with a Traditional Bridge environment. These types will NOT
 rem                     be exposed to the Entity Framework provider.
 rem
@@ -86,6 +88,8 @@ rem ============================================================================
 rem Comment or uncomment the following lines to enable or disable optional features:
 
 set ENABLE_ODATA_ENVIRONMENT=YES
+set EF_PROVIDER_MYSQL=-define EF_PROVIDER_MYSQL
+set NO_CUSTOM_PLURALIZATION=-ncp
 set ENABLE_SELF_HOST_GENERATION=YES
 set ENABLE_CREATE_TEST_FILES=-define ENABLE_CREATE_TEST_FILES
 rem set DO_NOT_SET_FILE_LOGICALS=-define DO_NOT_SET_FILE_LOGICALS
@@ -122,7 +126,6 @@ rem set ENABLE_READ_ONLY_PROPERTIES=-define ENABLE_READ_ONLY_PROPERTIES
 rem set ENABLE_TRADITIONAL_BRIDGE_GENERATION=YES
 rem set ENABLE_XFSERVERPLUS_MIGRATION=YES
 rem set ENABLE_XFSERVERPLUS_MODEL_GENERATION=YES
-rem set ENABLE_BRIDGE_SAMPLE_DISPATCHERS=-define ENABLE_BRIDGE_SAMPLE_DISPATCHERS
 rem set ENABLE_BRIDGE_OPTIONAL_PARAMETERS=YES
 set ENABLE_NEWTONSOFT=-define ENABLE_NEWTONSOFT
 
@@ -133,15 +136,25 @@ if not "NONE%ENABLE_SELECT%%ENABLE_FILTER%%ENABLE_ORDERBY%%ENABLE_TOP%%ENABLE_SK
 rem ================================================================================================================================
 rem Configure standard command line options and the CodeGen environment
 
-set NOREPLACEOPTS=-e -lf -u %SolutionDir%UserDefinedTokens.tkn %ENABLE_GET_ALL% %ENABLE_GET_ONE% %ENABLE_OVERLAYS% %DO_NOT_SET_FILE_LOGICALS% %ENABLE_ALTERNATE_FIELD_NAMES% %ENABLE_AUTHENTICATION% %ENABLE_CUSTOM_AUTHENTICATION% %ENABLE_SIGNALR% %ENABLE_FIELD_SECURITY% %ENABLE_PROPERTY_ENDPOINTS% %ENABLE_CASE_SENSITIVE_URL% %ENABLE_CREATE_TEST_FILES% %ENABLE_CORS% %ENABLE_IIS_SUPPORT% %ENABLE_DELETE% %ENABLE_PUT% %ENABLE_POST% %ENABLE_PATCH% %ENABLE_ALTERNATE_KEYS% %ENABLE_RELATIONS% %ENABLE_RELATIONS_VALIDATION% %ENABLE_SELECT% %ENABLE_FILTER% %ENABLE_ORDERBY% %ENABLE_COUNT% %ENABLE_TOP% %ENABLE_SKIP% %ENABLE_SPROC% %ENABLE_ADAPTER_ROUTING% %ENABLE_READ_ONLY_PROPERTIES% %ENABLE_NEWTONSOFT% %PARAM_OPTIONS_PRESENT% -rps %RPSMFIL% %RPSTFIL%
+rem set SHOW_CODEGEN_COMMANDS=-e
+
+set NOREPLACEOPTS=%SHOW_CODEGEN_COMMANDS% -lf -u %SolutionDir%UserDefinedTokens.tkn %NO_CUSTOM_PLURALIZATION% %ENABLE_GET_ALL% %ENABLE_GET_ONE% %ENABLE_OVERLAYS% %DO_NOT_SET_FILE_LOGICALS% %ENABLE_ALTERNATE_FIELD_NAMES% %ENABLE_AUTHENTICATION% %ENABLE_CUSTOM_AUTHENTICATION% %ENABLE_SIGNALR% %ENABLE_FIELD_SECURITY% %ENABLE_PROPERTY_ENDPOINTS% %ENABLE_CASE_SENSITIVE_URL% %ENABLE_CREATE_TEST_FILES% %ENABLE_CORS% %ENABLE_IIS_SUPPORT% %ENABLE_DELETE% %ENABLE_PUT% %ENABLE_POST% %ENABLE_PATCH% %ENABLE_ALTERNATE_KEYS% %ENABLE_RELATIONS% %ENABLE_RELATIONS_VALIDATION% %ENABLE_SELECT% %ENABLE_FILTER% %ENABLE_ORDERBY% %ENABLE_COUNT% %ENABLE_TOP% %ENABLE_SKIP% %ENABLE_SPROC% %ENABLE_ADAPTER_ROUTING% %ENABLE_READ_ONLY_PROPERTIES% %ENABLE_NEWTONSOFT% %PARAM_OPTIONS_PRESENT% %EF_PROVIDER_MYSQL% -rps %RPSMFIL% %RPSTFIL%
 set STDOPTS=%NOREPLACEOPTS% -r
 
 rem ================================================================================================================================
-rem Generate a Web API / OData CRUD environment
 
 if DEFINED ENABLE_ODATA_ENVIRONMENT (
 
-  rem Generate model and metadata classes
+if NOT DEFINED EF_PROVIDER_MYSQL (
+
+  echo .
+  echo ************************************************************************
+  echo Generating Web API/OData CRUD environment
+
+  echo.
+  echo ----------------------------------------------------------------
+  echo Generating model and metadata classes
+
   codegen -s  %DATA_STRUCTURES% %CUSTOM_STRUCTURES% ^
           -a  %DATA_ALIASES% %CUSTOM_ALIASES% ^
           -fo %DATA_FILES% ^
@@ -151,8 +164,13 @@ if DEFINED ENABLE_ODATA_ENVIRONMENT (
           -n  %ModelsProject% ^
               %STDOPTS%
   if ERRORLEVEL 1 goto error
+)
+
   
-  rem Generate controller classes
+  echo.
+  echo ----------------------------------------------------------------
+  echo Generating controller classes
+
   codegen -s  %DATA_STRUCTURES% ^
           -a  %DATA_ALIASES% ^
           -fo %DATA_FILES% ^
@@ -164,7 +182,10 @@ if DEFINED ENABLE_ODATA_ENVIRONMENT (
   if ERRORLEVEL 1 goto error
   
 if DEFINED ENABLE_PROPERTY_ENDPOINTS (
-  rem Generate partial controller class for individual property endpoints
+
+  echo.
+  echo ----------------------------------------------------------------
+  echo Generating individual property endpoints
 
   codegen -s  %DATA_STRUCTURES% ^
           -a  %DATA_ALIASES% ^
@@ -176,7 +197,13 @@ if DEFINED ENABLE_PROPERTY_ENDPOINTS (
               %STDOPTS%
   if ERRORLEVEL 1 goto error
 )
-  rem Generate the DbContext class
+  echo.
+  echo ----------------------------------------------------------------
+
+if NOT DEFINED EF_PROVIDER_MYSQL (
+
+  echo Generating EF DbContext class
+
   codegen -s  %DATA_STRUCTURES% -ms ^
           -a  %DATA_ALIASES% ^
           -fo %DATA_FILES% ^
@@ -186,12 +213,33 @@ if DEFINED ENABLE_PROPERTY_ENDPOINTS (
           -n  %ModelsProject% ^
               %STDOPTS%
   if ERRORLEVEL 1 goto error
+
+)
+
   
-  rem Generate the EdmBuilder and Startup classes
+  echo.
+  echo ----------------------------------------------------------------
+  echo Generating OData EDM Builder class
+
   codegen -s  %DATA_STRUCTURES% -ms ^
           -a  %DATA_ALIASES% ^
           -fo %DATA_FILES% ^
-          -t  ODataEdmBuilder ODataStartup ^
+          -t  ODataEdmBuilder ^
+          -i  %SolutionDir%Templates ^
+          -o  %SolutionDir%%ServicesProject% ^
+          -n  %ServicesProject% ^
+          -ut CONTROLLERS_NAMESPACE=%ControllersProject% MODELS_NAMESPACE=%ModelsProject% ^
+              %STDOPTS%
+  if ERRORLEVEL 1 goto error
+
+  echo.
+  echo ----------------------------------------------------------------
+  echo Generating startup class
+
+  codegen -s  %DATA_STRUCTURES% -ms ^
+          -a  %DATA_ALIASES% ^
+          -fo %DATA_FILES% ^
+          -t  ODataStartup ^
           -i  %SolutionDir%Templates ^
           -o  %SolutionDir%%ServicesProject% ^
           -n  %ServicesProject% ^
@@ -204,6 +252,10 @@ rem ============================================================================
 rem Self hosting
 
 if DEFINED ENABLE_SELF_HOST_GENERATION (
+
+  echo.
+  echo ************************************************************************
+  echo Generating self-hosting environment
 
   codegen -s  %FILE_STRUCTURES% -ms ^
           -a  %FILE_ALIASES% ^
@@ -220,8 +272,12 @@ if DEFINED ENABLE_SELF_HOST_GENERATION (
 rem ================================================================================
 rem Postman tests
 
-rem Generate Postman Tests
 if DEFINED ENABLE_POSTMAN_TESTS (
+
+  echo.
+  echo ************************************************************************
+  echo Generating Postman tests
+
   codegen -s  %DATA_STRUCTURES% -ms ^
           -a  %DATA_ALIASES% ^
           -fo %DATA_FILES% ^
@@ -230,6 +286,7 @@ if DEFINED ENABLE_POSTMAN_TESTS (
           -o  %SolutionDir% ^
               %STDOPTS%
   if ERRORLEVEL 1 goto error
+  echo.
 )
 
 rem ================================================================================
@@ -237,23 +294,52 @@ rem Custom Authentication Example
 
 if DEFINED ENABLE_CUSTOM_AUTHENTICATION (
 
-  rem Generate AuthenticationModels.dbl
-  codegen -t  ODataCustomAuthModels ^
-          -i  %SolutionDir%Templates ^
-          -o  %SolutionDir%%ModelsProject% ^
-          -n  %ModelsProject% ^
-              %NOREPLACEOPTS%
-  echo Note: 1 file failed can be normal here, the file exists and should not be replaced
-  if ERRORLEVEL 1 goto error
+  echo ************************************************************************
+  echo Generating custom authentication code
+    echo.
 
-  rem Generate AuthenticationController.dbl and AuthenticationTools.dbl
-  codegen -t  ODataCustomAuthController ODataCustomAuthTools ^
-          -i  %SolutionDir%Templates ^
-          -o  %SolutionDir%%ControllersProject% ^
-          -n  %ControllersProject% ^
-              %NOREPLACEOPTS%
-  echo Note: 2 files failed can be normal here, the files exists and should not be replaced
-  if ERRORLEVEL 1 goto error
+  if not exist "%SolutionDir%%ModelsProject%\AuthenticationModels.dbl" (
+    echo ----------------------------------------------------------------
+    echo Generating custom authentication data model class
+    echo.
+
+    codegen -t  ODataCustomAuthModels ^
+            -i  %SolutionDir%Templates ^
+            -o  %SolutionDir%%ModelsProject% ^
+            -n  %ModelsProject% ^
+                %NOREPLACEOPTS%
+    if ERRORLEVEL 1 goto error
+    echo.
+  )
+
+  if not exist "%SolutionDir%%ControllersProject%\AuthenticationController.dbl" (
+    echo ----------------------------------------------------------------
+    echo Generating custom authentication controller class
+    echo.
+
+    codegen -t  ODataCustomAuthController ^
+            -i  %SolutionDir%Templates ^
+            -o  %SolutionDir%%ControllersProject% ^
+            -n  %ControllersProject% ^
+                %NOREPLACEOPTS%
+    if ERRORLEVEL 1 goto error
+    echo.
+  )
+
+  if not exist "%SolutionDir%%ControllersProject%\AuthenticationTools.dbl" (
+    echo ----------------------------------------------------------------
+    echo Generating custom authentication tools class
+    echo.
+
+    codegen -t  ODataCustomAuthTools ^
+            -i  %SolutionDir%Templates ^
+            -o  %SolutionDir%%ControllersProject% ^
+            -n  %ControllersProject% ^
+                %NOREPLACEOPTS%
+    if ERRORLEVEL 1 goto error
+    echo.
+  )
+
 )
 
 rem ================================================================================
@@ -261,7 +347,13 @@ rem Unit testing project
 
 if DEFINED ENABLE_UNIT_TEST_GENERATION (
 
-  rem Generate OData client model, data loader and unit test classes
+  echo ************************************************************************
+  echo Generating unit test code
+
+  echo.
+  echo ----------------------------------------------------------------
+  echo Generating client model, data loader and unit test classes
+  
   codegen -s  %DATA_STRUCTURES% ^
           -a  %DATA_ALIASES% ^
           -fo %DATA_FILES% ^
@@ -269,10 +361,14 @@ if DEFINED ENABLE_UNIT_TEST_GENERATION (
           -i  %SolutionDir%Templates ^
           -o  %SolutionDir%%TestProject% -tf ^
           -n  %TestProject% ^
+          -ut UNIT_TEST_NAMESPACE=%TestProject% ^
               %STDOPTS%
   if ERRORLEVEL 1 goto error
 
-  rem Generate the unit test environment class, and the unit test hosting program
+  echo.
+  echo ----------------------------------------------------------------
+  echo Generating unit test environment class and hosting program
+
   codegen -s  %FILE_STRUCTURES% -ms ^
           -a  %FILE_ALIASES% ^
           -fo %FILE_FILES% ^
@@ -283,7 +379,10 @@ if DEFINED ENABLE_UNIT_TEST_GENERATION (
               %STDOPTS%
   if ERRORLEVEL 1 goto error
 
-  rem Generate the unit test constants properties classes
+  echo.
+  echo ----------------------------------------------------------------
+  echo Generating unit test constants properties class
+
   codegen -s  %DATA_STRUCTURES% -ms ^
           -a  %DATA_ALIASES% ^
           -fo %DATA_FILES% ^
@@ -294,14 +393,18 @@ if DEFINED ENABLE_UNIT_TEST_GENERATION (
               %STDOPTS%
   if ERRORLEVEL 1 goto error
 
-  rem Generate unit test values class
+  echo.
+  echo ----------------------------------------------------------------
+  echo Generating unit test key value generation program 
+
   codegen -s  %DATA_STRUCTURES% -ms ^
           -a  %DATA_ALIASES% ^
           -fo %DATA_FILES% ^
-          -t  GenerateTestValues^
+          -t  GenerateTestValues ^
           -i  %SolutionDir%Templates ^
-          -o  %SolutionDir%%TestProject%.GenerateValues ^
-          -n  %TestProject% ^
+          -o  %SolutionDir%%TestValuesProject% ^
+          -n  %TestValuesProject% ^
+          -ut UNIT_TEST_NAMESPACE=%TestProject% ^
               %STDOPTS%
   if ERRORLEVEL 1 goto error
 )
@@ -311,7 +414,10 @@ rem Generate code for the TraditionalBridge sample environment
 
 if DEFINED ENABLE_TRADITIONAL_BRIDGE_GENERATION (
 
-  rem Generate model classes
+  echo.
+  echo ************************************************************************
+  echo Generating traditional bridge server-side data model classes
+
   codegen -s %BRIDGE_STRUCTURES% ^
           -a %BRIDGE_ALIASES% ^
           -t ODataModel ^
@@ -325,28 +431,47 @@ if DEFINED ENABLE_TRADITIONAL_BRIDGE_GENERATION (
 rem ================================================================================
 rem Generate code for the TraditionalBridge sample environment
 
-set SMC_XML_FILE=
-set SMC_INTERFACE=
-rem set BRIDGE_DISPATCHER_TEMPLATE=InterfaceMethodDispatchers
-set XFPL_SMCPATH=
-set NOREPLACEOPTS=-e -lf -rps %RPSMFIL% %RPSTFIL% %ENABLE_AUTHENTICATION% %ENABLE_BRIDGE_SAMPLE_DISPATCHERS%
+rem Specify the path to a SMC export file
+set SMC_XML_FILE=TraditionalBridge\MethodCatalog\MethodDefinitions.xml
+
+rem Specify the name of one or more interfaces defined in the SMC export file
+rem Separate multiple interface names with spaces
+set SMC_INTERFACES=BridgeSamples
+
+set XFPL_SMCPATH=TraditionalBridge\MethodCatalog
+
+rem CodeGen options
+set NOREPLACEOPTS=%SHOW_CODEGEN_COMMANDS% -lf -u %SolutionDir%UserDefinedTokens.tkn -rps %RPSMFIL% %RPSTFIL% %ENABLE_AUTHENTICATION%
 set STDOPTS=%NOREPLACEOPTS% -r
 
+rem Optional parameters support is for use with xfServerPlue environments that were
+rem used in conjunction with xfNetLink COM, which supported optional parameters.
 if DEFINED ENABLE_BRIDGE_OPTIONAL_PARAMETERS (
   set BRIDGE_DISPATCHER_TEMPLATE=OptionalParameterMethodDispatchers
   ) else (
   set BRIDGE_DISPATCHER_TEMPLATE=InterfaceMethodDispatchers
 )
 
+rem Generate xfServerPlus migration code
 if DEFINED ENABLE_XFSERVERPLUS_MIGRATION (
-  call :GenerateCodeForInterface %SMC_INTERFACE%
+
+  rem Generate code for each interface
+  for %%x in (%SMC_INTERFACES%) do (
+    call :GenerateCodeForInterface %%x
+  )
+
+  rem Generate the main (multi-interface capable) dispatcher
+  call :GenerateMainDispatcher %SMC_INTERFACES%
 )
+
 
 rem ================================================================================
 rem Generate code for the Traditional Bridge SignalR sample environment
 
 if DEFINED ENABLE_SIGNALR (
-  call :GenerateCodeForSignalR %SMC_INTERFACE%
+  for %%x in (%SMC_INTERFACES%) do (
+    call :GenerateCodeForSignalR %%x
+  )
 )
 
 echo.
@@ -364,9 +489,13 @@ goto :eof
 
 :GenerateCodeForInterface
 
-  echo Generating Traditional Bridge code for interface %1...
+  echo.
+  echo ************************************************************************
+  echo Generating Traditional Bridge code for interface %1
 
-  rem Generate dispatcher classes for all methods in in interface (TRADITIONAL SIDE)
+  echo.
+  echo ----------------------------------------------------------------
+  echo Generating interface method dispatcher classes (Traditional)
 
   codegen -smc %SMC_XML_FILE% ^
           -interface %1 ^
@@ -378,7 +507,9 @@ goto :eof
           %STDOPTS%
   if ERRORLEVEL 1 goto error
 
-  rem Generate the main dispatcher class (TRADITIONAL SIDE)
+  echo.
+  echo ----------------------------------------------------------------
+  echo Generating interface dispatcher classes (Traditional)
   
   codegen -smc %SMC_XML_FILE% ^
           -interface %1 ^
@@ -390,7 +521,9 @@ goto :eof
           %STDOPTS%
   if ERRORLEVEL 1 goto error
 
-  rem Generate model classes (TRADITIONAL SIDE)
+  echo.
+  echo ----------------------------------------------------------------
+  echo Generating interface data model classes (Traditional)
 
   codegen -smcstrs %SMC_XML_FILE% ^
           -interface %1 ^
@@ -400,14 +533,17 @@ goto :eof
           -n %TraditionalBridgeProject%.Models ^
           %STDOPTS%
 
-  rem Generate model classes (.NET side)
-  rem Ideally the same data classes are shared between OData and Traditional Bridge
-  rem environments. But if OData is not being used, enable this to generate Models
-  rem in the web service based on SMC content.
-
   if defined ENABLE_XFSERVERPLUS_MODEL_GENERATION (
+
+    echo.
+    echo ----------------------------------------------------------------
+    echo Generating interface data model classes (.NET)
+    rem Ideally the same data classes are shared between OData and Traditional Bridge
+    rem environments. But if OData is not being used, enable this to generate Models
+    rem in the web service based on SMC content.
+
     codegen -smcstrs %SMC_XML_FILE% ^
-            -interface %SMC_INTERFACE% ^
+            -interface %1 ^
             -t ODataModel ODataMetaData ^
             -i %SolutionDir%Templates\TraditionalBridge ^
             -o %SolutionDir%%ModelsProject% ^
@@ -415,19 +551,23 @@ goto :eof
             %STDOPTS%
   )
 
-  rem Generate request and response models for the service class methods (.NET side)
+  echo.
+  echo ----------------------------------------------------------------
+  echo Generating interface request/response DTO classes (.NET)
 
   codegen -smc %SMC_XML_FILE% ^
           -interface %1 ^
           -t InterfaceServiceModels ^
           -i %SolutionDir%Templates\TraditionalBridge ^
           -o %SolutionDir%%ModelsProject% ^
-          -n %SMC_INTERFACE% ^
+          -n %1 ^
           -ut MODELS_NAMESPACE=%ModelsProject% ^
           %STDOPTS%
   if ERRORLEVEL 1 goto error
 
-  rem Generate the service class (.NET side)
+  echo.
+  echo ----------------------------------------------------------------
+  echo Generating interface service classes (.NET)
 
   codegen -smc %SMC_XML_FILE% ^
           -interface %1 ^
@@ -435,11 +575,13 @@ goto :eof
           -i %SolutionDir%Templates\TraditionalBridge ^
           -o %SolutionDir%%ControllersProject% ^
           -n %ControllersProject% ^
-          -ut MODELS_NAMESPACE=%ModelsProject% DTOS_NAMESPACE=%SMC_INTERFACE% ^
+          -ut MODELS_NAMESPACE=%ModelsProject% DTOS_NAMESPACE=%1 ^
           %STDOPTS%
   if ERRORLEVEL 1 goto error
 
-  rem Generate the Web API controller (.NET side)
+  echo.
+  echo ----------------------------------------------------------------
+  echo Generating interface controller classes (.NET)
 
   codegen -smc %SMC_XML_FILE% ^
           -interface %1 ^
@@ -447,13 +589,15 @@ goto :eof
           -i %SolutionDir%Templates\TraditionalBridge ^
           -o %SolutionDir%%ControllersProject% ^
           -n %ControllersProject% ^
-          -ut MODELS_NAMESPACE=%ModelsProject% DTOS_NAMESPACE=%SMC_INTERFACE% ^
+          -ut MODELS_NAMESPACE=%ModelsProject% DTOS_NAMESPACE=%1 ^
           %STDOPTS%
   if ERRORLEVEL 1 goto error
 
   if DEFINED ENABLE_POSTMAN_TESTS (
 
-  rem Generate the Postman tests for the Interface
+  echo.
+  echo ----------------------------------------------------------------
+  echo Generating interface Postman tests
 
   codegen -smc %SMC_XML_FILE% ^
           -interface %1 ^
@@ -466,24 +610,47 @@ goto :eof
 
   if DEFINED ENABLE_UNIT_TEST_GENERATION (
 
-    rem Generate a unit test class for the Interface
+    echo.
+    echo ----------------------------------------------------------------
+    echo Generating interface unit tests (.NET)
+
     codegen -smc %SMC_XML_FILE% ^
             -interface %1 ^
             -t  InterfaceUnitTests InterfaceUnitTestValues ^
             -i  %SolutionDir%Templates\TraditionalBridge ^
             -o  %SolutionDir%%TestProject% -tf ^
             -n  %TestProject% ^
-            -ut CLIENT_MODELS_NAMESPACE=%TestProject%.Models DTOS_NAMESPACE=%SMC_INTERFACE% ^
+            -ut CLIENT_MODELS_NAMESPACE=%TestProject%.Models DTOS_NAMESPACE=%1 ^
           %STDOPTS%
   if ERRORLEVEL 1 goto error
- 
+
   )
+
+GOTO:eof
+
+:GenerateMainDispatcher
+
+  echo.
+  echo ----------------------------------------------------------------
+  echo Generating multi-interface dispatcher tools class (Traditional)
+
+  codegen -smc %SMC_XML_FILE% ^
+          -iloop %* ^
+          -t InterfaceSuperDispatcher  ^
+          -i %SolutionDir%Templates\TraditionalBridge ^
+          -o %SolutionDir%%TraditionalBridgeProject%\Dispatchers ^
+          -n %TraditionalBridgeProject%.Dispatchers ^
+          -ut MODELS_NAMESPACE=%TraditionalBridgeProject%.Models ^
+          %STDOPTS%
+  if ERRORLEVEL 1 goto error
 
 GOTO:eof
 
 :GenerateCodeForSignalR
 
-  echo Generating SignalR code for interface %1...
+  echo.
+  echo ----------------------------------------------------------------
+  echo Generating interface SignalR hub (.NET)
 
   codegen -smc %SMC_XML_FILE% ^
           -interface %1 ^
@@ -491,7 +658,7 @@ GOTO:eof
           -i %SolutionDir%Templates\SignalR ^
           -o %SolutionDir%%ControllersProject% ^
           -n %ControllersProject% ^
-          -ut MODELS_NAMESPACE=%ModelsProject% DTOS_NAMESPACE=%SMC_INTERFACE% ^
+          -ut MODELS_NAMESPACE=%ModelsProject% DTOS_NAMESPACE=%1 ^
           %STDOPTS%
   if ERRORLEVEL 1 goto error  
 

@@ -219,12 +219,12 @@
                         "raw": ""
                     },
                     "url": {
-                        "raw": "{{ServerBaseUri}}/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)",
+                        "raw": "{{ServerBaseUri}}/<StructurePlural>(<IF STRUCTURE_ISAM><IF DEFINED_EF_PROVIDER_MYSQL>Companyext='ABC',</IF><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)",
                         "host": [
                             "{{ServerBaseUri}}"
                         ],
                         "path": [
-                            "<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)"
+                            "<StructurePlural>(<IF STRUCTURE_ISAM><IF DEFINED_EF_PROVIDER_MYSQL>Companyext='ABC',</IF><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)"
                         ]
                     }
                     },

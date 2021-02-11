@@ -103,6 +103,9 @@ import <CONTROLLERS_NAMESPACE>
 import <MODELS_NAMESPACE>
 import Swashbuckle.AspNetCore.Swagger
 import Microsoft.OpenApi.Models
+ <IF DEFINED_EF_PROVIDER_MYSQL>
+import Pomelo.EntityFrameworkCore.MySql.Infrastructure
+ </IF>
 
 namespace <NAMESPACE>
 
@@ -189,13 +192,38 @@ namespace <NAMESPACE>
                 mreturn true
             end
 
+            ;;-------------------------------------------------------
             ;;Add an AppSettings service.
             ;;To get an instance from DI ask for an @IOptions<AppSettings>
+
             if(_config != ^null)
+            begin
                 services.AddOptions<AppSettings>().Validate(GetAppSettings).Bind(_config.GetSection("AppSettings"))
+            end
 
             ;;-------------------------------------------------------
-            ;;Load Harmony Core
+            ;;Configure the EF environment
+
+            services.AddSingleton<IEdmBuilder, EdmBuilder>()
+
+ <IF DEFINED_EF_PROVIDER_MYSQL>
+            services.AddDbContextPool<<MYSQL_DBCONTEXT_CLASS>>(
+            &    lambda (dbContextOptions) { 
+            &       dbContextOptions.UseMySql(
+            &           "server=<MYSQL_HOST>;user=<MYSQL_USER>;password=<MYSQL_PASSWORD>;database=<MYSQL_SCHEMA>",
+            &           lambda (mySqlOptions) { mySqlOptions.CharSetBehavior(CharSetBehavior.NeverAppend) }
+            &       )
+            &       .EnableSensitiveDataLogging()
+            &       .EnableDetailedErrors()
+            &    }
+            & )
+            ;;EnableSensitiveDataLogging() and EnableDetailedErrors() are not strictly necessary, but help with debugging.
+<ELSE>
+            ;;DBContext configuration
+            lambda ConfigureDBContext(sp,opts)
+            begin
+                HarmonyDbContextOptionsExtensions.UseHarmonyDatabase(opts, sp.GetService<IDataObjectProvider>())
+            end
 
             ;;DataObjectProvider configuration
             lambda AddDataObjectMappings(serviceProvider)
@@ -207,16 +235,10 @@ namespace <NAMESPACE>
                 mreturn objectProvider
             end
 
-            ;;DBContext configuration
-            lambda ConfigureDBContext(sp,opts)
-            begin
-                HarmonyDbContextOptionsExtensions.UseHarmonyDatabase(opts, sp.GetService<IDataObjectProvider>())
-            end
-
-            services.AddSingleton<IEdmBuilder, EdmBuilder>()
             services.AddSingleton<IFileChannelManager, FileChannelManager>()
             services.AddSingleton<IDataObjectProvider>(AddDataObjectMappings)
-            services.AddDbContextPool<<MODELS_NAMESPACE>.DBContext>(ConfigureDBContext)
+            services.AddDbContextPool<<MODELS_NAMESPACE>.DBContext>>(ConfigureDBContext)
+</IF>
 
             ;;-------------------------------------------------------
             ;;Load OData and ASP.NET
