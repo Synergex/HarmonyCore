@@ -301,6 +301,9 @@ namespace <NAMESPACE>
                 end
                 
                 op.MaxIAsyncEnumerableBufferLimit = int.MaxValue
+
+                ;;If there is a MvcConfigCustom method, call it
+                MvcConfigCustom(op)
             end
 
             data mvcBuilder = services.AddMvcCore(MvcCoreConfig)
