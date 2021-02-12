@@ -430,26 +430,26 @@ if DEFINED ENABLE_TRADITIONAL_BRIDGE_GENERATION (
 rem ================================================================================
 rem Generate TraditionalBridge / xfServerPlus Migration Code
 
+rem Specify the path to a SMC export file and the method catalog location
+set SMC_XML_FILE=TraditionalBridge\MethodCatalog\MethodDefinitions.xml
+set XFPL_SMCPATH=TraditionalBridge\MethodCatalog
+
+rem Specify the name of one or more interfaces defined in the SMC export file, space separated
+set SMC_INTERFACES=BridgeSamples
+
+rem CodeGen options
+set NOREPLACEOPTS=%SHOW_CODEGEN_COMMANDS% -lf -u %SolutionDir%UserDefinedTokens.tkn -rps %RPSMFIL% %RPSTFIL% %ENABLE_AUTHENTICATION%
+set STDOPTS=%NOREPLACEOPTS% -r
+
+rem Optional parameters support is for use with xfServerPlue environments that were
+rem used in conjunction with xfNetLink COM, which supported optional parameters.
+if DEFINED ENABLE_BRIDGE_OPTIONAL_PARAMETERS (
+  set BRIDGE_DISPATCHER_TEMPLATE=OptionalParameterMethodDispatchers
+  ) else (
+  set BRIDGE_DISPATCHER_TEMPLATE=InterfaceMethodDispatchers
+)
+
 if DEFINED ENABLE_XFSERVERPLUS_MIGRATION (
-
-  rem Specify the path to a SMC export file and the method catalog location
-  set SMC_XML_FILE=TraditionalBridge\MethodCatalog\MethodDefinitions.xml
-  set XFPL_SMCPATH=TraditionalBridge\MethodCatalog
-
-  rem Specify the name of one or more interfaces defined in the SMC export file, space separated
-  set SMC_INTERFACES=BridgeSamples
-
-  rem CodeGen options
-  set NOREPLACEOPTS=%SHOW_CODEGEN_COMMANDS% -lf -u %SolutionDir%UserDefinedTokens.tkn -rps %RPSMFIL% %RPSTFIL% %ENABLE_AUTHENTICATION%
-  set STDOPTS=%NOREPLACEOPTS% -r
-
-  rem Optional parameters support is for use with xfServerPlue environments that were
-  rem used in conjunction with xfNetLink COM, which supported optional parameters.
-  if DEFINED ENABLE_BRIDGE_OPTIONAL_PARAMETERS (
-    set BRIDGE_DISPATCHER_TEMPLATE=OptionalParameterMethodDispatchers
-    ) else (
-    set BRIDGE_DISPATCHER_TEMPLATE=InterfaceMethodDispatchers
-  )
 
   rem Generate code for each interface
   for %%x in (%SMC_INTERFACES%) do (
