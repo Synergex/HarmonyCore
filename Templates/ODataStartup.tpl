@@ -647,7 +647,7 @@ namespace <NAMESPACE>
 
         endmethod
 
-        .region "Partial method extensibility points"
+.region "Partial method extensibility points"
 
         ;;; <summary>
         ;;; Declare the ConfigueServicesCustom partial method.
@@ -689,8 +689,6 @@ namespace <NAMESPACE>
             required in options, @MvcOptions
         endmethod
 
-        .endregion
-
         ;;; <summary>
         ;;; Declare the AddDataObjectMappingsCustom partial method
         ;;; Developers can use this to inject additional data object mappings
@@ -699,6 +697,8 @@ namespace <NAMESPACE>
         partial method AddDataObjectMappingsCustom, void
             required in provider, @DataObjectProvider
         endmethod
+
+.endregion
 
     endclass
 
