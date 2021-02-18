@@ -204,6 +204,10 @@ namespace <NAMESPACE>
                 <STRUCTURE_LOOP>
                 objectProvider.AddDataObjectMapping<<StructureNoplural>>("<FILE_NAME>", <IF STRUCTURE_ISAM>FileOpenMode.UpdateIndexed</IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>FileOpenMode.UpdateRelative</IF STRUCTURE_RELATIVE>)
                 </STRUCTURE_LOOP>
+
+                ;;If we have an AddDataObjectMappingsCustom method, call it
+                AddDataObjectMappingsCustom(objectProvider)
+
                 mreturn objectProvider
             end
 
@@ -651,7 +655,7 @@ namespace <NAMESPACE>
         ;;; </summary>
         ;;; <param name="services"></param>
         partial method ConfigureServicesCustom, void
-            services, @IServiceCollection
+            required in services, @IServiceCollection
         endmethod
 
         ;;; <summary>
@@ -682,10 +686,19 @@ namespace <NAMESPACE>
         ;;; </summary>
         ;;; <param name="options">MVC options</param>
         partial method MvcConfigCustom, void
-            options, @MvcOptions
+            required in options, @MvcOptions
         endmethod
 
         .endregion
+
+        ;;; <summary>
+        ;;; Declare the AddDataObjectMappingsCustom partial method
+        ;;; Developers can use this to inject additional data object mappings
+        ;;; </summary>
+        ;;; <param name="serviceProvider">Data object provider</param>
+        partial method AddDataObjectMappingsCustom, void
+            required in provider, @DataObjectProvider
+        endmethod
 
     endclass
 
