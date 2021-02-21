@@ -265,21 +265,21 @@ namespace <NAMESPACE>
 <IF STRUCTURE_ISAM AND DEFINED_ENABLE_ALTERNATE_KEYS AND ALTERNATE_KEY_ENDPOINTS> 
   <ALTERNATE_KEY_LOOP_UNIQUE>
     <IF DUPLICATES>
-        {ODataRoute("(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>)")}
+        {ODataRoute("(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>={a<FieldSqlName>}<,></IF></SEGMENT_LOOP>)")}
         {Produces("application/json")}
         {ProducesResponseType(^typeof(ODataValue<IEnumerable<<StructureNoplural>>>),StatusCodes.Status200OK)}
       <IF DEFINED_ENABLE_AUTHENTICATION>
         {ProducesResponseType(StatusCodes.Status401Unauthorized)}
-      </IF DEFINED_ENABLE_AUTHENTICATION>
+      </IF>
         {ProducesResponseType(StatusCodes.Status404NotFound)}
       <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_GET>
         {Authorize(Roles="<ROLES_GET>")}
-      </IF DEFINED_ENABLE_AUTHENTICATION>
+      </IF>
       <IF DEFINED_ENABLE_FIELD_SECURITY>
         {HarmonyFieldSecurity<API_ENABLE_QUERY_PARAMS>}
       <ELSE>
         {EnableQuery<API_ENABLE_QUERY_PARAMS>}
-      </IF DEFINED_ENABLE_FIELD_SECURITY>
+      </IF>
         ;;; <summary>
         ;;; Get <structurePlural> by alternate key key <KeyName>.
         ;;; </summary>
@@ -293,35 +293,31 @@ namespace <NAMESPACE>
       <SEGMENT_LOOP>
         <IF NOT SEG_TAG_EQUAL>
             {FromODataUri}
-          <IF CUSTOM_HARMONY_AS_STRING>
-            required in a<FieldSqlName>, string
-          <ELSE>
-            required in a<FieldSqlName>, <HARMONYCORE_SEGMENT_DATATYPE>
-          </IF CUSTOM_HARMONY_AS_STRING>
+            required in a<FieldSqlName>, <IF CUSTOM_HARMONY_AS_STRING>string<ELSE><HARMONYCORE_SEGMENT_DATATYPE></IF>
         </IF>
       </SEGMENT_LOOP>
         proc
-            data result = _DbContext.<StructurePlural>.AsNoTracking().FindAlternate(<SEGMENT_LOOP>"<FieldSqlName>",<IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP>)
+            data result = _DbContext.<StructurePlural>.AsNoTracking().FindAlternate(<SEGMENT_LOOP>"<FieldSqlName>",<IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName></IF><,></SEGMENT_LOOP>)
             if (result == ^null)
                 mreturn NotFound()
             mreturn Ok(result)
         endmethod
     <ELSE>
-        {ODataRoute("(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>)")}
+        {ODataRoute("(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>={a<FieldSqlName>}<,></IF></SEGMENT_LOOP>)")}
         {Produces("application/json")}
         {ProducesResponseType(^typeof(<StructureNoplural>),StatusCodes.Status200OK)}
       <IF DEFINED_ENABLE_AUTHENTICATION>
         {ProducesResponseType(StatusCodes.Status401Unauthorized)}
-      </IF DEFINED_ENABLE_AUTHENTICATION>
+      </IF>
         {ProducesResponseType(StatusCodes.Status404NotFound)}
       <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_GET>
         {Authorize(Roles="<ROLES_GET>")}
-      </IF DEFINED_ENABLE_AUTHENTICATION>
+      </IF>
       <IF DEFINED_ENABLE_FIELD_SECURITY>
         {HarmonyFieldSecurity<API_ENABLE_QUERY_PARAMS>}
       <ELSE>
         {EnableQuery<API_ENABLE_QUERY_PARAMS>}
-      </IF DEFINED_ENABLE_FIELD_SECURITY>
+      </IF>
         ;;; <summary>
         ;;; Get <structureNoplural> by alternate key <KeyName>.
         ;;; </summary>
@@ -335,20 +331,63 @@ namespace <NAMESPACE>
       <SEGMENT_LOOP>
         <IF NOT SEG_TAG_EQUAL>
             {FromODataUri}
-          <IF CUSTOM_HARMONY_AS_STRING>
-            required in a<FieldSqlName>, string
-          <ELSE>
-            required in a<FieldSqlName>, <HARMONYCORE_SEGMENT_DATATYPE>
-          </IF CUSTOM_HARMONY_AS_STRING>
+            required in a<FieldSqlName>, <IF CUSTOM_HARMONY_AS_STRING>string<ELSE><HARMONYCORE_SEGMENT_DATATYPE></IF>
         </IF>
       </SEGMENT_LOOP>
         proc
-            mreturn new SingleResult<<StructureNoplural>>(_DbContext.<StructurePlural>.AsNoTracking().FindAlternate(<SEGMENT_LOOP>"<FieldSqlName>",<IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE><ELSE><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP>))
+            mreturn new SingleResult<<StructureNoplural>>(_DbContext.<StructurePlural>.AsNoTracking().FindAlternate(<SEGMENT_LOOP>"<FieldSqlName>",<IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF NOT HARMONYCORE_CUSTOM_SEGMENT_DATATYPE><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP>))
         endmethod
     </IF DUPLICATES>
 
   </ALTERNATE_KEY_LOOP_UNIQUE>
-</IF STRUCTURE_ISAM>
+</IF>
+;//
+;// GET BY PARTIAL KEY --------------------------------------------------------
+;//
+<IF STRUCTURE_ISAM AND DEFINED_ENABLE_PARTIAL_KEYS>
+  <PARTIAL_KEY_LOOP>
+    <IF (PRIMARY_KEY AND DEFINED_ENABLE_GET_ONE AND GET_ENDPOINT) OR ((NOT PRIMARY_KEY) AND DEFINED_ENABLE_ALTERNATE_KEYS AND ALTERNATE_KEY_ENDPOINTS)>
+        {ODataRoute("(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>={a<FieldSqlName>}<,></IF></SEGMENT_LOOP>)")}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(ODataValue<IEnumerable<<StructureNoplural>>>),StatusCodes.Status200OK)}
+      <IF DEFINED_ENABLE_AUTHENTICATION>
+        {ProducesResponseType(StatusCodes.Status401Unauthorized)}
+      </IF>
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
+      <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_GET>
+        {Authorize(Roles="<ROLES_GET>")}
+      </IF>
+      <IF DEFINED_ENABLE_FIELD_SECURITY>
+        {HarmonyFieldSecurity<API_ENABLE_QUERY_PARAMS>}
+      <ELSE>
+        {EnableQuery<API_ENABLE_QUERY_PARAMS>}
+      </IF>
+        ;;; <summary>
+        ;;; Get <structurePlural> by partial key <KeyName>.
+        ;;; </summary>
+      <SEGMENT_LOOP>
+        <IF NOT SEG_TAG_EQUAL>
+        ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
+        </IF>
+      </SEGMENT_LOOP>
+        ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        public method Get<StructurePlural>By<KeyName>, @IActionResult
+      <SEGMENT_LOOP>
+        <IF NOT SEG_TAG_EQUAL>
+            {FromODataUri}
+            required in a<FieldSqlName>, <IF CUSTOM_HARMONY_AS_STRING>string<ELSE><HARMONYCORE_SEGMENT_DATATYPE></IF>
+        </IF>
+      </SEGMENT_LOOP>
+        proc
+            data result = _DbContext.<StructurePlural>.AsNoTracking().FindAlternate(<SEGMENT_LOOP>"<FieldSqlName>",<IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName></IF><,></SEGMENT_LOOP>)
+            if (result == ^null)
+                mreturn NotFound()
+            mreturn Ok(result)
+        endmethod
+
+    </IF>
+  </PARTIAL_KEY_LOOP>
+</IF>
 ;//
 ;// POST ----------------------------------------------------------------------
 ;//
@@ -430,7 +469,6 @@ namespace <NAMESPACE>
         ;;; <summary>
         ;;; Create (with a client-supplied primary key) or replace a <structureNoplural>.
         ;;; </summary>
-
       <SEGMENT_LOOP>
         <IF NOT SEG_TAG_EQUAL>
         ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
