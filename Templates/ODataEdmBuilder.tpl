@@ -169,22 +169,26 @@ namespace <NAMESPACE>
 
             data tempModel = (@EdmModel)builder.GetEdmModel()
 <STRUCTURE_LOOP>
-  <COUNTER_1_RESET>
-  <IF STRUCTURE_ISAM>
-    <ALTERNATE_KEY_LOOP_UNIQUE>
-      <SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><COUNTER_1_INCREMENT></IF SEG_TAG_EQUAL></SEGMENT_LOOP>
-    </ALTERNATE_KEY_LOOP_UNIQUE>
-  </IF STRUCTURE_ISAM>
-
+<COUNTER_1_RESET><IF STRUCTURE_ISAM><ALTERNATE_KEY_LOOP_UNIQUE><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><COUNTER_1_INCREMENT></IF SEG_TAG_EQUAL></SEGMENT_LOOP></ALTERNATE_KEY_LOOP_UNIQUE></IF STRUCTURE_ISAM>
             data <structureNoplural>Type = (@EdmEntityType)tempModel.FindDeclaredType("<MODELS_NAMESPACE>.<StructureNoplural>")
   <IF STRUCTURE_ISAM>
     <ALTERNATE_KEY_LOOP_UNIQUE>
-      <IF NOT_COUNTER_1>
-      <ELSE>
+      <IF COUNTER_1>
             tempModel.AddAlternateKeyAnnotation(<structureNoplural>Type, new Dictionary<string, IEdmProperty>() {<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE>{"<FieldSqlName>",<structureNoplural>Type.FindProperty("<FieldSqlName>")}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>})
       </IF NOT_COUNTER_1>
     </ALTERNATE_KEY_LOOP_UNIQUE>
-  </IF STRUCTURE_ISAM>
+    <IF DEFINED_ENABLE_PARTIAL_KEYS>
+      <PARTIAL_KEY_LOOP>
+        <IF (PRIMARY_KEY AND DEFINED_ENABLE_GET_ONE AND GET_ENDPOINT) OR ((NOT PRIMARY_KEY) AND DEFINED_ENABLE_ALTERNATE_KEYS AND ALTERNATE_KEY_ENDPOINTS)>
+          <SEGMENT_LOOP>
+            <IF NOT SEG_TAG_EQUAL>
+            tempModel.AddAlternateKeyAnnotation(<structureNoplural>Type, new Dictionary<string, IEdmProperty>() {<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL>{"<FieldSqlName>",<structureNoplural>Type.FindProperty("<FieldSqlName>")}<,></IF></SEGMENT_LOOP>})
+            </IF>
+          </SEGMENT_LOOP>
+        </IF>
+      </PARTIAL_KEY_LOOP>
+    </IF>
+  </IF>
 </STRUCTURE_LOOP>
 
             ;;-----------------------------------------------
