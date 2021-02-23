@@ -28,7 +28,6 @@ namespace Services.Test.GenerateValues
         proc
             data chin, int
             data count, int
-            data pknum, int
 <STRUCTURE_LOOP>
   <IF STRUCTURE_ISAM>
 
@@ -63,10 +62,9 @@ namespace Services.Test.GenerateValues
             ;Get by primary key
             repeat
             begin
-                read(chin,<structureNoplural>,^FIRST) [ERR=eof<StructureNoplural>2]
+                read(chin,<structureNoplural>,^LAST) [ERR=eof<StructureNoplural>2]
               <PRIMARY_KEY>
                 <SEGMENT_LOOP>
-;//                pknum = <IF SEG_TYPE_FIELD><structureNoplural>.<segment_name><ELSE SEG_TYPE_LITERAL>"<SEGMENT_LITVAL>"</IF SEG_TYPE_FIELD>
                 TestConstants.Instance.Get<StructureNoplural>_<SegmentName> = <IF SEG_TYPE_FIELD><structureNoplural>.<segment_name><ELSE SEG_TYPE_LITERAL>"<SEGMENT_LITVAL>"</IF SEG_TYPE_FIELD>
                 </SEGMENT_LOOP>
               </PRIMARY_KEY>
@@ -81,14 +79,14 @@ namespace Services.Test.GenerateValues
           <RELATION_LOOP_RESTRICTED>
             <PRIMARY_KEY>
               <SEGMENT_LOOP>
-            TestConstants.Instance.Get<StructureNoplural>_Expand_<HARMONYCORE_RELATION_NAME>_<SegmentName> = pknum
+            TestConstants.Instance.Get<StructureNoplural>_Expand_<HARMONYCORE_RELATION_NAME>_<SegmentName> = <IF SEG_TYPE_FIELD><structureNoplural>.<segment_name><ELSE SEG_TYPE_LITERAL>"<SEGMENT_LITVAL>"</IF SEG_TYPE_FIELD>
               </SEGMENT_LOOP>
             </PRIMARY_KEY>
           </RELATION_LOOP_RESTRICTED>
 ;//
           <PRIMARY_KEY>
             <SEGMENT_LOOP>
-            TestConstants.Instance.Get<StructureNoplural>_Expand_All_<SegmentName> = pknum
+            TestConstants.Instance.Get<StructureNoplural>_Expand_All_<SegmentName> = <IF SEG_TYPE_FIELD><structureNoplural>.<segment_name><ELSE SEG_TYPE_LITERAL>"<SEGMENT_LITVAL>"</IF SEG_TYPE_FIELD>
             </SEGMENT_LOOP>
           </PRIMARY_KEY>
         </IF STRUCTURE_RELATIONS>
@@ -102,7 +100,7 @@ namespace Services.Test.GenerateValues
 ;//
   <ALTERNATE_KEY_LOOP_UNIQUE>
     <SEGMENT_LOOP>
-            TestConstants.Instance.Get<StructureNoplural>_ByAltKey_<KeyName>_<SegmentName> = <IF DATEORTIME>DateTime.ParseExact((string)(<structureNoplural>.<segment_name>), "yyyyMMdd", System.Globalization.CultureInfo.InvariantCulture)<ELSE><IF SEG_TYPE_FIELD><structureNoplural>.<segment_name><ELSE SEG_TYPE_LITERAL>"<SEGMENT_LITVAL>"</IF SEG_TYPE_FIELD></IF DATEORTIME>
+            TestConstants.Instance.Get<StructureNoplural>_ByAltKey_<KeyName>_<SegmentName> = <IF DATEORTIME>DateTime.ParseExact((string)(<structureNoplural>.<segment_name>), <IF DATE>"yyyyMMdd"<ELSE>"hhmmss"</IF DATE>, System.Globalization.CultureInfo.InvariantCulture)<ELSE><IF SEG_TYPE_FIELD><structureNoplural>.<segment_name><ELSE SEG_TYPE_LITERAL>"<SEGMENT_LITVAL>"</IF SEG_TYPE_FIELD></IF DATEORTIME>
     </SEGMENT_LOOP>
   </ALTERNATE_KEY_LOOP_UNIQUE>
 ;//
@@ -110,7 +108,7 @@ namespace Services.Test.GenerateValues
 ;//
   <PRIMARY_KEY>
     <SEGMENT_LOOP>
-            TestConstants.Instance.Update<StructureNoplural>_<SegmentName> = pknum + 1
+            TestConstants.Instance.Update<StructureNoplural>_<SegmentName> = <IF SEG_TYPE_FIELD><structureNoplural>.<segment_name><ELSE SEG_TYPE_LITERAL>"<SEGMENT_LITVAL>"</IF SEG_TYPE_FIELD> + <IF ALPHA>"A"<ELSE>1</IF ALPHA>
     </SEGMENT_LOOP>
   </PRIMARY_KEY>
 
