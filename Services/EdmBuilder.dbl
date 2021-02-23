@@ -103,6 +103,7 @@ namespace Services
             builder.EntitySet<Vendor>("Vendors")
             builder.EntitySet<CustomerEx>("CustomerExs")
             builder.EntitySet<Nonuniquepk>("Nonuniquepks")
+            builder.EntitySet<Differentpk>("Differentpks")
 
             ;;Entities with a single primary key segment have the key declared to EF via a
             ;;{Key} attribute on the appropriate property in the data model, but only one {key}
@@ -167,6 +168,20 @@ namespace Services
             data customerExType = (@EdmEntityType)tempModel.FindDeclaredType("Services.Models.CustomerEx")
 
             data nonuniquepkType = (@EdmEntityType)tempModel.FindDeclaredType("Services.Models.Nonuniquepk")
+      
+      
+      
+      
+      
+      
+
+            data differentpkType = (@EdmEntityType)tempModel.FindDeclaredType("Services.Models.Differentpk")
+            tempModel.AddAlternateKeyAnnotation(differentpkType, new Dictionary<string, IEdmProperty>() {{"Alphapk",differentpkType.FindProperty("Alphapk")}})
+            tempModel.AddAlternateKeyAnnotation(differentpkType, new Dictionary<string, IEdmProperty>() {{"Decimalpk",differentpkType.FindProperty("Decimalpk")}})
+            tempModel.AddAlternateKeyAnnotation(differentpkType, new Dictionary<string, IEdmProperty>() {{"Intergerpk",differentpkType.FindProperty("Intergerpk")}})
+            tempModel.AddAlternateKeyAnnotation(differentpkType, new Dictionary<string, IEdmProperty>() {{"Datepk",differentpkType.FindProperty("Datepk")}})
+            tempModel.AddAlternateKeyAnnotation(differentpkType, new Dictionary<string, IEdmProperty>() {{"Timepk",differentpkType.FindProperty("Timepk")}})
+            tempModel.AddAlternateKeyAnnotation(differentpkType, new Dictionary<string, IEdmProperty>() {{"Booleanpk",differentpkType.FindProperty("Booleanpk")}})
 
             ;;-----------------------------------------------
             ;;If we have a PostEdmModelCustom method, call it 

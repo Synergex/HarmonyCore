@@ -5,7 +5,7 @@
 ;                 : C:\Users\devadm\Desktop\HarmonyCore\HarmonyCore.Test.Repository\bin\Debug\rpstext.ism
 ;                 : Version 11.1.1f
 ;
-;  GENERATED      : 04-DEC-2020, 08:41:22
+;  GENERATED      : 19-FEB-2021, 15:36:48
 ;                 : Version 11.1.1f
 ;  EXPORT OPTIONS : [ALL] 
  
@@ -137,7 +137,7 @@ Endgroup
  
 Alias AL_GPC6   Structure GPC6
  
- Structure GPC4   DBL ISAM
+Structure GPC4   DBL ISAM
    Description "Fourth Structure"
  
 Field FLD_1G   Type ALPHA   Size 3
@@ -491,11 +491,11 @@ Key FAVORITE_ITEM   FOREIGN
  
 Relation  1   CUSTOMERS CUSTOMER_NUMBER   ORDERS CUSTOMER_NUMBER
  
-Relation  4   CUSTOMERS CUSTOMER_NUMBER   CUSTOMER_EX PRIMARY
- 
 Relation  2   CUSTOMERS FAVORITE_ITEM   ITEMS ITEM_NUMBER
  
 Relation  3   CUSTOMERS CUSTOMER_NUMBER   CUSTOMER_NOTES CUSTOMER_NUMBER
+ 
+Relation  4   CUSTOMERS CUSTOMER_NUMBER   CUSTOMER_EX PRIMARY
  
 Structure CUSTOMER_EX   DBL ISAM
    Description "extended fields for a customer record"
@@ -842,6 +842,59 @@ Key ORDERNO   ACCESS   Order ASCENDING   Dups YES
  
 Key BOOKID   ACCESS   Order ASCENDING   Dups YES
    Segment FIELD   BOOKID
+ 
+Structure DIFFERENTPK   DBL ISAM
+   Description "Str with different PK types"
+ 
+Field ID   Type DECIMAL   Size 4
+   Description "ID"
+ 
+Field ALPHAPK   Type ALPHA   Size 4
+   Description "Alpha PK"
+   Report Just RIGHT   Input Just RIGHT
+ 
+Field DECIMALPK   Type DECIMAL   Size 4
+   Description "Decimal PK"
+ 
+Field INTERGERPK   Type INTEGER   Size 4
+   Description "Integer PK"
+ 
+Field DATEPK   Type DATE   Size 8   Stored YYYYMMDD
+   Description "Date PK"
+ 
+Field TIMEPK   Type TIME   Size 6   Stored HHMMSS
+   Description "Time PK"
+ 
+Field BOOLEANPK   Type BOOLEAN   Size 4
+   Description "Boolean PK"
+ 
+Key ID   ACCESS   Order ASCENDING   Dups NO
+   Description "ID"
+   Segment FIELD   ID
+ 
+Key ALPHAPK   ACCESS   Order ASCENDING   Dups YES
+   Description "Alpha PK"
+   Segment FIELD   ALPHAPK
+ 
+Key DECIMALPK   ACCESS   Order ASCENDING   Dups YES
+   Description "Decimal PK"
+   Segment FIELD   DECIMALPK
+ 
+Key INTERGERPK   ACCESS   Order ASCENDING   Dups YES
+   Description "Integer PK"
+   Segment FIELD   INTERGERPK
+ 
+Key DATEPK   ACCESS   Order ASCENDING   Dups YES
+   Description "Date PK"
+   Segment FIELD   DATEPK
+ 
+Key TIMEPK   ACCESS   Order ASCENDING   Dups YES
+   Description "Time PK"
+   Segment FIELD   TIMEPK
+ 
+Key BOOLEANPK   ACCESS   Order ASCENDING   Dups YES
+   Description "Boolean PK"
+   Segment FIELD   BOOLEANPK
  
 Structure DNETDATETIME   DBL ISAM
    Description ".NET DateTime record structure"
@@ -2405,6 +2458,10 @@ File CUSTOMER_NOTES   DBL ISAM   "DAT:customer_notes.ism"
    Density 50   Addressing 40BIT   Compress   Static RFA   Terabyte
    Stored GRFA
    Assign CUSTOMER_NOTES
+ 
+File DIFFERENTPK   DBL ISAM   "DAT:differentpk.ism"
+   Description "Different PK file"
+   Assign DIFFERENTPK
  
 File ITEMS   DBL ISAM   "DAT:items.ism"
    Description "Inventory master file"
