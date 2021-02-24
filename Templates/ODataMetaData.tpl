@@ -80,18 +80,18 @@ namespace <NAMESPACE>
           <IF CUSTOM_HARMONY_AS_STRING>
         private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalConverter.LiteralFormatter("XX-XX-XX")
           <ELSE>
-        private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("FORMAT:YYMMDD")
+        private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("YYMMDD")
           </IF CUSTOM_HARMONY_AS_STRING>
         </IF DATE_YYMMDD>
         <IF DATE_YYYYMMDD>
           <IF CUSTOM_HARMONY_AS_STRING>
         private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalConverter.LiteralFormatter("XXXX-XX-XX")
           <ELSE>
-        private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("FORMAT:YYYYMMDD")
+        private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("YYYYMMDD")
           </IF CUSTOM_HARMONY_AS_STRING>
         </IF DATE_YYYYMMDD>
         <IF DATE_YYYYJJJ>
-        private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("FORMAT:YYYYJJJ")
+        private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("YYYYJJJ")
         </IF DATE_YYYYJJJ>
         <IF TIME>
           <IF CUSTOM_HARMONY_AS_STRING>
@@ -102,7 +102,12 @@ namespace <NAMESPACE>
         private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalConverter.LiteralFormatter("XX:XX:XX")
             </IF TIME_HHMMSS>
           <ELSE>
-        private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("FORMAT:HHMM")
+          <IF TIME_HHMM>
+        private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("HHMM")
+          </IF TIME_HHMM>
+          <IF TIME_HHMMSS>
+        private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("HHMMSS")
+          </IF TIME_HHMM>
           </IF CUSTOM_HARMONY_AS_STRING>
         </IF TIME>
       <ELSE>

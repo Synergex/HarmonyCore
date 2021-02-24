@@ -87,7 +87,7 @@ namespace Services.Test
 
         private static method setLogicals, void
         proc
-            data sampleDataFolder = findRelativeFolderForAssembly("SampleData")
+            data sampleDataFolder = FindRelativeFolderForAssembly("SampleData")
             data logicals = new List<string>()
             data logical = String.Empty
             data fileSpec = String.Empty
@@ -156,6 +156,14 @@ namespace Services.Test
                     logicals.Add(logical)
             end
 
+            fileSpec = "DAT:differentpk.ism"
+            if (fileSpec.Contains(":"))
+            begin
+                logical = fileSpec.Split(":")[1].ToUpper()
+                if (!logicals.Contains(logical))
+                    logicals.Add(logical)
+            end
+
             foreach logical in logicals
             begin
                 data sts, int
@@ -178,6 +186,7 @@ namespace Services.Test
             data vendors = VendorLoader.LoadFromFile()
             data customerExs = CustomerExLoader.LoadFromFile()
             data nonuniquepks = NonuniquepkLoader.LoadFromFile()
+            data differentpks = DifferentpkLoader.LoadFromFile()
 
             ;;Create and load the customers file
 
@@ -265,6 +274,17 @@ namespace Services.Test
             open(chout=0,o:i,dataFile,FDL:xdlFile)
             foreach nonuniquepk in nonuniquepks
                 store(chout,nonuniquepk.SynergyRecord)
+            close chout
+
+            ;;Create and load the differentpks file
+
+            dataFile = "DAT:differentpk.ism"
+            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+
+            data differentpk, @Differentpk
+            open(chout=0,o:i,dataFile,FDL:xdlFile)
+            foreach differentpk in differentpks
+                store(chout,differentpk.SynergyRecord)
             close chout
 
         endmethod
@@ -359,9 +379,20 @@ namespace Services.Test
             end
             endtry
 
+            ;;Delete the differentpks file
+            try
+            begin
+                xcall delet("DAT:differentpk.ism")
+            end
+            catch (e, @NoFileFoundException)
+            begin
+                nop
+            end
+            endtry
+
         endmethod
 
-        private static method findRelativeFolderForAssembly, string
+        public static method FindRelativeFolderForAssembly, string
             folderName, string
         proc
             data assemblyLocation = ^typeof(UnitTestEnvironment).Assembly.Location

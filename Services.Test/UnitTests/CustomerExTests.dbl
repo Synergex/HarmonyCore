@@ -123,7 +123,7 @@ namespace Services.Test.UnitTests
             disposable data client = UnitTestEnvironment.Server.CreateClient()
 
             ;;Get one customerEx from the file
-            data getRequest = String.Format("/odata/v1/CustomerExs({1})","",TestConstants.Instance.GetCustomerEx_Customerid)
+            data getRequest = String.Format("/odata/v1/CustomerExs(Customerid={1})","",TestConstants.Instance.GetCustomerEx_Customerid)
             data getResponse = client.GetAsync(getRequest).Result
             data getResult = getResponse.Content.ReadAsStringAsync().Result
 
@@ -139,7 +139,7 @@ namespace Services.Test.UnitTests
 
             ;;Create new item
             disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doCustomerEx),System.Text.Encoding.UTF8, "application/json")
-            data request = String.Format("/odata/v1/CustomerExs({1})","",TestConstants.Instance.UpdateCustomerEx_Customerid)
+            data request = String.Format("/odata/v1/CustomerExs(Customerid={1})","",TestConstants.Instance.UpdateCustomerEx_Customerid)
             disposable data response = client.PutAsync(request, requestBody).Result
 
             ;;Check that we got a successful response from the web service
@@ -160,7 +160,7 @@ namespace Services.Test.UnitTests
 
             ;;Update full item
             requestBody = new StringContent(JsonConvert.SerializeObject(doCustomerEx),System.Text.Encoding.UTF8, "application/json")
-            request = String.Format("/odata/v1/CustomerExs({1})","",TestConstants.Instance.UpdateCustomerEx_Customerid)
+            request = String.Format("/odata/v1/CustomerExs(Customerid={1})","",TestConstants.Instance.UpdateCustomerEx_Customerid)
             response = client.PutAsync(request, requestBody).Result
 
             ;;Check that we got a successful response from the web service

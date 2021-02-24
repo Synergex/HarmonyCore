@@ -1616,6 +1616,52 @@ namespace Services.Test.UnitTests
             end
         endmethod
 
+        class DifferentPKWithCount
+            {JsonProperty("@odata.count")}
+            public readwrite property Count, long
+            {JsonProperty("value")}
+            public readwrite property Value, [#]@Services.Models.Differentpk
+        endclass
+
+        {TestMethod}
+        public method DifferentPKJoin, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Differentpks?$filter=Booleanpk eq true and Alphapk eq 'bbbb'&$count=true").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+
+            data differentPK, @DifferentPKWithCount, JsonConvert.DeserializeObject<DifferentPKWithCount>(result)
+            Assert.AreEqual(differentPK.Count, 1)
+            Assert.AreEqual(differentPK.Value.Length, 1)
+        endmethod
+
+        {TestMethod}
+        public method DifferentPKJoin2, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Differentpks?$filter=(Booleanpk eq false) and (REL_Customer/FavoriteItem ge 10) and (REL_Customer/FavoriteItem le 20)&$count=true").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+
+            data differentPK, @DifferentPKWithCount, JsonConvert.DeserializeObject<DifferentPKWithCount>(result)
+            Assert.AreEqual(differentPK.Count, 1)
+            Assert.AreEqual(differentPK.Value.Length, 1)
+        endmethod
+
+        {TestMethod}
+        public method DifferentPKJoin3, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Customers?$filter=(REL_Differentpk/Booleanpk eq true)&$count=true").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+
+            data customers, @CustomerWithCount, JsonConvert.DeserializeObject<CustomerWithCount>(result)
+            Assert.AreEqual(customers.Value.Length, 1)
+            Assert.AreEqual(customers.Count, 1)
+        endmethod
+
 ;		{TestMethod}
 ;		public method BasicSystemTextJson, void
 ;		proc

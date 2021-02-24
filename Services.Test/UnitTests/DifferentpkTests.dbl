@@ -1,8 +1,8 @@
 ;;*****************************************************************************
 ;;
-;; Title:       ItemTests.dbl
+;; Title:       DifferentpkTests.dbl
 ;;
-;; Description: Unit tests for the operations defined in ItemsController.
+;; Description: Unit tests for the operations defined in DifferentpksController.
 ;;
 ;;*****************************************************************************
 ;; WARNING: GENERATED CODE!
@@ -23,31 +23,31 @@ import System.Linq
 namespace Services.Test.UnitTests
 
     {TestClass}
-    public partial class ItemTests
+    public partial class DifferentpkTests
 
         ;;------------------------------------------------------------
-        ;;Get all Items
+        ;;Get all Differentpks
 
         {TestMethod}
-        {TestCategory("Item Tests - Read All")}
-        public method GetItems, void
+        {TestCategory("Differentpk Tests - Read All")}
+        public method GetDifferentpks, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/v1/Items").Result
+            disposable data response = client.GetAsync("/odata/v1/Differentpks").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
-            Assert.AreEqual(items.Value.Count,TestConstants.Instance.GetItems_Count)
+            data differentpks, @ODataDifferentpks, JsonConvert.DeserializeObject<ODataDifferentpks>(result)
+            Assert.AreEqual(differentpks.Value.Count,TestConstants.Instance.GetDifferentpks_Count)
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get all Items and expand relation REL_Vendor
+        ;;Get all Differentpks and expand relation REL_Customer
 
         {TestMethod}
-        {TestCategory("Item Tests - Read All")}
-        public method GetItems_Expand_REL_Vendor, void
+        {TestCategory("Differentpk Tests - Read All")}
+        public method GetDifferentpks_Expand_REL_Customer, void
         proc
-            data uri = "/odata/v1/Items?$expand=REL_Vendor"
+            data uri = "/odata/v1/Differentpks?$expand=REL_Customer"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync(uri).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -55,13 +55,13 @@ namespace Services.Test.UnitTests
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get all Items and expand relation REL_OrderItems
+        ;;Get all Differentpks and expand all relations
 
         {TestMethod}
-        {TestCategory("Item Tests - Read All")}
-        public method GetItems_Expand_REL_OrderItems, void
+        {TestCategory("Differentpk Tests - Read All")}
+        public method GetDifferentpks_Expand_All, void
         proc
-            data uri = "/odata/v1/Items?$expand=REL_OrderItems"
+            data uri = "/odata/v1/Differentpks?$expand=REL_Customer"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync(uri).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -69,166 +69,167 @@ namespace Services.Test.UnitTests
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get all Items and expand all relations
+        ;;Get a single Differentpk by primary key
 
         {TestMethod}
-        {TestCategory("Item Tests - Read All")}
-        public method GetItems_Expand_All, void
-        proc
-            data uri = "/odata/v1/Items?$expand=REL_Vendor,REL_OrderItems"
-            disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync(uri).Result
-            data result = response.Content.ReadAsStringAsync().Result
-            response.EnsureSuccessStatusCode()
-        endmethod
-
-        ;;------------------------------------------------------------
-        ;;Get a single Item by primary key
-
-        {TestMethod}
-        {TestCategory("Item Tests - Read by Primary Key")}
-        public method GetItem, void
+        {TestCategory("Differentpk Tests - Read by Primary Key")}
+        public method GetDifferentpk, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/v1/Items(ItemNumber={1})","",TestConstants.Instance.GetItem_ItemNumber)
+            data request = String.Format("/odata/v1/Differentpks(Id={1})","",TestConstants.Instance.GetDifferentpk_Id)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data item, @ODataItem, JsonConvert.DeserializeObject<ODataItem>(result)
+            data differentpk, @ODataDifferentpk, JsonConvert.DeserializeObject<ODataDifferentpk>(result)
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get a single Item by primary key and expand relation REL_Vendor
+        ;;Get a single Differentpk by primary key and expand relation REL_Customer
 
         {TestMethod}
-        {TestCategory("Item Tests - Read by Primary Key")}
-        public method GetItem_Expand_REL_Vendor, void
+        {TestCategory("Differentpk Tests - Read by Primary Key")}
+        public method GetDifferentpk_Expand_REL_Customer, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/v1/Items(ItemNumber={1})?$expand=REL_Vendor","",TestConstants.Instance.GetItem_Expand_REL_Vendor_ItemNumber)
+            data request = String.Format("/odata/v1/Differentpks(Id={1})?$expand=REL_Customer","",TestConstants.Instance.GetDifferentpk_Expand_REL_Customer_Id)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data item, @ODataItem, JsonConvert.DeserializeObject<ODataItem>(result)
+            data differentpk, @ODataDifferentpk, JsonConvert.DeserializeObject<ODataDifferentpk>(result)
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get a single Item by primary key and expand relation REL_OrderItems
+        ;;Get a single Differentpk by primary key and expand all relations
 
         {TestMethod}
-        {TestCategory("Item Tests - Read by Primary Key")}
-        public method GetItem_Expand_REL_OrderItems, void
+        {TestCategory("Differentpk Tests - Read by Primary Key")}
+        public method GetDifferentpk_Expand_All, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/v1/Items(ItemNumber={1})?$expand=REL_OrderItems","",TestConstants.Instance.GetItem_Expand_REL_OrderItems_ItemNumber)
+            data request = String.Format("/odata/v1/Differentpks(Id={1})?$expand=REL_Customer","",TestConstants.Instance.GetDifferentpk_Expand_All_Id)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data item, @ODataItem, JsonConvert.DeserializeObject<ODataItem>(result)
+            data differentpk, @ODataDifferentpk, JsonConvert.DeserializeObject<ODataDifferentpk>(result)
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get a single Item by primary key and expand all relations
+        ;;Get a single Differentpk by alternate key 1 (Alphapk)
 
         {TestMethod}
-        {TestCategory("Item Tests - Read by Primary Key")}
-        public method GetItem_Expand_All, void
+        {TestCategory("Differentpk Tests - Read by Alternate Key")}
+        public method GetDifferentpk_ByAltKey_Alphapk, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/v1/Items(ItemNumber={1})?$expand=REL_Vendor,REL_OrderItems","",TestConstants.Instance.GetItem_Expand_All_ItemNumber)
+            data request = String.Format("/odata/v1/Differentpks(Alphapk='{1}')", "", TestConstants.Instance.GetDifferentpk_ByAltKey_Alphapk_Alphapk)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data item, @ODataItem, JsonConvert.DeserializeObject<ODataItem>(result)
+            data differentpks, @ODataDifferentpks,JsonConvert.DeserializeObject<ODataDifferentpks>(result)
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get a single Item by alternate key 1 (VendorNumber)
+        ;;Get a single Differentpk by alternate key 2 (Decimalpk)
 
         {TestMethod}
-        {TestCategory("Item Tests - Read by Alternate Key")}
-        public method GetItem_ByAltKey_VendorNumber, void
+        {TestCategory("Differentpk Tests - Read by Alternate Key")}
+        public method GetDifferentpk_ByAltKey_Decimalpk, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/v1/Items(VendorNumber={1})", "", TestConstants.Instance.GetItem_ByAltKey_VendorNumber_VendorNumber)
+            data request = String.Format("/odata/v1/Differentpks(Decimalpk={1})", "", TestConstants.Instance.GetDifferentpk_ByAltKey_Decimalpk_Decimalpk)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data items, @ODataItems,JsonConvert.DeserializeObject<ODataItems>(result)
+            data differentpks, @ODataDifferentpks,JsonConvert.DeserializeObject<ODataDifferentpks>(result)
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get a single Item by alternate key 2 (Color)
+        ;;Get a single Differentpk by alternate key 3 (Intergerpk)
 
         {TestMethod}
-        {TestCategory("Item Tests - Read by Alternate Key")}
-        public method GetItem_ByAltKey_Color, void
+        {TestCategory("Differentpk Tests - Read by Alternate Key")}
+        public method GetDifferentpk_ByAltKey_Intergerpk, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/v1/Items(FlowerColor='{1}')", "", TestConstants.Instance.GetItem_ByAltKey_Color_FlowerColor)
+            data request = String.Format("/odata/v1/Differentpks(Intergerpk={1})", "", TestConstants.Instance.GetDifferentpk_ByAltKey_Intergerpk_Intergerpk)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data items, @ODataItems,JsonConvert.DeserializeObject<ODataItems>(result)
+            data differentpks, @ODataDifferentpks,JsonConvert.DeserializeObject<ODataDifferentpks>(result)
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get a single Item by alternate key 3 (Size)
+        ;;Get a single Differentpk by alternate key 4 (Datepk)
 
         {TestMethod}
-        {TestCategory("Item Tests - Read by Alternate Key")}
-        public method GetItem_ByAltKey_Size, void
+        {TestCategory("Differentpk Tests - Read by Alternate Key")}
+        public method GetDifferentpk_ByAltKey_Datepk, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/v1/Items(Size={1})", "", TestConstants.Instance.GetItem_ByAltKey_Size_Size)
+            data request = String.Format("/odata/v1/Differentpks(Datepk={1})", "", TestConstants.Instance.GetDifferentpk_ByAltKey_Datepk_Datepk.ToString("yyyy-MM-dd"))
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data items, @ODataItems,JsonConvert.DeserializeObject<ODataItems>(result)
+            data differentpks, @ODataDifferentpks,JsonConvert.DeserializeObject<ODataDifferentpks>(result)
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get a single Item by alternate key 4 (Name)
+        ;;Get a single Differentpk by alternate key 5 (Timepk)
 
         {TestMethod}
-        {TestCategory("Item Tests - Read by Alternate Key")}
-        public method GetItem_ByAltKey_Name, void
+        {TestCategory("Differentpk Tests - Read by Alternate Key")}
+        public method GetDifferentpk_ByAltKey_Timepk, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/v1/Items(CommonName='{1}')", "", TestConstants.Instance.GetItem_ByAltKey_Name_CommonName)
+            data request = String.Format("/odata/v1/Differentpks(Timepk={1})", "", TestConstants.Instance.GetDifferentpk_ByAltKey_Timepk_Timepk.ToString("hh:mm:ss"))
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data items, @ODataItems,JsonConvert.DeserializeObject<ODataItems>(result)
+            data differentpks, @ODataDifferentpks,JsonConvert.DeserializeObject<ODataDifferentpks>(result)
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Create new Item (client specified key)
+        ;;Get a single Differentpk by alternate key 6 (Booleanpk)
 
         {TestMethod}
-        {TestCategory("Item Tests - Create, Update & Delete")}
-        public method UpdateItem, void
+        {TestCategory("Differentpk Tests - Read by Alternate Key")}
+        public method GetDifferentpk_ByAltKey_Booleanpk, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            data request = String.Format("/odata/v1/Differentpks(Booleanpk={1})", "", TestConstants.Instance.GetDifferentpk_ByAltKey_Booleanpk_Booleanpk.ToString().ToLower())
+            data response = client.GetAsync(request).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data differentpks, @ODataDifferentpks,JsonConvert.DeserializeObject<ODataDifferentpks>(result)
+        endmethod
+
+        ;;------------------------------------------------------------
+        ;;Create new Differentpk (client specified key)
+
+        {TestMethod}
+        {TestCategory("Differentpk Tests - Create, Update & Delete")}
+        public method UpdateDifferentpk, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
 
-            ;;Get one item from the file
-            data getRequest = String.Format("/odata/v1/Items(ItemNumber={1})","",TestConstants.Instance.GetItem_ItemNumber)
+            ;;Get one differentpk from the file
+            data getRequest = String.Format("/odata/v1/Differentpks(Id={1})","",TestConstants.Instance.GetDifferentpk_Id)
             data getResponse = client.GetAsync(getRequest).Result
             data getResult = getResponse.Content.ReadAsStringAsync().Result
 
             ;;Check that we got a successful response from the web service
             getResponse.EnsureSuccessStatusCode()
 
-            ;;Deserialize the JSON into a Item object
-            data doItem, @Item, JsonConvert.DeserializeObject<Item>(getResult)
+            ;;Deserialize the JSON into a Differentpk object
+            data doDifferentpk, @Differentpk, JsonConvert.DeserializeObject<Differentpk>(getResult)
 
-            doItem.ItemNumber = TestConstants.Instance.UpdateItem_ItemNumber
+            doDifferentpk.Id = TestConstants.Instance.UpdateDifferentpk_Id
 
             ;TODO: Also need to ensure any nodups alternate keys get unique values
 
             ;;Create new item
-            disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doItem),System.Text.Encoding.UTF8, "application/json")
-            data request = String.Format("/odata/v1/Items(ItemNumber={1})","",TestConstants.Instance.UpdateItem_ItemNumber)
+            disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doDifferentpk),System.Text.Encoding.UTF8, "application/json")
+            data request = String.Format("/odata/v1/Differentpks(Id={1})","",TestConstants.Instance.UpdateDifferentpk_Id)
             disposable data response = client.PutAsync(request, requestBody).Result
 
             ;;Check that we got a successful response from the web service
@@ -241,15 +242,14 @@ namespace Services.Test.UnitTests
             ;;Check that we got a successful response from the web service
             getResponse.EnsureSuccessStatusCode()
 
-            ;;Deserialize the JSON into a Item object
-            doItem = JsonConvert.DeserializeObject<Item>(getResult)
+            ;;Deserialize the JSON into a Differentpk object
+            doDifferentpk = JsonConvert.DeserializeObject<Differentpk>(getResult)
 
             ;;Change the first non key field to test full update
-            doItem.LatinName = "Y"
 
             ;;Update full item
-            requestBody = new StringContent(JsonConvert.SerializeObject(doItem),System.Text.Encoding.UTF8, "application/json")
-            request = String.Format("/odata/v1/Items(ItemNumber={1})","",TestConstants.Instance.UpdateItem_ItemNumber)
+            requestBody = new StringContent(JsonConvert.SerializeObject(doDifferentpk),System.Text.Encoding.UTF8, "application/json")
+            request = String.Format("/odata/v1/Differentpks(Id={1})","",TestConstants.Instance.UpdateDifferentpk_Id)
             response = client.PutAsync(request, requestBody).Result
 
             ;;Check that we got a successful response from the web service
@@ -262,10 +262,8 @@ namespace Services.Test.UnitTests
             ;;Check that we got a successful response from the web service
             getResponse.EnsureSuccessStatusCode()
 
-            ;;Deserialize the JSON into a Item object
-            doItem = JsonConvert.DeserializeObject<Item>(getResult)
-            Assert.AreEqual(doItem.LatinName, "Y")
-
+            ;;Deserialize the JSON into a Differentpk object
+            doDifferentpk = JsonConvert.DeserializeObject<Differentpk>(getResult)
             ;;Update one non-existant property in the customer
             data badPatchDoc = new JsonPatchDocument()
             badPatchDoc.Replace("xyzzy", "Z")
@@ -279,9 +277,8 @@ namespace Services.Test.UnitTests
             ;;Check that we got a failure response from the web service
             Assert.AreEqual(badPatchResponse.StatusCode, HttpStatusCode.BadRequest)
 
-            ;;Update one property in the item
+            ;;Update one property in the differentpk
             data patchDoc = new JsonPatchDocument()
-            patchDoc.Replace("LatinName", "Z")
 
             ;;Serialize the patch to JSON
             data serializedPatch = JsonConvert.SerializeObject(patchDoc)
@@ -293,18 +290,17 @@ namespace Services.Test.UnitTests
             ;;Check that we got a successful response from the web service
             patchResponse.EnsureSuccessStatusCode()
 
-            ;;Get the updated item record
+            ;;Get the updated differentpk record
             getResponse = client.GetAsync(request).Result
             getResult = getResponse.Content.ReadAsStringAsync().Result
 
             ;;Check that we got a successful response from the web service
             getResponse.EnsureSuccessStatusCode()
 
-            ;;Deserialize the JSON into a Item object
-            doItem = JsonConvert.DeserializeObject<Item>(getResult)
+            ;;Deserialize the JSON into a Differentpk object
+            doDifferentpk = JsonConvert.DeserializeObject<Differentpk>(getResult)
 
             ;;Verify that the property was changed
-            Assert.AreEqual(doItem.LatinName, "Z")
 
             ;;Delete It
             disposable data deleteResponse = client.DeleteAsync(request).Result

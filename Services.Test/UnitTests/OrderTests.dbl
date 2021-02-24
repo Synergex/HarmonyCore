@@ -197,7 +197,7 @@ namespace Services.Test.UnitTests
             disposable data client = UnitTestEnvironment.Server.CreateClient()
 
             ;;Get one order from the file
-            data getRequest = String.Format("/odata/v1/Orders({1})","",TestConstants.Instance.GetOrder_OrderNumber)
+            data getRequest = String.Format("/odata/v1/Orders(OrderNumber={1})","",TestConstants.Instance.GetOrder_OrderNumber)
             data getResponse = client.GetAsync(getRequest).Result
             data getResult = getResponse.Content.ReadAsStringAsync().Result
 
@@ -213,7 +213,7 @@ namespace Services.Test.UnitTests
 
             ;;Create new item
             disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doOrder),System.Text.Encoding.UTF8, "application/json")
-            data request = String.Format("/odata/v1/Orders({1})","",TestConstants.Instance.UpdateOrder_OrderNumber)
+            data request = String.Format("/odata/v1/Orders(OrderNumber={1})","",TestConstants.Instance.UpdateOrder_OrderNumber)
             disposable data response = client.PutAsync(request, requestBody).Result
 
             ;;Check that we got a successful response from the web service
@@ -234,7 +234,7 @@ namespace Services.Test.UnitTests
 
             ;;Update full item
             requestBody = new StringContent(JsonConvert.SerializeObject(doOrder),System.Text.Encoding.UTF8, "application/json")
-            request = String.Format("/odata/v1/Orders({1})","",TestConstants.Instance.UpdateOrder_OrderNumber)
+            request = String.Format("/odata/v1/Orders(OrderNumber={1})","",TestConstants.Instance.UpdateOrder_OrderNumber)
             response = client.PutAsync(request, requestBody).Result
 
             ;;Check that we got a successful response from the web service

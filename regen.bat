@@ -23,14 +23,14 @@ set ModelsProject=Services.Models
 set ControllersProject=Services.Controllers
 set HostProject=Services.Host
 set TestProject=Services.Test
-set TestValuesProject=Services.Test.GetTestValues
+set TestValuesProject=Services.Test.GenerateValues
 set TraditionalBridgeProject=TraditionalBridge
 set RepositoryProject=HarmonyCore.Test.Repository\HarmonyCore.Test.Repository.synproj
 
 rem ================================================================================================================================
 rem Specify the names of the repository structures to generate code from:
 
-set DATA_STRUCTURES=CUSTOMERS CUSTOMER_NOTES ITEMS ORDERS ORDER_ITEMS VENDORS CUSTOMER_EX NONUNIQUEPK
+set DATA_STRUCTURES=CUSTOMERS CUSTOMER_NOTES ITEMS ORDERS ORDER_ITEMS VENDORS CUSTOMER_EX NONUNIQUEPK DIFFERENTPK
 set DATA_ALIASES=%DATA_STRUCTURES%
 set DATA_FILES=%DATA_STRUCTURES%
 
