@@ -100,7 +100,7 @@ namespace Services.Test.GenerateValues
 ;//
   <ALTERNATE_KEY_LOOP_UNIQUE>
     <SEGMENT_LOOP>
-            TestConstants.Instance.Get<StructureNoplural>_ByAltKey_<KeyName>_<SegmentName> = <IF DATEORTIME>DateTime.ParseExact((string)(<structureNoplural>.<segment_name>), <IF DATE>"yyyyMMdd"<ELSE>"hhmmss"</IF DATE>, System.Globalization.CultureInfo.InvariantCulture)<ELSE><IF SEG_TYPE_FIELD><structureNoplural>.<segment_name><ELSE SEG_TYPE_LITERAL>"<SEGMENT_LITVAL>"</IF SEG_TYPE_FIELD></IF DATEORTIME>
+            TestConstants.Instance.Get<StructureNoplural>_ByAltKey_<KeyName>_<SegmentName> = <IF DATEORTIME>DecToDateTime(<structureNoplural>.<segment_name>, <IF DATE_YYMMDD>"YYMMDD</IF DATE_YYMMDD><IF DATE_YYYYMMDD>"YYYYMMDD"</IF DATE_YYYYMMDD><IF DATE_YYJJJ>"YYJJJ"</IF DATE_YYJJJ><IF DATE_YYYYJJJ>"YYYYJJJ"</IF DATE_YYYYJJJ><IF DATE_YYPP>"YYPP"</IF DATE_YYPP><IF DATE_YYYYPP>"YYYYPP"</IF DATE_YYYYPP><IF TIME_HHMM>"HHMM"</IF TIME_HHMM><IF TIME_HHMMSS>"HHMMSS"</IF TIME_HHMMSS>)<ELSE><IF SEG_TYPE_FIELD><structureNoplural>.<segment_name><ELSE SEG_TYPE_LITERAL>"<SEGMENT_LITVAL>"</IF SEG_TYPE_FIELD></IF DATEORTIME>
     </SEGMENT_LOOP>
   </ALTERNATE_KEY_LOOP_UNIQUE>
 ;//
