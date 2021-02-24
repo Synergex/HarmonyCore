@@ -71,7 +71,7 @@ namespace Services.Models
         ;;; ID
         ;;; </summary>
         {Key}
-        {Range(0,9999, ErrorMessage="ID must be between 0 and 9999. ")}
+        {Range(0,999999, ErrorMessage="ID must be between 0 and 999999. ")}
         {Newtonsoft.Json.JsonProperty}
         public property Id, int
             method get
@@ -244,6 +244,55 @@ namespace Services.Models
         proc
             ;;TODO: This should be returning boxed values for each of our fields
             mreturn new Object[7]
+        endmethod
+
+.endregion
+
+.region "Relationships to other entities"
+
+        {Newtonsoft.Json.JsonProperty(DefaultValueHandling=DefaultValueHandling.Ignore)}
+        ;;; <summary>
+        ;;; Relationship (Type B)
+        ;;; DIFFERENTPK.ID (one) --> (one) --> (one) CUSTOMER.CUSTOMER_NUMBER
+        ;;; </summary>
+        public readwrite property REL_Customer, @Customer
+
+.endregion
+
+.region "Relation validation"
+
+        ;;; <summary>
+        ;;; Validate data for relations
+        ;;; </summary>
+        ;;; <param name="type">Validation type (create, update or delete)</param>
+        ;;; <param name="sp">Serices provider</param>
+        public override method Validate, void
+            required in vType, ValidationType
+            required in sp, @IServiceProvider
+        proc
+            ;;No relation validation if the record is being deleted
+            if (vType == ValidationType.Delete)
+                mreturn
+
+            ;;Get an instance of IDataObjectProvider
+            data dataObjectProvider, @IDataObjectProvider, sp.GetService<IDataObjectProvider>()
+
+            ;;--------------------------------------------------------------------------------
+            ;;Validate data for relation 1 (REL_Customer)
+
+            ;;Validation mode: None
+
+            ;;--------------------------------------------------------------------------------
+            ;;If we have a ValidateCustom method, call it
+
+            ValidateCustom(vType,sp)
+
+        endmethod
+
+
+        private partial method ValidateCustom, void
+            required in vType, ValidationType
+            required in sp, @IServiceProvider
         endmethod
 
 .endregion

@@ -41,6 +41,34 @@ namespace Services.Test.UnitTests
         endmethod
 
         ;;------------------------------------------------------------
+        ;;Get all Differentpks and expand relation REL_Customer
+
+        {TestMethod}
+        {TestCategory("Differentpk Tests - Read All")}
+        public method GetDifferentpks_Expand_REL_Customer, void
+        proc
+            data uri = "/odata/v1/Differentpks?$expand=REL_Customer"
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync(uri).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+        endmethod
+
+        ;;------------------------------------------------------------
+        ;;Get all Differentpks and expand all relations
+
+        {TestMethod}
+        {TestCategory("Differentpk Tests - Read All")}
+        public method GetDifferentpks_Expand_All, void
+        proc
+            data uri = "/odata/v1/Differentpks?$expand=REL_Customer"
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync(uri).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+        endmethod
+
+        ;;------------------------------------------------------------
         ;;Get a single Differentpk by primary key
 
         {TestMethod}
@@ -49,6 +77,36 @@ namespace Services.Test.UnitTests
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/Differentpks(Id={1})","",TestConstants.Instance.GetDifferentpk_Id)
+            data response = client.GetAsync(request).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data differentpk, @ODataDifferentpk, JsonConvert.DeserializeObject<ODataDifferentpk>(result)
+        endmethod
+
+        ;;------------------------------------------------------------
+        ;;Get a single Differentpk by primary key and expand relation REL_Customer
+
+        {TestMethod}
+        {TestCategory("Differentpk Tests - Read by Primary Key")}
+        public method GetDifferentpk_Expand_REL_Customer, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            data request = String.Format("/odata/v1/Differentpks(Id={1})?$expand=REL_Customer","",TestConstants.Instance.GetDifferentpk_Expand_REL_Customer_Id)
+            data response = client.GetAsync(request).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data differentpk, @ODataDifferentpk, JsonConvert.DeserializeObject<ODataDifferentpk>(result)
+        endmethod
+
+        ;;------------------------------------------------------------
+        ;;Get a single Differentpk by primary key and expand all relations
+
+        {TestMethod}
+        {TestCategory("Differentpk Tests - Read by Primary Key")}
+        public method GetDifferentpk_Expand_All, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            data request = String.Format("/odata/v1/Differentpks(Id={1})?$expand=REL_Customer","",TestConstants.Instance.GetDifferentpk_Expand_All_Id)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()

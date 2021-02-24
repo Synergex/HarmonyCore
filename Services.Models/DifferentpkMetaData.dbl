@@ -42,13 +42,16 @@ namespace Services.Models
             RPSStructureSize = ^size(strDifferentpk)
 
             ;; Define fields
-            AddFieldInfo("Id", "DECIMAL", 4, 1, 0, false)
-            AddFieldInfo("Alphapk", "ALPHA", 4, 5, 0, false)
-            AddFieldInfo("Decimalpk", "DECIMAL", 4, 9, 0, false)
-            AddFieldInfo("Intergerpk", "INTEGER", 4, 13, 0, false)
-            AddFieldInfo("Datepk", "DATE", 8, 17, 0, false, mDatepkFormatter)
-            AddFieldInfo("Timepk", "TIME", 6, 25, 0, false, mTimepkFormatter)
-            AddFieldInfo("Booleanpk", "BOOLEAN", 4, 31, 0, false)
+            AddFieldInfo("Id", "DECIMAL", 6, 1, 0, false)
+            AddFieldInfo("Alphapk", "ALPHA", 4, 7, 0, false)
+            AddFieldInfo("Decimalpk", "DECIMAL", 4, 11, 0, false)
+            AddFieldInfo("Intergerpk", "INTEGER", 4, 15, 0, false)
+            AddFieldInfo("Datepk", "DATE", 8, 19, 0, false, mDatepkFormatter)
+            AddFieldInfo("Timepk", "TIME", 6, 27, 0, false, mTimepkFormatter)
+            AddFieldInfo("Booleanpk", "BOOLEAN", 4, 33, 0, false)
+
+            ;; Define relations
+            AddFieldInfo("REL_Customer", "DATAOBJECT", 0, 0, 0, false)
 
             ;; Define all fields that are associated wity key segments
             AddKeyInfo(0, "Id")
@@ -97,6 +100,7 @@ namespace Services.Models
 
         ;;; <summary>
         ;;; Returns a new Differentpk object containing data from a record and a GRFA.
+        ;;; The related data properties () will not be populated.
         ;;; </summary>
         ;;; <param name="dataArea">The record containing the data for the new Differentpk object.</param>
         ;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
@@ -110,10 +114,11 @@ namespace Services.Models
 
         ;;; <summary>
         ;;; Returns a new Differentpk object containing data from a record and a GRFA.
+        ;;; The related data properties () will be populated.
         ;;; </summary>
         ;;; <param name="dataArea">The record containing the data for the new Differentpk object.</param>
         ;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
-        ;;; <param name="joinedObjects">Data to allow the related data properties to be populated.</param>
+        ;;; <param name="joinedObjects">Data to allow the related data properties () to be populated.</param>
         ;;; <returns></returns>
         public override method MakeNew, @DataObjectBase
             required in dataArea, a
@@ -136,6 +141,19 @@ namespace Services.Models
             required in existing, @Differentpk
             required in joinedObjects, [#]KeyValuePair<String, Object>
         proc
+            data joinedObject, KeyValuePair<String, Object>
+            foreach joinedObject in joinedObjects
+            begin
+                using joinedObject.Key select
+                ("REL_Customer"),
+                begin
+                    if(existing.REL_Customer == ^null)
+                    begin
+                        existing.REL_Customer = (@Customer)joinedObject.Value
+                    end
+                end
+                endusing
+            end
         endmethod
 
         ;;; <summary>
@@ -149,7 +167,7 @@ namespace Services.Models
             required in parts, @Dictionary<String, Object>
             endparams
             stack record key0
-                Id, D4
+                Id, D6
             endrecord
             stack record key1
                 Alphapk, A4
@@ -175,7 +193,7 @@ namespace Services.Models
             using keyNumber select
             (0),
             begin
-                if((segValueLength=KeyValueHelper(key0.Id, "Id", parts))<4 && segValueLength>0)
+                if((segValueLength=KeyValueHelper(key0.Id, "Id", parts))<6 && segValueLength>0)
                     mreturn key0(1:startPos+segValueLength)
                 mreturn key0
             end
