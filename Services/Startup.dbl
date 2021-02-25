@@ -159,6 +159,11 @@ namespace Services
                 objectProvider.AddDataObjectMapping<Vendor>("DAT:vendors.ism", FileOpenMode.UpdateIndexed)
                 objectProvider.AddDataObjectMapping<CustomerEx>("DAT:CUSTOMER_EX.ism", FileOpenMode.UpdateIndexed)
                 objectProvider.AddDataObjectMapping<Nonuniquepk>("DAT:nonuniquepk.ism", FileOpenMode.UpdateIndexed)
+                objectProvider.AddDataObjectMapping<Differentpk>("DAT:differentpk.ism", FileOpenMode.UpdateIndexed)
+
+                ;;If we have an AddDataObjectMappingsCustom method, call it
+                AddDataObjectMappingsCustom(objectProvider)
+
                 mreturn objectProvider
             end
 
@@ -256,6 +261,9 @@ namespace Services
                 end
                 
                 op.MaxIAsyncEnumerableBufferLimit = int.MaxValue
+
+                ;;If there is a MvcConfigCustom method, call it
+                MvcConfigCustom(op)
             end
 
             data mvcBuilder = services.AddMvcCore(MvcCoreConfig)
@@ -464,7 +472,7 @@ namespace Services
 
         endmethod
 
-        .region "Partial method extensibility points"
+.region "Partial method extensibility points"
 
         ;;; <summary>
         ;;; Declare the ConfigueServicesCustom partial method.
@@ -472,7 +480,7 @@ namespace Services
         ;;; </summary>
         ;;; <param name="services"></param>
         partial method ConfigureServicesCustom, void
-            services, @IServiceCollection
+            required in services, @IServiceCollection
         endmethod
 
         ;;; <summary>
@@ -503,10 +511,19 @@ namespace Services
         ;;; </summary>
         ;;; <param name="options">MVC options</param>
         partial method MvcConfigCustom, void
-            options, @MvcOptions
+            required in options, @MvcOptions
         endmethod
 
-        .endregion
+        ;;; <summary>
+        ;;; Declare the AddDataObjectMappingsCustom partial method
+        ;;; Developers can use this to inject additional data object mappings
+        ;;; </summary>
+        ;;; <param name="serviceProvider">Data object provider</param>
+        partial method AddDataObjectMappingsCustom, void
+            required in provider, @DataObjectProvider
+        endmethod
+
+.endregion
 
     endclass
 

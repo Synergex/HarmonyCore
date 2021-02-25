@@ -27,6 +27,7 @@ namespace Services
         mNextItemParam, strSysParams
         mNextOrderParam, strSysParams
         mNextVendorParam, strSysParams
+        mNextIDParam, strSysParams
 
         public method PrimaryKeyGenerator
             required in aFileChannelManager, @IFileChannelManager
@@ -37,6 +38,7 @@ namespace Services
             init mNextItemParam
             init mNextOrderParam
             init mNextVendorParam
+            init mNextIDParam
         endmethod
 
         protected override method IncrementKeyImplementation, @a
@@ -75,6 +77,13 @@ namespace Services
                 mNextVendorParam.param_value += 1
                 mreturn (@a)%string(mNextVendorParam.param_value-1)
             end
+            ("DIFFERENTPK"),
+            begin
+                if (!mNextIDParam.param_value)
+                    read(mChannel,mNextIDParam,5,LOCK:Q_MANUAL_LOCK)
+                mNextIDParam.param_value += 1
+                mreturn (@a)%string(mNextIDParam.param_value-1)
+            end
             endusing
         endmethod
 
@@ -95,6 +104,10 @@ namespace Services
             if (mNextVendorParam.param_value)
             begin
                 write(mChannel,mNextVendorParam,2)
+            end
+            if (mNextIDParam.param_value)
+            begin
+                write(mChannel,mNextIDParam,5)
             end
             mFileChannelManager.ReturnChannel(mChannel)
             mChannel = 0

@@ -65,7 +65,7 @@ namespace Services.Test.UnitTests
             disposable data client = UnitTestEnvironment.Server.CreateClient()
 
             ;;Get one nonuniquepk from the file
-            data getRequest = String.Format("/odata/v1/Nonuniquepks({1})","",TestConstants.Instance.GetNonuniquepk_Pk)
+            data getRequest = String.Format("/odata/v1/Nonuniquepks(Pk={1})","",TestConstants.Instance.GetNonuniquepk_Pk)
             data getResponse = client.GetAsync(getRequest).Result
             data getResult = getResponse.Content.ReadAsStringAsync().Result
 
@@ -81,7 +81,7 @@ namespace Services.Test.UnitTests
 
             ;;Create new item
             disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doNonuniquepk),System.Text.Encoding.UTF8, "application/json")
-            data request = String.Format("/odata/v1/Nonuniquepks({1})","",TestConstants.Instance.UpdateNonuniquepk_Pk)
+            data request = String.Format("/odata/v1/Nonuniquepks(Pk={1})","",TestConstants.Instance.UpdateNonuniquepk_Pk)
             disposable data response = client.PutAsync(request, requestBody).Result
 
             ;;Check that we got a successful response from the web service
@@ -110,7 +110,7 @@ namespace Services.Test.UnitTests
 
             ;;Update full item
             requestBody = new StringContent(JsonConvert.SerializeObject(doNonuniquepk),System.Text.Encoding.UTF8, "application/json")
-            request = String.Format("/odata/v1/Nonuniquepks({1})","",TestConstants.Instance.UpdateNonuniquepk_Pk)
+            request = String.Format("/odata/v1/Nonuniquepks(Pk={1})","",TestConstants.Instance.UpdateNonuniquepk_Pk)
             response = client.PutAsync(request, requestBody).Result
 
             ;;Check that we got a successful response from the web service

@@ -22,7 +22,7 @@ namespace Services.Models
     ;;; <summary>
     ;;;
     ;;; </summary>
-    public class DbContext extends Microsoft.EntityFrameworkCore.DbContext
+    public partial class DbContext extends Microsoft.EntityFrameworkCore.DbContext
 
         ;;; <summary>
         ;;; Construct a new DbContext.
@@ -74,6 +74,11 @@ namespace Services.Models
         ;;; Exposes Nonuniquepk data.
         ;;; </summary>
         public readwrite property Nonuniquepks, @DbSet<Nonuniquepk>
+
+        ;;; <summary>
+        ;;; Exposes Differentpk data.
+        ;;; </summary>
+        public readwrite property Differentpks, @DbSet<Differentpk>
 
         ;;; <summary>
         ;;;
@@ -130,6 +135,12 @@ namespace Services.Models
              ;;    To segments   : CUSTOMERID(D6) 
 
              parm.AddOneToOneToOneRelation<Customer, CustomerEx>("REL_CustomerEx", "KEY_CUSTOMER_NUMBER", "REL_Customer", "KEY_PRIMARY")
+             ;; CUSTOMER.CUSTOMER_NUMBER (one) --> (one) --> (one) DIFFERENTPK.ID
+             ;;    Type          : B
+             ;;    From segments : CUSTOMER_NUMBER(D6) 
+             ;;    To segments   : ID(D6) 
+
+             parm.AddOneToOneToOneRelation<Customer, Differentpk>("REL_Differentpk", "KEY_CUSTOMER_NUMBER", "REL_Customer", "KEY_ID")
             ;;--------------------------------------
             ;; Relationships from CUSTOMER_NOTE
 
@@ -202,10 +213,33 @@ namespace Services.Models
              ;;    To segments   : CUSTOMER_NUMBER(D6) 
 
              parm.AddOneToOneToOneRelation<CustomerEx, Customer>("REL_Customer", "KEY_PRIMARY", "REL_CustomerEx", "KEY_CUSTOMER_NUMBER")
+            ;;--------------------------------------
+            ;; Relationships from DIFFERENTPK
+
+             ;; DIFFERENTPK.ID (one) --> (one) --> (one) CUSTOMER.CUSTOMER_NUMBER
+             ;;    Type          : B
+             ;;    From segments : ID(D6) 
+             ;;    To segments   : CUSTOMER_NUMBER(D6) 
+
+             parm.AddOneToOneToOneRelation<Differentpk, Customer>("REL_Customer", "KEY_ID", "REL_Differentpk", "KEY_CUSTOMER_NUMBER")
 .endregion
+
+            ;;-----------------------------------------------
+            ;;If we have a OnModelCreatingCustom method, call it 
+
+            OnModelCreatingCustom(parm)
+
+            ;;-----------------------------------------------
+            ;;All done, call the code in our base class
 
             parent.OnModelCreating(parm)
 
+        endmethod
+
+        ;;Declare the OnModelCreatingCustom partial method
+        ;;This method can be implemented in a partial class to provide custom code
+        partial static method OnModelCreatingCustom, void
+            builder, @ModelBuilder
         endmethod
 
     endclass

@@ -197,7 +197,7 @@ namespace Services.Test.UnitTests
             disposable data client = UnitTestEnvironment.Server.CreateClient()
 
             ;;Get one orderItem from the file
-            data getRequest = String.Format("/odata/v1/OrderItems({1},{2})","",TestConstants.Instance.GetOrderItem_OrderNumber,TestConstants.Instance.GetOrderItem_ItemNumber)
+            data getRequest = String.Format("/odata/v1/OrderItems(OrderNumber={1},ItemNumber={2})","",TestConstants.Instance.GetOrderItem_OrderNumber,TestConstants.Instance.GetOrderItem_ItemNumber)
             data getResponse = client.GetAsync(getRequest).Result
             data getResult = getResponse.Content.ReadAsStringAsync().Result
 
@@ -214,7 +214,7 @@ namespace Services.Test.UnitTests
 
             ;;Create new item
             disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doOrderItem),System.Text.Encoding.UTF8, "application/json")
-            data request = String.Format("/odata/v1/OrderItems({1},{2})","",TestConstants.Instance.UpdateOrderItem_OrderNumber,TestConstants.Instance.UpdateOrderItem_ItemNumber)
+            data request = String.Format("/odata/v1/OrderItems(OrderNumber={1},ItemNumber={2})","",TestConstants.Instance.UpdateOrderItem_OrderNumber,TestConstants.Instance.UpdateOrderItem_ItemNumber)
             disposable data response = client.PutAsync(request, requestBody).Result
 
             ;;Check that we got a successful response from the web service
@@ -235,7 +235,7 @@ namespace Services.Test.UnitTests
 
             ;;Update full item
             requestBody = new StringContent(JsonConvert.SerializeObject(doOrderItem),System.Text.Encoding.UTF8, "application/json")
-            request = String.Format("/odata/v1/OrderItems({1},{2})","",TestConstants.Instance.UpdateOrderItem_OrderNumber,TestConstants.Instance.UpdateOrderItem_ItemNumber)
+            request = String.Format("/odata/v1/OrderItems(OrderNumber={1},ItemNumber={2})","",TestConstants.Instance.UpdateOrderItem_OrderNumber,TestConstants.Instance.UpdateOrderItem_ItemNumber)
             response = client.PutAsync(request, requestBody).Result
 
             ;;Check that we got a successful response from the web service
