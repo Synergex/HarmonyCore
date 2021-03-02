@@ -209,11 +209,11 @@ namespace <NAMESPACE>
 
             ;; Define all fields that are associated wity key segments
 <IF STRUCTURE_ISAM>
-  <KEY_LOOP>
+  <KEY_LOOP_UNIQUE>
     <SEGMENT_LOOP>
             AddKeyInfo(<KEY_NUMBER>, "<FieldSqlname>")
     </SEGMENT_LOOP>
-  </KEY_LOOP>
+  </KEY_LOOP_UNIQUE>
 </IF STRUCTURE_ISAM>
 <IF STRUCTURE_RELATIVE>
             AddKeyInfo(0, "recordNumber")
@@ -225,7 +225,7 @@ namespace <NAMESPACE>
             ;; Define the composition of access keys
 
 <IF STRUCTURE_ISAM>
-  <KEY_LOOP>
+  <KEY_LOOP_UNIQUE>
             data <KeyName>_KeyParts = new FieldDataDefinition[<KEY_SEGMENTS>]
     <SEGMENT_LOOP>
       <IF SEG_TYPE_LITERAL>
@@ -236,7 +236,7 @@ namespace <NAMESPACE>
     </SEGMENT_LOOP>
             AddFieldInfo("KEY_<KEY_NAME>", "COMPOSITE", 0, 0, 0, false, ^null, ^null, <KeyName>_KeyParts)
 
-  </KEY_LOOP>
+  </KEY_LOOP_UNIQUE>
   <COUNTER_1_RESET>
   <FOREIGN_KEY_LOOP>
     <COUNTER_1_INCREMENT>
@@ -352,18 +352,18 @@ namespace <NAMESPACE>
             required in keyNumber, int
             required in parts, @Dictionary<String, Object>
             endparams
-  <KEY_LOOP>
+  <KEY_LOOP_UNIQUE>
             stack record key<KEY_NUMBER>
     <SEGMENT_LOOP>
                 <FieldSqlName>, <SEGMENT_SPEC>
     </SEGMENT_LOOP>
             endrecord
-  </KEY_LOOP>
+  </KEY_LOOP_UNIQUE>
         proc
             data startPos = 0
             data segValueLength, int
             using keyNumber select
-  <KEY_LOOP>
+  <KEY_LOOP_UNIQUE>
             (<KEY_NUMBER>),
             begin
     <SEGMENT_LOOP>
@@ -385,7 +385,7 @@ namespace <NAMESPACE>
     </SEGMENT_LOOP>
                 mreturn key<KEY_NUMBER>
             end
-  </KEY_LOOP>
+  </KEY_LOOP_UNIQUE>
             endusing
 
             throw new ApplicationException(String.Format("Invalid key number {0} encountered in <StructureNoplural>Metadata.FormatKeyLiteral",keyNumber))
