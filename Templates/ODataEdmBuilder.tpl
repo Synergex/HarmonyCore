@@ -173,9 +173,11 @@ namespace <NAMESPACE>
             data <structureNoplural>Type = (@EdmEntityType)tempModel.FindDeclaredType("<MODELS_NAMESPACE>.<StructureNoplural>")
   <IF STRUCTURE_ISAM>
     <ALTERNATE_KEY_LOOP_UNIQUE>
+      <IF DUPLICATES>
       <IF COUNTER_1>
             tempModel.AddAlternateKeyAnnotation(<structureNoplural>Type, new Dictionary<string, IEdmProperty>() {<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE>{"<FieldSqlName>",<structureNoplural>Type.FindProperty("<FieldSqlName>")}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>})
       </IF NOT_COUNTER_1>
+      </IF DUPLICATES>
     </ALTERNATE_KEY_LOOP_UNIQUE>
     <IF DEFINED_ENABLE_PARTIAL_KEYS>
       <PARTIAL_KEY_LOOP>

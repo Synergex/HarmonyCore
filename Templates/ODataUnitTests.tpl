@@ -209,6 +209,7 @@ namespace <NAMESPACE>
   <IF DEFINED_ENABLE_ALTERNATE_KEYS>
     <ALTERNATE_KEY_LOOP_UNIQUE>
 
+      <IF DUPLICATES>
         ;;------------------------------------------------------------
         ;;Get a single <StructureNoplural> by alternate key <KEY_NUMBER> (<KeyName>)
 
@@ -224,12 +225,9 @@ namespace <NAMESPACE>
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-      <IF DUPLICATES>
             data <structurePlural>, @OData<StructurePlural>,JsonConvert.DeserializeObject<OData<StructurePlural>>(result)
-      <ELSE>
-            data <structureNoplural>, @OData<StructureNoplural>,JsonConvert.DeserializeObject<OData<StructureNoplural>>(result)
-      </IF DUPLICATES>
         endmethod
+    </IF DUPLICATES>
     </ALTERNATE_KEY_LOOP_UNIQUE>
   </IF DEFINED_ENABLE_ALTERNATE_KEYS>
 ;//
