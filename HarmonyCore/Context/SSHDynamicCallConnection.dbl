@@ -169,6 +169,11 @@ namespace Harmony.Core.Context
 			data foundMatch, boolean, false
 			guidStrings.Add(guidString)
 			data connectionLog = new List<string>()
+			data newLine = %char(13) + %char(10)
+
+			if(mTargetOS == RemoteTargetOS.Linux || mTargetOS == RemoteTargetOS.Unix)
+				newLine = %char(10)
+
 			while(String.IsNullOrWhiteSpace(readLine) || !readLine.Contains(guidString))
 			begin
 				cancelToken.ThrowIfCancellationRequested()
@@ -176,11 +181,11 @@ namespace Harmony.Core.Context
 				begin
 					if(mTargetOS == RemoteTargetOS.VMS) then
 					begin
-						await mWriter.WriteAsync('WRITE SYS$OUTPUT "' + guidString +  '"' + %char(13) + %char(10))
+						await mWriter.WriteAsync('WRITE SYS$OUTPUT "' + guidString +  '"' + newLine)
 					end
 					else
 					begin
-						await mWriter.WriteAsync('echo "' + guidString +  '"' + %char(13) + %char(10))
+						await mWriter.WriteAsync('echo "' + guidString +  '"' + newLine)
 					end
 
 					await mWriter.FlushAsync()
@@ -216,7 +221,7 @@ namespace Harmony.Core.Context
 			end
 
 			
-			await mWriter.WriteAsync(mLaunchCommand + %char(13) + %char(10))
+			await mWriter.WriteAsync(mLaunchCommand + newLine)
 			await mWriter.FlushAsync()
 			do
 			begin
@@ -234,9 +239,9 @@ namespace Harmony.Core.Context
 			formatter.JsonSerializer.FloatParseHandling = FloatParseHandling.Decimal
 			data result = new JsonRPC(new HeaderDelimitedMessageHandler(streamWrapper, formatter))
 			if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
-            begin
-                result.TraceSource = new TraceSource("Client", SourceLevels.All)
-            end
+			begin
+				result.TraceSource = new TraceSource("Client", SourceLevels.All)
+			end
 			result.StartListening()
 			mreturn result
 		endmethod
