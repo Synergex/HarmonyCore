@@ -1294,8 +1294,16 @@ namespace Harmony.TraditionalBridge
 
                             else
                             begin
-                                argBuffer = argValue.GetString()
-                                MaybeLog(4, "argument " + %string(index) + " passed to rcb dispatcher with argType " + %string(argType) + " JsonString value " + argValue.GetString())
+                                if(argValue.ValueKind == JsonValueKind.String) then
+                                begin
+                                    argBuffer = argValue.GetString()
+                                    MaybeLog(4, "argument " + %string(index) + " passed to rcb dispatcher with argType " + %string(argType) + " JsonString value " + argBuffer)
+                                end
+                                else
+                                begin
+                                    argBuffer = ""
+                                    MaybeLog(4, "argument " + %string(index) + " passed to rcb dispatcher with argType " + %string(argType) + " had non string value")
+                                end
                             end
                         end
                         else
