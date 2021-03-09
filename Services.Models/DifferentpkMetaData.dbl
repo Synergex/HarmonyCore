@@ -55,12 +55,12 @@ namespace Services.Models
 
             ;; Define all fields that are associated wity key segments
             AddKeyInfo(0, "Id")
-            AddKeyInfo(1, "Alphapk")
-            AddKeyInfo(2, "Decimalpk")
-            AddKeyInfo(3, "Intergerpk")
-            AddKeyInfo(4, "Datepk")
-            AddKeyInfo(5, "Timepk")
-            AddKeyInfo(6, "Booleanpk")
+            AddKeyInfo(2, "Alphapk")
+            AddKeyInfo(3, "Decimalpk")
+            AddKeyInfo(4, "Intergerpk")
+            AddKeyInfo(5, "Datepk")
+            AddKeyInfo(6, "Timepk")
+            AddKeyInfo(7, "Booleanpk")
 
             ;; Define the composition of access keys
 
@@ -169,22 +169,22 @@ namespace Services.Models
             stack record key0
                 Id, D6
             endrecord
-            stack record key1
+            stack record key2
                 Alphapk, A4
             endrecord
-            stack record key2
+            stack record key3
                 Decimalpk, D4
             endrecord
-            stack record key3
+            stack record key4
                 Intergerpk, I4
             endrecord
-            stack record key4
+            stack record key5
                 Datepk, D8
             endrecord
-            stack record key5
+            stack record key6
                 Timepk, D6
             endrecord
-            stack record key6
+            stack record key7
                 Booleanpk, BOOLEAN
             endrecord
         proc
@@ -197,41 +197,41 @@ namespace Services.Models
                     mreturn key0(1:startPos+segValueLength)
                 mreturn key0
             end
-            (1),
-            begin
-                if((segValueLength=KeyValueHelper(key1.Alphapk, "Alphapk", parts))<4 && segValueLength>0)
-                    mreturn key1(1:startPos+segValueLength)
-                mreturn key1
-            end
             (2),
             begin
-                if((segValueLength=KeyValueHelper(key2.Decimalpk, "Decimalpk", parts))<4 && segValueLength>0)
+                if((segValueLength=KeyValueHelper(key2.Alphapk, "Alphapk", parts))<4 && segValueLength>0)
                     mreturn key2(1:startPos+segValueLength)
                 mreturn key2
             end
             (3),
             begin
-                if((segValueLength=KeyValueHelper(key3.Intergerpk, "Intergerpk", parts))<4 && segValueLength>0)
+                if((segValueLength=KeyValueHelper(key3.Decimalpk, "Decimalpk", parts))<4 && segValueLength>0)
                     mreturn key3(1:startPos+segValueLength)
                 mreturn key3
             end
             (4),
             begin
-                if((segValueLength=KeyValueHelper(key4.Datepk, "Datepk", parts, mDatepkFormatter))<8 && segValueLength>0)
+                if((segValueLength=KeyValueHelper(key4.Intergerpk, "Intergerpk", parts))<4 && segValueLength>0)
                     mreturn key4(1:startPos+segValueLength)
                 mreturn key4
             end
             (5),
             begin
-                if((segValueLength=KeyValueHelper(key5.Timepk, "Timepk", parts, mTimepkFormatter))<6 && segValueLength>0)
+                if((segValueLength=KeyValueHelper(key5.Datepk, "Datepk", parts, mDatepkFormatter))<8 && segValueLength>0)
                     mreturn key5(1:startPos+segValueLength)
                 mreturn key5
             end
             (6),
             begin
-                if((segValueLength=KeyValueHelper(key6.Booleanpk, "Booleanpk", parts))<4 && segValueLength>0)
+                if((segValueLength=KeyValueHelper(key6.Timepk, "Timepk", parts, mTimepkFormatter))<6 && segValueLength>0)
                     mreturn key6(1:startPos+segValueLength)
                 mreturn key6
+            end
+            (7),
+            begin
+                if((segValueLength=KeyValueHelper(key7.Booleanpk, "Booleanpk", parts))<4 && segValueLength>0)
+                    mreturn key7(1:startPos+segValueLength)
+                mreturn key7
             end
             endusing
 
