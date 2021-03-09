@@ -44,12 +44,13 @@ namespace Harmony.Core.EF.Query.Internal
                     return Visit(inMemoryQueryExpression.ServerQueryExpression);
 
                 case HarmonyTableExpression inMemoryTableExpression:
-                    return Expression.Call(
-                        _tableMethodInfo,
-                        QueryCompilationContext.QueryContextParameter,
-                        Expression.Constant(inMemoryTableExpression.EntityType),
-                        Expression.Constant(inMemoryTableExpression.RootExpression.PrepareQuery(_compilationContext)),
-                        Expression.Constant(_compilationContext.IsTracking));
+                    return inMemoryTableExpression.RootExpression.PrepareQuery(_tableMethodInfo, QueryCompilationContext.QueryContextParameter, _compilationContext);
+                    //return Expression.Call(
+                    //    _tableMethodInfo,
+                    //    QueryCompilationContext.QueryContextParameter,
+                    //    Expression.Constant(inMemoryTableExpression.EntityType),
+                    //    Expression.Constant(inMemoryTableExpression.RootExpression.PrepareQuery(_compilationContext)),
+                    //    Expression.Constant(_compilationContext.IsTracking));
             }
 
             return base.VisitExtension(extensionExpression);

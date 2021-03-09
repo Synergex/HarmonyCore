@@ -77,6 +77,18 @@ namespace Services.Test.UnitTests
         endmethod
 
         {TestMethod}
+        public method GetCustomersControlledMetadata, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data message = new HttpRequestMessage(HttpMethod.Get, "/odata/v1/Customers")
+            message.Headers.Add("Accept", "application/json;odata=nometadata");
+            disposable data response = client.SendAsync(message).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+        endmethod
+
+        {TestMethod}
         public method CheckSwaggerDoc, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
@@ -85,7 +97,61 @@ namespace Services.Test.UnitTests
             response.EnsureSuccessStatusCode()
         endmethod
 
+        {TestMethod}
+        public method GitHubIssue242, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Customers?$expand=REL_Differentpk&$filter=((contains(tolower(Name),'in')) or (contains(tolower(REL_Differentpk/Alphapk),'aa')))").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data resultCustomers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            
+            Assert.IsTrue(resultCustomers.Value.Count == 1)
+        endmethod
+
+        {TestMethod}
+        public method GitHubIssue242Pt1, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Customers?$filter=((contains(tolower(Name),'in')) or (contains(tolower(REL_Differentpk/Alphapk),'aa')))").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data resultCustomers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            
+            Assert.IsTrue(resultCustomers.Value.Count == 1)
+        endmethod
+
+        {TestMethod}
+        public method GitHubIssue242Pt2, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Customers?$expand=REL_Differentpk&$filter=contains(tolower(Name),'IN')").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+        endmethod
+
+        {TestMethod}
+        public method GitHubIssue242Pt3, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Customers?$expand=REL_Differentpk&$filter=contains(tolower(REL_Differentpk/Alphapk),'AA')").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+        endmethod
         
+
+        {TestMethod}
+        public method GitHubIssue242Pt4, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Customers?$expand=REL_Differentpk&$filter=((contains(tolower(Name),'in')) or (contains(tolower(REL_Differentpk/Alphapk),'aa')) and not (contains(tolower(Name),'in')))").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data resultCustomers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            
+            Assert.IsTrue(resultCustomers.Value.Count == 1)
+        endmethod
+
         ;;------------------------------------------------------------
         ;;Get all Customers count
 
@@ -888,8 +954,48 @@ namespace Services.Test.UnitTests
 ;            disposable data client = UnitTestEnvironment.Server.CreateClient()
 ;            disposable data response = client.GetAsync("/odata/v1/Items?$apply=aggregate(UnitPrice with sum as TotalPrice)").Result
 ;            data result = response.Content.ReadAsStringAsync().Result
-;            ;;response.EnsureSuccessStatusCode()
-;            ;;data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
+;            response.EnsureSuccessStatusCode()
+;            ;data customers, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
+;        endmethod
+;
+;        {TestMethod}
+;        public method ApplyGroupBy1, void
+;        proc
+;            disposable data client = UnitTestEnvironment.Server.CreateClient()
+;            disposable data response = client.GetAsync("/odata/v1/Items?$apply=groupby((UnitPrice))").Result
+;            data result = response.Content.ReadAsStringAsync().Result
+;            response.EnsureSuccessStatusCode()
+;            data customers, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
+;        endmethod
+;
+;        {TestMethod}
+;        public method FilterAny1, void
+;        proc
+;            disposable data client = UnitTestEnvironment.Server.CreateClient()
+;            disposable data response = client.GetAsync("/odata/v1/Customers?$filter=REL_CustomerOrders/any(w: w/PaymentTermsCode eq '90')").Result
+;            data result = response.Content.ReadAsStringAsync().Result
+;            response.EnsureSuccessStatusCode()
+;            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+;        endmethod
+;        
+;        {TestMethod}
+;        public method FilterAny2, void
+;        proc
+;            disposable data client = UnitTestEnvironment.Server.CreateClient()
+;            disposable data response = client.GetAsync("/odata/v1/Customers?$filter=REL_CustomerOrders/any(w: w/PaymentTermsCode eq '90' and w/REL_Vendor/VendorNumber gt 2)").Result
+;            data result = response.Content.ReadAsStringAsync().Result
+;            response.EnsureSuccessStatusCode()
+;            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+;        endmethod
+;
+;        {TestMethod}
+;        public method FilterAll1, void
+;        proc
+;            disposable data client = UnitTestEnvironment.Server.CreateClient()
+;            disposable data response = client.GetAsync("/odata/v1/Customers?$filter=REL_CustomerOrders/all(w: w/PaymentTermsCode eq '90')").Result
+;            data result = response.Content.ReadAsStringAsync().Result
+;            response.EnsureSuccessStatusCode()
+;            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
 ;        endmethod
 
 ;		{TestMethod}

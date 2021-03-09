@@ -415,10 +415,12 @@ namespace Harmony.Core.FileIO.Queryable
 			catch(ex, @Synergex.SynergyDE.NetworkException)
 			begin
 				cleanupAction(true)
+				throw
 			end
 			catch(ex, @Exception)
 			begin
-				cleanupAction(false)
+                cleanupAction(false)
+				throw
 			end
 			endtry
 
@@ -593,7 +595,7 @@ namespace Harmony.Core.FileIO.Queryable
 			iterState, @DataObjectMaterializer.IterationState
 			rows, @RowsManager
 			cleanup, @Action<Boolean>
-		proc
+        proc
 			mreturn new PreparedQueryPlan.MaterializerEnumeratable(this, iterState, rows, cleanup)
 		endmethod
 		

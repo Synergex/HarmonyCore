@@ -390,6 +390,17 @@ namespace Harmony.Core.FileIO.Queryable
             mreturn node
         endmethod
 
+        protected override method VisitUnary, @Expression
+            node, @UnaryExpression
+        proc
+            data notFlagValue = mNotFlag
+            mNotFlag = node.NodeType == ExpressionType.Not
+            Visit(node.Operand)
+            mNotFlag = notFlagValue
+            mreturn node
+        endmethod
+
+
         protected override method VisitBinary, @Expression
             node, @BinaryExpression
         proc
@@ -401,8 +412,9 @@ namespace Harmony.Core.FileIO.Queryable
                 data notFlagValue = mNotFlag
                 mNotFlag = true
                 Visit(node.Left)
-                mreturn node
                 mNotFlag = notFlagValue
+                mreturn node
+                
             end
 
 
