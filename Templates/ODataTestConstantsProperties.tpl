@@ -147,9 +147,11 @@ namespace <NAMESPACE>
 ;//
 ;//
   <ALTERNATE_KEY_LOOP_UNIQUE>
+  <IF DUPLICATES>
     <SEGMENT_LOOP>
         public readwrite property Get<StructureNoplural>_ByAltKey_<KeyName>_<SegmentName>, <SEGMENT_SNTYPE>
     </SEGMENT_LOOP>
+  </IF DUPLICATES>
   </ALTERNATE_KEY_LOOP_UNIQUE>
 ;//
 ;//

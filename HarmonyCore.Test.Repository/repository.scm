@@ -5,7 +5,7 @@
 ;                 : C:\Users\devadm\Desktop\HarmonyCore\HarmonyCore.Test.Repository\bin\Debug\rpstext.ism
 ;                 : Version 11.1.1f
 ;
-;  GENERATED      : 23-FEB-2021, 15:10:40
+;  GENERATED      : 04-MAR-2021, 13:50:43
 ;                 : Version 11.1.1f
 ;  EXPORT OPTIONS : [ALL] 
  
@@ -114,26 +114,6 @@ Alias AL_GPC3   Structure GPC3
    Alias AL_FLD_4F   Field FLD_4F
    Alias AL_FLD_4F2   Field FLD_4F
  
-Structure GPC4   DBL ISAM
-   Description "Fourth Structure"
- 
-Field FLD_1G   Type ALPHA   Size 3
-   Description "GPC4.FLD_1G"
- 
-Field FLD_2G   Type INTEGER   Size 2   Dimension 4
-   Description "GPC4.FLD_2G"
- 
-Field STRUCT_1G   Type STRUCT   Size 16   Struct GPC3
-   Description "GPC4.STRUCT_1G"
- 
-Field FLD_3G   Type ALPHA   Size 3   Dimension 3
-   Description "GPC4.FLD_3G"
- 
-Field FLD_4G   Type DECIMAL   Size 13
-   Description "GPC4.FLD_4G"
- 
-Alias AL_GPC4   Structure GPC4
- 
 Structure GPC6   DBL ISAM
    Description "Sixth Structure"
  
@@ -156,6 +136,26 @@ Group GROUP_ONE   Type ALPHA
 Endgroup
  
 Alias AL_GPC6   Structure GPC6
+ 
+Structure GPC4   DBL ISAM
+   Description "Fourth Structure"
+ 
+Field FLD_1G   Type ALPHA   Size 3
+   Description "GPC4.FLD_1G"
+ 
+Field FLD_2G   Type INTEGER   Size 2   Dimension 4
+   Description "GPC4.FLD_2G"
+ 
+Field STRUCT_1G   Type STRUCT   Size 16   Struct GPC3
+   Description "GPC4.STRUCT_1G"
+ 
+Field FLD_3G   Type ALPHA   Size 3   Dimension 3
+   Description "GPC4.FLD_3G"
+ 
+Field FLD_4G   Type DECIMAL   Size 13
+   Description "GPC4.FLD_4G"
+ 
+Alias AL_GPC4   Structure GPC4
  
 Structure GPC2   DBL ISAM
    Description "Second Structure"
@@ -491,13 +491,13 @@ Key FAVORITE_ITEM   FOREIGN
  
 Relation  1   CUSTOMERS CUSTOMER_NUMBER   ORDERS CUSTOMER_NUMBER
  
-Relation  5   CUSTOMERS CUSTOMER_NUMBER   DIFFERENTPK ID
- 
 Relation  2   CUSTOMERS FAVORITE_ITEM   ITEMS ITEM_NUMBER
  
 Relation  3   CUSTOMERS CUSTOMER_NUMBER   CUSTOMER_NOTES CUSTOMER_NUMBER
  
 Relation  4   CUSTOMERS CUSTOMER_NUMBER   CUSTOMER_EX PRIMARY
+ 
+Relation  5   CUSTOMERS CUSTOMER_NUMBER   DIFFERENTPK ID
  
 Structure CUSTOMER_EX   DBL ISAM
    Description "extended fields for a customer record"
@@ -872,7 +872,10 @@ Field BOOLEANPK   Type BOOLEAN   Size 4
  
 Key ID   ACCESS   Order ASCENDING   Dups NO
    Description "ID"
-   Segment FIELD   ID
+   Segment FIELD   ID  SegOrder ASCENDING
+ 
+Key ID2   ACCESS   Order ASCENDING   Dups NO
+   Segment FIELD   ID  SegOrder DESCENDING
  
 Key ALPHAPK   ACCESS   Order ASCENDING   Dups YES
    Description "Alpha PK"
