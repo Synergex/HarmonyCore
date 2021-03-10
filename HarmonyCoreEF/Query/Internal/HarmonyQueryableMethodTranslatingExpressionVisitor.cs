@@ -1212,12 +1212,21 @@ namespace Harmony.Core.EF.Query.Internal
         {
             if (node is BinaryExpression be)
             {
-                var left = ExtractJoins(predicates, be.Left);
-                var right = ExtractJoins(predicates, be.Right);
-                if (left == null || right == null)
-                    return left ?? right;
+                var ljc = PeekPastJoinClause(be.Left as JoinOnClause);
+                var rjc = PeekPastJoinClause(be.Right as JoinOnClause);
+                if (be.NodeType == ExpressionType.OrElse && (ljc != null || rjc != null))
+                {
+                    return be.Update(ljc ?? be.Left, be.Conversion, rjc ?? be.Right);
+                }
                 else
-                    return be.Update(left, be.Conversion, right);
+                {
+                    var left = ExtractJoins(predicates, be.Left);
+                    var right = ExtractJoins(predicates, be.Right);
+                    if (left == null || right == null)
+                        return left ?? right;
+                    else
+                        return be.Update(left, be.Conversion, right);
+                }
             }
             else if (node is UnaryExpression ue)
             {

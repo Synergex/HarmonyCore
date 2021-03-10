@@ -15,8 +15,6 @@ namespace Services.Test.CS
         [AssemblyInitialize]
         public static void AssemblyInitialize(TestContext context)
         {
-            Environment.SetEnvironmentVariable("DBG_SELECT", "2");
-            Environment.SetEnvironmentVariable("DBG_SELECT_FILE", @"c:\wrk\dbg.log");
             UnitTestEnvironment.AssemblyInitialize(context);
         }
 
@@ -323,6 +321,26 @@ namespace Services.Test.CS
                     var first = context.Items.Where(item => item.FlowerColor.ToLower() == "white" && item.LatinName.ToLower() == "bougainvillea").First();
                     Assert.AreEqual(first.LatinName, second.LatinName);
                     Assert.AreEqual(second.LatinName, "Bougainvillea");
+                }
+            }
+        }
+
+        [TestMethod]
+        public void ImplicitUnion()
+        {
+            var startupClass = new Startup(null, null);
+            var startupServices = new ServiceCollection();
+            startupClass.ConfigureServices(startupServices);
+            using (var sp = startupServices.BuildServiceProvider())
+            {
+                using (var context = sp.GetService<Services.Models.DbContext>())
+                {
+
+                    var second = context.Items.Include(item => item.REL_Vendor).Where(item => item.FlowerColor.ToLower() == "white" || item.REL_Vendor.City == "Boston").ToList();
+                    var thing = context.Items.Include(item => item.REL_Vendor).Where(item => item.FlowerColor.ToLower() == "white").ToList();
+                    var first = context.Items.Include(item => item.REL_Vendor).Where(item => item.REL_Vendor.City == "Boston").ToList();
+
+                    Assert.IsTrue(Enumerable.SequenceEqual(second, first.Union(thing)));
                 }
             }
         }
