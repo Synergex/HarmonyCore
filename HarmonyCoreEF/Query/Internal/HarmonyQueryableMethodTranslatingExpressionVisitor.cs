@@ -1048,7 +1048,36 @@ namespace Harmony.Core.EF.Query.Internal
                         !(rightNav.Item1 is HarmonyTableExpression && leftNav.Item1 is HarmonyTableExpression))
                     {
                         //if only one side is a JoinOnClause then dont bubble up any further
-                        return updatedNode;
+                        rightTable = rightNav.Item1 as HarmonyTableExpression;
+                        leftTable = leftNav.Item1 as HarmonyTableExpression;
+
+                        if (updatedNode is BinaryExpression binaryUpdatedNode)
+                        {
+                            if (rightTable != null)
+                            {
+                                var rightReplacement = new JoinOnClause
+                                {
+                                    InnerExpression = binaryUpdatedNode.Right,
+                                    TargetTable = rightTable,
+                                    CurrentParameter = _tableMapping[rightTable]
+                                };
+                                return binaryUpdatedNode.Update(binaryUpdatedNode.Left, binaryUpdatedNode.Conversion, rightReplacement);
+                            }
+                            else if (leftTable != null)
+                            {
+                                var leftReplacement = new JoinOnClause
+                                {
+                                    InnerExpression = binaryUpdatedNode.Left,
+                                    TargetTable = leftTable,
+                                    CurrentParameter = _tableMapping[leftTable]
+                                };
+                                return binaryUpdatedNode.Update(leftReplacement, binaryUpdatedNode.Conversion, binaryUpdatedNode.Right);
+                            }
+                            else
+                                throw new NotImplementedException("found table expression but missing both left and right?");
+                        }
+                        else
+                            return updatedNode;
                     }
                     else
                     {

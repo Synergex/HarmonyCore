@@ -21,18 +21,17 @@ namespace Services.Test.CS
         [AssemblyCleanup]
         public static void AssemblyCleanup()
         {
+            BaseServiceProvider.Cleanup();
             UnitTestEnvironment.AssemblyCleanup();
+
         }
 
         [TestMethod]
         public void DualContextUpdate()
         {
-            var startupClass = new Startup(null, null);
-            var startupServices = new ServiceCollection();
-            startupClass.ConfigureServices(startupServices);
-            using (var sp = startupServices.BuildServiceProvider())
+            using (var sp = BaseServiceProvider.Services)
             {
-                using (var context = sp.GetService<Services.Models.DbContext>())
+                using (var context = sp.ServiceProvider.GetService<Services.Models.DbContext>())
                 {
                     foreach (var customer in context.Customers.Where(cust => cust.Name.EndsWith("Nursery")))
                     {
@@ -40,12 +39,9 @@ namespace Services.Test.CS
                     }
 
 
-                    var startupClass2 = new Startup(null, null);
-                    var startupServices2 = new ServiceCollection();
-                    startupClass2.ConfigureServices(startupServices2);
-                    using (var sp2 = startupServices2.BuildServiceProvider())
+                    using (var sp2 = BaseServiceProvider.Services)
                     {
-                        using (var context2 = sp2.GetService<Services.Models.DbContext>())
+                        using (var context2 = sp2.ServiceProvider.GetService<Services.Models.DbContext>())
                         {
                             foreach (var customer in context2.Customers.Where(cust => cust.Name.EndsWith("Nursery")))
                             {
@@ -79,12 +75,9 @@ namespace Services.Test.CS
         [TestMethod]
         public void Contains()
         {
-            var startupClass = new Startup(null, null);
-            var startupServices = new ServiceCollection();
-            startupClass.ConfigureServices(startupServices);
-            using (var sp = startupServices.BuildServiceProvider())
+            using(var sp = BaseServiceProvider.Services)
             {
-                using (var context = sp.GetService<Services.Models.DbContext>())
+                using (var context = sp.ServiceProvider.GetService<Services.Models.DbContext>())
                 {
                     var customers = context.Customers.Where(cust => cust.Name.Contains("Nursery")).ToList();
                     Assert.IsTrue(customers.Count > 0);
@@ -99,12 +92,9 @@ namespace Services.Test.CS
         [TestMethod]
         public void InCollection()
         {
-            var startupClass = new Startup(null, null);
-            var startupServices = new ServiceCollection();
-            startupClass.ConfigureServices(startupServices);
-            using (var sp = startupServices.BuildServiceProvider())
+            using(var sp = BaseServiceProvider.Services)
             {
-                using (var context = sp.GetService<Services.Models.DbContext>())
+                using (var context = sp.ServiceProvider.GetService<Services.Models.DbContext>())
                 {
                     var ids = new int[] { 1, 2, 4, 9 };
                     var customers = context.Customers.Where(cust => ids.Contains(cust.CustomerNumber)).ToList();
@@ -116,12 +106,9 @@ namespace Services.Test.CS
         [TestMethod]
         public void InSingleCollection()
         {
-            var startupClass = new Startup(null, null);
-            var startupServices = new ServiceCollection();
-            startupClass.ConfigureServices(startupServices);
-            using (var sp = startupServices.BuildServiceProvider())
+            using(var sp = BaseServiceProvider.Services)
             {
-                using (var context = sp.GetService<Services.Models.DbContext>())
+                using (var context = sp.ServiceProvider.GetService<Services.Models.DbContext>())
                 {
                     var ids = new int[] { 1 };
                     var customers = context.Customers.Where(cust => ids.Contains(cust.CustomerNumber)).ToList();
@@ -133,12 +120,9 @@ namespace Services.Test.CS
         [TestMethod]
         public void InEmptyCollection()
         {
-            var startupClass = new Startup(null, null);
-            var startupServices = new ServiceCollection();
-            startupClass.ConfigureServices(startupServices);
-            using (var sp = startupServices.BuildServiceProvider())
+            using(var sp = BaseServiceProvider.Services)
             {
-                using (var context = sp.GetService<Services.Models.DbContext>())
+                using (var context = sp.ServiceProvider.GetService<Services.Models.DbContext>())
                 {
                     var ids = new int[] { };
                     var customers = context.Customers.Where(cust => ids.Contains(cust.CustomerNumber)).ToList();
@@ -150,12 +134,9 @@ namespace Services.Test.CS
         [TestMethod]
         public void InCollection2()
         {
-            var startupClass = new Startup(null, null);
-            var startupServices = new ServiceCollection();
-            startupClass.ConfigureServices(startupServices);
-            using (var sp = startupServices.BuildServiceProvider())
+            using(var sp = BaseServiceProvider.Services)
             {
-                using (var context = sp.GetService<Services.Models.DbContext>())
+                using (var context = sp.ServiceProvider.GetService<Services.Models.DbContext>())
                 {
                     var states = new string[] { "CA", "FL", "WA" };
                     var customers = context.Customers.Where(cust => states.Contains(cust.State)).ToList();
@@ -169,12 +150,9 @@ namespace Services.Test.CS
         {
             //force sparse select even though we arent using xfServer here
             Harmony.Core.FileIO.Queryable.PreparedQueryPlan.LocalSparse = true;
-            var startupClass = new Startup(null, null);
-            var startupServices = new ServiceCollection();
-            startupClass.ConfigureServices(startupServices);
-            using (var sp = startupServices.BuildServiceProvider())
+            using(var sp = BaseServiceProvider.Services)
             {
-                using (var context = sp.GetService<Services.Models.DbContext>())
+                using (var context = sp.ServiceProvider.GetService<Services.Models.DbContext>())
                 {
                     var customers = context.Customers.Where(cust => cust.Name.Contains("Nursery")).Select(cust => new { Name = cust.Name, fred = cust.City }).ToList();
                     Assert.IsTrue(customers.Count > 0);
@@ -189,12 +167,9 @@ namespace Services.Test.CS
         [TestMethod]
         public void Projection1()
         {
-            var startupClass = new Startup(null, null);
-            var startupServices = new ServiceCollection();
-            startupClass.ConfigureServices(startupServices);
-            using (var sp = startupServices.BuildServiceProvider())
+            using(var sp = BaseServiceProvider.Services)
             {
-                using (var context = sp.GetService<Services.Models.DbContext>())
+                using (var context = sp.ServiceProvider.GetService<Services.Models.DbContext>())
                 {
                     //referencing a navigation propery in the selector will cause it to be included
                     //as though we had called context.Orders.Include(salesOrderHeader => salesOrderHeader.REL_OrderItems)
@@ -213,12 +188,9 @@ namespace Services.Test.CS
         [TestMethod]
         public void IncludeWhere()
         {
-            var startupClass = new Startup(null, null);
-            var startupServices = new ServiceCollection();
-            startupClass.ConfigureServices(startupServices);
-            using (var sp = startupServices.BuildServiceProvider())
+            using(var sp = BaseServiceProvider.Services)
             {
-                using (var context = sp.GetService<Services.Models.DbContext>())
+                using (var context = sp.ServiceProvider.GetService<Services.Models.DbContext>())
                 {
                     var customers = context.Customers.Where(customer => customer.CustomerNumber == 8).Include(customer => customer.REL_CustomerFavoriteItem).ToList();
                     Assert.AreEqual(customers.Count, 1);
@@ -231,12 +203,9 @@ namespace Services.Test.CS
         [TestMethod]
         public void IncludeFirstOrDefault()
         {
-            var startupClass = new Startup(null, null);
-            var startupServices = new ServiceCollection();
-            startupClass.ConfigureServices(startupServices);
-            using (var sp = startupServices.BuildServiceProvider())
+            using(var sp = BaseServiceProvider.Services)
             {
-                using (var context = sp.GetService<Services.Models.DbContext>())
+                using (var context = sp.ServiceProvider.GetService<Services.Models.DbContext>())
                 {
                     var customer = context.Customers.Include(customer => customer.REL_CustomerFavoriteItem).FirstOrDefault(customer => customer.CustomerNumber == 8);
                     Assert.IsNotNull(customer);
@@ -250,12 +219,9 @@ namespace Services.Test.CS
         [TestMethod]
         public void UpdateFavoriteItem()
         {
-            var startupClass = new Startup(null, null);
-            var startupServices = new ServiceCollection();
-            startupClass.ConfigureServices(startupServices);
-            using (var sp = startupServices.BuildServiceProvider())
+            using(var sp = BaseServiceProvider.Services)
             {
-                using (var context = sp.GetService<Services.Models.DbContext>())
+                using (var context = sp.ServiceProvider.GetService<Services.Models.DbContext>())
                 {
                     var customer = context.Customers.Include(customer => customer.REL_CustomerFavoriteItem).FirstOrDefault(customer => customer.CustomerNumber == 8);
 
@@ -270,12 +236,9 @@ namespace Services.Test.CS
         [TestMethod]
         public void UpdateFavoriteItem2()
         {
-            var startupClass = new Startup(null, null);
-            var startupServices = new ServiceCollection();
-            startupClass.ConfigureServices(startupServices);
-            using (var sp = startupServices.BuildServiceProvider())
+            using(var sp = BaseServiceProvider.Services)
             {
-                using (var context = sp.GetService<Services.Models.DbContext>())
+                using (var context = sp.ServiceProvider.GetService<Services.Models.DbContext>())
                 {
                     var customer = context.Customers.FirstOrDefault(customer => customer.CustomerNumber == 8);
                     customer.FavoriteItem = context.Items.Where(item => item.FlowerColor.ToLower() == "blue").First().ItemNumber;
@@ -290,12 +253,9 @@ namespace Services.Test.CS
         [TestMethod]
         public void MultiToLower()
         {
-            var startupClass = new Startup(null, null);
-            var startupServices = new ServiceCollection();
-            startupClass.ConfigureServices(startupServices);
-            using (var sp = startupServices.BuildServiceProvider())
+            using(var sp = BaseServiceProvider.Services)
             {
-                using (var context = sp.GetService<Services.Models.DbContext>())
+                using (var context = sp.ServiceProvider.GetService<Services.Models.DbContext>())
                 {
                     
                     var second = context.Items.Where(item => item.FlowerColor.ToLower() == "white" && item.LatinName.Contains("ainvillea")).First();
@@ -309,12 +269,9 @@ namespace Services.Test.CS
         [TestMethod]
         public void MultiToLower2()
         {
-            var startupClass = new Startup(null, null);
-            var startupServices = new ServiceCollection();
-            startupClass.ConfigureServices(startupServices);
-            using (var sp = startupServices.BuildServiceProvider())
+            using(var sp = BaseServiceProvider.Services)
             {
-                using (var context = sp.GetService<Services.Models.DbContext>())
+                using (var context = sp.ServiceProvider.GetService<Services.Models.DbContext>())
                 {
 
                     var second = context.Items.Where(item => item.FlowerColor.ToLower() == "white" && item.LatinName.ToLower().Contains("bougai")).First();
@@ -328,12 +285,9 @@ namespace Services.Test.CS
         [TestMethod]
         public void ImplicitUnion()
         {
-            var startupClass = new Startup(null, null);
-            var startupServices = new ServiceCollection();
-            startupClass.ConfigureServices(startupServices);
-            using (var sp = startupServices.BuildServiceProvider())
+            using(var sp = BaseServiceProvider.Services)
             {
-                using (var context = sp.GetService<Services.Models.DbContext>())
+                using (var context = sp.ServiceProvider.GetService<Services.Models.DbContext>())
                 {
 
                     var second = context.Items.Include(item => item.REL_Vendor).Where(item => item.FlowerColor.ToLower() == "white" || item.REL_Vendor.City == "Boston").ToList();
@@ -345,5 +299,55 @@ namespace Services.Test.CS
             }
         }
 
+        [TestMethod]
+        public void ImplicitUnion2()
+        {
+            using(var sp = BaseServiceProvider.Services)
+            {
+                using (var context = sp.ServiceProvider.GetService<Services.Models.DbContext>())
+                {
+
+                    var second = context.Items.Include(item => item.REL_Vendor).Where(item => item.Shape == "bush" && (item.FlowerColor.ToLower() == "white" || item.REL_Vendor.City == "Boston")).ToList();
+                    var thing = context.Items.Include(item => item.REL_Vendor).Where(item => item.Shape == "bush" && (item.FlowerColor.ToLower() == "white")).ToList();
+                    var first = context.Items.Include(item => item.REL_Vendor).Where(item => item.Shape == "bush" && (item.REL_Vendor.City == "Boston")).ToList();
+
+                    Assert.IsTrue(Enumerable.SequenceEqual(second, first.Union(thing)));
+                }
+            }
+        }
+
+        [TestMethod]
+        public void ImplicitUnion3()
+        {
+            using(var sp = BaseServiceProvider.Services)
+            {
+                using (var context = sp.ServiceProvider.GetService<Services.Models.DbContext>())
+                {
+
+                    var second = context.Items.Include(item => item.REL_Vendor).Where(item => item.Shape.ToLower() == "bush" && (item.FlowerColor.ToLower() == "white" || item.REL_Vendor.City.ToLower() == "Boston")).ToList();
+                    var thing = context.Items.Include(item => item.REL_Vendor).Where(item => item.Shape.ToLower() == "bush" && (item.FlowerColor.ToLower() == "white")).ToList();
+                    var first = context.Items.Include(item => item.REL_Vendor).Where(item => item.Shape.ToLower() == "bush" && (item.REL_Vendor.City.ToLower() == "Boston")).ToList();
+
+                    Assert.IsTrue(Enumerable.SequenceEqual(second, first.Union(thing)));
+                }
+            }
+        }
+
+        [TestMethod]
+        public void ImplicitUnion4()
+        {
+            using(var sp = BaseServiceProvider.Services)
+            {
+                using (var context = sp.ServiceProvider.GetService<Services.Models.DbContext>())
+                {
+
+                    //var second = context.Items.Include(item => item.REL_Vendor).Where(item => item.Shape.ToLower().Contains("ush") && (item.FlowerColor.ToLower().Contains("ite") || item.REL_Vendor.City.ToLower().Contains("ston"))).ToList();
+                    //var thing = context.Items.Include(item => item.REL_Vendor).Where(item => item.Shape.ToLower().Contains("ush") && (item.FlowerColor.ToLower().Contains("ite"))).ToList();
+                    var first = context.Items.Include(item => item.REL_Vendor).Where(item => item.Shape.ToLower().Contains("ush") && (item.REL_Vendor.City.ToLower().Contains("ston"))).ToList();
+
+                    //Assert.IsTrue(Enumerable.SequenceEqual(second, first.Union(thing)));
+                }
+            }
+        }
     }
 }
