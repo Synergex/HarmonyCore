@@ -33,7 +33,7 @@ namespace Harmony.Core.Test.FileIO
 		endmethod
 
 		{TestMethod}
-		public async method WriteOrders, void
+		public method WriteOrders, void
 		proc
 			data status, i4
 			disposable data channelManager = new FileChannelManager()
@@ -52,20 +52,44 @@ namespace Harmony.Core.Test.FileIO
 		endmethod
 
 		{TestMethod}
-		public async method CreateOrder, void
+		public method CreateOrder, void
 		proc
 			data status, i4
 			disposable data channelManager = new FileChannelManager()
 			disposable data fileIO = new IsamDataObjectIO<Orders>(channelManager, "DAT:orders.ism", FileOpenMode.UpdateIndexed)
 			data newOrder, @Orders
-			
+
 			Assert.AreEqual(FileAccessResults.Success, fileIO.CreateRecord(new Orders() { OrderNumber = 987654 } ))
-			Assert.AreEqual(FileAccessResults.Success, fileIO.ReadFirstRecord(newOrder))
+			Assert.AreEqual(FileAccessResults.Success, fileIO.ReadLastRecord(newOrder))
 			Assert.AreEqual(987654, newOrder.OrderNumber)
 		endmethod
 
 		{TestMethod}
-		public async method DeleteOrder, void
+		public method DeleteOrder, void
+		proc
+			data status, i4
+			disposable data channelManager = new FileChannelManager()
+			disposable data fileIO = new IsamDataObjectIO<Orders>(channelManager, "DAT:orders.ism", FileOpenMode.UpdateIndexed)
+			data lastOrder, @Orders
+
+			;; Delete record
+			Assert.AreEqual(FileAccessResults.Success, fileIO.ReadLastRecord(lastOrder))
+			Assert.AreEqual(FileAccessResults.Success, fileIO.ManualLockUsingGRFA(lastOrder))
+			Assert.AreEqual(FileAccessResults.Success, fileIO.DeleteRecord())
+
+			;; Delete record with GRFA
+			Assert.AreEqual(FileAccessResults.Success, fileIO.ReadLastRecord(lastOrder))
+			Assert.AreEqual(FileAccessResults.Success, fileIO.ManualLockUsingGRFA(lastOrder))
+			Assert.AreEqual(FileAccessResults.Success, fileIO.DeleteRecordUsingGRFA(lastOrder))
+
+			;; Delete record with GRFA and lock
+			Assert.AreEqual(FileAccessResults.Success, fileIO.ReadLastRecord(lastOrder))
+			Assert.AreEqual(FileAccessResults.Success, fileIO.ManualLockUsingGRFA(lastOrder))
+			Assert.AreEqual(FileAccessResults.Success, fileIO.DeleteRecordUsingGRFA(lastOrder, true))
+		endmethod
+
+		{TestMethod}
+		public method FileIOKey, void
 		proc
 			data status, i4
 			disposable data channelManager = new FileChannelManager()
@@ -73,26 +97,64 @@ namespace Harmony.Core.Test.FileIO
 			data lastOrder, @Orders
 			
 			Assert.AreEqual(FileAccessResults.Success, fileIO.ReadLastRecord(lastOrder))
-			Assert.AreEqual(FileAccessResults.Success, fileIO.ManualLockUsingGRFA(lastOrder))
-			Assert.AreEqual(FileAccessResults.Success, fileIO.DeleteRecord())
-						  
-			Assert.AreEqual(FileAccessResults.Success, fileIO.ReadLastRecord(lastOrder))
-			Assert.AreEqual(FileAccessResults.Success, fileIO.ManualLockUsingGRFA(lastOrder))
-			Assert.AreEqual(FileAccessResults.Success, fileIO.DeleteRecordUsingGRFA(lastOrder))
+			Assert.AreEqual("000027", fileIO.GetKeyValue(lastOrder, 1))
+			Assert.AreEqual(6, fileIO.KeyLength(1))
+			Assert.AreEqual(7, fileIO.KeyPosition(1))
 		endmethod
 
 		{TestMethod}
-		public async method FileIOKey, void
+		public method GetProperties, void
+		proc
+			data status, i4
+			disposable data channelManager = new FileChannelManager()
+			disposable data fileIO = new IsamDataObjectIO<Orders>(channelManager, "DAT:orders.ism", FileOpenMode.UpdateIndexed)
+			
+			Assert.AreEqual(4, fileIO.NumberOfKeys)
+			Assert.AreEqual(4722, fileIO.NumberOfRecords)
+			Assert.AreEqual("DAT:orders.ism", fileIO.OpenFileName)
+			Assert.AreEqual(100, fileIO.SizeOfRecord)
+		endmethod
+
+		{TestMethod}
+		public method Errors, void
 		proc
 			data status, i4
 			disposable data channelManager = new FileChannelManager()
 			disposable data fileIO = new IsamDataObjectIO<Orders>(channelManager, "DAT:orders.ism", FileOpenMode.UpdateIndexed)
 			data firstOrder, @Orders
 			
+			System.Diagnostics.Debugger.Launch()
+
+			;; Lock and delete
 			Assert.AreEqual(FileAccessResults.Success, fileIO.ReadFirstRecord(firstOrder))
-			Assert.AreEqual("000001", fileIO.GetKeyValue(firstOrder, 1))
-			Assert.AreEqual(6, fileIO.KeyLength(1))
-			Assert.AreEqual(7, fileIO.KeyPosition(1))
+			Assert.AreEqual(FileAccessResults.Success, fileIO.UnlockChannel())
+			Assert.AreEqual(FileAccessResults.NoCurrentRecordLocked, fileIO.DeleteRecord())
+			Assert.AreEqual(FileAccessResults.NoCurrentRecordLocked, fileIO.DeleteRecordUsingGRFA(firstOrder))
+			Assert.AreEqual(FileAccessResults.UnknownError, fileIO.ManualLockUsingGRFA(new Orders()))
+
+			;; Delete twice
+			Assert.AreEqual(FileAccessResults.Success, fileIO.ManualLockUsingGRFA(firstOrder))
+			Assert.AreEqual(FileAccessResults.Success, fileIO.DeleteRecordUsingGRFA(firstOrder))
+			Assert.AreEqual(FileAccessResults.UnknownError, fileIO.DeleteRecordUsingGRFA(firstOrder))
+
+			;; Bad keys
+			Assert.AreEqual(0, fileIO.KeyLength(95670))
+			Assert.AreEqual(0, fileIO.KeyPosition(95670))
+
+			;; Bad finds
+			Assert.AreEqual(FileAccessResults.Success, fileIO.ReadFirstRecord(firstOrder))
+			Assert.AreEqual(FileAccessResults.EndOFDataFile, fileIO.FindRecord("keyValue"))
+			Assert.AreEqual(FileAccessResults.EndOFDataFile, fileIO.FindRecord(95670))
+			Assert.AreEqual(FileAccessResults.EndOFDataFile, fileIO.FindRecord(1, "keyValue"))
+			Assert.AreEqual(FileAccessResults.UnknownError, fileIO.FindRecord(95670, "keyValue"))
+			Assert.AreEqual(FileAccessResults.DuplicateKeyEncountered, fileIO.CreateRecord(firstOrder))
+			Assert.AreEqual(string.Empty, fileIO.GetKeyValue(firstOrder, 95670))
+
+			;; Bad update
+			Assert.AreEqual(FileAccessResults.NoCurrentRecordLocked, fileIO.UpdateRecord(new Orders()))
+			Assert.AreEqual(FileAccessResults.Success, fileIO.ReadFirstRecord(firstOrder))
+			Assert.AreEqual(FileAccessResults.Success, fileIO.ManualLockUsingGRFA(firstOrder))
+			Assert.AreEqual(FileAccessResults.KeyNotSame, fileIO.UpdateRecord(new Orders()))
 		endmethod
 
 	endclass
