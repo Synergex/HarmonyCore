@@ -214,5 +214,35 @@ namespace Harmony.Core.Test.FileIO
 			Assert.AreEqual(FileAccessResults.KeyNotSame, fileIO.UpdateRecord(new Orders()))
 		endmethod
 
+		{TestMethod}
+		public method ReadOrderTest, void
+		proc
+			disposable data channelManager = new FileChannelManager()
+			disposable data fileIO = new IsamDataObjectIO<Orders>(channelManager, "DAT:orders.ism", FileOpenMode.UpdateIndexed)
+			data order, @Orders
+			data nextOrder, @Orders
+			data prevOrder, @Orders
+			data lastOrder, @Orders
+			data badOrder, @Orders
+			data customerRef, string
+
+			;; Read before first
+			Assert.AreEqual(FileAccessResults.EndOFDataFile, fileIO.ReadPrevRecord(badOrder))
+			Assert.IsNull(badOrder)
+
+			;; Read next/prev
+			Assert.AreEqual(FileAccessResults.Success, fileIO.ReadRecord(order))
+			Assert.AreEqual(FileAccessResults.Success, fileIO.ReadNextRecord(nextOrder))
+			Assert.AreEqual(FileAccessResults.Success, fileIO.ReadPrevRecord(prevOrder))
+			customerRef = order.CustomerReference
+			Assert.AreEqual(customerRef, prevOrder.CustomerReference)
+			Assert.AreNotEqual(customerRef, nextOrder.CustomerReference)
+
+			;; Read after last
+			Assert.AreEqual(FileAccessResults.Success, fileIO.ReadLastRecord(lastOrder))
+			Assert.AreEqual(FileAccessResults.EndOFDataFile, FileIO.ReadNextRecord(badOrder))
+			Assert.IsNull(badOrder)
+		endmethod
+
 	endclass
 endnamespace
