@@ -187,12 +187,12 @@ namespace Harmony.Core.Test.FileIO
 			Assert.AreEqual(FileAccessResults.Success, fileIO.UnlockChannel())
 			Assert.AreEqual(FileAccessResults.NoCurrentRecordLocked, fileIO.DeleteRecord())
 			Assert.AreEqual(FileAccessResults.NoCurrentRecordLocked, fileIO.DeleteRecordUsingGRFA(firstOrder))
-			Assert.AreEqual(FileAccessResults.UnknownError, fileIO.ManualLockUsingGRFA(new Orders()))
+			Assert.AreEqual(FileAccessResults.InvalidRFA, fileIO.ManualLockUsingGRFA(new Orders()))
 
 			;; Delete twice
 			Assert.AreEqual(FileAccessResults.Success, fileIO.ManualLockUsingGRFA(firstOrder))
 			Assert.AreEqual(FileAccessResults.Success, fileIO.DeleteRecordUsingGRFA(firstOrder))
-			Assert.AreEqual(FileAccessResults.UnknownError, fileIO.DeleteRecordUsingGRFA(firstOrder))
+			Assert.AreEqual(FileAccessResults.DeletedRecord, fileIO.DeleteRecordUsingGRFA(firstOrder))
 
 			;; Bad keys
 			Assert.AreEqual(0, fileIO.KeyLength(95670))
@@ -203,7 +203,7 @@ namespace Harmony.Core.Test.FileIO
 			Assert.AreEqual(FileAccessResults.EndOFDataFile, fileIO.FindRecord("keyValue"))
 			Assert.AreEqual(FileAccessResults.EndOFDataFile, fileIO.FindRecord(95670))
 			Assert.AreEqual(FileAccessResults.EndOFDataFile, fileIO.FindRecord(1, "keyValue"))
-			Assert.AreEqual(FileAccessResults.UnknownError, fileIO.FindRecord(95670, "keyValue"))
+			Assert.AreEqual(FileAccessResults.IllegalKey, fileIO.FindRecord(95670, "keyValue"))
 			Assert.AreEqual(FileAccessResults.DuplicateKeyEncountered, fileIO.CreateRecord(firstOrder))
 			Assert.AreEqual(string.Empty, fileIO.GetKeyValue(firstOrder, 95670))
 
