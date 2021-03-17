@@ -1,4 +1,5 @@
 ﻿import System
+import System.IO
 import Microsoft.VisualStudio.TestTools.UnitTesting
 import Harmony.Core
 import Harmony.Core.FileIO
@@ -8,23 +9,40 @@ import Harmony.Core.Test.FileIO.Models
 namespace Harmony.Core.Test.FileIO
 	{TestClass}
 	public class BasicFileIO
+		
+		private _datEnvVar, string, Environment.GetEnvironmentVariable("DAT")
 
 		{TestMethod}
-		public method ReadInput, void
+		public method ReadInputIndexed, void
+			endparams
+		proc
+			ReadInputTest(FileOpenMode.InputIndexed, "DAT:orders.ism")
+		endmethod
+
+		{TestMethod}
+		public method ReadInputRelative, void
+			endparams
+		proc
+			File.Copy(_datEnvVar + "\orders.txt", _datEnvVar + "\orderscopy.txt",  true)
+			ReadInputTest(FileOpenMode.InputRelative, "DAT:orderscopy.txt")
+		endmethod
+
+		public method ReadInputTest, void
+			fileOpenMode, FileOpenMode
+			file, string
 		proc
 			disposable data channelManager = new FileChannelManager()
-			disposable data fileIO = new IsamDataObjectIO<Orders>(channelManager, "DAT:orders.ism", FileOpenMode.InputIndexed)
+			disposable data fileIO = new IsamDataObjectIO<Orders>(channelManager, file, fileOpenMode)
 			data firstOrder, @Orders
 			data lastOrder, @Orders
 			data nextOrder, @Orders
 			data shouldBeFirstOrder, @Orders
-			Assert.AreEqual(Harmony.Core.FileIO.FileAccessResults.Success, fileIO.ReadFirstRecord(firstOrder))
-			firstOrder.InternalSynergyRecord(lambda(recordData, grfaData) { Assert.AreEqual(Harmony.Core.FileIO.FileAccessResults.Success, fileIO.FindRecord(-1, grfaData)) })
-			Assert.AreEqual(Harmony.Core.FileIO.FileAccessResults.Success, fileIO.FindFirstRecord())
-			Assert.AreEqual(Harmony.Core.FileIO.FileAccessResults.Success, fileIO.ReadNextRecord(shouldBeFirstOrder))
-			Assert.AreEqual(Harmony.Core.FileIO.FileAccessResults.Success, fileIO.ReadNextRecord(nextOrder))
-			Assert.AreEqual(Harmony.Core.FileIO.FileAccessResults.Success, fileIO.ReadLastRecord(lastOrder))
-
+			Assert.AreEqual(FileAccessResults.Success, fileIO.ReadFirstRecord(firstOrder))
+			firstOrder.InternalSynergyRecord(lambda(recordData, grfaData) { Assert.AreEqual(FileAccessResults.Success, fileIO.FindRecord(-1, grfaData)) })
+			Assert.AreEqual(FileAccessResults.Success, fileIO.FindFirstRecord())
+			Assert.AreEqual(FileAccessResults.Success, fileIO.ReadNextRecord(shouldBeFirstOrder))
+			Assert.AreEqual(FileAccessResults.Success, fileIO.ReadNextRecord(nextOrder))
+			Assert.AreEqual(FileAccessResults.Success, fileIO.ReadLastRecord(lastOrder))
 
 			Assert.AreEqual(firstOrder.OrderNumber, shouldBeFirstOrder.OrderNumber)
 			Assert.IsTrue(firstOrder.OrderNumber < nextOrder.OrderNumber)
@@ -32,28 +50,60 @@ namespace Harmony.Core.Test.FileIO
 		endmethod
 
 		{TestMethod}
-		public method WriteOrders, void
+		public method WriteOrdersIndexed, void
+			endparams
+		proc
+			WriteOrdersTest(FileOpenMode.UpdateIndexed, "DAT:orders.ism")
+		endmethod
+
+		{TestMethod}
+		public method WriteOrdersRelative, void
+			endparams
+		proc
+			File.Copy(_datEnvVar + "\orders.txt", _datEnvVar + "\orderscopy.txt",  true)
+			WriteOrdersTest(FileOpenMode.UpdateRelative, "DAT:orderscopy.txt")
+		endmethod
+
+		public method WriteOrdersTest, void
+			fileOpenMode, FileOpenMode
+			file, string
 		proc
 			disposable data channelManager = new FileChannelManager()
-			disposable data fileIO = new IsamDataObjectIO<Orders>(channelManager, "DAT:orders.ism", FileOpenMode.UpdateIndexed)
+			disposable data fileIO = new IsamDataObjectIO<Orders>(channelManager, file, fileOpenMode)
 			data firstOrder, @Orders
 			data firstOrderClone, @Orders
 			data lastOrder, @Orders
 			
-			Assert.AreEqual(Harmony.Core.FileIO.FileAccessResults.Success, fileIO.ReadFirstRecord(firstOrder))
-			Assert.AreEqual(Harmony.Core.FileIO.FileAccessResults.Success, fileIO.ReadLastRecord(lastOrder))
+			Assert.AreEqual(FileAccessResults.Success, fileIO.ReadFirstRecord(firstOrder))
+			Assert.AreEqual(FileAccessResults.Success, fileIO.ReadLastRecord(lastOrder))
 
-			Assert.AreEqual(Harmony.Core.FileIO.FileAccessResults.Success, fileIO.ReadFirstRecord(firstOrderClone))
+			Assert.AreEqual(FileAccessResults.Success, fileIO.ReadFirstRecord(firstOrderClone))
 			firstOrder.CustomerReference = "ZZZ"
-			Assert.AreEqual(Harmony.Core.FileIO.FileAccessResults.Success, fileIO.UpdateRecordUsingGRFA(firstOrder))
-			Assert.AreEqual(Harmony.Core.FileIO.FileAccessResults.RecordDataNotSame, fileIO.UpdateRecordUsingGRFA(firstOrderClone))
+			Assert.AreEqual(FileAccessResults.Success, fileIO.UpdateRecordUsingGRFA(firstOrder))
+			Assert.AreEqual(fileOpenMode == FileOpenMode.UpdateIndexed ? FileAccessResults.RecordDataNotSame : FileAccessResults.Success, fileIO.UpdateRecordUsingGRFA(firstOrderClone))
 		endmethod
 
 		{TestMethod}
-		public method CreateOrder, void
+		public method CreateOrderIndexed, void
+			endparams
+		proc
+			CreateOrderTest(FileOpenMode.UpdateIndexed, "DAT:orders.ism")
+		endmethod
+
+		{TestMethod}
+		public method CreateOrderRelative, void
+			endparams
+		proc
+			File.Copy(_datEnvVar + "\orders.txt", _datEnvVar + "\orderscopy.txt",  true)
+			CreateOrderTest(FileOpenMode.UpdateRelative, "DAT:orderscopy.txt")
+		endmethod
+
+		public method CreateOrderTest, void
+			fileOpenMode, FileOpenMode
+			file, string
 		proc
 			disposable data channelManager = new FileChannelManager()
-			disposable data fileIO = new IsamDataObjectIO<Orders>(channelManager, "DAT:orders.ism", FileOpenMode.UpdateIndexed)
+			disposable data fileIO = new IsamDataObjectIO<Orders>(channelManager, file, fileOpenMode)
 			data newOrder, @Orders
 
 			Assert.AreEqual(FileAccessResults.Success, fileIO.CreateRecord(new Orders() { OrderNumber = 987654 } ))
@@ -62,26 +112,42 @@ namespace Harmony.Core.Test.FileIO
 		endmethod
 
 		{TestMethod}
-		public method DeleteOrder, void
+		public method DeleteOrderIndexed, void
+			endparams
+		proc
+			DeleteOrderTest(FileOpenMode.UpdateIndexed, "DAT:orders.ism")
+		endmethod
+
+		{TestMethod}
+		public method DeleteOrderRelative, void
+			endparams
+		proc
+			File.Copy(_datEnvVar + "\orders.txt", _datEnvVar + "\orderscopy.txt",  true)
+			DeleteOrderTest(FileOpenMode.UpdateRelative, "DAT:orderscopy.txt")
+		endmethod
+
+		public method DeleteOrderTest, void
+			fileOpenMode, FileOpenMode
+			file, string
 		proc
 			disposable data channelManager = new FileChannelManager()
-			disposable data fileIO = new IsamDataObjectIO<Orders>(channelManager, "DAT:orders.ism", FileOpenMode.UpdateIndexed)
+			disposable data fileIO = new IsamDataObjectIO<Orders>(channelManager, file, fileOpenMode)
 			data lastOrder, @Orders
 
 			;; Delete record
 			Assert.AreEqual(FileAccessResults.Success, fileIO.ReadLastRecord(lastOrder))
 			Assert.AreEqual(FileAccessResults.Success, fileIO.ManualLockUsingGRFA(lastOrder))
-			Assert.AreEqual(FileAccessResults.Success, fileIO.DeleteRecord())
+			Assert.AreEqual(fileOpenMode == FileOpenMode.UpdateIndexed ? FileAccessResults.Success : FileAccessResults.InvalidOperation, fileIO.DeleteRecord())
 
 			;; Delete record with GRFA
 			Assert.AreEqual(FileAccessResults.Success, fileIO.ReadLastRecord(lastOrder))
 			Assert.AreEqual(FileAccessResults.Success, fileIO.ManualLockUsingGRFA(lastOrder))
-			Assert.AreEqual(FileAccessResults.Success, fileIO.DeleteRecordUsingGRFA(lastOrder))
+			Assert.AreEqual(fileOpenMode == FileOpenMode.UpdateIndexed ? FileAccessResults.Success : FileAccessResults.InvalidOperation, fileIO.DeleteRecordUsingGRFA(lastOrder))
 
 			;; Delete record with GRFA and lock
 			Assert.AreEqual(FileAccessResults.Success, fileIO.ReadLastRecord(lastOrder))
 			Assert.AreEqual(FileAccessResults.Success, fileIO.ManualLockUsingGRFA(lastOrder))
-			Assert.AreEqual(FileAccessResults.Success, fileIO.DeleteRecordUsingGRFA(lastOrder, true))
+			Assert.AreEqual(fileOpenMode == FileOpenMode.UpdateIndexed ? FileAccessResults.Success : FileAccessResults.InvalidOperation, fileIO.DeleteRecordUsingGRFA(lastOrder, true))
 		endmethod
 
 		{TestMethod}
@@ -90,7 +156,7 @@ namespace Harmony.Core.Test.FileIO
 			disposable data channelManager = new FileChannelManager()
 			disposable data fileIO = new IsamDataObjectIO<Orders>(channelManager, "DAT:orders.ism", FileOpenMode.UpdateIndexed)
 			data lastOrder, @Orders
-			
+
 			Assert.AreEqual(FileAccessResults.Success, fileIO.ReadLastRecord(lastOrder))
 			Assert.AreEqual("000027", fileIO.GetKeyValue(lastOrder, 1))
 			Assert.AreEqual(6, fileIO.KeyLength(1))
