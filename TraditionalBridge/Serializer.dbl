@@ -14,1547 +14,1547 @@ import System.Text.Json
 ;.define MaybeLog(priority, msg) Logger.Instance.Log(msg)
 namespace Json
 
-	;;; <summary>
-	;;; Defines the return value states for various serializer methods.
-	;;; </summary>
-	public enum SerializerStatus
-		;;; <summary>
-		;;; Successful operation.
-		;;; </summary>
-		Ok
-	endenum
+    ;;; <summary>
+    ;;; Defines the return value states for various serializer methods.
+    ;;; </summary>
+    public enum SerializerStatus
+        ;;; <summary>
+        ;;; Successful operation.
+        ;;; </summary>
+        Ok
+    endenum
 
-	;;; <summary>
-	;;; Defines the various states that can be pushed to the stack.
-	;;; </summary>
-	public enum SerializerStackType
-		None,
-		Object,
-		Array
-	endenum
+    ;;; <summary>
+    ;;; Defines the various states that can be pushed to the stack.
+    ;;; </summary>
+    public enum SerializerStackType
+        None,
+        Object,
+        Array
+    endenum
 
-	public abstract class OutputStream
-		public abstract method FlushData, void
-			dataToAppend, a
-		proc
-		endmethod
+    public abstract class OutputStream
+        public abstract method FlushData, void
+            dataToAppend, a
+        proc
+        endmethod
 
-		public abstract method FlushData, void
-			dataToAppend, @string
-		proc
-		endmethod
-	endclass
+        public abstract method FlushData, void
+            dataToAppend, @string
+        proc
+        endmethod
+    endclass
 
-	public class HeaderDelimitedMessageReader
-		private structure MemStruct
-			fld, a1
-		endstructure
+    public class HeaderDelimitedMessageReader
+        private structure MemStruct
+            fld, a1
+        endstructure
 
-		protected method HeaderDelimitedMessageReader
-		proc
+        protected method HeaderDelimitedMessageReader
+        proc
 
-		endmethod
-
-
-		public method HeaderDelimitedMessageReader
-			channel, int
-			endparams
-		proc
-			ttChannel = channel
-		endmethod
+        endmethod
 
 
-		protected ttChannel, int
-		protected mActivationMask, [32]i1
-		public virtual method ReadHeader, void
-			out header, ContentHeader
-			record
-				lengthHeader, ContentLengthHeader
-				lengthReadPos, int
-				contentTypePos, int
-				contentTypeLength, int
-		proc
-			clear lengthHeader
-			clear header.contentTypeBuffer
-			header.leftoverLength = 0
-			clear header.leftoverData
-			lengthReadPos = 1
-			do 
-			begin
-				gets(ttChannel, lengthHeader(lengthReadPos:1), wait:100, MASK:mActivationMask)  [$ERR_TIMOUT=again]
-				contentTypeLength = %rdlen(ttChannel)
+        public method HeaderDelimitedMessageReader
+            channel, int
+            endparams
+        proc
+            ttChannel = channel
+        endmethod
+
+
+        protected ttChannel, int
+        protected mActivationMask, [32]i1
+        public virtual method ReadHeader, void
+            out header, ContentHeader
+            record
+                lengthHeader, ContentLengthHeader
+                lengthReadPos, int
+                contentTypePos, int
+                contentTypeLength, int
+        proc
+            clear lengthHeader
+            clear header.contentTypeBuffer
+            header.leftoverLength = 0
+            clear header.leftoverData
+            lengthReadPos = 1
+            do 
+            begin
+                gets(ttChannel, lengthHeader(lengthReadPos:1), wait:100, MASK:mActivationMask)  [$ERR_TIMOUT=again]
+                contentTypeLength = %rdlen(ttChannel)
                                                                                                 
-				if(contentTypeLength != 1)
-					MaybeLog(5, "Dispatcher: got zero length from single char read without timeout")
+                if(contentTypeLength != 1)
+                    MaybeLog(5, "Dispatcher: got zero length from single char read without timeout")
 
 .ifdef D_VMS
-				if(lengthHeader(lengthReadPos:1) == %char(26) || lengthHeader(lengthReadPos:1) == %char(25))
-					throw new Exception("process termination requested by ctrl-z/y")
+                if(lengthHeader(lengthReadPos:1) == %char(26) || lengthHeader(lengthReadPos:1) == %char(25))
+                    throw new Exception("process termination requested by ctrl-z/y")
 .endc
-				if(lengthHeader(lengthReadPos:1) == %char(3) || lengthHeader(lengthReadPos:1) == %char(4))
-					throw new Exception("process termination requested by ctrl-c/d")
+                if(lengthHeader(lengthReadPos:1) == %char(3) || lengthHeader(lengthReadPos:1) == %char(4))
+                    throw new Exception("process termination requested by ctrl-c/d")
 
-				lengthReadPos += contentTypeLength
-			again,          
+                lengthReadPos += contentTypeLength
+            again,          
                         
-			end
-			until lengthReadPos > 16 && lengthHeader(lengthReadPos - 1:1) == %char(10)
+            end
+            until lengthReadPos > 16 && lengthHeader(lengthReadPos - 1:1) == %char(10)
 
-			MaybeLog(6, "Dispatcher: Reading ContentLength from input" + %atrim(lengthHeader) + ":" + %string(lengthReadPos))
+            MaybeLog(6, "Dispatcher: Reading ContentLength from input" + %atrim(lengthHeader) + ":" + %string(lengthReadPos))
 
-			clear lengthHeader(lengthReadPos - 2:2)
-			header.length = ^d(%atrim(lengthHeader.lengthValue))
-			contentTypePos = 1
-			while(contentTypePos < 255)
-			begin
-			againContent,   
-				gets(ttChannel, header.contentTypeBuffer(contentTypePos:1), wait:100, MASK:mActivationMask)  [$ERR_TIMOUT=againContent]
+            clear lengthHeader(lengthReadPos - 2:2)
+            header.length = ^d(%atrim(lengthHeader.lengthValue))
+            contentTypePos = 1
+            while(contentTypePos < 255)
+            begin
+            againContent,   
+                gets(ttChannel, header.contentTypeBuffer(contentTypePos:1), wait:100, MASK:mActivationMask)  [$ERR_TIMOUT=againContent]
 
-				if(header.contentTypeBuffer(contentTypePos:1) == '{')
-				begin
-					header.leftoverData = '{'
-					header.leftoverLength = 1
-					exitloop
-				end
+                if(header.contentTypeBuffer(contentTypePos:1) == '{')
+                begin
+                    header.leftoverData = '{'
+                    header.leftoverLength = 1
+                    exitloop
+                end
 
-				contentTypePos += %rdlen(ttChannel)
-			end
-		endmethod
+                contentTypePos += %rdlen(ttChannel)
+            end
+        endmethod
 
-		private static varargs method SetChars, void
+        private static varargs method SetChars, void
 ;
 ; Description:  Routine to set the appropriate bits in the activation
 ;               character mask for desired terminators
 ;
 ; Arguments:
 ;
-			inout a_actchars          ,[32]i1         ;Array of activation bit characters
-			a_char              ,n              ;0 or more character values
+            inout a_actchars          ,[32]i1         ;Array of activation bit characters
+            a_char              ,n              ;0 or more character values
 ;
 .define D_BITS_IN_CHAR          ,8      ;Number of bits in a character
 .align
-			stack record
-				argnm               ,i4                     ;Argument counter
-				charval             ,i4                     ;Character value
-				ndx                 ,i4                     ;Index into array
-				group dbits         ,d D_BITS_IN_CHAR       ;"Bit flags" for a character
-					dbit               ,[D_BITS_IN_CHAR]d1
-				endgroup
-				abits               ,a D_BITS_IN_CHAR @dbits           ;Union as alpha
-		proc
-			for argnm from ^argnum(a_char) thru %numargs   ;For all "a_char" args
-				if (^passed(^arg(argnm)))
-				begin
-					charval = ^argn(argnm)                          ;Get the character value
-					decr charval                                    ;Make 1 = 0
-					ndx = (charval / D_BITS_IN_CHAR)                ;Base 0 array index
-					charval -= (ndx * D_BITS_IN_CHAR)               ;Modulo array element size
-					clear dbits
-					dbit[D_BITS_IN_CHAR - charval] = 1              ;Set the "bit"
-					incr ndx                                        ;Make the array base 1
-					a_actchars[ndx] = a_actchars[ndx] .bor. %b(abits)
-					;Mask in the bit
-				end
-			mreturn
-		endmethod
+            stack record
+                argnm               ,i4                     ;Argument counter
+                charval             ,i4                     ;Character value
+                ndx                 ,i4                     ;Index into array
+                group dbits         ,d D_BITS_IN_CHAR       ;"Bit flags" for a character
+                    dbit               ,[D_BITS_IN_CHAR]d1
+                endgroup
+                abits               ,a D_BITS_IN_CHAR @dbits           ;Union as alpha
+        proc
+            for argnm from ^argnum(a_char) thru %numargs   ;For all "a_char" args
+                if (^passed(^arg(argnm)))
+                begin
+                    charval = ^argn(argnm)                          ;Get the character value
+                    decr charval                                    ;Make 1 = 0
+                    ndx = (charval / D_BITS_IN_CHAR)                ;Base 0 array index
+                    charval -= (ndx * D_BITS_IN_CHAR)               ;Modulo array element size
+                    clear dbits
+                    dbit[D_BITS_IN_CHAR - charval] = 1              ;Set the "bit"
+                    incr ndx                                        ;Make the array base 1
+                    a_actchars[ndx] = a_actchars[ndx] .bor. %b(abits)
+                    ;Mask in the bit
+                end
+            mreturn
+        endmethod
 
-		public virtual method ReadContent, void
-			in header, ContentHeader
-			in readBuffer, D_HANDLE
-			in readBufferSize, int
-			out jsonDoc, @object
-			out rootElement, JSON_ELEMENT
-			record
-				headerLength, int
-				remainingRead, int
-				readerPosition, int
-				constrainedRemainingRead, int
-				innerString, @string
+        public virtual method ReadContent, void
+            in header, ContentHeader
+            in readBuffer, D_HANDLE
+            in readBufferSize, int
+            out jsonDoc, @object
+            out rootElement, JSON_ELEMENT
+            record
+                headerLength, int
+                remainingRead, int
+                readerPosition, int
+                constrainedRemainingRead, int
+                innerString, @string
 .ifdef DBLV11  
-				typedJsonDoc, @JsonDocument
+                typedJsonDoc, @JsonDocument
 .else
-				jsonReader, @Json
+                jsonReader, @Json
 .endc
-		proc
+        proc
 .ifndef DBLV11  
-			jsonReader = new Json()
+            jsonReader = new Json()
 .endc
-			headerLength = header.length + 1
-			MaybeLog(6, "Dispatcher: Reading " + %string(headerLength) + " total bytes of Content from input" )
-			readerPosition = 1 + header.leftoverLength
-			remainingRead = headerLength - header.leftoverLength
+            headerLength = header.length + 1
+            MaybeLog(6, "Dispatcher: Reading " + %string(headerLength) + " total bytes of Content from input" )
+            readerPosition = 1 + header.leftoverLength
+            remainingRead = headerLength - header.leftoverLength
 
-			if(header.leftoverLength > 0)
-			begin
-				;;workaround for non conforming io on newlines
-				decr(remainingRead)
-				^m(MemStruct(1:header.leftoverLength), readBuffer) = header.leftoverData(1:header.leftoverLength)
-			end
+            if(header.leftoverLength > 0)
+            begin
+                ;;workaround for non conforming io on newlines
+                decr(remainingRead)
+                ^m(MemStruct(1:header.leftoverLength), readBuffer) = header.leftoverData(1:header.leftoverLength)
+            end
 
-			do 
-			begin
-				MaybeLog(6, "Dispatcher: Reading " + %string(remainingRead) + " bytes from input")
-				if(remainingRead > 65535) then
-					constrainedRemainingRead = 65535
-				else
-					constrainedRemainingRead = remainingRead
-				gets(ttChannel, ^m(MemStruct(readerPosition:constrainedRemainingRead), readBuffer), wait:100, MASK:mActivationMask) [$ERR_TIMOUT=again]
-			again,  
-				MaybeLog(7, "Dispatcher: Reading Content from input" + ^m(MemStruct(readerPosition:remainingRead), readBuffer) + ": got " + %string(%rdlen(ttChannel)) + " bytes, was expecting " + %string(remainingRead) + " bytes")
-				readerPosition += %rdlen(ttChannel)
-				remainingRead = headerLength - readerPosition
+            do 
+            begin
+                MaybeLog(6, "Dispatcher: Reading " + %string(remainingRead) + " bytes from input")
+                if(remainingRead > 65535) then
+                    constrainedRemainingRead = 65535
+                else
+                    constrainedRemainingRead = remainingRead
+                gets(ttChannel, ^m(MemStruct(readerPosition:constrainedRemainingRead), readBuffer), wait:100, MASK:mActivationMask) [$ERR_TIMOUT=again]
+            again,  
+                MaybeLog(7, "Dispatcher: Reading Content from input" + ^m(MemStruct(readerPosition:remainingRead), readBuffer) + ": got " + %string(%rdlen(ttChannel)) + " bytes, was expecting " + %string(remainingRead) + " bytes")
+                readerPosition += %rdlen(ttChannel)
+                remainingRead = headerLength - readerPosition
                                 
-			end
-			until remainingRead <= 0
+            end
+            until remainingRead <= 0
 .ifdef DBLV11
-			innerString = %string_from_handle(readBuffer)
-			MaybeLog(6, "Dispatcher: Parsing buffer " + innerString.Substring(0, readerPosition - 1))
-			jsonDoc = typedJsonDoc = JsonDocument.Parse(innerString.Substring(0, readerPosition - 1))
-			rootElement = typedJsonDoc.RootElement
+            innerString = %string_from_handle(readBuffer)
+            MaybeLog(6, "Dispatcher: Parsing buffer " + innerString.Substring(0, readerPosition - 1))
+            jsonDoc = typedJsonDoc = JsonDocument.Parse(innerString.Substring(0, readerPosition - 1))
+            rootElement = typedJsonDoc.RootElement
 .else
-			innerString = %string_from_handle(readBuffer)
-			MaybeLog(6, "Dispatcher: Parsing buffer " + innerString.Substring(0, readerPosition - 1))
-			rootElement = jsonReader.ParseJson(innerString.Substring(0, readerPosition - 1))
+            innerString = %string_from_handle(readBuffer)
+            MaybeLog(6, "Dispatcher: Parsing buffer " + innerString.Substring(0, readerPosition - 1))
+            rootElement = jsonReader.ParseJson(innerString.Substring(0, readerPosition - 1))
 .endc
-		endmethod
-	endclass
+        endmethod
+    endclass
 
-	structure ContentHeader
-		length, i4
-		contentTypeBuffer, a255
-		leftoverData, a1
-		leftoverLength, int
-	endstructure
-
-
-	structure ContentLengthHeader
-		contentLengthPart, a16
-		lengthValue, a10
-		padding, a2
-	endstructure
+    structure ContentHeader
+        length, i4
+        contentTypeBuffer, a255
+        leftoverData, a1
+        leftoverLength, int
+    endstructure
 
 
-	public class ChannelOutputStream extends OutputStream
-		public readwrite property Channel, int
+    structure ContentLengthHeader
+        contentLengthPart, a16
+        lengthValue, a10
+        padding, a2
+    endstructure
 
-		public method ChannelOutputStream
-			chan, int
-		proc
-			Channel = chan
-		endmethod
 
-		public override method FlushData, void
-			dataToAppend, a
-		proc
-			puts(Channel, dataToAppend)
-		endmethod
+    public class ChannelOutputStream extends OutputStream
+        public readwrite property Channel, int
 
-		public override method FlushData, void
-			dataToAppend, @string
-			record
-				i, int
-		proc
-			i = 0
-			while(i < dataToAppend.Length)
-			begin
-				data length = dataToAppend.Length - i
-				if(length > 65534) then
-				begin
-					length = 65534
-					puts(Channel, dataToAppend(i + 1:length))
-				end
-				else if(dataToAppend.Length > 65534) then
-					puts(Channel, dataToAppend(i + 1:length))
-				else
-					puts(Channel, dataToAppend)
+        public method ChannelOutputStream
+            chan, int
+        proc
+            Channel = chan
+        endmethod
 
-				i += length
-			end
+        public override method FlushData, void
+            dataToAppend, a
+        proc
+            puts(Channel, dataToAppend)
+        endmethod
 
-		endmethod
-	endclass
+        public override method FlushData, void
+            dataToAppend, @string
+            record
+                i, int
+        proc
+            i = 0
+            while(i < dataToAppend.Length)
+            begin
+                data length = dataToAppend.Length - i
+                if(length > 65534) then
+                begin
+                    length = 65534
+                    puts(Channel, dataToAppend(i + 1:length))
+                end
+                else if(dataToAppend.Length > 65534) then
+                    puts(Channel, dataToAppend(i + 1:length))
+                else
+                    puts(Channel, dataToAppend)
+
+                i += length
+            end
+
+        endmethod
+    endclass
 
 .ifndef DBLV11
-	;;; <summary>
-	;;; Builds a Harmony Core TraditionalBridge JSON message and writes it to a channel.
-	;;; </summary>
-	public class JsonSerializer
+    ;;; <summary>
+    ;;; Builds a Harmony Core TraditionalBridge JSON message and writes it to a channel.
+    ;;; </summary>
+    public class JsonSerializer
 
-		protected outStream, @OutputStream
-		private buffer, @string
-		private alphaBuf, a65535
-		private alphaPosition, i4
-		;;TODO: make a real stack out of a dynamic array or something like that
-		protected serializerStack, @ArrayList
-		;;TODO: buffer writes into an a65535 instead of calling write directly
-		;;TODO: validation 
-		private expectingName, boolean, true
-		private first, boolean, true
+        protected outStream, @OutputStream
+        private buffer, @string
+        private alphaBuf, a65535
+        private alphaPosition, i4
+        ;;TODO: make a real stack out of a dynamic array or something like that
+        protected serializerStack, @ArrayList
+        ;;TODO: buffer writes into an a65535 instead of calling write directly
+        ;;TODO: validation 
+        private expectingName, boolean, true
+        private first, boolean, true
 
 .define STACK_STATE, ((SerializerStackType)serializerStack[serializerStack.Count - 1])
 .define STACK_STATE_ARRAY, (serializerStack.Count > 0 && STACK_STATE == SerializerStackType.Array)
 
-		;;; <summary>
-		;;; Constructs a new serializer associated with an open channel.
-		;;; </summary>
-		;;; <param name="chan">Channel to write JSON data to.</param>
-		public method JsonSerializer
-			required in stream, @OutputStream
-		proc
-			alphaPosition = 0
+        ;;; <summary>
+        ;;; Constructs a new serializer associated with an open channel.
+        ;;; </summary>
+        ;;; <param name="chan">Channel to write JSON data to.</param>
+        public method JsonSerializer
+            required in stream, @OutputStream
+        proc
+            alphaPosition = 0
 ;			clear alphaBuf
-			buffer = ""
-			outStream = stream
-			serializerStack = new System.Collections.ArrayList()
-			serializerStack.Add((@SerializerStackType)SerializerStackType.None)
-		endmethod
+            buffer = ""
+            outStream = stream
+            serializerStack = new System.Collections.ArrayList()
+            serializerStack.Add((@SerializerStackType)SerializerStackType.None)
+        endmethod
 
-		public method ObjectData, void
-			dataValue, a
-			dataType, a
-			grfa, a
-			dataNeedsEncoding, boolean
-			name, @string
-		proc
-			if(name == ^null) then
-				MapOpen()
-			else
-				MapOpen(name)
+        public method ObjectData, void
+            dataValue, a
+            dataType, a
+            grfa, a
+            dataNeedsEncoding, boolean
+            name, @string
+        proc
+            if(name == ^null) then
+                MapOpen()
+            else
+                MapOpen(name)
 
-			Pair("Type", dataType)
-			if(!dataNeedsEncoding) then
-			begin
-				Pair("Value", dataValue)
-			end
-			else
-			begin
-				Pair("Base64Value", Convert.ToBase64String(dataValue))
-			end
-			Pair("GRFA", grfa)
-			MapClose()
-		endmethod
+            Pair("Type", dataType)
+            if(!dataNeedsEncoding) then
+            begin
+                Pair("Value", dataValue)
+            end
+            else
+            begin
+                Pair("Base64Value", Convert.ToBase64String(dataValue))
+            end
+            Pair("GRFA", grfa)
+            MapClose()
+        endmethod
 
-		;;; <summary>
-		;;; Adds a new serializer state to the top of the stack. The stack indicates
-		;;; whether the serializer is currently processing an onject or an array.
-		;;; </summary>
-		;;; <param name="type">SerializerStackType to push</param>
-		private method Push, void
-			req in type, SerializerStackType
-		proc
-			serializerStack.Add((@SerializerStackType)type)
-		endmethod
+        ;;; <summary>
+        ;;; Adds a new serializer state to the top of the stack. The stack indicates
+        ;;; whether the serializer is currently processing an onject or an array.
+        ;;; </summary>
+        ;;; <param name="type">SerializerStackType to push</param>
+        private method Push, void
+            req in type, SerializerStackType
+        proc
+            serializerStack.Add((@SerializerStackType)type)
+        endmethod
 
-		private method AppendOutput, void
-			input, a
-		proc
+        private method AppendOutput, void
+            input, a
+        proc
 
 .if D_ADDRSIZE == 8
-			if(^size(input) > 65535) then
-			begin
-				if(alphaPosition > 0)
-				begin
-					buffer += alphaBuf(1:alphaPosition)
-					clear alphaposition
-				end
-				buffer += input
-				mreturn
-			end
-			else
+            if(^size(input) > 65535) then
+            begin
+                if(alphaPosition > 0)
+                begin
+                    buffer += alphaBuf(1:alphaPosition)
+                    clear alphaposition
+                end
+                buffer += input
+                mreturn
+            end
+            else
 .endc
-			if(^size(input) + alphaPosition > 65535)
-			begin
-				buffer += alphaBuf(1:alphaPosition)
-				clear alphaposition
-			end
+            if(^size(input) + alphaPosition > 65535)
+            begin
+                buffer += alphaBuf(1:alphaPosition)
+                clear alphaposition
+            end
 
-			alphaBuf(alphaPosition + 1:^size(input)) = input
-			alphaPosition += ^size(input)
-		endmethod
-		private method AppendOutput, void
-			input, string
-			record
-				inputlen,int
-		proc
-			inputlen = input.length
-			if(inputlen > 65535) then
-			begin
-				if(alphaPosition > 0)
-				begin
-					buffer += alphaBuf(1:alphaPosition)
-					clear alphaposition
-				end
-				buffer += input
-			end
-			else if(inputlen + alphaPosition > 65535) then
-			begin
-				buffer += alphaBuf(1:alphaPosition)
-				clear alphaposition
-				buffer += input
-			end
-			else
-			begin
-				alphaBuf(alphaPosition + 1:inputlen) = input
-				alphaPosition += ^size(input)
-			end
-		endmethod
+            alphaBuf(alphaPosition + 1:^size(input)) = input
+            alphaPosition += ^size(input)
+        endmethod
+        private method AppendOutput, void
+            input, string
+            record
+                inputlen,int
+        proc
+            inputlen = input.length
+            if(inputlen > 65535) then
+            begin
+                if(alphaPosition > 0)
+                begin
+                    buffer += alphaBuf(1:alphaPosition)
+                    clear alphaposition
+                end
+                buffer += input
+            end
+            else if(inputlen + alphaPosition > 65535) then
+            begin
+                buffer += alphaBuf(1:alphaPosition)
+                clear alphaposition
+                buffer += input
+            end
+            else
+            begin
+                alphaBuf(alphaPosition + 1:inputlen) = input
+                alphaPosition += ^size(input)
+            end
+        endmethod
 
-		;;; <summary>
-		;;; Removes the top serializer state from the stack. The stack indicates
-		;;; whether the serializer is currently processing an object or an array.
-		;;; </summary>
-		;;; <returns>The SerializerStackType that was removed from the stack.</returns>
-		private method Pop, SerializerStackType
-			record
-				stackResult, SerializerStackType
-		proc
-			stackResult = STACK_STATE
-			serializerStack.RemoveAt(serializerStack.Count - 1)
-			mreturn stackResult
-		endmethod
+        ;;; <summary>
+        ;;; Removes the top serializer state from the stack. The stack indicates
+        ;;; whether the serializer is currently processing an object or an array.
+        ;;; </summary>
+        ;;; <returns>The SerializerStackType that was removed from the stack.</returns>
+        private method Pop, SerializerStackType
+            record
+                stackResult, SerializerStackType
+        proc
+            stackResult = STACK_STATE
+            serializerStack.RemoveAt(serializerStack.Count - 1)
+            mreturn stackResult
+        endmethod
 
-		;;; <summary>
-		;;; 
-		;;; </summary>
-		;;; <returns>Always returns SerializerStatus.Ok</returns>
-		public method Null, SerializerStatus
-			record
-				inArray, boolean
-		proc
-			inArray = STACK_STATE_ARRAY
-			AppendOutput(",null")
-			first = false
+        ;;; <summary>
+        ;;; 
+        ;;; </summary>
+        ;;; <returns>Always returns SerializerStatus.Ok</returns>
+        public method Null, SerializerStatus
+            record
+                inArray, boolean
+        proc
+            inArray = STACK_STATE_ARRAY
+            AppendOutput(",null")
+            first = false
 
-			if(!inArray)
-				expectingName = true
+            if(!inArray)
+                expectingName = true
 
-			mreturn SerializerStatus.Ok
-		endmethod
+            mreturn SerializerStatus.Ok
+        endmethod
 
 .region "Serialization methods"
 
-		;TODO: Consider renaming this to ObjectOpen
+        ;TODO: Consider renaming this to ObjectOpen
 
-		;;; <summary>
-		;;; Begins the definition of a new JSON object by adding a { character to the buffer.
-		;;; </summary>
-		;;; <returns>Always returns SerializerStatus.Ok</returns>
-		public method MapOpen, SerializerStatus
-			record
-				input, string
-		proc
-			if(!first && STACK_STATE_ARRAY) then
-				input = ",{"
-			else	input = "{"
-			expectingName = true
-			first = true
-			Push(SerializerStackType.Object)
-			;rma note: can we just move this above expecting name ? and pass in literals removing input ?
-			AppendOutput(input)
-			mreturn SerializerStatus.Ok
-		endmethod
+        ;;; <summary>
+        ;;; Begins the definition of a new JSON object by adding a { character to the buffer.
+        ;;; </summary>
+        ;;; <returns>Always returns SerializerStatus.Ok</returns>
+        public method MapOpen, SerializerStatus
+            record
+                input, string
+        proc
+            if(!first && STACK_STATE_ARRAY) then
+                input = ",{"
+            else	input = "{"
+            expectingName = true
+            first = true
+            Push(SerializerStackType.Object)
+            ;rma note: can we just move this above expecting name ? and pass in literals removing input ?
+            AppendOutput(input)
+            mreturn SerializerStatus.Ok
+        endmethod
 
-		public method MapOpen, SerializerStatus
-			mapName, a
-			record
-				input, string
-		proc
-			if(!first) then
-				input = ',"' + mapName + '":{'
-			else	input = '"' + mapName + '":{'
-			expectingName = true
-			first = true
-			Push(SerializerStackType.Object)
-			;rma note: can we just move this above expecting name ? and pass in literals removing input ?
-			AppendOutput(input)
-			mreturn SerializerStatus.Ok
-		endmethod
+        public method MapOpen, SerializerStatus
+            mapName, a
+            record
+                input, string
+        proc
+            if(!first) then
+                input = ',"' + mapName + '":{'
+            else	input = '"' + mapName + '":{'
+            expectingName = true
+            first = true
+            Push(SerializerStackType.Object)
+            ;rma note: can we just move this above expecting name ? and pass in literals removing input ?
+            AppendOutput(input)
+            mreturn SerializerStatus.Ok
+        endmethod
 
-		;TODO: Consider renaming this to ObjectClose
+        ;TODO: Consider renaming this to ObjectClose
 
-		;;; <summary>
-		;;; Ends the definition of the current JSON object by adding a } character to the buffer.
-		;;; If the object being closed represents the entire JSON "packet" (because the } matches
-		;;; an { at the beginning of the buffer) then the buffer is written to the channel and cleared.
-		;;; </summary>
-		;;; <param name="sentMessage">(Optional) If the operation resulted in the sending of the json message to the channel then the message content can be returned.</param>
-		;;; <returns>Always returns SerializerStatus.Ok</returns>
-		public method MapClose, SerializerStatus
-			optional out sentMessage, string
-			stack record
-				message, string
-			endrecord
-		proc
-			first = false
-			Pop()
-			expectingName = !STACK_STATE_ARRAY
-			AppendOutput("}")
-			; why do we need the new string message ( a potentially big duplicate)
-			message = buffer
-			if (serializerStack.Count == 1)
-				sendMessage()
+        ;;; <summary>
+        ;;; Ends the definition of the current JSON object by adding a } character to the buffer.
+        ;;; If the object being closed represents the entire JSON "packet" (because the } matches
+        ;;; an { at the beginning of the buffer) then the buffer is written to the channel and cleared.
+        ;;; </summary>
+        ;;; <param name="sentMessage">(Optional) If the operation resulted in the sending of the json message to the channel then the message content can be returned.</param>
+        ;;; <returns>Always returns SerializerStatus.Ok</returns>
+        public method MapClose, SerializerStatus
+            optional out sentMessage, string
+            stack record
+                message, string
+            endrecord
+        proc
+            first = false
+            Pop()
+            expectingName = !STACK_STATE_ARRAY
+            AppendOutput("}")
+            ; why do we need the new string message ( a potentially big duplicate)
+            message = buffer
+            if (serializerStack.Count == 1)
+                sendMessage()
 
-			if (^passed(sentMessage))
-			begin
-				if(serializerStack.Count != 1)
-					throw new Exception("map was not closed properly")
-				sentMessage = message
-			end
-
-
-			mreturn SerializerStatus.Ok
-
-		endmethod
-
-		;;; <summary>
-		;;; Begins the definition of a new JSON array by adding a [ character to the buffer.
-		;;; </summary>
-		;;; <returns>Always returns SerializerStatus.Ok</returns>
-		public method ArrayOpen, SerializerStatus
-			record
-				input, @string
-		proc
-			if(!first && STACK_STATE_ARRAY)then 
-				input += ",["
-			else
-				input = "["
-
-			first = true
-			expectingName = false
-			Push(SerializerStackType.Array)
-			;rma can this append output be above in the if then else ?
-			AppendOutput(input)
-			mreturn SerializerStatus.Ok
-		endmethod
-
-		;;; <summary>
-		;;; Ends the definition of the current JSON array by adding a ] character to the buffer.
-		;;; If the array being closed represents the entire JSON "packet" (because the ] matches
-		;;; an [ at the beginning of the buffer) then the buffer is written to the channel and cleared.
-		;;; </summary>
-		;;; <param name="sentMessage">(Optional) If the operation resulted in the sending of the json message to the channel then the message content can be returned.</param>
-		;;; <returns>Always returns SerializerStatus.Ok</returns>
-		public method ArrayClose, SerializerStatus
-			optional out sentMessage, string
-			stack record
-				message, string
-			endrecord
-		proc
-			first = false
-			Pop()
-			expectingName = !STACK_STATE_ARRAY
-			AppendOutput("]")
-			message = buffer
-			if (serializerStack.Count == 1)
-				sendMessage()
-
-			if (^passed(sentMessage))
-				sentMessage = message
-
-			mreturn SerializerStatus.Ok
-
-		endmethod
-
-		;;; <summary>
-		;;; Adds an integer value to the JSON buffer.
-		;;; </summary>
-		;;; <param name="value">Value to add.</param>
-		;;; <returns>Always returns SerializerStatus.Ok</returns>
-		public method Integer, SerializerStatus
-			req in value, n
-			record
-				inArray, boolean
-		proc
-			;rma if ^size(value > 18) throw exception cannot fit in long integer
-			inArray = STACK_STATE_ARRAY
-			if(!first && inArray) then
-				AppendOutput(","+%string(value))
-			else
-				AppendOutput(%string(value))
-			first = false
-			if(!inArray)
-				expectingName = true
-			mreturn SerializerStatus.Ok
-		endmethod
-
-		public method Integer, void
-			param1, a
-		proc
-		endmethod
+            if (^passed(sentMessage))
+            begin
+                if(serializerStack.Count != 1)
+                    throw new Exception("map was not closed properly")
+                sentMessage = message
+            end
 
 
-		;;; <summary>
-		;;; Adds a double value to the JSON buffer.
-		;;; </summary>
-		;;; <param name="value">Value to add.</param>
-		;;; <returns>Always returns SerializerStatus.Ok</returns>
-		public method Double, SerializerStatus
-			req in value, id
-			record
-				inArray, boolean
+            mreturn SerializerStatus.Ok
 
-		proc
-			;rma if ^size(value) > 15 throw exception (double cant exceed 15 digits(
+        endmethod
 
-			inArray = STACK_STATE_ARRAY
-			if(!first && inArray) then
-				AppendOutput(","+%string(value))
-			else
-				AppendOutput(%string(value))
-			first = false
-			if(!inArray)
-				expectingName = true
+        ;;; <summary>
+        ;;; Begins the definition of a new JSON array by adding a [ character to the buffer.
+        ;;; </summary>
+        ;;; <returns>Always returns SerializerStatus.Ok</returns>
+        public method ArrayOpen, SerializerStatus
+            record
+                input, @string
+        proc
+            if(!first && STACK_STATE_ARRAY)then 
+                input += ",["
+            else
+                input = "["
 
-			mreturn SerializerStatus.Ok
-		endmethod
+            first = true
+            expectingName = false
+            Push(SerializerStackType.Array)
+            ;rma can this append output be above in the if then else ?
+            AppendOutput(input)
+            mreturn SerializerStatus.Ok
+        endmethod
 
-		;;; <summary>
-		;;; Adds a boolean value to the JSON buffer.
-		;;; </summary>
-		;;; <param name="value">Value to add.</param>
-		;;; <returns>Always returns SerializerStatus.Ok</returns>
-		public method Bool, SerializerStatus
-			req in value, boolean
-			record
-				inArray, boolean
-		proc
-			inArray = STACK_STATE_ARRAY
-			if(!first && inArray)then
-			begin
-				if (value) then
-					AppendOutput(",true")
-				else
-					AppendOutput(",false")
-			end
-			else
-			begin
-				if (value) then
-					AppendOutput("true")
-				else
-					AppendOutput("false")
-			end
+        ;;; <summary>
+        ;;; Ends the definition of the current JSON array by adding a ] character to the buffer.
+        ;;; If the array being closed represents the entire JSON "packet" (because the ] matches
+        ;;; an [ at the beginning of the buffer) then the buffer is written to the channel and cleared.
+        ;;; </summary>
+        ;;; <param name="sentMessage">(Optional) If the operation resulted in the sending of the json message to the channel then the message content can be returned.</param>
+        ;;; <returns>Always returns SerializerStatus.Ok</returns>
+        public method ArrayClose, SerializerStatus
+            optional out sentMessage, string
+            stack record
+                message, string
+            endrecord
+        proc
+            first = false
+            Pop()
+            expectingName = !STACK_STATE_ARRAY
+            AppendOutput("]")
+            message = buffer
+            if (serializerStack.Count == 1)
+                sendMessage()
 
-			first = false
+            if (^passed(sentMessage))
+                sentMessage = message
 
-			if(!inArray)
-				expectingName = true
-			mreturn SerializerStatus.Ok
-		endmethod
+            mreturn SerializerStatus.Ok
 
-		;;; <summary>
-		;;; Adds a string value to the JSON buffer.
-		;;; </summary>
-		;;; <param name="value">Value to add.</param>
-		;;; <returns>Always returns SerializerStatus.Ok</returns>
-		public method String, SerializerStatus
-			req in value, @string
-			record
-				input, @string
-				inArray, boolean
-		proc
-			inArray = STACK_STATE_ARRAY
-			if(!first && (expectingName || inArray)) then
-				input = ',"'
-			else
-				input = '"'
-			first = false
+        endmethod
 
-			;;TODO this string "value" might need to be encoded, it probably shouldnt have binary data in it
-			if(expectingName) then
-			begin
-				input += value + '":'
-			end
-			else
-				input += value + '"'
-			
-			if(!inArray)
-				expectingName = !expectingName
+        ;;; <summary>
+        ;;; Adds an integer value to the JSON buffer.
+        ;;; </summary>
+        ;;; <param name="value">Value to add.</param>
+        ;;; <returns>Always returns SerializerStatus.Ok</returns>
+        public method Integer, SerializerStatus
+            req in value, n
+            record
+                inArray, boolean
+        proc
+            ;rma if ^size(value > 18) throw exception cannot fit in long integer
+            inArray = STACK_STATE_ARRAY
+            if(!first && inArray) then
+                AppendOutput(","+%string(value))
+            else
+                AppendOutput(%string(value))
+            first = false
+            if(!inArray)
+                expectingName = true
+            mreturn SerializerStatus.Ok
+        endmethod
 
-			AppendOutput(input)
+        public method Integer, void
+            param1, a
+        proc
+        endmethod
 
-			mreturn SerializerStatus.Ok
-		endmethod
 
-		public method Pair, SerializerStatus
-			req in key, a
-			req in value, a
+        ;;; <summary>
+        ;;; Adds a double value to the JSON buffer.
+        ;;; </summary>
+        ;;; <param name="value">Value to add.</param>
+        ;;; <returns>Always returns SerializerStatus.Ok</returns>
+        public method Double, SerializerStatus
+            req in value, id
+            record
+                inArray, boolean
 
-		proc
-			if(!expectingName)
-				throw new InvalidOperationException("received name + value pair when name was unexpected")
-			if(!first) then
-			begin
-				if(^size(value) > 64000) then
-				begin
-					AppendOutput(',"'+ key +'":"')
-					AppendOutput(value)
-					AppendOutput('"')
-				end
-				else
-				begin
-					AppendOutput(',"'+ key +'":"' + value + '"')
-				end
-			end
-			else
-			begin
-				if(^size(value) > 64000) then
-				begin
-					AppendOutput('"'+ key +'":"')
-					AppendOutput(value)
-					AppendOutput('"')
-				end
-				else
-				begin
-					AppendOutput('"'+ key +'":"' + value + '"')
-				end
-			end
-			first = false
+        proc
+            ;rma if ^size(value) > 15 throw exception (double cant exceed 15 digits(
 
-			mreturn SerializerStatus.Ok
-		endmethod
+            inArray = STACK_STATE_ARRAY
+            if(!first && inArray) then
+                AppendOutput(","+%string(value))
+            else
+                AppendOutput(%string(value))
+            first = false
+            if(!inArray)
+                expectingName = true
 
-		public method PairBool, SerializerStatus
-			req in key, a
-			req in value, boolean
-		proc
-			if(!expectingName)
-				throw new InvalidOperationException("received name + value pair when name was unexpected")
-			;rma fix for version 11 to one append output
-			if(!first) then
-				AppendOutput(',"'+key+'":'); + value ? "true" : "false"))
-			else
-				AppendOutput('"'+key+'":');+ value ? "true" : "false")
-			first = false
-			AppendOutput(value ? "true" : "false")
-			mreturn SerializerStatus.Ok
-		endmethod
+            mreturn SerializerStatus.Ok
+        endmethod
 
-		public method Pair, SerializerStatus
-			req in key, a
-			req in value, n.
+        ;;; <summary>
+        ;;; Adds a boolean value to the JSON buffer.
+        ;;; </summary>
+        ;;; <param name="value">Value to add.</param>
+        ;;; <returns>Always returns SerializerStatus.Ok</returns>
+        public method Bool, SerializerStatus
+            req in value, boolean
+            record
+                inArray, boolean
+        proc
+            inArray = STACK_STATE_ARRAY
+            if(!first && inArray)then
+            begin
+                if (value) then
+                    AppendOutput(",true")
+                else
+                    AppendOutput(",false")
+            end
+            else
+            begin
+                if (value) then
+                    AppendOutput("true")
+                else
+                    AppendOutput("false")
+            end
 
-		proc
-			if(!expectingName)
-				throw new InvalidOperationException("received name + value pair when name was unexpected")
-			if(!first) then
-				AppendOutput(',"'+key+'":' + %string(value))
-			else
-				AppendOutput('"'+key+'":' + %string(value))
-			first = false
-			mreturn SerializerStatus.Ok
-		endmethod
+            first = false
 
-		public method PairNull, SerializerStatus
-			req in key, a
-		proc
-			if(!expectingName)
-				throw new InvalidOperationException("received name + value pair when name was unexpected")
-			if(!first) then
-				AppendOutput(',"'+key+'":null')
-			else
-				AppendOutput('"'+key+'":null')
-			first = false
-			mreturn SerializerStatus.Ok
-		endmethod
+            if(!inArray)
+                expectingName = true
+            mreturn SerializerStatus.Ok
+        endmethod
 
-		public method OutputScopeOpen, void
-		proc
+        ;;; <summary>
+        ;;; Adds a string value to the JSON buffer.
+        ;;; </summary>
+        ;;; <param name="value">Value to add.</param>
+        ;;; <returns>Always returns SerializerStatus.Ok</returns>
+        public method String, SerializerStatus
+            req in value, @string
+            record
+                input, @string
+                inArray, boolean
+        proc
+            inArray = STACK_STATE_ARRAY
+            if(!first && (expectingName || inArray)) then
+                input = ',"'
+            else
+                input = '"'
+            first = false
 
-		endmethod
+            ;;TODO this string "value" might need to be encoded, it probably shouldnt have binary data in it
+            if(expectingName) then
+            begin
+                input += value + '":'
+            end
+            else
+                input += value + '"'
+            
+            if(!inArray)
+                expectingName = !expectingName
 
-		;;abort the current output scope, rolling back any output in the buffer back to the last OutputScopeOpen call
-		public method OutputScopeAbort, void
-		proc
-			buffer = ""
+            AppendOutput(input)
+
+            mreturn SerializerStatus.Ok
+        endmethod
+
+        public method Pair, SerializerStatus
+            req in key, a
+            req in value, a
+
+        proc
+            if(!expectingName)
+                throw new InvalidOperationException("received name + value pair when name was unexpected")
+            if(!first) then
+            begin
+                if(^size(value) > 64000) then
+                begin
+                    AppendOutput(',"'+ key +'":"')
+                    AppendOutput(value)
+                    AppendOutput('"')
+                end
+                else
+                begin
+                    AppendOutput(',"'+ key +'":"' + value + '"')
+                end
+            end
+            else
+            begin
+                if(^size(value) > 64000) then
+                begin
+                    AppendOutput('"'+ key +'":"')
+                    AppendOutput(value)
+                    AppendOutput('"')
+                end
+                else
+                begin
+                    AppendOutput('"'+ key +'":"' + value + '"')
+                end
+            end
+            first = false
+
+            mreturn SerializerStatus.Ok
+        endmethod
+
+        public method PairBool, SerializerStatus
+            req in key, a
+            req in value, boolean
+        proc
+            if(!expectingName)
+                throw new InvalidOperationException("received name + value pair when name was unexpected")
+            ;rma fix for version 11 to one append output
+            if(!first) then
+                AppendOutput(',"'+key+'":'); + value ? "true" : "false"))
+            else
+                AppendOutput('"'+key+'":');+ value ? "true" : "false")
+            first = false
+            AppendOutput(value ? "true" : "false")
+            mreturn SerializerStatus.Ok
+        endmethod
+
+        public method Pair, SerializerStatus
+            req in key, a
+            req in value, n.
+
+        proc
+            if(!expectingName)
+                throw new InvalidOperationException("received name + value pair when name was unexpected")
+            if(!first) then
+                AppendOutput(',"'+key+'":' + %string(value))
+            else
+                AppendOutput('"'+key+'":' + %string(value))
+            first = false
+            mreturn SerializerStatus.Ok
+        endmethod
+
+        public method PairNull, SerializerStatus
+            req in key, a
+        proc
+            if(!expectingName)
+                throw new InvalidOperationException("received name + value pair when name was unexpected")
+            if(!first) then
+                AppendOutput(',"'+key+'":null')
+            else
+                AppendOutput('"'+key+'":null')
+            first = false
+            mreturn SerializerStatus.Ok
+        endmethod
+
+        public method OutputScopeOpen, void
+        proc
+
+        endmethod
+
+        ;;abort the current output scope, rolling back any output in the buffer back to the last OutputScopeOpen call
+        public method OutputScopeAbort, void
+        proc
+            buffer = ""
 ;			clear alphaBuf
-			clear alphaPosition
-			serializerStack.Clear()
-			serializerStack.Add((@SerializerStackType)SerializerStackType.None)
-		endmethod
+            clear alphaPosition
+            serializerStack.Clear()
+            serializerStack.Add((@SerializerStackType)SerializerStackType.None)
+        endmethod
 
 
-		public method OutputScopeClose, void
-		proc
+        public method OutputScopeClose, void
+        proc
 
-		endmethod
+        endmethod
 
 .endregion
 
 .region "Other public members"
 
-		public property CurrentBuffer, string
-			method get
-			proc
-				mreturn buffer
-			endmethod
-		endproperty
-		public method Flush, void
-		proc
-			;;do nothing this is managed automatically
-		endmethod
+        public property CurrentBuffer, string
+            method get
+            proc
+                mreturn buffer
+            endmethod
+        endproperty
+        public method Flush, void
+        proc
+            ;;do nothing this is managed automatically
+        endmethod
 .endregion
 
 .region "Helper methods"
 
-		;;; <summary>
-		;;; Constructs the TraditionalBridge protocol message and sends it to the channel.
-		;;; After sending the message the JSON buffer is cleared.
-		;;; </summary>
-		;;; <returns>The complete protocol message that was sent.</returns>
-		private method sendMessage, void
-			stack record
-				bufferLength, int
-				message, string
-			endrecord
-		proc
-			bufferLength = buffer.length
-			if(6 <= Logger.LogLevel) then
-			begin
-				data lengthheader, string
-				lengthHeader = "Content-Length:" + %string(bufferLength + alphaPosition) + %char(13) + %char(10) + %char(13) + %char(10)
-				MaybeLog(6, "Serializer: " + lengthHeader)
-				outStream.FlushData(lengthHeader)
-			end
-			else outStream.FlushData("Content-Length:" + %string(bufferLength + alphaPosition) + %char(13) + %char(10) + %char(13) + %char(10))
-			
-			if(bufferLength > 0) then
-			begin
-				if (alphaposition)
-					buffer += alphaBuf(1:alphaPosition)
-				MaybeLog(6, "Serializer: " + buffer)
-				;RMA eeds to handle buffer length > 65535 for 32 bit
-				outStream.FlushData(buffer)
-			end
-			else
-			begin
-				MaybeLog(6, "Serializer: " + alphaBuf(1:alphaPosition))
-				outStream.FlushData(alphaBuf(1:alphaPosition))
-			end
-			buffer = ""
-			first = true
-			alphaPosition = 0
-		endmethod
+        ;;; <summary>
+        ;;; Constructs the TraditionalBridge protocol message and sends it to the channel.
+        ;;; After sending the message the JSON buffer is cleared.
+        ;;; </summary>
+        ;;; <returns>The complete protocol message that was sent.</returns>
+        private method sendMessage, void
+            stack record
+                bufferLength, int
+                message, string
+            endrecord
+        proc
+            bufferLength = buffer.length
+            if(6 <= Logger.LogLevel) then
+            begin
+                data lengthheader, string
+                lengthHeader = "Content-Length:" + %string(bufferLength + alphaPosition) + %char(13) + %char(10) + %char(13) + %char(10)
+                MaybeLog(6, "Serializer: " + lengthHeader)
+                outStream.FlushData(lengthHeader)
+            end
+            else outStream.FlushData("Content-Length:" + %string(bufferLength + alphaPosition) + %char(13) + %char(10) + %char(13) + %char(10))
+            
+            if(bufferLength > 0) then
+            begin
+                if (alphaposition)
+                    buffer += alphaBuf(1:alphaPosition)
+                MaybeLog(6, "Serializer: " + buffer)
+                ;RMA eeds to handle buffer length > 65535 for 32 bit
+                outStream.FlushData(buffer)
+            end
+            else
+            begin
+                MaybeLog(6, "Serializer: " + alphaBuf(1:alphaPosition))
+                outStream.FlushData(alphaBuf(1:alphaPosition))
+            end
+            buffer = ""
+            first = true
+            alphaPosition = 0
+        endmethod
 
 .endregion
 
-	endclass
+    endclass
 
-	public class DispatchSerializer extends JsonSerializer
-		public method DispatchSerializer
-			stream, @OutputStream
-			parent(stream)
-		proc
-		endmethod
+    public class DispatchSerializer extends JsonSerializer
+        public method DispatchSerializer
+            stream, @OutputStream
+            parent(stream)
+        proc
+        endmethod
 
-		public method ArgumentData, void
-			required in argPos, int
-			required in value, string
-			required in type, FieldDataType
-			optional in size, int
-			optional in precision, int
-			optional in hasBinaryData, boolean
-		proc
-			ArgumentData(argPos, (a)value, type, size, precision, hasBinaryData)
-		endmethod
+        public method ArgumentData, void
+            required in argPos, int
+            required in value, string
+            required in type, FieldDataType
+            optional in size, int
+            optional in precision, int
+            optional in hasBinaryData, boolean
+        proc
+            ArgumentData(argPos, (a)value, type, size, precision, hasBinaryData)
+        endmethod
 
 
-		public method ArgumentData, void
-			required in argPos, int
-			required in value, a
-			optional in type, FieldDataType
-			optional in size, int
-			optional in precision, int
-			optional in hasBinaryData, boolean
-			record
-				encodeElement, boolean
-		proc
-			if(^passed(hasBinaryData)) then
-				encodeElement = hasBinaryData
-			else
-				encodeElement = false
+        public method ArgumentData, void
+            required in argPos, int
+            required in value, a
+            optional in type, FieldDataType
+            optional in size, int
+            optional in precision, int
+            optional in hasBinaryData, boolean
+            record
+                encodeElement, boolean
+        proc
+            if(^passed(hasBinaryData)) then
+                encodeElement = hasBinaryData
+            else
+                encodeElement = false
 
-			;;TODO inline these operations into a single buffer op
-			MapOpen()
-			Pair("Position", argPos)
-			String("Value")
-			MapOpen()
-			
-			Pair("DataType", (i)FieldDataType.AlphaField)
-			if(encodeElement) then
-			begin
-				if(^passed(size) && ^size(value) > size) then
-					Pair("Base64Value", Convert.ToBase64String(value(1:size)))
-				else
-				begin
-					if (^size(value) == 0) then
-						Pair("Base64Value", "")
-					else
-						Pair("Base64Value", Convert.ToBase64String(value))
-				end
-			end
-			else
-			begin
-				if(^passed(size) && ^size(value) > size) then
-					Pair("PassedValue", %atrim(value(1:size)))
-				else
-					Pair("PassedValue", %atrim(value))
-			end
-			MapClose()
-			MapClose()
-		endmethod
+            ;;TODO inline these operations into a single buffer op
+            MapOpen()
+            Pair("Position", argPos)
+            String("Value")
+            MapOpen()
+            
+            Pair("DataType", (i)FieldDataType.AlphaField)
+            if(encodeElement) then
+            begin
+                if(^passed(size) && ^size(value) > size) then
+                    Pair("Base64Value", Convert.ToBase64String(value(1:size)))
+                else
+                begin
+                    if (^size(value) == 0) then
+                        Pair("Base64Value", "")
+                    else
+                        Pair("Base64Value", Convert.ToBase64String(value))
+                end
+            end
+            else
+            begin
+                if(^passed(size) && ^size(value) > size) then
+                    Pair("PassedValue", %atrim(value(1:size)))
+                else
+                    Pair("PassedValue", %atrim(value))
+            end
+            MapClose()
+            MapClose()
+        endmethod
 
-		public method ArgumentData, void
-			required in argPos, int
-			required in value, d
-			optional in type, FieldDataType
-		proc
-			;;TODO inline these operations into a single buffer op
-			MapOpen()
-			Pair("Position", argPos)
-			String("Value")
-			MapOpen()
-			
-			Pair("DataType", (i)FieldDataType.DecimalField)
-			Pair("PassedValue", value)
-			MapClose()
-			MapClose()
-		endmethod
+        public method ArgumentData, void
+            required in argPos, int
+            required in value, d
+            optional in type, FieldDataType
+        proc
+            ;;TODO inline these operations into a single buffer op
+            MapOpen()
+            Pair("Position", argPos)
+            String("Value")
+            MapOpen()
+            
+            Pair("DataType", (i)FieldDataType.DecimalField)
+            Pair("PassedValue", value)
+            MapClose()
+            MapClose()
+        endmethod
 
-		public method ArgumentData, void
-			required in argPos, int
-			required in value, id
-			required in type, FieldDataType
-			required in size, int
-			required in precision, int
-			required in hasBinaryData, boolean
-		proc
-			;;TODO inline these operations into a single buffer op
-			MapOpen()
-			Pair("Position", argPos)
-			String("Value")
-			MapOpen()
-			
-			Pair("DataType", (i)FieldDataType.ImpliedDecimal)
-			Pair("ElementSize", size)
-			Pair("DecimalPrecision", precision)
-			Pair("PassedValue", value)
-			MapClose()
-			MapClose()
-		endmethod
+        public method ArgumentData, void
+            required in argPos, int
+            required in value, id
+            required in type, FieldDataType
+            required in size, int
+            required in precision, int
+            required in hasBinaryData, boolean
+        proc
+            ;;TODO inline these operations into a single buffer op
+            MapOpen()
+            Pair("Position", argPos)
+            String("Value")
+            MapOpen()
+            
+            Pair("DataType", (i)FieldDataType.ImpliedDecimal)
+            Pair("ElementSize", size)
+            Pair("DecimalPrecision", precision)
+            Pair("PassedValue", value)
+            MapClose()
+            MapClose()
+        endmethod
 
-		public method ArgumentData, void
-			required in argPos, int
-			required in value, i
-			optional in type, FieldDataType
-			optional in size, int
-			optional in precision, int
-			optional in hasBinaryData, boolean
-		proc
-			;;TODO inline these operations into a single buffer op
-			MapOpen()
-			Pair("Position", argPos)
-			String("Value")
-			MapOpen()
-			
-			Pair("DataType", (i)FieldDataType.IntegerField)
-			Pair("PassedValue", value)
-			MapClose()
-			MapClose()
-		endmethod
+        public method ArgumentData, void
+            required in argPos, int
+            required in value, i
+            optional in type, FieldDataType
+            optional in size, int
+            optional in precision, int
+            optional in hasBinaryData, boolean
+        proc
+            ;;TODO inline these operations into a single buffer op
+            MapOpen()
+            Pair("Position", argPos)
+            String("Value")
+            MapOpen()
+            
+            Pair("DataType", (i)FieldDataType.IntegerField)
+            Pair("PassedValue", value)
+            MapClose()
+            MapClose()
+        endmethod
 
-		public method ArgumentData, void
-			argPos, int
-			value, @ArrayList
-			record
-				item, @object
-				doElement, @DataObjectBase
-		proc
-			;;TODO inline these operations into a single buffer op
-			MapOpen()
-			Pair("Position", argPos)
-			String("Value")
-			MapOpen()
+        public method ArgumentData, void
+            argPos, int
+            value, @ArrayList
+            record
+                item, @object
+                doElement, @DataObjectBase
+        proc
+            ;;TODO inline these operations into a single buffer op
+            MapOpen()
+            Pair("Position", argPos)
+            String("Value")
+            MapOpen()
 
-			Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
-			String("PassedValue")
-			ArrayOpen()
-			foreach item in value
-			begin
-				if(item .is. @DataObjectBase) then
-				begin
-					doElement = (@DataObjectBase)item
-					doElement.Serialize(this)
-				end
-				else if(item .is. @string) then
-					String((@string)item)
-				else if(item .is. @i) then
-					Integer((@i)item)
-				else if(item .is. @d) then
-					Integer((@d)item)
-				else if(item .is. @id) then
-					Double((@id)item)
-				else if(item .is. @boolean)
-					Bool((@boolean)item)
-			end
-			ArrayClose()
-			MapClose()
-			MapClose()
-		endmethod
+            Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
+            String("PassedValue")
+            ArrayOpen()
+            foreach item in value
+            begin
+                if(item .is. @DataObjectBase) then
+                begin
+                    doElement = (@DataObjectBase)item
+                    doElement.Serialize(this)
+                end
+                else if(item .is. @string) then
+                    String((@string)item)
+                else if(item .is. @i) then
+                    Integer((@i)item)
+                else if(item .is. @d) then
+                    Integer((@d)item)
+                else if(item .is. @id) then
+                    Double((@id)item)
+                else if(item .is. @boolean)
+                    Bool((@boolean)item)
+            end
+            ArrayClose()
+            MapClose()
+            MapClose()
+        endmethod
 
-		public method ArgumentData, void
-			argPos, int
-			value, [#]@DataObjectBase
-			record
-				doElement, @DataObjectBase
-		proc
-			;;TODO inline these operations into a single buffer op
-			MapOpen()
-			Pair("Position", argPos)
-			String("Value")
-			MapOpen()
+        public method ArgumentData, void
+            argPos, int
+            value, [#]@DataObjectBase
+            record
+                doElement, @DataObjectBase
+        proc
+            ;;TODO inline these operations into a single buffer op
+            MapOpen()
+            Pair("Position", argPos)
+            String("Value")
+            MapOpen()
 
-			Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
-			String("PassedValue")
-			ArrayOpen()
-			foreach doElement in value
-			begin
-				doElement.Serialize(this)
-			end
-			ArrayClose()
-			MapClose()
-			MapClose()
-		endmethod
+            Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
+            String("PassedValue")
+            ArrayOpen()
+            foreach doElement in value
+            begin
+                doElement.Serialize(this)
+            end
+            ArrayClose()
+            MapClose()
+            MapClose()
+        endmethod
 
-		public method ArgumentData, void
-			argPos, int
-			value, @DataObjectBase
-			record
-				item, @object
-				doElement, @DataObjectBase
-		proc
-			;;TODO inline these operations into a single buffer op
-			MapOpen()
-			Pair("Position", argPos)
-			String("Value")
-			MapOpen()
-			Pair("DataType", (i)FieldDataType.DataObjectField)
-			String("PassedValue")
-			value.Serialize(this)
-			MapClose()
-			MapClose()
-		endmethod
+        public method ArgumentData, void
+            argPos, int
+            value, @DataObjectBase
+            record
+                item, @object
+                doElement, @DataObjectBase
+        proc
+            ;;TODO inline these operations into a single buffer op
+            MapOpen()
+            Pair("Position", argPos)
+            String("Value")
+            MapOpen()
+            Pair("DataType", (i)FieldDataType.DataObjectField)
+            String("PassedValue")
+            value.Serialize(this)
+            MapClose()
+            MapClose()
+        endmethod
 
-		public method ArgumentData, void
-			argPos, int
-			value, @ArrayList
-			type, FieldDataType
-			elementSize, int
-			elementPrecision, int
-			hasBinaryData, boolean
-			record
-				item, @object
-				doElement, @DataObjectBase
-				tempDec, decimal
-		proc
-			MapOpen()
-			Pair("Position", argPos)
-			String("Value")
-			MapOpen()
-			Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
-			String("PassedValue")
-			ArrayOpen()
-			foreach item in value
-			begin
-				if(hasBinaryData) then
-					String(Convert.ToBase64String((a)item))
-				else
-				begin
-					if(item .is. @DataObjectBase) then
-					begin
-						doElement = (@DataObjectBase)item
-						doElement.Serialize(this)
-					end
-					else if(item .is. @string) then
-						String((@string)item)
-					else if(item .is. @i) then
-						Integer((@i)item)
-					else if(item .is. @d) then
-					begin
-						tempDec = (d)item
-						Integer(tempDec)
-					end
-					else if(item .is. @id) then
-						Double((@id)item)
-					else if(item .is. @boolean)
-						Bool((@boolean)item)
-				end
-			end
-			ArrayClose()
-			MapClose()
-			MapClose()
-		endmethod
+        public method ArgumentData, void
+            argPos, int
+            value, @ArrayList
+            type, FieldDataType
+            elementSize, int
+            elementPrecision, int
+            hasBinaryData, boolean
+            record
+                item, @object
+                doElement, @DataObjectBase
+                tempDec, decimal
+        proc
+            MapOpen()
+            Pair("Position", argPos)
+            String("Value")
+            MapOpen()
+            Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
+            String("PassedValue")
+            ArrayOpen()
+            foreach item in value
+            begin
+                if(hasBinaryData) then
+                    String(Convert.ToBase64String((a)item))
+                else
+                begin
+                    if(item .is. @DataObjectBase) then
+                    begin
+                        doElement = (@DataObjectBase)item
+                        doElement.Serialize(this)
+                    end
+                    else if(item .is. @string) then
+                        String((@string)item)
+                    else if(item .is. @i) then
+                        Integer((@i)item)
+                    else if(item .is. @d) then
+                    begin
+                        tempDec = (d)item
+                        Integer(tempDec)
+                    end
+                    else if(item .is. @id) then
+                        Double((@id)item)
+                    else if(item .is. @boolean)
+                        Bool((@boolean)item)
+                end
+            end
+            ArrayClose()
+            MapClose()
+            MapClose()
+        endmethod
 
-		public method ArgumentData, void
-			argPos, int
-			value, @ArrayList
-			type, FieldDataType
-			elementSize, int
-			elementType, a
-			hasBinaryData, boolean
-			record
-				item, @object
-				doElement, @DataObjectBase
-		proc
-			;;TODO inline these operations into a single buffer op
-			MapOpen()
-			Pair("Position", argPos)
-			String("Value")
-			MapOpen()
+        public method ArgumentData, void
+            argPos, int
+            value, @ArrayList
+            type, FieldDataType
+            elementSize, int
+            elementType, a
+            hasBinaryData, boolean
+            record
+                item, @object
+                doElement, @DataObjectBase
+        proc
+            ;;TODO inline these operations into a single buffer op
+            MapOpen()
+            Pair("Position", argPos)
+            String("Value")
+            MapOpen()
 
-			Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
-			Pair("ElementType", elementType)
-			PairBool("ElementIsEncoded", hasBinaryData)
-			String("PassedValue")
-			ArrayOpen()
-			foreach item in value
-			begin
-				if(hasBinaryData) then
-					String(Convert.ToBase64String((a)item))
-				else
-					String((a)item)
-			end
-			ArrayClose()
-			MapClose()
-			MapClose()
-		endmethod
+            Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
+            Pair("ElementType", elementType)
+            PairBool("ElementIsEncoded", hasBinaryData)
+            String("PassedValue")
+            ArrayOpen()
+            foreach item in value
+            begin
+                if(hasBinaryData) then
+                    String(Convert.ToBase64String((a)item))
+                else
+                    String((a)item)
+            end
+            ArrayClose()
+            MapClose()
+            MapClose()
+        endmethod
 
-		public method ArgumentData, void
-			argPos, int
-			value, [#]@string
-			record
-				item, @string
-		proc
-			;;TODO inline these operations into a single buffer op
-			MapOpen()
-			Pair("Position", argPos)
-			String("Value")
-			MapOpen()
-			
-			Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
-			String("PassedValue")
-			ArrayOpen()
-			foreach item in value
-			begin
-				String(item)
-			end
-			ArrayClose()
-			MapClose()
-			MapClose()
-		endmethod
+        public method ArgumentData, void
+            argPos, int
+            value, [#]@string
+            record
+                item, @string
+        proc
+            ;;TODO inline these operations into a single buffer op
+            MapOpen()
+            Pair("Position", argPos)
+            String("Value")
+            MapOpen()
+            
+            Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
+            String("PassedValue")
+            ArrayOpen()
+            foreach item in value
+            begin
+                String(item)
+            end
+            ArrayClose()
+            MapClose()
+            MapClose()
+        endmethod
 
-		public method ArgumentData, void
-			argPos, int
-			value, [#]int
-			record
-				item, int
-		proc
-			;;TODO inline these operations into a single buffer op
-			MapOpen()
-			Pair("Position", argPos)
-			String("Value")
-			MapOpen()
-			
-			Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
-			String("PassedValue")
-			ArrayOpen()
-			foreach item in value
-			begin
-				Integer(item)
-			end
-			ArrayClose()
-			MapClose()
-			MapClose()
-		endmethod
+        public method ArgumentData, void
+            argPos, int
+            value, [#]int
+            record
+                item, int
+        proc
+            ;;TODO inline these operations into a single buffer op
+            MapOpen()
+            Pair("Position", argPos)
+            String("Value")
+            MapOpen()
+            
+            Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
+            String("PassedValue")
+            ArrayOpen()
+            foreach item in value
+            begin
+                Integer(item)
+            end
+            ArrayClose()
+            MapClose()
+            MapClose()
+        endmethod
 
-		public method ArgumentData, void
-			argPos, int
-			value, [#]@a
-			record
-				item, @a
-		proc
-			;;TODO inline these operations into a single buffer op
-			MapOpen()
-			Pair("Position", argPos)
-			String("Value")
-			MapOpen()
-			
-			Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
-			String("PassedValue")
-			ArrayOpen()
-			foreach item in value
-			begin
-				String(%atrim(item))
-			end
-			ArrayClose()
-			MapClose()
-			MapClose()
-		endmethod
+        public method ArgumentData, void
+            argPos, int
+            value, [#]@a
+            record
+                item, @a
+        proc
+            ;;TODO inline these operations into a single buffer op
+            MapOpen()
+            Pair("Position", argPos)
+            String("Value")
+            MapOpen()
+            
+            Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
+            String("PassedValue")
+            ArrayOpen()
+            foreach item in value
+            begin
+                String(%atrim(item))
+            end
+            ArrayClose()
+            MapClose()
+            MapClose()
+        endmethod
 
-		public method ArgumentData, void
-			argPos, int
-			value, [#]@id
-			record
-				item, @id
-		proc
-			;;TODO inline these operations into a single buffer op
-			MapOpen()
-			Pair("Position", argPos)
-			String("Value")
-			MapOpen()
-			
-			Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
-			String("PassedValue")
-			ArrayOpen()
-			foreach item in value
-			begin
-				Double(item)
-			end
-			ArrayClose()
-			MapClose()
-			MapClose()
-		endmethod
+        public method ArgumentData, void
+            argPos, int
+            value, [#]@id
+            record
+                item, @id
+        proc
+            ;;TODO inline these operations into a single buffer op
+            MapOpen()
+            Pair("Position", argPos)
+            String("Value")
+            MapOpen()
+            
+            Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
+            String("PassedValue")
+            ArrayOpen()
+            foreach item in value
+            begin
+                Double(item)
+            end
+            ArrayClose()
+            MapClose()
+            MapClose()
+        endmethod
 
-		public method ArgumentData, void
-			argPos, int
-			value, a
-			type, FieldDataType
-			structureSize, int
-			structureName, a
-			binaryData, boolean
-			record
-				item, @id
-				i, int
-				structureCount, int
-		proc
-			;;TODO inline these operations into a single buffer op
-			MapOpen()
-			Pair("Position", argPos)
-			String("Value")
-			MapOpen()
-			Pair("DataType", (i)type)
-			if(type == FieldDataType.DataObjectField) then
-			begin
-				ObjectData(value, structureName, "", binaryData, "PassedValue")
-			end
-			else if(type == FieldDataType.DataObjectCollectionField) then
-			begin
-				Pair("ElementType", structureName)
-				PairBool("ElementIsEncoded", binaryData)
-				String("PassedValue")
-				ArrayOpen()
-			
-				structureCount = ^size(value) / structureSize
+        public method ArgumentData, void
+            argPos, int
+            value, a
+            type, FieldDataType
+            structureSize, int
+            structureName, a
+            binaryData, boolean
+            record
+                item, @id
+                i, int
+                structureCount, int
+        proc
+            ;;TODO inline these operations into a single buffer op
+            MapOpen()
+            Pair("Position", argPos)
+            String("Value")
+            MapOpen()
+            Pair("DataType", (i)type)
+            if(type == FieldDataType.DataObjectField) then
+            begin
+                ObjectData(value, structureName, "", binaryData, "PassedValue")
+            end
+            else if(type == FieldDataType.DataObjectCollectionField) then
+            begin
+                Pair("ElementType", structureName)
+                PairBool("ElementIsEncoded", binaryData)
+                String("PassedValue")
+                ArrayOpen()
+            
+                structureCount = ^size(value) / structureSize
 
-				for i from 0 thru structureCount by 1
-				begin
-					if(!binaryData) then
-					begin
-						String(value((i * structureSize) + 1 : structureSize))
-					end
-					else
-					begin
-						String(Convert.ToBase64String(value((i * structureSize) + 1 : structureSize)))
-					end
-				end
-				ArrayClose()
-			end
-			else
-				throw new Exception("Invalid type for stucture")
-			MapClose()
-			MapClose()
-		endmethod
+                for i from 0 thru structureCount by 1
+                begin
+                    if(!binaryData) then
+                    begin
+                        String(value((i * structureSize) + 1 : structureSize))
+                    end
+                    else
+                    begin
+                        String(Convert.ToBase64String(value((i * structureSize) + 1 : structureSize)))
+                    end
+                end
+                ArrayClose()
+            end
+            else
+                throw new Exception("Invalid type for stucture")
+            MapClose()
+            MapClose()
+        endmethod
 
-		public method ArgumentHandleData, void
-			argPos, int
-			value, D_HANDLE
-			type, FieldDataType
-			structureSize, int
-			structureName, a
-			elementCount, int
-			binaryData, boolean
-			record
-				item, @id
-				i, int
-				structureCount, int
-			structure fake
-				fld1, a1
-			endstructure
+        public method ArgumentHandleData, void
+            argPos, int
+            value, D_HANDLE
+            type, FieldDataType
+            structureSize, int
+            structureName, a
+            elementCount, int
+            binaryData, boolean
+            record
+                item, @id
+                i, int
+                structureCount, int
+            structure fake
+                fld1, a1
+            endstructure
 
-		proc
-			MaybeLog(4, "serializing argument handle data, structureSize was " + %string(structureSize) + " element count was " + %string(elementCount) + " handle length was " + %string(^size(^m(value))))
-			;;TODO inline these operations into a single buffer op
-			MapOpen()
-			Pair("Position", argPos)
-			String("Value")
-			MapOpen()
-			
-			Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
-			Pair("ElementType", structureName)
-			PairBool("ElementIsEncoded", binaryData)
-			String("PassedValue")
-			ArrayOpen()
+        proc
+            MaybeLog(4, "serializing argument handle data, structureSize was " + %string(structureSize) + " element count was " + %string(elementCount) + " handle length was " + %string(^size(^m(value))))
+            ;;TODO inline these operations into a single buffer op
+            MapOpen()
+            Pair("Position", argPos)
+            String("Value")
+            MapOpen()
+            
+            Pair("DataType", (i)FieldDataType.DataObjectCollectionField)
+            Pair("ElementType", structureName)
+            PairBool("ElementIsEncoded", binaryData)
+            String("PassedValue")
+            ArrayOpen()
 
-			for i from 0 thru elementCount - 1 by 1
-			begin
-				if(!binaryData) then
-				begin
-					String(^m(fake.fld1((i * structureSize) + 1 : structureSize), value))
-				end
-				else
-				begin
-					String(Convert.ToBase64String(^m(fake.fld1((i * structureSize) + 1 : structureSize), value)))
-				end
-			end
-			ArrayClose()
-			MapClose()
-			MapClose()
-		endmethod
+            for i from 0 thru elementCount - 1 by 1
+            begin
+                if(!binaryData) then
+                begin
+                    String(^m(fake.fld1((i * structureSize) + 1 : structureSize), value))
+                end
+                else
+                begin
+                    String(Convert.ToBase64String(^m(fake.fld1((i * structureSize) + 1 : structureSize), value)))
+                end
+            end
+            ArrayClose()
+            MapClose()
+            MapClose()
+        endmethod
 
-		public method ArgumentHandleData, void
-			argPos, int
-			value, D_HANDLE
-			type, FieldDataType
-			elementSize, int
-			precision, int
-			elementCount, int
-			binaryData, boolean
-			record
-				item, @id
-				i, int
-			structure fake
-				fld1, a1
-			endstructure
+        public method ArgumentHandleData, void
+            argPos, int
+            value, D_HANDLE
+            type, FieldDataType
+            elementSize, int
+            precision, int
+            elementCount, int
+            binaryData, boolean
+            record
+                item, @id
+                i, int
+            structure fake
+                fld1, a1
+            endstructure
 
-		proc
-			MaybeLog(4, "serializing argument handle data, elementSize was " + %string(elementSize) + " element count was " + %string(elementCount) + " handle length was " + %string(^size(^m(value))))
-			
-			;;TODO inline these operations into a single buffer op
-			MapOpen()
-			Pair("Position", argPos)
-			String("Value")
-			MapOpen()
-			
-			Pair("DataType", (i)type)
-			PairBool("ElementIsEncoded", binaryData)
-			String("PassedValue")
-			ArrayOpen()
+        proc
+            MaybeLog(4, "serializing argument handle data, elementSize was " + %string(elementSize) + " element count was " + %string(elementCount) + " handle length was " + %string(^size(^m(value))))
+            
+            ;;TODO inline these operations into a single buffer op
+            MapOpen()
+            Pair("Position", argPos)
+            String("Value")
+            MapOpen()
+            
+            Pair("DataType", (i)type)
+            PairBool("ElementIsEncoded", binaryData)
+            String("PassedValue")
+            ArrayOpen()
 
-			for i from 0 thru elementCount - 1 by 1
-			begin
-				if(type == FieldDataType.AlphaArrayField) then
-				begin
-					if(!binaryData) then
-					begin
-						String(^m(fake.fld1((i * elementSize) + 1 : elementSize), value))
-					end
-					else
-					begin
-						String(Convert.ToBase64String(^m(fake.fld1((i * elementSize) + 1 : elementSize), value)))
-					end
-				end
-				else if(type == FieldDataType.DecimalArrayField) then
-				begin
-					Integer(^d(^m(fake.fld1((i * elementSize) + 1 : elementSize), value)))
-				end
-				else if(type == FieldDataType.ImpliedDecimalArrayField) then
-				begin
-					Double(^d(^m(fake.fld1((i * elementSize) + 1 : elementSize), value), precision))
-				end
-				else if(type == FieldDataType.IntegerArrayField) then
-				begin
-					Integer(^i(^m(fake.fld1((i * elementSize) + 1 : elementSize), value)))
-				end
-				else
-					throw new Exception("element type not implemented " + %string(type))
-			end
-			ArrayClose()
-			MapClose()
-			MapClose()
-		endmethod
+            for i from 0 thru elementCount - 1 by 1
+            begin
+                if(type == FieldDataType.AlphaArrayField) then
+                begin
+                    if(!binaryData) then
+                    begin
+                        String(^m(fake.fld1((i * elementSize) + 1 : elementSize), value))
+                    end
+                    else
+                    begin
+                        String(Convert.ToBase64String(^m(fake.fld1((i * elementSize) + 1 : elementSize), value)))
+                    end
+                end
+                else if(type == FieldDataType.DecimalArrayField) then
+                begin
+                    Integer(^d(^m(fake.fld1((i * elementSize) + 1 : elementSize), value)))
+                end
+                else if(type == FieldDataType.ImpliedDecimalArrayField) then
+                begin
+                    Double(^d(^m(fake.fld1((i * elementSize) + 1 : elementSize), value), precision))
+                end
+                else if(type == FieldDataType.IntegerArrayField) then
+                begin
+                    Integer(^i(^m(fake.fld1((i * elementSize) + 1 : elementSize), value)))
+                end
+                else
+                    throw new Exception("element type not implemented " + %string(type))
+            end
+            ArrayClose()
+            MapClose()
+            MapClose()
+        endmethod
 
-		public method ReportResponseProlog, void
-			hasId, boolean
-			requestId, i4
-		proc
-			MapOpen()
-			Pair("jsonrpc", "2.0")
+        public method ReportResponseProlog, void
+            hasId, boolean
+            requestId, i4
+        proc
+            MapOpen()
+            Pair("jsonrpc", "2.0")
 
-			if(hasId) then
-				Pair("id", requestId)
-			else
-				PairNull("id")
+            if(hasId) then
+                Pair("id", requestId)
+            else
+                PairNull("id")
 
-			String("result")
-			ArrayOpen()
-		endmethod
+            String("result")
+            ArrayOpen()
+        endmethod
 
-		public method ReportResponseEpilog, void
-		proc
-			;;Terminate the "Result" array
-			ArrayClose()
+        public method ReportResponseEpilog, void
+        proc
+            ;;Terminate the "Result" array
+            ArrayClose()
 
-			;;Terminate the response object
-			MapClose()
-		endmethod
+            ;;Terminate the response object
+            MapClose()
+        endmethod
 
-		public method ReportError, void
-			errorText, @string
-			errorCode, int
-			messageId, int
-			record
-				scopeLog, @ArrayList
-				loggerSettings, @LoggerScopeSettings
-		proc
-			OutputScopeAbort()
+        public method ReportError, void
+            errorText, @string
+            errorCode, int
+            messageId, int
+            record
+                scopeLog, @ArrayList
+                loggerSettings, @LoggerScopeSettings
+        proc
+            OutputScopeAbort()
                         
-			if(messageId != -1) then
-			begin
-				MapOpen()
-				Pair("jsonrpc", "2.0")
-				String("error")
-				MapOpen()
-				Pair("code", errorCode)
+            if(messageId != -1) then
+            begin
+                MapOpen()
+                Pair("jsonrpc", "2.0")
+                String("error")
+                MapOpen()
+                Pair("code", errorCode)
 
-				Pair("message", Convert.ToBase64String(errorText))
+                Pair("message", Convert.ToBase64String(errorText))
 
-				;;if scope logging is active return everything that was logged as part of this request scope
-				if(Logger.Instance.ShouldAttachLogsToExceptions)
-				begin
-					scopeLog = Logger.Instance.CurrentScopeLog()
-					if(scopeLog != ^null && scopeLog.Count > 0)
-					begin
+                ;;if scope logging is active return everything that was logged as part of this request scope
+                if(Logger.Instance.ShouldAttachLogsToExceptions)
+                begin
+                    scopeLog = Logger.Instance.CurrentScopeLog()
+                    if(scopeLog != ^null && scopeLog.Count > 0)
+                    begin
                                                 
-						data logEntry, @string
-						MaybeLog(2, "Dispatcher: attaching in memory logs to thrown exception")
+                        data logEntry, @string
+                        MaybeLog(2, "Dispatcher: attaching in memory logs to thrown exception")
 
-						MapOpen("data")
-						String("logs")
-						ArrayOpen()
+                        MapOpen("data")
+                        String("logs")
+                        ArrayOpen()
 
-						foreach logEntry in scopeLog as @String
-						begin
-							String(Convert.ToBase64String(logEntry))
-						end
+                        foreach logEntry in scopeLog as @String
+                        begin
+                            String(Convert.ToBase64String(logEntry))
+                        end
 
-						ArrayClose()
+                        ArrayClose()
 
-						loggerSettings = Logger.Instance.CurrentLogSettings()
+                        loggerSettings = Logger.Instance.CurrentLogSettings()
 
-						MapOpen("log_settings")
-						Pair("ScopeIdentifier", loggerSettings.ScopeIdentifier)
-						PairBool("LogToMemory", loggerSettings.LogToMemory)
-						PairBool("LogToDisk", loggerSettings.LogToDisk)
-						Pair("LogLocation", loggerSettings.LogLocation)
-						PairBool("FlushLog", loggerSettings.FlushLog)
-						Pair("OnDiskLogLevel", loggerSettings.OnDiskLogLevel)
-						Pair("InMemoryLogLevel", loggerSettings.InMemoryLogLevel)
-						PairBool("AttachLogsToExceptions", loggerSettings.AttachLogsToExceptions)
-						MapClose()
+                        MapOpen("log_settings")
+                        Pair("ScopeIdentifier", loggerSettings.ScopeIdentifier)
+                        PairBool("LogToMemory", loggerSettings.LogToMemory)
+                        PairBool("LogToDisk", loggerSettings.LogToDisk)
+                        Pair("LogLocation", loggerSettings.LogLocation)
+                        PairBool("FlushLog", loggerSettings.FlushLog)
+                        Pair("OnDiskLogLevel", loggerSettings.OnDiskLogLevel)
+                        Pair("InMemoryLogLevel", loggerSettings.InMemoryLogLevel)
+                        PairBool("AttachLogsToExceptions", loggerSettings.AttachLogsToExceptions)
+                        MapClose()
 
-						MapClose()
-					end
-				end
+                        MapClose()
+                    end
+                end
 
-				MapClose()
+                MapClose()
 
-				if(messageId > -1) then
-					Pair("id", messageId)
-				else
-					PairNull("id")
+                if(messageId > -1) then
+                    Pair("id", messageId)
+                else
+                    PairNull("id")
 
-				MapClose()
+                MapClose()
 
-				MaybeLog(1, "ReportError: " + errorText + " messageId" + %string(messageId))
-			end
-			else
-			begin
-				MaybeLog(5, "ReportError: Notify -> " + errorText)
-			end
-		endmethod
+                MaybeLog(1, "ReportError: " + errorText + " messageId" + %string(messageId))
+            end
+            else
+            begin
+                MaybeLog(5, "ReportError: Notify -> " + errorText)
+            end
+        endmethod
 
-		public method ReportResult, void
-			requestId, int
-			result, @string
-		proc
-			if(requestId != -1) then
-			begin
-				MapOpen()
-				Pair("jsonrpc", "2.0")
-				Pair("result", result)
+        public method ReportResult, void
+            requestId, int
+            result, @string
+        proc
+            if(requestId != -1) then
+            begin
+                MapOpen()
+                Pair("jsonrpc", "2.0")
+                Pair("result", result)
                         
-				if(requestId > -1) then
-					Pair("id", requestId)
-				else
-					PairNull("id")
+                if(requestId > -1) then
+                    Pair("id", requestId)
+                else
+                    PairNull("id")
 
-				MapClose()
+                MapClose()
 
-				MaybeLog(5, "ReportResult: " + result + " messageId" + %string(requestId))
-			end
-			else
-			begin
-				MaybeLog(5, "ReportResult: Notify")
-			end
+                MaybeLog(5, "ReportResult: " + result + " messageId" + %string(requestId))
+            end
+            else
+            begin
+                MaybeLog(5, "ReportResult: Notify")
+            end
 
-		endmethod
+        endmethod
 
-		public method ReportResult, void
-			requestId, int
-			result, n
-		proc
-			if(requestId != -1) then
-			begin
-				MapOpen()
-				Pair("jsonrpc", "2.0")
-				Pair("result", result)
+        public method ReportResult, void
+            requestId, int
+            result, n
+        proc
+            if(requestId != -1) then
+            begin
+                MapOpen()
+                Pair("jsonrpc", "2.0")
+                Pair("result", result)
                         
-				if(requestId > -1) then
-					Pair("id", requestId)
-				else
-					PairNull("id")
+                if(requestId > -1) then
+                    Pair("id", requestId)
+                else
+                    PairNull("id")
 
-				MapClose()
-				MaybeLog(5, "ReportResult: " + %string(result) + " messageId" + %string(requestId))
-			end
-			else
-			begin
-				MaybeLog(5, "ReportResult: Notify")
-			end
-		endmethod
+                MapClose()
+                MaybeLog(5, "ReportResult: " + %string(result) + " messageId" + %string(requestId))
+            end
+            else
+            begin
+                MaybeLog(5, "ReportResult: Notify")
+            end
+        endmethod
 
-		public method ReportResult, void
-			requestId, int
-			result, [#]@object
-			inputSet, [#]boolean
-			resultTypes, [#]FieldDataType
-			record
-				arg, @object
-				ii, int
-		proc
-			ArrayOpen()
-			ii = 0
-			foreach arg in result
-			begin
-				incr ii
-				if(inputSet[ii])
-				begin
-					;;TODO input set
-				end
-			end
-			MaybeLog(5, "ReportResult: array(" + %string(result.Length) + ") messageId" + %string(requestId))
-			
-		endmethod
+        public method ReportResult, void
+            requestId, int
+            result, [#]@object
+            inputSet, [#]boolean
+            resultTypes, [#]FieldDataType
+            record
+                arg, @object
+                ii, int
+        proc
+            ArrayOpen()
+            ii = 0
+            foreach arg in result
+            begin
+                incr ii
+                if(inputSet[ii])
+                begin
+                    ;;TODO input set
+                end
+            end
+            MaybeLog(5, "ReportResult: array(" + %string(result.Length) + ") messageId" + %string(requestId))
+            
+        endmethod
 
-	endclass
+    endclass
 .endc
 endnamespace
