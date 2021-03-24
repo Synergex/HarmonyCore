@@ -90,6 +90,22 @@ namespace Services.Test.CS
         }
 
         [TestMethod]
+        public void DateTimeRange()
+        {
+            using (var sp = BaseServiceProvider.Services)
+            {
+                using (var context = sp.ServiceProvider.GetService<Services.Models.DbContext>())
+                {
+                    var now = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
+                    var old = new DateTime(1980, 1, 1);
+                    var orders = context.Orders.Where(ord => ord.DateOrdered != DateTime.MinValue && ord.DateOrdered <= now).Take(5).Select(ord => ord.DateOrdered).ToList();
+                    var orders2 = context.Orders.Where(ord => ord.DateOrdered != DateTime.MinValue && ord.DateOrdered >= old).Take(5).Select(ord => ord.DateOrdered).ToList();
+                    Assert.IsTrue(Enumerable.SequenceEqual(orders, orders2));
+                }
+            }
+        }
+
+        [TestMethod]
         public void InCollection()
         {
             using(var sp = BaseServiceProvider.Services)

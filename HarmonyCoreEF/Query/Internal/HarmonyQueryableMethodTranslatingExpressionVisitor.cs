@@ -1742,10 +1742,12 @@ namespace Harmony.Core.EF.Query.Internal
                 var fieldInfo = node?.Member as FieldInfo;
                 var propInfo = node?.Member as PropertyInfo;
                 if (propInfo != null && typeof(DataObjectBase).IsAssignableFrom(propInfo.DeclaringType) && !ReferencedProperties.Contains(propInfo))
-                    ReferencedProperties.Add(propInfo);
+                    if(!typeof(DataObjectBase).IsAssignableFrom(propInfo.PropertyType))
+                        ReferencedProperties.Add(propInfo);
 
                 if (fieldInfo != null && typeof(DataObjectBase).IsAssignableFrom(fieldInfo.DeclaringType) && !ReferencedFields.Contains(fieldInfo))
-                    ReferencedFields.Add(fieldInfo);
+                    if (!typeof(DataObjectBase).IsAssignableFrom(fieldInfo.FieldType))
+                        ReferencedFields.Add(fieldInfo);
 
                 return (fieldInfo, propInfo);
             }
