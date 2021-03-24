@@ -137,12 +137,13 @@ namespace Harmony.Core.FileIO
 							mreturn FileAccessResults.Success
 						end
 						(FileOpenMode.Update,FileOpenMode.UpdateIndexed,FileOpenMode.InputIndexed,FileOpenMode.Input),
-                        begin
+						begin
 							find(mChannel,, keyValue, KEYNUM:keyOfReference, WAIT:TimeoutSeconds, LOCK:lockValue)
 							&	[$ERR_EOF = end_of_file,
 							&	$ERR_LOCKED = record_locked,
 							&	$ERR_KEYNOT = key_not_same,
-							&	$ERR_RNF = rec_not_found]
+							&	$ERR_RNF = rec_not_found,
+							&	$ERR_BADKEY = illegal_key]
 							mreturn FileAccessResults.Success
 						end
 						endusing
@@ -172,7 +173,9 @@ namespace Harmony.Core.FileIO
 									&	$ERR_LOCKED = record_locked,
 									&	$ERR_KEYNOT = key_not_same,
 									&	$ERR_RNF = rec_not_found,
-									&	$ERR_RECNOT = rec_not_same]
+									&	$ERR_RECNOT = rec_not_same,
+									&	$ERR_INVALRFA  = invalid_rfa,
+									&	$ERR_DELREC = deleted_record]
 								end
 								finally
 								begin
@@ -210,6 +213,12 @@ namespace Harmony.Core.FileIO
 					mreturn OnRecordNotFound()
 				rec_not_same,
 					mreturn OnRecordNotSame(lockRecord)
+				invalid_rfa,
+					mreturn OnInvalidRFA(lockRecord)
+				deleted_record,
+					mreturn OnDeletedRecord(lockRecord)
+				illegal_key,
+					mreturn OnIllegalKey(lockRecord)
 				end
 			end
 			catch(ex, @FileIOException)
@@ -536,9 +545,19 @@ namespace Harmony.Core.FileIO
 				end
 				else if(%size(grfa) == 10) then
 				begin
-					store(mChannel, recordBuffer, GETRFA:grfa, LOCK: withLock)
-					&	[$ERR_NODUPS = duplicate_key]
-					mreturn FileAccessResults.Success
+					using mOpenMode select
+					(FileOpenMode.UpdateRelative),
+					begin
+						write(mChannel, recordBuffer, ^last, GETRFA:grfa)
+						mreturn FileAccessResults.Success
+					end
+					(FileOpenMode.Update, FileOpenMode.UpdateIndexed),
+					begin
+						store(mChannel, recordBuffer, GETRFA:grfa, LOCK: withLock)
+						&	[$ERR_NODUPS = duplicate_key]
+						mreturn FileAccessResults.Success
+					end
+					endusing
 				end
 				else
 				begin
@@ -573,7 +592,8 @@ namespace Harmony.Core.FileIO
 				if(operation == FindOperation.AtCurrent) then
 				begin
 					delete (mChannel)
-					&	[$ERR_NOCURR = no_current_record]
+					&	[$ERR_NOCURR = no_current_record,
+					&	$ERR_FILOPT = invalid_operation]
 					mreturn FileAccessResults.Success
 				end
 				else
@@ -583,7 +603,8 @@ namespace Harmony.Core.FileIO
 					if(findResult == FileAccessResults.Success) then
 					begin
 						delete (mChannel)
-						&	[$ERR_NOCURR = no_current_record]
+						&	[$ERR_NOCURR = no_current_record,
+						&	$ERR_FILOPT = invalid_operation]
 						mreturn FileAccessResults.Success
 					end
 					else
@@ -591,6 +612,8 @@ namespace Harmony.Core.FileIO
 				end
 			no_current_record,
 				mreturn OnNoCurrentRecord(true)
+			invalid_operation,
+				mreturn OnInvalidOperation(true)
 			end
 			catch(ex, @FileIOException)
 				mreturn OnFileIOException(true, "", "Delete", ex)
@@ -778,6 +801,74 @@ namespace Harmony.Core.FileIO
 				DebugLogSession.Logging.LogTrace("OnRecordNotFound error number: {0} channel number: {1} filename: {2} accessmode: {3} IO Hook class {4}", LastSynergyError, mChannel, mFileName, mOpenMode, hasHook ? mChannelManager.ChannelHookType(mChannel).ToString() : "None")
 			end
 			mreturn FileAccessResults.RecordDataNotSame
+		endmethod
+
+		protected virtual method OnInvalidOperation, FileAccessResults
+			req in lockingOperation, boolean
+		proc
+			data syserr, int
+			data systv, int
+			LastSynergyError = %IO_ERROR(mChannel, syserr, systv)
+			data hasHook = mChannelManager.ChannelHasHook(mChannel)
+			if (mOpenMode == FileOpenMode.Update && lockingOperation == true)
+				unlock mChannel
+
+			if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+			begin
+				DebugLogSession.Logging.LogTrace("OnInvalidOperation error number: {0} channel number: {1} filename: {2} accessmode: {3} IO Hook class {4}", LastSynergyError, mChannel, mFileName, mOpenMode, hasHook ? mChannelManager.ChannelHookType(mChannel).ToString() : "None")
+			end
+			mreturn FileAccessResults.InvalidOperation
+		endmethod
+
+		protected virtual method OnInvalidRFA, FileAccessResults
+			req in lockingOperation, boolean
+		proc
+			data syserr, int
+			data systv, int
+			LastSynergyError = %IO_ERROR(mChannel, syserr, systv)
+			data hasHook = mChannelManager.ChannelHasHook(mChannel)
+			if (mOpenMode == FileOpenMode.Update && lockingOperation == true)
+				unlock mChannel
+
+			if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+			begin
+				DebugLogSession.Logging.LogTrace("OnInvalidRFA error number: {0} channel number: {1} filename: {2} accessmode: {3} IO Hook class {4}", LastSynergyError, mChannel, mFileName, mOpenMode, hasHook ? mChannelManager.ChannelHookType(mChannel).ToString() : "None")
+			end
+			mreturn FileAccessResults.InvalidRFA
+		endmethod
+
+		protected virtual method OnDeletedRecord, FileAccessResults
+			req in lockingOperation, boolean
+		proc
+			data syserr, int
+			data systv, int
+			LastSynergyError = %IO_ERROR(mChannel, syserr, systv)
+			data hasHook = mChannelManager.ChannelHasHook(mChannel)
+			if (mOpenMode == FileOpenMode.Update && lockingOperation == true)
+				unlock mChannel
+
+			if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+			begin
+				DebugLogSession.Logging.LogTrace("OnDeletedRecord error number: {0} channel number: {1} filename: {2} accessmode: {3} IO Hook class {4}", LastSynergyError, mChannel, mFileName, mOpenMode, hasHook ? mChannelManager.ChannelHookType(mChannel).ToString() : "None")
+			end
+			mreturn FileAccessResults.DeletedRecord
+		endmethod
+
+		protected virtual method OnIllegalKey, FileAccessResults
+			req in lockingOperation, boolean
+		proc
+			data syserr, int
+			data systv, int
+			LastSynergyError = %IO_ERROR(mChannel, syserr, systv)
+			data hasHook = mChannelManager.ChannelHasHook(mChannel)
+			if (mOpenMode == FileOpenMode.Update && lockingOperation == true)
+				unlock mChannel
+
+			if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+			begin
+				DebugLogSession.Logging.LogTrace("OnDeletedRecord error number: {0} channel number: {1} filename: {2} accessmode: {3} IO Hook class {4}", LastSynergyError, mChannel, mFileName, mOpenMode, hasHook ? mChannelManager.ChannelHookType(mChannel).ToString() : "None")
+			end
+			mreturn FileAccessResults.IllegalKey
 		endmethod
 
 		protected virtual method OnFileIOException, FileAccessResults
