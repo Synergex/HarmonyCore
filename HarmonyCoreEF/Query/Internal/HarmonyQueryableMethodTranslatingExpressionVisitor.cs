@@ -693,27 +693,20 @@ namespace Harmony.Core.EF.Query.Internal
             
             var subqueryVisitor = new SubqueryReplacingExpressionVisitor() { CurrentVisitor = this, ReplacementSource = source, ReplacementVisitor = replacementVisitor, Outer = selector.Parameters.First()};
             source.ShaperExpression = subqueryVisitor.Visit(selector);
-            foreach (var propInfo in subqueryVisitor.ReferencedProperties)
-            {
-                var metadataObject = DataObjectMetadataBase.LookupType(propInfo.DeclaringType);
-
-                referencedFieldDefs.Add(metadataObject.GetFieldByName(propInfo.Name));
-            }
-
-            foreach (var fieldInfo in subqueryVisitor.ReferencedFields)
-            {
-                var metadataObject = DataObjectMetadataBase.LookupType(fieldInfo.DeclaringType);
-
-                referencedFieldDefs.Add(metadataObject.GetFieldByName(fieldInfo.Name));
-            }
-            
 
             var groupByQuery = source.ShaperExpression is GroupByShaperExpression;
             var queryExpression = (HarmonyQueryExpression)source.QueryExpression;
             var tableExpression = queryExpression.ServerQueryExpression as HarmonyTableExpression;
             if (tableExpression != null)
             {
-                tableExpression.ReferencedFields.AddRange(referencedFieldDefs);
+                foreach (var memberKvp in subqueryVisitor.ReferencedMembers)
+                {
+                    foreach (var member in memberKvp.Value)
+                    {
+                        var metadataObject = DataObjectMetadataBase.LookupType(member.DeclaringType);
+                        tableExpression.ReferencedFields.Add(Tuple.Create(memberKvp.Key, metadataObject.GetFieldByName(member.Name)));
+                    }
+                }
                 tableExpression.IsCollection = true;
             }
             if (groupByQuery)
@@ -1642,8 +1635,7 @@ namespace Harmony.Core.EF.Query.Internal
             public ParameterExpression Outer;
             public Stack<string> SubQueryTargetNames = new Stack<string>();
             public Stack<Expression> SourceStack = new Stack<Expression>();
-            public HashSet<PropertyInfo> ReferencedProperties = new HashSet<PropertyInfo>();
-            public HashSet<FieldInfo> ReferencedFields = new HashSet<FieldInfo>();
+            public Dictionary<string, HashSet<MemberInfo>> ReferencedMembers = new Dictionary<string, HashSet<MemberInfo>>();
             public IdentifierReplacingExpressionVisitor ReplacementVisitor;
 
             public Expression CurrentParameter
@@ -1718,38 +1710,55 @@ namespace Harmony.Core.EF.Query.Internal
 
             protected override Expression VisitMember(MemberExpression node)
             {
-                var (fieldInfo, propInfo) = ProcessNodeForDataReferences(node);
+                var (memberInfo, memberType) = ProcessNodeForDataReferences(node);
 
                 //check if member expression is a dangerous dereference and should be made nullable
                 //as a pattern, parameters here should be null safe
                 if (!(node.Expression is ParameterExpression) && !node.Type.IsValueType)
                 {
-                    if (propInfo != null && !propInfo.PropertyType.IsValueType)
+                    if (memberType != null && !memberType.IsValueType)
                     {
-                        return MakeNullSafeExpression(Visit(node.Expression), propInfo.Name, false);
-                    }
-                    else if (fieldInfo != null && !fieldInfo.FieldType.IsValueType)
-                    {
-                        return MakeNullSafeExpression(Visit(node.Expression), fieldInfo.Name, false);
+                        return MakeNullSafeExpression(Visit(node.Expression), memberInfo.Name, false);
                     }
                 }
 
                 return base.VisitMember(node);
             }
 
-            private (FieldInfo, PropertyInfo) ProcessNodeForDataReferences(MemberExpression node)
+            private string PathFromNode(Expression node)
             {
-                var fieldInfo = node?.Member as FieldInfo;
-                var propInfo = node?.Member as PropertyInfo;
-                if (propInfo != null && typeof(DataObjectBase).IsAssignableFrom(propInfo.DeclaringType) && !ReferencedProperties.Contains(propInfo))
-                    if(!typeof(DataObjectBase).IsAssignableFrom(propInfo.PropertyType))
-                        ReferencedProperties.Add(propInfo);
+                if (node is MemberExpression me)
+                {
+                    var parent = PathFromNode(me.Expression);
+                    if (string.IsNullOrWhiteSpace(parent))
+                        return me.Member.Name;
+                    else
+                        return parent + "." + me.Member.Name;
+                }
+                else
+                    return "";
+            }
 
-                if (fieldInfo != null && typeof(DataObjectBase).IsAssignableFrom(fieldInfo.DeclaringType) && !ReferencedFields.Contains(fieldInfo))
-                    if (!typeof(DataObjectBase).IsAssignableFrom(fieldInfo.FieldType))
-                        ReferencedFields.Add(fieldInfo);
+            private (MemberInfo, Type) ProcessNodeForDataReferences(MemberExpression node)
+            {
+                var memberInfo = node?.Member;
+                var memberType = (memberInfo as FieldInfo)?.FieldType ?? (memberInfo as PropertyInfo)?.PropertyType;
 
-                return (fieldInfo, propInfo);
+                var parentPath = PathFromNode(node.Expression);
+                if(!ReferencedMembers.TryGetValue(parentPath, out var pathReferencedMembers))
+                {
+                    pathReferencedMembers = new HashSet<MemberInfo>();
+                    ReferencedMembers.Add(parentPath, pathReferencedMembers);
+                }
+                if (memberInfo != null && typeof(DataObjectBase).IsAssignableFrom(memberInfo.DeclaringType) && !pathReferencedMembers.Contains(memberInfo))
+                {
+                    if (!typeof(DataObjectBase).IsAssignableFrom(memberType))
+                    {
+                        pathReferencedMembers.Add(memberInfo);
+                    }
+                }
+
+                return (memberInfo, memberType);
             }
 
             private Expression MakeNullSafeExpression(Expression baseExpression, string propOrFieldName, bool nullable)
@@ -1766,19 +1775,15 @@ namespace Harmony.Core.EF.Query.Internal
 
             protected override Expression VisitUnary(UnaryExpression node)
             {
-                var (fieldInfo, propInfo) = ProcessNodeForDataReferences(node.Operand as MemberExpression);
+                var (memberInfo, memberType) = ProcessNodeForDataReferences(node.Operand as MemberExpression);
 
                 if (node.NodeType == ExpressionType.Convert && node.Type.IsGenericType && node.Type.GetGenericTypeDefinition() == typeof(Nullable<>))
                 {
                     if (node.Operand is MemberExpression memberExpr)
                     {
-                        if (propInfo != null)
+                        if (memberInfo != null)
                         {
-                            return MakeNullSafeExpression(Visit(memberExpr.Expression), propInfo.Name, true);
-                        }
-                        else if (fieldInfo != null)
-                        {
-                            return MakeNullSafeExpression(Visit(memberExpr.Expression), fieldInfo.Name, true);
+                            return MakeNullSafeExpression(Visit(memberExpr.Expression), memberInfo.Name, true);
                         }
                     }
                 }

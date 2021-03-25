@@ -14,6 +14,7 @@ using Microsoft.EntityFrameworkCore;
 using Harmony.Core.EF.Extensions.Internal;
 using Harmony.Core.FileIO.Queryable;
 using Harmony.Core.Enumerations;
+using System.Diagnostics;
 
 namespace Harmony.Core.EF.Query.Internal
 {
@@ -330,7 +331,30 @@ namespace Harmony.Core.EF.Query.Internal
                 if (queryExpr.Item1.ReferencedFields.Count > 0)
                 {
                     var bufferIndex = queryBuffer.TypeBuffers.IndexOf(queryExpr.Item2);
-                    fieldReferences.TryAdd(bufferIndex, queryExpr.Item1.ReferencedFields);
+                    foreach(var refKvp in queryExpr.Item1.ReferencedFields)
+                    {
+                        var innerBufferIndex = bufferIndex;
+                        if (refKvp.Item1 != "")
+                        {
+                            innerBufferIndex = queryBuffer.TypeBuffers.FindIndex(tbuf => tbuf.ParentFieldName == refKvp.Item1);
+                            if (innerBufferIndex < 0)
+                                throw new ApplicationException(string.Format("failed to find referenced field parent name {0}", refKvp.Item1));
+                        }
+
+                        if (!fieldReferences.TryGetValue(innerBufferIndex, out var fieldDefs))
+                        {
+                            fieldDefs = new List<FieldDataDefinition>();
+                            fieldReferences.Add(innerBufferIndex, fieldDefs);
+                        }
+
+#if DEBUG
+                        //ensure we dont accidentally point at a different type
+                        Debug.Assert(refKvp.Item2 == queryBuffer.TypeBuffers[innerBufferIndex].Metadata.GetFieldByName(refKvp.Item2.LanguageName));
+                        
+#endif
+
+                        fieldDefs.Add(refKvp.Item2);
+                    }
                 }
             }
             return queryBuffer;
