@@ -206,6 +206,88 @@ namespace Services.Test.UnitTests
             end
         endmethod
 
+        {TestMethod}
+        public method GetCustomerOrdersWithOrderedRef, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Customers?$expand=REL_CustomerFavoriteItem&$filter=REL_CustomerFavoriteItem/Size+gt+1&$orderby=REL_CustomerFavoriteItem/CommonName").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            Assert.AreNotEqual(customers.Value.Count, 0)
+            data customer, @Customer
+            foreach customer in customers.Value
+            begin
+                if(customer.REL_CustomerFavoriteItem != ^null)
+                    Assert.IsTrue(customer.REL_CustomerFavoriteItem.Size > 1)
+            end
+        endmethod
+
+        {TestMethod}
+        public method GetCustomerOrdersWithOrderedRefKey, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Customers?$expand=REL_CustomerFavoriteItem&$filter=REL_CustomerFavoriteItem/Size+gt+1&$orderby=REL_CustomerFavoriteItem/ItemNumber").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            Assert.AreNotEqual(customers.Value.Count, 0)
+            data customer, @Customer
+            foreach customer in customers.Value
+            begin
+                if(customer.REL_CustomerFavoriteItem != ^null)
+                    Assert.IsTrue(customer.REL_CustomerFavoriteItem.Size > 1)
+            end
+        endmethod
+
+        {TestMethod}
+        public method GetCustomerOrdersWithOrderedRefKeyCount, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Customers?$expand=REL_CustomerFavoriteItem&$filter=REL_CustomerFavoriteItem/Size+gt+1&$orderby=REL_CustomerFavoriteItem/ItemNumber&$count=true").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customers, @CustomerWithCount, JsonConvert.DeserializeObject<CustomerWithCount>(result)
+            Assert.AreNotEqual(customers.Value.Length, 0)
+            data customer, @Services.Models.Customer
+            foreach customer in customers.Value
+            begin
+                if(customer.REL_CustomerFavoriteItem != ^null)
+                    Assert.IsTrue(customer.REL_CustomerFavoriteItem.Size > 1)
+            end
+        endmethod
+
+        {TestMethod}
+        public method GetCustomerOrdersWithOrderedRefKeyCount2, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Customers?$top=5&$expand=REL_CustomerFavoriteItem&$filter=REL_CustomerFavoriteItem/Size+gt+1&$orderby=REL_CustomerFavoriteItem/ItemNumber&$count=true").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customers, @CustomerWithCount, JsonConvert.DeserializeObject<CustomerWithCount>(result)
+            Assert.AreNotEqual(customers.Value.Length, 0)
+
+
+            disposable data response2 = client.GetAsync("/odata/v1/Customers?$expand=REL_CustomerFavoriteItem&$filter=REL_CustomerFavoriteItem/Size+gt+1&$orderby=REL_CustomerFavoriteItem/ItemNumber&$count=true").Result
+            data result2 = response2.Content.ReadAsStringAsync().Result
+            response2.EnsureSuccessStatusCode()
+            data customers2, @CustomerWithCount, JsonConvert.DeserializeObject<CustomerWithCount>(result2)
+
+
+            Assert.AreEqual(customers2.Count, customers.Count)
+            data i, int
+            for i from 1 thru customers.Value.Length by 1
+            begin
+                Assert.AreEqual(customers.Value[i].CustomerNumber, customers2.Value[i].CustomerNumber)
+            end
+
+            data customer, @Services.Models.Customer
+            foreach customer in customers.Value
+            begin
+                if(customer.REL_CustomerFavoriteItem != ^null)
+                    Assert.IsTrue(customer.REL_CustomerFavoriteItem.Size > 1)
+            end
+        endmethod
 
         {TestMethod}
         public method GetCustomerOrdersWithRef, void
@@ -735,6 +817,7 @@ namespace Services.Test.UnitTests
             response.EnsureSuccessStatusCode()
             data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
         endmethod
+
 
         ;;------------------------------------------------------------
         ;;Size 3 purple bushes
