@@ -14,6 +14,7 @@ using Microsoft.EntityFrameworkCore;
 using Harmony.Core.EF.Extensions.Internal;
 using Harmony.Core.FileIO.Queryable;
 using Harmony.Core.Enumerations;
+using System.Diagnostics;
 
 namespace Harmony.Core.EF.Query.Internal
 {
@@ -156,6 +157,7 @@ namespace Harmony.Core.EF.Query.Internal
             List<object> processedWheres;
             List<Tuple<FieldReference, bool>> orderBys;
             var fieldReferences = new Dictionary<int, List<FieldDataDefinition>>();
+            List<Tuple<QueryBuffer.TypeBuffer, FieldReference, bool>> forcedUpOrderBy = new List<Tuple<QueryBuffer.TypeBuffer, FieldReference, bool>>();
             MakeFlatList(rootExpr, processedOns, out flatList, out whereBuilder, out processedWheres, out orderBys);
 
             //check for where expressions that have Table1Expression OR InnerJoinedTable2Expression
@@ -173,10 +175,11 @@ namespace Harmony.Core.EF.Query.Internal
                     List<object> unionWheres;
                     WhereExpressionBuilder unionWhereBuilder;
                     List<Tuple<FieldReference, bool>> unionOrderBys;
+                    List<Tuple<QueryBuffer.TypeBuffer, FieldReference, bool>> unionForcedUpOrderBy = new List<Tuple<QueryBuffer.TypeBuffer, FieldReference, bool>>();
                     MakeFlatList(rootExpr, unionOns, out unionFlatList, out unionWhereBuilder, out unionWheres, out unionOrderBys);
                     unionWheres = splitState.BaseWhere != null ? new List<object> { splitState.BaseWhere } : new List<object>();
 
-                    var queryBuffer = MakeQueryBuffer(rootExpr, unionOns, unionFlatList, unionWhereBuilder, unionOrderBys, fieldReferences);
+                    var queryBuffer = MakeQueryBuffer(rootExpr, unionOns, unionFlatList, unionWhereBuilder, unionOrderBys, fieldReferences, unionForcedUpOrderBy);
 
                     var existingJoin = queryBuffer.TypeBuffers[split.Key].JoinOn;
 
@@ -184,6 +187,7 @@ namespace Harmony.Core.EF.Query.Internal
                         existingJoin = new ConnectorPart { Left = existingJoin, Op = WhereClauseConnector.AndOperator, Right = split.Value };
 
                     queryBuffer.TypeBuffers[split.Key].JoinOn = existingJoin;
+                    LiftSubOrderby(unionFlatList, unionForcedUpOrderBy);
                     MarkJoinBuffer(splitState.LeafOns, queryBuffer);
 
                     var queryPlan = new PreparedQueryPlan(true, unionWheres, fieldReferences, unionOns,
@@ -199,10 +203,13 @@ namespace Harmony.Core.EF.Query.Internal
 
                 if (splitState.DrivingWhere != null)
                 {
-                    var queryBuffer = MakeQueryBuffer(rootExpr, processedOns, flatList, whereBuilder, orderBys, fieldReferences);
+                    var queryBuffer = MakeQueryBuffer(rootExpr, processedOns, flatList, whereBuilder, orderBys, fieldReferences, forcedUpOrderBy);
+                    LiftSubOrderby(flatList, forcedUpOrderBy);
+
                     MarkJoinBuffer(splitState.LeafOns, queryBuffer);
                     var queryPlan = new PreparedQueryPlan(true, splitState.DrivingWhere != null ? new List<object> { splitState.DrivingWhere } : new List<object>(), fieldReferences, processedOns,
                         orderBys, queryBuffer, "");
+
                     unionParts.Add(Expression.Call(
                         tableMethodInfo,
                         QueryCompilationContext.QueryContextParameter,
@@ -231,7 +238,8 @@ namespace Harmony.Core.EF.Query.Internal
             }
             else
             { 
-                var queryBuffer = MakeQueryBuffer(rootExpr, processedOns, flatList, whereBuilder, orderBys, fieldReferences);
+                var queryBuffer = MakeQueryBuffer(rootExpr, processedOns, flatList, whereBuilder, orderBys, fieldReferences, forcedUpOrderBy);
+                LiftSubOrderby(flatList, forcedUpOrderBy);
                 var queryPlan = new PreparedQueryPlan(true, processedWheres, fieldReferences, processedOns,
                     orderBys, queryBuffer, "");
                 return Expression.Call(
@@ -246,6 +254,26 @@ namespace Harmony.Core.EF.Query.Internal
             {
                 foreach(var split in splits)
                     queryBuffer.TypeBuffers[split.Key].IsInnerJoin = true;
+            }
+
+            static void LiftSubOrderby(List<Tuple<HarmonyTableExpression, QueryBuffer.TypeBuffer>> flatList, List<Tuple<QueryBuffer.TypeBuffer, FieldReference, bool>> forcedUpOrderBy)
+            {
+                if (forcedUpOrderBy.Count > 1)
+                {
+                    throw new NotImplementedException("orderby more than one nested expression is not supported");
+                }
+                else if (forcedUpOrderBy.Count == 1)
+                {
+                    //grab the top level table from the flat list 
+                    //this wont work if we're not trying to do this weird orderby against the top level
+                    var parm1Expr = Expression.Parameter(flatList[0].Item2.DataObjectType);
+                    var parm2Expr = Expression.Parameter(flatList[0].Item2.DataObjectType);
+
+                    var item1Expr = Expression.PropertyOrField(Expression.PropertyOrField(parm1Expr, forcedUpOrderBy[0].Item1.ParentFieldName), forcedUpOrderBy[0].Item2.FieldDef.LanguageName);
+                    var item2Expr = Expression.PropertyOrField(Expression.PropertyOrField(parm2Expr, forcedUpOrderBy[0].Item1.ParentFieldName), forcedUpOrderBy[0].Item2.FieldDef.LanguageName);
+
+                    forcedUpOrderBy[0].Item1.OrderBy = PreparedQueryPlan.MakeOrderByExpression(parm1Expr, parm2Expr, item1Expr, item2Expr, forcedUpOrderBy[0].Item3);
+                }
             }
         }
 
@@ -276,7 +304,7 @@ namespace Harmony.Core.EF.Query.Internal
             }
         }
 
-        private static QueryBuffer MakeQueryBuffer(HarmonyTableExpression rootExpr, List<object> processedOns, List<Tuple<HarmonyTableExpression, QueryBuffer.TypeBuffer>> flatList, WhereExpressionBuilder whereBuilder, List<Tuple<FieldReference, bool>> orderBys, Dictionary<int, List<FieldDataDefinition>> fieldReferences)
+        private static QueryBuffer MakeQueryBuffer(HarmonyTableExpression rootExpr, List<object> processedOns, List<Tuple<HarmonyTableExpression, QueryBuffer.TypeBuffer>> flatList, WhereExpressionBuilder whereBuilder, List<Tuple<FieldReference, bool>> orderBys, Dictionary<int, List<FieldDataDefinition>> fieldReferences, List<Tuple<QueryBuffer.TypeBuffer, FieldReference, bool>> forcedUpOrderBy)
         {
             foreach (var tpl in flatList)
             {
@@ -318,7 +346,15 @@ namespace Harmony.Core.EF.Query.Internal
                     var fieldRef = whereBuilder.VisitForOrderBy(expr.Item1);
                     if (fieldRef != null)
                     {
-                        orderBys.Add(Tuple.Create(fieldRef, expr.Item2));
+                        if (!tpl.Item1.IsCollection && !string.IsNullOrEmpty(tpl.Item2.ParentFieldName))
+                        {
+                            //if we're doing an orderby and its not on the collection, then it needs to be moved to its parent
+                            forcedUpOrderBy.Add(Tuple.Create(tpl.Item2, fieldRef, expr.Item2));
+                        }
+                        else
+                        {
+                            orderBys.Add(Tuple.Create(fieldRef, expr.Item2));
+                        }
                     }
                 }
             }
@@ -330,7 +366,30 @@ namespace Harmony.Core.EF.Query.Internal
                 if (queryExpr.Item1.ReferencedFields.Count > 0)
                 {
                     var bufferIndex = queryBuffer.TypeBuffers.IndexOf(queryExpr.Item2);
-                    fieldReferences.TryAdd(bufferIndex, queryExpr.Item1.ReferencedFields);
+                    foreach(var refKvp in queryExpr.Item1.ReferencedFields)
+                    {
+                        var innerBufferIndex = bufferIndex;
+                        if (refKvp.Item1 != "")
+                        {
+                            innerBufferIndex = queryBuffer.TypeBuffers.FindIndex(tbuf => tbuf.ParentFieldName == refKvp.Item1);
+                            if (innerBufferIndex < 0)
+                                throw new ApplicationException(string.Format("failed to find referenced field parent name {0}", refKvp.Item1));
+                        }
+
+                        if (!fieldReferences.TryGetValue(innerBufferIndex, out var fieldDefs))
+                        {
+                            fieldDefs = new List<FieldDataDefinition>();
+                            fieldReferences.Add(innerBufferIndex, fieldDefs);
+                        }
+
+#if DEBUG
+                        //ensure we dont accidentally point at a different type
+                        Debug.Assert(refKvp.Item2 == queryBuffer.TypeBuffers[innerBufferIndex].Metadata.GetFieldByName(refKvp.Item2.LanguageName));
+                        
+#endif
+
+                        fieldDefs.Add(refKvp.Item2);
+                    }
                 }
             }
             return queryBuffer;

@@ -25,7 +25,7 @@ namespace Harmony.Core.EF.Query.Internal
             OrderByExpressions = new List<Tuple<Expression, bool>>();
             OnExpressions = new List<Expression>();
             Aliases = new List<Expression>();
-            ReferencedFields = new List<FieldDataDefinition>();
+            ReferencedFields = new List<Tuple<string, FieldDataDefinition>>();
         }
 
         public override Type Type { get; } 
@@ -33,7 +33,7 @@ namespace Harmony.Core.EF.Query.Internal
         public HarmonyQueryExpression RootExpression { get; }
         public List<Expression> Aliases { get; }
         public List<Expression> WhereExpressions { get; }
-        public List<FieldDataDefinition> ReferencedFields { get; }
+        public List<Tuple<string, FieldDataDefinition>> ReferencedFields { get; }
         public List<Tuple<Expression, bool>> OrderByExpressions { get; }
         public List<Expression> OnExpressions { get; }
         public Expression Top { get; set; }

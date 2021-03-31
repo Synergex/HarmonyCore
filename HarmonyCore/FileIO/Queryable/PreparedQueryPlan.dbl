@@ -80,6 +80,54 @@ namespace Harmony.Core.FileIO.Queryable
 			&	IsCollection)
 		endmethod
 
+		public static method StringCompare, int
+			str1, @string
+			str2, @string
+		proc
+			mreturn string.Compare(str1, str2);
+		endmethod
+
+
+		public static method MakeOrderByExpression, @Delegate
+			item1Parm, @ParameterExpression
+			item2Parm, @ParameterExpression
+			item1Target, @Expression
+			item2Target, @Expression
+			asc, boolean
+		proc
+			data ifGtExp, @Expression
+			data orderByBody, @Expression
+			if(item1Target.Type == ^typeof(string)) then
+			begin
+				
+				data callExpr = Expression.Call(^typeof(PreparedQueryPlan).GetMethod("StringCompare"), item1Target, item2Target)
+				if(asc) then
+				begin
+					orderByBody = callExpr
+				end
+				else
+				begin
+					orderByBody = Expression.Multiply(callExpr, Expression.Constant(-1, ^typeof(Int32)))
+				end
+			end
+			else
+			begin
+				if(asc) then
+				begin
+					ifGtExp = Expression.Condition(Expression.GreaterThan(item1Target, item2Target), Expression.Constant(1, ^typeof(Int32)), Expression.Constant(-1, ^typeof(Int32)), ^typeof(Int32))
+				end
+				else
+				begin
+					ifGtExp = Expression.Condition(Expression.LessThan(item1Target, item2Target), Expression.Constant(1, ^typeof(Int32)), Expression.Constant(-1, ^typeof(Int32)), ^typeof(Int32))
+				end
+				orderByBody = Expression.Condition(Expression.Equal(item1Target, item2Target), Expression.Constant(0, ^typeof(Int32)), ifGtExp, ^typeof(Int32))
+			end
+			
+			data targetDelegateType = ^typeof(Comparison<>).MakeGenericType(new Type[#] { item1Parm.Type })
+			mreturn Expression.Lambda(targetDelegateType, orderByBody, new ParameterExpression[#] { item1Parm, item2Parm }).Compile()
+		endmethod
+
+
 		public method Prepare, void
 		proc
 			if(!IsJoin)
@@ -110,20 +158,8 @@ namespace Harmony.Core.FileIO.Queryable
 
 						data item1Target = Expression.Property(item1Parm, orderByTpl.Item1.FieldDef.LanguageName)
 						data item2Target = Expression.Property(item2Parm, orderByTpl.Item1.FieldDef.LanguageName)
-						data ifGtExp, @Expression
 
-						if(orderByTpl.Item2) then
-						begin
-							ifGtExp = Expression.Condition(Expression.GreaterThan(item1Target, item2Target), Expression.Constant(1, ^typeof(Int32)), Expression.Constant(-1, ^typeof(Int32)), ^typeof(Int32))
-						end
-						else
-						begin
-							ifGtExp = Expression.Condition(Expression.LessThan(item1Target, item2Target), Expression.Constant(1, ^typeof(Int32)), Expression.Constant(-1, ^typeof(Int32)), ^typeof(Int32))
-						end
-
-						data orderByBody = Expression.Condition(Expression.Equal(item1Target, item2Target), Expression.Constant(0, ^typeof(Int32)), ifGtExp, ^typeof(Int32))
-						data targetDelegateType = ^typeof(Comparison<>).MakeGenericType(new Type[#] { typeBuffer.DataObjectType })
-						typeBuffer.OrderBy = Expression.Lambda(targetDelegateType, orderByBody, new ParameterExpression[#] { item1Parm, item2Parm }).Compile()
+						typeBuffer.OrderBy = MakeOrderByExpression(item1Parm, item2Parm, item1Target, item2Target, orderByTpl.Item2)
 					end
 				end
 			end
@@ -419,7 +455,7 @@ namespace Harmony.Core.FileIO.Queryable
 			end
 			catch(ex, @Exception)
 			begin
-                cleanupAction(false)
+				cleanupAction(false)
 				throw
 			end
 			endtry
@@ -595,7 +631,7 @@ namespace Harmony.Core.FileIO.Queryable
 			iterState, @DataObjectMaterializer.IterationState
 			rows, @RowsManager
 			cleanup, @Action<Boolean>
-        proc
+		proc
 			mreturn new PreparedQueryPlan.MaterializerEnumeratable(this, iterState, rows, cleanup)
 		endmethod
 		
