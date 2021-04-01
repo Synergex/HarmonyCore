@@ -1,6 +1,6 @@
 ;;*****************************************************************************
 ;;
-;; Title:       Pool5MethodDispachers.dbl
+;; Title:       TestDateMethodDispatchers.dbl
 ;;
 ;; Description: Dispatcher classes for exposed methods
 ;;
@@ -22,19 +22,21 @@ import System.Text.Json
 .define JSON_ELEMENT @JsonValue
 .endc
 
-namespace TraditionalBridge.Test.Pool5
+namespace TraditionalBridge.Test.TestDate
 
 
     ;;-------------------------------------------------------------------------
     ;;; <summary>
-    ;;; Dispatcher for method Pool5.CanBePooled
+    ;;; Dispatcher for method TestDate.GetDate8
     ;;; </summary>
-    public class CanBePooled_Dispatcher extends RoutineStub
+    public class GetDate8_Dispatcher extends RoutineStub
 
+        private mDatetimestrMetadata, @DataObjectMetadataBase
 
-        public method CanBePooled_Dispatcher
+        public method GetDate8_Dispatcher
         proc
             ;;Initialize the meta data for any data objects that are used by parameters to the method
+            mDatetimestrMetadata = DataObjectMetadataBase.LookupType("Datetimestr")
         endmethod
 
         protected override method DispatchInternal, void
@@ -47,88 +49,54 @@ namespace TraditionalBridge.Test.Pool5
                 arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
-                returnValue,         I4
+                ;;Argument 1 (REQUIRED IN idx d2)
+                arg1,               d2
+                ;;Argument 2 (REQUIRED OUT dstruct structure @Datetimestr)
+                arg2DataObject,     @DataObjectBase
+                arg2,               strDatetimestr
             endrecord
 
 
         proc
 
             ;;------------------------------------------------------------
-            ;;Process inbound arguments
-
-            ;;There are no inbound arguments to process
-
-            ;;------------------------------------------------------------
-            ;; Call the underlying routine
-
-            returnValue = %CanBePooled()
-
-            ;;Function return value
-            serializer.ArgumentData(0,returnValue,FieldDataType.IntegerField,4,0,false)
-        endmethod
-
-    endclass
-
-    ;;-------------------------------------------------------------------------
-    ;;; <summary>
-    ;;; Dispatcher for method Pool5.getGreeting
-    ;;; </summary>
-    public class getGreeting_Dispatcher extends RoutineStub
-
-
-        public method getGreeting_Dispatcher
-        proc
-            ;;Initialize the meta data for any data objects that are used by parameters to the method
-        endmethod
-
-        protected override method DispatchInternal, void
-            required in name,       string
-            required in callFrame,  JSON_ELEMENT
-            required in serializer, @DispatchSerializer
-            required in dispatcher, @RoutineDispatcher
-            record
-                requestId,          int
-                arguments,          JSON_ELEMENT
-                argumentDefinition, @ArgumentDataDefinition
-
-                ;;Argument 1 (REQUIRED OUT message A30)
-                arg1,               A30
-            endrecord
-
-
-        proc
-
-            ;;------------------------------------------------------------
-            ;;Process inbound arguments
+            ;;Prepare variables for arguments
 
             arguments = callFrame.GetProperty("params")
 
-            ;;Argument 1 (REQUIRED OUT message A30)
+            ;;Argument 1 (REQUIRED IN idx d2)
+
+            arg1 = dispatcher.GetDecimal(arguments[1])
+
+            ;;Argument 2 (REQUIRED OUT dstruct structure @Datetimestr)
 
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
 
-            xcall getGreeting(arg1)
+            xcall GetDate8(arg1,arg2)
 
             ;;--------------------------------------------------------------------------------
-            ;;Argument 1 (REQUIRED OUT message A30)
+            ;;Argument 2 (REQUIRED OUT dstruct structure @Datetimestr)
             
-            serializer.ArgumentData(1,%atrim(arg1),FieldDataType.AlphaField,30,0,false)
+            ;;Argument 2: Single Datetimestr record
+            serializer.ArgumentData(2,arg2,FieldDataType.DataObjectField,34,"DATETIMESTR",true)
         endmethod
 
     endclass
 
     ;;-------------------------------------------------------------------------
     ;;; <summary>
-    ;;; Dispatcher for method Pool5.setGreeting
+    ;;; Dispatcher for method TestDate.UserDates
     ;;; </summary>
-    public class setGreeting_Dispatcher extends RoutineStub
+    public class UserDates_Dispatcher extends RoutineStub
 
+        private mUserdateMetadata, @DataObjectMetadataBase
 
-        public method setGreeting_Dispatcher
+        public method UserDates_Dispatcher
         proc
             ;;Initialize the meta data for any data objects that are used by parameters to the method
+            mUserdateMetadata = DataObjectMetadataBase.LookupType("Userdate")
         endmethod
 
         protected override method DispatchInternal, void
@@ -141,28 +109,43 @@ namespace TraditionalBridge.Test.Pool5
                 arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
-                ;;Argument 1 (REQUIRED IN message A30)
-                arg1,               A30
+                ;;Argument 1 (REQUIRED OUT USERDATES structure @Userdate)
+                arg1DataObject,     @DataObjectBase
+                arg1,               strUserdate
             endrecord
 
 
         proc
 
             ;;------------------------------------------------------------
-            ;;Process inbound arguments
+            ;;Prepare variables for arguments
 
             arguments = callFrame.GetProperty("params")
 
-            ;;Argument 1 (REQUIRED IN message A30)
+            ;;Argument 1 (REQUIRED OUT USERDATES structure @Userdate)
 
-            arg1 = dispatcher.GetText(arguments[1])
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
 
-            xcall setGreeting(arg1)
+            xcall UserDates(arg1)
+
+            ;;--------------------------------------------------------------------------------
+            ;;Argument 1 (REQUIRED OUT USERDATES structure @Userdate)
+            
+            ;;Argument 1: Single Userdate record
+            serializer.ArgumentData(1,arg1,FieldDataType.DataObjectField,40,"USERDATES",true)
         endmethod
 
     endclass
 
 endnamespace
+
+;; This is here to ensure that the TraditionalBridge.Test.Models namespace exists.
+;; If the Synergy methods don't expsoe any structure or collection of structure
+;; parameters then there won't be anything in the Models folder, and the import above will fail.
+namespace TraditionalBridge.Test.Models
+    public class TestDateDummyModel
+    endclass
+endnamespace
+

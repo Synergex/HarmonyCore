@@ -1,6 +1,6 @@
 ;;*****************************************************************************
 ;;
-;; Title:       Pool1MethodDispachers.dbl
+;; Title:       NoParmsMethodDispatchers.dbl
 ;;
 ;; Description: Dispatcher classes for exposed methods
 ;;
@@ -22,17 +22,17 @@ import System.Text.Json
 .define JSON_ELEMENT @JsonValue
 .endc
 
-namespace TraditionalBridge.Test.Pool1
+namespace TraditionalBridge.Test.NoParms
 
 
     ;;-------------------------------------------------------------------------
     ;;; <summary>
-    ;;; Dispatcher for method Pool1.getGreeting
+    ;;; Dispatcher for method NoParms.NoParmsNoRtn
     ;;; </summary>
-    public class getGreeting_Dispatcher extends RoutineStub
+    public class NoParmsNoRtn_Dispatcher extends RoutineStub
 
 
-        public method getGreeting_Dispatcher
+        public method NoParmsNoRtn_Dispatcher
         proc
             ;;Initialize the meta data for any data objects that are used by parameters to the method
         endmethod
@@ -47,42 +47,32 @@ namespace TraditionalBridge.Test.Pool1
                 arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
-                ;;Argument 1 (REQUIRED OUT message A30)
-                arg1,               A30
             endrecord
 
 
         proc
 
             ;;------------------------------------------------------------
-            ;;Process inbound arguments
+            ;;Prepare variables for arguments
 
-            arguments = callFrame.GetProperty("params")
-
-            ;;Argument 1 (REQUIRED OUT message A30)
-
+            ;;There are no inbound arguments to process
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
 
-            xcall getGreeting(arg1)
-
-            ;;--------------------------------------------------------------------------------
-            ;;Argument 1 (REQUIRED OUT message A30)
-            
-            serializer.ArgumentData(1,%atrim(arg1),FieldDataType.AlphaField,30,0,false)
+            xcall NoParmsNoRtn()
         endmethod
 
     endclass
 
     ;;-------------------------------------------------------------------------
     ;;; <summary>
-    ;;; Dispatcher for method Pool1.setGreeting
+    ;;; Dispatcher for method NoParms.NoParmsWithRtn
     ;;; </summary>
-    public class setGreeting_Dispatcher extends RoutineStub
+    public class NoParmsWithRtn_Dispatcher extends RoutineStub
 
 
-        public method setGreeting_Dispatcher
+        public method NoParmsWithRtn_Dispatcher
         proc
             ;;Initialize the meta data for any data objects that are used by parameters to the method
         endmethod
@@ -97,28 +87,35 @@ namespace TraditionalBridge.Test.Pool1
                 arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
-                ;;Argument 1 (REQUIRED IN message A30)
-                arg1,               A30
+                returnValue,         D5
             endrecord
 
 
         proc
 
             ;;------------------------------------------------------------
-            ;;Process inbound arguments
+            ;;Prepare variables for arguments
 
-            arguments = callFrame.GetProperty("params")
-
-            ;;Argument 1 (REQUIRED IN message A30)
-
-            arg1 = dispatcher.GetText(arguments[1])
+            ;;There are no inbound arguments to process
 
             ;;------------------------------------------------------------
             ;; Call the underlying routine
 
-            xcall setGreeting(arg1)
+            returnValue = %NoParmsWithRtn()
+
+            ;;Function return value
+            serializer.ArgumentData(0,returnValue,FieldDataType.DecimalField,5,0,false)
         endmethod
 
     endclass
 
 endnamespace
+
+;; This is here to ensure that the TraditionalBridge.Test.Models namespace exists.
+;; If the Synergy methods don't expsoe any structure or collection of structure
+;; parameters then there won't be anything in the Models folder, and the import above will fail.
+namespace TraditionalBridge.Test.Models
+    public class NoParmsDummyModel
+    endclass
+endnamespace
+

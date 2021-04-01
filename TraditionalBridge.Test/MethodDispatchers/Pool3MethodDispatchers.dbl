@@ -1,6 +1,6 @@
 ;;*****************************************************************************
 ;;
-;; Title:       Pool3MethodDispachers.dbl
+;; Title:       Pool3MethodDispatchers.dbl
 ;;
 ;; Description: Dispatcher classes for exposed methods
 ;;
@@ -54,7 +54,7 @@ namespace TraditionalBridge.Test.Pool3
         proc
 
             ;;------------------------------------------------------------
-            ;;Process inbound arguments
+            ;;Prepare variables for arguments
 
             ;;There are no inbound arguments to process
 
@@ -97,7 +97,7 @@ namespace TraditionalBridge.Test.Pool3
         proc
 
             ;;------------------------------------------------------------
-            ;;Process inbound arguments
+            ;;Prepare variables for arguments
 
             ;;There are no inbound arguments to process
 
@@ -137,7 +137,7 @@ namespace TraditionalBridge.Test.Pool3
         proc
 
             ;;------------------------------------------------------------
-            ;;Process inbound arguments
+            ;;Prepare variables for arguments
 
             ;;There are no inbound arguments to process
 
@@ -177,7 +177,7 @@ namespace TraditionalBridge.Test.Pool3
         proc
 
             ;;------------------------------------------------------------
-            ;;Process inbound arguments
+            ;;Prepare variables for arguments
 
             ;;There are no inbound arguments to process
 
@@ -211,19 +211,19 @@ namespace TraditionalBridge.Test.Pool3
                 arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
-                ;;Argument 1 (REQUIRED OUT message A30)
-                arg1,               A30
+                ;;Argument 1 (REQUIRED OUT message a30)
+                arg1,               a30
             endrecord
 
 
         proc
 
             ;;------------------------------------------------------------
-            ;;Process inbound arguments
+            ;;Prepare variables for arguments
 
             arguments = callFrame.GetProperty("params")
 
-            ;;Argument 1 (REQUIRED OUT message A30)
+            ;;Argument 1 (REQUIRED OUT message a30)
 
 
             ;;------------------------------------------------------------
@@ -232,7 +232,7 @@ namespace TraditionalBridge.Test.Pool3
             xcall getGreeting(arg1)
 
             ;;--------------------------------------------------------------------------------
-            ;;Argument 1 (REQUIRED OUT message A30)
+            ;;Argument 1 (REQUIRED OUT message a30)
             
             serializer.ArgumentData(1,%atrim(arg1),FieldDataType.AlphaField,30,0,false)
         endmethod
@@ -261,19 +261,19 @@ namespace TraditionalBridge.Test.Pool3
                 arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
-                ;;Argument 1 (REQUIRED IN message A30)
-                arg1,               A30
+                ;;Argument 1 (REQUIRED IN message a30)
+                arg1,               a30
             endrecord
 
 
         proc
 
             ;;------------------------------------------------------------
-            ;;Process inbound arguments
+            ;;Prepare variables for arguments
 
             arguments = callFrame.GetProperty("params")
 
-            ;;Argument 1 (REQUIRED IN message A30)
+            ;;Argument 1 (REQUIRED IN message a30)
 
             arg1 = dispatcher.GetText(arguments[1])
 
@@ -286,3 +286,12 @@ namespace TraditionalBridge.Test.Pool3
     endclass
 
 endnamespace
+
+;; This is here to ensure that the TraditionalBridge.Test.Models namespace exists.
+;; If the Synergy methods don't expsoe any structure or collection of structure
+;; parameters then there won't be anything in the Models folder, and the import above will fail.
+namespace TraditionalBridge.Test.Models
+    public class Pool3DummyModel
+    endclass
+endnamespace
+

@@ -1,6 +1,6 @@
 ;;*****************************************************************************
 ;;
-;; Title:       WCFieldsMethodDispachers.dbl
+;; Title:       WCFieldsMethodDispatchers.dbl
 ;;
 ;; Description: Dispatcher classes for exposed methods
 ;;
@@ -58,7 +58,7 @@ namespace TraditionalBridge.Test.WCFields
         proc
 
             ;;------------------------------------------------------------
-            ;;Process inbound arguments
+            ;;Prepare variables for arguments
 
             arguments = callFrame.GetProperty("params")
 
@@ -115,7 +115,7 @@ namespace TraditionalBridge.Test.WCFields
         proc
 
             ;;------------------------------------------------------------
-            ;;Process inbound arguments
+            ;;Prepare variables for arguments
 
             arguments = callFrame.GetProperty("params")
 
@@ -172,7 +172,7 @@ namespace TraditionalBridge.Test.WCFields
         proc
 
             ;;------------------------------------------------------------
-            ;;Process inbound arguments
+            ;;Prepare variables for arguments
 
             arguments = callFrame.GetProperty("params")
 
@@ -220,14 +220,14 @@ namespace TraditionalBridge.Test.WCFields
                 arguments,          JSON_ELEMENT
                 argumentDefinition, @ArgumentDataDefinition
 
-                ;;Argument 1 (REQUIRED INOUT p1de7 D7)
-                arg1,               D7
+                ;;Argument 1 (REQUIRED INOUT p1de7 d7)
+                arg1,               d7
                 ;;Argument 2 (REQUIRED INOUT STRTEST3 [*]structure @Strtest3)
                 arg2Array,          JSON_ELEMENT
                 arg2Handle,         D_HANDLE
                 arg2HandlePos,      int
-                ;;Argument 3 (REQUIRED INOUT p3al10 A10)
-                arg3,               A10
+                ;;Argument 3 (REQUIRED INOUT p3al10 a10)
+                arg3,               a10
             endrecord
 
             ;;Temp structure tempstr2
@@ -239,11 +239,11 @@ namespace TraditionalBridge.Test.WCFields
         proc
 
             ;;------------------------------------------------------------
-            ;;Process inbound arguments
+            ;;Prepare variables for arguments
 
             arguments = callFrame.GetProperty("params")
 
-            ;;Argument 1 (REQUIRED INOUT p1de7 D7)
+            ;;Argument 1 (REQUIRED INOUT p1de7 d7)
 
             arg1 = dispatcher.GetDecimal(arguments[1])
 
@@ -255,7 +255,7 @@ namespace TraditionalBridge.Test.WCFields
             arg2HandlePos = 1
             dispatcher.UnwrapObjectCollection(^m(arg2Handle),argumentDefinition,arg2HandlePos,arg2Array)
 
-            ;;Argument 3 (REQUIRED INOUT p3al10 A10)
+            ;;Argument 3 (REQUIRED INOUT p3al10 a10)
 
             arg3 = dispatcher.GetText(arguments[3])
 
@@ -265,7 +265,7 @@ namespace TraditionalBridge.Test.WCFields
             xcall teststr9(arg1,^marray(strStrtest3,arg2Handle),arg3)
 
             ;;--------------------------------------------------------------------------------
-            ;;Argument 1 (REQUIRED INOUT p1de7 D7)
+            ;;Argument 1 (REQUIRED INOUT p1de7 d7)
             
             serializer.ArgumentData(1,arg1,FieldDataType.DecimalField,7,0,false)
 
@@ -275,7 +275,7 @@ namespace TraditionalBridge.Test.WCFields
             serializer.ArgumentHandleData(2,arg2Handle,FieldDataType.DataObjectCollectionField,58,"STRTEST3",%mem_proc(DM_GETSIZE,arg2Handle)/58,true)
 
             ;;--------------------------------------------------------------------------------
-            ;;Argument 3 (REQUIRED INOUT p3al10 A10)
+            ;;Argument 3 (REQUIRED INOUT p3al10 a10)
             
             serializer.ArgumentData(3,%atrim(arg3),FieldDataType.AlphaField,10,0,false)
         endmethod
@@ -283,3 +283,12 @@ namespace TraditionalBridge.Test.WCFields
     endclass
 
 endnamespace
+
+;; This is here to ensure that the TraditionalBridge.Test.Models namespace exists.
+;; If the Synergy methods don't expsoe any structure or collection of structure
+;; parameters then there won't be anything in the Models folder, and the import above will fail.
+namespace TraditionalBridge.Test.Models
+    public class WCFieldsDummyModel
+    endclass
+endnamespace
+
