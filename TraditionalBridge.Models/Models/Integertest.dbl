@@ -1,9 +1,9 @@
 ;;*****************************************************************************
 ;;
-;; Title:       Nulldtstr.dbl
+;; Title:       Integertest.dbl
 ;;
 ;; Description: Data model representing data defined by the repository
-;;              structure NULLDTSTR.
+;;              structure INTEGERTESTS.
 ;;
 ;;*****************************************************************************
 ;; WARNING: GENERATED CODE!
@@ -23,27 +23,27 @@ import Microsoft.Extensions.DependencyInjection
 
 namespace TraditionalBridge.Models
 
-    public partial class Nulldtstr extends DataObjectBase
+    public partial class Integertest extends DataObjectBase
 
         ;;make the record available and a copy
-        private mSynergyData, strNulldtstr
-        private mOriginalSynergyData, strNulldtstr
+        private mSynergyData, strIntegertest
+        private mOriginalSynergyData, strIntegertest
         protected mGlobalRFA  ,a10
 
-        private static sMetadata, @NulldtstrMetadata
+        private static sMetadata, @IntegertestMetadata
 
 .region "Constructors"
 
-        static method Nulldtstr
+        static method Integertest
         proc
-            sMetadata = new NulldtstrMetadata()
-            DataObjectMetadataBase.MetadataLookup.TryAdd(^typeof(Nulldtstr), sMetadata)
+            sMetadata = new IntegertestMetadata()
+            DataObjectMetadataBase.MetadataLookup.TryAdd(^typeof(Integertest), sMetadata)
         endmethod
 
         ;;; <summary>
         ;;;  Constructor, initialise the base fields
         ;;; </summary>
-        public method Nulldtstr
+        public method Integertest
             parent()
         proc
             init mSynergyData, mOriginalSynergyData
@@ -52,7 +52,7 @@ namespace TraditionalBridge.Models
         ;;; <summary>
         ;;;  Alternate Constructor, accepts the structured data
         ;;; </summary>
-        public method Nulldtstr
+        public method Integertest
             required in inData, a
             required in inGrfa, a
             parent()
@@ -66,79 +66,62 @@ namespace TraditionalBridge.Models
 .region "Attributes of this entity"
 
         ;;; <summary>
-        ;;; 
+        ;;; Integer size i1
         ;;; </summary>
-        {StringLength(10, ErrorMessage=" cannot exceed 10 characters. ")}
-        public property NdtAlpha, String
+        {Range(0,127, ErrorMessage="Integer size i1 must be between 0 and 127. ")}
+        public property IntI1, int
             method get
             proc
-                mreturn (String)SynergyAlphaConverter.Convert(mSynergyData.ndt_alpha, ^null, ^null, ^null)
+                mreturn (int)mSynergyData.int_i1
             endmethod
             method set
             proc
-                mSynergyData.ndt_alpha = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
+                mSynergyData.int_i1 = value
             endmethod
         endproperty
 
         ;;; <summary>
-        ;;; 
+        ;;; Integer size i2
         ;;; </summary>
-        public property NdtDate8, Nullable<DateTime>
+        {Range(0,32767, ErrorMessage="Integer size i2 must be between 0 and 32767. ")}
+        public property IntI2, int
             method get
             proc
-                data formatString = "YYYYMMDD"
-                mreturn (Nullable<DateTime>)SynergyDecimalDateConverter.Convert(mSynergyData.ndt_date8, ^null, formatString, ^null)
+                mreturn (int)mSynergyData.int_i2
             endmethod
             method set
             proc
-                data formatString = "YYYYMMDD"
-                mSynergyData.ndt_date8 = (D)SynergyDecimalDateConverter.ConvertBack(value, ^null, formatString, ^null)
+                mSynergyData.int_i2 = value
             endmethod
         endproperty
 
         ;;; <summary>
-        ;;; 
+        ;;; Integer size i4
         ;;; </summary>
-        public property NdtDate6, Nullable<DateTime>
+        {Range(0,2147483647, ErrorMessage="Integer size i4 must be between 0 and 2147483647. ")}
+        public property IntI4, int
             method get
             proc
-                data formatString = "YYYYMMDD"
-                formatString = "YYMMDD"
-                mreturn (Nullable<DateTime>)SynergyDecimalDateConverter.Convert(mSynergyData.ndt_date6, ^null, formatString, ^null)
+                mreturn (int)mSynergyData.int_i4
             endmethod
             method set
             proc
-                data formatString = "YYYYMMDD"
-                formatString = "YYMMDD"
-                mSynergyData.ndt_date6 = (D)SynergyDecimalDateConverter.ConvertBack(value, ^null, formatString, ^null)
+                mSynergyData.int_i4 = value
             endmethod
         endproperty
 
         ;;; <summary>
-        ;;; 
+        ;;; Integer size i8
         ;;; </summary>
-        public property NdtTime6, Nullable<DateTime>
+        {Range(0,9223372036854775807, ErrorMessage="Integer size i8 must be between 0 and 9223372036854775807. ")}
+        public property IntI8, long
             method get
             proc
-                mreturn Convert.ToDateTime(%string(mSynergyData.ndt_time6,"XX:XX:XX"))
+                mreturn (long)mSynergyData.int_i8
             endmethod
             method set
             proc
-                mSynergyData.ndt_time6 = (value.Value.Hour * 10000) + (value.Value.Minute * 100) + value.Value.Second
-            endmethod
-        endproperty
-
-        ;;; <summary>
-        ;;; 
-        ;;; </summary>
-        public property NdtTime4, Nullable<DateTime>
-            method get
-            proc
-                mreturn Convert.ToDateTime(%string(mSynergyData.ndt_time4,"XX:XX"))
-            endmethod
-            method set
-            proc
-                mSynergyData.ndt_time4 = (value.Value.Hour * 100) + value.Value.Minute
+                mSynergyData.int_i8 = value
             endmethod
         endproperty
 
@@ -206,7 +189,7 @@ namespace TraditionalBridge.Models
         public override method InternalGetValues, [#]@object
         proc
             ;;TODO: This should be returning boxed values for each of our fields
-            mreturn new Object[5]
+            mreturn new Object[4]
         endmethod
 
 .endregion

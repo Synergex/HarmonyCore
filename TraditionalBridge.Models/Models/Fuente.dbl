@@ -1,9 +1,9 @@
 ;;*****************************************************************************
 ;;
-;; Title:       Nulldtstr.dbl
+;; Title:       Fuente.dbl
 ;;
 ;; Description: Data model representing data defined by the repository
-;;              structure NULLDTSTR.
+;;              structure FUENTES.
 ;;
 ;;*****************************************************************************
 ;; WARNING: GENERATED CODE!
@@ -23,27 +23,27 @@ import Microsoft.Extensions.DependencyInjection
 
 namespace TraditionalBridge.Models
 
-    public partial class Nulldtstr extends DataObjectBase
+    public partial class Fuente extends DataObjectBase
 
         ;;make the record available and a copy
-        private mSynergyData, strNulldtstr
-        private mOriginalSynergyData, strNulldtstr
+        private mSynergyData, strFuente
+        private mOriginalSynergyData, strFuente
         protected mGlobalRFA  ,a10
 
-        private static sMetadata, @NulldtstrMetadata
+        private static sMetadata, @FuenteMetadata
 
 .region "Constructors"
 
-        static method Nulldtstr
+        static method Fuente
         proc
-            sMetadata = new NulldtstrMetadata()
-            DataObjectMetadataBase.MetadataLookup.TryAdd(^typeof(Nulldtstr), sMetadata)
+            sMetadata = new FuenteMetadata()
+            DataObjectMetadataBase.MetadataLookup.TryAdd(^typeof(Fuente), sMetadata)
         endmethod
 
         ;;; <summary>
         ;;;  Constructor, initialise the base fields
         ;;; </summary>
-        public method Nulldtstr
+        public method Fuente
             parent()
         proc
             init mSynergyData, mOriginalSynergyData
@@ -52,7 +52,7 @@ namespace TraditionalBridge.Models
         ;;; <summary>
         ;;;  Alternate Constructor, accepts the structured data
         ;;; </summary>
-        public method Nulldtstr
+        public method Fuente
             required in inData, a
             required in inGrfa, a
             parent()
@@ -68,77 +68,60 @@ namespace TraditionalBridge.Models
         ;;; <summary>
         ;;; 
         ;;; </summary>
-        {StringLength(10, ErrorMessage=" cannot exceed 10 characters. ")}
-        public property NdtAlpha, String
+        {StringLength(20, ErrorMessage=" cannot exceed 20 characters. ")}
+        public property Fieldone, String
             method get
             proc
-                mreturn (String)SynergyAlphaConverter.Convert(mSynergyData.ndt_alpha, ^null, ^null, ^null)
+                mreturn (String)SynergyAlphaConverter.Convert(mSynergyData.fieldone, ^null, ^null, ^null)
             endmethod
             method set
             proc
-                mSynergyData.ndt_alpha = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
+                mSynergyData.fieldone = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
             endmethod
         endproperty
 
         ;;; <summary>
         ;;; 
         ;;; </summary>
-        public property NdtDate8, Nullable<DateTime>
+        {Range(0,999999999999, ErrorMessage=" must be between 0 and 999999999999. ")}
+        public property Field2, long
             method get
             proc
-                data formatString = "YYYYMMDD"
-                mreturn (Nullable<DateTime>)SynergyDecimalDateConverter.Convert(mSynergyData.ndt_date8, ^null, formatString, ^null)
+                mreturn (long)mSynergyData.field2
             endmethod
             method set
             proc
-                data formatString = "YYYYMMDD"
-                mSynergyData.ndt_date8 = (D)SynergyDecimalDateConverter.ConvertBack(value, ^null, formatString, ^null)
+                mSynergyData.field2 = value
             endmethod
         endproperty
 
         ;;; <summary>
         ;;; 
         ;;; </summary>
-        public property NdtDate6, Nullable<DateTime>
+        {StringLength(6, ErrorMessage=" cannot exceed 6 characters. ")}
+        public property Binaryarray, String
             method get
             proc
-                data formatString = "YYYYMMDD"
-                formatString = "YYMMDD"
-                mreturn (Nullable<DateTime>)SynergyDecimalDateConverter.Convert(mSynergyData.ndt_date6, ^null, formatString, ^null)
+                mreturn (String)SynergyAlphaConverter.Convert(mSynergyData.binaryarray, ^null, ^null, ^null)
             endmethod
             method set
             proc
-                data formatString = "YYYYMMDD"
-                formatString = "YYMMDD"
-                mSynergyData.ndt_date6 = (D)SynergyDecimalDateConverter.ConvertBack(value, ^null, formatString, ^null)
+                mSynergyData.binaryarray = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
             endmethod
         endproperty
 
         ;;; <summary>
         ;;; 
         ;;; </summary>
-        public property NdtTime6, Nullable<DateTime>
+        {Range(0,99999, ErrorMessage=" must be between 0 and 99999. ")}
+        public property Dec, int
             method get
             proc
-                mreturn Convert.ToDateTime(%string(mSynergyData.ndt_time6,"XX:XX:XX"))
+                mreturn (int)mSynergyData.dec
             endmethod
             method set
             proc
-                mSynergyData.ndt_time6 = (value.Value.Hour * 10000) + (value.Value.Minute * 100) + value.Value.Second
-            endmethod
-        endproperty
-
-        ;;; <summary>
-        ;;; 
-        ;;; </summary>
-        public property NdtTime4, Nullable<DateTime>
-            method get
-            proc
-                mreturn Convert.ToDateTime(%string(mSynergyData.ndt_time4,"XX:XX"))
-            endmethod
-            method set
-            proc
-                mSynergyData.ndt_time4 = (value.Value.Hour * 100) + value.Value.Minute
+                mSynergyData.dec = value
             endmethod
         endproperty
 
@@ -206,7 +189,7 @@ namespace TraditionalBridge.Models
         public override method InternalGetValues, [#]@object
         proc
             ;;TODO: This should be returning boxed values for each of our fields
-            mreturn new Object[5]
+            mreturn new Object[4]
         endmethod
 
 .endregion

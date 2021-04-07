@@ -1,9 +1,9 @@
 ;;*****************************************************************************
 ;;
-;; Title:       Nulldtstr.dbl
+;; Title:       Binarytest.dbl
 ;;
 ;; Description: Data model representing data defined by the repository
-;;              structure NULLDTSTR.
+;;              structure BINARYTEST.
 ;;
 ;;*****************************************************************************
 ;; WARNING: GENERATED CODE!
@@ -23,27 +23,27 @@ import Microsoft.Extensions.DependencyInjection
 
 namespace TraditionalBridge.Models
 
-    public partial class Nulldtstr extends DataObjectBase
+    public partial class Binarytest extends DataObjectBase
 
         ;;make the record available and a copy
-        private mSynergyData, strNulldtstr
-        private mOriginalSynergyData, strNulldtstr
+        private mSynergyData, strBinarytest
+        private mOriginalSynergyData, strBinarytest
         protected mGlobalRFA  ,a10
 
-        private static sMetadata, @NulldtstrMetadata
+        private static sMetadata, @BinarytestMetadata
 
 .region "Constructors"
 
-        static method Nulldtstr
+        static method Binarytest
         proc
-            sMetadata = new NulldtstrMetadata()
-            DataObjectMetadataBase.MetadataLookup.TryAdd(^typeof(Nulldtstr), sMetadata)
+            sMetadata = new BinarytestMetadata()
+            DataObjectMetadataBase.MetadataLookup.TryAdd(^typeof(Binarytest), sMetadata)
         endmethod
 
         ;;; <summary>
         ;;;  Constructor, initialise the base fields
         ;;; </summary>
-        public method Nulldtstr
+        public method Binarytest
             parent()
         proc
             init mSynergyData, mOriginalSynergyData
@@ -52,7 +52,7 @@ namespace TraditionalBridge.Models
         ;;; <summary>
         ;;;  Alternate Constructor, accepts the structured data
         ;;; </summary>
-        public method Nulldtstr
+        public method Binarytest
             required in inData, a
             required in inGrfa, a
             parent()
@@ -68,77 +68,120 @@ namespace TraditionalBridge.Models
         ;;; <summary>
         ;;; 
         ;;; </summary>
+        {Range(0,999999, ErrorMessage=" must be between 0 and 999999. ")}
+        public property Keyno, int
+            method get
+            proc
+                mreturn (int)mSynergyData.keyno
+            endmethod
+            method set
+            proc
+                mSynergyData.keyno = value
+            endmethod
+        endproperty
+
+        ;;; <summary>
+        ;;; 
+        ;;; </summary>
+        {StringLength(25, ErrorMessage=" cannot exceed 25 characters. ")}
+        public property Desc, String
+            method get
+            proc
+                mreturn (String)SynergyAlphaConverter.Convert(mSynergyData.desc, ^null, ^null, ^null)
+            endmethod
+            method set
+            proc
+                mSynergyData.desc = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
+            endmethod
+        endproperty
+
+        ;;; <summary>
+        ;;; 
+        ;;; </summary>
         {StringLength(10, ErrorMessage=" cannot exceed 10 characters. ")}
-        public property NdtAlpha, String
+        public property Binarray1, String
             method get
             proc
-                mreturn (String)SynergyAlphaConverter.Convert(mSynergyData.ndt_alpha, ^null, ^null, ^null)
+                mreturn (String)SynergyAlphaConverter.Convert(mSynergyData.binarray[1], ^null, ^null, ^null)
             endmethod
             method set
             proc
-                mSynergyData.ndt_alpha = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
+                mSynergyData.binarray[1] = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
             endmethod
         endproperty
 
         ;;; <summary>
         ;;; 
         ;;; </summary>
-        public property NdtDate8, Nullable<DateTime>
+        {StringLength(10, ErrorMessage=" cannot exceed 10 characters. ")}
+        public property Binarray2, String
             method get
             proc
-                data formatString = "YYYYMMDD"
-                mreturn (Nullable<DateTime>)SynergyDecimalDateConverter.Convert(mSynergyData.ndt_date8, ^null, formatString, ^null)
+                mreturn (String)SynergyAlphaConverter.Convert(mSynergyData.binarray[2], ^null, ^null, ^null)
             endmethod
             method set
             proc
-                data formatString = "YYYYMMDD"
-                mSynergyData.ndt_date8 = (D)SynergyDecimalDateConverter.ConvertBack(value, ^null, formatString, ^null)
+                mSynergyData.binarray[2] = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
             endmethod
         endproperty
 
         ;;; <summary>
         ;;; 
         ;;; </summary>
-        public property NdtDate6, Nullable<DateTime>
+        {StringLength(10, ErrorMessage=" cannot exceed 10 characters. ")}
+        public property Binarray3, String
             method get
             proc
-                data formatString = "YYYYMMDD"
-                formatString = "YYMMDD"
-                mreturn (Nullable<DateTime>)SynergyDecimalDateConverter.Convert(mSynergyData.ndt_date6, ^null, formatString, ^null)
+                mreturn (String)SynergyAlphaConverter.Convert(mSynergyData.binarray[3], ^null, ^null, ^null)
             endmethod
             method set
             proc
-                data formatString = "YYYYMMDD"
-                formatString = "YYMMDD"
-                mSynergyData.ndt_date6 = (D)SynergyDecimalDateConverter.ConvertBack(value, ^null, formatString, ^null)
+                mSynergyData.binarray[3] = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
             endmethod
         endproperty
 
         ;;; <summary>
         ;;; 
         ;;; </summary>
-        public property NdtTime6, Nullable<DateTime>
+        {StringLength(10, ErrorMessage=" cannot exceed 10 characters. ")}
+        public property Binarray4, String
             method get
             proc
-                mreturn Convert.ToDateTime(%string(mSynergyData.ndt_time6,"XX:XX:XX"))
+                mreturn (String)SynergyAlphaConverter.Convert(mSynergyData.binarray[4], ^null, ^null, ^null)
             endmethod
             method set
             proc
-                mSynergyData.ndt_time6 = (value.Value.Hour * 10000) + (value.Value.Minute * 100) + value.Value.Second
+                mSynergyData.binarray[4] = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
             endmethod
         endproperty
 
         ;;; <summary>
         ;;; 
         ;;; </summary>
-        public property NdtTime4, Nullable<DateTime>
+        {StringLength(10, ErrorMessage=" cannot exceed 10 characters. ")}
+        public property Binarray5, String
             method get
             proc
-                mreturn Convert.ToDateTime(%string(mSynergyData.ndt_time4,"XX:XX"))
+                mreturn (String)SynergyAlphaConverter.Convert(mSynergyData.binarray[5], ^null, ^null, ^null)
             endmethod
             method set
             proc
-                mSynergyData.ndt_time4 = (value.Value.Hour * 100) + value.Value.Minute
+                mSynergyData.binarray[5] = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
+            endmethod
+        endproperty
+
+        ;;; <summary>
+        ;;; 
+        ;;; </summary>
+        {Range(0,999999999, ErrorMessage=" must be between 0 and 999999999. ")}
+        public property Number, int
+            method get
+            proc
+                mreturn (int)mSynergyData.number
+            endmethod
+            method set
+            proc
+                mSynergyData.number = value
             endmethod
         endproperty
 
@@ -206,7 +249,7 @@ namespace TraditionalBridge.Models
         public override method InternalGetValues, [#]@object
         proc
             ;;TODO: This should be returning boxed values for each of our fields
-            mreturn new Object[5]
+            mreturn new Object[8]
         endmethod
 
 .endregion

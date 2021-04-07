@@ -1,9 +1,9 @@
 ;;*****************************************************************************
 ;;
-;; Title:       Nulldtstr.dbl
+;; Title:       Stroptsoutter.dbl
 ;;
 ;; Description: Data model representing data defined by the repository
-;;              structure NULLDTSTR.
+;;              structure STROPTSOUTTER.
 ;;
 ;;*****************************************************************************
 ;; WARNING: GENERATED CODE!
@@ -23,27 +23,27 @@ import Microsoft.Extensions.DependencyInjection
 
 namespace TraditionalBridge.Models
 
-    public partial class Nulldtstr extends DataObjectBase
+    public partial class Stroptsoutter extends DataObjectBase
 
         ;;make the record available and a copy
-        private mSynergyData, strNulldtstr
-        private mOriginalSynergyData, strNulldtstr
+        private mSynergyData, strStroptsoutter
+        private mOriginalSynergyData, strStroptsoutter
         protected mGlobalRFA  ,a10
 
-        private static sMetadata, @NulldtstrMetadata
+        private static sMetadata, @StroptsoutterMetadata
 
 .region "Constructors"
 
-        static method Nulldtstr
+        static method Stroptsoutter
         proc
-            sMetadata = new NulldtstrMetadata()
-            DataObjectMetadataBase.MetadataLookup.TryAdd(^typeof(Nulldtstr), sMetadata)
+            sMetadata = new StroptsoutterMetadata()
+            DataObjectMetadataBase.MetadataLookup.TryAdd(^typeof(Stroptsoutter), sMetadata)
         endmethod
 
         ;;; <summary>
         ;;;  Constructor, initialise the base fields
         ;;; </summary>
-        public method Nulldtstr
+        public method Stroptsoutter
             parent()
         proc
             init mSynergyData, mOriginalSynergyData
@@ -52,7 +52,7 @@ namespace TraditionalBridge.Models
         ;;; <summary>
         ;;;  Alternate Constructor, accepts the structured data
         ;;; </summary>
-        public method Nulldtstr
+        public method Stroptsoutter
             required in inData, a
             required in inGrfa, a
             parent()
@@ -68,77 +68,44 @@ namespace TraditionalBridge.Models
         ;;; <summary>
         ;;; 
         ;;; </summary>
-        {StringLength(10, ErrorMessage=" cannot exceed 10 characters. ")}
-        public property NdtAlpha, String
+        {Range(0,999999, ErrorMessage=" must be between 0 and 999999. ")}
+        public property KeyOutter, int
             method get
             proc
-                mreturn (String)SynergyAlphaConverter.Convert(mSynergyData.ndt_alpha, ^null, ^null, ^null)
+                mreturn (int)mSynergyData.key_outter
             endmethod
             method set
             proc
-                mSynergyData.ndt_alpha = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
+                mSynergyData.key_outter = value
             endmethod
         endproperty
 
         ;;; <summary>
         ;;; 
         ;;; </summary>
-        public property NdtDate8, Nullable<DateTime>
+        public property StrInstr, String
             method get
             proc
-                data formatString = "YYYYMMDD"
-                mreturn (Nullable<DateTime>)SynergyDecimalDateConverter.Convert(mSynergyData.ndt_date8, ^null, formatString, ^null)
+                mreturn (string)mSynergyData.str_instr
             endmethod
             method set
             proc
-                data formatString = "YYYYMMDD"
-                mSynergyData.ndt_date8 = (D)SynergyDecimalDateConverter.ConvertBack(value, ^null, formatString, ^null)
+                mSynergyData.str_instr = value
             endmethod
         endproperty
 
         ;;; <summary>
         ;;; 
         ;;; </summary>
-        public property NdtDate6, Nullable<DateTime>
+        {StringLength(25, ErrorMessage=" cannot exceed 25 characters. ")}
+        public property DescOutter, String
             method get
             proc
-                data formatString = "YYYYMMDD"
-                formatString = "YYMMDD"
-                mreturn (Nullable<DateTime>)SynergyDecimalDateConverter.Convert(mSynergyData.ndt_date6, ^null, formatString, ^null)
+                mreturn (String)SynergyAlphaConverter.Convert(mSynergyData.desc_outter, ^null, ^null, ^null)
             endmethod
             method set
             proc
-                data formatString = "YYYYMMDD"
-                formatString = "YYMMDD"
-                mSynergyData.ndt_date6 = (D)SynergyDecimalDateConverter.ConvertBack(value, ^null, formatString, ^null)
-            endmethod
-        endproperty
-
-        ;;; <summary>
-        ;;; 
-        ;;; </summary>
-        public property NdtTime6, Nullable<DateTime>
-            method get
-            proc
-                mreturn Convert.ToDateTime(%string(mSynergyData.ndt_time6,"XX:XX:XX"))
-            endmethod
-            method set
-            proc
-                mSynergyData.ndt_time6 = (value.Value.Hour * 10000) + (value.Value.Minute * 100) + value.Value.Second
-            endmethod
-        endproperty
-
-        ;;; <summary>
-        ;;; 
-        ;;; </summary>
-        public property NdtTime4, Nullable<DateTime>
-            method get
-            proc
-                mreturn Convert.ToDateTime(%string(mSynergyData.ndt_time4,"XX:XX"))
-            endmethod
-            method set
-            proc
-                mSynergyData.ndt_time4 = (value.Value.Hour * 100) + value.Value.Minute
+                mSynergyData.desc_outter = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
             endmethod
         endproperty
 
@@ -206,7 +173,7 @@ namespace TraditionalBridge.Models
         public override method InternalGetValues, [#]@object
         proc
             ;;TODO: This should be returning boxed values for each of our fields
-            mreturn new Object[5]
+            mreturn new Object[3]
         endmethod
 
 .endregion
