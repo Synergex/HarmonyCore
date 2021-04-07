@@ -313,7 +313,7 @@ namespace <NAMESPACE>
             data mvcBuilder = services.AddMvcCore(MvcCoreConfig)
             &    .SetCompatibilityVersion(CompatibilityVersion.Version_2_2 )
             &    .AddDataAnnotations()      ;;Enable data annotations
-            &    .AddNewtonsoftJson()      ;;For PATCH
+            &    .AddNewtonsoftJson(<IF DEFINED_ENABLE_NEWTONSOFT>lambda (opts) { opts.SerializerSettings.ContractResolver = new Newtonsoft.Json.Serialization.DefaultContractResolver()}</IF>)
             &    .AddApplicationPart(^typeof(IsolatedMethodsBase).Assembly)
 
         <IF DEFINED_ENABLE_AUTHENTICATION>
@@ -426,6 +426,14 @@ namespace <NAMESPACE>
             services.AddCors()
 
         </IF DEFINED_ENABLE_CORS>
+        <IF DEFINED_ENABLE_SIGNALR>
+            ;; -------------------------------------------------------------------------------
+            ;;Add SignalR support
+            services.AddSignalR().AddNewtonsoftJsonProtocol()
+            services.AddDistributedMemoryCache()
+            services.AddSession()
+
+        </IF DEFINED_ENABLE_SIGNALR>
             ;;If there is a ConfigureServicesCustom method, call it
             ConfigureServicesCustom(services)
 
@@ -600,9 +608,11 @@ namespace <NAMESPACE>
 
             lambda corsOptions(builder)
             begin
-                builder.AllowAnyOrigin()
+                builder
+                &   .AllowCredentials()
                 &    .AllowAnyMethod()
                 &    .AllowAnyHeader()
+                &   .SetIsOriginAllowed(lambda(p) { true } )
             end
 
             app.UseCors(corsOptions)

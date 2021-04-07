@@ -97,7 +97,7 @@
 		{
 			"id": "348faa4b-487a-4d1e-9c94-9880cb11f521",
 			"key": "server",
-			"value": "https://localhost:8086",
+			"value": "https://localhost:<SERVER_HTTPS_PORT>",
 			"type": "string"
 		}
 	]

@@ -194,7 +194,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
                 RCBSerializeArg(0, true, FieldDataType.IntegerField, ^a(returnValue), %size(returnValue), 0, serializer)
                     <ELSE>
                 rcb_call(mRcbid)
-                RCBSerializeArg(0, true, FieldDataType.<IF ALPHA>Alpha<ELSE DECIMAL>Decimal<ELSE INTEGER>Integer<ELSE IMPLIED>ImpliedDecimal</IF>Field, ^a(returnValue), <METHOD_RETURN_SIZE>, 0<METHOD_RETURN_PRECISION>, serializer)
+                RCBSerializeArg(0, true, FieldDataType.IntegerField, ^a(returnValue), %size(returnValue), 0, serializer)
                     </IF HATVAL>
                 <ELSE>
                 rcb_call(mRcbid)

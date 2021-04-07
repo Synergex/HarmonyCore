@@ -1,14 +1,15 @@
-<CODEGEN_FILENAME><INTERFACE_NAME>TestResponses.dbl</CODEGEN_FILENAME>
+<CODEGEN_FILENAME><INTERFACE_NAME>TestRequests.dbl</CODEGEN_FILENAME>
 <REQUIRES_CODEGEN_VERSION>5.4.6</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
-;// Title:       InterfaceTestResponse.tpl
+;// Title:       InterfaceTestRequests.tpl
 ;//
 ;// Type:        CodeGen Template
 ;//
-;// Description: Generates test responses for all OUT and INOUT parameters
+;// Description: 
 ;//
-;// Copyright (c) 2019, Synergex International, Inc. All rights reserved.
+;// Copyright (c) 2021, Synergex International, Inc. All rights reserved.
 ;//
 ;// Redistribution and use in source and binary forms, with or without
 ;// modification, are permitted provided that the following conditions are met:
@@ -34,9 +35,10 @@
 ;//
 ;;*****************************************************************************
 ;;
-;; Title:       <INTERFACE_NAME>TestResponses.dbl
+;; Title:       <INTERFACE_NAME>TestRequests.dbl
 ;;
-;; Description: Generates test responses for all OUT and INOUT parameters
+;; Description: 
+;;              
 ;;
 ;;*****************************************************************************
 ;; WARNING: GENERATED CODE!
@@ -44,50 +46,37 @@
 ;; Any changes you make will be lost of the file is re-generated.
 ;;*****************************************************************************
 
+import Newtonsoft.Json
+import System
+import System.IO
+
+import <MODELS_NAMESPACE>
+
 namespace <NAMESPACE>
 
-    public class <INTERFACE_NAME>TestResponses
+    public static class <INTERFACE_NAME>TestRequests
 
-  <METHOD_LOOP>
-    <IF RETURNS_DATA>
-        public static method <METHOD_NAME>, <IF FUNCTION><IF HATVAL>i4<ELSE><method_return_type></IF HATVAL><ELSE>void</IF FUNCTION>
-      <PARAMETER_LOOP>
-        <IF OUT_OR_INOUT>
-            <parameter_required> <parameter_direction> <PARAMETER_NAME>, <PARAMETER_DEFINITION>
-        </IF OUT_OR_INOUT>
-      </PARAMETER_LOOP>
+        public static method MakeTestRequestFiles, void
         proc
-      <PARAMETER_LOOP>
-        <IF OUT_OR_INOUT>
-            <IF OPTIONAL>
-            if (^passed(<PARAMETER_NAME>))
-                <PARAMETER_NAME> = <PARAMETER_SAMPLE_DATA>
-            <ELSE>
-            <PARAMETER_NAME> = <PARAMETER_SAMPLE_DATA>
-            </IF OPTIONAL>
-        </IF OUT_OR_INOUT>
-      </PARAMETER_LOOP>
-      <IF FUNCTION>
-            mreturn <IF ALPHA>"Z"</IF ALPHA><IF DECIMAL>9</IF DECIMAL><IF ENUM>8</IF ENUM><IF HATVAL>0</IF HATVAL><IF IMPLIED>6.6</IF IMPLIED><IF INTEGER>0</IF INTEGER>
-      </IF FUNCTION>
+            data testDataFolder = UnitTestEnvironment.FindRelativeFolderForAssembly("TestData")
+            data fileSpec, string
+
+<METHOD_LOOP>
+  <IF IN_OR_INOUT>
+            fileSpec = Path.Combine(testDataFolder,"<INTERFACE_NAME>.<METHOD_NAME>.request.json.template")
+            data <METHOD_NAME>Request = new <INTERFACE_NAME>.<METHOD_NAME>_Request()
+    <PARAMETER_LOOP>
+      <IF IN_OR_INOUT AND REQUIRED>
+            <METHOD_NAME>Request.<PARAMETER_NAME> = <HARMONYCORE_PARAMETER_SAMPLE_DATA>
+      </IF>
+    </PARAMETER_LOOP>
+            File.WriteAllText(fileSpec, JsonConvert.SerializeObject(<METHOD_NAME>Request,Formatting.Indented))
+            clear <METHOD_NAME>Request
+
+  </IF>
+</METHOD_LOOP>
         endmethod
 
-    </IF RETURNS_DATA>
-  </METHOD_LOOP>
     endclass
 
 endnamespace
-
-;
-; Sample code to call these test methods
-;
-<METHOD_LOOP>
-<IF RETURNS_DATA>
-<IF FUNCTION>
-;    freturn <INTERFACE_NAME>TestResponses.<METHOD_NAME>(<PARAMETER_LOOP><IF OUT_OR_INOUT><PARAMETER_NAME><IF MORE_OUT_OR_INOUT>,</IF MORE_OUT_OR_INOUT></IF OUT_OR_INOUT></PARAMETER_LOOP>)
-<ELSE>
-;    <INTERFACE_NAME>TestResponses.<METHOD_NAME>(<PARAMETER_LOOP><IF OUT_OR_INOUT><PARAMETER_NAME><IF MORE_OUT_OR_INOUT>,</IF MORE_OUT_OR_INOUT></IF OUT_OR_INOUT></PARAMETER_LOOP>)
-;    xreturn
-</IF FUNCTION>
-</IF RETURNS_DATA>
-</METHOD_LOOP>

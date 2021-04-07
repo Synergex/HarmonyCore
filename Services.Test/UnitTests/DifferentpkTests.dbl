@@ -114,6 +114,21 @@ namespace Services.Test.UnitTests
         endmethod
 
         ;;------------------------------------------------------------
+        ;;Get a single Differentpk by alternate key 1 (Id2)
+
+        {TestMethod}
+        {TestCategory("Differentpk Tests - Read by Alternate Key")}
+        public method GetDifferentpk_ByAltKey_Id2, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            data request = String.Format("/odata/v1/Differentpks(Id={1})", "", TestConstants.Instance.GetDifferentpk_ByAltKey_Id2_Id)
+            data response = client.GetAsync(request).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data differentpk, @ODataDifferentpk,JsonConvert.DeserializeObject<ODataDifferentpk>(result)
+        endmethod
+
+        ;;------------------------------------------------------------
         ;;Get a single Differentpk by alternate key 2 (Alphapk)
 
         {TestMethod}
@@ -181,7 +196,7 @@ namespace Services.Test.UnitTests
         public method GetDifferentpk_ByAltKey_Timepk, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/v1/Differentpks(Timepk={1})", "", TestConstants.Instance.GetDifferentpk_ByAltKey_Timepk_Timepk.ToString("hh:mm:ss"))
+            data request = String.Format("/odata/v1/Differentpks(Timepk={1})", "", TestConstants.Instance.GetDifferentpk_ByAltKey_Timepk_Timepk)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
@@ -196,7 +211,7 @@ namespace Services.Test.UnitTests
         public method GetDifferentpk_ByAltKey_Booleanpk, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/v1/Differentpks(Booleanpk={1})", "", TestConstants.Instance.GetDifferentpk_ByAltKey_Booleanpk_Booleanpk.ToString().ToLower())
+            data request = String.Format("/odata/v1/Differentpks(Booleanpk={1})", "", TestConstants.Instance.GetDifferentpk_ByAltKey_Booleanpk_Booleanpk)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
@@ -213,7 +228,7 @@ namespace Services.Test.UnitTests
             disposable data client = UnitTestEnvironment.Server.CreateClient()
 
             ;;Get one differentpk from the file
-            data getRequest = String.Format("/odata/v1/Differentpks(Id={1})","",TestConstants.Instance.GetDifferentpk_Id)
+            data getRequest = String.Format("/odata/v1/Differentpks({1})","",TestConstants.Instance.GetDifferentpk_Id)
             data getResponse = client.GetAsync(getRequest).Result
             data getResult = getResponse.Content.ReadAsStringAsync().Result
 
@@ -229,7 +244,7 @@ namespace Services.Test.UnitTests
 
             ;;Create new item
             disposable data requestBody = new StringContent(JsonConvert.SerializeObject(doDifferentpk),System.Text.Encoding.UTF8, "application/json")
-            data request = String.Format("/odata/v1/Differentpks(Id={1})","",TestConstants.Instance.UpdateDifferentpk_Id)
+            data request = String.Format("/odata/v1/Differentpks({1})","",TestConstants.Instance.UpdateDifferentpk_Id)
             disposable data response = client.PutAsync(request, requestBody).Result
 
             ;;Check that we got a successful response from the web service
@@ -249,7 +264,7 @@ namespace Services.Test.UnitTests
 
             ;;Update full item
             requestBody = new StringContent(JsonConvert.SerializeObject(doDifferentpk),System.Text.Encoding.UTF8, "application/json")
-            request = String.Format("/odata/v1/Differentpks(Id={1})","",TestConstants.Instance.UpdateDifferentpk_Id)
+            request = String.Format("/odata/v1/Differentpks({1})","",TestConstants.Instance.UpdateDifferentpk_Id)
             response = client.PutAsync(request, requestBody).Result
 
             ;;Check that we got a successful response from the web service

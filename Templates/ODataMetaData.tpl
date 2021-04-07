@@ -80,18 +80,18 @@ namespace <NAMESPACE>
           <IF CUSTOM_HARMONY_AS_STRING>
         private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalConverter.LiteralFormatter("XX-XX-XX")
           <ELSE>
-        private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("YYMMDD")
+        private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("FORMAT:YYMMDD")
           </IF CUSTOM_HARMONY_AS_STRING>
         </IF DATE_YYMMDD>
         <IF DATE_YYYYMMDD>
           <IF CUSTOM_HARMONY_AS_STRING>
         private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalConverter.LiteralFormatter("XXXX-XX-XX")
           <ELSE>
-        private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("YYYYMMDD")
+        private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("FORMAT:YYYYMMDD")
           </IF CUSTOM_HARMONY_AS_STRING>
         </IF DATE_YYYYMMDD>
         <IF DATE_YYYYJJJ>
-        private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("YYYYJJJ")
+        private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("FORMAT:YYYYJJJ")
         </IF DATE_YYYYJJJ>
         <IF TIME>
           <IF CUSTOM_HARMONY_AS_STRING>
@@ -102,12 +102,7 @@ namespace <NAMESPACE>
         private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalConverter.LiteralFormatter("XX:XX:XX")
             </IF TIME_HHMMSS>
           <ELSE>
-          <IF TIME_HHMM>
-        private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("HHMM")
-          </IF TIME_HHMM>
-          <IF TIME_HHMMSS>
-        private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("HHMMSS")
-          </IF TIME_HHMM>
+        private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("FORMAT:HHMM")
           </IF CUSTOM_HARMONY_AS_STRING>
         </IF TIME>
       <ELSE>
@@ -209,11 +204,11 @@ namespace <NAMESPACE>
 
             ;; Define all fields that are associated wity key segments
 <IF STRUCTURE_ISAM>
-  <KEY_LOOP_UNIQUE>
+  <KEY_LOOP>
     <SEGMENT_LOOP>
             AddKeyInfo(<KEY_NUMBER>, "<FieldSqlname>")
     </SEGMENT_LOOP>
-  </KEY_LOOP_UNIQUE>
+  </KEY_LOOP>
 </IF STRUCTURE_ISAM>
 <IF STRUCTURE_RELATIVE>
             AddKeyInfo(0, "recordNumber")
@@ -225,7 +220,7 @@ namespace <NAMESPACE>
             ;; Define the composition of access keys
 
 <IF STRUCTURE_ISAM>
-  <KEY_LOOP_UNIQUE>
+  <KEY_LOOP>
             data <KeyName>_KeyParts = new FieldDataDefinition[<KEY_SEGMENTS>]
     <SEGMENT_LOOP>
       <IF SEG_TYPE_LITERAL>
@@ -236,7 +231,7 @@ namespace <NAMESPACE>
     </SEGMENT_LOOP>
             AddFieldInfo("KEY_<KEY_NAME>", "COMPOSITE", 0, 0, 0, false, ^null, ^null, <KeyName>_KeyParts)
 
-  </KEY_LOOP_UNIQUE>
+  </KEY_LOOP>
   <COUNTER_1_RESET>
   <FOREIGN_KEY_LOOP>
     <COUNTER_1_INCREMENT>
@@ -352,18 +347,18 @@ namespace <NAMESPACE>
             required in keyNumber, int
             required in parts, @Dictionary<String, Object>
             endparams
-  <KEY_LOOP_UNIQUE>
+  <KEY_LOOP>
             stack record key<KEY_NUMBER>
     <SEGMENT_LOOP>
                 <FieldSqlName>, <SEGMENT_SPEC>
     </SEGMENT_LOOP>
             endrecord
-  </KEY_LOOP_UNIQUE>
+  </KEY_LOOP>
         proc
             data startPos = 0
             data segValueLength, int
             using keyNumber select
-  <KEY_LOOP_UNIQUE>
+  <KEY_LOOP>
             (<KEY_NUMBER>),
             begin
     <SEGMENT_LOOP>
@@ -385,7 +380,7 @@ namespace <NAMESPACE>
     </SEGMENT_LOOP>
                 mreturn key<KEY_NUMBER>
             end
-  </KEY_LOOP_UNIQUE>
+  </KEY_LOOP>
             endusing
 
             throw new ApplicationException(String.Format("Invalid key number {0} encountered in <StructureNoplural>Metadata.FormatKeyLiteral",keyNumber))

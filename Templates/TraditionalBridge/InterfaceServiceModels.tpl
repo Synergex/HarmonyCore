@@ -48,6 +48,9 @@
 ;; Any changes you make will be lost of the file is re-generated.
 ;;*****************************************************************************
 
+<IF DEFINED_ENABLE_NEWTONSOFT>
+import Newtonsoft.Json
+</IF DEFINED_ENABLE_NEWTONSOFT>
 import System
 import System.ComponentModel.DataAnnotations
 
@@ -68,6 +71,9 @@ namespace <NAMESPACE>
 ;//
   <IF IN_OR_INOUT>
 
+    <IF DEFINED_ENABLE_NEWTONSOFT>
+    {JsonObject(MemberSerialization.OptIn)}
+    </IF DEFINED_ENABLE_NEWTONSOFT>
     ;;; <summary>
     ;;; Represents IN parameters for method <INTERFACE_NAME>.<METHOD_NAME>.
     ;;; </summary>
@@ -75,6 +81,9 @@ namespace <NAMESPACE>
       <PARAMETER_LOOP>
         <IF IN_OR_INOUT>
 
+        <IF DEFINED_ENABLE_NEWTONSOFT>
+        {JsonProperty}
+        </IF DEFINED_ENABLE_NEWTONSOFT>
         <IF REQUIRED>
         {Required(ErrorMessage="<PARAMETER_NAME> is required")}
         </IF REQUIRED>
@@ -85,8 +94,6 @@ namespace <NAMESPACE>
         ;;; Parameter <PARAMETER_NUMBER> (<PARAMETER_REQUIRED> <PARAMETER_DIRECTION> <PARAMETER_DEFINITION>)
         <IF COMMENT>
         ;;; <PARAMETER_COMMENT>
-        <ELSE>
-        ;;; No description found in method catalog
         </IF COMMENT>
         ;;; </summary>
         public <PARAMETER_NAME>, <IF COLLECTION>[#]</IF><HARMONYCORE_BRIDGE_PARAMETER_TYPE>
@@ -102,12 +109,18 @@ namespace <NAMESPACE>
 ;//
   <IF RETURNS_DATA>
 
+    <IF DEFINED_ENABLE_NEWTONSOFT>
+    {JsonObject(MemberSerialization.OptIn)}
+    </IF DEFINED_ENABLE_NEWTONSOFT>
     ;;; <summary>
     ;;; Represents OUT parameters<IF FUNCTION> and return value</IF FUNCTION> for method <INTERFACE_NAME>.<METHOD_NAME>.
     ;;; </summary>
     public class <METHOD_NAME>_Response
     <IF FUNCTION>
 
+        <IF DEFINED_ENABLE_NEWTONSOFT>
+        {JsonProperty}
+        </IF DEFINED_ENABLE_NEWTONSOFT>
         ;;; <summary>
         ;;; Return value
         ;;; </summary>
@@ -117,15 +130,16 @@ namespace <NAMESPACE>
       <PARAMETER_LOOP>
         <IF OUT_OR_INOUT>
 
+        <IF DEFINED_ENABLE_NEWTONSOFT>
+        {JsonProperty}
+        </IF DEFINED_ENABLE_NEWTONSOFT>
         ;;; <summary>
         ;;; Parameter <PARAMETER_NUMBER> (<PARAMETER_REQUIRED> <PARAMETER_DIRECTION> <PARAMETER_DEFINITION>)
         <IF COMMENT>
         ;;; <PARAMETER_COMMENT>
-        <ELSE>
-        ;;; No description found in method catalog
         </IF COMMENT>
         ;;; </summary>
-        public <PARAMETER_NAME>, <IF COLLECTION>[#]</IF><HARMONYCORE_BRIDGE_PARAMETER_TYPE><IF OUT AND ALPHA>, ""</IF OUT>
+        public <PARAMETER_NAME>, <IF COLLECTION>[#]</IF><HARMONYCORE_BRIDGE_PARAMETER_TYPE><IF OUT AND ALPHA>, <IF COLLECTION>new string[1]<ELSE>String.Empty</IF></IF>
         </IF OUT_OR_INOUT>
       </PARAMETER_LOOP>
     </IF OUT_OR_INOUT>

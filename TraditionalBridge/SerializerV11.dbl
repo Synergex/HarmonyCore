@@ -82,7 +82,7 @@ namespace Json
                 messageLength, int
             endrecord
         proc
-			
+
             ;;clear and reset utf8jsonwriter
             jsonWriter.Flush()
             message = buffer.ToString()
@@ -97,16 +97,25 @@ namespace Json
             if(6 <= Logger.LogLevel) then
             begin
                 data lengthheader, string
+.ifdef OS_UNIX
+                lengthHeader = "Content-Length:" + %string(messageLength) + %char(10) + %char(10)
+.else
                 lengthHeader = "Content-Length:" + %string(messageLength) + %char(13) + %char(10) + %char(13) + %char(10)
+.endc
                 MaybeLog(6, "Serializer: " + lengthHeader)
                 outStream.FlushData(lengthHeader)
             end
-            else 
-                outStream.FlushData("Content-Length:" + %string(messageLength) + %char(13) + %char(10) + %char(13) + %char(10))
-			
+			else 
+			begin
+.ifdef OS_UNIX
+				outStream.FlushData("Content-Length:" + %string(messageLength) + %char(10) + %char(10))
+.else
+				outStream.FlushData("Content-Length:" + %string(messageLength) + %char(13) + %char(10) + %char(13) + %char(10))
+.endc
+			end
             MaybeLog(6, "Serializer: " + message)
             outStream.FlushData(message)
-			
+
         endmethod
 
 .endregion

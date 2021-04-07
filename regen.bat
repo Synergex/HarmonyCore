@@ -1,5 +1,8 @@
 @echo off
-setlocal
+cls
+setlocal EnableDelayedExpansion
+
+echo rem CodeGen commands used for last regen > regen_last.bat
 
 set SolutionDir=%~dp0
 
@@ -90,6 +93,7 @@ rem Comment or uncomment the following lines to enable or disable optional featu
 set ENABLE_ODATA_ENVIRONMENT=YES
 rem set EF_PROVIDER_MYSQL=-define EF_PROVIDER_MYSQL
 rem set NO_CUSTOM_PLURALIZATION=-ncp
+rem set GLOBAL_MODELSTATE_FILTER=-define GLOBAL_MODELSTATE_FILTER
 set ENABLE_SELF_HOST_GENERATION=YES
 set ENABLE_CREATE_TEST_FILES=-define ENABLE_CREATE_TEST_FILES
 rem set DO_NOT_SET_FILE_LOGICALS=-define DO_NOT_SET_FILE_LOGICALS
@@ -117,6 +121,7 @@ rem set ENABLE_AUTHENTICATION=-define ENABLE_AUTHENTICATION
 rem set ENABLE_CUSTOM_AUTHENTICATION=-define ENABLE_CUSTOM_AUTHENTICATION
 rem set ENABLE_FIELD_SECURITY=-define ENABLE_FIELD_SECURITY
 rem set ENABLE_SIGNALR=-define ENABLE_SIGNALR
+rem set ENABLE_TYPESCRIPT_GENERATION=YES
 set ENABLE_UNIT_TEST_GENERATION=YES
 rem set ENABLE_CASE_SENSITIVE_URL=-define ENABLE_CASE_SENSITIVE_URL
 rem set ENABLE_CORS=-define ENABLE_CORS
@@ -127,6 +132,7 @@ rem set ENABLE_READ_ONLY_PROPERTIES=-define ENABLE_READ_ONLY_PROPERTIES
 rem set ENABLE_TRADITIONAL_BRIDGE_GENERATION=YES
 rem set ENABLE_XFSERVERPLUS_MIGRATION=YES
 rem set ENABLE_XFSERVERPLUS_MODEL_GENERATION=YES
+rem set ENABLE_XFSERVERPLUS_METHOD_STUBS=YES
 rem set ENABLE_BRIDGE_OPTIONAL_PARAMETERS=YES
 set ENABLE_NEWTONSOFT=-define ENABLE_NEWTONSOFT
 
@@ -139,7 +145,7 @@ rem Configure standard command line options and the CodeGen environment
 
 rem set SHOW_CODEGEN_COMMANDS=-e
 
-set NOREPLACEOPTS=%SHOW_CODEGEN_COMMANDS% -lf -u %SolutionDir%UserDefinedTokens.tkn %NO_CUSTOM_PLURALIZATION% %ENABLE_GET_ALL% %ENABLE_GET_ONE% %ENABLE_OVERLAYS% %DO_NOT_SET_FILE_LOGICALS% %ENABLE_ALTERNATE_FIELD_NAMES% %ENABLE_AUTHENTICATION% %ENABLE_CUSTOM_AUTHENTICATION% %ENABLE_SIGNALR% %ENABLE_FIELD_SECURITY% %ENABLE_PROPERTY_ENDPOINTS% %ENABLE_CASE_SENSITIVE_URL% %ENABLE_CREATE_TEST_FILES% %ENABLE_CORS% %ENABLE_IIS_SUPPORT% %ENABLE_DELETE% %ENABLE_PUT% %ENABLE_POST% %ENABLE_PATCH% %ENABLE_ALTERNATE_KEYS% %ENABLE_PARTIAL_KEYS% %ENABLE_RELATIONS% %ENABLE_RELATIONS_VALIDATION% %ENABLE_SELECT% %ENABLE_FILTER% %ENABLE_ORDERBY% %ENABLE_COUNT% %ENABLE_TOP% %ENABLE_SKIP% %ENABLE_SPROC% %ENABLE_ADAPTER_ROUTING% %ENABLE_READ_ONLY_PROPERTIES% %ENABLE_NEWTONSOFT% %PARAM_OPTIONS_PRESENT% %EF_PROVIDER_MYSQL% -rps %RPSMFIL% %RPSTFIL%
+set NOREPLACEOPTS=%SHOW_CODEGEN_COMMANDS% -lf -u %SolutionDir%UserDefinedTokens.tkn %NO_CUSTOM_PLURALIZATION% %GLOBAL_MODELSTATE_FILTER% %ENABLE_GET_ALL% %ENABLE_GET_ONE% %ENABLE_OVERLAYS% %DO_NOT_SET_FILE_LOGICALS% %ENABLE_ALTERNATE_FIELD_NAMES% %ENABLE_AUTHENTICATION% %ENABLE_CUSTOM_AUTHENTICATION% %ENABLE_SIGNALR% %ENABLE_FIELD_SECURITY% %ENABLE_PROPERTY_ENDPOINTS% %ENABLE_CASE_SENSITIVE_URL% %ENABLE_CREATE_TEST_FILES% %ENABLE_CORS% %ENABLE_IIS_SUPPORT% %ENABLE_DELETE% %ENABLE_PUT% %ENABLE_POST% %ENABLE_PATCH% %ENABLE_ALTERNATE_KEYS% %ENABLE_PARTIAL_KEYS% %ENABLE_RELATIONS% %ENABLE_RELATIONS_VALIDATION% %ENABLE_SELECT% %ENABLE_FILTER% %ENABLE_ORDERBY% %ENABLE_COUNT% %ENABLE_TOP% %ENABLE_SKIP% %ENABLE_SPROC% %ENABLE_ADAPTER_ROUTING% %ENABLE_READ_ONLY_PROPERTIES% %ENABLE_NEWTONSOFT% %PARAM_OPTIONS_PRESENT% %EF_PROVIDER_MYSQL% -rps %RPSMFIL% %RPSTFIL%
 set STDOPTS=%NOREPLACEOPTS% -r
 
 rem ================================================================================================================================
@@ -153,34 +159,41 @@ if DEFINED ENABLE_ODATA_ENVIRONMENT (
   echo .
   echo ************************************************************************
   echo Generating Web API/OData CRUD environment
+  echo rem Generating Web API/OData CRUD environment >> regen_last.bat
 
   if NOT DEFINED EF_PROVIDER_MYSQL (
 
-  echo.
-  echo Generating model and metadata classes
+    echo.
+    echo Generating model and metadata classes
 
-    codegen -s  %DATA_STRUCTURES% %CUSTOM_STRUCTURES% ^
-            -a  %DATA_ALIASES% %CUSTOM_ALIASES% ^
-            -fo %DATA_FILES% ^
-            -t  ODataModel ODataMetaData ^
-            -i  %SolutionDir%Templates ^
-            -o  %SolutionDir%%ModelsProject% ^
-            -n  %ModelsProject% ^
-                %STDOPTS%
+    set command=codegen ^
+-s  %DATA_STRUCTURES% %CUSTOM_STRUCTURES% ^
+-a  %DATA_ALIASES% %CUSTOM_ALIASES% ^
+-fo %DATA_FILES% ^
+-t  ODataModel ODataMetaData ^
+-i  %SolutionDir%Templates ^
+-o  %SolutionDir%%ModelsProject% ^
+-n  %ModelsProject% ^
+%STDOPTS%
+    echo !command! >> regen_last.bat
+    !command!
     if ERRORLEVEL 1 goto error
   )
 
   echo.
   echo Generating controller classes
 
-  codegen -s  %DATA_STRUCTURES% ^
-          -a  %DATA_ALIASES% ^
-          -fo %DATA_FILES% ^
-          -t  ODataController ^
-          -i  %SolutionDir%Templates%TEMPLATESUBDIR% ^
-          -o  %SolutionDir%%ControllersProject% ^
-          -n  %ControllersProject% ^
-              %STDOPTS%
+  set command=codegen ^
+-s  %DATA_STRUCTURES% ^
+-a  %DATA_ALIASES% ^
+-fo %DATA_FILES% ^
+-t  ODataController ^
+-i  %SolutionDir%Templates%TEMPLATESUBDIR% ^
+-o  %SolutionDir%%ControllersProject% ^
+-n  %ControllersProject% ^
+%STDOPTS% -tweaks SQLNAMENO$
+  echo !command! >> regen_last.bat
+  !command!
   if ERRORLEVEL 1 goto error
   
 if DEFINED ENABLE_PROPERTY_ENDPOINTS (
@@ -188,14 +201,17 @@ if DEFINED ENABLE_PROPERTY_ENDPOINTS (
   echo.
   echo Generating individual property endpoints
 
-  codegen -s  %DATA_STRUCTURES% ^
-          -a  %DATA_ALIASES% ^
-          -fo %DATA_FILES% ^
-          -t  ODataControllerPropertyEndpoints ^
-          -i  %SolutionDir%Templates ^
-          -o  %SolutionDir%%ControllersProject% ^
-          -n  %ControllersProject% ^
-              %STDOPTS%
+  set command=codegen ^
+-s  %DATA_STRUCTURES% ^
+-a  %DATA_ALIASES% ^
+-fo %DATA_FILES% ^
+-t  ODataControllerPropertyEndpoints ^
+-i  %SolutionDir%Templates ^
+-o  %SolutionDir%%ControllersProject% ^
+-n  %ControllersProject% ^
+%STDOPTS%
+  echo !command! >> regen_last.bat
+  !command!
   if ERRORLEVEL 1 goto error
 )
 if NOT DEFINED EF_PROVIDER_MYSQL (
@@ -203,42 +219,51 @@ if NOT DEFINED EF_PROVIDER_MYSQL (
   echo.
   echo Generating EF DbContext class
 
-  codegen -s  %DATA_STRUCTURES% -ms ^
-          -a  %DATA_ALIASES% ^
-          -fo %DATA_FILES% ^
-          -t  ODataDbContext ^
-          -i  %SolutionDir%Templates ^
-          -o  %SolutionDir%%ModelsProject% ^
-          -n  %ModelsProject% ^
-              %STDOPTS%
+  set command=codegen ^
+-s  %DATA_STRUCTURES% -ms ^
+-a  %DATA_ALIASES% ^
+-fo %DATA_FILES% ^
+-t  ODataDbContext ^
+-i  %SolutionDir%Templates ^
+-o  %SolutionDir%%ModelsProject% ^
+-n  %ModelsProject% ^
+%STDOPTS%
+  echo !command! >> regen_last.bat
+  !command!
   if ERRORLEVEL 1 goto error
 )
   echo.
   echo Generating OData EDM Builder class
 
-  codegen -s  %DATA_STRUCTURES% -ms ^
-          -a  %DATA_ALIASES% ^
-          -fo %DATA_FILES% ^
-          -t  ODataEdmBuilder ^
-          -i  %SolutionDir%Templates%TEMPLATESUBDIR% ^
-          -o  %SolutionDir%%ServicesProject% ^
-          -n  %ServicesProject% ^
-          -ut CONTROLLERS_NAMESPACE=%ControllersProject% MODELS_NAMESPACE=%ModelsProject% ^
-              %STDOPTS%
+  set command=codegen ^
+-s  %DATA_STRUCTURES% -ms ^
+-a  %DATA_ALIASES% ^
+-fo %DATA_FILES% ^
+-t  ODataEdmBuilder ^
+-i  %SolutionDir%Templates%TEMPLATESUBDIR% ^
+-o  %SolutionDir%%ServicesProject% ^
+-n  %ServicesProject% ^
+-ut CONTROLLERS_NAMESPACE=%ControllersProject% MODELS_NAMESPACE=%ModelsProject% ^
+%STDOPTS% -tweaks SQLNAMENO$
+  echo !command! >> regen_last.bat
+  !command!
   if ERRORLEVEL 1 goto error
 
   echo.
   echo Generating startup class
 
-  codegen -s  %DATA_STRUCTURES% -ms ^
-          -a  %DATA_ALIASES% ^
-          -fo %DATA_FILES% ^
-          -t  ODataStartup ^
-          -i  %SolutionDir%Templates%TEMPLATESUBDIR% ^
-          -o  %SolutionDir%%ServicesProject% ^
-          -n  %ServicesProject% ^
-          -ut CONTROLLERS_NAMESPACE=%ControllersProject% MODELS_NAMESPACE=%ModelsProject% ^
-              %STDOPTS%
+  set command=codegen ^
+-s  %DATA_STRUCTURES% -ms ^
+-a  %DATA_ALIASES% ^
+-fo %DATA_FILES% ^
+-t  ODataStartup ^
+-i  %SolutionDir%Templates%TEMPLATESUBDIR% ^
+-o  %SolutionDir%%ServicesProject% ^
+-n  %ServicesProject% ^
+-ut CONTROLLERS_NAMESPACE=%ControllersProject% MODELS_NAMESPACE=%ModelsProject% ^
+%STDOPTS%
+  echo !command! >> regen_last.bat
+  !command!
   if ERRORLEVEL 1 goto error
 )
 
@@ -250,13 +275,16 @@ if DEFINED ENABLE_POSTMAN_TESTS (
   echo.
   echo Generating Postman tests for OData environment
 
-  codegen -s  %DATA_STRUCTURES% -ms ^
-          -a  %DATA_ALIASES% ^
-          -fo %DATA_FILES% ^
-          -t  ODataPostManTests ^
-          -i  %SolutionDir%Templates%TEMPLATESUBDIR% ^
-          -o  %SolutionDir% ^
-              %STDOPTS%
+  set command=codegen ^
+-s  %DATA_STRUCTURES% -ms ^
+-a  %DATA_ALIASES% ^
+-fo %DATA_FILES% ^
+-t  ODataPostManTests ^
+-i  %SolutionDir%Templates%TEMPLATESUBDIR% ^
+-o  %SolutionDir% ^
+%STDOPTS%
+  echo !command! >> regen_last.bat
+  !command!
   if ERRORLEVEL 1 goto error
 )
 
@@ -268,32 +296,36 @@ if DEFINED ENABLE_SELF_HOST_GENERATION (
   echo.
   echo ************************************************************************
   echo Generating self-hosting code
+  echo rem Generating self-hosting code >> regen_last.bat
   echo.
   echo Generating self-hosting environment class
 
-  codegen -s  %FILE_STRUCTURES% -ms ^
-          -a  %FILE_ALIASES% ^
-          -fo %FILE_FILES% ^
-          -t  ODataSelfHostEnvironment ^
-          -i  %SolutionDir%Templates%TEMPLATESUBDIR% ^
-          -o  %SolutionDir%%HostProject% ^
-          -n  %HostProject% ^
-          -ut SERVICES_NAMESPACE=%ServicesProject% MODELS_NAMESPACE=%ModelsProject% ^
-              %STDOPTS%
+  set command=codegen ^
+-s  %FILE_STRUCTURES% -ms ^
+-a  %FILE_ALIASES% ^
+-fo %FILE_FILES% ^
+-t  ODataSelfHostEnvironment ^
+-i  %SolutionDir%Templates%TEMPLATESUBDIR% ^
+-o  %SolutionDir%%HostProject% ^
+-n  %HostProject% ^
+-ut SERVICES_NAMESPACE=%ServicesProject% MODELS_NAMESPACE=%ModelsProject% ^
+%STDOPTS%
+  echo !command! >> regen_last.bat
+  !command!
   if ERRORLEVEL 1 goto error
 
   echo.
   echo Generating self-hosting program
 
-  codegen -s  %FILE_STRUCTURES% ^
-          -a  %FILE_ALIASES% ^
-          -fo %FILE_FILES% ^
-          -t  ODataSelfHost ^
-          -i  %SolutionDir%Templates ^
-          -o  %SolutionDir%%HostProject% ^
-          -n  %HostProject% ^
-          -ut SERVICES_NAMESPACE=%ServicesProject% ^
-              %STDOPTS%
+  set command=codegen ^
+-t  ODataSelfHost ^
+-i  %SolutionDir%Templates ^
+-o  %SolutionDir%%HostProject% ^
+-n  %HostProject% ^
+-ut SERVICES_NAMESPACE=%ServicesProject% ^
+%STDOPTS%
+  echo !command! >> regen_last.bat
+  !command!
   if ERRORLEVEL 1 goto error
 )
 
@@ -304,17 +336,21 @@ if DEFINED ENABLE_CUSTOM_AUTHENTICATION (
 
   echo ************************************************************************
   echo Generating custom authentication code
-    echo.
+  echo rem Generating custom authentication code >> regen_last.bat
+  echo.
 
   if not exist "%SolutionDir%%ModelsProject%\AuthenticationModels.dbl" (
     echo Generating custom authentication data model class
     echo.
 
-    codegen -t  ODataCustomAuthModels ^
-            -i  %SolutionDir%Templates ^
-            -o  %SolutionDir%%ModelsProject% ^
-            -n  %ModelsProject% ^
-                %NOREPLACEOPTS%
+    set command=codegen ^
+-t  ODataCustomAuthModels ^
+-i  %SolutionDir%Templates ^
+-o  %SolutionDir%%ModelsProject% ^
+-n  %ModelsProject% ^
+%NOREPLACEOPTS%
+    echo !command! >> regen_last.bat
+    !command!
     if ERRORLEVEL 1 goto error
     echo.
   )
@@ -323,11 +359,14 @@ if DEFINED ENABLE_CUSTOM_AUTHENTICATION (
     echo Generating custom authentication controller class
     echo.
 
-    codegen -t  ODataCustomAuthController ^
-            -i  %SolutionDir%Templates ^
-            -o  %SolutionDir%%ControllersProject% ^
-            -n  %ControllersProject% ^
-                %NOREPLACEOPTS%
+    set command=codegen ^
+-t  ODataCustomAuthController ^
+-i  %SolutionDir%Templates ^
+-o  %SolutionDir%%ControllersProject% ^
+-n  %ControllersProject% ^
+%NOREPLACEOPTS%
+    echo !command! >> regen_last.bat
+    !command!
     if ERRORLEVEL 1 goto error
     echo.
   )
@@ -336,11 +375,14 @@ if DEFINED ENABLE_CUSTOM_AUTHENTICATION (
     echo Generating custom authentication tools class
     echo.
 
-    codegen -t  ODataCustomAuthTools ^
-            -i  %SolutionDir%Templates ^
-            -o  %SolutionDir%%ControllersProject% ^
-            -n  %ControllersProject% ^
-                %NOREPLACEOPTS%
+    set command=codegen ^
+-t  ODataCustomAuthTools ^
+-i  %SolutionDir%Templates ^
+-o  %SolutionDir%%ControllersProject% ^
+-n  %ControllersProject% ^
+%NOREPLACEOPTS%
+    echo !command! >> regen_last.bat
+    !command!
     if ERRORLEVEL 1 goto error
     echo.
   )
@@ -349,63 +391,82 @@ if DEFINED ENABLE_CUSTOM_AUTHENTICATION (
 rem ================================================================================
 rem Unit testing project
 
+if DEFINED EF_PROVIDER_MYSQL (
+  set UNITTESTTEMPLATES=ODataUnitTests
+) else (
+  set UNITTESTTEMPLATES=ODataClientModel ODataTestDataLoader ODataUnitTests
+)
+
 if DEFINED ENABLE_UNIT_TEST_GENERATION (
 
   echo ************************************************************************
   echo Generating unit test code
+  echo rem Generating unit test code >> regen_last.bat
 
   echo.
   echo Generating client model, data loader and unit test classes
   
-  codegen -s  %DATA_STRUCTURES% ^
-          -a  %DATA_ALIASES% ^
-          -fo %DATA_FILES% ^
-          -t  ODataClientModel ODataTestDataLoader ODataUnitTests ^
-          -i  %SolutionDir%Templates ^
-          -o  %SolutionDir%%TestProject% -tf ^
-          -n  %TestProject% ^
-          -ut UNIT_TEST_NAMESPACE=%TestProject% ^
-              %STDOPTS%
+  set command=codegen ^
+-s  %DATA_STRUCTURES% ^
+-a  %DATA_ALIASES% ^
+-fo %DATA_FILES% ^
+-t  %UNITTESTTEMPLATES% ^
+-i  %SolutionDir%Templates ^
+-o  %SolutionDir%%TestProject% -tf ^
+-n  %TestProject% ^
+-ut UNIT_TEST_NAMESPACE=%TestProject% ^
+%STDOPTS%
+  echo !command! >> regen_last.bat
+  !command!
   if ERRORLEVEL 1 goto error
 
   echo.
   echo Generating unit test environment class and hosting program
 
-  codegen -s  %FILE_STRUCTURES% -ms ^
-          -a  %FILE_ALIASES% ^
-          -fo %FILE_FILES% ^
-          -t  ODataUnitTestEnvironment ODataUnitTestHost ^
-          -i  %SolutionDir%Templates ^
-          -o  %SolutionDir%%TestProject% ^
-          -n  %TestProject% ^
-              %STDOPTS%
+  set command=codegen ^
+-s  %FILE_STRUCTURES% -ms ^
+-a  %FILE_ALIASES% ^
+-fo %FILE_FILES% ^
+-t  ODataUnitTestEnvironment ODataUnitTestHost ^
+-i  %SolutionDir%Templates ^
+-o  %SolutionDir%%TestProject% ^
+-n  %TestProject% ^
+%STDOPTS%
+  echo !command! >> regen_last.bat
+  !command!
   if ERRORLEVEL 1 goto error
 
   echo.
   echo Generating unit test constants properties class
 
-  codegen -s  %DATA_STRUCTURES% -ms ^
-          -a  %DATA_ALIASES% ^
-          -fo %DATA_FILES% ^
-          -t  ODataTestConstantsProperties ^
-          -i  %SolutionDir%Templates ^
-          -o  %SolutionDir%%TestProject% ^
-          -n  %TestProject% ^
-              %STDOPTS%
+  set command=codegen ^
+-s  %DATA_STRUCTURES% -ms ^
+-a  %DATA_ALIASES% ^
+-fo %DATA_FILES% ^
+-t  ODataTestConstantsProperties ^
+-i  %SolutionDir%Templates ^
+-o  %SolutionDir%%TestProject% ^
+-n  %TestProject% ^
+%STDOPTS%
+  echo !command! >> regen_last.bat
+  !command!
   if ERRORLEVEL 1 goto error
 
   echo.
   echo Generating unit test key value generation program 
 
-  codegen -s  %DATA_STRUCTURES% -ms ^
-          -a  %DATA_ALIASES% ^
-          -fo %DATA_FILES% ^
-          -t  GenerateTestValues ^
-          -i  %SolutionDir%Templates ^
-          -o  %SolutionDir%%TestValuesProject% ^
-          -n  %TestValuesProject% ^
-          -ut UNIT_TEST_NAMESPACE=%TestProject% ^
-              %STDOPTS%
+  set command=codegen ^
+-s  %DATA_STRUCTURES% -ms ^
+-a  %DATA_ALIASES% ^
+-fo %DATA_FILES% ^
+-t  GenerateTestValues ^
+-i  %SolutionDir%Templates ^
+-o  %SolutionDir%%TestValuesProject% ^
+-n  %TestValuesProject% ^
+-ut UNIT_TEST_NAMESPACE=%TestProject% ^
+%STDOPTS%
+  echo !command! >> regen_last.bat
+  !command!
   if ERRORLEVEL 1 goto error
 )
 
@@ -417,36 +478,41 @@ if DEFINED ENABLE_TRADITIONAL_BRIDGE_GENERATION (
   echo.
   echo ************************************************************************
   echo Generating traditional bridge server-side data model classes
+  echo rem Generating traditional bridge server-side data model classes >> regen_last.bat
 
-  codegen -s %BRIDGE_STRUCTURES% ^
-          -a %BRIDGE_ALIASES% ^
-          -t ODataModel ^
-          -i %SolutionDir%Templates\TraditionalBridge ^
-          -o %SolutionDir%%TraditionalBridgeProject%\source ^
-          -n %TraditionalBridgeProject% ^
-          -e -r -lf
+  set command=codegen ^
+-s %BRIDGE_STRUCTURES% ^
+-a %BRIDGE_ALIASES% ^
+-t ODataModel ^
+-i %SolutionDir%Templates\TraditionalBridge ^
+-o %SolutionDir%%TraditionalBridgeProject%\source ^
+-n %TraditionalBridgeProject% ^
+-e -r -lf
+  echo !command! >> regen_last.bat
+  !command!
   if ERRORLEVEL 1 goto error
 )
 
 rem ================================================================================
 rem Generate TraditionalBridge / xfServerPlus Migration Code
+:generateBridge
 
 rem Specify the path to a SMC export file and the method catalog location
-set SMC_XML_FILE=TraditionalBridge\MethodCatalog\MethodDefinitions.xml
-set XFPL_SMCPATH=TraditionalBridge\MethodCatalog
+set SMC_XML_FILE=%SolutionDir%TraditionalBridge\MethodCatalog\MethodDefinitions.xml
+set XFPL_SMCPATH=%SolutionDir%TraditionalBridge\MethodCatalog
 
 rem Specify the name of one or more interfaces defined in the SMC export file, space separated
-set SMC_INTERFACES=BridgeSamples
+set SMC_INTERFACES=
 
 rem CodeGen options
-set NOREPLACEOPTS=%SHOW_CODEGEN_COMMANDS% -lf -u %SolutionDir%UserDefinedTokens.tkn -rps %RPSMFIL% %RPSTFIL% %ENABLE_AUTHENTICATION%
+set NOREPLACEOPTS=%SHOW_CODEGEN_COMMANDS% -lf -u %SolutionDir%UserDefinedTokens.tkn -rps %RPSMFIL% %RPSTFIL% %ENABLE_AUTHENTICATION% %GLOBAL_MODELSTATE_FILTER% %ENABLE_NEWTONSOFT% %ENABLE_OVERLAYS%
 set STDOPTS=%NOREPLACEOPTS% -r
 
 rem Optional parameters support is for use with xfServerPlue environments that were
 rem used in conjunction with xfNetLink COM, which supported optional parameters.
 if DEFINED ENABLE_BRIDGE_OPTIONAL_PARAMETERS (
   set BRIDGE_DISPATCHER_TEMPLATE=OptionalParameterMethodDispatchers
-  ) else (
+) else (
   set BRIDGE_DISPATCHER_TEMPLATE=InterfaceMethodDispatchers
 )
 
@@ -454,6 +520,7 @@ if DEFINED ENABLE_XFSERVERPLUS_MIGRATION (
 
   rem Generate code for each interface
   for %%x in (%SMC_INTERFACES%) do (
+    rem if "%%x" == "myInterface" (set METHODS_TO_EXCLUDE=-mexclude SOME_METHOD)
     call :GenerateCodeForInterface %%x
   )
 
@@ -463,6 +530,7 @@ if DEFINED ENABLE_XFSERVERPLUS_MIGRATION (
   rem Generate SignalR hub(s)
   if DEFINED ENABLE_SIGNALR (
     for %%x in (%SMC_INTERFACES%) do (
+      rem if "%%x" == "myInterface" (set METHODS_TO_EXCLUDE=-mexclude SOME_METHOD)
       call :GenerateSignalRHub %%x
     )
   )
@@ -487,97 +555,139 @@ rem ============================================================================
   echo.
   echo ************************************************************************
   echo Generating Traditional Bridge code for interface %1
+  echo rem Generating Traditional Bridge code for interface %1 >> regen_last.bat
+  echo.
+  echo Generating interface method stubs (Traditional)
+
+  if defined ENABLE_XFSERVERPLUS_METHOD_STUBS (
+
+    set command=codegen ^
+-smc %SMC_XML_FILE% ^
+-interface %1 ^
+-t  InterfaceMethodStubs ^
+-i  %SolutionDir%Templates\TraditionalBridge ^
+-o  %SolutionDir%%TraditionalBridgeProject%\source\stubs ^
+-ut MODELS_NAMESPACE=%TraditionalBridgeProject%.Models ^
+%STDOPTS% -tweaks PARAMDEFSTR
+    echo !command! >> regen_last.bat
+    !command!
+  )
+
   echo.
   echo Generating interface method dispatcher classes (Traditional)
 
-  codegen -smc %SMC_XML_FILE% ^
-          -interface %1 ^
-          -t %BRIDGE_DISPATCHER_TEMPLATE% ^
-          -i %SolutionDir%Templates\TraditionalBridge ^
-          -o %SolutionDir%%TraditionalBridgeProject%\Dispatchers ^
-          -n %TraditionalBridgeProject%.Dispatchers ^
-          -ut MODELS_NAMESPACE=%TraditionalBridgeProject%.Models ^
-          %STDOPTS%
+  set command=codegen ^
+-smc %SMC_XML_FILE% ^
+-interface %1 ^
+-t %BRIDGE_DISPATCHER_TEMPLATE% ^
+-i %SolutionDir%Templates\TraditionalBridge ^
+-o %SolutionDir%%TraditionalBridgeProject%\source\dispatchers ^
+-n %TraditionalBridgeProject%.Dispatchers ^
+-ut MODELS_NAMESPACE=%TraditionalBridgeProject%.Models ^
+%STDOPTS% -tweaks PARAMDEFSTR
+  echo !command! >> regen_last.bat
+  !command!
   if ERRORLEVEL 1 goto error
 
   echo.
   echo Generating interface dispatcher classes (Traditional)
   
-  codegen -smc %SMC_XML_FILE% ^
-          -interface %1 ^
-          -t InterfaceDispatcher ^
-          -i %SolutionDir%Templates\TraditionalBridge ^
-          -o %SolutionDir%%TraditionalBridgeProject%\Dispatchers ^
-          -n %TraditionalBridgeProject%.Dispatchers ^
-          -ut MODELS_NAMESPACE=%TraditionalBridgeProject%.Models ^
-          %STDOPTS%
+  set command=codegen ^
+-smc %SMC_XML_FILE% ^
+-interface %1 ^
+-t InterfaceDispatcher ^
+-i %SolutionDir%Templates\TraditionalBridge ^
+-o %SolutionDir%%TraditionalBridgeProject%\source\dispatchers ^
+-n %TraditionalBridgeProject%.Dispatchers ^
+-ut MODELS_NAMESPACE=%TraditionalBridgeProject%.Models ^
+%STDOPTS%
+  echo !command! >> regen_last.bat
+  !command!
   if ERRORLEVEL 1 goto error
 
   echo.
   echo Generating interface data model classes (Traditional)
 
-  codegen -smcstrs %SMC_XML_FILE% ^
-          -interface %1 ^
-          -t TraditionalModel TraditionalMetadata ^
-          -i %SolutionDir%Templates\TraditionalBridge ^
-          -o %SolutionDir%%TraditionalBridgeProject%\Models ^
-          -n %TraditionalBridgeProject%.Models ^
-          %STDOPTS%
+  set command=codegen ^
+-smcstrs %SMC_XML_FILE% ^
+-interface %1 ^
+-t TraditionalModel TraditionalMetadata ^
+-i %SolutionDir%Templates\TraditionalBridge ^
+-o %SolutionDir%%TraditionalBridgeProject%\source\models ^
+-n %TraditionalBridgeProject%.Models ^
+%STDOPTS%
+  echo !command! >> regen_last.bat
+  !command!
+  if ERRORLEVEL 1 goto error
+
+  echo.
+  echo Generating interface data model classes (.NET)
 
   if defined ENABLE_XFSERVERPLUS_MODEL_GENERATION (
 
-    echo.
-    echo Generating interface data model classes (.NET)
     rem Ideally the same data classes are shared between OData and Traditional Bridge
     rem environments. But if OData is not being used, enable this to generate Models
     rem in the web service based on SMC content.
 
-    codegen -smcstrs %SMC_XML_FILE% ^
-            -interface %1 ^
-            -t ODataModel ODataMetaData ^
-            -i %SolutionDir%Templates\TraditionalBridge ^
-            -o %SolutionDir%%ModelsProject% ^
-            -n %ModelsProject% ^
-            %STDOPTS%
+    set command=codegen ^
+-smcstrs %SMC_XML_FILE% ^
+-interface %1 ^
+-t ODataModel ODataMetaData ^
+-i %SolutionDir%Templates\TraditionalBridge ^
+-o %SolutionDir%%ModelsProject% ^
+-n %ModelsProject% ^
+%STDOPTS%
+    echo !command! >> regen_last.bat
+    !command!
+	if ERRORLEVEL 1 goto error
   )
 
   echo.
   echo Generating interface request/response DTO classes (.NET)
 
-  codegen -smc %SMC_XML_FILE% ^
-          -interface %1 ^
-          -t InterfaceServiceModels ^
-          -i %SolutionDir%Templates\TraditionalBridge ^
-          -o %SolutionDir%%ModelsProject% ^
-          -n %1 ^
-          -ut MODELS_NAMESPACE=%ModelsProject% ^
-          %STDOPTS%
+  set command=codegen ^
+-smc %SMC_XML_FILE% ^
+-interface %1 ^
+-t InterfaceServiceModels ^
+-i %SolutionDir%Templates\TraditionalBridge ^
+-o %SolutionDir%%ModelsProject% ^
+-n %1 ^
+-ut MODELS_NAMESPACE=%ModelsProject% ^
+%STDOPTS%
+  echo !command! >> regen_last.bat
+  !command!
   if ERRORLEVEL 1 goto error
 
   echo.
   echo Generating interface service classes (.NET)
 
-  codegen -smc %SMC_XML_FILE% ^
-          -interface %1 ^
-          -t InterfaceService ^
-          -i %SolutionDir%Templates\TraditionalBridge ^
-          -o %SolutionDir%%ControllersProject% ^
-          -n %ControllersProject% ^
-          -ut MODELS_NAMESPACE=%ModelsProject% DTOS_NAMESPACE=%1 ^
-          %STDOPTS%
+  set command=codegen ^
+-smc %SMC_XML_FILE% ^
+-interface %1 ^
+-t InterfaceService ^
+-i %SolutionDir%Templates\TraditionalBridge ^
+-o %SolutionDir%%ControllersProject% ^
+-n %ControllersProject% ^
+-ut MODELS_NAMESPACE=%ModelsProject% DTOS_NAMESPACE=%1 ^
+%STDOPTS%
+  echo !command! >> regen_last.bat
+  !command!
   if ERRORLEVEL 1 goto error
 
   echo.
   echo Generating interface controller classes (.NET)
 
-  codegen -smc %SMC_XML_FILE% ^
-          -interface %1 ^
-          -t InterfaceController ^
-          -i %SolutionDir%Templates\TraditionalBridge ^
-          -o %SolutionDir%%ControllersProject% ^
-          -n %ControllersProject% ^
-          -ut MODELS_NAMESPACE=%ModelsProject% DTOS_NAMESPACE=%1 ^
-          %STDOPTS%
+  set command=codegen ^
+-smc %SMC_XML_FILE% ^
+-interface %1 %METHODS_TO_EXCLUDE% ^
+-t InterfaceController ^
+-i %SolutionDir%Templates\TraditionalBridge ^
+-o %SolutionDir%%ControllersProject% ^
+-n %ControllersProject% ^
+-ut MODELS_NAMESPACE=%ModelsProject% DTOS_NAMESPACE=%1 ^
+%STDOPTS%
+  echo !command! >> regen_last.bat
+  !command!
   if ERRORLEVEL 1 goto error
 
   if DEFINED ENABLE_POSTMAN_TESTS (
@@ -585,12 +695,15 @@ rem ============================================================================
   echo.
   echo Generating interface Postman tests
 
-  codegen -smc %SMC_XML_FILE% ^
-          -interface %1 ^
-          -t InterfacePostmanTests ^
-          -i %SolutionDir%Templates\TraditionalBridge ^
-          -o %SolutionDir% ^
-            %STDOPTS%
+  set command=codegen ^
+-smc %SMC_XML_FILE% ^
+-interface %1 %METHODS_TO_EXCLUDE% ^
+-t InterfacePostmanTests ^
+-i %SolutionDir%Templates\TraditionalBridge ^
+-o %SolutionDir% ^
+%STDOPTS%
+    echo !command! >> regen_last.bat
+    !command!
     if ERRORLEVEL 1 goto error
   )
 
@@ -599,16 +712,66 @@ rem ============================================================================
     echo.
     echo Generating interface unit tests (.NET)
 
-    codegen -smc %SMC_XML_FILE% ^
-            -interface %1 ^
-            -t  InterfaceUnitTests InterfaceUnitTestValues ^
-            -i  %SolutionDir%Templates\TraditionalBridge ^
-            -o  %SolutionDir%%TestProject% -tf ^
-            -n  %TestProject% ^
-            -ut CLIENT_MODELS_NAMESPACE=%TestProject%.Models DTOS_NAMESPACE=%1 ^
-          %STDOPTS%
+    set command=codegen ^
+-smc %SMC_XML_FILE% ^
+-interface %1 %METHODS_TO_EXCLUDE% ^
+-t  InterfaceUnitTests InterfaceUnitTestValues ^
+-i  %SolutionDir%Templates\TraditionalBridge ^
+-o  %SolutionDir%%TestProject% -tf ^
+-n  %TestProject% ^
+-ut CLIENT_MODELS_NAMESPACE=%TestProject%.Models DTOS_NAMESPACE=%1 ^
+%STDOPTS%
+    echo !command! >> regen_last.bat
+    !command!
     if ERRORLEVEL 1 goto error
 
+    set command=codegen ^
+-smc %SMC_XML_FILE% ^
+-interface %1 ^
+-t  InterfaceTestRequests ^
+-i  %SolutionDir%Templates\TraditionalBridge ^
+-o  %SolutionDir%%TestProject%.MakeSampleRequests ^
+-n  %TestProject%.MakeSampleRequests ^
+-ut MODELS_NAMESPACE=%ModelsProject% ^
+%STDOPTS%
+    echo !command! >> regen_last.bat
+    !command!
+    if ERRORLEVEL 1 goto error
+
+  )
+
+  if DEFINED ENABLE_TYPESCRIPT_GENERATION (
+
+    if not exist "%SolutionDir%TypeScript" mkdir "%SolutionDir%TypeScript"
+
+    echo.
+    echo Generating TypeScript interface methods for interface %1
+    echo rem Generating TypeScript interface methods for interface %1 >> regen_last.bat
+
+    set command=codegen ^
+-smc %SMC_XML_FILE% ^
+-interface %1  %METHODS_TO_EXCLUDE% ^
+-t  TypeScriptInterfaceMethods ^
+-i  %SolutionDir%Templates\TypeScript ^
+-o  %SolutionDir%TypeScript ^
+%STDOPTS%
+    echo !command! >> regen_last.bat
+    !command!
+    if ERRORLEVEL 1 goto error
+
+    echo.
+    echo Generating TypeScript interface structures
+
+    set command=codegen ^
+-smcstrs %SMC_XML_FILE% -ms ^
+-interface  %1  ^
+-t  TypeScriptInterfaceStructures ^
+-i  %SolutionDir%Templates\TypeScript ^
+-o  %SolutionDir%TypeScript ^
+%STDOPTS%
+    echo !command! >> regen_last.bat
+    !command!
+    if ERRORLEVEL 1 goto error
   )
 
 GOTO:eof
@@ -617,16 +780,20 @@ rem ============================================================================
 :GenerateMainDispatcher
 
   echo.
-  echo Generating multi-interface dispatcher tools class (Traditional)
+  echo Generating multi-interface dispatcher class (Traditional)
+  echo rem Generating multi-interface dispatcher class (Traditional) >> regen_last.bat
 
-  codegen -smc %SMC_XML_FILE% ^
-          -iloop %* ^
-          -t InterfaceSuperDispatcher  ^
-          -i %SolutionDir%Templates\TraditionalBridge ^
-          -o %SolutionDir%%TraditionalBridgeProject%\Dispatchers ^
-          -n %TraditionalBridgeProject%.Dispatchers ^
-          -ut MODELS_NAMESPACE=%TraditionalBridgeProject%.Models ^
-          %STDOPTS%
+  set command=codegen ^
+-smc %SMC_XML_FILE% ^
+-iloop %* ^
+-t InterfaceSuperDispatcher  ^
+-i %SolutionDir%Templates\TraditionalBridge ^
+-o %SolutionDir%%TraditionalBridgeProject%\source\dispatchers ^
+-n %TraditionalBridgeProject%.Dispatchers ^
+-ut MODELS_NAMESPACE=%TraditionalBridgeProject%.Models ^
+%STDOPTS%
+  echo !command! >> regen_last.bat
+  !command!
   if ERRORLEVEL 1 goto error
 
 GOTO:eof
@@ -635,16 +802,40 @@ rem ============================================================================
 :GenerateSignalRHub
 
   echo.
-  echo Generating interface SignalR hub (.NET)
+  echo Generating SignalR code for interface %1
+  echo rem Generating SignalR code for interface %1 >> regen_last.bat
 
-  codegen -smc %SMC_XML_FILE% ^
-          -interface %1 ^
-          -t SignalRHub ^
-          -i %SolutionDir%Templates\SignalR ^
-          -o %SolutionDir%%ControllersProject% ^
-          -n %ControllersProject% ^
-          -ut MODELS_NAMESPACE=%ModelsProject% DTOS_NAMESPACE=%1 ^
-          %STDOPTS%
-  if ERRORLEVEL 1 goto error  
+  set command=codegen ^
+-smc %SMC_XML_FILE% ^
+-interface %1 %METHODS_TO_EXCLUDE% ^
+-t SignalRHub ^
+-i %SolutionDir%Templates\SignalR ^
+-o %SolutionDir%%ControllersProject% ^
+-n %ControllersProject% ^
+-ut MODELS_NAMESPACE=%ModelsProject% DTOS_NAMESPACE=%1 ^
+%STDOPTS%
+  echo !command! >> regen_last.bat
+  !command!
+  if ERRORLEVEL 1 goto error
+
+  if DEFINED ENABLE_UNIT_TEST_GENERATION (
+
+    echo.
+    echo Generating SignalR tests for interface %1
+
+    set command=codegen ^
+-smc %SMC_XML_FILE% ^
+-interface %1 %METHODS_TO_EXCLUDE% ^
+-t SignalRTests ^
+-i %SolutionDir%Templates\SignalR ^
+-o %SolutionDir%%TestProject%\UnitTests ^
+-n %TestProject%.UnitTests ^
+-ut SERVICES_NAMESPACE=%ServicesProject% MODELS_NAMESPACE=%ModelsProject% ^
+%STDOPTS%
+    echo !command! >> regen_last.bat
+    !command!
+    if ERRORLEVEL 1 goto error
+
+  )
 
 GOTO:eof

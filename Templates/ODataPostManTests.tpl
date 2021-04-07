@@ -29,7 +29,7 @@
                 ],
                 "body": {
                     "mode": "raw",
-                    "raw": "{ \"Username\": \"<CUSTOM_AUTH_USERNAME>\", \"Password\": \"<CUSTOM_AUTH_PASSWORD>\"}"
+                    "raw": "<CUSTOM_AUTH_REQUEST_POSTMAN>"
                 },
                 "url": {
                     "raw": "{{ServerAuthUri}}/<CUSTOM_AUTH_CONTROLLER_PATH>/<CUSTOM_AUTH_ENDPOINT_PATH>",
@@ -238,11 +238,14 @@
 ;//
 <IF STRUCTURE_ISAM AND DEFINED_ENABLE_ALTERNATE_KEYS AND ALTERNATE_KEY_ENDPOINTS>
   <ALTERNATE_KEY_LOOP_UNIQUE>
-    <IF DUPLICATES>
 <IF COUNTER_1>                ,</IF COUNTER_1>
                 {
                     "_postman_id": "<guid_nobrace>",
+    <IF DUPLICATES>
                     "name": "Read <structurePlural> by <KeyName>",
+    <ELSE>
+                    "name": "Read <structureNoplural> by <KeyName>",
+    </IF>
                     "request": {
                     "method": "GET",
                     "header": [
@@ -273,7 +276,6 @@
                     "response": []
     <COUNTER_1_INCREMENT>
                 }
-    </IF>
     <IF DEFINED_ENABLE_COUNT AND DUPLICATES>
 <IF COUNTER_1>                ,</IF COUNTER_1>
                 {

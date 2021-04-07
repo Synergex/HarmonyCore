@@ -29,8 +29,8 @@ namespace Services.Models
     public partial class DifferentpkMetadata extends DataObjectMetadataBase
 
         ;; Define custom property formatters
-        private mDatepkFormatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("YYYYMMDD")
-        private mTimepkFormatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("HHMMSS")
+        private mDatepkFormatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("FORMAT:YYYYMMDD")
+        private mTimepkFormatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("FORMAT:HHMM")
 
         ;;; <summary>
         ;;; Constructs an new DifferentpkMetadata object.
@@ -55,6 +55,7 @@ namespace Services.Models
 
             ;; Define all fields that are associated wity key segments
             AddKeyInfo(0, "Id")
+            AddKeyInfo(1, "Id")
             AddKeyInfo(2, "Alphapk")
             AddKeyInfo(3, "Decimalpk")
             AddKeyInfo(4, "Intergerpk")
@@ -67,6 +68,10 @@ namespace Services.Models
             data Id_KeyParts = new FieldDataDefinition[1]
             Id_KeyParts[1] = GetFieldByName("Id")
             AddFieldInfo("KEY_ID", "COMPOSITE", 0, 0, 0, false, ^null, ^null, Id_KeyParts)
+
+            data Id2_KeyParts = new FieldDataDefinition[1]
+            Id2_KeyParts[1] = GetFieldByName("Id")
+            AddFieldInfo("KEY_ID2", "COMPOSITE", 0, 0, 0, false, ^null, ^null, Id2_KeyParts)
 
             data Alphapk_KeyParts = new FieldDataDefinition[1]
             Alphapk_KeyParts[1] = GetFieldByName("Alphapk")
@@ -169,6 +174,9 @@ namespace Services.Models
             stack record key0
                 Id, D6
             endrecord
+            stack record key1
+                Id, D6
+            endrecord
             stack record key2
                 Alphapk, A4
             endrecord
@@ -196,6 +204,12 @@ namespace Services.Models
                 if((segValueLength=KeyValueHelper(key0.Id, "Id", parts))<6 && segValueLength>0)
                     mreturn key0(1:startPos+segValueLength)
                 mreturn key0
+            end
+            (1),
+            begin
+                if((segValueLength=KeyValueHelper(key1.Id, "Id", parts))<6 && segValueLength>0)
+                    mreturn key1(1:startPos+segValueLength)
+                mreturn key1
             end
             (2),
             begin
