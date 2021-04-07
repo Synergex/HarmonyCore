@@ -76,6 +76,12 @@ namespace <NAMESPACE>
         private m<FieldSqlname>Formatter, @ILiteralFormatter, new <HARMONYCORE_CUSTOM_FIELD_TYPE>Converter.LiteralFormatter()
     <ELSE>
       <IF DATEORTIME>
+        <IF DATE_YYPP>
+        private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("YYPP")
+        </IF DATE_YYPP>
+        <IF DATE_YYYYPP>
+        private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("YYYYPP")
+        </IF DATE_YYYYPP>
         <IF DATE_YYMMDD>
           <IF CUSTOM_HARMONY_AS_STRING>
         private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalConverter.LiteralFormatter("XX-XX-XX")
@@ -93,6 +99,9 @@ namespace <NAMESPACE>
         <IF DATE_YYYYJJJ>
         private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("YYYYJJJ")
         </IF DATE_YYYYJJJ>
+        <IF DATE_YYJJJ>
+        private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("YYJJJ")
+        </IF DATE_YYJJJ>
         <IF TIME>
           <IF CUSTOM_HARMONY_AS_STRING>
             <IF TIME_HHMM>
