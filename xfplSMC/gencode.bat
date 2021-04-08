@@ -7,14 +7,11 @@ codegen -smc %SMCROOT%\%SMCNAME% -interface %TESTNAME% -t %SolutionDir%\%TEMPLAT
 if ERRORLEVEL 1 goto error
 
 rem Generate the request and response models for the service class methods (.NET side)
-codegen -smcstrs %SMCROOT%\%SMCNAME% -interface %TESTNAME% -t %SolutionDir%\%TEMPLATEROOT%\MultiInterfaceServiceModels -i %TEMPLATEROOT% -o %SolutionDir%\TraditionalBridge.TestClient\Client -n %TESTPROJECT% -ut MODELS_NAMESPACE=TraditionalBridge.Models DTOS_NAMESPACE=TraditionalBridge.TestClient.%TESTNAME% -e -r -lf
+codegen -smc %SMCROOT%\%SMCNAME% -interface %TESTNAME% -t %SolutionDir%\%TEMPLATEROOT%\MultiInterfaceServiceModels -i %TEMPLATEROOT% -o %SolutionDir%\TraditionalBridge.TestClient\Client -n %TESTPROJECT% -ut MODELS_NAMESPACE=TraditionalBridge.Models DTOS_NAMESPACE=TraditionalBridge.TestClient.%TESTNAME% -e -r -lf
 if ERRORLEVEL 1 goto bypass
 
 rem Generate the service class (.NET side)
-codegen -smcstrs %SMCROOT%\%SMCNAME% -interface %TESTNAME% -ms -t %SolutionDir%\%TEMPLATEROOT%\InterfaceService -i %TEMPLATEROOT% -o %SolutionDir%\TraditionalBridge.TestClient\Client -n %TESTPROJECT% -ut MODELS_NAMESPACE=TraditionalBridge.Models DTOS_NAMESPACE=TraditionalBridge.TestClient.%TESTNAME% -e -r -lf
-if ERRORLEVEL 1 goto bypass
-
-codegen -smcstrs %SMCROOT%\%SMCNAME% -ms -t %SolutionDir%\%TEMPLATEROOT%\InterfaceDispatcherCustom -o %SolutionDir%\%PROJECT%\DispatcherCustom -n %NAMESPACE% -ut SMC_INTERFACE=%TESTNAME% DTOS_NAMESPACE=%NAMESPACE% -e -r -lf
+codegen -smc %SMCROOT%\%SMCNAME% -interface %TESTNAME% -t %SolutionDir%\%TEMPLATEROOT%\InterfaceService -i %TEMPLATEROOT% -o %SolutionDir%\TraditionalBridge.TestClient\Client -n %TESTPROJECT% -ut MODELS_NAMESPACE=TraditionalBridge.Models DTOS_NAMESPACE=TraditionalBridge.TestClient.%TESTNAME% -e -r -lf
 if ERRORLEVEL 1 goto bypass
 
 rem Generate model and metadata classes
