@@ -343,7 +343,7 @@ namespace TraditionalBridge.TestClient
             ;;Make the JSON-RPC call the traditional Synergy routine
             data resultTuple = await CallMethod("syninsurance"
             &   ,args.TR_SYNINS_INP
-            &   ,ArgumentHelper.MayBeOptional(ArgumentHelper.MaybeNull(response.TR_SYNINS_RET))
+            &   ,ArgumentHelper.MayBeOptional(response.TR_SYNINS_RET)
             &   ,args.elementcount
             &   )
 
@@ -352,7 +352,7 @@ namespace TraditionalBridge.TestClient
 
             data resultList, @List<Object>, resultTuple.Item2.ToList()
 
-            response.TR_SYNINS_RET = ^as(resultList[2 - 1],@TrSyninsRet)
+            response.TR_SYNINS_RET = ^as(resultList[2 - 1],[#]@TrSyninsRet)
             ArgumentHelper.Argument(3, resultTuple, response.elementcount)
 
             ;;Return the response
