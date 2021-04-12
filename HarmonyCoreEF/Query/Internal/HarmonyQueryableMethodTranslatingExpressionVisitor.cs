@@ -918,14 +918,15 @@ namespace Harmony.Core.EF.Query.Internal
             
         }
 
-        private class JoinOnClause : Expression
+        private class JoinOnClause : Expression, IHasInnerExpression
         {
             public HarmonyTableExpression TargetTable;
-            public Expression InnerExpression;
             public ParameterExpression CurrentParameter;
 
             public override ExpressionType NodeType => InnerExpression.NodeType;
             public override Type Type => InnerExpression.Type;
+
+            public Expression InnerExpression { get; set; }
         }
 
         class LambdaSimplifier : ExpressionVisitor

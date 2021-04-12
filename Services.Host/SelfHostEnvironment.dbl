@@ -193,6 +193,58 @@ namespace Services.Host
                     Startup.LogicalNames.Add(fileSpec)
             end
 
+            fileSpec = "DAT:testcar.ism"
+            if (fileSpec.Contains(":")) then
+            begin
+                logical = fileSpec.Split(":")[1].ToUpper()
+                if (!Startup.LogicalNames.Contains(logical))
+                    Startup.LogicalNames.Add(logical)
+            end
+            else if (!fileSpec.Contains("."))
+            begin
+                if (!Startup.LogicalNames.Contains(fileSpec))
+                    Startup.LogicalNames.Add(fileSpec)
+            end
+
+            fileSpec = "DAT:testcarowner1.ism"
+            if (fileSpec.Contains(":")) then
+            begin
+                logical = fileSpec.Split(":")[1].ToUpper()
+                if (!Startup.LogicalNames.Contains(logical))
+                    Startup.LogicalNames.Add(logical)
+            end
+            else if (!fileSpec.Contains("."))
+            begin
+                if (!Startup.LogicalNames.Contains(fileSpec))
+                    Startup.LogicalNames.Add(fileSpec)
+            end
+
+            fileSpec = "DAT:testcarowner2.ism"
+            if (fileSpec.Contains(":")) then
+            begin
+                logical = fileSpec.Split(":")[1].ToUpper()
+                if (!Startup.LogicalNames.Contains(logical))
+                    Startup.LogicalNames.Add(logical)
+            end
+            else if (!fileSpec.Contains("."))
+            begin
+                if (!Startup.LogicalNames.Contains(fileSpec))
+                    Startup.LogicalNames.Add(fileSpec)
+            end
+
+            fileSpec = "DAT:testcarowner3.ism"
+            if (fileSpec.Contains(":")) then
+            begin
+                logical = fileSpec.Split(":")[1].ToUpper()
+                if (!Startup.LogicalNames.Contains(logical))
+                    Startup.LogicalNames.Add(logical)
+            end
+            else if (!fileSpec.Contains("."))
+            begin
+                if (!Startup.LogicalNames.Contains(fileSpec))
+                    Startup.LogicalNames.Add(fileSpec)
+            end
+
             ;;If we have a SetLogicalsCustom method, call it
             SetLogicalsCustom(Startup.LogicalNames)
 
@@ -229,6 +281,10 @@ namespace Services.Host
             data customerExs = loadCustomerExs()
             data nonuniquepks = loadNonuniquepks()
             data differentpks = loadDifferentpks()
+            data testcars = loadTestcars()
+            data testcarowner1s = loadTestcarowner1s()
+            data testcarowner2s = loadTestcarowner2s()
+            data testcarowner3s = loadTestcarowner3s()
 
             ;;Create and load the customers file
 
@@ -329,6 +385,50 @@ namespace Services.Host
                 store(chout,differentpk.SynergyRecord)
             close chout
 
+            ;;Create and load the testcars file
+
+            dataFile = "DAT:testcar.ism"
+            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+
+            data testcar, @Testcar
+            open(chout=0,o:i,dataFile,FDL:xdlFile)
+            foreach testcar in testcars
+                store(chout,testcar.SynergyRecord)
+            close chout
+
+            ;;Create and load the testcarowner1s file
+
+            dataFile = "DAT:testcarowner1.ism"
+            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+
+            data testcarowner1, @Testcarowner1
+            open(chout=0,o:i,dataFile,FDL:xdlFile)
+            foreach testcarowner1 in testcarowner1s
+                store(chout,testcarowner1.SynergyRecord)
+            close chout
+
+            ;;Create and load the testcarowner2s file
+
+            dataFile = "DAT:testcarowner2.ism"
+            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+
+            data testcarowner2, @Testcarowner2
+            open(chout=0,o:i,dataFile,FDL:xdlFile)
+            foreach testcarowner2 in testcarowner2s
+                store(chout,testcarowner2.SynergyRecord)
+            close chout
+
+            ;;Create and load the testcarowner3s file
+
+            dataFile = "DAT:testcarowner3.ism"
+            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+
+            data testcarowner3, @Testcarowner3
+            open(chout=0,o:i,dataFile,FDL:xdlFile)
+            foreach testcarowner3 in testcarowner3s
+                store(chout,testcarowner3.SynergyRecord)
+            close chout
+
         endmethod
 
         private static method deleteFiles, void
@@ -425,6 +525,50 @@ namespace Services.Host
             try
             begin
                 xcall delet("DAT:differentpk.ism")
+            end
+            catch (e, @NoFileFoundException)
+            begin
+                nop
+            end
+            endtry
+
+            ;;Delete the testcars file
+            try
+            begin
+                xcall delet("DAT:testcar.ism")
+            end
+            catch (e, @NoFileFoundException)
+            begin
+                nop
+            end
+            endtry
+
+            ;;Delete the testcarowner1s file
+            try
+            begin
+                xcall delet("DAT:testcarowner1.ism")
+            end
+            catch (e, @NoFileFoundException)
+            begin
+                nop
+            end
+            endtry
+
+            ;;Delete the testcarowner2s file
+            try
+            begin
+                xcall delet("DAT:testcarowner2.ism")
+            end
+            catch (e, @NoFileFoundException)
+            begin
+                nop
+            end
+            endtry
+
+            ;;Delete the testcarowner3s file
+            try
+            begin
+                xcall delet("DAT:testcarowner3.ism")
             end
             catch (e, @NoFileFoundException)
             begin
@@ -603,6 +747,82 @@ namespace Services.Host
         eof,
             close differentpkCh
             mreturn differentpks
+        endmethod
+
+        public static method loadTestcars, @List<Testcar>
+        proc
+            data dataFile = "DAT:testcar.ism"
+            data textFile = dataFile.ToLower().Replace(".ism",".txt")
+            data testcarCh, int, 0
+            data testcarRec, strTestcar
+            data testcars = new List<Testcar>()
+            data grfa, a10
+            open(testcarCh,i:s,textFile)
+            repeat
+            begin
+                reads(testcarCh,testcarRec,eof)
+                testcars.Add(new Testcar(testcarRec, grfa))
+            end
+        eof,
+            close testcarCh
+            mreturn testcars
+        endmethod
+
+        public static method loadTestcarowner1s, @List<Testcarowner1>
+        proc
+            data dataFile = "DAT:testcarowner1.ism"
+            data textFile = dataFile.ToLower().Replace(".ism",".txt")
+            data testcarowner1Ch, int, 0
+            data testcarowner1Rec, strTestcarowner1
+            data testcarowner1s = new List<Testcarowner1>()
+            data grfa, a10
+            open(testcarowner1Ch,i:s,textFile)
+            repeat
+            begin
+                reads(testcarowner1Ch,testcarowner1Rec,eof)
+                testcarowner1s.Add(new Testcarowner1(testcarowner1Rec, grfa))
+            end
+        eof,
+            close testcarowner1Ch
+            mreturn testcarowner1s
+        endmethod
+
+        public static method loadTestcarowner2s, @List<Testcarowner2>
+        proc
+            data dataFile = "DAT:testcarowner2.ism"
+            data textFile = dataFile.ToLower().Replace(".ism",".txt")
+            data testcarowner2Ch, int, 0
+            data testcarowner2Rec, strTestcarowner2
+            data testcarowner2s = new List<Testcarowner2>()
+            data grfa, a10
+            open(testcarowner2Ch,i:s,textFile)
+            repeat
+            begin
+                reads(testcarowner2Ch,testcarowner2Rec,eof)
+                testcarowner2s.Add(new Testcarowner2(testcarowner2Rec, grfa))
+            end
+        eof,
+            close testcarowner2Ch
+            mreturn testcarowner2s
+        endmethod
+
+        public static method loadTestcarowner3s, @List<Testcarowner3>
+        proc
+            data dataFile = "DAT:testcarowner3.ism"
+            data textFile = dataFile.ToLower().Replace(".ism",".txt")
+            data testcarowner3Ch, int, 0
+            data testcarowner3Rec, strTestcarowner3
+            data testcarowner3s = new List<Testcarowner3>()
+            data grfa, a10
+            open(testcarowner3Ch,i:s,textFile)
+            repeat
+            begin
+                reads(testcarowner3Ch,testcarowner3Rec,eof)
+                testcarowner3s.Add(new Testcarowner3(testcarowner3Rec, grfa))
+            end
+        eof,
+            close testcarowner3Ch
+            mreturn testcarowner3s
         endmethod
 
         private static method findRelativeFolderForAssembly, string

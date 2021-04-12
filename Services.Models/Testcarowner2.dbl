@@ -1,9 +1,9 @@
 ;;*****************************************************************************
 ;;
-;; Title:       CustomerEx.dbl
+;; Title:       Testcarowner2.dbl
 ;;
 ;; Description: Data model representing data defined by the repository
-;;              structure CUSTOMER_EX and from the data file DAT:CUSTOMER_EX.ism.
+;;              structure TESTCAROWNER2 and from the data file DAT:testcarowner2.ism.
 ;;
 ;;*****************************************************************************
 ;; WARNING: GENERATED CODE!
@@ -25,27 +25,27 @@ import System.Runtime.Serialization
 namespace Services.Models
 
     {Newtonsoft.Json.JsonObject(Newtonsoft.Json.MemberSerialization.OptIn)}
-    public partial class CustomerEx extends DataObjectBase
+    public partial class Testcarowner2 extends DataObjectBase
 
         ;;make the record available and a copy
-        private mSynergyData, strCustomerEx
-        private mOriginalSynergyData, strCustomerEx
+        private mSynergyData, strTestcarowner2
+        private mOriginalSynergyData, strTestcarowner2
         protected mGlobalRFA  ,a10
 
-        private static sMetadata, @CustomerExMetadata
+        private static sMetadata, @Testcarowner2Metadata
 
 .region "Constructors"
 
-        static method CustomerEx
+        static method Testcarowner2
         proc
-            sMetadata = new CustomerExMetadata()
-            DataObjectMetadataBase.MetadataLookup.TryAdd(^typeof(CustomerEx), sMetadata)
+            sMetadata = new Testcarowner2Metadata()
+            DataObjectMetadataBase.MetadataLookup.TryAdd(^typeof(Testcarowner2), sMetadata)
         endmethod
 
         ;;; <summary>
         ;;;  Constructor, initialise the base fields
         ;;; </summary>
-        public method CustomerEx
+        public method Testcarowner2
             parent()
         proc
             init mSynergyData, mOriginalSynergyData
@@ -54,7 +54,7 @@ namespace Services.Models
         ;;; <summary>
         ;;;  Alternate Constructor, accepts the structured data
         ;;; </summary>
-        public method CustomerEx
+        public method Testcarowner2
             required in inData, a
             required in inGrfa, a
             parent()
@@ -68,35 +68,35 @@ namespace Services.Models
 .region "Attributes of this entity"
 
         ;;; <summary>
-        ;;; 
+        ;;; Owner ID
         ;;; </summary>
         {Key}
-        {Range(0,999999, ErrorMessage=" must be between 0 and 999999. ")}
+        {Range(0,999999, ErrorMessage="Owner ID must be between 0 and 999999. ")}
         {Newtonsoft.Json.JsonProperty}
-        public property Customerid, int
+        public property Id, int
             method get
             proc
-                mreturn (int)mSynergyData.customerid
+                mreturn (int)mSynergyData.id
             endmethod
             method set
             proc
-                mSynergyData.customerid = value
+                mSynergyData.id = value
             endmethod
         endproperty
 
         ;;; <summary>
-        ;;; 
+        ;;; Owner name
         ;;; </summary>
-        {StringLength(128, ErrorMessage=" cannot exceed 128 characters. ")}
+        {StringLength(20, ErrorMessage="Owner name cannot exceed 20 characters. ")}
         {Newtonsoft.Json.JsonProperty}
-        public property Extradata, String
+        public property Name, String
             method get
             proc
-                mreturn (String)SynergyAlphaConverter.Convert(mSynergyData.extradata, ^null, ^null, ^null)
+                mreturn (String)SynergyAlphaConverter.Convert(mSynergyData.name, ^null, ^null, ^null)
             endmethod
             method set
             proc
-                mSynergyData.extradata = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
+                mSynergyData.name = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
             endmethod
         endproperty
 
@@ -173,10 +173,10 @@ namespace Services.Models
 
         {Newtonsoft.Json.JsonProperty(DefaultValueHandling=DefaultValueHandling.Ignore)}
         ;;; <summary>
-        ;;; Relationship (Type B)
-        ;;; CUSTOMER_EX.PRIMARY (one) --> (one) --> (one) CUSTOMER.CUSTOMER_NUMBER
+        ;;; Relationship (Type D)
+        ;;; TESTCAROWNER2.OWNERID (one) <-> (many) TESTCAR.OWNERID2
         ;;; </summary>
-        public readwrite property REL_Customer, @Customer
+        public readwrite property REL_Testcars, @ICollection<Testcar>
 
 .endregion
 
@@ -199,7 +199,7 @@ namespace Services.Models
             data dataObjectProvider, @IDataObjectProvider, sp.GetService<IDataObjectProvider>()
 
             ;;--------------------------------------------------------------------------------
-            ;;Validate data for relation 1 (REL_Customer)
+            ;;Validate data for relation 1 (REL_Testcars)
 
             ;;Validation mode: None
 
@@ -223,10 +223,10 @@ namespace Services.Models
         ;;Access keys
 
         {IgnoreDataMember}
-        public property KEY_PRIMARY, string
+        public property KEY_OWNERID, string
             method get
             proc
-                mreturn Customerid.ToString()
+                mreturn Id.ToString()
                 
             endmethod
             method set
