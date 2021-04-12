@@ -106,7 +106,7 @@ namespace Services.Test.UnitTests
             response.EnsureSuccessStatusCode()
             data resultCustomers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
             
-            Assert.IsTrue(resultCustomers.Value.Count == 1)
+            Assert.IsTrue(resultCustomers.Value.Count == 6)
         endmethod
 
         {TestMethod}
@@ -118,7 +118,7 @@ namespace Services.Test.UnitTests
             response.EnsureSuccessStatusCode()
             data resultCustomers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
             
-            Assert.IsTrue(resultCustomers.Value.Count == 1)
+            Assert.IsTrue(resultCustomers.Value.Count == 6)
         endmethod
 
         {TestMethod}
@@ -1849,6 +1849,150 @@ namespace Services.Test.UnitTests
             data customers, @CustomerWithCount, JsonConvert.DeserializeObject<CustomerWithCount>(result)
             Assert.AreEqual(customers.Value.Length, 1)
             Assert.AreEqual(customers.Count, 1)
+        endmethod
+
+        public class TestCarComparer implements IEqualityComparer<Services.Test.Models.Testcar>
+            public virtual method Equals, Boolean
+                x, @Services.Test.Models.Testcar 
+                y, @Services.Test.Models.Testcar 
+                endparams
+            proc
+                mreturn x.Id == y.Id
+            endmethod
+
+            public virtual method GetHashCode, int
+                obj, @Services.Test.Models.Testcar 
+                endparams
+            proc
+                mreturn obj.Id
+            endmethod
+        endclass
+
+        private _testCarsExpandString, string, "$expand=REL_Testcarowner1,REL_Testcarowner2,REL_Testcarowner3"
+        {TestMethod}
+        public method TestCars1, void
+        proc
+            ;/Testcars?$expand=REL_Testcarowner1,REL_Testcarowner2,REL_Testcarowner3&$filter=Name eq 'Prius' or REL_Testcarowner1/Name eq 'Joe' or REL_Testcarowner2/Name eq 'Eric' or REL_Testcarowner3/Name eq 'Leon'
+
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+
+            data filterString1 = "Name eq 'Prius'"
+            disposable data response1 = client.GetAsync("/odata/v1/Testcars?" + _testCarsExpandString + "&$filter=" + filterString1).Result
+            data result1 = response1.Content.ReadAsStringAsync().Result
+            response1.EnsureSuccessStatusCode()
+            
+            data filterString2 = "REL_Testcarowner1/Name eq 'Joe'"
+            disposable data response2 = client.GetAsync("/odata/v1/Testcars?" + _testCarsExpandString + "&$filter=" + filterString2).Result
+            data result2 = response2.Content.ReadAsStringAsync().Result
+            response2.EnsureSuccessStatusCode()
+            
+            data filterString3 = "REL_Testcarowner2/Name eq 'Eric'"
+            disposable data response3 = client.GetAsync("/odata/v1/Testcars?" + _testCarsExpandString + "&$filter=" + filterString3).Result
+            data result3 = response3.Content.ReadAsStringAsync().Result
+            response3.EnsureSuccessStatusCode()
+            
+            data filterString4 = "REL_Testcarowner3/Name eq 'Leon'"
+            disposable data response4 = client.GetAsync("/odata/v1/Testcars?" + _testCarsExpandString + "&$filter=" + filterString4).Result
+            data result4 = response4.Content.ReadAsStringAsync().Result
+            response4.EnsureSuccessStatusCode()
+            
+            disposable data response5 = client.GetAsync("/odata/v1/Testcars?" + _testCarsExpandString + "&$filter=" + filterString1 + " or " + filterString2 + " or " + filterString3 + " or " + filterString4).Result
+            data result5 = response5.Content.ReadAsStringAsync().Result
+            response5.EnsureSuccessStatusCode()
+            
+            data result1Cars, @Services.Test.Models.ODataTestcars, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcars>(result1)
+            data result2Cars, @Services.Test.Models.ODataTestcars, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcars>(result2)
+            data result3Cars, @Services.Test.Models.ODataTestcars, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcars>(result3)
+            data result4Cars, @Services.Test.Models.ODataTestcars, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcars>(result4)
+            data result5Cars, @Services.Test.Models.ODataTestcars, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcars>(result5)
+
+            data combinedResult = result1Cars.Value.Union(result2Cars.Value, new TestCarComparer()).Union(result3Cars.Value, new TestCarComparer()).Union(result4Cars.Value, new TestCarComparer()).OrderBy(lambda(x) { x.Id } ).ToList()
+
+            data wholeQueryResult = result5Cars.Value.OrderBy(lambda(x) { x.Id }).ToList()
+
+            Assert.IsTrue(Enumerable.SequenceEqual(combinedResult, wholeQueryResult, new TestCarComparer()))
+        endmethod
+
+        {TestMethod}
+        public method TestCars2, void
+        proc
+            ;/Testcars?$expand=REL_Testcarowner1,REL_Testcarowner2,REL_Testcarowner3&$filter=contains(Name, 'e') or REL_Testcarowner1/Id in(4, 7, 10) or REL_Testcarowner2/Id gt 8 or contains(REL_Testcarowner3/Name, 'e')
+
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+
+            data filterString1 = "contains(Name, 'e')"
+            disposable data response1 = client.GetAsync("/odata/v1/Testcars?" + _testCarsExpandString + "&$filter=" + filterString1).Result
+            data result1 = response1.Content.ReadAsStringAsync().Result
+            response1.EnsureSuccessStatusCode()
+            
+            data filterString2 = "REL_Testcarowner1/Id in(4, 7, 10)"
+            disposable data response2 = client.GetAsync("/odata/v1/Testcars?" + _testCarsExpandString + "&$filter=" + filterString2).Result
+            data result2 = response2.Content.ReadAsStringAsync().Result
+            response2.EnsureSuccessStatusCode()
+            
+            data filterString3 = "REL_Testcarowner2/Id gt 8"
+            disposable data response3 = client.GetAsync("/odata/v1/Testcars?" + _testCarsExpandString + "&$filter=" + filterString3).Result
+            data result3 = response3.Content.ReadAsStringAsync().Result
+            response3.EnsureSuccessStatusCode()
+            
+            data filterString4 = "contains(REL_Testcarowner3/Name, 'e')"
+            disposable data response4 = client.GetAsync("/odata/v1/Testcars?" + _testCarsExpandString + "&$filter=" + filterString4).Result
+            data result4 = response4.Content.ReadAsStringAsync().Result
+            response4.EnsureSuccessStatusCode()
+            
+            disposable data response5 = client.GetAsync("/odata/v1/Testcars?" + _testCarsExpandString + "&$filter=" + filterString1 + " or " + filterString2 + " or " + filterString3 + " or " + filterString4).Result
+            data result5 = response5.Content.ReadAsStringAsync().Result
+            response5.EnsureSuccessStatusCode()
+            
+            data result1Cars, @Services.Test.Models.ODataTestcars, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcars>(result1)
+            data result2Cars, @Services.Test.Models.ODataTestcars, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcars>(result2)
+            data result3Cars, @Services.Test.Models.ODataTestcars, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcars>(result3)
+            data result4Cars, @Services.Test.Models.ODataTestcars, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcars>(result4)
+            data result5Cars, @Services.Test.Models.ODataTestcars, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcars>(result5)
+
+            data combinedResult = result1Cars.Value.Union(result2Cars.Value, new TestCarComparer()).Union(result3Cars.Value, new TestCarComparer()).Union(result4Cars.Value, new TestCarComparer()).OrderBy(lambda(x) { x.Id } ).ToList()
+
+            data wholeQueryResult = result5Cars.Value.OrderBy(lambda(x) { x.Id }).ToList()
+
+            Assert.IsTrue(Enumerable.SequenceEqual(combinedResult, wholeQueryResult, new TestCarComparer()))
+        endmethod
+
+        {TestMethod}
+        public method TestCars3, void
+        proc
+            ;/Testcars?$expand=REL_Testcarowner1,REL_Testcarowner2,REL_Testcarowner3&$filter=REL_Testcarowner1/Name eq 'Joe' or REL_Testcarowner2/Name eq 'Eric' or REL_Testcarowner3/Name eq 'Leon'
+
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            
+            data filterString1 = "REL_Testcarowner1/Name eq 'Joe'"
+            disposable data response1 = client.GetAsync("/odata/v1/Testcars?" + _testCarsExpandString + "&$filter=" + filterString1).Result
+            data result1 = response1.Content.ReadAsStringAsync().Result
+            response1.EnsureSuccessStatusCode()
+            
+            data filterString2 = "REL_Testcarowner2/Name eq 'Eric'"
+            disposable data response2 = client.GetAsync("/odata/v1/Testcars?" + _testCarsExpandString + "&$filter=" + filterString2).Result
+            data result2 = response2.Content.ReadAsStringAsync().Result
+            response2.EnsureSuccessStatusCode()
+            
+            data filterString3 = "REL_Testcarowner3/Name eq 'Leon'"
+            disposable data response3 = client.GetAsync("/odata/v1/Testcars?" + _testCarsExpandString + "&$filter=" + filterString3).Result
+            data result3 = response3.Content.ReadAsStringAsync().Result
+            response3.EnsureSuccessStatusCode()
+            
+            disposable data response4 = client.GetAsync("/odata/v1/Testcars?" + _testCarsExpandString + "&$filter=" + filterString1 + " or " + filterString2 + " or " + filterString3).Result
+            data result4 = response4.Content.ReadAsStringAsync().Result
+            response4.EnsureSuccessStatusCode()
+            
+            data result1Cars, @Services.Test.Models.ODataTestcars, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcars>(result1)
+            data result2Cars, @Services.Test.Models.ODataTestcars, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcars>(result2)
+            data result3Cars, @Services.Test.Models.ODataTestcars, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcars>(result3)
+            data result4Cars, @Services.Test.Models.ODataTestcars, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcars>(result4)
+
+            data combinedResult = result1Cars.Value.Union(result2Cars.Value, new TestCarComparer()).Union(result3Cars.Value, new TestCarComparer()).OrderBy(lambda(x) { x.Id } ).ToList()
+
+            data wholeQueryResult = result4Cars.Value.OrderBy(lambda(x) { x.Id }).ToList()
+
+            Assert.IsTrue(Enumerable.SequenceEqual(combinedResult, wholeQueryResult, new TestCarComparer()))
         endmethod
 
 ;		{TestMethod}

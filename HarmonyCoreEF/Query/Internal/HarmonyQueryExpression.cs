@@ -188,7 +188,7 @@ namespace Harmony.Core.EF.Query.Internal
 
                     queryBuffer.TypeBuffers[split.Key].JoinOn = existingJoin;
                     LiftSubOrderby(unionFlatList, unionForcedUpOrderBy);
-                    MarkJoinBuffer(splitState.LeafOns, queryBuffer);
+                    queryBuffer.TypeBuffers[split.Key].IsInnerJoin = true;
 
                     var queryPlan = new PreparedQueryPlan(true, unionWheres, fieldReferences, unionOns,
                         unionOrderBys, queryBuffer, "");
@@ -206,7 +206,6 @@ namespace Harmony.Core.EF.Query.Internal
                     var queryBuffer = MakeQueryBuffer(rootExpr, processedOns, flatList, whereBuilder, orderBys, fieldReferences, forcedUpOrderBy);
                     LiftSubOrderby(flatList, forcedUpOrderBy);
 
-                    MarkJoinBuffer(splitState.LeafOns, queryBuffer);
                     var queryPlan = new PreparedQueryPlan(true, splitState.DrivingWhere != null ? new List<object> { splitState.DrivingWhere } : new List<object>(), fieldReferences, processedOns,
                         orderBys, queryBuffer, "");
 
@@ -395,9 +394,22 @@ namespace Harmony.Core.EF.Query.Internal
             return queryBuffer;
         }
 
+        class DataObjectBaseComparer : IEqualityComparer<DataObjectBase>
+        {
+            public bool Equals(DataObjectBase x, DataObjectBase y)
+            {
+                return x.GlobalRFA.SequenceEqual(y.GlobalRFA);
+            }
+
+            public int GetHashCode(DataObjectBase obj)
+            {
+                return BitConverter.ToInt32(obj.GlobalRFA.AsSpan(6, 4));
+            }
+        }
+
         public static IEnumerable<DataObjectBase> Union(IEnumerable<DataObjectBase> first, IEnumerable<DataObjectBase> second)
         {
-            return first.Union(second);
+            return first.Union(second, new DataObjectBaseComparer());
         }
 
         public static IEnumerable<DataObjectBase> Distinct(IEnumerable<DataObjectBase> collection)

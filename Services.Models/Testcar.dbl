@@ -1,9 +1,9 @@
 ;;*****************************************************************************
 ;;
-;; Title:       CustomerEx.dbl
+;; Title:       Testcar.dbl
 ;;
 ;; Description: Data model representing data defined by the repository
-;;              structure CUSTOMER_EX and from the data file DAT:CUSTOMER_EX.ism.
+;;              structure TESTCAR and from the data file DAT:testcar.ism.
 ;;
 ;;*****************************************************************************
 ;; WARNING: GENERATED CODE!
@@ -25,27 +25,27 @@ import System.Runtime.Serialization
 namespace Services.Models
 
     {Newtonsoft.Json.JsonObject(Newtonsoft.Json.MemberSerialization.OptIn)}
-    public partial class CustomerEx extends DataObjectBase
+    public partial class Testcar extends DataObjectBase
 
         ;;make the record available and a copy
-        private mSynergyData, strCustomerEx
-        private mOriginalSynergyData, strCustomerEx
+        private mSynergyData, strTestcar
+        private mOriginalSynergyData, strTestcar
         protected mGlobalRFA  ,a10
 
-        private static sMetadata, @CustomerExMetadata
+        private static sMetadata, @TestcarMetadata
 
 .region "Constructors"
 
-        static method CustomerEx
+        static method Testcar
         proc
-            sMetadata = new CustomerExMetadata()
-            DataObjectMetadataBase.MetadataLookup.TryAdd(^typeof(CustomerEx), sMetadata)
+            sMetadata = new TestcarMetadata()
+            DataObjectMetadataBase.MetadataLookup.TryAdd(^typeof(Testcar), sMetadata)
         endmethod
 
         ;;; <summary>
         ;;;  Constructor, initialise the base fields
         ;;; </summary>
-        public method CustomerEx
+        public method Testcar
             parent()
         proc
             init mSynergyData, mOriginalSynergyData
@@ -54,7 +54,7 @@ namespace Services.Models
         ;;; <summary>
         ;;;  Alternate Constructor, accepts the structured data
         ;;; </summary>
-        public method CustomerEx
+        public method Testcar
             required in inData, a
             required in inGrfa, a
             parent()
@@ -68,35 +68,83 @@ namespace Services.Models
 .region "Attributes of this entity"
 
         ;;; <summary>
-        ;;; 
+        ;;; Car ID
         ;;; </summary>
         {Key}
-        {Range(0,999999, ErrorMessage=" must be between 0 and 999999. ")}
+        {Range(0,999999, ErrorMessage="Car ID must be between 0 and 999999. ")}
         {Newtonsoft.Json.JsonProperty}
-        public property Customerid, int
+        public property Id, int
             method get
             proc
-                mreturn (int)mSynergyData.customerid
+                mreturn (int)mSynergyData.id
             endmethod
             method set
             proc
-                mSynergyData.customerid = value
+                mSynergyData.id = value
             endmethod
         endproperty
 
         ;;; <summary>
-        ;;; 
+        ;;; Name of car
         ;;; </summary>
-        {StringLength(128, ErrorMessage=" cannot exceed 128 characters. ")}
+        {StringLength(20, ErrorMessage="Name of car cannot exceed 20 characters. ")}
         {Newtonsoft.Json.JsonProperty}
-        public property Extradata, String
+        public property Name, String
             method get
             proc
-                mreturn (String)SynergyAlphaConverter.Convert(mSynergyData.extradata, ^null, ^null, ^null)
+                mreturn (String)SynergyAlphaConverter.Convert(mSynergyData.name, ^null, ^null, ^null)
             endmethod
             method set
             proc
-                mSynergyData.extradata = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
+                mSynergyData.name = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
+            endmethod
+        endproperty
+
+        ;;; <summary>
+        ;;; Car owner 1
+        ;;; </summary>
+        {Range(0,999999, ErrorMessage="Car owner 1 must be between 0 and 999999. ")}
+        {Newtonsoft.Json.JsonProperty}
+        public property Owner1, int
+            method get
+            proc
+                mreturn (int)mSynergyData.owner1
+            endmethod
+            method set
+            proc
+                mSynergyData.owner1 = value
+            endmethod
+        endproperty
+
+        ;;; <summary>
+        ;;; Car owner 2
+        ;;; </summary>
+        {Range(0,999999, ErrorMessage="Car owner 2 must be between 0 and 999999. ")}
+        {Newtonsoft.Json.JsonProperty}
+        public property Owner2, int
+            method get
+            proc
+                mreturn (int)mSynergyData.owner2
+            endmethod
+            method set
+            proc
+                mSynergyData.owner2 = value
+            endmethod
+        endproperty
+
+        ;;; <summary>
+        ;;; Car owner 3
+        ;;; </summary>
+        {Range(0,999999, ErrorMessage="Car owner 3 must be between 0 and 999999. ")}
+        {Newtonsoft.Json.JsonProperty}
+        public property Owner3, int
+            method get
+            proc
+                mreturn (int)mSynergyData.owner3
+            endmethod
+            method set
+            proc
+                mSynergyData.owner3 = value
             endmethod
         endproperty
 
@@ -164,7 +212,7 @@ namespace Services.Models
         public override method InternalGetValues, [#]@object
         proc
             ;;TODO: This should be returning boxed values for each of our fields
-            mreturn new Object[2]
+            mreturn new Object[5]
         endmethod
 
 .endregion
@@ -173,10 +221,24 @@ namespace Services.Models
 
         {Newtonsoft.Json.JsonProperty(DefaultValueHandling=DefaultValueHandling.Ignore)}
         ;;; <summary>
-        ;;; Relationship (Type B)
-        ;;; CUSTOMER_EX.PRIMARY (one) --> (one) --> (one) CUSTOMER.CUSTOMER_NUMBER
+        ;;; Relationship (Type A)
+        ;;; TESTCAR.OWNERID1 (one) --> (one) --> (many) TESTCAROWNER1.OWNERID
         ;;; </summary>
-        public readwrite property REL_Customer, @Customer
+        public readwrite property REL_Testcarowner1, @Testcarowner1
+
+        {Newtonsoft.Json.JsonProperty(DefaultValueHandling=DefaultValueHandling.Ignore)}
+        ;;; <summary>
+        ;;; Relationship (Type A)
+        ;;; TESTCAR.OWNERID2 (one) --> (one) --> (many) TESTCAROWNER2.OWNERID
+        ;;; </summary>
+        public readwrite property REL_Testcarowner2, @Testcarowner2
+
+        {Newtonsoft.Json.JsonProperty(DefaultValueHandling=DefaultValueHandling.Ignore)}
+        ;;; <summary>
+        ;;; Relationship (Type A)
+        ;;; TESTCAR.OWNERID3 (one) --> (one) --> (many) TESTCAROWNER3.OWNERID
+        ;;; </summary>
+        public readwrite property REL_Testcarowner3, @Testcarowner3
 
 .endregion
 
@@ -199,7 +261,17 @@ namespace Services.Models
             data dataObjectProvider, @IDataObjectProvider, sp.GetService<IDataObjectProvider>()
 
             ;;--------------------------------------------------------------------------------
-            ;;Validate data for relation 1 (REL_Customer)
+            ;;Validate data for relation 1 (REL_Testcarowner1)
+
+            ;;Validation mode: None
+
+            ;;--------------------------------------------------------------------------------
+            ;;Validate data for relation 2 (REL_Testcarowner2)
+
+            ;;Validation mode: None
+
+            ;;--------------------------------------------------------------------------------
+            ;;Validate data for relation 3 (REL_Testcarowner3)
 
             ;;Validation mode: None
 
@@ -223,10 +295,49 @@ namespace Services.Models
         ;;Access keys
 
         {IgnoreDataMember}
-        public property KEY_PRIMARY, string
+        public property KEY_CARID, string
             method get
             proc
-                mreturn Customerid.ToString()
+                mreturn Id.ToString()
+                
+            endmethod
+            method set
+            proc
+                
+            endmethod
+        endproperty
+
+        {IgnoreDataMember}
+        public property KEY_OWNERID1, string
+            method get
+            proc
+                mreturn Owner1.ToString()
+                
+            endmethod
+            method set
+            proc
+                
+            endmethod
+        endproperty
+
+        {IgnoreDataMember}
+        public property KEY_OWNERID2, string
+            method get
+            proc
+                mreturn Owner2.ToString()
+                
+            endmethod
+            method set
+            proc
+                
+            endmethod
+        endproperty
+
+        {IgnoreDataMember}
+        public property KEY_OWNERID3, string
+            method get
+            proc
+                mreturn Owner3.ToString()
                 
             endmethod
             method set
