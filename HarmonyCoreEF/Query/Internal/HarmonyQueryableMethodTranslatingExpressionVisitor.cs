@@ -1627,6 +1627,19 @@ namespace Harmony.Core.EF.Query.Internal
                 }
                 return base.VisitMember(node);
             }
+
+            protected override Expression VisitExtension(Expression node)
+            {
+                if(node is InExpression inExpr)
+                {
+                    return node;
+                }
+                else if(node is IHasInnerExpression innerExpr)
+                {
+                    return Visit(innerExpr.InnerExpression);
+                }
+                return base.VisitExtension(node);
+            }
         }
 
         internal class SubqueryReplacingExpressionVisitor : ExpressionVisitor
