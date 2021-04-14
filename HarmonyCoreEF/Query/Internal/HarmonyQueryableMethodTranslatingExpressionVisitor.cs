@@ -901,19 +901,13 @@ namespace Harmony.Core.EF.Query.Internal
             var parameterPairings = SimplifyPredicate(queryExpression, predicate);
             foreach(var paramPair in parameterPairings)
             {
-                if (paramPair.Key == currentParameter)
+                if (paramPair.Key != currentParameter)
                 {
-                    queryExpression.RootExpressions[currentParameter].WhereExpressions.Add(paramPair.Value);
+                    //if we're doing a top level filter, the table must have a value in order to eval true
+                    queryExpression.RootExpressions[paramPair.Key].IsInnerJoin = true;
                 }
-                else
-                {
-                    if (paramPair.Key != currentParameter)
-                    {
-                        //if we're doing a top level filter, the table must have a value in order to eval true
-                        queryExpression.RootExpressions[paramPair.Key].IsInnerJoin = true;
-                    }
-                    queryExpression.RootExpressions[paramPair.Key].WhereExpressions.Add(paramPair.Value);
-                }
+                
+                queryExpression.RootExpressions[currentParameter].WhereExpressions.Add(paramPair.Value);
             }
             
         }

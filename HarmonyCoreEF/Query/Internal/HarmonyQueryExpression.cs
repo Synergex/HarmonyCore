@@ -164,13 +164,14 @@ namespace Harmony.Core.EF.Query.Internal
             //its not possible to match a driving OR innerJoined expression in a select
             //split it into multiple calls and just union the result
             var targetExpressionMap = new Dictionary<int, Dictionary<object, object>>();
-            if (processedWheres.Count == 1 && processedWheres.First() is ConnectorPart conPart)
+            if (processedWheres.Count == 1)
             {
-                var splitState = SplitExpression(conPart);
+                var splitState = SplitExpression(processedWheres.First());
+                processedOns.AddRange(splitState.BasesOns.Values);
                 List<Expression> unionParts = new List<Expression>();
                 foreach (var split in splitState.LeafOns)
                 {
-                    var unionOns = new List<object>();
+                    var unionOns = splitState.BasesOns.Values.ToList();
                     List<Tuple<HarmonyTableExpression, QueryBuffer.TypeBuffer>> unionFlatList;
                     List<object> unionWheres;
                     WhereExpressionBuilder unionWhereBuilder;
@@ -426,66 +427,53 @@ namespace Harmony.Core.EF.Query.Internal
             public object BaseWhere;
             public object DrivingWhere;
             public Dictionary<int, Object> LeafOns;
+            public Dictionary<int, Object> BasesOns;
         }
 
         private ExpressionSplitState SplitExpression(object expr)
         {
             if (expr is ConnectorPart conPart)
             {
-                var result = new ExpressionSplitState { LeafOns = new Dictionary<int, object>() };
+                var result = new ExpressionSplitState { LeafOns = new Dictionary<int, object>(), BasesOns = new Dictionary<int, object>() };
+
+                var leftState = SplitExpression(conPart.Left);
+                var rightState = SplitExpression(conPart.Right);
+                ConcatLeaves(conPart, leftState, rightState, result);
                 if (NeedsSplit(conPart))
                 {
-                    var leftState = SplitExpression(conPart.Left);
-                    var rightState = SplitExpression(conPart.Right);
-
-                    ConcatLeaves(conPart, leftState, rightState, result);
 
                     //we're at the split point now so dont produce a BaseWhere, everything goes either driving table or LeafOns
-                    var rightQueryKeys = QuerySourceKeyForExpr(rightState.DrivingWhere);
-                    var leftQueryKeys = QuerySourceKeyForExpr(leftState.DrivingWhere);
+                    var rightQueryKeys = QuerySourceKeyForExpr(rightState.DrivingWhere ?? rightState.BasesOns.FirstOrDefault().Value);
+                    var leftQueryKeys = QuerySourceKeyForExpr(leftState.DrivingWhere ?? leftState.BasesOns.FirstOrDefault().Value);
 
-                    if (rightQueryKeys.Count > 1 || !rightQueryKeys.Contains(0))
-                    {
-                        if (rightQueryKeys.Count == 1)
-                        {
-                            var targetKey = rightQueryKeys.First();
-                            if (!result.LeafOns.TryAdd(targetKey, rightState.DrivingWhere))
-                            {
-                                result.LeafOns[targetKey] = new ConnectorPart { Left = result.LeafOns[targetKey], Op = conPart.Op, Right = rightState.DrivingWhere };
-                            }
-                        }
-                        //ignore this leg of the drivingWhere its not for us
-                        rightState.DrivingWhere = null;
-                    }
+                    HandleLeg(conPart, result, rightState, rightQueryKeys);
+                    HandleLeg(conPart, result, leftState, leftQueryKeys);
 
-                    if (leftQueryKeys.Count > 1 || !leftQueryKeys.Contains(0))
-                    {
-                        if (leftQueryKeys.Count == 1)
-                        {
-                            var targetKey = leftQueryKeys.First();
-                            if (!result.LeafOns.TryAdd(targetKey, leftState.DrivingWhere))
-                            {
-                                result.LeafOns[targetKey] = new ConnectorPart { Left = result.LeafOns[targetKey], Op = conPart.Op, Right = leftState.DrivingWhere };
-                            }
-                        }
-                        //ignore this leg of the drivingWhere its not for us
-                        leftState.DrivingWhere = null;
-                    }
-
-                    MergeDrivingTables(conPart, result, leftState, rightState);
                 }
                 else
                 {
-                    var leftState = SplitExpression(conPart.Left);
-                    var rightState = SplitExpression(conPart.Right);
-                    ConcatLeaves(conPart, leftState, rightState, result);
-
                     MergeBaseTables(conPart, result, leftState, rightState);
-                    MergeDrivingTables(conPart, result, leftState, rightState);
                 }
+
+                MergeDrivingTables(conPart, result, leftState, rightState);
+                MergeBaseOns(conPart, result, leftState);
+                MergeBaseOns(conPart, result, rightState);
+
                 return result;
             }
-            return new ExpressionSplitState { BaseWhere = expr, DrivingWhere = expr, LeafOns = new Dictionary<int, object>() };
+            else
+            {
+                var targetQueryKeys = QuerySourceKeyForExpr(expr);
+                if(targetQueryKeys.Contains(0))
+                {
+                    return new ExpressionSplitState { BaseWhere = expr, DrivingWhere = expr, LeafOns = new Dictionary<int, object>(), BasesOns = new Dictionary<int, object>() };
+                }
+                else
+                {
+                    return new ExpressionSplitState { BaseWhere = null, DrivingWhere = null, LeafOns = new Dictionary<int, object>(), BasesOns = new Dictionary<int, object> { { targetQueryKeys.First(), expr } } };
+                }
+            }
+            
 
             static void ConcatLeaves(ConnectorPart conPart, ExpressionSplitState leftState, ExpressionSplitState rightState, ExpressionSplitState result)
             {
@@ -519,6 +507,51 @@ namespace Harmony.Core.EF.Query.Internal
                 else
                 {
                     result.BaseWhere = leftState.BaseWhere ?? rightState.BaseWhere;
+                }
+            }
+
+            static void MergeBaseOns(ConnectorPart conPart, ExpressionSplitState result, ExpressionSplitState mergeState)
+            {
+                if (mergeState != null)
+                {
+                    foreach (var baseOn in mergeState.BasesOns)
+                    {
+                        if (result.BasesOns.TryGetValue(baseOn.Key, out var existing))
+                        {
+                            result.BasesOns[baseOn.Key] = new ConnectorPart 
+                            { 
+                                Left = existing, 
+                                Op = conPart.Op,
+                                Right = baseOn.Value 
+                            };
+                        }
+                        else
+                        {
+                            result.BasesOns.Add(baseOn.Key, baseOn.Value);
+                        }
+                    }
+                        
+                }
+            }
+
+            static void HandleLeg(ConnectorPart conPart, ExpressionSplitState result, ExpressionSplitState state, HashSet<int> queryKeys)
+            {
+                if (queryKeys.Count > 1 || !queryKeys.Contains(0))
+                {
+                    if (queryKeys.Count == 1)
+                    {
+                        var targetKey = queryKeys.First();
+                        var cleanDrivingWhere = state.DrivingWhere ?? state.BasesOns[targetKey];
+                        if (state.DrivingWhere == null)
+                            state.BasesOns.Remove(targetKey);
+
+                        if (!result.LeafOns.TryAdd(targetKey, cleanDrivingWhere))
+                        {
+                            result.LeafOns[targetKey] = new ConnectorPart { Left = result.LeafOns[targetKey], Op = conPart.Op, Right = cleanDrivingWhere };
+                        }
+                    }
+                    //ignore this leg of the drivingWhere its not for us
+                    state.DrivingWhere = null;
                 }
             }
         }
