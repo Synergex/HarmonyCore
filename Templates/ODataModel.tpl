@@ -339,15 +339,15 @@ namespace <NAMESPACE>
         endproperty
 
         public override property GlobalRFA, [#]byte
-			method get
-			proc
+            method get
+            proc
                 mreturn mGlobalRFA
-			endmethod
-			method set
-			proc
+            endmethod
+            method set
+            proc
                 mGlobalRFA = value
-			endmethod
-		endproperty
+            endmethod
+        endproperty
 
 .endregion
 
