@@ -164,13 +164,14 @@ namespace Harmony.Core.EF.Query.Internal
             //its not possible to match a driving OR innerJoined expression in a select
             //split it into multiple calls and just union the result
             var targetExpressionMap = new Dictionary<int, Dictionary<object, object>>();
-            if (processedWheres.Count == 1 && processedWheres.First() is ConnectorPart conPart)
+            if (processedWheres.Count == 1)
             {
-                var splitState = SplitExpression(conPart);
+                var splitState = SplitExpression(processedWheres.First());
+                processedOns.AddRange(splitState.BasesOns.Values);
                 List<Expression> unionParts = new List<Expression>();
                 foreach (var split in splitState.LeafOns)
                 {
-                    var unionOns = new List<object>();
+                    var unionOns = splitState.BasesOns.Values.ToList();
                     List<Tuple<HarmonyTableExpression, QueryBuffer.TypeBuffer>> unionFlatList;
                     List<object> unionWheres;
                     WhereExpressionBuilder unionWhereBuilder;
@@ -180,15 +181,11 @@ namespace Harmony.Core.EF.Query.Internal
                     unionWheres = splitState.BaseWhere != null ? new List<object> { splitState.BaseWhere } : new List<object>();
 
                     var queryBuffer = MakeQueryBuffer(rootExpr, unionOns, unionFlatList, unionWhereBuilder, unionOrderBys, fieldReferences, unionForcedUpOrderBy);
+                    AttachFromBaseOns(splitState, queryBuffer);
 
-                    var existingJoin = queryBuffer.TypeBuffers[split.Key].JoinOn;
-
-                    if (split.Value != null)
-                        existingJoin = new ConnectorPart { Left = existingJoin, Op = WhereClauseConnector.AndOperator, Right = split.Value };
-
-                    queryBuffer.TypeBuffers[split.Key].JoinOn = existingJoin;
+                    AttachToExistingOn(split.Key, split.Value, queryBuffer);
                     LiftSubOrderby(unionFlatList, unionForcedUpOrderBy);
-                    MarkJoinBuffer(splitState.LeafOns, queryBuffer);
+                    queryBuffer.TypeBuffers[split.Key].IsInnerJoin = true;
 
                     var queryPlan = new PreparedQueryPlan(true, unionWheres, fieldReferences, unionOns,
                         unionOrderBys, queryBuffer, "");
@@ -201,12 +198,12 @@ namespace Harmony.Core.EF.Query.Internal
                         Expression.Constant(compilationContext.IsTracking)));
                 }
 
-                if (splitState.DrivingWhere != null)
+                if (splitState.DrivingWhere != null || (unionParts.Count == 0 && splitState.BasesOns.Count > 0))
                 {
                     var queryBuffer = MakeQueryBuffer(rootExpr, processedOns, flatList, whereBuilder, orderBys, fieldReferences, forcedUpOrderBy);
+                    AttachFromBaseOns(splitState, queryBuffer);
                     LiftSubOrderby(flatList, forcedUpOrderBy);
 
-                    MarkJoinBuffer(splitState.LeafOns, queryBuffer);
                     var queryPlan = new PreparedQueryPlan(true, splitState.DrivingWhere != null ? new List<object> { splitState.DrivingWhere } : new List<object>(), fieldReferences, processedOns,
                         orderBys, queryBuffer, "");
 
@@ -275,6 +272,51 @@ namespace Harmony.Core.EF.Query.Internal
                     forcedUpOrderBy[0].Item1.OrderBy = PreparedQueryPlan.MakeOrderByExpression(parm1Expr, parm2Expr, item1Expr, item2Expr, forcedUpOrderBy[0].Item3);
                 }
             }
+
+            static void AttachToExistingOn(int index, object expr, QueryBuffer queryBuffer)
+            {
+                var existingJoin = queryBuffer.TypeBuffers[index].JoinOn;
+                queryBuffer.TypeBuffers[index].JoinOn = CombineExpressions(existingJoin, expr);
+            }
+
+            void AttachFromBaseOns(ExpressionSplitState splitState, QueryBuffer queryBuffer)
+            {
+                foreach (var baseOn in splitState.BasesOns.Values)
+                {
+                    var onSources = QuerySourceKeyForExpr(baseOn);
+                    AttachToExistingOn(onSources.First(), baseOn, queryBuffer);
+                }
+            }
+        }
+
+        public static object CombineExpressions(object baseExpr, object newExpr)
+        {
+            if (baseExpr == null)
+                return newExpr;
+            else
+                return new ConnectorPart { Left = baseExpr, Op = WhereClauseConnector.AndOperator, Right = newExpr };
+        }
+
+        public static Expression CombineExpressions(Expression baseExpr, Expression newExpr)
+        {
+            if (baseExpr == null)
+                return newExpr;
+            else if (baseExpr is LambdaExpression lambExpr && newExpr is LambdaExpression newLamb)
+            {
+                return Expression.Lambda(CombineExpressions(lambExpr.Body, newLamb.Body), lambExpr.Parameters);
+            }
+            else
+                return Expression.MakeBinary(ExpressionType.AndAlso, baseExpr, newExpr);
+        }
+
+        public static void CombineExpressionIntoList(List<Expression> existing, Expression newExpr)
+        {
+            if (existing.Count > 0)
+            {
+                existing[existing.Count - 1] = CombineExpressions(existing.Last(), newExpr);
+            }
+            else
+                existing.Add(newExpr);
         }
 
         private static void MakeFlatList(HarmonyTableExpression rootExpr, List<object> processedOns, out List<Tuple<HarmonyTableExpression, QueryBuffer.TypeBuffer>> flatList, out WhereExpressionBuilder whereBuilder, out List<object> processedWheres, out List<Tuple<FieldReference, bool>> orderBys)
@@ -296,12 +338,32 @@ namespace Harmony.Core.EF.Query.Internal
             }
 
             whereBuilder = new WhereExpressionBuilder(rootExpr.IsCaseSensitive, tableList, expressionTableMapping);
-            processedWheres = new List<Object>();
+            var tempProcessedWheres = new List<Object>();
             orderBys = new List<Tuple<FileIO.Queryable.FieldReference, bool>>();
             foreach (var expr in rootExpr.WhereExpressions)
             {
-                whereBuilder.VisitForWhere(expr, processedWheres, processedOns);
+                whereBuilder.VisitForWhere(expr, tempProcessedWheres, processedOns);
             }
+            if (tempProcessedWheres.Count > 1)
+            {
+                object resultWhere = null;
+                foreach (var expr in tempProcessedWheres)
+                {
+                    if(resultWhere == null)
+                    {
+                        resultWhere = expr;
+                    }
+                    else
+                    {
+                        resultWhere = new ConnectorPart { Left = resultWhere, Op = WhereClauseConnector.AndOperator, Right = expr };
+                    }
+                }
+
+                processedWheres = new List<Object> { resultWhere };
+            }
+            else
+                processedWheres = tempProcessedWheres;
+            
         }
 
         private static QueryBuffer MakeQueryBuffer(HarmonyTableExpression rootExpr, List<object> processedOns, List<Tuple<HarmonyTableExpression, QueryBuffer.TypeBuffer>> flatList, WhereExpressionBuilder whereBuilder, List<Tuple<FieldReference, bool>> orderBys, Dictionary<int, List<FieldDataDefinition>> fieldReferences, List<Tuple<QueryBuffer.TypeBuffer, FieldReference, bool>> forcedUpOrderBy)
@@ -395,9 +457,22 @@ namespace Harmony.Core.EF.Query.Internal
             return queryBuffer;
         }
 
+        class DataObjectBaseComparer : IEqualityComparer<DataObjectBase>
+        {
+            public bool Equals(DataObjectBase x, DataObjectBase y)
+            {
+                return x.GlobalRFA.SequenceEqual(y.GlobalRFA);
+            }
+
+            public int GetHashCode(DataObjectBase obj)
+            {
+                return BitConverter.ToInt32(obj.GlobalRFA.AsSpan(6, 4));
+            }
+        }
+
         public static IEnumerable<DataObjectBase> Union(IEnumerable<DataObjectBase> first, IEnumerable<DataObjectBase> second)
         {
-            return first.Union(second);
+            return first.Union(second, new DataObjectBaseComparer());
         }
 
         public static IEnumerable<DataObjectBase> Distinct(IEnumerable<DataObjectBase> collection)
@@ -414,66 +489,53 @@ namespace Harmony.Core.EF.Query.Internal
             public object BaseWhere;
             public object DrivingWhere;
             public Dictionary<int, Object> LeafOns;
+            public Dictionary<int, Object> BasesOns;
         }
 
         private ExpressionSplitState SplitExpression(object expr)
         {
             if (expr is ConnectorPart conPart)
             {
-                var result = new ExpressionSplitState { LeafOns = new Dictionary<int, object>() };
+                var result = new ExpressionSplitState { LeafOns = new Dictionary<int, object>(), BasesOns = new Dictionary<int, object>() };
+
+                var leftState = SplitExpression(conPart.Left);
+                var rightState = SplitExpression(conPart.Right);
+                ConcatLeaves(conPart, leftState, rightState, result);
                 if (NeedsSplit(conPart))
                 {
-                    var leftState = SplitExpression(conPart.Left);
-                    var rightState = SplitExpression(conPart.Right);
-
-                    ConcatLeaves(conPart, leftState, rightState, result);
 
                     //we're at the split point now so dont produce a BaseWhere, everything goes either driving table or LeafOns
-                    var rightQueryKeys = QuerySourceKeyForExpr(rightState.DrivingWhere);
-                    var leftQueryKeys = QuerySourceKeyForExpr(leftState.DrivingWhere);
+                    var rightQueryKeys = QuerySourceKeyForExpr(rightState.DrivingWhere ?? rightState.BasesOns.FirstOrDefault().Value);
+                    var leftQueryKeys = QuerySourceKeyForExpr(leftState.DrivingWhere ?? leftState.BasesOns.FirstOrDefault().Value);
 
-                    if (rightQueryKeys.Count > 1 || !rightQueryKeys.Contains(0))
-                    {
-                        if (rightQueryKeys.Count == 1)
-                        {
-                            var targetKey = rightQueryKeys.First();
-                            if (!result.LeafOns.TryAdd(targetKey, rightState.DrivingWhere))
-                            {
-                                result.LeafOns[targetKey] = new ConnectorPart { Left = result.LeafOns[targetKey], Op = conPart.Op, Right = rightState.DrivingWhere };
-                            }
-                        }
-                        //ignore this leg of the drivingWhere its not for us
-                        rightState.DrivingWhere = null;
-                    }
+                    HandleLeg(conPart, result, rightState, rightQueryKeys);
+                    HandleLeg(conPart, result, leftState, leftQueryKeys);
 
-                    if (leftQueryKeys.Count > 1 || !leftQueryKeys.Contains(0))
-                    {
-                        if (leftQueryKeys.Count == 1)
-                        {
-                            var targetKey = leftQueryKeys.First();
-                            if (!result.LeafOns.TryAdd(targetKey, leftState.DrivingWhere))
-                            {
-                                result.LeafOns[targetKey] = new ConnectorPart { Left = result.LeafOns[targetKey], Op = conPart.Op, Right = leftState.DrivingWhere };
-                            }
-                        }
-                        //ignore this leg of the drivingWhere its not for us
-                        leftState.DrivingWhere = null;
-                    }
-
-                    MergeDrivingTables(conPart, result, leftState, rightState);
                 }
                 else
                 {
-                    var leftState = SplitExpression(conPart.Left);
-                    var rightState = SplitExpression(conPart.Right);
-                    ConcatLeaves(conPart, leftState, rightState, result);
-
                     MergeBaseTables(conPart, result, leftState, rightState);
-                    MergeDrivingTables(conPart, result, leftState, rightState);
                 }
+
+                MergeDrivingTables(conPart, result, leftState, rightState);
+                MergeBaseOns(conPart, result, leftState);
+                MergeBaseOns(conPart, result, rightState);
+
                 return result;
             }
-            return new ExpressionSplitState { BaseWhere = expr, DrivingWhere = expr, LeafOns = new Dictionary<int, object>() };
+            else
+            {
+                var targetQueryKeys = QuerySourceKeyForExpr(expr);
+                if(targetQueryKeys.Contains(0))
+                {
+                    return new ExpressionSplitState { BaseWhere = expr, DrivingWhere = expr, LeafOns = new Dictionary<int, object>(), BasesOns = new Dictionary<int, object>() };
+                }
+                else
+                {
+                    return new ExpressionSplitState { BaseWhere = null, DrivingWhere = null, LeafOns = new Dictionary<int, object>(), BasesOns = new Dictionary<int, object> { { targetQueryKeys.First(), expr } } };
+                }
+            }
+            
 
             static void ConcatLeaves(ConnectorPart conPart, ExpressionSplitState leftState, ExpressionSplitState rightState, ExpressionSplitState result)
             {
@@ -507,6 +569,51 @@ namespace Harmony.Core.EF.Query.Internal
                 else
                 {
                     result.BaseWhere = leftState.BaseWhere ?? rightState.BaseWhere;
+                }
+            }
+
+            static void MergeBaseOns(ConnectorPart conPart, ExpressionSplitState result, ExpressionSplitState mergeState)
+            {
+                if (mergeState != null)
+                {
+                    foreach (var baseOn in mergeState.BasesOns)
+                    {
+                        if (result.BasesOns.TryGetValue(baseOn.Key, out var existing))
+                        {
+                            result.BasesOns[baseOn.Key] = new ConnectorPart 
+                            { 
+                                Left = existing, 
+                                Op = conPart.Op,
+                                Right = baseOn.Value 
+                            };
+                        }
+                        else
+                        {
+                            result.BasesOns.Add(baseOn.Key, baseOn.Value);
+                        }
+                    }
+                        
+                }
+            }
+
+            static void HandleLeg(ConnectorPart conPart, ExpressionSplitState result, ExpressionSplitState state, HashSet<int> queryKeys)
+            {
+                if (queryKeys.Count > 1 || !queryKeys.Contains(0))
+                {
+                    if (queryKeys.Count == 1)
+                    {
+                        var targetKey = queryKeys.First();
+                        var cleanDrivingWhere = state.DrivingWhere ?? state.BasesOns[targetKey];
+                        if (state.DrivingWhere == null)
+                            state.BasesOns.Remove(targetKey);
+
+                        if (!result.LeafOns.TryAdd(targetKey, cleanDrivingWhere))
+                        {
+                            result.LeafOns[targetKey] = new ConnectorPart { Left = result.LeafOns[targetKey], Op = conPart.Op, Right = cleanDrivingWhere };
+                        }
+                    }
+                    //ignore this leg of the drivingWhere its not for us
+                    state.DrivingWhere = null;
                 }
             }
         }

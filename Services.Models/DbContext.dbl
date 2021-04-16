@@ -81,6 +81,31 @@ namespace Services.Models
         public readwrite property Differentpks, @DbSet<Differentpk>
 
         ;;; <summary>
+        ;;; Exposes Testcar data.
+        ;;; </summary>
+        public readwrite property Testcars, @DbSet<Testcar>
+
+        ;;; <summary>
+        ;;; Exposes Testcarlot data.
+        ;;; </summary>
+        public readwrite property Testcarlots, @DbSet<Testcarlot>
+
+        ;;; <summary>
+        ;;; Exposes Testcarowner1 data.
+        ;;; </summary>
+        public readwrite property Testcarowner1s, @DbSet<Testcarowner1>
+
+        ;;; <summary>
+        ;;; Exposes Testcarowner2 data.
+        ;;; </summary>
+        public readwrite property Testcarowner2s, @DbSet<Testcarowner2>
+
+        ;;; <summary>
+        ;;; Exposes Testcarowner3 data.
+        ;;; </summary>
+        public readwrite property Testcarowner3s, @DbSet<Testcarowner3>
+
+        ;;; <summary>
         ;;;
         ;;; </summary>
         protected override method OnModelCreating, void
@@ -222,6 +247,69 @@ namespace Services.Models
              ;;    To segments   : CUSTOMER_NUMBER(D6) 
 
              parm.AddOneToOneToOneRelation<Differentpk, Customer>("REL_Customer", "KEY_ID", "REL_Differentpk", "KEY_CUSTOMER_NUMBER")
+            ;;--------------------------------------
+            ;; Relationships from TESTCAR
+
+             ;; TESTCAR.LOTID (many) --> (one) --> (many) TESTCARLOT.ID
+             ;;    Type          : A
+             ;;    From segments : LOTID(D6) 
+             ;;    To segments   : ID(D6) 
+
+             parm.AddOneToOneToManyRelation<Testcar, Testcarlot>("REL_Testcarlot", "KEY_LOTID", "REL_Testcars", "KEY_ID")
+             ;; TESTCAR.OWNERID1 (many) --> (one) --> (many) TESTCAROWNER1.OWNERID
+             ;;    Type          : A
+             ;;    From segments : OWNER1(D6) 
+             ;;    To segments   : ID(D6) 
+
+             parm.AddOneToOneToManyRelation<Testcar, Testcarowner1>("REL_Testcarowner1", "KEY_OWNERID1", "REL_Testcars", "KEY_OWNERID")
+             ;; TESTCAR.OWNERID2 (many) --> (one) --> (many) TESTCAROWNER2.OWNERID
+             ;;    Type          : A
+             ;;    From segments : OWNER2(D6) 
+             ;;    To segments   : ID(D6) 
+
+             parm.AddOneToOneToManyRelation<Testcar, Testcarowner2>("REL_Testcarowner2", "KEY_OWNERID2", "REL_Testcars", "KEY_OWNERID")
+             ;; TESTCAR.OWNERID3 (many) --> (one) --> (many) TESTCAROWNER3.OWNERID
+             ;;    Type          : A
+             ;;    From segments : OWNER3(D6) 
+             ;;    To segments   : ID(D6) 
+
+             parm.AddOneToOneToManyRelation<Testcar, Testcarowner3>("REL_Testcarowner3", "KEY_OWNERID3", "REL_Testcars", "KEY_OWNERID")
+            ;;--------------------------------------
+            ;; Relationships from TESTCARLOT
+
+            ;; TESTCARLOT.ID (one) --> (many) --> (one) TESTCAR.LOTID
+            ;;    Type          : D
+            ;;    From segments : ID(D6) 
+            ;;    To segments   : LOTID(D6) 
+
+            parm.AddOneToManyToOneRelation<Testcarlot, Testcar>("REL_Testcars", "KEY_ID", "REL_Testcarlot", "KEY_LOTID")
+            ;;--------------------------------------
+            ;; Relationships from TESTCAROWNER1
+
+            ;; TESTCAROWNER1.OWNERID (one) --> (many) --> (one) TESTCAR.OWNERID1
+            ;;    Type          : D
+            ;;    From segments : ID(D6) 
+            ;;    To segments   : OWNER1(D6) 
+
+            parm.AddOneToManyToOneRelation<Testcarowner1, Testcar>("REL_Testcars", "KEY_OWNERID", "REL_Testcarowner1", "KEY_OWNERID1")
+            ;;--------------------------------------
+            ;; Relationships from TESTCAROWNER2
+
+            ;; TESTCAROWNER2.OWNERID (one) --> (many) --> (one) TESTCAR.OWNERID2
+            ;;    Type          : D
+            ;;    From segments : ID(D6) 
+            ;;    To segments   : OWNER2(D6) 
+
+            parm.AddOneToManyToOneRelation<Testcarowner2, Testcar>("REL_Testcars", "KEY_OWNERID", "REL_Testcarowner2", "KEY_OWNERID2")
+            ;;--------------------------------------
+            ;; Relationships from TESTCAROWNER3
+
+            ;; TESTCAROWNER3.OWNERID (one) --> (many) --> (one) TESTCAR.OWNERID3
+            ;;    Type          : D
+            ;;    From segments : ID(D6) 
+            ;;    To segments   : OWNER3(D6) 
+
+            parm.AddOneToManyToOneRelation<Testcarowner3, Testcar>("REL_Testcars", "KEY_OWNERID", "REL_Testcarowner3", "KEY_OWNERID3")
 .endregion
 
             ;;-----------------------------------------------

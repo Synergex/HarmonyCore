@@ -277,11 +277,15 @@ namespace Harmony.Core.FileIO.Queryable
                 data equalExpr = node.GetType().GetProperty("EqualExpression").GetValue(node)
                 Visit((@BinaryExpression)equalExpr)
             end
-            else if(node .is. InExpression)
+            else if(node .is. InExpression) then
             begin
                 data inExpr = (@InExpression)node
 
                 mWhereStack.Push(MakePart(inExpr.Collection ?? inExpr.CollectionParameter, FindTargetField(inExpr.Predicate, ^null, mQuerySourceMap), inExpr.CaseInsensitive ? WhereClauseOperator.IsInNoCase : WhereClauseOperator.IsIn, ^null))
+            end
+            else if(node .is. IHasInnerExpression)
+            begin
+                Visit(((@IHasInnerExpression)node).InnerExpression)
             end
 
             mreturn node

@@ -30,7 +30,7 @@ set RepositoryProject=HarmonyCore.Test.Repository\HarmonyCore.Test.Repository.sy
 rem ================================================================================================================================
 rem Specify the names of the repository structures to generate code from:
 
-set DATA_STRUCTURES=CUSTOMERS CUSTOMER_NOTES ITEMS ORDERS ORDER_ITEMS VENDORS CUSTOMER_EX NONUNIQUEPK DIFFERENTPK
+set DATA_STRUCTURES=CUSTOMERS CUSTOMER_NOTES ITEMS ORDERS ORDER_ITEMS VENDORS CUSTOMER_EX NONUNIQUEPK DIFFERENTPK TESTCAR TESTCARLOT TESTCAROWNER1 TESTCAROWNER2 TESTCAROWNER3
 set DATA_ALIASES=%DATA_STRUCTURES%
 set DATA_FILES=%DATA_STRUCTURES%
 
