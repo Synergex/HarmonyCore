@@ -181,13 +181,9 @@ namespace Harmony.Core.EF.Query.Internal
                     unionWheres = splitState.BaseWhere != null ? new List<object> { splitState.BaseWhere } : new List<object>();
 
                     var queryBuffer = MakeQueryBuffer(rootExpr, unionOns, unionFlatList, unionWhereBuilder, unionOrderBys, fieldReferences, unionForcedUpOrderBy);
+                    AttachFromBaseOns(splitState, queryBuffer);
 
-                    var existingJoin = queryBuffer.TypeBuffers[split.Key].JoinOn;
-
-                    if (split.Value != null)
-                        existingJoin = new ConnectorPart { Left = existingJoin, Op = WhereClauseConnector.AndOperator, Right = split.Value };
-
-                    queryBuffer.TypeBuffers[split.Key].JoinOn = existingJoin;
+                    AttachToExistingOn(split.Key, split.Value, queryBuffer);
                     LiftSubOrderby(unionFlatList, unionForcedUpOrderBy);
                     queryBuffer.TypeBuffers[split.Key].IsInnerJoin = true;
 
@@ -202,9 +198,10 @@ namespace Harmony.Core.EF.Query.Internal
                         Expression.Constant(compilationContext.IsTracking)));
                 }
 
-                if (splitState.DrivingWhere != null)
+                if (splitState.DrivingWhere != null || (unionParts.Count == 0 && splitState.BasesOns.Count > 0))
                 {
                     var queryBuffer = MakeQueryBuffer(rootExpr, processedOns, flatList, whereBuilder, orderBys, fieldReferences, forcedUpOrderBy);
+                    AttachFromBaseOns(splitState, queryBuffer);
                     LiftSubOrderby(flatList, forcedUpOrderBy);
 
                     var queryPlan = new PreparedQueryPlan(true, splitState.DrivingWhere != null ? new List<object> { splitState.DrivingWhere } : new List<object>(), fieldReferences, processedOns,
@@ -275,6 +272,51 @@ namespace Harmony.Core.EF.Query.Internal
                     forcedUpOrderBy[0].Item1.OrderBy = PreparedQueryPlan.MakeOrderByExpression(parm1Expr, parm2Expr, item1Expr, item2Expr, forcedUpOrderBy[0].Item3);
                 }
             }
+
+            static void AttachToExistingOn(int index, object expr, QueryBuffer queryBuffer)
+            {
+                var existingJoin = queryBuffer.TypeBuffers[index].JoinOn;
+                queryBuffer.TypeBuffers[index].JoinOn = CombineExpressions(existingJoin, expr);
+            }
+
+            void AttachFromBaseOns(ExpressionSplitState splitState, QueryBuffer queryBuffer)
+            {
+                foreach (var baseOn in splitState.BasesOns.Values)
+                {
+                    var onSources = QuerySourceKeyForExpr(baseOn);
+                    AttachToExistingOn(onSources.First(), baseOn, queryBuffer);
+                }
+            }
+        }
+
+        public static object CombineExpressions(object baseExpr, object newExpr)
+        {
+            if (baseExpr == null)
+                return newExpr;
+            else
+                return new ConnectorPart { Left = baseExpr, Op = WhereClauseConnector.AndOperator, Right = newExpr };
+        }
+
+        public static Expression CombineExpressions(Expression baseExpr, Expression newExpr)
+        {
+            if (baseExpr == null)
+                return newExpr;
+            else if (baseExpr is LambdaExpression lambExpr && newExpr is LambdaExpression newLamb)
+            {
+                return Expression.Lambda(CombineExpressions(lambExpr.Body, newLamb.Body), lambExpr.Parameters);
+            }
+            else
+                return Expression.MakeBinary(ExpressionType.AndAlso, baseExpr, newExpr);
+        }
+
+        public static void CombineExpressionIntoList(List<Expression> existing, Expression newExpr)
+        {
+            if (existing.Count > 0)
+            {
+                existing[existing.Count - 1] = CombineExpressions(existing.Last(), newExpr);
+            }
+            else
+                existing.Add(newExpr);
         }
 
         private static void MakeFlatList(HarmonyTableExpression rootExpr, List<object> processedOns, out List<Tuple<HarmonyTableExpression, QueryBuffer.TypeBuffer>> flatList, out WhereExpressionBuilder whereBuilder, out List<object> processedWheres, out List<Tuple<FieldReference, bool>> orderBys)
@@ -296,12 +338,32 @@ namespace Harmony.Core.EF.Query.Internal
             }
 
             whereBuilder = new WhereExpressionBuilder(rootExpr.IsCaseSensitive, tableList, expressionTableMapping);
-            processedWheres = new List<Object>();
+            var tempProcessedWheres = new List<Object>();
             orderBys = new List<Tuple<FileIO.Queryable.FieldReference, bool>>();
             foreach (var expr in rootExpr.WhereExpressions)
             {
-                whereBuilder.VisitForWhere(expr, processedWheres, processedOns);
+                whereBuilder.VisitForWhere(expr, tempProcessedWheres, processedOns);
             }
+            if (tempProcessedWheres.Count > 1)
+            {
+                object resultWhere = null;
+                foreach (var expr in tempProcessedWheres)
+                {
+                    if(resultWhere == null)
+                    {
+                        resultWhere = expr;
+                    }
+                    else
+                    {
+                        resultWhere = new ConnectorPart { Left = resultWhere, Op = WhereClauseConnector.AndOperator, Right = expr };
+                    }
+                }
+
+                processedWheres = new List<Object> { resultWhere };
+            }
+            else
+                processedWheres = tempProcessedWheres;
+            
         }
 
         private static QueryBuffer MakeQueryBuffer(HarmonyTableExpression rootExpr, List<object> processedOns, List<Tuple<HarmonyTableExpression, QueryBuffer.TypeBuffer>> flatList, WhereExpressionBuilder whereBuilder, List<Tuple<FieldReference, bool>> orderBys, Dictionary<int, List<FieldDataDefinition>> fieldReferences, List<Tuple<QueryBuffer.TypeBuffer, FieldReference, bool>> forcedUpOrderBy)

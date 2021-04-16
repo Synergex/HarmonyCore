@@ -742,6 +742,15 @@ namespace Harmony.Core.EF.Query.Internal
                     i--;
                     continue;
                 }
+                else
+                {
+                    //lift this all the way up to the root so it can be processed later by split expression
+                    var targetExpr = subQueryTable.WhereExpressions[i];
+                    HarmonyQueryExpression.CombineExpressionIntoList(queryExpr.FindServerExpression().WhereExpressions, targetExpr);
+                    subQueryTable.WhereExpressions.RemoveAt(i);
+                    i--;
+                    continue;
+                }
             }
 
             return subquery;
@@ -1088,7 +1097,7 @@ namespace Harmony.Core.EF.Query.Internal
                 }
             }
 
-            (Expression, Expression) FindParameterOrNavigation(Expression expr)
+            internal (Expression, Expression) FindParameterOrNavigation(Expression expr)
             {
                 if (expr is ParameterExpression)
                     return (expr, expr);
@@ -1105,6 +1114,10 @@ namespace Harmony.Core.EF.Query.Internal
                     else
                         return (expr, null);
 
+                }
+                else if(expr is InExpression inexpr)
+                {
+                    return FindParameterOrNavigation(inexpr.Predicate);
                 }
                 else if (expr is JoinOnClause joc)
                     return (joc.TargetTable, null);
@@ -1183,8 +1196,11 @@ namespace Harmony.Core.EF.Query.Internal
 
             protected override Expression VisitExtension(Expression node)
             {
-                if (node is InExpression)
+                if (node is InExpression inExpr)
+                {
+                    Visit(inExpr.Predicate);
                     return node;
+                }
 
                 return base.VisitExtension(node);
             }
@@ -1215,7 +1231,7 @@ namespace Harmony.Core.EF.Query.Internal
             var simplifier = new LambdaSimplifier(queryExpression);
             var visitorResult = simplifier.Visit(predicate) as LambdaExpression;
             var result = new Dictionary<ParameterExpression, LambdaExpression>();
-            var expressionBody = ExtractJoins(result, visitorResult.Body);
+            var expressionBody = ExtractJoins(result, visitorResult.Body, simplifier);
 
             if(expressionBody != null)
             {
@@ -1225,7 +1241,7 @@ namespace Harmony.Core.EF.Query.Internal
             return result;
         }
 
-        private Expression ExtractJoins(Dictionary<ParameterExpression, LambdaExpression> predicates, Expression node)
+        private Expression ExtractJoins(Dictionary<ParameterExpression, LambdaExpression> predicates, Expression node, LambdaSimplifier simplifier)
         {
             if (node is BinaryExpression be)
             {
@@ -1237,8 +1253,8 @@ namespace Harmony.Core.EF.Query.Internal
                 }
                 else
                 {
-                    var left = ExtractJoins(predicates, be.Left);
-                    var right = ExtractJoins(predicates, be.Right);
+                    var left = ExtractJoins(predicates, be.Left, simplifier);
+                    var right = ExtractJoins(predicates, be.Right, simplifier);
                     if (left == null || right == null)
                         return left ?? right;
                     else
@@ -1247,7 +1263,7 @@ namespace Harmony.Core.EF.Query.Internal
             }
             else if (node is UnaryExpression ue)
             {
-                var operand = ExtractJoins(predicates, ue.Operand);
+                var operand = ExtractJoins(predicates, ue.Operand, simplifier);
                 if (operand != null)
                     return ue.Update(operand);
                 else
@@ -1255,11 +1271,11 @@ namespace Harmony.Core.EF.Query.Internal
             }
             else if (node is MethodCallExpression mce)
             {
-                var obj = ExtractJoins(predicates, mce.Object);
+                var obj = ExtractJoins(predicates, mce.Object, simplifier);
                 bool hasExtracted = obj != null;
                 var arguments = mce.Arguments.Select(expr =>
                 {
-                    var extracted = ExtractJoins(predicates, expr);
+                    var extracted = ExtractJoins(predicates, expr, simplifier);
                     if (extracted != null)
                         hasExtracted = true;
                     return extracted ?? expr;
@@ -1268,6 +1284,31 @@ namespace Harmony.Core.EF.Query.Internal
                     return mce.Update(obj ?? mce.Object, arguments);
                 else
                     return null;
+            }
+            else if(node is InExpression inexpr)
+            {
+                var (param, atNode) = simplifier.FindParameterOrNavigation(inexpr);
+
+                if (param is MemberExpression)
+                    return node;
+
+                var cleanParam = param as ParameterExpression ?? simplifier._tableMapping[param as HarmonyTableExpression];
+                if (cleanParam == null || cleanParam == simplifier.QueryExpression.CurrentParameter)
+                {
+                    return node;
+                }
+                else
+                {
+                    if (predicates.TryGetValue(cleanParam, out var currentPredicate))
+                    {
+                        predicates[cleanParam] = Expression.Lambda(Expression.AndAlso(currentPredicate.Body, node), cleanParam);
+                    }
+                    else
+                    {
+                        predicates.Add(cleanParam, Expression.Lambda(node, cleanParam));
+                    }
+                    return null;
+                }
             }
             else if (node is JoinOnClause joc)
             {
@@ -1281,6 +1322,7 @@ namespace Harmony.Core.EF.Query.Internal
                 }
                 return null;
             }
+
             else
                 return node;
         }

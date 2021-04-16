@@ -1924,7 +1924,7 @@ namespace Services.Test.UnitTests
             disposable data response1 = client.GetAsync("/odata/v1/Testcars?" + _testCarsExpandString + "&$filter=" + filterString1).Result
             data result1 = response1.Content.ReadAsStringAsync().Result
             response1.EnsureSuccessStatusCode()
-            
+
             data filterString2 = "REL_Testcarowner1/Id in(4, 7, 10)"
             disposable data response2 = client.GetAsync("/odata/v1/Testcars?" + _testCarsExpandString + "&$filter=" + filterString2).Result
             data result2 = response2.Content.ReadAsStringAsync().Result
@@ -1993,6 +1993,153 @@ namespace Services.Test.UnitTests
             data wholeQueryResult = result4Cars.Value.OrderBy(lambda(x) { x.Id }).ToList()
 
             Assert.IsTrue(Enumerable.SequenceEqual(combinedResult, wholeQueryResult, new TestCarComparer()))
+        endmethod
+
+        public class TestCarLotComparer implements IEqualityComparer<Services.Test.Models.Testcarlot>
+            public virtual method Equals, Boolean
+                x, @Services.Test.Models.Testcarlot
+                y, @Services.Test.Models.Testcarlot
+                endparams
+            proc
+                mreturn x.Id == y.Id
+            endmethod
+
+            public virtual method GetHashCode, int
+                obj, @Services.Test.Models.Testcarlot
+                endparams
+            proc
+                mreturn obj.Id
+            endmethod
+        endclass
+
+        {TestMethod}
+        public method TestCarlots1, void
+        proc
+            ;/Testcarlots?$expand=REL_Testcars($expand=REL_Testcarowner1,REL_Testcarowner2,REL_Testcarowner3;$filter=REL_Testcarowner1/Name eq 'Andrew' or REL_Testcarowner2/Name eq 'Eric' or REL_Testcarowner3/Name eq 'Jack')
+
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            
+            data filterString1 = "REL_Testcarowner1/Name eq 'Andrew'"
+            disposable data response1 = client.GetAsync("/odata/v1/Testcarlots?$expand=REL_Testcars(" + _testCarsExpandString + ";$filter=" + filterString1 + ")").Result
+            data result1 = response1.Content.ReadAsStringAsync().Result
+            response1.EnsureSuccessStatusCode()
+            
+            data filterString2 = "REL_Testcarowner2/Name eq 'Eric'"
+            disposable data response2 = client.GetAsync("/odata/v1/Testcarlots?$expand=REL_Testcars(" + _testCarsExpandString + ";$filter=" + filterString2 + ")").Result
+            data result2 = response2.Content.ReadAsStringAsync().Result
+            response2.EnsureSuccessStatusCode()
+            
+            data filterString3 = "REL_Testcarowner3/Name eq 'Jack'"
+            disposable data response3 = client.GetAsync("/odata/v1/Testcarlots?$expand=REL_Testcars(" + _testCarsExpandString + ";$filter=" + filterString3 + ")").Result
+            data result3 = response3.Content.ReadAsStringAsync().Result
+            response3.EnsureSuccessStatusCode()
+            
+            disposable data response4 = client.GetAsync("/odata/v1/Testcarlots?$expand=REL_Testcars(" + _testCarsExpandString + ";$filter=" + filterString1 + " or " + filterString2 + " or " + filterString3 + ")").Result
+            data result4 = response4.Content.ReadAsStringAsync().Result
+            response4.EnsureSuccessStatusCode()
+            
+            data result1Cars, @Services.Test.Models.ODataTestcarlots, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarlots>(result1)
+            data result2Cars, @Services.Test.Models.ODataTestcarlots, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarlots>(result2)
+            data result3Cars, @Services.Test.Models.ODataTestcarlots, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarlots>(result3)
+            data result4Cars, @Services.Test.Models.ODataTestcarlots, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarlots>(result4)
+
+            data combinedResult = result1Cars.Value.Union(result2Cars.Value, new TestCarLotComparer()).Union(result3Cars.Value, new TestCarLotComparer()).OrderBy(lambda(x) { x.Id } ).ToList()
+
+            data wholeQueryResult = result4Cars.Value.OrderBy(lambda(x) { x.Id }).ToList()
+
+            Assert.IsTrue(Enumerable.SequenceEqual(combinedResult, wholeQueryResult, new TestCarLotComparer()))
+        endmethod
+
+        {TestMethod}
+        public method TestCarlots2, void
+        proc
+            ;/Testcarlots?$expand=REL_Testcars($expand=REL_Testcarowner1,REL_Testcarowner2,REL_Testcarowner3;$filter=contains(Name, 'e') or REL_Testcarowner1/Id in(4, 7, 10) or REL_Testcarowner2/Id gt 8 or contains(REL_Testcarowner3/Name, 'e'))
+
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            
+            data filterString1 = "contains(Name, 'e')"
+            disposable data response1 = client.GetAsync("/odata/v1/Testcarlots?$expand=REL_Testcars(" + _testCarsExpandString + ";$filter=" + filterString1 + ")").Result
+            data result1 = response1.Content.ReadAsStringAsync().Result
+            response1.EnsureSuccessStatusCode()
+
+            data filterString2 = "REL_Testcarowner1/Name eq 'Andrew'"
+            disposable data response2 = client.GetAsync("/odata/v1/Testcarlots?$expand=REL_Testcars(" + _testCarsExpandString + ";$filter=" + filterString2 + ")").Result
+            data result2 = response2.Content.ReadAsStringAsync().Result
+            response1.EnsureSuccessStatusCode()
+            
+            data filterString3 = "REL_Testcarowner2/Name eq 'Eric'"
+            disposable data response3 = client.GetAsync("/odata/v1/Testcarlots?$expand=REL_Testcars(" + _testCarsExpandString + ";$filter=" + filterString3 + ")").Result
+            data result3 = response3.Content.ReadAsStringAsync().Result
+            response2.EnsureSuccessStatusCode()
+            
+            data filterString4 = "REL_Testcarowner3/Name eq 'Jack'"
+            disposable data response4 = client.GetAsync("/odata/v1/Testcarlots?$expand=REL_Testcars(" + _testCarsExpandString + ";$filter=" + filterString4 + ")").Result
+            data result4 = response4.Content.ReadAsStringAsync().Result
+            response3.EnsureSuccessStatusCode()
+            
+            disposable data response5 = client.GetAsync("/odata/v1/Testcarlots?$expand=REL_Testcars(" + _testCarsExpandString + ";$filter=" + filterString1 + " or " + filterString2 + " or " + filterString3 + " or " + filterString4 + ")").Result
+            data result5 = response5.Content.ReadAsStringAsync().Result
+            response5.EnsureSuccessStatusCode()
+            
+            data result1Carlots, @Services.Test.Models.ODataTestcarlots, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarlots>(result1)
+            data result2Carlots, @Services.Test.Models.ODataTestcarlots, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarlots>(result2)
+            data result3Carlots, @Services.Test.Models.ODataTestcarlots, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarlots>(result3)
+            data result4Carlots, @Services.Test.Models.ODataTestcarlots, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarlots>(result4)
+            data result5Carlots, @Services.Test.Models.ODataTestcarlots, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarlots>(result5)
+
+            data combinedResult = result1Carlots.Value.Union(result2Carlots.Value, new TestCarLotComparer()).Union(result3Carlots.Value, new TestCarLotComparer()).Union(result4Carlots.Value, new TestCarLotComparer()).OrderBy(lambda(x) { x.Id } ).ToList()
+
+            data wholeQueryResult = result5Carlots.Value.OrderBy(lambda(x) { x.Id }).ToList()
+
+            Assert.IsTrue(Enumerable.SequenceEqual(combinedResult, wholeQueryResult, new TestCarLotComparer()))
+        endmethod
+
+        {TestMethod}
+        {Ignore("Possible select bug?")}
+        public method TestCarlots3, void
+        proc
+            ;/Testcarlots(Id=1)?$expand=REL_Testcars($expand=REL_Testcarowner1,REL_Testcarowner2,REL_Testcarowner3;$filter=REL_Testcarowner1/Name eq 'Andrew')
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            
+            data filterString1 = "REL_Testcarowner1/Name eq 'Andrew'"
+            disposable data response1 = client.GetAsync("/odata/v1/Testcarlots(Id=1)?$expand=REL_Testcars(" + _testCarsExpandString + ";$filter=" + filterString1 + ")").Result
+            data result1 = response1.Content.ReadAsStringAsync().Result
+            response1.EnsureSuccessStatusCode()
+
+            data result1Cars, @Services.Test.Models.ODataTestcarlot, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarlot>(result1)
+            Assert.IsNotNull(result1Cars.Value)
+        endmethod
+
+        {TestMethod}
+        {Ignore("Possible select bug?")}
+        public method TestCarlots4, void
+        proc
+            ;/Testcarlots?$expand=REL_Testcars($expand=REL_Testcarowner1,REL_Testcarowner2,REL_Testcarowner3;$filter=REL_Testcarowner1/Id eq 5)
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            
+            data filterString1 = "REL_Testcarowner1/Id eq 5"
+            disposable data response1 = client.GetAsync("/odata/v1/Testcarlots?$expand=REL_Testcars(" + _testCarsExpandString + ";$filter=" + filterString1 + ")").Result
+            data result1 = response1.Content.ReadAsStringAsync().Result
+            response1.EnsureSuccessStatusCode()
+
+            data result1Cars, @Services.Test.Models.ODataTestcarlots, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarlots>(result1)
+            Assert.AreEqual(1, result1Cars.Value.Count)
+        endmethod
+
+        {TestMethod}
+        {Ignore("Possible select bug?")}
+        public method TestCarlots5, void
+        proc
+            ;/Testcarlots(Id=1)?$expand=REL_Testcars($expand=REL_Testcarowner1,REL_Testcarowner2,REL_Testcarowner3;$filter=REL_Testcarowner1/Id eq 5)
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            
+            data filterString1 = "REL_Testcarowner1/Id eq 5"
+            disposable data response1 = client.GetAsync("/odata/v1/Testcarlots(Id=1)?$expand=REL_Testcars(" + _testCarsExpandString + ";$filter=" + filterString1 + ")").Result
+            data result1 = response1.Content.ReadAsStringAsync().Result
+            response1.EnsureSuccessStatusCode()
+
+            data result1Cars, @Services.Test.Models.ODataTestcarlot, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarlot>(result1)
+            Assert.IsNotNull(result1Cars.Value)
         endmethod
 
 ;		{TestMethod}
