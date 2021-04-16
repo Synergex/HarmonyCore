@@ -86,6 +86,11 @@ namespace Services.Models
         public readwrite property Testcars, @DbSet<Testcar>
 
         ;;; <summary>
+        ;;; Exposes Testcarlot data.
+        ;;; </summary>
+        public readwrite property Testcarlots, @DbSet<Testcarlot>
+
+        ;;; <summary>
         ;;; Exposes Testcarowner1 data.
         ;;; </summary>
         public readwrite property Testcarowner1s, @DbSet<Testcarowner1>
@@ -245,6 +250,12 @@ namespace Services.Models
             ;;--------------------------------------
             ;; Relationships from TESTCAR
 
+             ;; TESTCAR.LOTID (many) --> (one) --> (many) TESTCARLOT.ID
+             ;;    Type          : A
+             ;;    From segments : LOTID(D6) 
+             ;;    To segments   : ID(D6) 
+
+             parm.AddOneToOneToManyRelation<Testcar, Testcarlot>("REL_Testcarlot", "KEY_LOTID", "REL_Testcars", "KEY_ID")
              ;; TESTCAR.OWNERID1 (many) --> (one) --> (many) TESTCAROWNER1.OWNERID
              ;;    Type          : A
              ;;    From segments : OWNER1(D6) 
@@ -263,6 +274,15 @@ namespace Services.Models
              ;;    To segments   : ID(D6) 
 
              parm.AddOneToOneToManyRelation<Testcar, Testcarowner3>("REL_Testcarowner3", "KEY_OWNERID3", "REL_Testcars", "KEY_OWNERID")
+            ;;--------------------------------------
+            ;; Relationships from TESTCARLOT
+
+            ;; TESTCARLOT.ID (one) --> (many) --> (one) TESTCAR.LOTID
+            ;;    Type          : D
+            ;;    From segments : ID(D6) 
+            ;;    To segments   : LOTID(D6) 
+
+            parm.AddOneToManyToOneRelation<Testcarlot, Testcar>("REL_Testcars", "KEY_ID", "REL_Testcarlot", "KEY_LOTID")
             ;;--------------------------------------
             ;; Relationships from TESTCAROWNER1
 

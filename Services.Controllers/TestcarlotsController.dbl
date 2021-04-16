@@ -1,8 +1,8 @@
 ;;*****************************************************************************
 ;;
-;; Title:       TestcarsController.dbl
+;; Title:       TestcarlotsController.dbl
 ;;
-;; Description: OData controller for the TESTCAR structure.
+;; Description: OData controller for the TESTCARLOT structure.
 ;;
 ;;*****************************************************************************
 ;; WARNING: GENERATED CODE!
@@ -31,11 +31,11 @@ import Services.Models
 namespace Services.Controllers
 
     {ApiVersion("1")}
-    {ODataRoutePrefix("Testcars")}
+    {ODataRoutePrefix("Testcarlots")}
     ;;; <summary>
-    ;;; OData controller for Testcars
+    ;;; OData controller for Testcarlots
     ;;; </summary>
-    public partial class TestcarsController extends ODataController
+    public partial class TestcarlotsController extends ODataController
     
         ;;Services provided via dependency injection
         private _DbContext, @Services.Models.DBContext
@@ -43,12 +43,12 @@ namespace Services.Controllers
         private _AppSettings, @IOptions<AppSettings>
 
         ;;; <summary>
-        ;;; Constructs a new instance of TestcarsController
+        ;;; Constructs a new instance of TestcarlotsController
         ;;; </summary>
         ;;; <param name="aDbContext">Database context instance (DI)</param>
         ;;; <param name="aServiceProvider">Service provider instance (DI)</param>
         ;;; <param name="aAppSettings">Application settings</param>
-        public method TestcarsController
+        public method TestcarlotsController
             aDbContext, @Services.Models.DBContext
             aServiceProvider, @IServiceProvider
             aAppSettings, @IOptions<AppSettings>
@@ -60,126 +60,46 @@ namespace Services.Controllers
 
         {ODataRoute}
         {Produces("application/json")}
-        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Testcar>>),StatusCodes.Status200OK)}
+        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Testcarlot>>),StatusCodes.Status200OK)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
-        ;;; Get all Testcars
+        ;;; Get all Testcarlots
         ;;; </summary>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetTestcars, @IActionResult
+        public method GetTestcarlots, @IActionResult
         proc
-            mreturn Ok(_DbContext.Testcars.AsNoTracking())
+            mreturn Ok(_DbContext.Testcarlots.AsNoTracking())
         endmethod
 
         {ODataRoute("(Id={aId})")}
         {Produces("application/json")}
-        {ProducesResponseType(^typeof(Testcar),StatusCodes.Status200OK)}
+        {ProducesResponseType(^typeof(Testcarlot),StatusCodes.Status200OK)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
-        ;;; Get a single Testcar by primary key.
+        ;;; Get a single Testcarlot by primary key.
         ;;; </summary>
-        ;;; <param name="aId">Car ID</param>
+        ;;; <param name="aId">Car lot ID</param>
         ;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetTestcar, @SingleResult<Testcar>
+        public method GetTestcarlot, @SingleResult<Testcarlot>
             {FromODataUri}
             required in aId, int
         proc
-            mreturn new SingleResult<Testcar>(_DbContext.Testcars.AsNoTracking().FindQuery<Testcar>(_DbContext, aId))
-        endmethod
-
-        {ODataRoute("(Lotid={aLotid})")}
-        {Produces("application/json")}
-        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Testcar>>),StatusCodes.Status200OK)}
-        {ProducesResponseType(StatusCodes.Status404NotFound)}
-        {EnableQuery(MaxExpansionDepth=4)}
-        ;;; <summary>
-        ;;; Get testcars by alternate key key Lotid.
-        ;;; </summary>
-        ;;; <param name="aLotid">Car lot ID</param>
-        ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetTestcarsByLotid, @IActionResult
-            {FromODataUri}
-            required in aLotid, int
-        proc
-            data result = _DbContext.Testcars.AsNoTracking().FindAlternate("Lotid",aLotid)
-            if (result == ^null)
-                mreturn NotFound()
-            mreturn Ok(result)
-        endmethod
-
-        {ODataRoute("(Owner1={aOwner1})")}
-        {Produces("application/json")}
-        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Testcar>>),StatusCodes.Status200OK)}
-        {ProducesResponseType(StatusCodes.Status404NotFound)}
-        {EnableQuery(MaxExpansionDepth=4)}
-        ;;; <summary>
-        ;;; Get testcars by alternate key key Ownerid1.
-        ;;; </summary>
-        ;;; <param name="aOwner1">Car owner 1</param>
-        ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetTestcarsByOwnerid1, @IActionResult
-            {FromODataUri}
-            required in aOwner1, int
-        proc
-            data result = _DbContext.Testcars.AsNoTracking().FindAlternate("Owner1",aOwner1)
-            if (result == ^null)
-                mreturn NotFound()
-            mreturn Ok(result)
-        endmethod
-
-        {ODataRoute("(Owner2={aOwner2})")}
-        {Produces("application/json")}
-        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Testcar>>),StatusCodes.Status200OK)}
-        {ProducesResponseType(StatusCodes.Status404NotFound)}
-        {EnableQuery(MaxExpansionDepth=4)}
-        ;;; <summary>
-        ;;; Get testcars by alternate key key Ownerid2.
-        ;;; </summary>
-        ;;; <param name="aOwner2">Car owner 2</param>
-        ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetTestcarsByOwnerid2, @IActionResult
-            {FromODataUri}
-            required in aOwner2, int
-        proc
-            data result = _DbContext.Testcars.AsNoTracking().FindAlternate("Owner2",aOwner2)
-            if (result == ^null)
-                mreturn NotFound()
-            mreturn Ok(result)
-        endmethod
-
-        {ODataRoute("(Owner3={aOwner3})")}
-        {Produces("application/json")}
-        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Testcar>>),StatusCodes.Status200OK)}
-        {ProducesResponseType(StatusCodes.Status404NotFound)}
-        {EnableQuery(MaxExpansionDepth=4)}
-        ;;; <summary>
-        ;;; Get testcars by alternate key key Ownerid3.
-        ;;; </summary>
-        ;;; <param name="aOwner3">Car owner 3</param>
-        ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetTestcarsByOwnerid3, @IActionResult
-            {FromODataUri}
-            required in aOwner3, int
-        proc
-            data result = _DbContext.Testcars.AsNoTracking().FindAlternate("Owner3",aOwner3)
-            if (result == ^null)
-                mreturn NotFound()
-            mreturn Ok(result)
+            mreturn new SingleResult<Testcarlot>(_DbContext.Testcarlots.AsNoTracking().FindQuery<Testcarlot>(_DbContext, aId))
         endmethod
 
         {ODataRoute}
         {Produces("application/json")}
-        {ProducesResponseType(^typeof(Testcar),StatusCodes.Status200OK)}
+        {ProducesResponseType(^typeof(Testcarlot),StatusCodes.Status200OK)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
         {HttpPost}
         ;;; <summary>
-        ;;; Create a new testcar (automatically assigned primary key).
+        ;;; Create a new testcarlot (automatically assigned primary key).
         ;;; </summary>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method PostTestcar, @IActionResult
+        public method PostTestcarlot, @IActionResult
             {FromBody}
-            required in aTestcar, @Testcar
+            required in aTestcarlot, @Testcarlot
         proc
             ;;Remove the primary key fields from ModelState
             ModelState.Remove("Id")
@@ -190,12 +110,12 @@ namespace Services.Controllers
 
             ;;Get the next available primary key value
             disposable data keyFactory = (@IPrimaryKeyFactory)_ServiceProvider.GetService(^typeof(IPrimaryKeyFactory))
-            KeyFactory.AssignPrimaryKey(aTestcar)
+            KeyFactory.AssignPrimaryKey(aTestcarlot)
 
-            ;;Add the new testcar
+            ;;Add the new testcarlot
             try
             begin
-                _DbContext.Testcars.Add(aTestcar)
+                _DbContext.Testcarlots.Add(aTestcarlot)
                 _DbContext.SaveChanges(keyFactory)
             end
             catch (e, @ValidationException)
@@ -205,7 +125,7 @@ namespace Services.Controllers
             end
             endtry
 
-            mreturn Created(aTestcar)
+            mreturn Created(aTestcarlot)
 
         endmethod
 
@@ -216,15 +136,15 @@ namespace Services.Controllers
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {HttpPut}
         ;;; <summary>
-        ;;; Create (with a client-supplied primary key) or replace a testcar.
+        ;;; Create (with a client-supplied primary key) or replace a testcarlot.
         ;;; </summary>
-        ;;; <param name="aId">Car ID</param>
+        ;;; <param name="aId">Car lot ID</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method PutTestcar, @IActionResult
+        public method PutTestcarlot, @IActionResult
             {FromODataUri}
             required in aId, int
             {FromBody}
-            required in aTestcar, @Testcar
+            required in aTestcarlot, @Testcarlot
         proc
 
             ;; Validate inbound data
@@ -232,21 +152,21 @@ namespace Services.Controllers
                 mreturn ValidationHelper.ReturnValidationError(ModelState)
 
             ;;Ensure that the key values in the URI win over any data that may be in the model object
-            aTestcar.Id = aId
+            aTestcarlot.Id = aId
 
             try
             begin
                 ;;Add and commit
-                data existing = _DbContext.Testcars.Find(aId)
+                data existing = _DbContext.Testcarlots.Find(aId)
                 if(existing == ^null) then
                 begin
-                    _DbContext.Testcars.Add(aTestcar)
+                    _DbContext.Testcarlots.Add(aTestcarlot)
                     _DbContext.SaveChanges()
-                    mreturn Created(aTestcar)
+                    mreturn Created(aTestcarlot)
                 end
                 else
                 begin
-                    aTestcar.CopyTo(existing)
+                    aTestcarlot.CopyTo(existing)
                     _DbContext.SaveChanges()
                     mreturn NoContent()
                 end
@@ -270,38 +190,38 @@ namespace Services.Controllers
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {HttpPatch}
         ;;; <summary>
-        ;;; Patch  (partial update) a testcar.
+        ;;; Patch  (partial update) a testcarlot.
         ;;; </summary>
-        ;;; <param name="aId">Car ID</param>
+        ;;; <param name="aId">Car lot ID</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method PatchTestcar, @IActionResult
+        public method PatchTestcarlot, @IActionResult
             {FromODataUri}
             required in aId, int
             {FromBody}
-            required in aTestcar, @JsonPatchDocument<Testcar>
+            required in aTestcarlot, @JsonPatchDocument<Testcarlot>
         proc
             ;; Validate inbound data
             if (!ModelState.IsValid)
                 mreturn ValidationHelper.ReturnValidationError(ModelState)
 
-            ;;Patch the existing testcar
+            ;;Patch the existing testcarlot
             try
             begin
-                ;;Get the testcar to be updated
-                data testcarToUpdate = _DbContext.Testcars.Find(aId)
+                ;;Get the testcarlot to be updated
+                data testcarlotToUpdate = _DbContext.Testcarlots.Find(aId)
                 data patchError, @JsonPatchError, ^null
                 ;;Did we find it?
-                if(testcarToUpdate == ^null)
+                if(testcarlotToUpdate == ^null)
                     mreturn NotFound()
 
-                ;;Apply the changes to the testcar we read
-                aTestcar.ApplyTo(testcarToUpdate, lambda(error) { patchError = error })
+                ;;Apply the changes to the testcarlot we read
+                aTestcarlot.ApplyTo(testcarlotToUpdate, lambda(error) { patchError = error })
                 ;;if the patchdoc was bad return the error info
                 if(patchError != ^null)
                     mreturn BadRequest(string.Format("Error applying patch document: error message {0}, caused by {1}", patchError.ErrorMessage, JsonConvert.SerializeObject(patchError.Operation)))
 
                 ;;Update and commit
-                _DbContext.Testcars.Update(testcarToUpdate)
+                _DbContext.Testcarlots.Update(testcarlotToUpdate)
                 _DbContext.SaveChanges()
             end
             catch (e, @InvalidOperationException)
@@ -323,23 +243,23 @@ namespace Services.Controllers
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {HttpDelete}
         ;;; <summary>
-        ;;; Delete a testcar.
+        ;;; Delete a testcarlot.
         ;;; </summary>
-        ;;; <param name="aId">Car ID</param>
+        ;;; <param name="aId">Car lot ID</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method DeleteTestcar, @IActionResult
+        public method DeleteTestcarlot, @IActionResult
             {FromODataUri}
             required in aId, int
         proc
-            ;;Get the testcar to be deleted
-            data testcarToRemove = _DbContext.Testcars.Find(aId)
+            ;;Get the testcarlot to be deleted
+            data testcarlotToRemove = _DbContext.Testcarlots.Find(aId)
 
             ;;Did we find it?
-            if (testcarToRemove == ^null)
+            if (testcarlotToRemove == ^null)
                 mreturn NotFound()
 
             ;;Delete and commit
-            _DbContext.Testcars.Remove(testcarToRemove)
+            _DbContext.Testcarlots.Remove(testcarlotToRemove)
             _DbContext.SaveChanges()
 
             mreturn NoContent()

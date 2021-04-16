@@ -23,6 +23,7 @@ namespace Services.Test.GenerateValues
         .include "NONUNIQUEPK" repository, record="nonuniquepk", end
         .include "DIFFERENTPK" repository, record="differentpk", end
         .include "TESTCAR" repository, record="testcar", end
+        .include "TESTCARLOT" repository, record="testcarlot", end
         .include "TESTCAROWNER1" repository, record="testcarowner1", end
         .include "TESTCAROWNER2" repository, record="testcarowner2", end
         .include "TESTCAROWNER3" repository, record="testcarowner3", end
@@ -409,14 +410,51 @@ namespace Services.Test.GenerateValues
                 exitloop
             end
 
+            TestConstants.Instance.GetTestcar_Expand_REL_Testcarlot_Id = testcar.id
             TestConstants.Instance.GetTestcar_Expand_REL_Testcarowner1_Id = testcar.id
             TestConstants.Instance.GetTestcar_Expand_REL_Testcarowner2_Id = testcar.id
             TestConstants.Instance.GetTestcar_Expand_REL_Testcarowner3_Id = testcar.id
             TestConstants.Instance.GetTestcar_Expand_All_Id = testcar.id
+            TestConstants.Instance.GetTestcar_ByAltKey_Lotid_Lotid = testcar.lotid
             TestConstants.Instance.GetTestcar_ByAltKey_Ownerid1_Owner1 = testcar.owner1
             TestConstants.Instance.GetTestcar_ByAltKey_Ownerid2_Owner2 = testcar.owner2
             TestConstants.Instance.GetTestcar_ByAltKey_Ownerid3_Owner3 = testcar.owner3
             TestConstants.Instance.UpdateTestcar_Id = testcar.id + 1
+
+            close chin
+
+            ;;------------------------------------------------------------
+            ;;Test data for Testcarlot
+            open(chin=0,i:i,"DAT:testcarlot.ism")
+
+            ;Total number of records
+            count = 0
+            repeat
+            begin
+                reads(chin,testcarlot,eofTestcarlot1)
+                count += 1
+                nextloop
+            eofTestcarlot1,
+                if (count) then
+                    TestConstants.Instance.GetTestcarlots_Count = count
+                else
+                    Console.WriteLine("ERROR: Failed to read record from DAT:testcarlot.ism")
+                exitloop
+            end
+            ;Get by primary key
+            repeat
+            begin
+                read(chin,testcarlot,^LAST) [ERR=eofTestcarlot2]
+                TestConstants.Instance.GetTestcarlot_Id = testcarlot.id
+                exitloop
+            eofTestcarlot2,
+                Console.WriteLine("ERROR: Failed to read first record from DAT:testcarlot.ism")
+                exitloop
+            end
+
+            TestConstants.Instance.GetTestcarlot_Expand_REL_Testcars_Id = testcarlot.id
+            TestConstants.Instance.GetTestcarlot_Expand_All_Id = testcarlot.id
+            TestConstants.Instance.UpdateTestcarlot_Id = testcarlot.id + 1
 
             close chin
 

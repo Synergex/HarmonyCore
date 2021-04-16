@@ -172,6 +172,14 @@ namespace Services.Test
                     logicals.Add(logical)
             end
 
+            fileSpec = "DAT:testcarlot.ism"
+            if (fileSpec.Contains(":"))
+            begin
+                logical = fileSpec.Split(":")[1].ToUpper()
+                if (!logicals.Contains(logical))
+                    logicals.Add(logical)
+            end
+
             fileSpec = "DAT:testcarowner1.ism"
             if (fileSpec.Contains(":"))
             begin
@@ -220,6 +228,7 @@ namespace Services.Test
             data nonuniquepks = NonuniquepkLoader.LoadFromFile()
             data differentpks = DifferentpkLoader.LoadFromFile()
             data testcars = TestcarLoader.LoadFromFile()
+            data testcarlots = TestcarlotLoader.LoadFromFile()
             data testcarowner1s = Testcarowner1Loader.LoadFromFile()
             data testcarowner2s = Testcarowner2Loader.LoadFromFile()
             data testcarowner3s = Testcarowner3Loader.LoadFromFile()
@@ -332,6 +341,17 @@ namespace Services.Test
             open(chout=0,o:i,dataFile,FDL:xdlFile)
             foreach testcar in testcars
                 store(chout,testcar.SynergyRecord)
+            close chout
+
+            ;;Create and load the testcarlots file
+
+            dataFile = "DAT:testcarlot.ism"
+            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+
+            data testcarlot, @Testcarlot
+            open(chout=0,o:i,dataFile,FDL:xdlFile)
+            foreach testcarlot in testcarlots
+                store(chout,testcarlot.SynergyRecord)
             close chout
 
             ;;Create and load the testcarowner1s file
@@ -474,6 +494,17 @@ namespace Services.Test
             try
             begin
                 xcall delet("DAT:testcar.ism")
+            end
+            catch (e, @NoFileFoundException)
+            begin
+                nop
+            end
+            endtry
+
+            ;;Delete the testcarlots file
+            try
+            begin
+                xcall delet("DAT:testcarlot.ism")
             end
             catch (e, @NoFileFoundException)
             begin

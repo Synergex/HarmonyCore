@@ -42,26 +42,33 @@ namespace Services.Models
             ;; Define fields
             AddFieldInfo("Id", "DECIMAL", 6, 1, 0, false)
             AddFieldInfo("Name", "ALPHA", 20, 7, 0, false)
-            AddFieldInfo("Owner1", "DECIMAL", 6, 27, 0, false)
-            AddFieldInfo("Owner2", "DECIMAL", 6, 33, 0, false)
-            AddFieldInfo("Owner3", "DECIMAL", 6, 39, 0, false)
+            AddFieldInfo("Lotid", "DECIMAL", 6, 27, 0, false)
+            AddFieldInfo("Owner1", "DECIMAL", 6, 33, 0, false)
+            AddFieldInfo("Owner2", "DECIMAL", 6, 39, 0, false)
+            AddFieldInfo("Owner3", "DECIMAL", 6, 45, 0, false)
 
             ;; Define relations
+            AddFieldInfo("REL_Testcarlot", "DATAOBJECT", 0, 0, 0, false)
             AddFieldInfo("REL_Testcarowner1", "DATAOBJECT", 0, 0, 0, false)
             AddFieldInfo("REL_Testcarowner2", "DATAOBJECT", 0, 0, 0, false)
             AddFieldInfo("REL_Testcarowner3", "DATAOBJECT", 0, 0, 0, false)
 
             ;; Define all fields that are associated wity key segments
             AddKeyInfo(0, "Id")
-            AddKeyInfo(1, "Owner1")
-            AddKeyInfo(2, "Owner2")
-            AddKeyInfo(3, "Owner3")
+            AddKeyInfo(1, "Lotid")
+            AddKeyInfo(2, "Owner1")
+            AddKeyInfo(3, "Owner2")
+            AddKeyInfo(4, "Owner3")
 
             ;; Define the composition of access keys
 
             data Carid_KeyParts = new FieldDataDefinition[1]
             Carid_KeyParts[1] = GetFieldByName("Id")
             AddFieldInfo("KEY_CARID", "COMPOSITE", 0, 0, 0, false, ^null, ^null, Carid_KeyParts)
+
+            data Lotid_KeyParts = new FieldDataDefinition[1]
+            Lotid_KeyParts[1] = GetFieldByName("Lotid")
+            AddFieldInfo("KEY_LOTID", "COMPOSITE", 0, 0, 0, false, ^null, ^null, Lotid_KeyParts)
 
             data Ownerid1_KeyParts = new FieldDataDefinition[1]
             Ownerid1_KeyParts[1] = GetFieldByName("Owner1")
@@ -83,7 +90,7 @@ namespace Services.Models
 
         ;;; <summary>
         ;;; Returns a new Testcar object containing data from a record and a GRFA.
-        ;;; The related data properties (REL_Testcarowner1, REL_Testcarowner2 and REL_Testcarowner3) will not be populated.
+        ;;; The related data properties (REL_Testcarlot, REL_Testcarowner1, REL_Testcarowner2 and REL_Testcarowner3) will not be populated.
         ;;; </summary>
         ;;; <param name="dataArea">The record containing the data for the new Testcar object.</param>
         ;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
@@ -97,11 +104,11 @@ namespace Services.Models
 
         ;;; <summary>
         ;;; Returns a new Testcar object containing data from a record and a GRFA.
-        ;;; The related data properties (REL_Testcarowner1, REL_Testcarowner2 and REL_Testcarowner3) will be populated.
+        ;;; The related data properties (REL_Testcarlot, REL_Testcarowner1, REL_Testcarowner2 and REL_Testcarowner3) will be populated.
         ;;; </summary>
         ;;; <param name="dataArea">The record containing the data for the new Testcar object.</param>
         ;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
-        ;;; <param name="joinedObjects">Data to allow the related data properties (REL_Testcarowner1, REL_Testcarowner2 and REL_Testcarowner3) to be populated.</param>
+        ;;; <param name="joinedObjects">Data to allow the related data properties (REL_Testcarlot, REL_Testcarowner1, REL_Testcarowner2 and REL_Testcarowner3) to be populated.</param>
         ;;; <returns></returns>
         public override method MakeNew, @DataObjectBase
             required in dataArea, a
@@ -128,6 +135,13 @@ namespace Services.Models
             foreach joinedObject in joinedObjects
             begin
                 using joinedObject.Key select
+                ("REL_Testcarlot"),
+                begin
+                    if(existing.REL_Testcarlot == ^null)
+                    begin
+                        existing.REL_Testcarlot = (@Testcarlot)joinedObject.Value
+                    end
+                end
                 ("REL_Testcarowner1"),
                 begin
                     if(existing.REL_Testcarowner1 == ^null)
@@ -167,12 +181,15 @@ namespace Services.Models
                 Id, D6
             endrecord
             stack record key1
-                Owner1, D6
+                Lotid, D6
             endrecord
             stack record key2
-                Owner2, D6
+                Owner1, D6
             endrecord
             stack record key3
+                Owner2, D6
+            endrecord
+            stack record key4
                 Owner3, D6
             endrecord
         proc
@@ -187,21 +204,27 @@ namespace Services.Models
             end
             (1),
             begin
-                if((segValueLength=KeyValueHelper(key1.Owner1, "Owner1", parts))<6 && segValueLength>0)
+                if((segValueLength=KeyValueHelper(key1.Lotid, "Lotid", parts))<6 && segValueLength>0)
                     mreturn key1(1:startPos+segValueLength)
                 mreturn key1
             end
             (2),
             begin
-                if((segValueLength=KeyValueHelper(key2.Owner2, "Owner2", parts))<6 && segValueLength>0)
+                if((segValueLength=KeyValueHelper(key2.Owner1, "Owner1", parts))<6 && segValueLength>0)
                     mreturn key2(1:startPos+segValueLength)
                 mreturn key2
             end
             (3),
             begin
-                if((segValueLength=KeyValueHelper(key3.Owner3, "Owner3", parts))<6 && segValueLength>0)
+                if((segValueLength=KeyValueHelper(key3.Owner2, "Owner2", parts))<6 && segValueLength>0)
                     mreturn key3(1:startPos+segValueLength)
                 mreturn key3
+            end
+            (4),
+            begin
+                if((segValueLength=KeyValueHelper(key4.Owner3, "Owner3", parts))<6 && segValueLength>0)
+                    mreturn key4(1:startPos+segValueLength)
+                mreturn key4
             end
             endusing
 

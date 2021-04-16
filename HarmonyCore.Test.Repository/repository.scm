@@ -5,7 +5,7 @@
 ;                 : C:\Users\devadm\Desktop\HarmonyCore\HarmonyCore.Test.Repository\bin\Debug\rpstext.ism
 ;                 : Version 11.1.1f
 ;
-;  GENERATED      : 09-APR-2021, 17:07:56
+;  GENERATED      : 13-APR-2021, 17:17:40
 ;                 : Version 11.1.1f
 ;  EXPORT OPTIONS : [ALL] 
  
@@ -114,26 +114,6 @@ Alias AL_GPC3   Structure GPC3
    Alias AL_FLD_4F   Field FLD_4F
    Alias AL_FLD_4F2   Field FLD_4F
  
-Structure GPC4   DBL ISAM
-   Description "Fourth Structure"
- 
-Field FLD_1G   Type ALPHA   Size 3
-   Description "GPC4.FLD_1G"
- 
-Field FLD_2G   Type INTEGER   Size 2   Dimension 4
-   Description "GPC4.FLD_2G"
- 
-Field STRUCT_1G   Type STRUCT   Size 16   Struct GPC3
-   Description "GPC4.STRUCT_1G"
- 
-Field FLD_3G   Type ALPHA   Size 3   Dimension 3
-   Description "GPC4.FLD_3G"
- 
-Field FLD_4G   Type DECIMAL   Size 13
-   Description "GPC4.FLD_4G"
- 
-Alias AL_GPC4   Structure GPC4
- 
 Structure GPC6   DBL ISAM
    Description "Sixth Structure"
  
@@ -156,6 +136,26 @@ Group GROUP_ONE   Type ALPHA
 Endgroup
  
 Alias AL_GPC6   Structure GPC6
+ 
+Structure GPC4   DBL ISAM
+   Description "Fourth Structure"
+ 
+Field FLD_1G   Type ALPHA   Size 3
+   Description "GPC4.FLD_1G"
+ 
+Field FLD_2G   Type INTEGER   Size 2   Dimension 4
+   Description "GPC4.FLD_2G"
+ 
+Field STRUCT_1G   Type STRUCT   Size 16   Struct GPC3
+   Description "GPC4.STRUCT_1G"
+ 
+Field FLD_3G   Type ALPHA   Size 3   Dimension 3
+   Description "GPC4.FLD_3G"
+ 
+Field FLD_4G   Type DECIMAL   Size 13
+   Description "GPC4.FLD_4G"
+ 
+Alias AL_GPC4   Structure GPC4
  
 Structure GPC2   DBL ISAM
    Description "Second Structure"
@@ -2254,6 +2254,9 @@ Field ID   Type DECIMAL   Size 6
 Field NAME   Type ALPHA   Size 20
    Description "Name of car"
  
+Field LOTID   Type DECIMAL   Size 6
+   Description "Car lot ID"
+ 
 Field OWNER1   Type DECIMAL   Size 6
    Description "Car owner 1"
  
@@ -2267,6 +2270,10 @@ Key CARID   ACCESS   Order ASCENDING   Dups NO
    Description "Car ID"
    Segment FIELD   ID  SegType DECIMAL  SegOrder ASCENDING
  
+Key LOTID   ACCESS   Order ASCENDING   Dups YES   Modifiable YES
+   Description "Car lot ID"
+   Segment FIELD   LOTID  SegType DECIMAL  SegOrder ASCENDING
+ 
 Key OWNERID1   ACCESS   Order ASCENDING   Dups YES   Modifiable YES
    Description "Owner ID 1"
    Segment FIELD   OWNER1  SegType DECIMAL  SegOrder ASCENDING
@@ -2279,11 +2286,28 @@ Key OWNERID3   ACCESS   Order ASCENDING   Dups YES   Modifiable YES
    Description "Owner ID 3"
    Segment FIELD   OWNER3  SegType DECIMAL  SegOrder ASCENDING
  
+Relation  1   TESTCAR LOTID   TESTCARLOT ID
+ 
 Relation  2   TESTCAR OWNERID1   TESTCAROWNER1 OWNERID
  
 Relation  3   TESTCAR OWNERID2   TESTCAROWNER2 OWNERID
  
 Relation  4   TESTCAR OWNERID3   TESTCAROWNER3 OWNERID
+ 
+Structure TESTCARLOT   DBL ISAM
+   Description "Test car lot"
+ 
+Field ID   Type DECIMAL   Size 6
+   Description "Car lot ID"
+ 
+Field NAME   Type ALPHA   Size 20
+   Description "Car lot name"
+ 
+Key ID   ACCESS   Order ASCENDING   Dups NO
+   Description "Lot ID"
+   Segment FIELD   ID  SegType DECIMAL  SegOrder ASCENDING
+ 
+Relation  1   TESTCARLOT ID   TESTCAR LOTID
  
 Structure TESTCAROWNER1   DBL ISAM
    Description "Test car owner 1"
@@ -2594,6 +2618,10 @@ File TEST   DBL ISAM   "DAT:test.ism"
 File TESTCAR   DBL ISAM   "DAT:testcar.ism"
    Description "Test car file"
    Assign TESTCAR
+ 
+File TESTCARLOT   DBL ISAM   "DAT:testcarlot.ism"
+   Description "Test car lot file"
+   Assign TESTCARLOT
  
 File TESTCAROWNER1   DBL ISAM   "DAT:testcarowner1.ism"
    Description "Test car owner 1 file"

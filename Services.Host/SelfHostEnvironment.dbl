@@ -206,6 +206,19 @@ namespace Services.Host
                     Startup.LogicalNames.Add(fileSpec)
             end
 
+            fileSpec = "DAT:testcarlot.ism"
+            if (fileSpec.Contains(":")) then
+            begin
+                logical = fileSpec.Split(":")[1].ToUpper()
+                if (!Startup.LogicalNames.Contains(logical))
+                    Startup.LogicalNames.Add(logical)
+            end
+            else if (!fileSpec.Contains("."))
+            begin
+                if (!Startup.LogicalNames.Contains(fileSpec))
+                    Startup.LogicalNames.Add(fileSpec)
+            end
+
             fileSpec = "DAT:testcarowner1.ism"
             if (fileSpec.Contains(":")) then
             begin
@@ -282,6 +295,7 @@ namespace Services.Host
             data nonuniquepks = loadNonuniquepks()
             data differentpks = loadDifferentpks()
             data testcars = loadTestcars()
+            data testcarlots = loadTestcarlots()
             data testcarowner1s = loadTestcarowner1s()
             data testcarowner2s = loadTestcarowner2s()
             data testcarowner3s = loadTestcarowner3s()
@@ -394,6 +408,17 @@ namespace Services.Host
             open(chout=0,o:i,dataFile,FDL:xdlFile)
             foreach testcar in testcars
                 store(chout,testcar.SynergyRecord)
+            close chout
+
+            ;;Create and load the testcarlots file
+
+            dataFile = "DAT:testcarlot.ism"
+            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+
+            data testcarlot, @Testcarlot
+            open(chout=0,o:i,dataFile,FDL:xdlFile)
+            foreach testcarlot in testcarlots
+                store(chout,testcarlot.SynergyRecord)
             close chout
 
             ;;Create and load the testcarowner1s file
@@ -536,6 +561,17 @@ namespace Services.Host
             try
             begin
                 xcall delet("DAT:testcar.ism")
+            end
+            catch (e, @NoFileFoundException)
+            begin
+                nop
+            end
+            endtry
+
+            ;;Delete the testcarlots file
+            try
+            begin
+                xcall delet("DAT:testcarlot.ism")
             end
             catch (e, @NoFileFoundException)
             begin
@@ -766,6 +802,25 @@ namespace Services.Host
         eof,
             close testcarCh
             mreturn testcars
+        endmethod
+
+        public static method loadTestcarlots, @List<Testcarlot>
+        proc
+            data dataFile = "DAT:testcarlot.ism"
+            data textFile = dataFile.ToLower().Replace(".ism",".txt")
+            data testcarlotCh, int, 0
+            data testcarlotRec, strTestcarlot
+            data testcarlots = new List<Testcarlot>()
+            data grfa, a10
+            open(testcarlotCh,i:s,textFile)
+            repeat
+            begin
+                reads(testcarlotCh,testcarlotRec,eof)
+                testcarlots.Add(new Testcarlot(testcarlotRec, grfa))
+            end
+        eof,
+            close testcarlotCh
+            mreturn testcarlots
         endmethod
 
         public static method loadTestcarowner1s, @List<Testcarowner1>

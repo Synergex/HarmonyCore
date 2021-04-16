@@ -41,6 +41,20 @@ namespace Services.Test.UnitTests
         endmethod
 
         ;;------------------------------------------------------------
+        ;;Get all Testcars and expand relation REL_Testcarlot
+
+        {TestMethod}
+        {TestCategory("Testcar Tests - Read All")}
+        public method GetTestcars_Expand_REL_Testcarlot, void
+        proc
+            data uri = "/odata/v1/Testcars?$expand=REL_Testcarlot"
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync(uri).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+        endmethod
+
+        ;;------------------------------------------------------------
         ;;Get all Testcars and expand relation REL_Testcarowner1
 
         {TestMethod}
@@ -89,7 +103,7 @@ namespace Services.Test.UnitTests
         {TestCategory("Testcar Tests - Read All")}
         public method GetTestcars_Expand_All, void
         proc
-            data uri = "/odata/v1/Testcars?$expand=REL_Testcarowner1,REL_Testcarowner2,REL_Testcarowner3"
+            data uri = "/odata/v1/Testcars?$expand=REL_Testcarlot,REL_Testcarowner1,REL_Testcarowner2,REL_Testcarowner3"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync(uri).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -105,6 +119,21 @@ namespace Services.Test.UnitTests
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/Testcars(Id={1})","",TestConstants.Instance.GetTestcar_Id)
+            data response = client.GetAsync(request).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data testcar, @ODataTestcar, JsonConvert.DeserializeObject<ODataTestcar>(result)
+        endmethod
+
+        ;;------------------------------------------------------------
+        ;;Get a single Testcar by primary key and expand relation REL_Testcarlot
+
+        {TestMethod}
+        {TestCategory("Testcar Tests - Read by Primary Key")}
+        public method GetTestcar_Expand_REL_Testcarlot, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            data request = String.Format("/odata/v1/Testcars(Id={1})?$expand=REL_Testcarlot","",TestConstants.Instance.GetTestcar_Expand_REL_Testcarlot_Id)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
@@ -164,7 +193,7 @@ namespace Services.Test.UnitTests
         public method GetTestcar_Expand_All, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/v1/Testcars(Id={1})?$expand=REL_Testcarowner1,REL_Testcarowner2,REL_Testcarowner3","",TestConstants.Instance.GetTestcar_Expand_All_Id)
+            data request = String.Format("/odata/v1/Testcars(Id={1})?$expand=REL_Testcarlot,REL_Testcarowner1,REL_Testcarowner2,REL_Testcarowner3","",TestConstants.Instance.GetTestcar_Expand_All_Id)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
@@ -172,7 +201,22 @@ namespace Services.Test.UnitTests
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get a single Testcar by alternate key 1 (Ownerid1)
+        ;;Get a single Testcar by alternate key 1 (Lotid)
+
+        {TestMethod}
+        {TestCategory("Testcar Tests - Read by Alternate Key")}
+        public method GetTestcar_ByAltKey_Lotid, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            data request = String.Format("/odata/v1/Testcars(Lotid={1})", "", TestConstants.Instance.GetTestcar_ByAltKey_Lotid_Lotid)
+            data response = client.GetAsync(request).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data testcars, @ODataTestcars,JsonConvert.DeserializeObject<ODataTestcars>(result)
+        endmethod
+
+        ;;------------------------------------------------------------
+        ;;Get a single Testcar by alternate key 2 (Ownerid1)
 
         {TestMethod}
         {TestCategory("Testcar Tests - Read by Alternate Key")}
@@ -187,7 +231,7 @@ namespace Services.Test.UnitTests
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get a single Testcar by alternate key 2 (Ownerid2)
+        ;;Get a single Testcar by alternate key 3 (Ownerid2)
 
         {TestMethod}
         {TestCategory("Testcar Tests - Read by Alternate Key")}
@@ -202,7 +246,7 @@ namespace Services.Test.UnitTests
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get a single Testcar by alternate key 3 (Ownerid3)
+        ;;Get a single Testcar by alternate key 4 (Ownerid3)
 
         {TestMethod}
         {TestCategory("Testcar Tests - Read by Alternate Key")}
