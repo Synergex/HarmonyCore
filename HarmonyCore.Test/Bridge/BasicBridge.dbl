@@ -21,46 +21,46 @@ namespace HarmonyCore.Test.Bridge
 
         private method GetContextPool<T(IContextBase, class)>, @ExternalContextPool<T>
         proc
-			data currentDirectory = Path.GetDirectoryName(^typeof(BasicBridge).Assembly.Location)
+            data currentDirectory = Path.GetDirectoryName(^typeof(BasicBridge).Assembly.Location)
             data testDirFolder = TestEnvironment.findRelativeFolderForAssembly("TestDir")
             data contextPool = new ExternalContextPool<T>(Environment.GetEnvironmentVariable("SYNERGYDE64") + "dbl\bin\dbs.exe", 'TraditionalBridge.Test.dbr', testDirFolder, ^null, 4) 
             mreturn contextPool
         endmethod
 
-		{TestMethod}
-		public async method InitFailure, @Task
-		proc
-			data currentDirectory = Path.GetDirectoryName(^typeof(BasicBridge).Assembly.Location)
-			data testDirFolder = TestEnvironment.findRelativeFolderForAssembly("TestDir")
-			data contextPool1 = new ExternalContextPool<BasicBridge.ExternalCallContext>(Environment.GetEnvironmentVariable("SYNERGYDE64") + "dbl\bin\dbs.exe", 'TraditionalBridge.Testt.dbr', testDirFolder, ^null, 4) 
-			data sp = new ServiceCollection().BuildServiceProvider()
-			try
-			begin
-				data context = contextPool1.MakeContext(sp)
-				await context.GetAllCustomers()
+        {TestMethod}
+        public async method InitFailure, @Task
+        proc
+            data currentDirectory = Path.GetDirectoryName(^typeof(BasicBridge).Assembly.Location)
+            data testDirFolder = TestEnvironment.findRelativeFolderForAssembly("TestDir")
+            data contextPool1 = new ExternalContextPool<BasicBridge.ExternalCallContext>(Environment.GetEnvironmentVariable("SYNERGYDE64") + "dbl\bin\dbs.exe", 'TraditionalBridge.Testt.dbr', testDirFolder, ^null, 4) 
+            data sp = new ServiceCollection().BuildServiceProvider()
+            try
+            begin
+                data context = contextPool1.MakeContext(sp)
+                await context.GetAllCustomers()
                 Assert.Fail()
-			end
-			catch(ex, @BridgeConnectionException)
-			begin
+            end
+            catch(ex, @BridgeConnectionException)
+            begin
                 Assert.AreEqual(ex.InnerMessage, "TraditionalBridge failed to initialize most likely due to missing dbr or elb file.")
-			end
+            end
             endtry
 
 
-			data contextPool2 = new ExternalContextPool<BasicBridge.ExternalCallContext>(Environment.GetEnvironmentVariable("SYNERGYDE32") + "dbl\bin\dbs.exe", 'TraditionalBridge.Test.dbr', testDirFolder, ^null, 4) 
+            data contextPool2 = new ExternalContextPool<BasicBridge.ExternalCallContext>(Environment.GetEnvironmentVariable("SYNERGYDE32") + "dbl\bin\dbs.exe", 'TraditionalBridge.Test.dbr', testDirFolder, ^null, 4) 
 
-			try
-			begin
-				data context = contextPool2.MakeContext(sp)
-				await context.GetAllCustomers()
-				Assert.Fail()
-			end
-			catch(ex, @BridgeConnectionException)
-			begin
-				Assert.AreEqual(ex.InnerMessage, "TraditionalBridge failed to initialize most likely due to x86/x64 mismatch.")
-			end
-			endtry
-		endmethod
+            try
+            begin
+                data context = contextPool2.MakeContext(sp)
+                await context.GetAllCustomers()
+                Assert.Fail()
+            end
+            catch(ex, @BridgeConnectionException)
+            begin
+                Assert.AreEqual(ex.InnerMessage, "TraditionalBridge failed to initialize most likely due to x86/x64 mismatch.")
+            end
+            endtry
+        endmethod
 
 
         {TestMethod}
@@ -71,12 +71,12 @@ namespace HarmonyCore.Test.Bridge
             
             data context = contextPool.MakeContext(sp)
             
-			Console.WriteLine("Calling GetAllCustomers")
+            Console.WriteLine("Calling GetAllCustomers")
             data customers = await context.GetAllCustomers()
             
             try
-			begin
-				Console.WriteLine("Calling Exception Test")
+            begin
+                Console.WriteLine("Calling Exception Test")
                 data failureResult = await context.Arbitrario_Exception()
                 Assert.Fail("exception wasnt thrown")
             end
@@ -92,20 +92,20 @@ namespace HarmonyCore.Test.Bridge
             endtry
 
             try
-			begin
-				Console.WriteLine("Calling Stop Test")
+            begin
+                Console.WriteLine("Calling Stop Test")
                 data failureResult = await context.Arbitrario_Stop()
                 Assert.Fail("exception wasnt thrown")
             end
             catch(ex, @Exception)
             begin
-				contextPool.ReturnContext(context)
+                contextPool.ReturnContext(context)
                 context = contextPool.MakeContext(sp)
             end
 
             endtry
 
-			Console.WriteLine("Calling Parameter tests")
+            Console.WriteLine("Calling Parameter tests")
             data arbitrarioReturn = await context.Arbitrario_MethodWithParameters()
             data functionFourReturn = await context.function_four("hello", "some", "text", "here")
 
@@ -119,10 +119,10 @@ namespace HarmonyCore.Test.Bridge
             Assert.AreEqual(arbitrarioReturn.IntList.Count, 1, "arbitrario int array count was wrong")
             Assert.AreEqual(arbitrarioReturn.StringList.Count, 3, "arbitrario string array count was wrong")
 
-			Console.WriteLine("Calling Structure test")
+            Console.WriteLine("Calling Structure test")
             data structuresReturn = await context.Arbitrario_Structures()
 
-			contextPool.ReturnContext(context)
+            contextPool.ReturnContext(context)
             Console.WriteLine("Trimming Pool")
             await contextPool.TrimPool(0)
             Console.WriteLine("shutting down test")
