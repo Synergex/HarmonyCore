@@ -248,6 +248,27 @@ namespace HarmonyCore.Test.Bridge
             await contextPool.TrimPool(0)
             Console.WriteLine("shutting down test {0}", timeTaken)
         endmethod
+        
+        {TestMethod}
+        public method ArgumentHelperArgumentBadCast, void
+        proc
+            data return = ArgumentHelper.Argument<Boolean>(0, new Tuple<Object, [#]Object>(7, new List<Object>().ToArray()))
+            Assert.IsTrue(return)
+        endmethod
+
+        {TestMethod}
+        public method ArgumentHelperArgumentNull, void
+        proc
+            data return = ArgumentHelper.Argument<List<Boolean>>(0, new Tuple<Object, [#]Object>(^null, new List<Object>().ToArray()))
+            Assert.IsNull(return)
+        endmethod
+
+        {TestMethod}
+        {ExpectedException(^typeof(Exception))}
+        public method ArgumentHelperArgumentExceptionCast, void
+        proc
+            data return = ArgumentHelper.Argument<List<Boolean>>(0, new Tuple<Object, [#]Object>(7, new List<Object>().ToArray()))
+        endmethod
 
         public class ExternalCallContext extends DynamicCallProvider
             public method ExternalCallContext
