@@ -255,6 +255,14 @@ namespace HarmonyCore.Test.Bridge
             data return = ArgumentHelper.Argument<Boolean>(0, new Tuple<Object, [#]Object>(7, new List<Object>().ToArray()))
             Assert.IsTrue(return)
         endmethod
+        
+        {TestMethod}
+        public method ArgumentHelperArgumentBadCast2, void
+        proc
+            data outval, boolean
+            ArgumentHelper.Argument<Boolean>(0, new Tuple<Object, [#]Object>(7, new List<Object>().ToArray()), outval)
+            Assert.IsTrue(outval)
+        endmethod
 
         {TestMethod}
         public method ArgumentHelperArgumentNull, void
@@ -264,10 +272,26 @@ namespace HarmonyCore.Test.Bridge
         endmethod
 
         {TestMethod}
+        public method ArgumentHelperArgumentNull2, void
+        proc
+            data outval, @List<Boolean>
+            ArgumentHelper.Argument<List<Boolean>>(0, new Tuple<Object, [#]Object>(^null, new List<Object>().ToArray()), outval)
+            Assert.IsNull(outval)
+        endmethod
+
+        {TestMethod}
         {ExpectedException(^typeof(Exception))}
         public method ArgumentHelperArgumentExceptionCast, void
         proc
             data return = ArgumentHelper.Argument<List<Boolean>>(0, new Tuple<Object, [#]Object>(7, new List<Object>().ToArray()))
+        endmethod
+
+        {TestMethod}
+        {ExpectedException(^typeof(Exception))}
+        public method ArgumentHelperArgumentExceptionCast2, void
+        proc
+            data outval, @List<Boolean>
+            ArgumentHelper.Argument<List<Boolean>>(0, new Tuple<Object, [#]Object>(7, new List<Object>().ToArray()), outval)
         endmethod
 
         public class ExternalCallContext extends DynamicCallProvider
