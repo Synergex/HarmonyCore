@@ -294,6 +294,44 @@ namespace HarmonyCore.Test.Bridge
             ArgumentHelper.Argument<List<Boolean>>(0, new Tuple<Object, [#]Object>(7, new List<Object>().ToArray()), outval)
         endmethod
 
+        {TestMethod}
+        public method MaybeTests, void
+        proc
+            Assert.AreEqual(0, ArgumentHelper.MaybeNull(new Nullable<int>(0)))
+            Assert.AreEqual((long)0, ArgumentHelper.MaybeNull(new Nullable<long>(0)))
+            Assert.AreEqual((short)0, ArgumentHelper.MaybeNull(new Nullable<short>(0)))
+            Assert.AreEqual((byte)0, ArgumentHelper.MaybeNull(new Nullable<byte>(0)))
+            Assert.AreEqual((single)0, ArgumentHelper.MaybeNull(new Nullable<single>(0)))
+            Assert.AreEqual((double)0, ArgumentHelper.MaybeNull(new Nullable<double>(0)))
+            Assert.AreEqual((decimal)0, ArgumentHelper.MaybeNull(new Nullable<decimal>(0)))
+
+            ; AMBSYM error here
+;            Assert.IsNotNull(ArgumentHelper.MaybeNull(new Nullable<int>()))
+;            Assert.IsNotNull(ArgumentHelper.MaybeNull(new Nullable<long>()))
+;            Assert.IsNotNull(ArgumentHelper.MaybeNull(new Nullable<short>()))
+;            Assert.IsNotNull(ArgumentHelper.MaybeNull(new Nullable<byte>()))
+;            Assert.IsNotNull(ArgumentHelper.MaybeNull(new Nullable<single>()))
+;            Assert.IsNotNull(ArgumentHelper.MaybeNull(new Nullable<double>()))
+;            Assert.IsNotNull(ArgumentHelper.MaybeNull(new Nullable<decimal>()))
+
+            Assert.AreEqual(0, ArgumentHelper.MaybeOptional(new Nullable<int>(0)))
+            Assert.AreEqual((long)0, ArgumentHelper.MaybeOptional(new Nullable<long>(0)))
+            Assert.AreEqual((short)0, ArgumentHelper.MaybeOptional(new Nullable<short>(0)))
+            Assert.AreEqual((byte)0, ArgumentHelper.MaybeOptional(new Nullable<byte>(0)))
+            Assert.AreEqual((single)0, ArgumentHelper.MaybeOptional(new Nullable<single>(0)))
+            Assert.AreEqual((double)0, ArgumentHelper.MaybeOptional(new Nullable<double>(0)))
+            Assert.AreEqual((decimal)0, ArgumentHelper.MaybeOptional(new Nullable<decimal>(0)))
+
+            ; AMBSYM error here
+;            Assert.IsNotNull(ArgumentHelper.MaybeOptional(new Nullable<int>()))
+;            Assert.IsNotNull(ArgumentHelper.MaybeOptional(new Nullable<long>()))
+;            Assert.IsNotNull(ArgumentHelper.MaybeOptional(new Nullable<short>()))
+;            Assert.IsNotNull(ArgumentHelper.MaybeOptional(new Nullable<byte>()))
+;            Assert.IsNotNull(ArgumentHelper.MaybeOptional(new Nullable<single>()))
+;            Assert.IsNotNull(ArgumentHelper.MaybeOptional(new Nullable<double>()))
+;            Assert.IsNotNull(ArgumentHelper.MaybeOptional(new Nullable<decimal>()))
+        endmethod
+
         public class ExternalCallContext extends DynamicCallProvider
             public method ExternalCallContext
                 connection, @IDynamicCallConnection
