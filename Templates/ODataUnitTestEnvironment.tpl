@@ -79,13 +79,18 @@ import <NAMESPACE>.DataGenerators
 namespace <NAMESPACE>
 
     {TestClass}
-    public class UnitTestEnvironment
+    public partial class UnitTestEnvironment
 
         public static Server, @TestServer
 <IF DEFINED_ENABLE_AUTHENTICATION>
         public static AccessToken, string
 </IF DEFINED_ENABLE_AUTHENTICATION>
 
+<IF DEFINED_ENABLE_SIGNALR>
+        public static TestRequestsFolder, string
+        public static TestResponsesFolder, string
+
+</IF DEFINED_ENABLE_SIGNALR>
         {AssemblyInitialize}
         public static method AssemblyInitialize, void
             required in context, @TestContext
@@ -103,12 +108,12 @@ namespace <NAMESPACE>
             if(string.IsNullOrEmpty(wwwroot) && Directory.Exists(wwwroot)) then
             begin
                 ;;Create a TestServer to host the Web API services
-                Server = new TestServer(new WebHostBuilder().UseStartup<Startup>())
+                Server = new TestServer(WebHost.CreateDefaultBuilder().UseStartup<Startup>())
             end
             else
             begin
                 ;;Create a TestServer to host the Web API services
-                Server = new TestServer(new WebHostBuilder().UseContentRoot(wwwroot).UseWebRoot(wwwroot).UseStartup<Startup>())
+                Server = new TestServer(WebHost.CreateDefaultBuilder().UseContentRoot(wwwroot).UseWebRoot(wwwroot).UseStartup<Startup>())
             end
 
             ;;Fake out HTTPS
@@ -118,7 +123,7 @@ namespace <NAMESPACE>
   <IF DEFINED_ENABLE_CUSTOM_AUTHENTICATION>
             ;;Get the access token from the custom authentication endpoint
             disposable data client = Server.CreateClient()
-            disposable data requestBody, @StringContent, new StringContent('{"Username":"<CUSTOM_AUTH_USERNAME>","Password":"<CUSTOM_AUTH_PASSWORD>"}',Encoding.UTF8,"application/json")
+            disposable data requestBody, @StringContent, new StringContent('<CUSTOM_AUTH_REQUEST>',Encoding.UTF8,"application/json")
             disposable data response = client.PostAsync("/<CUSTOM_AUTH_CONTROLLER_PATH>/<CUSTOM_AUTH_ENDPOINT_PATH>",requestBody).Result
             response.EnsureSuccessStatusCode()
             AccessToken = response.Content.ReadAsStringAsync().Result
@@ -150,6 +155,19 @@ namespace <NAMESPACE>
 
   </IF DEFINED_ENABLE_CUSTOM_AUTHENTICATION>
 </IF DEFINED_ENABLE_AUTHENTICATION>
+<IF DEFINED_ENABLE_SIGNALR>
+            ;;Get the file spec of the TestRequests folder
+            UnitTestEnvironment.TestRequestsFolder = UnitTestEnvironment.FindRelativeFolderForAssembly("TestRequests")
+
+            ;;Make sure we have a TestResponses folder
+            UnitTestEnvironment.TestResponsesFolder = UnitTestEnvironment.FindRelativeFolderForAssembly("TestResponses")
+            if (String.IsNullOrWhiteSpace(UnitTestEnvironment.TestResponsesFolder))
+            begin
+                UnitTestEnvironment.TestResponsesFolder = UnitTestEnvironment.TestRequestsFolder.Replace("TestRequests","TestResponses")
+                Directory.CreateDirectory(UnitTestEnvironment.TestResponsesFolder)
+            end
+
+</IF DEFINED_ENABLE_SIGNALR>
         endmethod
 
         {AssemblyCleanup}

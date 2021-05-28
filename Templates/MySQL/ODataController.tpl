@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME><StructurePlural>Controller.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.5.3</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.6.8</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVICES_NAMESPACE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>API_ENABLE_QUERY_PARAMS</REQUIRES_USERTOKEN>
@@ -61,6 +61,7 @@ import Microsoft.EntityFrameworkCore.Infrastructure
 import Microsoft.Extensions.Options
 import System.Collections.Generic
 import System.ComponentModel.DataAnnotations
+import System.Linq
 import Harmony.Core.EF.Extensions
 import Harmony.Core.Interface
 import Harmony.OData
@@ -79,9 +80,16 @@ namespace <NAMESPACE>
     ;;; OData controller for <StructurePlural>
     ;;; </summary>
     public partial class <StructurePlural>Controller extends ODataController
-    
+
+;//
+;//------------------------------------------------------------------------------------------------
+;// CONSTRUCTOR AND DEPENDENCY INJECTION
+;//
+        ;;------------------------------------------------------------------------------------------
+        ;; CONSTRUCTOR AND DI
+
         ;;Services provided via dependency injection
-        private _DbContext, @<MODELS_NAMESPACE>.<IF DEFINED_EF_PROVIDER_MYSQL><MYSQL_DBCONTEXT_CLASS><ELSE>DBContext</IF>
+        private _DbContext, @<MODELS_NAMESPACE>.<MYSQL_DBCONTEXT_CLASS>
         private _ServiceProvider, @IServiceProvider
         private _AppSettings, @IOptions<AppSettings>
 
@@ -92,7 +100,7 @@ namespace <NAMESPACE>
         ;;; <param name="aServiceProvider">Service provider instance (DI)</param>
         ;;; <param name="aAppSettings">Application settings</param>
         public method <StructurePlural>Controller
-            aDbContext, @<MODELS_NAMESPACE>.<IF DEFINED_EF_PROVIDER_MYSQL><MYSQL_DBCONTEXT_CLASS><ELSE>DBContext</IF>
+            aDbContext, @<MODELS_NAMESPACE>.<MYSQL_DBCONTEXT_CLASS>
             aServiceProvider, @IServiceProvider
             aAppSettings, @IOptions<AppSettings>
         proc
@@ -102,9 +110,14 @@ namespace <NAMESPACE>
         endmethod
 
 ;//
-;// GET ALL -------------------------------------------------------------------
+;//------------------------------------------------------------------------------------------------
+;// GET ALL ROWS
 ;//
 <IF DEFINED_ENABLE_GET_ALL AND GET_ALL_ENDPOINT>
+        ;;------------------------------------------------------------------------------------------
+        ;; GET ALL
+
+        {HttpGet}
         {ODataRoute}
         {Produces("application/json")}
         {ProducesResponseType(^typeof(ODataValue<IEnumerable<<StructureNoplural>>>),StatusCodes.Status200OK)}
@@ -125,18 +138,25 @@ namespace <NAMESPACE>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
         public method Get<StructurePlural>, @IActionResult
         proc
-            mreturn Ok(_DbContext.<StructurePlural>.AsNoTracking())
+            data companyExt = <IF GLOBAL_ENTITY>"GBL"<ELSE>Harmony.AspNetCore.MultiTenantProvider.TenantID</IF>
+            mreturn Ok(_DbContext.<StructurePlural>.AsNoTracking().FindAlternate<<StructureNoplural>>("Companyext",companyExt))
         endmethod
 
-</IF DEFINED_ENABLE_GET_ALL_AND_GET_ALL_ENDPOINT>
+</IF>
 ;//
-;// GET BY UNIQUE ISAM PRIMARY KEY ----------------------------------------------------------------
+;//------------------------------------------------------------------------------------------------
+;// GET BY UNIQUE PRIMARY KEY
+;//
+;// When working with MySQL (for FCL at least) we don't have access to the actual primary key, because the corresponding
+;// field is not defined in the repository. The first key defined in repository actually refers to an alternate index
+;// as far as MySQL and EF are concerned. So our EdmBuilder declares the key the same way we generally declare alternate
+;// keys, and that means we need to use FindAlternate instead of FindQuery that we would generally use for a primary key.
 ;//
 <IF STRUCTURE_ISAM AND STRUCTURE_HAS_UNIQUE_PK AND DEFINED_ENABLE_GET_ONE AND GET_ENDPOINT>
-  <IF NOT DEFINED_EF_PROVIDER_MYSQL>
-;//
-;// GET BY UNIQUE PRIMARY KEY (SDMS) --------------------------------------------------------------
-;//
+        ;;------------------------------------------------------------------------------------------
+        ;; GET (PRIMARY KEY, UNIQUE)
+
+        {HttpGet}
         {ODataRoute("(<PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY>)")}
         {Produces("application/json")}
         {ProducesResponseType(^typeof(<StructureNoplural>),StatusCodes.Status200OK)}
@@ -144,68 +164,17 @@ namespace <NAMESPACE>
         {ProducesResponseType(StatusCodes.Status401Unauthorized)}
   </IF DEFINED_ENABLE_AUTHENTICATION>
         {ProducesResponseType(StatusCodes.Status404NotFound)}
-    <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_GET>
-        {Authorize(Roles="<ROLES_GET>")}
-    </IF DEFINED_ENABLE_AUTHENTICATION>
-    <IF DEFINED_ENABLE_FIELD_SECURITY>
-        {HarmonyFieldSecurity<API_ENABLE_QUERY_PARAMS>}
-    <ELSE>
-        {EnableQuery<API_ENABLE_QUERY_PARAMS>}
-    </IF DEFINED_ENABLE_FIELD_SECURITY>
-        ;;; <summary>
-        ;;; Get a single <StructureNoplural> by primary key.
-        ;;; </summary>
-    <PRIMARY_KEY>
-      <SEGMENT_LOOP>
-        <IF NOT SEG_TAG_EQUAL>
-        ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
-        </IF>
-      </SEGMENT_LOOP>
-    </PRIMARY_KEY>
-        ;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method Get<StructureNoplural>, @SingleResult<<StructureNoplural>>
-    <PRIMARY_KEY>
-      <SEGMENT_LOOP>
-        <IF NOT SEG_TAG_EQUAL>
-            {FromODataUri}
-          <IF CUSTOM_HARMONY_AS_STRING>
-            required in a<FieldSqlName>, string
-          <ELSE>
-            required in a<FieldSqlName>, <HARMONYCORE_SEGMENT_DATATYPE>
-          </IF CUSTOM_HARMONY_AS_STRING>
-        </IF>
-      </SEGMENT_LOOP>
-    </PRIMARY_KEY>
-        proc
-;//Shouldn't really need the generic type arg on FindQuery. Compiler issue?
-            mreturn new SingleResult<<StructureNoplural>>(_DbContext.<StructurePlural>.AsNoTracking().FindQuery<<StructureNoplural>>(_DbContext,<PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE><ELSE><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP></PRIMARY_KEY>))
-        endmethod
-
-  <ELSE>
-;//
-;// GET BY UNIQUE PRIMARY KEY (MySQL) -------------------------------------------------------------
-;//
-;// When working with MySQL (at FCL at least) we don't have access to the actual primary key, because the corresponding
-;// field is not defined in the repository. The first key defined in repository actually refers to an alternate index
-;// as far as MySQL and EF are concerned. So our EdmBuilder declares the key the same way we generally declare alternate
-;// keys, and that means we need to use FindAlternate here instead of FindQuery.
-;//
-        {ODataRoute("(Companyext={aCompanyext},<PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY>)")}
-        {Produces("application/json")}
-        {ProducesResponseType(^typeof(<StructureNoplural>),StatusCodes.Status200OK)}
-        {ProducesResponseType(StatusCodes.Status404NotFound)}
   <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_GET>
         {Authorize(Roles="<ROLES_GET>")}
-  </IF DEFINED_ENABLE_AUTHENTICATION>
+  </IF>
   <IF DEFINED_ENABLE_FIELD_SECURITY>
         {HarmonyFieldSecurity<API_ENABLE_QUERY_PARAMS>}
   <ELSE>
         {EnableQuery<API_ENABLE_QUERY_PARAMS>}
-  </IF DEFINED_ENABLE_FIELD_SECURITY>
+  </IF>
         ;;; <summary>
         ;;; Get a single <StructureNoplural> by primary key.
         ;;; </summary>
-        ;;; <param name="aCompanyext">Company Code</param>
   <PRIMARY_KEY>
     <SEGMENT_LOOP>
       <IF NOT SEG_TAG_EQUAL>
@@ -215,35 +184,34 @@ namespace <NAMESPACE>
   </PRIMARY_KEY>
         ;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
         public method Get<StructureNoplural>, @SingleResult<<StructureNoplural>>
-            {FromODataUri}
-            required in aCompanyext, string
   <PRIMARY_KEY>
     <SEGMENT_LOOP>
       <IF NOT SEG_TAG_EQUAL>
             {FromODataUri}
-        <IF CUSTOM_HARMONY_AS_STRING>
-            required in a<FieldSqlName>, string
-        <ELSE>
-            required in a<FieldSqlName>, <HARMONYCORE_SEGMENT_DATATYPE>
-        </IF CUSTOM_HARMONY_AS_STRING>
+            required in a<FieldSqlName>, <IF CUSTOM_HARMONY_AS_STRING>string<ELSE><HARMONYCORE_SEGMENT_DATATYPE></IF>
       </IF>
     </SEGMENT_LOOP>
   </PRIMARY_KEY>
         proc
-;//Shouldn't really need the generic type arg on FindQuery. Compiler issue?
-            mreturn new SingleResult<<StructureNoplural>>(_DbContext.<StructurePlural>.AsNoTracking().FindQuery<<StructureNoplural>>(_DbContext, <PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE><ELSE><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP></PRIMARY_KEY>))
+            data companyExt = <IF GLOBAL_ENTITY>"GBL"<ELSE>Harmony.AspNetCore.MultiTenantProvider.TenantID</IF>
+            mreturn new SingleResult<<StructureNoplural>>(_DbContext.<StructurePlural>.AsNoTracking().FindAlternate<<StructureNoplural>>("Companyext",companyExt,<PRIMARY_KEY><SEGMENT_LOOP>"<FieldSqlName>",<IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP></PRIMARY_KEY>))
         endmethod
 
-  </IF>
-</IF STRUCTURE_ISAM>
+</IF>
 ;//
-;// GET BY NON-UNIQUE ISAM PRIMARY KEY READ -------------------------------------------------------
+;//------------------------------------------------------------------------------------------------
+;// GET BY NON-UNIQUE PRIMARY KEY
+;//
+;// When working with MySQL (for FCL at least) we don't have access to the actual primary key, because the corresponding
+;// field is not defined in the repository. The first key defined in repository actually refers to an alternate index
+;// as far as MySQL and EF are concerned. So our EdmBuilder declares the key the same way we generally declare alternate
+;// keys, and that means we need to use FindAlternate here instead of FindQuery that we would generally use for a primary key.
 ;//
 <IF STRUCTURE_ISAM AND NOT STRUCTURE_HAS_UNIQUE_PK AND DEFINED_ENABLE_GET_ONE AND GET_ENDPOINT>
-  <IF NOT DEFINED_EF_PROVIDER_MYSQL>
-;//
-;// GET BY NON-UNIQUE PRIMARY KEY (SDMS) ----------------------------------------------------------
-;//
+        ;;------------------------------------------------------------------------------------------
+        ;; GET (PRIMARY KEY, DUPLICATES)
+
+        {HttpGet}
         {ODataRoute("(<PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY>)")}
         {Produces("application/json")}
         {ProducesResponseType(^typeof(ODataValue<IEnumerable<<StructureNoplural>>>),StatusCodes.Status200OK)}
@@ -274,114 +242,30 @@ namespace <NAMESPACE>
     <SEGMENT_LOOP>
       <IF NOT SEG_TAG_EQUAL>
             {FromODataUri}
-        <IF CUSTOM_HARMONY_AS_STRING>
-            required in a<FieldSqlName>, string
-        <ELSE>
-            required in a<FieldSqlName>, <HARMONYCORE_SEGMENT_DATATYPE>
-        </IF CUSTOM_HARMONY_AS_STRING>
+            required in a<FieldSqlName>, <IF CUSTOM_HARMONY_AS_STRING>string<ELSE><HARMONYCORE_SEGMENT_DATATYPE></IF>
       </IF>
     </SEGMENT_LOOP>
   </PRIMARY_KEY>
         proc
-;//Shouldn't really need the generic type arg on FindQuery. Compiler issue?
-            mreturn Ok(_DbContext.<StructurePlural>.AsNoTracking().FindQuery<<StructureNoplural>>(_DbContext, <PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE><ELSE><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP></PRIMARY_KEY>))
-        endmethod
-
-  <ELSE>
-;//
-;// GET BY NON-UNIQUE PRIMARY KEY (MySQL) ---------------------------------------------------------
-;//
-;// When working with MySQL (at FCL at least) we don't have access to the actual primary key, because the corresponding
-;// field is not defined in the repository. The first key defined in repository actually refers to an alternate index
-;// as far as MySQL and EF are concerned. So our EdmBuilder declares the key the same way we generally declare alternate
-;// keys, and that means we need to use FindAlternate here instead of FindQuery.
-;//
-        {ODataRoute("(Companyext={aCompanyext},<PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY>)")}
-        {Produces("application/json")}
-        {ProducesResponseType(^typeof(ODataValue<IEnumerable<<StructureNoplural>>>),StatusCodes.Status200OK)}
-  <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_GET>
-        {Authorize(Roles="<ROLES_GET>")}
-  </IF DEFINED_ENABLE_AUTHENTICATION>
-  <IF DEFINED_ENABLE_FIELD_SECURITY>
-        {HarmonyFieldSecurity<API_ENABLE_QUERY_PARAMS>}
-  <ELSE>
-        {EnableQuery<API_ENABLE_QUERY_PARAMS>}
-  </IF DEFINED_ENABLE_FIELD_SECURITY>
-        ;;; <summary>
-        ;;; Get all <StructurePlural> matching non-unique primary key.
-        ;;; </summary>
-        ;;; <param name="aCompanyext">Company Code</param>
-  <PRIMARY_KEY>
-    <SEGMENT_LOOP>
-      <IF NOT SEG_TAG_EQUAL>
-        ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
-      </IF>
-    </SEGMENT_LOOP>
-  </PRIMARY_KEY>
-        ;;; <returns>Returns a collection of any <StructurePlural> matching non-unique primary key, or an empty collection if no matching records are found.</returns>
-        public method Get<StructureNoplural>, @IActionResult
-            {FromODataUri}
-            required in aCompanyext, string
-  <PRIMARY_KEY>
-    <SEGMENT_LOOP>
-      <IF NOT SEG_TAG_EQUAL>
-            {FromODataUri}
-        <IF CUSTOM_HARMONY_AS_STRING>
-            required in a<FieldSqlName>, string
-        <ELSE>
-            required in a<FieldSqlName>, <HARMONYCORE_SEGMENT_DATATYPE>
-        </IF CUSTOM_HARMONY_AS_STRING>
-      </IF>
-    </SEGMENT_LOOP>
-  </PRIMARY_KEY>
-        proc
-            data result = _DbContext.<StructurePlural>.AsNoTracking().FindAlternate("Companyext",aCompanyext.PadRight(3),<PRIMARY_KEY><SEGMENT_LOOP>"<FieldSqlName>",<IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP></PRIMARY_KEY>)
+            data companyExt = <IF GLOBAL_ENTITY>"GBL"<ELSE>Harmony.AspNetCore.MultiTenantProvider.TenantID</IF>
+            data result = _DbContext.<StructurePlural>.AsNoTracking().FindAlternate("Companyext",companyExt,<PRIMARY_KEY><SEGMENT_LOOP>"<FieldSqlName>",<IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP></PRIMARY_KEY>)
             if (result == ^null)
                 mreturn NotFound()
             mreturn Ok(result)
         endmethod
 
-  </IF>
 </IF STRUCTURE_ISAM>
 ;//
-;// GET ONE (RELATIVE FILE RECORD NUMBER READ) --------------------------------
-;//
-<IF STRUCTURE_RELATIVE AND DEFINED_ENABLE_GET_ONE AND GET_ENDPOINT>
-        {ODataRoute("(aRecordNumber)")}
-        {Produces("application/json")}
-        {ProducesResponseType(^typeof(<StructureNoplural>),StatusCodes.Status200OK)}
-  <IF DEFINED_ENABLE_AUTHENTICATION>
-        {ProducesResponseType(StatusCodes.Status401Unauthorized)}
-  </IF DEFINED_ENABLE_AUTHENTICATION>
-        {ProducesResponseType(StatusCodes.Status404NotFound)}
-  <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_GET>
-        {Authorize(Roles="<ROLES_GET>")}
-  </IF DEFINED_ENABLE_AUTHENTICATION>
-  <IF DEFINED_ENABLE_FIELD_SECURITY>
-        {HarmonyFieldSecurity<API_ENABLE_QUERY_PARAMS>}
-  <ELSE>
-        {EnableQuery<API_ENABLE_QUERY_PARAMS>}
-  </IF DEFINED_ENABLE_FIELD_SECURITY>
-        ;;; <summary>
-        ;;; Get a single <StructureNoplural> by relative record number.
-        ;;; </summary>
-        ;;; <param name="aRecordNumber">Record number</param>
-        ;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method Get<StructureNoplural>, @SingleResult<<StructureNoplural>>
-            {FromODataUri}
-            required in aRecordNumber, int
-        proc
-;//Shouldn't really need the generic type arg on FindQuery. Compiler issue?
-            mreturn new SingleResult<<StructureNoplural>>(_DbContext.<StructurePlural>.AsNoTracking().FindQuery<<StructureNoplural>>(_DbContext, aRecordNumber))
-        endmethod
-
-</IF STRUCTURE_RELATIVE>
-;//
-;// GET BY ALTERNATE KEY ------------------------------------------------------
+;//------------------------------------------------------------------------------------------------
+;// GET BY ALTERNATE KEY (NOT YET USED!!!!!)
 ;//
 <IF STRUCTURE_ISAM AND DEFINED_ENABLE_ALTERNATE_KEYS AND ALTERNATE_KEY_ENDPOINTS> 
   <ALTERNATE_KEY_LOOP_UNIQUE>
     <IF DUPLICATES>
+        ;;------------------------------------------------------------------------------------------
+        ;; GET (<KEY_NAME>, <KEY_DESCRIPTION>, DUPLICATES)
+
+        {HttpGet}
         {ODataRoute("(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>)")}
         {Produces("application/json")}
         {ProducesResponseType(^typeof(ODataValue<IEnumerable<<StructureNoplural>>>),StatusCodes.Status200OK)}
@@ -410,20 +294,21 @@ namespace <NAMESPACE>
       <SEGMENT_LOOP>
         <IF NOT SEG_TAG_EQUAL>
             {FromODataUri}
-          <IF CUSTOM_HARMONY_AS_STRING>
-            required in a<FieldSqlName>, string
-          <ELSE>
-            required in a<FieldSqlName>, <HARMONYCORE_SEGMENT_DATATYPE>
-          </IF CUSTOM_HARMONY_AS_STRING>
+            required in a<FieldSqlName>, <IF CUSTOM_HARMONY_AS_STRING>string<ELSE><HARMONYCORE_SEGMENT_DATATYPE></IF>
         </IF>
       </SEGMENT_LOOP>
         proc
-            data result = _DbContext.<StructurePlural>.AsNoTracking().FindAlternate(<SEGMENT_LOOP>"<FieldSqlName>",<IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP>)
+            data companyExt = <IF GLOBAL_ENTITY>"GBL"<ELSE>Harmony.AspNetCore.MultiTenantProvider.TenantID</IF>
+            data result = _DbContext.<StructurePlural>.AsNoTracking().FindAlternate("Companyext",companyExt,<SEGMENT_LOOP>"<FieldSqlName>",<IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP>)
             if (result == ^null)
                 mreturn NotFound()
             mreturn Ok(result)
         endmethod
     <ELSE>
+        ;;------------------------------------------------------------------------------------------
+        ;; GET (ALTERNATE KEY, UNIQUE)
+
+        {HttpGet}
         {ODataRoute("(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>)")}
         {Produces("application/json")}
         {ProducesResponseType(^typeof(<StructureNoplural>),StatusCodes.Status200OK)}
@@ -452,58 +337,113 @@ namespace <NAMESPACE>
       <SEGMENT_LOOP>
         <IF NOT SEG_TAG_EQUAL>
             {FromODataUri}
-          <IF CUSTOM_HARMONY_AS_STRING>
-            required in a<FieldSqlName>, string
-          <ELSE>
-            required in a<FieldSqlName>, <HARMONYCORE_SEGMENT_DATATYPE>
-          </IF CUSTOM_HARMONY_AS_STRING>
+            required in a<FieldSqlName>, <IF CUSTOM_HARMONY_AS_STRING>string<ELSE><HARMONYCORE_SEGMENT_DATATYPE></IF>
         </IF>
       </SEGMENT_LOOP>
         proc
-            mreturn new SingleResult<<StructureNoplural>>(_DbContext.<StructurePlural>.AsNoTracking().FindAlternate(<SEGMENT_LOOP>"<FieldSqlName>",<IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE><ELSE><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP>))
+            data companyExt = <IF GLOBAL_ENTITY>"GBL"<ELSE>Harmony.AspNetCore.MultiTenantProvider.TenantID</IF>
+            mreturn new SingleResult<<StructureNoplural>>(_DbContext.<StructurePlural>.AsNoTracking().FindAlternate("Companyext",companyExt,<SEGMENT_LOOP>"<FieldSqlName>",<IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP>))
         endmethod
     </IF DUPLICATES>
 
   </ALTERNATE_KEY_LOOP_UNIQUE>
 </IF STRUCTURE_ISAM>
 ;//
-;// POST ----------------------------------------------------------------------
+;// GET BY PARTIAL KEY --------------------------------------------------------
+;//
+<IF STRUCTURE_ISAM AND DEFINED_ENABLE_PARTIAL_KEYS>
+  <PARTIAL_KEY_LOOP>
+    <IF (PRIMARY_KEY AND DEFINED_ENABLE_GET_ONE AND GET_ENDPOINT) OR ((NOT PRIMARY_KEY) AND DEFINED_ENABLE_ALTERNATE_KEYS AND ALTERNATE_KEY_ENDPOINTS)>
+        ;;------------------------------------------------------------------------------------------
+        ;; PARTIAL KEY
+
+        {HttpGet}
+        {ODataRoute("(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>={a<FieldSqlName>}<,></IF></SEGMENT_LOOP>)")}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(ODataValue<IEnumerable<<StructureNoplural>>>),StatusCodes.Status200OK)}
+      <IF DEFINED_ENABLE_AUTHENTICATION>
+        {ProducesResponseType(StatusCodes.Status401Unauthorized)}
+      </IF>
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
+      <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_GET>
+        {Authorize(Roles="<ROLES_GET>")}
+      </IF>
+      <IF DEFINED_ENABLE_FIELD_SECURITY>
+        {HarmonyFieldSecurity<API_ENABLE_QUERY_PARAMS>}
+      <ELSE>
+        {EnableQuery<API_ENABLE_QUERY_PARAMS>}
+      </IF>
+        ;;; <summary>
+        ;;; Get <structurePlural> by partial key <KeyName>.
+        ;;; </summary>
+      <SEGMENT_LOOP>
+        <IF NOT SEG_TAG_EQUAL>
+        ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
+        </IF>
+      </SEGMENT_LOOP>
+        ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        public method Get<StructurePlural>By<KeyName>, @IActionResult
+      <SEGMENT_LOOP>
+        <IF NOT SEG_TAG_EQUAL>
+            {FromODataUri}
+            required in a<FieldSqlName>, <IF CUSTOM_HARMONY_AS_STRING>string<ELSE><HARMONYCORE_SEGMENT_DATATYPE></IF>
+        </IF>
+      </SEGMENT_LOOP>
+        proc
+            data companyExt = <IF GLOBAL_ENTITY>"GBL"<ELSE>Harmony.AspNetCore.MultiTenantProvider.TenantID</IF>
+            data result = _DbContext.<StructurePlural>.AsNoTracking().FindAlternate("Companyext",companyExt,<SEGMENT_LOOP>"<FieldSqlName>",<IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName></IF><,></SEGMENT_LOOP>)
+            if (result == ^null)
+                mreturn NotFound()
+            mreturn Ok(result)
+        endmethod
+
+    </IF>
+  </PARTIAL_KEY_LOOP>
+</IF>
+;//
+;//------------------------------------------------------------------------------------------------
+;// POST (NOT YET USED!!!!!)
 ;//
 <IF STRUCTURE_ISAM AND DEFINED_ENABLE_POST AND POST_ENDPOINT AND STRUCTURE_HAS_UNIQUE_PK>
+        ;;------------------------------------------------------------------------------------------
+        ;; POST
+
+        {HttpPost}
+        {ODataRoute}
   <IF DEFINED_ENABLE_AUTHENTICATION>
     <IF USERTOKEN_ROLES_POST>
         {Authorize(Roles="<ROLES_POST>")}
     </IF USERTOKEN_ROLES_POST>
   </IF DEFINED_ENABLE_AUTHENTICATION>
-        {ODataRoute}
         {Produces("application/json")}
-        {ProducesResponseType(^typeof(<StructureNoplural>),StatusCodes.Status200OK)}
+        {ProducesResponseType(^typeof(<StructureNoplural>),StatusCodes.Status201Created)}
+        {ProducesResponseType(StatusCodes.Status400BadRequest)}
   <IF DEFINED_ENABLE_AUTHENTICATION>
         {ProducesResponseType(StatusCodes.Status401Unauthorized)}
   </IF DEFINED_ENABLE_AUTHENTICATION>
-        {ProducesResponseType(StatusCodes.Status400BadRequest)}
-        {HttpPost}
         ;;; <summary>
         ;;; Create a new <structureNoplural> (automatically assigned primary key).
         ;;; </summary>
+        ;;; <param name="a<StructureNoplural>"><StructureNoplural> to create.</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
         public method Post<StructureNoplural>, @IActionResult
             {FromBody}
             required in a<StructureNoplural>, @<StructureNoplural>
         proc
             ;;Remove the primary key fields from ModelState
-;//
-;// ISAM
-;//
     <PRIMARY_KEY>
       <SEGMENT_LOOP>
             ModelState.Remove("<FieldSqlName>")
       </SEGMENT_LOOP>
     </PRIMARY_KEY>
 
+    <IF NOT DEFINED_GLOBAL_MODELSTATE_FILTER>
             ;; Validate inbound data
             if (!ModelState.IsValid)
                 mreturn ValidationHelper.ReturnValidationError(ModelState)
+
+    </IF>
+            data companyExt = <IF GLOBAL_ENTITY>"GBL"<ELSE>Harmony.AspNetCore.MultiTenantProvider.TenantID</IF>
 
             ;;Get the next available primary key value
             disposable data keyFactory = (@IPrimaryKeyFactory)_ServiceProvider.GetService(^typeof(IPrimaryKeyFactory))
@@ -528,26 +468,30 @@ namespace <NAMESPACE>
 
 </IF STRUCTURE_ISAM>
 ;//
-;// PUT (By non-unique primary key, if no unique key exists)-------------------
+;//------------------------------------------------------------------------------------------------
+;// PUT
 ;//
 <IF STRUCTURE_ISAM AND DEFINED_ENABLE_PUT AND PUT_ENDPOINT>
-  <PRIMARY_KEY>
+  <KEY_LOOP>
+    <IF FIRST_UNIQUE_KEY OR (NODUPLICATES AND DEFINED_ENABLE_ALT_PUT)>
+        ;;------------------------------------------------------------------------------------------
+        ;; PUT
+
+        {HttpPut}
+        {ODataRoute("(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>)")}
       <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_PUT>
         {Authorize(Roles="<ROLES_PUT>")}
       </IF DEFINED_ENABLE_AUTHENTICATION>
-        {ODataRoute("(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>)")}
         {Produces("application/json")}
         {ProducesResponseType(StatusCodes.Status201Created)}
+        {ProducesResponseType(StatusCodes.Status204NoContent)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
       <IF DEFINED_ENABLE_AUTHENTICATION>
         {ProducesResponseType(StatusCodes.Status401Unauthorized)}
       </IF DEFINED_ENABLE_AUTHENTICATION>
-        {ProducesResponseType(StatusCodes.Status404NotFound)}
-        {HttpPut}
         ;;; <summary>
         ;;; Create (with a client-supplied primary key) or replace a <structureNoplural>.
         ;;; </summary>
-
       <SEGMENT_LOOP>
         <IF NOT SEG_TAG_EQUAL>
         ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
@@ -558,33 +502,18 @@ namespace <NAMESPACE>
       <SEGMENT_LOOP>
         <IF NOT SEG_TAG_EQUAL>
             {FromODataUri}
-          <IF CUSTOM_HARMONY_AS_STRING>
-            required in a<FieldSqlName>, string
-          <ELSE>
-            required in a<FieldSqlName>, <HARMONYCORE_SEGMENT_DATATYPE>
-          </IF CUSTOM_HARMONY_AS_STRING>
+            required in a<FieldSqlName>, <IF CUSTOM_HARMONY_AS_STRING>string<ELSE><HARMONYCORE_SEGMENT_DATATYPE></IF>
         </IF>
       </SEGMENT_LOOP>
             {FromBody}
             required in a<StructureNoplural>, @<StructureNoplural>
         proc
-        <IF NOT STRUCTURE_HAS_UNIQUE_KEY>
-            ;;Ensure that the key values in the URI win over any data that may be in the model object
-      <SEGMENT_LOOP>
-        <IF SEG_TAG_EQUAL>
-            a<StructureNoplural>.<FieldSqlname> = <SEGMENT_TAG_VALUE>
-        <ELSE>
-            a<StructureNoplural>.<FieldSqlname> = a<FieldSqlName>
-        </IF SEG_TAG_EQUAL>
-            ModelState.Remove("<FieldSqlname>")
-      </SEGMENT_LOOP>
-        </IF>
-
+      <IF NOT DEFINED_GLOBAL_MODELSTATE_FILTER>
             ;; Validate inbound data
             if (!ModelState.IsValid)
                 mreturn ValidationHelper.ReturnValidationError(ModelState)
 
-        <IF STRUCTURE_HAS_UNIQUE_KEY>
+      </IF>
             ;;Ensure that the key values in the URI win over any data that may be in the model object
       <SEGMENT_LOOP>
         <IF SEG_TAG_EQUAL>
@@ -593,14 +522,14 @@ namespace <NAMESPACE>
             a<StructureNoplural>.<FieldSqlname> = a<FieldSqlName>
         </IF SEG_TAG_EQUAL>
       </SEGMENT_LOOP>
-        </IF STRUCTURE_HAS_UNIQUE_KEY>
 
-            <IF STRUCTURE_HAS_UNIQUE_KEY>
+            data companyExt = <IF GLOBAL_ENTITY>"GBL"<ELSE>Harmony.AspNetCore.MultiTenantProvider.TenantID</IF>
+
             try
             begin
                 ;;Add and commit
-                data existing = _DbContext.<StructurePlural>.Find(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE><ELSE><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP>)
-                if(existing == ^null) then
+                data existing<structureNoplural> = _DbContext.<StructurePlural>.FindAlternate<<StructureNoplural>>("Companyext",companyExt,<SEGMENT_LOOP>"<FieldSqlName>",<IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP>)
+                if(existing<structureNoplural> == ^null) then
                 begin
                     _DbContext.<StructurePlural>.Add(a<StructureNoplural>)
                     _DbContext.SaveChanges()
@@ -608,19 +537,11 @@ namespace <NAMESPACE>
                 end
                 else
                 begin
-                    a<StructureNoplural>.CopyTo(existing)
+                    Tools.CopyProperties<<StructureNoplural>>(a<StructureNoplural>,existing<structureNoplural>.First())
                     _DbContext.SaveChanges()
                     mreturn NoContent()
                 end
             end
-            <ELSE>
-            try
-            begin
-                _DbContext.<StructurePlural>.Add(a<StructureNoplural>)
-                _DbContext.SaveChanges()
-                mreturn Created(a<StructureNoplural>)
-            end
-            </IF STRUCTURE_HAS_UNIQUE_KEY>
             catch (e, @InvalidOperationException)
             begin
                 mreturn BadRequest(e)
@@ -633,17 +554,25 @@ namespace <NAMESPACE>
             endtry
 
         endmethod
-  </PRIMARY_KEY>
+
+    </IF FIRST_UNIQUE_KEY>
+  </KEY_LOOP>
 </IF STRUCTURE_ISAM>
 ;//
-;// PATCH ---------------------------------------------------------------------
+;//------------------------------------------------------------------------------------------------
+;// PATCH (NOT YET USED!!!!!)
 ;//
 <IF STRUCTURE_ISAM AND DEFINED_ENABLE_PATCH AND PATCH_ENDPOINT>
-  <PRIMARY_KEY>
+  <KEY_LOOP>
+    <IF FIRST_UNIQUE_KEY OR (NODUPLICATES AND DEFINED_ENABLE_ALT_PATCH)>
+        ;;------------------------------------------------------------------------------------------
+        ;; PATCH
+
+        {HttpPatch}
+        {ODataRoute("(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>)")}
     <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_PATCH>
         {Authorize(Roles="<ROLES_PATCH>")}
     </IF DEFINED_ENABLE_AUTHENTICATION>
-        {ODataRoute("(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>)")}
         {Produces("application/json")}
         {ProducesResponseType(StatusCodes.Status204NoContent)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
@@ -651,9 +580,8 @@ namespace <NAMESPACE>
         {ProducesResponseType(StatusCodes.Status401Unauthorized)}
       </IF DEFINED_ENABLE_AUTHENTICATION>
         {ProducesResponseType(StatusCodes.Status404NotFound)}
-        {HttpPatch}
         ;;; <summary>
-        ;;; Patch  (partial update) a <structureNoplural>.
+        ;;; Patch  (partial update)  <structureNoplural>.
         ;;; </summary>
         <SEGMENT_LOOP>
           <IF NOT SEG_TAG_EQUAL>
@@ -665,52 +593,37 @@ namespace <NAMESPACE>
         <SEGMENT_LOOP>
           <IF NOT SEG_TAG_EQUAL>
             {FromODataUri}
-            <IF CUSTOM_HARMONY_AS_STRING>
-            required in a<FieldSqlName>, string
-            <ELSE>
-            required in a<FieldSqlName>, <HARMONYCORE_SEGMENT_DATATYPE>
-            </IF CUSTOM_HARMONY_AS_STRING>
+            required in a<FieldSqlName>, <IF CUSTOM_HARMONY_AS_STRING>string<ELSE><HARMONYCORE_SEGMENT_DATATYPE></IF>
           </IF>
         </SEGMENT_LOOP>
             {FromBody}
             required in a<StructureNoplural>, @JsonPatchDocument<<StructureNoplural>>
         proc
+        <IF NOT DEFINED_GLOBAL_MODELSTATE_FILTER>
             ;; Validate inbound data
             if (!ModelState.IsValid)
                 mreturn ValidationHelper.ReturnValidationError(ModelState)
 
+        </IF>
             ;;Patch the existing <structureNoplural>
             try
             begin
                 ;;Get the <structureNoplural> to be updated
-                data <structureNoplural>ToUpdate = _DbContext.<StructurePlural>.Find<IF NOT STRUCTURE_HAS_UNIQUE_KEY>Query<<StructureNoplural>></IF>(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE><ELSE><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP>)
+                data companyExt = <IF GLOBAL_ENTITY>"GBL"<ELSE>Harmony.AspNetCore.MultiTenantProvider.TenantID</IF>
+                data <structureNoplural>ToUpdate = _DbContext.<StructurePlural>.FindAlternate<<StructureNoplural>>("Companyext",companyExt,<SEGMENT_LOOP>"<FieldSqlName>",<IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP>)
                 data patchError, @JsonPatchError, ^null
                 ;;Did we find it?
                 if(<structureNoplural>ToUpdate == ^null)
                     mreturn NotFound()
 
                 ;;Apply the changes to the <structureNoplural> we read
-                <IF STRUCTURE_HAS_UNIQUE_KEY>
-                a<StructureNoplural>.ApplyTo(<structureNoplural>ToUpdate, lambda(error) { patchError = error })
+                a<StructureNoplural>.ApplyTo(<structureNoplural>ToUpdate.First(), lambda(error) { patchError = error })
                 ;;if the patchdoc was bad return the error info
                 if(patchError != ^null)
                     mreturn BadRequest(string.Format("Error applying patch document: error message {0}, caused by {1}", patchError.ErrorMessage, JsonConvert.SerializeObject(patchError.Operation)))
 
                 ;;Update and commit
-                _DbContext.<StructurePlural>.Update(<structureNoplural>ToUpdate)
-                <ELSE>
-                data item, @<StructureNoplural>
-                foreach item in <structureNoplural>ToUpdate
-                begin
-                    a<StructureNoplural>.ApplyTo(item, lambda(error) { patchError = error })
-                    ;;if the patchdoc was bad return the error info
-                    if(patchError != ^null)
-                        mreturn BadRequest(string.Format("Error applying patch document: error message {0}, caused by {1}", patchError.ErrorMessage, JsonConvert.SerializeObject(patchError.Operation)))
-
-                    ;;Update and commit
-                    _DbContext.<StructurePlural>.Update(item)
-                end
-                </IF STRUCTURE_HAS_UNIQUE_KEY>
+                _DbContext.<StructurePlural>.Update(<structureNoplural>ToUpdate.First())
                 _DbContext.SaveChanges()
             end
             catch (e, @InvalidOperationException)
@@ -727,23 +640,30 @@ namespace <NAMESPACE>
             mreturn NoContent()
 
         endmethod
-  </PRIMARY_KEY>
+
+    </IF FIRST_UNIQUE_KEY>
+  </KEY_LOOP>
 </IF STRUCTURE_ISAM>
 ;//
-;// DELETE --------------------------------------------------------------------
+;//------------------------------------------------------------------------------------------------
+;// DELETE (NOT YET USED!!!!!)
 ;//
 <IF STRUCTURE_ISAM AND DEFINED_ENABLE_DELETE AND DELETE_ENDPOINT>
-  <PRIMARY_KEY>
+   <KEY_LOOP>
+    <IF FIRST_UNIQUE_KEY OR (NODUPLICATES AND DEFINED_ENABLE_ALT_DELETE)>
+        ;;------------------------------------------------------------------------------------------
+        ;; DELETE
+
+        {HttpDelete}
+        {ODataRoute("(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>)")}
     <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_DELETE>
         {Authorize(Roles="<ROLES_DELETE>")}
     </IF DEFINED_ENABLE_AUTHENTICATION>
-        {ODataRoute("(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>)")}
         {ProducesResponseType(StatusCodes.Status204NoContent)}
     <IF DEFINED_ENABLE_AUTHENTICATION>
         {ProducesResponseType(StatusCodes.Status401Unauthorized)}
     </IF DEFINED_ENABLE_AUTHENTICATION>
         {ProducesResponseType(StatusCodes.Status404NotFound)}
-        {HttpDelete}
         ;;; <summary>
         ;;; Delete a <structureNoplural>.
         ;;; </summary>
@@ -757,37 +677,28 @@ namespace <NAMESPACE>
         <SEGMENT_LOOP>
           <IF NOT SEG_TAG_EQUAL>
             {FromODataUri}
-            <IF CUSTOM_HARMONY_AS_STRING>
-            required in a<FieldSqlName>, string
-            <ELSE>
-            required in a<FieldSqlName>, <HARMONYCORE_SEGMENT_DATATYPE>
-            </IF CUSTOM_HARMONY_AS_STRING>
+            required in a<FieldSqlName>, <IF CUSTOM_HARMONY_AS_STRING>string<ELSE><HARMONYCORE_SEGMENT_DATATYPE></IF>
           </IF>
         </SEGMENT_LOOP>
         proc
             ;;Get the <structureNoplural> to be deleted
-            data <structureNoplural>ToRemove = _DbContext.<StructurePlural>.Find<IF NOT STRUCTURE_HAS_UNIQUE_KEY>Query<<StructureNoplural>></IF>(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE><ELSE><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP>)
+            data companyExt = <IF GLOBAL_ENTITY>"GBL"<ELSE>Harmony.AspNetCore.MultiTenantProvider.TenantID</IF>
+            data <structureNoplural>ToRemove = _DbContext.<StructurePlural>.FindAlternate<<StructureNoplural>>("Companyext",companyExt,<SEGMENT_LOOP>"<FieldSqlName>",<IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName></IF SEG_TAG_EQUAL><,></SEGMENT_LOOP>)
 
             ;;Did we find it?
             if (<structureNoplural>ToRemove == ^null)
                 mreturn NotFound()
 
             ;;Delete and commit
-            <IF STRUCTURE_HAS_UNIQUE_KEY>
-            _DbContext.<StructurePlural>.Remove(<structureNoplural>ToRemove)
-            <ELSE>
-            data item, @<StructureNoplural>
-            foreach item in <structureNoplural>ToRemove
-            begin
-                _DbContext.<StructurePlural>.Remove(item)
-            end
-            </IF STRUCTURE_HAS_UNIQUE_KEY>
+            _DbContext.<StructurePlural>.Remove(<structureNoplural>ToRemove.First())
             _DbContext.SaveChanges()
 
             mreturn NoContent()
 
         endmethod
-  </PRIMARY_KEY>
+
+    </IF FIRST_UNIQUE_KEY>
+  </KEY_LOOP>
 </IF STRUCTURE_ISAM>
     endclass
 
