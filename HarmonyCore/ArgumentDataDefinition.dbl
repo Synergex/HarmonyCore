@@ -390,8 +390,12 @@ namespace Harmony.Core
 		proc
 			data tVal, T
 
+			;; Null arg is passed in. Will return to default value of T
 			if(arg == ^null)
+			begin
+				Console.WriteLine("Warning: Null was passed into Argument/ArgumentInfer. Default value of {0} will be returned.", ^typeof(T).UnderlyingSystemType.Name)
 				mreturn tVal
+			end
 
 			data argType = arg.GetType()
 
@@ -441,11 +445,12 @@ namespace Harmony.Core
 			else
 				try
 				begin
+					Console.WriteLine("Converting {0} to {1}.", arg, ^typeof(T).UnderlyingSystemType.Name)
 					mreturn (T)Convert.ChangeType(arg, ^typeof(T))
 				end
 				catch(ex, @Exception)
 				begin
-					throw new NotImplementedException(string.Format("{0} not a currently supported type in Traditional Bridge", ^typeof(T)))
+					throw new Exception(string.Format("{0}{1}There was a mismatch trying to convert {2} to {3}.", ex.Message, Environment.NewLine, arg, ^typeof(T).UnderlyingSystemType.Name))
 				end
 				endtry
 

@@ -60,11 +60,11 @@ import <MODELS_NAMESPACE>
 
 namespace <NAMESPACE>
 
-	public partial class <INTERFACE_NAME>Hub extends Hub<I<INTERFACE_NAME>HubClient>
+    public partial class <INTERFACE_NAME>Hub extends Hub<I<INTERFACE_NAME>HubClient>
         
         ;;Services provided via dependency injection
         private _contextFactory, @IContextFactory<<INTERFACE_NAME>Service>
-		private _serviceProvider, @IServiceProvider
+        private _serviceProvider, @IServiceProvider
         private _AppSettings, @IOptions<AppSettings>
         
         ;;; <summary>
@@ -74,41 +74,41 @@ namespace <NAMESPACE>
         ;;; <param name="serviceProvider">Service provider</param>
         ;;; <param name="aAppSettings">Application settings</param>
         public method <INTERFACE_NAME>Hub
-			contextFactory, @IContextFactory<<INTERFACE_NAME>Service>
-			serviceProvider, @IServiceProvider
+            contextFactory, @IContextFactory<<INTERFACE_NAME>Service>
+            serviceProvider, @IServiceProvider
             aAppSettings, @IOptions<AppSettings>
-		proc
-			_contextFactory = contextFactory
-			_serviceProvider = serviceProvider
+        proc
+            _contextFactory = contextFactory
+            _serviceProvider = serviceProvider
             _AppSettings = aAppSettings
-		endmethod
+        endmethod
 
         ;;----------------------------------------------------------------------
         ;;; <summary>
         ;;; Executes when a new connection is first established.
         ;;; </summary>
         ;;; <returns></returns>
-		public override async method OnConnectedAsync, @Task
-		proc
-			await parent.OnConnectedAsync()
-			
-			data context = await _contextFactory.MakeContextAsync(_serviceProvider)			
-			Context.Items.Add("RPCContext", context)
+        public override async method OnConnectedAsync, @Task
+        proc
+            await parent.OnConnectedAsync()
+            
+            data context = await _contextFactory.MakeContextAsync(_serviceProvider)            
+            Context.Items.Add("RPCContext", context)
 
-			;If you need to do user authorization via a custom method then THIS
-			;is a good place to do so. Maybe something like this:
-			;
+            ;If you need to do user authorization via a custom method then THIS
+            ;is a good place to do so. Maybe something like this:
+            ;
             ;data userDetail, [#]string, MultiTenantProvider.TenantId.Split("|")
-			;
+            ;
             ;data request, @<DTOS_NAMESPACE>.UserLogin_Request, new <DTOS_NAMESPACE>.UserLogin_Request() { username=userDetail[1], password=userDetail[2], company=userDetail[3] }
             ;data response, @<DTOS_NAMESPACE>.UserLogin_Response
-			;
+            ;
             ;response = await context.UserLogin(request)
-			;
+            ;
             ;if (response.ReturnValue != 0)
             ;    throw new Exception("Invalid user login in OnConnectedAsync")
 
-		endmethod
+        endmethod
 
         ;;----------------------------------------------------------------------
         ;;; <summary>
@@ -116,64 +116,52 @@ namespace <NAMESPACE>
         ;;; </summary>
         ;;; <param name="ex"></param>
         ;;; <returns></returns>
-		public override async method OnDisconnectedAsync, @Task
-			ex, @Exception
-		proc
-			parent.OnDisconnectedAsync(ex)
-			data contextObject, @Object
-			if(Context.Items.TryGetValue("RPCContext", contextObject))
-			begin
-				data callContext = ^as(contextObject, @<INTERFACE_NAME>Service)
-				if(callContext != ^null)
-				begin
-					_contextFactory.ReturnContext(callContext)
-				end
-			end
-		endmethod
-
-        ;;----------------------------------------------------------------------
-        ;;Test methods
-
-		public async method AddTwoNumbers, @Task
-			aDecimal, decimal
-			aDecimal2, decimal
-		proc
-			data callContext = ^as(Context.Items["RPCContext"], @<INTERFACE_NAME>Service)
-			data result = await callContext.AddTwoNumbers(aDecimal, aDecimal2)
-			await Clients.Caller.AddTwoNumbers_Result(result)
-		endmethod
+        public override async method OnDisconnectedAsync, @Task
+            ex, @Exception
+        proc
+            parent.OnDisconnectedAsync(ex)
+            data contextObject, @Object
+            if(Context.Items.TryGetValue("RPCContext", contextObject))
+            begin
+                data callContext = ^as(contextObject, @<INTERFACE_NAME>Service)
+                if(callContext != ^null)
+                begin
+                    _contextFactory.ReturnContext(callContext)
+                end
+            end
+        endmethod
 
         ;;----------------------------------------------------------------------
         ;;Methods from interface "<INTERFACE_NAME>"
 
-		<METHOD_LOOP>
-		public async method <METHOD_NAME>, @Task
-			<IF IN_OR_INOUT>
-			aRequest, @<DTOS_NAMESPACE>.<METHOD_NAME>_Request
-			</IF IN_OR_INOUT>
-		proc
-			data callContext = ^as(Context.Items["RPCContext"], @<INTERFACE_NAME>Service)
-			<IF RETURNS_DATA>data result = </IF RETURNS_DATA>await callContext.<METHOD_NAME>(<IF IN_OR_INOUT>aRequest</IF IN_OR_INOUT>)
-			await Clients.Caller.<METHOD_NAME>_Result(<IF RETURNS_DATA>result</IF RETURNS_DATA>)
-		endmethod
+        <METHOD_LOOP>
+        public async method <METHOD_NAME>, @Task
+            <IF IN_OR_INOUT>
+            aRequest, @<DTOS_NAMESPACE>.<METHOD_NAME>_Request
+            </IF IN_OR_INOUT>
+        proc
+            data callContext = ^as(Context.Items["RPCContext"], @<INTERFACE_NAME>Service)
+            <IF RETURNS_DATA>data result = </IF RETURNS_DATA>await callContext.<METHOD_NAME>(<IF IN_OR_INOUT>aRequest</IF IN_OR_INOUT>)
+            await Clients.Caller.<METHOD_NAME>_Result(<IF RETURNS_DATA>result</IF RETURNS_DATA>)
+        endmethod
 
-		</METHOD_LOOP>
-	endclass
+        </METHOD_LOOP>
+    endclass
 
-	public interface I<INTERFACE_NAME>HubClient
+    public interface I<INTERFACE_NAME>HubClient
         
         method AddTwoNumbers_Result, @Task
-			aDecimal, decimal
-		endmethod
+            aDecimal, decimal
+        endmethod
 
-		<METHOD_LOOP>
+        <METHOD_LOOP>
         method <METHOD_NAME>_Result, @Task
-			<IF RETURNS_DATA>
+            <IF RETURNS_DATA>
             response, @<DTOS_NAMESPACE>.<METHOD_NAME>_Response
-			</IF RETURNS_DATA>
+            </IF RETURNS_DATA>
         endmethod
     
-		</METHOD_LOOP>
+        </METHOD_LOOP>
     endinterface
 
 endnamespace

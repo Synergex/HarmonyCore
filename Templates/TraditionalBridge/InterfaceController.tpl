@@ -90,6 +90,7 @@ namespace <NAMESPACE>
         endmethod
 
 <METHOD_LOOP>
+        {Http<IF IN_OR_INOUT>Post<ELSE>Get</IF>}
         {Route("<METHOD_NAME>")}
         ;;; <summary>
         ;;; 
@@ -102,9 +103,11 @@ namespace <NAMESPACE>
   </IF IN_OR_INOUT>
         proc
   <IF IN_OR_INOUT>
+    <IF NOT_DEFINED_GLOBAL_MODELSTATE_FILTER>
             if (!ModelState.IsValid)
                 mreturn BadRequest()
-  </IF IN_OR_INOUT>
+    </IF>
+  </IF>
   <IF RETURNS_DATA>
             mreturn ok(await _<INTERFACE_NAME>Service.<METHOD_NAME>(<IF IN_OR_INOUT>aRequest</IF IN_OR_INOUT>))
   <ELSE>

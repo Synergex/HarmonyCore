@@ -53,7 +53,7 @@ namespace <NAMESPACE>
         public static method <METHOD_NAME>, <IF FUNCTION><IF HATVAL>i4<ELSE><method_return_type></IF HATVAL><ELSE>void</IF FUNCTION>
       <PARAMETER_LOOP>
         <IF OUT_OR_INOUT>
-            <parameter_required> <parameter_direction> <PARAMETER_NAME>, <parameter_definition>
+            <parameter_required> <parameter_direction> <PARAMETER_NAME>, <PARAMETER_DEFINITION>
         </IF OUT_OR_INOUT>
       </PARAMETER_LOOP>
         proc

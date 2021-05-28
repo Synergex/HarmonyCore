@@ -159,36 +159,9 @@ namespace <NAMESPACE>
         proc
             ;;Declare entities
  
- <STRUCTURE_LOOP>
+<STRUCTURE_LOOP>
             builder.EntitySet<<StructureNoplural>>("<StructurePlural>")
-  </STRUCTURE_LOOP>
- 
-<IF NOT DEFINED_EF_PROVIDER_MYSQL>
-            ;;Entities with a single primary key segment have the key declared to EF via a
-            ;;{Key} attribute on the appropriate property in the data model, but only one {key}
-            ;;attribute can be used in a class, so keys with multiple segments are defined
-            ;;using the "Fluent API" here.
-  <STRUCTURE_LOOP>
-    <IF STRUCTURE_ISAM>
-      <PRIMARY_KEY>
-        <IF MULTIPLE_SEGMENTS>
-          <SEGMENT_LOOP>
-            <IF NOT SEG_TAG_EQUAL>
-              <IF CUSTOM_HARMONY_AS_STRING>
-            builder.EntityType<<StructureNoplural>>().HasKey<<StructureNoplural>,string>("<FieldSqlname>")
-              <ELSE>
-            builder.EntityType<<StructureNoplural>>().HasKey<<StructureNoplural>,<HARMONYCORE_SEGMENT_DATATYPE>>("<FieldSqlname>")
-              </IF CUSTOM_HARMONY_AS_STRING>
-            </IF SEG_TAG_EQUAL>
-          </SEGMENT_LOOP>
-        </IF MULTIPLE_SEGMENTS>
-      </PRIMARY_KEY>
-    </IF STRUCTURE_ISAM>
-    <IF STRUCTURE_RELATIVE>
-            builder.EntityType<<StructureNoplural>>().HasKey<<StructureNoplural>,int>("RecordNumber")
-    </IF STRUCTURE_RELATIVE>
-  </STRUCTURE_LOOP>
-</IF>
+</STRUCTURE_LOOP>
  
             ;;-----------------------------------------------
             ;;If we have a GetEdmModelCustom method, call it 
@@ -197,29 +170,6 @@ namespace <NAMESPACE>
 
             data tempModel = (@EdmModel)builder.GetEdmModel()
 
-<IF NOT DEFINED_EF_PROVIDER_MYSQL>
-            ;;-----------------------------------------------
-            ;;Declare alternate keys
-
-  <STRUCTURE_LOOP>
-    <COUNTER_1_RESET>
-    <IF STRUCTURE_ISAM>
-      <ALTERNATE_KEY_LOOP_UNIQUE>
-        <SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><COUNTER_1_INCREMENT></IF SEG_TAG_EQUAL></SEGMENT_LOOP>
-      </ALTERNATE_KEY_LOOP_UNIQUE>
-    </IF STRUCTURE_ISAM>
-
-            data <structureNoplural>Type = (@EdmEntityType)tempModel.FindDeclaredType("<MODELS_NAMESPACE>.<StructureNoplural>")
-    <IF STRUCTURE_ISAM>
-      <ALTERNATE_KEY_LOOP_UNIQUE>
-        <IF COUNTER_1>
-            tempModel.AddAlternateKeyAnnotation(<structureNoplural>Type, new Dictionary<string, IEdmProperty>() {<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE>{"<FieldSqlName>",<structureNoplural>Type.FindProperty("<FieldSqlName>")}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>})
-        </IF>
-      </ALTERNATE_KEY_LOOP_UNIQUE>
-    </IF STRUCTURE_ISAM>
-  </STRUCTURE_LOOP>
-
-<ELSE>
 ;//
 ;// When working with MySQL (at FCL at least) we don't have access to the actual primary key, because the corresponding
 ;// field is not defined in the repository. The first key defined in repository actually refers to an alternate index
@@ -228,18 +178,35 @@ namespace <NAMESPACE>
 ;//
             ;;-----------------------------------------------
             ;;Declare primary keys
+<STRUCTURE_LOOP>
 
-  <STRUCTURE_LOOP>
-
+            ;;<StructurePlural> (<STRUCTURE_NOALIAS>)
             data <structureNoplural>Type = (@EdmEntityType)tempModel.FindDeclaredType("<MODELS_NAMESPACE>.<StructureNoplural>")
-    <IF STRUCTURE_ISAM>
-      <PRIMARY_KEY>
-            tempModel.AddAlternateKeyAnnotation(<structureNoplural>Type, new Dictionary<string, IEdmProperty>() {{"Companyext",<structureNoplural>Type.FindProperty("Companyext")},<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE>{"<FieldSqlName>",<structureNoplural>Type.FindProperty("<FieldSqlName>")}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>})
-      </PRIMARY_KEY>
-    </IF STRUCTURE_ISAM>
-  </STRUCTURE_LOOP>
+  <IF STRUCTURE_ISAM>
+    <PRIMARY_KEY>
+            ;;<KEY_NAME>
+            tempModel.AddAlternateKeyAnnotation(<structureNoplural>Type, new Dictionary<string, IEdmProperty>() {<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL>{"<FieldSqlName>",<structureNoplural>Type.FindProperty("<FieldSqlName>")}<,></IF></SEGMENT_LOOP>})
+    </PRIMARY_KEY>
+    <IF DEFINED_ENABLE_ALTERNATE_KEYS>
+      <ALTERNATE_KEY_LOOP_UNIQUE>
+            ;;<KEY_NAME>
+            tempModel.AddAlternateKeyAnnotation(<structureNoplural>Type, new Dictionary<string, IEdmProperty>() {<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL>{"<FieldSqlName>",<structureNoplural>Type.FindProperty("<FieldSqlName>")}<,></IF></SEGMENT_LOOP>})
+      </ALTERNATE_KEY_LOOP_UNIQUE>
+    </IF>
+    <IF DEFINED_ENABLE_PARTIAL_KEYS>
+      <PARTIAL_KEY_LOOP>
+        <IF (PRIMARY_KEY AND DEFINED_ENABLE_GET_ONE AND GET_ENDPOINT) OR ((NOT PRIMARY_KEY) AND DEFINED_ENABLE_ALTERNATE_KEYS AND ALTERNATE_KEY_ENDPOINTS)>
+          <SEGMENT_LOOP>
+            <IF NOT SEG_TAG_EQUAL>
+            tempModel.AddAlternateKeyAnnotation(<structureNoplural>Type, new Dictionary<string, IEdmProperty>() {<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL>{"<FieldSqlName>",<structureNoplural>Type.FindProperty("<FieldSqlName>")}<,></IF></SEGMENT_LOOP>})
+            </IF>
+          </SEGMENT_LOOP>
+        </IF>
+      </PARTIAL_KEY_LOOP>
+    </IF>
+  </IF STRUCTURE_ISAM>
+</STRUCTURE_LOOP>
 
-</IF>
             ;;-----------------------------------------------
             ;;If we have a PostEdmModelCustom method, call it 
 

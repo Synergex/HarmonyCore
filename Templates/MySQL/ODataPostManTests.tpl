@@ -29,7 +29,7 @@
                 ],
                 "body": {
                     "mode": "raw",
-                    "raw": "{ \"Username\": \"<CUSTOM_AUTH_USERNAME>\", \"Password\": \"<CUSTOM_AUTH_PASSWORD>\"}"
+                    "raw": "<CUSTOM_AUTH_REQUEST_POSTMAN>"
                 },
                 "url": {
                     "raw": "{{ServerAuthUri}}/<CUSTOM_AUTH_CONTROLLER_PATH>/<CUSTOM_AUTH_ENDPOINT_PATH>",
@@ -113,14 +113,13 @@
         },
   </IF DEFINED_ENABLE_CUSTOM_AUTHENTICATION>
 </IF DEFINED_ENABLE_AUTHENTICATION>
-        <STRUCTURE_LOOP>
+<STRUCTURE_LOOP>
         {
-            <COUNTER_1_RESET>
+  <COUNTER_1_RESET>
             "_postman_id": "<guid_nobrace>",
             "name": "<StructureNoplural> Tests",
             "item": [
-<IF DEFINED_ENABLE_GET_ALL>
-<IF GET_ALL_ENDPOINT>
+  <IF DEFINED_ENABLE_GET_ALL AND GET_ALL_ENDPOINT>
                 {
                     "_postman_id": "<guid_nobrace>",
                     "name": "Read <structurePlural>",
@@ -154,10 +153,8 @@
                     "response": []
                     <COUNTER_1_INCREMENT>
                 }
-</IF GET_ALL_ENDPOINT>
-</IF DEFINED_ENABLE_GET_ALL>
-<IF DEFINED_ENABLE_COUNT>
-<IF GET_ALL_ENDPOINT>
+  </IF>
+  <IF DEFINED_ENABLE_COUNT AND GET_ALL_ENDPOINT>
                 <IF COUNTER_1>,</IF COUNTER_1>
                 {
                     "_postman_id": "<guid_nobrace>",
@@ -193,10 +190,8 @@
                     "response": []
                     <COUNTER_1_INCREMENT>
                 }
-</IF GET_ALL_ENDPOINT>
-</IF DEFINED_ENABLE_COUNT>
-<IF DEFINED_ENABLE_GET_ONE>
-<IF GET_ENDPOINT>
+  </IF>
+  <IF DEFINED_ENABLE_GET_ONE AND GET_ENDPOINT>
                 <IF COUNTER_1>,</IF COUNTER_1>
                 {
                     "_postman_id": "<guid_nobrace>",
@@ -219,32 +214,32 @@
                         "raw": ""
                     },
                     "url": {
-                        "raw": "{{ServerBaseUri}}/<StructurePlural>(<IF STRUCTURE_ISAM><IF DEFINED_EF_PROVIDER_MYSQL>Companyext='ABC',</IF><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)",
+                        "raw": "{{ServerBaseUri}}/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)",
                         "host": [
                             "{{ServerBaseUri}}"
                         ],
                         "path": [
-                            "<StructurePlural>(<IF STRUCTURE_ISAM><IF DEFINED_EF_PROVIDER_MYSQL>Companyext='ABC',</IF><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)"
+                            "<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)"
                         ]
                     }
                     },
                     "response": []
                     <COUNTER_1_INCREMENT>
                 }
-</IF GET_ENDPOINT>
-</IF DEFINED_ENABLE_GET_ONE>
-<IF STRUCTURE_ISAM>
-<IF DEFINED_ENABLE_ALTERNATE_KEYS>
-<IF ALTERNATE_KEY_ENDPOINTS>
+  </IF>
+;//
+;// ALTERNATE KEYS
+;//
+  <IF STRUCTURE_ISAM AND DEFINED_ENABLE_ALTERNATE_KEYS AND ALTERNATE_KEY_ENDPOINTS>
               <ALTERNATE_KEY_LOOP_UNIQUE>
-                <IF COUNTER_1>,</IF COUNTER_1>
+<IF COUNTER_1>                ,</IF COUNTER_1>
                 {
                     "_postman_id": "<guid_nobrace>",
-                    <IF DUPLICATES>
+    <IF DUPLICATES>
                     "name": "Read <structurePlural> by <KeyName>",
-                    <ELSE>
+    <ELSE>
                     "name": "Read <structureNoplural> by <KeyName>",
-                    </IF DUPLICATES>
+    </IF>
                     "request": {
                     "method": "GET",
                     "header": [
@@ -263,21 +258,20 @@
                         "raw": ""
                     },
                     "url": {
-                        "raw": "{{ServerBaseUri}}/<StructurePlural>(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>)",
+                        "raw": "{{ServerBaseUri}}/<StructurePlural>(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF></SEGMENT_LOOP>)",
                         "host": [
                             "{{ServerBaseUri}}"
                         ],
                         "path": [
-                            "<StructurePlural>(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>)"
+                            "<StructurePlural>(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF></SEGMENT_LOOP>)"
                         ]
                     }
                     },
                     "response": []
-                    <COUNTER_1_INCREMENT>
+    <COUNTER_1_INCREMENT>
                 }
-                <IF DEFINED_ENABLE_COUNT>
-                <IF DUPLICATES>
-                <IF COUNTER_1>,</IF COUNTER_1>
+    <IF DEFINED_ENABLE_COUNT AND DUPLICATES>
+<IF COUNTER_1>                ,</IF COUNTER_1>
                 {
                     "_postman_id": "<guid_nobrace>",
                     "name": "Count <structurePlural> by <KeyName>",
@@ -299,31 +293,107 @@
                         "raw": ""
                     },
                     "url": {
-                        "raw": "{{ServerBaseUri}}/<StructurePlural>(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>)/$count",
+                        "raw": "{{ServerBaseUri}}/<StructurePlural>(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF></SEGMENT_LOOP>)/$count",
                         "host": [
                             "{{ServerBaseUri}}"
                         ],
                         "path": [
-                            "<StructurePlural>(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>)",
+                            "<StructurePlural>(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF></SEGMENT_LOOP>)",
                             "$count"
                         ]
                     }
                     },
                     "response": []
-                    <COUNTER_1_INCREMENT>
+      <COUNTER_1_INCREMENT>
                 }
-                </IF DUPLICATES>
-                </IF DEFINED_ENABLE_COUNT>
-                </ALTERNATE_KEY_LOOP>
-</IF ALTERNATE_KEY_ENDPOINTS>
-</IF DEFINED_ENABLE_ALTERNATE_KEYS>
-</IF STRUCTURE_ISAM>
-<IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
-<IF PROPERTY_ENDPOINTS>
-                <FIELD_LOOP>
-                <IF NOTPKSEGMENT>
-                <IF CUSTOM_NOT_HARMONY_EXCLUDE>
-                <IF COUNTER_1>,</IF COUNTER_1>
+    </IF>
+  </ALTERNATE_KEY_LOOP>
+</IF>
+;//
+;// PARTIAL KEY ENDPOINTS
+;//
+<IF STRUCTURE_ISAM AND DEFINED_ENABLE_PARTIAL_KEYS>
+  <PARTIAL_KEY_LOOP>
+<IF COUNTER_1>                ,</IF COUNTER_1>
+                {
+                    "_postman_id": "<guid_nobrace>",
+                    "name": "Read <structurePlural> by partial key <KeyName>",
+                    "request": {
+                    "method": "GET",
+                    "header": [
+                        {
+                            "key": "Accept",
+                            "value": "application/json"
+                        },
+                        {
+                            "key": "x-tenant-id",
+                            "value": "{{TenantID}}",
+                            "type": "text"
+                        }
+                    ],
+                    "body": {
+                        "mode": "raw",
+                        "raw": ""
+                    },
+                    "url": {
+                        "raw": "{{ServerBaseUri}}/<StructurePlural>(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF></SEGMENT_LOOP>)",
+                        "host": [
+                            "{{ServerBaseUri}}"
+                        ],
+                        "path": [
+                            "<StructurePlural>(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF></SEGMENT_LOOP>)"
+                        ]
+                    }
+                    },
+                    "response": []
+    <COUNTER_1_INCREMENT>
+                }
+    <IF DEFINED_ENABLE_COUNT AND DUPLICATES>
+<IF COUNTER_1>                ,</IF COUNTER_1>
+                {
+                    "_postman_id": "<guid_nobrace>",
+                    "name": "Count <structurePlural> by <KeyName>",
+                    "request": {
+                    "method": "GET",
+                    "header": [
+                        {
+                            "key": "Accept",
+                            "value": "application/json"
+                        },
+                        {
+                            "key": "x-tenant-id",
+                            "value": "{{TenantID}}",
+                            "type": "text"
+                        }
+                    ],
+                    "body": {
+                        "mode": "raw",
+                        "raw": ""
+                    },
+                    "url": {
+                        "raw": "{{ServerBaseUri}}/<StructurePlural>(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF></SEGMENT_LOOP>)/$count",
+                        "host": [
+                            "{{ServerBaseUri}}"
+                        ],
+                        "path": [
+                            "<StructurePlural>(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF></SEGMENT_LOOP>)",
+                            "$count"
+                        ]
+                    }
+                    },
+                    "response": []
+      <COUNTER_1_INCREMENT>
+                }
+    </IF>
+  </PARTIAL_KEY_LOOP>
+</IF>
+;//
+;// INDIVIDUAL PROPERTY ENDPOINTS
+;//
+<IF DEFINED_ENABLE_PROPERTY_ENDPOINTS AND PROPERTY_ENDPOINTS>
+  <FIELD_LOOP>
+    <IF NOTPKSEGMENT AND CUSTOM_NOT_HARMONY_EXCLUDE>
+<IF COUNTER_1>                ,</IF COUNTER_1>
                 {
                     "_postman_id": "<guid_nobrace>",
                     "name": "Read <structureNoplural> <fieldSqlName>",
@@ -345,20 +415,20 @@
                         "raw": ""
                     },
                     "url": {
-                        "raw": "{{ServerBaseUri}}/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)/<FieldSqlName>",
+                        "raw": "{{ServerBaseUri}}/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)/<FieldSqlName>",
                         "host": [
                             "{{ServerBaseUri}}"
                         ],
                         "path": [
-                            "<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)/<FieldSqlName>"
+                            "<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)/<FieldSqlName>"
                         ]
                     }
                     },
                     "response": []
                     <COUNTER_1_INCREMENT>
                 }
-<IF DEFINED_ENABLE_PROPERTY_VALUE_DOCS>
-                <IF COUNTER_1>,</IF COUNTER_1>
+      <IF DEFINED_ENABLE_PROPERTY_VALUE_DOCS>
+<IF COUNTER_1>                ,</IF COUNTER_1>
                 {
                     "_postman_id": "<guid_nobrace>",
                     "name": "Read <structureNoplural> <fieldSqlName> raw value",
@@ -380,26 +450,26 @@
                         "raw": ""
                     },
                     "url": {
-                        "raw": "{{ServerBaseUri}}/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)/<FieldSqlName>/$value",
+                        "raw": "{{ServerBaseUri}}/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)/<FieldSqlName>/$value",
                         "host": [
                             "{{ServerBaseUri}}"
                         ],
                         "path": [
-                            "<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)/<FieldSqlName>/$value"
+                            "<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><,></IF></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)/<FieldSqlName>/$value"
                         ]
                     }
                     },
                     "response": []
                     <COUNTER_1_INCREMENT>
                 }
-</IF DEFINED_ENABLE_PROPERTY_VALUE_DOCS>
-                </IF CUSTOM_NOT_HARMONY_EXCLUDE>
-                </IF NOTPKSEGMENT>
-                </FIELD_LOOP>
-</IF PROPERTY_ENDPOINTS>
-</IF DEFINED_ENABLE_PROPERTY_ENDPOINTS>
-<IF DEFINED_ENABLE_POST>
-<IF POST_ENDPOINT AND STRUCTURE_HAS_UNIQUE_KEY>
+      </IF DEFINED_ENABLE_PROPERTY_VALUE_DOCS>
+    </IF>
+  </FIELD_LOOP>
+</IF>
+;//
+;// POST
+;//
+<IF DEFINED_ENABLE_POST AND POST_ENDPOINT>
                 <IF COUNTER_1>,</IF COUNTER_1>
                 {
                     "_postman_id": "<guid_nobrace>",
@@ -434,10 +504,8 @@
                     "response": []
                     <COUNTER_1_INCREMENT>
                 }
-</IF POST_ENDPOINT>
-</IF DEFINED_ENABLE_POST>
-<IF DEFINED_ENABLE_PUT>
-<IF PUT_ENDPOINT>
+</IF>
+<IF DEFINED_ENABLE_PUT AND PUT_ENDPOINT>
                 <IF COUNTER_1>,</IF COUNTER_1>
                 {
                     "_postman_id": "<guid_nobrace>",
@@ -472,10 +540,8 @@
                     "response": []
                     <COUNTER_1_INCREMENT>
                 }
-</IF PUT_ENDPOINT>
-</IF DEFINED_ENABLE_PUT>
-<IF DEFINED_ENABLE_PATCH>
-<IF PATCH_ENDPOINT>
+</IF>
+<IF DEFINED_ENABLE_PATCH AND PATCH_ENDPOINT>
               <IF COUNTER_1>,</IF COUNTER_1>
                 {
                     "name": "Patch <structureNoplural>",
@@ -509,10 +575,8 @@
                     "response": []
                     <COUNTER_1_INCREMENT>
                 }
-</IF PATCH_ENDPOINT>
-</IF DEFINED_ENABLE_PATCH>
-<IF DEFINED_ENABLE_DELETE>
-<IF DELETE_ENDPOINT>
+</IF>
+<IF DEFINED_ENABLE_DELETE AND DELETE_ENDPOINT>
                 <IF COUNTER_1>,</IF COUNTER_1>
                 {
                     "_postman_id": "<guid_nobrace>",
@@ -547,11 +611,10 @@
                     "response": []
                     <COUNTER_1_INCREMENT>
                 }
-</IF DELETE_ENDPOINT>
-</IF DEFINED_ENABLE_DELETE>
+</IF>
             ]
         }<,>
-        </STRUCTURE_LOOP>
+</STRUCTURE_LOOP>
     ],
     "event": [
         {
@@ -579,7 +642,7 @@
         {
             "id": "<guid_nobrace>",
             "key": "TenantID",
-            "value": "",
+            "value": "FCL",
             "type": "string"
         },
         {

@@ -5,7 +5,7 @@
 ;                 : C:\Users\devadm\Desktop\HarmonyCore\HarmonyCore.Test.Repository\bin\Debug\rpstext.ism
 ;                 : Version 11.1.1f
 ;
-;  GENERATED      : 04-MAR-2021, 13:50:43
+;  GENERATED      : 13-APR-2021, 17:17:40
 ;                 : Version 11.1.1f
 ;  EXPORT OPTIONS : [ALL] 
  
@@ -2245,6 +2245,115 @@ Key ID   ACCESS   Order ASCENDING   Dups NO
    Description "ID"
    Segment FIELD   ID  SegType SEQUENCE
  
+Structure TESTCAR   DBL ISAM
+   Description "Test car"
+ 
+Field ID   Type DECIMAL   Size 6
+   Description "Car ID"
+ 
+Field NAME   Type ALPHA   Size 20
+   Description "Name of car"
+ 
+Field LOTID   Type DECIMAL   Size 6
+   Description "Car lot ID"
+ 
+Field OWNER1   Type DECIMAL   Size 6
+   Description "Car owner 1"
+ 
+Field OWNER2   Type DECIMAL   Size 6
+   Description "Car owner 2"
+ 
+Field OWNER3   Type DECIMAL   Size 6
+   Description "Car owner 3"
+ 
+Key CARID   ACCESS   Order ASCENDING   Dups NO
+   Description "Car ID"
+   Segment FIELD   ID  SegType DECIMAL  SegOrder ASCENDING
+ 
+Key LOTID   ACCESS   Order ASCENDING   Dups YES   Modifiable YES
+   Description "Car lot ID"
+   Segment FIELD   LOTID  SegType DECIMAL  SegOrder ASCENDING
+ 
+Key OWNERID1   ACCESS   Order ASCENDING   Dups YES   Modifiable YES
+   Description "Owner ID 1"
+   Segment FIELD   OWNER1  SegType DECIMAL  SegOrder ASCENDING
+ 
+Key OWNERID2   ACCESS   Order ASCENDING   Dups YES   Modifiable YES
+   Description "Owner ID 2"
+   Segment FIELD   OWNER2  SegType DECIMAL  SegOrder ASCENDING
+ 
+Key OWNERID3   ACCESS   Order ASCENDING   Dups YES   Modifiable YES
+   Description "Owner ID 3"
+   Segment FIELD   OWNER3  SegType DECIMAL  SegOrder ASCENDING
+ 
+Relation  1   TESTCAR LOTID   TESTCARLOT ID
+ 
+Relation  2   TESTCAR OWNERID1   TESTCAROWNER1 OWNERID
+ 
+Relation  3   TESTCAR OWNERID2   TESTCAROWNER2 OWNERID
+ 
+Relation  4   TESTCAR OWNERID3   TESTCAROWNER3 OWNERID
+ 
+Structure TESTCARLOT   DBL ISAM
+   Description "Test car lot"
+ 
+Field ID   Type DECIMAL   Size 6
+   Description "Car lot ID"
+ 
+Field NAME   Type ALPHA   Size 20
+   Description "Car lot name"
+ 
+Key ID   ACCESS   Order ASCENDING   Dups NO
+   Description "Lot ID"
+   Segment FIELD   ID  SegType DECIMAL  SegOrder ASCENDING
+ 
+Relation  1   TESTCARLOT ID   TESTCAR LOTID
+ 
+Structure TESTCAROWNER1   DBL ISAM
+   Description "Test car owner 1"
+ 
+Field ID   Type DECIMAL   Size 6
+   Description "Owner ID"
+ 
+Field NAME   Type ALPHA   Size 20
+   Description "Owner name"
+ 
+Key OWNERID   ACCESS   Order ASCENDING   Dups NO
+   Description "Owner ID"
+   Segment FIELD   ID  SegType DECIMAL  SegOrder ASCENDING
+ 
+Relation  1   TESTCAROWNER1 OWNERID   TESTCAR OWNERID1
+ 
+Structure TESTCAROWNER2   DBL ISAM
+   Description "Test car owner 2"
+ 
+Field ID   Type DECIMAL   Size 6
+   Description "Owner ID"
+ 
+Field NAME   Type ALPHA   Size 20
+   Description "Owner name"
+ 
+Key OWNERID   ACCESS   Order ASCENDING   Dups NO
+   Description "Owner ID"
+   Segment FIELD   ID  SegType DECIMAL  SegOrder ASCENDING
+ 
+Relation  1   TESTCAROWNER2 OWNERID   TESTCAR OWNERID2
+ 
+Structure TESTCAROWNER3   DBL ISAM
+   Description "Test car owner 3"
+ 
+Field ID   Type DECIMAL   Size 6
+   Description "Owner ID"
+ 
+Field NAME   Type ALPHA   Size 20
+   Description "Owner name"
+ 
+Key OWNERID   ACCESS   Order ASCENDING   Dups NO
+   Description "Owner ID"
+   Segment FIELD   ID  SegType DECIMAL  SegOrder ASCENDING
+ 
+Relation  1   TESTCAROWNER3 OWNERID   TESTCAR OWNERID3
+ 
 Structure TESTSTRUCT   DBL ISAM
    Description "teststructure"
  
@@ -2505,6 +2614,26 @@ File SYSPARAMS   RELATIVE   "DAT:sysparams.ddf"
 File TEST   DBL ISAM   "DAT:test.ism"
    Description "Test file"
    Assign TEST
+ 
+File TESTCAR   DBL ISAM   "DAT:testcar.ism"
+   Description "Test car file"
+   Assign TESTCAR
+ 
+File TESTCARLOT   DBL ISAM   "DAT:testcarlot.ism"
+   Description "Test car lot file"
+   Assign TESTCARLOT
+ 
+File TESTCAROWNER1   DBL ISAM   "DAT:testcarowner1.ism"
+   Description "Test car owner 1 file"
+   Assign TESTCAROWNER1
+ 
+File TESTCAROWNER2   DBL ISAM   "DAT:testcarowner2.ism"
+   Description "Test car owner 2 file"
+   Assign TESTCAROWNER2
+ 
+File TESTCAROWNER3   DBL ISAM   "DAT:testcarowner3.ism"
+   Description "Test car owner 3 file"
+   Assign TESTCAROWNER3
  
 File VENDORS   DBL ISAM   "DAT:vendors.ism"
    Description "Vendors file"
