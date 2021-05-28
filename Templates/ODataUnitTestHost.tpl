@@ -65,7 +65,10 @@ proc
     ;;Configure the environment
     UnitTestEnvironment.AssemblyInitialize(^null)
 
-    ;Leave this here for Jeff 
+    ;Leave this here for debugging 
+    ;data testInstance = new aspHubTests()  
+    ;testInstance.multiple_methods_test().Wait()
+    ;
     ;data tester = new OrderTests()  
     ;tester.AdapterTestBasic()
     ;tester.AdapterTestOptionalParameters()
