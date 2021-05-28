@@ -111,47 +111,17 @@ namespace TraditionalBridge.Models
         endproperty
 
         ;;; <summary>
-        ;;; ID12.2
+        ;;; 
         ;;; </summary>
-        {Range(0,9999999999.99, ErrorMessage="ID12.2 must be between 0 and 9999999999.99. ")}
-        public property Str4Grp1Str4Lv2grp2Str4Lv3fld1, decimal
+        {StringLength(23, ErrorMessage=" cannot exceed 23 characters. ")}
+        public property Str4Grp1Str4Lv2grp2, String
             method get
             proc
-                mreturn (decimal)SynergyImpliedDecimalConverter.Convert(mSynergyData.str4_lv2grp2.str4_lv3fld1, ^null, "DECIMALPLACES#2", ^null)
+                mreturn (String)SynergyAlphaConverter.Convert(mSynergyData.str4_grp1.str4_lv2grp2, ^null, ^null, ^null)
             endmethod
             method set
             proc
-                mSynergyData.str4_lv2grp2.str4_lv3fld1 = value
-            endmethod
-        endproperty
-
-        ;;; <summary>
-        ;;; AL 6
-        ;;; </summary>
-        {StringLength(6, ErrorMessage="AL 6 cannot exceed 6 characters. ")}
-        public property Str4Grp1Str4Lv2grp2Str4Lv3fld2, String
-            method get
-            proc
-                mreturn (String)SynergyAlphaConverter.Convert(mSynergyData.str4_lv2grp2.str4_lv3fld2, ^null, ^null, ^null)
-            endmethod
-            method set
-            proc
-                mSynergyData.str4_lv2grp2.str4_lv3fld2 = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
-            endmethod
-        endproperty
-
-        ;;; <summary>
-        ;;; DE 5
-        ;;; </summary>
-        {Range(0,99999, ErrorMessage="DE 5 must be between 0 and 99999. ")}
-        public property Str4Grp1Str4Lv2grp2Str4Lv3fld3, int
-            method get
-            proc
-                mreturn (int)mSynergyData.str4_lv2grp2.str4_lv3fld3
-            endmethod
-            method set
-            proc
-                mSynergyData.str4_lv2grp2.str4_lv3fld3 = value
+                mSynergyData.str4_grp1.str4_lv2grp2 = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
             endmethod
         endproperty
 
@@ -220,15 +190,15 @@ namespace TraditionalBridge.Models
         endproperty
 
         public override property GlobalRFA, [#]byte
-			method get
-			proc
+            method get
+            proc
                 mreturn mGlobalRFA
-			endmethod
-			method set
-			proc
+            endmethod
+            method set
+            proc
                 mGlobalRFA = value
-			endmethod
-		endproperty
+            endmethod
+        endproperty
 
 .endregion
 
@@ -249,7 +219,7 @@ namespace TraditionalBridge.Models
         public override method InternalGetValues, [#]@object
         proc
             ;;TODO: This should be returning boxed values for each of our fields
-            mreturn new Object[8]
+            mreturn new Object[6]
         endmethod
 
 .endregion

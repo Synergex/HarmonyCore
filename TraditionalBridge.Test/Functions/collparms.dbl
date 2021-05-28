@@ -1,0 +1,831 @@
+;------------------------------------------------------
+; Collection Parameter tests
+;------------------------------------------------------
+;
+; Collection of structures as an out only parameter 
+; create an array of structures in memory to pass as
+; a veriable length array of structures to the client.
+;
+; -----------------------------------------------------
+
+
+
+.include "INTEGERTESTS" REPOSITORY ,structure="Integertests" ,end
+
+.include "STRTEST16" REPOSITORY ,structure="Strtest16" ,end
+.include "STRTEST2" REPOSITORY ,structure="Strtest2" ,end
+.include "STRTEST3" REPOSITORY ,structure="Strtest3" ,end
+
+
+;; A test method to pass bad data to a method
+;; The Good method is below
+
+.subroutine CollectParam1BadMethod
+ mhout, n
+; .include "strtest1.rec"
+.include "strtest1" repository, record="strtest1", end
+
+structure Abd
+	Abdy,	a1
+
+.align
+record
+  i, 		i4
+  cur,		i4
+  memsize,	i4
+  numrecs,	i4
+  recsize,	i4
+;  chn,		i4
+  msg,		a46
+
+.proc
+;;  chn = 207
+;;  open(chn,a,"TEST:collparm.log")
+
+  recsize = 46;
+  numrecs = 3;
+  memsize = recsize * numrecs
+  
+  mhout = %mem_proc(DM_RESIZ,memsize,mhout)
+
+  cur = 1
+  for i from 1 thru numrecs
+    begin
+	clear msg
+   	msg = "XXXxxxXXXxxxXXXxxxXXXxxxXXXxxxXXXxxxXXXxxxXXXx"
+;              1234567890123456789012345678901234567890123456
+ 
+	^m(Abd.Abdy(cur:recsize),mhout) = msg
+;       writes(chn,"Out * " + ^m(Bbd.Bbdy(cur:recsize),p1))
+	cur = cur + recsize
+    end
+
+;  writes(chn,"Out memsize = " + %string(memsize))
+;  close (chn)
+  xreturn
+
+.end
+
+; -------------------------------------------------------------------------------------------
+
+{xfMethod(interface="CollectParam",name="CollectParam1",elb="TEST:testelb",id="CollectParm1")}
+subroutine CollectParam1
+{xfParameter(name="STRTEST1",structure="Strtest1",collectionType=xfCollectType.structure)}
+req out     mhout    ,D_HANDLE               ;;
+endparams
+;.subroutine CollectParam1
+; mhout, n
+; .include "strtest1.rec"
+;.include "strtest1" repository, record="strtest1", end
+structure Abd
+	Abdy,	a1
+
+.align
+record
+  i, 		i4
+  cur,		i4
+  memsize,	i4
+  numrecs,	i4
+  recsize,	i4
+;  chn,		i4
+  str1,		strtest1
+
+.proc
+;;  chn = 207
+;;  open(chn,a,"TEST:collparm.log")
+
+  recsize = 46;
+  numrecs = 3;
+  memsize = recsize * numrecs
+  
+  mhout = %mem_proc(DM_RESIZ,memsize,mhout)
+
+  cur = 1
+  for i from 1 thru numrecs
+    begin
+	clear str1
+	str1.str1_de6 = 145			; default
+	str1.str1_al10 = "Alice"
+	str1.str1_id62 = 12.40
+	str1.str1_in4 = 357
+	str1.str1_al20 = "Is not home now"
+	if (i .eq. 2)
+	  begin
+	    str1.str1_de6 = 123456
+	    str1.str1_al10 = "Alice Dest"
+	    str1.str1_id62 = 3512.41
+	    str1.str1_in4 = 4532
+	    str1.str1_al20 = "AddddddddddddddddddB"
+	  end
+	if (i .eq. 3)
+	  begin
+	    str1.str1_de6 = 90987
+	    str1.str1_al10 = "Alexandra!"
+	    str1.str1_id62 = 1782.42
+	    str1.str1_in4 = 12345
+	    str1.str1_al20 = "Is Two"
+	  end
+    
+	^m(Abd.Abdy(cur:recsize),mhout) = str1
+;       writes(chn,"Out * " + ^m(Bbd.Bbdy(cur:recsize),p1))
+	cur = cur + recsize
+    end
+
+;  writes(chn,"Out memsize = " + %string(memsize))
+;  close (chn)
+  xreturn
+
+.end
+;--------------------------------------------
+
+{xfMethod(interface="CollectParam",name="CollectParam2",elb="TEST:testelb",id="CollectParm2")}
+subroutine CollectParam2
+{xfParameter(name="STRTEST2",structure="Strtest2",collectionType=xfCollectType.structure)}
+req out    mhout    ,D_HANDLE  
+endparams
+;.subroutine CollectParam2
+; mhout, n
+; .include "strtest2.rec"
+;.include "strtest2" repository, record="strtest2", end
+
+structure Abd
+	Abdy,	a1
+
+.align
+record
+  i, 		i4
+  cur,		i4
+  memsize,	i4
+  numrecs,	i4
+  recsize,	i4
+  anum,		d10
+;  chn,		i4
+  str2,		strtest2
+
+.proc
+;;  chn = 207
+;;  open(chn,a,"TEST:collparm.log")
+;; msc
+
+  recsize = 71;
+  numrecs = 5000;
+;;  numrecs = 3;
+  memsize = recsize * numrecs
+  
+  mhout = %mem_proc(DM_RESIZ,memsize,mhout)
+
+  cur = 1
+  for i from 1 thru numrecs
+    begin
+	clear str2
+	anum = anum + 1
+	str2.str2_de10 = anum        ; 145			; default
+	str2.str2_arde5[1] =  12345
+	str2.str2_arde5[2] =  12345
+	str2.str2_arde5[3] =  12345
+	str2.str2_al20 = "Is not home now"
+	str2.str2_Date8 = 20020315
+	str2.str2_Time6 = 122356
+	str2.str2_id83 = 35712.345
+	str2.str2_in4 = 357
+	if (i .eq. 2)
+	  begin
+	    str2.str2_de10 = 1234567890
+	    str2.str2_arde5[1] =  2345
+	    str2.str2_arde5[2] =  135
+	    str2.str2_arde5[3] =  1245
+	    str2.str2_al20 = "Is home now OK"
+	    str2.str2_Date8 = 20021122
+	    str2.str2_Time6 = 030107
+	    str2.str2_id83 = 312.045
+	    str2.str2_in4 = 2456
+	  end
+	if (i .eq. 3)
+	  begin
+	    str2.str2_de10 = 345892
+	    str2.str2_arde5[1] =  2345
+	    str2.str2_arde5[2] =  145
+	    str2.str2_arde5[3] =  12451
+	    str2.str2_al20 = "Are you in now!"
+	    str2.str2_Date8 = 20030725
+	    str2.str2_Time6 = 221823
+	    str2.str2_id83 = 35.3
+	    str2.str2_in4 = 0
+	  end
+    
+	^m(Abd.Abdy(cur:recsize),mhout) = str2
+;       writes(chn,"Out * " + ^m(Bbd.Bbdy(cur:recsize),p1))
+	cur = cur + recsize
+    end
+
+;  writes(chn,"Out memsize = " + %string(memsize))
+;  close (chn)
+  xreturn
+
+.end
+;--------------------------------------------
+
+{xfMethod(interface="CollectParam",name="CollectParam3",elb="TEST:testelb",id="CollectParm3")}
+subroutine CollectParam3
+{xfParameter(name="STRTEST3",structure="Strtest3",collectionType=xfCollectType.structure)}
+req out     mhout    ,D_HANDLE 
+endparams
+;.subroutine CollectParam3
+; mhout, n
+; .include "strtest3.rec"
+;.include "strtest3" repository, record="strtest3", end
+
+structure Abd
+	Abdy,	a1
+
+.align
+record
+  i, 		i4
+  cur,		i4
+  memsize,	i4
+  numrecs,	i4
+  recsize,	i4
+;  chn,		i4
+  str3,		strtest3
+
+.proc
+;;  chn = 207
+;;  open(chn,a,"TEST:collparm.log")
+
+  recsize = 58;
+  numrecs = 3;
+  memsize = recsize * numrecs
+  
+  mhout = %mem_proc(DM_RESIZ,memsize,mhout)
+
+  cur = 1
+  for i from 1 thru numrecs
+    begin
+	clear str3
+	str3.str3_al10 = "Alice"
+	str3.str3_gp1al6 = "abcdef"
+	str3.str3_gp1de5 = 12345
+	str3.str3_gp1id52 = 212.41
+	str3.str3_de7 = 1234567
+	str3.str3_al25 = "Is not home now"
+	if (i .eq. 2)
+	  begin
+	    str3.str3_al10 = "Joe Smithe"
+	    str3.str3_gp1al6 = "ABCDEF"
+	    str3.str3_gp1de5 = 123
+	    str3.str3_gp1id52 = 22.51
+	    str3.str3_de7 = 1357
+	    str3.str3_al25 = "abcdefghijklmnopqrstuvwxy"
+	  end
+	if (i .eq. 3)
+	  begin
+	    str3.str3_al10 = "Kristine"
+	    str3.str3_gp1al6 = "abdef"
+	    str3.str3_gp1de5 = 123
+	    str3.str3_gp1id52 = 2.01
+	    str3.str3_de7 = 167
+	    str3.str3_al25 = "Its a good day for soup"
+	  end
+    
+	^m(Abd.Abdy(cur:recsize),mhout) = str3
+;       writes(chn,"Out * " + ^m(Bbd.Bbdy(cur:recsize),p1))
+	cur = cur + recsize
+    end
+
+;  writes(chn,"Out memsize = " + %string(memsize))
+;  close (chn)
+  xreturn
+
+.end
+;--------------------------------------------
+
+{xfMethod(interface="CollectParam",name="CollectParam14",elb="TEST:testelb",id="CollectParm14")}
+subroutine CollectParam14
+{xfParameter(name="STRTEST14",structure="Strtest14",collectionType=xfCollectType.structure)}
+req out     mhout   ,D_HANDLE
+endparams
+;.subroutine CollectParam14
+; mhout, n
+; .include "strtest14.rec"
+;.include "strtest14" repository, record="strtest14", end
+
+structure Abd
+	Abdy,	a1
+
+.align
+record
+  i, 		i4
+  cur,		i4
+  memsize,	i4
+  numrecs,	i4
+  recsize,	i4
+;  chn,		i4
+  str14,	strtest14
+
+.proc
+;;  chn = 207
+;;  open(chn,a,"TEST:collparm.log")
+
+  recsize = 112;
+;  numrecs = 5000;
+  numrecs = 3;
+  memsize = recsize * numrecs
+  
+  mhout = %mem_proc(DM_RESIZ,memsize,mhout)
+
+  cur = 1
+  for i from 1 thru numrecs
+    begin
+	clear str14
+	str14.company_code = 123
+	str14.prod_id = 1001
+	str14.prod_name = "Widget ofmine"
+	str14.cost = 78.23
+	str14.whrs = 21
+	str14.row = 12
+	str14.shelf = 234
+	str14.count = 34567
+	str14.comment = "We have lots"
+	if (i .eq. 2)
+	  begin
+	    str14.company_code = 123
+	    str14.prod_id = 1002
+	    str14.prod_name = "Widget of Sams"
+	    str14.cost = 378.23
+	    str14.whrs = 21
+	    str14.row = 2
+	    str14.shelf = 24
+	    str14.count = 37
+	    str14.comment = "We only have a few"
+	  end
+	if (i .eq. 3)
+	  begin
+	    str14.company_code = 123
+	    str14.prod_id = 1003
+	    str14.prod_name = "Widget of Kims"
+	    str14.cost = 7.23
+	    str14.whrs = 21
+	    str14.row = 62
+	    str14.shelf = 4
+	    str14.count = 67
+	    str14.comment = "They sell fast because of the price"
+	  end
+    
+	^m(Abd.Abdy(cur:recsize),mhout) = str14
+;       writes(chn,"Out * " + ^m(Bbd.Bbdy(cur:recsize),p1))
+	cur = cur + recsize
+    end
+
+;  writes(chn,"Out memsize = " + %string(memsize))
+;  close (chn)
+  xreturn
+
+.end
+;--------------------------------------------
+
+{xfMethod(interface="CollectParam",name="CollectParam16",elb="TEST:testelb",id="CollectParm16")}
+subroutine CollectParam16
+{xfParameter(name="STRTEST16",structure="Strtest16",collectionType=xfCollectType.structure)}
+req out     mhout   ,D_HANDLE  
+endparams
+;.subroutine CollectParam16
+; mhout, n
+; .include "strtest16.rec"
+;.include "strtest16" repository, record="strtest16", end
+
+structure Abd
+	Abdy,	a1
+
+.align
+record
+  i, 		i4
+  cur,		i4
+  memsize,	i4
+  numrecs,	i4
+  recsize,	i4
+;  chn,		i4
+  str16,	strtest16
+
+.proc
+;;  chn = 207
+;;  open(chn,a,"TEST:collparm.log")
+
+  recsize = 120
+  numrecs = 3;
+  memsize = recsize * numrecs
+  
+  mhout = %mem_proc(DM_RESIZ,memsize,mhout)
+
+  cur = 1
+  for i from 1 thru numrecs
+    begin
+	clear str16
+	str16.decary[1] = 1
+	str16.decary[2] = 2
+	str16.decary[3] = 3
+	str16.decary[4] = 4
+	str16.decary[5] = 5
+	str16.alpary[1] = "asdfghhjkl"
+	str16.alpary[2] = "Sam" 
+	str16.alpary[3] = "1234567890"
+	str16.alpary[4] = "Kristine" 
+	str16.alpary[5] = "Alexandra" 
+	str16.impary[1] = 1.11
+	str16.impary[2] = 2.22
+	str16.impary[3] = 3.33
+	str16.impary[4] = 4.44
+	str16.impary[5] = 5.55
+	str16.intary[1] = 102
+	str16.intary[2] = 245
+	str16.intary[3] = 307
+	str16.intary[4] = 46
+	str16.intary[5] = 5692
+
+	^m(Abd.Abdy(cur:recsize),mhout) = str16
+;       writes(chn,"Out * " + ^m(Bbd.Bbdy(cur:recsize),p1))
+	cur = cur + recsize
+    end
+
+;  writes(chn,"Out memsize = " + %string(memsize))
+;  close (chn)
+  xreturn
+
+.end
+
+;--------------------------------------------
+
+{xfMethod(interface="CollectParam",name="TestStr2Timing",elb="TEST:testelb",id="TestStr2Timing")}
+subroutine TestStr2Timing
+{xfParameter(name="STRTEST2",structure="Strtest2")}
+req out     a_str2Ary    ,[*]Strtest2  
+endparams
+;.subroutine TestStr2Timing
+;       Arguments
+;        a_str2Ary         ,[*]a
+
+; .include "strtest2.rec"
+.include "strtest2" repository, record="strtest2", end
+
+structure Abd
+	Abdy,	a1
+
+.align
+record
+  i, 		i4
+  cur,		i4
+  numrecs,	i4
+  recsize,	i4
+;  chn,		i4
+  str2,		strtest2
+
+.proc
+;;  chn = 207
+;;  open(chn,a,"TEST:collparm.log")
+;; msc
+
+  recsize = 71;
+  numrecs = 5000;
+
+  cur = 1
+  for i from 1 thru numrecs
+    begin
+	
+	str2 = a_str2Ary[i]
+	str2.str2_de10 = 145			; default
+	str2.str2_arde5[1] =  12345
+	str2.str2_arde5[2] =  12345
+	str2.str2_arde5[3] =  12345
+	str2.str2_al20 = "Is not home now"
+	str2.str2_Date8 = 20020315
+	str2.str2_Time6 = 122356
+	str2.str2_id83 = 35712.345
+	str2.str2_in4 = 357
+	if (i .eq. 2)
+	  begin
+	    str2.str2_de10 = 1234567890
+	    str2.str2_arde5[1] =  2345
+	    str2.str2_arde5[2] =  135
+	    str2.str2_arde5[3] =  1245
+	    str2.str2_al20 = "Is home now OK"
+	    str2.str2_Date8 = 20021122
+	    str2.str2_Time6 = 030107
+	    str2.str2_id83 = 312.045
+	    str2.str2_in4 = 2456
+	  end
+	if (i .eq. 3)
+	  begin
+	    str2.str2_de10 = 345892
+	    str2.str2_arde5[1] =  2345
+	    str2.str2_arde5[2] =  145
+	    str2.str2_arde5[3] =  12451
+	    str2.str2_al20 = "Are you in now!"
+	    str2.str2_Date8 = 20030725
+	    str2.str2_Time6 = 221823
+	    str2.str2_id83 = 35.3
+	    str2.str2_in4 = 0
+	  end
+    
+	a_str2Ary[i] = str2
+;  writes(chn,i + " = " + str2)
+    end
+
+;  writes(chn,"Out memsize = " + %string(memsize))
+;  close (chn)
+  xreturn
+
+.end
+
+;--------------------------------------------
+
+{xfMethod(interface="CollectParam",name="colprmDateTmeStr",elb="TEST:testelb",id="colprmDateTmeStr")}
+subroutine colprmDateTmeStr
+{xfParameter(name="DATETIMESTR",structure="Datetimestr",collectionType=xfCollectType.structure)}
+req out     mhout ,D_HANDLE               ;;
+endparams
+;.subroutine colprmDateTmeStr
+; mhout, n
+; .include "DateTimeStr.rec"
+;.include "DateTimeStr" repository, record="DateTimeStr", end
+
+structure Abd
+	Abdy,	a1
+
+.align
+record
+  i, 		i4
+  cur,		i4
+  memsize,	i4
+  numrecs,	i4
+  recsize,	i4
+;  chn,		i4
+  dts,		Datetimestr
+
+.proc
+;;  chn = 207
+;;  open(chn,a,"TEST:collparm.log")
+;; msc
+
+  recsize = 34;
+  numrecs = 3;
+  memsize = recsize * numrecs
+  
+  mhout = %mem_proc(DM_RESIZ,memsize,mhout)
+
+  cur = 1
+  for i from 1 thru numrecs
+    begin
+	clear dts
+	dts.dts_alpha = "asdfgqwert"
+	dts.dts_date8 = 19990514
+	dts.dts_date6 = 990621
+	dts.dts_time6 = 114523
+	dts.dts_time4 = 915
+	if (i .eq. 2)
+	  begin
+	    dts.dts_alpha = "james"
+	    dts.dts_date8 = 20000415
+	    dts.dts_date6 = 812
+	    dts.dts_time6 = 210159
+	    dts.dts_time4 = 1027
+	  end
+	if (i .eq. 3)
+	  begin
+	    dts.dts_alpha = "cassie"
+	    dts.dts_date8 = 20010316
+	    dts.dts_date6 = 010320
+	    dts.dts_time6 = 083015
+	    dts.dts_time4 = 1945
+	  end
+    
+	^m(Abd.Abdy(cur:recsize),mhout) = dts
+;       writes(chn,"Out * " + ^m(Bbd.Bbdy(cur:recsize),p1))
+	cur = cur + recsize
+    end
+
+;  writes(chn,"Out memsize = " + %string(memsize))
+;  close (chn)
+  xreturn
+
+.end
+;--------------------------------------------
+
+{xfMethod(interface="CollectParam",name="colprmDateTimeAry",elb="TEST:testelb",id="colprmDateTimeAry")}
+subroutine colprmDateTimeAry
+{xfParameter(name="DATETIMEARY",structure="Datetimeary",collectionType=xfCollectType.structure)}
+req out     mhout ,D_HANDLE  
+endparams
+;.subroutine colprmDateTimeAry
+; mhout, n
+; .include "DateTimeAry.rec"
+;.include "DateTimeAry" repository, record="DateTimeAry", end
+
+structure Abd
+	Abdy,	a1
+
+.align
+record
+  i, 		i4
+  cur,		i4
+  memsize,	i4
+  numrecs,	i4
+  recsize,	i4
+;  chn,		i4
+  dta,		DateTimeAry
+
+.proc
+;;  chn = 207
+;;  open(chn,a,"TEST:collparm.log")
+;; msc
+
+  recsize = 108;
+  numrecs = 3;
+  memsize = recsize * numrecs
+  
+  mhout = %mem_proc(DM_RESIZ,memsize,mhout)
+
+  cur = 1
+  for i from 1 thru numrecs
+    begin
+	clear dta
+	dta.adts_dt8[1] = 19991123
+	dta.adts_dt8[2] = 20000415
+	dta.adts_dt8[3] = 20010320
+	dta.adts_dt6[1] = 991123
+	dta.adts_dt6[2] = 000415
+	dta.adts_dt6[3] = 010320
+	dta.adts_dt7[1] = 1999360
+	dta.adts_dt7[2] = 2000365
+	dta.adts_dt7[3] = 2001097
+	dta.adts_dt5[1] = 99360
+	dta.adts_dt5[2] = 00197
+	dta.adts_dt5[3] = 01365
+	dta.adts_tm6[1] = 101545
+	dta.adts_tm6[2] = 083221
+	dta.adts_tm6[3] = 223418
+	dta.adts_tm4[1] = 1015
+	dta.adts_tm4[2] = 0832
+	dta.adts_tm4[3] = 2234
+    
+	^m(Abd.Abdy(cur:recsize),mhout) = dta
+;       writes(chn,"Out * " + ^m(Bbd.Bbdy(cur:recsize),p1))
+	cur = cur + recsize
+    end
+
+;  writes(chn,"Out memsize = " + %string(memsize))
+;  close (chn)
+  xreturn
+
+.end
+
+; ------------------------------------------------------------------
+
+{xfMethod(interface="CollectParam",name="CollectParam12",elb="TEST:testelb",id="CollectParm12")}
+subroutine CollectParam12
+{xfParameter(name="STRTEST12",structure="Strtest12",collectionType=xfCollectType.structure)}
+req out     mhout   ,D_HANDLE 
+endparams
+;.subroutine CollectParam12
+; mhout, n
+; .include "strtest12.rec"
+;.include "strtest12" repository, record="strtest12", end
+
+structure Abd
+	Abdy,	a1
+
+.align
+record
+  i, 		i4
+  cur,		i4
+  memsize,	i4
+  numrecs,	i4
+  recsize,	i4
+;  chn,		i4
+  msg,		a46
+  str12,	strtest12
+
+.proc
+;;  chn = 207
+;;  open(chn,a,"TEST:collparm.log")
+
+  recsize = 56;
+  numrecs = 3;
+  memsize = recsize * numrecs
+  
+  mhout = %mem_proc(DM_RESIZ,memsize,mhout)
+
+  cur = 1
+  for i from 1 thru numrecs
+    begin
+	clear str12
+	str12.str12_al10 = "asdfgzxcvb"			; default
+	str12.str12_de7 = 1234567
+	str12.str12_strary[1].str12_gp1de5 = 357
+	str12.str12_strary[1].str12_gp1al8 = "Kristine"
+	str12.str12_strary[2].str12_gp1de5 = 478
+	str12.str12_strary[2].str12_gp1al8 = "Alexis"
+	str12.str12_strary[3].str12_gp1de5 = 421
+	str12.str12_strary[3].str12_gp1al8 = "MarchAnn"
+	if (i .eq. 2)
+	  begin
+	    str12.str12_al10 = "Sea weed"			; default
+	    str12.str12_de7 = 8975
+	    str12.str12_strary[1].str12_gp1de5 = 12345
+	    str12.str12_strary[1].str12_gp1al8 = "Sammy"
+	    str12.str12_strary[2].str12_gp1de5 = 2
+	    str12.str12_strary[2].str12_gp1al8 = "Ralph"
+	    str12.str12_strary[3].str12_gp1de5 = 178
+    	    str12.str12_strary[3].str12_gp1al8 = "Kim"
+	  end
+	if (i .eq. 3)
+	  begin
+	    str12.str12_al10 = "tundra"			; default
+	    str12.str12_de7 = 2468
+	    str12.str12_strary[1].str12_gp1de5 = 37
+	    str12.str12_strary[1].str12_gp1al8 = "Kenny"
+	    str12.str12_strary[2].str12_gp1de5 = 48
+	    str12.str12_strary[2].str12_gp1al8 = "Alice"
+	    str12.str12_strary[3].str12_gp1de5 = 18
+	    str12.str12_strary[3].str12_gp1al8 = "Mary"
+	  end
+    
+	^m(Abd.Abdy(cur:recsize),mhout) = str12
+;       writes(chn,"Out * " + ^m(Bbd.Bbdy(cur:recsize),p1))
+	cur = cur + recsize
+    end
+
+
+;  writes(chn,"Out memsize = " + %string(memsize))
+;  close (chn)
+  xreturn
+
+.end
+
+; ------------------------------------------------------------------
+
+{xfMethod(interface="CollectParam",name="ColPrmIntegers",elb="TEST:testelb",id="CollParmIntegers")}
+subroutine ColPrmIntegers
+{xfParameter(name="INTEGERTESTS",structure="Integertests",collectionType=xfCollectType.structure)}
+req out     mhout ,D_HANDLE
+endparams
+;.subroutine ColPrmIntegers
+; mhout, n
+
+;.include "integers.rec"
+.include "integertests" repository, record="integers", end
+
+structure Abd
+	Abdy,	a1
+
+.align
+record
+  i, 		i4
+  cur,		i4
+  memsize,	i4
+  numrecs,	i4
+  recsize,	i4
+  chn,		i4
+
+.proc
+;;  chn = 207
+;;  open(chn,a,"TEST:integerstst.log")
+
+  recsize = 15;
+  numrecs = 3;
+  memsize = recsize * numrecs
+  
+  mhout = %mem_proc(DM_RESIZ,memsize,mhout)
+
+  cur = 1
+  for i from 1 thru numrecs
+    begin
+	clear integers
+	int_i8 = 2251662374731776
+	int_i4 = 1234
+	int_i2 = 78
+	int_i1 = 3
+	if (i .eq. 2)
+	  begin
+	    int_i8 = 2536
+	    int_i4 = 345
+	    int_i2 = 155
+	    int_i1 = 22
+	  end
+	if (i .eq. 3)
+	  begin
+	    int_i8 = 2277777777777776
+	    int_i4 = 23456
+	    int_i2 = 7754
+	    int_i1 = 45
+	  end
+       
+	^m(Abd.Abdy(cur:recsize),mhout) = integers
+;;        writes(chn,"Out * " + ^m(Abd.Abdy(cur:recsize),mhout))
+	cur = cur + recsize
+    end
+
+;;  writes(chn,"Out memsize = " + %string(memsize))
+;;  close (chn)
+  xreturn
+
+.end
+;--------------------------------------------

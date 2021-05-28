@@ -120,13 +120,11 @@ namespace TraditionalBridge.Models
         public property NdtTime6, Nullable<DateTime>
             method get
             proc
-                data formatString = "YYYYMMDD"
-                mreturn (Nullable<DateTime>)SynergyDecimalDateConverter.Convert(mSynergyData.ndt_time6, ^null, formatString, ^null)
+                mreturn Convert.ToDateTime(%string(mSynergyData.ndt_time6,"XX:XX:XX"))
             endmethod
             method set
             proc
-                data formatString = "YYYYMMDD"
-                mSynergyData.ndt_time6 = (D)SynergyDecimalDateConverter.ConvertBack(value, ^null, formatString, ^null)
+                mSynergyData.ndt_time6 = (value.Value.Hour * 10000) + (value.Value.Minute * 100) + value.Value.Second
             endmethod
         endproperty
 
@@ -136,13 +134,11 @@ namespace TraditionalBridge.Models
         public property NdtTime4, Nullable<DateTime>
             method get
             proc
-                data formatString = "YYYYMMDD"
-                mreturn (Nullable<DateTime>)SynergyDecimalDateConverter.Convert(mSynergyData.ndt_time4, ^null, formatString, ^null)
+                mreturn Convert.ToDateTime(%string(mSynergyData.ndt_time4,"XX:XX"))
             endmethod
             method set
             proc
-                data formatString = "YYYYMMDD"
-                mSynergyData.ndt_time4 = (D)SynergyDecimalDateConverter.ConvertBack(value, ^null, formatString, ^null)
+                mSynergyData.ndt_time4 = (value.Value.Hour * 100) + value.Value.Minute
             endmethod
         endproperty
 
@@ -181,15 +177,15 @@ namespace TraditionalBridge.Models
         endproperty
 
         public override property GlobalRFA, [#]byte
-			method get
-			proc
+            method get
+            proc
                 mreturn mGlobalRFA
-			endmethod
-			method set
-			proc
+            endmethod
+            method set
+            proc
                 mGlobalRFA = value
-			endmethod
-		endproperty
+            endmethod
+        endproperty
 
 .endregion
 

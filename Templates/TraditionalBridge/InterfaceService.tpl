@@ -134,7 +134,7 @@ namespace <NAMESPACE>
     <PARAMETER_LOOP>
       <IF OUT_OR_INOUT>
       <IF OPTIONAL>
-            response.<PARAMETER_NAME> = ^as(resultList[<PARAMETER_NUMBER> - 1],<HARMONYCORE_BRIDGE_PARAMETER_TYPE>)
+            response.<PARAMETER_NAME> = ^as(resultList[<PARAMETER_NUMBER> - 1],<IF COLLECTION>[#]</IF COLLECTION><HARMONYCORE_BRIDGE_PARAMETER_TYPE>)
       <ELSE>
             ArgumentHelper.Argument(<PARAMETER_NUMBER>, resultTuple, response.<PARAMETER_NAME>)
       </IF>

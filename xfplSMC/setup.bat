@@ -110,12 +110,6 @@ rem Models
 codegen -s %DATA_STRUCTURES% -t TraditionalModel TraditionalMetaData -i %TEMPLATEROOT% -o %PROJECT%\Models -n %NAMESPACE%.Models -e -r -lf
 if ERRORLEVEL 1 goto error
 
-rem smc
-set TESTNAME=smc
-set SMCNAME=%TESTNAME%.xml
-call %SMCROOT%\gencode.bat
-if ERRORLEVEL 1 goto error
-
 rem AutoTime
 set TESTNAME=AutoTime
 set SMCNAME=%TESTNAME%.xml
@@ -124,6 +118,12 @@ if ERRORLEVEL 1 goto error
 
 rem BinaryTransfer
 set TESTNAME=BinaryTransfer
+set SMCNAME=%TESTNAME%.xml
+call %SMCROOT%\gencode.bat
+if ERRORLEVEL 1 goto error
+
+rem CollectParam
+set TESTNAME=CollectParam
 set SMCNAME=%TESTNAME%.xml
 call %SMCROOT%\gencode.bat
 if ERRORLEVEL 1 goto error
@@ -159,23 +159,39 @@ call %SMCROOT%\gencode.bat
 if ERRORLEVEL 1 goto error
 
 rem pooltests
-set SMCNAME=pooltests.xml
 set TESTNAME=Pool1
+set SMCNAME=%TESTNAME%.xml
 call %SMCROOT%\gencode.bat
 if ERRORLEVEL 1 goto error
+
 set TESTNAME=Pool2
+set SMCNAME=%TESTNAME%.xml
 call %SMCROOT%\gencode.bat
 if ERRORLEVEL 1 goto error
+
 set TESTNAME=Pool3
+set SMCNAME=%TESTNAME%.xml
 call %SMCROOT%\gencode.bat
 if ERRORLEVEL 1 goto error
+
 set TESTNAME=Pool4
+set SMCNAME=%TESTNAME%.xml
 call %SMCROOT%\gencode.bat
 if ERRORLEVEL 1 goto error
+
 set TESTNAME=Pool5
+set SMCNAME=%TESTNAME%.xml
 call %SMCROOT%\gencode.bat
 if ERRORLEVEL 1 goto error
+
 set TESTNAME=Pool6
+set SMCNAME=%TESTNAME%.xml
+call %SMCROOT%\gencode.bat
+if ERRORLEVEL 1 goto error
+
+rem smc
+set TESTNAME=smc
+set SMCNAME=%TESTNAME%.xml
 call %SMCROOT%\gencode.bat
 if ERRORLEVEL 1 goto error
 

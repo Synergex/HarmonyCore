@@ -45,8 +45,7 @@ namespace TraditionalBridge.Models
             AddFieldInfo("ProdName", "ALPHA", 30, 11, 0, false)
             AddFieldInfo("Cost", "IMPLIED", 8, 41, 02, false)
             AddFieldInfo("LocGrpWhrs", "DECIMAL", 2, 49, 0, false)
-            AddFieldInfo("LocGrpIlegrpRow", "DECIMAL", 3, 51, 0, false)
-            AddFieldInfo("LocGrpIlegrpShelf", "DECIMAL", 3, 54, 0, false)
+            AddFieldInfo("LocGrpIlegrp", "ALPHA", 6, 51, 0, false)
             AddFieldInfo("LocGrpCount", "DECIMAL", 6, 57, 0, false)
             AddFieldInfo("Comment", "ALPHA", 50, 63, 0, false)
 
@@ -103,13 +102,25 @@ namespace TraditionalBridge.Models
         proc
         endmethod
 
+        ;;; <summary>
+        ;;; Formats a literal value for a key lookup.
+        ;;; </summary>
+        ;;; <param name="keyNumber">Key number.</param>
+        ;;; <param name="parts">Dictionary containing key segment names and values.</param>
+        ;;; <returns></returns>
         public override method FormatKeyLiteral, a
             required in keyNumber, int
             required in parts, @Dictionary<String, Object>
+            endparams
         proc
-            mreturn ' '
-        endmethod
+            data startPos = 0
+            data segValueLength, int
+            using keyNumber select
+            endusing
 
+            throw new ApplicationException(String.Format("Invalid key number {0} encountered in Strtest14Metadata.FormatKeyLiteral",keyNumber))
+
+        endmethod
 
         ;;;<summary>
         ;;; Provide a partial method to allow for initialization of custom fields.

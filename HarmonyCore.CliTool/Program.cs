@@ -97,6 +97,16 @@ Known structure properties:
     {
     }
 
+    [Verb("xmlgen")]
+    class XMLGenOptions
+    {
+        [Option('s', Required = true, Separator = ',', HelpText = "Specify the list of structures, separated by a comma")]
+        public IEnumerable<string> Structures{ get; set; }
+
+        [Option('x', Required = true, HelpText = "Specify the location of the XMLFolder to generate from.")]
+        public string XMLFolder { get; set; }
+    }
+
     [Verb("codegen-list")]
     class CodegenListOptions
     {
@@ -232,8 +242,8 @@ Known structure properties:
             }
 
 
-            CommandLine.Parser.Default.ParseArguments<UpgradeLatestOptions, CodegenListOptions, CodegenAddOptions, CodegenRemoveOptions, RpsOptions, RegenOptions>(args)
-            .MapResult<UpgradeLatestOptions, CodegenListOptions, CodegenAddOptions, CodegenRemoveOptions, RpsOptions, RegenOptions, int>(
+            _ = Parser.Default.ParseArguments<UpgradeLatestOptions, CodegenListOptions, CodegenAddOptions, CodegenRemoveOptions, RpsOptions, RegenOptions, XMLGenOptions>(args)
+            .MapResult<UpgradeLatestOptions, CodegenListOptions, CodegenAddOptions, CodegenRemoveOptions, RpsOptions, RegenOptions, XMLGenOptions, int>(
 
               (UpgradeLatestOptions opts) =>
               {
@@ -259,6 +269,7 @@ Known structure properties:
               new CodegenCommand(solutionInfo).Remove,
               new RPSCommand(solutionInfo).Run,
               new RegenCommand(solutionInfo).Run,
+              new XMLGenCommand().Run,
               errs =>
               {
                   foreach (var error in errs)
