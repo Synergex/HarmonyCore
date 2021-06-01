@@ -823,14 +823,10 @@ namespace Harmony.TraditionalBridge
 
         endmethod
 
-        private ReadContent, void
+        private method ReadContent, void
             header, ContentHeader
             messageReader, @HeaderDelimitedMessageReader
-.ifdef DBLV11  
-            out jsonDoc, @JsonDocument
-.else
             out jsonDoc, @object
-.endc
             out parsedJson, JSON_ELEMENT
         proc
             ;;reuse the same buffer if possible
@@ -863,11 +859,7 @@ namespace Harmony.TraditionalBridge
             serializer, @DispatchSerializer
             header, ContentHeader
             record
-.ifdef DBLV11  
-                jsonDoc, @JsonDocument
-.else
                 jsonDoc, @object
-.endc
                 parsedJson, JSON_ELEMENT
                 result, boolean
             endrecord
@@ -963,11 +955,7 @@ namespace Harmony.TraditionalBridge
             record
                 running, boolean
                 header, ContentHeader
-.ifdef DBLV11  
-                jsonDoc, @JsonDocument
-.else
                 jsonDoc, @object
-.endc
                 parsedJson, JSON_ELEMENT  
                 callResponse, JSON_ELEMENT  
                 result, @object
@@ -982,7 +970,7 @@ namespace Harmony.TraditionalBridge
 
                 if(IS_OBJ(parsedJson)) then
                 begin
-                    if(jsonData.TryGetProperty("result", callResponse)) then
+                    if(parsedJson.TryGetProperty("result", callResponse)) then
                         result = callback.HandleResponse(callResponse, this)
                     else
                         throw new Exception("json response didnt contain 'result'")
@@ -1026,14 +1014,14 @@ namespace Harmony.TraditionalBridge
             Dispatch(messageReader, serializer)
         endmethod
 
-        public method DispatchOne, void
+        public method DispatchOne, @object
             serializer, @DispatchSerializer
             callback, @CallbackDispatcher
             record
                 messageReader, @HeaderDelimitedMessageReader 
         proc
             messageReader = new HeaderDelimitedMessageReader(serializer.CurrentOutChannel())
-            DispatchOne(messageReader, serializer, callback)
+            mreturn DispatchOne(messageReader, serializer, callback)
         endmethod
 
         class StopGuard

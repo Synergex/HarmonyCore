@@ -34,7 +34,7 @@ namespace Harmony.TraditionalBridge
             serializer, @DispatchSerializer
         proc
             this.dispatcher = dispatcher
-            this.serialzier = serializer
+            this.serializer = serializer
         endmethod
 
         public method Invoke, @object
@@ -49,7 +49,7 @@ namespace Harmony.TraditionalBridge
             serializer.ReportRequestEpilog()
             serializer.Flush()
 
-            dispatcher.
+            mreturn dispatcher.DispatchOne(serializer, this)
         endmethod
 
         public method Notify, void
@@ -58,19 +58,23 @@ namespace Harmony.TraditionalBridge
         proc
             serializer.ReportRequestProlog(false, -1, name)
             
+            HandleParameters(parameters, serializer)
+
             serializer.ReportRequestEpilog()
+            serializer.Flush()
         endmethod
 
         protected virtual method HandleParameters, void
             parameters, [#]@object
             serializer, @JsonSerializer
         record
-            indx, i
+            indx, i4
+            param, @object
         proc
             indx = 0
             foreach param in parameters
             begin
-                if(param .is. ^typeof(string)) then
+                if(param .is. string) then
                 begin
                     data strField = (@string)param
                     serializer.ArgumentData(indx, strField, FieldDataType.StringField, strField.Length, 0, false)
@@ -93,7 +97,14 @@ namespace Harmony.TraditionalBridge
 
 
     public class MessageBoxCallbackDispatcher extends CallbackDispatcher
-        protected override method HandleResponse, @object
+        public method MessageBoxCallbackDispatcher
+            dispatcher, @RoutineDispatcher
+            serializer, @DispatchSerializer
+            parent(dispatcher, serializer)
+        proc
+        endmethod
+        
+        public override method HandleResponse, @object
             responseObject, JSON_ELEMENT
             dispatcher, @RoutineDispatcher
         record
@@ -127,7 +138,7 @@ namespace Harmony.TraditionalBridge
             resultObj, @object
         proc
             dispatcher = new MessageBoxCallbackDispatcher(RoutineStub.CurrentDispatcher, RoutineStub.CurrentSerializer.MakeRequestSerializer())
-            resultObj = dispatch.Invoke(new object[#] { "string", "value" })
+            resultObj = dispatcher.Invoke("MessageBox", new object[#] { (@string)"string", (@string)"value" })
             ;;cast result obj as ArrayList, do something with the strings inside
         endsubroutine
 endnamespace
