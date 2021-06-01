@@ -6,6 +6,7 @@ import Newtonsoft.Json
 import Harmony.Core
 import Newtonsoft.Json.Linq
 import System.Linq
+import System.Linq.Expressions
 import System.Reflection
 import System.Threading.Tasks
 import StreamJsonRpc
@@ -67,6 +68,37 @@ namespace Harmony.Core.Context
 			connection, @IDynamicCallConnection
 		proc
 			this.connection = connection
+		endmethod
+
+		public method AddLocalRpcMethod, void
+			name, @string
+			handler, @Delegate
+		proc
+			data arguments = new List<ParameterExpression>()
+			data argArray = Expression.Variable(^typeof([#]object))
+			data argumentConversions = new List<Expression>()
+			data targetParameters = handler.Method.GetParameters()
+			data bodyExpressions = new List<Expression>()
+			data parameter, @ParameterInfo
+			foreach parameter in targetParameters
+			begin
+				arguments.Add(Expression.Parameter(^typeof(ReturnParameterDefintion), parameter.Name))
+				argumentConversions.Add(Expression.ArrayIndex(argArray, Expression.Constant(argumentConversions.Count)))
+			end
+
+			data callHoist = new CallHoist<object>()
+
+			data reEncodeArguments = ^typeof(CallHoist<object>).GetMethod("ReEncodeArgumentsDirect")
+			Expression.Assign(argArray, Expression.NewArrayBounds(^typeof(object), new Expression[#] { Expression.Constant(targetParameters.Length)}))
+			data reEncodeArgPack = new Expression[3]
+			reEncodeArgPack[1]= Expression.NewArrayInit(^typeof(ArgumentDataDefinition), arguments.Select(lambda(arg) { Expression.PropertyOrField(arg, "Value")}))
+			reEncodeArgPack[2] = Expression.NewArrayInit(^typeof(Type), targetParameters.Select(lambda(param) { Expression.Constant(param.ParameterType)}))
+			reEncodeArgPack[3] = argArray
+			bodyExpressions.Add(Expression.Call(Expression.Constant(callHoist), reEncodeArguments, reEncodeArgPack))
+
+			data bodyExpression, @Expression, Expression.Block(new ParameterExpression[#] { argArray }, bodyExpressions)
+			data exposedMethod = Expression.Lambda(bodyExpression, (@IEnumerable<ParameterExpression>)arguments)
+			connection.AddLocalRpcMethod(name, exposedMethod.Compile())
 		endmethod
 
 		public override property IsHealthy, boolean
@@ -377,7 +409,6 @@ namespace Harmony.Core.Context
 
 	endclass
 
-	;;TODO: this should go back to the method version once the peverify issue is taken care of in the compiler
 	internal class CallHoist<T>
 		public readwrite property CallProvider, @DynamicCallProvider
 
@@ -439,10 +470,32 @@ namespace Harmony.Core.Context
 			mreturn Convert.ChangeType(arg, argType)
         endmethod
 
+		private method GetArgumentType, @Type
+			obj, @object
+		proc
+			if(obj .is. IArgumentPlaceholder) then
+			begin
+				mreturn ((@IArgumentPlaceholder)obj).ArgumentType
+			end
+			else if(obj != ^null) then
+				mreturn obj.GetType()
+			else
+				mreturn ^typeof(Object)
+		endmethod
 
 		private method ReEncodeArguments, @Tuple<T, [#]@Object>
 			name, @string
 			arguments, [#]@ArgumentDataDefinition
+			inout args, [#]@object 
+		proc
+			
+			data argTypes = args.Select(GetArgumentType).ToArray()
+			mreturn ReEncodeArguments(name, arguments, argTypes, args)
+		endmethod
+
+		public method ReEncodeArgumentsDirect, void
+			arguments, [#]@ArgumentDataDefinition
+			argTypes, [#]@Type
 			inout args, [#]@object 
 		proc
 			data maxArgs = Math.Min(args.Length, arguments.Length)
@@ -456,15 +509,7 @@ namespace Harmony.Core.Context
 					if(argValue.PassedValue .is. JToken) then
 					begin
 						data targetToken = ((@JToken)argValue.PassedValue)
-						if(args[i] .is. IArgumentPlaceholder) then
-						begin
-							args[i] = targetToken.ToObject(((@IArgumentPlaceholder)args[i]).ArgumentType)
-						end
-						else
-						begin
-							args[i] = targetToken.ToObject(args[i].GetType())
-						end
-
+						args[i] = targetToken.ToObject(argTypes[i])
 					end
 					else
 					begin
@@ -478,44 +523,64 @@ namespace Harmony.Core.Context
 						end
 						else
 						begin
-							if(argValue.PassedValue != ^null && args[i] != ^null)
+							if(argValue.PassedValue != ^null && argTypes[i] != ^null)
 							begin
-								if(args[i] .is. IArgumentPlaceholder) then
-								begin
-									args[i] = Convert.ChangeType(argValue.PassedValue, ((@IArgumentPlaceholder)args[i]).ArgumentType)
-								end
-								else
-								begin
-									args[i] = ConvertArgument(argValue.PassedValue, args[i].GetType())
-								end
+								args[i] = ConvertArgument(argValue.PassedValue, argTypes[i])
 							end
-
 						end
 
 					end
 				end
 			end
+		endmethod
+
+		private method ReEncodeArguments, @Tuple<T, [#]@Object>
+			name, @string
+			arguments, [#]@ArgumentDataDefinition
+			argTypes, [#]@Type
+			inout args, [#]@object 
+		proc
+			ReEncodeArgumentsDirect(arguments, argTypes, args)
 
 			if(arguments[1].PassedValue .is. JToken) then
 			begin
 				data retValue = ((@JToken)arguments[1].PassedValue)
-				mreturn CallProvider.AfterCall<T>(name, Tuple.Create(retValue.Value<T>(), args))
+				if(CallProvider != ^null) then
+					mreturn CallProvider.AfterCall<T>(name, Tuple.Create(retValue.Value<T>(), args))
+				else
+					mreturn Tuple.Create(retValue.Value<T>(), args)
 			end
 			else if(arguments[1].DataType == FieldDataType.DataObjectCollectionField || (arguments[1].DataType & FieldDataType.ArrayField) != (FieldDataType)0) then
 			begin
-				mreturn CallProvider.AfterCall<T>(name, Tuple.Create((T)GetTypeCorrectedCollectionValue(args[1], arguments[1]), args))
+				if(CallProvider != ^null) then
+					mreturn CallProvider.AfterCall<T>(name, Tuple.Create((T)GetTypeCorrectedCollectionValue(args[1], arguments[1]), args))
+				else
+					mreturn Tuple.Create((T)GetTypeCorrectedCollectionValue(args[1], arguments[1]), args)
 			end
 			else if(arguments[1].PassedValue != ^null) then
 			begin
 				if(^typeof(T) == ^typeof(Object)) then
-					mreturn CallProvider.AfterCall<T>(name, Tuple.Create((T)arguments[1].PassedValue, args))
+				begin
+					if(CallProvider != ^null) then
+						mreturn CallProvider.AfterCall<T>(name, Tuple.Create((T)arguments[1].PassedValue, args))
+					else
+						mreturn Tuple.Create((T)arguments[1].PassedValue, args)
+				end
 				else
-					mreturn CallProvider.AfterCall<T>(name, Tuple.Create((T)Convert.ChangeType(arguments[1].PassedValue,^typeof(T)), args))
+				begin
+					if(CallProvider != ^null) then
+						mreturn CallProvider.AfterCall<T>(name, Tuple.Create((T)Convert.ChangeType(arguments[1].PassedValue,^typeof(T)), args))
+					else
+						mreturn Tuple.Create((T)Convert.ChangeType(arguments[1].PassedValue,^typeof(T)), args)
+				end
 			end
 			else
 			begin
 				data defaultT, T
-				mreturn CallProvider.AfterCall<T>(name, Tuple.Create(defaultT, args))
+				if(CallProvider != ^null) then
+					mreturn CallProvider.AfterCall<T>(name, Tuple.Create(defaultT, args))
+				else
+					mreturn Tuple.Create(defaultT, args)
 			end
 		endmethod
 

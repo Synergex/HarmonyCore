@@ -127,7 +127,15 @@ namespace Services.Controllers
 			endparams
 			parent(connection)
 		proc
+            data maybeDelegate, @Delegate
+            maybeDelegate = (@Func<string, [#]@string>)Maybe
+            AddLocalRpcMethod("CallMe", maybeDelegate)
+        endmethod
 
+        public method Maybe, [#]@string
+            prompt, @string
+        proc
+            mreturn new string[#] { "a string", "across the wire" }
         endmethod
 
 		public override method InitServices, void

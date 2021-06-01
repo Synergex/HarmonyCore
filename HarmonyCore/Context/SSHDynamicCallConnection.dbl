@@ -23,6 +23,7 @@ namespace Harmony.Core.Context
 		private mMakeReadyTask, @Lazy<Task<JsonRpc>>
 		private mTargetOS, RemoteTargetOS
 		private mNeedsRecycle, boolean, false
+		private mLocalRPCHandlers, @Dictionary<string, Delegate> 
 		private mCallTimeout, int
 		private mConnectionTimeout, int
 		public method SSHDynamicCallConnection
@@ -32,6 +33,7 @@ namespace Harmony.Core.Context
 			callTimeout, int
 			connectionTimeout, int
 		proc
+			mLocalRPCHandlers = new Dictionary<string, Delegate>()
 			mCallTimeout = callTimeout
 			mConnectionTimeout = connectionTimeout
 			mTargetOS = targetOS
@@ -153,6 +155,20 @@ namespace Harmony.Core.Context
 
 		endmethod
 
+		public method AddLocalRpcMethod, void
+			name, @string
+			handler, @Delegate
+		proc
+			if(!mLocalRPCHandlers.ContainsKey(name))
+			begin
+				mLocalRPCHandlers.Add(name, handler)
+				if(mMakeReadyTask.IsValueCreated && mMakeReadyTask.Value.Status == TaskStatus.RanToCompletion)
+				begin
+					mMakeReadyTask.Value.Result.AddLocalRpcMethod(name, handler)
+				end
+			end
+		endmethod
+
 		public async virtual method MakeReadyInternal, @Task<JsonRpc>
 			endparams
 		proc
@@ -242,6 +258,13 @@ namespace Harmony.Core.Context
 			begin
 				result.TraceSource = new TraceSource("Client", SourceLevels.All)
 			end
+
+			data rpcKvp, KeyValuePair<string, Delegate>
+			foreach rpcKvp in mLocalRPCHandlers
+			begin
+				result.AddLocalRpcMethod(rpcKvp.Key, rpcKvp.Value)
+			end
+
 			result.StartListening()
 			mreturn result
 		endmethod

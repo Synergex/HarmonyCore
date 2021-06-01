@@ -28,6 +28,14 @@ namespace Json
             jsonWriter = Utf8JsonWriter.CreateUtf8JsonWriter(buffer)
         endmethod
 
+        public method CurrentOutChannel, int
+        proc
+            if(outStream .is. @ChannelOutputStream) then
+                mreturn ((@ChannelOutputStream)outStream).Channel
+            else
+                mreturn -1
+        endmethod
+
 .region "Serialization methods"
         public method OutputScopeOpen, void
         proc
@@ -118,6 +126,11 @@ namespace Json
             stream, @OutputStream
             parent(stream)
         proc
+        endmethod
+
+        public method MakeRequestSerializer, @DispatchSerializer
+        proc
+            mreturn new DispatchSerializer(outStream)
         endmethod
 
         public method ArgumentData, void
@@ -669,6 +682,33 @@ namespace Json
         endmethod
 
         public method ReportResponseEpilog, void
+        proc
+            ;;Terminate the "ReturnParameters" array
+            jsonWriter.WriteEndArray()
+
+            ;;Terminate the "Result" object
+            jsonWriter.WriteEndObject()
+        endmethod
+
+        public method ReportRequestProlog, void
+            hasId, boolean
+            requestId, i4
+            methodName, @string
+
+        proc
+            jsonWriter.WriteStartObject()
+            jsonWriter.WriteString("jsonrpc", "2.0")
+
+            if(hasId) then
+                jsonWriter.WriteNumber("id", requestId)
+            else
+                jsonWriter.WriteNull("id")
+
+            jsonWriter.WriteString("method", methodName)
+            jsonWriter.WriteStartArray("params")
+        endmethod
+
+        public method ReportRequestEpilog, void
         proc
             ;;Terminate the "ReturnParameters" array
             jsonWriter.WriteEndArray()
