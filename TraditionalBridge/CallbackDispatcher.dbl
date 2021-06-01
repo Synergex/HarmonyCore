@@ -124,6 +124,8 @@ namespace Harmony.TraditionalBridge
                     result.Add(dispatcher.GetText(jsonVal))
                 end
             end
+            else if(IS_TEXT(responseObject)) then
+                mreturn dispatcher.GetText(responseObject)
             else
                 throw new Exception("unexpected type in MessageBoxCallbackDispatcher")
 
@@ -138,7 +140,8 @@ namespace Harmony.TraditionalBridge
             resultObj, @object
         proc
             dispatcher = new MessageBoxCallbackDispatcher(RoutineStub.CurrentDispatcher, RoutineStub.CurrentSerializer.MakeRequestSerializer())
-            resultObj = dispatcher.Invoke("MessageBox", new object[#] { (@string)"string", (@string)"value" })
+            resultObj = dispatcher.Invoke("CallMe", new object[#] { (@string)"string", (@string)"value" })
+            xreturn
             ;;cast result obj as ArrayList, do something with the strings inside
         endsubroutine
 endnamespace
