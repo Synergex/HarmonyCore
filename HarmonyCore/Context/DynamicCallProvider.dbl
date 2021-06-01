@@ -83,7 +83,7 @@ namespace Harmony.Core.Context
 			foreach parameter in targetParameters
 			begin
 				arguments.Add(Expression.Parameter(^typeof(ReturnParameterDefintion), parameter.Name))
-				argumentConversions.Add(Expression.ArrayIndex(argArray, Expression.Constant(argumentConversions.Count)))
+				argumentConversions.Add(Expression.Convert(Expression.ArrayIndex(argArray, Expression.Constant(argumentConversions.Count)), parameter.ParameterType))
 			end
 
 			data callHoist = new CallHoist<object>()
@@ -91,14 +91,19 @@ namespace Harmony.Core.Context
 			data reEncodeArguments = ^typeof(CallHoist<object>).GetMethod("ReEncodeArgumentsDirect")
 			Expression.Assign(argArray, Expression.NewArrayBounds(^typeof(object), new Expression[#] { Expression.Constant(targetParameters.Length)}))
 			data reEncodeArgPack = new Expression[3]
-			reEncodeArgPack[1]= Expression.NewArrayInit(^typeof(ArgumentDataDefinition), arguments.Select(lambda(arg) { Expression.PropertyOrField(arg, "Value")}))
+			reEncodeArgPack[1] = Expression.NewArrayInit(^typeof(ArgumentDataDefinition), arguments.Select(lambda(arg) { Expression.PropertyOrField(arg, "Value")}))
 			reEncodeArgPack[2] = Expression.NewArrayInit(^typeof(Type), targetParameters.Select(lambda(param) { Expression.Constant(param.ParameterType)}))
 			reEncodeArgPack[3] = argArray
 			bodyExpressions.Add(Expression.Call(Expression.Constant(callHoist), reEncodeArguments, reEncodeArgPack))
-
+			if(handler.Method.ReturnType != ^typeof(System.Void)) then
+				bodyExpressions.Add(Expression.Invoke(Expression.Constant(handler), argumentConversions))
+			else
+				bodyExpressions.Add(Expression.Invoke(Expression.Constant((@Func<object, ArgumentDataDefinition>)PreSerializeArgumentsInternal), new Expression[#] { Expression.Invoke(Expression.Constant(handler), argumentConversions) }))
 			data bodyExpression, @Expression, Expression.Block(new ParameterExpression[#] { argArray }, bodyExpressions)
 			data exposedMethod = Expression.Lambda(bodyExpression, (@IEnumerable<ParameterExpression>)arguments)
-			connection.AddLocalRpcMethod(name, exposedMethod.Compile())
+			data resultDel = exposedMethod.Compile()
+			
+			connection.AddLocalRpcMethod(name, resultDel)
 		endmethod
 
 		public override property IsHealthy, boolean

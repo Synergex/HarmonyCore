@@ -110,7 +110,10 @@ namespace Harmony.Core.Context
 				mLocalRPCHandlers.Add(name, handler)
 				if(mMakeReadyTask.IsValueCreated && mMakeReadyTask.Value.Status == TaskStatus.RanToCompletion)
 				begin
-					mMakeReadyTask.Value.Result.AddLocalRpcMethod(name, handler)
+					if(handler.Method.IsStatic) then
+						mMakeReadyTask.Value.Result.AddLocalRpcMethod(name, handler.Method, ^null)
+					else
+						mMakeReadyTask.Value.Result.AddLocalRpcMethod(name, handler.Method, handler.Target)
 				end
 			end
 		endmethod
@@ -162,7 +165,10 @@ namespace Harmony.Core.Context
 			data rpcKvp, KeyValuePair<string, Delegate>
 			foreach rpcKvp in mLocalRPCHandlers
 			begin
-				result.AddLocalRpcMethod(rpcKvp.Key, rpcKvp.Value)
+				if(rpcKvp.Value.Method.IsStatic) then
+					result.AddLocalRpcMethod(rpcKvp.Key, rpcKvp.Value.Method, ^null)
+				else
+					result.AddLocalRpcMethod(rpcKvp.Key, rpcKvp.Value.Method, rpcKvp.Value.Target)
 			end
 
 			result.StartListening()
