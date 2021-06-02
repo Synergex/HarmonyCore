@@ -135,21 +135,19 @@ namespace Services.Controllers
 			parent(connection)
 		proc
             data maybeDelegate, @Delegate
-            maybeDelegate = (@Func<string, string, [#]@string>)Maybe
+            maybeDelegate = (@Func<string, string, Task<[#]@string>>)Maybe
             AddLocalRpcMethod("CallMe", maybeDelegate)
         endmethod
 
-        public method Maybe, [#]@string
+        public async method Maybe, @Task<[#]@string>
             prompt1, @string
             prompt2, @string
         proc
-            ;;if(callbacks != ^null) then
-            ;;begin
-                ;;data tsk = callbacks.Maybe(prompt)
-                ;;tsk.Wait()
-                ;;mreturn tsk.Result
-            ;;end
-            ;;else
+            if(callbacks != ^null) then
+            begin
+                mreturn await callbacks.Maybe(prompt1, prompt2)
+            end
+            else
                 mreturn new string[#] { "no instance provided" }
         endmethod
 

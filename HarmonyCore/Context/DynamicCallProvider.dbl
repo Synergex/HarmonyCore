@@ -118,17 +118,17 @@ namespace Harmony.Core.Context
 			public Provider, @DynamicCallProvider
 			private Hoist, @CallHoist<object>, new CallHoist<object>()
 			
-			private action0, @Action
-			private action1, @Action<ReturnParameterDefintion>
-			private action2, @Action<ReturnParameterDefintion, ReturnParameterDefintion>
-			private action3, @Action<ReturnParameterDefintion, ReturnParameterDefintion, ReturnParameterDefintion>
-			private action4, @Action<ReturnParameterDefintion, ReturnParameterDefintion, ReturnParameterDefintion, ReturnParameterDefintion>
+			private action0, @Func<Task>
+			private action1, @Func<ReturnParameterDefintion, Task>
+			private action2, @Func<ReturnParameterDefintion, ReturnParameterDefintion, Task>
+			private action3, @Func<ReturnParameterDefintion, ReturnParameterDefintion, ReturnParameterDefintion, Task>
+			private action4, @Func<ReturnParameterDefintion, ReturnParameterDefintion, ReturnParameterDefintion, ReturnParameterDefintion, Task>
 
-			private func0, @Func<ArgumentDataDefinition>
-			private func1, @Func<ReturnParameterDefintion, ArgumentDataDefinition>
-			private func2, @Func<ReturnParameterDefintion, ReturnParameterDefintion, ArgumentDataDefinition>
-			private func3, @Func<ReturnParameterDefintion, ReturnParameterDefintion, ReturnParameterDefintion, ArgumentDataDefinition>
-			private func4, @Func<ReturnParameterDefintion, ReturnParameterDefintion, ReturnParameterDefintion, ReturnParameterDefintion, ArgumentDataDefinition>
+			private func0, @Func<Task<ArgumentDataDefinition>>
+			private func1, @Func<ReturnParameterDefintion, Task<ArgumentDataDefinition>>
+			private func2, @Func<ReturnParameterDefintion, ReturnParameterDefintion, Task<ArgumentDataDefinition>>
+			private func3, @Func<ReturnParameterDefintion, ReturnParameterDefintion, ReturnParameterDefintion, Task<ArgumentDataDefinition>>
+			private func4, @Func<ReturnParameterDefintion, ReturnParameterDefintion, ReturnParameterDefintion, ReturnParameterDefintion, Task<ArgumentDataDefinition>>
 
 			private actions, [#]@Delegate
 			private funcs, [#]@Delegate
@@ -175,25 +175,25 @@ namespace Harmony.Core.Context
 				end
 			endmethod
 
-			public method Invoke0, @ArgumentDataDefinition
+			public method Invoke0, @Task<ArgumentDataDefinition>
 			proc
 				mreturn InnerInvoke(new ReturnParameterDefintion[0])
 			endmethod
 
-			public method Invoke1, @ArgumentDataDefinition
+			public method Invoke1, @Task<ArgumentDataDefinition>
 				arg1, @ReturnParameterDefintion
 			proc
 				mreturn InnerInvoke(new ReturnParameterDefintion[#] { arg1 })
 			endmethod
 
-			public method Invoke2, @ArgumentDataDefinition
+			public method Invoke2, @Task<ArgumentDataDefinition>
 				arg1, @ReturnParameterDefintion
 				arg2, @ReturnParameterDefintion
 			proc
 				mreturn InnerInvoke(new ReturnParameterDefintion[#] { arg1, arg2 })
 			endmethod
 
-			public method Invoke3, @ArgumentDataDefinition
+			public method Invoke3, @Task<ArgumentDataDefinition>
 				arg1, @ReturnParameterDefintion
 				arg2, @ReturnParameterDefintion
 				arg3, @ReturnParameterDefintion
@@ -201,7 +201,7 @@ namespace Harmony.Core.Context
 				mreturn InnerInvoke(new ReturnParameterDefintion[#] { arg1, arg2, arg3 })
 			endmethod
 
-			public method Invoke4, @ArgumentDataDefinition
+			public method Invoke4, @Task<ArgumentDataDefinition>
 				arg1, @ReturnParameterDefintion
 				arg2, @ReturnParameterDefintion
 				arg3, @ReturnParameterDefintion
@@ -210,42 +210,42 @@ namespace Harmony.Core.Context
 				mreturn InnerInvoke(new ReturnParameterDefintion[#] { arg1, arg2, arg3, arg4 })
 			endmethod
 
-			public method InvokeV0, void
+			public async method InvokeV0, @Task
 			proc
-				InnerInvoke(new ReturnParameterDefintion[0])
+				await InnerInvoke(new ReturnParameterDefintion[0])
 			endmethod
 
-			public method InvokeV1, void
+			public async method InvokeV1, @Task
 				arg1, @ReturnParameterDefintion
 			proc
-				InnerInvoke(new ReturnParameterDefintion[#] { arg1 })
+				await InnerInvoke(new ReturnParameterDefintion[#] { arg1 })
 			endmethod
 
-			public method InvokeV2, void
+			public async method InvokeV2, @Task
 				arg1, @ReturnParameterDefintion
 				arg2, @ReturnParameterDefintion
 			proc
-				InnerInvoke(new ReturnParameterDefintion[#] { arg1, arg2 })
+				await InnerInvoke(new ReturnParameterDefintion[#] { arg1, arg2 })
 			endmethod
 
-			public method InvokeV3, void
+			public async method InvokeV3, @Task
 				arg1, @ReturnParameterDefintion
 				arg2, @ReturnParameterDefintion
 				arg3, @ReturnParameterDefintion
 			proc
-				InnerInvoke(new ReturnParameterDefintion[#] { arg1, arg2, arg3 })
+				await InnerInvoke(new ReturnParameterDefintion[#] { arg1, arg2, arg3 })
 			endmethod
 
-			public method InvokeV4, void
+			public async method InvokeV4, @Task
 				arg1, @ReturnParameterDefintion
 				arg2, @ReturnParameterDefintion
 				arg3, @ReturnParameterDefintion
 				arg4, @ReturnParameterDefintion
 			proc
-				InnerInvoke(new ReturnParameterDefintion[#] { arg1, arg2, arg3, arg4 })
+				await InnerInvoke(new ReturnParameterDefintion[#] { arg1, arg2, arg3, arg4 })
 			endmethod
 
-			private method InnerInvoke, @ArgumentDataDefinition
+			private async method InnerInvoke, @Task<ArgumentDataDefinition>
 				args, [#]@ReturnParameterDefintion
 			proc
 				data convertedArgs = new object[args.Length]
@@ -256,7 +256,18 @@ namespace Harmony.Core.Context
 				if(resultObj == ^null) then
 					mreturn ^null
 				else
-					mreturn Provider.PreSerializeArgumentsInternal(resultObj)
+				begin
+					data tsk = (@Task)resultObj
+					await tsk
+					data tskResult = ^typeof(ConversionHelper).GetMethod(^nameof(BoxTaskResult)).MakeGenericMethod(tsk.GetType().GetGenericArguments()).Invoke(^null, new object[#] { tsk } )
+					mreturn Provider.PreSerializeArgumentsInternal(tskResult)
+				end
+			endmethod
+
+			public static method BoxTaskResult<T>, @object
+				tsk, @Task<T>
+			proc
+				mreturn (@object)tsk.Result
 			endmethod
 		endclass
 

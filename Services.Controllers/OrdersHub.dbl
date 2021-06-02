@@ -10,37 +10,56 @@ namespace Services.Controllers
 	public class OrdersHub extends Hub<IOrdersHubClient>
 
         class ExternalCallContextCallbacks implements IExternalCallContextCallbacks
-            private hub, @OrdersHub
+            internal connectionId, @string
+            private tcs, @TaskCompletionSource<[#]string>
+            private hub, @IHubContext<OrdersHub>
+            private clients, @IHubClients<IOrdersHubClient>
+            private hubClientType, @Type
             public method ExternalCallContextCallbacks
                 hub, @OrdersHub
+                callers, @IHubClients<IOrdersHubClient>
             proc
-                this.hub = hub
+                clients = callers
+                this.hub = hub._context
             endmethod
+
+            internal method MaybeResponse, void
+                response, [#]string
+            proc
+                if(tcs != ^null)
+                    tcs.TrySetResult(response)
+            endmethod 
 
             public async method Maybe, @Task<[#]string>
                 param1, @string
                 param2, @string
-            proc
-                data maybeResponse, @Action<[#]string>
-                data tcs = new TaskCompletionSource<[#]string>()
-                maybeResponse = lambda(val) { tcs.TrySetResult(val) }
-                hub.MaybeResponseEvent += maybeResponse    
-                await hub.Clients.Caller.Maybe(param1, param2)
-                await tcs.Task
-                hub.MaybeResponseEvent -= maybeResponse 
-                mreturn tcs.Task.Result 
+            proc  
+                data client = clients.Client(connectionId)
+                
+                ;serviceProvider.GetService()
+                tcs = new TaskCompletionSource<[#]string>()
+                data maybeTask, @Task, client.Maybe(param1, param2)
+                await maybeTask
+                mreturn await tcs.Task
             endmethod
         endclass
 
 
         private _contextFactory, @IContextFactory<ExternalCallContext>
+        private _context, @IHubContext<OrdersHub>
+        private _clients, @IHubClients<IOrdersHubClient>
         private _serviceProvider, @IServiceProvider
         public method OrdersHub
             contextFactory, @IContextFactory<ExternalCallContext>
+            hubContext, @IHubContext<OrdersHub>
             serviceProvider, @IServiceProvider
         proc
+            System.Diagnostics.Debugger.Launch()
+            _context = hubContext
             _contextFactory = contextFactory
             _serviceProvider = serviceProvider
+            data hubClientType = ^typeof(IHubContext<OrdersHub>).Assembly.GetType("Microsoft.AspNetCore.SignalR.IHubContext`2").MakeGenericType(new Type[#] { ^typeof(OrdersHub), ^typeof(IOrdersHubClient) }) 
+            _clients = (@IHubClients<IOrdersHubClient>) hubClientType.GetProperty("Clients").GetValue(serviceProvider.GetService(hubClientType))
         endmethod
 
         public override async method OnConnectedAsync, @Task
@@ -48,7 +67,9 @@ namespace Services.Controllers
             await parent.OnConnectedAsync()
             data madeContext, @ExternalCallContext
             madeContext = await _contextFactory.MakeContextAsync(_serviceProvider)
-            madeContext.InitCallbacks(new OrdersHub.ExternalCallContextCallbacks(this))
+            data callbacks = new OrdersHub.ExternalCallContextCallbacks(this, _clients)
+            Context.Items.Add("Callbacks", callbacks)
+            madeContext.InitCallbacks(callbacks)
             Context.Items.Add("RPCContext", madeContext)
         endmethod
 
@@ -67,33 +88,34 @@ namespace Services.Controllers
             end
         endmethod
 
-        internal event MaybeResponseEvent, @Action<[#]string>
-
         public method MaybeResponse, void
             strings, [#]string
         proc
-            if(MaybeResponseEvent != ^null)
-                MaybeResponseEvent(strings)
+            data callback = ^as(Context.Items["Callbacks"], @OrdersHub.ExternalCallContextCallbacks)
+            callback.MaybeResponse(strings)
         endmethod
 
-        public async method Arbitrario_MethodWithParameters, @Task
+        public async method Arbitrario_MethodWithParameters, void
             aNumber, int
             aString, @string
             aStringArray, [#]string
             aIntArray, [#]int
         proc
+            data callback = ^as(Context.Items["Callbacks"], @OrdersHub.ExternalCallContextCallbacks)
+            callback.connectionId = Context.ConnectionId
             data callContext = ^as(Context.Items["RPCContext"], @ExternalCallContext)
             data result = await callContext.Arbitrario_MethodWithParameters2(aNumber, aString, aStringArray, aIntArray)
-            await Clients.Caller.Arbitrario_MethodWithParametersResult(result)
-
+            await _clients.Client(callback.connectionId).Arbitrario_MethodWithParametersResult(result)
         endmethod
 
         public async method Arbitrario_Optional, @Task
             parm, @ExternalCallContext.ArbitrarioOptionalParameter
         proc
+            data callback = ^as(Context.Items["Callbacks"], @OrdersHub.ExternalCallContextCallbacks)
+            callback.connectionId = Context.ConnectionId
             data callContext = ^as(Context.Items["RPCContext"], @ExternalCallContext)
             data result = await callContext.Arbitrario_Optional(parm)
-            await Clients.Caller.Arbitrario_OptionalResult(result)
+            await _clients.Client(callback.connectionId).Arbitrario_OptionalResult(result)
         endmethod
 
 
@@ -114,5 +136,10 @@ namespace Services.Controllers
         endmethod
 
     endinterface
+
+    public static class HubTExtension
+        
+    endclass
+
 
 endnamespace

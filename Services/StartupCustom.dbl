@@ -90,10 +90,16 @@ namespace Services
             services.AddSingleton<IContextFactory<ExternalCallContext>>(contextPool)
             services.AddContextPool<ExternalCallContext>()
 
-            services.AddSignalR()
+            services.AddSignalR(ConfigSignalR)
             services.AddDistributedMemoryCache()
             services.AddSession()
 
+        endmethod
+
+        private static method ConfigSignalR, void
+            options, @Microsoft.AspNetCore.SignalR.HubOptions
+        proc
+            ;options.MaximumParallelInvocationsPerClient = 100
         endmethod
 
 		private static method findRelativeFolderForAssembly, string

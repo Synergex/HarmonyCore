@@ -1741,9 +1741,14 @@ namespace Services.Test.UnitTests
             Arbitrario_OptionalResultHandler = OptionalHandler
             connection.On<HandCrafted.ArbitrarioOptionalReturnType>("Arbitrario_OptionalResult", Arbitrario_OptionalResultHandler)
 
-            data MaybeHandler, @Func<[#]string, @Task>
-            MaybeHandler = lambda(msg) { connection.InvokeAsync("MaybeResult", new string[#] { "a string from beyond" }) } 
-            connection.On<[#]string>("Maybe", MaybeHandler)
+            data MaybeHandler, @Func<string, string, Task>
+            lambda maybelambda(prm1, prm2)
+            begin
+                mreturn connection.InvokeAsync ("MaybeResponse", new string[#] { "a string from beyond" })
+            end
+
+            MaybeHandler = maybelambda;;lambda(prm1, prm2) { throw new Exception() };; connection.InvokeAsync("MaybeResult", new string[#] { "a string from beyond" }) } 
+            connection.On<string, string>("Maybe", MaybeHandler)
 
             await connection.StartAsync()
             data intArray = new int[#] {5, 4, 3, 2, 1 }
