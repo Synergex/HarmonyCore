@@ -63,48 +63,202 @@ namespace Harmony.Core.Context
 ;
 ;		endmethod
 		protected connection, @IDynamicCallConnection
+		private semaphore, @Microsoft.VisualStudio.Threading.AsyncSemaphore
 		public readonly property IsolationLevel, ContextIsolationLevel
 		protected method DynamicCallProvider
 			connection, @IDynamicCallConnection
 		proc
 			this.connection = connection
+			semaphore = new Microsoft.VisualStudio.Threading.AsyncSemaphore(1)
 		endmethod
 
 		public method AddLocalRpcMethod, void
 			name, @string
 			handler, @Delegate
 		proc
-			data arguments = new List<ParameterExpression>()
-			data argArray = Expression.Variable(^typeof([#]object))
-			data argumentConversions = new List<Expression>()
-			data targetParameters = handler.Method.GetParameters()
-			data bodyExpressions = new List<Expression>()
-			data parameter, @ParameterInfo
-			foreach parameter in targetParameters
-			begin
-				arguments.Add(Expression.Parameter(^typeof(ReturnParameterDefintion), parameter.Name))
-				argumentConversions.Add(Expression.Convert(Expression.ArrayIndex(argArray, Expression.Constant(argumentConversions.Count)), parameter.ParameterType))
-			end
+			;;data arguments = new List<ParameterExpression>()
+			;;data argArray = Expression.Variable(^typeof([#]object))
+			;;data argumentConversions = new List<Expression>()
+			;;data targetParameters = handler.Method.GetParameters()
+			;;data bodyExpressions = new List<Expression>()
+			;;data parameter, @ParameterInfo
+			;;foreach parameter in targetParameters
+			;;begin
+			;;	arguments.Add(Expression.Parameter(^typeof(ReturnParameterDefintion), parameter.Name))
+			;;	argumentConversions.Add(Expression.Convert(Expression.ArrayIndex(argArray, Expression.Constant(argumentConversions.Count)), parameter.ParameterType))
+			;;end
+;;
+			;;data callHoist = new CallHoist<object>()
+;;
+			;;data reEncodeArguments = ^typeof(CallHoist<object>).GetMethod("ReEncodeArgumentsDirect")
+			;;Expression.Assign(argArray, Expression.NewArrayBounds(^typeof(object), new Expression[#] { Expression.Constant(targetParameters.Length)}))
+			;;data reEncodeArgPack = new Expression[3]
+			;;reEncodeArgPack[1] = Expression.NewArrayInit(^typeof(ArgumentDataDefinition), arguments.Select(lambda(arg) { Expression.PropertyOrField(arg, "Value")}))
+			;;reEncodeArgPack[2] = Expression.NewArrayInit(^typeof(Type), targetParameters.Select(lambda(param) { Expression.Constant(param.ParameterType)}))
+			;;reEncodeArgPack[3] = argArray
+			;;bodyExpressions.Add(Expression.Call(Expression.Constant(callHoist), reEncodeArguments, reEncodeArgPack))
+			;;data cleanReturn = ^typeof(System.Void)
+			;;if(handler.Method.ReturnType == ^typeof(System.Void)) then
+			;;	bodyExpressions.Add(Expression.Invoke(Expression.Constant(handler), argumentConversions))
+			;;else
+			;;begin
+			;;	cleanReturn = ^typeof(ArgumentDataDefinition)
+			;;	bodyExpressions.Add(Expression.Invoke(Expression.Constant((@Func<object, ArgumentDataDefinition>)PreSerializeArgumentsInternal), new Expression[#] { Expression.Invoke(Expression.Constant(handler), argumentConversions) }))
+			;;end
+			;;data bodyExpression, @Expression, Expression.Block(cleanReturn, new ParameterExpression[#] { argArray }, bodyExpressions)
+			;;data exposedMethod = Expression.Lambda<Func<ReturnParameterDefintion, ArgumentDataDefinition>>(bodyExpression, (@IEnumerable<ParameterExpression>)arguments)
+            ;;data resultDel = exposedMethod.Compile(true)
 
-			data callHoist = new CallHoist<object>()
-
-			data reEncodeArguments = ^typeof(CallHoist<object>).GetMethod("ReEncodeArgumentsDirect")
-			Expression.Assign(argArray, Expression.NewArrayBounds(^typeof(object), new Expression[#] { Expression.Constant(targetParameters.Length)}))
-			data reEncodeArgPack = new Expression[3]
-			reEncodeArgPack[1] = Expression.NewArrayInit(^typeof(ArgumentDataDefinition), arguments.Select(lambda(arg) { Expression.PropertyOrField(arg, "Value")}))
-			reEncodeArgPack[2] = Expression.NewArrayInit(^typeof(Type), targetParameters.Select(lambda(param) { Expression.Constant(param.ParameterType)}))
-			reEncodeArgPack[3] = argArray
-			bodyExpressions.Add(Expression.Call(Expression.Constant(callHoist), reEncodeArguments, reEncodeArgPack))
-			if(handler.Method.ReturnType != ^typeof(System.Void)) then
-				bodyExpressions.Add(Expression.Invoke(Expression.Constant(handler), argumentConversions))
-			else
-				bodyExpressions.Add(Expression.Invoke(Expression.Constant((@Func<object, ArgumentDataDefinition>)PreSerializeArgumentsInternal), new Expression[#] { Expression.Invoke(Expression.Constant(handler), argumentConversions) }))
-			data bodyExpression, @Expression, Expression.Block(new ParameterExpression[#] { argArray }, bodyExpressions)
-			data exposedMethod = Expression.Lambda(bodyExpression, (@IEnumerable<ParameterExpression>)arguments)
-			data resultDel = exposedMethod.Compile()
-			
-			connection.AddLocalRpcMethod(name, resultDel)
+			data helper = new ConversionHelper(handler, this)
+			connection.AddLocalRpcMethod(name, helper.InvokeHelper())
 		endmethod
+
+		class ConversionHelper
+			public Target, @Delegate
+			public Provider, @DynamicCallProvider
+			private Hoist, @CallHoist<object>, new CallHoist<object>()
+			
+			private action0, @Action
+			private action1, @Action<ReturnParameterDefintion>
+			private action2, @Action<ReturnParameterDefintion, ReturnParameterDefintion>
+			private action3, @Action<ReturnParameterDefintion, ReturnParameterDefintion, ReturnParameterDefintion>
+			private action4, @Action<ReturnParameterDefintion, ReturnParameterDefintion, ReturnParameterDefintion, ReturnParameterDefintion>
+
+			private func0, @Func<ArgumentDataDefinition>
+			private func1, @Func<ReturnParameterDefintion, ArgumentDataDefinition>
+			private func2, @Func<ReturnParameterDefintion, ReturnParameterDefintion, ArgumentDataDefinition>
+			private func3, @Func<ReturnParameterDefintion, ReturnParameterDefintion, ReturnParameterDefintion, ArgumentDataDefinition>
+			private func4, @Func<ReturnParameterDefintion, ReturnParameterDefintion, ReturnParameterDefintion, ReturnParameterDefintion, ArgumentDataDefinition>
+
+			private actions, [#]@Delegate
+			private funcs, [#]@Delegate
+
+			public method ConversionHelper
+				target, @Delegate
+				provider, @DynamicCallProvider
+			proc
+				this.Target = target
+				this.Provider = provider
+
+				action0 = InvokeV0
+				action1 = InvokeV1
+				action2 = InvokeV2
+				action3 = InvokeV3
+				action4 = InvokeV4
+
+				func0 = Invoke0
+				func1 = Invoke1
+				func2 = Invoke2
+				func3 = Invoke3
+				func4 = Invoke4
+
+				actions = new Delegate[#] { action0 ,action1, action2, action3, action4 }
+				funcs = new Delegate[#] { func0 ,func1, func2, func3, func4 }
+			endmethod
+
+			;;missing method keyword causes accvio
+			;public Invoke, @ArgumentDataDefinition
+			;proc
+			;endmethod
+
+			public method InvokeHelper, @Delegate
+			proc
+				data paramCount = Target.Method.GetParameters().Length
+				data hasReturn = Target.Method.ReturnType != ^typeof(System.Void)
+				if(hasReturn) then
+				begin
+					mreturn funcs[paramCount + 1]
+				end
+				else
+				begin
+					mreturn actions[paramCount + 1]
+				end
+			endmethod
+
+			public method Invoke0, @ArgumentDataDefinition
+			proc
+				mreturn InnerInvoke(new ReturnParameterDefintion[0])
+			endmethod
+
+			public method Invoke1, @ArgumentDataDefinition
+				arg1, @ReturnParameterDefintion
+			proc
+				mreturn InnerInvoke(new ReturnParameterDefintion[#] { arg1 })
+			endmethod
+
+			public method Invoke2, @ArgumentDataDefinition
+				arg1, @ReturnParameterDefintion
+				arg2, @ReturnParameterDefintion
+			proc
+				mreturn InnerInvoke(new ReturnParameterDefintion[#] { arg1, arg2 })
+			endmethod
+
+			public method Invoke3, @ArgumentDataDefinition
+				arg1, @ReturnParameterDefintion
+				arg2, @ReturnParameterDefintion
+				arg3, @ReturnParameterDefintion
+			proc
+				mreturn InnerInvoke(new ReturnParameterDefintion[#] { arg1, arg2, arg3 })
+			endmethod
+
+			public method Invoke4, @ArgumentDataDefinition
+				arg1, @ReturnParameterDefintion
+				arg2, @ReturnParameterDefintion
+				arg3, @ReturnParameterDefintion
+				arg4, @ReturnParameterDefintion
+			proc
+				mreturn InnerInvoke(new ReturnParameterDefintion[#] { arg1, arg2, arg3, arg4 })
+			endmethod
+
+			public method InvokeV0, void
+			proc
+				InnerInvoke(new ReturnParameterDefintion[0])
+			endmethod
+
+			public method InvokeV1, void
+				arg1, @ReturnParameterDefintion
+			proc
+				InnerInvoke(new ReturnParameterDefintion[#] { arg1 })
+			endmethod
+
+			public method InvokeV2, void
+				arg1, @ReturnParameterDefintion
+				arg2, @ReturnParameterDefintion
+			proc
+				InnerInvoke(new ReturnParameterDefintion[#] { arg1, arg2 })
+			endmethod
+
+			public method InvokeV3, void
+				arg1, @ReturnParameterDefintion
+				arg2, @ReturnParameterDefintion
+				arg3, @ReturnParameterDefintion
+			proc
+				InnerInvoke(new ReturnParameterDefintion[#] { arg1, arg2, arg3 })
+			endmethod
+
+			public method InvokeV4, void
+				arg1, @ReturnParameterDefintion
+				arg2, @ReturnParameterDefintion
+				arg3, @ReturnParameterDefintion
+				arg4, @ReturnParameterDefintion
+			proc
+				InnerInvoke(new ReturnParameterDefintion[#] { arg1, arg2, arg3, arg4 })
+			endmethod
+
+			private method InnerInvoke, @ArgumentDataDefinition
+				args, [#]@ReturnParameterDefintion
+			proc
+				data convertedArgs = new object[args.Length]
+				data argList = args.Select(lambda(arg) { arg.Value }).ToList()
+				argList.Insert(0, ^null)
+				Hoist.ReEncodeArgumentsDirect(argList.ToArray(), Target.Method.GetParameters().Select(lambda(parm) { parm.ParameterType }).ToArray(), convertedArgs)
+				data resultObj = Target.DynamicInvoke(convertedArgs)
+				if(resultObj == ^null) then
+					mreturn ^null
+				else
+					mreturn Provider.PreSerializeArgumentsInternal(resultObj)
+			endmethod
+		endclass
 
 		public override property IsHealthy, boolean
 			method get
@@ -367,18 +521,27 @@ namespace Harmony.Core.Context
 			name, @string
 			args, [#]@ArgumentDataDefinition
 		proc
-			data result, [#]@ReturnParameterDefintion, await this.connection.Call(name, args)
-			data writableArgs = args
-			if(result != ^null)
+			;data concurrencyBlocker = await semaphore.EnterAsync(System.Threading.CancellationToken.None)
+			try
 			begin
-				data retArg, @ReturnParameterDefintion
-				foreach retArg in result
+				data result, [#]@ReturnParameterDefintion, await this.connection.Call(name, args)
+				data writableArgs = args
+				if(result != ^null)
 				begin
-					writableArgs[retArg.Position + 1].ReturnedValue = true
-					writableArgs[retArg.Position + 1].PassedValue = retArg.Value.PassedValue
+					data retArg, @ReturnParameterDefintion
+					foreach retArg in result
+					begin
+						writableArgs[retArg.Position + 1].ReturnedValue = true
+						writableArgs[retArg.Position + 1].PassedValue = retArg.Value.PassedValue
+					end
 				end
+				mreturn writableArgs
 			end
-			mreturn writableArgs
+			finally
+			begin
+				;concurrencyBlocker.Dispose()
+			end
+			endtry
 		endmethod
 		;;remove this overload after the async peverify issue is taken care of
 		internal method CallMethodImplementationInternal, @Task<[#]@ArgumentDataDefinition>

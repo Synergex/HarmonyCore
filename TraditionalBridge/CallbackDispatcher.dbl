@@ -109,27 +109,36 @@ namespace Harmony.TraditionalBridge
             dispatcher, @RoutineDispatcher
         record
             result, @ArrayList
+            passedValue, JSON_ELEMENT
         proc
-            if(IS_ARRAY(responseObject)) then
+            if(IS_OBJ(responseObject))
             begin
-                data jsonVal, JSON_ELEMENT
-                data i, int
-                data collectionSize, int
+                if(!responseObject.TryGetProperty("PassedValue", passedValue))
+                    throw new Exception("didnt find 'PassedValue'")
 
-                result = new ArrayList()
-                collectionSize = responseObject.GetArrayLength()
-                for i from 1 thru collectionSize - 1 by 1
+                if(IS_ARRAY(passedValue)) then
                 begin
-                    jsonVal = responseObject[i]
-                    result.Add(dispatcher.GetText(jsonVal))
-                end
-            end
-            else if(IS_TEXT(responseObject)) then
-                mreturn dispatcher.GetText(responseObject)
-            else
-                throw new Exception("unexpected type in MessageBoxCallbackDispatcher")
+                    data jsonVal, JSON_ELEMENT
+                    data i, int
+                    data collectionSize, int
 
-            mreturn result
+                    result = new ArrayList()
+                    collectionSize = passedValue.GetArrayLength()
+                    for i from 1 thru collectionSize - 1 by 1
+                    begin
+                        jsonVal = passedValue[i]
+                        result.Add(dispatcher.GetText(jsonVal))
+                    end
+                    mreturn result
+                end
+                else if(IS_TEXT(passedValue)) then
+                    mreturn dispatcher.GetText(passedValue)
+                else
+                    throw new Exception("unexpected type in MessageBoxCallbackDispatcher")
+            end
+
+            throw new Exception("failed to parse argument data in MessageBoxCallbackDispatcher")
+            
         endmethod
     endclass
 

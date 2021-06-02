@@ -8,7 +8,31 @@ import Harmony.Core.Context
 namespace Services.Controllers
 
 	public class OrdersHub extends Hub<IOrdersHubClient>
-	
+
+        class ExternalCallContextCallbacks implements IExternalCallContextCallbacks
+            private hub, @OrdersHub
+            public method ExternalCallContextCallbacks
+                hub, @OrdersHub
+            proc
+                this.hub = hub
+            endmethod
+
+            public async method Maybe, @Task<[#]string>
+                param1, @string
+                param2, @string
+            proc
+                data maybeResponse, @Action<[#]string>
+                data tcs = new TaskCompletionSource<[#]string>()
+                maybeResponse = lambda(val) { tcs.TrySetResult(val) }
+                hub.MaybeResponseEvent += maybeResponse    
+                await hub.Clients.Caller.Maybe(param1, param2)
+                await tcs.Task
+                hub.MaybeResponseEvent -= maybeResponse 
+                mreturn tcs.Task.Result 
+            endmethod
+        endclass
+
+
         private _contextFactory, @IContextFactory<ExternalCallContext>
         private _serviceProvider, @IServiceProvider
         public method OrdersHub
@@ -22,7 +46,10 @@ namespace Services.Controllers
         public override async method OnConnectedAsync, @Task
         proc
             await parent.OnConnectedAsync()
-            Context.Items.Add("RPCContext", await _contextFactory.MakeContextAsync(_serviceProvider))
+            data madeContext, @ExternalCallContext
+            madeContext = await _contextFactory.MakeContextAsync(_serviceProvider)
+            madeContext.InitCallbacks(new OrdersHub.ExternalCallContextCallbacks(this))
+            Context.Items.Add("RPCContext", madeContext)
         endmethod
 
         public override async method OnDisconnectedAsync, @Task
@@ -38,6 +65,15 @@ namespace Services.Controllers
                     _contextFactory.ReturnContext(callContext)
                 end
             end
+        endmethod
+
+        internal event MaybeResponseEvent, @Action<[#]string>
+
+        public method MaybeResponse, void
+            strings, [#]string
+        proc
+            if(MaybeResponseEvent != ^null)
+                MaybeResponseEvent(strings)
         endmethod
 
         public async method Arbitrario_MethodWithParameters, @Task
@@ -60,6 +96,7 @@ namespace Services.Controllers
             await Clients.Caller.Arbitrario_OptionalResult(result)
         endmethod
 
+
 	endclass
 
     public interface IOrdersHubClient
@@ -69,6 +106,11 @@ namespace Services.Controllers
 
         method Arbitrario_OptionalResult, @Task
             param, @ExternalCallContext.ArbitrarioOptionalReturnType
+        endmethod
+        
+        method Maybe, @Task
+            param1, @string
+            param2, @string
         endmethod
 
     endinterface
