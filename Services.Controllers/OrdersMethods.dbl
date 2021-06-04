@@ -119,15 +119,36 @@ namespace Services.Controllers
 
     endclass
 	
+    public interface IExternalCallContextCallbacks
+        method Maybe, @Task<[#]@string>
+            prompt1, @string
+            prompt2, @string
+        endmethod
+    endinterface
+
 	public class ExternalCallContext extends DynamicCallProvider
 		private contextAccessor, @IActionContextAccessor
-		
+		private callbacks, @IExternalCallContextCallbacks
         public method ExternalCallContext
 			connection, @IDynamicCallConnection
 			endparams
 			parent(connection)
 		proc
+            data maybeDelegate, @Delegate
+            maybeDelegate = (@Func<string, string, Task<[#]@string>>)Maybe
+            AddLocalRpcMethod("CallMe", maybeDelegate)
+        endmethod
 
+        public async method Maybe, @Task<[#]@string>
+            prompt1, @string
+            prompt2, @string
+        proc
+            if(callbacks != ^null) then
+            begin
+                mreturn await callbacks.Maybe(prompt1, prompt2)
+            end
+            else
+                mreturn new string[#] { "no instance provided" }
         endmethod
 
 		public override method InitServices, void
@@ -137,8 +158,15 @@ namespace Services.Controllers
 			contextAccessor = (@IActionContextAccessor)sp.GetService(^typeof(IActionContextAccessor))
 		endmethod
 
+        public method InitCallbacks, void
+            callbacks, @IExternalCallContextCallbacks
+        proc
+            this.callbacks = callbacks
+        endmethod
+
 		public override method Recycle, @Task
 		proc
+            callbacks = ^null 
 			contextAccessor = ^null
 			mreturn parent.Recycle()
 		endmethod

@@ -32,6 +32,7 @@ namespace Harmony.TraditionalBridge
     ;;; </summary>
     public abstract class RoutineDispatcher
 
+        public MaxRequestId, int
         ;;dummy structure for ^m operations on the mReadBuffer
         private structure MemStruct
             fld, a1
@@ -48,6 +49,7 @@ namespace Harmony.TraditionalBridge
         ;;; </summary>
         public method RoutineDispatcher
         proc
+            MaxRequestId = 0
             ;;setchars(mActivationMask, 3, 4, 25, 26)
             mDispatchStubs = new StringDictionary()
             mReadBufferSize = 0
@@ -821,25 +823,11 @@ namespace Harmony.TraditionalBridge
 
         endmethod
 
-        ;;; <summary>
-        ;;; 
-        ;;; </summary>
-        ;;; <param name="ttChannel"></param>
-        ;;; <param name="frameHeader"></param>
-        ;;; <returns></returns>
-        private method ReadCallBlock, boolean
-            messageReader, @HeaderDelimitedMessageReader
-            serializer, @DispatchSerializer
+        private method ReadContent, void
             header, ContentHeader
-            record
-.ifdef DBLV11  
-                jsonDoc, @JsonDocument
-.else
-                jsonDoc, @object
-.endc
-                parsedJson, JSON_ELEMENT
-                result, boolean
-            endrecord
+            messageReader, @HeaderDelimitedMessageReader
+            out jsonDoc, @object
+            out parsedJson, JSON_ELEMENT
         proc
             ;;reuse the same buffer if possible
             if(mReadBufferSize < header.length)
@@ -859,6 +847,24 @@ namespace Harmony.TraditionalBridge
             end
 
             messageReader.ReadContent(header, mReadBuffer, mReadBufferSize, jsonDoc, parsedJson) 
+        endmethod
+        ;;; <summary>
+        ;;; 
+        ;;; </summary>
+        ;;; <param name="ttChannel"></param>
+        ;;; <param name="frameHeader"></param>
+        ;;; <returns></returns>
+        private method ReadCallBlock, boolean
+            messageReader, @HeaderDelimitedMessageReader
+            serializer, @DispatchSerializer
+            header, ContentHeader
+            record
+                jsonDoc, @object
+                parsedJson, JSON_ELEMENT
+                result, boolean
+            endrecord
+        proc
+            ReadContent(header, messageReader, jsonDoc, parsedJson)
             
             if (!(IS_OBJ(parsedJson)) && !(IS_ARRAY(parsedJson)))
             begin
@@ -942,6 +948,56 @@ namespace Harmony.TraditionalBridge
             endtry
         endmethod
 
+         public method DispatchOne, @object
+            messageReader, @HeaderDelimitedMessageReader
+            serializer, @DispatchSerializer
+            callback, @CallbackDispatcher
+            record
+                running, boolean
+                header, ContentHeader
+                jsonDoc, @object
+                parsedJson, JSON_ELEMENT  
+                callResponse, JSON_ELEMENT  
+                result, @object
+        proc
+            try
+            begin
+                messageReader.ReadHeader(header)
+
+                MaybeLog(5, "Dispatcher: starting client call result processing with ContentLength " + %string(header.length) + " ContentType " + %atrim(header.contentTypeBuffer))
+
+                ReadContent(header, messageReader, jsonDoc, parsedJson)
+
+                if(IS_OBJ(parsedJson)) then
+                begin
+                    if(parsedJson.TryGetProperty("result", callResponse)) then
+                        result = callback.HandleResponse(callResponse, this)
+                    else
+                        throw new Exception("json response didnt contain 'result'")
+                end
+                else
+                    throw new Exception("invalid json response type")
+                
+
+                MaybeLog(1, "Finishing call to client")
+                mreturn result
+            end
+            catch(ex, @Exception)
+            begin
+                try
+                begin
+                    serializer.ReportError(ex.ToString(), (int)-32603, (int)-1)
+                end
+                catch(ex2, @Exception)
+                begin
+                    MaybeLog(1, "failed while writing error " + ex2.ToString() + " original error was " + ex.ToString())
+                    Logger.Instance.CloseLog()
+                end
+                endtry
+            end
+            endtry
+            mreturn ^null
+        endmethod
 
         ;;; <summary>
         ;;; 
@@ -956,6 +1012,16 @@ namespace Harmony.TraditionalBridge
             messageReader = new HeaderDelimitedMessageReader(ttChannel)
             serializer = new DispatchSerializer(new ChannelOutputStream(ttChannel))
             Dispatch(messageReader, serializer)
+        endmethod
+
+        public method DispatchOne, @object
+            serializer, @DispatchSerializer
+            callback, @CallbackDispatcher
+            record
+                messageReader, @HeaderDelimitedMessageReader 
+        proc
+            messageReader = new HeaderDelimitedMessageReader(serializer.CurrentOutChannel())
+            mreturn DispatchOne(messageReader, serializer, callback)
         endmethod
 
         class StopGuard
@@ -1021,6 +1087,10 @@ namespace Harmony.TraditionalBridge
                 requestId = temp.GetInt32()
             else
                 requestId = -1
+
+            ;;grab the next highest request id
+            if(requestId > MaxRequestId)
+                MaxRequestId = requestId
 
             MaybeLog(5, "Dispatcher: requestid " + %string(requestId))
 
@@ -1159,7 +1229,9 @@ namespace Harmony.TraditionalBridge
     ;;; 
     ;;; </summary>
     abstract class RoutineStub
-                
+        public static CurrentDispatcher, @RoutineDispatcher
+        public static CurrentSerializer, @DispatchSerializer
+
         ;;; <summary>
         ;;; 
         ;;; </summary>
@@ -1193,12 +1265,22 @@ namespace Harmony.TraditionalBridge
                 idValue = idElement.GetInt32()
                 MaybeLog(6, "prolog for id " + %string(idValue))
             end
-            
-            serializer.ReportResponseProlog(hasId, idValue)
-            dispatcher.BeforeDispatch(name, callFrame, serializer)
-            DispatchInternal(name, callFrame, serializer, dispatcher)
-            dispatcher.AfterDispatch(name, callFrame, serializer)
-            serializer.ReportResponseEpilog()
+            try
+            begin
+                CurrentDispatcher = dispatcher
+                CurrentSerializer = serializer
+                serializer.ReportResponseProlog(hasId, idValue)
+                dispatcher.BeforeDispatch(name, callFrame, serializer)
+                DispatchInternal(name, callFrame, serializer, dispatcher)
+                dispatcher.AfterDispatch(name, callFrame, serializer)
+                serializer.ReportResponseEpilog()
+            end
+            finally
+            begin
+                CurrentDispatcher = ^null
+                CurrentSerializer = ^null
+            end
+            endtry
         endmethod
 
         public method RCBInit, void

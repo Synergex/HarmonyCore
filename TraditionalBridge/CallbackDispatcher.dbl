@@ -1,0 +1,156 @@
+import System.Collections
+import System
+import Harmony.TraditionalBridge
+import Json
+
+.ifdef DBLV11
+import System.Text.Json
+.define JSON_ELEMENT @JsonElement
+.define IS_OBJ(element) ((element).ValueKind == JsonValueKind.Object)
+.define IS_NUMBER(element) ((element).ValueKind == JsonValueKind.Number)
+.define IS_TEXT(element) ((element).ValueKind == JsonValueKind.String)
+.define IS_ARRAY(element) ((element).ValueKind == JsonValueKind.Array)
+.define IS_BOOLEAN(element) ((element).ValueKind == JsonValueKind.True || (element).ValueKind == JsonValueKind.False)
+.define GET_ELEMENT_TYPENAME(element) %string(element.ValueKind)
+.else
+.define JSON_ELEMENT @JsonValue
+.define IS_OBJ(element) ((element).JsonType == JSON_TYPE.OBJ)
+.define IS_NUMBER(element) ((element).JsonType == JSON_TYPE.NUMBER || (element).JsonType == JSON_TYPE.INT_VAL)
+.define IS_TEXT(element) ((element).JsonType == JSON_TYPE.TEXT)
+.define IS_ARRAY(element) ((element).JsonType == JSON_TYPE.ARRAY_VAL)
+.define IS_BOOLEAN(element) ((element).JsonType == JSON_TYPE.BOOL)
+.define GET_ELEMENT_TYPENAME(element) %string(element.JsonType)
+.endc
+
+.define MaybeLog(priority, msg) if((priority) <= Logger.LogLevel) Logger.Instance.Log(msg)
+
+namespace Harmony.TraditionalBridge
+    public abstract class CallbackDispatcher
+        private dispatcher, @RoutineDispatcher
+        private serializer, @DispatchSerializer
+
+        public method CallbackDispatcher
+            dispatcher, @RoutineDispatcher
+            serializer, @DispatchSerializer
+        proc
+            this.dispatcher = dispatcher
+            this.serializer = serializer
+        endmethod
+
+        public method Invoke, @object
+            name, @string
+            parameters, [#]@object
+        proc
+            dispatcher.MaxRequestId += 1
+            serializer.ReportRequestProlog(true, dispatcher.MaxRequestId, name)
+
+            HandleParameters(parameters, serializer)
+
+            serializer.ReportRequestEpilog()
+            serializer.Flush()
+
+            mreturn dispatcher.DispatchOne(serializer, this)
+        endmethod
+
+        public method Notify, void
+            name, @string
+            parameters, [#]@object
+        proc
+            serializer.ReportRequestProlog(false, -1, name)
+            
+            HandleParameters(parameters, serializer)
+
+            serializer.ReportRequestEpilog()
+            serializer.Flush()
+        endmethod
+
+        protected virtual method HandleParameters, void
+            parameters, [#]@object
+            serializer, @JsonSerializer
+        record
+            indx, i4
+            param, @object
+        proc
+            indx = 0
+            foreach param in parameters
+            begin
+                if(param .is. string) then
+                begin
+                    data strField = (@string)param
+                    serializer.ArgumentData(indx, strField, FieldDataType.StringField, strField.Length, 0, false)
+                end
+                else
+                    throw new Exception("type not implemented for callback dispatcher")
+
+                indx += 1
+            end
+        endmethod
+
+        ;;deserialize whatever comes back and return something useful 
+        public abstract method HandleResponse, @object
+            responseObject, JSON_ELEMENT
+            dispatcher, @RoutineDispatcher
+        proc
+        endmethod
+
+    endclass
+
+
+    public class MessageBoxCallbackDispatcher extends CallbackDispatcher
+        public method MessageBoxCallbackDispatcher
+            dispatcher, @RoutineDispatcher
+            serializer, @DispatchSerializer
+            parent(dispatcher, serializer)
+        proc
+        endmethod
+        
+        public override method HandleResponse, @object
+            responseObject, JSON_ELEMENT
+            dispatcher, @RoutineDispatcher
+        record
+            result, @ArrayList
+            passedValue, JSON_ELEMENT
+        proc
+            if(IS_OBJ(responseObject))
+            begin
+                if(!responseObject.TryGetProperty("PassedValue", passedValue))
+                    throw new Exception("didnt find 'PassedValue'")
+
+                if(IS_ARRAY(passedValue)) then
+                begin
+                    data jsonVal, JSON_ELEMENT
+                    data i, int
+                    data collectionSize, int
+
+                    result = new ArrayList()
+                    collectionSize = passedValue.GetArrayLength()
+                    for i from 1 thru collectionSize - 1 by 1
+                    begin
+                        jsonVal = passedValue[i]
+                        result.Add(dispatcher.GetText(jsonVal))
+                    end
+                    mreturn result
+                end
+                else if(IS_TEXT(passedValue)) then
+                    mreturn dispatcher.GetText(passedValue)
+                else
+                    throw new Exception("unexpected type in MessageBoxCallbackDispatcher")
+            end
+
+            throw new Exception("failed to parse argument data in MessageBoxCallbackDispatcher")
+            
+        endmethod
+    endclass
+
+        subroutine PopMessageBox
+        endparams
+        record
+            dispatcher, @MessageBoxCallbackDispatcher
+            resultObj, @object
+        proc
+            dispatcher = new MessageBoxCallbackDispatcher(RoutineStub.CurrentDispatcher, RoutineStub.CurrentSerializer.MakeRequestSerializer())
+            resultObj = dispatcher.Invoke("CallMe", new object[#] { (@string)"string", (@string)"value" })
+            xreturn
+            ;;cast result obj as ArrayList, do something with the strings inside
+        endsubroutine
+endnamespace

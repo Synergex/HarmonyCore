@@ -17,6 +17,7 @@ namespace Harmony.Core.Context
 		private static NewLineBytes, [#]Byte, new byte[#] { 10, 13 }
 		private mTargetProcess, @Process
 		private mProcessStarted, boolean, false
+		private mLocalRPCHandlers, @Dictionary<string, Delegate> 
 		private mMakeReadyTask, @Lazy<Task<JsonRpc>>
 		private mDisconnectToken, @CancellationTokenSource
 		public method ProcessDynamicCallConnection
@@ -24,6 +25,7 @@ namespace Harmony.Core.Context
 		proc
 			mTargetProcess = new Process()
 			mTargetProcess.StartInfo = startInfo
+			mLocalRPCHandlers = new Dictionary<string, Delegate>()
 			mMakeReadyTask = new Lazy<Task<JsonRpc>>(MakeReadyInternal)
 			mDisconnectToken = new CancellationTokenSource()
 			IsHealthy = true
@@ -99,6 +101,23 @@ namespace Harmony.Core.Context
 			await jsonRpcConnection.NotifyAsync(name, args.OfType<Object>().ToArray())
 		endmethod
 
+		public method AddLocalRpcMethod, void
+			name, @string
+			handler, @Delegate
+		proc
+			if(!mLocalRPCHandlers.ContainsKey(name))
+			begin
+				mLocalRPCHandlers.Add(name, handler)
+				if(mMakeReadyTask.IsValueCreated && mMakeReadyTask.Value.Status == TaskStatus.RanToCompletion)
+				begin
+					if(handler.Method.IsStatic) then
+						mMakeReadyTask.Value.Result.AddLocalRpcMethod(name, handler.Method, ^null)
+					else
+						mMakeReadyTask.Value.Result.AddLocalRpcMethod(name, handler.Method, handler.Target)
+				end
+			end
+		endmethod
+
 		private async method MakeReadyInternal, @Task<JsonRpc>
 			endparams
 		proc
@@ -142,6 +161,16 @@ namespace Harmony.Core.Context
             begin
                 result.TraceSource = new TraceSource("Client", SourceLevels.All)
             end
+
+			data rpcKvp, KeyValuePair<string, Delegate>
+			foreach rpcKvp in mLocalRPCHandlers
+			begin
+				if(rpcKvp.Value.Method.IsStatic) then
+					result.AddLocalRpcMethod(rpcKvp.Key, rpcKvp.Value.Method, ^null)
+				else
+					result.AddLocalRpcMethod(rpcKvp.Key, rpcKvp.Value.Method, rpcKvp.Value.Target)
+			end
+
 			result.StartListening()
 			mreturn result
 		endmethod
