@@ -1,15 +1,16 @@
-﻿using GalaSoft.MvvmLight;
-using GalaSoft.MvvmLight.Messaging;
+﻿using Microsoft.Toolkit.Mvvm;
+using Microsoft.Toolkit.Mvvm.Messaging;
 using HarmonyCoreGenerator.Model;
+using Microsoft.Toolkit.Mvvm.ComponentModel;
 
 namespace HarmonyCoreCodeGenGUI.ViewModels
 {
-    public class SettingsTabViewModel : ViewModelBase
+    public class SettingsTabViewModel : ObservableObject
     {
         public SettingsTabViewModel()
         {
             // Initial state
-            Messenger.Default.Register<Solution>(this, solution => {
+            StrongReferenceMessenger.Default.Register<Solution>(this, (obj, solution) => {
                 EnableNewtonsoftJson = solution.EnableNewtonsoftJson;
                 SignalRPath = solution.SignalRPath;
 
@@ -35,7 +36,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             });
 
             // Send updated state
-            Messenger.Default.Register<NotificationMessageAction<SettingsTabViewModel>>(this, callback => callback.Execute(this));
+            StrongReferenceMessenger.Default.Register<NotificationMessageAction<SettingsTabViewModel>>(this, (obj, sender) => sender.callback(this));
         }
 
         #region EnableNewtonsoftJson
@@ -48,8 +49,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _enableNewtonsoftJson = value;
-                RaisePropertyChanged(() => EnableNewtonsoftJson);
+                SetProperty(ref _enableNewtonsoftJson, value);
             }
         }
         #endregion
@@ -63,8 +63,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _signalRPath = value;
-                RaisePropertyChanged(() => SignalRPath);
+                SetProperty(ref _signalRPath, value);
             }
         }
         #endregion
@@ -79,8 +78,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _controllersFolder = value;
-                RaisePropertyChanged(() => ControllersFolder);
+                SetProperty(ref _controllersFolder, value);
             }
         }
         #endregion
@@ -94,8 +92,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _dataFolder = value;
-                RaisePropertyChanged(() => DataFolder);
+                SetProperty(ref _dataFolder, value);
             }
         }
         #endregion
@@ -109,8 +106,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _isolatedFolder = value;
-                RaisePropertyChanged(() => IsolatedFolder);
+                SetProperty(ref _isolatedFolder, value);
             }
         }
         #endregion
@@ -124,8 +120,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _modelsFolder = value;
-                RaisePropertyChanged(() => ModelsFolder);
+                SetProperty(ref _modelsFolder, value);
             }
         }
         #endregion
@@ -139,8 +134,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _selfHostFolder = value;
-                RaisePropertyChanged(() => SelfHostFolder);
+                SetProperty(ref _selfHostFolder, value);
             }
         }
         #endregion
@@ -154,8 +148,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _servicesFolder = value;
-                RaisePropertyChanged(() => ServicesFolder);
+                SetProperty(ref _servicesFolder, value);
             }
         }
         #endregion
@@ -169,8 +162,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _solutionFolder = value;
-                RaisePropertyChanged(() => SolutionFolder);
+                SetProperty(ref _solutionFolder, value);
             }
         }
         #endregion
@@ -184,8 +176,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _templatesFolder = value;
-                RaisePropertyChanged(() => TemplatesFolder);
+                SetProperty(ref _templatesFolder, value);
             }
         }
         #endregion
@@ -199,8 +190,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _traditionalBridgeFolder = value;
-                RaisePropertyChanged(() => TraditionalBridgeFolder);
+                SetProperty(ref _traditionalBridgeFolder, value);
             }
         }
         #endregion
@@ -214,8 +204,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _unitTestFolder = value;
-                RaisePropertyChanged(() => UnitTestFolder);
+                SetProperty(ref _unitTestFolder, value);
             }
         }
         #endregion
@@ -230,8 +219,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _clientModelsNamespace = value;
-                RaisePropertyChanged(() => ClientModelsNamespace);
+                SetProperty(ref _clientModelsNamespace, value);
             }
         }
         #endregion
@@ -245,8 +233,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _controllersNamespace = value;
-                RaisePropertyChanged(() => ControllersNamespace);
+                SetProperty(ref _controllersNamespace, value);
             }
         }
         #endregion
@@ -260,8 +247,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _modelsNamespace = value;
-                RaisePropertyChanged(() => ModelsNamespace);
+                SetProperty(ref _modelsNamespace, value);
             }
         }
         #endregion
@@ -275,8 +261,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _selfHostNamespace = value;
-                RaisePropertyChanged(() => SelfHostNamespace);
+                SetProperty(ref _selfHostNamespace, value);
             }
         }
         #endregion
@@ -290,8 +275,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _servicesNamespace = value;
-                RaisePropertyChanged(() => ServicesNamespace);
+                SetProperty(ref _servicesNamespace, value);
             }
         }
         #endregion
@@ -305,8 +289,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _traditionalBridgeNamespace = value;
-                RaisePropertyChanged(() => TraditionalBridgeNamespace);
+                SetProperty(ref _traditionalBridgeNamespace, value);
             }
         }
         #endregion
@@ -320,8 +303,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _unitTestsBaseNamespace = value;
-                RaisePropertyChanged(() => UnitTestsBaseNamespace);
+                SetProperty(ref _unitTestsBaseNamespace, value);
             }
         }
         #endregion
@@ -335,8 +317,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _unitTestsNamespace = value;
-                RaisePropertyChanged(() => UnitTestsNamespace);
+                SetProperty(ref _unitTestsNamespace, value);
             }
         }
         #endregion

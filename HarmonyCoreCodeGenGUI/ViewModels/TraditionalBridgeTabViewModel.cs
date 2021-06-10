@@ -1,15 +1,16 @@
-﻿using GalaSoft.MvvmLight;
-using GalaSoft.MvvmLight.Messaging;
+﻿using Microsoft.Toolkit.Mvvm;
+using Microsoft.Toolkit.Mvvm.Messaging;
 using HarmonyCoreGenerator.Model;
+using Microsoft.Toolkit.Mvvm.ComponentModel;
 
 namespace HarmonyCoreCodeGenGUI.ViewModels
 {
-    public class TraditionalBridgeTabViewModel : ViewModelBase
+    public class TraditionalBridgeTabViewModel : ObservableObject
     {
         public TraditionalBridgeTabViewModel()
         {
             // Initial state
-            Messenger.Default.Register<Solution>(this, sender => {
+            StrongReferenceMessenger.Default.Register<Solution>(this, (obj, sender) => {
                 ControllersProject = sender.ControllersProject;
                 IsolatedProject = sender.IsolatedProject;
                 ModelsProject = sender.ModelsProject;
@@ -24,7 +25,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             });
 
             // Send updated state
-            Messenger.Default.Register<NotificationMessageAction<TraditionalBridgeTabViewModel>>(this, callback => callback.Execute(this));
+            StrongReferenceMessenger.Default.Register<NotificationMessageAction<TraditionalBridgeTabViewModel>>(this, (obj, sender) => sender.callback(this));
         }
 
         #region ControllersProject
@@ -37,8 +38,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _controllersProject = value;
-                RaisePropertyChanged(() => ControllersProject);
+                SetProperty(ref _controllersProject, value);
             }
         }
         #endregion
@@ -52,8 +52,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _isolatedProject = value;
-                RaisePropertyChanged(() => IsolatedProject);
+                SetProperty(ref _isolatedProject, value);
             }
         }
         #endregion
@@ -67,8 +66,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _modelsProject = value;
-                RaisePropertyChanged(() => ModelsProject);
+                SetProperty(ref _modelsProject, value);
             }
         }
         #endregion
@@ -82,8 +80,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _selfHostProject = value;
-                RaisePropertyChanged(() => SelfHostProject);
+                SetProperty(ref _selfHostProject, value);
             }
         }
         #endregion
@@ -97,8 +94,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _servicesProject = value;
-                RaisePropertyChanged(() => ServicesProject);
+                SetProperty(ref _servicesProject, value);
             }
         }
         #endregion
@@ -112,8 +108,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _traditionalBridgeProject = value;
-                RaisePropertyChanged(() => TraditionalBridgeProject);
+                SetProperty(ref _traditionalBridgeProject, value);
             }
         }
         #endregion
@@ -127,8 +122,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _unitTestProject = value;
-                RaisePropertyChanged(() => UnitTestProject);
+                SetProperty(ref _unitTestProject, value);
             }
         }
         #endregion
@@ -143,8 +137,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _enableOptionalParameters = value;
-                RaisePropertyChanged(() => EnableOptionalParameters);
+                SetProperty(ref _enableOptionalParameters, value);
             }
         }
         #endregion
@@ -158,8 +151,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _enableSampleDispatchers = value;
-                RaisePropertyChanged(() => EnableSampleDispatchers);
+                SetProperty(ref _enableSampleDispatchers, value);
             }
         }
         #endregion
@@ -173,8 +165,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _enableXFServerPlusMigration = value;
-                RaisePropertyChanged(() => EnableXFServerPlusMigration);
+                SetProperty(ref _enableXFServerPlusMigration, value);
             }
         }
         #endregion
