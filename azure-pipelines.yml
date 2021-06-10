@@ -141,13 +141,13 @@ stages:
         command: 'pack'
         packagesToPack: '*.nuspec'
         versioningScheme: 'byBuildNumber'
+    
     - task: NuGetCommand@2
-      condition: ne(variables['Build.Reason'], 'PullRequest')
       inputs:
         command: 'push'
         packagesToPush: '$(Build.ArtifactStagingDirectory)/*.nupkg'
-        nuGetFeedType: 'external'
-        publishFeedCredentials: 'HarmonyBuild'
+        nuGetFeedType: 'internal'
+        publishVstsFeed: '632eef26-b5e5-49d5-83f0-091dbb16477c'
 
 #    - publish: '$(Pipeline.Workspace)\\s\\Services.Host\\bin\\Release\\netcoreapp3.1\\publish'
 #      displayName: 'Publish Linux Services.Host Artifact'
