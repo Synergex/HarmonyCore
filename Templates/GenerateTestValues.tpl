@@ -1,16 +1,16 @@
 <CODEGEN_FILENAME>GenerateTestValues.dbl</CODEGEN_FILENAME>
 <REQUIRES_CODEGEN_VERSION>5.6.5</REQUIRES_CODEGEN_VERSION>
-<REQUIRES_USERTOKEN>UNIT_TEST_NAMESPACE</REQUIRES_USERTOKEN>
+<REQUIRES_USERTOKEN>UNIT_TESTS_NAMESPACE</REQUIRES_USERTOKEN>
 
 import System
 import System.Text.Json
 import System.Text.Json.Serialization
 import System.IO
-import <UNIT_TEST_NAMESPACE>
+import <UNIT_TESTS_NAMESPACE>
 
 main GenerateTestValues
 proc
-    <UNIT_TEST_NAMESPACE>.UnitTestEnvironment.AssemblyInitialize(^null)
+    <UNIT_TESTS_NAMESPACE>.UnitTestEnvironment.AssemblyInitialize(^null)
     new GenerateTestValues().SerializeValues()
 endmain
 
@@ -65,7 +65,7 @@ namespace Services.Test.GenerateValues
                 read(chin,<structureNoplural>,^LAST) [ERR=eof<StructureNoplural>2]
               <PRIMARY_KEY>
                 <SEGMENT_LOOP>
-                TestConstants.Instance.Get<StructureNoplural>_<SegmentName> = <IF SEG_TYPE_FIELD><structureNoplural>.<segment_name><ELSE SEG_TYPE_LITERAL>"<SEGMENT_LITVAL>"</IF SEG_TYPE_FIELD>
+                TestConstants.Instance.Get<StructureNoplural>_<SegmentName> = <IF DATEORTIME>DecToDateTime(<structureNoplural>.<segment_name>, "<FIELD_CLASS>")<ELSE SEG_TYPE_FIELD><structureNoplural>.<segment_name><ELSE SEG_TYPE_LITERAL>"<SEGMENT_LITVAL>"</IF DATEORTIME>
                 </SEGMENT_LOOP>
               </PRIMARY_KEY>
                 exitloop
@@ -79,14 +79,14 @@ namespace Services.Test.GenerateValues
           <RELATION_LOOP_RESTRICTED>
             <PRIMARY_KEY>
               <SEGMENT_LOOP>
-            TestConstants.Instance.Get<StructureNoplural>_Expand_<HARMONYCORE_RELATION_NAME>_<SegmentName> = <IF SEG_TYPE_FIELD><structureNoplural>.<segment_name><ELSE SEG_TYPE_LITERAL>"<SEGMENT_LITVAL>"</IF SEG_TYPE_FIELD>
+            TestConstants.Instance.Get<StructureNoplural>_Expand_<HARMONYCORE_RELATION_NAME>_<SegmentName> = <IF DATEORTIME>DecToDateTime(<structureNoplural>.<segment_name>, "<FIELD_CLASS>")<ELSE SEG_TYPE_FIELD><structureNoplural>.<segment_name><ELSE SEG_TYPE_LITERAL>"<SEGMENT_LITVAL>"</IF DATEORTIME>
               </SEGMENT_LOOP>
             </PRIMARY_KEY>
           </RELATION_LOOP_RESTRICTED>
 ;//
           <PRIMARY_KEY>
             <SEGMENT_LOOP>
-            TestConstants.Instance.Get<StructureNoplural>_Expand_All_<SegmentName> = <IF SEG_TYPE_FIELD><structureNoplural>.<segment_name><ELSE SEG_TYPE_LITERAL>"<SEGMENT_LITVAL>"</IF SEG_TYPE_FIELD>
+            TestConstants.Instance.Get<StructureNoplural>_Expand_All_<SegmentName> = <IF DATEORTIME>DecToDateTime(<structureNoplural>.<segment_name>, "<FIELD_CLASS>")<ELSE SEG_TYPE_FIELD><structureNoplural>.<segment_name><ELSE SEG_TYPE_LITERAL>"<SEGMENT_LITVAL>"</IF DATEORTIME>
             </SEGMENT_LOOP>
           </PRIMARY_KEY>
         </IF STRUCTURE_RELATIONS>
@@ -101,7 +101,7 @@ namespace Services.Test.GenerateValues
   <ALTERNATE_KEY_LOOP_UNIQUE>
   <IF DUPLICATES>
     <SEGMENT_LOOP>
-            TestConstants.Instance.Get<StructureNoplural>_ByAltKey_<KeyName>_<SegmentName> = <IF DATEORTIME>DecToDateTime(<structureNoplural>.<segment_name>, <IF DATE_YYMMDD>"YYMMDD</IF DATE_YYMMDD><IF DATE_YYYYMMDD>"YYYYMMDD"</IF DATE_YYYYMMDD><IF DATE_YYJJJ>"YYJJJ"</IF DATE_YYJJJ><IF DATE_YYYYJJJ>"YYYYJJJ"</IF DATE_YYYYJJJ><IF DATE_YYPP>"YYPP"</IF DATE_YYPP><IF DATE_YYYYPP>"YYYYPP"</IF DATE_YYYYPP><IF TIME_HHMM>"HHMM"</IF TIME_HHMM><IF TIME_HHMMSS>"HHMMSS"</IF TIME_HHMMSS>)<ELSE><IF SEG_TYPE_FIELD><structureNoplural>.<segment_name><ELSE SEG_TYPE_LITERAL>"<SEGMENT_LITVAL>"</IF SEG_TYPE_FIELD></IF DATEORTIME>
+            TestConstants.Instance.Get<StructureNoplural>_ByAltKey_<KeyName>_<SegmentName> = <IF DATEORTIME>DecToDateTime(<structureNoplural>.<segment_name>, "<FIELD_CLASS>")<ELSE SEG_TYPE_FIELD><structureNoplural>.<segment_name><ELSE SEG_TYPE_LITERAL>"<SEGMENT_LITVAL>"</IF DATEORTIME>
     </SEGMENT_LOOP>
   </IF DUPLICATES>
   </ALTERNATE_KEY_LOOP_UNIQUE>
@@ -110,7 +110,7 @@ namespace Services.Test.GenerateValues
 ;//
   <PRIMARY_KEY>
     <SEGMENT_LOOP>
-            TestConstants.Instance.Update<StructureNoplural>_<SegmentName> = <IF SEG_TYPE_FIELD><structureNoplural>.<segment_name><ELSE SEG_TYPE_LITERAL>"<SEGMENT_LITVAL>"</IF SEG_TYPE_FIELD> + <IF ALPHA>"A"<ELSE>1</IF ALPHA>
+            TestConstants.Instance.Update<StructureNoplural>_<SegmentName> = <IF DATEORTIME>DecToDateTime(<structureNoplural>.<segment_name>, "<FIELD_CLASS>").AddDays(1)<ELSE><IF SEG_TYPE_FIELD><structureNoplural>.<segment_name><ELSE SEG_TYPE_LITERAL>"<SEGMENT_LITVAL>"</IF SEG_TYPE_FIELD> + <IF ALPHA>"A"<ELSE>1</IF ALPHA></IF DATEORTIME>
     </SEGMENT_LOOP>
   </PRIMARY_KEY>
 
@@ -118,7 +118,7 @@ namespace Services.Test.GenerateValues
   </IF STRUCTURE_ISAM>
 </STRUCTURE_LOOP>
 
-            data jsonFilePath = <UNIT_TEST_NAMESPACE>.UnitTestEnvironment.FindRelativeFolderForAssembly("<UNIT_TEST_NAMESPACE>")
+            data jsonFilePath = <UNIT_TESTS_NAMESPACE>.UnitTestEnvironment.FindRelativeFolderForAssembly("<UNIT_TESTS_NAMESPACE>")
             File.WriteAllText(Path.Combine(jsonFilePath, "TestConstants.Values.json"), JsonSerializer.Serialize(TestConstants.Instance, new JsonSerializerOptions(){ WriteIndented = true }))
         endmethod
     endclass

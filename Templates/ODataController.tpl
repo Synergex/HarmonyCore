@@ -264,10 +264,13 @@ namespace <NAMESPACE>
 ;//
 <IF STRUCTURE_ISAM AND DEFINED_ENABLE_ALTERNATE_KEYS AND ALTERNATE_KEY_ENDPOINTS> 
   <ALTERNATE_KEY_LOOP_UNIQUE>
-    <IF DUPLICATES>
         {ODataRoute("(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>={a<FieldSqlName>}<,></IF></SEGMENT_LOOP>)")}
         {Produces("application/json")}
+    <IF DUPLICATES>
         {ProducesResponseType(^typeof(ODataValue<IEnumerable<<StructureNoplural>>>),StatusCodes.Status200OK)}
+    <ELSE>
+        {ProducesResponseType(^typeof(ODataValue<<StructureNoplural>>),StatusCodes.Status200OK)}
+    </IF DUPLICATES>
       <IF DEFINED_ENABLE_AUTHENTICATION>
         {ProducesResponseType(StatusCodes.Status401Unauthorized)}
       </IF>
@@ -300,9 +303,12 @@ namespace <NAMESPACE>
             data result = _DbContext.<StructurePlural>.AsNoTracking().FindAlternate(<SEGMENT_LOOP>"<FieldSqlName>",<IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName></IF><,></SEGMENT_LOOP>)
             if (result == ^null)
                 mreturn NotFound()
+            <IF DUPLICATES>
             mreturn Ok(result)
+            <ELSE>
+            mreturn Ok(result.SingleResult())
+            </IF>
         endmethod
-    </IF DUPLICATES>
 
   </ALTERNATE_KEY_LOOP_UNIQUE>
 </IF>
