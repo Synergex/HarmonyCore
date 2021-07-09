@@ -303,11 +303,8 @@ namespace <NAMESPACE>
             data result = _DbContext.<StructurePlural>.AsNoTracking().FindAlternate(<SEGMENT_LOOP>"<FieldSqlName>",<IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName></IF><,></SEGMENT_LOOP>)
             if (result == ^null)
                 mreturn NotFound()
-            <IF DUPLICATES>
+
             mreturn Ok(result)
-            <ELSE>
-            mreturn Ok(result.SingleResult())
-            </IF>
         endmethod
 
   </ALTERNATE_KEY_LOOP_UNIQUE>
