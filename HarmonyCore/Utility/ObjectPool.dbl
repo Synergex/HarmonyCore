@@ -1,0 +1,304 @@
+
+;;  Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+;;  define TRACE_LEAKS to get additional diagnostics that can lead to the leak sources. note: it will
+;;  make everything about 2-3x slower
+;;  
+;;  #define TRACE_LEAKS
+;;  define DETECT_LEAKS to detect possible leaks
+;;  #if DEBUG
+;;  #define DETECT_LEAKS  //for now always enable DETECT_LEAKS in debug.
+;;  #endif
+import System
+import System.Diagnostics
+import System.Threading
+import System.Linq
+.ifdef DETECT_LEAKS
+;; using System.Runtime.CompilerServices;
+.endc
+
+.array 0
+
+namespace Microsoft.CodeAnalysis.PooledObjects
+    
+	;;;  <summary>
+	;;;  Generic implementation of object pooling pattern with predefined pool size limit. The main
+	;;;  purpose is that limited number of frequently used objects can be kept in the pool for
+	;;;  further recycling.
+	;;;  
+	;;;  Notes: 
+	;;;  1) it is not the goal to keep all returned objects. Pool is not meant for storage. If there
+	;;;     is no space in the pool, extra returned objects will be dropped.
+	;;;  
+	;;;  2) it is implied that if object was obtained from a pool, the caller will return it back in
+	;;;     a relatively short time. Keeping checked out objects for long durations is ok, but 
+	;;;     reduces usefulness of pooling. Just new up your own.
+	;;;  
+	;;;  Not returning objects to the pool in not detrimental to the pool's work, but is a bad practice. 
+	;;;  Rationale: 
+	;;;     If there is no intent for reusing the object, do not use pool - just use "new". 
+	;;;  </summary>
+	public class ObjectPool<T(class)>
+        
+		;;  Storage for the pool objects. The first item is stored in a dedicated field because we
+		;;  expect to be able to satisfy most requests from it.
+        
+		private _firstItem, T
+		private readonly _items, [#]T
+		;;  factory is stored for the lifetime of the pool. We will call this only when pool needs to
+		;;  expand. compared to "new T()", Func gives more flexibility to implementers and faster
+		;;  than "new T()".
+        
+		private readonly _factory, @Func<IServiceProvider, T>
+        
+.ifdef DETECT_LEAKS
+		;;         private static readonly ConditionalWeakTable<T, LeakTracker> leakTrackers = new ConditionalWeakTable<T, LeakTracker>();;;         private class LeakTracker : IDisposable
+		;;         {
+		;;             private volatile bool disposed;
+        
+.ifdef TRACE_LEAKS
+		;; #            internal volatile object Trace = null;
+        
+.endc
+		;; #
+		;;             public void Dispose()
+		;;             {
+		;;                 disposed = true;
+		;;                 GC.SuppressFinalize(this);
+		;;             };;             private string GetTrace()
+		;;             {
+        
+.ifdef TRACE_LEAKS
+		;; #                return Trace == null ? "" : Trace.ToString();
+        
+.else
+		;; #                return "Leak tracing information is disabled. Define TRACE_LEAKS on ObjectPool`1.cs to get more info \n";
+        
+.endc
+		;; #            };;             ~LeakTracker()
+		;;             {
+		;;                 if (!this.disposed && !Environment.HasShutdownStarted)
+		;;                 {
+		;;                     var trace = GetTrace();;;                     // If you are seeing this message it means that object has been allocated from the pool 
+		;;                     // and has not been returned back. This is not critical, but turns pool into rather 
+		;;                     // inefficient kind of "new".
+		;;                     Debug.WriteLine($"TRACEOBJECTPOOLLEAKS_BEGIN\nPool detected potential leaking of {typeof(T)}. \n Location of the leak: \n {GetTrace()} TRACEOBJECTPOOLLEAKS_END");
+		;;                 }
+		;;             }
+		;;         }
+        
+.endc
+        
+		public method ObjectPool
+			factory, @Func<IServiceProvider, T> 
+			endparams
+			this(factory, Environment.ProcessorCount * 2)
+		proc
+        
+		endmethod
+        
+		public method ObjectPool
+			factory, @Func<IServiceProvider, T> 
+			size, int 
+			endparams
+		proc
+			Debug.Assert(size >= 1)
+			_factory = factory
+			_items = new T[size - 1] 
+		endmethod
+        
+		public property Count, int
+			method get
+			proc
+				data basicCount, int, _items.Where(lambda(itm) { itm != ^null }).Count()
+				if(_firstItem != ^null)
+					basicCount += 1
+				mreturn basicCount
+			endmethod
+		endproperty
+
+		private method CreateInstance, T
+			serviceProvider, @IServiceProvider
+			endparams
+		proc
+			data inst = _factory(serviceProvider)
+			mreturn inst
+		endmethod
+        
+		;;;  <summary>
+		;;;  Produces an instance.
+		;;;  </summary>
+		;;;  <remarks>
+		;;;  Search strategy is a simple linear probing which is chosen for it cache-friendliness.
+		;;;  Note that Free will try to store recycled objects close to the start thus statistically 
+		;;;  reducing how far we will typically search.
+		;;;  </remarks>
+		public method Allocate, T
+			serviceProvider, @IServiceProvider
+			endparams
+		proc
+			;;  PERF: Examine the first element. If that fails, AllocateSlow will look at the remaining elements.
+			;;  Note that the initial read is optimistically not synchronized. That is intentional. 
+			;;  We will interlock only when we have a candidate. in a worst case we may miss some
+			;;  recently returned objects. Not a big deal.
+			data inst, T, _firstItem
+			if ((inst == ^null) || (inst != Interlocked.CompareExchange(_firstItem, ^null, inst)))
+			begin
+				inst = AllocateSlow(serviceProvider)
+			end
+            
+.ifdef DETECT_LEAKS
+			;;             var tracker = new LeakTracker();
+			;;             leakTrackers.Add(inst, tracker);
+            
+.ifdef TRACE_LEAKS
+			;; #            var frame = CaptureStackTrace();
+			;;             tracker.Trace = frame;
+            
+.endc
+            
+.endc
+			mreturn inst
+		endmethod
+        
+		private method AllocateSlow, T
+			serviceProvider, @IServiceProvider
+			endparams
+		proc
+			data items = _items
+			begin
+				data i, int
+				for i from 0 thru items.Length - 1
+				begin
+					;;  Note that the initial read is optimistically not synchronized. That is intentional. 
+					;;  We will interlock only when we have a candidate. in a worst case we may miss some
+					;;  recently returned objects. Not a big deal.
+					data inst, T, items[i]
+					if (inst != ^null)
+					begin
+						if (inst == Interlocked.CompareExchange(items[i], ^null, inst))
+						begin
+							mreturn inst
+						end
+					end
+				end
+			end
+			mreturn CreateInstance(serviceProvider)
+		endmethod
+        
+		;;;  <summary>
+		;;;  Returns objects to the pool.
+		;;;  </summary>
+		;;;  <remarks>
+		;;;  Search strategy is a simple linear probing which is chosen for it cache-friendliness.
+		;;;  Note that Free will try to store recycled objects close to the start thus statistically 
+		;;;  reducing how far we will typically search in Allocate.
+		;;;  </remarks>
+		public method Free, void
+			obj, T 
+			endparams
+		proc
+			Validate((@Object)obj)
+			ForgetTrackedObject(obj, ^null)
+			if (_firstItem == ^null) then
+			begin
+				;;  Intentionally not using interlocked here. 
+				;;  In a worst case scenario two objects may be stored into same slot.
+				;;  It is very unlikely to happen and will only mean that one of the objects will get collected.
+				_firstItem = obj
+			end
+			else
+			begin
+				FreeSlow(obj)
+			end
+		endmethod
+        
+		private method FreeSlow, void
+			obj, T 
+			endparams
+		proc
+			data items = _items
+			begin
+				data i, int
+				for i from 0 thru items.Length - 1
+				begin
+					if (items[i] == ^null)
+					begin
+						;;  Intentionally not using interlocked here. 
+						;;  In a worst case scenario two objects may be stored into same slot.
+						;;  It is very unlikely to happen and will only mean that one of the objects will get collected.
+						items[i] = obj
+						exitloop
+					end
+				end
+			end
+		endmethod
+        
+		;;;  <summary>
+		;;;  Removes an object from leak tracking.  
+		;;;  
+		;;;  This is called when an object is returned to the pool.  It may also be explicitly 
+		;;;  called if an object allocated from the pool is intentionally not being returned
+		;;;  to the pool.  This can be of use with pooled arrays if the consumer wants to 
+		;;;  return a larger array to the pool than was originally allocated.
+		;;;  </summary>
+		{Conditional("DEBUG")}
+		public method ForgetTrackedObject, void
+			old, T 
+			replacement, T
+			endparams
+		proc
+            
+            
+.ifdef DETECT_LEAKS
+			;;             LeakTracker tracker;
+			;;             if (leakTrackers.TryGetValue(old, out tracker))
+			;;             {
+			;;                 tracker.Dispose();
+			;;                 leakTrackers.Remove(old);
+			;;             }
+			;;             else
+			;;             {
+			;;                 var trace = CaptureStackTrace();
+			;;                 Debug.WriteLine($"TRACEOBJECTPOOLLEAKS_BEGIN\nObject of type {typeof(T)} was freed, but was not from pool. \n Callstack: \n {trace} TRACEOBJECTPOOLLEAKS_END");
+			;;             };;             if (replacement != null)
+			;;             {
+			;;                 tracker = new LeakTracker();
+			;;                 leakTrackers.Add(replacement, tracker);
+			;;             }
+            
+.endc
+		endmethod
+        
+.ifdef DETECT_LEAKS
+		;;         private static Lazy<Type> _stackTraceType = new Lazy<Type>(() => Type.GetType("System.Diagnostics.StackTrace"));;;         private static object CaptureStackTrace()
+		;;         {
+		;;             return Activator.CreateInstance(_stackTraceType.Value);
+		;;         }
+        
+.endc
+        
+		{Conditional("DEBUG")}
+		private method Validate, void
+			obj, @object 
+			endparams
+		proc
+			Debug.Assert(obj != ^null, "freeing null?")
+			Debug.Assert((@Object)_firstItem != obj, "freeing twice?")
+			data items = _items
+			begin
+				data i, int
+				for i from 0 thru items.Length - 1
+				begin
+					data value = items[i]
+					if (value == ^null)
+					begin
+						mreturn
+					end
+					Debug.Assert((@Object)value != obj, "freeing twice?")
+				end
+			end
+		endmethod
+	endclass
+endnamespace
+
+
