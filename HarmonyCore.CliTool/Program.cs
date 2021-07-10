@@ -9,6 +9,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -16,6 +17,10 @@ using System.Threading.Tasks;
 
 namespace HarmonyCore.CliTool
 {
+    [Verb("gui", false)]
+    internal class GUIOptions
+    {
+    }
     [Verb("upgrade-latest")]
     class UpgradeLatestOptions
     {
@@ -156,9 +161,9 @@ Known structure properties:
 
     class Program
     {
-        public static string BuildPackageVersion = "11.1.1060.2805";
+        public static string BuildPackageVersion = "11.1.1070.3107";
         public static string CodeDomProviderVersion = "1.0.7";
-        public static string HCBuildVersion = "3.1.351  ";
+        public static string HCBuildVersion = "3.1.442";
         public static Dictionary<string, string> LatestNugetReferences;
 
         public static List<string> HCRegenRequiredVersions = new List<string>
@@ -174,12 +179,37 @@ Known structure properties:
         [DllImport("kernel32.dll", SetLastError = true)]
         static extern IntPtr GetStdHandle(int nStdHandle);
 
+        static (IntPtr stdout, uint consoleMode) GetConsoleState()
+        {
+            try
+            {
+                if(System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    var handle = GetStdHandle(STD_INPUT_HANDLE);
+                    uint currentMode = 0;
+                    GetConsoleMode(handle, out currentMode);
+                    return (handle, currentMode);
+                }
+            }
+            catch
+            {
+                
+            }
+
+            return (IntPtr.Zero, 0);
+        }
+
+        static void ResetConsoleMode(IntPtr stdout, uint consoleMode)
+        {
+            if(stdout != IntPtr.Zero)
+            {
+                SetConsoleMode(stdout, consoleMode);
+            }
+        }
 
         static void Main(string[] args)
         {
-            var handle = GetStdHandle(STD_INPUT_HANDLE);
-            uint currentMode = 0;
-            GetConsoleMode(handle, out currentMode);
+            var (handle, mode) = GetConsoleState();
             var versionOverride = Environment.GetEnvironmentVariable("HC_VERSION");
             if (!string.IsNullOrWhiteSpace(versionOverride))
             {
@@ -193,7 +223,7 @@ Known structure properties:
                 {"Harmony.Core.EF", HCBuildVersion},
                 {"Harmony.Core.OData", HCBuildVersion},
                 {"Harmony.Core.AspNetCore", HCBuildVersion},
-                {"Synergex.SynergyDE.synrnt", "11.1.1060"},
+                {"Synergex.SynergyDE.synrnt", "11.1.1070"},
                 {"Synergex.SynergyDE.Build", BuildPackageVersion},
                 {"Microsoft.AspNetCore.Mvc.NewtonsoftJson", "3.1.6"},
                 {"Microsoft.AspNetCore.Mvc.Testing", "3.1.6"},
@@ -236,14 +266,10 @@ Known structure properties:
             }
             var solutionInfo = new SolutionInfo(synprojFiles, solutionDir);
 
-            if (!SetConsoleMode(handle, currentMode))
-            {
-                throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
-            }
+            ResetConsoleMode(handle, mode);
 
-
-            _ = Parser.Default.ParseArguments<UpgradeLatestOptions, CodegenListOptions, CodegenAddOptions, CodegenRemoveOptions, RpsOptions, RegenOptions, XMLGenOptions>(args)
-            .MapResult<UpgradeLatestOptions, CodegenListOptions, CodegenAddOptions, CodegenRemoveOptions, RpsOptions, RegenOptions, XMLGenOptions, int>(
+            _ = Parser.Default.ParseArguments<UpgradeLatestOptions, CodegenListOptions, CodegenAddOptions, CodegenRemoveOptions, RpsOptions, RegenOptions, XMLGenOptions, GUIOptions>(args)
+            .MapResult<UpgradeLatestOptions, CodegenListOptions, CodegenAddOptions, CodegenRemoveOptions, RpsOptions, RegenOptions, XMLGenOptions, GUIOptions, int>(
 
               (UpgradeLatestOptions opts) =>
               {
@@ -270,6 +296,7 @@ Known structure properties:
               new RPSCommand(solutionInfo).Run,
               new RegenCommand(solutionInfo).Run,
               new XMLGenCommand().Run,
+              new GUICommand(solutionInfo).Run,
               errs =>
               {
                   foreach (var error in errs)

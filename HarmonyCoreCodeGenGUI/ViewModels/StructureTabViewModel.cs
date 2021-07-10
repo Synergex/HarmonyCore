@@ -1,22 +1,23 @@
-﻿using GalaSoft.MvvmLight;
-using GalaSoft.MvvmLight.Messaging;
+﻿using Microsoft.Toolkit.Mvvm;
+using Microsoft.Toolkit.Mvvm.Messaging;
 using HarmonyCoreGenerator.Model;
+using Microsoft.Toolkit.Mvvm.ComponentModel;
 
 namespace HarmonyCoreCodeGenGUI.ViewModels
 {
-    public class StructureTabViewModel : ViewModelBase
+    public class StructureTabViewModel : ObservableObject
     {
         public StructureTabViewModel()
         {
             // Initial state
-            Messenger.Default.Register<Solution>(this, sender => {
+            StrongReferenceMessenger.Default.Register<Solution>(this, (obj, sender) => {
                 RPSMFIL = sender.RPSMFIL;
                 RPSTFIL = sender.RPSTFIL;
                 RepositoryProject = sender.RepositoryProject;
             });
 
             // Send updated state
-            Messenger.Default.Register<NotificationMessageAction<StructureTabViewModel>>(this, callback => callback.Execute(this));
+            StrongReferenceMessenger.Default.Register<NotificationMessageAction<StructureTabViewModel>>(this, (obj, sender) => sender.callback(this));
         }
 
         #region RPSMFIL
@@ -29,8 +30,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _rpsmfil = value;
-                RaisePropertyChanged(() => RPSMFIL);
+                SetProperty(ref _rpsmfil, value);
             }
         }
         #endregion
@@ -44,8 +44,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _rpstfil = value;
-                RaisePropertyChanged(() => RPSTFIL);
+                SetProperty(ref _rpstfil, value);
             }
         }
         #endregion
@@ -59,8 +58,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                repositoryProject = value;
-                RaisePropertyChanged(() => RepositoryProject);
+                SetProperty(ref repositoryProject, value);
             }
         }
         #endregion

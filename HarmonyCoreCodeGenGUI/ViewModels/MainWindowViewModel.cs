@@ -1,7 +1,6 @@
 ﻿using CodeGen.Engine;
-using GalaSoft.MvvmLight;
-using GalaSoft.MvvmLight.CommandWpf;
-using GalaSoft.MvvmLight.Messaging;
+using Microsoft.Toolkit.Mvvm;
+using Microsoft.Toolkit.Mvvm.Messaging;
 using HarmonyCoreCodeGenGUI.Properties;
 using HarmonyCoreGenerator.Model;
 using Microsoft.Build.Locator;
@@ -15,10 +14,12 @@ using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Input;
+using Microsoft.Toolkit.Mvvm.ComponentModel;
+using Microsoft.Toolkit.Mvvm.Input;
 
 namespace HarmonyCoreCodeGenGUI.ViewModels
 {
-    public class MainWindowViewModel : ViewModelBase
+    public class MainWindowViewModel : ObservableObject
     {
         private string _solutionDir;
         private Solution _solution;
@@ -64,7 +65,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
 
                     if (_solution != null)
                     {
-                        Messenger.Default.Send(_solution);
+                        StrongReferenceMessenger.Default.Send(_solution);
 
                         InstructionalTabTextBlockText = "Select a tab to continue.";
 
@@ -81,7 +82,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
 
                         SaveMenuItemIsEnabled = true;
                         CloseMenuItemIsEnabled = true;
-                        RegenerateFilesMenuItemIsEnabled = true;
+                        RegenerateFilesMenuItemIsEnabled = false;
 
                         StatusBarTextBlockText = "Loaded successfully";
                     }
@@ -105,7 +106,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
                     StatusBarTextBlockText = "Saving...";
 
                 // Get info from viewmodels, save altered solution
-                Messenger.Default.Send(new NotificationMessageAction<SettingsTabViewModel>(string.Empty, settingsTabViewModel =>
+                StrongReferenceMessenger.Default.Send(new NotificationMessageAction<SettingsTabViewModel>(string.Empty, settingsTabViewModel =>
                 {
                     _solution.EnableNewtonsoftJson = settingsTabViewModel.EnableNewtonsoftJson;
                     _solution.SignalRPath = settingsTabViewModel.SignalRPath;
@@ -132,7 +133,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
                 }));
                 if (ODataTabVisibility == Visibility.Visible)
                 {
-                    Messenger.Default.Send(new NotificationMessageAction<ODataTabViewModel>(string.Empty, odataTabViewModel =>
+                    StrongReferenceMessenger.Default.Send(new NotificationMessageAction<ODataTabViewModel>(string.Empty, odataTabViewModel =>
                     {
                         _solution.OAuthApi = odataTabViewModel.OAuthApi;
                         _solution.OAuthClient = odataTabViewModel.OAuthClient;
@@ -210,7 +211,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
                 }
                 if (StructureTabVisibility == Visibility.Visible)
                 {
-                    Messenger.Default.Send(new NotificationMessageAction<StructureTabViewModel>(string.Empty, structureTabViewModel =>
+                    StrongReferenceMessenger.Default.Send(new NotificationMessageAction<StructureTabViewModel>(string.Empty, structureTabViewModel =>
                     {
                         _solution.RPSMFIL = structureTabViewModel.RPSMFIL;
                         _solution.RPSTFIL = structureTabViewModel.RPSTFIL;
@@ -219,7 +220,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
                 }
                 if (InterfacesTabVisibility == Visibility.Visible)
                 {
-                    Messenger.Default.Send(new NotificationMessageAction<InterfacesTabViewModel>(string.Empty, interfacesTabViewModel =>
+                    StrongReferenceMessenger.Default.Send(new NotificationMessageAction<InterfacesTabViewModel>(string.Empty, interfacesTabViewModel =>
                     {
                         _solution.TraditionalBridge.XFServerSMCPath = interfacesTabViewModel.XFServerSMCPath;
                         _solution.TraditionalBridge.ExtendedInterfaces = new List<InterfaceEx>(interfacesTabViewModel.ExtendedInterfaces);
@@ -227,7 +228,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
                 }
                 if (TraditionalBridgeTabVisibillity == Visibility.Visible)
                 {
-                    Messenger.Default.Send(new NotificationMessageAction<TraditionalBridgeTabViewModel>(string.Empty, traditionalBridgeTabViewModel =>
+                    StrongReferenceMessenger.Default.Send(new NotificationMessageAction<TraditionalBridgeTabViewModel>(string.Empty, traditionalBridgeTabViewModel =>
                     {
                         _solution.ControllersProject = traditionalBridgeTabViewModel.ControllersProject;
                         _solution.IsolatedProject = traditionalBridgeTabViewModel.IsolatedProject;
@@ -269,7 +270,9 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
 
                 // Set current dir to solution dir since folders are partial pathed
                 Directory.SetCurrentDirectory(_solutionDir);
-                GenerateResult result = _solution.GenerateSolution((task, message) => { }, CancellationToken.None);
+                GenerateResult result = _solution.GenerateSolution(
+                    (task, message) => { }, 
+                    CancellationToken.None, new Dictionary<string, HarmonyCoreGenerator.Generator.GeneratorBase>());
                 
                 // Display messages with errors
                 // Get all tasks with errors
@@ -333,7 +336,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             CloseMenuItemIsEnabled = false;
             RegenerateFilesMenuItemIsEnabled = false;
 
-            Messenger.Default.Send(new Solution());
+            StrongReferenceMessenger.Default.Send(new Solution());
 
             StatusBarTextBlockText = "Closed successfully";
         }
@@ -350,8 +353,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _newMenuItemCommand = value;
-                RaisePropertyChanged(() => NewMenuItemCommand);
+                SetProperty(ref _newMenuItemCommand, value);
             }
         }
         #endregion
@@ -365,8 +367,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _newMenuItemIsEnabled = value;
-                RaisePropertyChanged(() => NewMenuItemIsEnabled);
+                SetProperty(ref _newMenuItemIsEnabled, value);
 
 
                 NewMenuItemCommand = value ? new RelayCommand(() => NewMenuItemCommandMethod()) : null;
@@ -385,8 +386,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _openMenuItemCommand = value;
-                RaisePropertyChanged(() => OpenMenuItemCommand);
+                SetProperty(ref _openMenuItemCommand, value);
             }
         }
         #endregion
@@ -400,8 +400,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _openMenuItemIsEnabled = value;
-                RaisePropertyChanged(() => OpenMenuItemIsEnabled);
+                SetProperty(ref _openMenuItemIsEnabled, value);
 
                 OpenMenuItemCommand = value ? new RelayCommand(() => OpenMenuItemCommandMethod()) : null;
             }
@@ -419,8 +418,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _saveMenuItemCommand = value;
-                RaisePropertyChanged(() => SaveMenuItemCommand);
+                SetProperty(ref _saveMenuItemCommand, value);
             }
         }
         #endregion
@@ -434,8 +432,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _saveMenuItemIsEnabled = value;
-                RaisePropertyChanged(() => SaveMenuItemIsEnabled);
+                SetProperty(ref _saveMenuItemIsEnabled, value);
 
                 SaveMenuItemCommand = value ? new RelayCommand(() => SaveMenuItemCommandMethod()) : null;
             }
@@ -453,8 +450,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _regenerateFilesMenuItemCommand = value;
-                RaisePropertyChanged(() => RegenerateFilesMenuItemCommand);
+                SetProperty(ref _regenerateFilesMenuItemCommand, value);
             }
         }
         #endregion
@@ -468,8 +464,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _regenerateFilesMenuItemIsEnabled = value;
-                RaisePropertyChanged(() => RegenerateFilesMenuItemIsEnabled);
+                SetProperty(ref _regenerateFilesMenuItemIsEnabled, value);
 
                 RegenerateFilesMenuItemCommand = value ? new RelayCommand(() => RegenerateFilesMenuItemCommandMethod()) : null;
             }
@@ -487,8 +482,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _closeMenuItemCommand = value;
-                RaisePropertyChanged(() => CloseMenuItemCommand);
+                SetProperty(ref _closeMenuItemCommand, value);
             }
         }
         #endregion
@@ -502,8 +496,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _CloseMenuItemIsEnabled = value;
-                RaisePropertyChanged(() => CloseMenuItemIsEnabled);
+                SetProperty(ref _CloseMenuItemIsEnabled, value);
 
                 CloseMenuItemCommand = value ? new RelayCommand(() => CloseMenuItemCommandMethod()) : null;
             }
@@ -523,8 +516,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _statusBarTextBlockText = value;
-                RaisePropertyChanged(() => StatusBarTextBlockText);
+                SetProperty(ref _statusBarTextBlockText, value);
 
                 // Reset text after 5 seconds to ready
                 if (value != null && !value.Equals("Ready", StringComparison.Ordinal))
@@ -549,8 +541,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _instructionalTabTextBlockText = value;
-                RaisePropertyChanged(() => InstructionalTabTextBlockText);
+                SetProperty(ref _instructionalTabTextBlockText, value);
             }
         }
         #endregion
@@ -565,8 +556,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _tabControlSelectedIndex = value;
-                RaisePropertyChanged(() => TabControlSelectedIndex);
+                SetProperty(ref _tabControlSelectedIndex, value);
             }
         }
         #endregion
@@ -581,8 +571,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _settingsTabVisibility = value;
-                RaisePropertyChanged(() => SettingsTabVisibility);
+                SetProperty(ref _settingsTabVisibility, value);
             }
         }
         #endregion
@@ -596,8 +585,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _structureTabVisibility = value;
-                RaisePropertyChanged(() => StructureTabVisibility);
+                SetProperty(ref _structureTabVisibility, value);
             }
         }
         #endregion
@@ -611,8 +599,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _interfacesTabVisibility = value;
-                RaisePropertyChanged(() => InterfacesTabVisibility);
+                SetProperty(ref _interfacesTabVisibility, value);
             }
         }
         #endregion
@@ -626,8 +613,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _entityFrameworkTabVisibility = value;
-                RaisePropertyChanged(() => EntityFrameworkTabVisibility);
+                SetProperty(ref _entityFrameworkTabVisibility, value);
             }
         }
         #endregion
@@ -641,8 +627,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _odataTabVisibility = value;
-                RaisePropertyChanged(() => ODataTabVisibility);
+                SetProperty(ref _odataTabVisibility, value);
             }
         }
         #endregion
@@ -656,8 +641,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _traditionalBridgeTabVisibillity = value;
-                RaisePropertyChanged(() => TraditionalBridgeTabVisibillity);
+                SetProperty(ref _traditionalBridgeTabVisibillity, value);
             }
         }
         #endregion

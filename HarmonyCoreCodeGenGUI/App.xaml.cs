@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.Runtime;
+using System.Windows;
 
 namespace HarmonyCoreCodeGenGUI
 {
@@ -7,5 +8,9 @@ namespace HarmonyCoreCodeGenGUI
     /// </summary>
     public partial class App : Application
     {
+        static App()
+        {
+            GCSettings.LatencyMode = GCLatencyMode.Interactive;
+        }
     }
 }

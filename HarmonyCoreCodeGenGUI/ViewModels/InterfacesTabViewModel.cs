@@ -1,18 +1,19 @@
 ﻿using CodeGen.Engine;
-using GalaSoft.MvvmLight;
-using GalaSoft.MvvmLight.Messaging;
+using Microsoft.Toolkit.Mvvm;
+using Microsoft.Toolkit.Mvvm.Messaging;
 
 using HarmonyCoreGenerator.Model;
 using System.Collections.ObjectModel;
+using Microsoft.Toolkit.Mvvm.ComponentModel;
 
 namespace HarmonyCoreCodeGenGUI.ViewModels
 {
-    public class InterfacesTabViewModel : ViewModelBase
+    public class InterfacesTabViewModel : ObservableObject
     {
         public InterfacesTabViewModel()
         {
             // Initial state
-            Messenger.Default.Register<Solution>(this, sender =>
+            StrongReferenceMessenger.Default.Register<Solution>(this, (obj, sender) =>
             {
                 XFServerSMCPath = sender.TraditionalBridge?.XFServerSMCPath;
                 if (sender.TraditionalBridge?.ExtendedInterfaces != null)
@@ -23,7 +24,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             });
 
             // Send updated state
-            Messenger.Default.Register<NotificationMessageAction<InterfacesTabViewModel>>(this, callback => callback.Execute(this));
+            StrongReferenceMessenger.Default.Register<NotificationMessageAction<InterfacesTabViewModel>>(this, (obj, sender) => sender.callback(this));
         }
 
         #region XFServerSMCPath
@@ -36,8 +37,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _xfServerSMCPath = value;
-                RaisePropertyChanged(() => XFServerSMCPath);
+                SetProperty(ref _xfServerSMCPath, value);
             }
         }
         #endregion

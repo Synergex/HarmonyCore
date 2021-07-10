@@ -1,5 +1,5 @@
-﻿using GalaSoft.MvvmLight;
-using GalaSoft.MvvmLight.Messaging;
+﻿using Microsoft.Toolkit.Mvvm;
+using Microsoft.Toolkit.Mvvm.Messaging;
 using HarmonyCoreCodeGenGUI.Classes;
 using HarmonyCoreCodeGenGUI.Views;
 using HarmonyCoreGenerator.Model;
@@ -7,15 +7,16 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using Microsoft.Toolkit.Mvvm.ComponentModel;
 
 namespace HarmonyCoreCodeGenGUI.ViewModels
 {
-    public class ODataTabViewModel : ViewModelBase
+    public class ODataTabViewModel : ObservableObject
     {
         public ODataTabViewModel()
         {
             // Initial state
-            Messenger.Default.Register<Solution>(this, sender => {
+            StrongReferenceMessenger.Default.Register<Solution>(this, (obj, sender) => {
                 OAuthApi = sender.OAuthApi;
                 OAuthClient = sender.OAuthClient;
                 OAuthSecret = sender.OAuthSecret;
@@ -93,7 +94,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             });
 
             // Send updated state
-            Messenger.Default.Register<NotificationMessageAction<ODataTabViewModel>>(this, callback => callback.Execute(this));
+            StrongReferenceMessenger.Default.Register<NotificationMessageAction<ODataTabViewModel>>(this, (obj, sender) => sender.callback(this));
         }
 
         #region OAuthApi
@@ -106,8 +107,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _oauthApi = value;
-                RaisePropertyChanged(() => OAuthApi);
+                SetProperty(ref _oauthApi, value);
             }
         }
         #endregion
@@ -121,8 +121,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _oauthClient = value;
-                RaisePropertyChanged(() => OAuthClient);
+                SetProperty(ref _oauthClient, value);
             }
         }
         #endregion
@@ -136,8 +135,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _oauthSecret = value;
-                RaisePropertyChanged(() => OAuthSecret);
+                SetProperty(ref _oauthSecret, value);
             }
         }
         #endregion
@@ -151,8 +149,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _oauthServer = value;
-                RaisePropertyChanged(() => OAuthServer);
+                SetProperty(ref _oauthServer, value);
             }
         }
         #endregion
@@ -166,8 +163,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _oauthTestUser = value;
-                RaisePropertyChanged(() => OAuthTestUser);
+                SetProperty(ref _oauthTestUser, value);
             }
         }
         #endregion
@@ -181,8 +177,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _oauthTestPassword = value;
-                RaisePropertyChanged(() => OAuthTestPassword);
+                SetProperty(ref _oauthTestPassword, value);
             }
         }
         #endregion
@@ -197,8 +192,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _customAuthController = value;
-                RaisePropertyChanged(() => CustomAuthController);
+                SetProperty(ref _customAuthController, value);
             }
         }
         #endregion
@@ -212,8 +206,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _customAuthEndpointPath = value;
-                RaisePropertyChanged(() => CustomAuthEndpointPath);
+                SetProperty(ref _customAuthEndpointPath, value);
             }
         }
         #endregion
@@ -227,8 +220,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _customAuthUserName = value;
-                RaisePropertyChanged(() => CustomAuthUserName);
+                SetProperty(ref _customAuthUserName, value);
             }
         }
         #endregion
@@ -242,8 +234,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _customAuthPassword = value;
-                RaisePropertyChanged(() => CustomAuthPassword);
+                SetProperty(ref _customAuthPassword, value);
             }
         }
         #endregion
@@ -258,8 +249,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _apiContactEmail = value;
-                RaisePropertyChanged(() => APIContactEmail);
+                SetProperty(ref _apiContactEmail, value);
             }
         }
         #endregion
@@ -273,8 +263,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _apiContactName = value;
-                RaisePropertyChanged(() => APIContactName);
+                SetProperty(ref _apiContactName, value);
             }
         }
         #endregion
@@ -288,8 +277,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _apiDescription = value;
-                RaisePropertyChanged(() => APIDescription);
+                SetProperty(ref _apiDescription, value);
             }
         }
         #endregion
@@ -303,8 +291,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _apiDocsPath = value;
-                RaisePropertyChanged(() => APIDocsPath);
+                SetProperty(ref _apiDocsPath, value);
             }
         }
         #endregion
@@ -318,8 +305,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _apiEnableQueryParams = value;
-                RaisePropertyChanged(() => APIEnableQueryParams);
+                SetProperty(ref _apiEnableQueryParams, value);
             }
         }
         #endregion
@@ -333,8 +319,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _apiLicenseName = value;
-                RaisePropertyChanged(() => APILicenseName);
+                SetProperty(ref _apiLicenseName, value);
             }
         }
         #endregion
@@ -348,8 +333,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _apiLicenseUrl = value;
-                RaisePropertyChanged(() => APILicenseUrl);
+                SetProperty(ref _apiLicenseUrl, value);
             }
         }
         #endregion
@@ -363,8 +347,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _apiTerms = value;
-                RaisePropertyChanged(() => APITerms);
+                SetProperty(ref _apiTerms, value);
             }
         }
         #endregion
@@ -378,8 +361,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _apiTitle = value;
-                RaisePropertyChanged(() => APITitle);
+                SetProperty(ref _apiTitle, value);
             }
         }
         #endregion
@@ -393,8 +375,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _apiVersion = value;
-                RaisePropertyChanged(() => APIVersion);
+                SetProperty(ref _apiVersion, value);
             }
         }
         #endregion
@@ -409,8 +390,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _serverBasePath = value;
-                RaisePropertyChanged(() => ServerBasePath);
+                SetProperty(ref _serverBasePath, value);
             }
         }
         #endregion
@@ -424,8 +404,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _serverHttpPort = value;
-                RaisePropertyChanged(() => ServerHttpPort);
+                SetProperty(ref _serverHttpPort, value);
             }
         }
         #endregion
@@ -439,8 +418,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _serverHttpsPort = value;
-                RaisePropertyChanged(() => ServerHttpsPort);
+                SetProperty(ref _serverHttpsPort, value);
             }
         }
         #endregion
@@ -454,8 +432,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _serverName = value;
-                RaisePropertyChanged(() => ServerName);
+                SetProperty(ref _serverName, value);
             }
         }
         #endregion
@@ -469,8 +446,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _serverProtocol = value;
-                RaisePropertyChanged(() => ServerProtocol);
+                SetProperty(ref _serverProtocol, value);
             }
         }
         #endregion
@@ -485,8 +461,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _alternateKeyEndpoints = value;
-                RaisePropertyChanged(() => AlternateKeyEndpoints);
+                SetProperty(ref _alternateKeyEndpoints, value);
             }
         }
         #endregion
@@ -500,8 +475,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _collectionCountEndpoints = value;
-                RaisePropertyChanged(() => CollectionCountEndpoints);
+                SetProperty(ref _collectionCountEndpoints, value);
             }
         }
         #endregion
@@ -515,8 +489,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _deleteEndpoints = value;
-                RaisePropertyChanged(() => DeleteEndpoints);
+                SetProperty(ref _deleteEndpoints, value);
             }
         }
         #endregion
@@ -530,8 +503,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _documentPropertyEndpoints = value;
-                RaisePropertyChanged(() => DocumentPropertyEndpoints);
+                SetProperty(ref _documentPropertyEndpoints, value);
             }
         }
         #endregion
@@ -545,8 +517,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _fullCollectionEndpoints = value;
-                RaisePropertyChanged(() => FullCollectionEndpoints);
+                SetProperty(ref _fullCollectionEndpoints, value);
             }
         }
         #endregion
@@ -560,8 +531,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _individualPropertyEndpoints = value;
-                RaisePropertyChanged(() => IndividualPropertyEndpoints);
+                SetProperty(ref _individualPropertyEndpoints, value);
             }
         }
         #endregion
@@ -575,8 +545,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _patchEndpoints = value;
-                RaisePropertyChanged(() => PatchEndpoints);
+                SetProperty(ref _patchEndpoints, value);
             }
         }
         #endregion
@@ -590,8 +559,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _postEndpoints = value;
-                RaisePropertyChanged(() => PostEndpoints);
+                SetProperty(ref _postEndpoints, value);
             }
         }
         #endregion
@@ -605,8 +573,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _primaryKeyEndpoints = value;
-                RaisePropertyChanged(() => PrimaryKeyEndpoints);
+                SetProperty(ref _primaryKeyEndpoints, value);
             }
         }
         #endregion
@@ -620,8 +587,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _putEndpoints = value;
-                RaisePropertyChanged(() => PutEndpoints);
+                SetProperty(ref _putEndpoints, value);
             }
         }
         #endregion
@@ -636,8 +602,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _generateOData = value;
-                RaisePropertyChanged(() => GenerateOData);
+                SetProperty(ref _generateOData, value);
             }
         }
         #endregion
@@ -651,8 +616,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _generatePostmanTests = value;
-                RaisePropertyChanged(() => GeneratePostmanTests);
+                SetProperty(ref _generatePostmanTests, value);
             }
         }
         #endregion
@@ -666,8 +630,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _generateSelfHost = value;
-                RaisePropertyChanged(() => GenerateSelfHost);
+                SetProperty(ref _generateSelfHost, value);
             }
         }
         #endregion
@@ -681,8 +644,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _generateUnitTests = value;
-                RaisePropertyChanged(() => GenerateUnitTests);
+                SetProperty(ref _generateUnitTests, value);
             }
         }
         #endregion
@@ -697,8 +659,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _odataFilter = value;
-                RaisePropertyChanged(() => ODataFilter);
+                SetProperty(ref _odataFilter, value);
             }
         }
         #endregion
@@ -712,8 +673,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _odataOrderBy = value;
-                RaisePropertyChanged(() => ODataOrderBy);
+                SetProperty(ref _odataOrderBy, value);
             }
         }
         #endregion
@@ -727,8 +687,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _odataRelations = value;
-                RaisePropertyChanged(() => ODataRelations);
+                SetProperty(ref _odataRelations, value);
             }
         }
         #endregion
@@ -742,8 +701,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _odataRelationValidation = value;
-                RaisePropertyChanged(() => ODataRelationValidation);
+                SetProperty(ref _odataRelationValidation, value);
             }
         }
         #endregion
@@ -757,8 +715,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _odataSelect = value;
-                RaisePropertyChanged(() => ODataSelect);
+                SetProperty(ref _odataSelect, value);
             }
         }
         #endregion
@@ -772,8 +729,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _odataSkip = value;
-                RaisePropertyChanged(() => ODataSkip);
+                SetProperty(ref _odataSkip, value);
             }
         }
         #endregion
@@ -787,8 +743,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _odataTop = value;
-                RaisePropertyChanged(() => ODataTop);
+                SetProperty(ref _odataTop, value);
             }
         }
         #endregion
@@ -803,8 +758,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _adapterRouting = value;
-                RaisePropertyChanged(() => AdapterRouting);
+                SetProperty(ref _adapterRouting, value);
             }
         }
         #endregion
@@ -818,8 +772,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _alternateFieldNames = value;
-                RaisePropertyChanged(() => AlternateFieldNames);
+                SetProperty(ref _alternateFieldNames, value);
             }
         }
         #endregion
@@ -833,8 +786,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _authentication = value;
-                RaisePropertyChanged(() => Authentication);
+                SetProperty(ref _authentication, value);
             }
         }
         #endregion
@@ -848,8 +800,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _caseSensitiveUrls = value;
-                RaisePropertyChanged(() => CaseSensitiveUrls);
+                SetProperty(ref _caseSensitiveUrls, value);
             }
         }
         #endregion
@@ -863,8 +814,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _createTestFiles = value;
-                RaisePropertyChanged(() => CreateTestFiles);
+                SetProperty(ref _createTestFiles, value);
             }
         }
         #endregion
@@ -879,8 +829,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _crossDomainBrowsing = value;
-                RaisePropertyChanged(() => CrossDomainBrowsing);
+                SetProperty(ref _crossDomainBrowsing, value);
             }
         }
         #endregion
@@ -894,8 +843,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _customAuthentication = value;
-                RaisePropertyChanged(() => CustomAuthentication);
+                SetProperty(ref _customAuthentication, value);
             }
         }
         #endregion
@@ -909,8 +857,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _disableFileLogicals = value;
-                RaisePropertyChanged(() => DisableFileLogicals);
+                SetProperty(ref _disableFileLogicals, value);
             }
         }
         #endregion
@@ -924,8 +871,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _fieldOverlays = value;
-                RaisePropertyChanged(() => FieldOverlays);
+                SetProperty(ref _fieldOverlays, value);
             }
         }
         #endregion
@@ -939,8 +885,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _fieldSecurity = value;
-                RaisePropertyChanged(() => FieldSecurity);
+                SetProperty(ref _fieldSecurity, value);
             }
         }
         #endregion
@@ -955,8 +900,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _iisSupport = value;
-                RaisePropertyChanged(() => IISSupport);
+                SetProperty(ref _iisSupport, value);
             }
         }
         #endregion
@@ -970,8 +914,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _readOnlyProperties = value;
-                RaisePropertyChanged(() => ReadOnlyProperties);
+                SetProperty(ref _readOnlyProperties, value);
             }
         }
         #endregion
@@ -985,8 +928,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _smcPostmanTests = value;
-                RaisePropertyChanged(() => SmcPostmanTests);
+                SetProperty(ref _smcPostmanTests, value);
             }
         }
         #endregion
@@ -1000,8 +942,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _smcSignalRHubs = value;
-                RaisePropertyChanged(() => SmcSignalRHubs);
+                SetProperty(ref _smcSignalRHubs, value);
             }
         }
         #endregion
@@ -1015,8 +956,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _storedProcedureRouting = value;
-                RaisePropertyChanged(() => StoredProcedureRouting);
+                SetProperty(ref _storedProcedureRouting, value);
             }
         }
         #endregion
@@ -1041,8 +981,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
             set
             {
-                _versioningOrSwagger = value;
-                RaisePropertyChanged(() => VersioningOrSwagger);
+                SetProperty(ref _versioningOrSwagger, value);
             }
         }
         #endregion
