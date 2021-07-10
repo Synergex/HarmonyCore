@@ -697,6 +697,17 @@ namespace Harmony.TraditionalBridge
             mreturn value.GetProperty("PassedValue").GetInt64()
         endmethod
 
+        ;;; <summary>
+        ;;; 
+        ;;; </summary>
+        ;;; <param name="value"></param>
+        ;;; <returns></returns>
+        public method GetBoolean, boolean
+            value, JSON_ELEMENT
+        proc
+            mreturn value.GetProperty("PassedValue").GetBoolean()
+        endmethod
+
         public method GetArray, JSON_ELEMENT
             value, JSON_ELEMENT
         proc
@@ -1019,9 +1030,11 @@ namespace Harmony.TraditionalBridge
             callback, @CallbackDispatcher
             record
                 messageReader, @HeaderDelimitedMessageReader 
+                result, @object
         proc
             messageReader = new HeaderDelimitedMessageReader(serializer.CurrentOutChannel())
-            mreturn DispatchOne(messageReader, serializer, callback)
+            result = DispatchOne(messageReader, serializer, callback)
+            mreturn result
         endmethod
 
         class StopGuard

@@ -107,7 +107,7 @@ namespace Harmony.Core.Context
 			;;end
 			;;data bodyExpression, @Expression, Expression.Block(cleanReturn, new ParameterExpression[#] { argArray }, bodyExpressions)
 			;;data exposedMethod = Expression.Lambda<Func<ReturnParameterDefintion, ArgumentDataDefinition>>(bodyExpression, (@IEnumerable<ParameterExpression>)arguments)
-            ;;data resultDel = exposedMethod.Compile(true)
+			;;data resultDel = exposedMethod.Compile(true)
 
 			data helper = new ConversionHelper(handler, this)
 			connection.AddLocalRpcMethod(name, helper.InvokeHelper())
@@ -521,6 +521,11 @@ namespace Harmony.Core.Context
 				argDef.DataType = FieldDataType.IntegerField
 				argDef.PassedValue = argValue
 			end
+			else if(argValue .is. boolean) then
+			begin
+				argDef.DataType = FieldDataType.BooleanField
+				argDef.PassedValue = argValue
+			end
 			else
 				throw new NotImplementedException()
 
@@ -642,12 +647,12 @@ namespace Harmony.Core.Context
 				mreturn retArg.PassedValue
 		endmethod
 
-        private static method ConvertArgument, @object
-            arg, @object
+		private static method ConvertArgument, @object
+			arg, @object
 			argType, @Type
-        proc
+		proc
 			mreturn Convert.ChangeType(arg, argType)
-        endmethod
+		endmethod
 
 		private method GetArgumentType, @Type
 			obj, @object

@@ -1,11 +1,11 @@
  
 ;  SYNERGY DATA LANGUAGE OUTPUT
 ;
-;  REPOSITORY     : C:\Users\devadm\Desktop\HarmonyCore\HarmonyCore.Test.Repository\bin\Debug\rpsmain.ism
-;                 : C:\Users\devadm\Desktop\HarmonyCore\HarmonyCore.Test.Repository\bin\Debug\rpstext.ism
-;                 : Version 11.1.1f
+;  REPOSITORY     : F:\repos\HarmonyCore\HarmonyCore.Test.Repository\bin\Debug\rpsmain.ism
+;                 : F:\repos\HarmonyCore\HarmonyCore.Test.Repository\bin\Debug\rpstext.ism
+;                 : Version 11.1.1g
 ;
-;  GENERATED      : 13-APR-2021, 17:17:40
+;  GENERATED      : 08-JUL-2021, 14:47:29
 ;                 : Version 11.1.1f
 ;  EXPORT OPTIONS : [ALL] 
  
@@ -114,6 +114,26 @@ Alias AL_GPC3   Structure GPC3
    Alias AL_FLD_4F   Field FLD_4F
    Alias AL_FLD_4F2   Field FLD_4F
  
+Structure GPC4   DBL ISAM
+   Description "Fourth Structure"
+ 
+Field FLD_1G   Type ALPHA   Size 3
+   Description "GPC4.FLD_1G"
+ 
+Field FLD_2G   Type INTEGER   Size 2   Dimension 4
+   Description "GPC4.FLD_2G"
+ 
+Field STRUCT_1G   Type STRUCT   Size 16   Struct GPC3
+   Description "GPC4.STRUCT_1G"
+ 
+Field FLD_3G   Type ALPHA   Size 3   Dimension 3
+   Description "GPC4.FLD_3G"
+ 
+Field FLD_4G   Type DECIMAL   Size 13
+   Description "GPC4.FLD_4G"
+ 
+Alias AL_GPC4   Structure GPC4
+ 
 Structure GPC6   DBL ISAM
    Description "Sixth Structure"
  
@@ -136,26 +156,6 @@ Group GROUP_ONE   Type ALPHA
 Endgroup
  
 Alias AL_GPC6   Structure GPC6
- 
-Structure GPC4   DBL ISAM
-   Description "Fourth Structure"
- 
-Field FLD_1G   Type ALPHA   Size 3
-   Description "GPC4.FLD_1G"
- 
-Field FLD_2G   Type INTEGER   Size 2   Dimension 4
-   Description "GPC4.FLD_2G"
- 
-Field STRUCT_1G   Type STRUCT   Size 16   Struct GPC3
-   Description "GPC4.STRUCT_1G"
- 
-Field FLD_3G   Type ALPHA   Size 3   Dimension 3
-   Description "GPC4.FLD_3G"
- 
-Field FLD_4G   Type DECIMAL   Size 13
-   Description "GPC4.FLD_4G"
- 
-Alias AL_GPC4   Structure GPC4
  
 Structure GPC2   DBL ISAM
    Description "Second Structure"
@@ -2531,6 +2531,10 @@ Field PAYMENT_TERMS_CODE   Type ALPHA   Size 2
  
 Key VENDOR_NUMBER   ACCESS   Order ASCENDING   Dups NO
    Segment FIELD   VENDOR_NUMBER  SegType DECIMAL
+ 
+Key VENDSTATE   ACCESS   Order ASCENDING   Dups NO
+   Segment FIELD   VENDOR_NUMBER  SegType DECIMAL  SegOrder ASCENDING
+   Segment FIELD   ZIP_CODE  SegType DECIMAL  SegOrder ASCENDING
  
 Key STATE   ACCESS   Order ASCENDING   Dups YES   Insert END   Modifiable YES
    Krf 002

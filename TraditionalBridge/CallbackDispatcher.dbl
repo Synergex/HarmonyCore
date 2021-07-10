@@ -40,6 +40,8 @@ namespace Harmony.TraditionalBridge
         public method Invoke, @object
             name, @string
             parameters, [#]@object
+            record
+                result, @Object
         proc
             dispatcher.MaxRequestId += 1
             serializer.ReportRequestProlog(true, dispatcher.MaxRequestId, name)
@@ -49,7 +51,8 @@ namespace Harmony.TraditionalBridge
             serializer.ReportRequestEpilog()
             serializer.Flush()
 
-            mreturn dispatcher.DispatchOne(serializer, this)
+            result = dispatcher.DispatchOne(serializer, this)
+            mreturn result
         endmethod
 
         public method Notify, void
@@ -78,6 +81,26 @@ namespace Harmony.TraditionalBridge
                 begin
                     data strField = (@string)param
                     serializer.ArgumentData(indx, strField, FieldDataType.StringField, strField.Length, 0, false)
+                end
+                else if(param .is. @i) then
+                begin
+                    data intField = (@i)param
+                    serializer.ArgumentData(indx, (i)intField, FieldDataType.IntegerField, ^size((i)intField), 0, false)
+                end
+                else if(param .is. @a) then
+                begin
+                    data aField = (@a)param
+                    serializer.ArgumentData(indx, (a)aField, FieldDataType.AlphaField, ^size((a)aField), 0, false)
+                end
+                else if(param .is. @d) then
+                begin
+                    data strField = (@string)param
+                    serializer.ArgumentData(indx, strField, FieldDataType.DecimalField, strField.Length, 0, false)
+                end
+                else if(param .is. @id) then
+                begin
+                    data strField = (@string)param
+                    serializer.ArgumentData(indx, strField, FieldDataType.ImpliedDecimal, strField.Length, 0, false)
                 end
                 else
                     throw new Exception("type not implemented for callback dispatcher")
@@ -150,6 +173,7 @@ namespace Harmony.TraditionalBridge
         proc
             dispatcher = new MessageBoxCallbackDispatcher(RoutineStub.CurrentDispatcher, RoutineStub.CurrentSerializer.MakeRequestSerializer())
             resultObj = dispatcher.Invoke("CallMe", new object[#] { (@string)"string", (@string)"value" })
+
             xreturn
             ;;cast result obj as ArrayList, do something with the strings inside
         endsubroutine
