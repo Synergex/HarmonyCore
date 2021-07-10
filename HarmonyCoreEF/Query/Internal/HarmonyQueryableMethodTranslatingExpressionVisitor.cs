@@ -704,7 +704,17 @@ namespace Harmony.Core.EF.Query.Internal
                     foreach (var member in memberKvp.Value)
                     {
                         var metadataObject = DataObjectMetadataBase.LookupType(member.DeclaringType);
-                        tableExpression.ReferencedFields.Add(Tuple.Create(memberKvp.Key, metadataObject.GetFieldByName(member.Name)));
+                        var endOfParentPath = memberKvp.Key.LastIndexOf('.');
+                        var targetName = endOfParentPath > -1 ? memberKvp.Key.Remove(endOfParentPath) : "";
+                        //dont rely on the reference actually belonging to the current target table
+                        //Collection -> single -> Single will result in REL_Single.REL_Single as the member key
+                        //this needs to be assigned to the correct parent expression instead
+                        var targetRefTable = tableExpression.RootExpression.RootExpressions.Values.FirstOrDefault(table => table.Name == targetName);
+                        if (targetRefTable != null)
+                        {
+                            var refName = endOfParentPath > -1 ? memberKvp.Key.Substring(endOfParentPath + 1) : memberKvp.Key;
+                            targetRefTable.ReferencedFields.Add(Tuple.Create(refName, metadataObject.GetFieldByName(member.Name)));
+                        }
                     }
                 }
                 tableExpression.IsCollection = true;
