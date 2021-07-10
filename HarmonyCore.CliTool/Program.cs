@@ -163,7 +163,7 @@ Known structure properties:
     {
         public static string BuildPackageVersion = "11.1.1070.3107";
         public static string CodeDomProviderVersion = "1.0.7";
-        public static string HCBuildVersion = "3.1.416";
+        public static string HCBuildVersion = "3.1.442";
         public static Dictionary<string, string> LatestNugetReferences;
 
         public static List<string> HCRegenRequiredVersions = new List<string>
@@ -179,12 +179,37 @@ Known structure properties:
         [DllImport("kernel32.dll", SetLastError = true)]
         static extern IntPtr GetStdHandle(int nStdHandle);
 
+        static (IntPtr stdout, uint consoleMode) GetConsoleState()
+        {
+            try
+            {
+                if(System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    var handle = GetStdHandle(STD_INPUT_HANDLE);
+                    uint currentMode = 0;
+                    GetConsoleMode(handle, out currentMode);
+                    return (handle, currentMode);
+                }
+            }
+            catch
+            {
+                
+            }
+
+            return (IntPtr.Zero, 0);
+        }
+
+        static void ResetConsoleMode(IntPtr stdout, uint consoleMode)
+        {
+            if(stdout != IntPtr.Zero)
+            {
+                SetConsoleMode(stdout, consoleMode);
+            }
+        }
 
         static void Main(string[] args)
         {
-            var handle = GetStdHandle(STD_INPUT_HANDLE);
-            uint currentMode = 0;
-            GetConsoleMode(handle, out currentMode);
+            var (handle, mode) = GetConsoleState();
             var versionOverride = Environment.GetEnvironmentVariable("HC_VERSION");
             if (!string.IsNullOrWhiteSpace(versionOverride))
             {
@@ -241,11 +266,7 @@ Known structure properties:
             }
             var solutionInfo = new SolutionInfo(synprojFiles, solutionDir);
 
-            if (!SetConsoleMode(handle, currentMode))
-            {
-                throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
-            }
-
+            ResetConsoleMode(handle, mode);
 
             _ = Parser.Default.ParseArguments<UpgradeLatestOptions, CodegenListOptions, CodegenAddOptions, CodegenRemoveOptions, RpsOptions, RegenOptions, XMLGenOptions, GUIOptions>(args)
             .MapResult<UpgradeLatestOptions, CodegenListOptions, CodegenAddOptions, CodegenRemoveOptions, RpsOptions, RegenOptions, XMLGenOptions, GUIOptions, int>(

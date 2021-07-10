@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CodeGen.Engine;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -17,8 +18,7 @@ namespace HarmonyCore.CliTool.Commands
 
         public int Run(RegenOptions opts)
         {
-            var result = _solutionInfo.CodeGenSolution.GenerateSolution(
-                (tsk, message) => Console.WriteLine("{0} : {1}", string.Join(',', tsk.Templates), message),
+            var result = _solutionInfo.CodeGenSolution.GenerateSolution(Logger,
                 CancellationToken.None, 
                 DynamicCodeGenerator.LoadDynamicGenerators(Path.Combine(_solutionInfo.SolutionDir, "Generators", "Enabled")).Result);
 
@@ -27,6 +27,12 @@ namespace HarmonyCore.CliTool.Commands
                 Console.WriteLine(error);
             }
             return 0;
+        }
+
+        private void Logger(CodeGenTask tsk, string message)
+        {
+            if(!string.IsNullOrWhiteSpace(message))
+                Console.WriteLine("{0} : {1}", string.Join(',', tsk.Templates), message);
         }
     }
 }

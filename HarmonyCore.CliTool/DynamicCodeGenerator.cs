@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -22,13 +23,15 @@ namespace HarmonyCore.CliTool
                 return resultGenerators;
 
             var scriptOptions = ScriptOptions.Default
-                .WithReferences(new Assembly[] { typeof(GeneratorBase).Assembly, typeof(CodeGenTask).Assembly, typeof(List<string>).Assembly })
-                .WithImports("HarmonyCoreGenerator.Generator", "HarmonyCoreGenerator.Model", "System.Collections.Generic", "System", "CodeGen.Engine");
+                .WithEmitDebugInformation(true)
+                .WithReferences(new Assembly[] { typeof(GeneratorBase).Assembly, typeof(CodeGenTask).Assembly, typeof(List<string>).Assembly, typeof(ObservableCollection<>).Assembly })
+                .WithImports("HarmonyCoreGenerator.Generator", "HarmonyCoreGenerator.Model", "System.Collections.Generic", 
+                    "System", "System.IO", "System.Linq", "CodeGen.Engine", "System.Collections.ObjectModel");
 
             foreach (var scriptFile in Directory.EnumerateFiles(path, "*.csx"))
             {
-                var scriptContents = File.ReadAllText(scriptFile);
-                var script = CSharpScript.Create<GeneratorBase>(scriptContents, scriptOptions);
+                using var scriptContents = File.Open(scriptFile, FileMode.Open);
+                var script = CSharpScript.Create<GeneratorBase>(scriptContents, scriptOptions.WithFilePath(scriptFile));
                 var result = await script.RunAsync();
                 if (result.Exception == null && result.ReturnValue != null)
                 {
