@@ -153,25 +153,8 @@ namespace Harmony.Core.Utility
 			begin
 				try
 				begin
-					try
-					begin
-						Monitor.Enter(_madeItems)
-						begin
-							_madeItems.RemoveAll(lambda (holder) { holder.Item == obj })
-						end
-					end
-					finally
-					begin
-						Monitor.Exit(_madeItems)
-					end
-					endtry
-
-					if (Destroy != ^null)
-						Destroy(obj)
-					;; dispose if possible otherwise remove from _madeItems and let the garbage collector deal with it
-					data disposableObj = ^as(obj, @IDisposable)
-					disposableObj?.Dispose()
-					
+					RemoveFromMadeItems(obj)
+					FinalDestroyItem(obj)
 				end
 				catch (ex, @Exception)
 				begin
@@ -184,33 +167,68 @@ namespace Harmony.Core.Utility
 			begin
 				try
 				begin
-					if (Recycle != ^null)
-						Recycle(obj)
-					_availableItems.Add(obj)
+					if(CanRecycle == ^null || CanRecycle(obj)) then
+					begin
+						if (Recycle != ^null)
+							Recycle(obj)
+
+						_availableItems.Add(obj)
+					end
+					else
+					begin
+						RemoveFromMadeItems(obj)
+						FinalDestroyItem(obj)
+					end
 				end
 				catch (ex, @Exception)
 				begin
-					try
-					begin
-						Monitor.Enter(_madeItems)
-						begin
-							_madeItems.RemoveAll(lambda (holder) { holder.Item == obj })
-						end
-					end
-					finally
-					begin
-						Monitor.Exit(_madeItems)
-					end
-					endtry
-
-					data disposableObj = ^as(obj, @IDisposable)
-					disposableObj?.Dispose()
+					RemoveFromMadeItems(obj)
+					FinalDestroyItem(obj)
 					Trace.TraceError(ex.ToString())
 				end
 				endtry
 			end
 			mreturn false
 		endmethod
+
+		private method FinalDestroyItem, void
+			obj, T
+		proc
+			try
+			begin
+				if(Destroy != ^null)
+				begin
+					Destroy(obj)
+				end
+
+				data disposableObj = ^as(obj, @IDisposable)
+				disposableObj?.Dispose()
+			end
+			catch (ex, @Exception)
+			begin
+				Trace.TraceError(ex.ToString())
+			end
+			endtry
+		endmethod
+
+
+		private method RemoveFromMadeItems, void
+			obj, T
+		proc
+			try
+			begin
+				Monitor.Enter(_madeItems)
+				begin
+					_madeItems.RemoveAll(lambda (holder) { holder.Item == obj })
+				end
+			end
+			finally
+			begin
+				Monitor.Exit(_madeItems)
+			end
+			endtry
+		endmethod
+
 	endclass
 
 endnamespace

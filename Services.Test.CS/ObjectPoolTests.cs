@@ -17,7 +17,15 @@ namespace Services.Test.CS
             static Random _random;
             internal static int _instanceCount;
             bool _inited = false;
-            public bool IsHealthy => _random.Next(0, 2) == 0;
+            public bool IsHealthy
+            {
+                get
+                {
+                    if (_random == null)
+                        _random = new Random();
+                    return _random.Next(0, 2) == 0;
+                }
+            }
 
             public ContextIsolationLevel IsolationLevel => ContextIsolationLevel.FreeThreaded;
 
@@ -57,13 +65,14 @@ namespace Services.Test.CS
             BlockingPoolContextFactory<MyTestContext> contextFactory = new BlockingPoolContextFactory<MyTestContext>((sp) => new MyTestContext(), 6, 4, TimeSpan.FromSeconds(30), true);
             for(int i = 0; i < 8; i++)
             {
-                tasks.Add(Task.Run(() =>
+                tasks.Add(Task.Run(async () =>
                 {
                     for (int ii = 0; ii < 1000; ii++)
                     {
                         var madeContext = contextFactory.MakeContext(null);
-                        madeContext.EnsureReady().Wait();
+                        await madeContext.EnsureReady();
                         contextFactory.ReturnContext(madeContext);
+                        await Task.Yield();
                     }
                 }));
             }
