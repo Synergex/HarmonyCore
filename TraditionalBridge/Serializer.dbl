@@ -61,8 +61,8 @@ namespace Json
             endparams
         proc
             ttChannel = channel
+         
         endmethod
-
 
         protected ttChannel, int
         protected mActivationMask, [32]i1
@@ -81,7 +81,7 @@ namespace Json
             lengthReadPos = 1
             do 
             begin
-                gets(ttChannel, lengthHeader(lengthReadPos:1), wait:100, MASK:mActivationMask)  [$ERR_TIMOUT=again]
+                gets(ttChannel, lengthHeader(lengthReadPos:1), wait:100, MASK:mActivationMask)  [$ERR_TIMOUT=again, $ERR_EOF=endOfFile]
                 contentTypeLength = %rdlen(ttChannel)
                                                                                                 
                 if(contentTypeLength != 1)
@@ -108,7 +108,7 @@ namespace Json
             while(contentTypePos < 255)
             begin
             againContent,   
-                gets(ttChannel, header.contentTypeBuffer(contentTypePos:1), wait:100, MASK:mActivationMask)  [$ERR_TIMOUT=againContent]
+                gets(ttChannel, header.contentTypeBuffer(contentTypePos:1), wait:100, MASK:mActivationMask)  [$ERR_TIMOUT=againContent, $ERR_EOF=endOfFile]
 
                 if(header.contentTypeBuffer(contentTypePos:1) == '{')
                 begin
@@ -119,6 +119,11 @@ namespace Json
 
                 contentTypePos += %rdlen(ttChannel)
             end
+            header.endOfConnection = false
+            mreturn
+        endOfFile,
+            header.endOfConnection = true
+            mreturn
         endmethod
 
         private static varargs method SetChars, void
@@ -220,6 +225,7 @@ namespace Json
     endclass
 
     structure ContentHeader
+        endOfConnection, boolean
         length, i4
         contentTypeBuffer, a255
         leftoverData, a1

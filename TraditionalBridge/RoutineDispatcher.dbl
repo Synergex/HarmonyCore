@@ -935,11 +935,16 @@ namespace Harmony.TraditionalBridge
                 while(running)
                 begin
                     messageReader.ReadHeader(header)
+                    if(header.endOfConnection) then
+                        running = false
+                    else
+                    begin
+                        MaybeLog(5, "Dispatcher: starting callblock processing with ContentLength " + %string(header.length) + " ContentType " + %atrim(header.contentTypeBuffer))
 
-                    MaybeLog(5, "Dispatcher: starting callblock processing with ContentLength " + %string(header.length) + " ContentType " + %atrim(header.contentTypeBuffer))
+                        running = ReadCallBlock(messageReader, serializer, header)
+                        Logger.Instance.FinishMemoryLog()
+                    end
 
-                    running = ReadCallBlock(messageReader, serializer, header)
-                    Logger.Instance.FinishMemoryLog()
                 end
                 MaybeLog(1, "Shutting down due to running == false")
             end
@@ -964,7 +969,6 @@ namespace Harmony.TraditionalBridge
             serializer, @DispatchSerializer
             callback, @CallbackDispatcher
             record
-                running, boolean
                 header, ContentHeader
                 jsonDoc, @object
                 parsedJson, JSON_ELEMENT  
@@ -974,24 +978,28 @@ namespace Harmony.TraditionalBridge
             try
             begin
                 messageReader.ReadHeader(header)
-
-                MaybeLog(5, "Dispatcher: starting client call result processing with ContentLength " + %string(header.length) + " ContentType " + %atrim(header.contentTypeBuffer))
-
-                ReadContent(header, messageReader, jsonDoc, parsedJson)
-
-                if(IS_OBJ(parsedJson)) then
-                begin
-                    if(parsedJson.TryGetProperty("result", callResponse)) then
-                        result = callback.HandleResponse(callResponse, this)
-                    else
-                        throw new Exception("json response didnt contain 'result'")
-                end
+                if(header.endOfConnection) then
+                    mreturn ^null
                 else
-                    throw new Exception("invalid json response type")
+                begin
+                    MaybeLog(5, "Dispatcher: starting client call result processing with ContentLength " + %string(header.length) + " ContentType " + %atrim(header.contentTypeBuffer))
+
+                    ReadContent(header, messageReader, jsonDoc, parsedJson)
+
+                    if(IS_OBJ(parsedJson)) then
+                    begin
+                        if(parsedJson.TryGetProperty("result", callResponse)) then
+                            result = callback.HandleResponse(callResponse, this)
+                        else
+                            throw new Exception("json response didnt contain 'result'")
+                    end
+                    else
+                        throw new Exception("invalid json response type")
                 
 
-                MaybeLog(1, "Finishing call to client")
-                mreturn result
+                    MaybeLog(1, "Finishing call to client")
+                    mreturn result
+                end
             end
             catch(ex, @Exception)
             begin
