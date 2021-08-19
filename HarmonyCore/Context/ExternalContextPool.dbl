@@ -3,10 +3,11 @@ import System.Collections.Generic
 import System.Text
 
 import Microsoft.Extensions.DependencyInjection
+import System.Diagnostics
 
 namespace Harmony.Core.Context
 
-    public class ExternalContextPool<T(IContextBase, class)> extends FreeThreadedContextPool<T>
+    public class ExternalContextPool<T(IContextBase, class)> extends BlockingPoolContextFactory<T>
         private mStartInfo, @System.Diagnostics.ProcessStartInfo
 		
         public method ExternalContextPool
@@ -17,25 +18,35 @@ namespace Harmony.Core.Context
             min, int
             stickySession, boolean
             endparams
-            parent(min)
+            this(StartInfoHelper(targetExe, targetArguments, targetDirectory, environmentVariables), min, -1, TimeSpan.FromSeconds(30))
         proc
-            if(stickySession)
-                SetSticky()
-            mStartInfo = new System.Diagnostics.ProcessStartInfo()
-            mStartInfo.FileName = targetExe
-            mStartInfo.WorkingDirectory = targetDirectory
-            mStartInfo.CreateNoWindow = true
-            mStartInfo.UseShellExecute = false
-            if(environmentVariables != ^null)
-            begin
-                data envVar, KeyValuePair<string, string>
-                foreach envVar in environmentVariables
-                    mStartInfo.EnvironmentVariables.Add(envVar.Key, envVar.Value)
-            end
+           
+        endmethod
 
-            mStartInfo.Arguments = targetArguments
-            mStartInfo.RedirectStandardOutput = true
-            mStartInfo.RedirectStandardInput = true
+        public method ExternalContextPool
+            targetExe, @string
+            targetArguments, @string
+            targetDirectory, @string
+            environmentVariables, @IEnumerable<KeyValuePair<string, string>>
+            min, int
+            max, int
+            blockingTimeout, TimeSpan
+            debugMode, boolean
+            endparams
+            this(StartInfoHelper(targetExe, targetArguments, targetDirectory, environmentVariables), min, max, blockingTimeout, debugMode)
+        proc
+        endmethod
+
+        public method ExternalContextPool
+            startInfo, @System.Diagnostics.ProcessStartInfo
+            min, int
+            max, int
+            blockingTimeout, TimeSpan
+            default debugMode, boolean, false
+            endparams
+            parent(CreateInstanceHelper(startInfo), max, min, blockingTimeout, false)
+        proc
+            mStartInfo = startInfo
         endmethod
 
         public method ExternalContextPool
@@ -50,12 +61,41 @@ namespace Harmony.Core.Context
 
         endmethod
 
-		
-        protected override method SlowMakeContext, T
-            provider, @IServiceProvider
+        private static method StartInfoHelper, @System.Diagnostics.ProcessStartInfo
+            targetExe, @string
+            targetArguments, @string
+            targetDirectory, @string
+            environmentVariables, @IEnumerable<KeyValuePair<string, string>>
         proc
-            data callConection = new ProcessDynamicCallConnection(mStartInfo)
-            mreturn ActivatorUtilities.CreateInstance<T>(provider, callConection)
+            data startInfo = new System.Diagnostics.ProcessStartInfo()
+            startInfo.FileName = targetExe
+            startInfo.WorkingDirectory = targetDirectory
+            startInfo.CreateNoWindow = true
+            startInfo.UseShellExecute = false
+            if(environmentVariables != ^null)
+            begin
+                data envVar, KeyValuePair<string, string>
+                foreach envVar in environmentVariables
+                    startInfo.EnvironmentVariables.Add(envVar.Key, envVar.Value)
+            end
+
+            startInfo.Arguments = targetArguments
+            startInfo.RedirectStandardOutput = true
+            startInfo.RedirectStandardInput = true
+            mreturn startInfo
+        endmethod
+
+        private static method CreateInstanceHelper, @Func<IServiceProvider, T>
+            startInfo, @System.Diagnostics.ProcessStartInfo
+        proc
+            lambda createInstance(sp)
+            begin
+                data callConection = new ProcessDynamicCallConnection(startInfo)
+                mreturn ActivatorUtilities.CreateInstance<T>(sp, callConection)
+            end
+            data result, @Func<IServiceProvider, T>
+            result = createInstance
+            mreturn result
         endmethod
     endclass
 

@@ -1,0 +1,191 @@
+import System
+import System.Collections.Generic
+import System.Text
+import Harmony.Core.Utility
+import System.Threading
+import System.Threading.Tasks
+import System.Diagnostics
+
+namespace Harmony.Core.Context
+
+    public class BlockingPoolContextFactory<T(IContextBase, class)> extends BlockingObjectPool<T> implements IContextFactory<T>, IContextPool<T>, IDisposable
+
+        public method BlockingPoolContextFactory
+            factory, @Func<IServiceProvider, T>
+            maxCreated, int
+            pruneAbove, int 
+            waitDuration, TimeSpan
+            default enableDebug, boolean, false
+            endparams
+            parent(factory, maxCreated, pruneAbove, waitDuration, enableDebug)
+        proc
+            Recycle = RecycleHelper()
+            CanRecycle = CanRecycleHelper()
+            this.Init = InitHelper()
+            Destroy = DestroyHelper()
+        endmethod
+
+        private static method RecycleHelper, @Action<T>
+        proc
+            data tType = ^typeof(T)
+            data pooledInterfaceType = ^typeof(IPooledContextBase)
+            if(pooledInterfaceType.IsAssignableFrom(tType)) then
+            begin
+                lambda RecycleFunc(item)
+                begin
+                    ((@IPooledContextBase)item).Recycle()
+                end
+                mreturn RecycleFunc
+            end
+            else
+                mreturn ^null
+        endmethod
+
+        private static method InitHelper, @Action<T, IServiceProvider>
+        proc
+            data tType = ^typeof(T)
+            data pooledInterfaceType = ^typeof(IPooledContextBase)
+            if(pooledInterfaceType.IsAssignableFrom(tType)) then
+            begin
+                lambda InitFunc(item, sp)
+                begin
+                    ((@IPooledContextBase)item).InitServices(sp)
+                end
+                mreturn InitFunc
+            end
+            else
+                mreturn ^null
+        endmethod
+
+        private static method DestroyHelper, @Action<T>
+        proc
+            data tType = ^typeof(T)
+            data pooledInterfaceType = ^typeof(IPooledContextBase)
+            if(pooledInterfaceType.IsAssignableFrom(tType)) then
+            begin
+                lambda DestroyFunc(item)
+                begin
+                    ((@IPooledContextBase)item).Destroy()
+                end
+                mreturn DestroyFunc
+            end
+            else
+                mreturn ^null
+        endmethod
+
+        private static method CanRecycleHelper, @Func<T, Boolean>
+        proc
+            data tType = ^typeof(T)
+            data pooledInterfaceType = ^typeof(IPooledContextBase2)
+            if(pooledInterfaceType.IsAssignableFrom(tType)) then
+            begin
+                lambda CanRecycleFunc(item)
+                begin
+                    mreturn ((@IPooledContextBase2)item).IsHealthy
+                end
+                mreturn CanRecycleFunc
+            end
+            else
+                mreturn ^null
+        endmethod
+
+        public override method Dispose, void
+            endparams
+        proc
+            Monitor.Enter(_madeItems)
+            try
+            begin
+                ;;we can only remove items that are 'available'
+                while(_madeItems.Count > 0)
+                begin
+                    data target, T
+                    if(!_availableItems.TryTake(target))
+                        exitloop ;;no more left to remove
+                end
+            end
+            finally
+            begin
+                Monitor.Exit(_madeItems)
+            end
+            endtry
+        endmethod
+
+        public virtual method RealizeMinimumPoolSize, @System.Threading.Tasks.Task
+            provider, @IServiceProvider 
+            endparams
+        proc
+            mreturn Task.FromResult(true)
+        endmethod
+
+        public virtual method TrimPool, @System.Threading.Tasks.Task
+            targetSize, int 
+            endparams
+        proc
+            Monitor.Enter(_madeItems)
+            try
+            begin
+                while(_madeItems.Count > targetSize)
+                begin
+                    data target, T
+                    if(!_availableItems.TryTake(target))
+                        exitloop ;;no more left to remove
+                    
+                    if(Destroy != ^null)
+                        Destroy(target)
+                end
+            end
+            finally
+            begin
+                Monitor.Exit(_madeItems)
+            end
+            endtry
+            mreturn Task.FromResult(true)
+        endmethod
+
+        public virtual method MakeContextAsync, @System.Threading.Tasks.Task<T>
+            services, @IServiceProvider 
+            endparams
+        proc
+            mreturn Task.FromResult(Create(services))
+        endmethod
+
+        public virtual method MakeContextAsync, @System.Threading.Tasks.Task<T>
+            sessionId, String 
+            services, @IServiceProvider 
+            endparams
+        proc
+            mreturn Task.FromResult(Create(services))
+        endmethod
+
+        public virtual method MakeContext, T
+            services, @IServiceProvider 
+            endparams
+        proc
+            mreturn Create(services)
+        endmethod
+
+        public virtual method MakeContext, T
+            sessionId, String 
+            services, @IServiceProvider 
+            endparams
+        proc
+            mreturn Create(services)
+        endmethod
+
+        public virtual method ReturnContext, void
+            context, T 
+            endparams
+        proc
+            this.Return(context)
+        endmethod
+
+        public virtual property IsSessionSticky, Boolean
+            method get
+            proc
+                mreturn false
+            endmethod
+        endproperty
+
+    endclass
+
+endnamespace

@@ -189,6 +189,17 @@ namespace Harmony.Core.Context
             end
             catch(ex, @Exception)
             begin
+                try
+                begin
+                data badContext = ^as(context, @IPooledContextBase)
+                if(badContext != ^null)
+                    badContext.Destroy();
+                end
+                catch(ex2, @Exception)
+                begin
+                    DebugLogSession.Logging.LogException(ex2, this.GetType().Name + "ReturnContext - Destroy")
+                end
+                endtry
                 DebugLogSession.Logging.LogException(ex, this.GetType().Name + "ReturnContext")
             end
             endtry

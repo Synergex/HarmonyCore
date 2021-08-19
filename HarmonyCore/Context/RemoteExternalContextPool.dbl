@@ -6,7 +6,7 @@ import Microsoft.Extensions.DependencyInjection
 
 namespace Harmony.Core.Context
 
-    public class RemoteExternalContextPool<T(IContextBase, class)> extends FreeThreadedContextPool<T>
+    public class RemoteExternalContextPool<T(IContextBase, class)> extends BlockingPoolContextFactory<T>
         private mTargetMachine, @string
         private mUsername, @string
         private mAuthentication, @AuthenticationMethod
@@ -25,10 +25,8 @@ namespace Harmony.Core.Context
             connectTimeout, int
             stickySession, boolean
             endparams
-            parent(min)
+            parent(CreateInstanceHelper(targetOS, targetMachine, username, authentication, targetCommand, callTimeout, connectTimeout), -1, min, TimeSpan.FromSeconds(30), false)
         proc
-            if(stickySession)
-                SetSticky()
             mTargetOS = targetOS
             mTargetMachine = targetMachine
             mUsername = username
@@ -48,16 +46,43 @@ namespace Harmony.Core.Context
             callTimeout, int
             connectTimeout, int
             endparams
-            this(targetOS, targetMachine, username, authentication, targetCommand, min, callTimeout, connectTimeout, false)
+            parent(CreateInstanceHelper(targetOS, targetMachine, username, authentication, targetCommand, callTimeout, connectTimeout), -1, min, TimeSpan.FromSeconds(30), false)
         proc
         endmethod
 
-
-        protected override method SlowMakeContext, T
-            provider, @IServiceProvider
+        public method RemoteExternalContextPool
+            targetOS, RemoteTargetOS
+            targetMachine, @string
+            username, @string
+            authentication, @AuthenticationMethod
+            targetCommand, @string
+            min, int
+            max, int
+            poolTimeout, TimeSpan
+            callTimeout, int
+            connectTimeout, int
+            default enableDebug, boolean, false
+            endparams
+            parent(CreateInstanceHelper(targetOS, targetMachine, username, authentication, targetCommand, callTimeout, connectTimeout), max, min, poolTimeout, enableDebug)
         proc
-            data callConnection = new SSHDynamicCallConnection(mTargetOS, new ConnectionInfo(mTargetMachine, mUsername, mAuthentication), mTargetCommand, mCallTimeout, mConnectTimeout)
-            mreturn ActivatorUtilities.CreateInstance<T>(provider, callConnection)
+        endmethod
+
+        private static method CreateInstanceHelper, @Func<IServiceProvider, T>
+            targetOS, RemoteTargetOS
+            targetMachine, @string
+            username, @string
+            authentication, @AuthenticationMethod
+            targetCommand, @string
+            callTimeout, int
+            connectTimeout, int
+        proc
+            lambda makeInstance(provider)
+            begin
+                data callConnection = new SSHDynamicCallConnection(targetOS, new ConnectionInfo(targetMachine, username, authentication), targetCommand, callTimeout, connectTimeout)
+                mreturn ActivatorUtilities.CreateInstance<T>(provider, callConnection)
+            end
+
+            mreturn makeInstance
         endmethod
 
     endclass

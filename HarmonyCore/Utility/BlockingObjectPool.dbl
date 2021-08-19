@@ -16,25 +16,25 @@ namespace Harmony.Core.Utility
 			throw new System.NotImplementedException()
 		endmethod
 
-
 		private _factory, @Func<IServiceProvider, T> 
 
 		private _enableDebug, boolean
 		private _maxCreated, int
 		private _pruneAbove, int
-		private _madeItems, @List<ItemPlaceHolder>
-		private _availableItems, @BlockingCollection<T>
+		protected _madeItems, @List<ItemPlaceHolder>
+		protected _availableItems, @BlockingCollection<T>
 		private _waitDuration, TimeSpan
-		public readwrite property Init, @Action<T>  
-		public readwrite property Recycle, @Action<T>  
-		public readwrite property Destroy, @Action<T>  
+		protected readwrite property Init, @Action<T, IServiceProvider>  
+		protected readwrite property Recycle, @Action<T>
+		protected readwrite property CanRecycle, @Func<T, boolean>
+		protected readwrite property Destroy, @Action<T>  
 
-		private class ItemPlaceHolder
+		protected class ItemPlaceHolder
 			public Item, T
 			public AllocatedAt, @StackTrace
 		endclass
 
-		public method BlockingObjectPool
+		protected method BlockingObjectPool
 			factory, @Func<IServiceProvider, T>
 			maxCreated, int
 			pruneAbove, int 
@@ -42,6 +42,7 @@ namespace Harmony.Core.Utility
 			default enableDebug, boolean, false
 			endparams
 		proc
+			_factory = factory
 			_enableDebug = enableDebug
 			_maxCreated = maxCreated
 			_pruneAbove = pruneAbove
@@ -50,20 +51,25 @@ namespace Harmony.Core.Utility
 			_madeItems = new List<ItemPlaceHolder>()
 		endmethod
 
-		public method Create, T
+		protected method Create, T
 			serviceProvider, @IServiceProvider
 			endparams
 		proc
 			data result, @ItemPlaceHolder, ^null
 			data avilableResult, T
 			if (_availableItems.TryTake(avilableResult))
+			begin
+				if(this.Init != ^null)
+					this.Init(avilableResult, serviceProvider)
+
 				mreturn avilableResult
+			end
 
 			try
 			begin
 				Monitor.Enter(_madeItems)
 				begin
-					if (_madeItems.Count < _maxCreated)
+					if (_madeItems.Count < _maxCreated || _maxCreated == -1)
 					begin
 						result = new ItemPlaceHolder()
 						_madeItems.Add(result)
@@ -79,10 +85,10 @@ namespace Harmony.Core.Utility
 			begin
 				try
 				begin
-					;; make the item and initial it if possible
+					;; make the item and initialize it if possible
 					result.Item = _factory(serviceProvider)
 					if (this.Init != ^null)
-						this.Init(result.Item)
+						this.Init(result.Item, serviceProvider)
 				end
 				catch (ex, @Exception)
 				begin
@@ -139,7 +145,7 @@ namespace Harmony.Core.Utility
 			end
 		endmethod
 		
-		public method Return, boolean
+		protected method Return, boolean
 			obj, T 
 			endparams
 		proc
