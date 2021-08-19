@@ -4,6 +4,7 @@ import System.Text
 import System.Diagnostics
 import System.Collections.Concurrent
 import System.Threading
+import System.Threading.Tasks
 
 
 namespace Harmony.Core.Utility
@@ -25,7 +26,7 @@ namespace Harmony.Core.Utility
 		protected _availableItems, @BlockingCollection<T>
 		private _waitDuration, TimeSpan
 		protected readwrite property Init, @Action<T, IServiceProvider>  
-		protected readwrite property Recycle, @Action<T>
+		protected readwrite property Recycle, @Func<T, Task>
 		protected readwrite property CanRecycle, @Func<T, boolean>
 		protected readwrite property Destroy, @Action<T>  
 
@@ -169,10 +170,7 @@ namespace Harmony.Core.Utility
 				begin
 					if(CanRecycle == ^null || CanRecycle(obj)) then
 					begin
-						if (Recycle != ^null)
-							Recycle(obj)
-
-						_availableItems.Add(obj)
+						RecycleItem(obj)
 					end
 					else
 					begin
@@ -190,6 +188,29 @@ namespace Harmony.Core.Utility
 			end
 			mreturn false
 		endmethod
+
+		private async method RecycleItem, void
+			obj, T
+		proc
+			try
+			begin
+
+				if (Recycle != ^null)
+				begin
+					await Recycle(obj)
+				end
+				_availableItems.Add(obj)
+			end
+			;;async void method - gotta catch em all
+			catch(ex, @Exception)
+			begin
+				FinalDestroyItem(obj)
+				RemoveFromMadeItems(obj)
+			end
+			endtry
+
+		endmethod
+
 
 		private method FinalDestroyItem, void
 			obj, T

@@ -25,7 +25,7 @@ namespace Harmony.Core.Context
             Destroy = DestroyHelper()
         endmethod
 
-        private static method RecycleHelper, @Action<T>
+        private static method RecycleHelper, @Func<T, Task>
         proc
             data tType = ^typeof(T)
             data pooledInterfaceType = ^typeof(IPooledContextBase)
@@ -33,7 +33,7 @@ namespace Harmony.Core.Context
             begin
                 lambda RecycleFunc(item)
                 begin
-                    ((@IPooledContextBase)item).Recycle()
+                    mreturn ((@IPooledContextBase)item).Recycle()
                 end
                 mreturn RecycleFunc
             end
