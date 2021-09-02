@@ -963,7 +963,7 @@ namespace Harmony.TraditionalBridge
             end
             endtry
         endmethod
-
+.ifdef DBLV11
          public method DispatchOne, @object
             messageReader, @HeaderDelimitedMessageReader
             serializer, @DispatchSerializer
@@ -1018,6 +1018,19 @@ namespace Harmony.TraditionalBridge
             mreturn ^null
         endmethod
 
+        public method DispatchOne, @object
+            serializer, @DispatchSerializer
+            callback, @CallbackDispatcher
+            record
+                messageReader, @HeaderDelimitedMessageReader 
+                result, @object
+        proc
+            messageReader = new HeaderDelimitedMessageReader(serializer.CurrentOutChannel())
+            result = DispatchOne(messageReader, serializer, callback)
+            mreturn result
+        endmethod
+
+.endc
         ;;; <summary>
         ;;; 
         ;;; </summary>
@@ -1031,18 +1044,6 @@ namespace Harmony.TraditionalBridge
             messageReader = new HeaderDelimitedMessageReader(ttChannel)
             serializer = new DispatchSerializer(new ChannelOutputStream(ttChannel))
             Dispatch(messageReader, serializer)
-        endmethod
-
-        public method DispatchOne, @object
-            serializer, @DispatchSerializer
-            callback, @CallbackDispatcher
-            record
-                messageReader, @HeaderDelimitedMessageReader 
-                result, @object
-        proc
-            messageReader = new HeaderDelimitedMessageReader(serializer.CurrentOutChannel())
-            result = DispatchOne(messageReader, serializer, callback)
-            mreturn result
         endmethod
 
         class StopGuard
