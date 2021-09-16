@@ -44,24 +44,50 @@ namespace Harmony.TraditionalBridge
             if(mLoggingChannel)
                 writes(mLoggingChannel, ^m(handleValue))
         endmethod
-
+        
         public method Log, void
             strValue, @string
+            record currentDateTime
+                group date         ,a8 
+                    year               ,a4
+                    month              ,a2
+                    day               ,a2
+                endgroup
+                group time         ,a12
+                    hour               ,a2
+                    minute             ,a2
+                    second             ,a2
+                    msecond            ,a6
+                endgroup
+            endrecord
+            record
+                timeString, a28
+                resultLogString, @string
+                timeStringLength, int
         proc
-            if(mActiveSettings.LogToDisk && mLoggingChannel)
+            if(mActiveSettings.LogToDisk || mActiveSettings.LogToMemory)
             begin
-                if(strValue.Length > 65534) then
-                    writes(mLoggingChannel, strValue(1:65534))
-                else
-                    writes(mLoggingChannel, strValue)
+                currentDateTime = %datetime()
+                xcall s_bld(timeString,timeStringLength, 
+                &    "%A/%A/%A %A:%A:%A: ", day, month, 
+                &    year, hour, minute, second)
+                resultLogString = timeString(1:timeStringLength) + strValue
 
-                if(mActiveSettings.FlushLog)
-                    flush(mLoggingChannel)
-            end
+                if(mActiveSettings.LogToDisk && mLoggingChannel)
+                begin
+                    if(resultLogString.Length > 65534) then
+                        writes(mLoggingChannel, resultLogString(1:65534))
+                    else
+                        writes(mLoggingChannel, resultLogString)
 
-            if(mActiveSettings.LogToMemory)
-            begin
-                mActiveLogEntries.Add(strValue)
+                    if(mActiveSettings.FlushLog)
+                        flush(mLoggingChannel)
+                end
+
+                if(mActiveSettings.LogToMemory)
+                begin
+                    mActiveLogEntries.Add(resultLogString)
+                end
             end
 
         endmethod
@@ -69,18 +95,9 @@ namespace Harmony.TraditionalBridge
         public method Log, void
             aValue, a
         proc
-            if(mActiveSettings.LogToDisk && mLoggingChannel)
+            if(mActiveSettings.LogToDisk || mActiveSettings.LogToMemory)
             begin
-                writes(mLoggingChannel, aValue)
-                if(mActiveSettings.FlushLog)
-                    flush(mLoggingChannel)
-            end
-
-            if(mActiveSettings.LogToMemory)
-            begin
-                data stringValue, @string
-                stringValue = aValue
-                mActiveLogEntries.Add(stringValue)
+                Log((string)aValue)
             end
         endmethod
 
