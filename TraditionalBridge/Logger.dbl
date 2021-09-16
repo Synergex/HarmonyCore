@@ -63,20 +63,22 @@ namespace Harmony.TraditionalBridge
             record
                 timeString, a28
                 resultLogString, @string
+                timeStringLength, int
         proc
             if(mActiveSettings.LogToDisk || mActiveSettings.LogToMemory)
             begin
-                xcall s_bld(timeString,28, 
+                currentDateTime = %datetime()
+                xcall s_bld(timeString,timeStringLength, 
                 &    "%A/%A/%A %A:%A:%A: ", day, month, 
                 &    year, hour, minute, second)
-                resultLogString = timeString + strValue
+                resultLogString = timeString(1:timeStringLength) + strValue
 
                 if(mActiveSettings.LogToDisk && mLoggingChannel)
                 begin
                     if(resultLogString.Length > 65534) then
                         writes(mLoggingChannel, resultLogString(1:65534))
                     else
-                        writes(mLoggingChannel, strValue)
+                        writes(mLoggingChannel, resultLogString)
 
                     if(mActiveSettings.FlushLog)
                         flush(mLoggingChannel)
