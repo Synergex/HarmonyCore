@@ -66,7 +66,7 @@ namespace <NAMESPACE>
 ;//
         <IF STRUCTURE_ISAM AND STRUCTURE_HAS_UNIQUE_PK AND NOTPKSEGMENT>
           <PRIMARY_KEY>
-        {ODataRoute("(<IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></IF SINGLE_SEGMENT>)/<FieldSqlName>")}
+        {ODataRoute("(<IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>={a<FieldSqlName>}<SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF SEG_TAG_EQUAL></SEGMENT_LOOP></IF SINGLE_SEGMENT>)/<FieldSqlName>")}
         {Produces("application/json")}
         {ProducesResponseType(StatusCodes.Status200OK)}
             <IF DEFINED_ENABLE_AUTHENTICATION>

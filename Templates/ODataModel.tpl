@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME><StructureNoplural>.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.5.4</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.7.5</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
 ;// Title:       ODataModel.tpl
@@ -128,21 +128,21 @@ namespace <NAMESPACE>
         {Key}
       </IF ONLY_PKSEGMENT>
       <IF REQUIRED>
-        {Required(ErrorMessage="<FIELD_DESC> is required. ")}
+        {Required(ErrorMessage="<FIELD_DESC_DOUBLE> is required. ")}
       </IF REQUIRED>
       <IF HARMONYCORE_CUSTOM_FIELD_DATATYPE>
 ;//We can't add validation attributes for fields with custom data types!!!
       <ELSE>
         <IF ALPHA>
-        {StringLength(<FIELD_SIZE>, ErrorMessage="<FIELD_DESC> cannot exceed <FIELD_SIZE> characters. ")}
+        {StringLength(<FIELD_SIZE>, ErrorMessage="<FIELD_DESC_DOUBLE> cannot exceed <FIELD_SIZE> characters. ")}
         </IF ALPHA>
         <IF DECIMAL>
           <IF CUSTOM_NOT_HARMONY_AS_STRING>
-        {Range(<FIELD_MINVALUE>,<FIELD_MAXVALUE>, ErrorMessage="<FIELD_DESC> must be between <FIELD_MINVALUE> and <FIELD_MAXVALUE>. ")}
+        {Range(<FIELD_MINVALUE>,<FIELD_MAXVALUE>, ErrorMessage="<FIELD_DESC_DOUBLE> must be between <FIELD_MINVALUE> and <FIELD_MAXVALUE>. ")}
           </IF CUSTOM_NOT_HARMONY_AS_STRING>
         </IF DECIMAL>
         <IF INTEGER>
-        {Range(<FIELD_MINVALUE>,<FIELD_MAXVALUE>, ErrorMessage="<FIELD_DESC> must be between <FIELD_MINVALUE> and <FIELD_MAXVALUE>. ")}
+        {Range(<FIELD_MINVALUE>,<FIELD_MAXVALUE>, ErrorMessage="<FIELD_DESC_DOUBLE> must be between <FIELD_MINVALUE> and <FIELD_MAXVALUE>. ")}
         </IF INTEGER>
       </IF HARMONYCORE_CUSTOM_FIELD_DATATYPE>
 ;//
