@@ -178,7 +178,13 @@ namespace <NAMESPACE>
                 endusing
             end
 
-            services.AddLogging(lambda(builder) { builder.SetMinimumLevel(log_level) })
+            lambda configureLogging(builder)
+            begin
+                builder.SetMinimumLevel(log_level)
+                builder.AddConsole(lambda(con) { con.TimestampFormat = "[HH:mm:ss] " })
+            end
+
+            services.AddLogging(configureLogging)
 
             ;;-------------------------------------------------------
             ;;Make AppSettings available as a service
@@ -461,48 +467,46 @@ namespace <NAMESPACE>
             ;;-------------------------------------------------------
             ;;Configure development and production specific components
 
-            if (env.IsDevelopment()) then
+            data loggerFactory = app.ApplicationServices.GetRequiredService<ILoggerFactory>()
+            app.UseDeveloperExceptionPage()
+
+            data hc_log_level ,Harmony.Core.Interface.LogLevel ,Harmony.Core.Interface.LogLevel.Debug
+            data logical ,a40
+            data logLen ,int ,0
+            xcall getlog('HARMONY_CORE_LOG_LEVEL',logical,logLen)
+            if (logLen)
             begin
-                data loggerFactory = app.ApplicationServices.GetRequiredService<ILoggerFactory>()
-                app.UseDeveloperExceptionPage()
-
-                data hc_log_level ,Harmony.Core.Interface.LogLevel ,Harmony.Core.Interface.LogLevel.Debug
-                data logical ,a40
-                data logLen ,int ,0
-                xcall getlog('HARMONY_CORE_LOG_LEVEL',logical,logLen)
-                if (logLen)
-                begin
-                    locase logical
-                    using logical(1:loglen)+' ' select
-                    ('0 ','trace '),
-                        hc_log_level = Harmony.Core.Interface.LogLevel.Trace
-                    ('1 ','debug '),
-                        hc_log_level = Harmony.Core.Interface.LogLevel.Debug
-                    ('2 ','information '),
-                        hc_log_level = Harmony.Core.Interface.LogLevel.Info
-                    ('3 ','warning '),
-                        hc_log_level = Harmony.Core.Interface.LogLevel.Warning
-                    ('4 ','error '),
-                        hc_log_level = Harmony.Core.Interface.LogLevel.Error
-                    ('5 ','critical '),
-                        hc_log_level = Harmony.Core.Interface.LogLevel.Critical
-                    (),
-                        throw new Exception("Invalid value for logical HARMONY_CORE_LOG_LEVEL="+logical(1:loglen))
-                    endusing
-                end
-
-                DebugLogSession.Logging = new AspNetCoreDebugLogger(loggerFactory.CreateLogger("HarmonyCore")) { Level = hc_log_level }
-                app.UseLogging(DebugLogSession.Logging)
+                locase logical
+                using logical(1:loglen)+' ' select
+                ('0 ','trace '),
+                    hc_log_level = Harmony.Core.Interface.LogLevel.Trace
+                ('1 ','debug '),
+                    hc_log_level = Harmony.Core.Interface.LogLevel.Debug
+                ('2 ','information '),
+                    hc_log_level = Harmony.Core.Interface.LogLevel.Info
+                ('3 ','warning '),
+                    hc_log_level = Harmony.Core.Interface.LogLevel.Warning
+                ('4 ','error '),
+                    hc_log_level = Harmony.Core.Interface.LogLevel.Error
+                ('5 ','critical '),
+                    hc_log_level = Harmony.Core.Interface.LogLevel.Critical
+                (),
+                    throw new Exception("Invalid value for logical HARMONY_CORE_LOG_LEVEL="+logical(1:loglen))
+                endusing
             end
-            else
-            begin
+
+            DebugLogSession.Logging = new AspNetCoreDebugLogger(loggerFactory.CreateLogger("HarmonyCore")) { Level = hc_log_level }
+            app.UseLogging(DebugLogSession.Logging)
+
+            ;if (!env.IsDevelopment())
+            ;begin
                 ;;Enable HTTP Strict Transport Security Protocol (HSTS)
                 ;
                 ;You need to research this and know what you are doing with this. Here's a starting point:
                 ;https://docs.microsoft.com/en-us/aspnet/core/security/enforcing-ssl?view=aspnetcore-2.1&tabs=visual-studio
                 ;
                 ;app.UseHsts()
-            end
+            ;end
 
             ;;-------------------------------------------------------
             ;;Enable HTTP redirection to HTTPS
