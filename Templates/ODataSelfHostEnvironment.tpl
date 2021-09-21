@@ -160,6 +160,7 @@ namespace <NAMESPACE>
         proc
             data chout, int
             data dataFile, string
+            data fileExtension, a10
             data xdlFile, string
 
   <STRUCTURE_LOOP>
@@ -172,7 +173,6 @@ namespace <NAMESPACE>
             ;;Create and load the <structurePlural> file
 
             dataFile = "<FILE_NAME>"
-            data fileExtension, a10
             xcall parse(dataFile.ToLower(),1,,,,,fileExtension)
     <IF STRUCTURE_ISAM>
             xdlFile = "@" + dataFile.ToLower().Replace(%atrim(fileExtension),".xdl")
