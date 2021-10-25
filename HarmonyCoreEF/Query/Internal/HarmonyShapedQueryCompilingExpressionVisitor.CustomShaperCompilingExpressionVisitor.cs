@@ -163,15 +163,15 @@ namespace Harmony.Core.EF.Query.Internal
                 {
                     var entityClrType = includeExpression.EntityExpression.Type;
                     var includingClrType = includeExpression.Navigation.DeclaringEntityType.ClrType;
-                    var inverseNavigation = includeExpression.Navigation.FindInverse();
-                    var relatedEntityClrType = includeExpression.Navigation.GetTargetType().ClrType;
+                    var inverseNavigation = includeExpression.Navigation.Inverse;
+                    var relatedEntityClrType = includeExpression.Navigation.TargetEntityType.ClrType;
                     if (includingClrType != entityClrType
                         && includingClrType.IsAssignableFrom(entityClrType))
                     {
                         includingClrType = entityClrType;
                     }
 
-                    if (includeExpression.Navigation.IsCollection())
+                    if (includeExpression.Navigation.IsCollection)
                     {
                         var collectionShaper = (CollectionShaperExpression)includeExpression.NavigationExpression;
                         return Expression.Call(
@@ -184,7 +184,7 @@ namespace Harmony.Core.EF.Query.Internal
                             Expression.Constant(inverseNavigation, typeof(INavigation)),
                             Expression.Constant(
                                 GenerateFixup(
-                                    includingClrType, relatedEntityClrType, includeExpression.Navigation, inverseNavigation).Compile()),
+                                    includingClrType, relatedEntityClrType, includeExpression.Navigation as INavigation, inverseNavigation as INavigation).Compile()),
                             Expression.Constant(_tracking));
                     }
 
@@ -197,7 +197,7 @@ namespace Harmony.Core.EF.Query.Internal
                         Expression.Constant(inverseNavigation, typeof(INavigation)),
                         Expression.Constant(
                             GenerateFixup(
-                                includingClrType, relatedEntityClrType, includeExpression.Navigation, inverseNavigation).Compile()),
+                                includingClrType, relatedEntityClrType, includeExpression.Navigation as INavigation, inverseNavigation as INavigation).Compile()),
                         Expression.Constant(_tracking));
                 }
 

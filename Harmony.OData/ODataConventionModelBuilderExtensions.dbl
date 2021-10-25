@@ -1,13 +1,13 @@
 import System
 import System.Collections.Generic
 import System.Text
-import Microsoft.AspNet.OData.Builder
 import System.Reflection
 import System.Linq
 import System.Threading.Tasks
 import Harmony.OData.Adapter
 import Microsoft.AspNetCore.Mvc
 import System.Reflection.Emit
+import Microsoft.OData.ModelBuilder
 
 namespace Harmony.OData
 
@@ -264,38 +264,38 @@ namespace Harmony.OData
             builder, @ODataModelBuilder
             namespaceName, @string
         proc
-            data madeType = ^typeof(EntityTypeWrapper<T>)
-            data entityConfig = builder.AddEntityType(madeType)
-            
-            data singletonConfig, @NavigationSourceConfiguration, String.IsNullOrWhiteSpace(namespaceName) ? ^null : builder.AddSingleton(namespaceName, entityConfig)
-            data targetMethod, @MethodInfo
-            HarmonySprocRoutingConvention.AddSprocDispatcher<T>(namespaceName)
-            data entitySetLookup = new Dictionary<Type, EntitySetConfiguration>()
-            data eSet, @EntitySetConfiguration
-            foreach eSet in builder.EntitySets
-            begin
-                if(!entitySetLookup.ContainsKey(eSet.ClrType))
-                    entitySetLookup.Add(eSet.ClrType, eSet)
-            end
-
-            data targetType = ^typeof(T)
-            data methods = ^typeof(T).GetMethods()
-            foreach targetMethod in methods
-            begin
-                if(targetMethod.DeclaringType != ^typeof(T) || targetMethod.IsSpecialName || targetMethod.Name.Contains("$"))
-                    nextloop
-
-                data securityAttribute = targetMethod.GetCustomAttribute<MethodSecurityAttribute>(false)
-                if(securityAttribute != ^null && !((@MethodSecurityAttribute)securityAttribute).AllowAccess)
-                begin
-                    nextloop
-                end
-
-                AddMethod<EntityTypeWrapper<T>>(builder, targetMethod, "Default", entityConfig, entitySetLookup)
-
-            end
-
-            builder.Namespace = String.Empty
+;            data madeType = ^typeof(EntityTypeWrapper<T>)
+;            data entityConfig = builder.AddEntityType(madeType)
+;            
+;            data singletonConfig, @NavigationSourceConfiguration, String.IsNullOrWhiteSpace(namespaceName) ? ^null : builder.AddSingleton(namespaceName, entityConfig)
+;            data targetMethod, @MethodInfo
+;            HarmonySprocRoutingConvention.AddSprocDispatcher<T>(namespaceName)
+;            data entitySetLookup = new Dictionary<Type, EntitySetConfiguration>()
+;            data eSet, @EntitySetConfiguration
+;            foreach eSet in builder.EntitySets
+;            begin
+;                if(!entitySetLookup.ContainsKey(eSet.ClrType))
+;                    entitySetLookup.Add(eSet.ClrType, eSet)
+;            end
+;
+;            data targetType = ^typeof(T)
+;            data methods = ^typeof(T).GetMethods()
+;            foreach targetMethod in methods
+;            begin
+;                if(targetMethod.DeclaringType != ^typeof(T) || targetMethod.IsSpecialName || targetMethod.Name.Contains("$"))
+;                    nextloop
+;
+;                data securityAttribute = targetMethod.GetCustomAttribute<MethodSecurityAttribute>(false)
+;                if(securityAttribute != ^null && !((@MethodSecurityAttribute)securityAttribute).AllowAccess)
+;                begin
+;                    nextloop
+;                end
+;
+;                AddMethod<EntityTypeWrapper<T>>(builder, targetMethod, "Default", entityConfig, entitySetLookup)
+;
+;            end
+;
+;            builder.Namespace = String.Empty
         endmethod
 
         private static method GetSequenceType, @Type

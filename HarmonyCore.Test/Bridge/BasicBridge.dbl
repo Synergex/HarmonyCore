@@ -28,6 +28,13 @@ namespace HarmonyCore.Test.Bridge
         endmethod
 
         {TestMethod}
+        public async method ArgumentPreserialize, @Task
+        proc
+            
+        endmethod
+
+
+        {TestMethod}
         public async method InitFailure, @Task
         proc
             data currentDirectory = Path.GetDirectoryName(^typeof(BasicBridge).Assembly.Location)
@@ -377,6 +384,30 @@ namespace HarmonyCore.Test.Bridge
                 data resultTpl = await CallMethod("Arbitrario.MethodWithParameters", 5, "hello", new string[#] { "this", "is", "strings" }, (@object)intArray, new string[0])
                 data returnCode = ArgumentHelper.Argument<int>(0, resultTpl)
                 mreturn new ArbitrarioReturnType() { ReturnCode = returnCode, IntList = ((@IEnumerable<int>)resultTpl.Item2[4]).ToList(), StringList = ((@IEnumerable<string>)resultTpl.Item2[5]).ToList() }
+            endmethod
+
+            protected override method PreSerializeArgument, @ArgumentDataDefinition
+                argValue, @Object
+            proc
+                if(argValue .is. [#]string)
+                begin
+                    argDef.DataType = FieldDataType.DataObjectCollectionField
+                    argDef.PassedValue = PreSerializeIEnumerable(([#]string)argValue)
+                end
+                else
+                    mreturn parent.PreSerializeArgument(argValue)
+            endmethod
+
+            private method PreSerializeIEnumerable, @object
+                argValue, @System.Collections.IEnumerable
+            proc
+                data result = new List<object>()
+                data objValue, @Object
+                foreach objValue in argValue
+                begin
+                    result.Add(PreSerializeArgument(objValue).PassedValue)
+                end
+                mreturn result
             endmethod
 
             public async method Arbitrario_Structures, @Task<ArbitrarioStructuresReturnType>

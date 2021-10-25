@@ -14,8 +14,11 @@ import Microsoft.AspNetCore.Http
 import Microsoft.OData
 import Microsoft.AspNetCore.JsonPatch
 import Microsoft.AspNetCore.Mvc
-import Microsoft.AspNet.OData
-import Microsoft.AspNet.OData.Routing
+import Microsoft.AspNetCore.OData.Routing.Controllers
+import Microsoft.AspNetCore.OData.Routing.Attributes
+import Microsoft.AspNetCore.OData.Query
+import Microsoft.AspNetCore.OData.Results
+import Microsoft.AspNetCore.OData.Formatter
 import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Infrastructure
 import Microsoft.Extensions.Options
@@ -30,8 +33,9 @@ import Services.Models
 
 namespace Services.Controllers
 
-    {ApiVersion("1")}
-    {ODataRoutePrefix("Items")}
+ ;   {ApiVersion("1")}
+    ;;{ODataRouteComponent("Items")}
+    ;;{ODataAttributeRouting}
     ;;; <summary>
     ;;; OData controller for Items
     ;;; </summary>
@@ -58,9 +62,9 @@ namespace Services.Controllers
             this._AppSettings = aAppSettings
         endmethod
 
-        {ODataRoute}
+        {HttpGet("Items")}
         {Produces("application/json")}
-        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Item>>),StatusCodes.Status200OK)}
+        {ProducesResponseType(^typeof(IEnumerable<Item>),StatusCodes.Status200OK)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get all Items
@@ -71,7 +75,7 @@ namespace Services.Controllers
             mreturn Ok(_DbContext.Items.AsNoTracking())
         endmethod
 
-        {ODataRoute("(ItemNumber={aItemNumber})")}
+        {HttpGet("Items(ItemNumber={aItemNumber})")}
         {Produces("application/json")}
         {ProducesResponseType(^typeof(Item),StatusCodes.Status200OK)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
@@ -88,9 +92,9 @@ namespace Services.Controllers
             mreturn new SingleResult<Item>(_DbContext.Items.AsNoTracking().FindQuery<Item>(_DbContext, aItemNumber))
         endmethod
 
-        {ODataRoute("(VendorNumber={aVendorNumber})")}
+        {HttpGet("Items(VendorNumber={aVendorNumber})")}
         {Produces("application/json")}
-        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Item>>),StatusCodes.Status200OK)}
+        {ProducesResponseType(^typeof(IEnumerable<Item>),StatusCodes.Status200OK)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
@@ -105,12 +109,13 @@ namespace Services.Controllers
             data result = _DbContext.Items.AsNoTracking().FindAlternate("VendorNumber",aVendorNumber)
             if (result == ^null)
                 mreturn NotFound()
+
             mreturn Ok(result)
         endmethod
 
-        {ODataRoute("(FlowerColor={aFlowerColor})")}
+        {HttpGet("Items(FlowerColor={aFlowerColor})")}
         {Produces("application/json")}
-        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Item>>),StatusCodes.Status200OK)}
+        {ProducesResponseType(^typeof(IEnumerable<Item>),StatusCodes.Status200OK)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
@@ -125,12 +130,13 @@ namespace Services.Controllers
             data result = _DbContext.Items.AsNoTracking().FindAlternate("FlowerColor",aFlowerColor)
             if (result == ^null)
                 mreturn NotFound()
+
             mreturn Ok(result)
         endmethod
 
-        {ODataRoute("(Size={aSize})")}
+        {HttpGet("Items(Size={aSize})")}
         {Produces("application/json")}
-        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Item>>),StatusCodes.Status200OK)}
+        {ProducesResponseType(^typeof(IEnumerable<Item>),StatusCodes.Status200OK)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
@@ -145,12 +151,13 @@ namespace Services.Controllers
             data result = _DbContext.Items.AsNoTracking().FindAlternate("Size",aSize)
             if (result == ^null)
                 mreturn NotFound()
+
             mreturn Ok(result)
         endmethod
 
-        {ODataRoute("(CommonName={aCommonName})")}
+        {HttpGet("Items(CommonName={aCommonName})")}
         {Produces("application/json")}
-        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Item>>),StatusCodes.Status200OK)}
+        {ProducesResponseType(^typeof(IEnumerable<Item>),StatusCodes.Status200OK)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
@@ -165,14 +172,14 @@ namespace Services.Controllers
             data result = _DbContext.Items.AsNoTracking().FindAlternate("CommonName",aCommonName)
             if (result == ^null)
                 mreturn NotFound()
+
             mreturn Ok(result)
         endmethod
 
-        {ODataRoute}
         {Produces("application/json")}
         {ProducesResponseType(^typeof(Item),StatusCodes.Status200OK)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
-        {HttpPost}
+        {HttpPost("Items")}
         ;;; <summary>
         ;;; Create a new item (automatically assigned primary key).
         ;;; </summary>
@@ -209,12 +216,11 @@ namespace Services.Controllers
 
         endmethod
 
-        {ODataRoute("(ItemNumber={aItemNumber})")}
+        {HttpPut("Items(ItemNumber={aItemNumber})")}
         {Produces("application/json")}
         {ProducesResponseType(StatusCodes.Status201Created)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
-        {HttpPut}
         ;;; <summary>
         ;;; Create (with a client-supplied primary key) or replace a item.
         ;;; </summary>
@@ -263,12 +269,11 @@ namespace Services.Controllers
             endtry
 
         endmethod
-        {ODataRoute("(ItemNumber={aItemNumber})")}
+        {HttpPatch("Items(ItemNumber={aItemNumber})")}
         {Produces("application/json")}
         {ProducesResponseType(StatusCodes.Status204NoContent)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
-        {HttpPatch}
         ;;; <summary>
         ;;; Patch  (partial update) a item.
         ;;; </summary>
@@ -318,10 +323,9 @@ namespace Services.Controllers
             mreturn NoContent()
 
         endmethod
-        {ODataRoute("(ItemNumber={aItemNumber})")}
+        {HttpDelete("Items(ItemNumber={aItemNumber})")}
         {ProducesResponseType(StatusCodes.Status204NoContent)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
-        {HttpDelete}
         ;;; <summary>
         ;;; Delete a item.
         ;;; </summary>

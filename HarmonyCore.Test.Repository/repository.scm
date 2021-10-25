@@ -1,12 +1,12 @@
  
 ;  SYNERGY DATA LANGUAGE OUTPUT
 ;
-;  REPOSITORY     : F:\repos\HarmonyCore\HarmonyCore.Test.Repository\bin\Debug\rpsmain.ism
-;                 : F:\repos\HarmonyCore\HarmonyCore.Test.Repository\bin\Debug\rpstext.ism
-;                 : Version 11.1.1g
+;  REPOSITORY     : F:\repos\HCTrunk\HarmonyCore.Test.Repository\bin\Debug\rpsmain.ism
+;                 : F:\repos\HCTrunk\HarmonyCore.Test.Repository\bin\Debug\rpstext.ism
+;                 : Version 11.1.1h
 ;
-;  GENERATED      : 08-JUL-2021, 14:47:29
-;                 : Version 11.1.1f
+;  GENERATED      : 04-OCT-2021, 14:02:52
+;                 : Version 11.1.1h
 ;  EXPORT OPTIONS : [ALL] 
  
  
@@ -114,26 +114,6 @@ Alias AL_GPC3   Structure GPC3
    Alias AL_FLD_4F   Field FLD_4F
    Alias AL_FLD_4F2   Field FLD_4F
  
-Structure GPC4   DBL ISAM
-   Description "Fourth Structure"
- 
-Field FLD_1G   Type ALPHA   Size 3
-   Description "GPC4.FLD_1G"
- 
-Field FLD_2G   Type INTEGER   Size 2   Dimension 4
-   Description "GPC4.FLD_2G"
- 
-Field STRUCT_1G   Type STRUCT   Size 16   Struct GPC3
-   Description "GPC4.STRUCT_1G"
- 
-Field FLD_3G   Type ALPHA   Size 3   Dimension 3
-   Description "GPC4.FLD_3G"
- 
-Field FLD_4G   Type DECIMAL   Size 13
-   Description "GPC4.FLD_4G"
- 
-Alias AL_GPC4   Structure GPC4
- 
 Structure GPC6   DBL ISAM
    Description "Sixth Structure"
  
@@ -156,6 +136,26 @@ Group GROUP_ONE   Type ALPHA
 Endgroup
  
 Alias AL_GPC6   Structure GPC6
+ 
+Structure GPC4   DBL ISAM
+   Description "Fourth Structure"
+ 
+Field FLD_1G   Type ALPHA   Size 3
+   Description "GPC4.FLD_1G"
+ 
+Field FLD_2G   Type INTEGER   Size 2   Dimension 4
+   Description "GPC4.FLD_2G"
+ 
+Field STRUCT_1G   Type STRUCT   Size 16   Struct GPC3
+   Description "GPC4.STRUCT_1G"
+ 
+Field FLD_3G   Type ALPHA   Size 3   Dimension 3
+   Description "GPC4.FLD_3G"
+ 
+Field FLD_4G   Type DECIMAL   Size 13
+   Description "GPC4.FLD_4G"
+ 
+Alias AL_GPC4   Structure GPC4
  
 Structure GPC2   DBL ISAM
    Description "Second Structure"
@@ -444,11 +444,10 @@ Field FAX   Template PHONE
    Long Description
       "SAMPLE_DATA=(555) 987-6543;"
  
-Field FAVORITE_ITEM   Type DECIMAL   Size 6
+Field FAVORITE_ITEM   Type ALPHA   Size 6
    Description "Customers favorite item"
    Long Description
       "SAMPLE_DATA=7;"
-   Report Just LEFT   Input Just LEFT
  
 Field PAYMENT_TERMS_CODE   Type ALPHA   Size 2
    Description "Payment terms code"

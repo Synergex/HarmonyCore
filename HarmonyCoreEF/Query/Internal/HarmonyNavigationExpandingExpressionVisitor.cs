@@ -15,7 +15,10 @@ namespace Harmony.Core.EF.Query.Internal
     internal class HarmonyNavigationExpandingExpressionVisitor : NavigationExpandingExpressionVisitor
     {
         internal static readonly MethodInfo LeftJoinMethodInfo = typeof(QueryableExtensions).GetTypeInfo().GetDeclaredMethods("LeftJoin").Single((MethodInfo mi) => mi.GetParameters().Length == 5);
-        public HarmonyNavigationExpandingExpressionVisitor(QueryCompilationContext queryCompilationContext, IEvaluatableExpressionFilter evaluatableExpressionFilter) : base(queryCompilationContext, evaluatableExpressionFilter)
+        public HarmonyNavigationExpandingExpressionVisitor(
+            QueryTranslationPreprocessor queryTranslationPreprocessor,
+            QueryCompilationContext queryCompilationContext,
+            IEvaluatableExpressionFilter evaluatableExpressionFilter) : base(queryTranslationPreprocessor, queryCompilationContext, evaluatableExpressionFilter)
         {
 
         }

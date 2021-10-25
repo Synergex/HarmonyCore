@@ -12,7 +12,7 @@ namespace Harmony.Core.EF.Query.Internal
     {
         HarmonyQueryCompilationContext _compilationContext;
         public HarmonyQueryTranslationPostprocessor(HarmonyQueryCompilationContext compilationContext, QueryTranslationPostprocessorDependencies dependencies)
-            : base(dependencies)
+            : base(dependencies, compilationContext)
         {
             _compilationContext = compilationContext;
         }

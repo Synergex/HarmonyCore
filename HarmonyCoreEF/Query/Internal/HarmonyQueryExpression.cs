@@ -15,6 +15,7 @@ using Harmony.Core.EF.Extensions.Internal;
 using Harmony.Core.FileIO.Queryable;
 using Harmony.Core.Enumerations;
 using System.Diagnostics;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 
 namespace Harmony.Core.EF.Query.Internal
 {
@@ -842,7 +843,7 @@ namespace Harmony.Core.EF.Query.Internal
         }
 
         private IEnumerable<IProperty> GetAllPropertiesInHierarchy(IEntityType entityType)
-            => entityType.GetTypesInHierarchy().SelectMany(Microsoft.EntityFrameworkCore.EntityTypeExtensions.GetDeclaredProperties);
+            => entityType.GetAllBaseTypesInclusive().SelectMany(Microsoft.EntityFrameworkCore.EntityTypeExtensions.GetDeclaredProperties);
 
         public virtual Expression GetMappedProjection(ProjectionMember member)
             => _projectionMapping[member];
@@ -935,7 +936,7 @@ namespace Harmony.Core.EF.Query.Internal
         {
             if (expression is MethodCallExpression methodCallExpression
                 && methodCallExpression.Method.IsGenericMethod
-                && methodCallExpression.Method.GetGenericMethodDefinition() == EntityMaterializerSource.TryReadValueMethod)
+                && methodCallExpression.Method.GetGenericMethodDefinition() == HarmonyEntityMaterializerSource.TryReadValueMethod)
             {
                 return (IPropertyBase)((ConstantExpression)methodCallExpression.Arguments[2]).Value;
             }
@@ -1060,7 +1061,7 @@ namespace Harmony.Core.EF.Query.Internal
                 return valueBufferParameter;
         }
             /*Call(
-                EntityMaterializerSource.TryReadValueMethod.MakeGenericMethod(type),
+                HarmonyEntityMaterializerSource.TryReadValueMethod.MakeGenericMethod(type),
                 valueBufferParameter,
                 Constant(index),
                 Constant(property, typeof(IPropertyBase)));*/
@@ -1079,10 +1080,8 @@ namespace Harmony.Core.EF.Query.Internal
             var resultValueBufferExpressions = new List<Expression>();
             var projectionMapping = new Dictionary<ProjectionMember, Expression>();
             var replacingVisitor = new ReplacingExpressionVisitor(
-                new Dictionary<Expression, Expression>
-                {
-                    { CurrentParameter, outerParameter }, { innerQueryExpression.CurrentParameter, innerParameter }
-                });
+                new List<Expression> { CurrentParameter, innerQueryExpression.CurrentParameter },
+                new List<Expression> { outerParameter, innerParameter });
 
             var index = 0;
             var outerMemberInfo = transparentIdentifierType.GetTypeInfo().GetDeclaredField("Outer");
@@ -1179,11 +1178,9 @@ namespace Harmony.Core.EF.Query.Internal
             var resultValueBufferExpressions = new List<Expression>();
             var projectionMapping = new Dictionary<ProjectionMember, Expression>();
             var replacingVisitor = new ReplacingExpressionVisitor(
-                new Dictionary<Expression, Expression>
-                {
-                    { CurrentParameter, outerParameter }, { innerQueryExpression.CurrentParameter, innerParameter }
-                });
-
+                new List<Expression> { CurrentParameter, innerQueryExpression.CurrentParameter },
+                new List<Expression> { outerParameter, innerParameter });
+            
             var index = 0;
             var outerMemberInfo = transparentIdentifierType.GetTypeInfo().GetDeclaredField("Outer");
             foreach (var projection in _projectionMapping)
@@ -1308,11 +1305,9 @@ namespace Harmony.Core.EF.Query.Internal
             var resultValueBufferExpressions = new List<Expression>();
             var projectionMapping = new Dictionary<ProjectionMember, Expression>();
             var replacingVisitor = new ReplacingExpressionVisitor(
-                new Dictionary<Expression, Expression>
-                {
-                    { CurrentParameter, MakeMemberAccess(outerParameter, outerMemberInfo) },
-                    { innerQueryExpression.CurrentParameter, innerParameter }
-                });
+                new List<Expression> { CurrentParameter, innerQueryExpression.CurrentParameter },
+                new List<Expression> { MakeMemberAccess(outerParameter, outerMemberInfo), innerParameter });
+
             var index = 0;
 
             EntityProjectionExpression copyEntityProjectionToOuter(EntityProjectionExpression entityProjection)
@@ -1332,7 +1327,7 @@ namespace Harmony.Core.EF.Query.Internal
                 }
 
                 // Also lift nested entity projections
-                foreach (var navigation in entityProjection.EntityType.GetTypesInHierarchy()
+                foreach (var navigation in entityProjection.EntityType.GetAllBaseTypes()
                     .SelectMany(Microsoft.EntityFrameworkCore.EntityTypeExtensions.GetDeclaredNavigations))
                 {
                     var boundEntityShaperExpression = entityProjection.BindNavigation(navigation);
@@ -1447,11 +1442,11 @@ namespace Harmony.Core.EF.Query.Internal
             protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
             {
                 if (methodCallExpression.Method.IsGenericMethod
-                    && methodCallExpression.Method.GetGenericMethodDefinition() == EntityMaterializerSource.TryReadValueMethod
+                    && methodCallExpression.Method.GetGenericMethodDefinition() == HarmonyEntityMaterializerSource.TryReadValueMethod
                     && !methodCallExpression.Type.IsNullableType())
                 {
                     return Call(
-                        EntityMaterializerSource.TryReadValueMethod.MakeGenericMethod(methodCallExpression.Type.MakeNullable()),
+                        HarmonyEntityMaterializerSource.TryReadValueMethod.MakeGenericMethod(methodCallExpression.Type.MakeNullable()),
                         methodCallExpression.Arguments);
                 }
 

@@ -14,8 +14,11 @@ import Microsoft.AspNetCore.Http
 import Microsoft.OData
 import Microsoft.AspNetCore.JsonPatch
 import Microsoft.AspNetCore.Mvc
-import Microsoft.AspNet.OData
-import Microsoft.AspNet.OData.Routing
+import Microsoft.AspNetCore.OData.Routing.Controllers
+import Microsoft.AspNetCore.OData.Routing.Attributes
+import Microsoft.AspNetCore.OData.Query
+import Microsoft.AspNetCore.OData.Results
+import Microsoft.AspNetCore.OData.Formatter
 import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Infrastructure
 import Microsoft.Extensions.Options
@@ -30,8 +33,9 @@ import Services.Models
 
 namespace Services.Controllers
 
-    {ApiVersion("1")}
-    {ODataRoutePrefix("Customers")}
+ ;   {ApiVersion("1")}
+    ;{Route("Customers")}
+    ;{ODataAttributeRouting}
     ;;; <summary>
     ;;; OData controller for Customers
     ;;; </summary>
@@ -58,9 +62,9 @@ namespace Services.Controllers
             this._AppSettings = aAppSettings
         endmethod
 
-        {ODataRoute}
+        {HttpGet("Customers")}
         {Produces("application/json")}
-        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Customer>>),StatusCodes.Status200OK)}
+        {ProducesResponseType(^typeof(IEnumerable<Customer>),StatusCodes.Status200OK)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get all Customers
@@ -71,7 +75,7 @@ namespace Services.Controllers
             mreturn Ok(_DbContext.Customers.AsNoTracking())
         endmethod
 
-        {ODataRoute("(CustomerNumber={aCustomerNumber})")}
+        {HttpGet("Customers(CustomerNumber={aCustomerNumber})")}
         {Produces("application/json")}
         {ProducesResponseType(^typeof(Customer),StatusCodes.Status200OK)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
@@ -81,16 +85,16 @@ namespace Services.Controllers
         ;;; </summary>
         ;;; <param name="aCustomerNumber">Customer number</param>
         ;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetCustomer, @SingleResult<Customer>
+        public method Get, @SingleResult<Customer>
             {FromODataUri}
             required in aCustomerNumber, int
         proc
             mreturn new SingleResult<Customer>(_DbContext.Customers.AsNoTracking().FindQuery<Customer>(_DbContext, aCustomerNumber))
         endmethod
 
-        {ODataRoute("(State={aState})")}
+        {HttpGet("Customers(State={aState})")}
         {Produces("application/json")}
-        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Customer>>),StatusCodes.Status200OK)}
+        {ProducesResponseType(^typeof(IEnumerable<Customer>),StatusCodes.Status200OK)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
@@ -105,12 +109,13 @@ namespace Services.Controllers
             data result = _DbContext.Customers.AsNoTracking().FindAlternate("State",aState)
             if (result == ^null)
                 mreturn NotFound()
+
             mreturn Ok(result)
         endmethod
 
-        {ODataRoute("(ZipCode={aZipCode})")}
+        {HttpGet("Customers(ZipCode={aZipCode})")}
         {Produces("application/json")}
-        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Customer>>),StatusCodes.Status200OK)}
+        {ProducesResponseType(^typeof(IEnumerable<Customer>),StatusCodes.Status200OK)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
@@ -125,12 +130,13 @@ namespace Services.Controllers
             data result = _DbContext.Customers.AsNoTracking().FindAlternate("ZipCode",aZipCode)
             if (result == ^null)
                 mreturn NotFound()
+
             mreturn Ok(result)
         endmethod
 
-        {ODataRoute("(PaymentTermsCode={aPaymentTermsCode})")}
+        {HttpGet("Customers(PaymentTermsCode={aPaymentTermsCode})")}
         {Produces("application/json")}
-        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Customer>>),StatusCodes.Status200OK)}
+        {ProducesResponseType(^typeof(IEnumerable<Customer>),StatusCodes.Status200OK)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
@@ -145,14 +151,14 @@ namespace Services.Controllers
             data result = _DbContext.Customers.AsNoTracking().FindAlternate("PaymentTermsCode",aPaymentTermsCode)
             if (result == ^null)
                 mreturn NotFound()
+
             mreturn Ok(result)
         endmethod
 
-        {ODataRoute}
         {Produces("application/json")}
         {ProducesResponseType(^typeof(Customer),StatusCodes.Status200OK)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
-        {HttpPost}
+        {HttpPost("Customers")}
         ;;; <summary>
         ;;; Create a new customer (automatically assigned primary key).
         ;;; </summary>
@@ -189,12 +195,11 @@ namespace Services.Controllers
 
         endmethod
 
-        {ODataRoute("(CustomerNumber={aCustomerNumber})")}
+        {HttpPut("Customers(CustomerNumber={aCustomerNumber})")}
         {Produces("application/json")}
         {ProducesResponseType(StatusCodes.Status201Created)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
-        {HttpPut}
         ;;; <summary>
         ;;; Create (with a client-supplied primary key) or replace a customer.
         ;;; </summary>
@@ -243,12 +248,11 @@ namespace Services.Controllers
             endtry
 
         endmethod
-        {ODataRoute("(CustomerNumber={aCustomerNumber})")}
+        {HttpPatch("Customers(CustomerNumber={aCustomerNumber})")}
         {Produces("application/json")}
         {ProducesResponseType(StatusCodes.Status204NoContent)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
-        {HttpPatch}
         ;;; <summary>
         ;;; Patch  (partial update) a customer.
         ;;; </summary>
@@ -298,10 +302,9 @@ namespace Services.Controllers
             mreturn NoContent()
 
         endmethod
-        {ODataRoute("(CustomerNumber={aCustomerNumber})")}
+        {HttpDelete("Customers(CustomerNumber={aCustomerNumber})")}
         {ProducesResponseType(StatusCodes.Status204NoContent)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
-        {HttpDelete}
         ;;; <summary>
         ;;; Delete a customer.
         ;;; </summary>

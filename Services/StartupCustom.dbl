@@ -18,10 +18,9 @@ import Harmony.AspNetCore.Context
 import Microsoft.AspNetCore.Builder
 import Microsoft.AspNetCore.Hosting
 import Microsoft.AspNetCore.Http
-import Microsoft.AspNet.OData
-import Microsoft.AspNet.OData.Extensions
-import Microsoft.AspNet.OData.Builder
-import Microsoft.AspNet.OData.Routing
+import Microsoft.AspNetCore.OData
+import Microsoft.AspNetCore.OData.Extensions
+import Microsoft.AspNetCore.OData.Routing
 import Microsoft.EntityFrameworkCore
 import Microsoft.Extensions.DependencyInjection
 import Microsoft.Extensions.DependencyInjection.Extensions
@@ -40,6 +39,7 @@ import System.IO
 import System.Linq
 import System.Threading.Tasks
 import Microsoft.Extensions.Primitives
+import System.Diagnostics
 
 namespace Services
 
@@ -99,6 +99,11 @@ namespace Services
         private static method ConfigSignalR, void
             options, @Microsoft.AspNetCore.SignalR.HubOptions
         proc
+            if(string.Compare(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"), "Development") == 0)
+                options.EnableDetailedErrors = true
+
+            if(Debugger.IsAttached)
+                options.ClientTimeoutInterval = TimeSpan.FromSeconds(4096)
             ;options.MaximumParallelInvocationsPerClient = 100
         endmethod
 
@@ -135,7 +140,7 @@ namespace Services
             ;Task.WaitAll(contextPool.RealizeMinimumPoolSize(app.ApplicationServices))
             ;app.UseEagerContext<ExternalCallContext>(contextPool)
             
-            app.UseSignalR(lambda(route){ route.MapHub<OrdersHub>(new PathString("/hub/orders")) })
+            ;;app.UseSignalR(lambda(route){ route.MapHub<OrdersHub>(new PathString("/hub/orders")) })
         endmethod
 
         private method GetTenantId, @string

@@ -14,8 +14,11 @@ import Microsoft.AspNetCore.Http
 import Microsoft.OData
 import Microsoft.AspNetCore.JsonPatch
 import Microsoft.AspNetCore.Mvc
-import Microsoft.AspNet.OData
-import Microsoft.AspNet.OData.Routing
+import Microsoft.AspNetCore.OData.Routing.Controllers
+import Microsoft.AspNetCore.OData.Routing.Attributes
+import Microsoft.AspNetCore.OData.Query
+import Microsoft.AspNetCore.OData.Results
+import Microsoft.AspNetCore.OData.Formatter
 import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Infrastructure
 import Microsoft.Extensions.Options
@@ -30,8 +33,9 @@ import Services.Models
 
 namespace Services.Controllers
 
-    {ApiVersion("1")}
-    {ODataRoutePrefix("Vendors")}
+ ;   {ApiVersion("1")}
+    {ODataRouteComponent("Vendors")}
+    {ODataAttributeRouting}
     ;;; <summary>
     ;;; OData controller for Vendors
     ;;; </summary>
@@ -58,9 +62,9 @@ namespace Services.Controllers
             this._AppSettings = aAppSettings
         endmethod
 
-        {ODataRoute}
+        {HttpGet}
         {Produces("application/json")}
-        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Vendor>>),StatusCodes.Status200OK)}
+        {ProducesResponseType(^typeof(IEnumerable<Vendor>),StatusCodes.Status200OK)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
         ;;; Get all Vendors
@@ -71,7 +75,7 @@ namespace Services.Controllers
             mreturn Ok(_DbContext.Vendors.AsNoTracking())
         endmethod
 
-        {ODataRoute("(VendorNumber={aVendorNumber})")}
+        {HttpGet("(VendorNumber={aVendorNumber})")}
         {Produces("application/json")}
         {ProducesResponseType(^typeof(Vendor),StatusCodes.Status200OK)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
@@ -88,9 +92,33 @@ namespace Services.Controllers
             mreturn new SingleResult<Vendor>(_DbContext.Vendors.AsNoTracking().FindQuery<Vendor>(_DbContext, aVendorNumber))
         endmethod
 
-        {ODataRoute("(State={aState})")}
+        {HttpGet("(VendorNumber={aVendorNumber},ZipCode={aZipCode})")}
         {Produces("application/json")}
-        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Vendor>>),StatusCodes.Status200OK)}
+        {ProducesResponseType(^typeof(Vendor),StatusCodes.Status200OK)}
+        {ProducesResponseType(StatusCodes.Status404NotFound)}
+        {EnableQuery(MaxExpansionDepth=4)}
+        ;;; <summary>
+        ;;; Get vendors by alternate key key Vendstate.
+        ;;; </summary>
+        ;;; <param name="aVendorNumber">Vendor number</param>
+        ;;; <param name="aZipCode">Zip Code</param>
+        ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        public method GetVendorsByVendstate, @IActionResult
+            {FromODataUri}
+            required in aVendorNumber, int
+            {FromODataUri}
+            required in aZipCode, int
+        proc
+            data result = _DbContext.Vendors.AsNoTracking().FindAlternate("VendorNumber",aVendorNumber,"ZipCode",aZipCode)
+            if (result == ^null)
+                mreturn NotFound()
+
+            mreturn Ok(result)
+        endmethod
+
+        {HttpGet("(State={aState})")}
+        {Produces("application/json")}
+        {ProducesResponseType(^typeof(IEnumerable<Vendor>),StatusCodes.Status200OK)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
@@ -105,12 +133,13 @@ namespace Services.Controllers
             data result = _DbContext.Vendors.AsNoTracking().FindAlternate("State",aState)
             if (result == ^null)
                 mreturn NotFound()
+
             mreturn Ok(result)
         endmethod
 
-        {ODataRoute("(ZipCode={aZipCode})")}
+        {HttpGet("(ZipCode={aZipCode})")}
         {Produces("application/json")}
-        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Vendor>>),StatusCodes.Status200OK)}
+        {ProducesResponseType(^typeof(IEnumerable<Vendor>),StatusCodes.Status200OK)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
@@ -125,12 +154,13 @@ namespace Services.Controllers
             data result = _DbContext.Vendors.AsNoTracking().FindAlternate("ZipCode",aZipCode)
             if (result == ^null)
                 mreturn NotFound()
+
             mreturn Ok(result)
         endmethod
 
-        {ODataRoute("(PaymentTermsCode={aPaymentTermsCode})")}
+        {HttpGet("(PaymentTermsCode={aPaymentTermsCode})")}
         {Produces("application/json")}
-        {ProducesResponseType(^typeof(ODataValue<IEnumerable<Vendor>>),StatusCodes.Status200OK)}
+        {ProducesResponseType(^typeof(IEnumerable<Vendor>),StatusCodes.Status200OK)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
@@ -145,10 +175,10 @@ namespace Services.Controllers
             data result = _DbContext.Vendors.AsNoTracking().FindAlternate("PaymentTermsCode",aPaymentTermsCode)
             if (result == ^null)
                 mreturn NotFound()
+
             mreturn Ok(result)
         endmethod
 
-        {ODataRoute}
         {Produces("application/json")}
         {ProducesResponseType(^typeof(Vendor),StatusCodes.Status200OK)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
@@ -189,12 +219,11 @@ namespace Services.Controllers
 
         endmethod
 
-        {ODataRoute("(VendorNumber={aVendorNumber})")}
+        {HttpPut("(VendorNumber={aVendorNumber})")}
         {Produces("application/json")}
         {ProducesResponseType(StatusCodes.Status201Created)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
-        {HttpPut}
         ;;; <summary>
         ;;; Create (with a client-supplied primary key) or replace a vendor.
         ;;; </summary>
@@ -243,12 +272,11 @@ namespace Services.Controllers
             endtry
 
         endmethod
-        {ODataRoute("(VendorNumber={aVendorNumber})")}
+        {HttpPatch("(VendorNumber={aVendorNumber})")}
         {Produces("application/json")}
         {ProducesResponseType(StatusCodes.Status204NoContent)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
-        {HttpPatch}
         ;;; <summary>
         ;;; Patch  (partial update) a vendor.
         ;;; </summary>
@@ -298,10 +326,9 @@ namespace Services.Controllers
             mreturn NoContent()
 
         endmethod
-        {ODataRoute("(VendorNumber={aVendorNumber})")}
+        {HttpDelete("(VendorNumber={aVendorNumber})")}
         {ProducesResponseType(StatusCodes.Status204NoContent)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
-        {HttpDelete}
         ;;; <summary>
         ;;; Delete a vendor.
         ;;; </summary>

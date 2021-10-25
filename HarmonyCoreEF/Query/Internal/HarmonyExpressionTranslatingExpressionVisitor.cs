@@ -15,6 +15,7 @@ using Harmony.Core.EF.Storage;
 using Harmony.Core.EF.Extensions.Internal;
 using Microsoft.EntityFrameworkCore;
 using Harmony.Core.FileIO.Queryable.Expressions;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 
 namespace Harmony.Core.EF.Query.Internal
 {
@@ -271,7 +272,7 @@ namespace Harmony.Core.EF.Query.Internal
         protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
         {
             if (methodCallExpression.Method.IsGenericMethod
-                && methodCallExpression.Method.GetGenericMethodDefinition() == EntityMaterializerSource.TryReadValueMethod)
+                && methodCallExpression.Method.GetGenericMethodDefinition() == HarmonyEntityMaterializerSource.TryReadValueMethod)
             {
                 return methodCallExpression;
             }

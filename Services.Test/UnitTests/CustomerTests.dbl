@@ -33,7 +33,7 @@ namespace Services.Test.UnitTests
         public method GetCustomers, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/v1/Customers").Result
+            disposable data response = client.GetAsync("/Customers").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
             data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
@@ -117,7 +117,7 @@ namespace Services.Test.UnitTests
         {TestCategory("Customer Tests - Read All")}
         public method GetCustomers_Expand_All, void
         proc
-            data uri = "/odata/v1/Customers?$expand=REL_CustomerOrders,REL_CustomerFavoriteItem,REL_CustomerNotes,REL_CustomerEx,REL_Differentpk"
+            data uri = "/Customers?$expand=REL_CustomerOrders,REL_CustomerFavoriteItem,REL_CustomerNotes,REL_CustomerEx,REL_Differentpk"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync(uri).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -132,7 +132,7 @@ namespace Services.Test.UnitTests
         public method GetCustomer, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            data request = String.Format("/odata/v1/Customers(CustomerNumber={1})","",TestConstants.Instance.GetCustomer_CustomerNumber)
+            data request = String.Format("/Customers(CustomerNumber={1})","",TestConstants.Instance.GetCustomer_CustomerNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
@@ -230,7 +230,7 @@ namespace Services.Test.UnitTests
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get a single Customer by alternate key 1 (State)
+        ;;Get a single Customer by alternate key 0 (State)
 
         {TestMethod}
         {TestCategory("Customer Tests - Read by Alternate Key")}
@@ -245,7 +245,7 @@ namespace Services.Test.UnitTests
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get a single Customer by alternate key 2 (Zip)
+        ;;Get a single Customer by alternate key 1 (Zip)
 
         {TestMethod}
         {TestCategory("Customer Tests - Read by Alternate Key")}
@@ -260,7 +260,7 @@ namespace Services.Test.UnitTests
         endmethod
 
         ;;------------------------------------------------------------
-        ;;Get a single Customer by alternate key 3 (PaymentTerms)
+        ;;Get a single Customer by alternate key 2 (PaymentTerms)
 
         {TestMethod}
         {TestCategory("Customer Tests - Read by Alternate Key")}

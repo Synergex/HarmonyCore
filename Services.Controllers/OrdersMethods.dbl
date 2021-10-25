@@ -8,14 +8,17 @@ import Services.Models
 import Harmony.Core.Interface
 import Harmony.Core.EF.Extensions
 import Microsoft.AspNetCore.Mvc
-import Microsoft.AspNet.OData
 import Microsoft.AspNetCore.Authorization
 import Harmony.Core.Context
 import Harmony.OData
 import Harmony.Core
 import System.Linq
 import Newtonsoft.Json.Linq
-import Microsoft.AspNet.OData.Routing
+import Microsoft.AspNetCore.OData.Routing.Controllers
+import Microsoft.AspNetCore.OData.Routing.Attributes
+import Microsoft.AspNetCore.OData.Query
+import Microsoft.AspNetCore.OData.Results
+import Microsoft.AspNetCore.OData.Formatter
 import Microsoft.AspNetCore.Http
 import Microsoft.AspNetCore.Mvc.Infrastructure
 
@@ -80,8 +83,7 @@ namespace Services.Controllers
 
         endmethod
 
-        {ODataRoute("OrdersMethods/FindAvailability")}
-        {HttpGet}
+        {HttpGet("OrdersMethods/FindAvailability")}
 		{CallableMethodConfigurationAttribute(IsFunction=true, ReturnsFromEntitySet=true)}
 		{EnableQuery()}
 		public method FindAvailability, @List<Availability>
@@ -103,8 +105,7 @@ namespace Services.Controllers
             this.CallContext = callContext
         endmethod
 
-        {ODataRoute("VMS/GetAllCustomers")}
-        {HttpGet}
+        {HttpGet("VMS/GetAllCustomers")}
         {CallableMethodConfigurationAttribute(IsFunction=true, ReturnsFromEntitySet=true)}
         public method GetAllCustomers, @Task<List<Customer>>
         proc
@@ -284,10 +285,9 @@ namespace Services.Controllers
 			mreturn new Availability() { PointsCost = 9999 }
 		endmethod
 
-        {ODataRoute("DoAnAction")}
-        {HttpPost}
+        {HttpPost("DoAnAction")}
         {EnableQuery()}
-        {ApiVersionNeutral}
+ ;       {ApiVersionNeutral}
         public method DoAnAction, @ActionResult<int>
             {FromBody}
             parameters, @ODataActionParameters
@@ -299,8 +299,7 @@ namespace Services.Controllers
             mreturn new ActionResult<int>(5)
         endmethod
 
-        {ODataRoute("DoAFunction")}
-        {HttpGet}
+        {HttpGet("DoAFunction")}
         public method DoAFunction, @IActionResult
             parm1, int
             parm2, @string

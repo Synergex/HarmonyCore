@@ -3,56 +3,57 @@ import System
 import System.Linq
 import System.Collections.Generic
 import System.Text
-import Microsoft.AspNet.OData
+import Microsoft.AspNetCore.OData
 import Microsoft.AspNetCore.Mvc.Abstractions
 import Microsoft.AspNetCore.Http
-import Microsoft.AspNet.OData.Extensions
+import Microsoft.AspNetCore.OData.Extensions
 import System.Collections.Concurrent
 import Microsoft.OData.Edm
 import System.Security.Claims
 import Microsoft.AspNetCore.Authentication
+import Microsoft.AspNetCore.OData.Query
 namespace Harmony.OData
 
     public class HarmonyFieldSecurityAttribute extends EnableQueryAttribute
         private static ModelLookup, @ConcurrentDictionary<string,IEdmModel>, new ConcurrentDictionary<string, IEdmModel>()
         
-        public override method GetModel, @IEdmModel 
-            elementClrType, @Type
-            request, @HttpRequest 
-            actionDescriptor, @ActionDescriptor 
-        proc
-            data authenticatedUser = request.HttpContext.User
-            data userRoles, [#]string, ^null
-            data isAuthenticated, boolean, false
-            if(authenticatedUser != ^null)
-            begin
-                data userIdentity = (@System.Security.Claims.ClaimsIdentity)authenticatedUser.Identity
-                data claims = userIdentity.Claims
-                data roleClaimType = userIdentity.RoleClaimType
-                userRoles = claims.Where(lambda(c) { c.Type == roleClaimType }).Select(lambda(c) { c.Value }).ToArray()
-                isAuthenticated = userIdentity.IsAuthenticated
-            end
-
-            lambda buildEdmForRoles(roles)
-            begin
-                data edmBuilder = ^as(request.HttpContext.RequestServices.GetService(^typeof(IEdmBuilder)), @IEdmBuilder)
-                if(edmBuilder == ^null)
-                    mreturn request.GetModel()
-
-                data conventionBuilder = new HarmonyODataModelBuilder(request.HttpContext.RequestServices, userRoles, isAuthenticated)
-                mreturn edmBuilder.BuildModel(conventionBuilder)
-            end
-            data roleString = userRoles != ^null ? String.Join(",", userRoles) : String.Empty
-            data secureEdm = ModelLookup.GetOrAdd(roleString, buildEdmForRoles)
-
-            data baseModel = ^as(request.GetModel(), @RefEdmModel)
-            if(baseModel != ^null)
-            begin
-                baseModel.RealModel = secureEdm
-            end
-
-            mreturn secureEdm
-        endmethod
+;        public override method GetModel, @IEdmModel 
+;            elementClrType, @Type
+;            request, @HttpRequest 
+;            actionDescriptor, @ActionDescriptor 
+;        proc
+;            data authenticatedUser = request.HttpContext.User
+;            data userRoles, [#]string, ^null
+;            data isAuthenticated, boolean, false
+;            if(authenticatedUser != ^null)
+;            begin
+;                data userIdentity = (@System.Security.Claims.ClaimsIdentity)authenticatedUser.Identity
+;                data claims = userIdentity.Claims
+;                data roleClaimType = userIdentity.RoleClaimType
+;                userRoles = claims.Where(lambda(c) { c.Type == roleClaimType }).Select(lambda(c) { c.Value }).ToArray()
+;                isAuthenticated = userIdentity.IsAuthenticated
+;            end
+;
+;            lambda buildEdmForRoles(roles)
+;            begin
+;                data edmBuilder = ^as(request.HttpContext.RequestServices.GetService(^typeof(IEdmBuilder)), @IEdmBuilder)
+;                if(edmBuilder == ^null)
+;                    mreturn request.GetModel()
+;
+;                data conventionBuilder = new HarmonyODataModelBuilder(request.HttpContext.RequestServices, userRoles, isAuthenticated)
+;                mreturn edmBuilder.BuildModel(conventionBuilder)
+;            end
+;            data roleString = userRoles != ^null ? String.Join(",", userRoles) : String.Empty
+;            data secureEdm = ModelLookup.GetOrAdd(roleString, buildEdmForRoles)
+;
+;            data baseModel = ^as(request.GetModel(), @RefEdmModel)
+;            if(baseModel != ^null)
+;            begin
+;                baseModel.RealModel = secureEdm
+;            end
+;
+;            mreturn secureEdm
+;        endmethod
 	endclass
 
 endnamespace

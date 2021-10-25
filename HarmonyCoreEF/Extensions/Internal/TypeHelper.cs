@@ -348,6 +348,16 @@ namespace Harmony.Core.EF.Extensions.Internal
                         select t).Select(IntrospectionExtensions.GetTypeInfo);
             }
         }
+
+        public static ConstantExpression GetDefaultValueConstant(this Type type)
+            => (ConstantExpression)_generateDefaultValueConstantMethod
+                .MakeGenericMethod(type).Invoke(null, Array.Empty<object>())!;
+
+        private static readonly MethodInfo _generateDefaultValueConstantMethod =
+            typeof(TypeHelper).GetTypeInfo().GetDeclaredMethod(nameof(GenerateDefaultValueConstant))!;
+
+        private static ConstantExpression GenerateDefaultValueConstant<TDefault>()
+            => Expression.Constant(default(TDefault), typeof(TDefault));
     }
 
     internal static class ExpressionExtensions
@@ -356,6 +366,22 @@ namespace Harmony.Core.EF.Extensions.Internal
         {
             UnaryExpression unaryExpression = expression as UnaryExpression;
             return (LambdaExpression)((unaryExpression != null && expression.NodeType == ExpressionType.Quote) ? unaryExpression.Operand : expression);
+        }
+
+        public static bool IsNullConstantExpression(this Expression expression)
+            => ExpressionExtensions.RemoveConvert(expression) is ConstantExpression constantExpression
+                && constantExpression.Value == null;
+
+        private static Expression RemoveConvert(Expression expression)
+        {
+            if (expression is UnaryExpression unaryExpression
+                && (expression.NodeType == ExpressionType.Convert
+                    || expression.NodeType == ExpressionType.ConvertChecked))
+            {
+                return RemoveConvert(unaryExpression.Operand);
+            }
+
+            return expression;
         }
 
         public static Expression UnwrapTypeConversion(this Expression expression, out Type convertedType)

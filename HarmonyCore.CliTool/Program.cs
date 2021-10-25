@@ -163,7 +163,7 @@ Known structure properties:
     {
         public static string BuildPackageVersion = "11.1.1070.3107";
         public static string CodeDomProviderVersion = "1.0.7";
-        public static string HCBuildVersion = "3.1.442";
+        public static string HCBuildVersion = "3.1.463";
         public static Dictionary<string, string> LatestNugetReferences;
 
         public static List<string> HCRegenRequiredVersions = new List<string>

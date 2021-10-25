@@ -15,6 +15,7 @@ using Harmony.Core.FileIO.Queryable;
 using Harmony.Core.EF.Extensions.Internal;
 using Harmony.Core.Utility;
 using System.Runtime.CompilerServices;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Harmony.Core.EF.Query.Internal
 {
@@ -56,7 +57,15 @@ namespace Harmony.Core.EF.Query.Internal
             return base.VisitExtension(extensionExpression);
         }
 
-        protected override Expression VisitShapedQueryExpression(ShapedQueryExpression shapedQueryExpression)
+        public bool IsTracking
+        {
+            get
+            {
+                return _compilationContext.QueryTrackingBehavior == QueryTrackingBehavior.TrackAll;
+            }
+        }
+
+        protected override Expression VisitShapedQuery(ShapedQueryExpression shapedQueryExpression)
         {
             var inMemoryQueryExpression = (HarmonyQueryExpression)shapedQueryExpression.QueryExpression;
 
@@ -130,8 +139,8 @@ namespace Harmony.Core.EF.Query.Internal
                         localType = queryContext.Context.Model.FindEntityType(obj.GetType());
                     }
                     var keyValues = localType.FindPrimaryKey().Properties.Select(prop => prop.GetGetter().GetClrValue(obj)).ToArray();
-                    var foundEntry = queryContext.StateManager.TryGetEntry(localType.FindPrimaryKey(), keyValues);
-                    if (foundEntry != null && foundEntry.EntityState != EntityState.Detached)
+                    var foundEntry = queryContext.TryGetEntry(localType.FindPrimaryKey(), keyValues, false, out var isNullKey);
+                    if (foundEntry != null && !isNullKey && foundEntry.EntityState != EntityState.Detached)
                         return foundEntry.Entity as DataObjectBase;
                     else
                         queryContext.StartTracking(localType, obj, default(Microsoft.EntityFrameworkCore.Storage.ValueBuffer));

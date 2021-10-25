@@ -27,15 +27,13 @@ namespace Harmony.Core.EF.Storage.Internal
         public HarmonyTypeMapping(
              Type clrType,
              ValueComparer comparer = null,
-             ValueComparer keyComparer = null,
-             ValueComparer structuralComparer = null)
+             ValueComparer keyComparer = null)
             : base(
                 new CoreTypeMappingParameters(
                     clrType,
                     converter: null,
                     comparer,
-                    keyComparer,
-                    structuralComparer))
+                    keyComparer))
         {
         }
 

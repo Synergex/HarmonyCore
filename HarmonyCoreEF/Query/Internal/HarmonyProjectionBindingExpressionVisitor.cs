@@ -94,7 +94,7 @@ namespace Harmony.Core.EF.Query.Internal
                             return AddCollectionProjection(
                                 _queryableMethodTranslatingExpressionVisitor.TranslateSubquery(
                                     materializeCollectionNavigationExpression.Subquery),
-                                materializeCollectionNavigationExpression.Navigation,
+                                materializeCollectionNavigationExpression.Navigation as INavigation,
                                 null);
 
                         case MethodCallExpression methodCallExpression:
