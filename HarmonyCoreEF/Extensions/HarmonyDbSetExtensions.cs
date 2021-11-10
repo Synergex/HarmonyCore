@@ -39,7 +39,7 @@ namespace Harmony.Core.EF.Extensions
                 Expression whereClause = Expression.Equal(
                         Expression.Property(entityParameter, primaryKeyName),
                         keyParameter);
-                var querySet = Expression.Call(contextParameter, typeof(DbContext).GetMethod("Set").MakeGenericMethod(new Type[] { typeof(T) }));
+                var querySet = SetExpr<T>(contextParameter);
                 var whereLambda = Expression.Lambda<Func<T, bool>>(whereClause, entityParameter);
                 var whereCall = Expression.Call(typeof(System.Linq.Queryable), "Where", new Type[] { typeof(T) }, querySet, whereLambda);
                 var firstOrDefaultResult = Expression.Call(typeof(System.Linq.Queryable), "FirstOrDefault", new Type[] { typeof(T) }, whereCall);
@@ -100,7 +100,7 @@ namespace Harmony.Core.EF.Extensions
                         exprLinqParameters[i - 1] = Expression.Convert(linqParameters[i] = Expression.Parameter(typeof(object)), parameters[i - 1].GetType());
                     }
 
-                    var querySet = Expression.Call(contextParameter, typeof(DbContext).GetMethod("Set").MakeGenericMethod(new Type[] { typeof(T) }));
+                    var querySet = SetExpr<T>(contextParameter);
                     var whereLambda = DynamicExpressionParser.ParseLambda<T, bool>(DefaultParseConfig, false, expression, exprLinqParameters);
                     var firstOrDefaultResult = Expression.Call(typeof(System.Linq.Queryable), "FirstOrDefault", new Type[] { typeof(T) }, querySet, whereLambda);
 
@@ -234,7 +234,7 @@ namespace Harmony.Core.EF.Extensions
                         exprLinqParameters[i - 1] = Expression.Convert(linqParameters[i] = Expression.Parameter(typeof(object)), parameters[i - 1].GetType());
                     }
 
-                    var querySet = Expression.Call(contextParameter, typeof(DbContext).GetMethod("Set").MakeGenericMethod(new Type[] { typeof(T) }));
+                    var querySet = SetExpr<T>(contextParameter);
                     var whereLambda = DynamicExpressionParser.ParseLambda<T, bool>(DefaultParseConfig, false, expression, exprLinqParameters);
                     var whereResult = Expression.Call(typeof(System.Linq.Queryable), "Where", new Type[] { typeof(T) }, querySet, whereLambda);
                     var includeResult = whereResult;
@@ -315,7 +315,7 @@ namespace Harmony.Core.EF.Extensions
                         exprLinqParameters[i - 1] = Expression.Convert(linqParameters[i] = Expression.Parameter(typeof(object)), parameters[i - 1].GetType());
                     }
 
-                    var querySet = Expression.Call(contextParameter, typeof(DbContext).GetMethod("Set").MakeGenericMethod(new Type[] { typeof(T) }));
+                    var querySet = SetExpr<T>(contextParameter);
                     var whereLambda = DynamicExpressionParser.ParseLambda<T, bool>(DefaultParseConfig, false, expression, exprLinqParameters);
                     var whereResult = Expression.Call(typeof(System.Linq.Queryable), "Where", new Type[] { typeof(T) }, querySet, whereLambda);
 
@@ -371,6 +371,15 @@ namespace Harmony.Core.EF.Extensions
             return Expression.Lambda(delegateType, Expression.Property(instance, propertyName), instance);
         }
 
+        public static DbSet<TEntity> Set<TEntity>(DbContext context)
+            where TEntity : class
+            => (DbSet<TEntity>)((IDbSetCache)context).GetOrAddSet(context.GetDependencies().SetSource, typeof(TEntity));
+
+        private static MethodCallExpression SetExpr<T>(Expression context)
+        {
+            return Expression.Call(null, typeof(HarmonyDbSetExtensions).GetMethod("Set").MakeGenericMethod(new Type[] { typeof(T) }), context);
+        }
+
         public static IEnumerable<T> WhereIncluding<T>(this DbSet<T> thisp, string including, string expression, params object[] parameters)
             where T : class
         {
@@ -395,7 +404,7 @@ namespace Harmony.Core.EF.Extensions
                         exprLinqParameters[i - 1] = Expression.Convert(linqParameters[i] = Expression.Parameter(typeof(object)), parameters[i - 1].GetType());
                     }
 
-                    var querySet = Expression.Call(contextParameter, typeof(DbContext).GetMethod("Set").MakeGenericMethod(new Type[] { typeof(T) }));
+                    var querySet = SetExpr<T>(contextParameter);
                     var whereLambda = DynamicExpressionParser.ParseLambda<T, bool>(DefaultParseConfig, false, expression, exprLinqParameters);
                     var whereResult = Expression.Call(typeof(System.Linq.Queryable), "Where", new Type[] { typeof(T) }, querySet, whereLambda);
                     var includeResult = whereResult;

@@ -33,9 +33,6 @@ import Services.Models
 
 namespace Services.Controllers
 
- ;   {ApiVersion("1")}
-    {ODataRouteComponent("CustomerNotes")}
-    {ODataAttributeRouting}
     ;;; <summary>
     ;;; OData controller for CustomerNotes
     ;;; </summary>
@@ -62,7 +59,7 @@ namespace Services.Controllers
             this._AppSettings = aAppSettings
         endmethod
 
-        {HttpGet}
+        {HttpGet("CustomerNotes")}
         {Produces("application/json")}
         {ProducesResponseType(^typeof(IEnumerable<CustomerNote>),StatusCodes.Status200OK)}
         {EnableQuery(MaxExpansionDepth=4)}
@@ -75,7 +72,7 @@ namespace Services.Controllers
             mreturn Ok(_DbContext.CustomerNotes.AsNoTracking())
         endmethod
 
-        {HttpGet("(CustomerNumber={aCustomerNumber})")}
+        {HttpGet("CustomerNotes(CustomerNumber={aCustomerNumber})")}
         {Produces("application/json")}
         {ProducesResponseType(^typeof(IEnumerable<CustomerNote>),StatusCodes.Status200OK)}
         {EnableQuery(MaxExpansionDepth=4)}
@@ -91,7 +88,7 @@ namespace Services.Controllers
             mreturn Ok(_DbContext.CustomerNotes.AsNoTracking().FindQuery<CustomerNote>(_DbContext, aCustomerNumber))
         endmethod
 
-        {HttpPut("(CustomerNumber={aCustomerNumber})")}
+        {HttpPut("CustomerNotes(CustomerNumber={aCustomerNumber})")}
         {Produces("application/json")}
         {ProducesResponseType(StatusCodes.Status201Created)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
@@ -134,7 +131,7 @@ namespace Services.Controllers
             endtry
 
         endmethod
-        {HttpPatch("(CustomerNumber={aCustomerNumber})")}
+        {HttpPatch("CustomerNotes(CustomerNumber={aCustomerNumber})")}
         {Produces("application/json")}
         {ProducesResponseType(StatusCodes.Status204NoContent)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
@@ -192,7 +189,7 @@ namespace Services.Controllers
             mreturn NoContent()
 
         endmethod
-        {HttpDelete("(CustomerNumber={aCustomerNumber})")}
+        {HttpDelete("CustomerNotes(CustomerNumber={aCustomerNumber})")}
         {ProducesResponseType(StatusCodes.Status204NoContent)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
