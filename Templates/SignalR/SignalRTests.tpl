@@ -99,22 +99,22 @@ namespace <NAMESPACE>
             ;;Call ASP_LOGIN
             begin
                 ;;Define the data to be sent to the request
-                data request = JsonConvert.DeserializeObject<asp.asp_login_Request>(File.ReadAllText(aspLoginRequestFile))
+                data aspLoginRequest = JsonConvert.DeserializeObject<asp.asp_login_Request>(File.ReadAllText(aspLoginRequestFile))
 
                 ;;Send the request
-                await connection.InvokeAsync("asp_login", request)
+                await connection.InvokeAsync("asp_login", aspLoginRequest)
 
                 ;;Wait for the response
-                data response = await asp_login_tcs.Task
+                data aspLoginresponse = await asp_login_tcs.Task
 
                 ;;Write the response data to a JSON file for easy viewing
                 data responseFile = Path.Combine(UnitTestEnvironment.TestResponsesFolder,"asp.asp_login.response.json")
-                File.WriteAllText(responseFile,JsonConvert.SerializeObject(response,Formatting.Indented))
+                File.WriteAllText(responseFile,JsonConvert.SerializeObject(aspLoginresponse,Formatting.Indented))
 
                 ;;Are we logged in?
                 data result = false
                 data message = String.Empty
-                asp_login_Validate(request,response,result,message)
+                asp_login_Validate(aspLoginRequest,aspLoginresponse,result,message)
 
                 if (!result)
                     Assert.Fail(message)
@@ -125,31 +125,31 @@ namespace <NAMESPACE>
 
   <IF IN_OR_INOUT>
             ;;Define the data to be sent to the request
-            data request = JsonConvert.DeserializeObject<<INTERFACE_NAME>.<METHOD_NAME>_Request>(File.ReadAllText(requestFile))
+            data <METHOD_NAME>Request = JsonConvert.DeserializeObject<<INTERFACE_NAME>.<METHOD_NAME>_Request>(File.ReadAllText(requestFile))
 
   </IF>
             ;;Send the request
-            await connection.InvokeAsync("<METHOD_NAME>"<IF IN_OR_INOUT>, request</IF>)
+            await connection.InvokeAsync("<METHOD_NAME>"<IF IN_OR_INOUT>, <METHOD_NAME>Request</IF>)
             
             ;;Wait for the response
-            data response = await tcs.Task
+            data <METHOD_NAME>Response = await tcs.Task
 
             ;;Clean up the connection
             connection.DisposeAsync()
 
   <IF RETURNS_DATA>
             ;;Write the response data to a JSON file for easy viewing
-            File.WriteAllText(Path.Combine(UnitTestEnvironment.TestResponsesFolder,"<INTERFACE_NAME>.<METHOD_NAME>.response.json"),JsonConvert.SerializeObject(response,Formatting.Indented))
+            File.WriteAllText(Path.Combine(UnitTestEnvironment.TestResponsesFolder,"<INTERFACE_NAME>.<METHOD_NAME>.response.json"),JsonConvert.SerializeObject(<METHOD_NAME>Response,Formatting.Indented))
 
             ;;Call the validation method to evaluate the response
             data result = false
             data message = String.Empty
-            <METHOD_NAME>_Validate(<IF IN_OR_INOUT>request,</IF>response,result,message)
+            <METHOD_NAME>_Validate(<IF IN_OR_INOUT><METHOD_NAME>Request,</IF><METHOD_NAME>Response,result,message)
 
             Assert.IsTrue(result,message)
   <ELSE>
             ;;There is no returned data, so the boolean response indicates whether the call completed
-            Assert.IsTrue(response)
+            Assert.IsTrue(<METHOD_NAME>Response)
   </IF>
 
         endmethod
@@ -169,9 +169,9 @@ namespace <NAMESPACE>
         ;;; <param name="message">Message indicating the naure of a failed method call.</param>
          partial method <METHOD_NAME>_Validate, void
     <IF IN_OR_INOUT>
-            required in  request,  @<INTERFACE_NAME>.<METHOD_NAME>_Request
+            required in  <METHOD_NAME>Request,  @<INTERFACE_NAME>.<METHOD_NAME>_Request
     </IF>
-            required in  response, @<INTERFACE_NAME>.<METHOD_NAME>_Response
+            required in  <METHOD_NAME>Response, @<INTERFACE_NAME>.<METHOD_NAME>_Response
             required out result,   boolean
             required out message,  string
         endmethod
