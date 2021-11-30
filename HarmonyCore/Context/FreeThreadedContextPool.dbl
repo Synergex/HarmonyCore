@@ -109,6 +109,54 @@ namespace Harmony.Core.Context
             mreturn Task.FromResult(MakeContext(sessionId, provider))
         endmethod
         
+;        private method ItemFactory, @Func<T>
+;            provider, @IServiceProvider
+;        proc
+;            lambda LazyItemFactory()
+;            begin
+;                mreturn AllocateContext(provider)
+;            end
+;
+;            data result, @Func<T>
+;            result = LazyItemFactory
+;            mreturn result
+;        endmethod
+
+
+;        private method CacheFactory, @Func<ICacheEntry, Lazy<T>>
+;            provider, @IServiceProvider
+;        proc
+;            
+;
+;            lambda CacheFactoryLambda(entry)
+;            begin
+;                entry.SetSlidingExpiration(TimeSpan.FromMinutes(mSessionExpiration))
+;                mreturn new Lazy<T>(LazyItemFactory, LazyThreadSafetyMode.ExecutionAndPublication)
+;            end
+;
+;            data result, @Func<ICacheEntry, Lazy<T>>
+;            result = CacheFactoryLambda
+;            mreturn result
+;        endmethod
+;
+;
+;        public override method MakeContext, T
+;            sessionId, @string
+;            provider, @IServiceProvider
+;            endparams
+;        proc
+;            if(!String.IsNullOrWhiteSpace(sessionId)) then
+;            begin
+;                data lazyResult = mSessionCache.GetOrCreate<Lazy<T>>(sessionId, CacheFactory(provider))
+;                mreturn lazyResult.Value
+;            end
+;            else
+;            begin
+;                mreturn AllocateContext(provider)
+;            end
+;            
+;        endmethod
+
         public override method MakeContext, T
             sessionId, @string
             provider, @IServiceProvider

@@ -235,7 +235,7 @@ namespace Harmony.Core.EF.Query.Internal
         {
             if (methodCallExpression.Arguments.Count == 1)
             {
-                return groupByShaperExpression.ElementSelector;
+                return groupByShaperExpression.KeySelector;
             }
 
             if (methodCallExpression.Arguments.Count == 2)
@@ -243,7 +243,7 @@ namespace Harmony.Core.EF.Query.Internal
                 var selectorLambda = methodCallExpression.Arguments[1].UnwrapLambdaFromQuote();
                 return ReplacingExpressionVisitor.Replace(
                     selectorLambda.Parameters[0],
-                    groupByShaperExpression.ElementSelector,
+                    groupByShaperExpression.KeySelector,
                     selectorLambda.Body);
             }
 
