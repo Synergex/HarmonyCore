@@ -109,18 +109,18 @@ namespace Harmony.Core.Context
             mreturn Task.FromResult(MakeContext(sessionId, provider))
         endmethod
         
-;        private method ItemFactory, @Func<T>
-;            provider, @IServiceProvider
-;        proc
-;            lambda LazyItemFactory()
-;            begin
-;                mreturn AllocateContext(provider)
-;            end
-;
-;            data result, @Func<T>
-;            result = LazyItemFactory
-;            mreturn result
-;        endmethod
+        private method ItemFactory, @Func<T>
+            provider, @IServiceProvider
+        proc
+            lambda LazyItemFactory()
+            begin
+                mreturn AllocateContext(provider)
+            end
+
+            data result, @Func<T>
+            result = LazyItemFactory
+            mreturn result
+        endmethod
 
 
 ;        private method CacheFactory, @Func<ICacheEntry, Lazy<T>>
@@ -162,15 +162,15 @@ namespace Harmony.Core.Context
             provider, @IServiceProvider
             endparams
         proc
-            lambda LazyItemFactory()
-            begin
-                mreturn AllocateContext(provider)
-            end
+;            lambda LazyItemFactory()
+;            begin
+;                mreturn AllocateContext(provider)
+;            end
 
             lambda CacheFactory(entry)
             begin
                 entry.SetSlidingExpiration(TimeSpan.FromMinutes(mSessionExpiration))
-                mreturn new Lazy<T>(LazyItemFactory, LazyThreadSafetyMode.ExecutionAndPublication)
+                mreturn new Lazy<T>(ItemFactory(provider), LazyThreadSafetyMode.ExecutionAndPublication)
             end
 
             

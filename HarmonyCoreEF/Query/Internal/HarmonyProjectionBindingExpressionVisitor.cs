@@ -31,6 +31,7 @@ namespace Harmony.Core.EF.Query.Internal
             HarmonyQueryableMethodTranslatingExpressionVisitor queryableMethodTranslatingExpressionVisitor,
             HarmonyExpressionTranslatingExpressionVisitor expressionTranslatingExpressionVisitor)
         {
+
             _queryableMethodTranslatingExpressionVisitor = queryableMethodTranslatingExpressionVisitor;
             _expressionTranslatingExpressionVisitor = expressionTranslatingExpressionVisitor;
         }
@@ -220,7 +221,7 @@ namespace Harmony.Core.EF.Query.Internal
                     : null;
             }
 
-            throw new InvalidOperationException(CoreStrings.QueryFailed(extensionExpression.Print(), GetType().Name));
+            throw new InvalidOperationException(CoreStrings.TranslationFailed(extensionExpression));
         }
 
         protected override Expression VisitNew(NewExpression newExpression)
@@ -311,7 +312,7 @@ namespace Harmony.Core.EF.Query.Internal
         {
             if (projectionBindingExpression.QueryExpression != _queryExpression)
             {
-                throw new InvalidOperationException(CoreStrings.QueryFailed(projectionBindingExpression.Print(), GetType().Name));
+                throw new InvalidOperationException(CoreStrings.TranslationFailed(projectionBindingExpression));
             }
         }
     }

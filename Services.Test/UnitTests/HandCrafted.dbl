@@ -1,3 +1,4 @@
+import System.Threading
 ;;*****************************************************************************
 ;;
 ;; Title:       HandCrafted.dbl
@@ -1434,7 +1435,7 @@ namespace Services.Test.UnitTests
             Assert.IsFalse(customerData == ^null)
             Assert.IsFalse(customerData.REL_CustomerFavoriteItem == ^null)
             Assert.AreEqual(customerData.CustomerNumber, 8)
-            Assert.AreEqual(customerData.REL_CustomerFavoriteItem.ItemNumber, customerData.FavoriteItem)
+            Assert.AreEqual(customerData.REL_CustomerFavoriteItem.ItemNumber, Int32.Parse(customerData.FavoriteItem))
         endmethod
 
         {TestMethod}
@@ -1752,7 +1753,7 @@ namespace Services.Test.UnitTests
 
             await connection.StartAsync()
             data intArray = new int[#] {5, 4, 3, 2, 1 }
-            await connection.InvokeAsync("Arbitrario_MethodWithParameters", 5, "hello", new string[#] { "this", "is", "strings" }, (@object)intArray)
+            await connection.InvokeAsync("Arbitrario_MethodWithParameters", 5, "hello", new string[#] { "this", "is", "strings" }, (@object)intArray, CancellationToken.None)
             await echo.Task
             Assert.IsTrue(echo.Task.Result.StringList.SequenceEqual(new string[#] { "this", "is", "strings" }))
 

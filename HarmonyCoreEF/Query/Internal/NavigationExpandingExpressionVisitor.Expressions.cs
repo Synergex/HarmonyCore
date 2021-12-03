@@ -18,20 +18,21 @@ namespace Harmony.Core.EF.Query.Internal
     {
         private sealed class EntityReference : Expression, IPrintableExpression
         {
-            public EntityReference(IEntityType entityType)
+            public EntityReference(IEntityType entityType, QueryRootExpression? queryRootExpression)
             {
                 EntityType = entityType;
                 IncludePaths = new IncludeTreeNode(entityType, this, setLoaded: true);
+                QueryRootExpression = queryRootExpression;
             }
 
             public IEntityType EntityType { get; }
 
-            public IDictionary<(IForeignKey, bool), Expression> ForeignKeyExpansionMap { get; } =
-                new Dictionary<(IForeignKey, bool), Expression>();
+            public Dictionary<(IForeignKey, bool), Expression> ForeignKeyExpansionMap { get; } = new();
 
             public bool IsOptional { get; private set; }
             public IncludeTreeNode IncludePaths { get; private set; }
-            public IncludeTreeNode LastIncludeTreeNode { get; private set; }
+            public IncludeTreeNode? LastIncludeTreeNode { get; private set; }
+            public QueryRootExpression? QueryRootExpression { get; }
 
             public override ExpressionType NodeType
                 => ExpressionType.Extension;
@@ -48,7 +49,7 @@ namespace Harmony.Core.EF.Query.Internal
 
             public EntityReference Snapshot()
             {
-                var result = new EntityReference(EntityType) { IsOptional = IsOptional };
+                var result = new EntityReference(EntityType, QueryRootExpression) { IsOptional = IsOptional };
                 result.IncludePaths = IncludePaths.Snapshot(result);
 
                 return result;
@@ -72,11 +73,28 @@ namespace Harmony.Core.EF.Query.Internal
 
                 if (IncludePaths.Count > 0)
                 {
-                    // TODO: fully render nested structure of include tree
-                    expressionPrinter.Append(
-                        " | IncludePaths: "
-                        + string.Join(
-                            " ", IncludePaths.Select(ip => ip.Value.Count() > 0 ? ip.Key.Name + "->..." : ip.Key.Name)));
+                    expressionPrinter.AppendLine(" | IncludePaths: ");
+                    using (expressionPrinter.Indent())
+                    {
+                        expressionPrinter.AppendLine("Root");
+                    }
+
+                    PrintInclude(IncludePaths);
+                }
+
+                void PrintInclude(IncludeTreeNode currentNode)
+                {
+                    if (currentNode.Count > 0)
+                    {
+                        using (expressionPrinter.Indent())
+                        {
+                            foreach (var child in currentNode)
+                            {
+                                expressionPrinter.AppendLine(@"\-> " + child.Key.Name);
+                                PrintInclude(child.Value);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -86,14 +104,14 @@ namespace Harmony.Core.EF.Query.Internal
         /// </summary>
         private sealed class IncludeTreeNode : Dictionary<INavigationBase, IncludeTreeNode>
         {
-            private EntityReference _entityReference;
+            private EntityReference? _entityReference;
 
             public IncludeTreeNode(IEntityType entityType)
                 : this(entityType, null, setLoaded: true)
             {
             }
 
-            public IncludeTreeNode(IEntityType entityType, EntityReference entityReference, bool setLoaded)
+            public IncludeTreeNode(IEntityType entityType, EntityReference? entityReference, bool setLoaded)
             {
                 EntityType = entityType;
                 _entityReference = entityReference;
@@ -101,7 +119,7 @@ namespace Harmony.Core.EF.Query.Internal
             }
 
             public IEntityType EntityType { get; }
-            public LambdaExpression FilterExpression { get; private set; }
+            public LambdaExpression? FilterExpression { get; private set; }
             public bool SetLoaded { get; private set; }
 
             public IncludeTreeNode AddNavigation(INavigationBase navigation, bool setLoaded)
@@ -116,22 +134,25 @@ namespace Harmony.Core.EF.Query.Internal
                     return existingValue;
                 }
 
-                IncludeTreeNode nodeToAdd = null;
+                IncludeTreeNode? nodeToAdd = null;
                 if (_entityReference != null)
                 {
                     if (navigation is INavigation concreteNavigation
                         && _entityReference.ForeignKeyExpansionMap.TryGetValue(
                             (concreteNavigation.ForeignKey, concreteNavigation.IsOnDependent), out var expansion))
                     {
-                        nodeToAdd = UnwrapEntityReference(expansion).IncludePaths;
+                        // Value known to be non-null
+                        nodeToAdd = UnwrapEntityReference(expansion)!.IncludePaths;
                     }
                     else if (navigation is ISkipNavigation skipNavigation
                         && _entityReference.ForeignKeyExpansionMap.TryGetValue(
                             (skipNavigation.ForeignKey, skipNavigation.IsOnDependent), out var firstExpansion)
-                        && UnwrapEntityReference(firstExpansion).ForeignKeyExpansionMap.TryGetValue(
+                        // Value known to be non-null
+                        && UnwrapEntityReference(firstExpansion)!.ForeignKeyExpansionMap.TryGetValue(
                             (skipNavigation.Inverse.ForeignKey, !skipNavigation.Inverse.IsOnDependent), out var secondExpansion))
                     {
-                        nodeToAdd = UnwrapEntityReference(secondExpansion).IncludePaths;
+                        // Value known to be non-null
+                        nodeToAdd = UnwrapEntityReference(secondExpansion)!.IncludePaths;
                     }
                 }
 
@@ -145,7 +166,7 @@ namespace Harmony.Core.EF.Query.Internal
                 return this[navigation];
             }
 
-            public IncludeTreeNode Snapshot(EntityReference entityReference)
+            public IncludeTreeNode Snapshot(EntityReference? entityReference)
             {
                 var result = new IncludeTreeNode(EntityType, entityReference, SetLoaded) { FilterExpression = FilterExpression };
 
@@ -173,7 +194,7 @@ namespace Harmony.Core.EF.Query.Internal
             public void ApplyFilter(LambdaExpression filterExpression)
                 => FilterExpression = filterExpression;
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
                 => obj != null
                     && (ReferenceEquals(this, obj)
                         || obj is IncludeTreeNode includeTreeNode
@@ -208,12 +229,11 @@ namespace Harmony.Core.EF.Query.Internal
         /// </summary>
         private sealed class NavigationExpansionExpression : Expression, IPrintableExpression
         {
-            private readonly List<(MethodInfo OrderingMethod, Expression KeySelector)> _pendingOrderings
-                = new List<(MethodInfo OrderingMethod, Expression KeySelector)>();
+            private readonly List<(MethodInfo OrderingMethod, Expression KeySelector)> _pendingOrderings = new();
 
             private readonly string _parameterName;
 
-            private NavigationTreeNode _currentTree;
+            private NavigationTreeNode? _currentTree;
 
             public NavigationExpansionExpression(
                 Expression source,
@@ -230,11 +250,13 @@ namespace Harmony.Core.EF.Query.Internal
             public Expression Source { get; private set; }
 
             public ParameterExpression CurrentParameter
-                => CurrentTree.CurrentParameter;
+                // CurrentParameter would be non-null if CurrentTree is non-null
+                => CurrentTree.CurrentParameter!;
 
             public NavigationTreeNode CurrentTree
             {
-                get => _currentTree;
+                // _currentTree is always non-null. Field is to override the setter to set parameter
+                get => _currentTree!;
                 private set
                 {
                     _currentTree = value;
@@ -243,7 +265,7 @@ namespace Harmony.Core.EF.Query.Internal
             }
 
             public Expression PendingSelector { get; private set; }
-            public MethodInfo CardinalityReducingGenericMethodInfo { get; private set; }
+            public MethodInfo? CardinalityReducingGenericMethodInfo { get; private set; }
 
             public Type SourceElementType
                 => CurrentParameter.Type;
@@ -307,6 +329,68 @@ namespace Harmony.Core.EF.Query.Internal
                     {
                         expressionPrinter.AppendLine("CardinalityReducingMethod: " + CardinalityReducingGenericMethodInfo.Name);
                     }
+                }
+            }
+        }
+
+        private sealed class GroupByNavigationExpansionExpression : Expression, IPrintableExpression
+        {
+            public GroupByNavigationExpansionExpression(
+                Expression source,
+                ParameterExpression groupingParameter,
+                NavigationTreeNode currentTree,
+                Expression pendingSelector,
+                string innerParameterName)
+            {
+                Source = source;
+                CurrentParameter = groupingParameter;
+                Type = source.Type;
+                GroupingEnumerable = new NavigationExpansionExpression(
+                    Call(QueryableMethods.AsQueryable.MakeGenericMethod(CurrentParameter.Type.GetGenericArguments()[1]), CurrentParameter),
+                    currentTree,
+                    pendingSelector,
+                    innerParameterName);
+            }
+
+            public Expression Source { get; private set; }
+
+            public ParameterExpression CurrentParameter { get; }
+
+            public Expression GroupingEnumerable { get; }
+
+            public Type SourceElementType
+                => CurrentParameter.Type;
+
+            public void UpdateSource(Expression source)
+            {
+                Source = source;
+            }
+
+            public override ExpressionType NodeType
+                => ExpressionType.Extension;
+
+            public override Type Type { get; }
+
+            protected override Expression VisitChildren(ExpressionVisitor visitor)
+            {
+                Check.NotNull(visitor, nameof(visitor));
+
+                return this;
+            }
+
+            void IPrintableExpression.Print(ExpressionPrinter expressionPrinter)
+            {
+                Check.NotNull(expressionPrinter, nameof(expressionPrinter));
+
+                expressionPrinter.AppendLine(nameof(GroupByNavigationExpansionExpression));
+                using (expressionPrinter.Indent())
+                {
+                    expressionPrinter.Append("Source: ");
+                    expressionPrinter.Visit(Source);
+                    expressionPrinter.AppendLine();
+                    expressionPrinter.Append("GroupingEnumerable: ");
+                    expressionPrinter.Visit(GroupingEnumerable);
+                    expressionPrinter.AppendLine();
                 }
             }
         }

@@ -18,16 +18,17 @@ namespace Harmony.Core.EF.Query.Internal
         public HarmonyNavigationExpandingExpressionVisitor(
             QueryTranslationPreprocessor queryTranslationPreprocessor,
             QueryCompilationContext queryCompilationContext,
-            IEvaluatableExpressionFilter evaluatableExpressionFilter) : base(queryTranslationPreprocessor, queryCompilationContext, evaluatableExpressionFilter)
+            IEvaluatableExpressionFilter evaluatableExpressionFilter,
+            INavigationExpansionExtensibilityHelper helper) : base(queryTranslationPreprocessor, queryCompilationContext, evaluatableExpressionFilter, helper)
         {
 
         }
 
         public override Expression Expand(Expression query)
         {
-            return query;
-            //var expandedResult = base.Expand(query);
-            //return expandedResult;
+            //return query;//
+            var expandedResult = base.Expand(query);
+            return expandedResult;
         }
 
         //protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)

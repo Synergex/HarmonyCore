@@ -4,10 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using Harmony.Core.EF.Extensions;
 using Harmony.Core.EF.Extensions.Internal;
 using Harmony.Core.EF.Utilities;
 using Microsoft.EntityFrameworkCore;
@@ -29,17 +29,20 @@ namespace Harmony.Core.EF.Query.Internal
         private class ExpandingExpressionVisitor : ExpressionVisitor
         {
             private static readonly MethodInfo _objectEqualsMethodInfo
-                = typeof(object).GetRuntimeMethod(nameof(object.Equals), new[] { typeof(object), typeof(object) });
+                = typeof(object).GetRequiredRuntimeMethod(nameof(object.Equals), typeof(object), typeof(object));
 
             private readonly NavigationExpandingExpressionVisitor _navigationExpandingExpressionVisitor;
             private readonly NavigationExpansionExpression _source;
+            private readonly INavigationExpansionExtensibilityHelper _extensibilityHelper;
 
             public ExpandingExpressionVisitor(
                 NavigationExpandingExpressionVisitor navigationExpandingExpressionVisitor,
-                NavigationExpansionExpression source)
+                NavigationExpansionExpression source,
+                INavigationExpansionExtensibilityHelper extensibilityHelper)
             {
                 _navigationExpandingExpressionVisitor = navigationExpandingExpressionVisitor;
                 _source = source;
+                _extensibilityHelper = extensibilityHelper;
                 Model = navigationExpandingExpressionVisitor._queryCompilationContext.Model;
             }
 
@@ -48,7 +51,7 @@ namespace Harmony.Core.EF.Query.Internal
                 expression = Visit(expression);
                 if (applyIncludes)
                 {
-                    expression = new IncludeExpandingExpressionVisitor(_navigationExpandingExpressionVisitor, _source)
+                    expression = new IncludeExpandingExpressionVisitor(_navigationExpandingExpressionVisitor, _source, _extensibilityHelper)
                         .Visit(expression);
                 }
 
@@ -89,7 +92,8 @@ namespace Harmony.Core.EF.Query.Internal
                 {
                     source = Visit(source);
                     return TryExpandNavigation(source, MemberIdentity.Create(navigationName))
-                        ?? methodCallExpression.Update(null, new[] { source, methodCallExpression.Arguments[1] });
+                        // TODO-Nullable bug
+                        ?? methodCallExpression.Update(null!, new[] { source, methodCallExpression.Arguments[1] });
                 }
 
                 if (methodCallExpression.TryGetIndexerArguments(Model, out source, out navigationName))
@@ -102,8 +106,13 @@ namespace Harmony.Core.EF.Query.Internal
                 return base.VisitMethodCall(methodCallExpression);
             }
 
-            private Expression TryExpandNavigation(Expression root, MemberIdentity memberIdentity)
+            private Expression? TryExpandNavigation(Expression? root, MemberIdentity memberIdentity)
             {
+                if (root == null)
+                {
+                    return null;
+                }
+
                 var innerExpression = root.UnwrapTypeConversion(out var convertedType);
                 if (UnwrapEntityReference(innerExpression) is EntityReference entityReference)
                 {
@@ -120,7 +129,7 @@ namespace Harmony.Core.EF.Query.Internal
 
                     var navigation = memberIdentity.MemberInfo != null
                         ? entityType.FindNavigation(memberIdentity.MemberInfo)
-                        : entityType.FindNavigation(memberIdentity.Name);
+                        : entityType.FindNavigation(memberIdentity.Name!);
                     if (navigation != null)
                     {
                         return ExpandNavigation(root, entityReference, navigation, convertedType != null);
@@ -128,7 +137,9 @@ namespace Harmony.Core.EF.Query.Internal
 
                     var skipNavigation = memberIdentity.MemberInfo != null
                         ? entityType.FindSkipNavigation(memberIdentity.MemberInfo)
-                        : entityType.FindSkipNavigation(memberIdentity.Name);
+                        : memberIdentity.Name is not null
+                            ? entityType.FindSkipNavigation(memberIdentity.Name)
+                            : null;
                     if (skipNavigation != null)
                     {
                         return ExpandSkipNavigation(root, entityReference, skipNavigation, convertedType != null);
@@ -145,8 +156,7 @@ namespace Harmony.Core.EF.Query.Internal
                 bool derivedTypeConversion)
             {
                 var targetType = navigation.TargetEntityType;
-                if (targetType.HasDefiningNavigation()
-                    || targetType.IsOwned())
+                if (targetType.IsOwned())
                 {
                     if (entityReference.ForeignKeyExpansionMap.TryGetValue(
                         (navigation.ForeignKey, navigation.IsOnDependent), out var ownedExpansion))
@@ -154,7 +164,7 @@ namespace Harmony.Core.EF.Query.Internal
                         return ownedExpansion;
                     }
 
-                    var ownedEntityReference = new EntityReference(targetType);
+                    var ownedEntityReference = new EntityReference(targetType, entityReference.QueryRootExpression);
                     _navigationExpandingExpressionVisitor.PopulateEagerLoadedNavigations(ownedEntityReference.IncludePaths);
                     ownedEntityReference.MarkAsOptional();
                     if (entityReference.IncludePaths.TryGetValue(navigation, out var includePath))
@@ -165,7 +175,7 @@ namespace Harmony.Core.EF.Query.Internal
                     ownedExpansion = new OwnedNavigationReference(root, navigation, ownedEntityReference);
                     if (navigation.IsCollection)
                     {
-                        var elementType = ownedExpansion.Type.TryGetSequenceType();
+                        var elementType = ownedExpansion.Type.GetSequenceType();
                         var subquery = Expression.Call(
                             QueryableMethods.AsQueryable.MakeGenericMethod(elementType),
                             ownedExpansion);
@@ -209,8 +219,9 @@ namespace Harmony.Core.EF.Query.Internal
                 {
                     // First pseudo-navigation is a reference
                     // ExpandFK handles both collection & reference navigation for second psuedo-navigation
+                    // Value known to be non-null
                     secondaryExpansion = ExpandForeignKey(
-                        primaryExpansion, UnwrapEntityReference(primaryExpansion), inverseNavigation.ForeignKey,
+                        primaryExpansion, UnwrapEntityReference(primaryExpansion)!, inverseNavigation.ForeignKey,
                         !inverseNavigation.IsOnDependent, derivedTypeConversion: false);
                 }
                 else
@@ -222,12 +233,15 @@ namespace Harmony.Core.EF.Query.Internal
                     {
                         // Second psuedo-navigation is a reference
                         var secondTargetType = navigation.TargetEntityType;
-                        var innerQueryable = new QueryRootExpression(secondTargetType);
+                        // we can use the entity reference here. If the join entity wasn't temporal,
+                        // the query root creator would have thrown the exception when it was being created
+                        var innerQueryable = _extensibilityHelper.CreateQueryRoot(secondTargetType, entityReference.QueryRootExpression);
                         var innerSource = (NavigationExpansionExpression)_navigationExpandingExpressionVisitor.Visit(innerQueryable);
 
                         if (includeTree != null)
                         {
-                            UnwrapEntityReference(innerSource.PendingSelector).IncludePaths.Merge(includeTree);
+                            // Value known to be non-null
+                            UnwrapEntityReference(innerSource.PendingSelector)!.IncludePaths.Merge(includeTree);
                         }
 
                         var sourceElementType = primaryExpansion.Type.GetSequenceType();
@@ -255,7 +269,7 @@ namespace Harmony.Core.EF.Query.Internal
                         secondaryExpansion = Expression.Call(
                             (innerJoin
                                 ? QueryableMethods.Join
-                                : HarmonyQueryableExtensions.LeftJoinMethodInfo).MakeGenericMethod(
+                                : LeftJoinMethodInfo).MakeGenericMethod(
                                 sourceElementType, innerSourceElementType,
                                 outerKeySelector.ReturnType,
                                 resultSelector.ReturnType),
@@ -269,12 +283,13 @@ namespace Harmony.Core.EF.Query.Internal
                     {
                         // Second psuedo-navigation is a collection
                         var secondTargetType = navigation.TargetEntityType;
-                        var innerQueryable = new QueryRootExpression(secondTargetType);
+                        var innerQueryable = _extensibilityHelper.CreateQueryRoot(secondTargetType, entityReference.QueryRootExpression);
                         var innerSource = (NavigationExpansionExpression)_navigationExpandingExpressionVisitor.Visit(innerQueryable);
 
                         if (includeTree != null)
                         {
-                            UnwrapEntityReference(innerSource.PendingSelector).IncludePaths.Merge(includeTree);
+                            // Value known to be non-null
+                            UnwrapEntityReference(innerSource.PendingSelector)!.IncludePaths.Merge(includeTree);
                         }
 
                         var sourceElementType = primaryExpansion.Type.GetSequenceType();
@@ -327,28 +342,38 @@ namespace Harmony.Core.EF.Query.Internal
                 bool onDependent,
                 bool derivedTypeConversion)
             {
+                var navigation = onDependent ? foreignKey.DependentToPrincipal : foreignKey.PrincipalToDependent;
                 if (entityReference.ForeignKeyExpansionMap.TryGetValue((foreignKey, onDependent), out var expansion))
                 {
+                    if (navigation != null
+                        && entityReference.IncludePaths.TryGetValue(navigation, out var pendingIncludeTree))
+                    {
+                        var cachedEntityReference = UnwrapEntityReference(expansion);
+                        if (cachedEntityReference != null)
+                        {
+                            cachedEntityReference.IncludePaths.Merge(pendingIncludeTree);
+                        }
+                    }
+
                     return expansion;
                 }
 
                 var collection = !foreignKey.IsUnique && !onDependent;
                 var targetType = onDependent ? foreignKey.PrincipalEntityType : foreignKey.DeclaringEntityType;
 
-                Debug.Assert(!targetType.HasDefiningNavigation() && !targetType.IsOwned(), "Owned entity expanding foreign key.");
+                Check.DebugAssert(!targetType.IsOwned(), "Owned entity expanding foreign key.");
 
-                var innerQueryable = new QueryRootExpression(targetType);
+                var innerQueryable = _extensibilityHelper.CreateQueryRoot(targetType, entityReference.QueryRootExpression);
                 var innerSource = (NavigationExpansionExpression)_navigationExpandingExpressionVisitor.Visit(innerQueryable);
 
+                // Value known to be non-null
+                var innerEntityReference = UnwrapEntityReference(innerSource.PendingSelector)!;
+
                 // We detect and copy over include for navigation being expanded automatically
-                var navigation = onDependent ? foreignKey.DependentToPrincipal : foreignKey.PrincipalToDependent;
-                var innerEntityReference = UnwrapEntityReference(innerSource.PendingSelector);
                 if (navigation != null
                     && entityReference.IncludePaths.TryGetValue(navigation, out var includeTree))
                 {
-                    {
-                        innerEntityReference.IncludePaths.Merge(includeTree);
-                    }
+                    innerEntityReference.IncludePaths.Merge(includeTree);
                 }
 
                 var innerSourceSequenceType = innerSource.Type.GetSequenceType();
@@ -427,7 +452,7 @@ namespace Harmony.Core.EF.Query.Internal
 
                 var resultSelectorOuterParameter = Expression.Parameter(_source.SourceElementType, "o");
                 var resultSelectorInnerParameter = Expression.Parameter(innerSource.SourceElementType, "i");
-                var resultType = innerSource.SourceElementType;
+                var resultType = TransparentIdentifierFactory.Create(_source.SourceElementType, innerSource.SourceElementType);
 
                 _navigationExpandingExpressionVisitor.CompilationContext.AddNavigationToParameter(resultSelectorInnerParameter, resultSelectorOuterParameter, navigation);
 
@@ -452,7 +477,7 @@ namespace Harmony.Core.EF.Query.Internal
                     Expression.Call(
                         (innerJoin
                             ? QueryableMethods.Join
-                            : HarmonyQueryableExtensions.LeftJoinMethodInfo).MakeGenericMethod(
+                            : LeftJoinMethodInfo).MakeGenericMethod(
                             _source.SourceElementType,
                             innerSource.SourceElementType,
                             outerKeySelector.ReturnType,
@@ -466,7 +491,6 @@ namespace Harmony.Core.EF.Query.Internal
                 entityReference.ForeignKeyExpansionMap[(foreignKey, onDependent)] = innerSource.PendingSelector;
 
                 _source.UpdateCurrentTree(new NavigationTreeNode(_source.SourceElementType, _source.CurrentTree, innerSource.CurrentTree, navigation));
-
 
                 return innerSource.PendingSelector;
             }
@@ -484,7 +508,7 @@ namespace Harmony.Core.EF.Query.Internal
         private sealed class IncludeExpandingExpressionVisitor : ExpandingExpressionVisitor
         {
             private static readonly MethodInfo _fetchJoinEntityMethodInfo =
-                typeof(IncludeExpandingExpressionVisitor).GetTypeInfo().GetDeclaredMethod(nameof(FetchJoinEntity));
+                typeof(IncludeExpandingExpressionVisitor).GetRequiredDeclaredMethod(nameof(FetchJoinEntity));
 
             private readonly bool _queryStateManager;
             private readonly bool _ignoreAutoIncludes;
@@ -492,8 +516,9 @@ namespace Harmony.Core.EF.Query.Internal
 
             public IncludeExpandingExpressionVisitor(
                 NavigationExpandingExpressionVisitor navigationExpandingExpressionVisitor,
-                NavigationExpansionExpression source)
-                : base(navigationExpandingExpressionVisitor, source)
+                NavigationExpansionExpression source,
+                INavigationExpansionExtensibilityHelper extensibilityHelper)
+                : base(navigationExpandingExpressionVisitor, source, extensibilityHelper)
             {
                 _logger = navigationExpandingExpressionVisitor._queryCompilationContext.Logger;
                 _queryStateManager = navigationExpandingExpressionVisitor._queryCompilationContext.QueryTrackingBehavior
@@ -501,6 +526,27 @@ namespace Harmony.Core.EF.Query.Internal
                     || navigationExpandingExpressionVisitor._queryCompilationContext.QueryTrackingBehavior
                     == QueryTrackingBehavior.NoTrackingWithIdentityResolution;
                 _ignoreAutoIncludes = navigationExpandingExpressionVisitor._queryCompilationContext.IgnoreAutoIncludes;
+            }
+
+            protected override Expression VisitBinary(BinaryExpression binaryExpression)
+            {
+                if (binaryExpression.NodeType == ExpressionType.Equal
+                    || binaryExpression.NodeType == ExpressionType.NotEqual)
+                {
+                    // This could be entity equality. We don't want to expand include nodes over them
+                    // as either they translate or throw.
+                    var leftEntityReference = IsEntityReference(binaryExpression.Left);
+                    var rightEntityReference = IsEntityReference(binaryExpression.Right);
+                    if (leftEntityReference || rightEntityReference)
+                    {
+                        return binaryExpression;
+                    }
+                }
+
+                return base.VisitBinary(binaryExpression);
+
+                bool IsEntityReference(Expression expression)
+                    => TryGetEntityType(expression) != null;
             }
 
             protected override Expression VisitExtension(Expression extensionExpression)
@@ -529,6 +575,7 @@ namespace Harmony.Core.EF.Query.Internal
                         return ExpandInclude(ownedNavigationReference, ownedNavigationReference.EntityReference);
 
                     case MaterializeCollectionNavigationExpression _:
+                    case IncludeExpression _:
                         return extensionExpression;
                 }
 
@@ -539,22 +586,11 @@ namespace Harmony.Core.EF.Query.Internal
             {
                 Check.NotNull(memberExpression, nameof(memberExpression));
 
-                var innerExpression = memberExpression.Expression.UnwrapTypeConversion(out var convertedType);
-                if (UnwrapEntityReference(innerExpression) is EntityReference entityReference)
+                if (memberExpression.Expression != null)
                 {
                     // If it is mapped property then, it would get converted to a column so we don't need to expand includes.
-                    var entityType = entityReference.EntityType;
-                    if (convertedType != null)
-                    {
-                        entityType = entityType.GetAllBaseTypes().Concat(entityType.GetDerivedTypesInclusive())
-                            .FirstOrDefault(et => et.ClrType == convertedType);
-                        if (entityType == null)
-                        {
-                            return base.VisitMember(memberExpression);
-                        }
-                    }
-
-                    var property = entityType.FindProperty(memberExpression.Member);
+                    var entityType = TryGetEntityType(memberExpression.Expression);
+                    var property = entityType?.FindProperty(memberExpression.Member);
                     if (property != null)
                     {
                         return memberExpression;
@@ -577,14 +613,12 @@ namespace Harmony.Core.EF.Query.Internal
 
                 if (methodCallExpression.TryGetIndexerArguments(Model, out var source, out var propertyName))
                 {
-                    if (UnwrapEntityReference(source) is EntityReference entityReferece)
+                    // If it is mapped property then, it would get converted to a column so we don't need to expand includes.
+                    var entityType = TryGetEntityType(source);
+                    var property = entityType?.FindProperty(propertyName);
+                    if (property != null)
                     {
-                        // If it is mapped property then, it would get converted to a column so we don't need to expand includes.
-                        var property = entityReferece.EntityType.FindProperty(propertyName);
-                        if (property != null)
-                        {
-                            return methodCallExpression;
-                        }
+                        return methodCallExpression;
                     }
                 }
 
@@ -607,7 +641,35 @@ namespace Harmony.Core.EF.Query.Internal
                 return newExpression.Update(arguments);
             }
 
-            private bool ReconstructAnonymousType(Expression currentRoot, NewExpression newExpression, out Expression replacement)
+            protected override Expression VisitTypeBinary(TypeBinaryExpression typeBinaryExpression)
+                => typeBinaryExpression;
+
+            private IEntityType? TryGetEntityType(Expression expression)
+            {
+                var innerExpression = expression.UnwrapTypeConversion(out var convertedType);
+                if (UnwrapEntityReference(innerExpression) is EntityReference entityReference)
+                {
+                    var entityType = entityReference.EntityType;
+                    if (convertedType != null)
+                    {
+                        entityType = entityType.GetAllBaseTypes().Concat(entityType.GetDerivedTypesInclusive())
+                            .FirstOrDefault(et => et.ClrType == convertedType);
+                        if (entityType == null)
+                        {
+                            return null;
+                        }
+                    }
+
+                    return entityType;
+                }
+
+                return null;
+            }
+
+            private bool ReconstructAnonymousType(
+                Expression currentRoot,
+                NewExpression newExpression,
+                [NotNullWhen(true)] out Expression? replacement)
             {
                 replacement = null;
                 var changed = false;
@@ -621,7 +683,7 @@ namespace Harmony.Core.EF.Query.Internal
                 for (var i = 0; i < newExpression.Arguments.Count; i++)
                 {
                     var argument = newExpression.Arguments[i];
-                    var newRoot = Expression.MakeMemberAccess(currentRoot, newExpression.Members[i]);
+                    var newRoot = Expression.MakeMemberAccess(currentRoot, newExpression.Members![i]);
                     if (argument is EntityReference entityReference)
                     {
                         changed = true;
@@ -680,7 +742,7 @@ namespace Harmony.Core.EF.Query.Internal
                 }
             }
 
-            private Expression ExpandIncludesHelper(Expression root, EntityReference entityReference, INavigationBase previousNavigation)
+            private Expression ExpandIncludesHelper(Expression root, EntityReference entityReference, INavigationBase? previousNavigation)
             {
                 var result = root;
                 var convertedRoot = root;
@@ -691,13 +753,9 @@ namespace Harmony.Core.EF.Query.Internal
                         && previousNavigation?.Inverse == navigationBase)
                     {
                         // This skips one-to-one navigations which are pointing to each other.
-                        if (!(AppContext.TryGetSwitch("Microsoft.EntityFrameworkCore.Issue23674", out var enabled)
-                            && enabled))
+                        if (!navigationBase.IsEagerLoaded)
                         {
-                            if (!navigationBase.IsEagerLoaded)
-                            {
-                                _logger.NavigationBaseIncludeIgnored(navigationBase);
-                            }
+                            _logger.NavigationBaseIncludeIgnored(navigationBase);
                         }
 
                         continue;
@@ -723,9 +781,8 @@ namespace Harmony.Core.EF.Query.Internal
                     // Collection will expand it's includes when reducing the navigationExpansionExpression
                     if (!navigationBase.IsCollection)
                     {
-                        var innerEntityReference = UnwrapEntityReference(included);
-
-                        included = ExpandIncludesHelper(included, innerEntityReference, navigationBase);
+                        // Value known to be non-null
+                        included = ExpandIncludesHelper(included, UnwrapEntityReference(included)!, navigationBase);
                     }
                     else
                     {
@@ -737,7 +794,7 @@ namespace Harmony.Core.EF.Query.Internal
                             && subquery is MethodCallExpression subqueryMethodCallExpression
                             && subqueryMethodCallExpression.Method.IsGenericMethod)
                         {
-                            EntityReference innerEntityReference = null;
+                            EntityReference? innerEntityReference = null;
                             if (subqueryMethodCallExpression.Method.GetGenericMethodDefinition() == QueryableMethods.Where
                                 && subqueryMethodCallExpression.Arguments[0] is NavigationExpansionExpression navigationExpansionExpression)
                             {
@@ -752,14 +809,10 @@ namespace Harmony.Core.EF.Query.Internal
                             {
                                 // This skips inverse navigation of a collection navigation if they are pointing to each other.
                                 // Not a skip navigation
-                                if (!(AppContext.TryGetSwitch("Microsoft.EntityFrameworkCore.Issue23674", out var enabled)
-                                    && enabled))
-                                {
-                                    if (innerEntityReference.IncludePaths.ContainsKey(inverseNavigation)
+                                if (innerEntityReference.IncludePaths.ContainsKey(inverseNavigation)
                                     && !inverseNavigation.IsEagerLoaded)
-                                    {
-                                        _logger.NavigationBaseIncludeIgnored(inverseNavigation);
-                                    }
+                                {
+                                    _logger.NavigationBaseIncludeIgnored(inverseNavigation);
                                 }
 
                                 innerEntityReference.IncludePaths.Remove(inverseNavigation);
@@ -768,10 +821,13 @@ namespace Harmony.Core.EF.Query.Internal
 
                         var filterExpression = entityReference.IncludePaths[navigationBase].FilterExpression;
                         if (_queryStateManager
-                            && navigationBase is ISkipNavigation
+                            && navigationBase is ISkipNavigation skipNavigation
                             && subquery is MethodCallExpression joinMethodCallExpression
                             && joinMethodCallExpression.Method.IsGenericMethod
-                            && joinMethodCallExpression.Method.GetGenericMethodDefinition() == QueryableMethods.Join
+                            && joinMethodCallExpression.Method.GetGenericMethodDefinition()
+                            == (skipNavigation.Inverse.ForeignKey.IsRequired
+                                ? QueryableMethods.Join
+                                : LeftJoinMethodInfo)
                             && joinMethodCallExpression.Arguments[4] is UnaryExpression unaryExpression
                             && unaryExpression.NodeType == ExpressionType.Quote
                             && unaryExpression.Operand is LambdaExpression resultSelectorLambda
@@ -791,14 +847,15 @@ namespace Harmony.Core.EF.Query.Internal
                                         targetParameter));
 
                                 subquery = joinMethodCallExpression.Update(
-                                    null, joinMethodCallExpression.Arguments.Take(4).Append(newResultSelector));
+                                    // TODO-Nullable bug
+                                    null!, joinMethodCallExpression.Arguments.Take(4).Append(newResultSelector));
                             }
                             else
                             {
                                 var resultType = TransparentIdentifierFactory.Create(joinParameter.Type, targetParameter.Type);
 
-                                var transparentIdentifierOuterMemberInfo = resultType.GetTypeInfo().GetDeclaredField("Outer");
-                                var transparentIdentifierInnerMemberInfo = resultType.GetTypeInfo().GetDeclaredField("Inner");
+                                var transparentIdentifierOuterMemberInfo = resultType.GetTypeInfo().GetRequiredDeclaredField("Outer");
+                                var transparentIdentifierInnerMemberInfo = resultType.GetTypeInfo().GetRequiredDeclaredField("Inner");
 
                                 var newResultSelector = Expression.Quote(
                                     Expression.Lambda(
@@ -851,9 +908,7 @@ namespace Harmony.Core.EF.Query.Internal
                         }
                     }
 
-#pragma warning disable EF1001 // Internal EF Core API usage.
                     result = new IncludeExpression(result, included, navigationBase, kvp.Value.SetLoaded);
-#pragma warning restore EF1001 // Internal EF Core API usage.
                 }
 
                 return result;
@@ -906,22 +961,26 @@ namespace Harmony.Core.EF.Query.Internal
         {
             private readonly NavigationExpandingExpressionVisitor _visitor;
             private readonly bool _applyIncludes;
+            private readonly INavigationExpansionExtensibilityHelper _extensibilityHelper;
 
             public PendingSelectorExpandingExpressionVisitor(
                 NavigationExpandingExpressionVisitor visitor,
+                INavigationExpansionExtensibilityHelper extensibilityHelper,
                 bool applyIncludes = false)
             {
                 _visitor = visitor;
+                _extensibilityHelper = extensibilityHelper;
                 _applyIncludes = applyIncludes;
             }
 
-            public override Expression Visit(Expression expression)
+            [return: NotNullIfNotNull("expression")]
+            public override Expression? Visit(Expression? expression)
             {
                 if (expression is NavigationExpansionExpression navigationExpansionExpression)
                 {
                     _visitor.ApplyPendingOrderings(navigationExpansionExpression);
 
-                    var pendingSelector = new ExpandingExpressionVisitor(_visitor, navigationExpansionExpression)
+                    var pendingSelector = new ExpandingExpressionVisitor(_visitor, navigationExpansionExpression, _extensibilityHelper)
                         .Expand(navigationExpansionExpression.PendingSelector, _applyIncludes);
                     pendingSelector = _visitor._subqueryMemberPushdownExpressionVisitor.Visit(pendingSelector);
                     pendingSelector = _visitor.Visit(pendingSelector);
@@ -940,7 +999,8 @@ namespace Harmony.Core.EF.Query.Internal
         /// </summary>
         private sealed class ReducingExpressionVisitor : ExpressionVisitor
         {
-            public override Expression Visit(Expression expression)
+            [return: NotNullIfNotNull("expression")]
+            public override Expression? Visit(Expression? expression)
             {
                 switch (expression)
                 {
@@ -973,7 +1033,7 @@ namespace Harmony.Core.EF.Query.Internal
                             {
                                 result = Expression.Call(
                                     navigationExpansionExpression.CardinalityReducingGenericMethodInfo.MakeGenericMethod(
-                                        result.Type.TryGetSequenceType()),
+                                        result.Type.GetSequenceType()),
                                     result);
                             }
 
@@ -1007,7 +1067,8 @@ namespace Harmony.Core.EF.Query.Internal
         /// </summary>
         private sealed class EntityReferenceOptionalMarkingExpressionVisitor : ExpressionVisitor
         {
-            public override Expression Visit(Expression expression)
+            [return: NotNullIfNotNull("expression")]
+            public override Expression? Visit(Expression? expression)
             {
                 if (expression is EntityReference entityReference)
                 {
@@ -1044,6 +1105,133 @@ namespace Harmony.Core.EF.Query.Internal
                     && queryRootExpression.EntityType == _entityType
                         ? _navigationExpandingExpressionVisitor.CreateNavigationExpansionExpression(queryRootExpression, _entityType)
                         : base.VisitExtension(extensionExpression);
+            }
+        }
+
+        private sealed class CloningExpressionVisitor : ExpressionVisitor
+        {
+            private readonly Dictionary<NavigationTreeNode, NavigationTreeNode> _clonedMap = new(ReferenceEqualityComparer.Instance);
+
+            public NavigationTreeNode Clone(NavigationTreeNode navigationTreeNode)
+            {
+                _clonedMap.Clear();
+
+                return (NavigationTreeNode)Visit(navigationTreeNode);
+            }
+
+            public IReadOnlyDictionary<NavigationTreeNode, NavigationTreeNode> ClonedNodesMap
+                => _clonedMap;
+
+            [return: NotNullIfNotNull("expression")]
+            public override Expression? Visit(Expression? expression)
+            {
+                switch (expression)
+                {
+                    case EntityReference entityReference:
+                        return entityReference.Snapshot();
+
+                    case NavigationTreeExpression navigationTreeExpression:
+                        if (!_clonedMap.TryGetValue(navigationTreeExpression, out var clonedNavigationTreeExpression))
+                        {
+                            clonedNavigationTreeExpression = new NavigationTreeExpression(Visit(navigationTreeExpression.Value));
+                            _clonedMap[navigationTreeExpression] = clonedNavigationTreeExpression;
+                        }
+
+                        return clonedNavigationTreeExpression;
+
+                    case NavigationTreeNode navigationTreeNode:
+                        if (!_clonedMap.TryGetValue(navigationTreeNode, out var clonedNavigationTreeNode))
+                        {
+                            clonedNavigationTreeNode = new NavigationTreeNode(navigationTreeNode.Type,
+                                (NavigationTreeNode)Visit(navigationTreeNode.Left!),
+                                (NavigationTreeNode)Visit(navigationTreeNode.Right!),
+                                navigationTreeNode.RightNavigation);
+                            _clonedMap[navigationTreeNode] = clonedNavigationTreeNode;
+                        }
+
+                        return clonedNavigationTreeNode;
+
+                    default:
+                        return base.Visit(expression);
+                }
+            }
+        }
+
+        private sealed class GroupingElementReplacingExpressionVisitor : ExpressionVisitor
+        {
+            private readonly CloningExpressionVisitor _cloningExpressionVisitor;
+            private readonly ParameterExpression _parameterExpression;
+            private readonly NavigationExpansionExpression _navigationExpansionExpression;
+            private readonly Expression? _keyAccessExpression;
+            private readonly MemberInfo? _keyMemberInfo;
+
+            public GroupingElementReplacingExpressionVisitor(
+                ParameterExpression parameterExpression,
+                GroupByNavigationExpansionExpression groupByNavigationExpansionExpression)
+            {
+                _parameterExpression = parameterExpression;
+                _navigationExpansionExpression = (NavigationExpansionExpression)groupByNavigationExpansionExpression.GroupingEnumerable;
+                _keyAccessExpression = Expression.MakeMemberAccess(
+                    groupByNavigationExpansionExpression.CurrentParameter,
+                    groupByNavigationExpansionExpression.CurrentParameter.Type.GetRequiredDeclaredProperty(
+                        nameof(IGrouping<int, int>.Key)));
+                _keyMemberInfo = parameterExpression.Type.GetRequiredDeclaredProperty(nameof(IGrouping<int, int>.Key));
+                _cloningExpressionVisitor = new CloningExpressionVisitor();
+            }
+
+            public GroupingElementReplacingExpressionVisitor(
+                ParameterExpression parameterExpression,
+                NavigationExpansionExpression navigationExpansionExpression)
+            {
+                _parameterExpression = parameterExpression;
+                _navigationExpansionExpression = navigationExpansionExpression;
+                _cloningExpressionVisitor = new CloningExpressionVisitor();
+            }
+
+            public bool ContainsGrouping { get; private set; }
+
+            [return: NotNullIfNotNull("expression")]
+            public override Expression? Visit(Expression? expression)
+            {
+                if (expression == _parameterExpression)
+                {
+                    ContainsGrouping = true;
+                }
+
+                return base.Visit(expression);
+            }
+
+            protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
+            {
+                if (methodCallExpression.Method.IsGenericMethod
+                    && (methodCallExpression.Method.GetGenericMethodDefinition() == QueryableMethods.AsQueryable
+                        || methodCallExpression.Method.GetGenericMethodDefinition() == EnumerableMethods.ToList
+                        || methodCallExpression.Method.GetGenericMethodDefinition() == EnumerableMethods.ToArray)
+                    && methodCallExpression.Arguments[0] == _parameterExpression)
+                {
+                    var currentTree = _cloningExpressionVisitor.Clone(_navigationExpansionExpression.CurrentTree);
+
+                    var navigationExpansionExpression = new NavigationExpansionExpression(
+                        _navigationExpansionExpression.Source,
+                        currentTree,
+                        new ReplacingExpressionVisitor(
+                                _cloningExpressionVisitor.ClonedNodesMap.Keys.ToList(),
+                                _cloningExpressionVisitor.ClonedNodesMap.Values.ToList())
+                            .Visit(_navigationExpansionExpression.PendingSelector),
+                        _navigationExpansionExpression.CurrentParameter.Name!);
+
+                    return methodCallExpression.Update(null, new[] { navigationExpansionExpression });
+                }
+
+                return base.VisitMethodCall(methodCallExpression);
+            }
+
+            protected override Expression VisitMember(MemberExpression memberExpression)
+            {
+                return memberExpression.Member == _keyMemberInfo
+                    && memberExpression.Expression == _parameterExpression
+                        ? _keyAccessExpression!
+                        : base.VisitMember(memberExpression);
             }
         }
 
@@ -1088,7 +1276,11 @@ namespace Harmony.Core.EF.Query.Internal
                 return base.VisitMethodCall(methodCallExpression);
             }
 
-            private bool TryRemoveNavigationComparison(ExpressionType nodeType, Expression left, Expression right, out Expression result)
+            private bool TryRemoveNavigationComparison(
+                ExpressionType nodeType,
+                Expression left,
+                Expression right,
+                [NotNullWhen(true)] out Expression? result)
             {
                 result = null;
                 var leftNavigationData = ProcessNavigationPath(left) as NavigationDataExpression;
@@ -1103,16 +1295,17 @@ namespace Harmony.Core.EF.Query.Internal
                 if (left.IsNullConstantExpression()
                     || right.IsNullConstantExpression())
                 {
-                    var nonNullNavigationData = left.IsNullConstantExpression()
-                        ? rightNavigationData
-                        : leftNavigationData;
+                    NavigationDataExpression nonNullNavigationData = left.IsNullConstantExpression()
+                        ? rightNavigationData!
+                        : leftNavigationData!;
 
                     if (nonNullNavigationData.Navigation?.IsCollection == true)
                     {
                         _logger.PossibleUnintendedCollectionNavigationNullComparisonWarning(nonNullNavigationData.Navigation);
 
+                        // Inner would be non-null when navigation is non-null
                         result = Expression.MakeBinary(
-                            nodeType, nonNullNavigationData.Inner.Current, Expression.Constant(null, nonNullNavigationData.Inner.Type));
+                            nodeType, nonNullNavigationData.Inner!.Current, Expression.Constant(null, nonNullNavigationData.Inner.Type));
 
                         return true;
                     }
@@ -1125,8 +1318,8 @@ namespace Harmony.Core.EF.Query.Internal
                         if (leftNavigationData.Navigation == rightNavigationData.Navigation)
                         {
                             _logger.PossibleUnintendedReferenceComparisonWarning(leftNavigationData.Current, rightNavigationData.Current);
-
-                            result = Expression.MakeBinary(nodeType, leftNavigationData.Inner.Current, rightNavigationData.Inner.Current);
+                            // Inner would be non-null when navigation is non-null
+                            result = Expression.MakeBinary(nodeType, leftNavigationData.Inner!.Current, rightNavigationData.Inner!.Current);
                         }
                         else
                         {
@@ -1144,7 +1337,8 @@ namespace Harmony.Core.EF.Query.Internal
             {
                 switch (expression)
                 {
-                    case MemberExpression memberExpression:
+                    case MemberExpression memberExpression
+                        when memberExpression.Expression != null:
                         var innerExpression = ProcessNavigationPath(memberExpression.Expression);
                         if (innerExpression is NavigationDataExpression navigationDataExpression
                             && navigationDataExpression.EntityType != null)
@@ -1210,12 +1404,11 @@ namespace Harmony.Core.EF.Query.Internal
                 public override ExpressionType NodeType
                     => ExpressionType.Extension;
 
-                public INavigation Navigation { get; }
+                public INavigation? Navigation { get; }
                 public Expression Current { get; }
-                public NavigationDataExpression Inner { get; }
-                public IEntityType EntityType { get; }
+                public NavigationDataExpression? Inner { get; }
+                public IEntityType? EntityType { get; }
             }
         }
     }
 }
-

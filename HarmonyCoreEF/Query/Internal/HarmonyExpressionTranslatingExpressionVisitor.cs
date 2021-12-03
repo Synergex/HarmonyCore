@@ -26,6 +26,8 @@ namespace Harmony.Core.EF.Query.Internal
         private readonly QueryableMethodTranslatingExpressionVisitor _queryableMethodTranslatingExpressionVisitor;
         private readonly EntityProjectionFindingExpressionVisitor _entityProjectionFindingExpressionVisitor;
 
+        public QueryCompilationContext Context => (_queryableMethodTranslatingExpressionVisitor as HarmonyQueryableMethodTranslatingExpressionVisitor).Context;
+
         public HarmonyExpressionTranslatingExpressionVisitor(
             QueryableMethodTranslatingExpressionVisitor queryableMethodTranslatingExpressionVisitor)
         {
@@ -262,7 +264,7 @@ namespace Harmony.Core.EF.Query.Internal
                 var selectorLambda = methodCallExpression.Arguments[1].UnwrapLambdaFromQuote();
                 return ReplacingExpressionVisitor.Replace(
                     selectorLambda.Parameters[0],
-                    groupByShaperExpression.ElementSelector,
+                    groupByShaperExpression.GroupingEnumerable,
                     selectorLambda.Body);
             }
 

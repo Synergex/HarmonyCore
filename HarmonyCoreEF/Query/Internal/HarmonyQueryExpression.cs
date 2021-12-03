@@ -16,6 +16,7 @@ using Harmony.Core.FileIO.Queryable;
 using Harmony.Core.Enumerations;
 using System.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query.Internal;
+using System.Collections.ObjectModel;
 
 namespace Harmony.Core.EF.Query.Internal
 {
@@ -762,7 +763,7 @@ namespace Harmony.Core.EF.Query.Internal
             }
         }
 
-        public virtual IDictionary<IProperty, int> AddToProjection(EntityProjectionExpression entityProjectionExpression)
+        public virtual IReadOnlyDictionary<IProperty, int> AddToProjection(EntityProjectionExpression entityProjectionExpression)
         {
             if (!_entityProjectionCache.TryGetValue(entityProjectionExpression, out var indexMap))
             {
@@ -775,7 +776,7 @@ namespace Harmony.Core.EF.Query.Internal
                 _entityProjectionCache[entityProjectionExpression] = indexMap;
             }
 
-            return indexMap;
+            return new ReadOnlyDictionary<IProperty, int>(indexMap);
         }
 
         public virtual int AddToProjection(Expression expression)
@@ -824,7 +825,7 @@ namespace Harmony.Core.EF.Query.Internal
                     && projectionBindingExpression.ProjectionMember != null)
                 {
                     var mappingValue = ((ConstantExpression)_projectionMapping[projectionBindingExpression.ProjectionMember]).Value;
-                    if (mappingValue is IDictionary<IProperty, int> indexMap)
+                    if (mappingValue is IReadOnlyDictionary<IProperty, int> indexMap)
                     {
                         return new ProjectionBindingExpression(projectionBindingExpression.QueryExpression, indexMap);
                     }
@@ -843,7 +844,7 @@ namespace Harmony.Core.EF.Query.Internal
         }
 
         private IEnumerable<IProperty> GetAllPropertiesInHierarchy(IEntityType entityType)
-            => entityType.GetAllBaseTypesInclusive().SelectMany(Microsoft.EntityFrameworkCore.EntityTypeExtensions.GetDeclaredProperties);
+            => entityType.GetAllBaseTypesInclusive().SelectMany((type) => type.GetDeclaredProperties());
 
         public virtual Expression GetMappedProjection(ProjectionMember member)
             => _projectionMapping[member];
@@ -971,7 +972,7 @@ namespace Harmony.Core.EF.Query.Internal
             }
         }
 
-        public virtual HarmonyGroupByShaperExpression ApplyGrouping(Expression groupingKey, Expression shaperExpression)
+        public virtual HarmonyGroupByShaperExpression ApplyGrouping(Expression groupingKey, ShapedQueryExpression shaperExpression)
         {
             PushdownIntoSubquery();
 
@@ -1328,7 +1329,7 @@ namespace Harmony.Core.EF.Query.Internal
 
                 // Also lift nested entity projections
                 foreach (var navigation in entityProjection.EntityType.GetAllBaseTypes()
-                    .SelectMany(Microsoft.EntityFrameworkCore.EntityTypeExtensions.GetDeclaredNavigations))
+                    .SelectMany((type) => type.GetDeclaredNavigations()))
                 {
                     var boundEntityShaperExpression = entityProjection.BindNavigation(navigation);
                     if (boundEntityShaperExpression != null)
