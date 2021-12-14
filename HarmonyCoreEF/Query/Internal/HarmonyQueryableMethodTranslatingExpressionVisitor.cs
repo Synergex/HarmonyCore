@@ -347,31 +347,7 @@ namespace Harmony.Core.EF.Query.Internal
             ShapedQueryExpression outer, ShapedQueryExpression inner, LambdaExpression outerKeySelector, LambdaExpression innerKeySelector,
             LambdaExpression resultSelector)
         {
-            outerKeySelector = TranslateLambdaExpression(outer, outerKeySelector);
-            innerKeySelector = TranslateLambdaExpression(inner, innerKeySelector);
-            if (outerKeySelector == null
-                || innerKeySelector == null)
-            {
-                return null;
-            }
-
-            (outerKeySelector, innerKeySelector) = AlignKeySelectorTypes(outerKeySelector, innerKeySelector);
-
-            var transparentIdentifierType = TransparentIdentifierFactory.Create(
-                resultSelector.Parameters[0].Type,
-                resultSelector.Parameters[1].Type);
-
-            ((HarmonyQueryExpression)outer.QueryExpression).AddInnerJoin(
-                (HarmonyQueryExpression)inner.QueryExpression,
-                outerKeySelector,
-                innerKeySelector,
-                transparentIdentifierType);
-
-            return TranslateResultSelectorForJoin(
-                outer,
-                resultSelector,
-                inner.ShaperExpression,
-                transparentIdentifierType);
+            return TranslateJoin(outer, inner, outerKeySelector, innerKeySelector, resultSelector, false);
         }
 
         private static (LambdaExpression OuterKeySelector, LambdaExpression InnerKeySelector)
@@ -415,6 +391,11 @@ namespace Harmony.Core.EF.Query.Internal
             ShapedQueryExpression outer, ShapedQueryExpression inner, LambdaExpression outerKeySelector, LambdaExpression innerKeySelector,
             LambdaExpression resultSelector)
         {
+            return TranslateJoin(outer, inner, outerKeySelector, innerKeySelector, resultSelector, true);
+        }
+
+        private ShapedQueryExpression TranslateJoin(ShapedQueryExpression outer, ShapedQueryExpression inner, LambdaExpression outerKeySelector, LambdaExpression innerKeySelector, LambdaExpression resultSelector, bool left)
+        {
             outerKeySelector = TranslateLambdaExpression(outer, outerKeySelector);
             innerKeySelector = TranslateLambdaExpression(inner, innerKeySelector);
             if (outerKeySelector == null
@@ -425,13 +406,13 @@ namespace Harmony.Core.EF.Query.Internal
 
             (outerKeySelector, innerKeySelector) = AlignKeySelectorTypes(outerKeySelector, innerKeySelector);
 
-            ((HarmonyQueryExpression)outer.QueryExpression).AddLeftJoin(
+            ((HarmonyQueryExpression)outer.QueryExpression).AddJoin(
                 (HarmonyQueryExpression)inner.QueryExpression,
                 outerKeySelector.Body,
                 innerKeySelector.Body);
 
             INavigation innerNav = null;
-            if (resultSelector.Body is BlockExpression block && 
+            if (resultSelector.Body is BlockExpression block &&
                 block.Expressions[0] is ConstantExpression navConstant &&
                 navConstant.Value is INavigation navValue)
             {
@@ -464,7 +445,7 @@ namespace Harmony.Core.EF.Query.Internal
                 innerTable.Aliases.Add(innerExpr);
             }
             //make custom shaped Query expression to keep track of the added left join
-            return new JoinedShapedQueryExpression(outer.QueryExpression, outer.ShaperExpression, inner, true, innerNav);
+            return new JoinedShapedQueryExpression(outer.QueryExpression, outer.ShaperExpression, inner, left, innerNav);
         }
 
         protected override ShapedQueryExpression TranslateLongCount(ShapedQueryExpression source, LambdaExpression predicate)
@@ -746,7 +727,7 @@ namespace Harmony.Core.EF.Query.Internal
                     {
                         outerSelector = ReplacingExpressionVisitor.Replace(outerOverride, queryExpr.ConvertedParameter, outerSelector);
                     }
-                    queryExpr.AddLeftJoin(subQueryExpr, outerSelector, innerSelector);
+                    queryExpr.AddJoin(subQueryExpr, outerSelector, innerSelector);
                     //this expression was really a join expression, dont treat it like a where
                     subQueryTable.WhereExpressions.RemoveAt(i);
                     i--;
