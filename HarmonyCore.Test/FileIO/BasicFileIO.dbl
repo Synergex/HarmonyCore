@@ -8,10 +8,70 @@ import Harmony.Core.Test.FileIO.Models
 
 namespace Harmony.Core.Test.FileIO
 	{TestClass}
+	{DoNotParallelize()}
 	public class BasicFileIO
 		
 		private _datEnvVar, string, Environment.GetEnvironmentVariable("DAT")
+		public static ExpectedOrdersRecordCount, int, 0
+		public static ExpectedCustomersRecordCount, int, 0
+		
+		public static method InitOrders, void
+		proc
+			data dataFile = "DAT:orders.ism"
+			data textFile = dataFile.ToLower().Replace(".ism",".txt")
+			data xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+			data orderCh, int, 0
+			data orderOutCh, int, 0
+			data orderRec, strOrders
+			data grfa, a10
+			open(orderCh,i:s,textFile)
+			delet(dataFile)
+			open(orderOutCh,o:i,dataFile,FDL:xdlFile)
+			ExpectedOrdersRecordCount = 0
+			repeat
+			begin
+				reads(orderCh,orderRec,eof)
+				store(orderOutCh, orderRec)
+				incr ExpectedOrdersRecordCount
+			end
+		eof,
+			close orderCh
+			close orderOutCh
+		endmethod
 
+		public static method InitCustomers, void
+		proc
+			data dataFile = "DAT:customers.ism"
+			data textFile = dataFile.ToLower().Replace(".ism",".txt")
+			data xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+			data customerCh, int, 0
+			data customerOutCh, int, 0
+			data customerRec, strCustomer
+			data grfa, a10
+			open(customerCh,i:s,textFile)
+			delet(dataFile)
+			open(customerOutCh,o:i,dataFile,FDL:xdlFile)
+			ExpectedCustomersRecordCount = 0
+			repeat
+			begin
+				reads(customerCh,customerRec,eof)
+				store(customerOutCh, customerRec)
+				incr ExpectedCustomersRecordCount
+			end
+		eof,
+			close customerCh
+			close customerOutCh
+		endmethod
+
+
+		{TestInitialize}
+		public method TestInitialization, void
+		proc
+			InitOrders()
+			File.Copy(Path.Combine(_datEnvVar, "orders.txt"), Path.Combine(_datEnvVar, "orderscopy.txt"),  true)
+		endmethod
+
+		
 		{TestMethod}
 		public method ReadInputIndexed, void
 			endparams
@@ -22,8 +82,7 @@ namespace Harmony.Core.Test.FileIO
 		{TestMethod}
 		public method ReadInputRelative, void
 			endparams
-		proc
-			File.Copy(_datEnvVar + "\orders.txt", _datEnvVar + "\orderscopy.txt",  true)
+        proc
 			ReadInputTest(FileOpenMode.InputRelative, "DAT:orderscopy.txt")
 		endmethod
 
@@ -60,7 +119,6 @@ namespace Harmony.Core.Test.FileIO
 		public method WriteOrdersRelative, void
 			endparams
 		proc
-			File.Copy(_datEnvVar + "\orders.txt", _datEnvVar + "\orderscopy.txt",  true)
 			WriteOrdersTest(FileOpenMode.UpdateRelative, "DAT:orderscopy.txt")
 		endmethod
 
@@ -94,7 +152,6 @@ namespace Harmony.Core.Test.FileIO
 		public method CreateOrderRelative, void
 			endparams
 		proc
-			File.Copy(_datEnvVar + "\orders.txt", _datEnvVar + "\orderscopy.txt",  true)
 			CreateOrderTest(FileOpenMode.UpdateRelative, "DAT:orderscopy.txt")
 		endmethod
 
@@ -122,7 +179,6 @@ namespace Harmony.Core.Test.FileIO
 		public method DeleteOrderRelative, void
 			endparams
 		proc
-			File.Copy(_datEnvVar + "\orders.txt", _datEnvVar + "\orderscopy.txt",  true)
 			DeleteOrderTest(FileOpenMode.UpdateRelative, "DAT:orderscopy.txt")
 		endmethod
 
@@ -158,7 +214,7 @@ namespace Harmony.Core.Test.FileIO
 			data lastOrder, @Orders
 
 			Assert.AreEqual(FileAccessResults.Success, fileIO.ReadLastRecord(lastOrder))
-			Assert.AreEqual("000027", fileIO.GetKeyValue(lastOrder, 1))
+			Assert.AreEqual("000017", fileIO.GetKeyValue(lastOrder, 1))
 			Assert.AreEqual(6, fileIO.KeyLength(1))
 			Assert.AreEqual(7, fileIO.KeyPosition(1))
 		endmethod
@@ -170,7 +226,7 @@ namespace Harmony.Core.Test.FileIO
 			disposable data fileIO = new IsamDataObjectIO<Orders>(channelManager, "DAT:orders.ism", FileOpenMode.UpdateIndexed)
 			
 			Assert.AreEqual(4, fileIO.NumberOfKeys)
-			Assert.AreEqual(4722, fileIO.NumberOfRecords)
+			Assert.AreEqual(ExpectedOrdersRecordCount, fileIO.NumberOfRecords)
 			Assert.AreEqual("DAT:orders.ism", fileIO.OpenFileName)
 			Assert.AreEqual(100, fileIO.SizeOfRecord)
 		endmethod

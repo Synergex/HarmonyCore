@@ -38,6 +38,7 @@ namespace Services.Test.CS
             {
                 _inited = false;
                 Interlocked.Decrement(ref _instanceCount);
+
             }
 
             public Task EnsureReady()

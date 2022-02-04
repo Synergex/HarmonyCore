@@ -23,8 +23,17 @@ namespace HarmonyCore.Test.Bridge
         proc
             data currentDirectory = Path.GetDirectoryName(^typeof(BasicBridge).Assembly.Location)
             data testDirFolder = TestEnvironment.findRelativeFolderForAssembly("TestDir")
-            data contextPool = new ExternalContextPool<T>(Environment.GetEnvironmentVariable("SYNERGYDE64") + "dbl\bin\dbs.exe", 'TraditionalBridge.Test.dbr', testDirFolder, ^null, 4) 
-            mreturn contextPool
+            if(Environment.OSVersion.Platform == PlatformID.Unix) then
+            begin
+                data contextPool = new ExternalContextPool<T>(Path.Combine(Environment.GetEnvironmentVariable("DBLDIR"), "bin/dbs"), 'TraditionalBridge.Test.dbr', testDirFolder, ^null, 4) 
+                mreturn contextPool
+            end
+            else
+            begin
+                data contextPool = new ExternalContextPool<T>(Environment.GetEnvironmentVariable("SYNERGYDE64") + "dbl\bin\dbs.exe", 'TraditionalBridge.Test.dbr', testDirFolder, ^null, 4) 
+                mreturn contextPool
+            end
+
         endmethod
 
         {TestMethod}
@@ -389,10 +398,12 @@ namespace HarmonyCore.Test.Bridge
             protected override method PreSerializeArgument, @ArgumentDataDefinition
                 argValue, @Object
             proc
-                if(argValue .is. [#]string)
+                if(argValue .is. [#]string) then
                 begin
+                    data argDef = new ArgumentDataDefinition()
                     argDef.DataType = FieldDataType.DataObjectCollectionField
                     argDef.PassedValue = PreSerializeIEnumerable(([#]string)argValue)
+                    mreturn argDef
                 end
                 else
                     mreturn parent.PreSerializeArgument(argValue)

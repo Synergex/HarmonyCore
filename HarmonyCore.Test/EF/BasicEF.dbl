@@ -12,11 +12,13 @@ import Harmony.Core.Context
 import Harmony.Core.EF.Extensions
 import Microsoft.VisualStudio.TestTools.UnitTesting
 import System.ComponentModel.DataAnnotations
+import Harmony.Core.Test.FileIO
 
 
 namespace HarmonyCore.Test.EF
 
-    {TestClass}
+	{TestClass}
+	{DoNotParallelize()}
     public class BasicEF
         public method MakeDBContext, @MyDBContext
         proc
@@ -36,9 +38,15 @@ namespace HarmonyCore.Test.EF
             dboBuilder.UseApplicationServiceProvider(sp)
             dboBuilder.UseHarmonyDatabase(sp.GetService<IDataObjectProvider>())
             data contextOptions, @DbContextOptions<MyDBContext>, dboBuilder.Options
-            mreturn new MyDBContext(contextOptions)
+            mreturn new MyDBContext(contextOptions, sp)
         endmethod
 
+		{TestInitialize}
+		public method TestInitialization, void
+		proc
+			BasicFileIO.InitOrders()
+			BasicFileIO.InitCustomers()
+		endmethod
 
         {TestMethod}
         public method EFFind, void
@@ -47,7 +55,7 @@ namespace HarmonyCore.Test.EF
             data firstRecord = Context.Orders.Find(1)
 			data customerRecord = Context.Customers.Find(firstRecord.CustomerNumber)
 			Assert.AreEqual(1, firstRecord.OrderNumber)
-            Assert.AreEqual(firstRecord.CustomerNumber, customerRecord.CustomerNumber)
+			Assert.AreEqual(firstRecord.CustomerNumber, customerRecord.CustomerNumber)
         endmethod
 
         {TestMethod}
@@ -95,13 +103,15 @@ namespace HarmonyCore.Test.EF
     
     class MyDBContext extends DbContext
         public readwrite property Orders, @DbSet<Orders>
-        public readwrite property Customers, @DbSet<Customer>
+		public readwrite property Customers, @DbSet<Customer>
+        private readwrite property DisposeMe, @IDisposable
         public method MyDBContext
-            opts, @DbContextOptions<MyDBContext>
+			opts, @DbContextOptions<MyDBContext>
+            disposeMe, @IDisposable
             endparams
             parent(opts)
         proc
-            
+            this.DisposeMe = disposeMe 
         endmethod
 
         protected override method OnModelCreating, void
@@ -110,6 +120,15 @@ namespace HarmonyCore.Test.EF
             parm.Ignore(^typeof(AlphaDesc))
             parm.Ignore(^typeof(DataObjectMetadataBase))
         endmethod
+
+		public override method Dispose, void
+		proc
+            nop
+			parent.Dispose()
+			DisposeMe.Dispose()
+        endmethod
+
+
 
     endclass
 
