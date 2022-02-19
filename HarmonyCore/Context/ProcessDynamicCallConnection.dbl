@@ -197,7 +197,12 @@ namespace Harmony.Core.Context
 				count, int 
 				endparams
 			proc
-				mreturn mReader.BaseStream.Read(buffer, offset, count)
+				data returnedCount = mReader.BaseStream.Read(buffer, offset, count)
+				if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+				begin
+					DebugLogSession.Logging.LogTrace(ASCIIEncoding.ASCII.GetString(buffer, offset, returnedCount))
+				end
+				mreturn returnedCount
 			endmethod
 
 
@@ -229,14 +234,19 @@ namespace Harmony.Core.Context
 				mWriter.BaseStream.Flush()
 			endmethod
 
-			public override method ReadAsync, @Task<int> 
+			public override async method ReadAsync, @Task<int> 
 				buffer, [#]byte 
 				offset, int 
 				count, int 
 				token, CancellationToken
 				endparams
 			proc
-				mreturn mReader.BaseStream.ReadAsync(buffer, offset, count, token)
+				data readBytes = await mReader.BaseStream.ReadAsync(buffer, offset, count, token)
+				if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+				begin
+					DebugLogSession.Logging.LogTrace(ASCIIEncoding.ASCII.GetString(buffer, offset, readBytes))
+				end
+				mreturn readBytes
 			endmethod
 
 			public override property CanTimeout, boolean

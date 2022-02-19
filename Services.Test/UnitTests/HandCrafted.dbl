@@ -1417,7 +1417,7 @@ namespace Services.Test.UnitTests
         public method TraditionalBridgeGetAllCustomers, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/v1/VMS/GetAllCustomers()").Result
+            disposable data response = client.GetAsync("/odata/v1/ExternalCall/GetAllCustomers()").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
             data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
@@ -1561,7 +1561,7 @@ namespace Services.Test.UnitTests
             if(File.Exists(Path.GetFullPath(Path.Combine(Path.GetDirectoryName(^typeof(HandCrafted).Assembly.Location), "..\..\..\..\TestDir\TraditionalBridge.Test.dbr")))) then
             begin
                 disposable data client = UnitTestEnvironment.Server.CreateClient()
-                disposable data response = client.GetAsync("/odata/v1/VMS/Arbitrario_MethodWithParameters()").Result
+                disposable data response = client.GetAsync("/odata/v1/ExternalCall/Arbitrario_MethodWithParameters()").Result
                 data result = response.Content.ReadAsStringAsync().Result
                 response.EnsureSuccessStatusCode()
             end
@@ -1572,7 +1572,7 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         public method AdapterTestBasic, void
-        proc
+         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync("/odata/v1/OrdersMethods/FindAvailability()").Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -1605,7 +1605,7 @@ namespace Services.Test.UnitTests
         public method AdapterTestOrFilter, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/v1/OrdersMethods/FindAvailability(Adults=5)?$filter=(Segment eq 'fred' or Segment eq 'jim' or Segment eq 'bob') and PointsCost gt 10 and PointsCost lt 100").Result
+            disposable data response = client.GetAsync("/odata/v1/Availability/FindAvailability(Adults=5)?$filter=(Segment eq 'fred' or Segment eq 'jim' or Segment eq 'bob') and PointsCost gt 10 and PointsCost lt 100").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
             data customers, @ODataAvailabilitys, JsonConvert.DeserializeObject<ODataAvailabilitys>(result)
@@ -1615,7 +1615,7 @@ namespace Services.Test.UnitTests
         public method AdapterTestOrderBy, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/v1/OrdersMethods/FindAvailability(Adults=5)?$orderby=PointsCost,MoneyCost&$filter=Nights eq 5").Result
+            disposable data response = client.GetAsync("/odata/v1/Availability/FindAvailability(Adults=5)?$orderby=PointsCost,MoneyCost&$filter=Nights eq 5").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
             data customers, @ODataAvailabilitys, JsonConvert.DeserializeObject<ODataAvailabilitys>(result)
@@ -1625,7 +1625,7 @@ namespace Services.Test.UnitTests
         public method AdapterTestRange1, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/v1/OrdersMethods/FindAvailability(Adults=5)?$filter=PointsCost eq 5").Result
+            disposable data response = client.GetAsync("/odata/v1/Availability/FindAvailability(Adults=5)?$filter=PointsCost eq 5").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
             data customers, @ODataAvailabilitys, JsonConvert.DeserializeObject<ODataAvailabilitys>(result)
@@ -1635,7 +1635,7 @@ namespace Services.Test.UnitTests
         public method AdapterTestRange2, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/v1/OrdersMethods/FindAvailability(Adults=5)?$filter=PointsCost gt 5").Result
+            disposable data response = client.GetAsync("/odata/v1/Availability/FindAvailability(Adults=5)?$filter=PointsCost gt 5").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
             data customers, @ODataAvailabilitys, JsonConvert.DeserializeObject<ODataAvailabilitys>(result)
@@ -1645,7 +1645,7 @@ namespace Services.Test.UnitTests
         public method AdapterTestRange3, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/v1/OrdersMethods/FindAvailability(Adults=5)?$filter=PointsCost ge 5").Result
+            disposable data response = client.GetAsync("/odata/v1/Availability/FindAvailability(Adults=5)?$filter=PointsCost ge 5").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
             data customers, @ODataAvailabilitys, JsonConvert.DeserializeObject<ODataAvailabilitys>(result)
@@ -1655,7 +1655,7 @@ namespace Services.Test.UnitTests
         public method AdapterTestRange4, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/v1/OrdersMethods/FindAvailability(Adults=5)?$filter=PointsCost lt 5").Result
+            disposable data response = client.GetAsync("/odata/v1/Availability/FindAvailability(Adults=5)?$filter=PointsCost lt 5").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
             data customers, @ODataAvailabilitys, JsonConvert.DeserializeObject<ODataAvailabilitys>(result)
@@ -1665,7 +1665,7 @@ namespace Services.Test.UnitTests
         public method AdapterTestRange5, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/v1/OrdersMethods/FindAvailability(Adults=5)?$filter=PointsCost le 5").Result
+            disposable data response = client.GetAsync("/odata/v1/Availability/FindAvailability(Adults=5)?$filter=PointsCost le 5").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
             data customers, @ODataAvailabilitys, JsonConvert.DeserializeObject<ODataAvailabilitys>(result)
@@ -1675,7 +1675,7 @@ namespace Services.Test.UnitTests
         public method AdapterTestRange6, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/v1/OrdersMethods/FindAvailability(Adults=5)?$filter=PointsCost le 5 and PointsCost ge 1").Result
+            disposable data response = client.GetAsync("/odata/v1/Availability/FindAvailability(Adults=5)?$filter=PointsCost le 5 and PointsCost ge 1").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
             data customers, @ODataAvailabilitys, JsonConvert.DeserializeObject<ODataAvailabilitys>(result)
@@ -1685,7 +1685,7 @@ namespace Services.Test.UnitTests
         public method AdapterTestRange7, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/v1/OrdersMethods/FindAvailability(Adults=5)?$filter=PointsCost lt 5 and PointsCost ge 1").Result
+            disposable data response = client.GetAsync("/odata/v1/Availability/FindAvailability(Adults=5)?$filter=PointsCost lt 5 and PointsCost ge 1").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
             data customers, @ODataAvailabilitys, JsonConvert.DeserializeObject<ODataAvailabilitys>(result)
@@ -1695,7 +1695,7 @@ namespace Services.Test.UnitTests
         public method AdapterTestRange8, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/v1/OrdersMethods/FindAvailability(Adults=5)?$filter=PointsCost le 5 and PointsCost gt 1").Result
+            disposable data response = client.GetAsync("/odata/v1/Availability/FindAvailability(Adults=5)?$filter=PointsCost le 5 and PointsCost gt 1").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
             data customers, @ODataAvailabilitys, JsonConvert.DeserializeObject<ODataAvailabilitys>(result)
@@ -1705,7 +1705,7 @@ namespace Services.Test.UnitTests
         public method AdapterTestRange9, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/v1/OrdersMethods/FindAvailability(Adults=5)?$filter=PointsCost lt 5 and PointsCost gt 1").Result
+            disposable data response = client.GetAsync("/odata/v1/Availability/FindAvailability(Adults=5)?$filter=PointsCost lt 5 and PointsCost gt 1").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
             data customers, @ODataAvailabilitys, JsonConvert.DeserializeObject<ODataAvailabilitys>(result)

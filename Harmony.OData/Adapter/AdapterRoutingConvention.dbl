@@ -16,187 +16,447 @@ import Microsoft.AspNetCore.Mvc.Infrastructure
 import Microsoft.AspNetCore.OData.Query
 import Microsoft.AspNetCore.OData
 import Microsoft.OData.Edm
+import Microsoft.AspNetCore.OData.Edm
 import Microsoft.AspNetCore.Mvc.ActionConstraints
 import Microsoft.AspNetCore.Mvc.Filters
 import Microsoft.AspNetCore.OData.Routing.Template
+import Microsoft.OData.ModelBuilder
+import Microsoft.OData
+import Microsoft.AspNetCore.OData.Formatter
 
 namespace Harmony.OData.Adapter
 
 	public class AdapterRoutingConvention implements IODataControllerActionConvention
 
-        public virtual method AppliesToAction, Boolean
-            context, @ODataControllerActionContext 
-            endparams
-        proc
-            throw new System.NotImplementedException()
-        endmethod
+		public virtual method AppliesToAction, Boolean
+			context, @ODataControllerActionContext 
+			endparams
+		proc
+			data isAdapterRouted = context.Action.Attributes.Any(lambda(attr) { attr .is. AdapterRoutingFilter })
+			data operationName = context.Action.ActionName
 
-
-
-        public virtual property Order, int
-            method get
-            proc
-                throw new System.NotImplementedException()
-            endmethod
-        endproperty
-
-
-
-        public virtual method AppliesToController, Boolean
-            context, @ODataControllerActionContext 
-            endparams
-        proc
-            throw new System.NotImplementedException()
-        endmethod
-
-
-
-        private descriptorCache, @ConcurrentDictionary<int, Lazy<Dictionary<string, ControllerActionDescriptor>>>, new ConcurrentDictionary<int, Lazy<Dictionary<string, ControllerActionDescriptor>>>()
-        private method FindMatchingAction, @IEnumerable<ControllerActionDescriptor>
-            actionDescriptors, @ActionDescriptorCollection
-            {ParamArray}
-            names, [#]@string
-        proc
-            data descriptorLookup, @Lazy<Dictionary<string, ControllerActionDescriptor>>
-            data result, @ControllerActionDescriptor
-            data name, @string
-            descriptorLookup = descriptorCache.GetOrAdd(actionDescriptors.Version, lambda(unused) { new Lazy<Dictionary<string, ControllerActionDescriptor>>(lambda () { BuildDescriptorMap(actionDescriptors) }) })
 			
-            foreach name in names
-            begin
-                if(descriptorLookup.Value.TryGetValue(name, result))
-                begin
-                    if(!result.RouteValues.ContainsKey("AdapterRouteSentinel"))
-                    begin
-                        result.RouteValues["AdapterRouteSentinel"] = ""
-                        result.FilterDescriptors.Add(new FilterDescriptor((@IFilterMetadata)new Harmony.OData.Adapter.AdapterRoutingFilter(), -1))
-                    end
-                    mreturn new List<ControllerActionDescriptor>() { result }
-                end
-
-            end
-
-            mreturn Enumerable.Empty<ControllerActionDescriptor>()
-        endmethod
-
-        private static method IsAdapterMethod, boolean
-            descriptor, @ControllerActionDescriptor
-        proc
-            data desciptorParameters = descriptor.MethodInfo.GetParameters()
-            mreturn desciptorParameters.Any(IsAdapterParameter)
-        endmethod
-
-        private static method IsAdapterParameter, boolean
-            parm, @ParameterInfo
-        proc
-            mreturn parm.IsDefined(^typeof(AdapterParameterAttribute), false)
-        endmethod
-
-        private method BuildDescriptorMap, @Dictionary<string, ControllerActionDescriptor>
-            actionDescriptors, @ActionDescriptorCollection
-        proc
-            data descriptors = actionDescriptors.Items.OfType<ControllerActionDescriptor>().Where(IsAdapterMethod)
-            data descriptor, @ControllerActionDescriptor
-            data result = new Dictionary<string, ControllerActionDescriptor>()
-            foreach descriptor in descriptors
-            begin
-                data callableMethodConfig, @CallableMethodConfigurationAttribute
-                callableMethodConfig = descriptor.MethodInfo.GetCustomAttribute<CallableMethodConfigurationAttribute>(false)
-                if(callableMethodConfig != ^null)
-                begin
-                    if(descriptor.ActionConstraints != ^null) then
-                        descriptor.ActionConstraints.Clear()
-                    else
-                        descriptor.ActionConstraints = new List<IActionConstraintMetadata>()
-
-                    if(callableMethodConfig.IsFunction) then
-                        descriptor.ActionConstraints.Add(new HttpMethodActionConstraint(new string[#] { "GET" }))
-                    else
-                        descriptor.ActionConstraints.Add(new HttpMethodActionConstraint(new string[#] { "POST" }))
-                end
-
-                if(!result.ContainsKey(descriptor.ActionName))
-                begin
-                    result.Add(descriptor.ActionName, descriptor)
-                end
-
-                result.Add(descriptor.ControllerName + "." + descriptor.ActionName, descriptor)
-            end
-
-            mreturn result
-        endmethod
-
-        public virtual method SelectAction, @IEnumerable<ControllerActionDescriptor> 
-            routeContext, @RouteContext 
-            endparams
-        proc
-            if (routeContext == ^null)
-                mreturn ^null
-
-            data actionCollectionProvider = (@IActionDescriptorCollectionProvider)routeContext.HttpContext.RequestServices.GetService(^typeof(IActionDescriptorCollectionProvider))
-
-            data feature = routeContext.HttpContext.ODataFeature()
-            new ODataSegmentTemplate(
-            data odataPath = new ODataPathTemplate(paths)
-            if (odataPath.PathTemplate == "~/unboundfunction" ||
-            &    odataPath.PathTemplate == "~/unboundaction") then
-                &    
-            begin
-                data segment = ^as(odataPath.Segments[odataPath.Segments.Count - 1], OperationImportSegment)
-				
-                if (segment != ^null)
-                begin
-                    data opName = segment.Identifier
-                    mreturn FindMatchingAction(actionCollectionProvider.ActionDescriptors, opName)
-                end
-            end
-            else if(odataPath.PathTemplate == "~/singleton/action"||
-            &    odataPath.PathTemplate == "~/singleton/function") then
-            begin
-                data opSeg = ^as(odataPath.Segments[1], OperationSegment)
-                data singletonSeg =  ^as(odataPath.Segments[0], SingletonSegment)
-                if (opSeg != ^null && singletonSeg != ^null)
-                begin
-                    data opName = opSeg.Identifier
-                    if(String.IsNullOrEmpty(opName) && opSeg.Operations != ^null)
-                        opName = opSeg.Operations.First().Name
-
-                    mreturn FindMatchingAction(actionCollectionProvider.ActionDescriptors, singletonSeg.Identifier + "." + opName)
-                end
-            end
-            else if (odataPath.PathTemplate == "~/entityset") then
-            begin
-                data entitySetSegment = (EntitySetSegment)odataPath.Segments[0]
-                data entitySet = entitySetSegment.EntitySet
-				
-                if (string.Compare(routeContext.HttpContext.Request.Method, "get", true) == 0) then
-                begin
-                    ;; e.g. Try GetCustomers first, then fall back to Get action name
-                    mreturn FindMatchingAction(actionCollectionProvider.ActionDescriptors, "Get" + entitySet.Name, "Get")
-                end
-                else if (string.Compare(routeContext.HttpContext.Request.Method, "post", true) == 0)
-                begin
-                    ;; e.g. Try PostCustomer first, then fall back to Post action name
-                    mreturn FindMatchingAction(actionCollectionProvider.ActionDescriptors, "Post" + entitySet.EntityType().Name, "Post")
-                end
-            end
-            else if (odataPath.PathTemplate == "~/entityset/function" || odataPath.PathTemplate == "~/entityset/action")
-            begin
-                data opSeg =  ^as(odataPath.Segments[1], OperationSegment)
-                data entitySet =  ^as(odataPath.Segments[0], EntitySetSegment)
-                if (opSeg != ^null && entitySet != ^null)
-                begin
-                    data opName = opSeg.Identifier
-                    if(String.IsNullOrEmpty(opName) && opSeg.Operations != ^null)
-                        opName = opSeg.Operations.First().Name
-
-                    mreturn FindMatchingAction(actionCollectionProvider.ActionDescriptors, entitySet.Identifier + "." + opName)
-                end
-            end
+			data hasKeyParameter = false
+			data castType, @IEdmEntityType , ^null
 			
+			if(!isAdapterRouted)
+				mreturn false
+			data candidates, @IEnumerable<IEdmOperation>, context.Model.SchemaElements.OfType<IEdmOperation>().Where(lambda(f) { f.IsBound && f.Name == operationName })
+			data edmOp, @IEdmOperation
+			foreach edmOp in candidates
+			begin
+				AddSelector(context, edmOp, hasKeyParameter, true)
+				AddSelector(context, edmOp, hasKeyParameter, false)
+			end
+			mreturn true
+		endmethod
 
-            mreturn Enumerable.Empty<ControllerActionDescriptor>()
-        endmethod
-    endclass
+		private static method AddSelector, void
+			context, @ODataControllerActionContext 
+			edmOp, @IEdmOperation
+			hasKeyParameter, boolean
+			includeParameters, boolean
+		proc
+			;; Now, let's add the selector model.
+			data segments, @IList<ODataSegmentTemplate>, new List<ODataSegmentTemplate>()
+
+
+			if (context.EntitySet != ^null) then
+			begin
+				segments.Add(new EntitySetSegmentTemplate(context.EntitySet))
+				if (hasKeyParameter)
+				begin
+					segments.Add(CreateKeySegment(context.EntitySet.EntityType(), context.NavigationSource, "key"))
+				end
+			end
+			else 
+			begin
+				if(context.Singleton == ^null)
+					mreturn
+
+				segments.Add(new SingletonSegmentTemplate(context.Singleton))
+			end
+
+;			if (castType != ^null)
+;			begin
+;				if (context.Singleton != ^null || !hasKeyParameter) then
+;				begin
+;					segments.Add(new CastSegmentTemplate(castType, entityType, navigationSource))
+;				end
+;				else
+;				begin
+;					segments.Add(new CastSegmentTemplate(new EdmCollectionType(castType.ToEdmTypeReference(false)), new EdmCollectionType(entityType.ToEdmTypeReference(false)), navigationSource))
+;				end
+;			end
+;
+;			data targetEntitySet, @IEdmNavigationSource, ^null
+;			if (edmOp.ReturnType != ^null)
+;			begin
+;				targetEntitySet = EdmModelExtensions. edmOp.GetTargetEntitySet(context.NavigationSource, context.Model)
+;			end
+
+			data httpMethod, @string 
+			if (edmOp.IsAction()) then
+			begin
+				segments.Add(new ActionSegmentTemplate((@IEdmAction)edmOp, context.EntitySet))
+				httpMethod = "Post"
+			end
+			else
+			begin
+				data reqParams, @IDictionary<string, string>
+				if(includeParameters) then
+					reqParams = GetRequiredFunctionParameters(edmOp, context.Action, context.Model)
+				else
+					reqParams = new Dictionary<string, string>()
+
+				segments.Add(new OptionalParameterFunctionSegmentTemplate(reqParams, (@IEdmFunction)edmOp, context.EntitySet))
+				httpMethod = "Get"
+			end
+
+			data template, @ODataPathTemplate, new ODataPathTemplate(segments)
+
+			context.Action.AddSelector(httpMethod, context.Prefix, context.Model, template, context.Options?.RouteOptions)
+
+		endmethod
+
+		class OptionalParameterFunctionSegmentTemplate extends FunctionSegmentTemplate
+
+			public method OptionalParameterFunctionSegmentTemplate
+				parameters, @IDictionary<string, string> 
+				edmFunc, @IEdmFunction 
+				navigationSource, @IEdmNavigationSource 
+				endparams
+				parent(parameters, edmFunc, navigationSource)
+			proc
+				
+			endmethod
+
+			public override method TryTranslate, boolean
+				context, @ODataTemplateTranslateContext 
+			proc
+				data parameterMappings = new Dictionary<string, string>()
+				data parameters = SegmentTemplateHelpers.Match(context, Function, parameterMappings)
+				if(parameters == ^null)
+					mreturn false
+
+				context.Segments.Add(new OperationSegment(Function, parameters, ^as(NavigationSource, @IEdmEntitySetBase)));
+				mreturn true
+			endmethod
+
+		endclass
+
+		;;;  <summary>
+		;;;  Helper methods for segment template lifted and customized for optional parameters
+		;;;  from https://github.com/OData/AspNetCoreOData/blob/69eec03c7003fe12d92cdc619efdc16781683694/src/Microsoft.AspNetCore.OData/Routing/Template/SegmentTemplateHelpers.cs
+		;;;  </summary>
+		internal static class SegmentTemplateHelpers
+        
+			internal static extension method IsResourceOrCollectionResource, boolean
+				edt, @IEdmTypeReference 
+				endparams
+			proc
+				if (edt.IsEntity() || edt.IsComplex())
+				begin
+					mreturn true
+				end
+				if (edt.IsCollection())
+				begin
+					mreturn IsResourceOrCollectionResource(edt.AsCollection().ElementType())
+				end
+				mreturn false
+			endmethod
+
+			;;;  <summary>
+			;;;  Match the function parameter
+			;;;  </summary>
+			;;;  <param name="context">The context.</param>
+			;;;  <param name="function">The Edm function.</param>
+			;;;  <param name="parameterMappings">The parameter mapping.</param>
+			;;;  <returns></returns>
+			public static method Match, @IList<OperationSegmentParameter>
+				context, @ODataTemplateTranslateContext 
+				function, @IEdmFunction 
+				parameterMappings, @IDictionary<string, string> 
+				endparams
+			proc
+				data routeValues, @RouteValueDictionary, context.RouteValues
+				data updatedValues, @RouteValueDictionary, context.UpdatedValues
+				data parameters, @IList<OperationSegmentParameter>, new List<OperationSegmentParameter>()
+				begin
+					data parameter, KeyValuePair<string, string>
+					foreach parameter in parameterMappings
+					begin
+						data parameterName, string, parameter.Key
+						data parameterTemp, string, parameter.Value
+						data edmParameter, @IEdmOperationParameter, function.Parameters.FirstOrDefault(lambda (p) { p.Name == parameterName })
+						;;  For a parameter mapping like: minSalary={min}
+						;;  and a request like: ~/MyFunction(minSalary=2)
+						;;  the routeValue includes the [min=2], so we should use the mapping name to retrieve the value.
+						data rawValue, @object
+						if (routeValues.TryGetValue(parameterTemp, rawValue)) then
+						begin
+							data strValue, string, ^as(rawValue, string)
+							data newStrValue, string, context.GetParameterAliasOrSelf(strValue)
+							if (newStrValue != strValue)
+							begin
+								updatedValues[parameterTemp] = newStrValue
+								strValue = newStrValue
+							end
+							data originalStrValue, string, strValue
+							;;  for resource or collection resource, this method will return "ODataResourceValue, ..." we should support it.
+							if (edmParameter.Type.IsResourceOrCollectionResource()) then
+							begin
+								;;  For FromODataUri
+								data prefixName, string, ODataParameterValue.ParameterValuePrefix + parameterTemp
+								updatedValues[prefixName] = new ODataParameterValue(strValue, edmParameter.Type)
+								parameters.Add(new OperationSegmentParameter(parameterName, strValue))
+							end
+							else
+							begin
+								if ((edmParameter.Type.IsEnum() && strValue.StartsWith("'", StringComparison.Ordinal)) && strValue.EndsWith("'", StringComparison.Ordinal))
+								begin
+									;;  related implementation at: https://github.com/OData/odata.net/blob/master/src/Microsoft.OData.Core/UriParser/Resolver/StringAsEnumResolver.cs#L131
+									strValue = edmParameter.Type.FullName() + strValue
+								end
+								data newValue, @object
+								try
+								begin
+									newValue = ODataUriUtils.ConvertFromUriLiteral(strValue, ODataVersion.V4, context.Model, edmParameter.Type)
+								end
+								catch (ex, @ODataException)
+								begin
+									throw new ODataException("param not found", ex)
+								end
+								endtry
+								;;  for without FromODataUri, so update it, for example, remove the single quote for string value.
+								updatedValues[parameterTemp] = newValue
+								;;  For FromODataUri
+								data prefixName, string, ODataParameterValue.ParameterValuePrefix + parameterTemp
+								updatedValues[prefixName] = new ODataParameterValue(newValue, edmParameter.Type)
+								parameters.Add(new OperationSegmentParameter(parameterName, newValue))
+							end
+						end
+						else if(!(edmParameter .is. IEdmOptionalParameter))
+						begin
+							mreturn ^null
+						end
+					end
+				end
+				mreturn parameters
+			endmethod
+
+		endclass
+
+		private static method GetRequiredFunctionParameters, @IDictionary<string, string> 
+			operation, @IEdmOperation
+			act, @ActionModel
+			model, @IEdmModel
+		proc
+			data requiredParameters, @IDictionary<string, string>, new Dictionary<string, string>()
+			;; we can allow the action has other parameters except the function parameters.
+			data parameter, @IEdmOperationParameter
+			foreach parameter in operation.Parameters.Skip(1)
+			begin
+				requiredParameters[parameter.Name] = "{" + parameter.Name + "}"
+			end
+
+			mreturn requiredParameters
+		endmethod
+
+		internal static method CreateKeySegment, @ODataSegmentTemplate 
+			entityType, @IEdmEntityType
+			navigationSource, @IEdmNavigationSource
+			keyPrefix, @string
+		proc
+			if (entityType == ^null)
+			begin
+				throw new ArgumentNullException("entityType")
+			end
+
+			data keyTemplates, @IDictionary<string, string>, new Dictionary<string, string>()
+			data keys = entityType.Key().ToArray()
+			if (keys.Length == 1) then
+			begin
+				;; Id={key}
+				keyTemplates[keys[1].Name] = "{" + keyPrefix + "}"
+			end
+			else
+			begin
+				;; Id1={keyId1},Id2={keyId2}
+				data key, @IEdmStructuralProperty
+				foreach key in keys
+				begin
+					keyTemplates[key.Name] = "{" + keyPrefix + "}{" + key.Name + "}"
+				end
+			end
+
+			mreturn new KeySegmentTemplate(keyTemplates, entityType, navigationSource)
+		endmethod
+
+		public virtual property Order, int
+			method get
+			proc
+				mreturn 500
+			endmethod
+		endproperty
+
+
+
+		public virtual method AppliesToController, Boolean
+			context, @ODataControllerActionContext 
+			endparams
+		proc
+			mreturn true
+		endmethod
+
+
+
+		private descriptorCache, @ConcurrentDictionary<int, Lazy<Dictionary<string, ControllerActionDescriptor>>>, new ConcurrentDictionary<int, Lazy<Dictionary<string, ControllerActionDescriptor>>>()
+		private method FindMatchingAction, @IEnumerable<ControllerActionDescriptor>
+			actionDescriptors, @ActionDescriptorCollection
+			{ParamArray}
+			names, [#]@string
+		proc
+			data descriptorLookup, @Lazy<Dictionary<string, ControllerActionDescriptor>>
+			data result, @ControllerActionDescriptor
+			data name, @string
+			descriptorLookup = descriptorCache.GetOrAdd(actionDescriptors.Version, lambda(unused) { new Lazy<Dictionary<string, ControllerActionDescriptor>>(lambda () { BuildDescriptorMap(actionDescriptors) }) })
+			
+			foreach name in names
+			begin
+				if(descriptorLookup.Value.TryGetValue(name, result))
+				begin
+					if(!result.RouteValues.ContainsKey("AdapterRouteSentinel"))
+					begin
+						result.RouteValues["AdapterRouteSentinel"] = ""
+						result.FilterDescriptors.Add(new FilterDescriptor((@IFilterMetadata)new Harmony.OData.Adapter.AdapterRoutingFilter(), -1))
+					end
+					mreturn new List<ControllerActionDescriptor>() { result }
+				end
+
+			end
+
+			mreturn Enumerable.Empty<ControllerActionDescriptor>()
+		endmethod
+
+		private static method IsAdapterMethod, boolean
+			descriptor, @ControllerActionDescriptor
+		proc
+			data desciptorParameters = descriptor.MethodInfo.GetParameters()
+			mreturn desciptorParameters.Any(IsAdapterParameter)
+		endmethod
+
+		private static method IsAdapterParameter, boolean
+			parm, @ParameterInfo
+		proc
+			mreturn parm.IsDefined(^typeof(AdapterParameterAttribute), false)
+		endmethod
+
+		private method BuildDescriptorMap, @Dictionary<string, ControllerActionDescriptor>
+			actionDescriptors, @ActionDescriptorCollection
+		proc
+			data descriptors = actionDescriptors.Items.OfType<ControllerActionDescriptor>().Where(IsAdapterMethod)
+			data descriptor, @ControllerActionDescriptor
+			data result = new Dictionary<string, ControllerActionDescriptor>()
+			foreach descriptor in descriptors
+			begin
+				data callableMethodConfig, @CallableMethodConfigurationAttribute
+				callableMethodConfig = descriptor.MethodInfo.GetCustomAttribute<CallableMethodConfigurationAttribute>(false)
+				if(callableMethodConfig != ^null)
+				begin
+					if(descriptor.ActionConstraints != ^null) then
+						descriptor.ActionConstraints.Clear()
+					else
+						descriptor.ActionConstraints = new List<IActionConstraintMetadata>()
+
+					if(callableMethodConfig.IsFunction) then
+						descriptor.ActionConstraints.Add(new HttpMethodActionConstraint(new string[#] { "GET" }))
+					else
+						descriptor.ActionConstraints.Add(new HttpMethodActionConstraint(new string[#] { "POST" }))
+				end
+
+				if(!result.ContainsKey(descriptor.ActionName))
+				begin
+					result.Add(descriptor.ActionName, descriptor)
+				end
+
+				result.Add(descriptor.ControllerName + "." + descriptor.ActionName, descriptor)
+			end
+
+			mreturn result
+		endmethod
+;
+;        public virtual method SelectAction, @IEnumerable<ControllerActionDescriptor> 
+;            routeContext, @RouteContext 
+;            endparams
+;        proc
+;            if (routeContext == ^null)
+;                mreturn ^null
+;
+;            data actionCollectionProvider = (@IActionDescriptorCollectionProvider)routeContext.HttpContext.RequestServices.GetService(^typeof(IActionDescriptorCollectionProvider))
+;
+;            data feature = routeContext.HttpContext.ODataFeature()
+;            new ODataSegmentTemplate(
+;            data odataPath = new ODataPathTemplate(paths)
+;            if (odataPath.PathTemplate == "~/unboundfunction" ||
+;            &    odataPath.PathTemplate == "~/unboundaction") then
+;                &    
+;            begin
+;                data segment = ^as(odataPath.Segments[odataPath.Segments.Count - 1], OperationImportSegment)
+;				
+;                if (segment != ^null)
+;                begin
+;                    data opName = segment.Identifier
+;                    mreturn FindMatchingAction(actionCollectionProvider.ActionDescriptors, opName)
+;                end
+;            end
+;            else if(odataPath.PathTemplate == "~/singleton/action"||
+;            &    odataPath.PathTemplate == "~/singleton/function") then
+;            begin
+;                data opSeg = ^as(odataPath.Segments[1], OperationSegment)
+;                data singletonSeg =  ^as(odataPath.Segments[0], SingletonSegment)
+;                if (opSeg != ^null && singletonSeg != ^null)
+;                begin
+;                    data opName = opSeg.Identifier
+;                    if(String.IsNullOrEmpty(opName) && opSeg.Operations != ^null)
+;                        opName = opSeg.Operations.First().Name
+;
+;                    mreturn FindMatchingAction(actionCollectionProvider.ActionDescriptors, singletonSeg.Identifier + "." + opName)
+;                end
+;            end
+;            else if (odataPath.PathTemplate == "~/entityset") then
+;            begin
+;                data entitySetSegment = (EntitySetSegment)odataPath.Segments[0]
+;                data entitySet = entitySetSegment.EntitySet
+;				
+;                if (string.Compare(routeContext.HttpContext.Request.Method, "get", true) == 0) then
+;                begin
+;                    ;; e.g. Try GetCustomers first, then fall back to Get action name
+;                    mreturn FindMatchingAction(actionCollectionProvider.ActionDescriptors, "Get" + entitySet.Name, "Get")
+;                end
+;                else if (string.Compare(routeContext.HttpContext.Request.Method, "post", true) == 0)
+;                begin
+;                    ;; e.g. Try PostCustomer first, then fall back to Post action name
+;                    mreturn FindMatchingAction(actionCollectionProvider.ActionDescriptors, "Post" + entitySet.EntityType().Name, "Post")
+;                end
+;            end
+;            else if (odataPath.PathTemplate == "~/entityset/function" || odataPath.PathTemplate == "~/entityset/action")
+;            begin
+;                data opSeg =  ^as(odataPath.Segments[1], OperationSegment)
+;                data entitySet =  ^as(odataPath.Segments[0], EntitySetSegment)
+;                if (opSeg != ^null && entitySet != ^null)
+;                begin
+;                    data opName = opSeg.Identifier
+;                    if(String.IsNullOrEmpty(opName) && opSeg.Operations != ^null)
+;                        opName = opSeg.Operations.First().Name
+;
+;                    mreturn FindMatchingAction(actionCollectionProvider.ActionDescriptors, entitySet.Identifier + "." + opName)
+;                end
+;            end
+;			
+;
+;            mreturn Enumerable.Empty<ControllerActionDescriptor>()
+;        endmethod
+	endclass
 
 endnamespace

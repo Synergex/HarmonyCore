@@ -89,7 +89,7 @@ namespace Harmony.OData.Adapter
         proc
             data feature = context.HttpContext.ODataFeature()
             data odPath = feature.Path
-            data svc = feature.Services.GetService(^typeof(IEdmModel))
+            data svc = feature.Services.GetService(^typeof(IEdmModel)) ?? feature.Model
             data model = ^as(svc, @IEdmModel)
             data elementType = odPath.FirstSegment.EdmType .is. IEdmCollectionType ? ((@IEdmCollectionType)odPath.FirstSegment.EdmType).ElementType.Definition : odPath.FirstSegment.EdmType
             data odataQuery = new ODataQueryOptions(new ODataQueryContext(model, elementType, odPath), context.HttpContext.Request)

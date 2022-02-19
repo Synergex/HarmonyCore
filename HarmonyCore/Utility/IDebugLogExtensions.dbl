@@ -146,7 +146,16 @@ namespace Harmony.Core.Utility
 				fld	,a1
 			endstructure
 		proc
-			mreturn %string(%integer(^m(tmpAlpha(1:TargetLength), TargetHandle)))
+			try
+			begin
+				mreturn %string(%integer(^m(tmpAlpha(1:TargetLength), TargetHandle)))
+			end
+			catch(ex, @Exception)
+			begin
+				Trace.WriteLine(ex)
+			end
+			endtry
+			mreturn ""
 		endmethod
 
 	endclass

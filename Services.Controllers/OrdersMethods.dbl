@@ -24,7 +24,7 @@ import Microsoft.AspNetCore.Mvc.Infrastructure
 
 namespace Services.Controllers
 
-    {Authorize}
+    ;{Authorize}
 	public class OrdersMethods extends ODataController
 
         private readwrite property mDbContext, @Services.Models.DBContext
@@ -86,6 +86,7 @@ namespace Services.Controllers
         {HttpGet("OrdersMethods/FindAvailability")}
 		{CallableMethodConfigurationAttribute(IsFunction=true, ReturnsFromEntitySet=true)}
 		{EnableQuery()}
+        {AdapterRoutingFilter()}
 		public method FindAvailability, @List<Availability>
 			{AdapterParameterAttribute}
 			filter, @AvailabiltyFilter
@@ -105,13 +106,15 @@ namespace Services.Controllers
             this.CallContext = callContext
         endmethod
 
-        {HttpGet("VMS/GetAllCustomers")}
-        {CallableMethodConfigurationAttribute(IsFunction=true, ReturnsFromEntitySet=true)}
+		{HttpGet("GetAllCustomers")}
+		{CallableMethodConfigurationAttribute(IsFunction=true, ReturnsFromEntitySet=true)}
+		{EnableQuery()}
         public method GetAllCustomers, @Task<List<Customer>>
         proc
             mreturn CallContext.GetAllCustomers()
         endmethod
 
+        {HttpGet("Arbitrario_MethodWithParameters")}
         {CallableMethodConfigurationAttribute(IsFunction=true, ReturnsFromEntitySet=false)}
         public method Arbitrario_MethodWithParameters, @Task<ExternalCallContext.ArbitrarioReturnType>
         proc
@@ -268,7 +271,9 @@ namespace Services.Controllers
     public class AvailabilityController extends ODataController
     
         {CallableMethodConfigurationAttribute(IsFunction=true, ReturnsFromEntitySet=true)}
-        {EnableQuery()}
+		{EnableQuery()}
+		{AdapterRoutingFilter()}
+		{HttpGet("Availability/FindAvailability")}
         public method FindAvailability, @ActionResult<List<Availability>>
             {AdapterParameterAttribute}
             filter, @AvailabiltyFilter

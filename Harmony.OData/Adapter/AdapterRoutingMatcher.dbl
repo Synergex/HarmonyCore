@@ -1,0 +1,178 @@
+import System
+import System.Collections.Generic
+import System.Text
+import System.Linq
+import Microsoft.AspNetCore.Routing
+import Microsoft.AspNetCore.Routing.Matching
+import Microsoft.AspNetCore.OData.Routing.Template
+import Microsoft.AspNetCore.OData.Routing
+import Microsoft.AspNetCore.OData.Extensions
+import Microsoft.OData.UriParser
+import Microsoft.AspNetCore.OData.Abstracts
+import Microsoft.AspNetCore.Http
+import System.Threading.Tasks
+import Microsoft.AspNetCore.Routing.Template
+import Microsoft.AspNetCore.OData
+
+
+namespace Harmony.OData.Adapter
+
+	
+	public class AdapterRoutingMatcherPolicy extends MatcherPolicy implements IEndpointSelectorPolicy
+
+		public override property Order, int
+			method get
+			proc
+				mreturn 1000
+			endmethod
+		endproperty
+
+
+    
+		private _translator, @IODataTemplateTranslator
+		private _keyValueParser, @KvpParser
+		delegate KvpParser, boolean
+			in expression, @string
+			out pairs, @IDictionary<string, string>
+		enddelegate 
+		;;;  <summary>
+		;;;  Initializes a new instance of the <see cref="ODataRoutingMatcherPolicy" /> class.
+		;;;  </summary>
+		;;;  <param name="translator">The registered path template translator.</param>
+		public method AdapterRoutingMatcherPolicy
+			translator, @IODataTemplateTranslator 
+			endparams
+		proc
+			_translator = translator
+			data odataAssembly = ^typeof(ODataOptions).Assembly
+			data tryParseMethod = odataAssembly.GetType("Microsoft.AspNetCore.OData.Common.KeyValuePairParser").GetMethod("TryParse")
+			_keyValueParser = (@KvpParser)tryParseMethod.CreateDelegate(^typeof(KvpParser), ^null) 
+		endmethod
+    
+		;;;  <summary>
+		;;;  Gets a value that determines the order of this policy.
+		;;;  </summary>
+		;;;  <summary>
+		;;;  Returns a value that indicates whether the matcher applies to any endpoint in endpoints.
+		;;;  </summary>
+		;;;  <param name="endpoints">The set of candidate values.</param>
+		;;;  <returns>true if the policy applies to any endpoint in endpoints, otherwise false.</returns>
+		public method AppliesToEndpoints, boolean
+			endpoints, @IReadOnlyList<Endpoint> 
+			endparams
+		proc
+			mreturn endpoints.Any(lambda (e) { e.Metadata.OfType<ODataRoutingMetadata>().FirstOrDefault() != ^null })
+		endmethod
+    
+		;;;  <summary>
+		;;;  Applies the policy to the CandidateSet.
+		;;;  </summary>
+		;;;  <param name="httpContext">The context associated with the current request.</param>
+		;;;  <param name="candidates">The CandidateSet.</param>
+		;;;  <returns>The task.</returns>
+		public method ApplyAsync, @Task
+			context, @HttpContext 
+			candidates, @CandidateSet 
+			endparams
+		proc
+			if (context == ^null)
+			begin
+				throw new ArgumentNullException("context")
+			end
+			data odataFeature, @IODataFeature, context.ODataFeature()
+			if (odataFeature.Path != ^null && odataFeature.Services != ^null)
+			begin
+				;;  If we have the OData path setting, it means there's some Policy working.
+				;;  Let's skip this default OData matcher policy.
+				
+				mreturn Task.CompletedTask
+			end
+			;;  The goal of this method is to perform the final matching:
+			;;  Map between route values matched by the template and the ones we want to expose to the action for binding.
+			;;  (tweaking the route values is fine here)
+			;;  Invalidating the candidate if the key/function values are not valid/missing.
+			;;  Perform overload resolution for functions by looking at the candidates and their metadata.
+			begin
+				data i, int
+				for i from 0 thru candidates.Count - 1
+				begin
+					data candidate, CandidateState, candidates[i]
+					
+					data metadata, @IODataRoutingMetadata, candidate.Endpoint.Metadata.OfType<IODataRoutingMetadata>().FirstOrDefault()
+					if (metadata == ^null)
+					begin
+						nextloop
+					end
+					if (odataFeature.Path != ^null)
+					begin
+
+						if(odataFeature.Services == ^null)
+							context.Request.CreateRouteServices(metadata.Prefix)
+
+						mreturn Task.CompletedTask
+					end
+					data routeTemplate = TemplateParser.Parse(context.Request.Path)
+					
+					data translatorContext, @ODataTemplateTranslateContext, new ODataTemplateTranslateContext(context, candidate.Endpoint, candidate.Values, metadata.Model)
+					if(odataFeature.Services == ^null)
+						context.Request.CreateRouteServices(metadata.Prefix)
+					odataFeature.Model = metadata.Model
+					odataFeature.RoutePrefix = metadata.Prefix
+					data functionSegment = metadata.Template.OfType<FunctionSegmentTemplate>().FirstOrDefault()
+					if(functionSegment != ^null)
+					begin
+						data functionName = functionSegment.Function.Name + "("
+						data pathStr = context.Request.Path.Value
+						data lastIndex = pathStr.LastIndexOf(")")
+						data startIndex = pathStr.IndexOf(functionName) + functionName.Length
+						data arguments = pathStr.Substring(startIndex, lastIndex - startIndex)
+						data parsedArguments, @IDictionary<string, string>, new Dictionary<string, string>()
+						_keyValueParser(arguments, parsedArguments)
+						data arg, KeyValuePair<string, Object>
+					
+						foreach arg in parsedArguments
+							candidate.Values.TryAdd(arg.Key, arg.Value)
+
+						odataFeature.Path = _translator.Translate(metadata.Template, translatorContext)
+						candidates.SetValidity(i, true)
+						exitloop
+					end
+
+					
+;					if (local_odataPath != ^null) then
+;					begin
+;						odataFeature.RoutePrefix = metadata.Prefix
+;						odataFeature.Model = metadata.Model
+;						odataFeature.Path = local_odataPath
+;						MergeRouteValues(translatorContext.UpdatedValues, candidate.Values)
+;					end
+;					;;  Shall we break the remaining candidates?
+;					;;  So far the answer is no. Because we can use this matcher to obsolete the unmatched endpoint.
+;					;;  break;
+;					else
+;					begin
+;						candidates.SetValidity(i, false)
+;					end
+				end
+			end
+			mreturn Task.CompletedTask
+		endmethod
+    
+		private static method MergeRouteValues, void
+			updates, @RouteValueDictionary 
+			source, @RouteValueDictionary 
+			endparams
+		proc
+			begin
+				data dat, KeyValuePair<string, Object>
+				foreach dat in updates
+				begin
+					source[dat.Key] = dat.Value
+				end
+			end
+		endmethod
+	endclass
+
+
+
+endnamespace
