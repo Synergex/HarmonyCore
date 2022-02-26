@@ -215,16 +215,16 @@ namespace Services.Models
         ;;; <summary>
         ;;; Customers favorite item
         ;;; </summary>
-        {StringLength(6, ErrorMessage="Customers favorite item cannot exceed 6 characters. ")}
+        {Range(0,999999, ErrorMessage="Customers favorite item must be between 0 and 999999. ")}
         {Newtonsoft.Json.JsonProperty}
-        public property FavoriteItem, String
+        public property FavoriteItem, int
             method get
             proc
-                mreturn (String)SynergyAlphaConverter.Convert(mSynergyData.favorite_item, ^null, ^null, ^null)
+                mreturn (int)mSynergyData.favorite_item
             endmethod
             method set
             proc
-                mSynergyData.favorite_item = (A)SynergyAlphaConverter.ConvertBack(value, ^null, ^null, ^null)
+                mSynergyData.favorite_item = value
             endmethod
         endproperty
 
@@ -397,12 +397,12 @@ namespace Services.Models
             required in sp, @IServiceProvider
             ;;From key for REL_CustomerFavoriteItem
             record rel2FromKey
-              favorite_item, a6
+              favorite_item, d6
             endrecord
 
             ;;From key for REL_CustomerFavoriteItem (no tags)
             record rel2FromKeyNoTag
-              favorite_item, a6
+              favorite_item, d6
             endrecord
         proc
             ;;No relation validation if the record is being deleted
