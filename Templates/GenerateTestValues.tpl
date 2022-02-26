@@ -15,6 +15,7 @@ proc
 endmain
 
 namespace Services.Test.GenerateValues
+
     public class GenerateTestValues
 
     <STRUCTURE_LOOP>
@@ -121,5 +122,7 @@ namespace Services.Test.GenerateValues
             data jsonFilePath = <UNIT_TESTS_NAMESPACE>.UnitTestEnvironment.FindRelativeFolderForAssembly("<UNIT_TESTS_NAMESPACE>")
             File.WriteAllText(Path.Combine(jsonFilePath, "TestConstants.Values.json"), JsonSerializer.Serialize(TestConstants.Instance, new JsonSerializerOptions(){ WriteIndented = true }))
         endmethod
+
     endclass
+
 endnamespace
