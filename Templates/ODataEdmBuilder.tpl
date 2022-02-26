@@ -97,7 +97,7 @@ namespace <NAMESPACE>
 
                 if(!mEdmModels.ContainsKey(versionNumber))
                 begin
-                    data madeModel = GetEdmModel(new ODataConventionModelBuilder(serviceProvider), serviceProvider)
+                    data madeModel = GetEdmModel(new ODataConventionModelBuilder(), serviceProvider)
                     mEdmModels.Add(versionNumber, madeModel)
                 end
             end
