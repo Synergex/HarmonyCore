@@ -16,7 +16,6 @@ import Harmony.OData
 import Microsoft.EntityFrameworkCore
 import Microsoft.OData.Edm
 import Microsoft.AspNetCore.Mvc
-;;import Microsoft.AspNetCore.Mvc.Versioning.Conventions
 import System.Collections.Generic
 import Services.Models
 import Microsoft.OData.ModelBuilder
@@ -63,8 +62,7 @@ namespace Services
 
                 if(!mEdmModels.ContainsKey(versionNumber))
                 begin
-                    data madeModel = GetEdmModel(new ODataConventionModelBuilder(), serviceProvider)
-;;                    madeModel.SetAnnotationValue(madeModel, new ApiVersionAnnotation(ApiVersion.Parse(versionNumber.ToString())))
+                    data madeModel = GetEdmModel(new ODataConventionModelBuilder(serviceProvider), serviceProvider)
                     mEdmModels.Add(versionNumber, madeModel)
                 end
             end
