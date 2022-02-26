@@ -257,7 +257,7 @@ namespace Services.Test.CS
                 using (var context = sp.ServiceProvider.GetService<Services.Models.DbContext>())
                 {
                     var customer = context.Customers.FirstOrDefault(customer => customer.CustomerNumber == 8);
-                    customer.FavoriteItem = context.Items.Where(item => item.FlowerColor.ToLower() == "blue").First().ItemNumber.ToString();
+                    customer.FavoriteItem = context.Items.Where(item => item.FlowerColor.ToLower() == "blue").First().ItemNumber;
 
                     var changeCount = context.SaveChanges();
                     Assert.AreEqual(1, changeCount);
