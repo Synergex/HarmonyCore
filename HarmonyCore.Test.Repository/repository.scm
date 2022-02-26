@@ -444,7 +444,7 @@ Field FAX   Template PHONE
    Long Description
       "SAMPLE_DATA=(555) 987-6543;"
  
-Field FAVORITE_ITEM   Type ALPHA   Size 6
+Field FAVORITE_ITEM   Type DECIMAL   Size 6
    Description "Customers favorite item"
    Long Description
       "SAMPLE_DATA=7;"
