@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <PackAsTool>true</PackAsTool>
     <AssemblyName>Harmony.Core.CliTool</AssemblyName>
     <ToolCommandName>harmonycore</ToolCommandName>
@@ -11,14 +11,26 @@
     <Version>3.1.71</Version>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="..\HarmonyCoreCodeGenGUI\bin\$(Configuration)\net5-windows\win-x64\publish\HarmonyCoreCodeGenGUI.*">
+    <Content Include="..\HarmonyCoreCodeGenGUI\bin\$(Configuration)\net6.0-windows\win-x64\publish\HarmonyCoreCodeGenGUI.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <Pack>true</Pack>
-      <PackagePath>tools\net5.0\any\gui</PackagePath>
+      <PackagePath>tools\net6.0\any\gui</PackagePath>
+    </Content>
+    <Content Include="..\HarmonyCoreCodeGenGUI\bin\$(Configuration)\net6.0-windows\win-x64\publish\HarmonyCoreCodeGenGUI.pdb">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <Pack>true</Pack>
+      <PackagePath>tools\net6.0\any\gui</PackagePath>
     </Content>
 
-    <Content Include="..\HarmonyCoreCodeGenGUI\bin\$(Configuration)\net5-windows\win-x64\publish\synrtl.*">
+    <Content Include="..\HarmonyCoreCodeGenGUI\bin\$(Configuration)\net6.0-windows\win-x64\synrtl.dll">
       <Pack>true</Pack>
-      <PackagePath>tools\net5.0\any\gui</PackagePath>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <PackagePath>tools\net6.0\any\gui</PackagePath>
+    </Content>
+    <Content Include="..\HarmonyCoreCodeGenGUI\bin\$(Configuration)\net6.0-windows\win-x64\synrtl.pdb">
+      <Pack>true</Pack>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <PackagePath>tools\net6.0\any\gui</PackagePath>
     </Content>
   </ItemGroup>
   <ItemGroup>
@@ -34,4 +46,8 @@
     <PackageReference Include="System.Runtime" Version="4.3.1" />
   </ItemGroup>
 
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <MSBuild Projects="..\HarmonyCoreCodeGenGUI\HarmonyCoreCodeGenGUI.csproj" Targets="Publish" Properties="RuntimeIdentifier=win-x64;SelfContained=false;PublishSingleFile=true">
+    </MSBuild>
+  </Target>
 </Project>

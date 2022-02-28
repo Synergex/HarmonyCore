@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.IO;
 
 namespace HarmonyCore.CliTool.Commands
@@ -11,9 +12,22 @@ namespace HarmonyCore.CliTool.Commands
 
         public int Run(GUIOptions options)
         {
-            Process process = Process.Start(Path.Combine(System.AppContext.BaseDirectory, "gui", "HarmonyCoreCodeGenGUI.exe"), Path.Combine(this._solutionInfo.SolutionDir, "Harmony.Core.CodeGen.json"));
-            process.WaitForExit();
-            return process.ExitCode;
+            var guiPath = Path.Combine(System.AppContext.BaseDirectory, "gui", "HarmonyCoreCodeGenGUI.exe");
+            if (!File.Exists(guiPath))
+            {
+                guiPath = Path.Combine(System.AppContext.BaseDirectory, "HarmonyCoreCodeGenGUI.exe");
+            }
+            if (File.Exists(guiPath))
+            {
+                Process process = Process.Start(guiPath, Path.Combine(this._solutionInfo.SolutionDir, "Harmony.Core.CodeGen.json"));
+                process.WaitForExit();
+                return process.ExitCode;
+            }
+            else
+            {
+                Console.WriteLine("failed to locate harmony core gui executable");
+                return -1;
+            }
         }
     }
 }
