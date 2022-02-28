@@ -55,8 +55,8 @@ import Microsoft.AspNetCore.Hosting
 import System.Collections.Generic
 import System.IO
 import System.Text
-import <SERVICES_NAMESPACE>
 import <NAMESPACE>
+import <SERVICES_NAMESPACE>
 
 main SelfHost
 

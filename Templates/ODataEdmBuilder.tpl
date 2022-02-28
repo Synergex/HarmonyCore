@@ -50,11 +50,10 @@ import Harmony.Core.Context
 import Harmony.OData
 import Microsoft.EntityFrameworkCore
 import Microsoft.OData.Edm
-import Microsoft.AspNet.OData.Builder
 import Microsoft.AspNetCore.Mvc
-import Microsoft.AspNetCore.Mvc.Versioning.Conventions
 import System.Collections.Generic
 import <MODELS_NAMESPACE>
+import Microsoft.OData.ModelBuilder
 
 namespace <NAMESPACE>
 
@@ -98,8 +97,7 @@ namespace <NAMESPACE>
 
                 if(!mEdmModels.ContainsKey(versionNumber))
                 begin
-                    data madeModel = GetEdmModel(new ODataConventionModelBuilder(serviceProvider), serviceProvider)
-                    madeModel.SetAnnotationValue(madeModel, new ApiVersionAnnotation(ApiVersion.Parse(versionNumber.ToString())))
+                    data madeModel = GetEdmModel(new ODataConventionModelBuilder(), serviceProvider)
                     mEdmModels.Add(versionNumber, madeModel)
                 end
             end

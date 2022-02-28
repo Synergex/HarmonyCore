@@ -72,12 +72,13 @@ import Microsoft.AspNetCore.Mvc
 import Microsoft.AspNetCore.Mvc.Abstractions
 import Microsoft.AspNetCore.Mvc.ApiExplorer
 import Microsoft.AspNetCore.StaticFiles
-import Microsoft.AspNet.OData
-import Microsoft.AspNet.OData.Extensions
-import Microsoft.AspNet.OData.Builder
-import Microsoft.AspNet.OData.Formatter
-import Microsoft.AspNet.OData.Routing
-import Microsoft.AspNet.OData.Routing.Conventions
+import Microsoft.AspNetCore.Builder
+import Microsoft.AspNetCore.Mvc.ApplicationModels
+import Microsoft.AspNetCore.OData
+import Microsoft.AspNetCore.Routing
+import Microsoft.Extensions.Configuration
+import Microsoft.Extensions.DependencyInjection
+import Microsoft.Extensions.DependencyInjection.Extensions
 import Microsoft.EntityFrameworkCore
 import Microsoft.Extensions.Configuration
 import Microsoft.Extensions.DependencyInjection
@@ -94,6 +95,10 @@ import Microsoft.Net.Http.Headers
 import Microsoft.OData
 import Microsoft.OData.Edm
 import Microsoft.OData.UriParser
+import Microsoft.AspNetCore.OData
+import Microsoft.AspNetCore.OData.Extensions
+import Microsoft.AspNetCore.OData.Routing
+import Microsoft.AspNetCore.OData.Formatter
 import System.Collections.Generic
 import System.IO
 import System.Linq
@@ -227,72 +232,10 @@ namespace <NAMESPACE>
             services.AddSingleton<IFileChannelManager, FileChannelManager>()
             services.AddSingleton<IDataObjectProvider>(AddDataObjectMappings)
             services.AddDbContextPool<<MODELS_NAMESPACE>.DBContext>(ConfigureDBContext)
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<MatcherPolicy, Harmony.OData.Adapter.AdapterRoutingMatcherPolicy>())
 
             ;;-------------------------------------------------------
             ;;Load OData and ASP.NET
-
-            lambda APIVersionConfig(vOptions)
-            begin
-                vOptions.ReportApiVersions = true
-                ;vOptions.AssumeDefaultVersionWhenUnspecified = true
-                vOptions.RouteConstraintName = "apiVersion"
-                vOptions.DefaultApiVersion = ApiVersion.Parse("1")
-            end
-
-            services.AddApiVersioning(APIVersionConfig)
-            services.AddOData().EnableApiVersioning()
-
-            lambda oDataApiExplorer(vOptions)
-            begin
-                ;; add the versioned api explorer, which also adds IApiVersionDescriptionProvider service
-                ;; note: the specified format code will format the version as "'v'major[.minor][-status]"
-                vOptions.GroupNameFormat = "'v'V"
-                vOptions.SubstitutionFormat = "V"
-
-                ;; note: this option is only necessary when versioning by url segment. the SubstitutionFormat
-                ;; can also be used to control the format of the API version in route templates
-                vOptions.SubstituteApiVersionInUrl = true
-            end
-
-            services.AddODataApiExplorer(oDataApiExplorer)
-
-            ;;-------------------------------------------------------
-            ;;Load our workaround for the fact that OData alternate key support is messed up right now!
-
-            services.AddSingleton<IPerRouteContainer, HarmonyPerRouteContainer>()
-
-            lambda SwaggerGenConfig(options)
-            begin
-                ;; resolve the IApiVersionDescriptionProvider service
-                ;; note: that we have to build a temporary service provider here because one has not been created yet
-                data provider, @IApiVersionDescriptionProvider, (@IApiVersionDescriptionProvider)services.BuildServiceProvider().GetRequiredService(^typeof(IApiVersionDescriptionProvider))
-                data description, @ApiVersionDescription
-
-                ;; add a swagger document for each discovered API version
-                ;; note: you might choose to skip or document deprecated API versions differently
-                foreach description in provider.ApiVersionDescriptions
-                begin
-                    data info = new OpenApiInfo()
-                    &    {
-                    &    Title = "<API_TITLE> " + description.ApiVersion.ToString(),
-                    &    Version = description.ApiVersion.ToString(),
-                    &    Description = "<API_DESCRIPTION>",
-                    &    Contact = new OpenApiContact() { Name = "<API_CONTACT_NAME>", Email = "<API_CONTACT_EMAIL>" },
-                    &    TermsOfService = new Uri("<API_LICENSE_URL>"),
-                    &    License = new OpenApiLicense() { Name = "<API_LICENSE_NAME>", Url = new Uri("<API_LICENSE_URL>") }
-                    &    }
-
-                    options.SwaggerDoc( description.GroupName, info )
-                end
-
-                ;; add a custom operation filter which sets default values
-                ;;options.OperationFilter<SwaggerDefaultValues>()
-
-                ;; integrate xml comments
-                ;;options.IncludeXmlComments( XmlCommentsFilePath )
-            end
-
-            services.AddSwaggerGen(SwaggerGenConfig)
 
             lambda MvcCoreConfig(op)
             begin
@@ -300,7 +243,6 @@ namespace <NAMESPACE>
                 data iformatter, @ODataInputFormatter
                 data mediaTypeName, @string, "application/prs.mock-odata"
                 data sseg = new StringSegment(mediaTypeName)
-                op.EnableEndpointRouting = false
                 foreach formatter in op.OutputFormatters.OfType<ODataOutputFormatter>().Where(lambda(it) { !it.SupportedMediaTypes.Any() })
                 begin
                     formatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue(sseg))
@@ -316,11 +258,30 @@ namespace <NAMESPACE>
                 MvcConfigCustom(op)
             end
 
+            lambda ODataConfig(option)
+            begin
+                option.EnableAttributeRouting = true
+                option<IF DEFINED_ENABLE_COUNT>.Count()</IF><IF DEFINED_ENABLE_RELATIONS>.Filter()</IF><IF DEFINED_ENABLE_RELATIONS>.Expand()</IF><IF DEFINED_ENABLE_SELECT>.Select()</IF><IF DEFINED_ENABLE_ORDERBY>.OrderBy()</IF><IF DEFINED_ENABLE_TOP>.SetMaxTop(40)</IF>
+				&	.AddRouteComponents(EdmBuilder.GetEdmModel(^null, 1))
+                option.Conventions.Insert(1, new AdapterRoutingConvention())
+            end
+
+            services.AddControllers().AddOData(ODataConfig)
+
             data mvcBuilder = services.AddMvcCore(MvcCoreConfig)
-            &    .SetCompatibilityVersion(CompatibilityVersion.Version_2_2 )
             &    .AddDataAnnotations()      ;;Enable data annotations
             &    .AddNewtonsoftJson(<IF DEFINED_ENABLE_NEWTONSOFT>lambda (opts) { opts.SerializerSettings.ContractResolver = new Newtonsoft.Json.Serialization.DefaultContractResolver()}</IF>)
             &    .AddApplicationPart(^typeof(IsolatedMethodsBase).Assembly)
+
+			lambda configSwaggerGen(c)
+			begin
+				c.ResolveConflictingActions(lambda(apiDescriptions) { apiDescriptions.First() })
+				c.IgnoreObsoleteActions()
+				c.IgnoreObsoleteProperties()
+				c.CustomSchemaIds(lambda(ty) { ty.FullName })
+			end
+
+			services.AddSwaggerGen(configSwaggerGen)
 
         <IF DEFINED_ENABLE_AUTHENTICATION>
           <IF DEFINED_ENABLE_CUSTOM_AUTHENTICATION>
@@ -455,7 +416,6 @@ namespace <NAMESPACE>
         public method Configure, void
             required in app, @IApplicationBuilder
             required in env, @IHostingEnvironment
-            required in versionProvider, @IApiVersionDescriptionProvider
         proc
             ;;-------------------------------------------------------
             ;;Configure the AppSettings environment
@@ -563,47 +523,6 @@ namespace <NAMESPACE>
                     containerBuilder.AddService<IODataPathTemplateHandler, PathTemplateHandler>( Microsoft.OData.ServiceLifetime.Singleton)
                     containerBuilder.AddService<IODataPathHandler, PathTemplateHandler>( Microsoft.OData.ServiceLifetime.Singleton)
                 end
-
-                ;;Enable support for dependency injection into controllers
-                builder.EnableDependencyInjection(EnableDI)
-
-                ;;Configure the default OData route
-                data versionedModels = EdmBuilder.EdmVersions.Select(lambda(versionNumber) { EdmBuilder.GetEdmModel(app.ApplicationServices, versionNumber) }).ToArray()
-                builder.MapVersionedODataRoutes("<SERVER_BASE_PATH>", "<SERVER_BASE_PATH>/v{version:apiVersion}", versionedModels, ConfigureRoute, EnableRouting)
-
-                ;;---------------------------------------------------
-                ;;Enable optional OData features
-
-            <IF DEFINED_ENABLE_SELECT>
-                ;;Enable $select expressions to select properties returned
-                builder.Select()
-
-            </IF DEFINED_ENABLE_SELECT>
-            <IF DEFINED_ENABLE_FILTER>
-                ;;Enable $filter expressions to filter rows returned
-                builder.Filter()
-
-            </IF DEFINED_ENABLE_FILTER>
-            <IF DEFINED_ENABLE_ORDERBY>
-                ;;Enable $orderby expressions to custom sort results
-                builder.OrderBy()
-
-            </IF DEFINED_ENABLE_ORDERBY>
-            <IF DEFINED_ENABLE_COUNT>
-                ;;Enable /$count endpoints
-                builder.Count()
-
-            </IF DEFINED_ENABLE_COUNT>
-            <IF DEFINED_ENABLE_RELATIONS>
-                ;;Enable $expand expressions to expand relations
-                builder.Expand()
-
-            </IF DEFINED_ENABLE_RELATIONS>
-            <IF DEFINED_ENABLE_TOP>
-                ;;Specify the maximum rows that may be returned by $top expressions
-                builder.MaxTop(100)
-
-            </IF DEFINED_ENABLE_TOP>
             end
 
         <IF DEFINED_ENABLE_CORS>
@@ -614,8 +533,8 @@ namespace <NAMESPACE>
             begin
                 builder
                 &   .AllowCredentials()
-                &    .AllowAnyMethod()
-                &    .AllowAnyHeader()
+                &   .AllowAnyMethod()
+                &   .AllowAnyHeader()
                 &   .SetIsOriginAllowed(lambda(p) { true } )
             end
 
@@ -628,33 +547,24 @@ namespace <NAMESPACE>
             ;;If there is a ConfigureCustomBeforeMvc method, call it
             ConfigureCustomBeforeMvc(app,env)
 
-            app.UseMvc(mvcBuilder)
+			app.UseSwagger()
+			app.UseSwaggerUI(lambda(c) { c.SwaggerEndpoint("/swagger/v<API_VERSION>/swagger.json", "<API_TITLE>") })
 
-            ;;-------------------------------------------------------
-            ;;Configure the web server to serve static files
+            app.UsePathBase(new PathString("/odata/v1"))
 
-            ;;Support default files (index.html, etc.)
-            app.UseDefaultFiles()
+            ;;Use odata route debug, /$odata
+            app.UseODataRouteDebug("/$odata")
+			app.UseODataQueryRequest()
 
-            ;;Support serving static files
-            app.UseStaticFiles()
-
-            ;;-------------------------------------------------------
-            ;;Configure and enable API versioning
-
-            lambda configureSwaggerUi(config)
+            lambda RoutingConfig(endpoints)
             begin
-                config.RoutePrefix = "api-docs"
-                data description, @ApiVersionDescription
-                foreach description in versionProvider.ApiVersionDescriptions
-                begin
-                    config.SwaggerEndpoint( "/swagger/" + description.GroupName + "/swagger.json", description.GroupName.ToUpperInvariant() )
-                end
+				endpoints.MapControllers()
+				endpoints.MapHub<OrdersHub>("/<SIGNALR_PATH>/orders")
+			end
 
-            end
+            app.UseRouting()
 
-            app.UseSwagger()
-            app.UseSwaggerUI(configureSwaggerUi)
+            app.UseEndpoints(RoutingConfig)
 
             ;;If there is a ConfigureCustom method, call it
             ConfigureCustom(app,env)
