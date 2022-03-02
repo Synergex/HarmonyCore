@@ -106,7 +106,7 @@ Known structure properties:
     class XMLGenOptions
     {
         [Option('s', Required = true, Separator = ',', HelpText = "Specify the list of structures, separated by a comma")]
-        public IEnumerable<string> Structures{ get; set; }
+        public IEnumerable<string> Structures { get; set; }
 
         [Option('x', Required = true, HelpText = "Specify the location of the XMLFolder to generate from.")]
         public string XMLFolder { get; set; }
@@ -159,6 +159,101 @@ Known structure properties:
         public IEnumerable<string> Items { get; set; }
     }
 
+    class VersionTargetingInfo
+    {
+        public VersionTargetingInfo(int majorVersionTarget)
+        {
+            switch (majorVersionTarget)
+            {
+                case 3:
+                    HCBuildVersion = "3.1.463";
+                    BuildPackageVersion = "11.1.1070.3107";
+                    HCRegenRequiredVersions = new List<string>
+                    {
+                        "3.1.156"
+                    };
+                    NugetReferences = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase)
+                    {
+                        {"Harmony.Core", HCBuildVersion},
+                        {"Harmony.Core.EF", HCBuildVersion},
+                        {"Harmony.Core.OData", HCBuildVersion},
+                        {"Harmony.Core.AspNetCore", HCBuildVersion},
+                        {"Synergex.SynergyDE.synrnt", "11.1.1070"},
+                        {"Synergex.SynergyDE.Build", BuildPackageVersion},
+                        {"Microsoft.AspNetCore.Mvc.NewtonsoftJson", "3.1.6"},
+                        {"Microsoft.AspNetCore.Mvc.Testing", "3.1.6"},
+                        {"Microsoft.Extensions.DependencyInjection", "3.1.6"},
+                        {"Microsoft.Extensions.Logging.Console", "3.1.6"},
+                        {"Microsoft.AspNetCore.SignalR.Client", "3.1.6"},
+                        {"Microsoft.EntityFrameworkCore", "3.1.6"},
+                        {"IdentityServer4.AccessTokenValidation", "3.0.1"},
+                        {"Microsoft.AspNetCore.OData", "7.4.1"},
+                        {"Microsoft.OData.Core", "7.7.0"},
+                        {"Microsoft.AspNetCore.JsonPatch", "3.1.6"},
+                        {"Microsoft.VisualStudio.Threading", "16.6.13"},
+                        {"StreamJsonRpc", "2.4.48"},
+                        {"IdentityModel", "4.1.1" },
+                        {"Microsoft.OData.Edm", "7.7.0"},
+                        {"Microsoft.Spatial", "7.7.0"},
+                        {"Swashbuckle.AspNetCore", "5.5.1"},
+                        {"SSH.NET", "2016.1.0"},
+                        {"Microsoft.AspNetCore.Mvc.Versioning", "4.1.1"},
+                        {"Microsoft.AspNetCore.OData.Versioning.ApiExplorer", "4.1.1"},
+                        {"Nito.AsyncEx", "5.0.0"},
+                        {"System.Linq.Dynamic.Core", "1.1.8"},
+                        {"system.text.encoding.codepages", "4.7.1"},
+                    };
+                    break;
+
+                case 6:
+                    HCBuildVersion = "6.0.0";
+                    BuildPackageVersion = "11.1.1070.3107";
+                    HCRegenRequiredVersions = new List<string>
+                    {
+                        "3.1.156",
+                        "3.1.999"
+                    };
+                    NugetReferences = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase)
+                    {
+                        {"Harmony.Core", HCBuildVersion},
+                        {"Harmony.Core.EF", HCBuildVersion},
+                        {"Harmony.Core.OData", HCBuildVersion},
+                        {"Harmony.Core.AspNetCore", HCBuildVersion},
+                        {"Synergex.SynergyDE.synrnt", "11.1.1070"},
+                        {"Synergex.SynergyDE.Build", BuildPackageVersion},
+                        {"Microsoft.AspNetCore.Mvc.NewtonsoftJson", "3.1.6"},
+                        {"Microsoft.AspNetCore.Mvc.Testing", "3.1.6"},
+                        {"Microsoft.Extensions.DependencyInjection", "3.1.6"},
+                        {"Microsoft.Extensions.Logging.Console", "3.1.6"},
+                        {"Microsoft.AspNetCore.SignalR.Client", "3.1.6"},
+                        {"Microsoft.EntityFrameworkCore", "3.1.6"},
+                        {"IdentityServer4.AccessTokenValidation", "3.0.1"},
+                        {"Microsoft.AspNetCore.OData", "7.4.1"},
+                        {"Microsoft.OData.Core", "7.7.0"},
+                        {"Microsoft.AspNetCore.JsonPatch", "3.1.6"},
+                        {"Microsoft.VisualStudio.Threading", "16.6.13"},
+                        {"StreamJsonRpc", "2.4.48"},
+                        {"IdentityModel", "4.1.1" },
+                        {"Microsoft.OData.Edm", "7.7.0"},
+                        {"Microsoft.Spatial", "7.7.0"},
+                        {"Swashbuckle.AspNetCore", "5.5.1"},
+                        {"SSH.NET", "2016.1.0"},
+                        {"Microsoft.AspNetCore.Mvc.Versioning", "4.1.1"},
+                        {"Microsoft.AspNetCore.OData.Versioning.ApiExplorer", "4.1.1"},
+                        {"Nito.AsyncEx", "5.0.0"},
+                        {"System.Linq.Dynamic.Core", "1.1.8"},
+                        {"system.text.encoding.codepages", "4.7.1"},
+                    };
+                    break;
+            }
+        }
+        public Dictionary<string, string> NugetReferences;
+        public string BuildPackageVersion = "11.1.1070.3107";
+        public string HCBuildVersion;
+        List<string> HCRegenRequiredVersions;
+        public List<string> RemoveNugetReferences;
+    }
+
     class Program
     {
         public static string BuildPackageVersion = "11.1.1070.3107";
@@ -183,7 +278,7 @@ Known structure properties:
         {
             try
             {
-                if(System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
                     var handle = GetStdHandle(STD_INPUT_HANDLE);
                     uint currentMode = 0;
@@ -193,7 +288,7 @@ Known structure properties:
             }
             catch
             {
-                
+
             }
 
             return (IntPtr.Zero, 0);
@@ -201,7 +296,7 @@ Known structure properties:
 
         static void ResetConsoleMode(IntPtr stdout, uint consoleMode)
         {
-            if(stdout != IntPtr.Zero)
+            if (stdout != IntPtr.Zero)
             {
                 SetConsoleMode(stdout, consoleMode);
             }
