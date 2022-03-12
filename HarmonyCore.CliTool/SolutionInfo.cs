@@ -10,10 +10,10 @@ namespace HarmonyCore.CliTool
 {
     public class SolutionInfo
     {
-        public SolutionInfo(IEnumerable<string> projectPaths, string solutionDir)
+        public SolutionInfo(IEnumerable<string> projectPaths, string solutionDir, VersionTargetingInfo targetVersion)
         {
             SolutionDir = solutionDir;
-            Projects = projectPaths.Select(path => new ProjectInfo(path)).ToList();
+            Projects = projectPaths.Select(path => new ProjectInfo(path, targetVersion)).ToList();
             var codegenProjectPath = Path.Combine(SolutionDir, "Harmony.Core.CodeGen.json");
             var regenPath = Path.Combine(SolutionDir, "regen.bat");
             var userTokenFile = Path.Combine(SolutionDir, "UserDefinedTokens.tkn");

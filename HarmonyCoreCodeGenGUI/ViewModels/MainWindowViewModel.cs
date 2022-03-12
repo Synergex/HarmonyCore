@@ -16,6 +16,7 @@ using System.Windows;
 using System.Windows.Input;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Microsoft.Toolkit.Mvvm.Input;
+using System.Threading.Tasks;
 
 namespace HarmonyCoreCodeGenGUI.ViewModels
 {
@@ -28,15 +29,25 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
         {
             OpenMenuItemIsEnabled = true;
 
-            StatusBarTextBlockText = "Ready";
-            InstructionalTabTextBlockText = "Open a Harmony Core CodeGen JSON file to continue.";
-
+            var cmdArgs = Environment.GetCommandLineArgs();
+            if (cmdArgs.Length > 1)
+            {
+                StatusBarTextBlockText = "Loading";
+                Task.Delay(100).ContinueWith((tsk) => LoadSolutionFile(cmdArgs[1]));
+            }
+            else
+            {
+                StatusBarTextBlockText = "Ready";
+                InstructionalTabTextBlockText = "Open a Harmony Core CodeGen JSON file to continue.";
+            }
             SettingsTabVisibility = Visibility.Collapsed;
             StructureTabVisibility = Visibility.Collapsed;
             InterfacesTabVisibility = Visibility.Collapsed;
             EntityFrameworkTabVisibility = Visibility.Collapsed;
             TraditionalBridgeTabVisibillity = Visibility.Collapsed;
             ODataTabVisibility = Visibility.Collapsed;
+
+            
         }
 
         #region Methods
@@ -52,44 +63,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
                 };
                 if (openFileDialog.ShowDialog() == true)
                 {
-                    StatusBarTextBlockText = "Loading...";
-
-                    // Create Solution
-                    _solutionDir = Path.GetDirectoryName(openFileDialog.FileName);
-
-                    // Calling Register methods will subscribe to AssemblyResolve event. After this we can
-                    // safely call code that use MSBuild types (in the Builder class).
-                    if (!MSBuildLocator.IsRegistered)
-                        MSBuildLocator.RegisterMSBuildPath(MSBuildLocator.QueryVisualStudioInstances().ToList().FirstOrDefault().MSBuildPath);
-                    _solution = Solution.LoadSolution(openFileDialog.FileName, _solutionDir);
-
-                    if (_solution != null)
-                    {
-                        StrongReferenceMessenger.Default.Send(_solution);
-
-                        InstructionalTabTextBlockText = "Select a tab to continue.";
-
-                        // Determine visibility of tabs
-                        bool? hasOdata = _solution.ExtendedStructures?.Any(k => k.EnabledGenerators.Contains("ODataGenerator"));
-                        bool? hasModels = _solution.ExtendedStructures?.Any(k => k.EnabledGenerators.Contains("ModelGenerator"));
-                        bool? hasTraditionalBridge = _solution.ExtendedStructures?.Any(k => k.EnabledGenerators.Contains("TraditionalBridgeGenerator"));
-
-                        SettingsTabVisibility = Visibility.Visible;
-                        ODataTabVisibility = hasOdata == true && hasModels == true ? Visibility.Visible : Visibility.Collapsed;
-                        StructureTabVisibility = hasOdata == true && hasModels == true ? Visibility.Visible : Visibility.Collapsed;
-                        InterfacesTabVisibility = hasTraditionalBridge == true ? Visibility.Visible : Visibility.Collapsed;
-                        TraditionalBridgeTabVisibillity = hasTraditionalBridge == true ? Visibility.Visible : Visibility.Collapsed;
-
-                        SaveMenuItemIsEnabled = true;
-                        CloseMenuItemIsEnabled = true;
-                        RegenerateFilesMenuItemIsEnabled = false;
-
-                        StatusBarTextBlockText = "Loaded successfully";
-                    }
-                    else
-                    {
-                        MessageBox.Show($"Could not load the solution associated with this JSON file.{Environment.NewLine}{Environment.NewLine}Double check the paths inside the JSON file and try again. In addition, the JSON file must be placed at the root of the HarmonyCore solution.", Resources.Title, MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
+                    LoadSolutionFile(openFileDialog.FileName);
                 }
             }
             catch (Exception e)
@@ -98,6 +72,49 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
                 throw;
             }
         }
+
+        private void LoadSolutionFile(string fileName)
+        {
+            StatusBarTextBlockText = "Loading...";
+
+            // Create Solution
+            _solutionDir = Path.GetDirectoryName(fileName);
+
+            // Calling Register methods will subscribe to AssemblyResolve event. After this we can
+            // safely call code that use MSBuild types (in the Builder class).
+            if (!MSBuildLocator.IsRegistered)
+                MSBuildLocator.RegisterMSBuildPath(MSBuildLocator.QueryVisualStudioInstances().ToList().FirstOrDefault().MSBuildPath);
+            _solution = Solution.LoadSolution(fileName, _solutionDir);
+
+            if (_solution != null)
+            {
+                StrongReferenceMessenger.Default.Send(_solution);
+
+                InstructionalTabTextBlockText = "Select a tab to continue.";
+
+                // Determine visibility of tabs
+                bool? hasOdata = _solution.ExtendedStructures?.Any(k => k.EnabledGenerators.Contains("ODataGenerator"));
+                bool? hasModels = _solution.ExtendedStructures?.Any(k => k.EnabledGenerators.Contains("ModelGenerator"));
+                bool? hasTraditionalBridge = _solution.TraditionalBridge?.EnableXFServerPlusMigration;
+
+                SettingsTabVisibility = Visibility.Visible;
+                ODataTabVisibility = hasOdata == true && hasModels == true ? Visibility.Visible : Visibility.Collapsed;
+                StructureTabVisibility = hasOdata == true && hasModels == true ? Visibility.Visible : Visibility.Collapsed;
+                InterfacesTabVisibility = hasTraditionalBridge == true ? Visibility.Visible : Visibility.Collapsed;
+                TraditionalBridgeTabVisibillity = hasTraditionalBridge == true ? Visibility.Visible : Visibility.Collapsed;
+
+                SaveMenuItemIsEnabled = true;
+                CloseMenuItemIsEnabled = true;
+                RegenerateFilesMenuItemIsEnabled = false;
+
+                StatusBarTextBlockText = "Loaded successfully";
+            }
+            else
+            {
+                MessageBox.Show($"Could not load the solution associated with this JSON file.{Environment.NewLine}{Environment.NewLine}Double check the paths inside the JSON file and try again. In addition, the JSON file must be placed at the root of the HarmonyCore solution.", Resources.Title, MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
         private void SaveMenuItemCommandMethod(bool setStatusBarTextBlockText = true)
         {
             try
@@ -223,7 +240,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
                     StrongReferenceMessenger.Default.Send(new NotificationMessageAction<InterfacesTabViewModel>(string.Empty, interfacesTabViewModel =>
                     {
                         _solution.TraditionalBridge.XFServerSMCPath = interfacesTabViewModel.XFServerSMCPath;
-                        _solution.TraditionalBridge.ExtendedInterfaces = new List<InterfaceEx>(interfacesTabViewModel.ExtendedInterfaces);
+                        _solution.ExtendedInterfaces = new List<InterfaceEx>(interfacesTabViewModel.ExtendedInterfaces);
                     }));
                 }
                 if (TraditionalBridgeTabVisibillity == Visibility.Visible)

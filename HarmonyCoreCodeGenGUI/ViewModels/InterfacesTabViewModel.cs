@@ -16,10 +16,10 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             StrongReferenceMessenger.Default.Register<Solution>(this, (obj, sender) =>
             {
                 XFServerSMCPath = sender.TraditionalBridge?.XFServerSMCPath;
-                if (sender.TraditionalBridge?.ExtendedInterfaces != null)
+                if (sender.ExtendedInterfaces != null)
                 {
                     ExtendedInterfaces.Clear();
-                    ExtendedInterfaces.AddRange(sender.TraditionalBridge.ExtendedInterfaces);
+                    ExtendedInterfaces.AddRange(sender.ExtendedInterfaces);
                 }
             });
 

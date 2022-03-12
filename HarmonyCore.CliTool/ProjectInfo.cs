@@ -17,16 +17,6 @@ namespace HarmonyCore.CliTool
             "Microsoft.AspNetCore.Mvc",
         };
 
-        private static Dictionary<string, string> TargetFramework = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-        {
-            {"Services", "netcoreapp3.1"},
-            {"Services.Test", "netcoreapp3.1"},
-            {"Services.Host", "netcoreapp3.1"},
-            {"Services.Models", "netcoreapp3.1"},
-            {"Services.Controllers", "netcoreapp3.1"},
-            {"Services.Isolated", "netcoreapp3.1"},
-        };
-
         private static HashSet<string> WebReferenceProjects = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "Services.Controllers"
@@ -42,15 +32,17 @@ namespace HarmonyCore.CliTool
         };
         public string FileName { get; set; }
         public XmlDocument ProjectDoc { get; set; }
+        private VersionTargetingInfo _targetVersion;
 
-        public ProjectInfo(string path)
+        public ProjectInfo(string path, VersionTargetingInfo targetVersion)
         {
+            _targetVersion = targetVersion;
             FileName = path;
             ProjectDoc = new XmlDocument { PreserveWhitespace = true };
             ProjectDoc.Load(path);
         }
 
-        public void PatchKnownIssues()
+        public void PatchKnownIssues(List<string> removeNugetVersions)
         {
             var cleanFileName = Path.GetFileNameWithoutExtension(FileName);
             //look for bad .net core version stuff, <RuntimeFrameworkVersion> shouldn't be here
@@ -127,9 +119,9 @@ namespace HarmonyCore.CliTool
 
                 var importFragment = ProjectDoc.CreateElement("Import", ProjectDoc.DocumentElement.NamespaceURI);
                 var projectAttr = ProjectDoc.CreateAttribute("Project");
-                projectAttr.Value = $"$(USERPROFILE)\\.nuget\\packages\\synergex.synergyde.build\\{Program.BuildPackageVersion}\\build\\rps\\Synergex.SynergyDE.Build.targets";
+                projectAttr.Value = $"$(USERPROFILE)\\.nuget\\packages\\synergex.synergyde.build\\{_targetVersion.BuildPackageVersion}\\build\\rps\\Synergex.SynergyDE.Build.targets";
                 var conditionAttr = ProjectDoc.CreateAttribute("Condition");
-                conditionAttr.Value = $"Exists('$(USERPROFILE)\\.nuget\\packages\\synergex.synergyde.build\\{Program.BuildPackageVersion}\\build\\rps\\Synergex.SynergyDE.Build.targets')";
+                conditionAttr.Value = $"Exists('$(USERPROFILE)\\.nuget\\packages\\synergex.synergyde.build\\{_targetVersion.BuildPackageVersion}\\build\\rps\\Synergex.SynergyDE.Build.targets')";
                 importFragment.Attributes.Append(projectAttr);
                 importFragment.Attributes.Append(conditionAttr);
                 var targetFragment = ProjectDoc.CreateElement("Project", ProjectDoc.DocumentElement.NamespaceURI);
@@ -137,7 +129,7 @@ namespace HarmonyCore.CliTool
                                           "<PropertyGroup>\r\n" +
                                           "<ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>\r\n" +
                                           "</PropertyGroup>\r\n" +
-                                          $"<Error Condition=\"!Exists('$(USERPROFILE)\\.nuget\\packages\\synergex.synergyde.build\\{Program.BuildPackageVersion}\\build\\rps\\Synergex.SynergyDE.Build.targets')\" Text=\"$([System.String]::Format('$(ErrorText)', '$(USERPROFILE)\\.nuget\\packages\\synergex.synergyde.build\\{Program.BuildPackageVersion}\\build\\rps\\Synergex.SynergyDE.Build.targets'))\" />\r\n" +
+                                          $"<Error Condition=\"!Exists('$(USERPROFILE)\\.nuget\\packages\\synergex.synergyde.build\\{_targetVersion.BuildPackageVersion}\\build\\rps\\Synergex.SynergyDE.Build.targets')\" Text=\"$([System.String]::Format('$(ErrorText)', '$(USERPROFILE)\\.nuget\\packages\\synergex.synergyde.build\\{_targetVersion.BuildPackageVersion}\\build\\rps\\Synergex.SynergyDE.Build.targets'))\" />\r\n" +
                                           "</Target>";
                 
                 var importedElement = ProjectDoc.DocumentElement.AppendChild(importFragment);
@@ -148,9 +140,9 @@ namespace HarmonyCore.CliTool
             //switch .net standard 2.0 projects to netcoreapp3.1
             var targetFramework = ProjectDoc.GetElementsByTagName("TargetFramework").OfType<XmlNode>().FirstOrDefault();
             
-            if (TargetFramework.TryGetValue(Path.GetFileNameWithoutExtension(FileName), out var newTargetFramework))
+            if (targetFramework != null)
             {
-                targetFramework.InnerText = newTargetFramework;
+                targetFramework.InnerText = _targetVersion.TargetFramework;
             }
 
             var firstItemGroup = ProjectDoc.GetElementsByTagName("ItemGroup").OfType<XmlNode>().FirstOrDefault();
@@ -191,7 +183,7 @@ namespace HarmonyCore.CliTool
                     var versioningReferenceName = ProjectDoc.CreateAttribute("Include");
                     versioningReferenceName.Value = "Microsoft.AspNetCore.OData.Versioning.ApiExplorer";
                     var versioningReferenceVersion = ProjectDoc.CreateAttribute("Version");
-                    versioningReferenceVersion.Value = Program.LatestNugetReferences["Microsoft.AspNetCore.OData.Versioning.ApiExplorer"];
+                    versioningReferenceVersion.Value = _targetVersion.NugetReferences["Microsoft.AspNetCore.OData.Versioning.ApiExplorer"];
                     versioningReference.Attributes.Append(versioningReferenceName);
                     versioningReference.Attributes.Append(versioningReferenceVersion);
                     firstItemGroup.AppendChild(versioningReference);
@@ -225,7 +217,7 @@ namespace HarmonyCore.CliTool
                     var fRefName = ProjectDoc.CreateAttribute("Include");
                     fRefName.Value = "Microsoft.AspNetCore.Mvc.NewtonsoftJson";
                     var fRefVersion = ProjectDoc.CreateAttribute("Version");
-                    fRefVersion.Value = Program.LatestNugetReferences["Microsoft.AspNetCore.Mvc.NewtonsoftJson"];
+                    fRefVersion.Value = _targetVersion.NugetReferences["Microsoft.AspNetCore.Mvc.NewtonsoftJson"];
                     fRef.Attributes.Append(fRefName);
                     fRef.Attributes.Append(fRefVersion);
                     firstItemGroup.AppendChild(fRef);
@@ -263,10 +255,10 @@ namespace HarmonyCore.CliTool
                     {
                         if (includeValue.Contains("Harmony.Core"))
                         {
-                            if (!_hasAlerted && !string.IsNullOrWhiteSpace(versionValue) && !Program.HCRegenRequiredVersions.All((ver) => string.Compare(versionValue, ver) >= 0))
+                            if (!_hasAlerted && !string.IsNullOrWhiteSpace(versionValue) && !_targetVersion.HCRegenRequiredVersions.All((ver) => string.Compare(versionValue, ver) >= 0))
                             {
                                 _hasAlerted = true;
-                                Console.WriteLine("Upgrading Harmony Core to version {0} from version {1} of packages requires you to regenerate from codegen template. \r\n\r\nPlease type YES to acknowledge and continue package upgrade", versionValue, Program.HCBuildVersion);
+                                Console.WriteLine("Upgrading Harmony Core to version {0} from version {1} of packages requires you to regenerate from codegen template. \r\n\r\nPlease type YES to acknowledge and continue package upgrade", versionValue, _targetVersion.HCBuildVersion);
                                 if (string.Compare(Console.ReadLine(), "yes", true) != 0)
                                 {
                                     Console.WriteLine("exiting");

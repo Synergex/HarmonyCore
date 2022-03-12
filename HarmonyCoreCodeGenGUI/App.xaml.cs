@@ -1,4 +1,5 @@
-﻿using System.Runtime;
+﻿using System.Diagnostics;
+using System.Runtime;
 using System.Windows;
 
 namespace HarmonyCoreCodeGenGUI
