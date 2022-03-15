@@ -10,6 +10,7 @@ import System.IO
 import System.Threading
 import System.Linq
 import Harmony.Core.Utility
+import Nerdbank.Streams
 
 namespace Harmony.Core.Context
 
@@ -156,7 +157,28 @@ namespace Harmony.Core.Context
 
 			data formatter = new JsonMessageFormatter(new UTF8Encoding(false))
 			formatter.JsonSerializer.FloatParseHandling = FloatParseHandling.Decimal
-			data result = new JsonRPC(new HeaderDelimitedMessageHandler(new StreamWrapper(mTargetProcess.StandardOutput, mTargetProcess.StandardInput), formatter))
+			
+			data targetOutput, @Stream
+			data targetInput, @Stream
+
+			;;if the base stream is a filestream lets grab its guts and resize the buffer to 64k
+			if(mTargetProcess.StandardInput.BaseStream .is. FileStream) then
+			begin
+				data inputFileStream = ^as(mTargetProcess.StandardInput.BaseStream, @FileStream)
+				data outputFileStream = ^as(mTargetProcess.StandardOutput.BaseStream, @FileStream)
+
+				targetInput = new FileStream(inputFileStream.SafeFileHandle, FileAccess.Write, 4096 * 16, false)
+				targetOutput = new FileStream(outputFileStream.SafeFileHandle, FileAccess.Read, 4096 * 16, false)
+			end
+			else
+			begin
+				targetInput = mTargetProcess.StandardInput.BaseStream
+				targetOutput = mTargetProcess.StandardOutput.BaseStream
+			end
+
+			data streamWrapper = FullDuplexStream.Splice(targetOutput, targetInput)
+
+			data result = new JsonRPC(new HeaderDelimitedMessageHandler(streamWrapper, formatter))
             if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
             begin
                 result.TraceSource = new TraceSource("Client", SourceLevels.All)
@@ -200,7 +222,7 @@ namespace Harmony.Core.Context
 				data returnedCount = mReader.BaseStream.Read(buffer, offset, count)
 				if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
 				begin
-					DebugLogSession.Logging.LogTrace(ASCIIEncoding.ASCII.GetString(buffer, offset, returnedCount))
+					DebugLogSession.Logging.LogTrace("ProcessDynamicCallConnection read ascii string: {0}", new ASCIIArrayDebugLogHelper(buffer, offset, returnedCount))
 				end
 				mreturn returnedCount
 			endmethod
@@ -244,10 +266,27 @@ namespace Harmony.Core.Context
 				data readBytes = await mReader.BaseStream.ReadAsync(buffer, offset, count, token)
 				if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
 				begin
-					DebugLogSession.Logging.LogTrace(ASCIIEncoding.ASCII.GetString(buffer, offset, readBytes))
+					DebugLogSession.Logging.LogTrace("ProcessDynamicCallConnection read ascii string: {0}", new ASCIIArrayDebugLogHelper(buffer, offset, Math.Min(50, readBytes)))
 				end
 				mreturn readBytes
 			endmethod
+
+
+			public override async method WriteAsync, @Task
+				buffer, [#]byte
+				offset, int
+				count, int
+				cancellationToken, CancellationToken
+			proc
+				if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Debug)
+				begin
+					DebugLogSession.Logging.LogDebug("ProcessDynamicCallConnection write ascii string: {0}", new ASCIIArrayDebugLogHelper(buffer, offset, Math.Min(50, count)))
+				end
+
+				await mWriter.BaseStream.WriteAsync(buffer, offset, count, cancellationToken)
+				await mWriter.BaseStream.FlushAsync()
+			endmethod
+
 
 			public override property CanTimeout, boolean
 				method get
@@ -313,6 +352,10 @@ namespace Harmony.Core.Context
 				count, int 
 				endparams
 			proc
+				if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Debug)
+				begin
+					DebugLogSession.Logging.LogDebug("ProcessDynamicCallConnection write ascii string: {0}", new ASCIIArrayDebugLogHelper(buffer, offset, Math.Min(50, count)))
+				end
 				mWriter.BaseStream.Write(buffer, offset, count)
 				mWriter.BaseStream.Flush()
 			endmethod
