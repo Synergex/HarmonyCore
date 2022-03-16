@@ -1667,7 +1667,7 @@ namespace Harmony.Core.EF.Query.Internal
 
             protected override Expression VisitConstant(ConstantExpression node)
             {
-                if (node.Type.IsGenericType && node.Type.GetGenericTypeDefinition() == typeof(Nullable<>))
+                if (node.Type.IsGenericType && node.Type.GetGenericTypeDefinition() == typeof(Nullable<>) && node.Value != null)
                 {
                     return Expression.Constant(node.Value, node.Type.GetGenericArguments()[0]);
                 }
@@ -1680,6 +1680,17 @@ namespace Harmony.Core.EF.Query.Internal
                 var testExpression = node.Test as BinaryExpression; 
                 switch (node.Test.NodeType)
                 {
+                    case ExpressionType.OrElse:
+                        {
+                            if (testExpression.Right is ConstantExpression rightConst && (rightConst.Value as Nullable<bool>) == false)
+                            {
+                                if(testExpression.Left is BinaryExpression leftBinary && leftBinary.Right is ConstantExpression downLeftConst && downLeftConst.Value == null)
+                                {
+                                    return Visit(node.IfFalse);
+                                }
+                            }
+                            break;
+                        }
                     case ExpressionType.Equal:
                         {
                             if (testExpression.Left is ConstantExpression leftConst && leftConst.Value == null)
