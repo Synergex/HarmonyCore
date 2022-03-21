@@ -211,8 +211,8 @@ Known structure properties:
                     break;
 
                 case 6:
-                    HCBuildVersion = "6.0.0";
-                    BuildPackageVersion = "22.2.1048";
+                    HCBuildVersion = "6.0.8";
+                    BuildPackageVersion = "22.3.1080";
                     HCRegenRequiredVersions = new List<string>
                     {
                         "3.1.156",
@@ -231,11 +231,11 @@ Known structure properties:
                         {"Microsoft.Extensions.DependencyInjection", "6.0.0"},
                         {"Microsoft.Extensions.Logging.Console", "6.0.0"},
                         {"Microsoft.AspNetCore.SignalR.Client", "6.0.2"},
-                        {"Microsoft.EntityFrameworkCore", "6.0.2"},
+                        {"Microsoft.EntityFrameworkCore", "6.0.3"},
                         {"IdentityServer4.AccessTokenValidation", "3.0.1"},
                         {"Microsoft.AspNetCore.OData", "8.0.8"},
                         {"Microsoft.OData.Core", "7.10.0"},
-                        {"Microsoft.AspNetCore.JsonPatch", "6.0.2 "},
+                        {"Microsoft.AspNetCore.JsonPatch", "6.0.2"},
                         {"Microsoft.VisualStudio.Threading", "17.1.46"},
                         {"StreamJsonRpc", "2.10.44"},
                         {"IdentityModel", "6.0.0" },
@@ -244,14 +244,17 @@ Known structure properties:
                         {"Swashbuckle.AspNetCore", "6.2.3"},
                         {"SSH.NET", "2020.0.1"},
                         {"Nito.AsyncEx", "5.1.2"},
-                        {"System.Linq.Dynamic.Core", "1.2.17"},
+                        {"System.Linq.Dynamic.Core", "1.2.18"},
                         {"system.text.encoding.codepages", "6.0.0"},
+                        {"Microsoft.IdentityModel.Tokens", "6.16.0"}
                     };
                     TargetFramework = "net6.0";
                     RemoveNugetReferences = new List<string>
                     {
                         "Microsoft.AspNetCore.OData.Versioning.ApiExplorer",
-                        "Microsoft.AspNetCore.Mvc.Versioning"
+                        "Microsoft.AspNetCore.Mvc.Versioning",
+                        "Microsoft.AspNetCore.OData.Versioning",
+                        "Microsoft.AspNetCore.SignalR"
                     };
                     break;
                 default:

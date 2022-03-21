@@ -176,8 +176,8 @@ namespace HarmonyCore.CliTool
                 }
 
                 var hasOdataVersioning = ProjectDoc.GetElementsByTagName("PackageReference").OfType<XmlNode>()
-                    .Any(node => node.Attributes["Include"]?.Value == "Microsoft.AspNetCore.OData.Versioning.ApiExplorer");
-                if (!hasOdataVersioning)
+                        .Any(node => node.Attributes["Include"]?.Value == "Microsoft.AspNetCore.OData.Versioning.ApiExplorer");
+                if (!hasOdataVersioning && _targetVersion.NugetReferences.ContainsKey("Microsoft.AspNetCore.OData.Versioning.ApiExplorer"))
                 {
                     var versioningReference = ProjectDoc.CreateElement("PackageReference");
                     var versioningReferenceName = ProjectDoc.CreateAttribute("Include");
@@ -221,6 +221,16 @@ namespace HarmonyCore.CliTool
                     fRef.Attributes.Append(fRefName);
                     fRef.Attributes.Append(fRefVersion);
                     firstItemGroup.AppendChild(fRef);
+                }
+            }
+
+            foreach(var refToRemove in removeNugetVersions)
+            {
+                var actualRef = ProjectDoc.GetElementsByTagName("PackageReference").OfType<XmlNode>()
+                    .FirstOrDefault(node => string.Compare(node.Attributes["Include"]?.Value, refToRemove, true) == 0);
+                if(actualRef != null)
+                {
+                    actualRef.ParentNode.RemoveChild(actualRef);
                 }
             }
         }
