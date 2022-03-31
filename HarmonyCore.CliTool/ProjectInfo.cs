@@ -224,6 +224,17 @@ namespace HarmonyCore.CliTool
                 }
             }
 
+            if(string.Compare(cleanFileName, "Services.Test", true) == 0)
+            {
+                var hasGenerateMain = ProjectDoc.GetElementsByTagName("ProvidesMainMethod").OfType<XmlNode>().Any();
+                if(!hasGenerateMain)
+                {
+                    var provideMainNode = ProjectDoc.CreateElement("ProvidesMainMethod");
+                    provideMainNode.InnerText = "true";
+                    firstPropertyGroup.AppendChild(provideMainNode);
+                }
+            }
+
             foreach(var refToRemove in removeNugetVersions)
             {
                 var actualRef = ProjectDoc.GetElementsByTagName("PackageReference").OfType<XmlNode>()

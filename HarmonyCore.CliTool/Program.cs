@@ -246,7 +246,8 @@ Known structure properties:
                         {"Nito.AsyncEx", "5.1.2"},
                         {"System.Linq.Dynamic.Core", "1.2.18"},
                         {"system.text.encoding.codepages", "6.0.0"},
-                        {"Microsoft.IdentityModel.Tokens", "6.16.0"}
+                        {"Microsoft.IdentityModel.Tokens", "6.16.0"},
+                        {"Newtonsoft.Json", "13.0.1"}
                     };
                     TargetFramework = "net6.0";
                     RemoveNugetReferences = new List<string>
