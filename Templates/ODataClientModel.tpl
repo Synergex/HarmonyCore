@@ -131,7 +131,7 @@ namespace <NAMESPACE>
 
     endclass
 
-    public class OData<StructureNoplural>
+    public class OData<StructureNoplural>Single
         
         {JsonProperty("odata.metadata")}
         public readwrite property Metadata, string
@@ -141,7 +141,7 @@ namespace <NAMESPACE>
 
     endclass
 
-    public class OData<StructurePlural>
+    public class OData<StructurePlural>Multiple
         
         {JsonProperty("odata.metadata")}
         public readwrite property Metadata, string

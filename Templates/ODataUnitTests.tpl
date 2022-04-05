@@ -81,7 +81,7 @@ namespace <NAMESPACE>
 
         {TestMethod}
         {TestCategory("<StructureNoplural> Tests - Read All")}
-        public method Get<StructurePlural>, void
+        public method GetAll<StructurePlural>, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
     <IF DEFINED_ENABLE_AUTHENTICATION>
@@ -90,7 +90,7 @@ namespace <NAMESPACE>
             disposable data response = client.GetAsync("/odata/v<API_VERSION>/<StructurePlural>").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data <structurePlural>, @OData<StructurePlural>, JsonConvert.DeserializeObject<OData<StructurePlural>>(result)
+            data <structurePlural>, @OData<StructurePlural>Multiple, JsonConvert.DeserializeObject<OData<StructurePlural>Multiple>(result)
             Assert.AreEqual(<structurePlural>.Value.Count,TestConstants.Instance.Get<StructurePlural>_Count)
         endmethod
 ;//
@@ -105,7 +105,7 @@ namespace <NAMESPACE>
 
         {TestMethod}
         {TestCategory("<StructureNoplural> Tests - Read All")}
-        public method Get<StructurePlural>_Expand_<HARMONYCORE_RELATION_NAME>, void
+        public method GetAll<StructurePlural>_Expand_<HARMONYCORE_RELATION_NAME>, void
         proc
             data uri = "/odata/v<API_VERSION>/<StructurePlural>?$expand=<HARMONYCORE_RELATION_NAME>"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
@@ -123,7 +123,7 @@ namespace <NAMESPACE>
 
         {TestMethod}
         {TestCategory("<StructureNoplural> Tests - Read All")}
-        public method Get<StructurePlural>_Expand_All, void
+        public method GetAll<StructurePlural>_Expand_All, void
         proc
             data uri = "/odata/v<API_VERSION>/<StructurePlural>?$expand=<RELATION_LOOP_RESTRICTED><HARMONYCORE_RELATION_NAME><,></RELATION_LOOP_RESTRICTED>"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
@@ -147,7 +147,7 @@ namespace <NAMESPACE>
 
         {TestMethod}
         {TestCategory("<StructureNoplural> Tests - Read by Primary Key")}
-        public method Get<StructureNoplural>, void
+        public method GetOne<StructureNoplural>, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
     <IF DEFINED_ENABLE_AUTHENTICATION>
@@ -157,7 +157,7 @@ namespace <NAMESPACE>
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data <structureNoplural>, @OData<StructureNoplural>, JsonConvert.DeserializeObject<OData<StructureNoplural>>(result)
+            data <structureNoplural>, @OData<StructureNoplural>Single, JsonConvert.DeserializeObject<OData<StructureNoplural>Single>(result)
         endmethod
 ;//
 ;//
@@ -170,7 +170,7 @@ namespace <NAMESPACE>
 
         {TestMethod}
         {TestCategory("<StructureNoplural> Tests - Read by Primary Key")}
-        public method Get<StructureNoplural>_Expand_<HARMONYCORE_RELATION_NAME>, void
+        public method GetOne<StructureNoplural>_Expand_<HARMONYCORE_RELATION_NAME>, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
         <IF DEFINED_ENABLE_AUTHENTICATION>
@@ -180,7 +180,7 @@ namespace <NAMESPACE>
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data <structureNoplural>, @OData<StructureNoplural>, JsonConvert.DeserializeObject<OData<StructureNoplural>>(result)
+            data <structureNoplural>, @OData<StructureNoplural>Single, JsonConvert.DeserializeObject<OData<StructureNoplural>Single>(result)
         endmethod
       </RELATION_LOOP_RESTRICTED>
 
@@ -189,7 +189,7 @@ namespace <NAMESPACE>
 
         {TestMethod}
         {TestCategory("<StructureNoplural> Tests - Read by Primary Key")}
-        public method Get<StructureNoplural>_Expand_All, void
+        public method GetOne<StructureNoplural>_Expand_All, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
       <IF DEFINED_ENABLE_AUTHENTICATION>
@@ -199,7 +199,7 @@ namespace <NAMESPACE>
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data <structureNoplural>, @OData<StructureNoplural>, JsonConvert.DeserializeObject<OData<StructureNoplural>>(result)
+            data <structureNoplural>, @OData<StructureNoplural>Single, JsonConvert.DeserializeObject<OData<StructureNoplural>Single>(result)
         endmethod
     </IF>
   </IF DEFINED_ENABLE_GET_ONE>
@@ -225,7 +225,7 @@ namespace <NAMESPACE>
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data <structurePlural>, @OData<StructurePlural>,JsonConvert.DeserializeObject<OData<StructurePlural>>(result)
+            data <structurePlural>, @OData<StructurePlural>Multiple,JsonConvert.DeserializeObject<OData<StructurePlural>Multiple>(result)
         endmethod
     </IF DUPLICATES>
     </ALTERNATE_KEY_LOOP_UNIQUE>
@@ -306,7 +306,7 @@ namespace <NAMESPACE>
 
             ;;Deserialize the JSON into a <StructureNoplural> object
             <IF NOT STRUCTURE_HAS_UNIQUE_KEY>
-            data results = JsonConvert.DeserializeObject<OData<StructureNoplural>>(getResult).Value
+            data results = JsonConvert.DeserializeObject<OData<StructureNoplural>Single>(getResult).Value
             data resultItem, @<StructureNoplural>
             do<StructureNoplural> = results[0]
 
@@ -467,7 +467,7 @@ namespace <NAMESPACE>
 ;//            data response = client.GetAsync(request).Result
 ;//            data result = response.Content.ReadAsStringAsync().Result
 ;//            response.EnsureSuccessStatusCode()
-;//            data <structureNoplural>, @OData<StructureNoplural>, JsonConvert.DeserializeObject<OData<StructureNoplural>>(result)
+;//            data <structureNoplural>, @OData<StructureNoplural>Single, JsonConvert.DeserializeObject<OData<StructureNoplural>Single>(result)
 ;//        endmethod
 ;//  </IF MULTIPLE_SEGMENTS>
 ;//</PRIMARY_KEY>
