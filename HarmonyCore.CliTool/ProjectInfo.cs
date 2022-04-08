@@ -51,7 +51,7 @@ namespace HarmonyCore.CliTool
             {
                 runtimeFrameworkVersion.ParentNode.RemoveChild(runtimeFrameworkVersion);
             }
-            
+
             var importNodes = new List<XmlNode>();
             foreach (var import in ProjectDoc.GetElementsByTagName("Import").OfType<XmlNode>().ToList())
             {
@@ -73,73 +73,13 @@ namespace HarmonyCore.CliTool
             {
                 import.ParentNode.RemoveChild(import);
             }
-            
-            
-            //look for bad explicit nuget pathing
-            //switch to this style of rps target
-            //<Import Condition="Exists('$(MSBuildExtensionsPath)\Synergex\dbl\Synergex.SynergyDE.Repository.targets')" Project="$(MSBuildExtensionsPath)\Synergex\dbl\Synergex.SynergyDE.Repository.targets" />
-            //<Import Condition="!Exists('$(MSBuildExtensionsPath)\Synergex\dbl\Synergex.SynergyDE.Repository.targets')" Project="$(MSBuildProgramFiles32)\MSBuild\Synergex\dbl\Synergex.SynergyDE.Repository.targets" />
-            if (string.Compare(cleanFileName, "Repository", StringComparison.OrdinalIgnoreCase) == 0)
-            {
-                var hasRepositoryTargets = false;
-                var imports = ProjectDoc.GetElementsByTagName("Import").OfType<XmlNode>().ToList();
-                foreach (var import in imports)
-                {
-                    var projectPath = import.Attributes["Project"]?.Value ?? "";
-                    if (projectPath.Contains("Synergex.SynergyDE.Build.targets") || projectPath.Contains("Synergex.SynergyDE.Repository.targets"))
-                    {
-                        import.ParentNode.RemoveChild(import);
-                    }
-                    //else if (string.Compare(projectPath ,
-                    //    "$(MSBuildProgramFiles32)\\MSBuild\\Synergex\\dbl\\Synergex.SynergyDE.Repository.targets", 
-                    //    StringComparison.OrdinalIgnoreCase) == 0)
-                    //{
-                    //    hasRepositoryTargets = true;
-                    //}
-                    //else if (string.Compare(projectPath,
-                    //    "$(ProgramFilesx86)\\MSBuild\\Synergex\\dbl\\Synergex.SynergyDE.Repository.targets",
-                    //    StringComparison.OrdinalIgnoreCase) == 0)
-                    //{
-                    //    hasRepositoryTargets = true;
-                    //    import.Attributes["Project"].Value = "$(MSBuildProgramFiles32)\\MSBuild\\Synergex\\dbl\\Synergex.SynergyDE.Repository.targets";
-                    //    import.Attributes["Condition"].Value = "!Exists('$(MSBuildExtensionsPath)\\Synergex\\dbl\\Synergex.SynergyDE.Repository.targets')";
-                    //}
-                }
 
-                var targets = ProjectDoc.GetElementsByTagName("Target").OfType<XmlNode>().ToList();
-                foreach (var target in targets)
-                {
-                    var targetNameAttr = target.Attributes["Name"];
-                    if (string.Compare(targetNameAttr?.Value, "EnsureNuGetPackageBuildImports",
-                        StringComparison.OrdinalIgnoreCase) == 0)
-                    {
-                        target.ParentNode.RemoveChild(target);
-                    }
-                }
+            FixRPS(ProjectDoc, _targetVersion.BuildPackageVersion, cleanFileName);
 
-                var importFragment = ProjectDoc.CreateElement("Import", ProjectDoc.DocumentElement.NamespaceURI);
-                var projectAttr = ProjectDoc.CreateAttribute("Project");
-                projectAttr.Value = $"$(USERPROFILE)\\.nuget\\packages\\synergex.synergyde.build\\{_targetVersion.BuildPackageVersion}\\build\\rps\\Synergex.SynergyDE.Build.targets";
-                var conditionAttr = ProjectDoc.CreateAttribute("Condition");
-                conditionAttr.Value = $"Exists('$(USERPROFILE)\\.nuget\\packages\\synergex.synergyde.build\\{_targetVersion.BuildPackageVersion}\\build\\rps\\Synergex.SynergyDE.Build.targets')";
-                importFragment.Attributes.Append(projectAttr);
-                importFragment.Attributes.Append(conditionAttr);
-                var targetFragment = ProjectDoc.CreateElement("Project", ProjectDoc.DocumentElement.NamespaceURI);
-                targetFragment.InnerXml = $"<Target Name=\"EnsureNuGetPackageBuildImports\" BeforeTargets=\"PrepareForBuild\" xmlns=\"{ProjectDoc.DocumentElement.NamespaceURI}\">\r\n" +
-                                          "<PropertyGroup>\r\n" +
-                                          "<ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>\r\n" +
-                                          "</PropertyGroup>\r\n" +
-                                          $"<Error Condition=\"!Exists('$(USERPROFILE)\\.nuget\\packages\\synergex.synergyde.build\\{_targetVersion.BuildPackageVersion}\\build\\rps\\Synergex.SynergyDE.Build.targets')\" Text=\"$([System.String]::Format('$(ErrorText)', '$(USERPROFILE)\\.nuget\\packages\\synergex.synergyde.build\\{_targetVersion.BuildPackageVersion}\\build\\rps\\Synergex.SynergyDE.Build.targets'))\" />\r\n" +
-                                          "</Target>";
-                
-                var importedElement = ProjectDoc.DocumentElement.AppendChild(importFragment);
-                var targetElement = ProjectDoc.DocumentElement.AppendChild(targetFragment.FirstChild);
-            }
-            
-            
+
             //switch .net standard 2.0 projects to netcoreapp3.1
             var targetFramework = ProjectDoc.GetElementsByTagName("TargetFramework").OfType<XmlNode>().FirstOrDefault();
-            
+
             if (targetFramework != null)
             {
                 targetFramework.InnerText = _targetVersion.TargetFramework;
@@ -152,12 +92,7 @@ namespace HarmonyCore.CliTool
                 ProjectDoc.DocumentElement.AppendChild(firstItemGroup);
             }
 
-            var firstPropertyGroup = ProjectDoc.GetElementsByTagName("PropertyGroup").OfType<XmlNode>().FirstOrDefault();
-            if (firstPropertyGroup == null)
-            {
-                firstPropertyGroup = ProjectDoc.CreateElement("PropertyGroup");
-                ProjectDoc.DocumentElement.AppendChild(firstPropertyGroup);
-            }
+            XmlNode firstPropertyGroup = EnsurePropertyGroup(ProjectDoc);
 
             //upgrade Host and test to Web sdk if needed
             //Add SDK reference to Services.Controllers
@@ -224,10 +159,10 @@ namespace HarmonyCore.CliTool
                 }
             }
 
-            if(string.Compare(cleanFileName, "Services.Test", true) == 0)
+            if (string.Compare(cleanFileName, "Services.Test", true) == 0 || string.Compare(cleanFileName, "Services.Host", true) == 0)
             {
                 var hasGenerateMain = ProjectDoc.GetElementsByTagName("ProvidesMainMethod").OfType<XmlNode>().Any();
-                if(!hasGenerateMain)
+                if (!hasGenerateMain)
                 {
                     var provideMainNode = ProjectDoc.CreateElement("ProvidesMainMethod");
                     provideMainNode.InnerText = "true";
@@ -235,14 +170,100 @@ namespace HarmonyCore.CliTool
                 }
             }
 
-            foreach(var refToRemove in removeNugetVersions)
+            foreach (var refToRemove in removeNugetVersions)
             {
                 var actualRef = ProjectDoc.GetElementsByTagName("PackageReference").OfType<XmlNode>()
                     .FirstOrDefault(node => string.Compare(node.Attributes["Include"]?.Value, refToRemove, true) == 0);
-                if(actualRef != null)
+                if (actualRef != null)
                 {
                     actualRef.ParentNode.RemoveChild(actualRef);
                 }
+            }
+        }
+
+        private static XmlNode EnsurePropertyGroup(XmlDocument projectDoc)
+        {
+            var firstPropertyGroup = projectDoc.GetElementsByTagName("PropertyGroup").OfType<XmlNode>().FirstOrDefault();
+            if (firstPropertyGroup == null)
+            {
+                firstPropertyGroup = projectDoc.CreateElement("PropertyGroup", projectDoc.DocumentElement.NamespaceURI);
+                projectDoc.DocumentElement.AppendChild(firstPropertyGroup);
+            }
+
+            return firstPropertyGroup;
+        }
+
+        public static void FixRPS(XmlDocument projectDoc, string targetVersion, string cleanFileName)
+        {
+            //look for bad explicit nuget pathing
+            //switch to this style of rps target
+            //<Import Condition="Exists('$(MSBuildExtensionsPath)\Synergex\dbl\Synergex.SynergyDE.Repository.targets')" Project="$(MSBuildExtensionsPath)\Synergex\dbl\Synergex.SynergyDE.Repository.targets" />
+            //<Import Condition="!Exists('$(MSBuildExtensionsPath)\Synergex\dbl\Synergex.SynergyDE.Repository.targets')" Project="$(MSBuildProgramFiles32)\MSBuild\Synergex\dbl\Synergex.SynergyDE.Repository.targets" />
+            if (string.Compare(cleanFileName, "Repository", StringComparison.OrdinalIgnoreCase) == 0)
+            {
+                var targetMonikerElement = projectDoc.GetElementsByTagName("NugetTargetMoniker").OfType<XmlNode>().FirstOrDefault();
+                XmlNode firstPropertyGroup = EnsurePropertyGroup(projectDoc);
+
+                if(targetMonikerElement == null)
+                {
+                    targetMonikerElement = projectDoc.CreateElement("NugetTargetMoniker", projectDoc.DocumentElement.NamespaceURI);
+                    targetMonikerElement.InnerText = "RPS,Version=1.0";
+                    firstPropertyGroup.AppendChild(targetMonikerElement);
+                }
+
+                var hasRepositoryTargets = false;
+                var imports = projectDoc.GetElementsByTagName("Import").OfType<XmlNode>().ToList();
+                foreach (var import in imports)
+                {
+                    var projectPath = import.Attributes["Project"]?.Value ?? "";
+                    if (projectPath.Contains("Synergex.SynergyDE.Build.targets") || projectPath.Contains("Synergex.SynergyDE.Repository.targets"))
+                    {
+                        import.ParentNode.RemoveChild(import);
+                    }
+                    //else if (string.Compare(projectPath ,
+                    //    "$(MSBuildProgramFiles32)\\MSBuild\\Synergex\\dbl\\Synergex.SynergyDE.Repository.targets", 
+                    //    StringComparison.OrdinalIgnoreCase) == 0)
+                    //{
+                    //    hasRepositoryTargets = true;
+                    //}
+                    //else if (string.Compare(projectPath,
+                    //    "$(ProgramFilesx86)\\MSBuild\\Synergex\\dbl\\Synergex.SynergyDE.Repository.targets",
+                    //    StringComparison.OrdinalIgnoreCase) == 0)
+                    //{
+                    //    hasRepositoryTargets = true;
+                    //    import.Attributes["Project"].Value = "$(MSBuildProgramFiles32)\\MSBuild\\Synergex\\dbl\\Synergex.SynergyDE.Repository.targets";
+                    //    import.Attributes["Condition"].Value = "!Exists('$(MSBuildExtensionsPath)\\Synergex\\dbl\\Synergex.SynergyDE.Repository.targets')";
+                    //}
+                }
+
+                var targets = projectDoc.GetElementsByTagName("Target").OfType<XmlNode>().ToList();
+                foreach (var target in targets)
+                {
+                    var targetNameAttr = target.Attributes["Name"];
+                    if (string.Compare(targetNameAttr?.Value, "EnsureNuGetPackageBuildImports",
+                        StringComparison.OrdinalIgnoreCase) == 0)
+                    {
+                        target.ParentNode.RemoveChild(target);
+                    }
+                }
+
+                var importFragment = projectDoc.CreateElement("Import", projectDoc.DocumentElement.NamespaceURI);
+                var projectAttr = projectDoc.CreateAttribute("Project");
+                projectAttr.Value = $"$(USERPROFILE)\\.nuget\\packages\\synergex.synergyde.build\\{targetVersion}\\build\\rps\\Synergex.SynergyDE.Build.targets";
+                var conditionAttr = projectDoc.CreateAttribute("Condition");
+                conditionAttr.Value = $"Exists('$(USERPROFILE)\\.nuget\\packages\\synergex.synergyde.build\\{targetVersion}\\build\\rps\\Synergex.SynergyDE.Build.targets')";
+                importFragment.Attributes.Append(projectAttr);
+                importFragment.Attributes.Append(conditionAttr);
+                var targetFragment = projectDoc.CreateElement("Project", projectDoc.DocumentElement.NamespaceURI);
+                targetFragment.InnerXml = $"<Target Name=\"EnsureNuGetPackageBuildImports\" BeforeTargets=\"PrepareForBuild\" xmlns=\"{projectDoc.DocumentElement.NamespaceURI}\">\r\n" +
+                                          "<PropertyGroup>\r\n" +
+                                          "<ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>\r\n" +
+                                          "</PropertyGroup>\r\n" +
+                                          $"<Error Condition=\"!Exists('$(USERPROFILE)\\.nuget\\packages\\synergex.synergyde.build\\{targetVersion}\\build\\rps\\Synergex.SynergyDE.Build.targets')\" Text=\"$([System.String]::Format('$(ErrorText)', '$(USERPROFILE)\\.nuget\\packages\\synergex.synergyde.build\\{targetVersion}\\build\\rps\\Synergex.SynergyDE.Build.targets'))\" />\r\n" +
+                                          "</Target>";
+
+                var importedElement = projectDoc.DocumentElement.AppendChild(importFragment);
+                var targetElement = projectDoc.DocumentElement.AppendChild(targetFragment.FirstChild);
             }
         }
 

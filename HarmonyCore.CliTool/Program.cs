@@ -21,6 +21,10 @@ namespace HarmonyCore.CliTool
     internal class GUIOptions
     {
     }
+    [Verb("reload-bat", false)]
+    internal class ReloadBatOptions
+    {
+    }
     [Verb("upgrade-latest")]
     class UpgradeLatestOptions
     {
@@ -104,6 +108,12 @@ Known structure properties:
     [Verb("regen")]
     class RegenOptions
     {
+        [Option('s',Default = null, Required = false, Separator = ',', HelpText = "Specify the list of structures, separated by a comma")]
+        public IEnumerable<string> Structures { get; set; }
+        [Option('i', Default = null, Required = false, Separator = ',', HelpText = "Specify the list of interfaces, separated by a comma")]
+        public IEnumerable<string> Interfaces { get; set; }
+        [Option('g', Default = null, Required = false, Separator = ',', HelpText = "Specify the list of generators, separated by a comma")]
+        public IEnumerable<string> Generators { get; set; }
     }
 
     [Verb("xmlgen")]
@@ -211,7 +221,7 @@ Known structure properties:
                     break;
 
                 case 6:
-                    HCBuildVersion = "6.0.8";
+                    HCBuildVersion = "6.0.9";
                     BuildPackageVersion = "22.3.1080";
                     HCRegenRequiredVersions = new List<string>
                     {
@@ -247,7 +257,8 @@ Known structure properties:
                         {"System.Linq.Dynamic.Core", "1.2.18"},
                         {"system.text.encoding.codepages", "6.0.0"},
                         {"Microsoft.IdentityModel.Tokens", "6.16.0"},
-                        {"Newtonsoft.Json", "13.0.1"}
+                        {"Newtonsoft.Json", "13.0.1"},
+                        {"System.ComponentModel.Annotations", "5.0.0" }
                     };
                     TargetFramework = "net6.0";
                     RemoveNugetReferences = new List<string>
@@ -338,8 +349,8 @@ Known structure properties:
 
             ResetConsoleMode(handle, mode);
 
-            _ = Parser.Default.ParseArguments<UpgradeLatestOptions, CodegenListOptions, CodegenAddOptions, CodegenRemoveOptions, RpsOptions, RegenOptions, XMLGenOptions, GUIOptions>(args)
-            .MapResult<UpgradeLatestOptions, CodegenListOptions, CodegenAddOptions, CodegenRemoveOptions, RpsOptions, RegenOptions, XMLGenOptions, GUIOptions, int>(
+            _ = Parser.Default.ParseArguments<UpgradeLatestOptions, CodegenListOptions, CodegenAddOptions, CodegenRemoveOptions, RpsOptions, RegenOptions, XMLGenOptions, GUIOptions, ReloadBatOptions>(args)
+            .MapResult<UpgradeLatestOptions, CodegenListOptions, CodegenAddOptions, CodegenRemoveOptions, RpsOptions, RegenOptions, XMLGenOptions, GUIOptions, ReloadBatOptions, int>(
 
               (UpgradeLatestOptions opts) =>
               {
@@ -367,6 +378,14 @@ Known structure properties:
               new RegenCommand(solutionInfo).Run,
               new XMLGenCommand().Run,
               new GUICommand(solutionInfo).Run,
+              (ReloadBatOptions opts) =>
+              {
+                  var regenPath = Path.Combine(solutionInfo.SolutionDir, "regen.bat");
+                  var regenConfigPath = Path.Combine(solutionInfo.SolutionDir, "regen_config.bat");
+                  var userTokenFile = Path.Combine(solutionInfo.SolutionDir, "UserDefinedTokens.tkn");
+                  solutionInfo.LoadFromBat(solutionInfo.SolutionDir, File.Exists(regenPath) ? regenPath : regenConfigPath, userTokenFile);
+                  return 0;
+              },
               errs =>
               {
                   foreach (var error in errs)
