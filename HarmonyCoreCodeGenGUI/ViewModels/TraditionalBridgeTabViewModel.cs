@@ -7,25 +7,23 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
 {
     public class TraditionalBridgeTabViewModel : ObservableObject
     {
+        public TraditionalBridgeTabViewModel(Solution solution)
+        {
+            ControllersProject = solution.ControllersProject;
+            IsolatedProject = solution.IsolatedProject;
+            ModelsProject = solution.ModelsProject;
+            SelfHostProject = solution.SelfHostProject;
+            ServicesProject = solution.ServicesProject;
+            TraditionalBridgeProject = solution.TraditionalBridgeProject;
+            UnitTestProject = solution.UnitTestProject;
+
+            EnableOptionalParameters = solution.TraditionalBridge?.EnableOptionalParameters;
+            EnableSampleDispatchers = solution.TraditionalBridge?.EnableSampleDispatchers;
+            EnableXFServerPlusMigration = solution.TraditionalBridge?.EnableXFServerPlusMigration;
+        }
         public TraditionalBridgeTabViewModel()
         {
-            // Initial state
-            StrongReferenceMessenger.Default.Register<Solution>(this, (obj, sender) => {
-                ControllersProject = sender.ControllersProject;
-                IsolatedProject = sender.IsolatedProject;
-                ModelsProject = sender.ModelsProject;
-                SelfHostProject = sender.SelfHostProject;
-                ServicesProject = sender.ServicesProject;
-                TraditionalBridgeProject = sender.TraditionalBridgeProject;
-                UnitTestProject = sender.UnitTestProject;
-
-                EnableOptionalParameters = sender.TraditionalBridge?.EnableOptionalParameters;
-                EnableSampleDispatchers = sender.TraditionalBridge?.EnableSampleDispatchers;
-                EnableXFServerPlusMigration = sender.TraditionalBridge?.EnableXFServerPlusMigration;
-            });
-
-            // Send updated state
-            StrongReferenceMessenger.Default.Register<NotificationMessageAction<TraditionalBridgeTabViewModel>>(this, (obj, sender) => sender.callback(this));
+            
         }
 
         #region ControllersProject

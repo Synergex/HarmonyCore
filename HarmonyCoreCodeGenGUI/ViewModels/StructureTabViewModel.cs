@@ -7,17 +7,16 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
 {
     public class StructureTabViewModel : ObservableObject
     {
+        public StructureTabViewModel(Solution solution)
+        {
+            RPSMFIL = solution.RPSMFIL;
+            RPSTFIL = solution.RPSTFIL;
+            RepositoryProject = solution.RepositoryProject;
+        }
+
         public StructureTabViewModel()
         {
-            // Initial state
-            StrongReferenceMessenger.Default.Register<Solution>(this, (obj, sender) => {
-                RPSMFIL = sender.RPSMFIL;
-                RPSTFIL = sender.RPSTFIL;
-                RepositoryProject = sender.RepositoryProject;
-            });
-
-            // Send updated state
-            StrongReferenceMessenger.Default.Register<NotificationMessageAction<StructureTabViewModel>>(this, (obj, sender) => sender.callback(this));
+            
         }
 
         #region RPSMFIL

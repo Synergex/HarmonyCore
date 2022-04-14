@@ -10,21 +10,18 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
 {
     public class InterfacesTabViewModel : ObservableObject
     {
+        public InterfacesTabViewModel(Solution solution)
+        {
+            XFServerSMCPath = solution.TraditionalBridge?.XFServerSMCPath;
+            if (solution.ExtendedInterfaces != null)
+            {
+                ExtendedInterfaces.Clear();
+                ExtendedInterfaces.AddRange(solution.ExtendedInterfaces);
+            }
+        }
         public InterfacesTabViewModel()
         {
-            // Initial state
-            StrongReferenceMessenger.Default.Register<Solution>(this, (obj, sender) =>
-            {
-                XFServerSMCPath = sender.TraditionalBridge?.XFServerSMCPath;
-                if (sender.ExtendedInterfaces != null)
-                {
-                    ExtendedInterfaces.Clear();
-                    ExtendedInterfaces.AddRange(sender.ExtendedInterfaces);
-                }
-            });
-
-            // Send updated state
-            StrongReferenceMessenger.Default.Register<NotificationMessageAction<InterfacesTabViewModel>>(this, (obj, sender) => sender.callback(this));
+            
         }
 
         #region XFServerSMCPath

@@ -13,88 +13,87 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
 {
     public class ODataTabViewModel : ObservableObject
     {
+        public ODataTabViewModel(Solution solution)
+        {
+            OAuthApi = solution.OAuthApi;
+            OAuthClient = solution.OAuthClient;
+            OAuthSecret = solution.OAuthSecret;
+            OAuthServer = solution.OAuthServer;
+            OAuthTestUser = solution.OAuthTestUser;
+            OAuthTestPassword = solution.OAuthTestPassword;
+
+            CustomAuthController = solution.CustomAuthController;
+            CustomAuthEndpointPath = solution.CustomAuthEndpointPath;
+            CustomAuthUserName = solution.CustomAuthUserName;
+            CustomAuthPassword = solution.CustomAuthPassword;
+
+            APIContactEmail = solution.APIContactEmail;
+            APIContactName = solution.APIContactName;
+            APIDescription = solution.APIDescription;
+            APIDocsPath = solution.APIDocsPath;
+            APIEnableQueryParams = solution.APIEnableQueryParams;
+            APILicenseName = solution.APILicenseName;
+            if (solution.APILicenseUrl != null)
+                APILicenseUrl = new Uri(solution.APILicenseUrl);
+            APITerms = solution.APITerms;
+            APITitle = solution.APITitle;
+            APIVersion = solution.APIVersion;
+
+            ServerBasePath = solution.ServerBasePath;
+            ServerName = solution.ServerName;
+            ServerHttpPort = solution.ServerHttpPort;
+            ServerHttpsPort = solution.ServerHttpsPort;
+            ServerProtocol = solution.ServerProtocol;
+
+            AlternateKeyEndpoints = solution.AlternateKeyEndpoints;
+            CollectionCountEndpoints = solution.CollectionCountEndpoints;
+            DeleteEndpoints = solution.DeleteEndpoints;
+            DocumentPropertyEndpoints = solution.DocumentPropertyEndpoints;
+            FullCollectionEndpoints = solution.FullCollectionEndpoints;
+            IndividualPropertyEndpoints = solution.IndividualPropertyEndpoints;
+            PatchEndpoints = solution.PatchEndpoints;
+            PostEndpoints = solution.PostEndpoints;
+            PrimaryKeyEndpoints = solution.PrimaryKeyEndpoints;
+            PutEndpoints = solution.PutEndpoints;
+
+            GenerateOData = solution.GenerateOData;
+            GeneratePostmanTests = solution.GeneratePostmanTests;
+            GenerateSelfHost = solution.GenerateSelfHost;
+            GenerateUnitTests = solution.GenerateUnitTests;
+
+            ODataFilter = solution.ODataFilter;
+            ODataOrderBy = solution.ODataOrderBy;
+            ODataRelations = solution.ODataRelations;
+            ODataRelationValidation = solution.ODataRelationValidation;
+            ODataSelect = solution.ODataSelect;
+            ODataSkip = solution.ODataSkip;
+            ODataTop = solution.ODataTop;
+
+            AdapterRouting = solution.AdapterRouting;
+            AlternateFieldNames = solution.AlternateFieldNames;
+            Authentication = solution.Authentication;
+            CaseSensitiveUrls = solution.CaseSensitiveUrls;
+            CreateTestFiles = solution.CreateTestFiles;
+
+            CrossDomainBrowsing = solution.CrossDomainBrowsing;
+            CustomAuthentication = solution.CustomAuthentication;
+            DisableFileLogicals = solution.DisableFileLogicals;
+            FieldOverlays = solution.FieldOverlays;
+            FieldSecurity = solution.FieldSecurity;
+
+            IISSupport = solution.IISSupport;
+            ReadOnlyProperties = solution.ReadOnlyProperties;
+            SmcPostmanTests = solution.SmcPostmanTests;
+            SmcSignalRHubs = solution.SmcSignalRHubs;
+            StoredProcedureRouting = solution.StoredProcedureRouting;
+
+            if (solution.VersioningOrSwagger != null)
+                VersioningOrSwagger = (VersioningOrSwaggerModeEnum)(int)solution.VersioningOrSwagger;
+
+        }
         public ODataTabViewModel()
         {
-            // Initial state
-            StrongReferenceMessenger.Default.Register<Solution>(this, (obj, sender) => {
-                OAuthApi = sender.OAuthApi;
-                OAuthClient = sender.OAuthClient;
-                OAuthSecret = sender.OAuthSecret;
-                OAuthServer = sender.OAuthServer;
-                OAuthTestUser = sender.OAuthTestUser;
-                OAuthTestPassword = sender.OAuthTestPassword;
-
-                CustomAuthController = sender.CustomAuthController;
-                CustomAuthEndpointPath = sender.CustomAuthEndpointPath;
-                CustomAuthUserName = sender.CustomAuthUserName;
-                CustomAuthPassword = sender.CustomAuthPassword;
-
-                APIContactEmail = sender.APIContactEmail;
-                APIContactName = sender.APIContactName;
-                APIDescription = sender.APIDescription;
-                APIDocsPath = sender.APIDocsPath;
-                APIEnableQueryParams = sender.APIEnableQueryParams;
-                APILicenseName = sender.APILicenseName;
-                if (sender.APILicenseUrl != null)
-                    APILicenseUrl = new Uri(sender.APILicenseUrl);
-                APITerms = sender.APITerms;
-                APITitle = sender.APITitle;
-                APIVersion = sender.APIVersion;
-
-                ServerBasePath = sender.ServerBasePath;
-                ServerName = sender.ServerName;
-                ServerHttpPort = sender.ServerHttpPort;
-                ServerHttpsPort = sender.ServerHttpsPort;
-                ServerProtocol = sender.ServerProtocol;
-
-                AlternateKeyEndpoints = sender.AlternateKeyEndpoints;
-                CollectionCountEndpoints = sender.CollectionCountEndpoints;
-                DeleteEndpoints = sender.DeleteEndpoints;
-                DocumentPropertyEndpoints = sender.DocumentPropertyEndpoints;
-                FullCollectionEndpoints = sender.FullCollectionEndpoints;
-                IndividualPropertyEndpoints = sender.IndividualPropertyEndpoints;
-                PatchEndpoints = sender.PatchEndpoints;
-                PostEndpoints = sender.PostEndpoints;
-                PrimaryKeyEndpoints = sender.PrimaryKeyEndpoints;
-                PutEndpoints = sender.PutEndpoints;
-
-                GenerateOData = sender.GenerateOData;
-                GeneratePostmanTests = sender.GeneratePostmanTests;
-                GenerateSelfHost = sender.GenerateSelfHost;
-                GenerateUnitTests = sender.GenerateUnitTests;
-
-                ODataFilter = sender.ODataFilter;
-                ODataOrderBy = sender.ODataOrderBy;
-                ODataRelations = sender.ODataRelations;
-                ODataRelationValidation = sender.ODataRelationValidation;
-                ODataSelect = sender.ODataSelect;
-                ODataSkip = sender.ODataSkip;
-                ODataTop = sender.ODataTop;
-
-                AdapterRouting = sender.AdapterRouting;
-                AlternateFieldNames = sender.AlternateFieldNames;
-                Authentication = sender.Authentication;
-                CaseSensitiveUrls = sender.CaseSensitiveUrls;
-                CreateTestFiles = sender.CreateTestFiles;
-
-                CrossDomainBrowsing = sender.CrossDomainBrowsing;
-                CustomAuthentication = sender.CustomAuthentication;
-                DisableFileLogicals = sender.DisableFileLogicals;
-                FieldOverlays = sender.FieldOverlays;
-                FieldSecurity = sender.FieldSecurity;
-
-                IISSupport = sender.IISSupport;
-                ReadOnlyProperties = sender.ReadOnlyProperties;
-                SmcPostmanTests = sender.SmcPostmanTests;
-                SmcSignalRHubs = sender.SmcSignalRHubs;
-                StoredProcedureRouting = sender.StoredProcedureRouting;
-
-                if (sender.VersioningOrSwagger != null)
-                    VersioningOrSwagger = (VersioningOrSwaggerModeEnum)(int)sender.VersioningOrSwagger;
-            });
-
-            // Send updated state
-            StrongReferenceMessenger.Default.Register<NotificationMessageAction<ODataTabViewModel>>(this, (obj, sender) => sender.callback(this));
+            
         }
 
         #region OAuthApi

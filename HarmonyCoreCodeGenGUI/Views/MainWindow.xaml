@@ -6,6 +6,7 @@
         xmlns:view="clr-namespace:HarmonyCoreCodeGenGUI.Views"
         xmlns:vm="clr-namespace:HarmonyCoreCodeGenGUI.ViewModels"
         xmlns:props="clr-namespace:HarmonyCoreCodeGenGUI.Properties"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
         Title="{x:Static props:Resources.Title}"
         Width="950"
         Height="500"
@@ -60,36 +61,41 @@
             </StatusBarItem>
         </StatusBar>
         <TabControl Margin="10"
-                    SelectedIndex="{Binding TabControlSelectedIndex}">
-            <TabItem Visibility="Collapsed">
-                <TextBlock HorizontalAlignment="Center"
-                           VerticalAlignment="Center"
-                           Text="{Binding InstructionalTabTextBlockText}"/>
-            </TabItem>
-            <TabItem Header="Settings"
-                     Visibility="{Binding SettingsTabVisibility}">
-                <view:SettingsTab/>
-            </TabItem>
-            <TabItem Header="Structure"
-                     Visibility="{Binding StructureTabVisibility}">
-                <view:StructureTab/>
-            </TabItem>
-            <TabItem Header="Interfaces"
-                     Visibility="{Binding InterfacesTabVisibility}">
-                <view:InterfacesTab/>
-            </TabItem>
-            <TabItem Header="Entity Framework"
-                     Visibility="{Binding EntityFrameworkTabVisibility}">
-                <view:EntityFrameworkTab/>
-            </TabItem>
-            <TabItem Header="OData"
-                     Visibility="{Binding ODataTabVisibility}">
-                <view:ODataTab/>
-            </TabItem>
-            <TabItem Header="Traditional Bridge"
-                     Visibility="{Binding TraditionalBridgeTabVisibillity}">
-                <view:TraditionalBridgeTab/>
-            </TabItem>
+                    SelectedIndex="{Binding TabControlSelectedIndex}"
+                    ItemsSource="{Binding ActiveSettings}">
+            <TabControl.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding Header}" />
+                </DataTemplate>
+            </TabControl.ItemTemplate>
+            <TabControl.ContentTemplate>
+                <DataTemplate>
+                    <ContentControl Content="{Binding Value}">
+                        <ContentControl.Resources>
+                            <DataTemplate DataType="{x:Type vm:SettingsTabViewModel}">
+                                <view:SettingsTab />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type vm:ODataTabViewModel}">
+                                <view:ODataTab />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type vm:TraditionalBridgeTabViewModel}">
+                                <view:TraditionalBridgeTab />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type vm:StructureTabViewModel}">
+                                <view:StructureTab />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type vm:InterfacesTabViewModel}">
+                                <view:InterfacesTab />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type sys:String}">
+                                <TextBlock HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               Text="{Binding}"/>
+                            </DataTemplate>
+                        </ContentControl.Resources>
+                    </ContentControl>
+                </DataTemplate>
+            </TabControl.ContentTemplate>
         </TabControl>
     </DockPanel>
 </Window>

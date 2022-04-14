@@ -7,36 +7,34 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
 {
     public class SettingsTabViewModel : ObservableObject
     {
+        public SettingsTabViewModel(Solution solution)
+        {
+            EnableNewtonsoftJson = solution.EnableNewtonsoftJson;
+            SignalRPath = solution.SignalRPath;
+
+            ControllersFolder = solution.ControllersFolder;
+            DataFolder = solution.DataFolder;
+            IsolatedFolder = solution.IsolatedFolder;
+            ModelsFolder = solution.ModelsFolder;
+            SelfHostFolder = solution.SelfHostFolder;
+            ServicesFolder = solution.ServicesFolder;
+            SolutionFolder = solution.SolutionFolder;
+            TemplatesFolder = solution.TemplatesFolder;
+            TraditionalBridgeFolder = solution.TraditionalBridgeFolder;
+            UnitTestFolder = solution.UnitTestFolder;
+
+            ClientModelsNamespace = solution.ClientModelsNamespace;
+            ControllersNamespace = solution.ControllersNamespace;
+            ModelsNamespace = solution.ModelsNamespace;
+            SelfHostNamespace = solution.SelfHostNamespace;
+            ServicesNamespace = solution.ServicesNamespace;
+            TraditionalBridgeNamespace = solution.TraditionalBridgeNamespace;
+            UnitTestsBaseNamespace = solution.UnitTestsBaseNamespace;
+            UnitTestsNamespace = solution.UnitTestsNamespace;
+        }
         public SettingsTabViewModel()
         {
-            // Initial state
-            StrongReferenceMessenger.Default.Register<Solution>(this, (obj, solution) => {
-                EnableNewtonsoftJson = solution.EnableNewtonsoftJson;
-                SignalRPath = solution.SignalRPath;
-
-                ControllersFolder = solution.ControllersFolder;
-                DataFolder = solution.DataFolder;
-                IsolatedFolder = solution.IsolatedFolder;
-                ModelsFolder = solution.ModelsFolder;
-                SelfHostFolder = solution.SelfHostFolder;
-                ServicesFolder = solution.ServicesFolder;
-                SolutionFolder = solution.SolutionFolder;
-                TemplatesFolder = solution.TemplatesFolder;
-                TraditionalBridgeFolder = solution.TraditionalBridgeFolder;
-                UnitTestFolder = solution.UnitTestFolder;
-
-                ClientModelsNamespace = solution.ClientModelsNamespace;
-                ControllersNamespace = solution.ControllersNamespace;
-                ModelsNamespace = solution.ModelsNamespace;
-                SelfHostNamespace = solution.SelfHostNamespace;
-                ServicesNamespace = solution.ServicesNamespace;
-                TraditionalBridgeNamespace = solution.TraditionalBridgeNamespace;
-                UnitTestsBaseNamespace = solution.UnitTestsBaseNamespace;
-                UnitTestsNamespace = solution.UnitTestsNamespace;
-            });
-
-            // Send updated state
-            StrongReferenceMessenger.Default.Register<NotificationMessageAction<SettingsTabViewModel>>(this, (obj, sender) => sender.callback(this));
+            
         }
 
         #region EnableNewtonsoftJson

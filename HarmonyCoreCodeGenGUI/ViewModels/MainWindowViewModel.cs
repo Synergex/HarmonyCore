@@ -17,6 +17,9 @@ using System.Windows.Input;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Microsoft.Toolkit.Mvvm.Input;
 using System.Threading.Tasks;
+using System.Collections.ObjectModel;
+using HarmonyCoreCodeGenGUI.Models;
+using HarmonyCoreCodeGenGUI.Classes;
 
 namespace HarmonyCoreCodeGenGUI.ViewModels
 {
@@ -33,21 +36,51 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             if (cmdArgs.Length > 1)
             {
                 StatusBarTextBlockText = "Loading";
-                Task.Delay(100).ContinueWith((tsk) => LoadSolutionFile(cmdArgs[1]));
+                Task.Delay(100).ContinueWith((tsk) => LoadSolutionFile(cmdArgs[1]), TaskScheduler.FromCurrentSynchronizationContext());
             }
             else
             {
                 StatusBarTextBlockText = "Ready";
-                InstructionalTabTextBlockText = "Open a Harmony Core CodeGen JSON file to continue.";
+                ActiveSettings.Add(new TabViewModel("", "Open a Harmony Core CodeGen JSON file to continue."));
             }
-            SettingsTabVisibility = Visibility.Collapsed;
-            StructureTabVisibility = Visibility.Collapsed;
-            InterfacesTabVisibility = Visibility.Collapsed;
-            EntityFrameworkTabVisibility = Visibility.Collapsed;
-            TraditionalBridgeTabVisibillity = Visibility.Collapsed;
-            ODataTabVisibility = Visibility.Collapsed;
+        }
 
-            
+        public TabViewModel SettingsLoader(string settingsName)
+        {
+            switch(settingsName.ToLower())
+            {
+                case "odata":
+                    return new TabViewModel(settingsName, new ODataTabViewModel(_solution));
+                case "structures":
+                    return new TabViewModel(settingsName, new StructureTabViewModel(_solution));
+                case "interfaces":
+                    return new TabViewModel(settingsName, new InterfacesTabViewModel(_solution));
+                case "traditionalbridge":
+                    return new TabViewModel(settingsName, new TraditionalBridgeTabViewModel(_solution));
+                case "settings":
+                    return new TabViewModel(settingsName, new SettingsTabViewModel(_solution));
+                default:
+                    if(DynamicSettings.TryGetValue(settingsName, out var settingsBase))
+                    {
+                        return new TabViewModel(settingsName, settingsBase);
+                    }
+                    throw new NotImplementedException();
+            }
+
+        }
+        Dictionary<string, SettingsBase> DynamicSettings { get; set; }
+        public ObservableCollection<string> InactiveSettings { get; } = new ObservableCollection<string>();
+        public ObservableCollection<TabViewModel> ActiveSettings { get; } = new ObservableCollection<TabViewModel>();
+
+        public class TabViewModel
+        {
+            public TabViewModel(string header, object value)
+            {
+                Header = header;
+                Value = value;
+            }
+            public string Header { get; set; }
+            public object Value { get; set; }
         }
 
         #region Methods
@@ -73,7 +106,7 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
             }
         }
 
-        private void LoadSolutionFile(string fileName)
+        private async void LoadSolutionFile(string fileName)
         {
             StatusBarTextBlockText = "Loading...";
 
@@ -88,20 +121,44 @@ namespace HarmonyCoreCodeGenGUI.ViewModels
 
             if (_solution != null)
             {
+                DynamicSettings = await DynamicSettingsLoader.LoadDynamicSettings(_solution, Path.Combine(_solutionDir, "Generators", "Settings"));
                 StrongReferenceMessenger.Default.Send(_solution);
-
-                InstructionalTabTextBlockText = "Select a tab to continue.";
+                
+                //InstructionalTabTextBlockText = "Select a tab to continue.";
 
                 // Determine visibility of tabs
                 bool? hasOdata = _solution.ExtendedStructures?.Any(k => k.EnabledGenerators.Contains("ODataGenerator"));
                 bool? hasModels = _solution.ExtendedStructures?.Any(k => k.EnabledGenerators.Contains("ModelGenerator"));
                 bool? hasTraditionalBridge = _solution.TraditionalBridge?.EnableXFServerPlusMigration;
+                ActiveSettings.Clear();
+                ActiveSettings.Add(SettingsLoader("Settings"));
+                if (hasOdata == true && hasModels == true)
+                    ActiveSettings.Add(SettingsLoader("OData"));
+                else
+                    InactiveSettings.Add("OData");
 
-                SettingsTabVisibility = Visibility.Visible;
-                ODataTabVisibility = hasOdata == true && hasModels == true ? Visibility.Visible : Visibility.Collapsed;
-                StructureTabVisibility = hasOdata == true && hasModels == true ? Visibility.Visible : Visibility.Collapsed;
-                InterfacesTabVisibility = hasTraditionalBridge == true ? Visibility.Visible : Visibility.Collapsed;
-                TraditionalBridgeTabVisibillity = hasTraditionalBridge == true ? Visibility.Visible : Visibility.Collapsed;
+                if (hasOdata == true && hasModels == true)
+                    ActiveSettings.Add(SettingsLoader("Structures"));
+                else
+                    InactiveSettings.Add("Structures");
+
+                if (hasTraditionalBridge == true)
+                    ActiveSettings.Add(SettingsLoader("TraditionalBridge"));
+                else
+                    InactiveSettings.Add("TraditionalBridge");
+
+                if (_solution.ExtendedInterfaces?.Any(iface => iface.GenerateInterface ?? false) ?? false)
+                    ActiveSettings.Add(SettingsLoader("Interfaces"));
+                else
+                    InactiveSettings.Add("Interfaces");
+
+                foreach(var kvp in DynamicSettings)
+                {
+                    if (kvp.Value.IsEnabled(_solution))
+                        ActiveSettings.Add(new TabViewModel(kvp.Key, kvp.Value));
+                    else
+                        InactiveSettings.Add(kvp.Key);
+                }
 
                 SaveMenuItemIsEnabled = true;
                 CloseMenuItemIsEnabled = true;
