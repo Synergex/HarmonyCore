@@ -284,7 +284,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
   <ELSE INTEGER OR HATVAL>
             serializer.ArgumentData(0,returnValue,FieldDataType.IntegerField,<METHOD_RETURN_SIZE>,0,false)
   <ELSE STRING>
-            serializer.ArgumentData(0,%atrim(returnValue),FieldDataType.StringField,<METHOD_RETURN_SIZE>,0,false)
+            serializer.ArgumentData(0,returnValue,FieldDataType.StringField,<METHOD_RETURN_SIZE>,0,false)
   <ELSE ENUM>
             serializer.ArgumentData(0,(int)returnValue,FieldDataType.EnumField,<METHOD_RETURN_SIZE>,0,false)
   </IF>
