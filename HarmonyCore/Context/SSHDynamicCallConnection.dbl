@@ -346,6 +346,33 @@ namespace Harmony.Core.Context
 				mStream.Flush()
 			endmethod
 
+            private method ReadInternal, boolean
+                buffer, [#]byte 
+                offset, int 
+                count, int 
+                tcs, @TaskCompletionSource<int>
+            proc
+                Monitor.Enter(mStream)
+                try
+                begin
+                    if(mStream.DataAvailable && !tcs.Task.IsCompleted)
+                    begin
+						data readBytes = mStream.Read(buffer, offset, count)
+						DebugLogSession.Logging.LogDebug("SSHDynamicCallConnection id:{0} read ascii string: {1}", mConnectionId, new ASCIIArrayDebugLogHelper(buffer, offset, readBytes))
+                        tcs.TrySetResult(readBytes)
+						mreturn true
+                    end
+                end
+                finally
+                begin
+                    Monitor.Exit(mStream)
+                end
+                endtry
+
+				mreturn false
+            endmethod
+
+
 			public override method ReadAsync, @Task<int> 
 				buffer, [#]byte 
 				offset, int 
@@ -353,37 +380,34 @@ namespace Harmony.Core.Context
 				token, CancellationToken
 				endparams
 			proc
-				
-				if(mStream.DataAvailable) then
+				data tcs = new TaskCompletionSource<int>()
+                data handlerInstance, @EventHandler<ShellDataEventArgs>
+                data errorHandlerInstance, @EventHandler<ExceptionEventArgs>
+				lambda DataReceivedHandler(sender, args)
 				begin
-					data readBytes = mStream.Read(buffer, offset, count)
-					DebugLogSession.Logging.LogDebug("SSHDynamicCallConnection id:{0} read ascii string: {1}", mConnectionId, new ASCIIArrayDebugLogHelper(buffer, offset, readBytes))
-					mreturn Task.FromResult(readBytes)
+                    mStream.DataReceived -= handlerInstance
+                    mStream.ErrorOccurred -= errorHandlerInstance
+                    ReadInternal(buffer, offset, count, tcs)
 				end
-				else
-				begin
-					data tcs = new TaskCompletionSource<int>()
-					data handlerInstance, @EventHandler<ShellDataEventArgs>
-					lambda DataReceivedHandler(sender, args)
-					begin
-						mStream.DataReceived -= handlerInstance
-						data readBytes = mStream.Read(buffer, offset, count)
-						DebugLogSession.Logging.LogDebug("SSHDynamicCallConnection id:{0} read ascii string: {1}", mConnectionId, new ASCIIArrayDebugLogHelper(buffer, offset, readBytes))
-						tcs.TrySetResult(readBytes)
-					end
 
-					data errorHandlerInstance, @EventHandler<ExceptionEventArgs>
-					lambda ErrorHandler(sender, args)
-					begin
-						mStream.ErrorOccurred -= errorHandlerInstance
-						tcs.TrySetException(args.Exception)
-					end
-					handlerInstance = DataReceivedHandler
-					errorHandlerInstance = ErrorHandler
-					mStream.DataReceived += handlerInstance
-					mConnection.ErrorOccurred += errorHandlerInstance
-					mreturn tcs.Task
+				lambda ErrorHandler(sender, args)
+                begin
+                    mStream.DataReceived -= handlerInstance
+					mStream.ErrorOccurred -= errorHandlerInstance
+					tcs.TrySetException(args.Exception)
 				end
+				handlerInstance = DataReceivedHandler
+				errorHandlerInstance = ErrorHandler
+				mStream.DataReceived += handlerInstance
+                mConnection.ErrorOccurred += errorHandlerInstance
+
+                if(ReadInternal(buffer, offset, count, tcs))
+                begin
+                    mStream.DataReceived -= handlerInstance
+                    mStream.ErrorOccurred -= errorHandlerInstance
+                end
+
+				mreturn tcs.Task
 			endmethod
 
 			public override property CanTimeout, boolean
