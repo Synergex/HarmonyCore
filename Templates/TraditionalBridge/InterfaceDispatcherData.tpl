@@ -1,12 +1,13 @@
-<CODEGEN_FILENAME><INTERFACE_NAME>Dispatcher.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.8.1</REQUIRES_CODEGEN_VERSION>
+<CODEGEN_FILENAME><SMC_INTERFACE>DispatcherData.dbl</CODEGEN_FILENAME>
+<REQUIRES_USERTOKEN>SMC_INTERFACE</REQUIRES_USERTOKEN>
+<REQUIRES_CODEGEN_VERSION>5.4.6</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
-;// Title:       InterfaceDispatcher.tpl
+;// Title:       DispatcherData.tpl
 ;//
 ;// Type:        CodeGen Template
 ;//
-;// Description: Creates a class that declares dispacher classes for exposed methods
+;// Description: Creates a class that initializes all data object metadata
 ;//
 ;// Copyright (c) 2018, Synergex International, Inc. All rights reserved.
 ;//
@@ -34,9 +35,9 @@
 ;//
 ;;*****************************************************************************
 ;;
-;; Title:       <INTERFACE_NAME>Dispatcher.dbl
+;; Title:       <SMC_INTERFACE>DispatcherData.dbl
 ;;
-;; Description: Declares dispacher classes for exposed methods
+;; Description: Initializes all data object metadata
 ;;
 ;;*****************************************************************************
 ;; WARNING: GENERATED CODE!
@@ -45,31 +46,21 @@
 ;;*****************************************************************************
 
 import Harmony.TraditionalBridge
-import <NAMESPACE>.<INTERFACE_NAME>
 
 namespace <NAMESPACE>
 
-    public partial class <IF DEFINED_ENABLE_CAMEL_CASE><interfaceName><ELSE><INTERFACE_NAME></IF>Dispatcher extends RoutineDispatcher
+	public partial class <SMC_INTERFACE>Dispatcher
 
-        public method <IF DEFINED_ENABLE_CAMEL_CASE><interfaceName><ELSE><INTERFACE_NAME></IF>Dispatcher
-        proc
-<IF DEFINED_ENABLE_BRIDGE_SAMPLE_DISPATCHERS>
-            ;;Declare dispatcher classes fotr the sample methods
-            mDispatchStubs.Add("AddTwoNumbers", new AddTwoNumbersDispatcher())
-            mDispatchStubs.Add("GetEnvironment", new GetEnvironmentDispatcher())
-            mDispatchStubs.Add("GetLogicalName", new GetLogicalNameDispatcher())
+		;;; <summary>
+		;;; Initialize all data object metadata
+		;;; <summary>
+		private method initMetaData, void
+		proc
+			<STRUCTURE_LOOP>
+			DataObjectMetadataBase.LookupType("<StructureNoplural>")
+			</STRUCTURE_LOOP>		
+		endmethod
 
-</IF DEFINED_ENABLE_BRIDGE_SAMPLE_DISPATCHERS>
-            ;;Declare dispatcher classes for the methods of the '<INTERFACE_NAME>' interface
-            <METHOD_LOOP>
-            mDispatchStubs.Add("<IF DEFINED_ENABLE_CAMEL_CASE><methodName><ELSE><METHOD_NAME></IF>", new <IF DEFINED_ENABLE_CAMEL_CASE><methodName>Dispatcher<ELSE><METHOD_NAME>_Dispatcher</IF>())
-            </METHOD_LOOP>
-<IF DEFINED_ENABLE_BRIDGE_INIT>
-            ;;Initialize all data object metadata
-            this.initMetaData()
-</IF DEFINED_ENABLE_BRIDGE_INIT>
-        endmethod
-
-    endclass
+	endclass
 
 endnamespace

@@ -1,6 +1,6 @@
 <CODEGEN_FILENAME><INTERFACE_NAME>MethodDispatchers.dbl</CODEGEN_FILENAME>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
-<REQUIRES_CODEGEN_VERSION>5.4.6</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.8.1</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
 ;// Title:       MethodDispatchers.tpl
@@ -65,7 +65,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
     ;;; <summary>
     ;;; Dispatcher for method <INTERFACE_NAME>.<METHOD_NAME>
     ;;; </summary>
-    public class <METHOD_NAME>_Dispatcher extends RoutineStub
+    public class <IF DEFINED_ENABLE_CAMEL_CASE><methodName>Dispatcher<ELSE><METHOD_NAME>_Dispatcher</IF> extends RoutineStub
 
         <PARAMETER_LOOP>
         <IF STRUCTURE>
@@ -75,7 +75,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
         </IF STRUCTURE>
         </PARAMETER_LOOP>
 
-        public method <METHOD_NAME>_Dispatcher
+        public method <IF DEFINED_ENABLE_CAMEL_CASE><methodName>Dispatcher<ELSE><METHOD_NAME>_Dispatcher</IF>
         proc
             ;;Initialize the meta data for any data objects that are used by parameters to the method
             <PARAMETER_LOOP>
@@ -284,7 +284,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
   <ELSE INTEGER OR HATVAL>
             serializer.ArgumentData(0,returnValue,FieldDataType.IntegerField,<METHOD_RETURN_SIZE>,0,false)
   <ELSE STRING>
-            serializer.ArgumentData(0,returnValue,FieldDataType.StringField,<METHOD_RETURN_SIZE>,0,false)
+            serializer.ArgumentData(0,%atrim(returnValue),FieldDataType.StringField,<METHOD_RETURN_SIZE>,0,false)
   <ELSE ENUM>
             serializer.ArgumentData(0,(int)returnValue,FieldDataType.EnumField,<METHOD_RETURN_SIZE>,0,false)
   </IF>

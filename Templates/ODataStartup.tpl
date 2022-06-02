@@ -319,7 +319,7 @@ namespace <NAMESPACE>
             data mvcBuilder = services.AddMvcCore(MvcCoreConfig)
             &    .SetCompatibilityVersion(CompatibilityVersion.Version_2_2 )
             &    .AddDataAnnotations()      ;;Enable data annotations
-            &    .AddNewtonsoftJson(<IF DEFINED_ENABLE_NEWTONSOFT>lambda (opts) { opts.SerializerSettings.ContractResolver = new Newtonsoft.Json.Serialization.DefaultContractResolver()}</IF>)
+            &    .AddNewtonsoftJson(<IF DEFINED_ENABLE_NEWTONSOFT>lambda (opts) { opts.SerializerSettings.ContractResolver = new Newtonsoft.Json.Serialization.DefaultContractResolver()<IF DEFINED_ENABLE_CAMEL_CASE> {NamingStrategy = new Newtonsoft.Json.Serialization.CamelCaseNamingStrategy()}</IF>}</IF>)
             &    .AddApplicationPart(^typeof(IsolatedMethodsBase).Assembly)
 
         <IF DEFINED_ENABLE_AUTHENTICATION>

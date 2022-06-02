@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME><INTERFACE_NAME>ServiceModels.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.4.6</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.8.1</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
@@ -77,7 +77,7 @@ namespace <NAMESPACE>
     ;;; <summary>
     ;;; Represents IN parameters for method <INTERFACE_NAME>.<METHOD_NAME>.
     ;;; </summary>
-    public class <METHOD_NAME>_Request
+    public class <IF DEFINED_ENABLE_CAMEL_CASE><methodName>Request<ELSE><METHOD_NAME>_Request</IF>
       <PARAMETER_LOOP>
         <IF IN_OR_INOUT>
 
@@ -85,10 +85,10 @@ namespace <NAMESPACE>
         {JsonProperty}
         </IF DEFINED_ENABLE_NEWTONSOFT>
         <IF REQUIRED>
-        {Required(ErrorMessage="<PARAMETER_NAME> is required")}
+        {Required(ErrorMessage="<IF DEFINED_ENABLE_CAMEL_CASE><parameterName><ELSE><PARAMETER_NAME></IF> is required")}
         </IF REQUIRED>
         <IF ALPHA>
-        {StringLength(<PARAMETER_SIZE>,ErrorMessage="<PARAMETER_NAME> is limited to <PARAMETER_SIZE> characters")}
+        {StringLength(<PARAMETER_SIZE>,ErrorMessage="<IF DEFINED_ENABLE_CAMEL_CASE><parameterName><ELSE><PARAMETER_NAME></IF> is limited to <PARAMETER_SIZE> characters")}
         </IF ALPHA>
         ;;; <summary>
         ;;; Parameter <PARAMETER_NUMBER> (<PARAMETER_REQUIRED> <PARAMETER_DIRECTION> <PARAMETER_DEFINITION>)
@@ -98,7 +98,7 @@ namespace <NAMESPACE>
         ;;; No description found in method catalog
         </IF COMMENT>
         ;;; </summary>
-        public <PARAMETER_NAME>, <IF COLLECTION>[#]</IF><HARMONYCORE_BRIDGE_PARAMETER_TYPE><IF HANDLE>, String.Empty</IF>
+        public <IF DEFINED_ENABLE_CAMEL_CASE><parameterName><ELSE><PARAMETER_NAME></IF>, <IF COLLECTION>[#]</IF><HARMONYCORE_BRIDGE_PARAMETER_TYPE><IF HANDLE>, String.Empty</IF>
         </IF IN_OR_INOUT>
       </PARAMETER_LOOP>
 
@@ -117,7 +117,7 @@ namespace <NAMESPACE>
     ;;; <summary>
     ;;; Represents OUT parameters<IF FUNCTION> and return value</IF FUNCTION> for method <INTERFACE_NAME>.<METHOD_NAME>.
     ;;; </summary>
-    public class <METHOD_NAME>_Response
+    public class <IF DEFINED_ENABLE_CAMEL_CASE><methodName>Response<ELSE><METHOD_NAME>_Response</IF>
     <IF FUNCTION>
 
         <IF DEFINED_ENABLE_NEWTONSOFT>
@@ -126,7 +126,7 @@ namespace <NAMESPACE>
         ;;; <summary>
         ;;; Return value
         ;;; </summary>
-        public ReturnValue, <HARMONYCORE_BRIDGE_RETURN_TYPE>
+        public <IF DEFINED_ENABLE_CAMEL_CASE>returnValue<ELSE>ReturnValue</IF>, <HARMONYCORE_BRIDGE_RETURN_TYPE>
     </IF FUNCTION>
     <IF OUT_OR_INOUT>
       <PARAMETER_LOOP>
@@ -143,13 +143,13 @@ namespace <NAMESPACE>
         ;;; No description found in method catalog
         </IF COMMENT>
         ;;; </summary>
-        public <PARAMETER_NAME>, <IF COLLECTION>[#]</IF><HARMONYCORE_BRIDGE_PARAMETER_TYPE><IF OUT AND ALPHA>, <IF COLLECTION>new string[0]<ELSE>String.Empty</IF></IF><IF HANDLE>, String.Empty</IF>
+        public <IF DEFINED_ENABLE_CAMEL_CASE><parameterName><ELSE><PARAMETER_NAME></IF>, <IF COLLECTION>[#]</IF><HARMONYCORE_BRIDGE_PARAMETER_TYPE><IF OUT AND ALPHA>, <IF COLLECTION>new string[0]<ELSE>String.Empty</IF></IF><IF HANDLE>, String.Empty</IF>
         </IF OUT_OR_INOUT>
       </PARAMETER_LOOP>
     </IF OUT_OR_INOUT>
 
     endclass
-
+	
   <ELSE>
     ;; This method does not return any data!
   </IF RETURNS_DATA>

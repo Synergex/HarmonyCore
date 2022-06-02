@@ -115,8 +115,11 @@ namespace <NAMESPACE>
 </IF STRUCTURE_RELATIVE>
 <COUNTER_1_RESET>
 <FIELD_LOOP>
-  <IF USER>
-  <ELSE>
+;// We can't exclude user-defined fields like this, because ASA Julian date fields are user-defined.
+;// So we use HARMONY_CUSTOM_FIELD_TYPE and HARMONYCORE_CUSTOM_FIELD_DATATYPE in conjunction with a
+;// custom field converter to ensure the field is properly processed.
+;//  <IF USER>
+;//  <ELSE>
     <IF CUSTOM_NOT_HARMONY_EXCLUDE>
         ;;; <summary>
         ;;; <FIELD_DESC>
@@ -163,7 +166,7 @@ namespace <NAMESPACE>
       <IF CUSTOM_HARMONY_AS_STRING>
         public property <FieldSqlname>, String
       <ELSE>
-        public property <FieldSqlname>, <HARMONYCORE_FIELD_DATATYPE>
+        public property <FieldSqlname>, <IF DATE_YYPP OR DATE_YYYYPP>@<FieldSqlname>Format<ELSE><HARMONYCORE_FIELD_DATATYPE></IF>
       </IF CUSTOM_HARMONY_AS_STRING>
 ;//
 ;// Field property get method
@@ -173,21 +176,25 @@ namespace <NAMESPACE>
       <IF HARMONYCORE_CUSTOM_FIELD>
                 mreturn <HARMONYCORE_CUSTOM_FIELD_TYPE>Converter.Convert(mSynergyData.<field_original_name_modified>)
       <ELSE>
-        <IF ALPHA>
+        <IF ALPHA OR USER>
                 mreturn (<FIELD_SNTYPE>)SynergyAlphaConverter.Convert(mSynergyData.<field_original_name_modified>, ^null, ^null, ^null)
         </IF ALPHA>
         <IF DATE>
           <IF CUSTOM_HARMONY_AS_STRING>
                 mreturn %string(mSynergyData.<field_original_name_modified>,"XXXX-XX-XX")
           <ELSE>
-            <IF DATE_YYYYMMDD>
+            <IF DATE_YYPP OR DATE_YYYYPP>
+                data <FieldSqlname>String = (string)mSynergyData.<FieldSqlname>
+                mreturn new <FieldSqlname>Format(int.Parse(<FieldSqlname>String.Substring(0, <IF DATE_YYPP>2<ELSE>4</IF DATE_YYPP>)), int.Parse(<FieldSqlname>String.Substring(<IF DATE_YYPP>2<ELSE>4</IF DATE_YYPP>)))
+            <ELSE>
                 data formatString = "YYYYMMDD"
-            <ELSE DATE_YYMMDD>
+              <IF DATE_YYMMDD>
                 formatString = "YYMMDD"
-            <ELSE DATE_YYYYJJJ>
+              <ELSE DATE_YYYYJJJ>
                 formatString = "YYYYJJJ"
-            </IF>
+              </IF DATE_YYMMDD>
                 mreturn (<FIELD_SNTYPE>)SynergyDecimalDateConverter.Convert(mSynergyData.<field_original_name_modified>, ^null, formatString, ^null)
+            </IF>
           </IF CUSTOM_HARMONY_AS_STRING>
         </IF DATE>
         <IF TIME_HHMM>
@@ -249,20 +256,24 @@ namespace <NAMESPACE>
       <IF HARMONYCORE_CUSTOM_FIELD>
                 mSynergyData.<field_original_name_modified> = <HARMONYCORE_CUSTOM_FIELD_TYPE>Converter.ConvertBack(value)
       <ELSE>
-        <IF ALPHA>
+        <IF ALPHA OR USER>
                 mSynergyData.<field_original_name_modified> = (<FIELD_TYPE>)SynergyAlphaConverter.ConvertBack(value<IF UPPERCASE>.ToUpper()</IF UPPERCASE>, ^null, ^null, ^null)
         <ELSE DATE>
           <IF CUSTOM_HARMONY_AS_STRING>
                 mSynergyData.<field_original_name_modified> = SynergyDecimalConverter.ConvertBack(value,"XXXX-XX-XX")
           <ELSE>
-            <IF DATE_YYYYMMDD>
+            <IF DATE_YYPP OR DATE_YYYYPP>
+                mSynergyData.<FieldSqlname> = value.<IF DATE_YYYYPP>YYYY<ELSE>YY</IF DATE_YYYYPP> * 100 + value.PP
+            <ELSE>
                 data formatString = "YYYYMMDD"
-            <ELSE DATE_YYMMDD>
+              <IF DATE_YYMMDD>
                 formatString = "YYMMDD"
-            <ELSE DATE_YYYYJJJ>
+              </IF DATE_YYMMDD>
+              <IF DATE_YYYYJJJ>
                 formatString = "YYYYJJJ"
-            </IF>
+              </IF DATE_YYYYJJJ>
                 mSynergyData.<field_original_name_modified> = (<FIELD_TYPE>)SynergyDecimalDateConverter.ConvertBack(value, ^null, formatString, ^null)
+            </IF>
           </IF CUSTOM_HARMONY_AS_STRING>
         <ELSE TIME_HHMM>
           <IF CUSTOM_HARMONY_AS_STRING>
@@ -314,7 +325,7 @@ namespace <NAMESPACE>
         endproperty
 
     </IF CUSTOM_NOT_HARMONY_EXCLUDE>
-  </IF USER>
+;//  </IF USER>
 </FIELD_LOOP>
 .endregion
 ;//

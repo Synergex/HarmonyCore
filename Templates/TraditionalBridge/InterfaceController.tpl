@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME><INTERFACE_NAME>Controller.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.4.6</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.8.1</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>DTOS_NAMESPACE</REQUIRES_USERTOKEN>
 ;//****************************************************************************
@@ -37,7 +37,7 @@
 ;//
 ;;*****************************************************************************
 ;;
-;; Title:       <INTERFACE_NAME>Controller.dbl
+;; Title:       <IF DEFINED_ENABLE_CAMEL_CASE><interfaceName><ELSE><INTERFACE_NAME></IF>Controller.dbl
 ;;
 ;; Description: This class defines a WebAPI controller that exposes
 ;;              various endpoints used to execute routines via the
@@ -69,37 +69,37 @@ namespace <NAMESPACE>
     <IF DEFINED_ENABLE_AUTHENTICATION>
     {Authorize}
     </IF DEFINED_ENABLE_AUTHENTICATION>
-    {Route("<INTERFACE_NAME>")}
-    public partial class <INTERFACE_NAME>Controller extends ControllerBase
+    {Route("<IF DEFINED_ENABLE_CAMEL_CASE><interfaceName><ELSE><INTERFACE_NAME></IF>")}
+    public partial class <IF DEFINED_ENABLE_CAMEL_CASE><interfaceName><ELSE><INTERFACE_NAME></IF>Controller extends ControllerBase
 
         ;;Services provided via dependency injection
-        private _<INTERFACE_NAME>Service, @<INTERFACE_NAME>Service
+        private _<IF DEFINED_ENABLE_CAMEL_CASE><interfaceName><ELSE><INTERFACE_NAME></IF>Service, @<IF DEFINED_ENABLE_CAMEL_CASE><interfaceName><ELSE><INTERFACE_NAME></IF>Service
         private _AppSettings, @IOptions<<MODELS_NAMESPACE>.AppSettings>
 
         ;;; <summary>
         ;;; Constructor
         ;;; </summary>
-        ;;; <param name="a<INTERFACE_NAME>Service"><INTERFACE_NAME>Service instance provided via dependency injection</param>
+        ;;; <param name="a<IF DEFINED_ENABLE_CAMEL_CASE><interfaceName><ELSE><INTERFACE_NAME></IF>Service"><IF DEFINED_ENABLE_CAMEL_CASE><interfaceName><ELSE><INTERFACE_NAME></IF>Service instance provided via dependency injection</param>
         ;;; <param name="aAppSettings">Application settings</param>
-        public method <INTERFACE_NAME>Controller
-            a<INTERFACE_NAME>Service, @<INTERFACE_NAME>Service
+        public method <IF DEFINED_ENABLE_CAMEL_CASE><interfaceName><ELSE><INTERFACE_NAME></IF>Controller
+            a<IF DEFINED_ENABLE_CAMEL_CASE><interfaceName><ELSE><INTERFACE_NAME></IF>Service, @<IF DEFINED_ENABLE_CAMEL_CASE><interfaceName><ELSE><INTERFACE_NAME></IF>Service
             aAppSettings, @IOptions<<MODELS_NAMESPACE>.AppSettings>
         proc
-            _<INTERFACE_NAME>Service = a<INTERFACE_NAME>Service
+            _<IF DEFINED_ENABLE_CAMEL_CASE><interfaceName><ELSE><INTERFACE_NAME></IF>Service = a<IF DEFINED_ENABLE_CAMEL_CASE><interfaceName><ELSE><INTERFACE_NAME></IF>Service
             _AppSettings = aAppSettings
         endmethod
 
 <METHOD_LOOP>
         {Http<IF IN_OR_INOUT>Post<ELSE>Get</IF>}
-        {Route("<METHOD_NAME>")}
+        {Route("<IF DEFINED_ENABLE_CAMEL_CASE><methodName><ELSE><METHOD_NAME></IF>")}
         ;;; <summary>
         ;;; 
         ;;; </summary>
         ;;; <returns></returns>
-        public async method <IF IN_OR_INOUT>Post<ELSE>Get</IF IN_OR_INOUT>_<METHOD_NAME>, <IF RETURNS_DATA>@Task<ActionResult<<DTOS_NAMESPACE>.<METHOD_NAME>_Response>><ELSE>@Task<IActionResult></IF RETURNS_DATA>
+        public async method <IF IN_OR_INOUT>Post<ELSE>Get</IF IN_OR_INOUT>_<IF DEFINED_ENABLE_CAMEL_CASE><methodName><ELSE><METHOD_NAME></IF>, <IF RETURNS_DATA>@Task<ActionResult<<DTOS_NAMESPACE>.<IF DEFINED_ENABLE_CAMEL_CASE><methodName>Response<ELSE><METHOD_NAME>_Response</IF>>><ELSE>@Task<IActionResult></IF RETURNS_DATA>
   <IF IN_OR_INOUT>
             {FromBody}
-            required in aRequest, @<DTOS_NAMESPACE>.<METHOD_NAME>_Request
+            required in aRequest, @<DTOS_NAMESPACE>.<IF DEFINED_ENABLE_CAMEL_CASE><methodName>Request<ELSE><METHOD_NAME>_Request</IF>
   </IF IN_OR_INOUT>
         proc
   <IF IN_OR_INOUT>
@@ -109,9 +109,9 @@ namespace <NAMESPACE>
     </IF>
   </IF>
   <IF RETURNS_DATA>
-            mreturn ok(await _<INTERFACE_NAME>Service.<METHOD_NAME>(<IF IN_OR_INOUT>aRequest</IF IN_OR_INOUT>))
+            mreturn ok(await _<IF DEFINED_ENABLE_CAMEL_CASE><interfaceName><ELSE><INTERFACE_NAME></IF>Service.<IF DEFINED_ENABLE_CAMEL_CASE><methodName><ELSE><METHOD_NAME></IF>(<IF IN_OR_INOUT>aRequest</IF IN_OR_INOUT>))
   <ELSE>
-            await _<INTERFACE_NAME>Service.<METHOD_NAME>(<IF IN_OR_INOUT>aRequest</IF IN_OR_INOUT>)
+            await _<IF DEFINED_ENABLE_CAMEL_CASE><interfaceName><ELSE><INTERFACE_NAME></IF>Service.<IF DEFINED_ENABLE_CAMEL_CASE><methodName><ELSE><METHOD_NAME></IF>(<IF IN_OR_INOUT>aRequest</IF IN_OR_INOUT>)
             mreturn ok()
   </IF RETURNS_DATA>
         endmethod

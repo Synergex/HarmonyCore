@@ -1,5 +1,5 @@
-<CODEGEN_FILENAME><INTERFACE_NAME>Structures.ts</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.7.1</REQUIRES_CODEGEN_VERSION>
+<CODEGEN_FILENAME><interfaceName>Structures.ts</CODEGEN_FILENAME>
+<REQUIRES_CODEGEN_VERSION>5.8.1</REQUIRES_CODEGEN_VERSION>
 ;//
 ;// This template generates TypeScript interfaces corresponding to the data model classes
 ;// that are used for method parameter definitions in a method catalog.
@@ -17,16 +17,17 @@
   ANY CHANGES WILL BE OVERWRITTEN THE NEXT TIME THE TOOL IS USED!
 
   This code defines the complex types related to the operations
-  in the exposed service "<INTERFACE_NAME>".
+  in the exposed service "<interfaceName>".
 */
 <STRUCTURE_LOOP>
 /*
-  Stucture:    <STRUCTURE_NAME>
+  Stucture:    <structureName>
   Description: <STRUCTURE_DESC>
 */
-export interface <StructureNoplural> {
+export interface <structureNoplural>
+{
   <FIELD_LOOP>
-    <FieldSqlname>: <FIELD_TSTYPE>;
+    <fieldSqlname>: <FIELD_TSTYPE>;
   </FIELD_LOOP>
 }
 

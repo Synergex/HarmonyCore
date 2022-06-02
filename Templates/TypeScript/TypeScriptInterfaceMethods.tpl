@@ -1,5 +1,5 @@
-<CODEGEN_FILENAME><INTERFACE_NAME>Methods.ts</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.7.1</REQUIRES_CODEGEN_VERSION>
+<CODEGEN_FILENAME><interfaceName>Methods.ts</CODEGEN_FILENAME>
+<REQUIRES_CODEGEN_VERSION>5.8.1</REQUIRES_CODEGEN_VERSION>
 ;//
 ;// This template generates TypeScript interfaces corresponding to the methods
 ;// that are defined in a method catalog interface.
@@ -13,23 +13,24 @@
   ANY CHANGES WILL BE OVERWRITTEN THE NEXT TIME THE TOOL IS USED!
 
   This code defines the request and response messages related
-  to the operations in the exposed service "<INTERFACE_NAME>".
+  to the operations in the exposed service "<interfaceName>".
 */
 
-import * as <INTERFACE_NAME> from './<INTERFACE_NAME>Structures';
+import * as <interfaceName>Structures from './<interfaceName>Structures';
 
 <METHOD_LOOP>
 //------------------------------------------------------------------------------
-// Operation: <METHOD_NAME>
+// Operation: <methodName>
 
 ;//--------------
 ;// REQUEST MODEL
 ;//
   <IF IN_OR_INOUT>
-export interface <METHOD_NAME>_Request {
+export interface <methodName>Request
+{
    <PARAMETER_LOOP>
     <IF IN_OR_INOUT>
-    <PARAMETER_NAME>: <IF STRUCTURE><INTERFACE_NAME>.</IF STRUCTURE><PARAMETER_TSTYPE>;
+    <parameterName>: <IF STRUCTURE><interfaceName>Structures.</IF STRUCTURE><PARAMETER_TSTYPE>;
     </IF IN_OR_INOUT>
    </PARAMETER_LOOP>
 }
@@ -41,14 +42,15 @@ export interface <METHOD_NAME>_Request {
 ;// RESPONSE MODEL
 ;//
   <IF RETURNS_DATA>
-export interface <METHOD_NAME>_Response {
+export interface <methodName>Response
+{
     <IF FUNCTION>
-    ReturnValue: <METHOD_RETURN_TSTYPE>;
+    returnValue: <METHOD_RETURN_TSTYPE>;
     </IF FUNCTION>
     <IF OUT_OR_INOUT>
       <PARAMETER_LOOP>
         <IF OUT_OR_INOUT>
-    <PARAMETER_NAME>: <IF STRUCTURE><INTERFACE_NAME>.</IF STRUCTURE><PARAMETER_TSTYPE>;
+    <parameterName>: <IF STRUCTURE><interfaceName>Structures.</IF STRUCTURE><PARAMETER_TSTYPE>;
         </IF OUT_OR_INOUT>
       </PARAMETER_LOOP>
     </IF OUT_OR_INOUT>

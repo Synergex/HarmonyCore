@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME><INTERFACE_NAME>Service.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.4.6</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.8.1</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>DTOS_NAMESPACE</REQUIRES_USERTOKEN>
 ;//****************************************************************************
@@ -37,7 +37,7 @@
 ;//
 ;;*****************************************************************************
 ;;
-;; Title:       <INTERFACE_NAME>Service.dbl
+;; Title:       <IF DEFINED_ENABLE_CAMEL_CASE><interfaceName><ELSE><INTERFACE_NAME></IF>Service.dbl
 ;;
 ;; Description: Service to expose methods that are part of the former
 ;;              xfServerPlus / xfNetLink "<INTERFACE_NAME>" interface.
@@ -68,10 +68,10 @@ import <MODELS_NAMESPACE>
 
 namespace <NAMESPACE>
 
-    public partial class <INTERFACE_NAME>Service extends DynamicCallProvider
+    public partial class <IF DEFINED_ENABLE_CAMEL_CASE><interfaceName><ELSE><INTERFACE_NAME></IF>Service extends DynamicCallProvider
 
         static IsInitialized, boolean
-        static method <INTERFACE_NAME>Service
+        static method <IF DEFINED_ENABLE_CAMEL_CASE><interfaceName><ELSE><INTERFACE_NAME></IF>Service
         proc
         <METHOD_LOOP>
             <PARAMETER_LOOP>
@@ -86,7 +86,7 @@ namespace <NAMESPACE>
         ;;; <summary>
         ;;; Constructor
         ;;; </summary>
-        public method <INTERFACE_NAME>Service
+        public method <IF DEFINED_ENABLE_CAMEL_CASE><interfaceName><ELSE><INTERFACE_NAME></IF>Service
             connection, @IDynamicCallConnection
             endparams
             parent(connection)
@@ -99,27 +99,27 @@ namespace <NAMESPACE>
         ;;; <summary>
         ;;; <IF COMMENT><METHOD_COMMENT><ELSE>No description found in method catalog</IF COMMENT>
         ;;; </summary>
-        public async method <METHOD_NAME>, @Task<IF RETURNS_DATA><<DTOS_NAMESPACE>.<METHOD_NAME>_Response></IF RETURNS_DATA>
+        public async method <IF DEFINED_ENABLE_CAMEL_CASE><methodName><ELSE><METHOD_NAME></IF>, @Task<IF RETURNS_DATA><<DTOS_NAMESPACE>.<IF DEFINED_ENABLE_CAMEL_CASE><methodName>Response<ELSE><METHOD_NAME>_Response</IF>></IF RETURNS_DATA>
   <IF IN_OR_INOUT>
-            required in args, @<DTOS_NAMESPACE>.<METHOD_NAME>_Request
+            required in args, @<DTOS_NAMESPACE>.<IF DEFINED_ENABLE_CAMEL_CASE><methodName>Request<ELSE><METHOD_NAME>_Request</IF>
   </IF IN_OR_INOUT>
         proc
   <IF RETURNS_DATA>
             ;;Prepare the response object
-            data response = new <DTOS_NAMESPACE>.<METHOD_NAME>_Response()
+            data response = new <DTOS_NAMESPACE>.<IF DEFINED_ENABLE_CAMEL_CASE><methodName>Response<ELSE><METHOD_NAME>_Response</IF>()
 
   </IF RETURNS_DATA>
             ;;Make the JSON-RPC call the traditional Synergy routine
-            data resultTuple = await CallMethod("<METHOD_NAME>"
+            data resultTuple = await CallMethod("<IF DEFINED_ENABLE_CAMEL_CASE><methodName><ELSE><METHOD_NAME></IF>"
     <PARAMETER_LOOP>
-            &   ,<IF OPTIONAL>ArgumentHelper.MayBeOptional(</IF OPTIONAL><IF IN_OR_INOUT>args.<PARAMETER_NAME><ELSE (STRUCTURE OR COLLECTION OR ALPHA OR STRING) AND NOT OPTIONAL>ArgumentHelper.MaybeNull(response.<PARAMETER_NAME>)<ELSE>response.<PARAMETER_NAME></IF IN_OR_INOUT><IF OPTIONAL>)</IF OPTIONAL>
+            &   ,<IF OPTIONAL>ArgumentHelper.MayBeOptional(</IF OPTIONAL><IF IN_OR_INOUT>args.<IF DEFINED_ENABLE_CAMEL_CASE><parameterName><ELSE><PARAMETER_NAME></IF><ELSE (STRUCTURE OR COLLECTION OR ALPHA) AND NOT OPTIONAL>ArgumentHelper.MaybeNull(response.<IF DEFINED_ENABLE_CAMEL_CASE><parameterName><ELSE><PARAMETER_NAME></IF>)<ELSE>response.<IF DEFINED_ENABLE_CAMEL_CASE><parameterName><ELSE><PARAMETER_NAME></IF></IF IN_OR_INOUT><IF OPTIONAL>)</IF OPTIONAL>
     </PARAMETER_LOOP>
             &   )
   <IF RETURNS_DATA>
     <IF FUNCTION>
 
              ;;Set the return value in the return data
-            ArgumentHelper.Argument(0, resultTuple, response.ReturnValue)
+            ArgumentHelper.Argument(0, resultTuple, response.<IF DEFINED_ENABLE_CAMEL_CASE>returnValue<ELSE>ReturnValue</IF>)
     </IF FUNCTION>
 ;//
     <COUNTER_1_RESET>
@@ -134,9 +134,9 @@ namespace <NAMESPACE>
     <PARAMETER_LOOP>
       <IF OUT_OR_INOUT>
       <IF OPTIONAL>
-            response.<PARAMETER_NAME> = ^as(resultList[<PARAMETER_NUMBER> - 1],<IF COLLECTION>[#]</IF COLLECTION><HARMONYCORE_BRIDGE_PARAMETER_TYPE>)
+            response.<IF DEFINED_ENABLE_CAMEL_CASE><parameterName><ELSE><PARAMETER_NAME></IF> = ^as(resultList[<PARAMETER_NUMBER> - 1],<IF COLLECTION>[#]</IF COLLECTION><HARMONYCORE_BRIDGE_PARAMETER_TYPE>)
       <ELSE>
-            ArgumentHelper.Argument(<PARAMETER_NUMBER>, resultTuple, response.<PARAMETER_NAME>)
+            ArgumentHelper.Argument(<PARAMETER_NUMBER>, resultTuple, response.<IF DEFINED_ENABLE_CAMEL_CASE><parameterName><ELSE><PARAMETER_NAME></IF>)
       </IF>
       </IF OUT_OR_INOUT>
     </PARAMETER_LOOP>

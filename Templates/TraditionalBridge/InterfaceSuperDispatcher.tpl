@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME>MethodDispatcher.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.6.7</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.8.1</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
 ;// Title:       InterfaceSuperDispatcher.tpl
@@ -62,7 +62,7 @@ namespace <NAMESPACE>
 <COUNTER_1_RESET>
 <INTERFACE_LOOP>
 <COUNTER_1_INCREMENT>
-            dispatchers[<COUNTER_1_VALUE>] = new <INTERFACE_NAME>Dispatcher()
+            dispatchers[<COUNTER_1_VALUE>] = new <IF DEFINED_ENABLE_CAMEL_CASE><interfaceName><ELSE><INTERFACE_NAME></IF>Dispatcher()
 </INTERFACE_LOOP>
             mreturn dispatchers
         endmethod

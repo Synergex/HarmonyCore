@@ -113,7 +113,7 @@ namespace <NAMESPACE>
             else
             begin
                 ;;Create a TestServer to host the Web API services
-                Server = new TestServer(WebHost.CreateDefaultBuilder().UseContentRoot(wwwroot).UseWebRoot(wwwroot).UseStartup<Startup>())
+                Server = new TestServer(WebHost.CreateDefaultBuilder().UseContentRoot(AppContext.BaseDirectory).UseWebRoot(wwwroot).UseStartup<Startup>())
             end
 
             ;;Fake out HTTPS

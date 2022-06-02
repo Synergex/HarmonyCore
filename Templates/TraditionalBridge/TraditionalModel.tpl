@@ -70,10 +70,10 @@ namespace <NAMESPACE>
 		;;;  Construct a <StructureNoplural> object containing data from a record
 		;;; </summary>
 		public method <StructureNoplural>
-			required in inData, str<StructureNoplural>
+			required in inData, a
 			parent()
 		proc
-			m<StructureNoplural> = mOriginal<StructureNoplural> = inData
+			m<StructureNoplural> = mOriginal<StructureNoplural> = (str<StructureNoplural>)inData
 		endmethod
 
 		public override method InternalSynergyRecord, void
