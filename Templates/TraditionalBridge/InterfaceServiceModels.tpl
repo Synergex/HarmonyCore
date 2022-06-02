@@ -98,7 +98,7 @@ namespace <NAMESPACE>
         ;;; No description found in method catalog
         </IF COMMENT>
         ;;; </summary>
-        public <PARAMETER_NAME>, <IF COLLECTION>[#]</IF><HARMONYCORE_BRIDGE_PARAMETER_TYPE>
+        public <PARAMETER_NAME>, <IF COLLECTION>[#]</IF><HARMONYCORE_BRIDGE_PARAMETER_TYPE><IF HANDLE>, String.Empty</IF>
         </IF IN_OR_INOUT>
       </PARAMETER_LOOP>
 
@@ -143,7 +143,7 @@ namespace <NAMESPACE>
         ;;; No description found in method catalog
         </IF COMMENT>
         ;;; </summary>
-        public <PARAMETER_NAME>, <IF COLLECTION>[#]</IF><HARMONYCORE_BRIDGE_PARAMETER_TYPE><IF OUT AND ALPHA>, <IF COLLECTION>new string[0]<ELSE>String.Empty</IF></IF>
+        public <PARAMETER_NAME>, <IF COLLECTION>[#]</IF><HARMONYCORE_BRIDGE_PARAMETER_TYPE><IF OUT AND ALPHA>, <IF COLLECTION>new string[0]<ELSE>String.Empty</IF></IF><IF HANDLE>, String.Empty</IF>
         </IF OUT_OR_INOUT>
       </PARAMETER_LOOP>
     </IF OUT_OR_INOUT>
