@@ -27,12 +27,12 @@
 					"raw": "{ <PARAMETER_LOOP><IF IN_OR_INOUT>\n\t\"<PARAMETER_NAME>\": <PARAMETER_SAMPLE_DATA_ESCAPED><IF MORE_IN_OR_INOUT>,</IF MORE_IN_OR_INOUT></IF IN_OR_INOUT></PARAMETER_LOOP> \n}"
 				},
 				"url": {
-					"raw": "{{server}}/<INTERFACE_NAME>/<METHOD_NAME>",
+					"raw": "{{BridgeBaseUri}}/{{ControllerPath}}/<METHOD_NAME>",
 					"host": [
-						"{{server}}"
+						"{{BridgeBaseUri}}"
 					],
 					"path": [
-						"<INTERFACE_NAME>",
+						"{{ControllerPath}}",
 						"<METHOD_NAME>"
 					]
 				}
@@ -46,12 +46,12 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{server}}/<INTERFACE_NAME>/<METHOD_NAME>",
+					"raw": "{{BridgeBaseUri}}/{{ControllerPath}}/<METHOD_NAME>",
 					"host": [
-						"{{server}}"
+						"{{BridgeBaseUri}}"
 					],
 					"path": [
-						"<INTERFACE_NAME>",
+						"{{ControllerPath}}",
 						"<METHOD_NAME>"
 					]
 				}
@@ -96,8 +96,14 @@
 	"variable": [
 		{
 			"id": "348faa4b-487a-4d1e-9c94-9880cb11f521",
-			"key": "server",
-			"value": "https://localhost:<SERVER_HTTPS_PORT>",
+			"key": "BridgeBaseUri",
+			"value": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>",
+			"type": "string"
+		},
+		{
+			"id": "a3b6a948-ca0e-4b59-958f-560f2eaa2205",
+			"key": "ControllerPath",
+			"value": "<INTERFACE_NAME>",
 			"type": "string"
 		}
 	]

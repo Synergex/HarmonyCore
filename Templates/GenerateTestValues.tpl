@@ -14,14 +14,25 @@ proc
     new GenerateTestValues().SerializeValues()
 endmain
 
-namespace Services.Test.GenerateValues
-    public class GenerateTestValues
+namespace <NAMESPACE>
+
+    public partial class GenerateTestValues
 
     <STRUCTURE_LOOP>
         <IF STRUCTURE_ISAM>
         .include "<STRUCTURE_NOALIAS>" repository, record="<structureNoplural>", end
         </IF STRUCTURE_ISAM>
     </STRUCTURE_LOOP>
+
+    <STRUCTURE_LOOP>
+        <IF STRUCTURE_ISAM>
+        private m<StructureNoplural>FileSpec, string, "<FILE_NAME>"
+        </IF STRUCTURE_ISAM>
+    </STRUCTURE_LOOP>
+
+        partial method GetCustomFileSpec, void
+            required inout aFileSpec, string
+        endmethod
 
         public method SerializeValues, void
             endparams
@@ -31,15 +42,24 @@ namespace Services.Test.GenerateValues
 <STRUCTURE_LOOP>
   <IF STRUCTURE_ISAM>
 
-            ;;------------------------------------------------------------
-            ;;Test data for <StructureNoplural>
-            open(chin=0,i:i,"<FILE_NAME>")
+            ;------------------------------------------------------------
+            ;Test data for <StructureNoplural>
+
+            Console.WriteLine("Processing file <FILE_NAME>")
+
+            ;If there is a GetCustomFileSpec method, call it
+            GetCustomFileSpec(m<StructureNoplural>FileSpec)
+
+            ;Open the data file
+            Console.WriteLine(" - Opening " + m<StructureNoplural>FileSpec + "...")
+            open(chin=0,i:i,m<StructureNoplural>FileSpec)
 
 ;//
 ;// ENABLE_GET_ALL
 ;//
     <IF DEFINED_ENABLE_GET_ALL>
             ;Total number of records
+            Console.WriteLine(" - Counting records...")
             count = 0
             repeat
             begin
@@ -53,6 +73,7 @@ namespace Services.Test.GenerateValues
                     Console.WriteLine("ERROR: Failed to read record from <FILE_NAME>")
                 exitloop
             end
+;//
 ;//RELATION LOGIC MISSING
     </IF DEFINED_ENABLE_GET_ALL>
 ;//
@@ -60,6 +81,7 @@ namespace Services.Test.GenerateValues
 ;//
     <IF DEFINED_ENABLE_GET_ONE>
             ;Get by primary key
+            Console.WriteLine(" - Determining parameters for read by primary key...")
             repeat
             begin
                 read(chin,<structureNoplural>,^LAST) [ERR=eof<StructureNoplural>2]
@@ -118,8 +140,14 @@ namespace Services.Test.GenerateValues
   </IF STRUCTURE_ISAM>
 </STRUCTURE_LOOP>
 
+            ;Determine where to create the output file
             data jsonFilePath = <UNIT_TESTS_NAMESPACE>.UnitTestEnvironment.FindRelativeFolderForAssembly("<UNIT_TESTS_NAMESPACE>")
-            File.WriteAllText(Path.Combine(jsonFilePath, "TestConstants.Values.json"), JsonSerializer.Serialize(TestConstants.Instance, new JsonSerializerOptions(){ WriteIndented = true }))
+
+            ;Create the output file
+            File.WriteAllText(Path.Combine(jsonFilePath, "TestConstants.Values.json"), JsonSerializer.Serialize(TestConstants.Instance, new JsonSerializerOptions() { WriteIndented = true } ))
+
         endmethod
+
     endclass
+
 endnamespace
