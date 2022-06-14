@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME><INTERFACE_NAME>Service.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.4.6</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.8.5</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>DTOS_NAMESPACE</REQUIRES_USERTOKEN>
 ;//****************************************************************************
@@ -119,7 +119,7 @@ namespace <NAMESPACE>
     <IF FUNCTION>
 
              ;;Set the return value in the return data
-            ArgumentHelper.Argument(0, resultTuple, response.ReturnValue)
+            ArgumentHelper.Argument(0, resultTuple, response.<IF TWEAK_SMC_CAMEL_CASE>returnValue<ELSE>ReturnValue</IF>)
     </IF FUNCTION>
 ;//
     <COUNTER_1_RESET>

@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME><INTERFACE_NAME>ServiceModels.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.4.6</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.8.5</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
@@ -126,7 +126,7 @@ namespace <NAMESPACE>
         ;;; <summary>
         ;;; Return value
         ;;; </summary>
-        public ReturnValue, <HARMONYCORE_BRIDGE_RETURN_TYPE>
+        public <IF TWEAK_SMC_CAMEL_CASE>returnValue<ELSE>ReturnValue</IF>, <HARMONYCORE_BRIDGE_RETURN_TYPE>
     </IF FUNCTION>
     <IF OUT_OR_INOUT>
       <PARAMETER_LOOP>
