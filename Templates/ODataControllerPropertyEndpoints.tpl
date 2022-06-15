@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME><StructurePlural>ControllerPropertyEndpoints.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.5.2</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.7.5</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
 ;// Title:       ODataControllerPropertyEndpoints.tpl
@@ -80,11 +80,11 @@ namespace <NAMESPACE>
         ;;; Get the <FieldSqlName> property of a single <StructureNoplural>, by primary key.
         ;;; </summary>
             <IF SINGLE_SEGMENT>
-        ;;; <param name="key"><FIELD_DESC></param>
+        ;;; <param name="key"><FIELD_DESC_DOUBLE></param>
             <ELSE>
               <SEGMENT_LOOP>
                 <IF NOT SEG_TAG_EQUAL>
-        ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
+        ;;; <param name="a<FieldSqlName>"><FIELD_DESC_DOUBLE></param>
                 </IF SEG_TAG_EQUAL>
               </SEGMENT_LOOP>
             </IF SINGLE_SEGMENT>

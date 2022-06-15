@@ -117,7 +117,7 @@ namespace <NAMESPACE>
 <FIELD_LOOP>
     <IF CUSTOM_NOT_HARMONY_EXCLUDE>
         ;;; <summary>
-        ;;; <FIELD_DESC>
+        ;;; <FIELD_DESC_DOUBLE>
         ;;; </summary>
 ;//
 ;// Field property attributes

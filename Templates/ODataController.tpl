@@ -154,7 +154,7 @@ namespace <NAMESPACE>
   <PRIMARY_KEY>
     <SEGMENT_LOOP>
       <IF NOT SEG_TAG_EQUAL>
-        ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
+        ;;; <param name="a<FieldSqlName>"><FIELD_DESC_DOUBLE></param>
       </IF>
     </SEGMENT_LOOP>
   </PRIMARY_KEY>
@@ -198,7 +198,7 @@ namespace <NAMESPACE>
   <PRIMARY_KEY>
     <SEGMENT_LOOP>
       <IF NOT SEG_TAG_EQUAL>
-        ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
+        ;;; <param name="a<FieldSqlName>"><FIELD_DESC_DOUBLE></param>
       </IF>
     </SEGMENT_LOOP>
   </PRIMARY_KEY>
@@ -280,7 +280,7 @@ namespace <NAMESPACE>
         ;;; </summary>
       <SEGMENT_LOOP>
         <IF NOT SEG_TAG_EQUAL>
-        ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
+        ;;; <param name="a<FieldSqlName>"><FIELD_DESC_DOUBLE></param>
         </IF>
       </SEGMENT_LOOP>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
@@ -327,7 +327,7 @@ namespace <NAMESPACE>
         ;;; </summary>
       <SEGMENT_LOOP>
         <IF NOT SEG_TAG_EQUAL>
-        ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
+        ;;; <param name="a<FieldSqlName>"><FIELD_DESC_DOUBLE></param>
         </IF>
       </SEGMENT_LOOP>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
@@ -431,7 +431,7 @@ namespace <NAMESPACE>
         ;;; </summary>
       <SEGMENT_LOOP>
         <IF NOT SEG_TAG_EQUAL>
-        ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
+        ;;; <param name="a<FieldSqlName>"><FIELD_DESC_DOUBLE></param>
         </IF>
       </SEGMENT_LOOP>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
@@ -526,7 +526,7 @@ namespace <NAMESPACE>
         ;;; </summary>
         <SEGMENT_LOOP>
           <IF NOT SEG_TAG_EQUAL>
-        ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
+        ;;; <param name="a<FieldSqlName>"><FIELD_DESC_DOUBLE></param>
           </IF>
         </SEGMENT_LOOP>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
@@ -614,7 +614,7 @@ namespace <NAMESPACE>
         ;;; </summary>
         <SEGMENT_LOOP>
           <IF NOT SEG_TAG_EQUAL>
-        ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
+        ;;; <param name="a<FieldSqlName>"><FIELD_DESC_DOUBLE></param>
           </IF>
         </SEGMENT_LOOP>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
