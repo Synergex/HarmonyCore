@@ -21,6 +21,8 @@ namespace Harmony.Core.Context
 		private mLocalRPCHandlers, @Dictionary<string, Delegate> 
 		private mMakeReadyTask, @Lazy<Task<JsonRpc>>
 		private mDisconnectToken, @CancellationTokenSource
+		private mLastSeenBytes, ArraySegment<byte>
+
 		public method ProcessDynamicCallConnection
 			startInfo, @ProcessStartInfo
 		proc
@@ -74,6 +76,11 @@ namespace Harmony.Core.Context
 			try
 			begin
 				mreturn await jsonRpcConnection.InvokeWithCancellationAsync<[#]@ReturnParameterDefintion>(name, args.OfType<Object>().ToList().AsReadOnly(), mDisconnectToken.Token)
+			end
+			catch(ex, @StreamJsonRpc.ConnectionLostException)
+			begin
+				if(mLastSeenBytes.Count > 0)
+					throw new StreamJsonRpc.ConnectionLostException("The JSON-RPC connection with the remote party was lost before the request could complete. Last seen bytes passed: '" + Encoding.UTF8.GetString(mLastSeenBytes).Replace(%char(10), "<LF>").Replace(%char(13), "<CR>") + "'", ex)
 			end
 			catch(ex, @RemoteInvocationException)
 			begin
@@ -177,12 +184,19 @@ namespace Harmony.Core.Context
 			end
 
 			data streamWrapper = FullDuplexStream.Splice(targetOutput, targetInput)
+			
+			if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+			begin
+				data tempStreamWrapper = new MonitoringStream(streamWrapper)
+				tempStreamWrapper.DidRead += StreamReadMonitorEvent
+				streamWrapper = tempStreamWrapper
+			end
 
 			data result = new JsonRPC(new HeaderDelimitedMessageHandler(streamWrapper, formatter))
             if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
-            begin
-                result.TraceSource = new TraceSource("Client", SourceLevels.All)
-            end
+			begin
+				result.TraceSource = new TraceSource("Client", SourceLevels.All)
+			end
 
 			data rpcKvp, KeyValuePair<string, Delegate>
 			foreach rpcKvp in mLocalRPCHandlers
@@ -209,6 +223,13 @@ namespace Harmony.Core.Context
 		public virtual method MakeReady, @Task
 		proc
 			mreturn mMakeReadyTask.Value
+		endmethod
+
+		private method StreamReadMonitorEvent, void
+			sender, @Object
+			bytes, ArraySegment<byte>
+		proc
+			mLastSeenBytes = bytes
 		endmethod
 
 		private class StreamWrapper extends Stream

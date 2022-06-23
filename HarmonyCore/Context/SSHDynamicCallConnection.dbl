@@ -10,6 +10,7 @@ import System.Threading.Tasks
 import StreamJsonRpc
 import System.Threading
 import Harmony.Core.Utility
+import Nerdbank.Streams
 
 namespace Harmony.Core.Context
 
@@ -26,6 +27,8 @@ namespace Harmony.Core.Context
 		private mLocalRPCHandlers, @Dictionary<string, Delegate> 
 		private mCallTimeout, int
 		private mConnectionTimeout, int
+		private mLastSeenBytes, ArraySegment<byte>
+
 		public method SSHDynamicCallConnection
 			targetOS, RemoteTargetOS
 			startInfo, @ConnectionInfo
@@ -104,6 +107,11 @@ namespace Harmony.Core.Context
 				data result = await jsonRpcConnection.InvokeWithCancellationAsync<[#]@ReturnParameterDefintion>(name, readOnlyArgs, cancelSource.Token)
 				mreturn result
 			end
+			catch(ex, @StreamJsonRpc.ConnectionLostException)
+			begin
+				if(mLastSeenBytes.Count > 0)
+					throw new StreamJsonRpc.ConnectionLostException("The JSON-RPC connection with the remote party was lost before the request could complete. Last seen bytes passed: '" + Encoding.UTF8.GetString(mLastSeenBytes).Replace(%char(10), "<LF>").Replace(%char(13), "<CR>") + "'", ex)
+			end
 			catch(ex, @RemoteInvocationException)
 			begin
 				if(ex.ErrorCode == -32000) then 
@@ -179,7 +187,7 @@ namespace Harmony.Core.Context
 			data cancelToken = cancelSource.Token
 			mTargetConnection.Connect()
 			mTargetShell = mTargetConnection.CreateShellStream("vt220", 0, 0,0,0, 1024 * 64)
-			data streamWrapper = new ShellStreamWrapper(mTargetShell, mTargetConnection)
+			data streamWrapper, @Stream, new ShellStreamWrapper(mTargetShell, mTargetConnection)
 			mReader = new StreamReader(streamWrapper) 
 			mWriter = new StreamWriter(streamWrapper) 
 			data guidString, @string, Guid.NewGuid().ToString()
@@ -256,6 +264,14 @@ namespace Harmony.Core.Context
 			
 			data formatter = new JsonMessageFormatter(new UTF8Encoding(false))
 			formatter.JsonSerializer.FloatParseHandling = FloatParseHandling.Decimal
+
+			if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+			begin
+				data tempStreamWrapper = new MonitoringStream(streamWrapper)
+				tempStreamWrapper.DidRead += StreamReadMonitorEvent
+				streamWrapper = tempStreamWrapper
+			end
+
 			data result = new JsonRPC(new HeaderDelimitedMessageHandler(streamWrapper, formatter))
 			if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
 			begin
@@ -296,6 +312,13 @@ namespace Harmony.Core.Context
 		public virtual method MakeReady, @Task
 		proc
 			mreturn mMakeReadyTask.Value
+		endmethod
+
+		private method StreamReadMonitorEvent, void
+			sender, @Object
+			bytes, ArraySegment<byte>
+		proc
+			mLastSeenBytes = bytes
 		endmethod
 
 		private class ShellStreamWrapper extends Stream
