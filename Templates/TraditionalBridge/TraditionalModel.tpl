@@ -1,6 +1,6 @@
 <CODEGEN_FILENAME><StructureNoplural>.dbl</CODEGEN_FILENAME>
 <PROCESS_TEMPLATE>TraditionalModel</PROCESS_TEMPLATE>
-<REQUIRES_CODEGEN_VERSION>5.4.6</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.7.5</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
 ;// Title:       ODataModel.tpl
@@ -85,7 +85,7 @@ namespace <NAMESPACE>
 		<FIELD_LOOP>
 		<IF CUSTOM_NOT_HARMONY_EXCLUDE>
 		;;; <summary>
-		;;; <FIELD_DESC>
+		;;; <FIELD_DESC_DOUBLE>
 		;;; </summary>
 		public property <FieldSqlname>, <field_type>
 			method get
