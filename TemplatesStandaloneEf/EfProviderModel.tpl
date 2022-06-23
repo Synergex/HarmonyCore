@@ -168,12 +168,13 @@ namespace <NAMESPACE>
           <IF CUSTOM_HARMONY_AS_STRING>
                 mreturn %string(mSynergyData.<field_original_name_modified>,"XXXX-XX-XX")
           <ELSE>
+            <IF DATE_YYYYMMDD>
                 data formatString = "YYYYMMDD"
-            <IF DATE_YYMMDD>
-                formatString = "YYMMDD"
+            <ELSE DATE_YYMMDD>
+                data formatString = "YYMMDD"
             <ELSE DATE_YYYYJJJ>
-                formatString = "YYYYJJJ"
-            </IF DATE_YYMMDD>
+                data formatString = "YYYYJJJ"
+            </IF>
                 mreturn (<FIELD_SNTYPE>)SynergyDecimalDateConverter.Convert(mSynergyData.<field_original_name_modified>, ^null, formatString, ^null)
           </IF CUSTOM_HARMONY_AS_STRING>
         </IF DATE>
@@ -239,13 +240,13 @@ namespace <NAMESPACE>
           <IF CUSTOM_HARMONY_AS_STRING>
                 mSynergyData.<field_original_name_modified> = SynergyDecimalConverter.ConvertBack(value,"XXXX-XX-XX")
           <ELSE>
+            <IF DATE_YYYYMMDD>
                 data formatString = "YYYYMMDD"
-            <IF DATE_YYMMDD>
-                formatString = "YYMMDD"
-            </IF DATE_YYMMDD>
-            <IF DATE_YYYYJJJ>
-                formatString = "YYYYJJJ"
-            </IF DATE_YYYYJJJ>
+            <ELSE DATE_YYMMDD>
+                data formatString = "YYMMDD"
+            <ELSE DATE_YYYYJJJ>
+                data formatString = "YYYYJJJ"
+            </IF>
                 mSynergyData.<field_original_name_modified> = (<FIELD_TYPE>)SynergyDecimalDateConverter.ConvertBack(value, ^null, formatString, ^null)
           </IF CUSTOM_HARMONY_AS_STRING>
         <ELSE TIME_HHMM>
