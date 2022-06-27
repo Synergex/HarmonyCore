@@ -78,9 +78,13 @@ namespace Harmony.Core.Context
 				mreturn await jsonRpcConnection.InvokeWithCancellationAsync<[#]@ReturnParameterDefintion>(name, args.OfType<Object>().ToList().AsReadOnly(), mDisconnectToken.Token)
 			end
 			catch(ex, @StreamJsonRpc.ConnectionLostException)
-			begin
-				if(mLastSeenBytes.Count > 0)
-					throw new StreamJsonRpc.ConnectionLostException("The JSON-RPC connection with the remote party was lost before the request could complete. Last seen bytes passed: '" + Encoding.UTF8.GetString(mLastSeenBytes).Replace(%char(10), "<LF>").Replace(%char(13), "<CR>") + "'", ex)
+            begin
+                IsHealthy = false
+				;;this will be empty if trace level logging is not turned on in order to prevent leaking sensitive data in production environments
+				if(mLastSeenBytes.Count > 0) then
+                    throw new StreamJsonRpc.ConnectionLostException("The JSON-RPC connection with the remote party was lost before the request could complete. Last seen bytes passed: '" + Encoding.UTF8.GetString(mLastSeenBytes).Replace(%char(10), "<LF>").Replace(%char(13), "<CR>") + "'", ex)
+                else
+					throw
 			end
 			catch(ex, @RemoteInvocationException)
 			begin
