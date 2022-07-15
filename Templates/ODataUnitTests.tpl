@@ -157,7 +157,11 @@ namespace <NAMESPACE>
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
+    <IF STRUCTURE_HAS_UNIQUE_PK>
             data <structureNoplural>, @OData<StructureNoplural>Single, JsonConvert.DeserializeObject<OData<StructureNoplural>Single>(result)
+    <ELSE>
+            data <structurePlural>, @OData<StructurePlural>Single, JsonConvert.DeserializeObject<OData<StructurePlural>Single>(result)
+    </IF>
         endmethod
 ;//
 ;//
