@@ -174,7 +174,7 @@ namespace <NAMESPACE>
                 ('6 ','none '),
                     log_level = Microsoft.Extensions.Logging.LogLevel.None
                 (),
-                    throw new Exception("Invalid value for logical ODATA_LOG_LEVEL="+logical(1:loglen))
+                    throw new Exception("Invalid value for logical ASPNETCORE_LOG_LEVEL="+logical(1:loglen))
                 endusing
             end
 
@@ -309,7 +309,7 @@ namespace <NAMESPACE>
                 begin
                     iformatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue(sseg))
                 end
-                
+
                 op.MaxIAsyncEnumerableBufferLimit = int.MaxValue
 
                 ;;If there is a MvcConfigCustom method, call it
