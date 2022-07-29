@@ -16,265 +16,271 @@ import HarmonyCore.Test.Bridge.Client
 
 
 namespace HarmonyCore.Test.Bridge
-	{TestClass}
-	public class BasicBridge
+    {TestClass}
+    public class BasicBridge
 
 		private method GetContextPool<T(IContextBase, class)>, @ExternalContextPool<T>
 			default dbrPath, @string, ^null
-			default dblDir, @string, ^null
+            default dblDir, @string, ^null
 		proc
+;			data actualDBRPath = "-dv -rd 4444:60 " + (dbrPath ?? 'TraditionalBridge.Test.dbr')
 			data actualDBRPath = dbrPath ?? 'TraditionalBridge.Test.dbr'
-			data platformDblDir = Environment.OSVersion.Platform == PlatformID.Unix ? Environment.GetEnvironmentVariable("DBLDIR") : Environment.GetEnvironmentVariable("SYNERGYDE64")
-			data actualDblDir = dblDir ?? platformDblDir
-			data currentDirectory = Path.GetDirectoryName(^typeof(BasicBridge).Assembly.Location)
-			data testDirFolder = TestEnvironment.findRelativeFolderForAssembly("TestDir")
+            data platformDblDir = Environment.OSVersion.Platform == PlatformID.Unix ? Environment.GetEnvironmentVariable("DBLDIR") : Environment.GetEnvironmentVariable("SYNERGYDE64")
+            data actualDblDir = dblDir ?? platformDblDir
+            data currentDirectory = Path.GetDirectoryName(^typeof(BasicBridge).Assembly.Location)
+            data testDirFolder = TestEnvironment.findRelativeFolderForAssembly("TestDir")
 			
 			DebugLogSession.Logging = new Harmony.Core.Utility.ConsoleLogger(Harmony.Core.Interface.LogLevel.Trace)
 			
-			if(Environment.OSVersion.Platform == PlatformID.Unix) then
-			begin
-				data contextPool = new ExternalContextPool<T>(Path.Combine(actualDblDir, "bin/dbs"), actualDBRPath, testDirFolder, ^null, 4) 
-				mreturn contextPool
-			end
-			else
-			begin
-				data contextPool = new ExternalContextPool<T>(Path.Combine(actualDblDir, "dbl\bin\dbs.exe"), actualDBRPath, testDirFolder, ^null, 4) 
-				mreturn contextPool
-			end
+            if(Environment.OSVersion.Platform == PlatformID.Unix) then
+            begin
+;                data contextPool = new ExternalContextPool<T>(Path.Combine(actualDblDir, "bin/dbr"), actualDBRPath, testDirFolder, ^null, 4) 
+                data contextPool = new ExternalContextPool<T>(Path.Combine(actualDblDir, "bin/dbs"), actualDBRPath, testDirFolder, ^null, 4) 
+                mreturn contextPool
+            end
+            else
+            begin
+;                data contextPool = new ExternalContextPool<T>(Path.Combine(actualDblDir, "dbl\bin\dbr.exe"), actualDBRPath, testDirFolder, ^null, 4) 
+                data contextPool = new ExternalContextPool<T>(Path.Combine(actualDblDir, "dbl\bin\dbs.exe"), actualDBRPath, testDirFolder, ^null, 4) 
+                mreturn contextPool
+            end
 
-		endmethod
+        endmethod
 
-		private method GetRemoteContextPool<T(IContextBase, class)>, @RemoteExternalContextPool<T>
-			username, @string
-			password, @string
-		proc
-			data currentDirectory = Path.GetDirectoryName(^typeof(BasicBridge).Assembly.Location)
-			data testDirFolder = TestEnvironment.findRelativeFolderForAssembly("TestDir")
-			
-			data targetPath, @string, ""
-			if(Environment.OSVersion.Platform == PlatformID.Unix) then
-			begin
-				targetPath = testDirFolder
-			end
-			else
-			begin
-				targetPath = testDirFolder.Replace(Path.GetPathRoot(testDirFolder), "/mnt/" + testDirFolder.Substring(0, 1).ToLower() + "/").Replace("\", "/")
-			end
-			
-			DebugLogSession.Logging = new Harmony.Core.Utility.ConsoleLogger(Harmony.Core.Interface.LogLevel.Trace)
+        private method GetRemoteContextPool<T(IContextBase, class)>, @RemoteExternalContextPool<T>
+            username, @string
+            password, @string
+        proc
+            data currentDirectory = Path.GetDirectoryName(^typeof(BasicBridge).Assembly.Location)
+            data testDirFolder = TestEnvironment.findRelativeFolderForAssembly("TestDir")
+            
+            data targetPath, @string, ""
+            if(Environment.OSVersion.Platform == PlatformID.Unix) then
+            begin
+                targetPath = testDirFolder
+            end
+            else
+            begin
+                targetPath = testDirFolder.Replace(Path.GetPathRoot(testDirFolder), "/mnt/" + testDirFolder.Substring(0, 1).ToLower() + "/").Replace("\", "/")
+            end
+            
+            DebugLogSession.Logging = new Harmony.Core.Utility.ConsoleLogger(Harmony.Core.Interface.LogLevel.Trace)
 
-			data contextPool = new RemoteExternalContextPool<T>(RemoteTargetOS.Linux, "localhost", username, new Renci.SshNet.PasswordAuthenticationMethod(username, password), targetPath + "/launch.sh", 1, 30 * 10000, 30 * 10000)
-			mreturn contextPool
+            data contextPool = new RemoteExternalContextPool<T>(RemoteTargetOS.Linux, "localhost", username, new Renci.SshNet.PasswordAuthenticationMethod(username, password), targetPath + "/launch.sh", 1, 30 * 10000, 30 * 10000)
+            mreturn contextPool
 
-		endmethod
+        endmethod
 
-		{TestMethod}
-		public async method ArgumentPreserialize, @Task
-		proc
-			
-		endmethod
-
-
-		{TestMethod}
-		public async method InitFailure, @Task
-		proc
-			disposable data contextPool1 = GetContextPool<BasicBridge.ExternalCallContext>("abaddbrName.dbr")
-			data sp = new ServiceCollection().BuildServiceProvider()
-			try
-			begin
-				data context = contextPool1.MakeContext(sp)
-				await context.GetAllCustomers()
-				Assert.Fail()
-			end
-			catch(ex, @BridgeConnectionException)
-			begin
-				Assert.AreEqual(ex.InnerMessage, "TraditionalBridge failed to initialize most likely due to missing dbr or elb file.")
-			end
-			endtry
+        {TestMethod}
+        public async method ArgumentPreserialize, @Task
+        proc
+            
+        endmethod
 
 
-			disposable data contextPool2 = GetContextPool<BasicBridge.ExternalCallContext>(^null, Environment.GetEnvironmentVariable("SYNERGYDE32")) 
-
-			try
-			begin
-				data context = contextPool2.MakeContext(sp)
-				await context.GetAllCustomers()
-				Assert.Fail()
-			end
-			catch(ex, @BridgeConnectionException)
-			begin
-				Assert.AreEqual(ex.InnerMessage, "TraditionalBridge failed to initialize most likely due to x86/x64 mismatch.")
-			end
-			endtry
-		endmethod
-
-
-		{TestMethod}
-		public async method LocalTest, @Task
-		proc
-			disposable data contextPool = GetContextPool<BasicBridge.ExternalCallContext>()
-			await BasicTestInternal(contextPool)
-		endmethod
-
-		{TestMethod}
-		{Ignore}
-		public async method WSLTest, @Task
-		proc
-			disposable data contextPool = GetRemoteContextPool<BasicBridge.ExternalCallContext>(Environment.GetEnvironmentVariable("LOCAL_LINUX_USER"), Environment.GetEnvironmentVariable("LOCAL_LINUX_PASSWORD"))
-			await BasicTestInternal(contextPool)
-		endmethod
-
-		private async method BasicTestInternal, @Task
-			contextPool, @BlockingPoolContextFactory<BasicBridge.ExternalCallContext>
-		proc
-			
-			data sp = new ServiceCollection().BuildServiceProvider()
-			
-			data context = contextPool.MakeContext(sp)
-			
-			Console.WriteLine("Calling GetAllCustomers")
-			data customers = await context.GetAllCustomers()
-			
-			try
-			begin
-				Console.WriteLine("Calling Exception Test")
-				data failureResult = await context.Arbitrario_Exception()
-				Assert.Fail("exception wasnt thrown")
-			end
-			catch(ex, @BridgeException)
-			begin
-
-			end
-			catch(ex, @Exception)
-			begin
-				throw
-			end
-
-			endtry
-
-			try
-			begin
-				Console.WriteLine("Calling Stop Test")
-				data failureResult = await context.Arbitrario_Stop()
-				Assert.Fail("exception wasnt thrown")
-			end
-			catch(ex, @Exception)
-			begin
-				contextPool.ReturnContext(context)
-				context = contextPool.MakeContext(sp)
-			end
-			endtry
-
-			try
-			begin
-				Console.WriteLine("Calling Stop Test")
-				data failureResult = await context.Arbitrario_BreakProtocol()
-				Assert.Fail("exception wasnt thrown")
-			end
-			catch(ex, @StreamJsonRpc.ConnectionLostException)
-			begin
-				Assert.IsTrue(ex.Message.Contains("I have died"))
-				contextPool.ReturnContext(context)
-				context = contextPool.MakeContext(sp)
-			end
-			endtry
-
-			Console.WriteLine("Calling Parameter tests")
-			data arbitrarioReturn = await context.Arbitrario_MethodWithParameters()
-			data functionFourReturn = await context.function_four("hello", "some", "text", "here")
-
-			Assert.AreEqual(functionFourReturn.p1, "Coming back 1")
-			Assert.AreEqual(functionFourReturn.p2, "Coming back 2")
-			Assert.AreEqual(functionFourReturn.p3, "back 3")
-			Assert.AreEqual(functionFourReturn.p4, "backi1234567890 1234567890 1234567") ;;there are two dispatchers in the test set that can resolve for function_four
-
-			Assert.AreEqual(customers.Count, 38, "customer count was wrong")
-
-			Assert.AreEqual(arbitrarioReturn.IntList.Count, 1, "arbitrario int array count was wrong")
-			Assert.AreEqual(arbitrarioReturn.StringList.Count, 3, "arbitrario string array count was wrong")
-
-			Console.WriteLine("Calling Structure test")
-			data structuresReturn = await context.Arbitrario_Structures()
-
-			contextPool.ReturnContext(context)
-			Console.WriteLine("Trimming Pool")
-			await contextPool.TrimPool(0)
-			Console.WriteLine("shutting down test")
-		endmethod
+        {TestMethod}
+        public async method InitFailure, @Task
+        proc
+            disposable data contextPool1 = GetContextPool<BasicBridge.ExternalCallContext>("abaddbrName.dbr")
+            data sp = new ServiceCollection().BuildServiceProvider()
+            try
+            begin
+                data context = contextPool1.MakeContext(sp)
+                await context.GetAllCustomers()
+                Assert.Fail()
+            end
+            catch(ex, @BridgeConnectionException)
+            begin
+                Assert.AreEqual(ex.InnerMessage, "TraditionalBridge failed to initialize most likely due to missing dbr or elb file.")
+            end
+            endtry
 
 
-		{TestMethod}
-		public async method LocalOptionalTest, @Task
-		proc
-			disposable data contextPool = GetContextPool<BasicBridge.ExternalCallContext>()
-			data sp = new ServiceCollection().BuildServiceProvider()
-			
-			data context = contextPool.MakeContext(sp)
-			
-			await context.SetRemoteLogSettings(new RemoteLogSettings() { AttachLogsToExceptions = true, InMemoryLogLevel = 5, LogToMemory = true, LogToDisk = true, OnDiskLogLevel = 6, FlushLog = true }) 
-			
+            disposable data contextPool2 = GetContextPool<BasicBridge.ExternalCallContext>(^null, Environment.GetEnvironmentVariable("SYNERGYDE32")) 
 
-			data ret1 = await context.Arbitrario_Optional(new ExternalCallContext.ArbitrarioOptionalParameter() { p1=9, p2="World", p3=String.Empty, p4=5 })
-			data ret2 = await context.Arbitrario_Optional(new ExternalCallContext.ArbitrarioOptionalParameter() { p1=9, p2="World"})
-			data ret3 = await context.Arbitrario_Optional(new ExternalCallContext.ArbitrarioOptionalParameter() { p1=9})
-			data ret4 = await context.Arbitrario_Optional(new ExternalCallContext.ArbitrarioOptionalParameter() { p1=9, p4=5 })
+            try
+            begin
+                data context = contextPool2.MakeContext(sp)
+                await context.GetAllCustomers()
+                Assert.Fail()
+            end
+            catch(ex, @BridgeConnectionException)
+            begin
+                Assert.AreEqual(ex.InnerMessage, "TraditionalBridge failed to initialize most likely due to x86/x64 mismatch.")
+            end
+            endtry
+        endmethod
 
-			Assert.AreEqual(ret1.p3, "World")
-			Assert.AreEqual(ret1.p4, 45)
 
-			Assert.AreEqual(ret2.p3, "World")
-			Assert.IsNull(ret2.p4)
+        {TestMethod}
+        public async method LocalTest, @Task
+        proc
+            disposable data contextPool = GetContextPool<BasicBridge.ExternalCallContext>()
+            await BasicTestInternal(contextPool)
+        endmethod
 
-			Assert.IsNotNull(ret3.p3)
-			Assert.IsNull(ret3.p4)
+        {TestMethod}
+        {Ignore}
+        public async method WSLTest, @Task
+        proc
+            disposable data contextPool = GetRemoteContextPool<BasicBridge.ExternalCallContext>(Environment.GetEnvironmentVariable("LOCAL_LINUX_USER"), Environment.GetEnvironmentVariable("LOCAL_LINUX_PASSWORD"))
+            await BasicTestInternal(contextPool)
+        endmethod
 
-			Assert.IsNotNull(ret4.p3)
-			Assert.AreEqual(ret4.p4, 45)
+        private async method BasicTestInternal, @Task
+            contextPool, @BlockingPoolContextFactory<BasicBridge.ExternalCallContext>
+        proc
+            
+            data sp = new ServiceCollection().BuildServiceProvider()
+            
+            data context = contextPool.MakeContext(sp)
+            
+            Console.WriteLine("Calling GetAllCustomers")
+            data customers = await context.GetAllCustomers()
+            
+            try
+            begin
+                Console.WriteLine("Calling Exception Test")
+                data failureResult = await context.Arbitrario_Exception()
+                Assert.Fail("exception wasnt thrown")
+            end
+            catch(ex, @BridgeException)
+            begin
 
-			contextPool.ReturnContext(context)
-			await contextPool.TrimPool(0)
-			Console.WriteLine("shutting down test")
-		endmethod
+            end
+            catch(ex, @Exception)
+            begin
+                throw
+            end
 
-		{TestMethod}
-		public async method LocalLoggingTest, @Task
-		proc
-			disposable data contextPool = GetContextPool<BasicBridge.ExternalCallContext>()
-			data sp = new ServiceCollection().BuildServiceProvider()
-			
-			data context = contextPool.MakeContext(sp)
-			await context.SetRemoteLogSettings(new RemoteLogSettings() { AttachLogsToExceptions = true, InMemoryLogLevel = 5, LogToMemory = true, LogToDisk = true, OnDiskLogLevel = 6, FlushLog = true }) 
-			try
-			begin
-				data failureResult = await context.Arbitrario_Exception()
-				Assert.Fail("exception wasnt thrown")
-			end
-			catch(ex, @BridgeException)
-			begin
-				Assert.IsTrue(ex.RemoteLogs.Length > 2, "there werent any remote logs")
-			end
-			catch(ex, @Exception)
-			begin
-				throw
-			end
+            endtry
 
-			endtry
+            try
+            begin
+                Console.WriteLine("Calling Stop Test")
+                data failureResult = await context.Arbitrario_Stop()
+                Assert.Fail("exception wasnt thrown")
+            end
+            catch(ex, @Exception)
+            begin
+                contextPool.ReturnContext(context)
+                context = contextPool.MakeContext(sp)
+            end
+            endtry
 
-			contextPool.ReturnContext(context)
-			await contextPool.TrimPool(0)
-			Console.WriteLine("shutting down test")
-		endmethod
+            try
+            begin
+                Console.WriteLine("Calling Stop Test")
+                data failureResult = await context.Arbitrario_BreakProtocol()
+                Assert.Fail("exception wasnt thrown")
+            end
+            catch(ex, @StreamJsonRpc.ConnectionLostException)
+            begin
+                Assert.IsTrue(ex.Message.Contains("I have died"))
+                contextPool.ReturnContext(context)
+                context = contextPool.MakeContext(sp)
+            end
+            endtry
+
+            Console.WriteLine("Calling Parameter tests")
+            data arbitrarioReturn = await context.Arbitrario_MethodWithParameters()
+            data functionFourReturn = await context.function_four("hello", "some", "text", "here")
+
+            Assert.AreEqual(functionFourReturn.p1, "Coming back 1")
+            Assert.AreEqual(functionFourReturn.p2, "Coming back 2")
+            Assert.AreEqual(functionFourReturn.p3, "back 3")
+            Assert.AreEqual(functionFourReturn.p4, "backi1234567890 1234567890 1234567") ;;there are two dispatchers in the test set that can resolve for function_four
+
+            Assert.AreEqual(customers.Count, 38, "customer count was wrong")
+
+            Assert.AreEqual(arbitrarioReturn.IntList.Count, 1, "arbitrario int array count was wrong")
+            Assert.AreEqual(arbitrarioReturn.StringList.Count, 3, "arbitrario string array count was wrong")
+
+            Console.WriteLine("Calling Structure test")
+            data structuresReturn = await context.Arbitrario_Structures()
+
+            contextPool.ReturnContext(context)
+            Console.WriteLine("Trimming Pool")
+            await contextPool.TrimPool(0)
+            Console.WriteLine("shutting down test")
+        endmethod
+
+
+        {TestMethod}
+        public async method LocalOptionalTest, @Task
+        proc
+            disposable data contextPool = GetContextPool<BasicBridge.ExternalCallContext>()
+            data sp = new ServiceCollection().BuildServiceProvider()
+            
+            data context = contextPool.MakeContext(sp)
+            
+            await context.SetRemoteLogSettings(new RemoteLogSettings() { AttachLogsToExceptions = true, InMemoryLogLevel = 5, LogToMemory = true, LogToDisk = true, OnDiskLogLevel = 6, FlushLog = true }) 
+            
+
+            data ret1 = await context.Arbitrario_Optional(new ExternalCallContext.ArbitrarioOptionalParameter() { p1=9, p2="World", p3=String.Empty, p4=5 })
+            data ret2 = await context.Arbitrario_Optional(new ExternalCallContext.ArbitrarioOptionalParameter() { p1=9, p2="World"})
+            data ret3 = await context.Arbitrario_Optional(new ExternalCallContext.ArbitrarioOptionalParameter() { p1=9})
+            data ret4 = await context.Arbitrario_Optional(new ExternalCallContext.ArbitrarioOptionalParameter() { p1=9, p4=5 })
+
+            Assert.AreEqual(ret1.p3, "World")
+            Assert.AreEqual(ret1.p4, 45)
+
+            Assert.AreEqual(ret2.p3, "World")
+            Assert.IsNull(ret2.p4)
+
+            Assert.IsNotNull(ret3.p3)
+            Assert.IsNull(ret3.p4)
+
+            Assert.IsNotNull(ret4.p3)
+            Assert.AreEqual(ret4.p4, 45)
+
+            contextPool.ReturnContext(context)
+            await contextPool.TrimPool(0)
+            Console.WriteLine("shutting down test")
+        endmethod
+
+        {TestMethod}
+        public async method LocalLoggingTest, @Task
+        proc
+            disposable data contextPool = GetContextPool<BasicBridge.ExternalCallContext>()
+            data sp = new ServiceCollection().BuildServiceProvider()
+            
+            data context = contextPool.MakeContext(sp)
+            await context.SetRemoteLogSettings(new RemoteLogSettings() { AttachLogsToExceptions = true, InMemoryLogLevel = 5, LogToMemory = true, LogToDisk = true, OnDiskLogLevel = 6, FlushLog = true }) 
+            try
+            begin
+                data failureResult = await context.Arbitrario_Exception()
+                Assert.Fail("exception wasnt thrown")
+            end
+            catch(ex, @BridgeException)
+            begin
+                Assert.IsTrue(ex.RemoteLogs.Length > 2, "there werent any remote logs")
+            end
+            catch(ex, @Exception)
+            begin
+                throw
+            end
+
+            endtry
+
+            contextPool.ReturnContext(context)
+            await contextPool.TrimPool(0)
+            Console.WriteLine("shutting down test")
+        endmethod
 
 		{TestMethod}
 		public async method LoggingResetTest, @Task
 		proc
 			disposable data contextPool = GetContextPool<BasicBridge.ExternalCallContext>()
 			data sp = new ServiceCollection().BuildServiceProvider()
-			
+            
 			data context = contextPool.MakeContext(sp)
 			await context.SetRemoteLogSettings(new RemoteLogSettings() { AttachLogsToExceptions = true, InMemoryLogLevel = 5, LogToMemory = true, LogToDisk = true, OnDiskLogLevel = 6, FlushLog = true }) 
-			data initialLogCount = 0
-			try
+			
+            Console.WriteLine("Calling GetAllCustomers")
+			data customers = await context.GetAllCustomers()
+			
+            try
 			begin
 				data failureResult = await context.Arbitrario_Exception()
 				Assert.Fail("exception wasnt thrown")
@@ -282,22 +288,6 @@ namespace HarmonyCore.Test.Bridge
 			catch(ex, @BridgeException)
 			begin
 				Assert.IsTrue(ex.RemoteLogs.Length > 2, "there werent any remote logs")
-				initialLogCount = ex.RemoteLogs.Length
-			end
-			catch(ex, @Exception)
-			begin
-				throw
-			end
-			endtry
-			
-			try
-			begin
-				data failureResult = await context.Arbitrario_Exception()
-				Assert.Fail("exception wasnt thrown")
-			end
-			catch(ex, @BridgeException)
-			begin
-				Assert.IsFalse(ex.RemoteLogs.Length > initialLogCount, "Log count was greater after second call")
 			end
 			catch(ex, @Exception)
 			begin
@@ -305,309 +295,310 @@ namespace HarmonyCore.Test.Bridge
 			end
 
 			endtry
+
 			contextPool.ReturnContext(context)
 			await contextPool.TrimPool(0)
 			Console.WriteLine("shutting down test")
 		endmethod
 
-		{TestMethod}
-		public async method LocalGenTest, @Task
-		proc
-			disposable data contextPool = GetContextPool<syntstService>()
-			data sp = new ServiceCollection().BuildServiceProvider()
-			
-			data context = contextPool.MakeContext(sp)
-			await context.SetRemoteLogSettings(new RemoteLogSettings() { AttachLogsToExceptions = true, InMemoryLogLevel = 1, LogToMemory = true, LogToDisk = true, OnDiskLogLevel = 4, FlushLog = true }) 
-			
-			data array21Result = await context.array21(new array21_Request() { p1 = "Z", p2 = "Z", p3 = "Z", p4 = "Z", p5 = "Z", p6 = "Z", p7 = "Z", p8 = "Z", p9 = "Z", p10 = "Z", p11 = "Z", p12 = "Z", p13 = "Z", p14 = "Z", p15 = "Z", p16 = "Z", p17 = "Z", p18 = "Z", p19 = "Z", p20 = "Z", p21 = new string[#] { "Z", "Z", "Z" }, p22 = "Z" })
+        {TestMethod}
+        public async method LocalGenTest, @Task
+        proc
+            disposable data contextPool = GetContextPool<syntstService>()
+            data sp = new ServiceCollection().BuildServiceProvider()
+            
+            data context = contextPool.MakeContext(sp)
+            await context.SetRemoteLogSettings(new RemoteLogSettings() { AttachLogsToExceptions = true, InMemoryLogLevel = 1, LogToMemory = true, LogToDisk = true, OnDiskLogLevel = 4, FlushLog = true }) 
+            
+            data array21Result = await context.array21(new array21_Request() { p1 = "Z", p2 = "Z", p3 = "Z", p4 = "Z", p5 = "Z", p6 = "Z", p7 = "Z", p8 = "Z", p9 = "Z", p10 = "Z", p11 = "Z", p12 = "Z", p13 = "Z", p14 = "Z", p15 = "Z", p16 = "Z", p17 = "Z", p18 = "Z", p19 = "Z", p20 = "Z", p21 = new string[#] { "Z", "Z", "Z" }, p22 = "Z" })
 
-			Assert.AreEqual("AAAAAAA", array21Result.p21[1])
-			Assert.AreEqual("BBBBBBB", array21Result.p21[2])
-			Assert.AreEqual("CCCCCCC", array21Result.p21[3])
-
-
-			data mscAryTstDecResult = await context.msc_arytst_dec(new msc_arytst_dec_Request() { p1 = new int[#] { 1, 2, 3, 4, 5 }})
-
-			Assert.AreEqual(55555, mscAryTstDecResult.p1[1])
-			Assert.AreEqual(4444, mscAryTstDecResult.p1[2])
-			Assert.AreEqual(333, mscAryTstDecResult.p1[3])
-			Assert.AreEqual(22, mscAryTstDecResult.p1[4])
-			Assert.AreEqual(1, mscAryTstDecResult.p1[5])
-
-			data mscAryTstImpResult = await context.msc_arytst_imp(new msc_arytst_imp_Request() { p1 = new decimal[#] { 1.5, Decimal.MinValue, 3.333, Decimal.MaxValue, 9.99 }})
-
-			Assert.AreEqual(0.12, mscAryTstImpResult.p1[1])
-			Assert.AreEqual(3333.44, mscAryTstImpResult.p1[2])
-			Assert.AreEqual(555555.667, mscAryTstImpResult.p1[3])
-			Assert.AreEqual(7777777.888, mscAryTstImpResult.p1[4])
-
-			data mscAryTstIntResult = await context.msc_arytst_int(new msc_arytst_int_Request() { p1 = new int[#] { 1, Int32.MaxValue, Int32.MinValue, 4, 5 }})
-
-			Assert.AreEqual(999999999, mscAryTstIntResult.p1[1])
-			Assert.AreEqual(88888888, mscAryTstIntResult.p1[2])
-			Assert.AreEqual(7777777, mscAryTstIntResult.p1[3])
-			Assert.AreEqual(666666, mscAryTstIntResult.p1[4])
-
-			;Console.ReadKey()
-
-			data timeStart = DateTime.Now
-			data i = 0
-			data CData = new string('C', 65535)
-			data DData = new string('D', 65535)
-			for i from 1 thru 1000 by 1
-			begin
-				data passtringResult = await context.passstring(new passstring_Request() { p1 = CData, p3=DData})
-
-				Assert.AreEqual(CData, passtringResult.p2)
-				Assert.AreEqual(DData, passtringResult.p3)
-			end
-			data timeEnd = DateTime.Now
-			data timeTaken = timeEnd - timeStart
-			contextPool.ReturnContext(context)
-			await contextPool.TrimPool(0)
-			Console.WriteLine("shutting down test {0}", timeTaken)
-		endmethod
-		
-		{TestMethod}
-		public method ArgumentHelperArgumentBadCast, void
-		proc
-			data return = ArgumentHelper.Argument<Boolean>(0, new Tuple<Object, [#]Object>(7, new List<Object>().ToArray()))
-			Assert.IsTrue(return)
-		endmethod
-		
-		{TestMethod}
-		public method ArgumentHelperArgumentBadCast2, void
-		proc
-			data outval, boolean
-			ArgumentHelper.Argument<Boolean>(0, new Tuple<Object, [#]Object>(7, new List<Object>().ToArray()), outval)
-			Assert.IsTrue(outval)
-		endmethod
-
-		{TestMethod}
-		public method ArgumentHelperArgumentNull, void
-		proc
-			data return = ArgumentHelper.Argument<List<Boolean>>(0, new Tuple<Object, [#]Object>(^null, new List<Object>().ToArray()))
-			Assert.IsNull(return)
-		endmethod
-
-		{TestMethod}
-		public method ArgumentHelperArgumentNull2, void
-		proc
-			data outval, @List<Boolean>
-			ArgumentHelper.Argument<List<Boolean>>(0, new Tuple<Object, [#]Object>(^null, new List<Object>().ToArray()), outval)
-			Assert.IsNull(outval)
-		endmethod
-
-		{TestMethod}
-		{ExpectedException(^typeof(Exception))}
-		public method ArgumentHelperArgumentExceptionCast, void
-		proc
-			data return = ArgumentHelper.Argument<List<Boolean>>(0, new Tuple<Object, [#]Object>(7, new List<Object>().ToArray()))
-		endmethod
-
-		{TestMethod}
-		{ExpectedException(^typeof(Exception))}
-		public method ArgumentHelperArgumentExceptionCast2, void
-		proc
-			data outval, @List<Boolean>
-			ArgumentHelper.Argument<List<Boolean>>(0, new Tuple<Object, [#]Object>(7, new List<Object>().ToArray()), outval)
-		endmethod
-
-		{TestMethod}
-		public method MaybeTests, void
-		proc
-			Assert.AreEqual(0, ArgumentHelper.MaybeNull(new Nullable<int>(0)))
-			Assert.AreEqual((long)0, ArgumentHelper.MaybeNull(new Nullable<long>(0)))
-			Assert.AreEqual((short)0, ArgumentHelper.MaybeNull(new Nullable<short>(0)))
-			Assert.AreEqual((byte)0, ArgumentHelper.MaybeNull(new Nullable<byte>(0)))
-			Assert.AreEqual((single)0, ArgumentHelper.MaybeNull(new Nullable<single>(0)))
-			Assert.AreEqual((double)0, ArgumentHelper.MaybeNull(new Nullable<double>(0)))
-			Assert.AreEqual((decimal)0, ArgumentHelper.MaybeNull(new Nullable<decimal>(0)))
-
-			data nullint, Nullable<int>
-			data nulllong, Nullable<long>
-			data nullshort, Nullable<short>
-			data nullbyte, Nullable<byte>
-			data nullsingle, Nullable<single>
-			data nulldouble, Nullable<double>
-			data nulldecimal, Nullable<decimal>
-
-			Assert.IsNotNull(ArgumentHelper.MaybeNull(nullint))
-			Assert.IsNotNull(ArgumentHelper.MaybeNull(nulllong))
-			Assert.IsNotNull(ArgumentHelper.MaybeNull(nullshort))
-			Assert.IsNotNull(ArgumentHelper.MaybeNull(nullbyte))
-			Assert.IsNotNull(ArgumentHelper.MaybeNull(nullsingle))
-			Assert.IsNotNull(ArgumentHelper.MaybeNull(nulldouble))
-			Assert.IsNotNull(ArgumentHelper.MaybeNull(nulldecimal))
-
-			Assert.AreEqual(0, ArgumentHelper.MaybeOptional(new Nullable<int>(0)))
-			Assert.AreEqual((long)0, ArgumentHelper.MaybeOptional(new Nullable<long>(0)))
-			Assert.AreEqual((short)0, ArgumentHelper.MaybeOptional(new Nullable<short>(0)))
-			Assert.AreEqual((byte)0, ArgumentHelper.MaybeOptional(new Nullable<byte>(0)))
-			Assert.AreEqual((single)0, ArgumentHelper.MaybeOptional(new Nullable<single>(0)))
-			Assert.AreEqual((double)0, ArgumentHelper.MaybeOptional(new Nullable<double>(0)))
-			Assert.AreEqual((decimal)0, ArgumentHelper.MaybeOptional(new Nullable<decimal>(0)))
-
-			Assert.IsNotNull(ArgumentHelper.MaybeOptional(nullint))
-			Assert.IsNotNull(ArgumentHelper.MaybeOptional(nulllong))
-			Assert.IsNotNull(ArgumentHelper.MaybeOptional(nullshort))
-			Assert.IsNotNull(ArgumentHelper.MaybeOptional(nullbyte))
-			Assert.IsNotNull(ArgumentHelper.MaybeOptional(nullsingle))
-			Assert.IsNotNull(ArgumentHelper.MaybeOptional(nulldouble))
-			Assert.IsNotNull(ArgumentHelper.MaybeOptional(nulldecimal))
-		endmethod
-
-		public class ExternalCallContext extends DynamicCallProvider
-			public method ExternalCallContext
-				connection, @IDynamicCallConnection
-				endparams
-				parent(connection)
-			proc
-
-			endmethod
-
-			public async method GetAllCustomers, @Task<List<Customer>>
-			proc
-				;;force metadata to be loaded if its not
-				DataObjectMetadataBase.LookupType(^typeof(Customer))
-				data resultTpl = await CallMethod("GetAllCustomers", new List<Customer>(), string.Empty)
-				mreturn ((@IEnumerable<Customer>)resultTpl.Item2[1]).ToList<Customer>()
-			endmethod
-
-			public async method Arbitrario_Exception, @Task<ArbitrarioReturnType>
-			proc
-				data intArray = new int[#] {5, 4, 3, 2, 1 }
-				data resultTpl = await CallMethod("Arbitrario.MethodWithParameters", -1, "hello", new string[#] { "this", "is", "strings" }, (@object)intArray, new string[0])
-				data returnCode = ArgumentHelper.Argument<int>(0, resultTpl)
-				mreturn new ArbitrarioReturnType() { ReturnCode = returnCode, IntList = ((@IEnumerable<int>)resultTpl.Item2[4]).ToList(), StringList = ((@IEnumerable<string>)resultTpl.Item2[5]).ToList() }
-			endmethod
-
-			public async method Arbitrario_Stop, @Task<ArbitrarioReturnType>
-			proc
-				data intArray = new int[#] {5, 4, 3, 2, 1 }
-				data resultTpl = await CallMethod("Arbitrario.MethodWithParameters", -1, "STOP NOW!!!", new string[#] { "this", "is", "strings" }, (@object)intArray, new string[0])
-				data returnCode = ArgumentHelper.Argument<int>(0, resultTpl)
-				mreturn new ArbitrarioReturnType() { ReturnCode = returnCode, IntList = ((@IEnumerable<int>)resultTpl.Item2[4]).ToList(), StringList = ((@IEnumerable<string>)resultTpl.Item2[5]).ToList() }
-			endmethod
-
-			public async method Arbitrario_BreakProtocol, @Task<ArbitrarioReturnType>
-			proc
-				data intArray = new int[#] {5, 4, 3, 2, 1 }
-				data resultTpl = await CallMethod("Arbitrario.MethodWithParameters", -1, "BREAK PROTOCOL", new string[#] { "this", "is", "strings" }, (@object)intArray, new string[0])
-				data returnCode = ArgumentHelper.Argument<int>(0, resultTpl)
-				mreturn new ArbitrarioReturnType() { ReturnCode = returnCode, IntList = ((@IEnumerable<int>)resultTpl.Item2[4]).ToList(), StringList = ((@IEnumerable<string>)resultTpl.Item2[5]).ToList() }
-			endmethod
-
-			public async method Arbitrario_MethodWithParameters, @Task<ArbitrarioReturnType>
-			proc
-				data intArray = new int[#] {5, 4, 3, 2, 1 }
-				data resultTpl = await CallMethod("Arbitrario.MethodWithParameters", 5, "hello", new string[#] { "this", "is", "strings" }, (@object)intArray, new string[0])
-				data returnCode = ArgumentHelper.Argument<int>(0, resultTpl)
-				mreturn new ArbitrarioReturnType() { ReturnCode = returnCode, IntList = ((@IEnumerable<int>)resultTpl.Item2[4]).ToList(), StringList = ((@IEnumerable<string>)resultTpl.Item2[5]).ToList() }
-			endmethod
-
-			protected override method PreSerializeArgument, @ArgumentDataDefinition
-				argValue, @Object
-			proc
-				if(argValue .is. [#]string) then
-				begin
-					data argDef = new ArgumentDataDefinition()
-					argDef.DataType = FieldDataType.DataObjectCollectionField
-					argDef.PassedValue = PreSerializeIEnumerable(([#]string)argValue)
-					mreturn argDef
-				end
-				else
-					mreturn parent.PreSerializeArgument(argValue)
-			endmethod
-
-			private method PreSerializeIEnumerable, @object
-				argValue, @System.Collections.IEnumerable
-			proc
-				data result = new List<object>()
-				data objValue, @Object
-				foreach objValue in argValue
-				begin
-					result.Add(PreSerializeArgument(objValue).PassedValue)
-				end
-				mreturn result
-			endmethod
-
-			public async method Arbitrario_Structures, @Task<ArbitrarioStructuresReturnType>
-
-			proc
-				data customerArray, [#]@Customer,  new Customer[#] { new Customer() { Name="fred", CustomerNumber=1 }, new Customer() { Name="bob", CustomerNumber=2 } }
-				data customerList = new List<Customer>() { new Customer() { Name="jim", CustomerNumber=3 }, new Customer() { Name="cletus", CustomerNumber=4 } }
-				data theatus = new Customer() { Name="theatus", CustomerNumber=5 }
-				data snorkle = new Customer() { Name="snorkle", CustomerNumber=6 }
-				data resultTpl, @Tuple<Object, [#]Object>, await CallMethod("Arbitrario.MethodWithStructures", new Object[#] { customerArray, customerList, theatus, snorkle })
-				data customerResult = ArgumentHelper.Argument<Customer>(3, resultTpl)
-				data customerResult2 = ArgumentHelper.Argument<Customer>(4, resultTpl)
-				if(customerResult.SynergyRecord != customerResult2.SynergyRecord)
-					throw new Exception("customerResult mismatched")
-				mreturn new ArbitrarioStructuresReturnType() 
-				&	{ 
-				&	ReturnCode = ArgumentHelper.Argument<int>(0, resultTpl), 
-				&	CustomerList = ArgumentHelper.Argument<List<Customer>>(1, resultTpl), 
-				&	CustomerArray = ArgumentHelper.Argument<[#]@Customer>(2, resultTpl),
-				&	Customer = ArgumentHelper.Argument<Customer>(3, resultTpl)
-				&   }
-			endmethod
-
-			public async method Arbitrario_Optional, @Task<ArbitrarioOptionalReturnType>
-				parm, @ArbitrarioOptionalParameter
-			proc
-				data resultTpl = await CallMethod("arbitrario_optional", parm.p1, ArgumentHelper.MaybeOptional(parm.p2), ArgumentHelper.MaybeOptional(parm.p3), ArgumentHelper.MaybeOptional(parm.p4))
-				data resultArray = resultTpl.Item2.ToList()
-				data returnValue = new ArbitrarioOptionalReturnType()
-				returnValue.p3 = ^as(resultArray[2], @string)
-				returnValue.p4 = ^as(resultArray[3], Nullable<int>)
-				mreturn returnValue
-			endmethod
-
-			public async method function_four, @Task<FunctionFourReturnType>
-				p1, @string
-				p2, @string
-				p3, @string
-				p4, @string
-			proc
-				data resultTpl = await CallMethod("function_four", p1, p2, p3, p4)
-				mreturn new FunctionFourReturnType() { p1 = (@string)resultTpl.Item2[1], p2 = (@string)resultTpl.Item2[2], p3 = (@string)resultTpl.Item2[3], p4 = (@string)resultTpl.Item2[4] }
-			endmethod
-
-			public class FunctionFourReturnType
-				public readwrite property p1, @string
-				public readwrite property p2, @string
-				public readwrite property p3, @string
-				public readwrite property p4, @string
-			endclass
-
-			public class ArbitrarioReturnType
-				public readwrite property ReturnCode, int
-				public readwrite property IntList, @List<int>
-				public readwrite property StringList, @List<string>
-			endclass
-
-			public class ArbitrarioStructuresReturnType
-				public readwrite property ReturnCode, int
-				public readwrite property CustomerList, @List<Customer>
-				public readwrite property CustomerArray, [#]@Customer
-				public readwrite property Customer, @Customer
-			endclass
-
-			public class ArbitrarioOptionalParameter
-				public readwrite property p1, int
-				public readwrite property p2, @string
-				public readwrite property p3, @string
-				public readwrite property p4, int?
-			endclass
-
-			public class ArbitrarioOptionalReturnType
-				public readwrite property p3, @string
-				public readwrite property p4, int?
-			endclass
-		endclass
+            Assert.AreEqual("AAAAAAA", array21Result.p21[1])
+            Assert.AreEqual("BBBBBBB", array21Result.p21[2])
+            Assert.AreEqual("CCCCCCC", array21Result.p21[3])
 
 
-	endclass
+            data mscAryTstDecResult = await context.msc_arytst_dec(new msc_arytst_dec_Request() { p1 = new int[#] { 1, 2, 3, 4, 5 }})
+
+            Assert.AreEqual(55555, mscAryTstDecResult.p1[1])
+            Assert.AreEqual(4444, mscAryTstDecResult.p1[2])
+            Assert.AreEqual(333, mscAryTstDecResult.p1[3])
+            Assert.AreEqual(22, mscAryTstDecResult.p1[4])
+            Assert.AreEqual(1, mscAryTstDecResult.p1[5])
+
+            data mscAryTstImpResult = await context.msc_arytst_imp(new msc_arytst_imp_Request() { p1 = new decimal[#] { 1.5, Decimal.MinValue, 3.333, Decimal.MaxValue, 9.99 }})
+
+            Assert.AreEqual(0.12, mscAryTstImpResult.p1[1])
+            Assert.AreEqual(3333.44, mscAryTstImpResult.p1[2])
+            Assert.AreEqual(555555.667, mscAryTstImpResult.p1[3])
+            Assert.AreEqual(7777777.888, mscAryTstImpResult.p1[4])
+
+            data mscAryTstIntResult = await context.msc_arytst_int(new msc_arytst_int_Request() { p1 = new int[#] { 1, Int32.MaxValue, Int32.MinValue, 4, 5 }})
+
+            Assert.AreEqual(999999999, mscAryTstIntResult.p1[1])
+            Assert.AreEqual(88888888, mscAryTstIntResult.p1[2])
+            Assert.AreEqual(7777777, mscAryTstIntResult.p1[3])
+            Assert.AreEqual(666666, mscAryTstIntResult.p1[4])
+
+            ;Console.ReadKey()
+
+            data timeStart = DateTime.Now
+            data i = 0
+            data CData = new string('C', 65535)
+            data DData = new string('D', 65535)
+            for i from 1 thru 1000 by 1
+            begin
+                data passtringResult = await context.passstring(new passstring_Request() { p1 = CData, p3=DData})
+
+                Assert.AreEqual(CData, passtringResult.p2)
+                Assert.AreEqual(DData, passtringResult.p3)
+            end
+            data timeEnd = DateTime.Now
+            data timeTaken = timeEnd - timeStart
+            contextPool.ReturnContext(context)
+            await contextPool.TrimPool(0)
+            Console.WriteLine("shutting down test {0}", timeTaken)
+        endmethod
+        
+        {TestMethod}
+        public method ArgumentHelperArgumentBadCast, void
+        proc
+            data return = ArgumentHelper.Argument<Boolean>(0, new Tuple<Object, [#]Object>(7, new List<Object>().ToArray()))
+            Assert.IsTrue(return)
+        endmethod
+        
+        {TestMethod}
+        public method ArgumentHelperArgumentBadCast2, void
+        proc
+            data outval, boolean
+            ArgumentHelper.Argument<Boolean>(0, new Tuple<Object, [#]Object>(7, new List<Object>().ToArray()), outval)
+            Assert.IsTrue(outval)
+        endmethod
+
+        {TestMethod}
+        public method ArgumentHelperArgumentNull, void
+        proc
+            data return = ArgumentHelper.Argument<List<Boolean>>(0, new Tuple<Object, [#]Object>(^null, new List<Object>().ToArray()))
+            Assert.IsNull(return)
+        endmethod
+
+        {TestMethod}
+        public method ArgumentHelperArgumentNull2, void
+        proc
+            data outval, @List<Boolean>
+            ArgumentHelper.Argument<List<Boolean>>(0, new Tuple<Object, [#]Object>(^null, new List<Object>().ToArray()), outval)
+            Assert.IsNull(outval)
+        endmethod
+
+        {TestMethod}
+        {ExpectedException(^typeof(Exception))}
+        public method ArgumentHelperArgumentExceptionCast, void
+        proc
+            data return = ArgumentHelper.Argument<List<Boolean>>(0, new Tuple<Object, [#]Object>(7, new List<Object>().ToArray()))
+        endmethod
+
+        {TestMethod}
+        {ExpectedException(^typeof(Exception))}
+        public method ArgumentHelperArgumentExceptionCast2, void
+        proc
+            data outval, @List<Boolean>
+            ArgumentHelper.Argument<List<Boolean>>(0, new Tuple<Object, [#]Object>(7, new List<Object>().ToArray()), outval)
+        endmethod
+
+        {TestMethod}
+        public method MaybeTests, void
+        proc
+            Assert.AreEqual(0, ArgumentHelper.MaybeNull(new Nullable<int>(0)))
+            Assert.AreEqual((long)0, ArgumentHelper.MaybeNull(new Nullable<long>(0)))
+            Assert.AreEqual((short)0, ArgumentHelper.MaybeNull(new Nullable<short>(0)))
+            Assert.AreEqual((byte)0, ArgumentHelper.MaybeNull(new Nullable<byte>(0)))
+            Assert.AreEqual((single)0, ArgumentHelper.MaybeNull(new Nullable<single>(0)))
+            Assert.AreEqual((double)0, ArgumentHelper.MaybeNull(new Nullable<double>(0)))
+            Assert.AreEqual((decimal)0, ArgumentHelper.MaybeNull(new Nullable<decimal>(0)))
+
+            data nullint, Nullable<int>
+            data nulllong, Nullable<long>
+            data nullshort, Nullable<short>
+            data nullbyte, Nullable<byte>
+            data nullsingle, Nullable<single>
+            data nulldouble, Nullable<double>
+            data nulldecimal, Nullable<decimal>
+
+            Assert.IsNotNull(ArgumentHelper.MaybeNull(nullint))
+            Assert.IsNotNull(ArgumentHelper.MaybeNull(nulllong))
+            Assert.IsNotNull(ArgumentHelper.MaybeNull(nullshort))
+            Assert.IsNotNull(ArgumentHelper.MaybeNull(nullbyte))
+            Assert.IsNotNull(ArgumentHelper.MaybeNull(nullsingle))
+            Assert.IsNotNull(ArgumentHelper.MaybeNull(nulldouble))
+            Assert.IsNotNull(ArgumentHelper.MaybeNull(nulldecimal))
+
+            Assert.AreEqual(0, ArgumentHelper.MaybeOptional(new Nullable<int>(0)))
+            Assert.AreEqual((long)0, ArgumentHelper.MaybeOptional(new Nullable<long>(0)))
+            Assert.AreEqual((short)0, ArgumentHelper.MaybeOptional(new Nullable<short>(0)))
+            Assert.AreEqual((byte)0, ArgumentHelper.MaybeOptional(new Nullable<byte>(0)))
+            Assert.AreEqual((single)0, ArgumentHelper.MaybeOptional(new Nullable<single>(0)))
+            Assert.AreEqual((double)0, ArgumentHelper.MaybeOptional(new Nullable<double>(0)))
+            Assert.AreEqual((decimal)0, ArgumentHelper.MaybeOptional(new Nullable<decimal>(0)))
+
+            Assert.IsNotNull(ArgumentHelper.MaybeOptional(nullint))
+            Assert.IsNotNull(ArgumentHelper.MaybeOptional(nulllong))
+            Assert.IsNotNull(ArgumentHelper.MaybeOptional(nullshort))
+            Assert.IsNotNull(ArgumentHelper.MaybeOptional(nullbyte))
+            Assert.IsNotNull(ArgumentHelper.MaybeOptional(nullsingle))
+            Assert.IsNotNull(ArgumentHelper.MaybeOptional(nulldouble))
+            Assert.IsNotNull(ArgumentHelper.MaybeOptional(nulldecimal))
+        endmethod
+
+        public class ExternalCallContext extends DynamicCallProvider
+            public method ExternalCallContext
+                connection, @IDynamicCallConnection
+                endparams
+                parent(connection)
+            proc
+
+            endmethod
+
+            public async method GetAllCustomers, @Task<List<Customer>>
+            proc
+                ;;force metadata to be loaded if its not
+                DataObjectMetadataBase.LookupType(^typeof(Customer))
+                data resultTpl = await CallMethod("GetAllCustomers", new List<Customer>(), string.Empty)
+                mreturn ((@IEnumerable<Customer>)resultTpl.Item2[1]).ToList<Customer>()
+            endmethod
+
+            public async method Arbitrario_Exception, @Task<ArbitrarioReturnType>
+            proc
+                data intArray = new int[#] {5, 4, 3, 2, 1 }
+                data resultTpl = await CallMethod("Arbitrario.MethodWithParameters", -1, "hello", new string[#] { "this", "is", "strings" }, (@object)intArray, new string[0])
+                data returnCode = ArgumentHelper.Argument<int>(0, resultTpl)
+                mreturn new ArbitrarioReturnType() { ReturnCode = returnCode, IntList = ((@IEnumerable<int>)resultTpl.Item2[4]).ToList(), StringList = ((@IEnumerable<string>)resultTpl.Item2[5]).ToList() }
+            endmethod
+
+            public async method Arbitrario_Stop, @Task<ArbitrarioReturnType>
+            proc
+                data intArray = new int[#] {5, 4, 3, 2, 1 }
+                data resultTpl = await CallMethod("Arbitrario.MethodWithParameters", -1, "STOP NOW!!!", new string[#] { "this", "is", "strings" }, (@object)intArray, new string[0])
+                data returnCode = ArgumentHelper.Argument<int>(0, resultTpl)
+                mreturn new ArbitrarioReturnType() { ReturnCode = returnCode, IntList = ((@IEnumerable<int>)resultTpl.Item2[4]).ToList(), StringList = ((@IEnumerable<string>)resultTpl.Item2[5]).ToList() }
+            endmethod
+
+            public async method Arbitrario_BreakProtocol, @Task<ArbitrarioReturnType>
+            proc
+                data intArray = new int[#] {5, 4, 3, 2, 1 }
+                data resultTpl = await CallMethod("Arbitrario.MethodWithParameters", -1, "BREAK PROTOCOL", new string[#] { "this", "is", "strings" }, (@object)intArray, new string[0])
+                data returnCode = ArgumentHelper.Argument<int>(0, resultTpl)
+                mreturn new ArbitrarioReturnType() { ReturnCode = returnCode, IntList = ((@IEnumerable<int>)resultTpl.Item2[4]).ToList(), StringList = ((@IEnumerable<string>)resultTpl.Item2[5]).ToList() }
+            endmethod
+
+            public async method Arbitrario_MethodWithParameters, @Task<ArbitrarioReturnType>
+            proc
+                data intArray = new int[#] {5, 4, 3, 2, 1 }
+                data resultTpl = await CallMethod("Arbitrario.MethodWithParameters", 5, "hello", new string[#] { "this", "is", "strings" }, (@object)intArray, new string[0])
+                data returnCode = ArgumentHelper.Argument<int>(0, resultTpl)
+                mreturn new ArbitrarioReturnType() { ReturnCode = returnCode, IntList = ((@IEnumerable<int>)resultTpl.Item2[4]).ToList(), StringList = ((@IEnumerable<string>)resultTpl.Item2[5]).ToList() }
+            endmethod
+
+            protected override method PreSerializeArgument, @ArgumentDataDefinition
+                argValue, @Object
+            proc
+                if(argValue .is. [#]string) then
+                begin
+                    data argDef = new ArgumentDataDefinition()
+                    argDef.DataType = FieldDataType.DataObjectCollectionField
+                    argDef.PassedValue = PreSerializeIEnumerable(([#]string)argValue)
+                    mreturn argDef
+                end
+                else
+                    mreturn parent.PreSerializeArgument(argValue)
+            endmethod
+
+            private method PreSerializeIEnumerable, @object
+                argValue, @System.Collections.IEnumerable
+            proc
+                data result = new List<object>()
+                data objValue, @Object
+                foreach objValue in argValue
+                begin
+                    result.Add(PreSerializeArgument(objValue).PassedValue)
+                end
+                mreturn result
+            endmethod
+
+            public async method Arbitrario_Structures, @Task<ArbitrarioStructuresReturnType>
+
+            proc
+                data customerArray, [#]@Customer,  new Customer[#] { new Customer() { Name="fred", CustomerNumber=1 }, new Customer() { Name="bob", CustomerNumber=2 } }
+                data customerList = new List<Customer>() { new Customer() { Name="jim", CustomerNumber=3 }, new Customer() { Name="cletus", CustomerNumber=4 } }
+                data theatus = new Customer() { Name="theatus", CustomerNumber=5 }
+                data snorkle = new Customer() { Name="snorkle", CustomerNumber=6 }
+                data resultTpl, @Tuple<Object, [#]Object>, await CallMethod("Arbitrario.MethodWithStructures", new Object[#] { customerArray, customerList, theatus, snorkle })
+                data customerResult = ArgumentHelper.Argument<Customer>(3, resultTpl)
+                data customerResult2 = ArgumentHelper.Argument<Customer>(4, resultTpl)
+                if(customerResult.SynergyRecord != customerResult2.SynergyRecord)
+                    throw new Exception("customerResult mismatched")
+                mreturn new ArbitrarioStructuresReturnType() 
+                &	{ 
+                &	ReturnCode = ArgumentHelper.Argument<int>(0, resultTpl), 
+                &	CustomerList = ArgumentHelper.Argument<List<Customer>>(1, resultTpl), 
+                &	CustomerArray = ArgumentHelper.Argument<[#]@Customer>(2, resultTpl),
+                &	Customer = ArgumentHelper.Argument<Customer>(3, resultTpl)
+                &   }
+            endmethod
+
+            public async method Arbitrario_Optional, @Task<ArbitrarioOptionalReturnType>
+                parm, @ArbitrarioOptionalParameter
+            proc
+                data resultTpl = await CallMethod("arbitrario_optional", parm.p1, ArgumentHelper.MaybeOptional(parm.p2), ArgumentHelper.MaybeOptional(parm.p3), ArgumentHelper.MaybeOptional(parm.p4))
+                data resultArray = resultTpl.Item2.ToList()
+                data returnValue = new ArbitrarioOptionalReturnType()
+                returnValue.p3 = ^as(resultArray[2], @string)
+                returnValue.p4 = ^as(resultArray[3], Nullable<int>)
+                mreturn returnValue
+            endmethod
+
+            public async method function_four, @Task<FunctionFourReturnType>
+                p1, @string
+                p2, @string
+                p3, @string
+                p4, @string
+            proc
+                data resultTpl = await CallMethod("function_four", p1, p2, p3, p4)
+                mreturn new FunctionFourReturnType() { p1 = (@string)resultTpl.Item2[1], p2 = (@string)resultTpl.Item2[2], p3 = (@string)resultTpl.Item2[3], p4 = (@string)resultTpl.Item2[4] }
+            endmethod
+
+            public class FunctionFourReturnType
+                public readwrite property p1, @string
+                public readwrite property p2, @string
+                public readwrite property p3, @string
+                public readwrite property p4, @string
+            endclass
+
+            public class ArbitrarioReturnType
+                public readwrite property ReturnCode, int
+                public readwrite property IntList, @List<int>
+                public readwrite property StringList, @List<string>
+            endclass
+
+            public class ArbitrarioStructuresReturnType
+                public readwrite property ReturnCode, int
+                public readwrite property CustomerList, @List<Customer>
+                public readwrite property CustomerArray, [#]@Customer
+                public readwrite property Customer, @Customer
+            endclass
+
+            public class ArbitrarioOptionalParameter
+                public readwrite property p1, int
+                public readwrite property p2, @string
+                public readwrite property p3, @string
+                public readwrite property p4, int?
+            endclass
+
+            public class ArbitrarioOptionalReturnType
+                public readwrite property p3, @string
+                public readwrite property p4, int?
+            endclass
+        endclass
+
+
+    endclass
 
 endnamespace
