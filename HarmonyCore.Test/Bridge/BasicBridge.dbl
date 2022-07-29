@@ -23,6 +23,7 @@ namespace HarmonyCore.Test.Bridge
 			default dbrPath, @string, ^null
             default dblDir, @string, ^null
 		proc
+;			data actualDBRPath = "-dv -rd 4444:60 " + (dbrPath ?? 'TraditionalBridge.Test.dbr')
 			data actualDBRPath = dbrPath ?? 'TraditionalBridge.Test.dbr'
             data platformDblDir = Environment.OSVersion.Platform == PlatformID.Unix ? Environment.GetEnvironmentVariable("DBLDIR") : Environment.GetEnvironmentVariable("SYNERGYDE64")
             data actualDblDir = dblDir ?? platformDblDir
@@ -33,11 +34,13 @@ namespace HarmonyCore.Test.Bridge
 			
             if(Environment.OSVersion.Platform == PlatformID.Unix) then
             begin
+;                data contextPool = new ExternalContextPool<T>(Path.Combine(actualDblDir, "bin/dbr"), actualDBRPath, testDirFolder, ^null, 4) 
                 data contextPool = new ExternalContextPool<T>(Path.Combine(actualDblDir, "bin/dbs"), actualDBRPath, testDirFolder, ^null, 4) 
                 mreturn contextPool
             end
             else
             begin
+;                data contextPool = new ExternalContextPool<T>(Path.Combine(actualDblDir, "dbl\bin\dbr.exe"), actualDBRPath, testDirFolder, ^null, 4) 
                 data contextPool = new ExternalContextPool<T>(Path.Combine(actualDblDir, "dbl\bin\dbs.exe"), actualDBRPath, testDirFolder, ^null, 4) 
                 mreturn contextPool
             end
@@ -264,6 +267,39 @@ namespace HarmonyCore.Test.Bridge
             await contextPool.TrimPool(0)
             Console.WriteLine("shutting down test")
         endmethod
+
+		{TestMethod}
+		public async method LoggingResetTest, @Task
+		proc
+			disposable data contextPool = GetContextPool<BasicBridge.ExternalCallContext>()
+			data sp = new ServiceCollection().BuildServiceProvider()
+            
+			data context = contextPool.MakeContext(sp)
+			await context.SetRemoteLogSettings(new RemoteLogSettings() { AttachLogsToExceptions = true, InMemoryLogLevel = 5, LogToMemory = true, LogToDisk = true, OnDiskLogLevel = 6, FlushLog = true }) 
+			
+            Console.WriteLine("Calling GetAllCustomers")
+			data customers = await context.GetAllCustomers()
+			
+            try
+			begin
+				data failureResult = await context.Arbitrario_Exception()
+				Assert.Fail("exception wasnt thrown")
+			end
+			catch(ex, @BridgeException)
+			begin
+				Assert.IsTrue(ex.RemoteLogs.Length > 2, "there werent any remote logs")
+			end
+			catch(ex, @Exception)
+			begin
+				throw
+			end
+
+			endtry
+
+			contextPool.ReturnContext(context)
+			await contextPool.TrimPool(0)
+			Console.WriteLine("shutting down test")
+		endmethod
 
         {TestMethod}
         public async method LocalGenTest, @Task
