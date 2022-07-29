@@ -19,18 +19,18 @@ namespace HarmonyCore.Test.Bridge
     {TestClass}
     public class BasicBridge
 
-		private method GetContextPool<T(IContextBase, class)>, @ExternalContextPool<T>
-			default dbrPath, @string, ^null
+        private method GetContextPool<T(IContextBase, class)>, @ExternalContextPool<T>
+            default dbrPath, @string, ^null
             default dblDir, @string, ^null
-		proc
-			data actualDBRPath = dbrPath ?? 'TraditionalBridge.Test.dbr'
+        proc
+            data actualDBRPath = dbrPath ?? 'TraditionalBridge.Test.dbr'
             data platformDblDir = Environment.OSVersion.Platform == PlatformID.Unix ? Environment.GetEnvironmentVariable("DBLDIR") : Environment.GetEnvironmentVariable("SYNERGYDE64")
             data actualDblDir = dblDir ?? platformDblDir
             data currentDirectory = Path.GetDirectoryName(^typeof(BasicBridge).Assembly.Location)
             data testDirFolder = TestEnvironment.findRelativeFolderForAssembly("TestDir")
-			
-			DebugLogSession.Logging = new Harmony.Core.Utility.ConsoleLogger(Harmony.Core.Interface.LogLevel.Trace)
-			
+            
+            DebugLogSession.Logging = new Harmony.Core.Utility.ConsoleLogger(Harmony.Core.Interface.LogLevel.Trace)
+            
             if(Environment.OSVersion.Platform == PlatformID.Unix) then
             begin
                 data contextPool = new ExternalContextPool<T>(Path.Combine(actualDblDir, "bin/dbs"), actualDBRPath, testDirFolder, ^null, 4) 
@@ -260,6 +260,51 @@ namespace HarmonyCore.Test.Bridge
 
             endtry
 
+            contextPool.ReturnContext(context)
+            await contextPool.TrimPool(0)
+            Console.WriteLine("shutting down test")
+        endmethod
+
+        {TestMethod}
+        public async method LoggingResetTest, @Task
+        proc
+            disposable data contextPool = GetContextPool<BasicBridge.ExternalCallContext>()
+            data sp = new ServiceCollection().BuildServiceProvider()
+            
+            data context = contextPool.MakeContext(sp)
+            await context.SetRemoteLogSettings(new RemoteLogSettings() { AttachLogsToExceptions = true, InMemoryLogLevel = 5, LogToMemory = true, LogToDisk = true, OnDiskLogLevel = 6, FlushLog = true }) 
+            data initialLogCount = 0
+            try
+            begin
+                data failureResult = await context.Arbitrario_Exception()
+                Assert.Fail("exception wasnt thrown")
+            end
+            catch(ex, @BridgeException)
+            begin
+                Assert.IsTrue(ex.RemoteLogs.Length > 2, "there werent any remote logs")
+                initialLogCount = ex.RemoteLogs.Length
+            end
+            catch(ex, @Exception)
+            begin
+                throw
+            end
+            endtry
+            
+            try
+            begin
+                data failureResult = await context.Arbitrario_Exception()
+                Assert.Fail("exception wasnt thrown")
+            end
+            catch(ex, @BridgeException)
+            begin
+                Assert.IsFalse(ex.RemoteLogs.Length > initialLogCount, "Log count was greater after second call")
+            end
+            catch(ex, @Exception)
+            begin
+                throw
+            end
+
+            endtry
             contextPool.ReturnContext(context)
             await contextPool.TrimPool(0)
             Console.WriteLine("shutting down test")
