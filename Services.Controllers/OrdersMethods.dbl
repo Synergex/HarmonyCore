@@ -121,8 +121,20 @@ namespace Services.Controllers
             mreturn CallContext.Arbitrario_MethodWithParameters()
         endmethod
 
+;        {HttpGet("Arbitrario_MethodWithParameters2(Number={aNumber},String={aString},StringArray={aStringArray},IntArray={aIntArray})")}
+        {HttpGet("Arbitrario_MethodWithParameters2(Number={aNumber})")}
+        {CallableMethodConfigurationAttribute(IsFunction=true, ReturnsFromEntitySet=false)}
+        public method Arbitrario_MethodWithParameters2, @Task<ExternalCallContext.ArbitrarioReturnType>
+			{FromODataUri}
+            required in aNumber, int
+		proc
+			mreturn CallContext.Arbitrario_MethodWithParameters2(aNumber, "hello", new string[#] { "this", "is", "strings" }, new int[#] {5, 4, 3, 2, 1 })
+
+;			data intArray = new int[#] {5, 4, 3, 2, 1 }
+;			mreturn CallContext.Arbitrario_MethodWithParameters2(5, "hello", new string[#] { "this", "is", "strings" }, (@object)intArray)
+		endmethod
     endclass
-	
+
     public interface IExternalCallContextCallbacks
         method Maybe, @Task<[#]@string>
             prompt1, @string

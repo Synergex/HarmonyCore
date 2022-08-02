@@ -2155,19 +2155,17 @@ namespace Services.Test.UnitTests
         endmethod
 
         
-        {TestMethod}
-        public method CustomHtttpHeadersForLogLevelsTest, void
-        proc
-            if(File.Exists(Path.GetFullPath(Path.Combine(Path.GetDirectoryName(^typeof(HandCrafted).Assembly.Location), "..\..\..\..\TestDir\TraditionalBridge.Test.dbr")))) then
-            begin
-                disposable data client = UnitTestEnvironment.Server.CreateClient()
-                disposable data response = client.GetAsync("/odata/v1/ExternalCall/Arbitrario_MethodWithParameters2()").Result
-                data result = response.Content.ReadAsStringAsync().Result
-                response.EnsureSuccessStatusCode()
-            end
-            else
-                Console.WriteLine("Skipping TraditionalBridgeGetAllCustomers")
-        endmethod
+		{TestMethod}
+		public method CustomHtttpHeadersForLogLevelsTest, void
+		proc
+			disposable data client = UnitTestEnvironment.Server.CreateClient()
+			disposable data message = new HttpRequestMessage(HttpMethod.Get, "/odata/v1/ExternalCall/Arbitrario_MethodWithParameters2(Number=5)")
+;			message.Headers.Add("LogLevel", "5")
+			disposable data response = client.SendAsync(message).Result
+			data result = response.Content.ReadAsStringAsync().Result
+			response.EnsureSuccessStatusCode()
+			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+		endmethod
 
 
 ;		{TestMethod}
