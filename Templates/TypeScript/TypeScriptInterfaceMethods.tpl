@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME><INTERFACE_NAME>Methods.ts</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.7.1</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.8.5</REQUIRES_CODEGEN_VERSION>
 ;//
 ;// This template generates TypeScript interfaces corresponding to the methods
 ;// that are defined in a method catalog interface.
@@ -16,7 +16,7 @@
   to the operations in the exposed service "<INTERFACE_NAME>".
 */
 
-import * as <INTERFACE_NAME> from './<INTERFACE_NAME>Structures';
+import * as <INTERFACE_NAME>Structures from './<INTERFACE_NAME>Structures';
 
 <METHOD_LOOP>
 //------------------------------------------------------------------------------
@@ -26,10 +26,10 @@ import * as <INTERFACE_NAME> from './<INTERFACE_NAME>Structures';
 ;// REQUEST MODEL
 ;//
   <IF IN_OR_INOUT>
-export interface <METHOD_NAME>_Request {
+export interface <METHOD_NAME>Request {
    <PARAMETER_LOOP>
     <IF IN_OR_INOUT>
-    <PARAMETER_NAME>: <IF STRUCTURE><INTERFACE_NAME>.</IF STRUCTURE><PARAMETER_TSTYPE>;
+    <PARAMETER_NAME>: <IF STRUCTURE><INTERFACE_NAME>Structures.</IF STRUCTURE><PARAMETER_TSTYPE>;
     </IF IN_OR_INOUT>
    </PARAMETER_LOOP>
 }
@@ -41,14 +41,14 @@ export interface <METHOD_NAME>_Request {
 ;// RESPONSE MODEL
 ;//
   <IF RETURNS_DATA>
-export interface <METHOD_NAME>_Response {
+export interface <METHOD_NAME>Response {
     <IF FUNCTION>
-    ReturnValue: <METHOD_RETURN_TSTYPE>;
+    <IF TWEAK_SMC_CAMEL_CASE>r<ELSE>R</IF>eturnValue: <METHOD_RETURN_TSTYPE>;
     </IF FUNCTION>
     <IF OUT_OR_INOUT>
       <PARAMETER_LOOP>
         <IF OUT_OR_INOUT>
-    <PARAMETER_NAME>: <IF STRUCTURE><INTERFACE_NAME>.</IF STRUCTURE><PARAMETER_TSTYPE>;
+    <PARAMETER_NAME>: <IF STRUCTURE><INTERFACE_NAME>Structures.</IF STRUCTURE><PARAMETER_TSTYPE>;
         </IF OUT_OR_INOUT>
       </PARAMETER_LOOP>
     </IF OUT_OR_INOUT>

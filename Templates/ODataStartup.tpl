@@ -1,6 +1,5 @@
 <CODEGEN_FILENAME>Startup.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.4.6</REQUIRES_CODEGEN_VERSION>
-<REQUIRES_USERTOKEN>API_DOCS_PATH</REQUIRES_USERTOKEN>
+<REQUIRES_CODEGEN_VERSION>5.8.5</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>API_TITLE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>CONTROLLERS_NAMESPACE</REQUIRES_USERTOKEN>
@@ -272,6 +271,7 @@ namespace <NAMESPACE>
             &    .AddDataAnnotations()      ;;Enable data annotations
             &    .AddNewtonsoftJson(<IF DEFINED_ENABLE_NEWTONSOFT>lambda (opts) { opts.SerializerSettings.ContractResolver = new Newtonsoft.Json.Serialization.DefaultContractResolver()}</IF>)
             &    .AddApplicationPart(^typeof(IsolatedMethodsBase).Assembly)
+            &    .AddApplicationPart(^typeof(Microsoft.AspNetCore.OData.Routing.Controllers.MetadataController).Assembly)
 
 			lambda configSwaggerGen(c)
 			begin
@@ -480,50 +480,6 @@ namespace <NAMESPACE>
             app.UseAuthentication()
 
         </IF DEFINED_ENABLE_AUTHENTICATION>
-            ;;-------------------------------------------------------
-            ;;Configure the MVC & OData environments
-
-            lambda mvcBuilder(builder)
-            begin
-                lambda UriResolver(s)
-                begin
-                    data result = app.ApplicationServices.GetRequiredService<ODataUriResolver>()
-                    mreturn result
-                end
-
-                lambda EnableRouting(configContext)
-                begin
-                    configContext.RoutingConventions.Insert(1, new HarmonySprocRoutingConvention())
-                    configContext.RoutingConventions.Insert(1, new AdapterRoutingConvention())
-                    mreturn configContext.RoutingConventions
-                end
-
-                lambda EnableWritableEdmModel(sp)
-                begin
-                    mreturn new RefEdmModel() { RealModel = EdmBuilder.GetEdmModel(sp) }
-                end
-
-                lambda EnableDI(containerBuilder)
-                begin
-                    containerBuilder.AddService<Microsoft.OData.UriParser.ODataUriResolver>( Microsoft.OData.ServiceLifetime.Singleton, UriResolver)
-                    nop
-                end
-
-                lambda ConfigureRoute(containerBuilder)
-                begin
-                    data containerBuilderType, @Type, ((@Object)containerBuilder).GetType()
-                    data servicesField, @System.Reflection.FieldInfo, containerBuilderType.GetField("services", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
-                    data serviceDescriptors = ((@System.Collections.IEnumerable)servicesField.GetValue(containerBuilder)).OfType<ServiceDescriptor>()
-                    data versionedModelDescriptor = serviceDescriptors.Where(lambda(descriptor) { descriptor.ServiceType == ^typeof(IEdmModel) }).Last()
-                    data versionedModel = versionedModelDescriptor.ImplementationInstance
-                    if(versionedModel == ^null)
-                        versionedModel = versionedModelDescriptor.ImplementationFactory(app.ApplicationServices)
-                    containerBuilder.AddService<IEdmModel>(Microsoft.OData.ServiceLifetime.Scoped, lambda(sp) { new RefEdmModel() { RealModel = ^as(versionedModel, @IEdmModel) }  })
-                    containerBuilder.AddService<ODataUriResolver>(Microsoft.OData.ServiceLifetime.Singleton, lambda(sp) { new UnqualifiedAltKeyUriResolver(^as(versionedModel, @IEdmModel)) { EnableCaseInsensitive = true } })
-                    containerBuilder.AddService<IODataPathTemplateHandler, PathTemplateHandler>( Microsoft.OData.ServiceLifetime.Singleton)
-                    containerBuilder.AddService<IODataPathHandler, PathTemplateHandler>( Microsoft.OData.ServiceLifetime.Singleton)
-                end
-            end
 
         <IF DEFINED_ENABLE_CORS>
             ;;-------------------------------------------------------
@@ -550,6 +506,10 @@ namespace <NAMESPACE>
 			app.UseSwagger()
 			app.UseSwaggerUI(lambda(c) { c.SwaggerEndpoint("/swagger/v<API_VERSION>/swagger.json", "<API_TITLE>") })
 
+            ;;Enable serving static files
+            app.UseDefaultFiles()
+            app.UseStaticFiles()
+
             app.UsePathBase(new PathString("/odata/v1"))
 
             ;;Use odata route debug, /$odata
@@ -559,7 +519,6 @@ namespace <NAMESPACE>
             lambda RoutingConfig(endpoints)
             begin
 				endpoints.MapControllers()
-				endpoints.MapHub<OrdersHub>("/<SIGNALR_PATH>/orders")
 			end
 
             app.UseRouting()

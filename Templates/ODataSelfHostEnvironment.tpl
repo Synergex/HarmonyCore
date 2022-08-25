@@ -51,6 +51,7 @@ import Microsoft.AspNetCore
 import Microsoft.AspNetCore.Hosting
 import System.Collections.Generic
 import System.IO
+import System.Runtime.InteropServices
 import System.Text
 import <SERVICES_NAMESPACE>
 import <MODELS_NAMESPACE>
@@ -160,11 +161,12 @@ namespace <NAMESPACE>
         proc
             data chout, int
             data dataFile, string
+            data fileExtension, a10
             data xdlFile, string
 
   <STRUCTURE_LOOP>
     <IF STRUCTURE_ISAM>
-            data <structurePlural> = load<StructurePlural>()
+            data <structurePlural>Data = load<StructurePlural>()
     </IF>
   </STRUCTURE_LOOP>
 
@@ -172,18 +174,19 @@ namespace <NAMESPACE>
             ;;Create and load the <structurePlural> file
 
             dataFile = "<FILE_NAME>"
+            xcall parse(dataFile.ToLower(),1,,,,,fileExtension)
     <IF STRUCTURE_ISAM>
-            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+            xdlFile = "@" + dataFile.ToLower().Replace(%atrim(fileExtension),".xdl")
 
             data <structureNoplural>, @<StructureNoplural>
             open(chout=0,o:i,dataFile,FDL:xdlFile)
-            foreach <structureNoplural> in <structurePlural>
+            foreach <structureNoplural> in <structurePlural>Data
                 store(chout,<structureNoplural>.SynergyRecord)
             close chout
 
     </IF>
     <IF STRUCTURE_RELATIVE>
-            data sourceFile = dataFile.ToLower().Replace(".ddf",".txt")
+            data sourceFile = dataFile.ToLower().Replace(%atrim(fileExtension),".txt")
             xcall copy(sourceFile,dataFile,1)
 
     </IF>
@@ -212,20 +215,22 @@ namespace <NAMESPACE>
         public static method load<StructurePlural>, @List<<StructureNoplural>>
         proc
             data dataFile = "<FILE_NAME>"
-            data textFile = dataFile.ToLower().Replace(".ism",".txt")
+            data fileExtension, a10
+            xcall parse(dataFile.ToLower(),1,,,,,fileExtension)
+            data textFile = dataFile.ToLower().Replace(%atrim(fileExtension),".txt")
             data <structureNoplural>Ch, int, 0
             data <structureNoplural>Rec, str<StructureNoplural>
-            data <structurePlural> = new List<<StructureNoplural>>()
+            data <structurePlural>Data = new List<<StructureNoplural>>()
             data grfa, a10
             open(<structureNoplural>Ch,i:s,textFile)
             repeat
             begin
                 reads(<structureNoplural>Ch,<structureNoplural>Rec,eof)
-                <structurePlural>.Add(new <StructureNoplural>(<structureNoplural>Rec, grfa))
+                <structurePlural>Data.Add(new <StructureNoplural>(<structureNoplural>Rec, grfa))
             end
         eof,
             close <structureNoplural>Ch
-            mreturn <structurePlural>
+            mreturn <structurePlural>Data
         endmethod
 
     </IF>
@@ -242,7 +247,12 @@ namespace <NAMESPACE>
                 if(Directory.Exists(Path.Combine(currentFolder, folderName))) then
                     mreturn Path.Combine(currentFolder, folderName)
                 else
-                    currentFolder = Path.GetFullPath(currentFolder + "..\")
+                begin
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) then
+                        currentFolder = Path.GetFullPath(currentFolder + "..\")
+                    else
+                        currentFolder = Path.GetFullPath(currentFolder + "../")
+                end
             end
             mreturn ^null
         endmethod

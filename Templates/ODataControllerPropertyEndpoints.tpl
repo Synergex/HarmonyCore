@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME><StructurePlural>ControllerPropertyEndpoints.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.5.2</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.7.5</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
 ;// Title:       ODataControllerPropertyEndpoints.tpl
@@ -69,7 +69,7 @@ namespace <NAMESPACE>
 ;//
         <IF STRUCTURE_ISAM AND STRUCTURE_HAS_UNIQUE_PK AND NOTPKSEGMENT>
           <PRIMARY_KEY>
-        {HttpGet("<StructurePlural>(<IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>={a<FieldSqlName>}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP></IF SINGLE_SEGMENT>)/<FieldSqlName>")}
+        {HttpGet("<StructurePlural>(<IF SINGLE_SEGMENT>{key}<ELSE><SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>={a<FieldSqlName>}<SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF SEG_TAG_EQUAL></SEGMENT_LOOP></IF SINGLE_SEGMENT>)/<FieldSqlName>")}
         {Produces("application/json")}
         {ProducesResponseType(StatusCodes.Status200OK)}
             <IF DEFINED_ENABLE_AUTHENTICATION>
@@ -83,11 +83,11 @@ namespace <NAMESPACE>
         ;;; Get the <FieldSqlName> property of a single <StructureNoplural>, by primary key.
         ;;; </summary>
             <IF SINGLE_SEGMENT>
-        ;;; <param name="key"><FIELD_DESC></param>
+        ;;; <param name="key"><FIELD_DESC_DOUBLE></param>
             <ELSE>
               <SEGMENT_LOOP>
                 <IF NOT SEG_TAG_EQUAL>
-        ;;; <param name="a<FieldSqlName>"><FIELD_DESC></param>
+        ;;; <param name="a<FieldSqlName>"><FIELD_DESC_DOUBLE></param>
                 </IF SEG_TAG_EQUAL>
               </SEGMENT_LOOP>
             </IF SINGLE_SEGMENT>
