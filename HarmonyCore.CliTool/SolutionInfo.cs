@@ -98,7 +98,7 @@ namespace HarmonyCore.CliTool
         }
 
         public List<ProjectInfo> Projects { get; }
-        public string SolutionDir { get; }
-        public Solution CodeGenSolution { get; private set; }
+        public string SolutionDir { get; set; }
+        public Solution CodeGenSolution { get; set; }
     }
 }

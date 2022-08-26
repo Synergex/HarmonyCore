@@ -17,6 +17,8 @@ namespace HarmonyCore.CliTool.Commands
             _solutionInfo = solutionInfo;
         }
 
+        public Action<string> CallerLogger { get; set; } = (str) => Console.WriteLine(str);
+
         public int Run(RegenOptions opts)
         {
             if (opts.Interfaces.Count() > 0)
@@ -31,15 +33,16 @@ namespace HarmonyCore.CliTool.Commands
 
             foreach (var error in result.ValidationErrors)
             {
-                Console.WriteLine(error);
+                CallerLogger(error);
             }
+
             return 0;
         }
 
         private void Logger(CodeGenTask tsk, string message)
         {
             if(!string.IsNullOrWhiteSpace(message))
-                Console.WriteLine("{0} : {1}", string.Join(',', tsk.Templates), message);
+                CallerLogger(string.Format("{0} : {1}", string.Join(',', tsk.Templates), message));
         }
     }
 }

@@ -240,6 +240,7 @@ Known structure properties:
                         {"Microsoft.AspNetCore.Mvc.Testing", "6.0.2"},
                         {"Microsoft.Extensions.DependencyInjection", "6.0.0"},
                         {"Microsoft.Extensions.Logging.Console", "6.0.0"},
+                        {"Microsoft.Extensions.Primitives", "6.0.0" },
                         {"Microsoft.AspNetCore.SignalR.Client", "6.0.2"},
                         {"Microsoft.EntityFrameworkCore", "6.0.3"},
                         {"IdentityServer4.AccessTokenValidation", "3.0.1"},
