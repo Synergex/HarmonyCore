@@ -24,22 +24,6 @@ namespace HarmonyCore.CliTool.Commands
             
             Application.Run(new MainView(_solutionInfo));
             return 0;
-            //var guiPath = Path.Combine(System.AppContext.BaseDirectory, "gui", "HarmonyCore.CliTool.TUI.exe");
-            //if (!File.Exists(guiPath))
-            //{
-            //    guiPath = Path.Combine(System.AppContext.BaseDirectory, "HarmonyCore.CliTool.TUI.exe");
-            //}
-            //if (File.Exists(guiPath))
-            //{
-            //    Process process = Process.Start(guiPath, Path.Combine(this._solutionInfo.SolutionDir, "Harmony.Core.CodeGen.json"));
-            //    process.WaitForExit();
-            //    return process.ExitCode;
-            //}
-            //else
-            //{
-            //    Console.WriteLine("failed to locate harmony core gui executable");
-            //    return -1;
-            //}
         }
     }
 }
