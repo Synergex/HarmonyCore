@@ -178,7 +178,7 @@ namespace <NAMESPACE>
                 ('6 ','none '),
                     log_level = Microsoft.Extensions.Logging.LogLevel.None
                 (),
-                    throw new Exception("Invalid value for logical ODATA_LOG_LEVEL="+logical(1:loglen))
+                    throw new Exception("Invalid value for logical ASPNETCORE_LOG_LEVEL="+logical(1:loglen))
                 endusing
             end
 
