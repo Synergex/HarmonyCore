@@ -1,15 +1,15 @@
-<CODEGEN_FILENAME>MethodDispatcher.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.8.5</REQUIRES_CODEGEN_VERSION>
+<CODEGEN_FILENAME><SMC_INTERFACE>DispatcherData.dbl</CODEGEN_FILENAME>
+<REQUIRES_USERTOKEN>SMC_INTERFACE</REQUIRES_USERTOKEN>
+<REQUIRES_CODEGEN_VERSION>5.4.6</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
-;// Title:       InterfaceSuperDispatcher.tpl
+;// Title:       DispatcherData.tpl
 ;//
 ;// Type:        CodeGen Template
 ;//
-;// Description: Creates a main dispatcher consolidates one or more interface
-;//              specific dispacher classes.
+;// Description: Creates a class that initializes all data object metadata
 ;//
-;// Copyright (c) 2021, Synergex International, Inc. All rights reserved.
+;// Copyright (c) 2018, Synergex International, Inc. All rights reserved.
 ;//
 ;// Redistribution and use in source and binary forms, with or without
 ;// modification, are permitted provided that the following conditions are met:
@@ -35,10 +35,9 @@
 ;//
 ;;*****************************************************************************
 ;;
-;; Title:       MethodDispatcherDispatcher.dbl
+;; Title:       <SMC_INTERFACE>DispatcherData.dbl
 ;;
-;; Description: Declares dispacher classes for exposed methods from one or more
-;;              interfaces.
+;; Description: Initializes all data object metadata
 ;;
 ;;*****************************************************************************
 ;; WARNING: GENERATED CODE!
@@ -47,26 +46,21 @@
 ;;*****************************************************************************
 
 import Harmony.TraditionalBridge
-import <NAMESPACE>
 
 namespace <NAMESPACE>
 
-    public class MethodDispatcher
+	public partial class <SMC_INTERFACE>Dispatcher
 
-        public static method GetDispatchers, [#]@RoutineDispatcher
-            record
-                dispatchers, [#]@RoutineDispatcher
-            endrecord
-        proc
-            dispatchers = new RoutineDispatcher[<COUNTER_1_RESET><INTERFACE_LOOP><COUNTER_1_INCREMENT></INTERFACE_LOOP><COUNTER_1_VALUE>]
-<COUNTER_1_RESET>
-<INTERFACE_LOOP>
-<COUNTER_1_INCREMENT>
-            dispatchers[<COUNTER_1_VALUE>] = new <INTERFACE_NAME>Dispatcher()
-</INTERFACE_LOOP>
-            mreturn dispatchers
-        endmethod
+		;;; <summary>
+		;;; Initialize all data object metadata
+		;;; <summary>
+		private method initMetaData, void
+		proc
+			<STRUCTURE_LOOP>
+			DataObjectMetadataBase.LookupType("<StructureNoplural>")
+			</STRUCTURE_LOOP>		
+		endmethod
 
-    endclass
+	endclass
 
 endnamespace

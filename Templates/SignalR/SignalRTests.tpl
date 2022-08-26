@@ -43,11 +43,6 @@ namespace <NAMESPACE>
         {TestMethod}
         public async method <METHOD_NAME>, @Task
         proc
-            ;;Do we have request data for asp_login?
-            data aspLoginRequestFile, string, Path.Combine(UnitTestEnvironment.TestRequestsFolder,"asp.asp_login.request.json")
-            if (!File.Exists(aspLoginRequestFile))
-                Assert.Inconclusive("No input data provided for test asp.asp_login!")
-
   <IF IN_OR_INOUT>
             ;;Do we have request data for this operation?
             data requestFile, string, Path.Combine(UnitTestEnvironment.TestRequestsFolder,"<INTERFACE_NAME>.<METHOD_NAME>.request.json")
@@ -72,12 +67,6 @@ namespace <NAMESPACE>
             &    .AddNewtonsoftJsonProtocol()
             &    .Build()
 
-            ;;ASP_LOGIN
-            data asp_login_tcs = new TaskCompletionSource<asp.asp_login_Response>()
-            data asp_login_resultHandler, @Action<asp.asp_login_Response>
-            asp_login_resultHandler = lambda(msg) { asp_login_tcs.TrySetResult(msg) }
-            connection.On<asp.asp_login_Response>("asp_login_Result", asp_login_resultHandler)
-
             ;;Setup up for a method call
             data tcs = new TaskCompletionSource<IF RETURNS_DATA><<INTERFACE_NAME>.<METHOD_NAME>_Response><ELSE><boolean></IF>()
             data resultHandler, @Action<IF RETURNS_DATA><<INTERFACE_NAME>.<METHOD_NAME>_Response></IF>
@@ -96,32 +85,7 @@ namespace <NAMESPACE>
             await connection.StartAsync()
 
             ;;-------------------------------------------------------------------------------------
-            ;;Call ASP_LOGIN
-            begin
-                ;;Define the data to be sent to the request
-                data request = JsonConvert.DeserializeObject<asp.asp_login_Request>(File.ReadAllText(aspLoginRequestFile))
-
-                ;;Send the request
-                await connection.InvokeAsync("asp_login", request)
-
-                ;;Wait for the response
-                data response = await asp_login_tcs.Task
-
-                ;;Write the response data to a JSON file for easy viewing
-                data responseFile = Path.Combine(UnitTestEnvironment.TestResponsesFolder,"asp.asp_login.response.json")
-                File.WriteAllText(responseFile,JsonConvert.SerializeObject(response,Formatting.Indented))
-
-                ;;Are we logged in?
-                data result = false
-                data message = String.Empty
-                asp_login_Validate(request,response,result,message)
-
-                if (!result)
-                    Assert.Fail(message)
-            end
-
-            ;;-------------------------------------------------------------------------------------
-            ;;If we get here, ASP_LOGIN worked so we can call the actual method to be tested
+            ;;Call the method
 
   <IF IN_OR_INOUT>
             ;;Define the data to be sent to the request

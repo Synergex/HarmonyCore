@@ -131,7 +131,11 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
                 arg<COUNTER_1_VALUE>,               @ArrayList
         </IF COLLECTION_ARRAYLIST>
     <ELSE>
+        <IF HANDLE>
+                arg<COUNTER_1_VALUE>,               D_HANDLE
+        <ELSE>
                 arg<COUNTER_1_VALUE>,               a<PARAMETER_SIZE>
+        </IF>
                 arg<COUNTER_1_VALUE>Passed,         boolean
     </IF COLLECTION>
 </PARAMETER_LOOP>
@@ -186,7 +190,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
 </IF FUNCTION>
             <PARAMETER_LOOP>
             <COUNTER_1_INCREMENT>
-                <IF OUT>RCBOutArg<ELSE>RCBArg</IF>(<COUNTER_1_VALUE> + <COUNTER_2_VALUE>, arguments[<COUNTER_1_VALUE>], FieldDataType.<PARAMETER_TYPE>Field, arg<COUNTER_1_VALUE>, mRcbid, 0<PARAMETER_PRECISION>, arg<COUNTER_1_VALUE>Passed)
+                <IF OUT>RCBOutArg<ELSE>RCBArg</IF>(<COUNTER_1_VALUE> + <COUNTER_2_VALUE>, arguments[<COUNTER_1_VALUE>], FieldDataType.<PARAMETER_TYPE>Field, <IF HANDLE>^a(</IF>arg<COUNTER_1_VALUE><IF HANDLE>)</IF>, mRcbid, 0<PARAMETER_PRECISION>, arg<COUNTER_1_VALUE>Passed)
             </PARAMETER_LOOP>
                 <IF FUNCTION>
                     <IF HATVAL>
@@ -203,13 +207,21 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
             <PARAMETER_LOOP>
             <COUNTER_1_INCREMENT>
             <IF OUT_OR_INOUT>
-                RCBSerializeArg(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>Passed, FieldDataType.<PARAMETER_TYPE>Field, arg<COUNTER_1_VALUE>, <PARAMETER_SIZE>, 0<PARAMETER_PRECISION>, serializer)
+                RCBSerializeArg(<COUNTER_1_VALUE>, arg<COUNTER_1_VALUE>Passed, FieldDataType.<PARAMETER_TYPE>Field, <IF HANDLE>^a(</IF>arg<COUNTER_1_VALUE><IF HANDLE>)</IF>, <IF HANDLE>%mem_proc(DM_GETSIZE,arg<COUNTER_1_VALUE>)<ELSE><PARAMETER_SIZE></IF>, 0<PARAMETER_PRECISION>, serializer)
             </IF OUT_OR_INOUT>
             </PARAMETER_LOOP>
             end
             finally
             begin
                 ;;Clear out the rcb handle to prevent a dangling pointer issue!
+                <COUNTER_1_RESET>
+                <PARAMETER_LOOP>
+                <COUNTER_1_INCREMENT>
+                <IF HANDLE>
+                if (arg<COUNTER_1_VALUE>)
+                    arg<COUNTER_1_VALUE> = %mem_proc(DM_FREE,arg<COUNTER_1_VALUE>)
+                </IF>
+                </PARAMETER_LOOP>
                 mRcbid = %rcb_create(<METHOD_PARAMETERS> + 1, DM_STATIC, mRcbid)
             end
             endtry

@@ -172,7 +172,7 @@ namespace <NAMESPACE>
   <IF STRUCTURE_ISAM>
     <ALTERNATE_KEY_LOOP_UNIQUE>
       <IF COUNTER_1>
-            tempModel.AddAlternateKeyAnnotation(<structureNoplural>Type, new Dictionary<string, IEdmProperty>() {<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE>{"<FieldSqlName>",<structureNoplural>Type.FindProperty("<FieldSqlName>")}<,></IF SEG_TAG_EQUAL></SEGMENT_LOOP>})
+            tempModel.AddAlternateKeyAnnotation(<structureNoplural>Type, new Dictionary<string, IEdmProperty>() {<SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE>{"<FieldSqlName>",<structureNoplural>Type.FindProperty("<FieldSqlName>")}<SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF SEG_TAG_EQUAL></SEGMENT_LOOP>})
       </IF NOT_COUNTER_1>
     </ALTERNATE_KEY_LOOP_UNIQUE>
     <IF DEFINED_ENABLE_PARTIAL_KEYS>
@@ -180,7 +180,7 @@ namespace <NAMESPACE>
         <IF (PRIMARY_KEY AND DEFINED_ENABLE_GET_ONE AND GET_ENDPOINT) OR ((NOT PRIMARY_KEY) AND DEFINED_ENABLE_ALTERNATE_KEYS AND ALTERNATE_KEY_ENDPOINTS)>
           <SEGMENT_LOOP>
             <IF NOT SEG_TAG_EQUAL>
-            tempModel.AddAlternateKeyAnnotation(<structureNoplural>Type, new Dictionary<string, IEdmProperty>() {<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL>{"<FieldSqlName>",<structureNoplural>Type.FindProperty("<FieldSqlName>")}<,></IF></SEGMENT_LOOP>})
+            tempModel.AddAlternateKeyAnnotation(<structureNoplural>Type, new Dictionary<string, IEdmProperty>() {<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL>{"<FieldSqlName>",<structureNoplural>Type.FindProperty("<FieldSqlName>")}<SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP>})
             </IF>
           </SEGMENT_LOOP>
         </IF>
