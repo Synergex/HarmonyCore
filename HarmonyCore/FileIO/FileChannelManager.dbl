@@ -58,7 +58,9 @@ namespace Harmony.Core.FileIO
 		protected virtual method OpenChannel, int
 			fileName, @string
 			openMode, FileOpenMode
-		proc
+        proc
+            try
+			begin
 			data channel, i4, 0
 			using openMode select
 			(FileOpenMode.UpdateRelative),
@@ -94,7 +96,15 @@ namespace Harmony.Core.FileIO
 			DebugLogSession.Logging.LogInfo("FileChannelManager: Opened channel {0} with mode {1} using path {2}", channel, openMode, fileName)
 			mAllOpenChannels[channel] = Tuple.Create(fileName, openMode)
 			
-			mreturn channel
+                mreturn channel
+            end
+            catch(ex, @NoFileFoundException)
+            begin
+                DebugLogSession.Logging.LogInfo("FileChannelManager: failed to open channel {0} with mode {1} using path {2}", channel, openMode, fileName)
+				throw
+            end
+            endtry
+			throw new ApplicationException("impossible execution")
 		endmethod
 
 		public virtual method ReturnChannel, void
