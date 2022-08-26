@@ -23,14 +23,14 @@ namespace <NAMESPACE>
 
         public static method GetIssuer, string
         proc
-            ;TODO: Set the name of the "issuer" of the JWT. This is frequently the name of an organization.
-            mreturn "MyCompany"
+            ;Set the name of the "issuer" of the JWT. This is frequently the name of an organization.
+            mreturn "<CUSTOM_JWT_ISSUER>"
         endmethod
 
         public static method GetAudience, string
         proc
-            ;TODO: Set the name of the "audience" of the JWT. This is frequently the name of an API or service.
-            mreturn "MyApi"
+            ;Set the name of the "audience" of the JWT. This is frequently the name of an API or service.
+            mreturn "<CUSTOM_JWT_AUDIENCE>"
         endmethod
 
         public static method GetKey, [#]Byte
