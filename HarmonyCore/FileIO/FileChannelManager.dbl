@@ -7,186 +7,186 @@ import System.Linq
 import Microsoft.Extensions.Caching.Memory
 namespace Harmony.Core.FileIO
 
-	public class FileChannelManager implements IFileChannelManager, IDisposable
-		public virtual method Dispose, void
-			endparams
-		proc
-			Dispose(true)
-		endmethod
+    public class FileChannelManager implements IFileChannelManager, IDisposable
+        public virtual method Dispose, void
+            endparams
+        proc
+            Dispose(true)
+        endmethod
 
-		protected virtual method Dispose, void
-			disposing, boolean
-			endparams
-		proc
-			data channelTpl, KeyValuePair<int, Tuple<string, FileOpenMode>>
-			foreach channelTpl in mAllOpenChannels
-				close channelTpl.Key
+        protected virtual method Dispose, void
+            disposing, boolean
+            endparams
+        proc
+            data channelTpl, KeyValuePair<int, Tuple<string, FileOpenMode>>
+            foreach channelTpl in mAllOpenChannels
+                close channelTpl.Key
 
-			if(disposing)
-				GC.SuppressFinalize(this)
-		endmethod
+            if(disposing)
+                GC.SuppressFinalize(this)
+        endmethod
 
-		method ~FileChannelManager
-		proc
-			Dispose(false)
-		endmethod
+        method ~FileChannelManager
+        proc
+            Dispose(false)
+        endmethod
 
-		public virtual method AbandonOpenChannels, void
-		proc
-			mAllOpenChannels.Clear()
-		endmethod
+        public virtual method AbandonOpenChannels, void
+        proc
+            mAllOpenChannels.Clear()
+        endmethod
 
-		private class ChannelCacheEntry implements IDisposable
+        private class ChannelCacheEntry implements IDisposable
 
-			public virtual method Dispose, void
-				endparams
-			proc
-				this.FileChannelManager.CloseFile(FileName)
-			endmethod
+            public virtual method Dispose, void
+                endparams
+            proc
+                this.FileChannelManager.CloseFile(FileName)
+            endmethod
 
-			public readwrite property FileChannelManager, @FileChannelManager
-			public readwrite property FileName, string
+            public readwrite property FileChannelManager, @FileChannelManager
+            public readwrite property FileName, string
 
 
-		endclass
+        endclass
 
         private method MakeCacheEntry, @FileChannelManager.ChannelCacheEntry
             fileName, @string
         proc
-			mreturn new ChannelCacheEntry() { FileChannelManager = this, FileName = fileName }
-		endmethod
+            mreturn new ChannelCacheEntry() { FileChannelManager = this, FileName = fileName }
+        endmethod
 
 
-		protected mAllOpenChannels, @ConcurrentDictionary<int, Tuple<string, FileOpenMode>>, new ConcurrentDictionary<int, Tuple<string, FileOpenMode>>()
-		protected mChannelLookup, @ConcurrentDictionary<string, ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>>, new ConcurrentDictionary<string, ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>>()
-		protected mChannelLRU, @BitFaster.Caching.Lru.FastConcurrentLru<string, FileChannelManager.ChannelCacheEntry>, new BitFaster.Caching.Lru.FastConcurrentLru<string, ChannelCacheEntry>(SoftChannelLimit)
-		public static readwrite property SoftChannelLimit, int, 512
+        protected mAllOpenChannels, @ConcurrentDictionary<int, Tuple<string, FileOpenMode>>, new ConcurrentDictionary<int, Tuple<string, FileOpenMode>>()
+        protected mChannelLookup, @ConcurrentDictionary<string, ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>>, new ConcurrentDictionary<string, ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>>()
+        protected mChannelLRU, @BitFaster.Caching.Lru.FastConcurrentLru<string, FileChannelManager.ChannelCacheEntry>, new BitFaster.Caching.Lru.FastConcurrentLru<string, ChannelCacheEntry>(SoftChannelLimit)
+        public static readwrite property SoftChannelLimit, int, 512
 
-		public virtual method GetChannel, int
-			fileName, @string
-			openMode, FileOpenMode
+        public virtual method GetChannel, int
+            fileName, @string
+            openMode, FileOpenMode
         proc
             (void)mChannelLRU.GetOrAdd(fileName, MakeCacheEntry) ;;signal the cache that this filename was hit
-			data fileModeLookup = mChannelLookup.GetOrAdd(fileName, lambda(keyValue) { new ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>() })
-			data fileChannelBag = fileModeLookup.GetOrAdd(openMode, lambda(keyValue) { new ConcurrentBag<int>() })
-			data channel, int, 0
-			if(fileChannelBag.TryTake(channel)) then
-				mreturn channel
-			else
-			begin
-				channel = OpenChannel(fileName, openMode)
-				mreturn channel
-			end
+            data fileModeLookup = mChannelLookup.GetOrAdd(fileName, lambda(keyValue) { new ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>() })
+            data fileChannelBag = fileModeLookup.GetOrAdd(openMode, lambda(keyValue) { new ConcurrentBag<int>() })
+            data channel, int, 0
+            if(fileChannelBag.TryTake(channel)) then
+                mreturn channel
+            else
+            begin
+                channel = OpenChannel(fileName, openMode)
+                mreturn channel
+            end
 			
-		endmethod
+        endmethod
 		
-		protected virtual method OpenChannel, int
-			fileName, @string
-			openMode, FileOpenMode
+        protected virtual method OpenChannel, int
+            fileName, @string
+            openMode, FileOpenMode
         proc
+            data channel, i4, 0
             try
-			begin
-			data channel, i4, 0
-			using openMode select
-			(FileOpenMode.UpdateRelative),
-			begin
-				open(channel, 'u:r', fileName)
-			end
-			(FileOpenMode.Update, FileOpenMode.UpdateIndexed),
-			begin
-				open(channel, 'u:i', fileName)
-			end
-			(FileOpenMode.InputSequential),
-			begin
-				open(channel, 'i:s', fileName)
-			end
-			(FileOpenMode.InputRelative),
-			begin
-				open(channel, 'i:r', fileName)
-			end
-			(FileOpenMode.OutputSequential),
-			begin
-				open(channel, 'o:s', fileName)
-			end
-			(FileOpenMode.Input,FileOpenMode.InputIndexed),
-			begin
-				open(channel, 'i:i', fileName)
-			end
-			(FileOpenMode.AppendSequential),
-			begin
-				open(channel, 'a:s', fileName)
-			end
-			endusing
+            begin
+                using openMode select
+                (FileOpenMode.UpdateRelative),
+                begin
+                    open(channel, 'u:r', fileName)
+                end
+                (FileOpenMode.Update, FileOpenMode.UpdateIndexed),
+                begin
+                    open(channel, 'u:i', fileName)
+                end
+                (FileOpenMode.InputSequential),
+                begin
+                    open(channel, 'i:s', fileName)
+                end
+                (FileOpenMode.InputRelative),
+                begin
+                    open(channel, 'i:r', fileName)
+                end
+                (FileOpenMode.OutputSequential),
+                begin
+                    open(channel, 'o:s', fileName)
+                end
+                (FileOpenMode.Input,FileOpenMode.InputIndexed),
+                begin
+                    open(channel, 'i:i', fileName)
+                end
+                (FileOpenMode.AppendSequential),
+                begin
+                    open(channel, 'a:s', fileName)
+                end
+                endusing
 			
-			DebugLogSession.Logging.LogInfo("FileChannelManager: Opened channel {0} with mode {1} using path {2}", channel, openMode, fileName)
-			mAllOpenChannels[channel] = Tuple.Create(fileName, openMode)
+                DebugLogSession.Logging.LogInfo("FileChannelManager: Opened channel {0} with mode {1} using path {2}", channel, openMode, fileName)
+                mAllOpenChannels[channel] = Tuple.Create(fileName, openMode)
 			
                 mreturn channel
             end
             catch(ex, @NoFileFoundException)
             begin
                 DebugLogSession.Logging.LogInfo("FileChannelManager: failed to open channel {0} with mode {1} using path {2}", channel, openMode, fileName)
-				throw
+                throw
             end
             endtry
-			throw new ApplicationException("impossible execution")
-		endmethod
+            throw new ApplicationException("impossible execution")
+        endmethod
 
-		public virtual method ReturnChannel, void
-			channelId, int
-		proc
-			DebugLogSession.Logging.LogInfo("FileChannelManager: Returned channel {0}", channelId)
-			xcall free(channelId)
-			data channelInfo, @Tuple<string, FileOpenMode>
-			if(!mAllOpenChannels.TryGetValue(channelId, channelInfo)) then
-			begin
-				close channelId
-			end
-			else
-			begin
-				data openModeLookup = mChannelLookup[channelInfo.Item1]
-				data channelBag = openModeLookup[channelInfo.Item2]
-				channelBag.Add(channelId)
-			end
+        public virtual method ReturnChannel, void
+            channelId, int
+        proc
+            DebugLogSession.Logging.LogInfo("FileChannelManager: Returned channel {0}", channelId)
+            xcall free(channelId)
+            data channelInfo, @Tuple<string, FileOpenMode>
+            if(!mAllOpenChannels.TryGetValue(channelId, channelInfo)) then
+            begin
+                close channelId
+            end
+            else
+            begin
+                data openModeLookup = mChannelLookup[channelInfo.Item1]
+                data channelBag = openModeLookup[channelInfo.Item2]
+                channelBag.Add(channelId)
+            end
 
-		endmethod
+        endmethod
 
-		;;returns the number of channels closed
-		public virtual method CloseFile, int
-			fileName, @string
-		proc
-			data closedChannelCount = 0
-			data openDictionary, @ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>
-			if(mChannelLookup.TryGetValue(fileName, openDictionary))
-			begin
-				data openDictionaryItem, @KeyValuePair<FileOpenMode, ConcurrentBag<int>>
-				foreach openDictionaryItem in openDictionary
-				begin
-					data targetChannel, int
-					data bag, @ConcurrentBag<int>, openDictionaryItem.Value
-					while(bag.TryTake(targetChannel))
-					begin
-						DebugLogSession.Logging.LogInfo("FileChannelManager: Closed channel {0}", targetChannel)
-						incr closedChannelCount
-						close targetChannel
-					end
-				end
-			end
-			mreturn closedChannelCount
-		endmethod
+        ;;returns the number of channels closed
+        public virtual method CloseFile, int
+            fileName, @string
+        proc
+            data closedChannelCount = 0
+            data openDictionary, @ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>
+            if(mChannelLookup.TryGetValue(fileName, openDictionary))
+            begin
+                data openDictionaryItem, @KeyValuePair<FileOpenMode, ConcurrentBag<int>>
+                foreach openDictionaryItem in openDictionary
+                begin
+                    data targetChannel, int
+                    data bag, @ConcurrentBag<int>, openDictionaryItem.Value
+                    while(bag.TryTake(targetChannel))
+                    begin
+                        DebugLogSession.Logging.LogInfo("FileChannelManager: Closed channel {0}", targetChannel)
+                        incr closedChannelCount
+                        close targetChannel
+                    end
+                end
+            end
+            mreturn closedChannelCount
+        endmethod
 
 
-		public virtual method ChannelHasHook, boolean
-			channelId, int
-		proc
-			mreturn false
-		endmethod
+        public virtual method ChannelHasHook, boolean
+            channelId, int
+        proc
+            mreturn false
+        endmethod
 
-		public virtual method ChannelHookType, @Type
-			channelId, int
-		proc
-			mreturn ^null
-		endmethod
-	endclass
+        public virtual method ChannelHookType, @Type
+            channelId, int
+        proc
+            mreturn ^null
+        endmethod
+    endclass
 
 endnamespace
