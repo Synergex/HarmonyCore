@@ -550,7 +550,7 @@ namespace <NAMESPACE>
 			app.UseSwagger()
 			app.UseSwaggerUI(lambda(c) { c.SwaggerEndpoint("/swagger/v<API_VERSION>/swagger.json", "<API_TITLE>") })
 
-            app.UsePathBase(new PathString("/odata/v1"))
+            app.UsePathBase(new PathString("<SERVER_BASE_PATH>/v1"))
 
             ;;Use odata route debug, /$odata
             app.UseODataRouteDebug("/$odata")
@@ -559,7 +559,9 @@ namespace <NAMESPACE>
             lambda RoutingConfig(endpoints)
             begin
 				endpoints.MapControllers()
+                 <IF DEFINED_ENABLE_SIGNALR>
 				endpoints.MapHub<OrdersHub>("/<SIGNALR_PATH>/orders")
+                 </IF DEFINED_ENABLE_SIGNALR>
 			end
 
             app.UseRouting()

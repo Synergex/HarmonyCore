@@ -6,6 +6,7 @@ import System
 import System.Text.Json
 import System.Text.Json.Serialization
 import System.IO
+import Harmony.Core.FileIO
 import <UNIT_TESTS_NAMESPACE>
 
 main GenerateTestValues
@@ -16,13 +17,23 @@ endmain
 
 namespace Services.Test.GenerateValues
 
-    public class GenerateTestValues
+    public partial class GenerateTestValues
 
     <STRUCTURE_LOOP>
         <IF STRUCTURE_ISAM>
         .include "<STRUCTURE_NOALIAS>" repository, record="<structureNoplural>", end
         </IF STRUCTURE_ISAM>
     </STRUCTURE_LOOP>
+
+        private ChannelManager, @IFileChannelManager
+        
+        public method GenerateTestValues
+        proc
+            CustomServiceInit()
+            if(ChannelManager == ^null)
+                ChannelManager = new FileChannelManager()
+        endmethod
+
 
         public method SerializeValues, void
             endparams
@@ -34,7 +45,7 @@ namespace Services.Test.GenerateValues
 
             ;;------------------------------------------------------------
             ;;Test data for <StructureNoplural>
-            open(chin=0,i:i,"<FILE_NAME>")
+            chin = ChannelManager.GetChannel("<FILE_NAME>", FileOpenMode.InputIndexed)
 
 ;//
 ;// ENABLE_GET_ALL
@@ -115,12 +126,17 @@ namespace Services.Test.GenerateValues
     </SEGMENT_LOOP>
   </PRIMARY_KEY>
 
-            close chin
+            ChannelManager.ReturnChannel(chin)
   </IF STRUCTURE_ISAM>
 </STRUCTURE_LOOP>
 
             data jsonFilePath = <UNIT_TESTS_NAMESPACE>.UnitTestEnvironment.FindRelativeFolderForAssembly("<UNIT_TESTS_NAMESPACE>")
             File.WriteAllText(Path.Combine(jsonFilePath, "TestConstants.Values.json"), JsonSerializer.Serialize(TestConstants.Instance, new JsonSerializerOptions(){ WriteIndented = true }))
+        endmethod
+
+        ;;It may be useful to set MultiTenantProvider.TenantId to a predefined tenantid if this is used inside your custom ChannelManager
+        ;;this is where ChannelManager should be set to a custom type
+        partial method CustomServiceInit, void
         endmethod
 
     endclass
