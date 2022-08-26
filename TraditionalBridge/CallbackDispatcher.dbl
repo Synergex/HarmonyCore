@@ -1,9 +1,8 @@
+.ifdef DBLV11
 import System.Collections
 import System
 import Harmony.TraditionalBridge
 import Json
-
-.ifdef DBLV11
 import System.Text.Json
 .define JSON_ELEMENT @JsonElement
 .define IS_OBJ(element) ((element).ValueKind == JsonValueKind.Object)
@@ -12,16 +11,6 @@ import System.Text.Json
 .define IS_ARRAY(element) ((element).ValueKind == JsonValueKind.Array)
 .define IS_BOOLEAN(element) ((element).ValueKind == JsonValueKind.True || (element).ValueKind == JsonValueKind.False)
 .define GET_ELEMENT_TYPENAME(element) %string(element.ValueKind)
-.else
-.define JSON_ELEMENT @JsonValue
-.define IS_OBJ(element) ((element).JsonType == JSON_TYPE.OBJ)
-.define IS_NUMBER(element) ((element).JsonType == JSON_TYPE.NUMBER || (element).JsonType == JSON_TYPE.INT_VAL)
-.define IS_TEXT(element) ((element).JsonType == JSON_TYPE.TEXT)
-.define IS_ARRAY(element) ((element).JsonType == JSON_TYPE.ARRAY_VAL)
-.define IS_BOOLEAN(element) ((element).JsonType == JSON_TYPE.BOOL)
-.define GET_ELEMENT_TYPENAME(element) %string(element.JsonType)
-.endc
-
 .define MaybeLog(priority, msg) if((priority) <= Logger.LogLevel) Logger.Instance.Log(msg)
 
 namespace Harmony.TraditionalBridge
@@ -178,3 +167,4 @@ namespace Harmony.TraditionalBridge
             ;;cast result obj as ArrayList, do something with the strings inside
         endsubroutine
 endnamespace
+.endc

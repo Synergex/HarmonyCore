@@ -4,6 +4,7 @@ import System.Text
 import System.Collections.Concurrent
 import Harmony.Core.Utility
 import System.Linq
+import Microsoft.Extensions.Caching.Memory
 namespace Harmony.Core.FileIO
 
 	public class FileChannelManager implements IFileChannelManager, IDisposable
@@ -35,13 +36,37 @@ namespace Harmony.Core.FileIO
 			mAllOpenChannels.Clear()
 		endmethod
 
-		private mAllOpenChannels, @ConcurrentDictionary<int, Tuple<string, FileOpenMode>>, new ConcurrentDictionary<int, Tuple<string, FileOpenMode>>()
-		private mChannelLookup, @ConcurrentDictionary<string, ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>>, new ConcurrentDictionary<string, ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>>()
-		
+		private class ChannelCacheEntry implements IDisposable
+
+			public virtual method Dispose, void
+				endparams
+			proc
+				this.FileChannelManager.CloseFile(FileName)
+			endmethod
+
+			public readwrite property FileChannelManager, @FileChannelManager
+			public readwrite property FileName, string
+
+
+		endclass
+
+        private method MakeCacheEntry, @FileChannelManager.ChannelCacheEntry
+            fileName, @string
+        proc
+			mreturn new ChannelCacheEntry() { FileChannelManager = this, FileName = fileName }
+		endmethod
+
+
+		protected mAllOpenChannels, @ConcurrentDictionary<int, Tuple<string, FileOpenMode>>, new ConcurrentDictionary<int, Tuple<string, FileOpenMode>>()
+		protected mChannelLookup, @ConcurrentDictionary<string, ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>>, new ConcurrentDictionary<string, ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>>()
+		protected mChannelLRU, @BitFaster.Caching.Lru.FastConcurrentLru<string, FileChannelManager.ChannelCacheEntry>, new BitFaster.Caching.Lru.FastConcurrentLru<string, ChannelCacheEntry>(SoftChannelLimit)
+		public static readwrite property SoftChannelLimit, int, 512
+
 		public virtual method GetChannel, int
 			fileName, @string
 			openMode, FileOpenMode
-		proc
+        proc
+            (void)mChannelLRU.GetOrAdd(fileName, MakeCacheEntry) ;;signal the cache that this filename was hit
 			data fileModeLookup = mChannelLookup.GetOrAdd(fileName, lambda(keyValue) { new ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>() })
 			data fileChannelBag = fileModeLookup.GetOrAdd(openMode, lambda(keyValue) { new ConcurrentBag<int>() })
 			data channel, int, 0
@@ -125,6 +150,31 @@ namespace Harmony.Core.FileIO
 			end
 
 		endmethod
+
+		;;returns the number of channels closed
+		public virtual method CloseFile, int
+			fileName, @string
+		proc
+			data closedChannelCount = 0
+			data openDictionary, @ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>
+			if(mChannelLookup.TryGetValue(fileName, openDictionary))
+			begin
+				data openDictionaryItem, @KeyValuePair<FileOpenMode, ConcurrentBag<int>>
+				foreach openDictionaryItem in openDictionary
+				begin
+					data targetChannel, int
+					data bag, @ConcurrentBag<int>, openDictionaryItem.Value
+					while(bag.TryTake(targetChannel))
+					begin
+						DebugLogSession.Logging.LogInfo("FileChannelManager: Closed channel {0}", targetChannel)
+						incr closedChannelCount
+						close targetChannel
+					end
+				end
+			end
+			mreturn closedChannelCount
+		endmethod
+
 
 		public virtual method ChannelHasHook, boolean
 			channelId, int

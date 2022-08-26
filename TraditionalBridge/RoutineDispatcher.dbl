@@ -963,7 +963,7 @@ namespace Harmony.TraditionalBridge
             end
             endtry
         endmethod
-
+.ifdef DBLV11
          public method DispatchOne, @object
             messageReader, @HeaderDelimitedMessageReader
             serializer, @DispatchSerializer
@@ -1018,6 +1018,19 @@ namespace Harmony.TraditionalBridge
             mreturn ^null
         endmethod
 
+        public method DispatchOne, @object
+            serializer, @DispatchSerializer
+            callback, @CallbackDispatcher
+            record
+                messageReader, @HeaderDelimitedMessageReader 
+                result, @object
+        proc
+            messageReader = new HeaderDelimitedMessageReader(serializer.CurrentOutChannel())
+            result = DispatchOne(messageReader, serializer, callback)
+            mreturn result
+        endmethod
+
+.endc
         ;;; <summary>
         ;;; 
         ;;; </summary>
@@ -1031,18 +1044,6 @@ namespace Harmony.TraditionalBridge
             messageReader = new HeaderDelimitedMessageReader(ttChannel)
             serializer = new DispatchSerializer(new ChannelOutputStream(ttChannel))
             Dispatch(messageReader, serializer)
-        endmethod
-
-        public method DispatchOne, @object
-            serializer, @DispatchSerializer
-            callback, @CallbackDispatcher
-            record
-                messageReader, @HeaderDelimitedMessageReader 
-                result, @object
-        proc
-            messageReader = new HeaderDelimitedMessageReader(serializer.CurrentOutChannel())
-            result = DispatchOne(messageReader, serializer, callback)
-            mreturn result
         endmethod
 
         class StopGuard
@@ -1365,8 +1366,10 @@ namespace Harmony.TraditionalBridge
                 argEncodedProp, JSON_ELEMENT
                 argIsEncoded, boolean
                 argHasValue, boolean
+                argTypeTemp, FieldDataType
         proc
             argLength = ^size(argBuffer)
+            argTypeTemp = argType
             argPrecision = 0
             argHasValue = argObject.TryGetProperty("PassedValue", argValue)
             if(argHasValue || alwaysPassed) then
@@ -1452,12 +1455,27 @@ namespace Harmony.TraditionalBridge
                         else
                             ^i(argBuffer) = 0
                     end
-
+                    else if (argType == FieldDataType.HandleField) then
+                    begin
+                        if (argHasValue) then
+                        begin
+                            data argValueString, string, argValue.GetString()
+                            if argValueString.Length then
+                                ^i(argBuffer) = %HANDLE_FROM_STRING(argValue.GetString(), DM_STATIC)
+                            else
+                                ^i(argBuffer) = %mem_proc(DM_ALLOC|DM_BLANK|DM_STATIC,1)
+                        end
+                        else
+                        begin
+                            ^i(argBuffer) = %mem_proc(DM_ALLOC|DM_BLANK|DM_STATIC,1)
+                        end
+                        argTypeTemp = FieldDataType.IntegerField
+                    end
                     else
                         throw new Exception("unexpected arg type during RCB dispatch " + %string(argType))
 
                     MaybeLog(4, "argument " + %string(index) + " passed to rcb dispatcher with argType " + %string(argType) + " argBuffer value " + argBuffer)
-                    xcall rcb_setarg(rcbid, argBuffer, index, (i)argType, argLength, argPrecision)
+                    xcall rcb_setarg(rcbid, argBuffer, index, (i)argTypeTemp, argLength, argPrecision)
                 end
                 else
                     throw new Exception("Object parameters to RCB dispatch is not currently implemented")
@@ -1508,6 +1526,13 @@ namespace Harmony.TraditionalBridge
                     serializer.ArgumentData(index, ^d(argBuffer, argPrecision), argType, argLength, argPrecision, false)
                 FieldDataType.DecimalField:
                     serializer.ArgumentData(index, ^d(argBuffer), argType, argLength, argPrecision, false)
+                FieldDataType.HandleField:
+                begin
+                    data stringValue, string, %STRING_FROM_HANDLE(^i(argBuffer))
+                    if (String.IsNullOrWhitespace(stringValue))
+                        stringValue = ""
+                    serializer.ArgumentData(index, stringValue, argType, argLength, argPrecision, false)
+                end
                 endcase
             end
         endmethod

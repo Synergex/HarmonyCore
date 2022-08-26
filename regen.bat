@@ -38,12 +38,6 @@ set FILE_STRUCTURES=%DATA_STRUCTURES%
 set FILE_ALIASES=%DATA_ALIASES%
 set FILE_FILES=%DATA_FILES%
 
-set CUSTOM_STRUCTURES=
-set CUSTOM_ALIASES=%CUSTOM_STRUCTURES%
-
-set BRIDGE_STRUCTURES=
-set BRIDGE_ALIASES=%BRIDGE_STRUCTURES%
-
 rem DATA_STRUCTURES     Is a list all structures that you wish to generate models, metadata and
 rem                     controllers for. In other words it declares all of the "entities"
 rem                     that are being represented and exposed by the OData environment. The
@@ -71,19 +65,6 @@ rem FILE_ALIASES        Optional aliases for the structures listed in FILE_STRUC
 rem
 rem FILE_FILES          Repository file assignments for the structures listed in FILE_STRUCTURES
 rem
-rem CUSTOM_STRUCTURES    Is a list of structures that you wish to generate models and metadata
-rem                     for, but which will NOT be exposed to the Entity Framework provider.
-rem                     These classes are intended for use only by custom code-based endpoints
-rem                     and the DbContext and EdmBuilder classes will know nothing about them.
-rem
-rem CUSTOM_ALIASES      Optional aliases for the structures listed in CUSTOM_STRUCTURES
-
-rem BRIDGE_STRUCTURES    Is a list of structures that you wish to generate models and metadata
-rem                     for use with a Traditional Bridge environment. These types will NOT
-rem                     be exposed to the Entity Framework provider.
-rem
-rem BRIDGE_ALIASES      Optional aliases for the structures listed in BRIDGE_STRUCTURES
-
 rem ================================================================================================================================
 rem Comment or uncomment the following lines to enable or disable optional features:
 
@@ -124,7 +105,6 @@ rem set ENABLE_IIS_SUPPORT=-define ENABLE_IIS_SUPPORT
 set ENABLE_OVERLAYS=-f o
 rem set ENABLE_ALTERNATE_FIELD_NAMES=-af
 rem set ENABLE_READ_ONLY_PROPERTIES=-define ENABLE_READ_ONLY_PROPERTIES
-rem set ENABLE_TRADITIONAL_BRIDGE_GENERATION=YES
 rem set ENABLE_XFSERVERPLUS_MIGRATION=YES
 rem set ENABLE_XFSERVERPLUS_MODEL_GENERATION=YES
 rem set ENABLE_BRIDGE_OPTIONAL_PARAMETERS=YES
@@ -159,8 +139,8 @@ if DEFINED ENABLE_ODATA_ENVIRONMENT (
   echo.
   echo Generating model and metadata classes
 
-    codegen -s  %DATA_STRUCTURES% %CUSTOM_STRUCTURES% ^
-            -a  %DATA_ALIASES% %CUSTOM_ALIASES% ^
+    codegen -s  %DATA_STRUCTURES% ^
+            -a  %DATA_ALIASES% ^
             -fo %DATA_FILES% ^
             -t  ODataModel ODataMetaData ^
             -i  %SolutionDir%Templates ^
@@ -406,25 +386,6 @@ if DEFINED ENABLE_UNIT_TEST_GENERATION (
           -n  %TestValuesProject% ^
           -ut UNIT_TEST_NAMESPACE=%TestProject% ^
               %STDOPTS%
-  if ERRORLEVEL 1 goto error
-)
-
-rem ================================================================================
-rem Generate code for the TraditionalBridge sample environment
-
-if DEFINED ENABLE_TRADITIONAL_BRIDGE_GENERATION (
-
-  echo.
-  echo ************************************************************************
-  echo Generating traditional bridge server-side data model classes
-
-  codegen -s %BRIDGE_STRUCTURES% ^
-          -a %BRIDGE_ALIASES% ^
-          -t ODataModel ^
-          -i %SolutionDir%Templates\TraditionalBridge ^
-          -o %SolutionDir%%TraditionalBridgeProject%\source ^
-          -n %TraditionalBridgeProject% ^
-          -e -r -lf
   if ERRORLEVEL 1 goto error
 )
 

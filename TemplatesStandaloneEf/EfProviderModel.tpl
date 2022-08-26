@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME><StructureNoplural>.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.5.4</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.7.5</REQUIRES_CODEGEN_VERSION>
 ;//****************************************************************************
 ;//
 ;// Title:       EfProviderModel.tpl
@@ -115,7 +115,7 @@ namespace <NAMESPACE>
   <ELSE>
     <IF CUSTOM_NOT_HARMONY_EXCLUDE>
         ;;; <summary>
-        ;;; <FIELD_DESC>
+        ;;; <FIELD_DESC_DOUBLE>
         ;;; </summary>
 ;//
 ;// Field property attributes
@@ -124,21 +124,21 @@ namespace <NAMESPACE>
         {Key}
       </IF ONLY_PKSEGMENT>
       <IF REQUIRED>
-        {Required(ErrorMessage="<FIELD_DESC> is required. ")}
+        {Required(ErrorMessage="<FIELD_DESC_DOUBLE> is required. ")}
       </IF REQUIRED>
       <IF HARMONYCORE_CUSTOM_FIELD_DATATYPE>
 ;//We can't add validation attributes for fields with custom data types!!!
       <ELSE>
         <IF ALPHA>
-        {StringLength(<FIELD_SIZE>, ErrorMessage="<FIELD_DESC> cannot exceed <FIELD_SIZE> characters. ")}
+        {StringLength(<FIELD_SIZE>, ErrorMessage="<FIELD_DESC_DOUBLE> cannot exceed <FIELD_SIZE> characters. ")}
         </IF ALPHA>
         <IF DECIMAL>
           <IF CUSTOM_NOT_HARMONY_AS_STRING>
-        {Range(<FIELD_MINVALUE>,<FIELD_MAXVALUE>, ErrorMessage="<FIELD_DESC> must be between <FIELD_MINVALUE> and <FIELD_MAXVALUE>. ")}
+        {Range(<FIELD_MINVALUE>,<FIELD_MAXVALUE>, ErrorMessage="<FIELD_DESC_DOUBLE> must be between <FIELD_MINVALUE> and <FIELD_MAXVALUE>. ")}
           </IF CUSTOM_NOT_HARMONY_AS_STRING>
         </IF DECIMAL>
         <IF INTEGER>
-        {Range(<FIELD_MINVALUE>,<FIELD_MAXVALUE>, ErrorMessage="<FIELD_DESC> must be between <FIELD_MINVALUE> and <FIELD_MAXVALUE>. ")}
+        {Range(<FIELD_MINVALUE>,<FIELD_MAXVALUE>, ErrorMessage="<FIELD_DESC_DOUBLE> must be between <FIELD_MINVALUE> and <FIELD_MAXVALUE>. ")}
         </IF INTEGER>
       </IF HARMONYCORE_CUSTOM_FIELD_DATATYPE>
 ;//
@@ -168,12 +168,13 @@ namespace <NAMESPACE>
           <IF CUSTOM_HARMONY_AS_STRING>
                 mreturn %string(mSynergyData.<field_original_name_modified>,"XXXX-XX-XX")
           <ELSE>
+            <IF DATE_YYYYMMDD>
                 data formatString = "YYYYMMDD"
-            <IF DATE_YYMMDD>
-                formatString = "YYMMDD"
+            <ELSE DATE_YYMMDD>
+                data formatString = "YYMMDD"
             <ELSE DATE_YYYYJJJ>
-                formatString = "YYYYJJJ"
-            </IF DATE_YYMMDD>
+                data formatString = "YYYYJJJ"
+            </IF>
                 mreturn (<FIELD_SNTYPE>)SynergyDecimalDateConverter.Convert(mSynergyData.<field_original_name_modified>, ^null, formatString, ^null)
           </IF CUSTOM_HARMONY_AS_STRING>
         </IF DATE>
@@ -239,13 +240,13 @@ namespace <NAMESPACE>
           <IF CUSTOM_HARMONY_AS_STRING>
                 mSynergyData.<field_original_name_modified> = SynergyDecimalConverter.ConvertBack(value,"XXXX-XX-XX")
           <ELSE>
+            <IF DATE_YYYYMMDD>
                 data formatString = "YYYYMMDD"
-            <IF DATE_YYMMDD>
-                formatString = "YYMMDD"
-            </IF DATE_YYMMDD>
-            <IF DATE_YYYYJJJ>
-                formatString = "YYYYJJJ"
-            </IF DATE_YYYYJJJ>
+            <ELSE DATE_YYMMDD>
+                data formatString = "YYMMDD"
+            <ELSE DATE_YYYYJJJ>
+                data formatString = "YYYYJJJ"
+            </IF>
                 mSynergyData.<field_original_name_modified> = (<FIELD_TYPE>)SynergyDecimalDateConverter.ConvertBack(value, ^null, formatString, ^null)
           </IF CUSTOM_HARMONY_AS_STRING>
         <ELSE TIME_HHMM>

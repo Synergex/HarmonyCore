@@ -25,7 +25,7 @@ namespace Services.Models
         ;;; These environment variables will be established via the ProcessEnvironmentVariables
         ;;; method below.
         ;;; </summary>
-        public readwrite property EnvironmentVariables, @List<AppEnvironmentVariable>, new List<AppEnvironmentVariable>()
+        public readwrite property EnvironmentVariables, @Dictionary<string,string>, new Dictionary<string, string>()
 
 .endregion
 
@@ -51,33 +51,16 @@ namespace Services.Models
         proc
             if (EnvironmentVariables.Count > 0)
             begin
-                data ev, @AppEnvironmentVariable
+                data ev, @KeyValuePair<string,string>
                 foreach ev in EnvironmentVariables
                 begin
                     data sts, int
-                    xcall setlog(ev.Name,ev.Value,sts)
+                    xcall setlog(ev.Key,ev.Value,sts)
                 end
             end
         endmethod
 
 .endregion
-
-    endclass
-
-    ;;; <summary>
-    ;;; Represents a aingle environment variable.
-    ;;; </summary>
-    public class AppEnvironmentVariable
-
-        ;;; <summary>
-        ;;; The name of the environment variable.
-        ;;; </summary>
-        public readwrite property Name, string
-
-        ;;; <summary>
-        ;;; The value of the environment variable.
-        ;;; </summary>
-        public readwrite property Value, string
 
     endclass
 
