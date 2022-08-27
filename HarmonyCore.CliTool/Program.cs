@@ -1,18 +1,12 @@
-﻿using CodeGen.RepositoryAPI;
-using CommandLine;
+﻿using CommandLine;
 using HarmonyCore.CliTool.Commands;
-using HarmonyCoreGenerator.Generator;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
-using System.Net.Http;
+using System.Reflection;
 using System.Runtime;
 using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace HarmonyCore.CliTool
@@ -221,8 +215,8 @@ Known structure properties:
                     break;
 
                 case 6:
-                    HCBuildVersion = "6.0.9";
-                    BuildPackageVersion = "22.3.1080";
+                    HCBuildVersion = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
+                    BuildPackageVersion = "22.8.1287";
                     HCRegenRequiredVersions = new List<string>
                     {
                         "3.1.156",
@@ -234,7 +228,7 @@ Known structure properties:
                         {"Harmony.Core.EF", HCBuildVersion},
                         {"Harmony.Core.OData", HCBuildVersion},
                         {"Harmony.Core.AspNetCore", HCBuildVersion},
-                        {"Synergex.SynergyDE.synrnt", "12.0.1.3275"},
+                        {"Synergex.SynergyDE.synrnt", "12.1.1.3278"},
                         {"Synergex.SynergyDE.Build", BuildPackageVersion},
                         {"Microsoft.AspNetCore.Mvc.NewtonsoftJson", "6.0.2"},
                         {"Microsoft.AspNetCore.Mvc.Testing", "6.0.2"},
@@ -253,7 +247,7 @@ Known structure properties:
                         {"Microsoft.OData.Edm", "7.10.0"},
                         {"Microsoft.Spatial", "7.10.0 "},
                         {"Swashbuckle.AspNetCore", "6.2.3"},
-                        {"SSH.NET", "2020.0.1"},
+                        {"SSH.NET", "2020.0.2"},
                         {"Nito.AsyncEx", "5.1.2"},
                         {"System.Linq.Dynamic.Core", "1.2.18"},
                         {"system.text.encoding.codepages", "6.0.0"},
