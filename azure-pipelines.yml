@@ -74,24 +74,26 @@ stages:
         filename: '$(SYNERGYDE32)\dbl\dblvars32.bat'
         modifyEnvironment: true
     - task: DotNetCoreCLI@2
-      enabled: true
-      displayName: 'Run Unit Tests'
-      env:
-        RPSMFIL: $(SolutionDir)HarmonyCore.Test.Repository\bin\Release\rpsmain.ism
-        RPSTFIL: $(SolutionDir)HarmonyCore.Test.Repository\bin\Release\rpstext.ism
+      displayName: 'Run HarmonyCore.Test'
       inputs:
         command: 'test'
-        arguments: '-c $(Configuration) --no-build'
-        projects: |
-          HarmonyCore.Test
-          Services.Test
-          Services.Test.CS
+        arguments: 'HarmonyCore.Test\bin\Release\net6.0\HarmonyCore.Test.dll'
+    - task: DotNetCoreCLI@2
+      displayName: 'Run HarmonyCore.Test'
+      inputs:
+        command: 'test'
+        arguments: 'Services.Test\bin\Release\net6.0\Services.Test.dll'
+    - task: DotNetCoreCLI@2
+      displayName: 'Run HarmonyCore.Test'
+      inputs:
+        command: 'test'
+        arguments: 'Services.Test\bin\Release\net6.0\Services.Test.CS.dll'
+          
     - task: VSTest@2
       inputs:
         testAssemblyVer2:
           $(SolutionDir)TestDir\TraditionalBridge.UnitTest.elb
     - task: DotNetCoreCLI@2
-      enabled: true
       displayName: 'Pack CLI Tool'
       inputs:
         command: 'pack -c $(Configuration)'
