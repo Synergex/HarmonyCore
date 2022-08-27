@@ -17,6 +17,10 @@ namespace HarmonyCore.CliTool.TUI.Models
         public InterfaceSettings(SolutionInfo context)
         {
             _context = context;
+            foreach(var iface in _context.CodeGenSolution.ExtendedInterfaces)
+            {
+                Items.Add(MakeSingleInterface(iface));
+            }
         }
 
         public (ISingleItemSettings, PropertyItemSetting) GetInitialProperty()
@@ -29,10 +33,15 @@ namespace HarmonyCore.CliTool.TUI.Models
         {
             var madeInterface = new InterfaceEx { Name = initSetting.Value as string };
             _context.CodeGenSolution.ExtendedInterfaces.Add(madeInterface);
-            var result = new SingleInterfaceSetting(_context, madeInterface, 
-                _context.CodeGenSolution.TraditionalBridge.Smc.Interfaces.First(iface => string.Compare(iface.Name, madeInterface.Name, true) == 0));
+            var result = MakeSingleInterface(madeInterface);
             Items.Add(result);
             return result;
+        }
+
+        private SingleInterfaceSetting MakeSingleInterface(InterfaceEx madeInterface)
+        {
+            return new SingleInterfaceSetting(_context, madeInterface,
+                            _context.CodeGenSolution.TraditionalBridge.Smc.Interfaces.First(iface => string.Compare(iface.Name, madeInterface.Name, true) == 0));
         }
 
         class InterfacePickerHelper : SingleItemSettingsBase, IContextWithFilter
