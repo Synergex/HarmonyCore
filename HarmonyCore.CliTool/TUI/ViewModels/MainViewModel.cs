@@ -112,25 +112,6 @@ namespace HarmonyCore.CliTool.TUI.ViewModels
                 ActiveSettings.Add(SettingsLoader("Structures"));
                 ActiveSettings.Add(SettingsLoader("TraditionalBridge"));
                 ActiveSettings.Add(SettingsLoader("Interfaces"));
-                //if (hasOdata == true && hasModels == true)
-                //    ActiveSettings.Add(SettingsLoader("OData"));
-                //else
-                //    InactiveSettings.Add("OData");
-
-                //if (hasOdata == true && hasModels == true)
-                //    ActiveSettings.Add(SettingsLoader("Structures"));
-                //else
-                //    InactiveSettings.Add("Structures");
-
-                //if (hasTraditionalBridge == true)
-                //    ActiveSettings.Add(SettingsLoader("TraditionalBridge"));
-                //else
-                //    InactiveSettings.Add("TraditionalBridge");
-
-                //if (_context.CodeGenSolution.ExtendedInterfaces?.Any(iface => iface.GenerateInterface ?? false) ?? false)
-                //    ActiveSettings.Add(SettingsLoader("Interfaces"));
-                //else
-                //    InactiveSettings.Add("Interfaces");
 
                 foreach (var kvp in DynamicSettings)
                 {

@@ -1,3 +1,4 @@
+using Microsoft.Build.Evaluation;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -32,14 +33,45 @@ namespace HarmonyCore.CliTool
         };
         public string FileName { get; set; }
         public XmlDocument ProjectDoc { get; set; }
+        public Project MSBuildProject { get; set; }
         private VersionTargetingInfo _targetVersion;
 
-        public ProjectInfo(string path, VersionTargetingInfo targetVersion)
+        public ProjectInfo(string path, VersionTargetingInfo targetVersion, Project msbuildProject)
         {
+            MSBuildProject = msbuildProject;
             _targetVersion = targetVersion;
             FileName = path;
             ProjectDoc = new XmlDocument { PreserveWhitespace = true };
             ProjectDoc.Load(path);
+        }
+
+        IEnumerable<string> _sourceFiles;
+        public IEnumerable<string> SourceFiles 
+        { 
+            get
+            {
+                if(_sourceFiles == null )
+                {
+                    _sourceFiles = MSBuildProject.GetItems("Compile").Select(itm =>
+                    {
+                        if(Path.IsPathRooted(itm.EvaluatedInclude))
+                            return itm.EvaluatedInclude;
+                        else
+                            return Path.GetFullPath(Path.Combine(Path.GetDirectoryName(FileName), itm.EvaluatedInclude));
+                    }).ToList();
+                }
+                return _sourceFiles;
+            }
+        }
+
+        public void AddRemoveFiles(IEnumerable<string> toAdd, IEnumerable<string> toRemove)
+        {
+            foreach (var item in toAdd)
+                MSBuildProject.AddItem("Compile", item);
+
+            foreach (var item in toRemove)
+                foreach(var msbuildItem in MSBuildProject.GetItemsByEvaluatedInclude(item).ToList())
+                    MSBuildProject.RemoveItem(msbuildItem);
         }
 
         public void PatchKnownIssues(List<string> removeNugetVersions)

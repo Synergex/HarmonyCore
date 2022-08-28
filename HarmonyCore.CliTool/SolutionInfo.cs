@@ -13,25 +13,25 @@ namespace HarmonyCore.CliTool
         public SolutionInfo(IEnumerable<string> projectPaths, string solutionDir, VersionTargetingInfo targetVersion)
         {
             SolutionDir = solutionDir;
-            Projects = projectPaths.Select(path => new ProjectInfo(path, targetVersion)).ToList();
+            
             var codegenProjectPath = Path.Combine(SolutionDir, "Harmony.Core.CodeGen.json");
             var regenPath = Path.Combine(SolutionDir, "regen.bat");
             var regenConfigPath = Path.Combine(SolutionDir, "regen_config.bat");
             var userTokenFile = Path.Combine(SolutionDir, "UserDefinedTokens.tkn");
             try
             {
+                var basePath = Solution.GetDotnetBasePath();
+                var projectOptions = new Microsoft.Build.Definition.ProjectOptions();
+                var evalContext = Microsoft.Build.Evaluation.Context.EvaluationContext.Create(Microsoft.Build.Evaluation.Context.EvaluationContext.SharingPolicy.Isolated);
 
-                var instances = MSBuildLocator.QueryVisualStudioInstances().ToList();
-                var msbuildDeploymentToUse = instances.FirstOrDefault();
+                projectOptions.EvaluationContext = evalContext;
+                projectOptions.GlobalProperties = new Dictionary<String, String>();
+                projectOptions.GlobalProperties.Add("SolutionDir", SolutionDir + "\\");
+                projectOptions.GlobalProperties.Add("Configuration", "Debug");
+                projectOptions.GlobalProperties.Add("Platform", "AnyCPU");
+                projectOptions.GlobalProperties.Add("NuGetRestoreTargets", Path.Combine(basePath, "Nuget.targets"));
 
-                // Calling Register methods will subscribe to AssemblyResolve event. After this we can
-                // safely call code that use MSBuild types (in the Builder class).
-                
-                Console.WriteLine($"Using MSBuild from path: {msbuildDeploymentToUse.MSBuildPath}");
-                Console.WriteLine();
-
-                if(!MSBuildLocator.IsRegistered)
-                    MSBuildLocator.RegisterMSBuildPath(msbuildDeploymentToUse.MSBuildPath);
+                Projects = projectPaths.Select(path => new ProjectInfo(path, targetVersion, TryLoadProject(path, projectOptions))).ToList();
 
                 if (File.Exists(codegenProjectPath))
                 {
@@ -53,6 +53,26 @@ namespace HarmonyCore.CliTool
             catch (Exception ex)
             {
                 Console.WriteLine("WARNING: Exception while synthesizing codegen project information: {0}", ex);
+            }
+        }
+
+        private Microsoft.Build.Evaluation.Project TryLoadProject(string path, Microsoft.Build.Definition.ProjectOptions options)
+        {
+            try
+            {
+                return Microsoft.Build.Evaluation.Project.FromFile(path, options);
+            }
+            catch
+            {
+                var projectDoc = new System.Xml.XmlDocument { PreserveWhitespace = true };
+                projectDoc.Load(path);
+                var imports = projectDoc.GetElementsByTagName("Import").OfType<System.Xml.XmlNode>().Where(node => node.Attributes.GetNamedItem("Project")?.Value?.Contains("Synergex.SynergyDE.Traditional.targets") ?? false).ToList();
+                foreach(var import in imports)
+                {
+                    import.ParentNode.RemoveChild(import);
+                }
+
+                return Microsoft.Build.Evaluation.Project.FromXmlReader(new System.Xml.XmlNodeReader(projectDoc), options);
             }
         }
 

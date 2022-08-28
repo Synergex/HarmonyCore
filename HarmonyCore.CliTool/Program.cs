@@ -1,5 +1,6 @@
 ﻿using CommandLine;
 using HarmonyCore.CliTool.Commands;
+using Microsoft.Build.Locator;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -340,6 +341,19 @@ Known structure properties:
                 Console.WriteLine("error while searching for project files: {0}", ex.Message);
                 return;
             }
+
+            var instances = MSBuildLocator.QueryVisualStudioInstances().ToList();
+            var msbuildDeploymentToUse = instances.FirstOrDefault();
+
+            // Calling Register methods will subscribe to AssemblyResolve event. After this we can
+            // safely call code that use MSBuild types (in the Builder class).
+
+            Console.WriteLine($"Using MSBuild from path: {msbuildDeploymentToUse.MSBuildPath}");
+            Console.WriteLine();
+
+            if (!MSBuildLocator.IsRegistered)
+                MSBuildLocator.RegisterMSBuildPath(msbuildDeploymentToUse.MSBuildPath);
+
             var solutionInfo = new SolutionInfo(synprojFiles, solutionDir, TargetVersion);
 
             ResetConsoleMode(handle, mode);
