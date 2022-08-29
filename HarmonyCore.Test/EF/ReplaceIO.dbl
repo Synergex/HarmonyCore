@@ -13,11 +13,13 @@ import Harmony.Core.Test
 import System.Collections.Concurrent
 import System.Reflection
 import System.Linq
+import Harmony.Core.Test.FileIO
 
 
 namespace HarmonyCore.Test.EF
 
-    {TestClass}
+	{TestClass}
+	{DoNotParallelize()}
     public class ReplaceIO
         public method MakeDBContext, @MyDBContext
         proc
@@ -32,14 +34,20 @@ namespace HarmonyCore.Test.EF
             serviceBuilder.AddSingleton<IFileChannelManager, FileChannelManager>()
             serviceBuilder.AddSingleton<IDataObjectProvider>(AddDataObjectMappings)
             serviceBuilder.AddDbContext<MyDBContext>()
-            data sp = serviceBuilder.BuildServiceProvider()
+			data sp = serviceBuilder.BuildServiceProvider()
             data dboBuilder = new DbContextOptionsBuilder<MyDBContext>()
             dboBuilder.UseApplicationServiceProvider(sp)
             dboBuilder.UseHarmonyDatabase(sp.GetService<IDataObjectProvider>())
             data contextOptions, @DbContextOptions<MyDBContext>, dboBuilder.Options
-            mreturn new MyDBContext(contextOptions)
+            mreturn new MyDBContext(contextOptions, sp)
         endmethod
 
+		{TestInitialize}
+		public method TestInitialization, void
+		proc
+			BasicFileIO.InitOrders()
+			BasicFileIO.InitCustomers()
+		endmethod
 
         {TestMethod}
         public method EFFind, void

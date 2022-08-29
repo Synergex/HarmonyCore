@@ -10,15 +10,18 @@ import System.Threading.Tasks
 import StreamJsonRpc
 import System.Threading
 import Harmony.Core.Utility
+import Nerdbank.Streams
+import System.Buffers
+import System.Text.RegularExpressions
+import System.Collections.Concurrent
 
 namespace Harmony.Core.Context
 
 	public class SSHDynamicCallConnection implements IDynamicCallConnection
-		private static NewLineBytes, [#]Byte, new byte[#] { 10, 13 }
+        private static NewLineBytes, [#]Byte, new byte[#] { 10, 13 }
+		private static EscapeSequenceRegex, @Regex
 		private mTargetConnection, @SshClient
 		private mTargetShell, @ShellStream
-		private mReader, @StreamReader
-		private mWriter, @StreamWriter
 		private mLaunchCommand, @string
 		private mMakeReadyTask, @Lazy<Task<JsonRpc>>
 		private mTargetOS, RemoteTargetOS
@@ -26,6 +29,14 @@ namespace Harmony.Core.Context
 		private mLocalRPCHandlers, @Dictionary<string, Delegate> 
 		private mCallTimeout, int
 		private mConnectionTimeout, int
+		private mLastSeenBytes, @ConcurrentQueue<string>
+
+        static method SSHDynamicCallConnection
+        proc
+			EscapeSequenceRegex = new Regex("(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]", RegexOptions.Compiled)
+		endmethod
+
+
 		public method SSHDynamicCallConnection
 			targetOS, RemoteTargetOS
 			startInfo, @ConnectionInfo
@@ -40,7 +51,7 @@ namespace Harmony.Core.Context
 			mLaunchCommand = command
 			mTargetConnection = new SshClient(startInfo)
 			mMakeReadyTask = new Lazy<Task<JsonRpc>>(MakeReadyInternal)
-			IsHealthy = true
+            IsHealthy = true
 		endmethod
 		
 		public readwrite property IsHealthy, boolean
@@ -65,7 +76,11 @@ namespace Harmony.Core.Context
 					begin
 						jsonRpcConnection.Dispose()
 					end
-					Disconnect()
+                    if(mTargetConnection.IsConnected)
+                    begin
+                        mTargetShell.Close()
+                        mTargetConnection.Disconnect()
+                    end
 					throw
 				end
 				endtry
@@ -79,9 +94,9 @@ namespace Harmony.Core.Context
 			begin
 				if(mTargetConnection.IsConnected)
 				begin
-					await this.Notify("rpc.shutdown", new ArgumentDataDefinition[0])
-					mReader.Close()
-					mTargetConnection.Disconnect()
+                    await this.Notify("rpc.shutdown", new ArgumentDataDefinition[0])
+                    mTargetShell.Close()
+                    mTargetConnection.Disconnect()
 				end
 			end
 			catch(ex, @Exception)
@@ -103,6 +118,15 @@ namespace Harmony.Core.Context
 				data readOnlyArgs = ^as(args, @IReadOnlyList<ArgumentDataDefinition>)
 				data result = await jsonRpcConnection.InvokeWithCancellationAsync<[#]@ReturnParameterDefintion>(name, readOnlyArgs, cancelSource.Token)
 				mreturn result
+			end
+			catch(ex, @StreamJsonRpc.ConnectionLostException)
+            begin
+                IsHealthy = false
+				;;this will be empty if trace level logging is not turned on in order to prevent leaking sensitive data in production environments
+				if(mLastSeenBytes != ^null && mLastSeenBytes.Count > 0) then
+                    throw new StreamJsonRpc.ConnectionLostException("The JSON-RPC connection with the remote party was lost before the request could complete. Last seen bytes passed: '" + string.Join(" ", mLastSeenBytes).Replace(%char(10), "<LF>").Replace(%char(13), "<CR>") + "'", ex)
+                else
+					throw
 			end
 			catch(ex, @RemoteInvocationException)
 			begin
@@ -177,15 +201,21 @@ namespace Harmony.Core.Context
 		proc
 			data cancelSource = new CancellationTokenSource(mConnectionTimeout)
 			data cancelToken = cancelSource.Token
-			mTargetConnection.Connect()
+            mTargetConnection.Connect()
+
+            if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+            begin
+                mLastSeenBytes = new ConcurrentQueue<String>()
+            end
+
 			mTargetShell = mTargetConnection.CreateShellStream("vt220", 0, 0,0,0, 1024 * 64)
-			data streamWrapper = new ShellStreamWrapper(mTargetShell, mTargetConnection)
-			mReader = new StreamReader(streamWrapper) 
-			mWriter = new StreamWriter(streamWrapper) 
+			data streamWrapper = new ShellStreamWrapper(mTargetShell, mTargetConnection, lambda() { IsHealthy = false }, StreamReadMonitorEvent)
+			disposable data reader = new StreamReader(streamWrapper, Encoding.ASCII, false, 4096, true) 
+			disposable data writer = new StreamWriter(streamWrapper, Encoding.ASCII, 4096, true) 
 			data guidString, @string, Guid.NewGuid().ToString()
 			data guidStrings = new HashSet<string>()
-			data readLine, @string
-			data foundMatch, boolean, false
+			data readLines, @List<string>
+            data foundMatch, boolean, false
 			guidStrings.Add(guidString)
 			data connectionLog = new List<string>()
 			data newLine = %char(13) + %char(10)
@@ -193,55 +223,53 @@ namespace Harmony.Core.Context
 			if(mTargetOS == RemoteTargetOS.Linux || mTargetOS == RemoteTargetOS.Unix)
 				newLine = %char(10)
 
-			while(String.IsNullOrWhiteSpace(readLine) || !readLine.Contains(guidString))
+			while(!foundMatch)
 			begin
 				cancelToken.ThrowIfCancellationRequested()
-				if(readLine == ^null || !foundMatch)
+				if(mTargetOS == RemoteTargetOS.VMS) then
 				begin
-					if(mTargetOS == RemoteTargetOS.VMS) then
-					begin
-						await mWriter.WriteAsync('WRITE SYS$OUTPUT "' + guidString +  '"' + newLine)
-					end
-					else
-					begin
-						await mWriter.WriteAsync('echo "' + guidString +  '"' + newLine)
-					end
-
-					await mWriter.FlushAsync()
+					await writer.WriteAsync('WRITE SYS$OUTPUT "' + guidString +  '"' + newLine)
+				end
+				else
+				begin
+					await writer.WriteAsync('echo "' + guidString +  '"' + newLine)
 				end
 
-				readLine = TrimControlChars(await mReader.ReadLineAsync())
-				while(String.IsNullOrWhiteSpace(readLine))
+				await writer.FlushAsync()
+				readLines = TrimControlChars(await reader.ReadLineAsync())
+				while(readLines == ^null || readLines.Count == 0)
 				begin
 					if(cancelToken.IsCancellationRequested)
 					begin
 						throw new BridgeConnectionException("Timeout", connectionLog)
 					end
-					readLine = TrimControlChars(await mReader.ReadLineAsync())
-					connectionLog.Add(readLine)
+					readLines = TrimControlChars(await reader.ReadLineAsync())
+					connectionLog.AddRange(readLines)
 				end
 				
 				data checkString, @string
-				foundMatch = false
-				foreach checkString in guidStrings
+                data readLine, @string
+                foreach readLine in readLines
 				begin
-					if(readLine.Contains(checkString)) 
+					foreach checkString in guidStrings
 					begin
-						foundMatch = true
-						exitloop
-					end
-				end
+						if(readLine.Contains(checkString)) 
+						begin
+                            foundMatch = true
+							exitloop
+						end
+                    end
+                end
 
 				if(!foundMatch)
 				begin
 					guidString = Guid.NewGuid().ToString()
 					guidStrings.Add(guidString)
 				end
-			end
+            end
 
-			
-			await mWriter.WriteAsync(mLaunchCommand + newLine)
-			await mWriter.FlushAsync()
+			await writer.WriteAsync(mLaunchCommand + newLine)
+			await writer.FlushAsync()
 			do
 			begin
 				if(cancelToken.IsCancellationRequested)
@@ -249,16 +277,17 @@ namespace Harmony.Core.Context
 					throw new BridgeConnectionException("Timeout", connectionLog)
 				end
 
-				readLine = TrimControlChars(await mReader.ReadLineAsync())
-				connectionLog.Add(readLine)
+				readLines = TrimControlChars(await reader.ReadLineAsync())
+				connectionLog.AddRange(readLines)
 			end
-			until(readLine == "READY")
+			until(readLines.Contains("READY"))
 			
 			data formatter = new JsonMessageFormatter(new UTF8Encoding(false))
 			formatter.JsonSerializer.FloatParseHandling = FloatParseHandling.Decimal
+
 			data result = new JsonRPC(new HeaderDelimitedMessageHandler(streamWrapper, formatter))
 			if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
-			begin
+            begin
 				result.TraceSource = new TraceSource("Client", SourceLevels.All)
 			end
 
@@ -275,20 +304,35 @@ namespace Harmony.Core.Context
 			mreturn result
 		endmethod
 	
-		public method TrimControlChars, @string
+		public method TrimControlChars, @List<string>
 			arg, @string
 		proc
 			if(arg == ^null)
 				mreturn ^null
-
-			data arrForm = arg.ToCharArray()
-			data buffer = new StringBuilder(arg.Length)
+			data result = new List<string>()
+			data arrForm = EscapeSequenceRegex.Replace(arg, "").ToCharArray()
+            data buffer = new StringBuilder(arrForm.Length)
 			data ch, char
-			foreach ch in arrForm
-				if (!Char.IsControl(ch) && !Char.IsWhiteSpace(ch)) 
-					buffer.Append(ch)
- 
-			mreturn buffer.ToString()
+            foreach ch in arrForm
+			begin
+				if (!Char.IsControl(ch) && !Char.IsWhiteSpace(ch)) then
+                    buffer.Append(ch)
+                else
+                begin
+                    if(buffer.Length > 0)
+					begin
+                        result.Add(buffer.ToString())
+						buffer.Clear()
+                    end
+                end
+            end
+
+            if(buffer.Length > 0)
+            begin
+                result.Add(buffer.ToString())
+            end
+
+			mreturn result
 		endmethod
 
 
@@ -296,6 +340,13 @@ namespace Harmony.Core.Context
 		public virtual method MakeReady, @Task
 		proc
 			mreturn mMakeReadyTask.Value
+		endmethod
+
+		private method StreamReadMonitorEvent, void
+			bytes, string
+        proc
+			if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+				mLastSeenBytes.Enqueue(bytes)
 		endmethod
 
 		private class ShellStreamWrapper extends Stream
@@ -306,84 +357,98 @@ namespace Harmony.Core.Context
 				count, int 
 				endparams
 			proc
-				data readBytes = mStream.Read(buffer, offset, count)
-				DebugLogSession.Logging.LogTrace("SSHDynamicCallConnection id:{0} read ascii string: {1}", mConnectionId, new ASCIIArrayDebugLogHelper(buffer, offset, readBytes))
-				mreturn readBytes
-
+                mreturn mSimplex.Read(buffer, offset, count)
 			endmethod
 
 			private static mConnectionId, int, 0
-			private mStream, @ShellStream
-			private mConnection, @SshClient
+            private mStream, @ShellStream
+			private mSimplex, @SimplexStream
+            private mConnection, @SshClient
+            private mConnectionException, @Exception
+            private mCallOnClose, @Action
+			private mCallOnRead, @Action<string>
 			;private mEvent, @AutoResetEvent
 			public method ShellStreamWrapper
 				stream, @ShellStream
-				connection, @SshClient
-			proc
+                connection, @SshClient
+                callOnClose, @Action
+                callOnRead, @Action<string>
+            proc
+                mCallOnRead = callOnRead
+                mCallOnClose = callOnClose
 				mStream = stream
 				mConnection = connection
 				Interlocked.Increment(mConnectionId)
-				DebugLogSession.Logging.LogTrace("Created SSHDynamicCallConnection id:{0} : {1}", mConnectionId, new SSHConnectionDebugLogHelper(mConnection.ConnectionInfo))
+                DebugLogSession.Logging.LogDebug("Created SSHDynamicCallConnection id:{0} : {1}", mConnectionId, new SSHConnectionDebugLogHelper(mConnection.ConnectionInfo))
+                mStream.DataReceived += DataReceived
+                mConnection.ErrorOccurred += ErrorOccurred
+                mSimplex = new SimplexStream()
 				;mEvent = new AutoResetEvent(false)
 			endmethod
 
+            private method DataReceived, void
+                sender, @object
+				args, @ShellDataEventArgs
+            proc
+                Monitor.Enter(this)
+                try
+				begin
+					DebugLogSession.Logging.LogTrace("SSHDynamicCallConnection id:{0} recived ascii string: {1}", mConnectionId, new ASCIIArrayDebugLogHelper(args.Data, 0, args.Data.Length))
+					mSimplex.Write(args.Data, 0, args.Data.Length)
+                    mSimplex.Flush()
+                    mCallOnRead(mStream.Read())
+                end
+                finally
+                begin
+                    Monitor.Exit(this)
+                end
+				endtry
+            endmethod
+
+            private method ErrorOccurred, void
+                sender, @object
+                args, @ExceptionEventArgs
+            proc
+				mConnectionException = args.Exception
+            endmethod
 
 			public override property CanRead, Boolean
 				method get
 				proc
-					mreturn mStream.CanRead
+					mreturn mSimplex.CanRead
 				endmethod
 			endproperty
 
 			public override method Close, void
 			proc
-				DebugLogSession.Logging.LogTrace("SSHDynamicCallConnection id:{0} closed", mConnectionId)
+                DebugLogSession.Logging.LogDebug("SSHDynamicCallConnection id:{0} closed at {1}", mConnectionId, new StackTrace())
+                mStream.DataReceived -= DataReceived
+                mConnection.ErrorOccurred -= ErrorOccurred
+                mSimplex.CompleteWriting()
+                mCallOnClose()
+                mStream.Close()
+				mConnection.Disconnect()
 			endmethod
 
 			public override method Flush, void
 				endparams
-			proc
+            proc
+                mSimplex.Flush()
 				mStream.Flush()
 			endmethod
 
-			public override method ReadAsync, @Task<int> 
+			public override async method ReadAsync, @Task<int> 
 				buffer, [#]byte 
 				offset, int 
 				count, int 
 				token, CancellationToken
 				endparams
 			proc
-				
-				if(mStream.DataAvailable) then
-				begin
-					data readBytes = mStream.Read(buffer, offset, count)
-					DebugLogSession.Logging.LogTrace("SSHDynamicCallConnection id:{0} read ascii string: {1}", mConnectionId, new ASCIIArrayDebugLogHelper(buffer, offset, readBytes))
-					mreturn Task.FromResult(readBytes)
-				end
-				else
-				begin
-					data tcs = new TaskCompletionSource<int>()
-					data handlerInstance, @EventHandler<ShellDataEventArgs>
-					lambda DataReceivedHandler(sender, args)
-					begin
-						mStream.DataReceived -= handlerInstance
-						data readBytes = mStream.Read(buffer, offset, count)
-						DebugLogSession.Logging.LogTrace("SSHDynamicCallConnection id:{0} read ascii string: {1}", mConnectionId, new ASCIIArrayDebugLogHelper(buffer, offset, readBytes))
-						tcs.TrySetResult(readBytes)
-					end
-
-					data errorHandlerInstance, @EventHandler<ExceptionEventArgs>
-					lambda ErrorHandler(sender, args)
-					begin
-						mStream.ErrorOccurred -= errorHandlerInstance
-						tcs.TrySetException(args.Exception)
-					end
-					handlerInstance = DataReceivedHandler
-					errorHandlerInstance = ErrorHandler
-					mStream.DataReceived += handlerInstance
-					mConnection.ErrorOccurred += errorHandlerInstance
-					mreturn tcs.Task
-				end
+                data result = await mSimplex.ReadAsync(buffer, offset, count, token)
+                if(result == 0 && mConnectionException != ^null)
+                    throw mConnectionException
+                
+				mreturn result
 			endmethod
 
 			public override property CanTimeout, boolean
@@ -397,7 +462,7 @@ namespace Harmony.Core.Context
 			public override property CanSeek, Boolean
 				method get
 				proc
-					mreturn mStream.CanSeek
+					mreturn mSimplex.CanSeek
 				endmethod
 			endproperty
 
@@ -406,11 +471,11 @@ namespace Harmony.Core.Context
 			public override property Position, long
 				method get
 				proc
-					mreturn mStream.Position
+					mreturn mSimplex.Position
 				endmethod
 				method set
 				proc
-					mStream.Position = value
+					mSimplex.Position = value
 				endmethod
 			endproperty
 
@@ -455,7 +520,20 @@ namespace Harmony.Core.Context
 				mStream.Flush()
 			endmethod
 
+			public override async method WriteAsync, @Task
+				buffer, [#]byte
+				offset, int
+				count, int
+				cancellationToken, CancellationToken
+			proc
+				if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+				begin
+					DebugLogSession.Logging.LogTrace("ProcessDynamicCallConnection write ascii string: {0}", new ASCIIArrayDebugLogHelper(buffer, offset, count))
+				end
 
+				await mStream.WriteAsync(buffer, offset, count, cancellationToken)
+				await mStream.FlushAsync()
+			endmethod
 
 			public override method SetLength, void
 				value, long 

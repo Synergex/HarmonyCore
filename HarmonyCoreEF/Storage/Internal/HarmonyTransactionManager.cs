@@ -99,7 +99,19 @@ namespace Harmony.Core.EF.Storage.Internal
 
         public Task ResetStateAsync(CancellationToken cancellationToken = default)
         {
-            throw new System.NotImplementedException();
+            return Task.CompletedTask;
+        }
+
+        public Task CommitTransactionAsync(CancellationToken cancellationToken = default)
+        {
+            CommitTransaction();
+            return Task.CompletedTask;
+        }
+
+        public Task RollbackTransactionAsync(CancellationToken cancellationToken = default)
+        {
+            RollbackTransaction();
+            return Task.CompletedTask;
         }
     }
 }

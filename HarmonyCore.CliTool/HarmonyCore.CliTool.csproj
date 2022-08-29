@@ -1,37 +1,37 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <PackAsTool>true</PackAsTool>
     <AssemblyName>Harmony.Core.CliTool</AssemblyName>
     <ToolCommandName>harmonycore</ToolCommandName>
     <PackageId>Harmony.Core.CliTool</PackageId>
-    <PackageVersion>3.1.71</PackageVersion>
-    <Version>3.1.71</Version>
+    <PackageVersion>6.0.2</PackageVersion>
+    <Version>6.0.2</Version>
   </PropertyGroup>
-  <ItemGroup>
-    <Content Include="..\HarmonyCoreCodeGenGUI\bin\$(Configuration)\net5-windows\win-x64\publish\HarmonyCoreCodeGenGUI.*">
-      <Pack>true</Pack>
-      <PackagePath>tools\net5.0\any\gui</PackagePath>
-    </Content>
 
-    <Content Include="..\HarmonyCoreCodeGenGUI\bin\$(Configuration)\net5-windows\win-x64\publish\synrtl.*">
-      <Pack>true</Pack>
-      <PackagePath>tools\net5.0\any\gui</PackagePath>
-    </Content>
-  </ItemGroup>
+	<PropertyGroup Condition="'$(BUILD_BUILDNUMBER) ' != ' '">
+		<PackageVersion>$(BUILD_BUILDNUMBER)</PackageVersion>
+		<Version>$(BUILD_BUILDNUMBER)</Version>
+	</PropertyGroup>
+	
   <ItemGroup>
-    <PackageReference Include="CommandLineParser" Version="2.8.0" />
-    <PackageReference Include="Harmony.Core.CodeGen" Version="1.0.17" />
-    <PackageReference Include="Microsoft.Build.Locator" Version="1.4.1" />
-    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="16.10.0" ExcludeAssets="runtime" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.9.0" />
-    <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
+    <PackageReference Include="CommandLineParser" Version="2.9.1" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="17.3.1" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="Octokit" Version="0.50.0" />
-    <PackageReference Include="System.CodeDom" Version="5.0.0" />
+    <PackageReference Include="Octokit" Version="2.0.1" />
+    <PackageReference Include="Synergex.SynergyDE.synrnt" Version="12.1.1.3278" />
+    <PackageReference Include="System.CodeDom" Version="6.0.0" />
     <PackageReference Include="System.Runtime" Version="4.3.1" />
+    <PackageReference Include="Terminal.Gui" Version="1.7.2" />
   </ItemGroup>
-
+  <ItemGroup>
+    <ProjectReference Include="..\CodeGen\DotNetCore\CodeGenEngine\CodeGenEngine.synproj" />
+    <ProjectReference Include="..\CodeGen\DotNetCore\HarmonyCoreCodeGen.Core\HarmonyCoreCodeGen.Core.synproj" />
+    <ProjectReference Include="..\CodeGen\DotNetCore\HarmonyCoreExtensions\HarmonyCoreExtensions.synproj" />
+    <ProjectReference Include="..\CodeGen\DotNetCore\MethodCatalogAPI\MethodCatalogAPI.synproj" />
+    <ProjectReference Include="..\CodeGen\DotNetCore\RepositoryAPI\RepositoryAPI.synproj" />
+  </ItemGroup>
 </Project>

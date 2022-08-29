@@ -56,9 +56,11 @@ import System.IO
 namespace <NAMESPACE>
 
     public sealed class TestConstants
+
         private static readonly lockObject, @Object, new Object()
 
         private static instance, @TestConstants, ^null
+
         public static property Instance, @TestConstants
             method get
             proc
@@ -97,7 +99,7 @@ namespace <NAMESPACE>
             endmethod
         endproperty
 
-        private method TestConstants
+        public method TestConstants
         proc
         endmethod
 

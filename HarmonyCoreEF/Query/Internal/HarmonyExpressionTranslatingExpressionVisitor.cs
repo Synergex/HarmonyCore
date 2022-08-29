@@ -15,6 +15,7 @@ using Harmony.Core.EF.Storage;
 using Harmony.Core.EF.Extensions.Internal;
 using Microsoft.EntityFrameworkCore;
 using Harmony.Core.FileIO.Queryable.Expressions;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 
 namespace Harmony.Core.EF.Query.Internal
 {
@@ -24,6 +25,8 @@ namespace Harmony.Core.EF.Query.Internal
 
         private readonly QueryableMethodTranslatingExpressionVisitor _queryableMethodTranslatingExpressionVisitor;
         private readonly EntityProjectionFindingExpressionVisitor _entityProjectionFindingExpressionVisitor;
+
+        public QueryCompilationContext Context => (_queryableMethodTranslatingExpressionVisitor as HarmonyQueryableMethodTranslatingExpressionVisitor).Context;
 
         public HarmonyExpressionTranslatingExpressionVisitor(
             QueryableMethodTranslatingExpressionVisitor queryableMethodTranslatingExpressionVisitor)
@@ -234,7 +237,7 @@ namespace Harmony.Core.EF.Query.Internal
         {
             if (methodCallExpression.Arguments.Count == 1)
             {
-                return groupByShaperExpression.ElementSelector;
+                return groupByShaperExpression.KeySelector;
             }
 
             if (methodCallExpression.Arguments.Count == 2)
@@ -242,7 +245,7 @@ namespace Harmony.Core.EF.Query.Internal
                 var selectorLambda = methodCallExpression.Arguments[1].UnwrapLambdaFromQuote();
                 return ReplacingExpressionVisitor.Replace(
                     selectorLambda.Parameters[0],
-                    groupByShaperExpression.ElementSelector,
+                    groupByShaperExpression.KeySelector,
                     selectorLambda.Body);
             }
 
@@ -261,7 +264,7 @@ namespace Harmony.Core.EF.Query.Internal
                 var selectorLambda = methodCallExpression.Arguments[1].UnwrapLambdaFromQuote();
                 return ReplacingExpressionVisitor.Replace(
                     selectorLambda.Parameters[0],
-                    groupByShaperExpression.ElementSelector,
+                    groupByShaperExpression.GroupingEnumerable,
                     selectorLambda.Body);
             }
 
@@ -271,7 +274,7 @@ namespace Harmony.Core.EF.Query.Internal
         protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
         {
             if (methodCallExpression.Method.IsGenericMethod
-                && methodCallExpression.Method.GetGenericMethodDefinition() == EntityMaterializerSource.TryReadValueMethod)
+                && methodCallExpression.Method.GetGenericMethodDefinition() == HarmonyEntityMaterializerSource.TryReadValueMethod)
             {
                 return methodCallExpression;
             }

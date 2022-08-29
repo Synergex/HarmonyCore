@@ -58,7 +58,7 @@ namespace Harmony.Core.EF.Storage.Internal
 
             if (clrType == typeof(byte[]))
             {
-                return new HarmonyTypeMapping(clrType, structuralComparer: new ArrayStructuralComparer<byte>());
+                return new HarmonyTypeMapping(clrType, comparer: new ArrayStructuralComparer<byte>());
             }
 
             if (clrType.FullName == "NetTopologySuite.Geometries.Geometry"
@@ -68,7 +68,6 @@ namespace Harmony.Core.EF.Storage.Internal
 
                 return new HarmonyTypeMapping(
                     clrType,
-                    comparer,
                     comparer,
                     comparer);
             }

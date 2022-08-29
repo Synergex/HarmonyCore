@@ -51,6 +51,7 @@ import Microsoft.AspNetCore
 import Microsoft.AspNetCore.Hosting
 import System.Collections.Generic
 import System.IO
+import System.Runtime.InteropServices
 import System.Text
 import <SERVICES_NAMESPACE>
 import <MODELS_NAMESPACE>
@@ -246,7 +247,12 @@ namespace <NAMESPACE>
                 if(Directory.Exists(Path.Combine(currentFolder, folderName))) then
                     mreturn Path.Combine(currentFolder, folderName)
                 else
-                    currentFolder = Path.GetFullPath(currentFolder + "..\")
+                begin
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) then
+                        currentFolder = Path.GetFullPath(currentFolder + "..\")
+                    else
+                        currentFolder = Path.GetFullPath(currentFolder + "../")
+                end
             end
             mreturn ^null
         endmethod

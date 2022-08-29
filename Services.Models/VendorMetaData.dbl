@@ -58,15 +58,22 @@ namespace Services.Models
 
             ;; Define all fields that are associated wity key segments
             AddKeyInfo(0, "VendorNumber")
-            AddKeyInfo(1, "State")
-            AddKeyInfo(2, "ZipCode")
-            AddKeyInfo(3, "PaymentTermsCode")
+            AddKeyInfo(1, "VendorNumber")
+            AddKeyInfo(1, "ZipCode")
+            AddKeyInfo(2, "State")
+            AddKeyInfo(3, "ZipCode")
+            AddKeyInfo(4, "PaymentTermsCode")
 
             ;; Define the composition of access keys
 
             data VendorNumber_KeyParts = new FieldDataDefinition[1]
             VendorNumber_KeyParts[1] = GetFieldByName("VendorNumber")
             AddFieldInfo("KEY_VENDOR_NUMBER", "COMPOSITE", 0, 0, 0, false, ^null, ^null, VendorNumber_KeyParts)
+
+            data Vendstate_KeyParts = new FieldDataDefinition[2]
+            Vendstate_KeyParts[1] = GetFieldByName("VendorNumber")
+            Vendstate_KeyParts[2] = GetFieldByName("ZipCode")
+            AddFieldInfo("KEY_VENDSTATE", "COMPOSITE", 0, 0, 0, false, ^null, ^null, Vendstate_KeyParts)
 
             data State_KeyParts = new FieldDataDefinition[1]
             State_KeyParts[1] = GetFieldByName("State")
@@ -158,12 +165,16 @@ namespace Services.Models
                 VendorNumber, D6
             endrecord
             stack record key1
-                State, A2
-            endrecord
-            stack record key2
+                VendorNumber, D6
                 ZipCode, D5
             endrecord
+            stack record key2
+                State, A2
+            endrecord
             stack record key3
+                ZipCode, D5
+            endrecord
+            stack record key4
                 PaymentTermsCode, A2
             endrecord
         proc
@@ -178,21 +189,30 @@ namespace Services.Models
             end
             (1),
             begin
-                if((segValueLength=KeyValueHelper(key1.State, "State", parts))<2 && segValueLength>0)
+                if((segValueLength=KeyValueHelper(key1.VendorNumber, "VendorNumber", parts))<6 && segValueLength>0)
+                    mreturn key1(1:startPos+segValueLength)
+                startPos += 6
+                if((segValueLength=KeyValueHelper(key1.ZipCode, "ZipCode", parts))<5 && segValueLength>0)
                     mreturn key1(1:startPos+segValueLength)
                 mreturn key1
             end
             (2),
             begin
-                if((segValueLength=KeyValueHelper(key2.ZipCode, "ZipCode", parts))<5 && segValueLength>0)
+                if((segValueLength=KeyValueHelper(key2.State, "State", parts))<2 && segValueLength>0)
                     mreturn key2(1:startPos+segValueLength)
                 mreturn key2
             end
             (3),
             begin
-                if((segValueLength=KeyValueHelper(key3.PaymentTermsCode, "PaymentTermsCode", parts))<2 && segValueLength>0)
+                if((segValueLength=KeyValueHelper(key3.ZipCode, "ZipCode", parts))<5 && segValueLength>0)
                     mreturn key3(1:startPos+segValueLength)
                 mreturn key3
+            end
+            (4),
+            begin
+                if((segValueLength=KeyValueHelper(key4.PaymentTermsCode, "PaymentTermsCode", parts))<2 && segValueLength>0)
+                    mreturn key4(1:startPos+segValueLength)
+                mreturn key4
             end
             endusing
 

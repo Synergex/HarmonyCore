@@ -30,8 +30,15 @@ namespace Harmony.AspNetCore.Context
 		public static extension method UseMultiTenancy, @IApplicationBuilder 
 			builder, @IApplicationBuilder
 			identifier, @Func<HttpContext, string>
-		proc
-			builder.Use(lambda(context, next) { InvokeMiddleware(identifier, context, next) })
+        proc
+            lambda implementation(context, next)
+            begin
+				mreturn InvokeMiddleware(identifier, context, next)
+            end
+
+			data implementationInstance, @Func<HttpContext, Func<Task>, Task>, implementation
+
+			builder.Use(implementationInstance)
 			mreturn builder
 		endmethod
 	endclass

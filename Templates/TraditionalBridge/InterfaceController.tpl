@@ -61,6 +61,7 @@ import System.Collections.Generic
 import System.Linq
 import System.Text
 import System.Threading.Tasks
+import <DTOS_NAMESPACE>
 
 import <NAMESPACE>
 
@@ -92,14 +93,16 @@ namespace <NAMESPACE>
 <METHOD_LOOP>
         {Http<IF IN_OR_INOUT>Post<ELSE>Get</IF>}
         {Route("<METHOD_NAME>")}
+  <IF COMMENT>
         ;;; <summary>
-        ;;; 
+        ;;; <METHOD_COMMENT>
         ;;; </summary>
-        ;;; <returns></returns>
-        public async method <IF IN_OR_INOUT>Post<ELSE>Get</IF IN_OR_INOUT>_<METHOD_NAME>, <IF RETURNS_DATA>@Task<ActionResult<<DTOS_NAMESPACE>.<METHOD_NAME>_Response>><ELSE>@Task<IActionResult></IF RETURNS_DATA>
+        ;;; <returns><METHOD_RETURN_COMMENT></returns>
+  </IF>
+        public async method <METHOD_NAME>, <IF RETURNS_DATA>@Task<ActionResult<<METHOD_NAME>_Response>><ELSE>@Task<IActionResult></IF RETURNS_DATA>
   <IF IN_OR_INOUT>
             {FromBody}
-            required in aRequest, @<DTOS_NAMESPACE>.<METHOD_NAME>_Request
+            required in aRequest, @<METHOD_NAME>_Request
   </IF IN_OR_INOUT>
         proc
   <IF IN_OR_INOUT>

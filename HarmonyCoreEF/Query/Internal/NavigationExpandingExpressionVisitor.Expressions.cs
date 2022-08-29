@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using Harmony.Core.EF.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
@@ -15,22 +16,29 @@ namespace Harmony.Core.EF.Query.Internal
 {
     public partial class NavigationExpandingExpressionVisitor
     {
-        protected class EntityReference : Expression, IPrintableExpression
+        private sealed class EntityReference : Expression, IPrintableExpression
         {
-            public EntityReference(IEntityType entityType)
+            public EntityReference(IEntityType entityType, QueryRootExpression? queryRootExpression)
             {
                 EntityType = entityType;
-                IncludePaths = new IncludeTreeNode(entityType, this);
+                IncludePaths = new IncludeTreeNode(entityType, this, setLoaded: true);
+                QueryRootExpression = queryRootExpression;
             }
 
-            public virtual IEntityType EntityType { get; }
-            public virtual IDictionary<INavigation, Expression> NavigationMap { get; } = new Dictionary<INavigation, Expression>();
+            public IEntityType EntityType { get; }
 
-            public virtual bool IsOptional { get; private set; }
-            public virtual IncludeTreeNode IncludePaths { get; private set; }
-            public virtual IncludeTreeNode LastIncludeTreeNode { get; private set; }
-            public override ExpressionType NodeType => ExpressionType.Extension;
-            public override Type Type => EntityType.ClrType;
+            public Dictionary<(IForeignKey, bool), Expression> ForeignKeyExpansionMap { get; } = new();
+
+            public bool IsOptional { get; private set; }
+            public IncludeTreeNode IncludePaths { get; private set; }
+            public IncludeTreeNode? LastIncludeTreeNode { get; private set; }
+            public QueryRootExpression? QueryRootExpression { get; }
+
+            public override ExpressionType NodeType
+                => ExpressionType.Extension;
+
+            public override Type Type
+                => EntityType.ClrType;
 
             protected override Expression VisitChildren(ExpressionVisitor visitor)
             {
@@ -39,25 +47,21 @@ namespace Harmony.Core.EF.Query.Internal
                 return this;
             }
 
-            public virtual void SetIncludePaths(IncludeTreeNode includePaths)
+            public EntityReference Snapshot()
             {
-                IncludePaths = includePaths;
-                includePaths.SetEntityReference(this);
-            }
-
-            public virtual EntityReference Clone()
-            {
-                var result = new EntityReference(EntityType) { IsOptional = IsOptional };
-                result.IncludePaths = IncludePaths.Clone(result);
+                var result = new EntityReference(EntityType, QueryRootExpression) { IsOptional = IsOptional };
+                result.IncludePaths = IncludePaths.Snapshot(result);
 
                 return result;
             }
 
-            public virtual void SetLastInclude(IncludeTreeNode lastIncludeTree) => LastIncludeTreeNode = lastIncludeTree;
+            public void SetLastInclude(IncludeTreeNode lastIncludeTree)
+                => LastIncludeTreeNode = lastIncludeTree;
 
-            public virtual void MarkAsOptional() => IsOptional = true;
+            public void MarkAsOptional()
+                => IsOptional = true;
 
-            public virtual void Print(ExpressionPrinter expressionPrinter)
+            void IPrintableExpression.Print(ExpressionPrinter expressionPrinter)
             {
                 Check.NotNull(expressionPrinter, nameof(expressionPrinter));
 
@@ -69,72 +73,128 @@ namespace Harmony.Core.EF.Query.Internal
 
                 if (IncludePaths.Count > 0)
                 {
-                    // TODO: fully render nested structure of include tree
-                    expressionPrinter.Append(
-                        " | IncludePaths: "
-                        + string.Join(
-                            " ", IncludePaths.Select(ip => ip.Value.Count() > 0 ? ip.Key.Name + "->..." : ip.Key.Name)));
+                    expressionPrinter.AppendLine(" | IncludePaths: ");
+                    using (expressionPrinter.Indent())
+                    {
+                        expressionPrinter.AppendLine("Root");
+                    }
+
+                    PrintInclude(IncludePaths);
+                }
+
+                void PrintInclude(IncludeTreeNode currentNode)
+                {
+                    if (currentNode.Count > 0)
+                    {
+                        using (expressionPrinter.Indent())
+                        {
+                            foreach (var child in currentNode)
+                            {
+                                expressionPrinter.AppendLine(@"\-> " + child.Key.Name);
+                                PrintInclude(child.Value);
+                            }
+                        }
+                    }
                 }
             }
         }
 
-        protected class IncludeTreeNode : Dictionary<INavigation, IncludeTreeNode>
+        /// <summary>
+        ///     A tree structure of includes for a given entity type in <see cref="EntityReference" />.
+        /// </summary>
+        private sealed class IncludeTreeNode : Dictionary<INavigationBase, IncludeTreeNode>
         {
-            private EntityReference _entityReference;
+            private EntityReference? _entityReference;
 
-            public IncludeTreeNode(IEntityType entityType, EntityReference entityReference)
+            public IncludeTreeNode(IEntityType entityType)
+                : this(entityType, null, setLoaded: true)
+            {
+            }
+
+            public IncludeTreeNode(IEntityType entityType, EntityReference? entityReference, bool setLoaded)
             {
                 EntityType = entityType;
                 _entityReference = entityReference;
+                SetLoaded = setLoaded;
             }
 
-            public virtual IEntityType EntityType { get; private set; }
+            public IEntityType EntityType { get; }
+            public LambdaExpression? FilterExpression { get; private set; }
+            public bool SetLoaded { get; private set; }
 
-            public virtual IncludeTreeNode AddNavigation(INavigation navigation)
+            public IncludeTreeNode AddNavigation(INavigationBase navigation, bool setLoaded)
             {
                 if (TryGetValue(navigation, out var existingValue))
                 {
+                    if (setLoaded && !existingValue.SetLoaded)
+                    {
+                        existingValue.SetLoaded = true;
+                    }
+
                     return existingValue;
                 }
 
-                if (_entityReference != null
-                    && _entityReference.NavigationMap.TryGetValue(navigation, out var expandedNavigation))
+                IncludeTreeNode? nodeToAdd = null;
+                if (_entityReference != null)
                 {
-                    var entityReference = expandedNavigation switch
+                    if (navigation is INavigation concreteNavigation
+                        && _entityReference.ForeignKeyExpansionMap.TryGetValue(
+                            (concreteNavigation.ForeignKey, concreteNavigation.IsOnDependent), out var expansion))
                     {
-                        NavigationTreeExpression navigationTree => (EntityReference)navigationTree.Value,
-                        OwnedNavigationReference ownedNavigationReference => ownedNavigationReference.EntityReference,
-                        _ => throw new InvalidOperationException("Invalid expression type stored in NavigationMap."),
-                    };
+                        // Value known to be non-null
+                        nodeToAdd = UnwrapEntityReference(expansion)!.IncludePaths;
+                    }
+                    else if (navigation is ISkipNavigation skipNavigation
+                        && _entityReference.ForeignKeyExpansionMap.TryGetValue(
+                            (skipNavigation.ForeignKey, skipNavigation.IsOnDependent), out var firstExpansion)
+                        // Value known to be non-null
+                        && UnwrapEntityReference(firstExpansion)!.ForeignKeyExpansionMap.TryGetValue(
+                            (skipNavigation.Inverse.ForeignKey, !skipNavigation.Inverse.IsOnDependent), out var secondExpansion))
+                    {
+                        // Value known to be non-null
+                        nodeToAdd = UnwrapEntityReference(secondExpansion)!.IncludePaths;
+                    }
+                }
 
-                    this[navigation] = entityReference.IncludePaths;
-                }
-                else
+                if (nodeToAdd == null)
                 {
-                    this[navigation] = new IncludeTreeNode(navigation.GetTargetType(), null);
+                    nodeToAdd = new IncludeTreeNode(navigation.TargetEntityType, null, setLoaded);
                 }
+
+                this[navigation] = nodeToAdd;
 
                 return this[navigation];
             }
 
-            public virtual void SetEntityReference(EntityReference entityReference)
+            public IncludeTreeNode Snapshot(EntityReference? entityReference)
             {
-                _entityReference = entityReference;
-                EntityType = entityReference.EntityType;
-            }
+                var result = new IncludeTreeNode(EntityType, entityReference, SetLoaded) { FilterExpression = FilterExpression };
 
-            public virtual IncludeTreeNode Clone(EntityReference entityReference)
-            {
-                var result = new IncludeTreeNode(EntityType, entityReference);
                 foreach (var kvp in this)
                 {
-                    result[kvp.Key] = kvp.Value.Clone(kvp.Value._entityReference);
+                    result[kvp.Key] = kvp.Value.Snapshot(null);
                 }
 
                 return result;
             }
 
-            public override bool Equals(object obj)
+            public void Merge(IncludeTreeNode includeTreeNode)
+            {
+                // EntityReference is intentionally ignored
+                FilterExpression = includeTreeNode.FilterExpression;
+                foreach (var item in includeTreeNode)
+                {
+                    AddNavigation(item.Key, item.Value.SetLoaded).Merge(item.Value);
+                }
+            }
+
+            public void AssignEntityReference(EntityReference entityReference)
+                => _entityReference = entityReference;
+
+            public void ApplyFilter(LambdaExpression filterExpression)
+                => FilterExpression = filterExpression;
+
+            public override bool Equals(object? obj)
                 => obj != null
                     && (ReferenceEquals(this, obj)
                         || obj is IncludeTreeNode includeTreeNode
@@ -159,19 +219,27 @@ namespace Harmony.Core.EF.Query.Internal
                 return true;
             }
 
-            public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), EntityType);
+            public override int GetHashCode()
+                => HashCode.Combine(base.GetHashCode(), EntityType);
         }
 
-        protected class NavigationExpansionExpression : Expression, IPrintableExpression
+        /// <summary>
+        ///     Stores information about the current queryable, its source, structure of projection, parameter type etc.
+        ///     This is needed because once navigations are expanded we still remember these to avoid expanding again.
+        /// </summary>
+        private sealed class NavigationExpansionExpression : Expression, IPrintableExpression
         {
-            private readonly List<(MethodInfo OrderingMethod, Expression KeySelector)> _pendingOrderings
-                = new List<(MethodInfo OrderingMethod, Expression KeySelector)>();
+            private readonly List<(MethodInfo OrderingMethod, Expression KeySelector)> _pendingOrderings = new();
+
             private readonly string _parameterName;
 
-            private NavigationTreeNode _currentTree;
+            private NavigationTreeNode? _currentTree;
 
             public NavigationExpansionExpression(
-                Expression source, NavigationTreeNode currentTree, Expression pendingSelector, string parameterName)
+                Expression source,
+                NavigationTreeNode currentTree,
+                Expression pendingSelector,
+                string parameterName)
             {
                 Source = source;
                 _parameterName = parameterName;
@@ -179,12 +247,16 @@ namespace Harmony.Core.EF.Query.Internal
                 PendingSelector = pendingSelector;
             }
 
-            public virtual Expression Source { get; private set; }
-            public virtual ParameterExpression CurrentParameter => CurrentTree.CurrentParameter;
+            public Expression Source { get; private set; }
 
-            public virtual NavigationTreeNode CurrentTree
+            public ParameterExpression CurrentParameter
+                // CurrentParameter would be non-null if CurrentTree is non-null
+                => CurrentTree.CurrentParameter!;
+
+            public NavigationTreeNode CurrentTree
             {
-                get => _currentTree;
+                // _currentTree is always non-null. Field is to override the setter to set parameter
+                get => _currentTree!;
                 private set
                 {
                     _currentTree = value;
@@ -192,36 +264,47 @@ namespace Harmony.Core.EF.Query.Internal
                 }
             }
 
-            public virtual Expression PendingSelector { get; private set; }
-            public virtual MethodInfo CardinalityReducingGenericMethodInfo { get; private set; }
-            public virtual Type SourceElementType => CurrentParameter.Type;
-            public virtual IReadOnlyList<(MethodInfo OrderingMethod, Expression KeySelector)> PendingOrderings => _pendingOrderings;
+            public Expression PendingSelector { get; private set; }
+            public MethodInfo? CardinalityReducingGenericMethodInfo { get; private set; }
 
-            public virtual void UpdateSource(Expression source) => Source = source;
+            public Type SourceElementType
+                => CurrentParameter.Type;
 
-            public virtual void UpdateCurrentTree(NavigationTreeNode currentTree) => CurrentTree = currentTree;
+            public IReadOnlyList<(MethodInfo OrderingMethod, Expression KeySelector)> PendingOrderings
+                => _pendingOrderings;
 
-            public virtual void ApplySelector(Expression selector) => PendingSelector = selector;
+            public void UpdateSource(Expression source)
+                => Source = source;
 
-            public virtual void AddPendingOrdering(MethodInfo orderingMethod, Expression keySelector)
+            public void UpdateCurrentTree(NavigationTreeNode currentTree)
+                => CurrentTree = currentTree;
+
+            public void ApplySelector(Expression selector)
+                => PendingSelector = selector;
+
+            public void AddPendingOrdering(MethodInfo orderingMethod, Expression keySelector)
             {
                 _pendingOrderings.Clear();
                 _pendingOrderings.Add((orderingMethod, keySelector));
             }
 
-            public virtual void AppendPendingOrdering(MethodInfo orderingMethod, Expression keySelector)
+            public void AppendPendingOrdering(MethodInfo orderingMethod, Expression keySelector)
                 => _pendingOrderings.Add((orderingMethod, keySelector));
 
-            public virtual void ClearPendingOrderings()
+            public void ClearPendingOrderings()
                 => _pendingOrderings.Clear();
 
-            public virtual void ConvertToSingleResult(MethodInfo genericMethod)
+            public void ConvertToSingleResult(MethodInfo genericMethod)
                 => CardinalityReducingGenericMethodInfo = genericMethod;
 
-            public override ExpressionType NodeType => ExpressionType.Extension;
-            public override Type Type => CardinalityReducingGenericMethodInfo == null
-                ? typeof(IQueryable<>).MakeGenericType(PendingSelector.Type)
-                : PendingSelector.Type;
+            public override ExpressionType NodeType
+                => ExpressionType.Extension;
+
+            public override Type Type
+                => CardinalityReducingGenericMethodInfo == null
+                    ? typeof(IQueryable<>).MakeGenericType(PendingSelector.Type)
+                    : PendingSelector.Type;
+
             protected override Expression VisitChildren(ExpressionVisitor visitor)
             {
                 Check.NotNull(visitor, nameof(visitor));
@@ -229,7 +312,7 @@ namespace Harmony.Core.EF.Query.Internal
                 return this;
             }
 
-            public virtual void Print(ExpressionPrinter expressionPrinter)
+            void IPrintableExpression.Print(ExpressionPrinter expressionPrinter)
             {
                 Check.NotNull(expressionPrinter, nameof(expressionPrinter));
 
@@ -250,7 +333,74 @@ namespace Harmony.Core.EF.Query.Internal
             }
         }
 
-        protected class NavigationTreeExpression : NavigationTreeNode, IPrintableExpression
+        private sealed class GroupByNavigationExpansionExpression : Expression, IPrintableExpression
+        {
+            public GroupByNavigationExpansionExpression(
+                Expression source,
+                ParameterExpression groupingParameter,
+                NavigationTreeNode currentTree,
+                Expression pendingSelector,
+                string innerParameterName)
+            {
+                Source = source;
+                CurrentParameter = groupingParameter;
+                Type = source.Type;
+                GroupingEnumerable = new NavigationExpansionExpression(
+                    Call(QueryableMethods.AsQueryable.MakeGenericMethod(CurrentParameter.Type.GetGenericArguments()[1]), CurrentParameter),
+                    currentTree,
+                    pendingSelector,
+                    innerParameterName);
+            }
+
+            public Expression Source { get; private set; }
+
+            public ParameterExpression CurrentParameter { get; }
+
+            public Expression GroupingEnumerable { get; }
+
+            public Type SourceElementType
+                => CurrentParameter.Type;
+
+            public void UpdateSource(Expression source)
+            {
+                Source = source;
+            }
+
+            public override ExpressionType NodeType
+                => ExpressionType.Extension;
+
+            public override Type Type { get; }
+
+            protected override Expression VisitChildren(ExpressionVisitor visitor)
+            {
+                Check.NotNull(visitor, nameof(visitor));
+
+                return this;
+            }
+
+            void IPrintableExpression.Print(ExpressionPrinter expressionPrinter)
+            {
+                Check.NotNull(expressionPrinter, nameof(expressionPrinter));
+
+                expressionPrinter.AppendLine(nameof(GroupByNavigationExpansionExpression));
+                using (expressionPrinter.Indent())
+                {
+                    expressionPrinter.Append("Source: ");
+                    expressionPrinter.Visit(Source);
+                    expressionPrinter.AppendLine();
+                    expressionPrinter.Append("GroupingEnumerable: ");
+                    expressionPrinter.Visit(GroupingEnumerable);
+                    expressionPrinter.AppendLine();
+                }
+            }
+        }
+
+        /// <summary>
+        ///     A leaf node on navigation tree, representing projection structures of
+        ///     <see cref="NavigationExpansionExpression" />. Contains <see cref="Value" />,
+        ///     which can be <see cref="NewExpression" /> or <see cref="EntityReference" />.
+        /// </summary>
+        private sealed class NavigationTreeExpression : NavigationTreeNode, IPrintableExpression
         {
             public NavigationTreeExpression(Expression value)
                 : base(value.Type, null, null, null)
@@ -258,7 +408,10 @@ namespace Harmony.Core.EF.Query.Internal
                 Value = value;
             }
 
-            public virtual Expression Value { get; private set; }
+            /// <summary>
+            ///     Either <see cref="NewExpression" /> or <see cref="EntityReference" />.
+            /// </summary>
+            public Expression Value { get; private set; }
 
             protected override Expression VisitChildren(ExpressionVisitor visitor)
             {
@@ -269,9 +422,10 @@ namespace Harmony.Core.EF.Query.Internal
                 return this;
             }
 
-            public override Type Type => Value.Type;
+            public override Type Type
+                => Value.Type;
 
-            public virtual void Print(ExpressionPrinter expressionPrinter)
+            void IPrintableExpression.Print(ExpressionPrinter expressionPrinter)
             {
                 Check.NotNull(expressionPrinter, nameof(expressionPrinter));
 
@@ -287,6 +441,11 @@ namespace Harmony.Core.EF.Query.Internal
             }
         }
 
+        /// <summary>
+        ///     A node in navigation binary tree. A navigation tree is a structure of the current parameter, which
+        ///     would be transparent identifier (hence it's a binary structure). This allows us to easily condense to
+        ///     inner/outer member access.
+        /// </summary>
         protected class NavigationTreeNode : Expression
         {
             private NavigationTreeNode _parent;
@@ -394,7 +553,11 @@ namespace Harmony.Core.EF.Query.Internal
             }
         }
 
-        protected class OwnedNavigationReference : Expression
+        /// <summary>
+        ///     Owned navigations are not expanded, since they map differently in different providers.
+        ///     This remembers such references so that they can still be treated like navigations.
+        /// </summary>
+        private sealed class OwnedNavigationReference : Expression
         {
             public OwnedNavigationReference(Expression parent, INavigation navigation, EntityReference entityReference)
             {
@@ -412,12 +575,15 @@ namespace Harmony.Core.EF.Query.Internal
                 return this;
             }
 
-            public virtual Expression Parent { get; private set; }
-            public virtual INavigation Navigation { get; }
-            public virtual EntityReference EntityReference { get; }
+            public Expression Parent { get; private set; }
+            public INavigation Navigation { get; }
+            public EntityReference EntityReference { get; }
 
-            public override Type Type => Navigation.ClrType;
-            public override ExpressionType NodeType => ExpressionType.Extension;
+            public override Type Type
+                => Navigation.ClrType;
+
+            public override ExpressionType NodeType
+                => ExpressionType.Extension;
         }
     }
 }

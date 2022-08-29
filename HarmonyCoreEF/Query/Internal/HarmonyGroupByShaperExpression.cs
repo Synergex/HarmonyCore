@@ -10,10 +10,10 @@ namespace Harmony.Core.EF.Query.Internal
     {
         public HarmonyGroupByShaperExpression(
             Expression keySelector,
-            Expression elementSelector,
+            ShapedQueryExpression groupingEnumerable,
             ParameterExpression groupingParameter,
             ParameterExpression valueBufferParameter)
-            : base(keySelector, elementSelector)
+            : base(keySelector, groupingEnumerable)
         {
             GroupingParameter = groupingParameter;
             ValueBufferParameter = valueBufferParameter;

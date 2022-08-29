@@ -1,3 +1,4 @@
+using Microsoft.Build.Evaluation;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -17,16 +18,6 @@ namespace HarmonyCore.CliTool
             "Microsoft.AspNetCore.Mvc",
         };
 
-        private static Dictionary<string, string> TargetFramework = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-        {
-            {"Services", "netcoreapp3.1"},
-            {"Services.Test", "netcoreapp3.1"},
-            {"Services.Host", "netcoreapp3.1"},
-            {"Services.Models", "netcoreapp3.1"},
-            {"Services.Controllers", "netcoreapp3.1"},
-            {"Services.Isolated", "netcoreapp3.1"},
-        };
-
         private static HashSet<string> WebReferenceProjects = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "Services.Controllers"
@@ -42,15 +33,48 @@ namespace HarmonyCore.CliTool
         };
         public string FileName { get; set; }
         public XmlDocument ProjectDoc { get; set; }
+        public Project MSBuildProject { get; set; }
+        private VersionTargetingInfo _targetVersion;
 
-        public ProjectInfo(string path)
+        public ProjectInfo(string path, VersionTargetingInfo targetVersion, Project msbuildProject)
         {
+            MSBuildProject = msbuildProject;
+            _targetVersion = targetVersion;
             FileName = path;
             ProjectDoc = new XmlDocument { PreserveWhitespace = true };
             ProjectDoc.Load(path);
         }
 
-        public void PatchKnownIssues()
+        IEnumerable<string> _sourceFiles;
+        public IEnumerable<string> SourceFiles 
+        { 
+            get
+            {
+                if(_sourceFiles == null )
+                {
+                    _sourceFiles = MSBuildProject.GetItems("Compile").Select(itm =>
+                    {
+                        if(Path.IsPathRooted(itm.EvaluatedInclude))
+                            return itm.EvaluatedInclude;
+                        else
+                            return Path.GetFullPath(Path.Combine(Path.GetDirectoryName(FileName), itm.EvaluatedInclude));
+                    }).ToList();
+                }
+                return _sourceFiles;
+            }
+        }
+
+        public void AddRemoveFiles(IEnumerable<string> toAdd, IEnumerable<string> toRemove)
+        {
+            foreach (var item in toAdd)
+                MSBuildProject.AddItem("Compile", item);
+
+            foreach (var item in toRemove)
+                foreach(var msbuildItem in MSBuildProject.GetItemsByEvaluatedInclude(item).ToList())
+                    MSBuildProject.RemoveItem(msbuildItem);
+        }
+
+        public void PatchKnownIssues(List<string> removeNugetVersions)
         {
             var cleanFileName = Path.GetFileNameWithoutExtension(FileName);
             //look for bad .net core version stuff, <RuntimeFrameworkVersion> shouldn't be here
@@ -59,7 +83,7 @@ namespace HarmonyCore.CliTool
             {
                 runtimeFrameworkVersion.ParentNode.RemoveChild(runtimeFrameworkVersion);
             }
-            
+
             var importNodes = new List<XmlNode>();
             foreach (var import in ProjectDoc.GetElementsByTagName("Import").OfType<XmlNode>().ToList())
             {
@@ -81,76 +105,16 @@ namespace HarmonyCore.CliTool
             {
                 import.ParentNode.RemoveChild(import);
             }
-            
-            
-            //look for bad explicit nuget pathing
-            //switch to this style of rps target
-            //<Import Condition="Exists('$(MSBuildExtensionsPath)\Synergex\dbl\Synergex.SynergyDE.Repository.targets')" Project="$(MSBuildExtensionsPath)\Synergex\dbl\Synergex.SynergyDE.Repository.targets" />
-            //<Import Condition="!Exists('$(MSBuildExtensionsPath)\Synergex\dbl\Synergex.SynergyDE.Repository.targets')" Project="$(MSBuildProgramFiles32)\MSBuild\Synergex\dbl\Synergex.SynergyDE.Repository.targets" />
-            if (string.Compare(cleanFileName, "Repository", StringComparison.OrdinalIgnoreCase) == 0)
-            {
-                var hasRepositoryTargets = false;
-                var imports = ProjectDoc.GetElementsByTagName("Import").OfType<XmlNode>().ToList();
-                foreach (var import in imports)
-                {
-                    var projectPath = import.Attributes["Project"]?.Value ?? "";
-                    if (projectPath.Contains("Synergex.SynergyDE.Build.targets") || projectPath.Contains("Synergex.SynergyDE.Repository.targets"))
-                    {
-                        import.ParentNode.RemoveChild(import);
-                    }
-                    //else if (string.Compare(projectPath ,
-                    //    "$(MSBuildProgramFiles32)\\MSBuild\\Synergex\\dbl\\Synergex.SynergyDE.Repository.targets", 
-                    //    StringComparison.OrdinalIgnoreCase) == 0)
-                    //{
-                    //    hasRepositoryTargets = true;
-                    //}
-                    //else if (string.Compare(projectPath,
-                    //    "$(ProgramFilesx86)\\MSBuild\\Synergex\\dbl\\Synergex.SynergyDE.Repository.targets",
-                    //    StringComparison.OrdinalIgnoreCase) == 0)
-                    //{
-                    //    hasRepositoryTargets = true;
-                    //    import.Attributes["Project"].Value = "$(MSBuildProgramFiles32)\\MSBuild\\Synergex\\dbl\\Synergex.SynergyDE.Repository.targets";
-                    //    import.Attributes["Condition"].Value = "!Exists('$(MSBuildExtensionsPath)\\Synergex\\dbl\\Synergex.SynergyDE.Repository.targets')";
-                    //}
-                }
 
-                var targets = ProjectDoc.GetElementsByTagName("Target").OfType<XmlNode>().ToList();
-                foreach (var target in targets)
-                {
-                    var targetNameAttr = target.Attributes["Name"];
-                    if (string.Compare(targetNameAttr?.Value, "EnsureNuGetPackageBuildImports",
-                        StringComparison.OrdinalIgnoreCase) == 0)
-                    {
-                        target.ParentNode.RemoveChild(target);
-                    }
-                }
+            FixRPS(ProjectDoc, _targetVersion.BuildPackageVersion, cleanFileName);
 
-                var importFragment = ProjectDoc.CreateElement("Import", ProjectDoc.DocumentElement.NamespaceURI);
-                var projectAttr = ProjectDoc.CreateAttribute("Project");
-                projectAttr.Value = $"$(USERPROFILE)\\.nuget\\packages\\synergex.synergyde.build\\{Program.BuildPackageVersion}\\build\\rps\\Synergex.SynergyDE.Build.targets";
-                var conditionAttr = ProjectDoc.CreateAttribute("Condition");
-                conditionAttr.Value = $"Exists('$(USERPROFILE)\\.nuget\\packages\\synergex.synergyde.build\\{Program.BuildPackageVersion}\\build\\rps\\Synergex.SynergyDE.Build.targets')";
-                importFragment.Attributes.Append(projectAttr);
-                importFragment.Attributes.Append(conditionAttr);
-                var targetFragment = ProjectDoc.CreateElement("Project", ProjectDoc.DocumentElement.NamespaceURI);
-                targetFragment.InnerXml = $"<Target Name=\"EnsureNuGetPackageBuildImports\" BeforeTargets=\"PrepareForBuild\" xmlns=\"{ProjectDoc.DocumentElement.NamespaceURI}\">\r\n" +
-                                          "<PropertyGroup>\r\n" +
-                                          "<ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>\r\n" +
-                                          "</PropertyGroup>\r\n" +
-                                          $"<Error Condition=\"!Exists('$(USERPROFILE)\\.nuget\\packages\\synergex.synergyde.build\\{Program.BuildPackageVersion}\\build\\rps\\Synergex.SynergyDE.Build.targets')\" Text=\"$([System.String]::Format('$(ErrorText)', '$(USERPROFILE)\\.nuget\\packages\\synergex.synergyde.build\\{Program.BuildPackageVersion}\\build\\rps\\Synergex.SynergyDE.Build.targets'))\" />\r\n" +
-                                          "</Target>";
-                
-                var importedElement = ProjectDoc.DocumentElement.AppendChild(importFragment);
-                var targetElement = ProjectDoc.DocumentElement.AppendChild(targetFragment.FirstChild);
-            }
-            
-            
+
             //switch .net standard 2.0 projects to netcoreapp3.1
             var targetFramework = ProjectDoc.GetElementsByTagName("TargetFramework").OfType<XmlNode>().FirstOrDefault();
-            
-            if (TargetFramework.TryGetValue(Path.GetFileNameWithoutExtension(FileName), out var newTargetFramework))
+
+            if (targetFramework != null)
             {
-                targetFramework.InnerText = newTargetFramework;
+                targetFramework.InnerText = _targetVersion.TargetFramework;
             }
 
             var firstItemGroup = ProjectDoc.GetElementsByTagName("ItemGroup").OfType<XmlNode>().FirstOrDefault();
@@ -160,12 +124,7 @@ namespace HarmonyCore.CliTool
                 ProjectDoc.DocumentElement.AppendChild(firstItemGroup);
             }
 
-            var firstPropertyGroup = ProjectDoc.GetElementsByTagName("PropertyGroup").OfType<XmlNode>().FirstOrDefault();
-            if (firstPropertyGroup == null)
-            {
-                firstPropertyGroup = ProjectDoc.CreateElement("PropertyGroup");
-                ProjectDoc.DocumentElement.AppendChild(firstPropertyGroup);
-            }
+            XmlNode firstPropertyGroup = EnsurePropertyGroup(ProjectDoc);
 
             //upgrade Host and test to Web sdk if needed
             //Add SDK reference to Services.Controllers
@@ -184,14 +143,14 @@ namespace HarmonyCore.CliTool
                 }
 
                 var hasOdataVersioning = ProjectDoc.GetElementsByTagName("PackageReference").OfType<XmlNode>()
-                    .Any(node => node.Attributes["Include"]?.Value == "Microsoft.AspNetCore.OData.Versioning.ApiExplorer");
-                if (!hasOdataVersioning)
+                        .Any(node => node.Attributes["Include"]?.Value == "Microsoft.AspNetCore.OData.Versioning.ApiExplorer");
+                if (!hasOdataVersioning && _targetVersion.NugetReferences.ContainsKey("Microsoft.AspNetCore.OData.Versioning.ApiExplorer"))
                 {
                     var versioningReference = ProjectDoc.CreateElement("PackageReference");
                     var versioningReferenceName = ProjectDoc.CreateAttribute("Include");
                     versioningReferenceName.Value = "Microsoft.AspNetCore.OData.Versioning.ApiExplorer";
                     var versioningReferenceVersion = ProjectDoc.CreateAttribute("Version");
-                    versioningReferenceVersion.Value = Program.LatestNugetReferences["Microsoft.AspNetCore.OData.Versioning.ApiExplorer"];
+                    versioningReferenceVersion.Value = _targetVersion.NugetReferences["Microsoft.AspNetCore.OData.Versioning.ApiExplorer"];
                     versioningReference.Attributes.Append(versioningReferenceName);
                     versioningReference.Attributes.Append(versioningReferenceVersion);
                     firstItemGroup.AppendChild(versioningReference);
@@ -225,11 +184,118 @@ namespace HarmonyCore.CliTool
                     var fRefName = ProjectDoc.CreateAttribute("Include");
                     fRefName.Value = "Microsoft.AspNetCore.Mvc.NewtonsoftJson";
                     var fRefVersion = ProjectDoc.CreateAttribute("Version");
-                    fRefVersion.Value = Program.LatestNugetReferences["Microsoft.AspNetCore.Mvc.NewtonsoftJson"];
+                    fRefVersion.Value = _targetVersion.NugetReferences["Microsoft.AspNetCore.Mvc.NewtonsoftJson"];
                     fRef.Attributes.Append(fRefName);
                     fRef.Attributes.Append(fRefVersion);
                     firstItemGroup.AppendChild(fRef);
                 }
+            }
+
+            if (string.Compare(cleanFileName, "Services.Test", true) == 0 || string.Compare(cleanFileName, "Services.Host", true) == 0)
+            {
+                var hasGenerateMain = ProjectDoc.GetElementsByTagName("ProvidesMainMethod").OfType<XmlNode>().Any();
+                if (!hasGenerateMain)
+                {
+                    var provideMainNode = ProjectDoc.CreateElement("ProvidesMainMethod");
+                    provideMainNode.InnerText = "true";
+                    firstPropertyGroup.AppendChild(provideMainNode);
+                }
+            }
+
+            foreach (var refToRemove in removeNugetVersions)
+            {
+                var actualRef = ProjectDoc.GetElementsByTagName("PackageReference").OfType<XmlNode>()
+                    .FirstOrDefault(node => string.Compare(node.Attributes["Include"]?.Value, refToRemove, true) == 0);
+                if (actualRef != null)
+                {
+                    actualRef.ParentNode.RemoveChild(actualRef);
+                }
+            }
+        }
+
+        private static XmlNode EnsurePropertyGroup(XmlDocument projectDoc)
+        {
+            var firstPropertyGroup = projectDoc.GetElementsByTagName("PropertyGroup").OfType<XmlNode>().FirstOrDefault();
+            if (firstPropertyGroup == null)
+            {
+                firstPropertyGroup = projectDoc.CreateElement("PropertyGroup", projectDoc.DocumentElement.NamespaceURI);
+                projectDoc.DocumentElement.AppendChild(firstPropertyGroup);
+            }
+
+            return firstPropertyGroup;
+        }
+
+        public static void FixRPS(XmlDocument projectDoc, string targetVersion, string cleanFileName)
+        {
+            //look for bad explicit nuget pathing
+            //switch to this style of rps target
+            //<Import Condition="Exists('$(MSBuildExtensionsPath)\Synergex\dbl\Synergex.SynergyDE.Repository.targets')" Project="$(MSBuildExtensionsPath)\Synergex\dbl\Synergex.SynergyDE.Repository.targets" />
+            //<Import Condition="!Exists('$(MSBuildExtensionsPath)\Synergex\dbl\Synergex.SynergyDE.Repository.targets')" Project="$(MSBuildProgramFiles32)\MSBuild\Synergex\dbl\Synergex.SynergyDE.Repository.targets" />
+            if (string.Compare(cleanFileName, "Repository", StringComparison.OrdinalIgnoreCase) == 0)
+            {
+                var targetMonikerElement = projectDoc.GetElementsByTagName("NugetTargetMoniker").OfType<XmlNode>().FirstOrDefault();
+                XmlNode firstPropertyGroup = EnsurePropertyGroup(projectDoc);
+
+                if(targetMonikerElement == null)
+                {
+                    targetMonikerElement = projectDoc.CreateElement("NugetTargetMoniker", projectDoc.DocumentElement.NamespaceURI);
+                    targetMonikerElement.InnerText = "RPS,Version=1.0";
+                    firstPropertyGroup.AppendChild(targetMonikerElement);
+                }
+
+                var hasRepositoryTargets = false;
+                var imports = projectDoc.GetElementsByTagName("Import").OfType<XmlNode>().ToList();
+                foreach (var import in imports)
+                {
+                    var projectPath = import.Attributes["Project"]?.Value ?? "";
+                    if (projectPath.Contains("Synergex.SynergyDE.Build.targets") || projectPath.Contains("Synergex.SynergyDE.Repository.targets"))
+                    {
+                        import.ParentNode.RemoveChild(import);
+                    }
+                    //else if (string.Compare(projectPath ,
+                    //    "$(MSBuildProgramFiles32)\\MSBuild\\Synergex\\dbl\\Synergex.SynergyDE.Repository.targets", 
+                    //    StringComparison.OrdinalIgnoreCase) == 0)
+                    //{
+                    //    hasRepositoryTargets = true;
+                    //}
+                    //else if (string.Compare(projectPath,
+                    //    "$(ProgramFilesx86)\\MSBuild\\Synergex\\dbl\\Synergex.SynergyDE.Repository.targets",
+                    //    StringComparison.OrdinalIgnoreCase) == 0)
+                    //{
+                    //    hasRepositoryTargets = true;
+                    //    import.Attributes["Project"].Value = "$(MSBuildProgramFiles32)\\MSBuild\\Synergex\\dbl\\Synergex.SynergyDE.Repository.targets";
+                    //    import.Attributes["Condition"].Value = "!Exists('$(MSBuildExtensionsPath)\\Synergex\\dbl\\Synergex.SynergyDE.Repository.targets')";
+                    //}
+                }
+
+                var targets = projectDoc.GetElementsByTagName("Target").OfType<XmlNode>().ToList();
+                foreach (var target in targets)
+                {
+                    var targetNameAttr = target.Attributes["Name"];
+                    if (string.Compare(targetNameAttr?.Value, "EnsureNuGetPackageBuildImports",
+                        StringComparison.OrdinalIgnoreCase) == 0)
+                    {
+                        target.ParentNode.RemoveChild(target);
+                    }
+                }
+
+                var importFragment = projectDoc.CreateElement("Import", projectDoc.DocumentElement.NamespaceURI);
+                var projectAttr = projectDoc.CreateAttribute("Project");
+                projectAttr.Value = $"$(USERPROFILE)\\.nuget\\packages\\synergex.synergyde.build\\{targetVersion}\\build\\rps\\Synergex.SynergyDE.Build.targets";
+                var conditionAttr = projectDoc.CreateAttribute("Condition");
+                conditionAttr.Value = $"Exists('$(USERPROFILE)\\.nuget\\packages\\synergex.synergyde.build\\{targetVersion}\\build\\rps\\Synergex.SynergyDE.Build.targets')";
+                importFragment.Attributes.Append(projectAttr);
+                importFragment.Attributes.Append(conditionAttr);
+                var targetFragment = projectDoc.CreateElement("Project", projectDoc.DocumentElement.NamespaceURI);
+                targetFragment.InnerXml = $"<Target Name=\"EnsureNuGetPackageBuildImports\" BeforeTargets=\"PrepareForBuild\" xmlns=\"{projectDoc.DocumentElement.NamespaceURI}\">\r\n" +
+                                          "<PropertyGroup>\r\n" +
+                                          "<ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>\r\n" +
+                                          "</PropertyGroup>\r\n" +
+                                          $"<Error Condition=\"!Exists('$(USERPROFILE)\\.nuget\\packages\\synergex.synergyde.build\\{targetVersion}\\build\\rps\\Synergex.SynergyDE.Build.targets')\" Text=\"$([System.String]::Format('$(ErrorText)', '$(USERPROFILE)\\.nuget\\packages\\synergex.synergyde.build\\{targetVersion}\\build\\rps\\Synergex.SynergyDE.Build.targets'))\" />\r\n" +
+                                          "</Target>";
+
+                var importedElement = projectDoc.DocumentElement.AppendChild(importFragment);
+                var targetElement = projectDoc.DocumentElement.AppendChild(targetFragment.FirstChild);
             }
         }
 
@@ -263,10 +329,10 @@ namespace HarmonyCore.CliTool
                     {
                         if (includeValue.Contains("Harmony.Core"))
                         {
-                            if (!_hasAlerted && !string.IsNullOrWhiteSpace(versionValue) && !Program.HCRegenRequiredVersions.All((ver) => string.Compare(versionValue, ver) >= 0))
+                            if (!_hasAlerted && !string.IsNullOrWhiteSpace(versionValue) && !_targetVersion.HCRegenRequiredVersions.All((ver) => string.Compare(versionValue, ver) >= 0))
                             {
                                 _hasAlerted = true;
-                                Console.WriteLine("Upgrading Harmony Core to version {0} from version {1} of packages requires you to regenerate from codegen template. \r\n\r\nPlease type YES to acknowledge and continue package upgrade", versionValue, Program.HCBuildVersion);
+                                Console.WriteLine("Upgrading Harmony Core to version {0} from version {1} of packages requires you to regenerate from codegen template. \r\n\r\nPlease type YES to acknowledge and continue package upgrade", versionValue, _targetVersion.HCBuildVersion);
                                 if (string.Compare(Console.ReadLine(), "yes", true) != 0)
                                 {
                                     Console.WriteLine("exiting");

@@ -8,10 +8,10 @@ import System.Linq.Expressions
 import System.ComponentModel
 import System.Reflection
 import System.Linq
-import Microsoft.AspNet.OData.Query
-import Microsoft.AspNet.OData.Extensions
+import Microsoft.AspNetCore.OData.Query
+import Microsoft.AspNetCore.OData.Extensions
 import Microsoft.OData.Edm
-import Microsoft.AspNet.OData
+import Microsoft.AspNetCore.OData
 import Harmony.Core.Utility
 import Newtonsoft.Json
 import System.Collections.Concurrent
@@ -88,11 +88,11 @@ namespace Harmony.OData.Adapter
             context, @ActionExecutingContext
         proc
             data feature = context.HttpContext.ODataFeature()
-            data odataPath = feature.Path
-            data svc = feature.RequestContainer.GetService(^typeof(IEdmModel))
+            data odPath = feature.Path
+            data svc = feature.Services.GetService(^typeof(IEdmModel)) ?? feature.Model
             data model = ^as(svc, @IEdmModel)
-            data elementType = odataPath.EdmType .is. IEdmCollectionType ? ((@IEdmCollectionType)odataPath.EdmType).ElementType.Definition : odataPath.EdmType
-            data odataQuery = new ODataQueryOptions(new ODataQueryContext(model, elementType, odataPath), context.HttpContext.Request)
+            data elementType = odPath.FirstSegment.EdmType .is. IEdmCollectionType ? ((@IEdmCollectionType)odPath.FirstSegment.EdmType).ElementType.Definition : odPath.FirstSegment.EdmType
+            data odataQuery = new ODataQueryOptions(new ODataQueryContext(model, elementType, odPath), context.HttpContext.Request)
             data filterClause = odataQuery.Filter?.FilterClause
             data filterLookup = new Dictionary<string, List<AdapterOp>>()
             DebugLogSession.Logging.LogTrace("AdapterActionInvoker: processing expression tree {0}, with lookup {1}", new UriExpressionLogHelper(filterClause?.Expression),  new JsonLogHelper(filterLookup))
@@ -222,7 +222,7 @@ namespace Harmony.OData.Adapter
             odataOptions, @ODataQueryOptions
         proc
             data result = new Dictionary<object, object>(original)
-            data opSeg = ^as(odataOptions.Context.Path.Segments.Last(), @OperationSegment)
+            data opSeg = ^as(odataOptions.Context.Path.Last(), @OperationSegment)
             data param, @OperationSegmentParameter
             foreach param in opSeg.Parameters
             begin

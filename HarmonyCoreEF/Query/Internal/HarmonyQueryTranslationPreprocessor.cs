@@ -30,17 +30,14 @@ namespace Harmony.Core.EF.Query.Internal
 
         public override Expression Process(Expression query)
         {
-            query = new EnumerableToQueryableMethodConvertingExpressionVisitor().Visit(query);
-            query = new QueryMetadataExtractingExpressionVisitor(_queryCompilationContext).Visit(query);
             query = new InvocationExpressionRemovingExpressionVisitor().Visit(query);
-            query = new AllAnyToContainsRewritingExpressionVisitor().Visit(query);
-            query = new GroupJoinFlatteningExpressionVisitor().Visit(query);
+            query = NormalizeQueryableMethod(query);
             query = new NullCheckRemovingExpressionVisitor().Visit(query);
-            query = new EntityEqualityRewritingExpressionVisitor(_queryCompilationContext).Rewrite(query);
-            query = new SubqueryMemberPushdownExpressionVisitor().Visit(query);
-            query = new NavigationExpandingExpressionVisitor(_queryCompilationContext, Dependencies.EvaluatableExpressionFilter).Expand(query);
-            query = new FunctionPreprocessingExpressionVisitor().Visit(query);
-            new EnumerableVerifyingExpressionVisitor().Visit(query);
+            query = new SubqueryMemberPushdownExpressionVisitor(QueryCompilationContext.Model).Visit(query);
+            query = new HarmonyNavigationExpandingExpressionVisitor(this, QueryCompilationContext, Dependencies.EvaluatableExpressionFilter, Dependencies.NavigationExpansionExtensibilityHelper)
+                .Expand(query);
+            query = new QueryOptimizingExpressionVisitor().Visit(query);
+            query = new NullCheckRemovingExpressionVisitor().Visit(query);
             return query;
         }
     }

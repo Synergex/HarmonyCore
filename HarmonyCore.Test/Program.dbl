@@ -2,10 +2,20 @@ import System
 import HarmonyCore.Test.Converters
 import Harmony.Core.Test.FileIO
 import HarmonyCore.Test.EF
+import HarmonyCore.Test.Bridge
+import System.Diagnostics
+import System.Threading
 
 main
 proc
+    ;;while(!Debugger.IsAttached)
+    ;;    Thread.Sleep(1000)
+
     HarmonyCore.Test.TestEnvironment.Configure(^null)
-	data test = new DBContextRelations()
-	test.BasicRelations()
+    data test = new BasicBridge()
+    data start = DateTime.Now
+    test.WSLTest().Wait()
+    data end = DateTime.Now
+    data elapsed = end - start
+    Console.WriteLine(elapsed.TotalMilliseconds)
 endmain

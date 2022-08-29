@@ -172,11 +172,16 @@ namespace Harmony.Core.EF.Infrastructure.Internal
                 }
             }
 
-            public override long GetServiceProviderHashCode() => Extension._databaseRoot?.GetHashCode() ?? 0L;
+            public override int GetServiceProviderHashCode() => Extension._databaseRoot?.GetHashCode() ?? 0;
 
             public override void PopulateDebugInfo(IDictionary<string, string> debugInfo)
                 => debugInfo["HarmonyDatabase:DatabaseRoot"]
                     = (Extension._databaseRoot?.GetHashCode() ?? 0L).ToString(CultureInfo.InvariantCulture);
+
+            public override bool ShouldUseSameServiceProvider(DbContextOptionsExtensionInfo other)
+            {
+                return true;
+            }
         }
     }
 }

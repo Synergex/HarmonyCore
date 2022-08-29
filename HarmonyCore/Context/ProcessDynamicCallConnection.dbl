@@ -10,6 +10,7 @@ import System.IO
 import System.Threading
 import System.Linq
 import Harmony.Core.Utility
+import Nerdbank.Streams
 
 namespace Harmony.Core.Context
 
@@ -20,6 +21,8 @@ namespace Harmony.Core.Context
 		private mLocalRPCHandlers, @Dictionary<string, Delegate> 
 		private mMakeReadyTask, @Lazy<Task<JsonRpc>>
 		private mDisconnectToken, @CancellationTokenSource
+		private mLastSeenBytes, ArraySegment<byte>
+
 		public method ProcessDynamicCallConnection
 			startInfo, @ProcessStartInfo
 		proc
@@ -73,6 +76,15 @@ namespace Harmony.Core.Context
 			try
 			begin
 				mreturn await jsonRpcConnection.InvokeWithCancellationAsync<[#]@ReturnParameterDefintion>(name, args.OfType<Object>().ToList().AsReadOnly(), mDisconnectToken.Token)
+			end
+			catch(ex, @StreamJsonRpc.ConnectionLostException)
+            begin
+                IsHealthy = false
+				;;this will be empty if trace level logging is not turned on in order to prevent leaking sensitive data in production environments
+				if(mLastSeenBytes.Count > 0) then
+                    throw new StreamJsonRpc.ConnectionLostException("The JSON-RPC connection with the remote party was lost before the request could complete. Last seen bytes passed: '" + Encoding.UTF8.GetString(mLastSeenBytes).Replace(%char(10), "<LF>").Replace(%char(13), "<CR>") + "'", ex)
+                else
+					throw
 			end
 			catch(ex, @RemoteInvocationException)
 			begin
@@ -156,11 +168,39 @@ namespace Harmony.Core.Context
 
 			data formatter = new JsonMessageFormatter(new UTF8Encoding(false))
 			formatter.JsonSerializer.FloatParseHandling = FloatParseHandling.Decimal
-			data result = new JsonRPC(new HeaderDelimitedMessageHandler(new StreamWrapper(mTargetProcess.StandardOutput, mTargetProcess.StandardInput), formatter))
+			
+			data targetOutput, @Stream
+			data targetInput, @Stream
+
+			;;if the base stream is a filestream lets grab its guts and resize the buffer to 64k
+			if(mTargetProcess.StandardInput.BaseStream .is. FileStream) then
+			begin
+				data inputFileStream = ^as(mTargetProcess.StandardInput.BaseStream, @FileStream)
+				data outputFileStream = ^as(mTargetProcess.StandardOutput.BaseStream, @FileStream)
+
+				targetInput = new FileStream(inputFileStream.SafeFileHandle, FileAccess.Write, 4096 * 16, false)
+				targetOutput = new FileStream(outputFileStream.SafeFileHandle, FileAccess.Read, 4096 * 16, false)
+			end
+			else
+			begin
+				targetInput = mTargetProcess.StandardInput.BaseStream
+				targetOutput = mTargetProcess.StandardOutput.BaseStream
+			end
+
+			data streamWrapper = FullDuplexStream.Splice(targetOutput, targetInput)
+			
+			if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+			begin
+				data tempStreamWrapper = new MonitoringStream(streamWrapper)
+				tempStreamWrapper.DidRead += StreamReadMonitorEvent
+				streamWrapper = tempStreamWrapper
+			end
+
+			data result = new JsonRPC(new HeaderDelimitedMessageHandler(streamWrapper, formatter))
             if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
-            begin
-                result.TraceSource = new TraceSource("Client", SourceLevels.All)
-            end
+			begin
+				result.TraceSource = new TraceSource("Client", SourceLevels.All)
+			end
 
 			data rpcKvp, KeyValuePair<string, Delegate>
 			foreach rpcKvp in mLocalRPCHandlers
@@ -189,6 +229,13 @@ namespace Harmony.Core.Context
 			mreturn mMakeReadyTask.Value
 		endmethod
 
+		private method StreamReadMonitorEvent, void
+			sender, @Object
+			bytes, ArraySegment<byte>
+		proc
+			mLastSeenBytes = bytes
+		endmethod
+
 		private class StreamWrapper extends Stream
 
 			public override method Read, int
@@ -197,7 +244,12 @@ namespace Harmony.Core.Context
 				count, int 
 				endparams
 			proc
-				mreturn mReader.BaseStream.Read(buffer, offset, count)
+				data returnedCount = mReader.BaseStream.Read(buffer, offset, count)
+				if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+				begin
+					DebugLogSession.Logging.LogTrace("ProcessDynamicCallConnection read ascii string: {0}", new ASCIIArrayDebugLogHelper(buffer, offset, returnedCount))
+				end
+				mreturn returnedCount
 			endmethod
 
 
@@ -229,15 +281,37 @@ namespace Harmony.Core.Context
 				mWriter.BaseStream.Flush()
 			endmethod
 
-			public override method ReadAsync, @Task<int> 
+			public override async method ReadAsync, @Task<int> 
 				buffer, [#]byte 
 				offset, int 
 				count, int 
 				token, CancellationToken
 				endparams
 			proc
-				mreturn mReader.BaseStream.ReadAsync(buffer, offset, count, token)
+				data readBytes = await mReader.BaseStream.ReadAsync(buffer, offset, count, token)
+				if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+				begin
+					DebugLogSession.Logging.LogTrace("ProcessDynamicCallConnection read ascii string: {0}", new ASCIIArrayDebugLogHelper(buffer, offset, Math.Min(50, readBytes)))
+				end
+				mreturn readBytes
 			endmethod
+
+
+			public override async method WriteAsync, @Task
+				buffer, [#]byte
+				offset, int
+				count, int
+				cancellationToken, CancellationToken
+			proc
+				if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Debug)
+				begin
+					DebugLogSession.Logging.LogDebug("ProcessDynamicCallConnection write ascii string: {0}", new ASCIIArrayDebugLogHelper(buffer, offset, Math.Min(50, count)))
+				end
+
+				await mWriter.BaseStream.WriteAsync(buffer, offset, count, cancellationToken)
+				await mWriter.BaseStream.FlushAsync()
+			endmethod
+
 
 			public override property CanTimeout, boolean
 				method get
@@ -303,6 +377,10 @@ namespace Harmony.Core.Context
 				count, int 
 				endparams
 			proc
+				if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Debug)
+				begin
+					DebugLogSession.Logging.LogDebug("ProcessDynamicCallConnection write ascii string: {0}", new ASCIIArrayDebugLogHelper(buffer, offset, Math.Min(50, count)))
+				end
 				mWriter.BaseStream.Write(buffer, offset, count)
 				mWriter.BaseStream.Flush()
 			endmethod

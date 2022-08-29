@@ -1,18 +1,13 @@
-﻿using CodeGen.RepositoryAPI;
-using CommandLine;
+﻿using CommandLine;
 using HarmonyCore.CliTool.Commands;
-using HarmonyCoreGenerator.Generator;
-using Newtonsoft.Json;
+using Microsoft.Build.Locator;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
-using System.Net.Http;
+using System.Reflection;
 using System.Runtime;
 using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace HarmonyCore.CliTool
@@ -21,11 +16,19 @@ namespace HarmonyCore.CliTool
     internal class GUIOptions
     {
     }
+    [Verb("reload-bat", false)]
+    internal class ReloadBatOptions
+    {
+    }
     [Verb("upgrade-latest")]
     class UpgradeLatestOptions
     {
         [Option('p', "project")]
         public bool ProjectOnly { get; set; }
+        [Option('t', "template-url")]
+        public string OverrideTemplateUrl { get; set; }
+        [Option('v', "template-version")]
+        public string OverrideTemplateVersion { get; set; }
     }
     [Verb("rps")]
     class RpsOptions
@@ -100,13 +103,19 @@ Known structure properties:
     [Verb("regen")]
     class RegenOptions
     {
+        [Option('s',Default = null, Required = false, Separator = ',', HelpText = "Specify the list of structures, separated by a comma")]
+        public IEnumerable<string> Structures { get; set; }
+        [Option('i', Default = null, Required = false, Separator = ',', HelpText = "Specify the list of interfaces, separated by a comma")]
+        public IEnumerable<string> Interfaces { get; set; }
+        [Option('g', Default = null, Required = false, Separator = ',', HelpText = "Specify the list of generators, separated by a comma")]
+        public IEnumerable<string> Generators { get; set; }
     }
 
     [Verb("xmlgen")]
     class XMLGenOptions
     {
         [Option('s', Required = true, Separator = ',', HelpText = "Specify the list of structures, separated by a comma")]
-        public IEnumerable<string> Structures{ get; set; }
+        public IEnumerable<string> Structures { get; set; }
 
         [Option('x', Required = true, HelpText = "Specify the location of the XMLFolder to generate from.")]
         public string XMLFolder { get; set; }
@@ -159,17 +168,118 @@ Known structure properties:
         public IEnumerable<string> Items { get; set; }
     }
 
+    public class VersionTargetingInfo
+    {
+        public VersionTargetingInfo(int majorVersionTarget)
+        {
+            switch (majorVersionTarget)
+            {
+                case 3:
+                    HCBuildVersion = "3.1.463";
+                    BuildPackageVersion = "11.1.1070.3107";
+                    HCRegenRequiredVersions = new List<string>
+                    {
+                        "3.1.156"
+                    };
+                    NugetReferences = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase)
+                    {
+                        {"Harmony.Core", HCBuildVersion},
+                        {"Harmony.Core.EF", HCBuildVersion},
+                        {"Harmony.Core.OData", HCBuildVersion},
+                        {"Harmony.Core.AspNetCore", HCBuildVersion},
+                        {"Synergex.SynergyDE.synrnt", "11.1.1070"},
+                        {"Synergex.SynergyDE.Build", BuildPackageVersion},
+                        {"Microsoft.AspNetCore.Mvc.NewtonsoftJson", "3.1.6"},
+                        {"Microsoft.AspNetCore.Mvc.Testing", "3.1.6"},
+                        {"Microsoft.Extensions.DependencyInjection", "3.1.6"},
+                        {"Microsoft.Extensions.Logging.Console", "3.1.6"},
+                        {"Microsoft.AspNetCore.SignalR.Client", "3.1.6"},
+                        {"Microsoft.EntityFrameworkCore", "3.1.6"},
+                        {"IdentityServer4.AccessTokenValidation", "3.0.1"},
+                        {"Microsoft.AspNetCore.OData", "7.4.1"},
+                        {"Microsoft.OData.Core", "7.7.0"},
+                        {"Microsoft.AspNetCore.JsonPatch", "3.1.6"},
+                        {"Microsoft.VisualStudio.Threading", "16.6.13"},
+                        {"StreamJsonRpc", "2.4.48"},
+                        {"IdentityModel", "4.1.1" },
+                        {"Microsoft.OData.Edm", "7.7.0"},
+                        {"Microsoft.Spatial", "7.7.0"},
+                        {"Swashbuckle.AspNetCore", "5.5.1"},
+                        {"SSH.NET", "2016.1.0"},
+                        {"Microsoft.AspNetCore.Mvc.Versioning", "4.1.1"},
+                        {"Microsoft.AspNetCore.OData.Versioning.ApiExplorer", "4.1.1"},
+                        {"Nito.AsyncEx", "5.0.0"},
+                        {"System.Linq.Dynamic.Core", "1.1.8"},
+                        {"system.text.encoding.codepages", "4.7.1"},
+                    };
+                    TargetFramework = "netcoreapp3.1";
+                    break;
+
+                case 6:
+                    HCBuildVersion = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
+                    BuildPackageVersion = "22.8.1287";
+                    HCRegenRequiredVersions = new List<string>
+                    {
+                        "3.1.156",
+                        "3.1.999"
+                    };
+                    NugetReferences = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase)
+                    {
+                        {"Harmony.Core", HCBuildVersion},
+                        {"Harmony.Core.EF", HCBuildVersion},
+                        {"Harmony.Core.OData", HCBuildVersion},
+                        {"Harmony.Core.AspNetCore", HCBuildVersion},
+                        {"Synergex.SynergyDE.synrnt", "12.1.1.3278"},
+                        {"Synergex.SynergyDE.Build", BuildPackageVersion},
+                        {"Microsoft.AspNetCore.Mvc.NewtonsoftJson", "6.0.2"},
+                        {"Microsoft.AspNetCore.Mvc.Testing", "6.0.2"},
+                        {"Microsoft.Extensions.DependencyInjection", "6.0.0"},
+                        {"Microsoft.Extensions.Logging.Console", "6.0.0"},
+                        {"Microsoft.Extensions.Primitives", "6.0.0" },
+                        {"Microsoft.AspNetCore.SignalR.Client", "6.0.2"},
+                        {"Microsoft.EntityFrameworkCore", "6.0.3"},
+                        {"IdentityServer4.AccessTokenValidation", "3.0.1"},
+                        {"Microsoft.AspNetCore.OData", "8.0.8"},
+                        {"Microsoft.OData.Core", "7.10.0"},
+                        {"Microsoft.AspNetCore.JsonPatch", "6.0.2"},
+                        {"Microsoft.VisualStudio.Threading", "17.1.46"},
+                        {"StreamJsonRpc", "2.10.44"},
+                        {"IdentityModel", "6.0.0" },
+                        {"Microsoft.OData.Edm", "7.10.0"},
+                        {"Microsoft.Spatial", "7.10.0 "},
+                        {"Swashbuckle.AspNetCore", "6.2.3"},
+                        {"SSH.NET", "2020.0.2"},
+                        {"Nito.AsyncEx", "5.1.2"},
+                        {"System.Linq.Dynamic.Core", "1.2.18"},
+                        {"system.text.encoding.codepages", "6.0.0"},
+                        {"Microsoft.IdentityModel.Tokens", "6.16.0"},
+                        {"Newtonsoft.Json", "13.0.1"},
+                        {"System.ComponentModel.Annotations", "5.0.0" }
+                    };
+                    TargetFramework = "net6.0";
+                    RemoveNugetReferences = new List<string>
+                    {
+                        "Microsoft.AspNetCore.OData.Versioning.ApiExplorer",
+                        "Microsoft.AspNetCore.Mvc.Versioning",
+                        "Microsoft.AspNetCore.OData.Versioning",
+                        "Microsoft.AspNetCore.SignalR"
+                    };
+                    break;
+                default:
+                    throw new Exception("Invalid version specified");
+            }
+        }
+        public Dictionary<string, string> NugetReferences;
+        public string BuildPackageVersion = "11.1.1070.3107";
+        public string HCBuildVersion;
+        public string TargetFramework = "net6.0";
+        public List<string> HCRegenRequiredVersions;
+        public List<string> RemoveNugetReferences = new List<string>();
+    }
+
     class Program
     {
-        public static string BuildPackageVersion = "11.1.1070.3107";
-        public static string CodeDomProviderVersion = "1.0.7";
-        public static string HCBuildVersion = "3.1.442";
-        public static Dictionary<string, string> LatestNugetReferences;
-
-        public static List<string> HCRegenRequiredVersions = new List<string>
-        {
-            "3.1.156"
-        };
+        public static VersionTargetingInfo TargetVersion;
 
         const int STD_INPUT_HANDLE = -10;
         [DllImport("kernel32.dll", SetLastError = true)]
@@ -183,7 +293,7 @@ Known structure properties:
         {
             try
             {
-                if(System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
                     var handle = GetStdHandle(STD_INPUT_HANDLE);
                     uint currentMode = 0;
@@ -193,7 +303,7 @@ Known structure properties:
             }
             catch
             {
-                
+
             }
 
             return (IntPtr.Zero, 0);
@@ -201,7 +311,7 @@ Known structure properties:
 
         static void ResetConsoleMode(IntPtr stdout, uint consoleMode)
         {
-            if(stdout != IntPtr.Zero)
+            if (stdout != IntPtr.Zero)
             {
                 SetConsoleMode(stdout, consoleMode);
             }
@@ -211,43 +321,10 @@ Known structure properties:
         {
             var (handle, mode) = GetConsoleState();
             var versionOverride = Environment.GetEnvironmentVariable("HC_VERSION");
-            if (!string.IsNullOrWhiteSpace(versionOverride))
-            {
-                HCBuildVersion = versionOverride;
-            }
-
-            LatestNugetReferences = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase)
-            {
-                {"Harmony.Core", HCBuildVersion},
-                {"HarmonyCore.CodeDomProvider", CodeDomProviderVersion},
-                {"Harmony.Core.EF", HCBuildVersion},
-                {"Harmony.Core.OData", HCBuildVersion},
-                {"Harmony.Core.AspNetCore", HCBuildVersion},
-                {"Synergex.SynergyDE.synrnt", "11.1.1070"},
-                {"Synergex.SynergyDE.Build", BuildPackageVersion},
-                {"Microsoft.AspNetCore.Mvc.NewtonsoftJson", "3.1.26"},
-                {"Microsoft.AspNetCore.Mvc.Testing", "3.1.26"},
-                {"Microsoft.Extensions.DependencyInjection", "3.1.6"},
-                {"Microsoft.Extensions.Logging.Console", "3.1.26"},
-                {"Microsoft.AspNetCore.SignalR.Client", "3.1.26"},
-                {"Microsoft.EntityFrameworkCore", "3.1.26"},
-                {"IdentityServer4.AccessTokenValidation", "3.0.1"},
-                {"Microsoft.AspNetCore.OData", "7.4.1"},
-                {"Microsoft.OData.Core", "7.7.0"},
-                {"Microsoft.AspNetCore.JsonPatch", "3.1.26"},
-                {"Microsoft.VisualStudio.Threading", "16.6.13"},
-                {"StreamJsonRpc", "2.4.48"},
-                {"IdentityModel", "4.1.1" },
-                {"Microsoft.OData.Edm", "7.7.0"},
-                {"Microsoft.Spatial", "7.7.0"},
-                {"Swashbuckle.AspNetCore", "5.5.1"},
-                {"SSH.NET", "2020.0.2"},
-                {"Microsoft.AspNetCore.Mvc.Versioning", "4.1.1"},
-                {"Microsoft.AspNetCore.OData.Versioning.ApiExplorer", "4.1.1"},
-                {"Nito.AsyncEx", "5.0.0"},
-                {"System.Linq.Dynamic.Core", "1.1.8"},
-                {"system.text.encoding.codepages", "4.7.1"},
-            };
+            if (int.TryParse(versionOverride, out var version))
+                TargetVersion = new VersionTargetingInfo(version);
+            else
+                TargetVersion = new VersionTargetingInfo(6);
 
             var solutionDir = Environment.GetEnvironmentVariable("SolutionDir") ?? Environment.CurrentDirectory;
             Console.WriteLine("Scanning '{0}' for HarmonyCore project files", solutionDir);
@@ -264,12 +341,25 @@ Known structure properties:
                 Console.WriteLine("error while searching for project files: {0}", ex.Message);
                 return;
             }
-            var solutionInfo = new SolutionInfo(synprojFiles, solutionDir);
+
+            var instances = MSBuildLocator.QueryVisualStudioInstances().ToList();
+            var msbuildDeploymentToUse = instances.FirstOrDefault();
+
+            // Calling Register methods will subscribe to AssemblyResolve event. After this we can
+            // safely call code that use MSBuild types (in the Builder class).
+
+            Console.WriteLine($"Using MSBuild from path: {msbuildDeploymentToUse.MSBuildPath}");
+            Console.WriteLine();
+
+            if (!MSBuildLocator.IsRegistered)
+                MSBuildLocator.RegisterMSBuildPath(msbuildDeploymentToUse.MSBuildPath);
+
+            var solutionInfo = new SolutionInfo(synprojFiles, solutionDir, TargetVersion);
 
             ResetConsoleMode(handle, mode);
 
-            _ = Parser.Default.ParseArguments<UpgradeLatestOptions, CodegenListOptions, CodegenAddOptions, CodegenRemoveOptions, RpsOptions, RegenOptions, XMLGenOptions, GUIOptions>(args)
-            .MapResult<UpgradeLatestOptions, CodegenListOptions, CodegenAddOptions, CodegenRemoveOptions, RpsOptions, RegenOptions, XMLGenOptions, GUIOptions, int>(
+            _ = Parser.Default.ParseArguments<UpgradeLatestOptions, CodegenListOptions, CodegenAddOptions, CodegenRemoveOptions, RpsOptions, RegenOptions, XMLGenOptions, GUIOptions, ReloadBatOptions>(args)
+            .MapResult<UpgradeLatestOptions, CodegenListOptions, CodegenAddOptions, CodegenRemoveOptions, RpsOptions, RegenOptions, XMLGenOptions, GUIOptions, ReloadBatOptions, int>(
 
               (UpgradeLatestOptions opts) =>
               {
@@ -287,7 +377,7 @@ Known structure properties:
                   if (opts.ProjectOnly)
                       UpgradeProjects(solutionInfo);
                   else
-                      UpgradeLatest(solutionInfo).Wait();
+                      UpgradeLatest(solutionInfo, opts.OverrideTemplateVersion, opts.OverrideTemplateUrl).Wait();
                   return 0;
               },
               new CodegenCommand(solutionInfo).List,
@@ -297,6 +387,14 @@ Known structure properties:
               new RegenCommand(solutionInfo).Run,
               new XMLGenCommand().Run,
               new GUICommand(solutionInfo).Run,
+              (ReloadBatOptions opts) =>
+              {
+                  var regenPath = Path.Combine(solutionInfo.SolutionDir, "regen.bat");
+                  var regenConfigPath = Path.Combine(solutionInfo.SolutionDir, "regen_config.bat");
+                  var userTokenFile = Path.Combine(solutionInfo.SolutionDir, "UserDefinedTokens.tkn");
+                  solutionInfo.LoadFromBat(solutionInfo.SolutionDir, File.Exists(regenPath) ? regenPath : regenConfigPath, userTokenFile);
+                  return 0;
+              },
               errs =>
               {
                   foreach (var error in errs)
@@ -311,13 +409,13 @@ Known structure properties:
         {
             foreach (var project in solution.Projects)
             {
-                project.PatchKnownIssues();
-                project.PatchNugetVersions(LatestNugetReferences);
+                project.PatchKnownIssues(TargetVersion.RemoveNugetReferences);
+                project.PatchNugetVersions(TargetVersion.NugetReferences);
                 project.Save();
             }
         }
 
-        static async Task UpgradeLatest(SolutionInfo solution)
+        static async Task UpgradeLatest(SolutionInfo solution, string overrideTemplateUrl, string overrideTemplateVersion)
         {
             //download templates and traditional bridge source
             //replace templates and traditional bridge source
@@ -349,7 +447,7 @@ Known structure properties:
                 Console.WriteLine("Updating traditional bridge files in {0}", traditionalBridgeFolder);
             }
 
-            await GitHubRelease.GetAndUnpackLatest(hasTraditionalBridge, traditionalBridgeFolder, distinctTemplateFolders, solution);
+            await GitHubRelease.GetAndUnpackLatest(hasTraditionalBridge, traditionalBridgeFolder, distinctTemplateFolders, solution, overrideTemplateVersion, overrideTemplateUrl);
 
             UpgradeProjects(solution);
         }

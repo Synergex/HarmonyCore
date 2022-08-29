@@ -12,15 +12,19 @@ namespace HarmonyCore.CliTool
 {
     public class GitHubRelease
     {
-        public static async Task GetAndUnpackLatest(bool hasTraditionalBridge, string traditionalBridgeFolder, List<string> distinctTemplateFolders, SolutionInfo solution)
+        public static async Task GetAndUnpackLatest(bool hasTraditionalBridge, string traditionalBridgeFolder, List<string> distinctTemplateFolders, SolutionInfo solution,
+            string overrideVersionName = null, string overrideTargetUrl = null)
         {
             var client = new HttpClient();
             var octoClient = new Octokit.GitHubClient(new Octokit.ProductHeaderValue("Synergex"));
-            var latestRelease = await octoClient.Repository.Release.GetLatest("Synergex", "HarmonyCore");
-            var CurrentVersionTag = latestRelease.TagName;
+            var allReleases = await octoClient.Repository.Release.GetAll("Synergex", "HarmonyCore");
 
-            var targeturl = $"https://github.com/Synergex/HarmonyCore/archive/{CurrentVersionTag}.zip";
-            var sourceDistStream = await client.GetStreamAsync(targeturl);
+            var latestRelease = allReleases.OrderBy(rel => rel.PublishedAt).FirstOrDefault(rel => rel.Name?.StartsWith("net6") ?? false);
+
+            var CurrentVersionTag = overrideVersionName ?? latestRelease.TagName;
+
+            var targeturl = overrideTargetUrl ?? $"https://github.com/Synergex/HarmonyCore/archive/{CurrentVersionTag}.zip";
+            var sourceDistStream = targeturl.StartsWith("https", StringComparison.OrdinalIgnoreCase) ? await client.GetStreamAsync(targeturl) : File.OpenRead(targeturl);
             var normalizer = new Regex(@"\r\n|\n\r|\n|\r", RegexOptions.Compiled);
             using (var zip = new ZipArchive(sourceDistStream, ZipArchiveMode.Read))
             {

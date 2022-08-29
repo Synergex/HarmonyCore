@@ -25,6 +25,11 @@ namespace Harmony.Core.EF.ValueGeneration.Internal
         /// </summary>
         public override ValueGenerator Create(IProperty property)
         {
+            return Create(property, property.DeclaringEntityType);
+        }
+
+        public override ValueGenerator Create(IProperty property, IEntityType entityType)
+        {
             var type = property.ClrType.UnwrapNullableType().UnwrapEnumType();
 
             if (type == typeof(long))

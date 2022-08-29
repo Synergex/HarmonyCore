@@ -59,7 +59,6 @@ import System
 import System.Collections.Generic
 import System.Text
 import Microsoft.AspNetCore.Mvc
-import Microsoft.AspNet.OData
 import Microsoft.AspNetCore.Authorization
 import Newtonsoft.Json.Linq
 import System.Linq

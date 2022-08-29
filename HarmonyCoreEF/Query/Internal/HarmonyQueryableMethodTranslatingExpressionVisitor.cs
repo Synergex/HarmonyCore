@@ -15,6 +15,7 @@ using Harmony.Core.EF.Storage;
 using Microsoft.EntityFrameworkCore;
 using Harmony.Core.EF.Extensions.Internal;
 using Harmony.Core.FileIO.Queryable.Expressions;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace Harmony.Core.EF.Query.Internal
 {
@@ -25,30 +26,35 @@ namespace Harmony.Core.EF.Query.Internal
         private readonly HarmonyExpressionTranslatingExpressionVisitor _expressionTranslator;
         private readonly WeakEntityExpandingExpressionVisitor _weakEntityExpandingExpressionVisitor;
         private readonly HarmonyProjectionBindingExpressionVisitor _projectionBindingExpressionVisitor;
-        private readonly IModel _model;
+        private readonly QueryCompilationContext _context;
         internal readonly Dictionary<Expression, HarmonyQueryExpression> _parameterToQueryMapping;
+        private readonly bool _subquery;
+
+        public QueryCompilationContext Context => _context;
 
         public HarmonyQueryableMethodTranslatingExpressionVisitor(
             QueryableMethodTranslatingExpressionVisitorDependencies dependencies,
-            IModel model)
-            : base(dependencies, subquery: false)
+            QueryCompilationContext context)
+            : base(dependencies, context, subquery: false)
         {
+            _subquery = false;
             _parameterToQueryMapping = new Dictionary<Expression, HarmonyQueryExpression>();
             _expressionTranslator = new HarmonyExpressionTranslatingExpressionVisitor(this);
             _weakEntityExpandingExpressionVisitor = new WeakEntityExpandingExpressionVisitor(_parameterToQueryMapping, _expressionTranslator);
             _projectionBindingExpressionVisitor = new HarmonyProjectionBindingExpressionVisitor(this, _expressionTranslator);
-            _model = model;
+            _context = context;
         }
 
         protected HarmonyQueryableMethodTranslatingExpressionVisitor(
             HarmonyQueryableMethodTranslatingExpressionVisitor parentVisitor)
-            : base(parentVisitor.Dependencies, subquery: true)
+            : base(parentVisitor.Dependencies, parentVisitor._context, subquery: true)
         {
+            _subquery = true;
             _parameterToQueryMapping = new Dictionary<Expression, HarmonyQueryExpression>();
             _expressionTranslator = parentVisitor._expressionTranslator;
             _weakEntityExpandingExpressionVisitor = parentVisitor._weakEntityExpandingExpressionVisitor;
             _projectionBindingExpressionVisitor = new HarmonyProjectionBindingExpressionVisitor(this, _expressionTranslator);
-            _model = parentVisitor._model;
+            _context = parentVisitor._context;
         }
 
         protected override QueryableMethodTranslatingExpressionVisitor CreateSubqueryVisitor()
@@ -56,7 +62,11 @@ namespace Harmony.Core.EF.Query.Internal
 
         protected override ShapedQueryExpression CreateShapedQueryExpression(Type elementType)
         {
-            return CreateShapedQueryExpression(_model.FindEntityType(elementType), _parameterToQueryMapping);
+            return CreateShapedQueryExpression(_context.Model.FindEntityType(elementType), _parameterToQueryMapping);
+        }
+        protected override ShapedQueryExpression CreateShapedQueryExpression(IEntityType elementType)
+        {
+            return CreateShapedQueryExpression(elementType, _parameterToQueryMapping);
         }
 
         private static ShapedQueryExpression CreateShapedQueryExpression(IEntityType entityType, Dictionary<Expression, HarmonyQueryExpression> mapping)
@@ -83,9 +93,7 @@ namespace Harmony.Core.EF.Query.Internal
                     inMemoryQueryExpression.ServerQueryExpression,
                     predicate);
 
-            source.ShaperExpression = inMemoryQueryExpression.GetSingleScalarProjection();
-
-            return source;
+            return source.UpdateShaperExpression(inMemoryQueryExpression.GetSingleScalarProjection());
         }
 
         protected override ShapedQueryExpression TranslateAny(ShapedQueryExpression source, LambdaExpression predicate)
@@ -112,9 +120,7 @@ namespace Harmony.Core.EF.Query.Internal
                     predicate);
             }
 
-            source.ShaperExpression = inMemoryQueryExpression.GetSingleScalarProjection();
-
-            return source;
+            return source.UpdateShaperExpression(inMemoryQueryExpression.GetSingleScalarProjection());
         }
 
         protected override ShapedQueryExpression TranslateAverage(ShapedQueryExpression source, LambdaExpression selector, Type resultType)
@@ -127,9 +133,7 @@ namespace Harmony.Core.EF.Query.Internal
                 return source;
             }
 
-            source.ShaperExpression = Expression.Convert(source.ShaperExpression, resultType);
-
-            return source;
+            return source.UpdateShaperExpression(Expression.Convert(source.ShaperExpression, resultType));
         }
 
         protected override ShapedQueryExpression TranslateConcat(ShapedQueryExpression source1, ShapedQueryExpression source2)
@@ -154,9 +158,7 @@ namespace Harmony.Core.EF.Query.Internal
                             inMemoryQueryExpression.GetMappedProjection(new ProjectionMember()), inMemoryQueryExpression.CurrentParameter)),
                     item);
 
-            source.ShaperExpression = inMemoryQueryExpression.GetSingleScalarProjection();
-
-            return source;
+            return source.UpdateShaperExpression(inMemoryQueryExpression.GetSingleScalarProjection());
         }
 
         protected override ShapedQueryExpression TranslateCount(ShapedQueryExpression source, LambdaExpression predicate)
@@ -185,9 +187,7 @@ namespace Harmony.Core.EF.Query.Internal
                         predicate);
             }
 
-            source.ShaperExpression = inMemoryQueryExpression.GetSingleScalarProjection();
-
-            return source;
+            return source.UpdateShaperExpression(inMemoryQueryExpression.GetSingleScalarProjection());
         }
 
         protected override ShapedQueryExpression TranslateDefaultIfEmpty(ShapedQueryExpression source, Expression defaultValue)
@@ -195,9 +195,7 @@ namespace Harmony.Core.EF.Query.Internal
             if (defaultValue == null)
             {
                 ((HarmonyQueryExpression)source.QueryExpression).ApplyDefaultIfEmpty();
-                source.ShaperExpression = MarkShaperNullable(source.ShaperExpression);
-
-                return source;
+                return source.UpdateShaperExpression(MarkShaperNullable(source.ShaperExpression));
             }
 
             return null;
@@ -249,7 +247,7 @@ namespace Harmony.Core.EF.Query.Internal
                 }
 
                 var inMemoryQueryExpression = (HarmonyQueryExpression)source.QueryExpression;
-                source.ShaperExpression = inMemoryQueryExpression.ApplyGrouping(translatedKey, source.ShaperExpression);
+                source = source.UpdateShaperExpression(inMemoryQueryExpression.ApplyGrouping(translatedKey, source));
 
                 if (resultSelector == null)
                 {
@@ -260,15 +258,13 @@ namespace Harmony.Core.EF.Query.Internal
                 var original2 = resultSelector.Parameters[1];
 
                 var newResultSelectorBody = new ReplacingExpressionVisitor(
-                    new Dictionary<Expression, Expression>
-                    {
-                        { original1, ((GroupByShaperExpression)source.ShaperExpression).KeySelector },
-                        { original2, source.ShaperExpression }
-                    }).Visit(resultSelector.Body);
+                    new List<Expression> { original1, original2 }, 
+                    new List<Expression> { ((GroupByShaperExpression)source.ShaperExpression).KeySelector, source.ShaperExpression })
+                    .Visit(resultSelector.Body);
 
                 newResultSelectorBody = ExpandWeakEntities(inMemoryQueryExpression, newResultSelectorBody);
 
-                source.ShaperExpression = _projectionBindingExpressionVisitor.Translate(inMemoryQueryExpression, newResultSelectorBody);
+                source = source.UpdateShaperExpression(_projectionBindingExpressionVisitor.Translate(inMemoryQueryExpression, newResultSelectorBody));
 
                 inMemoryQueryExpression.PushdownIntoSubquery();
 
@@ -347,7 +343,56 @@ namespace Harmony.Core.EF.Query.Internal
             ShapedQueryExpression outer, ShapedQueryExpression inner, LambdaExpression outerKeySelector, LambdaExpression innerKeySelector,
             LambdaExpression resultSelector)
         {
-            return TranslateJoin(outer, inner, outerKeySelector, innerKeySelector, resultSelector, false);
+            outerKeySelector = TranslateLambdaExpression(outer, outerKeySelector);
+            innerKeySelector = TranslateLambdaExpression(inner, innerKeySelector);
+            if (outerKeySelector == null
+                || innerKeySelector == null)
+            {
+                return null;
+            }
+
+            (outerKeySelector, innerKeySelector) = AlignKeySelectorTypes(outerKeySelector, innerKeySelector);
+
+            ((HarmonyQueryExpression)outer.QueryExpression).AddLeftJoin(
+                (HarmonyQueryExpression)inner.QueryExpression,
+                outerKeySelector.Body,
+                innerKeySelector.Body);
+
+            INavigation innerNav = null;
+            if (resultSelector.Body is BlockExpression block &&
+                block.Expressions[0] is ConstantExpression navConstant &&
+                navConstant.Value is INavigation navValue)
+            {
+                innerNav = navValue;
+                HarmonyQueryExpression outerQueryExpression;
+                if (outer is JoinedShapedQueryExpression joinedQuery)
+                {
+                    var topOuterQueryExpression = (HarmonyQueryExpression)joinedQuery.QueryExpression;
+                    var outerSelectorBody = outerKeySelector.Body as MemberExpression;
+                    if (outerKeySelector.Parameters[0] == topOuterQueryExpression.CurrentParameter && (outerSelectorBody == null || !(outerSelectorBody.Expression is MemberExpression)))
+                    {
+                        outerQueryExpression = topOuterQueryExpression;
+                    }
+                    else
+                    {
+                        outerQueryExpression = (HarmonyQueryExpression)joinedQuery.Inner.QueryExpression;
+                    }
+                }
+                else
+                {
+                    outerQueryExpression = (HarmonyQueryExpression)outer.QueryExpression;
+                }
+                var outerTable = outerQueryExpression.FindServerExpression();
+                var innerQuery = inner.QueryExpression as HarmonyQueryExpression;
+                var innerTable = innerQuery.FindServerExpression();
+                innerTable.Name = string.IsNullOrWhiteSpace(outerTable.Name) ? navValue.Name : outerTable.Name + "." + navValue.Name;
+                //Add outerQuery.ConvertedParameter + innerNav to map to innerTable
+                var innerExpr = Expression.PropertyOrField(outerQueryExpression.ConvertedParameter, navValue.Name);
+                //this should fit into our table as an alias so we can make a mapping later on when processing the On objects
+                innerTable.Aliases.Add(innerExpr);
+            }
+            //make custom shaped Query expression to keep track of the added left join
+            return new JoinedShapedQueryExpression(outer.QueryExpression, outer.ShaperExpression, inner, false, innerNav);
         }
 
         private static (LambdaExpression OuterKeySelector, LambdaExpression InnerKeySelector)
@@ -391,11 +436,6 @@ namespace Harmony.Core.EF.Query.Internal
             ShapedQueryExpression outer, ShapedQueryExpression inner, LambdaExpression outerKeySelector, LambdaExpression innerKeySelector,
             LambdaExpression resultSelector)
         {
-            return TranslateJoin(outer, inner, outerKeySelector, innerKeySelector, resultSelector, true);
-        }
-
-        private ShapedQueryExpression TranslateJoin(ShapedQueryExpression outer, ShapedQueryExpression inner, LambdaExpression outerKeySelector, LambdaExpression innerKeySelector, LambdaExpression resultSelector, bool left)
-        {
             outerKeySelector = TranslateLambdaExpression(outer, outerKeySelector);
             innerKeySelector = TranslateLambdaExpression(inner, innerKeySelector);
             if (outerKeySelector == null
@@ -406,13 +446,13 @@ namespace Harmony.Core.EF.Query.Internal
 
             (outerKeySelector, innerKeySelector) = AlignKeySelectorTypes(outerKeySelector, innerKeySelector);
 
-            ((HarmonyQueryExpression)outer.QueryExpression).AddJoin(
+            ((HarmonyQueryExpression)outer.QueryExpression).AddLeftJoin(
                 (HarmonyQueryExpression)inner.QueryExpression,
                 outerKeySelector.Body,
                 innerKeySelector.Body);
 
             INavigation innerNav = null;
-            if (resultSelector.Body is BlockExpression block &&
+            if (resultSelector.Body is BlockExpression block && 
                 block.Expressions[0] is ConstantExpression navConstant &&
                 navConstant.Value is INavigation navValue)
             {
@@ -445,7 +485,7 @@ namespace Harmony.Core.EF.Query.Internal
                 innerTable.Aliases.Add(innerExpr);
             }
             //make custom shaped Query expression to keep track of the added left join
-            return new JoinedShapedQueryExpression(outer.QueryExpression, outer.ShaperExpression, inner, left, innerNav);
+            return new JoinedShapedQueryExpression(outer.QueryExpression, outer.ShaperExpression, inner, true, innerNav);
         }
 
         protected override ShapedQueryExpression TranslateLongCount(ShapedQueryExpression source, LambdaExpression predicate)
@@ -456,9 +496,9 @@ namespace Harmony.Core.EF.Query.Internal
             {
                 var funcType = typeof(Func<IEnumerable<DataObjectBase>, long>);//.MakeGenericType(inMemoryQueryExpression.ServerQueryExpression.Type, typeof(long));
                 var seqParameter = Expression.Parameter(typeof(IEnumerable<DataObjectBase>));//inMemoryQueryExpression.ServerQueryExpression.Type);
-                source.ShaperExpression = 
+                source = source.UpdateShaperExpression(
                     Expression.Lambda(funcType, Expression.Call(
-                        EnumerableMethods.LongCountWithoutPredicate.MakeGenericMethod(typeof(DataObjectBase)), seqParameter), seqParameter);
+                        EnumerableMethods.LongCountWithoutPredicate.MakeGenericMethod(typeof(DataObjectBase)), seqParameter), seqParameter));
                     
             }
             else
@@ -501,9 +541,7 @@ namespace Harmony.Core.EF.Query.Internal
                 var baseType = entityType.GetAllBaseTypes().SingleOrDefault(et => et.ClrType == resultType);
                 if (baseType != null)
                 {
-                    source.ShaperExpression = entityShaperExpression.WithEntityType(baseType);
-
-                    return source;
+                    return source.UpdateShaperExpression(entityShaperExpression.WithEntityType(baseType));
                 }
 
                 var derivedType = entityType.GetDerivedTypes().SingleOrDefault(et => et.ClrType == resultType);
@@ -553,9 +591,7 @@ namespace Harmony.Core.EF.Query.Internal
                             { projectionMember, entityProjection.UpdateEntityType(derivedType) }
                         });
 
-                    source.ShaperExpression = entityShaperExpression.WithEntityType(derivedType);
-
-                    return source;
+                    return source.UpdateShaperExpression(entityShaperExpression.WithEntityType(derivedType));
                 }
             }
 
@@ -599,11 +635,24 @@ namespace Harmony.Core.EF.Query.Internal
         private static bool ExtractKeySelectors(BinaryExpression expr, Expression inner, Expression outer, ref Expression innerSelector, ref Expression outerSelector)
         {
             var foundSelector = false;
-            var leftBinary = expr.Left as BinaryExpression;
-            var rightBinary = expr.Right as BinaryExpression;
+            return ExtractKeySelectors(inner, outer, ref innerSelector, ref outerSelector, ref foundSelector, expr.Left, expr.Right);
+        }
 
-            var leftMember = expr.Left as MemberExpression;
-            var rightMember = expr.Right as MemberExpression;
+        private static bool ExtractKeySelectors(Expression expr, Expression inner, Expression outer, ref Expression innerSelector, ref Expression outerSelector)
+        {
+            var foundSelector = false;
+            if (expr is BinaryExpression binaryExpression)
+                return ExtractKeySelectors(binaryExpression, inner, outer, ref innerSelector, ref outerSelector);
+            else if (expr is MethodCallExpression mCall && mCall.Method.Name == "Equals")
+                return ExtractKeySelectors(inner, outer, ref innerSelector, ref outerSelector, ref foundSelector, mCall.Arguments[0], mCall.Arguments[1]);
+            else
+                return false;
+        }
+
+        private static bool ExtractKeySelectors(Expression inner, Expression outer, ref Expression innerSelector, ref Expression outerSelector, ref bool foundSelector, Expression leftExpression, Expression rightExpression)
+        {
+            var leftMember = leftExpression as MemberExpression;
+            var rightMember = rightExpression as MemberExpression;
 
             if (leftMember != null && rightMember != null)
             {
@@ -632,15 +681,16 @@ namespace Harmony.Core.EF.Query.Internal
                     foundSelector = true;
                 }
             }
-    
-            if (leftBinary != null)
+
+            if (leftMember == null && leftExpression != null)
             {
-                foundSelector |= ExtractKeySelectors(leftBinary, inner, outer, ref innerSelector, ref outerSelector);
+                foundSelector |= ExtractKeySelectors(leftExpression, inner, outer, ref innerSelector, ref outerSelector);
             }
-            if (rightBinary != null)
+            if (rightMember == null && rightExpression != null)
             {
-                foundSelector |= ExtractKeySelectors(rightBinary, inner, outer, ref innerSelector, ref outerSelector);
+                foundSelector |= ExtractKeySelectors(leftExpression, inner, outer, ref innerSelector, ref outerSelector);
             }
+
             return foundSelector;
         }
 
@@ -648,13 +698,7 @@ namespace Harmony.Core.EF.Query.Internal
         {
             innerSelector = null;
             outerSelector = null;
-            var binaryExpr = expr.Body as BinaryExpression;
-            if (binaryExpr != null)
-            {
-                return ExtractKeySelectors(binaryExpr, inner, outer, ref innerSelector, ref outerSelector);
-            }
-            else
-                return false;
+            return ExtractKeySelectors(expr.Body, inner, outer, ref innerSelector, ref outerSelector);
         }
 
         protected override ShapedQueryExpression TranslateSelect(ShapedQueryExpression source, LambdaExpression selector)
@@ -673,7 +717,9 @@ namespace Harmony.Core.EF.Query.Internal
             var referencedFieldDefs = new List<FieldDataDefinition>();
             
             var subqueryVisitor = new SubqueryReplacingExpressionVisitor() { CurrentVisitor = this, ReplacementSource = source, ReplacementVisitor = replacementVisitor, Outer = selector.Parameters.First()};
-            source.ShaperExpression = subqueryVisitor.Visit(selector);
+            
+            var newResultSelectorBody = subqueryVisitor.Visit(selector);
+            source = source.UpdateShaperExpression(newResultSelectorBody);
 
             var groupByQuery = source.ShaperExpression is GroupByShaperExpression;
             var queryExpression = (HarmonyQueryExpression)source.QueryExpression;
@@ -727,7 +773,7 @@ namespace Harmony.Core.EF.Query.Internal
                     {
                         outerSelector = ReplacingExpressionVisitor.Replace(outerOverride, queryExpr.ConvertedParameter, outerSelector);
                     }
-                    queryExpr.AddJoin(subQueryExpr, outerSelector, innerSelector);
+                    queryExpr.AddLeftJoin(subQueryExpr, outerSelector, innerSelector);
                     //this expression was really a join expression, dont treat it like a where
                     subQueryTable.WhereExpressions.RemoveAt(i);
                     i--;
@@ -746,6 +792,483 @@ namespace Harmony.Core.EF.Query.Internal
 
             return subquery;
         }
+
+        //protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
+        //{
+        //    MethodCallExpression methodCallExpression2 = methodCallExpression;
+        //   // Microsoft.EntityFrameworkCore.Utilities.Check.NotNull(methodCallExpression2, "methodCallExpression");
+        //    MethodInfo method = methodCallExpression2.Method;
+        //    if (method.DeclaringType == typeof(Queryable) || method.DeclaringType == typeof(QueryableExtensions))
+        //    {
+        //        Expression expression = Visit(methodCallExpression2.Arguments[0]);
+        //        ShapedQueryExpression shapedQueryExpression = expression as ShapedQueryExpression;
+        //        if (shapedQueryExpression != null)
+        //        {
+        //            MethodInfo left = method.IsGenericMethod ? method.GetGenericMethodDefinition() : null;
+        //            switch (method.Name)
+        //            {
+        //                case "All":
+        //                    if (left == QueryableMethods.All)
+        //                    {
+        //                        shapedQueryExpression = shapedQueryExpression.UpdateResultCardinality(ResultCardinality.Single);
+        //                        return CheckTranslated(TranslateAll(shapedQueryExpression, GetLambdaExpressionFromArgument(1)));
+        //                    }
+
+        //                    break;
+        //                case "Any":
+        //                    if (left == QueryableMethods.AnyWithoutPredicate)
+        //                    {
+        //                        shapedQueryExpression = shapedQueryExpression.UpdateResultCardinality(ResultCardinality.Single);
+        //                        return CheckTranslated(TranslateAny(shapedQueryExpression, null));
+        //                    }
+
+        //                    if (left == QueryableMethods.AnyWithPredicate)
+        //                    {
+        //                        shapedQueryExpression = shapedQueryExpression.UpdateResultCardinality(ResultCardinality.Single);
+        //                        return CheckTranslated(TranslateAny(shapedQueryExpression, GetLambdaExpressionFromArgument(1)));
+        //                    }
+
+        //                    break;
+        //                case "AsQueryable":
+        //                    if (left == QueryableMethods.AsQueryable)
+        //                    {
+        //                        return expression;
+        //                    }
+
+        //                    break;
+        //                case "Average":
+        //                    if (QueryableMethods.IsAverageWithoutSelector(method))
+        //                    {
+        //                        shapedQueryExpression = shapedQueryExpression.UpdateResultCardinality(ResultCardinality.Single);
+        //                        return CheckTranslated(TranslateAverage(shapedQueryExpression, null, methodCallExpression2.Type));
+        //                    }
+
+        //                    if (QueryableMethods.IsAverageWithSelector(method))
+        //                    {
+        //                        shapedQueryExpression = shapedQueryExpression.UpdateResultCardinality(ResultCardinality.Single);
+        //                        return CheckTranslated(TranslateAverage(shapedQueryExpression, GetLambdaExpressionFromArgument(1), methodCallExpression2.Type));
+        //                    }
+
+        //                    break;
+        //                case "Cast":
+        //                    if (left == QueryableMethods.Cast)
+        //                    {
+        //                        return CheckTranslated(TranslateCast(shapedQueryExpression, method.GetGenericArguments()[0]));
+        //                    }
+
+        //                    break;
+        //                case "Concat":
+        //                    if (left == QueryableMethods.Concat)
+        //                    {
+        //                        ShapedQueryExpression shapedQueryExpression5 = Visit(methodCallExpression2.Arguments[1]) as ShapedQueryExpression;
+        //                        if (shapedQueryExpression5 != null)
+        //                        {
+        //                            return CheckTranslated(TranslateConcat(shapedQueryExpression, shapedQueryExpression5));
+        //                        }
+        //                    }
+
+        //                    break;
+        //                case "Contains":
+        //                    if (left == QueryableMethods.Contains)
+        //                    {
+        //                        shapedQueryExpression = shapedQueryExpression.UpdateResultCardinality(ResultCardinality.Single);
+        //                        return CheckTranslated(TranslateContains(shapedQueryExpression, methodCallExpression2.Arguments[1]));
+        //                    }
+
+        //                    break;
+        //                case "Count":
+        //                    if (left == QueryableMethods.CountWithoutPredicate)
+        //                    {
+        //                        shapedQueryExpression = shapedQueryExpression.UpdateResultCardinality(ResultCardinality.Single);
+        //                        return CheckTranslated(TranslateCount(shapedQueryExpression, null));
+        //                    }
+
+        //                    if (left == QueryableMethods.CountWithPredicate)
+        //                    {
+        //                        shapedQueryExpression = shapedQueryExpression.UpdateResultCardinality(ResultCardinality.Single);
+        //                        return CheckTranslated(TranslateCount(shapedQueryExpression, GetLambdaExpressionFromArgument(1)));
+        //                    }
+
+        //                    break;
+        //                case "DefaultIfEmpty":
+        //                    if (left == QueryableMethods.DefaultIfEmptyWithoutArgument)
+        //                    {
+        //                        return CheckTranslated(TranslateDefaultIfEmpty(shapedQueryExpression, null));
+        //                    }
+
+        //                    if (left == QueryableMethods.DefaultIfEmptyWithArgument)
+        //                    {
+        //                        return CheckTranslated(TranslateDefaultIfEmpty(shapedQueryExpression, methodCallExpression2.Arguments[1]));
+        //                    }
+
+        //                    break;
+        //                case "Distinct":
+        //                    if (left == QueryableMethods.Distinct)
+        //                    {
+        //                        return CheckTranslated(TranslateDistinct(shapedQueryExpression));
+        //                    }
+
+        //                    break;
+        //                case "ElementAt":
+        //                    if (left == QueryableMethods.ElementAt)
+        //                    {
+        //                        shapedQueryExpression = shapedQueryExpression.UpdateResultCardinality(ResultCardinality.Single);
+        //                        return CheckTranslated(TranslateElementAtOrDefault(shapedQueryExpression, methodCallExpression2.Arguments[1], returnDefault: false));
+        //                    }
+
+        //                    break;
+        //                case "ElementAtOrDefault":
+        //                    if (left == QueryableMethods.ElementAtOrDefault)
+        //                    {
+        //                        shapedQueryExpression = shapedQueryExpression.UpdateResultCardinality(ResultCardinality.SingleOrDefault);
+        //                        return CheckTranslated(TranslateElementAtOrDefault(shapedQueryExpression, methodCallExpression2.Arguments[1], returnDefault: true));
+        //                    }
+
+        //                    break;
+        //                case "Except":
+        //                    if (left == QueryableMethods.Except)
+        //                    {
+        //                        ShapedQueryExpression shapedQueryExpression6 = Visit(methodCallExpression2.Arguments[1]) as ShapedQueryExpression;
+        //                        if (shapedQueryExpression6 != null)
+        //                        {
+        //                            return CheckTranslated(TranslateExcept(shapedQueryExpression, shapedQueryExpression6));
+        //                        }
+        //                    }
+
+        //                    break;
+        //                case "First":
+        //                    if (left == QueryableMethods.FirstWithoutPredicate)
+        //                    {
+        //                        shapedQueryExpression = shapedQueryExpression.UpdateResultCardinality(ResultCardinality.Single);
+        //                        return CheckTranslated(TranslateFirstOrDefault(shapedQueryExpression, null, methodCallExpression2.Type, returnDefault: false));
+        //                    }
+
+        //                    if (left == QueryableMethods.FirstWithPredicate)
+        //                    {
+        //                        shapedQueryExpression = shapedQueryExpression.UpdateResultCardinality(ResultCardinality.Single);
+        //                        return CheckTranslated(TranslateFirstOrDefault(shapedQueryExpression, GetLambdaExpressionFromArgument(1), methodCallExpression2.Type, returnDefault: false));
+        //                    }
+
+        //                    break;
+        //                case "FirstOrDefault":
+        //                    if (left == QueryableMethods.FirstOrDefaultWithoutPredicate)
+        //                    {
+        //                        shapedQueryExpression = shapedQueryExpression.UpdateResultCardinality(ResultCardinality.SingleOrDefault);
+        //                        return CheckTranslated(TranslateFirstOrDefault(shapedQueryExpression, null, methodCallExpression2.Type, returnDefault: true));
+        //                    }
+
+        //                    if (left == QueryableMethods.FirstOrDefaultWithPredicate)
+        //                    {
+        //                        shapedQueryExpression = shapedQueryExpression.UpdateResultCardinality(ResultCardinality.SingleOrDefault);
+        //                        return CheckTranslated(TranslateFirstOrDefault(shapedQueryExpression, GetLambdaExpressionFromArgument(1), methodCallExpression2.Type, returnDefault: true));
+        //                    }
+
+        //                    break;
+        //                case "GroupBy":
+        //                    if (left == QueryableMethods.GroupByWithKeySelector)
+        //                    {
+        //                        return CheckTranslated(TranslateGroupBy(shapedQueryExpression, GetLambdaExpressionFromArgument(1), null, null));
+        //                    }
+
+        //                    if (left == QueryableMethods.GroupByWithKeyElementSelector)
+        //                    {
+        //                        return CheckTranslated(TranslateGroupBy(shapedQueryExpression, GetLambdaExpressionFromArgument(1), GetLambdaExpressionFromArgument(2), null));
+        //                    }
+
+        //                    if (left == QueryableMethods.GroupByWithKeyElementResultSelector)
+        //                    {
+        //                        return CheckTranslated(TranslateGroupBy(shapedQueryExpression, GetLambdaExpressionFromArgument(1), GetLambdaExpressionFromArgument(2), GetLambdaExpressionFromArgument(3)));
+        //                    }
+
+        //                    if (left == QueryableMethods.GroupByWithKeyResultSelector)
+        //                    {
+        //                        return CheckTranslated(TranslateGroupBy(shapedQueryExpression, GetLambdaExpressionFromArgument(1), null, GetLambdaExpressionFromArgument(2)));
+        //                    }
+
+        //                    break;
+        //                case "GroupJoin":
+        //                    if (left == QueryableMethods.GroupJoin)
+        //                    {
+        //                        ShapedQueryExpression shapedQueryExpression4 = Visit(methodCallExpression2.Arguments[1]) as ShapedQueryExpression;
+        //                        if (shapedQueryExpression4 != null)
+        //                        {
+        //                            return CheckTranslated(TranslateGroupJoin(shapedQueryExpression, shapedQueryExpression4, GetLambdaExpressionFromArgument(2), GetLambdaExpressionFromArgument(3), GetLambdaExpressionFromArgument(4)));
+        //                        }
+        //                    }
+
+        //                    break;
+        //                case "Intersect":
+        //                    if (left == QueryableMethods.Intersect)
+        //                    {
+        //                        ShapedQueryExpression shapedQueryExpression3 = Visit(methodCallExpression2.Arguments[1]) as ShapedQueryExpression;
+        //                        if (shapedQueryExpression3 != null)
+        //                        {
+        //                            return CheckTranslated(TranslateIntersect(shapedQueryExpression, shapedQueryExpression3));
+        //                        }
+        //                    }
+
+        //                    break;
+        //                case "Join":
+        //                    if (left == QueryableMethods.Join)
+        //                    {
+        //                        ShapedQueryExpression shapedQueryExpression8 = Visit(methodCallExpression2.Arguments[1]) as ShapedQueryExpression;
+        //                        if (shapedQueryExpression8 != null)
+        //                        {
+        //                            return CheckTranslated(TranslateJoin(shapedQueryExpression, shapedQueryExpression8, GetLambdaExpressionFromArgument(2), GetLambdaExpressionFromArgument(3), GetLambdaExpressionFromArgument(4)));
+        //                        }
+        //                    }
+
+        //                    break;
+        //                //case "LeftJoin":
+        //                //    if (left == QueryableExtensions.LeftJoinMethodInfo)
+        //                //    {
+        //                //        ShapedQueryExpression shapedQueryExpression7 = Visit(methodCallExpression2.Arguments[1]) as ShapedQueryExpression;
+        //                //        if (shapedQueryExpression7 != null)
+        //                //        {
+        //                //            return CheckTranslated(TranslateLeftJoin(shapedQueryExpression, shapedQueryExpression7, GetLambdaExpressionFromArgument(2), GetLambdaExpressionFromArgument(3), GetLambdaExpressionFromArgument(4)));
+        //                //        }
+        //                //    }
+
+        //                //    break;
+        //                case "Last":
+        //                    if (left == QueryableMethods.LastWithoutPredicate)
+        //                    {
+        //                        shapedQueryExpression = shapedQueryExpression.UpdateResultCardinality(ResultCardinality.Single);
+        //                        return CheckTranslated(TranslateLastOrDefault(shapedQueryExpression, null, methodCallExpression2.Type, returnDefault: false));
+        //                    }
+
+        //                    if (left == QueryableMethods.LastWithPredicate)
+        //                    {
+        //                        shapedQueryExpression = shapedQueryExpression.UpdateResultCardinality(ResultCardinality.Single);
+        //                        return CheckTranslated(TranslateLastOrDefault(shapedQueryExpression, GetLambdaExpressionFromArgument(1), methodCallExpression2.Type, returnDefault: false));
+        //                    }
+
+        //                    break;
+        //                case "LastOrDefault":
+        //                    if (left == QueryableMethods.LastOrDefaultWithoutPredicate)
+        //                    {
+        //                        shapedQueryExpression = shapedQueryExpression.UpdateResultCardinality(ResultCardinality.SingleOrDefault);
+        //                        return CheckTranslated(TranslateLastOrDefault(shapedQueryExpression, null, methodCallExpression2.Type, returnDefault: true));
+        //                    }
+
+        //                    if (left == QueryableMethods.LastOrDefaultWithPredicate)
+        //                    {
+        //                        shapedQueryExpression = shapedQueryExpression.UpdateResultCardinality(ResultCardinality.SingleOrDefault);
+        //                        return CheckTranslated(TranslateLastOrDefault(shapedQueryExpression, GetLambdaExpressionFromArgument(1), methodCallExpression2.Type, returnDefault: true));
+        //                    }
+
+        //                    break;
+        //                case "LongCount":
+        //                    if (left == QueryableMethods.LongCountWithoutPredicate)
+        //                    {
+        //                        shapedQueryExpression = shapedQueryExpression.UpdateResultCardinality(ResultCardinality.Single);
+        //                        return CheckTranslated(TranslateLongCount(shapedQueryExpression, null));
+        //                    }
+
+        //                    if (left == QueryableMethods.LongCountWithPredicate)
+        //                    {
+        //                        shapedQueryExpression = shapedQueryExpression.UpdateResultCardinality(ResultCardinality.Single);
+        //                        return CheckTranslated(TranslateLongCount(shapedQueryExpression, GetLambdaExpressionFromArgument(1)));
+        //                    }
+
+        //                    break;
+        //                case "Max":
+        //                    if (left == QueryableMethods.MaxWithoutSelector)
+        //                    {
+        //                        shapedQueryExpression = shapedQueryExpression.UpdateResultCardinality(ResultCardinality.Single);
+        //                        return CheckTranslated(TranslateMax(shapedQueryExpression, null, methodCallExpression2.Type));
+        //                    }
+
+        //                    if (left == QueryableMethods.MaxWithSelector)
+        //                    {
+        //                        shapedQueryExpression = shapedQueryExpression.UpdateResultCardinality(ResultCardinality.Single);
+        //                        return CheckTranslated(TranslateMax(shapedQueryExpression, GetLambdaExpressionFromArgument(1), methodCallExpression2.Type));
+        //                    }
+
+        //                    break;
+        //                case "Min":
+        //                    if (left == QueryableMethods.MinWithoutSelector)
+        //                    {
+        //                        shapedQueryExpression = shapedQueryExpression.UpdateResultCardinality(ResultCardinality.Single);
+        //                        return CheckTranslated(TranslateMin(shapedQueryExpression, null, methodCallExpression2.Type));
+        //                    }
+
+        //                    if (left == QueryableMethods.MinWithSelector)
+        //                    {
+        //                        shapedQueryExpression = shapedQueryExpression.UpdateResultCardinality(ResultCardinality.Single);
+        //                        return CheckTranslated(TranslateMin(shapedQueryExpression, GetLambdaExpressionFromArgument(1), methodCallExpression2.Type));
+        //                    }
+
+        //                    break;
+        //                case "OfType":
+        //                    if (left == QueryableMethods.OfType)
+        //                    {
+        //                        return CheckTranslated(TranslateOfType(shapedQueryExpression, method.GetGenericArguments()[0]));
+        //                    }
+
+        //                    break;
+        //                case "OrderBy":
+        //                    if (left == QueryableMethods.OrderBy)
+        //                    {
+        //                        return CheckTranslated(TranslateOrderBy(shapedQueryExpression, GetLambdaExpressionFromArgument(1), ascending: true));
+        //                    }
+
+        //                    break;
+        //                case "OrderByDescending":
+        //                    if (left == QueryableMethods.OrderByDescending)
+        //                    {
+        //                        return CheckTranslated(TranslateOrderBy(shapedQueryExpression, GetLambdaExpressionFromArgument(1), ascending: false));
+        //                    }
+
+        //                    break;
+        //                case "Reverse":
+        //                    if (left == QueryableMethods.Reverse)
+        //                    {
+        //                        return CheckTranslated(TranslateReverse(shapedQueryExpression));
+        //                    }
+
+        //                    break;
+        //                case "Select":
+        //                    if (left == QueryableMethods.Select)
+        //                    {
+        //                        return CheckTranslated(TranslateSelect(shapedQueryExpression, GetLambdaExpressionFromArgument(1)));
+        //                    }
+
+        //                    break;
+        //                case "SelectMany":
+        //                    if (left == QueryableMethods.SelectManyWithoutCollectionSelector)
+        //                    {
+        //                        return CheckTranslated(TranslateSelectMany(shapedQueryExpression, GetLambdaExpressionFromArgument(1)));
+        //                    }
+
+        //                    if (left == QueryableMethods.SelectManyWithCollectionSelector)
+        //                    {
+        //                        return CheckTranslated(TranslateSelectMany(shapedQueryExpression, GetLambdaExpressionFromArgument(1), GetLambdaExpressionFromArgument(2)));
+        //                    }
+
+        //                    break;
+        //                case "Single":
+        //                    if (left == QueryableMethods.SingleWithoutPredicate)
+        //                    {
+        //                        shapedQueryExpression = shapedQueryExpression.UpdateResultCardinality(ResultCardinality.Single);
+        //                        return CheckTranslated(TranslateSingleOrDefault(shapedQueryExpression, null, methodCallExpression2.Type, returnDefault: false));
+        //                    }
+
+        //                    if (left == QueryableMethods.SingleWithPredicate)
+        //                    {
+        //                        shapedQueryExpression = shapedQueryExpression.UpdateResultCardinality(ResultCardinality.Single);
+        //                        return CheckTranslated(TranslateSingleOrDefault(shapedQueryExpression, GetLambdaExpressionFromArgument(1), methodCallExpression2.Type, returnDefault: false));
+        //                    }
+
+        //                    break;
+        //                case "SingleOrDefault":
+        //                    if (left == QueryableMethods.SingleOrDefaultWithoutPredicate)
+        //                    {
+        //                        shapedQueryExpression = shapedQueryExpression.UpdateResultCardinality(ResultCardinality.SingleOrDefault);
+        //                        return CheckTranslated(TranslateSingleOrDefault(shapedQueryExpression, null, methodCallExpression2.Type, returnDefault: true));
+        //                    }
+
+        //                    if (left == QueryableMethods.SingleOrDefaultWithPredicate)
+        //                    {
+        //                        shapedQueryExpression = shapedQueryExpression.UpdateResultCardinality(ResultCardinality.SingleOrDefault);
+        //                        return CheckTranslated(TranslateSingleOrDefault(shapedQueryExpression, GetLambdaExpressionFromArgument(1), methodCallExpression2.Type, returnDefault: true));
+        //                    }
+
+        //                    break;
+        //                case "Skip":
+        //                    if (left == QueryableMethods.Skip)
+        //                    {
+        //                        return CheckTranslated(TranslateSkip(shapedQueryExpression, methodCallExpression2.Arguments[1]));
+        //                    }
+
+        //                    break;
+        //                case "SkipWhile":
+        //                    if (left == QueryableMethods.SkipWhile)
+        //                    {
+        //                        return CheckTranslated(TranslateSkipWhile(shapedQueryExpression, GetLambdaExpressionFromArgument(1)));
+        //                    }
+
+        //                    break;
+        //                case "Sum":
+        //                    if (QueryableMethods.IsSumWithoutSelector(method))
+        //                    {
+        //                        shapedQueryExpression = shapedQueryExpression.UpdateResultCardinality(ResultCardinality.Single);
+        //                        return CheckTranslated(TranslateSum(shapedQueryExpression, null, methodCallExpression2.Type));
+        //                    }
+
+        //                    if (QueryableMethods.IsSumWithSelector(method))
+        //                    {
+        //                        shapedQueryExpression = shapedQueryExpression.UpdateResultCardinality(ResultCardinality.Single);
+        //                        return CheckTranslated(TranslateSum(shapedQueryExpression, GetLambdaExpressionFromArgument(1), methodCallExpression2.Type));
+        //                    }
+
+        //                    break;
+        //                case "Take":
+        //                    if (left == QueryableMethods.Take)
+        //                    {
+        //                        return CheckTranslated(TranslateTake(shapedQueryExpression, methodCallExpression2.Arguments[1]));
+        //                    }
+
+        //                    break;
+        //                case "TakeWhile":
+        //                    if (left == QueryableMethods.TakeWhile)
+        //                    {
+        //                        return CheckTranslated(TranslateTakeWhile(shapedQueryExpression, GetLambdaExpressionFromArgument(1)));
+        //                    }
+
+        //                    break;
+        //                case "ThenBy":
+        //                    if (left == QueryableMethods.ThenBy)
+        //                    {
+        //                        return CheckTranslated(TranslateThenBy(shapedQueryExpression, GetLambdaExpressionFromArgument(1), ascending: true));
+        //                    }
+
+        //                    break;
+        //                case "ThenByDescending":
+        //                    if (left == QueryableMethods.ThenByDescending)
+        //                    {
+        //                        return CheckTranslated(TranslateThenBy(shapedQueryExpression, GetLambdaExpressionFromArgument(1), ascending: false));
+        //                    }
+
+        //                    break;
+        //                case "Union":
+        //                    if (left == QueryableMethods.Union)
+        //                    {
+        //                        ShapedQueryExpression shapedQueryExpression2 = Visit(methodCallExpression2.Arguments[1]) as ShapedQueryExpression;
+        //                        if (shapedQueryExpression2 != null)
+        //                        {
+        //                            return CheckTranslated(TranslateUnion(shapedQueryExpression, shapedQueryExpression2));
+        //                        }
+        //                    }
+
+        //                    break;
+        //                case "Where":
+        //                    if (left == QueryableMethods.Where)
+        //                    {
+        //                        return CheckTranslated(TranslateWhere(shapedQueryExpression, GetLambdaExpressionFromArgument(1)));
+        //                    }
+
+        //                    break;
+        //            }
+        //        }
+        //    }
+
+        //    if (!_subquery)
+        //    {
+        //        throw new InvalidOperationException(CoreStrings.TranslationFailed(methodCallExpression2.Print()));
+        //    }
+
+        //    return Microsoft.EntityFrameworkCore.Query.QueryCompilationContext.NotTranslatedExpression;
+        //    ShapedQueryExpression CheckTranslated(ShapedQueryExpression? translated)
+        //    {
+        //        return translated ?? throw new InvalidOperationException((TranslationErrorDetails == null) ? CoreStrings.TranslationFailed(methodCallExpression2.Print()) : CoreStrings.TranslationFailedWithDetails(methodCallExpression2.Print(), TranslationErrorDetails));
+        //    }
+
+        //    LambdaExpression GetLambdaExpressionFromArgument(int argumentIndex)
+        //    {
+        //        return methodCallExpression2.Arguments[argumentIndex].UnwrapLambdaFromQuote();
+        //    }
+        //}
 
         public override ShapedQueryExpression TranslateSubquery(Expression expression)
             => CreateSubqueryVisitor().Visit(expression) as ShapedQueryExpression;
@@ -1144,7 +1667,7 @@ namespace Harmony.Core.EF.Query.Internal
 
             protected override Expression VisitConstant(ConstantExpression node)
             {
-                if (node.Type.IsGenericType && node.Type.GetGenericTypeDefinition() == typeof(Nullable<>))
+                if (node.Type.IsGenericType && node.Type.GetGenericTypeDefinition() == typeof(Nullable<>) && node.Value != null)
                 {
                     return Expression.Constant(node.Value, node.Type.GetGenericArguments()[0]);
                 }
@@ -1157,6 +1680,17 @@ namespace Harmony.Core.EF.Query.Internal
                 var testExpression = node.Test as BinaryExpression; 
                 switch (node.Test.NodeType)
                 {
+                    case ExpressionType.OrElse:
+                        {
+                            if (testExpression.Right is ConstantExpression rightConst && (rightConst.Value as Nullable<bool>) == false)
+                            {
+                                if(testExpression.Left is BinaryExpression leftBinary && leftBinary.Right is ConstantExpression downLeftConst && downLeftConst.Value == null)
+                                {
+                                    return Visit(node.IfFalse);
+                                }
+                            }
+                            break;
+                        }
                     case ExpressionType.Equal:
                         {
                             if (testExpression.Left is ConstantExpression leftConst && leftConst.Value == null)
@@ -1422,10 +1956,13 @@ namespace Harmony.Core.EF.Query.Internal
             private Expression TryExpand(Expression source, MemberIdentity member)
             {
                 source = source.UnwrapTypeConversion(out var convertedType);
-                if (!(source is EntityShaperExpression entityShaperExpression))
-                {
+                var entityShaperExpression = source as EntityShaperExpression;
+                if (entityShaperExpression == null && convertedType != null)
+                    entityShaperExpression = new EntityShaperExpression(_expressionTranslator.Context.Model.FindEntityType(convertedType), source, false);
+
+
+                if (entityShaperExpression == null)
                     return null;
-                }
 
                 var entityType = entityShaperExpression.EntityType;
                 if (convertedType != null)
@@ -1467,12 +2004,12 @@ namespace Harmony.Core.EF.Query.Internal
                         .Select(p => p.ClrType)
                         .Any(t => t.IsNullableType());
 
-                    var outerKey = entityShaperExpression.CreateKeyAccessExpression(
+                    var outerKey = entityShaperExpression.CreateKeyValuesExpression(
                         navigation.IsDependentToPrincipal()
                             ? foreignKey.Properties
                             : foreignKey.PrincipalKey.Properties,
                         makeNullable);
-                    var innerKey = innerShapedQuery.ShaperExpression.CreateKeyAccessExpression(
+                    var innerKey = innerShapedQuery.ShaperExpression.CreateKeyValuesExpression(
                         navigation.IsDependentToPrincipal()
                             ? foreignKey.PrincipalKey.Properties
                             : foreignKey.Properties,
@@ -1514,12 +2051,12 @@ namespace Harmony.Core.EF.Query.Internal
                         .Select(p => p.ClrType)
                         .Any(t => t.IsNullableType());
 
-                    var outerKey = entityShaperExpression.CreateKeyAccessExpression(
+                    var outerKey = entityShaperExpression.CreateKeyValuesExpression(
                         navigation.IsDependentToPrincipal()
                             ? foreignKey.Properties
                             : foreignKey.PrincipalKey.Properties,
                         makeNullable);
-                    var innerKey = innerShapedQuery.ShaperExpression.CreateKeyAccessExpression(
+                    var innerKey = innerShapedQuery.ShaperExpression.CreateKeyValuesExpression(
                         navigation.IsDependentToPrincipal()
                             ? foreignKey.PrincipalKey.Properties
                             : foreignKey.Properties,
@@ -1565,9 +2102,7 @@ namespace Harmony.Core.EF.Query.Internal
                     inMemoryQueryExpression.ServerQueryExpression,
                     selector);
 
-            source.ShaperExpression = inMemoryQueryExpression.GetSingleScalarProjection();
-
-            return source;
+            return source.UpdateShaperExpression(inMemoryQueryExpression.GetSingleScalarProjection());
 
             MethodInfo GetMethod()
                 => methodName switch
@@ -1603,7 +2138,7 @@ namespace Harmony.Core.EF.Query.Internal
 
             if (!(source.ShaperExpression is LambdaExpression) && source.ShaperExpression.Type != returnType)
             {
-                source.ShaperExpression = Expression.Convert(source.ShaperExpression, returnType);
+                return source.UpdateShaperExpression(Expression.Convert(source.ShaperExpression, returnType));
             }
 
             return source;
@@ -1693,7 +2228,7 @@ namespace Harmony.Core.EF.Query.Internal
                 var subQueryTable = ((HarmonyQueryExpression)CurrentVisitor.LiftSubquery(queryExpr, cleanSubQuery, ReplacementVisitor).QueryExpression).FindServerExpression();
 
                 subQueryTable.Name = matColExpr.Navigation.PropertyInfo.Name;
-                subQueryTable.IsCollection = matColExpr.Navigation.IsCollection();
+                subQueryTable.IsCollection = matColExpr.Navigation.IsCollection;
                 return Expression.PropertyOrField(CurrentParameter, matColExpr.Navigation.PropertyInfo.Name);
             }
 
@@ -1720,7 +2255,7 @@ namespace Harmony.Core.EF.Query.Internal
                                     var innerExpr = joinSource.Inner.QueryExpression as HarmonyQueryExpression;
                                     var innerTableExpression = queryExpr.RootExpressions[innerExpr.CurrentParameter];
                                     innerTableExpression.Name = includeExpression.Navigation.PropertyInfo.Name;
-                                    innerTableExpression.IsCollection = includeExpression.Navigation.IsCollection();
+                                    innerTableExpression.IsCollection = includeExpression.Navigation.IsCollection;
                                 }
                             }
 
@@ -1759,7 +2294,7 @@ namespace Harmony.Core.EF.Query.Internal
                 {
                     if (memberType != null && !memberType.IsValueType)
                     {
-                        return MakeNullSafeExpression(Visit(node.Expression), memberInfo.Name, false);
+                        return MakeNullSafeExpression(Visit(node.Expression), memberInfo.Name, false).Item1;
                     }
                 }
 
@@ -1802,16 +2337,17 @@ namespace Harmony.Core.EF.Query.Internal
                 return (memberInfo, memberType);
             }
 
-            private Expression MakeNullSafeExpression(Expression baseExpression, string propOrFieldName, bool nullable)
+            private (Expression, MemberExpression) MakeNullSafeExpression(Expression baseExpression, string propOrFieldName, bool nullable)
             {
-                var target = Expression.PropertyOrField(baseExpression, propOrFieldName) as Expression;
+                var typedTarget = Expression.PropertyOrField(baseExpression, propOrFieldName);
+                var target = typedTarget as Expression;
                 var nullableType = target.Type.IsValueType ? typeof(Nullable<>).MakeGenericType(target.Type) : null;
                 if (baseExpression.Type.IsValueType)
-                    return nullable ? Expression.Convert(target, nullableType) : target;
+                    return (nullable ? Expression.Convert(target, nullableType) : target, typedTarget);
                 else if(!nullable || nullableType == null)
-                    return Expression.Condition(Expression.Equal(Expression.Constant(null), baseExpression), Expression.Default(target.Type), target, target.Type);
+                    return (Expression.Condition(Expression.Equal(Expression.Constant(null), baseExpression), Expression.Default(target.Type), target, target.Type), typedTarget);
                 else
-                    return Expression.Condition(Expression.Equal(Expression.Constant(null), baseExpression), Expression.Constant(null, nullableType), Expression.Convert(target, nullableType), nullableType);
+                    return (Expression.Condition(Expression.Equal(Expression.Constant(null), baseExpression), Expression.Constant(null, nullableType), Expression.Convert(target, nullableType), nullableType), typedTarget);
             }
 
             protected override Expression VisitUnary(UnaryExpression node)
@@ -1824,7 +2360,7 @@ namespace Harmony.Core.EF.Query.Internal
                     {
                         if (memberInfo != null)
                         {
-                            return MakeNullSafeExpression(Visit(memberExpr.Expression), memberInfo.Name, true);
+                            return MakeNullSafeExpression(Visit(memberExpr.Expression), memberInfo.Name, true).Item1;
                         }
                     }
                 }
@@ -1840,7 +2376,10 @@ namespace Harmony.Core.EF.Query.Internal
                         throw new NotImplementedException("EF Property call has an invalid 2nd argument, check debug tree");
 
                     var targetArgs = Visit(methodCall.Arguments[0]);
-                    return MakeNullSafeExpression(targetArgs, propTarget, true);
+                    var (result, memberExpression) = MakeNullSafeExpression(targetArgs, propTarget, true);
+                    if(memberExpression != null)
+                        ProcessNodeForDataReferences(memberExpression);
+                    return result;
                 }
                 else if (methodCall.Method.Name == "Select" && methodCall.Method.DeclaringType == typeof(Queryable))
                 {
@@ -1850,10 +2389,12 @@ namespace Harmony.Core.EF.Query.Internal
                         var tableExpression = ((HarmonyQueryExpression)updatedExpression.QueryExpression).FindServerExpression();
                         tableExpression.Name = SubQueryTargetNames.Peek();
                         tableExpression.IsCollection = true;
+                        var rootSource = ReplacementSource.QueryExpression as HarmonyQueryExpression;
                         var queryableType = typeof(Queryable);
                         var asQueryableMethod = queryableType.GetMethods().FirstOrDefault(mi => mi.Name == nameof(Queryable.AsQueryable) && mi.IsGenericMethod);
                         var emptyMethod = typeof(Enumerable).GetMethod("Empty").MakeGenericMethod(tableExpression.ItemType);
                         var enumerableResult = Expression.PropertyOrField(CurrentParameter, SubQueryTargetNames.Peek());
+                        ProcessNodeForDataReferences(enumerableResult);
                         var nullsafeEnumerable = Expression.Condition(Expression.Equal(Expression.Default(enumerableResult.Type), enumerableResult), Expression.Call(null, emptyMethod), enumerableResult, emptyMethod.ReturnType);
                         var asQueryableCall = Expression.Call(null, asQueryableMethod.MakeGenericMethod(tableExpression.ItemType), nullsafeEnumerable);
                         return methodCall.Update(null, new Expression[] { asQueryableCall, updatedExpression.ShaperExpression });

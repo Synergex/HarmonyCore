@@ -3,8 +3,8 @@ import System
 import System.Collections.Generic
 import System.Text
 import Microsoft.OData.Edm
-import Microsoft.AspNet.OData.Builder
 import System.Reflection
+import Microsoft.OData.ModelBuilder
 
 namespace Harmony.OData
 
@@ -16,7 +16,7 @@ namespace Harmony.OData
             sp, @IServiceProvider
             roles, [#]string
             hasAuth, boolean
-            parent(sp)
+            parent((@IAssemblyResolver)sp.GetService(^typeof(IAssemblyResolver)))
         proc
             this.HasRoles = new HashSet<string>(roles != ^null ? roles : new string[0])
             this.HasAuth = hasAuth

@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
 using Harmony.Core.EF.Storage;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 
 namespace Harmony.Core.EF.Query.Internal
 {
@@ -54,7 +55,7 @@ namespace Harmony.Core.EF.Query.Internal
             protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
             {
                 if (methodCallExpression.Method.IsGenericMethod
-                    && methodCallExpression.Method.GetGenericMethodDefinition() == EntityMaterializerSource.TryReadValueMethod)
+                    && methodCallExpression.Method.GetGenericMethodDefinition() == HarmonyEntityMaterializerSource.TryReadValueMethod)
                 {
                     var property = (IProperty)((ConstantExpression)methodCallExpression.Arguments[2]).Value;
                     var (indexMap, valueBuffer) =
@@ -80,7 +81,7 @@ namespace Harmony.Core.EF.Query.Internal
                     var valueBuffer = queryExpression.CurrentParameter;
 
                     return Expression.Call(
-                        EntityMaterializerSource.TryReadValueMethod.MakeGenericMethod(projectionBindingExpression.Type),
+                        HarmonyEntityMaterializerSource.TryReadValueMethod.MakeGenericMethod(projectionBindingExpression.Type),
                         valueBuffer,
                         Expression.Constant(projectionIndex),
                         Expression.Constant(InferPropertyFromInner(queryExpression.Projection[projectionIndex]), typeof(IPropertyBase)));
@@ -93,7 +94,7 @@ namespace Harmony.Core.EF.Query.Internal
             {
                 if (expression is MethodCallExpression methodCallExpression
                     && methodCallExpression.Method.IsGenericMethod
-                    && methodCallExpression.Method.GetGenericMethodDefinition() == EntityMaterializerSource.TryReadValueMethod)
+                    && methodCallExpression.Method.GetGenericMethodDefinition() == HarmonyEntityMaterializerSource.TryReadValueMethod)
                 {
                     return (IPropertyBase)((ConstantExpression)methodCallExpression.Arguments[2]).Value;
                 }

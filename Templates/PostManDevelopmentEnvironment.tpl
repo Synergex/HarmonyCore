@@ -1,7 +1,7 @@
-<CODEGEN_FILENAME>LocalDevelopmentService.postman_environment.json</CODEGEN_FILENAME>
+<CODEGEN_FILENAME>Postman_LocalDevelopment.postman_environment.json</CODEGEN_FILENAME>
 {
 	"id": "021c358b-fa1d-45d0-a901-4e15931800b0",
-	"name": "LocalDevelopmentService",
+	"name": "LocalDevelopment",
 	"values": [
 		{
 			"key": "ServerBaseUri",
@@ -35,6 +35,6 @@
 		}
 	],
 	"_postman_variable_scope": "environment",
-	"_postman_exported_at": "2022-02-05T05:51:53.314Z",
+	"_postman_exported_at": "2022-01-01T00:00:00.000Z",
 	"_postman_exported_using": "Postman/9.12.2"
 }

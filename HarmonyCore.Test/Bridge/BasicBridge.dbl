@@ -20,19 +20,65 @@ namespace HarmonyCore.Test.Bridge
     public class BasicBridge
 
         private method GetContextPool<T(IContextBase, class)>, @ExternalContextPool<T>
+            default dbrPath, @string, ^null
+            default dblDir, @string, ^null
+        proc
+            data actualDBRPath = dbrPath ?? 'TraditionalBridge.Test.dbr'
+            data platformDblDir = Environment.OSVersion.Platform == PlatformID.Unix ? Environment.GetEnvironmentVariable("DBLDIR") : Environment.GetEnvironmentVariable("SYNERGYDE64")
+            data actualDblDir = dblDir ?? platformDblDir
+            data currentDirectory = Path.GetDirectoryName(^typeof(BasicBridge).Assembly.Location)
+            data testDirFolder = TestEnvironment.findRelativeFolderForAssembly("TestDir")
+            
+            DebugLogSession.Logging = new Harmony.Core.Utility.ConsoleLogger(Harmony.Core.Interface.LogLevel.Trace)
+            
+            if(Environment.OSVersion.Platform == PlatformID.Unix) then
+            begin
+                data contextPool = new ExternalContextPool<T>(Path.Combine(actualDblDir, "bin/dbs"), actualDBRPath, testDirFolder, ^null, 4) 
+                mreturn contextPool
+            end
+            else
+            begin
+                data contextPool = new ExternalContextPool<T>(Path.Combine(actualDblDir, "dbl\bin\dbs.exe"), actualDBRPath, testDirFolder, ^null, 4) 
+                mreturn contextPool
+            end
+
+        endmethod
+
+        private method GetRemoteContextPool<T(IContextBase, class)>, @RemoteExternalContextPool<T>
+            username, @string
+            password, @string
         proc
             data currentDirectory = Path.GetDirectoryName(^typeof(BasicBridge).Assembly.Location)
             data testDirFolder = TestEnvironment.findRelativeFolderForAssembly("TestDir")
-            data contextPool = new ExternalContextPool<T>(Environment.GetEnvironmentVariable("SYNERGYDE64") + "dbl\bin\dbs.exe", 'TraditionalBridge.Test.dbr', testDirFolder, ^null, 4) 
+            
+            data targetPath, @string, ""
+            if(Environment.OSVersion.Platform == PlatformID.Unix) then
+            begin
+                targetPath = testDirFolder
+            end
+            else
+            begin
+                targetPath = testDirFolder.Replace(Path.GetPathRoot(testDirFolder), "/mnt/" + testDirFolder.Substring(0, 1).ToLower() + "/").Replace("\", "/")
+            end
+            
+            DebugLogSession.Logging = new Harmony.Core.Utility.ConsoleLogger(Harmony.Core.Interface.LogLevel.Trace)
+
+            data contextPool = new RemoteExternalContextPool<T>(RemoteTargetOS.Linux, "localhost", username, new Renci.SshNet.PasswordAuthenticationMethod(username, password), targetPath + "/launch.sh", 1, 30 * 10000, 30 * 10000)
             mreturn contextPool
+
         endmethod
+
+        {TestMethod}
+        public async method ArgumentPreserialize, @Task
+        proc
+            
+        endmethod
+
 
         {TestMethod}
         public async method InitFailure, @Task
         proc
-            data currentDirectory = Path.GetDirectoryName(^typeof(BasicBridge).Assembly.Location)
-            data testDirFolder = TestEnvironment.findRelativeFolderForAssembly("TestDir")
-            data contextPool1 = new ExternalContextPool<BasicBridge.ExternalCallContext>(Environment.GetEnvironmentVariable("SYNERGYDE64") + "dbl\bin\dbs.exe", 'TraditionalBridge.Testt.dbr', testDirFolder, ^null, 4) 
+            disposable data contextPool1 = GetContextPool<BasicBridge.ExternalCallContext>("abaddbrName.dbr")
             data sp = new ServiceCollection().BuildServiceProvider()
             try
             begin
@@ -47,7 +93,7 @@ namespace HarmonyCore.Test.Bridge
             endtry
 
 
-            data contextPool2 = new ExternalContextPool<BasicBridge.ExternalCallContext>(Environment.GetEnvironmentVariable("SYNERGYDE32") + "dbl\bin\dbs.exe", 'TraditionalBridge.Test.dbr', testDirFolder, ^null, 4) 
+            disposable data contextPool2 = GetContextPool<BasicBridge.ExternalCallContext>(^null, Environment.GetEnvironmentVariable("SYNERGYDE32")) 
 
             try
             begin
@@ -67,6 +113,21 @@ namespace HarmonyCore.Test.Bridge
         public async method LocalTest, @Task
         proc
             disposable data contextPool = GetContextPool<BasicBridge.ExternalCallContext>()
+            await BasicTestInternal(contextPool)
+        endmethod
+
+        {TestMethod}
+        {Ignore}
+        public async method WSLTest, @Task
+        proc
+            disposable data contextPool = GetRemoteContextPool<BasicBridge.ExternalCallContext>(Environment.GetEnvironmentVariable("LOCAL_LINUX_USER"), Environment.GetEnvironmentVariable("LOCAL_LINUX_PASSWORD"))
+            await BasicTestInternal(contextPool)
+        endmethod
+
+        private async method BasicTestInternal, @Task
+            contextPool, @BlockingPoolContextFactory<BasicBridge.ExternalCallContext>
+        proc
+            
             data sp = new ServiceCollection().BuildServiceProvider()
             
             data context = contextPool.MakeContext(sp)
@@ -102,7 +163,20 @@ namespace HarmonyCore.Test.Bridge
                 contextPool.ReturnContext(context)
                 context = contextPool.MakeContext(sp)
             end
+            endtry
 
+            try
+            begin
+                Console.WriteLine("Calling Stop Test")
+                data failureResult = await context.Arbitrario_BreakProtocol()
+                Assert.Fail("exception wasnt thrown")
+            end
+            catch(ex, @StreamJsonRpc.ConnectionLostException)
+            begin
+                Assert.IsTrue(ex.Message.Contains("I have died"))
+                contextPool.ReturnContext(context)
+                context = contextPool.MakeContext(sp)
+            end
             endtry
 
             Console.WriteLine("Calling Parameter tests")
@@ -186,6 +260,51 @@ namespace HarmonyCore.Test.Bridge
 
             endtry
 
+            contextPool.ReturnContext(context)
+            await contextPool.TrimPool(0)
+            Console.WriteLine("shutting down test")
+        endmethod
+
+        {TestMethod}
+        public async method LoggingResetTest, @Task
+        proc
+            disposable data contextPool = GetContextPool<BasicBridge.ExternalCallContext>()
+            data sp = new ServiceCollection().BuildServiceProvider()
+            
+            data context = contextPool.MakeContext(sp)
+            await context.SetRemoteLogSettings(new RemoteLogSettings() { AttachLogsToExceptions = true, InMemoryLogLevel = 5, LogToMemory = true, LogToDisk = true, OnDiskLogLevel = 6, FlushLog = true }) 
+            data initialLogCount = 0
+            try
+            begin
+                data failureResult = await context.Arbitrario_Exception()
+                Assert.Fail("exception wasnt thrown")
+            end
+            catch(ex, @BridgeException)
+            begin
+                Assert.IsTrue(ex.RemoteLogs.Length > 2, "there werent any remote logs")
+                initialLogCount = ex.RemoteLogs.Length
+            end
+            catch(ex, @Exception)
+            begin
+                throw
+            end
+            endtry
+            
+            try
+            begin
+                data failureResult = await context.Arbitrario_Exception()
+                Assert.Fail("exception wasnt thrown")
+            end
+            catch(ex, @BridgeException)
+            begin
+                Assert.IsFalse(ex.RemoteLogs.Length > initialLogCount, "Log count was greater after second call")
+            end
+            catch(ex, @Exception)
+            begin
+                throw
+            end
+
+            endtry
             contextPool.ReturnContext(context)
             await contextPool.TrimPool(0)
             Console.WriteLine("shutting down test")
@@ -371,12 +490,46 @@ namespace HarmonyCore.Test.Bridge
                 mreturn new ArbitrarioReturnType() { ReturnCode = returnCode, IntList = ((@IEnumerable<int>)resultTpl.Item2[4]).ToList(), StringList = ((@IEnumerable<string>)resultTpl.Item2[5]).ToList() }
             endmethod
 
+            public async method Arbitrario_BreakProtocol, @Task<ArbitrarioReturnType>
+            proc
+                data intArray = new int[#] {5, 4, 3, 2, 1 }
+                data resultTpl = await CallMethod("Arbitrario.MethodWithParameters", -1, "BREAK PROTOCOL", new string[#] { "this", "is", "strings" }, (@object)intArray, new string[0])
+                data returnCode = ArgumentHelper.Argument<int>(0, resultTpl)
+                mreturn new ArbitrarioReturnType() { ReturnCode = returnCode, IntList = ((@IEnumerable<int>)resultTpl.Item2[4]).ToList(), StringList = ((@IEnumerable<string>)resultTpl.Item2[5]).ToList() }
+            endmethod
+
             public async method Arbitrario_MethodWithParameters, @Task<ArbitrarioReturnType>
             proc
                 data intArray = new int[#] {5, 4, 3, 2, 1 }
                 data resultTpl = await CallMethod("Arbitrario.MethodWithParameters", 5, "hello", new string[#] { "this", "is", "strings" }, (@object)intArray, new string[0])
                 data returnCode = ArgumentHelper.Argument<int>(0, resultTpl)
                 mreturn new ArbitrarioReturnType() { ReturnCode = returnCode, IntList = ((@IEnumerable<int>)resultTpl.Item2[4]).ToList(), StringList = ((@IEnumerable<string>)resultTpl.Item2[5]).ToList() }
+            endmethod
+
+            protected override method PreSerializeArgument, @ArgumentDataDefinition
+                argValue, @Object
+            proc
+                if(argValue .is. [#]string) then
+                begin
+                    data argDef = new ArgumentDataDefinition()
+                    argDef.DataType = FieldDataType.DataObjectCollectionField
+                    argDef.PassedValue = PreSerializeIEnumerable(([#]string)argValue)
+                    mreturn argDef
+                end
+                else
+                    mreturn parent.PreSerializeArgument(argValue)
+            endmethod
+
+            private method PreSerializeIEnumerable, @object
+                argValue, @System.Collections.IEnumerable
+            proc
+                data result = new List<object>()
+                data objValue, @Object
+                foreach objValue in argValue
+                begin
+                    result.Add(PreSerializeArgument(objValue).PassedValue)
+                end
+                mreturn result
             endmethod
 
             public async method Arbitrario_Structures, @Task<ArbitrarioStructuresReturnType>

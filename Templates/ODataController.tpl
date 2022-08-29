@@ -54,8 +54,11 @@ import Microsoft.AspNetCore.Http
 import Microsoft.OData
 import Microsoft.AspNetCore.JsonPatch
 import Microsoft.AspNetCore.Mvc
-import Microsoft.AspNet.OData
-import Microsoft.AspNet.OData.Routing
+import Microsoft.AspNetCore.OData.Routing.Controllers
+import Microsoft.AspNetCore.OData.Routing.Attributes
+import Microsoft.AspNetCore.OData.Query
+import Microsoft.AspNetCore.OData.Results
+import Microsoft.AspNetCore.OData.Formatter
 import Microsoft.EntityFrameworkCore
 import Microsoft.EntityFrameworkCore.Infrastructure
 import Microsoft.Extensions.Options
@@ -73,8 +76,6 @@ namespace <NAMESPACE>
 <IF DEFINED_ENABLE_AUTHENTICATION>
     {Authorize}
 </IF DEFINED_ENABLE_AUTHENTICATION>
-    {ApiVersion("<API_VERSION>")}
-    {ODataRoutePrefix("<StructurePlural>")}
     ;;; <summary>
     ;;; OData controller for <StructurePlural>
     ;;; </summary>
@@ -105,9 +106,9 @@ namespace <NAMESPACE>
 ;// GET ALL -------------------------------------------------------------------
 ;//
 <IF DEFINED_ENABLE_GET_ALL AND GET_ALL_ENDPOINT>
-        {ODataRoute}
+        {HttpGet("<StructurePlural>")}
         {Produces("application/json")}
-        {ProducesResponseType(^typeof(ODataValue<IEnumerable<<StructureNoplural>>>),StatusCodes.Status200OK)}
+        {ProducesResponseType(^typeof(IEnumerable<<StructureNoplural>>),StatusCodes.Status200OK)}
   <IF DEFINED_ENABLE_AUTHENTICATION>
         {ProducesResponseType(StatusCodes.Status401Unauthorized)}
   </IF DEFINED_ENABLE_AUTHENTICATION>
@@ -133,7 +134,7 @@ namespace <NAMESPACE>
 ;// GET ONE (ISAM, UNIQUE PRIMARY KEY READ) -----------------------------------
 ;//
 <IF STRUCTURE_ISAM AND STRUCTURE_HAS_UNIQUE_PK AND DEFINED_ENABLE_GET_ONE AND GET_ENDPOINT>
-        {ODataRoute("(<PRIMARY_KEY><SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>={a<FieldSqlName>}<SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP></PRIMARY_KEY>)")}
+        {HttpGet("<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>={a<FieldSqlName>}<SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP></PRIMARY_KEY>)")}
         {Produces("application/json")}
         {ProducesResponseType(^typeof(<StructureNoplural>),StatusCodes.Status200OK)}
   <IF DEFINED_ENABLE_AUTHENTICATION>
@@ -178,9 +179,9 @@ namespace <NAMESPACE>
 ;// GET "ONE" (not in this case!) (ISAM, NON-UNIQUE PRIMARY KEY READ) ---------
 ;//
 <IF STRUCTURE_ISAM AND NOT STRUCTURE_HAS_UNIQUE_PK AND DEFINED_ENABLE_GET_ONE AND GET_ENDPOINT>
-        {ODataRoute("(<PRIMARY_KEY><SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>={a<FieldSqlName>}<SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP></PRIMARY_KEY>)")}
+        {HttpGet("<StructurePlural>(<PRIMARY_KEY><SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>={a<FieldSqlName>}<SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP></PRIMARY_KEY>)")}
         {Produces("application/json")}
-        {ProducesResponseType(^typeof(ODataValue<IEnumerable<<StructureNoplural>>>),StatusCodes.Status200OK)}
+        {ProducesResponseType(^typeof(IEnumerable<<StructureNoplural>>),StatusCodes.Status200OK)}
   <IF DEFINED_ENABLE_AUTHENTICATION>
         {ProducesResponseType(StatusCodes.Status401Unauthorized)}
   </IF DEFINED_ENABLE_AUTHENTICATION>
@@ -222,7 +223,7 @@ namespace <NAMESPACE>
 ;// GET ONE (RELATIVE FILE RECORD NUMBER READ) --------------------------------
 ;//
 <IF STRUCTURE_RELATIVE AND DEFINED_ENABLE_GET_ONE AND GET_ENDPOINT>
-        {ODataRoute("(aRecordNumber)")}
+        {HttpGet("<StructurePlural>(aRecordNumber)")}
         {Produces("application/json")}
         {ProducesResponseType(^typeof(<StructureNoplural>),StatusCodes.Status200OK)}
   <IF DEFINED_ENABLE_AUTHENTICATION>
@@ -256,12 +257,12 @@ namespace <NAMESPACE>
 ;//
 <IF STRUCTURE_ISAM AND DEFINED_ENABLE_ALTERNATE_KEYS AND ALTERNATE_KEY_ENDPOINTS> 
   <ALTERNATE_KEY_LOOP_UNIQUE>
-        {ODataRoute("(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>={a<FieldSqlName>}<SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP>)")}
+        {HttpGet("<StructurePlural>(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>={a<FieldSqlName>}<SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP>)")}
         {Produces("application/json")}
     <IF DUPLICATES>
-        {ProducesResponseType(^typeof(ODataValue<IEnumerable<<StructureNoplural>>>),StatusCodes.Status200OK)}
+        {ProducesResponseType(^typeof(IEnumerable<<StructureNoplural>>),StatusCodes.Status200OK)}
     <ELSE>
-        {ProducesResponseType(^typeof(ODataValue<<StructureNoplural>>),StatusCodes.Status200OK)}
+        {ProducesResponseType(^typeof(<StructureNoplural>),StatusCodes.Status200OK)}
     </IF DUPLICATES>
       <IF DEFINED_ENABLE_AUTHENTICATION>
         {ProducesResponseType(StatusCodes.Status401Unauthorized)}
@@ -307,9 +308,9 @@ namespace <NAMESPACE>
 <IF STRUCTURE_ISAM AND DEFINED_ENABLE_PARTIAL_KEYS>
   <PARTIAL_KEY_LOOP>
     <IF (PRIMARY_KEY AND DEFINED_ENABLE_GET_ONE AND GET_ENDPOINT) OR ((NOT PRIMARY_KEY) AND DEFINED_ENABLE_ALTERNATE_KEYS AND ALTERNATE_KEY_ENDPOINTS)>
-        {ODataRoute("(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>={a<FieldSqlName>}<SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP>)")}
+        {HttpGet("<StructurePlural>(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>={a<FieldSqlName>}<SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP>)")}
         {Produces("application/json")}
-        {ProducesResponseType(^typeof(ODataValue<IEnumerable<<StructureNoplural>>>),StatusCodes.Status200OK)}
+        {ProducesResponseType(^typeof(IEnumerable<<StructureNoplural>>),StatusCodes.Status200OK)}
       <IF DEFINED_ENABLE_AUTHENTICATION>
         {ProducesResponseType(StatusCodes.Status401Unauthorized)}
       </IF>
@@ -357,14 +358,13 @@ namespace <NAMESPACE>
         {Authorize(Roles="<ROLES_POST>")}
     </IF USERTOKEN_ROLES_POST>
   </IF DEFINED_ENABLE_AUTHENTICATION>
-        {ODataRoute}
         {Produces("application/json")}
         {ProducesResponseType(^typeof(<StructureNoplural>),StatusCodes.Status200OK)}
   <IF DEFINED_ENABLE_AUTHENTICATION>
         {ProducesResponseType(StatusCodes.Status401Unauthorized)}
   </IF DEFINED_ENABLE_AUTHENTICATION>
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
-        {HttpPost}
+        {HttpPost("<StructurePlural>")}
         ;;; <summary>
         ;;; Create a new <structureNoplural> (automatically assigned primary key).
         ;;; </summary>
@@ -417,7 +417,7 @@ namespace <NAMESPACE>
       <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_PUT>
         {Authorize(Roles="<ROLES_PUT>")}
       </IF DEFINED_ENABLE_AUTHENTICATION>
-        {ODataRoute("(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>={a<FieldSqlName>}<SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP>)")}
+        {HttpPut("<StructurePlural>(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>={a<FieldSqlName>}<SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP>)")}
         {Produces("application/json")}
         {ProducesResponseType(StatusCodes.Status201Created)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
@@ -425,7 +425,6 @@ namespace <NAMESPACE>
         {ProducesResponseType(StatusCodes.Status401Unauthorized)}
       </IF DEFINED_ENABLE_AUTHENTICATION>
         {ProducesResponseType(StatusCodes.Status404NotFound)}
-        {HttpPut}
         ;;; <summary>
         ;;; Create (with a client-supplied primary key) or replace a <structureNoplural>.
         ;;; </summary>
@@ -512,7 +511,7 @@ namespace <NAMESPACE>
     <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_PATCH>
         {Authorize(Roles="<ROLES_PATCH>")}
     </IF DEFINED_ENABLE_AUTHENTICATION>
-        {ODataRoute("(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>={a<FieldSqlName>}<SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP>)")}
+        {HttpPatch("<StructurePlural>(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>={a<FieldSqlName>}<SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP>)")}
         {Produces("application/json")}
         {ProducesResponseType(StatusCodes.Status204NoContent)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
@@ -520,7 +519,6 @@ namespace <NAMESPACE>
         {ProducesResponseType(StatusCodes.Status401Unauthorized)}
       </IF DEFINED_ENABLE_AUTHENTICATION>
         {ProducesResponseType(StatusCodes.Status404NotFound)}
-        {HttpPatch}
         ;;; <summary>
         ;;; Patch  (partial update) a <structureNoplural>.
         ;;; </summary>
@@ -602,13 +600,12 @@ namespace <NAMESPACE>
     <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_DELETE>
         {Authorize(Roles="<ROLES_DELETE>")}
     </IF DEFINED_ENABLE_AUTHENTICATION>
-        {ODataRoute("(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>={a<FieldSqlName>}<SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP>)")}
+        {HttpDelete("<StructurePlural>(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>={a<FieldSqlName>}<SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP>)")}
         {ProducesResponseType(StatusCodes.Status204NoContent)}
     <IF DEFINED_ENABLE_AUTHENTICATION>
         {ProducesResponseType(StatusCodes.Status401Unauthorized)}
     </IF DEFINED_ENABLE_AUTHENTICATION>
         {ProducesResponseType(StatusCodes.Status404NotFound)}
-        {HttpDelete}
         ;;; <summary>
         ;;; Delete a <structureNoplural>.
         ;;; </summary>

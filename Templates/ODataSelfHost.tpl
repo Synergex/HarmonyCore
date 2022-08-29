@@ -1,6 +1,5 @@
 <CODEGEN_FILENAME>SelfHost.dbl</CODEGEN_FILENAME>
 <REQUIRES_CODEGEN_VERSION>5.4.6</REQUIRES_CODEGEN_VERSION>
-<REQUIRES_USERTOKEN>API_DOCS_PATH</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVICES_NAMESPACE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVER_PROTOCOL</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVER_NAME</REQUIRES_USERTOKEN>
@@ -62,6 +61,18 @@ main SelfHost
 
 proc
     ;;-------------------------------------------------------------------------
+    ;;Wait for the Visual Studio debugger to attach
+    
+    if (!String.IsNullOrWhiteSpace(System.Environment.GetEnvironmentVariable("WAIT_FOR_DEBUGGER")))
+    begin
+        while (!System.Diagnostics.Debugger.IsAttached)
+        begin
+            Console.WriteLine("Waiting for debugger to attach...")
+            sleep 1
+        end
+    end
+
+    ;;-------------------------------------------------------------------------
     ;;Configure the environment
     try
     begin
@@ -70,16 +81,12 @@ proc
     catch (ex, @Exception)
     begin
         Console.WriteLine(ex.Message)
-        Console.Write("Press a key to terminate: ")
-        Console.ReadKey()
+        ;Can't do this in IIS!
+        ;Console.Write("Press a key to terminate: ")
+        ;Console.ReadKey()
         stop
     end
     endtry
-
-    ;;-------------------------------------------------------------------------
-    ;;Report the location of the API documentation
-
-    Console.WriteLine("API documentation is available at <SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>/<API_DOCS_PATH>")
 
     ;;-------------------------------------------------------------------------
     ;;Define the location that static files are served from and make sure it exists

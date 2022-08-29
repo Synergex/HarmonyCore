@@ -15,6 +15,8 @@ using Harmony.Core.EF.Extensions.Internal;
 using Harmony.Core.FileIO.Queryable;
 using Harmony.Core.Enumerations;
 using System.Diagnostics;
+using Microsoft.EntityFrameworkCore.Query.Internal;
+using System.Collections.ObjectModel;
 
 namespace Harmony.Core.EF.Query.Internal
 {
@@ -761,7 +763,7 @@ namespace Harmony.Core.EF.Query.Internal
             }
         }
 
-        public virtual IDictionary<IProperty, int> AddToProjection(EntityProjectionExpression entityProjectionExpression)
+        public virtual IReadOnlyDictionary<IProperty, int> AddToProjection(EntityProjectionExpression entityProjectionExpression)
         {
             if (!_entityProjectionCache.TryGetValue(entityProjectionExpression, out var indexMap))
             {
@@ -774,7 +776,7 @@ namespace Harmony.Core.EF.Query.Internal
                 _entityProjectionCache[entityProjectionExpression] = indexMap;
             }
 
-            return indexMap;
+            return new ReadOnlyDictionary<IProperty, int>(indexMap);
         }
 
         public virtual int AddToProjection(Expression expression)
@@ -823,7 +825,7 @@ namespace Harmony.Core.EF.Query.Internal
                     && projectionBindingExpression.ProjectionMember != null)
                 {
                     var mappingValue = ((ConstantExpression)_projectionMapping[projectionBindingExpression.ProjectionMember]).Value;
-                    if (mappingValue is IDictionary<IProperty, int> indexMap)
+                    if (mappingValue is IReadOnlyDictionary<IProperty, int> indexMap)
                     {
                         return new ProjectionBindingExpression(projectionBindingExpression.QueryExpression, indexMap);
                     }
@@ -842,7 +844,7 @@ namespace Harmony.Core.EF.Query.Internal
         }
 
         private IEnumerable<IProperty> GetAllPropertiesInHierarchy(IEntityType entityType)
-            => entityType.GetTypesInHierarchy().SelectMany(Microsoft.EntityFrameworkCore.EntityTypeExtensions.GetDeclaredProperties);
+            => entityType.GetAllBaseTypesInclusive().SelectMany((type) => type.GetDeclaredProperties());
 
         public virtual Expression GetMappedProjection(ProjectionMember member)
             => _projectionMapping[member];
@@ -935,7 +937,7 @@ namespace Harmony.Core.EF.Query.Internal
         {
             if (expression is MethodCallExpression methodCallExpression
                 && methodCallExpression.Method.IsGenericMethod
-                && methodCallExpression.Method.GetGenericMethodDefinition() == EntityMaterializerSource.TryReadValueMethod)
+                && methodCallExpression.Method.GetGenericMethodDefinition() == HarmonyEntityMaterializerSource.TryReadValueMethod)
             {
                 return (IPropertyBase)((ConstantExpression)methodCallExpression.Arguments[2]).Value;
             }
@@ -970,7 +972,7 @@ namespace Harmony.Core.EF.Query.Internal
             }
         }
 
-        public virtual HarmonyGroupByShaperExpression ApplyGrouping(Expression groupingKey, Expression shaperExpression)
+        public virtual HarmonyGroupByShaperExpression ApplyGrouping(Expression groupingKey, ShapedQueryExpression shaperExpression)
         {
             PushdownIntoSubquery();
 
@@ -1060,7 +1062,7 @@ namespace Harmony.Core.EF.Query.Internal
                 return valueBufferParameter;
         }
             /*Call(
-                EntityMaterializerSource.TryReadValueMethod.MakeGenericMethod(type),
+                HarmonyEntityMaterializerSource.TryReadValueMethod.MakeGenericMethod(type),
                 valueBufferParameter,
                 Constant(index),
                 Constant(property, typeof(IPropertyBase)));*/
@@ -1068,7 +1070,95 @@ namespace Harmony.Core.EF.Query.Internal
         private Expression CreateReadValueExpression(Type type, int index, IPropertyBase property)
             => CreateReadValueExpression(_valueBufferParameter, type, index, property);
 
-        public virtual void AddJoin(
+        public virtual void AddInnerJoin(
+            HarmonyQueryExpression innerQueryExpression,
+            LambdaExpression outerKeySelector,
+            LambdaExpression innerKeySelector,
+            Type transparentIdentifierType)
+        {
+            var outerParameter = Parameter(typeof(DataObjectBase), "outer");
+            var innerParameter = Parameter(typeof(DataObjectBase), "inner");
+            var resultValueBufferExpressions = new List<Expression>();
+            var projectionMapping = new Dictionary<ProjectionMember, Expression>();
+            var replacingVisitor = new ReplacingExpressionVisitor(
+                new List<Expression> { CurrentParameter, innerQueryExpression.CurrentParameter },
+                new List<Expression> { outerParameter, innerParameter });
+
+            var index = 0;
+            var outerMemberInfo = transparentIdentifierType.GetTypeInfo().GetDeclaredField("Outer");
+            foreach (var projection in _projectionMapping)
+            {
+                if (projection.Value is EntityProjectionExpression entityProjection)
+                {
+                    var readExpressionMap = new Dictionary<IProperty, Expression>();
+                    foreach (var property in GetAllPropertiesInHierarchy(entityProjection.EntityType))
+                    {
+                        var replacedExpression = replacingVisitor.Visit(entityProjection.BindProperty(property));
+                        resultValueBufferExpressions.Add(replacedExpression);
+                        readExpressionMap[property] = CreateReadValueExpression(replacedExpression.Type, index++, property);
+                    }
+
+                    projectionMapping[projection.Key.Prepend(outerMemberInfo)]
+                        = new EntityProjectionExpression(entityProjection.EntityType, readExpressionMap);
+                }
+                else
+                {
+                    resultValueBufferExpressions.Add(replacingVisitor.Visit(projection.Value));
+                    projectionMapping[projection.Key.Prepend(outerMemberInfo)]
+                        = CreateReadValueExpression(projection.Value.Type, index++, InferPropertyFromInner(projection.Value));
+                }
+            }
+
+            var innerMemberInfo = transparentIdentifierType.GetTypeInfo().GetDeclaredField("Inner");
+            foreach (var projection in innerQueryExpression._projectionMapping)
+            {
+                if (projection.Value is EntityProjectionExpression entityProjection)
+                {
+                    var readExpressionMap = new Dictionary<IProperty, Expression>();
+                    foreach (var property in GetAllPropertiesInHierarchy(entityProjection.EntityType))
+                    {
+                        var replacedExpression = replacingVisitor.Visit(entityProjection.BindProperty(property));
+                        resultValueBufferExpressions.Add(replacedExpression);
+                        readExpressionMap[property] = CreateReadValueExpression(replacedExpression.Type, index++, property);
+                    }
+
+                    projectionMapping[projection.Key.Prepend(innerMemberInfo)]
+                        = new EntityProjectionExpression(entityProjection.EntityType, readExpressionMap);
+                }
+                else
+                {
+                    resultValueBufferExpressions.Add(replacingVisitor.Visit(projection.Value));
+                    projectionMapping[projection.Key.Prepend(innerMemberInfo)]
+                        = CreateReadValueExpression(projection.Value.Type, index++, InferPropertyFromInner(projection.Value));
+                }
+            }
+
+            //var resultSelector = Lambda(
+            //    New(
+            //        _valueBufferConstructor,
+            //        NewArrayInit(
+            //            typeof(object),
+            //            resultValueBufferExpressions
+            //                .Select(e => e.Type.IsValueType ? Convert(e, typeof(object)) : e)
+            //                .ToArray())),
+            //    outerParameter,
+            //    innerParameter);
+
+            //ServerQueryExpression = Call(
+            //    EnumerableMethods.Join.MakeGenericMethod(
+            //        typeof(DataObjectBase), typeof(DataObjectBase), outerKeySelector.ReturnType, typeof(DataObjectBase)),
+            //    ServerQueryExpression,
+            //    innerQueryExpression.ServerQueryExpression,
+            //    outerKeySelector,
+            //    innerKeySelector,
+            //    resultSelector);
+
+            throw new NotImplementedException();
+
+            _projectionMapping = projectionMapping;
+        }
+
+        public virtual void AddLeftJoin(
             HarmonyQueryExpression innerQueryExpression,
             Expression outerKeySelector,
             Expression innerKeySelector)
@@ -1089,11 +1179,9 @@ namespace Harmony.Core.EF.Query.Internal
             var resultValueBufferExpressions = new List<Expression>();
             var projectionMapping = new Dictionary<ProjectionMember, Expression>();
             var replacingVisitor = new ReplacingExpressionVisitor(
-                new Dictionary<Expression, Expression>
-                {
-                    { CurrentParameter, outerParameter }, { innerQueryExpression.CurrentParameter, innerParameter }
-                });
-
+                new List<Expression> { CurrentParameter, innerQueryExpression.CurrentParameter },
+                new List<Expression> { outerParameter, innerParameter });
+            
             var index = 0;
             var outerMemberInfo = transparentIdentifierType.GetTypeInfo().GetDeclaredField("Outer");
             foreach (var projection in _projectionMapping)
@@ -1218,11 +1306,9 @@ namespace Harmony.Core.EF.Query.Internal
             var resultValueBufferExpressions = new List<Expression>();
             var projectionMapping = new Dictionary<ProjectionMember, Expression>();
             var replacingVisitor = new ReplacingExpressionVisitor(
-                new Dictionary<Expression, Expression>
-                {
-                    { CurrentParameter, MakeMemberAccess(outerParameter, outerMemberInfo) },
-                    { innerQueryExpression.CurrentParameter, innerParameter }
-                });
+                new List<Expression> { CurrentParameter, innerQueryExpression.CurrentParameter },
+                new List<Expression> { MakeMemberAccess(outerParameter, outerMemberInfo), innerParameter });
+
             var index = 0;
 
             EntityProjectionExpression copyEntityProjectionToOuter(EntityProjectionExpression entityProjection)
@@ -1242,8 +1328,8 @@ namespace Harmony.Core.EF.Query.Internal
                 }
 
                 // Also lift nested entity projections
-                foreach (var navigation in entityProjection.EntityType.GetTypesInHierarchy()
-                    .SelectMany(Microsoft.EntityFrameworkCore.EntityTypeExtensions.GetDeclaredNavigations))
+                foreach (var navigation in entityProjection.EntityType.GetAllBaseTypes()
+                    .SelectMany((type) => type.GetDeclaredNavigations()))
                 {
                     var boundEntityShaperExpression = entityProjection.BindNavigation(navigation);
                     if (boundEntityShaperExpression != null)
@@ -1357,11 +1443,11 @@ namespace Harmony.Core.EF.Query.Internal
             protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
             {
                 if (methodCallExpression.Method.IsGenericMethod
-                    && methodCallExpression.Method.GetGenericMethodDefinition() == EntityMaterializerSource.TryReadValueMethod
+                    && methodCallExpression.Method.GetGenericMethodDefinition() == HarmonyEntityMaterializerSource.TryReadValueMethod
                     && !methodCallExpression.Type.IsNullableType())
                 {
                     return Call(
-                        EntityMaterializerSource.TryReadValueMethod.MakeGenericMethod(methodCallExpression.Type.MakeNullable()),
+                        HarmonyEntityMaterializerSource.TryReadValueMethod.MakeGenericMethod(methodCallExpression.Type.MakeNullable()),
                         methodCallExpression.Arguments);
                 }
 

@@ -31,7 +31,9 @@ namespace Harmony.Core.EF.Query.Internal
             _dependencies = dependencies;
         }
 
-        public virtual QueryableMethodTranslatingExpressionVisitor Create(IModel model)
-            => new HarmonyQueryableMethodTranslatingExpressionVisitor(_dependencies, model);
+        public QueryableMethodTranslatingExpressionVisitor Create(QueryCompilationContext queryCompilationContext)
+        {
+            return new HarmonyQueryableMethodTranslatingExpressionVisitor(_dependencies, queryCompilationContext);
+        }
     }
 }

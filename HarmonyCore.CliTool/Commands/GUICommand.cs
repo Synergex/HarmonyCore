@@ -1,5 +1,12 @@
-﻿using System.Diagnostics;
+﻿using HarmonyCore.CliTool.TUI.Models;
+using HarmonyCore.CliTool.TUI.ViewModels;
+using HarmonyCore.CliTool.TUI.Views;
+using System;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using Terminal.Gui;
 
 namespace HarmonyCore.CliTool.Commands
 {
@@ -11,9 +18,12 @@ namespace HarmonyCore.CliTool.Commands
 
         public int Run(GUIOptions options)
         {
-            Process process = Process.Start(Path.Combine(System.AppContext.BaseDirectory, "gui", "HarmonyCoreCodeGenGUI.exe"), Path.Combine(this._solutionInfo.SolutionDir, "Harmony.Core.CodeGen.json"));
-            process.WaitForExit();
-            return process.ExitCode;
+            Console.OutputEncoding = System.Text.Encoding.Default;
+            Application.Init();
+            Application.HeightAsBuffer = false;
+            
+            Application.Run(new MainView(_solutionInfo));
+            return 0;
         }
     }
 }

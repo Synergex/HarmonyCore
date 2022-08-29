@@ -199,6 +199,12 @@ namespace <NAMESPACE>
 </IF DEFINED_ENABLE_CREATE_TEST_FILES>
         endmethod
 
+        ;;Declare the SetLogicalsCustom partial method
+        ;;This method can be implemented in a partial class to provide custom code to define logical names
+        partial static method SetLogicalsCustom, void
+            required in logicals, @List<string>
+        endmethod
+
         private static method setLogicals, void
         proc
             data sampleDataFolder = FindRelativeFolderForAssembly("<DATA_FOLDER>")
@@ -216,12 +222,27 @@ namespace <NAMESPACE>
             end
             </STRUCTURE_LOOP>
 
+            ;;If we have a SetLogicalsCustom method, call it
+            SetLogicalsCustom(Startup.LogicalNames)
+
+<IF NOT DEFINED_DO_NOT_SET_FILE_LOGICALS>
+            ;;Now we'll check each logical. If it already has a value we'll do nothing, otherwise
+            ;;we'll set the logical to point to the local folder whose name is identified by the
+            ;;user-defined token DATA_FOLDER
             foreach logical in logicals
             begin
                 data sts, int
-                xcall setlog(logical,sampleDataFolder,sts)
+                data translation, a80
+                ;;Is it set?
+                xcall getlog(logical,translation,sts)
+                if (!sts)
+                begin
+                    ;;No, we'll set it to <DATA_FOLDER>
+                    xcall setlog(logical,sampleDataFolder,sts)
+                end
             end
 
+</IF>
         endmethod
 
 <IF DEFINED_ENABLE_CREATE_TEST_FILES>

@@ -1,9 +1,8 @@
 # Starter pipeline
-
 # Start with a minimal pipeline that you can customize to build and deploy your code.
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
-name: 3.1.$(Rev:r)
+name: 6.0.$(Rev:r)
 
 stages:
 - stage: build
@@ -34,11 +33,13 @@ stages:
 #          Configuration: Release
 #          Platform: linux64
     steps:
+    - checkout: self
+      submodules: true
     - task: UseDotNet@2
-      displayName: 'Get .NET SDK 5.0.x'
+      displayName: 'Get .NET SDK 6.0.x'
       inputs:
         packageType: 'sdk'
-        version: '5.0.x'
+        version: '6.0.x'
     - task: NuGetToolInstaller@1
       displayName: 'Get NuGet 5.x'
       inputs:
@@ -50,6 +51,7 @@ stages:
         command: 'restore'
         restoreSolution: '**/*.sln'
         feedsToUse: 'select'
+        vstsFeed: '632eef26-b5e5-49d5-83f0-091dbb16477c'
     - task: MSBuild@1
       displayName: 'Build solution'
       inputs:
@@ -67,35 +69,39 @@ stages:
 #      artifact: TraditionalBridgeDBR
 
     - task: BatchScript@1
-      displayName: 'Run regen.bat'
-      env:
-        RPSMFIL: $(SolutionDir)HarmonyCore.Test.Repository\bin\Release\rpsmain.ism
-        RPSTFIL: $(SolutionDir)HarmonyCore.Test.Repository\bin\Release\rpstext.ism
-      inputs:
-        filename: 'regen.bat'
-        modifyEnvironment: false
-    - task: BatchScript@1
       displayName: 'Configure SDE environment'
       inputs:
         filename: '$(SYNERGYDE32)\dbl\dblvars32.bat'
         modifyEnvironment: true
     - task: DotNetCoreCLI@2
-      enabled: true
-      displayName: 'Run Unit Tests'
-      env:
-        RPSMFIL: $(SolutionDir)HarmonyCore.Test.Repository\bin\Release\rpsmain.ism
-        RPSTFIL: $(SolutionDir)HarmonyCore.Test.Repository\bin\Release\rpstext.ism
+      displayName: 'Run HarmonyCore.Test'
       inputs:
         command: 'test'
-        arguments: '-c $(Configuration)'
-        projects: |
-          HarmonyCore.Test
-          Services.Test
-          Services.Test.CS
+        arguments: 'HarmonyCore.Test\bin\Release\net6.0\HarmonyCore.Test.dll'
+    - task: DotNetCoreCLI@2
+      displayName: 'Run Services.Test'
+      inputs:
+        command: 'test'
+        arguments: 'Services.Test\bin\Release\net6.0\Services.Test.dll'
+    - task: DotNetCoreCLI@2
+      displayName: 'Run Services.Test.CS'
+      inputs:
+        command: 'test'
+        arguments: 'Services.Test.CS\bin\Release\net6.0\Services.Test.CS.dll'
+          
     - task: VSTest@2
+      enabled: false
+      displayName: 'Run TraditionalBridge.UnitTest'
       inputs:
         testAssemblyVer2:
           $(SolutionDir)TestDir\TraditionalBridge.UnitTest.elb
+    - task: DotNetCoreCLI@2
+      displayName: 'Pack CLI Tool'
+      inputs:
+        command: 'pack'
+        arguments: '-c $(Configuration)'
+        projects: |
+          HarmonyCore.CLITool
 
 #   - task: DotNetCoreCLI@2
 #     displayName: 'Publish Linux Test Binaries'

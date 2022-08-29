@@ -1,4 +1,4 @@
-<CODEGEN_FILENAME>PostManTests.postman_collection.json</CODEGEN_FILENAME>
+<CODEGEN_FILENAME>PostMan_ODataTests.postman_collection.json</CODEGEN_FILENAME>
 <REQUIRES_CODEGEN_VERSION>5.7.5</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>API_TITLE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVER_BASE_PATH</REQUIRES_USERTOKEN>
@@ -7,8 +7,8 @@
 <REQUIRES_USERTOKEN>SERVER_PROTOCOL</REQUIRES_USERTOKEN>
 {
     "info": {
-        "_postman_id": "<guid_nobrace>",
-        "name": "<API_TITLE>",
+        "_postman_id": "3efc60d1-7fb2-4a4a-a466-2ba6f69ebe7d",
+        "name": "<API_TITLE> (OData)",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
     "item": [
