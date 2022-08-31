@@ -260,7 +260,7 @@ namespace <NAMESPACE>
             lambda ODataConfig(option)
             begin
                 option.EnableAttributeRouting = true
-                option<IF DEFINED_ENABLE_COUNT>.Count()</IF><IF DEFINED_ENABLE_RELATIONS>.Filter()</IF><IF DEFINED_ENABLE_RELATIONS>.Expand()</IF><IF DEFINED_ENABLE_SELECT>.Select()</IF><IF DEFINED_ENABLE_ORDERBY>.OrderBy()</IF><IF DEFINED_ENABLE_TOP>.SetMaxTop(40)</IF>
+                option<IF DEFINED_ENABLE_COUNT>.Count()</IF><IF DEFINED_ENABLE_FILTER>.Filter()</IF><IF DEFINED_ENABLE_RELATIONS>.Expand()</IF><IF DEFINED_ENABLE_SELECT>.Select()</IF><IF DEFINED_ENABLE_ORDERBY>.OrderBy()</IF><IF DEFINED_ENABLE_TOP>.SetMaxTop(40)</IF>
 				&	.AddRouteComponents(EdmBuilder.GetEdmModel(^null, 1))
                 option.Conventions.Insert(1, new AdapterRoutingConvention())
             end
@@ -506,11 +506,11 @@ namespace <NAMESPACE>
 			app.UseSwagger()
 			app.UseSwaggerUI(lambda(c) { c.SwaggerEndpoint("/swagger/v<API_VERSION>/swagger.json", "<API_TITLE>") })
 
-            app.UsePathBase(new PathString("<SERVER_BASE_PATH>/v1"))
-
             ;;Enable serving static files
             app.UseDefaultFiles()
             app.UseStaticFiles()
+
+            app.UsePathBase(new PathString("/<SERVER_BASE_PATH>/v1"))
 
             ;;Use odata route debug, /$odata
             app.UseODataRouteDebug("/$odata")

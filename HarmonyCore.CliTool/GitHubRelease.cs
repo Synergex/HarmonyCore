@@ -19,7 +19,7 @@ namespace HarmonyCore.CliTool
             var octoClient = new Octokit.GitHubClient(new Octokit.ProductHeaderValue("Synergex"));
             var allReleases = await octoClient.Repository.Release.GetAll("Synergex", "HarmonyCore");
 
-            var latestRelease = allReleases.OrderBy(rel => rel.PublishedAt).FirstOrDefault(rel => rel.Name?.StartsWith("net6") ?? false);
+            var latestRelease = allReleases.OrderByDescending(rel => rel.PublishedAt).FirstOrDefault(rel => rel.Name?.StartsWith("net6") ?? false);
 
             var CurrentVersionTag = overrideVersionName ?? latestRelease.TagName;
 
