@@ -520,9 +520,13 @@ namespace <NAMESPACE>
             begin
 				endpoints.MapControllers()
 			end
-
+            
             app.UseRouting()
 
+            <IF DEFINED_ENABLE_AUTHENTICATION>
+            app.UseAuthorization()
+
+            </IF>
             app.UseEndpoints(RoutingConfig)
 
             ;;If there is a ConfigureCustom method, call it
