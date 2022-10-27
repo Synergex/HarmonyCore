@@ -204,10 +204,28 @@ namespace HarmonyCore.CliTool.TUI.Models
 
     public class StructKeyOptionsAttribute : ValueOptionsExtractorBaseAttribute
     {
-        MethodInfo _fieldWithStructure;
+        public StructKeyOptionsAttribute(string dynamicStructContext = null)
+        {
+            _dynamicStructContext = dynamicStructContext;
+        }
+
+        private string _dynamicStructContext;
         public override List<object> BindValue(PropertyInfo property, object source, ISingleItemSettings parent, SolutionInfo context)
         {
-            if (parent is IContextWithStructure contextWithStructure)
+            if (!string.IsNullOrWhiteSpace(_dynamicStructContext))
+            {
+                //the dynamic struct context must be a sibling property for our current type/value
+                var targetProperty = property.DeclaringType.GetProperty(_dynamicStructContext);
+                var targetStructName = targetProperty?.GetValue(parent) as string;
+                if (string.IsNullOrWhiteSpace(targetStructName))
+                    throw new Exception(string.Format("Invalid dynamic structure target for -> {0}", property.Name));
+                var actualTargetStruct = context.CodeGenSolution.RPS.GetStructure(targetStructName);
+                if (actualTargetStruct == null)
+                    throw new Exception(string.Format("Invalid dynamic structure target was {0}", targetStructName));
+
+                return actualTargetStruct.Keys.Select(key => (object)key.Name).ToList();
+            }
+            else if (parent is IContextWithStructure contextWithStructure)
             {
                 return contextWithStructure.StructureContext.Keys.Select(key => (object)key.Name).ToList();
             }
@@ -220,9 +238,29 @@ namespace HarmonyCore.CliTool.TUI.Models
     //that field must match a repository structure field
     public class StructFieldNameOptionsAttribute : ValueOptionsExtractorBaseAttribute
     {
+        public StructFieldNameOptionsAttribute(string dynamicStructContext = null)
+        {
+            _dynamicStructContext = dynamicStructContext;
+        }
+
+        private string _dynamicStructContext;
+
         public override List<object> BindValue(PropertyInfo property, object source, ISingleItemSettings parent, SolutionInfo context)
         {
-            if (parent is IContextWithStructure contextWithStructure)
+            if (!string.IsNullOrWhiteSpace(_dynamicStructContext))
+            {
+                //the dynamic struct context must be a sibling property for our current type/value
+                var targetProperty = property.DeclaringType.GetProperty(_dynamicStructContext);
+                var targetStructName = targetProperty?.GetValue(parent) as string;
+                if (string.IsNullOrWhiteSpace(targetStructName))
+                    throw new Exception(string.Format("Invalid dynamic structure target for -> {0}", property.Name));
+                var actualTargetStruct = context.CodeGenSolution.RPS.GetStructure(targetStructName);
+                if (actualTargetStruct == null)
+                    throw new Exception(string.Format("Invalid dynamic structure target was {0}", targetStructName));
+
+                return actualTargetStruct.Fields.Select(key => (object)key.Name).ToList();
+            }
+            else if (parent is IContextWithStructure contextWithStructure)
             {
                 return contextWithStructure.StructureContext.Fields.Select(fld => (object)fld.Name).ToList();
             }
@@ -241,4 +279,29 @@ namespace HarmonyCore.CliTool.TUI.Models
         }
     }
 
+    public class EnumOptionsAttribute : ValueOptionsExtractorBaseAttribute
+    {
+        public override List<object> BindValue(PropertyInfo property, object source, ISingleItemSettings parent, SolutionInfo context)
+        {
+            if (!(property?.PropertyType?.IsEnum ?? false))
+                throw new Exception("Cant apply enum options to a non enum type");
+
+            return property.PropertyType.GetEnumNames().OfType<object>().ToList();
+        }
+    }
+
+    public class StaticOptionsAttribute : ValueOptionsExtractorBaseAttribute
+    {
+        public StaticOptionsAttribute(string optionsString)
+        {
+            _options = optionsString.Split("|");
+        }
+
+        private string[] _options;
+
+        public override List<object> BindValue(PropertyInfo property, object source, ISingleItemSettings parent, SolutionInfo context)
+        {
+            return _options.OfType<object>().ToList();
+        }
+    }
 }

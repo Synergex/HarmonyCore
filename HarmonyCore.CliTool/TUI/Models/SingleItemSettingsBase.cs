@@ -12,11 +12,11 @@ namespace HarmonyCore.CliTool.TUI.Models
     {
         public List<PropertyInfo> DisplayPropertyBacking { get; }
         public SolutionInfo Context { get; }
-        public IEnumerable<PropertyItemSetting> DisplayProperties
+        public IEnumerable<IPropertyItemSetting> DisplayProperties
         {
             get
             {
-                var result = new List<PropertyItemSetting>();
+                var result = new List<IPropertyItemSetting>();
                 foreach (var property in DisplayPropertyBacking)
                 {
                     result.Add(MakeItemSetting(property));
@@ -59,11 +59,11 @@ namespace HarmonyCore.CliTool.TUI.Models
             }
         }
 
-        private PropertyItemSetting MakeItemSetting(PropertyInfo property)
+        private IPropertyItemSetting MakeItemSetting(PropertyInfo property)
         {
-            if (property.PropertyType.IsAssignableTo(typeof(PropertyItemSetting)))
+            if (property.PropertyType.IsAssignableTo(typeof(IPropertyItemSetting)))
             {
-                var typedResult = property.GetValue(this) as PropertyItemSetting;
+                var typedResult = property.GetValue(this) as IPropertyItemSetting;
                 typedResult.Prompt = ExtractPromptFromProperty(property);
                 typedResult.Value = ExtractValueFromProperty(property);
                 typedResult.Source = property;
@@ -71,7 +71,7 @@ namespace HarmonyCore.CliTool.TUI.Models
             }
             else
             {
-                return new PropertyItemSetting
+                return new GeneratedPropertyItemSetting
                 {
                     Prompt = ExtractPromptFromProperty(property),
                     Value = ExtractValueFromProperty(property),
@@ -116,7 +116,7 @@ namespace HarmonyCore.CliTool.TUI.Models
                 return ",";
         }
 
-        public List<object> ExtractValueOptionsFromProperty(PropertyItemSetting setting)
+        public List<object> ExtractValueOptionsFromProperty(IPropertyItemSetting setting)
         {
             var valueExtractorAttribute = setting.Source.GetCustomAttribute<ValueOptionsExtractorBaseAttribute>(true);
             if (valueExtractorAttribute != null)
@@ -125,7 +125,7 @@ namespace HarmonyCore.CliTool.TUI.Models
                 return new List<object>();
         }
 
-        public PropertyItemSetting UpdateSettingValue(PropertyItemSetting setting, object value)
+        public IPropertyItemSetting UpdateSettingValue(IPropertyItemSetting setting, object value)
         {
             var valueExtractorAttribute = setting.Source.GetCustomAttribute<ValueInjectorBaseAttribute>(true);
             if (valueExtractorAttribute != null)
@@ -133,7 +133,7 @@ namespace HarmonyCore.CliTool.TUI.Models
             else
                 setting.Source.SetValue(this, value);
 
-            return new PropertyItemSetting
+            return new GeneratedPropertyItemSetting
             {
                 Prompt = setting.Prompt,
                 Value = ExtractValueFromProperty(setting.Source),

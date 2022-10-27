@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace HarmonyCore.CliTool.TUI.Models
 {
-    public class AuthOptionSettings : PropertyItemSetting, ISingleItemSettings
+    public class AuthOptionSettings : IPropertyItemSetting, ISingleItemSettings
     {
         AuthOptions _wrapped;
         Action<AuthOptions> _replaceNull;
@@ -22,7 +22,12 @@ namespace HarmonyCore.CliTool.TUI.Models
         }
 
         [IgnoreProperty]
-        public override object Value
+        public string Prompt { get; set; }
+        [IgnoreProperty]
+        public PropertyInfo Source { get; set; }
+
+        [IgnoreProperty]
+        public object Value
         {
             get
             {

@@ -93,10 +93,10 @@ namespace HarmonyCore.CliTool.TUI.Views
         {
             public ISingleItemSettings Context { get; set; }
 
-            public PropertyItemSetting Model { get; set; }
+            public IPropertyItemSetting Model { get; set; }
 
             public bool Success { get; set; }
-            public PropertyItemSetting Result { get; set; }
+            public IPropertyItemSetting Result { get; set; }
 
             public ThingPicker(IMultiItemSettingsBase multiItemContext)
             {

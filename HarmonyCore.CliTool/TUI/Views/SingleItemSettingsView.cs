@@ -45,7 +45,7 @@ namespace HarmonyCore.CliTool.TUI.Views
             {
                 RepresentationGetter = (obj) =>
                 {
-                    var typedObj = obj as PropertyItemSetting;
+                    var typedObj = obj as IPropertyItemSetting;
                     if (!GetCurrentWidth(out var currentWidth))
                         currentWidth = 40;
                     else
@@ -84,7 +84,7 @@ namespace HarmonyCore.CliTool.TUI.Views
             if (e.Table == null)
                 return;
 
-            var editValue = new EditablePropertyItem(_settings, e.Table.Rows[e.Row][1] as PropertyItemSetting);
+            var editValue = new EditablePropertyItem(_settings, e.Table.Rows[e.Row][1] as IPropertyItemSetting);
             var isfullScreen = editValue.Model is IMultiItemSettingsBase;
             var prompt = string.IsNullOrWhiteSpace(_titleContext) ? editValue.Model.Prompt : _titleContext + " > " + editValue.Model.Prompt;
             EditSettingView.PushEditSettingsView(isfullScreen ? prompt : "Enter new value", editValue, isfullScreen);

@@ -11,8 +11,8 @@ namespace HarmonyCore.CliTool.TUI.Models
     {
         bool CanAddItems { get; }
         List<ISingleItemSettings> Items { get; }
-        ISingleItemSettings AddItem(PropertyItemSetting initSetting);
-        (ISingleItemSettings, PropertyItemSetting) GetInitialProperty();
+        ISingleItemSettings AddItem(IPropertyItemSetting initSetting);
+        (ISingleItemSettings, IPropertyItemSetting) GetInitialProperty();
         void ISettingsBase.Save(SolutionInfo context)
         {
             foreach (ISettingsBase item in Items)
