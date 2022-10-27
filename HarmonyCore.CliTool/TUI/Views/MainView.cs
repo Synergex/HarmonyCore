@@ -27,11 +27,14 @@ namespace HarmonyCore.CliTool.TUI.Views
                 new MenuBarItem("_File", new MenuItem[]
                 {
                     new MenuItem("_Save", "Save Harmony Core Customization file", _mainViewModel.Save),
+                    new MenuItem("_Import", "Import regen.bat settings into the current Harmony Core Customization file", _mainViewModel.Save),
+                    new MenuItem("_Validate", "Validate customization scripts and settings", _mainViewModel.Validate),
                     new MenuItem("_Quit", "Exit the program", Quit)
                 }),
                 new MenuBarItem("_Codegen", new MenuItem[]
                 {
                     new MenuItem("_Regen", "Run CodeGen based off your Harmony Core customization file", _mainViewModel.Regen),
+                    new MenuItem("_Sync VS", "Add/Remove generated files from your Visual Studio Solution", _mainViewModel.SyncVS),
                 })
             });
             Add(MenuBar, StatusBar);

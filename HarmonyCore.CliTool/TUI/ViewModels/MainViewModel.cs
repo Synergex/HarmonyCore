@@ -98,6 +98,7 @@ namespace HarmonyCore.CliTool.TUI.ViewModels
             if (solution != null)
             {
                 _context.CodeGenSolution = solution;
+                //TODO report errors from here instead of just failing to load
                 DynamicSettings = await DynamicSettingsLoader.LoadDynamicSettings(_context, Path.Combine(_context.SolutionDir, "Generators", "Settings"));
 
                 //InstructionalTabTextBlockText = "Select a tab to continue.";
@@ -128,6 +129,27 @@ namespace HarmonyCore.CliTool.TUI.ViewModels
                 statusUpdate("Load failed");
                 error($"Could not load the solution associated with this JSON file.{Environment.NewLine}{Environment.NewLine}Double check the paths inside the JSON file and try again. In addition, the JSON file must be placed at the root of the HarmonyCore solution.");
             }
+        }
+
+        internal async void Validate()
+        {
+            //pop compiling/output dialog
+            //load all customization scripts to make sure they compile
+            try
+            {
+                var generators = await DynamicCodeGenerator.LoadDynamicGenerators(Path.Combine(_context.SolutionDir, "Generators", "Enabled"));
+                //log success for each generator
+            }
+            catch(Exception ex)
+            {
+                //log failure
+            }
+
+        }
+
+        internal void SyncVS()
+        {
+            throw new NotImplementedException();
         }
     }
 }
