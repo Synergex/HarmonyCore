@@ -8,7 +8,9 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using NStack;
 using Terminal.Gui;
 
 namespace HarmonyCore.CliTool.TUI.Views
@@ -17,11 +19,39 @@ namespace HarmonyCore.CliTool.TUI.Views
     {
         MainViewModel _mainViewModel;
         TabView _tabView;
-        public MainView(SolutionInfo context)
+        private View _loadView;
+        private ProgressBar _progressView;
+        private Timer _progressTimer;
+        public MainView(Func<Action<string>, SolutionInfo> context)
         {
             StatusBar = new StatusBar();
-            _mainViewModel = new MainViewModel(context);
-            _mainViewModel.EnsureSolutionLoad(PromptForSolutionFile, UpdateStatus, ShowLoadError, FinishedLoad);
+
+            _loadView = new View()
+            {
+                X = Pos.Center(),
+                Y = Pos.Center(),
+                Width = Dim.Percent(75f),
+                Height = Dim.Percent(75f),
+                Text = ""
+            };
+
+            _progressView = new ProgressBar()
+            {
+                X = Pos.Center(),
+                Y = 2,
+                ProgressBarStyle = ProgressBarStyle.MarqueeContinuous,
+                Width = 30
+            };
+
+
+
+            _mainViewModel = new MainViewModel(() => context((str) => Application.MainLoop.Invoke(() =>
+            {
+                _loadView.GetCurrentWidth(out var currentWidth);
+                var wrappedText = TextFormatter.WordWrap(str, currentWidth);
+                _loadView.Text += (string.Join(Environment.NewLine, wrappedText.Select(txt => txt.ToString()).ToArray()) + Environment.NewLine);
+            })));
+
             MenuBar = new MenuBar(new MenuBarItem[]
             {
                 new MenuBarItem("_File", new MenuItem[]
@@ -37,8 +67,15 @@ namespace HarmonyCore.CliTool.TUI.Views
                     new MenuItem("_Sync VS", "Add/Remove generated files from your Visual Studio Solution", _mainViewModel.SyncVS),
                 })
             });
-            Add(MenuBar, StatusBar);
 
+            Add(_loadView, _progressView, MenuBar, StatusBar);
+
+            _mainViewModel.EnsureSolutionLoad(PromptForSolutionFile, UpdateStatus, ShowLoadError, FinishedLoad);
+
+            _progressTimer = new Timer((_) => {
+                _progressView.Pulse();
+                Application.MainLoop.Driver.Wakeup();
+            }, null, 0, 300);
         }
 
         private void Quit()
@@ -48,36 +85,52 @@ namespace HarmonyCore.CliTool.TUI.Views
 
         void UpdateStatus(string status)
         {
-            StatusBar.Text = status;
+            Application.MainLoop.Invoke(() => StatusBar.Text = status);
         }
 
         void ShowLoadError(string error)
         {
-            MessageBox.ErrorQuery("Load error", error, "Ok");
-            Application.RequestStop(this);
+            Application.MainLoop.Invoke(() =>
+            {
+                MessageBox.ErrorQuery("Load error", error, "Ok");
+                Application.RequestStop(this);
+            });
         }
 
         void FinishedLoad()
         {
-            //load up tab views 
-            _tabView = new TabView()
+            Application.MainLoop.Invoke(async () =>
             {
-                X = 1,
-                Y = 1,
-                Width = Dim.Fill(),
-                Height = Dim.Fill() - 1
-            };
+                _progressTimer?.Dispose();
+                _progressView.Fraction = 100f;
+                _loadView.Text += "Loaded";
+
+                await Task.Delay(2000);
+                
+                Remove(_loadView);
+                //load up tab views 
+                _tabView = new TabView()
+                {
+                    X = 1,
+                    Y = 1,
+                    Width = Dim.Fill(),
+                    Height = Dim.Fill() - 1
+                };
 
 
-            foreach(var setting in _mainViewModel.ActiveSettings)
-            {
-                if (setting is SingleItemSettingsBase singleItemSetting)
-                    _tabView.AddTab(new TabView.Tab(setting.Name, new SingleItemSettingsView(singleItemSetting)), setting == _mainViewModel.ActiveSettings.First());
-                else if(setting is IMultiItemSettingsBase multiItemSetting)
-                    _tabView.AddTab(new TabView.Tab(setting.Name, new MultiItemSettingsView(multiItemSetting)), setting == _mainViewModel.ActiveSettings.First());
-            }
-            _tabView.SelectedTabChanged += tabView_SelectedTabChanged;
-            Add(_tabView);
+                foreach (var setting in _mainViewModel.ActiveSettings)
+                {
+                    if (setting is SingleItemSettingsBase singleItemSetting)
+                        _tabView.AddTab(new TabView.Tab(setting.Name, new SingleItemSettingsView(singleItemSetting)),
+                            setting == _mainViewModel.ActiveSettings.First());
+                    else if (setting is IMultiItemSettingsBase multiItemSetting)
+                        _tabView.AddTab(new TabView.Tab(setting.Name, new MultiItemSettingsView(multiItemSetting)),
+                            setting == _mainViewModel.ActiveSettings.First());
+                }
+
+                _tabView.SelectedTabChanged += tabView_SelectedTabChanged;
+                Add(_tabView);
+            });
         }
 
         private void tabView_SelectedTabChanged(object sender, TabView.TabChangedEventArgs e)

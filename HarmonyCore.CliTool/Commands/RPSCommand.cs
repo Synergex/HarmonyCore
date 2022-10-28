@@ -11,11 +11,11 @@ namespace HarmonyCore.CliTool.Commands
 {
     class RPSCommand
     {
-        SolutionInfo _solutionInfo;
-
-        public RPSCommand(SolutionInfo solutionInfo)
+        private readonly Lazy<SolutionInfo> _loader;
+        SolutionInfo _solutionInfo => _loader.Value;
+        public RPSCommand(Func<SolutionInfo> solutionInfo)
         {
-            _solutionInfo = solutionInfo;
+            _loader = new Lazy<SolutionInfo>(solutionInfo);
         }
 
         public int Run(RpsOptions opts)

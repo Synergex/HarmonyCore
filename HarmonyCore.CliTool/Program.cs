@@ -317,17 +317,10 @@ Known structure properties:
             }
         }
 
-        static void Main(string[] args)
+        static SolutionInfo LoadSolutionInfo(Action<string> logger)
         {
-            var (handle, mode) = GetConsoleState();
-            var versionOverride = Environment.GetEnvironmentVariable("HC_VERSION");
-            if (int.TryParse(versionOverride, out var version))
-                TargetVersion = new VersionTargetingInfo(version);
-            else
-                TargetVersion = new VersionTargetingInfo(6);
-
             var solutionDir = Environment.GetEnvironmentVariable("SolutionDir") ?? Environment.CurrentDirectory;
-            Console.WriteLine("Scanning '{0}' for HarmonyCore project files", solutionDir);
+            logger(string.Format("Scanning '{0}' for HarmonyCore project files", solutionDir));
             string[] synprojFiles = new string[0];
             try
             {
@@ -338,25 +331,44 @@ Known structure properties:
             }
             catch (Exception ex)
             {
-                Console.WriteLine("error while searching for project files: {0}", ex.Message);
-                return;
+                logger(string.Format("error while searching for project files: {0}", ex.Message));
+                return null;
             }
 
             var instances = MSBuildLocator.QueryVisualStudioInstances().ToList();
             var msbuildDeploymentToUse = instances.FirstOrDefault();
-
+            if (msbuildDeploymentToUse == null)
+            {
+                logger("Failed to locate MSBuild path");
+                return null;
+            }
             // Calling Register methods will subscribe to AssemblyResolve event. After this we can
             // safely call code that use MSBuild types (in the Builder class).
 
-            Console.WriteLine($"Using MSBuild from path: {msbuildDeploymentToUse.MSBuildPath}");
-            Console.WriteLine();
+            logger($"Using MSBuild from path: {msbuildDeploymentToUse.MSBuildPath}");
+            logger("");
 
             if (!MSBuildLocator.IsRegistered)
                 MSBuildLocator.RegisterMSBuildPath(msbuildDeploymentToUse.MSBuildPath);
 
-            var solutionInfo = new SolutionInfo(synprojFiles, solutionDir, TargetVersion);
+            return new SolutionInfo(synprojFiles, solutionDir, TargetVersion);
+        }
+
+        static void Main(string[] args)
+        {
+            var (handle, mode) = GetConsoleState();
+            var versionOverride = Environment.GetEnvironmentVariable("HC_VERSION");
+            if (int.TryParse(versionOverride, out var version))
+                TargetVersion = new VersionTargetingInfo(version);
+            else
+                TargetVersion = new VersionTargetingInfo(6);
+
+            //force synrnt to load
+            Synergex.SynergyDE.AlphaDesc.notPassedAlpha.CheckPassed();
 
             ResetConsoleMode(handle, mode);
+
+            var defaultLoader = () => LoadSolutionInfo((str) => Console.WriteLine(str));
 
             _ = Parser.Default.ParseArguments<UpgradeLatestOptions, CodegenListOptions, CodegenAddOptions, CodegenRemoveOptions, RpsOptions, RegenOptions, XMLGenOptions, GUIOptions, ReloadBatOptions>(args)
             .MapResult<UpgradeLatestOptions, CodegenListOptions, CodegenAddOptions, CodegenRemoveOptions, RpsOptions, RegenOptions, XMLGenOptions, GUIOptions, ReloadBatOptions, int>(
@@ -375,20 +387,21 @@ Known structure properties:
 
 
                   if (opts.ProjectOnly)
-                      UpgradeProjects(solutionInfo);
+                      UpgradeProjects(defaultLoader());
                   else
-                      UpgradeLatest(solutionInfo, opts.OverrideTemplateVersion, opts.OverrideTemplateUrl).Wait();
+                      UpgradeLatest(defaultLoader(), opts.OverrideTemplateVersion, opts.OverrideTemplateUrl).Wait();
                   return 0;
               },
-              new CodegenCommand(solutionInfo).List,
-              new CodegenCommand(solutionInfo).Add,
-              new CodegenCommand(solutionInfo).Remove,
-              new RPSCommand(solutionInfo).Run,
-              new RegenCommand(solutionInfo).Run,
+              new CodegenCommand(defaultLoader).List,
+              new CodegenCommand(defaultLoader).Add,
+              new CodegenCommand(defaultLoader).Remove,
+              new RPSCommand(defaultLoader).Run,
+              new RegenCommand(defaultLoader).Run,
               new XMLGenCommand().Run,
-              new GUICommand(solutionInfo).Run,
+              new GUICommand(LoadSolutionInfo).Run,
               (ReloadBatOptions opts) =>
               {
+                  var solutionInfo = defaultLoader();
                   var regenPath = Path.Combine(solutionInfo.SolutionDir, "regen.bat");
                   var regenConfigPath = Path.Combine(solutionInfo.SolutionDir, "regen_config.bat");
                   var userTokenFile = Path.Combine(solutionInfo.SolutionDir, "UserDefinedTokens.tkn");

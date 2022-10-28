@@ -10,11 +10,11 @@ namespace HarmonyCore.CliTool.Commands
 {
     class RegenCommand
     {
-        SolutionInfo _solutionInfo;
-
-        public RegenCommand(SolutionInfo solutionInfo)
+        private readonly Lazy<SolutionInfo> _loader;
+        SolutionInfo _solutionInfo => _loader.Value;
+        public RegenCommand(Func<SolutionInfo> solutionInfo)
         {
-            _solutionInfo = solutionInfo;
+            _loader = new Lazy<SolutionInfo>(solutionInfo);
         }
         //Add a filesystem watcher with callbacks and percentages
         //

@@ -12,9 +12,9 @@ namespace HarmonyCore.CliTool.Commands
 {
     internal class GUICommand
     {
-        private SolutionInfo _solutionInfo;
+        private Func<Action<string>, SolutionInfo> _solutionLoader;
 
-        public GUICommand(SolutionInfo solutionInfo) => this._solutionInfo = solutionInfo;
+        public GUICommand(Func<Action<string>, SolutionInfo> solutionInfo) => this._solutionLoader = solutionInfo;
 
         public int Run(GUIOptions options)
         {
@@ -22,7 +22,7 @@ namespace HarmonyCore.CliTool.Commands
             Application.Init();
             Application.HeightAsBuffer = false;
             
-            Application.Run(new MainView(_solutionInfo));
+            Application.Run(new MainView(_solutionLoader));
             return 0;
         }
     }

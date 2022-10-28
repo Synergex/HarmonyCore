@@ -16,14 +16,16 @@ namespace HarmonyCore.CliTool.TUI.ViewModels
 {
     internal class MainViewModel
     {
-        SolutionInfo _context;
+        private readonly Lazy<SolutionInfo> _loader;
+        SolutionInfo _context => _loader.Value;
+
         Dictionary<string, ISettingsBase> DynamicSettings { get; set; }
         public List<string> InactiveSettings { get; } = new List<string>();
         public List<ISettingsBase> ActiveSettings { get; } = new List<ISettingsBase>();
 
-        public MainViewModel(SolutionInfo context)
+        public MainViewModel(Func<SolutionInfo> contextLoader)
         {
-            _context = context;
+            _loader = new Lazy<SolutionInfo>(contextLoader);
         }
 
         public async void EnsureSolutionLoad(Func<string> getFileName, Action<string> statusUpdate, Action<string> error, Action loaded)
@@ -31,7 +33,8 @@ namespace HarmonyCore.CliTool.TUI.ViewModels
             try
             {
                 var synthesizedPath = Path.Combine(_context.SolutionDir, "Harmony.Core.CodeGen.json");
-                await LoadSolutionFile(File.Exists(synthesizedPath) ? synthesizedPath : getFileName(), statusUpdate, error);
+                await Task.Yield();
+                await Task.Run(async () => await LoadSolutionFile(File.Exists(synthesizedPath) ? synthesizedPath : getFileName(), statusUpdate, error));
                 loaded();
             }
             catch(FileNotFoundException)
@@ -47,7 +50,7 @@ namespace HarmonyCore.CliTool.TUI.ViewModels
         internal void Regen()
         {
             Save();
-            var regenCommand = new RegenCommand(_context) { CallerLogger = (str) => { } };
+            var regenCommand = new RegenCommand(() => _context) { CallerLogger = (str) => { } };
             regenCommand.Run(new RegenOptions());
             //TODO show messages interactively
         }
