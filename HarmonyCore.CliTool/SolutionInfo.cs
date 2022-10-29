@@ -1,10 +1,12 @@
 using HarmonyCoreGenerator.Model;
-using Microsoft.Build.Locator;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace HarmonyCore.CliTool
 {
@@ -66,6 +68,36 @@ namespace HarmonyCore.CliTool
             catch (Exception ex)
             {
                 Console.WriteLine("WARNING: Exception while synthesizing codegen project information: {0}", ex);
+            }
+        }
+
+        class VersionsResponse
+        {
+            public string[] Versions { get; set; }
+        }
+
+        public async Task<ValueTuple<bool, string, string>> UpToDateCheck()
+        {
+            var myVersion = System.Diagnostics.FileVersionInfo
+                .GetVersionInfo(typeof(SolutionInfo).Assembly.Location)
+                .FileVersion;
+            try
+            {
+                var cts = new CancellationTokenSource();
+                cts.CancelAfter(5000);
+                var packageName = "Harmony.Core.CLITool";
+                var url = $"https://api.nuget.org/v3-flatcontainer/{packageName}/index.json";
+                var httpClient = new HttpClient();
+                var response = await httpClient.GetAsync(url, cts.Token);
+                var versionsResponseBytes = await response.Content.ReadAsStringAsync(cts.Token);
+                var versionsResponse = JsonConvert.DeserializeObject<VersionsResponse>(versionsResponseBytes);
+                var lastVersion = versionsResponse.Versions[^1]; //(length-1)
+                return (Version.Parse(lastVersion) <= Version.Parse(myVersion), lastVersion, myVersion);
+            }
+            catch
+            {
+
+                return (true, myVersion, myVersion);
             }
         }
 

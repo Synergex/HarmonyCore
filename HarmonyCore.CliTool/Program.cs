@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Runtime;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace HarmonyCore.CliTool
 {
@@ -317,6 +318,8 @@ Known structure properties:
             }
         }
 
+        public static Dictionary<string, string> AppSettings = new Dictionary<string, string>();
+
         static SolutionInfo LoadSolutionInfo(Action<string> logger)
         {
             var solutionDir = Environment.GetEnvironmentVariable("SolutionDir") ?? Environment.CurrentDirectory;
@@ -368,6 +371,17 @@ Known structure properties:
 
             ResetConsoleMode(handle, mode);
 
+            string appData = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.DoNotVerify), "Harmony.Core.CLITool");
+            // Ensure the directory and all its parents exist.
+            Directory.CreateDirectory(appData);
+
+            var configData = Path.Combine(appData, "config.json");
+            if (File.Exists(configData))
+            {
+                AppSettings = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(configData));
+            }
+            AppDomain.CurrentDomain.ProcessExit += (sender, e) => File.WriteAllText(configData, JsonConvert.SerializeObject(AppSettings));
+
             var defaultLoader = () => LoadSolutionInfo((str) => Console.WriteLine(str));
 
             _ = Parser.Default.ParseArguments<UpgradeLatestOptions, CodegenListOptions, CodegenAddOptions, CodegenRemoveOptions, RpsOptions, RegenOptions, XMLGenOptions, GUIOptions, ReloadBatOptions>(args)
@@ -416,6 +430,7 @@ Known structure properties:
                   }
                   return 1;
               });
+            
         }
 
         static void UpgradeProjects(SolutionInfo solution)

@@ -38,6 +38,16 @@ namespace HarmonyCore.CliTool.TUI.ViewModels
                 await Task.Yield();
                 await Task.Run(async () => await LoadSolutionFile(File.Exists(synthesizedPath) ? synthesizedPath : getFileName(), statusUpdate, error));
                 loaded();
+                if (!Program.AppSettings.TryGetValue("LastUpToDateCheck", out var lastChecked) || DateTime.Parse(lastChecked).AddDays(5) < DateTime.Now)
+                {
+                    var (upToDate, nugetVersion, myVersion) = await _context.UpToDateCheck();
+                    Program.AppSettings["LastUpToDateCheck"] = DateTime.Now.ToString();
+                    if (!upToDate)
+                    {
+                        MessageBox.ErrorQuery("Update needed",
+                            $"The most recent version available on nuget is {nugetVersion} the currently running version {myVersion}");
+                    }
+                }
             }
             catch(FileNotFoundException)
             {
