@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using HarmonyCoreGenerator.Model;
 
 namespace HarmonyCore.CliTool.Commands
 {
@@ -15,12 +16,17 @@ namespace HarmonyCore.CliTool.Commands
         public RegenCommand(Func<SolutionInfo> solutionInfo)
         {
             _loader = new Lazy<SolutionInfo>(solutionInfo);
+            GenerationEvents = new Solution.SolutionGenerationEvents() { Message = Logger, Error = Logger };
         }
         //Add a filesystem watcher with callbacks and percentages
         //
+
+        public Solution.SolutionGenerationEvents GenerationEvents { get; set; }
+
         public Action<string> CallerLogger { get; set; } = (str) => Console.WriteLine(str);
         private List<string> AddedFiles { get; } = new List<string>();
         private List<string> UpdatedFiles { get; } = new List<string>();
+        public CancellationToken CancelToken { get; set; }
 
         public bool IsGeneratedFile(string projectPath, string sourceFileName)
         {
@@ -44,8 +50,8 @@ namespace HarmonyCore.CliTool.Commands
                 fsw.Created += Fsw_Created;
                 fsw.Changed += Fsw_Changed;
 
-                var result = _solutionInfo.CodeGenSolution.GenerateSolution(Logger,
-                    CancellationToken.None,
+                var result = _solutionInfo.CodeGenSolution.GenerateSolution(GenerationEvents,
+                    CancelToken,
                     DynamicCodeGenerator.LoadDynamicGenerators(Path.Combine(_solutionInfo.SolutionDir, "Generators", "Enabled")).Result);
 
                 foreach (var error in result.ValidationErrors)

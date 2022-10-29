@@ -69,7 +69,7 @@ namespace HarmonyCore.CliTool.TUI.Views
 
             _structureListScrollBarView.DrawContent += (e) =>
             {
-                _structureListScrollBarView.Size = _structureListView.Source.Count - 1;
+                _structureListScrollBarView.Size = Math.Max(_structureListView.Source.Count - 1, 1);
                 _structureListScrollBarView.Position = _structureListView.TopItem;
                 _structureListScrollBarView.OtherScrollBarView.Size = _structureListView.Maxlength - 1;
                 _structureListScrollBarView.OtherScrollBarView.Position = _structureListView.LeftItem;
@@ -104,11 +104,10 @@ namespace HarmonyCore.CliTool.TUI.Views
             }
         }
 
-        private void OnAddThing()
+        private async void OnAddThing()
         {
             //show structure/interface picker
-            var picker = new ThingPicker(_settings);
-            EditSettingView.PushEditSettingsView("Add " + _settings.Name.ToLower(), picker, false);
+            var picker = (await EditSettingView.PushEditSettingsView("Add " + _settings.Name.ToLower(), new ThingPicker(_settings), false)) as ThingPicker;
             if(picker.Success)
             {
                 //need to run a wizzard after selecting the structure or possible as part of selecting the structure

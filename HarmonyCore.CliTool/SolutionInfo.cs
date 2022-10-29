@@ -32,6 +32,19 @@ namespace HarmonyCore.CliTool
                 projectOptions.GlobalProperties.Add("NuGetRestoreTargets", Path.Combine(basePath, "Nuget.targets"));
 
                 Projects = projectPaths.Select(path => new ProjectInfo(path, targetVersion, TryLoadProject(path, projectOptions))).ToList();
+                var commonEnvVars = Projects.FirstOrDefault(project => project.MSBuildProject.GetProperty("CommonEnvVars") != null)?.MSBuildProject?.GetProperty("CommonEnvVars");
+                if (commonEnvVars?.EvaluatedValue != null)
+                {
+                    var splitVars = commonEnvVars.EvaluatedValue.Split(';');
+                    foreach (var envVar in splitVars)
+                    {
+                        var parts = envVar.Split('=');
+                        if(parts.Length == 2)
+                            Environment.SetEnvironmentVariable(parts[0], parts[1]);
+                        else if(parts.Length == 1)
+                            Environment.SetEnvironmentVariable(parts[0], null);
+                    }
+                }
 
                 if (File.Exists(codegenProjectPath))
                 {

@@ -1,16 +1,11 @@
 ﻿using HarmonyCore.CliTool.TUI.Models;
 using HarmonyCore.CliTool.TUI.ViewModels;
-using HarmonyCoreGenerator.Model;
-using Microsoft.Build.Locator;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using NStack;
 using Terminal.Gui;
 
 namespace HarmonyCore.CliTool.TUI.Views
@@ -19,38 +14,21 @@ namespace HarmonyCore.CliTool.TUI.Views
     {
         MainViewModel _mainViewModel;
         TabView _tabView;
-        private View _loadView;
-        private ProgressBar _progressView;
-        private Timer _progressTimer;
+       
         public MainView(Func<Action<string>, SolutionInfo> context)
         {
             StatusBar = new StatusBar();
+            Add(StatusBar);
+            FinishInit(context);
+        }
 
-            _loadView = new View()
-            {
-                X = Pos.Center(),
-                Y = Pos.Center(),
-                Width = Dim.Percent(75f),
-                Height = Dim.Percent(75f),
-                Text = ""
-            };
-
-            _progressView = new ProgressBar()
-            {
-                X = Pos.Center(),
-                Y = 2,
-                ProgressBarStyle = ProgressBarStyle.MarqueeContinuous,
-                Width = 30
-            };
-
-
-
-            _mainViewModel = new MainViewModel(() => context((str) => Application.MainLoop.Invoke(() =>
-            {
-                _loadView.GetCurrentWidth(out var currentWidth);
-                var wrappedText = TextFormatter.WordWrap(str, currentWidth);
-                _loadView.Text += (string.Join(Environment.NewLine, wrappedText.Select(txt => txt.ToString()).ToArray()) + Environment.NewLine);
-            })));
+        private async void FinishInit(Func<Action<string>, SolutionInfo> context)
+        {
+            await Task.Yield();
+            var cts = new CancellationTokenSource();
+            var dialog = new ProgressDialog("Loading solution", true, false, cts);
+            Application.Top.Add(dialog);
+            _mainViewModel = new MainViewModel(() => context(GetInvoker<string>(dialog.ShowMessage)));
 
             MenuBar = new MenuBar(new MenuBarItem[]
             {
@@ -63,19 +41,58 @@ namespace HarmonyCore.CliTool.TUI.Views
                 }),
                 new MenuBarItem("_Codegen", new MenuItem[]
                 {
-                    new MenuItem("_Regen", "Run CodeGen based off your Harmony Core customization file", _mainViewModel.Regen),
-                    new MenuItem("_Sync VS", "Add/Remove generated files from your Visual Studio Solution", _mainViewModel.SyncVS),
+                    new MenuItem("_Regen", "Run CodeGen based off your Harmony Core customization file", Regen),
+                    new MenuItem("_Sync VS", "Generate and Add/Remove generated files from your Visual Studio Solution", SyncVS),
                 })
             });
 
-            Add(_loadView, _progressView, MenuBar, StatusBar);
+            Add(MenuBar);
 
-            _mainViewModel.EnsureSolutionLoad(PromptForSolutionFile, UpdateStatus, ShowLoadError, FinishedLoad);
+            _mainViewModel.EnsureSolutionLoad(PromptForSolutionFile, GetInvoker<string>(UpdateStatus), GetInvoker<string>(ShowLoadError), GetInvoker(
+                async () =>
+                {
+                    FinishedLoad();
+                    await Task.Delay(1500);
+                    Application.Top.Remove(dialog);
+                }));
+        }
 
-            _progressTimer = new Timer((_) => {
-                _progressView.Pulse();
-                Application.MainLoop.Driver.Wakeup();
-            }, null, 0, 300);
+        private void Regen()
+        {
+            var cts = new CancellationTokenSource();
+            var dialog = new ProgressDialog("Regen", true, true, cts);
+            Application.Top.Add(dialog);
+            _mainViewModel.Regen(GetInvoker<string, float>(dialog.ShowProgress), GetInvoker<string>(UpdateStatus), GetInvoker<string>(dialog.ShowMessage), GetInvoker(dialog.EndProgressOperation), cts.Token);
+            
+        }
+
+        private void Invoke<T>(T arg, Action<T> callme)
+        {
+            Application.MainLoop.Invoke(() => callme(arg));
+        }
+
+        private Action GetInvoker(Action callme)
+        {
+            return () => Application.MainLoop.Invoke(callme);
+        }
+
+        private Action<T> GetInvoker<T>(Action<T> callme)
+        {
+            return (arg) => Application.MainLoop.Invoke(() => callme(arg));
+        }
+
+        private Action<T, T2> GetInvoker<T, T2>(Action<T, T2> callme)
+        {
+            return (arg, arg2) => Application.MainLoop.Invoke(() => callme(arg, arg2));
+        }
+
+        private void SyncVS()
+        {
+            var cts = new CancellationTokenSource();
+            var dialog = new ProgressDialog("Synchronize generated files", true, true, cts);
+            Application.Top.Add(dialog);
+            //TODO: register for file change report at the end
+            _mainViewModel.Regen(GetInvoker<string, float>(dialog.ShowProgress), GetInvoker<string>(UpdateStatus), GetInvoker<string>(dialog.ShowMessage), GetInvoker(dialog.EndProgressOperation), cts.Token);
         }
 
         private void Quit()
@@ -85,52 +102,39 @@ namespace HarmonyCore.CliTool.TUI.Views
 
         void UpdateStatus(string status)
         {
-            Application.MainLoop.Invoke(() => StatusBar.Text = status);
+            StatusBar.Text = status;
+            Application.MainLoop.Driver.Wakeup();
         }
 
         void ShowLoadError(string error)
         {
-            Application.MainLoop.Invoke(() =>
-            {
-                MessageBox.ErrorQuery("Load error", error, "Ok");
-                Application.RequestStop(this);
-            });
+            MessageBox.ErrorQuery("Load error", error, "Ok");
+            Application.RequestStop(this);
         }
 
         void FinishedLoad()
         {
-            Application.MainLoop.Invoke(async () =>
+            //load up tab views 
+            _tabView = new TabView()
             {
-                _progressTimer?.Dispose();
-                _progressView.Fraction = 100f;
-                _loadView.Text += "Loaded";
+                X = 1,
+                Y = 1,
+                Width = Dim.Fill(),
+                Height = Dim.Fill() - 1
+            };
 
-                await Task.Delay(2000);
-                
-                Remove(_loadView);
-                //load up tab views 
-                _tabView = new TabView()
-                {
-                    X = 1,
-                    Y = 1,
-                    Width = Dim.Fill(),
-                    Height = Dim.Fill() - 1
-                };
+            foreach (var setting in _mainViewModel.ActiveSettings)
+            {
+                if (setting is SingleItemSettingsBase singleItemSetting)
+                    _tabView.AddTab(new TabView.Tab(setting.Name, new SingleItemSettingsView(singleItemSetting) {X = Pos.Center()}),
+                        setting == _mainViewModel.ActiveSettings.First());
+                else if (setting is IMultiItemSettingsBase multiItemSetting)
+                    _tabView.AddTab(new TabView.Tab(setting.Name, new MultiItemSettingsView(multiItemSetting)),
+                        setting == _mainViewModel.ActiveSettings.First());
+            }
 
-
-                foreach (var setting in _mainViewModel.ActiveSettings)
-                {
-                    if (setting is SingleItemSettingsBase singleItemSetting)
-                        _tabView.AddTab(new TabView.Tab(setting.Name, new SingleItemSettingsView(singleItemSetting)),
-                            setting == _mainViewModel.ActiveSettings.First());
-                    else if (setting is IMultiItemSettingsBase multiItemSetting)
-                        _tabView.AddTab(new TabView.Tab(setting.Name, new MultiItemSettingsView(multiItemSetting)),
-                            setting == _mainViewModel.ActiveSettings.First());
-                }
-
-                _tabView.SelectedTabChanged += tabView_SelectedTabChanged;
-                Add(_tabView);
-            });
+            _tabView.SelectedTabChanged += tabView_SelectedTabChanged;
+            Add(_tabView);
         }
 
         private void tabView_SelectedTabChanged(object sender, TabView.TabChangedEventArgs e)

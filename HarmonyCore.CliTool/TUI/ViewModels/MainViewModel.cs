@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using CodeGen.Engine;
 using HarmonyCore.CliTool.Commands;
 using HarmonyCore.CliTool.TUI.Helpers;
 using HarmonyCore.CliTool.TUI.Models;
@@ -47,11 +49,31 @@ namespace HarmonyCore.CliTool.TUI.ViewModels
             }
         }
 
-        internal void Regen()
+        internal async void Regen(Action<string, float> progressUpdate, Action<string> statusUpdate, Action<string> message, Action loaded, CancellationToken cancelToken)
         {
             Save();
-            var regenCommand = new RegenCommand(() => _context) { CallerLogger = (str) => { } };
-            regenCommand.Run(new RegenOptions());
+            await Task.Run(() =>
+            {
+                CodeGenTaskSet runningTaskset = null;
+                int runPartsCompleted = 0;
+                var regenCommand = new RegenCommand(() => _context) { CallerLogger = message };
+                regenCommand.GenerationEvents.GenerationStarted = (tsk) =>
+                {
+                    runPartsCompleted = 5;
+                    runningTaskset = tsk;
+                };
+                regenCommand.GenerationEvents.TaskStarted = tsk => progressUpdate(tsk.Templates.FirstOrDefault(),
+                    (1.0f / (runningTaskset.Tasks.Count + 5)) * runPartsCompleted);
+
+                regenCommand.GenerationEvents.TaskComplete = tsk =>
+                {
+                    runPartsCompleted++;
+                };
+
+                regenCommand.GenerationEvents.GenerationFinished = (tskSet) => loaded();
+                regenCommand.CancelToken = cancelToken;
+                regenCommand.Run(new RegenOptions { Generators = Enumerable.Empty<string>(), Interfaces = Enumerable.Empty<string>(), Structures = Enumerable.Empty<string>()});
+            });
             //TODO show messages interactively
         }
 
