@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using HarmonyCore.CliTool.TUI.Helpers;
 using Terminal.Gui;
 
 namespace HarmonyCore.CliTool.TUI.Views
@@ -14,20 +15,63 @@ namespace HarmonyCore.CliTool.TUI.Views
     {
         MainViewModel _mainViewModel;
         TabView _tabView;
-       
+        private static int MainThread;
         public MainView(Func<Action<string>, SolutionInfo> context)
         {
+            MainThread = System.Threading.Thread.CurrentThread.ManagedThreadId;
             StatusBar = new StatusBar();
             Add(StatusBar);
             FinishInit(context);
+        }
+
+        private async void ProgressDialogOperation(string operation, bool fractionProgress, bool hasOk, Func<GenerationEvents, Task> op)
+        {
+            var cts = new CancellationTokenSource();
+            var dialog = new ProgressDialog(operation, fractionProgress, hasOk, cts, (dialog) => op(new GenerationEvents()
+            {
+                CancelToken = cts.Token,
+                Loaded = GetInvoker(dialog.EndProgressOperation),
+                Message = GetInvoker<string>(dialog.ShowMessage),
+                ProgressUpdate = GetInvoker<string, float>(dialog.ShowProgress),
+                StatusUpdate = GetInvoker<string>(dialog.ShowProgress)
+            }));
+            Application.Run(dialog);
+        }
+
+        private void AddFeatures()
+        {
+            List<MenuItem> features = new List<MenuItem>();
+            foreach (var (title, help, action) in _mainViewModel.GetFeatureItems())
+            {
+                features.Add(new MenuItem(title, help, () => ProgressDialogOperation(title, false, true, action)));
+            }
+
+            if (features.Count > 0)
+            {
+                var featuresMenu = new MenuBarItem("Features", features.ToArray());
+                var menuBarItems = MenuBar.Menus;
+                Array.Resize(ref menuBarItems, menuBarItems.Length + 1);
+                menuBarItems[^1] = featuresMenu;
+                Remove(MenuBar);
+                MenuBar = new MenuBar(menuBarItems);
+                Add(MenuBar);
+            }
         }
 
         private async void FinishInit(Func<Action<string>, SolutionInfo> context)
         {
             await Task.Yield();
             var cts = new CancellationTokenSource();
-            var dialog = new ProgressDialog("Loading solution", true, false, cts);
-            Application.Top.Add(dialog);
+            var dialog = new ProgressDialog("Loading solution", true, false, cts, (dialog) =>
+            {
+                _mainViewModel.EnsureSolutionLoad(PromptForSolutionFile, GetInvoker<string>(UpdateStatus), GetInvoker<string>(ShowLoadError), GetInvoker(
+                    async () =>
+                    {
+                        FinishedLoad();
+                        await Task.Delay(1500, cts.Token);
+                        Application.RequestStop(dialog);
+                    }));
+            });
             _mainViewModel = new MainViewModel(() => context(GetInvoker<string>(dialog.ShowMessage)));
 
             MenuBar = new MenuBar(new MenuBarItem[]
@@ -47,52 +91,68 @@ namespace HarmonyCore.CliTool.TUI.Views
             });
 
             Add(MenuBar);
-
-            _mainViewModel.EnsureSolutionLoad(PromptForSolutionFile, GetInvoker<string>(UpdateStatus), GetInvoker<string>(ShowLoadError), GetInvoker(
-                async () =>
-                {
-                    FinishedLoad();
-                    await Task.Delay(1500);
-                    Application.Top.Remove(dialog);
-                }));
+            Application.Run(dialog);
         }
 
         private void Regen()
         {
             var cts = new CancellationTokenSource();
-            var dialog = new ProgressDialog("Regen", true, true, cts);
-            Application.Top.Add(dialog);
-            _mainViewModel.Regen(GetInvoker<string, float>(dialog.ShowProgress), GetInvoker<string>(UpdateStatus), GetInvoker<string>(dialog.ShowMessage), GetInvoker(dialog.EndProgressOperation), cts.Token);
-            
+            var dialog = new ProgressDialog("Regen", true, true, cts, (dialog) =>
+            {
+                _mainViewModel.Regen(GetInvoker<string, float>(dialog.ShowProgress), GetInvoker<string>(dialog.ShowProgress), GetInvoker<string>(dialog.ShowMessage), GetInvoker(dialog.EndProgressOperation),
+                    (_, _) => { }, (_, _) => { }, cts.Token);
+            });
+            Application.Run(dialog);
         }
 
         private void Invoke<T>(T arg, Action<T> callme)
         {
-            Application.MainLoop.Invoke(() => callme(arg));
+            if (MainThread == System.Threading.Thread.CurrentThread.ManagedThreadId)
+                callme(arg);
+            else
+                Application.MainLoop.Invoke(() => callme(arg));
+        }
+
+        private void Invoke<T, T2>(T arg, T2 arg2, Action<T, T2> callme)
+        {
+            if (MainThread == System.Threading.Thread.CurrentThread.ManagedThreadId)
+                callme(arg, arg2);
+            else
+                Application.MainLoop.Invoke(() => callme(arg, arg2));
+        }
+
+        private void Invoke(Action callme)
+        {
+            if (MainThread == System.Threading.Thread.CurrentThread.ManagedThreadId)
+                callme();
+            else
+                Application.MainLoop.Invoke(() => callme());
         }
 
         private Action GetInvoker(Action callme)
         {
-            return () => Application.MainLoop.Invoke(callme);
+            return () => Invoke(callme);
         }
 
         private Action<T> GetInvoker<T>(Action<T> callme)
         {
-            return (arg) => Application.MainLoop.Invoke(() => callme(arg));
+            return (arg) => Invoke(arg, callme);
         }
 
         private Action<T, T2> GetInvoker<T, T2>(Action<T, T2> callme)
         {
-            return (arg, arg2) => Application.MainLoop.Invoke(() => callme(arg, arg2));
+            return (arg, arg2) => Invoke(arg, arg2, callme);
         }
 
         private void SyncVS()
         {
             var cts = new CancellationTokenSource();
-            var dialog = new ProgressDialog("Synchronize generated files", true, true, cts);
-            Application.Top.Add(dialog);
-            //TODO: register for file change report at the end
-            _mainViewModel.Regen(GetInvoker<string, float>(dialog.ShowProgress), GetInvoker<string>(UpdateStatus), GetInvoker<string>(dialog.ShowMessage), GetInvoker(dialog.EndProgressOperation), cts.Token);
+            var dialog = new ProgressDialog("Synchronize generated files", true, true, cts, (dialog) =>
+            {
+                _mainViewModel.SyncVS(GetInvoker<string, float>(dialog.ShowProgress), GetInvoker<string>(dialog.ShowProgress), GetInvoker<string>(dialog.ShowMessage), GetInvoker(dialog.EndProgressOperation), cts.Token);
+            });
+            Application.Run(dialog);
+
         }
 
         private void Quit()
@@ -135,6 +195,7 @@ namespace HarmonyCore.CliTool.TUI.Views
 
             _tabView.SelectedTabChanged += tabView_SelectedTabChanged;
             Add(_tabView);
+            AddFeatures();
         }
 
         private void tabView_SelectedTabChanged(object sender, TabView.TabChangedEventArgs e)

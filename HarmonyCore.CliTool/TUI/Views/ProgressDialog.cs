@@ -17,6 +17,8 @@ namespace HarmonyCore.CliTool.TUI.Views
         private Timer _progressTimer;
         private Button _okButton;
         private Button _cancelButton;
+        private Action<ProgressDialog> _operation;
+        bool _showProgress;
 
         public async void EndProgressOperation()
         {
@@ -25,40 +27,49 @@ namespace HarmonyCore.CliTool.TUI.Views
             Remove(_cancelButton);
             _progressTimer?.Dispose();
             _progressText.Text = "Finished";
+            _okButton.SetFocus();
         }
 
         public void ShowProgress(string status, float percent)
         {
-            _progressView.Fraction = percent;
+            if(_showProgress)
+                _progressView.Fraction = percent;
+
             _progressText.Text = status;
-            Application.MainLoop.Driver.Wakeup();
         }
 
         public void ShowMessage(string message)
         {
-            //_loadView.GetCurrentWidth(out var currentWidth);
-            //var wrappedText = TextFormatter.WordWrap(message, currentWidth);
-            //var addingText = (string.Join(Environment.NewLine, wrappedText.Select(txt => txt.ToString()).ToArray()) + Environment.NewLine);
-            _loadView.ReadOnly = false;
-            _loadView.InsertText(message);
-            _loadView.InsertText("\n");
-            _loadView.ReadOnly = true;
-            Application.MainLoop.Driver.Wakeup();
+            _loadView.Text = _loadView.Text + message + "\n";
+            _loadView.ProcessKey(new KeyEvent(Key.End, new KeyModifiers() { Ctrl = true }));
         }
 
-        public ProgressDialog(string operation, bool fractionProgress, bool hasOk, CancellationTokenSource cts)
+        public void ShowProgress(string message)
         {
+            _progressText.Text = message;
+        }
+
+        public override async void OnLoaded()
+        {
+            base.OnLoaded();
+            _operation(this);
+        }
+
+        public ProgressDialog(string operation, bool fractionProgress, bool hasOk, CancellationTokenSource cts, Action<ProgressDialog> opAction)
+        {
+            _showProgress = fractionProgress;
+            _operation = opAction;
             _okButton = new Button("Ok") { Enabled = false };
             _cancelButton = new Button("Cancel");
             _cancelButton.Clicked += () =>
             {
                 cts.Cancel();
-                Application.Top.Remove(this);
+                Application.RequestStop();
             };
 
             _okButton.Clicked += () =>
             {
-                Application.Top.Remove(this);
+                Application.RequestStop();
             };
 
             if(hasOk)

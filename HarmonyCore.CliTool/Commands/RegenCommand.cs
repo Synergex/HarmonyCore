@@ -39,6 +39,13 @@ namespace HarmonyCore.CliTool.Commands
 
         public int Run(RegenOptions opts)
         {
+            Dictionary<string, HashSet<string>> syncAddedFiles = new Dictionary<string, HashSet<string>>();
+            Dictionary<string, HashSet<string>> syncRemovedFiles = new Dictionary<string, HashSet<string>>();
+            return Run(opts, syncAddedFiles, syncRemovedFiles);
+        }
+
+        public int Run(RegenOptions opts, Dictionary<string, HashSet<string>> syncAddedFiles, Dictionary<string, HashSet<string>> syncRemovedFiles)
+        {
             if (opts.Interfaces.Count() > 0)
             {
                 var onlyAllowInterfaces = new HashSet<string>(opts.Interfaces, StringComparer.OrdinalIgnoreCase);
@@ -65,8 +72,6 @@ namespace HarmonyCore.CliTool.Commands
                     sourceFileLookup.Add(project.FileName, new HashSet<string>(project.SourceFiles, StringComparer.OrdinalIgnoreCase));
                 }
 
-                var toBeAdded = new Dictionary<string, HashSet<string>>();
-                var toBeRemoved = new Dictionary<string, HashSet<string>>();
                 var modifiedButNotAdded = new Dictionary<string, HashSet<string>>();
                 var modifiedOrAdded = new HashSet<string>(UpdatedFiles.Concat(AddedFiles));
 
@@ -84,29 +89,29 @@ namespace HarmonyCore.CliTool.Commands
                     var closestProject = FindClosestProject(sourceFileLookup, updatedFile);
 
                     if (closestProject != null && !sourceFileLookup[closestProject].Contains(updatedFile))
-                        AddOrInsert(toBeAdded, closestProject, updatedFile);
+                        AddOrInsert(syncAddedFiles, closestProject, updatedFile);
                 }
 
                 foreach(var file in Directory.GetFiles(_solutionInfo.SolutionDir, "*.dbl", SearchOption.AllDirectories))
                 {
                     var closestProject = FindClosestProject(sourceFileLookup, file);
                     if (closestProject != null && !modifiedOrAdded.Contains(file) && IsGeneratedFile(closestProject, file))
-                        AddOrInsert(toBeRemoved, closestProject, file);
+                        AddOrInsert(syncRemovedFiles, closestProject, file);
                 }
 
-                if (toBeAdded.Any())
+                if (syncAddedFiles.Any())
                 {
                     CallerLogger("*** Files that need to be added to projects ***");
-                    foreach(var kvp in toBeAdded)
+                    foreach(var kvp in syncAddedFiles)
                     {
                         foreach (var file in kvp.Value)
                             CallerLogger(file);
                     }
                 }
-                if (toBeRemoved.Any())
+                if (syncRemovedFiles.Any())
                 {
                     CallerLogger("*** Files that look like they need to be deleted/removed from projects ***");
-                    foreach (var kvp in toBeRemoved)
+                    foreach (var kvp in syncRemovedFiles)
                     {
                         foreach (var file in kvp.Value)
                             CallerLogger(file);

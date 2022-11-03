@@ -12,10 +12,24 @@ namespace HarmonyCore.CliTool
 {
     public class SolutionInfo
     {
+        public Func<string, ProjectInfo> LoadProject;
         public SolutionInfo(IEnumerable<string> projectPaths, string solutionDir, VersionTargetingInfo targetVersion)
         {
             SolutionDir = solutionDir;
-            
+
+            var solutionFiles = Directory.EnumerateFiles(solutionDir, "*.sln", SearchOption.TopDirectoryOnly).ToList();
+            if (solutionFiles.Count() > 1)
+            {
+                var bestSolutionName = Path.Combine(new DirectoryInfo(solutionDir).Name, ".sln");
+                SolutionPath = solutionFiles.FirstOrDefault(file =>
+                    file.EndsWith(bestSolutionName, StringComparison.CurrentCultureIgnoreCase));
+            }
+
+            if(string.IsNullOrWhiteSpace(SolutionPath))
+            {
+                SolutionPath = solutionFiles.First();
+            }
+
             var codegenProjectPath = Path.Combine(SolutionDir, "Harmony.Core.CodeGen.json");
             var regenPath = Path.Combine(SolutionDir, "regen.bat");
             var regenConfigPath = Path.Combine(SolutionDir, "regen_config.bat");
@@ -32,8 +46,8 @@ namespace HarmonyCore.CliTool
                 projectOptions.GlobalProperties.Add("Configuration", "Debug");
                 projectOptions.GlobalProperties.Add("Platform", "AnyCPU");
                 projectOptions.GlobalProperties.Add("NuGetRestoreTargets", Path.Combine(basePath, "Nuget.targets"));
-
-                Projects = projectPaths.Select(path => new ProjectInfo(path, targetVersion, TryLoadProject(path, projectOptions))).ToList();
+                LoadProject = (path) => new ProjectInfo(path, targetVersion, TryLoadProject(path, projectOptions));
+                Projects = projectPaths.Select(LoadProject).ToList();
                 var commonEnvVars = Projects.FirstOrDefault(project => project.MSBuildProject.GetProperty("CommonEnvVars") != null)?.MSBuildProject?.GetProperty("CommonEnvVars");
                 if (commonEnvVars?.EvaluatedValue != null)
                 {
@@ -164,6 +178,7 @@ namespace HarmonyCore.CliTool
 
         public List<ProjectInfo> Projects { get; }
         public string SolutionDir { get; set; }
+        public string SolutionPath { get; set; }
         public Solution CodeGenSolution { get; set; }
     }
 }

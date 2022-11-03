@@ -59,7 +59,20 @@ namespace HarmonyCore.CliTool.TUI.ViewModels
             }
         }
 
-        internal async void Regen(Action<string, float> progressUpdate, Action<string> statusUpdate, Action<string> message, Action loaded, CancellationToken cancelToken)
+        internal async void SyncVS(Action<string, float> progressUpdate, Action<string> statusUpdate,
+            Action<string> message, Action loaded, CancellationToken cancelToken)
+        {
+            Regen(progressUpdate, statusUpdate, message, loaded, (proj, addedFiles) =>
+            {
+                _context.Projects.First(projInfo => string.Compare(projInfo.FileName, proj) == 0).AddRemoveFiles(addedFiles, Enumerable.Empty<string>());
+            }, (proj, removedFiles) =>
+            {
+                _context.Projects.First(projInfo => string.Compare(projInfo.FileName, proj) == 0).AddRemoveFiles(Enumerable.Empty<string>(), removedFiles);
+            }, cancelToken);
+        }
+
+        internal async void Regen(Action<string, float> progressUpdate, Action<string> statusUpdate, Action<string> message, Action loaded, 
+            Action<string, IEnumerable<string>> addedFiles, Action<string, IEnumerable<string>> removedFiles, CancellationToken cancelToken)
         {
             Save();
             await Task.Run(() =>
@@ -72,7 +85,7 @@ namespace HarmonyCore.CliTool.TUI.ViewModels
                     runPartsCompleted = 5;
                     runningTaskset = tsk;
                 };
-                regenCommand.GenerationEvents.TaskStarted = tsk => progressUpdate(tsk.Templates.FirstOrDefault(),
+                regenCommand.GenerationEvents.TaskStarted = tsk => progressUpdate($"Generating {tsk.Templates.FirstOrDefault()}",
                     (1.0f / (runningTaskset.Tasks.Count + 5)) * runPartsCompleted);
 
                 regenCommand.GenerationEvents.TaskComplete = tsk =>
@@ -80,9 +93,18 @@ namespace HarmonyCore.CliTool.TUI.ViewModels
                     runPartsCompleted++;
                 };
 
-                regenCommand.GenerationEvents.GenerationFinished = (tskSet) => loaded();
                 regenCommand.CancelToken = cancelToken;
-                regenCommand.Run(new RegenOptions { Generators = Enumerable.Empty<string>(), Interfaces = Enumerable.Empty<string>(), Structures = Enumerable.Empty<string>()});
+                Dictionary<string, HashSet<string>> syncAddedFiles = new Dictionary<string, HashSet<string>>();
+                Dictionary<string, HashSet<string>> syncRemovedFiles = new Dictionary<string, HashSet<string>>();
+                regenCommand.Run(new RegenOptions { Generators = Enumerable.Empty<string>(), Interfaces = Enumerable.Empty<string>(), Structures = Enumerable.Empty<string>()}, syncAddedFiles, syncRemovedFiles);
+                
+                foreach (var syncTpl in syncAddedFiles)
+                    addedFiles(syncTpl.Key, syncTpl.Value);
+
+                foreach (var syncTpl in syncRemovedFiles)
+                    removedFiles(syncTpl.Key, syncTpl.Value);
+
+                loaded();
             });
             //TODO show messages interactively
         }
@@ -182,9 +204,127 @@ namespace HarmonyCore.CliTool.TUI.ViewModels
 
         }
 
-        internal void SyncVS()
+        async Task AddTraditionalBridge(GenerationEvents events)
         {
-            throw new NotImplementedException();
+            await DotnetTool.AddTemplateToSolution("harmonycore-tb",
+                Path.Combine(_context.SolutionDir, "TraditionalBridge"), _context.SolutionPath, events.Message);
+
+            _context.CodeGenSolution.TraditionalBridge = new TraditionalBridge() { EnableSampleDispatchers = true };
+            Save();
+        }
+
+        async Task CollectTestData(GenerationEvents events)
+        {
+            //check for GenerateTestValues.dbl
+            //if missing show error ask user to run regen first
+            try
+            {
+                var generateValuesProjectName = _context.CodeGenSolution.UnitTestProject + ".GenerateValues";
+                events?.StatusUpdate.Invoke("Generating Test Values");
+                events.Message($"Compiling and running {generateValuesProjectName}, this may take a while...");
+                
+                if (!await DotnetTool.RunProject(_context.SolutionDir,
+                        Path.Combine(_context.SolutionDir, generateValuesProjectName,
+                            generateValuesProjectName + ".synproj"), events.Message))
+                    events.Message("Failed to run GenerateValues");
+            }
+            finally
+            {
+                events.OnLoaded();
+            }
+        }
+
+        async Task AddUnitTests(GenerationEvents events)
+        {
+            try
+            {
+                events?.StatusUpdate.Invoke("Adding unit test project template");
+                if (!await DotnetTool.AddTemplateToSolution("harmonycore-ut",
+                        Path.Combine(_context.SolutionDir, "Services.Test"), _context.SolutionPath, events.Message))
+                {
+                    events.Message("Template creation failed for Services.Test");
+                    return;
+                }
+
+                events?.StatusUpdate.Invoke("Adding unit test value generator template");
+                if (!await DotnetTool.AddTemplateToSolution("harmonycore-utg",
+                        Path.Combine(_context.SolutionDir, "Services.Test.GenerateValues"), _context.SolutionPath,
+                        events.Message))
+                {
+                    events.Message("Template creation failed for Services.Test.GenerateValues");
+                    return;
+                }
+
+                events?.StatusUpdate.Invoke("Loading new projects");
+                var utProj = _context.LoadProject(Path.Combine(_context.SolutionDir, "Services.Test",
+                    "Services.Test.synproj"));
+                var gvProj = _context.LoadProject(Path.Combine(_context.SolutionDir, "Services.Test.GenerateValues",
+                    "Services.Test.GenerateValues.synproj"));
+                _context.Projects.Add(utProj);
+                _context.Projects.Add(gvProj);
+
+                _context.CodeGenSolution.GenerateUnitTests = true;
+                _context.CodeGenSolution.UnitTestProject = "Services.Test";
+                _context.CodeGenSolution.UnitTestFolder = "Services.Test";
+                _context.CodeGenSolution.UnitTestsBaseNamespace = "Services.Test";
+                _context.CodeGenSolution.UnitTestsNamespace = "Services.Test.UnitTests";
+
+                Save();
+
+                //regen sets loaded status in the events but it will fire too soon so make it, its own event set
+                var regenEvents = new GenerationEvents(events, null);
+                Regen(regenEvents.ProgressUpdate, regenEvents.StatusUpdate, regenEvents.Message, regenEvents.OnLoaded, (proj, addedFiles) =>
+                {
+                    events?.StatusUpdate.Invoke("Adding new files");
+                    if (proj.EndsWith("Services.Test.synproj", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        utProj.AddRemoveFiles(addedFiles, Enumerable.Empty<string>());
+                        utProj.MSBuildProject.Save();
+                    }
+                    else if (proj.EndsWith("Services.Test.GenerateValues.synproj", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        gvProj.AddRemoveFiles(addedFiles, Enumerable.Empty<string>());
+                        gvProj.MSBuildProject.Save();
+                    }
+                }, (proj, remvedFiles) => { }, regenEvents.CancelToken);
+
+                //Add Generated files to Services.Test and Services.Test.GenerateValues
+
+                await regenEvents.LoadedAsync;
+
+                await CollectTestData(events);
+            }
+            finally
+            {
+                events.OnLoaded();
+            }
+            //RunRegen
+            //CollectTestData
+        }
+
+        public List<ValueTuple<string, string, Func<GenerationEvents, Task>>> GetFeatureItems()
+        {
+            var result = new List<ValueTuple<string, string, Func<GenerationEvents, Task>>>();
+
+            var hasTraditionalBridge = _context.Projects.Any(proj => proj.FileName.EndsWith("TraditionalBridge.synproj", StringComparison.CurrentCultureIgnoreCase));
+            var hasUnitTests = _context.Projects.Any(proj => proj.FileName.EndsWith("Services.Test.synproj", StringComparison.CurrentCultureIgnoreCase));
+
+            if (!hasTraditionalBridge)
+            {
+                result.Add(("Add Traditional Bridge", "Add support for running traditional synergy code", AddTraditionalBridge));
+            }
+
+            if (!hasUnitTests)
+            {
+                result.Add(("Add Unit Test", "Add support for running unit tests", AddUnitTests));
+            }
+            else
+            {
+                result.Add(("Collect Test Data", "Collect test data for your Unit Tests", CollectTestData));
+            }
+            
+
+            return result;
         }
     }
 }

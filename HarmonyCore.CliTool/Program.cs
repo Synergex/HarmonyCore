@@ -217,7 +217,7 @@ Known structure properties:
                     break;
 
                 case 6:
-                    HCBuildVersion = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
+                    HCBuildVersion = "6.0.82";//Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
                     BuildPackageVersion = "22.8.1287";
                     HCRegenRequiredVersions = new List<string>
                     {
@@ -322,8 +322,14 @@ Known structure properties:
 
         static SolutionInfo LoadSolutionInfo(Action<string> logger)
         {
-            var solutionDir = Environment.GetEnvironmentVariable("SolutionDir") ?? Environment.CurrentDirectory;
-            logger(string.Format("Scanning '{0}' for HarmonyCore project files", solutionDir));
+            var solutionDir = Environment.GetEnvironmentVariable("SolutionDir");
+
+            if (string.IsNullOrWhiteSpace(solutionDir))
+                solutionDir = Environment.CurrentDirectory;
+            else
+                Environment.SetEnvironmentVariable("SolutionDir", solutionDir);
+
+            logger($"Scanning '{solutionDir}' for HarmonyCore project files");
             string[] synprojFiles = new string[0];
             try
             {
@@ -334,7 +340,7 @@ Known structure properties:
             }
             catch (Exception ex)
             {
-                logger(string.Format("error while searching for project files: {0}", ex.Message));
+                logger($"error while searching for project files: {ex.Message}");
                 return null;
             }
 

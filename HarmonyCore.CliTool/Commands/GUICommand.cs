@@ -22,7 +22,11 @@ namespace HarmonyCore.CliTool.Commands
             Application.Init();
             Application.HeightAsBuffer = false;
             
-            Application.Run(new MainView(_solutionLoader));
+            Application.Run(new MainView(_solutionLoader), ex =>
+            {
+                Trace.WriteLine(ex);
+                return false;
+            });
             return 0;
         }
     }
