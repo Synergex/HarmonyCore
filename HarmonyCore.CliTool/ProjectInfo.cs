@@ -34,12 +34,10 @@ namespace HarmonyCore.CliTool
         public string FileName { get; set; }
         public XmlDocument ProjectDoc { get; set; }
         public Project MSBuildProject { get; set; }
-        private VersionTargetingInfo _targetVersion;
 
-        public ProjectInfo(string path, VersionTargetingInfo targetVersion, Project msbuildProject)
+        public ProjectInfo(string path, Project msbuildProject)
         {
             MSBuildProject = msbuildProject;
-            _targetVersion = targetVersion;
             FileName = path;
             ProjectDoc = new XmlDocument { PreserveWhitespace = true };
             ProjectDoc.Load(path);
@@ -74,7 +72,7 @@ namespace HarmonyCore.CliTool
                     MSBuildProject.RemoveItem(msbuildItem);
         }
 
-        public void PatchKnownIssues(List<string> removeNugetVersions)
+        public void PatchKnownIssues(VersionTargetingInfo versionInfo)
         {
             var cleanFileName = Path.GetFileNameWithoutExtension(FileName);
             //look for bad .net core version stuff, <RuntimeFrameworkVersion> shouldn't be here
@@ -106,7 +104,7 @@ namespace HarmonyCore.CliTool
                 import.ParentNode.RemoveChild(import);
             }
 
-            FixRPS(ProjectDoc, _targetVersion.BuildPackageVersion, cleanFileName);
+            FixRPS(ProjectDoc, versionInfo.BuildPackageVersion, cleanFileName);
 
 
             //switch .net standard 2.0 projects to netcoreapp3.1
@@ -114,7 +112,7 @@ namespace HarmonyCore.CliTool
 
             if (targetFramework != null)
             {
-                targetFramework.InnerText = _targetVersion.TargetFramework;
+                targetFramework.InnerText = versionInfo.TargetFramework;
             }
 
             var firstItemGroup = ProjectDoc.GetElementsByTagName("ItemGroup").OfType<XmlNode>().FirstOrDefault();
@@ -144,13 +142,13 @@ namespace HarmonyCore.CliTool
 
                 var hasOdataVersioning = ProjectDoc.GetElementsByTagName("PackageReference").OfType<XmlNode>()
                         .Any(node => node.Attributes["Include"]?.Value == "Microsoft.AspNetCore.OData.Versioning.ApiExplorer");
-                if (!hasOdataVersioning && _targetVersion.NugetReferences.ContainsKey("Microsoft.AspNetCore.OData.Versioning.ApiExplorer"))
+                if (!hasOdataVersioning && versionInfo.NugetReferences.ContainsKey("Microsoft.AspNetCore.OData.Versioning.ApiExplorer"))
                 {
                     var versioningReference = ProjectDoc.CreateElement("PackageReference");
                     var versioningReferenceName = ProjectDoc.CreateAttribute("Include");
                     versioningReferenceName.Value = "Microsoft.AspNetCore.OData.Versioning.ApiExplorer";
                     var versioningReferenceVersion = ProjectDoc.CreateAttribute("Version");
-                    versioningReferenceVersion.Value = _targetVersion.NugetReferences["Microsoft.AspNetCore.OData.Versioning.ApiExplorer"];
+                    versioningReferenceVersion.Value = versionInfo.NugetReferences["Microsoft.AspNetCore.OData.Versioning.ApiExplorer"];
                     versioningReference.Attributes.Append(versioningReferenceName);
                     versioningReference.Attributes.Append(versioningReferenceVersion);
                     firstItemGroup.AppendChild(versioningReference);
@@ -184,7 +182,7 @@ namespace HarmonyCore.CliTool
                     var fRefName = ProjectDoc.CreateAttribute("Include");
                     fRefName.Value = "Microsoft.AspNetCore.Mvc.NewtonsoftJson";
                     var fRefVersion = ProjectDoc.CreateAttribute("Version");
-                    fRefVersion.Value = _targetVersion.NugetReferences["Microsoft.AspNetCore.Mvc.NewtonsoftJson"];
+                    fRefVersion.Value = versionInfo.NugetReferences["Microsoft.AspNetCore.Mvc.NewtonsoftJson"];
                     fRef.Attributes.Append(fRefName);
                     fRef.Attributes.Append(fRefVersion);
                     firstItemGroup.AppendChild(fRef);
@@ -202,7 +200,7 @@ namespace HarmonyCore.CliTool
                 }
             }
 
-            foreach (var refToRemove in removeNugetVersions)
+            foreach (var refToRemove in versionInfo.RemoveNugetReferences)
             {
                 var actualRef = ProjectDoc.GetElementsByTagName("PackageReference").OfType<XmlNode>()
                     .FirstOrDefault(node => string.Compare(node.Attributes["Include"]?.Value, refToRemove, true) == 0);
@@ -314,14 +312,14 @@ namespace HarmonyCore.CliTool
 
         public static bool _hasAlerted = false;
 
-        public void PatchNugetVersions(Dictionary<string, string> packageToVersionMapping)
+        public void PatchNugetVersions(VersionTargetingInfo versionInfo)
         {
             var packageReferences = ProjectDoc.GetElementsByTagName("PackageReference").OfType<XmlNode>().ToList();
             foreach (var node in packageReferences)
             {
                 var includeValue = AttributeOrChild(node, "Include")?.Value?.Trim();
                 //if we have a target version see what version we're currently at
-                if (packageToVersionMapping.TryGetValue(includeValue, out var targetVersion))
+                if (versionInfo.NugetReferences.TryGetValue(includeValue, out var targetVersion))
                 {
                     var versionNode = AttributeOrChild(node, "Version");
                     var versionValue = versionNode?.InnerText;
@@ -329,10 +327,10 @@ namespace HarmonyCore.CliTool
                     {
                         if (includeValue.Contains("Harmony.Core"))
                         {
-                            if (!_hasAlerted && !string.IsNullOrWhiteSpace(versionValue) && !_targetVersion.HCRegenRequiredVersions.All((ver) => string.Compare(versionValue, ver) >= 0))
+                            if (!_hasAlerted && !string.IsNullOrWhiteSpace(versionValue) && !versionInfo.HCRegenRequiredVersions.All((ver) => string.Compare(versionValue, ver) >= 0))
                             {
                                 _hasAlerted = true;
-                                Console.WriteLine("Upgrading Harmony Core to version {0} from version {1} of packages requires you to regenerate from codegen template. \r\n\r\nPlease type YES to acknowledge and continue package upgrade", versionValue, _targetVersion.HCBuildVersion);
+                                Console.WriteLine("Upgrading Harmony Core to version {0} from version {1} of packages requires you to regenerate from codegen template. \r\n\r\nPlease type YES to acknowledge and continue package upgrade", versionValue, versionInfo.HCBuildVersion);
                                 if (string.Compare(Console.ReadLine(), "yes", true) != 0)
                                 {
                                     Console.WriteLine("exiting");

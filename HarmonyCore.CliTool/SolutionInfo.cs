@@ -13,7 +13,7 @@ namespace HarmonyCore.CliTool
     public class SolutionInfo
     {
         public Func<string, ProjectInfo> LoadProject;
-        public SolutionInfo(IEnumerable<string> projectPaths, string solutionDir, VersionTargetingInfo targetVersion)
+        public SolutionInfo(IEnumerable<string> projectPaths, string solutionDir)
         {
             SolutionDir = solutionDir;
 
@@ -46,7 +46,7 @@ namespace HarmonyCore.CliTool
                 projectOptions.GlobalProperties.Add("Configuration", "Debug");
                 projectOptions.GlobalProperties.Add("Platform", "AnyCPU");
                 projectOptions.GlobalProperties.Add("NuGetRestoreTargets", Path.Combine(basePath, "Nuget.targets"));
-                LoadProject = (path) => new ProjectInfo(path, targetVersion, TryLoadProject(path, projectOptions));
+                LoadProject = (path) => new ProjectInfo(path, TryLoadProject(path, projectOptions));
                 Projects = projectPaths.Select(LoadProject).ToList();
                 var commonEnvVars = Projects.FirstOrDefault(project => project.MSBuildProject.GetProperty("CommonEnvVars") != null)?.MSBuildProject?.GetProperty("CommonEnvVars");
                 if (commonEnvVars?.EvaluatedValue != null)
@@ -137,6 +137,7 @@ namespace HarmonyCore.CliTool
 
         public void LoadFromBat(string solutionDir, string regenPath, string userTokenFile)
         {
+            var targetVersion = Program.LoadVersionInfoSync(true);
             try
             {
                 CodeGenSolution = Solution.LoadSolution(regenPath, userTokenFile, solutionDir);
@@ -151,7 +152,7 @@ namespace HarmonyCore.CliTool
                     if (response == 'Y' || response == 'y')
                     {
                         ProjectInfo.FixRPS(targetRps.ProjectDoc,
-                            Program.TargetVersion.BuildPackageVersion, "Repository");
+                            targetVersion.BuildPackageVersion, "Repository");
                         targetRps.Save();
                         CodeGenSolution = Solution.LoadSolution(regenPath, userTokenFile, solutionDir);
                     }

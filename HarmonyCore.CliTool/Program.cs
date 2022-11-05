@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
@@ -171,117 +172,56 @@ Known structure properties:
 
     public class VersionTargetingInfo
     {
-        public VersionTargetingInfo(int majorVersionTarget)
+        public class Root
+        {
+            public List<KnownVersion> KnownVersions { get; set; }
+        }
+        public class KnownVersion
+        {
+            public string HCVersion { get; set; }
+            public string TemplatesVersionPrefix { get; set; }
+            public string TargetFramework { get; set; }
+            public string BuildPackageVersion { get; set; }
+            public List<string> HCRegenRequiredVersions { get; set; }
+            public Dictionary<string, string> NugetVersions { get; set; }
+            public List<string> RemoveReferences { get; set; }
+        }
+        private KnownVersion _knownVersion;
+
+        private VersionTargetingInfo(KnownVersion version)
+        {
+            _knownVersion = version;
+        }
+
+        public static async Task<VersionTargetingInfo> GetVersionTargetingInfo(int majorVersionTarget, bool skipCache)
         {
             switch (majorVersionTarget)
             {
                 case 3:
-                    HCBuildVersion = "3.1.463";
-                    BuildPackageVersion = "11.1.1070.3107";
-                    HCRegenRequiredVersions = new List<string>
-                    {
-                        "3.1.156"
-                    };
-                    NugetReferences = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase)
-                    {
-                        {"Harmony.Core", HCBuildVersion},
-                        {"Harmony.Core.EF", HCBuildVersion},
-                        {"Harmony.Core.OData", HCBuildVersion},
-                        {"Harmony.Core.AspNetCore", HCBuildVersion},
-                        {"Synergex.SynergyDE.synrnt", "11.1.1070"},
-                        {"Synergex.SynergyDE.Build", BuildPackageVersion},
-                        {"Microsoft.AspNetCore.Mvc.NewtonsoftJson", "3.1.6"},
-                        {"Microsoft.AspNetCore.Mvc.Testing", "3.1.6"},
-                        {"Microsoft.Extensions.DependencyInjection", "3.1.6"},
-                        {"Microsoft.Extensions.Logging.Console", "3.1.6"},
-                        {"Microsoft.AspNetCore.SignalR.Client", "3.1.6"},
-                        {"Microsoft.EntityFrameworkCore", "3.1.6"},
-                        {"IdentityServer4.AccessTokenValidation", "3.0.1"},
-                        {"Microsoft.AspNetCore.OData", "7.4.1"},
-                        {"Microsoft.OData.Core", "7.7.0"},
-                        {"Microsoft.AspNetCore.JsonPatch", "3.1.6"},
-                        {"Microsoft.VisualStudio.Threading", "16.6.13"},
-                        {"StreamJsonRpc", "2.4.48"},
-                        {"IdentityModel", "4.1.1" },
-                        {"Microsoft.OData.Edm", "7.7.0"},
-                        {"Microsoft.Spatial", "7.7.0"},
-                        {"Swashbuckle.AspNetCore", "5.5.1"},
-                        {"SSH.NET", "2016.1.0"},
-                        {"Microsoft.AspNetCore.Mvc.Versioning", "4.1.1"},
-                        {"Microsoft.AspNetCore.OData.Versioning.ApiExplorer", "4.1.1"},
-                        {"Nito.AsyncEx", "5.0.0"},
-                        {"System.Linq.Dynamic.Core", "1.1.8"},
-                        {"system.text.encoding.codepages", "4.7.1"},
-                    };
-                    TargetFramework = "netcoreapp3.1";
-                    break;
-
+                    return new VersionTargetingInfo(await LoadKnownVersion("netcoreapp3.1", skipCache));
                 case 6:
-                    HCBuildVersion = "6.0.82";//Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
-                    BuildPackageVersion = "22.8.1287";
-                    HCRegenRequiredVersions = new List<string>
-                    {
-                        "3.1.156",
-                        "3.1.999"
-                    };
-                    NugetReferences = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase)
-                    {
-                        {"Harmony.Core", HCBuildVersion},
-                        {"Harmony.Core.EF", HCBuildVersion},
-                        {"Harmony.Core.OData", HCBuildVersion},
-                        {"Harmony.Core.AspNetCore", HCBuildVersion},
-                        {"Synergex.SynergyDE.synrnt", "12.1.1.3278"},
-                        {"Synergex.SynergyDE.Build", BuildPackageVersion},
-                        {"Microsoft.AspNetCore.Mvc.NewtonsoftJson", "6.0.2"},
-                        {"Microsoft.AspNetCore.Mvc.Testing", "6.0.2"},
-                        {"Microsoft.Extensions.DependencyInjection", "6.0.0"},
-                        {"Microsoft.Extensions.Logging.Console", "6.0.0"},
-                        {"Microsoft.Extensions.Primitives", "6.0.0" },
-                        {"Microsoft.AspNetCore.SignalR.Client", "6.0.2"},
-                        {"Microsoft.EntityFrameworkCore", "6.0.3"},
-                        {"IdentityServer4.AccessTokenValidation", "3.0.1"},
-                        {"Microsoft.AspNetCore.OData", "8.0.8"},
-                        {"Microsoft.OData.Core", "7.10.0"},
-                        {"Microsoft.AspNetCore.JsonPatch", "6.0.2"},
-                        {"Microsoft.VisualStudio.Threading", "17.1.46"},
-                        {"StreamJsonRpc", "2.10.44"},
-                        {"IdentityModel", "6.0.0" },
-                        {"Microsoft.OData.Edm", "7.10.0"},
-                        {"Microsoft.Spatial", "7.10.0 "},
-                        {"Swashbuckle.AspNetCore", "6.2.3"},
-                        {"SSH.NET", "2020.0.2"},
-                        {"Nito.AsyncEx", "5.1.2"},
-                        {"System.Linq.Dynamic.Core", "1.2.18"},
-                        {"system.text.encoding.codepages", "6.0.0"},
-                        {"Microsoft.IdentityModel.Tokens", "6.16.0"},
-                        {"Newtonsoft.Json", "13.0.1"},
-                        {"System.ComponentModel.Annotations", "5.0.0" }
-                    };
-                    TargetFramework = "net6.0";
-                    RemoveNugetReferences = new List<string>
-                    {
-                        "Microsoft.AspNetCore.OData.Versioning.ApiExplorer",
-                        "Microsoft.AspNetCore.Mvc.Versioning",
-                        "Microsoft.AspNetCore.OData.Versioning",
-                        "Microsoft.AspNetCore.SignalR"
-                    };
-                    break;
                 default:
-                    throw new Exception("Invalid version specified");
+                    return new VersionTargetingInfo(await LoadKnownVersion("net6.0", skipCache));
             }
         }
-        public Dictionary<string, string> NugetReferences;
-        public string BuildPackageVersion = "11.1.1070.3107";
-        public string HCBuildVersion;
-        public string TargetFramework = "net6.0";
-        public List<string> HCRegenRequiredVersions;
-        public List<string> RemoveNugetReferences = new List<string>();
+
+        public static async Task<KnownVersion> LoadKnownVersion(string prefix, bool skipCache)
+        {
+            var toolVersion = await GitHubRelease.GetCliToolVersions(skipCache);
+            var knownVersions = JsonConvert.DeserializeObject<Root>(toolVersion).KnownVersions;
+            return knownVersions.First(ver => ver.TargetFramework.StartsWith(prefix));
+        }
+
+        public Dictionary<string, string> NugetReferences => _knownVersion.NugetVersions;
+        public string BuildPackageVersion => _knownVersion.BuildPackageVersion;
+        public string HCBuildVersion => _knownVersion.HCVersion;
+        public string TargetFramework => _knownVersion.TargetFramework ?? "net6";
+        public List<string> HCRegenRequiredVersions => _knownVersion.HCRegenRequiredVersions ?? new List<string>();
+        public List<string> RemoveNugetReferences => _knownVersion.RemoveReferences ?? new List<string>();
     }
 
     class Program
     {
-        public static VersionTargetingInfo TargetVersion;
-
         const int STD_INPUT_HANDLE = -10;
         [DllImport("kernel32.dll", SetLastError = true)]
         static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint lpMode);
@@ -318,6 +258,7 @@ Known structure properties:
             }
         }
 
+        public static string AppFolder;
         public static Dictionary<string, string> AppSettings = new Dictionary<string, string>();
 
         static SolutionInfo LoadSolutionInfo(Action<string> logger)
@@ -360,28 +301,22 @@ Known structure properties:
             if (!MSBuildLocator.IsRegistered)
                 MSBuildLocator.RegisterMSBuildPath(msbuildDeploymentToUse.MSBuildPath);
 
-            return new SolutionInfo(synprojFiles, solutionDir, TargetVersion);
+            return new SolutionInfo(synprojFiles, solutionDir);
         }
 
         static void Main(string[] args)
         {
             var (handle, mode) = GetConsoleState();
-            var versionOverride = Environment.GetEnvironmentVariable("HC_VERSION");
-            if (int.TryParse(versionOverride, out var version))
-                TargetVersion = new VersionTargetingInfo(version);
-            else
-                TargetVersion = new VersionTargetingInfo(6);
-
             //force synrnt to load
             Synergex.SynergyDE.AlphaDesc.notPassedAlpha.CheckPassed();
 
             ResetConsoleMode(handle, mode);
 
-            string appData = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.DoNotVerify), "Harmony.Core.CLITool");
+            AppFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.DoNotVerify), "Harmony.Core.CLITool");
             // Ensure the directory and all its parents exist.
-            Directory.CreateDirectory(appData);
+            Directory.CreateDirectory(AppFolder);
 
-            var configData = Path.Combine(appData, "config.json");
+            var configData = Path.Combine(AppFolder, "config.json");
             if (File.Exists(configData))
             {
                 AppSettings = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(configData));
@@ -405,11 +340,12 @@ Known structure properties:
                       return 1;
                   }
 
-
+                  Console.WriteLine("Checking for current version info");
+                  var versionInfo = LoadVersionInfoSync(true);
                   if (opts.ProjectOnly)
-                      UpgradeProjects(defaultLoader());
+                      UpgradeProjects(defaultLoader(), versionInfo);
                   else
-                      UpgradeLatest(defaultLoader(), opts.OverrideTemplateVersion, opts.OverrideTemplateUrl).Wait();
+                      UpgradeLatest(defaultLoader(), versionInfo, opts.OverrideTemplateVersion, opts.OverrideTemplateUrl).Wait();
                   return 0;
               },
               new CodegenCommand(defaultLoader).List,
@@ -439,17 +375,26 @@ Known structure properties:
             
         }
 
-        static void UpgradeProjects(SolutionInfo solution)
+        public static VersionTargetingInfo LoadVersionInfoSync(bool skipCache)
+        {
+            var versionOverride = Environment.GetEnvironmentVariable("HC_VERSION");
+            if (int.TryParse(versionOverride, out var version))
+                return VersionTargetingInfo.GetVersionTargetingInfo(version, skipCache).Result;
+            else
+                return VersionTargetingInfo.GetVersionTargetingInfo(6, skipCache).Result;
+        }
+
+        static void UpgradeProjects(SolutionInfo solution, VersionTargetingInfo versionInfo)
         {
             foreach (var project in solution.Projects)
             {
-                project.PatchKnownIssues(TargetVersion.RemoveNugetReferences);
-                project.PatchNugetVersions(TargetVersion.NugetReferences);
+                project.PatchKnownIssues(versionInfo);
+                project.PatchNugetVersions(versionInfo);
                 project.Save();
             }
         }
 
-        static async Task UpgradeLatest(SolutionInfo solution, string overrideTemplateUrl, string overrideTemplateVersion)
+        static async Task UpgradeLatest(SolutionInfo solution, VersionTargetingInfo versionInfo, string overrideTemplateUrl, string overrideTemplateVersion)
         {
             //download templates and traditional bridge source
             //replace templates and traditional bridge source
@@ -483,7 +428,7 @@ Known structure properties:
 
             await GitHubRelease.GetAndUnpackLatest(hasTraditionalBridge, traditionalBridgeFolder, distinctTemplateFolders, solution, overrideTemplateVersion, overrideTemplateUrl);
 
-            UpgradeProjects(solution);
+            UpgradeProjects(solution, versionInfo);
         }
     }
 }
