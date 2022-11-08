@@ -21,5 +21,19 @@ namespace HarmonyCore.CliTool.TUI.Models
             }
         }
 
+        public IEnumerable<ISingleItemSettings> FindMatchingItems(string searchTerm)
+        {
+            List<ISingleItemSettings> result = new List<ISingleItemSettings>();
+            foreach (var item in Items)
+            {
+                var matchingProperties = item.FindMatchingProperties(searchTerm);
+                if (matchingProperties.Any() || item.Name.Contains(searchTerm, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    result.Add(item);
+                }
+            }
+
+            return result;
+        }
     }
 }

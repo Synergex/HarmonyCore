@@ -83,6 +83,7 @@ namespace HarmonyCore.CliTool.TUI.Views
                     new MenuItem("_Validate", "Validate customization scripts and settings", _mainViewModel.Validate),
                     new MenuItem("_Quit", "Exit the program", Quit)
                 }),
+                new MenuBarItem("_Search", null, ShowFind),
                 new MenuBarItem("_Codegen", new MenuItem[]
                 {
                     new MenuItem("_Regen", "Run CodeGen based off your Harmony Core customization file", Regen),
@@ -92,6 +93,44 @@ namespace HarmonyCore.CliTool.TUI.Views
 
             Add(MenuBar);
             Application.Run(dialog);
+        }
+
+        private FindDialog _findDialog;
+
+        private void ShowFind()
+        {
+            if (_findDialog == null)
+            {
+                _findDialog = new FindDialog();
+                _findDialog.FindNext = (searchTerm) =>
+                {
+                    if (_tabView.SelectedTab.View is SingleItemSettingsView settingsView)
+                    {
+                        settingsView.FindNext(searchTerm);
+                    }
+                    else if (_tabView.SelectedTab.View is MultiItemSettingsView multiSettingsView)
+                    {
+                        multiSettingsView.FindNext(searchTerm);
+                    }
+                };
+
+                _findDialog.FindPrevious = (searchTerm) =>
+                {
+                    if (_tabView.SelectedTab.View is SingleItemSettingsView settingsView)
+                    {
+                        settingsView.FindPrev(searchTerm);
+                    }
+                    else if (_tabView.SelectedTab.View is MultiItemSettingsView multiSettingsView)
+                    {
+                        multiSettingsView.FindNext(searchTerm);
+                    }
+                };
+            }
+            if(!this.Subviews.Contains(_findDialog))
+                Add(_findDialog);
+
+            _findDialog.SuperView.BringSubviewToFront(_findDialog);
+            _findDialog.SetFocus();
         }
 
         private void Regen()
@@ -195,6 +234,8 @@ namespace HarmonyCore.CliTool.TUI.Views
 
             _tabView.SelectedTabChanged += tabView_SelectedTabChanged;
             Add(_tabView);
+
+            
             AddFeatures();
         }
 

@@ -10,6 +10,20 @@ namespace HarmonyCore.CliTool.TUI.Models
 {
     public interface ISingleItemSettings : ISettingsBase
     {
+        public IEnumerable<IPropertyItemSetting> FindMatchingProperties(string searchTerm)
+        {
+            List<IPropertyItemSetting> result = new List<IPropertyItemSetting>();
+            foreach (var prop in DisplayProperties)
+            {
+                if (prop.Prompt.Contains(searchTerm, StringComparison.CurrentCultureIgnoreCase) ||
+                    (prop.Value?.ToString()?.Contains(searchTerm, StringComparison.CurrentCultureIgnoreCase) ?? false))
+                {
+                    result.Add(prop);
+                }
+            }
+
+            return result;
+        }
         public List<PropertyInfo> DisplayPropertyBacking { get; }
         public SolutionInfo Context { get; }
         public IEnumerable<IPropertyItemSetting> DisplayProperties

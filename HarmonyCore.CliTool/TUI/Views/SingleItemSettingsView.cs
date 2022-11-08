@@ -101,9 +101,83 @@ namespace HarmonyCore.CliTool.TUI.Views
             _titleContext=titleContext ?? string.Empty;
         }
 
+        private List<IPropertyItemSetting> _findContext;
+        private string _findContextSearchTerm;
+        private int _findContextIndex;
+        private bool _wrapped;
+
+        //return true if this is a new context
+        //false if this is already setup
+        private bool SetFindContext(string searchTerm)
+        {
+            if (_findContextSearchTerm == searchTerm)
+            {
+                return false;
+            }
+            else
+            {
+                _wrapped = false;
+                _findContextSearchTerm = searchTerm;
+                _findContext = _settings.FindMatchingProperties(searchTerm).ToList();
+                _findContextIndex = 0;
+                return true;
+            }
+        }
+
+        public bool FindNext(string searchTerm)
+        {
+            if (!SetFindContext(searchTerm))
+            {
+                _findContextIndex++;
+            }
+
+            if (_findContext.Count == 0)
+                return true;
+
+            if (_findContextIndex >= _findContext.Count)
+            {
+                _wrapped = true;
+                _findContextIndex = 0;
+            }
+
+            HighlightCell(_findContext[_findContextIndex]);
+            return _wrapped;
+        }
+
+        public bool FindPrev(string searchTerm)
+        {
+            if (!SetFindContext(searchTerm))
+            {
+                _findContextIndex--;
+            }
+
+            if (_findContext.Count == 0)
+                return true;
+
+            if (_findContextIndex < 0)
+            {
+                _wrapped = true;
+                _findContextIndex = _findContext.Count - 1;
+            }
+
+            HighlightCell(_findContext[_findContextIndex]);
+            return _wrapped;
+        }
+
+        public void HighlightCell(IPropertyItemSetting targetProperty)
+        {
+            for(int i = 0; i < _tableView.Table.Rows.Count; i++)
+            {
+                var row = _tableView.Table.Rows[i];
+                if (row[1] is IPropertyItemSetting rowItem && rowItem.Prompt == targetProperty.Prompt)
+                    _tableView.SetSelection(1, i, false);
+            }
+            _tableView.SetNeedsDisplay();
+        }
+
         private async void EditCurrentCell(TableView.CellActivatedEventArgs e)
         {
-            if (e.Table == null)
+            if (e.Table == null || e.Row < 0)
                 return;
 
             var editValue = new EditablePropertyItem(_settings, e.Table.Rows[e.Row][1] as IPropertyItemSetting);
