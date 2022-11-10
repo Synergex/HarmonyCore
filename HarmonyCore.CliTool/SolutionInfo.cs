@@ -1,19 +1,35 @@
 using HarmonyCoreGenerator.Model;
-using Microsoft.Build.Locator;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace HarmonyCore.CliTool
 {
     public class SolutionInfo
     {
-        public SolutionInfo(IEnumerable<string> projectPaths, string solutionDir, VersionTargetingInfo targetVersion)
+        public Func<string, ProjectInfo> LoadProject;
+        public SolutionInfo(IEnumerable<string> projectPaths, string solutionDir)
         {
             SolutionDir = solutionDir;
-            
+
+            var solutionFiles = Directory.EnumerateFiles(solutionDir, "*.sln", SearchOption.TopDirectoryOnly).ToList();
+            if (solutionFiles.Count() > 1)
+            {
+                var bestSolutionName = Path.Combine(new DirectoryInfo(solutionDir).Name, ".sln");
+                SolutionPath = solutionFiles.FirstOrDefault(file =>
+                    file.EndsWith(bestSolutionName, StringComparison.CurrentCultureIgnoreCase));
+            }
+
+            if(string.IsNullOrWhiteSpace(SolutionPath))
+            {
+                SolutionPath = solutionFiles.First();
+            }
+
             var codegenProjectPath = Path.Combine(SolutionDir, "Harmony.Core.CodeGen.json");
             var regenPath = Path.Combine(SolutionDir, "regen.bat");
             var regenConfigPath = Path.Combine(SolutionDir, "regen_config.bat");
@@ -30,8 +46,21 @@ namespace HarmonyCore.CliTool
                 projectOptions.GlobalProperties.Add("Configuration", "Debug");
                 projectOptions.GlobalProperties.Add("Platform", "AnyCPU");
                 projectOptions.GlobalProperties.Add("NuGetRestoreTargets", Path.Combine(basePath, "Nuget.targets"));
-
-                Projects = projectPaths.Select(path => new ProjectInfo(path, targetVersion, TryLoadProject(path, projectOptions))).ToList();
+                LoadProject = (path) => new ProjectInfo(path, TryLoadProject(path, projectOptions));
+                Projects = projectPaths.Select(LoadProject).ToList();
+                var commonEnvVars = Projects.FirstOrDefault(project => project.MSBuildProject.GetProperty("CommonEnvVars") != null)?.MSBuildProject?.GetProperty("CommonEnvVars");
+                if (commonEnvVars?.EvaluatedValue != null)
+                {
+                    var splitVars = commonEnvVars.EvaluatedValue.Split(';');
+                    foreach (var envVar in splitVars)
+                    {
+                        var parts = envVar.Split('=');
+                        if(parts.Length == 2)
+                            Environment.SetEnvironmentVariable(parts[0], parts[1]);
+                        else if(parts.Length == 1)
+                            Environment.SetEnvironmentVariable(parts[0], null);
+                    }
+                }
 
                 if (File.Exists(codegenProjectPath))
                 {
@@ -53,6 +82,36 @@ namespace HarmonyCore.CliTool
             catch (Exception ex)
             {
                 Console.WriteLine("WARNING: Exception while synthesizing codegen project information: {0}", ex);
+            }
+        }
+
+        class VersionsResponse
+        {
+            public string[] Versions { get; set; }
+        }
+
+        public async Task<ValueTuple<bool, string, string>> UpToDateCheck()
+        {
+            var myVersion = System.Diagnostics.FileVersionInfo
+                .GetVersionInfo(typeof(SolutionInfo).Assembly.Location)
+                .FileVersion;
+            try
+            {
+                var cts = new CancellationTokenSource();
+                cts.CancelAfter(5000);
+                var packageName = "Harmony.Core.CLITool";
+                var url = $"https://api.nuget.org/v3-flatcontainer/{packageName}/index.json";
+                var httpClient = new HttpClient();
+                var response = await httpClient.GetAsync(url, cts.Token);
+                var versionsResponseBytes = await response.Content.ReadAsStringAsync(cts.Token);
+                var versionsResponse = JsonConvert.DeserializeObject<VersionsResponse>(versionsResponseBytes);
+                var lastVersion = versionsResponse.Versions[^1]; //(length-1)
+                return (Version.Parse(lastVersion) <= Version.Parse(myVersion), lastVersion, myVersion);
+            }
+            catch
+            {
+
+                return (true, myVersion, myVersion);
             }
         }
 
@@ -78,6 +137,7 @@ namespace HarmonyCore.CliTool
 
         public void LoadFromBat(string solutionDir, string regenPath, string userTokenFile)
         {
+            var targetVersion = Program.LoadVersionInfoSync(true);
             try
             {
                 CodeGenSolution = Solution.LoadSolution(regenPath, userTokenFile, solutionDir);
@@ -92,7 +152,7 @@ namespace HarmonyCore.CliTool
                     if (response == 'Y' || response == 'y')
                     {
                         ProjectInfo.FixRPS(targetRps.ProjectDoc,
-                            Program.TargetVersion.BuildPackageVersion, "Repository");
+                            targetVersion.BuildPackageVersion, "Repository");
                         targetRps.Save();
                         CodeGenSolution = Solution.LoadSolution(regenPath, userTokenFile, solutionDir);
                     }
@@ -119,6 +179,7 @@ namespace HarmonyCore.CliTool
 
         public List<ProjectInfo> Projects { get; }
         public string SolutionDir { get; set; }
+        public string SolutionPath { get; set; }
         public Solution CodeGenSolution { get; set; }
     }
 }

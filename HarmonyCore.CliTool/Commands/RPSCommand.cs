@@ -11,11 +11,11 @@ namespace HarmonyCore.CliTool.Commands
 {
     class RPSCommand
     {
-        SolutionInfo _solutionInfo;
-
-        public RPSCommand(SolutionInfo solutionInfo)
+        private readonly Lazy<SolutionInfo> _loader;
+        SolutionInfo _solutionInfo => _loader.Value;
+        public RPSCommand(Func<SolutionInfo> solutionInfo)
         {
-            _solutionInfo = solutionInfo;
+            _loader = new Lazy<SolutionInfo>(solutionInfo);
         }
 
         public int Run(RpsOptions opts)
@@ -66,7 +66,7 @@ namespace HarmonyCore.CliTool.Commands
             else if (opts.ListRelations)
             {
                 var loadedRelations = _solutionInfo.CodeGenSolution.ExtendedStructures.SelectMany(strct => strct.RelationsSpecs).ToList();
-                var relationLookup = new RelationLookup(new CodeGen.Engine.CodeGenContext(new CodeGen.Engine.CodeGenTaskSet()), loadedRelations);
+                var relationLookup = new RelationLookup(new CodeGen.Engine.CodeGenContext(new CodeGen.Engine.CodeGenTaskSet()).Structures, loadedRelations);
 
                 foreach (var rel in selectedStruct.Relations)
                 {

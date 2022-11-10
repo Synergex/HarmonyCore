@@ -12,21 +12,92 @@ namespace HarmonyCore.CliTool
 {
     public class GitHubRelease
     {
-        public static async Task GetAndUnpackLatest(bool hasTraditionalBridge, string traditionalBridgeFolder, List<string> distinctTemplateFolders, SolutionInfo solution,
-            string overrideVersionName = null, string overrideTargetUrl = null)
+        public static async Task<ValueTuple<ZipArchive, string>> GetLatestRelease(string releasePrefix, string overrideVersionName = null, string overrideTargetUrl = null)
         {
             var client = new HttpClient();
             var octoClient = new Octokit.GitHubClient(new Octokit.ProductHeaderValue("Synergex"));
             var allReleases = await octoClient.Repository.Release.GetAll("Synergex", "HarmonyCore");
 
-            var latestRelease = allReleases.OrderByDescending(rel => rel.PublishedAt).FirstOrDefault(rel => rel.Name?.StartsWith("net6") ?? false);
+            var latestRelease = allReleases.OrderByDescending(rel => rel.PublishedAt).FirstOrDefault(rel => rel.Name?.StartsWith(releasePrefix) ?? false);
 
             var CurrentVersionTag = overrideVersionName ?? latestRelease.TagName;
 
             var targeturl = overrideTargetUrl ?? $"https://github.com/Synergex/HarmonyCore/archive/{CurrentVersionTag}.zip";
-            var sourceDistStream = targeturl.StartsWith("https", StringComparison.OrdinalIgnoreCase) ? await client.GetStreamAsync(targeturl) : File.OpenRead(targeturl);
-            var normalizer = new Regex(@"\r\n|\n\r|\n|\r", RegexOptions.Compiled);
-            using (var zip = new ZipArchive(sourceDistStream, ZipArchiveMode.Read))
+            var targetFile = Path.Combine(Program.AppFolder, CurrentVersionTag + ".zip");
+            Stream sourceDistStream = null;
+            if (!File.Exists(targetFile))
+            {
+                await using var httpStream = await client.GetStreamAsync(targeturl);
+                await using var writer = File.Open(targetFile, FileMode.Create);
+                await httpStream.CopyToAsync(writer);
+                writer.Close();
+            }
+            
+            sourceDistStream = File.OpenRead(targetFile);
+            try
+            {
+                return (new ZipArchive(sourceDistStream, ZipArchiveMode.Read), CurrentVersionTag);
+            }
+            catch (InvalidDataException e)
+            {
+                //if the zip archive was corrupt, try again
+                await using var httpStream = await client.GetStreamAsync(targeturl);
+                await using var writer = File.Open(targetFile, FileMode.Create);
+                await httpStream.CopyToAsync(httpStream);
+                writer.Close();
+                return (new ZipArchive(File.OpenRead(targetFile), ZipArchiveMode.Read), CurrentVersionTag);
+            }
+            
+        }
+
+        private static Regex NewlineNormalizer = new Regex(@"\r\n|\n\r|\n|\r", RegexOptions.Compiled);
+
+        public static async Task<string> GetCliToolVersions(bool skipCache, string overrideVersionName = null,
+            string overrideTargetUrl = null)
+        {
+            if (skipCache ||
+                !Program.AppSettings.TryGetValue("LastReleaseCheck", out var lastChecked) || 
+                !Program.AppSettings.TryGetValue("LastReleaseVersions", out var lastReleaseVersions) ||
+                DateTime.Parse(lastChecked).AddDays(5) < DateTime.Now)
+            {
+                lastReleaseVersions = await GetCliToolVersionsInternal(overrideVersionName, overrideTargetUrl);
+                Program.AppSettings["LastReleaseCheck"] = DateTime.Now.ToString();
+                Program.AppSettings["LastReleaseVersions"] = lastReleaseVersions;
+                return lastReleaseVersions;
+            }
+            else
+            {
+                return lastReleaseVersions;
+            }
+        }
+
+        static async Task<string> GetCliToolVersionsInternal(string overrideVersionName = null,
+            string overrideTargetUrl = null)
+        {
+
+            var (zip, versionTag) = await GetLatestRelease("net6", overrideVersionName, overrideTargetUrl);
+            using (zip)
+            {
+                foreach (var entry in zip.Entries)
+                {
+                    if (entry.CompressedLength > 0 &&
+                        entry.FullName == $"HarmonyCore-{versionTag}/cli-tool-versions.json")
+                    {
+                        await using var stream = entry.Open();
+                        using var reader = new StreamReader(stream);
+                        return await reader.ReadToEndAsync();
+                    }
+                }
+            }
+
+            return String.Empty;
+        }
+
+        public static async Task GetAndUnpackLatest(bool hasTraditionalBridge, string traditionalBridgeFolder, List<string> distinctTemplateFolders, SolutionInfo solution,
+            string overrideVersionName = null, string overrideTargetUrl = null)
+        {
+            var (zip, CurrentVersionTag) = await GetLatestRelease("net6", overrideVersionName, overrideTargetUrl);
+            using (zip)
             {
                 foreach (var entry in zip.Entries)
                 {
@@ -47,7 +118,7 @@ namespace HarmonyCore.CliTool
                             {
                                 using (var reader = new StreamReader(stream))
                                 {
-                                    File.WriteAllText(targetFileName, normalizer.Replace(reader.ReadToEnd(), "\r\n"));
+                                    await File.WriteAllTextAsync(targetFileName, NewlineNormalizer.Replace(reader.ReadToEnd(), "\r\n"));
                                 }
                             }
                         }
@@ -62,7 +133,7 @@ namespace HarmonyCore.CliTool
                         {
                             using (var reader = new StreamReader(stream))
                             {
-                                File.WriteAllText(targetFileName, normalizer.Replace(reader.ReadToEnd(), "\r\n"));
+                                await File.WriteAllTextAsync(targetFileName, NewlineNormalizer.Replace(reader.ReadToEnd(), "\r\n"));
                             }
                         }
                     }
@@ -76,7 +147,7 @@ namespace HarmonyCore.CliTool
                         {
                             using (var reader = new StreamReader(stream))
                             {
-                                File.WriteAllText(targetFileName, normalizer.Replace(reader.ReadToEnd(), "\r\n"));
+                                await File.WriteAllTextAsync(targetFileName, NewlineNormalizer.Replace(await reader.ReadToEndAsync(), "\r\n"));
                             }
                         }
                     }
@@ -91,7 +162,7 @@ namespace HarmonyCore.CliTool
                         {
                             using (var reader = new StreamReader(stream))
                             {
-                                File.WriteAllText(targetFileName, normalizer.Replace(reader.ReadToEnd(), "\r\n"));
+                                await File.WriteAllTextAsync(targetFileName, NewlineNormalizer.Replace(await reader.ReadToEndAsync(), "\r\n"));
                             }
                         }
                     }

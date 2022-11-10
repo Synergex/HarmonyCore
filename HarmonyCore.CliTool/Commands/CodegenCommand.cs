@@ -11,15 +11,16 @@ namespace HarmonyCore.CliTool.Commands
 {
     class CodegenCommand
     {
-        SolutionInfo _solutionInfo;
+        private readonly Lazy<SolutionInfo> _loader;
+        SolutionInfo _solutionInfo => _loader.Value;
         Dictionary<string, RpsStructure> _structureLookup;
         Dictionary<string, StructureEx> _extendedStructureLookup;
         Dictionary<string, SmcInterface> _interfaceLookup;
         Dictionary<string, InterfaceEx> _extendedInterfaceLookup;
 
-        public CodegenCommand(SolutionInfo solutionInfo)
+        public CodegenCommand(Func<SolutionInfo> solutionInfo)
         {
-            _solutionInfo = solutionInfo;
+            _loader = new Lazy<SolutionInfo>(solutionInfo);
         }
 
         private void LazyLoadLookups()

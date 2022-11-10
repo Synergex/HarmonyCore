@@ -23,13 +23,13 @@ namespace HarmonyCore.CliTool.TUI.Models
             }
         }
 
-        public (ISingleItemSettings, PropertyItemSetting) GetInitialProperty()
+        public (ISingleItemSettings, IPropertyItemSetting) GetInitialProperty()
         {
             var dummySingleSetting = new InterfacePickerHelper(_context, new HashSet<string>(Items.Select(itm => itm.Name), StringComparer.OrdinalIgnoreCase)) as ISingleItemSettings;
             return (dummySingleSetting, dummySingleSetting.DisplayProperties.First());
         }
 
-        public ISingleItemSettings AddItem(PropertyItemSetting initSetting)
+        public ISingleItemSettings AddItem(IPropertyItemSetting initSetting)
         {
             var madeInterface = new InterfaceEx { Name = initSetting.Value as string };
             _context.CodeGenSolution.ExtendedInterfaces.Add(madeInterface);

@@ -69,7 +69,7 @@ namespace HarmonyCore.CliTool.TUI.Views
 
             _structureListScrollBarView.DrawContent += (e) =>
             {
-                _structureListScrollBarView.Size = _structureListView.Source.Count - 1;
+                _structureListScrollBarView.Size = Math.Max(_structureListView.Source.Count - 1, 1);
                 _structureListScrollBarView.Position = _structureListView.TopItem;
                 _structureListScrollBarView.OtherScrollBarView.Size = _structureListView.Maxlength - 1;
                 _structureListScrollBarView.OtherScrollBarView.Position = _structureListView.LeftItem;
@@ -77,6 +77,74 @@ namespace HarmonyCore.CliTool.TUI.Views
             };
 
             Add(_leftFrame, _currentItemFrame, _structureListScrollBarView);
+        }
+
+
+        private List<ISingleItemSettings> _findContext;
+        private string _findContextSearchTerm;
+        private int _findContextIndex;
+
+        //return true if this is a new context
+        //false if this is already setup
+        private bool SetFindContext(string searchTerm)
+        {
+            if (_findContextSearchTerm == searchTerm)
+            {
+                return false;
+            }
+            else
+            {
+                _findContextSearchTerm = searchTerm;
+                _findContext = _settings.FindMatchingItems(searchTerm).ToList();
+                _findContextIndex = 0;
+                return true;
+            }
+        }
+
+        public void FindNext(string searchTerm)
+        {
+            SetFindContext(searchTerm);
+
+            if (_findContext.Count == 0)
+                return;
+
+            if (_findContextIndex >= _findContext.Count)
+                _findContextIndex = 0;
+
+            SelectItem(_findContext[_findContextIndex]);
+
+            if (!_currentItemView.FindNext(searchTerm))
+                _findContextIndex++;
+        }
+
+        public void FindPrev(string searchTerm)
+        {
+            SetFindContext(searchTerm);
+
+            if (_findContext.Count == 0)
+                return;
+
+            if (_findContextIndex < 0)
+                _findContextIndex = _findContext.Count - 1;
+
+            SelectItem(_findContext[_findContextIndex]);
+
+            if (!_currentItemView.FindPrev(searchTerm))
+                _findContextIndex--;
+        }
+
+        public void SelectItem(ISingleItemSettings targetSetting)
+        {
+            var itemModels = _structureListView.Source.ToList();
+            for (int i = 0; i < itemModels.Count; i++)
+            {
+                var row = itemModels[i] as string;
+                if (row == targetSetting.Name)
+                {
+                    _structureListView.SelectedItem = i;
+                }
+            }
+            _structureListView.SetNeedsDisplay();
         }
 
         public void AttachStatusBar(StatusBar target)
@@ -93,10 +161,10 @@ namespace HarmonyCore.CliTool.TUI.Views
         {
             public ISingleItemSettings Context { get; set; }
 
-            public PropertyItemSetting Model { get; set; }
+            public IPropertyItemSetting Model { get; set; }
 
             public bool Success { get; set; }
-            public PropertyItemSetting Result { get; set; }
+            public IPropertyItemSetting Result { get; set; }
 
             public ThingPicker(IMultiItemSettingsBase multiItemContext)
             {
@@ -104,11 +172,10 @@ namespace HarmonyCore.CliTool.TUI.Views
             }
         }
 
-        private void OnAddThing()
+        private async void OnAddThing()
         {
             //show structure/interface picker
-            var picker = new ThingPicker(_settings);
-            EditSettingView.PushEditSettingsView("Add " + _settings.Name.ToLower(), picker, false);
+            var picker = (await EditSettingView.PushEditSettingsView("Add " + _settings.Name.ToLower(), new ThingPicker(_settings), false)) as ThingPicker;
             if(picker.Success)
             {
                 //need to run a wizzard after selecting the structure or possible as part of selecting the structure

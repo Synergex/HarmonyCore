@@ -9,8 +9,8 @@ namespace HarmonyCore.CliTool.TUI.Models
     interface IHasNavigationResult
     {
         ISingleItemSettings Context { get; }
-        PropertyItemSetting Model { get; }
+        IPropertyItemSetting Model { get; }
         bool Success { set; }
-        PropertyItemSetting Result { set; }
+        IPropertyItemSetting Result { set; }
     }
 }

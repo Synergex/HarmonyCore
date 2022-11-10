@@ -8,16 +8,16 @@ namespace HarmonyCore.CliTool.TUI.Models
 {
     class EditablePropertyItem : IHasNavigationResult
     {
-        public EditablePropertyItem(ISingleItemSettings context, PropertyItemSetting model)
+        public EditablePropertyItem(ISingleItemSettings context, IPropertyItemSetting model)
         {
             Context = context;
             Model = model;
         }
         public ISingleItemSettings Context { get; set; }
 
-        public PropertyItemSetting Model { get; set; }
+        public IPropertyItemSetting Model { get; set; }
 
         public bool Success { get; set; }
-        public PropertyItemSetting Result { get; set; }
+        public IPropertyItemSetting Result { get; set; }
     }
 }

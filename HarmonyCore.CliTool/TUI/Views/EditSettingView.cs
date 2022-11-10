@@ -198,10 +198,11 @@ namespace HarmonyCore.CliTool.TUI.Views
             Application.RequestStop(this);
         }
 
-        public static void PushEditSettingsView(string title, IHasNavigationResult navResult, bool fullscreen)
+        public static Task<IHasNavigationResult> PushEditSettingsView(string title, IHasNavigationResult navResult, bool fullscreen)
         {
+            var tcs = new TaskCompletionSource<IHasNavigationResult>();
             var settingsView = new EditSettingView(title, navResult);
-            if(fullscreen)
+            if (fullscreen)
             {
                 settingsView.X = 0;
                 settingsView.Y = 1;
@@ -209,7 +210,10 @@ namespace HarmonyCore.CliTool.TUI.Views
                 settingsView.Height = Dim.Fill();
                 settingsView.ColorScheme = Colors.TopLevel;
             }
+
+            settingsView.Closed += (view) => tcs.TrySetResult(navResult);
             Application.Run(settingsView);
+            return tcs.Task;
         }
     }
 }

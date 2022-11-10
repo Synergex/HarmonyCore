@@ -214,7 +214,7 @@ namespace HarmonyCore.CliTool.TUI.Models
         [NullableBoolExtractor]
         [NullableBoolOptionsExtractor]
         public bool? GenerateUnitTests { get; private set; }
-        [Prompt("Enable odata filters")]
+        [Prompt("Enable OData filters")]
         [NullableBoolInjector]
         [NullableBoolExtractor]
         [NullableBoolOptionsExtractor]
