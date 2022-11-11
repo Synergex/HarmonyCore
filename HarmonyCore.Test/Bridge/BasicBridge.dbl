@@ -135,6 +135,9 @@ namespace HarmonyCore.Test.Bridge
             Console.WriteLine("Calling GetAllCustomers")
             data customers = await context.GetAllCustomers()
             
+            Console.WriteLine("Calling Spawn Test")
+            data spawnResult = await context.Arbitrario_Spawn()
+
             try
             begin
                 Console.WriteLine("Calling Exception Test")
@@ -494,6 +497,14 @@ namespace HarmonyCore.Test.Bridge
             proc
                 data intArray = new int[#] {5, 4, 3, 2, 1 }
                 data resultTpl = await CallMethod("Arbitrario.MethodWithParameters", -1, "BREAK PROTOCOL", new string[#] { "this", "is", "strings" }, (@object)intArray, new string[0])
+                data returnCode = ArgumentHelper.Argument<int>(0, resultTpl)
+                mreturn new ArbitrarioReturnType() { ReturnCode = returnCode, IntList = ((@IEnumerable<int>)resultTpl.Item2[4]).ToList(), StringList = ((@IEnumerable<string>)resultTpl.Item2[5]).ToList() }
+            endmethod
+
+            public async method Arbitrario_Spawn, @Task<ArbitrarioReturnType>
+            proc
+                data intArray = new int[#] {5, 4, 3, 2, 1 }
+                data resultTpl = await CallMethod("Arbitrario.MethodWithParameters", 5, "SPAWN", new string[#] { "this", "is", "strings" }, (@object)intArray, new string[0])
                 data returnCode = ArgumentHelper.Argument<int>(0, resultTpl)
                 mreturn new ArbitrarioReturnType() { ReturnCode = returnCode, IntList = ((@IEnumerable<int>)resultTpl.Item2[4]).ToList(), StringList = ((@IEnumerable<string>)resultTpl.Item2[5]).ToList() }
             endmethod

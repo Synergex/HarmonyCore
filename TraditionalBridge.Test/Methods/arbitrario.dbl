@@ -15,7 +15,23 @@ namespace TraditionalBridge.Test.Methods
             endparams
             record
                 stringElement, @string
+                tmp, a255
         proc
+            if(stringValue == "SPAWN")
+            begin
+                Logger.Instance.Log("spawning a bad process")
+                open(133, I, "|dbr fred.dbl")
+                do forever
+                begin
+                    reads(133, tmp, WAIT: Q_WAIT) [$ERR_EOF=done]
+                    nextloop
+                done,
+                    exitloop
+                end
+                
+                close(133)
+            end
+
             ;;test that we can recover from total runtime failure
             if(stringValue == "STOP NOW!!!")
                 STOP
