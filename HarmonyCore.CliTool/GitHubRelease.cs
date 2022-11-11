@@ -74,18 +74,24 @@ namespace HarmonyCore.CliTool
         static async Task<string> GetCliToolVersionsInternal(string overrideVersionName = null,
             string overrideTargetUrl = null)
         {
-
-            var (zip, versionTag) = await GetLatestRelease("net6", overrideVersionName, overrideTargetUrl);
-            using (zip)
+            if (File.Exists("cli-tool-versions.json"))
             {
-                foreach (var entry in zip.Entries)
+                return File.ReadAllText("cli-tool-versions.json");
+            }
+            else
+            {
+                var (zip, versionTag) = await GetLatestRelease("net6", overrideVersionName, overrideTargetUrl);
+                using (zip)
                 {
-                    if (entry.CompressedLength > 0 &&
-                        entry.FullName == $"HarmonyCore-{versionTag}/cli-tool-versions.json")
+                    foreach (var entry in zip.Entries)
                     {
-                        await using var stream = entry.Open();
-                        using var reader = new StreamReader(stream);
-                        return await reader.ReadToEndAsync();
+                        if (entry.CompressedLength > 0 &&
+                            entry.FullName == $"HarmonyCore-{versionTag}/cli-tool-versions.json")
+                        {
+                            await using var stream = entry.Open();
+                            using var reader = new StreamReader(stream);
+                            return await reader.ReadToEndAsync();
+                        }
                     }
                 }
             }

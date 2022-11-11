@@ -18,16 +18,16 @@ namespace HarmonyCore.CliTool.TUI.ViewModels
 {
     internal class MainViewModel
     {
-        private readonly Lazy<SolutionInfo> _loader;
-        SolutionInfo _context => _loader.Value;
+        private readonly Lazy<Task<SolutionInfo>> _loader;
+        SolutionInfo _context => _loader.Value.Result;
 
         Dictionary<string, ISettingsBase> DynamicSettings { get; set; }
         public List<string> InactiveSettings { get; } = new List<string>();
         public List<ISettingsBase> ActiveSettings { get; } = new List<ISettingsBase>();
 
-        public MainViewModel(Func<SolutionInfo> contextLoader)
+        public MainViewModel(Func<Task<SolutionInfo>> contextLoader)
         {
-            _loader = new Lazy<SolutionInfo>(contextLoader);
+            _loader = new Lazy<Task<SolutionInfo>>(contextLoader);
         }
 
         public async void EnsureSolutionLoad(Func<string> getFileName, Action<string> statusUpdate, Action<string> error, Action loaded)
@@ -79,7 +79,7 @@ namespace HarmonyCore.CliTool.TUI.ViewModels
             {
                 CodeGenTaskSet runningTaskset = null;
                 int runPartsCompleted = 0;
-                var regenCommand = new RegenCommand(() => _context) { CallerLogger = message };
+                var regenCommand = new RegenCommand(() => Task.FromResult(_context)) { CallerLogger = message };
                 regenCommand.GenerationEvents.GenerationStarted = (tsk) =>
                 {
                     runPartsCompleted = 5;

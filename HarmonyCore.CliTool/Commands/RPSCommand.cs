@@ -5,17 +5,18 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using static HarmonyCoreExtensions.Helpers;
 
 namespace HarmonyCore.CliTool.Commands
 {
     class RPSCommand
     {
-        private readonly Lazy<SolutionInfo> _loader;
-        SolutionInfo _solutionInfo => _loader.Value;
-        public RPSCommand(Func<SolutionInfo> solutionInfo)
+        private readonly Lazy<Task<SolutionInfo>> _loader;
+        SolutionInfo _solutionInfo => _loader.Value.Result;
+        public RPSCommand(Func<Task<SolutionInfo>> solutionInfo)
         {
-            _loader = new Lazy<SolutionInfo>(solutionInfo);
+            _loader = new Lazy<Task<SolutionInfo>>(solutionInfo);
         }
 
         public int Run(RpsOptions opts)

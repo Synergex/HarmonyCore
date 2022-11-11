@@ -12,9 +12,9 @@ namespace HarmonyCore.CliTool.Commands
 {
     internal class GUICommand
     {
-        private Func<Action<string>, SolutionInfo> _solutionLoader;
+        private Func<Action<string>, Task<SolutionInfo>> _solutionLoader;
 
-        public GUICommand(Func<Action<string>, SolutionInfo> solutionInfo) => this._solutionLoader = solutionInfo;
+        public GUICommand(Func<Action<string>, Task<SolutionInfo>> solutionInfo) => this._solutionLoader = solutionInfo;
 
         public int Run(GUIOptions options)
         {

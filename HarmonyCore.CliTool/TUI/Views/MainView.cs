@@ -16,7 +16,7 @@ namespace HarmonyCore.CliTool.TUI.Views
         MainViewModel _mainViewModel;
         TabView _tabView;
         private static int MainThread;
-        public MainView(Func<Action<string>, SolutionInfo> context)
+        public MainView(Func<Action<string>, Task<SolutionInfo>> context)
         {
             MainThread = System.Threading.Thread.CurrentThread.ManagedThreadId;
             StatusBar = new StatusBar();
@@ -58,7 +58,7 @@ namespace HarmonyCore.CliTool.TUI.Views
             }
         }
 
-        private async void FinishInit(Func<Action<string>, SolutionInfo> context)
+        private async void FinishInit(Func<Action<string>, Task<SolutionInfo>> context)
         {
             await Task.Yield();
             var cts = new CancellationTokenSource();

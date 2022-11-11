@@ -13,27 +13,30 @@ namespace HarmonyCore.CliTool
     public class SolutionInfo
     {
         public Func<string, ProjectInfo> LoadProject;
-        public SolutionInfo(IEnumerable<string> projectPaths, string solutionDir)
+
+        public static async Task<SolutionInfo> LoadSolutionInfoAsync(IEnumerable<string> projectPaths,
+            string solutionDir, Action<string> logger)
         {
-            SolutionDir = solutionDir;
+            var result = new SolutionInfo();
+            result.SolutionDir = solutionDir;
 
             var solutionFiles = Directory.EnumerateFiles(solutionDir, "*.sln", SearchOption.TopDirectoryOnly).ToList();
             if (solutionFiles.Count() > 1)
             {
                 var bestSolutionName = Path.Combine(new DirectoryInfo(solutionDir).Name, ".sln");
-                SolutionPath = solutionFiles.FirstOrDefault(file =>
+                result.SolutionPath = solutionFiles.FirstOrDefault(file =>
                     file.EndsWith(bestSolutionName, StringComparison.CurrentCultureIgnoreCase));
             }
 
-            if(string.IsNullOrWhiteSpace(SolutionPath))
+            if (string.IsNullOrWhiteSpace(result.SolutionPath))
             {
-                SolutionPath = solutionFiles.First();
+                result.SolutionPath = solutionFiles.First();
             }
 
-            var codegenProjectPath = Path.Combine(SolutionDir, "Harmony.Core.CodeGen.json");
-            var regenPath = Path.Combine(SolutionDir, "regen.bat");
-            var regenConfigPath = Path.Combine(SolutionDir, "regen_config.bat");
-            var userTokenFile = Path.Combine(SolutionDir, "UserDefinedTokens.tkn");
+            var codegenProjectPath = Path.Combine(result.SolutionDir, "Harmony.Core.CodeGen.json");
+            var regenPath = Path.Combine(result.SolutionDir, "regen.bat");
+            var regenConfigPath = Path.Combine(result.SolutionDir, "regen_config.bat");
+            var userTokenFile = Path.Combine(result.SolutionDir, "UserDefinedTokens.tkn");
             try
             {
                 var basePath = Solution.GetDotnetBasePath();
@@ -42,37 +45,37 @@ namespace HarmonyCore.CliTool
 
                 projectOptions.EvaluationContext = evalContext;
                 projectOptions.GlobalProperties = new Dictionary<String, String>();
-                projectOptions.GlobalProperties.Add("SolutionDir", SolutionDir + "\\");
+                projectOptions.GlobalProperties.Add("SolutionDir", result.SolutionDir + "\\");
                 projectOptions.GlobalProperties.Add("Configuration", "Debug");
                 projectOptions.GlobalProperties.Add("Platform", "AnyCPU");
                 projectOptions.GlobalProperties.Add("NuGetRestoreTargets", Path.Combine(basePath, "Nuget.targets"));
-                LoadProject = (path) => new ProjectInfo(path, TryLoadProject(path, projectOptions));
-                Projects = projectPaths.Select(LoadProject).ToList();
-                var commonEnvVars = Projects.FirstOrDefault(project => project.MSBuildProject.GetProperty("CommonEnvVars") != null)?.MSBuildProject?.GetProperty("CommonEnvVars");
+                result.LoadProject = (path) => new ProjectInfo(path, result.TryLoadProject(path, projectOptions));
+                result.Projects = projectPaths.Select(result.LoadProject).ToList();
+                var commonEnvVars = result.Projects.FirstOrDefault(project => project.MSBuildProject.GetProperty("CommonEnvVars") != null)?.MSBuildProject?.GetProperty("CommonEnvVars");
                 if (commonEnvVars?.EvaluatedValue != null)
                 {
                     var splitVars = commonEnvVars.EvaluatedValue.Split(';');
                     foreach (var envVar in splitVars)
                     {
                         var parts = envVar.Split('=');
-                        if(parts.Length == 2)
+                        if (parts.Length == 2)
                             Environment.SetEnvironmentVariable(parts[0], parts[1]);
-                        else if(parts.Length == 1)
+                        else if (parts.Length == 1)
                             Environment.SetEnvironmentVariable(parts[0], null);
                     }
                 }
 
                 if (File.Exists(codegenProjectPath))
                 {
-                    CodeGenSolution = Solution.LoadSolution(codegenProjectPath, solutionDir);
+                    result.CodeGenSolution = await (await DynamicCodeGenerator.LoadDynamicConfig(Path.Combine(result.SolutionDir, "Config")))(codegenProjectPath, solutionDir, logger);
                 }
                 else if (File.Exists(regenPath))
                 {
-                    LoadFromBat(solutionDir, regenPath, userTokenFile);
+                    result.LoadFromBat(solutionDir, regenPath, userTokenFile);
                 }
                 else if (File.Exists(regenConfigPath))
                 {
-                    LoadFromBat(solutionDir, regenConfigPath, userTokenFile);
+                    result.LoadFromBat(solutionDir, regenConfigPath, userTokenFile);
                 }
                 else
                 {
@@ -83,6 +86,13 @@ namespace HarmonyCore.CliTool
             {
                 Console.WriteLine("WARNING: Exception while synthesizing codegen project information: {0}", ex);
             }
+
+            return result;
+        }
+
+        private SolutionInfo()
+        {
+            
         }
 
         class VersionsResponse
@@ -177,7 +187,7 @@ namespace HarmonyCore.CliTool
             File.WriteAllText(Path.Combine(SolutionDir, "Harmony.Core.CodeGen.json"), JsonConvert.SerializeObject(CodeGenSolution, settings));
         }
 
-        public List<ProjectInfo> Projects { get; }
+        public List<ProjectInfo> Projects { get; private set; }
         public string SolutionDir { get; set; }
         public string SolutionPath { get; set; }
         public Solution CodeGenSolution { get; set; }

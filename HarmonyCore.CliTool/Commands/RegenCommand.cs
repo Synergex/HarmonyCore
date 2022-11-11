@@ -6,16 +6,17 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using HarmonyCoreGenerator.Model;
+using System.Threading.Tasks;
 
 namespace HarmonyCore.CliTool.Commands
 {
     class RegenCommand
     {
-        private readonly Lazy<SolutionInfo> _loader;
-        SolutionInfo _solutionInfo => _loader.Value;
-        public RegenCommand(Func<SolutionInfo> solutionInfo)
+        private readonly Lazy<Task<SolutionInfo>> _loader;
+        SolutionInfo _solutionInfo => _loader.Value.Result;
+        public RegenCommand(Func<Task<SolutionInfo>> solutionInfo)
         {
-            _loader = new Lazy<SolutionInfo>(solutionInfo);
+            _loader = new Lazy<Task<SolutionInfo>>(solutionInfo);
             GenerationEvents = new Solution.SolutionGenerationEvents() { Message = Logger, Error = Logger };
         }
         //Add a filesystem watcher with callbacks and percentages

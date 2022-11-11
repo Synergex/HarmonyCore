@@ -6,21 +6,22 @@ using System.Linq;
 using CodeGen.RepositoryAPI;
 using HarmonyCoreGenerator.Model;
 using CodeGen.MethodCatalogAPI;
+using System.Threading.Tasks;
 
 namespace HarmonyCore.CliTool.Commands
 {
     class CodegenCommand
     {
-        private readonly Lazy<SolutionInfo> _loader;
-        SolutionInfo _solutionInfo => _loader.Value;
+        private readonly Lazy<Task<SolutionInfo>> _loader;
+        SolutionInfo _solutionInfo => _loader.Value.Result;
         Dictionary<string, RpsStructure> _structureLookup;
         Dictionary<string, StructureEx> _extendedStructureLookup;
         Dictionary<string, SmcInterface> _interfaceLookup;
         Dictionary<string, InterfaceEx> _extendedInterfaceLookup;
 
-        public CodegenCommand(Func<SolutionInfo> solutionInfo)
+        public CodegenCommand(Func<Task<SolutionInfo>> solutionInfo)
         {
-            _loader = new Lazy<SolutionInfo>(solutionInfo);
+            _loader = new Lazy<Task<SolutionInfo>>(solutionInfo);
         }
 
         private void LazyLoadLookups()

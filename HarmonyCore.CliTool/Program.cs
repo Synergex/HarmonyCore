@@ -261,7 +261,7 @@ Known structure properties:
         public static string AppFolder;
         public static Dictionary<string, string> AppSettings = new Dictionary<string, string>();
 
-        static SolutionInfo LoadSolutionInfo(Action<string> logger)
+        static async Task<SolutionInfo> LoadSolutionInfo(Action<string> logger)
         {
             var solutionDir = Environment.GetEnvironmentVariable("SolutionDir");
 
@@ -285,6 +285,7 @@ Known structure properties:
                 return null;
             }
 
+            //VisualStudioInstanceQueryOptions
             var instances = MSBuildLocator.QueryVisualStudioInstances().ToList();
             var msbuildDeploymentToUse = instances.FirstOrDefault();
             if (msbuildDeploymentToUse == null)
@@ -301,7 +302,7 @@ Known structure properties:
             if (!MSBuildLocator.IsRegistered)
                 MSBuildLocator.RegisterMSBuildPath(msbuildDeploymentToUse.MSBuildPath);
 
-            return new SolutionInfo(synprojFiles, solutionDir);
+            return await SolutionInfo.LoadSolutionInfoAsync(synprojFiles, solutionDir, logger);
         }
 
         static void Main(string[] args)
@@ -343,9 +344,9 @@ Known structure properties:
                   Console.WriteLine("Checking for current version info");
                   var versionInfo = LoadVersionInfoSync(true);
                   if (opts.ProjectOnly)
-                      UpgradeProjects(defaultLoader(), versionInfo);
+                      UpgradeProjects(defaultLoader().Result, versionInfo);
                   else
-                      UpgradeLatest(defaultLoader(), versionInfo, opts.OverrideTemplateVersion, opts.OverrideTemplateUrl).Wait();
+                      UpgradeLatest(defaultLoader().Result, versionInfo, opts.OverrideTemplateVersion, opts.OverrideTemplateUrl).Wait();
                   return 0;
               },
               new CodegenCommand(defaultLoader).List,
@@ -357,7 +358,7 @@ Known structure properties:
               new GUICommand(LoadSolutionInfo).Run,
               (ReloadBatOptions opts) =>
               {
-                  var solutionInfo = defaultLoader();
+                  var solutionInfo = defaultLoader().Result;
                   var regenPath = Path.Combine(solutionInfo.SolutionDir, "regen.bat");
                   var regenConfigPath = Path.Combine(solutionInfo.SolutionDir, "regen_config.bat");
                   var userTokenFile = Path.Combine(solutionInfo.SolutionDir, "UserDefinedTokens.tkn");
@@ -377,11 +378,14 @@ Known structure properties:
 
         public static VersionTargetingInfo LoadVersionInfoSync(bool skipCache)
         {
-            var versionOverride = Environment.GetEnvironmentVariable("HC_VERSION");
-            if (int.TryParse(versionOverride, out var version))
-                return VersionTargetingInfo.GetVersionTargetingInfo(version, skipCache).Result;
-            else
-                return VersionTargetingInfo.GetVersionTargetingInfo(6, skipCache).Result;
+            return Task.Run(async () =>
+            {
+                var versionOverride = Environment.GetEnvironmentVariable("HC_VERSION");
+                if (int.TryParse(versionOverride, out var version))
+                    return await VersionTargetingInfo.GetVersionTargetingInfo(version, skipCache);
+                else
+                    return await VersionTargetingInfo.GetVersionTargetingInfo(6, skipCache);
+            }).Result;
         }
 
         static void UpgradeProjects(SolutionInfo solution, VersionTargetingInfo versionInfo)
