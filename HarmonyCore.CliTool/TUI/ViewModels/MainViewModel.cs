@@ -75,37 +75,44 @@ namespace HarmonyCore.CliTool.TUI.ViewModels
             Action<string, IEnumerable<string>> addedFiles, Action<string, IEnumerable<string>> removedFiles, CancellationToken cancelToken)
         {
             Save();
-            await Task.Run(() =>
+            try
             {
-                CodeGenTaskSet runningTaskset = null;
-                int runPartsCompleted = 0;
-                var regenCommand = new RegenCommand(() => Task.FromResult(_context)) { CallerLogger = message };
-                regenCommand.GenerationEvents.GenerationStarted = (tsk) =>
+                await Task.Run(() =>
                 {
-                    runPartsCompleted = 5;
-                    runningTaskset = tsk;
-                };
-                regenCommand.GenerationEvents.TaskStarted = tsk => progressUpdate($"Generating {tsk.Templates.FirstOrDefault()}",
-                    (1.0f / (runningTaskset.Tasks.Count + 5)) * runPartsCompleted);
+                    CodeGenTaskSet runningTaskset = null;
+                    int runPartsCompleted = 0;
+                    var regenCommand = new RegenCommand(() => Task.FromResult(_context)) { CallerLogger = message };
+                    regenCommand.GenerationEvents.GenerationStarted = (tsk) =>
+                    {
+                        runPartsCompleted = 5;
+                        runningTaskset = tsk;
+                    };
+                    regenCommand.GenerationEvents.TaskStarted = tsk => progressUpdate($"Generating {tsk.Templates.FirstOrDefault()}",
+                        (1.0f / (runningTaskset.Tasks.Count + 5)) * runPartsCompleted);
 
-                regenCommand.GenerationEvents.TaskComplete = tsk =>
-                {
-                    runPartsCompleted++;
-                };
+                    regenCommand.GenerationEvents.TaskComplete = tsk =>
+                    {
+                        runPartsCompleted++;
+                    };
 
-                regenCommand.CancelToken = cancelToken;
-                Dictionary<string, HashSet<string>> syncAddedFiles = new Dictionary<string, HashSet<string>>();
-                Dictionary<string, HashSet<string>> syncRemovedFiles = new Dictionary<string, HashSet<string>>();
-                regenCommand.Run(new RegenOptions { Generators = Enumerable.Empty<string>(), Interfaces = Enumerable.Empty<string>(), Structures = Enumerable.Empty<string>()}, syncAddedFiles, syncRemovedFiles);
-                
-                foreach (var syncTpl in syncAddedFiles)
-                    addedFiles(syncTpl.Key, syncTpl.Value);
+                    regenCommand.CancelToken = cancelToken;
+                    Dictionary<string, HashSet<string>> syncAddedFiles = new Dictionary<string, HashSet<string>>();
+                    Dictionary<string, HashSet<string>> syncRemovedFiles = new Dictionary<string, HashSet<string>>();
+                    regenCommand.Run(new RegenOptions { Generators = Enumerable.Empty<string>(), Interfaces = Enumerable.Empty<string>(), Structures = Enumerable.Empty<string>()}, syncAddedFiles, syncRemovedFiles);
+                    
+                    foreach (var syncTpl in syncAddedFiles)
+                        addedFiles(syncTpl.Key, syncTpl.Value);
 
-                foreach (var syncTpl in syncRemovedFiles)
-                    removedFiles(syncTpl.Key, syncTpl.Value);
+                    foreach (var syncTpl in syncRemovedFiles)
+                        removedFiles(syncTpl.Key, syncTpl.Value);
 
-                loaded();
-            });
+                    loaded();
+                }, cancelToken);
+            }
+            catch (OperationCanceledException)
+            {
+                message("Cancelled");
+            }
             //TODO show messages interactively
         }
 
