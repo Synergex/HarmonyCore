@@ -99,6 +99,9 @@ namespace <NAMESPACE>
             data status, int
             xcall setlog("SYNSEL_NUMALPHA_KEYS", 1, status) 
 
+            ;;Allows connections to older xfServer services
+            xcall setlog("SRV_COMPAT", 1, status)
+
             ;;Configure the test environment (set logicals, create files in a known state, etc.)
             UnitTestEnvironment.Configure()
 

@@ -361,7 +361,6 @@ namespace <NAMESPACE>
         ;;; </summary>
         public override method InternalGetValues, [#]@object
         proc
-            ;;TODO: This should be returning boxed values for each of our fields
             mreturn new Object[<COUNTER_1_VALUE>]
         endmethod
 

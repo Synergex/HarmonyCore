@@ -24,6 +24,7 @@ import Microsoft.EntityFrameworkCore.Infrastructure
 import Microsoft.Extensions.Options
 import System.Collections.Generic
 import System.ComponentModel.DataAnnotations
+import System.Net.Mime
 import Harmony.Core.EF.Extensions
 import Harmony.Core.Interface
 import Harmony.OData
@@ -33,9 +34,13 @@ import Services.Models
 
 namespace Services.Controllers
 
+    {Produces("application/json")}
     ;;; <summary>
-    ;;; OData controller for Differentpks
+    ;;; Str with different PK types
     ;;; </summary>
+    ;;; <remarks>
+    ;;; OData endpoints for Str with different PK types
+    ;;; </remarks>
     public partial class DifferentpksController extends ODataController
     
         ;;Services provided via dependency injection
@@ -64,10 +69,15 @@ namespace Services.Controllers
         {ProducesResponseType(^typeof(IEnumerable<Differentpk>),StatusCodes.Status200OK)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
-        ;;; Get all Differentpks
+        ;;; Query the entire collection of records
         ;;; </summary>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetDifferentpks, @IActionResult
+        ;;; <response code="200">OK. The operation completed successfully.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
+        public method ReadAllDifferentpks, @IActionResult
         proc
             mreturn Ok(_DbContext.Differentpks.AsNoTracking())
         endmethod
@@ -78,12 +88,17 @@ namespace Services.Controllers
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
-        ;;; Get a single Differentpk by primary key.
+        ;;; Query a single record identified by unique primary key
         ;;; </summary>
-        ;;; <param name="aId">ID</param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aId" example="123">ID</param>
         ;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetDifferentpk, @SingleResult<Differentpk>
-            {FromODataUri}
+        ;;; <response code="200">OK. The operation completed successfully.</response>
+        ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
+        public method ReadDifferentpk, @SingleResult<Differentpk>
             required in aId, int
         proc
             mreturn new SingleResult<Differentpk>(_DbContext.Differentpks.AsNoTracking().FindQuery<Differentpk>(_DbContext, aId))
@@ -95,12 +110,17 @@ namespace Services.Controllers
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
-        ;;; Get differentpks by alternate key key Alphapk.
+        ;;; Query a subset of records identified by non-unique alternate key Alphapk
         ;;; </summary>
-        ;;; <param name="aAlphapk">Alpha PK</param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aAlphapk" example="ABC">Alpha PK</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetDifferentpksByAlphapk, @IActionResult
-            {FromODataUri}
+        ;;; <response code="200">OK. The operation completed successfully.</response>
+        ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
+        public method ReadDifferentpksByAlphapk, @IActionResult
             required in aAlphapk, String
         proc
             data result = _DbContext.Differentpks.AsNoTracking().FindAlternate("Alphapk",aAlphapk)
@@ -116,12 +136,17 @@ namespace Services.Controllers
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
-        ;;; Get differentpks by alternate key key Decimalpk.
+        ;;; Query a subset of records identified by non-unique alternate key Decimalpk
         ;;; </summary>
-        ;;; <param name="aDecimalpk">Decimal PK</param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aDecimalpk" example="123">Decimal PK</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetDifferentpksByDecimalpk, @IActionResult
-            {FromODataUri}
+        ;;; <response code="200">OK. The operation completed successfully.</response>
+        ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
+        public method ReadDifferentpksByDecimalpk, @IActionResult
             required in aDecimalpk, int
         proc
             data result = _DbContext.Differentpks.AsNoTracking().FindAlternate("Decimalpk",aDecimalpk)
@@ -137,12 +162,17 @@ namespace Services.Controllers
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
-        ;;; Get differentpks by alternate key key Intergerpk.
+        ;;; Query a subset of records identified by non-unique alternate key Intergerpk
         ;;; </summary>
-        ;;; <param name="aIntergerpk">Integer PK</param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aIntergerpk" example="123">Integer PK</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetDifferentpksByIntergerpk, @IActionResult
-            {FromODataUri}
+        ;;; <response code="200">OK. The operation completed successfully.</response>
+        ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
+        public method ReadDifferentpksByIntergerpk, @IActionResult
             required in aIntergerpk, int
         proc
             data result = _DbContext.Differentpks.AsNoTracking().FindAlternate("Intergerpk",aIntergerpk)
@@ -158,12 +188,17 @@ namespace Services.Controllers
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
-        ;;; Get differentpks by alternate key key Datepk.
+        ;;; Query a subset of records identified by non-unique alternate key Datepk
         ;;; </summary>
-        ;;; <param name="aDatepk">Date PK</param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aDatepk" example="123">Date PK</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetDifferentpksByDatepk, @IActionResult
-            {FromODataUri}
+        ;;; <response code="200">OK. The operation completed successfully.</response>
+        ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
+        public method ReadDifferentpksByDatepk, @IActionResult
             required in aDatepk, DateTime
         proc
             data result = _DbContext.Differentpks.AsNoTracking().FindAlternate("Datepk",aDatepk)
@@ -179,12 +214,17 @@ namespace Services.Controllers
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
-        ;;; Get differentpks by alternate key key Timepk.
+        ;;; Query a subset of records identified by non-unique alternate key Timepk
         ;;; </summary>
-        ;;; <param name="aTimepk">Time PK</param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aTimepk" example="123">Time PK</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetDifferentpksByTimepk, @IActionResult
-            {FromODataUri}
+        ;;; <response code="200">OK. The operation completed successfully.</response>
+        ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
+        public method ReadDifferentpksByTimepk, @IActionResult
             required in aTimepk, DateTime
         proc
             data result = _DbContext.Differentpks.AsNoTracking().FindAlternate("Timepk",aTimepk)
@@ -200,12 +240,17 @@ namespace Services.Controllers
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
-        ;;; Get differentpks by alternate key key Booleanpk.
+        ;;; Query a subset of records identified by non-unique alternate key Booleanpk
         ;;; </summary>
-        ;;; <param name="aBooleanpk">Boolean PK</param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aBooleanpk" example="True">Boolean PK</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetDifferentpksByBooleanpk, @IActionResult
-            {FromODataUri}
+        ;;; <response code="200">OK. The operation completed successfully.</response>
+        ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
+        public method ReadDifferentpksByBooleanpk, @IActionResult
             required in aBooleanpk, boolean
         proc
             data result = _DbContext.Differentpks.AsNoTracking().FindAlternate("Booleanpk",aBooleanpk)
@@ -215,14 +260,21 @@ namespace Services.Controllers
             mreturn Ok(result)
         endmethod
 
+        {Consumes(MediaTypeNames.Application.Json)}
         {Produces("application/json")}
         {ProducesResponseType(^typeof(Differentpk),StatusCodes.Status200OK)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
         {HttpPost("Differentpks")}
         ;;; <summary>
-        ;;; Create a new differentpk (automatically assigned primary key).
+        ;;; Create a new record (automatically assigned primary key)
         ;;; </summary>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="200">OK. The operation completed successfully.</response>
+        ;;; <response code="400">Bad request. The request was malformed or contained inappropriate content.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
         public method PostDifferentpk, @IActionResult
             {FromBody}
             required in aDifferentpk, @Differentpk
@@ -256,17 +308,23 @@ namespace Services.Controllers
         endmethod
 
         {HttpPut("Differentpks(Id={aId})")}
+        {Consumes(MediaTypeNames.Application.Json)}
         {Produces("application/json")}
         {ProducesResponseType(StatusCodes.Status201Created)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
-        ;;; Create (with a client-supplied primary key) or replace a differentpk.
+        ;;; Update a record if it exists otherwise create a new record (primary key provided by client)
         ;;; </summary>
-        ;;; <param name="aId">ID</param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aId" example="123">ID</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="201">Created. The entity was created but no data is being returned.</response>
+        ;;; <response code="400">Bad request. The request was malformed or contained inappropriate content.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
         public method PutDifferentpk, @IActionResult
-            {FromODataUri}
             required in aId, int
             {FromBody}
             required in aDifferentpk, @Differentpk
@@ -309,17 +367,24 @@ namespace Services.Controllers
 
         endmethod
         {HttpPatch("Differentpks(Id={aId})")}
+        {Consumes(MediaTypeNames.Application.Json)}
         {Produces("application/json")}
         {ProducesResponseType(StatusCodes.Status204NoContent)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
-        ;;; Patch  (partial update) a differentpk.
+        ;;; Patch (partial update) an existing record
         ;;; </summary>
-        ;;; <param name="aId">ID</param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aId" example="123">ID</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="204">No content. The operation was successful but no data is being returned.</response>
+        ;;; <response code="400">Bad request. The request was malformed or contained inappropriate content.</response>
+        ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
         public method PatchDifferentpk, @IActionResult
-            {FromODataUri}
             required in aId, int
             {FromBody}
             required in aDifferentpk, @JsonPatchDocument<Differentpk>
@@ -366,12 +431,17 @@ namespace Services.Controllers
         {ProducesResponseType(StatusCodes.Status204NoContent)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
-        ;;; Delete a differentpk.
+        ;;; Delete a record
         ;;; </summary>
-        ;;; <param name="aId">ID</param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aId" example="123">ID</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="204">No content. The operation was successful but no data is being returned.</response>
+        ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
         public method DeleteDifferentpk, @IActionResult
-            {FromODataUri}
             required in aId, int
         proc
             ;;Get the differentpk to be deleted

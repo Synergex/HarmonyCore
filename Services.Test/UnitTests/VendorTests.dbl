@@ -30,13 +30,13 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("Vendor Tests - Read All")}
-        public method GetVendors, void
+        public method GetAllVendors, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync("/odata/v1/Vendors").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data vendors, @ODataVendors, JsonConvert.DeserializeObject<ODataVendors>(result)
+            data vendors, @ODataVendorsMultiple, JsonConvert.DeserializeObject<ODataVendorsMultiple>(result)
             Assert.AreEqual(vendors.Value.Count,TestConstants.Instance.GetVendors_Count)
         endmethod
 
@@ -45,7 +45,7 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("Vendor Tests - Read All")}
-        public method GetVendors_Expand_REL_Items, void
+        public method GetAllVendors_Expand_REL_Items, void
         proc
             data uri = "/odata/v1/Vendors?$expand=REL_Items"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
@@ -59,7 +59,7 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("Vendor Tests - Read All")}
-        public method GetVendors_Expand_All, void
+        public method GetAllVendors_Expand_All, void
         proc
             data uri = "/odata/v1/Vendors?$expand=REL_Items"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
@@ -73,14 +73,14 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("Vendor Tests - Read by Primary Key")}
-        public method GetVendor, void
+        public method GetOneVendor, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/Vendors(VendorNumber={1})","",TestConstants.Instance.GetVendor_VendorNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data vendor, @ODataVendor, JsonConvert.DeserializeObject<ODataVendor>(result)
+            data vendor, @ODataVendorSingle, JsonConvert.DeserializeObject<ODataVendorSingle>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -88,14 +88,14 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("Vendor Tests - Read by Primary Key")}
-        public method GetVendor_Expand_REL_Items, void
+        public method GetOneVendor_Expand_REL_Items, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/Vendors(VendorNumber={1})?$expand=REL_Items","",TestConstants.Instance.GetVendor_Expand_REL_Items_VendorNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data vendor, @ODataVendor, JsonConvert.DeserializeObject<ODataVendor>(result)
+            data vendor, @ODataVendorSingle, JsonConvert.DeserializeObject<ODataVendorSingle>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -103,14 +103,14 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("Vendor Tests - Read by Primary Key")}
-        public method GetVendor_Expand_All, void
+        public method GetOneVendor_Expand_All, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/Vendors(VendorNumber={1})?$expand=REL_Items","",TestConstants.Instance.GetVendor_Expand_All_VendorNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data vendor, @ODataVendor, JsonConvert.DeserializeObject<ODataVendor>(result)
+            data vendor, @ODataVendorSingle, JsonConvert.DeserializeObject<ODataVendorSingle>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -125,7 +125,7 @@ namespace Services.Test.UnitTests
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data vendors, @ODataVendors,JsonConvert.DeserializeObject<ODataVendors>(result)
+            data vendors, @ODataVendorsMultiple,JsonConvert.DeserializeObject<ODataVendorsMultiple>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -140,7 +140,7 @@ namespace Services.Test.UnitTests
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data vendors, @ODataVendors,JsonConvert.DeserializeObject<ODataVendors>(result)
+            data vendors, @ODataVendorsMultiple,JsonConvert.DeserializeObject<ODataVendorsMultiple>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -155,7 +155,7 @@ namespace Services.Test.UnitTests
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data vendors, @ODataVendors,JsonConvert.DeserializeObject<ODataVendors>(result)
+            data vendors, @ODataVendorsMultiple,JsonConvert.DeserializeObject<ODataVendorsMultiple>(result)
         endmethod
 
         ;;------------------------------------------------------------

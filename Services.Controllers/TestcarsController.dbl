@@ -24,6 +24,7 @@ import Microsoft.EntityFrameworkCore.Infrastructure
 import Microsoft.Extensions.Options
 import System.Collections.Generic
 import System.ComponentModel.DataAnnotations
+import System.Net.Mime
 import Harmony.Core.EF.Extensions
 import Harmony.Core.Interface
 import Harmony.OData
@@ -33,9 +34,13 @@ import Services.Models
 
 namespace Services.Controllers
 
+    {Produces("application/json")}
     ;;; <summary>
-    ;;; OData controller for Testcars
+    ;;; Test car
     ;;; </summary>
+    ;;; <remarks>
+    ;;; OData endpoints for Test car
+    ;;; </remarks>
     public partial class TestcarsController extends ODataController
     
         ;;Services provided via dependency injection
@@ -64,10 +69,15 @@ namespace Services.Controllers
         {ProducesResponseType(^typeof(IEnumerable<Testcar>),StatusCodes.Status200OK)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
-        ;;; Get all Testcars
+        ;;; Query the entire collection of records
         ;;; </summary>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetTestcars, @IActionResult
+        ;;; <response code="200">OK. The operation completed successfully.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
+        public method ReadAllTestcars, @IActionResult
         proc
             mreturn Ok(_DbContext.Testcars.AsNoTracking())
         endmethod
@@ -78,12 +88,17 @@ namespace Services.Controllers
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
-        ;;; Get a single Testcar by primary key.
+        ;;; Query a single record identified by unique primary key
         ;;; </summary>
-        ;;; <param name="aId">Car ID</param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aId" example="123">Car ID</param>
         ;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetTestcar, @SingleResult<Testcar>
-            {FromODataUri}
+        ;;; <response code="200">OK. The operation completed successfully.</response>
+        ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
+        public method ReadTestcar, @SingleResult<Testcar>
             required in aId, int
         proc
             mreturn new SingleResult<Testcar>(_DbContext.Testcars.AsNoTracking().FindQuery<Testcar>(_DbContext, aId))
@@ -95,12 +110,17 @@ namespace Services.Controllers
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
-        ;;; Get testcars by alternate key key Lotid.
+        ;;; Query a subset of records identified by non-unique alternate key Lotid
         ;;; </summary>
-        ;;; <param name="aLotid">Car lot ID</param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aLotid" example="123">Car lot ID</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetTestcarsByLotid, @IActionResult
-            {FromODataUri}
+        ;;; <response code="200">OK. The operation completed successfully.</response>
+        ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
+        public method ReadTestcarsByLotid, @IActionResult
             required in aLotid, int
         proc
             data result = _DbContext.Testcars.AsNoTracking().FindAlternate("Lotid",aLotid)
@@ -116,12 +136,17 @@ namespace Services.Controllers
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
-        ;;; Get testcars by alternate key key Ownerid1.
+        ;;; Query a subset of records identified by non-unique alternate key Ownerid1
         ;;; </summary>
-        ;;; <param name="aOwner1">Car owner 1</param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aOwner1" example="123">Car owner 1</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetTestcarsByOwnerid1, @IActionResult
-            {FromODataUri}
+        ;;; <response code="200">OK. The operation completed successfully.</response>
+        ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
+        public method ReadTestcarsByOwnerid1, @IActionResult
             required in aOwner1, int
         proc
             data result = _DbContext.Testcars.AsNoTracking().FindAlternate("Owner1",aOwner1)
@@ -137,12 +162,17 @@ namespace Services.Controllers
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
-        ;;; Get testcars by alternate key key Ownerid2.
+        ;;; Query a subset of records identified by non-unique alternate key Ownerid2
         ;;; </summary>
-        ;;; <param name="aOwner2">Car owner 2</param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aOwner2" example="123">Car owner 2</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetTestcarsByOwnerid2, @IActionResult
-            {FromODataUri}
+        ;;; <response code="200">OK. The operation completed successfully.</response>
+        ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
+        public method ReadTestcarsByOwnerid2, @IActionResult
             required in aOwner2, int
         proc
             data result = _DbContext.Testcars.AsNoTracking().FindAlternate("Owner2",aOwner2)
@@ -158,12 +188,17 @@ namespace Services.Controllers
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
-        ;;; Get testcars by alternate key key Ownerid3.
+        ;;; Query a subset of records identified by non-unique alternate key Ownerid3
         ;;; </summary>
-        ;;; <param name="aOwner3">Car owner 3</param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aOwner3" example="123">Car owner 3</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetTestcarsByOwnerid3, @IActionResult
-            {FromODataUri}
+        ;;; <response code="200">OK. The operation completed successfully.</response>
+        ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
+        public method ReadTestcarsByOwnerid3, @IActionResult
             required in aOwner3, int
         proc
             data result = _DbContext.Testcars.AsNoTracking().FindAlternate("Owner3",aOwner3)
@@ -173,14 +208,21 @@ namespace Services.Controllers
             mreturn Ok(result)
         endmethod
 
+        {Consumes(MediaTypeNames.Application.Json)}
         {Produces("application/json")}
         {ProducesResponseType(^typeof(Testcar),StatusCodes.Status200OK)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
         {HttpPost("Testcars")}
         ;;; <summary>
-        ;;; Create a new testcar (automatically assigned primary key).
+        ;;; Create a new record (automatically assigned primary key)
         ;;; </summary>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="200">OK. The operation completed successfully.</response>
+        ;;; <response code="400">Bad request. The request was malformed or contained inappropriate content.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
         public method PostTestcar, @IActionResult
             {FromBody}
             required in aTestcar, @Testcar
@@ -214,17 +256,23 @@ namespace Services.Controllers
         endmethod
 
         {HttpPut("Testcars(Id={aId})")}
+        {Consumes(MediaTypeNames.Application.Json)}
         {Produces("application/json")}
         {ProducesResponseType(StatusCodes.Status201Created)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
-        ;;; Create (with a client-supplied primary key) or replace a testcar.
+        ;;; Update a record if it exists otherwise create a new record (primary key provided by client)
         ;;; </summary>
-        ;;; <param name="aId">Car ID</param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aId" example="123">Car ID</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="201">Created. The entity was created but no data is being returned.</response>
+        ;;; <response code="400">Bad request. The request was malformed or contained inappropriate content.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
         public method PutTestcar, @IActionResult
-            {FromODataUri}
             required in aId, int
             {FromBody}
             required in aTestcar, @Testcar
@@ -267,17 +315,24 @@ namespace Services.Controllers
 
         endmethod
         {HttpPatch("Testcars(Id={aId})")}
+        {Consumes(MediaTypeNames.Application.Json)}
         {Produces("application/json")}
         {ProducesResponseType(StatusCodes.Status204NoContent)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
-        ;;; Patch  (partial update) a testcar.
+        ;;; Patch (partial update) an existing record
         ;;; </summary>
-        ;;; <param name="aId">Car ID</param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aId" example="123">Car ID</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="204">No content. The operation was successful but no data is being returned.</response>
+        ;;; <response code="400">Bad request. The request was malformed or contained inappropriate content.</response>
+        ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
         public method PatchTestcar, @IActionResult
-            {FromODataUri}
             required in aId, int
             {FromBody}
             required in aTestcar, @JsonPatchDocument<Testcar>
@@ -324,12 +379,17 @@ namespace Services.Controllers
         {ProducesResponseType(StatusCodes.Status204NoContent)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
-        ;;; Delete a testcar.
+        ;;; Delete a record
         ;;; </summary>
-        ;;; <param name="aId">Car ID</param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aId" example="123">Car ID</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="204">No content. The operation was successful but no data is being returned.</response>
+        ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
         public method DeleteTestcar, @IActionResult
-            {FromODataUri}
             required in aId, int
         proc
             ;;Get the testcar to be deleted

@@ -27,12 +27,13 @@ namespace <NAMESPACE>
     public class AuthenticationController extends ControllerBase
 
         {AllowAnonymous}
+        {HttpPost}
         {Route("<CUSTOM_AUTH_ENDPOINT_PATH>")}
         ;;; <summary>
         ;;; 
         ;;; </summary>
         ;;; <returns></returns>
-        public async method Post_GetToken, @Task<ActionResult>
+        public async method GetToken, @Task<ActionResult>
             {FromBody}
             required in aRequest, @GetTokenRequest
         proc

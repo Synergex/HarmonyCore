@@ -24,6 +24,7 @@ import Microsoft.EntityFrameworkCore.Infrastructure
 import Microsoft.Extensions.Options
 import System.Collections.Generic
 import System.ComponentModel.DataAnnotations
+import System.Net.Mime
 import Harmony.Core.EF.Extensions
 import Harmony.Core.Interface
 import Harmony.OData
@@ -33,9 +34,13 @@ import Services.Models
 
 namespace Services.Controllers
 
+    {Produces("application/json")}
     ;;; <summary>
-    ;;; OData controller for Nonuniquepks
+    ;;; Str with nonunique PKs
     ;;; </summary>
+    ;;; <remarks>
+    ;;; OData endpoints for Str with nonunique PKs
+    ;;; </remarks>
     public partial class NonuniquepksController extends ODataController
     
         ;;Services provided via dependency injection
@@ -64,10 +69,15 @@ namespace Services.Controllers
         {ProducesResponseType(^typeof(IEnumerable<Nonuniquepk>),StatusCodes.Status200OK)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
-        ;;; Get all Nonuniquepks
+        ;;; Query the entire collection of records
         ;;; </summary>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetNonuniquepks, @IActionResult
+        ;;; <response code="200">OK. The operation completed successfully.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
+        public method ReadAllNonuniquepks, @IActionResult
         proc
             mreturn Ok(_DbContext.Nonuniquepks.AsNoTracking())
         endmethod
@@ -77,29 +87,40 @@ namespace Services.Controllers
         {ProducesResponseType(^typeof(IEnumerable<Nonuniquepk>),StatusCodes.Status200OK)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
-        ;;; Get all Nonuniquepks matching non-unique primary key.
+        ;;; Query a subset of records identified by non-unique primary key
         ;;; </summary>
-        ;;; <param name="aPk">Primary Key</param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aPk" example="123">Primary Key</param>
         ;;; <returns>Returns a collection of any Nonuniquepks matching non-unique primary key, or an empty collection if no matching records are found.</returns>
-        public method GetNonuniquepk, @IActionResult
-            {FromODataUri}
+        ;;; <response code="200">OK. The operation completed successfully.</response>
+        ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
+        public method ReadNonuniquepk, @IActionResult
             required in aPk, int
         proc
             mreturn Ok(_DbContext.Nonuniquepks.AsNoTracking().FindQuery<Nonuniquepk>(_DbContext, aPk))
         endmethod
 
         {HttpPut("Nonuniquepks(Pk={aPk})")}
+        {Consumes(MediaTypeNames.Application.Json)}
         {Produces("application/json")}
         {ProducesResponseType(StatusCodes.Status201Created)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
-        ;;; Create (with a client-supplied primary key) or replace a nonuniquepk.
+        ;;; Update a record if it exists otherwise create a new record (primary key provided by client)
         ;;; </summary>
-        ;;; <param name="aPk">Primary Key</param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aPk" example="123">Primary Key</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="201">Created. The entity was created but no data is being returned.</response>
+        ;;; <response code="400">Bad request. The request was malformed or contained inappropriate content.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
         public method PutNonuniquepkByPk, @IActionResult
-            {FromODataUri}
             required in aPk, int
             {FromBody}
             required in aNonuniquepk, @Nonuniquepk
@@ -132,17 +153,24 @@ namespace Services.Controllers
 
         endmethod
         {HttpPatch("Nonuniquepks(Pk={aPk})")}
+        {Consumes(MediaTypeNames.Application.Json)}
         {Produces("application/json")}
         {ProducesResponseType(StatusCodes.Status204NoContent)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
-        ;;; Patch  (partial update) a nonuniquepk.
+        ;;; Patch (partial update) an existing record
         ;;; </summary>
-        ;;; <param name="aPk">Primary Key</param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aPk" example="123">Primary Key</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="204">No content. The operation was successful but no data is being returned.</response>
+        ;;; <response code="400">Bad request. The request was malformed or contained inappropriate content.</response>
+        ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
         public method PatchNonuniquepkByPk, @IActionResult
-            {FromODataUri}
             required in aPk, int
             {FromBody}
             required in aNonuniquepk, @JsonPatchDocument<Nonuniquepk>
@@ -193,12 +221,17 @@ namespace Services.Controllers
         {ProducesResponseType(StatusCodes.Status204NoContent)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
-        ;;; Delete a nonuniquepk.
+        ;;; Delete a record
         ;;; </summary>
-        ;;; <param name="aPk">Primary Key</param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aPk" example="123">Primary Key</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="204">No content. The operation was successful but no data is being returned.</response>
+        ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
         public method DeleteNonuniquepkByPk, @IActionResult
-            {FromODataUri}
             required in aPk, int
         proc
             ;;Get the nonuniquepk to be deleted

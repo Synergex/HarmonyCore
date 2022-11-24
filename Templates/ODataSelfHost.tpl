@@ -62,7 +62,7 @@ main SelfHost
 proc
     ;;-------------------------------------------------------------------------
     ;;Wait for the Visual Studio debugger to attach
-    
+
     if (!String.IsNullOrWhiteSpace(System.Environment.GetEnvironmentVariable("WAIT_FOR_DEBUGGER")))
     begin
         while (!System.Diagnostics.Debugger.IsAttached)
@@ -95,6 +95,7 @@ proc
 
     if (!Directory.Exists(wwwroot))
         Directory.CreateDirectory(wwwroot)
+
     ;;-------------------------------------------------------------------------
     ;;Start the self-hosting environment (Kestrel)
 

@@ -71,7 +71,10 @@ namespace <NAMESPACE>
         proc
             ;;Allows select to join when the keys in the file are not the same type as the keys in the code
             data status, int
-            xcall setlog("SYNSEL_NUMALPHA_KEYS", 1, status) 
+            xcall setlog("SYNSEL_NUMALPHA_KEYS", 1, status)
+
+            ;;Allows connections to older xfServer services
+            xcall setlog("SRV_COMPAT", 1, status)
 
             ;;Configure the test environment (set logicals, create files in a known state, etc.)
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)

@@ -151,14 +151,14 @@
                         }
                     ],
                     "url": {
-                        "raw": "{{ServerBaseUri}}/{{ODataPath}}/v{{ApiVersion}}/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)",
+                        "raw": "{{ServerBaseUri}}/{{ODataPath}}/v{{ApiVersion}}/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME>'2022-01-01'<IF TIME>T12:00:00-08:00</IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)",
                         "host": [
                             "{{ServerBaseUri}}"
                         ],
                         "path": [
                             "{{ODataPath}}",
                             "v{{ApiVersion}}",
-                            "<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)"
+                            "<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME>'2022-01-01'<IF TIME>T12:00:00-08:00</IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)"
                         ]
                     }
                     },
@@ -172,7 +172,6 @@
 ;//
 <IF STRUCTURE_ISAM AND DEFINED_ENABLE_ALTERNATE_KEYS AND ALTERNATE_KEY_ENDPOINTS>
   <ALTERNATE_KEY_LOOP_UNIQUE>
-    <IF DUPLICATES>
 <IF COUNTER_1>                ,</IF COUNTER_1>
                 {
                     "name": "Read <structurePlural> by <KeyName>",
@@ -190,22 +189,21 @@
                         }
                     ],
                     "url": {
-                        "raw": "{{ServerBaseUri}}/{{ODataPath}}/v{{ApiVersion}}/<StructurePlural>(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP>)",
+                        "raw": "{{ServerBaseUri}}/{{ODataPath}}/v{{ApiVersion}}/<StructurePlural>(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>=<IF DATEORTIME>'2022-01-01'<IF TIME>T12:00:00-08:00</IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP>)",
                         "host": [
                             "{{ServerBaseUri}}"
                         ],
                         "path": [
                             "{{ODataPath}}",
                             "v{{ApiVersion}}",
-                            "<StructurePlural>(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP>)"
+                            "<StructurePlural>(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>=<IF DATEORTIME>'2022-01-01'<IF TIME>T12:00:00-08:00</IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP>)"
                         ]
                     }
                     },
                     "response": []
     <COUNTER_1_INCREMENT>
                 }
-    </IF>
-    <IF DEFINED_ENABLE_COUNT AND DUPLICATES>
+    <IF DEFINED_ENABLE_COUNT>
 <IF COUNTER_1>                ,</IF COUNTER_1>
                 {
                     "name": "Count <structurePlural> by <KeyName>",
@@ -223,14 +221,14 @@
                         }
                     ],
                     "url": {
-                        "raw": "{{ServerBaseUri}}/{{ODataPath}}/v{{ApiVersion}}/<StructurePlural>(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP>)/$count",
+                        "raw": "{{ServerBaseUri}}/{{ODataPath}}/v{{ApiVersion}}/<StructurePlural>(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>=<IF DATEORTIME>'2022-01-01'<IF TIME>T12:00:00-08:00</IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP>)/$count",
                         "host": [
                             "{{ServerBaseUri}}"
                         ],
                         "path": [
                             "{{ODataPath}}",
                             "v{{ApiVersion}}",
-                            "<StructurePlural>(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP>)",
+                            "<StructurePlural>(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>=<IF DATEORTIME>'2022-01-01'<IF TIME>T12:00:00-08:00</IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP>)",
                             "$count"
                         ]
                     }
@@ -263,21 +261,21 @@
                         }
                     ],
                     "url": {
-                        "raw": "{{ServerBaseUri}}/{{ODataPath}}/v{{ApiVersion}}/<StructurePlural>(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP>)",
+                        "raw": "{{ServerBaseUri}}/{{ODataPath}}/v{{ApiVersion}}/<StructurePlural>(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>=<IF DATEORTIME>'2022-01-01'<IF TIME>T12:00:00-08:00</IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP>)",
                         "host": [
                             "{{ServerBaseUri}}"
                         ],
                         "path": [
                             "{{ODataPath}}",
                             "v{{ApiVersion}}",
-                            "<StructurePlural>(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP>)"
+                            "<StructurePlural>(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>=<IF DATEORTIME>'2022-01-01'<IF TIME>T12:00:00-08:00</IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP>)"
                         ]
                     }
                     },
                     "response": []
     <COUNTER_1_INCREMENT>
                 }
-    <IF DEFINED_ENABLE_COUNT AND DUPLICATES>
+    <IF DEFINED_ENABLE_COUNT>
 <IF COUNTER_1>                ,</IF COUNTER_1>
                 {
                     "name": "Count <structurePlural> by <KeyName>",
@@ -295,14 +293,14 @@
                         }
                     ],
                     "url": {
-                        "raw": "{{ServerBaseUri}}/{{ODataPath}}/v{{ApiVersion}}/<StructurePlural>(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP>)/$count",
+                        "raw": "{{ServerBaseUri}}/{{ODataPath}}/v{{ApiVersion}}/<StructurePlural>(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>=<IF DATEORTIME>'2022-01-01'<IF TIME>T12:00:00-08:00</IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP>)/$count",
                         "host": [
                             "{{ServerBaseUri}}"
                         ],
                         "path": [
                             "{{ODataPath}}",
                             "v{{ApiVersion}}",
-                            "<StructurePlural>(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP>)",
+                            "<StructurePlural>(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>=<IF DATEORTIME>'2022-01-01'<IF TIME>T12:00:00-08:00</IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP>)",
                             "$count"
                         ]
                     }
@@ -336,14 +334,14 @@
                         }
                     ],
                     "url": {
-                        "raw": "{{ServerBaseUri}}/{{ODataPath}}/v{{ApiVersion}}/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)/<FieldSqlName>",
+                        "raw": "{{ServerBaseUri}}/{{ODataPath}}/v{{ApiVersion}}/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>=<IF DATEORTIME>'2022-01-01'<IF TIME>T12:00:00-08:00</IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)/<FieldSqlName>",
                         "host": [
                             "{{ServerBaseUri}}"
                         ],
                         "path": [
                             "{{ODataPath}}",
                             "v{{ApiVersion}}",
-                            "<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)/<FieldSqlName>"
+                            "<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>=<IF DATEORTIME>'2022-01-01'<IF TIME>T12:00:00-08:00</IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)/<FieldSqlName>"
                         ]
                     }
                     },
@@ -368,14 +366,14 @@
                         }
                     ],
                     "url": {
-                        "raw": "{{ServerBaseUri}}/{{ODataPath}}/v{{ApiVersion}}/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)/<FieldSqlName>/$value",
+                        "raw": "{{ServerBaseUri}}/{{ODataPath}}/v{{ApiVersion}}/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>=<IF DATEORTIME>'2022-01-01'<IF TIME>T12:00:00-08:00</IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)/<FieldSqlName>/$value",
                         "host": [
                             "{{ServerBaseUri}}"
                         ],
                         "path": [
                             "{{ODataPath}}",
                             "v{{ApiVersion}}",
-                            "<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)/<FieldSqlName>/$value"
+                            "<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>=<IF DATEORTIME>'2022-01-01'<IF TIME>T12:00:00-08:00</IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)/<FieldSqlName>/$value"
                         ]
                     }
                     },
@@ -448,14 +446,14 @@
                          "raw": "{\n<FIELD_LOOP><IF CUSTOM_NOT_HARMONY_EXCLUDE>    \"<FieldSqlName>\": <IF ALPHA>\"</IF ALPHA><IF CUSTOM_HARMONY_AS_STRING>\"</IF CUSTOM_HARMONY_AS_STRING><FIELD_SAMPLE_DATA_NOQUOTES><IF CUSTOM_HARMONY_AS_STRING>\"</IF CUSTOM_HARMONY_AS_STRING><IF ALPHA>\"</IF ALPHA><,>\n</IF CUSTOM_NOT_HARMONY_EXCLUDE></FIELD_LOOP>}"
                     },
                     "url": {
-                        "raw": "{{ServerBaseUri}}/{{ODataPath}}/v{{ApiVersion}}/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)",
+                        "raw": "{{ServerBaseUri}}/{{ODataPath}}/v{{ApiVersion}}/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME>'2022-01-01'<IF TIME>T12:00:00-08:00</IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)",
                         "host": [
                             "{{ServerBaseUri}}"
                         ],
                         "path": [
                             "{{ODataPath}}",
                             "v{{ApiVersion}}",
-                            "<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)"
+                            "<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME>'2022-01-01'<IF TIME>T12:00:00-08:00</IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)"
                         ]
                     }
                     },
@@ -485,14 +483,14 @@
                             "raw": "[\r\n  {\r\n    \"op\": \"replace\",\r\n    \"path\": \"PropertyName\",\r\n    \"value\": \"PropertyValue\"\r\n  }\r\n]"
                         },
                     "url": {
-                        "raw": "{{ServerBaseUri}}/{{ODataPath}}/v{{ApiVersion}}/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)",
+                        "raw": "{{ServerBaseUri}}/{{ODataPath}}/v{{ApiVersion}}/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME>'2022-01-01'<IF TIME>T12:00:00-08:00</IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)",
                         "host": [
                             "{{ServerBaseUri}}"
                         ],
                         "path": [
                             "{{ODataPath}}",
                             "v{{ApiVersion}}",
-                            "<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)"
+                            "<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME>'2022-01-01'<IF TIME>T12:00:00-08:00</IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)"
                         ]
                     }
                     },
@@ -522,14 +520,14 @@
                         "raw": ""
                     },
                     "url": {
-                        "raw": "{{ServerBaseUri}}/{{ODataPath}}/v{{ApiVersion}}/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)",
+                        "raw": "{{ServerBaseUri}}/{{ODataPath}}/v{{ApiVersion}}/<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME>'2022-01-01'<IF TIME>T12:00:00-08:00</IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)",
                         "host": [
                             "{{ServerBaseUri}}"
                         ],
                         "path": [
                             "{{ODataPath}}",
                             "v{{ApiVersion}}",
-                            "<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME><YEAR>-<MONTH>-<DAY><IF TIME>T<TIME>:00<TIMEZONE_OFFSET></IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)"
+                            "<StructurePlural>(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME>'2022-01-01'<IF TIME>T12:00:00-08:00</IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)"
                         ]
                     }
                     },
