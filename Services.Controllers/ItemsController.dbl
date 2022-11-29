@@ -77,7 +77,7 @@ namespace Services.Controllers
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
         ;;; <response code="200">OK. The operation completed successfully.</response>
         ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
-        public method ReadAllItems, @IActionResult
+        public method GetItems, @IActionResult
         proc
             mreturn Ok(_DbContext.Items.AsNoTracking())
         endmethod
@@ -98,7 +98,7 @@ namespace Services.Controllers
         ;;; <response code="200">OK. The operation completed successfully.</response>
         ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
         ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
-        public method ReadItem, @SingleResult<Item>
+        public method GetItemByPK, @SingleResult<Item>
             required in aItemNumber, int
         proc
             mreturn new SingleResult<Item>(_DbContext.Items.AsNoTracking().FindQuery<Item>(_DbContext, aItemNumber))
@@ -120,7 +120,7 @@ namespace Services.Controllers
         ;;; <response code="200">OK. The operation completed successfully.</response>
         ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
         ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
-        public method ReadItemsByVendorNumber, @IActionResult
+        public method GetItemsByVendorNumber, @IActionResult
             required in aVendorNumber, int
         proc
             data result = _DbContext.Items.AsNoTracking().FindAlternate("VendorNumber",aVendorNumber)
@@ -146,7 +146,7 @@ namespace Services.Controllers
         ;;; <response code="200">OK. The operation completed successfully.</response>
         ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
         ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
-        public method ReadItemsByColor, @IActionResult
+        public method GetItemsByColor, @IActionResult
             required in aFlowerColor, String
         proc
             data result = _DbContext.Items.AsNoTracking().FindAlternate("FlowerColor",aFlowerColor)
@@ -172,7 +172,7 @@ namespace Services.Controllers
         ;;; <response code="200">OK. The operation completed successfully.</response>
         ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
         ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
-        public method ReadItemsBySize, @IActionResult
+        public method GetItemsBySize, @IActionResult
             required in aSize, int
         proc
             data result = _DbContext.Items.AsNoTracking().FindAlternate("Size",aSize)
@@ -198,7 +198,7 @@ namespace Services.Controllers
         ;;; <response code="200">OK. The operation completed successfully.</response>
         ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
         ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
-        public method ReadItemsByName, @IActionResult
+        public method GetItemsByName, @IActionResult
             required in aCommonName, String
         proc
             data result = _DbContext.Items.AsNoTracking().FindAlternate("CommonName",aCommonName)

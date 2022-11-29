@@ -137,7 +137,7 @@ namespace <NAMESPACE>
         ;;; <response code="401"><HTTP_401_MESSAGE></response>
   </IF DEFINED_ENABLE_AUTHENTICATION>
         ;;; <response code="500"><HTTP_500_MESSAGE></response>
-        public method ReadAll<StructurePlural>, @IActionResult
+        public method Get<StructurePlural>, @IActionResult
         proc
             mreturn Ok(_DbContext.<StructurePlural>.AsNoTracking())
         endmethod
@@ -182,7 +182,7 @@ namespace <NAMESPACE>
   </IF DEFINED_ENABLE_AUTHENTICATION>
         ;;; <response code="404"><HTTP_404_MESSAGE></response>
         ;;; <response code="500"><HTTP_500_MESSAGE></response>
-        public method Read<StructureNoplural>, @SingleResult<<StructureNoplural>>
+        public method Get<StructureNoplural>ByPK, @SingleResult<<StructureNoplural>>
   <PRIMARY_KEY>
     <SEGMENT_LOOP>
       <IF NOT SEG_TAG_EQUAL>
@@ -234,7 +234,7 @@ namespace <NAMESPACE>
   </IF DEFINED_ENABLE_AUTHENTICATION>
         ;;; <response code="404"><HTTP_404_MESSAGE></response>
         ;;; <response code="500"><HTTP_500_MESSAGE></response>
-        public method Read<StructureNoplural>, @IActionResult
+        public method Get<StructurePlural>ByPK, @IActionResult
   <PRIMARY_KEY>
     <SEGMENT_LOOP>
       <IF NOT SEG_TAG_EQUAL>
@@ -281,7 +281,7 @@ namespace <NAMESPACE>
   </IF DEFINED_ENABLE_AUTHENTICATION>
         ;;; <response code="404"><HTTP_404_MESSAGE></response>
         ;;; <response code="500"><HTTP_500_MESSAGE></response>
-        public method Read<StructureNoplural>, @SingleResult<<StructureNoplural>>
+        public method Get<StructureNoplural>, @SingleResult<<StructureNoplural>>
             required in aRecordNumber, int
         proc
 ;//Shouldn't really need the generic type arg on FindQuery. Compiler issue?
@@ -335,7 +335,7 @@ namespace <NAMESPACE>
       </IF DEFINED_ENABLE_AUTHENTICATION>
         ;;; <response code="404"><HTTP_404_MESSAGE></response>
         ;;; <response code="500"><HTTP_500_MESSAGE></response>
-        public method Read<StructurePlural>By<KeyName>, @IActionResult
+        public method Get<StructurePlural>By<KeyName>, @IActionResult
       <SEGMENT_LOOP>
         <IF NOT SEG_TAG_EQUAL>
             required in a<FieldSqlName>, <IF CUSTOM_HARMONY_AS_STRING>string<ELSE><HARMONYCORE_SEGMENT_DATATYPE></IF>
@@ -390,7 +390,7 @@ namespace <NAMESPACE>
       </IF DEFINED_ENABLE_AUTHENTICATION>
         ;;; <response code="404"><HTTP_404_MESSAGE></response>
         ;;; <response code="500"><HTTP_500_MESSAGE></response>
-        public method Read<StructurePlural>By<KeyName>, @IActionResult
+        public method Get<StructurePlural>By<KeyName>, @IActionResult
       <SEGMENT_LOOP>
         <IF NOT SEG_TAG_EQUAL>
             required in a<FieldSqlName>, <IF CUSTOM_HARMONY_AS_STRING>string<ELSE><HARMONYCORE_SEGMENT_DATATYPE></IF>
