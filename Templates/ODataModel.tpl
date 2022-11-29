@@ -433,12 +433,15 @@ namespace <NAMESPACE>
 .endregion
 ;//
 ;// ==========================================================================================
-;// RUNTIME DATA VALIDATION
+;// DATA VALIDATION
 ;//
 
 .region "Data validation"
 
-<IF DEFINED_ENABLE_RELATIONS STRUCTURE_RELATIONS AND DEFINED_ENABLE_RELATIONS_VALIDATION>
+<IF DEFINED_ENABLE_RELATIONS AND STRUCTURE_RELATIONS AND DEFINED_ENABLE_RELATIONS_VALIDATION>
+;//=========================================
+;// VALIDATION IF RELATIONS ARE ENABLED
+;//=========================================
         ;;; <summary>
         ;;; Validate data
         ;;; </summary>
@@ -484,14 +487,10 @@ namespace <NAMESPACE>
   <RELATION_LOOP_RESTRICTED>
             ;;--------------------------------------------------------------------------------
             ;;Validate data for relation <RELATION_NUMBER> (<HARMONYCORE_RELATION_NAME>)
-;//
     <IF VALIDATION_NONE>
-;//
 
             ;;Validation mode: None
-;//
     <ELSE VALIDATION_VALUE_PRESENT>
-;//
 
             ;;Validation mode: ValuePresent
 
@@ -522,9 +521,7 @@ namespace <NAMESPACE>
                     throw new ValidationException("Invalid data for relation <HARMONYCORE_RELATION_NAME>")
                 end
             end
-;//
     <ELSE VALIDATION_ALWAYS>
-;//
             ;;Validation mode: Always
 
             ;;Populate from key values
@@ -546,15 +543,11 @@ namespace <NAMESPACE>
             begin
                 throw new ValidationException("Invalid data for relation <HARMONYCORE_RELATION_NAME>")
             end
-;//
     <ELSE VALIDATION_CUSTOM_CODE>
-;//
             ;;Validation mode: Custom code
 
             ;TODO: The mechanism for custom code validation has not yet been defined
-;//
     </IF VALIDATION_NONE>
-;//
 
   </RELATION_LOOP_RESTRICTED>
             ;;--------------------------------------------------------------------------------
@@ -563,8 +556,10 @@ namespace <NAMESPACE>
             ValidateCustom(vType,sp)
 
         endmethod
-
 <ELSE>
+;//=========================================
+;// VALIDATION IF RELATIONS ARE NOT ENABLED
+;//=========================================
         ;;; <summary>
         ;;; Validate data
         ;;; </summary>
@@ -585,6 +580,9 @@ namespace <NAMESPACE>
             required in sp, @IServiceProvider
         endmethod
 
+;//=========================================
+;// END OF VALIDATION
+;//=========================================
 .endregion
 ;//
 ;// ==========================================================================================
