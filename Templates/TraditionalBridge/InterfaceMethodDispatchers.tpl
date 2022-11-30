@@ -121,7 +121,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
     <ELSE>
         <IF STRUCTURE>
                 arg<COUNTER_1_VALUE>DataObject,     @DataObjectBase
-                arg<COUNTER_1_VALUE>,               <ParameterStructureNoplural>
+                arg<COUNTER_1_VALUE>,               <HARMONYCORE_BRIDGE_PARAMETER_DEFINITION>
         <ELSE HANDLE OR BINARY_HANDLE>
                 arg<COUNTER_1_VALUE>Array,          JSON_ELEMENT
                 arg<COUNTER_1_VALUE>Handle,         <PARAMETER_DEFINITION>
@@ -267,7 +267,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
             ;;------------------------------------------------------------
             ;; Call the underlying routine
 
-            <IF SUBROUTINE>xcall <ELSE>returnValue = %</IF SUBROUTINE><METHOD_ROUTINE>(<COUNTER_1_RESET><PARAMETER_LOOP><COUNTER_1_INCREMENT><IF HANDLE OR BINARY_HANDLE>arg<COUNTER_1_VALUE>Handle<,><ELSE><IF COLLECTION><IF COLLECTION_ARRAY>^marray(<IF STRUCTURE><ParameterStructureNoplural><ELSE>tempstr<COUNTER_1_VALUE>.arry</IF STRUCTURE>,arg<COUNTER_1_VALUE>Handle)<,></IF COLLECTION_ARRAY><IF COLLECTION_HANDLE>arg<COUNTER_1_VALUE>Handle<,></IF COLLECTION_HANDLE><IF COLLECTION_ARRAYLIST>arg<COUNTER_1_VALUE><,></IF COLLECTION_ARRAYLIST><ELSE>arg<COUNTER_1_VALUE><,></IF COLLECTION></IF></PARAMETER_LOOP>)
+            <IF SUBROUTINE>xcall <ELSE>returnValue = %</IF SUBROUTINE><METHOD_ROUTINE>(<COUNTER_1_RESET><PARAMETER_LOOP><COUNTER_1_INCREMENT><IF HANDLE OR BINARY_HANDLE>arg<COUNTER_1_VALUE>Handle<,><ELSE><IF COLLECTION><IF COLLECTION_ARRAY>^marray(<IF STRUCTURE><HARMONYCORE_BRIDGE_PARAMETER_DEFINITION><ELSE>tempstr<COUNTER_1_VALUE>.arry</IF STRUCTURE>,arg<COUNTER_1_VALUE>Handle)<,></IF COLLECTION_ARRAY><IF COLLECTION_HANDLE>arg<COUNTER_1_VALUE>Handle<,></IF COLLECTION_HANDLE><IF COLLECTION_ARRAYLIST>arg<COUNTER_1_VALUE><,></IF COLLECTION_ARRAYLIST><ELSE>arg<COUNTER_1_VALUE><,></IF COLLECTION></IF></PARAMETER_LOOP>)
 ;//
 ;//=========================================================================================================================
 ;// Build the JSON response

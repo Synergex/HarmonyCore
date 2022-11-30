@@ -83,7 +83,6 @@ namespace Services.Controllers
         ;;; <param name="aOrderNumber">Order number</param>
         ;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
         public method GetOrder, @SingleResult<Order>
-            {FromODataUri}
             required in aOrderNumber, int
         proc
             mreturn new SingleResult<Order>(_DbContext.Orders.AsNoTracking().FindQuery<Order>(_DbContext, aOrderNumber))
@@ -100,7 +99,6 @@ namespace Services.Controllers
         ;;; <param name="aCustomerNumber">Customer number</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
         public method GetOrdersByCustomerNumber, @IActionResult
-            {FromODataUri}
             required in aCustomerNumber, int
         proc
             data result = _DbContext.Orders.AsNoTracking().FindAlternate("CustomerNumber",aCustomerNumber)

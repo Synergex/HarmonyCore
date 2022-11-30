@@ -239,7 +239,8 @@ namespace Services
 				c.ResolveConflictingActions(lambda(apiDescriptions) { apiDescriptions.First() })
 				c.IgnoreObsoleteActions()
 				c.IgnoreObsoleteProperties()
-				c.CustomSchemaIds(lambda(ty) { ty.FullName })
+                c.CustomSchemaIds(lambda(ty) { ty.FullName })
+               
 			end
 
 			services.AddSwaggerGen(configSwaggerGen)
@@ -379,8 +380,14 @@ namespace Services
             ;;If there is a ConfigureCustomBeforeMvc method, call it
             ConfigureCustomBeforeMvc(app,env)
 
-			app.UseSwagger()
-			app.UseSwaggerUI(lambda(c) { c.SwaggerEndpoint("/swagger/v1/swagger.json", "Harmony Core Sample API") })
+            app.UseSwagger()
+            lambda swaggerConfig(c)
+            begin
+                c.SwaggerEndpoint("./v1/swagger.json", "Harmony Core Sample API")
+                ;;c.RoutePrefix = string.Empty
+            end
+
+			app.UseSwaggerUI(swaggerConfig)
 
             app.UsePathBase(new PathString("/odata/v1"))
 
