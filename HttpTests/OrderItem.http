@@ -17,7 +17,7 @@
 @odatapath = odata
 @version = 1
 @entity = OrderItems
-@tenantid = 001
+@tenantid = 1
 @baseuri = {{protocol}}://{{hostname}}:{{port}}/{{odatapath}}/v{{version}}/{{entity}}
 
 ###
@@ -26,12 +26,14 @@
 
 GET {{baseuri}}?$top=3
 Accept:application/json
+x-tenant-id: {{tenantid}}
 
 ###
 ### Query the entire collection
 ###
 
 GET {{baseuri}}?$count
+x-tenant-id: {{tenantid}}
 
 ###
 ### Query the collection by primary key
@@ -39,6 +41,7 @@ GET {{baseuri}}?$count
 
 GET {{baseuri}}(OrderNumber=123,ItemNumber=123)
 Accept:application/json
+x-tenant-id: {{tenantid}}
 
 ###
 ### Query the collection by alternate key ItemOrdered
@@ -46,6 +49,7 @@ Accept:application/json
 
 GET {{baseuri}}(ItemOrdered=123)
 Accept:application/json
+x-tenant-id: {{tenantid}}
 
 ###
 ### Count the collection by alternate key ItemOrdered
@@ -53,6 +57,7 @@ Accept:application/json
 
 GET {{baseuri}}(ItemOrdered=123)/$count
 Accept:application/json
+x-tenant-id: {{tenantid}}
 
 ###
 ### Query the collection by alternate key DateShipped
@@ -60,6 +65,7 @@ Accept:application/json
 
 GET {{baseuri}}(DateShipped='2022-01-01')
 Accept:application/json
+x-tenant-id: {{tenantid}}
 
 ###
 ### Count the collection by alternate key DateShipped
@@ -67,6 +73,7 @@ Accept:application/json
 
 GET {{baseuri}}(DateShipped='2022-01-01')/$count
 Accept:application/json
+x-tenant-id: {{tenantid}}
 
 ###
 ### Query the collection by alternate key InvoiceNumber
@@ -74,6 +81,7 @@ Accept:application/json
 
 GET {{baseuri}}(InvoiceNumber=123)
 Accept:application/json
+x-tenant-id: {{tenantid}}
 
 ###
 ### Count the collection by alternate key InvoiceNumber
@@ -81,6 +89,7 @@ Accept:application/json
 
 GET {{baseuri}}(InvoiceNumber=123)/$count
 Accept:application/json
+x-tenant-id: {{tenantid}}
 
 ###
 ### Create entity (auto assign key)
@@ -88,6 +97,7 @@ Accept:application/json
 
 POST {{baseuri}}
 Content-Type:application/json
+x-tenant-id: {{tenantid}}
 
 {"OrderNumber": 5238,"ItemNumber": 1,"ItemOrdered": 21,"QuantityOrdered": 3,"UnitPrice": 15.99,"DateShipped": 2018-03-17T00:00:00-08:00,"InvoiceNumber": 166825}
 
@@ -97,6 +107,7 @@ Content-Type:application/json
 
 PUT {{baseuri}}(OrderNumber=123,ItemNumber=123)
 Content-Type:application/json
+x-tenant-id: {{tenantid}}
 
 {"OrderNumber": 5238,"ItemNumber": 1,"ItemOrdered": 21,"QuantityOrdered": 3,"UnitPrice": 15.99,"DateShipped": 2018-03-17T00:00:00-08:00,"InvoiceNumber": 166825}
 
@@ -106,6 +117,7 @@ Content-Type:application/json
 
 PATCH {{baseuri}}(OrderNumber=123,ItemNumber=123)
 Content-Type:application/json
+x-tenant-id: {{tenantid}}
 
 [ { "op": "replace", "path": "PropertyName", "value": "PropertyValue" } ]
 
@@ -115,4 +127,5 @@ Content-Type:application/json
 
 DELETE {{baseuri}}(OrderNumber=123,ItemNumber=123)
 Accept:application/json
+x-tenant-id: {{tenantid}}
 

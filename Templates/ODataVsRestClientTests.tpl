@@ -5,7 +5,7 @@
 <REQUIRES_USERTOKEN>SERVER_HTTPS_PORT</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>SERVER_BASE_PATH</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>API_VERSION</REQUIRES_USERTOKEN>
-<OPTIONAL_USERTOKEN>TEST_TENANT_ID=001</OPTIONAL_USERTOKEN>
+<OPTIONAL_USERTOKEN>TEST_TENANT_ID=1</OPTIONAL_USERTOKEN>
 
 ###
 ### HTTP operations for testing with the Visual Studio REST Client
@@ -39,9 +39,7 @@
 
 GET {{baseuri}}<IF DEFINED_ENABLE_TOP>?$top=3</IF>
 Accept:application/json
-  <IF DEFINED_ENABLE_MULTI_TENANCY>
-x-tenant-id: "{{tenantid}}"
-  </IF>
+x-tenant-id: {{tenantid}}
 
 </IF>
 ;//
@@ -53,9 +51,7 @@ x-tenant-id: "{{tenantid}}"
 ###
 
 GET {{baseuri}}?$count
-  <IF DEFINED_ENABLE_MULTI_TENANCY>
-x-tenant-id: "{{tenantid}}"
-  </IF>
+x-tenant-id: {{tenantid}}
 
 </IF>
 ;//
@@ -68,9 +64,7 @@ x-tenant-id: "{{tenantid}}"
 
 GET {{baseuri}}(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME>'2022-01-01'<IF TIME>T12:00:00-08:00</IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)
 Accept:application/json
-  <IF DEFINED_ENABLE_MULTI_TENANCY>
-x-tenant-id: "{{tenantid}}"
-  </IF>
+x-tenant-id: {{tenantid}}
 
 </IF>
 ;//
@@ -84,9 +78,7 @@ x-tenant-id: "{{tenantid}}"
 
 GET {{baseuri}}(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>=<IF DATEORTIME>'2022-01-01'<IF TIME>T12:00:00-08:00</IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP>)
 Accept:application/json
-    <IF DEFINED_ENABLE_MULTI_TENANCY>
-x-tenant-id: "{{tenantid}}"
-    </IF>
+x-tenant-id: {{tenantid}}
 
     <IF DEFINED_ENABLE_COUNT>
 ###
@@ -95,9 +87,7 @@ x-tenant-id: "{{tenantid}}"
 
 GET {{baseuri}}(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>=<IF DATEORTIME>'2022-01-01'<IF TIME>T12:00:00-08:00</IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP>)/$count
 Accept:application/json
-      <IF DEFINED_ENABLE_MULTI_TENANCY>
-x-tenant-id: "{{tenantid}}"
-      </IF>
+x-tenant-id: {{tenantid}}
 
     </IF>
   </ALTERNATE_KEY_LOOP>
@@ -113,9 +103,7 @@ x-tenant-id: "{{tenantid}}"
 
 GET {{baseuri}}(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>=<IF DATEORTIME>'2022-01-01'<IF TIME>T12:00:00-08:00</IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP>)
 Accept:application/json
-    <IF DEFINED_ENABLE_MULTI_TENANCY>
-x-tenant-id: "{{tenantid}}"
-    </IF>
+x-tenant-id: {{tenantid}}
 
     <IF DEFINED_ENABLE_COUNT>
 ###
@@ -124,9 +112,7 @@ x-tenant-id: "{{tenantid}}"
 
 GET {{baseuri}}(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>=<IF DATEORTIME>'2022-01-01'<IF TIME>T12:00:00-08:00</IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP>)/$count
 Accept:application/json
-      <IF DEFINED_ENABLE_MULTI_TENANCY>
-x-tenant-id: "{{tenantid}}"
-      </IF>
+x-tenant-id: {{tenantid}}
 
     </IF>
   </PARTIAL_KEY_LOOP>
@@ -143,9 +129,7 @@ x-tenant-id: "{{tenantid}}"
 
 GET {{baseuri}}(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>=<IF DATEORTIME>'2022-01-01'<IF TIME>T12:00:00-08:00</IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)/<FieldSqlName>
 Accept:application/json
-      <IF DEFINED_ENABLE_MULTI_TENANCY>
-x-tenant-id: "{{tenantid}}"
-      </IF>
+x-tenant-id: {{tenantid}}
 
     </IF>
   </FIELD_LOOP>
@@ -160,9 +144,7 @@ x-tenant-id: "{{tenantid}}"
 
 POST {{baseuri}}
 Content-Type:application/json
-  <IF DEFINED_ENABLE_MULTI_TENANCY>
-x-tenant-id: "{{tenantid}}"
-  </IF>
+x-tenant-id: {{tenantid}}
 
 {<FIELD_LOOP><IF CUSTOM_NOT_HARMONY_EXCLUDE>"<FieldSqlName>": <IF ALPHA>"</IF ALPHA><IF CUSTOM_HARMONY_AS_STRING>"</IF CUSTOM_HARMONY_AS_STRING><FIELD_SAMPLE_DATA_NOQUOTES><IF CUSTOM_HARMONY_AS_STRING>"</IF CUSTOM_HARMONY_AS_STRING><IF ALPHA>"</IF ALPHA><,></IF CUSTOM_NOT_HARMONY_EXCLUDE></FIELD_LOOP>}
 
@@ -177,9 +159,7 @@ x-tenant-id: "{{tenantid}}"
 
 PUT {{baseuri}}(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME>'2022-01-01'<IF TIME>T12:00:00-08:00</IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)
 Content-Type:application/json
-  <IF DEFINED_ENABLE_MULTI_TENANCY>
-x-tenant-id: "{{tenantid}}"
-  </IF>
+x-tenant-id: {{tenantid}}
 
 {<FIELD_LOOP><IF CUSTOM_NOT_HARMONY_EXCLUDE>"<FieldSqlName>": <IF ALPHA>"</IF ALPHA><IF CUSTOM_HARMONY_AS_STRING>"</IF CUSTOM_HARMONY_AS_STRING><FIELD_SAMPLE_DATA_NOQUOTES><IF CUSTOM_HARMONY_AS_STRING>"</IF CUSTOM_HARMONY_AS_STRING><IF ALPHA>"</IF ALPHA><,></IF CUSTOM_NOT_HARMONY_EXCLUDE></FIELD_LOOP>}
 
@@ -194,9 +174,7 @@ x-tenant-id: "{{tenantid}}"
 
 PATCH {{baseuri}}(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME>'2022-01-01'<IF TIME>T12:00:00-08:00</IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)
 Content-Type:application/json
-  <IF DEFINED_ENABLE_MULTI_TENANCY>
-x-tenant-id: "{{tenantid}}"
-  </IF>
+x-tenant-id: {{tenantid}}
 
 [ { "op": "replace", "path": "PropertyName", "value": "PropertyValue" } ]
 
@@ -211,8 +189,6 @@ x-tenant-id: "{{tenantid}}"
 
 DELETE {{baseuri}}(<IF STRUCTURE_ISAM><PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><ELSE><FieldSqlName>=<IF DATEORTIME>'2022-01-01'<IF TIME>T12:00:00-08:00</IF TIME><ELSE><IF ALPHA>'ABC'<ELSE>123</IF ALPHA></IF DATEORTIME><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF SEG_TAG_EQUAL></SEGMENT_LOOP></PRIMARY_KEY></IF STRUCTURE_ISAM><IF STRUCTURE_RELATIVE>InsertRecordNumber</IF STRUCTURE_RELATIVE>)
 Accept:application/json
-  <IF DEFINED_ENABLE_MULTI_TENANCY>
-x-tenant-id: "{{tenantid}}"
-  </IF>
+x-tenant-id: {{tenantid}}
 
 </IF>

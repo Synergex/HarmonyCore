@@ -17,7 +17,7 @@
 @odatapath = odata
 @version = 1
 @entity = Vendors
-@tenantid = 001
+@tenantid = 1
 @baseuri = {{protocol}}://{{hostname}}:{{port}}/{{odatapath}}/v{{version}}/{{entity}}
 
 ###
@@ -26,12 +26,14 @@
 
 GET {{baseuri}}?$top=3
 Accept:application/json
+x-tenant-id: {{tenantid}}
 
 ###
 ### Query the entire collection
 ###
 
 GET {{baseuri}}?$count
+x-tenant-id: {{tenantid}}
 
 ###
 ### Query the collection by primary key
@@ -39,6 +41,7 @@ GET {{baseuri}}?$count
 
 GET {{baseuri}}(VendorNumber=123)
 Accept:application/json
+x-tenant-id: {{tenantid}}
 
 ###
 ### Query the collection by alternate key Vendstate
@@ -46,6 +49,7 @@ Accept:application/json
 
 GET {{baseuri}}(VendorNumber=123,ZipCode=123)
 Accept:application/json
+x-tenant-id: {{tenantid}}
 
 ###
 ### Count the collection by alternate key Vendstate
@@ -53,6 +57,7 @@ Accept:application/json
 
 GET {{baseuri}}(VendorNumber=123,ZipCode=123)/$count
 Accept:application/json
+x-tenant-id: {{tenantid}}
 
 ###
 ### Query the collection by alternate key State
@@ -60,6 +65,7 @@ Accept:application/json
 
 GET {{baseuri}}(State='ABC')
 Accept:application/json
+x-tenant-id: {{tenantid}}
 
 ###
 ### Count the collection by alternate key State
@@ -67,6 +73,7 @@ Accept:application/json
 
 GET {{baseuri}}(State='ABC')/$count
 Accept:application/json
+x-tenant-id: {{tenantid}}
 
 ###
 ### Query the collection by alternate key Zip
@@ -74,6 +81,7 @@ Accept:application/json
 
 GET {{baseuri}}(ZipCode=123)
 Accept:application/json
+x-tenant-id: {{tenantid}}
 
 ###
 ### Count the collection by alternate key Zip
@@ -81,6 +89,7 @@ Accept:application/json
 
 GET {{baseuri}}(ZipCode=123)/$count
 Accept:application/json
+x-tenant-id: {{tenantid}}
 
 ###
 ### Query the collection by alternate key PaymentTerms
@@ -88,6 +97,7 @@ Accept:application/json
 
 GET {{baseuri}}(PaymentTermsCode='ABC')
 Accept:application/json
+x-tenant-id: {{tenantid}}
 
 ###
 ### Count the collection by alternate key PaymentTerms
@@ -95,6 +105,7 @@ Accept:application/json
 
 GET {{baseuri}}(PaymentTermsCode='ABC')/$count
 Accept:application/json
+x-tenant-id: {{tenantid}}
 
 ###
 ### Create entity (auto assign key)
@@ -102,6 +113,7 @@ Accept:application/json
 
 POST {{baseuri}}
 Content-Type:application/json
+x-tenant-id: {{tenantid}}
 
 {"VendorNumber": 39,"Name": "Gardens R Us","Street": "97 Main St","City": "Concord","State": "NH","ZipCode": 03214,"Contact": "Jeremiah Johnson","Phone": "(555) 627-2663","Fax": "(555) 627-6382","PaymentTermsCode": "60"}
 
@@ -111,6 +123,7 @@ Content-Type:application/json
 
 PUT {{baseuri}}(VendorNumber=123)
 Content-Type:application/json
+x-tenant-id: {{tenantid}}
 
 {"VendorNumber": 39,"Name": "Gardens R Us","Street": "97 Main St","City": "Concord","State": "NH","ZipCode": 03214,"Contact": "Jeremiah Johnson","Phone": "(555) 627-2663","Fax": "(555) 627-6382","PaymentTermsCode": "60"}
 
@@ -120,6 +133,7 @@ Content-Type:application/json
 
 PATCH {{baseuri}}(VendorNumber=123)
 Content-Type:application/json
+x-tenant-id: {{tenantid}}
 
 [ { "op": "replace", "path": "PropertyName", "value": "PropertyValue" } ]
 
@@ -129,4 +143,5 @@ Content-Type:application/json
 
 DELETE {{baseuri}}(VendorNumber=123)
 Accept:application/json
+x-tenant-id: {{tenantid}}
 

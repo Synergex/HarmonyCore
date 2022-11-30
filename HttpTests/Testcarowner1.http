@@ -17,7 +17,7 @@
 @odatapath = odata
 @version = 1
 @entity = Testcarowner1s
-@tenantid = 001
+@tenantid = 1
 @baseuri = {{protocol}}://{{hostname}}:{{port}}/{{odatapath}}/v{{version}}/{{entity}}
 
 ###
@@ -26,12 +26,14 @@
 
 GET {{baseuri}}?$top=3
 Accept:application/json
+x-tenant-id: {{tenantid}}
 
 ###
 ### Query the entire collection
 ###
 
 GET {{baseuri}}?$count
+x-tenant-id: {{tenantid}}
 
 ###
 ### Query the collection by primary key
@@ -39,6 +41,7 @@ GET {{baseuri}}?$count
 
 GET {{baseuri}}(Id=123)
 Accept:application/json
+x-tenant-id: {{tenantid}}
 
 ###
 ### Create entity (auto assign key)
@@ -46,6 +49,7 @@ Accept:application/json
 
 POST {{baseuri}}
 Content-Type:application/json
+x-tenant-id: {{tenantid}}
 
 {"Id": 123,"Name": "ABC"}
 
@@ -55,6 +59,7 @@ Content-Type:application/json
 
 PUT {{baseuri}}(Id=123)
 Content-Type:application/json
+x-tenant-id: {{tenantid}}
 
 {"Id": 123,"Name": "ABC"}
 
@@ -64,6 +69,7 @@ Content-Type:application/json
 
 PATCH {{baseuri}}(Id=123)
 Content-Type:application/json
+x-tenant-id: {{tenantid}}
 
 [ { "op": "replace", "path": "PropertyName", "value": "PropertyValue" } ]
 
@@ -73,4 +79,5 @@ Content-Type:application/json
 
 DELETE {{baseuri}}(Id=123)
 Accept:application/json
+x-tenant-id: {{tenantid}}
 

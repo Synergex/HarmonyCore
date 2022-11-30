@@ -17,7 +17,7 @@
 @odatapath = odata
 @version = 1
 @entity = Customers
-@tenantid = 001
+@tenantid = 1
 @baseuri = {{protocol}}://{{hostname}}:{{port}}/{{odatapath}}/v{{version}}/{{entity}}
 
 ###
@@ -26,12 +26,14 @@
 
 GET {{baseuri}}?$top=3
 Accept:application/json
+x-tenant-id: {{tenantid}}
 
 ###
 ### Query the entire collection
 ###
 
 GET {{baseuri}}?$count
+x-tenant-id: {{tenantid}}
 
 ###
 ### Query the collection by primary key
@@ -39,6 +41,7 @@ GET {{baseuri}}?$count
 
 GET {{baseuri}}(CustomerNumber=123)
 Accept:application/json
+x-tenant-id: {{tenantid}}
 
 ###
 ### Query the collection by alternate key State
@@ -46,6 +49,7 @@ Accept:application/json
 
 GET {{baseuri}}(State='ABC')
 Accept:application/json
+x-tenant-id: {{tenantid}}
 
 ###
 ### Count the collection by alternate key State
@@ -53,6 +57,7 @@ Accept:application/json
 
 GET {{baseuri}}(State='ABC')/$count
 Accept:application/json
+x-tenant-id: {{tenantid}}
 
 ###
 ### Query the collection by alternate key Zip
@@ -60,6 +65,7 @@ Accept:application/json
 
 GET {{baseuri}}(ZipCode=123)
 Accept:application/json
+x-tenant-id: {{tenantid}}
 
 ###
 ### Count the collection by alternate key Zip
@@ -67,6 +73,7 @@ Accept:application/json
 
 GET {{baseuri}}(ZipCode=123)/$count
 Accept:application/json
+x-tenant-id: {{tenantid}}
 
 ###
 ### Query the collection by alternate key PaymentTerms
@@ -74,6 +81,7 @@ Accept:application/json
 
 GET {{baseuri}}(PaymentTermsCode='ABC')
 Accept:application/json
+x-tenant-id: {{tenantid}}
 
 ###
 ### Count the collection by alternate key PaymentTerms
@@ -81,6 +89,7 @@ Accept:application/json
 
 GET {{baseuri}}(PaymentTermsCode='ABC')/$count
 Accept:application/json
+x-tenant-id: {{tenantid}}
 
 ###
 ### Create entity (auto assign key)
@@ -88,6 +97,7 @@ Accept:application/json
 
 POST {{baseuri}}
 Content-Type:application/json
+x-tenant-id: {{tenantid}}
 
 {"CustomerNumber": 355232,"Name": "Abe's Nursery","Street": "1032 Main Street","City": "Springfield","State": "MO","ZipCode": 64127,"Contact": "Abe Albright","Phone": "(555) 123-4567","Fax": "(555) 987-6543","FavoriteItem": 7,"PaymentTermsCode": "30","TaxId": 546874521,"CreditLimit": 5000}
 
@@ -97,6 +107,7 @@ Content-Type:application/json
 
 PUT {{baseuri}}(CustomerNumber=123)
 Content-Type:application/json
+x-tenant-id: {{tenantid}}
 
 {"CustomerNumber": 355232,"Name": "Abe's Nursery","Street": "1032 Main Street","City": "Springfield","State": "MO","ZipCode": 64127,"Contact": "Abe Albright","Phone": "(555) 123-4567","Fax": "(555) 987-6543","FavoriteItem": 7,"PaymentTermsCode": "30","TaxId": 546874521,"CreditLimit": 5000}
 
@@ -106,6 +117,7 @@ Content-Type:application/json
 
 PATCH {{baseuri}}(CustomerNumber=123)
 Content-Type:application/json
+x-tenant-id: {{tenantid}}
 
 [ { "op": "replace", "path": "PropertyName", "value": "PropertyValue" } ]
 
@@ -115,4 +127,5 @@ Content-Type:application/json
 
 DELETE {{baseuri}}(CustomerNumber=123)
 Accept:application/json
+x-tenant-id: {{tenantid}}
 

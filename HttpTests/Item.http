@@ -17,7 +17,7 @@
 @odatapath = odata
 @version = 1
 @entity = Items
-@tenantid = 001
+@tenantid = 1
 @baseuri = {{protocol}}://{{hostname}}:{{port}}/{{odatapath}}/v{{version}}/{{entity}}
 
 ###
@@ -26,12 +26,14 @@
 
 GET {{baseuri}}?$top=3
 Accept:application/json
+x-tenant-id: {{tenantid}}
 
 ###
 ### Query the entire collection
 ###
 
 GET {{baseuri}}?$count
+x-tenant-id: {{tenantid}}
 
 ###
 ### Query the collection by primary key
@@ -39,6 +41,7 @@ GET {{baseuri}}?$count
 
 GET {{baseuri}}(ItemNumber=123)
 Accept:application/json
+x-tenant-id: {{tenantid}}
 
 ###
 ### Query the collection by alternate key VendorNumber
@@ -46,6 +49,7 @@ Accept:application/json
 
 GET {{baseuri}}(VendorNumber=123)
 Accept:application/json
+x-tenant-id: {{tenantid}}
 
 ###
 ### Count the collection by alternate key VendorNumber
@@ -53,6 +57,7 @@ Accept:application/json
 
 GET {{baseuri}}(VendorNumber=123)/$count
 Accept:application/json
+x-tenant-id: {{tenantid}}
 
 ###
 ### Query the collection by alternate key Color
@@ -60,6 +65,7 @@ Accept:application/json
 
 GET {{baseuri}}(FlowerColor='ABC')
 Accept:application/json
+x-tenant-id: {{tenantid}}
 
 ###
 ### Count the collection by alternate key Color
@@ -67,6 +73,7 @@ Accept:application/json
 
 GET {{baseuri}}(FlowerColor='ABC')/$count
 Accept:application/json
+x-tenant-id: {{tenantid}}
 
 ###
 ### Query the collection by alternate key Size
@@ -74,6 +81,7 @@ Accept:application/json
 
 GET {{baseuri}}(Size=123)
 Accept:application/json
+x-tenant-id: {{tenantid}}
 
 ###
 ### Count the collection by alternate key Size
@@ -81,6 +89,7 @@ Accept:application/json
 
 GET {{baseuri}}(Size=123)/$count
 Accept:application/json
+x-tenant-id: {{tenantid}}
 
 ###
 ### Query the collection by alternate key Name
@@ -88,6 +97,7 @@ Accept:application/json
 
 GET {{baseuri}}(CommonName='ABC')
 Accept:application/json
+x-tenant-id: {{tenantid}}
 
 ###
 ### Count the collection by alternate key Name
@@ -95,6 +105,7 @@ Accept:application/json
 
 GET {{baseuri}}(CommonName='ABC')/$count
 Accept:application/json
+x-tenant-id: {{tenantid}}
 
 ###
 ### Create entity (auto assign key)
@@ -102,6 +113,7 @@ Accept:application/json
 
 POST {{baseuri}}
 Content-Type:application/json
+x-tenant-id: {{tenantid}}
 
 {"ItemNumber": 19,"VendorNumber": 41,"Size": 5,"CommonName": "European Hackberry","LatinName": "Celtis australis","ZoneCode": 2,"Type": 1,"Flowering": "Y","FlowerColor": "Red","Shape": "1","MaxHeight": 24,"MaxWidth": 30,"WaterRequirement": "Low","SunRequirement": "Part","BinLocation": "B06","QtyOnHand": 17,"QtyAllocated": 2,"QtyOnOrder": 10,"ReorderLevel": 20,"UnitPrice": 15.99,"CostPrice": 9.99}
 
@@ -111,6 +123,7 @@ Content-Type:application/json
 
 PUT {{baseuri}}(ItemNumber=123)
 Content-Type:application/json
+x-tenant-id: {{tenantid}}
 
 {"ItemNumber": 19,"VendorNumber": 41,"Size": 5,"CommonName": "European Hackberry","LatinName": "Celtis australis","ZoneCode": 2,"Type": 1,"Flowering": "Y","FlowerColor": "Red","Shape": "1","MaxHeight": 24,"MaxWidth": 30,"WaterRequirement": "Low","SunRequirement": "Part","BinLocation": "B06","QtyOnHand": 17,"QtyAllocated": 2,"QtyOnOrder": 10,"ReorderLevel": 20,"UnitPrice": 15.99,"CostPrice": 9.99}
 
@@ -120,6 +133,7 @@ Content-Type:application/json
 
 PATCH {{baseuri}}(ItemNumber=123)
 Content-Type:application/json
+x-tenant-id: {{tenantid}}
 
 [ { "op": "replace", "path": "PropertyName", "value": "PropertyValue" } ]
 
@@ -129,4 +143,5 @@ Content-Type:application/json
 
 DELETE {{baseuri}}(ItemNumber=123)
 Accept:application/json
+x-tenant-id: {{tenantid}}
 
