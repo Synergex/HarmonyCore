@@ -26,6 +26,7 @@ set TestProject=Services.Test
 set TestValuesProject=Services.Test.GenerateValues
 set TraditionalBridgeProject=TraditionalBridge
 set RepositoryProject=HarmonyCore.Test.Repository\HarmonyCore.Test.Repository.synproj
+set VsTestClientTestsDir=HttpTests
 
 rem ================================================================================================================================
 rem Specify the names of the repository structures to generate code from:
@@ -77,6 +78,7 @@ rem set DO_NOT_SET_FILE_LOGICALS=-define DO_NOT_SET_FILE_LOGICALS
 set ENABLE_GET_ALL=-define ENABLE_GET_ALL
 set ENABLE_GET_ONE=-define ENABLE_GET_ONE
 set ENABLE_POSTMAN_TESTS=YES
+set ENABLE_RESTCLIENT_TESTS=YES
 set ENABLE_ALTERNATE_KEYS=-define ENABLE_ALTERNATE_KEYS
 rem set ENABLE_PARTIAL_KEYS=-define ENABLE_PARTIAL_KEYS
 set ENABLE_COUNT=-define ENABLE_COUNT
@@ -96,6 +98,7 @@ set ENABLE_SPROC=-define ENABLE_SPROC
 set ENABLE_ADAPTER_ROUTING=-define ENABLE_ADAPTER_ROUTING
 rem set ENABLE_AUTHENTICATION=-define ENABLE_AUTHENTICATION
 rem set ENABLE_CUSTOM_AUTHENTICATION=-define ENABLE_CUSTOM_AUTHENTICATION
+rem set ENABLE_MULTI_TENANCY=-define ENABLE_MULTI_TENANCY
 rem set ENABLE_FIELD_SECURITY=-define ENABLE_FIELD_SECURITY
 rem set ENABLE_SIGNALR=-define ENABLE_SIGNALR
 set ENABLE_UNIT_TEST_GENERATION=YES
@@ -119,7 +122,7 @@ rem Configure standard command line options and the CodeGen environment
 
 rem set SHOW_CODEGEN_COMMANDS=-e
 
-set NOREPLACEOPTS=%SHOW_CODEGEN_COMMANDS% -lf -u %SolutionDir%UserDefinedTokens.tkn %NO_CUSTOM_PLURALIZATION% %ENABLE_GET_ALL% %ENABLE_GET_ONE% %ENABLE_OVERLAYS% %DO_NOT_SET_FILE_LOGICALS% %ENABLE_ALTERNATE_FIELD_NAMES% %ENABLE_AUTHENTICATION% %ENABLE_CUSTOM_AUTHENTICATION% %ENABLE_SIGNALR% %ENABLE_FIELD_SECURITY% %ENABLE_PROPERTY_ENDPOINTS% %ENABLE_CASE_SENSITIVE_URL% %ENABLE_CREATE_TEST_FILES% %ENABLE_CORS% %ENABLE_IIS_SUPPORT% %ENABLE_DELETE% %ENABLE_PUT% %ENABLE_POST% %ENABLE_PATCH% %ENABLE_ALTERNATE_KEYS% %ENABLE_PARTIAL_KEYS% %ENABLE_RELATIONS% %ENABLE_RELATIONS_VALIDATION% %ENABLE_SELECT% %ENABLE_FILTER% %ENABLE_ORDERBY% %ENABLE_COUNT% %ENABLE_TOP% %ENABLE_SKIP% %ENABLE_SPROC% %ENABLE_ADAPTER_ROUTING% %ENABLE_READ_ONLY_PROPERTIES% %ENABLE_NEWTONSOFT% %PARAM_OPTIONS_PRESENT% %EF_PROVIDER_MYSQL% -rps %RPSMFIL% %RPSTFIL%
+set NOREPLACEOPTS=%SHOW_CODEGEN_COMMANDS% -lf -u %SolutionDir%UserDefinedTokens.tkn %NO_CUSTOM_PLURALIZATION% %ENABLE_GET_ALL% %ENABLE_GET_ONE% %ENABLE_OVERLAYS% %DO_NOT_SET_FILE_LOGICALS% %ENABLE_ALTERNATE_FIELD_NAMES% %ENABLE_AUTHENTICATION% %ENABLE_CUSTOM_AUTHENTICATION% %ENABLE_MULTI_TENANCY% %ENABLE_SIGNALR% %ENABLE_FIELD_SECURITY% %ENABLE_PROPERTY_ENDPOINTS% %ENABLE_CASE_SENSITIVE_URL% %ENABLE_CREATE_TEST_FILES% %ENABLE_CORS% %ENABLE_IIS_SUPPORT% %ENABLE_DELETE% %ENABLE_PUT% %ENABLE_POST% %ENABLE_PATCH% %ENABLE_ALTERNATE_KEYS% %ENABLE_PARTIAL_KEYS% %ENABLE_RELATIONS% %ENABLE_RELATIONS_VALIDATION% %ENABLE_SELECT% %ENABLE_FILTER% %ENABLE_ORDERBY% %ENABLE_COUNT% %ENABLE_TOP% %ENABLE_SKIP% %ENABLE_SPROC% %ENABLE_ADAPTER_ROUTING% %ENABLE_READ_ONLY_PROPERTIES% %ENABLE_NEWTONSOFT% %PARAM_OPTIONS_PRESENT% %EF_PROVIDER_MYSQL% -rps %RPSMFIL% %RPSTFIL%
 set STDOPTS=%NOREPLACEOPTS% -r
 
 rem ================================================================================================================================
@@ -236,7 +239,25 @@ if DEFINED ENABLE_POSTMAN_TESTS (
           -t  ODataPostManTests ^
           -i  %SolutionDir%Templates%TEMPLATESUBDIR% ^
           -o  %SolutionDir% ^
-              %STDOPTS%
+              %NOREPLACEOPTS%
+  if ERRORLEVEL 1 goto error
+)
+
+rem ================================================================================
+rem Visual Studio REST Client Tests
+
+if DEFINED ENABLE_RESTCLIENT_TESTS (
+
+  echo.
+  echo Generating Visual Studio REST Client tests for OData environment
+
+  codegen -s  %DATA_STRUCTURES% ^
+          -a  %DATA_ALIASES% ^
+          -fo %DATA_FILES% ^
+          -t  ODataVsRestClientTests ^
+          -i  %SolutionDir%Templates%TEMPLATESUBDIR% ^
+          -o  %VsTestClientTestsDir% ^
+              %NOREPLACEOPTS%
   if ERRORLEVEL 1 goto error
 )
 
@@ -544,14 +565,28 @@ rem ============================================================================
   if DEFINED ENABLE_POSTMAN_TESTS (
 
   echo.
-  echo Generating interface Postman tests
+  echo Generating Postman tests for interface
 
   codegen -smc %SMC_XML_FILE% ^
           -interface %1 ^
           -t InterfacePostmanTests ^
           -i %SolutionDir%Templates\TraditionalBridge ^
           -o %SolutionDir% ^
-            %STDOPTS%
+            %NOREPLACEOPTS%
+    if ERRORLEVEL 1 goto error
+  )
+
+  if DEFINED ENABLE_RESTCLIENT_TESTS (
+
+  echo.
+  echo Generating Visual Studio REST Client tests for interface
+
+  codegen -smc %SMC_XML_FILE% ^
+          -interface %1 ^
+          -t InterfaceVsRestClientTests ^
+          -i %SolutionDir%Templates\TraditionalBridge ^
+          -o %VsTestClientTestsDir% ^
+            %NOREPLACEOPTS%
     if ERRORLEVEL 1 goto error
   )
 
