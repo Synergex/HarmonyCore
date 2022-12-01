@@ -30,13 +30,13 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("CustomerEx Tests - Read All")}
-        public method GetCustomerExs, void
+        public method GetAllCustomerExs, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync("/odata/v1/CustomerExs").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customerExs, @ODataCustomerExs, JsonConvert.DeserializeObject<ODataCustomerExs>(result)
+            data customerExs, @ODataCustomerExsMultiple, JsonConvert.DeserializeObject<ODataCustomerExsMultiple>(result)
             Assert.AreEqual(customerExs.Value.Count,TestConstants.Instance.GetCustomerExs_Count)
         endmethod
 
@@ -45,7 +45,7 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("CustomerEx Tests - Read All")}
-        public method GetCustomerExs_Expand_REL_Customer, void
+        public method GetAllCustomerExs_Expand_REL_Customer, void
         proc
             data uri = "/odata/v1/CustomerExs?$expand=REL_Customer"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
@@ -59,7 +59,7 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("CustomerEx Tests - Read All")}
-        public method GetCustomerExs_Expand_All, void
+        public method GetAllCustomerExs_Expand_All, void
         proc
             data uri = "/odata/v1/CustomerExs?$expand=REL_Customer"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
@@ -73,14 +73,14 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("CustomerEx Tests - Read by Primary Key")}
-        public method GetCustomerEx, void
+        public method GetOneCustomerEx, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/CustomerExs(Customerid={1})","",TestConstants.Instance.GetCustomerEx_Customerid)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customerEx, @ODataCustomerEx, JsonConvert.DeserializeObject<ODataCustomerEx>(result)
+            data customerEx, @ODataCustomerExSingle, JsonConvert.DeserializeObject<ODataCustomerExSingle>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -88,14 +88,14 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("CustomerEx Tests - Read by Primary Key")}
-        public method GetCustomerEx_Expand_REL_Customer, void
+        public method GetOneCustomerEx_Expand_REL_Customer, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/CustomerExs(Customerid={1})?$expand=REL_Customer","",TestConstants.Instance.GetCustomerEx_Expand_REL_Customer_Customerid)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customerEx, @ODataCustomerEx, JsonConvert.DeserializeObject<ODataCustomerEx>(result)
+            data customerEx, @ODataCustomerExSingle, JsonConvert.DeserializeObject<ODataCustomerExSingle>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -103,14 +103,14 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("CustomerEx Tests - Read by Primary Key")}
-        public method GetCustomerEx_Expand_All, void
+        public method GetOneCustomerEx_Expand_All, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/CustomerExs(Customerid={1})?$expand=REL_Customer","",TestConstants.Instance.GetCustomerEx_Expand_All_Customerid)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customerEx, @ODataCustomerEx, JsonConvert.DeserializeObject<ODataCustomerEx>(result)
+            data customerEx, @ODataCustomerExSingle, JsonConvert.DeserializeObject<ODataCustomerExSingle>(result)
         endmethod
 
         ;;------------------------------------------------------------

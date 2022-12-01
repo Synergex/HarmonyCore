@@ -24,6 +24,7 @@ import Microsoft.EntityFrameworkCore.Infrastructure
 import Microsoft.Extensions.Options
 import System.Collections.Generic
 import System.ComponentModel.DataAnnotations
+import System.Net.Mime
 import Harmony.Core.EF.Extensions
 import Harmony.Core.Interface
 import Harmony.OData
@@ -33,9 +34,13 @@ import Services.Models
 
 namespace Services.Controllers
 
+    {Produces("application/json")}
     ;;; <summary>
-    ;;; OData controller for Testcarowner1s
+    ;;; Test car owner 1
     ;;; </summary>
+    ;;; <remarks>
+    ;;; OData endpoints for Test car owner 1
+    ;;; </remarks>
     public partial class Testcarowner1sController extends ODataController
     
         ;;Services provided via dependency injection
@@ -64,9 +69,14 @@ namespace Services.Controllers
         {ProducesResponseType(^typeof(IEnumerable<Testcarowner1>),StatusCodes.Status200OK)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
-        ;;; Get all Testcarowner1s
+        ;;; Query the entire collection of records
         ;;; </summary>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="200">OK. The operation completed successfully.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
         public method GetTestcarowner1s, @IActionResult
         proc
             mreturn Ok(_DbContext.Testcarowner1s.AsNoTracking())
@@ -78,25 +88,37 @@ namespace Services.Controllers
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
-        ;;; Get a single Testcarowner1 by primary key.
+        ;;; Query a single record identified by unique primary key
         ;;; </summary>
-        ;;; <param name="aId">Owner ID</param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aId" example="123">Owner ID</param>
         ;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetTestcarowner1, @SingleResult<Testcarowner1>
-            {FromODataUri}
+        ;;; <response code="200">OK. The operation completed successfully.</response>
+        ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
+        public method GetTestcarowner1ByPK, @SingleResult<Testcarowner1>
             required in aId, int
         proc
             mreturn new SingleResult<Testcarowner1>(_DbContext.Testcarowner1s.AsNoTracking().FindQuery<Testcarowner1>(_DbContext, aId))
         endmethod
 
+        {Consumes(MediaTypeNames.Application.Json)}
         {Produces("application/json")}
         {ProducesResponseType(^typeof(Testcarowner1),StatusCodes.Status200OK)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
         {HttpPost("Testcarowner1s")}
         ;;; <summary>
-        ;;; Create a new testcarowner1 (automatically assigned primary key).
+        ;;; Create a new record (automatically assigned primary key)
         ;;; </summary>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="200">OK. The operation completed successfully.</response>
+        ;;; <response code="400">Bad request. The request was malformed or contained inappropriate content.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
         public method PostTestcarowner1, @IActionResult
             {FromBody}
             required in aTestcarowner1, @Testcarowner1
@@ -130,17 +152,23 @@ namespace Services.Controllers
         endmethod
 
         {HttpPut("Testcarowner1s(Id={aId})")}
+        {Consumes(MediaTypeNames.Application.Json)}
         {Produces("application/json")}
         {ProducesResponseType(StatusCodes.Status201Created)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
-        ;;; Create (with a client-supplied primary key) or replace a testcarowner1.
+        ;;; Update a record if it exists otherwise create a new record (primary key provided by client)
         ;;; </summary>
-        ;;; <param name="aId">Owner ID</param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aId" example="123">Owner ID</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="201">Created. The entity was created but no data is being returned.</response>
+        ;;; <response code="400">Bad request. The request was malformed or contained inappropriate content.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
         public method PutTestcarowner1, @IActionResult
-            {FromODataUri}
             required in aId, int
             {FromBody}
             required in aTestcarowner1, @Testcarowner1
@@ -183,17 +211,24 @@ namespace Services.Controllers
 
         endmethod
         {HttpPatch("Testcarowner1s(Id={aId})")}
+        {Consumes(MediaTypeNames.Application.Json)}
         {Produces("application/json")}
         {ProducesResponseType(StatusCodes.Status204NoContent)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
-        ;;; Patch  (partial update) a testcarowner1.
+        ;;; Patch (partial update) an existing record
         ;;; </summary>
-        ;;; <param name="aId">Owner ID</param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aId" example="123">Owner ID</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="204">No content. The operation was successful but no data is being returned.</response>
+        ;;; <response code="400">Bad request. The request was malformed or contained inappropriate content.</response>
+        ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
         public method PatchTestcarowner1, @IActionResult
-            {FromODataUri}
             required in aId, int
             {FromBody}
             required in aTestcarowner1, @JsonPatchDocument<Testcarowner1>
@@ -240,12 +275,17 @@ namespace Services.Controllers
         {ProducesResponseType(StatusCodes.Status204NoContent)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
-        ;;; Delete a testcarowner1.
+        ;;; Delete a record
         ;;; </summary>
-        ;;; <param name="aId">Owner ID</param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aId" example="123">Owner ID</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="204">No content. The operation was successful but no data is being returned.</response>
+        ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
         public method DeleteTestcarowner1, @IActionResult
-            {FromODataUri}
             required in aId, int
         proc
             ;;Get the testcarowner1 to be deleted

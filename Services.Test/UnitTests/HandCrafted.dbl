@@ -74,7 +74,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Customers?$select=CustomerNumber,Name").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            data customers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
         endmethod
 
         {TestMethod}
@@ -86,7 +86,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.SendAsync(message).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            data customers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
         endmethod
 
         {TestMethod}
@@ -105,7 +105,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Customers?$expand=REL_Differentpk&$filter=((contains(tolower(Name),'in')) or (contains(tolower(REL_Differentpk/Alphapk),'aa')))").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data resultCustomers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            data resultCustomers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
             
             Assert.IsTrue(resultCustomers.Value.Count == 6)
         endmethod
@@ -117,7 +117,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Customers?$filter=((contains(tolower(Name),'in')) or (contains(tolower(REL_Differentpk/Alphapk),'aa')))").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data resultCustomers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            data resultCustomers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
             
             Assert.IsTrue(resultCustomers.Value.Count == 6)
         endmethod
@@ -148,7 +148,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Customers?$expand=REL_Differentpk&$filter=((contains(tolower(Name),'in')) or (contains(tolower(REL_Differentpk/Alphapk),'aa')) and not (contains(tolower(Name),'in')))").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data resultCustomers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            data resultCustomers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
             
             Assert.IsTrue(resultCustomers.Value.Count == 1)
         endmethod
@@ -176,7 +176,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Customers?$filter=State eq 'CA'").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            data customers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
         endmethod
 
         {TestMethod}
@@ -186,7 +186,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Customers?$filter=State eq 'C'").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            data customers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
             Assert.AreEqual(customers.Value.Count, 0)
 
         endmethod
@@ -198,7 +198,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Customers?$filter=startswith(State,'C')").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            data customers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
             Assert.AreNotEqual(customers.Value.Count, 0)
             data customer, @Customer
             foreach customer in customers.Value
@@ -214,7 +214,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Customers?$expand=REL_CustomerFavoriteItem&$filter=REL_CustomerFavoriteItem/Size+gt+1&$orderby=REL_CustomerFavoriteItem/CommonName").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            data customers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
             Assert.AreNotEqual(customers.Value.Count, 0)
             data customer, @Customer
             foreach customer in customers.Value
@@ -231,7 +231,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Customers?$expand=REL_CustomerFavoriteItem&$filter=REL_CustomerFavoriteItem/Size+gt+1&$orderby=REL_CustomerFavoriteItem/ItemNumber").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            data customers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
             Assert.AreNotEqual(customers.Value.Count, 0)
             data customer, @Customer
             foreach customer in customers.Value
@@ -297,7 +297,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Customers?$expand=REL_CustomerOrders($filter=contains(CustomerReference,'c'))").Result ;;&$filter=REL_CustomerFavoriteItem/Size+gt+1
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            data customers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
             Assert.AreNotEqual(customers.Value.Count, 0)
             data customer, @Customer
             foreach customer in customers.Value
@@ -317,7 +317,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Customers?$expand=REL_CustomerFavoriteItem,REL_CustomerOrders($filter=contains(CustomerReference,'c'))&$filter=REL_CustomerFavoriteItem/Size+gt+1").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            data customers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
             Assert.AreNotEqual(customers.Value.Count, 0)
             data customer, @Customer
             foreach customer in customers.Value
@@ -339,7 +339,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Customers?$expand=REL_CustomerFavoriteItem,REL_CustomerOrders($filter=contains(CustomerReference,'c'))&$filter=REL_CustomerFavoriteItem/Size+gt+1+and+CustomerNumber+ne+5").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            data customers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
             Assert.AreNotEqual(customers.Value.Count, 0)
             data customer, @Customer
             foreach customer in customers.Value
@@ -363,7 +363,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Customers?$expand=REL_CustomerFavoriteItem,REL_CustomerOrders($filter=contains(CustomerReference,'c'))&$filter=contains(tolower(REL_CustomerFavoriteItem/LatinName),'uss') or contains(tolower(REL_CustomerFavoriteItem/LatinName),'is')").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            data customers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
             Assert.AreEqual(customers.Value.Count, 4)
             data customer, @Customer
             foreach customer in customers.Value
@@ -428,7 +428,7 @@ namespace Services.Test.UnitTests
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
 
-            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            data customers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
             Assert.AreEqual(customers.Value.Count, 1)
         endmethod
         ;REL_Customer
@@ -453,7 +453,7 @@ namespace Services.Test.UnitTests
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
 
-            data orders, @ODataOrders, JsonConvert.DeserializeObject<ODataOrders>(result)
+            data orders, @ODataOrdersMultiple, JsonConvert.DeserializeObject<ODataOrdersMultiple>(result)
             Assert.AreEqual(orders.Value.Count, 113)
         endmethod
 
@@ -465,7 +465,7 @@ namespace Services.Test.UnitTests
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
 
-            data orders, @ODataOrders, JsonConvert.DeserializeObject<ODataOrders>(result)
+            data orders, @ODataOrdersMultiple, JsonConvert.DeserializeObject<ODataOrdersMultiple>(result)
             data ord, @Order
             foreach ord in orders.Value
             begin
@@ -495,7 +495,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Customers?$filter=not startswith(State,'C')").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            data customers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
             Assert.AreNotEqual(customers.Value.Count, 0)
             data customer, @Customer
             foreach customer in customers.Value
@@ -511,7 +511,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Customers?$filter=not startswith(tolower(State),'c')").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            data customers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
             Assert.AreNotEqual(customers.Value.Count, 0)
             data customer, @Customer
             foreach customer in customers.Value
@@ -528,7 +528,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Customers?$filter=startswith(tolower(State),'c')").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            data customers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
             Assert.AreNotEqual(customers.Value.Count, 0)
             data customer, @Customer
             foreach customer in customers.Value
@@ -544,7 +544,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Customers?$filter=State eq 'CAD'").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            data customers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
             Assert.AreEqual(customers.Value.Count, 0)
         endmethod
 
@@ -558,7 +558,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Customers?$filter=State ne 'CA'").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            data customers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -571,7 +571,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Customers?$filter=CreditLimit gt 5000").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            data customers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -584,7 +584,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Customers?$filter=State eq 'CA' and CreditLimit gt 5000").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            data customers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -597,7 +597,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Customers?$filter=State eq 'NV'&$select=CustomerNumber,Name").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            data customers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -623,7 +623,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Customers?$filter=State in ('OR', 'WA')").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            data customers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -636,7 +636,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Customers?$top=5").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            data customers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -649,7 +649,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Customers?$top=5&$skip=5").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            data customers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -662,7 +662,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Items?$filter=not endswith(LatinName,'costata')").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
+            data items, @ODataItemsMultiple, JsonConvert.DeserializeObject<ODataItemsMultiple>(result)
             Assert.AreNotEqual(0, items.Value.Count)
             data itm, @Item
             foreach itm in items.Value
@@ -679,7 +679,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Items?$filter=endswith(LatinName,'costata')").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
+            data items, @ODataItemsMultiple, JsonConvert.DeserializeObject<ODataItemsMultiple>(result)
             Assert.AreNotEqual(0, items.Value.Count)
             data itm, @Item
             foreach itm in items.Value
@@ -779,7 +779,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Items(VendorNumber=42)").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
+            data items, @ODataItemsMultiple, JsonConvert.DeserializeObject<ODataItemsMultiple>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -805,7 +805,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Items(FlowerColor='white')").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
+            data items, @ODataItemsMultiple, JsonConvert.DeserializeObject<ODataItemsMultiple>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -818,7 +818,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Items(Size=3)").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
+            data items, @ODataItemsMultiple, JsonConvert.DeserializeObject<ODataItemsMultiple>(result)
         endmethod
 
 
@@ -832,7 +832,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Items(Size=3)?$filter=Shape eq 'bush' and FlowerColor eq 'purple'").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
+            data items, @ODataItemsMultiple, JsonConvert.DeserializeObject<ODataItemsMultiple>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -845,7 +845,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Items(Size=3)?$filter=Shape eq 'bush' and FlowerColor eq 'purple'&$select=ItemNumber,CommonName").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
+            data items, @ODataItemsMultiple, JsonConvert.DeserializeObject<ODataItemsMultiple>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -858,7 +858,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Items(CommonName='Hedge Maple')").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
+            data items, @ODataItemsMultiple, JsonConvert.DeserializeObject<ODataItemsMultiple>(result)
         endmethod
 
         {TestMethod}
@@ -868,7 +868,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Items?$filter=Contains(CommonName,'edge')").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
+            data items, @ODataItemsMultiple, JsonConvert.DeserializeObject<ODataItemsMultiple>(result)
             data item, @Item
             foreach item in items.Value
             begin
@@ -886,7 +886,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Customers(CustomerNumber=1)?$expand=REL_CustomerOrders").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            data customers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
             ;Customer 1 has no orders
         endmethod
 
@@ -900,7 +900,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Customers(CustomerNumber=8)?$expand=REL_CustomerOrders").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            data customers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
             ;Customer 8 has 3 orders
         endmethod
 
@@ -914,7 +914,7 @@ namespace Services.Test.UnitTests
 ;			disposable data response = client.GetAsync("/odata/v1/Customers/8/REL_CustomerOrders").Result
 ;			data result = response.Content.ReadAsStringAsync().Result
 ;			response.EnsureSuccessStatusCode()
-;			data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+;			data customers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
 ;			;Customer 8 has 3 orders
 ;		endmethod
 
@@ -928,7 +928,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Customers(CustomerNumber=8)?$expand=REL_CustomerOrders($expand=REL_OrderItems($expand=REL_Item))").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            data customers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -941,7 +941,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/OrderItems").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customers, @ODataOrderItems, JsonConvert.DeserializeObject<ODataOrderItems>(result)
+            data customers, @ODataOrderItemsMultiple, JsonConvert.DeserializeObject<ODataOrderItemsMultiple>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -954,7 +954,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/OrderItems?$filter=OrderNumber eq 3").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customers, @ODataOrderItems, JsonConvert.DeserializeObject<ODataOrderItems>(result)
+            data customers, @ODataOrderItemsMultiple, JsonConvert.DeserializeObject<ODataOrderItemsMultiple>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -1041,7 +1041,7 @@ namespace Services.Test.UnitTests
 ;            disposable data response = client.GetAsync("/odata/v1/Items?$apply=aggregate(UnitPrice with sum as TotalPrice)").Result
 ;            data result = response.Content.ReadAsStringAsync().Result
 ;            response.EnsureSuccessStatusCode()
-;            ;data customers, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
+;            ;data customers, @ODataItemsMultiple, JsonConvert.DeserializeObject<ODataItemsMultiple>(result)
 ;        endmethod
 ;
 ;        {TestMethod}
@@ -1051,7 +1051,7 @@ namespace Services.Test.UnitTests
 ;            disposable data response = client.GetAsync("/odata/v1/Items?$apply=groupby((UnitPrice))").Result
 ;            data result = response.Content.ReadAsStringAsync().Result
 ;            response.EnsureSuccessStatusCode()
-;            data customers, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
+;            data customers, @ODataItemsMultiple, JsonConvert.DeserializeObject<ODataItemsMultiple>(result)
 ;        endmethod
 ;
 ;        {TestMethod}
@@ -1061,7 +1061,7 @@ namespace Services.Test.UnitTests
 ;            disposable data response = client.GetAsync("/odata/v1/Customers?$filter=REL_CustomerOrders/any(w: w/PaymentTermsCode eq '90')").Result
 ;            data result = response.Content.ReadAsStringAsync().Result
 ;            response.EnsureSuccessStatusCode()
-;            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+;            data customers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
 ;        endmethod
 ;        
 ;        {TestMethod}
@@ -1071,7 +1071,7 @@ namespace Services.Test.UnitTests
 ;            disposable data response = client.GetAsync("/odata/v1/Customers?$filter=REL_CustomerOrders/any(w: w/PaymentTermsCode eq '90' and w/REL_Vendor/VendorNumber gt 2)").Result
 ;            data result = response.Content.ReadAsStringAsync().Result
 ;            response.EnsureSuccessStatusCode()
-;            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+;            data customers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
 ;        endmethod
 ;
 ;        {TestMethod}
@@ -1081,7 +1081,7 @@ namespace Services.Test.UnitTests
 ;            disposable data response = client.GetAsync("/odata/v1/Customers?$filter=REL_CustomerOrders/all(w: w/PaymentTermsCode eq '90')").Result
 ;            data result = response.Content.ReadAsStringAsync().Result
 ;            response.EnsureSuccessStatusCode()
-;            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+;            data customers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
 ;        endmethod
 
 ;		{TestMethod}
@@ -1101,7 +1101,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Items?$top=5").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
+            data items, @ODataItemsMultiple, JsonConvert.DeserializeObject<ODataItemsMultiple>(result)
             Assert.AreEqual(items.Value.Count, 5)
         endmethod
 
@@ -1112,7 +1112,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Items?$top=5&$skip=5").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data items, @ODataItems, JsonConvert.DeserializeObject<ODataItems>(result)
+            data items, @ODataItemsMultiple, JsonConvert.DeserializeObject<ODataItemsMultiple>(result)
             Assert.AreEqual(items.Value.Count, 5)
         endmethod
 
@@ -1147,14 +1147,14 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Customers?$top=5&$expand=REL_CustomerOrders($top=2;$skip=2)").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            data customers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
 
             Assert.AreEqual(customers.Value.Count, 5)
 
             disposable data response2 = client.GetAsync("/odata/v1/Customers?$top=5&$expand=REL_CustomerOrders($top=4)").Result
             data result2 = response2.Content.ReadAsStringAsync().Result
             response2.EnsureSuccessStatusCode()
-            data customers2, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result2)
+            data customers2, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result2)
 
             Assert.AreEqual(customers2.Value.Count, 5)
 
@@ -1180,14 +1180,14 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Customers?$top=2&$skip=2&$orderby=CustomerNumber&$expand=REL_CustomerOrders($top=2;$skip=2)").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            data customers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
 
             Assert.AreEqual(customers.Value.Count, 2)
 
             disposable data response2 = client.GetAsync("/odata/v1/Customers?$top=4&$orderby=CustomerNumber&$expand=REL_CustomerOrders($top=4)").Result
             data result2 = response2.Content.ReadAsStringAsync().Result
             response2.EnsureSuccessStatusCode()
-            data customers2, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result2)
+            data customers2, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result2)
 
             Assert.AreEqual(customers2.Value.Count, 4)
 
@@ -1227,7 +1227,7 @@ namespace Services.Test.UnitTests
             data response = client.GetAsync("/odata/v1/Customers?$expand=REL_CustomerFavoriteItem,REL_CustomerNotes,REL_CustomerOrders").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customersResult, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            data customersResult, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
             data cust, @Customer
             foreach cust in customersResult.Value
             begin
@@ -1353,7 +1353,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Customers?$filter=State eq 'CA'&$expand=REL_CustomerOrders($select=OrderNumber,DateOrdered;$expand=REL_OrderItems($select=ItemNumber,QuantityOrdered;$expand=REL_Item($select=CommonName)))&$select=CustomerNumber,Name").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            data customers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
             data cust, @Customer
             foreach cust in customers.Value
             begin
@@ -1382,7 +1382,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Customers?$filter=State in ('CA','WA')&$expand=REL_CustomerOrders($select=OrderNumber,DateOrdered;$expand=REL_OrderItems($select=ItemNumber,QuantityOrdered;$expand=REL_Item))&$select=CustomerNumber,Name").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            data customers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
             data cust, @Services.Test.Models.Customer
 
             foreach cust in customers.Value
@@ -1411,7 +1411,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/Customers?$expand=REL_CustomerOrders($select=PlacedBy;$expand=REL_OrderItems($expand=REL_Item))").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            data customers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
             Assert.IsTrue(customers.Value.Count > 1)
         endmethod
 
@@ -1422,7 +1422,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync("/odata/v1/ExternalCall/GetAllCustomers()").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            data customers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
         endmethod
 
         {TestMethod}
@@ -1805,7 +1805,7 @@ namespace Services.Test.UnitTests
             disposable data response = client.GetAsync(uri).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customers, @ODataCustomers, JsonConvert.DeserializeObject<ODataCustomers>(result)
+            data customers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
             data c, @Customer
             foreach c in customers.Value
             begin
@@ -1912,11 +1912,11 @@ namespace Services.Test.UnitTests
             data result5 = response5.Content.ReadAsStringAsync().Result
             response5.EnsureSuccessStatusCode()
             
-            data result1Cars, @Services.Test.Models.ODataTestcars, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcars>(result1)
-            data result2Cars, @Services.Test.Models.ODataTestcars, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcars>(result2)
-            data result3Cars, @Services.Test.Models.ODataTestcars, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcars>(result3)
-            data result4Cars, @Services.Test.Models.ODataTestcars, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcars>(result4)
-            data result5Cars, @Services.Test.Models.ODataTestcars, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcars>(result5)
+            data result1Cars, @Services.Test.Models.ODataTestcarsMultiple, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarsMultiple>(result1)
+            data result2Cars, @Services.Test.Models.ODataTestcarsMultiple, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarsMultiple>(result2)
+            data result3Cars, @Services.Test.Models.ODataTestcarsMultiple, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarsMultiple>(result3)
+            data result4Cars, @Services.Test.Models.ODataTestcarsMultiple, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarsMultiple>(result4)
+            data result5Cars, @Services.Test.Models.ODataTestcarsMultiple, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarsMultiple>(result5)
 
             data combinedResult = result1Cars.Value.Union(result2Cars.Value, new TestCarComparer()).Union(result3Cars.Value, new TestCarComparer()).Union(result4Cars.Value, new TestCarComparer()).OrderBy(lambda(x) { x.Id } ).ToList()
 
@@ -1956,11 +1956,11 @@ namespace Services.Test.UnitTests
             data result5 = response5.Content.ReadAsStringAsync().Result
             response5.EnsureSuccessStatusCode()
             
-            data result1Cars, @Services.Test.Models.ODataTestcars, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcars>(result1)
-            data result2Cars, @Services.Test.Models.ODataTestcars, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcars>(result2)
-            data result3Cars, @Services.Test.Models.ODataTestcars, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcars>(result3)
-            data result4Cars, @Services.Test.Models.ODataTestcars, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcars>(result4)
-            data result5Cars, @Services.Test.Models.ODataTestcars, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcars>(result5)
+            data result1Cars, @Services.Test.Models.ODataTestcarsMultiple, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarsMultiple>(result1)
+            data result2Cars, @Services.Test.Models.ODataTestcarsMultiple, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarsMultiple>(result2)
+            data result3Cars, @Services.Test.Models.ODataTestcarsMultiple, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarsMultiple>(result3)
+            data result4Cars, @Services.Test.Models.ODataTestcarsMultiple, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarsMultiple>(result4)
+            data result5Cars, @Services.Test.Models.ODataTestcarsMultiple, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarsMultiple>(result5)
 
             data combinedResult = result1Cars.Value.Union(result2Cars.Value, new TestCarComparer()).Union(result3Cars.Value, new TestCarComparer()).Union(result4Cars.Value, new TestCarComparer()).OrderBy(lambda(x) { x.Id } ).ToList()
 
@@ -1995,10 +1995,10 @@ namespace Services.Test.UnitTests
             data result4 = response4.Content.ReadAsStringAsync().Result
             response4.EnsureSuccessStatusCode()
             
-            data result1Cars, @Services.Test.Models.ODataTestcars, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcars>(result1)
-            data result2Cars, @Services.Test.Models.ODataTestcars, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcars>(result2)
-            data result3Cars, @Services.Test.Models.ODataTestcars, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcars>(result3)
-            data result4Cars, @Services.Test.Models.ODataTestcars, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcars>(result4)
+            data result1Cars, @Services.Test.Models.ODataTestcarsMultiple, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarsMultiple>(result1)
+            data result2Cars, @Services.Test.Models.ODataTestcarsMultiple, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarsMultiple>(result2)
+            data result3Cars, @Services.Test.Models.ODataTestcarsMultiple, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarsMultiple>(result3)
+            data result4Cars, @Services.Test.Models.ODataTestcarsMultiple, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarsMultiple>(result4)
 
             data combinedResult = result1Cars.Value.Union(result2Cars.Value, new TestCarComparer()).Union(result3Cars.Value, new TestCarComparer()).OrderBy(lambda(x) { x.Id } ).ToList()
 
@@ -2050,10 +2050,10 @@ namespace Services.Test.UnitTests
             data result4 = response4.Content.ReadAsStringAsync().Result
             response4.EnsureSuccessStatusCode()
             
-            data result1Cars, @Services.Test.Models.ODataTestcarlots, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarlots>(result1)
-            data result2Cars, @Services.Test.Models.ODataTestcarlots, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarlots>(result2)
-            data result3Cars, @Services.Test.Models.ODataTestcarlots, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarlots>(result3)
-            data result4Cars, @Services.Test.Models.ODataTestcarlots, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarlots>(result4)
+            data result1Cars, @Services.Test.Models.ODataTestcarlotsMultiple, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarlotsMultiple>(result1)
+            data result2Cars, @Services.Test.Models.ODataTestcarlotsMultiple, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarlotsMultiple>(result2)
+            data result3Cars, @Services.Test.Models.ODataTestcarlotsMultiple, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarlotsMultiple>(result3)
+            data result4Cars, @Services.Test.Models.ODataTestcarlotsMultiple, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarlotsMultiple>(result4)
 
             data combinedResult = result1Cars.Value.Union(result2Cars.Value, new TestCarLotComparer()).Union(result3Cars.Value, new TestCarLotComparer()).OrderBy(lambda(x) { x.Id } ).ToList()
 
@@ -2093,11 +2093,11 @@ namespace Services.Test.UnitTests
             data result5 = response5.Content.ReadAsStringAsync().Result
             response5.EnsureSuccessStatusCode()
             
-            data result1Carlots, @Services.Test.Models.ODataTestcarlots, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarlots>(result1)
-            data result2Carlots, @Services.Test.Models.ODataTestcarlots, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarlots>(result2)
-            data result3Carlots, @Services.Test.Models.ODataTestcarlots, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarlots>(result3)
-            data result4Carlots, @Services.Test.Models.ODataTestcarlots, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarlots>(result4)
-            data result5Carlots, @Services.Test.Models.ODataTestcarlots, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarlots>(result5)
+            data result1Carlots, @Services.Test.Models.ODataTestcarlotsMultiple, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarlotsMultiple>(result1)
+            data result2Carlots, @Services.Test.Models.ODataTestcarlotsMultiple, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarlotsMultiple>(result2)
+            data result3Carlots, @Services.Test.Models.ODataTestcarlotsMultiple, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarlotsMultiple>(result3)
+            data result4Carlots, @Services.Test.Models.ODataTestcarlotsMultiple, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarlotsMultiple>(result4)
+            data result5Carlots, @Services.Test.Models.ODataTestcarlotsMultiple, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarlotsMultiple>(result5)
 
             data combinedResult = result1Carlots.Value.Union(result2Carlots.Value, new TestCarLotComparer()).Union(result3Carlots.Value, new TestCarLotComparer()).Union(result4Carlots.Value, new TestCarLotComparer()).OrderBy(lambda(x) { x.Id } ).ToList()
 
@@ -2118,7 +2118,7 @@ namespace Services.Test.UnitTests
             data result1 = response1.Content.ReadAsStringAsync().Result
             response1.EnsureSuccessStatusCode()
 
-            data result1Cars, @Services.Test.Models.ODataTestcarlot, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarlot>(result1)
+            data result1Cars, @Services.Test.Models.ODataTestcarlotSingle, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarlotSingle>(result1)
             Assert.IsNotNull(result1Cars.Value)
         endmethod
 
@@ -2134,7 +2134,7 @@ namespace Services.Test.UnitTests
             data result1 = response1.Content.ReadAsStringAsync().Result
             response1.EnsureSuccessStatusCode()
 
-            data result1Cars, @Services.Test.Models.ODataTestcarlots, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarlots>(result1)
+            data result1Cars, @Services.Test.Models.ODataTestcarlotsMultiple, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarlotsMultiple>(result1)
             Assert.AreEqual(1, result1Cars.Value.Count)
         endmethod
 
@@ -2150,7 +2150,7 @@ namespace Services.Test.UnitTests
             data result1 = response1.Content.ReadAsStringAsync().Result
             response1.EnsureSuccessStatusCode()
 
-            data result1Cars, @Services.Test.Models.ODataTestcarlot, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarlot>(result1)
+            data result1Cars, @Services.Test.Models.ODataTestcarlotSingle, JsonConvert.DeserializeObject<Services.Test.Models.ODataTestcarlotSingle>(result1)
             Assert.IsNotNull(result1Cars.Value)
         endmethod
 

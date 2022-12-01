@@ -59,6 +59,7 @@ import Newtonsoft.Json
 import System
 import System.Collections.Generic
 import System.Linq
+import System.Net.Mime
 import System.Text
 import System.Threading.Tasks
 import <DTOS_NAMESPACE>
@@ -70,7 +71,14 @@ namespace <NAMESPACE>
     <IF DEFINED_ENABLE_AUTHENTICATION>
     {Authorize}
     </IF DEFINED_ENABLE_AUTHENTICATION>
+    {Produces("application/json")}
     {Route("<INTERFACE_NAME>")}
+    ;;; <summary>
+    ;;; <INTERFACE_NAME>
+    ;;; </summary>
+    ;;; <remarks>
+    ;;; Custom coded endpoints for interface <INTERFACE_NAME>
+    ;;; </remarks>
     public partial class <INTERFACE_NAME>Controller extends ControllerBase
 
         ;;Services provided via dependency injection
@@ -93,12 +101,25 @@ namespace <NAMESPACE>
 <METHOD_LOOP>
         {Http<IF IN_OR_INOUT>Post<ELSE>Get</IF>}
         {Route("<METHOD_NAME>")}
-  <IF COMMENT>
+        {Consumes(MediaTypeNames.Application.Json)}
+        {Produces("application/json")}
         ;;; <summary>
-        ;;; <METHOD_COMMENT>
-        ;;; </summary>
-        ;;; <returns><METHOD_RETURN_COMMENT></returns>
+  <IF COMMENT>
+        ;;;   <METHOD_COMMENT>
+  <ELSE>
+        ;;;   The method catalog does not provide a description for this operation.
   </IF>
+        ;;; </summary>
+        ;;; <remarks>
+        ;;;   The functinality of this endpoint is based on custom code in the underlying application. 
+        ;;; </remarks>
+        ;;; <response code="200"><HTTP_200_MESSAGE></response>
+        ;;; <response code="400"><HTTP_400_MESSAGE></response>
+  <IF DEFINED_ENABLE_AUTHENTICATION>
+        ;;; <response code="401"><HTTP_401_MESSAGE></response>
+  </IF DEFINED_ENABLE_AUTHENTICATION>
+        ;;; <response code="500"><HTTP_500_MESSAGE></response>
+        ;;; <returns><METHOD_RETURN_COMMENT></returns>
         public async method <METHOD_NAME>, <IF RETURNS_DATA>@Task<ActionResult<<METHOD_NAME>_Response>><ELSE>@Task<IActionResult></IF RETURNS_DATA>
   <IF IN_OR_INOUT>
             {FromBody}

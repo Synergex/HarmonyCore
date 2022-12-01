@@ -30,13 +30,13 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("Nonuniquepk Tests - Read All")}
-        public method GetNonuniquepks, void
+        public method GetAllNonuniquepks, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync("/odata/v1/Nonuniquepks").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data nonuniquepks, @ODataNonuniquepks, JsonConvert.DeserializeObject<ODataNonuniquepks>(result)
+            data nonuniquepks, @ODataNonuniquepksMultiple, JsonConvert.DeserializeObject<ODataNonuniquepksMultiple>(result)
             Assert.AreEqual(nonuniquepks.Value.Count,TestConstants.Instance.GetNonuniquepks_Count)
         endmethod
 
@@ -45,14 +45,14 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("Nonuniquepk Tests - Read by Primary Key")}
-        public method GetNonuniquepk, void
+        public method GetOneNonuniquepk, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/Nonuniquepks(Pk={1})","",TestConstants.Instance.GetNonuniquepk_Pk)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data nonuniquepk, @ODataNonuniquepk, JsonConvert.DeserializeObject<ODataNonuniquepk>(result)
+            data nonuniquepks, @ODataNonuniquepksSingle, JsonConvert.DeserializeObject<ODataNonuniquepksSingle>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -95,7 +95,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a Nonuniquepk object
-            data results = JsonConvert.DeserializeObject<ODataNonuniquepk>(getResult).Value
+            data results = JsonConvert.DeserializeObject<ODataNonuniquepkSingle>(getResult).Value
             data resultItem, @Nonuniquepk
             doNonuniquepk = results[0]
 

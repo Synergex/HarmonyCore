@@ -30,13 +30,13 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("Testcarowner3 Tests - Read All")}
-        public method GetTestcarowner3s, void
+        public method GetAllTestcarowner3s, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync("/odata/v1/Testcarowner3s").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data testcarowner3s, @ODataTestcarowner3s, JsonConvert.DeserializeObject<ODataTestcarowner3s>(result)
+            data testcarowner3s, @ODataTestcarowner3sMultiple, JsonConvert.DeserializeObject<ODataTestcarowner3sMultiple>(result)
             Assert.AreEqual(testcarowner3s.Value.Count,TestConstants.Instance.GetTestcarowner3s_Count)
         endmethod
 
@@ -45,7 +45,7 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("Testcarowner3 Tests - Read All")}
-        public method GetTestcarowner3s_Expand_REL_Testcars, void
+        public method GetAllTestcarowner3s_Expand_REL_Testcars, void
         proc
             data uri = "/odata/v1/Testcarowner3s?$expand=REL_Testcars"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
@@ -59,7 +59,7 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("Testcarowner3 Tests - Read All")}
-        public method GetTestcarowner3s_Expand_All, void
+        public method GetAllTestcarowner3s_Expand_All, void
         proc
             data uri = "/odata/v1/Testcarowner3s?$expand=REL_Testcars"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
@@ -73,14 +73,14 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("Testcarowner3 Tests - Read by Primary Key")}
-        public method GetTestcarowner3, void
+        public method GetOneTestcarowner3, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/Testcarowner3s(Id={1})","",TestConstants.Instance.GetTestcarowner3_Id)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data testcarowner3, @ODataTestcarowner3, JsonConvert.DeserializeObject<ODataTestcarowner3>(result)
+            data testcarowner3, @ODataTestcarowner3Single, JsonConvert.DeserializeObject<ODataTestcarowner3Single>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -88,14 +88,14 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("Testcarowner3 Tests - Read by Primary Key")}
-        public method GetTestcarowner3_Expand_REL_Testcars, void
+        public method GetOneTestcarowner3_Expand_REL_Testcars, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/Testcarowner3s(Id={1})?$expand=REL_Testcars","",TestConstants.Instance.GetTestcarowner3_Expand_REL_Testcars_Id)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data testcarowner3, @ODataTestcarowner3, JsonConvert.DeserializeObject<ODataTestcarowner3>(result)
+            data testcarowner3, @ODataTestcarowner3Single, JsonConvert.DeserializeObject<ODataTestcarowner3Single>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -103,14 +103,14 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("Testcarowner3 Tests - Read by Primary Key")}
-        public method GetTestcarowner3_Expand_All, void
+        public method GetOneTestcarowner3_Expand_All, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/Testcarowner3s(Id={1})?$expand=REL_Testcars","",TestConstants.Instance.GetTestcarowner3_Expand_All_Id)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data testcarowner3, @ODataTestcarowner3, JsonConvert.DeserializeObject<ODataTestcarowner3>(result)
+            data testcarowner3, @ODataTestcarowner3Single, JsonConvert.DeserializeObject<ODataTestcarowner3Single>(result)
         endmethod
 
         ;;------------------------------------------------------------

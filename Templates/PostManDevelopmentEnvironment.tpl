@@ -32,6 +32,18 @@
 			"key": "TenantID",
 			"value": "PUT_TENANT_ID_HERE",
 			"enabled": true
+		},
+		{
+			"key": "BridgeBaseUri",
+			"value": "<SERVER_PROTOCOL>://<SERVER_NAME>:<SERVER_HTTPS_PORT>",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "BridgeControllerPath",
+			"value": "<BRIDGE_CONTROLLER_PATH>",
+			"type": "default",
+			"enabled": true
 		}
 	],
 	"_postman_variable_scope": "environment",

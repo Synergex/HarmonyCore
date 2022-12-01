@@ -361,7 +361,6 @@ namespace <NAMESPACE>
         ;;; </summary>
         public override method InternalGetValues, [#]@object
         proc
-            ;;TODO: This should be returning boxed values for each of our fields
             mreturn new Object[<COUNTER_1_VALUE>]
         endmethod
 
@@ -434,47 +433,49 @@ namespace <NAMESPACE>
 .endregion
 ;//
 ;// ==========================================================================================
-;// RUNTIME VALIDATION FOR RELATIONS
+;// DATA VALIDATION
 ;//
 
-.region "Relation validation"
+.region "Data validation"
 
-<IF DEFINED_ENABLE_RELATIONS>
-  <IF STRUCTURE_RELATIONS AND DEFINED_ENABLE_RELATIONS_VALIDATION>
+<IF DEFINED_ENABLE_RELATIONS AND STRUCTURE_RELATIONS AND DEFINED_ENABLE_RELATIONS_VALIDATION>
+;//=========================================
+;// VALIDATION IF RELATIONS ARE ENABLED
+;//=========================================
         ;;; <summary>
-        ;;; Validate data for relations
+        ;;; Validate data
         ;;; </summary>
         ;;; <param name="type">Validation type (create, update or delete)</param>
         ;;; <param name="sp">Serices provider</param>
         public override method Validate, void
             required in vType, ValidationType
             required in sp, @IServiceProvider
-    <RELATION_LOOP_RESTRICTED>
-      <IF VALIDATION_VALUE_PRESENT OR VALIDATION_ALWAYS>
+  <RELATION_LOOP_RESTRICTED>
+    <IF VALIDATION_VALUE_PRESENT OR VALIDATION_ALWAYS>
             ;;From key for <HARMONYCORE_RELATION_NAME>
             record rel<RELATION_NUMBER>FromKey
-        <COUNTER_1_RESET>
-        <FROM_KEY_SEGMENT_LOOP>
-          <IF SEG_TYPE_FIELD>
+      <COUNTER_1_RESET>
+      <FROM_KEY_SEGMENT_LOOP>
+        <IF SEG_TYPE_FIELD>
               <segment_name>, <segment_spec>
-          <ELSE SEG_TYPE_LITERAL>
-            <COUNTER_1_INCREMENT>
+        <ELSE SEG_TYPE_LITERAL>
+          <COUNTER_1_INCREMENT>
               litseg<COUNTER_1_VALUE>, a*, "<SEGMENT_LITVAL>"
-          </IF SEG_TYPE_FIELD>
-        </FROM_KEY_SEGMENT_LOOP>
+        </IF SEG_TYPE_FIELD>
+      </FROM_KEY_SEGMENT_LOOP>
             endrecord
 
             ;;From key for <HARMONYCORE_RELATION_NAME> (no tags)
             record rel<RELATION_NUMBER>FromKeyNoTag
-        <COUNTER_1_RESET>
-        <FROM_KEY_SEGMENT_LOOP>
-          <IF SEG_TYPE_FIELD>
+      <COUNTER_1_RESET>
+      <FROM_KEY_SEGMENT_LOOP>
+        <IF SEG_TYPE_FIELD>
               <segment_name>, <segment_spec>
-          </IF SEG_TYPE_FIELD>
-        </FROM_KEY_SEGMENT_LOOP>
+        </IF SEG_TYPE_FIELD>
+      </FROM_KEY_SEGMENT_LOOP>
             endrecord
-      </IF VALIDATION_VALUE_PRESENT>
-    </RELATION_LOOP_RESTRICTED>
+    </IF VALIDATION_VALUE_PRESENT>
+  </RELATION_LOOP_RESTRICTED>
         proc
             ;;No relation validation if the record is being deleted
             if (vType == ValidationType.Delete)
@@ -483,31 +484,27 @@ namespace <NAMESPACE>
             ;;Get an instance of IDataObjectProvider
             data dataObjectProvider, @IDataObjectProvider, sp.GetService<IDataObjectProvider>()
 
-    <RELATION_LOOP_RESTRICTED>
+  <RELATION_LOOP_RESTRICTED>
             ;;--------------------------------------------------------------------------------
             ;;Validate data for relation <RELATION_NUMBER> (<HARMONYCORE_RELATION_NAME>)
-;//
-      <IF VALIDATION_NONE>
-;//
+    <IF VALIDATION_NONE>
 
             ;;Validation mode: None
-;//
-      <ELSE VALIDATION_VALUE_PRESENT>
-;//
+    <ELSE VALIDATION_VALUE_PRESENT>
 
             ;;Validation mode: ValuePresent
 
             ;;Populate from key values
-        <COUNTER_1_RESET>
-        <FROM_KEY_SEGMENT_LOOP>
-          <IF SEG_TYPE_FIELD>
+      <COUNTER_1_RESET>
+      <FROM_KEY_SEGMENT_LOOP>
+        <IF SEG_TYPE_FIELD>
             rel<RELATION_NUMBER>FromKey.<segment_name> = mSynergyData.<segment_name>
             rel<RELATION_NUMBER>FromKeyNoTag.<segment_name> = mSynergyData.<segment_name>
-          <ELSE SEG_TYPE_LITERAL>
+        <ELSE SEG_TYPE_LITERAL>
             <COUNTER_1_INCREMENT>
             rel<RELATION_NUMBER>FromKey.litseg<COUNTER_1_VALUE> = "<SEGMENT_LITVAL>"
-          </IF SEG_TYPE_FIELD>
-        </FROM_KEY_SEGMENT_LOOP>
+        </IF SEG_TYPE_FIELD>
+      </FROM_KEY_SEGMENT_LOOP>
 
             ;;Move the key value, excluding tag literals, into a string so we can use String.Replace()
             data rel<RELATION_NUMBER>FromKeyValue, string, rel<RELATION_NUMBER>FromKeyNoTag
@@ -524,21 +521,19 @@ namespace <NAMESPACE>
                     throw new ValidationException("Invalid data for relation <HARMONYCORE_RELATION_NAME>")
                 end
             end
-;//
-      <ELSE VALIDATION_ALWAYS>
-;//
+    <ELSE VALIDATION_ALWAYS>
             ;;Validation mode: Always
 
             ;;Populate from key values
-        <COUNTER_1_RESET>
-        <FROM_KEY_SEGMENT_LOOP>
-          <IF SEG_TYPE_FIELD>
+      <COUNTER_1_RESET>
+      <FROM_KEY_SEGMENT_LOOP>
+        <IF SEG_TYPE_FIELD>
             rel<RELATION_NUMBER>FromKey.<segment_name> = mSynergyData.<segment_name>
-          <ELSE SEG_TYPE_LITERAL>
-            <COUNTER_1_INCREMENT>
+        <ELSE SEG_TYPE_LITERAL>
+          <COUNTER_1_INCREMENT>
             rel<RELATION_NUMBER>FromKey.litseg<COUNTER_1_VALUE> = "<SEGMENT_LITVAL>"
-          </IF SEG_TYPE_FIELD>
-        </FROM_KEY_SEGMENT_LOOP>
+        </IF SEG_TYPE_FIELD>
+      </FROM_KEY_SEGMENT_LOOP>
 
             ;;Get a file I/O object for type "<RelationTostructureNoplural>".
             disposable data rel<RELATION_NUMBER>FileIO = dataObjectProvider.GetFileIO<<RelationTostructureNoplural>>()
@@ -548,25 +543,23 @@ namespace <NAMESPACE>
             begin
                 throw new ValidationException("Invalid data for relation <HARMONYCORE_RELATION_NAME>")
             end
-;//
-      <ELSE VALIDATION_CUSTOM_CODE>
-;//
+    <ELSE VALIDATION_CUSTOM_CODE>
             ;;Validation mode: Custom code
 
             ;TODO: The mechanism for custom code validation has not yet been defined
-;//
-      </IF VALIDATION_NONE>
-;//
+    </IF VALIDATION_NONE>
 
-    </RELATION_LOOP_RESTRICTED>
+  </RELATION_LOOP_RESTRICTED>
             ;;--------------------------------------------------------------------------------
             ;;If we have a ValidateCustom method, call it
 
             ValidateCustom(vType,sp)
 
         endmethod
-
-  <ELSE>
+<ELSE>
+;//=========================================
+;// VALIDATION IF RELATIONS ARE NOT ENABLED
+;//=========================================
         ;;; <summary>
         ;;; Validate data
         ;;; </summary>
@@ -578,15 +571,18 @@ namespace <NAMESPACE>
         proc
             ;;If we have a ValidateCustom method, call it
             ValidateCustom(vType,sp)
+
         endmethod
-  </IF STRUCTURE_RELATIONS>
-</IF DEFINED_ENABLE_RELATIONS>
+</IF>
 
         private partial method ValidateCustom, void
             required in vType, ValidationType
             required in sp, @IServiceProvider
         endmethod
 
+;//=========================================
+;// END OF VALIDATION
+;//=========================================
 .endregion
 ;//
 ;// ==========================================================================================

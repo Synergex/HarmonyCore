@@ -30,13 +30,13 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("CustomerNote Tests - Read All")}
-        public method GetCustomerNotes, void
+        public method GetAllCustomerNotes, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync("/odata/v1/CustomerNotes").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customerNotes, @ODataCustomerNotes, JsonConvert.DeserializeObject<ODataCustomerNotes>(result)
+            data customerNotes, @ODataCustomerNotesMultiple, JsonConvert.DeserializeObject<ODataCustomerNotesMultiple>(result)
             Assert.AreEqual(customerNotes.Value.Count,TestConstants.Instance.GetCustomerNotes_Count)
         endmethod
 
@@ -45,7 +45,7 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("CustomerNote Tests - Read All")}
-        public method GetCustomerNotes_Expand_REL_Customer, void
+        public method GetAllCustomerNotes_Expand_REL_Customer, void
         proc
             data uri = "/odata/v1/CustomerNotes?$expand=REL_Customer"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
@@ -59,7 +59,7 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("CustomerNote Tests - Read All")}
-        public method GetCustomerNotes_Expand_All, void
+        public method GetAllCustomerNotes_Expand_All, void
         proc
             data uri = "/odata/v1/CustomerNotes?$expand=REL_Customer"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
@@ -73,14 +73,14 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("CustomerNote Tests - Read by Primary Key")}
-        public method GetCustomerNote, void
+        public method GetOneCustomerNote, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/CustomerNotes(CustomerNumber={1})","",TestConstants.Instance.GetCustomerNote_CustomerNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customerNote, @ODataCustomerNote, JsonConvert.DeserializeObject<ODataCustomerNote>(result)
+            data customerNotes, @ODataCustomerNotesSingle, JsonConvert.DeserializeObject<ODataCustomerNotesSingle>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -88,14 +88,14 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("CustomerNote Tests - Read by Primary Key")}
-        public method GetCustomerNote_Expand_REL_Customer, void
+        public method GetOneCustomerNote_Expand_REL_Customer, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/CustomerNotes(CustomerNumber={1})?$expand=REL_Customer","",TestConstants.Instance.GetCustomerNote_Expand_REL_Customer_CustomerNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customerNote, @ODataCustomerNote, JsonConvert.DeserializeObject<ODataCustomerNote>(result)
+            data customerNote, @ODataCustomerNoteSingle, JsonConvert.DeserializeObject<ODataCustomerNoteSingle>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -103,14 +103,14 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("CustomerNote Tests - Read by Primary Key")}
-        public method GetCustomerNote_Expand_All, void
+        public method GetOneCustomerNote_Expand_All, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/CustomerNotes(CustomerNumber={1})?$expand=REL_Customer","",TestConstants.Instance.GetCustomerNote_Expand_All_CustomerNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customerNote, @ODataCustomerNote, JsonConvert.DeserializeObject<ODataCustomerNote>(result)
+            data customerNote, @ODataCustomerNoteSingle, JsonConvert.DeserializeObject<ODataCustomerNoteSingle>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -153,7 +153,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a CustomerNote object
-            data results = JsonConvert.DeserializeObject<ODataCustomerNote>(getResult).Value
+            data results = JsonConvert.DeserializeObject<ODataCustomerNoteSingle>(getResult).Value
             data resultItem, @CustomerNote
             doCustomerNote = results[0]
 

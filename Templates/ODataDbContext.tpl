@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME>DbContext.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.4.6</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.9.3</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
 ;//****************************************************************************
 ;//
@@ -49,6 +49,7 @@ import Harmony.Core
 import Harmony.Core.Context
 import Harmony.Core.EF.Extensions
 import Microsoft.EntityFrameworkCore
+import System.Collections.Generic
 import System.Linq.Expressions
 import <MODELS_NAMESPACE>
 
@@ -70,13 +71,13 @@ namespace <NAMESPACE>
 
         endmethod
 
-        <STRUCTURE_LOOP>
+<STRUCTURE_LOOP>
         ;;; <summary>
         ;;; Exposes <StructureNoplural> data.
         ;;; </summary>
         public readwrite property <StructurePlural>, @DbSet<<StructureNoplural>>
 
-        </STRUCTURE_LOOP>
+</STRUCTURE_LOOP>
         ;;; <summary>
         ;;;
         ;;; </summary>
@@ -93,63 +94,120 @@ namespace <NAMESPACE>
             ;;attribute can be used in a class, so keys with multiple segments are defined
             ;;using the "Fluent API" here.
 
-            <STRUCTURE_LOOP>
-            <IF STRUCTURE_ISAM>
-            <PRIMARY_KEY>
-            <IF MULTIPLE_SEGMENTS>
+<STRUCTURE_LOOP>
+  <IF STRUCTURE_ISAM>
+    <PRIMARY_KEY>
+      <IF MULTIPLE_SEGMENTS>
             parm.Entity<<StructureNoplural>>().HasKey(<SEGMENT_LOOP>"<FieldSqlname>"<,></SEGMENT_LOOP>)
-            </IF MULTIPLE_SEGMENTS>
-            </PRIMARY_KEY>
-            </IF STRUCTURE_ISAM>
-            <IF STRUCTURE_RELATIVE>
+      </IF MULTIPLE_SEGMENTS>
+    </PRIMARY_KEY>
+  </IF STRUCTURE_ISAM>
+  <IF STRUCTURE_RELATIVE>
             parm.Entity<<StructureNoplural>>().HasKey("RecordNumber")
-            </IF STRUCTURE_RELATIVE>
-            </STRUCTURE_LOOP>
+  </IF STRUCTURE_RELATIVE>
+</STRUCTURE_LOOP>
 
 .endregion
 
 .region "Tag filtering"
 
-            ;;This will currently only work for single field .operator. value tags.
+            ;;This code will currently only work for tags with:
+            ;;   a single "field .operator. value" expression
+            ;;   multiple "field .operator. value" expressions connected by AND operators
+            ;;   multiple "field .operator. value" expressions connected by OR operators
+            ;;
+            ;;The code will not work for multi-part tags that use a combination of AND and OR operators
 
-            <STRUCTURE_LOOP>
-            <IF STRUCTURE_TAGS>
+            data tagExpressions, @List<Tuple<Expression,TagConnector>>
+
+<STRUCTURE_LOOP>
+  <IF STRUCTURE_TAGS>
+            ;------------------------------------
+            ; Tags for <StructureNoplural>
+
+            tagExpressions = new List<Tuple<Expression,TagConnector>>()
             data <structureNoplural>Param = Expression.Parameter(^typeof(<structureNoplural>))
-            parm.AddGlobalTagFilter<<StructureNoplural>>(<structureNoplural>Param,
-            <TAG_LOOP>
-<IF COMPARISON_EQ>
-            &                Expression.Equal
-</IF COMPARISON_EQ>
-<IF COMPARISON_GE>
-            &                Expression.GreaterThanOrEqual
-</IF COMPARISON_GE>
-<IF COMPARISON_GT>
-            &                Expression.GreaterThan
-</IF COMPARISON_GT>
-<IF COMPARISON_LE>
-            &                Expression.LessThanOrEqual
-</IF COMPARISON_LE>
-<IF COMPARISON_LT>
-            &                Expression.LessThan
-</IF COMPARISON_LT>
-<IF COMPARISON_NE>
-            &                Expression.NotEqual
-</IF COMPARISON_NE>
-            &                (
-            &                    Expression.Call
-            &                    (
-            &                        ^typeof(EF),
-            &                        "Property",
-            &                        new Type[#] { ^typeof(<TAGLOOP_FIELD_SNTYPE>) },
-            &                        <structureNoplural>Param,
-            &                        Expression.Constant("<TagloopFieldSqlname>")
-            &                    ),
-            &                    Expression.Constant(<TAGLOOP_TAG_VALUE>)
-            &                )<,>
-            </TAG_LOOP>
-            & )
-            </IF STRUCTURE_TAGS>
-            </STRUCTURE_LOOP>
+
+    <TAG_LOOP>
+            tagExpressions.Add(
+            &   Tuple.Create<Expression,TagConnector>(
+      <IF COMPARISON_EQ>
+            &       Expression.Equal(
+      <ELSE COMPARISON_GE>
+            &       Expression.GreaterThanOrEqual(
+      <ELSE COMPARISON_GT>
+            &       Expression.GreaterThan(
+      <ELSE COMPARISON_LE>
+            &       Expression.LessThanOrEqual(
+      <ELSE COMPARISON_LT>
+            &       Expression.LessThan(
+      <ELSE COMPARISON_NE>
+            &       Expression.NotEqual(
+      </IF>
+            &           Expression.Call(
+            &               ^typeof(EF),
+            &               "Property",
+            &               new Type[#] { ^typeof(<TAGLOOP_FIELD_SNTYPE>) },
+            &               <structureNoplural>Param,
+            &               Expression.Constant("<TagloopFieldSqlname>")
+            &           ),
+            &           Expression.Constant(<TAGLOOP_TAG_VALUE>)
+            &       ),
+      <IF CONNECTOR_NONE OR CONNECTOR_AND>
+            &       TagConnector.AndExpression
+      <ELSE CONNECTOR_OR>
+            &       TagConnector.OrExpression
+      </IF>
+            &   )
+            &)
+
+    </TAG_LOOP>
+            parm.AddGlobalTagFilterAndOr<<structureNoplural>>(<structureNoplural>Param,tagExpressions)
+            init tagExpressions
+
+  </IF STRUCTURE_TAGS>
+</STRUCTURE_LOOP>
+;//
+;//
+;//<STRUCTURE_LOOP>
+;//  <IF STRUCTURE_TAGS>
+;//            data <structureNoplural>Param = Expression.Parameter(^typeof(<structureNoplural>))
+;//            parm.AddGlobalTagFilter<<StructureNoplural>>(<structureNoplural>Param,
+;//    <TAG_LOOP>
+;//      <IF COMPARISON_EQ>
+;//            &                Expression.Equal
+;//      </IF COMPARISON_EQ>
+;//      <IF COMPARISON_GE>
+;//            &                Expression.GreaterThanOrEqual
+;//      </IF COMPARISON_GE>
+;//      <IF COMPARISON_GT>
+;//            &                Expression.GreaterThan
+;//      </IF COMPARISON_GT>
+;//      <IF COMPARISON_LE>
+;//            &                Expression.LessThanOrEqual
+;//      </IF COMPARISON_LE>
+;//      <IF COMPARISON_LT>
+;//            &                Expression.LessThan
+;//      </IF COMPARISON_LT>
+;//      <IF COMPARISON_NE>
+;//            &                Expression.NotEqual
+;//      </IF COMPARISON_NE>
+;//            &                (
+;//            &                    Expression.Call
+;//            &                    (
+;//            &                        ^typeof(EF),
+;//            &                        "Property",
+;//            &                        new Type[#] { ^typeof(<TAGLOOP_FIELD_SNTYPE>) },
+;//            &                        <structureNoplural>Param,
+;//            &                        Expression.Constant("<TagloopFieldSqlname>")
+;//            &                    ),
+;//            &                    Expression.Constant(<TAGLOOP_TAG_VALUE>)
+;//            &                )<,>
+;//    </TAG_LOOP>
+;//            & )
+;//
+;//  </IF STRUCTURE_TAGS>
+;//</STRUCTURE_LOOP>
 .endregion
 
 <IF DEFINED_ENABLE_RELATIONS>
@@ -215,7 +273,7 @@ namespace <NAMESPACE>
 </IF DEFINED_ENABLE_RELATIONS>
 
             ;;-----------------------------------------------
-            ;;If we have a OnModelCreatingCustom method, call it 
+            ;;If we have a OnModelCreatingCustom method, call it
 
             OnModelCreatingCustom(parm)
 

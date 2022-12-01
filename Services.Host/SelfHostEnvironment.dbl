@@ -14,6 +14,7 @@ import Microsoft.AspNetCore
 import Microsoft.AspNetCore.Hosting
 import System.Collections.Generic
 import System.IO
+import System.Runtime.InteropServices
 import System.Text
 import Services
 import Services.Models
@@ -33,7 +34,10 @@ namespace Services.Host
         proc
             ;;Allows select to join when the keys in the file are not the same type as the keys in the code
             data status, int
-            xcall setlog("SYNSEL_NUMALPHA_KEYS", 1, status) 
+            xcall setlog("SYNSEL_NUMALPHA_KEYS", 1, status)
+
+            ;;Allows connections to older xfServer services
+            xcall setlog("SRV_COMPAT", 1, status)
 
             ;;Configure the test environment (set logicals, create files in a known state, etc.)
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)
@@ -283,174 +287,189 @@ namespace Services.Host
         proc
             data chout, int
             data dataFile, string
+            data fileExtension, a10
             data xdlFile, string
 
-            data customers = loadCustomers()
-            data customerNotes = loadCustomerNotes()
-            data items = loadItems()
-            data orders = loadOrders()
-            data orderItems = loadOrderItems()
-            data vendors = loadVendors()
-            data customerExs = loadCustomerExs()
-            data nonuniquepks = loadNonuniquepks()
-            data differentpks = loadDifferentpks()
-            data testcars = loadTestcars()
-            data testcarlots = loadTestcarlots()
-            data testcarowner1s = loadTestcarowner1s()
-            data testcarowner2s = loadTestcarowner2s()
-            data testcarowner3s = loadTestcarowner3s()
+            data customersData = loadCustomers()
+            data customerNotesData = loadCustomerNotes()
+            data itemsData = loadItems()
+            data ordersData = loadOrders()
+            data orderItemsData = loadOrderItems()
+            data vendorsData = loadVendors()
+            data customerExsData = loadCustomerExs()
+            data nonuniquepksData = loadNonuniquepks()
+            data differentpksData = loadDifferentpks()
+            data testcarsData = loadTestcars()
+            data testcarlotsData = loadTestcarlots()
+            data testcarowner1sData = loadTestcarowner1s()
+            data testcarowner2sData = loadTestcarowner2s()
+            data testcarowner3sData = loadTestcarowner3s()
 
             ;;Create and load the customers file
 
             dataFile = "DAT:customers.ism"
-            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+            xcall parse(dataFile.ToLower(),1,,,,,fileExtension)
+            xdlFile = "@" + dataFile.ToLower().Replace(%atrim(fileExtension),".xdl")
 
             data customer, @Customer
             open(chout=0,o:i,dataFile,FDL:xdlFile)
-            foreach customer in customers
+            foreach customer in customersData
                 store(chout,customer.SynergyRecord)
             close chout
 
             ;;Create and load the customerNotes file
 
             dataFile = "DAT:customer_notes.ism"
-            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+            xcall parse(dataFile.ToLower(),1,,,,,fileExtension)
+            xdlFile = "@" + dataFile.ToLower().Replace(%atrim(fileExtension),".xdl")
 
             data customerNote, @CustomerNote
             open(chout=0,o:i,dataFile,FDL:xdlFile)
-            foreach customerNote in customerNotes
+            foreach customerNote in customerNotesData
                 store(chout,customerNote.SynergyRecord)
             close chout
 
             ;;Create and load the items file
 
             dataFile = "DAT:items.ism"
-            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+            xcall parse(dataFile.ToLower(),1,,,,,fileExtension)
+            xdlFile = "@" + dataFile.ToLower().Replace(%atrim(fileExtension),".xdl")
 
             data item, @Item
             open(chout=0,o:i,dataFile,FDL:xdlFile)
-            foreach item in items
+            foreach item in itemsData
                 store(chout,item.SynergyRecord)
             close chout
 
             ;;Create and load the orders file
 
             dataFile = "DAT:orders.ism"
-            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+            xcall parse(dataFile.ToLower(),1,,,,,fileExtension)
+            xdlFile = "@" + dataFile.ToLower().Replace(%atrim(fileExtension),".xdl")
 
             data order, @Order
             open(chout=0,o:i,dataFile,FDL:xdlFile)
-            foreach order in orders
+            foreach order in ordersData
                 store(chout,order.SynergyRecord)
             close chout
 
             ;;Create and load the orderItems file
 
             dataFile = "DAT:order_items.ism"
-            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+            xcall parse(dataFile.ToLower(),1,,,,,fileExtension)
+            xdlFile = "@" + dataFile.ToLower().Replace(%atrim(fileExtension),".xdl")
 
             data orderItem, @OrderItem
             open(chout=0,o:i,dataFile,FDL:xdlFile)
-            foreach orderItem in orderItems
+            foreach orderItem in orderItemsData
                 store(chout,orderItem.SynergyRecord)
             close chout
 
             ;;Create and load the vendors file
 
             dataFile = "DAT:vendors.ism"
-            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+            xcall parse(dataFile.ToLower(),1,,,,,fileExtension)
+            xdlFile = "@" + dataFile.ToLower().Replace(%atrim(fileExtension),".xdl")
 
             data vendor, @Vendor
             open(chout=0,o:i,dataFile,FDL:xdlFile)
-            foreach vendor in vendors
+            foreach vendor in vendorsData
                 store(chout,vendor.SynergyRecord)
             close chout
 
             ;;Create and load the customerExs file
 
             dataFile = "DAT:CUSTOMER_EX.ism"
-            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+            xcall parse(dataFile.ToLower(),1,,,,,fileExtension)
+            xdlFile = "@" + dataFile.ToLower().Replace(%atrim(fileExtension),".xdl")
 
             data customerEx, @CustomerEx
             open(chout=0,o:i,dataFile,FDL:xdlFile)
-            foreach customerEx in customerExs
+            foreach customerEx in customerExsData
                 store(chout,customerEx.SynergyRecord)
             close chout
 
             ;;Create and load the nonuniquepks file
 
             dataFile = "DAT:nonuniquepk.ism"
-            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+            xcall parse(dataFile.ToLower(),1,,,,,fileExtension)
+            xdlFile = "@" + dataFile.ToLower().Replace(%atrim(fileExtension),".xdl")
 
             data nonuniquepk, @Nonuniquepk
             open(chout=0,o:i,dataFile,FDL:xdlFile)
-            foreach nonuniquepk in nonuniquepks
+            foreach nonuniquepk in nonuniquepksData
                 store(chout,nonuniquepk.SynergyRecord)
             close chout
 
             ;;Create and load the differentpks file
 
             dataFile = "DAT:differentpk.ism"
-            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+            xcall parse(dataFile.ToLower(),1,,,,,fileExtension)
+            xdlFile = "@" + dataFile.ToLower().Replace(%atrim(fileExtension),".xdl")
 
             data differentpk, @Differentpk
             open(chout=0,o:i,dataFile,FDL:xdlFile)
-            foreach differentpk in differentpks
+            foreach differentpk in differentpksData
                 store(chout,differentpk.SynergyRecord)
             close chout
 
             ;;Create and load the testcars file
 
             dataFile = "DAT:testcar.ism"
-            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+            xcall parse(dataFile.ToLower(),1,,,,,fileExtension)
+            xdlFile = "@" + dataFile.ToLower().Replace(%atrim(fileExtension),".xdl")
 
             data testcar, @Testcar
             open(chout=0,o:i,dataFile,FDL:xdlFile)
-            foreach testcar in testcars
+            foreach testcar in testcarsData
                 store(chout,testcar.SynergyRecord)
             close chout
 
             ;;Create and load the testcarlots file
 
             dataFile = "DAT:testcarlot.ism"
-            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+            xcall parse(dataFile.ToLower(),1,,,,,fileExtension)
+            xdlFile = "@" + dataFile.ToLower().Replace(%atrim(fileExtension),".xdl")
 
             data testcarlot, @Testcarlot
             open(chout=0,o:i,dataFile,FDL:xdlFile)
-            foreach testcarlot in testcarlots
+            foreach testcarlot in testcarlotsData
                 store(chout,testcarlot.SynergyRecord)
             close chout
 
             ;;Create and load the testcarowner1s file
 
             dataFile = "DAT:testcarowner1.ism"
-            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+            xcall parse(dataFile.ToLower(),1,,,,,fileExtension)
+            xdlFile = "@" + dataFile.ToLower().Replace(%atrim(fileExtension),".xdl")
 
             data testcarowner1, @Testcarowner1
             open(chout=0,o:i,dataFile,FDL:xdlFile)
-            foreach testcarowner1 in testcarowner1s
+            foreach testcarowner1 in testcarowner1sData
                 store(chout,testcarowner1.SynergyRecord)
             close chout
 
             ;;Create and load the testcarowner2s file
 
             dataFile = "DAT:testcarowner2.ism"
-            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+            xcall parse(dataFile.ToLower(),1,,,,,fileExtension)
+            xdlFile = "@" + dataFile.ToLower().Replace(%atrim(fileExtension),".xdl")
 
             data testcarowner2, @Testcarowner2
             open(chout=0,o:i,dataFile,FDL:xdlFile)
-            foreach testcarowner2 in testcarowner2s
+            foreach testcarowner2 in testcarowner2sData
                 store(chout,testcarowner2.SynergyRecord)
             close chout
 
             ;;Create and load the testcarowner3s file
 
             dataFile = "DAT:testcarowner3.ism"
-            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+            xcall parse(dataFile.ToLower(),1,,,,,fileExtension)
+            xdlFile = "@" + dataFile.ToLower().Replace(%atrim(fileExtension),".xdl")
 
             data testcarowner3, @Testcarowner3
             open(chout=0,o:i,dataFile,FDL:xdlFile)
-            foreach testcarowner3 in testcarowner3s
+            foreach testcarowner3 in testcarowner3sData
                 store(chout,testcarowner3.SynergyRecord)
             close chout
 
@@ -617,267 +636,295 @@ namespace Services.Host
         public static method loadCustomers, @List<Customer>
         proc
             data dataFile = "DAT:customers.ism"
-            data textFile = dataFile.ToLower().Replace(".ism",".txt")
+            data fileExtension, a10
+            xcall parse(dataFile.ToLower(),1,,,,,fileExtension)
+            data textFile = dataFile.ToLower().Replace(%atrim(fileExtension),".txt")
             data customerCh, int, 0
             data customerRec, strCustomer
-            data customers = new List<Customer>()
+            data customersData = new List<Customer>()
             data grfa, a10
             open(customerCh,i:s,textFile)
             repeat
             begin
                 reads(customerCh,customerRec,eof)
-                customers.Add(new Customer(customerRec, grfa))
+                customersData.Add(new Customer(customerRec, grfa))
             end
         eof,
             close customerCh
-            mreturn customers
+            mreturn customersData
         endmethod
 
         public static method loadCustomerNotes, @List<CustomerNote>
         proc
             data dataFile = "DAT:customer_notes.ism"
-            data textFile = dataFile.ToLower().Replace(".ism",".txt")
+            data fileExtension, a10
+            xcall parse(dataFile.ToLower(),1,,,,,fileExtension)
+            data textFile = dataFile.ToLower().Replace(%atrim(fileExtension),".txt")
             data customerNoteCh, int, 0
             data customerNoteRec, strCustomerNote
-            data customerNotes = new List<CustomerNote>()
+            data customerNotesData = new List<CustomerNote>()
             data grfa, a10
             open(customerNoteCh,i:s,textFile)
             repeat
             begin
                 reads(customerNoteCh,customerNoteRec,eof)
-                customerNotes.Add(new CustomerNote(customerNoteRec, grfa))
+                customerNotesData.Add(new CustomerNote(customerNoteRec, grfa))
             end
         eof,
             close customerNoteCh
-            mreturn customerNotes
+            mreturn customerNotesData
         endmethod
 
         public static method loadItems, @List<Item>
         proc
             data dataFile = "DAT:items.ism"
-            data textFile = dataFile.ToLower().Replace(".ism",".txt")
+            data fileExtension, a10
+            xcall parse(dataFile.ToLower(),1,,,,,fileExtension)
+            data textFile = dataFile.ToLower().Replace(%atrim(fileExtension),".txt")
             data itemCh, int, 0
             data itemRec, strItem
-            data items = new List<Item>()
+            data itemsData = new List<Item>()
             data grfa, a10
             open(itemCh,i:s,textFile)
             repeat
             begin
                 reads(itemCh,itemRec,eof)
-                items.Add(new Item(itemRec, grfa))
+                itemsData.Add(new Item(itemRec, grfa))
             end
         eof,
             close itemCh
-            mreturn items
+            mreturn itemsData
         endmethod
 
         public static method loadOrders, @List<Order>
         proc
             data dataFile = "DAT:orders.ism"
-            data textFile = dataFile.ToLower().Replace(".ism",".txt")
+            data fileExtension, a10
+            xcall parse(dataFile.ToLower(),1,,,,,fileExtension)
+            data textFile = dataFile.ToLower().Replace(%atrim(fileExtension),".txt")
             data orderCh, int, 0
             data orderRec, strOrder
-            data orders = new List<Order>()
+            data ordersData = new List<Order>()
             data grfa, a10
             open(orderCh,i:s,textFile)
             repeat
             begin
                 reads(orderCh,orderRec,eof)
-                orders.Add(new Order(orderRec, grfa))
+                ordersData.Add(new Order(orderRec, grfa))
             end
         eof,
             close orderCh
-            mreturn orders
+            mreturn ordersData
         endmethod
 
         public static method loadOrderItems, @List<OrderItem>
         proc
             data dataFile = "DAT:order_items.ism"
-            data textFile = dataFile.ToLower().Replace(".ism",".txt")
+            data fileExtension, a10
+            xcall parse(dataFile.ToLower(),1,,,,,fileExtension)
+            data textFile = dataFile.ToLower().Replace(%atrim(fileExtension),".txt")
             data orderItemCh, int, 0
             data orderItemRec, strOrderItem
-            data orderItems = new List<OrderItem>()
+            data orderItemsData = new List<OrderItem>()
             data grfa, a10
             open(orderItemCh,i:s,textFile)
             repeat
             begin
                 reads(orderItemCh,orderItemRec,eof)
-                orderItems.Add(new OrderItem(orderItemRec, grfa))
+                orderItemsData.Add(new OrderItem(orderItemRec, grfa))
             end
         eof,
             close orderItemCh
-            mreturn orderItems
+            mreturn orderItemsData
         endmethod
 
         public static method loadVendors, @List<Vendor>
         proc
             data dataFile = "DAT:vendors.ism"
-            data textFile = dataFile.ToLower().Replace(".ism",".txt")
+            data fileExtension, a10
+            xcall parse(dataFile.ToLower(),1,,,,,fileExtension)
+            data textFile = dataFile.ToLower().Replace(%atrim(fileExtension),".txt")
             data vendorCh, int, 0
             data vendorRec, strVendor
-            data vendors = new List<Vendor>()
+            data vendorsData = new List<Vendor>()
             data grfa, a10
             open(vendorCh,i:s,textFile)
             repeat
             begin
                 reads(vendorCh,vendorRec,eof)
-                vendors.Add(new Vendor(vendorRec, grfa))
+                vendorsData.Add(new Vendor(vendorRec, grfa))
             end
         eof,
             close vendorCh
-            mreturn vendors
+            mreturn vendorsData
         endmethod
 
         public static method loadCustomerExs, @List<CustomerEx>
         proc
             data dataFile = "DAT:CUSTOMER_EX.ism"
-            data textFile = dataFile.ToLower().Replace(".ism",".txt")
+            data fileExtension, a10
+            xcall parse(dataFile.ToLower(),1,,,,,fileExtension)
+            data textFile = dataFile.ToLower().Replace(%atrim(fileExtension),".txt")
             data customerExCh, int, 0
             data customerExRec, strCustomerEx
-            data customerExs = new List<CustomerEx>()
+            data customerExsData = new List<CustomerEx>()
             data grfa, a10
             open(customerExCh,i:s,textFile)
             repeat
             begin
                 reads(customerExCh,customerExRec,eof)
-                customerExs.Add(new CustomerEx(customerExRec, grfa))
+                customerExsData.Add(new CustomerEx(customerExRec, grfa))
             end
         eof,
             close customerExCh
-            mreturn customerExs
+            mreturn customerExsData
         endmethod
 
         public static method loadNonuniquepks, @List<Nonuniquepk>
         proc
             data dataFile = "DAT:nonuniquepk.ism"
-            data textFile = dataFile.ToLower().Replace(".ism",".txt")
+            data fileExtension, a10
+            xcall parse(dataFile.ToLower(),1,,,,,fileExtension)
+            data textFile = dataFile.ToLower().Replace(%atrim(fileExtension),".txt")
             data nonuniquepkCh, int, 0
             data nonuniquepkRec, strNonuniquepk
-            data nonuniquepks = new List<Nonuniquepk>()
+            data nonuniquepksData = new List<Nonuniquepk>()
             data grfa, a10
             open(nonuniquepkCh,i:s,textFile)
             repeat
             begin
                 reads(nonuniquepkCh,nonuniquepkRec,eof)
-                nonuniquepks.Add(new Nonuniquepk(nonuniquepkRec, grfa))
+                nonuniquepksData.Add(new Nonuniquepk(nonuniquepkRec, grfa))
             end
         eof,
             close nonuniquepkCh
-            mreturn nonuniquepks
+            mreturn nonuniquepksData
         endmethod
 
         public static method loadDifferentpks, @List<Differentpk>
         proc
             data dataFile = "DAT:differentpk.ism"
-            data textFile = dataFile.ToLower().Replace(".ism",".txt")
+            data fileExtension, a10
+            xcall parse(dataFile.ToLower(),1,,,,,fileExtension)
+            data textFile = dataFile.ToLower().Replace(%atrim(fileExtension),".txt")
             data differentpkCh, int, 0
             data differentpkRec, strDifferentpk
-            data differentpks = new List<Differentpk>()
+            data differentpksData = new List<Differentpk>()
             data grfa, a10
             open(differentpkCh,i:s,textFile)
             repeat
             begin
                 reads(differentpkCh,differentpkRec,eof)
-                differentpks.Add(new Differentpk(differentpkRec, grfa))
+                differentpksData.Add(new Differentpk(differentpkRec, grfa))
             end
         eof,
             close differentpkCh
-            mreturn differentpks
+            mreturn differentpksData
         endmethod
 
         public static method loadTestcars, @List<Testcar>
         proc
             data dataFile = "DAT:testcar.ism"
-            data textFile = dataFile.ToLower().Replace(".ism",".txt")
+            data fileExtension, a10
+            xcall parse(dataFile.ToLower(),1,,,,,fileExtension)
+            data textFile = dataFile.ToLower().Replace(%atrim(fileExtension),".txt")
             data testcarCh, int, 0
             data testcarRec, strTestcar
-            data testcars = new List<Testcar>()
+            data testcarsData = new List<Testcar>()
             data grfa, a10
             open(testcarCh,i:s,textFile)
             repeat
             begin
                 reads(testcarCh,testcarRec,eof)
-                testcars.Add(new Testcar(testcarRec, grfa))
+                testcarsData.Add(new Testcar(testcarRec, grfa))
             end
         eof,
             close testcarCh
-            mreturn testcars
+            mreturn testcarsData
         endmethod
 
         public static method loadTestcarlots, @List<Testcarlot>
         proc
             data dataFile = "DAT:testcarlot.ism"
-            data textFile = dataFile.ToLower().Replace(".ism",".txt")
+            data fileExtension, a10
+            xcall parse(dataFile.ToLower(),1,,,,,fileExtension)
+            data textFile = dataFile.ToLower().Replace(%atrim(fileExtension),".txt")
             data testcarlotCh, int, 0
             data testcarlotRec, strTestcarlot
-            data testcarlots = new List<Testcarlot>()
+            data testcarlotsData = new List<Testcarlot>()
             data grfa, a10
             open(testcarlotCh,i:s,textFile)
             repeat
             begin
                 reads(testcarlotCh,testcarlotRec,eof)
-                testcarlots.Add(new Testcarlot(testcarlotRec, grfa))
+                testcarlotsData.Add(new Testcarlot(testcarlotRec, grfa))
             end
         eof,
             close testcarlotCh
-            mreturn testcarlots
+            mreturn testcarlotsData
         endmethod
 
         public static method loadTestcarowner1s, @List<Testcarowner1>
         proc
             data dataFile = "DAT:testcarowner1.ism"
-            data textFile = dataFile.ToLower().Replace(".ism",".txt")
+            data fileExtension, a10
+            xcall parse(dataFile.ToLower(),1,,,,,fileExtension)
+            data textFile = dataFile.ToLower().Replace(%atrim(fileExtension),".txt")
             data testcarowner1Ch, int, 0
             data testcarowner1Rec, strTestcarowner1
-            data testcarowner1s = new List<Testcarowner1>()
+            data testcarowner1sData = new List<Testcarowner1>()
             data grfa, a10
             open(testcarowner1Ch,i:s,textFile)
             repeat
             begin
                 reads(testcarowner1Ch,testcarowner1Rec,eof)
-                testcarowner1s.Add(new Testcarowner1(testcarowner1Rec, grfa))
+                testcarowner1sData.Add(new Testcarowner1(testcarowner1Rec, grfa))
             end
         eof,
             close testcarowner1Ch
-            mreturn testcarowner1s
+            mreturn testcarowner1sData
         endmethod
 
         public static method loadTestcarowner2s, @List<Testcarowner2>
         proc
             data dataFile = "DAT:testcarowner2.ism"
-            data textFile = dataFile.ToLower().Replace(".ism",".txt")
+            data fileExtension, a10
+            xcall parse(dataFile.ToLower(),1,,,,,fileExtension)
+            data textFile = dataFile.ToLower().Replace(%atrim(fileExtension),".txt")
             data testcarowner2Ch, int, 0
             data testcarowner2Rec, strTestcarowner2
-            data testcarowner2s = new List<Testcarowner2>()
+            data testcarowner2sData = new List<Testcarowner2>()
             data grfa, a10
             open(testcarowner2Ch,i:s,textFile)
             repeat
             begin
                 reads(testcarowner2Ch,testcarowner2Rec,eof)
-                testcarowner2s.Add(new Testcarowner2(testcarowner2Rec, grfa))
+                testcarowner2sData.Add(new Testcarowner2(testcarowner2Rec, grfa))
             end
         eof,
             close testcarowner2Ch
-            mreturn testcarowner2s
+            mreturn testcarowner2sData
         endmethod
 
         public static method loadTestcarowner3s, @List<Testcarowner3>
         proc
             data dataFile = "DAT:testcarowner3.ism"
-            data textFile = dataFile.ToLower().Replace(".ism",".txt")
+            data fileExtension, a10
+            xcall parse(dataFile.ToLower(),1,,,,,fileExtension)
+            data textFile = dataFile.ToLower().Replace(%atrim(fileExtension),".txt")
             data testcarowner3Ch, int, 0
             data testcarowner3Rec, strTestcarowner3
-            data testcarowner3s = new List<Testcarowner3>()
+            data testcarowner3sData = new List<Testcarowner3>()
             data grfa, a10
             open(testcarowner3Ch,i:s,textFile)
             repeat
             begin
                 reads(testcarowner3Ch,testcarowner3Rec,eof)
-                testcarowner3s.Add(new Testcarowner3(testcarowner3Rec, grfa))
+                testcarowner3sData.Add(new Testcarowner3(testcarowner3Rec, grfa))
             end
         eof,
             close testcarowner3Ch
-            mreturn testcarowner3s
+            mreturn testcarowner3sData
         endmethod
 
         private static method findRelativeFolderForAssembly, string
@@ -891,7 +938,12 @@ namespace Services.Host
                 if(Directory.Exists(Path.Combine(currentFolder, folderName))) then
                     mreturn Path.Combine(currentFolder, folderName)
                 else
-                    currentFolder = Path.GetFullPath(currentFolder + "..\")
+                begin
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) then
+                        currentFolder = Path.GetFullPath(currentFolder + "..\")
+                    else
+                        currentFolder = Path.GetFullPath(currentFolder + "../")
+                end
             end
             mreturn ^null
         endmethod

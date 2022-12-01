@@ -64,6 +64,7 @@ import Microsoft.EntityFrameworkCore.Infrastructure
 import Microsoft.Extensions.Options
 import System.Collections.Generic
 import System.ComponentModel.DataAnnotations
+import System.Net.Mime
 import Harmony.Core.EF.Extensions
 import Harmony.Core.Interface
 import Harmony.OData
@@ -76,9 +77,13 @@ namespace <NAMESPACE>
 <IF DEFINED_ENABLE_AUTHENTICATION>
     {Authorize}
 </IF DEFINED_ENABLE_AUTHENTICATION>
+    {Produces("application/json")}
     ;;; <summary>
-    ;;; OData controller for <StructurePlural>
+    ;;; <STRUCTURE_DESC>
     ;;; </summary>
+    ;;; <remarks>
+    ;;; OData endpoints for <STRUCTURE_DESC>
+    ;;; </remarks>
     public partial class <StructurePlural>Controller extends ODataController
     
         ;;Services provided via dependency injection
@@ -121,9 +126,17 @@ namespace <NAMESPACE>
         {EnableQuery<API_ENABLE_QUERY_PARAMS>}
   </IF DEFINED_ENABLE_FIELD_SECURITY>
         ;;; <summary>
-        ;;; Get all <StructurePlural>
+        ;;; Query the entire collection of records
         ;;; </summary>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="200"><HTTP_200_MESSAGE></response>
+  <IF DEFINED_ENABLE_AUTHENTICATION>
+        ;;; <response code="401"><HTTP_401_MESSAGE></response>
+  </IF DEFINED_ENABLE_AUTHENTICATION>
+        ;;; <response code="500"><HTTP_500_MESSAGE></response>
         public method Get<StructurePlural>, @IActionResult
         proc
             mreturn Ok(_DbContext.<StructurePlural>.AsNoTracking())
@@ -150,21 +163,29 @@ namespace <NAMESPACE>
         {EnableQuery<API_ENABLE_QUERY_PARAMS>}
   </IF DEFINED_ENABLE_FIELD_SECURITY>
         ;;; <summary>
-        ;;; Get a single <StructureNoplural> by primary key.
+        ;;; Query a single record identified by unique primary key
         ;;; </summary>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
   <PRIMARY_KEY>
     <SEGMENT_LOOP>
       <IF NOT SEG_TAG_EQUAL>
-        ;;; <param name="a<FieldSqlName>"><FIELD_DESC_DOUBLE></param>
+        ;;; <param name="a<FieldSqlName>" example="<FIELD_SAMPLE_DATA_NOQUOTES>"><FIELD_DESC_DOUBLE></param>
       </IF>
     </SEGMENT_LOOP>
   </PRIMARY_KEY>
         ;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method Get<StructureNoplural>, @SingleResult<<StructureNoplural>>
+        ;;; <response code="200"><HTTP_200_MESSAGE></response>
+  <IF DEFINED_ENABLE_AUTHENTICATION>
+        ;;; <response code="401"><HTTP_401_MESSAGE></response>
+  </IF DEFINED_ENABLE_AUTHENTICATION>
+        ;;; <response code="404"><HTTP_404_MESSAGE></response>
+        ;;; <response code="500"><HTTP_500_MESSAGE></response>
+        public method Get<StructureNoplural>ByPK, @SingleResult<<StructureNoplural>>
   <PRIMARY_KEY>
     <SEGMENT_LOOP>
       <IF NOT SEG_TAG_EQUAL>
-            {FromODataUri}
             required in a<FieldSqlName>, <IF CUSTOM_HARMONY_AS_STRING>string<ELSE><HARMONYCORE_SEGMENT_DATATYPE></IF>
       </IF>
     </SEGMENT_LOOP>
@@ -194,21 +215,29 @@ namespace <NAMESPACE>
         {EnableQuery<API_ENABLE_QUERY_PARAMS>}
   </IF DEFINED_ENABLE_FIELD_SECURITY>
         ;;; <summary>
-        ;;; Get all <StructurePlural> matching non-unique primary key.
+        ;;; Query a subset of records identified by non-unique primary key
         ;;; </summary>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
   <PRIMARY_KEY>
     <SEGMENT_LOOP>
       <IF NOT SEG_TAG_EQUAL>
-        ;;; <param name="a<FieldSqlName>"><FIELD_DESC_DOUBLE></param>
+        ;;; <param name="a<FieldSqlName>" example="<FIELD_SAMPLE_DATA_NOQUOTES>"><FIELD_DESC_DOUBLE></param>
       </IF>
     </SEGMENT_LOOP>
   </PRIMARY_KEY>
         ;;; <returns>Returns a collection of any <StructurePlural> matching non-unique primary key, or an empty collection if no matching records are found.</returns>
-        public method Get<StructureNoplural>, @IActionResult
+        ;;; <response code="200"><HTTP_200_MESSAGE></response>
+  <IF DEFINED_ENABLE_AUTHENTICATION>
+        ;;; <response code="401"><HTTP_401_MESSAGE></response>
+  </IF DEFINED_ENABLE_AUTHENTICATION>
+        ;;; <response code="404"><HTTP_404_MESSAGE></response>
+        ;;; <response code="500"><HTTP_500_MESSAGE></response>
+        public method Get<StructurePlural>ByPK, @IActionResult
   <PRIMARY_KEY>
     <SEGMENT_LOOP>
       <IF NOT SEG_TAG_EQUAL>
-            {FromODataUri}
             required in a<FieldSqlName>, <IF CUSTOM_HARMONY_AS_STRING>string<ELSE><HARMONYCORE_SEGMENT_DATATYPE></IF>
       </IF>
     </SEGMENT_LOOP>
@@ -239,12 +268,20 @@ namespace <NAMESPACE>
         {EnableQuery<API_ENABLE_QUERY_PARAMS>}
   </IF DEFINED_ENABLE_FIELD_SECURITY>
         ;;; <summary>
-        ;;; Get a single <StructureNoplural> by relative record number.
+        ;;; Query a single record identified by relative file record number
         ;;; </summary>
-        ;;; <param name="aRecordNumber">Record number</param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aRecordNumber" example="1">Record number</param>
         ;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="200"><HTTP_200_MESSAGE></response>
+  <IF DEFINED_ENABLE_AUTHENTICATION>
+        ;;; <response code="401"><HTTP_401_MESSAGE></response>
+  </IF DEFINED_ENABLE_AUTHENTICATION>
+        ;;; <response code="404"><HTTP_404_MESSAGE></response>
+        ;;; <response code="500"><HTTP_500_MESSAGE></response>
         public method Get<StructureNoplural>, @SingleResult<<StructureNoplural>>
-            {FromODataUri}
             required in aRecordNumber, int
         proc
 ;//Shouldn't really need the generic type arg on FindQuery. Compiler issue?
@@ -277,18 +314,30 @@ namespace <NAMESPACE>
         {EnableQuery<API_ENABLE_QUERY_PARAMS>}
       </IF>
         ;;; <summary>
-        ;;; Get <structurePlural> by alternate key key <KeyName>.
+    <IF DUPLICATES>
+        ;;; Query a subset of records identified by non-unique alternate key <KeyName>
+    <ELSE>
+        ;;; Query a single record identified by unique alternate key <KeyName>
+    </IF DUPLICATES>
         ;;; </summary>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
       <SEGMENT_LOOP>
         <IF NOT SEG_TAG_EQUAL>
-        ;;; <param name="a<FieldSqlName>"><FIELD_DESC_DOUBLE></param>
+        ;;; <param name="a<FieldSqlName>" example="<FIELD_SAMPLE_DATA_NOQUOTES>"><FIELD_DESC_DOUBLE></param>
         </IF>
       </SEGMENT_LOOP>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="200"><HTTP_200_MESSAGE></response>
+      <IF DEFINED_ENABLE_AUTHENTICATION>
+        ;;; <response code="401"><HTTP_401_MESSAGE></response>
+      </IF DEFINED_ENABLE_AUTHENTICATION>
+        ;;; <response code="404"><HTTP_404_MESSAGE></response>
+        ;;; <response code="500"><HTTP_500_MESSAGE></response>
         public method Get<StructurePlural>By<KeyName>, @IActionResult
       <SEGMENT_LOOP>
         <IF NOT SEG_TAG_EQUAL>
-            {FromODataUri}
             required in a<FieldSqlName>, <IF CUSTOM_HARMONY_AS_STRING>string<ELSE><HARMONYCORE_SEGMENT_DATATYPE></IF>
         </IF>
       </SEGMENT_LOOP>
@@ -324,18 +373,26 @@ namespace <NAMESPACE>
         {EnableQuery<API_ENABLE_QUERY_PARAMS>}
       </IF>
         ;;; <summary>
-        ;;; Get <structurePlural> by partial key <KeyName>.
+        ;;; Query a subset of records identified by partial key <KeyName>
         ;;; </summary>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
       <SEGMENT_LOOP>
         <IF NOT SEG_TAG_EQUAL>
-        ;;; <param name="a<FieldSqlName>"><FIELD_DESC_DOUBLE></param>
+        ;;; <param name="a<FieldSqlName>" example="<FIELD_SAMPLE_DATA_NOQUOTES>"><FIELD_DESC_DOUBLE></param>
         </IF>
       </SEGMENT_LOOP>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="200"><HTTP_200_MESSAGE></response>
+      <IF DEFINED_ENABLE_AUTHENTICATION>
+        ;;; <response code="401"><HTTP_401_MESSAGE></response>
+      </IF DEFINED_ENABLE_AUTHENTICATION>
+        ;;; <response code="404"><HTTP_404_MESSAGE></response>
+        ;;; <response code="500"><HTTP_500_MESSAGE></response>
         public method Get<StructurePlural>By<KeyName>, @IActionResult
       <SEGMENT_LOOP>
         <IF NOT SEG_TAG_EQUAL>
-            {FromODataUri}
             required in a<FieldSqlName>, <IF CUSTOM_HARMONY_AS_STRING>string<ELSE><HARMONYCORE_SEGMENT_DATATYPE></IF>
         </IF>
       </SEGMENT_LOOP>
@@ -358,6 +415,7 @@ namespace <NAMESPACE>
         {Authorize(Roles="<ROLES_POST>")}
     </IF USERTOKEN_ROLES_POST>
   </IF DEFINED_ENABLE_AUTHENTICATION>
+        {Consumes(MediaTypeNames.Application.Json)}
         {Produces("application/json")}
         {ProducesResponseType(^typeof(<StructureNoplural>),StatusCodes.Status200OK)}
   <IF DEFINED_ENABLE_AUTHENTICATION>
@@ -366,9 +424,18 @@ namespace <NAMESPACE>
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
         {HttpPost("<StructurePlural>")}
         ;;; <summary>
-        ;;; Create a new <structureNoplural> (automatically assigned primary key).
+        ;;; Create a new record (automatically assigned primary key)
         ;;; </summary>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="200"><HTTP_200_MESSAGE></response>
+        ;;; <response code="400"><HTTP_400_MESSAGE></response>
+  <IF DEFINED_ENABLE_AUTHENTICATION>
+        ;;; <response code="401"><HTTP_401_MESSAGE></response>
+  </IF DEFINED_ENABLE_AUTHENTICATION>
+        ;;; <response code="500"><HTTP_500_MESSAGE></response>
         public method Post<StructureNoplural>, @IActionResult
             {FromBody}
             required in a<StructureNoplural>, @<StructureNoplural>
@@ -418,6 +485,7 @@ namespace <NAMESPACE>
         {Authorize(Roles="<ROLES_PUT>")}
       </IF DEFINED_ENABLE_AUTHENTICATION>
         {HttpPut("<StructurePlural>(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>={a<FieldSqlName>}<SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP>)")}
+        {Consumes(MediaTypeNames.Application.Json)}
         {Produces("application/json")}
         {ProducesResponseType(StatusCodes.Status201Created)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
@@ -426,18 +494,26 @@ namespace <NAMESPACE>
       </IF DEFINED_ENABLE_AUTHENTICATION>
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
-        ;;; Create (with a client-supplied primary key) or replace a <structureNoplural>.
+        ;;; Update a record if it exists otherwise create a new record (primary key provided by client)
         ;;; </summary>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
       <SEGMENT_LOOP>
         <IF NOT SEG_TAG_EQUAL>
-        ;;; <param name="a<FieldSqlName>"><FIELD_DESC_DOUBLE></param>
+        ;;; <param name="a<FieldSqlName>" example="<FIELD_SAMPLE_DATA_NOQUOTES>"><FIELD_DESC_DOUBLE></param>
         </IF>
       </SEGMENT_LOOP>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="201"><HTTP_201_MESSAGE></response>
+        ;;; <response code="400"><HTTP_400_MESSAGE></response>
+      <IF DEFINED_ENABLE_AUTHENTICATION>
+        ;;; <response code="401"><HTTP_401_MESSAGE></response>
+      </IF DEFINED_ENABLE_AUTHENTICATION>
+        ;;; <response code="500"><HTTP_500_MESSAGE></response>
         public method Put<StructureNoplural><IF NOT FIRST_UNIQUE_KEY>By<KeyName></IF>, @IActionResult
       <SEGMENT_LOOP>
         <IF NOT SEG_TAG_EQUAL>
-            {FromODataUri}
             required in a<FieldSqlName>, <IF CUSTOM_HARMONY_AS_STRING>string<ELSE><HARMONYCORE_SEGMENT_DATATYPE></IF>
         </IF>
       </SEGMENT_LOOP>
@@ -512,6 +588,7 @@ namespace <NAMESPACE>
         {Authorize(Roles="<ROLES_PATCH>")}
     </IF DEFINED_ENABLE_AUTHENTICATION>
         {HttpPatch("<StructurePlural>(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL><FieldSqlName>={a<FieldSqlName>}<SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></IF></SEGMENT_LOOP>)")}
+        {Consumes(MediaTypeNames.Application.Json)}
         {Produces("application/json")}
         {ProducesResponseType(StatusCodes.Status204NoContent)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
@@ -520,18 +597,27 @@ namespace <NAMESPACE>
       </IF DEFINED_ENABLE_AUTHENTICATION>
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
-        ;;; Patch  (partial update) a <structureNoplural>.
+        ;;; Patch (partial update) an existing record
         ;;; </summary>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
         <SEGMENT_LOOP>
           <IF NOT SEG_TAG_EQUAL>
-        ;;; <param name="a<FieldSqlName>"><FIELD_DESC_DOUBLE></param>
+        ;;; <param name="a<FieldSqlName>" example="<FIELD_SAMPLE_DATA_NOQUOTES>"><FIELD_DESC_DOUBLE></param>
           </IF>
         </SEGMENT_LOOP>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="204"><HTTP_204_MESSAGE></response>
+        ;;; <response code="400"><HTTP_400_MESSAGE></response>
+      <IF DEFINED_ENABLE_AUTHENTICATION>
+        ;;; <response code="401"><HTTP_401_MESSAGE></response>
+      </IF DEFINED_ENABLE_AUTHENTICATION>
+        ;;; <response code="404"><HTTP_404_MESSAGE></response>
+        ;;; <response code="500"><HTTP_500_MESSAGE></response>
         public method Patch<StructureNoplural><IF NOT FIRST_UNIQUE_KEY>By<KeyName></IF>, @IActionResult
         <SEGMENT_LOOP>
           <IF NOT SEG_TAG_EQUAL>
-            {FromODataUri}
             required in a<FieldSqlName>, <IF CUSTOM_HARMONY_AS_STRING>string<ELSE><HARMONYCORE_SEGMENT_DATATYPE></IF>
           </IF>
         </SEGMENT_LOOP>
@@ -607,18 +693,26 @@ namespace <NAMESPACE>
     </IF DEFINED_ENABLE_AUTHENTICATION>
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
-        ;;; Delete a <structureNoplural>.
+        ;;; Delete a record
         ;;; </summary>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
         <SEGMENT_LOOP>
           <IF NOT SEG_TAG_EQUAL>
-        ;;; <param name="a<FieldSqlName>"><FIELD_DESC_DOUBLE></param>
+        ;;; <param name="a<FieldSqlName>" example="<FIELD_SAMPLE_DATA_NOQUOTES>"><FIELD_DESC_DOUBLE></param>
           </IF>
         </SEGMENT_LOOP>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="204"><HTTP_204_MESSAGE></response>
+    <IF DEFINED_ENABLE_AUTHENTICATION>
+        ;;; <response code="401"><HTTP_401_MESSAGE></response>
+    </IF DEFINED_ENABLE_AUTHENTICATION>
+        ;;; <response code="404"><HTTP_404_MESSAGE></response>
+        ;;; <response code="500"><HTTP_500_MESSAGE></response>
         public method Delete<StructureNoplural><IF NOT FIRST_UNIQUE_KEY>By<KeyName></IF>, @IActionResult
         <SEGMENT_LOOP>
           <IF NOT SEG_TAG_EQUAL>
-            {FromODataUri}
             required in a<FieldSqlName>, <IF CUSTOM_HARMONY_AS_STRING>string<ELSE><HARMONYCORE_SEGMENT_DATATYPE></IF>
           </IF>
         </SEGMENT_LOOP>

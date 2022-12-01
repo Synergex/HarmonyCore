@@ -11,6 +11,16 @@
     <CommonPropertiesFileLocation>$(SolutionDir)Common.props</CommonPropertiesFileLocation>
     <IncludeDebugInformation>False</IncludeDebugInformation>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <OutputPath>bin\$(Platform)\$(Configuration)</OutputPath>
+    <DocumentationFile>bin\$(Platform)\$(Configuration)\Services.Models.xml</DocumentationFile>
+    <UnevaluatedOutputPath>bin\$(Platform)\$(Configuration)</UnevaluatedOutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>bin\$(Platform)\$(Configuration)</OutputPath>
+    <DocumentationFile>bin\$(Platform)\$(Configuration)\Services.Models.xml</DocumentationFile>
+    <UnevaluatedOutputPath>bin\$(Platform)\$(Configuration)</UnevaluatedOutputPath>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore">
       <Version>6.0.11</Version>
@@ -78,4 +88,7 @@
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="copy $(ProjectDir)bin\$(Platform)\$(Configuration)\Services.Models.xml $(SolutionDir)XmlDoc&#xD;&#xA;copy $(ProjectDir)bin\$(Platform)\$(Configuration)\Services.Models.xml $(SolutionDir)Services.Host\bin\$(Platform)\$(Configuration)\net6.0" />
+  </Target>
 </Project>
