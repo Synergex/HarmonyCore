@@ -13,9 +13,9 @@
   "ModelsNamespace": "Services.Models",
   "ClientModelsNamespace": "Services.Test.Models",
   "UnitTestsNamespace": "Services.Test.UnitTests",
-  "UnitTestsBaseNamespace": "Services.Test",
   "SelfHostNamespace": "Services.Host",
   "TraditionalBridgeNamespace": "TraditionalBridge",
+  "UnitTestsBaseNamespace": "Services.Test",
   "DataFolder": "SampleData",
   "APIDocsPath": "api-docs",
   "APITitle": "Harmony Core Sample API",
@@ -80,9 +80,12 @@
   "AdapterRouting": true,
   "StoredProcedureRouting": true,
   "FieldOverlays": true,
+  "CustomSettings": {},
   "ExtendedStructures": [
     {
       "Name": "CUSTOMERS",
+      "Aliases": [],
+      "Files": {},
       "EnabledGenerators": [
         "ModelGenerator",
         "ODataGenerator",
@@ -124,111 +127,382 @@
           "BackRelation": "CUSTOMER_NOTES-CUSTOMERS-CUSTOMER_NUMBER-CUSTOMER_NUMBER",
           "RelationType": "D",
           "CustomValidatorName": ""
+        },
+        {
+          "FromStructure": "CUSTOMERS",
+          "FromKey": "CUSTOMER_NUMBER",
+          "ToStructure": "CUSTOMER_EX",
+          "ToKey": "PRIMARY",
+          "RelationName": "CustomerEx",
+          "RequiresMatch": false,
+          "ValidationMode": "None",
+          "BackRelation": "CUSTOMER_EX-CUSTOMERS-PRIMARY-CUSTOMER_NUMBER",
+          "RelationType": "B"
+        },
+        {
+          "FromStructure": "CUSTOMERS",
+          "FromKey": "CUSTOMER_NUMBER",
+          "ToStructure": "DIFFERENTPK",
+          "ToKey": "ID",
+          "RelationName": "Differentpk",
+          "RequiresMatch": false,
+          "ValidationMode": "None",
+          "BackRelation": "DIFFERENTPK-CUSTOMERS-ID-CUSTOMER_NUMBER",
+          "RelationType": "B"
         }
       ]
     },
     {
       "Name": "CUSTOMER_NOTES",
+      "Aliases": [],
+      "Files": {},
       "EnabledGenerators": [
         "ModelGenerator",
         "ODataGenerator",
         "EFCoreGenerator"
+      ],
+      "RelationsSpecs": [
+        {
+          "FromStructure": "CUSTOMER_NOTES",
+          "FromKey": "CUSTOMER_NUMBER",
+          "ToStructure": "CUSTOMERS",
+          "ToKey": "CUSTOMER_NUMBER",
+          "RelationName": "Customer",
+          "RequiresMatch": false,
+          "ValidationMode": "None",
+          "BackRelation": "CUSTOMERS-CUSTOMER_NOTES-CUSTOMER_NUMBER-CUSTOMER_NUMBER",
+          "RelationType": "A"
+        }
       ]
     },
     {
       "Name": "ITEMS",
+      "Aliases": [],
+      "Files": {},
       "EnabledGenerators": [
         "ModelGenerator",
         "ODataGenerator",
         "EFCoreGenerator"
+      ],
+      "RelationsSpecs": [
+        {
+          "FromStructure": "ITEMS",
+          "FromKey": "VENDOR_NUMBER",
+          "ToStructure": "VENDORS",
+          "ToKey": "VENDOR_NUMBER",
+          "RelationName": "Vendor",
+          "RequiresMatch": false,
+          "ValidationMode": "None",
+          "BackRelation": "VENDORS-ITEMS-VENDOR_NUMBER-VENDOR_NUMBER",
+          "RelationType": "A"
+        },
+        {
+          "FromStructure": "ITEMS",
+          "FromKey": "ITEM_NUMBER",
+          "ToStructure": "ORDER_ITEMS",
+          "ToKey": "ITEM_ORDERED",
+          "RelationName": "OrderItems",
+          "RequiresMatch": false,
+          "ValidationMode": "None",
+          "BackRelation": "ORDER_ITEMS-ITEMS-ITEM_ORDERED-ITEM_NUMBER",
+          "RelationType": "D"
+        }
       ]
     },
     {
       "Name": "ORDERS",
+      "Aliases": [],
+      "Files": {},
       "EnabledGenerators": [
         "ModelGenerator",
         "ODataGenerator",
         "EFCoreGenerator"
+      ],
+      "RelationsSpecs": [
+        {
+          "FromStructure": "ORDERS",
+          "FromKey": "ORDER_NUMBER",
+          "ToStructure": "ORDER_ITEMS",
+          "ToKey": "ORDER_NUMBER_AND_LINE_ITEM",
+          "RelationName": "OrderItems",
+          "RequiresMatch": false,
+          "ValidationMode": "None",
+          "BackRelation": "ORDER_ITEMS-ORDERS-ORDER_NUMBER_AND_LINE_ITEM-ORDER_NUMBER",
+          "RelationType": "D"
+        },
+        {
+          "FromStructure": "ORDERS",
+          "FromKey": "CUSTOMER_NUMBER",
+          "ToStructure": "CUSTOMERS",
+          "ToKey": "CUSTOMER_NUMBER",
+          "RelationName": "Customer",
+          "RequiresMatch": false,
+          "ValidationMode": "None",
+          "BackRelation": "CUSTOMERS-ORDERS-CUSTOMER_NUMBER-CUSTOMER_NUMBER",
+          "RelationType": "A"
+        }
       ]
     },
     {
       "Name": "ORDER_ITEMS",
+      "Aliases": [],
+      "Files": {},
       "EnabledGenerators": [
         "ModelGenerator",
         "ODataGenerator",
         "EFCoreGenerator"
+      ],
+      "RelationsSpecs": [
+        {
+          "FromStructure": "ORDER_ITEMS",
+          "FromKey": "ORDER_NUMBER_AND_LINE_ITEM",
+          "ToStructure": "ORDERS",
+          "ToKey": "ORDER_NUMBER",
+          "RelationName": "Order",
+          "RequiresMatch": false,
+          "ValidationMode": "None",
+          "BackRelation": "ORDERS-ORDER_ITEMS-ORDER_NUMBER-ORDER_NUMBER_AND_LINE_ITEM",
+          "RelationType": "A"
+        },
+        {
+          "FromStructure": "ORDER_ITEMS",
+          "FromKey": "ITEM_ORDERED",
+          "ToStructure": "ITEMS",
+          "ToKey": "ITEM_NUMBER",
+          "RelationName": "Item",
+          "RequiresMatch": false,
+          "ValidationMode": "None",
+          "BackRelation": "ITEMS-ORDER_ITEMS-ITEM_NUMBER-ITEM_ORDERED",
+          "RelationType": "A"
+        }
       ]
     },
     {
       "Name": "VENDORS",
+      "Aliases": [],
+      "Files": {},
       "EnabledGenerators": [
         "ModelGenerator",
         "ODataGenerator",
         "EFCoreGenerator"
+      ],
+      "RelationsSpecs": [
+        {
+          "FromStructure": "VENDORS",
+          "FromKey": "VENDOR_NUMBER",
+          "ToStructure": "ITEMS",
+          "ToKey": "VENDOR_NUMBER",
+          "RelationName": "Items",
+          "RequiresMatch": false,
+          "ValidationMode": "None",
+          "BackRelation": "ITEMS-VENDORS-VENDOR_NUMBER-VENDOR_NUMBER",
+          "RelationType": "D"
+        }
       ]
     },
     {
       "Name": "CUSTOMER_EX",
+      "Aliases": [],
+      "Files": {},
       "EnabledGenerators": [
         "ModelGenerator",
         "ODataGenerator",
         "EFCoreGenerator"
+      ],
+      "RelationsSpecs": [
+        {
+          "FromStructure": "CUSTOMER_EX",
+          "FromKey": "PRIMARY",
+          "ToStructure": "CUSTOMERS",
+          "ToKey": "CUSTOMER_NUMBER",
+          "RelationName": "Customer",
+          "RequiresMatch": false,
+          "ValidationMode": "None",
+          "BackRelation": "CUSTOMERS-CUSTOMER_EX-CUSTOMER_NUMBER-PRIMARY",
+          "RelationType": "B"
+        }
       ]
     },
     {
       "Name": "NONUNIQUEPK",
+      "Aliases": [],
+      "Files": {},
       "EnabledGenerators": [
         "ModelGenerator",
         "ODataGenerator",
         "EFCoreGenerator"
-      ]
+      ],
+      "RelationsSpecs": []
     },
     {
       "Name": "DIFFERENTPK",
+      "Aliases": [],
+      "Files": {},
       "EnabledGenerators": [
         "ModelGenerator",
         "ODataGenerator",
         "EFCoreGenerator"
+      ],
+      "RelationsSpecs": [
+        {
+          "FromStructure": "DIFFERENTPK",
+          "FromKey": "ID",
+          "ToStructure": "CUSTOMERS",
+          "ToKey": "CUSTOMER_NUMBER",
+          "RelationName": "Customer",
+          "RequiresMatch": false,
+          "ValidationMode": "None",
+          "BackRelation": "CUSTOMERS-DIFFERENTPK-CUSTOMER_NUMBER-ID",
+          "RelationType": "B"
+        }
       ]
     },
     {
       "Name": "TESTCAR",
+      "Aliases": [],
+      "Files": {},
       "EnabledGenerators": [
         "ModelGenerator",
         "ODataGenerator",
         "EFCoreGenerator"
+      ],
+      "RelationsSpecs": [
+        {
+          "FromStructure": "TESTCAR",
+          "FromKey": "LOTID",
+          "ToStructure": "TESTCARLOT",
+          "ToKey": "ID",
+          "RelationName": "Testcarlot",
+          "RequiresMatch": false,
+          "ValidationMode": "None",
+          "BackRelation": "TESTCARLOT-TESTCAR-ID-LOTID",
+          "RelationType": "A"
+        },
+        {
+          "FromStructure": "TESTCAR",
+          "FromKey": "OWNERID1",
+          "ToStructure": "TESTCAROWNER1",
+          "ToKey": "OWNERID",
+          "RelationName": "Testcarowner1",
+          "RequiresMatch": false,
+          "ValidationMode": "None",
+          "BackRelation": "TESTCAROWNER1-TESTCAR-OWNERID-OWNERID1",
+          "RelationType": "A"
+        },
+        {
+          "FromStructure": "TESTCAR",
+          "FromKey": "OWNERID2",
+          "ToStructure": "TESTCAROWNER2",
+          "ToKey": "OWNERID",
+          "RelationName": "Testcarowner2",
+          "RequiresMatch": false,
+          "ValidationMode": "None",
+          "BackRelation": "TESTCAROWNER2-TESTCAR-OWNERID-OWNERID2",
+          "RelationType": "A"
+        },
+        {
+          "FromStructure": "TESTCAR",
+          "FromKey": "OWNERID3",
+          "ToStructure": "TESTCAROWNER3",
+          "ToKey": "OWNERID",
+          "RelationName": "Testcarowner3",
+          "RequiresMatch": false,
+          "ValidationMode": "None",
+          "BackRelation": "TESTCAROWNER3-TESTCAR-OWNERID-OWNERID3",
+          "RelationType": "A"
+        }
       ]
     },
     {
       "Name": "TESTCARLOT",
+      "Aliases": [],
+      "Files": {},
       "EnabledGenerators": [
         "ModelGenerator",
         "ODataGenerator",
         "EFCoreGenerator"
+      ],
+      "RelationsSpecs": [
+        {
+          "FromStructure": "TESTCARLOT",
+          "FromKey": "ID",
+          "ToStructure": "TESTCAR",
+          "ToKey": "LOTID",
+          "RelationName": "Testcars",
+          "RequiresMatch": false,
+          "ValidationMode": "None",
+          "BackRelation": "TESTCAR-TESTCARLOT-LOTID-ID",
+          "RelationType": "D"
+        }
       ]
     },
     {
       "Name": "TESTCAROWNER1",
+      "Aliases": [],
+      "Files": {},
       "EnabledGenerators": [
         "ModelGenerator",
         "ODataGenerator",
         "EFCoreGenerator"
+      ],
+      "RelationsSpecs": [
+        {
+          "FromStructure": "TESTCAROWNER1",
+          "FromKey": "OWNERID",
+          "ToStructure": "TESTCAR",
+          "ToKey": "OWNERID1",
+          "RelationName": "Testcars",
+          "RequiresMatch": false,
+          "ValidationMode": "None",
+          "BackRelation": "TESTCAR-TESTCAROWNER1-OWNERID1-OWNERID",
+          "RelationType": "D"
+        }
       ]
     },
     {
       "Name": "TESTCAROWNER2",
+      "Aliases": [],
+      "Files": {},
       "EnabledGenerators": [
         "ModelGenerator",
         "ODataGenerator",
         "EFCoreGenerator"
+      ],
+      "RelationsSpecs": [
+        {
+          "FromStructure": "TESTCAROWNER2",
+          "FromKey": "OWNERID",
+          "ToStructure": "TESTCAR",
+          "ToKey": "OWNERID2",
+          "RelationName": "Testcars",
+          "RequiresMatch": false,
+          "ValidationMode": "None",
+          "BackRelation": "TESTCAR-TESTCAROWNER2-OWNERID2-OWNERID",
+          "RelationType": "D"
+        }
       ]
     },
     {
       "Name": "TESTCAROWNER3",
+      "Aliases": [],
+      "Files": {},
       "EnabledGenerators": [
         "ModelGenerator",
         "ODataGenerator",
         "EFCoreGenerator"
+      ],
+      "RelationsSpecs": [
+        {
+          "FromStructure": "TESTCAROWNER3",
+          "FromKey": "OWNERID",
+          "ToStructure": "TESTCAR",
+          "ToKey": "OWNERID3",
+          "RelationName": "Testcars",
+          "RequiresMatch": false,
+          "ValidationMode": "None",
+          "BackRelation": "TESTCAR-TESTCAROWNER3-OWNERID3-OWNERID",
+          "RelationType": "D"
+        }
       ]
     }
   ],

@@ -52,7 +52,7 @@ namespace Services.Test.UnitTests
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data nonuniquepks, @ODataNonuniquepksSingle, JsonConvert.DeserializeObject<ODataNonuniquepksSingle>(result)
+            data nonuniquepk, @ODataNonuniquepkSingle, JsonConvert.DeserializeObject<ODataNonuniquepkSingle>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -73,7 +73,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a Nonuniquepk object
-            data doNonuniquepk, @Nonuniquepk, JsonConvert.DeserializeObject<ODataNonuniquepk>(getResult).Value[0]
+            data doNonuniquepk, @Nonuniquepk, JsonConvert.DeserializeObject<ODataNonuniquepkSingle>(getResult).Value[0]
 
             doNonuniquepk.Pk = TestConstants.Instance.UpdateNonuniquepk_Pk
 
@@ -124,7 +124,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a Nonuniquepk object
-            doNonuniquepk = JsonConvert.DeserializeObject<OdataNonuniquepk>(getResult).Value.FirstOrDefault(lambda (k) {k.Name.Equals("Y")})
+            doNonuniquepk = JsonConvert.DeserializeObject<OdataNonuniquepkSingle>(getResult).Value.FirstOrDefault(lambda (k) {k.Name.Equals("Y")})
             Assert.AreEqual(doNonuniquepk.Name, "Y")
 
             ;;Update one non-existant property in the customer
@@ -162,7 +162,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a Nonuniquepk object
-            doNonuniquepk = JsonConvert.DeserializeObject<OdataNonuniquepk>(getResult).Value[0]
+            doNonuniquepk = JsonConvert.DeserializeObject<OdataNonuniquepkSingle>(getResult).Value[0]
 
             ;;Verify that the property was changed
             Assert.AreEqual(doNonuniquepk.Name, "Z")

@@ -205,7 +205,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a Order object
-            data doOrder, @Order, JsonConvert.DeserializeObject<Order>(getResult)
+            data doOrder, @Order, JsonConvert.DeserializeObject<ODataOrderSingle>(getResult).Value
 
             doOrder.OrderNumber = TestConstants.Instance.UpdateOrder_OrderNumber
 
@@ -227,7 +227,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a Order object
-            doOrder = JsonConvert.DeserializeObject<Order>(getResult)
+            doOrder = JsonConvert.DeserializeObject<ODataOrderSingle>(getResult).Value
 
             ;;Change the first non key field to test full update
             doOrder.PlacedBy = "Y"
@@ -248,7 +248,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a Order object
-            doOrder = JsonConvert.DeserializeObject<Order>(getResult)
+            doOrder = JsonConvert.DeserializeObject<OdataOrderSingle>(getResult).Value
             Assert.AreEqual(doOrder.PlacedBy, "Y")
 
             ;;Update one non-existant property in the customer
@@ -286,7 +286,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a Order object
-            doOrder = JsonConvert.DeserializeObject<Order>(getResult)
+            doOrder = JsonConvert.DeserializeObject<OdataOrderSingle>(getResult).Value
 
             ;;Verify that the property was changed
             Assert.AreEqual(doOrder.PlacedBy, "Z")

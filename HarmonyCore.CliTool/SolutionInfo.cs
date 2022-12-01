@@ -84,6 +84,7 @@ namespace HarmonyCore.CliTool
             }
             catch (Exception ex)
             {
+                result.Projects = new List<ProjectInfo>();
                 Console.WriteLine("WARNING: Exception while synthesizing codegen project information: {0}", ex);
             }
 
@@ -136,12 +137,20 @@ namespace HarmonyCore.CliTool
                 var projectDoc = new System.Xml.XmlDocument { PreserveWhitespace = true };
                 projectDoc.Load(path);
                 var imports = projectDoc.GetElementsByTagName("Import").OfType<System.Xml.XmlNode>().Where(node => node.Attributes.GetNamedItem("Project")?.Value?.Contains("Synergex.SynergyDE.Traditional.targets") ?? false).ToList();
-                foreach(var import in imports)
+                var imports2 = projectDoc.GetElementsByTagName("Import").OfType<System.Xml.XmlNode>().Where(node => node.Attributes.GetNamedItem("Project")?.Value?.Contains("Synergex.SynergyDE.Traditional.UnitTest.targets") ?? false).ToList();
+                foreach (var import in imports.Concat(imports2))
                 {
                     import.ParentNode.RemoveChild(import);
                 }
 
-                return Microsoft.Build.Evaluation.Project.FromXmlReader(new System.Xml.XmlNodeReader(projectDoc), options);
+                try
+                {
+                    return Microsoft.Build.Evaluation.Project.FromXmlReader(new System.Xml.XmlNodeReader(projectDoc), options);
+                }
+                catch
+                {
+                    return null;
+                }
             }
         }
 

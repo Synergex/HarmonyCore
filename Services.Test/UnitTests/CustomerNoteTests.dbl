@@ -80,7 +80,7 @@ namespace Services.Test.UnitTests
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data customerNotes, @ODataCustomerNotesSingle, JsonConvert.DeserializeObject<ODataCustomerNotesSingle>(result)
+            data customerNote, @ODataCustomerNoteSingle, JsonConvert.DeserializeObject<ODataCustomerNoteSingle>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -131,7 +131,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a CustomerNote object
-            data doCustomerNote, @CustomerNote, JsonConvert.DeserializeObject<ODataCustomerNote>(getResult).Value[0]
+            data doCustomerNote, @CustomerNote, JsonConvert.DeserializeObject<ODataCustomerNoteSingle>(getResult).Value[0]
 
             doCustomerNote.CustomerNumber = TestConstants.Instance.UpdateCustomerNote_CustomerNumber
 
@@ -182,7 +182,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a CustomerNote object
-            doCustomerNote = JsonConvert.DeserializeObject<OdataCustomerNote>(getResult).Value.FirstOrDefault(lambda (k) {k.NoteNumber.Equals("Y")})
+            doCustomerNote = JsonConvert.DeserializeObject<OdataCustomerNoteSingle>(getResult).Value.FirstOrDefault(lambda (k) {k.NoteNumber.Equals("Y")})
             Assert.AreEqual(doCustomerNote.NoteNumber, 8)
 
             ;;Update one non-existant property in the customer
@@ -220,7 +220,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a CustomerNote object
-            doCustomerNote = JsonConvert.DeserializeObject<OdataCustomerNote>(getResult).Value[0]
+            doCustomerNote = JsonConvert.DeserializeObject<OdataCustomerNoteSingle>(getResult).Value[0]
 
             ;;Verify that the property was changed
             Assert.AreEqual(doCustomerNote.NoteNumber, 9)

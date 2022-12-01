@@ -176,7 +176,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a Vendor object
-            data doVendor, @Vendor, JsonConvert.DeserializeObject<Vendor>(getResult)
+            data doVendor, @Vendor, JsonConvert.DeserializeObject<ODataVendorSingle>(getResult).Value
 
             doVendor.VendorNumber = TestConstants.Instance.UpdateVendor_VendorNumber
 
@@ -198,7 +198,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a Vendor object
-            doVendor = JsonConvert.DeserializeObject<Vendor>(getResult)
+            doVendor = JsonConvert.DeserializeObject<ODataVendorSingle>(getResult).Value
 
             ;;Change the first non key field to test full update
             doVendor.Name = "Y"
@@ -219,7 +219,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a Vendor object
-            doVendor = JsonConvert.DeserializeObject<Vendor>(getResult)
+            doVendor = JsonConvert.DeserializeObject<OdataVendorSingle>(getResult).Value
             Assert.AreEqual(doVendor.Name, "Y")
 
             ;;Update one non-existant property in the customer
@@ -257,7 +257,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a Vendor object
-            doVendor = JsonConvert.DeserializeObject<Vendor>(getResult)
+            doVendor = JsonConvert.DeserializeObject<OdataVendorSingle>(getResult).Value
 
             ;;Verify that the property was changed
             Assert.AreEqual(doVendor.Name, "Z")

@@ -131,7 +131,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a Testcarowner1 object
-            data doTestcarowner1, @Testcarowner1, JsonConvert.DeserializeObject<Testcarowner1>(getResult)
+            data doTestcarowner1, @Testcarowner1, JsonConvert.DeserializeObject<ODataTestcarowner1Single>(getResult).Value
 
             doTestcarowner1.Id = TestConstants.Instance.UpdateTestcarowner1_Id
 
@@ -153,7 +153,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a Testcarowner1 object
-            doTestcarowner1 = JsonConvert.DeserializeObject<Testcarowner1>(getResult)
+            doTestcarowner1 = JsonConvert.DeserializeObject<ODataTestcarowner1Single>(getResult).Value
 
             ;;Change the first non key field to test full update
             doTestcarowner1.Name = "Y"
@@ -174,7 +174,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a Testcarowner1 object
-            doTestcarowner1 = JsonConvert.DeserializeObject<Testcarowner1>(getResult)
+            doTestcarowner1 = JsonConvert.DeserializeObject<OdataTestcarowner1Single>(getResult).Value
             Assert.AreEqual(doTestcarowner1.Name, "Y")
 
             ;;Update one non-existant property in the customer
@@ -212,7 +212,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a Testcarowner1 object
-            doTestcarowner1 = JsonConvert.DeserializeObject<Testcarowner1>(getResult)
+            doTestcarowner1 = JsonConvert.DeserializeObject<OdataTestcarowner1Single>(getResult).Value
 
             ;;Verify that the property was changed
             Assert.AreEqual(doTestcarowner1.Name, "Z")

@@ -157,11 +157,7 @@ namespace <NAMESPACE>
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-    <IF STRUCTURE_HAS_UNIQUE_PK>
             data <structureNoplural>, @OData<StructureNoplural>Single, JsonConvert.DeserializeObject<OData<StructureNoplural>Single>(result)
-    <ELSE>
-            data <structurePlural>, @OData<StructurePlural>Single, JsonConvert.DeserializeObject<OData<StructurePlural>Single>(result)
-    </IF>
         endmethod
 ;//
 ;//
@@ -283,7 +279,7 @@ namespace <NAMESPACE>
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a <StructureNoplural> object
-            data do<StructureNoplural>, @<StructureNoplural>, JsonConvert.DeserializeObject<<IF NOT STRUCTURE_HAS_UNIQUE_KEY>OData</IF><StructureNoplural>>(getResult)<IF NOT STRUCTURE_HAS_UNIQUE_KEY>.Value[0]</IF>
+            data do<StructureNoplural>, @<StructureNoplural>, JsonConvert.DeserializeObject<OData<StructureNoplural>Single>(getResult)<IF NOT STRUCTURE_HAS_UNIQUE_KEY>.Value[0]<ELSE>.Value</IF>
 
   <PRIMARY_KEY>
     <SEGMENT_LOOP>
@@ -320,7 +316,7 @@ namespace <NAMESPACE>
                 Assert.AreEqual(do<StructureNoplural>.<PRIMARY_KEY><SEGMENT_LOOP><SegmentName>, resultItem.<SegmentName></SEGMENT_LOOP></PRIMARY_KEY>)
             end
             <ELSE>
-            do<StructureNoplural> = JsonConvert.DeserializeObject<<StructureNoplural>>(getResult)
+            do<StructureNoplural> = JsonConvert.DeserializeObject<OData<StructureNoplural>Single>(getResult).Value
             </IF NOT STRUCTURE_HAS_UNIQUE_KEY>
 
             ;;Change the first non key field to test full update
@@ -354,7 +350,7 @@ namespace <NAMESPACE>
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a <StructureNoplural> object
-            do<StructureNoplural> = JsonConvert.DeserializeObject<<IF NOT STRUCTURE_HAS_UNIQUE_KEY>Odata</IF><StructureNoplural>>(getResult)<IF NOT STRUCTURE_HAS_UNIQUE_KEY>.Value.FirstOrDefault(lambda (k) {k.<COUNTER_1_RESET><FIELD_LOOP><IF NOTKEYSEGMENT AND NOT USED_IN_RELATION><COUNTER_1_INCREMENT><IF COUNTER_1_EQ_1><FieldSqlName></IF COUNTER_1_EQ_1></IF></FIELD_LOOP>.Equals("Y")})</IF>
+            do<StructureNoplural> = JsonConvert.DeserializeObject<Odata<StructureNoplural>Single>(getResult)<IF NOT STRUCTURE_HAS_UNIQUE_KEY>.Value.FirstOrDefault(lambda (k) {k.<COUNTER_1_RESET><FIELD_LOOP><IF NOTKEYSEGMENT AND NOT USED_IN_RELATION><COUNTER_1_INCREMENT><IF COUNTER_1_EQ_1><FieldSqlName></IF COUNTER_1_EQ_1></IF></FIELD_LOOP>.Equals("Y")})<ELSE>.Value</IF>
 
   <COUNTER_1_RESET>
   <FIELD_LOOP>
@@ -419,7 +415,7 @@ namespace <NAMESPACE>
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a <StructureNoplural> object
-            do<StructureNoplural> = JsonConvert.DeserializeObject<<IF NOT STRUCTURE_HAS_UNIQUE_KEY>Odata</IF><StructureNoplural>>(getResult)<IF NOT STRUCTURE_HAS_UNIQUE_KEY>.Value[0]</IF>
+            do<StructureNoplural> = JsonConvert.DeserializeObject<Odata<StructureNoplural>Single>(getResult)<IF NOT STRUCTURE_HAS_UNIQUE_KEY>.Value[0]<ELSE>.Value</IF>
 
             ;;Verify that the property was changed
   <COUNTER_1_RESET>

@@ -205,7 +205,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a OrderItem object
-            data doOrderItem, @OrderItem, JsonConvert.DeserializeObject<OrderItem>(getResult)
+            data doOrderItem, @OrderItem, JsonConvert.DeserializeObject<ODataOrderItemSingle>(getResult).Value
 
             doOrderItem.OrderNumber = TestConstants.Instance.UpdateOrderItem_OrderNumber
             doOrderItem.ItemNumber = TestConstants.Instance.UpdateOrderItem_ItemNumber
@@ -228,7 +228,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a OrderItem object
-            doOrderItem = JsonConvert.DeserializeObject<OrderItem>(getResult)
+            doOrderItem = JsonConvert.DeserializeObject<ODataOrderItemSingle>(getResult).Value
 
             ;;Change the first non key field to test full update
             doOrderItem.QuantityOrdered = 8
@@ -249,7 +249,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a OrderItem object
-            doOrderItem = JsonConvert.DeserializeObject<OrderItem>(getResult)
+            doOrderItem = JsonConvert.DeserializeObject<OdataOrderItemSingle>(getResult).Value
             Assert.AreEqual(doOrderItem.QuantityOrdered, 8)
 
             ;;Update one non-existant property in the customer
@@ -287,7 +287,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a OrderItem object
-            doOrderItem = JsonConvert.DeserializeObject<OrderItem>(getResult)
+            doOrderItem = JsonConvert.DeserializeObject<OdataOrderItemSingle>(getResult).Value
 
             ;;Verify that the property was changed
             Assert.AreEqual(doOrderItem.QuantityOrdered, 9)

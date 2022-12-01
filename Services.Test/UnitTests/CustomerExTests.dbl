@@ -131,7 +131,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a CustomerEx object
-            data doCustomerEx, @CustomerEx, JsonConvert.DeserializeObject<CustomerEx>(getResult)
+            data doCustomerEx, @CustomerEx, JsonConvert.DeserializeObject<ODataCustomerExSingle>(getResult).Value
 
             doCustomerEx.Customerid = TestConstants.Instance.UpdateCustomerEx_Customerid
 
@@ -153,7 +153,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a CustomerEx object
-            doCustomerEx = JsonConvert.DeserializeObject<CustomerEx>(getResult)
+            doCustomerEx = JsonConvert.DeserializeObject<ODataCustomerExSingle>(getResult).Value
 
             ;;Change the first non key field to test full update
             doCustomerEx.Extradata = "Y"
@@ -174,7 +174,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a CustomerEx object
-            doCustomerEx = JsonConvert.DeserializeObject<CustomerEx>(getResult)
+            doCustomerEx = JsonConvert.DeserializeObject<OdataCustomerExSingle>(getResult).Value
             Assert.AreEqual(doCustomerEx.Extradata, "Y")
 
             ;;Update one non-existant property in the customer
@@ -212,7 +212,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a CustomerEx object
-            doCustomerEx = JsonConvert.DeserializeObject<CustomerEx>(getResult)
+            doCustomerEx = JsonConvert.DeserializeObject<OdataCustomerExSingle>(getResult).Value
 
             ;;Verify that the property was changed
             Assert.AreEqual(doCustomerEx.Extradata, "Z")
