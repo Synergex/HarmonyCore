@@ -94,7 +94,7 @@ namespace Services.Test.UnitTests
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data order, @ODataOrderSingle, JsonConvert.DeserializeObject<ODataOrderSingle>(result)
+            data order = JsonConvert.DeserializeObject<Order>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -109,7 +109,7 @@ namespace Services.Test.UnitTests
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data order, @ODataOrderSingle, JsonConvert.DeserializeObject<ODataOrderSingle>(result)
+            data order = JsonConvert.DeserializeObject<Order>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -124,7 +124,7 @@ namespace Services.Test.UnitTests
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data order, @ODataOrderSingle, JsonConvert.DeserializeObject<ODataOrderSingle>(result)
+            data order = JsonConvert.DeserializeObject<Order>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -139,7 +139,7 @@ namespace Services.Test.UnitTests
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data order, @ODataOrderSingle, JsonConvert.DeserializeObject<ODataOrderSingle>(result)
+            data order = JsonConvert.DeserializeObject<Order>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -154,7 +154,7 @@ namespace Services.Test.UnitTests
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data orders, @ODataOrdersMultiple,JsonConvert.DeserializeObject<ODataOrdersMultiple>(result)
+            data orders = JsonConvert.DeserializeObject<ODataOrdersMultiple>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -169,7 +169,7 @@ namespace Services.Test.UnitTests
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data orders, @ODataOrdersMultiple,JsonConvert.DeserializeObject<ODataOrdersMultiple>(result)
+            data orders = JsonConvert.DeserializeObject<ODataOrdersMultiple>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -184,7 +184,7 @@ namespace Services.Test.UnitTests
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data orders, @ODataOrdersMultiple,JsonConvert.DeserializeObject<ODataOrdersMultiple>(result)
+            data orders = JsonConvert.DeserializeObject<ODataOrdersMultiple>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -205,7 +205,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a Order object
-            data doOrder, @Order, JsonConvert.DeserializeObject<ODataOrderSingle>(getResult).Value
+            data doOrder, @Order, JsonConvert.DeserializeObject<Order>(getResult)
 
             doOrder.OrderNumber = TestConstants.Instance.UpdateOrder_OrderNumber
 
@@ -227,7 +227,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a Order object
-            doOrder = JsonConvert.DeserializeObject<ODataOrderSingle>(getResult).Value
+            doOrder = JsonConvert.DeserializeObject<Order>(getResult)
 
             ;;Change the first non key field to test full update
             doOrder.PlacedBy = "Y"
@@ -248,7 +248,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a Order object
-            doOrder = JsonConvert.DeserializeObject<OdataOrderSingle>(getResult).Value
+            doOrder = JsonConvert.DeserializeObject<Order>(getResult)
             Assert.AreEqual(doOrder.PlacedBy, "Y")
 
             ;;Update one non-existant property in the customer
@@ -286,7 +286,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a Order object
-            doOrder = JsonConvert.DeserializeObject<OdataOrderSingle>(getResult).Value
+            doOrder = JsonConvert.DeserializeObject<Order>(getResult)
 
             ;;Verify that the property was changed
             Assert.AreEqual(doOrder.PlacedBy, "Z")

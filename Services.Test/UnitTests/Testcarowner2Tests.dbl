@@ -80,7 +80,7 @@ namespace Services.Test.UnitTests
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data testcarowner2, @ODataTestcarowner2Single, JsonConvert.DeserializeObject<ODataTestcarowner2Single>(result)
+            data testcarowner2 = JsonConvert.DeserializeObject<Testcarowner2>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -95,7 +95,7 @@ namespace Services.Test.UnitTests
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data testcarowner2, @ODataTestcarowner2Single, JsonConvert.DeserializeObject<ODataTestcarowner2Single>(result)
+            data testcarowner2 = JsonConvert.DeserializeObject<Testcarowner2>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -110,7 +110,7 @@ namespace Services.Test.UnitTests
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data testcarowner2, @ODataTestcarowner2Single, JsonConvert.DeserializeObject<ODataTestcarowner2Single>(result)
+            data testcarowner2 = JsonConvert.DeserializeObject<Testcarowner2>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -131,7 +131,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a Testcarowner2 object
-            data doTestcarowner2, @Testcarowner2, JsonConvert.DeserializeObject<ODataTestcarowner2Single>(getResult).Value
+            data doTestcarowner2, @Testcarowner2, JsonConvert.DeserializeObject<Testcarowner2>(getResult)
 
             doTestcarowner2.Id = TestConstants.Instance.UpdateTestcarowner2_Id
 
@@ -153,7 +153,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a Testcarowner2 object
-            doTestcarowner2 = JsonConvert.DeserializeObject<ODataTestcarowner2Single>(getResult).Value
+            doTestcarowner2 = JsonConvert.DeserializeObject<Testcarowner2>(getResult)
 
             ;;Change the first non key field to test full update
             doTestcarowner2.Name = "Y"
@@ -174,7 +174,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a Testcarowner2 object
-            doTestcarowner2 = JsonConvert.DeserializeObject<OdataTestcarowner2Single>(getResult).Value
+            doTestcarowner2 = JsonConvert.DeserializeObject<Testcarowner2>(getResult)
             Assert.AreEqual(doTestcarowner2.Name, "Y")
 
             ;;Update one non-existant property in the customer
@@ -212,7 +212,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a Testcarowner2 object
-            doTestcarowner2 = JsonConvert.DeserializeObject<OdataTestcarowner2Single>(getResult).Value
+            doTestcarowner2 = JsonConvert.DeserializeObject<Testcarowner2>(getResult)
 
             ;;Verify that the property was changed
             Assert.AreEqual(doTestcarowner2.Name, "Z")

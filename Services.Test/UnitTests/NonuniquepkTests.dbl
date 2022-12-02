@@ -52,7 +52,7 @@ namespace Services.Test.UnitTests
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data nonuniquepk, @ODataNonuniquepkSingle, JsonConvert.DeserializeObject<ODataNonuniquepkSingle>(result)
+            data nonuniquepk = JsonConvert.DeserializeObject<OdataNonuniquepkSingle>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -73,7 +73,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a Nonuniquepk object
-            data doNonuniquepk, @Nonuniquepk, JsonConvert.DeserializeObject<ODataNonuniquepkSingle>(getResult).Value[0]
+            data doNonuniquepk, @Nonuniquepk, JsonConvert.DeserializeObject<OdataNonuniquepkSingle>(getResult).Value[0]
 
             doNonuniquepk.Pk = TestConstants.Instance.UpdateNonuniquepk_Pk
 

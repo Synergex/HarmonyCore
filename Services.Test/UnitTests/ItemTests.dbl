@@ -94,7 +94,7 @@ namespace Services.Test.UnitTests
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data item, @ODataItemSingle, JsonConvert.DeserializeObject<ODataItemSingle>(result)
+            data item = JsonConvert.DeserializeObject<Item>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -109,7 +109,7 @@ namespace Services.Test.UnitTests
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data item, @ODataItemSingle, JsonConvert.DeserializeObject<ODataItemSingle>(result)
+            data item = JsonConvert.DeserializeObject<Item>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -124,7 +124,7 @@ namespace Services.Test.UnitTests
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data item, @ODataItemSingle, JsonConvert.DeserializeObject<ODataItemSingle>(result)
+            data item = JsonConvert.DeserializeObject<Item>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -139,7 +139,7 @@ namespace Services.Test.UnitTests
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data item, @ODataItemSingle, JsonConvert.DeserializeObject<ODataItemSingle>(result)
+            data item = JsonConvert.DeserializeObject<Item>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -154,7 +154,7 @@ namespace Services.Test.UnitTests
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data items, @ODataItemsMultiple,JsonConvert.DeserializeObject<ODataItemsMultiple>(result)
+            data items = JsonConvert.DeserializeObject<ODataItemsMultiple>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -169,7 +169,7 @@ namespace Services.Test.UnitTests
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data items, @ODataItemsMultiple,JsonConvert.DeserializeObject<ODataItemsMultiple>(result)
+            data items = JsonConvert.DeserializeObject<ODataItemsMultiple>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -184,7 +184,7 @@ namespace Services.Test.UnitTests
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data items, @ODataItemsMultiple,JsonConvert.DeserializeObject<ODataItemsMultiple>(result)
+            data items = JsonConvert.DeserializeObject<ODataItemsMultiple>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -199,7 +199,7 @@ namespace Services.Test.UnitTests
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data items, @ODataItemsMultiple,JsonConvert.DeserializeObject<ODataItemsMultiple>(result)
+            data items = JsonConvert.DeserializeObject<ODataItemsMultiple>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -220,7 +220,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a Item object
-            data doItem, @Item, JsonConvert.DeserializeObject<ODataItemSingle>(getResult).Value
+            data doItem, @Item, JsonConvert.DeserializeObject<Item>(getResult)
 
             doItem.ItemNumber = TestConstants.Instance.UpdateItem_ItemNumber
 
@@ -242,7 +242,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a Item object
-            doItem = JsonConvert.DeserializeObject<ODataItemSingle>(getResult).Value
+            doItem = JsonConvert.DeserializeObject<Item>(getResult)
 
             ;;Change the first non key field to test full update
             doItem.LatinName = "Y"
@@ -263,7 +263,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a Item object
-            doItem = JsonConvert.DeserializeObject<OdataItemSingle>(getResult).Value
+            doItem = JsonConvert.DeserializeObject<Item>(getResult)
             Assert.AreEqual(doItem.LatinName, "Y")
 
             ;;Update one non-existant property in the customer
@@ -301,7 +301,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a Item object
-            doItem = JsonConvert.DeserializeObject<OdataItemSingle>(getResult).Value
+            doItem = JsonConvert.DeserializeObject<Item>(getResult)
 
             ;;Verify that the property was changed
             Assert.AreEqual(doItem.LatinName, "Z")

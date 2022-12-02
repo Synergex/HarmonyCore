@@ -80,7 +80,7 @@ namespace Services.Test.UnitTests
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data testcarlot, @ODataTestcarlotSingle, JsonConvert.DeserializeObject<ODataTestcarlotSingle>(result)
+            data testcarlot = JsonConvert.DeserializeObject<Testcarlot>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -95,7 +95,7 @@ namespace Services.Test.UnitTests
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data testcarlot, @ODataTestcarlotSingle, JsonConvert.DeserializeObject<ODataTestcarlotSingle>(result)
+            data testcarlot = JsonConvert.DeserializeObject<Testcarlot>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -110,7 +110,7 @@ namespace Services.Test.UnitTests
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data testcarlot, @ODataTestcarlotSingle, JsonConvert.DeserializeObject<ODataTestcarlotSingle>(result)
+            data testcarlot = JsonConvert.DeserializeObject<Testcarlot>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -131,7 +131,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a Testcarlot object
-            data doTestcarlot, @Testcarlot, JsonConvert.DeserializeObject<ODataTestcarlotSingle>(getResult).Value
+            data doTestcarlot, @Testcarlot, JsonConvert.DeserializeObject<Testcarlot>(getResult)
 
             doTestcarlot.Id = TestConstants.Instance.UpdateTestcarlot_Id
 
@@ -153,7 +153,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a Testcarlot object
-            doTestcarlot = JsonConvert.DeserializeObject<ODataTestcarlotSingle>(getResult).Value
+            doTestcarlot = JsonConvert.DeserializeObject<Testcarlot>(getResult)
 
             ;;Change the first non key field to test full update
             doTestcarlot.Name = "Y"
@@ -174,7 +174,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a Testcarlot object
-            doTestcarlot = JsonConvert.DeserializeObject<OdataTestcarlotSingle>(getResult).Value
+            doTestcarlot = JsonConvert.DeserializeObject<Testcarlot>(getResult)
             Assert.AreEqual(doTestcarlot.Name, "Y")
 
             ;;Update one non-existant property in the customer
@@ -212,7 +212,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a Testcarlot object
-            doTestcarlot = JsonConvert.DeserializeObject<OdataTestcarlotSingle>(getResult).Value
+            doTestcarlot = JsonConvert.DeserializeObject<Testcarlot>(getResult)
 
             ;;Verify that the property was changed
             Assert.AreEqual(doTestcarlot.Name, "Z")
