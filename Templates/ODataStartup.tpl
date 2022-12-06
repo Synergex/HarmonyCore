@@ -601,6 +601,7 @@ namespace <NAMESPACE>
             lambda RoutingConfig(endpoints)
             begin
                 endpoints.MapControllers()
+                ConfigureRouting(endpoints)
             end
             
             app.UseRouting()
@@ -625,6 +626,15 @@ namespace <NAMESPACE>
         ;;; <param name="services"></param>
         partial method ConfigureServicesCustom, void
             required in services, @IServiceCollection
+        endmethod
+
+        ;;; <summary>
+        ;;; Declare the ConfigureRouting partial method.
+        ;;; Developers can implement this method in a partial class to provide custom routing configuration.
+        ;;; </summary>
+        ;;; <param name="services"></param>
+        partial method ConfigureRouting, void
+            required in endpoints, @IEndpointRouteBuilder
         endmethod
 
         ;;; <summary>

@@ -295,6 +295,12 @@ namespace Services
 
             services.AddHttpsRedirection(httpsConfig)
 
+            ;; -------------------------------------------------------------------------------
+            ;;Add SignalR support
+            services.AddSignalR().AddNewtonsoftJsonProtocol()
+            services.AddDistributedMemoryCache()
+            services.AddSession()
+
             ;;If there is a ConfigureServicesCustom method, call it
             ConfigureServicesCustom(services)
 
@@ -406,6 +412,7 @@ namespace Services
             lambda RoutingConfig(endpoints)
             begin
                 endpoints.MapControllers()
+                ConfigureRouting(endpoints)
             end
             
             app.UseRouting()
@@ -426,6 +433,15 @@ namespace Services
         ;;; <param name="services"></param>
         partial method ConfigureServicesCustom, void
             required in services, @IServiceCollection
+        endmethod
+
+        ;;; <summary>
+        ;;; Declare the ConfigureRouting partial method.
+        ;;; Developers can implement this method in a partial class to provide custom routing configuration.
+        ;;; </summary>
+        ;;; <param name="services"></param>
+        partial method ConfigureRouting, void
+            required in endpoints, @IEndpointRouteBuilder
         endmethod
 
         ;;; <summary>

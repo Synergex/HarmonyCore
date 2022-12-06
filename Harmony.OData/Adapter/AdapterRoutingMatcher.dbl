@@ -128,10 +128,17 @@ namespace Harmony.OData.Adapter
 						data arguments = pathStr.Substring(startIndex, lastIndex - startIndex)
 						data parsedArguments, @IDictionary<string, string>, new Dictionary<string, string>()
 						_keyValueParser(arguments, parsedArguments)
-						data arg, KeyValuePair<string, Object>
-					
-						foreach arg in parsedArguments
-							candidate.Values.TryAdd(arg.Key, arg.Value)
+						data arg, KeyValuePair<string, string>
+                        data key, @string
+                        data value, @object
+                        data typedParsedArguments, @IEnumerable<KeyValuePair<string, string>>
+						typedParsedArguments = (@IEnumerable<KeyValuePair<string, string>>)parsedArguments
+                        foreach arg in typedParsedArguments
+                        begin
+                            key = arg.Key
+                            value = arg.Value
+                            candidate.Values.TryAdd(key, value)
+                        end
 
 						odataFeature.Path = _translator.Translate(metadata.Template, translatorContext)
 						candidates.SetValidity(i, true)

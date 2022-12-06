@@ -30,6 +30,9 @@ namespace Services.Test
 
         public static Server, @TestServer
 
+        public static TestRequestsFolder, string
+        public static TestResponsesFolder, string
+
         {AssemblyInitialize}
         public static method AssemblyInitialize, void
             required in context, @TestContext
@@ -61,6 +64,18 @@ namespace Services.Test
             ;;Fake out HTTPS
             Server.BaseAddress = new Uri("https://localhost")
 
+            ;;Get the file spec of the TestRequests folder
+            UnitTestEnvironment.TestRequestsFolder = UnitTestEnvironment.FindRelativeFolderForAssembly("TestRequests")
+            if (!String.IsNullOrWhiteSpace(UnitTestEnvironment.TestRequestsFolder))
+            begin
+                ;;Make sure we have a TestResponses folder
+                UnitTestEnvironment.TestResponsesFolder = UnitTestEnvironment.FindRelativeFolderForAssembly("TestResponses")
+                if (String.IsNullOrWhiteSpace(UnitTestEnvironment.TestResponsesFolder))
+                begin
+                    UnitTestEnvironment.TestResponsesFolder = UnitTestEnvironment.TestRequestsFolder.Replace("TestRequests","TestResponses")
+                    Directory.CreateDirectory(UnitTestEnvironment.TestResponsesFolder)
+                end
+            end
         endmethod
 
         {AssemblyCleanup}

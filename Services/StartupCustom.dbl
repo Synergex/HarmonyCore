@@ -40,6 +40,7 @@ import System.Linq
 import System.Threading.Tasks
 import Microsoft.Extensions.Primitives
 import System.Diagnostics
+import Microsoft.AspNetCore.Routing
 
 namespace Services
 
@@ -141,6 +142,12 @@ namespace Services
             ;app.UseEagerContext<ExternalCallContext>(contextPool)
             
             ;;app.UseSignalR(lambda(route){ route.MapHub<OrdersHub>(new PathString("/hub/orders")) })
+        endmethod
+
+        partial method ConfigureRouting, void
+            required in endpoints, @IEndpointRouteBuilder
+        proc
+            endpoints.MapHub<OrdersHub>("/hub/orders")
         endmethod
 
         private method GetTenantId, @string
