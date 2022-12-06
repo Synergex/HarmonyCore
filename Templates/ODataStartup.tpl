@@ -101,6 +101,7 @@ import Microsoft.OpenApi.Models
 import System.Collections.Generic
 import System.IO
 import System.Linq
+import System.Runtime.InteropServices
 import System.Text
 import System.Threading.Tasks
 import <CONTROLLERS_NAMESPACE>
@@ -295,21 +296,21 @@ namespace <NAMESPACE>
                 c.OperationFilter<ODataParametersSwaggerDefinition>()
 
                 ;;If present, use information from Services.xml in swagger documentation
-                data filePath = Path.Combine(System.AppContext.BaseDirectory, "Services.xml")
+                data filePath = Path.Combine(findRelativeFolderForAssembly("XmlDoc"), "Services.xml")
                 if (File.Exists(filePath))
                 begin
                     c.IncludeXmlComments(filePath, true)
                 end
 
                 ;;If present, use information from Services.Controllers.xml in swagger documentation
-                filePath = Path.Combine(System.AppContext.BaseDirectory, "Services.Controllers.xml")
+                filePath = Path.Combine(findRelativeFolderForAssembly("XmlDoc"), "Services.Controllers.xml")
                 if (File.Exists(filePath))
                 begin
                     c.IncludeXmlComments(filePath, true)
                 end
 
                 ;;If present, use information from Services.Models.xml in swagger documentation
-                filePath = Path.Combine(System.AppContext.BaseDirectory, "Services.Models.xml")
+                filePath = Path.Combine(findRelativeFolderForAssembly("XmlDoc"), "Services.Models.xml")
                 if (File.Exists(filePath))
                 begin
                     c.IncludeXmlComments(filePath, true)
@@ -678,6 +679,27 @@ namespace <NAMESPACE>
         endmethod
 
 .endregion
+
+        private static method findRelativeFolderForAssembly, string
+            folderName, string
+        proc
+            data assemblyLocation = ^typeof(Startup).Assembly.Location
+            data currentFolder = Path.GetDirectoryName(assemblyLocation)
+            data rootPath = Path.GetPathRoot(currentFolder)
+            while(currentFolder != rootPath)
+            begin
+                if(Directory.Exists(Path.Combine(currentFolder, folderName))) then
+                    mreturn Path.Combine(currentFolder, folderName)
+                else
+                begin
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) then
+                        currentFolder = Path.GetFullPath(currentFolder + "..\")
+                    else
+                        currentFolder = Path.GetFullPath(currentFolder + "../")
+                end
+            end
+            mreturn ^null
+        endmethod
 
     endclass
 
