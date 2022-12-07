@@ -108,22 +108,6 @@ namespace Services
             ;options.MaximumParallelInvocationsPerClient = 100
         endmethod
 
-		private static method findRelativeFolderForAssembly, string
-			folderName, string
-		proc
-			data assemblyLocation = ^typeof(Startup).Assembly.Location
-			data currentFolder = Path.GetDirectoryName(assemblyLocation)
-			data rootPath = Path.GetPathRoot(currentFolder)
-			while(currentFolder != rootPath)
-			begin
-				if(Directory.Exists(Path.Combine(currentFolder, folderName))) then
-					mreturn Path.Combine(currentFolder, folderName)
-				else
-					currentFolder = Path.GetFullPath(currentFolder + ".." + Path.DirectorySeparatorChar)
-			end
-			mreturn ^null
-		endmethod
-
         private method MakeGenericDbContext, @Microsoft.EntityFrameworkCore.DbContext
             sp, @IServiceProvider
         proc
